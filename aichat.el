@@ -66,7 +66,8 @@
 
 (defvar aichat-mode-map
   (let ((map (make-sparse-keymap)))
-    (define-key map (kbd "M-<return>") #'aichat-buffer)
+                                        ;(define-key map (kbd "M-<return>") #'aichat-buffer)
+    (define-key map (kbd "M-<return>") #'aichat-agent-buffer)
     (define-key map (kbd "C-; a") #'aichat-insert-assistant-tag)
     (define-key map (kbd "C-; u") #'aichat-insert-user-tag)
     (define-key map (kbd "C-; s") #'aichat-insert-system-tag)

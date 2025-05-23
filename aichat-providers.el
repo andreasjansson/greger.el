@@ -26,10 +26,10 @@
      (t
       (error "Unknown provider: %s" provider-name)))))
 
-(defun aichat-providers-build-request (provider-config dialog)
-  "Build request using PROVIDER-CONFIG for DIALOG."
+(defun aichat-providers-build-request (provider-config dialog &optional tools)
+  "Build request using PROVIDER-CONFIG for DIALOG with optional TOOLS."
   (let ((builder (plist-get provider-config :request-builder)))
-    (funcall builder provider-config dialog)))
+    (funcall builder provider-config dialog tools)))
 
 (defun aichat-providers-extract-text (provider-config chunk)
   "Extract text from CHUNK using PROVIDER-CONFIG."
@@ -50,6 +50,8 @@
         (unless value
           (error "Please set the %s environment variable" env-var))
         value))))
+
+
 
 (provide 'aichat-providers)
 

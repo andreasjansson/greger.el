@@ -15,14 +15,14 @@
         :request-builder #'aichat-provider-claude--build-request
         :text-extractor #'aichat-provider-claude--extract-text))
 
-(defun aichat-provider-claude--build-request (config dialog)
-  "Build Claude request using CONFIG for DIALOG."
+(defun aichat-provider-claude--build-request (config dialog &optional tools)
+  "Build Claude request using CONFIG for DIALOG with optional TOOLS."
   (let* ((provider-name (plist-get config :provider))
          (model-name (plist-get config :model))
          (url (plist-get config :url))
          (api-key (aichat-providers--get-api-key provider-name))
          (headers (aichat-provider-claude--build-headers api-key))
-         (data (aichat-provider-claude--build-data model-name dialog)))
+         (data (aichat-provider-claude--build-data model-name dialog tools)))
     (list :url url
           :method "POST"
           :headers headers
@@ -33,12 +33,13 @@
   `(("Content-Type" . "application/json")
     ("x-api-key" . ,api-key)
     ("anthropic-version" . "2023-06-01")
-    ("anthropic-beta" . "messages-2023-12-15")))
+    ("anthropic-beta" . "token-efficient-tools-2025-02-19")))
 
-(defun aichat-provider-claude--build-data (model-name dialog)
-  "Build request data for Claude MODEL-NAME with DIALOG."
+(defun aichat-provider-claude--build-data (model-name dialog &optional tools)
+  "Build request data for Claude MODEL-NAME with DIALOG and optional TOOLS."
   (let ((system-message nil)
-        (user-messages ()))
+        (user-messages ())
+        (request-data nil))
 
     ;; Separate system messages from user/assistant messages
     (dolist (message dialog)
@@ -51,11 +52,22 @@
                   (content . ,content))
                 user-messages))))
 
-    (json-encode `(("model" . ,model-name)
-                   ("messages" . ,(nreverse user-messages))
-                   ("system" . ,system-message)
-                   ("max_tokens" . 8192)
-                   ("stream" . t)))))
+    ;; Build base request
+    (setq request-data `(("model" . ,model-name)
+                        ("messages" . ,(nreverse user-messages))
+                        ("max_tokens" . 8192)
+                        ("stream" . t)))
+
+    ;; Add system message if present
+    (when system-message
+      (push `("system" . ,system-message) request-data))
+
+    ;; Add tools if present
+    (when tools
+      (push `("tools" . ,tools) request-data)
+      (push `("tool_choice" . (("type" . "auto"))) request-data))
+
+    (json-encode request-data)))
 
 (defun aichat-provider-claude--extract-text (event)
   "Extract text from Claude EVENT."
@@ -78,4 +90,4 @@
 
 (provide 'aichat-provider-claude)
 
-;;; aichat-provider-claude.el ends here
+;;; aichat-provider-claude.el ends hereb
