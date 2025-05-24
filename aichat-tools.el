@@ -372,6 +372,7 @@
           (push display-name files))))
 
     (reverse files)))
+
 (defun aichat-tools--ripgrep (pattern path &optional case-sensitive file-type context-lines max-results)
   "Search for PATTERN in PATH using the rg.el package."
   (unless (stringp pattern)
@@ -450,7 +451,6 @@
                   "No matches found"
                 results)))
         (error (format "Failed to execute ripgrep search: %s" (error-message-string err)))))))
-        (error (format "Failed to execute ripgrep: %s" (error-message-string err)))))))
 
 (defun aichat-tools--replace-function (file-path line-number name contents git-commit-message)
   "Replace function NAME at LINE-NUMBER in FILE-PATH with CONTENTS."

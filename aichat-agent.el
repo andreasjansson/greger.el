@@ -9,7 +9,7 @@
 (require 'aichat-stream)
 (require 'aichat-tools)
 
-(defcustom aichat-agent-tools '(read-file list-directory replace-function file-replace-region file-insert-text file-delete-region file-prepend-text file-append-text write-new-file make-directory rename-file)
+(defcustom aichat-agent-tools '(read-file list-directory file-replace-region file-insert-text file-delete-region file-prepend-text file-append-text write-new-file make-directory rename-file ripgrep)
   "List of tools available to the agent."
   :type '(repeat symbol)
   :group 'aichat)
