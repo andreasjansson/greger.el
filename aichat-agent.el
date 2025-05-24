@@ -9,7 +9,7 @@
 (require 'aichat-stream)
 (require 'aichat-tools)
 
-(defcustom aichat-agent-tools '(read-file write-file list-directory)
+(defcustom aichat-agent-tools '(read-file list-directory replace-function file-replace-region file-insert-text file-delete-region file-prepend-text file-append-text write-new-file make-directory rename-file)
   "List of tools available to the agent."
   :type '(repeat symbol)
   :group 'aichat)
@@ -48,6 +48,7 @@
 
     (setq aichat-agent--current-iteration 0)
     (setq aichat-agent--current-dialog (aichat-agent--enhance-dialog-with-system-prompt dialog))
+    (setq aichat-agent--chat-buffer (current-buffer))  ; Store the chat buffer
 
     (aichat-agent--debug "--- DIALOG --- %s" aichat-agent--current-dialog)
 
@@ -180,34 +181,38 @@ If you've already gotten the information you need from previous tool calls in th
 
 (defun aichat-agent--display-tool-execution (tool-calls results)
   "Display the execution of TOOL-CALLS and their RESULTS."
-  (insert "\n\n🔧 **Tool Execution:**\n\n")
-  (dolist (tool-call tool-calls)
-    (let* ((tool-name (alist-get 'name tool-call))
-           (tool-input (alist-get 'input tool-call))
-           (tool-id (alist-get 'id tool-call))
-           (result (seq-find (lambda (r)
-                              (string= (alist-get 'tool_use_id r) tool-id))
-                            results)))
-      (insert (format "- **%s**" tool-name))
-      (when tool-input
-        (insert (format " `%s`" (json-encode tool-input))))
-      (insert "\n")
-      (when result
-        (let ((content (alist-get 'content result)))
-          (insert (format "  Result: %s\n"
-                         (if (> (length content) 200)
-                             (concat (substring content 0 200) "...")
-                           content)))))))
-  (insert "\n"))
+  (with-current-buffer aichat-agent--chat-buffer  ; Ensure we're in the chat buffer
+    (goto-char (point-max))  ; Go to the end of the chat buffer
+    (insert "\n\n🔧 **Tool Execution:**\n\n")
+    (dolist (tool-call tool-calls)
+      (let* ((tool-name (alist-get 'name tool-call))
+             (tool-input (alist-get 'input tool-call))
+             (tool-id (alist-get 'id tool-call))
+             (result (seq-find (lambda (r)
+                                (string= (alist-get 'tool_use_id r) tool-id))
+                              results)))
+        (insert (format "- **%s**" tool-name))
+        (when tool-input
+          (insert (format " `%s`" (json-encode tool-input))))
+        (insert "\n")
+        (when result
+          (let ((content (alist-get 'content result)))
+            (insert (format "  Result: %s\n"
+                           (if (> (length content) 200)
+                               (concat (substring content 0 200) "...")
+                             content)))))))
+    (insert "\n")))
 
 (defun aichat-agent--finish-response ()
   "Finish the agent response."
   (aichat-agent--debug "=== FINISHING RESPONSE - CONVERSATION COMPLETE ===")
-  (goto-char (point-max))
-  (unless (looking-back (concat aichat-user-tag "\n\n") nil)
-    (insert "\n\n" aichat-user-tag "\n\n"))
+  (with-current-buffer aichat-agent--chat-buffer  ; Ensure we're in the chat buffer
+    (goto-char (point-max))
+    (unless (looking-back (concat aichat-user-tag "\n\n") nil)
+      (insert "\n\n" aichat-user-tag "\n\n")))
   (setq aichat-agent--current-iteration 0)
-  (setq aichat-agent--current-dialog nil))
+  (setq aichat-agent--current-dialog nil)
+  (setq aichat-agent--chat-buffer nil))
 
 (defun aichat-agent--request-approval (tool-name tool-input)
   "Request approval for TOOL-NAME with TOOL-INPUT."
