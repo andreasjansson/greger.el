@@ -7,7 +7,7 @@
 
 (require 'json)
 
-(defvar aichat-tools-registry
+(setq aichat-tools-registry
   '((read-file . ((name . "read-file")
                   (description . "Read the contents of a file from the filesystem")
                   (input_schema . ((type . "object")
@@ -39,8 +39,28 @@
                                                        (recursive . ((type . "boolean")
                                                                    (description . "Whether to list files recursively")
                                                                    (default . nil)))))
-                                        (required . []))))))
-  "Registry of available tools and their schemas.")
+                                        (required . [])))))
+
+    (ripgrep . ((name . "ripgrep")
+                (description . "Search for patterns in files using ripgrep (rg) command line tool")
+                (input_schema . ((type . "object")
+                                 (properties . ((pattern . ((type . "string")
+                                                           (description . "The search pattern (regex or literal string)")))
+                                                (path . ((type . "string")
+                                                       (description . "Directory or file path to search in")
+                                                       (default . ".")))
+                                                (case-sensitive . ((type . "boolean")
+                                                                 (description . "Whether the search should be case-sensitive")
+                                                                 (default . nil)))
+                                                (file-type . ((type . "string")
+                                                            (description . "Restrict search to specific file types (e.g., 'py', 'js', 'md')")))
+                                                (context-lines . ((type . "integer")
+                                                                (description . "Number of context lines to show around matches")
+                                                                (default . 0)))
+                                                (max-results . ((type . "integer")
+                                                              (description . "Maximum number of results to return")
+                                                              (default . 50)))))
+                                 (required . ["pattern"])))))))
 
 (defun aichat-tools-get-schemas (tool-names)
   "Get tool schemas for TOOL-NAMES."
@@ -67,6 +87,15 @@
        (or (alist-get 'path args) ".")
        (alist-get 'show-hidden args)
        (alist-get 'recursive args)))
+
+     ((eq tool-symbol 'ripgrep)
+      (aichat-tools--ripgrep
+       (alist-get 'pattern args)
+       (or (alist-get 'path args) ".")
+       (alist-get 'case-sensitive args)
+       (alist-get 'file-type args)
+       (or (alist-get 'context-lines args) 0)
+       (or (alist-get 'max-results args) 50)))
 
      (t
       (error "Unknown tool: %s" tool-name)))))
@@ -167,6 +196,64 @@
           (push display-name files))))
 
     (reverse files)))
+
+(defun aichat-tools--ripgrep (pattern path &optional case-sensitive file-type context-lines max-results)
+  "Search for PATTERN in PATH using ripgrep."
+  (unless (stringp pattern)
+    (error "Pattern must be a string"))
+
+  (unless (stringp path)
+    (error "Path must be a string"))
+
+  ;; Check if rg is available
+  (unless (executable-find "rg")
+    (error "ripgrep (rg) command not found. Please install ripgrep"))
+
+  (let ((expanded-path (expand-file-name path)))
+    (unless (file-exists-p expanded-path)
+      (error "Path does not exist: %s" expanded-path))
+
+    (let ((cmd-args (list "rg"
+                         "--color=never"
+                         "--no-heading"
+                         "--with-filename"
+                         "--line-number")))
+
+      ;; Add case sensitivity option
+      (unless case-sensitive
+        (push "--ignore-case" cmd-args))
+
+      ;; Add file type filter if specified
+      (when file-type
+        (push (format "--type=%s" file-type) cmd-args))
+
+      ;; Add context lines
+      (when (and context-lines (> context-lines 0))
+        (push (format "--context=%d" context-lines) cmd-args))
+
+      ;; Add max results limit
+      (when (and max-results (> max-results 0))
+        (push (format "--max-count=%d" max-results) cmd-args))
+
+      ;; Add pattern and path
+      (push pattern cmd-args)
+      (push expanded-path cmd-args)
+
+      ;; Reverse to get correct order
+      (setq cmd-args (reverse cmd-args))
+
+      (condition-case err
+          (let ((result (with-temp-buffer
+                         (let ((exit-code (apply #'call-process "rg" nil t nil (cdr cmd-args))))
+                           (if (= exit-code 0)
+                               (buffer-string)
+                             (if (= exit-code 1)
+                                 "No matches found"
+                               (error "ripgrep failed with exit code %d: %s" exit-code (buffer-string))))))))
+            (if (string-empty-p (string-trim result))
+                "No matches found"
+              result))
+        (error (format "Failed to execute ripgrep: %s" (error-message-string err)))))))
 
 (provide 'aichat-tools)
 

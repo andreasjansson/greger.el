@@ -14,6 +14,7 @@
 (cl-defstruct aichat-stream-state
   accumulated-output
   complete-response
+  parsed-content-blocks
   process
   output-buffer
   insert-position
@@ -26,11 +27,9 @@
 
 ;;; Public API
 
-;; Add this function to aichat-stream.el
-
 (defun aichat-stream-to-buffer-with-tools (model dialog tools complete-callback &optional cancel-callback)
   "Send streaming request for MODEL with DIALOG and TOOLS, inserting text into current buffer.
-COMPLETE-CALLBACK is called when done with the complete response.
+COMPLETE-CALLBACK is called when done with the parsed content blocks array.
 CANCEL-CALLBACK is called if cancelled."
   (let* ((output-buffer (current-buffer))
          (insert-position (point))
@@ -47,9 +46,9 @@ CANCEL-CALLBACK is called if cancelled."
                             (goto-char (aichat-stream-state-insert-position state))
                             (insert text)
                             (setf (aichat-stream-state-insert-position state) (point)))))
-         (wrapped-complete-callback (lambda (complete-response state)
+         (wrapped-complete-callback (lambda (parsed-blocks state)
                                       (when complete-callback
-                                        (funcall complete-callback complete-response)))))
+                                        (funcall complete-callback parsed-blocks)))))
 
     (activate-change-group undo-handle)
 
@@ -70,6 +69,7 @@ CANCEL-CALLBACK is called if cancelled."
          (state (apply #'make-aichat-stream-state
                       :accumulated-output ""
                       :complete-response ""
+                      :parsed-content-blocks '()
                       :process process
                       :text-callback text-callback
                       :complete-callback complete-callback
@@ -113,9 +113,9 @@ CANCEL-CALLBACK is called if cancelled."
                             (goto-char (aichat-stream-state-insert-position state))
                             (insert text)
                             (setf (aichat-stream-state-insert-position state) (point)))))
-         (wrapped-complete-callback (lambda (complete-response state)
-                                      ;; Throw away complete response for backward compatibility
-                                      (declare (ignore complete-response))
+         (wrapped-complete-callback (lambda (parsed-blocks state)
+                                      ;; Ignore parsed blocks for backward compatibility
+                                      (declare (ignore parsed-blocks))
                                       (when complete-callback (funcall complete-callback)))))
 
     (activate-change-group undo-handle)
@@ -135,12 +135,11 @@ ERROR-CALLBACK is called with error message if request fails."
   (let* ((model (alist-get 'model request))
          (dialog (aichat-stream--convert-request-to-dialog request))
          (provider-config (aichat-providers-get-config model))
-         (complete-callback (lambda (complete-response state)
+         (complete-callback (lambda (parsed-blocks state)
                               (declare (ignore state))
                               (when response-callback
                                 (condition-case err
-                                    (let ((response (aichat-stream--parse-complete-response
-                                                   complete-response provider-config)))
+                                    (let ((response `((content . ,(apply #'vector parsed-blocks)))))
                                       (funcall response-callback response))
                                   (error
                                    (when error-callback
@@ -164,6 +163,7 @@ STATE-ARGS are additional arguments to initialize the state struct."
          (state (apply #'make-aichat-stream-state
                       :accumulated-output ""
                       :complete-response ""
+                      :parsed-content-blocks '()
                       :process process
                       :text-callback text-callback
                       :complete-callback complete-callback
@@ -206,37 +206,117 @@ STATE-ARGS are additional arguments to initialize the state struct."
   (setf (aichat-stream-state-accumulated-output state)
         (concat (aichat-stream-state-accumulated-output state) output))
 
-  (aichat-stream--extract-and-process-chunks state provider-config))
+  (aichat-stream--process-claude-events state))
 
-(defun aichat-stream--extract-and-process-chunks (state provider-config)
-  "Extract complete chunks from STATE and process them."
-  (let ((accumulated (aichat-stream-state-accumulated-output state)))
-    (cl-loop while (string-match-p "\n\n" accumulated)
-             for separator-pos = (string-match-p "\n\n" accumulated)
-             for chunk = (substring accumulated 0 separator-pos)
-             for text = (aichat-providers-extract-text provider-config chunk)
-             do (progn
-                  (when (and text (aichat-stream-state-text-callback state))
-                    (funcall (aichat-stream-state-text-callback state) text state))
-                  (setq accumulated (substring accumulated (+ separator-pos 2))))
-             finally (setf (aichat-stream-state-accumulated-output state) accumulated))))
+(defun aichat-stream--process-claude-events (state)
+  "Process Claude streaming events from accumulated output in STATE."
+  (let ((accumulated (aichat-stream-state-accumulated-output state))
+        (remaining ""))
+
+    ;; Process complete lines (events)
+    (while (string-match "\n" accumulated)
+      (let* ((line-end (match-end 0))
+             (line (substring accumulated 0 (1- line-end))))
+
+        ;; Process the line if it's a data event
+        (when (string-prefix-p "data: " line)
+          (let ((data-json (substring line 6)))
+            (unless (string= data-json "[DONE]")
+              (aichat-stream--handle-claude-event data-json state))))
+
+        ;; Remove processed line
+        (setq accumulated (substring accumulated line-end))))
+
+    ;; Store remaining incomplete data
+    (setf (aichat-stream-state-accumulated-output state) accumulated)))
+
+(defun aichat-stream--handle-claude-event (data-json state)
+  "Handle a single Claude event with DATA-JSON using STATE."
+  (condition-case nil
+      (let* ((data (json-read-from-string data-json))
+             (type (alist-get 'type data)))
+        (cond
+         ;; Content block start - create new content block
+         ((string= type "content_block_start")
+          (let* ((index (alist-get 'index data))
+                 (content-block (copy-alist (alist-get 'content_block data)))
+                 (blocks (aichat-stream-state-parsed-content-blocks state)))
+
+            ;; Initialize content for accumulation
+            (cond
+             ((string= (alist-get 'type content-block) "tool_use")
+              (setf (alist-get 'input content-block) ""))
+             ((string= (alist-get 'type content-block) "text")
+              (setf (alist-get 'text content-block) "")))
+
+            ;; Add block at the right index
+            (aichat-stream--ensure-block-at-index blocks index content-block state)))
+
+         ;; Content block delta - update existing content block
+         ((string= type "content_block_delta")
+          (let* ((index (alist-get 'index data))
+                 (delta (alist-get 'delta data))
+                 (delta-type (alist-get 'type delta))
+                 (blocks (aichat-stream-state-parsed-content-blocks state)))
+
+            (when (< index (length blocks))
+              (let ((block (nth index blocks)))
+                (cond
+                 ;; Text delta
+                 ((string= delta-type "text_delta")
+                  (let ((text (alist-get 'text delta)))
+                    (setf (alist-get 'text block)
+                          (concat (alist-get 'text block) text))
+                    ;; Call text callback for live display
+                    (when (aichat-stream-state-text-callback state)
+                      (funcall (aichat-stream-state-text-callback state) text state))))
+
+                 ;; Tool input delta
+                 ((string= delta-type "input_json_delta")
+                  (let ((partial-json (alist-get 'partial_json delta)))
+                    (setf (alist-get 'input block)
+                          (concat (alist-get 'input block) partial-json)))))))))
+
+         ;; Content block stop - finalize tool input if needed
+         ((string= type "content_block_stop")
+          (let* ((index (alist-get 'index data))
+                 (blocks (aichat-stream-state-parsed-content-blocks state)))
+
+            (when (< index (length blocks))
+              (let ((block (nth index blocks)))
+                (when (and (string= (alist-get 'type block) "tool_use")
+                          (stringp (alist-get 'input block)))
+                  ;; Parse accumulated JSON input
+                  (let ((input-str (alist-get 'input block)))
+                    (condition-case nil
+                        (if (string-empty-p input-str)
+                            (setf (alist-get 'input block) '())
+                          (setf (alist-get 'input block)
+                                (json-read-from-string input-str)))
+                      (error
+                       (setf (alist-get 'input block) '())))))))))))
+    (error nil))) ; Ignore parse errors
+
+(defun aichat-stream--ensure-block-at-index (blocks index new-block state)
+  "Ensure BLOCKS list has NEW-BLOCK at INDEX, extending if necessary."
+  (let ((current-blocks (aichat-stream-state-parsed-content-blocks state)))
+    ;; Extend list if needed
+    (while (<= (length current-blocks) index)
+      (setq current-blocks (append current-blocks (list nil))))
+
+    ;; Set the block at index
+    (setf (nth index current-blocks) new-block)
+    (setf (aichat-stream-state-parsed-content-blocks state) current-blocks)))
 
 (defun aichat-stream--handle-completion (proc state provider-config)
   "Handle process completion for PROC using STATE."
   (when (memq (process-status proc) '(exit signal))
-    ;; Process any remaining accumulated output
-    (let ((remaining (aichat-stream-state-accumulated-output state)))
-      (unless (string-empty-p remaining)
-        (ignore-errors
-          (aichat-providers-extract-text provider-config remaining))))
-
     (funcall (aichat-stream-state-restore-callback state) state)
 
     (if (= (process-exit-status proc) 0)
         (when (aichat-stream-state-complete-callback state)
-          (funcall (aichat-stream-state-complete-callback state)
-                   (aichat-stream-state-complete-response state)
-                   state))
+          (let ((parsed-blocks (aichat-stream-state-parsed-content-blocks state)))
+            (funcall (aichat-stream-state-complete-callback state) parsed-blocks state)))
       (when (aichat-stream-state-cancel-callback state)
         (funcall (aichat-stream-state-cancel-callback state))))))
 
@@ -268,16 +348,6 @@ STATE-ARGS are additional arguments to initialize the state struct."
                  (content . ,(alist-get 'content msg))))
              messages))))
 
-(defun aichat-stream--parse-complete-response (response-text provider-config)
-  "Parse complete RESPONSE-TEXT using PROVIDER-CONFIG."
-  (or (ignore-errors
-        (let ((parsed (json-read-from-string response-text)))
-          (if (alist-get 'content parsed)
-              parsed
-            `((content . [((type . "text") (text . ,response-text))])))))
-      ;; Fallback if JSON parsing fails
-      `((content . [((type . "text") (text . ,response-text))]))))
-
 (defun aichat-stream--start-curl-process (request-spec)
   "Start curl process with REQUEST-SPEC."
   (start-process-shell-command
@@ -299,9 +369,6 @@ STATE-ARGS are additional arguments to initialize the state struct."
                 (format "-d '%s'" (replace-regexp-in-string "'" "'\\\\''" data))
               "")
             url)))
-
-;; Backward compatibility
-(defalias 'aichat-stream-send-request 'aichat-stream-to-buffer)
 
 (provide 'aichat-stream)
 

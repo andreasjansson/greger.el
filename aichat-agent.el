@@ -49,6 +49,8 @@
     (setq aichat-agent--current-iteration 0)
     (setq aichat-agent--current-dialog (aichat-agent--enhance-dialog-with-system-prompt dialog))
 
+    (aichat-agent--debug "--- DIALOG --- %s" aichat-agent--current-dialog)
+
     (aichat-agent--debug "=== STARTING AGENT SESSION ===")
 
     (aichat-agent--run-agent-loop)))
@@ -59,19 +61,11 @@
     (message "[AGENT DEBUG] %s" (apply #'format format-string args))))
 
 (defun aichat-agent--run-agent-loop ()
-  "Run the main agent loop, similar to toololo's approach."
+  "Run the main agent loop."
   (let ((tools (aichat-tools-get-schemas aichat-agent-tools)))
 
     (aichat-agent--debug "=== ITERATION %d ===" aichat-agent--current-iteration)
     (aichat-agent--debug "Dialog length: %d messages" (length aichat-agent--current-dialog))
-
-    ;; Log the COMPLETE dialog being sent to Claude
-    (aichat-agent--debug "===== COMPLETE DIALOG BEING SENT TO CLAUDE =====")
-    (dolist (msg aichat-agent--current-dialog)
-      (aichat-agent--debug "MESSAGE TYPE: %s" (car msg))
-      (aichat-agent--debug "MESSAGE CONTENT: %s" (cdr msg))
-      (aichat-agent--debug "---"))
-    (aichat-agent--debug "===== END DIALOG =====")
 
     ;; Check max iterations
     (if (>= aichat-agent--current-iteration aichat-agent-max-iterations)
@@ -85,103 +79,60 @@
       (aichat-agent--debug "CALLING aichat-stream-to-buffer-with-tools...")
       (aichat-stream-to-buffer-with-tools
        aichat-model aichat-agent--current-dialog tools
-       (lambda (complete-response)
-         (aichat-agent--debug "RECEIVED COMPLETE RESPONSE")
-         (aichat-agent--handle-response complete-response))))))
+       (lambda (content-blocks)
+         (aichat-agent--debug "RECEIVED PARSED CONTENT BLOCKS")
+         (aichat-agent--handle-parsed-response content-blocks))))))
 
 (defun aichat-agent--enhance-dialog-with-system-prompt (dialog)
-  "Replace or add agent system prompt to DIALOG."
-  ;; Remove any existing system message and add our agent system prompt
-  (let ((non-system-messages (seq-filter (lambda (msg) (not (eq (car msg) 'system))) dialog)))
-    (cons `(system . ,(aichat-agent--get-system-prompt)) non-system-messages)))
+  "Enhance DIALOG with agent capabilities while preserving original system prompt."
+  (let* ((system-messages (seq-filter (lambda (msg) (eq (car msg) 'system)) dialog))
+         (non-system-messages (seq-filter (lambda (msg) (not (eq (car msg) 'system))) dialog))
+         (original-system (when system-messages (cdar system-messages)))
+         (agent-prompt (aichat-agent--get-system-prompt))
+         (combined-system (if original-system
+                             (format "%s\n\n%s" original-system agent-prompt)
+                           agent-prompt)))
+    (cons `(system . ,combined-system) non-system-messages)))
 
 (defun aichat-agent--get-system-prompt ()
   "Get the system prompt for agent capabilities."
-  (format "You are a helpful assistant with access to file system tools. Available tools: %s
+  (format "You have access to tools: %s
 
-IMPORTANT: Use tools only when they would genuinely help answer the user's question. DO NOT call the same tool repeatedly with the same parameters.
+IMPORTANT: Use tools only when they would genuinely help safisfy the users prompt. Prefer to output text directly over writing files, unless the user expliclty asks for files to be written.
 
 When you do use tools:
 1. Use them efficiently - if you need multiple files, call multiple tools in one response
 2. Always explain what you found and provide a final answer to the user
 3. DO NOT repeat tool calls you've already made - check the conversation history first
 
-If you've already gotten the information you need from previous tool calls in this conversation, use that information to answer the user directly WITHOUT calling more tools.
-
-For a simple 'ls' command, call list-directory ONCE and then provide the formatted output."
+If you've already gotten the information you need from previous tool calls in this conversation, use that information to answer the user directly WITHOUT calling more tools."
           (mapconcat #'symbol-name aichat-agent-tools ", ")))
 
-(defun aichat-agent--handle-response (complete-response)
-  "Handle the complete streaming response from Claude."
-  (aichat-agent--debug "RESPONSE LENGTH: %d" (length complete-response))
+(defun aichat-agent--handle-parsed-response (content-blocks)
+  "Handle the parsed CONTENT-BLOCKS from Claude."
+  (aichat-agent--debug "CONTENT BLOCKS: %s" content-blocks)
 
-  (condition-case err
-      (let* ((parsed-response (aichat-agent--parse-streaming-response complete-response))
-             (content (alist-get 'content parsed-response))
-             (stop-reason (alist-get 'stop_reason parsed-response)))
+  ;; Add assistant message to dialog
+  (let ((assistant-content (json-encode content-blocks)))
+    (aichat-agent--debug "ADDING ASSISTANT MESSAGE TO DIALOG")
+    (setq aichat-agent--current-dialog
+          (append aichat-agent--current-dialog `((assistant . ,assistant-content)))))
 
-        (aichat-agent--debug "PARSED SUCCESSFULLY")
-        (aichat-agent--debug "STOP REASON: %s" stop-reason)
-        (aichat-agent--debug "CONTENT BLOCKS: %d" (if (vectorp content) (length content) 0))
+  ;; Check if we have tool calls
+  (let ((tool-calls (aichat-agent--extract-tool-calls content-blocks)))
+    (if tool-calls
+        (progn
+          (aichat-agent--debug "TOOL USE DETECTED! Found %d tool calls" (length tool-calls))
+          (setq aichat-agent--current-iteration (1+ aichat-agent--current-iteration))
+          (aichat-agent--execute-tools tool-calls))
+      (progn
+        (aichat-agent--debug "NO TOOL USE - CONVERSATION COMPLETE")
+        (aichat-agent--finish-response)))))
 
-        ;; Log all content blocks
-        (when (vectorp content)
-          (dotimes (i (length content))
-            (let ((block (aref content i)))
-              (aichat-agent--debug "CONTENT BLOCK %d: type=%s" i (alist-get 'type block))
-              (cond
-               ((string= (alist-get 'type block) "text")
-                (aichat-agent--debug "  TEXT: %s" (alist-get 'text block)))
-               ((string= (alist-get 'type block) "tool_use")
-                (aichat-agent--debug "  TOOL: %s INPUT: %s"
-                                    (alist-get 'name block)
-                                    (json-encode (alist-get 'input block))))))))
-
-        ;; Add assistant message to dialog
-        (let ((assistant-content (aichat-agent--format-assistant-content content)))
-          (aichat-agent--debug "ADDING ASSISTANT MESSAGE TO DIALOG")
-          (setq aichat-agent--current-dialog
-                (append aichat-agent--current-dialog `((assistant . ,assistant-content)))))
-
-        ;; Check if we have tool calls
-        (if (string= stop-reason "tool_use")
-            (let ((tool-calls (aichat-agent--extract-tool-calls content)))
-              (aichat-agent--debug "TOOL USE DETECTED! Found %d tool calls" (length tool-calls))
-              (if tool-calls
-                  (progn
-                    (setq aichat-agent--current-iteration (1+ aichat-agent--current-iteration))
-                    (aichat-agent--execute-tools tool-calls))
-                (progn
-                  (aichat-agent--debug "NO TOOL CALLS FOUND DESPITE tool_use STOP REASON!")
-                  (aichat-agent--finish-response))))
-          (progn
-            (aichat-agent--debug "NO TOOL USE - CONVERSATION COMPLETE")
-            (aichat-agent--finish-response))))
-    (error
-     (aichat-agent--debug "ERROR HANDLING RESPONSE: %s" (error-message-string err))
-     (insert (format "\n\n**Debug: Parse Error**\n```\n%s\n```\n\n" (error-message-string err)))
-     (aichat-agent--finish-response))))
-
-(defun aichat-agent--format-assistant-content (content)
-  "Format assistant CONTENT for the dialog."
-  (let ((formatted-content (mapcar (lambda (block)
-                                   (cond
-                                    ((string= (alist-get 'type block) "text")
-                                     `((type . "text")
-                                       (text . ,(alist-get 'text block))))
-                                    ((string= (alist-get 'type block) "tool_use")
-                                     `((type . "tool_use")
-                                       (id . ,(alist-get 'id block))
-                                       (name . ,(alist-get 'name block))
-                                       (input . ,(alist-get 'input block))))
-                                    (t block)))
-                                 content)))
-    (json-encode formatted-content)))
-
-(defun aichat-agent--extract-tool-calls (content)
-  "Extract tool calls from CONTENT."
+(defun aichat-agent--extract-tool-calls (content-blocks)
+  "Extract tool calls from CONTENT-BLOCKS."
   (let ((tool-calls '()))
-    (seq-doseq (block content)
+    (dolist (block content-blocks)
       (when (string= (alist-get 'type block) "tool_use")
         (aichat-agent--debug "EXTRACTING TOOL CALL: %s with input: %s"
                             (alist-get 'name block)
@@ -189,156 +140,43 @@ For a simple 'ls' command, call list-directory ONCE and then provide the formatt
         (push block tool-calls)))
     (reverse tool-calls)))
 
-(defun aichat-agent--parse-streaming-response (streaming-response)
-  "Parse streaming response to extract the final message data."
-  (let ((content-blocks '())
-        (stop-reason nil))
-
-    (aichat-agent--debug "PARSING STREAMING RESPONSE...")
-
-    ;; Split into lines and process each event
-    (dolist (line (split-string streaming-response "\n"))
-      (when (string-prefix-p "data: " line)
-        (let ((data-json (substring line 6)))
-          (unless (string= data-json "[DONE]")
-            (condition-case nil
-                (let* ((data (json-read-from-string data-json))
-                       (type (alist-get 'type data)))
-                  (cond
-                   ;; Content block start - new content block
-                   ((string= type "content_block_start")
-                    (let ((content-block (alist-get 'content_block data)))
-                      (aichat-agent--debug "CONTENT BLOCK START: %s" (alist-get 'type content-block))
-                      ;; Initialize input as empty string for tool_use blocks
-                      (when (string= (alist-get 'type content-block) "tool_use")
-                        (push '(input . "") content-block))
-                      ;; Initialize text as empty string for text blocks
-                      (when (string= (alist-get 'type content-block) "text")
-                        (push '(text . "") content-block))
-                      (push content-block content-blocks)))
-
-                   ;; Content block delta - updates to content block
-                   ((string= type "content_block_delta")
-                    (let* ((index (alist-get 'index data))
-                           (delta (alist-get 'delta data))
-                           (delta-type (alist-get 'type delta)))
-                      (when (< index (length content-blocks))
-                        (let ((block (nth (- (length content-blocks) index 1) content-blocks)))
-                          (cond
-                           ;; Text delta
-                           ((string= delta-type "text_delta")
-                            (let ((text (alist-get 'text delta)))
-                              (setcdr (assoc 'text block)
-                                     (concat (alist-get 'text block) text))))
-                           ;; Tool input delta
-                           ((string= delta-type "input_json_delta")
-                            (let ((partial-json (alist-get 'partial_json delta)))
-                              (aichat-agent--debug "ACCUMULATING INPUT JSON: '%s'" partial-json)
-                              (setcdr (assoc 'input block)
-                                     (concat (alist-get 'input block) partial-json)))))))))
-
-                   ;; Message delta contains stop reason
-                   ((string= type "message_delta")
-                    (let ((delta (alist-get 'delta data)))
-                      (setq stop-reason (alist-get 'stop_reason delta))
-                      (aichat-agent--debug "MESSAGE DELTA: stop_reason=%s" stop-reason)))))
-              (error
-               (aichat-agent--debug "ERROR PARSING STREAM EVENT: %s" data-json)))))))
-
-    ;; Parse accumulated input JSON in tool_use blocks
-    (setq content-blocks
-          (mapcar (lambda (block)
-                    (if (and (string= (alist-get 'type block) "tool_use")
-                            (alist-get 'input block)
-                            (stringp (alist-get 'input block)))
-                        (let ((input-str (alist-get 'input block)))
-                          (aichat-agent--debug "PARSING TOOL INPUT JSON: '%s'" input-str)
-                          (condition-case nil
-                              (if (string-empty-p input-str)
-                                  ;; Empty input becomes empty object
-                                  (progn
-                                    (setcdr (assoc 'input block) '())
-                                    block)
-                                ;; Parse the JSON
-                                (let ((parsed-input (json-read-from-string input-str)))
-                                  (setcdr (assoc 'input block) parsed-input)
-                                  block))
-                            (error
-                             (aichat-agent--debug "ERROR PARSING TOOL INPUT JSON: %s" input-str)
-                             ;; On error, set to empty object
-                             (setcdr (assoc 'input block) '())
-                             block)))
-                      block))
-                  (reverse content-blocks)))
-
-    (aichat-agent--debug "FINAL PARSED CONTENT: %d blocks" (length content-blocks))
-
-    ;; Return the parsed message format
-    `((content . ,(apply #'vector content-blocks))
-      (stop_reason . ,stop-reason))))
-
 (defun aichat-agent--execute-tools (tool-calls)
-  "Execute TOOL-CALLS and add results to dialog."
-  (aichat-agent--debug "=== EXECUTING TOOLS ===")
-  (aichat-agent--debug "NUMBER OF TOOL CALLS: %d" (length tool-calls))
-
-  (let ((tool-results '())
-        (approved-calls '()))
-
-    ;; Process each tool call
+  "Execute TOOL-CALLS and continue the conversation."
+  (let ((results '()))
     (dolist (tool-call tool-calls)
       (let* ((tool-name (alist-get 'name tool-call))
-             (tool-id (alist-get 'id tool-call))
              (tool-input (alist-get 'input tool-call))
-             (approval (aichat-agent--request-approval tool-name tool-input)))
+             (tool-id (alist-get 'id tool-call)))
 
-        (aichat-agent--debug "PROCESSING TOOL: %s (id: %s) input: %s approved: %s"
-                            tool-name tool-id (json-encode tool-input) approval)
-
-        (if approval
-            (progn
-              (push tool-call approved-calls)
-              (condition-case err
-                  (let ((result (aichat-tools-execute tool-name tool-input)))
-                    (aichat-agent--debug "TOOL EXECUTION SUCCESS: result length=%d" (length result))
-                    (push `((type . "tool_result")
-                           (tool_use_id . ,tool-id)
-                           (content . ,result)) tool-results))
-                (error
-                 (aichat-agent--debug "TOOL EXECUTION ERROR: %s" (error-message-string err))
-                 (push `((type . "tool_result")
-                        (tool_use_id . ,tool-id)
-                        (content . ,(format "Error: %s" (error-message-string err))))
-                       tool-results))))
-          (progn
-            (aichat-agent--debug "TOOL CALL NOT APPROVED")
-            (push `((type . "tool_result")
-                   (tool_use_id . ,tool-id)
-                   (content . "Tool call was not approved by user")) tool-results)))))
+        (if (aichat-agent--request-approval tool-name tool-input)
+            (condition-case err
+                (let ((result (aichat-tools-execute tool-name tool-input)))
+                  (push `((type . "tool_result")
+                         (tool_use_id . ,tool-id)
+                         (content . ,result))
+                        results))
+              (error
+               (push `((type . "tool_result")
+                      (tool_use_id . ,tool-id)
+                      (content . ,(format "Error executing tool: %s" (error-message-string err)))
+                      (is_error . t))
+                     results)))
+          (push `((type . "tool_result")
+                 (tool_use_id . ,tool-id)
+                 (content . "Tool execution declined by user")
+                 (is_error . t))
+                results))))
 
     ;; Display tool execution
-    (aichat-agent--display-tool-execution approved-calls tool-results)
+    (aichat-agent--display-tool-execution tool-calls (reverse results))
 
     ;; Add tool results to dialog
-    (let ((user-content (json-encode (reverse tool-results))))
-      (aichat-agent--debug "ADDING TOOL RESULTS TO DIALOG")
-      (aichat-agent--debug "USER CONTENT: %s" user-content)
+    (let ((user-content (json-encode (reverse results))))
       (setq aichat-agent--current-dialog
             (append aichat-agent--current-dialog `((user . ,user-content)))))
 
-    (aichat-agent--debug "DIALOG NOW HAS %d MESSAGES" (length aichat-agent--current-dialog))
-
-    ;; Continue the agent loop
-    (insert "\n\n")
-    (aichat-agent--debug "CONTINUING AGENT LOOP...")
+    ;; Continue the loop
     (aichat-agent--run-agent-loop)))
-
-(defun aichat-agent--request-approval (tool-name tool-input)
-  "Request user approval for TOOL-NAME with TOOL-INPUT."
-  (if aichat-agent-auto-approve
-      t
-    (let ((args-str (if tool-input (json-encode tool-input) "{}")))
-      (y-or-n-p (format "Execute %s with args %s? " tool-name args-str)))))
 
 (defun aichat-agent--display-tool-execution (tool-calls results)
   "Display the execution of TOOL-CALLS and their RESULTS."
@@ -370,6 +208,12 @@ For a simple 'ls' command, call list-directory ONCE and then provide the formatt
     (insert "\n\n" aichat-user-tag "\n\n"))
   (setq aichat-agent--current-iteration 0)
   (setq aichat-agent--current-dialog nil))
+
+(defun aichat-agent--request-approval (tool-name tool-input)
+  "Request approval for TOOL-NAME with TOOL-INPUT."
+  (if aichat-agent-auto-approve
+      t
+    (y-or-n-p (format "Execute %s with %s? " tool-name (json-encode tool-input)))))
 
 (defun aichat-agent-set-auto-approve (enable)
   "Set auto-approval of tool calls to ENABLE."
