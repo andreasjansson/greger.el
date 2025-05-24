@@ -7,6 +7,7 @@
 
 (require 'json)
 (require 'magit)
+(require 'rg)
 
 (setq aichat-tools-registry
       '(
@@ -16,7 +17,7 @@
                                        (properties . ((path . ((type . "string")
                                                                (description . "Path to the file to read")))
                                                       (include_line_numbers . ((type . "boolean")
-                                                                               (description . "Whether to include line numbers in the output. If you plan to modify the file with tools that use line numbers, you should include line numbers here.")
+                                                                               (description . "Whether to include line numbers in the output. If you plan to modify the file, you should include line numbers here so you know which lines to edit.")
                                                                                (default . nil)))))
                                        (required . ["path"])))))
 
