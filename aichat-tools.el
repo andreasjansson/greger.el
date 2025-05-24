@@ -6,6 +6,7 @@
 ;;; Code:
 
 (require 'json)
+(require 'magit)
 
 (setq aichat-tools-registry
       '(
@@ -64,8 +65,10 @@
                                                              (name . ((type . "string")
                                                                       (description . "Name of the function to replace")))
                                                              (contents . ((type . "string")
-                                                                          (description . "New function contents to replace the existing function.")))))
-                                              (required . ["file_path" "line_number" "name" "contents"])))))
+                                                                          (description . "New function contents to replace the existing function.")))
+                                                             (git_commit_message . ((type . "string")
+                                                                                    (description . "Git commit message for this change")))))
+                                              (required . ["file_path" "line_number" "name" "contents" "git_commit_message"])))))
 
         (file-replace-region . ((name . "file-replace-region")
                                 (description . "Replace arbitrary code sections in a file by line numbers")
@@ -77,8 +80,10 @@
                                                                 (line_number_end . ((type . "integer")
                                                                                     (description . "The line to end replacing from (exclusive)")))
                                                                 (contents . ((type . "string")
-                                                                             (description . "Generated code contents to insert instead of the replaced content")))))
-                                                 (required . ["file_path" "line_number_start" "line_number_end" "contents"])))))
+                                                                             (description . "Generated code contents to insert instead of the replaced content")))
+                                                                (git_commit_message . ((type . "string")
+                                                                                       (description . "Git commit message for this change")))))
+                                                 (required . ["file_path" "line_number_start" "line_number_end" "contents" "git_commit_message"])))))
 
         (file-insert-text . ((name . "file-insert-text")
                              (description . "Insert text at a specific line number in a file. Use line number = file_length + 1 to append to end of file.")
@@ -88,8 +93,10 @@
                                                              (line_number . ((type . "integer")
                                                                              (description . "The line number to insert at (content will be inserted before this line). Use file_length + 1 to append to end of file.")))
                                                              (contents . ((type . "string")
-                                                                          (description . "Text contents to insert")))))
-                                              (required . ["file_path" "line_number" "contents"])))))
+                                                                          (description . "Text contents to insert")))
+                                                             (git_commit_message . ((type . "string")
+                                                                                    (description . "Git commit message for this change")))))
+                                              (required . ["file_path" "line_number" "contents" "git_commit_message"])))))
 
         (file-delete-region . ((name . "file-delete-region")
                                (description . "Delete code sections in a file by line numbers")
@@ -99,8 +106,10 @@
                                                                (line_number_start . ((type . "integer")
                                                                                      (description . "The line to start deleting from")))
                                                                (line_number_end . ((type . "integer")
-                                                                                   (description . "The line to end deleting from (exclusive)")))))
-                                                (required . ["file_path" "line_number_start" "line_number_end"])))))
+                                                                                   (description . "The line to end deleting from (exclusive)")))
+                                                               (git_commit_message . ((type . "string")
+                                                                                      (description . "Git commit message for this change")))))
+                                                (required . ["file_path" "line_number_start" "line_number_end" "git_commit_message"])))))
 
         (file-prepend-text . ((name . "file-prepend-text")
                               (description . "Prepend text to the beginning of a file")
@@ -108,8 +117,10 @@
                                                (properties . ((file_path . ((type . "string")
                                                                             (description . "Absolute path to the file")))
                                                               (contents . ((type . "string")
-                                                                           (description . "Text contents to prepend")))))
-                                               (required . ["file_path" "contents"])))))
+                                                                           (description . "Text contents to prepend")))
+                                                              (git_commit_message . ((type . "string")
+                                                                                     (description . "Git commit message for this change")))))
+                                               (required . ["file_path" "contents" "git_commit_message"])))))
 
         (file-append-text . ((name . "file-append-text")
                              (description . "Append text to the end of a file")
@@ -117,8 +128,10 @@
                                               (properties . ((file_path . ((type . "string")
                                                                            (description . "Absolute path to the file")))
                                                              (contents . ((type . "string")
-                                                                          (description . "Text contents to append. Note that you may need to start your content with a newline depending on the existing contents of the file.")))))
-                                              (required . ["file_path" "contents"])))))
+                                                                          (description . "Text contents to append. Note that you may need to start your content with a newline depending on the existing contents of the file.")))
+                                                             (git_commit_message . ((type . "string")
+                                                                                    (description . "Git commit message for this change")))))
+                                              (required . ["file_path" "contents" "git_commit_message"])))))
 
         (write-new-file . ((name . "write-new-file")
                            (description . "Write a new file with the given contents. Fails if the file already exists.")
@@ -126,15 +139,19 @@
                                             (properties . ((file_path . ((type . "string")
                                                                          (description . "Absolute path to the new file")))
                                                            (contents . ((type . "string")
-                                                                        (description . "Contents to write to the new file")))))
-                                            (required . ["file_path" "contents"])))))
+                                                                        (description . "Contents to write to the new file")))
+                                                           (git_commit_message . ((type . "string")
+                                                                                  (description . "Git commit message for this change")))))
+                                            (required . ["file_path" "contents" "git_commit_message"])))))
 
         (make-directory . ((name . "make-directory")
                            (description . "Recursively create a directory and all parent directories if they don't exist")
                            (input_schema . ((type . "object")
                                             (properties . ((path . ((type . "string")
-                                                                    (description . "Path to the directory to create")))))
-                                            (required . ["path"])))))
+                                                                    (description . "Path to the directory to create")))
+                                                           (git_commit_message . ((type . "string")
+                                                                                  (description . "Git commit message for this change")))))
+                                            (required . ["path" "git_commit_message"])))))
 
         (rename-file . ((name . "rename-file")
                         (description . "Rename or move a file from one path to another")
@@ -142,8 +159,10 @@
                                          (properties . ((old_path . ((type . "string")
                                                                      (description . "Current path of the file")))
                                                         (new_path . ((type . "string")
-                                                                     (description . "New path for the file")))))
-                                         (required . ["old_path" "new_path"])))))
+                                                                     (description . "New path for the file")))
+                                                        (git_commit_message . ((type . "string")
+                                                                               (description . "Git commit message for this change")))))
+                                         (required . ["old_path" "new_path" "git_commit_message"])))))
 
         ))
 
@@ -174,14 +193,16 @@
        (alist-get 'file_path args)
        (alist-get 'line_number args)
        (alist-get 'name args)
-       (alist-get 'contents args)))
+       (alist-get 'contents args)
+       (alist-get 'git_commit_message args)))
 
      ((eq tool-symbol 'file-replace-region)
       (aichat-tools--file-replace-region
        (alist-get 'file_path args)
        (alist-get 'line_number_start args)
        (alist-get 'line_number_end args)
-       (alist-get 'contents args)))
+       (alist-get 'contents args)
+       (alist-get 'git_commit_message args)))
 
      ((eq tool-symbol 'ripgrep)
       (aichat-tools--ripgrep
@@ -196,41 +217,69 @@
       (aichat-tools--file-insert-text
        (alist-get 'file_path args)
        (alist-get 'line_number args)
-       (alist-get 'contents args)))
+       (alist-get 'contents args)
+       (alist-get 'git_commit_message args)))
 
      ((eq tool-symbol 'file-delete-region)
       (aichat-tools--file-delete-region
        (alist-get 'file_path args)
        (alist-get 'line_number_start args)
-       (alist-get 'line_number_end args)))
+       (alist-get 'line_number_end args)
+       (alist-get 'git_commit_message args)))
 
      ((eq tool-symbol 'file-prepend-text)
       (aichat-tools--prepend-text
        (alist-get 'file_path args)
-       (alist-get 'contents args)))
+       (alist-get 'contents args)
+       (alist-get 'git_commit_message args)))
 
      ((eq tool-symbol 'file-append-text)
       (aichat-tools--append-text
        (alist-get 'file_path args)
-       (alist-get 'contents args)))
+       (alist-get 'contents args)
+       (alist-get 'git_commit_message args)))
 
      ((eq tool-symbol 'write-new-file)
       (aichat-tools--write-new-file
        (alist-get 'file_path args)
-       (alist-get 'contents args)))
+       (alist-get 'contents args)
+       (alist-get 'git_commit_message args)))
 
      ((eq tool-symbol 'make-directory)
       (aichat-tools--make-directory
-       (alist-get 'path args)))
+       (alist-get 'path args)
+       (alist-get 'git_commit_message args)))
 
      ((eq tool-symbol 'rename-file)
       (aichat-tools--rename-file
        (alist-get 'old_path args)
-       (alist-get 'new_path args)))
+       (alist-get 'new_path args)
+       (alist-get 'git_commit_message args)))
 
      (t
       (error "Unknown tool: %s" tool-name)))))
 
+(defun aichat-tools--git-stage-and-commit (files commit-message)
+  "Stage FILES and commit with COMMIT-MESSAGE using magit."
+  (condition-case err
+      (let* ((first-file (car files))
+             (file-dir (file-name-directory (expand-file-name first-file)))
+             (repo-root (magit-toplevel file-dir)))
+        (unless repo-root
+          (error "File %s is not in a git repository" first-file))
+
+        ;; Set default-directory to the repository root for magit operations
+        (let ((default-directory repo-root))
+          ;; Stage the files
+          (magit-stage-files files)
+
+          ;; Create the commit
+          (magit-commit-create (list "-m" commit-message))
+
+          (format "Successfully staged %d file(s) and committed with message: %s"
+                  (length files) commit-message)))
+    (error
+     (format "Git operation failed: %s" (error-message-string err)))))
 
 (defun aichat-tools--read-file (path &optional include-line-numbers)
   "Read file at PATH. If INCLUDE-LINE-NUMBERS is non-nil, prepend line numbers."
@@ -381,11 +430,11 @@
               result))
         (error (format "Failed to execute ripgrep: %s" (error-message-string err)))))))
 
-(defun aichat-tools--replace-function (file-path line-number name contents)
+(defun aichat-tools--replace-function (file-path line-number name contents git-commit-message)
   "Replace function NAME at LINE-NUMBER in FILE-PATH with CONTENTS."
   (unless (stringp file-path)
     (error "file_path must be a string"))
-v
+
   (unless (integerp line-number)
     (error "line_number must be an integer"))
 
@@ -442,7 +491,9 @@ v
       (select-window original-window)
       (switch-to-buffer original-buffer)
 
-      (format "Successfully replaced function '%s' in %s" name expanded-path))))
+      ;; Stage and commit changes - infer the file to stage
+      (let ((git-result (aichat-tools--git-stage-and-commit (list expanded-path) git-commit-message)))
+        (format "Successfully replaced function '%s' in %s. %s" name expanded-path git-result)))))
 
 (defun aichat-tools--setup-window-and-open-file (file-path)
   "Setup window split and open FILE-PATH appropriately."
@@ -541,7 +592,7 @@ v
        (goto-char start-pos)
        (error "Could not find end of elisp function: %s" (error-message-string err))))))
 
-(defun aichat-tools--file-replace-region (file-path line-start line-end contents)
+(defun aichat-tools--file-replace-region (file-path line-start line-end contents git-commit-message)
   "Replace code between LINE-START and LINE-END (exclusive) in FILE-PATH with CONTENTS."
   (unless (stringp file-path)
     (error "file_path must be a string"))
@@ -621,13 +672,15 @@ v
       (select-window original-window)
       (switch-to-buffer original-buffer)
 
-      (if (and (= line-start line-end) (= line-start (1+ total-lines)))
-          (format "Successfully appended %d characters to end of %s"
-                  (length contents) expanded-path)
-        (format "Successfully replaced lines %d-%d (exclusive) in %s with %d characters"
-                line-start line-end expanded-path (length contents))))))
+      ;; Stage and commit changes - infer the file to stage
+      (let ((git-result (aichat-tools--git-stage-and-commit (list expanded-path) git-commit-message)))
+        (if (and (= line-start line-end) (= line-start (1+ total-lines)))
+            (format "Successfully appended %d characters to end of %s. %s"
+                    (length contents) expanded-path git-result)
+          (format "Successfully replaced lines %d-%d (exclusive) in %s with %d characters. %s"
+                  line-start line-end expanded-path (length contents) git-result))))))
 
-(defun aichat-tools--file-insert-text (file-path line-number contents)
+(defun aichat-tools--file-insert-text (file-path line-number contents git-commit-message)
   "Insert CONTENTS at LINE-NUMBER in FILE-PATH."
   (unless (stringp file-path)
     (error "file_path must be a string"))
@@ -639,12 +692,9 @@ v
     (error "contents must be a string"))
 
   ;; Use replace-code with same start and end line to insert at that position
-  (aichat-tools--file-replace-region file-path line-number line-number contents)
+  (aichat-tools--file-replace-region file-path line-number line-number contents git-commit-message))
 
-  (format "Successfully inserted %d characters at line %d in %s"
-          (length contents) line-number file-path))
-
-(defun aichat-tools--file-delete-region (file-path line-start line-end)
+(defun aichat-tools--file-delete-region (file-path line-start line-end git-commit-message)
   "Delete code between LINE-START and LINE-END (inclusive) in FILE-PATH."
   (unless (stringp file-path)
     (error "file_path must be a string"))
@@ -659,12 +709,9 @@ v
     (error "line_number_end (%d) must be >= line_number_start (%d)" line-end line-start))
 
   ;; Use replace-code with empty contents to delete the range
-  (aichat-tools--file-replace-region file-path line-start line-end "")
+  (aichat-tools--file-replace-region file-path line-start line-end "" git-commit-message))
 
-  (format "Successfully deleted lines %d-%d in %s" line-start line-end file-path))
-
-
-(defun aichat-tools--prepend-text (file-path contents)
+(defun aichat-tools--prepend-text (file-path contents git-commit-message)
   "Prepend CONTENTS to the beginning of FILE-PATH."
   (unless (stringp file-path)
     (error "file_path must be a string"))
@@ -700,10 +747,12 @@ v
     (select-window original-window)
     (switch-to-buffer original-buffer)
 
-    (format "Successfully prepended %d characters to beginning of %s"
-            (length contents) expanded-path)))
+    ;; Stage and commit changes - infer the file to stage
+    (let ((git-result (aichat-tools--git-stage-and-commit (list expanded-path) git-commit-message)))
+      (format "Successfully prepended %d characters to beginning of %s. %s"
+              (length contents) expanded-path git-result))))
 
-(defun aichat-tools--append-text (file-path contents)
+(defun aichat-tools--append-text (file-path contents git-commit-message)
   "Append CONTENTS to the end of FILE-PATH."
   (unless (stringp file-path)
     (error "file_path must be a string"))
@@ -743,10 +792,12 @@ v
     (select-window original-window)
     (switch-to-buffer original-buffer)
 
-    (format "Successfully appended %d characters to end of %s"
-            (length contents) expanded-path)))
+    ;; Stage and commit changes - infer the file to stage
+    (let ((git-result (aichat-tools--git-stage-and-commit (list expanded-path) git-commit-message)))
+      (format "Successfully appended %d characters to end of %s. %s"
+              (length contents) expanded-path git-result))))
 
-(defun aichat-tools--write-new-file (file-path contents)
+(defun aichat-tools--write-new-file (file-path contents git-commit-message)
   "Write CONTENTS to a new file at FILE-PATH. Fails if file already exists."
   (unless (stringp file-path)
     (error "file_path must be a string"))
@@ -772,10 +823,12 @@ v
           (write-file expanded-path))
       (error (format "Failed to write file: %s" (error-message-string err))))
 
-    (format "Successfully wrote new file %s with %d characters"
-            expanded-path (length contents))))
+    ;; Stage and commit changes - infer the file to stage
+    (let ((git-result (aichat-tools--git-stage-and-commit (list expanded-path) git-commit-message)))
+      (format "Successfully wrote new file %s with %d characters. %s"
+              expanded-path (length contents) git-result))))
 
-(defun aichat-tools--make-directory (path)
+(defun aichat-tools--make-directory (path git-commit-message)
   "Recursively create directory at PATH."
   (unless (stringp path)
     (error "path must be a string"))
@@ -792,10 +845,13 @@ v
       (condition-case err
           (progn
             (make-directory expanded-path t)
-            (format "Successfully created directory: %s" expanded-path))
+            ;; For directory creation, we might want to stage a .gitkeep file or similar
+            ;; For now, we'll stage the directory path itself (though git doesn't track empty dirs)
+            (let ((git-result (aichat-tools--git-stage-and-commit (list expanded-path) git-commit-message)))
+              (format "Successfully created directory: %s. %s" expanded-path git-result)))
         (error (format "Failed to create directory: %s" (error-message-string err)))))))
 
-(defun aichat-tools--rename-file (old-path new-path)
+(defun aichat-tools--rename-file (old-path new-path git-commit-message)
   "Rename file from OLD-PATH to NEW-PATH."
   (unless (stringp old-path)
     (error "old_path must be a string"))
@@ -823,7 +879,11 @@ v
     (condition-case err
         (progn
           (rename-file expanded-old-path expanded-new-path)
-          (format "Successfully renamed %s to %s" expanded-old-path expanded-new-path))
+          ;; Stage both old and new paths (git mv operation)
+          (let ((git-result (aichat-tools--git-stage-and-commit
+                            (list expanded-old-path expanded-new-path)
+                            git-commit-message)))
+            (format "Successfully renamed %s to %s. %s" expanded-old-path expanded-new-path git-result)))
       (error (format "Failed to rename file: %s" (error-message-string err))))))
 
 (provide 'aichat-tools)
