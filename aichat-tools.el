@@ -372,63 +372,84 @@
           (push display-name files))))
 
     (reverse files)))
-
 (defun aichat-tools--ripgrep (pattern path &optional case-sensitive file-type context-lines max-results)
-  "Search for PATTERN in PATH using ripgrep."
+  "Search for PATTERN in PATH using the rg.el package."
   (unless (stringp pattern)
     (error "Pattern must be a string"))
 
   (unless (stringp path)
     (error "Path must be a string"))
 
-  ;; Check if rg is available
+  ;; Check if rg executable is available
   (unless (executable-find "rg")
     (error "ripgrep (rg) command not found. Please install ripgrep"))
 
-  (let ((expanded-path (expand-file-name path)))
+  (let ((expanded-path (expand-file-name path))
+        (original-buffer (current-buffer))
+        (original-window (selected-window)))
+
     (unless (file-exists-p expanded-path)
       (error "Path does not exist: %s" expanded-path))
 
-    (let ((cmd-args (list "rg"
-                          "--color=never"
-                          "--no-heading"
-                          "--with-filename"
-                          "--line-number")))
+    ;; Set up the search parameters
+    (let* ((search-dir (if (file-directory-p expanded-path)
+                          expanded-path
+                        (file-name-directory expanded-path)))
+           (files-pattern (cond
+                          ;; If path is a file, use just the filename pattern
+                          ((file-regular-p expanded-path)
+                           (file-name-nondirectory expanded-path))
+                          ;; If file-type is specified, use that
+                          (file-type file-type)
+                          ;; Otherwise use "everything"
+                          (t "everything")))
+           (literal (not case-sensitive)) ; rg.el uses literal for case handling
+           (flags '()))
 
-      ;; Add case sensitivity option
-      (unless case-sensitive
-        (push "--ignore-case" cmd-args))
+      ;; Add case sensitivity flags
+      (when case-sensitive
+        (setq flags (append flags '("--case-sensitive"))))
 
-      ;; Add file type filter if specified
-      (when file-type
-        (push (format "--type=%s" file-type) cmd-args))
-
-      ;; Add context lines
+      ;; Add context lines if specified
       (when (and context-lines (> context-lines 0))
-        (push (format "--context=%d" context-lines) cmd-args))
+        (setq flags (append flags (list (format "--context=%d" context-lines)))))
 
-      ;; Add max results limit
+      ;; Add max results limit if specified
       (when (and max-results (> max-results 0))
-        (push (format "--max-count=%d" max-results) cmd-args))
+        (setq flags (append flags (list (format "--max-count=%d" max-results)))))
 
-      ;; Add pattern and path
-      (push pattern cmd-args)
-      (push expanded-path cmd-args)
+      ;; Split window if not already split
+      (when (= (length (window-list)) 1)
+        (split-window-horizontally))
 
-      ;; Reverse to get correct order
-      (setq cmd-args (reverse cmd-args))
-
+      ;; Run the search using rg.el
       (condition-case err
-          (let ((result (with-temp-buffer
-                          (let ((exit-code (apply #'call-process "rg" nil t nil (cdr cmd-args))))
-                            (if (= exit-code 0)
-                                (buffer-string)
-                              (if (= exit-code 1)
-                                  "No matches found"
-                                (error "ripgrep failed with exit code %d: %s" exit-code (buffer-string))))))))
-            (if (string-empty-p (string-trim result))
-                "No matches found"
-              result))
+          (let ((default-directory search-dir))
+            ;; Use rg-run to perform the search
+            (rg-run pattern files-pattern search-dir literal nil flags)
+
+            ;; Switch to the rg results buffer to show the user
+            (other-window 1)
+            (switch-to-buffer (rg-buffer-name))
+
+            ;; Wait a moment for the search to complete and collect results
+            (sit-for 0.5)
+
+            ;; Get the buffer contents
+            (let ((results (with-current-buffer (rg-buffer-name)
+                            (buffer-string))))
+
+              ;; Return to original window and buffer
+              (select-window original-window)
+              (switch-to-buffer original-buffer)
+
+              ;; Return results or indicate no matches
+              (if (or (string-empty-p (string-trim results))
+                      (string-match-p "No matches found" results)
+                      (string-match-p "0 matches" results))
+                  "No matches found"
+                results)))
+        (error (format "Failed to execute ripgrep search: %s" (error-message-string err)))))))
         (error (format "Failed to execute ripgrep: %s" (error-message-string err)))))))
 
 (defun aichat-tools--replace-function (file-path line-number name contents git-commit-message)
