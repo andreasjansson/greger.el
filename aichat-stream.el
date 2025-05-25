@@ -366,7 +366,7 @@ STATE-ARGS are additional arguments to initialize the state struct."
                          (format "-H \"%s: %s\"" (car header) (cdr header)))
                        headers " ")
             (if data
-                (format "-d '%s'" (replace-regexp-in-string "'" "'\\\\''" data))
+                (format "--data-raw %s" (shell-quote-argument data))
               "")
             url)))
 
