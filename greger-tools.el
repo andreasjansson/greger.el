@@ -247,6 +247,14 @@
        (alist-get 'line_number args)
        (alist-get 'content args)
        (alist-get 'git_commit_message args)))
+      ((eq tool-symbol 'git-log)
+       (greger-tools--git-log
+        (or (alist-get 'path args) ".")))
+
+      ((eq tool-symbol 'git-show-commit)
+       (greger-tools--git-show-commit
+        (alist-get 'commit_hash args)
+        (or (alist-get 'path args) ".")))
 
      (t
       (error "Unknown tool: %s" tool-name)))))
