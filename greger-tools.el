@@ -57,7 +57,7 @@
                                      (required . ["pattern"])))))
 
         (patch . ((name . "patch")
-                  (description . "Apply a patch to one or more files using unified diff format. The patch will be applied, then the affected files will be staged and committed to git.")
+                  (description . "Apply a patch to one or more files using unified diff format. Fast and efficient for specific changes, especially in large files, but requires careful crafting of patch contents. Use replace-file for complete file replacement or replace-function for Python/Elisp functions.")
                   (input_schema . ((type . "object")
                                    (properties . ((patch_content . ((type . "string")
                                                                     (description . "Patch content in unified diff format (without timestamps). Multiple files can be patched in a single operation by including multiple file diffs in the patch content. Use standard unified diff format: '--- filename' and '+++ filename' headers, followed by hunks with '@@' markers.")))
@@ -96,6 +96,32 @@
                                                                                (description . "Git commit message for this change")))))
                                          (required . ["old_path" "new_path" "git_commit_message"])))))
 
+        (replace-function . ((name . "replace-function")
+                             (description . "Replace a function in a Python or Elisp file with new contents. Fast and reliable - only supports 'def function_name' and '(defun function_name ())' forms. Use replace-file for complete file replacement or patch for other specific changes.")
+                             (input_schema . ((type . "object")
+                                              (properties . ((file_path . ((type . "string")
+                                                                           (description . "Path to the file containing the function")))
+                                                             (function_name . ((type . "string")
+                                                                               (description . "Name of the function to replace")))
+                                                             (contents . ((type . "string")
+                                                                          (description . "New function contents to replace the existing function")))
+                                                             (line_number . ((type . "integer")
+                                                                             (description . "Line number where the function is defined")))
+                                                             (commit_message . ((type . "string")
+                                                                                (description . "Git commit message for this change")))))
+                                              (required . ["file_path" "function_name" "contents" "line_number" "commit_message"])))))
+
+        (replace-file . ((name . "replace-file")
+                         (description . "Replace the entire contents of an existing file. Slow but reliable - replaces the complete file contents. Use patch for specific changes in large files, or replace-function for Python/Elisp functions.")
+                         (input_schema . ((type . "object")
+                                          (properties . ((file_path . ((type . "string")
+                                                                       (description . "Path to the file to replace")))
+                                                         (contents . ((type . "string")
+                                                                      (description . "New contents to replace the entire file")))
+                                                         (git_commit_message . ((type . "string")
+                                                                                (description . "Git commit message for this change")))))
+                                          (required . ["file_path" "contents" "git_commit_message"])))))
+
         ))
 
 (defun greger-tools-get-schemas (tool-names)
@@ -125,14 +151,6 @@
        (alist-get 'patch_content args)
        (alist-get 'git_commit_message args)))
 
-     ((eq tool-symbol 'replace-function)
-      (greger-tools--replace-function
-       (alist-get 'file_path args)
-       (alist-get 'line_number args)
-       (alist-get 'name args)
-       (alist-get 'contents args)
-       (alist-get 'git_commit_message args)))
-
      ((eq tool-symbol 'ripgrep)
       (greger-tools--ripgrep
        (alist-get 'pattern args)
@@ -157,6 +175,20 @@
       (greger-tools--rename-file
        (alist-get 'old_path args)
        (alist-get 'new_path args)
+       (alist-get 'git_commit_message args)))
+
+     ((eq tool-symbol 'replace-function)
+      (greger-tools--replace-function
+       (alist-get 'file_path args)
+       (alist-get 'function_name args)
+       (alist-get 'contents args)
+       (alist-get 'line_number args)
+       (alist-get 'commit_message args)))
+
+     ((eq tool-symbol 'replace-file)
+      (greger-tools--replace-file
+       (alist-get 'file_path args)
+       (alist-get 'contents args)
        (alist-get 'git_commit_message args)))
 
      (t
@@ -321,65 +353,54 @@
       (when (and max-results (> max-results 0))
         (setq flags (append flags (list (format "--max-count=%d" max-results)))))
 
-      ;; Split window if not already split
-      (when (= (length (window-list)) 1)
-        (split-window-horizontally))
+      (greger-tools--with-split-window
+       ;; Run the search using rg.el
+       (condition-case err
+           (let ((default-directory search-dir))
+             ;; Use rg-run to perform the search
+             (rg-run pattern files-pattern search-dir literal nil flags)
 
-      ;; Run the search using rg.el
-      (condition-case err
-          (let ((default-directory search-dir))
-            ;; Use rg-run to perform the search
-            (rg-run pattern files-pattern search-dir literal nil flags)
+             ;; Switch to the rg results buffer to show the user
+             (other-window 1)
+             (switch-to-buffer (rg-buffer-name))
 
-            ;; Switch to the rg results buffer to show the user
-            (other-window 1)
-            (switch-to-buffer (rg-buffer-name))
+             ;; Wait a moment for the search to complete and collect results
+             (sit-for 0.5)
 
-            ;; Wait a moment for the search to complete and collect results
-            (sit-for 0.5)
+             ;; Get the buffer contents
+             (let ((results (with-current-buffer (rg-buffer-name)
+                              (buffer-string))))
 
-            ;; Get the buffer contents
-            (let ((results (with-current-buffer (rg-buffer-name)
-                             (buffer-string))))
+               ;; Return to original window and buffer
+               (select-window original-window)
+               (switch-to-buffer original-buffer)
 
-              ;; Return to original window and buffer
-              (select-window original-window)
-              (switch-to-buffer original-buffer)
+               ;; Return results or indicate no matches
+               (if (or (string-empty-p (string-trim results))
+                       (string-match-p "No matches found" results)
+                       (string-match-p "0 matches" results))
+                   "No matches found"
+                 results)))
+         (error (format "Failed to execute ripgrep search: %s" (error-message-string err))))))))
 
-              ;; Return results or indicate no matches
-              (if (or (string-empty-p (string-trim results))
-                      (string-match-p "No matches found" results)
-                      (string-match-p "0 matches" results))
-                  "No matches found"
-                results)))
-        (error (format "Failed to execute ripgrep search: %s" (error-message-string err)))))))
-
-(defun greger-tools--setup-window-and-open-file (file-path)
-  "Setup window split and open FILE-PATH appropriately."
-  (let ((chat-window (selected-window)))
-    (if (= (length (window-list)) 1)
-        ;; Not split, split horizontally
-        (progn
-          (split-window-horizontally)
-          (other-window 1)
-          (find-file file-path))
-      ;; Already split, find next window after chat buffer
-      (let ((windows (window-list))
-            (chat-buffer (current-buffer))
-            target-window)
-        ;; Find the window after the chat window
-        (dolist (win windows)
-          (when (eq (window-buffer win) chat-buffer)
-            (let ((next-win (next-window win)))
-              (setq target-window next-win))))
-
-        (if target-window
-            (progn
-              (select-window target-window)
-              (find-file file-path))
-          ;; Fallback: use other window
-          (other-window 1)
-          (find-file file-path))))))
+(defmacro greger-tools--with-split-window (&rest body)
+  "Execute BODY in a split window context, returning focus to original window.
+If not split, split horizontally and select other window.
+If already split, select next window.
+Always returns focus to the original window after executing BODY."
+  `(let ((original-window (selected-window)))
+     (unwind-protect
+         (progn
+           (if (= (length (window-list)) 1)
+               ;; Not split, split horizontally and select other window
+               (progn
+                 (split-window-horizontally)
+                 (other-window 1))
+             ;; Already split, select next window
+             (other-window 1))
+           ,@body)
+       ;; Always return to original window
+       (select-window original-window))))
 
 (defun greger-tools--write-new-file (file-path contents git-commit-message)
   "Write CONTENTS to a new file at FILE-PATH. Fails if file already exists."
@@ -465,8 +486,8 @@
           (rename-file expanded-old-path expanded-new-path)
           ;; Stage both old and new paths (git mv operation)
           (let ((git-result (greger-tools--git-stage-and-commit
-                            (list expanded-old-path expanded-new-path)
-                            git-commit-message)))
+                             (list expanded-old-path expanded-new-path)
+                             git-commit-message)))
             (format "Successfully renamed %s to %s. %s" expanded-old-path expanded-new-path git-result)))
       (error (format "Failed to rename file: %s" (error-message-string err))))))
 
@@ -500,8 +521,8 @@
 
           ;; Change to the working directory and apply the patch
           (let ((default-directory working-dir))
-            (let* ((patch-command (format "patch -p0 --no-backup-if-mismatch < %s"
-                                         (shell-quote-argument patch-file)))
+            (let* ((patch-command (format "patch --ignore-whitespace -p0 --no-backup-if-mismatch < %s"
+                                          (shell-quote-argument patch-file)))
                    (result (shell-command-to-string patch-command))
                    (exit-code (shell-command patch-command)))
 
@@ -533,7 +554,7 @@
           (dolist (path (cdr expanded-paths))
             (let ((dir (file-name-directory path)))
               (while (and (not (string-empty-p common-dir))
-                         (not (string-prefix-p common-dir dir)))
+                          (not (string-prefix-p common-dir dir)))
                 (setq common-dir (file-name-directory (directory-file-name common-dir))))))
           (or common-dir "/"))))))
 
@@ -580,6 +601,123 @@
           (unless (member file files)
             (push file files)))))
     (reverse files)))
+
+(defun greger-tools--replace-function (file-path function-name contents line-number commit-message)
+  "Replace FUNCTION-NAME in FILE-PATH with new CONTENTS at LINE-NUMBER."
+  (unless (stringp file-path)
+    (error "file_path must be a string"))
+
+  (unless (stringp function-name)
+    (error "function_name must be a string"))
+
+  (unless (stringp contents)
+    (error "contents must be a string"))
+
+  (unless (integerp line-number)
+    (error "line_number must be an integer"))
+
+  (unless (stringp commit-message)
+    (error "commit_message must be a string"))
+
+  (let ((expanded-path (expand-file-name file-path)))
+
+    ;; Check if file exists
+    (unless (file-exists-p expanded-path)
+      (error "File does not exist: %s" expanded-path))
+
+    ;; Check file extension for supported languages
+    (unless (or (string-suffix-p ".py" expanded-path)
+                (string-suffix-p ".el" expanded-path))
+      (error "Only Python (.py) and Elisp (.el) files are supported"))
+
+    (greger-tools--with-split-window
+     (find-file expanded-path)
+
+     ;; Go to the specified line number
+     (goto-line line-number)
+
+     ;; Verify function name is at this line
+     (beginning-of-line)
+     (let ((line-content (buffer-substring-no-properties
+                          (line-beginning-position)
+                          (line-end-position))))
+
+       ;; Check if function is defined on this line based on file type
+       (let ((function-pattern
+              (cond
+               ((string-suffix-p ".py" expanded-path)
+                (format "^\\s-*def\\s-+%s\\s-*(" (regexp-quote function-name)))
+               ((string-suffix-p ".el" expanded-path)
+                (format "^\\s-*(defun\\s-+%s\\s-*(" (regexp-quote function-name)))
+               (t (error "Unsupported file type")))))
+
+         (unless (string-match-p function-pattern line-content)
+           (error "Function '%s' not found at line %d in %s. Line content: %s"
+                  function-name line-number expanded-path line-content))))
+
+     ;; Delete the existing function using end-of-defun then beginning-of-defun
+     (let (start-pos end-pos)
+       ;; First go to end of defun to get the end position
+       (end-of-defun)
+       (setq end-pos (point))
+
+       ;; Then go to beginning of defun to get start position
+       (beginning-of-defun)
+       (setq start-pos (point))
+
+       ;; Delete the function
+       (delete-region start-pos end-pos)
+
+       ;; Insert new contents
+       (insert contents)
+
+       ;; Ensure there's a newline at the end if not present
+       (unless (string-suffix-p "\n" contents)
+         (insert "\n")))
+
+     ;; Save the file
+     (save-buffer))
+
+    ;; Stage and commit the file
+    (let ((git-result (greger-tools--git-stage-and-commit (list expanded-path) commit-message)))
+      (format "Successfully replaced function '%s' in %s. %s"
+              function-name expanded-path git-result))))
+
+(defun greger-tools--replace-file (file-path contents git-commit-message)
+  "Replace the entire contents of FILE-PATH with CONTENTS."
+  (unless (stringp file-path)
+    (error "file_path must be a string"))
+
+  (unless (stringp contents)
+    (error "contents must be a string"))
+
+  (unless (stringp git-commit-message)
+    (error "git_commit_message must be a string"))
+
+  (let ((expanded-path (expand-file-name file-path)))
+
+    ;; Check if file exists
+    (unless (file-exists-p expanded-path)
+      (error "File does not exist: %s" expanded-path))
+
+    ;; Check if it's actually a file and not a directory
+    (when (file-directory-p expanded-path)
+      (error "Path is a directory, not a file: %s" expanded-path))
+
+    (greger-tools--with-split-window
+     (find-file expanded-path)
+
+     ;; Select all content and replace it
+     (erase-buffer)
+     (insert contents)
+
+     ;; Save the file
+     (save-buffer))
+
+    ;; Stage and commit the file
+    (let ((git-result (greger-tools--git-stage-and-commit (list expanded-path) git-commit-message)))
+      (format "Successfully replaced contents of %s with %d characters. %s"
+              expanded-path (length contents) git-result))))
 
 (provide 'greger-tools)
 

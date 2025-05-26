@@ -9,7 +9,7 @@
 (require 'greger-stream)
 (require 'greger-tools)
 
-(defcustom greger-agent-tools '(read-file list-directory patch write-new-file make-directory rename-file ripgrep)
+(defcustom greger-agent-tools '(read-file list-directory patch write-new-file replace-file replace-function make-directory rename-file ripgrep)
   "List of tools available to the agent."
   :type '(repeat symbol)
   :group 'greger)
