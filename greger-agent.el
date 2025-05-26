@@ -32,9 +32,6 @@
 (defvar greger-agent--current-iteration 0
   "Current iteration count for the active agent session.")
 
-(defvar greger-agent--current-dialog nil
-  "Current dialog being processed.")
-
 (defun greger-agent-buffer ()
   "Send buffer content to AI as an agent dialog with tool support."
   (interactive)
@@ -46,10 +43,9 @@
     (goto-char (point-max))
 
     (setq greger-agent--current-iteration 0)
-    (setq greger-agent--current-dialog dialog)
     (setq greger-agent--chat-buffer (current-buffer))  ; Store the chat buffer
 
-    (greger-agent--debug "--- DIALOG --- %s" greger-agent--current-dialog)
+    (greger-agent--debug "--- DIALOG --- %s" dialog)
 
     (greger-agent--debug "=== STARTING AGENT SESSION ===")
 
@@ -62,10 +58,12 @@
 
 (defun greger-agent--run-agent-loop ()
   "Run the main agent loop."
-  (let ((tools (greger-tools-get-schemas greger-agent-tools)))
+  (let* ((tools (greger-tools-get-schemas greger-agent-tools))
+         (buffer-content (buffer-substring-no-properties (point-min) (point-max)))
+         (current-dialog (greger-parser-parse-dialog buffer-content)))
 
     (greger-agent--debug "=== ITERATION %d ===" greger-agent--current-iteration)
-    (greger-agent--debug "Dialog length: %d messages" (length greger-agent--current-dialog))
+    (greger-agent--debug "Dialog length: %d messages" (length current-dialog))
 
     ;; Check max iterations
     (if (>= greger-agent--current-iteration greger-agent-max-iterations)
@@ -78,7 +76,7 @@
       ;; Get Claude's response
       (greger-agent--debug "CALLING greger-stream-to-buffer-with-tools...")
       (greger-stream-to-buffer-with-tools
-       greger-model greger-agent--current-dialog tools
+       greger-model current-dialog tools
        (lambda (content-blocks)
          (greger-agent--debug "RECEIVED PARSED CONTENT BLOCKS")
          (greger-agent--handle-parsed-response content-blocks))))))
@@ -86,12 +84,6 @@
 (defun greger-agent--handle-parsed-response (content-blocks)
   "Handle the parsed CONTENT-BLOCKS from Claude."
   (greger-agent--debug "CONTENT BLOCKS: %s" content-blocks)
-
-  ;; Add assistant message to dialog
-  (let ((assistant-content (json-encode content-blocks)))
-    (greger-agent--debug "ADDING ASSISTANT MESSAGE TO DIALOG")
-    (setq greger-agent--current-dialog
-          (append greger-agent--current-dialog `(((role . "assistant") (content . ,assistant-content))))))
 
   ;; Check if we have tool calls
   (let ((tool-calls (greger-agent--extract-tool-calls content-blocks)))
@@ -145,11 +137,6 @@
     ;; Display tool execution
     (greger-agent--display-tool-execution tool-calls (reverse results))
 
-    ;; Add tool results to dialog
-    (let ((user-content (json-encode (reverse results))))
-      (setq greger-agent--current-dialog
-            (append greger-agent--current-dialog `(((role . "user") (content . ,user-content))))))
-
     ;; Continue the loop
     (greger-agent--run-agent-loop)))
 
@@ -178,7 +165,6 @@
     (unless (looking-back (concat greger-user-tag "\n\n") nil)
       (insert "\n\n" greger-user-tag "\n\n")))
   (setq greger-agent--current-iteration 0)
-  (setq greger-agent--current-dialog nil)
   (setq greger-agent--chat-buffer nil))
 
 (defun greger-agent--request-approval (tool-name tool-input)
