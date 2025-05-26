@@ -44,7 +44,6 @@
       (error "Failed to parse dialog. Did you forget to close a html tag?"))
 
     (goto-char (point-max))
-    (greger--maybe-insert-assistant-tag)
 
     (setq greger-agent--current-iteration 0)
     (setq greger-agent--current-dialog dialog)

@@ -45,6 +45,8 @@ CANCEL-CALLBACK is called if cancelled."
                           ;; TODO: remove debug
                           (with-current-buffer (greger-stream-state-output-buffer state)
                             (goto-char (greger-stream-state-insert-position state))
+                            (greger--maybe-insert-assistant-tag)
+
                             (insert text)
                             (setf (greger-stream-state-insert-position state) (point)))))
          (wrapped-complete-callback (lambda (parsed-blocks state)
