@@ -282,6 +282,113 @@ ID: toolu_999
 test.txt"
      :dialog ((user . "Read a file")
               (assistant . "[{\"type\":\"tool_use\",\"id\":\"toolu_999\",\"name\":\"read-file\",\"input\":{\"path\":\"test.txt\"}}]")))
+
+(:name "code-block-triple-backticks"
+     :markdown "## USER:
+
+Here's some code:
+
+```
+## ASSISTANT:
+This should not be parsed as a section header
+## TOOL USE:
+Neither should this
+```
+
+What do you think?"
+     :dialog ((user . "Here's some code:\n\n```\n## ASSISTANT:\nThis should not be parsed as a section header\n## TOOL USE:\nNeither should this\n```\n\nWhat do you think?")))
+
+    ;; Code blocks with section headers inside (double backticks)
+    (:name "code-block-double-backticks"
+     :markdown "## USER:
+
+Inline code: ``## ASSISTANT: not a header`` and more text.
+
+## ASSISTANT:
+
+I see the inline code."
+     :dialog ((user . "Inline code: ``## ASSISTANT: not a header`` and more text.")
+              (assistant . "I see the inline code.")))
+
+    ;; Mixed code blocks and real sections
+    (:name "mixed-code-blocks-and-sections"
+     :markdown "## USER:
+
+Here's a code example:
+
+```python
+def example():
+    # This has ## USER: in a comment
+    print(\"## ASSISTANT: not a real header\")
+```
+
+Now please analyze it.
+
+## ASSISTANT:
+
+I can see your code example."
+     :dialog ((user . "Here's a code example:\n\n```python\ndef example():\n    # This has ## USER: in a comment\n    print(\"## ASSISTANT: not a real header\")\n```\n\nNow please analyze it.")
+              (assistant . "I can see your code example.")))
+
+    ;; Tool use with code blocks in parameters
+    (:name "tool-use-with-code-in-params"
+     :markdown "## USER:
+
+Write some Python code
+
+## TOOL USE:
+
+Name: write-file
+ID: toolu_999
+
+### filename
+
+example.py
+
+### content
+
+```python
+def main():
+    # This ## USER: comment should not break parsing
+    print(\"Hello world\")
+
+if __name__ == \"__main__\":
+    main()
+```
+
+## TOOL RESULT:
+
+ID: toolu_999
+
+File written successfully
+
+## ASSISTANT:
+
+I've written the Python file."
+     :dialog ((user . "Write some Python code")
+              (assistant . "[{\"type\":\"tool_use\",\"id\":\"toolu_999\",\"name\":\"write-file\",\"input\":{\"filename\":\"example.py\",\"content\":\"```python\\ndef main():\\n    # This ## USER: comment should not break parsing\\n    print(\\\"Hello world\\\")\\n\\nif __name__ == \\\"__main__\\\":\\n    main()\\n```\"}}]")
+              (user . "[{\"type\":\"tool_result\",\"tool_use_id\":\"toolu_999\",\"content\":\"File written successfully\"}]")
+              (assistant . "I've written the Python file.")))
+
+    ;; Nested code blocks (backticks inside code blocks)
+    (:name "nested-code-blocks"
+     :markdown "## USER:
+
+How do I use backticks in markdown?
+
+## ASSISTANT:
+
+You can use triple backticks:
+
+```
+Here's how to show `inline code` in a code block:
+Use single backticks around `your code`.
+```
+
+Does that help?"
+     :dialog ((user . "How do I use backticks in markdown?")
+              (assistant . "You can use triple backticks:\n\n```\nHere's how to show `inline code` in a code block:\nUse single backticks around `your code`.\n```\n\nDoes that help?")))
+
     ))
 
 ;; Helper functions for tests
@@ -580,6 +687,73 @@ value3"))
         (should (string= "value3" (alist-get 'param3 input)))))))
 
 
+(ert-deftest greger-parser-test-code-block-parsing ()
+  "Test that section headers inside code blocks are not parsed."
+  (let ((markdown "## USER:
+
+Here's code with fake headers:
+
+```
+## ASSISTANT:
+This looks like a header but isn't
+## TOOL USE:
+Same with this
+```
+
+Real content continues.
+
+## ASSISTANT:
+
+I see your code."))
+    (let ((parsed (greger-parser-parse-dialog markdown)))
+      (should (= 2 (length parsed)))
+      ;; First message should contain the entire user content including code block
+      (let ((user-content (cdr (car parsed))))
+        (should (string-match-p "## ASSISTANT:" user-content))
+        (should (string-match-p "## TOOL USE:" user-content))
+        (should (string-match-p "Real content continues" user-content)))
+      ;; Second message should be the real assistant response
+      (should (eq 'assistant (car (cadr parsed))))
+      (should (string= "I see your code." (cdr (cadr parsed)))))))
+
+(ert-deftest greger-parser-test-inline-code-blocks ()
+  "Test that section headers inside inline code are not parsed."
+  (let ((markdown "## USER:
+
+Use ``## ASSISTANT: response`` to format.
+
+## ASSISTANT:
+
+Got it!"))
+    (let ((parsed (greger-parser-parse-dialog markdown)))
+      (should (= 2 (length parsed)))
+      (should (string-match-p "## ASSISTANT: response" (cdr (car parsed))))
+      (should (string= "Got it!" (cdr (cadr parsed)))))))
+
+(ert-deftest greger-parser-test-code-blocks-in-tool-params ()
+  "Test that code blocks in tool parameters are preserved correctly."
+  (let ((markdown "## TOOL USE:
+
+Name: write-file
+ID: tool_123
+
+### content
+
+```python
+# This ## USER: comment should be preserved
+print(\"## ASSISTANT: also preserved\")
+```"))
+    (let ((parsed (greger-parser-parse-dialog markdown)))
+      (should (= 1 (length parsed)))
+      (let* ((assistant-msg (car parsed))
+             (content-json (cdr assistant-msg))
+             (content-blocks (json-read-from-string content-json))
+             (tool-block (aref content-blocks 0))
+             (input (alist-get 'input tool-block))
+             (content-param (alist-get 'content input)))
+        (should (string-match-p "## USER:" content-param))
+        (should (string-match-p "## ASSISTANT:" content-param))
+        (should (string-match-p "```python" content-param))))))
 
 (provide 'test-greger-parser)
 

@@ -5,6 +5,7 @@
 
 ;;; Code:
 
+(require 'cl-lib)
 (require 'json)
 
 (defvar greger-parser-debug nil
@@ -23,47 +24,83 @@
 (defconst greger-parser-tool-use-tag "## TOOL USE:")
 (defconst greger-parser-tool-result-tag "## TOOL RESULT:")
 
+(defun greger-parser--find-next-section-outside-code-blocks (section-pattern start-pos)
+  "Find next section header that's not inside a code block.
+Returns (match-start . match-end) or nil if not found."
+  (let ((in-triple-backtick nil)
+        (in-double-backtick nil))
+
+    (cl-loop for pos from start-pos below (point-max)
+             do (goto-char pos)
+             do (cond
+                 ;; Triple backticks (start or end of line)
+                 ((and (not in-double-backtick)
+                       (looking-at "^```"))
+                  (setq in-triple-backtick (not in-triple-backtick)
+                        pos (line-end-position)))
+
+                 ;; Double backticks
+                 ((and (not in-triple-backtick)
+                       (looking-at "``"))
+                  (setq in-double-backtick (not in-double-backtick)
+                        pos (+ pos 1))) ; Will be incremented by loop
+
+                 ;; Check for section header when not in code block
+                 ((and (not in-triple-backtick)
+                       (not in-double-backtick)
+                       (looking-at section-pattern))
+                  (cl-return (cons (match-beginning 0) (match-end 0)))))
+             finally return nil)))
+
 (defun greger-parser--parse-sections ()
-  "Parse buffer into sections using simple regex approach."
+  "Parse buffer into sections using code-block-aware approach."
   (let ((sections '())
-        (section-pattern (format "\\(?:%s\\|%s\\|%s\\|%s\\|%s\\|%s\\)"
+        (section-pattern (format "^\\(?:%s\\|%s\\|%s\\|%s\\|%s\\|%s\\)"
                                 greger-parser-user-tag
                                 greger-parser-assistant-tag
                                 greger-parser-system-tag
                                 greger-parser-thinking-tag
                                 greger-parser-tool-use-tag
                                 greger-parser-tool-result-tag))
-        (current-pos (point-min))
-        (text-length (point-max)))
+        (current-pos (point-min)))
 
     ;; Handle untagged content at the beginning
-    (when (not (looking-at section-pattern))
-      (if (re-search-forward section-pattern nil t)
-          (let ((first-section-pos (match-beginning 0)))
-            (when (> first-section-pos current-pos)
-              (let ((untagged-content (buffer-substring-no-properties current-pos first-section-pos)))
-                (unless (string-empty-p (string-trim untagged-content))
-                  (push (list 'untagged untagged-content) sections)))
-              (setq current-pos first-section-pos)))
-        ;; No sections found, treat entire text as untagged if not empty
-        (unless (string-empty-p (string-trim (buffer-substring-no-properties current-pos text-length)))
-          (push (list 'untagged (buffer-substring-no-properties current-pos text-length)) sections))
-        (setq current-pos text-length)))
+    (goto-char current-pos)
+    (let ((first-section (greger-parser--find-next-section-outside-code-blocks section-pattern current-pos)))
+      (when first-section
+        (let ((first-section-pos (car first-section)))
+          (when (> first-section-pos current-pos)
+            (let ((untagged-content (buffer-substring-no-properties current-pos first-section-pos)))
+              (unless (string-empty-p (string-trim untagged-content))
+                (push (list 'untagged untagged-content) sections)))
+            (setq current-pos first-section-pos))))
+
+      ;; If no sections found, treat entire text as untagged if not empty
+      (unless first-section
+        (unless (string-empty-p (string-trim (buffer-substring-no-properties current-pos (point-max))))
+          (push (list 'untagged (buffer-substring-no-properties current-pos (point-max))) sections))
+        (setq current-pos (point-max))))
 
     ;; Find all section boundaries
-    (goto-char current-pos)
-    (while (< (point) text-length)
-      (when (re-search-forward section-pattern nil t)
-        (let* ((section-start (match-beginning 0))
-               (section-header (match-string 0))
-               (content-start (match-end 0))
-               (next-section-pos (if (re-search-forward section-pattern nil t)
-                                   (progn (goto-char (match-beginning 0)) (point))
-                                 text-length))
-               (content (buffer-substring-no-properties content-start next-section-pos)))
+    (while (< current-pos (point-max))
+      (let ((section-match (greger-parser--find-next-section-outside-code-blocks section-pattern current-pos)))
+        (when section-match
+          (let* ((section-start (car section-match))
+                 (section-end (cdr section-match))
+                 (section-header (buffer-substring-no-properties section-start section-end))
+                 (content-start section-end)
+                 (next-section (greger-parser--find-next-section-outside-code-blocks
+                               section-pattern (1+ section-end)))
+                 (next-section-pos (if next-section
+                                     (car next-section)
+                                   (point-max)))
+                 (content (buffer-substring-no-properties content-start next-section-pos)))
 
-          (push (list (greger-parser--header-to-symbol section-header) content) sections)
-          (goto-char next-section-pos))))
+            (push (list (greger-parser--header-to-symbol section-header) content) sections)
+            (setq current-pos next-section-pos)))
+
+        (unless section-match
+          (setq current-pos (point-max)))))
 
     (reverse sections)))
 
@@ -78,8 +115,6 @@
         (greger-parser--debug "Found %d sections" (length sections))
         (greger-parser--merge-content-blocks
          (delq nil (mapcar #'greger-parser--parse-section sections)))))))
-
-
 
 (defun greger-parser--header-to-symbol (header)
   "Convert HEADER string to symbol."
@@ -191,8 +226,6 @@
     ;; Helper to finish current parameter
     (cl-flet ((finish-param ()
                 (when current-param
-                  ;; TODO: remove debug
-                  (message (format "current-value-lines: %s" current-value-lines))
                   (let ((value (string-trim (mapconcat #'identity (reverse current-value-lines) "\n"))))
                     ;; Store as (param-name . value) for JSON object format
                     (push (cons current-param value) input))
