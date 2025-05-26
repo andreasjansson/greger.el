@@ -122,6 +122,31 @@
                                                                                 (description . "Git commit message for this change")))))
                                           (required . ["file_path" "contents" "git_commit_message"])))))
 
+        (str-replace . ((name . "str-replace")
+                        (description . "Replace a specific string or content block in a file with new content. Finds the exact original content and replaces it with new content.")
+                        (input_schema . ((type . "object")
+                                         (properties . ((file_path . ((type . "string")
+                                                                      (description . "Path to the file to modify")))
+                                                        (original_content . ((type . "string")
+                                                                             (description . "The exact content to find and replace")))
+                                                        (new_content . ((type . "string")
+                                                                        (description . "The new content to replace the original content with")))
+                                                        (git_commit_message . ((type . "string")
+                                                                               (description . "Git commit message for this change")))))
+                                         (required . ["file_path" "original_content" "new_content" "git_commit_message"])))))
+
+        (insert . ((name . "insert")
+                   (description . "Insert text at a specific line number in a file. The text will be inserted before the specified line number (use 0 to insert at the beginning of the file, 1 to insert before the first line, etc.). Useful for adding new content, comments, or code blocks at precise locations without replacing existing content.")
+                   (input_schema . ((type . "object")
+                                    (properties . ((file_path . ((type . "string")
+                                                                 (description . "Path to the file to modify")))
+                                                   (line_number . ((type . "integer")
+                                                                   (description . "Line number before which to insert the content (0 for beginning of file, 1 to insert before first line, etc.)")))
+                                                   (content . ((type . "string")
+                                                               (description . "Content to insert at the specified location")))
+                                                   (git_commit_message . ((type . "string")
+                                                                          (description . "Git commit message for this change")))))
+                                    (required . ["file_path" "line_number" "content" "git_commit_message"])))))
         ))
 
 (defun greger-tools-get-schemas (tool-names)
@@ -189,6 +214,20 @@
       (greger-tools--replace-file
        (alist-get 'file_path args)
        (alist-get 'contents args)
+       (alist-get 'git_commit_message args)))
+
+     ((eq tool-symbol 'str-replace)
+      (greger-tools--str-replace
+       (alist-get 'file_path args)
+       (alist-get 'original_content args)
+       (alist-get 'new_content args)
+       (alist-get 'git_commit_message args)))
+
+     ((eq tool-symbol 'insert)
+      (greger-tools--insert
+       (alist-get 'file_path args)
+       (alist-get 'line_number args)
+       (alist-get 'content args)
        (alist-get 'git_commit_message args)))
 
      (t
@@ -715,6 +754,114 @@ Always returns focus to the original window after executing BODY."
     (let ((git-result (greger-tools--git-stage-and-commit (list expanded-path) git-commit-message)))
       (format "Successfully replaced contents of %s with %d characters. %s"
               expanded-path (length contents) git-result))))
+
+(defun greger-tools--str-replace (file-path original-content new-content git-commit-message)
+  "Replace ORIGINAL-CONTENT with NEW-CONTENT in FILE-PATH."
+  (unless (stringp file-path)
+    (error "file_path must be a string"))
+
+  (unless (stringp original-content)
+    (error "original_content must be a string"))
+
+  (unless (stringp new-content)
+    (error "new_content must be a string"))
+
+  (unless (stringp git-commit-message)
+    (error "git_commit_message must be a string"))
+
+  (let ((expanded-path (expand-file-name file-path)))
+
+    ;; Check if file exists
+    (unless (file-exists-p expanded-path)
+      (error "File does not exist: %s" expanded-path))
+
+    ;; Check if it's actually a file and not a directory
+    (when (file-directory-p expanded-path)
+      (error "Path is a directory, not a file: %s" expanded-path))
+
+    (greger-tools--with-split-window
+     (find-file expanded-path)
+
+     ;; Get current buffer contents
+     (let ((buffer-contents (buffer-string)))
+       ;; Check if original content exists
+       (unless (string-match-p (regexp-quote original-content) buffer-contents)
+         (error "Original content not found in file: %s" expanded-path))
+
+       ;; Perform the replacement
+       (goto-char (point-min))
+       (let ((case-fold-search nil)) ; Make search case-sensitive
+         (if (search-forward original-content nil t)
+             (progn
+               (replace-match new-content nil t)
+               ;; Save the file
+               (save-buffer))
+           (error "Failed to find original content during replacement in: %s" expanded-path)))))
+
+    ;; Stage and commit the file
+    (let ((git-result (greger-tools--git-stage-and-commit (list expanded-path) git-commit-message)))
+      (format "Successfully replaced content in %s. %s" expanded-path git-result))))
+
+(defun greger-tools--insert (file-path line-number content git-commit-message)
+  "Insert CONTENT at LINE-NUMBER in FILE-PATH."
+  (unless (stringp file-path)
+    (error "file_path must be a string"))
+
+  (unless (integerp line-number)
+    (error "line_number must be an integer"))
+
+  (unless (>= line-number 0)
+    (error "line_number must be >= 0"))
+
+  (unless (stringp content)
+    (error "content must be a string"))
+
+  (unless (stringp git-commit-message)
+    (error "git_commit_message must be a string"))
+
+  (let ((expanded-path (expand-file-name file-path)))
+
+    ;; Check if file exists
+    (unless (file-exists-p expanded-path)
+      (error "File does not exist: %s" expanded-path))
+
+    ;; Check if it's actually a file and not a directory
+    (when (file-directory-p expanded-path)
+      (error "Path is a directory, not a file: %s" expanded-path))
+
+    (greger-tools--with-split-window
+     (find-file expanded-path)
+
+     ;; Navigate to the insertion point
+     (goto-char (point-min))
+     (if (= line-number 0)
+         ;; Insert at beginning of file
+         (goto-char (point-min))
+       ;; Go to the specified line - this is where the fix is needed
+       (goto-line line-number)
+       ;; Move to beginning of line to insert before it, not after it
+       (beginning-of-line))
+
+     ;; Insert the content
+     (if (= line-number 0)
+         ;; At beginning of file, insert content and newline
+         (progn
+           (insert content)
+           (unless (string-suffix-p "\n" content)
+             (insert "\n")))
+       ;; Before a line, insert content then newline
+       (progn
+         (insert content)
+         (unless (string-suffix-p "\n" content)
+           (insert "\n"))))
+
+     ;; Save the file
+     (save-buffer))
+
+    ;; Stage and commit the file
+    (let ((git-result (greger-tools--git-stage-and-commit (list expanded-path) git-commit-message)))
+      (format "Successfully inserted %d characters at line %d in %s. %s"
+              (length content) line-number expanded-path git-result))))
 
 (provide 'greger-tools)
 
