@@ -56,83 +56,14 @@
                                                                     (default . 50)))))
                                      (required . ["pattern"])))))
 
-        (replace-function . ((name . "replace-function")
-                             (description . "Replace a function in a Python or Elisp file with new contents")
-                             (input_schema . ((type . "object")
-                                              (properties . ((file_path . ((type . "string")
-                                                                           (description . "Absolute path to the .py or .el file")))
-                                                             (line_number . ((type . "integer")
-                                                                             (description . "Line number where the function is declared")))
-                                                             (name . ((type . "string")
-                                                                      (description . "Name of the function to replace")))
-                                                             (contents . ((type . "string")
-                                                                          (description . "New function contents to replace the existing function.")))
-                                                             (git_commit_message . ((type . "string")
-                                                                                    (description . "Git commit message for this change")))))
-                                              (required . ["file_path" "line_number" "name" "contents" "git_commit_message"])))))
-
-        (file-replace-region . ((name . "file-replace-region")
-                                (description . "Replace arbitrary code sections in a file by line numbers")
-                                (input_schema . ((type . "object")
-                                                 (properties . ((file_path . ((type . "string")
-                                                                              (description . "Absolute path to the file")))
-                                                                (line_number_start . ((type . "integer")
-                                                                                      (description . "The line to start replacing from (inclusive)")))
-                                                                (line_number_end . ((type . "integer")
-                                                                                    (description . "The line to end replacing from (exclusive, i.e. the line number immediately after the last line to be replaced)")))
-                                                                (contents . ((type . "string")
-                                                                             (description . "Generated code contents to insert instead of the replaced content")))
-                                                                (git_commit_message . ((type . "string")
-                                                                                       (description . "Git commit message for this change")))))
-                                                 (required . ["file_path" "line_number_start" "line_number_end" "contents" "git_commit_message"])))))
-
-        (file-insert-text . ((name . "file-insert-text")
-                             (description . "Insert text at a specific line number in a file. Use line number = file_length + 1 to append to end of file.")
-                             (input_schema . ((type . "object")
-                                              (properties . ((file_path . ((type . "string")
-                                                                           (description . "Absolute path to the file")))
-                                                             (line_number . ((type . "integer")
-                                                                             (description . "The line number to insert at (content will be inserted before this line). Use file_length + 1 to append to end of file.")))
-                                                             (contents . ((type . "string")
-                                                                          (description . "Text contents to insert")))
-                                                             (git_commit_message . ((type . "string")
-                                                                                    (description . "Git commit message for this change")))))
-                                              (required . ["file_path" "line_number" "contents" "git_commit_message"])))))
-
-        (file-delete-region . ((name . "file-delete-region")
-                               (description . "Delete code sections in a file by line numbers")
-                               (input_schema . ((type . "object")
-                                                (properties . ((file_path . ((type . "string")
-                                                                             (description . "Absolute path to the file")))
-                                                               (line_number_start . ((type . "integer")
-                                                                                     (description . "The line to start deleting from (inclusive)")))
-                                                               (line_number_end . ((type . "integer")
-                                                                                   (description . "The line to end deleting from (exclusive, i.e. the line number immediately after the last line to be deleted)")))
-                                                               (git_commit_message . ((type . "string")
-                                                                                      (description . "Git commit message for this change")))))
-                                                (required . ["file_path" "line_number_start" "line_number_end" "git_commit_message"])))))
-
-        (file-prepend-text . ((name . "file-prepend-text")
-                              (description . "Prepend text to the beginning of a file")
-                              (input_schema . ((type . "object")
-                                               (properties . ((file_path . ((type . "string")
-                                                                            (description . "Absolute path to the file")))
-                                                              (contents . ((type . "string")
-                                                                           (description . "Text contents to prepend")))
-                                                              (git_commit_message . ((type . "string")
-                                                                                     (description . "Git commit message for this change")))))
-                                               (required . ["file_path" "contents" "git_commit_message"])))))
-
-        (file-append-text . ((name . "file-append-text")
-                             (description . "Append text to the end of a file")
-                             (input_schema . ((type . "object")
-                                              (properties . ((file_path . ((type . "string")
-                                                                           (description . "Absolute path to the file")))
-                                                             (contents . ((type . "string")
-                                                                          (description . "Text contents to append. Note that you may need to start your content with a newline depending on the existing contents of the file.")))
-                                                             (git_commit_message . ((type . "string")
-                                                                                    (description . "Git commit message for this change")))))
-                                              (required . ["file_path" "contents" "git_commit_message"])))))
+        (patch . ((name . "patch")
+                  (description . "Apply a patch to one or more files using unified diff format. The patch will be applied, then the affected files will be staged and committed to git.")
+                  (input_schema . ((type . "object")
+                                   (properties . ((patch_content . ((type . "string")
+                                                                    (description . "Patch content in unified diff format (without timestamps). Multiple files can be patched in a single operation by including multiple file diffs in the patch content. Use standard unified diff format: '--- filename' and '+++ filename' headers, followed by hunks with '@@' markers.")))
+                                                  (git_commit_message . ((type . "string")
+                                                                         (description . "Git commit message for this change")))))
+                                   (required . ["patch_content" "git_commit_message"])))))
 
         (write-new-file . ((name . "write-new-file")
                            (description . "Write a new file with the given contents. Fails if the file already exists.")
@@ -189,19 +120,16 @@
        (alist-get 'show-hidden args)
        (alist-get 'recursive args)))
 
+     ((eq tool-symbol 'patch)
+      (greger-tools--patch
+       (alist-get 'patch_content args)
+       (alist-get 'git_commit_message args)))
+
      ((eq tool-symbol 'replace-function)
       (greger-tools--replace-function
        (alist-get 'file_path args)
        (alist-get 'line_number args)
        (alist-get 'name args)
-       (alist-get 'contents args)
-       (alist-get 'git_commit_message args)))
-
-     ((eq tool-symbol 'file-replace-region)
-      (greger-tools--file-replace-region
-       (alist-get 'file_path args)
-       (alist-get 'line_number_start args)
-       (alist-get 'line_number_end args)
        (alist-get 'contents args)
        (alist-get 'git_commit_message args)))
 
@@ -213,32 +141,6 @@
        (alist-get 'file-type args)
        (or (alist-get 'context-lines args) 0)
        (or (alist-get 'max-results args) 50)))
-
-     ((eq tool-symbol 'file-insert-text)
-      (greger-tools--file-insert-text
-       (alist-get 'file_path args)
-       (alist-get 'line_number args)
-       (alist-get 'contents args)
-       (alist-get 'git_commit_message args)))
-
-     ((eq tool-symbol 'file-delete-region)
-      (greger-tools--file-delete-region
-       (alist-get 'file_path args)
-       (alist-get 'line_number_start args)
-       (alist-get 'line_number_end args)
-       (alist-get 'git_commit_message args)))
-
-     ((eq tool-symbol 'file-prepend-text)
-      (greger-tools--prepend-text
-       (alist-get 'file_path args)
-       (alist-get 'contents args)
-       (alist-get 'git_commit_message args)))
-
-     ((eq tool-symbol 'file-append-text)
-      (greger-tools--append-text
-       (alist-get 'file_path args)
-       (alist-get 'contents args)
-       (alist-get 'git_commit_message args)))
 
      ((eq tool-symbol 'write-new-file)
       (greger-tools--write-new-file
@@ -394,16 +296,16 @@
 
     ;; Set up the search parameters
     (let* ((search-dir (if (file-directory-p expanded-path)
-                          expanded-path
-                        (file-name-directory expanded-path)))
+                           expanded-path
+                         (file-name-directory expanded-path)))
            (files-pattern (cond
-                          ;; If path is a file, use just the filename pattern
-                          ((file-regular-p expanded-path)
-                           (file-name-nondirectory expanded-path))
-                          ;; If file-type is specified, use that
-                          (file-type file-type)
-                          ;; Otherwise use "everything"
-                          (t "everything")))
+                           ;; If path is a file, use just the filename pattern
+                           ((file-regular-p expanded-path)
+                            (file-name-nondirectory expanded-path))
+                           ;; If file-type is specified, use that
+                           (file-type file-type)
+                           ;; Otherwise use "everything"
+                           (t "everything")))
            (literal (not case-sensitive)) ; rg.el uses literal for case handling
            (flags '()))
 
@@ -438,7 +340,7 @@
 
             ;; Get the buffer contents
             (let ((results (with-current-buffer (rg-buffer-name)
-                            (buffer-string))))
+                             (buffer-string))))
 
               ;; Return to original window and buffer
               (select-window original-window)
@@ -451,71 +353,6 @@
                   "No matches found"
                 results)))
         (error (format "Failed to execute ripgrep search: %s" (error-message-string err)))))))
-
-(defun greger-tools--replace-function (file-path line-number name contents git-commit-message)
-  "Replace function NAME at LINE-NUMBER in FILE-PATH with CONTENTS."
-  (unless (stringp file-path)
-    (error "file_path must be a string"))
-
-  (unless (integerp line-number)
-    (error "line_number must be an integer"))
-
-  (unless (stringp name)
-    (error "name must be a string"))
-
-  (unless (stringp contents)
-    (error "contents must be a string"))
-
-  (let ((expanded-path (expand-file-name file-path))
-        (original-buffer (current-buffer))
-        (original-window (selected-window)))
-    ;; Check file extension
-    (unless (or (string-suffix-p ".py" expanded-path)
-                (string-suffix-p ".el" expanded-path))
-      (error "Only .py and .el files are supported"))
-
-    ;; Check file exists
-    (unless (file-exists-p expanded-path)
-      (error "File does not exist: %s" expanded-path))
-
-    ;; Split screen if needed and open file
-    (greger-tools--setup-window-and-open-file expanded-path)
-
-    ;; Go to the specified line
-    (goto-line line-number)
-
-    ;; Verify function declaration on this line
-    (let ((current-line (thing-at-point 'line t)))
-      (unless (greger-tools--line-declares-function-p current-line name expanded-path)
-        (error "Function '%s' not declared on line %d" name line-number)))
-
-    ;; Find function boundaries and replace
-    (let ((func-start (point))
-          (func-end (greger-tools--find-function-end expanded-path)))
-
-      ;; Delete existing function
-      (delete-region func-start func-end)
-
-      ;; Insert new contents
-      (insert contents)
-
-      ;; Ensure there's a newline at the end if we're not at end of buffer
-      ;; and the next character isn't already a newline
-      (when (and (not (eobp))
-                 (not (string-suffix-p "\n" contents))
-                 (not (looking-at-p "^\n")))
-        (insert "\n"))
-
-      ;; Save the buffer
-      (save-buffer)
-
-      ;; Return to original chat buffer and window
-      (select-window original-window)
-      (switch-to-buffer original-buffer)
-
-      ;; Stage and commit changes - infer the file to stage
-      (let ((git-result (greger-tools--git-stage-and-commit (list expanded-path) git-commit-message)))
-        (format "Successfully replaced function '%s' in %s. %s" name expanded-path git-result)))))
 
 (defun greger-tools--setup-window-and-open-file (file-path)
   "Setup window split and open FILE-PATH appropriately."
@@ -543,281 +380,6 @@
           ;; Fallback: use other window
           (other-window 1)
           (find-file file-path))))))
-
-(defun greger-tools--line-declares-function-p (line func-name file-path)
-  "Check if LINE declares function FUNC-NAME based on file type."
-  (let ((line-trimmed (string-trim line)))
-    (cond
-     ;; Python function declaration
-     ((string-suffix-p ".py" file-path)
-      (string-match-p (format "^def\\s-+%s\\s-*(" (regexp-quote func-name)) line-trimmed))
-
-     ;; Elisp function declaration
-     ((string-suffix-p ".el" file-path)
-      (string-match-p (format "^(defun\\s-+%s\\s-*(" (regexp-quote func-name)) line-trimmed))
-
-     (t nil))))
-
-(defun greger-tools--find-function-end (file-path)
-  "Find the end of the current function based on file type."
-  (cond
-   ;; Python: find end by indentation
-   ((string-suffix-p ".py" file-path)
-    (greger-tools--find-python-function-end))
-
-   ;; Elisp: find matching closing parenthesis
-   ((string-suffix-p ".el" file-path)
-    (greger-tools--find-elisp-function-end))
-
-   (t (error "Unsupported file type"))))
-
-(defun greger-tools--find-python-function-end ()
-  "Find the end of a Python function by indentation."
-  (let ((start-column (current-indentation))
-        (start-pos (line-beginning-position)))
-    (forward-line 1)
-
-    ;; Skip empty lines and comments at start
-    (while (and (not (eobp))
-                (or (looking-at-p "^\\s-*$")
-                    (looking-at-p "^\\s-*#")))
-      (forward-line 1))
-
-    ;; Find first line with same or less indentation
-    (while (and (not (eobp))
-                (or (looking-at-p "^\\s-*$")
-                    (looking-at-p "^\\s-*#")
-                    (> (current-indentation) start-column)))
-      (forward-line 1))
-
-    ;; Move to end of previous line
-    (unless (bobp)
-      (forward-line -1)
-      (end-of-line))
-
-    (point)))
-
-(defun greger-tools--find-elisp-function-end ()
-  "Find the end of an Elisp function by matching parentheses."
-  (let ((start-pos (point)))
-    ;; Move to the opening parenthesis of defun
-    (beginning-of-line)
-    (search-forward "(defun" (line-end-position))
-    (backward-char 6) ; Go back to the opening paren
-
-    ;; Use forward-sexp to find the matching closing paren
-    (condition-case err
-        (progn
-          (forward-sexp)
-          (point))
-      (error
-       (goto-char start-pos)
-       (error "Could not find end of elisp function: %s" (error-message-string err))))))
-
-(defun greger-tools--file-replace-region (file-path line-start line-end contents git-commit-message)
-  "Replace code between LINE-START and LINE-END (exclusive) in FILE-PATH with CONTENTS."
-  (unless (stringp file-path)
-    (error "file_path must be a string"))
-
-  (unless (integerp line-start)
-    (error "line_number_start must be an integer"))
-
-  (unless (integerp line-end)
-    (error "line_number_end must be an integer"))
-
-  (unless (stringp contents)
-    (error "contents must be a string"))
-
-  (when (< line-end line-start)
-    (error "line_number_end (%d) must be >= line_number_start (%d)" line-end line-start))
-
-  (let ((expanded-path (expand-file-name file-path))
-        (original-buffer (current-buffer))
-        (original-window (selected-window)))
-
-    ;; Check file exists
-    (unless (file-exists-p expanded-path)
-      (error "File does not exist: %s" expanded-path))
-
-    ;; Split screen if needed and open file
-    (greger-tools--setup-window-and-open-file expanded-path)
-
-    ;; Count total lines in file to validate line numbers
-    (let ((total-lines (count-lines (point-min) (point-max))))
-      ;; Special case: allow line_start = total_lines + 1 only when line_start == line_end
-      ;; This enables appending to the end of the file
-      (if (and (= line-start line-end) (= line-start (1+ total-lines)))
-          ;; Append case: go to end of file
-          (progn
-            (goto-char (point-max))
-            ;; Ensure we're on a new line if file doesn't end with newline
-            (unless (or (bobp) (looking-back "\n" 1))
-              (insert "\n"))
-            (insert contents)
-            ;; Ensure file ends with newline
-            (unless (string-suffix-p "\n" contents)
-              (insert "\n")))
-
-        ;; Normal case: validate line numbers are within file bounds
-        (progn
-          (when (> line-start total-lines)
-            (error "line_number_start (%d) exceeds file length (%d lines)" line-start total-lines))
-          (when (> line-end total-lines)
-            (error "line_number_end (%d) exceeds file length (%d lines)" line-end total-lines))
-
-          ;; Go to start line
-          (goto-line line-start)
-          (let ((region-start (line-beginning-position)))
-
-            ;; Go to end line and move to beginning of that line (exclusive)
-            (goto-line line-end)
-            (let ((region-end (line-beginning-position)))
-
-              ;; Delete the specified region
-              (delete-region region-start region-end)
-
-              ;; Insert new contents at the start position
-              (goto-char region-start)
-              (insert contents)
-
-              ;; Ensure there's a newline at the end if we're not at end of buffer
-              ;; and the contents don't already end with a newline
-              (when (and (not (eobp))
-                         (not (string-suffix-p "\n" contents))
-                         (not (looking-at-p "^\n")))
-                (insert "\n"))))))
-
-      ;; Save the buffer
-      (save-buffer)
-
-      ;; Return to original chat buffer and window
-      (select-window original-window)
-      (switch-to-buffer original-buffer)
-
-      ;; Stage and commit changes - infer the file to stage
-      (let ((git-result (greger-tools--git-stage-and-commit (list expanded-path) git-commit-message)))
-        (if (and (= line-start line-end) (= line-start (1+ total-lines)))
-            (format "Successfully appended %d characters to end of %s. %s"
-                    (length contents) expanded-path git-result)
-          (format "Successfully replaced lines %d-%d (exclusive) in %s with %d characters. %s"
-                  line-start line-end expanded-path (length contents) git-result))))))
-
-(defun greger-tools--file-insert-text (file-path line-number contents git-commit-message)
-  "Insert CONTENTS at LINE-NUMBER in FILE-PATH."
-  (unless (stringp file-path)
-    (error "file_path must be a string"))
-
-  (unless (integerp line-number)
-    (error "line_number must be an integer"))
-
-  (unless (stringp contents)
-    (error "contents must be a string"))
-
-  ;; Use replace-code with same start and end line to insert at that position
-  (greger-tools--file-replace-region file-path line-number line-number contents git-commit-message))
-
-(defun greger-tools--file-delete-region (file-path line-start line-end git-commit-message)
-  "Delete code between LINE-START and LINE-END (inclusive) in FILE-PATH."
-  (unless (stringp file-path)
-    (error "file_path must be a string"))
-
-  (unless (integerp line-start)
-    (error "line_number_start must be an integer"))
-
-  (unless (integerp line-end)
-    (error "line_number_end must be an integer"))
-
-  (when (< line-end line-start)
-    (error "line_number_end (%d) must be >= line_number_start (%d)" line-end line-start))
-
-  ;; Use replace-code with empty contents to delete the range
-  (greger-tools--file-replace-region file-path line-start line-end "" git-commit-message))
-
-(defun greger-tools--prepend-text (file-path contents git-commit-message)
-  "Prepend CONTENTS to the beginning of FILE-PATH."
-  (unless (stringp file-path)
-    (error "file_path must be a string"))
-
-  (unless (stringp contents)
-    (error "contents must be a string"))
-
-  (let ((expanded-path (expand-file-name file-path))
-        (original-buffer (current-buffer))
-        (original-window (selected-window)))
-
-    ;; Check file exists
-    (unless (file-exists-p expanded-path)
-      (error "File does not exist: %s" expanded-path))
-
-    ;; Split screen if needed and open file
-    (greger-tools--setup-window-and-open-file expanded-path)
-
-    ;; Go to beginning of file
-    (goto-char (point-min))
-
-    ;; Insert contents
-    (insert contents)
-
-    ;; Ensure there's a newline after the prepended content if it doesn't end with one
-    (unless (string-suffix-p "\n" contents)
-      (insert "\n"))
-
-    ;; Save the buffer
-    (save-buffer)
-
-    ;; Return to original chat buffer and window
-    (select-window original-window)
-    (switch-to-buffer original-buffer)
-
-    ;; Stage and commit changes - infer the file to stage
-    (let ((git-result (greger-tools--git-stage-and-commit (list expanded-path) git-commit-message)))
-      (format "Successfully prepended %d characters to beginning of %s. %s"
-              (length contents) expanded-path git-result))))
-
-(defun greger-tools--append-text (file-path contents git-commit-message)
-  "Append CONTENTS to the end of FILE-PATH."
-  (unless (stringp file-path)
-    (error "file_path must be a string"))
-
-  (unless (stringp contents)
-    (error "contents must be a string"))
-
-  (let ((expanded-path (expand-file-name file-path))
-        (original-buffer (current-buffer))
-        (original-window (selected-window)))
-
-    ;; Check file exists
-    (unless (file-exists-p expanded-path)
-      (error "File does not exist: %s" expanded-path))
-
-    ;; Split screen if needed and open file
-    (greger-tools--setup-window-and-open-file expanded-path)
-
-    ;; Go to end of file
-    (goto-char (point-max))
-
-    ;; Ensure there's a newline before the appended content if file doesn't end with one
-    (unless (or (bobp) (looking-back "\n" 1))
-      (insert "\n"))
-
-    ;; Insert contents
-    (insert contents)
-
-    ;; Ensure file ends with newline
-    (unless (string-suffix-p "\n" contents)
-      (insert "\n"))
-
-    ;; Save the buffer
-    (save-buffer)
-
-    ;; Return to original chat buffer and window
-    (select-window original-window)
-    (switch-to-buffer original-buffer)
-
-    ;; Stage and commit changes - infer the file to stage
-    (let ((git-result (greger-tools--git-stage-and-commit (list expanded-path) git-commit-message)))
-      (format "Successfully appended %d characters to end of %s. %s"
-              (length contents) expanded-path git-result))))
 
 (defun greger-tools--write-new-file (file-path contents git-commit-message)
   "Write CONTENTS to a new file at FILE-PATH. Fails if file already exists."
@@ -907,6 +469,117 @@
                             git-commit-message)))
             (format "Successfully renamed %s to %s. %s" expanded-old-path expanded-new-path git-result)))
       (error (format "Failed to rename file: %s" (error-message-string err))))))
+
+(defun greger-tools--patch (patch-content git-commit-message)
+  "Apply PATCH-CONTENT using the patch command and commit changes."
+  (unless (stringp patch-content)
+    (error "patch_content must be a string"))
+
+  (unless (stringp git-commit-message)
+    (error "git_commit_message must be a string"))
+
+  ;; Check if patch command is available
+  (unless (executable-find "patch")
+    (error "patch command not found. Please install patch"))
+
+  (let* ((affected-files (greger-tools--extract-files-from-patch patch-content))
+         (working-dir (greger-tools--find-common-directory affected-files))
+         (normalized-patch (greger-tools--normalize-patch-paths patch-content working-dir))
+         (patch-file (make-temp-file "greger-patch-" nil ".patch")))
+
+    (unwind-protect
+        (progn
+          ;; Write normalized patch content to temporary file
+          (with-temp-file patch-file
+            (insert normalized-patch)
+            (unless (string-suffix-p "\n" normalized-patch)
+              (insert "\n")))
+
+          ;; TODO: remove debug
+          (message (format "normalized-patch: %s" normalized-patch))
+
+          ;; Change to the working directory and apply the patch
+          (let ((default-directory working-dir))
+            (let* ((patch-command (format "patch -p0 --no-backup-if-mismatch < %s"
+                                         (shell-quote-argument patch-file)))
+                   (result (shell-command-to-string patch-command))
+                   (exit-code (shell-command patch-command)))
+
+              (if (= exit-code 0)
+                  (progn
+                    ;; Patch applied successfully, now stage and commit
+                    (let ((git-result (greger-tools--git-stage-and-commit affected-files git-commit-message)))
+                      (format "Successfully applied patch to %d file(s): %s. %s"
+                              (length affected-files)
+                              (mapconcat #'identity affected-files ", ")
+                              git-result)))
+                ;; Patch failed
+                (error "Failed to apply patch. Error: %s" result)))))
+
+      ;; Cleanup: delete temporary patch file
+      (when (file-exists-p patch-file)
+        (delete-file patch-file)))))
+
+(defun greger-tools--find-common-directory (file-paths)
+  "Find the deepest common directory that contains all FILE-PATHS."
+  (if (null file-paths)
+      default-directory
+    (let ((expanded-paths (mapcar #'expand-file-name file-paths)))
+      (if (= (length expanded-paths) 1)
+          ;; Single file - use its directory
+          (file-name-directory (car expanded-paths))
+        ;; Multiple files - find common parent
+        (let ((common-dir (file-name-directory (car expanded-paths))))
+          (dolist (path (cdr expanded-paths))
+            (let ((dir (file-name-directory path)))
+              (while (and (not (string-empty-p common-dir))
+                         (not (string-prefix-p common-dir dir)))
+                (setq common-dir (file-name-directory (directory-file-name common-dir))))))
+          (or common-dir "/"))))))
+
+(defun greger-tools--normalize-patch-paths (patch-content working-dir)
+  "Normalize file paths in PATCH-CONTENT to be relative to WORKING-DIR."
+  (let ((lines (split-string patch-content "\n"))
+        (normalized-lines '()))
+
+    (dolist (line lines)
+      (cond
+       ;; Handle --- lines (old file)
+       ((string-match "^--- \\(.+\\)$" line)
+        (let* ((file-path (match-string 1 line))
+               (relative-path (greger-tools--make-relative-to-dir file-path working-dir)))
+          (push (format "--- %s" relative-path) normalized-lines)))
+
+       ;; Handle +++ lines (new file)
+       ((string-match "^\\+\\+\\+ \\(.+\\)$" line)
+        (let* ((file-path (match-string 1 line))
+               (relative-path (greger-tools--make-relative-to-dir file-path working-dir)))
+          (push (format "+++ %s" relative-path) normalized-lines)))
+
+       ;; Keep all other lines as-is
+       (t
+        (push line normalized-lines))))
+
+    (mapconcat #'identity (reverse normalized-lines) "\n")))
+
+(defun greger-tools--make-relative-to-dir (file-path base-dir)
+  "Make FILE-PATH relative to BASE-DIR."
+  (let ((expanded-file (expand-file-name file-path))
+        (expanded-base (expand-file-name base-dir)))
+    (file-relative-name expanded-file expanded-base)))
+
+(defun greger-tools--extract-files-from-patch (patch-content)
+  "Extract list of affected files from PATCH-CONTENT."
+  (let ((files '())
+        (lines (split-string patch-content "\n")))
+    (dolist (line lines)
+      (when (string-match "^\\+\\+\\+ \\(.+\\)$" line)
+        (let ((file (match-string 1 line)))
+          ;; Remove any timestamp or tab characters from the filename
+          (setq file (car (split-string file "[\t]")))
+          (unless (member file files)
+            (push file files)))))
+    (reverse files)))
 
 (provide 'greger-tools)
 
