@@ -1,7 +1,7 @@
-;;; aichat-tools.el --- Tool definitions for aichat agent -*- lexical-binding: t -*-
+;;; greger-tools.el --- Tool definitions for greger agent -*- lexical-binding: t -*-
 
 ;;; Commentary:
-;; Defines tools available to the aichat agent
+;; Defines tools available to the greger agent
 
 ;;; Code:
 
@@ -9,7 +9,7 @@
 (require 'magit)
 (require 'rg)
 
-(setq aichat-tools-registry
+(setq greger-tools-registry
       '(
         (read-file . ((name . "read-file")
                       (description . "Read the contents of a file from the filesystem")
@@ -167,30 +167,30 @@
 
         ))
 
-(defun aichat-tools-get-schemas (tool-names)
+(defun greger-tools-get-schemas (tool-names)
   "Get tool schemas for TOOL-NAMES."
   (mapcar (lambda (tool-name)
-            (or (alist-get tool-name aichat-tools-registry)
+            (or (alist-get tool-name greger-tools-registry)
                 (error "Unknown tool: %s" tool-name)))
           tool-names))
 
-(defun aichat-tools-execute (tool-name args)
+(defun greger-tools-execute (tool-name args)
   "Execute TOOL-NAME with ARGS."
   (let ((tool-symbol (intern tool-name)))
     (cond
      ((eq tool-symbol 'read-file)
-      (aichat-tools--read-file
+      (greger-tools--read-file
        (alist-get 'path args)
        (alist-get 'include_line_numbers args)))
 
      ((eq tool-symbol 'list-directory)
-      (aichat-tools--list-directory
+      (greger-tools--list-directory
        (or (alist-get 'path args) ".")
        (alist-get 'show-hidden args)
        (alist-get 'recursive args)))
 
      ((eq tool-symbol 'replace-function)
-      (aichat-tools--replace-function
+      (greger-tools--replace-function
        (alist-get 'file_path args)
        (alist-get 'line_number args)
        (alist-get 'name args)
@@ -198,7 +198,7 @@
        (alist-get 'git_commit_message args)))
 
      ((eq tool-symbol 'file-replace-region)
-      (aichat-tools--file-replace-region
+      (greger-tools--file-replace-region
        (alist-get 'file_path args)
        (alist-get 'line_number_start args)
        (alist-get 'line_number_end args)
@@ -206,7 +206,7 @@
        (alist-get 'git_commit_message args)))
 
      ((eq tool-symbol 'ripgrep)
-      (aichat-tools--ripgrep
+      (greger-tools--ripgrep
        (alist-get 'pattern args)
        (or (alist-get 'path args) ".")
        (alist-get 'case-sensitive args)
@@ -215,44 +215,44 @@
        (or (alist-get 'max-results args) 50)))
 
      ((eq tool-symbol 'file-insert-text)
-      (aichat-tools--file-insert-text
+      (greger-tools--file-insert-text
        (alist-get 'file_path args)
        (alist-get 'line_number args)
        (alist-get 'contents args)
        (alist-get 'git_commit_message args)))
 
      ((eq tool-symbol 'file-delete-region)
-      (aichat-tools--file-delete-region
+      (greger-tools--file-delete-region
        (alist-get 'file_path args)
        (alist-get 'line_number_start args)
        (alist-get 'line_number_end args)
        (alist-get 'git_commit_message args)))
 
      ((eq tool-symbol 'file-prepend-text)
-      (aichat-tools--prepend-text
+      (greger-tools--prepend-text
        (alist-get 'file_path args)
        (alist-get 'contents args)
        (alist-get 'git_commit_message args)))
 
      ((eq tool-symbol 'file-append-text)
-      (aichat-tools--append-text
+      (greger-tools--append-text
        (alist-get 'file_path args)
        (alist-get 'contents args)
        (alist-get 'git_commit_message args)))
 
      ((eq tool-symbol 'write-new-file)
-      (aichat-tools--write-new-file
+      (greger-tools--write-new-file
        (alist-get 'file_path args)
        (alist-get 'contents args)
        (alist-get 'git_commit_message args)))
 
      ((eq tool-symbol 'make-directory)
-      (aichat-tools--make-directory
+      (greger-tools--make-directory
        (alist-get 'path args)
        (alist-get 'git_commit_message args)))
 
      ((eq tool-symbol 'rename-file)
-      (aichat-tools--rename-file
+      (greger-tools--rename-file
        (alist-get 'old_path args)
        (alist-get 'new_path args)
        (alist-get 'git_commit_message args)))
@@ -260,7 +260,7 @@
      (t
       (error "Unknown tool: %s" tool-name)))))
 
-(defun aichat-tools--git-stage-and-commit (files commit-message)
+(defun greger-tools--git-stage-and-commit (files commit-message)
   "Stage FILES and commit with COMMIT-MESSAGE using magit."
   (condition-case err
       (let* ((first-file (car files))
@@ -282,7 +282,7 @@
     (error
      (format "Git operation failed: %s" (error-message-string err)))))
 
-(defun aichat-tools--read-file (path &optional include-line-numbers)
+(defun greger-tools--read-file (path &optional include-line-numbers)
   "Read file at PATH. If INCLUDE-LINE-NUMBERS is non-nil, prepend line numbers."
   (unless (stringp path)
     (error "Path must be a string"))
@@ -301,11 +301,11 @@
         (with-temp-buffer
           (insert-file-contents expanded-path)
           (if include-line-numbers
-              (aichat-tools--add-line-numbers (buffer-string))
+              (greger-tools--add-line-numbers (buffer-string))
             (buffer-string)))
       (error (format "Failed to read file: %s" (error-message-string err))))))
 
-(defun aichat-tools--add-line-numbers (content)
+(defun greger-tools--add-line-numbers (content)
   "Add line numbers to CONTENT string."
   (let ((lines (split-string content "\n"))
         (line-num 1)
@@ -323,7 +323,7 @@
     ;; Join back with newlines
     (mapconcat 'identity (reverse result) "\n")))
 
-(defun aichat-tools--list-directory (path &optional show-hidden recursive)
+(defun greger-tools--list-directory (path &optional show-hidden recursive)
   "List directory contents at PATH."
   (unless (stringp path)
     (error "Path must be a string"))
@@ -340,7 +340,7 @@
 
     (condition-case err
         (let ((files (if recursive
-                         (aichat-tools--list-directory-recursive expanded-path show-hidden)
+                         (greger-tools--list-directory-recursive expanded-path show-hidden)
                        (directory-files expanded-path nil
                                         (if show-hidden "^[^.]\\|^\\.[^.]" "^[^.]")))))
           (if files
@@ -353,7 +353,7 @@
             "Directory is empty"))
       (error (format "Failed to list directory: %s" (error-message-string err))))))
 
-(defun aichat-tools--list-directory-recursive (path show-hidden &optional prefix)
+(defun greger-tools--list-directory-recursive (path show-hidden &optional prefix)
   "Recursively list directory contents at PATH."
   (let ((files '())
         (prefix (or prefix "")))
@@ -367,13 +367,13 @@
             (progn
               (push (concat display-name "/") files)
               (setq files (append files
-                                  (aichat-tools--list-directory-recursive
+                                  (greger-tools--list-directory-recursive
                                    full-path show-hidden (concat prefix file "/")))))
           (push display-name files))))
 
     (reverse files)))
 
-(defun aichat-tools--ripgrep (pattern path &optional case-sensitive file-type context-lines max-results)
+(defun greger-tools--ripgrep (pattern path &optional case-sensitive file-type context-lines max-results)
   "Search for PATTERN in PATH using the rg.el package."
   (unless (stringp pattern)
     (error "Pattern must be a string"))
@@ -452,7 +452,7 @@
                 results)))
         (error (format "Failed to execute ripgrep search: %s" (error-message-string err)))))))
 
-(defun aichat-tools--replace-function (file-path line-number name contents git-commit-message)
+(defun greger-tools--replace-function (file-path line-number name contents git-commit-message)
   "Replace function NAME at LINE-NUMBER in FILE-PATH with CONTENTS."
   (unless (stringp file-path)
     (error "file_path must be a string"))
@@ -479,19 +479,19 @@
       (error "File does not exist: %s" expanded-path))
 
     ;; Split screen if needed and open file
-    (aichat-tools--setup-window-and-open-file expanded-path)
+    (greger-tools--setup-window-and-open-file expanded-path)
 
     ;; Go to the specified line
     (goto-line line-number)
 
     ;; Verify function declaration on this line
     (let ((current-line (thing-at-point 'line t)))
-      (unless (aichat-tools--line-declares-function-p current-line name expanded-path)
+      (unless (greger-tools--line-declares-function-p current-line name expanded-path)
         (error "Function '%s' not declared on line %d" name line-number)))
 
     ;; Find function boundaries and replace
     (let ((func-start (point))
-          (func-end (aichat-tools--find-function-end expanded-path)))
+          (func-end (greger-tools--find-function-end expanded-path)))
 
       ;; Delete existing function
       (delete-region func-start func-end)
@@ -514,10 +514,10 @@
       (switch-to-buffer original-buffer)
 
       ;; Stage and commit changes - infer the file to stage
-      (let ((git-result (aichat-tools--git-stage-and-commit (list expanded-path) git-commit-message)))
+      (let ((git-result (greger-tools--git-stage-and-commit (list expanded-path) git-commit-message)))
         (format "Successfully replaced function '%s' in %s. %s" name expanded-path git-result)))))
 
-(defun aichat-tools--setup-window-and-open-file (file-path)
+(defun greger-tools--setup-window-and-open-file (file-path)
   "Setup window split and open FILE-PATH appropriately."
   (let ((chat-window (selected-window)))
     (if (= (length (window-list)) 1)
@@ -544,7 +544,7 @@
           (other-window 1)
           (find-file file-path))))))
 
-(defun aichat-tools--line-declares-function-p (line func-name file-path)
+(defun greger-tools--line-declares-function-p (line func-name file-path)
   "Check if LINE declares function FUNC-NAME based on file type."
   (let ((line-trimmed (string-trim line)))
     (cond
@@ -558,20 +558,20 @@
 
      (t nil))))
 
-(defun aichat-tools--find-function-end (file-path)
+(defun greger-tools--find-function-end (file-path)
   "Find the end of the current function based on file type."
   (cond
    ;; Python: find end by indentation
    ((string-suffix-p ".py" file-path)
-    (aichat-tools--find-python-function-end))
+    (greger-tools--find-python-function-end))
 
    ;; Elisp: find matching closing parenthesis
    ((string-suffix-p ".el" file-path)
-    (aichat-tools--find-elisp-function-end))
+    (greger-tools--find-elisp-function-end))
 
    (t (error "Unsupported file type"))))
 
-(defun aichat-tools--find-python-function-end ()
+(defun greger-tools--find-python-function-end ()
   "Find the end of a Python function by indentation."
   (let ((start-column (current-indentation))
         (start-pos (line-beginning-position)))
@@ -597,7 +597,7 @@
 
     (point)))
 
-(defun aichat-tools--find-elisp-function-end ()
+(defun greger-tools--find-elisp-function-end ()
   "Find the end of an Elisp function by matching parentheses."
   (let ((start-pos (point)))
     ;; Move to the opening parenthesis of defun
@@ -614,7 +614,7 @@
        (goto-char start-pos)
        (error "Could not find end of elisp function: %s" (error-message-string err))))))
 
-(defun aichat-tools--file-replace-region (file-path line-start line-end contents git-commit-message)
+(defun greger-tools--file-replace-region (file-path line-start line-end contents git-commit-message)
   "Replace code between LINE-START and LINE-END (exclusive) in FILE-PATH with CONTENTS."
   (unless (stringp file-path)
     (error "file_path must be a string"))
@@ -640,7 +640,7 @@
       (error "File does not exist: %s" expanded-path))
 
     ;; Split screen if needed and open file
-    (aichat-tools--setup-window-and-open-file expanded-path)
+    (greger-tools--setup-window-and-open-file expanded-path)
 
     ;; Count total lines in file to validate line numbers
     (let ((total-lines (count-lines (point-min) (point-max))))
@@ -695,14 +695,14 @@
       (switch-to-buffer original-buffer)
 
       ;; Stage and commit changes - infer the file to stage
-      (let ((git-result (aichat-tools--git-stage-and-commit (list expanded-path) git-commit-message)))
+      (let ((git-result (greger-tools--git-stage-and-commit (list expanded-path) git-commit-message)))
         (if (and (= line-start line-end) (= line-start (1+ total-lines)))
             (format "Successfully appended %d characters to end of %s. %s"
                     (length contents) expanded-path git-result)
           (format "Successfully replaced lines %d-%d (exclusive) in %s with %d characters. %s"
                   line-start line-end expanded-path (length contents) git-result))))))
 
-(defun aichat-tools--file-insert-text (file-path line-number contents git-commit-message)
+(defun greger-tools--file-insert-text (file-path line-number contents git-commit-message)
   "Insert CONTENTS at LINE-NUMBER in FILE-PATH."
   (unless (stringp file-path)
     (error "file_path must be a string"))
@@ -714,9 +714,9 @@
     (error "contents must be a string"))
 
   ;; Use replace-code with same start and end line to insert at that position
-  (aichat-tools--file-replace-region file-path line-number line-number contents git-commit-message))
+  (greger-tools--file-replace-region file-path line-number line-number contents git-commit-message))
 
-(defun aichat-tools--file-delete-region (file-path line-start line-end git-commit-message)
+(defun greger-tools--file-delete-region (file-path line-start line-end git-commit-message)
   "Delete code between LINE-START and LINE-END (inclusive) in FILE-PATH."
   (unless (stringp file-path)
     (error "file_path must be a string"))
@@ -731,9 +731,9 @@
     (error "line_number_end (%d) must be >= line_number_start (%d)" line-end line-start))
 
   ;; Use replace-code with empty contents to delete the range
-  (aichat-tools--file-replace-region file-path line-start line-end "" git-commit-message))
+  (greger-tools--file-replace-region file-path line-start line-end "" git-commit-message))
 
-(defun aichat-tools--prepend-text (file-path contents git-commit-message)
+(defun greger-tools--prepend-text (file-path contents git-commit-message)
   "Prepend CONTENTS to the beginning of FILE-PATH."
   (unless (stringp file-path)
     (error "file_path must be a string"))
@@ -750,7 +750,7 @@
       (error "File does not exist: %s" expanded-path))
 
     ;; Split screen if needed and open file
-    (aichat-tools--setup-window-and-open-file expanded-path)
+    (greger-tools--setup-window-and-open-file expanded-path)
 
     ;; Go to beginning of file
     (goto-char (point-min))
@@ -770,11 +770,11 @@
     (switch-to-buffer original-buffer)
 
     ;; Stage and commit changes - infer the file to stage
-    (let ((git-result (aichat-tools--git-stage-and-commit (list expanded-path) git-commit-message)))
+    (let ((git-result (greger-tools--git-stage-and-commit (list expanded-path) git-commit-message)))
       (format "Successfully prepended %d characters to beginning of %s. %s"
               (length contents) expanded-path git-result))))
 
-(defun aichat-tools--append-text (file-path contents git-commit-message)
+(defun greger-tools--append-text (file-path contents git-commit-message)
   "Append CONTENTS to the end of FILE-PATH."
   (unless (stringp file-path)
     (error "file_path must be a string"))
@@ -791,7 +791,7 @@
       (error "File does not exist: %s" expanded-path))
 
     ;; Split screen if needed and open file
-    (aichat-tools--setup-window-and-open-file expanded-path)
+    (greger-tools--setup-window-and-open-file expanded-path)
 
     ;; Go to end of file
     (goto-char (point-max))
@@ -815,11 +815,11 @@
     (switch-to-buffer original-buffer)
 
     ;; Stage and commit changes - infer the file to stage
-    (let ((git-result (aichat-tools--git-stage-and-commit (list expanded-path) git-commit-message)))
+    (let ((git-result (greger-tools--git-stage-and-commit (list expanded-path) git-commit-message)))
       (format "Successfully appended %d characters to end of %s. %s"
               (length contents) expanded-path git-result))))
 
-(defun aichat-tools--write-new-file (file-path contents git-commit-message)
+(defun greger-tools--write-new-file (file-path contents git-commit-message)
   "Write CONTENTS to a new file at FILE-PATH. Fails if file already exists."
   (unless (stringp file-path)
     (error "file_path must be a string"))
@@ -846,11 +846,11 @@
       (error (format "Failed to write file: %s" (error-message-string err))))
 
     ;; Stage and commit changes - infer the file to stage
-    (let ((git-result (aichat-tools--git-stage-and-commit (list expanded-path) git-commit-message)))
+    (let ((git-result (greger-tools--git-stage-and-commit (list expanded-path) git-commit-message)))
       (format "Successfully wrote new file %s with %d characters. %s"
               expanded-path (length contents) git-result))))
 
-(defun aichat-tools--make-directory (path git-commit-message)
+(defun greger-tools--make-directory (path git-commit-message)
   "Recursively create directory at PATH."
   (unless (stringp path)
     (error "path must be a string"))
@@ -869,11 +869,11 @@
             (make-directory expanded-path t)
             ;; For directory creation, we might want to stage a .gitkeep file or similar
             ;; For now, we'll stage the directory path itself (though git doesn't track empty dirs)
-            (let ((git-result (aichat-tools--git-stage-and-commit (list expanded-path) git-commit-message)))
+            (let ((git-result (greger-tools--git-stage-and-commit (list expanded-path) git-commit-message)))
               (format "Successfully created directory: %s. %s" expanded-path git-result)))
         (error (format "Failed to create directory: %s" (error-message-string err)))))))
 
-(defun aichat-tools--rename-file (old-path new-path git-commit-message)
+(defun greger-tools--rename-file (old-path new-path git-commit-message)
   "Rename file from OLD-PATH to NEW-PATH."
   (unless (stringp old-path)
     (error "old_path must be a string"))
@@ -902,12 +902,12 @@
         (progn
           (rename-file expanded-old-path expanded-new-path)
           ;; Stage both old and new paths (git mv operation)
-          (let ((git-result (aichat-tools--git-stage-and-commit
+          (let ((git-result (greger-tools--git-stage-and-commit
                             (list expanded-old-path expanded-new-path)
                             git-commit-message)))
             (format "Successfully renamed %s to %s. %s" expanded-old-path expanded-new-path git-result)))
       (error (format "Failed to rename file: %s" (error-message-string err))))))
 
-(provide 'aichat-tools)
+(provide 'greger-tools)
 
-;;; aichat-tools.el ends here
+;;; greger-tools.el ends here

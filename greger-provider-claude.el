@@ -1,4 +1,4 @@
-;;; aichat-provider-claude.el --- Claude provider support -*- lexical-binding: t -*-
+;;; greger-provider-claude.el --- Claude provider support -*- lexical-binding: t -*-
 
 ;;; Commentary:
 ;; Support for Anthropic's Claude models
@@ -7,35 +7,35 @@
 
 (require 'json)
 
-(defun aichat-provider-claude-config (provider-name model-name)
+(defun greger-provider-claude-config (provider-name model-name)
   "Create configuration for Claude PROVIDER-NAME with MODEL-NAME."
   (list :provider provider-name
         :model model-name
         :url "https://api.anthropic.com/v1/messages"
-        :request-builder #'aichat-provider-claude--build-request
-        :text-extractor #'aichat-provider-claude--extract-text))
+        :request-builder #'greger-provider-claude--build-request
+        :text-extractor #'greger-provider-claude--extract-text))
 
-(defun aichat-provider-claude--build-request (config dialog &optional tools)
+(defun greger-provider-claude--build-request (config dialog &optional tools)
   "Build Claude request using CONFIG for DIALOG with optional TOOLS."
   (let* ((provider-name (plist-get config :provider))
          (model-name (plist-get config :model))
          (url (plist-get config :url))
-         (api-key (aichat-providers--get-api-key provider-name))
-         (headers (aichat-provider-claude--build-headers api-key))
-         (data (aichat-provider-claude--build-data model-name dialog tools)))
+         (api-key (greger-providers--get-api-key provider-name))
+         (headers (greger-provider-claude--build-headers api-key))
+         (data (greger-provider-claude--build-data model-name dialog tools)))
     (list :url url
           :method "POST"
           :headers headers
           :data data)))
 
-(defun aichat-provider-claude--build-headers (api-key)
+(defun greger-provider-claude--build-headers (api-key)
   "Build headers for Claude with API-KEY."
   `(("Content-Type" . "application/json")
     ("x-api-key" . ,api-key)
     ("anthropic-version" . "2023-06-01")
     ("anthropic-beta" . "token-efficient-tools-2025-02-19")))
 
-(defun aichat-provider-claude--build-data (model-name dialog &optional tools)
+(defun greger-provider-claude--build-data (model-name dialog &optional tools)
   "Build request data for Claude MODEL-NAME with DIALOG and optional TOOLS."
   (let ((system-message nil)
         (user-messages ())
@@ -69,17 +69,17 @@
 
     (json-encode request-data)))
 
-(defun aichat-provider-claude--extract-text (event)
+(defun greger-provider-claude--extract-text (event)
   "Extract text from Claude EVENT."
   (let ((event-parts (split-string event "\n" t)))
     (when (>= (length event-parts) 2)
       (let ((event-type (car event-parts))
             (event-data (substring (cadr event-parts) 6)))
         (if (string-prefix-p "event: content_block_delta" event-type)
-            (aichat-provider-claude--extract-delta-text event-data)
+            (greger-provider-claude--extract-delta-text event-data)
           "")))))
 
-(defun aichat-provider-claude--extract-delta-text (data)
+(defun greger-provider-claude--extract-delta-text (data)
   "Extract text from Claude content_block_delta DATA."
   (condition-case nil
       (let* ((block-data (json-read-from-string data))
@@ -88,6 +88,6 @@
         (or text ""))
     (error "")))
 
-(provide 'aichat-provider-claude)
+(provide 'greger-provider-claude)
 
-;;; aichat-provider-claude.el ends hereb
+;;; greger-provider-claude.el ends hereb

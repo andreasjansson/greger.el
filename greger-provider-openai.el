@@ -1,4 +1,4 @@
-;;; aichat-provider-openai.el --- OpenAI-compatible provider support -*- lexical-binding: t -*-
+;;; greger-provider-openai.el --- OpenAI-compatible provider support -*- lexical-binding: t -*-
 
 ;;; Commentary:
 ;; Support for OpenAI and OpenAI-compatible providers (Replicate, Groq, Ollama)
@@ -7,17 +7,17 @@
 
 (require 'json)
 
-(defun aichat-provider-openai-config (provider-name model-name)
+(defun greger-provider-openai-config (provider-name model-name)
   "Create configuration for OpenAI-compatible PROVIDER-NAME with MODEL-NAME."
   (list :provider provider-name
         :model model-name
-        :url (aichat-provider-openai--get-url provider-name)
-        :request-builder #'aichat-provider-openai--build-request
-        :text-extractor (if (aichat-provider-openai--is-o1-model-p model-name)
-                            #'aichat-provider-openai--extract-o1-text
-                          #'aichat-provider-openai--extract-streaming-text)))
+        :url (greger-provider-openai--get-url provider-name)
+        :request-builder #'greger-provider-openai--build-request
+        :text-extractor (if (greger-provider-openai--is-o1-model-p model-name)
+                            #'greger-provider-openai--extract-o1-text
+                          #'greger-provider-openai--extract-streaming-text)))
 
-(defun aichat-provider-openai--get-url (provider-name)
+(defun greger-provider-openai--get-url (provider-name)
   "Get API URL for PROVIDER-NAME."
   (cond
    ((string= provider-name "replicate")
@@ -29,29 +29,29 @@
    ((string= provider-name "ollama")
     "http://localhost:11434/v1/chat/completions")))
 
-(defun aichat-provider-openai--build-request (config dialog)
+(defun greger-provider-openai--build-request (config dialog)
   "Build OpenAI request using CONFIG for DIALOG."
   (let* ((provider-name (plist-get config :provider))
          (model-name (plist-get config :model))
          (url (plist-get config :url))
-         (api-key (aichat-providers--get-api-key provider-name))
-         (headers (aichat-provider-openai--build-headers provider-name api-key))
-         (data (aichat-provider-openai--build-data model-name dialog)))
+         (api-key (greger-providers--get-api-key provider-name))
+         (headers (greger-provider-openai--build-headers provider-name api-key))
+         (data (greger-provider-openai--build-data model-name dialog)))
     (list :url url
           :method "POST"
           :headers headers
           :data data)))
 
-(defun aichat-provider-openai--build-headers (provider-name api-key)
+(defun greger-provider-openai--build-headers (provider-name api-key)
   "Build headers for PROVIDER-NAME with API-KEY."
   (let ((headers '(("Content-Type" . "application/json"))))
     (when api-key
       (push `("Authorization" . ,(format "Bearer %s" api-key)) headers))
     headers))
 
-(defun aichat-provider-openai--build-data (model-name dialog)
+(defun greger-provider-openai--build-data (model-name dialog)
   "Build request data for MODEL-NAME with DIALOG."
-  (let* ((is-o1-model (aichat-provider-openai--is-o1-model-p model-name))
+  (let* ((is-o1-model (greger-provider-openai--is-o1-model-p model-name))
          (filtered-dialog (if is-o1-model
                               (seq-filter (lambda (message)
                                             (not (eq (car message) 'system)))
@@ -77,11 +77,11 @@
         (json-encode base-request)
       (json-encode (append base-request '(("stream" . t)))))))
 
-(defun aichat-provider-openai--is-o1-model-p (model-name)
+(defun greger-provider-openai--is-o1-model-p (model-name)
   "Check if MODEL-NAME is an o1 model."
   (member model-name '("o1-preview" "o1-mini")))
 
-(defun aichat-provider-openai--extract-streaming-text (event)
+(defun greger-provider-openai--extract-streaming-text (event)
   "Extract text from streaming EVENT."
   (if (string-prefix-p "data: " event)
       (let ((data-string (substring event 6)))
@@ -97,7 +97,7 @@
             (error ""))))
     ""))
 
-(defun aichat-provider-openai--extract-o1-text (event)
+(defun greger-provider-openai--extract-o1-text (event)
   "Extract text from o1 model EVENT."
   (condition-case nil
       (let* ((data (json-read-from-string event))
@@ -108,6 +108,6 @@
         (or content ""))
     (error "")))
 
-(provide 'aichat-provider-openai)
+(provide 'greger-provider-openai)
 
-;;; aichat-provider-openai.el ends here
+;;; greger-provider-openai.el ends here

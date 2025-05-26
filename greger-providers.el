@@ -1,4 +1,4 @@
-;;; aichat-providers.el --- AI provider configurations -*- lexical-binding: t -*-
+;;; greger-providers.el --- AI provider configurations -*- lexical-binding: t -*-
 
 ;;; Commentary:
 ;; Manages different AI provider configurations and request building
@@ -6,11 +6,11 @@
 ;;; Code:
 
 (require 'json)
-(require 'aichat-provider-openai)
-(require 'aichat-provider-claude)
-(require 'aichat-provider-google)
+(require 'greger-provider-openai)
+(require 'greger-provider-claude)
+(require 'greger-provider-google)
 
-(defun aichat-providers-get-config (model)
+(defun greger-providers-get-config (model)
   "Get provider configuration for MODEL."
   (let* ((model-string (symbol-name model))
          (parts (split-string model-string "/"))
@@ -18,25 +18,25 @@
          (model-name (mapconcat #'identity (cdr parts) "/")))
     (cond
      ((member provider-name '("replicate" "openai" "groq" "ollama"))
-      (aichat-provider-openai-config provider-name model-name))
+      (greger-provider-openai-config provider-name model-name))
      ((string= provider-name "claude")
-      (aichat-provider-claude-config provider-name model-name))
+      (greger-provider-claude-config provider-name model-name))
      ((string= provider-name "google")
-      (aichat-provider-google-config provider-name model-name))
+      (greger-provider-google-config provider-name model-name))
      (t
       (error "Unknown provider: %s" provider-name)))))
 
-(defun aichat-providers-build-request (provider-config dialog &optional tools)
+(defun greger-providers-build-request (provider-config dialog &optional tools)
   "Build request using PROVIDER-CONFIG for DIALOG with optional TOOLS."
   (let ((builder (plist-get provider-config :request-builder)))
     (funcall builder provider-config dialog tools)))
 
-(defun aichat-providers-extract-text (provider-config chunk)
+(defun greger-providers-extract-text (provider-config chunk)
   "Extract text from CHUNK using PROVIDER-CONFIG."
   (let ((extractor (plist-get provider-config :text-extractor)))
     (funcall extractor chunk)))
 
-(defun aichat-providers--get-api-key (provider-name)
+(defun greger-providers--get-api-key (provider-name)
   "Get API key for PROVIDER-NAME."
   (let ((env-var (cond
                   ((string= provider-name "replicate") "REPLICATE_API_KEY")
@@ -53,6 +53,6 @@
 
 
 
-(provide 'aichat-providers)
+(provide 'greger-providers)
 
-;;; aichat-providers.el ends here
+;;; greger-providers.el ends here
