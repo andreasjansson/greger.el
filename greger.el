@@ -45,7 +45,7 @@
     ollama/gemma:2b)
   "List of available models.")
 
-(defcustom greger-model 'claude/claude-3-haiku-20240307
+(defcustom greger-model 'claude/claude-sonnet-4-20250514
   "The currently used model."
   :type `(choice ,@(mapcar (lambda (model) `(const ,model)) greger-available-models))
   :group 'greger)
@@ -189,8 +189,8 @@
   "Stream the AI response for SYSTEM-PROMPT and user PROMPT.
 COMPLETE-CALLBACK is called when done.
 CANCEL-CALLBACK is called if cancelled."
-  (let ((dialog `((system . ,system-prompt)
-                  (user . ,prompt))))
+  (let ((dialog `(((role . "system") (content . ,system-prompt))
+                  ((role . "user") (content . ,prompt)))))
     (greger-stream-dialog dialog complete-callback cancel-callback)))
 
 (defun greger-stream-dialog (dialog &optional complete-callback cancel-callback)

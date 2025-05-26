@@ -82,25 +82,24 @@ Returns (match-start . match-end) or nil if not found."
         (setq current-pos (point-max))))
 
     ;; Find all section boundaries
-    (while (< current-pos (point-max))
-      (let ((section-match (greger-parser--find-next-section-outside-code-blocks section-pattern current-pos)))
-        (when section-match
-          (let* ((section-start (car section-match))
-                 (section-end (cdr section-match))
-                 (section-header (buffer-substring-no-properties section-start section-end))
-                 (content-start section-end)
-                 (next-section (greger-parser--find-next-section-outside-code-blocks
-                               section-pattern (1+ section-end)))
-                 (next-section-pos (if next-section
-                                     (car next-section)
-                                   (point-max)))
-                 (content (buffer-substring-no-properties content-start next-section-pos)))
+    (cl-loop while (< current-pos (point-max))
+             for section-match = (greger-parser--find-next-section-outside-code-blocks section-pattern current-pos)
+             when section-match
+             do (let* ((section-start (car section-match))
+                       (section-end (cdr section-match))
+                       (section-header (buffer-substring-no-properties section-start section-end))
+                       (content-start section-end)
+                       (next-section (greger-parser--find-next-section-outside-code-blocks
+                                     section-pattern (1+ section-end)))
+                       (next-section-pos (if next-section
+                                           (car next-section)
+                                         (point-max)))
+                       (content (buffer-substring-no-properties content-start next-section-pos)))
 
-            (push (list (greger-parser--header-to-symbol section-header) content) sections)
-            (setq current-pos next-section-pos)))
-
-        (unless section-match
-          (setq current-pos (point-max)))))
+                  (push (list (greger-parser--header-to-symbol section-header) content) sections)
+                  (setq current-pos next-section-pos))
+             unless section-match
+             do (setq current-pos (point-max)))
 
     (reverse sections)))
 
@@ -136,25 +135,25 @@ Returns (match-start . match-end) or nil if not found."
       (greger-parser--debug "Parsing section type: %s" type)
       (cond
        ((eq type 'untagged)
-        (cons 'user (greger-parser--expand-context content)))
+        `((role . "user") (content . ,(greger-parser--expand-context content))))
 
        ((eq type 'user)
-        (cons 'user (greger-parser--expand-context content)))
+        `((role . "user") (content . ,(greger-parser--expand-context content))))
 
        ((eq type 'assistant)
-        (cons 'assistant content))
+        `((role . "assistant") (content . ,content)))
 
        ((eq type 'system)
-        (cons 'system content))
+        `((role . "system") (content . ,content)))
 
        ((eq type 'thinking)
-        (cons 'thinking content))
+        `((role . "thinking") (content . ,content)))
 
        ((eq type 'tool-use)
-        (cons 'tool-use (greger-parser--parse-tool-use-content content)))
+        `((role . "tool-use") (content . ,(greger-parser--parse-tool-use-content content))))
 
        ((eq type 'tool-result)
-        (cons 'tool-result (greger-parser--parse-tool-result-content content)))))))
+        `((role . "tool-result") (content . ,(greger-parser--parse-tool-result-content content))))))))
 
 (defun greger-parser--expand-context (content)
   "Expand any <ai-context> tags in CONTENT, but not those inside code blocks."
@@ -163,41 +162,41 @@ Returns (match-start . match-end) or nil if not found."
         (in-code-block nil)
         (in-inline-code nil))
 
-    (while (< pos (length content))
-      (cond
-       ;; Check for triple backtick code blocks
-       ((and (not in-inline-code)
-             (string-match "^```" content pos))
-        (setq in-code-block (not in-code-block))
-        (let ((match-end (match-end 0)))
-          (setq result (concat result (substring content pos match-end))
-                pos match-end)))
+    (cl-loop while (< pos (length content))
+             do (cond
+                 ;; Check for triple backtick code blocks
+                 ((and (not in-inline-code)
+                       (string-match "^```" content pos))
+                  (setq in-code-block (not in-code-block))
+                  (let ((match-end (match-end 0)))
+                    (setq result (concat result (substring content pos match-end))
+                          pos match-end)))
 
-       ;; Check for inline code (single backticks)
-       ((and (not in-code-block)
-             (string-match "`" content pos))
-        (setq in-inline-code (not in-inline-code))
-        (let ((match-end (match-end 0)))
-          (setq result (concat result (substring content pos match-end))
-                pos match-end)))
+                 ;; Check for inline code (single backticks)
+                 ((and (not in-code-block)
+                       (string-match "`" content pos))
+                  (setq in-inline-code (not in-inline-code))
+                  (let ((match-end (match-end 0)))
+                    (setq result (concat result (substring content pos match-end))
+                          pos match-end)))
 
-       ;; Check for ai-context tags (only when not in any code)
-       ((and (not in-code-block)
-             (not in-inline-code)
-             (string-match "<ai-context>\\([^<]+\\)</ai-context>" content pos))
-        (let* ((match-start (match-beginning 0))
-               (match-end (match-end 0))
-               (path (match-string 1 content))
-               (expanded (greger-parser--expand-context-path path))
-               (replacement (or expanded (format "[Could not load: %s]" path))))
-          ;; Add text before match
-          (setq result (concat result (substring content pos match-start) replacement)
-                pos match-end)))
+                 ;; Check for ai-context tags (only when not in any code)
+                 ((and (not in-code-block)
+                       (not in-inline-code)
+                       (string-match "<ai-context>\\([^<]+\\)</ai-context>" content pos))
+                  (let* ((match-start (match-beginning 0))
+                         (match-end (match-end 0))
+                         (path (match-string 1 content))
+                         (expanded (greger-parser--expand-context-path path))
+                         (replacement (or expanded (format "[Could not load: %s]" path))))
+                    ;; Add text before match
+                    (setq result (concat result (substring content pos match-start) replacement)
+                          pos match-end)))
 
-       ;; Default: add character and advance
-       (t
-        (setq result (concat result (substring content pos (1+ pos)))
-              pos (1+ pos)))))
+                 ;; Default: add character and advance
+                 (t
+                  (setq result (concat result (substring content pos (1+ pos)))
+                        pos (1+ pos)))))
 
     result))
 
@@ -226,8 +225,8 @@ Returns (match-start . match-end) or nil if not found."
     ;; Helper to finish current parameter
     (cl-flet ((finish-param ()
                 (when current-param
-                  (let ((value (string-trim (mapconcat #'identity (reverse current-value-lines) "\n"))))
-                    ;; Store as (param-name . value) for JSON object format
+                  (let* ((value-str (string-trim (mapconcat #'identity (reverse current-value-lines) "\n")))
+                         (value (greger-parser--parse-param-value value-str)))
                     (push (cons current-param value) input))
                   (setq current-param nil
                         current-value-lines '()))))
@@ -265,6 +264,30 @@ Returns (match-start . match-end) or nil if not found."
       (id . ,id)
       (name . ,name)
       (input . ,(reverse input)))))
+
+(defun greger-parser--parse-param-value (value-str)
+  "Parse VALUE-STR into appropriate type (string, number, bool, list, or dict)."
+  (cond
+   ;; Empty string
+   ((string-empty-p value-str) "")
+
+   ;; Boolean values
+   ((string= value-str "true") t)
+   ((string= value-str "false") nil)
+
+   ;; Try to parse as JSON (list or dict)
+   ((or (string-prefix-p "[" value-str)
+        (string-prefix-p "{" value-str))
+    (condition-case nil
+        (json-read-from-string value-str)
+      (error value-str)))
+
+   ;; Try to parse as number
+   ((string-match-p "^-?[0-9]+\\(?:\\.[0-9]+\\)?$" value-str)
+    (string-to-number value-str))
+
+   ;; Default to string
+   (t value-str)))
 
 (defun greger-parser--parse-tool-result-content (content)
   "Parse tool result CONTENT into structured format."
@@ -307,32 +330,32 @@ Returns (match-start . match-end) or nil if not found."
                              (and (alist-get 'type block)
                                   (string= (alist-get 'type block) "text"))))
                       ;; Single text block - use text directly
-                      (push `(assistant . ,(alist-get 'text (car current-assistant-content))) result)
+                      (push `((role . "assistant") (content . ,(alist-get 'text (car current-assistant-content)))) result)
                     ;; Multiple blocks or non-text - use JSON
-                    (push `(assistant . ,(json-encode (reverse current-assistant-content))) result))
+                    (push `((role . "assistant") (content . ,(json-encode (reverse current-assistant-content)))) result))
                   (setq current-assistant-content '()))))
 
       (dolist (section sections)
-        (let ((role (car section))
-              (content (cdr section)))
+        (let ((role (alist-get 'role section))
+              (content (alist-get 'content section)))
           (greger-parser--debug "Processing section with role: %s" role)
           (cond
            ;; Assistant text content
-           ((eq role 'assistant)
+           ((string= role "assistant")
             (push `((type . "text") (text . ,content)) current-assistant-content))
 
            ;; Thinking
-           ((eq role 'thinking)
+           ((string= role "thinking")
             (push `((type . "thinking") (thinking . ,content)) current-assistant-content))
 
            ;; Tool use
-           ((eq role 'tool-use)
+           ((string= role "tool-use")
             (push content current-assistant-content))
 
            ;; Tool result - flush assistant and add as user message
-           ((eq role 'tool-result)
+           ((string= role "tool-result")
             (flush-assistant)
-            (push `(user . ,(json-encode (list content))) result))
+            (push `((role . "user") (content . ,(json-encode (list content)))) result))
 
            ;; Other roles - flush assistant and add the message
            (t
@@ -354,24 +377,24 @@ Returns (match-start . match-end) or nil if not found."
 
 (defun greger-parser--message-to-markdown (message)
   "Convert a single MESSAGE to markdown format."
-  (let ((role (car message))
-        (content (cdr message)))
+  (let ((role (alist-get 'role message))
+        (content (alist-get 'content message)))
     (cond
-     ((eq role 'user)
+     ((string= role "user")
       (if (and (stringp content)
                (not (string-match-p "^\\[" (string-trim content))))
           (concat greger-parser-user-tag "\n\n" content)
         ;; Handle array content (tool results)
         (greger-parser--content-blocks-to-markdown content)))
 
-     ((eq role 'assistant)
+     ((string= role "assistant")
       (if (and (stringp content)
                (not (string-match-p "^\\[" (string-trim content))))
           (concat greger-parser-assistant-tag "\n\n" content)
         ;; Handle array content (mixed content blocks)
         (greger-parser--content-blocks-to-markdown content)))
 
-     ((eq role 'system)
+     ((string= role "system")
       (concat greger-parser-system-tag "\n\n" content)))))
 
 (defun greger-parser--content-blocks-to-markdown (content-json)
@@ -411,7 +434,7 @@ Returns (match-start . match-end) or nil if not found."
                                        (symbol-name (car param))
                                      (car param)))
                         (param-value (cdr param)))
-                    (setq result (concat result "\n### " param-name "\n\n" param-value "\n"))))))))
+                    (setq result (concat result "\n### " param-name "\n\n" (greger-parser--format-param-value param-value) "\n"))))))))
 
          ((string= type "tool_result")
           (let ((id (alist-get 'tool_use_id block))
@@ -420,6 +443,15 @@ Returns (match-start . match-end) or nil if not found."
                                 "ID: " id "\n\n" content)))))))
 
     result))
+
+(defun greger-parser--format-param-value (value)
+  "Format VALUE for display in markdown tool use section."
+  (cond
+   ((stringp value) value)
+   ((booleanp value) (if value "true" "false"))
+   ((numberp value) (number-to-string value))
+   ((or (listp value) (vectorp value)) (json-encode value))
+   (t (format "%s" value))))
 
 (defun greger-parser--text-from-url (url &optional use-highest-readability)
   "Retrieve the text content from URL.

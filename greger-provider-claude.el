@@ -43,12 +43,12 @@
 
     ;; Separate system messages from user/assistant messages
     (dolist (message dialog)
-      (let ((role (car message))
-            (content (cdr message)))
-        (if (eq role 'system)
+      (let ((role (alist-get 'role message))
+            (content (alist-get 'content message)))
+        (if (string= role "system")
             (unless system-message
               (setq system-message content))
-          (push `((role . ,(symbol-name role))
+          (push `((role . ,role)
                   (content . ,content))
                 user-messages))))
 

@@ -42,6 +42,7 @@ CANCEL-CALLBACK is called if cancelled."
                                (undo-amalgamate-change-group (greger-stream-state-undo-handle state))
                                (accept-change-group (greger-stream-state-undo-handle state)))))
          (text-callback (lambda (text state)
+                          ;; TODO: remove debug
                           (with-current-buffer (greger-stream-state-output-buffer state)
                             (goto-char (greger-stream-state-insert-position state))
                             (insert text)
@@ -80,6 +81,7 @@ CANCEL-CALLBACK is called if cancelled."
     (set-process-filter process
                        (lambda (proc output)
                          (declare (ignore proc))
+                         ;; TODO: remove debug
                          (greger-stream--process-output-chunk output state provider-config)))
 
     (set-process-sentinel process
@@ -126,29 +128,6 @@ CANCEL-CALLBACK is called if cancelled."
      :insert-position insert-position
      :undo-handle undo-handle
      :original-quit-binding original-quit-binding)))
-
-(defun greger-stream-request (request response-callback &optional error-callback)
-  "Send streaming REQUEST and call RESPONSE-CALLBACK with complete response.
-REQUEST should be an alist with request parameters.
-RESPONSE-CALLBACK is called with the parsed response.
-ERROR-CALLBACK is called with error message if request fails."
-  (let* ((model (alist-get 'model request))
-         (dialog (greger-stream--convert-request-to-dialog request))
-         (provider-config (greger-providers-get-config model))
-         (complete-callback (lambda (parsed-blocks state)
-                              (declare (ignore state))
-                              (when response-callback
-                                (condition-case err
-                                    (let ((response `((content . ,(apply #'vector parsed-blocks)))))
-                                      (funcall response-callback response))
-                                  (error
-                                   (when error-callback
-                                     (funcall error-callback
-                                            (format "Error parsing response: %s"
-                                                   (error-message-string err))))))))))
-
-    (greger-stream--send-request-internal
-     model dialog nil complete-callback error-callback (lambda (state) nil))))
 
 ;;; Internal implementation
 
@@ -357,20 +336,6 @@ STATE-ARGS are additional arguments to initialize the state struct."
     (funcall (greger-stream-state-restore-callback state) state)))
 
 ;;; Utility functions
-
-(defun greger-stream--convert-request-to-dialog (request)
-  "Convert agent REQUEST format to dialog format."
-  (let ((messages (alist-get 'messages request))
-        (system (alist-get 'system request)))
-    (append
-     (when system
-       (list `((role . "system")
-              (content . ,(alist-get 'text (aref system 0))))))
-     (cl-map 'list
-             (lambda (msg)
-               `((role . ,(alist-get 'role msg))
-                 (content . ,(alist-get 'content msg))))
-             messages))))
 
 (defun greger-stream--start-curl-process (request-spec)
   "Start curl process with REQUEST-SPEC."

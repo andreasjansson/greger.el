@@ -47,7 +47,7 @@
     (greger--maybe-insert-assistant-tag)
 
     (setq greger-agent--current-iteration 0)
-    (setq greger-agent--current-dialog (greger-agent--enhance-dialog-with-system-prompt dialog))
+    (setq greger-agent--current-dialog dialog)
     (setq greger-agent--chat-buffer (current-buffer))  ; Store the chat buffer
 
     (greger-agent--debug "--- DIALOG --- %s" greger-agent--current-dialog)
@@ -84,31 +84,6 @@
          (greger-agent--debug "RECEIVED PARSED CONTENT BLOCKS")
          (greger-agent--handle-parsed-response content-blocks))))))
 
-(defun greger-agent--enhance-dialog-with-system-prompt (dialog)
-  "Enhance DIALOG with agent capabilities while preserving original system prompt."
-  (let* ((system-messages (seq-filter (lambda (msg) (eq (car msg) 'system)) dialog))
-         (non-system-messages (seq-filter (lambda (msg) (not (eq (car msg) 'system))) dialog))
-         (original-system (when system-messages (cdar system-messages)))
-         (agent-prompt (greger-agent--get-system-prompt))
-         (combined-system (if original-system
-                             (format "%s\n\n%s" original-system agent-prompt)
-                           agent-prompt)))
-    (cons `(system . ,combined-system) non-system-messages)))
-
-(defun greger-agent--get-system-prompt ()
-  "Get the system prompt for agent capabilities."
-  (format "You have access to tools: %s
-
-IMPORTANT: Use tools only when they would genuinely help safisfy the users prompt. Prefer to output text directly over writing files, unless the user expliclty asks for files to be written.
-
-When you do use tools:
-1. Use them efficiently - if you need multiple files, call multiple tools in one response
-2. Always explain what you found and provide a final answer to the user
-3. DO NOT repeat tool calls you've already made - check the conversation history first
-
-If you've already gotten the information you need from previous tool calls in this conversation, use that information to answer the user directly WITHOUT calling more tools."
-          (mapconcat #'symbol-name greger-agent-tools ", ")))
-
 (defun greger-agent--handle-parsed-response (content-blocks)
   "Handle the parsed CONTENT-BLOCKS from Claude."
   (greger-agent--debug "CONTENT BLOCKS: %s" content-blocks)
@@ -117,7 +92,7 @@ If you've already gotten the information you need from previous tool calls in th
   (let ((assistant-content (json-encode content-blocks)))
     (greger-agent--debug "ADDING ASSISTANT MESSAGE TO DIALOG")
     (setq greger-agent--current-dialog
-          (append greger-agent--current-dialog `((assistant . ,assistant-content)))))
+          (append greger-agent--current-dialog `(((role . "assistant") (content . ,assistant-content))))))
 
   ;; Check if we have tool calls
   (let ((tool-calls (greger-agent--extract-tool-calls content-blocks)))
@@ -174,7 +149,7 @@ If you've already gotten the information you need from previous tool calls in th
     ;; Add tool results to dialog
     (let ((user-content (json-encode (reverse results))))
       (setq greger-agent--current-dialog
-            (append greger-agent--current-dialog `((user . ,user-content)))))
+            (append greger-agent--current-dialog `(((role . "user") (content . ,user-content))))))
 
     ;; Continue the loop
     (greger-agent--run-agent-loop)))
@@ -182,29 +157,19 @@ If you've already gotten the information you need from previous tool calls in th
 ;; In greger-agent.el, update the display function:
 
 (defun greger-agent--display-tool-execution (tool-calls results)
-  "Display the execution of TOOL-CALLS and their RESULTS in the new markdown format."
+  "Display the execution of TOOL-CALLS and their RESULTS using parser markdown conversion."
   (with-current-buffer greger-agent--chat-buffer
     (goto-char (point-max))
 
-    ;; Display each tool call and its result
-    (dolist (tool-call tool-calls)
-      (let* ((tool-name (alist-get 'name tool-call))
-             (tool-input (alist-get 'input tool-call))
-             (tool-id (alist-get 'id tool-call))
-             (result (seq-find (lambda (r)
-                                (string= (alist-get 'tool_use_id r) tool-id))
-                              results)))
+    ;; The tool calls are already in the right format, just convert them
+    (let ((tool-blocks-markdown (greger-parser--content-blocks-to-markdown tool-calls)))
+      (unless (string-empty-p tool-blocks-markdown)
+        (insert "\n\n" tool-blocks-markdown)))
 
-        ;; Insert tool use
-        (insert (format "\n\n## TOOL USE:\n\nName: %s\nID: %s\n" tool-name tool-id))
-        (when tool-input
-          (dolist (param tool-input)
-            (insert (format "\n### %s\n\n%s\n" (car param) (cdr param)))))
-
-        ;; Insert tool result
-        (when result
-          (let ((content (alist-get 'content result)))
-            (insert (format "\n\n## TOOL RESULT:\n\nID: %s\n\n%s\n" tool-id content))))))))
+    ;; Convert tool results to markdown
+    (let ((result-blocks-markdown (greger-parser--content-blocks-to-markdown results)))
+      (unless (string-empty-p result-blocks-markdown)
+        (insert "\n\n" result-blocks-markdown)))))
 
 (defun greger-agent--finish-response ()
   "Finish the agent response."
