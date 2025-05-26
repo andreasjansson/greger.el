@@ -205,9 +205,9 @@ CANCEL-CALLBACK is called if cancelled."
   "Insert the assistant tag if it's not already present."
   (let ((found-tag nil))
     (save-excursion
-      (re-search-backward (concat greger-user-tag "\\|" greger-assistant-tag "\\|" greger-system-tag "\\|" greger-tool-use-tag "\\|" greger-tool-result-tag "\\|" greger-thinking-tag) nil t)
+      (re-search-backward (concat greger-parser-user-tag "\\|" greger-parser-assistant-tag "\\|" greger-parser-system-tag "\\|" greger-parser-tool-use-tag "\\|" greger-parser-tool-result-tag "\\|" greger-parser-thinking-tag) nil t)
       (setq found-tag (match-string 0)))
-    (unless (string= found-tag greger-assistant-tag)
+    (unless (string= found-tag greger-parser-assistant-tag)
       (insert "\n\n" greger-assistant-tag "\n\n"))))
 
 (defun greger--get-current-code-block ()
