@@ -516,9 +516,6 @@ Always returns focus to the original window after executing BODY."
             (unless (string-suffix-p "\n" normalized-patch)
               (insert "\n")))
 
-          ;; TODO: remove debug
-          (message (format "normalized-patch: %s" normalized-patch))
-
           ;; Change to the working directory and apply the patch
           (let ((default-directory working-dir))
             (let* ((patch-command (format "patch --ignore-whitespace -p0 --no-backup-if-mismatch < %s"

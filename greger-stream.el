@@ -42,7 +42,6 @@ CANCEL-CALLBACK is called if cancelled."
                                (undo-amalgamate-change-group (greger-stream-state-undo-handle state))
                                (accept-change-group (greger-stream-state-undo-handle state)))))
          (text-callback (lambda (text state)
-                          ;; TODO: remove debug
                           (with-current-buffer (greger-stream-state-output-buffer state)
                             (goto-char (greger-stream-state-insert-position state))
                             (greger--maybe-insert-assistant-tag)
@@ -83,7 +82,6 @@ CANCEL-CALLBACK is called if cancelled."
     (set-process-filter process
                        (lambda (proc output)
                          (declare (ignore proc))
-                         ;; TODO: remove debug
                          (greger-stream--process-output-chunk output state provider-config)))
 
     (set-process-sentinel process
