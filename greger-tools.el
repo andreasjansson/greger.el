@@ -889,6 +889,87 @@ Always returns focus to the original window after executing BODY."
       (format "Successfully inserted %d characters at line %d in %s. %s"
               (length content) line-number expanded-path git-result))))
 
+(defun greger-tools--git-log (path)
+  "View git commit logs using magit in a split screen for PATH."
+  (unless (stringp path)
+    (error "path must be a string"))
+
+  (let ((expanded-path (expand-file-name path))
+        (original-buffer (current-buffer))
+        (original-window (selected-window)))
+
+    (unless (file-exists-p expanded-path)
+      (error "Path does not exist: %s" expanded-path))
+
+    ;; Find git repository root
+    (let ((repo-root (magit-toplevel expanded-path)))
+      (unless repo-root
+        (error "Path %s is not in a git repository" expanded-path))
+
+      (greger-tools--with-split-window
+       (condition-case err
+           (let ((default-directory repo-root))
+             ;; Don't prompt to save buffers
+             (let ((magit-save-repository-buffers nil))
+               ;; Use magit-log-all to show all commits
+               (magit-log-all '())
+
+               ;; Get the buffer contents from the magit log buffer
+               (let ((results (with-current-buffer (get-buffer "*magit-log*")
+                                (buffer-string))))
+
+                 ;; Return to original window and buffer
+                 (select-window original-window)
+                 (switch-to-buffer original-buffer)
+
+                 ;; Return the log contents
+                 (if (string-empty-p (string-trim results))
+                     "No git log available"
+                   results))))
+         (error (format "Failed to retrieve git log: %s" (error-message-string err))))))))
+
+(defun greger-tools--git-show-commit (commit-hash path)
+  "View a specific git commit using magit in a split screen."
+  (unless (stringp commit-hash)
+    (error "commit_hash must be a string"))
+
+  (unless (stringp path)
+    (error "path must be a string"))
+
+  (let ((expanded-path (expand-file-name path))
+        (original-buffer (current-buffer))
+        (original-window (selected-window)))
+
+    (unless (file-exists-p expanded-path)
+      (error "Path does not exist: %s" expanded-path))
+
+    ;; Find git repository root
+    (let ((repo-root (magit-toplevel expanded-path)))
+      (unless repo-root
+        (error "Path %s is not in a git repository" expanded-path))
+
+      (greger-tools--with-split-window
+       (condition-case err
+           (let ((default-directory repo-root))
+             ;; Don't prompt to save buffers
+             (let ((magit-save-repository-buffers nil))
+               ;; Use magit-show-commit to display the specific commit
+               (magit-show-commit commit-hash)
+
+               ;; Get the buffer contents from the magit show commit buffer
+               (let ((results (with-current-buffer (get-buffer (format "*magit-revision: %s*" commit-hash))
+                                (buffer-string))))
+
+                 ;; Return to original window and buffer
+                 (select-window original-window)
+                 (switch-to-buffer original-buffer)
+
+                 ;; Return the commit contents
+                 (if (string-empty-p (string-trim results))
+                     (format "No commit found for hash: %s" commit-hash)
+                   results))))
+         (error (format "Failed to show commit %s: %s" commit-hash (error-message-string err))))))))
+
 (provide 'greger-tools)
 
 ;;; greger-tools.el ends here
