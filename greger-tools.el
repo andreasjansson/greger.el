@@ -162,8 +162,8 @@
                                              (properties . ((commit_hash . ((type . "string")
                                                                             (description . "The commit hash to view")))
                                                             (path . ((type . "string")
-                                                                    (description . "Path to the git repository")
-                                                                    (default . ".")))))
+                                                                     (description . "Path to the git repository")
+                                                                     (default . ".")))))
                                              (required . ["commit_hash"])))))
         ))
 
@@ -247,14 +247,15 @@
        (alist-get 'line_number args)
        (alist-get 'content args)
        (alist-get 'git_commit_message args)))
-      ((eq tool-symbol 'git-log)
-       (greger-tools--git-log
-        (or (alist-get 'path args) ".")))
 
-      ((eq tool-symbol 'git-show-commit)
-       (greger-tools--git-show-commit
-        (alist-get 'commit_hash args)
-        (or (alist-get 'path args) ".")))
+     ((eq tool-symbol 'git-log)
+      (greger-tools--git-log
+       (or (alist-get 'path args) ".")))
+
+     ((eq tool-symbol 'git-show-commit)
+      (greger-tools--git-show-commit
+       (alist-get 'commit_hash args)
+       (or (alist-get 'path args) ".")))
 
      (t
       (error "Unknown tool: %s" tool-name)))))
@@ -894,9 +895,7 @@ Always returns focus to the original window after executing BODY."
   (unless (stringp path)
     (error "path must be a string"))
 
-  (let ((expanded-path (expand-file-name path))
-        (original-buffer (current-buffer))
-        (original-window (selected-window)))
+  (let ((expanded-path (expand-file-name path)))
 
     (unless (file-exists-p expanded-path)
       (error "Path does not exist: %s" expanded-path))
@@ -918,15 +917,11 @@ Always returns focus to the original window after executing BODY."
                (let ((results (with-current-buffer (get-buffer "*magit-log*")
                                 (buffer-string))))
 
-                 ;; Return to original window and buffer
-                 (select-window original-window)
-                 (switch-to-buffer original-buffer)
-
                  ;; Return the log contents
                  (if (string-empty-p (string-trim results))
                      "No git log available"
                    results))))
-         (error (format "Failed to retrieve git log: %s" (error-message-string err))))))))
+         (error (format "Failed to retrieve git log: %s" (error-message-string err)))))))))
 
 (defun greger-tools--git-show-commit (commit-hash path)
   "View a specific git commit using magit in a split screen."
