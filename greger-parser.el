@@ -472,7 +472,9 @@ Returns (match-start . match-end) or nil if not found."
                                        (symbol-name (car param))
                                      (car param)))
                         (param-value (cdr param)))
-                    (setq result (concat result "\n### " param-name "\n\n" (greger-parser--format-param-value param-value) "\n"))))))))
+                    (setq result (concat result "\n### " param-name "\n\n"
+                                         (greger-parser--format-param-value param-value) "\n\n"
+                                         "--" id "\n"))))))))
 
          ((string= type "tool_result")
           (let ((id (alist-get 'tool_use_id block))
