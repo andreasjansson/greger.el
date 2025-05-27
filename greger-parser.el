@@ -21,6 +21,7 @@
 (defvar greger-parser--input "")
 (defvar greger-parser--pos 0)
 (defvar greger-parser--length 0)
+(defvar greger-parser--debug nil)
 
 (defmacro greger-parser--with-input (input &rest body)
   "Execute BODY with INPUT as parser source."
@@ -29,6 +30,11 @@
          (greger-parser--length (length (or ,input ""))))
      ,@body))
 
+(defun greger-parser--debug (format-string &rest args)
+  "Debug logging function."
+  (when greger-parser--debug
+    (message "[PARSER DEBUG] %s" (apply #'format format-string args))))
+
 ;; Main parsing entry points
 
 (defun greger-parser-parse-dialog (markdown)
@@ -36,7 +42,11 @@
   (if (or (null markdown) (string-empty-p (string-trim markdown)))
       '()
     (greger-parser--with-input markdown
-      (greger-parser--parse-document))))
+      (condition-case err
+          (greger-parser--parse-document)
+        (error
+         (greger-parser--debug "Parse error: %s" (error-message-string err))
+         '())))))
 
 (defun greger-parser-dialog-to-markdown (dialog)
   "Convert DIALOG to markdown format."
@@ -59,8 +69,10 @@
 
 (defun greger-parser--advance (&optional n)
   "Advance position by N characters (default 1)."
-  (setq greger-parser--pos (min greger-parser--length
-                               (+ greger-parser--pos (or n 1)))))
+  (let ((old-pos greger-parser--pos))
+    (setq greger-parser--pos (min greger-parser--length
+                                 (+ greger-parser--pos (or n 1))))
+    (greger-parser--debug "Advanced from %d to %d" old-pos greger-parser--pos)))
 
 (defun greger-parser--current-pos ()
   "Get current position."
@@ -100,9 +112,12 @@
 
 (defun greger-parser--skip-whitespace ()
   "Skip all whitespace."
-  (while (and (not (greger-parser--at-end-p))
-              (greger-parser--whitespace-p (greger-parser--peek)))
-    (greger-parser--advance)))
+  (let ((start-pos greger-parser--pos))
+    (while (and (not (greger-parser--at-end-p))
+                (greger-parser--whitespace-p (greger-parser--peek)))
+      (greger-parser--advance))
+    (when (> greger-parser--pos start-pos)
+      (greger-parser--debug "Skipped whitespace from %d to %d" start-pos greger-parser--pos))))
 
 (defun greger-parser--skip-horizontal-whitespace ()
   "Skip spaces and tabs."
@@ -142,11 +157,13 @@
   "Find section tag at current position if at line start."
   (when (greger-parser--at-line-start-p)
     (let ((tag (cl-find-if #'greger-parser--looking-at (greger-parser--section-tags))))
+      (greger-parser--debug "Found section tag: %s at pos %d" tag greger-parser--pos)
       tag)))
 
 (defun greger-parser--consume-section-tag (tag)
   "Consume TAG and return it."
   (when (greger-parser--looking-at tag)
+    (greger-parser--debug "Consuming tag: %s" tag)
     (greger-parser--advance (length tag))
     tag))
 
@@ -154,6 +171,7 @@
 
 (defun greger-parser--skip-code-block ()
   "Skip triple-backtick code block."
+  (greger-parser--debug "Skipping code block at pos %d" greger-parser--pos)
   (greger-parser--advance 3) ; Skip opening ```
   (greger-parser--skip-to-line-end) ; Skip language specifier
   (when (greger-parser--newline-p (greger-parser--peek))
@@ -171,6 +189,7 @@
 
 (defun greger-parser--skip-inline-code ()
   "Skip inline code with double backticks."
+  (greger-parser--debug "Skipping inline code at pos %d" greger-parser--pos)
   (greger-parser--advance 2) ; Skip opening ``
   (while (and (not (greger-parser--at-end-p))
               (not (greger-parser--looking-at "``")))
@@ -180,6 +199,7 @@
 
 (defun greger-parser--skip-html-comment ()
   "Skip HTML comment."
+  (greger-parser--debug "Skipping HTML comment at pos %d" greger-parser--pos)
   (greger-parser--advance 4) ; Skip <!--
   (while (and (not (greger-parser--at-end-p))
               (not (greger-parser--looking-at "-->")))
@@ -191,18 +211,31 @@
 
 (defun greger-parser--read-until-section-tag ()
   "Read characters until section tag, handling code blocks."
-  (while (and (not (greger-parser--at-end-p))
-              (not (and (greger-parser--at-line-start-p)
-                        (greger-parser--find-section-tag))))
-    (cond
-     ((greger-parser--looking-at "```")
-      (greger-parser--skip-code-block))
-     ((greger-parser--looking-at "``")
-      (greger-parser--skip-inline-code))
-     ((greger-parser--looking-at "<!--")
-      (greger-parser--skip-html-comment))
-     (t
-      (greger-parser--advance)))))
+  (let ((start-pos greger-parser--pos)
+        (iterations 0)
+        (max-iterations (* greger-parser--length 2))) ; Safety limit
+    (while (and (not (greger-parser--at-end-p))
+                (not (and (greger-parser--at-line-start-p)
+                          (greger-parser--find-section-tag)))
+                (< iterations max-iterations))
+      (setq iterations (1+ iterations))
+      (let ((old-pos greger-parser--pos))
+        (cond
+         ((greger-parser--looking-at "```")
+          (greger-parser--skip-code-block))
+         ((greger-parser--looking-at "``")
+          (greger-parser--skip-inline-code))
+         ((greger-parser--looking-at "<!--")
+          (greger-parser--skip-html-comment))
+         (t
+          (greger-parser--advance)))
+        ;; Safety check: ensure we're making progress
+        (when (= old-pos greger-parser--pos)
+          (greger-parser--debug "No progress at pos %d, forcing advance" greger-parser--pos)
+          (greger-parser--advance))))
+    (when (>= iterations max-iterations)
+      (greger-parser--debug "Hit max iterations in read-until-section-tag")
+      (setq greger-parser--pos greger-parser--length))))
 
 (defun greger-parser--read-until-section ()
   "Read content until next section."
@@ -213,34 +246,46 @@
 (defun greger-parser--read-until-section-with-comment-removal ()
   "Read content until next section, removing HTML comments."
   (let ((result "")
-        (start (greger-parser--current-pos)))
+        (start (greger-parser--current-pos))
+        (iterations 0)
+        (max-iterations (* greger-parser--length 2))) ; Safety limit
     (while (and (not (greger-parser--at-end-p))
                 (not (and (greger-parser--at-line-start-p)
-                          (greger-parser--find-section-tag))))
-      (cond
-       ((greger-parser--looking-at "```")
-        ;; Add content up to code block
-        (setq result (concat result (greger-parser--substring start)))
-        (setq start (greger-parser--current-pos))
-        (greger-parser--skip-code-block)
-        ;; Add the code block
-        (setq result (concat result (greger-parser--substring start)))
-        (setq start (greger-parser--current-pos)))
-       ((greger-parser--looking-at "``")
-        ;; Add content up to inline code
-        (setq result (concat result (greger-parser--substring start)))
-        (setq start (greger-parser--current-pos))
-        (greger-parser--skip-inline-code)
-        ;; Add the inline code
-        (setq result (concat result (greger-parser--substring start)))
-        (setq start (greger-parser--current-pos)))
-       ((greger-parser--looking-at "<!--")
-        ;; Add content up to comment, skip comment entirely
-        (setq result (concat result (greger-parser--substring start)))
-        (greger-parser--skip-html-comment)
-        (setq start (greger-parser--current-pos)))
-       (t
-        (greger-parser--advance))))
+                          (greger-parser--find-section-tag)))
+                (< iterations max-iterations))
+      (setq iterations (1+ iterations))
+      (let ((old-pos greger-parser--pos))
+        (cond
+         ((greger-parser--looking-at "```")
+          ;; Add content up to code block
+          (setq result (concat result (greger-parser--substring start)))
+          (setq start (greger-parser--current-pos))
+          (greger-parser--skip-code-block)
+          ;; Add the code block
+          (setq result (concat result (greger-parser--substring start)))
+          (setq start (greger-parser--current-pos)))
+         ((greger-parser--looking-at "``")
+          ;; Add content up to inline code
+          (setq result (concat result (greger-parser--substring start)))
+          (setq start (greger-parser--current-pos))
+          (greger-parser--skip-inline-code)
+          ;; Add the inline code
+          (setq result (concat result (greger-parser--substring start)))
+          (setq start (greger-parser--current-pos)))
+         ((greger-parser--looking-at "<!--")
+          ;; Add content up to comment, skip comment entirely
+          (setq result (concat result (greger-parser--substring start)))
+          (greger-parser--skip-html-comment)
+          (setq start (greger-parser--current-pos)))
+         (t
+          (greger-parser--advance)))
+        ;; Safety check: ensure we're making progress
+        (when (= old-pos greger-parser--pos)
+          (greger-parser--debug "No progress at pos %d, forcing advance" greger-parser--pos)
+          (greger-parser--advance))))
+    (when (>= iterations max-iterations)
+      (greger-parser--debug "Hit max iterations in read-until-section-with-comment-removal")
+      (setq greger-parser--pos greger-parser--length))
     ;; Add remaining content
     (setq result (concat result (greger-parser--substring start)))
     result))
@@ -259,19 +304,31 @@
   (greger-parser--skip-whitespace)
   (if (greger-parser--at-end-p)
       '()
-    (let ((sections '()))
+    (let ((sections '())
+          (iterations 0)
+          (max-iterations 1000)) ; Safety limit
       ;; Handle untagged content at start
       (let ((untagged (greger-parser--parse-untagged-content)))
         (when untagged
           (push untagged sections)))
 
       ;; Parse tagged sections
-      (while (not (greger-parser--at-end-p))
-        (greger-parser--skip-whitespace)
-        (when (not (greger-parser--at-end-p))
-          (let ((section (greger-parser--parse-section)))
-            (when section
-              (push section sections)))))
+      (while (and (not (greger-parser--at-end-p))
+                  (< iterations max-iterations))
+        (setq iterations (1+ iterations))
+        (let ((old-pos greger-parser--pos))
+          (greger-parser--skip-whitespace)
+          (when (not (greger-parser--at-end-p))
+            (let ((section (greger-parser--parse-section)))
+              (when section
+                (push section sections))))
+          ;; Safety check: ensure we're making progress
+          (when (= old-pos greger-parser--pos)
+            (greger-parser--debug "No progress in document parsing at pos %d, breaking" greger-parser--pos)
+            (break))))
+
+      (when (>= iterations max-iterations)
+        (greger-parser--debug "Hit max iterations in parse-document"))
 
       (greger-parser--merge-consecutive-messages (reverse sections)))))
 
@@ -362,13 +419,24 @@
 
 (defun greger-parser--parse-tool-input ()
   "Parse tool input parameters."
-  (let ((params '()))
+  (let ((params '())
+        (iterations 0)
+        (max-iterations 100)) ; Safety limit
     (greger-parser--skip-whitespace)
-    (while (greger-parser--can-parse-parameter-p)
-      (let ((param (greger-parser--parse-tool-parameter)))
+    (while (and (greger-parser--can-parse-parameter-p)
+                (< iterations max-iterations))
+      (setq iterations (1+ iterations))
+      (let ((old-pos greger-parser--pos)
+            (param (greger-parser--parse-tool-parameter)))
         (when param
           (push param params))
-        (greger-parser--skip-whitespace)))
+        (greger-parser--skip-whitespace)
+        ;; Safety check: ensure we're making progress
+        (when (= old-pos greger-parser--pos)
+          (greger-parser--debug "No progress in tool input parsing at pos %d, breaking" greger-parser--pos)
+          (break))))
+    (when (>= iterations max-iterations)
+      (greger-parser--debug "Hit max iterations in parse-tool-input"))
     (reverse params)))
 
 (defun greger-parser--can-parse-parameter-p ()
@@ -413,9 +481,15 @@
 
 (defun greger-parser--skip-to-closing-angle ()
   "Skip to closing angle bracket."
-  (while (and (not (greger-parser--at-end-p))
-              (not (eq (greger-parser--peek) ?>)))
-    (greger-parser--advance)))
+  (let ((iterations 0)
+        (max-iterations 1000)) ; Safety limit
+    (while (and (not (greger-parser--at-end-p))
+                (not (eq (greger-parser--peek) ?>))
+                (< iterations max-iterations))
+      (setq iterations (1+ iterations))
+      (greger-parser--advance))
+    (when (>= iterations max-iterations)
+      (greger-parser--debug "Hit max iterations in skip-to-closing-angle"))))
 
 (defun greger-parser--make-closing-tag (opening-tag)
   "Make closing tag from opening tag."
@@ -423,12 +497,18 @@
 
 (defun greger-parser--find-closing-tag (closing-tag)
   "Find closing tag, treating all content inside as raw text."
-  (let ((found nil))
+  (let ((found nil)
+        (iterations 0)
+        (max-iterations (* greger-parser--length 2))) ; Safety limit
     (while (and (not found)
-                (not (greger-parser--at-end-p)))
+                (not (greger-parser--at-end-p))
+                (< iterations max-iterations))
+      (setq iterations (1+ iterations))
       (if (greger-parser--looking-at closing-tag)
           (setq found t)
         (greger-parser--advance)))
+    (when (>= iterations max-iterations)
+      (greger-parser--debug "Hit max iterations in find-closing-tag"))
     found))
 
 (defun greger-parser--parse-tool-result-content ()
@@ -659,6 +739,19 @@
    ((vectorp value) (json-encode value))
    ((listp value) (json-encode value))
    (t (format "%s" value))))
+
+;; Debug helper function
+(defun greger-parser-enable-debug ()
+  "Enable parser debug output."
+  (interactive)
+  (setq greger-parser--debug t)
+  (message "Parser debug enabled"))
+
+(defun greger-parser-disable-debug ()
+  "Disable parser debug output."
+  (interactive)
+  (setq greger-parser--debug nil)
+  (message "Parser debug disabled"))
 
 (provide 'greger-parser)
 
