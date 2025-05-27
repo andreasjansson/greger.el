@@ -420,15 +420,24 @@ CANCEL-CALLBACK is called if cancelled."
 
 (defun greger--setup-heading-font-lock ()
   "Set up font-lock for headings to override markdown's larger font sizes."
-  ;; Use face remapping to override markdown heading faces
-  (face-remap-add-relative 'markdown-header-face-3 'greger-tool-param-heading-face)
-  ;; Also add our own font-lock rule with higher priority to include the ### symbols
+  ;; Remove existing markdown heading font-lock rules for level 3 headings
+  (setq-local font-lock-keywords
+              (cl-remove-if
+               (lambda (rule)
+                 (and (listp rule)
+                      (stringp (car rule))
+                      (or (string-match-p "^\\^###" (car rule))
+                          (string-match-p "markdown-header-face-3" (format "%s" rule)))))
+               font-lock-keywords))
+
+  ;; Add our custom font-lock rule with highest priority
   (font-lock-add-keywords
    nil
-   '(("^\\(###\\)\\(\\s-+.*\\)$"
-      (1 'greger-tool-param-heading-face)  ; Apply to the ### part
-      (2 'greger-tool-param-heading-face))) ; Apply to the rest
+   '(("^###\\s-+.*$" 0 'greger-tool-param-heading-face t))
    'prepend)
+
+  ;; Also remap the markdown face
+  (face-remap-add-relative 'markdown-header-face-3 'greger-tool-param-heading-face)
   (font-lock-flush))
 
 (defun greger--after-change-function (beg end len)
