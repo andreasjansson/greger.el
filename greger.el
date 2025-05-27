@@ -115,6 +115,8 @@
   (add-to-invisibility-spec 'greger-tool-section)
   ;; Set up tool section highlighting and collapsing
   (greger--setup-tool-sections)
+  ;; Set up custom heading font-lock
+  (greger--setup-heading-font-lock)
   ;; Add hook to update tool sections when buffer changes
   (add-hook 'after-change-functions #'greger--after-change-function nil t))
 
