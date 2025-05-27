@@ -223,6 +223,169 @@ COMPLETE-CALLBACK is called when done.
 CANCEL-CALLBACK is called if cancelled."
   (greger-stream-to-buffer greger-model dialog complete-callback cancel-callback))
 
+;; Tool section collapsing functions
+
+(defun greger--setup-tool-sections ()
+  "Set up tool section highlighting and collapsing in the current buffer."
+  (greger--clear-tool-overlays)
+  (greger--find-and-setup-tool-sections))
+
+(defun greger--clear-tool-overlays ()
+  "Clear all tool section overlays in the current buffer."
+  (cl-loop for overlay in greger-tool-overlays
+           do (delete-overlay overlay))
+  (setq greger-tool-overlays nil))
+
+(defun greger--find-and-setup-tool-sections ()
+  "Find all tool sections and set them up with appropriate faces and collapsing."
+  (save-excursion
+    (goto-char (point-min))
+    (cl-loop while (re-search-forward "<tool\\.[^>]+>" nil t)
+             do (greger--setup-single-tool-section))))
+
+(defun greger--setup-single-tool-section ()
+  "Set up a single tool section starting from the current match."
+  (let ((start-tag-start (match-beginning 0))
+        (start-tag-end (match-end 0))
+        (tool-id (greger--extract-tool-id (match-string 0))))
+    (when tool-id
+      (let ((end-tag-pattern (concat "</tool\\." (regexp-quote tool-id) ">"))
+            (content-start start-tag-end)
+            content-end
+            end-tag-start
+            end-tag-end)
+
+        ;; Find the corresponding closing tag
+        (when (re-search-forward end-tag-pattern nil t)
+          (setq end-tag-start (match-beginning 0)
+                end-tag-end (match-end 0)
+                content-end end-tag-start)
+
+          ;; Create overlays for styling
+          (greger--create-tag-overlay start-tag-start start-tag-end)
+          (greger--create-tag-overlay end-tag-start end-tag-end)
+
+          ;; Set up collapsible content
+          (greger--setup-collapsible-content content-start content-end tool-id))))))
+
+(defun greger--extract-tool-id (tag-string)
+  "Extract tool ID from a tool tag string like '<tool.abc123>'."
+  (when (string-match "<tool\\.\\([^>]+\\)>" tag-string)
+    (match-string 1 tag-string)))
+
+(defun greger--create-tag-overlay (start end)
+  "Create an overlay for a tool tag to make it small and less visible."
+  (let ((overlay (make-overlay start end)))
+    (overlay-put overlay 'face 'greger-tool-tag-face)
+    (overlay-put overlay 'greger-tool-tag t)
+    (push overlay greger-tool-overlays)
+    overlay))
+
+(defun greger--setup-collapsible-content (content-start content-end tool-id)
+  "Set up collapsible content between CONTENT-START and CONTENT-END for TOOL-ID."
+  (let* ((content (buffer-substring-no-properties content-start content-end))
+         (lines (split-string content "\n"))
+         (line-count (length lines)))
+
+    (when (> line-count greger-tool-section-max-lines)
+      ;; Create the collapsible overlay
+      (greger--create-collapsible-overlay content-start content-end tool-id lines))))
+
+(defun greger--create-collapsible-overlay (content-start content-end tool-id lines)
+  "Create a collapsible overlay for tool content."
+  (let* ((visible-lines (cl-subseq lines 0 greger-tool-section-max-lines))
+         (hidden-lines (cl-subseq lines greger-tool-section-max-lines))
+         (visible-text (mapconcat #'identity visible-lines "\n"))
+         (hidden-text (mapconcat #'identity hidden-lines "\n"))
+
+         ;; Calculate positions for visible and hidden parts
+         (visible-end (+ content-start (length visible-text)))
+         (hidden-start (+ visible-end 1)) ; +1 for the newline
+
+         ;; Create overlay for the hidden part
+         (hidden-overlay (make-overlay hidden-start content-end)))
+
+    (overlay-put hidden-overlay 'invisible 'greger-tool-section)
+    (overlay-put hidden-overlay 'greger-tool-section t)
+    (overlay-put hidden-overlay 'greger-tool-id tool-id)
+    (overlay-put hidden-overlay 'greger-collapsed t)
+
+    ;; Add expansion indicator
+    (let ((indicator-overlay (make-overlay visible-end visible-end)))
+      (overlay-put indicator-overlay 'after-string
+                   (propertize "... [TAB to expand]"
+                              'face 'greger-tool-tag-face))
+      (overlay-put indicator-overlay 'greger-tool-indicator t)
+      (overlay-put indicator-overlay 'greger-tool-id tool-id)
+      (push indicator-overlay greger-tool-overlays))
+
+    (push hidden-overlay greger-tool-overlays)))
+
+(defun greger-toggle-tool-section ()
+  "Toggle the tool section at point between collapsed and expanded state."
+  (interactive)
+  (let ((tool-id (greger--get-tool-id-at-point)))
+    (if tool-id
+        (greger--toggle-tool-section-by-id tool-id)
+      (message "Not inside a tool section"))))
+
+(defun greger--get-tool-id-at-point ()
+  "Get the tool ID for the tool section at point, if any."
+  (cl-loop for overlay in (overlays-at (point))
+           for tool-id = (overlay-get overlay 'greger-tool-id)
+           when tool-id return tool-id))
+
+(defun greger--toggle-tool-section-by-id (tool-id)
+  "Toggle the tool section with the given TOOL-ID."
+  (cl-loop for overlay in greger-tool-overlays
+           when (and (overlay-get overlay 'greger-tool-section)
+                     (string= (overlay-get overlay 'greger-tool-id) tool-id))
+           do (greger--toggle-overlay-visibility overlay tool-id)))
+
+(defun greger--toggle-overlay-visibility (overlay tool-id)
+  "Toggle the visibility of OVERLAY for TOOL-ID."
+  (let ((is-collapsed (overlay-get overlay 'greger-collapsed)))
+    (if is-collapsed
+        (greger--expand-tool-section overlay tool-id)
+      (greger--collapse-tool-section overlay tool-id))))
+
+(defun greger--expand-tool-section (overlay tool-id)
+  "Expand the tool section by making OVERLAY visible."
+  (overlay-put overlay 'invisible nil)
+  (overlay-put overlay 'greger-collapsed nil)
+
+  ;; Remove the expansion indicator
+  (cl-loop for indicator-overlay in greger-tool-overlays
+           when (and (overlay-get indicator-overlay 'greger-tool-indicator)
+                     (string= (overlay-get indicator-overlay 'greger-tool-id) tool-id))
+           do (progn
+                (delete-overlay indicator-overlay)
+                (setq greger-tool-overlays
+                      (remove indicator-overlay greger-tool-overlays)))))
+
+(defun greger--collapse-tool-section (overlay tool-id)
+  "Collapse the tool section by making OVERLAY invisible."
+  (overlay-put overlay 'invisible 'greger-tool-section)
+  (overlay-put overlay 'greger-collapsed t)
+
+  ;; Add the expansion indicator
+  (let* ((overlay-start (overlay-start overlay))
+         (indicator-pos (max (point-min) (1- overlay-start)))
+         (indicator-overlay (make-overlay indicator-pos indicator-pos)))
+    (overlay-put indicator-overlay 'after-string
+                 (propertize "... [TAB to expand]"
+                            'face 'greger-tool-tag-face))
+    (overlay-put indicator-overlay 'greger-tool-indicator t)
+    (overlay-put indicator-overlay 'greger-tool-id tool-id)
+    (push indicator-overlay greger-tool-overlays)))
+
+(defun greger--after-change-function (beg end len)
+  "Update tool sections after buffer changes."
+  ;; Simple approach: refresh all tool sections
+  ;; This could be optimized to only refresh affected sections
+  (when (> (- end beg) 0)  ; Only if there was an actual change
+    (run-with-idle-timer 0.1 nil #'greger--setup-tool-sections)))
+
 ;; Private helper functions
 
 (defun greger--maybe-insert-assistant-tag ()
