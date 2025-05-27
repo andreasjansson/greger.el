@@ -74,7 +74,7 @@
 
 ;; Face definitions for tool tags
 (defface greger-tool-tag-face
-  '((t :height 0.7 :foreground "gray50"))
+  '((t :height 0.5 :foreground "gray70"))
   "Face for tool opening and closing tags."
   :group 'greger)
 
