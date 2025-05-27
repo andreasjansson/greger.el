@@ -321,6 +321,29 @@ test.txt
      :dialog (((role . "user") (content . "Read a file"))
               ((role . "assistant") (content . (((type . "tool_use") (id . "toolu_999") (name . "read-file") (input . ((path . "test.txt")))))))))
 
+    (:name "tool-use-with-tags"
+     :markdown "## USER:
+
+Read a file
+
+## TOOL USE:
+
+Name: read-file
+ID: toolu_999
+
+### path
+
+<tool.toolu_999>
+test.txt
+
+## USER:
+
+foo
+</tool.toolu_999>
+"
+     :dialog (((role . "user") (content . "Read a file"))
+              ((role . "assistant") (content . (((type . "tool_use") (id . "toolu_999") (name . "read-file") (input . ((path . "test.txt\n\n## USER:\n\nfoo")))))))))
+
     ;; Tool result with empty lines preserved
     (:name "code-block-triple-backticks"
            :markdown "## USER:
@@ -555,7 +578,7 @@ Neither should this
 ```
 
 What do you think?"
-           :dialog (((role . "user") (content . "Here's some code:\n\n\n\n```\n<!-- comment should be included -->\n## ASSISTANT:\nThis should not be parsed as a section header\n## TOOL USE:\nNeither should this\n```\n\nWhat do you think?"))))
+           :dialog (((role . "user") (content . "Here's some code:\n\n\n\n\n```\n<!-- comment should be included -->\n## ASSISTANT:\nThis should not be parsed as a section header\n## TOOL USE:\nNeither should this\n```\n\nWhat do you think?"))))
     ))
 
 ;; Helper functions for tests

@@ -183,7 +183,7 @@
                                       (required . ["test_file_path" "function_names"])))))
 
         (eval-elisp-defuns . ((name . "eval-elisp-defuns")
-                              (description . "Evaluate Emacs lisp defuns in a specific file. Note that defuns must be evaluated before you test them, if you've updated the code.")
+                              (description . "Evaluate Emacs lisp defuns in a specific file. Note that defuns must be evaluated before you run ert-test to test them, if you've updated the code.")
                               (input_schema . ((type . "object")
                                                (properties . ((file_path . ((type . "string")
                                                                                  (description . "Path to the file containing functions/defuns to evaluate")))
@@ -877,7 +877,7 @@ Always returns focus to the original window after executing BODY."
              (replace-match new-content nil t)
              ;; Save the file
              (save-buffer))
-         (error "Original content not found in file: %s" expanded-path))))
+         (error "Original content not found in file: %s -- Try again!" expanded-path))))
 
     ;; Stage and commit the file
     (let ((git-result (greger-tools--git-stage-and-commit (list expanded-path) git-commit-message)))
