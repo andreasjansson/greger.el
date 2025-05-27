@@ -420,10 +420,19 @@ CANCEL-CALLBACK is called if cancelled."
 
 (defun greger--setup-heading-font-lock ()
   "Set up font-lock for headings to override markdown's larger font sizes."
-  (font-lock-add-keywords
-   nil
-   '(("^###\\s-+.*$" . 'greger-heading-face))
-   'append))
+  ;; Remove markdown heading font-lock rules and add our own
+  (setq-local font-lock-keywords
+              (append
+               ;; Filter out markdown heading rules
+               (cl-remove-if
+                (lambda (rule)
+                  (and (listp rule)
+                       (stringp (car rule))
+                       (string-match-p "###" (car rule))))
+                font-lock-keywords)
+               ;; Add our custom heading rules
+               '(("^###\\s-+.*$" . greger-heading-face))))
+  (font-lock-flush))
 
 (defun greger--after-change-function (beg end len)
   "Update tool sections after buffer changes."
