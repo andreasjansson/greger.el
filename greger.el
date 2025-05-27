@@ -83,7 +83,7 @@
   "Face for tool content."
   :group 'greger)
 
-(defface greger-heading-face
+(defface greger-tool-param-heading-face
   '((t :foreground "#6699CC" :weight bold :height 1.0))
   "Face for ### headings in greger mode."
   :group 'greger)
