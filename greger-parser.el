@@ -291,13 +291,13 @@ Returns (match-start . match-end) or nil if not found."
 
 (defun greger-parser--parse-tool-result-content (content)
   "Parse tool result CONTENT into structured format."
-  (let ((lines (split-string content "\n" t))
+  (let ((lines (split-string content "\n"))
         (id nil)
         (result-lines '())
         (in-result nil))
 
     (dolist (line lines)
-      (let ((trimmed-line (string-trim line)))
+      (let ((trimmed-line (if line (string-trim line) "")))  ; Handle potential nil lines
         (cond
          ;; ID line
          ((and (not in-result) (string-match "^ID:\\s-*\\(.*\\)" trimmed-line))
@@ -306,7 +306,7 @@ Returns (match-start . match-end) or nil if not found."
 
          ;; Result content
          (in-result
-          (push line result-lines))
+          (push (or line "") result-lines))  ; Preserve original line including empty ones
 
          ;; Skip empty lines before ID
          ((not (string-empty-p trimmed-line))

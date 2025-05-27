@@ -43,7 +43,7 @@
                                             (required . [])))))
 
         (ripgrep . ((name . "ripgrep")
-                    (description . "Search for patterns in files using ripgrep (rg) command line tool")
+                    (description . "Search for patterns in files using ripgrep (rg) command line tool. Note that ripgrep only matches on single lines, so you can't search across multiple lines.")
                     (input_schema . ((type . "object")
                                      (properties . ((pattern . ((type . "string")
                                                                 (description . "The search pattern (regex or literal string)")))
@@ -130,7 +130,7 @@
                                           (required . ["file_path" "contents" "git_commit_message"])))))
 
         (str-replace . ((name . "str-replace")
-                        (description . "Replace a specific string or content block in a file with new content. Finds the exact original content and replaces it with new content. Be extra careful to format the original_content exactly correctly, taking extra care with whitespace.")
+                        (description . "Replace a specific string or content block in a file with new content. Finds the exact original content and replaces it with new content. Be extra careful to format the original_content exactly correctly, taking extra care with whitespace and newlines.")
                         (input_schema . ((type . "object")
                                          (properties . ((file_path . ((type . "string")
                                                                       (description . "Path to the file to modify")))

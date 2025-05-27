@@ -282,8 +282,9 @@ test.txt"
      :dialog (((role . "user") (content . "Read a file"))
               ((role . "assistant") (content . (((type . "tool_use") (id . "toolu_999") (name . "read-file") (input . ((path . "test.txt")))))))))
 
-(:name "code-block-triple-backticks"
-     :markdown "## USER:
+    ;; Tool result with empty lines preserved
+    (:name "code-block-triple-backticks"
+           :markdown "## USER:
 
 Here's some code:
 
@@ -295,23 +296,23 @@ Neither should this
 ```
 
 What do you think?"
-     :dialog (((role . "user") (content . "Here's some code:\n\n```\n## ASSISTANT:\nThis should not be parsed as a section header\n## TOOL USE:\nNeither should this\n```\n\nWhat do you think?"))))
+           :dialog (((role . "user") (content . "Here's some code:\n\n```\n## ASSISTANT:\nThis should not be parsed as a section header\n## TOOL USE:\nNeither should this\n```\n\nWhat do you think?"))))
 
     ;; Code blocks with section headers inside (double backticks)
     (:name "code-block-double-backticks"
-     :markdown "## USER:
+           :markdown "## USER:
 
 Inline code: ``## ASSISTANT: not a header`` and more text.
 
 ## ASSISTANT:
 
 I see the inline code."
-     :dialog (((role . "user") (content . "Inline code: ``## ASSISTANT: not a header`` and more text."))
-              ((role . "assistant") (content . "I see the inline code."))))
+           :dialog (((role . "user") (content . "Inline code: ``## ASSISTANT: not a header`` and more text."))
+                    ((role . "assistant") (content . "I see the inline code."))))
 
     ;; Mixed code blocks and real sections
     (:name "mixed-code-blocks-and-sections"
-     :markdown "## USER:
+           :markdown "## USER:
 
 Here's a code example:
 
@@ -326,12 +327,12 @@ Now please analyze it.
 ## ASSISTANT:
 
 I can see your code example."
-     :dialog (((role . "user") (content . "Here's a code example:\n\n```python\ndef example():\n    # This has ## USER: in a comment\n    print(\"## ASSISTANT: not a real header\")\n```\n\nNow please analyze it."))
-              ((role . "assistant") (content . "I can see your code example."))))
+           :dialog (((role . "user") (content . "Here's a code example:\n\n```python\ndef example():\n    # This has ## USER: in a comment\n    print(\"## ASSISTANT: not a real header\")\n```\n\nNow please analyze it."))
+                    ((role . "assistant") (content . "I can see your code example."))))
 
     ;; Tool use with code blocks in parameters
     (:name "tool-use-with-code-in-params"
-     :markdown "## USER:
+           :markdown "## USER:
 
 Write some Python code
 
@@ -364,14 +365,14 @@ File written successfully
 ## ASSISTANT:
 
 I've written the Python file."
-     :dialog (((role . "user") (content . "Write some Python code"))
-              ((role . "assistant") (content . (((type . "tool_use") (id . "toolu_999") (name . "write-file") (input . ((filename . "example.py") (content . "```python\ndef main():\n    # This ## USER: comment should not break parsing\n    print(\"Hello world\")\n\nif __name__ == \"__main__\":\n    main()\n```")))))))
-              ((role . "user") (content . (((type . "tool_result") (tool_use_id . "toolu_999") (content . "File written successfully")))))
-              ((role . "assistant") (content . "I've written the Python file."))))
+           :dialog (((role . "user") (content . "Write some Python code"))
+                    ((role . "assistant") (content . (((type . "tool_use") (id . "toolu_999") (name . "write-file") (input . ((filename . "example.py") (content . "```python\ndef main():\n    # This ## USER: comment should not break parsing\n    print(\"Hello world\")\n\nif __name__ == \"__main__\":\n    main()\n```")))))))
+                    ((role . "user") (content . (((type . "tool_result") (tool_use_id . "toolu_999") (content . "File written successfully")))))
+                    ((role . "assistant") (content . "I've written the Python file."))))
 
     ;; Nested code blocks (backticks inside code blocks)
     (:name "nested-code-blocks"
-     :markdown "## USER:
+           :markdown "## USER:
 
 How do I use backticks in markdown?
 
@@ -385,8 +386,8 @@ Use single backticks around `your code`.
 ```
 
 Does that help?"
-     :dialog (((role . "user") (content . "How do I use backticks in markdown?"))
-              ((role . "assistant") (content . "You can use triple backticks:\n\n```\nHere's how to show `inline code` in a code block:\nUse single backticks around `your code`.\n```\n\nDoes that help?"))))
+           :dialog (((role . "user") (content . "How do I use backticks in markdown?"))
+                    ((role . "assistant") (content . "You can use triple backticks:\n\n```\nHere's how to show `inline code` in a code block:\nUse single backticks around `your code`.\n```\n\nDoes that help?"))))
 
     (:name "tool-use-complex-params"
            :markdown "## USER:
@@ -439,6 +440,35 @@ Tool executed with complex parameters."
                     ((role . "assistant") (content . (((type . "tool_use") (id . "toolu_complex") (name . "complex-tool") (input . ((string_param . "hello world") (number_param . 42) (float_param . 3.14) (bool_true . t) (bool_false) (list_param . ["item1" "item2" 3]) (dict_param . ((key . "value") (count . 5)))))))))
                     ((role . "user") (content . (((type . "tool_result") (tool_use_id . "toolu_complex") (content . "Success")))))
                     ((role . "assistant") (content . "Tool executed with complex parameters."))))
+
+    (:name "tool-result-empty-lines"
+           :markdown "## TOOL USE:
+
+Name: write-file
+ID: tool_123
+
+### content
+
+foo
+
+
+bar
+
+## TOOL RESULT:
+
+ID: tool_123
+
+foo
+
+
+bar
+
+## ASSISTANT:
+
+File written successfully."
+           :dialog (((role . "assistant") (content . (((type . "tool_use") (id . "tool_123") (name . "write-file") (input . ((content . "foo\n\n\nbar")))))))
+                    ((role . "user") (content . (((type . "tool_result") (tool_use_id . "tool_123") (content . "foo\n\n\nbar")))))
+                    ((role . "assistant") (content . "File written successfully."))))
 
     ))
 
