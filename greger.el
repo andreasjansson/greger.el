@@ -104,7 +104,11 @@
   "Major mode for interacting with AI."
   (use-local-map greger-mode-map)
   (setq-local markdown-fontify-code-blocks-natively t)
-  (setq-local mode-line-misc-info '(:eval (symbol-name greger-model))))
+  (setq-local mode-line-misc-info '(:eval (symbol-name greger-model)))
+  ;; Set up tool section highlighting and collapsing
+  (greger--setup-tool-sections)
+  ;; Add hook to update tool sections when buffer changes
+  (add-hook 'after-change-functions #'greger--after-change-function nil t))
 
 ;;;###autoload
 (defun greger ()
