@@ -123,7 +123,7 @@
                                           (required . ["file_path" "contents" "git_commit_message"])))))
 
         (str-replace . ((name . "str-replace")
-                        (description . "Replace a specific string or content block in a file with new content. Finds the exact original content and replaces it with new content.")
+                        (description . "Replace a specific string or content block in a file with new content. Finds the exact original content and replaces it with new content. Be extra careful to format the original_content exactly correctly, taking extra care with whitespace.")
                         (input_schema . ((type . "object")
                                          (properties . ((file_path . ((type . "string")
                                                                       (description . "Path to the file to modify")))
