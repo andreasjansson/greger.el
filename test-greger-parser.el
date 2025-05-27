@@ -2,7 +2,6 @@
 
 (require 'ert)
 (require 'greger-parser)
-(require 'json)
 (require 'cl-lib)
 
 ;; Test cases with tool use, thinking, and complex scenarios
@@ -53,7 +52,7 @@ This is a simple arithmetic question. I can answer this directly without needing
 
 2 + 2 = 4"
      :dialog (((role . "user") (content . "What's 2+2?"))
-              ((role . "assistant") (content . "[{\"type\":\"thinking\",\"thinking\":\"This is a simple arithmetic question. I can answer this directly without needing any tools.\"},{\"type\":\"text\",\"text\":\"2 + 2 = 4\"}]"))))
+              ((role . "assistant") (content . (((type . "thinking") (thinking . "This is a simple arithmetic question. I can answer this directly without needing any tools.")) ((type . "text") (text . "2 + 2 = 4")))))))
 
     ;; Tool use with single parameter
     (:name "tool-use-single-param"
@@ -80,8 +79,8 @@ Hello, world!
 
 The file contains: Hello, world!"
      :dialog (((role . "user") (content . "Read the file hello.txt"))
-              ((role . "assistant") (content . "[{\"type\":\"tool_use\",\"id\":\"toolu_123\",\"name\":\"read-file\",\"input\":{\"path\":\"hello.txt\"}}]"))
-              ((role . "user") (content . "[{\"type\":\"tool_result\",\"tool_use_id\":\"toolu_123\",\"content\":\"Hello, world!\"}]"))
+              ((role . "assistant") (content . (((type . "tool_use") (id . "toolu_123") (name . "read-file") (input . ((path . "hello.txt")))))))
+              ((role . "user") (content . (((type . "tool_result") (tool_use_id . "toolu_123") (content . "Hello, world!")))))
               ((role . "assistant") (content . "The file contains: Hello, world!"))))
 
     ;; Tool use with multiple parameters
@@ -118,8 +117,8 @@ src/utils.py:25:def main_helper():
 
 I found 2 matches for 'def main' in Python files."
      :dialog (((role . "user") (content . "Search for python files containing 'def main'"))
-              ((role . "assistant") (content . "[{\"type\":\"tool_use\",\"id\":\"toolu_456\",\"name\":\"ripgrep\",\"input\":{\"pattern\":\"def main\",\"file-type\":\"py\",\"context-lines\":2}}]"))
-              ((role . "user") (content . "[{\"type\":\"tool_result\",\"tool_use_id\":\"toolu_456\",\"content\":\"src/main.py:10:def main():\\nsrc/utils.py:25:def main_helper():\"}]"))
+              ((role . "assistant") (content . (((type . "tool_use") (id . "toolu_456") (name . "ripgrep") (input . ((pattern . "def main") (file-type . "py") (context-lines . 2)))))))
+              ((role . "user") (content . (((type . "tool_result") (tool_use_id . "toolu_456") (content . "src/main.py:10:def main():\nsrc/utils.py:25:def main_helper():")))))
               ((role . "assistant") (content . "I found 2 matches for 'def main' in Python files."))))
 
     ;; Complex workflow with thinking, tool use, and multiple responses
@@ -159,8 +158,8 @@ ID: toolu_01Kf8avk1cBqH5ZHoXL92Duc
 
 The current King of Sweden is **Carl XVI Gustaf**. He has been reigning since 1973 and is the longest-reigning monarch in Swedish history."
      :dialog (((role . "user") (content . "who's the current king of sweden?"))
-              ((role . "assistant") (content . "[{\"type\":\"thinking\",\"thinking\":\"The user is asking about the current king of Sweden. This is a factual question that I can search for to get the most up-to-date information. I'll use the search function to find this information.\"},{\"type\":\"tool_use\",\"id\":\"toolu_01Kf8avk1cBqH5ZHoXL92Duc\",\"name\":\"search-286d2fd3\",\"input\":{\"query\":\"current king of Sweden 2024\",\"include_answer\":\"basic\",\"max_results\":3}}]"))
-              ((role . "user") (content . "[{\"type\":\"tool_result\",\"tool_use_id\":\"toolu_01Kf8avk1cBqH5ZHoXL92Duc\",\"content\":\"{\\\"query\\\": \\\"current king of Sweden 2024\\\", \\\"answer\\\": \\\"Carl XVI Gustaf\\\", \\\"response_time\\\": 2.38}\"}]"))
+              ((role . "assistant") (content . (((type . "thinking") (thinking . "The user is asking about the current king of Sweden. This is a factual question that I can search for to get the most up-to-date information. I'll use the search function to find this information.")) ((type . "tool_use") (id . "toolu_01Kf8avk1cBqH5ZHoXL92Duc") (name . "search-286d2fd3") (input . ((query . "current king of Sweden 2024") (include_answer . "basic") (max_results . 3)))))))
+              ((role . "user") (content . (((type . "tool_result") (tool_use_id . "toolu_01Kf8avk1cBqH5ZHoXL92Duc") (content . "{\"query\": \"current king of Sweden 2024\", \"answer\": \"Carl XVI Gustaf\", \"response_time\": 2.38}")))))
               ((role . "assistant") (content . "The current King of Sweden is **Carl XVI Gustaf**. He has been reigning since 1973 and is the longest-reigning monarch in Swedish history."))))
 
     ;; Multiple tool uses in sequence
@@ -205,10 +204,10 @@ This is the content of file1.
 
 I found 3 files in the directory. The first file (file1.txt) contains: \"This is the content of file1.\""
      :dialog (((role . "user") (content . "List files and read the first one"))
-              ((role . "assistant") (content . "[{\"type\":\"tool_use\",\"id\":\"toolu_111\",\"name\":\"list-directory\",\"input\":{\"path\":\".\"}}]"))
-              ((role . "user") (content . "[{\"type\":\"tool_result\",\"tool_use_id\":\"toolu_111\",\"content\":\"file1.txt\\nfile2.txt\\nREADME.md\"}]"))
-              ((role . "assistant") (content . "[{\"type\":\"tool_use\",\"id\":\"toolu_222\",\"name\":\"read-file\",\"input\":{\"path\":\"file1.txt\"}}]"))
-              ((role . "user") (content . "[{\"type\":\"tool_result\",\"tool_use_id\":\"toolu_222\",\"content\":\"This is the content of file1.\"}]"))
+              ((role . "assistant") (content . (((type . "tool_use") (id . "toolu_111") (name . "list-directory") (input . ((path . ".")))))))
+              ((role . "user") (content . (((type . "tool_result") (tool_use_id . "toolu_111") (content . "file1.txt\nfile2.txt\nREADME.md")))))
+              ((role . "assistant") (content . (((type . "tool_use") (id . "toolu_222") (name . "read-file") (input . ((path . "file1.txt")))))))
+              ((role . "user") (content . (((type . "tool_result") (tool_use_id . "toolu_222") (content . "This is the content of file1.")))))
               ((role . "assistant") (content . "I found 3 files in the directory. The first file (file1.txt) contains: \"This is the content of file1.\""))))
 
     ;; Tool use with multiline parameter values
@@ -250,8 +249,8 @@ Successfully wrote new file script.py with 85 characters.
 
 I've created a new Python script file with a basic Hello World program."
      :dialog (((role . "user") (content . "Write a new Python file"))
-              ((role . "assistant") (content . "[{\"type\":\"tool_use\",\"id\":\"toolu_789\",\"name\":\"write-new-file\",\"input\":{\"file_path\":\"script.py\",\"contents\":\"#!/usr/bin/env python3\\n\\ndef main():\\n    print(\\\"Hello, world!\\\")\\n\\nif __name__ == \\\"__main__\\\":\\n    main()\",\"git_commit_message\":\"Add new Python script\"}}]"))
-              ((role . "user") (content . "[{\"type\":\"tool_result\",\"tool_use_id\":\"toolu_789\",\"content\":\"Successfully wrote new file script.py with 85 characters.\"}]"))
+              ((role . "assistant") (content . (((type . "tool_use") (id . "toolu_789") (name . "write-new-file") (input . ((file_path . "script.py") (contents . "#!/usr/bin/env python3\n\ndef main():\n    print(\"Hello, world!\")\n\nif __name__ == \"__main__\":\n    main()") (git_commit_message . "Add new Python script")))))))
+              ((role . "user") (content . (((type . "tool_result") (tool_use_id . "toolu_789") (content . "Successfully wrote new file script.py with 85 characters.")))))
               ((role . "assistant") (content . "I've created a new Python script file with a basic Hello World program."))))
 
     ;; Just thinking without any other content
@@ -264,7 +263,7 @@ Let me think about this
 
 I need to consider all the options carefully before responding."
      :dialog (((role . "user") (content . "Let me think about this"))
-              ((role . "assistant") (content . "[{\"type\":\"thinking\",\"thinking\":\"I need to consider all the options carefully before responding.\"}]"))))
+              ((role . "assistant") (content . (((type . "thinking") (thinking . "I need to consider all the options carefully before responding.")))))))
 
     ;; Tool use without any following content
     (:name "tool-use-only"
@@ -281,7 +280,7 @@ ID: toolu_999
 
 test.txt"
      :dialog (((role . "user") (content . "Read a file"))
-              ((role . "assistant") (content . "[{\"type\":\"tool_use\",\"id\":\"toolu_999\",\"name\":\"read-file\",\"input\":{\"path\":\"test.txt\"}}]"))))
+              ((role . "assistant") (content . (((type . "tool_use") (id . "toolu_999") (name . "read-file") (input . ((path . "test.txt")))))))))
 
 (:name "code-block-triple-backticks"
      :markdown "## USER:
@@ -366,8 +365,8 @@ File written successfully
 
 I've written the Python file."
      :dialog (((role . "user") (content . "Write some Python code"))
-              ((role . "assistant") (content . "[{\"type\":\"tool_use\",\"id\":\"toolu_999\",\"name\":\"write-file\",\"input\":{\"filename\":\"example.py\",\"content\":\"```python\\ndef main():\\n    # This ## USER: comment should not break parsing\\n    print(\\\"Hello world\\\")\\n\\nif __name__ == \\\"__main__\\\":\\n    main()\\n```\"}}]"))
-              ((role . "user") (content . "[{\"type\":\"tool_result\",\"tool_use_id\":\"toolu_999\",\"content\":\"File written successfully\"}]"))
+              ((role . "assistant") (content . (((type . "tool_use") (id . "toolu_999") (name . "write-file") (input . ((filename . "example.py") (content . "```python\ndef main():\n    # This ## USER: comment should not break parsing\n    print(\"Hello world\")\n\nif __name__ == \"__main__\":\n    main()\n```")))))))
+              ((role . "user") (content . (((type . "tool_result") (tool_use_id . "toolu_999") (content . "File written successfully")))))
               ((role . "assistant") (content . "I've written the Python file."))))
 
     ;; Nested code blocks (backticks inside code blocks)
@@ -437,15 +436,15 @@ Success
 
 Tool executed with complex parameters."
            :dialog (((role . "user") (content . "Test complex parameters"))
-                    ((role . "assistant") (content . "[{\"type\":\"tool_use\",\"id\":\"toolu_complex\",\"name\":\"complex-tool\",\"input\":{\"string_param\":\"hello world\",\"number_param\":42,\"float_param\":3.14,\"bool_true\":true,\"bool_false\":null,\"list_param\":[\"item1\",\"item2\",3],\"dict_param\":{\"key\":\"value\",\"count\":5}}}]"))
-                    ((role . "user") (content . "[{\"type\":\"tool_result\",\"tool_use_id\":\"toolu_complex\",\"content\":\"Success\"}]"))
+                    ((role . "assistant") (content . (((type . "tool_use") (id . "toolu_complex") (name . "complex-tool") (input . ((string_param . "hello world") (number_param . 42) (float_param . 3.14) (bool_true . t) (bool_false) (list_param . ["item1" "item2" 3]) (dict_param . ((key . "value") (count . 5)))))))))
+                    ((role . "user") (content . (((type . "tool_result") (tool_use_id . "toolu_complex") (content . "Success")))))
                     ((role . "assistant") (content . "Tool executed with complex parameters."))))
 
     ))
 
 ;; Helper functions for tests
 (defun greger-parser-test--dialog-equal (expected actual)
-  "Compare two dialog structures, handling JSON content blocks."
+  "Compare two dialog structures, handling content blocks."
   (and (listp expected) (listp actual)
        (= (length expected) (length actual))
        (cl-every
@@ -459,47 +458,55 @@ Tool executed with complex parameters."
         (cl-mapcar #'cons expected actual))))
 
 (defun greger-parser-test--content-equal (expected actual)
-  "Compare message content, handling JSON strings."
+  "Compare message content, handling both strings and content block lists."
   (cond
    ;; Both are strings - direct comparison
    ((and (stringp expected) (stringp actual))
     (string= expected actual))
 
-   ;; Expected is JSON string, parse and compare
-   ((and (stringp expected) (string-prefix-p "[" expected))
-    (condition-case nil
-        (let ((expected-parsed (json-read-from-string expected))
-              (actual-parsed (if (stringp actual)
-                                (json-read-from-string actual)
-                              actual)))
-          (greger-parser-test--json-equal expected-parsed actual-parsed))
-      (error nil)))
+   ;; Both are lists (content blocks) - compare structure
+   ((and (listp expected) (listp actual))
+    (greger-parser-test--content-blocks-equal expected actual))
 
    ;; Fallback to string comparison
    (t (string= (format "%s" expected) (format "%s" actual)))))
 
-(defun greger-parser-test--json-equal (expected actual)
-  "Compare two parsed JSON structures."
-  (cond
-   ;; Both are vectors (arrays)
-   ((and (vectorp expected) (vectorp actual))
-    (and (= (length expected) (length actual))
-         (cl-every (lambda (pair)
-                     (greger-parser-test--json-equal (car pair) (cdr pair)))
-                   (cl-mapcar #'cons (append expected nil) (append actual nil)))))
+(defun greger-parser-test--content-blocks-equal (expected actual)
+  "Compare two content block lists."
+  (and (= (length expected) (length actual))
+       (cl-every
+        (lambda (pair)
+          (greger-parser-test--content-block-equal (car pair) (cdr pair)))
+        (cl-mapcar #'cons expected actual))))
 
-   ;; Both are alists (objects)
-   ((and (listp expected) (listp actual))
-    (and (= (length expected) (length actual))
-         (cl-every (lambda (exp-pair)
-                     (let ((key (car exp-pair))
-                           (exp-val (cdr exp-pair)))
-                       (let ((act-val (alist-get key actual)))
-                         (greger-parser-test--json-equal exp-val act-val))))
-                   expected)))
+(defun greger-parser-test--content-block-equal (expected actual)
+  "Compare two content blocks."
+  (and (string= (alist-get 'type expected) (alist-get 'type actual))
+       (let ((type (alist-get 'type expected)))
+         (cond
+          ((string= type "text")
+           (string= (alist-get 'text expected) (alist-get 'text actual)))
+          ((string= type "thinking")
+           (string= (alist-get 'thinking expected) (alist-get 'thinking actual)))
+          ((string= type "tool_use")
+           (and (string= (alist-get 'id expected) (alist-get 'id actual))
+                (string= (alist-get 'name expected) (alist-get 'name actual))
+                (greger-parser-test--input-equal (alist-get 'input expected) (alist-get 'input actual))))
+          ((string= type "tool_result")
+           (and (string= (alist-get 'tool_use_id expected) (alist-get 'tool_use_id actual))
+                (string= (alist-get 'content expected) (alist-get 'content actual))))
+          (t t)))))
 
-   ;; Direct comparison for primitives
-   (t (equal expected actual))))
+(defun greger-parser-test--input-equal (expected actual)
+  "Compare tool input parameters."
+  (and (= (length expected) (length actual))
+       (cl-every
+        (lambda (exp-param)
+          (let ((key (car exp-param))
+                (exp-val (cdr exp-param)))
+            (let ((act-val (alist-get key actual)))
+              (equal exp-val act-val))))
+        expected)))
 
 (defun greger-parser-test--normalize-whitespace (str)
   "Normalize whitespace in string for comparison."
@@ -547,9 +554,8 @@ true"))
       (should (= 1 (length parsed)))
       (let ((assistant-msg (car parsed)))
         (should (string= "assistant" (alist-get 'role assistant-msg)))
-        (let* ((content-json (alist-get 'content assistant-msg))
-               (content-blocks (json-read-from-string content-json))
-               (tool-use-block (aref content-blocks 0)))
+        (let* ((content-blocks (alist-get 'content assistant-msg))
+               (tool-use-block (car content-blocks)))
           (should (string= "tool_use" (alist-get 'type tool-use-block)))
           (should (string= "toolu_123" (alist-get 'id tool-use-block)))
           (should (string= "read-file" (alist-get 'name tool-use-block)))
@@ -569,9 +575,8 @@ with multiple lines"))
       (should (= 1 (length parsed)))
       (let ((user-msg (car parsed)))
         (should (string= "user" (alist-get 'role user-msg)))
-        (let* ((content-json (alist-get 'content user-msg))
-               (content-blocks (json-read-from-string content-json))
-               (tool-result-block (aref content-blocks 0)))
+        (let* ((content-blocks (alist-get 'content user-msg))
+               (tool-result-block (car content-blocks)))
           (should (string= "tool_result" (alist-get 'type tool-result-block)))
           (should (string= "toolu_123" (alist-get 'tool_use_id tool-result-block)))
           (should (string= "File contents here
@@ -588,9 +593,8 @@ This is a complex problem."))
       (should (= 1 (length parsed)))
       (let ((assistant-msg (car parsed)))
         (should (string= "assistant" (alist-get 'role assistant-msg)))
-        (let* ((content-json (alist-get 'content assistant-msg))
-               (content-blocks (json-read-from-string content-json))
-               (thinking-block (aref content-blocks 0)))
+        (let* ((content-blocks (alist-get 'content assistant-msg))
+               (thinking-block (car content-blocks)))
           (should (string= "thinking" (alist-get 'type thinking-block)))
           (should (string= "I need to think about this carefully.
 This is a complex problem."
@@ -664,19 +668,18 @@ ID: toolu_abc
       ;; Second message should be assistant with mixed content
       (let ((assistant-msg (cadr parsed)))
         (should (string= "assistant" (alist-get 'role assistant-msg)))
-        (let* ((content-json (alist-get 'content assistant-msg))
-               (content-blocks (json-read-from-string content-json)))
+        (let ((content-blocks (alist-get 'content assistant-msg)))
           (should (= 3 (length content-blocks)))
           ;; Should have thinking, text, and tool_use blocks
-          (should (string= "thinking" (alist-get 'type (aref content-blocks 0))))
-          (should (string= "text" (alist-get 'type (aref content-blocks 1))))
-          (should (string= "tool_use" (alist-get 'type (aref content-blocks 2)))))))))
+          (should (string= "thinking" (alist-get 'type (car content-blocks))))
+          (should (string= "text" (alist-get 'type (cadr content-blocks))))
+          (should (string= "tool_use" (alist-get 'type (caddr content-blocks)))))))))
 
 (ert-deftest greger-parser-test-markdown-generation ()
   "Test that generated markdown follows expected format."
   (let ((dialog '(((role . "user") (content . "Test message"))
-                  ((role . "assistant") (content . "[{\"type\":\"thinking\",\"thinking\":\"Let me think\"},{\"type\":\"text\",\"text\":\"Here's my response\"},{\"type\":\"tool_use\",\"id\":\"tool_123\",\"name\":\"test-tool\",\"input\":{\"param\":\"value\"}}]"))
-                  ((role . "user") (content . "[{\"type\":\"tool_result\",\"tool_use_id\":\"tool_123\",\"content\":\"Tool output\"}]"))
+                  ((role . "assistant") (content . (((type . "thinking") (thinking . "Let me think")) ((type . "text") (text . "Here's my response")) ((type . "tool_use") (id . "tool_123") (name . "test-tool") (input . ((param . "value")))))))
+                  ((role . "user") (content . (((type . "tool_result") (tool_use_id . "tool_123") (content . "Tool output")))))
                   ((role . "assistant") (content . "Final response")))))
     (let ((markdown (greger-parser-dialog-to-markdown dialog)))
       ;; Should contain all expected sections
@@ -731,15 +734,13 @@ value3"))
     (let ((parsed (greger-parser-parse-dialog markdown)))
       (should (= 1 (length parsed)))
       (let* ((assistant-msg (car parsed))
-             (content-json (alist-get 'content assistant-msg))
-             (content-blocks (json-read-from-string content-json))
-             (tool-block (aref content-blocks 0))
+             (content-blocks (alist-get 'content assistant-msg))
+             (tool-block (car content-blocks))
              (input (alist-get 'input tool-block)))
         (should (= 3 (length input)))
         (should (string= "value1" (alist-get 'param1 input)))
         (should (string= "value2 with\nmultiple\n\n\n  lines" (alist-get 'param2 input)))
         (should (string= "value3" (alist-get 'param3 input)))))))
-
 
 (ert-deftest greger-parser-test-code-block-parsing ()
   "Test that section headers inside code blocks are not parsed."
@@ -800,9 +801,8 @@ print(\"## ASSISTANT: also preserved\")
     (let ((parsed (greger-parser-parse-dialog markdown)))
       (should (= 1 (length parsed)))
       (let* ((assistant-msg (car parsed))
-             (content-json (alist-get 'content assistant-msg))
-             (content-blocks (json-read-from-string content-json))
-             (tool-block (aref content-blocks 0))
+             (content-blocks (alist-get 'content assistant-msg))
+             (tool-block (car content-blocks))
              (input (alist-get 'input tool-block))
              (content-param (alist-get 'content input)))
         (should (string-match-p "## USER:" content-param))
