@@ -396,12 +396,15 @@ CANCEL-CALLBACK is called if cancelled."
   (overlay-put overlay 'invisible 'greger-tool-section)
   (overlay-put overlay 'greger-collapsed t)
 
-  ;; Add the expansion indicator
-  (let* ((overlay-start (overlay-start overlay))
+  ;; Calculate the number of hidden lines for the indicator
+  (let* ((content (buffer-substring-no-properties (overlay-start overlay) (overlay-end overlay)))
+         (lines (split-string content "\n"))
+         (hidden-line-count (length lines))
+         (overlay-start (overlay-start overlay))
          (indicator-pos (max (point-min) (1- overlay-start)))
          (indicator-overlay (make-overlay indicator-pos indicator-pos)))
     (overlay-put indicator-overlay 'after-string
-                 (propertize "... [TAB to expand]"
+                 (propertize (format "... [+%d lines, TAB to expand]" hidden-line-count)
                             'face 'greger-tool-tag-face))
     (overlay-put indicator-overlay 'greger-tool-indicator t)
     (overlay-put indicator-overlay 'greger-tool-id tool-id)
