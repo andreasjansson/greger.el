@@ -14,6 +14,7 @@
 
 (require 'greger-stream)
 (require 'greger-parser)
+(require 'cl-lib)
 
 (defconst greger-available-models
   '(replicate/meta/meta-llama-3.1-405b-instruct
