@@ -65,6 +65,24 @@
 (defvar greger-assistant-tag "## ASSISTANT:")
 (defvar greger-system-tag "## SYSTEM:")
 
+;; Tool section collapsing variables
+(defvar greger-tool-section-max-lines 4
+  "Maximum number of lines to show in collapsed tool sections.")
+
+(defvar greger-tool-overlays nil
+  "List of overlays used for collapsible tool sections.")
+
+;; Face definitions for tool tags
+(defface greger-tool-tag-face
+  '((t :height 0.7 :foreground "gray50"))
+  "Face for tool opening and closing tags."
+  :group 'greger)
+
+(defface greger-tool-content-face
+  '((t :inherit default))
+  "Face for tool content."
+  :group 'greger)
+
 (defvar greger-mode-map
   (let ((map (make-sparse-keymap)))
                                         ;(define-key map (kbd "M-<return>") #'greger-buffer)
