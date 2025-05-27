@@ -8,6 +8,7 @@
 (require 'json)
 (require 'magit)
 (require 'rg)
+(require 'cl-lib)
 
 (setq greger-tools-registry
       '(
