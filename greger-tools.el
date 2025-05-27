@@ -310,9 +310,12 @@
     (condition-case err
         (with-temp-buffer
           (insert-file-contents expanded-path)
-          (if include-line-numbers
+          (let ((contents (buffer-substring-no-properties
+                          (line-beginning-position)
+                          (line-end-position))))
+            (if include-line-numbers
               (greger-tools--add-line-numbers (buffer-string))
-            (buffer-string)))
+            (buffer-string))))
       (error (format "Failed to read file: %s" (error-message-string err))))))
 
 (defun greger-tools--add-line-numbers (content)
@@ -395,10 +398,7 @@
   (unless (executable-find "rg")
     (error "ripgrep (rg) command not found. Please install ripgrep"))
 
-  (let ((expanded-path (expand-file-name path))
-        (original-buffer (current-buffer))
-        (original-window (selected-window)))
-
+  (let ((expanded-path (expand-file-name path)))
     (unless (file-exists-p expanded-path)
       (error "Path does not exist: %s" expanded-path))
 
@@ -429,35 +429,27 @@
       (when (and max-results (> max-results 0))
         (setq flags (append flags (list (format "--max-count=%d" max-results)))))
 
-      (greger-tools--with-split-window
-       ;; Run the search using rg.el
-       (condition-case err
-           (let ((default-directory search-dir))
-             ;; Use rg-run to perform the search
-             (rg-run pattern files-pattern search-dir literal nil flags)
+      (condition-case err
+          (let ((default-directory search-dir))
+            ;; Use rg-run to perform the search
+            (rg-run pattern files-pattern search-dir literal nil flags)
 
-             ;; Switch to the rg results buffer to show the user
-             (other-window 1)
-             (switch-to-buffer (rg-buffer-name))
+            ;; Wait a moment for the search to complete and collect results
+            (sit-for 0.5)
 
-             ;; Wait a moment for the search to complete and collect results
-             (sit-for 0.5)
+            ;; Get the buffer contents
+            (let ((results (with-current-buffer (rg-buffer-name)
+                             (buffer-substring-no-properties
+                              (line-beginning-position)
+                              (line-end-position)))))
 
-             ;; Get the buffer contents
-             (let ((results (with-current-buffer (rg-buffer-name)
-                              (buffer-string))))
-
-               ;; Return to original window and buffer
-               (select-window original-window)
-               (switch-to-buffer original-buffer)
-
-               ;; Return results or indicate no matches
-               (if (or (string-empty-p (string-trim results))
-                       (string-match-p "No matches found" results)
-                       (string-match-p "0 matches" results))
-                   "No matches found"
-                 results)))
-         (error (format "Failed to execute ripgrep search: %s" (error-message-string err))))))))
+              ;; Return results or indicate no matches
+              (if (or (string-empty-p (string-trim results))
+                      (string-match-p "No matches found" results)
+                      (string-match-p "0 matches" results))
+                  "No matches found"
+                results)))
+        (error (format "Failed to execute ripgrep search: %s" (error-message-string err)))))))
 
 (defmacro greger-tools--with-split-window (&rest body)
   "Execute BODY in a split window context, returning focus to original window.
@@ -820,7 +812,9 @@ Always returns focus to the original window after executing BODY."
      (find-file expanded-path)
 
      ;; Get current buffer contents
-     (let ((buffer-contents (buffer-string)))
+     (let ((buffer-contents (buffer-substring-no-properties
+                             (line-beginning-position)
+                             (line-end-position))))
        ;; Check if original content exists
        (unless (string-match-p (regexp-quote original-content) buffer-contents)
          (error "Original content not found in file: %s" expanded-path))
