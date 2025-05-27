@@ -340,6 +340,27 @@ CANCEL-CALLBACK is called if cancelled."
       ;; If not found, search backwards and forwards for tool tags
       (greger--find-tool-id-near-point)))
 
+(defun greger--find-tool-id-near-point ()
+  "Find tool ID near point by searching for tool tags."
+  (save-excursion
+    (let ((start-pos (point))
+          tool-id)
+      ;; Search backwards for opening tag
+      (when (re-search-backward "<tool\\.[^>]+>" nil t)
+        (let ((open-tag-start (match-beginning 0))
+              (open-tag-end (match-end 0))
+              (tag-tool-id (greger--extract-tool-id (match-string 0))))
+          ;; Check if we're within this tool section
+          (when tag-tool-id
+            (let ((close-pattern (concat "</tool\\." (regexp-quote tag-tool-id) ">")))
+              (when (re-search-forward close-pattern nil t)
+                (let ((close-tag-end (match-end 0)))
+                  ;; If original point is between open and close tags
+                  (when (and (>= start-pos open-tag-start)
+                             (<= start-pos close-tag-end))
+                    (setq tool-id tag-tool-id))))))))
+      tool-id)))
+
 (defun greger--toggle-tool-section-by-id (tool-id)
   "Toggle the tool section with the given TOOL-ID."
   (cl-loop for overlay in greger-tool-overlays
