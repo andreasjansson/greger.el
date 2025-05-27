@@ -333,9 +333,12 @@ CANCEL-CALLBACK is called if cancelled."
 
 (defun greger--get-tool-id-at-point ()
   "Get the tool ID for the tool section at point, if any."
-  (cl-loop for overlay in (overlays-at (point))
-           for tool-id = (overlay-get overlay 'greger-tool-id)
-           when tool-id return tool-id))
+  ;; First check overlays at point
+  (or (cl-loop for overlay in (overlays-at (point))
+               for tool-id = (overlay-get overlay 'greger-tool-id)
+               when tool-id return tool-id)
+      ;; If not found, search backwards and forwards for tool tags
+      (greger--find-tool-id-near-point)))
 
 (defun greger--toggle-tool-section-by-id (tool-id)
   "Toggle the tool section with the given TOOL-ID."
