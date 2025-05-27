@@ -29,44 +29,67 @@
 Returns (match-start . match-end) or nil if not found."
   (let ((in-triple-backtick nil)
         (in-double-backtick nil)
-        (in-html-comment nil))
+        (in-html-comment nil)
+        (in-tool-content nil)
+        (current-tool-id nil))
 
     (cl-loop for pos from start-pos below (point-max)
              do (goto-char pos)
              do (cond
-                 ;; HTML comment start (only when not in code blocks)
+                 ;; Check for tool content start <tool.{id}>
                  ((and (not in-triple-backtick)
                        (not in-double-backtick)
                        (not in-html-comment)
+                       (not in-tool-content)
+                       (looking-at "<tool\\.\\([^>]+\\)>"))
+                  (setq in-tool-content t
+                        current-tool-id (match-string 1))
+                  (setq pos (match-end 0)))
+
+                 ;; Check for tool content end </tool.{id}>
+                 ((and in-tool-content
+                       current-tool-id
+                       (looking-at (concat "</tool\\." (regexp-quote current-tool-id) ">")))
+                  (setq in-tool-content nil
+                        current-tool-id nil)
+                  (setq pos (match-end 0)))
+
+                 ;; HTML comment start (only when not in code blocks or tool content)
+                 ((and (not in-triple-backtick)
+                       (not in-double-backtick)
+                       (not in-html-comment)
+                       (not in-tool-content)
                        (looking-at "<!--"))
                   (setq in-html-comment t
-                        pos (+ pos 3))
-                  (message "in html comment")) ; Will be incremented by loop
+                        pos (+ pos 3)))
 
-                 ;; HTML comment end (only when in HTML comment)
+                 ;; HTML comment end
                  ((and in-html-comment
                        (looking-at "-->"))
                   (setq in-html-comment nil
-                        pos (+ pos 2))) ; Will be incremented by loop
+                        pos (+ pos 2)))
 
-                 ;; Triple backticks (start or end of line)
+                 ;; Triple backticks (only when not in tool content)
                  ((and (not in-double-backtick)
                        (not in-html-comment)
+                       (not in-tool-content)
                        (looking-at "^```"))
                   (setq in-triple-backtick (not in-triple-backtick)
                         pos (line-end-position)))
 
-                 ;; Double backticks
+                 ;; Double backticks (only when not in tool content)
                  ((and (not in-triple-backtick)
                        (not in-html-comment)
+                       (not in-tool-content)
                        (looking-at "``"))
                   (setq in-double-backtick (not in-double-backtick)
-                        pos (+ pos 1))) ; Will be incremented by loop
+                        pos (+ pos 1)))
 
-                 ;; Check for section header when not in code block or HTML comment
+                 ;; Check for section header when not in any special context
                  ((and (not in-triple-backtick)
                        (not in-double-backtick)
                        (not in-html-comment)
+                       (not in-tool-content)
                        (looking-at section-pattern))
                   (cl-return (cons (match-beginning 0) (match-end 0)))))
              finally return nil)))
@@ -204,10 +227,13 @@ Returns (match-start . match-end) or nil if not found."
                  ((and (not in-code-block)
                        (not in-inline-code)
                        (string-match "<!--\\(\\(?:.\\|\n\\)*?\\)-->" (substring content pos)))
-                  (let ((match-start pos)
-                        (match-end (+ pos (match-end 0))))
-                    ;; Skip the HTML comment entirely
-                    (setq pos match-end)))
+                  (let* ((match-start pos)
+                         (match-end (+ pos (match-end 0)))
+                         (comment-text (substring content match-start match-end))
+                         (newline-count (cl-count ?\n comment-text)))
+                    ;; Replace the HTML comment with the same number of newlines it contained
+                    (setq result (concat result (make-string newline-count ?\n))
+                          pos match-end)))
 
                  ;; Check for ai-context tags (only when not in any code)
                  ((and (not in-code-block)
@@ -244,12 +270,13 @@ Returns (match-start . match-end) or nil if not found."
 
 (defun greger-parser--parse-tool-use-content (content)
   "Parse tool use CONTENT into structured format."
-  (let ((lines (split-string content "\n"))  ; Don't omit nulls
+  (let ((lines (split-string content "\n"))
         (name nil)
         (id nil)
         (input '())
         (current-param nil)
-        (current-value-lines '()))
+        (current-value-lines '())
+        (in-tool-tag nil))
 
     ;; Helper to finish current parameter
     (cl-flet ((finish-param ()
@@ -258,10 +285,11 @@ Returns (match-start . match-end) or nil if not found."
                          (value (greger-parser--parse-param-value value-str)))
                     (push (cons (intern current-param) value) input))
                   (setq current-param nil
-                        current-value-lines '()))))
+                        current-value-lines '()
+                        in-tool-tag nil))))
 
       (dolist (line lines)
-        (let ((trimmed-line (if line (string-trim line) "")))  ; Handle nil lines
+        (let ((trimmed-line (if line (string-trim line) "")))
           (cond
            ;; Name line
            ((string-match "^Name:\\s-*\\(.*\\)" trimmed-line)
@@ -271,26 +299,31 @@ Returns (match-start . match-end) or nil if not found."
            ((string-match "^ID:\\s-*\\(.*\\)" trimmed-line)
             (setq id (string-trim (match-string 1 trimmed-line))))
 
-           ;; Parameter delimiter (--{id}) - finish current parameter
-           ((and id (string-match (concat "^--" (regexp-quote id) "$") trimmed-line))
-            (finish-param))
-
            ;; Parameter header
            ((string-match "^###\\s-*\\(.*\\)" trimmed-line)
             (finish-param)
-            ;; need to match again since finish-param also calls string-match
             (string-match "^###\\s-*\\(.*\\)" trimmed-line)
             (setq current-param (string-trim (match-string 1 trimmed-line))))
 
-           ;; Parameter value line (preserve original line including empty ones)
-           (current-param
-            (push (or line "") current-value-lines))  ; Handle nil lines
+           ;; Tool tag start <tool.{id}>
+           ((and current-param
+                 (string-match (concat "<tool\\." (regexp-quote id) ">") trimmed-line))
+            (setq in-tool-tag t))
 
-           ;; Skip empty lines when not in parameter
+           ;; Tool tag end </tool.{id}>
+           ((and current-param in-tool-tag
+                 (string-match (concat "</tool\\." (regexp-quote id) ">") trimmed-line))
+            (finish-param))
+
+           ;; Parameter value line (only when inside tool tags)
+           ((and current-param in-tool-tag)
+            (push (or line "") current-value-lines))
+
+           ;; Skip other lines
            ((not (string-empty-p trimmed-line))
             (greger-parser--debug "Unexpected line in tool use: %s" trimmed-line)))))
 
-      ;; Finish last parameter if no delimiter was found
+      ;; Finish last parameter if no closing tag was found
       (finish-param))
 
     `((type . "tool_use")
@@ -327,26 +360,28 @@ Returns (match-start . match-end) or nil if not found."
   (let ((lines (split-string content "\n"))
         (id nil)
         (result-lines '())
-        (in-result nil))
+        (in-tool-tag nil))
 
     (dolist (line lines)
-      (let ((trimmed-line (if line (string-trim line) "")))  ; Handle potential nil lines
+      (let ((trimmed-line (if line (string-trim line) "")))
         (cond
          ;; ID line
-         ((and (not in-result) (string-match "^ID:\\s-*\\(.*\\)" trimmed-line))
-          (setq id (string-trim (match-string 1 trimmed-line))
-                in-result t))
+         ((and (not in-tool-tag) (string-match "^ID:\\s-*\\(.*\\)" trimmed-line))
+          (setq id (string-trim (match-string 1 trimmed-line))))
 
-         ;; Result delimiter (--{id}) - stop processing result content
-         ((and id in-result (string-match (concat "^--" (regexp-quote id) "$") trimmed-line))
-          ;; Stop processing when we hit the delimiter
+         ;; Tool tag start <tool.{id}>
+         ((and id (string-match (concat "<tool\\." (regexp-quote id) ">") trimmed-line))
+          (setq in-tool-tag t))
+
+         ;; Tool tag end </tool.{id}>
+         ((and id in-tool-tag (string-match (concat "</tool\\." (regexp-quote id) ">") trimmed-line))
           (cl-return))
 
-         ;; Result content
-         (in-result
-          (push (or line "") result-lines))  ; Preserve original line including empty ones
+         ;; Result content (only when inside tool tags)
+         (in-tool-tag
+          (push (or line "") result-lines))
 
-         ;; Skip empty lines before ID
+         ;; Skip other lines
          ((not (string-empty-p trimmed-line))
           (greger-parser--debug "Unexpected line in tool result: %s" trimmed-line)))))
 
@@ -473,14 +508,18 @@ Returns (match-start . match-end) or nil if not found."
                                      (car param)))
                         (param-value (cdr param)))
                     (setq result (concat result "\n### " param-name "\n\n"
-                                         (greger-parser--format-param-value param-value) "\n\n"
-                                         "--" id "\n"))))))))
+                                         "<tool." id ">\n"
+                                         (greger-parser--format-param-value param-value) "\n"
+                                         "</tool." id ">\n"))))))))
 
          ((string= type "tool_result")
           (let ((id (alist-get 'tool_use_id block))
                 (content (alist-get 'content block)))
             (setq result (concat result greger-parser-tool-result-tag "\n\n"
-                                "ID: " id "\n\n" content "\n\n--" id "\n")))))))
+                                "ID: " id "\n\n"
+                                "<tool." id ">\n"
+                                content "\n"
+                                "</tool." id ">\n")))))))
 
     result))
 
