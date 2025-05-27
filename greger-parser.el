@@ -480,7 +480,7 @@ Returns (match-start . match-end) or nil if not found."
           (let ((id (alist-get 'tool_use_id block))
                 (content (alist-get 'content block)))
             (setq result (concat result greger-parser-tool-result-tag "\n\n"
-                                "ID: " id "\n\n" content)))))))
+                                "ID: " id "\n\n" content "\n\n--" id "\n")))))))
 
     result))
 
