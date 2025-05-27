@@ -219,9 +219,8 @@ Returns (match-start . match-end) or nil if not found."
 
                  ;; Check for inline code (double backticks)
                  ((and (not in-code-block)
-                       (>= (+ pos 1) (length content))
-                       (= (aref content pos) ?`)
                        (< (+ pos 1) (length content))
+                       (= (aref content pos) ?`)
                        (= (aref content (+ pos 1)) ?`))
                   (setq in-inline-code (not in-inline-code))
                   (setq result (concat result (substring content pos (+ pos 2)))
