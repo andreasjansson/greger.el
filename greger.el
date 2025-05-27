@@ -74,7 +74,7 @@
 
 ;; Face definitions for tool tags
 (defface greger-tool-tag-face
-  '((t :height 0.5 :foreground "gray70"))
+  '((t :height 0.6 :foreground "gray70"))
   "Face for tool opening and closing tags."
   :group 'greger)
 
@@ -89,32 +89,32 @@
   :group 'greger)
 
 (defface greger-user-heading-face
-  '((t :foreground "#66AA66" :weight bold :height 1.0))
+  '((t :foreground "#66DD66" :weight bold :height 1.2))
   "Face for ## USER: headings in greger mode."
   :group 'greger)
 
 (defface greger-tool-result-heading-face
-  '((t :foreground "#66AA88" :weight bold :height 1.0))
+  '((t :foreground "#66AA88" :weight bold :height 1.2))
   "Face for ## TOOL RESULT: headings in greger mode."
   :group 'greger)
 
 (defface greger-assistant-heading-face
-  '((t :foreground "#AA6699" :weight bold :height 1.0))
+  '((t :foreground "#AA9922" :weight bold :height 1.2))
   "Face for ## ASSISTANT: headings in greger mode."
   :group 'greger)
 
 (defface greger-thinking-heading-face
-  '((t :foreground "#9966CC" :weight bold :height 1.0))
+  '((t :foreground "#9966CC" :weight bold :height 1.2))
   "Face for ## THINKING: headings in greger mode."
   :group 'greger)
 
 (defface greger-tool-use-heading-face
-  '((t :foreground "#8866BB" :weight bold :height 1.0))
+  '((t :foreground "#8866BB" :weight bold :height 1.2))
   "Face for ## TOOL USE: headings in greger mode."
   :group 'greger)
 
 (defface greger-system-heading-face
-  '((t :foreground "#CC6666" :weight bold :height 1.0))
+  '((t :foreground "#CC6666" :weight bold :height 1.2))
   "Face for ## SYSTEM: headings in greger mode."
   :group 'greger)
 
