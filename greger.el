@@ -85,7 +85,32 @@
 
 (defface greger-tool-param-heading-face
   '((t :foreground "#6699CC" :weight bold :height 1.0))
-  "Face for ### headings in greger mode."
+  "Face for ### tool parameter headings in greger mode."
+  :group 'greger)
+
+(defface greger-user-heading-face
+  '((t :foreground "#66AA66" :weight bold :height 1.0))
+  "Face for ## USER: headings in greger mode."
+  :group 'greger)
+
+(defface greger-tool-result-heading-face
+  '((t :foreground "#66AA88" :weight bold :height 1.0))
+  "Face for ## TOOL RESULT: headings in greger mode."
+  :group 'greger)
+
+(defface greger-assistant-heading-face
+  '((t :foreground "#AA6699" :weight bold :height 1.0))
+  "Face for ## ASSISTANT: headings in greger mode."
+  :group 'greger)
+
+(defface greger-thinking-heading-face
+  '((t :foreground "#9966CC" :weight bold :height 1.0))
+  "Face for ## THINKING: headings in greger mode."
+  :group 'greger)
+
+(defface greger-tool-use-heading-face
+  '((t :foreground "#8866BB" :weight bold :height 1.0))
+  "Face for ## TOOL USE: headings in greger mode."
   :group 'greger)
 
 (defvar greger-mode-map
