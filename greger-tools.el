@@ -811,23 +811,16 @@ Always returns focus to the original window after executing BODY."
     (greger-tools--with-split-window
      (find-file expanded-path)
 
-     ;; Get current buffer contents
-     (let ((buffer-contents (buffer-substring-no-properties
-                             (line-beginning-position)
-                             (line-end-position))))
-       ;; Check if original content exists
-       (unless (string-match-p (regexp-quote original-content) buffer-contents)
-         (error "Original content not found in file: %s" expanded-path))
-
-       ;; Perform the replacement
-       (goto-char (point-min))
-       (let ((case-fold-search nil)) ; Make search case-sensitive
-         (if (search-forward original-content nil t)
-             (progn
-               (replace-match new-content nil t)
-               ;; Save the file
-               (save-buffer))
-           (error "Failed to find original content during replacement in: %s" expanded-path)))))
+     ;; Use isearch to find the original content
+     (goto-char (point-min))
+     (let ((case-fold-search nil)) ; Make search case-sensitive
+       (if (search-forward original-content nil t)
+           (progn
+             ;; Replace the found content
+             (replace-match new-content nil t)
+             ;; Save the file
+             (save-buffer))
+         (error "Original content not found in file: %s" expanded-path))))
 
     ;; Stage and commit the file
     (let ((git-result (greger-tools--git-stage-and-commit (list expanded-path) git-commit-message)))
