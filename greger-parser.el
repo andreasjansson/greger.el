@@ -228,12 +228,9 @@ Returns (match-start . match-end) or nil if not found."
                        (not in-inline-code)
                        (string-match "<!--\\(\\(?:.\\|\n\\)*?\\)-->" (substring content pos)))
                   (let* ((match-start pos)
-                         (match-end (+ pos (match-end 0)))
-                         (comment-text (substring content match-start match-end))
-                         (newline-count (cl-count ?\n comment-text)))
-                    ;; Replace the HTML comment with the same number of newlines it contained
-                    (setq result (concat result (make-string newline-count ?\n))
-                          pos match-end)))
+                         (match-end (+ pos (match-end 0))))
+                    ;; Skip the HTML comment entirely
+                    (setq pos match-end)))
 
                  ;; Check for ai-context tags (only when not in any code)
                  ((and (not in-code-block)
