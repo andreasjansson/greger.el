@@ -279,7 +279,8 @@
           (error "File %s is not in a git repository" first-file))
 
         ;; Set default-directory to the repository root for magit operations
-        (let ((default-directory repo-root))
+        (let ((default-directory repo-root)
+              (magit-save-repository-buffers nil))
           ;; Stage the files
           (magit-stage-files files)
 
