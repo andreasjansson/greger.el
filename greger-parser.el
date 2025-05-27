@@ -232,9 +232,11 @@ Returns (match-start . match-end) or nil if not found."
                        (let ((rest (substring content pos)))
                          (string-match "<!--\\(\\(?:.\\|\n\\)*?\\)-->" rest)))
                   (let* ((rest (substring content pos))
-                         (match-end (+ pos (match-end 0))))
-                    ;; Skip the HTML comment entirely
-                    (setq pos match-end)))
+                         (match-end (+ pos (match-end 0)))
+                         (comment-text (substring content pos match-end)))
+                    ;; Replace comment with equivalent whitespace to preserve layout
+                    (setq result (concat result (replace-regexp-in-string "[^\n]" "" comment-text))
+                          pos match-end)))
 
                  ;; Check for ai-context tags (only when not in any code)
                  ((and (not in-code-block)
