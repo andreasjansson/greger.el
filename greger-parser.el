@@ -271,6 +271,10 @@ Returns (match-start . match-end) or nil if not found."
            ((string-match "^ID:\\s-*\\(.*\\)" trimmed-line)
             (setq id (string-trim (match-string 1 trimmed-line))))
 
+           ;; Parameter delimiter (--{id}) - finish current parameter
+           ((and id (string-match (concat "^--" (regexp-quote id) "$") trimmed-line))
+            (finish-param))
+
            ;; Parameter header
            ((string-match "^###\\s-*\\(.*\\)" trimmed-line)
             (finish-param)
@@ -286,7 +290,7 @@ Returns (match-start . match-end) or nil if not found."
            ((not (string-empty-p trimmed-line))
             (greger-parser--debug "Unexpected line in tool use: %s" trimmed-line)))))
 
-      ;; Finish last parameter
+      ;; Finish last parameter if no delimiter was found
       (finish-param))
 
     `((type . "tool_use")
