@@ -227,7 +227,7 @@ Returns (match-start . match-end) or nil if not found."
                 (when current-param
                   (let* ((value-str (string-trim (mapconcat #'identity (reverse current-value-lines) "\n")))
                          (value (greger-parser--parse-param-value value-str)))
-                    (push (cons current-param value) input))
+                    (push (cons (intern current-param) value) input))
                   (setq current-param nil
                         current-value-lines '()))))
 
