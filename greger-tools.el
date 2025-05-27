@@ -357,10 +357,6 @@ If END-LINE is specified, stop reading at that line (inclusive, 1-based)."
     ;; Extract the range
     (cl-subseq lines start-index (1+ end-index))))
 
-(defun greger-tools--add-line-numbers (content)
-  "Add line numbers to CONTENT string."
-  (greger-tools--add-line-numbers-with-offset content 1))
-
 (defun greger-tools--add-line-numbers-with-offset (content start-line-num)
   "Add line numbers to CONTENT string starting from START-LINE-NUM."
   (let ((lines (split-string content "\n"))
@@ -482,9 +478,7 @@ If END-LINE is specified, stop reading at that line (inclusive, 1-based)."
 
             ;; Get the buffer contents
             (let ((results (with-current-buffer (rg-buffer-name)
-                             (buffer-substring-no-properties
-                              (line-beginning-position)
-                              (line-end-position)))))
+                             (buffer-substring-no-properties (point-min) (point-max)))))
 
               ;; Return results or indicate no matches
               (if (or (string-empty-p (string-trim results))
