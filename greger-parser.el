@@ -226,22 +226,15 @@ Returns (match-start . match-end) or nil if not found."
                   (setq result (concat result (substring content pos (+ pos 2)))
                         pos (+ pos 2)))
 
-                 ;; Check for HTML comments (remove when not in code blocks)
+                 ;; Check for HTML comments (remove completely when not in code blocks)
                  ((and (not in-code-block)
                        (not in-inline-code)
                        (let ((rest (substring content pos)))
                          (string-match "<!--\\(\\(?:.\\|\n\\)*?\\)-->" rest)))
                   (let* ((rest (substring content pos))
-                         (match-end (+ pos (match-end 0)))
-                         (comment-text (substring content pos match-end))
-                         ;; Count newlines in the comment to preserve vertical spacing
-                         (newline-count (with-temp-buffer
-                                         (insert comment-text)
-                                         (goto-char (point-min))
-                                         (count-matches "\n"))))
-                    ;; Replace comment with equivalent number of newlines
-                    (setq result (concat result (make-string newline-count ?\n))
-                          pos match-end)))
+                         (match-end (+ pos (match-end 0))))
+                    ;; Skip the entire comment - don't add anything to result
+                    (setq pos match-end)))
 
                  ;; Check for ai-context tags (only when not in any code)
                  ((and (not in-code-block)
