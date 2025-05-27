@@ -1083,7 +1083,7 @@ FUNCTION-NAMES is a vector of test function names to evaluate and run."
                                   output-lines))))))))
 
               ;; Run the tests
-              (setq stats (ert-run-tests test-symbols listener))
+              (setq stats (ert-run-tests test-selector listener))
 
               ;; Format the results
               (let ((result-text (string-join (nreverse output-lines) "\n")))
