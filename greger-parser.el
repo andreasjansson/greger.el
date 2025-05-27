@@ -25,29 +25,47 @@
 (defconst greger-parser-tool-result-tag "## TOOL RESULT:")
 
 (defun greger-parser--find-next-section-outside-code-blocks (section-pattern start-pos)
-  "Find next section header that's not inside a code block.
+  "Find next section header that's not inside a code block or HTML comment.
 Returns (match-start . match-end) or nil if not found."
   (let ((in-triple-backtick nil)
-        (in-double-backtick nil))
+        (in-double-backtick nil)
+        (in-html-comment nil))
 
     (cl-loop for pos from start-pos below (point-max)
              do (goto-char pos)
              do (cond
+                 ;; HTML comment start (only when not in code blocks)
+                 ((and (not in-triple-backtick)
+                       (not in-double-backtick)
+                       (not in-html-comment)
+                       (looking-at "<!--"))
+                  (setq in-html-comment t
+                        pos (+ pos 3))) ; Will be incremented by loop
+
+                 ;; HTML comment end (only when in HTML comment)
+                 ((and in-html-comment
+                       (looking-at "-->"))
+                  (setq in-html-comment nil
+                        pos (+ pos 2))) ; Will be incremented by loop
+
                  ;; Triple backticks (start or end of line)
                  ((and (not in-double-backtick)
+                       (not in-html-comment)
                        (looking-at "^```"))
                   (setq in-triple-backtick (not in-triple-backtick)
                         pos (line-end-position)))
 
                  ;; Double backticks
                  ((and (not in-triple-backtick)
+                       (not in-html-comment)
                        (looking-at "``"))
                   (setq in-double-backtick (not in-double-backtick)
                         pos (+ pos 1))) ; Will be incremented by loop
 
-                 ;; Check for section header when not in code block
+                 ;; Check for section header when not in code block or HTML comment
                  ((and (not in-triple-backtick)
                        (not in-double-backtick)
+                       (not in-html-comment)
                        (looking-at section-pattern))
                   (cl-return (cons (match-beginning 0) (match-end 0)))))
              finally return nil)))
