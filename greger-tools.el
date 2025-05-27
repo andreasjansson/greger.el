@@ -1031,7 +1031,7 @@ FUNCTION-NAMES is a vector of test function names to evaluate and run."
 
           ;; Now run the tests using ert-run-tests with a custom listener
           (let* ((function-names-list (append function-names nil)) ; Convert vector to list for processing
-                 (test-symbols (mapcar #'intern function-names-list))
+                 (test-selector `(member ,@(mapcar #'intern function-names-list)))
                  (output-lines '())
                  (stats nil))
 
