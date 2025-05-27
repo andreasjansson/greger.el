@@ -461,51 +461,40 @@ If END-LINE is specified, stop reading at that line (inclusive, 1-based)."
     (unless (file-exists-p expanded-path)
       (error "Path does not exist: %s" expanded-path))
 
-    ;; Set up the search parameters
-    (let* ((search-dir (if (file-directory-p expanded-path)
-                           expanded-path
-                         (file-name-directory expanded-path)))
-           (files-pattern (cond
-                           ;; If path is a file, use just the filename pattern
-                           ((file-regular-p expanded-path)
-                            (file-name-nondirectory expanded-path))
-                           ;; If file-type is specified, use that
-                           (file-type file-type)
-                           ;; Otherwise use "everything"
-                           (t "everything")))
-           (literal (not case-sensitive)) ; rg.el uses literal for case handling
-           (flags '()))
+    ;; Build the rg command arguments
+    (let ((args '("rg")))
 
-      ;; Add case sensitivity flags
-      (when case-sensitive
-        (setq flags (append flags '("--case-sensitive"))))
+      ;; Add case sensitivity flag
+      (if case-sensitive
+          (setq args (append args '("--case-sensitive")))
+        (setq args (append args '("--smart-case"))))
 
       ;; Add context lines if specified
       (when (and context-lines (> context-lines 0))
-        (setq flags (append flags (list (format "--context=%d" context-lines)))))
+        (setq args (append args (list "--context" (number-to-string context-lines)))))
 
-      ;; Add max results limit if specified
+      ;; Add max results limit if specified (using --max-count)
       (when (and max-results (> max-results 0))
-        (setq flags (append flags (list (format "--max-count=%d" max-results)))))
+        (setq args (append args (list "--max-count" (number-to-string max-results)))))
+
+      ;; Add file type if specified
+      (when (and file-type (not (string-empty-p file-type)))
+        (setq args (append args (list "--type" file-type))))
+
+      ;; Add line numbers and no heading for better output format
+      (setq args (append args '("--line-number" "--no-heading")))
+
+      ;; Add the pattern and path
+      (setq args (append args (list pattern expanded-path)))
 
       (condition-case err
-          (let ((default-directory search-dir))
-            ;; Use rg-run to perform the search
-            (rg-run pattern files-pattern search-dir literal nil flags)
-
-            ;; Wait a moment for the search to complete and collect results
-            (sit-for 0.5)
-
-            ;; Get the buffer contents
-            (let ((results (with-current-buffer (rg-buffer-name)
-                             (buffer-substring-no-properties (point-min) (point-max)))))
-
+          (let ((command (mapconcat 'shell-quote-argument args " ")))
+            ;; Execute the command and capture output
+            (let ((output (shell-command-to-string command)))
               ;; Return results or indicate no matches
-              (if (or (string-empty-p (string-trim results))
-                      (string-match-p "No matches found" results)
-                      (string-match-p "0 matches" results))
+              (if (string-empty-p (string-trim output))
                   "No matches found"
-                results)))
+                output)))
         (error (format "Failed to execute ripgrep search: %s" (error-message-string err)))))))
 
 (defmacro greger-tools--with-split-window (&rest body)
