@@ -446,7 +446,7 @@ If END-LINE is specified, stop reading at that line (inclusive, 1-based)."
     (reverse files)))
 
 (defun greger-tools--ripgrep (pattern path &optional case-sensitive file-type context-lines max-results)
-  "Search for PATTERN in PATH using the rg.el package."
+  "Search for PATTERN in PATH using the rg command line tool directly."
   (unless (stringp pattern)
     (error "Pattern must be a string"))
 
