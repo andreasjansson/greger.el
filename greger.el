@@ -297,6 +297,8 @@ CANCEL-CALLBACK is called if cancelled."
   "Create a collapsible overlay for tool content."
   (let* ((visible-lines (cl-subseq lines 0 greger-tool-section-max-lines))
          (hidden-lines (cl-subseq lines greger-tool-section-max-lines))
+         (total-lines (length lines))
+         (hidden-line-count (length hidden-lines))
          (visible-text (mapconcat #'identity visible-lines "\n"))
          (hidden-text (mapconcat #'identity hidden-lines "\n"))
 
@@ -312,10 +314,10 @@ CANCEL-CALLBACK is called if cancelled."
     (overlay-put hidden-overlay 'greger-tool-id tool-id)
     (overlay-put hidden-overlay 'greger-collapsed t)
 
-    ;; Add expansion indicator
+    ;; Add expansion indicator with line count
     (let ((indicator-overlay (make-overlay visible-end visible-end)))
       (overlay-put indicator-overlay 'after-string
-                   (propertize "... [TAB to expand]"
+                   (propertize (format "... [+%d lines, TAB to expand]" hidden-line-count)
                               'face 'greger-tool-tag-face))
       (overlay-put indicator-overlay 'greger-tool-indicator t)
       (overlay-put indicator-overlay 'greger-tool-id tool-id)
