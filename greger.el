@@ -113,6 +113,11 @@
   "Face for ## TOOL USE: headings in greger mode."
   :group 'greger)
 
+(defface greger-system-heading-face
+  '((t :foreground "#CC6666" :weight bold :height 1.0))
+  "Face for ## SYSTEM: headings in greger mode."
+  :group 'greger)
+
 (defvar greger-mode-map
   (let ((map (make-sparse-keymap)))
                                         ;(define-key map (kbd "M-<return>") #'greger-buffer)
