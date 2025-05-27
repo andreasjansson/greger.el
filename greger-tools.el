@@ -196,7 +196,9 @@
      ((eq tool-symbol 'read-file)
       (greger-tools--read-file
        (alist-get 'path args)
-       (alist-get 'include_line_numbers args)))
+       (alist-get 'include_line_numbers args)
+       (alist-get 'start_line args)
+       (alist-get 'end_line args)))
 
      ((eq tool-symbol 'list-directory)
       (greger-tools--list-directory
