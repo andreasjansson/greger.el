@@ -470,6 +470,27 @@ File written successfully."
                     ((role . "user") (content . (((type . "tool_result") (tool_use_id . "tool_123") (content . "foo\n\n\nbar")))))
                     ((role . "assistant") (content . "File written successfully."))))
 
+    (:name "html-comments"
+           :markdown "## USER:
+
+Here's some code:
+
+<!-- comment -->
+<!-- multi
+line
+
+comment -->
+
+```
+<!-- comment should be included -->
+## ASSISTANT:
+This should not be parsed as a section header
+## TOOL USE:
+Neither should this
+```
+
+What do you think?"
+           :dialog (((role . "user") (content . "Here's some code:\n\n\n\n```\n<!-- comment should be included -->\n## ASSISTANT:\nThis should not be parsed as a section header\n## TOOL USE:\nNeither should this\n```\n\nWhat do you think?"))))
     ))
 
 ;; Helper functions for tests

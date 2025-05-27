@@ -10,7 +10,7 @@
 (require 'greger-tools)
 
 ;; not using patch tool, it's too messy
-(defcustom greger-agent-tools '(read-file list-directory str-replace insert write-new-file replace-file replace-function make-directory rename-file ripgrep git-log git-show-commit ert-test)
+(defcustom greger-agent-tools '(read-file list-directory str-replace insert write-new-file replace-file replace-function make-directory rename-file ripgrep git-log git-show-commit ert-test eval-elisp-defuns)
   "List of tools available to the agent."
   :type '(repeat symbol)
   :group 'greger)

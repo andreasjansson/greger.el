@@ -173,7 +173,7 @@
                                                                      (default . ".")))))
                                              (required . ["commit_hash"])))))
         (ert-test . ((name . "ert-test")
-                     (description . "Execute ERT tests by evaluating test functions and running them with ert")
+                     (description . "Execute ERT tests by evaluating Emacs lisp test functions and running them with ert")
                      (input_schema . ((type . "object")
                                       (properties . ((test_file_path . ((type . "string")
                                                                         (description . "Path to the test file containing ERT tests")))
@@ -181,6 +181,16 @@
                                                                         (items . ((type . "string")))
                                                                         (description . "List of ERT test function names to evaluate and run")))))
                                       (required . ["test_file_path" "function_names"])))))
+
+        (eval-elisp-defuns . ((name . "eval-elisp-defuns")
+                              (description . "Evaluate Emacs lisp defuns in a specific file. Note that defuns must be evaluated before you test them, if you've updated the code.")
+                              (input_schema . ((type . "object")
+                                               (properties . ((file_path . ((type . "string")
+                                                                                 (description . "Path to the file containing functions/defuns to evaluate")))
+                                                              (function_names . ((type . "array")
+                                                                                 (items . ((type . "string")))
+                                                                                 (description . "List of function names to evaluate and run")))))
+                                               (required . ["file_path" "function_names"])))))
         ))
 
 (defun greger-tools-get-schemas (tool-names)
@@ -278,6 +288,11 @@
      ((eq tool-symbol 'ert-test)
       (greger-tools--ert-test
        (alist-get 'test_file_path args)
+       (alist-get 'function_names args)))
+
+     ((eq tool-symbol 'eval-elisp-defuns)
+      (greger-tools--eval-elisp-defuns
+       (alist-get 'file_path args)
        (alist-get 'function_names args)))
 
      (t
@@ -988,109 +1003,113 @@ Always returns focus to the original window after executing BODY."
               results))
         (error (format "Failed to show git commit: %s" (error-message-string err)))))))
 
-(defun greger-tools--ert-test (test-file-path function-names)
-  "Execute ERT tests by evaluating test functions and running them with ert.
-TEST-FILE-PATH is the path to the test file.
-FUNCTION-NAMES is a vector of test function names to evaluate and run."
-  (unless (stringp test-file-path)
-    (error "test_file_path must be a string"))
+(defun greger-tools--eval-elisp-defuns (file-path function-names)
+  (unless (stringp file-path)
+    (error "File path must be a string"))
 
   (unless (vectorp function-names)
-    (error "function_names must be a vector"))
+    (error "Function names must be a vector"))
 
-  (let ((expanded-path (expand-file-name test-file-path)))
-
+  (let ((expanded-path (expand-file-name file-path)))
     ;; Check if file exists
     (unless (file-exists-p expanded-path)
-      (error "Test file does not exist: %s" expanded-path))
+      (error "File does not exist: %s" expanded-path))
 
     ;; Check if it's actually a file
     (when (file-directory-p expanded-path)
       (error "Path is a directory, not a file: %s" expanded-path))
 
-    (condition-case err
-        (progn
-          ;; Open the test file in a split window
-          (greger-tools--with-split-window
-           (find-file expanded-path)
+    (greger-tools--with-split-window
+     (find-file expanded-path)
 
-           ;; Navigate to and evaluate each test function
-           (dotimes (i (length function-names))
-             (let ((function-name (aref function-names i)))
-               (goto-char (point-min))
+     ;; Navigate to and evaluate each function
+     (dotimes (i (length function-names))
+       (let ((function-name (aref function-names i)))
+         (goto-char (point-min))
 
-               ;; Search for the function definition
-               (let ((function-pattern (format "^\\s-*(ert-deftest\\s-+%s\\s-*("
-                                               (regexp-quote function-name))))
-                 (unless (re-search-forward function-pattern nil t)
-                   (error "Test function '%s' not found in %s" function-name expanded-path))
+         ;; Search for the function definition
+         (let ((function-pattern (format "^\\s-*(\\(ert-deftest\\|defun\\)\\s-+%s\\s-*("
+                                         (regexp-quote function-name))))
+           (unless (re-search-forward function-pattern nil t)
+             (error "Function '%s' not found in %s" function-name expanded-path))
 
-                 ;; Move to beginning of defun and evaluate it
-                 (beginning-of-defun)
-                 (eval-defun nil)))))
+           ;; Move to beginning of defun and evaluate it
+           (beginning-of-defun)
+           (eval-defun nil)))))
+    "Eval successful"))
 
-          ;; Now run the tests using ert-run-tests with a custom listener
-          (let* ((function-names-list (append function-names nil)) ; Convert vector to list for processing
-                 (test-selector `(member ,@(mapcar #'intern function-names-list)))
-                 (output-lines '())
-                 (stats nil))
+(defun greger-tools--ert-test (test-file-path function-names)
+  "Execute ERT tests by evaluating test functions and running them with ert.
+TEST-FILE-PATH is the path to the test file.
+FUNCTION-NAMES is a vector of test function names to evaluate and run."
 
-            ;; Define a custom listener to capture test output
-            (let ((listener
-                   (lambda (event-type &rest event-args)
-                     (cl-case event-type
-                       (run-started
-                        (cl-destructuring-bind (stats-obj) event-args
-                          (setq stats stats-obj)
-                          (push (format "Running %d tests (%s)"
-                                        (length (ert--stats-tests stats-obj))
-                                        (current-time-string))
-                                output-lines)))
-                       (test-started
-                        (cl-destructuring-bind (stats-obj test) event-args
-                          (push (format "Test %S started" (ert-test-name test))
-                                output-lines)))
-                       (test-ended
-                        (cl-destructuring-bind (stats-obj test result) event-args
-                          (let ((test-name (ert-test-name test))
-                                (expected-p (ert-test-result-expected-p test result)))
-                            (push (format "Test %S: %s%s%s"
-                                          test-name
-                                          (ert-string-for-test-result result expected-p)
-                                          (if (ert-test-result-duration result)
-                                              (format " (%.3fs)" (ert-test-result-duration result))
-                                            "")
-                                          (let ((reason (ert-reason-for-test-result result)))
-                                            (if (string-empty-p reason) "" reason)))
-                                  output-lines)
-                            ;; Add condition details for failures
-                            (when (and (ert-test-result-with-condition-p result)
-                                       (not expected-p))
-                              (let ((condition (ert-test-result-with-condition-condition result)))
-                                (push (format "  Condition: %S" condition) output-lines))))))
-                       (run-ended
-                        (cl-destructuring-bind (stats-obj aborted-p) event-args
-                          (let ((completed (ert-stats-completed stats-obj))
-                                (expected (ert-stats-completed-expected stats-obj))
-                                (unexpected (ert-stats-completed-unexpected stats-obj))
-                                (skipped (ert-stats-skipped stats-obj)))
-                            (push (format "\n%sRan %d tests, %d results as expected, %d unexpected%s"
-                                          (if aborted-p "Aborted: " "")
-                                          completed
-                                          expected
-                                          unexpected
-                                          (if (zerop skipped) "" (format ", %d skipped" skipped)))
-                                  output-lines))))))))
+  ;; First eval the test function names
+  (greger-tools--eval-elisp-defuns test-file-path function-names)
 
-              ;; Run the tests
-              (setq stats (ert-run-tests test-selector listener))
+  (condition-case err
+      (progn
+        ;; Now run the tests using ert-run-tests with a custom listener
+        (let* ((function-names-list (append function-names nil)) ; Convert vector to list for processing
+               (test-selector `(member ,@(mapcar #'intern function-names-list)))
+               (output-lines '())
+               (stats nil))
 
-              ;; Format the results
-              (let ((result-text (string-join (nreverse output-lines) "\n")))
-                (format "Successfully evaluated %d test function(s) from %s and executed them with ert.\n\nTest Results:\n%s"
-                        (length function-names) expanded-path result-text)))))
+          ;; Define a custom listener to capture test output
+          (let ((listener
+                 (lambda (event-type &rest event-args)
+                   (cl-case event-type
+                     (run-started
+                      (cl-destructuring-bind (stats-obj) event-args
+                        (setq stats stats-obj)
+                        (push (format "Running %d tests (%s)"
+                                      (length (ert--stats-tests stats-obj))
+                                      (current-time-string))
+                              output-lines)))
+                     (test-started
+                      (cl-destructuring-bind (stats-obj test) event-args
+                        (push (format "Test %S started" (ert-test-name test))
+                              output-lines)))
+                     (test-ended
+                      (cl-destructuring-bind (stats-obj test result) event-args
+                        (let ((test-name (ert-test-name test))
+                              (expected-p (ert-test-result-expected-p test result)))
+                          (push (format "Test %S: %s%s%s"
+                                        test-name
+                                        (ert-string-for-test-result result expected-p)
+                                        (if (ert-test-result-duration result)
+                                            (format " (%.3fs)" (ert-test-result-duration result))
+                                          "")
+                                        (let ((reason (ert-reason-for-test-result result)))
+                                          (if (string-empty-p reason) "" reason)))
+                                output-lines)
+                          ;; Add condition details for failures
+                          (when (and (ert-test-result-with-condition-p result)
+                                     (not expected-p))
+                            (let ((condition (ert-test-result-with-condition-condition result)))
+                              (push (format "  Condition: %S" condition) output-lines))))))
+                     (run-ended
+                      (cl-destructuring-bind (stats-obj aborted-p) event-args
+                        (let ((completed (ert-stats-completed stats-obj))
+                              (expected (ert-stats-completed-expected stats-obj))
+                              (unexpected (ert-stats-completed-unexpected stats-obj))
+                              (skipped (ert-stats-skipped stats-obj)))
+                          (push (format "\n%sRan %d tests, %d results as expected, %d unexpected%s"
+                                        (if aborted-p "Aborted: " "")
+                                        completed
+                                        expected
+                                        unexpected
+                                        (if (zerop skipped) "" (format ", %d skipped" skipped)))
+                                output-lines))))))))
 
-      (error (format "Failed to execute ERT tests: %s" (error-message-string err))))))
+            ;; Run the tests
+            (setq stats (ert-run-tests test-selector listener))
+
+            ;; Format the results
+            (let ((result-text (string-join (nreverse output-lines) "\n")))
+              (format "Successfully evaluated %d test function(s) from %s and executed them with ert.\n\nTest Results:\n%s"
+                      (length function-names) test-file-path result-text)))))
+
+    (error (format "Failed to execute ERT tests: %s" (error-message-string err)))))
 
 (provide 'greger-tools)
 
