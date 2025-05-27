@@ -40,7 +40,8 @@ Returns (match-start . match-end) or nil if not found."
                        (not in-html-comment)
                        (looking-at "<!--"))
                   (setq in-html-comment t
-                        pos (+ pos 3))) ; Will be incremented by loop
+                        pos (+ pos 3))
+                  (message "in html comment")) ; Will be incremented by loop
 
                  ;; HTML comment end (only when in HTML comment)
                  ((and in-html-comment
@@ -174,7 +175,7 @@ Returns (match-start . match-end) or nil if not found."
         `((role . "tool-result") (content . ,(greger-parser--parse-tool-result-content content))))))))
 
 (defun greger-parser--expand-context (content)
-  "Expand any <ai-context> tags in CONTENT, but not those inside code blocks."
+  "Expand any <ai-context> tags in CONTENT and remove HTML comments, but not those inside code blocks."
   (let ((result "")
         (pos 0)
         (in-code-block nil)
@@ -196,6 +197,16 @@ Returns (match-start . match-end) or nil if not found."
                   (setq in-inline-code (not in-inline-code))
                   (let ((match-end (match-end 0)))
                     (setq result (concat result (substring content pos match-end))
+                          pos match-end)))
+
+                 ;; Check for HTML comments (remove when not in code blocks)
+                 ((and (not in-code-block)
+                       (not in-inline-code)
+                       (string-match "<!--\\(\\(.\\|\n\\)*?\\)-->" content pos))
+                  (let ((match-start (match-beginning 0))
+                        (match-end (match-end 0)))
+                    ;; Add text before match (skipping the HTML comment)
+                    (setq result (concat result (substring content pos match-start))
                           pos match-end)))
 
                  ;; Check for ai-context tags (only when not in any code)
