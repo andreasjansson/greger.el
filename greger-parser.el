@@ -337,6 +337,11 @@ Returns (match-start . match-end) or nil if not found."
           (setq id (string-trim (match-string 1 trimmed-line))
                 in-result t))
 
+         ;; Result delimiter (--{id}) - stop processing result content
+         ((and id in-result (string-match (concat "^--" (regexp-quote id) "$") trimmed-line))
+          ;; Stop processing when we hit the delimiter
+          (cl-return))
+
          ;; Result content
          (in-result
           (push (or line "") result-lines))  ; Preserve original line including empty ones
