@@ -233,9 +233,14 @@ Returns (match-start . match-end) or nil if not found."
                          (string-match "<!--\\(\\(?:.\\|\n\\)*?\\)-->" rest)))
                   (let* ((rest (substring content pos))
                          (match-end (+ pos (match-end 0)))
-                         (comment-text (substring content pos match-end)))
-                    ;; Replace comment with equivalent whitespace to preserve layout
-                    (setq result (concat result (replace-regexp-in-string "[^\n]" "" comment-text))
+                         (comment-text (substring content pos match-end))
+                         ;; Count newlines in the comment to preserve vertical spacing
+                         (newline-count (with-temp-buffer
+                                         (insert comment-text)
+                                         (goto-char (point-min))
+                                         (count-matches "\n"))))
+                    ;; Replace comment with equivalent number of newlines
+                    (setq result (concat result (make-string newline-count ?\n))
                           pos match-end)))
 
                  ;; Check for ai-context tags (only when not in any code)
