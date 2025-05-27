@@ -988,6 +988,67 @@ Always returns focus to the original window after executing BODY."
               results))
         (error (format "Failed to show git commit: %s" (error-message-string err)))))))
 
+(defun greger-tools--ert-test (test-file-path function-names)
+  "Execute ERT tests by evaluating test functions and running them with ert.
+TEST-FILE-PATH is the path to the test file.
+FUNCTION-NAMES is a list of test function names to evaluate and run."
+  (unless (stringp test-file-path)
+    (error "test_file_path must be a string"))
+
+  (unless (listp function-names)
+    (error "function_names must be a list"))
+
+  (let ((expanded-path (expand-file-name test-file-path)))
+
+    ;; Check if file exists
+    (unless (file-exists-p expanded-path)
+      (error "Test file does not exist: %s" expanded-path))
+
+    ;; Check if it's actually a file
+    (when (file-directory-p expanded-path)
+      (error "Path is a directory, not a file: %s" expanded-path))
+
+    (condition-case err
+        (progn
+          ;; Open the test file in a split window
+          (greger-tools--with-split-window
+           (find-file expanded-path)
+
+           ;; Navigate to and evaluate each test function
+           (dolist (function-name function-names)
+             (goto-char (point-min))
+
+             ;; Search for the function definition
+             (let ((function-pattern (format "^\\s-*(ert-deftest\\s-+%s\\s-*("
+                                             (regexp-quote function-name))))
+               (unless (re-search-forward function-pattern nil t)
+                 (error "Test function '%s' not found in %s" function-name expanded-path))
+
+               ;; Move to beginning of defun and evaluate it
+               (beginning-of-defun)
+               (eval-defun nil))))
+
+          ;; Now run the tests using ert with a regex that matches all function names
+          (let* ((function-names-regex (if (= (length function-names) 1)
+                                           (format "^%s$" (car function-names))
+                                         (format "^\\(%s\\)$"
+                                                 (mapconcat #'regexp-quote function-names "\\|"))))
+                 (results))
+
+            ;; Run ert in a split window and capture results
+            (greger-tools--with-split-window
+             ;; Use ert-run-tests-batch to get the results as a string
+             (let ((ert-quiet nil))
+               (with-temp-buffer
+                 (let ((standard-output (current-buffer)))
+                   (ert-run-tests-batch function-names-regex))
+                 (setq results (buffer-string)))))
+
+            (format "Successfully evaluated %d test function(s) from %s and executed them with ert.\n\nTest Results:\n%s"
+                    (length function-names) expanded-path results)))
+
+      (error (format "Failed to execute ERT tests: %s" (error-message-string err))))))
+
 (provide 'greger-tools)
 
 ;;; greger-tools.el ends here
