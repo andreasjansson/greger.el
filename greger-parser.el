@@ -331,8 +331,8 @@ Returns (match-start . match-end) or nil if not found."
                                   (string= (alist-get 'type block) "text"))))
                       ;; Single text block - use text directly
                       (push `((role . "assistant") (content . ,(alist-get 'text (car current-assistant-content)))) result)
-                    ;; Multiple blocks or non-text - use JSON
-                    (push `((role . "assistant") (content . ,(json-encode (reverse current-assistant-content)))) result))
+                    ;; Multiple blocks or non-text - use array of objects (NOT JSON string)
+                    (push `((role . "assistant") (content . ,(reverse current-assistant-content))) result))
                   (setq current-assistant-content '()))))
 
       (dolist (section sections)
@@ -355,7 +355,7 @@ Returns (match-start . match-end) or nil if not found."
            ;; Tool result - flush assistant and add as user message
            ((string= role "tool-result")
             (flush-assistant)
-            (push `((role . "user") (content . ,(json-encode (list content)))) result))
+            (push `((role . "user") (content . ,(list content))) result))
 
            ;; Other roles - flush assistant and add the message
            (t
