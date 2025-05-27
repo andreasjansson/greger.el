@@ -105,6 +105,8 @@
   (use-local-map greger-mode-map)
   (setq-local markdown-fontify-code-blocks-natively t)
   (setq-local mode-line-misc-info '(:eval (symbol-name greger-model)))
+  ;; Set up invisible text for tool sections
+  (add-to-invisibility-spec 'greger-tool-section)
   ;; Set up tool section highlighting and collapsing
   (greger--setup-tool-sections)
   ;; Add hook to update tool sections when buffer changes
