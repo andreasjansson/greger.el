@@ -96,6 +96,7 @@
     (define-key map (kbd "C-; h") #'greger-context-http-url)
     (define-key map (kbd "C-; m") #'greger-set-model)
     (define-key map (kbd "C-; c") #'greger-copy-code)
+    (define-key map (kbd "TAB") #'greger-toggle-tool-section)
     (define-key map (kbd "<tab>") #'greger-toggle-tool-section)
     map)
   "Keymap for `greger-mode'.")
