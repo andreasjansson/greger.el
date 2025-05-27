@@ -183,43 +183,43 @@ Returns (match-start . match-end) or nil if not found."
 
     (cl-loop while (< pos (length content))
              do (cond
-                 ;; Check for triple backtick code blocks
+                 ;; Check for triple backtick code blocks (only at start of line)
                  ((and (not in-inline-code)
-                       (string-match "^```" content pos))
+                       (or (= pos 0) (= (aref content (1- pos)) ?\n))
+                       (string-match "^```" (substring content pos)))
                   (setq in-code-block (not in-code-block))
-                  (let ((match-end (match-end 0)))
+                  (let ((match-end (+ pos (match-end 0))))
                     (setq result (concat result (substring content pos match-end))
                           pos match-end)))
 
                  ;; Check for inline code (single backticks)
                  ((and (not in-code-block)
-                       (string-match "`" content pos))
+                       (= (aref content pos) ?`)
+                       (or (= pos 0) (/= (aref content (1- pos)) ?`))) ; Not part of triple backticks
                   (setq in-inline-code (not in-inline-code))
-                  (let ((match-end (match-end 0)))
-                    (setq result (concat result (substring content pos match-end))
-                          pos match-end)))
+                  (setq result (concat result (substring content pos (1+ pos)))
+                        pos (1+ pos)))
 
                  ;; Check for HTML comments (remove when not in code blocks)
                  ((and (not in-code-block)
                        (not in-inline-code)
-                       (string-match "<!--\\(\\(.\\|\n\\)*?\\)-->" content pos))
-                  (let ((match-start (match-beginning 0))
-                        (match-end (match-end 0)))
-                    ;; Add text before match (skipping the HTML comment)
-                    (setq result (concat result (substring content pos match-start))
-                          pos match-end)))
+                       (string-match "<!--\\(\\(?:.\\|\n\\)*?\\)-->" (substring content pos)))
+                  (let ((match-start pos)
+                        (match-end (+ pos (match-end 0))))
+                    ;; Skip the HTML comment entirely
+                    (setq pos match-end)))
 
                  ;; Check for ai-context tags (only when not in any code)
                  ((and (not in-code-block)
                        (not in-inline-code)
-                       (string-match "<ai-context>\\([^<]+\\)</ai-context>" content pos))
-                  (let* ((match-start (match-beginning 0))
-                         (match-end (match-end 0))
-                         (path (match-string 1 content))
+                       (string-match "<ai-context>\\([^<]+\\)</ai-context>" (substring content pos)))
+                  (let* ((match-start pos)
+                         (match-end (+ pos (match-end 0)))
+                         (path (match-string 1 (substring content pos)))
                          (expanded (greger-parser--expand-context-path path))
                          (replacement (or expanded (format "[Could not load: %s]" path))))
-                    ;; Add text before match
-                    (setq result (concat result (substring content pos match-start) replacement)
+                    ;; Add the replacement
+                    (setq result (concat result replacement)
                           pos match-end)))
 
                  ;; Default: add character and advance
