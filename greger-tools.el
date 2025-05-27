@@ -346,15 +346,29 @@ If END-LINE is specified, stop reading at that line (inclusive, 1-based)."
               contents)))
       (error (format "Failed to read file: %s" (error-message-string err))))))
 
+(defun greger-tools--extract-line-range (lines start-line end-line)
+  "Extract lines from LINES between START-LINE and END-LINE (1-based, inclusive)."
+  (let ((start-index (1- start-line))  ; Convert to 0-based index
+        (end-index (1- end-line)))     ; Convert to 0-based index
+    ;; Ensure indices are within bounds
+    (setq start-index (max 0 start-index))
+    (setq end-index (min (1- (length lines)) end-index))
+    ;; Extract the range
+    (cl-subseq lines start-index (1+ end-index))))
+
 (defun greger-tools--add-line-numbers (content)
   "Add line numbers to CONTENT string."
+  (greger-tools--add-line-numbers-with-offset content 1))
+
+(defun greger-tools--add-line-numbers-with-offset (content start-line-num)
+  "Add line numbers to CONTENT string starting from START-LINE-NUM."
   (let ((lines (split-string content "\n"))
-        (line-num 1)
+        (line-num start-line-num)
         (max-width 0)
         result)
 
-    ;; Calculate the width needed for line numbers
-    (setq max-width (length (number-to-string (length lines))))
+    ;; Calculate the width needed for line numbers (based on the highest line number)
+    (setq max-width (length (number-to-string (+ start-line-num (length lines) -1))))
 
     ;; Add line numbers to each line
     (dolist (line lines)
