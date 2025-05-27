@@ -275,6 +275,11 @@
        (alist-get 'commit_hash args)
        (or (alist-get 'path args) ".")))
 
+     ((eq tool-symbol 'ert-test)
+      (greger-tools--ert-test
+       (alist-get 'test_file_path args)
+       (alist-get 'function_names args)))
+
      (t
       (error "Unknown tool: %s" tool-name)))))
 
