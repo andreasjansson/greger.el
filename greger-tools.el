@@ -300,10 +300,27 @@
     (error
      (format "Git operation failed: %s" (error-message-string err)))))
 
-(defun greger-tools--read-file (path &optional include-line-numbers)
-  "Read file at PATH. If INCLUDE-LINE-NUMBERS is non-nil, prepend line numbers."
+(defun greger-tools--read-file (path &optional include-line-numbers start-line end-line)
+  "Read file at PATH. If INCLUDE-LINE-NUMBERS is non-nil, prepend line numbers.
+If START-LINE is specified, start reading from that line (1-based).
+If END-LINE is specified, stop reading at that line (inclusive, 1-based)."
   (unless (stringp path)
     (error "Path must be a string"))
+
+  (when (and start-line (not (integerp start-line)))
+    (error "start-line must be an integer"))
+
+  (when (and end-line (not (integerp end-line)))
+    (error "end-line must be an integer"))
+
+  (when (and start-line (< start-line 1))
+    (error "start-line must be >= 1"))
+
+  (when (and end-line (< end-line 1))
+    (error "end-line must be >= 1"))
+
+  (when (and start-line end-line (> start-line end-line))
+    (error "start-line must be <= end-line"))
 
   (let ((expanded-path (expand-file-name path)))
     (unless (file-exists-p expanded-path)
@@ -318,12 +335,15 @@
     (condition-case err
         (with-temp-buffer
           (insert-file-contents expanded-path)
-          (let ((contents (buffer-substring-no-properties
-                          (line-beginning-position)
-                          (line-end-position))))
+          (let* ((all-lines (split-string (buffer-string) "\n"))
+                 (total-lines (length all-lines))
+                 (actual-start (or start-line 1))
+                 (actual-end (or end-line total-lines))
+                 (selected-lines (greger-tools--extract-line-range all-lines actual-start actual-end))
+                 (contents (mapconcat 'identity selected-lines "\n")))
             (if include-line-numbers
-              (greger-tools--add-line-numbers (buffer-string))
-            (buffer-string))))
+                (greger-tools--add-line-numbers-with-offset contents actual-start)
+              contents)))
       (error (format "Failed to read file: %s" (error-message-string err))))))
 
 (defun greger-tools--add-line-numbers (content)
