@@ -467,6 +467,7 @@ CANCEL-CALLBACK is called if cancelled."
    '(;; Level 2 headings (conversation roles)
      ("^## USER:.*$" 0 'greger-user-heading-face t)
      ("^## ASSISTANT:.*$" 0 'greger-assistant-heading-face t)
+     ("^## SYSTEM:.*$" 0 'greger-system-heading-face t)
      ("^## THINKING:.*$" 0 'greger-thinking-heading-face t)
      ("^## TOOL USE:.*$" 0 'greger-tool-use-heading-face t)
      ("^## TOOL RESULT:.*$" 0 'greger-tool-result-heading-face t)
