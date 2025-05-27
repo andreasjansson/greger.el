@@ -445,23 +445,32 @@ CANCEL-CALLBACK is called if cancelled."
 
 (defun greger--setup-heading-font-lock ()
   "Set up font-lock for headings to override markdown's larger font sizes."
-  ;; Remove existing markdown heading font-lock rules for level 3 headings
+  ;; Remove existing markdown heading font-lock rules for level 2 and 3 headings
   (setq-local font-lock-keywords
               (cl-remove-if
                (lambda (rule)
                  (and (listp rule)
                       (stringp (car rule))
-                      (or (string-match-p "^\\^###" (car rule))
-                          (string-match-p "markdown-header-face-3" (format "%s" rule)))))
+                      (or (string-match-p "^\\^##" (car rule))
+                          (string-match-p "^\\^###" (car rule))
+                          (string-match-p "markdown-header-face-[23]" (format "%s" rule)))))
                font-lock-keywords))
 
-  ;; Add our custom font-lock rule with highest priority
+  ;; Add our custom font-lock rules with highest priority
   (font-lock-add-keywords
    nil
-   '(("^###\\s-+.*$" 0 'greger-tool-param-heading-face t))
+   '(;; Level 2 headings (conversation roles)
+     ("^## USER:.*$" 0 'greger-user-heading-face t)
+     ("^## ASSISTANT:.*$" 0 'greger-assistant-heading-face t)
+     ("^## THINKING:.*$" 0 'greger-thinking-heading-face t)
+     ("^## TOOL USE:.*$" 0 'greger-tool-use-heading-face t)
+     ("^## TOOL RESULT:.*$" 0 'greger-tool-result-heading-face t)
+     ;; Level 3 headings (tool parameters)
+     ("^###\\s-+.*$" 0 'greger-tool-param-heading-face t))
    'prepend)
 
-  ;; Also remap the markdown face
+  ;; Also remap the markdown faces
+  (face-remap-add-relative 'markdown-header-face-2 'greger-assistant-heading-face)
   (face-remap-add-relative 'markdown-header-face-3 'greger-tool-param-heading-face)
   (font-lock-flush))
 
