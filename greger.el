@@ -418,6 +418,13 @@ CANCEL-CALLBACK is called if cancelled."
     (overlay-put indicator-overlay 'greger-tool-id tool-id)
     (push indicator-overlay greger-tool-overlays)))
 
+(defun greger--setup-heading-font-lock ()
+  "Set up font-lock for headings to override markdown's larger font sizes."
+  (font-lock-add-keywords
+   nil
+   '(("^###\\s-+.*$" . 'greger-heading-face))
+   'append))
+
 (defun greger--after-change-function (beg end len)
   "Update tool sections after buffer changes."
   ;; Simple approach: refresh all tool sections
