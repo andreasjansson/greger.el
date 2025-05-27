@@ -67,17 +67,17 @@ ID: toolu_123
 
 ### path
 
+<tool.toolu_123>
 hello.txt
-
---toolu_123
+</tool.toolu_123>
 
 ## TOOL RESULT:
 
 ID: toolu_123
 
+<tool.toolu_123>
 Hello, world!
-
---toolu_123
+</tool.toolu_123>
 
 ## ASSISTANT:
 
@@ -100,30 +100,30 @@ ID: toolu_456
 
 ### pattern
 
+<tool.toolu_456>
 def main
-
---toolu_456
+</tool.toolu_456>
 
 ### file-type
 
+<tool.toolu_456>
 py
-
---toolu_456
+</tool.toolu_456>
 
 ### context-lines
 
+<tool.toolu_456>
 2
-
---toolu_456
+</tool.toolu_456>
 
 ## TOOL RESULT:
 
 ID: toolu_456
 
+<tool.toolu_456>
 src/main.py:10:def main():
 src/utils.py:25:def main_helper():
-
---toolu_456
+</tool.toolu_456>
 
 ## ASSISTANT:
 
@@ -150,29 +150,29 @@ ID: toolu_01Kf8avk1cBqH5ZHoXL92Duc
 
 ### query
 
+<tool.toolu_01Kf8avk1cBqH5ZHoXL92Duc>
 current king of Sweden 2024
-
---toolu_01Kf8avk1cBqH5ZHoXL92Duc
+</tool.toolu_01Kf8avk1cBqH5ZHoXL92Duc>
 
 ### include_answer
 
+<tool.toolu_01Kf8avk1cBqH5ZHoXL92Duc>
 basic
-
---toolu_01Kf8avk1cBqH5ZHoXL92Duc
+</tool.toolu_01Kf8avk1cBqH5ZHoXL92Duc>
 
 ### max_results
 
+<tool.toolu_01Kf8avk1cBqH5ZHoXL92Duc>
 3
-
---toolu_01Kf8avk1cBqH5ZHoXL92Duc
+</tool.toolu_01Kf8avk1cBqH5ZHoXL92Duc>
 
 ## TOOL RESULT:
 
 ID: toolu_01Kf8avk1cBqH5ZHoXL92Duc
 
+<tool.toolu_01Kf8avk1cBqH5ZHoXL92Duc>
 {\"query\": \"current king of Sweden 2024\", \"answer\": \"Carl XVI Gustaf\", \"response_time\": 2.38}
-
---toolu_01Kf8avk1cBqH5ZHoXL92Duc
+</tool.toolu_01Kf8avk1cBqH5ZHoXL92Duc>
 
 ## ASSISTANT:
 
@@ -195,19 +195,19 @@ ID: toolu_111
 
 ### path
 
+<tool.toolu_111>
 .
-
---toolu_111
+</tool.toolu_111>
 
 ## TOOL RESULT:
 
 ID: toolu_111
 
+<tool.toolu_111>
 file1.txt
 file2.txt
 README.md
-
-ID: toolu_111
+</tool.toolu_111>
 
 ## TOOL USE:
 
@@ -216,17 +216,17 @@ ID: toolu_222
 
 ### path
 
+<tool.toolu_222>
 file1.txt
-
---toolu_222
+</tool.toolu_222>
 
 ## TOOL RESULT:
 
 ID: toolu_222
 
+<tool.toolu_222>
 This is the content of file1.
-
---toolu_222
+</tool.toolu_222>
 
 ## ASSISTANT:
 
@@ -251,12 +251,13 @@ ID: toolu_789
 
 ### file_path
 
+<tool.toolu_789>
 script.py
-
---toolu_789
+</tool.toolu_789>
 
 ### contents
 
+<tool.toolu_789>
 #!/usr/bin/env python3
 
 def main():
@@ -264,22 +265,21 @@ def main():
 
 if __name__ == \"__main__\":
     main()
-
---toolu_789
+</tool.toolu_789>
 
 ### git_commit_message
 
+<tool.toolu_789>
 Add new Python script
-
---toolu_789
+</tool.toolu_789>
 
 ## TOOL RESULT:
 
 ID: toolu_789
 
+<tool.toolu_789>
 Successfully wrote new file script.py with 85 characters.
-
---toolu_789
+</tool.toolu_789>
 
 ## ASSISTANT:
 
@@ -314,9 +314,10 @@ ID: toolu_999
 
 ### path
 
+<tool.toolu_999>
 test.txt
-
---toolu_999"
+</tool.toolu_999>
+"
      :dialog (((role . "user") (content . "Read a file"))
               ((role . "assistant") (content . (((type . "tool_use") (id . "toolu_999") (name . "read-file") (input . ((path . "test.txt")))))))))
 
@@ -381,12 +382,13 @@ ID: toolu_999
 
 ### filename
 
+<tool.toolu_999>
 example.py
-
---toolu_999
+</tool.toolu_999>
 
 ### content
 
+<tool.toolu_999>
 ```python
 def main():
     # This ## USER: comment should not break parsing
@@ -395,16 +397,15 @@ def main():
 if __name__ == \"__main__\":
     main()
 ```
-
---toolu_999
+</tool.toolu_999>
 
 ## TOOL RESULT:
 
 ID: toolu_999
 
+<tool.toolu_999>
 File written successfully
-
---toolu_999
+</tool.toolu_999>
 
 ## ASSISTANT:
 
@@ -445,53 +446,53 @@ ID: toolu_complex
 
 ### string_param
 
+<tool.toolu_complex>
 hello world
-
---toolu_complex
+</tool.toolu_complex>
 
 ### number_param
 
+<tool.toolu_complex>
 42
-
---toolu_complex
+</tool.toolu_complex>
 
 ### float_param
 
+<tool.toolu_complex>
 3.14
-
---toolu_complex
+</tool.toolu_complex>
 
 ### bool_true
 
+<tool.toolu_complex>
 true
-
---toolu_complex
+</tool.toolu_complex>
 
 ### bool_false
 
+<tool.toolu_complex>
 false
-
---toolu_complex
+</tool.toolu_complex>
 
 ### list_param
 
+<tool.toolu_complex>
 [\"item1\", \"item2\", 3]
-
---toolu_complex
+</tool.toolu_complex>
 
 ### dict_param
 
+<tool.toolu_complex>
 {\"key\": \"value\", \"count\": 5}
-
---toolu_complex
+</tool.toolu_complex>
 
 ## TOOL RESULT:
 
 ID: toolu_complex
 
+<tool.toolu_complex>
 Success
-
---toolu_complex
+</tool.toolu_complex>
 
 ## ASSISTANT:
 
@@ -509,23 +510,23 @@ ID: tool_123
 
 ### content
 
+<tool.tool_123>
 foo
 
 
 bar
-
---tool_123
+</tool.tool_123>
 
 ## TOOL RESULT:
 
 ID: tool_123
 
+<tool.tool_123>
 foo
 
 
 bar
-
---tool_123
+</tool.tool_123>
 
 ## ASSISTANT:
 
@@ -660,15 +661,16 @@ ID: toolu_123
 
 ### path
 
+<tool.toolu_123>
 hello.txt
-
---toolu_123
+</tool.toolu_123>
 
 ### include_line_numbers
 
+<tool.toolu_123>
 true
-
---toolu_123"))
+</tool.toolu_123>
+"))
     (let ((parsed (greger-parser-parse-dialog tool-use-markdown)))
       (should (= 1 (length parsed)))
       (let ((assistant-msg (car parsed)))
@@ -688,8 +690,10 @@ true
 
 ID: toolu_123
 
+<tool.toolu_123>
 File contents here
-with multiple lines"))
+with multiple lines
+</tool.toolu_123>"))
     (let ((parsed (greger-parser-parse-dialog tool-result-markdown)))
       (should (= 1 (length parsed)))
       (let ((user-msg (car parsed)))
@@ -779,9 +783,9 @@ ID: toolu_abc
 
 ### path
 
---toolu_abc
-
-."))
+<tool.toolu_abc>
+.
+</tool.toolu_abc>"))
     (let ((parsed (greger-parser-parse-dialog complex-markdown)))
       (should (= 2 (length parsed)))
       ;; First message should be user
@@ -839,25 +843,26 @@ ID: tool_123
 
 ### param1
 
+<tool.tool_123>
 value1
-
---tool_123
+</tool.tool_123>
 
 ### param2
 
+<tool.tool_123>
 value2 with
 multiple
 
 
   lines
-
---tool_123
+</tool.tool_123>
 
 ### param3
 
+<tool.tool_123>
 value3
-
---tool_123"))
+</tool.tool_123>
+"))
     (let ((parsed (greger-parser-parse-dialog markdown)))
       (should (= 1 (length parsed)))
       (let* ((assistant-msg (car parsed))
@@ -921,12 +926,13 @@ ID: tool_123
 
 ### content
 
+<tool.tool_123>
 ```python
 # This ## USER: comment should be preserved
 print(\"## ASSISTANT: also preserved\")
 ```
-
---tool_123"))
+</tool.tool_123>
+"))
     (let ((parsed (greger-parser-parse-dialog markdown)))
       (should (= 1 (length parsed)))
       (let* ((assistant-msg (car parsed))
