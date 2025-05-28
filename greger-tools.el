@@ -10,7 +10,40 @@
 (require 'rg)
 (require 'cl-lib)
 
-(setq greger-tools-registry
+;; Registry to hold tool definitions
+(defvar greger-tools-registry (make-hash-table :test 'equal)
+  "Hash table mapping tool names to their definitions.")
+
+(defmacro greger-register-tool (name &rest args)
+  "Register a tool with NAME and properties specified in ARGS.
+ARGS should be a plist containing :description, :properties, :required, and :function.
+
+Example:
+  (greger-register-tool \"rename-file\"
+    :description \"Rename or move a file from one path to another\"
+    :properties '((old_path . ((type . \"string\")
+                              (description . \"Current path of the file\")))
+                  (new_path . ((type . \"string\")
+                              (description . \"New path for the file\")))
+                  (git_commit_message . ((type . \"string\")
+                                        (description . \"Git commit message for this change\"))))
+    :required '(\"old_path\" \"new_path\" \"git_commit_message\")
+    :function greger-tools--rename-file)"
+  (let ((description (plist-get args :description))
+        (properties (plist-get args :properties))
+        (required (plist-get args :required))
+        (function (plist-get args :function)))
+    `(puthash ,name
+              (list :schema (list (cons 'name ,name)
+                                  (cons 'description ,description)
+                                  (cons 'input_schema
+                                        (list (cons 'type "object")
+                                              (cons 'properties ,properties)
+                                              (cons 'required ,required))))
+                    :function ,function)
+              greger-tools-registry)))
+
+(setq greger-tools-registry (make-hash-table :test 'equal))
       '(
         (read-file . ((name . "read-file")
                       (description . "Read the contents of a file from the filesystem")
