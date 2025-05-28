@@ -93,7 +93,7 @@ Example:
                                 (description . "Maximum number of results to return")
                                 (default . 50))))
   :required '("pattern")
-  :function greger-tools--ripgrep)
+  :function 'greger-tools--ripgrep)
 
 (greger-register-tool "write-new-file"
   :description "Write a new file with the given contents. Fails if the file already exists."
