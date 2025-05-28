@@ -248,7 +248,7 @@
     (greger-parser--substring start)))
 
 (defun greger-parser--read-until-section-with-comment-removal ()
-  "Read content until next section, removing HTML comments."
+  "Read content until next section, removing HTML comments and processing include tags."
   (let ((result "")
         (start (greger-parser--current-pos))
         (iterations 0)
@@ -280,6 +280,14 @@
           ;; Add content up to comment, skip comment entirely
           (setq result (concat result (greger-parser--substring start)))
           (greger-parser--skip-html-comment)
+          (setq start (greger-parser--current-pos)))
+         ((greger-parser--looking-at "<include")
+          ;; Add content up to include tag
+          (setq result (concat result (greger-parser--substring start)))
+          ;; Process the include tag
+          (let ((include-content (greger-parser--process-include-tag)))
+            (when include-content
+              (setq result (concat result include-content))))
           (setq start (greger-parser--current-pos)))
          (t
           (greger-parser--advance)))
