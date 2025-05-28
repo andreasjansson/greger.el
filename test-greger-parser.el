@@ -1038,12 +1038,16 @@ Review this code." test-file))
 
 Try to include: <include>/nonexistent/file.txt</include>
 
+This should handle errors gracefully.")
+        (expected "## USER:
+
+Try to include: [Error reading file: /nonexistent/file.txt]
+
 This should handle errors gracefully."))
     (let ((parsed (greger-parser-parse-dialog markdown)))
       (should (= 1 (length parsed)))
-      (let ((user-content (alist-get 'content (car parsed))))
-        (should (string-match-p "\\[Error reading file:" user-content))
-        (should (string-match-p "This should handle errors gracefully." user-content))))))
+      (let ((generated-markdown (greger-parser-dialog-to-markdown parsed)))
+        (should (string= expected generated-markdown))))))
 
 (ert-deftest greger-parser-test-include-tag-multiline-content ()
   "Test include tag with multiline file content."
