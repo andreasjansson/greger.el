@@ -1197,21 +1197,125 @@ Hope this helps!")
 (ert-deftest greger-parser-test-include-tag-with-code-in-code-block ()
   "Test include tag with code attribute where content has code blocks."
   (let ((test-file (make-temp-file "greger-test-include" nil ".py" "```python\ndef example():\n    pass\n```"))
-        (markdown nil))
+        (markdown nil)
+        (expected nil))
     (unwind-protect
         (progn
           (setq markdown (format "## USER:
 
 <include code>%s</include>" test-file))
+
+          (setq expected (format "## USER:
+
+%s:
+```
+```python
+def example():
+    pass
+```
+```" test-file))
+
           (let ((parsed (greger-parser-parse-dialog markdown)))
             (should (= 1 (length parsed)))
-            (let ((user-content (alist-get 'content (car parsed))))
-              ;; Should have file path and triple backticks for formatting
-              (should (string-match-p (regexp-quote test-file) user-content))
-              (should (string-match-p "```" user-content))
-              ;; Should contain the original content including its code blocks
-              (should (string-match-p "```python" user-content))
-              (should (string-match-p "def example():" user-content)))))
+            (let ((generated-markdown (greger-parser-dialog-to-markdown parsed)))
+              (should (string= expected generated-markdown)))))
+      (when (file-exists-p test-file)
+        (delete-file test-file)))))
+
+;; Tests to ensure include tags are NOT processed in code blocks or tool content
+(ert-deftest greger-parser-test-include-tag-not-processed-in-code-blocks ()
+  "Test that include tags inside code blocks are not processed."
+  (let ((test-file (make-temp-file "greger-test-include" nil ".txt" "This should not be included"))
+        (markdown nil)
+        (expected nil))
+    (unwind-protect
+        (progn
+          (setq markdown (format "## USER:
+
+Here's some code with an include tag:
+
+```
+<include>%s</include>
+```
+
+The include should not be processed." test-file))
+
+          (setq expected (format "## USER:
+
+Here's some code with an include tag:
+
+```
+<include>%s</include>
+```
+
+The include should not be processed." test-file))
+
+          (let ((parsed (greger-parser-parse-dialog markdown)))
+            (should (= 1 (length parsed)))
+            (let ((generated-markdown (greger-parser-dialog-to-markdown parsed)))
+              (should (string= expected generated-markdown)))))
+      (when (file-exists-p test-file)
+        (delete-file test-file)))))
+
+(ert-deftest greger-parser-test-include-tag-not-processed-in-inline-code ()
+  "Test that include tags inside inline code are not processed."
+  (let ((test-file (make-temp-file "greger-test-include" nil ".txt" "This should not be included"))
+        (markdown nil)
+        (expected nil))
+    (unwind-protect
+        (progn
+          (setq markdown (format "## USER:
+
+Use `<include>%s</include>` to include files.
+
+The include in backticks should not be processed." test-file))
+
+          (setq expected (format "## USER:
+
+Use `<include>%s</include>` to include files.
+
+The include in backticks should not be processed." test-file))
+
+          (let ((parsed (greger-parser-parse-dialog markdown)))
+            (should (= 1 (length parsed)))
+            (let ((generated-markdown (greger-parser-dialog-to-markdown parsed)))
+              (should (string= expected generated-markdown)))))
+      (when (file-exists-p test-file)
+        (delete-file test-file)))))
+
+(ert-deftest greger-parser-test-include-tag-not-processed-in-tool-params ()
+  "Test that include tags inside tool parameters are not processed."
+  (let ((test-file (make-temp-file "greger-test-include" nil ".txt" "This should not be included"))
+        (markdown nil)
+        (expected nil))
+    (unwind-protect
+        (progn
+          (setq markdown (format "## TOOL USE:
+
+Name: write-file
+ID: tool_123
+
+### content
+
+<tool.tool_123>
+<include>%s</include>
+</tool.tool_123>" test-file))
+
+          (setq expected (format "## TOOL USE:
+
+Name: write-file
+ID: tool_123
+
+### content
+
+<tool.tool_123>
+<include>%s</include>
+</tool.tool_123>" test-file))
+
+          (let ((parsed (greger-parser-parse-dialog markdown)))
+            (should (= 1 (length parsed)))
+            (let ((generated-markdown (greger-parser-dialog-to-markdown parsed)))
+              (should (string= expected generated-markdown)))))
       (when (file-exists-p test-file)
         (delete-file test-file)))))
 
