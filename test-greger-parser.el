@@ -1196,7 +1196,7 @@ Hope this helps!")
 
 (ert-deftest greger-parser-test-include-tag-with-code-in-code-block ()
   "Test include tag with code attribute where content has code blocks."
-  (let ((test-file (make-temp-file "greger-test-include" nil ".py" "```python\ndef example():\n    pass\n```"))
+  (let ((test-file (make-temp-file "greger-test-include" nil ".py" "def example():\n    pass\n"))
         (markdown nil)
         (expected nil))
     (unwind-protect
@@ -1209,10 +1209,8 @@ Hope this helps!")
 
 %s:
 ```
-```python
 def example():
     pass
-```
 ```" test-file))
 
           (let ((parsed (greger-parser-parse-dialog markdown)))
