@@ -213,6 +213,45 @@
   (when (greger-parser--looking-at "-->")
     (greger-parser--advance 3)))
 
+;; Web URL text extraction (inspired by old aichat parser)
+
+(defun greger-parser--text-from-url (url &optional use-highest-readability)
+  "Retrieve the text content from URL.
+If USE-HIGHEST-READABILITY is non-nil, use eww's readability heuristics."
+  (with-current-buffer
+      (url-retrieve-synchronously url t nil 10.0)
+    (let ((dom (libxml-parse-html-region)))
+      (when use-highest-readability
+        (setq dom (eww-highest-readability dom))
+        (eww-score-readability dom))
+      (greger-parser--dom-texts-inline-aware dom))))
+
+(defun greger-parser--dom-texts-inline-aware (node &optional block-separator inline-separator)
+  "Extract text from the DOM NODE, aware of inline and block elements.
+BLOCK-SEPARATOR separates block elements.
+INLINE-SEPARATOR separates inline elements."
+  (let ((block-separator (or block-separator "\n"))
+        (inline-separator (or inline-separator " ")))
+    (mapconcat
+     (lambda (elem)
+       (cond
+        ((stringp elem)
+         (when (> (length (string-trim elem)) 0)
+           elem))
+        ((memq (dom-tag elem) '(head meta script style details footer)) "")
+        ((memq (dom-tag elem) '(p div h1 h2 h3 h4 h5 h6 pre br hr ul ol li))
+         (concat (greger-parser--dom-texts-inline-aware elem block-separator inline-separator)
+                 block-separator))
+        (t
+         (greger-parser--dom-texts-inline-aware elem block-separator inline-separator))))
+     (dom-children node)
+     inline-separator)))
+
+(defun greger-parser--is-web-url-p (path)
+  "Return non-nil if PATH is a web URL (starts with http:// or https://)."
+  (or (string-prefix-p "http://" path)
+      (string-prefix-p "https://" path)))
+
 ;; Include tag processing
 
 (defun greger-parser--process-include-tag ()
