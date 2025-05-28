@@ -221,7 +221,13 @@
 If USE-HIGHEST-READABILITY is non-nil, use eww's readability heuristics."
   (with-current-buffer
       (url-retrieve-synchronously url t nil 10.0)
-    (let ((dom (libxml-parse-html-region)))
+    ;; Skip HTTP headers - they end with a double newline
+    (goto-char (point-min))
+    (when (re-search-forward "\r?\n\r?\n" nil t)
+      (delete-region (point-min) (point)))
+
+    ;; Parse the HTML content
+    (let ((dom (libxml-parse-html-region (point-min) (point-max))))
       (when use-highest-readability
         (setq dom (eww-highest-readability dom))
         (eww-score-readability dom))
