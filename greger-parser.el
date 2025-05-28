@@ -259,7 +259,7 @@
 ;; Content reading
 
 (defun greger-parser--read-until-section-tag ()
-  "Read characters until section tag, handling code blocks."
+  "Read characters until section tag, handling code blocks and include tags."
   (let ((start-pos greger-parser--pos)
         (iterations 0)
         (max-iterations (* greger-parser--length 2))) ; Safety limit
@@ -276,6 +276,8 @@
           (greger-parser--skip-inline-code))
          ((greger-parser--looking-at "<!--")
           (greger-parser--skip-html-comment))
+         ((greger-parser--looking-at "<include")
+          (greger-parser--skip-include-tag))
          (t
           (greger-parser--advance)))
         ;; Safety check: ensure we're making progress
