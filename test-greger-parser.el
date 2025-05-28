@@ -1085,7 +1085,8 @@ End of message.")
 (ert-deftest greger-parser-test-include-tag-with-section-headers ()
   "Test include tag with content containing section headers."
   (let ((test-file (make-temp-file "greger-test-include" nil ".txt" "## USER:\nThis looks like a header\n## ASSISTANT:\nBut it's just content"))
-        (markdown nil))
+        (markdown nil)
+        (expected nil))
     (unwind-protect
         (progn
           (setq markdown (format "## USER:
@@ -1097,16 +1098,24 @@ File content:
 ## ASSISTANT:
 
 I see the included content." test-file))
+
+          (setq expected "## USER:
+
+File content:
+
+## USER:
+This looks like a header
+## ASSISTANT:
+But it's just content
+
+## ASSISTANT:
+
+I see the included content.")
+
           (let ((parsed (greger-parser-parse-dialog markdown)))
             (should (= 2 (length parsed)))
-            ;; First message should be user with included content
-            (let ((user-content (alist-get 'content (car parsed))))
-              (should (string-match-p "## USER:" user-content))
-              (should (string-match-p "## ASSISTANT:" user-content))
-              (should (string-match-p "This looks like a header" user-content)))
-            ;; Second message should be assistant
-            (should (string= "assistant" (alist-get 'role (cadr parsed))))
-            (should (string= "I see the included content." (alist-get 'content (cadr parsed))))))
+            (let ((generated-markdown (greger-parser-dialog-to-markdown parsed)))
+              (should (string= expected generated-markdown)))))
       (when (file-exists-p test-file)
         (delete-file test-file)))))
 
