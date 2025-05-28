@@ -186,7 +186,6 @@
     (unless dialog
       (error "Failed to parse dialog.  Did you forget to close a html tag?"))
     (goto-char (point-max))
-    (greger--maybe-insert-assistant-tag)
     (let ((complete-callback (lambda ()
                                (insert "\n\n" greger-user-tag "\n\n"))))
       (greger-stream-dialog dialog complete-callback))))
@@ -476,8 +475,8 @@ CANCEL-CALLBACK is called if cancelled."
    'prepend)
 
   ;; Also remap the markdown faces
-  (face-remap-add-relative 'markdown-header-face-2 'greger-assistant-heading-face)
-  (face-remap-add-relative 'markdown-header-face-3 'greger-tool-param-heading-face)
+  ;(face-remap-add-relative 'markdown-header-face-2 'greger-assistant-heading-face)
+  ;(face-remap-add-relative 'markdown-header-face-3 'greger-tool-param-heading-face)
   (font-lock-flush))
 
 (defun greger--after-change-function (beg end len)
@@ -488,15 +487,6 @@ CANCEL-CALLBACK is called if cancelled."
     (run-with-idle-timer 0.1 nil #'greger--setup-tool-sections)))
 
 ;; Private helper functions
-
-(defun greger--maybe-insert-assistant-tag ()
-  "Insert the assistant tag if it's not already present."
-  (let ((found-tag nil))
-    (save-excursion
-      (re-search-backward (concat greger-parser-user-tag "\\|" greger-parser-assistant-tag "\\|" greger-parser-system-tag "\\|" greger-parser-tool-use-tag "\\|" greger-parser-tool-result-tag "\\|" greger-parser-thinking-tag) nil t)
-      (setq found-tag (match-string 0)))
-    (unless (string= found-tag greger-parser-assistant-tag)
-      (insert "\n\n" greger-assistant-tag "\n\n"))))
 
 (defun greger--get-current-code-block ()
   "Return the current code block under point, or nil if not found."

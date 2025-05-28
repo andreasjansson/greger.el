@@ -20,6 +20,7 @@
   insert-position
   undo-handle
   original-quit-binding
+  text-start-callback
   text-callback
   complete-callback
   cancel-callback
@@ -35,49 +36,37 @@ CANCEL-CALLBACK is called if cancelled."
          (insert-position (point))
          (undo-handle (prepare-change-group output-buffer))
          (original-quit-binding (local-key-binding (kbd "C-g")))
+         (provider-config (greger-providers-get-config model))
+         (request-spec (greger-providers-build-request provider-config dialog tools))
          (restore-callback (lambda (state)
                              (with-current-buffer (greger-stream-state-output-buffer state)
                                (local-set-key (kbd "C-g")
-                                            (greger-stream-state-original-quit-binding state))
+                                              (greger-stream-state-original-quit-binding state))
                                (undo-amalgamate-change-group (greger-stream-state-undo-handle state))
                                (accept-change-group (greger-stream-state-undo-handle state)))))
-         (text-callback (lambda (text state)
-                          (with-current-buffer (greger-stream-state-output-buffer state)
-                            (goto-char (greger-stream-state-insert-position state))
-                            (greger--maybe-insert-assistant-tag)
-
-                            (insert text)
-                            (setf (greger-stream-state-insert-position state) (point)))))
+         (text-start-callback (lambda (state)
+                                (greger-stream--insert state (concat "\n\n" greger-assistant-tag "\n\n")))
+                              )
          (wrapped-complete-callback (lambda (parsed-blocks state)
                                       (when complete-callback
-                                        (funcall complete-callback parsed-blocks)))))
+                                        (funcall complete-callback parsed-blocks))))
+         (process (greger-stream--start-curl-process request-spec))
+         (state (make-greger-stream-state
+                 :accumulated-output ""
+                 :complete-response ""
+                 :parsed-content-blocks '()
+                 :process process
+                 :text-start-callback text-start-callback
+                 :text-callback 'greger-stream--insert
+                 :complete-callback wrapped-complete-callback
+                 :cancel-callback cancel-callback
+                 :restore-callback restore-callback
+                 :output-buffer output-buffer
+                 :insert-position insert-position
+                 :undo-handle undo-handle
+                 :original-quit-binding original-quit-binding)))
 
     (activate-change-group undo-handle)
-
-    (greger-stream--send-request-with-tools
-     model dialog tools text-callback wrapped-complete-callback cancel-callback restore-callback
-     :output-buffer output-buffer
-     :insert-position insert-position
-     :undo-handle undo-handle
-     :original-quit-binding original-quit-binding)))
-
-(defun greger-stream--send-request-with-tools (model dialog tools text-callback complete-callback
-                                                    cancel-callback restore-callback
-                                                    &rest state-args)
-  "Internal function to send streaming request with tools."
-  (let* ((provider-config (greger-providers-get-config model))
-         (request-spec (greger-providers-build-request provider-config dialog tools))
-         (process (greger-stream--start-curl-process request-spec))
-         (state (apply #'make-greger-stream-state
-                      :accumulated-output ""
-                      :complete-response ""
-                      :parsed-content-blocks '()
-                      :process process
-                      :text-callback text-callback
-                      :complete-callback complete-callback
-                      :cancel-callback cancel-callback
-                      :restore-callback restore-callback
-                      state-args)))
 
     (set-process-filter process
                        (lambda (proc output)
@@ -91,81 +80,18 @@ CANCEL-CALLBACK is called if cancelled."
 
     (set-process-query-on-exit-flag process nil)
 
-    (when (greger-stream-state-output-buffer state)
-      (greger-stream--setup-cancel-binding state))
+    (greger-stream--setup-cancel-binding state)
 
     state))
 
-(defun greger-stream-to-buffer (model dialog complete-callback &optional cancel-callback)
-  "Send streaming request for MODEL with DIALOG, inserting text into current buffer.
-COMPLETE-CALLBACK is called when done (with no arguments).
-CANCEL-CALLBACK is called if cancelled."
-  (let* ((output-buffer (current-buffer))
-         (insert-position (point))
-         (undo-handle (prepare-change-group output-buffer))
-         (original-quit-binding (local-key-binding (kbd "C-g")))
-         (restore-callback (lambda (state)
-                             (with-current-buffer (greger-stream-state-output-buffer state)
-                               (local-set-key (kbd "C-g")
-                                            (greger-stream-state-original-quit-binding state))
-                               (undo-amalgamate-change-group (greger-stream-state-undo-handle state))
-                               (accept-change-group (greger-stream-state-undo-handle state)))))
-         (text-callback (lambda (text state)
-                          (with-current-buffer (greger-stream-state-output-buffer state)
-                            (goto-char (greger-stream-state-insert-position state))
-                            (insert text)
-                            (setf (greger-stream-state-insert-position state) (point)))))
-         (wrapped-complete-callback (lambda (parsed-blocks state)
-                                      ;; Ignore parsed blocks for backward compatibility
-                                      (declare (ignore parsed-blocks))
-                                      (when complete-callback (funcall complete-callback)))))
+(defun greger-stream--insert (state text)
+  (with-current-buffer (greger-stream-state-output-buffer state)
+    (goto-char (greger-stream-state-insert-position state))
+    (insert text)
+    (setf (greger-stream-state-insert-position state) (point))))
 
-    (activate-change-group undo-handle)
-
-    (greger-stream--send-request-internal
-     model dialog text-callback wrapped-complete-callback cancel-callback restore-callback
-     :output-buffer output-buffer
-     :insert-position insert-position
-     :undo-handle undo-handle
-     :original-quit-binding original-quit-binding)))
 
 ;;; Internal implementation
-
-(defun greger-stream--send-request-internal (model dialog text-callback complete-callback
-                                                  cancel-callback restore-callback
-                                                  &rest state-args)
-  "Internal function to send streaming request.
-STATE-ARGS are additional arguments to initialize the state struct."
-  (let* ((provider-config (greger-providers-get-config model))
-         (request-spec (greger-providers-build-request provider-config dialog))
-         (process (greger-stream--start-curl-process request-spec))
-         (state (apply #'make-greger-stream-state
-                      :accumulated-output ""
-                      :complete-response ""
-                      :parsed-content-blocks '()
-                      :process process
-                      :text-callback text-callback
-                      :complete-callback complete-callback
-                      :cancel-callback cancel-callback
-                      :restore-callback restore-callback
-                      state-args)))
-
-    (set-process-filter process
-                       (lambda (proc output)
-                         (declare (ignore proc))
-                         (greger-stream--process-output-chunk output state provider-config)))
-
-    (set-process-sentinel process
-                         (lambda (proc event)
-                           (declare (ignore event))
-                           (greger-stream--handle-completion proc state provider-config)))
-
-    (set-process-query-on-exit-flag process nil)
-
-    (when (greger-stream-state-output-buffer state)
-      (greger-stream--setup-cancel-binding state))
-
-    state))
 
 (defun greger-stream--setup-cancel-binding (state)
   "Setup C-g binding for cancellation in the output buffer."
@@ -178,6 +104,9 @@ STATE-ARGS are additional arguments to initialize the state struct."
 (defun greger-stream--process-output-chunk (output state provider-config)
   "Process a chunk of OUTPUT using STATE."
   ;; Always accumulate for complete response
+
+  ;(message (format "output: %s" output))
+
   (setf (greger-stream-state-complete-response state)
         (concat (greger-stream-state-complete-response state) output))
 
@@ -234,71 +163,73 @@ STATE-ARGS are additional arguments to initialize the state struct."
 ; {"type":"message_delta","delta":{"stop_reason":"tool_use","stop_sequence":null},"usage":{"output_tokens":108}        }
 ; {"type":"message_stop"    }
 
-  (greger-agent--debug "INCOMING data-json %s" data-json)
-  (condition-case nil
-      (let* ((data (json-read-from-string data-json))
-             (type (alist-get 'type data)))
+  ;(greger-agent--debug "INCOMING data-json %s" data-json)
+  (let* ((data (json-read-from-string data-json))
+         (type (alist-get 'type data)))
+    (cond
+     ;; Content block start - create new content block
+     ((string= type "content_block_start")
+      (let* ((index (alist-get 'index data))
+             (content-block (copy-alist (alist-get 'content_block data)))
+             (blocks (greger-stream-state-parsed-content-blocks state)))
+
+        ;; Initialize content for accumulation
+        ;; TODO: is this necessary?
         (cond
-         ;; Content block start - create new content block
-         ((string= type "content_block_start")
-          (let* ((index (alist-get 'index data))
-                 (content-block (copy-alist (alist-get 'content_block data)))
-                 (blocks (greger-stream-state-parsed-content-blocks state)))
+         ((string= (alist-get 'type content-block) "tool_use")
+          (setf (alist-get 'input content-block) ""))
+         ((string= (alist-get 'type content-block) "text")
+          (setf (alist-get 'text content-block) "")))
 
-            ;; Initialize content for accumulation
+        (when (string= (alist-get 'type content-block) "text")
+          (funcall (greger-stream-state-text-start-callback state) state))
+
+        ;; Add block at the right index
+        (greger-stream--ensure-block-at-index blocks index content-block state)))
+
+     ;; Content block delta - update existing content block
+     ((string= type "content_block_delta")
+      (let* ((index (alist-get 'index data))
+             (delta (alist-get 'delta data))
+             (delta-type (alist-get 'type delta))
+             (blocks (greger-stream-state-parsed-content-blocks state)))
+
+        (when (< index (length blocks))
+          (let ((block (nth index blocks)))
             (cond
-             ((string= (alist-get 'type content-block) "tool_use")
-              (setf (alist-get 'input content-block) ""))
-             ((string= (alist-get 'type content-block) "text")
-              (setf (alist-get 'text content-block) "")))
+             ;; Text delta
+             ((string= delta-type "text_delta")
+              (let ((text (alist-get 'text delta)))
+                (setf (alist-get 'text block)
+                      (concat (alist-get 'text block) text))
+                ;; Call text callback for live display
+                (when (greger-stream-state-text-callback state)
+                  (funcall (greger-stream-state-text-callback state) state text))))
 
-            ;; Add block at the right index
-            (greger-stream--ensure-block-at-index blocks index content-block state)))
+             ;; Tool input delta
+             ((string= delta-type "input_json_delta")
+              (let ((partial-json (alist-get 'partial_json delta)))
+                (setf (alist-get 'input block)
+                      (concat (alist-get 'input block) partial-json)))))))))
 
-         ;; Content block delta - update existing content block
-         ((string= type "content_block_delta")
-          (let* ((index (alist-get 'index data))
-                 (delta (alist-get 'delta data))
-                 (delta-type (alist-get 'type delta))
-                 (blocks (greger-stream-state-parsed-content-blocks state)))
+     ;; Content block stop - finalize tool input if needed
+     ((string= type "content_block_stop")
+      (let* ((index (alist-get 'index data))
+             (blocks (greger-stream-state-parsed-content-blocks state)))
 
-            (when (< index (length blocks))
-              (let ((block (nth index blocks)))
-                (cond
-                 ;; Text delta
-                 ((string= delta-type "text_delta")
-                  (let ((text (alist-get 'text delta)))
-                    (setf (alist-get 'text block)
-                          (concat (alist-get 'text block) text))
-                    ;; Call text callback for live display
-                    (when (greger-stream-state-text-callback state)
-                      (funcall (greger-stream-state-text-callback state) text state))))
-
-                 ;; Tool input delta
-                 ((string= delta-type "input_json_delta")
-                  (let ((partial-json (alist-get 'partial_json delta)))
-                    (setf (alist-get 'input block)
-                          (concat (alist-get 'input block) partial-json)))))))))
-
-         ;; Content block stop - finalize tool input if needed
-         ((string= type "content_block_stop")
-          (let* ((index (alist-get 'index data))
-                 (blocks (greger-stream-state-parsed-content-blocks state)))
-
-            (when (< index (length blocks))
-              (let ((block (nth index blocks)))
-                (when (and (string= (alist-get 'type block) "tool_use")
-                          (stringp (alist-get 'input block)))
-                  ;; Parse accumulated JSON input
-                  (let ((input-str (alist-get 'input block)))
-                    (condition-case nil
-                        (if (string-empty-p input-str)
-                            (setf (alist-get 'input block) '())
-                          (setf (alist-get 'input block)
-                                (json-read-from-string input-str)))
-                      (error
-                       (setf (alist-get 'input block) '())))))))))))
-    (error nil))) ; Ignore parse errors
+        (when (< index (length blocks))
+          (let ((block (nth index blocks)))
+            (when (and (string= (alist-get 'type block) "tool_use")
+                       (stringp (alist-get 'input block)))
+              ;; Parse accumulated JSON input
+              (let ((input-str (alist-get 'input block)))
+                (condition-case nil
+                    (if (string-empty-p input-str)
+                        (setf (alist-get 'input block) '())
+                      (setf (alist-get 'input block)
+                            (json-read-from-string input-str)))
+                  (error
+                   (setf (alist-get 'input block) '()))))))))))))
 
 (defun greger-stream--ensure-block-at-index (blocks index new-block state)
   "Ensure BLOCKS list has NEW-BLOCK at INDEX, extending if necessary."
