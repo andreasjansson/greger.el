@@ -63,15 +63,6 @@
                                                                     (default . 50)))))
                                      (required . ["pattern"])))))
 
-        (patch . ((name . "patch")
-                  (description . "Apply a patch to one or more files using unified diff format. Fast and efficient for specific changes, especially in large files, but requires careful crafting of patch contents. Use replace-file for complete file replacement or replace-function for Python/Elisp functions.")
-                  (input_schema . ((type . "object")
-                                   (properties . ((patch_content . ((type . "string")
-                                                                    (description . "Patch content in unified diff format (without timestamps). Multiple files can be patched in a single operation by including multiple file diffs in the patch content. Use standard unified diff format: '--- filename' and '+++ filename' headers, followed by hunks with '@@' markers.")))
-                                                  (git_commit_message . ((type . "string")
-                                                                         (description . "Git commit message for this change")))))
-                                   (required . ["patch_content" "git_commit_message"])))))
-
         (write-new-file . ((name . "write-new-file")
                            (description . "Write a new file with the given contents. Fails if the file already exists.")
                            (input_schema . ((type . "object")
@@ -104,7 +95,7 @@
                                          (required . ["old_path" "new_path" "git_commit_message"])))))
 
         (replace-function . ((name . "replace-function")
-                             (description . "Replace a function in a Python or Elisp file with new contents. Fast and reliable - only supports 'def function_name' and '(defun function_name ())' forms. Use replace-file for complete file replacement or patch for other specific changes.")
+                             (description . "Replace a function in a Python or Elisp file with new contents. Fast and reliable - only supports 'def function_name' and '(defun function_name ())' forms. Use replace-file for complete file replacement or str-replace for other specific changes.")
                              (input_schema . ((type . "object")
                                               (properties . ((file_path . ((type . "string")
                                                                            (description . "Path to the file containing the function")))
@@ -119,7 +110,7 @@
                                               (required . ["file_path" "function_name" "contents" "line_number" "commit_message"])))))
 
         (replace-file . ((name . "replace-file")
-                         (description . "Replace the entire contents of an existing file. Slow but reliable - replaces the complete file contents. Use patch for specific changes in large files, or replace-function for Python/Elisp functions.")
+                         (description . "Replace the entire contents of an existing file. Slow but reliable - replaces the complete file contents. Use str-replace for specific changes in large files, or replace-function for Python/Elisp functions.")
                          (input_schema . ((type . "object")
                                           (properties . ((file_path . ((type . "string")
                                                                        (description . "Path to the file to replace")))
@@ -130,7 +121,7 @@
                                           (required . ["file_path" "contents" "git_commit_message"])))))
 
         (str-replace . ((name . "str-replace")
-                        (description . "Replace a specific string or content block in a file with new content. Finds the exact original content and replaces it with new content. Be extra careful to format the original_content exactly correctly, taking extra care with whitespace and newlines.")
+                        (description . "Replace a specific string or content block in a file with new content. Finds the exact original content and replaces it with new content. Be extra careful to format the original_content exactly correctly, taking extra care with whitespace and newlines. If you're making large swaths of changes, consider using replace-file instead")
                         (input_schema . ((type . "object")
                                          (properties . ((file_path . ((type . "string")
                                                                       (description . "Path to the file to modify")))
@@ -216,11 +207,6 @@
        (or (alist-get 'path args) ".")
        (alist-get 'show-hidden args)
        (alist-get 'recursive args)))
-
-     ((eq tool-symbol 'patch)
-      (greger-tools--patch
-       (alist-get 'patch_content args)
-       (alist-get 'git_commit_message args)))
 
      ((eq tool-symbol 'ripgrep)
       (greger-tools--ripgrep
@@ -604,114 +590,6 @@ Always returns focus to the original window after executing BODY."
                              git-commit-message)))
             (format "Successfully renamed %s to %s. %s" expanded-old-path expanded-new-path git-result)))
       (error (format "Failed to rename file: %s" (error-message-string err))))))
-
-(defun greger-tools--patch (patch-content git-commit-message)
-  "Apply PATCH-CONTENT using the patch command and commit changes."
-  (unless (stringp patch-content)
-    (error "patch_content must be a string"))
-
-  (unless (stringp git-commit-message)
-    (error "git_commit_message must be a string"))
-
-  ;; Check if patch command is available
-  (unless (executable-find "patch")
-    (error "patch command not found. Please install patch"))
-
-  (let* ((affected-files (greger-tools--extract-files-from-patch patch-content))
-         (working-dir (greger-tools--find-common-directory affected-files))
-         (normalized-patch (greger-tools--normalize-patch-paths patch-content working-dir))
-         (patch-file (make-temp-file "greger-patch-" nil ".patch")))
-
-    (unwind-protect
-        (progn
-          ;; Write normalized patch content to temporary file
-          (with-temp-file patch-file
-            (insert normalized-patch)
-            (unless (string-suffix-p "\n" normalized-patch)
-              (insert "\n")))
-
-          ;; Change to the working directory and apply the patch
-          (let ((default-directory working-dir))
-            (let* ((patch-command (format "patch --ignore-whitespace -p0 --no-backup-if-mismatch < %s"
-                                          (shell-quote-argument patch-file)))
-                   (result (shell-command-to-string patch-command))
-                   (exit-code (shell-command patch-command)))
-
-              (if (= exit-code 0)
-                  (progn
-                    ;; Patch applied successfully, now stage and commit
-                    (let ((git-result (greger-tools--git-stage-and-commit affected-files git-commit-message)))
-                      (format "Successfully applied patch to %d file(s): %s. %s"
-                              (length affected-files)
-                              (mapconcat #'identity affected-files ", ")
-                              git-result)))
-                ;; Patch failed
-                (error "Failed to apply patch. Error: %s" result)))))
-
-      ;; Cleanup: delete temporary patch file
-      (when (file-exists-p patch-file)
-        (delete-file patch-file)))))
-
-(defun greger-tools--find-common-directory (file-paths)
-  "Find the deepest common directory that contains all FILE-PATHS."
-  (if (null file-paths)
-      default-directory
-    (let ((expanded-paths (mapcar #'expand-file-name file-paths)))
-      (if (= (length expanded-paths) 1)
-          ;; Single file - use its directory
-          (file-name-directory (car expanded-paths))
-        ;; Multiple files - find common parent
-        (let ((common-dir (file-name-directory (car expanded-paths))))
-          (dolist (path (cdr expanded-paths))
-            (let ((dir (file-name-directory path)))
-              (while (and (not (string-empty-p common-dir))
-                          (not (string-prefix-p common-dir dir)))
-                (setq common-dir (file-name-directory (directory-file-name common-dir))))))
-          (or common-dir "/"))))))
-
-(defun greger-tools--normalize-patch-paths (patch-content working-dir)
-  "Normalize file paths in PATCH-CONTENT to be relative to WORKING-DIR."
-  (let ((lines (split-string patch-content "\n"))
-        (normalized-lines '()))
-
-    (dolist (line lines)
-      (cond
-       ;; Handle --- lines (old file)
-       ((string-match "^--- \\(.+\\)$" line)
-        (let* ((file-path (match-string 1 line))
-               (relative-path (greger-tools--make-relative-to-dir file-path working-dir)))
-          (push (format "--- %s" relative-path) normalized-lines)))
-
-       ;; Handle +++ lines (new file)
-       ((string-match "^\\+\\+\\+ \\(.+\\)$" line)
-        (let* ((file-path (match-string 1 line))
-               (relative-path (greger-tools--make-relative-to-dir file-path working-dir)))
-          (push (format "+++ %s" relative-path) normalized-lines)))
-
-       ;; Keep all other lines as-is
-       (t
-        (push line normalized-lines))))
-
-    (mapconcat #'identity (reverse normalized-lines) "\n")))
-
-(defun greger-tools--make-relative-to-dir (file-path base-dir)
-  "Make FILE-PATH relative to BASE-DIR."
-  (let ((expanded-file (expand-file-name file-path))
-        (expanded-base (expand-file-name base-dir)))
-    (file-relative-name expanded-file expanded-base)))
-
-(defun greger-tools--extract-files-from-patch (patch-content)
-  "Extract list of affected files from PATCH-CONTENT."
-  (let ((files '())
-        (lines (split-string patch-content "\n")))
-    (dolist (line lines)
-      (when (string-match "^\\+\\+\\+ \\(.+\\)$" line)
-        (let ((file (match-string 1 line)))
-          ;; Remove any timestamp or tab characters from the filename
-          (setq file (car (split-string file "[\t]")))
-          (unless (member file files)
-            (push file files)))))
-    (reverse files)))
 
 (defun greger-tools--replace-function (file-path function-name contents line-number commit-message)
   "Replace FUNCTION-NAME in FILE-PATH with new CONTENTS at LINE-NUMBER."
