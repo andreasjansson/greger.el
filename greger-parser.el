@@ -10,6 +10,7 @@
 (require 'cl-lib)
 (require 'url)
 (require 'dom)
+(require 'eww)
 
 ;; Section tag constants
 (defconst greger-parser-user-tag "## USER:")
