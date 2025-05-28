@@ -120,7 +120,6 @@
 
 (defvar greger-mode-map
   (let ((map (make-sparse-keymap)))
-                                        ;(define-key map (kbd "M-<return>") #'greger-buffer)
     (define-key map (kbd "M-<return>") #'greger-agent-buffer)
     (define-key map (kbd "C-M-<return>") #'greger-buffer-no-tools)
                                         ;(define-key map (kbd "M-<return>") #'greger-buffer)
@@ -179,29 +178,11 @@
   (interactive)
   (insert greger-system-tag "\n\n"))
 
-(defun greger-buffer ()
-  "Send the buffer content to AI as a dialog."
-  (interactive)
-  (let* ((buffer-content (buffer-substring-no-properties (point-min) (point-max)))
-         (dialog (greger-parser-parse-dialog buffer-content)))
-    (unless dialog
-      (error "Failed to parse dialog.  Did you forget to close a html tag?"))
-    (goto-char (point-max))
-    (let ((complete-callback (lambda ()
-                               (insert "\n\n" greger-user-tag "\n\n"))))
-      (greger-stream-dialog dialog complete-callback))))
-
 (defun greger-buffer-no-tools ()
   "Send the buffer content to AI as a dialog without tool use."
   (interactive)
-  (let* ((buffer-content (buffer-substring-no-properties (point-min) (point-max)))
-         (dialog (greger-parser-parse-dialog buffer-content)))
-    (unless dialog
-      (error "Failed to parse dialog.  Did you forget to close a html tag?"))
-    (goto-char (point-max))
-    (let ((complete-callback (lambda ()
-                               (insert "\n\n" greger-user-tag "\n\n"))))
-      (greger-stream-dialog dialog complete-callback))))
+  (let ((greger-agent-tools '()))
+    (greger-agent-buffer)))
 
 (defun greger-context-file ()
   "Prompt the user to select a file and insert an <ai-context> at point."
