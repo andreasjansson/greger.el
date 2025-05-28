@@ -28,7 +28,7 @@ Example:
                   (git_commit_message . ((type . \"string\")
                                         (description . \"Git commit message for this change\"))))
     :required '(\"old_path\" \"new_path\" \"git_commit_message\")
-    :function greger-tools--rename-file)"
+    :function 'greger-tools--rename-file)"
   (let ((description (plist-get args :description))
         (properties (plist-get args :properties))
         (required (plist-get args :required))
