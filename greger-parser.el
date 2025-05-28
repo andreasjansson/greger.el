@@ -283,12 +283,21 @@ INLINE-SEPARATOR separates inline elements."
                 (greger-parser--include-file file-path has-code-attr)))))))))
 
 (defun greger-parser--include-file (file-path has-code-attr)
-  "Include a file's content, optionally formatting as code."
+  "Include a file's content, optionally formatting as code.
+Supports both local files and web URLs (http:// or https://)."
   (greger-parser--debug "Including file: %s (code: %s)" file-path has-code-attr)
   (condition-case err
-      (let ((content (with-temp-buffer
-                       (insert-file-contents file-path)
-                       (buffer-string))))
+      (let ((content
+             (if (greger-parser--is-web-url-p file-path)
+                 ;; Handle web URL
+                 (progn
+                   (greger-parser--debug "Downloading content from URL: %s" file-path)
+                   (greger-parser--text-from-url file-path t)) ; Use readability heuristics
+               ;; Handle local file
+               (with-temp-buffer
+                 (insert-file-contents file-path)
+                 (buffer-string)))))
+
         ;; Remove trailing newline from content if present
         (when (and (> (length content) 0)
                    (eq (aref content (1- (length content))) ?\n))
@@ -298,9 +307,14 @@ INLINE-SEPARATOR separates inline elements."
             (format "%s:\n```\n%s\n```" file-path content)
           content))
     (error
-     (greger-parser--debug "Error reading file %s: %s" file-path (error-message-string err))
+     (greger-parser--debug "Error reading %s %s: %s"
+                          (if (greger-parser--is-web-url-p file-path) "URL" "file")
+                          file-path
+                          (error-message-string err))
      ;; Return error message as content instead of failing silently
-     (format "[Error reading file: %s]" file-path))))
+     (format "[Error reading %s: %s]"
+             (if (greger-parser--is-web-url-p file-path) "URL" "file")
+             file-path))))
 
 (defun greger-parser--skip-include-tag ()
   "Skip include tag without processing it."
