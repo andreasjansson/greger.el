@@ -11,8 +11,11 @@
 (require 'cl-lib)
 
 ;; Registry to hold tool definitions
-(defvar greger-tools-registry (make-hash-table :test 'equal)
+(defvar greger-tools-registry nil
   "Hash table mapping tool names to their definitions.")
+
+;; Initialize the registry as a hash table
+(setq greger-tools-registry (make-hash-table :test 'equal))
 
 (defmacro greger-register-tool (name &rest args)
   "Register a tool with NAME and properties specified in ARGS.
