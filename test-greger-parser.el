@@ -971,7 +971,8 @@ print(\"## ASSISTANT: also preserved\")
 (ert-deftest greger-parser-test-include-tag-basic ()
   "Test basic include tag functionality."
   (let ((test-file (make-temp-file "greger-test-include" nil ".txt" "Hello from included file!"))
-        (markdown nil))
+        (markdown nil)
+        (expected nil))
     (unwind-protect
         (progn
           (setq markdown (format "## USER:
@@ -981,12 +982,19 @@ Here's the content:
 <include>%s</include>
 
 What do you think?" test-file))
+
+          (setq expected "## USER:
+
+Here's the content:
+
+Hello from included file!
+
+What do you think?")
+
           (let ((parsed (greger-parser-parse-dialog markdown)))
             (should (= 1 (length parsed)))
-            (let ((user-content (alist-get 'content (car parsed))))
-              (should (string-match-p "Hello from included file!" user-content))
-              (should (string-match-p "Here's the content:" user-content))
-              (should (string-match-p "What do you think?" user-content)))))
+            (let ((generated-markdown (greger-parser-dialog-to-markdown parsed)))
+              (should (string= expected generated-markdown)))))
       (when (file-exists-p test-file)
         (delete-file test-file)))))
 
