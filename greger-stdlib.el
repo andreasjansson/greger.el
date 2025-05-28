@@ -886,4 +886,51 @@ FUNCTION-NAMES is a vector of test function names to evaluate and run."
 
     (error (format "Failed to execute ERT tests: %s" (error-message-string err)))))
 
+(defun greger-tools--shell-command (command &optional working-directory)
+  "Execute COMMAND in WORKING-DIRECTORY and return the output.
+Prompts for permission before running the command for security."
+  (unless (stringp command)
+    (error "Command must be a string"))
+
+  (when (string-empty-p (string-trim command))
+    (error "Command cannot be empty"))
+
+  (let ((work-dir (or working-directory ".")))
+    (unless (stringp work-dir)
+      (error "Working directory must be a string"))
+
+    (let ((expanded-work-dir (expand-file-name work-dir)))
+      (unless (file-exists-p expanded-work-dir)
+        (error "Working directory does not exist: %s" expanded-work-dir))
+
+      (unless (file-directory-p expanded-work-dir)
+        (error "Working directory path is not a directory: %s" expanded-work-dir))
+
+      ;; Prompt for permission to run the command
+      (unless (y-or-n-p (format "Execute shell command: '%s' in directory '%s'? "
+                                command expanded-work-dir))
+        (error "Shell command execution cancelled by user"))
+
+      (condition-case err
+          (let ((default-directory expanded-work-dir)
+                (output "")
+                (exit-code 0))
+            ;; Execute the command and capture both output and exit code
+            (with-temp-buffer
+              (setq exit-code (call-process-shell-command command nil t nil))
+              (setq output (buffer-string)))
+
+            ;; Format the result with exit code information
+            (if (= exit-code 0)
+                (format "Command executed successfully (exit code 0):\n%s"
+                        (if (string-empty-p (string-trim output))
+                            "(no output)"
+                          output))
+              (format "Command failed with exit code %d:\n%s"
+                      exit-code
+                      (if (string-empty-p (string-trim output))
+                          "(no output)"
+                        output))))
+        (error (format "Failed to execute shell command: %s" (error-message-string err)))))))
+
 ;;; greger-stdlib.el ends here
