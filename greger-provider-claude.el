@@ -52,9 +52,30 @@
                   (content . ,content))
                 user-messages))))
 
+    ;; Reverse to get correct order
+    (setq user-messages (nreverse user-messages))
+
+    ;; Find the last message with dict content and add ephemeral cache control
+    (let ((last-dict-message nil))
+      (dolist (message user-messages)
+        (let ((content (alist-get 'content message)))
+          (when (and (listp content) (not (stringp content)))
+            (setq last-dict-message message))))
+
+      (when last-dict-message
+        (let ((content-list (alist-get 'content last-dict-message)))
+          ;; Modify the first content item in place
+          (when (and content-list (listp content-list))
+            (let ((first-content-item (car content-list)))
+              (when (and first-content-item (listp first-content-item))
+                ;; Modify the car of the content-list directly
+                (setcar content-list
+                        (cons '(cache_control . ((type . "ephemeral")))
+                              first-content-item))))))))
+
     ;; Build base request
     (setq request-data `(("model" . ,model-name)
-                        ("messages" . ,(nreverse user-messages))
+                        ("messages" . ,user-messages)
                         ("max_tokens" . 8192)
                         ("stream" . t)))
 
