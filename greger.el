@@ -122,6 +122,7 @@
   (let ((map (make-sparse-keymap)))
                                         ;(define-key map (kbd "M-<return>") #'greger-buffer)
     (define-key map (kbd "M-<return>") #'greger-agent-buffer)
+    (define-key map (kbd "C-M-<return>") #'greger-buffer-no-tools)
                                         ;(define-key map (kbd "M-<return>") #'greger-buffer)
     (define-key map (kbd "C-; a") #'greger-insert-assistant-tag)
     (define-key map (kbd "C-; u") #'greger-insert-user-tag)
