@@ -1159,7 +1159,8 @@ Done.")
 (ert-deftest greger-parser-test-include-tag-in-assistant-section ()
   "Test include tag in assistant section."
   (let ((test-file (make-temp-file "greger-test-include" nil ".txt" "Assistant included content"))
-        (markdown nil))
+        (markdown nil)
+        (expected nil))
     (unwind-protect
         (progn
           (setq markdown (format "## USER:
@@ -1173,14 +1174,23 @@ Here's the content:
 <include>%s</include>
 
 Hope this helps!" test-file))
+
+          (setq expected "## USER:
+
+Show me the file.
+
+## ASSISTANT:
+
+Here's the content:
+
+Assistant included content
+
+Hope this helps!")
+
           (let ((parsed (greger-parser-parse-dialog markdown)))
             (should (= 2 (length parsed)))
-            (should (string= "user" (alist-get 'role (car parsed))))
-            (should (string= "assistant" (alist-get 'role (cadr parsed))))
-            (let ((assistant-content (alist-get 'content (cadr parsed))))
-              (should (string-match-p "Assistant included content" assistant-content))
-              (should (string-match-p "Here's the content:" assistant-content))
-              (should (string-match-p "Hope this helps!" assistant-content)))))
+            (let ((generated-markdown (greger-parser-dialog-to-markdown parsed)))
+              (should (string= expected generated-markdown)))))
       (when (file-exists-p test-file)
         (delete-file test-file)))))
 
