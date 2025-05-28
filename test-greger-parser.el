@@ -1052,7 +1052,8 @@ This should handle errors gracefully."))
 (ert-deftest greger-parser-test-include-tag-multiline-content ()
   "Test include tag with multiline file content."
   (let ((test-file (make-temp-file "greger-test-include" nil ".txt" "Line 1\nLine 2\n\nLine 4 after empty line"))
-        (markdown nil))
+        (markdown nil)
+        (expected nil))
     (unwind-protect
         (progn
           (setq markdown (format "## USER:
@@ -1062,13 +1063,22 @@ Multiline content:
 <include>%s</include>
 
 End of message." test-file))
+
+          (setq expected "## USER:
+
+Multiline content:
+
+Line 1
+Line 2
+
+Line 4 after empty line
+
+End of message.")
+
           (let ((parsed (greger-parser-parse-dialog markdown)))
             (should (= 1 (length parsed)))
-            (let ((user-content (alist-get 'content (car parsed))))
-              (should (string-match-p "Line 1" user-content))
-              (should (string-match-p "Line 2" user-content))
-              (should (string-match-p "Line 4 after empty line" user-content))
-              (should (string-match-p "End of message." user-content)))))
+            (let ((generated-markdown (greger-parser-dialog-to-markdown parsed)))
+              (should (string= expected generated-markdown)))))
       (when (file-exists-p test-file)
         (delete-file test-file)))))
 
