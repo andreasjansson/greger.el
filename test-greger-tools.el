@@ -1,0 +1,223 @@
+;;; test-greger-tools.el --- Tests for greger tools -*- lexical-binding: t -*-
+
+(require 'ert)
+(require 'greger-tools)
+
+(ert-deftest greger-tools-test-tool-registration-and-execution ()
+  "Test that tools can be registered and executed correctly."
+  ;; Define a simple test function
+  (defun greger-test-subtract-numbers (a b)
+    (- a b))
+
+  ;; Register a test tool
+  (greger-register-tool "test-subtract"
+    :description "Subtract second number from first number"
+    :properties '((a . ((type . "integer")
+                        (description . "First number")))
+                  (b . ((type . "integer")
+                        (description . "Second number"))))
+    :required '("a" "b")
+    :function 'greger-test-subtract-numbers)
+
+  ;; Test that the tool was registered
+  (should (gethash "test-subtract" greger-tools-registry))
+
+  ;; Test getting tool schema
+  (let ((schemas (greger-tools-get-schemas '("test-subtract"))))
+    (should (= 1 (length schemas)))
+    (let ((schema (car schemas)))
+      (should (string= "test-subtract" (alist-get 'name schema)))
+      (should (string= "Subtract second number from first number" (alist-get 'description schema)))))
+
+  ;; Test tool execution
+  (let ((result (greger-tools-execute "test-subtract" '((a . 5) (b . 3)))))
+    (should (= 2 result)))
+
+  ;; Test execution with different parameters
+  (let ((result (greger-tools-execute "test-subtract" '((b . 1) (a . 4)))))
+    (should (= 3 result)))
+
+  ;; Clean up - remove test tool from registry
+  (remhash "test-subtract" greger-tools-registry))
+
+(ert-deftest greger-tools-test-unknown-tool-error ()
+  "Test that executing unknown tools raises an error."
+  (should-error
+   (greger-tools-execute "nonexistent-tool" '((param . "value")))
+   :type 'error))
+
+(ert-deftest greger-tools-test-parameter-mapping ()
+  "Test that parameters are correctly mapped from underscores to hyphens."
+  ;; Define a test function with hyphenated parameter names
+  (defun greger-test-hyphenated-params (file-path commit-message)
+    "Test function with hyphenated parameters."
+    (format "file: %s, message: %s" file-path commit-message))
+
+  ;; Register tool with underscore parameter names (as they come from JSON)
+  (greger-register-tool "test-hyphens"
+    :description "Test hyphenated parameter mapping"
+    :properties '((file_path . ((type . "string")
+                                (description . "File path")))
+                  (commit_message . ((type . "string")
+                                     (description . "Commit message"))))
+    :required '("file_path" "commit_message")
+    :function 'greger-test-hyphenated-params)
+
+  ;; Test execution with underscore parameters
+  (let ((result (greger-tools-execute "test-hyphens"
+                                      '((file_path . "/path/to/file")
+                                        (commit_message . "test commit")))))
+    (should (string= "file: /path/to/file, message: test commit" result)))
+
+  ;; Clean up
+  (remhash "test-hyphens" greger-tools-registry))
+
+(provide 'test-greger-tools)
+
+(ert-deftest greger-tools-test-optional-parameters ()
+  "Test that tools work correctly with optional parameters."
+  ;; Define a test function with optional parameters
+  (defun greger-test-optional-params (required-param &optional optional-param1 optional-param2)
+    "Test function with optional parameters."
+    (format "required: %s, opt1: %s, opt2: %s"
+            required-param
+            (or optional-param1 "default1")
+            (or optional-param2 "default2")))
+
+  ;; Register tool with some optional parameters
+  (greger-register-tool "test-optional"
+    :description "Test optional parameter handling"
+    :properties '((required_param . ((type . "string")
+                                     (description . "Required parameter")))
+                  (optional_param1 . ((type . "string")
+                                      (description . "First optional parameter")))
+                  (optional_param2 . ((type . "string")
+                                      (description . "Second optional parameter"))))
+    :required '("required_param")
+    :function 'greger-test-optional-params)
+
+  ;; Test with only required parameter
+  (let ((result (greger-tools-execute "test-optional"
+                                      '((required_param . "test")))))
+    (should (string= "required: test, opt1: default1, opt2: default2" result)))
+
+  ;; Test with required + one optional parameter
+  (let ((result (greger-tools-execute "test-optional"
+                                      '((required_param . "test")
+                                        (optional_param1 . "provided1")))))
+    (should (string= "required: test, opt1: provided1, opt2: default2" result)))
+
+  ;; Test with all parameters provided
+  (let ((result (greger-tools-execute "test-optional"
+                                      '((required_param . "test")
+                                        (optional_param1 . "provided1")
+                                        (optional_param2 . "provided2")))))
+    (should (string= "required: test, opt1: provided1, opt2: provided2" result)))
+
+  ;; Clean up
+  (remhash "test-optional" greger-tools-registry))
+
+(ert-deftest greger-tools-test-default-parameter-values ()
+  "Test that tools work correctly with default parameter values."
+  ;; Define a test function with default parameters
+  (defun greger-test-default-params (message &optional count prefix)
+    "Test function with default parameters."
+    ;; TODO: remove debug
+    (message (format "count: %s" count))
+    ;; TODO: remove debug
+    (message (format "prefix: %s" prefix))
+    (let ((actual-prefix (or prefix ">>>")))
+      (format "%s %s (repeated %d times)"
+              actual-prefix message count)))
+
+  ;; Register tool with default values in the schema
+  (greger-register-tool "test-defaults"
+    :description "Test default parameter handling"
+    :properties '((message . ((type . "string")
+                              (description . "Message to format")))
+                  (count . ((type . "integer")
+                            (description . "Number of repetitions")
+                            (default . 5)))
+                  (prefix . ((type . "string")
+                             (description . "Prefix for message"))))
+    :required '("message")
+    :function 'greger-test-default-params)
+
+  ;; Test with only required parameter - should use defaults
+  (let ((result (greger-tools-execute "test-defaults"
+                                      '((message . "hello")))))
+    (should (string= ">>> hello (repeated 5 times)" result)))
+
+  ;; Test with one default overridden
+  (let ((result (greger-tools-execute "test-defaults"
+                                      '((message . "hello")
+                                        (count . 2)))))
+    (should (string= ">>> hello (repeated 2 times)" result)))
+
+  ;; Test with both defaults overridden
+  (let ((result (greger-tools-execute "test-defaults"
+                                      '((message . "hello")
+                                        (count . 2)
+                                        (prefix . "***")))))
+    (should (string= "*** hello (repeated 2 times)" result)))
+
+  ;; Clean up
+  (remhash "test-defaults" greger-tools-registry))
+
+(ert-deftest greger-tools-test-missing-required-parameter-error ()
+  "Test that missing required parameters throw an error."
+  ;; Define a test function with required and optional parameters
+  (defun greger-test-required-params (required-param1 required-param2 &optional optional-param)
+    "Test function with required parameters."
+    (format "req1: %s, req2: %s, opt: %s"
+            required-param1 required-param2 (or optional-param "default")))
+
+  ;; Register tool with multiple required parameters
+  (greger-register-tool "test-required"
+    :description "Test required parameter validation"
+    :properties '((required_param1 . ((type . "string")
+                                      (description . "First required parameter")))
+                  (required_param2 . ((type . "string")
+                                      (description . "Second required parameter")))
+                  (optional_param . ((type . "string")
+                                     (description . "Optional parameter"))))
+    :required '("required_param1" "required_param2")
+    :function 'greger-test-required-params)
+
+  ;; Test that missing first required parameter throws error
+  (should-error
+   (greger-tools-execute "test-required"
+                         '((required_param2 . "value2")
+                           (optional_param . "optional")))
+   :type 'error)
+
+  ;; Test that missing second required parameter throws error
+  (should-error
+   (greger-tools-execute "test-required"
+                         '((required_param1 . "value1")
+                           (optional_param . "optional")))
+   :type 'error)
+
+  ;; Test that missing both required parameters throws error
+  (should-error
+   (greger-tools-execute "test-required"
+                         '((optional_param . "optional")))
+   :type 'error)
+
+  ;; Test that providing all required parameters works (even without optional)
+  (let ((result (greger-tools-execute "test-required"
+                                      '((required_param1 . "value1")
+                                        (required_param2 . "value2")))))
+    (should (string= "req1: value1, req2: value2, opt: default" result)))
+
+  ;; Test that providing all parameters works
+  (let ((result (greger-tools-execute "test-required"
+                                      '((required_param1 . "value1")
+                                        (required_param2 . "value2")
+                                        (optional_param . "provided")))))
+    (should (string= "req1: value1, req2: value2, opt: provided" result)))
+
+  ;; Clean up
+  (remhash "test-required" greger-tools-registry))
+
+;;; test-greger-tools.el ends here
