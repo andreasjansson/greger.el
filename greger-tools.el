@@ -227,96 +227,39 @@ Example:
 
 (defun greger-tools-execute (tool-name args)
   "Execute TOOL-NAME with ARGS."
-  (let ((tool-symbol (intern tool-name)))
+  (let ((tool-def (gethash tool-name greger-tools-registry)))
+    (if tool-def
+        (let ((func (plist-get tool-def :function)))
+          (greger-tools--call-function-with-args func args))
+      (error "Unknown tool: %s" tool-name))))
+
+(defun greger-tools--call-function-with-args (func args)
+  "Call FUNC with arguments extracted from ARGS alist based on function signature.
+This function automatically maps argument names to function parameters."
+  (let ((func-args (greger-tools--extract-function-args func args)))
+    (apply func func-args)))
+
+(defun greger-tools--extract-function-args (func args)
+  "Extract arguments for FUNC from ARGS alist based on function signature.
+Returns a list of arguments in the correct order for the function."
+  (let ((arg-list (help-function-arglist func)))
+    (cl-loop for arg-name in arg-list
+             collect (greger-tools--get-arg-value arg-name args))))
+
+(defun greger-tools--get-arg-value (arg-name args)
+  "Get value for ARG-NAME from ARGS alist, handling defaults and optional args."
+  (let* ((arg-symbol (if (symbolp arg-name) arg-name (intern (symbol-name arg-name))))
+         (arg-key (intern (replace-regexp-in-string "-" "_" (symbol-name arg-symbol))))
+         (value (alist-get arg-key args)))
+    ;; Handle default values for specific arguments based on the original logic
     (cond
-     ((eq tool-symbol 'read-file)
-      (greger-tools--read-file
-       (alist-get 'path args)
-       (alist-get 'include_line_numbers args)
-       (alist-get 'start_line args)
-       (alist-get 'end_line args)))
-
-     ((eq tool-symbol 'list-directory)
-      (greger-tools--list-directory
-       (or (alist-get 'path args) ".")
-       (alist-get 'show-hidden args)
-       (alist-get 'recursive args)))
-
-     ((eq tool-symbol 'ripgrep)
-      (greger-tools--ripgrep
-       (alist-get 'pattern args)
-       (or (alist-get 'path args) ".")
-       (alist-get 'case-sensitive args)
-       (alist-get 'file-type args)
-       (or (alist-get 'context-lines args) 0)
-       (or (alist-get 'max-results args) 50)))
-
-     ((eq tool-symbol 'write-new-file)
-      (greger-tools--write-new-file
-       (alist-get 'file_path args)
-       (alist-get 'contents args)
-       (alist-get 'git_commit_message args)))
-
-     ((eq tool-symbol 'make-directory)
-      (greger-tools--make-directory
-       (alist-get 'path args)
-       (alist-get 'git_commit_message args)))
-
-     ((eq tool-symbol 'rename-file)
-      (greger-tools--rename-file
-       (alist-get 'old_path args)
-       (alist-get 'new_path args)
-       (alist-get 'git_commit_message args)))
-
-     ((eq tool-symbol 'replace-function)
-      (greger-tools--replace-function
-       (alist-get 'file_path args)
-       (alist-get 'function_name args)
-       (alist-get 'contents args)
-       (alist-get 'line_number args)
-       (alist-get 'commit_message args)))
-
-     ((eq tool-symbol 'replace-file)
-      (greger-tools--replace-file
-       (alist-get 'file_path args)
-       (alist-get 'contents args)
-       (alist-get 'git_commit_message args)))
-
-     ((eq tool-symbol 'str-replace)
-      (greger-tools--str-replace
-       (alist-get 'file_path args)
-       (alist-get 'original_content args)
-       (alist-get 'new_content args)
-       (alist-get 'git_commit_message args)))
-
-     ((eq tool-symbol 'insert)
-      (greger-tools--insert
-       (alist-get 'file_path args)
-       (alist-get 'line_number args)
-       (alist-get 'content args)
-       (alist-get 'git_commit_message args)))
-
-     ((eq tool-symbol 'git-log)
-      (greger-tools--git-log
-       (or (alist-get 'path args) ".")))
-
-     ((eq tool-symbol 'git-show-commit)
-      (greger-tools--git-show-commit
-       (alist-get 'commit_hash args)
-       (or (alist-get 'path args) ".")))
-
-     ((eq tool-symbol 'ert-test)
-      (greger-tools--ert-test
-       (alist-get 'test_file_path args)
-       (alist-get 'function_names args)))
-
-     ((eq tool-symbol 'eval-elisp-defuns)
-      (greger-tools--eval-elisp-defuns
-       (alist-get 'file_path args)
-       (alist-get 'function_names args)))
-
-     (t
-      (error "Unknown tool: %s" tool-name)))))
+     ((and (eq arg-key 'path) (null value))
+      ".")
+     ((and (eq arg-key 'context-lines) (null value))
+      0)
+     ((and (eq arg-key 'max-results) (null value))
+      50)
+     (t value))))
 
 (defun greger-tools--git-stage-and-commit (files commit-message)
   "Stage FILES and commit with COMMIT-MESSAGE using magit."
