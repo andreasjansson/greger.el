@@ -1001,7 +1001,8 @@ What do you think?")
 (ert-deftest greger-parser-test-include-tag-with-code ()
   "Test include tag with code attribute."
   (let ((test-file (make-temp-file "greger-test-include" nil ".py" "def hello():\n    print('Hello, world!')"))
-        (markdown nil))
+        (markdown nil)
+        (expected nil))
     (unwind-protect
         (progn
           (setq markdown (format "## USER:
@@ -1011,14 +1012,23 @@ Here's the Python code:
 <include code>%s</include>
 
 Review this code." test-file))
+
+          (setq expected (format "## USER:
+
+Here's the Python code:
+
+%s:
+```
+def hello():
+    print('Hello, world!')
+```
+
+Review this code." test-file))
+
           (let ((parsed (greger-parser-parse-dialog markdown)))
             (should (= 1 (length parsed)))
-            (let ((user-content (alist-get 'content (car parsed))))
-              (should (string-match-p (regexp-quote test-file) user-content))
-              (should (string-match-p "```" user-content))
-              (should (string-match-p "def hello():" user-content))
-              (should (string-match-p "print('Hello, world!')" user-content))
-              (should (string-match-p "Review this code." user-content)))))
+            (let ((generated-markdown (greger-parser-dialog-to-markdown parsed)))
+              (should (string= expected generated-markdown)))))
       (when (file-exists-p test-file)
         (delete-file test-file)))))
 
