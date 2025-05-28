@@ -58,7 +58,7 @@ Example:
                              (description . "Ending line number (1-based) to stop reading at (inclusive). If not specified, reads to the end of the file.")
                              (default . nil))))
   :required '("path")
-  :function greger-tools--read-file)
+  :function 'greger-tools--read-file)
 
 (greger-register-tool "list-directory"
   :description "List files and directories in a given directory"
