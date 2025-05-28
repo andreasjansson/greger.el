@@ -252,6 +252,10 @@
         (when (and (> (length content) 0)
                    (eq (aref content (1- (length content))) ?\n))
           (setq content (substring content 0 -1)))
+
+        ;; Process any include tags in the content recursively
+        (setq content (greger-parser--process-includes-in-content content))
+
         (if has-code-attr
             (format "%s:\n```\n%s\n```" file-path content)
           content))
@@ -259,6 +263,31 @@
      (greger-parser--debug "Error reading file %s: %s" file-path (error-message-string err))
      ;; Return error message as content instead of failing silently
      (format "[Error reading file: %s]" file-path))))
+
+(defun greger-parser--process-includes-in-content (content)
+  "Process any include tags found in CONTENT string."
+  (with-temp-buffer
+    (insert content)
+    (goto-char (point-min))
+    (let ((greger-parser--input (buffer-string))
+          (greger-parser--pos 0)
+          (greger-parser--length (length (buffer-string)))
+          (result "")
+          (start 0))
+      (while (< greger-parser--pos greger-parser--length)
+        (if (greger-parser--looking-at "<include")
+            (progn
+              ;; Add content up to include tag
+              (setq result (concat result (greger-parser--substring start)))
+              ;; Process the include tag
+              (let ((include-content (greger-parser--process-include-tag)))
+                (when include-content
+                  (setq result (concat result include-content))))
+              (setq start greger-parser--pos))
+          (greger-parser--advance)))
+      ;; Add remaining content
+      (setq result (concat result (greger-parser--substring start)))
+      result)))
 
 (defun greger-parser--skip-include-tag ()
   "Skip include tag without processing it."
