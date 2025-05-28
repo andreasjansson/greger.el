@@ -180,6 +180,16 @@
   :required '("file_path" "function_names")
   :function 'greger-tools--eval-elisp-defuns)
 
+(greger-register-tool "shell-command"
+  :description "Execute an arbitrary shell command and return the output. Prompts for permission before running the command for security."
+  :properties '((command . ((type . "string")
+                            (description . "The shell command to execute")))
+                (working_directory . ((type . "string")
+                                      (description . "Directory to run the command in")
+                                      (default . "."))))
+  :required '("command")
+  :function 'greger-tools--shell-command)
+
 ;; Tools below
 
 (defun greger-tools--git-stage-and-commit (files commit-message)
