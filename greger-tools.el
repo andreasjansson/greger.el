@@ -219,8 +219,10 @@ Example:
 (defun greger-tools-get-schemas (tool-names)
   "Get tool schemas for TOOL-NAMES."
   (mapcar (lambda (tool-name)
-            (or (alist-get tool-name greger-tools-registry)
-                (error "Unknown tool: %s" tool-name)))
+            (let ((tool-def (gethash tool-name greger-tools-registry)))
+              (if tool-def
+                  (plist-get tool-def :schema)
+                (error "Unknown tool: %s" tool-name))))
           tool-names))
 
 (defun greger-tools-execute (tool-name args)
