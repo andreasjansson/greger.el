@@ -248,8 +248,12 @@
       (let ((content (with-temp-buffer
                        (insert-file-contents file-path)
                        (buffer-string))))
+        ;; Remove trailing newline from content if present
+        (when (and (> (length content) 0)
+                   (eq (aref content (1- (length content))) ?\n))
+          (setq content (substring content 0 -1)))
         (if has-code-attr
-            (format "%s:\n```\n%s```" file-path content)
+            (format "%s:\n```\n%s\n```" file-path content)
           content))
     (error
      (greger-parser--debug "Error reading file %s: %s" file-path (error-message-string err))
