@@ -28,6 +28,12 @@
 
 ;;; Public API
 
+(defun greger-stream-to-buffer (model dialog complete-callback &optional cancel-callback)
+  "Send streaming request for MODEL with DIALOG (no tools), inserting text into current buffer.
+COMPLETE-CALLBACK is called when done with the parsed content blocks array.
+CANCEL-CALLBACK is called if cancelled."
+  (greger-stream-to-buffer-with-tools model dialog nil complete-callback cancel-callback))
+
 (defun greger-stream-to-buffer-with-tools (model dialog tools complete-callback &optional cancel-callback)
   "Send streaming request for MODEL with DIALOG and TOOLS, inserting text into current buffer.
 COMPLETE-CALLBACK is called when done with the parsed content blocks array.
