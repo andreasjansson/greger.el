@@ -1123,7 +1123,8 @@ I see the included content.")
   "Test include tag with file that contains another include tag."
   (let ((inner-file (make-temp-file "greger-test-inner" nil ".txt" "Inner file content"))
         (outer-file nil)
-        (markdown nil))
+        (markdown nil)
+        (expected nil))
     (unwind-protect
         (progn
           (setq outer-file (make-temp-file "greger-test-outer" nil ".txt"
@@ -1135,13 +1136,21 @@ Recursive include:
 <include>%s</include>
 
 Done." outer-file))
+
+          (setq expected "## USER:
+
+Recursive include:
+
+Before include
+Inner file content
+After include
+
+Done.")
+
           (let ((parsed (greger-parser-parse-dialog markdown)))
             (should (= 1 (length parsed)))
-            (let ((user-content (alist-get 'content (car parsed))))
-              (should (string-match-p "Before include" user-content))
-              (should (string-match-p "Inner file content" user-content))
-              (should (string-match-p "After include" user-content))
-              (should (string-match-p "Done." user-content)))))
+            (let ((generated-markdown (greger-parser-dialog-to-markdown parsed)))
+              (should (string= expected generated-markdown)))))
       (when (and inner-file (file-exists-p inner-file))
         (delete-file inner-file))
       (when (and outer-file (file-exists-p outer-file))
