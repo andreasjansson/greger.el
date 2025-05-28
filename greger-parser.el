@@ -94,6 +94,11 @@
                                          (+ greger-parser--pos (length string)))
                 string)))
 
+(defun greger-parser--at-triple-backticks ()
+  "True if current position matches ``` at beginning of line."
+  (and (greger-parser--at-line-start-p)
+       (greger-parser--looking-at "```")))
+
 ;; Character tests
 
 (defun greger-parser--whitespace-p (char)
@@ -179,23 +184,22 @@
 
   ;; Find closing ```
   (while (and (not (greger-parser--at-end-p))
-              (not (and (greger-parser--at-line-start-p)
-                        (greger-parser--looking-at "```"))))
+              (not (greger-parser--at-triple-backticks)))
     (greger-parser--advance))
 
   ;; Skip closing ```
-  (when (greger-parser--looking-at "```")
+  (when (greger-parser--at-triple-backticks)
     (greger-parser--advance 3)))
 
 (defun greger-parser--skip-inline-code ()
   "Skip inline code with double backticks."
   (greger-parser--debug "Skipping inline code at pos %d" greger-parser--pos)
-  (greger-parser--advance 2) ; Skip opening ``
+  (greger-parser--advance 1) ; Skip opening `
   (while (and (not (greger-parser--at-end-p))
-              (not (greger-parser--looking-at "``")))
+              (not (greger-parser--looking-at "`")))
     (greger-parser--advance))
-  (when (greger-parser--looking-at "``")
-    (greger-parser--advance 2)))
+  (when (greger-parser--looking-at "`")
+    (greger-parser--advance 1)))
 
 (defun greger-parser--skip-html-comment ()
   "Skip HTML comment."
@@ -221,9 +225,9 @@
       (setq iterations (1+ iterations))
       (let ((old-pos greger-parser--pos))
         (cond
-         ((greger-parser--looking-at "```")
+         ((greger-parser--at-triple-backticks)
           (greger-parser--skip-code-block))
-         ((greger-parser--looking-at "``")
+         ((greger-parser--looking-at "`")
           (greger-parser--skip-inline-code))
          ((greger-parser--looking-at "<!--")
           (greger-parser--skip-html-comment))
@@ -256,7 +260,7 @@
       (setq iterations (1+ iterations))
       (let ((old-pos greger-parser--pos))
         (cond
-         ((greger-parser--looking-at "```")
+         ((greger-parser--at-triple-backticks)
           ;; Add content up to code block
           (setq result (concat result (greger-parser--substring start)))
           (setq start (greger-parser--current-pos))
@@ -264,7 +268,7 @@
           ;; Add the code block
           (setq result (concat result (greger-parser--substring start)))
           (setq start (greger-parser--current-pos)))
-         ((greger-parser--looking-at "``")
+         ((greger-parser--looking-at "`")
           ;; Add content up to inline code
           (setq result (concat result (greger-parser--substring start)))
           (setq start (greger-parser--current-pos))
