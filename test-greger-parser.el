@@ -967,6 +967,194 @@ print(\"## ASSISTANT: also preserved\")
         (should (string-match-p "## ASSISTANT:" content-param))
         (should (string-match-p "```python" content-param))))))
 
+;; Include tag tests
+(ert-deftest greger-parser-test-include-tag-basic ()
+  "Test basic include tag functionality."
+  (let ((test-file (make-temp-file "greger-test-include" nil ".txt" "Hello from included file!"))
+        (markdown nil))
+    (unwind-protect
+        (progn
+          (setq markdown (format "## USER:
+
+Here's the content:
+
+<include>%s</include>
+
+What do you think?" test-file))
+          (let ((parsed (greger-parser-parse-dialog markdown)))
+            (should (= 1 (length parsed)))
+            (let ((user-content (alist-get 'content (car parsed))))
+              (should (string-match-p "Hello from included file!" user-content))
+              (should (string-match-p "Here's the content:" user-content))
+              (should (string-match-p "What do you think?" user-content)))))
+      (when (file-exists-p test-file)
+        (delete-file test-file)))))
+
+(ert-deftest greger-parser-test-include-tag-with-code ()
+  "Test include tag with code attribute."
+  (let ((test-file (make-temp-file "greger-test-include" nil ".py" "def hello():\n    print('Hello, world!')"))
+        (markdown nil))
+    (unwind-protect
+        (progn
+          (setq markdown (format "## USER:
+
+Here's the Python code:
+
+<include code>%s</include>
+
+Review this code." test-file))
+          (let ((parsed (greger-parser-parse-dialog markdown)))
+            (should (= 1 (length parsed)))
+            (let ((user-content (alist-get 'content (car parsed))))
+              (should (string-match-p (regexp-quote test-file) user-content))
+              (should (string-match-p "```" user-content))
+              (should (string-match-p "def hello():" user-content))
+              (should (string-match-p "print('Hello, world!')" user-content))
+              (should (string-match-p "Review this code." user-content)))))
+      (when (file-exists-p test-file)
+        (delete-file test-file)))))
+
+(ert-deftest greger-parser-test-include-tag-nonexistent-file ()
+  "Test include tag with nonexistent file."
+  (let ((markdown "## USER:
+
+Try to include: <include>/nonexistent/file.txt</include>
+
+This should handle errors gracefully."))
+    (let ((parsed (greger-parser-parse-dialog markdown)))
+      (should (= 1 (length parsed)))
+      (let ((user-content (alist-get 'content (car parsed))))
+        (should (string-match-p "\\[Error reading file:" user-content))
+        (should (string-match-p "This should handle errors gracefully." user-content))))))
+
+(ert-deftest greger-parser-test-include-tag-multiline-content ()
+  "Test include tag with multiline file content."
+  (let ((test-file (make-temp-file "greger-test-include" nil ".txt" "Line 1\nLine 2\n\nLine 4 after empty line"))
+        (markdown nil))
+    (unwind-protect
+        (progn
+          (setq markdown (format "## USER:
+
+Multiline content:
+
+<include>%s</include>
+
+End of message." test-file))
+          (let ((parsed (greger-parser-parse-dialog markdown)))
+            (should (= 1 (length parsed)))
+            (let ((user-content (alist-get 'content (car parsed))))
+              (should (string-match-p "Line 1" user-content))
+              (should (string-match-p "Line 2" user-content))
+              (should (string-match-p "Line 4 after empty line" user-content))
+              (should (string-match-p "End of message." user-content)))))
+      (when (file-exists-p test-file)
+        (delete-file test-file)))))
+
+(ert-deftest greger-parser-test-include-tag-with-section-headers ()
+  "Test include tag with content containing section headers."
+  (let ((test-file (make-temp-file "greger-test-include" nil ".txt" "## USER:\nThis looks like a header\n## ASSISTANT:\nBut it's just content"))
+        (markdown nil))
+    (unwind-protect
+        (progn
+          (setq markdown (format "## USER:
+
+File content:
+
+<include>%s</include>
+
+## ASSISTANT:
+
+I see the included content." test-file))
+          (let ((parsed (greger-parser-parse-dialog markdown)))
+            (should (= 2 (length parsed)))
+            ;; First message should be user with included content
+            (let ((user-content (alist-get 'content (car parsed))))
+              (should (string-match-p "## USER:" user-content))
+              (should (string-match-p "## ASSISTANT:" user-content))
+              (should (string-match-p "This looks like a header" user-content)))
+            ;; Second message should be assistant
+            (should (string= "assistant" (alist-get 'role (cadr parsed))))
+            (should (string= "I see the included content." (alist-get 'content (cadr parsed))))))
+      (when (file-exists-p test-file)
+        (delete-file test-file)))))
+
+(ert-deftest greger-parser-test-include-tag-recursive ()
+  "Test include tag with file that contains another include tag."
+  (let ((inner-file (make-temp-file "greger-test-inner" nil ".txt" "Inner file content"))
+        (outer-file nil)
+        (markdown nil))
+    (unwind-protect
+        (progn
+          (setq outer-file (make-temp-file "greger-test-outer" nil ".txt"
+                                          (format "Before include\n<include>%s</include>\nAfter include" inner-file)))
+          (setq markdown (format "## USER:
+
+Recursive include:
+
+<include>%s</include>
+
+Done." outer-file))
+          (let ((parsed (greger-parser-parse-dialog markdown)))
+            (should (= 1 (length parsed)))
+            (let ((user-content (alist-get 'content (car parsed))))
+              (should (string-match-p "Before include" user-content))
+              (should (string-match-p "Inner file content" user-content))
+              (should (string-match-p "After include" user-content))
+              (should (string-match-p "Done." user-content)))))
+      (when (and inner-file (file-exists-p inner-file))
+        (delete-file inner-file))
+      (when (and outer-file (file-exists-p outer-file))
+        (delete-file outer-file)))))
+
+(ert-deftest greger-parser-test-include-tag-in-assistant-section ()
+  "Test include tag in assistant section."
+  (let ((test-file (make-temp-file "greger-test-include" nil ".txt" "Assistant included content"))
+        (markdown nil))
+    (unwind-protect
+        (progn
+          (setq markdown (format "## USER:
+
+Show me the file.
+
+## ASSISTANT:
+
+Here's the content:
+
+<include>%s</include>
+
+Hope this helps!" test-file))
+          (let ((parsed (greger-parser-parse-dialog markdown)))
+            (should (= 2 (length parsed)))
+            (should (string= "user" (alist-get 'role (car parsed))))
+            (should (string= "assistant" (alist-get 'role (cadr parsed))))
+            (let ((assistant-content (alist-get 'content (cadr parsed))))
+              (should (string-match-p "Assistant included content" assistant-content))
+              (should (string-match-p "Here's the content:" assistant-content))
+              (should (string-match-p "Hope this helps!" assistant-content)))))
+      (when (file-exists-p test-file)
+        (delete-file test-file)))))
+
+(ert-deftest greger-parser-test-include-tag-with-code-in-code-block ()
+  "Test include tag with code attribute where content has code blocks."
+  (let ((test-file (make-temp-file "greger-test-include" nil ".py" "```python\ndef example():\n    pass\n```"))
+        (markdown nil))
+    (unwind-protect
+        (progn
+          (setq markdown (format "## USER:
+
+<include code>%s</include>" test-file))
+          (let ((parsed (greger-parser-parse-dialog markdown)))
+            (should (= 1 (length parsed)))
+            (let ((user-content (alist-get 'content (car parsed))))
+              ;; Should have file path and triple backticks for formatting
+              (should (string-match-p (regexp-quote test-file) user-content))
+              (should (string-match-p "```" user-content))
+              ;; Should contain the original content including its code blocks
+              (should (string-match-p "```python" user-content))
+              (should (string-match-p "def example():" user-content)))))
+      (when (file-exists-p test-file)
+        (delete-file test-file)))))
+
 (provide 'test-greger-parser)
 
 ;;; test-greger-parser.el ends here
