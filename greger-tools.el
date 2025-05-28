@@ -72,7 +72,7 @@ Example:
                               (description . "Whether to list files recursively")
                               (default . nil))))
   :required '()
-  :function greger-tools--list-directory)
+  :function 'greger-tools--list-directory)
 
 (greger-register-tool "ripgrep"
   :description "Search for patterns in files using ripgrep (rg) command line tool. Note that ripgrep only matches on single lines, so you can't search across multiple lines."
