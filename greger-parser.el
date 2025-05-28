@@ -8,6 +8,8 @@
 
 (require 'json)
 (require 'cl-lib)
+(require 'url)
+(require 'dom)
 
 ;; Section tag constants
 (defconst greger-parser-user-tag "## USER:")
