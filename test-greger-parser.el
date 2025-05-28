@@ -1317,6 +1317,77 @@ ID: tool_123
       (when (file-exists-p test-file)
         (delete-file test-file)))))
 
+(ert-deftest greger-parser-test-include-tag-web-url ()
+  "Test include tag with web URL functionality."
+  (let ((markdown "## USER:
+
+Check this out:
+
+<include>https://httpbin.org/json</include>
+
+What do you think?")
+        (expected-pattern "## USER:
+
+Check this out:
+
+.*
+
+What do you think?"))
+    ;; This test just verifies that URL handling doesn't crash
+    ;; The exact content will vary based on the response
+    (let ((parsed (greger-parser-parse-dialog markdown)))
+      (should (= 1 (length parsed)))
+      (let ((generated-markdown (greger-parser-dialog-to-markdown parsed)))
+        (should (string-match-p expected-pattern generated-markdown))
+        ;; Should not contain the original URL tag
+        (should-not (string-match-p "<include>https://httpbin.org/json</include>" generated-markdown))))))
+
+(ert-deftest greger-parser-test-include-tag-web-url-with-code ()
+  "Test include tag with web URL and code attribute."
+  (let ((markdown "## USER:
+
+Here's some JSON:
+
+<include code>https://httpbin.org/json</include>
+
+Pretty cool!")
+        (expected-pattern "## USER:
+
+Here's some JSON:
+
+https://httpbin.org/json:
+```
+.*
+```
+
+Pretty cool!"))
+    ;; This test verifies URL handling with code formatting
+    (let ((parsed (greger-parser-parse-dialog markdown)))
+      (should (= 1 (length parsed)))
+      (let ((generated-markdown (greger-parser-dialog-to-markdown parsed)))
+        (should (string-match-p expected-pattern generated-markdown))))))
+
+(ert-deftest greger-parser-test-include-tag-invalid-url ()
+  "Test include tag with invalid web URL."
+  (let ((markdown "## USER:
+
+This should fail:
+
+<include>https://invalid-url-that-does-not-exist-12345.com</include>
+
+Error handling test")
+        (expected "## USER:
+
+This should fail:
+
+[Error reading URL: https://invalid-url-that-does-not-exist-12345.com]
+
+Error handling test"))
+    (let ((parsed (greger-parser-parse-dialog markdown)))
+      (should (= 1 (length parsed)))
+      (let ((generated-markdown (greger-parser-dialog-to-markdown parsed)))
+        (should (string= expected generated-markdown))))))
+
 (provide 'test-greger-parser)
 
 ;;; test-greger-parser.el ends here
