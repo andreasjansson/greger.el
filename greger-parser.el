@@ -211,6 +211,51 @@
   (when (greger-parser--looking-at "-->")
     (greger-parser--advance 3)))
 
+;; Include tag processing
+
+(defun greger-parser--process-include-tag ()
+  "Process an include tag and return the included content."
+  (greger-parser--debug "Processing include tag at pos %d" greger-parser--pos)
+  (let ((tag-start (greger-parser--current-pos)))
+    ;; Parse the opening tag
+    (when (greger-parser--looking-at "<include")
+      (greger-parser--advance 8) ; Skip "<include"
+      (let ((has-code-attr nil))
+        ;; Check for optional "code" attribute
+        (greger-parser--skip-horizontal-whitespace)
+        (when (greger-parser--looking-at "code")
+          (setq has-code-attr t)
+          (greger-parser--advance 4)
+          (greger-parser--skip-horizontal-whitespace))
+
+        ;; Skip to closing bracket of opening tag
+        (when (greger-parser--looking-at ">")
+          (greger-parser--advance 1)
+
+          ;; Extract the file path
+          (let ((path-start (greger-parser--current-pos)))
+            (when (greger-parser--find-closing-tag "</include>")
+              (let ((file-path (string-trim (greger-parser--substring path-start))))
+                (greger-parser--advance 10) ; Skip "</include>"
+
+                ;; Read and process the file
+                (greger-parser--include-file file-path has-code-attr)))))))))
+
+(defun greger-parser--include-file (file-path has-code-attr)
+  "Include a file's content, optionally formatting as code."
+  (greger-parser--debug "Including file: %s (code: %s)" file-path has-code-attr)
+  (condition-case err
+      (let ((content (with-temp-buffer
+                       (insert-file-contents file-path)
+                       (buffer-string))))
+        (if has-code-attr
+            (format "%s:\n```\n%s```" file-path content)
+          content))
+    (error
+     (greger-parser--debug "Error reading file %s: %s" file-path (error-message-string err))
+     ;; Return error message as content instead of failing silently
+     (format "[Error reading file: %s]" file-path))))
+
 ;; Content reading
 
 (defun greger-parser--read-until-section-tag ()
