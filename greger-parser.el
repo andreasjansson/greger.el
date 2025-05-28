@@ -256,6 +256,25 @@
      ;; Return error message as content instead of failing silently
      (format "[Error reading file: %s]" file-path))))
 
+(defun greger-parser--skip-include-tag ()
+  "Skip include tag without processing it."
+  (greger-parser--debug "Skipping include tag at pos %d" greger-parser--pos)
+  (greger-parser--advance 8) ; Skip "<include"
+
+  ;; Skip optional "code" attribute
+  (greger-parser--skip-horizontal-whitespace)
+  (when (greger-parser--looking-at "code")
+    (greger-parser--advance 4)
+    (greger-parser--skip-horizontal-whitespace))
+
+  ;; Skip to closing bracket of opening tag
+  (when (greger-parser--looking-at ">")
+    (greger-parser--advance 1)
+
+    ;; Skip to closing tag
+    (when (greger-parser--find-closing-tag "</include>")
+      (greger-parser--advance 10)))) ; Skip "</include>"
+
 ;; Content reading
 
 (defun greger-parser--read-until-section-tag ()
