@@ -15,7 +15,7 @@
   :type '(repeat symbol)
   :group 'greger)
 
-(defcustom greger-agent-max-iterations 10
+(defcustom greger-agent-max-iterations 100
   "Maximum number of agent iterations before stopping."
   :type 'integer
   :group 'greger)
