@@ -105,6 +105,8 @@ CANCEL-CALLBACK is called if cancelled."
   "Process a chunk of OUTPUT using STATE."
   ;; Always accumulate for complete response
 
+  ;; TODO: handle errors of the format
+  ;; output={"type":"error","error":{"type":"invalid_request_error","message":"tools.0.custom.input_schema: Input does not match the expected shape."}}
   ;(message (format "output: %s" output))
 
   (setf (greger-stream-state-complete-response state)

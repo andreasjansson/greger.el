@@ -127,7 +127,7 @@ Example:
                 (git_commit_message . ((type . "string")
                                        (description . "Git commit message for this change"))))
   :required '("old_path" "new_path" "git_commit_message")
-  :function greger-tools--rename-file)
+  :function 'greger-tools--rename-file)
 
 (greger-register-tool "replace-function"
   :description "Replace a function in a Python or Elisp file with new contents. Fast and reliable - only supports 'def function_name' and '(defun function_name ())' forms. Use replace-file for complete file replacement or str-replace for other specific changes."
@@ -142,7 +142,7 @@ Example:
                 (commit_message . ((type . "string")
                                    (description . "Git commit message for this change"))))
   :required '("file_path" "function_name" "contents" "line_number" "commit_message")
-  :function greger-tools--replace-function)
+  :function 'greger-tools--replace-function)
 
 (greger-register-tool "replace-file"
   :description "Replace the entire contents of an existing file. Slow but reliable - replaces the complete file contents. Use str-replace for specific changes in large files, or replace-function for Python/Elisp functions."
@@ -153,7 +153,7 @@ Example:
                 (git_commit_message . ((type . "string")
                                        (description . "Git commit message for this change"))))
   :required '("file_path" "contents" "git_commit_message")
-  :function greger-tools--replace-file)
+  :function 'greger-tools--replace-file)
 
 (greger-register-tool "str-replace"
   :description "Replace a specific string or content block in a file with new content. Finds the exact original content and replaces it with new content. Be extra careful to format the original_content exactly correctly, taking extra care with whitespace and newlines. If you're making large swaths of changes, consider using replace-file instead"
@@ -166,7 +166,7 @@ Example:
                 (git_commit_message . ((type . "string")
                                        (description . "Git commit message for this change"))))
   :required '("file_path" "original_content" "new_content" "git_commit_message")
-  :function greger-tools--str-replace)
+  :function 'greger-tools--str-replace)
 
 (greger-register-tool "insert"
   :description "Insert text at a specific line number in a file. The text will be inserted before the specified line number (use 0 to insert at the beginning of the file, 1 to insert before the first line, etc.). Useful for adding new content, comments, or code blocks at precise locations without replacing existing content."
@@ -179,7 +179,7 @@ Example:
                 (git_commit_message . ((type . "string")
                                        (description . "Git commit message for this change"))))
   :required '("file_path" "line_number" "content" "git_commit_message")
-  :function greger-tools--insert)
+  :function 'greger-tools--insert)
 
 (greger-register-tool "git-log"
   :description "View git commit logs using magit in a split screen"
@@ -187,7 +187,7 @@ Example:
                          (description . "Path to the git repository or file to view logs for")
                          (default . "."))))
   :required '()
-  :function greger-tools--git-log)
+  :function 'greger-tools--git-log)
 
 (greger-register-tool "git-show-commit"
   :description "View a specific git commit using magit in a split screen"
@@ -197,7 +197,7 @@ Example:
                          (description . "Path to the git repository")
                          (default . "."))))
   :required '("commit_hash")
-  :function greger-tools--git-show-commit)
+  :function 'greger-tools--git-show-commit)
 
 (greger-register-tool "ert-test"
   :description "Execute ERT tests by evaluating Emacs lisp test functions and running them with ert"
@@ -207,7 +207,7 @@ Example:
                                    (items . ((type . "string")))
                                    (description . "List of ERT test function names to evaluate and run"))))
   :required '("test_file_path" "function_names")
-  :function greger-tools--ert-test)
+  :function 'greger-tools--ert-test)
 
 (greger-register-tool "eval-elisp-defuns"
   :description "Evaluate Emacs lisp defuns in a specific file. Note that defuns must be evaluated before you run ert-test to test them, if you've updated the code."
@@ -217,7 +217,7 @@ Example:
                                    (items . ((type . "string")))
                                    (description . "List of function names to evaluate and run"))))
   :required '("file_path" "function_names")
-  :function greger-tools--eval-elisp-defuns)
+  :function 'greger-tools--eval-elisp-defuns)
 
 (defun greger-tools-get-schemas (tool-names)
   "Get tool schemas for TOOL-NAMES."
