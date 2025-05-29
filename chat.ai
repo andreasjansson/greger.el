@@ -2989,3 +2989,87 @@ ID: toolu_01SHVjNxrn78yn3vcDU3XqSk
 <tool.toolu_01SHVjNxrn78yn3vcDU3XqSk>
 Successfully replaced content in /Users/andreas/projects/aichat3/greger-stdlib.el. Successfully staged 2 file(s) and committed with message: Rename download-webpage tool to read-webpage
 </tool.toolu_01SHVjNxrn78yn3vcDU3XqSk>
+
+
+## TOOL USE:
+
+Name: str-replace
+ID: toolu_01CEwXjc7jCdpmiJ5226CqRH
+
+### file_path
+
+<tool.toolu_01CEwXjc7jCdpmiJ5226CqRH>
+greger-stdlib.el
+</tool.toolu_01CEwXjc7jCdpmiJ5226CqRH>
+
+### original_content
+
+<tool.toolu_01CEwXjc7jCdpmiJ5226CqRH>
+(defun greger-tools--download-webpage (url &optional extract-text use-highest-readability)
+  "Download webpage content from URL.
+If EXTRACT-TEXT is non-nil (default t), extract and return text content.
+If EXTRACT-TEXT is nil, return raw HTML.
+If USE-HIGHEST-READABILITY is non-nil, use eww's aggressive readability setting."
+  (unless (stringp url)
+    (error "URL must be a string"))
+
+  (when (string-empty-p (string-trim url))
+    (error "URL cannot be empty"))
+
+  (unless (greger-web-is-web-url-p url)
+    (error "Invalid URL format: %s (must start with http:// or https://)" url))
+
+  (condition-case err
+      (let ((content (greger-web-download-page url extract-text use-highest-readability)))
+        (if extract-text
+            (format "Successfully downloaded and extracted text from %s (%d characters):\n\n%s"
+                    url (length content) content)
+          (format "Successfully downloaded raw HTML from %s (%d characters):\n\n%s"
+                  url (length content) content)))
+    (error (format "Failed to download webpage: %s" (error-message-string err)))))
+</tool.toolu_01CEwXjc7jCdpmiJ5226CqRH>
+
+### new_content
+
+<tool.toolu_01CEwXjc7jCdpmiJ5226CqRH>
+(defun greger-tools--read-webpage (url &optional extract-text use-highest-readability)
+  "Read webpage content from URL.
+If EXTRACT-TEXT is non-nil (default t), extract and return text content.
+If EXTRACT-TEXT is nil, return raw HTML.
+If USE-HIGHEST-READABILITY is non-nil, use eww's aggressive readability setting."
+  (unless (stringp url)
+    (error "URL must be a string"))
+
+  (when (string-empty-p (string-trim url))
+    (error "URL cannot be empty"))
+
+  (unless (greger-web-is-web-url-p url)
+    (error "Invalid URL format: %s (must start with http:// or https://)" url))
+
+  (condition-case err
+      (let ((content (greger-web-download-page url extract-text use-highest-readability)))
+        (if extract-text
+            (format "Successfully read and extracted text from %s (%d characters):\n\n%s"
+                    url (length content) content)
+          (format "Successfully read raw HTML from %s (%d characters):\n\n%s"
+                  url (length content) content)))
+    (error (format "Failed to read webpage: %s" (error-message-string err)))))
+</tool.toolu_01CEwXjc7jCdpmiJ5226CqRH>
+
+### git_commit_message
+
+<tool.toolu_01CEwXjc7jCdpmiJ5226CqRH>
+Rename function to greger-tools--read-webpage and update messages
+</tool.toolu_01CEwXjc7jCdpmiJ5226CqRH>
+
+## TOOL RESULT:
+
+ID: toolu_01CEwXjc7jCdpmiJ5226CqRH
+
+<tool.toolu_01CEwXjc7jCdpmiJ5226CqRH>
+Successfully replaced content in /Users/andreas/projects/aichat3/greger-stdlib.el. Successfully staged 2 file(s) and committed with message: Rename function to greger-tools--read-webpage and update messages
+</tool.toolu_01CEwXjc7jCdpmiJ5226CqRH>
+
+## ASSISTANT:
+
+Now let me create the test file for the stdlib:
