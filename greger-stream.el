@@ -99,11 +99,7 @@ BUFFER defaults to current buffer if not specified."
 
     state))
 
-(defun greger-stream--insert (state text)
-  (with-current-buffer (greger-stream-state-output-buffer state)
-    (goto-char (greger-stream-state-insert-position state))
-    (insert text)
-    (setf (greger-stream-state-insert-position state) (point))))
+
 
 
 ;;; Internal implementation
