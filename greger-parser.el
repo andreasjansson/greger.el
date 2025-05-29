@@ -294,7 +294,7 @@ INLINE-SEPARATOR separates inline elements."
                 (greger-parser--advance state 10) ; Skip "</include>"
 
                 ;; Read and process the file
-                (greger-parser--include-file file-path has-code-attr)))))))))
+                (greger-parser--include-file state file-path has-code-attr)))))))))
 
 (defun greger-parser--include-file (state file-path has-code-attr)
   "Include a file's content, optionally formatting as code using STATE.
