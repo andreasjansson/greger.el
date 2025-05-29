@@ -554,20 +554,20 @@ Supports both local files and web URLs (http:// or https://)."
 
 ;; Tool parsing helpers
 
-(defun greger-parser--parse-name-line ()
-  "Parse 'Name: value' line."
-  (when (greger-parser--looking-at "Name:")
-    (greger-parser--advance 5)
-    (greger-parser--skip-horizontal-whitespace)
-    (greger-parser--read-line)))
+(defun greger-parser--parse-name-line (state)
+  "Parse 'Name: value' line using STATE."
+  (when (greger-parser--looking-at state "Name:")
+    (greger-parser--advance state 5)
+    (greger-parser--skip-horizontal-whitespace state)
+    (greger-parser--read-line state)))
 
-(defun greger-parser--parse-id-line ()
-  "Parse 'ID: value' line."
-  (greger-parser--skip-whitespace)
-  (when (greger-parser--looking-at "ID:")
-    (greger-parser--advance 3)
-    (greger-parser--skip-horizontal-whitespace)
-    (greger-parser--read-line)))
+(defun greger-parser--parse-id-line (state)
+  "Parse 'ID: value' line using STATE."
+  (greger-parser--skip-whitespace state)
+  (when (greger-parser--looking-at state "ID:")
+    (greger-parser--advance state 3)
+    (greger-parser--skip-horizontal-whitespace state)
+    (greger-parser--read-line state)))
 
 (defun greger-parser--parse-tool-input ()
   "Parse tool input parameters."
