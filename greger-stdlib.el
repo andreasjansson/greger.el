@@ -143,15 +143,18 @@
   :function 'greger-tools--insert)
 
 (greger-register-tool "git-log"
-  :description "View git commit logs using the git command line"
+  :description "View git commit logs."
   :properties '((path . ((type . "string")
                          (description . "Path to the git repository or file to view logs for")
-                         (default . "."))))
+                         (default . ".")))
+                (max_rows . ((type . "integer")
+                            (description . "Maximum number of log entries to return")
+                            (default . 100))))
   :required '()
   :function 'greger-tools--git-log)
 
 (greger-register-tool "git-show-commit"
-  :description "View a specific git commit using the git command line"
+  :description "View a specific git commit."
   :properties '((commit_hash . ((type . "string")
                                 (description . "The commit hash to view")))
                 (path . ((type . "string")
