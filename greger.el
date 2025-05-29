@@ -254,7 +254,11 @@ CANCEL-CALLBACK is called if cancelled."
   "Stream the AI response for the multi-turn DIALOG.
 COMPLETE-CALLBACK is called when done.
 CANCEL-CALLBACK is called if cancelled."
-  (greger-stream-to-buffer greger-model dialog complete-callback cancel-callback))
+  (greger-stream-to-buffer
+   :model greger-model
+   :dialog dialog
+   :complete-callback complete-callback
+   :cancel-callback cancel-callback))
 
 ;; Tool section collapsing functions
 
