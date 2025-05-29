@@ -7,6 +7,7 @@
 
 (require 'json)
 (require 'cl-lib)
+(require 'greger)
 (require 'greger-stream)
 (require 'greger-tools)
 
