@@ -78,7 +78,8 @@
                 (git_commit_message . ((type . "string")
                                        (description . "Git commit message for this change"))))
   :required '("path" "git_commit_message")
-  :function 'greger-tools--make-directory)
+  :function 'greger-tools--make-directory
+  :pass-buffer t)
 
 (greger-register-tool "rename-file"
   :description "Rename or move a file from one path to another"
