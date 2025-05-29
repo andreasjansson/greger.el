@@ -1329,3 +1329,97 @@ Successfully replaced content in /Users/andreas/projects/aichat3/greger-stdlib.e
 ## ASSISTANT:
 
 Now let's update `greger-tools--insert`:
+
+
+## TOOL USE:
+
+Name: str-replace
+ID: toolu_01JHfdAQ6RiJ2oL6PPtj6C2Q
+
+### file_path
+
+<tool.toolu_01JHfdAQ6RiJ2oL6PPtj6C2Q>
+greger-stdlib.el
+</tool.toolu_01JHfdAQ6RiJ2oL6PPtj6C2Q>
+
+### original_content
+
+<tool.toolu_01JHfdAQ6RiJ2oL6PPtj6C2Q>
+(greger-tools--with-split-window
+     (find-file expanded-path)
+
+     ;; Navigate to the insertion point
+     (goto-char (point-min))
+     (if (= line-number 0)
+         ;; Insert at beginning of file
+         (goto-char (point-min))
+       ;; Go to the specified line - this is where the fix is needed
+       (goto-line line-number)
+       ;; Move to beginning of line to insert before it, not after it
+       (beginning-of-line))
+
+     ;; Insert the content
+     (if (= line-number 0)
+         ;; At beginning of file, insert content and newline
+         (progn
+           (insert content)
+           (unless (string-suffix-p "\n" content)
+             (insert "\n")))
+       ;; Before a line, insert content then newline
+       (progn
+         (insert content)
+         (unless (string-suffix-p "\n" content)
+           (insert "\n"))))
+
+     ;; Save the file
+     (save-buffer))
+</tool.toolu_01JHfdAQ6RiJ2oL6PPtj6C2Q>
+
+### new_content
+
+<tool.toolu_01JHfdAQ6RiJ2oL6PPtj6C2Q>
+(with-current-buffer (find-file-noselect expanded-path)
+     ;; Navigate to the insertion point
+     (goto-char (point-min))
+     (if (= line-number 0)
+         ;; Insert at beginning of file
+         (goto-char (point-min))
+       ;; Go to the specified line - this is where the fix is needed
+       (goto-line line-number)
+       ;; Move to beginning of line to insert before it, not after it
+       (beginning-of-line))
+
+     ;; Insert the content
+     (if (= line-number 0)
+         ;; At beginning of file, insert content and newline
+         (progn
+           (insert content)
+           (unless (string-suffix-p "\n" content)
+             (insert "\n")))
+       ;; Before a line, insert content then newline
+       (progn
+         (insert content)
+         (unless (string-suffix-p "\n" content)
+           (insert "\n"))))
+
+     ;; Save the file
+     (save-buffer))
+</tool.toolu_01JHfdAQ6RiJ2oL6PPtj6C2Q>
+
+### git_commit_message
+
+<tool.toolu_01JHfdAQ6RiJ2oL6PPtj6C2Q>
+Update greger-tools--insert to work in background without split window
+</tool.toolu_01JHfdAQ6RiJ2oL6PPtj6C2Q>
+
+## TOOL RESULT:
+
+ID: toolu_01JHfdAQ6RiJ2oL6PPtj6C2Q
+
+<tool.toolu_01JHfdAQ6RiJ2oL6PPtj6C2Q>
+Successfully replaced content in /Users/andreas/projects/aichat3/greger-stdlib.el. Successfully staged 2 file(s) and committed with message: Update greger-tools--insert to work in background without split window
+</tool.toolu_01JHfdAQ6RiJ2oL6PPtj6C2Q>
+
+## ASSISTANT:
+
+Finally, let's update `greger-tools--eval-elisp-defuns`:
