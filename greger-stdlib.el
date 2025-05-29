@@ -469,7 +469,7 @@ If BUFFER is provided, it will be staged and committed along with the new file."
       (error (format "Failed to write file: %s" (error-message-string err))))
 
     ;; Stage and commit changes - infer the file to stage
-    (let ((git-result (greger-tools--git-stage-and-commit (list expanded-path) git-commit-message)))
+    (let ((git-result (greger-tools--git-stage-and-commit (list expanded-path) git-commit-message buffer)))
       (format "Successfully wrote new file %s with %d characters. %s"
               expanded-path (length contents) git-result))))
 
