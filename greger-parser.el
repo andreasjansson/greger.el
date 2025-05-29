@@ -387,59 +387,59 @@ Supports both local files and web URLs (http:// or https://)."
     (greger-parser--read-until-section-tag state)
     (greger-parser--substring state start)))
 
-(defun greger-parser--read-until-section-with-comment-removal ()
-  "Read content until next section, removing HTML comments and processing include tags."
+(defun greger-parser--read-until-section-with-comment-removal (state)
+  "Read content until next section, removing HTML comments and processing include tags in STATE."
   (let ((result "")
-        (start (greger-parser--current-pos))
+        (start (greger-parser--current-pos state))
         (iterations 0)
-        (max-iterations (* greger-parser--length 2))) ; Safety limit
-    (while (and (not (greger-parser--at-end-p))
-                (not (and (greger-parser--at-line-start-p)
-                          (greger-parser--find-section-tag)))
+        (max-iterations (* (greger-parser-state-length state) 2))) ; Safety limit
+    (while (and (not (greger-parser--at-end-p state))
+                (not (and (greger-parser--at-line-start-p state)
+                          (greger-parser--find-section-tag state)))
                 (< iterations max-iterations))
       (setq iterations (1+ iterations))
-      (let ((old-pos greger-parser--pos))
+      (let ((old-pos (greger-parser-state-pos state)))
         (cond
-         ((greger-parser--at-triple-backticks)
+         ((greger-parser--at-triple-backticks state)
           ;; Add content up to code block
-          (setq result (concat result (greger-parser--substring start)))
-          (setq start (greger-parser--current-pos))
-          (greger-parser--skip-code-block)
+          (setq result (concat result (greger-parser--substring state start)))
+          (setq start (greger-parser--current-pos state))
+          (greger-parser--skip-code-block state)
           ;; Add the code block
-          (setq result (concat result (greger-parser--substring start)))
-          (setq start (greger-parser--current-pos)))
-         ((greger-parser--looking-at "`")
+          (setq result (concat result (greger-parser--substring state start)))
+          (setq start (greger-parser--current-pos state)))
+         ((greger-parser--looking-at state "`")
           ;; Add content up to inline code
-          (setq result (concat result (greger-parser--substring start)))
-          (setq start (greger-parser--current-pos))
-          (greger-parser--skip-inline-code)
+          (setq result (concat result (greger-parser--substring state start)))
+          (setq start (greger-parser--current-pos state))
+          (greger-parser--skip-inline-code state)
           ;; Add the inline code
-          (setq result (concat result (greger-parser--substring start)))
-          (setq start (greger-parser--current-pos)))
-         ((greger-parser--looking-at "<!--")
+          (setq result (concat result (greger-parser--substring state start)))
+          (setq start (greger-parser--current-pos state)))
+         ((greger-parser--looking-at state "<!--")
           ;; Add content up to comment, skip comment entirely
-          (setq result (concat result (greger-parser--substring start)))
-          (greger-parser--skip-html-comment)
-          (setq start (greger-parser--current-pos)))
-         ((greger-parser--looking-at "<include")
+          (setq result (concat result (greger-parser--substring state start)))
+          (greger-parser--skip-html-comment state)
+          (setq start (greger-parser--current-pos state)))
+         ((greger-parser--looking-at state "<include")
           ;; Add content up to include tag
-          (setq result (concat result (greger-parser--substring start)))
+          (setq result (concat result (greger-parser--substring state start)))
           ;; Process the include tag
-          (let ((include-content (greger-parser--process-include-tag)))
+          (let ((include-content (greger-parser--process-include-tag state)))
             (when include-content
               (setq result (concat result include-content))))
-          (setq start (greger-parser--current-pos)))
+          (setq start (greger-parser--current-pos state)))
          (t
-          (greger-parser--advance)))
+          (greger-parser--advance state)))
         ;; Safety check: ensure we're making progress
-        (when (= old-pos greger-parser--pos)
-          (greger-parser--debug "No progress at pos %d, forcing advance" greger-parser--pos)
-          (greger-parser--advance))))
+        (when (= old-pos (greger-parser-state-pos state))
+          (greger-parser--debug state "No progress at pos %d, forcing advance" (greger-parser-state-pos state))
+          (greger-parser--advance state))))
     (when (>= iterations max-iterations)
-      (greger-parser--debug "Hit max iterations in read-until-section-with-comment-removal")
-      (setq greger-parser--pos greger-parser--length))
+      (greger-parser--debug state "Hit max iterations in read-until-section-with-comment-removal")
+      (setf (greger-parser-state-pos state) (greger-parser-state-length state)))
     ;; Add remaining content
-    (setq result (concat result (greger-parser--substring start)))
+    (setq result (concat result (greger-parser--substring state start)))
     result))
 
 (defun greger-parser--parse-section-content ()
