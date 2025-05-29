@@ -648,7 +648,7 @@ If BUFFER is provided, it will be staged and committed along with the modified f
      (save-buffer))
 
     ;; Stage and commit the file
-    (let ((git-result (greger-tools--git-stage-and-commit (list expanded-path) git-commit-message)))
+    (let ((git-result (greger-tools--git-stage-and-commit (list expanded-path) git-commit-message buffer)))
       (format "Successfully replaced contents of %s with %d characters. %s"
               expanded-path (length contents) git-result))))
 
