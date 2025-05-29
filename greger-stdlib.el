@@ -90,7 +90,8 @@
                 (git_commit_message . ((type . "string")
                                        (description . "Git commit message for this change"))))
   :required '("old_path" "new_path" "git_commit_message")
-  :function 'greger-tools--rename-file)
+  :function 'greger-tools--rename-file
+  :pass-buffer t)
 
 (greger-register-tool "replace-function"
   :description "Replace a function in a Python or Elisp file with new contents. Fast and reliable - only supports 'def function_name' and '(defun function_name ())' forms. Use replace-file for complete file replacement or str-replace for other specific changes."
