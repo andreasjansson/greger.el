@@ -143,7 +143,7 @@
   :function 'greger-tools--insert)
 
 (greger-register-tool "git-log"
-  :description "View git commit logs using magit in a split screen"
+  :description "View git commit logs using the git command line"
   :properties '((path . ((type . "string")
                          (description . "Path to the git repository or file to view logs for")
                          (default . "."))))
