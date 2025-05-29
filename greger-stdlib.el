@@ -201,10 +201,10 @@
   :required '("command")
   :function 'greger-tools--shell-command)
 
-(greger-register-tool "download-webpage"
-  :description "Download webpage content from a URL. Can return either extracted text or raw HTML."
+(greger-register-tool "read-webpage"
+  :description "Read webpage content from a URL. Can return either extracted text or raw HTML."
   :properties '((url . ((type . "string")
-                        (description . "The URL to download content from")))
+                        (description . "The URL to read content from")))
                 (extract_text . ((type . "boolean")
                                  (description . "Whether to extract text content or return raw HTML")
                                  (default . t)))
@@ -212,7 +212,7 @@
                                             (description . "Whether to use eww's aggressive highest readability setting for better text extraction")
                                             (default . nil))))
   :required '("url")
-  :function 'greger-tools--download-webpage)
+  :function 'greger-tools--read-webpage)
 
 ;; Helper functions
 

@@ -2798,3 +2798,134 @@ Successfully replaced content in /Users/andreas/projects/aichat3/greger-stdlib.e
 ## ASSISTANT:
 
 Now let me add the implementation function at the end of the file:
+
+
+## TOOL USE:
+
+Name: str-replace
+ID: toolu_01VPxevUaH2qACgV7t4NHTtQ
+
+### file_path
+
+<tool.toolu_01VPxevUaH2qACgV7t4NHTtQ>
+greger-stdlib.el
+</tool.toolu_01VPxevUaH2qACgV7t4NHTtQ>
+
+### original_content
+
+<tool.toolu_01VPxevUaH2qACgV7t4NHTtQ>
+        (error (format "Failed to execute shell command: %s" (error-message-string err)))))))
+
+;;; greger-stdlib.el ends here
+</tool.toolu_01VPxevUaH2qACgV7t4NHTtQ>
+
+### new_content
+
+<tool.toolu_01VPxevUaH2qACgV7t4NHTtQ>
+        (error (format "Failed to execute shell command: %s" (error-message-string err)))))))
+
+(defun greger-tools--download-webpage (url &optional extract-text use-highest-readability)
+  "Download webpage content from URL.
+If EXTRACT-TEXT is non-nil (default t), extract and return text content.
+If EXTRACT-TEXT is nil, return raw HTML.
+If USE-HIGHEST-READABILITY is non-nil, use eww's aggressive readability setting."
+  (unless (stringp url)
+    (error "URL must be a string"))
+
+  (when (string-empty-p (string-trim url))
+    (error "URL cannot be empty"))
+
+  (unless (greger-web-is-web-url-p url)
+    (error "Invalid URL format: %s (must start with http:// or https://)" url))
+
+  (condition-case err
+      (let ((content (greger-web-download-page url extract-text use-highest-readability)))
+        (if extract-text
+            (format "Successfully downloaded and extracted text from %s (%d characters):\n\n%s"
+                    url (length content) content)
+          (format "Successfully downloaded raw HTML from %s (%d characters):\n\n%s"
+                  url (length content) content)))
+    (error (format "Failed to download webpage: %s" (error-message-string err)))))
+
+;;; greger-stdlib.el ends here
+</tool.toolu_01VPxevUaH2qACgV7t4NHTtQ>
+
+### git_commit_message
+
+<tool.toolu_01VPxevUaH2qACgV7t4NHTtQ>
+Implement greger-tools--download-webpage function
+</tool.toolu_01VPxevUaH2qACgV7t4NHTtQ>
+
+## TOOL RESULT:
+
+ID: toolu_01VPxevUaH2qACgV7t4NHTtQ
+
+<tool.toolu_01VPxevUaH2qACgV7t4NHTtQ>
+Successfully replaced content in /Users/andreas/projects/aichat3/greger-stdlib.el. Successfully staged 2 file(s) and committed with message: Implement greger-tools--download-webpage function
+</tool.toolu_01VPxevUaH2qACgV7t4NHTtQ>
+
+## ASSISTANT:
+
+Now let me test the implementation by running a simple test to make sure everything still works:
+
+## TOOL USE:
+
+Name: read-file
+ID: toolu_01PHDxBHgEEUwpq8z4C3xvA1
+
+### path
+
+<tool.toolu_01PHDxBHgEEUwpq8z4C3xvA1>
+test-greger-parser.el
+</tool.toolu_01PHDxBHgEEUwpq8z4C3xvA1>
+
+### start_line
+
+<tool.toolu_01PHDxBHgEEUwpq8z4C3xvA1>
+1
+</tool.toolu_01PHDxBHgEEUwpq8z4C3xvA1>
+
+### end_line
+
+<tool.toolu_01PHDxBHgEEUwpq8z4C3xvA1>
+20
+</tool.toolu_01PHDxBHgEEUwpq8z4C3xvA1>
+
+## TOOL RESULT:
+
+ID: toolu_01PHDxBHgEEUwpq8z4C3xvA1
+
+<tool.toolu_01PHDxBHgEEUwpq8z4C3xvA1>
+;;; test-greger-parser.el --- Tests for greger parser -*- lexical-binding: t -*-
+
+(require 'ert)
+(require 'greger-parser)
+(require 'cl-lib)
+
+;; Test cases with tool use, thinking, and complex scenarios
+(defconst greger-parser-test-cases
+  '(
+    ;; Simple user message
+    (:name "simple-user-message"
+     :markdown "## USER:
+
+Hello, how are you?"
+     :dialog (((role . "user") (content . "Hello, how are you?"))))
+
+    ;; System and user message
+    (:name "system-and-user"
+     :markdown "## SYSTEM:
+
+</tool.toolu_01PHDxBHgEEUwpq8z4C3xvA1>
+
+## USER:
+
+Actually rename the download-webpage tool to read-webpage since we shouldn't be saving the contents locally, just return it.
+
+Create greger-test-stdlib.el and write a test to test the new greger-tools--read-webpage function.
+
+
+
+## ASSISTANT:
+
+I'll rename the tool to `read-webpage` and create a test file for it.
