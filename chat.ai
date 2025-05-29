@@ -2,1323 +2,531 @@
 
 ## USER:
 
-greger-parser.el is not safe for multiple instances of greger. You'll need to create a greger-parser-state structure like in greger-agent.el and pass that around as the first argument to all the parser functions.
+```
+F greger-parser-test-include-tag-recursive
+    Test include tag with file that contains another include tag.
+    (ert-test-failed
+     ((should
+       (string= expected generated-markdown))
+      :form
+      (string= "## USER:\n\nRecursive include:\n\nBefore include\nInner file content\nAfter include\n\nDone." "## USER:\n\nRecursive include:\n\nBefore include\n<include>/var/folders/pt/0j3p9zzj49x5vkv1mmkpvs0c0000gn/T/greger-test-innerUCM7f0.txt</include>\nAfter include\n\nDone.")
+      :value nil :explanation
+      (arrays-of-different-length 84 161 "## USER:\n\nRecursive include:\n\nBefore include\nInner file content\nAfter include\n\nDone." "## USER:\n\nRecursive include:\n\nBefore include\n<include>/var/folders/pt/0j3p9zzj49x5vkv1mmkpvs0c0000gn/T/greger-test-innerUCM7f0.txt</include>\nAfter include\n\nDone." first-mismatch-at 45)))
+
+```
+
+This test is failing because greger-parser-test-include-tag-recursive in greger-parser.el is returning the contents of the included file. That's fine for web URLs, we don't want to parse them. Same for included code. But local files included without `code` _should_ be parsed. Instead of returning the content, insert it into the state at pos so that it's parsed as though it was part of the original content.
 
 ## ASSISTANT:
 
-I'll help you refactor `greger-parser.el` to use a state structure similar to `greger-agent.el`. Let me first examine the current parser file and the agent file to understand the existing structure.
+I need to examine the failing test and the greger parser code to understand how to fix the recursive include functionality. Let me start by looking at the test and the parser implementation.
+
+## TOOL USE:
+
+Name: ripgrep
+ID: toolu_01Pn4V5Hy2fv6vvNuYwyNmzF
+
+### pattern
+
+<tool.toolu_01Pn4V5Hy2fv6vvNuYwyNmzF>
+greger-parser-test-include-tag-recursive
+</tool.toolu_01Pn4V5Hy2fv6vvNuYwyNmzF>
+
+## TOOL RESULT:
+
+ID: toolu_01Pn4V5Hy2fv6vvNuYwyNmzF
+
+<tool.toolu_01Pn4V5Hy2fv6vvNuYwyNmzF>
+/Users/andreas/projects/aichat3/test-greger-parser.el:1122:(ert-deftest greger-parser-test-include-tag-recursive ()
+/Users/andreas/projects/aichat3/chat.ai:3358:F greger-parser-test-include-tag-recursive
+
+</tool.toolu_01Pn4V5Hy2fv6vvNuYwyNmzF>
 
 ## TOOL USE:
 
 Name: read-file
-ID: toolu_019CsZEeGXBHnV45ksm7FEw2
+ID: toolu_01GTU7gUpC7ah5a4JtaTGujP
 
 ### path
 
-<tool.toolu_019CsZEeGXBHnV45ksm7FEw2>
-greger-parser.el
-</tool.toolu_019CsZEeGXBHnV45ksm7FEw2>
+<tool.toolu_01GTU7gUpC7ah5a4JtaTGujP>
+/Users/andreas/projects/aichat3/test-greger-parser.el
+</tool.toolu_01GTU7gUpC7ah5a4JtaTGujP>
+
+### start_line
+
+<tool.toolu_01GTU7gUpC7ah5a4JtaTGujP>
+1122
+</tool.toolu_01GTU7gUpC7ah5a4JtaTGujP>
+
+### end_line
+
+<tool.toolu_01GTU7gUpC7ah5a4JtaTGujP>
+1150
+</tool.toolu_01GTU7gUpC7ah5a4JtaTGujP>
 
 ## TOOL RESULT:
 
-ID: toolu_019CsZEeGXBHnV45ksm7FEw2
+ID: toolu_01GTU7gUpC7ah5a4JtaTGujP
 
-<tool.toolu_019CsZEeGXBHnV45ksm7FEw2>
-;;; greger-parser.el --- Parser for greger dialog format -*- lexical-binding: t -*-
+<tool.toolu_01GTU7gUpC7ah5a4JtaTGujP>
+(ert-deftest greger-parser-test-include-tag-recursive ()
+  "Test include tag with file that contains another include tag."
+  (let ((inner-file (make-temp-file "greger-test-inner" nil ".txt" "Inner file content"))
+        (outer-file nil)
+        (markdown nil)
+        (expected nil))
+    (unwind-protect
+        (progn
+          (setq outer-file (make-temp-file "greger-test-outer" nil ".txt"
+                                          (format "Before include\n<include>%s</include>\nAfter include" inner-file)))
+          (setq markdown (format "## USER:
 
-;;; Commentary:
-;; Parses markdown-style dialog format with sections like ## USER:, ## ASSISTANT:, etc.
-;; Handles tool use, thinking blocks, and complex content structures.
+Recursive include:
 
-;;; Code:
+<include>%s</include>
 
-(require 'json)
-(require 'cl-lib)
-(require 'url)
-(require 'dom)
-(require 'eww)
+Done." outer-file))
 
-;; Section tag constants
-(defconst greger-parser-user-tag "## USER:")
-(defconst greger-parser-assistant-tag "## ASSISTANT:")
-(defconst greger-parser-system-tag "## SYSTEM:")
-(defconst greger-parser-tool-use-tag "## TOOL USE:")
-(defconst greger-parser-tool-result-tag "## TOOL RESULT:")
-(defconst greger-parser-thinking-tag "## THINKING:")
+          (setq expected "## USER:
 
-;; Parser state
-(defvar greger-parser--input "")
-(defvar greger-parser--pos 0)
-(defvar greger-parser--length 0)
-(defvar greger-parser--debug nil)
+Recursive include:
 
-(defmacro greger-parser--with-input (input &rest body)
-  "Execute BODY with INPUT as parser source."
-  `(let ((greger-parser--input (or ,input ""))
-         (greger-parser--pos 0)
-         (greger-parser--length (length (or ,input ""))))
-     ,@body))
+Before include
+Inner file content
+After include
 
-(defun greger-parser--debug (format-string &rest args)
-  "Debug logging function."
-  (when greger-parser--debug
-    (message "[PARSER DEBUG] %s" (apply #'format format-string args))))
+Done.")
 
-;; Main parsing entry points
-
-(defun greger-parser-parse-dialog (markdown)
-  "Parse MARKDOWN into dialog format."
-  (if (or (null markdown) (string-empty-p (string-trim markdown)))
-      '()
-    (greger-parser--with-input markdown
-      (condition-case err
-          (greger-parser--parse-document)
-        (error
-         (greger-parser--debug "Parse error: %s" (error-message-string err))
-         '())))))
-
-(defun greger-parser-dialog-to-markdown (dialog)
-  "Convert DIALOG to markdown format."
-  (if (null dialog)
-      ""
-    (mapconcat #'greger-parser--message-to-markdown dialog "\n\n")))
-
-;; Parser infrastructure
-
-(defun greger-parser--at-end-p ()
-  "True if at end of input."
-  (>= greger-parser--pos greger-parser--length))
-
-(defun greger-parser--peek (&optional offset)
-  "Peek at character at current position plus OFFSET."
-  (let ((pos (+ greger-parser--pos (or offset 0))))
-    (if (and (>= pos 0) (< pos greger-parser--length))
-        (aref greger-parser--input pos)
-      nil)))
-
-(defun greger-parser--advance (&optional n)
-  "Advance position by N characters (default 1)."
-  (let ((old-pos greger-parser--pos))
-    (setq greger-parser--pos (min greger-parser--length
-                                 (+ greger-parser--pos (or n 1))))
-    (greger-parser--debug "Advanced from %d to %d" old-pos greger-parser--pos)))
-
-(defun greger-parser--current-pos ()
-  "Get current position."
-  greger-parser--pos)
-
-(defun greger-parser--substring (start &optional end)
-  "Get substring from START to END (or current position)."
-  (if (and (>= start 0)
-           (<= start greger-parser--length)
-           (or (null end) (<= end greger-parser--length)))
-      (substring greger-parser--input start (or end greger-parser--pos))
-    ""))
-
-(defun greger-parser--looking-at (string)
-  "True if current position matches STRING."
-  (and string
-       (<= (+ greger-parser--pos (length string)) greger-parser--length)
-       (string= (greger-parser--substring greger-parser--pos
-                                         (+ greger-parser--pos (length string)))
-                string)))
-
-(defun greger-parser--at-triple-backticks ()
-  "True if current position matches ``` at beginning of line."
-  (and (greger-parser--at-line-start-p)
-       (greger-parser--looking-at "```")))
-
-;; Character tests
-
-(defun greger-parser--whitespace-p (char)
-  "True if CHAR is whitespace."
-  (and char (memq char '(?\s ?\t ?\n ?\r))))
-
-(defun greger-parser--horizontal-whitespace-p (char)
-  "True if CHAR is horizontal whitespace."
-  (and char (memq char '(?\s ?\t))))
-
-(defun greger-parser--newline-p (char)
-  "True if CHAR is newline."
-  (and char (eq char ?\n)))
-
-;; Navigation
-
-(defun greger-parser--skip-whitespace ()
-  "Skip all whitespace."
-  (let ((start-pos greger-parser--pos))
-    (while (and (not (greger-parser--at-end-p))
-                (greger-parser--whitespace-p (greger-parser--peek)))
-      (greger-parser--advance))
-    (when (> greger-parser--pos start-pos)
-      (greger-parser--debug "Skipped whitespace from %d to %d" start-pos greger-parser--pos))))
-
-(defun greger-parser--skip-horizontal-whitespace ()
-  "Skip spaces and tabs."
-  (while (and (not (greger-parser--at-end-p))
-              (greger-parser--horizontal-whitespace-p (greger-parser--peek)))
-    (greger-parser--advance)))
-
-(defun greger-parser--at-line-start-p ()
-  "True if at start of line."
-  (or (= greger-parser--pos 0)
-      (greger-parser--newline-p (greger-parser--peek -1))))
-
-(defun greger-parser--skip-to-line-end ()
-  "Skip to end of current line."
-  (while (and (not (greger-parser--at-end-p))
-              (not (greger-parser--newline-p (greger-parser--peek))))
-    (greger-parser--advance)))
-
-(defun greger-parser--read-line ()
-  "Read rest of current line."
-  (let ((start (greger-parser--current-pos)))
-    (greger-parser--skip-to-line-end)
-    (string-trim (greger-parser--substring start))))
-
-;; Section tag handling
-
-(defun greger-parser--section-tags ()
-  "List of all section tags."
-  (list greger-parser-user-tag
-        greger-parser-assistant-tag
-        greger-parser-system-tag
-        greger-parser-tool-use-tag
-        greger-parser-tool-result-tag
-        greger-parser-thinking-tag))
-
-(defun greger-parser--find-section-tag ()
-  "Find section tag at current position if at line start."
-  (when (greger-parser--at-line-start-p)
-    (let ((tag (cl-find-if #'greger-parser--looking-at (greger-parser--section-tags))))
-      (greger-parser--debug "Found section tag: %s at pos %d" tag greger-parser--pos)
-      tag)))
-
-(defun greger-parser--consume-section-tag (tag)
-  "Consume TAG and return it."
-  (when (greger-parser--looking-at tag)
-    (greger-parser--debug "Consuming tag: %s" tag)
-    (greger-parser--advance (length tag))
-    tag))
-
-;; Code block detection and skipping
-
-(defun greger-parser--skip-code-block ()
-  "Skip triple-backtick code block."
-  (greger-parser--debug "Skipping code block at pos %d" greger-parser--pos)
-  (greger-parser--advance 3) ; Skip opening ```
-  (greger-parser--skip-to-line-end) ; Skip language specifier
-  (when (greger-parser--newline-p (greger-parser--peek))
-    (greger-parser--advance))
-
-  ;; Find closing ```
-  (while (and (not (greger-parser--at-end-p))
-              (not (greger-parser--at-triple-backticks)))
-    (greger-parser--advance))
-
-  ;; Skip closing ```
-  (when (greger-parser--at-triple-backticks)
-    (greger-parser--advance 3)))
-
-(defun greger-parser--skip-inline-code ()
-  "Skip inline code with double backticks."
-  (greger-parser--debug "Skipping inline code at pos %d" greger-parser--pos)
-  (greger-parser--advance 1) ; Skip opening `
-  (while (and (not (greger-parser--at-end-p))
-              (not (greger-parser--looking-at "`")))
-    (greger-parser--advance))
-  (when (greger-parser--looking-at "`")
-    (greger-parser--advance 1)))
-
-(defun greger-parser--skip-html-comment ()
-  "Skip HTML comment."
-  (greger-parser--debug "Skipping HTML comment at pos %d" greger-parser--pos)
-  (greger-parser--advance 4) ; Skip <!--
-  (while (and (not (greger-parser--at-end-p))
-              (not (greger-parser--looking-at "-->")))
-    (greger-parser--advance))
-  (when (greger-parser--looking-at "-->")
-    (greger-parser--advance 3)))
-
-;; Web URL text extraction (inspired by old aichat parser)
-
-(defun greger-parser--text-from-url (url &optional use-highest-readability)
-  "Retrieve the text content from URL.
-If USE-HIGHEST-READABILITY is non-nil, use eww's readability heuristics."
-  (with-current-buffer
-      (url-retrieve-synchronously url t nil 10.0)
-    ;; Skip HTTP headers - they end with a double newline
-    (goto-char (point-min))
-    (when (re-search-forward "\r?\n\r?\n" nil t)
-      (delete-region (point-min) (point)))
-
-    ;; Parse the HTML content
-    (let ((dom (libxml-parse-html-region (point-min) (point-max))))
-      (when use-highest-readability
-        (setq dom (eww-highest-readability dom))
-        (eww-score-readability dom))
-      (greger-parser--dom-texts-inline-aware dom))))
-
-(defun greger-parser--dom-texts-inline-aware (node &optional block-separator inline-separator)
-  "Extract text from the DOM NODE, aware of inline and block elements.
-BLOCK-SEPARATOR separates block elements.
-INLINE-SEPARATOR separates inline elements."
-  (let ((block-separator (or block-separator "\n"))
-        (inline-separator (or inline-separator " ")))
-    (mapconcat
-     (lambda (elem)
-       (cond
-        ((stringp elem)
-         (when (> (length (string-trim elem)) 0)
-           elem))
-        ((memq (dom-tag elem) '(head meta script style details footer)) "")
-        ((memq (dom-tag elem) '(p div h1 h2 h3 h4 h5 h6 pre br hr ul ol li))
-         (concat (greger-parser--dom-texts-inline-aware elem block-separator inline-separator)
-                 block-separator))
-        (t
-         (greger-parser--dom-texts-inline-aware elem block-separator inline-separator))))
-     (dom-children node)
-     inline-separator)))
-
-(defun greger-parser--is-web-url-p (path)
-  "Return non-nil if PATH is a web URL (starts with http:// or https://)."
-  (or (string-prefix-p "http://" path)
-      (string-prefix-p "https://" path)))
-
-;; Include tag processing
-
-(defun greger-parser--process-include-tag ()
-  "Process an include tag and return the included content."
-  (greger-parser--debug "Processing include tag at pos %d" greger-parser--pos)
-  (let ((tag-start (greger-parser--current-pos)))
-    ;; Parse the opening tag
-    (when (greger-parser--looking-at "<include")
-      (greger-parser--advance 8) ; Skip "<include"
-      (let ((has-code-attr nil))
-        ;; Check for optional "code" attribute
-        (greger-parser--skip-horizontal-whitespace)
-        (when (greger-parser--looking-at "code")
-          (setq has-code-attr t)
-          (greger-parser--advance 4)
-          (greger-parser--skip-horizontal-whitespace))
-
-        ;; Skip to closing bracket of opening tag
-        (when (greger-parser--looking-at ">")
-          (greger-parser--advance 1)
-
-          ;; Extract the file path
-          (let ((path-start (greger-parser--current-pos)))
-            (when (greger-parser--find-closing-tag "</include>")
-              (let ((file-path (string-trim (greger-parser--substring path-start))))
-                (greger-parser--advance 10) ; Skip "</include>"
-
-                ;; Read and process the file
-                (greger-parser--include-file file-path has-code-attr)))))))))
-
-(defun greger-parser--include-file (file-path has-code-attr)
-  "Include a file's content, optionally formatting as code.
-Supports both local files and web URLs (http:// or https://)."
-  (greger-parser--debug "Including file: %s (code: %s)" file-path has-code-attr)
-  (condition-case err
-      (let ((content
-             (if (greger-parser--is-web-url-p file-path)
-                 ;; Handle web URL
-                 (progn
-                   (greger-parser--debug "Downloading content from URL: %s" file-path)
-                   (greger-parser--text-from-url file-path t)) ; Use readability heuristics
-               ;; Handle local file
-               (with-temp-buffer
-                 (insert-file-contents file-path)
-                 (buffer-string)))))
-
-        ;; Remove trailing newline from content if present
-        (when (and (> (length content) 0)
-                   (eq (aref content (1- (length content))) ?\n))
-          (setq content (substring content 0 -1)))
-
-        (if has-code-attr
-            (format "%s:\n```\n%s\n```" file-path content)
-          content))
-    (error
-     (greger-parser--debug "Error reading %s %s: %s"
-                          (if (greger-parser--is-web-url-p file-path) "URL" "file")
-                          file-path
-                          (error-message-string err))
-     ;; Return error message as content instead of failing silently
-     (format "[Error reading %s: %s]"
-             (if (greger-parser--is-web-url-p file-path) "URL" "file")
-             file-path))))
-
-(defun greger-parser--skip-include-tag ()
-  "Skip include tag without processing it."
-  (greger-parser--debug "Skipping include tag at pos %d" greger-parser--pos)
-  (greger-parser--advance 8) ; Skip "<include"
-
-  ;; Skip optional "code" attribute
-  (greger-parser--skip-horizontal-whitespace)
-  (when (greger-parser--looking-at "code")
-    (greger-parser--advance 4)
-    (greger-parser--skip-horizontal-whitespace))
-
-  ;; Skip to closing bracket of opening tag
-  (when (greger-parser--looking-at ">")
-    (greger-parser--advance 1)
-
-    ;; Skip to closing tag
-    (when (greger-parser--find-closing-tag "</include>")
-      (greger-parser--advance 10)))) ; Skip "</include>"
-
-;; Content reading
-
-(defun greger-parser--read-until-section-tag ()
-  "Read characters until section tag, handling code blocks and include tags."
-  (let ((start-pos greger-parser--pos)
-        (iterations 0)
-        (max-iterations (* greger-parser--length 2))) ; Safety limit
-    (while (and (not (greger-parser--at-end-p))
-                (not (and (greger-parser--at-line-start-p)
-                          (greger-parser--find-section-tag)))
-                (< iterations max-iterations))
-      (setq iterations (1+ iterations))
-      (let ((old-pos greger-parser--pos))
-        (cond
-         ((greger-parser--at-triple-backticks)
-          (greger-parser--skip-code-block))
-         ((greger-parser--looking-at "`")
-          (greger-parser--skip-inline-code))
-         ((greger-parser--looking-at "<!--")
-          (greger-parser--skip-html-comment))
-         ((greger-parser--looking-at "<include")
-          (greger-parser--skip-include-tag))
-         (t
-          (greger-parser--advance)))
-        ;; Safety check: ensure we're making progress
-        (when (= old-pos greger-parser--pos)
-          (greger-parser--debug "No progress at pos %d, forcing advance" greger-parser--pos)
-          (greger-parser--advance))))
-    (when (>= iterations max-iterations)
-      (greger-parser--debug "Hit max iterations in read-until-section-tag")
-      (setq greger-parser--pos greger-parser--length))))
-
-(defun greger-parser--read-until-section ()
-  "Read content until next section."
-  (let ((start (greger-parser--current-pos)))
-    (greger-parser--read-until-section-tag)
-    (greger-parser--substring start)))
-
-(defun greger-parser--read-until-section-with-comment-removal ()
-  "Read content until next section, removing HTML comments and processing include tags."
-  (let ((result "")
-        (start (greger-parser--current-pos))
-        (iterations 0)
-        (max-iterations (* greger-parser--length 2))) ; Safety limit
-    (while (and (not (greger-parser--at-end-p))
-                (not (and (greger-parser--at-line-start-p)
-                          (greger-parser--find-section-tag)))
-                (< iterations max-iterations))
-      (setq iterations (1+ iterations))
-      (let ((old-pos greger-parser--pos))
-        (cond
-         ((greger-parser--at-triple-backticks)
-          ;; Add content up to code block
-          (setq result (concat result (greger-parser--substring start)))
-          (setq start (greger-parser--current-pos))
-          (greger-parser--skip-code-block)
-          ;; Add the code block
-          (setq result (concat result (greger-parser--substring start)))
-          (setq start (greger-parser--current-pos)))
-         ((greger-parser--looking-at "`")
-          ;; Add content up to inline code
-          (setq result (concat result (greger-parser--substring start)))
-          (setq start (greger-parser--current-pos))
-          (greger-parser--skip-inline-code)
-          ;; Add the inline code
-          (setq result (concat result (greger-parser--substring start)))
-          (setq start (greger-parser--current-pos)))
-         ((greger-parser--looking-at "<!--")
-          ;; Add content up to comment, skip comment entirely
-          (setq result (concat result (greger-parser--substring start)))
-          (greger-parser--skip-html-comment)
-          (setq start (greger-parser--current-pos)))
-         ((greger-parser--looking-at "<include")
-          ;; Add content up to include tag
-          (setq result (concat result (greger-parser--substring start)))
-          ;; Process the include tag
-          (let ((include-content (greger-parser--process-include-tag)))
-            (when include-content
-              (setq result (concat result include-content))))
-          (setq start (greger-parser--current-pos)))
-         (t
-          (greger-parser--advance)))
-        ;; Safety check: ensure we're making progress
-        (when (= old-pos greger-parser--pos)
-          (greger-parser--debug "No progress at pos %d, forcing advance" greger-parser--pos)
-          (greger-parser--advance))))
-    (when (>= iterations max-iterations)
-      (greger-parser--debug "Hit max iterations in read-until-section-with-comment-removal")
-      (setq greger-parser--pos greger-parser--length))
-    ;; Add remaining content
-    (setq result (concat result (greger-parser--substring start)))
-    result))
-
-(defun greger-parser--parse-section-content ()
-  "Parse content until next section, skipping HTML comments."
-  (greger-parser--skip-whitespace)
-  (let ((content (greger-parser--read-until-section-with-comment-removal)))
-    (when (and content (not (string-empty-p (string-trim content))))
-      (string-trim content))))
-
-;; High-level parsing
-
-(defun greger-parser--parse-document ()
-  "Parse entire document."
-  (greger-parser--skip-whitespace)
-  (if (greger-parser--at-end-p)
-      '()
-    (let ((sections '())
-          (iterations 0)
-          (max-iterations 1000)) ; Safety limit
-      ;; Handle untagged content at start
-      (let ((untagged (greger-parser--parse-untagged-content)))
-        (when untagged
-          (push untagged sections)))
-
-      ;; Parse tagged sections
-      (while (and (not (greger-parser--at-end-p))
-                  (< iterations max-iterations))
-        (setq iterations (1+ iterations))
-        (let ((old-pos greger-parser--pos))
-          (greger-parser--skip-whitespace)
-          (when (not (greger-parser--at-end-p))
-            (let ((section (greger-parser--parse-section)))
-              (when section
-                (push section sections))))
-          ;; Safety check: ensure we're making progress
-          (when (= old-pos greger-parser--pos)
-            (greger-parser--debug "No progress in document parsing at pos %d, breaking" greger-parser--pos)
-            (break))))
-
-      (when (>= iterations max-iterations)
-        (greger-parser--debug "Hit max iterations in parse-document"))
-
-      (greger-parser--merge-consecutive-messages (reverse sections)))))
-
-(defun greger-parser--parse-untagged-content ()
-  "Parse content before first section tag."
-  (let ((content (greger-parser--parse-section-content)))
-    (when content
-      (greger-parser--create-user-message content))))
-
-(defun greger-parser--parse-section ()
-  "Parse a section starting with a tag."
-  (let ((tag (greger-parser--find-section-tag)))
-    (when tag
-      (greger-parser--consume-section-tag tag)
-      (cond
-       ((string= tag greger-parser-user-tag)
-        (greger-parser--parse-user-section))
-       ((string= tag greger-parser-assistant-tag)
-        (greger-parser--parse-assistant-section))
-       ((string= tag greger-parser-system-tag)
-        (greger-parser--parse-system-section))
-       ((string= tag greger-parser-thinking-tag)
-        (greger-parser--parse-thinking-section))
-       ((string= tag greger-parser-tool-use-tag)
-        (greger-parser--parse-tool-use-section))
-       ((string= tag greger-parser-tool-result-tag)
-        (greger-parser--parse-tool-result-section))))))
-
-;; Section parsers
-
-(defun greger-parser--parse-user-section ()
-  "Parse USER section."
-  (let ((content (greger-parser--parse-section-content)))
-    (when content
-      (greger-parser--create-user-message content))))
-
-(defun greger-parser--parse-assistant-section ()
-  "Parse ASSISTANT section."
-  (let ((content (greger-parser--parse-section-content)))
-    (when content
-      (greger-parser--create-assistant-message content))))
-
-(defun greger-parser--parse-system-section ()
-  "Parse SYSTEM section."
-  (let ((content (greger-parser--parse-section-content)))
-    (when content
-      (greger-parser--create-system-message content))))
-
-(defun greger-parser--parse-thinking-section ()
-  "Parse THINKING section."
-  (let ((content (greger-parser--parse-section-content)))
-    (when content
-      (greger-parser--create-thinking-message content))))
-
-(defun greger-parser--parse-tool-use-section ()
-  "Parse TOOL USE section."
-  (greger-parser--skip-whitespace)
-  (let ((name (greger-parser--parse-name-line))
-        (id (greger-parser--parse-id-line))
-        (input (greger-parser--parse-tool-input)))
-    (when (and name id)
-      (greger-parser--create-tool-use-message name id input))))
-
-(defun greger-parser--parse-tool-result-section ()
-  "Parse TOOL RESULT section."
-  (greger-parser--skip-whitespace)
-  (let ((id (greger-parser--parse-id-line))
-        (content (greger-parser--parse-tool-result-content)))
-    (when id
-      (greger-parser--create-tool-result-message id content))))
-
-;; Tool parsing helpers
-
-(defun greger-parser--parse-name-line ()
-  "Parse 'Name: value' line."
-  (when (greger-parser--looking-at "Name:")
-    (greger-parser--advance 5)
-    (greger-parser--skip-horizontal-whitespace)
-    (greger-parser--read-line)))
-
-(defun greger-parser--parse-id-line ()
-  "Parse 'ID: value' line."
-  (greger-parser--skip-whitespace)
-  (when (greger-parser--looking-at "ID:")
-    (greger-parser--advance 3)
-    (greger-parser--skip-horizontal-whitespace)
-    (greger-parser--read-line)))
-
-(defun greger-parser--parse-tool-input ()
-  "Parse tool input parameters."
-  (let ((params '())
-        (iterations 0)
-        (max-iterations 100)) ; Safety limit
-    (greger-parser--skip-whitespace)
-    (while (and (greger-parser--can-parse-parameter-p)
-                (< iterations max-iterations))
-      (setq iterations (1+ iterations))
-      (let ((old-pos greger-parser--pos)
-            (param (greger-parser--parse-tool-parameter)))
-        (when param
-          (push param params))
-        (greger-parser--skip-whitespace)
-        ;; Safety check: ensure we're making progress
-        (when (= old-pos greger-parser--pos)
-          (greger-parser--debug "No progress in tool input parsing at pos %d, breaking" greger-parser--pos)
-          (break))))
-    (when (>= iterations max-iterations)
-      (greger-parser--debug "Hit max iterations in parse-tool-input"))
-    (reverse params)))
-
-(defun greger-parser--can-parse-parameter-p ()
-  "Check if we can parse a parameter."
-  (and (not (greger-parser--at-end-p))
-       (not (and (greger-parser--at-line-start-p)
-                 (greger-parser--find-section-tag)))
-       (greger-parser--at-line-start-p)
-       (greger-parser--looking-at "###")))
-
-(defun greger-parser--parse-tool-parameter ()
-  "Parse single tool parameter."
-  (when (greger-parser--looking-at "###")
-    (greger-parser--advance 3)
-    (greger-parser--skip-horizontal-whitespace)
-    (let ((name (greger-parser--read-line)))
-      (greger-parser--skip-whitespace)
-      (let ((value (greger-parser--parse-tool-value)))
-        (when (and name (not (string-empty-p name)))
-          (cons (intern name) (greger-parser--convert-value (or value ""))))))))
-
-(defun greger-parser--parse-tool-value ()
-  "Parse tool parameter value in XML-style tags."
-  (when (greger-parser--looking-at "<tool.")
-    (let ((tag-start (greger-parser--current-pos)))
-      ;; Find end of opening tag
-      (greger-parser--skip-to-closing-angle)
-      (when (eq (greger-parser--peek) ?>)
-        (let* ((opening-tag (greger-parser--substring tag-start (+ (greger-parser--current-pos) 1)))
-               (closing-tag (greger-parser--make-closing-tag opening-tag)))
-          (greger-parser--advance) ; Skip >
-          (greger-parser--skip-whitespace)
-
-          (let ((content-start (greger-parser--current-pos)))
-            (if (greger-parser--find-closing-tag closing-tag)
-                (let ((content (greger-parser--substring content-start)))
-                  (greger-parser--advance (length closing-tag))
-                  (greger-parser--normalize-tool-content content))
-              ;; If no closing tag found, consume to end of section
-              (let ((content (greger-parser--read-until-section)))
-                (greger-parser--normalize-tool-content content)))))))))
-
-(defun greger-parser--skip-to-closing-angle ()
-  "Skip to closing angle bracket."
-  (let ((iterations 0)
-        (max-iterations 1000)) ; Safety limit
-    (while (and (not (greger-parser--at-end-p))
-                (not (eq (greger-parser--peek) ?>))
-                (< iterations max-iterations))
-      (setq iterations (1+ iterations))
-      (greger-parser--advance))
-    (when (>= iterations max-iterations)
-      (greger-parser--debug "Hit max iterations in skip-to-closing-angle"))))
-
-(defun greger-parser--make-closing-tag (opening-tag)
-  "Make closing tag from opening tag."
-  (concat "</" (substring opening-tag 1)))
-
-(defun greger-parser--find-closing-tag (closing-tag)
-  "Find closing tag, treating all content inside as raw text."
-  (let ((found nil)
-        (iterations 0)
-        (max-iterations (* greger-parser--length 2))) ; Safety limit
-    (while (and (not found)
-                (not (greger-parser--at-end-p))
-                (< iterations max-iterations))
-      (setq iterations (1+ iterations))
-      (if (greger-parser--looking-at closing-tag)
-          (setq found t)
-        (greger-parser--advance)))
-    (when (>= iterations max-iterations)
-      (greger-parser--debug "Hit max iterations in find-closing-tag"))
-    found))
-
-(defun greger-parser--parse-tool-result-content ()
-  "Parse tool result content."
-  (greger-parser--skip-whitespace)
-  (or (greger-parser--parse-tool-value) ""))
-
-(defun greger-parser--normalize-tool-content (content)
-  "Normalize tool content by trimming outer newlines."
-  (if (string-empty-p content)
-      ""
-    (let ((result content))
-      ;; Remove leading newline
-      (when (and (> (length result) 0)
-                 (eq (aref result 0) ?\n))
-        (setq result (substring result 1)))
-      ;; Remove trailing newline
-      (when (and (> (length result) 0)
-                 (eq (aref result (1- (length result))) ?\n))
-        (setq result (substring result 0 -1)))
-      result)))
-
-(defun greger-parser--convert-value (str)
-  "Convert string to appropriate Elisp value."
-  (let ((trimmed (string-trim str)))
-    (cond
-     ((string= trimmed "true") t)
-     ((string= trimmed "false") nil)
-     ((string-match-p "^-?[0-9]+$" trimmed)
-      (string-to-number trimmed))
-     ((string-match-p "^-?[0-9]*\\.[0-9]+$" trimmed)
-      (string-to-number trimmed))
-     ((and (string-prefix-p "[" trimmed) (string-suffix-p "]" trimmed))
-      (greger-parser--parse-json-array trimmed))
-     ((and (string-prefix-p "{" trimmed) (string-suffix-p "}" trimmed))
-      (greger-parser--parse-json-object trimmed))
-     (t trimmed))))
-
-(defun greger-parser--parse-json-array (str)
-  "Parse JSON array string."
-  (condition-case nil
-      (json-read-from-string str)
-    (error str)))
-
-(defun greger-parser--parse-json-object (str)
-  "Parse JSON object string."
-  (condition-case nil
-      (let ((parsed (json-read-from-string str)))
-        (mapcar (lambda (pair)
-                  (cons (intern (symbol-name (car pair))) (cdr pair)))
-                parsed))
-    (error str)))
-
-;; Message creation
-
-(defun greger-parser--create-user-message (content)
-  "Create user message."
-  `((role . "user") (content . ,content)))
-
-(defun greger-parser--create-assistant-message (content)
-  "Create assistant message."
-  `((role . "assistant") (content . ,content)))
-
-(defun greger-parser--create-system-message (content)
-  "Create system message."
-  `((role . "system") (content . ,content)))
-
-(defun greger-parser--create-thinking-message (content)
-  "Create thinking message."
-  `((role . "assistant")
-    (content . (((type . "thinking") (thinking . ,content))))))
-
-(defun greger-parser--create-tool-use-message (name id input)
-  "Create tool use message."
-  `((role . "assistant")
-    (content . (((type . "tool_use")
-                 (id . ,id)
-                 (name . ,name)
-                 (input . ,input))))))
-
-(defun greger-parser--create-tool-result-message (id content)
-  "Create tool result message."
-  `((role . "user")
-    (content . (((type . "tool_result")
-                 (tool_use_id . ,id)
-                 (content . ,content))))))
-
-;; Message merging
-
-(defun greger-parser--merge-consecutive-messages (messages)
-  "Merge consecutive messages with same role."
-  (if (null messages)
-      '()
-    (let ((result (list (car messages))))
-      (dolist (msg (cdr messages))
-        (let* ((last (car result))
-               (last-role (alist-get 'role last))
-               (curr-role (alist-get 'role msg)))
-          (if (string= last-role curr-role)
-              ;; Merge with previous
-              (progn
-                (let ((merged (greger-parser--merge-message-contents last msg)))
-                  (setcar result merged)))
-            ;; Add as new message
-            (progn
-              (push msg result)))))
-      (reverse result))))
-
-(defun greger-parser--merge-message-contents (msg1 msg2)
-  "Merge contents of two messages."
-  (let ((role (alist-get 'role msg1))
-        (content1 (alist-get 'content msg1))
-        (content2 (alist-get 'content msg2)))
-    (let ((merged-content (greger-parser--merge-contents content1 content2)))
-      `((role . ,role)
-        (content . ,merged-content)))))
-
-(defun greger-parser--merge-contents (content1 content2)
-  "Merge two content values."
-  (let ((blocks1 (greger-parser--content-to-blocks content1))
-        (blocks2 (greger-parser--content-to-blocks content2)))
-    (let ((result (append blocks1 blocks2)))
-      result)))
-
-(defun greger-parser--content-to-blocks (content)
-  "Convert content to content blocks."
-  (let ((result (cond
-                 ((stringp content)
-                  `(((type . "text") (text . ,content))))
-                 ((listp content)
-                  content)
-                 (t
-                  `(((type . "text") (text . ,(format "%s" content))))))))
-    result))
-
-;; Markdown generation
-
-(defun greger-parser--message-to-markdown (message)
-  "Convert message to markdown."
-  (let ((role (alist-get 'role message))
-        (content (alist-get 'content message)))
-    (cond
-     ((string= role "user")
-      (greger-parser--user-to-markdown content))
-     ((string= role "assistant")
-      (greger-parser--assistant-to-markdown content))
-     ((string= role "system")
-      (greger-parser--system-to-markdown content))
-     (t ""))))
-
-(defun greger-parser--user-to-markdown (content)
-  "Convert user content to markdown."
-  (if (stringp content)
-      (concat greger-parser-user-tag "\n\n" content)
-    (concat greger-parser-user-tag "\n\n"
-            (greger-parser--content-blocks-to-markdown content))))
-
-(defun greger-parser--assistant-to-markdown (content)
-  "Convert assistant content to markdown."
-  (if (stringp content)
-      (concat greger-parser-assistant-tag "\n\n" content)
-    (greger-parser--content-blocks-to-markdown content)))
-
-(defun greger-parser--system-to-markdown (content)
-  "Convert system content to markdown."
-  (concat greger-parser-system-tag "\n\n" content))
-
-(defun greger-parser--content-blocks-to-markdown (blocks)
-  "Convert content blocks to markdown."
-  (mapconcat #'greger-parser--block-to-markdown blocks "\n\n"))
-
-(defun greger-parser--block-to-markdown (block)
-  "Convert single block to markdown."
-  (let ((type (alist-get 'type block)))
-    (cond
-     ((string= type "text")
-      (concat greger-parser-assistant-tag "\n\n"
-              (alist-get 'text block)))
-     ((string= type "thinking")
-      (concat greger-parser-thinking-tag "\n\n"
-              (alist-get 'thinking block)))
-     ((string= type "tool_use")
-      (greger-parser--tool-use-to-markdown block))
-     ((string= type "tool_result")
-      (greger-parser--tool-result-to-markdown block))
-     (t ""))))
-
-(defun greger-parser--tool-use-to-markdown (tool-use)
-  "Convert tool use to markdown."
-  (let ((name (alist-get 'name tool-use))
-        (id (alist-get 'id tool-use))
-        (input (alist-get 'input tool-use)))
-    (concat greger-parser-tool-use-tag "\n\n"
-            "Name: " name "\n"
-            "ID: " id "\n\n"
-            (greger-parser--tool-params-to-markdown id input))))
-
-(defun greger-parser--tool-result-to-markdown (tool-result)
-  "Convert tool result to markdown."
-  (let ((id (alist-get 'tool_use_id tool-result))
-        (content (alist-get 'content tool-result)))
-    (concat greger-parser-tool-result-tag "\n\n"
-            "ID: " id "\n\n"
-            "<tool." id ">\n"
-            content "\n"
-            "</tool." id ">")))
-
-(defun greger-parser--tool-params-to-markdown (id input)
-  "Convert tool parameters to markdown."
-  (if (null input)
-      ""
-    (mapconcat (lambda (param)
-                 (let ((name (symbol-name (car param)))
-                       (value (cdr param)))
-                   (concat "### " name "\n\n"
-                           "<tool." id ">\n"
-                           (greger-parser--value-to-string value) "\n"
-                           "</tool." id ">")))
-               input "\n\n")))
-
-(defun greger-parser--value-to-string (value)
-  "Convert value to string representation."
-  (cond
-   ((stringp value) value)
-   ((numberp value) (number-to-string value))
-   ((eq value t) "true")
-   ((eq value nil) "false")
-   ((vectorp value) (json-encode value))
-   ((listp value) (json-encode value))
-   (t (format "%s" value))))
-
-;; Debug helper function
-(defun greger-parser-enable-debug ()
-  "Enable parser debug output."
-  (interactive)
-  (setq greger-parser--debug t)
-  (message "Parser debug enabled"))
-
-(defun greger-parser-disable-debug ()
-  "Disable parser debug output."
-  (interactive)
-  (setq greger-parser--debug nil)
-  (message "Parser debug disabled"))
-
-(provide 'greger-parser)
-
-;;; greger-parser.el ends here
-
-</tool.toolu_019CsZEeGXBHnV45ksm7FEw2>
-
-## ASSISTANT:
-
-Now let me examine the `greger-agent.el` file to see how the state structure is implemented there:
+          (let ((parsed (greger-parser-parse-dialog markdown)))
+</tool.toolu_01GTU7gUpC7ah5a4JtaTGujP>
 
 ## TOOL USE:
 
 Name: read-file
-ID: toolu_01Vs9oLCckJEddPN5MntFTe8
+ID: toolu_012pNBLwCP65uivGCchDEAtP
 
 ### path
 
-<tool.toolu_01Vs9oLCckJEddPN5MntFTe8>
-greger-agent.el
-</tool.toolu_01Vs9oLCckJEddPN5MntFTe8>
+<tool.toolu_012pNBLwCP65uivGCchDEAtP>
+/Users/andreas/projects/aichat3/test-greger-parser.el
+</tool.toolu_012pNBLwCP65uivGCchDEAtP>
+
+### start_line
+
+<tool.toolu_012pNBLwCP65uivGCchDEAtP>
+1150
+</tool.toolu_012pNBLwCP65uivGCchDEAtP>
+
+### end_line
+
+<tool.toolu_012pNBLwCP65uivGCchDEAtP>
+1160
+</tool.toolu_012pNBLwCP65uivGCchDEAtP>
 
 ## TOOL RESULT:
 
-ID: toolu_01Vs9oLCckJEddPN5MntFTe8
+ID: toolu_012pNBLwCP65uivGCchDEAtP
 
-<tool.toolu_01Vs9oLCckJEddPN5MntFTe8>
-;;; greger-agent.el --- Agent capabilities for greger -*- lexical-binding: t -*-
+<tool.toolu_012pNBLwCP65uivGCchDEAtP>
+          (let ((parsed (greger-parser-parse-dialog markdown)))
+            (should (= 1 (length parsed)))
+            (let ((generated-markdown (greger-parser-dialog-to-markdown parsed)))
+              (should (string= expected generated-markdown)))))
+      (when (and inner-file (file-exists-p inner-file))
+        (delete-file inner-file))
+      (when (and outer-file (file-exists-p outer-file))
+        (delete-file outer-file)))))
 
-;;; Commentary:
-;; Provides agent functionality with tool support for greger
-
-;;; Code:
-
-(require 'json)
-(require 'cl-lib)
-(require 'greger)
-(require 'greger-parser)
-(require 'greger-stream)
-(require 'greger-tools)
-
-;; not using patch tool, it's too messy
-(defcustom greger-agent-tools '("read-file" "list-directory" "str-replace" "insert" "write-new-file" "replace-file" "replace-function" "make-directory" "rename-file" "ripgrep" "git-log" "git-show-commit" "shell-command")
-  "List of tools available to the agent."
-  :type '(repeat symbol)
-  :group 'greger)
-
-(defcustom greger-agent-max-iterations 100
-  "Maximum number of agent iterations before stopping."
-  :type 'integer
-  :group 'greger)
-
-(defcustom greger-agent-auto-approve t
-  "Whether to automatically approve tool calls without user confirmation."
-  :type 'boolean
-  :group 'greger)
-
-(defcustom greger-agent-debug t
-  "Whether to show debug information."
-  :type 'boolean
-  :group 'greger)
-
-;;; Agent state structure
-
-(cl-defstruct greger-agent-state
-  current-iteration
-  chat-buffer
-  directory)
-
-(defun greger-agent-buffer ()
-  "Send buffer content to AI as an agent dialog with tool support."
-  (interactive)
-  (let* ((buffer-content (buffer-substring-no-properties (point-min) (point-max)))
-         (dialog (greger-parser-parse-dialog buffer-content)))
-    (unless dialog
-      (error "Failed to parse dialog. Did you forget to close a html tag?"))
-
-    (goto-char (point-max))
-
-    (let ((agent-state (make-greger-agent-state
-                        :current-iteration 0
-                        :chat-buffer (current-buffer)
-                        :directory default-directory)))
-
-      (greger-agent--debug "--- DIALOG --- %s" dialog)
-      (greger-agent--debug "=== STARTING AGENT SESSION ===")
-
-      (greger-agent--run-agent-loop agent-state))))
-
-(defun greger-agent--debug (format-string &rest args)
-  "Debug logging function."
-  (when greger-agent-debug
-    (message "[AGENT DEBUG] %s" (apply #'format format-string args))))
-
-(defun greger-agent--run-agent-loop (agent-state)
-  "Run the main agent loop with AGENT-STATE."
-  (let* ((tools (greger-tools-get-schemas greger-agent-tools))
-         (chat-buffer (greger-agent-state-chat-buffer agent-state))
-         (buffer-content (with-current-buffer chat-buffer
-                           (buffer-substring-no-properties (point-min) (point-max))))
-         (current-dialog (greger-parser-parse-dialog buffer-content))
-         (current-iteration (greger-agent-state-current-iteration agent-state)))
-
-    (greger-agent--debug "=== ITERATION %d ===" current-iteration)
-    (greger-agent--debug "Dialog length: %d messages" (length current-dialog))
-
-    ;; Check max iterations
-    (if (>= current-iteration greger-agent-max-iterations)
-        (progn
-          (greger-agent--debug "MAX ITERATIONS REACHED - STOPPING")
-          (greger-agent--append-text (format "\n\nMaximum iterations (%d) reached. Stopping agent execution.\n\n"
-                                             greger-agent-max-iterations)
-                                     agent-state)
-          (greger-agent--finish-response agent-state))
-
-      ;; Get Claude's response
-      (greger-agent--debug "CALLING greger-stream-to-buffer-with-tools...")
-      (greger-stream-to-buffer-with-tools
-       :model greger-model
-       :dialog current-dialog
-       :tools tools
-       :buffer chat-buffer
-       :text-start-callback (lambda ()
-                              (greger-agent--append-text (concat "\n\n" greger-assistant-tag "\n\n") agent-state))
-       :text-callback (lambda (text)
-                        (greger-agent--append-text text agent-state))
-       :complete-callback (lambda (content-blocks)
-                            (greger-agent--debug "RECEIVED PARSED CONTENT BLOCKS")
-                            (greger-agent--handle-parsed-response content-blocks agent-state))))))
-
-(defun greger-agent--handle-parsed-response (content-blocks agent-state)
-  "Handle the parsed CONTENT-BLOCKS from Claude using AGENT-STATE."
-  (greger-agent--debug "CONTENT BLOCKS: %s" content-blocks)
-
-  ;; Check if we have tool calls
-  (let ((tool-calls (greger-agent--extract-tool-calls content-blocks)))
-    (if tool-calls
-        (progn
-          (greger-agent--debug "TOOL USE DETECTED! Found %d tool calls" (length tool-calls))
-          (setf (greger-agent-state-current-iteration agent-state)
-                (1+ (greger-agent-state-current-iteration agent-state)))
-          (greger-agent--execute-tools tool-calls agent-state))
-      (progn
-        (greger-agent--debug "NO TOOL USE - CONVERSATION COMPLETE")
-        (greger-agent--finish-response agent-state)))))
-
-(defun greger-agent--extract-tool-calls (content-blocks)
-  "Extract tool calls from CONTENT-BLOCKS."
-  (let ((tool-calls '()))
-    (dolist (block content-blocks)
-      (when (string= (alist-get 'type block) "tool_use")
-        (greger-agent--debug "EXTRACTING TOOL CALL: %s with input: %s"
-                            (alist-get 'name block)
-                            (json-encode (alist-get 'input block)))
-        (push block tool-calls)))
-    (reverse tool-calls)))
-
-(defun greger-agent--execute-tools (tool-calls agent-state)
-  "Execute TOOL-CALLS using AGENT-STATE and continue the conversation."
-  (let ((results '()))
-    (dolist (tool-call tool-calls)
-      (let* ((tool-name (alist-get 'name tool-call))
-             (tool-input (alist-get 'input tool-call))
-             (tool-id (alist-get 'id tool-call)))
-
-        (if (greger-agent--request-approval tool-name tool-input)
-            (condition-case err
-                (let* ((default-directory (greger-agent-state-directory agent-state))
-                       (result (greger-tools-execute tool-name tool-input (greger-agent-state-chat-buffer agent-state))))
-                  (push `((type . "tool_result")
-                         (tool_use_id . ,tool-id)
-                         (content . ,result))
-                        results))
-              (error
-               (push `((type . "tool_result")
-                      (tool_use_id . ,tool-id)
-                      (content . ,(format "Error executing tool: %s" (error-message-string err)))
-                      (is_error . t))
-                     results)))
-          (push `((type . "tool_result")
-                 (tool_use_id . ,tool-id)
-                 (content . "Tool execution declined by user")
-                 (is_error . t))
-                results))))
-
-    ;; Display tool execution
-    (greger-agent--display-tool-execution tool-calls (reverse results) agent-state)
-
-    ;; Continue the loop
-    (greger-agent--run-agent-loop agent-state)))
-
-(defun greger-agent--append-text (text agent-state)
-  (with-current-buffer (greger-agent-state-chat-buffer agent-state)
-    (goto-char (point-max))
-    (insert text)))
-
-(defun greger-agent--display-tool-execution (tool-calls results agent-state)
-  "Display the execution of TOOL-CALLS and their RESULTS using AGENT-STATE."
-  (with-current-buffer (greger-agent-state-chat-buffer agent-state)
-    (goto-char (point-max))
-
-    ;; The tool calls are already in the right format, just convert them
-    (let ((tool-blocks-markdown (greger-parser--content-blocks-to-markdown tool-calls)))
-      (unless (string-empty-p tool-blocks-markdown)
-        (insert "\n\n" tool-blocks-markdown)))
-
-    ;; Convert tool results to markdown
-    (let ((result-blocks-markdown (greger-parser--content-blocks-to-markdown results)))
-      (unless (string-empty-p result-blocks-markdown)
-        (insert "\n\n" result-blocks-markdown)))))
-
-(defun greger-agent--finish-response (agent-state)
-  "Finish the agent response using AGENT-STATE."
-  (greger-agent--debug "=== FINISHING RESPONSE - CONVERSATION COMPLETE ===")
-  (with-current-buffer (greger-agent-state-chat-buffer agent-state)
-    (goto-char (point-max))
-    (unless (looking-back (concat greger-user-tag "\n\n") nil)
-      (insert "\n\n" greger-user-tag "\n\n")))
-  ;; Reset the state
-  (setf (greger-agent-state-current-iteration agent-state) 0))
-
-(defun greger-agent--request-approval (tool-name tool-input)
-  "Request approval for TOOL-NAME with TOOL-INPUT."
-  (if greger-agent-auto-approve
-      t
-    (y-or-n-p (format "Execute %s with %s? " tool-name (json-encode tool-input)))))
-
-(defun greger-agent-set-auto-approve (enable)
-  "Set auto-approval of tool calls to ENABLE."
-  (interactive "P")
-  (setq greger-agent-auto-approve (if enable t nil))
-  (message "Auto-approval %s"
-           (if greger-agent-auto-approve "enabled" "disabled")))
-
-(defun greger-agent-toggle-debug ()
-  "Toggle debug output."
-  (interactive)
-  (setq greger-agent-debug (not greger-agent-debug))
-  (message "Agent debug %s" (if greger-agent-debug "enabled" "disabled")))
-
-(provide 'greger-agent)
-
-;;; greger-agent.el ends here
-
-</tool.toolu_01Vs9oLCckJEddPN5MntFTe8>
+(ert-deftest greger-parser-test-include-tag-in-assistant-section ()
+  "Test include tag in assistant section."
+</tool.toolu_012pNBLwCP65uivGCchDEAtP>
 
 ## ASSISTANT:
 
-Now I understand the pattern. I need to create a `greger-parser-state` structure and refactor all the parser functions to use it. Let me create the refactored version:
-
+Now let me look at the greger parser implementation to understand how include tags are currently handled:
 
 ## TOOL USE:
 
-Name: str-replace
-ID: toolu_011Lws1XhppEpH9ECp5P5Zkb
+Name: ripgrep
+ID: toolu_01Vn97BYNggMiGrjPC3KZ3zz
 
-### file_path
+### pattern
 
-<tool.toolu_011Lws1XhppEpH9ECp5P5Zkb>
+<tool.toolu_01Vn97BYNggMiGrjPC3KZ3zz>
+include
+</tool.toolu_01Vn97BYNggMiGrjPC3KZ3zz>
+
+### path
+
+<tool.toolu_01Vn97BYNggMiGrjPC3KZ3zz>
 greger-parser.el
-</tool.toolu_011Lws1XhppEpH9ECp5P5Zkb>
+</tool.toolu_01Vn97BYNggMiGrjPC3KZ3zz>
 
-### original_content
+## TOOL RESULT:
 
-<tool.toolu_011Lws1XhppEpH9ECp5P5Zkb>
-;;; greger-parser.el --- Parser for greger dialog format -*- lexical-binding: t -*-
+ID: toolu_01Vn97BYNggMiGrjPC3KZ3zz
 
-;;; Commentary:
-;; Parses markdown-style dialog format with sections like ## USER:, ## ASSISTANT:, etc.
-;; Handles tool use, thinking blocks, and complex content structures.
+<tool.toolu_01Vn97BYNggMiGrjPC3KZ3zz>
+269:;; Include tag processing
+271:(defun greger-parser--process-include-tag (state)
+272:  "Process an include tag and return the included content in STATE."
+273:  (greger-parser--debug state "Processing include tag at pos %d" (greger-parser-state-pos state))
+276:    (when (greger-parser--looking-at state "<include")
+277:      (greger-parser--advance state 8) ; Skip "<include"
+292:            (when (greger-parser--find-closing-tag state "</include>")
+294:                (greger-parser--advance state 10) ; Skip "</include>"
+297:                (greger-parser--include-file state file-path has-code-attr)))))))))
+299:(defun greger-parser--include-file (state file-path has-code-attr)
+300:  "Include a file's content, optionally formatting as code using STATE.
+333:(defun greger-parser--skip-include-tag (state)
+334:  "Skip include tag without processing it in STATE."
+335:  (greger-parser--debug state "Skipping include tag at pos %d" (greger-parser-state-pos state))
+336:  (greger-parser--advance state 8) ; Skip "<include"
+349:    (when (greger-parser--find-closing-tag state "</include>")
+350:      (greger-parser--advance state 10)))) ; Skip "</include>"
+355:  "Read characters until section tag, handling code blocks and include tags in STATE."
+372:         ((greger-parser--looking-at state "<include")
+373:          (greger-parser--skip-include-tag state))
+391:  "Read content until next section, removing HTML comments and processing include tags in STATE."
+424:         ((greger-parser--looking-at state "<include")
+425:          ;; Add content up to include tag
+427:          ;; Process the include tag
+428:          (let ((include-content (greger-parser--process-include-tag state)))
+429:            (when include-content
+430:              (setq result (concat result include-content))))
 
-;;; Code:
+</tool.toolu_01Vn97BYNggMiGrjPC3KZ3zz>
 
-(require 'json)
-(require 'cl-lib)
-(require 'url)
-(require 'dom)
-(require 'eww)
+## TOOL USE:
 
-;; Section tag constants
-(defconst greger-parser-user-tag "## USER:")
-(defconst greger-parser-assistant-tag "## ASSISTANT:")
-(defconst greger-parser-system-tag "## SYSTEM:")
-(defconst greger-parser-tool-use-tag "## TOOL USE:")
-(defconst greger-parser-tool-result-tag "## TOOL RESULT:")
-(defconst greger-parser-thinking-tag "## THINKING:")
+Name: read-file
+ID: toolu_01Rv1GhKPydjPBAEY2Q4s22r
 
-;; Parser state
-(defvar greger-parser--input "")
-(defvar greger-parser--pos 0)
-(defvar greger-parser--length 0)
-(defvar greger-parser--debug nil)
-</tool.toolu_011Lws1XhppEpH9ECp5P5Zkb>
+### path
 
-### new_content
+<tool.toolu_01Rv1GhKPydjPBAEY2Q4s22r>
+greger-parser.el
+</tool.toolu_01Rv1GhKPydjPBAEY2Q4s22r>
 
-<tool.toolu_011Lws1XhppEpH9ECp5P5Zkb>
-;;; greger-parser.el --- Parser for greger dialog format -*- lexical-binding: t -*-
+### start_line
 
-;;; Commentary:
-;; Parses markdown-style dialog format with sections like ## USER:, ## ASSISTANT:, etc.
-;; Handles tool use, thinking blocks, and complex content structures.
+<tool.toolu_01Rv1GhKPydjPBAEY2Q4s22r>
+299
+</tool.toolu_01Rv1GhKPydjPBAEY2Q4s22r>
 
-;;; Code:
+### end_line
 
-(require 'json)
-(require 'cl-lib)
-(require 'url)
-(require 'dom)
-(require 'eww)
+<tool.toolu_01Rv1GhKPydjPBAEY2Q4s22r>
+332
+</tool.toolu_01Rv1GhKPydjPBAEY2Q4s22r>
 
-;; Section tag constants
-(defconst greger-parser-user-tag "## USER:")
-(defconst greger-parser-assistant-tag "## ASSISTANT:")
-(defconst greger-parser-system-tag "## SYSTEM:")
-(defconst greger-parser-tool-use-tag "## TOOL USE:")
-(defconst greger-parser-tool-result-tag "## TOOL RESULT:")
-(defconst greger-parser-thinking-tag "## THINKING:")
+### include_line_numbers
 
-;;; Parser state structure
+<tool.toolu_01Rv1GhKPydjPBAEY2Q4s22r>
+true
+</tool.toolu_01Rv1GhKPydjPBAEY2Q4s22r>
 
+## TOOL RESULT:
+
+ID: toolu_01Rv1GhKPydjPBAEY2Q4s22r
+
+<tool.toolu_01Rv1GhKPydjPBAEY2Q4s22r>
+299: (defun greger-parser--include-file (state file-path has-code-attr)
+300:   "Include a file's content, optionally formatting as code using STATE.
+301: Supports both local files and web URLs (http:// or https://)."
+302:   (greger-parser--debug state "Including file: %s (code: %s)" file-path has-code-attr)
+303:   (condition-case err
+304:       (let ((content
+305:              (if (greger-parser--is-web-url-p file-path)
+306:                  ;; Handle web URL
+307:                  (progn
+308:                    (greger-parser--debug state "Downloading content from URL: %s" file-path)
+309:                    (greger-parser--text-from-url file-path t)) ; Use readability heuristics
+310:                ;; Handle local file
+311:                (with-temp-buffer
+312:                  (insert-file-contents file-path)
+313:                  (buffer-string)))))
+314:
+315:         ;; Remove trailing newline from content if present
+316:         (when (and (> (length content) 0)
+317:                    (eq (aref content (1- (length content))) ?\n))
+318:           (setq content (substring content 0 -1)))
+319:
+320:         (if has-code-attr
+321:             (format "%s:\n```\n%s\n```" file-path content)
+322:           content))
+323:     (error
+324:      (greger-parser--debug state "Error reading %s %s: %s"
+325:                           (if (greger-parser--is-web-url-p file-path) "URL" "file")
+326:                           file-path
+327:                           (error-message-string err))
+328:      ;; Return error message as content instead of failing silently
+329:      (format "[Error reading %s: %s]"
+330:              (if (greger-parser--is-web-url-p file-path) "URL" "file")
+331:              file-path))))
+332:
+</tool.toolu_01Rv1GhKPydjPBAEY2Q4s22r>
+
+## TOOL USE:
+
+Name: read-file
+ID: toolu_01BkHruAk4Af9wRFLZCdk5CQ
+
+### path
+
+<tool.toolu_01BkHruAk4Af9wRFLZCdk5CQ>
+greger-parser.el
+</tool.toolu_01BkHruAk4Af9wRFLZCdk5CQ>
+
+### start_line
+
+<tool.toolu_01BkHruAk4Af9wRFLZCdk5CQ>
+271
+</tool.toolu_01BkHruAk4Af9wRFLZCdk5CQ>
+
+### end_line
+
+<tool.toolu_01BkHruAk4Af9wRFLZCdk5CQ>
+298
+</tool.toolu_01BkHruAk4Af9wRFLZCdk5CQ>
+
+### include_line_numbers
+
+<tool.toolu_01BkHruAk4Af9wRFLZCdk5CQ>
+true
+</tool.toolu_01BkHruAk4Af9wRFLZCdk5CQ>
+
+## TOOL RESULT:
+
+ID: toolu_01BkHruAk4Af9wRFLZCdk5CQ
+
+<tool.toolu_01BkHruAk4Af9wRFLZCdk5CQ>
+271: (defun greger-parser--process-include-tag (state)
+272:   "Process an include tag and return the included content in STATE."
+273:   (greger-parser--debug state "Processing include tag at pos %d" (greger-parser-state-pos state))
+274:   (let ((tag-start (greger-parser--current-pos state)))
+275:     ;; Parse the opening tag
+276:     (when (greger-parser--looking-at state "<include")
+277:       (greger-parser--advance state 8) ; Skip "<include"
+278:       (let ((has-code-attr nil))
+279:         ;; Check for optional "code" attribute
+280:         (greger-parser--skip-horizontal-whitespace state)
+281:         (when (greger-parser--looking-at state "code")
+282:           (setq has-code-attr t)
+283:           (greger-parser--advance state 4)
+284:           (greger-parser--skip-horizontal-whitespace state))
+285:
+286:         ;; Skip to closing bracket of opening tag
+287:         (when (greger-parser--looking-at state ">")
+288:           (greger-parser--advance state 1)
+289:
+290:           ;; Extract the file path
+291:           (let ((path-start (greger-parser--current-pos state)))
+292:             (when (greger-parser--find-closing-tag state "</include>")
+293:               (let ((file-path (string-trim (greger-parser--substring state path-start))))
+294:                 (greger-parser--advance state 10) ; Skip "</include>"
+295:
+296:                 ;; Read and process the file
+297:                 (greger-parser--include-file state file-path has-code-attr)))))))))
+298:
+</tool.toolu_01BkHruAk4Af9wRFLZCdk5CQ>
+
+## ASSISTANT:
+
+Now I need to understand how the content reading works and where the issue is. Let me look at the `greger-parser--read-content-until-section` function:
+
+## TOOL USE:
+
+Name: read-file
+ID: toolu_014x6UCxURz3QWTUa8zHSsLd
+
+### path
+
+<tool.toolu_014x6UCxURz3QWTUa8zHSsLd>
+greger-parser.el
+</tool.toolu_014x6UCxURz3QWTUa8zHSsLd>
+
+### start_line
+
+<tool.toolu_014x6UCxURz3QWTUa8zHSsLd>
+390
+</tool.toolu_014x6UCxURz3QWTUa8zHSsLd>
+
+### end_line
+
+<tool.toolu_014x6UCxURz3QWTUa8zHSsLd>
+440
+</tool.toolu_014x6UCxURz3QWTUa8zHSsLd>
+
+### include_line_numbers
+
+<tool.toolu_014x6UCxURz3QWTUa8zHSsLd>
+true
+</tool.toolu_014x6UCxURz3QWTUa8zHSsLd>
+
+## TOOL RESULT:
+
+ID: toolu_014x6UCxURz3QWTUa8zHSsLd
+
+<tool.toolu_014x6UCxURz3QWTUa8zHSsLd>
+390: (defun greger-parser--read-until-section-with-comment-removal (state)
+391:   "Read content until next section, removing HTML comments and processing include tags in STATE."
+392:   (let ((result "")
+393:         (start (greger-parser--current-pos state))
+394:         (iterations 0)
+395:         (max-iterations (* (greger-parser-state-length state) 2))) ; Safety limit
+396:     (while (and (not (greger-parser--at-end-p state))
+397:                 (not (and (greger-parser--at-line-start-p state)
+398:                           (greger-parser--find-section-tag state)))
+399:                 (< iterations max-iterations))
+400:       (setq iterations (1+ iterations))
+401:       (let ((old-pos (greger-parser-state-pos state)))
+402:         (cond
+403:          ((greger-parser--at-triple-backticks state)
+404:           ;; Add content up to code block
+405:           (setq result (concat result (greger-parser--substring state start)))
+406:           (setq start (greger-parser--current-pos state))
+407:           (greger-parser--skip-code-block state)
+408:           ;; Add the code block
+409:           (setq result (concat result (greger-parser--substring state start)))
+410:           (setq start (greger-parser--current-pos state)))
+411:          ((greger-parser--looking-at state "`")
+412:           ;; Add content up to inline code
+413:           (setq result (concat result (greger-parser--substring state start)))
+414:           (setq start (greger-parser--current-pos state))
+415:           (greger-parser--skip-inline-code state)
+416:           ;; Add the inline code
+417:           (setq result (concat result (greger-parser--substring state start)))
+418:           (setq start (greger-parser--current-pos state)))
+419:          ((greger-parser--looking-at state "<!--")
+420:           ;; Add content up to comment, skip comment entirely
+421:           (setq result (concat result (greger-parser--substring state start)))
+422:           (greger-parser--skip-html-comment state)
+423:           (setq start (greger-parser--current-pos state)))
+424:          ((greger-parser--looking-at state "<include")
+425:           ;; Add content up to include tag
+426:           (setq result (concat result (greger-parser--substring state start)))
+427:           ;; Process the include tag
+428:           (let ((include-content (greger-parser--process-include-tag state)))
+429:             (when include-content
+430:               (setq result (concat result include-content))))
+431:           (setq start (greger-parser--current-pos state)))
+432:          (t
+433:           (greger-parser--advance state)))
+434:         ;; Safety check: ensure we're making progress
+435:         (when (= old-pos (greger-parser-state-pos state))
+436:           (greger-parser--debug state "No progress at pos %d, forcing advance" (greger-parser-state-pos state))
+437:           (greger-parser--advance state))))
+438:     (when (>= iterations max-iterations)
+439:       (greger-parser--debug state "Hit max iterations in read-until-section-with-comment-removal")
+440:       (setf (greger-parser-state-pos state) (greger-parser-state-length state)))
+</tool.toolu_014x6UCxURz3QWTUa8zHSsLd>
+
+## ASSISTANT:
+
+I can see the issue now. The problem is in the `greger-parser--read-until-section-with-comment-removal` function at lines 424-431. When it encounters an include tag for a local file (without the `code` attribute), it processes the include tag and concatenates the content directly to the result string. This means the included content is not parsed for further include tags.
+
+Instead, for local files without the `code` attribute, we should insert the content back into the state at the current position so it gets parsed as if it were part of the original content.
+
+Let me examine the state structure to understand how to modify it:
+
+## TOOL USE:
+
+Name: ripgrep
+ID: toolu_01CffoeDyNK4RNJZu76jSCMk
+
+### pattern
+
+<tool.toolu_01CffoeDyNK4RNJZu76jSCMk>
+defstruct.*greger-parser-state
+</tool.toolu_01CffoeDyNK4RNJZu76jSCMk>
+
+### path
+
+<tool.toolu_01CffoeDyNK4RNJZu76jSCMk>
+greger-parser.el
+</tool.toolu_01CffoeDyNK4RNJZu76jSCMk>
+
+## TOOL RESULT:
+
+ID: toolu_01CffoeDyNK4RNJZu76jSCMk
+
+<tool.toolu_01CffoeDyNK4RNJZu76jSCMk>
+25:(cl-defstruct greger-parser-state
+
+</tool.toolu_01CffoeDyNK4RNJZu76jSCMk>
+
+## TOOL USE:
+
+Name: read-file
+ID: toolu_01JPJr1H4uteSDyjdb9EsCwC
+
+### path
+
+<tool.toolu_01JPJr1H4uteSDyjdb9EsCwC>
+greger-parser.el
+</tool.toolu_01JPJr1H4uteSDyjdb9EsCwC>
+
+### start_line
+
+<tool.toolu_01JPJr1H4uteSDyjdb9EsCwC>
+25
+</tool.toolu_01JPJr1H4uteSDyjdb9EsCwC>
+
+### end_line
+
+<tool.toolu_01JPJr1H4uteSDyjdb9EsCwC>
+35
+</tool.toolu_01JPJr1H4uteSDyjdb9EsCwC>
+
+## TOOL RESULT:
+
+ID: toolu_01JPJr1H4uteSDyjdb9EsCwC
+
+<tool.toolu_01JPJr1H4uteSDyjdb9EsCwC>
 (cl-defstruct greger-parser-state
   input
   pos
   length
   debug)
-</tool.toolu_011Lws1XhppEpH9ECp5P5Zkb>
 
-### git_commit_message
-
-<tool.toolu_011Lws1XhppEpH9ECp5P5Zkb>
-Refactor greger-parser to use state structure instead of global variables
-</tool.toolu_011Lws1XhppEpH9ECp5P5Zkb>
-
-## TOOL RESULT:
-
-ID: toolu_011Lws1XhppEpH9ECp5P5Zkb
-
-<tool.toolu_011Lws1XhppEpH9ECp5P5Zkb>
-Successfully replaced content in /Users/andreas/projects/aichat3/greger-parser.el. Successfully staged 2 file(s) and committed with message: Refactor greger-parser to use state structure instead of global variables
-</tool.toolu_011Lws1XhppEpH9ECp5P5Zkb>
-
-## ASSISTANT:
-
-Now I need to update the macro and the main parsing entry points:
-
+(defun greger-parser--create-state (input &optional debug)
+  "Create a parser state for INPUT with optional DEBUG flag."
+  (make-greger-parser-state
+   :input (or input "")
+   :pos 0
+</tool.toolu_01JPJr1H4uteSDyjdb9EsCwC>
 
 ## TOOL USE:
 
-Name: str-replace
-ID: toolu_01HeygREytSXZAchQfwS1c7E
+Name: read-file
+ID: toolu_01VgiWBB41SVehkZqJazkLcf
 
-### file_path
+### path
 
-<tool.toolu_01HeygREytSXZAchQfwS1c7E>
+<tool.toolu_01VgiWBB41SVehkZqJazkLcf>
 greger-parser.el
-</tool.toolu_01HeygREytSXZAchQfwS1c7E>
+</tool.toolu_01VgiWBB41SVehkZqJazkLcf>
 
-### original_content
+### start_line
 
-<tool.toolu_01HeygREytSXZAchQfwS1c7E>
-(defmacro greger-parser--with-input (input &rest body)
-  "Execute BODY with INPUT as parser source."
-  `(let ((greger-parser--input (or ,input ""))
-         (greger-parser--pos 0)
-         (greger-parser--length (length (or ,input ""))))
-     ,@body))
+<tool.toolu_01VgiWBB41SVehkZqJazkLcf>
+30
+</tool.toolu_01VgiWBB41SVehkZqJazkLcf>
 
-(defun greger-parser--debug (format-string &rest args)
-  "Debug logging function."
-  (when greger-parser--debug
-    (message "[PARSER DEBUG] %s" (apply #'format format-string args))))
+### end_line
 
-;; Main parsing entry points
+<tool.toolu_01VgiWBB41SVehkZqJazkLcf>
+40
+</tool.toolu_01VgiWBB41SVehkZqJazkLcf>
 
-(defun greger-parser-parse-dialog (markdown)
-  "Parse MARKDOWN into dialog format."
-  (if (or (null markdown) (string-empty-p (string-trim markdown)))
-      '()
-    (greger-parser--with-input markdown
-      (condition-case err
-          (greger-parser--parse-document)
-        (error
-         (greger-parser--debug "Parse error: %s" (error-message-string err))
-         '())))))
+## TOOL RESULT:
 
-(defun greger-parser-dialog-to-markdown (dialog)
-  "Convert DIALOG to markdown format."
-  (if (null dialog)
-      ""
-    (mapconcat #'greger-parser--message-to-markdown dialog "\n\n")))
-</tool.toolu_01HeygREytSXZAchQfwS1c7E>
+ID: toolu_01VgiWBB41SVehkZqJazkLcf
 
-### new_content
+<tool.toolu_01VgiWBB41SVehkZqJazkLcf>
 
-<tool.toolu_01HeygREytSXZAchQfwS1c7E>
 (defun greger-parser--create-state (input &optional debug)
   "Create a parser state for INPUT with optional DEBUG flag."
   (make-greger-parser-state
@@ -1329,2502 +537,185 @@ greger-parser.el
 
 (defun greger-parser--debug (state format-string &rest args)
   "Debug logging function using STATE."
-  (when (greger-parser-state-debug state)
-    (message "[PARSER DEBUG] %s" (apply #'format format-string args))))
-
-;; Main parsing entry points
-
-(defun greger-parser-parse-dialog (markdown &optional debug)
-  "Parse MARKDOWN into dialog format with optional DEBUG flag."
-  (if (or (null markdown) (string-empty-p (string-trim markdown)))
-      '()
-    (let ((state (greger-parser--create-state markdown debug)))
-      (condition-case err
-          (greger-parser--parse-document state)
-        (error
-         (greger-parser--debug state "Parse error: %s" (error-message-string err))
-         '())))))
-
-(defun greger-parser-dialog-to-markdown (dialog)
-  "Convert DIALOG to markdown format."
-  (if (null dialog)
-      ""
-    (mapconcat #'greger-parser--message-to-markdown dialog "\n\n")))
-</tool.toolu_01HeygREytSXZAchQfwS1c7E>
-
-### git_commit_message
-
-<tool.toolu_01HeygREytSXZAchQfwS1c7E>
-Update parser entry points to use state structure
-</tool.toolu_01HeygREytSXZAchQfwS1c7E>
-
-## TOOL RESULT:
-
-ID: toolu_01HeygREytSXZAchQfwS1c7E
-
-<tool.toolu_01HeygREytSXZAchQfwS1c7E>
-Successfully replaced content in /Users/andreas/projects/aichat3/greger-parser.el. Successfully staged 2 file(s) and committed with message: Update parser entry points to use state structure
-</tool.toolu_01HeygREytSXZAchQfwS1c7E>
+</tool.toolu_01VgiWBB41SVehkZqJazkLcf>
 
 ## ASSISTANT:
 
-Now I need to update all the parser infrastructure functions to take a state parameter:
+Now I understand the structure. The state has `input`, `pos`, `length`, and `debug` fields. To insert content into the state, I need to modify the `input` field and update the `length` field accordingly.
 
+Let me modify the `greger-parser--include-file` function to handle local files differently. Instead of returning the content directly, for local files without the `code` attribute, I need to insert the content into the state at the current position.
+
+First, let me check if there are any helper functions for modifying the state:
+
+## TOOL USE:
+
+Name: ripgrep
+ID: toolu_01S2RuMRwffwXToJ5yGoY3Nd
+
+### pattern
+
+<tool.toolu_01S2RuMRwffwXToJ5yGoY3Nd>
+defun.*greger-parser.*state
+</tool.toolu_01S2RuMRwffwXToJ5yGoY3Nd>
+
+### path
+
+<tool.toolu_01S2RuMRwffwXToJ5yGoY3Nd>
+greger-parser.el
+</tool.toolu_01S2RuMRwffwXToJ5yGoY3Nd>
+
+## TOOL RESULT:
+
+ID: toolu_01S2RuMRwffwXToJ5yGoY3Nd
+
+<tool.toolu_01S2RuMRwffwXToJ5yGoY3Nd>
+31:(defun greger-parser--create-state (input &optional debug)
+39:(defun greger-parser--debug (state format-string &rest args)
+65:(defun greger-parser--at-end-p (state)
+69:(defun greger-parser--peek (state &optional offset)
+76:(defun greger-parser--advance (state &optional n)
+84:(defun greger-parser--current-pos (state)
+88:(defun greger-parser--substring (state start &optional end)
+99:(defun greger-parser--looking-at (state string)
+107:(defun greger-parser--at-triple-backticks (state)
+128:(defun greger-parser--skip-whitespace (state)
+137:(defun greger-parser--skip-horizontal-whitespace (state)
+143:(defun greger-parser--at-line-start-p (state)
+148:(defun greger-parser--skip-to-line-end (state)
+154:(defun greger-parser--read-line (state)
+171:(defun greger-parser--find-section-tag (state)
+178:(defun greger-parser--consume-section-tag (state tag)
+187:(defun greger-parser--skip-code-block (state)
+204:(defun greger-parser--skip-inline-code (state)
+214:(defun greger-parser--skip-html-comment (state)
+271:(defun greger-parser--process-include-tag (state)
+299:(defun greger-parser--include-file (state file-path has-code-attr)
+333:(defun greger-parser--skip-include-tag (state)
+354:(defun greger-parser--read-until-section-tag (state)
+384:(defun greger-parser--read-until-section (state)
+390:(defun greger-parser--read-until-section-with-comment-removal (state)
+445:(defun greger-parser--parse-section-content (state)
+454:(defun greger-parser--parse-document (state)
+487:(defun greger-parser--parse-untagged-content (state)
+493:(defun greger-parser--parse-section (state)
+514:(defun greger-parser--parse-user-section (state)
+520:(defun greger-parser--parse-assistant-section (state)
+526:(defun greger-parser--parse-system-section (state)
+532:(defun greger-parser--parse-thinking-section (state)
+538:(defun greger-parser--parse-tool-use-section (state)
+547:(defun greger-parser--parse-tool-result-section (state)
+557:(defun greger-parser--parse-name-line (state)
+564:(defun greger-parser--parse-id-line (state)
+572:(defun greger-parser--parse-tool-input (state)
+594:(defun greger-parser--can-parse-parameter-p (state)
+602:(defun greger-parser--parse-tool-parameter (state)
+613:(defun greger-parser--parse-tool-value (state)
+634:(defun greger-parser--skip-to-closing-angle (state)
+650:(defun greger-parser--find-closing-tag (state closing-tag)
+666:(defun greger-parser--parse-tool-result-content (state)
+
+</tool.toolu_01S2RuMRwffwXToJ5yGoY3Nd>
+
+## ASSISTANT:
+
+I don't see any existing function to insert content into the state. I'll need to create a helper function for this. Let me implement the solution:
+
+1. First, I'll create a helper function to insert content into the state at the current position
+2. Then I'll modify the `greger-parser--include-file` function to use this for local files without the `code` attribute
+3. Finally, I'll update the `greger-parser--read-until-section-with-comment-removal` function to handle the case where content is inserted into the state
 
 ## TOOL USE:
 
 Name: str-replace
-ID: toolu_01H2EodDRQBFBF7JDyUHtjqL
+ID: toolu_01KbG5qNffXe7HJFrvYVRmcY
 
 ### file_path
 
-<tool.toolu_01H2EodDRQBFBF7JDyUHtjqL>
+<tool.toolu_01KbG5qNffXe7HJFrvYVRmcY>
 greger-parser.el
-</tool.toolu_01H2EodDRQBFBF7JDyUHtjqL>
+</tool.toolu_01KbG5qNffXe7HJFrvYVRmcY>
 
 ### original_content
 
-<tool.toolu_01H2EodDRQBFBF7JDyUHtjqL>
-;; Parser infrastructure
-
-(defun greger-parser--at-end-p ()
-  "True if at end of input."
-  (>= greger-parser--pos greger-parser--length))
-
-(defun greger-parser--peek (&optional offset)
-  "Peek at character at current position plus OFFSET."
-  (let ((pos (+ greger-parser--pos (or offset 0))))
-    (if (and (>= pos 0) (< pos greger-parser--length))
-        (aref greger-parser--input pos)
-      nil)))
-
-(defun greger-parser--advance (&optional n)
-  "Advance position by N characters (default 1)."
-  (let ((old-pos greger-parser--pos))
-    (setq greger-parser--pos (min greger-parser--length
-                                 (+ greger-parser--pos (or n 1))))
-    (greger-parser--debug "Advanced from %d to %d" old-pos greger-parser--pos)))
-
-(defun greger-parser--current-pos ()
-  "Get current position."
-  greger-parser--pos)
-
-(defun greger-parser--substring (start &optional end)
-  "Get substring from START to END (or current position)."
-  (if (and (>= start 0)
-           (<= start greger-parser--length)
-           (or (null end) (<= end greger-parser--length)))
-      (substring greger-parser--input start (or end greger-parser--pos))
-    ""))
-
-(defun greger-parser--looking-at (string)
-  "True if current position matches STRING."
-  (and string
-       (<= (+ greger-parser--pos (length string)) greger-parser--length)
-       (string= (greger-parser--substring greger-parser--pos
-                                         (+ greger-parser--pos (length string)))
-                string)))
-
-(defun greger-parser--at-triple-backticks ()
-  "True if current position matches ``` at beginning of line."
-  (and (greger-parser--at-line-start-p)
-       (greger-parser--looking-at "```")))
-</tool.toolu_01H2EodDRQBFBF7JDyUHtjqL>
+<tool.toolu_01KbG5qNffXe7HJFrvYVRmcY>
+(defun greger-parser--current-pos (state)
+  "Get the current position in STATE."
+  (greger-parser-state-pos state))
+</tool.toolu_01KbG5qNffXe7HJFrvYVRmcY>
 
 ### new_content
 
-<tool.toolu_01H2EodDRQBFBF7JDyUHtjqL>
-;; Parser infrastructure
-
-(defun greger-parser--at-end-p (state)
-  "True if at end of input in STATE."
-  (>= (greger-parser-state-pos state) (greger-parser-state-length state)))
-
-(defun greger-parser--peek (state &optional offset)
-  "Peek at character at current position plus OFFSET in STATE."
-  (let ((pos (+ (greger-parser-state-pos state) (or offset 0))))
-    (if (and (>= pos 0) (< pos (greger-parser-state-length state)))
-        (aref (greger-parser-state-input state) pos)
-      nil)))
-
-(defun greger-parser--advance (state &optional n)
-  "Advance position by N characters (default 1) in STATE."
-  (let ((old-pos (greger-parser-state-pos state)))
-    (setf (greger-parser-state-pos state)
-          (min (greger-parser-state-length state)
-               (+ (greger-parser-state-pos state) (or n 1))))
-    (greger-parser--debug state "Advanced from %d to %d" old-pos (greger-parser-state-pos state))))
-
+<tool.toolu_01KbG5qNffXe7HJFrvYVRmcY>
 (defun greger-parser--current-pos (state)
-  "Get current position from STATE."
+  "Get the current position in STATE."
   (greger-parser-state-pos state))
 
-(defun greger-parser--substring (state start &optional end)
-  "Get substring from START to END (or current position) in STATE."
-  (let ((input (greger-parser-state-input state))
-        (length (greger-parser-state-length state))
-        (current-pos (greger-parser-state-pos state)))
-    (if (and (>= start 0)
-             (<= start length)
-             (or (null end) (<= end length)))
-        (substring input start (or end current-pos))
-      "")))
-
-(defun greger-parser--looking-at (state string)
-  "True if current position matches STRING in STATE."
-  (and string
-       (<= (+ (greger-parser-state-pos state) (length string)) (greger-parser-state-length state))
-       (string= (greger-parser--substring state (greger-parser-state-pos state)
-                                         (+ (greger-parser-state-pos state) (length string)))
-                string)))
-
-(defun greger-parser--at-triple-backticks (state)
-  "True if current position matches ``` at beginning of line in STATE."
-  (and (greger-parser--at-line-start-p state)
-       (greger-parser--looking-at state "```")))
-</tool.toolu_01H2EodDRQBFBF7JDyUHtjqL>
+(defun greger-parser--insert-content-at-pos (state content)
+  "Insert CONTENT into STATE at the current position and update length."
+  (let* ((pos (greger-parser-state-pos state))
+         (input (greger-parser-state-input state))
+         (before (substring input 0 pos))
+         (after (substring input pos))
+         (new-input (concat before content after)))
+    (setf (greger-parser-state-input state) new-input)
+    (setf (greger-parser-state-length state) (length new-input))))
+</tool.toolu_01KbG5qNffXe7HJFrvYVRmcY>
 
 ### git_commit_message
 
-<tool.toolu_01H2EodDRQBFBF7JDyUHtjqL>
-Update parser infrastructure functions to use state parameter
-</tool.toolu_01H2EodDRQBFBF7JDyUHtjqL>
+<tool.toolu_01KbG5qNffXe7HJFrvYVRmcY>
+Add helper function to insert content into parser state
+</tool.toolu_01KbG5qNffXe7HJFrvYVRmcY>
 
 ## TOOL RESULT:
 
-ID: toolu_01H2EodDRQBFBF7JDyUHtjqL
+ID: toolu_01KbG5qNffXe7HJFrvYVRmcY
 
-<tool.toolu_01H2EodDRQBFBF7JDyUHtjqL>
-Successfully replaced content in /Users/andreas/projects/aichat3/greger-parser.el. Successfully staged 2 file(s) and committed with message: Update parser infrastructure functions to use state parameter
-</tool.toolu_01H2EodDRQBFBF7JDyUHtjqL>
+<tool.toolu_01KbG5qNffXe7HJFrvYVRmcY>
+Error executing tool: Original content not found in file: /Users/andreas/projects/aichat3/greger-parser.el -- Try again!
+</tool.toolu_01KbG5qNffXe7HJFrvYVRmcY>
 
 ## ASSISTANT:
 
-Now I need to update the character tests and navigation functions:
-
-
-## TOOL USE:
-
-Name: str-replace
-ID: toolu_01VvAdL1d6RrzbwecaSL7EYs
-
-### file_path
-
-<tool.toolu_01VvAdL1d6RrzbwecaSL7EYs>
-greger-parser.el
-</tool.toolu_01VvAdL1d6RrzbwecaSL7EYs>
-
-### original_content
-
-<tool.toolu_01VvAdL1d6RrzbwecaSL7EYs>
-;; Character tests
-
-(defun greger-parser--whitespace-p (char)
-  "True if CHAR is whitespace."
-  (and char (memq char '(?\s ?\t ?\n ?\r))))
-
-(defun greger-parser--horizontal-whitespace-p (char)
-  "True if CHAR is horizontal whitespace."
-  (and char (memq char '(?\s ?\t))))
-
-(defun greger-parser--newline-p (char)
-  "True if CHAR is newline."
-  (and char (eq char ?\n)))
-
-;; Navigation
-
-(defun greger-parser--skip-whitespace ()
-  "Skip all whitespace."
-  (let ((start-pos greger-parser--pos))
-    (while (and (not (greger-parser--at-end-p))
-                (greger-parser--whitespace-p (greger-parser--peek)))
-      (greger-parser--advance))
-    (when (> greger-parser--pos start-pos)
-      (greger-parser--debug "Skipped whitespace from %d to %d" start-pos greger-parser--pos))))
-
-(defun greger-parser--skip-horizontal-whitespace ()
-  "Skip spaces and tabs."
-  (while (and (not (greger-parser--at-end-p))
-              (greger-parser--horizontal-whitespace-p (greger-parser--peek)))
-    (greger-parser--advance)))
-
-(defun greger-parser--at-line-start-p ()
-  "True if at start of line."
-  (or (= greger-parser--pos 0)
-      (greger-parser--newline-p (greger-parser--peek -1))))
-
-(defun greger-parser--skip-to-line-end ()
-  "Skip to end of current line."
-  (while (and (not (greger-parser--at-end-p))
-              (not (greger-parser--newline-p (greger-parser--peek))))
-    (greger-parser--advance)))
-
-(defun greger-parser--read-line ()
-  "Read rest of current line."
-  (let ((start (greger-parser--current-pos)))
-    (greger-parser--skip-to-line-end)
-    (string-trim (greger-parser--substring start))))
-</tool.toolu_01VvAdL1d6RrzbwecaSL7EYs>
-
-### new_content
-
-<tool.toolu_01VvAdL1d6RrzbwecaSL7EYs>
-;; Character tests
-
-(defun greger-parser--whitespace-p (char)
-  "True if CHAR is whitespace."
-  (and char (memq char '(?\s ?\t ?\n ?\r))))
-
-(defun greger-parser--horizontal-whitespace-p (char)
-  "True if CHAR is horizontal whitespace."
-  (and char (memq char '(?\s ?\t))))
-
-(defun greger-parser--newline-p (char)
-  "True if CHAR is newline."
-  (and char (eq char ?\n)))
-
-;; Navigation
-
-(defun greger-parser--skip-whitespace (state)
-  "Skip all whitespace in STATE."
-  (let ((start-pos (greger-parser-state-pos state)))
-    (while (and (not (greger-parser--at-end-p state))
-                (greger-parser--whitespace-p (greger-parser--peek state)))
-      (greger-parser--advance state))
-    (when (> (greger-parser-state-pos state) start-pos)
-      (greger-parser--debug state "Skipped whitespace from %d to %d" start-pos (greger-parser-state-pos state)))))
-
-(defun greger-parser--skip-horizontal-whitespace (state)
-  "Skip spaces and tabs in STATE."
-  (while (and (not (greger-parser--at-end-p state))
-              (greger-parser--horizontal-whitespace-p (greger-parser--peek state)))
-    (greger-parser--advance state)))
-
-(defun greger-parser--at-line-start-p (state)
-  "True if at start of line in STATE."
-  (or (= (greger-parser-state-pos state) 0)
-      (greger-parser--newline-p (greger-parser--peek state -1))))
-
-(defun greger-parser--skip-to-line-end (state)
-  "Skip to end of current line in STATE."
-  (while (and (not (greger-parser--at-end-p state))
-              (not (greger-parser--newline-p (greger-parser--peek state))))
-    (greger-parser--advance state)))
-
-(defun greger-parser--read-line (state)
-  "Read rest of current line in STATE."
-  (let ((start (greger-parser--current-pos state)))
-    (greger-parser--skip-to-line-end state)
-    (string-trim (greger-parser--substring state start))))
-</tool.toolu_01VvAdL1d6RrzbwecaSL7EYs>
-
-### git_commit_message
-
-<tool.toolu_01VvAdL1d6RrzbwecaSL7EYs>
-Update character tests and navigation functions to use state parameter
-</tool.toolu_01VvAdL1d6RrzbwecaSL7EYs>
-
-## TOOL RESULT:
-
-ID: toolu_01VvAdL1d6RrzbwecaSL7EYs
-
-<tool.toolu_01VvAdL1d6RrzbwecaSL7EYs>
-Successfully replaced content in /Users/andreas/projects/aichat3/greger-parser.el. Successfully staged 2 file(s) and committed with message: Update character tests and navigation functions to use state parameter
-</tool.toolu_01VvAdL1d6RrzbwecaSL7EYs>
-
-## ASSISTANT:
-
-Now I need to update the section tag handling functions:
-
-
-## TOOL USE:
-
-Name: str-replace
-ID: toolu_01NYUEYqwTxngxAZEaa7ofow
-
-### file_path
-
-<tool.toolu_01NYUEYqwTxngxAZEaa7ofow>
-greger-parser.el
-</tool.toolu_01NYUEYqwTxngxAZEaa7ofow>
-
-### original_content
-
-<tool.toolu_01NYUEYqwTxngxAZEaa7ofow>
-;; Section tag handling
-
-(defun greger-parser--section-tags ()
-  "List of all section tags."
-  (list greger-parser-user-tag
-        greger-parser-assistant-tag
-        greger-parser-system-tag
-        greger-parser-tool-use-tag
-        greger-parser-tool-result-tag
-        greger-parser-thinking-tag))
-
-(defun greger-parser--find-section-tag ()
-  "Find section tag at current position if at line start."
-  (when (greger-parser--at-line-start-p)
-    (let ((tag (cl-find-if #'greger-parser--looking-at (greger-parser--section-tags))))
-      (greger-parser--debug "Found section tag: %s at pos %d" tag greger-parser--pos)
-      tag)))
-
-(defun greger-parser--consume-section-tag (tag)
-  "Consume TAG and return it."
-  (when (greger-parser--looking-at tag)
-    (greger-parser--debug "Consuming tag: %s" tag)
-    (greger-parser--advance (length tag))
-    tag))
-</tool.toolu_01NYUEYqwTxngxAZEaa7ofow>
-
-### new_content
-
-<tool.toolu_01NYUEYqwTxngxAZEaa7ofow>
-;; Section tag handling
-
-(defun greger-parser--section-tags ()
-  "List of all section tags."
-  (list greger-parser-user-tag
-        greger-parser-assistant-tag
-        greger-parser-system-tag
-        greger-parser-tool-use-tag
-        greger-parser-tool-result-tag
-        greger-parser-thinking-tag))
-
-(defun greger-parser--find-section-tag (state)
-  "Find section tag at current position if at line start in STATE."
-  (when (greger-parser--at-line-start-p state)
-    (let ((tag (cl-find-if (lambda (tag) (greger-parser--looking-at state tag)) (greger-parser--section-tags))))
-      (greger-parser--debug state "Found section tag: %s at pos %d" tag (greger-parser-state-pos state))
-      tag)))
-
-(defun greger-parser--consume-section-tag (state tag)
-  "Consume TAG and return it in STATE."
-  (when (greger-parser--looking-at state tag)
-    (greger-parser--debug state "Consuming tag: %s" tag)
-    (greger-parser--advance state (length tag))
-    tag))
-</tool.toolu_01NYUEYqwTxngxAZEaa7ofow>
-
-### git_commit_message
-
-<tool.toolu_01NYUEYqwTxngxAZEaa7ofow>
-Update section tag handling functions to use state parameter
-</tool.toolu_01NYUEYqwTxngxAZEaa7ofow>
-
-## TOOL RESULT:
-
-ID: toolu_01NYUEYqwTxngxAZEaa7ofow
-
-<tool.toolu_01NYUEYqwTxngxAZEaa7ofow>
-Successfully replaced content in /Users/andreas/projects/aichat3/greger-parser.el. Successfully staged 2 file(s) and committed with message: Update section tag handling functions to use state parameter
-</tool.toolu_01NYUEYqwTxngxAZEaa7ofow>
-
-## ASSISTANT:
-
-Now I need to update the code block detection and skipping functions:
-
-
-## TOOL USE:
-
-Name: str-replace
-ID: toolu_01E6Nxuow7GVs8MzLbFPwuDA
-
-### file_path
-
-<tool.toolu_01E6Nxuow7GVs8MzLbFPwuDA>
-greger-parser.el
-</tool.toolu_01E6Nxuow7GVs8MzLbFPwuDA>
-
-### original_content
-
-<tool.toolu_01E6Nxuow7GVs8MzLbFPwuDA>
-;; Code block detection and skipping
-
-(defun greger-parser--skip-code-block ()
-  "Skip triple-backtick code block."
-  (greger-parser--debug "Skipping code block at pos %d" greger-parser--pos)
-  (greger-parser--advance 3) ; Skip opening ```
-  (greger-parser--skip-to-line-end) ; Skip language specifier
-  (when (greger-parser--newline-p (greger-parser--peek))
-    (greger-parser--advance))
-
-  ;; Find closing ```
-  (while (and (not (greger-parser--at-end-p))
-              (not (greger-parser--at-triple-backticks)))
-    (greger-parser--advance))
-
-  ;; Skip closing ```
-  (when (greger-parser--at-triple-backticks)
-    (greger-parser--advance 3)))
-
-(defun greger-parser--skip-inline-code ()
-  "Skip inline code with double backticks."
-  (greger-parser--debug "Skipping inline code at pos %d" greger-parser--pos)
-  (greger-parser--advance 1) ; Skip opening `
-  (while (and (not (greger-parser--at-end-p))
-              (not (greger-parser--looking-at "`")))
-    (greger-parser--advance))
-  (when (greger-parser--looking-at "`")
-    (greger-parser--advance 1)))
-
-(defun greger-parser--skip-html-comment ()
-  "Skip HTML comment."
-  (greger-parser--debug "Skipping HTML comment at pos %d" greger-parser--pos)
-  (greger-parser--advance 4) ; Skip <!--
-  (while (and (not (greger-parser--at-end-p))
-              (not (greger-parser--looking-at "-->")))
-    (greger-parser--advance))
-  (when (greger-parser--looking-at "-->")
-    (greger-parser--advance 3)))
-</tool.toolu_01E6Nxuow7GVs8MzLbFPwuDA>
-
-### new_content
-
-<tool.toolu_01E6Nxuow7GVs8MzLbFPwuDA>
-;; Code block detection and skipping
-
-(defun greger-parser--skip-code-block (state)
-  "Skip triple-backtick code block in STATE."
-  (greger-parser--debug state "Skipping code block at pos %d" (greger-parser-state-pos state))
-  (greger-parser--advance state 3) ; Skip opening ```
-  (greger-parser--skip-to-line-end state) ; Skip language specifier
-  (when (greger-parser--newline-p (greger-parser--peek state))
-    (greger-parser--advance state))
-
-  ;; Find closing ```
-  (while (and (not (greger-parser--at-end-p state))
-              (not (greger-parser--at-triple-backticks state)))
-    (greger-parser--advance state))
-
-  ;; Skip closing ```
-  (when (greger-parser--at-triple-backticks state)
-    (greger-parser--advance state 3)))
-
-(defun greger-parser--skip-inline-code (state)
-  "Skip inline code with double backticks in STATE."
-  (greger-parser--debug state "Skipping inline code at pos %d" (greger-parser-state-pos state))
-  (greger-parser--advance state 1) ; Skip opening `
-  (while (and (not (greger-parser--at-end-p state))
-              (not (greger-parser--looking-at state "`")))
-    (greger-parser--advance state))
-  (when (greger-parser--looking-at state "`")
-    (greger-parser--advance state 1)))
-
-(defun greger-parser--skip-html-comment (state)
-  "Skip HTML comment in STATE."
-  (greger-parser--debug state "Skipping HTML comment at pos %d" (greger-parser-state-pos state))
-  (greger-parser--advance state 4) ; Skip <!--
-  (while (and (not (greger-parser--at-end-p state))
-              (not (greger-parser--looking-at state "-->")))
-    (greger-parser--advance state))
-  (when (greger-parser--looking-at state "-->")
-    (greger-parser--advance state 3)))
-</tool.toolu_01E6Nxuow7GVs8MzLbFPwuDA>
-
-### git_commit_message
-
-<tool.toolu_01E6Nxuow7GVs8MzLbFPwuDA>
-Update code block detection and skipping functions to use state parameter
-</tool.toolu_01E6Nxuow7GVs8MzLbFPwuDA>
-
-## TOOL RESULT:
-
-ID: toolu_01E6Nxuow7GVs8MzLbFPwuDA
-
-<tool.toolu_01E6Nxuow7GVs8MzLbFPwuDA>
-Successfully replaced content in /Users/andreas/projects/aichat3/greger-parser.el. Successfully staged 2 file(s) and committed with message: Update code block detection and skipping functions to use state parameter
-</tool.toolu_01E6Nxuow7GVs8MzLbFPwuDA>
-
-## ASSISTANT:
-
-Now I need to update the include tag processing functions. This is a large section, so I'll do it in parts:
-
-
-## TOOL USE:
-
-Name: str-replace
-ID: toolu_01PkMeFmXYF8M4jRNyAK4BAN
-
-### file_path
-
-<tool.toolu_01PkMeFmXYF8M4jRNyAK4BAN>
-greger-parser.el
-</tool.toolu_01PkMeFmXYF8M4jRNyAK4BAN>
-
-### original_content
-
-<tool.toolu_01PkMeFmXYF8M4jRNyAK4BAN>
-;; Include tag processing
-
-(defun greger-parser--process-include-tag ()
-  "Process an include tag and return the included content."
-  (greger-parser--debug "Processing include tag at pos %d" greger-parser--pos)
-  (let ((tag-start (greger-parser--current-pos)))
-    ;; Parse the opening tag
-    (when (greger-parser--looking-at "<include")
-      (greger-parser--advance 8) ; Skip "<include"
-      (let ((has-code-attr nil))
-        ;; Check for optional "code" attribute
-        (greger-parser--skip-horizontal-whitespace)
-        (when (greger-parser--looking-at "code")
-          (setq has-code-attr t)
-          (greger-parser--advance 4)
-          (greger-parser--skip-horizontal-whitespace))
-
-        ;; Skip to closing bracket of opening tag
-        (when (greger-parser--looking-at ">")
-          (greger-parser--advance 1)
-
-          ;; Extract the file path
-          (let ((path-start (greger-parser--current-pos)))
-            (when (greger-parser--find-closing-tag "</include>")
-              (let ((file-path (string-trim (greger-parser--substring path-start))))
-                (greger-parser--advance 10) ; Skip "</include>"
-
-                ;; Read and process the file
-                (greger-parser--include-file file-path has-code-attr)))))))))
-</tool.toolu_01PkMeFmXYF8M4jRNyAK4BAN>
-
-### new_content
-
-<tool.toolu_01PkMeFmXYF8M4jRNyAK4BAN>
-;; Include tag processing
-
-(defun greger-parser--process-include-tag (state)
-  "Process an include tag and return the included content in STATE."
-  (greger-parser--debug state "Processing include tag at pos %d" (greger-parser-state-pos state))
-  (let ((tag-start (greger-parser--current-pos state)))
-    ;; Parse the opening tag
-    (when (greger-parser--looking-at state "<include")
-      (greger-parser--advance state 8) ; Skip "<include"
-      (let ((has-code-attr nil))
-        ;; Check for optional "code" attribute
-        (greger-parser--skip-horizontal-whitespace state)
-        (when (greger-parser--looking-at state "code")
-          (setq has-code-attr t)
-          (greger-parser--advance state 4)
-          (greger-parser--skip-horizontal-whitespace state))
-
-        ;; Skip to closing bracket of opening tag
-        (when (greger-parser--looking-at state ">")
-          (greger-parser--advance state 1)
-
-          ;; Extract the file path
-          (let ((path-start (greger-parser--current-pos state)))
-            (when (greger-parser--find-closing-tag state "</include>")
-              (let ((file-path (string-trim (greger-parser--substring state path-start))))
-                (greger-parser--advance state 10) ; Skip "</include>"
-
-                ;; Read and process the file
-                (greger-parser--include-file file-path has-code-attr)))))))))
-</tool.toolu_01PkMeFmXYF8M4jRNyAK4BAN>
-
-### git_commit_message
-
-<tool.toolu_01PkMeFmXYF8M4jRNyAK4BAN>
-Update include tag processing function to use state parameter
-</tool.toolu_01PkMeFmXYF8M4jRNyAK4BAN>
-
-## TOOL RESULT:
-
-ID: toolu_01PkMeFmXYF8M4jRNyAK4BAN
-
-<tool.toolu_01PkMeFmXYF8M4jRNyAK4BAN>
-Successfully replaced content in /Users/andreas/projects/aichat3/greger-parser.el. Successfully staged 2 file(s) and committed with message: Update include tag processing function to use state parameter
-</tool.toolu_01PkMeFmXYF8M4jRNyAK4BAN>
-
-
-## TOOL USE:
-
-Name: str-replace
-ID: toolu_0114no4JNjNaEttzaYgRYGjG
-
-### file_path
-
-<tool.toolu_0114no4JNjNaEttzaYgRYGjG>
-greger-parser.el
-</tool.toolu_0114no4JNjNaEttzaYgRYGjG>
-
-### original_content
-
-<tool.toolu_0114no4JNjNaEttzaYgRYGjG>
-(defun greger-parser--skip-include-tag ()
-  "Skip include tag without processing it."
-  (greger-parser--debug "Skipping include tag at pos %d" greger-parser--pos)
-  (greger-parser--advance 8) ; Skip "<include"
-
-  ;; Skip optional "code" attribute
-  (greger-parser--skip-horizontal-whitespace)
-  (when (greger-parser--looking-at "code")
-    (greger-parser--advance 4)
-    (greger-parser--skip-horizontal-whitespace))
-
-  ;; Skip to closing bracket of opening tag
-  (when (greger-parser--looking-at ">")
-    (greger-parser--advance 1)
-
-    ;; Skip to closing tag
-    (when (greger-parser--find-closing-tag "</include>")
-      (greger-parser--advance 10)))) ; Skip "</include>"
-</tool.toolu_0114no4JNjNaEttzaYgRYGjG>
-
-### new_content
-
-<tool.toolu_0114no4JNjNaEttzaYgRYGjG>
-(defun greger-parser--skip-include-tag (state)
-  "Skip include tag without processing it in STATE."
-  (greger-parser--debug state "Skipping include tag at pos %d" (greger-parser-state-pos state))
-  (greger-parser--advance state 8) ; Skip "<include"
-
-  ;; Skip optional "code" attribute
-  (greger-parser--skip-horizontal-whitespace state)
-  (when (greger-parser--looking-at state "code")
-    (greger-parser--advance state 4)
-    (greger-parser--skip-horizontal-whitespace state))
-
-  ;; Skip to closing bracket of opening tag
-  (when (greger-parser--looking-at state ">")
-    (greger-parser--advance state 1)
-
-    ;; Skip to closing tag
-    (when (greger-parser--find-closing-tag state "</include>")
-      (greger-parser--advance state 10)))) ; Skip "</include>"
-</tool.toolu_0114no4JNjNaEttzaYgRYGjG>
-
-### git_commit_message
-
-<tool.toolu_0114no4JNjNaEttzaYgRYGjG>
-Update skip include tag function to use state parameter
-</tool.toolu_0114no4JNjNaEttzaYgRYGjG>
-
-## TOOL RESULT:
-
-ID: toolu_0114no4JNjNaEttzaYgRYGjG
-
-<tool.toolu_0114no4JNjNaEttzaYgRYGjG>
-Successfully replaced content in /Users/andreas/projects/aichat3/greger-parser.el. Successfully staged 2 file(s) and committed with message: Update skip include tag function to use state parameter
-</tool.toolu_0114no4JNjNaEttzaYgRYGjG>
-
-## ASSISTANT:
-
-Now I need to update the content reading functions. This is a large section, so I'll do it carefully:
-
-
-## TOOL USE:
-
-Name: str-replace
-ID: toolu_01NoMJycegaLw5nv7YB9M6fD
-
-### file_path
-
-<tool.toolu_01NoMJycegaLw5nv7YB9M6fD>
-greger-parser.el
-</tool.toolu_01NoMJycegaLw5nv7YB9M6fD>
-
-### original_content
-
-<tool.toolu_01NoMJycegaLw5nv7YB9M6fD>
-;; Content reading
-
-(defun greger-parser--read-until-section-tag ()
-  "Read characters until section tag, handling code blocks and include tags."
-  (let ((start-pos greger-parser--pos)
-        (iterations 0)
-        (max-iterations (* greger-parser--length 2))) ; Safety limit
-    (while (and (not (greger-parser--at-end-p))
-                (not (and (greger-parser--at-line-start-p)
-                          (greger-parser--find-section-tag)))
-                (< iterations max-iterations))
-      (setq iterations (1+ iterations))
-      (let ((old-pos greger-parser--pos))
-        (cond
-         ((greger-parser--at-triple-backticks)
-          (greger-parser--skip-code-block))
-         ((greger-parser--looking-at "`")
-          (greger-parser--skip-inline-code))
-         ((greger-parser--looking-at "<!--")
-          (greger-parser--skip-html-comment))
-         ((greger-parser--looking-at "<include")
-          (greger-parser--skip-include-tag))
-         (t
-          (greger-parser--advance)))
-        ;; Safety check: ensure we're making progress
-        (when (= old-pos greger-parser--pos)
-          (greger-parser--debug "No progress at pos %d, forcing advance" greger-parser--pos)
-          (greger-parser--advance))))
-    (when (>= iterations max-iterations)
-      (greger-parser--debug "Hit max iterations in read-until-section-tag")
-      (setq greger-parser--pos greger-parser--length))))
-</tool.toolu_01NoMJycegaLw5nv7YB9M6fD>
-
-### new_content
-
-<tool.toolu_01NoMJycegaLw5nv7YB9M6fD>
-;; Content reading
-
-(defun greger-parser--read-until-section-tag (state)
-  "Read characters until section tag, handling code blocks and include tags in STATE."
-  (let ((start-pos (greger-parser-state-pos state))
-        (iterations 0)
-        (max-iterations (* (greger-parser-state-length state) 2))) ; Safety limit
-    (while (and (not (greger-parser--at-end-p state))
-                (not (and (greger-parser--at-line-start-p state)
-                          (greger-parser--find-section-tag state)))
-                (< iterations max-iterations))
-      (setq iterations (1+ iterations))
-      (let ((old-pos (greger-parser-state-pos state)))
-        (cond
-         ((greger-parser--at-triple-backticks state)
-          (greger-parser--skip-code-block state))
-         ((greger-parser--looking-at state "`")
-          (greger-parser--skip-inline-code state))
-         ((greger-parser--looking-at state "<!--")
-          (greger-parser--skip-html-comment state))
-         ((greger-parser--looking-at state "<include")
-          (greger-parser--skip-include-tag state))
-         (t
-          (greger-parser--advance state)))
-        ;; Safety check: ensure we're making progress
-        (when (= old-pos (greger-parser-state-pos state))
-          (greger-parser--debug state "No progress at pos %d, forcing advance" (greger-parser-state-pos state))
-          (greger-parser--advance state))))
-    (when (>= iterations max-iterations)
-      (greger-parser--debug state "Hit max iterations in read-until-section-tag")
-      (setf (greger-parser-state-pos state) (greger-parser-state-length state)))))
-</tool.toolu_01NoMJycegaLw5nv7YB9M6fD>
-
-### git_commit_message
-
-<tool.toolu_01NoMJycegaLw5nv7YB9M6fD>
-Update read-until-section-tag function to use state parameter
-</tool.toolu_01NoMJycegaLw5nv7YB9M6fD>
-
-## TOOL RESULT:
-
-ID: toolu_01NoMJycegaLw5nv7YB9M6fD
-
-<tool.toolu_01NoMJycegaLw5nv7YB9M6fD>
-Successfully replaced content in /Users/andreas/projects/aichat3/greger-parser.el. Successfully staged 2 file(s) and committed with message: Update read-until-section-tag function to use state parameter
-</tool.toolu_01NoMJycegaLw5nv7YB9M6fD>
-
-
-## TOOL USE:
-
-Name: str-replace
-ID: toolu_01UZXFFS1kouPef61xWp3wfw
-
-### file_path
-
-<tool.toolu_01UZXFFS1kouPef61xWp3wfw>
-greger-parser.el
-</tool.toolu_01UZXFFS1kouPef61xWp3wfw>
-
-### original_content
-
-<tool.toolu_01UZXFFS1kouPef61xWp3wfw>
-(defun greger-parser--read-until-section ()
-  "Read content until next section."
-  (let ((start (greger-parser--current-pos)))
-    (greger-parser--read-until-section-tag)
-    (greger-parser--substring start)))
-</tool.toolu_01UZXFFS1kouPef61xWp3wfw>
-
-### new_content
-
-<tool.toolu_01UZXFFS1kouPef61xWp3wfw>
-(defun greger-parser--read-until-section (state)
-  "Read content until next section in STATE."
-  (let ((start (greger-parser--current-pos state)))
-    (greger-parser--read-until-section-tag state)
-    (greger-parser--substring state start)))
-</tool.toolu_01UZXFFS1kouPef61xWp3wfw>
-
-### git_commit_message
-
-<tool.toolu_01UZXFFS1kouPef61xWp3wfw>
-Update read-until-section function to use state parameter
-</tool.toolu_01UZXFFS1kouPef61xWp3wfw>
-
-## TOOL RESULT:
-
-ID: toolu_01UZXFFS1kouPef61xWp3wfw
-
-<tool.toolu_01UZXFFS1kouPef61xWp3wfw>
-Successfully replaced content in /Users/andreas/projects/aichat3/greger-parser.el. Successfully staged 2 file(s) and committed with message: Update read-until-section function to use state parameter
-</tool.toolu_01UZXFFS1kouPef61xWp3wfw>
-
-## ASSISTANT:
-
-Now I need to update the more complex content reading function:
-
-
-## TOOL USE:
-
-Name: str-replace
-ID: toolu_01E1JkDgHi4ra1F4P74udqG7
-
-### file_path
-
-<tool.toolu_01E1JkDgHi4ra1F4P74udqG7>
-greger-parser.el
-</tool.toolu_01E1JkDgHi4ra1F4P74udqG7>
-
-### original_content
-
-<tool.toolu_01E1JkDgHi4ra1F4P74udqG7>
-(defun greger-parser--read-until-section-with-comment-removal ()
-  "Read content until next section, removing HTML comments and processing include tags."
-  (let ((result "")
-        (start (greger-parser--current-pos))
-        (iterations 0)
-        (max-iterations (* greger-parser--length 2))) ; Safety limit
-    (while (and (not (greger-parser--at-end-p))
-                (not (and (greger-parser--at-line-start-p)
-                          (greger-parser--find-section-tag)))
-                (< iterations max-iterations))
-      (setq iterations (1+ iterations))
-      (let ((old-pos greger-parser--pos))
-        (cond
-         ((greger-parser--at-triple-backticks)
-          ;; Add content up to code block
-          (setq result (concat result (greger-parser--substring start)))
-          (setq start (greger-parser--current-pos))
-          (greger-parser--skip-code-block)
-          ;; Add the code block
-          (setq result (concat result (greger-parser--substring start)))
-          (setq start (greger-parser--current-pos)))
-         ((greger-parser--looking-at "`")
-          ;; Add content up to inline code
-          (setq result (concat result (greger-parser--substring start)))
-          (setq start (greger-parser--current-pos))
-          (greger-parser--skip-inline-code)
-          ;; Add the inline code
-          (setq result (concat result (greger-parser--substring start)))
-          (setq start (greger-parser--current-pos)))
-         ((greger-parser--looking-at "<!--")
-          ;; Add content up to comment, skip comment entirely
-          (setq result (concat result (greger-parser--substring start)))
-          (greger-parser--skip-html-comment)
-          (setq start (greger-parser--current-pos)))
-         ((greger-parser--looking-at "<include")
-          ;; Add content up to include tag
-          (setq result (concat result (greger-parser--substring start)))
-          ;; Process the include tag
-          (let ((include-content (greger-parser--process-include-tag)))
-            (when include-content
-              (setq result (concat result include-content))))
-          (setq start (greger-parser--current-pos)))
-         (t
-          (greger-parser--advance)))
-        ;; Safety check: ensure we're making progress
-        (when (= old-pos greger-parser--pos)
-          (greger-parser--debug "No progress at pos %d, forcing advance" greger-parser--pos)
-          (greger-parser--advance))))
-    (when (>= iterations max-iterations)
-      (greger-parser--debug "Hit max iterations in read-until-section-with-comment-removal")
-      (setq greger-parser--pos greger-parser--length))
-    ;; Add remaining content
-    (setq result (concat result (greger-parser--substring start)))
-    result))
-</tool.toolu_01E1JkDgHi4ra1F4P74udqG7>
-
-### new_content
-
-<tool.toolu_01E1JkDgHi4ra1F4P74udqG7>
-(defun greger-parser--read-until-section-with-comment-removal (state)
-  "Read content until next section, removing HTML comments and processing include tags in STATE."
-  (let ((result "")
-        (start (greger-parser--current-pos state))
-        (iterations 0)
-        (max-iterations (* (greger-parser-state-length state) 2))) ; Safety limit
-    (while (and (not (greger-parser--at-end-p state))
-                (not (and (greger-parser--at-line-start-p state)
-                          (greger-parser--find-section-tag state)))
-                (< iterations max-iterations))
-      (setq iterations (1+ iterations))
-      (let ((old-pos (greger-parser-state-pos state)))
-        (cond
-         ((greger-parser--at-triple-backticks state)
-          ;; Add content up to code block
-          (setq result (concat result (greger-parser--substring state start)))
-          (setq start (greger-parser--current-pos state))
-          (greger-parser--skip-code-block state)
-          ;; Add the code block
-          (setq result (concat result (greger-parser--substring state start)))
-          (setq start (greger-parser--current-pos state)))
-         ((greger-parser--looking-at state "`")
-          ;; Add content up to inline code
-          (setq result (concat result (greger-parser--substring state start)))
-          (setq start (greger-parser--current-pos state))
-          (greger-parser--skip-inline-code state)
-          ;; Add the inline code
-          (setq result (concat result (greger-parser--substring state start)))
-          (setq start (greger-parser--current-pos state)))
-         ((greger-parser--looking-at state "<!--")
-          ;; Add content up to comment, skip comment entirely
-          (setq result (concat result (greger-parser--substring state start)))
-          (greger-parser--skip-html-comment state)
-          (setq start (greger-parser--current-pos state)))
-         ((greger-parser--looking-at state "<include")
-          ;; Add content up to include tag
-          (setq result (concat result (greger-parser--substring state start)))
-          ;; Process the include tag
-          (let ((include-content (greger-parser--process-include-tag state)))
-            (when include-content
-              (setq result (concat result include-content))))
-          (setq start (greger-parser--current-pos state)))
-         (t
-          (greger-parser--advance state)))
-        ;; Safety check: ensure we're making progress
-        (when (= old-pos (greger-parser-state-pos state))
-          (greger-parser--debug state "No progress at pos %d, forcing advance" (greger-parser-state-pos state))
-          (greger-parser--advance state))))
-    (when (>= iterations max-iterations)
-      (greger-parser--debug state "Hit max iterations in read-until-section-with-comment-removal")
-      (setf (greger-parser-state-pos state) (greger-parser-state-length state)))
-    ;; Add remaining content
-    (setq result (concat result (greger-parser--substring state start)))
-    result))
-</tool.toolu_01E1JkDgHi4ra1F4P74udqG7>
-
-### git_commit_message
-
-<tool.toolu_01E1JkDgHi4ra1F4P74udqG7>
-Update read-until-section-with-comment-removal function to use state parameter
-</tool.toolu_01E1JkDgHi4ra1F4P74udqG7>
-
-## TOOL RESULT:
-
-ID: toolu_01E1JkDgHi4ra1F4P74udqG7
-
-<tool.toolu_01E1JkDgHi4ra1F4P74udqG7>
-Successfully replaced content in /Users/andreas/projects/aichat3/greger-parser.el. Successfully staged 2 file(s) and committed with message: Update read-until-section-with-comment-removal function to use state parameter
-</tool.toolu_01E1JkDgHi4ra1F4P74udqG7>
-
-
-## TOOL USE:
-
-Name: str-replace
-ID: toolu_01JGbVeHo5Utd29DHaedUJXr
-
-### file_path
-
-<tool.toolu_01JGbVeHo5Utd29DHaedUJXr>
-greger-parser.el
-</tool.toolu_01JGbVeHo5Utd29DHaedUJXr>
-
-### original_content
-
-<tool.toolu_01JGbVeHo5Utd29DHaedUJXr>
-(defun greger-parser--parse-section-content ()
-  "Parse content until next section, skipping HTML comments."
-  (greger-parser--skip-whitespace)
-  (let ((content (greger-parser--read-until-section-with-comment-removal)))
-    (when (and content (not (string-empty-p (string-trim content))))
-      (string-trim content))))
-</tool.toolu_01JGbVeHo5Utd29DHaedUJXr>
-
-### new_content
-
-<tool.toolu_01JGbVeHo5Utd29DHaedUJXr>
-(defun greger-parser--parse-section-content (state)
-  "Parse content until next section, skipping HTML comments in STATE."
-  (greger-parser--skip-whitespace state)
-  (let ((content (greger-parser--read-until-section-with-comment-removal state)))
-    (when (and content (not (string-empty-p (string-trim content))))
-      (string-trim content))))
-</tool.toolu_01JGbVeHo5Utd29DHaedUJXr>
-
-### git_commit_message
-
-<tool.toolu_01JGbVeHo5Utd29DHaedUJXr>
-Update parse-section-content function to use state parameter
-</tool.toolu_01JGbVeHo5Utd29DHaedUJXr>
-
-## TOOL RESULT:
-
-ID: toolu_01JGbVeHo5Utd29DHaedUJXr
-
-<tool.toolu_01JGbVeHo5Utd29DHaedUJXr>
-Successfully replaced content in /Users/andreas/projects/aichat3/greger-parser.el. Successfully staged 2 file(s) and committed with message: Update parse-section-content function to use state parameter
-</tool.toolu_01JGbVeHo5Utd29DHaedUJXr>
-
-## ASSISTANT:
-
-Now I need to update the high-level parsing functions:
-
-
-## TOOL USE:
-
-Name: str-replace
-ID: toolu_01VxVTUi2wKGduJsQnuyuhZr
-
-### file_path
-
-<tool.toolu_01VxVTUi2wKGduJsQnuyuhZr>
-greger-parser.el
-</tool.toolu_01VxVTUi2wKGduJsQnuyuhZr>
-
-### original_content
-
-<tool.toolu_01VxVTUi2wKGduJsQnuyuhZr>
-;; High-level parsing
-
-(defun greger-parser--parse-document ()
-  "Parse entire document."
-  (greger-parser--skip-whitespace)
-  (if (greger-parser--at-end-p)
-      '()
-    (let ((sections '())
-          (iterations 0)
-          (max-iterations 1000)) ; Safety limit
-      ;; Handle untagged content at start
-      (let ((untagged (greger-parser--parse-untagged-content)))
-        (when untagged
-          (push untagged sections)))
-
-      ;; Parse tagged sections
-      (while (and (not (greger-parser--at-end-p))
-                  (< iterations max-iterations))
-        (setq iterations (1+ iterations))
-        (let ((old-pos greger-parser--pos))
-          (greger-parser--skip-whitespace)
-          (when (not (greger-parser--at-end-p))
-            (let ((section (greger-parser--parse-section)))
-              (when section
-                (push section sections))))
-          ;; Safety check: ensure we're making progress
-          (when (= old-pos greger-parser--pos)
-            (greger-parser--debug "No progress in document parsing at pos %d, breaking" greger-parser--pos)
-            (break))))
-
-      (when (>= iterations max-iterations)
-        (greger-parser--debug "Hit max iterations in parse-document"))
-
-      (greger-parser--merge-consecutive-messages (reverse sections)))))
-</tool.toolu_01VxVTUi2wKGduJsQnuyuhZr>
-
-### new_content
-
-<tool.toolu_01VxVTUi2wKGduJsQnuyuhZr>
-;; High-level parsing
-
-(defun greger-parser--parse-document (state)
-  "Parse entire document using STATE."
-  (greger-parser--skip-whitespace state)
-  (if (greger-parser--at-end-p state)
-      '()
-    (let ((sections '())
-          (iterations 0)
-          (max-iterations 1000)) ; Safety limit
-      ;; Handle untagged content at start
-      (let ((untagged (greger-parser--parse-untagged-content state)))
-        (when untagged
-          (push untagged sections)))
-
-      ;; Parse tagged sections
-      (while (and (not (greger-parser--at-end-p state))
-                  (< iterations max-iterations))
-        (setq iterations (1+ iterations))
-        (let ((old-pos (greger-parser-state-pos state)))
-          (greger-parser--skip-whitespace state)
-          (when (not (greger-parser--at-end-p state))
-            (let ((section (greger-parser--parse-section state)))
-              (when section
-                (push section sections))))
-          ;; Safety check: ensure we're making progress
-          (when (= old-pos (greger-parser-state-pos state))
-            (greger-parser--debug state "No progress in document parsing at pos %d, breaking" (greger-parser-state-pos state))
-            (break))))
-
-      (when (>= iterations max-iterations)
-        (greger-parser--debug state "Hit max iterations in parse-document"))
-
-      (greger-parser--merge-consecutive-messages (reverse sections)))))
-</tool.toolu_01VxVTUi2wKGduJsQnuyuhZr>
-
-### git_commit_message
-
-<tool.toolu_01VxVTUi2wKGduJsQnuyuhZr>
-Update parse-document function to use state parameter
-</tool.toolu_01VxVTUi2wKGduJsQnuyuhZr>
-
-## TOOL RESULT:
-
-ID: toolu_01VxVTUi2wKGduJsQnuyuhZr
-
-<tool.toolu_01VxVTUi2wKGduJsQnuyuhZr>
-Successfully replaced content in /Users/andreas/projects/aichat3/greger-parser.el. Successfully staged 2 file(s) and committed with message: Update parse-document function to use state parameter
-</tool.toolu_01VxVTUi2wKGduJsQnuyuhZr>
-
-
-## TOOL USE:
-
-Name: str-replace
-ID: toolu_01PhzAmmphTP5KJkTUwgzwP2
-
-### file_path
-
-<tool.toolu_01PhzAmmphTP5KJkTUwgzwP2>
-greger-parser.el
-</tool.toolu_01PhzAmmphTP5KJkTUwgzwP2>
-
-### original_content
-
-<tool.toolu_01PhzAmmphTP5KJkTUwgzwP2>
-(defun greger-parser--parse-untagged-content ()
-  "Parse content before first section tag."
-  (let ((content (greger-parser--parse-section-content)))
-    (when content
-      (greger-parser--create-user-message content))))
-
-(defun greger-parser--parse-section ()
-  "Parse a section starting with a tag."
-  (let ((tag (greger-parser--find-section-tag)))
-    (when tag
-      (greger-parser--consume-section-tag tag)
-      (cond
-       ((string= tag greger-parser-user-tag)
-        (greger-parser--parse-user-section))
-       ((string= tag greger-parser-assistant-tag)
-        (greger-parser--parse-assistant-section))
-       ((string= tag greger-parser-system-tag)
-        (greger-parser--parse-system-section))
-       ((string= tag greger-parser-thinking-tag)
-        (greger-parser--parse-thinking-section))
-       ((string= tag greger-parser-tool-use-tag)
-        (greger-parser--parse-tool-use-section))
-       ((string= tag greger-parser-tool-result-tag)
-        (greger-parser--parse-tool-result-section))))))
-</tool.toolu_01PhzAmmphTP5KJkTUwgzwP2>
-
-### new_content
-
-<tool.toolu_01PhzAmmphTP5KJkTUwgzwP2>
-(defun greger-parser--parse-untagged-content (state)
-  "Parse content before first section tag using STATE."
-  (let ((content (greger-parser--parse-section-content state)))
-    (when content
-      (greger-parser--create-user-message content))))
-
-(defun greger-parser--parse-section (state)
-  "Parse a section starting with a tag using STATE."
-  (let ((tag (greger-parser--find-section-tag state)))
-    (when tag
-      (greger-parser--consume-section-tag state tag)
-      (cond
-       ((string= tag greger-parser-user-tag)
-        (greger-parser--parse-user-section state))
-       ((string= tag greger-parser-assistant-tag)
-        (greger-parser--parse-assistant-section state))
-       ((string= tag greger-parser-system-tag)
-        (greger-parser--parse-system-section state))
-       ((string= tag greger-parser-thinking-tag)
-        (greger-parser--parse-thinking-section state))
-       ((string= tag greger-parser-tool-use-tag)
-        (greger-parser--parse-tool-use-section state))
-       ((string= tag greger-parser-tool-result-tag)
-        (greger-parser--parse-tool-result-section state))))))
-</tool.toolu_01PhzAmmphTP5KJkTUwgzwP2>
-
-### git_commit_message
-
-<tool.toolu_01PhzAmmphTP5KJkTUwgzwP2>
-Update parse-untagged-content and parse-section functions to use state parameter
-</tool.toolu_01PhzAmmphTP5KJkTUwgzwP2>
-
-## TOOL RESULT:
-
-ID: toolu_01PhzAmmphTP5KJkTUwgzwP2
-
-<tool.toolu_01PhzAmmphTP5KJkTUwgzwP2>
-Successfully replaced content in /Users/andreas/projects/aichat3/greger-parser.el. Successfully staged 2 file(s) and committed with message: Update parse-untagged-content and parse-section functions to use state parameter
-</tool.toolu_01PhzAmmphTP5KJkTUwgzwP2>
-
-## ASSISTANT:
-
-Now I need to update the section parsers:
-
-
-## TOOL USE:
-
-Name: str-replace
-ID: toolu_01Hv7J3vHSZTojUGzQdo2q1y
-
-### file_path
-
-<tool.toolu_01Hv7J3vHSZTojUGzQdo2q1y>
-greger-parser.el
-</tool.toolu_01Hv7J3vHSZTojUGzQdo2q1y>
-
-### original_content
-
-<tool.toolu_01Hv7J3vHSZTojUGzQdo2q1y>
-;; Section parsers
-
-(defun greger-parser--parse-user-section ()
-  "Parse USER section."
-  (let ((content (greger-parser--parse-section-content)))
-    (when content
-      (greger-parser--create-user-message content))))
-
-(defun greger-parser--parse-assistant-section ()
-  "Parse ASSISTANT section."
-  (let ((content (greger-parser--parse-section-content)))
-    (when content
-      (greger-parser--create-assistant-message content))))
-
-(defun greger-parser--parse-system-section ()
-  "Parse SYSTEM section."
-  (let ((content (greger-parser--parse-section-content)))
-    (when content
-      (greger-parser--create-system-message content))))
-
-(defun greger-parser--parse-thinking-section ()
-  "Parse THINKING section."
-  (let ((content (greger-parser--parse-section-content)))
-    (when content
-      (greger-parser--create-thinking-message content))))
-
-(defun greger-parser--parse-tool-use-section ()
-  "Parse TOOL USE section."
-  (greger-parser--skip-whitespace)
-  (let ((name (greger-parser--parse-name-line))
-        (id (greger-parser--parse-id-line))
-        (input (greger-parser--parse-tool-input)))
-    (when (and name id)
-      (greger-parser--create-tool-use-message name id input))))
-
-(defun greger-parser--parse-tool-result-section ()
-  "Parse TOOL RESULT section."
-  (greger-parser--skip-whitespace)
-  (let ((id (greger-parser--parse-id-line))
-        (content (greger-parser--parse-tool-result-content)))
-    (when id
-      (greger-parser--create-tool-result-message id content))))
-</tool.toolu_01Hv7J3vHSZTojUGzQdo2q1y>
-
-### new_content
-
-<tool.toolu_01Hv7J3vHSZTojUGzQdo2q1y>
-;; Section parsers
-
-(defun greger-parser--parse-user-section (state)
-  "Parse USER section using STATE."
-  (let ((content (greger-parser--parse-section-content state)))
-    (when content
-      (greger-parser--create-user-message content))))
-
-(defun greger-parser--parse-assistant-section (state)
-  "Parse ASSISTANT section using STATE."
-  (let ((content (greger-parser--parse-section-content state)))
-    (when content
-      (greger-parser--create-assistant-message content))))
-
-(defun greger-parser--parse-system-section (state)
-  "Parse SYSTEM section using STATE."
-  (let ((content (greger-parser--parse-section-content state)))
-    (when content
-      (greger-parser--create-system-message content))))
-
-(defun greger-parser--parse-thinking-section (state)
-  "Parse THINKING section using STATE."
-  (let ((content (greger-parser--parse-section-content state)))
-    (when content
-      (greger-parser--create-thinking-message content))))
-
-(defun greger-parser--parse-tool-use-section (state)
-  "Parse TOOL USE section using STATE."
-  (greger-parser--skip-whitespace state)
-  (let ((name (greger-parser--parse-name-line state))
-        (id (greger-parser--parse-id-line state))
-        (input (greger-parser--parse-tool-input state)))
-    (when (and name id)
-      (greger-parser--create-tool-use-message name id input))))
-
-(defun greger-parser--parse-tool-result-section (state)
-  "Parse TOOL RESULT section using STATE."
-  (greger-parser--skip-whitespace state)
-  (let ((id (greger-parser--parse-id-line state))
-        (content (greger-parser--parse-tool-result-content state)))
-    (when id
-      (greger-parser--create-tool-result-message id content))))
-</tool.toolu_01Hv7J3vHSZTojUGzQdo2q1y>
-
-### git_commit_message
-
-<tool.toolu_01Hv7J3vHSZTojUGzQdo2q1y>
-Update section parser functions to use state parameter
-</tool.toolu_01Hv7J3vHSZTojUGzQdo2q1y>
-
-## TOOL RESULT:
-
-ID: toolu_01Hv7J3vHSZTojUGzQdo2q1y
-
-<tool.toolu_01Hv7J3vHSZTojUGzQdo2q1y>
-Successfully replaced content in /Users/andreas/projects/aichat3/greger-parser.el. Successfully staged 2 file(s) and committed with message: Update section parser functions to use state parameter
-</tool.toolu_01Hv7J3vHSZTojUGzQdo2q1y>
-
-## ASSISTANT:
-
-Now I need to update the tool parsing helpers:
-
-
-## TOOL USE:
-
-Name: str-replace
-ID: toolu_01HRSz1Y9k7N69KKCrHSDGon
-
-### file_path
-
-<tool.toolu_01HRSz1Y9k7N69KKCrHSDGon>
-greger-parser.el
-</tool.toolu_01HRSz1Y9k7N69KKCrHSDGon>
-
-### original_content
-
-<tool.toolu_01HRSz1Y9k7N69KKCrHSDGon>
-;; Tool parsing helpers
-
-(defun greger-parser--parse-name-line ()
-  "Parse 'Name: value' line."
-  (when (greger-parser--looking-at "Name:")
-    (greger-parser--advance 5)
-    (greger-parser--skip-horizontal-whitespace)
-    (greger-parser--read-line)))
-
-(defun greger-parser--parse-id-line ()
-  "Parse 'ID: value' line."
-  (greger-parser--skip-whitespace)
-  (when (greger-parser--looking-at "ID:")
-    (greger-parser--advance 3)
-    (greger-parser--skip-horizontal-whitespace)
-    (greger-parser--read-line)))
-</tool.toolu_01HRSz1Y9k7N69KKCrHSDGon>
-
-### new_content
-
-<tool.toolu_01HRSz1Y9k7N69KKCrHSDGon>
-;; Tool parsing helpers
-
-(defun greger-parser--parse-name-line (state)
-  "Parse 'Name: value' line using STATE."
-  (when (greger-parser--looking-at state "Name:")
-    (greger-parser--advance state 5)
-    (greger-parser--skip-horizontal-whitespace state)
-    (greger-parser--read-line state)))
-
-(defun greger-parser--parse-id-line (state)
-  "Parse 'ID: value' line using STATE."
-  (greger-parser--skip-whitespace state)
-  (when (greger-parser--looking-at state "ID:")
-    (greger-parser--advance state 3)
-    (greger-parser--skip-horizontal-whitespace state)
-    (greger-parser--read-line state)))
-</tool.toolu_01HRSz1Y9k7N69KKCrHSDGon>
-
-### git_commit_message
-
-<tool.toolu_01HRSz1Y9k7N69KKCrHSDGon>
-Update tool parsing helper functions to use state parameter
-</tool.toolu_01HRSz1Y9k7N69KKCrHSDGon>
-
-## TOOL RESULT:
-
-ID: toolu_01HRSz1Y9k7N69KKCrHSDGon
-
-<tool.toolu_01HRSz1Y9k7N69KKCrHSDGon>
-Successfully replaced content in /Users/andreas/projects/aichat3/greger-parser.el. Successfully staged 2 file(s) and committed with message: Update tool parsing helper functions to use state parameter
-</tool.toolu_01HRSz1Y9k7N69KKCrHSDGon>
-
-## ASSISTANT:
-
-Now I need to update the tool input parsing functions:
-
-
-## TOOL USE:
-
-Name: str-replace
-ID: toolu_01W7rN2zC4ckJhs61sZSGVpD
-
-### file_path
-
-<tool.toolu_01W7rN2zC4ckJhs61sZSGVpD>
-greger-parser.el
-</tool.toolu_01W7rN2zC4ckJhs61sZSGVpD>
-
-### original_content
-
-<tool.toolu_01W7rN2zC4ckJhs61sZSGVpD>
-(defun greger-parser--parse-tool-input ()
-  "Parse tool input parameters."
-  (let ((params '())
-        (iterations 0)
-        (max-iterations 100)) ; Safety limit
-    (greger-parser--skip-whitespace)
-    (while (and (greger-parser--can-parse-parameter-p)
-                (< iterations max-iterations))
-      (setq iterations (1+ iterations))
-      (let ((old-pos greger-parser--pos)
-            (param (greger-parser--parse-tool-parameter)))
-        (when param
-          (push param params))
-        (greger-parser--skip-whitespace)
-        ;; Safety check: ensure we're making progress
-        (when (= old-pos greger-parser--pos)
-          (greger-parser--debug "No progress in tool input parsing at pos %d, breaking" greger-parser--pos)
-          (break))))
-    (when (>= iterations max-iterations)
-      (greger-parser--debug "Hit max iterations in parse-tool-input"))
-    (reverse params)))
-
-(defun greger-parser--can-parse-parameter-p ()
-  "Check if we can parse a parameter."
-  (and (not (greger-parser--at-end-p))
-       (not (and (greger-parser--at-line-start-p)
-                 (greger-parser--find-section-tag)))
-       (greger-parser--at-line-start-p)
-       (greger-parser--looking-at "###")))
-
-(defun greger-parser--parse-tool-parameter ()
-  "Parse single tool parameter."
-  (when (greger-parser--looking-at "###")
-    (greger-parser--advance 3)
-    (greger-parser--skip-horizontal-whitespace)
-    (let ((name (greger-parser--read-line)))
-      (greger-parser--skip-whitespace)
-      (let ((value (greger-parser--parse-tool-value)))
-        (when (and name (not (string-empty-p name)))
-          (cons (intern name) (greger-parser--convert-value (or value ""))))))))
-</tool.toolu_01W7rN2zC4ckJhs61sZSGVpD>
-
-### new_content
-
-<tool.toolu_01W7rN2zC4ckJhs61sZSGVpD>
-(defun greger-parser--parse-tool-input (state)
-  "Parse tool input parameters using STATE."
-  (let ((params '())
-        (iterations 0)
-        (max-iterations 100)) ; Safety limit
-    (greger-parser--skip-whitespace state)
-    (while (and (greger-parser--can-parse-parameter-p state)
-                (< iterations max-iterations))
-      (setq iterations (1+ iterations))
-      (let ((old-pos (greger-parser-state-pos state))
-            (param (greger-parser--parse-tool-parameter state)))
-        (when param
-          (push param params))
-        (greger-parser--skip-whitespace state)
-        ;; Safety check: ensure we're making progress
-        (when (= old-pos (greger-parser-state-pos state))
-          (greger-parser--debug state "No progress in tool input parsing at pos %d, breaking" (greger-parser-state-pos state))
-          (break))))
-    (when (>= iterations max-iterations)
-      (greger-parser--debug state "Hit max iterations in parse-tool-input"))
-    (reverse params)))
-
-(defun greger-parser--can-parse-parameter-p (state)
-  "Check if we can parse a parameter using STATE."
-  (and (not (greger-parser--at-end-p state))
-       (not (and (greger-parser--at-line-start-p state)
-                 (greger-parser--find-section-tag state)))
-       (greger-parser--at-line-start-p state)
-       (greger-parser--looking-at state "###")))
-
-(defun greger-parser--parse-tool-parameter (state)
-  "Parse single tool parameter using STATE."
-  (when (greger-parser--looking-at state "###")
-    (greger-parser--advance state 3)
-    (greger-parser--skip-horizontal-whitespace state)
-    (let ((name (greger-parser--read-line state)))
-      (greger-parser--skip-whitespace state)
-      (let ((value (greger-parser--parse-tool-value state)))
-        (when (and name (not (string-empty-p name)))
-          (cons (intern name) (greger-parser--convert-value (or value ""))))))))
-</tool.toolu_01W7rN2zC4ckJhs61sZSGVpD>
-
-### git_commit_message
-
-<tool.toolu_01W7rN2zC4ckJhs61sZSGVpD>
-Update tool input parsing functions to use state parameter
-</tool.toolu_01W7rN2zC4ckJhs61sZSGVpD>
-
-## TOOL RESULT:
-
-ID: toolu_01W7rN2zC4ckJhs61sZSGVpD
-
-<tool.toolu_01W7rN2zC4ckJhs61sZSGVpD>
-Successfully replaced content in /Users/andreas/projects/aichat3/greger-parser.el. Successfully staged 2 file(s) and committed with message: Update tool input parsing functions to use state parameter
-</tool.toolu_01W7rN2zC4ckJhs61sZSGVpD>
-
-## ASSISTANT:
-
-Now I need to update the tool value parsing functions:
-
-
-## TOOL USE:
-
-Name: str-replace
-ID: toolu_01XKRLUAg6fBRU2SxDATsyjd
-
-### file_path
-
-<tool.toolu_01XKRLUAg6fBRU2SxDATsyjd>
-greger-parser.el
-</tool.toolu_01XKRLUAg6fBRU2SxDATsyjd>
-
-### original_content
-
-<tool.toolu_01XKRLUAg6fBRU2SxDATsyjd>
-(defun greger-parser--parse-tool-value ()
-  "Parse tool parameter value in XML-style tags."
-  (when (greger-parser--looking-at "<tool.")
-    (let ((tag-start (greger-parser--current-pos)))
-      ;; Find end of opening tag
-      (greger-parser--skip-to-closing-angle)
-      (when (eq (greger-parser--peek) ?>)
-        (let* ((opening-tag (greger-parser--substring tag-start (+ (greger-parser--current-pos) 1)))
-               (closing-tag (greger-parser--make-closing-tag opening-tag)))
-          (greger-parser--advance) ; Skip >
-          (greger-parser--skip-whitespace)
-
-          (let ((content-start (greger-parser--current-pos)))
-            (if (greger-parser--find-closing-tag closing-tag)
-                (let ((content (greger-parser--substring content-start)))
-                  (greger-parser--advance (length closing-tag))
-                  (greger-parser--normalize-tool-content content))
-              ;; If no closing tag found, consume to end of section
-              (let ((content (greger-parser--read-until-section)))
-                (greger-parser--normalize-tool-content content)))))))))
-</tool.toolu_01XKRLUAg6fBRU2SxDATsyjd>
-
-### new_content
-
-<tool.toolu_01XKRLUAg6fBRU2SxDATsyjd>
-(defun greger-parser--parse-tool-value (state)
-  "Parse tool parameter value in XML-style tags using STATE."
-  (when (greger-parser--looking-at state "<tool.")
-    (let ((tag-start (greger-parser--current-pos state)))
-      ;; Find end of opening tag
-      (greger-parser--skip-to-closing-angle state)
-      (when (eq (greger-parser--peek state) ?>)
-        (let* ((opening-tag (greger-parser--substring state tag-start (+ (greger-parser--current-pos state) 1)))
-               (closing-tag (greger-parser--make-closing-tag opening-tag)))
-          (greger-parser--advance state) ; Skip >
-          (greger-parser--skip-whitespace state)
-
-          (let ((content-start (greger-parser--current-pos state)))
-            (if (greger-parser--find-closing-tag state closing-tag)
-                (let ((content (greger-parser--substring state content-start)))
-                  (greger-parser--advance state (length closing-tag))
-                  (greger-parser--normalize-tool-content content))
-              ;; If no closing tag found, consume to end of section
-              (let ((content (greger-parser--read-until-section state)))
-                (greger-parser--normalize-tool-content content)))))))))
-</tool.toolu_01XKRLUAg6fBRU2SxDATsyjd>
-
-### git_commit_message
-
-<tool.toolu_01XKRLUAg6fBRU2SxDATsyjd>
-Update parse-tool-value function to use state parameter
-</tool.toolu_01XKRLUAg6fBRU2SxDATsyjd>
-
-## TOOL RESULT:
-
-ID: toolu_01XKRLUAg6fBRU2SxDATsyjd
-
-<tool.toolu_01XKRLUAg6fBRU2SxDATsyjd>
-Successfully replaced content in /Users/andreas/projects/aichat3/greger-parser.el. Successfully staged 2 file(s) and committed with message: Update parse-tool-value function to use state parameter
-</tool.toolu_01XKRLUAg6fBRU2SxDATsyjd>
-
-## ASSISTANT:
-
-Now I need to update the remaining tool parsing helper functions:
-
-
-## TOOL USE:
-
-Name: str-replace
-ID: toolu_01L1CCQneFMmZEmMA9mM88H5
-
-### file_path
-
-<tool.toolu_01L1CCQneFMmZEmMA9mM88H5>
-greger-parser.el
-</tool.toolu_01L1CCQneFMmZEmMA9mM88H5>
-
-### original_content
-
-<tool.toolu_01L1CCQneFMmZEmMA9mM88H5>
-(defun greger-parser--skip-to-closing-angle ()
-  "Skip to closing angle bracket."
-  (let ((iterations 0)
-        (max-iterations 1000)) ; Safety limit
-    (while (and (not (greger-parser--at-end-p))
-                (not (eq (greger-parser--peek) ?>))
-                (< iterations max-iterations))
-      (setq iterations (1+ iterations))
-      (greger-parser--advance))
-    (when (>= iterations max-iterations)
-      (greger-parser--debug "Hit max iterations in skip-to-closing-angle"))))
-</tool.toolu_01L1CCQneFMmZEmMA9mM88H5>
-
-### new_content
-
-<tool.toolu_01L1CCQneFMmZEmMA9mM88H5>
-(defun greger-parser--skip-to-closing-angle (state)
-  "Skip to closing angle bracket using STATE."
-  (let ((iterations 0)
-        (max-iterations 1000)) ; Safety limit
-    (while (and (not (greger-parser--at-end-p state))
-                (not (eq (greger-parser--peek state) ?>))
-                (< iterations max-iterations))
-      (setq iterations (1+ iterations))
-      (greger-parser--advance state))
-    (when (>= iterations max-iterations)
-      (greger-parser--debug state "Hit max iterations in skip-to-closing-angle"))))
-</tool.toolu_01L1CCQneFMmZEmMA9mM88H5>
-
-### git_commit_message
-
-<tool.toolu_01L1CCQneFMmZEmMA9mM88H5>
-Update skip-to-closing-angle function to use state parameter
-</tool.toolu_01L1CCQneFMmZEmMA9mM88H5>
-
-## TOOL RESULT:
-
-ID: toolu_01L1CCQneFMmZEmMA9mM88H5
-
-<tool.toolu_01L1CCQneFMmZEmMA9mM88H5>
-Successfully replaced content in /Users/andreas/projects/aichat3/greger-parser.el. Successfully staged 2 file(s) and committed with message: Update skip-to-closing-angle function to use state parameter
-</tool.toolu_01L1CCQneFMmZEmMA9mM88H5>
-
-
-## TOOL USE:
-
-Name: str-replace
-ID: toolu_01HAei6SwM6XFUgg4L68WnT3
-
-### file_path
-
-<tool.toolu_01HAei6SwM6XFUgg4L68WnT3>
-greger-parser.el
-</tool.toolu_01HAei6SwM6XFUgg4L68WnT3>
-
-### original_content
-
-<tool.toolu_01HAei6SwM6XFUgg4L68WnT3>
-(defun greger-parser--find-closing-tag (closing-tag)
-  "Find closing tag, treating all content inside as raw text."
-  (let ((found nil)
-        (iterations 0)
-        (max-iterations (* greger-parser--length 2))) ; Safety limit
-    (while (and (not found)
-                (not (greger-parser--at-end-p))
-                (< iterations max-iterations))
-      (setq iterations (1+ iterations))
-      (if (greger-parser--looking-at closing-tag)
-          (setq found t)
-        (greger-parser--advance)))
-    (when (>= iterations max-iterations)
-      (greger-parser--debug "Hit max iterations in find-closing-tag"))
-    found))
-
-(defun greger-parser--parse-tool-result-content ()
-  "Parse tool result content."
-  (greger-parser--skip-whitespace)
-  (or (greger-parser--parse-tool-value) ""))
-</tool.toolu_01HAei6SwM6XFUgg4L68WnT3>
-
-### new_content
-
-<tool.toolu_01HAei6SwM6XFUgg4L68WnT3>
-(defun greger-parser--find-closing-tag (state closing-tag)
-  "Find closing tag, treating all content inside as raw text using STATE."
-  (let ((found nil)
-        (iterations 0)
-        (max-iterations (* (greger-parser-state-length state) 2))) ; Safety limit
-    (while (and (not found)
-                (not (greger-parser--at-end-p state))
-                (< iterations max-iterations))
-      (setq iterations (1+ iterations))
-      (if (greger-parser--looking-at state closing-tag)
-          (setq found t)
-        (greger-parser--advance state)))
-    (when (>= iterations max-iterations)
-      (greger-parser--debug state "Hit max iterations in find-closing-tag"))
-    found))
-
-(defun greger-parser--parse-tool-result-content (state)
-  "Parse tool result content using STATE."
-  (greger-parser--skip-whitespace state)
-  (or (greger-parser--parse-tool-value state) ""))
-</tool.toolu_01HAei6SwM6XFUgg4L68WnT3>
-
-### git_commit_message
-
-<tool.toolu_01HAei6SwM6XFUgg4L68WnT3>
-Update find-closing-tag and parse-tool-result-content functions to use state parameter
-</tool.toolu_01HAei6SwM6XFUgg4L68WnT3>
-
-## TOOL RESULT:
-
-ID: toolu_01HAei6SwM6XFUgg4L68WnT3
-
-<tool.toolu_01HAei6SwM6XFUgg4L68WnT3>
-Successfully replaced content in /Users/andreas/projects/aichat3/greger-parser.el. Successfully staged 2 file(s) and committed with message: Update find-closing-tag and parse-tool-result-content functions to use state parameter
-</tool.toolu_01HAei6SwM6XFUgg4L68WnT3>
-
-## ASSISTANT:
-
-Now I need to add debug control functions that work with the new state structure and update the existing debug control functions to use a global debug flag since the debug functionality is still needed for testing:
-
-
-## TOOL USE:
-
-Name: str-replace
-ID: toolu_01M7J67jDfQfTcRHx48xsQvN
-
-### file_path
-
-<tool.toolu_01M7J67jDfQfTcRHx48xsQvN>
-greger-parser.el
-</tool.toolu_01M7J67jDfQfTcRHx48xsQvN>
-
-### original_content
-
-<tool.toolu_01M7J67jDfQfTcRHx48xsQvN>
-;; Debug helper function
-(defun greger-parser-enable-debug ()
-  "Enable parser debug output."
-  (interactive)
-  (setq greger-parser--debug t)
-  (message "Parser debug enabled"))
-
-(defun greger-parser-disable-debug ()
-  "Disable parser debug output."
-  (interactive)
-  (setq greger-parser--debug nil)
-  (message "Parser debug disabled"))
-</tool.toolu_01M7J67jDfQfTcRHx48xsQvN>
-
-### new_content
-
-<tool.toolu_01M7J67jDfQfTcRHx48xsQvN>
-;; Global debug flag for interactive debugging
-(defvar greger-parser--global-debug nil
-  "Global debug flag for interactive debugging.")
-
-;; Debug helper functions
-(defun greger-parser-enable-debug ()
-  "Enable parser debug output."
-  (interactive)
-  (setq greger-parser--global-debug t)
-  (message "Parser debug enabled"))
-
-(defun greger-parser-disable-debug ()
-  "Disable parser debug output."
-  (interactive)
-  (setq greger-parser--global-debug nil)
-  (message "Parser debug disabled"))
-
-(defun greger-parser-parse-dialog-debug (markdown)
-  "Parse MARKDOWN into dialog format with debug enabled."
-  (greger-parser-parse-dialog markdown (or greger-parser--global-debug t)))
-</tool.toolu_01M7J67jDfQfTcRHx48xsQvN>
-
-### git_commit_message
-
-<tool.toolu_01M7J67jDfQfTcRHx48xsQvN>
-Add global debug flag and debug helper functions for interactive use
-</tool.toolu_01M7J67jDfQfTcRHx48xsQvN>
-
-## TOOL RESULT:
-
-ID: toolu_01M7J67jDfQfTcRHx48xsQvN
-
-<tool.toolu_01M7J67jDfQfTcRHx48xsQvN>
-Successfully replaced content in /Users/andreas/projects/aichat3/greger-parser.el. Successfully staged 2 file(s) and committed with message: Add global debug flag and debug helper functions for interactive use
-</tool.toolu_01M7J67jDfQfTcRHx48xsQvN>
-
-## ASSISTANT:
-
-Now I need to verify that there are no references to the old global variables left in the file. Let me search for any remaining issues:
-
-## TOOL USE:
-
-Name: ripgrep
-ID: toolu_01X78CeQAA9Pys9pcXZB6jkx
-
-### pattern
-
-<tool.toolu_01X78CeQAA9Pys9pcXZB6jkx>
-greger-parser--input|greger-parser--pos|greger-parser--length
-</tool.toolu_01X78CeQAA9Pys9pcXZB6jkx>
-
-### path
-
-<tool.toolu_01X78CeQAA9Pys9pcXZB6jkx>
-greger-parser.el
-</tool.toolu_01X78CeQAA9Pys9pcXZB6jkx>
-
-## TOOL RESULT:
-
-ID: toolu_01X78CeQAA9Pys9pcXZB6jkx
-
-<tool.toolu_01X78CeQAA9Pys9pcXZB6jkx>
-No matches found
-</tool.toolu_01X78CeQAA9Pys9pcXZB6jkx>
-
-## ASSISTANT:
-
-Great! Now let me check that all functions that need state parameters have been updated by looking for functions that might not have been converted:
-
-## TOOL USE:
-
-Name: ripgrep
-ID: toolu_01CuQsxx9mxvbBVkmaEPp5Gg
-
-### pattern
-
-<tool.toolu_01CuQsxx9mxvbBVkmaEPp5Gg>
-\(defun greger-parser.*\(\)
-</tool.toolu_01CuQsxx9mxvbBVkmaEPp5Gg>
-
-### path
-
-<tool.toolu_01CuQsxx9mxvbBVkmaEPp5Gg>
-greger-parser.el
-</tool.toolu_01CuQsxx9mxvbBVkmaEPp5Gg>
-
-## TOOL RESULT:
-
-ID: toolu_01CuQsxx9mxvbBVkmaEPp5Gg
-
-<tool.toolu_01CuQsxx9mxvbBVkmaEPp5Gg>
-162:(defun greger-parser--section-tags ()
-900:(defun greger-parser-enable-debug ()
-906:(defun greger-parser-disable-debug ()
-
-</tool.toolu_01CuQsxx9mxvbBVkmaEPp5Gg>
-
-## ASSISTANT:
-
-Good, the remaining functions without parameters are appropriate - `greger-parser--section-tags` returns constants, and the debug functions are global utilities.
-
-Let me test the refactored parser by running a simple test:
-
-
-## TOOL USE:
-
-Name: write-new-file
-ID: toolu_01GGDMGvszPkqx7JKCsSYQSJ
-
-### file_path
-
-<tool.toolu_01GGDMGvszPkqx7JKCsSYQSJ>
-test-parser-state.el
-</tool.toolu_01GGDMGvszPkqx7JKCsSYQSJ>
-
-### contents
-
-<tool.toolu_01GGDMGvszPkqx7JKCsSYQSJ>
-;;; Test file for greger-parser state refactoring
-
-(require 'greger-parser)
-
-;; Test basic parsing
-(let ((test-input "## USER:\n\nHello world\n\n## ASSISTANT:\n\nHi there!"))
-  (message "Testing basic parse...")
-  (let ((result (greger-parser-parse-dialog test-input)))
-    (message "Parse result: %S" result)
-    (if (= (length result) 2)
-        (message "✓ Basic parsing test passed")
-      (message "✗ Basic parsing test failed"))))
-
-;; Test with debug
-(let ((test-input "## USER:\n\nHello world"))
-  (message "Testing debug parse...")
-  (let ((result (greger-parser-parse-dialog test-input t)))
-    (message "Debug parse result: %S" result)
-    (if (= (length result) 1)
-        (message "✓ Debug parsing test passed")
-      (message "✗ Debug parsing test failed"))))
-
-(message "Parser state refactoring tests complete")
-</tool.toolu_01GGDMGvszPkqx7JKCsSYQSJ>
-
-### git_commit_message
-
-<tool.toolu_01GGDMGvszPkqx7JKCsSYQSJ>
-Add test file for parser state refactoring
-</tool.toolu_01GGDMGvszPkqx7JKCsSYQSJ>
-
-## TOOL RESULT:
-
-ID: toolu_01GGDMGvszPkqx7JKCsSYQSJ
-
-<tool.toolu_01GGDMGvszPkqx7JKCsSYQSJ>
-Successfully wrote new file /Users/andreas/projects/aichat3/test-parser-state.el with 825 characters. Successfully staged 2 file(s) and committed with message: Add test file for parser state refactoring
-</tool.toolu_01GGDMGvszPkqx7JKCsSYQSJ>
-
-## TOOL USE:
-
-Name: shell-command
-ID: toolu_01CYXic8oDRdPME7uoRTrNpt
-
-### command
-
-<tool.toolu_01CYXic8oDRdPME7uoRTrNpt>
-emacs --batch -l test-parser-state.el
-</tool.toolu_01CYXic8oDRdPME7uoRTrNpt>
-
-## TOOL RESULT:
-
-ID: toolu_01CYXic8oDRdPME7uoRTrNpt
-
-<tool.toolu_01CYXic8oDRdPME7uoRTrNpt>
-Error executing tool: Shell command execution cancelled by user
-</tool.toolu_01CYXic8oDRdPME7uoRTrNpt>
-
-## USER:
-
-The test-greger-parser.el tests are failing after these changes:
-
-```
-Selector: t
-Passed:  18
-Failed:  11 (11 unexpected)
-Skipped: 0
-Total:   29/29
-
-Started at:   2025-05-29 15:26:06+0200
-Finished.
-Finished at:  2025-05-29 15:26:07+0200
-
-.....FFFFF...FFFFFF..........
-
-F greger-parser-test-include-tag-basic
-    Test basic include tag functionality.
-    (ert-test-failed
-     ((should
-       (= 1
-          (length parsed)))
-      :form
-      (= 1 0)
-      :value nil))
-
-F greger-parser-test-include-tag-in-assistant-section
-    Test include tag in assistant section.
-    (ert-test-failed
-     ((should
-       (= 2
-          (length parsed)))
-      :form
-      (= 2 0)
-      :value nil))
-
-F greger-parser-test-include-tag-invalid-url
-    Test include tag with invalid web URL.
-    (ert-test-failed
-     ((should
-       (= 1
-          (length parsed)))
-      :form
-      (= 1 0)
-      :value nil))
-
-F greger-parser-test-include-tag-multiline-content
-    Test include tag with multiline file content.
-    (ert-test-failed
-     ((should
-       (= 1
-          (length parsed)))
-      :form
-      (= 1 0)
-      :value nil))
-
-F greger-parser-test-include-tag-nonexistent-file
-    Test include tag with nonexistent file.
-    (ert-test-failed
-     ((should
-       (= 1
-          (length parsed)))
-      :form
-      (= 1 0)
-      :value nil))
-
-F greger-parser-test-include-tag-recursive
-    Test include tag with file that contains another include tag.
-    (ert-test-failed
-     ((should
-       (= 1
-          (length parsed)))
-      :form
-      (= 1 0)
-      :value nil))
-
-F greger-parser-test-include-tag-web-url
-    Test include tag with web URL functionality.
-    (ert-test-failed
-     ((should
-       (= 1
-          (length parsed)))
-      :form
-      (= 1 0)
-      :value nil))
-
-F greger-parser-test-include-tag-web-url-with-code
-    Test include tag with web URL and code attribute.
-    (ert-test-failed
-     ((should
-       (= 1
-          (length parsed)))
-      :form
-      (= 1 0)
-      :value nil))
-
-F greger-parser-test-include-tag-with-code
-    Test include tag with code attribute.
-    (ert-test-failed
-     ((should
-       (= 1
-          (length parsed)))
-      :form
-      (= 1 0)
-      :value nil))
-
-F greger-parser-test-include-tag-with-code-in-code-block
-    Test include tag with code attribute where content has code blocks.
-    (ert-test-failed
-     ((should
-       (= 1
-          (length parsed)))
-      :form
-      (= 1 0)
-      :value nil))
-
-F greger-parser-test-include-tag-with-section-headers
-    Test include tag with content containing section headers.
-    (ert-test-failed
-     ((should
-       (= 2
-          (length parsed)))
-      :form
-      (= 2 0)
-      :value nil))
-
-```
-
-## ASSISTANT:
-
-I see the issue. All the include tag tests are failing because they're getting empty results (length 0 instead of expected length). The problem is likely that the `greger-parser--include-file` function doesn't take a state parameter, but it's being called from functions that do use state. Let me check the current state of that function and fix it.
-
-## TOOL USE:
-
-Name: ripgrep
-ID: toolu_01KVevgyS2XQrDXwoeHL59xW
-
-### pattern
-
-<tool.toolu_01KVevgyS2XQrDXwoeHL59xW>
-greger-parser--include-file
-</tool.toolu_01KVevgyS2XQrDXwoeHL59xW>
-
-### path
-
-<tool.toolu_01KVevgyS2XQrDXwoeHL59xW>
-greger-parser.el
-</tool.toolu_01KVevgyS2XQrDXwoeHL59xW>
-
-### context-lines
-
-<tool.toolu_01KVevgyS2XQrDXwoeHL59xW>
-5
-</tool.toolu_01KVevgyS2XQrDXwoeHL59xW>
-
-## TOOL RESULT:
-
-ID: toolu_01KVevgyS2XQrDXwoeHL59xW
-
-<tool.toolu_01KVevgyS2XQrDXwoeHL59xW>
-297:                (greger-parser--include-file file-path has-code-attr)))))))))
-299:(defun greger-parser--include-file (file-path has-code-attr)
-
-</tool.toolu_01KVevgyS2XQrDXwoeHL59xW>
-
-## ASSISTANT:
-
-Let me see the full `greger-parser--include-file` function:
+Let me check the exact content around that function:
 
 ## TOOL USE:
 
 Name: read-file
-ID: toolu_01TLDvHYEPb3rmUD3xNQEmaw
+ID: toolu_01JnT6u4tHhzD8sWEHr9rde1
 
 ### path
 
-<tool.toolu_01TLDvHYEPb3rmUD3xNQEmaw>
+<tool.toolu_01JnT6u4tHhzD8sWEHr9rde1>
 greger-parser.el
-</tool.toolu_01TLDvHYEPb3rmUD3xNQEmaw>
+</tool.toolu_01JnT6u4tHhzD8sWEHr9rde1>
 
 ### start_line
 
-<tool.toolu_01TLDvHYEPb3rmUD3xNQEmaw>
-299
-</tool.toolu_01TLDvHYEPb3rmUD3xNQEmaw>
+<tool.toolu_01JnT6u4tHhzD8sWEHr9rde1>
+84
+</tool.toolu_01JnT6u4tHhzD8sWEHr9rde1>
 
 ### end_line
 
-<tool.toolu_01TLDvHYEPb3rmUD3xNQEmaw>
-325
-</tool.toolu_01TLDvHYEPb3rmUD3xNQEmaw>
+<tool.toolu_01JnT6u4tHhzD8sWEHr9rde1>
+88
+</tool.toolu_01JnT6u4tHhzD8sWEHr9rde1>
+
+### include_line_numbers
+
+<tool.toolu_01JnT6u4tHhzD8sWEHr9rde1>
+true
+</tool.toolu_01JnT6u4tHhzD8sWEHr9rde1>
 
 ## TOOL RESULT:
 
-ID: toolu_01TLDvHYEPb3rmUD3xNQEmaw
-
-<tool.toolu_01TLDvHYEPb3rmUD3xNQEmaw>
-(defun greger-parser--include-file (file-path has-code-attr)
-  "Include a file's content, optionally formatting as code.
-Supports both local files and web URLs (http:// or https://)."
-  (greger-parser--debug "Including file: %s (code: %s)" file-path has-code-attr)
-  (condition-case err
-      (let ((content
-             (if (greger-parser--is-web-url-p file-path)
-                 ;; Handle web URL
-                 (progn
-                   (greger-parser--debug "Downloading content from URL: %s" file-path)
-                   (greger-parser--text-from-url file-path t)) ; Use readability heuristics
-               ;; Handle local file
-               (with-temp-buffer
-                 (insert-file-contents file-path)
-                 (buffer-string)))))
-
-        ;; Remove trailing newline from content if present
-        (when (and (> (length content) 0)
-                   (eq (aref content (1- (length content))) ?\n))
-          (setq content (substring content 0 -1)))
-
-        (if has-code-attr
-            (format "%s:\n```\n%s\n```" file-path content)
-          content))
-    (error
-     (greger-parser--debug "Error reading %s %s: %s"
-                          (if (greger-parser--is-web-url-p file-path) "URL" "file")
-</tool.toolu_01TLDvHYEPb3rmUD3xNQEmaw>
-
-## ASSISTANT:
-
-I see the issue! The `greger-parser--include-file` function calls `greger-parser--debug` but it doesn't have a state parameter to pass to it. The debug function now requires a state parameter. Let me look at the whole function and fix it:
-
-## TOOL USE:
-
-Name: read-file
-ID: toolu_01JA7JJhprDzmqH27nanL3g6
-
-### path
-
-<tool.toolu_01JA7JJhprDzmqH27nanL3g6>
-greger-parser.el
-</tool.toolu_01JA7JJhprDzmqH27nanL3g6>
-
-### start_line
-
-<tool.toolu_01JA7JJhprDzmqH27nanL3g6>
-299
-</tool.toolu_01JA7JJhprDzmqH27nanL3g6>
-
-### end_line
-
-<tool.toolu_01JA7JJhprDzmqH27nanL3g6>
-330
-</tool.toolu_01JA7JJhprDzmqH27nanL3g6>
-
-## TOOL RESULT:
-
-ID: toolu_01JA7JJhprDzmqH27nanL3g6
-
-<tool.toolu_01JA7JJhprDzmqH27nanL3g6>
-(defun greger-parser--include-file (file-path has-code-attr)
-  "Include a file's content, optionally formatting as code.
-Supports both local files and web URLs (http:// or https://)."
-  (greger-parser--debug "Including file: %s (code: %s)" file-path has-code-attr)
-  (condition-case err
-      (let ((content
-             (if (greger-parser--is-web-url-p file-path)
-                 ;; Handle web URL
-                 (progn
-                   (greger-parser--debug "Downloading content from URL: %s" file-path)
-                   (greger-parser--text-from-url file-path t)) ; Use readability heuristics
-               ;; Handle local file
-               (with-temp-buffer
-                 (insert-file-contents file-path)
-                 (buffer-string)))))
-
-        ;; Remove trailing newline from content if present
-        (when (and (> (length content) 0)
-                   (eq (aref content (1- (length content))) ?\n))
-          (setq content (substring content 0 -1)))
-
-        (if has-code-attr
-            (format "%s:\n```\n%s\n```" file-path content)
-          content))
-    (error
-     (greger-parser--debug "Error reading %s %s: %s"
-                          (if (greger-parser--is-web-url-p file-path) "URL" "file")
-                          file-path
-                          (error-message-string err))
-     ;; Return error message as content instead of failing silently
-     (format "[Error reading %s: %s]"
-             (if (greger-parser--is-web-url-p file-path) "URL" "file")
-</tool.toolu_01JA7JJhprDzmqH27nanL3g6>
-
-## ASSISTANT:
-
-Let me see the complete function:
-
-## TOOL USE:
-
-Name: read-file
-ID: toolu_01P8qwf41jb4JNMJ7cax6Uc7
-
-### path
-
-<tool.toolu_01P8qwf41jb4JNMJ7cax6Uc7>
-greger-parser.el
-</tool.toolu_01P8qwf41jb4JNMJ7cax6Uc7>
-
-### start_line
-
-<tool.toolu_01P8qwf41jb4JNMJ7cax6Uc7>
-299
-</tool.toolu_01P8qwf41jb4JNMJ7cax6Uc7>
-
-### end_line
-
-<tool.toolu_01P8qwf41jb4JNMJ7cax6Uc7>
-335
-</tool.toolu_01P8qwf41jb4JNMJ7cax6Uc7>
-
-## TOOL RESULT:
-
-ID: toolu_01P8qwf41jb4JNMJ7cax6Uc7
-
-<tool.toolu_01P8qwf41jb4JNMJ7cax6Uc7>
-(defun greger-parser--include-file (file-path has-code-attr)
-  "Include a file's content, optionally formatting as code.
-Supports both local files and web URLs (http:// or https://)."
-  (greger-parser--debug "Including file: %s (code: %s)" file-path has-code-attr)
-  (condition-case err
-      (let ((content
-             (if (greger-parser--is-web-url-p file-path)
-                 ;; Handle web URL
-                 (progn
-                   (greger-parser--debug "Downloading content from URL: %s" file-path)
-                   (greger-parser--text-from-url file-path t)) ; Use readability heuristics
-               ;; Handle local file
-               (with-temp-buffer
-                 (insert-file-contents file-path)
-                 (buffer-string)))))
-
-        ;; Remove trailing newline from content if present
-        (when (and (> (length content) 0)
-                   (eq (aref content (1- (length content))) ?\n))
-          (setq content (substring content 0 -1)))
-
-        (if has-code-attr
-            (format "%s:\n```\n%s\n```" file-path content)
-          content))
-    (error
-     (greger-parser--debug "Error reading %s %s: %s"
-                          (if (greger-parser--is-web-url-p file-path) "URL" "file")
-                          file-path
-                          (error-message-string err))
-     ;; Return error message as content instead of failing silently
-     (format "[Error reading %s: %s]"
-             (if (greger-parser--is-web-url-p file-path) "URL" "file")
-             file-path))))
-
-(defun greger-parser--skip-include-tag (state)
-  "Skip include tag without processing it in STATE."
-  (greger-parser--debug state "Skipping include tag at pos %d" (greger-parser-state-pos state))
-</tool.toolu_01P8qwf41jb4JNMJ7cax6Uc7>
-
-## ASSISTANT:
-
-Now I need to fix the `greger-parser--include-file` function to take a state parameter and use it for debug calls:
-
-
-## TOOL USE:
-
-Name: str-replace
-ID: toolu_01UwM4S98r249xpbkVjrgugT
-
-### file_path
-
-<tool.toolu_01UwM4S98r249xpbkVjrgugT>
-greger-parser.el
-</tool.toolu_01UwM4S98r249xpbkVjrgugT>
-
-### original_content
-
-<tool.toolu_01UwM4S98r249xpbkVjrgugT>
-(defun greger-parser--include-file (file-path has-code-attr)
-  "Include a file's content, optionally formatting as code.
-Supports both local files and web URLs (http:// or https://)."
-  (greger-parser--debug "Including file: %s (code: %s)" file-path has-code-attr)
-  (condition-case err
-      (let ((content
-             (if (greger-parser--is-web-url-p file-path)
-                 ;; Handle web URL
-                 (progn
-                   (greger-parser--debug "Downloading content from URL: %s" file-path)
-                   (greger-parser--text-from-url file-path t)) ; Use readability heuristics
-               ;; Handle local file
-               (with-temp-buffer
-                 (insert-file-contents file-path)
-                 (buffer-string)))))
-
-        ;; Remove trailing newline from content if present
-        (when (and (> (length content) 0)
-                   (eq (aref content (1- (length content))) ?\n))
-          (setq content (substring content 0 -1)))
-
-        (if has-code-attr
-            (format "%s:\n```\n%s\n```" file-path content)
-          content))
-    (error
-     (greger-parser--debug "Error reading %s %s: %s"
-                          (if (greger-parser--is-web-url-p file-path) "URL" "file")
-                          file-path
-                          (error-message-string err))
-     ;; Return error message as content instead of failing silently
-     (format "[Error reading %s: %s]"
-             (if (greger-parser--is-web-url-p file-path) "URL" "file")
-             file-path))))
-</tool.toolu_01UwM4S98r249xpbkVjrgugT>
-
-### new_content
-
-<tool.toolu_01UwM4S98r249xpbkVjrgugT>
-(defun greger-parser--include-file (state file-path has-code-attr)
-  "Include a file's content, optionally formatting as code using STATE.
-Supports both local files and web URLs (http:// or https://)."
-  (greger-parser--debug state "Including file: %s (code: %s)" file-path has-code-attr)
-  (condition-case err
-      (let ((content
-             (if (greger-parser--is-web-url-p file-path)
-                 ;; Handle web URL
-                 (progn
-                   (greger-parser--debug state "Downloading content from URL: %s" file-path)
-                   (greger-parser--text-from-url file-path t)) ; Use readability heuristics
-               ;; Handle local file
-               (with-temp-buffer
-                 (insert-file-contents file-path)
-                 (buffer-string)))))
-
-        ;; Remove trailing newline from content if present
-        (when (and (> (length content) 0)
-                   (eq (aref content (1- (length content))) ?\n))
-          (setq content (substring content 0 -1)))
-
-        (if has-code-attr
-            (format "%s:\n```\n%s\n```" file-path content)
-          content))
-    (error
-     (greger-parser--debug state "Error reading %s %s: %s"
-                          (if (greger-parser--is-web-url-p file-path) "URL" "file")
-                          file-path
-                          (error-message-string err))
-     ;; Return error message as content instead of failing silently
-     (format "[Error reading %s: %s]"
-             (if (greger-parser--is-web-url-p file-path) "URL" "file")
-             file-path))))
-</tool.toolu_01UwM4S98r249xpbkVjrgugT>
-
-### git_commit_message
-
-<tool.toolu_01UwM4S98r249xpbkVjrgugT>
-Fix greger-parser--include-file function to use state parameter
-</tool.toolu_01UwM4S98r249xpbkVjrgugT>
-
-## TOOL RESULT:
-
-ID: toolu_01UwM4S98r249xpbkVjrgugT
-
-<tool.toolu_01UwM4S98r249xpbkVjrgugT>
-Successfully replaced content in /Users/andreas/projects/aichat3/greger-parser.el. Successfully staged 2 file(s) and committed with message: Fix greger-parser--include-file function to use state parameter
-</tool.toolu_01UwM4S98r249xpbkVjrgugT>
-
-## ASSISTANT:
-
-Now I need to update the call to `greger-parser--include-file` to pass the state parameter:
-
-
-## TOOL USE:
-
-Name: str-replace
-ID: toolu_017eoeJ6iPLW6qi3qJNP3qDZ
-
-### file_path
-
-<tool.toolu_017eoeJ6iPLW6qi3qJNP3qDZ>
-greger-parser.el
-</tool.toolu_017eoeJ6iPLW6qi3qJNP3qDZ>
-
-### original_content
-
-<tool.toolu_017eoeJ6iPLW6qi3qJNP3qDZ>
-                ;; Read and process the file
-                (greger-parser--include-file file-path has-code-attr)))))))))
-</tool.toolu_017eoeJ6iPLW6qi3qJNP3qDZ>
-
-### new_content
-
-<tool.toolu_017eoeJ6iPLW6qi3qJNP3qDZ>
-                ;; Read and process the file
-                (greger-parser--include-file state file-path has-code-attr)))))))))
-</tool.toolu_017eoeJ6iPLW6qi3qJNP3qDZ>
-
-### git_commit_message
-
-<tool.toolu_017eoeJ6iPLW6qi3qJNP3qDZ>
-Fix call to greger-parser--include-file to pass state parameter
-</tool.toolu_017eoeJ6iPLW6qi3qJNP3qDZ>
-
-## TOOL RESULT:
-
-ID: toolu_017eoeJ6iPLW6qi3qJNP3qDZ
-
-<tool.toolu_017eoeJ6iPLW6qi3qJNP3qDZ>
-Successfully replaced content in /Users/andreas/projects/aichat3/greger-parser.el. Successfully staged 2 file(s) and committed with message: Fix call to greger-parser--include-file to pass state parameter
-</tool.toolu_017eoeJ6iPLW6qi3qJNP3qDZ>
-
-## ASSISTANT:
-
-Now let me run the tests to see if the include tag tests are working:
-
-## TOOL USE:
-
-Name: shell-command
-ID: toolu_01WSXLg7rWGk6VvfNUEYJ74K
-
-### command
-
-<tool.toolu_01WSXLg7rWGk6VvfNUEYJ74K>
-cd /Users/andreas/projects/aichat3 && emacs --batch -l ert -l test-greger-parser.el -f ert-run-tests-batch-and-exit
-</tool.toolu_01WSXLg7rWGk6VvfNUEYJ74K>
-
-## TOOL RESULT:
-
-ID: toolu_01WSXLg7rWGk6VvfNUEYJ74K
-
-<tool.toolu_01WSXLg7rWGk6VvfNUEYJ74K>
-Error executing tool: Shell command execution cancelled by user
-</tool.toolu_01WSXLg7rWGk6VvfNUEYJ74K>
-
-## ASSISTANT:
-
-Let me try a smaller test to see if the function is working:
+ID: toolu_01JnT6u4tHhzD8sWEHr9rde1
+
+<tool.toolu_01JnT6u4tHhzD8sWEHr9rde1>
+84: (defun greger-parser--current-pos (state)
+85:   "Get current position from STATE."
+86:   (greger-parser-state-pos state))
+87:
+88: (defun greger-parser--substring (state start &optional end)
+</tool.toolu_01JnT6u4tHhzD8sWEHr9rde1>

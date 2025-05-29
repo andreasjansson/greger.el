@@ -85,6 +85,16 @@
   "Get current position from STATE."
   (greger-parser-state-pos state))
 
+(defun greger-parser--insert-content-at-pos (state content)
+  "Insert CONTENT into STATE at the current position and update length."
+  (let* ((pos (greger-parser-state-pos state))
+         (input (greger-parser-state-input state))
+         (before (substring input 0 pos))
+         (after (substring input pos))
+         (new-input (concat before content after)))
+    (setf (greger-parser-state-input state) new-input)
+    (setf (greger-parser-state-length state) (length new-input))))
+
 (defun greger-parser--substring (state start &optional end)
   "Get substring from START to END (or current position) in STATE."
   (let ((input (greger-parser-state-input state))
