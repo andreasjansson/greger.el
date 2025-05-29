@@ -6,6 +6,7 @@
 ;;; Code:
 
 (require 'greger-tools)
+(require 'greger-web)
 
 ;; Register all tools using the macro
 (greger-register-tool "read-file"
