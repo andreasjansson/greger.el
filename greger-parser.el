@@ -286,7 +286,7 @@ Returns nil when content is inserted, or the content string when it should be ap
 
         (cond
          ;; For files with code attribute or web URLs, return formatted content
-         ((or has-code-attr (greger-parser--is-web-url-p file-path))
+         ((or has-code-attr (greger-web-is-web-url-p file-path))
           (if has-code-attr
               (format "%s:\n```\n%s\n```" file-path content)
             content))

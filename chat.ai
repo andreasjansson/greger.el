@@ -2550,3 +2550,53 @@ ID: toolu_012jbJrcqHHgJJBTNvxkBmrY
                  (insert-file-contents file-path)
                  (buffer-string)))))
 </tool.toolu_012jbJrcqHHgJJBTNvxkBmrY>
+
+
+## TOOL USE:
+
+Name: str-replace
+ID: toolu_01THjiU2zmTBFUMueGYmECLW
+
+### file_path
+
+<tool.toolu_01THjiU2zmTBFUMueGYmECLW>
+greger-parser.el
+</tool.toolu_01THjiU2zmTBFUMueGYmECLW>
+
+### original_content
+
+<tool.toolu_01THjiU2zmTBFUMueGYmECLW>
+             (if (greger-parser--is-web-url-p file-path)
+                 ;; Handle web URL
+                 (progn
+                   (greger-parser--debug state "Downloading content from URL: %s" file-path)
+                   (greger-parser--text-from-url file-path t)) ; Use readability heuristics
+</tool.toolu_01THjiU2zmTBFUMueGYmECLW>
+
+### new_content
+
+<tool.toolu_01THjiU2zmTBFUMueGYmECLW>
+             (if (greger-web-is-web-url-p file-path)
+                 ;; Handle web URL
+                 (progn
+                   (greger-parser--debug state "Downloading content from URL: %s" file-path)
+                   (greger-web-text-from-url file-path t)) ; Use readability heuristics
+</tool.toolu_01THjiU2zmTBFUMueGYmECLW>
+
+### git_commit_message
+
+<tool.toolu_01THjiU2zmTBFUMueGYmECLW>
+Update web URL detection and text extraction calls in include-file function
+</tool.toolu_01THjiU2zmTBFUMueGYmECLW>
+
+## TOOL RESULT:
+
+ID: toolu_01THjiU2zmTBFUMueGYmECLW
+
+<tool.toolu_01THjiU2zmTBFUMueGYmECLW>
+Successfully replaced content in /Users/andreas/projects/aichat3/greger-parser.el. Successfully staged 2 file(s) and committed with message: Update web URL detection and text extraction calls in include-file function
+</tool.toolu_01THjiU2zmTBFUMueGYmECLW>
+
+## ASSISTANT:
+
+Now let me update the remaining calls:
