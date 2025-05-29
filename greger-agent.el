@@ -87,10 +87,13 @@
       ;; Get Claude's response
       (greger-agent--debug "CALLING greger-stream-to-buffer-with-tools...")
       (greger-stream-to-buffer-with-tools
-       greger-model current-dialog tools
-       (lambda (content-blocks)
-         (greger-agent--debug "RECEIVED PARSED CONTENT BLOCKS")
-         (greger-agent--handle-parsed-response content-blocks))))))
+       :model greger-model
+       :dialog current-dialog
+       :tools tools
+       :buffer greger-agent--chat-buffer
+       :complete-callback (lambda (content-blocks)
+                            (greger-agent--debug "RECEIVED PARSED CONTENT BLOCKS")
+                            (greger-agent--handle-parsed-response content-blocks))))))
 
 (defun greger-agent--handle-parsed-response (content-blocks)
   "Handle the parsed CONTENT-BLOCKS from Claude."
