@@ -20,11 +20,13 @@
 (defconst greger-parser-tool-result-tag "## TOOL RESULT:")
 (defconst greger-parser-thinking-tag "## THINKING:")
 
-;; Parser state
-(defvar greger-parser--input "")
-(defvar greger-parser--pos 0)
-(defvar greger-parser--length 0)
-(defvar greger-parser--debug nil)
+;;; Parser state structure
+
+(cl-defstruct greger-parser-state
+  input
+  pos
+  length
+  debug)
 
 (defmacro greger-parser--with-input (input &rest body)
   "Execute BODY with INPUT as parser source."

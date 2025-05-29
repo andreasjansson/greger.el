@@ -2,2368 +2,1021 @@
 
 ## USER:
 
-Make these changes:
-* Give greger-stream-to-buffer two new callbacks: text-start-callback and text-callback
-* Handle the insertion of text and assistant tags in greger-agent.el instead of greger-stream.el, so we can insert at (point-max) in the greger-agent-state chat-buffer instead of at insert-position in greger-stream.el
-* remove insert-position from greger-stream-state
+greger-parser.el is not safe for multiple instances of greger. You'll need to create a greger-parser-state structure like in greger-agent.el and pass that around as the first argument to all the parser functions.
 
 ## ASSISTANT:
 
-I'll help you make these changes. Let me first examine the current code structure to understand how these files are organized and what changes need to be made.
+I'll help you refactor `greger-parser.el` to use a state structure similar to `greger-agent.el`. Let me first examine the current parser file and the agent file to understand the existing structure.
 
 ## TOOL USE:
 
-Name: list-directory
-ID: toolu_01Dy9mLXHEfReZkRQB5ggbUx
+Name: read-file
+ID: toolu_019CsZEeGXBHnV45ksm7FEw2
 
 ### path
 
-<tool.toolu_01Dy9mLXHEfReZkRQB5ggbUx>
-.
-</tool.toolu_01Dy9mLXHEfReZkRQB5ggbUx>
-
-## TOOL RESULT:
-
-ID: toolu_01Dy9mLXHEfReZkRQB5ggbUx
-
-<tool.toolu_01Dy9mLXHEfReZkRQB5ggbUx>
-chat.ai
-chat2.ai
-chat3.ai
-chat4.ai
-chat5.ai
-greger-agent.el
+<tool.toolu_019CsZEeGXBHnV45ksm7FEw2>
 greger-parser.el
-greger-provider-claude.el
-greger-provider-google.el
-greger-provider-openai.el
-greger-providers.el
-greger-stdlib.el
-greger-stream.el
-greger-tools.el
-greger.el
-test-greger-parser.el
-test-greger-tools.el
-</tool.toolu_01Dy9mLXHEfReZkRQB5ggbUx>
+</tool.toolu_019CsZEeGXBHnV45ksm7FEw2>
+
+## TOOL RESULT:
+
+ID: toolu_019CsZEeGXBHnV45ksm7FEw2
+
+<tool.toolu_019CsZEeGXBHnV45ksm7FEw2>
+;;; greger-parser.el --- Parser for greger dialog format -*- lexical-binding: t -*-
+
+;;; Commentary:
+;; Parses markdown-style dialog format with sections like ## USER:, ## ASSISTANT:, etc.
+;; Handles tool use, thinking blocks, and complex content structures.
+
+;;; Code:
+
+(require 'json)
+(require 'cl-lib)
+(require 'url)
+(require 'dom)
+(require 'eww)
+
+;; Section tag constants
+(defconst greger-parser-user-tag "## USER:")
+(defconst greger-parser-assistant-tag "## ASSISTANT:")
+(defconst greger-parser-system-tag "## SYSTEM:")
+(defconst greger-parser-tool-use-tag "## TOOL USE:")
+(defconst greger-parser-tool-result-tag "## TOOL RESULT:")
+(defconst greger-parser-thinking-tag "## THINKING:")
+
+;; Parser state
+(defvar greger-parser--input "")
+(defvar greger-parser--pos 0)
+(defvar greger-parser--length 0)
+(defvar greger-parser--debug nil)
+
+(defmacro greger-parser--with-input (input &rest body)
+  "Execute BODY with INPUT as parser source."
+  `(let ((greger-parser--input (or ,input ""))
+         (greger-parser--pos 0)
+         (greger-parser--length (length (or ,input ""))))
+     ,@body))
+
+(defun greger-parser--debug (format-string &rest args)
+  "Debug logging function."
+  (when greger-parser--debug
+    (message "[PARSER DEBUG] %s" (apply #'format format-string args))))
+
+;; Main parsing entry points
+
+(defun greger-parser-parse-dialog (markdown)
+  "Parse MARKDOWN into dialog format."
+  (if (or (null markdown) (string-empty-p (string-trim markdown)))
+      '()
+    (greger-parser--with-input markdown
+      (condition-case err
+          (greger-parser--parse-document)
+        (error
+         (greger-parser--debug "Parse error: %s" (error-message-string err))
+         '())))))
+
+(defun greger-parser-dialog-to-markdown (dialog)
+  "Convert DIALOG to markdown format."
+  (if (null dialog)
+      ""
+    (mapconcat #'greger-parser--message-to-markdown dialog "\n\n")))
+
+;; Parser infrastructure
+
+(defun greger-parser--at-end-p ()
+  "True if at end of input."
+  (>= greger-parser--pos greger-parser--length))
+
+(defun greger-parser--peek (&optional offset)
+  "Peek at character at current position plus OFFSET."
+  (let ((pos (+ greger-parser--pos (or offset 0))))
+    (if (and (>= pos 0) (< pos greger-parser--length))
+        (aref greger-parser--input pos)
+      nil)))
+
+(defun greger-parser--advance (&optional n)
+  "Advance position by N characters (default 1)."
+  (let ((old-pos greger-parser--pos))
+    (setq greger-parser--pos (min greger-parser--length
+                                 (+ greger-parser--pos (or n 1))))
+    (greger-parser--debug "Advanced from %d to %d" old-pos greger-parser--pos)))
+
+(defun greger-parser--current-pos ()
+  "Get current position."
+  greger-parser--pos)
+
+(defun greger-parser--substring (start &optional end)
+  "Get substring from START to END (or current position)."
+  (if (and (>= start 0)
+           (<= start greger-parser--length)
+           (or (null end) (<= end greger-parser--length)))
+      (substring greger-parser--input start (or end greger-parser--pos))
+    ""))
+
+(defun greger-parser--looking-at (string)
+  "True if current position matches STRING."
+  (and string
+       (<= (+ greger-parser--pos (length string)) greger-parser--length)
+       (string= (greger-parser--substring greger-parser--pos
+                                         (+ greger-parser--pos (length string)))
+                string)))
+
+(defun greger-parser--at-triple-backticks ()
+  "True if current position matches ``` at beginning of line."
+  (and (greger-parser--at-line-start-p)
+       (greger-parser--looking-at "```")))
+
+;; Character tests
+
+(defun greger-parser--whitespace-p (char)
+  "True if CHAR is whitespace."
+  (and char (memq char '(?\s ?\t ?\n ?\r))))
+
+(defun greger-parser--horizontal-whitespace-p (char)
+  "True if CHAR is horizontal whitespace."
+  (and char (memq char '(?\s ?\t))))
+
+(defun greger-parser--newline-p (char)
+  "True if CHAR is newline."
+  (and char (eq char ?\n)))
+
+;; Navigation
+
+(defun greger-parser--skip-whitespace ()
+  "Skip all whitespace."
+  (let ((start-pos greger-parser--pos))
+    (while (and (not (greger-parser--at-end-p))
+                (greger-parser--whitespace-p (greger-parser--peek)))
+      (greger-parser--advance))
+    (when (> greger-parser--pos start-pos)
+      (greger-parser--debug "Skipped whitespace from %d to %d" start-pos greger-parser--pos))))
+
+(defun greger-parser--skip-horizontal-whitespace ()
+  "Skip spaces and tabs."
+  (while (and (not (greger-parser--at-end-p))
+              (greger-parser--horizontal-whitespace-p (greger-parser--peek)))
+    (greger-parser--advance)))
+
+(defun greger-parser--at-line-start-p ()
+  "True if at start of line."
+  (or (= greger-parser--pos 0)
+      (greger-parser--newline-p (greger-parser--peek -1))))
+
+(defun greger-parser--skip-to-line-end ()
+  "Skip to end of current line."
+  (while (and (not (greger-parser--at-end-p))
+              (not (greger-parser--newline-p (greger-parser--peek))))
+    (greger-parser--advance)))
+
+(defun greger-parser--read-line ()
+  "Read rest of current line."
+  (let ((start (greger-parser--current-pos)))
+    (greger-parser--skip-to-line-end)
+    (string-trim (greger-parser--substring start))))
+
+;; Section tag handling
+
+(defun greger-parser--section-tags ()
+  "List of all section tags."
+  (list greger-parser-user-tag
+        greger-parser-assistant-tag
+        greger-parser-system-tag
+        greger-parser-tool-use-tag
+        greger-parser-tool-result-tag
+        greger-parser-thinking-tag))
+
+(defun greger-parser--find-section-tag ()
+  "Find section tag at current position if at line start."
+  (when (greger-parser--at-line-start-p)
+    (let ((tag (cl-find-if #'greger-parser--looking-at (greger-parser--section-tags))))
+      (greger-parser--debug "Found section tag: %s at pos %d" tag greger-parser--pos)
+      tag)))
+
+(defun greger-parser--consume-section-tag (tag)
+  "Consume TAG and return it."
+  (when (greger-parser--looking-at tag)
+    (greger-parser--debug "Consuming tag: %s" tag)
+    (greger-parser--advance (length tag))
+    tag))
+
+;; Code block detection and skipping
+
+(defun greger-parser--skip-code-block ()
+  "Skip triple-backtick code block."
+  (greger-parser--debug "Skipping code block at pos %d" greger-parser--pos)
+  (greger-parser--advance 3) ; Skip opening ```
+  (greger-parser--skip-to-line-end) ; Skip language specifier
+  (when (greger-parser--newline-p (greger-parser--peek))
+    (greger-parser--advance))
+
+  ;; Find closing ```
+  (while (and (not (greger-parser--at-end-p))
+              (not (greger-parser--at-triple-backticks)))
+    (greger-parser--advance))
+
+  ;; Skip closing ```
+  (when (greger-parser--at-triple-backticks)
+    (greger-parser--advance 3)))
+
+(defun greger-parser--skip-inline-code ()
+  "Skip inline code with double backticks."
+  (greger-parser--debug "Skipping inline code at pos %d" greger-parser--pos)
+  (greger-parser--advance 1) ; Skip opening `
+  (while (and (not (greger-parser--at-end-p))
+              (not (greger-parser--looking-at "`")))
+    (greger-parser--advance))
+  (when (greger-parser--looking-at "`")
+    (greger-parser--advance 1)))
+
+(defun greger-parser--skip-html-comment ()
+  "Skip HTML comment."
+  (greger-parser--debug "Skipping HTML comment at pos %d" greger-parser--pos)
+  (greger-parser--advance 4) ; Skip <!--
+  (while (and (not (greger-parser--at-end-p))
+              (not (greger-parser--looking-at "-->")))
+    (greger-parser--advance))
+  (when (greger-parser--looking-at "-->")
+    (greger-parser--advance 3)))
+
+;; Web URL text extraction (inspired by old aichat parser)
+
+(defun greger-parser--text-from-url (url &optional use-highest-readability)
+  "Retrieve the text content from URL.
+If USE-HIGHEST-READABILITY is non-nil, use eww's readability heuristics."
+  (with-current-buffer
+      (url-retrieve-synchronously url t nil 10.0)
+    ;; Skip HTTP headers - they end with a double newline
+    (goto-char (point-min))
+    (when (re-search-forward "\r?\n\r?\n" nil t)
+      (delete-region (point-min) (point)))
+
+    ;; Parse the HTML content
+    (let ((dom (libxml-parse-html-region (point-min) (point-max))))
+      (when use-highest-readability
+        (setq dom (eww-highest-readability dom))
+        (eww-score-readability dom))
+      (greger-parser--dom-texts-inline-aware dom))))
+
+(defun greger-parser--dom-texts-inline-aware (node &optional block-separator inline-separator)
+  "Extract text from the DOM NODE, aware of inline and block elements.
+BLOCK-SEPARATOR separates block elements.
+INLINE-SEPARATOR separates inline elements."
+  (let ((block-separator (or block-separator "\n"))
+        (inline-separator (or inline-separator " ")))
+    (mapconcat
+     (lambda (elem)
+       (cond
+        ((stringp elem)
+         (when (> (length (string-trim elem)) 0)
+           elem))
+        ((memq (dom-tag elem) '(head meta script style details footer)) "")
+        ((memq (dom-tag elem) '(p div h1 h2 h3 h4 h5 h6 pre br hr ul ol li))
+         (concat (greger-parser--dom-texts-inline-aware elem block-separator inline-separator)
+                 block-separator))
+        (t
+         (greger-parser--dom-texts-inline-aware elem block-separator inline-separator))))
+     (dom-children node)
+     inline-separator)))
+
+(defun greger-parser--is-web-url-p (path)
+  "Return non-nil if PATH is a web URL (starts with http:// or https://)."
+  (or (string-prefix-p "http://" path)
+      (string-prefix-p "https://" path)))
+
+;; Include tag processing
+
+(defun greger-parser--process-include-tag ()
+  "Process an include tag and return the included content."
+  (greger-parser--debug "Processing include tag at pos %d" greger-parser--pos)
+  (let ((tag-start (greger-parser--current-pos)))
+    ;; Parse the opening tag
+    (when (greger-parser--looking-at "<include")
+      (greger-parser--advance 8) ; Skip "<include"
+      (let ((has-code-attr nil))
+        ;; Check for optional "code" attribute
+        (greger-parser--skip-horizontal-whitespace)
+        (when (greger-parser--looking-at "code")
+          (setq has-code-attr t)
+          (greger-parser--advance 4)
+          (greger-parser--skip-horizontal-whitespace))
+
+        ;; Skip to closing bracket of opening tag
+        (when (greger-parser--looking-at ">")
+          (greger-parser--advance 1)
+
+          ;; Extract the file path
+          (let ((path-start (greger-parser--current-pos)))
+            (when (greger-parser--find-closing-tag "</include>")
+              (let ((file-path (string-trim (greger-parser--substring path-start))))
+                (greger-parser--advance 10) ; Skip "</include>"
+
+                ;; Read and process the file
+                (greger-parser--include-file file-path has-code-attr)))))))))
+
+(defun greger-parser--include-file (file-path has-code-attr)
+  "Include a file's content, optionally formatting as code.
+Supports both local files and web URLs (http:// or https://)."
+  (greger-parser--debug "Including file: %s (code: %s)" file-path has-code-attr)
+  (condition-case err
+      (let ((content
+             (if (greger-parser--is-web-url-p file-path)
+                 ;; Handle web URL
+                 (progn
+                   (greger-parser--debug "Downloading content from URL: %s" file-path)
+                   (greger-parser--text-from-url file-path t)) ; Use readability heuristics
+               ;; Handle local file
+               (with-temp-buffer
+                 (insert-file-contents file-path)
+                 (buffer-string)))))
+
+        ;; Remove trailing newline from content if present
+        (when (and (> (length content) 0)
+                   (eq (aref content (1- (length content))) ?\n))
+          (setq content (substring content 0 -1)))
+
+        (if has-code-attr
+            (format "%s:\n```\n%s\n```" file-path content)
+          content))
+    (error
+     (greger-parser--debug "Error reading %s %s: %s"
+                          (if (greger-parser--is-web-url-p file-path) "URL" "file")
+                          file-path
+                          (error-message-string err))
+     ;; Return error message as content instead of failing silently
+     (format "[Error reading %s: %s]"
+             (if (greger-parser--is-web-url-p file-path) "URL" "file")
+             file-path))))
+
+(defun greger-parser--skip-include-tag ()
+  "Skip include tag without processing it."
+  (greger-parser--debug "Skipping include tag at pos %d" greger-parser--pos)
+  (greger-parser--advance 8) ; Skip "<include"
+
+  ;; Skip optional "code" attribute
+  (greger-parser--skip-horizontal-whitespace)
+  (when (greger-parser--looking-at "code")
+    (greger-parser--advance 4)
+    (greger-parser--skip-horizontal-whitespace))
+
+  ;; Skip to closing bracket of opening tag
+  (when (greger-parser--looking-at ">")
+    (greger-parser--advance 1)
+
+    ;; Skip to closing tag
+    (when (greger-parser--find-closing-tag "</include>")
+      (greger-parser--advance 10)))) ; Skip "</include>"
+
+;; Content reading
+
+(defun greger-parser--read-until-section-tag ()
+  "Read characters until section tag, handling code blocks and include tags."
+  (let ((start-pos greger-parser--pos)
+        (iterations 0)
+        (max-iterations (* greger-parser--length 2))) ; Safety limit
+    (while (and (not (greger-parser--at-end-p))
+                (not (and (greger-parser--at-line-start-p)
+                          (greger-parser--find-section-tag)))
+                (< iterations max-iterations))
+      (setq iterations (1+ iterations))
+      (let ((old-pos greger-parser--pos))
+        (cond
+         ((greger-parser--at-triple-backticks)
+          (greger-parser--skip-code-block))
+         ((greger-parser--looking-at "`")
+          (greger-parser--skip-inline-code))
+         ((greger-parser--looking-at "<!--")
+          (greger-parser--skip-html-comment))
+         ((greger-parser--looking-at "<include")
+          (greger-parser--skip-include-tag))
+         (t
+          (greger-parser--advance)))
+        ;; Safety check: ensure we're making progress
+        (when (= old-pos greger-parser--pos)
+          (greger-parser--debug "No progress at pos %d, forcing advance" greger-parser--pos)
+          (greger-parser--advance))))
+    (when (>= iterations max-iterations)
+      (greger-parser--debug "Hit max iterations in read-until-section-tag")
+      (setq greger-parser--pos greger-parser--length))))
+
+(defun greger-parser--read-until-section ()
+  "Read content until next section."
+  (let ((start (greger-parser--current-pos)))
+    (greger-parser--read-until-section-tag)
+    (greger-parser--substring start)))
+
+(defun greger-parser--read-until-section-with-comment-removal ()
+  "Read content until next section, removing HTML comments and processing include tags."
+  (let ((result "")
+        (start (greger-parser--current-pos))
+        (iterations 0)
+        (max-iterations (* greger-parser--length 2))) ; Safety limit
+    (while (and (not (greger-parser--at-end-p))
+                (not (and (greger-parser--at-line-start-p)
+                          (greger-parser--find-section-tag)))
+                (< iterations max-iterations))
+      (setq iterations (1+ iterations))
+      (let ((old-pos greger-parser--pos))
+        (cond
+         ((greger-parser--at-triple-backticks)
+          ;; Add content up to code block
+          (setq result (concat result (greger-parser--substring start)))
+          (setq start (greger-parser--current-pos))
+          (greger-parser--skip-code-block)
+          ;; Add the code block
+          (setq result (concat result (greger-parser--substring start)))
+          (setq start (greger-parser--current-pos)))
+         ((greger-parser--looking-at "`")
+          ;; Add content up to inline code
+          (setq result (concat result (greger-parser--substring start)))
+          (setq start (greger-parser--current-pos))
+          (greger-parser--skip-inline-code)
+          ;; Add the inline code
+          (setq result (concat result (greger-parser--substring start)))
+          (setq start (greger-parser--current-pos)))
+         ((greger-parser--looking-at "<!--")
+          ;; Add content up to comment, skip comment entirely
+          (setq result (concat result (greger-parser--substring start)))
+          (greger-parser--skip-html-comment)
+          (setq start (greger-parser--current-pos)))
+         ((greger-parser--looking-at "<include")
+          ;; Add content up to include tag
+          (setq result (concat result (greger-parser--substring start)))
+          ;; Process the include tag
+          (let ((include-content (greger-parser--process-include-tag)))
+            (when include-content
+              (setq result (concat result include-content))))
+          (setq start (greger-parser--current-pos)))
+         (t
+          (greger-parser--advance)))
+        ;; Safety check: ensure we're making progress
+        (when (= old-pos greger-parser--pos)
+          (greger-parser--debug "No progress at pos %d, forcing advance" greger-parser--pos)
+          (greger-parser--advance))))
+    (when (>= iterations max-iterations)
+      (greger-parser--debug "Hit max iterations in read-until-section-with-comment-removal")
+      (setq greger-parser--pos greger-parser--length))
+    ;; Add remaining content
+    (setq result (concat result (greger-parser--substring start)))
+    result))
+
+(defun greger-parser--parse-section-content ()
+  "Parse content until next section, skipping HTML comments."
+  (greger-parser--skip-whitespace)
+  (let ((content (greger-parser--read-until-section-with-comment-removal)))
+    (when (and content (not (string-empty-p (string-trim content))))
+      (string-trim content))))
+
+;; High-level parsing
+
+(defun greger-parser--parse-document ()
+  "Parse entire document."
+  (greger-parser--skip-whitespace)
+  (if (greger-parser--at-end-p)
+      '()
+    (let ((sections '())
+          (iterations 0)
+          (max-iterations 1000)) ; Safety limit
+      ;; Handle untagged content at start
+      (let ((untagged (greger-parser--parse-untagged-content)))
+        (when untagged
+          (push untagged sections)))
+
+      ;; Parse tagged sections
+      (while (and (not (greger-parser--at-end-p))
+                  (< iterations max-iterations))
+        (setq iterations (1+ iterations))
+        (let ((old-pos greger-parser--pos))
+          (greger-parser--skip-whitespace)
+          (when (not (greger-parser--at-end-p))
+            (let ((section (greger-parser--parse-section)))
+              (when section
+                (push section sections))))
+          ;; Safety check: ensure we're making progress
+          (when (= old-pos greger-parser--pos)
+            (greger-parser--debug "No progress in document parsing at pos %d, breaking" greger-parser--pos)
+            (break))))
+
+      (when (>= iterations max-iterations)
+        (greger-parser--debug "Hit max iterations in parse-document"))
+
+      (greger-parser--merge-consecutive-messages (reverse sections)))))
+
+(defun greger-parser--parse-untagged-content ()
+  "Parse content before first section tag."
+  (let ((content (greger-parser--parse-section-content)))
+    (when content
+      (greger-parser--create-user-message content))))
+
+(defun greger-parser--parse-section ()
+  "Parse a section starting with a tag."
+  (let ((tag (greger-parser--find-section-tag)))
+    (when tag
+      (greger-parser--consume-section-tag tag)
+      (cond
+       ((string= tag greger-parser-user-tag)
+        (greger-parser--parse-user-section))
+       ((string= tag greger-parser-assistant-tag)
+        (greger-parser--parse-assistant-section))
+       ((string= tag greger-parser-system-tag)
+        (greger-parser--parse-system-section))
+       ((string= tag greger-parser-thinking-tag)
+        (greger-parser--parse-thinking-section))
+       ((string= tag greger-parser-tool-use-tag)
+        (greger-parser--parse-tool-use-section))
+       ((string= tag greger-parser-tool-result-tag)
+        (greger-parser--parse-tool-result-section))))))
+
+;; Section parsers
+
+(defun greger-parser--parse-user-section ()
+  "Parse USER section."
+  (let ((content (greger-parser--parse-section-content)))
+    (when content
+      (greger-parser--create-user-message content))))
+
+(defun greger-parser--parse-assistant-section ()
+  "Parse ASSISTANT section."
+  (let ((content (greger-parser--parse-section-content)))
+    (when content
+      (greger-parser--create-assistant-message content))))
+
+(defun greger-parser--parse-system-section ()
+  "Parse SYSTEM section."
+  (let ((content (greger-parser--parse-section-content)))
+    (when content
+      (greger-parser--create-system-message content))))
+
+(defun greger-parser--parse-thinking-section ()
+  "Parse THINKING section."
+  (let ((content (greger-parser--parse-section-content)))
+    (when content
+      (greger-parser--create-thinking-message content))))
+
+(defun greger-parser--parse-tool-use-section ()
+  "Parse TOOL USE section."
+  (greger-parser--skip-whitespace)
+  (let ((name (greger-parser--parse-name-line))
+        (id (greger-parser--parse-id-line))
+        (input (greger-parser--parse-tool-input)))
+    (when (and name id)
+      (greger-parser--create-tool-use-message name id input))))
+
+(defun greger-parser--parse-tool-result-section ()
+  "Parse TOOL RESULT section."
+  (greger-parser--skip-whitespace)
+  (let ((id (greger-parser--parse-id-line))
+        (content (greger-parser--parse-tool-result-content)))
+    (when id
+      (greger-parser--create-tool-result-message id content))))
+
+;; Tool parsing helpers
+
+(defun greger-parser--parse-name-line ()
+  "Parse 'Name: value' line."
+  (when (greger-parser--looking-at "Name:")
+    (greger-parser--advance 5)
+    (greger-parser--skip-horizontal-whitespace)
+    (greger-parser--read-line)))
+
+(defun greger-parser--parse-id-line ()
+  "Parse 'ID: value' line."
+  (greger-parser--skip-whitespace)
+  (when (greger-parser--looking-at "ID:")
+    (greger-parser--advance 3)
+    (greger-parser--skip-horizontal-whitespace)
+    (greger-parser--read-line)))
+
+(defun greger-parser--parse-tool-input ()
+  "Parse tool input parameters."
+  (let ((params '())
+        (iterations 0)
+        (max-iterations 100)) ; Safety limit
+    (greger-parser--skip-whitespace)
+    (while (and (greger-parser--can-parse-parameter-p)
+                (< iterations max-iterations))
+      (setq iterations (1+ iterations))
+      (let ((old-pos greger-parser--pos)
+            (param (greger-parser--parse-tool-parameter)))
+        (when param
+          (push param params))
+        (greger-parser--skip-whitespace)
+        ;; Safety check: ensure we're making progress
+        (when (= old-pos greger-parser--pos)
+          (greger-parser--debug "No progress in tool input parsing at pos %d, breaking" greger-parser--pos)
+          (break))))
+    (when (>= iterations max-iterations)
+      (greger-parser--debug "Hit max iterations in parse-tool-input"))
+    (reverse params)))
+
+(defun greger-parser--can-parse-parameter-p ()
+  "Check if we can parse a parameter."
+  (and (not (greger-parser--at-end-p))
+       (not (and (greger-parser--at-line-start-p)
+                 (greger-parser--find-section-tag)))
+       (greger-parser--at-line-start-p)
+       (greger-parser--looking-at "###")))
+
+(defun greger-parser--parse-tool-parameter ()
+  "Parse single tool parameter."
+  (when (greger-parser--looking-at "###")
+    (greger-parser--advance 3)
+    (greger-parser--skip-horizontal-whitespace)
+    (let ((name (greger-parser--read-line)))
+      (greger-parser--skip-whitespace)
+      (let ((value (greger-parser--parse-tool-value)))
+        (when (and name (not (string-empty-p name)))
+          (cons (intern name) (greger-parser--convert-value (or value ""))))))))
+
+(defun greger-parser--parse-tool-value ()
+  "Parse tool parameter value in XML-style tags."
+  (when (greger-parser--looking-at "<tool.")
+    (let ((tag-start (greger-parser--current-pos)))
+      ;; Find end of opening tag
+      (greger-parser--skip-to-closing-angle)
+      (when (eq (greger-parser--peek) ?>)
+        (let* ((opening-tag (greger-parser--substring tag-start (+ (greger-parser--current-pos) 1)))
+               (closing-tag (greger-parser--make-closing-tag opening-tag)))
+          (greger-parser--advance) ; Skip >
+          (greger-parser--skip-whitespace)
+
+          (let ((content-start (greger-parser--current-pos)))
+            (if (greger-parser--find-closing-tag closing-tag)
+                (let ((content (greger-parser--substring content-start)))
+                  (greger-parser--advance (length closing-tag))
+                  (greger-parser--normalize-tool-content content))
+              ;; If no closing tag found, consume to end of section
+              (let ((content (greger-parser--read-until-section)))
+                (greger-parser--normalize-tool-content content)))))))))
+
+(defun greger-parser--skip-to-closing-angle ()
+  "Skip to closing angle bracket."
+  (let ((iterations 0)
+        (max-iterations 1000)) ; Safety limit
+    (while (and (not (greger-parser--at-end-p))
+                (not (eq (greger-parser--peek) ?>))
+                (< iterations max-iterations))
+      (setq iterations (1+ iterations))
+      (greger-parser--advance))
+    (when (>= iterations max-iterations)
+      (greger-parser--debug "Hit max iterations in skip-to-closing-angle"))))
+
+(defun greger-parser--make-closing-tag (opening-tag)
+  "Make closing tag from opening tag."
+  (concat "</" (substring opening-tag 1)))
+
+(defun greger-parser--find-closing-tag (closing-tag)
+  "Find closing tag, treating all content inside as raw text."
+  (let ((found nil)
+        (iterations 0)
+        (max-iterations (* greger-parser--length 2))) ; Safety limit
+    (while (and (not found)
+                (not (greger-parser--at-end-p))
+                (< iterations max-iterations))
+      (setq iterations (1+ iterations))
+      (if (greger-parser--looking-at closing-tag)
+          (setq found t)
+        (greger-parser--advance)))
+    (when (>= iterations max-iterations)
+      (greger-parser--debug "Hit max iterations in find-closing-tag"))
+    found))
+
+(defun greger-parser--parse-tool-result-content ()
+  "Parse tool result content."
+  (greger-parser--skip-whitespace)
+  (or (greger-parser--parse-tool-value) ""))
+
+(defun greger-parser--normalize-tool-content (content)
+  "Normalize tool content by trimming outer newlines."
+  (if (string-empty-p content)
+      ""
+    (let ((result content))
+      ;; Remove leading newline
+      (when (and (> (length result) 0)
+                 (eq (aref result 0) ?\n))
+        (setq result (substring result 1)))
+      ;; Remove trailing newline
+      (when (and (> (length result) 0)
+                 (eq (aref result (1- (length result))) ?\n))
+        (setq result (substring result 0 -1)))
+      result)))
+
+(defun greger-parser--convert-value (str)
+  "Convert string to appropriate Elisp value."
+  (let ((trimmed (string-trim str)))
+    (cond
+     ((string= trimmed "true") t)
+     ((string= trimmed "false") nil)
+     ((string-match-p "^-?[0-9]+$" trimmed)
+      (string-to-number trimmed))
+     ((string-match-p "^-?[0-9]*\\.[0-9]+$" trimmed)
+      (string-to-number trimmed))
+     ((and (string-prefix-p "[" trimmed) (string-suffix-p "]" trimmed))
+      (greger-parser--parse-json-array trimmed))
+     ((and (string-prefix-p "{" trimmed) (string-suffix-p "}" trimmed))
+      (greger-parser--parse-json-object trimmed))
+     (t trimmed))))
+
+(defun greger-parser--parse-json-array (str)
+  "Parse JSON array string."
+  (condition-case nil
+      (json-read-from-string str)
+    (error str)))
+
+(defun greger-parser--parse-json-object (str)
+  "Parse JSON object string."
+  (condition-case nil
+      (let ((parsed (json-read-from-string str)))
+        (mapcar (lambda (pair)
+                  (cons (intern (symbol-name (car pair))) (cdr pair)))
+                parsed))
+    (error str)))
+
+;; Message creation
+
+(defun greger-parser--create-user-message (content)
+  "Create user message."
+  `((role . "user") (content . ,content)))
+
+(defun greger-parser--create-assistant-message (content)
+  "Create assistant message."
+  `((role . "assistant") (content . ,content)))
+
+(defun greger-parser--create-system-message (content)
+  "Create system message."
+  `((role . "system") (content . ,content)))
+
+(defun greger-parser--create-thinking-message (content)
+  "Create thinking message."
+  `((role . "assistant")
+    (content . (((type . "thinking") (thinking . ,content))))))
+
+(defun greger-parser--create-tool-use-message (name id input)
+  "Create tool use message."
+  `((role . "assistant")
+    (content . (((type . "tool_use")
+                 (id . ,id)
+                 (name . ,name)
+                 (input . ,input))))))
+
+(defun greger-parser--create-tool-result-message (id content)
+  "Create tool result message."
+  `((role . "user")
+    (content . (((type . "tool_result")
+                 (tool_use_id . ,id)
+                 (content . ,content))))))
+
+;; Message merging
+
+(defun greger-parser--merge-consecutive-messages (messages)
+  "Merge consecutive messages with same role."
+  (if (null messages)
+      '()
+    (let ((result (list (car messages))))
+      (dolist (msg (cdr messages))
+        (let* ((last (car result))
+               (last-role (alist-get 'role last))
+               (curr-role (alist-get 'role msg)))
+          (if (string= last-role curr-role)
+              ;; Merge with previous
+              (progn
+                (let ((merged (greger-parser--merge-message-contents last msg)))
+                  (setcar result merged)))
+            ;; Add as new message
+            (progn
+              (push msg result)))))
+      (reverse result))))
+
+(defun greger-parser--merge-message-contents (msg1 msg2)
+  "Merge contents of two messages."
+  (let ((role (alist-get 'role msg1))
+        (content1 (alist-get 'content msg1))
+        (content2 (alist-get 'content msg2)))
+    (let ((merged-content (greger-parser--merge-contents content1 content2)))
+      `((role . ,role)
+        (content . ,merged-content)))))
+
+(defun greger-parser--merge-contents (content1 content2)
+  "Merge two content values."
+  (let ((blocks1 (greger-parser--content-to-blocks content1))
+        (blocks2 (greger-parser--content-to-blocks content2)))
+    (let ((result (append blocks1 blocks2)))
+      result)))
+
+(defun greger-parser--content-to-blocks (content)
+  "Convert content to content blocks."
+  (let ((result (cond
+                 ((stringp content)
+                  `(((type . "text") (text . ,content))))
+                 ((listp content)
+                  content)
+                 (t
+                  `(((type . "text") (text . ,(format "%s" content))))))))
+    result))
+
+;; Markdown generation
+
+(defun greger-parser--message-to-markdown (message)
+  "Convert message to markdown."
+  (let ((role (alist-get 'role message))
+        (content (alist-get 'content message)))
+    (cond
+     ((string= role "user")
+      (greger-parser--user-to-markdown content))
+     ((string= role "assistant")
+      (greger-parser--assistant-to-markdown content))
+     ((string= role "system")
+      (greger-parser--system-to-markdown content))
+     (t ""))))
+
+(defun greger-parser--user-to-markdown (content)
+  "Convert user content to markdown."
+  (if (stringp content)
+      (concat greger-parser-user-tag "\n\n" content)
+    (concat greger-parser-user-tag "\n\n"
+            (greger-parser--content-blocks-to-markdown content))))
+
+(defun greger-parser--assistant-to-markdown (content)
+  "Convert assistant content to markdown."
+  (if (stringp content)
+      (concat greger-parser-assistant-tag "\n\n" content)
+    (greger-parser--content-blocks-to-markdown content)))
+
+(defun greger-parser--system-to-markdown (content)
+  "Convert system content to markdown."
+  (concat greger-parser-system-tag "\n\n" content))
+
+(defun greger-parser--content-blocks-to-markdown (blocks)
+  "Convert content blocks to markdown."
+  (mapconcat #'greger-parser--block-to-markdown blocks "\n\n"))
+
+(defun greger-parser--block-to-markdown (block)
+  "Convert single block to markdown."
+  (let ((type (alist-get 'type block)))
+    (cond
+     ((string= type "text")
+      (concat greger-parser-assistant-tag "\n\n"
+              (alist-get 'text block)))
+     ((string= type "thinking")
+      (concat greger-parser-thinking-tag "\n\n"
+              (alist-get 'thinking block)))
+     ((string= type "tool_use")
+      (greger-parser--tool-use-to-markdown block))
+     ((string= type "tool_result")
+      (greger-parser--tool-result-to-markdown block))
+     (t ""))))
+
+(defun greger-parser--tool-use-to-markdown (tool-use)
+  "Convert tool use to markdown."
+  (let ((name (alist-get 'name tool-use))
+        (id (alist-get 'id tool-use))
+        (input (alist-get 'input tool-use)))
+    (concat greger-parser-tool-use-tag "\n\n"
+            "Name: " name "\n"
+            "ID: " id "\n\n"
+            (greger-parser--tool-params-to-markdown id input))))
+
+(defun greger-parser--tool-result-to-markdown (tool-result)
+  "Convert tool result to markdown."
+  (let ((id (alist-get 'tool_use_id tool-result))
+        (content (alist-get 'content tool-result)))
+    (concat greger-parser-tool-result-tag "\n\n"
+            "ID: " id "\n\n"
+            "<tool." id ">\n"
+            content "\n"
+            "</tool." id ">")))
+
+(defun greger-parser--tool-params-to-markdown (id input)
+  "Convert tool parameters to markdown."
+  (if (null input)
+      ""
+    (mapconcat (lambda (param)
+                 (let ((name (symbol-name (car param)))
+                       (value (cdr param)))
+                   (concat "### " name "\n\n"
+                           "<tool." id ">\n"
+                           (greger-parser--value-to-string value) "\n"
+                           "</tool." id ">")))
+               input "\n\n")))
+
+(defun greger-parser--value-to-string (value)
+  "Convert value to string representation."
+  (cond
+   ((stringp value) value)
+   ((numberp value) (number-to-string value))
+   ((eq value t) "true")
+   ((eq value nil) "false")
+   ((vectorp value) (json-encode value))
+   ((listp value) (json-encode value))
+   (t (format "%s" value))))
+
+;; Debug helper function
+(defun greger-parser-enable-debug ()
+  "Enable parser debug output."
+  (interactive)
+  (setq greger-parser--debug t)
+  (message "Parser debug enabled"))
+
+(defun greger-parser-disable-debug ()
+  "Disable parser debug output."
+  (interactive)
+  (setq greger-parser--debug nil)
+  (message "Parser debug disabled"))
+
+(provide 'greger-parser)
+
+;;; greger-parser.el ends here
+
+</tool.toolu_019CsZEeGXBHnV45ksm7FEw2>
+
+## ASSISTANT:
+
+Now let me examine the `greger-agent.el` file to see how the state structure is implemented there:
 
 ## TOOL USE:
 
 Name: read-file
-ID: toolu_01W8cYcz8jxbSeuM9qXmG74B
+ID: toolu_01Vs9oLCckJEddPN5MntFTe8
 
 ### path
 
-<tool.toolu_01W8cYcz8jxbSeuM9qXmG74B>
-greger-stream.el
-</tool.toolu_01W8cYcz8jxbSeuM9qXmG74B>
-
-### include_line_numbers
-
-<tool.toolu_01W8cYcz8jxbSeuM9qXmG74B>
-true
-</tool.toolu_01W8cYcz8jxbSeuM9qXmG74B>
-
-## TOOL RESULT:
-
-ID: toolu_01W8cYcz8jxbSeuM9qXmG74B
-
-<tool.toolu_01W8cYcz8jxbSeuM9qXmG74B>
-  1: ;;; greger-stream.el --- Streaming support for greger -*- lexical-binding: t -*-
-  2:
-  3: ;;; Commentary:
-  4: ;; Handles streaming responses from AI providers
-  5:
-  6: ;;; Code:
-  7:
-  8: (require 'json)
-  9: (require 'cl-lib)
- 10: (require 'greger-providers)
- 11: (require 'greger)
- 12:
- 13: ;;; Data structures
- 14:
- 15: (cl-defstruct greger-stream-state
- 16:   accumulated-output
- 17:   complete-response
- 18:   parsed-content-blocks
- 19:   process
- 20:   output-buffer
- 21:   insert-position
- 22:   undo-handle
- 23:   original-quit-binding
- 24:   text-start-callback
- 25:   text-callback
- 26:   complete-callback
- 27:   cancel-callback
- 28:   restore-callback)
- 29:
- 30: ;;; Public API
- 31:
- 32: (cl-defun greger-stream-to-buffer-with-tools (&key model dialog tools buffer complete-callback cancel-callback)
- 33:   "Send streaming request for MODEL with DIALOG and TOOLS, inserting text into BUFFER.
- 34: COMPLETE-CALLBACK is called when done with the parsed content blocks array.
- 35: CANCEL-CALLBACK is called if cancelled.
- 36: BUFFER defaults to current buffer if not specified."
- 37:   (let* ((output-buffer (or buffer (current-buffer)))
- 38:          (insert-position (point))
- 39:          (undo-handle (prepare-change-group output-buffer))
- 40:          (original-quit-binding (local-key-binding (kbd "C-g")))
- 41:          (provider-config (greger-providers-get-config model))
- 42:          (request-spec (greger-providers-build-request provider-config dialog tools))
- 43:          (restore-callback (lambda (state)
- 44:                              (with-current-buffer (greger-stream-state-output-buffer state)
- 45:                                (local-set-key (kbd "C-g")
- 46:                                               (greger-stream-state-original-quit-binding state))
- 47:                                (undo-amalgamate-change-group (greger-stream-state-undo-handle state))
- 48:                                (accept-change-group (greger-stream-state-undo-handle state)))))
- 49:          (text-start-callback (lambda (state)
- 50:                                 (greger-stream--insert state (concat "\n\n" greger-assistant-tag "\n\n")))
- 51:                               )
- 52:          (wrapped-complete-callback (lambda (parsed-blocks state)
- 53:                                       (when complete-callback
- 54:                                         (funcall complete-callback parsed-blocks))))
- 55:          (process (greger-stream--start-curl-process request-spec))
- 56:          (state (make-greger-stream-state
- 57:                  :accumulated-output ""
- 58:                  :complete-response ""
- 59:                  :parsed-content-blocks '()
- 60:                  :process process
- 61:                  :text-start-callback text-start-callback
- 62:                  :text-callback 'greger-stream--insert
- 63:                  :complete-callback wrapped-complete-callback
- 64:                  :cancel-callback cancel-callback
- 65:                  :restore-callback restore-callback
- 66:                  :output-buffer output-buffer
- 67:                  :insert-position insert-position
- 68:                  :undo-handle undo-handle
- 69:                  :original-quit-binding original-quit-binding)))
- 70:
- 71:     (activate-change-group undo-handle)
- 72:
- 73:     (set-process-filter process
- 74:                        (lambda (proc output)
- 75:                          (declare (ignore proc))
- 76:                          (greger-stream--process-output-chunk output state provider-config)))
- 77:
- 78:     (set-process-sentinel process
- 79:                          (lambda (proc event)
- 80:                            (declare (ignore event))
- 81:                            (greger-stream--handle-completion proc state provider-config)))
- 82:
- 83:     (set-process-query-on-exit-flag process nil)
- 84:
- 85:     (greger-stream--setup-cancel-binding state)
- 86:
- 87:     state))
- 88:
- 89: (defun greger-stream--insert (state text)
- 90:   (with-current-buffer (greger-stream-state-output-buffer state)
- 91:     (goto-char (greger-stream-state-insert-position state))
- 92:     (insert text)
- 93:     (setf (greger-stream-state-insert-position state) (point))))
- 94:
- 95:
- 96: ;;; Internal implementation
- 97:
- 98: (defun greger-stream--setup-cancel-binding (state)
- 99:   "Setup C-g binding for cancellation in the output buffer."
-100:   (with-current-buffer (greger-stream-state-output-buffer state)
-101:     (local-set-key (kbd "C-g")
-102:                    (lambda ()
-103:                      (interactive)
-104:                      (greger-stream--cancel-request state)))))
-105:
-106: (defun greger-stream--process-output-chunk (output state provider-config)
-107:   "Process a chunk of OUTPUT using STATE."
-108:   ;; Always accumulate for complete response
-109:
-110:   ;; TODO: handle errors of the format
-111:   ;; output={"type":"error","error":{"type":"invalid_request_error","message":"tools.0.custom.input_schema: Input does not match the expected shape."}}
-112:   ;(message (format "output: %s" output))
-113:
-114:   (setf (greger-stream-state-complete-response state)
-115:         (concat (greger-stream-state-complete-response state) output))
-116:
-117:   ;; Update working buffer for chunk processing
-118:   (setf (greger-stream-state-accumulated-output state)
-119:         (concat (greger-stream-state-accumulated-output state) output))
-120:
-121:   (greger-stream--process-claude-events state))
-122:
-123: (defun greger-stream--process-claude-events (state)
-124:   "Process Claude streaming events from accumulated output in STATE."
-125:   (let ((accumulated (greger-stream-state-accumulated-output state))
-126:         (remaining ""))
-127:
-128:     ;; Process complete lines (events)
-129:     (while (string-match "\n" accumulated)
-130:       (let* ((line-end (match-end 0))
-131:              (line (substring accumulated 0 (1- line-end))))
-132:
-133:         ;; Process the line if it's a data event
-134:         (when (string-prefix-p "data: " line)
-135:           (let ((data-json (substring line 6)))
-136:             (unless (string= data-json "[DONE]")
-137:               (greger-stream--handle-claude-event data-json state))))
-138:
-139:         ;; Remove processed line
-140:         (setq accumulated (substring accumulated line-end))))
-141:
-142:     ;; Store remaining incomplete data
-143:     (setf (greger-stream-state-accumulated-output state) accumulated)))
-144:
-145: (defun greger-stream--handle-claude-event (data-json state)
-146: ; Example of incoming data json (one data-json per line)
-147: ; {"type":"message_start","message":{"id":"msg_01Qm7bzEMGbdRyAuF5Lrb1Tg","type":"message","role":"assistant","model":"claude-sonnet-4-20250514","content":[],"stop_reason":null,"stop_sequence":null,"usage":{"input_tokens":2626,"cache_creation_input_tokens":0,"cache_read_input_tokens":0,"output_tokens":1,"service_tier":"standard"}}     }
-148: ; {"type":"content_block_start","index":0,"content_block":{"type":"text","text":""}        }
-149: ; {"type": "ping"}
-150: ; {"type":"content_block_delta","index":0,"delta":{"type":"text_delta","text":"I"}           }
-151: ; {"type":"content_block_delta","index":0,"delta":{"type":"text_delta","text":"'ll first read the existing file to see what's already there,"}            }
-152: ; {"type":"content_block_delta","index":0,"delta":{"type":"text_delta","text":" then add a new function in the same style."}    }
-153: ; {"type":"content_block_stop","index":0        }
-154: ; {"type":"content_block_start","index":1,"content_block":{"type":"tool_use","id":"toolu_01NmTNDZcJdGAMsrWQy1Heff","name":"read-file","input":{}}        }
-155: ; {"type":"content_block_delta","index":1,"delta":{"type":"input_json_delta","partial_json":""}           }
-156: ; {"type":"content_block_delta","index":1,"delta":{"type":"input_json_delta","partial_json":"{\""}   }
-157: ; {"type":"content_block_delta","index":1,"delta":{"type":"input_json_delta","partial_json":"path\": \"~/s"}        }
-158: ; {"type":"content_block_delta","index":1,"delta":{"type":"input_json_delta","partial_json":"cratch/aicha"}   }
-159: ; {"type":"content_block_delta","index":1,"delta":{"type":"input_json_delta","partial_json":"t/hel"}     }
-160: ; {"type":"content_block_delta","index":1,"delta":{"type":"input_json_delta","partial_json":"lo."}            }
-161: ; {"type":"content_block_delta","index":1,"delta":{"type":"input_json_delta","partial_json":"py\""} }
-162: ; {"type":"content_block_delta","index":1,"delta":{"type":"input_json_delta","partial_json":", \"includ"}     }
-163: ; {"type":"content_block_delta","index":1,"delta":{"type":"input_json_delta","partial_json":"e_li"}        }
-164: ; {"type":"content_block_delta","index":1,"delta":{"type":"input_json_delta","partial_json":"ne_numb"}       }
-165: ; {"type":"content_block_delta","index":1,"delta":{"type":"input_json_delta","partial_json":"ers\": true}"}            }
-166: ; {"type":"content_block_stop","index":1            }
-167: ; {"type":"message_delta","delta":{"stop_reason":"tool_use","stop_sequence":null},"usage":{"output_tokens":108}        }
-168: ; {"type":"message_stop"    }
-169:
-170:   ;(greger-agent--debug "INCOMING data-json %s" data-json)
-171:   (let* ((data (json-read-from-string data-json))
-172:          (type (alist-get 'type data)))
-173:     (cond
-174:      ;; Content block start - create new content block
-175:      ((string= type "content_block_start")
-176:       (let* ((index (alist-get 'index data))
-177:              (content-block (copy-alist (alist-get 'content_block data)))
-178:              (blocks (greger-stream-state-parsed-content-blocks state)))
-179:
-180:         ;; Initialize content for accumulation
-181:         ;; TODO: is this necessary?
-182:         (cond
-183:          ((string= (alist-get 'type content-block) "tool_use")
-184:           (setf (alist-get 'input content-block) ""))
-185:          ((string= (alist-get 'type content-block) "text")
-186:           (setf (alist-get 'text content-block) "")))
-187:
-188:         (when (string= (alist-get 'type content-block) "text")
-189:           (funcall (greger-stream-state-text-start-callback state) state))
-190:
-191:         ;; Add block at the right index
-192:         (greger-stream--ensure-block-at-index blocks index content-block state)))
-193:
-194:      ;; Content block delta - update existing content block
-195:      ((string= type "content_block_delta")
-196:       (let* ((index (alist-get 'index data))
-197:              (delta (alist-get 'delta data))
-198:              (delta-type (alist-get 'type delta))
-199:              (blocks (greger-stream-state-parsed-content-blocks state)))
-200:
-201:         (when (< index (length blocks))
-202:           (let ((block (nth index blocks)))
-203:             (cond
-204:              ;; Text delta
-205:              ((string= delta-type "text_delta")
-206:               (let ((text (alist-get 'text delta)))
-207:                 (setf (alist-get 'text block)
-208:                       (concat (alist-get 'text block) text))
-209:                 ;; Call text callback for live display
-210:                 (when (greger-stream-state-text-callback state)
-211:                   (funcall (greger-stream-state-text-callback state) state text))))
-212:
-213:              ;; Tool input delta
-214:              ((string= delta-type "input_json_delta")
-215:               (let ((partial-json (alist-get 'partial_json delta)))
-216:                 (setf (alist-get 'input block)
-217:                       (concat (alist-get 'input block) partial-json)))))))))
-218:
-219:      ;; Content block stop - finalize tool input if needed
-220:      ((string= type "content_block_stop")
-221:       (let* ((index (alist-get 'index data))
-222:              (blocks (greger-stream-state-parsed-content-blocks state)))
-223:
-224:         (when (< index (length blocks))
-225:           (let ((block (nth index blocks)))
-226:             (when (and (string= (alist-get 'type block) "tool_use")
-227:                        (stringp (alist-get 'input block)))
-228:               ;; Parse accumulated JSON input
-229:               (let ((input-str (alist-get 'input block)))
-230:                 (condition-case nil
-231:                     (if (string-empty-p input-str)
-232:                         (setf (alist-get 'input block) '())
-233:                       (setf (alist-get 'input block)
-234:                             (json-read-from-string input-str)))
-235:                   (error
-236:                    (setf (alist-get 'input block) '()))))))))))))
-237:
-238: (defun greger-stream--ensure-block-at-index (blocks index new-block state)
-239:   "Ensure BLOCKS list has NEW-BLOCK at INDEX, extending if necessary."
-240:   (let ((current-blocks (greger-stream-state-parsed-content-blocks state)))
-241:     ;; Extend list if needed
-242:     (while (<= (length current-blocks) index)
-243:       (setq current-blocks (append current-blocks (list nil))))
-244:
-245:     ;; Set the block at index
-246:     (setf (nth index current-blocks) new-block)
-247:     (setf (greger-stream-state-parsed-content-blocks state) current-blocks)))
-248:
-249: (defun greger-stream--handle-completion (proc state provider-config)
-250:   "Handle process completion for PROC using STATE."
-251:   (when (memq (process-status proc) '(exit signal))
-252:     (funcall (greger-stream-state-restore-callback state) state)
-253:
-254:     (if (= (process-exit-status proc) 0)
-255:         (when (greger-stream-state-complete-callback state)
-256:           (let ((parsed-blocks (greger-stream-state-parsed-content-blocks state)))
-257:             (funcall (greger-stream-state-complete-callback state) parsed-blocks state)))
-258:       (when (greger-stream-state-cancel-callback state)
-259:         (funcall (greger-stream-state-cancel-callback state))))))
-260:
-261: (defun greger-stream--cancel-request (state)
-262:   "Cancel streaming request using STATE."
-263:   (let ((process (greger-stream-state-process state)))
-264:     (when (process-live-p process)
-265:       (message "Interrupting generation")
-266:       (interrupt-process process)
-267:       (sit-for 0.1)
-268:       (delete-process process)
-269:       (when (greger-stream-state-cancel-callback state)
-270:         (funcall (greger-stream-state-cancel-callback state))))
-271:     (funcall (greger-stream-state-restore-callback state) state)))
-272:
-273: ;;; Utility functions
-274:
-275: (defun greger-stream--start-curl-process (request-spec)
-276:   "Start curl process with REQUEST-SPEC."
-277:   (start-process-shell-command
-278:    "greger-curl" nil
-279:    (greger-stream--build-curl-command request-spec)))
-280:
-281: (defun greger-stream--build-curl-command (request-spec)
-282:   "Build curl command from REQUEST-SPEC."
-283:   (let ((url (plist-get request-spec :url))
-284:         (method (plist-get request-spec :method))
-285:         (headers (plist-get request-spec :headers))
-286:         (data (plist-get request-spec :data)))
-287:     (format "curl -s -X %s %s %s %s"
-288:             method
-289:             (mapconcat (lambda (header)
-290:                          (format "-H \"%s: %s\"" (car header) (cdr header)))
-291:                        headers " ")
-292:             (if data
-293:                 (format "--data-raw %s" (shell-quote-argument data))
-294:               "")
-295:             url)))
-296:
-297: (provide 'greger-stream)
-298:
-299: ;;; greger-stream.el ends here
-300:
-</tool.toolu_01W8cYcz8jxbSeuM9qXmG74B>
-
-## TOOL USE:
-
-Name: read-file
-ID: toolu_017vgMucnUemvrachUHtP4AG
-
-### path
-
-<tool.toolu_017vgMucnUemvrachUHtP4AG>
+<tool.toolu_01Vs9oLCckJEddPN5MntFTe8>
 greger-agent.el
-</tool.toolu_017vgMucnUemvrachUHtP4AG>
-
-### include_line_numbers
-
-<tool.toolu_017vgMucnUemvrachUHtP4AG>
-true
-</tool.toolu_017vgMucnUemvrachUHtP4AG>
+</tool.toolu_01Vs9oLCckJEddPN5MntFTe8>
 
 ## TOOL RESULT:
 
-ID: toolu_017vgMucnUemvrachUHtP4AG
+ID: toolu_01Vs9oLCckJEddPN5MntFTe8
+
+<tool.toolu_01Vs9oLCckJEddPN5MntFTe8>
+;;; greger-agent.el --- Agent capabilities for greger -*- lexical-binding: t -*-
+
+;;; Commentary:
+;; Provides agent functionality with tool support for greger
+
+;;; Code:
+
+(require 'json)
+(require 'cl-lib)
+(require 'greger)
+(require 'greger-parser)
+(require 'greger-stream)
+(require 'greger-tools)
+
+;; not using patch tool, it's too messy
+(defcustom greger-agent-tools '("read-file" "list-directory" "str-replace" "insert" "write-new-file" "replace-file" "replace-function" "make-directory" "rename-file" "ripgrep" "git-log" "git-show-commit" "shell-command")
+  "List of tools available to the agent."
+  :type '(repeat symbol)
+  :group 'greger)
+
+(defcustom greger-agent-max-iterations 100
+  "Maximum number of agent iterations before stopping."
+  :type 'integer
+  :group 'greger)
+
+(defcustom greger-agent-auto-approve t
+  "Whether to automatically approve tool calls without user confirmation."
+  :type 'boolean
+  :group 'greger)
+
+(defcustom greger-agent-debug t
+  "Whether to show debug information."
+  :type 'boolean
+  :group 'greger)
+
+;;; Agent state structure
+
+(cl-defstruct greger-agent-state
+  current-iteration
+  chat-buffer
+  directory)
+
+(defun greger-agent-buffer ()
+  "Send buffer content to AI as an agent dialog with tool support."
+  (interactive)
+  (let* ((buffer-content (buffer-substring-no-properties (point-min) (point-max)))
+         (dialog (greger-parser-parse-dialog buffer-content)))
+    (unless dialog
+      (error "Failed to parse dialog. Did you forget to close a html tag?"))
+
+    (goto-char (point-max))
+
+    (let ((agent-state (make-greger-agent-state
+                        :current-iteration 0
+                        :chat-buffer (current-buffer)
+                        :directory default-directory)))
+
+      (greger-agent--debug "--- DIALOG --- %s" dialog)
+      (greger-agent--debug "=== STARTING AGENT SESSION ===")
+
+      (greger-agent--run-agent-loop agent-state))))
+
+(defun greger-agent--debug (format-string &rest args)
+  "Debug logging function."
+  (when greger-agent-debug
+    (message "[AGENT DEBUG] %s" (apply #'format format-string args))))
 
-<tool.toolu_017vgMucnUemvrachUHtP4AG>
-  1: ;;; greger-agent.el --- Agent capabilities for greger -*- lexical-binding: t -*-
-  2:
-  3: ;;; Commentary:
-  4: ;; Provides agent functionality with tool support for greger
-  5:
-  6: ;;; Code:
-  7:
-  8: (require 'json)
-  9: (require 'cl-lib)
- 10: (require 'greger)
- 11: (require 'greger-parser)
- 12: (require 'greger-stream)
- 13: (require 'greger-tools)
- 14:
- 15: ;; not using patch tool, it's too messy
- 16: (defcustom greger-agent-tools '("read-file" "list-directory" "str-replace" "insert" "write-new-file" "replace-file" "replace-function" "make-directory" "rename-file" "ripgrep" "git-log" "git-show-commit" "shell-command")
- 17:   "List of tools available to the agent."
- 18:   :type '(repeat symbol)
- 19:   :group 'greger)
- 20:
- 21: (defcustom greger-agent-max-iterations 100
- 22:   "Maximum number of agent iterations before stopping."
- 23:   :type 'integer
- 24:   :group 'greger)
- 25:
- 26: (defcustom greger-agent-auto-approve t
- 27:   "Whether to automatically approve tool calls without user confirmation."
- 28:   :type 'boolean
- 29:   :group 'greger)
- 30:
- 31: (defcustom greger-agent-debug t
- 32:   "Whether to show debug information."
- 33:   :type 'boolean
- 34:   :group 'greger)
- 35:
- 36: ;;; Agent state structure
- 37:
- 38: (cl-defstruct greger-agent-state
- 39:   current-iteration
- 40:   chat-buffer
- 41:   directory)
- 42:
- 43: (defun greger-agent-buffer ()
- 44:   "Send buffer content to AI as an agent dialog with tool support."
- 45:   (interactive)
- 46:   (let* ((buffer-content (buffer-substring-no-properties (point-min) (point-max)))
- 47:          (dialog (greger-parser-parse-dialog buffer-content)))
- 48:     (unless dialog
- 49:       (error "Failed to parse dialog. Did you forget to close a html tag?"))
- 50:
- 51:     (goto-char (point-max))
- 52:
- 53:     (let ((agent-state (make-greger-agent-state
- 54:                         :current-iteration 0
- 55:                         :chat-buffer (current-buffer)
- 56:                         :directory default-directory)))
- 57:
- 58:       (greger-agent--debug "--- DIALOG --- %s" dialog)
- 59:       (greger-agent--debug "=== STARTING AGENT SESSION ===")
- 60:
- 61:       (greger-agent--run-agent-loop agent-state))))
- 62:
- 63: (defun greger-agent--debug (format-string &rest args)
- 64:   "Debug logging function."
- 65:   (when greger-agent-debug
- 66:     (message "[AGENT DEBUG] %s" (apply #'format format-string args))))
- 67:
- 68: (defun greger-agent--run-agent-loop (agent-state)
- 69:   "Run the main agent loop with AGENT-STATE."
- 70:   (let* ((tools (greger-tools-get-schemas greger-agent-tools))
- 71:          (chat-buffer (greger-agent-state-chat-buffer agent-state))
- 72:          (buffer-content (with-current-buffer chat-buffer
- 73:                            (buffer-substring-no-properties (point-min) (point-max))))
- 74:          (current-dialog (greger-parser-parse-dialog buffer-content))
- 75:          (current-iteration (greger-agent-state-current-iteration agent-state)))
- 76:
- 77:     (greger-agent--debug "=== ITERATION %d ===" current-iteration)
- 78:     (greger-agent--debug "Dialog length: %d messages" (length current-dialog))
- 79:
- 80:     ;; Check max iterations
- 81:     (if (>= current-iteration greger-agent-max-iterations)
- 82:         (progn
- 83:           (greger-agent--debug "MAX ITERATIONS REACHED - STOPPING")
- 84:           (with-current-buffer chat-buffer
- 85:             (goto-char (point-max))
- 86:             (insert (format "\n\nMaximum iterations (%d) reached. Stopping agent execution.\n\n"
- 87:                            greger-agent-max-iterations)))
- 88:           (greger-agent--finish-response agent-state))
- 89:
- 90:       ;; Get Claude's response
- 91:       (greger-agent--debug "CALLING greger-stream-to-buffer-with-tools...")
- 92:       (greger-stream-to-buffer-with-tools
- 93:        :model greger-model
- 94:        :dialog current-dialog
- 95:        :tools tools
- 96:        :buffer chat-buffer
- 97:        :complete-callback (lambda (content-blocks)
- 98:                             (greger-agent--debug "RECEIVED PARSED CONTENT BLOCKS")
- 99:                             (greger-agent--handle-parsed-response content-blocks agent-state))))))
-100:
-101: (defun greger-agent--handle-parsed-response (content-blocks agent-state)
-102:   "Handle the parsed CONTENT-BLOCKS from Claude using AGENT-STATE."
-103:   (greger-agent--debug "CONTENT BLOCKS: %s" content-blocks)
-104:
-105:   ;; Check if we have tool calls
-106:   (let ((tool-calls (greger-agent--extract-tool-calls content-blocks)))
-107:     (if tool-calls
-108:         (progn
-109:           (greger-agent--debug "TOOL USE DETECTED! Found %d tool calls" (length tool-calls))
-110:           (setf (greger-agent-state-current-iteration agent-state)
-111:                 (1+ (greger-agent-state-current-iteration agent-state)))
-112:           (greger-agent--execute-tools tool-calls agent-state))
-113:       (progn
-114:         (greger-agent--debug "NO TOOL USE - CONVERSATION COMPLETE")
-115:         (greger-agent--finish-response agent-state)))))
-116:
-117: (defun greger-agent--extract-tool-calls (content-blocks)
-118:   "Extract tool calls from CONTENT-BLOCKS."
-119:   (let ((tool-calls '()))
-120:     (dolist (block content-blocks)
-121:       (when (string= (alist-get 'type block) "tool_use")
-122:         (greger-agent--debug "EXTRACTING TOOL CALL: %s with input: %s"
-123:                             (alist-get 'name block)
-124:                             (json-encode (alist-get 'input block)))
-125:         (push block tool-calls)))
-126:     (reverse tool-calls)))
-127:
-128: (defun greger-agent--execute-tools (tool-calls agent-state)
-129:   "Execute TOOL-CALLS using AGENT-STATE and continue the conversation."
-130:   (let ((results '()))
-131:     (dolist (tool-call tool-calls)
-132:       (let* ((tool-name (alist-get 'name tool-call))
-133:              (tool-input (alist-get 'input tool-call))
-134:              (tool-id (alist-get 'id tool-call)))
-135:
-136:         (if (greger-agent--request-approval tool-name tool-input)
-137:             (condition-case err
-138:                 (let* ((default-directory (greger-agent-state-directory agent-state))
-139:                        (result (greger-tools-execute tool-name tool-input (greger-agent-state-chat-buffer agent-state))))
-140:                   (push `((type . "tool_result")
-141:                          (tool_use_id . ,tool-id)
-142:                          (content . ,result))
-143:                         results))
-144:               (error
-145:                (push `((type . "tool_result")
-146:                       (tool_use_id . ,tool-id)
-147:                       (content . ,(format "Error executing tool: %s" (error-message-string err)))
-148:                       (is_error . t))
-149:                      results)))
-150:           (push `((type . "tool_result")
-151:                  (tool_use_id . ,tool-id)
-152:                  (content . "Tool execution declined by user")
-153:                  (is_error . t))
-154:                 results))))
-155:
-156:     ;; Display tool execution
-157:     (greger-agent--display-tool-execution tool-calls (reverse results) agent-state)
-158:
-159:     ;; Continue the loop
-160:     (greger-agent--run-agent-loop agent-state)))
-161:
-162: ;; In greger-agent.el, update the display function:
-163:
-164: (defun greger-agent--display-tool-execution (tool-calls results agent-state)
-165:   "Display the execution of TOOL-CALLS and their RESULTS using AGENT-STATE."
-166:   (with-current-buffer (greger-agent-state-chat-buffer agent-state)
-167:     (goto-char (point-max))
-168:
-169:     ;; The tool calls are already in the right format, just convert them
-170:     (let ((tool-blocks-markdown (greger-parser--content-blocks-to-markdown tool-calls)))
-171:       (unless (string-empty-p tool-blocks-markdown)
-172:         (insert "\n\n" tool-blocks-markdown)))
-173:
-174:     ;; Convert tool results to markdown
-175:     (let ((result-blocks-markdown (greger-parser--content-blocks-to-markdown results)))
-176:       (unless (string-empty-p result-blocks-markdown)
-177:         (insert "\n\n" result-blocks-markdown)))))
-178:
-179: (defun greger-agent--finish-response (agent-state)
-180:   "Finish the agent response using AGENT-STATE."
-181:   (greger-agent--debug "=== FINISHING RESPONSE - CONVERSATION COMPLETE ===")
-182:   (with-current-buffer (greger-agent-state-chat-buffer agent-state)
-183:     (goto-char (point-max))
-184:     (unless (looking-back (concat greger-user-tag "\n\n") nil)
-185:       (insert "\n\n" greger-user-tag "\n\n")))
-186:   ;; Reset the state
-187:   (setf (greger-agent-state-current-iteration agent-state) 0))
-188:
-189: (defun greger-agent--request-approval (tool-name tool-input)
-190:   "Request approval for TOOL-NAME with TOOL-INPUT."
-191:   (if greger-agent-auto-approve
-192:       t
-193:     (y-or-n-p (format "Execute %s with %s? " tool-name (json-encode tool-input)))))
-194:
-195: (defun greger-agent-set-auto-approve (enable)
-196:   "Set auto-approval of tool calls to ENABLE."
-197:   (interactive "P")
-198:   (setq greger-agent-auto-approve (if enable t nil))
-199:   (message "Auto-approval %s"
-200:            (if greger-agent-auto-approve "enabled" "disabled")))
-201:
-202: (defun greger-agent-toggle-debug ()
-203:   "Toggle debug output."
-204:   (interactive)
-205:   (setq greger-agent-debug (not greger-agent-debug))
-206:   (message "Agent debug %s" (if greger-agent-debug "enabled" "disabled")))
-207:
-208: (provide 'greger-agent)
-209:
-210: ;;; greger-agent.el ends here
-211:
-</tool.toolu_017vgMucnUemvrachUHtP4AG>
-
-## ASSISTANT:
-
-Now I need to understand what the current structure looks like and how to implement the requested changes. Let me examine the current stream functionality more closely:
-
-## TOOL USE:
-
-Name: ripgrep
-ID: toolu_019xXgVKhxAASiuqmZbU5x8z
-
-### pattern
-
-<tool.toolu_019xXgVKhxAASiuqmZbU5x8z>
-greger-stream-to-buffer
-</tool.toolu_019xXgVKhxAASiuqmZbU5x8z>
-
-## TOOL RESULT:
-
-ID: toolu_019xXgVKhxAASiuqmZbU5x8z
-
-<tool.toolu_019xXgVKhxAASiuqmZbU5x8z>
-/Users/andreas/projects/aichat3/greger-agent.el:91:      (greger-agent--debug "CALLING greger-stream-to-buffer-with-tools...")
-/Users/andreas/projects/aichat3/greger-agent.el:92:      (greger-stream-to-buffer-with-tools
-/Users/andreas/projects/aichat3/greger-stream.el:32:(cl-defun greger-stream-to-buffer-with-tools (&key model dialog tools buffer complete-callback cancel-callback)
-/Users/andreas/projects/aichat3/chat.ai:7:* greger-stream.el: Make greger-stream-to-buffer and greger-stream-to-buffer-with-tools use cl-lib style keyword arguments instead of the long argument lists.
-/Users/andreas/projects/aichat3/chat.ai:8:* Make greger-stream-to-buffer and greger-stream-to-buffer-with-tools take a buffer argument, that is passed as greger-agent--chat-buffer
-/Users/andreas/projects/aichat3/chat.ai:67: 31: (defun greger-stream-to-buffer (model dialog complete-callback &optional cancel-callback)
-/Users/andreas/projects/aichat3/chat.ai:71: 35:   (greger-stream-to-buffer-with-tools model dialog nil complete-callback cancel-callback))
-/Users/andreas/projects/aichat3/chat.ai:73: 37: (defun greger-stream-to-buffer-with-tools (model dialog tools complete-callback &optional cancel-callback)
-/Users/andreas/projects/aichat3/chat.ai:591:greger-stream-to-buffer.*greger-stream-to-buffer-with-tools
-/Users/andreas/projects/aichat3/chat.ai:616:greger-stream-to-buffer
-/Users/andreas/projects/aichat3/chat.ai:630:/Users/andreas/projects/aichat3/greger-agent.el:79:      (greger-agent--debug "CALLING greger-stream-to-buffer-with-tools...")
-/Users/andreas/projects/aichat3/chat.ai:631:/Users/andreas/projects/aichat3/greger-agent.el:80:      (greger-stream-to-buffer-with-tools
-/Users/andreas/projects/aichat3/chat.ai:632:/Users/andreas/projects/aichat3/greger.el:257:  (greger-stream-to-buffer greger-model dialog complete-callback cancel-callback))
-/Users/andreas/projects/aichat3/chat.ai:633:/Users/andreas/projects/aichat3/greger-stream.el:31:(defun greger-stream-to-buffer (model dialog complete-callback &optional cancel-callback)
-/Users/andreas/projects/aichat3/chat.ai:634:/Users/andreas/projects/aichat3/greger-stream.el:35:  (greger-stream-to-buffer-with-tools model dialog nil complete-callback cancel-callback))
-/Users/andreas/projects/aichat3/chat.ai:635:/Users/andreas/projects/aichat3/greger-stream.el:37:(defun greger-stream-to-buffer-with-tools (model dialog tools complete-callback &optional cancel-callback)
-/Users/andreas/projects/aichat3/chat.ai:675:      (greger-agent--debug "CALLING greger-stream-to-buffer-with-tools...")
-/Users/andreas/projects/aichat3/chat.ai:676:      (greger-stream-to-buffer-with-tools
-/Users/andreas/projects/aichat3/chat.ai:724:  (greger-stream-to-buffer greger-model dialog complete-callback cancel-callback))
-/Users/andreas/projects/aichat3/chat.ai:787:2. Now, I'll modify the greger-stream.el file to use cl-lib style keyword arguments. Let me start with the `greger-stream-to-buffer` function:
-/Users/andreas/projects/aichat3/chat.ai:804:(defun greger-stream-to-buffer (model dialog complete-callback &optional cancel-callback)
-/Users/andreas/projects/aichat3/chat.ai:808:  (greger-stream-to-buffer-with-tools model dialog nil complete-callback cancel-callback))
-/Users/andreas/projects/aichat3/chat.ai:814:(cl-defun greger-stream-to-buffer (&key model dialog buffer complete-callback cancel-callback)
-/Users/andreas/projects/aichat3/chat.ai:819:  (greger-stream-to-buffer-with-tools
-/Users/andreas/projects/aichat3/chat.ai:831:Convert greger-stream-to-buffer to use cl-lib keyword arguments and add buffer parameter
-/Users/andreas/projects/aichat3/chat.ai:839:Successfully replaced content in /Users/andreas/projects/aichat3/greger-stream.el. Successfully staged 2 file(s) and committed with message: Convert greger-stream-to-buffer to use cl-lib keyword arguments and add buffer parameter
-/Users/andreas/projects/aichat3/chat.ai:844:3. Now, I'll modify the `greger-stream-to-buffer-with-tools` function:
-/Users/andreas/projects/aichat3/chat.ai:861:(defun greger-stream-to-buffer-with-tools (model dialog tools complete-callback &optional cancel-callback)
-/Users/andreas/projects/aichat3/chat.ai:871:(cl-defun greger-stream-to-buffer-with-tools (&key model dialog tools buffer complete-callback cancel-callback)
-/Users/andreas/projects/aichat3/chat.ai:882:Convert greger-stream-to-buffer-with-tools to use cl-lib keyword arguments and add buffer parameter
-/Users/andreas/projects/aichat3/chat.ai:890:Successfully replaced content in /Users/andreas/projects/aichat3/greger-stream.el. Successfully staged 2 file(s) and committed with message: Convert greger-stream-to-buffer-with-tools to use cl-lib keyword arguments and add buffer parameter
-/Users/andreas/projects/aichat3/chat.ai:912:      (greger-agent--debug "CALLING greger-stream-to-buffer-with-tools...")
-/Users/andreas/projects/aichat3/chat.ai:913:      (greger-stream-to-buffer-with-tools
-/Users/andreas/projects/aichat3/chat.ai:924:      (greger-agent--debug "CALLING greger-stream-to-buffer-with-tools...")
-/Users/andreas/projects/aichat3/chat.ai:925:      (greger-stream-to-buffer-with-tools
-/Users/andreas/projects/aichat3/chat.ai:1006:CALLING greger-stream-to-buffer-with-tools
-/Users/andreas/projects/aichat3/chat.ai:1020:/Users/andreas/projects/aichat3/greger-agent.el:88:      (greger-agent--debug "CALLING greger-stream-to-buffer-with-tools...")
-/Users/andreas/projects/aichat3/chat.ai:1021:/Users/andreas/projects/aichat3/chat.ai:630:/Users/andreas/projects/aichat3/greger-agent.el:79:      (greger-agent--debug "CALLING greger-stream-to-buffer-with-tools...")
-/Users/andreas/projects/aichat3/chat.ai:1022:/Users/andreas/projects/aichat3/chat.ai:675:      (greger-agent--debug "CALLING greger-stream-to-buffer-with-tools...")
-/Users/andreas/projects/aichat3/chat.ai:1057:      (greger-agent--debug "CALLING greger-stream-to-buffer-with-tools...")
-/Users/andreas/projects/aichat3/chat.ai:1058:      (greger-stream-to-buffer-with-tools
-/Users/andreas/projects/aichat3/chat.ai:1082:      (greger-agent--debug "CALLING greger-stream-to-buffer-with-tools...")
-/Users/andreas/projects/aichat3/chat.ai:1083:      (greger-stream-to-buffer-with-tools
-/Users/andreas/projects/aichat3/chat.ai:1094:      (greger-agent--debug "CALLING greger-stream-to-buffer-with-tools...")
-/Users/andreas/projects/aichat3/chat.ai:1095:      (greger-stream-to-buffer-with-tools
-/Users/andreas/projects/aichat3/chat.ai:1153:      (greger-agent--debug "CALLING greger-stream-to-buffer-with-tools...")
-/Users/andreas/projects/aichat3/chat.ai:1154:      (greger-stream-to-buffer-with-tools
-/Users/andreas/projects/aichat3/chat.ai:1177:      (greger-agent--debug "CALLING greger-stream-to-buffer-with-tools...")
-/Users/andreas/projects/aichat3/chat.ai:1178:      (greger-stream-to-buffer-with-tools
-/Users/andreas/projects/aichat3/chat.ai:1189:      (greger-agent--debug "CALLING greger-stream-to-buffer-with-tools...")
-/Users/andreas/projects/aichat3/chat.ai:1190:      (greger-stream-to-buffer-with-tools
-/Users/andreas/projects/aichat3/chat.ai:1256:88:       (greger-agent--debug "CALLING greger-stream-to-buffer-with-tools...")
-/Users/andreas/projects/aichat3/chat.ai:1257:89:       (greger-stream-to-buffer-with-tools
-/Users/andreas/projects/aichat3/chat.ai:1282:      (greger-agent--debug "CALLING greger-stream-to-buffer-with-tools...")
-/Users/andreas/projects/aichat3/chat.ai:1283:      (greger-stream-to-buffer-with-tools
-/Users/andreas/projects/aichat3/chat.ai:1294:      (greger-agent--debug "CALLING greger-stream-to-buffer-with-tools...")
-/Users/andreas/projects/aichat3/chat.ai:1295:      (greger-stream-to-buffer-with-tools
-/Users/andreas/projects/aichat3/chat.ai:1337:      (greger-stream-to-buffer-with-tools
-/Users/andreas/projects/aichat3/chat.ai:1347:      (greger-stream-to-buffer-with-tools
-/Users/andreas/projects/aichat3/chat.ai:1452:      (greger-stream-to-buffer-with-tools
-/Users/andreas/projects/aichat3/chat.ai:1462:      (greger-stream-to-buffer-with-tools
-/Users/andreas/projects/aichat3/chat.ai:1509:(greger-stream-to-buffer-with-tools
-/Users/andreas/projects/aichat3/chat.ai:1519:(greger-stream-to-buffer-with-tools
-/Users/andreas/projects/aichat3/chat.ai:1562:  (greger-stream-to-buffer greger-model dialog complete-callback cancel-callback))
-/Users/andreas/projects/aichat3/chat.ai:1568:  (greger-stream-to-buffer
-/Users/andreas/projects/aichat3/chat.ai:1896:greger-stream-to-buffer"
-/Users/andreas/projects/aichat3/chat.ai:1921:greger-stream-to-buffer
-/Users/andreas/projects/aichat3/chat.ai:1935:/Users/andreas/projects/aichat3/greger.el:257:  (greger-stream-to-buffer
-/Users/andreas/projects/aichat3/chat.ai:1936:/Users/andreas/projects/aichat3/greger-agent.el:88:      (greger-agent--debug "CALLING greger-stream-to-buffer-with-tools...")
-/Users/andreas/projects/aichat3/chat.ai:1937:/Users/andreas/projects/aichat3/greger-agent.el:89:      (greger-stream-to-buffer-with-tools
-/Users/andreas/projects/aichat3/chat.ai:1938:/Users/andreas/projects/aichat3/greger-stream.el:32:(cl-defun greger-stream-to-buffer (&key model dialog buffer complete-callback cancel-callback)
-/Users/andreas/projects/aichat3/chat.ai:1939:/Users/andreas/projects/aichat3/greger-stream.el:37:  (greger-stream-to-buffer-with-tools
-/Users/andreas/projects/aichat3/chat.ai:1940:/Users/andreas/projects/aichat3/greger-stream.el:45:(cl-defun greger-stream-to-buffer-with-tools (&key model dialog tools buffer complete-callback cancel-callback)
-/Users/andreas/projects/aichat3/chat.ai:1941:/Users/andreas/projects/aichat3/chat.ai:7:* greger-stream.el: Make greger-stream-to-buffer and greger-stream-to-buffer-with-tools use cl-lib style keyword arguments instead of the long argument lists.
-/Users/andreas/projects/aichat3/chat.ai:1942:/Users/andreas/projects/aichat3/chat.ai:8:* Make greger-stream-to-buffer and greger-stream-to-buffer-with-tools take a buffer argument, that is passed as greger-agent--chat-buffer
-/Users/andreas/projects/aichat3/chat.ai:1943:/Users/andreas/projects/aichat3/chat.ai:67: 31: (defun greger-stream-to-buffer (model dialog complete-callback &optional cancel-callback)
-/Users/andreas/projects/aichat3/chat.ai:1944:/Users/andreas/projects/aichat3/chat.ai:71: 35:   (greger-stream-to-buffer-with-tools model dialog nil complete-callback cancel-callback))
-/Users/andreas/projects/aichat3/chat.ai:1945:/Users/andreas/projects/aichat3/chat.ai:73: 37: (defun greger-stream-to-buffer-with-tools (model dialog tools complete-callback &optional cancel-callback)
-/Users/andreas/projects/aichat3/chat.ai:1946:/Users/andreas/projects/aichat3/chat.ai:591:greger-stream-to-buffer.*greger-stream-to-buffer-with-tools
-/Users/andreas/projects/aichat3/chat.ai:1947:/Users/andreas/projects/aichat3/chat.ai:616:greger-stream-to-buffer
-/Users/andreas/projects/aichat3/chat.ai:1948:/Users/andreas/projects/aichat3/chat.ai:630:/Users/andreas/projects/aichat3/greger-agent.el:79:      (greger-agent--debug "CALLING greger-stream-to-buffer-with-tools...")
-/Users/andreas/projects/aichat3/chat.ai:1949:/Users/andreas/projects/aichat3/chat.ai:631:/Users/andreas/projects/aichat3/greger-agent.el:80:      (greger-stream-to-buffer-with-tools
-/Users/andreas/projects/aichat3/chat.ai:1950:/Users/andreas/projects/aichat3/chat.ai:632:/Users/andreas/projects/aichat3/greger.el:257:  (greger-stream-to-buffer greger-model dialog complete-callback cancel-callback))
-/Users/andreas/projects/aichat3/chat.ai:1951:/Users/andreas/projects/aichat3/chat.ai:633:/Users/andreas/projects/aichat3/greger-stream.el:31:(defun greger-stream-to-buffer (model dialog complete-callback &optional cancel-callback)
-/Users/andreas/projects/aichat3/chat.ai:1952:/Users/andreas/projects/aichat3/chat.ai:634:/Users/andreas/projects/aichat3/greger-stream.el:35:  (greger-stream-to-buffer-with-tools model dialog nil complete-callback cancel-callback))
-/Users/andreas/projects/aichat3/chat.ai:1953:/Users/andreas/projects/aichat3/chat.ai:635:/Users/andreas/projects/aichat3/greger-stream.el:37:(defun greger-stream-to-buffer-with-tools (model dialog tools complete-callback &optional cancel-callback)
-/Users/andreas/projects/aichat3/chat.ai:1954:/Users/andreas/projects/aichat3/chat.ai:675:      (greger-agent--debug "CALLING greger-stream-to-buffer-with-tools...")
-/Users/andreas/projects/aichat3/chat.ai:1955:/Users/andreas/projects/aichat3/chat.ai:676:      (greger-stream-to-buffer-with-tools
-/Users/andreas/projects/aichat3/chat.ai:1956:/Users/andreas/projects/aichat3/chat.ai:724:  (greger-stream-to-buffer greger-model dialog complete-callback cancel-callback))
-/Users/andreas/projects/aichat3/chat.ai:1957:/Users/andreas/projects/aichat3/chat.ai:787:2. Now, I'll modify the greger-stream.el file to use cl-lib style keyword arguments. Let me start with the `greger-stream-to-buffer` function:
-/Users/andreas/projects/aichat3/chat.ai:1958:/Users/andreas/projects/aichat3/chat.ai:804:(defun greger-stream-to-buffer (model dialog complete-callback &optional cancel-callback)
-/Users/andreas/projects/aichat3/chat.ai:1959:/Users/andreas/projects/aichat3/chat.ai:808:  (greger-stream-to-buffer-with-tools model dialog nil complete-callback cancel-callback))
-/Users/andreas/projects/aichat3/chat.ai:1960:/Users/andreas/projects/aichat3/chat.ai:814:(cl-defun greger-stream-to-buffer (&key model dialog buffer complete-callback cancel-callback)
-/Users/andreas/projects/aichat3/chat.ai:1961:/Users/andreas/projects/aichat3/chat.ai:819:  (greger-stream-to-buffer-with-tools
-/Users/andreas/projects/aichat3/chat.ai:1962:/Users/andreas/projects/aichat3/chat.ai:831:Convert greger-stream-to-buffer to use cl-lib keyword arguments and add buffer parameter
-/Users/andreas/projects/aichat3/chat.ai:1963:/Users/andreas/projects/aichat3/chat.ai:839:Successfully replaced content in /Users/andreas/projects/aichat3/greger-stream.el. Successfully staged 2 file(s) and committed with message: Convert greger-stream-to-buffer to use cl-lib keyword arguments and add buffer parameter
-/Users/andreas/projects/aichat3/chat.ai:1964:/Users/andreas/projects/aichat3/chat.ai:844:3. Now, I'll modify the `greger-stream-to-buffer-with-tools` function:
-/Users/andreas/projects/aichat3/chat.ai:1965:/Users/andreas/projects/aichat3/chat.ai:861:(defun greger-stream-to-buffer-with-tools (model dialog tools complete-callback &optional cancel-callback)
-/Users/andreas/projects/aichat3/chat.ai:1966:/Users/andreas/projects/aichat3/chat.ai:871:(cl-defun greger-stream-to-buffer-with-tools (&key model dialog tools buffer complete-callback cancel-callback)
-/Users/andreas/projects/aichat3/chat.ai:1967:/Users/andreas/projects/aichat3/chat.ai:882:Convert greger-stream-to-buffer-with-tools to use cl-lib keyword arguments and add buffer parameter
-/Users/andreas/projects/aichat3/chat.ai:1968:/Users/andreas/projects/aichat3/chat.ai:890:Successfully replaced content in /Users/andreas/projects/aichat3/greger-stream.el. Successfully staged 2 file(s) and committed with message: Convert greger-stream-to-buffer-with-tools to use cl-lib keyword arguments and add buffer parameter
-/Users/andreas/projects/aichat3/chat.ai:1969:/Users/andreas/projects/aichat3/chat.ai:912:      (greger-agent--debug "CALLING greger-stream-to-buffer-with-tools...")
-/Users/andreas/projects/aichat3/chat.ai:1970:/Users/andreas/projects/aichat3/chat.ai:913:      (greger-stream-to-buffer-with-tools
-/Users/andreas/projects/aichat3/chat.ai:1971:/Users/andreas/projects/aichat3/chat.ai:924:      (greger-agent--debug "CALLING greger-stream-to-buffer-with-tools...")
-/Users/andreas/projects/aichat3/chat.ai:1972:/Users/andreas/projects/aichat3/chat.ai:925:      (greger-stream-to-buffer-with-tools
-/Users/andreas/projects/aichat3/chat.ai:1973:/Users/andreas/projects/aichat3/chat.ai:1006:CALLING greger-stream-to-buffer-with-tools
-/Users/andreas/projects/aichat3/chat.ai:1974:/Users/andreas/projects/aichat3/chat.ai:1020:/Users/andreas/projects/aichat3/greger-agent.el:88:      (greger-agent--debug "CALLING greger-stream-to-buffer-with-tools...")
-/Users/andreas/projects/aichat3/chat.ai:1975:/Users/andreas/projects/aichat3/chat.ai:1021:/Users/andreas/projects/aichat3/chat.ai:630:/Users/andreas/projects/aichat3/greger-agent.el:79:      (greger-agent--debug "CALLING greger-stream-to-buffer-with-tools...")
-/Users/andreas/projects/aichat3/chat.ai:1976:/Users/andreas/projects/aichat3/chat.ai:1022:/Users/andreas/projects/aichat3/chat.ai:675:      (greger-agent--debug "CALLING greger-stream-to-buffer-with-tools...")
-/Users/andreas/projects/aichat3/chat.ai:1977:/Users/andreas/projects/aichat3/chat.ai:1057:      (greger-agent--debug "CALLING greger-stream-to-buffer-with-tools...")
-/Users/andreas/projects/aichat3/chat.ai:1978:/Users/andreas/projects/aichat3/chat.ai:1058:      (greger-stream-to-buffer-with-tools
-/Users/andreas/projects/aichat3/chat.ai:1979:/Users/andreas/projects/aichat3/chat.ai:1082:      (greger-agent--debug "CALLING greger-stream-to-buffer-with-tools...")
-/Users/andreas/projects/aichat3/chat.ai:1980:/Users/andreas/projects/aichat3/chat.ai:1083:      (greger-stream-to-buffer-with-tools
-/Users/andreas/projects/aichat3/chat.ai:1981:/Users/andreas/projects/aichat3/chat.ai:1094:      (greger-agent--debug "CALLING greger-stream-to-buffer-with-tools...")
-/Users/andreas/projects/aichat3/chat.ai:1982:/Users/andreas/projects/aichat3/chat.ai:1095:      (greger-stream-to-buffer-with-tools
-/Users/andreas/projects/aichat3/chat.ai:1983:/Users/andreas/projects/aichat3/chat.ai:1153:      (greger-agent--debug "CALLING greger-stream-to-buffer-with-tools...")
-/Users/andreas/projects/aichat3/chat.ai:1984:/Users/andreas/projects/aichat3/chat.ai:1154:      (greger-stream-to-buffer-with-tools
-/Users/andreas/projects/aichat3/chat.ai:1985:/Users/andreas/projects/aichat3/chat.ai:1177:      (greger-agent--debug "CALLING greger-stream-to-buffer-with-tools...")
-/Users/andreas/projects/aichat3/chat.ai:1986:/Users/andreas/projects/aichat3/chat.ai:1178:      (greger-stream-to-buffer-with-tools
-/Users/andreas/projects/aichat3/chat.ai:1987:/Users/andreas/projects/aichat3/chat.ai:1189:      (greger-agent--debug "CALLING greger-stream-to-buffer-with-tools...")
-/Users/andreas/projects/aichat3/chat.ai:1988:/Users/andreas/projects/aichat3/chat.ai:1190:      (greger-stream-to-buffer-with-tools
-/Users/andreas/projects/aichat3/chat.ai:1989:/Users/andreas/projects/aichat3/chat.ai:1256:88:       (greger-agent--debug "CALLING greger-stream-to-buffer-with-tools...")
-/Users/andreas/projects/aichat3/chat.ai:1990:/Users/andreas/projects/aichat3/chat.ai:1257:89:       (greger-stream-to-buffer-with-tools
-/Users/andreas/projects/aichat3/chat.ai:1991:/Users/andreas/projects/aichat3/chat.ai:1282:      (greger-agent--debug "CALLING greger-stream-to-buffer-with-tools...")
-/Users/andreas/projects/aichat3/chat.ai:1992:/Users/andreas/projects/aichat3/chat.ai:1283:      (greger-stream-to-buffer-with-tools
-/Users/andreas/projects/aichat3/chat.ai:1993:/Users/andreas/projects/aichat3/chat.ai:1294:      (greger-agent--debug "CALLING greger-stream-to-buffer-with-tools...")
-/Users/andreas/projects/aichat3/chat.ai:1994:/Users/andreas/projects/aichat3/chat.ai:1295:      (greger-stream-to-buffer-with-tools
-/Users/andreas/projects/aichat3/chat.ai:1995:/Users/andreas/projects/aichat3/chat.ai:1337:      (greger-stream-to-buffer-with-tools
-/Users/andreas/projects/aichat3/chat.ai:1996:/Users/andreas/projects/aichat3/chat.ai:1347:      (greger-stream-to-buffer-with-tools
-/Users/andreas/projects/aichat3/chat.ai:1997:/Users/andreas/projects/aichat3/chat.ai:1452:      (greger-stream-to-buffer-with-tools
-/Users/andreas/projects/aichat3/chat.ai:1998:/Users/andreas/projects/aichat3/chat.ai:1462:      (greger-stream-to-buffer-with-tools
-/Users/andreas/projects/aichat3/chat.ai:1999:/Users/andreas/projects/aichat3/chat.ai:1509:(greger-stream-to-buffer-with-tools
-/Users/andreas/projects/aichat3/chat.ai:2000:/Users/andreas/projects/aichat3/chat.ai:1519:(greger-stream-to-buffer-with-tools
-/Users/andreas/projects/aichat3/chat.ai:2001:/Users/andreas/projects/aichat3/chat.ai:1562:  (greger-stream-to-buffer greger-model dialog complete-callback cancel-callback))
-/Users/andreas/projects/aichat3/chat.ai:2002:/Users/andreas/projects/aichat3/chat.ai:1568:  (greger-stream-to-buffer
-/Users/andreas/projects/aichat3/chat.ai:2038:(cl-defun greger-stream-to-buffer (&key model dialog buffer complete-callback cancel-callback)
-/Users/andreas/projects/aichat3/chat.ai:2043:  (greger-stream-to-buffer-with-tools
-/Users/andreas/projects/aichat3/chat.ai:2051:(cl-defun greger-stream-to-buffer-with-tools (&key model dialog tools buffer complete-callback cancel-callback)
-/Users/andreas/projects/aichat3/chat.ai:2113:- `greger-stream-to-buffer` now uses `(&key model dialog buffer complete-callback cancel-callback)`
-/Users/andreas/projects/aichat3/chat.ai:2114:- `greger-stream-to-buffer-with-tools` now uses `(&key model dialog tools buffer complete-callback cancel-callback)`
-/Users/andreas/projects/aichat3/chat.ai:2366:      (greger-agent--debug "CALLING greger-stream-to-buffer-with-tools...")
-/Users/andreas/projects/aichat3/chat.ai:2367:      (greger-stream-to-buffer-with-tools
-/Users/andreas/projects/aichat3/chat.ai:2733:      (greger-agent--debug "CALLING greger-stream-to-buffer-with-tools...")
-/Users/andreas/projects/aichat3/chat.ai:2734:      (greger-stream-to-buffer-with-tools
-/Users/andreas/projects/aichat3/chat.ai:2770:      (greger-agent--debug "CALLING greger-stream-to-buffer-with-tools...")
-/Users/andreas/projects/aichat3/chat.ai:2771:      (greger-stream-to-buffer-with-tools
-/Users/andreas/projects/aichat3/chat.ai:2856:      (greger-agent--debug "CALLING greger-stream-to-buffer-with-tools...")
-/Users/andreas/projects/aichat3/chat.ai:2857:      (greger-stream-to-buffer-with-tools
-/Users/andreas/projects/aichat3/chat.ai:2906:      (greger-agent--debug "CALLING greger-stream-to-buffer-with-tools...")
-/Users/andreas/projects/aichat3/chat.ai:2907:      (greger-stream-to-buffer-with-tools
-/Users/andreas/projects/aichat3/chat.ai:2943:      (greger-agent--debug "CALLING greger-stream-to-buffer-with-tools...")
-/Users/andreas/projects/aichat3/chat.ai:2944:      (greger-stream-to-buffer-with-tools
-/Users/andreas/projects/aichat3/chat.ai:3257:      (greger-stream-to-buffer-with-tools
-
-</tool.toolu_019xXgVKhxAASiuqmZbU5x8z>
-
-## ASSISTANT:
-
-Now let me check what `greger-stream-to-buffer` looks like to see if it already exists:
-
-## TOOL USE:
-
-Name: ripgrep
-ID: toolu_01Xqr8BvBrkoMaj8fun3DBnZ
-
-### pattern
-
-<tool.toolu_01Xqr8BvBrkoMaj8fun3DBnZ>
-greger-stream-to-buffer[^-]
-</tool.toolu_01Xqr8BvBrkoMaj8fun3DBnZ>
-
-### path
-
-<tool.toolu_01Xqr8BvBrkoMaj8fun3DBnZ>
-greger-stream.el
-</tool.toolu_01Xqr8BvBrkoMaj8fun3DBnZ>
-
-## TOOL RESULT:
-
-ID: toolu_01Xqr8BvBrkoMaj8fun3DBnZ
-
-<tool.toolu_01Xqr8BvBrkoMaj8fun3DBnZ>
-No matches found
-</tool.toolu_01Xqr8BvBrkoMaj8fun3DBnZ>
-
-## ASSISTANT:
-
-Let me check the greger.el file to see if there's a `greger-stream-to-buffer` function that needs to use the new callbacks:
-
-## TOOL USE:
-
-Name: read-file
-ID: toolu_01BpGFQm9JNWNUMXAK9tFFWq
-
-### path
-
-<tool.toolu_01BpGFQm9JNWNUMXAK9tFFWq>
-greger.el
-</tool.toolu_01BpGFQm9JNWNUMXAK9tFFWq>
-
-### include_line_numbers
-
-<tool.toolu_01BpGFQm9JNWNUMXAK9tFFWq>
-true
-</tool.toolu_01BpGFQm9JNWNUMXAK9tFFWq>
-
-## TOOL RESULT:
-
-ID: toolu_01BpGFQm9JNWNUMXAK9tFFWq
-
-<tool.toolu_01BpGFQm9JNWNUMXAK9tFFWq>
-  1: ;;; greger.el --- Chat with language models -*- lexical-binding: t -*-
-  2:
-  3: ;; Copyright (C) 2023 Andreas Jansson
-  4:
-  5: ;; Author: Andreas Jansson <andreas@jansson.me.uk>
-  6: ;; Version: 0.1.0
-  7: ;; URL: https://github.com/andreasjansson/greger.el
-  8: ;; Package-Requires: ((emacs "28.0") (parsec "0.1.3"))
-  9:
- 10: ;;; Commentary:
- 11: ;; This package provides an interface for interacting with AI language models
- 12:
- 13: ;;; Code:
- 14:
- 15: (require 'greger-stream)
- 16: (require 'greger-parser)
- 17: (require 'cl-lib)
- 18:
- 19: (defconst greger-available-models
- 20:   '(replicate/meta/meta-llama-3.1-405b-instruct
- 21:     replicate/meta/meta-llama-3-70b-instruct
- 22:     replicate/meta/meta-llama-3-70b
- 23:     replicate/meta/meta-llama-3-8b-instruct
- 24:     replicate/meta/meta-llama-3-8b
- 25:     replicate/snowflake/snowflake-arctic-instruct
- 26:     claude/claude-3-haiku-20240307
- 27:     claude/claude-3-opus-20240229
- 28:     claude/claude-3-5-sonnet-20240620
- 29:     claude/claude-3-7-sonnet-latest
- 30:     claude/claude-sonnet-4-20250514
- 31:     claude/claude-opus-4-20250514
- 32:     openai/o1-preview
- 33:     openai/gpt-4-turbo
- 34:     openai/gpt-4o
- 35:     openai/gpt-4o-2024-08-06
- 36:     openai/gpt-4o-mini
- 37:     google/gemini-pro
- 38:     groq/llama3-8b-8192
- 39:     groq/llama3-70b-8192
- 40:     groq/mixtral-8x7b-32768
- 41:     ollama/llama3:8b
- 42:     ollama/llama3:text
- 43:     ollama/mistral:7b
- 44:     ollama/phi3:3.8b
- 45:     ollama/wizardlm2:7b
- 46:     ollama/gemma:2b)
- 47:   "List of available models.")
- 48:
- 49: (defcustom greger-model 'claude/claude-sonnet-4-20250514
- 50:   "The currently used model."
- 51:   :type `(choice ,@(mapcar (lambda (model) `(const ,model)) greger-available-models))
- 52:   :group 'greger)
- 53:
- 54: (defcustom greger-default-system-prompt "You are a helpful assistant."
- 55:   "Default system prompt used for AI interactions."
- 56:   :type 'string
- 57:   :group 'greger)
- 58:
- 59: (defcustom greger-temperature 0.8
- 60:   "Sampling temperature between 0 and 1."
- 61:   :type 'float
- 62:   :group 'greger)
- 63:
- 64: (defvar greger-user-tag "## USER:")
- 65: (defvar greger-assistant-tag "## ASSISTANT:")
- 66: (defvar greger-system-tag "## SYSTEM:")
- 67:
- 68: ;; Tool section collapsing variables
- 69: (defvar greger-tool-section-max-lines 4
- 70:   "Maximum number of lines to show in collapsed tool sections.")
- 71:
- 72: (defvar greger-tool-overlays nil
- 73:   "List of overlays used for collapsible tool sections.")
- 74:
- 75: ;; Face definitions for tool tags
- 76: (defface greger-tool-tag-face
- 77:   '((t :height 0.6 :foreground "gray70"))
- 78:   "Face for tool opening and closing tags."
- 79:   :group 'greger)
- 80:
- 81: (defface greger-tool-content-face
- 82:   '((t :inherit default))
- 83:   "Face for tool content."
- 84:   :group 'greger)
- 85:
- 86: (defface greger-tool-param-heading-face
- 87:   '((t :foreground "#6699CC" :weight bold :height 1.0))
- 88:   "Face for ### tool parameter headings in greger mode."
- 89:   :group 'greger)
- 90:
- 91: (defface greger-user-heading-face
- 92:   '((t :foreground "#66DD66" :weight bold :height 1.2))
- 93:   "Face for ## USER: headings in greger mode."
- 94:   :group 'greger)
- 95:
- 96: (defface greger-tool-result-heading-face
- 97:   '((t :foreground "#66AA88" :weight bold :height 1.2))
- 98:   "Face for ## TOOL RESULT: headings in greger mode."
- 99:   :group 'greger)
-100:
-101: (defface greger-assistant-heading-face
-102:   '((t :foreground "#AA9922" :weight bold :height 1.2))
-103:   "Face for ## ASSISTANT: headings in greger mode."
-104:   :group 'greger)
-105:
-106: (defface greger-thinking-heading-face
-107:   '((t :foreground "#9966CC" :weight bold :height 1.2))
-108:   "Face for ## THINKING: headings in greger mode."
-109:   :group 'greger)
-110:
-111: (defface greger-tool-use-heading-face
-112:   '((t :foreground "#8866BB" :weight bold :height 1.2))
-113:   "Face for ## TOOL USE: headings in greger mode."
-114:   :group 'greger)
-115:
-116: (defface greger-system-heading-face
-117:   '((t :foreground "#CC6666" :weight bold :height 1.2))
-118:   "Face for ## SYSTEM: headings in greger mode."
-119:   :group 'greger)
-120:
-121: (defvar greger-mode-map
-122:   (let ((map (make-sparse-keymap)))
-123:     (define-key map (kbd "M-<return>") #'greger-agent-buffer)
-124:     (define-key map (kbd "C-M-<return>") #'greger-buffer-no-tools)
-125:                                         ;(define-key map (kbd "M-<return>") #'greger-buffer)
-126:     (define-key map (kbd "C-; a") #'greger-insert-assistant-tag)
-127:     (define-key map (kbd "C-; u") #'greger-insert-user-tag)
-128:     (define-key map (kbd "C-; s") #'greger-insert-system-tag)
-129:     (define-key map (kbd "C-; i") #'greger-insert-include)
-130:     (define-key map (kbd "C-; I") #'greger-insert-include-code)
-131:     (define-key map (kbd "C-; b") #'greger-insert-include-buffer-code)
-132:     (define-key map (kbd "C-; m") #'greger-set-model)
-133:     (define-key map (kbd "C-; c") #'greger-copy-code)
-134:     (define-key map (kbd "TAB") #'greger-toggle-tool-section)
-135:     (define-key map (kbd "<tab>") #'greger-toggle-tool-section)
-136:     map)
-137:   "Keymap for `greger-mode'.")
-138:
-139: (define-derived-mode greger-mode gfm-mode "AI"
-140:   "Major mode for interacting with AI."
-141:   (use-local-map greger-mode-map)
-142:   (setq-local markdown-fontify-code-blocks-natively t)
-143:   (setq-local mode-line-misc-info '(:eval (symbol-name greger-model)))
-144:   ;; Set up invisible text for tool sections
-145:   (add-to-invisibility-spec 'greger-tool-section)
-146:   ;; Set up tool section highlighting and collapsing
-147:   (greger--setup-tool-sections)
-148:   ;; Set up custom heading font-lock
-149:   (greger--setup-heading-font-lock)
-150:   ;; Add hook to update tool sections when buffer changes
-151:   (add-hook 'after-change-functions #'greger--after-change-function nil t))
-152:
-153: ;;;###autoload
-154: (defun greger ()
-155:   "Create a new buffer and switch to `greger-mode`."
-156:   (interactive)
-157:   (let ((buffer (generate-new-buffer "*greger*")))
-158:     (switch-to-buffer buffer)
-159:     (greger-mode)
-160:     (insert greger-system-tag
-161:             "\n\n" greger-default-system-prompt "\n\n"
-162:             greger-user-tag
-163:             "\n\n")
-164:     (message (format "Using model %s" greger-model))))
-165:
-166: (defun greger-insert-assistant-tag ()
-167:   "Insert the assistant tag into the buffer."
-168:   (interactive)
-169:   (insert greger-assistant-tag "\n\n"))
-170:
-171: (defun greger-insert-user-tag ()
-172:   "Insert the user tag into the buffer."
-173:   (interactive)
-174:   (insert greger-user-tag "\n\n"))
-175:
-176: (defun greger-insert-system-tag ()
-177:   "Insert the system tag into the buffer."
-178:   (interactive)
-179:   (insert greger-system-tag "\n\n"))
-180:
-181: (defun greger-buffer-no-tools ()
-182:   "Send the buffer content to AI as a dialog without tool use."
-183:   (interactive)
-184:   (let ((greger-agent-tools '()))
-185:     (greger-agent-buffer)))
-186:
-187: (defun greger-insert-include ()
-188:   "Prompt the user to select a file and insert an <include> at point."
-189:   (interactive)
-190:   (let ((file (expand-file-name (read-file-name "Select file: " nil nil t))))
-191:     (if (file-exists-p file)
-192:         (insert (format "<include>%s</include>\n\n" file))
-193:       (message "File does not exist!"))))
-194:
-195: (defun greger-insert-include-code ()
-196:   "Prompt the user to select a file and insert an <include code> at point."
-197:   (interactive)
-198:   (let ((file (expand-file-name (read-file-name "Select file: " nil nil t))))
-199:     (if (file-exists-p file)
-200:         (insert (format "<include code>%s</include>\n\n" file))
-201:       (message "File does not exist!"))))
-202:
-203: (defun greger-insert-include-buffer-code ()
-204:   "Prompt the user to select a buffer and insert an <include code> at point."
-205:   (interactive)
-206:   (let ((buffer-name (read-buffer "Select buffer: " nil t)))
-207:     (when buffer-name
-208:       (let ((buffer (get-buffer buffer-name)))
-209:         (when buffer
-210:           (let ((path (buffer-file-name buffer)))
-211:             (insert (format "<include code>%s</include>\n\n" path))))))))
-212:
-213: (defun greger-copy-code ()
-214:   "Copy the current code block under point."
-215:   (interactive)
-216:   (let ((code-block (greger--get-current-code-block)))
-217:     (if code-block
-218:         (progn
-219:           (kill-new code-block)
-220:           (message (format "Copied code: %s" (greger--truncate-with-ellipsis code-block 40))))
-221:       (error "Point is not inside a code block"))))
-222:
-223: (defun greger-set-model ()
-224:   "Set the current AI model."
-225:   (interactive)
-226:   (let ((model (completing-read "Choose AI model: " greger-available-models nil t)))
-227:     (customize-set-variable 'greger-model (intern model))
-228:     (message "Model set to %s" model)))
-229:
-230: ;; Tool section collapsing functions
-231:
-232: (defun greger--setup-tool-sections ()
-233:   "Set up tool section highlighting and collapsing in the current buffer."
-234:   (greger--clear-tool-overlays)
-235:   (greger--find-and-setup-tool-sections))
-236:
-237: (defun greger--clear-tool-overlays ()
-238:   "Clear all tool section overlays in the current buffer."
-239:   (cl-loop for overlay in greger-tool-overlays
-240:            do (delete-overlay overlay))
-241:   (setq greger-tool-overlays nil))
-242:
-243: (defun greger--find-and-setup-tool-sections ()
-244:   "Find all tool sections and set them up with appropriate faces and collapsing."
-245:   (save-excursion
-246:     (goto-char (point-min))
-247:     (cl-loop while (re-search-forward "<tool\\.[^>]+>" nil t)
-248:              do (greger--setup-single-tool-section))))
-249:
-250: (defun greger--setup-single-tool-section ()
-251:   "Set up a single tool section starting from the current match."
-252:   (let ((start-tag-start (match-beginning 0))
-253:         (start-tag-end (match-end 0))
-254:         (tool-id (greger--extract-tool-id (match-string 0))))
-255:     (when tool-id
-256:       (let ((end-tag-pattern (concat "</tool\\." (regexp-quote tool-id) ">"))
-257:             (content-start start-tag-end)
-258:             content-end
-259:             end-tag-start
-260:             end-tag-end)
-261:
-262:         ;; Find the corresponding closing tag
-263:         (when (re-search-forward end-tag-pattern nil t)
-264:           (setq end-tag-start (match-beginning 0)
-265:                 end-tag-end (match-end 0)
-266:                 content-end end-tag-start)
-267:
-268:           ;; Create overlays for styling
-269:           (greger--create-tag-overlay start-tag-start start-tag-end)
-270:           (greger--create-tag-overlay end-tag-start end-tag-end)
-271:
-272:           ;; Set up collapsible content
-273:           (greger--setup-collapsible-content content-start content-end tool-id))))))
-274:
-275: (defun greger--extract-tool-id (tag-string)
-276:   "Extract tool ID from a tool tag string like '<tool.abc123>'."
-277:   (when (string-match "<tool\\.\\([^>]+\\)>" tag-string)
-278:     (match-string 1 tag-string)))
-279:
-280: (defun greger--create-tag-overlay (start end)
-281:   "Create an overlay for a tool tag to make it small and less visible."
-282:   (let ((overlay (make-overlay start end)))
-283:     (overlay-put overlay 'face 'greger-tool-tag-face)
-284:     (overlay-put overlay 'greger-tool-tag t)
-285:     (push overlay greger-tool-overlays)
-286:     overlay))
-287:
-288: (defun greger--setup-collapsible-content (content-start content-end tool-id)
-289:   "Set up collapsible content between CONTENT-START and CONTENT-END for TOOL-ID."
-290:   (let* ((content (buffer-substring-no-properties content-start content-end))
-291:          (lines (split-string content "\n"))
-292:          (line-count (length lines)))
-293:
-294:     (when (> line-count greger-tool-section-max-lines)
-295:       ;; Create the collapsible overlay
-296:       (greger--create-collapsible-overlay content-start content-end tool-id lines))))
-297:
-298: (defun greger--create-collapsible-overlay (content-start content-end tool-id lines)
-299:   "Create a collapsible overlay for tool content."
-300:   (let* ((visible-lines (cl-subseq lines 0 greger-tool-section-max-lines))
-301:          (hidden-lines (cl-subseq lines greger-tool-section-max-lines))
-302:          (total-lines (length lines))
-303:          (hidden-line-count (length hidden-lines))
-304:          (visible-text (mapconcat #'identity visible-lines "\n"))
-305:          (hidden-text (mapconcat #'identity hidden-lines "\n"))
-306:
-307:          ;; Calculate positions for visible and hidden parts
-308:          (visible-end (+ content-start (length visible-text)))
-309:          (hidden-start (+ visible-end 1)) ; +1 for the newline
-310:
-311:          ;; Create overlay for the hidden part
-312:          (hidden-overlay (make-overlay hidden-start content-end)))
-313:
-314:     (overlay-put hidden-overlay 'invisible 'greger-tool-section)
-315:     (overlay-put hidden-overlay 'greger-tool-section t)
-316:     (overlay-put hidden-overlay 'greger-tool-id tool-id)
-317:     (overlay-put hidden-overlay 'greger-collapsed t)
-318:
-319:     ;; Add expansion indicator with line count
-320:     (let ((indicator-overlay (make-overlay visible-end visible-end)))
-321:       (overlay-put indicator-overlay 'after-string
-322:                    (propertize (format "... [+%d lines, TAB to expand]" hidden-line-count)
-323:                               'face 'greger-tool-tag-face))
-324:       (overlay-put indicator-overlay 'greger-tool-indicator t)
-325:       (overlay-put indicator-overlay 'greger-tool-id tool-id)
-326:       (push indicator-overlay greger-tool-overlays))
-327:
-328:     (push hidden-overlay greger-tool-overlays)))
-329:
-330: (defun greger-toggle-tool-section ()
-331:   "Toggle the tool section at point between collapsed and expanded state."
-332:   (interactive)
-333:   (let ((tool-id (greger--get-tool-id-at-point)))
-334:     (if tool-id
-335:         (greger--toggle-tool-section-by-id tool-id)
-336:       (message "Not inside a tool section"))))
-337:
-338: (defun greger--get-tool-id-at-point ()
-339:   "Get the tool ID for the tool section at point, if any."
-340:   ;; First check overlays at point
-341:   (or (cl-loop for overlay in (overlays-at (point))
-342:                for tool-id = (overlay-get overlay 'greger-tool-id)
-343:                when tool-id return tool-id)
-344:       ;; If not found, search backwards and forwards for tool tags
-345:       (greger--find-tool-id-near-point)))
-346:
-347: (defun greger--find-tool-id-near-point ()
-348:   "Find tool ID near point by searching for tool tags."
-349:   (save-excursion
-350:     (let ((start-pos (point))
-351:           tool-id)
-352:       ;; Search backwards for opening tag
-353:       (when (re-search-backward "<tool\\.[^>]+>" nil t)
-354:         (let ((open-tag-start (match-beginning 0))
-355:               (open-tag-end (match-end 0))
-356:               (tag-tool-id (greger--extract-tool-id (match-string 0))))
-357:           ;; Check if we're within this tool section
-358:           (when tag-tool-id
-359:             (let ((close-pattern (concat "</tool\\." (regexp-quote tag-tool-id) ">")))
-360:               (when (re-search-forward close-pattern nil t)
-361:                 (let ((close-tag-end (match-end 0)))
-362:                   ;; If original point is between open and close tags
-363:                   (when (and (>= start-pos open-tag-start)
-364:                              (<= start-pos close-tag-end))
-365:                     (setq tool-id tag-tool-id))))))))
-366:       tool-id)))
-367:
-368: (defun greger--toggle-tool-section-by-id (tool-id)
-369:   "Toggle the tool section with the given TOOL-ID."
-370:   (cl-loop for overlay in greger-tool-overlays
-371:            when (and (overlay-get overlay 'greger-tool-section)
-372:                      (string= (overlay-get overlay 'greger-tool-id) tool-id))
-373:            do (greger--toggle-overlay-visibility overlay tool-id)))
-374:
-375: (defun greger--toggle-overlay-visibility (overlay tool-id)
-376:   "Toggle the visibility of OVERLAY for TOOL-ID."
-377:   (let ((is-collapsed (overlay-get overlay 'greger-collapsed)))
-378:     (if is-collapsed
-379:         (greger--expand-tool-section overlay tool-id)
-380:       (greger--collapse-tool-section overlay tool-id))))
-381:
-382: (defun greger--expand-tool-section (overlay tool-id)
-383:   "Expand the tool section by making OVERLAY visible."
-384:   (overlay-put overlay 'invisible nil)
-385:   (overlay-put overlay 'greger-collapsed nil)
-386:
-387:   ;; Remove the expansion indicator
-388:   (cl-loop for indicator-overlay in greger-tool-overlays
-389:            when (and (overlay-get indicator-overlay 'greger-tool-indicator)
-390:                      (string= (overlay-get indicator-overlay 'greger-tool-id) tool-id))
-391:            do (progn
-392:                 (delete-overlay indicator-overlay)
-393:                 (setq greger-tool-overlays
-394:                       (remove indicator-overlay greger-tool-overlays)))))
-395:
-396: (defun greger--collapse-tool-section (overlay tool-id)
-397:   "Collapse the tool section by making OVERLAY invisible."
-398:   (overlay-put overlay 'invisible 'greger-tool-section)
-399:   (overlay-put overlay 'greger-collapsed t)
-400:
-401:   ;; Calculate the number of hidden lines for the indicator
-402:   (let* ((content (buffer-substring-no-properties (overlay-start overlay) (overlay-end overlay)))
-403:          (lines (split-string content "\n"))
-404:          (hidden-line-count (length lines))
-405:          (overlay-start (overlay-start overlay))
-406:          (indicator-pos (max (point-min) (1- overlay-start)))
-407:          (indicator-overlay (make-overlay indicator-pos indicator-pos)))
-408:     (overlay-put indicator-overlay 'after-string
-409:                  (propertize (format "... [+%d lines, TAB to expand]" hidden-line-count)
-410:                             'face 'greger-tool-tag-face))
-411:     (overlay-put indicator-overlay 'greger-tool-indicator t)
-412:     (overlay-put indicator-overlay 'greger-tool-id tool-id)
-413:     (push indicator-overlay greger-tool-overlays)))
-414:
-415: (defun greger--setup-heading-font-lock ()
-416:   "Set up font-lock for headings to override markdown's larger font sizes."
-417:   ;; Remove existing markdown heading font-lock rules for level 2 and 3 headings
-418:   (setq-local font-lock-keywords
-419:               (cl-remove-if
-420:                (lambda (rule)
-421:                  (and (listp rule)
-422:                       (stringp (car rule))
-423:                       (or (string-match-p "^\\^##" (car rule))
-424:                           (string-match-p "^\\^###" (car rule))
-425:                           (string-match-p "markdown-header-face-[23]" (format "%s" rule)))))
-426:                font-lock-keywords))
-427:
-428:   ;; Add our custom font-lock rules with highest priority
-429:   (font-lock-add-keywords
-430:    nil
-431:    '(;; Level 2 headings (conversation roles)
-432:      ("^## USER:.*$" 0 'greger-user-heading-face t)
-433:      ("^## ASSISTANT:.*$" 0 'greger-assistant-heading-face t)
-434:      ("^## SYSTEM:.*$" 0 'greger-system-heading-face t)
-435:      ("^## THINKING:.*$" 0 'greger-thinking-heading-face t)
-436:      ("^## TOOL USE:.*$" 0 'greger-tool-use-heading-face t)
-437:      ("^## TOOL RESULT:.*$" 0 'greger-tool-result-heading-face t)
-438:      ;; Level 3 headings (tool parameters)
-439:      ("^###\\s-+.*$" 0 'greger-tool-param-heading-face t))
-440:    'prepend)
-441:
-442:   ;; Also remap the markdown faces
-443:   ;(face-remap-add-relative 'markdown-header-face-2 'greger-assistant-heading-face)
-444:   ;(face-remap-add-relative 'markdown-header-face-3 'greger-tool-param-heading-face)
-445:   (font-lock-flush))
-446:
-447: (defun greger--after-change-function (beg end len)
-448:   "Update tool sections after buffer changes."
-449:   ;; Simple approach: refresh all tool sections
-450:   ;; This could be optimized to only refresh affected sections
-451:   (when (> (- end beg) 0)  ; Only if there was an actual change
-452:     (run-with-idle-timer 0.1 nil #'greger--setup-tool-sections)))
-453:
-454: ;; Private helper functions
-455:
-456: (defun greger--get-current-code-block ()
-457:   "Return the current code block under point, or nil if not found."
-458:   (save-excursion
-459:     (when (re-search-backward "^```" nil t)
-460:       (forward-line)
-461:       (let ((start (point)))
-462:         (when (re-search-forward "^```" nil t)
-463:           (backward-char 4)
-464:           (buffer-substring-no-properties start (point)))))))
-465:
-466: (defun greger--truncate-with-ellipsis (str max-width)
-467:   "Truncate STR to MAX-WIDTH characters, adding an ellipsis if necessary."
-468:   (let ((len (length str)))
-469:     (if (<= len max-width)
-470:         str
-471:       (concat (substring str 0 (- max-width 3)) "..."))))
-472:
-473: (provide 'greger)
-474:
-475: ;;; greger.el ends here
-476:
-</tool.toolu_01BpGFQm9JNWNUMXAK9tFFWq>
-
-## ASSISTANT:
-
-Now I understand the current structure. Let me analyze what needs to be changed:
-
-1. I need to create a `greger-stream-to-buffer` function that uses the new callbacks
-2. I need to modify `greger-stream-to-buffer-with-tools` to accept the new callbacks
-3. I need to remove `insert-position` from the `greger-stream-state` struct
-4. I need to move the text and assistant tag insertion logic from `greger-stream.el` to `greger-agent.el`
-
-Let me start by implementing these changes:
-
-## 1. First, let's create the `greger-stream-to-buffer` function:
-
-
-## TOOL USE:
-
-Name: str-replace
-ID: toolu_01SpDLDmuz75MR6oCKSXQpcv
-
-### file_path
-
-<tool.toolu_01SpDLDmuz75MR6oCKSXQpcv>
-greger-stream.el
-</tool.toolu_01SpDLDmuz75MR6oCKSXQpcv>
-
-### original_content
-
-<tool.toolu_01SpDLDmuz75MR6oCKSXQpcv>
-;;; Public API
-
-(cl-defun greger-stream-to-buffer-with-tools (&key model dialog tools buffer complete-callback cancel-callback)
-</tool.toolu_01SpDLDmuz75MR6oCKSXQpcv>
-
-### new_content
-
-<tool.toolu_01SpDLDmuz75MR6oCKSXQpcv>
-;;; Public API
-
-(cl-defun greger-stream-to-buffer (&key model dialog buffer text-start-callback text-callback complete-callback cancel-callback)
-  "Send streaming request for MODEL with DIALOG, inserting text into BUFFER.
-TEXT-START-CALLBACK is called when text streaming starts.
-TEXT-CALLBACK is called for each text chunk with (state text).
-COMPLETE-CALLBACK is called when done with the parsed content blocks array.
-CANCEL-CALLBACK is called if cancelled.
-BUFFER defaults to current buffer if not specified."
-  (greger-stream-to-buffer-with-tools
-   :model model
-   :dialog dialog
-   :tools nil
-   :buffer buffer
-   :text-start-callback text-start-callback
-   :text-callback text-callback
-   :complete-callback complete-callback
-   :cancel-callback cancel-callback))
-
-(cl-defun greger-stream-to-buffer-with-tools (&key model dialog tools buffer text-start-callback text-callback complete-callback cancel-callback)
-</tool.toolu_01SpDLDmuz75MR6oCKSXQpcv>
-
-### git_commit_message
-
-<tool.toolu_01SpDLDmuz75MR6oCKSXQpcv>
-Add greger-stream-to-buffer function with new callback parameters
-</tool.toolu_01SpDLDmuz75MR6oCKSXQpcv>
-
-## TOOL RESULT:
-
-ID: toolu_01SpDLDmuz75MR6oCKSXQpcv
-
-<tool.toolu_01SpDLDmuz75MR6oCKSXQpcv>
-Successfully replaced content in /Users/andreas/projects/aichat3/greger-stream.el. Successfully staged 2 file(s) and committed with message: Add greger-stream-to-buffer function with new callback parameters
-</tool.toolu_01SpDLDmuz75MR6oCKSXQpcv>
-
-## ASSISTANT:
-
-## 2. Now let's update the greger-stream-to-buffer-with-tools function to use the new callbacks and remove insert-position:
-
-
-## TOOL USE:
-
-Name: str-replace
-ID: toolu_01MLWZaJzCAa7P3i2Rn2rwDf
-
-### file_path
-
-<tool.toolu_01MLWZaJzCAa7P3i2Rn2rwDf>
-greger-stream.el
-</tool.toolu_01MLWZaJzCAa7P3i2Rn2rwDf>
-
-### original_content
-
-<tool.toolu_01MLWZaJzCAa7P3i2Rn2rwDf>
-(cl-defun greger-stream-to-buffer-with-tools (&key model dialog tools buffer text-start-callback text-callback complete-callback cancel-callback)
-  "Send streaming request for MODEL with DIALOG and TOOLS, inserting text into BUFFER.
-COMPLETE-CALLBACK is called when done with the parsed content blocks array.
-CANCEL-CALLBACK is called if cancelled.
-BUFFER defaults to current buffer if not specified."
-  (let* ((output-buffer (or buffer (current-buffer)))
-         (insert-position (point))
-         (undo-handle (prepare-change-group output-buffer))
-         (original-quit-binding (local-key-binding (kbd "C-g")))
-         (provider-config (greger-providers-get-config model))
-         (request-spec (greger-providers-build-request provider-config dialog tools))
-         (restore-callback (lambda (state)
-                             (with-current-buffer (greger-stream-state-output-buffer state)
-                               (local-set-key (kbd "C-g")
-                                              (greger-stream-state-original-quit-binding state))
-                               (undo-amalgamate-change-group (greger-stream-state-undo-handle state))
-                               (accept-change-group (greger-stream-state-undo-handle state)))))
-         (text-start-callback (lambda (state)
-                                (greger-stream--insert state (concat "\n\n" greger-assistant-tag "\n\n")))
-                              )
-         (wrapped-complete-callback (lambda (parsed-blocks state)
-                                      (when complete-callback
-                                        (funcall complete-callback parsed-blocks))))
-         (process (greger-stream--start-curl-process request-spec))
-         (state (make-greger-stream-state
-                 :accumulated-output ""
-                 :complete-response ""
-                 :parsed-content-blocks '()
-                 :process process
-                 :text-start-callback text-start-callback
-                 :text-callback 'greger-stream--insert
-                 :complete-callback wrapped-complete-callback
-                 :cancel-callback cancel-callback
-                 :restore-callback restore-callback
-                 :output-buffer output-buffer
-                 :insert-position insert-position
-                 :undo-handle undo-handle
-                 :original-quit-binding original-quit-binding)))
-</tool.toolu_01MLWZaJzCAa7P3i2Rn2rwDf>
-
-### new_content
-
-<tool.toolu_01MLWZaJzCAa7P3i2Rn2rwDf>
-(cl-defun greger-stream-to-buffer-with-tools (&key model dialog tools buffer text-start-callback text-callback complete-callback cancel-callback)
-  "Send streaming request for MODEL with DIALOG and TOOLS, inserting text into BUFFER.
-TEXT-START-CALLBACK is called when text streaming starts.
-TEXT-CALLBACK is called for each text chunk with (state text).
-COMPLETE-CALLBACK is called when done with the parsed content blocks array.
-CANCEL-CALLBACK is called if cancelled.
-BUFFER defaults to current buffer if not specified."
-  (let* ((output-buffer (or buffer (current-buffer)))
-         (undo-handle (prepare-change-group output-buffer))
-         (original-quit-binding (local-key-binding (kbd "C-g")))
-         (provider-config (greger-providers-get-config model))
-         (request-spec (greger-providers-build-request provider-config dialog tools))
-         (restore-callback (lambda (state)
-                             (with-current-buffer (greger-stream-state-output-buffer state)
-                               (local-set-key (kbd "C-g")
-                                              (greger-stream-state-original-quit-binding state))
-                               (undo-amalgamate-change-group (greger-stream-state-undo-handle state))
-                               (accept-change-group (greger-stream-state-undo-handle state)))))
-         (wrapped-complete-callback (lambda (parsed-blocks state)
-                                      (when complete-callback
-                                        (funcall complete-callback parsed-blocks))))
-         (process (greger-stream--start-curl-process request-spec))
-         (state (make-greger-stream-state
-                 :accumulated-output ""
-                 :complete-response ""
-                 :parsed-content-blocks '()
-                 :process process
-                 :text-start-callback text-start-callback
-                 :text-callback text-callback
-                 :complete-callback wrapped-complete-callback
-                 :cancel-callback cancel-callback
-                 :restore-callback restore-callback
-                 :output-buffer output-buffer
-                 :undo-handle undo-handle
-                 :original-quit-binding original-quit-binding)))
-</tool.toolu_01MLWZaJzCAa7P3i2Rn2rwDf>
-
-### git_commit_message
-
-<tool.toolu_01MLWZaJzCAa7P3i2Rn2rwDf>
-Update greger-stream-to-buffer-with-tools to accept text-start-callback and text-callback parameters
-</tool.toolu_01MLWZaJzCAa7P3i2Rn2rwDf>
-
-## TOOL RESULT:
-
-ID: toolu_01MLWZaJzCAa7P3i2Rn2rwDf
-
-<tool.toolu_01MLWZaJzCAa7P3i2Rn2rwDf>
-Successfully replaced content in /Users/andreas/projects/aichat3/greger-stream.el. Successfully staged 2 file(s) and committed with message: Update greger-stream-to-buffer-with-tools to accept text-start-callback and text-callback parameters
-</tool.toolu_01MLWZaJzCAa7P3i2Rn2rwDf>
-
-## ASSISTANT:
-
-## 3. Now let's remove insert-position from the greger-stream-state struct:
-
-
-## TOOL USE:
-
-Name: str-replace
-ID: toolu_01VDLucP2HA3ULf6Y5K3mCPA
-
-### file_path
-
-<tool.toolu_01VDLucP2HA3ULf6Y5K3mCPA>
-greger-stream.el
-</tool.toolu_01VDLucP2HA3ULf6Y5K3mCPA>
-
-### original_content
-
-<tool.toolu_01VDLucP2HA3ULf6Y5K3mCPA>
-(cl-defstruct greger-stream-state
-  accumulated-output
-  complete-response
-  parsed-content-blocks
-  process
-  output-buffer
-  insert-position
-  undo-handle
-  original-quit-binding
-  text-start-callback
-  text-callback
-  complete-callback
-  cancel-callback
-  restore-callback)
-</tool.toolu_01VDLucP2HA3ULf6Y5K3mCPA>
-
-### new_content
-
-<tool.toolu_01VDLucP2HA3ULf6Y5K3mCPA>
-(cl-defstruct greger-stream-state
-  accumulated-output
-  complete-response
-  parsed-content-blocks
-  process
-  output-buffer
-  undo-handle
-  original-quit-binding
-  text-start-callback
-  text-callback
-  complete-callback
-  cancel-callback
-  restore-callback)
-</tool.toolu_01VDLucP2HA3ULf6Y5K3mCPA>
-
-### git_commit_message
-
-<tool.toolu_01VDLucP2HA3ULf6Y5K3mCPA>
-Remove insert-position from greger-stream-state
-</tool.toolu_01VDLucP2HA3ULf6Y5K3mCPA>
-
-## TOOL RESULT:
-
-ID: toolu_01VDLucP2HA3ULf6Y5K3mCPA
-
-<tool.toolu_01VDLucP2HA3ULf6Y5K3mCPA>
-Successfully replaced content in /Users/andreas/projects/aichat3/greger-stream.el. Successfully staged 2 file(s) and committed with message: Remove insert-position from greger-stream-state
-</tool.toolu_01VDLucP2HA3ULf6Y5K3mCPA>
-
-## ASSISTANT:
-
-## 4. Now let's remove the greger-stream--insert function since it won't be needed anymore:
-
-
-## TOOL USE:
-
-Name: str-replace
-ID: toolu_016EzkDFjkWi6hVHcC3ocixt
-
-### file_path
-
-<tool.toolu_016EzkDFjkWi6hVHcC3ocixt>
-greger-stream.el
-</tool.toolu_016EzkDFjkWi6hVHcC3ocixt>
-
-### original_content
-
-<tool.toolu_016EzkDFjkWi6hVHcC3ocixt>
-(defun greger-stream--insert (state text)
-  (with-current-buffer (greger-stream-state-output-buffer state)
-    (goto-char (greger-stream-state-insert-position state))
-    (insert text)
-    (setf (greger-stream-state-insert-position state) (point))))
-</tool.toolu_016EzkDFjkWi6hVHcC3ocixt>
-
-### new_content
-
-<tool.toolu_016EzkDFjkWi6hVHcC3ocixt>
-
-</tool.toolu_016EzkDFjkWi6hVHcC3ocixt>
-
-### git_commit_message
-
-<tool.toolu_016EzkDFjkWi6hVHcC3ocixt>
-Remove greger-stream--insert function
-</tool.toolu_016EzkDFjkWi6hVHcC3ocixt>
-
-## TOOL RESULT:
-
-ID: toolu_016EzkDFjkWi6hVHcC3ocixt
-
-<tool.toolu_016EzkDFjkWi6hVHcC3ocixt>
-Successfully replaced content in /Users/andreas/projects/aichat3/greger-stream.el. Successfully staged 2 file(s) and committed with message: Remove greger-stream--insert function
-</tool.toolu_016EzkDFjkWi6hVHcC3ocixt>
-
-## ASSISTANT:
-
-## 5. Now let's update the text start callback handling in greger-stream.el to use the callback passed in:
-
-## TOOL USE:
-
-Name: str-replace
-ID: toolu_01K5V78ovqXjhRqrWhMroSoE
-
-### file_path
-
-<tool.toolu_01K5V78ovqXjhRqrWhMroSoE>
-greger-stream.el
-</tool.toolu_01K5V78ovqXjhRqrWhMroSoE>
-
-### original_content
-
-<tool.toolu_01K5V78ovqXjhRqrWhMroSoE>
-         (when (string= (alist-get 'type content-block) "text")
-           (funcall (greger-stream-state-text-start-callback state) state))
-</tool.toolu_01K5V78ovqXjhRqrWhMroSoE>
-
-### new_content
-
-<tool.toolu_01K5V78ovqXjhRqrWhMroSoE>
-         (when (and (string= (alist-get 'type content-block) "text")
-                    (greger-stream-state-text-start-callback state))
-           (funcall (greger-stream-state-text-start-callback state) state))
-</tool.toolu_01K5V78ovqXjhRqrWhMroSoE>
-
-### git_commit_message
-
-<tool.toolu_01K5V78ovqXjhRqrWhMroSoE>
-Add null check for text-start-callback in greger-stream.el
-</tool.toolu_01K5V78ovqXjhRqrWhMroSoE>
-
-## TOOL RESULT:
-
-ID: toolu_01K5V78ovqXjhRqrWhMroSoE
-
-<tool.toolu_01K5V78ovqXjhRqrWhMroSoE>
-Error executing tool: Original content not found in file: /Users/andreas/projects/aichat3/greger-stream.el -- Try again!
-</tool.toolu_01K5V78ovqXjhRqrWhMroSoE>
-
-## ASSISTANT:
-
-Let me check the current structure of that part of the file:
-
-## TOOL USE:
-
-Name: read-file
-ID: toolu_015ahKaRaNe91nxUAEesTCni
-
-### path
-
-<tool.toolu_015ahKaRaNe91nxUAEesTCni>
-greger-stream.el
-</tool.toolu_015ahKaRaNe91nxUAEesTCni>
-
-### start_line
-
-<tool.toolu_015ahKaRaNe91nxUAEesTCni>
-180
-</tool.toolu_015ahKaRaNe91nxUAEesTCni>
-
-### end_line
-
-<tool.toolu_015ahKaRaNe91nxUAEesTCni>
-200
-</tool.toolu_015ahKaRaNe91nxUAEesTCni>
-
-### include_line_numbers
-
-<tool.toolu_015ahKaRaNe91nxUAEesTCni>
-true
-</tool.toolu_015ahKaRaNe91nxUAEesTCni>
-
-## TOOL RESULT:
-
-ID: toolu_015ahKaRaNe91nxUAEesTCni
-
-<tool.toolu_015ahKaRaNe91nxUAEesTCni>
-180:   (let* ((data (json-read-from-string data-json))
-181:          (type (alist-get 'type data)))
-182:     (cond
-183:      ;; Content block start - create new content block
-184:      ((string= type "content_block_start")
-185:       (let* ((index (alist-get 'index data))
-186:              (content-block (copy-alist (alist-get 'content_block data)))
-187:              (blocks (greger-stream-state-parsed-content-blocks state)))
-188:
-189:         ;; Initialize content for accumulation
-190:         ;; TODO: is this necessary?
-191:         (cond
-192:          ((string= (alist-get 'type content-block) "tool_use")
-193:           (setf (alist-get 'input content-block) ""))
-194:          ((string= (alist-get 'type content-block) "text")
-195:           (setf (alist-get 'text content-block) "")))
-196:
-197:         (when (string= (alist-get 'type content-block) "text")
-198:           (funcall (greger-stream-state-text-start-callback state) state))
-199:
-200:         ;; Add block at the right index
-</tool.toolu_015ahKaRaNe91nxUAEesTCni>
-
-
-## TOOL USE:
-
-Name: str-replace
-ID: toolu_01BQtMVndM7H9BaBE2ikVV7F
-
-### file_path
-
-<tool.toolu_01BQtMVndM7H9BaBE2ikVV7F>
-greger-stream.el
-</tool.toolu_01BQtMVndM7H9BaBE2ikVV7F>
-
-### original_content
-
-<tool.toolu_01BQtMVndM7H9BaBE2ikVV7F>
-        (when (string= (alist-get 'type content-block) "text")
-          (funcall (greger-stream-state-text-start-callback state) state))
-</tool.toolu_01BQtMVndM7H9BaBE2ikVV7F>
-
-### new_content
-
-<tool.toolu_01BQtMVndM7H9BaBE2ikVV7F>
-        (when (and (string= (alist-get 'type content-block) "text")
-                   (greger-stream-state-text-start-callback state))
-          (funcall (greger-stream-state-text-start-callback state) state))
-</tool.toolu_01BQtMVndM7H9BaBE2ikVV7F>
-
-### git_commit_message
-
-<tool.toolu_01BQtMVndM7H9BaBE2ikVV7F>
-Add null check for text-start-callback in greger-stream.el
-</tool.toolu_01BQtMVndM7H9BaBE2ikVV7F>
-
-## TOOL RESULT:
-
-ID: toolu_01BQtMVndM7H9BaBE2ikVV7F
-
-<tool.toolu_01BQtMVndM7H9BaBE2ikVV7F>
-Successfully replaced content in /Users/andreas/projects/aichat3/greger-stream.el. Successfully staged 2 file(s) and committed with message: Add null check for text-start-callback in greger-stream.el
-</tool.toolu_01BQtMVndM7H9BaBE2ikVV7F>
-
-## ASSISTANT:
-
-## 6. Now let's update the text callback handling:
-
-## TOOL USE:
-
-Name: read-file
-ID: toolu_01A5H1ADz7EyJeEcUW68AEFp
-
-### path
-
-<tool.toolu_01A5H1ADz7EyJeEcUW68AEFp>
-greger-stream.el
-</tool.toolu_01A5H1ADz7EyJeEcUW68AEFp>
-
-### start_line
-
-<tool.toolu_01A5H1ADz7EyJeEcUW68AEFp>
-208
-</tool.toolu_01A5H1ADz7EyJeEcUW68AEFp>
-
-### end_line
-
-<tool.toolu_01A5H1ADz7EyJeEcUW68AEFp>
-220
-</tool.toolu_01A5H1ADz7EyJeEcUW68AEFp>
-
-### include_line_numbers
-
-<tool.toolu_01A5H1ADz7EyJeEcUW68AEFp>
-true
-</tool.toolu_01A5H1ADz7EyJeEcUW68AEFp>
-
-## TOOL RESULT:
-
-ID: toolu_01A5H1ADz7EyJeEcUW68AEFp
-
-<tool.toolu_01A5H1ADz7EyJeEcUW68AEFp>
-208:              (delta-type (alist-get 'type delta))
-209:              (blocks (greger-stream-state-parsed-content-blocks state)))
-210:
-211:         (when (< index (length blocks))
-212:           (let ((block (nth index blocks)))
-213:             (cond
-214:              ;; Text delta
-215:              ((string= delta-type "text_delta")
-216:               (let ((text (alist-get 'text delta)))
-217:                 (setf (alist-get 'text block)
-218:                       (concat (alist-get 'text block) text))
-219:                 ;; Call text callback for live display
-220:                 (when (greger-stream-state-text-callback state)
-</tool.toolu_01A5H1ADz7EyJeEcUW68AEFp>
-
-## TOOL USE:
-
-Name: read-file
-ID: toolu_01KTVAci6TT9TMiXdatsCmRB
-
-### path
-
-<tool.toolu_01KTVAci6TT9TMiXdatsCmRB>
-greger-stream.el
-</tool.toolu_01KTVAci6TT9TMiXdatsCmRB>
-
-### start_line
-
-<tool.toolu_01KTVAci6TT9TMiXdatsCmRB>
-218
-</tool.toolu_01KTVAci6TT9TMiXdatsCmRB>
-
-### end_line
-
-<tool.toolu_01KTVAci6TT9TMiXdatsCmRB>
-225
-</tool.toolu_01KTVAci6TT9TMiXdatsCmRB>
-
-### include_line_numbers
-
-<tool.toolu_01KTVAci6TT9TMiXdatsCmRB>
-true
-</tool.toolu_01KTVAci6TT9TMiXdatsCmRB>
-
-## TOOL RESULT:
-
-ID: toolu_01KTVAci6TT9TMiXdatsCmRB
-
-<tool.toolu_01KTVAci6TT9TMiXdatsCmRB>
-218:                       (concat (alist-get 'text block) text))
-219:                 ;; Call text callback for live display
-220:                 (when (greger-stream-state-text-callback state)
-221:                   (funcall (greger-stream-state-text-callback state) state text))))
-222:
-223:              ;; Tool input delta
-224:              ((string= delta-type "input_json_delta")
-225:               (let ((partial-json (alist-get 'partial_json delta)))
-</tool.toolu_01KTVAci6TT9TMiXdatsCmRB>
-
-## ASSISTANT:
-
-Good, that part is already correct.
-
-## 7. Now let's update greger-agent.el to handle the text insertion and provide the callbacks:
-
-## TOOL USE:
-
-Name: str-replace
-ID: toolu_01QmceWbdFF9YAKcH9iiVcgc
-
-### file_path
-
-<tool.toolu_01QmceWbdFF9YAKcH9iiVcgc>
-greger-agent.el
-</tool.toolu_01QmceWbdFF9YAKcH9iiVcgc>
-
-### original_content
-
-<tool.toolu_01QmceWbdFF9YAKcH9iiVcgc>
-      ;; Get Claude's response
-      (greger-agent--debug "CALLING greger-stream-to-buffer-with-tools...")
-      (greger-stream-to-buffer-with-tools
-       :model greger-model
-       :dialog current-dialog
-       :tools tools
-       :buffer chat-buffer
-       :complete-callback (lambda (content-blocks)
-                            (greger-agent--debug "RECEIVED PARSED CONTENT BLOCKS")
-                            (greger-agent--handle-parsed-response content-blocks agent-state)))))))
-</tool.toolu_01QmceWbdFF9YAKcH9iiVcgc>
-
-### new_content
-
-<tool.toolu_01QmceWbdFF9YAKcH9iiVcgc>
-      ;; Get Claude's response
-      (greger-agent--debug "CALLING greger-stream-to-buffer-with-tools...")
-      (greger-stream-to-buffer-with-tools
-       :model greger-model
-       :dialog current-dialog
-       :tools tools
-       :buffer chat-buffer
-       :text-start-callback (lambda (state)
-                              (with-current-buffer (greger-agent-state-chat-buffer agent-state)
-                                (goto-char (point-max))
-                                (insert (concat "\n\n" greger-assistant-tag "\n\n"))))
-       :text-callback (lambda (state text)
-                        (with-current-buffer (greger-agent-state-chat-buffer agent-state)
-                          (goto-char (point-max))
-                          (insert text)))
-       :complete-callback (lambda (content-blocks)
-                            (greger-agent--debug "RECEIVED PARSED CONTENT BLOCKS")
-                            (greger-agent--handle-parsed-response content-blocks agent-state)))))))
-</tool.toolu_01QmceWbdFF9YAKcH9iiVcgc>
-
-### git_commit_message
-
-<tool.toolu_01QmceWbdFF9YAKcH9iiVcgc>
-Add text-start-callback and text-callback to greger-agent.el for handling text insertion
-</tool.toolu_01QmceWbdFF9YAKcH9iiVcgc>
-
-## TOOL RESULT:
-
-ID: toolu_01QmceWbdFF9YAKcH9iiVcgc
-
-<tool.toolu_01QmceWbdFF9YAKcH9iiVcgc>
-Error executing tool: Original content not found in file: /Users/andreas/projects/aichat3/greger-agent.el -- Try again!
-</tool.toolu_01QmceWbdFF9YAKcH9iiVcgc>
-
-## ASSISTANT:
-
-Let me check the current content:
-
-## TOOL USE:
-
-Name: read-file
-ID: toolu_01WpRg6aVoFxBx8uWszyu6PE
-
-### path
-
-<tool.toolu_01WpRg6aVoFxBx8uWszyu6PE>
-greger-agent.el
-</tool.toolu_01WpRg6aVoFxBx8uWszyu6PE>
-
-### start_line
-
-<tool.toolu_01WpRg6aVoFxBx8uWszyu6PE>
-88
-</tool.toolu_01WpRg6aVoFxBx8uWszyu6PE>
-
-### end_line
-
-<tool.toolu_01WpRg6aVoFxBx8uWszyu6PE>
-102
-</tool.toolu_01WpRg6aVoFxBx8uWszyu6PE>
-
-### include_line_numbers
-
-<tool.toolu_01WpRg6aVoFxBx8uWszyu6PE>
-true
-</tool.toolu_01WpRg6aVoFxBx8uWszyu6PE>
-
-## TOOL RESULT:
-
-ID: toolu_01WpRg6aVoFxBx8uWszyu6PE
-
-<tool.toolu_01WpRg6aVoFxBx8uWszyu6PE>
- 88:           (greger-agent--finish-response agent-state))
- 89:
- 90:       ;; Get Claude's response
- 91:       (greger-agent--debug "CALLING greger-stream-to-buffer-with-tools...")
- 92:       (greger-stream-to-buffer-with-tools
- 93:        :model greger-model
- 94:        :dialog current-dialog
- 95:        :tools tools
- 96:        :buffer chat-buffer
- 97:        :complete-callback (lambda (content-blocks)
- 98:                             (greger-agent--debug "RECEIVED PARSED CONTENT BLOCKS")
- 99:                             (greger-agent--handle-parsed-response content-blocks agent-state))))))
-100:
-101: (defun greger-agent--handle-parsed-response (content-blocks agent-state)
-102:   "Handle the parsed CONTENT-BLOCKS from Claude using AGENT-STATE."
-</tool.toolu_01WpRg6aVoFxBx8uWszyu6PE>
-
-## TOOL USE:
-
-Name: str-replace
-ID: toolu_01XMiy1iNKiVpyrNFbnhM1if
-
-### file_path
-
-<tool.toolu_01XMiy1iNKiVpyrNFbnhM1if>
-greger-agent.el
-</tool.toolu_01XMiy1iNKiVpyrNFbnhM1if>
-
-### original_content
-
-<tool.toolu_01XMiy1iNKiVpyrNFbnhM1if>
-      ;; Get Claude's response
-      (greger-agent--debug "CALLING greger-stream-to-buffer-with-tools...")
-      (greger-stream-to-buffer-with-tools
-       :model greger-model
-       :dialog current-dialog
-       :tools tools
-       :buffer chat-buffer
-       :complete-callback (lambda (content-blocks)
-                            (greger-agent--debug "RECEIVED PARSED CONTENT BLOCKS")
-                            (greger-agent--handle-parsed-response content-blocks agent-state)))))))
-</tool.toolu_01XMiy1iNKiVpyrNFbnhM1if>
-
-### new_content
-
-<tool.toolu_01XMiy1iNKiVpyrNFbnhM1if>
-      ;; Get Claude's response
-      (greger-agent--debug "CALLING greger-stream-to-buffer-with-tools...")
-      (greger-stream-to-buffer-with-tools
-       :model greger-model
-       :dialog current-dialog
-       :tools tools
-       :buffer chat-buffer
-       :text-start-callback (lambda (state)
-                              (with-current-buffer (greger-agent-state-chat-buffer agent-state)
-                                (goto-char (point-max))
-                                (insert (concat "\n\n" greger-assistant-tag "\n\n"))))
-       :text-callback (lambda (state text)
-                        (with-current-buffer (greger-agent-state-chat-buffer agent-state)
-                          (goto-char (point-max))
-                          (insert text)))
-       :complete-callback (lambda (content-blocks)
-                            (greger-agent--debug "RECEIVED PARSED CONTENT BLOCKS")
-                            (greger-agent--handle-parsed-response content-blocks agent-state)))))))
-</tool.toolu_01XMiy1iNKiVpyrNFbnhM1if>
-
-### git_commit_message
-
-<tool.toolu_01XMiy1iNKiVpyrNFbnhM1if>
-Add text-start-callback and text-callback to greger-agent.el for handling text insertion
-</tool.toolu_01XMiy1iNKiVpyrNFbnhM1if>
-
-## TOOL RESULT:
-
-ID: toolu_01XMiy1iNKiVpyrNFbnhM1if
-
-<tool.toolu_01XMiy1iNKiVpyrNFbnhM1if>
-Error executing tool: Original content not found in file: /Users/andreas/projects/aichat3/greger-agent.el -- Try again!
-</tool.toolu_01XMiy1iNKiVpyrNFbnhM1if>
-
-## ASSISTANT:
-
-Let me look at more context:
-
-## TOOL USE:
-
-Name: read-file
-ID: toolu_01VQGD49yA7Acv2maWZaFr24
-
-### path
-
-<tool.toolu_01VQGD49yA7Acv2maWZaFr24>
-greger-agent.el
-</tool.toolu_01VQGD49yA7Acv2maWZaFr24>
-
-### start_line
-
-<tool.toolu_01VQGD49yA7Acv2maWZaFr24>
-85
-</tool.toolu_01VQGD49yA7Acv2maWZaFr24>
-
-### end_line
-
-<tool.toolu_01VQGD49yA7Acv2maWZaFr24>
-105
-</tool.toolu_01VQGD49yA7Acv2maWZaFr24>
-
-### include_line_numbers
-
-<tool.toolu_01VQGD49yA7Acv2maWZaFr24>
-true
-</tool.toolu_01VQGD49yA7Acv2maWZaFr24>
-
-## TOOL RESULT:
-
-ID: toolu_01VQGD49yA7Acv2maWZaFr24
-
-<tool.toolu_01VQGD49yA7Acv2maWZaFr24>
- 85:             (goto-char (point-max))
- 86:             (insert (format "\n\nMaximum iterations (%d) reached. Stopping agent execution.\n\n"
- 87:                            greger-agent-max-iterations)))
- 88:           (greger-agent--finish-response agent-state))
- 89:
- 90:       ;; Get Claude's response
- 91:       (greger-agent--debug "CALLING greger-stream-to-buffer-with-tools...")
- 92:       (greger-stream-to-buffer-with-tools
- 93:        :model greger-model
- 94:        :dialog current-dialog
- 95:        :tools tools
- 96:        :buffer chat-buffer
- 97:        :complete-callback (lambda (content-blocks)
- 98:                             (greger-agent--debug "RECEIVED PARSED CONTENT BLOCKS")
- 99:                             (greger-agent--handle-parsed-response content-blocks agent-state))))))
-100:
-101: (defun greger-agent--handle-parsed-response (content-blocks agent-state)
-102:   "Handle the parsed CONTENT-BLOCKS from Claude using AGENT-STATE."
-103:   (greger-agent--debug "CONTENT BLOCKS: %s" content-blocks)
-104:
-105:   ;; Check if we have tool calls
-</tool.toolu_01VQGD49yA7Acv2maWZaFr24>
-
-## TOOL USE:
-
-Name: str-replace
-ID: toolu_01DWA7yWkETpdsKTUDsjYWDj
-
-### file_path
-
-<tool.toolu_01DWA7yWkETpdsKTUDsjYWDj>
-greger-agent.el
-</tool.toolu_01DWA7yWkETpdsKTUDsjYWDj>
-
-### original_content
-
-<tool.toolu_01DWA7yWkETpdsKTUDsjYWDj>
-      ;; Get Claude's response
-      (greger-agent--debug "CALLING greger-stream-to-buffer-with-tools...")
-      (greger-stream-to-buffer-with-tools
-       :model greger-model
-       :dialog current-dialog
-       :tools tools
-       :buffer chat-buffer
-       :complete-callback (lambda (content-blocks)
-                            (greger-agent--debug "RECEIVED PARSED CONTENT BLOCKS")
-                            (greger-agent--handle-parsed-response content-blocks agent-state)))))))
-</tool.toolu_01DWA7yWkETpdsKTUDsjYWDj>
-
-### new_content
-
-<tool.toolu_01DWA7yWkETpdsKTUDsjYWDj>
-      ;; Get Claude's response
-      (greger-agent--debug "CALLING greger-stream-to-buffer-with-tools...")
-      (greger-stream-to-buffer-with-tools
-       :model greger-model
-       :dialog current-dialog
-       :tools tools
-       :buffer chat-buffer
-       :text-start-callback (lambda (state)
-                              (with-current-buffer (greger-agent-state-chat-buffer agent-state)
-                                (goto-char (point-max))
-                                (insert (concat "\n\n" greger-assistant-tag "\n\n"))))
-       :text-callback (lambda (state text)
-                        (with-current-buffer (greger-agent-state-chat-buffer agent-state)
-                          (goto-char (point-max))
-                          (insert text)))
-       :complete-callback (lambda (content-blocks)
-                            (greger-agent--debug "RECEIVED PARSED CONTENT BLOCKS")
-                            (greger-agent--handle-parsed-response content-blocks agent-state)))))))
-</tool.toolu_01DWA7yWkETpdsKTUDsjYWDj>
-
-### git_commit_message
-
-<tool.toolu_01DWA7yWkETpdsKTUDsjYWDj>
-Add text-start-callback and text-callback to greger-agent.el for handling text insertion
-</tool.toolu_01DWA7yWkETpdsKTUDsjYWDj>
-
-## TOOL RESULT:
-
-ID: toolu_01DWA7yWkETpdsKTUDsjYWDj
-
-<tool.toolu_01DWA7yWkETpdsKTUDsjYWDj>
-Error executing tool: Original content not found in file: /Users/andreas/projects/aichat3/greger-agent.el -- Try again!
-</tool.toolu_01DWA7yWkETpdsKTUDsjYWDj>
-
-## ASSISTANT:
-
-Let me try a different approach and get the exact content with whitespace:
-
-## TOOL USE:
-
-Name: str-replace
-ID: toolu_01LZdYUPZYPRawCskcjDpdpD
-
-### file_path
-
-<tool.toolu_01LZdYUPZYPRawCskcjDpdpD>
-greger-agent.el
-</tool.toolu_01LZdYUPZYPRawCskcjDpdpD>
-
-### original_content
-
-<tool.toolu_01LZdYUPZYPRawCskcjDpdpD>
-      (greger-stream-to-buffer-with-tools
-       :model greger-model
-       :dialog current-dialog
-       :tools tools
-       :buffer chat-buffer
-       :complete-callback (lambda (content-blocks)
-                            (greger-agent--debug "RECEIVED PARSED CONTENT BLOCKS")
-                            (greger-agent--handle-parsed-response content-blocks agent-state)))))))
-</tool.toolu_01LZdYUPZYPRawCskcjDpdpD>
-
-### new_content
-
-<tool.toolu_01LZdYUPZYPRawCskcjDpdpD>
-      (greger-stream-to-buffer-with-tools
-       :model greger-model
-       :dialog current-dialog
-       :tools tools
-       :buffer chat-buffer
-       :text-start-callback (lambda (state)
-                              (with-current-buffer (greger-agent-state-chat-buffer agent-state)
-                                (goto-char (point-max))
-                                (insert (concat "\n\n" greger-assistant-tag "\n\n"))))
-       :text-callback (lambda (state text)
-                        (with-current-buffer (greger-agent-state-chat-buffer agent-state)
-                          (goto-char (point-max))
-                          (insert text)))
-       :complete-callback (lambda (content-blocks)
-                            (greger-agent--debug "RECEIVED PARSED CONTENT BLOCKS")
-                            (greger-agent--handle-parsed-response content-blocks agent-state)))))))
-</tool.toolu_01LZdYUPZYPRawCskcjDpdpD>
-
-### git_commit_message
-
-<tool.toolu_01LZdYUPZYPRawCskcjDpdpD>
-Add text-start-callback and text-callback to greger-agent.el for handling text insertion
-</tool.toolu_01LZdYUPZYPRawCskcjDpdpD>
-
-## TOOL RESULT:
-
-ID: toolu_01LZdYUPZYPRawCskcjDpdpD
-
-<tool.toolu_01LZdYUPZYPRawCskcjDpdpD>
-Error executing tool: Original content not found in file: /Users/andreas/projects/aichat3/greger-agent.el -- Try again!
-</tool.toolu_01LZdYUPZYPRawCskcjDpdpD>
-
-## ASSISTANT:
-
-Let me get the exact text around that area:
-
-## TOOL USE:
-
-Name: read-file
-ID: toolu_01TzzcKeGK9jGp9P9NhEwNDi
-
-### path
-
-<tool.toolu_01TzzcKeGK9jGp9P9NhEwNDi>
-greger-agent.el
-</tool.toolu_01TzzcKeGK9jGp9P9NhEwNDi>
-
-### start_line
-
-<tool.toolu_01TzzcKeGK9jGp9P9NhEwNDi>
-90
-</tool.toolu_01TzzcKeGK9jGp9P9NhEwNDi>
-
-### end_line
-
-<tool.toolu_01TzzcKeGK9jGp9P9NhEwNDi>
-100
-</tool.toolu_01TzzcKeGK9jGp9P9NhEwNDi>
-
-## TOOL RESULT:
-
-ID: toolu_01TzzcKeGK9jGp9P9NhEwNDi
-
-<tool.toolu_01TzzcKeGK9jGp9P9NhEwNDi>
-      ;; Get Claude's response
-      (greger-agent--debug "CALLING greger-stream-to-buffer-with-tools...")
-      (greger-stream-to-buffer-with-tools
-       :model greger-model
-       :dialog current-dialog
-       :tools tools
-       :buffer chat-buffer
-       :complete-callback (lambda (content-blocks)
-                            (greger-agent--debug "RECEIVED PARSED CONTENT BLOCKS")
-                            (greger-agent--handle-parsed-response content-blocks agent-state))))))
-
-</tool.toolu_01TzzcKeGK9jGp9P9NhEwNDi>
-
-## TOOL USE:
-
-Name: str-replace
-ID: toolu_01YAB6V2vorNtxBQqfBpUQkL
-
-### file_path
-
-<tool.toolu_01YAB6V2vorNtxBQqfBpUQkL>
-greger-agent.el
-</tool.toolu_01YAB6V2vorNtxBQqfBpUQkL>
-
-### original_content
-
-<tool.toolu_01YAB6V2vorNtxBQqfBpUQkL>
-      (greger-stream-to-buffer-with-tools
-       :model greger-model
-       :dialog current-dialog
-       :tools tools
-       :buffer chat-buffer
-       :complete-callback (lambda (content-blocks)
-                            (greger-agent--debug "RECEIVED PARSED CONTENT BLOCKS")
-                            (greger-agent--handle-parsed-response content-blocks agent-state)))))))
-</tool.toolu_01YAB6V2vorNtxBQqfBpUQkL>
-
-### new_content
-
-<tool.toolu_01YAB6V2vorNtxBQqfBpUQkL>
-      (greger-stream-to-buffer-with-tools
-       :model greger-model
-       :dialog current-dialog
-       :tools tools
-       :buffer chat-buffer
-       :text-start-callback (lambda (state)
-                              (with-current-buffer (greger-agent-state-chat-buffer agent-state)
-                                (goto-char (point-max))
-                                (insert (concat "\n\n" greger-assistant-tag "\n\n"))))
-       :text-callback (lambda (state text)
-                        (with-current-buffer (greger-agent-state-chat-buffer agent-state)
-                          (goto-char (point-max))
-                          (insert text)))
-       :complete-callback (lambda (content-blocks)
-                            (greger-agent--debug "RECEIVED PARSED CONTENT BLOCKS")
-                            (greger-agent--handle-parsed-response content-blocks agent-state)))))))
-</tool.toolu_01YAB6V2vorNtxBQqfBpUQkL>
-
-### git_commit_message
-
-<tool.toolu_01YAB6V2vorNtxBQqfBpUQkL>
-Add text-start-callback and text-callback to greger-agent.el for handling text insertion
-</tool.toolu_01YAB6V2vorNtxBQqfBpUQkL>
-
-## TOOL RESULT:
-
-ID: toolu_01YAB6V2vorNtxBQqfBpUQkL
-
-<tool.toolu_01YAB6V2vorNtxBQqfBpUQkL>
-Error executing tool: Original content not found in file: /Users/andreas/projects/aichat3/greger-agent.el -- Try again!
-</tool.toolu_01YAB6V2vorNtxBQqfBpUQkL>
-
-## ASSISTANT:
-
-Let me try using the replace-function tool instead:
-
-
-## TOOL USE:
-
-Name: replace-function
-ID: toolu_01AoD9jmjJnd91pqhP6EaNCL
-
-### file_path
-
-<tool.toolu_01AoD9jmjJnd91pqhP6EaNCL>
-greger-agent.el
-</tool.toolu_01AoD9jmjJnd91pqhP6EaNCL>
-
-### function_name
-
-<tool.toolu_01AoD9jmjJnd91pqhP6EaNCL>
-greger-agent--run-agent-loop
-</tool.toolu_01AoD9jmjJnd91pqhP6EaNCL>
-
-### line_number
-
-<tool.toolu_01AoD9jmjJnd91pqhP6EaNCL>
-68
-</tool.toolu_01AoD9jmjJnd91pqhP6EaNCL>
-
-### contents
-
-<tool.toolu_01AoD9jmjJnd91pqhP6EaNCL>
 (defun greger-agent--run-agent-loop (agent-state)
   "Run the main agent loop with AGENT-STATE."
   (let* ((tools (greger-tools-get-schemas greger-agent-tools))
@@ -2380,10 +1033,9 @@ greger-agent--run-agent-loop
     (if (>= current-iteration greger-agent-max-iterations)
         (progn
           (greger-agent--debug "MAX ITERATIONS REACHED - STOPPING")
-          (with-current-buffer chat-buffer
-            (goto-char (point-max))
-            (insert (format "\n\nMaximum iterations (%d) reached. Stopping agent execution.\n\n"
-                           greger-agent-max-iterations)))
+          (greger-agent--append-text (format "\n\nMaximum iterations (%d) reached. Stopping agent execution.\n\n"
+                                             greger-agent-max-iterations)
+                                     agent-state)
           (greger-agent--finish-response agent-state))
 
       ;; Get Claude's response
@@ -2393,358 +1045,130 @@ greger-agent--run-agent-loop
        :dialog current-dialog
        :tools tools
        :buffer chat-buffer
-       :text-start-callback (lambda (state)
-                              (with-current-buffer (greger-agent-state-chat-buffer agent-state)
-                                (goto-char (point-max))
-                                (insert (concat "\n\n" greger-assistant-tag "\n\n"))))
-       :text-callback (lambda (state text)
-                        (with-current-buffer (greger-agent-state-chat-buffer agent-state)
-                          (goto-char (point-max))
-                          (insert text)))
+       :text-start-callback (lambda ()
+                              (greger-agent--append-text (concat "\n\n" greger-assistant-tag "\n\n") agent-state))
+       :text-callback (lambda (text)
+                        (greger-agent--append-text text agent-state))
        :complete-callback (lambda (content-blocks)
                             (greger-agent--debug "RECEIVED PARSED CONTENT BLOCKS")
                             (greger-agent--handle-parsed-response content-blocks agent-state))))))
-</tool.toolu_01AoD9jmjJnd91pqhP6EaNCL>
 
-### commit_message
+(defun greger-agent--handle-parsed-response (content-blocks agent-state)
+  "Handle the parsed CONTENT-BLOCKS from Claude using AGENT-STATE."
+  (greger-agent--debug "CONTENT BLOCKS: %s" content-blocks)
 
-<tool.toolu_01AoD9jmjJnd91pqhP6EaNCL>
-Add text-start-callback and text-callback to greger-agent.el for handling text insertion
-</tool.toolu_01AoD9jmjJnd91pqhP6EaNCL>
+  ;; Check if we have tool calls
+  (let ((tool-calls (greger-agent--extract-tool-calls content-blocks)))
+    (if tool-calls
+        (progn
+          (greger-agent--debug "TOOL USE DETECTED! Found %d tool calls" (length tool-calls))
+          (setf (greger-agent-state-current-iteration agent-state)
+                (1+ (greger-agent-state-current-iteration agent-state)))
+          (greger-agent--execute-tools tool-calls agent-state))
+      (progn
+        (greger-agent--debug "NO TOOL USE - CONVERSATION COMPLETE")
+        (greger-agent--finish-response agent-state)))))
 
-## TOOL RESULT:
+(defun greger-agent--extract-tool-calls (content-blocks)
+  "Extract tool calls from CONTENT-BLOCKS."
+  (let ((tool-calls '()))
+    (dolist (block content-blocks)
+      (when (string= (alist-get 'type block) "tool_use")
+        (greger-agent--debug "EXTRACTING TOOL CALL: %s with input: %s"
+                            (alist-get 'name block)
+                            (json-encode (alist-get 'input block)))
+        (push block tool-calls)))
+    (reverse tool-calls)))
 
-ID: toolu_01AoD9jmjJnd91pqhP6EaNCL
+(defun greger-agent--execute-tools (tool-calls agent-state)
+  "Execute TOOL-CALLS using AGENT-STATE and continue the conversation."
+  (let ((results '()))
+    (dolist (tool-call tool-calls)
+      (let* ((tool-name (alist-get 'name tool-call))
+             (tool-input (alist-get 'input tool-call))
+             (tool-id (alist-get 'id tool-call)))
 
-<tool.toolu_01AoD9jmjJnd91pqhP6EaNCL>
-Successfully replaced function 'greger-agent--run-agent-loop' in /Users/andreas/projects/aichat3/greger-agent.el. Successfully staged 2 file(s) and committed with message: Add text-start-callback and text-callback to greger-agent.el for handling text insertion
-</tool.toolu_01AoD9jmjJnd91pqhP6EaNCL>
+        (if (greger-agent--request-approval tool-name tool-input)
+            (condition-case err
+                (let* ((default-directory (greger-agent-state-directory agent-state))
+                       (result (greger-tools-execute tool-name tool-input (greger-agent-state-chat-buffer agent-state))))
+                  (push `((type . "tool_result")
+                         (tool_use_id . ,tool-id)
+                         (content . ,result))
+                        results))
+              (error
+               (push `((type . "tool_result")
+                      (tool_use_id . ,tool-id)
+                      (content . ,(format "Error executing tool: %s" (error-message-string err)))
+                      (is_error . t))
+                     results)))
+          (push `((type . "tool_result")
+                 (tool_use_id . ,tool-id)
+                 (content . "Tool execution declined by user")
+                 (is_error . t))
+                results))))
 
-## ASSISTANT:
+    ;; Display tool execution
+    (greger-agent--display-tool-execution tool-calls (reverse results) agent-state)
 
-## 8. Now let's check if there are any other functions that use greger-stream-to-buffer and need to be updated:
+    ;; Continue the loop
+    (greger-agent--run-agent-loop agent-state)))
 
-## TOOL USE:
+(defun greger-agent--append-text (text agent-state)
+  (with-current-buffer (greger-agent-state-chat-buffer agent-state)
+    (goto-char (point-max))
+    (insert text)))
 
-Name: ripgrep
-ID: toolu_01SeGipKTKyyCGRc3Njij3xf
+(defun greger-agent--display-tool-execution (tool-calls results agent-state)
+  "Display the execution of TOOL-CALLS and their RESULTS using AGENT-STATE."
+  (with-current-buffer (greger-agent-state-chat-buffer agent-state)
+    (goto-char (point-max))
 
-### pattern
+    ;; The tool calls are already in the right format, just convert them
+    (let ((tool-blocks-markdown (greger-parser--content-blocks-to-markdown tool-calls)))
+      (unless (string-empty-p tool-blocks-markdown)
+        (insert "\n\n" tool-blocks-markdown)))
 
-<tool.toolu_01SeGipKTKyyCGRc3Njij3xf>
-greger-stream-to-buffer
-</tool.toolu_01SeGipKTKyyCGRc3Njij3xf>
+    ;; Convert tool results to markdown
+    (let ((result-blocks-markdown (greger-parser--content-blocks-to-markdown results)))
+      (unless (string-empty-p result-blocks-markdown)
+        (insert "\n\n" result-blocks-markdown)))))
 
-### file-type
+(defun greger-agent--finish-response (agent-state)
+  "Finish the agent response using AGENT-STATE."
+  (greger-agent--debug "=== FINISHING RESPONSE - CONVERSATION COMPLETE ===")
+  (with-current-buffer (greger-agent-state-chat-buffer agent-state)
+    (goto-char (point-max))
+    (unless (looking-back (concat greger-user-tag "\n\n") nil)
+      (insert "\n\n" greger-user-tag "\n\n")))
+  ;; Reset the state
+  (setf (greger-agent-state-current-iteration agent-state) 0))
 
-<tool.toolu_01SeGipKTKyyCGRc3Njij3xf>
-el
-</tool.toolu_01SeGipKTKyyCGRc3Njij3xf>
+(defun greger-agent--request-approval (tool-name tool-input)
+  "Request approval for TOOL-NAME with TOOL-INPUT."
+  (if greger-agent-auto-approve
+      t
+    (y-or-n-p (format "Execute %s with %s? " tool-name (json-encode tool-input)))))
 
-## TOOL RESULT:
+(defun greger-agent-set-auto-approve (enable)
+  "Set auto-approval of tool calls to ENABLE."
+  (interactive "P")
+  (setq greger-agent-auto-approve (if enable t nil))
+  (message "Auto-approval %s"
+           (if greger-agent-auto-approve "enabled" "disabled")))
 
-ID: toolu_01SeGipKTKyyCGRc3Njij3xf
+(defun greger-agent-toggle-debug ()
+  "Toggle debug output."
+  (interactive)
+  (setq greger-agent-debug (not greger-agent-debug))
+  (message "Agent debug %s" (if greger-agent-debug "enabled" "disabled")))
 
-<tool.toolu_01SeGipKTKyyCGRc3Njij3xf>
-/Users/andreas/projects/aichat3/greger-agent.el:91:      (greger-agent--debug "CALLING greger-stream-to-buffer-with-tools...")
-/Users/andreas/projects/aichat3/greger-agent.el:92:      (greger-stream-to-buffer-with-tools
-/Users/andreas/projects/aichat3/greger-stream.el:31:(cl-defun greger-stream-to-buffer (&key model dialog buffer text-start-callback text-callback complete-callback cancel-callback)
-/Users/andreas/projects/aichat3/greger-stream.el:38:  (greger-stream-to-buffer-with-tools
-/Users/andreas/projects/aichat3/greger-stream.el:48:(cl-defun greger-stream-to-buffer-with-tools (&key model dialog tools buffer text-start-callback text-callback complete-callback cancel-callback)
-/Users/andreas/projects/aichat3/chat.ai:6:* Give greger-stream-to-buffer two new callbacks: text-start-callback and text-callback
-/Users/andreas/projects/aichat3/chat.ai:102: 32: (cl-defun greger-stream-to-buffer-with-tools (&key model dialog tools buffer complete-callback cancel-callback)
-/Users/andreas/projects/aichat3/chat.ai:485: 91:       (greger-agent--debug "CALLING greger-stream-to-buffer-with-tools...")
-/Users/andreas/projects/aichat3/chat.ai:486: 92:       (greger-stream-to-buffer-with-tools
-/Users/andreas/projects/aichat3/chat.ai:620:greger-stream-to-buffer
-/Users/andreas/projects/aichat3/chat.ai:628:/Users/andreas/projects/aichat3/greger-agent.el:91:      (greger-agent--debug "CALLING greger-stream-to-buffer-with-tools...")
-/Users/andreas/projects/aichat3/chat.ai:629:/Users/andreas/projects/aichat3/greger-agent.el:92:      (greger-stream-to-buffer-with-tools
-/Users/andreas/projects/aichat3/chat.ai:630:/Users/andreas/projects/aichat3/greger-stream.el:32:(cl-defun greger-stream-to-buffer-with-tools (&key model dialog tools buffer complete-callback cancel-callback)
-/Users/andreas/projects/aichat3/chat.ai:631:/Users/andreas/projects/aichat3/chat.ai:7:* greger-stream.el: Make greger-stream-to-buffer and greger-stream-to-buffer-with-tools use cl-lib style keyword arguments instead of the long argument lists.
-/Users/andreas/projects/aichat3/chat.ai:632:/Users/andreas/projects/aichat3/chat.ai:8:* Make greger-stream-to-buffer and greger-stream-to-buffer-with-tools take a buffer argument, that is passed as greger-agent--chat-buffer
-/Users/andreas/projects/aichat3/chat.ai:633:/Users/andreas/projects/aichat3/chat.ai:67: 31: (defun greger-stream-to-buffer (model dialog complete-callback &optional cancel-callback)
-/Users/andreas/projects/aichat3/chat.ai:634:/Users/andreas/projects/aichat3/chat.ai:71: 35:   (greger-stream-to-buffer-with-tools model dialog nil complete-callback cancel-callback))
-/Users/andreas/projects/aichat3/chat.ai:635:/Users/andreas/projects/aichat3/chat.ai:73: 37: (defun greger-stream-to-buffer-with-tools (model dialog tools complete-callback &optional cancel-callback)
-/Users/andreas/projects/aichat3/chat.ai:636:/Users/andreas/projects/aichat3/chat.ai:591:greger-stream-to-buffer.*greger-stream-to-buffer-with-tools
-/Users/andreas/projects/aichat3/chat.ai:637:/Users/andreas/projects/aichat3/chat.ai:616:greger-stream-to-buffer
-/Users/andreas/projects/aichat3/chat.ai:638:/Users/andreas/projects/aichat3/chat.ai:630:/Users/andreas/projects/aichat3/greger-agent.el:79:      (greger-agent--debug "CALLING greger-stream-to-buffer-with-tools...")
-/Users/andreas/projects/aichat3/chat.ai:639:/Users/andreas/projects/aichat3/chat.ai:631:/Users/andreas/projects/aichat3/greger-agent.el:80:      (greger-stream-to-buffer-with-tools
-/Users/andreas/projects/aichat3/chat.ai:640:/Users/andreas/projects/aichat3/chat.ai:632:/Users/andreas/projects/aichat3/greger.el:257:  (greger-stream-to-buffer greger-model dialog complete-callback cancel-callback))
-/Users/andreas/projects/aichat3/chat.ai:641:/Users/andreas/projects/aichat3/chat.ai:633:/Users/andreas/projects/aichat3/greger-stream.el:31:(defun greger-stream-to-buffer (model dialog complete-callback &optional cancel-callback)
-/Users/andreas/projects/aichat3/chat.ai:642:/Users/andreas/projects/aichat3/chat.ai:634:/Users/andreas/projects/aichat3/greger-stream.el:35:  (greger-stream-to-buffer-with-tools model dialog nil complete-callback cancel-callback))
-/Users/andreas/projects/aichat3/chat.ai:643:/Users/andreas/projects/aichat3/chat.ai:635:/Users/andreas/projects/aichat3/greger-stream.el:37:(defun greger-stream-to-buffer-with-tools (model dialog tools complete-callback &optional cancel-callback)
-/Users/andreas/projects/aichat3/chat.ai:644:/Users/andreas/projects/aichat3/chat.ai:675:      (greger-agent--debug "CALLING greger-stream-to-buffer-with-tools...")
-/Users/andreas/projects/aichat3/chat.ai:645:/Users/andreas/projects/aichat3/chat.ai:676:      (greger-stream-to-buffer-with-tools
-/Users/andreas/projects/aichat3/chat.ai:646:/Users/andreas/projects/aichat3/chat.ai:724:  (greger-stream-to-buffer greger-model dialog complete-callback cancel-callback))
-/Users/andreas/projects/aichat3/chat.ai:647:/Users/andreas/projects/aichat3/chat.ai:787:2. Now, I'll modify the greger-stream.el file to use cl-lib style keyword arguments. Let me start with the `greger-stream-to-buffer` function:
-/Users/andreas/projects/aichat3/chat.ai:648:/Users/andreas/projects/aichat3/chat.ai:804:(defun greger-stream-to-buffer (model dialog complete-callback &optional cancel-callback)
-/Users/andreas/projects/aichat3/chat.ai:649:/Users/andreas/projects/aichat3/chat.ai:808:  (greger-stream-to-buffer-with-tools model dialog nil complete-callback cancel-callback))
-/Users/andreas/projects/aichat3/chat.ai:650:/Users/andreas/projects/aichat3/chat.ai:814:(cl-defun greger-stream-to-buffer (&key model dialog buffer complete-callback cancel-callback)
-/Users/andreas/projects/aichat3/chat.ai:651:/Users/andreas/projects/aichat3/chat.ai:819:  (greger-stream-to-buffer-with-tools
-/Users/andreas/projects/aichat3/chat.ai:652:/Users/andreas/projects/aichat3/chat.ai:831:Convert greger-stream-to-buffer to use cl-lib keyword arguments and add buffer parameter
-/Users/andreas/projects/aichat3/chat.ai:653:/Users/andreas/projects/aichat3/chat.ai:839:Successfully replaced content in /Users/andreas/projects/aichat3/greger-stream.el. Successfully staged 2 file(s) and committed with message: Convert greger-stream-to-buffer to use cl-lib keyword arguments and add buffer parameter
-/Users/andreas/projects/aichat3/chat.ai:654:/Users/andreas/projects/aichat3/chat.ai:844:3. Now, I'll modify the `greger-stream-to-buffer-with-tools` function:
-/Users/andreas/projects/aichat3/chat.ai:655:/Users/andreas/projects/aichat3/chat.ai:861:(defun greger-stream-to-buffer-with-tools (model dialog tools complete-callback &optional cancel-callback)
-/Users/andreas/projects/aichat3/chat.ai:656:/Users/andreas/projects/aichat3/chat.ai:871:(cl-defun greger-stream-to-buffer-with-tools (&key model dialog tools buffer complete-callback cancel-callback)
-/Users/andreas/projects/aichat3/chat.ai:657:/Users/andreas/projects/aichat3/chat.ai:882:Convert greger-stream-to-buffer-with-tools to use cl-lib keyword arguments and add buffer parameter
-/Users/andreas/projects/aichat3/chat.ai:658:/Users/andreas/projects/aichat3/chat.ai:890:Successfully replaced content in /Users/andreas/projects/aichat3/greger-stream.el. Successfully staged 2 file(s) and committed with message: Convert greger-stream-to-buffer-with-tools to use cl-lib keyword arguments and add buffer parameter
-/Users/andreas/projects/aichat3/chat.ai:659:/Users/andreas/projects/aichat3/chat.ai:912:      (greger-agent--debug "CALLING greger-stream-to-buffer-with-tools...")
-/Users/andreas/projects/aichat3/chat.ai:660:/Users/andreas/projects/aichat3/chat.ai:913:      (greger-stream-to-buffer-with-tools
-/Users/andreas/projects/aichat3/chat.ai:661:/Users/andreas/projects/aichat3/chat.ai:924:      (greger-agent--debug "CALLING greger-stream-to-buffer-with-tools...")
-/Users/andreas/projects/aichat3/chat.ai:662:/Users/andreas/projects/aichat3/chat.ai:925:      (greger-stream-to-buffer-with-tools
-/Users/andreas/projects/aichat3/chat.ai:663:/Users/andreas/projects/aichat3/chat.ai:1006:CALLING greger-stream-to-buffer-with-tools
-/Users/andreas/projects/aichat3/chat.ai:664:/Users/andreas/projects/aichat3/chat.ai:1020:/Users/andreas/projects/aichat3/greger-agent.el:88:      (greger-agent--debug "CALLING greger-stream-to-buffer-with-tools...")
-/Users/andreas/projects/aichat3/chat.ai:665:/Users/andreas/projects/aichat3/chat.ai:1021:/Users/andreas/projects/aichat3/chat.ai:630:/Users/andreas/projects/aichat3/greger-agent.el:79:      (greger-agent--debug "CALLING greger-stream-to-buffer-with-tools...")
-/Users/andreas/projects/aichat3/chat.ai:666:/Users/andreas/projects/aichat3/chat.ai:1022:/Users/andreas/projects/aichat3/chat.ai:675:      (greger-agent--debug "CALLING greger-stream-to-buffer-with-tools...")
-/Users/andreas/projects/aichat3/chat.ai:667:/Users/andreas/projects/aichat3/chat.ai:1057:      (greger-agent--debug "CALLING greger-stream-to-buffer-with-tools...")
-/Users/andreas/projects/aichat3/chat.ai:668:/Users/andreas/projects/aichat3/chat.ai:1058:      (greger-stream-to-buffer-with-tools
-/Users/andreas/projects/aichat3/chat.ai:669:/Users/andreas/projects/aichat3/chat.ai:1082:      (greger-agent--debug "CALLING greger-stream-to-buffer-with-tools...")
-/Users/andreas/projects/aichat3/chat.ai:670:/Users/andreas/projects/aichat3/chat.ai:1083:      (greger-stream-to-buffer-with-tools
-/Users/andreas/projects/aichat3/chat.ai:671:/Users/andreas/projects/aichat3/chat.ai:1094:      (greger-agent--debug "CALLING greger-stream-to-buffer-with-tools...")
-/Users/andreas/projects/aichat3/chat.ai:672:/Users/andreas/projects/aichat3/chat.ai:1095:      (greger-stream-to-buffer-with-tools
-/Users/andreas/projects/aichat3/chat.ai:673:/Users/andreas/projects/aichat3/chat.ai:1153:      (greger-agent--debug "CALLING greger-stream-to-buffer-with-tools...")
-/Users/andreas/projects/aichat3/chat.ai:674:/Users/andreas/projects/aichat3/chat.ai:1154:      (greger-stream-to-buffer-with-tools
-/Users/andreas/projects/aichat3/chat.ai:675:/Users/andreas/projects/aichat3/chat.ai:1177:      (greger-agent--debug "CALLING greger-stream-to-buffer-with-tools...")
-/Users/andreas/projects/aichat3/chat.ai:676:/Users/andreas/projects/aichat3/chat.ai:1178:      (greger-stream-to-buffer-with-tools
-/Users/andreas/projects/aichat3/chat.ai:677:/Users/andreas/projects/aichat3/chat.ai:1189:      (greger-agent--debug "CALLING greger-stream-to-buffer-with-tools...")
-/Users/andreas/projects/aichat3/chat.ai:678:/Users/andreas/projects/aichat3/chat.ai:1190:      (greger-stream-to-buffer-with-tools
-/Users/andreas/projects/aichat3/chat.ai:679:/Users/andreas/projects/aichat3/chat.ai:1256:88:       (greger-agent--debug "CALLING greger-stream-to-buffer-with-tools...")
-/Users/andreas/projects/aichat3/chat.ai:680:/Users/andreas/projects/aichat3/chat.ai:1257:89:       (greger-stream-to-buffer-with-tools
-/Users/andreas/projects/aichat3/chat.ai:681:/Users/andreas/projects/aichat3/chat.ai:1282:      (greger-agent--debug "CALLING greger-stream-to-buffer-with-tools...")
-/Users/andreas/projects/aichat3/chat.ai:682:/Users/andreas/projects/aichat3/chat.ai:1283:      (greger-stream-to-buffer-with-tools
-/Users/andreas/projects/aichat3/chat.ai:683:/Users/andreas/projects/aichat3/chat.ai:1294:      (greger-agent--debug "CALLING greger-stream-to-buffer-with-tools...")
-/Users/andreas/projects/aichat3/chat.ai:684:/Users/andreas/projects/aichat3/chat.ai:1295:      (greger-stream-to-buffer-with-tools
-/Users/andreas/projects/aichat3/chat.ai:685:/Users/andreas/projects/aichat3/chat.ai:1337:      (greger-stream-to-buffer-with-tools
-/Users/andreas/projects/aichat3/chat.ai:686:/Users/andreas/projects/aichat3/chat.ai:1347:      (greger-stream-to-buffer-with-tools
-/Users/andreas/projects/aichat3/chat.ai:687:/Users/andreas/projects/aichat3/chat.ai:1452:      (greger-stream-to-buffer-with-tools
-/Users/andreas/projects/aichat3/chat.ai:688:/Users/andreas/projects/aichat3/chat.ai:1462:      (greger-stream-to-buffer-with-tools
-/Users/andreas/projects/aichat3/chat.ai:689:/Users/andreas/projects/aichat3/chat.ai:1509:(greger-stream-to-buffer-with-tools
-/Users/andreas/projects/aichat3/chat.ai:690:/Users/andreas/projects/aichat3/chat.ai:1519:(greger-stream-to-buffer-with-tools
-/Users/andreas/projects/aichat3/chat.ai:691:/Users/andreas/projects/aichat3/chat.ai:1562:  (greger-stream-to-buffer greger-model dialog complete-callback cancel-callback))
-/Users/andreas/projects/aichat3/chat.ai:692:/Users/andreas/projects/aichat3/chat.ai:1568:  (greger-stream-to-buffer
-/Users/andreas/projects/aichat3/chat.ai:693:/Users/andreas/projects/aichat3/chat.ai:1896:greger-stream-to-buffer"
-/Users/andreas/projects/aichat3/chat.ai:694:/Users/andreas/projects/aichat3/chat.ai:1921:greger-stream-to-buffer
-/Users/andreas/projects/aichat3/chat.ai:695:/Users/andreas/projects/aichat3/chat.ai:1935:/Users/andreas/projects/aichat3/greger.el:257:  (greger-stream-to-buffer
-/Users/andreas/projects/aichat3/chat.ai:696:/Users/andreas/projects/aichat3/chat.ai:1936:/Users/andreas/projects/aichat3/greger-agent.el:88:      (greger-agent--debug "CALLING greger-stream-to-buffer-with-tools...")
-/Users/andreas/projects/aichat3/chat.ai:697:/Users/andreas/projects/aichat3/chat.ai:1937:/Users/andreas/projects/aichat3/greger-agent.el:89:      (greger-stream-to-buffer-with-tools
-/Users/andreas/projects/aichat3/chat.ai:698:/Users/andreas/projects/aichat3/chat.ai:1938:/Users/andreas/projects/aichat3/greger-stream.el:32:(cl-defun greger-stream-to-buffer (&key model dialog buffer complete-callback cancel-callback)
-/Users/andreas/projects/aichat3/chat.ai:699:/Users/andreas/projects/aichat3/chat.ai:1939:/Users/andreas/projects/aichat3/greger-stream.el:37:  (greger-stream-to-buffer-with-tools
-/Users/andreas/projects/aichat3/chat.ai:700:/Users/andreas/projects/aichat3/chat.ai:1940:/Users/andreas/projects/aichat3/greger-stream.el:45:(cl-defun greger-stream-to-buffer-with-tools (&key model dialog tools buffer complete-callback cancel-callback)
-/Users/andreas/projects/aichat3/chat.ai:701:/Users/andreas/projects/aichat3/chat.ai:1941:/Users/andreas/projects/aichat3/chat.ai:7:* greger-stream.el: Make greger-stream-to-buffer and greger-stream-to-buffer-with-tools use cl-lib style keyword arguments instead of the long argument lists.
-/Users/andreas/projects/aichat3/chat.ai:702:/Users/andreas/projects/aichat3/chat.ai:1942:/Users/andreas/projects/aichat3/chat.ai:8:* Make greger-stream-to-buffer and greger-stream-to-buffer-with-tools take a buffer argument, that is passed as greger-agent--chat-buffer
-/Users/andreas/projects/aichat3/chat.ai:703:/Users/andreas/projects/aichat3/chat.ai:1943:/Users/andreas/projects/aichat3/chat.ai:67: 31: (defun greger-stream-to-buffer (model dialog complete-callback &optional cancel-callback)
-/Users/andreas/projects/aichat3/chat.ai:704:/Users/andreas/projects/aichat3/chat.ai:1944:/Users/andreas/projects/aichat3/chat.ai:71: 35:   (greger-stream-to-buffer-with-tools model dialog nil complete-callback cancel-callback))
-/Users/andreas/projects/aichat3/chat.ai:705:/Users/andreas/projects/aichat3/chat.ai:1945:/Users/andreas/projects/aichat3/chat.ai:73: 37: (defun greger-stream-to-buffer-with-tools (model dialog tools complete-callback &optional cancel-callback)
-/Users/andreas/projects/aichat3/chat.ai:706:/Users/andreas/projects/aichat3/chat.ai:1946:/Users/andreas/projects/aichat3/chat.ai:591:greger-stream-to-buffer.*greger-stream-to-buffer-with-tools
-/Users/andreas/projects/aichat3/chat.ai:707:/Users/andreas/projects/aichat3/chat.ai:1947:/Users/andreas/projects/aichat3/chat.ai:616:greger-stream-to-buffer
-/Users/andreas/projects/aichat3/chat.ai:708:/Users/andreas/projects/aichat3/chat.ai:1948:/Users/andreas/projects/aichat3/chat.ai:630:/Users/andreas/projects/aichat3/greger-agent.el:79:      (greger-agent--debug "CALLING greger-stream-to-buffer-with-tools...")
-/Users/andreas/projects/aichat3/chat.ai:709:/Users/andreas/projects/aichat3/chat.ai:1949:/Users/andreas/projects/aichat3/chat.ai:631:/Users/andreas/projects/aichat3/greger-agent.el:80:      (greger-stream-to-buffer-with-tools
-/Users/andreas/projects/aichat3/chat.ai:710:/Users/andreas/projects/aichat3/chat.ai:1950:/Users/andreas/projects/aichat3/chat.ai:632:/Users/andreas/projects/aichat3/greger.el:257:  (greger-stream-to-buffer greger-model dialog complete-callback cancel-callback))
-/Users/andreas/projects/aichat3/chat.ai:711:/Users/andreas/projects/aichat3/chat.ai:1951:/Users/andreas/projects/aichat3/chat.ai:633:/Users/andreas/projects/aichat3/greger-stream.el:31:(defun greger-stream-to-buffer (model dialog complete-callback &optional cancel-callback)
-/Users/andreas/projects/aichat3/chat.ai:712:/Users/andreas/projects/aichat3/chat.ai:1952:/Users/andreas/projects/aichat3/chat.ai:634:/Users/andreas/projects/aichat3/greger-stream.el:35:  (greger-stream-to-buffer-with-tools model dialog nil complete-callback cancel-callback))
-/Users/andreas/projects/aichat3/chat.ai:713:/Users/andreas/projects/aichat3/chat.ai:1953:/Users/andreas/projects/aichat3/chat.ai:635:/Users/andreas/projects/aichat3/greger-stream.el:37:(defun greger-stream-to-buffer-with-tools (model dialog tools complete-callback &optional cancel-callback)
-/Users/andreas/projects/aichat3/chat.ai:714:/Users/andreas/projects/aichat3/chat.ai:1954:/Users/andreas/projects/aichat3/chat.ai:675:      (greger-agent--debug "CALLING greger-stream-to-buffer-with-tools...")
-/Users/andreas/projects/aichat3/chat.ai:715:/Users/andreas/projects/aichat3/chat.ai:1955:/Users/andreas/projects/aichat3/chat.ai:676:      (greger-stream-to-buffer-with-tools
-/Users/andreas/projects/aichat3/chat.ai:716:/Users/andreas/projects/aichat3/chat.ai:1956:/Users/andreas/projects/aichat3/chat.ai:724:  (greger-stream-to-buffer greger-model dialog complete-callback cancel-callback))
-/Users/andreas/projects/aichat3/chat.ai:717:/Users/andreas/projects/aichat3/chat.ai:1957:/Users/andreas/projects/aichat3/chat.ai:787:2. Now, I'll modify the greger-stream.el file to use cl-lib style keyword arguments. Let me start with the `greger-stream-to-buffer` function:
-/Users/andreas/projects/aichat3/chat.ai:718:/Users/andreas/projects/aichat3/chat.ai:1958:/Users/andreas/projects/aichat3/chat.ai:804:(defun greger-stream-to-buffer (model dialog complete-callback &optional cancel-callback)
-/Users/andreas/projects/aichat3/chat.ai:719:/Users/andreas/projects/aichat3/chat.ai:1959:/Users/andreas/projects/aichat3/chat.ai:808:  (greger-stream-to-buffer-with-tools model dialog nil complete-callback cancel-callback))
-/Users/andreas/projects/aichat3/chat.ai:720:/Users/andreas/projects/aichat3/chat.ai:1960:/Users/andreas/projects/aichat3/chat.ai:814:(cl-defun greger-stream-to-buffer (&key model dialog buffer complete-callback cancel-callback)
-/Users/andreas/projects/aichat3/chat.ai:721:/Users/andreas/projects/aichat3/chat.ai:1961:/Users/andreas/projects/aichat3/chat.ai:819:  (greger-stream-to-buffer-with-tools
-/Users/andreas/projects/aichat3/chat.ai:722:/Users/andreas/projects/aichat3/chat.ai:1962:/Users/andreas/projects/aichat3/chat.ai:831:Convert greger-stream-to-buffer to use cl-lib keyword arguments and add buffer parameter
-/Users/andreas/projects/aichat3/chat.ai:723:/Users/andreas/projects/aichat3/chat.ai:1963:/Users/andreas/projects/aichat3/chat.ai:839:Successfully replaced content in /Users/andreas/projects/aichat3/greger-stream.el. Successfully staged 2 file(s) and committed with message: Convert greger-stream-to-buffer to use cl-lib keyword arguments and add buffer parameter
-/Users/andreas/projects/aichat3/chat.ai:724:/Users/andreas/projects/aichat3/chat.ai:1964:/Users/andreas/projects/aichat3/chat.ai:844:3. Now, I'll modify the `greger-stream-to-buffer-with-tools` function:
-/Users/andreas/projects/aichat3/chat.ai:725:/Users/andreas/projects/aichat3/chat.ai:1965:/Users/andreas/projects/aichat3/chat.ai:861:(defun greger-stream-to-buffer-with-tools (model dialog tools complete-callback &optional cancel-callback)
-/Users/andreas/projects/aichat3/chat.ai:726:/Users/andreas/projects/aichat3/chat.ai:1966:/Users/andreas/projects/aichat3/chat.ai:871:(cl-defun greger-stream-to-buffer-with-tools (&key model dialog tools buffer complete-callback cancel-callback)
-/Users/andreas/projects/aichat3/chat.ai:727:/Users/andreas/projects/aichat3/chat.ai:1967:/Users/andreas/projects/aichat3/chat.ai:882:Convert greger-stream-to-buffer-with-tools to use cl-lib keyword arguments and add buffer parameter
-/Users/andreas/projects/aichat3/chat.ai:728:/Users/andreas/projects/aichat3/chat.ai:1968:/Users/andreas/projects/aichat3/chat.ai:890:Successfully replaced content in /Users/andreas/projects/aichat3/greger-stream.el. Successfully staged 2 file(s) and committed with message: Convert greger-stream-to-buffer-with-tools to use cl-lib keyword arguments and add buffer parameter
-/Users/andreas/projects/aichat3/chat.ai:729:/Users/andreas/projects/aichat3/chat.ai:1969:/Users/andreas/projects/aichat3/chat.ai:912:      (greger-agent--debug "CALLING greger-stream-to-buffer-with-tools...")
-/Users/andreas/projects/aichat3/chat.ai:730:/Users/andreas/projects/aichat3/chat.ai:1970:/Users/andreas/projects/aichat3/chat.ai:913:      (greger-stream-to-buffer-with-tools
-/Users/andreas/projects/aichat3/chat.ai:731:/Users/andreas/projects/aichat3/chat.ai:1971:/Users/andreas/projects/aichat3/chat.ai:924:      (greger-agent--debug "CALLING greger-stream-to-buffer-with-tools...")
-/Users/andreas/projects/aichat3/chat.ai:732:/Users/andreas/projects/aichat3/chat.ai:1972:/Users/andreas/projects/aichat3/chat.ai:925:      (greger-stream-to-buffer-with-tools
-/Users/andreas/projects/aichat3/chat.ai:733:/Users/andreas/projects/aichat3/chat.ai:1973:/Users/andreas/projects/aichat3/chat.ai:1006:CALLING greger-stream-to-buffer-with-tools
-/Users/andreas/projects/aichat3/chat.ai:734:/Users/andreas/projects/aichat3/chat.ai:1974:/Users/andreas/projects/aichat3/chat.ai:1020:/Users/andreas/projects/aichat3/greger-agent.el:88:      (greger-agent--debug "CALLING greger-stream-to-buffer-with-tools...")
-/Users/andreas/projects/aichat3/chat.ai:735:/Users/andreas/projects/aichat3/chat.ai:1975:/Users/andreas/projects/aichat3/chat.ai:1021:/Users/andreas/projects/aichat3/chat.ai:630:/Users/andreas/projects/aichat3/greger-agent.el:79:      (greger-agent--debug "CALLING greger-stream-to-buffer-with-tools...")
-/Users/andreas/projects/aichat3/chat.ai:736:/Users/andreas/projects/aichat3/chat.ai:1976:/Users/andreas/projects/aichat3/chat.ai:1022:/Users/andreas/projects/aichat3/chat.ai:675:      (greger-agent--debug "CALLING greger-stream-to-buffer-with-tools...")
-/Users/andreas/projects/aichat3/chat.ai:737:/Users/andreas/projects/aichat3/chat.ai:1977:/Users/andreas/projects/aichat3/chat.ai:1057:      (greger-agent--debug "CALLING greger-stream-to-buffer-with-tools...")
-/Users/andreas/projects/aichat3/chat.ai:738:/Users/andreas/projects/aichat3/chat.ai:1978:/Users/andreas/projects/aichat3/chat.ai:1058:      (greger-stream-to-buffer-with-tools
-/Users/andreas/projects/aichat3/chat.ai:739:/Users/andreas/projects/aichat3/chat.ai:1979:/Users/andreas/projects/aichat3/chat.ai:1082:      (greger-agent--debug "CALLING greger-stream-to-buffer-with-tools...")
-/Users/andreas/projects/aichat3/chat.ai:740:/Users/andreas/projects/aichat3/chat.ai:1980:/Users/andreas/projects/aichat3/chat.ai:1083:      (greger-stream-to-buffer-with-tools
-/Users/andreas/projects/aichat3/chat.ai:741:/Users/andreas/projects/aichat3/chat.ai:1981:/Users/andreas/projects/aichat3/chat.ai:1094:      (greger-agent--debug "CALLING greger-stream-to-buffer-with-tools...")
-/Users/andreas/projects/aichat3/chat.ai:742:/Users/andreas/projects/aichat3/chat.ai:1982:/Users/andreas/projects/aichat3/chat.ai:1095:      (greger-stream-to-buffer-with-tools
-/Users/andreas/projects/aichat3/chat.ai:743:/Users/andreas/projects/aichat3/chat.ai:1983:/Users/andreas/projects/aichat3/chat.ai:1153:      (greger-agent--debug "CALLING greger-stream-to-buffer-with-tools...")
-/Users/andreas/projects/aichat3/chat.ai:744:/Users/andreas/projects/aichat3/chat.ai:1984:/Users/andreas/projects/aichat3/chat.ai:1154:      (greger-stream-to-buffer-with-tools
-/Users/andreas/projects/aichat3/chat.ai:745:/Users/andreas/projects/aichat3/chat.ai:1985:/Users/andreas/projects/aichat3/chat.ai:1177:      (greger-agent--debug "CALLING greger-stream-to-buffer-with-tools...")
-/Users/andreas/projects/aichat3/chat.ai:746:/Users/andreas/projects/aichat3/chat.ai:1986:/Users/andreas/projects/aichat3/chat.ai:1178:      (greger-stream-to-buffer-with-tools
-/Users/andreas/projects/aichat3/chat.ai:747:/Users/andreas/projects/aichat3/chat.ai:1987:/Users/andreas/projects/aichat3/chat.ai:1189:      (greger-agent--debug "CALLING greger-stream-to-buffer-with-tools...")
-/Users/andreas/projects/aichat3/chat.ai:748:/Users/andreas/projects/aichat3/chat.ai:1988:/Users/andreas/projects/aichat3/chat.ai:1190:      (greger-stream-to-buffer-with-tools
-/Users/andreas/projects/aichat3/chat.ai:749:/Users/andreas/projects/aichat3/chat.ai:1989:/Users/andreas/projects/aichat3/chat.ai:1256:88:       (greger-agent--debug "CALLING greger-stream-to-buffer-with-tools...")
-/Users/andreas/projects/aichat3/chat.ai:750:/Users/andreas/projects/aichat3/chat.ai:1990:/Users/andreas/projects/aichat3/chat.ai:1257:89:       (greger-stream-to-buffer-with-tools
-/Users/andreas/projects/aichat3/chat.ai:751:/Users/andreas/projects/aichat3/chat.ai:1991:/Users/andreas/projects/aichat3/chat.ai:1282:      (greger-agent--debug "CALLING greger-stream-to-buffer-with-tools...")
-/Users/andreas/projects/aichat3/chat.ai:752:/Users/andreas/projects/aichat3/chat.ai:1992:/Users/andreas/projects/aichat3/chat.ai:1283:      (greger-stream-to-buffer-with-tools
-/Users/andreas/projects/aichat3/chat.ai:753:/Users/andreas/projects/aichat3/chat.ai:1993:/Users/andreas/projects/aichat3/chat.ai:1294:      (greger-agent--debug "CALLING greger-stream-to-buffer-with-tools...")
-/Users/andreas/projects/aichat3/chat.ai:754:/Users/andreas/projects/aichat3/chat.ai:1994:/Users/andreas/projects/aichat3/chat.ai:1295:      (greger-stream-to-buffer-with-tools
-/Users/andreas/projects/aichat3/chat.ai:755:/Users/andreas/projects/aichat3/chat.ai:1995:/Users/andreas/projects/aichat3/chat.ai:1337:      (greger-stream-to-buffer-with-tools
-/Users/andreas/projects/aichat3/chat.ai:756:/Users/andreas/projects/aichat3/chat.ai:1996:/Users/andreas/projects/aichat3/chat.ai:1347:      (greger-stream-to-buffer-with-tools
-/Users/andreas/projects/aichat3/chat.ai:757:/Users/andreas/projects/aichat3/chat.ai:1997:/Users/andreas/projects/aichat3/chat.ai:1452:      (greger-stream-to-buffer-with-tools
-/Users/andreas/projects/aichat3/chat.ai:758:/Users/andreas/projects/aichat3/chat.ai:1998:/Users/andreas/projects/aichat3/chat.ai:1462:      (greger-stream-to-buffer-with-tools
-/Users/andreas/projects/aichat3/chat.ai:759:/Users/andreas/projects/aichat3/chat.ai:1999:/Users/andreas/projects/aichat3/chat.ai:1509:(greger-stream-to-buffer-with-tools
-/Users/andreas/projects/aichat3/chat.ai:760:/Users/andreas/projects/aichat3/chat.ai:2000:/Users/andreas/projects/aichat3/chat.ai:1519:(greger-stream-to-buffer-with-tools
-/Users/andreas/projects/aichat3/chat.ai:761:/Users/andreas/projects/aichat3/chat.ai:2001:/Users/andreas/projects/aichat3/chat.ai:1562:  (greger-stream-to-buffer greger-model dialog complete-callback cancel-callback))
-/Users/andreas/projects/aichat3/chat.ai:762:/Users/andreas/projects/aichat3/chat.ai:2002:/Users/andreas/projects/aichat3/chat.ai:1568:  (greger-stream-to-buffer
-/Users/andreas/projects/aichat3/chat.ai:763:/Users/andreas/projects/aichat3/chat.ai:2038:(cl-defun greger-stream-to-buffer (&key model dialog buffer complete-callback cancel-callback)
-/Users/andreas/projects/aichat3/chat.ai:764:/Users/andreas/projects/aichat3/chat.ai:2043:  (greger-stream-to-buffer-with-tools
-/Users/andreas/projects/aichat3/chat.ai:765:/Users/andreas/projects/aichat3/chat.ai:2051:(cl-defun greger-stream-to-buffer-with-tools (&key model dialog tools buffer complete-callback cancel-callback)
-/Users/andreas/projects/aichat3/chat.ai:766:/Users/andreas/projects/aichat3/chat.ai:2113:- `greger-stream-to-buffer` now uses `(&key model dialog buffer complete-callback cancel-callback)`
-/Users/andreas/projects/aichat3/chat.ai:767:/Users/andreas/projects/aichat3/chat.ai:2114:- `greger-stream-to-buffer-with-tools` now uses `(&key model dialog tools buffer complete-callback cancel-callback)`
-/Users/andreas/projects/aichat3/chat.ai:768:/Users/andreas/projects/aichat3/chat.ai:2366:      (greger-agent--debug "CALLING greger-stream-to-buffer-with-tools...")
-/Users/andreas/projects/aichat3/chat.ai:769:/Users/andreas/projects/aichat3/chat.ai:2367:      (greger-stream-to-buffer-with-tools
-/Users/andreas/projects/aichat3/chat.ai:770:/Users/andreas/projects/aichat3/chat.ai:2733:      (greger-agent--debug "CALLING greger-stream-to-buffer-with-tools...")
-/Users/andreas/projects/aichat3/chat.ai:771:/Users/andreas/projects/aichat3/chat.ai:2734:      (greger-stream-to-buffer-with-tools
-/Users/andreas/projects/aichat3/chat.ai:772:/Users/andreas/projects/aichat3/chat.ai:2770:      (greger-agent--debug "CALLING greger-stream-to-buffer-with-tools...")
-/Users/andreas/projects/aichat3/chat.ai:773:/Users/andreas/projects/aichat3/chat.ai:2771:      (greger-stream-to-buffer-with-tools
-/Users/andreas/projects/aichat3/chat.ai:774:/Users/andreas/projects/aichat3/chat.ai:2856:      (greger-agent--debug "CALLING greger-stream-to-buffer-with-tools...")
-/Users/andreas/projects/aichat3/chat.ai:775:/Users/andreas/projects/aichat3/chat.ai:2857:      (greger-stream-to-buffer-with-tools
-/Users/andreas/projects/aichat3/chat.ai:776:/Users/andreas/projects/aichat3/chat.ai:2906:      (greger-agent--debug "CALLING greger-stream-to-buffer-with-tools...")
-/Users/andreas/projects/aichat3/chat.ai:777:/Users/andreas/projects/aichat3/chat.ai:2907:      (greger-stream-to-buffer-with-tools
-/Users/andreas/projects/aichat3/chat.ai:778:/Users/andreas/projects/aichat3/chat.ai:2943:      (greger-agent--debug "CALLING greger-stream-to-buffer-with-tools...")
-/Users/andreas/projects/aichat3/chat.ai:779:/Users/andreas/projects/aichat3/chat.ai:2944:      (greger-stream-to-buffer-with-tools
-/Users/andreas/projects/aichat3/chat.ai:780:/Users/andreas/projects/aichat3/chat.ai:3257:      (greger-stream-to-buffer-with-tools
-/Users/andreas/projects/aichat3/chat.ai:786:Now let me check what `greger-stream-to-buffer` looks like to see if it already exists:
-/Users/andreas/projects/aichat3/chat.ai:796:greger-stream-to-buffer[^-]
-/Users/andreas/projects/aichat3/chat.ai:815:Let me check the greger.el file to see if there's a `greger-stream-to-buffer` function that needs to use the new callbacks:
-/Users/andreas/projects/aichat3/chat.ai:1321:1. I need to create a `greger-stream-to-buffer` function that uses the new callbacks
-/Users/andreas/projects/aichat3/chat.ai:1322:2. I need to modify `greger-stream-to-buffer-with-tools` to accept the new callbacks
-/Users/andreas/projects/aichat3/chat.ai:1328:## 1. First, let's create the `greger-stream-to-buffer` function:
-/Users/andreas/projects/aichat3/chat.ai:1347:(cl-defun greger-stream-to-buffer-with-tools (&key model dialog tools buffer complete-callback cancel-callback)
-/Users/andreas/projects/aichat3/chat.ai:1355:(cl-defun greger-stream-to-buffer (&key model dialog buffer text-start-callback text-callback complete-callback cancel-callback)
-/Users/andreas/projects/aichat3/chat.ai:1362:  (greger-stream-to-buffer-with-tools
-/Users/andreas/projects/aichat3/chat.ai:1372:(cl-defun greger-stream-to-buffer-with-tools (&key model dialog tools buffer text-start-callback text-callback complete-callback cancel-callback)
-/Users/andreas/projects/aichat3/chat.ai:1378:Add greger-stream-to-buffer function with new callback parameters
-/Users/andreas/projects/aichat3/chat.ai:1386:Successfully replaced content in /Users/andreas/projects/aichat3/greger-stream.el. Successfully staged 2 file(s) and committed with message: Add greger-stream-to-buffer function with new callback parameters
-/Users/andreas/projects/aichat3/chat.ai:1391:## 2. Now let's update the greger-stream-to-buffer-with-tools function to use the new callbacks and remove insert-position:
-/Users/andreas/projects/aichat3/chat.ai:1408:(cl-defun greger-stream-to-buffer-with-tools (&key model dialog tools buffer text-start-callback text-callback complete-callback cancel-callback)
-/Users/andreas/projects/aichat3/chat.ai:1451:(cl-defun greger-stream-to-buffer-with-tools (&key model dialog tools buffer text-start-callback text-callback complete-callback cancel-callback)
-/Users/andreas/projects/aichat3/chat.ai:1491:Update greger-stream-to-buffer-with-tools to accept text-start-callback and text-callback parameters
-/Users/andreas/projects/aichat3/chat.ai:1499:Successfully replaced content in /Users/andreas/projects/aichat3/greger-stream.el. Successfully staged 2 file(s) and committed with message: Update greger-stream-to-buffer-with-tools to accept text-start-callback and text-callback parameters
-/Users/andreas/projects/aichat3/chat.ai:1879:      (greger-agent--debug "CALLING greger-stream-to-buffer-with-tools...")
-/Users/andreas/projects/aichat3/chat.ai:1880:      (greger-stream-to-buffer-with-tools
-/Users/andreas/projects/aichat3/chat.ai:1894:      (greger-agent--debug "CALLING greger-stream-to-buffer-with-tools...")
-/Users/andreas/projects/aichat3/chat.ai:1895:      (greger-stream-to-buffer-with-tools
-/Users/andreas/projects/aichat3/chat.ai:1968: 91:       (greger-agent--debug "CALLING greger-stream-to-buffer-with-tools...")
-/Users/andreas/projects/aichat3/chat.ai:1969: 92:       (greger-stream-to-buffer-with-tools
-/Users/andreas/projects/aichat3/chat.ai:1997:      (greger-agent--debug "CALLING greger-stream-to-buffer-with-tools...")
-/Users/andreas/projects/aichat3/chat.ai:1998:      (greger-stream-to-buffer-with-tools
-/Users/andreas/projects/aichat3/chat.ai:2012:      (greger-agent--debug "CALLING greger-stream-to-buffer-with-tools...")
-/Users/andreas/projects/aichat3/chat.ai:2013:      (greger-stream-to-buffer-with-tools
-/Users/andreas/projects/aichat3/chat.ai:2089: 91:       (greger-agent--debug "CALLING greger-stream-to-buffer-with-tools...")
-/Users/andreas/projects/aichat3/chat.ai:2090: 92:       (greger-stream-to-buffer-with-tools
-/Users/andreas/projects/aichat3/chat.ai:2121:      (greger-agent--debug "CALLING greger-stream-to-buffer-with-tools...")
-/Users/andreas/projects/aichat3/chat.ai:2122:      (greger-stream-to-buffer-with-tools
-/Users/andreas/projects/aichat3/chat.ai:2136:      (greger-agent--debug "CALLING greger-stream-to-buffer-with-tools...")
-/Users/andreas/projects/aichat3/chat.ai:2137:      (greger-stream-to-buffer-with-tools
-/Users/andreas/projects/aichat3/chat.ai:2187:      (greger-stream-to-buffer-with-tools
-/Users/andreas/projects/aichat3/chat.ai:2200:      (greger-stream-to-buffer-with-tools
-/Users/andreas/projects/aichat3/chat.ai:2265:      (greger-agent--debug "CALLING greger-stream-to-buffer-with-tools...")
-/Users/andreas/projects/aichat3/chat.ai:2266:      (greger-stream-to-buffer-with-tools
-/Users/andreas/projects/aichat3/chat.ai:2291:      (greger-stream-to-buffer-with-tools
-/Users/andreas/projects/aichat3/chat.ai:2304:      (greger-stream-to-buffer-with-tools
+(provide 'greger-agent)
 
-</tool.toolu_01SeGipKTKyyCGRc3Njij3xf>
+;;; greger-agent.el ends here
+
+</tool.toolu_01Vs9oLCckJEddPN5MntFTe8>
 
 ## ASSISTANT:
 
-It looks like the only place in the actual Emacs Lisp files that uses greger-stream-to-buffer is in the current greger-agent.el, and we've already updated that. But I see from the chat that there might be references to it in greger.el. Let me check for any usage there:
-
-## TOOL USE:
-
-Name: ripgrep
-ID: toolu_01QTEzGycGaqqbQhep8hFR8T
-
-### pattern
-
-<tool.toolu_01QTEzGycGaqqbQhep8hFR8T>
-greger-stream-to-buffer
-</tool.toolu_01QTEzGycGaqqbQhep8hFR8T>
-
-### path
-
-<tool.toolu_01QTEzGycGaqqbQhep8hFR8T>
-greger.el
-</tool.toolu_01QTEzGycGaqqbQhep8hFR8T>
-
-## TOOL RESULT:
-
-ID: toolu_01QTEzGycGaqqbQhep8hFR8T
-
-<tool.toolu_01QTEzGycGaqqbQhep8hFR8T>
-No matches found
-</tool.toolu_01QTEzGycGaqqbQhep8hFR8T>
-
-## ASSISTANT:
-
-Let me check if there are any other files that need to be updated:
-
-## TOOL USE:
-
-Name: ripgrep
-ID: toolu_015PWksL1KY3jUWdKD2WByei
-
-### pattern
-
-<tool.toolu_015PWksL1KY3jUWdKD2WByei>
-greger-stream-to-buffer[^-]
-</tool.toolu_015PWksL1KY3jUWdKD2WByei>
-
-### file-type
-
-<tool.toolu_015PWksL1KY3jUWdKD2WByei>
-el
-</tool.toolu_015PWksL1KY3jUWdKD2WByei>
-
-## TOOL RESULT:
-
-ID: toolu_015PWksL1KY3jUWdKD2WByei
-
-<tool.toolu_015PWksL1KY3jUWdKD2WByei>
-/Users/andreas/projects/aichat3/greger-stream.el:31:(cl-defun greger-stream-to-buffer (&key model dialog buffer text-start-callback text-callback complete-callback cancel-callback)
-/Users/andreas/projects/aichat3/chat.ai:6:* Give greger-stream-to-buffer two new callbacks: text-start-callback and text-callback
-/Users/andreas/projects/aichat3/chat.ai:631:/Users/andreas/projects/aichat3/chat.ai:7:* greger-stream.el: Make greger-stream-to-buffer and greger-stream-to-buffer-with-tools use cl-lib style keyword arguments instead of the long argument lists.
-/Users/andreas/projects/aichat3/chat.ai:632:/Users/andreas/projects/aichat3/chat.ai:8:* Make greger-stream-to-buffer and greger-stream-to-buffer-with-tools take a buffer argument, that is passed as greger-agent--chat-buffer
-/Users/andreas/projects/aichat3/chat.ai:633:/Users/andreas/projects/aichat3/chat.ai:67: 31: (defun greger-stream-to-buffer (model dialog complete-callback &optional cancel-callback)
-/Users/andreas/projects/aichat3/chat.ai:636:/Users/andreas/projects/aichat3/chat.ai:591:greger-stream-to-buffer.*greger-stream-to-buffer-with-tools
-/Users/andreas/projects/aichat3/chat.ai:640:/Users/andreas/projects/aichat3/chat.ai:632:/Users/andreas/projects/aichat3/greger.el:257:  (greger-stream-to-buffer greger-model dialog complete-callback cancel-callback))
-/Users/andreas/projects/aichat3/chat.ai:641:/Users/andreas/projects/aichat3/chat.ai:633:/Users/andreas/projects/aichat3/greger-stream.el:31:(defun greger-stream-to-buffer (model dialog complete-callback &optional cancel-callback)
-/Users/andreas/projects/aichat3/chat.ai:646:/Users/andreas/projects/aichat3/chat.ai:724:  (greger-stream-to-buffer greger-model dialog complete-callback cancel-callback))
-/Users/andreas/projects/aichat3/chat.ai:647:/Users/andreas/projects/aichat3/chat.ai:787:2. Now, I'll modify the greger-stream.el file to use cl-lib style keyword arguments. Let me start with the `greger-stream-to-buffer` function:
-/Users/andreas/projects/aichat3/chat.ai:648:/Users/andreas/projects/aichat3/chat.ai:804:(defun greger-stream-to-buffer (model dialog complete-callback &optional cancel-callback)
-/Users/andreas/projects/aichat3/chat.ai:650:/Users/andreas/projects/aichat3/chat.ai:814:(cl-defun greger-stream-to-buffer (&key model dialog buffer complete-callback cancel-callback)
-/Users/andreas/projects/aichat3/chat.ai:652:/Users/andreas/projects/aichat3/chat.ai:831:Convert greger-stream-to-buffer to use cl-lib keyword arguments and add buffer parameter
-/Users/andreas/projects/aichat3/chat.ai:653:/Users/andreas/projects/aichat3/chat.ai:839:Successfully replaced content in /Users/andreas/projects/aichat3/greger-stream.el. Successfully staged 2 file(s) and committed with message: Convert greger-stream-to-buffer to use cl-lib keyword arguments and add buffer parameter
-/Users/andreas/projects/aichat3/chat.ai:691:/Users/andreas/projects/aichat3/chat.ai:1562:  (greger-stream-to-buffer greger-model dialog complete-callback cancel-callback))
-/Users/andreas/projects/aichat3/chat.ai:693:/Users/andreas/projects/aichat3/chat.ai:1896:greger-stream-to-buffer"
-/Users/andreas/projects/aichat3/chat.ai:698:/Users/andreas/projects/aichat3/chat.ai:1938:/Users/andreas/projects/aichat3/greger-stream.el:32:(cl-defun greger-stream-to-buffer (&key model dialog buffer complete-callback cancel-callback)
-/Users/andreas/projects/aichat3/chat.ai:701:/Users/andreas/projects/aichat3/chat.ai:1941:/Users/andreas/projects/aichat3/chat.ai:7:* greger-stream.el: Make greger-stream-to-buffer and greger-stream-to-buffer-with-tools use cl-lib style keyword arguments instead of the long argument lists.
-/Users/andreas/projects/aichat3/chat.ai:702:/Users/andreas/projects/aichat3/chat.ai:1942:/Users/andreas/projects/aichat3/chat.ai:8:* Make greger-stream-to-buffer and greger-stream-to-buffer-with-tools take a buffer argument, that is passed as greger-agent--chat-buffer
-/Users/andreas/projects/aichat3/chat.ai:703:/Users/andreas/projects/aichat3/chat.ai:1943:/Users/andreas/projects/aichat3/chat.ai:67: 31: (defun greger-stream-to-buffer (model dialog complete-callback &optional cancel-callback)
-/Users/andreas/projects/aichat3/chat.ai:706:/Users/andreas/projects/aichat3/chat.ai:1946:/Users/andreas/projects/aichat3/chat.ai:591:greger-stream-to-buffer.*greger-stream-to-buffer-with-tools
-/Users/andreas/projects/aichat3/chat.ai:710:/Users/andreas/projects/aichat3/chat.ai:1950:/Users/andreas/projects/aichat3/chat.ai:632:/Users/andreas/projects/aichat3/greger.el:257:  (greger-stream-to-buffer greger-model dialog complete-callback cancel-callback))
-/Users/andreas/projects/aichat3/chat.ai:711:/Users/andreas/projects/aichat3/chat.ai:1951:/Users/andreas/projects/aichat3/chat.ai:633:/Users/andreas/projects/aichat3/greger-stream.el:31:(defun greger-stream-to-buffer (model dialog complete-callback &optional cancel-callback)
-/Users/andreas/projects/aichat3/chat.ai:716:/Users/andreas/projects/aichat3/chat.ai:1956:/Users/andreas/projects/aichat3/chat.ai:724:  (greger-stream-to-buffer greger-model dialog complete-callback cancel-callback))
-/Users/andreas/projects/aichat3/chat.ai:717:/Users/andreas/projects/aichat3/chat.ai:1957:/Users/andreas/projects/aichat3/chat.ai:787:2. Now, I'll modify the greger-stream.el file to use cl-lib style keyword arguments. Let me start with the `greger-stream-to-buffer` function:
-/Users/andreas/projects/aichat3/chat.ai:718:/Users/andreas/projects/aichat3/chat.ai:1958:/Users/andreas/projects/aichat3/chat.ai:804:(defun greger-stream-to-buffer (model dialog complete-callback &optional cancel-callback)
-/Users/andreas/projects/aichat3/chat.ai:720:/Users/andreas/projects/aichat3/chat.ai:1960:/Users/andreas/projects/aichat3/chat.ai:814:(cl-defun greger-stream-to-buffer (&key model dialog buffer complete-callback cancel-callback)
-/Users/andreas/projects/aichat3/chat.ai:722:/Users/andreas/projects/aichat3/chat.ai:1962:/Users/andreas/projects/aichat3/chat.ai:831:Convert greger-stream-to-buffer to use cl-lib keyword arguments and add buffer parameter
-/Users/andreas/projects/aichat3/chat.ai:723:/Users/andreas/projects/aichat3/chat.ai:1963:/Users/andreas/projects/aichat3/chat.ai:839:Successfully replaced content in /Users/andreas/projects/aichat3/greger-stream.el. Successfully staged 2 file(s) and committed with message: Convert greger-stream-to-buffer to use cl-lib keyword arguments and add buffer parameter
-/Users/andreas/projects/aichat3/chat.ai:761:/Users/andreas/projects/aichat3/chat.ai:2001:/Users/andreas/projects/aichat3/chat.ai:1562:  (greger-stream-to-buffer greger-model dialog complete-callback cancel-callback))
-/Users/andreas/projects/aichat3/chat.ai:763:/Users/andreas/projects/aichat3/chat.ai:2038:(cl-defun greger-stream-to-buffer (&key model dialog buffer complete-callback cancel-callback)
-/Users/andreas/projects/aichat3/chat.ai:766:/Users/andreas/projects/aichat3/chat.ai:2113:- `greger-stream-to-buffer` now uses `(&key model dialog buffer complete-callback cancel-callback)`
-/Users/andreas/projects/aichat3/chat.ai:786:Now let me check what `greger-stream-to-buffer` looks like to see if it already exists:
-/Users/andreas/projects/aichat3/chat.ai:796:greger-stream-to-buffer[^-]
-/Users/andreas/projects/aichat3/chat.ai:815:Let me check the greger.el file to see if there's a `greger-stream-to-buffer` function that needs to use the new callbacks:
-/Users/andreas/projects/aichat3/chat.ai:1321:1. I need to create a `greger-stream-to-buffer` function that uses the new callbacks
-/Users/andreas/projects/aichat3/chat.ai:1328:## 1. First, let's create the `greger-stream-to-buffer` function:
-/Users/andreas/projects/aichat3/chat.ai:1355:(cl-defun greger-stream-to-buffer (&key model dialog buffer text-start-callback text-callback complete-callback cancel-callback)
-/Users/andreas/projects/aichat3/chat.ai:1378:Add greger-stream-to-buffer function with new callback parameters
-/Users/andreas/projects/aichat3/chat.ai:1386:Successfully replaced content in /Users/andreas/projects/aichat3/greger-stream.el. Successfully staged 2 file(s) and committed with message: Add greger-stream-to-buffer function with new callback parameters
-
-</tool.toolu_015PWksL1KY3jUWdKD2WByei>
+Now I understand the pattern. I need to create a `greger-parser-state` structure and refactor all the parser functions to use it. Let me create the refactored version:
