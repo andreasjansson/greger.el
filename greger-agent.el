@@ -76,12 +76,14 @@
     (greger-agent--debug "Dialog length: %d messages" (length current-dialog))
 
     ;; Check max iterations
-    (if (>= greger-agent--current-iteration greger-agent-max-iterations)
+    (if (>= current-iteration greger-agent-max-iterations)
         (progn
           (greger-agent--debug "MAX ITERATIONS REACHED - STOPPING")
-          (insert (format "\n\nMaximum iterations (%d) reached. Stopping agent execution.\n\n"
-                         greger-agent-max-iterations))
-          (greger-agent--finish-response))
+          (with-current-buffer chat-buffer
+            (goto-char (point-max))
+            (insert (format "\n\nMaximum iterations (%d) reached. Stopping agent execution.\n\n"
+                           greger-agent-max-iterations)))
+          (greger-agent--finish-response agent-state))
 
       ;; Get Claude's response
       (greger-agent--debug "CALLING greger-stream-to-buffer-with-tools...")
