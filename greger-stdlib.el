@@ -190,6 +190,18 @@
   :required '("command")
   :function 'greger-tools--shell-command)
 
+;; Helper functions
+
+(defun greger-tools--find-git-repo-root (start-dir)
+  "Find the git repository root starting from START-DIR."
+  (let ((dir (expand-file-name start-dir)))
+    (while (and dir
+                (not (file-exists-p (expand-file-name ".git" dir)))
+                (not (string= dir (directory-file-name dir))))
+      (setq dir (file-name-directory (directory-file-name dir))))
+    (when (and dir (file-exists-p (expand-file-name ".git" dir)))
+      dir)))
+
 ;; Tools below
 
 (defun greger-tools--git-stage-and-commit (files commit-message)
