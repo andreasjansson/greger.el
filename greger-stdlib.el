@@ -118,7 +118,8 @@
                 (git_commit_message . ((type . "string")
                                        (description . "Git commit message for this change"))))
   :required '("file_path" "contents" "git_commit_message")
-  :function 'greger-tools--replace-file)
+  :function 'greger-tools--replace-file
+  :pass-buffer t)
 
 (greger-register-tool "str-replace"
   :description "Replace a specific string or content block in a file with new content. Finds the exact original content and replaces it with new content. Be extra careful to format the original_content exactly correctly, taking extra care with whitespace and newlines. If you're making large swaths of changes, consider using replace-file instead"
