@@ -18,7 +18,6 @@
   parsed-content-blocks
   process
   output-buffer
-  insert-position
   undo-handle
   original-quit-binding
   text-start-callback

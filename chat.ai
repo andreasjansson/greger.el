@@ -1389,3 +1389,116 @@ Successfully replaced content in /Users/andreas/projects/aichat3/greger-stream.e
 ## ASSISTANT:
 
 ## 2. Now let's update the greger-stream-to-buffer-with-tools function to use the new callbacks and remove insert-position:
+
+
+## TOOL USE:
+
+Name: str-replace
+ID: toolu_01MLWZaJzCAa7P3i2Rn2rwDf
+
+### file_path
+
+<tool.toolu_01MLWZaJzCAa7P3i2Rn2rwDf>
+greger-stream.el
+</tool.toolu_01MLWZaJzCAa7P3i2Rn2rwDf>
+
+### original_content
+
+<tool.toolu_01MLWZaJzCAa7P3i2Rn2rwDf>
+(cl-defun greger-stream-to-buffer-with-tools (&key model dialog tools buffer text-start-callback text-callback complete-callback cancel-callback)
+  "Send streaming request for MODEL with DIALOG and TOOLS, inserting text into BUFFER.
+COMPLETE-CALLBACK is called when done with the parsed content blocks array.
+CANCEL-CALLBACK is called if cancelled.
+BUFFER defaults to current buffer if not specified."
+  (let* ((output-buffer (or buffer (current-buffer)))
+         (insert-position (point))
+         (undo-handle (prepare-change-group output-buffer))
+         (original-quit-binding (local-key-binding (kbd "C-g")))
+         (provider-config (greger-providers-get-config model))
+         (request-spec (greger-providers-build-request provider-config dialog tools))
+         (restore-callback (lambda (state)
+                             (with-current-buffer (greger-stream-state-output-buffer state)
+                               (local-set-key (kbd "C-g")
+                                              (greger-stream-state-original-quit-binding state))
+                               (undo-amalgamate-change-group (greger-stream-state-undo-handle state))
+                               (accept-change-group (greger-stream-state-undo-handle state)))))
+         (text-start-callback (lambda (state)
+                                (greger-stream--insert state (concat "\n\n" greger-assistant-tag "\n\n")))
+                              )
+         (wrapped-complete-callback (lambda (parsed-blocks state)
+                                      (when complete-callback
+                                        (funcall complete-callback parsed-blocks))))
+         (process (greger-stream--start-curl-process request-spec))
+         (state (make-greger-stream-state
+                 :accumulated-output ""
+                 :complete-response ""
+                 :parsed-content-blocks '()
+                 :process process
+                 :text-start-callback text-start-callback
+                 :text-callback 'greger-stream--insert
+                 :complete-callback wrapped-complete-callback
+                 :cancel-callback cancel-callback
+                 :restore-callback restore-callback
+                 :output-buffer output-buffer
+                 :insert-position insert-position
+                 :undo-handle undo-handle
+                 :original-quit-binding original-quit-binding)))
+</tool.toolu_01MLWZaJzCAa7P3i2Rn2rwDf>
+
+### new_content
+
+<tool.toolu_01MLWZaJzCAa7P3i2Rn2rwDf>
+(cl-defun greger-stream-to-buffer-with-tools (&key model dialog tools buffer text-start-callback text-callback complete-callback cancel-callback)
+  "Send streaming request for MODEL with DIALOG and TOOLS, inserting text into BUFFER.
+TEXT-START-CALLBACK is called when text streaming starts.
+TEXT-CALLBACK is called for each text chunk with (state text).
+COMPLETE-CALLBACK is called when done with the parsed content blocks array.
+CANCEL-CALLBACK is called if cancelled.
+BUFFER defaults to current buffer if not specified."
+  (let* ((output-buffer (or buffer (current-buffer)))
+         (undo-handle (prepare-change-group output-buffer))
+         (original-quit-binding (local-key-binding (kbd "C-g")))
+         (provider-config (greger-providers-get-config model))
+         (request-spec (greger-providers-build-request provider-config dialog tools))
+         (restore-callback (lambda (state)
+                             (with-current-buffer (greger-stream-state-output-buffer state)
+                               (local-set-key (kbd "C-g")
+                                              (greger-stream-state-original-quit-binding state))
+                               (undo-amalgamate-change-group (greger-stream-state-undo-handle state))
+                               (accept-change-group (greger-stream-state-undo-handle state)))))
+         (wrapped-complete-callback (lambda (parsed-blocks state)
+                                      (when complete-callback
+                                        (funcall complete-callback parsed-blocks))))
+         (process (greger-stream--start-curl-process request-spec))
+         (state (make-greger-stream-state
+                 :accumulated-output ""
+                 :complete-response ""
+                 :parsed-content-blocks '()
+                 :process process
+                 :text-start-callback text-start-callback
+                 :text-callback text-callback
+                 :complete-callback wrapped-complete-callback
+                 :cancel-callback cancel-callback
+                 :restore-callback restore-callback
+                 :output-buffer output-buffer
+                 :undo-handle undo-handle
+                 :original-quit-binding original-quit-binding)))
+</tool.toolu_01MLWZaJzCAa7P3i2Rn2rwDf>
+
+### git_commit_message
+
+<tool.toolu_01MLWZaJzCAa7P3i2Rn2rwDf>
+Update greger-stream-to-buffer-with-tools to accept text-start-callback and text-callback parameters
+</tool.toolu_01MLWZaJzCAa7P3i2Rn2rwDf>
+
+## TOOL RESULT:
+
+ID: toolu_01MLWZaJzCAa7P3i2Rn2rwDf
+
+<tool.toolu_01MLWZaJzCAa7P3i2Rn2rwDf>
+Successfully replaced content in /Users/andreas/projects/aichat3/greger-stream.el. Successfully staged 2 file(s) and committed with message: Update greger-stream-to-buffer-with-tools to accept text-start-callback and text-callback parameters
+</tool.toolu_01MLWZaJzCAa7P3i2Rn2rwDf>
+
+## ASSISTANT:
+
+## 3. Now let's remove insert-position from the greger-stream-state struct:
