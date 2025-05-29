@@ -91,10 +91,10 @@
        :model greger-model
        :dialog current-dialog
        :tools tools
-       :buffer greger-agent--chat-buffer
+       :buffer chat-buffer
        :complete-callback (lambda (content-blocks)
                             (greger-agent--debug "RECEIVED PARSED CONTENT BLOCKS")
-                            (greger-agent--handle-parsed-response content-blocks))))))
+                            (greger-agent--handle-parsed-response content-blocks agent-state))))))
 
 (defun greger-agent--handle-parsed-response (content-blocks)
   "Handle the parsed CONTENT-BLOCKS from Claude."
