@@ -441,8 +441,9 @@ Always returns focus to the original window after executing BODY."
        ;; Always return to original window
        (select-window original-window))))
 
-(defun greger-tools--write-new-file (file-path contents git-commit-message)
-  "Write CONTENTS to a new file at FILE-PATH. Fails if file already exists."
+(defun greger-tools--write-new-file (file-path contents git-commit-message &optional buffer)
+  "Write CONTENTS to a new file at FILE-PATH. Fails if file already exists.
+If BUFFER is provided, it will be staged and committed along with the new file."
   (unless (stringp file-path)
     (error "file_path must be a string"))
 
