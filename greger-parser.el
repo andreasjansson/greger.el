@@ -610,25 +610,25 @@ Supports both local files and web URLs (http:// or https://)."
         (when (and name (not (string-empty-p name)))
           (cons (intern name) (greger-parser--convert-value (or value ""))))))))
 
-(defun greger-parser--parse-tool-value ()
-  "Parse tool parameter value in XML-style tags."
-  (when (greger-parser--looking-at "<tool.")
-    (let ((tag-start (greger-parser--current-pos)))
+(defun greger-parser--parse-tool-value (state)
+  "Parse tool parameter value in XML-style tags using STATE."
+  (when (greger-parser--looking-at state "<tool.")
+    (let ((tag-start (greger-parser--current-pos state)))
       ;; Find end of opening tag
-      (greger-parser--skip-to-closing-angle)
-      (when (eq (greger-parser--peek) ?>)
-        (let* ((opening-tag (greger-parser--substring tag-start (+ (greger-parser--current-pos) 1)))
+      (greger-parser--skip-to-closing-angle state)
+      (when (eq (greger-parser--peek state) ?>)
+        (let* ((opening-tag (greger-parser--substring state tag-start (+ (greger-parser--current-pos state) 1)))
                (closing-tag (greger-parser--make-closing-tag opening-tag)))
-          (greger-parser--advance) ; Skip >
-          (greger-parser--skip-whitespace)
+          (greger-parser--advance state) ; Skip >
+          (greger-parser--skip-whitespace state)
 
-          (let ((content-start (greger-parser--current-pos)))
-            (if (greger-parser--find-closing-tag closing-tag)
-                (let ((content (greger-parser--substring content-start)))
-                  (greger-parser--advance (length closing-tag))
+          (let ((content-start (greger-parser--current-pos state)))
+            (if (greger-parser--find-closing-tag state closing-tag)
+                (let ((content (greger-parser--substring state content-start)))
+                  (greger-parser--advance state (length closing-tag))
                   (greger-parser--normalize-tool-content content))
               ;; If no closing tag found, consume to end of section
-              (let ((content (greger-parser--read-until-section)))
+              (let ((content (greger-parser--read-until-section state)))
                 (greger-parser--normalize-tool-content content)))))))))
 
 (defun greger-parser--skip-to-closing-angle ()
