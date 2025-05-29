@@ -193,22 +193,25 @@
 ;; Tools below
 
 (defun greger-tools--git-stage-and-commit (files commit-message)
-  "Stage FILES and commit with COMMIT-MESSAGE using magit."
+  "Stage FILES and commit with COMMIT-MESSAGE using git command line."
   (condition-case err
       (let* ((first-file (car files))
              (file-dir (file-name-directory (expand-file-name first-file)))
-             (repo-root (magit-toplevel file-dir)))
+             (repo-root (greger-tools--find-git-repo-root file-dir)))
         (unless repo-root
           (error "File %s is not in a git repository" first-file))
 
-        ;; Set default-directory to the repository root for magit operations
-        (let ((default-directory repo-root)
-              (magit-save-repository-buffers nil))
+        ;; Set default-directory to the repository root for git operations
+        (let ((default-directory repo-root))
           ;; Stage the files
-          (magit-stage-files files)
+          (dolist (file files)
+            (let ((relative-path (file-relative-name (expand-file-name file) repo-root)))
+              (unless (= 0 (call-process "git" nil nil nil "add" relative-path))
+                (error "Failed to stage file: %s" file))))
 
           ;; Create the commit
-          (magit-commit-create (list "-m" commit-message))
+          (unless (= 0 (call-process "git" nil nil nil "commit" "-m" commit-message))
+            (error "Failed to create commit"))
 
           (format "Successfully staged %d file(s) and committed with message: %s"
                   (length files) commit-message)))
