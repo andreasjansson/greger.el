@@ -48,15 +48,15 @@
 
     (goto-char (point-max))
 
-    (setq greger-agent--current-iteration 0)
-    (setq greger-agent--chat-buffer (current-buffer))  ; Store the chat buffer
-    (setq greger-agent--directory default-directory)
+    (let ((agent-state (make-greger-agent-state
+                        :current-iteration 0
+                        :chat-buffer (current-buffer)
+                        :directory default-directory)))
 
-    (greger-agent--debug "--- DIALOG --- %s" dialog)
+      (greger-agent--debug "--- DIALOG --- %s" dialog)
+      (greger-agent--debug "=== STARTING AGENT SESSION ===")
 
-    (greger-agent--debug "=== STARTING AGENT SESSION ===")
-
-    (greger-agent--run-agent-loop)))
+      (greger-agent--run-agent-loop agent-state))))
 
 (defun greger-agent--debug (format-string &rest args)
   "Debug logging function."
