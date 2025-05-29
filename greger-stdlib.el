@@ -985,12 +985,9 @@ If USE-HIGHEST-READABILITY is non-nil, use eww's aggressive readability setting.
     (error "Invalid URL format: %s (must start with http:// or https://)" url))
 
   (condition-case err
-      (let ((content (greger-web-download-page url extract-text use-highest-readability)))
-        (if extract-text
-            (format "Successfully read and extracted text from %s (%d characters):\n\n%s"
-                    url (length content) content)
-          (format "Successfully read raw HTML from %s (%d characters):\n\n%s"
-                  url (length content) content)))
+      (greger-web-download-page url extract-text use-highest-readability)
     (error (format "Failed to read webpage: %s" (error-message-string err)))))
+
+(provide 'greger-stdlib)
 
 ;;; greger-stdlib.el ends here

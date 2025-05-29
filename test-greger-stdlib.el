@@ -14,22 +14,19 @@
   (let ((test-url "https://pub-b88c9764a4fc46baa90b9e8e1544f59e.r2.dev/hello.html"))
 
     ;; Test with text extraction (default)
-    (let ((result (greger-tools--read-webpage test-url)))
+    (let ((result (greger-tools--read-webpage test-url t)))
       (should (stringp result))
-      (should (string-match-p "Successfully read and extracted text" result))
-      (should (string-match-p "Hello world!" result)))
+      (should (string= "Hello world!\n" result)))
 
     ;; Test with raw HTML
     (let ((result (greger-tools--read-webpage test-url nil)))
       (should (stringp result))
-      (should (string-match-p "Successfully read raw HTML" result))
-      (should (string-match-p "<h1>Hello world!</h1>" result)))
+      (should (string= "<h1>Hello world!</h1>\n" result)))
 
     ;; Test with readability enhancement
     (let ((result (greger-tools--read-webpage test-url t t)))
       (should (stringp result))
-      (should (string-match-p "Successfully read and extracted text" result))
-      (should (string-match-p "Hello world!" result)))))
+      (should (string= "Hello world!\n" result)))))
 
 (ert-deftest greger-test-read-webpage-invalid-url ()
   "Test reading a webpage with invalid URLs."

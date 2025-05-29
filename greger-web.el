@@ -58,17 +58,16 @@ INLINE-SEPARATOR separates inline elements."
 If EXTRACT-TEXT is non-nil (default t), extract and return text content.
 If EXTRACT-TEXT is nil, return raw HTML.
 If USE-HIGHEST-READABILITY is non-nil, use eww's aggressive readability setting."
-  (let ((extract-text (if (eq extract-text nil) nil t))) ; Default to true
-    (if extract-text
-        (greger-web-text-from-url url use-highest-readability)
-      ;; Return raw HTML
-      (with-current-buffer
-          (url-retrieve-synchronously url t nil 10.0)
-        ;; Skip HTTP headers - they end with a double newline
-        (goto-char (point-min))
-        (when (re-search-forward "\r?\n\r?\n" nil t)
-          (delete-region (point-min) (point)))
-        (buffer-string)))))
+  (if extract-text
+      (greger-web-text-from-url url use-highest-readability)
+    ;; Return raw HTML
+    (with-current-buffer
+        (url-retrieve-synchronously url t nil 10.0)
+      ;; Skip HTTP headers - they end with a double newline
+      (goto-char (point-min))
+      (when (re-search-forward "\r?\n\r?\n" nil t)
+        (delete-region (point-min) (point)))
+      (buffer-string))))
 
 (provide 'greger-web)
 

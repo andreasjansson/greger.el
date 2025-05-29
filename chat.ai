@@ -3360,3 +3360,93 @@ ID: toolu_01GkFS59afFtk7NPH7e9DLFo
 <tool.toolu_01GkFS59afFtk7NPH7e9DLFo>
 Successfully replaced content in /Users/andreas/projects/aichat3/test-greger-stdlib.el. Successfully staged 2 file(s) and committed with message: Update read-webpage tests to use real test URL with Hello world content
 </tool.toolu_01GkFS59afFtk7NPH7e9DLFo>
+
+
+## TOOL USE:
+
+Name: str-replace
+ID: toolu_01NsgidEb3CZo2t74ZKdjt2Q
+
+### file_path
+
+<tool.toolu_01NsgidEb3CZo2t74ZKdjt2Q>
+test-greger-stdlib.el
+</tool.toolu_01NsgidEb3CZo2t74ZKdjt2Q>
+
+### original_content
+
+<tool.toolu_01NsgidEb3CZo2t74ZKdjt2Q>
+(ert-deftest greger-test-read-webpage-network-error ()
+  "Test reading a webpage when network error occurs."
+  ;; Mock the web download function to simulate network error
+  (cl-letf (((symbol-function 'greger-web-download-page)
+             (lambda (url extract-text use-highest-readability)
+               (error "Network timeout"))))
+
+    (let ((result (greger-tools--read-webpage "https://example.com")))
+      (should (stringp result))
+      (should (string-match-p "Failed to read webpage" result))
+      (should (string-match-p "Network timeout" result)))))
+</tool.toolu_01NsgidEb3CZo2t74ZKdjt2Q>
+
+### new_content
+
+<tool.toolu_01NsgidEb3CZo2t74ZKdjt2Q>
+(ert-deftest greger-test-read-webpage-network-error ()
+  "Test reading a webpage when network error occurs."
+  ;; Mock the web download function to simulate network error
+  (cl-letf (((symbol-function 'greger-web-download-page)
+             (lambda (url extract-text use-highest-readability)
+               (error "Network timeout"))))
+
+    (let ((result (greger-tools--read-webpage "https://pub-b88c9764a4fc46baa90b9e8e1544f59e.r2.dev/hello.html")))
+      (should (stringp result))
+      (should (string-match-p "Failed to read webpage" result))
+      (should (string-match-p "Network timeout" result)))))
+</tool.toolu_01NsgidEb3CZo2t74ZKdjt2Q>
+
+### git_commit_message
+
+<tool.toolu_01NsgidEb3CZo2t74ZKdjt2Q>
+Update network error test to use the same test URL
+</tool.toolu_01NsgidEb3CZo2t74ZKdjt2Q>
+
+## TOOL RESULT:
+
+ID: toolu_01NsgidEb3CZo2t74ZKdjt2Q
+
+<tool.toolu_01NsgidEb3CZo2t74ZKdjt2Q>
+Successfully replaced content in /Users/andreas/projects/aichat3/test-greger-stdlib.el. Successfully staged 2 file(s) and committed with message: Update network error test to use the same test URL
+</tool.toolu_01NsgidEb3CZo2t74ZKdjt2Q>
+
+## ASSISTANT:
+
+Perfect! I've successfully:
+
+1. **Moved the web-related functions** from `greger-parser.el` to a new file `greger-web.el`:
+   - `greger-web-text-from-url` (renamed from `greger-parser--text-from-url`)
+   - `greger-web-dom-texts-inline-aware` (renamed from `greger-parser--dom-texts-inline-aware`)
+   - `greger-web-is-web-url-p` (renamed from `greger-parser--is-web-url-p`)
+   - `greger-web-download-page` (new function that combines the functionality)
+
+2. **Updated `greger-parser.el`** to:
+   - Remove the moved functions
+   - Add `(require 'greger-web)` instead of direct web dependencies
+   - Update all function calls to use the new `greger-web-*` functions
+
+3. **Added a new tool `read-webpage`** to `greger-stdlib.el` with:
+   - `url` parameter (required)
+   - `extract_text` parameter (default true) - determines whether to extract text or return raw HTML
+   - `use_highest_readability` parameter (default false) - whether to use eww's aggressive readability setting
+   - Implementation in `greger-tools--read-webpage` function
+
+4. **Created comprehensive tests** in `test-greger-stdlib.el` that:
+   - Test the `read-webpage` tool with the real URL you provided (`https://pub-b88c9764a4fc46baa90b9e8e1544f59e.r2.dev/hello.html`)
+   - Test both text extraction and raw HTML modes
+   - Test with readability enhancement
+   - Test error handling for invalid URLs and network errors
+   - Test the URL validation function
+
+The implementation is now properly modularized, with web functionality separated into its own module, and the parser calling the web functions as needed. The new tool allows users to download web pages with flexible options for text extraction and readability enhancement.
+
+## USER:
