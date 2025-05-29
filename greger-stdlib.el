@@ -569,9 +569,7 @@ If BUFFER is provided, it will be staged and committed along with the modified f
                 (string-suffix-p ".el" expanded-path))
       (error "Only Python (.py) and Elisp (.el) files are supported"))
 
-    (greger-tools--with-split-window
-     (find-file expanded-path)
-
+    (with-current-buffer (find-file-noselect expanded-path)
      ;; Go to the specified line number
      (goto-line line-number)
 

@@ -1,0 +1,1079 @@
+## SYSTEM:
+
+## USER:
+
+In greger-stdlib.el, update all functions that use greger-tools--with-split-window to not use a split window but do the action in the background.
+
+That should allow the tool to run completely in the background without interrupting the user.
+
+
+## ASSISTANT:
+
+I'll help you update the functions in greger-stdlib.el to run in the background instead of using split windows. First, let me examine the file to understand the current implementation.
+
+## TOOL USE:
+
+Name: read-file
+ID: toolu_01KUC7EhdnHagYwsFimVvF7A
+
+### path
+
+<tool.toolu_01KUC7EhdnHagYwsFimVvF7A>
+greger-stdlib.el
+</tool.toolu_01KUC7EhdnHagYwsFimVvF7A>
+
+### include_line_numbers
+
+<tool.toolu_01KUC7EhdnHagYwsFimVvF7A>
+true
+</tool.toolu_01KUC7EhdnHagYwsFimVvF7A>
+
+## TOOL RESULT:
+
+ID: toolu_01KUC7EhdnHagYwsFimVvF7A
+
+<tool.toolu_01KUC7EhdnHagYwsFimVvF7A>
+  1: ;;; greger-stdlib.el --- Tool definitions for greger agent -*- lexical-binding: t -*-
+  2:
+  3: ;;; Commentary:
+  4: ;; Defines tools available to the greger agent
+  5:
+  6: ;;; Code:
+  7:
+  8: (require 'greger-tools)
+  9:
+ 10: ;; Register all tools using the macro
+ 11: (greger-register-tool "read-file"
+ 12:   :description "Read the contents of a file from the filesystem"
+ 13:   :properties '((path . ((type . "string")
+ 14:                          (description . "Path to the file to read")))
+ 15:                 (include_line_numbers . ((type . "boolean")
+ 16:                                          (description . "Whether to include line numbers in the output. If you plan to modify the file, you should include line numbers here so you know which lines to edit.")
+ 17:                                          (default . nil)))
+ 18:                 (start_line . ((type . "integer")
+ 19:                                (description . "Starting line number (1-based) to begin reading from. If not specified, reads from the beginning of the file.")
+ 20:                                (default . nil)))
+ 21:                 (end_line . ((type . "integer")
+ 22:                              (description . "Ending line number (1-based) to stop reading at (inclusive). If not specified, reads to the end of the file.")
+ 23:                              (default . nil))))
+ 24:   :required '("path")
+ 25:   :function 'greger-tools--read-file)
+ 26:
+ 27: (greger-register-tool "list-directory"
+ 28:   :description "List files and directories in a given directory"
+ 29:   :properties '((path . ((type . "string")
+ 30:                          (description . "Path to the directory to list. Defaults to current directory.")
+ 31:                          (default . ".")))
+ 32:                 (show-hidden . ((type . "boolean")
+ 33:                                 (description . "Whether to show hidden files starting with .")
+ 34:                                 (default . nil)))
+ 35:                 (recursive . ((type . "boolean")
+ 36:                               (description . "Whether to list files recursively")
+ 37:                               (default . nil))))
+ 38:   :required '()
+ 39:   :function 'greger-tools--list-directory)
+ 40:
+ 41: (greger-register-tool "ripgrep"
+ 42:   :description "Search for patterns in files using ripgrep (rg) command line tool. Note that ripgrep only matches on single lines, so you can't search across multiple lines."
+ 43:   :properties '((pattern . ((type . "string")
+ 44:                             (description . "The search pattern (regex or literal string)")))
+ 45:                 (path . ((type . "string")
+ 46:                          (description . "Directory or file path to search in")
+ 47:                          (default . ".")))
+ 48:                 (case-sensitive . ((type . "boolean")
+ 49:                                    (description . "Whether the search should be case-sensitive")
+ 50:                                    (default . nil)))
+ 51:                 (file-type . ((type . "string")
+ 52:                               (description . "Restrict search to specific file types (e.g., 'py', 'js', 'md')")))
+ 53:                 (context-lines . ((type . "integer")
+ 54:                                   (description . "Number of context lines to show around matches")
+ 55:                                   (default . 0)))
+ 56:                 (max-results . ((type . "integer")
+ 57:                                 (description . "Maximum number of results to return")
+ 58:                                 (default . 50))))
+ 59:   :required '("pattern")
+ 60:   :function 'greger-tools--ripgrep)
+ 61:
+ 62: (greger-register-tool "write-new-file"
+ 63:   :description "Write a new file with the given contents. Fails if the file already exists."
+ 64:   :properties '((file_path . ((type . "string")
+ 65:                               (description . "Absolute path to the new file")))
+ 66:                 (contents . ((type . "string")
+ 67:                              (description . "Contents to write to the new file")))
+ 68:                 (git_commit_message . ((type . "string")
+ 69:                                        (description . "Git commit message for this change"))))
+ 70:   :required '("file_path" "contents" "git_commit_message")
+ 71:   :function 'greger-tools--write-new-file
+ 72:   :pass-buffer t)
+ 73:
+ 74: (greger-register-tool "make-directory"
+ 75:   :description "Recursively create a directory and all parent directories if they don't exist"
+ 76:   :properties '((path . ((type . "string")
+ 77:                          (description . "Path to the directory to create")))
+ 78:                 (git_commit_message . ((type . "string")
+ 79:                                        (description . "Git commit message for this change"))))
+ 80:   :required '("path" "git_commit_message")
+ 81:   :function 'greger-tools--make-directory
+ 82:   :pass-buffer t)
+ 83:
+ 84: (greger-register-tool "rename-file"
+ 85:   :description "Rename or move a file from one path to another"
+ 86:   :properties '((old_path . ((type . "string")
+ 87:                              (description . "Current path of the file")))
+ 88:                 (new_path . ((type . "string")
+ 89:                              (description . "New path for the file")))
+ 90:                 (git_commit_message . ((type . "string")
+ 91:                                        (description . "Git commit message for this change"))))
+ 92:   :required '("old_path" "new_path" "git_commit_message")
+ 93:   :function 'greger-tools--rename-file
+ 94:   :pass-buffer t)
+ 95:
+ 96: (greger-register-tool "replace-function"
+ 97:   :description "Replace a function in a Python or Elisp file with new contents. Fast and reliable - only supports 'def function_name' and '(defun function_name ())' forms. Use replace-file for complete file replacement or str-replace for other specific changes."
+ 98:   :properties '((file_path . ((type . "string")
+ 99:                               (description . "Path to the file containing the function")))
+100:                 (function_name . ((type . "string")
+101:                                   (description . "Name of the function to replace")))
+102:                 (contents . ((type . "string")
+103:                              (description . "New function contents to replace the existing function")))
+104:                 (line_number . ((type . "integer")
+105:                                 (description . "Line number where the function is defined")))
+106:                 (commit_message . ((type . "string")
+107:                                    (description . "Git commit message for this change"))))
+108:   :required '("file_path" "function_name" "contents" "line_number" "commit_message")
+109:   :function 'greger-tools--replace-function
+110:   :pass-buffer t)
+111:
+112: (greger-register-tool "replace-file"
+113:   :description "Replace the entire contents of an existing file. Slow but reliable - replaces the complete file contents. Use str-replace for specific changes in large files, or replace-function for Python/Elisp functions."
+114:   :properties '((file_path . ((type . "string")
+115:                               (description . "Path to the file to replace")))
+116:                 (contents . ((type . "string")
+117:                              (description . "New contents to replace the entire file")))
+118:                 (git_commit_message . ((type . "string")
+119:                                        (description . "Git commit message for this change"))))
+120:   :required '("file_path" "contents" "git_commit_message")
+121:   :function 'greger-tools--replace-file
+122:   :pass-buffer t)
+123:
+124: (greger-register-tool "str-replace"
+125:   :description "Replace a specific string or content block in a file with new content. Finds the exact original content and replaces it with new content. Be extra careful to format the original_content exactly correctly, taking extra care with whitespace and newlines. If you're making large swaths of changes, consider using replace-file instead"
+126:   :properties '((file_path . ((type . "string")
+127:                               (description . "Path to the file to modify")))
+128:                 (original_content . ((type . "string")
+129:                                      (description . "The exact content to find and replace")))
+130:                 (new_content . ((type . "string")
+131:                                 (description . "The new content to replace the original content with")))
+132:                 (git_commit_message . ((type . "string")
+133:                                        (description . "Git commit message for this change"))))
+134:   :required '("file_path" "original_content" "new_content" "git_commit_message")
+135:   :function 'greger-tools--str-replace
+136:   :pass-buffer t)
+137:
+138: (greger-register-tool "insert"
+139:   :description "Insert text at a specific line number in a file. The text will be inserted before the specified line number (use 0 to insert at the beginning of the file, 1 to insert before the first line, etc.). Useful for adding new content, comments, or code blocks at precise locations without replacing existing content."
+140:   :properties '((file_path . ((type . "string")
+141:                               (description . "Path to the file to modify")))
+142:                 (line_number . ((type . "integer")
+143:                                 (description . "Line number before which to insert the content (0 for beginning of file, 1 to insert before first line, etc.)")))
+144:                 (content . ((type . "string")
+145:                             (description . "Content to insert at the specified location")))
+146:                 (git_commit_message . ((type . "string")
+147:                                        (description . "Git commit message for this change"))))
+148:   :required '("file_path" "line_number" "content" "git_commit_message")
+149:   :function 'greger-tools--insert
+150:   :pass-buffer t)
+151:
+152: (greger-register-tool "git-log"
+153:   :description "View git commit logs."
+154:   :properties '((path . ((type . "string")
+155:                          (description . "Path to the git repository or any file in the repository view logs for")
+156:                          (default . ".")))
+157:                 (max_rows . ((type . "integer")
+158:                             (description . "Maximum number of log entries to return")
+159:                             (default . 100))))
+160:   :required '()
+161:   :function 'greger-tools--git-log)
+162:
+163: (greger-register-tool "git-show-commit"
+164:   :description "View a specific git commit."
+165:   :properties '((commit_hash . ((type . "string")
+166:                                 (description . "The commit hash to view")))
+167:                 (path . ((type . "string")
+168:                          (description . "Path to the git repository or any file in the repository")
+169:                          (default . "."))))
+170:   :required '("commit_hash")
+171:   :function 'greger-tools--git-show-commit)
+172:
+173: (greger-register-tool "ert-test"
+174:   :description "Execute ERT tests by evaluating Emacs lisp test functions and running them with ert"
+175:   :properties '((test_file_path . ((type . "string")
+176:                                    (description . "Path to the test file containing ERT tests")))
+177:                 (function_names . ((type . "array")
+178:                                    (items . ((type . "string")))
+179:                                    (description . "List of ERT test function names to evaluate and run"))))
+180:   :required '("test_file_path" "function_names")
+181:   :function 'greger-tools--ert-test)
+182:
+183: (greger-register-tool "eval-elisp-defuns"
+184:   :description "Evaluate Emacs lisp defuns in a specific file. Note that defuns must be evaluated before you run ert-test to test them, if you've updated the code."
+185:   :properties '((file_path . ((type . "string")
+186:                               (description . "Path to the file containing functions/defuns to evaluate")))
+187:                 (function_names . ((type . "array")
+188:                                    (items . ((type . "string")))
+189:                                    (description . "List of function names to evaluate and run"))))
+190:   :required '("file_path" "function_names")
+191:   :function 'greger-tools--eval-elisp-defuns)
+192:
+193: (greger-register-tool "shell-command"
+194:   :description "Execute an arbitrary shell command and return the output. Prompts for permission before running the command for security."
+195:   :properties '((command . ((type . "string")
+196:                             (description . "The shell command to execute")))
+197:                 (working_directory . ((type . "string")
+198:                                       (description . "Directory to run the command in")
+199:                                       (default . "."))))
+200:   :required '("command")
+201:   :function 'greger-tools--shell-command)
+202:
+203: ;; Helper functions
+204:
+205: (defun greger-tools--find-git-repo-root (start-dir)
+206:   "Find the git repository root starting from START-DIR."
+207:   (let ((dir (expand-file-name start-dir)))
+208:     (while (and dir
+209:                 (not (file-exists-p (expand-file-name ".git" dir)))
+210:                 (not (string= dir (directory-file-name dir))))
+211:       (setq dir (file-name-directory (directory-file-name dir))))
+212:     (when (and dir (file-exists-p (expand-file-name ".git" dir)))
+213:       dir)))
+214:
+215: ;; Tools below
+216:
+217: (defun greger-tools--git-stage-and-commit (files commit-message &optional chat-buffer)
+218:   "Stage FILES and commit with COMMIT-MESSAGE using git command line.
+219: If CHAT-BUFFER is provided, also stage and commit the chat buffer file."
+220:   (condition-case err
+221:       (let* ((first-file (car files))
+222:              (file-dir (file-name-directory (expand-file-name first-file)))
+223:              (repo-root (greger-tools--find-git-repo-root file-dir)))
+224:         (unless repo-root
+225:           (error "File %s is not in a git repository" first-file))
+226:
+227:         ;; Set default-directory to the repository root for git operations
+228:         (let ((default-directory repo-root)
+229:               (all-files files))
+230:
+231:           ;; Add chat buffer file if provided and it has a file
+232:           (when (and chat-buffer (buffer-file-name chat-buffer))
+233:             (let ((chat-file (buffer-file-name chat-buffer)))
+234:               ;; Save the chat buffer first if it has unsaved changes
+235:               (with-current-buffer chat-buffer
+236:                 (when (buffer-modified-p)
+237:                   (save-buffer)))
+238:               ;; Add chat file to the list of files to stage
+239:               (push chat-file all-files)))
+240:
+241:           ;; Stage the files
+242:           (dolist (file all-files)
+243:             (let ((relative-path (file-relative-name (expand-file-name file) repo-root)))
+244:               (unless (= 0 (call-process "git" nil nil nil "add" relative-path))
+245:                 (error "Failed to stage file: %s" file))))
+246:
+247:           ;; Create the commit
+248:           (unless (= 0 (call-process "git" nil nil nil "commit" "-m" commit-message))
+249:             (error "Failed to create commit"))
+250:
+251:           (format "Successfully staged %d file(s) and committed with message: %s"
+252:                   (length all-files) commit-message)))
+253:     (error
+254:      (format "Git operation failed: %s" (error-message-string err)))))
+255:
+256: (defun greger-tools--read-file (path &optional include-line-numbers start-line end-line)
+257:   "Read file at PATH. If INCLUDE-LINE-NUMBERS is non-nil, prepend line numbers.
+258: If START-LINE is specified, start reading from that line (1-based).
+259: If END-LINE is specified, stop reading at that line (inclusive, 1-based)."
+260:   (unless (stringp path)
+261:     (error "Path must be a string"))
+262:
+263:   (when (and start-line (not (integerp start-line)))
+264:     (error "start-line must be an integer"))
+265:
+266:   (when (and end-line (not (integerp end-line)))
+267:     (error "end-line must be an integer"))
+268:
+269:   (when (and start-line (< start-line 1))
+270:     (error "start-line must be >= 1"))
+271:
+272:   (when (and end-line (< end-line 1))
+273:     (error "end-line must be >= 1"))
+274:
+275:   (when (and start-line end-line (> start-line end-line))
+276:     (error "start-line must be <= end-line"))
+277:
+278:   (let ((expanded-path (expand-file-name path)))
+279:     (unless (file-exists-p expanded-path)
+280:       (error "File does not exist: %s" expanded-path))
+281:
+282:     (unless (file-readable-p expanded-path)
+283:       (error "File is not readable: %s" expanded-path))
+284:
+285:     (when (file-directory-p expanded-path)
+286:       (error "Path is a directory, not a file: %s" expanded-path))
+287:
+288:     (condition-case err
+289:         (with-temp-buffer
+290:           (insert-file-contents expanded-path)
+291:           (let* ((all-lines (split-string (buffer-string) "\n"))
+292:                  (total-lines (length all-lines))
+293:                  (actual-start (or start-line 1))
+294:                  (actual-end (or end-line total-lines))
+295:                  (selected-lines (greger-tools--extract-line-range all-lines actual-start actual-end))
+296:                  (contents (mapconcat 'identity selected-lines "\n")))
+297:             (if include-line-numbers
+298:                 (greger-tools--add-line-numbers-with-offset contents actual-start)
+299:               contents)))
+300:       (error (format "Failed to read file: %s" (error-message-string err))))))
+301:
+302: (defun greger-tools--extract-line-range (lines start-line end-line)
+303:   "Extract lines from LINES between START-LINE and END-LINE (1-based, inclusive)."
+304:   (let ((start-index (1- start-line))  ; Convert to 0-based index
+305:         (end-index (1- end-line)))     ; Convert to 0-based index
+306:     ;; Ensure indices are within bounds
+307:     (setq start-index (max 0 start-index))
+308:     (setq end-index (min (1- (length lines)) end-index))
+309:     ;; Extract the range
+310:     (cl-subseq lines start-index (1+ end-index))))
+311:
+312: (defun greger-tools--add-line-numbers-with-offset (content start-line-num)
+313:   "Add line numbers to CONTENT string starting from START-LINE-NUM."
+314:   (let ((lines (split-string content "\n"))
+315:         (line-num start-line-num)
+316:         (max-width 0)
+317:         result)
+318:
+319:     ;; Calculate the width needed for line numbers (based on the highest line number)
+320:     (setq max-width (length (number-to-string (+ start-line-num (length lines) -1))))
+321:
+322:     ;; Add line numbers to each line
+323:     (dolist (line lines)
+324:       (push (format (concat "%" (number-to-string max-width) "d: %s") line-num line) result)
+325:       (setq line-num (1+ line-num)))
+326:
+327:     ;; Join back with newlines
+328:     (mapconcat 'identity (reverse result) "\n")))
+329:
+330: (defun greger-tools--list-directory (path &optional show-hidden recursive)
+331:   "List directory contents at PATH."
+332:   (unless (stringp path)
+333:     (error "Path must be a string"))
+334:
+335:   (let ((expanded-path (expand-file-name path)))
+336:     (unless (file-exists-p expanded-path)
+337:       (error "Directory does not exist: %s" expanded-path))
+338:
+339:     (unless (file-directory-p expanded-path)
+340:       (error "Path is not a directory: %s" expanded-path))
+341:
+342:     (unless (file-readable-p expanded-path)
+343:       (error "Directory is not readable: %s" expanded-path))
+344:
+345:     (condition-case err
+346:         (let ((files (if recursive
+347:                          (greger-tools--list-directory-recursive expanded-path show-hidden)
+348:                        (directory-files expanded-path nil
+349:                                         (if show-hidden "^[^.]\\|^\\.[^.]" "^[^.]")))))
+350:           (if files
+351:               (mapconcat (lambda (file)
+352:                            (let ((full-path (expand-file-name file expanded-path)))
+353:                              (format "%s%s"
+354:                                      file
+355:                                      (if (file-directory-p full-path) "/" ""))))
+356:                          files "\n")
+357:             "Directory is empty"))
+358:       (error (format "Failed to list directory: %s" (error-message-string err))))))
+359:
+360: (defun greger-tools--list-directory-recursive (path show-hidden &optional prefix)
+361:   "Recursively list directory contents at PATH."
+362:   (let ((files '())
+363:         (prefix (or prefix "")))
+364:
+365:     (dolist (file (directory-files path nil
+366:                                    (if show-hidden "^[^.]\\|^\\.[^.]" "^[^.]")))
+367:       (let ((full-path (expand-file-name file path))
+368:             (display-name (concat prefix file)))
+369:
+370:         (if (file-directory-p full-path)
+371:             (progn
+372:               (push (concat display-name "/") files)
+373:               (setq files (append files
+374:                                   (greger-tools--list-directory-recursive
+375:                                    full-path show-hidden (concat prefix file "/")))))
+376:           (push display-name files))))
+377:
+378:     (reverse files)))
+379:
+380: (defun greger-tools--ripgrep (pattern path &optional case-sensitive file-type context-lines max-results)
+381:   "Search for PATTERN in PATH using the rg command line tool directly."
+382:   (unless (stringp pattern)
+383:     (error "Pattern must be a string"))
+384:
+385:   (unless (stringp path)
+386:     (error "Path must be a string"))
+387:
+388:   ;; Check if rg executable is available
+389:   (unless (executable-find "rg")
+390:     (error "ripgrep (rg) command not found. Please install ripgrep"))
+391:
+392:   (let ((expanded-path (expand-file-name path)))
+393:     (unless (file-exists-p expanded-path)
+394:       (error "Path does not exist: %s" expanded-path))
+395:
+396:     ;; Build the rg command arguments
+397:     (let ((args '("rg")))
+398:
+399:       ;; Add case sensitivity flag
+400:       (if case-sensitive
+401:           (setq args (append args '("--case-sensitive")))
+402:         (setq args (append args '("--smart-case"))))
+403:
+404:       ;; Add context lines if specified
+405:       (when (and context-lines (> context-lines 0))
+406:         (setq args (append args (list "--context" (number-to-string context-lines)))))
+407:
+408:       ;; Add max results limit if specified (using --max-count)
+409:       (when (and max-results (> max-results 0))
+410:         (setq args (append args (list "--max-count" (number-to-string max-results)))))
+411:
+412:       ;; Add file type if specified
+413:       (when (and file-type (not (string-empty-p file-type)))
+414:         (setq args (append args (list "--type" file-type))))
+415:
+416:       ;; Add line numbers and no heading for better output format
+417:       (setq args (append args '("--line-number" "--no-heading")))
+418:
+419:       ;; Add the pattern and path
+420:       (setq args (append args (list pattern expanded-path)))
+421:
+422:       (condition-case err
+423:           (let ((command (mapconcat 'shell-quote-argument args " ")))
+424:             ;; Execute the command and capture output
+425:             (let ((output (shell-command-to-string command)))
+426:               ;; Return results or indicate no matches
+427:               (if (string-empty-p (string-trim output))
+428:                   "No matches found"
+429:                 output)))
+430:         (error (format "Failed to execute ripgrep search: %s" (error-message-string err)))))))
+431:
+432: (defmacro greger-tools--with-split-window (&rest body)
+433:   "Execute BODY in a split window context, returning focus to original window.
+434: If not split, split horizontally and select other window.
+435: If already split, select next window.
+436: Always returns focus to the original window after executing BODY."
+437:   `(let ((original-window (selected-window)))
+438:      (unwind-protect
+439:          (progn
+440:            (if (= (length (window-list)) 1)
+441:                ;; Not split, split horizontally and select other window
+442:                (progn
+443:                  (split-window-horizontally)
+444:                  (other-window 1))
+445:              ;; Already split, select next window
+446:              (other-window 1))
+447:            ,@body)
+448:        ;; Always return to original window
+449:        (select-window original-window))))
+450:
+451: (defun greger-tools--write-new-file (file-path contents git-commit-message &optional buffer)
+452:   "Write CONTENTS to a new file at FILE-PATH. Fails if file already exists.
+453: If BUFFER is provided, it will be staged and committed along with the new file."
+454:   (unless (stringp file-path)
+455:     (error "file_path must be a string"))
+456:
+457:   (unless (stringp contents)
+458:     (error "contents must be a string"))
+459:
+460:   (let ((expanded-path (expand-file-name file-path)))
+461:
+462:     ;; Check if file already exists
+463:     (when (file-exists-p expanded-path)
+464:       (error "File already exists: %s" expanded-path))
+465:
+466:     ;; Check if parent directory exists, if not create it
+467:     (let ((parent-dir (file-name-directory expanded-path)))
+468:       (unless (file-exists-p parent-dir)
+469:         (make-directory parent-dir t)))
+470:
+471:     ;; Write the file
+472:     (condition-case err
+473:         (with-temp-buffer
+474:           (insert contents)
+475:           (write-file expanded-path))
+476:       (error (format "Failed to write file: %s" (error-message-string err))))
+477:
+478:     ;; Stage and commit changes - infer the file to stage
+479:     (let ((git-result (greger-tools--git-stage-and-commit (list expanded-path) git-commit-message buffer)))
+480:       (format "Successfully wrote new file %s with %d characters. %s"
+481:               expanded-path (length contents) git-result))))
+482:
+483: (defun greger-tools--make-directory (path git-commit-message &optional buffer)
+484:   "Recursively create directory at PATH.
+485: If BUFFER is provided, it will be staged and committed along with the directory."
+486:   (unless (stringp path)
+487:     (error "path must be a string"))
+488:
+489:   (let ((expanded-path (expand-file-name path)))
+490:
+491:     ;; Check if path already exists
+492:     (if (file-exists-p expanded-path)
+493:         (if (file-directory-p expanded-path)
+494:             (format "Directory already exists: %s" expanded-path)
+495:           (error "Path exists but is not a directory: %s" expanded-path))
+496:
+497:       ;; Create directory recursively
+498:       (condition-case err
+499:           (progn
+500:             (make-directory expanded-path t)
+501:             ;; For directory creation, we might want to stage a .gitkeep file or similar
+502:             ;; For now, we'll stage the directory path itself (though git doesn't track empty dirs)
+503:             (let ((git-result (greger-tools--git-stage-and-commit (list expanded-path) git-commit-message buffer)))
+504:               (format "Successfully created directory: %s. %s" expanded-path git-result)))
+505:         (error (format "Failed to create directory: %s" (error-message-string err)))))))
+506:
+507: (defun greger-tools--rename-file (old-path new-path git-commit-message &optional buffer)
+508:   "Rename file from OLD-PATH to NEW-PATH.
+509: If BUFFER is provided, it will be staged and committed along with the renamed file."
+510:   (unless (stringp old-path)
+511:     (error "old_path must be a string"))
+512:
+513:   (unless (stringp new-path)
+514:     (error "new_path must be a string"))
+515:
+516:   (let ((expanded-old-path (expand-file-name old-path))
+517:         (expanded-new-path (expand-file-name new-path)))
+518:
+519:     ;; Check if old file exists
+520:     (unless (file-exists-p expanded-old-path)
+521:       (error "Source file does not exist: %s" expanded-old-path))
+522:
+523:     ;; Check if new file already exists
+524:     (when (file-exists-p expanded-new-path)
+525:       (error "Destination file already exists: %s" expanded-new-path))
+526:
+527:     ;; Ensure destination directory exists
+528:     (let ((parent-dir (file-name-directory expanded-new-path)))
+529:       (unless (file-exists-p parent-dir)
+530:         (make-directory parent-dir t)))
+531:
+532:     ;; Rename the file
+533:     (condition-case err
+534:         (progn
+535:           (rename-file expanded-old-path expanded-new-path)
+536:           ;; Stage both old and new paths (git mv operation)
+537:           (let ((git-result (greger-tools--git-stage-and-commit
+538:                              (list expanded-old-path expanded-new-path)
+539:                              git-commit-message buffer)))
+540:             (format "Successfully renamed %s to %s. %s" expanded-old-path expanded-new-path git-result)))
+541:       (error (format "Failed to rename file: %s" (error-message-string err))))))
+542:
+543: (defun greger-tools--replace-function (file-path function-name contents line-number commit-message &optional buffer)
+544:   "Replace FUNCTION-NAME in FILE-PATH with new CONTENTS at LINE-NUMBER.
+545: If BUFFER is provided, it will be staged and committed along with the modified file."
+546:   (unless (stringp file-path)
+547:     (error "file_path must be a string"))
+548:
+549:   (unless (stringp function-name)
+550:     (error "function_name must be a string"))
+551:
+552:   (unless (stringp contents)
+553:     (error "contents must be a string"))
+554:
+555:   (unless (integerp line-number)
+556:     (error "line_number must be an integer"))
+557:
+558:   (unless (stringp commit-message)
+559:     (error "commit_message must be a string"))
+560:
+561:   (let ((expanded-path (expand-file-name file-path)))
+562:
+563:     ;; Check if file exists
+564:     (unless (file-exists-p expanded-path)
+565:       (error "File does not exist: %s" expanded-path))
+566:
+567:     ;; Check file extension for supported languages
+568:     (unless (or (string-suffix-p ".py" expanded-path)
+569:                 (string-suffix-p ".el" expanded-path))
+570:       (error "Only Python (.py) and Elisp (.el) files are supported"))
+571:
+572:     (greger-tools--with-split-window
+573:      (find-file expanded-path)
+574:
+575:      ;; Go to the specified line number
+576:      (goto-line line-number)
+577:
+578:      ;; Verify function name is at this line
+579:      (beginning-of-line)
+580:      (let ((line-content (buffer-substring-no-properties
+581:                           (line-beginning-position)
+582:                           (line-end-position))))
+583:
+584:        ;; Check if function is defined on this line based on file type
+585:        (let ((function-pattern
+586:               (cond
+587:                ((string-suffix-p ".py" expanded-path)
+588:                 (format "^\\s-*def\\s-+%s\\s-*(" (regexp-quote function-name)))
+589:                ((string-suffix-p ".el" expanded-path)
+590:                 (format "^\\s-*(defun\\s-+%s\\s-*(" (regexp-quote function-name)))
+591:                (t (error "Unsupported file type")))))
+592:
+593:          (unless (string-match-p function-pattern line-content)
+594:            (error "Function '%s' not found at line %d in %s. Line content: %s"
+595:                   function-name line-number expanded-path line-content))))
+596:
+597:      ;; Delete the existing function using end-of-defun then beginning-of-defun
+598:      (let (start-pos end-pos)
+599:        ;; First go to end of defun to get the end position
+600:        (end-of-defun)
+601:        (setq end-pos (point))
+602:
+603:        ;; Then go to beginning of defun to get start position
+604:        (beginning-of-defun)
+605:        (setq start-pos (point))
+606:
+607:        ;; Delete the function
+608:        (delete-region start-pos end-pos)
+609:
+610:        ;; Insert new contents
+611:        (insert contents)
+612:
+613:        ;; Ensure there's a newline at the end if not present
+614:        (unless (string-suffix-p "\n" contents)
+615:          (insert "\n")))
+616:
+617:      ;; Save the file
+618:      (save-buffer))
+619:
+620:     ;; Stage and commit the file
+621:     (let ((git-result (greger-tools--git-stage-and-commit (list expanded-path) commit-message buffer)))
+622:       (format "Successfully replaced function '%s' in %s. %s"
+623:               function-name expanded-path git-result))))
+624:
+625: (defun greger-tools--replace-file (file-path contents git-commit-message &optional buffer)
+626:   "Replace the entire contents of FILE-PATH with CONTENTS.
+627: If BUFFER is provided, it will be staged and committed along with the modified file."
+628:   (unless (stringp file-path)
+629:     (error "file_path must be a string"))
+630:
+631:   (unless (stringp contents)
+632:     (error "contents must be a string"))
+633:
+634:   (unless (stringp git-commit-message)
+635:     (error "git_commit_message must be a string"))
+636:
+637:   (let ((expanded-path (expand-file-name file-path)))
+638:
+639:     ;; Check if file exists
+640:     (unless (file-exists-p expanded-path)
+641:       (error "File does not exist: %s" expanded-path))
+642:
+643:     ;; Check if it's actually a file and not a directory
+644:     (when (file-directory-p expanded-path)
+645:       (error "Path is a directory, not a file: %s" expanded-path))
+646:
+647:     (greger-tools--with-split-window
+648:      (find-file expanded-path)
+649:
+650:      ;; Select all content and replace it
+651:      (erase-buffer)
+652:      (insert contents)
+653:
+654:      ;; Save the file
+655:      (save-buffer))
+656:
+657:     ;; Stage and commit the file
+658:     (let ((git-result (greger-tools--git-stage-and-commit (list expanded-path) git-commit-message buffer)))
+659:       (format "Successfully replaced contents of %s with %d characters. %s"
+660:               expanded-path (length contents) git-result))))
+661:
+662: (defun greger-tools--str-replace (file-path original-content new-content git-commit-message &optional buffer)
+663:   "Replace ORIGINAL-CONTENT with NEW-CONTENT in FILE-PATH.
+664: If BUFFER is provided, it will be staged and committed along with the modified file."
+665:   (unless (stringp file-path)
+666:     (error "file_path must be a string"))
+667:
+668:   (unless (stringp original-content)
+669:     (error "original_content must be a string"))
+670:
+671:   (unless (stringp new-content)
+672:     (error "new_content must be a string"))
+673:
+674:   (unless (stringp git-commit-message)
+675:     (error "git_commit_message must be a string"))
+676:
+677:   (let ((expanded-path (expand-file-name file-path)))
+678:
+679:     ;; Check if file exists
+680:     (unless (file-exists-p expanded-path)
+681:       (error "File does not exist: %s" expanded-path))
+682:
+683:     ;; Check if it's actually a file and not a directory
+684:     (when (file-directory-p expanded-path)
+685:       (error "Path is a directory, not a file: %s" expanded-path))
+686:
+687:     (greger-tools--with-split-window
+688:      (find-file expanded-path)
+689:
+690:      ;; Use isearch to find the original content
+691:      (goto-char (point-min))
+692:      (let ((case-fold-search nil)) ; Make search case-sensitive
+693:        (if (search-forward original-content nil t)
+694:            (progn
+695:              ;; Replace the found content
+696:              (replace-match new-content nil t)
+697:              ;; Save the file
+698:              (save-buffer))
+699:          (error "Original content not found in file: %s -- Try again!" expanded-path))))
+700:
+701:     ;; Stage and commit the file
+702:     (let ((git-result (greger-tools--git-stage-and-commit (list expanded-path) git-commit-message buffer)))
+703:       (format "Successfully replaced content in %s. %s" expanded-path git-result))))
+704:
+705: (defun greger-tools--insert (file-path line-number content git-commit-message &optional buffer)
+706:   "Insert CONTENT at LINE-NUMBER in FILE-PATH.
+707: If BUFFER is provided, it will be staged and committed along with the modified file."
+708:   (unless (stringp file-path)
+709:     (error "file_path must be a string"))
+710:
+711:   (unless (integerp line-number)
+712:     (error "line_number must be an integer"))
+713:
+714:   (unless (>= line-number 0)
+715:     (error "line_number must be >= 0"))
+716:
+717:   (unless (stringp content)
+718:     (error "content must be a string"))
+719:
+720:   (unless (stringp git-commit-message)
+721:     (error "git_commit_message must be a string"))
+722:
+723:   (let ((expanded-path (expand-file-name file-path)))
+724:
+725:     ;; Check if file exists
+726:     (unless (file-exists-p expanded-path)
+727:       (error "File does not exist: %s" expanded-path))
+728:
+729:     ;; Check if it's actually a file and not a directory
+730:     (when (file-directory-p expanded-path)
+731:       (error "Path is a directory, not a file: %s" expanded-path))
+732:
+733:     (greger-tools--with-split-window
+734:      (find-file expanded-path)
+735:
+736:      ;; Navigate to the insertion point
+737:      (goto-char (point-min))
+738:      (if (= line-number 0)
+739:          ;; Insert at beginning of file
+740:          (goto-char (point-min))
+741:        ;; Go to the specified line - this is where the fix is needed
+742:        (goto-line line-number)
+743:        ;; Move to beginning of line to insert before it, not after it
+744:        (beginning-of-line))
+745:
+746:      ;; Insert the content
+747:      (if (= line-number 0)
+748:          ;; At beginning of file, insert content and newline
+749:          (progn
+750:            (insert content)
+751:            (unless (string-suffix-p "\n" content)
+752:              (insert "\n")))
+753:        ;; Before a line, insert content then newline
+754:        (progn
+755:          (insert content)
+756:          (unless (string-suffix-p "\n" content)
+757:            (insert "\n"))))
+758:
+759:      ;; Save the file
+760:      (save-buffer))
+761:
+762:     ;; Stage and commit the file
+763:     (let ((git-result (greger-tools--git-stage-and-commit (list expanded-path) git-commit-message buffer)))
+764:       (format "Successfully inserted %d characters at line %d in %s. %s"
+765:               (length content) line-number expanded-path git-result))))
+766:
+767: (defun greger-tools--git-log (path &optional max-rows)
+768:   "View git commit logs using git command line for PATH."
+769:   (unless (stringp path)
+770:     (error "path must be a string"))
+771:
+772:   (let ((expanded-path (expand-file-name path))
+773:         (max-count (or max-rows 100)))
+774:
+775:     (unless (file-exists-p expanded-path)
+776:       (error "Path does not exist: %s" expanded-path))
+777:
+778:     ;; Get the directory to search for git repo (if path is a file, use its directory)
+779:     (let* ((search-dir (if (file-directory-p expanded-path)
+780:                           expanded-path
+781:                         (file-name-directory expanded-path)))
+782:            (repo-root (greger-tools--find-git-repo-root search-dir)))
+783:       (unless repo-root
+784:         (error "Path %s is not in a git repository" expanded-path))
+785:
+786:       (condition-case err
+787:           (let ((default-directory repo-root))
+788:             (with-temp-buffer
+789:               (let ((exit-code (call-process "git" nil t nil "log"
+790:                                            "--oneline" "--decorate" "--graph"
+791:                                            (format "--max-count=%d" max-count))))
+792:                 (if (= exit-code 0)
+793:                     (let ((results (buffer-string)))
+794:                       (if (string-empty-p (string-trim results))
+795:                           "No git log available"
+796:                         results))
+797:                   (error "Git log command failed with exit code %d" exit-code)))))
+798:         (error (format "Failed to retrieve git log: %s" (error-message-string err)))))))
+799:
+800: (defun greger-tools--git-show-commit (commit-hash path)
+801:   "View git commit using git command line for PATH."
+802:   (unless (stringp commit-hash)
+803:     (error "commit_hash must be a string"))
+804:
+805:   (unless (stringp path)
+806:     (error "path must be a string"))
+807:
+808:   (let ((expanded-path (expand-file-name path)))
+809:
+810:     (unless (file-exists-p expanded-path)
+811:       (error "Path does not exist: %s" expanded-path))
+812:
+813:     ;; Get the directory to search for git repo (if path is a file, use its directory)
+814:     (let* ((search-dir (if (file-directory-p expanded-path)
+815:                           expanded-path
+816:                         (file-name-directory expanded-path)))
+817:            (repo-root (greger-tools--find-git-repo-root search-dir)))
+818:       (unless repo-root
+819:         (error "Path %s is not in a git repository" expanded-path))
+820:
+821:       (condition-case err
+822:           (let ((default-directory repo-root))
+823:             (with-temp-buffer
+824:               (let ((exit-code (call-process "git" nil t nil "show" commit-hash)))
+825:                 (if (= exit-code 0)
+826:                     (let ((results (buffer-string)))
+827:                       (if (string-empty-p (string-trim results))
+828:                           "No git commit available"
+829:                         results))
+830:                   (error "Git show command failed with exit code %d" exit-code)))))
+831:         (error (format "Failed to show git commit: %s" (error-message-string err)))))))
+832:
+833: (defun greger-tools--eval-elisp-defuns (file-path function-names)
+834:   (unless (stringp file-path)
+835:     (error "File path must be a string"))
+836:
+837:   (unless (vectorp function-names)
+838:     (error "Function names must be a vector"))
+839:
+840:   (let ((expanded-path (expand-file-name file-path)))
+841:     ;; Check if file exists
+842:     (unless (file-exists-p expanded-path)
+843:       (error "File does not exist: %s" expanded-path))
+844:
+845:     ;; Check if it's actually a file
+846:     (when (file-directory-p expanded-path)
+847:       (error "Path is a directory, not a file: %s" expanded-path))
+848:
+849:     (greger-tools--with-split-window
+850:      (find-file expanded-path)
+851:
+852:      ;; Navigate to and evaluate each function
+853:      (dotimes (i (length function-names))
+854:        (let ((function-name (aref function-names i)))
+855:          (goto-char (point-min))
+856:
+857:          ;; Search for the function definition
+858:          (let ((function-pattern (format "^\\s-*(\\(ert-deftest\\|defun\\)\\s-+%s\\s-*("
+859:                                          (regexp-quote function-name))))
+860:            (unless (re-search-forward function-pattern nil t)
+861:              (error "Function '%s' not found in %s" function-name expanded-path))
+862:
+863:            ;; Move to beginning of defun and evaluate it
+864:            (beginning-of-defun)
+865:            (eval-defun nil)))))
+866:     "Eval successful"))
+867:
+868: (defun greger-tools--ert-test (test-file-path function-names)
+869:   "Execute ERT tests by evaluating test functions and running them with ert.
+870: TEST-FILE-PATH is the path to the test file.
+871: FUNCTION-NAMES is a vector of test function names to evaluate and run."
+872:
+873:   ;; First eval the test function names
+874:   (greger-tools--eval-elisp-defuns test-file-path function-names)
+875:
+876:   (condition-case err
+877:       (progn
+878:         ;; Now run the tests using ert-run-tests with a custom listener
+879:         (let* ((function-names-list (append function-names nil)) ; Convert vector to list for processing
+880:                (test-selector `(member ,@(mapcar #'intern function-names-list)))
+881:                (output-lines '())
+882:                (stats nil))
+883:
+884:           ;; Define a custom listener to capture test output
+885:           (let ((listener
+886:                  (lambda (event-type &rest event-args)
+887:                    (cl-case event-type
+888:                      (run-started
+889:                       (cl-destructuring-bind (stats-obj) event-args
+890:                         (setq stats stats-obj)
+891:                         (push (format "Running %d tests (%s)"
+892:                                       (length (ert--stats-tests stats-obj))
+893:                                       (current-time-string))
+894:                               output-lines)))
+895:                      (test-started
+896:                       (cl-destructuring-bind (stats-obj test) event-args
+897:                         (push (format "Test %S started" (ert-test-name test))
+898:                               output-lines)))
+899:                      (test-ended
+900:                       (cl-destructuring-bind (stats-obj test result) event-args
+901:                         (let ((test-name (ert-test-name test))
+902:                               (expected-p (ert-test-result-expected-p test result)))
+903:                           (push (format "Test %S: %s%s%s"
+904:                                         test-name
+905:                                         (ert-string-for-test-result result expected-p)
+906:                                         (if (ert-test-result-duration result)
+907:                                             (format " (%.3fs)" (ert-test-result-duration result))
+908:                                           "")
+909:                                         (let ((reason (ert-reason-for-test-result result)))
+910:                                           (if (string-empty-p reason) "" reason)))
+911:                                 output-lines)
+912:                           ;; Add condition details for failures
+913:                           (when (and (ert-test-result-with-condition-p result)
+914:                                      (not expected-p))
+915:                             (let ((condition (ert-test-result-with-condition-condition result)))
+916:                               (push (format "  Condition: %S" condition) output-lines))))))
+917:                      (run-ended
+918:                       (cl-destructuring-bind (stats-obj aborted-p) event-args
+919:                         (let ((completed (ert-stats-completed stats-obj))
+920:                               (expected (ert-stats-completed-expected stats-obj))
+921:                               (unexpected (ert-stats-completed-unexpected stats-obj))
+922:                               (skipped (ert-stats-skipped stats-obj)))
+923:                           (push (format "\n%sRan %d tests, %d results as expected, %d unexpected%s"
+924:                                         (if aborted-p "Aborted: " "")
+925:                                         completed
+926:                                         expected
+927:                                         unexpected
+928:                                         (if (zerop skipped) "" (format ", %d skipped" skipped)))
+929:                                 output-lines))))))))
+930:
+931:             ;; Run the tests
+932:             (setq stats (ert-run-tests test-selector listener))
+933:
+934:             ;; Format the results
+935:             (let ((result-text (string-join (nreverse output-lines) "\n")))
+936:               (format "Successfully evaluated %d test function(s) from %s and executed them with ert.\n\nTest Results:\n%s"
+937:                       (length function-names) test-file-path result-text)))))
+938:
+939:     (error (format "Failed to execute ERT tests: %s" (error-message-string err)))))
+940:
+941: (defun greger-tools--shell-command (command &optional working-directory)
+942:   "Execute COMMAND in WORKING-DIRECTORY and return the output.
+943: Prompts for permission before running the command for security."
+944:   (unless (stringp command)
+945:     (error "Command must be a string"))
+946:
+947:   (when (string-empty-p (string-trim command))
+948:     (error "Command cannot be empty"))
+949:
+950:   (let ((work-dir (or working-directory ".")))
+951:     (unless (stringp work-dir)
+952:       (error "Working directory must be a string"))
+953:
+954:     (let ((expanded-work-dir (expand-file-name work-dir)))
+955:       (unless (file-exists-p expanded-work-dir)
+956:         (error "Working directory does not exist: %s" expanded-work-dir))
+957:
+958:       (unless (file-directory-p expanded-work-dir)
+959:         (error "Working directory path is not a directory: %s" expanded-work-dir))
+960:
+961:       ;; Prompt for permission to run the command
+962:       (unless (y-or-n-p (format "Execute shell command: '%s' in directory '%s'? "
+963:                                 command expanded-work-dir))
+964:         (error "Shell command execution cancelled by user"))
+965:
+966:       (condition-case err
+967:           (let ((default-directory expanded-work-dir)
+968:                 (output "")
+969:                 (exit-code 0))
+970:             ;; Execute the command and capture both output and exit code
+971:             (with-temp-buffer
+972:               (setq exit-code (call-process-shell-command command nil t nil))
+973:               (setq output (buffer-string)))
+974:
+975:             ;; Format the result with exit code information
+976:             (if (= exit-code 0)
+977:                 (format "Command executed successfully (exit code 0):\n%s"
+978:                         (if (string-empty-p (string-trim output))
+979:                             "(no output)"
+980:                           output))
+981:               (format "Command failed with exit code %d:\n%s"
+982:                       exit-code
+983:                       (if (string-empty-p (string-trim output))
+984:                           "(no output)"
+985:                         output))))
+986:         (error (format "Failed to execute shell command: %s" (error-message-string err)))))))
+987:
+988: ;;; greger-stdlib.el ends here
+989:
+</tool.toolu_01KUC7EhdnHagYwsFimVvF7A>
+
+## ASSISTANT:
+
+Now I need to search for all functions that use `greger-tools--with-split-window` to identify which ones need to be updated:
+
+## TOOL USE:
+
+Name: ripgrep
+ID: toolu_01R8Zkyuf8wHQQr1rkx2FTyu
+
+### pattern
+
+<tool.toolu_01R8Zkyuf8wHQQr1rkx2FTyu>
+greger-tools--with-split-window
+</tool.toolu_01R8Zkyuf8wHQQr1rkx2FTyu>
+
+### path
+
+<tool.toolu_01R8Zkyuf8wHQQr1rkx2FTyu>
+greger-stdlib.el
+</tool.toolu_01R8Zkyuf8wHQQr1rkx2FTyu>
+
+### context-lines
+
+<tool.toolu_01R8Zkyuf8wHQQr1rkx2FTyu>
+2
+</tool.toolu_01R8Zkyuf8wHQQr1rkx2FTyu>
+
+## TOOL RESULT:
+
+ID: toolu_01R8Zkyuf8wHQQr1rkx2FTyu
+
+<tool.toolu_01R8Zkyuf8wHQQr1rkx2FTyu>
+432:(defmacro greger-tools--with-split-window (&rest body)
+572:    (greger-tools--with-split-window
+647:    (greger-tools--with-split-window
+687:    (greger-tools--with-split-window
+733:    (greger-tools--with-split-window
+849:    (greger-tools--with-split-window
+
+</tool.toolu_01R8Zkyuf8wHQQr1rkx2FTyu>
+
+## ASSISTANT:
+
+I can see that the following functions use `greger-tools--with-split-window`:
+1. `greger-tools--replace-function` (line 572)
+2. `greger-tools--replace-file` (line 647)
+3. `greger-tools--str-replace` (line 687)
+4. `greger-tools--insert` (line 733)
+5. `greger-tools--eval-elisp-defuns` (line 849)
+
+Now I'll update each of these functions to work in the background without using split windows. I'll need to replace the `greger-tools--with-split-window` calls with simple background operations using `with-current-buffer` and `find-file-noselect`.
+
+Let's start with `greger-tools--replace-function`:
