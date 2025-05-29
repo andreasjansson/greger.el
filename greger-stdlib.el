@@ -529,7 +529,7 @@ If BUFFER is provided, it will be staged and committed along with the renamed fi
           ;; Stage both old and new paths (git mv operation)
           (let ((git-result (greger-tools--git-stage-and-commit
                              (list expanded-old-path expanded-new-path)
-                             git-commit-message)))
+                             git-commit-message buffer)))
             (format "Successfully renamed %s to %s. %s" expanded-old-path expanded-new-path git-result)))
       (error (format "Failed to rename file: %s" (error-message-string err))))))
 
