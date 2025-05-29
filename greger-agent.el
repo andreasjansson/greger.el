@@ -105,11 +105,12 @@
     (if tool-calls
         (progn
           (greger-agent--debug "TOOL USE DETECTED! Found %d tool calls" (length tool-calls))
-          (setq greger-agent--current-iteration (1+ greger-agent--current-iteration))
-          (greger-agent--execute-tools tool-calls))
+          (setf (greger-agent-state-current-iteration agent-state)
+                (1+ (greger-agent-state-current-iteration agent-state)))
+          (greger-agent--execute-tools tool-calls agent-state))
       (progn
         (greger-agent--debug "NO TOOL USE - CONVERSATION COMPLETE")
-        (greger-agent--finish-response)))))
+        (greger-agent--finish-response agent-state)))))
 
 (defun greger-agent--extract-tool-calls (content-blocks)
   "Extract tool calls from CONTENT-BLOCKS."

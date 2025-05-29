@@ -3399,3 +3399,98 @@ Successfully replaced content in /Users/andreas/projects/aichat3/greger-agent.el
 ## ASSISTANT:
 
 Now let me update the handle-parsed-response function:
+
+
+## TOOL USE:
+
+Name: str-replace
+ID: toolu_01MWFG68aAEkMern8dA4D3hr
+
+### file_path
+
+<tool.toolu_01MWFG68aAEkMern8dA4D3hr>
+greger-agent.el
+</tool.toolu_01MWFG68aAEkMern8dA4D3hr>
+
+### original_content
+
+<tool.toolu_01MWFG68aAEkMern8dA4D3hr>
+(defun greger-agent--handle-parsed-response (content-blocks)
+  "Handle the parsed CONTENT-BLOCKS from Claude."
+</tool.toolu_01MWFG68aAEkMern8dA4D3hr>
+
+### new_content
+
+<tool.toolu_01MWFG68aAEkMern8dA4D3hr>
+(defun greger-agent--handle-parsed-response (content-blocks agent-state)
+  "Handle the parsed CONTENT-BLOCKS from Claude using AGENT-STATE."
+</tool.toolu_01MWFG68aAEkMern8dA4D3hr>
+
+### git_commit_message
+
+<tool.toolu_01MWFG68aAEkMern8dA4D3hr>
+Update greger-agent--handle-parsed-response signature
+</tool.toolu_01MWFG68aAEkMern8dA4D3hr>
+
+## TOOL RESULT:
+
+ID: toolu_01MWFG68aAEkMern8dA4D3hr
+
+<tool.toolu_01MWFG68aAEkMern8dA4D3hr>
+Successfully replaced content in /Users/andreas/projects/aichat3/greger-agent.el. Successfully staged 2 file(s) and committed with message: Update greger-agent--handle-parsed-response signature
+</tool.toolu_01MWFG68aAEkMern8dA4D3hr>
+
+## ASSISTANT:
+
+Let me see what's in that function:
+
+## TOOL USE:
+
+Name: read-file
+ID: toolu_01DG3aS9rKbP8urYRVGG3NcJ
+
+### path
+
+<tool.toolu_01DG3aS9rKbP8urYRVGG3NcJ>
+greger-agent.el
+</tool.toolu_01DG3aS9rKbP8urYRVGG3NcJ>
+
+### start_line
+
+<tool.toolu_01DG3aS9rKbP8urYRVGG3NcJ>
+100
+</tool.toolu_01DG3aS9rKbP8urYRVGG3NcJ>
+
+### end_line
+
+<tool.toolu_01DG3aS9rKbP8urYRVGG3NcJ>
+120
+</tool.toolu_01DG3aS9rKbP8urYRVGG3NcJ>
+
+## TOOL RESULT:
+
+ID: toolu_01DG3aS9rKbP8urYRVGG3NcJ
+
+<tool.toolu_01DG3aS9rKbP8urYRVGG3NcJ>
+  "Handle the parsed CONTENT-BLOCKS from Claude using AGENT-STATE."
+  (greger-agent--debug "CONTENT BLOCKS: %s" content-blocks)
+
+  ;; Check if we have tool calls
+  (let ((tool-calls (greger-agent--extract-tool-calls content-blocks)))
+    (if tool-calls
+        (progn
+          (greger-agent--debug "TOOL USE DETECTED! Found %d tool calls" (length tool-calls))
+          (setq greger-agent--current-iteration (1+ greger-agent--current-iteration))
+          (greger-agent--execute-tools tool-calls))
+      (progn
+        (greger-agent--debug "NO TOOL USE - CONVERSATION COMPLETE")
+        (greger-agent--finish-response)))))
+
+(defun greger-agent--extract-tool-calls (content-blocks)
+  "Extract tool calls from CONTENT-BLOCKS."
+  (let ((tool-calls '()))
+    (dolist (block content-blocks)
+      (when (string= (alist-get 'type block) "tool_use")
+        (greger-agent--debug "EXTRACTING TOOL CALL: %s with input: %s"
+                            (alist-get 'name block)
+</tool.toolu_01DG3aS9rKbP8urYRVGG3NcJ>
