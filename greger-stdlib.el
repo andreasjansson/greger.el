@@ -497,8 +497,9 @@ If BUFFER is provided, it will be staged and committed along with the directory.
               (format "Successfully created directory: %s. %s" expanded-path git-result)))
         (error (format "Failed to create directory: %s" (error-message-string err)))))))
 
-(defun greger-tools--rename-file (old-path new-path git-commit-message)
-  "Rename file from OLD-PATH to NEW-PATH."
+(defun greger-tools--rename-file (old-path new-path git-commit-message &optional buffer)
+  "Rename file from OLD-PATH to NEW-PATH.
+If BUFFER is provided, it will be staged and committed along with the renamed file."
   (unless (stringp old-path)
     (error "old_path must be a string"))
 
