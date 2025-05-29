@@ -473,8 +473,9 @@ If BUFFER is provided, it will be staged and committed along with the new file."
       (format "Successfully wrote new file %s with %d characters. %s"
               expanded-path (length contents) git-result))))
 
-(defun greger-tools--make-directory (path git-commit-message)
-  "Recursively create directory at PATH."
+(defun greger-tools--make-directory (path git-commit-message &optional buffer)
+  "Recursively create directory at PATH.
+If BUFFER is provided, it will be staged and committed along with the directory."
   (unless (stringp path)
     (error "path must be a string"))
 
