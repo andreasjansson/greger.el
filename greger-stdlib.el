@@ -200,6 +200,19 @@
   :required '("command")
   :function 'greger-tools--shell-command)
 
+(greger-register-tool "download-webpage"
+  :description "Download webpage content from a URL. Can return either extracted text or raw HTML."
+  :properties '((url . ((type . "string")
+                        (description . "The URL to download content from")))
+                (extract_text . ((type . "boolean")
+                                 (description . "Whether to extract text content or return raw HTML")
+                                 (default . t)))
+                (use_highest_readability . ((type . "boolean")
+                                            (description . "Whether to use eww's aggressive highest readability setting for better text extraction")
+                                            (default . nil))))
+  :required '("url")
+  :function 'greger-tools--download-webpage)
+
 ;; Helper functions
 
 (defun greger-tools--find-git-repo-root (start-dir)
