@@ -1569,3 +1569,150 @@ Successfully replaced content in /Users/andreas/projects/aichat3/greger-stream.e
 ## ASSISTANT:
 
 ## 4. Now let's remove the greger-stream--insert function since it won't be needed anymore:
+
+
+## TOOL USE:
+
+Name: str-replace
+ID: toolu_016EzkDFjkWi6hVHcC3ocixt
+
+### file_path
+
+<tool.toolu_016EzkDFjkWi6hVHcC3ocixt>
+greger-stream.el
+</tool.toolu_016EzkDFjkWi6hVHcC3ocixt>
+
+### original_content
+
+<tool.toolu_016EzkDFjkWi6hVHcC3ocixt>
+(defun greger-stream--insert (state text)
+  (with-current-buffer (greger-stream-state-output-buffer state)
+    (goto-char (greger-stream-state-insert-position state))
+    (insert text)
+    (setf (greger-stream-state-insert-position state) (point))))
+</tool.toolu_016EzkDFjkWi6hVHcC3ocixt>
+
+### new_content
+
+<tool.toolu_016EzkDFjkWi6hVHcC3ocixt>
+
+</tool.toolu_016EzkDFjkWi6hVHcC3ocixt>
+
+### git_commit_message
+
+<tool.toolu_016EzkDFjkWi6hVHcC3ocixt>
+Remove greger-stream--insert function
+</tool.toolu_016EzkDFjkWi6hVHcC3ocixt>
+
+## TOOL RESULT:
+
+ID: toolu_016EzkDFjkWi6hVHcC3ocixt
+
+<tool.toolu_016EzkDFjkWi6hVHcC3ocixt>
+Successfully replaced content in /Users/andreas/projects/aichat3/greger-stream.el. Successfully staged 2 file(s) and committed with message: Remove greger-stream--insert function
+</tool.toolu_016EzkDFjkWi6hVHcC3ocixt>
+
+## ASSISTANT:
+
+## 5. Now let's update the text start callback handling in greger-stream.el to use the callback passed in:
+
+## TOOL USE:
+
+Name: str-replace
+ID: toolu_01K5V78ovqXjhRqrWhMroSoE
+
+### file_path
+
+<tool.toolu_01K5V78ovqXjhRqrWhMroSoE>
+greger-stream.el
+</tool.toolu_01K5V78ovqXjhRqrWhMroSoE>
+
+### original_content
+
+<tool.toolu_01K5V78ovqXjhRqrWhMroSoE>
+         (when (string= (alist-get 'type content-block) "text")
+           (funcall (greger-stream-state-text-start-callback state) state))
+</tool.toolu_01K5V78ovqXjhRqrWhMroSoE>
+
+### new_content
+
+<tool.toolu_01K5V78ovqXjhRqrWhMroSoE>
+         (when (and (string= (alist-get 'type content-block) "text")
+                    (greger-stream-state-text-start-callback state))
+           (funcall (greger-stream-state-text-start-callback state) state))
+</tool.toolu_01K5V78ovqXjhRqrWhMroSoE>
+
+### git_commit_message
+
+<tool.toolu_01K5V78ovqXjhRqrWhMroSoE>
+Add null check for text-start-callback in greger-stream.el
+</tool.toolu_01K5V78ovqXjhRqrWhMroSoE>
+
+## TOOL RESULT:
+
+ID: toolu_01K5V78ovqXjhRqrWhMroSoE
+
+<tool.toolu_01K5V78ovqXjhRqrWhMroSoE>
+Error executing tool: Original content not found in file: /Users/andreas/projects/aichat3/greger-stream.el -- Try again!
+</tool.toolu_01K5V78ovqXjhRqrWhMroSoE>
+
+## ASSISTANT:
+
+Let me check the current structure of that part of the file:
+
+## TOOL USE:
+
+Name: read-file
+ID: toolu_015ahKaRaNe91nxUAEesTCni
+
+### path
+
+<tool.toolu_015ahKaRaNe91nxUAEesTCni>
+greger-stream.el
+</tool.toolu_015ahKaRaNe91nxUAEesTCni>
+
+### start_line
+
+<tool.toolu_015ahKaRaNe91nxUAEesTCni>
+180
+</tool.toolu_015ahKaRaNe91nxUAEesTCni>
+
+### end_line
+
+<tool.toolu_015ahKaRaNe91nxUAEesTCni>
+200
+</tool.toolu_015ahKaRaNe91nxUAEesTCni>
+
+### include_line_numbers
+
+<tool.toolu_015ahKaRaNe91nxUAEesTCni>
+true
+</tool.toolu_015ahKaRaNe91nxUAEesTCni>
+
+## TOOL RESULT:
+
+ID: toolu_015ahKaRaNe91nxUAEesTCni
+
+<tool.toolu_015ahKaRaNe91nxUAEesTCni>
+180:   (let* ((data (json-read-from-string data-json))
+181:          (type (alist-get 'type data)))
+182:     (cond
+183:      ;; Content block start - create new content block
+184:      ((string= type "content_block_start")
+185:       (let* ((index (alist-get 'index data))
+186:              (content-block (copy-alist (alist-get 'content_block data)))
+187:              (blocks (greger-stream-state-parsed-content-blocks state)))
+188:
+189:         ;; Initialize content for accumulation
+190:         ;; TODO: is this necessary?
+191:         (cond
+192:          ((string= (alist-get 'type content-block) "tool_use")
+193:           (setf (alist-get 'input content-block) ""))
+194:          ((string= (alist-get 'type content-block) "text")
+195:           (setf (alist-get 'text content-block) "")))
+196:
+197:         (when (string= (alist-get 'type content-block) "text")
+198:           (funcall (greger-stream-state-text-start-callback state) state))
+199:
+200:         ;; Add block at the right index
+</tool.toolu_015ahKaRaNe91nxUAEesTCni>

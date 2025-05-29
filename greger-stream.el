@@ -194,7 +194,8 @@ BUFFER defaults to current buffer if not specified."
          ((string= (alist-get 'type content-block) "text")
           (setf (alist-get 'text content-block) "")))
 
-        (when (string= (alist-get 'type content-block) "text")
+        (when (and (string= (alist-get 'type content-block) "text")
+                   (greger-stream-state-text-start-callback state))
           (funcall (greger-stream-state-text-start-callback state) state))
 
         ;; Add block at the right index
