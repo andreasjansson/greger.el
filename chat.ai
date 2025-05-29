@@ -1716,3 +1716,623 @@ ID: toolu_015ahKaRaNe91nxUAEesTCni
 199:
 200:         ;; Add block at the right index
 </tool.toolu_015ahKaRaNe91nxUAEesTCni>
+
+
+## TOOL USE:
+
+Name: str-replace
+ID: toolu_01BQtMVndM7H9BaBE2ikVV7F
+
+### file_path
+
+<tool.toolu_01BQtMVndM7H9BaBE2ikVV7F>
+greger-stream.el
+</tool.toolu_01BQtMVndM7H9BaBE2ikVV7F>
+
+### original_content
+
+<tool.toolu_01BQtMVndM7H9BaBE2ikVV7F>
+        (when (string= (alist-get 'type content-block) "text")
+          (funcall (greger-stream-state-text-start-callback state) state))
+</tool.toolu_01BQtMVndM7H9BaBE2ikVV7F>
+
+### new_content
+
+<tool.toolu_01BQtMVndM7H9BaBE2ikVV7F>
+        (when (and (string= (alist-get 'type content-block) "text")
+                   (greger-stream-state-text-start-callback state))
+          (funcall (greger-stream-state-text-start-callback state) state))
+</tool.toolu_01BQtMVndM7H9BaBE2ikVV7F>
+
+### git_commit_message
+
+<tool.toolu_01BQtMVndM7H9BaBE2ikVV7F>
+Add null check for text-start-callback in greger-stream.el
+</tool.toolu_01BQtMVndM7H9BaBE2ikVV7F>
+
+## TOOL RESULT:
+
+ID: toolu_01BQtMVndM7H9BaBE2ikVV7F
+
+<tool.toolu_01BQtMVndM7H9BaBE2ikVV7F>
+Successfully replaced content in /Users/andreas/projects/aichat3/greger-stream.el. Successfully staged 2 file(s) and committed with message: Add null check for text-start-callback in greger-stream.el
+</tool.toolu_01BQtMVndM7H9BaBE2ikVV7F>
+
+## ASSISTANT:
+
+## 6. Now let's update the text callback handling:
+
+## TOOL USE:
+
+Name: read-file
+ID: toolu_01A5H1ADz7EyJeEcUW68AEFp
+
+### path
+
+<tool.toolu_01A5H1ADz7EyJeEcUW68AEFp>
+greger-stream.el
+</tool.toolu_01A5H1ADz7EyJeEcUW68AEFp>
+
+### start_line
+
+<tool.toolu_01A5H1ADz7EyJeEcUW68AEFp>
+208
+</tool.toolu_01A5H1ADz7EyJeEcUW68AEFp>
+
+### end_line
+
+<tool.toolu_01A5H1ADz7EyJeEcUW68AEFp>
+220
+</tool.toolu_01A5H1ADz7EyJeEcUW68AEFp>
+
+### include_line_numbers
+
+<tool.toolu_01A5H1ADz7EyJeEcUW68AEFp>
+true
+</tool.toolu_01A5H1ADz7EyJeEcUW68AEFp>
+
+## TOOL RESULT:
+
+ID: toolu_01A5H1ADz7EyJeEcUW68AEFp
+
+<tool.toolu_01A5H1ADz7EyJeEcUW68AEFp>
+208:              (delta-type (alist-get 'type delta))
+209:              (blocks (greger-stream-state-parsed-content-blocks state)))
+210:
+211:         (when (< index (length blocks))
+212:           (let ((block (nth index blocks)))
+213:             (cond
+214:              ;; Text delta
+215:              ((string= delta-type "text_delta")
+216:               (let ((text (alist-get 'text delta)))
+217:                 (setf (alist-get 'text block)
+218:                       (concat (alist-get 'text block) text))
+219:                 ;; Call text callback for live display
+220:                 (when (greger-stream-state-text-callback state)
+</tool.toolu_01A5H1ADz7EyJeEcUW68AEFp>
+
+## TOOL USE:
+
+Name: read-file
+ID: toolu_01KTVAci6TT9TMiXdatsCmRB
+
+### path
+
+<tool.toolu_01KTVAci6TT9TMiXdatsCmRB>
+greger-stream.el
+</tool.toolu_01KTVAci6TT9TMiXdatsCmRB>
+
+### start_line
+
+<tool.toolu_01KTVAci6TT9TMiXdatsCmRB>
+218
+</tool.toolu_01KTVAci6TT9TMiXdatsCmRB>
+
+### end_line
+
+<tool.toolu_01KTVAci6TT9TMiXdatsCmRB>
+225
+</tool.toolu_01KTVAci6TT9TMiXdatsCmRB>
+
+### include_line_numbers
+
+<tool.toolu_01KTVAci6TT9TMiXdatsCmRB>
+true
+</tool.toolu_01KTVAci6TT9TMiXdatsCmRB>
+
+## TOOL RESULT:
+
+ID: toolu_01KTVAci6TT9TMiXdatsCmRB
+
+<tool.toolu_01KTVAci6TT9TMiXdatsCmRB>
+218:                       (concat (alist-get 'text block) text))
+219:                 ;; Call text callback for live display
+220:                 (when (greger-stream-state-text-callback state)
+221:                   (funcall (greger-stream-state-text-callback state) state text))))
+222:
+223:              ;; Tool input delta
+224:              ((string= delta-type "input_json_delta")
+225:               (let ((partial-json (alist-get 'partial_json delta)))
+</tool.toolu_01KTVAci6TT9TMiXdatsCmRB>
+
+## ASSISTANT:
+
+Good, that part is already correct.
+
+## 7. Now let's update greger-agent.el to handle the text insertion and provide the callbacks:
+
+## TOOL USE:
+
+Name: str-replace
+ID: toolu_01QmceWbdFF9YAKcH9iiVcgc
+
+### file_path
+
+<tool.toolu_01QmceWbdFF9YAKcH9iiVcgc>
+greger-agent.el
+</tool.toolu_01QmceWbdFF9YAKcH9iiVcgc>
+
+### original_content
+
+<tool.toolu_01QmceWbdFF9YAKcH9iiVcgc>
+      ;; Get Claude's response
+      (greger-agent--debug "CALLING greger-stream-to-buffer-with-tools...")
+      (greger-stream-to-buffer-with-tools
+       :model greger-model
+       :dialog current-dialog
+       :tools tools
+       :buffer chat-buffer
+       :complete-callback (lambda (content-blocks)
+                            (greger-agent--debug "RECEIVED PARSED CONTENT BLOCKS")
+                            (greger-agent--handle-parsed-response content-blocks agent-state)))))))
+</tool.toolu_01QmceWbdFF9YAKcH9iiVcgc>
+
+### new_content
+
+<tool.toolu_01QmceWbdFF9YAKcH9iiVcgc>
+      ;; Get Claude's response
+      (greger-agent--debug "CALLING greger-stream-to-buffer-with-tools...")
+      (greger-stream-to-buffer-with-tools
+       :model greger-model
+       :dialog current-dialog
+       :tools tools
+       :buffer chat-buffer
+       :text-start-callback (lambda (state)
+                              (with-current-buffer (greger-agent-state-chat-buffer agent-state)
+                                (goto-char (point-max))
+                                (insert (concat "\n\n" greger-assistant-tag "\n\n"))))
+       :text-callback (lambda (state text)
+                        (with-current-buffer (greger-agent-state-chat-buffer agent-state)
+                          (goto-char (point-max))
+                          (insert text)))
+       :complete-callback (lambda (content-blocks)
+                            (greger-agent--debug "RECEIVED PARSED CONTENT BLOCKS")
+                            (greger-agent--handle-parsed-response content-blocks agent-state)))))))
+</tool.toolu_01QmceWbdFF9YAKcH9iiVcgc>
+
+### git_commit_message
+
+<tool.toolu_01QmceWbdFF9YAKcH9iiVcgc>
+Add text-start-callback and text-callback to greger-agent.el for handling text insertion
+</tool.toolu_01QmceWbdFF9YAKcH9iiVcgc>
+
+## TOOL RESULT:
+
+ID: toolu_01QmceWbdFF9YAKcH9iiVcgc
+
+<tool.toolu_01QmceWbdFF9YAKcH9iiVcgc>
+Error executing tool: Original content not found in file: /Users/andreas/projects/aichat3/greger-agent.el -- Try again!
+</tool.toolu_01QmceWbdFF9YAKcH9iiVcgc>
+
+## ASSISTANT:
+
+Let me check the current content:
+
+## TOOL USE:
+
+Name: read-file
+ID: toolu_01WpRg6aVoFxBx8uWszyu6PE
+
+### path
+
+<tool.toolu_01WpRg6aVoFxBx8uWszyu6PE>
+greger-agent.el
+</tool.toolu_01WpRg6aVoFxBx8uWszyu6PE>
+
+### start_line
+
+<tool.toolu_01WpRg6aVoFxBx8uWszyu6PE>
+88
+</tool.toolu_01WpRg6aVoFxBx8uWszyu6PE>
+
+### end_line
+
+<tool.toolu_01WpRg6aVoFxBx8uWszyu6PE>
+102
+</tool.toolu_01WpRg6aVoFxBx8uWszyu6PE>
+
+### include_line_numbers
+
+<tool.toolu_01WpRg6aVoFxBx8uWszyu6PE>
+true
+</tool.toolu_01WpRg6aVoFxBx8uWszyu6PE>
+
+## TOOL RESULT:
+
+ID: toolu_01WpRg6aVoFxBx8uWszyu6PE
+
+<tool.toolu_01WpRg6aVoFxBx8uWszyu6PE>
+ 88:           (greger-agent--finish-response agent-state))
+ 89:
+ 90:       ;; Get Claude's response
+ 91:       (greger-agent--debug "CALLING greger-stream-to-buffer-with-tools...")
+ 92:       (greger-stream-to-buffer-with-tools
+ 93:        :model greger-model
+ 94:        :dialog current-dialog
+ 95:        :tools tools
+ 96:        :buffer chat-buffer
+ 97:        :complete-callback (lambda (content-blocks)
+ 98:                             (greger-agent--debug "RECEIVED PARSED CONTENT BLOCKS")
+ 99:                             (greger-agent--handle-parsed-response content-blocks agent-state))))))
+100:
+101: (defun greger-agent--handle-parsed-response (content-blocks agent-state)
+102:   "Handle the parsed CONTENT-BLOCKS from Claude using AGENT-STATE."
+</tool.toolu_01WpRg6aVoFxBx8uWszyu6PE>
+
+## TOOL USE:
+
+Name: str-replace
+ID: toolu_01XMiy1iNKiVpyrNFbnhM1if
+
+### file_path
+
+<tool.toolu_01XMiy1iNKiVpyrNFbnhM1if>
+greger-agent.el
+</tool.toolu_01XMiy1iNKiVpyrNFbnhM1if>
+
+### original_content
+
+<tool.toolu_01XMiy1iNKiVpyrNFbnhM1if>
+      ;; Get Claude's response
+      (greger-agent--debug "CALLING greger-stream-to-buffer-with-tools...")
+      (greger-stream-to-buffer-with-tools
+       :model greger-model
+       :dialog current-dialog
+       :tools tools
+       :buffer chat-buffer
+       :complete-callback (lambda (content-blocks)
+                            (greger-agent--debug "RECEIVED PARSED CONTENT BLOCKS")
+                            (greger-agent--handle-parsed-response content-blocks agent-state)))))))
+</tool.toolu_01XMiy1iNKiVpyrNFbnhM1if>
+
+### new_content
+
+<tool.toolu_01XMiy1iNKiVpyrNFbnhM1if>
+      ;; Get Claude's response
+      (greger-agent--debug "CALLING greger-stream-to-buffer-with-tools...")
+      (greger-stream-to-buffer-with-tools
+       :model greger-model
+       :dialog current-dialog
+       :tools tools
+       :buffer chat-buffer
+       :text-start-callback (lambda (state)
+                              (with-current-buffer (greger-agent-state-chat-buffer agent-state)
+                                (goto-char (point-max))
+                                (insert (concat "\n\n" greger-assistant-tag "\n\n"))))
+       :text-callback (lambda (state text)
+                        (with-current-buffer (greger-agent-state-chat-buffer agent-state)
+                          (goto-char (point-max))
+                          (insert text)))
+       :complete-callback (lambda (content-blocks)
+                            (greger-agent--debug "RECEIVED PARSED CONTENT BLOCKS")
+                            (greger-agent--handle-parsed-response content-blocks agent-state)))))))
+</tool.toolu_01XMiy1iNKiVpyrNFbnhM1if>
+
+### git_commit_message
+
+<tool.toolu_01XMiy1iNKiVpyrNFbnhM1if>
+Add text-start-callback and text-callback to greger-agent.el for handling text insertion
+</tool.toolu_01XMiy1iNKiVpyrNFbnhM1if>
+
+## TOOL RESULT:
+
+ID: toolu_01XMiy1iNKiVpyrNFbnhM1if
+
+<tool.toolu_01XMiy1iNKiVpyrNFbnhM1if>
+Error executing tool: Original content not found in file: /Users/andreas/projects/aichat3/greger-agent.el -- Try again!
+</tool.toolu_01XMiy1iNKiVpyrNFbnhM1if>
+
+## ASSISTANT:
+
+Let me look at more context:
+
+## TOOL USE:
+
+Name: read-file
+ID: toolu_01VQGD49yA7Acv2maWZaFr24
+
+### path
+
+<tool.toolu_01VQGD49yA7Acv2maWZaFr24>
+greger-agent.el
+</tool.toolu_01VQGD49yA7Acv2maWZaFr24>
+
+### start_line
+
+<tool.toolu_01VQGD49yA7Acv2maWZaFr24>
+85
+</tool.toolu_01VQGD49yA7Acv2maWZaFr24>
+
+### end_line
+
+<tool.toolu_01VQGD49yA7Acv2maWZaFr24>
+105
+</tool.toolu_01VQGD49yA7Acv2maWZaFr24>
+
+### include_line_numbers
+
+<tool.toolu_01VQGD49yA7Acv2maWZaFr24>
+true
+</tool.toolu_01VQGD49yA7Acv2maWZaFr24>
+
+## TOOL RESULT:
+
+ID: toolu_01VQGD49yA7Acv2maWZaFr24
+
+<tool.toolu_01VQGD49yA7Acv2maWZaFr24>
+ 85:             (goto-char (point-max))
+ 86:             (insert (format "\n\nMaximum iterations (%d) reached. Stopping agent execution.\n\n"
+ 87:                            greger-agent-max-iterations)))
+ 88:           (greger-agent--finish-response agent-state))
+ 89:
+ 90:       ;; Get Claude's response
+ 91:       (greger-agent--debug "CALLING greger-stream-to-buffer-with-tools...")
+ 92:       (greger-stream-to-buffer-with-tools
+ 93:        :model greger-model
+ 94:        :dialog current-dialog
+ 95:        :tools tools
+ 96:        :buffer chat-buffer
+ 97:        :complete-callback (lambda (content-blocks)
+ 98:                             (greger-agent--debug "RECEIVED PARSED CONTENT BLOCKS")
+ 99:                             (greger-agent--handle-parsed-response content-blocks agent-state))))))
+100:
+101: (defun greger-agent--handle-parsed-response (content-blocks agent-state)
+102:   "Handle the parsed CONTENT-BLOCKS from Claude using AGENT-STATE."
+103:   (greger-agent--debug "CONTENT BLOCKS: %s" content-blocks)
+104:
+105:   ;; Check if we have tool calls
+</tool.toolu_01VQGD49yA7Acv2maWZaFr24>
+
+## TOOL USE:
+
+Name: str-replace
+ID: toolu_01DWA7yWkETpdsKTUDsjYWDj
+
+### file_path
+
+<tool.toolu_01DWA7yWkETpdsKTUDsjYWDj>
+greger-agent.el
+</tool.toolu_01DWA7yWkETpdsKTUDsjYWDj>
+
+### original_content
+
+<tool.toolu_01DWA7yWkETpdsKTUDsjYWDj>
+      ;; Get Claude's response
+      (greger-agent--debug "CALLING greger-stream-to-buffer-with-tools...")
+      (greger-stream-to-buffer-with-tools
+       :model greger-model
+       :dialog current-dialog
+       :tools tools
+       :buffer chat-buffer
+       :complete-callback (lambda (content-blocks)
+                            (greger-agent--debug "RECEIVED PARSED CONTENT BLOCKS")
+                            (greger-agent--handle-parsed-response content-blocks agent-state)))))))
+</tool.toolu_01DWA7yWkETpdsKTUDsjYWDj>
+
+### new_content
+
+<tool.toolu_01DWA7yWkETpdsKTUDsjYWDj>
+      ;; Get Claude's response
+      (greger-agent--debug "CALLING greger-stream-to-buffer-with-tools...")
+      (greger-stream-to-buffer-with-tools
+       :model greger-model
+       :dialog current-dialog
+       :tools tools
+       :buffer chat-buffer
+       :text-start-callback (lambda (state)
+                              (with-current-buffer (greger-agent-state-chat-buffer agent-state)
+                                (goto-char (point-max))
+                                (insert (concat "\n\n" greger-assistant-tag "\n\n"))))
+       :text-callback (lambda (state text)
+                        (with-current-buffer (greger-agent-state-chat-buffer agent-state)
+                          (goto-char (point-max))
+                          (insert text)))
+       :complete-callback (lambda (content-blocks)
+                            (greger-agent--debug "RECEIVED PARSED CONTENT BLOCKS")
+                            (greger-agent--handle-parsed-response content-blocks agent-state)))))))
+</tool.toolu_01DWA7yWkETpdsKTUDsjYWDj>
+
+### git_commit_message
+
+<tool.toolu_01DWA7yWkETpdsKTUDsjYWDj>
+Add text-start-callback and text-callback to greger-agent.el for handling text insertion
+</tool.toolu_01DWA7yWkETpdsKTUDsjYWDj>
+
+## TOOL RESULT:
+
+ID: toolu_01DWA7yWkETpdsKTUDsjYWDj
+
+<tool.toolu_01DWA7yWkETpdsKTUDsjYWDj>
+Error executing tool: Original content not found in file: /Users/andreas/projects/aichat3/greger-agent.el -- Try again!
+</tool.toolu_01DWA7yWkETpdsKTUDsjYWDj>
+
+## ASSISTANT:
+
+Let me try a different approach and get the exact content with whitespace:
+
+## TOOL USE:
+
+Name: str-replace
+ID: toolu_01LZdYUPZYPRawCskcjDpdpD
+
+### file_path
+
+<tool.toolu_01LZdYUPZYPRawCskcjDpdpD>
+greger-agent.el
+</tool.toolu_01LZdYUPZYPRawCskcjDpdpD>
+
+### original_content
+
+<tool.toolu_01LZdYUPZYPRawCskcjDpdpD>
+      (greger-stream-to-buffer-with-tools
+       :model greger-model
+       :dialog current-dialog
+       :tools tools
+       :buffer chat-buffer
+       :complete-callback (lambda (content-blocks)
+                            (greger-agent--debug "RECEIVED PARSED CONTENT BLOCKS")
+                            (greger-agent--handle-parsed-response content-blocks agent-state)))))))
+</tool.toolu_01LZdYUPZYPRawCskcjDpdpD>
+
+### new_content
+
+<tool.toolu_01LZdYUPZYPRawCskcjDpdpD>
+      (greger-stream-to-buffer-with-tools
+       :model greger-model
+       :dialog current-dialog
+       :tools tools
+       :buffer chat-buffer
+       :text-start-callback (lambda (state)
+                              (with-current-buffer (greger-agent-state-chat-buffer agent-state)
+                                (goto-char (point-max))
+                                (insert (concat "\n\n" greger-assistant-tag "\n\n"))))
+       :text-callback (lambda (state text)
+                        (with-current-buffer (greger-agent-state-chat-buffer agent-state)
+                          (goto-char (point-max))
+                          (insert text)))
+       :complete-callback (lambda (content-blocks)
+                            (greger-agent--debug "RECEIVED PARSED CONTENT BLOCKS")
+                            (greger-agent--handle-parsed-response content-blocks agent-state)))))))
+</tool.toolu_01LZdYUPZYPRawCskcjDpdpD>
+
+### git_commit_message
+
+<tool.toolu_01LZdYUPZYPRawCskcjDpdpD>
+Add text-start-callback and text-callback to greger-agent.el for handling text insertion
+</tool.toolu_01LZdYUPZYPRawCskcjDpdpD>
+
+## TOOL RESULT:
+
+ID: toolu_01LZdYUPZYPRawCskcjDpdpD
+
+<tool.toolu_01LZdYUPZYPRawCskcjDpdpD>
+Error executing tool: Original content not found in file: /Users/andreas/projects/aichat3/greger-agent.el -- Try again!
+</tool.toolu_01LZdYUPZYPRawCskcjDpdpD>
+
+## ASSISTANT:
+
+Let me get the exact text around that area:
+
+## TOOL USE:
+
+Name: read-file
+ID: toolu_01TzzcKeGK9jGp9P9NhEwNDi
+
+### path
+
+<tool.toolu_01TzzcKeGK9jGp9P9NhEwNDi>
+greger-agent.el
+</tool.toolu_01TzzcKeGK9jGp9P9NhEwNDi>
+
+### start_line
+
+<tool.toolu_01TzzcKeGK9jGp9P9NhEwNDi>
+90
+</tool.toolu_01TzzcKeGK9jGp9P9NhEwNDi>
+
+### end_line
+
+<tool.toolu_01TzzcKeGK9jGp9P9NhEwNDi>
+100
+</tool.toolu_01TzzcKeGK9jGp9P9NhEwNDi>
+
+## TOOL RESULT:
+
+ID: toolu_01TzzcKeGK9jGp9P9NhEwNDi
+
+<tool.toolu_01TzzcKeGK9jGp9P9NhEwNDi>
+      ;; Get Claude's response
+      (greger-agent--debug "CALLING greger-stream-to-buffer-with-tools...")
+      (greger-stream-to-buffer-with-tools
+       :model greger-model
+       :dialog current-dialog
+       :tools tools
+       :buffer chat-buffer
+       :complete-callback (lambda (content-blocks)
+                            (greger-agent--debug "RECEIVED PARSED CONTENT BLOCKS")
+                            (greger-agent--handle-parsed-response content-blocks agent-state))))))
+
+</tool.toolu_01TzzcKeGK9jGp9P9NhEwNDi>
+
+## TOOL USE:
+
+Name: str-replace
+ID: toolu_01YAB6V2vorNtxBQqfBpUQkL
+
+### file_path
+
+<tool.toolu_01YAB6V2vorNtxBQqfBpUQkL>
+greger-agent.el
+</tool.toolu_01YAB6V2vorNtxBQqfBpUQkL>
+
+### original_content
+
+<tool.toolu_01YAB6V2vorNtxBQqfBpUQkL>
+      (greger-stream-to-buffer-with-tools
+       :model greger-model
+       :dialog current-dialog
+       :tools tools
+       :buffer chat-buffer
+       :complete-callback (lambda (content-blocks)
+                            (greger-agent--debug "RECEIVED PARSED CONTENT BLOCKS")
+                            (greger-agent--handle-parsed-response content-blocks agent-state)))))))
+</tool.toolu_01YAB6V2vorNtxBQqfBpUQkL>
+
+### new_content
+
+<tool.toolu_01YAB6V2vorNtxBQqfBpUQkL>
+      (greger-stream-to-buffer-with-tools
+       :model greger-model
+       :dialog current-dialog
+       :tools tools
+       :buffer chat-buffer
+       :text-start-callback (lambda (state)
+                              (with-current-buffer (greger-agent-state-chat-buffer agent-state)
+                                (goto-char (point-max))
+                                (insert (concat "\n\n" greger-assistant-tag "\n\n"))))
+       :text-callback (lambda (state text)
+                        (with-current-buffer (greger-agent-state-chat-buffer agent-state)
+                          (goto-char (point-max))
+                          (insert text)))
+       :complete-callback (lambda (content-blocks)
+                            (greger-agent--debug "RECEIVED PARSED CONTENT BLOCKS")
+                            (greger-agent--handle-parsed-response content-blocks agent-state)))))))
+</tool.toolu_01YAB6V2vorNtxBQqfBpUQkL>
+
+### git_commit_message
+
+<tool.toolu_01YAB6V2vorNtxBQqfBpUQkL>
+Add text-start-callback and text-callback to greger-agent.el for handling text insertion
+</tool.toolu_01YAB6V2vorNtxBQqfBpUQkL>
+
+## TOOL RESULT:
+
+ID: toolu_01YAB6V2vorNtxBQqfBpUQkL
+
+<tool.toolu_01YAB6V2vorNtxBQqfBpUQkL>
+Error executing tool: Original content not found in file: /Users/andreas/projects/aichat3/greger-agent.el -- Try again!
+</tool.toolu_01YAB6V2vorNtxBQqfBpUQkL>
+
+## ASSISTANT:
+
+Let me try using the replace-function tool instead:

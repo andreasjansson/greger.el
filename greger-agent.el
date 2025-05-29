@@ -94,6 +94,14 @@
        :dialog current-dialog
        :tools tools
        :buffer chat-buffer
+       :text-start-callback (lambda (state)
+                              (with-current-buffer (greger-agent-state-chat-buffer agent-state)
+                                (goto-char (point-max))
+                                (insert (concat "\n\n" greger-assistant-tag "\n\n"))))
+       :text-callback (lambda (state text)
+                        (with-current-buffer (greger-agent-state-chat-buffer agent-state)
+                          (goto-char (point-max))
+                          (insert text)))
        :complete-callback (lambda (content-blocks)
                             (greger-agent--debug "RECEIVED PARSED CONTENT BLOCKS")
                             (greger-agent--handle-parsed-response content-blocks agent-state))))))
