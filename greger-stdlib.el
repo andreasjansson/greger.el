@@ -132,7 +132,8 @@
                 (git_commit_message . ((type . "string")
                                        (description . "Git commit message for this change"))))
   :required '("file_path" "original_content" "new_content" "git_commit_message")
-  :function 'greger-tools--str-replace)
+  :function 'greger-tools--str-replace
+  :pass-buffer t)
 
 (greger-register-tool "insert"
   :description "Insert text at a specific line number in a file. The text will be inserted before the specified line number (use 0 to insert at the beginning of the file, 1 to insert before the first line, etc.). Useful for adding new content, comments, or code blocks at precise locations without replacing existing content."
