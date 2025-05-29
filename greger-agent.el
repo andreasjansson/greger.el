@@ -63,8 +63,8 @@
   (when greger-agent-debug
     (message "[AGENT DEBUG] %s" (apply #'format format-string args))))
 
-(defun greger-agent--run-agent-loop ()
-  "Run the main agent loop."
+(defun greger-agent--run-agent-loop (agent-state)
+  "Run the main agent loop with AGENT-STATE."
   (let* ((tools (greger-tools-get-schemas greger-agent-tools))
          (buffer-content (buffer-substring-no-properties (point-min) (point-max)))
          (current-dialog (greger-parser-parse-dialog buffer-content)))
