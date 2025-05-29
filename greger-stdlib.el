@@ -207,8 +207,9 @@
 
 ;; Tools below
 
-(defun greger-tools--git-stage-and-commit (files commit-message)
-  "Stage FILES and commit with COMMIT-MESSAGE using git command line."
+(defun greger-tools--git-stage-and-commit (files commit-message &optional chat-buffer)
+  "Stage FILES and commit with COMMIT-MESSAGE using git command line.
+If CHAT-BUFFER is provided, also stage and commit the chat buffer file."
   (condition-case err
       (let* ((first-file (car files))
              (file-dir (file-name-directory (expand-file-name first-file)))
@@ -217,9 +218,21 @@
           (error "File %s is not in a git repository" first-file))
 
         ;; Set default-directory to the repository root for git operations
-        (let ((default-directory repo-root))
+        (let ((default-directory repo-root)
+              (all-files files))
+
+          ;; Add chat buffer file if provided and it has a file
+          (when (and chat-buffer (buffer-file-name chat-buffer))
+            (let ((chat-file (buffer-file-name chat-buffer)))
+              ;; Save the chat buffer first if it has unsaved changes
+              (with-current-buffer chat-buffer
+                (when (buffer-modified-p)
+                  (save-buffer)))
+              ;; Add chat file to the list of files to stage
+              (push chat-file all-files)))
+
           ;; Stage the files
-          (dolist (file files)
+          (dolist (file all-files)
             (let ((relative-path (file-relative-name (expand-file-name file) repo-root)))
               (unless (= 0 (call-process "git" nil nil nil "add" relative-path))
                 (error "Failed to stage file: %s" file))))
@@ -229,7 +242,7 @@
             (error "Failed to create commit"))
 
           (format "Successfully staged %d file(s) and committed with message: %s"
-                  (length files) commit-message)))
+                  (length all-files) commit-message)))
     (error
      (format "Git operation failed: %s" (error-message-string err)))))
 
