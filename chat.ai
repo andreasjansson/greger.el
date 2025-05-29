@@ -3278,3 +3278,85 @@ test-greger-tools.el
 ## ASSISTANT:
 
 It looks like the file was already renamed. Let me now update the test file to use the real URL:
+
+
+## TOOL USE:
+
+Name: str-replace
+ID: toolu_01GkFS59afFtk7NPH7e9DLFo
+
+### file_path
+
+<tool.toolu_01GkFS59afFtk7NPH7e9DLFo>
+test-greger-stdlib.el
+</tool.toolu_01GkFS59afFtk7NPH7e9DLFo>
+
+### original_content
+
+<tool.toolu_01GkFS59afFtk7NPH7e9DLFo>
+(ert-deftest greger-test-read-webpage-valid-url ()
+  "Test reading a webpage with a valid URL."
+  ;; Mock the web download function to avoid actual network calls in tests
+  (cl-letf (((symbol-function 'greger-web-download-page)
+             (lambda (url extract-text use-highest-readability)
+               (if extract-text
+                   "This is sample extracted text from the webpage."
+                 "<html><body>This is sample HTML content.</body></html>"))))
+
+    ;; Test with text extraction (default)
+    (let ((result (greger-tools--read-webpage "https://example.com")))
+      (should (stringp result))
+      (should (string-match-p "Successfully read and extracted text" result))
+      (should (string-match-p "This is sample extracted text" result)))
+
+    ;; Test with raw HTML
+    (let ((result (greger-tools--read-webpage "https://example.com" nil)))
+      (should (stringp result))
+      (should (string-match-p "Successfully read raw HTML" result))
+      (should (string-match-p "<html><body>" result)))
+
+    ;; Test with readability enhancement
+    (let ((result (greger-tools--read-webpage "https://example.com" t t)))
+      (should (stringp result))
+      (should (string-match-p "Successfully read and extracted text" result)))))
+</tool.toolu_01GkFS59afFtk7NPH7e9DLFo>
+
+### new_content
+
+<tool.toolu_01GkFS59afFtk7NPH7e9DLFo>
+(ert-deftest greger-test-read-webpage-valid-url ()
+  "Test reading a webpage with a valid URL."
+  (let ((test-url "https://pub-b88c9764a4fc46baa90b9e8e1544f59e.r2.dev/hello.html"))
+
+    ;; Test with text extraction (default)
+    (let ((result (greger-tools--read-webpage test-url)))
+      (should (stringp result))
+      (should (string-match-p "Successfully read and extracted text" result))
+      (should (string-match-p "Hello world!" result)))
+
+    ;; Test with raw HTML
+    (let ((result (greger-tools--read-webpage test-url nil)))
+      (should (stringp result))
+      (should (string-match-p "Successfully read raw HTML" result))
+      (should (string-match-p "<h1>Hello world!</h1>" result)))
+
+    ;; Test with readability enhancement
+    (let ((result (greger-tools--read-webpage test-url t t)))
+      (should (stringp result))
+      (should (string-match-p "Successfully read and extracted text" result))
+      (should (string-match-p "Hello world!" result)))))
+</tool.toolu_01GkFS59afFtk7NPH7e9DLFo>
+
+### git_commit_message
+
+<tool.toolu_01GkFS59afFtk7NPH7e9DLFo>
+Update read-webpage tests to use real test URL with Hello world content
+</tool.toolu_01GkFS59afFtk7NPH7e9DLFo>
+
+## TOOL RESULT:
+
+ID: toolu_01GkFS59afFtk7NPH7e9DLFo
+
+<tool.toolu_01GkFS59afFtk7NPH7e9DLFo>
+Successfully replaced content in /Users/andreas/projects/aichat3/test-greger-stdlib.el. Successfully staged 2 file(s) and committed with message: Update read-webpage tests to use real test URL with Hello world content
+</tool.toolu_01GkFS59afFtk7NPH7e9DLFo>
