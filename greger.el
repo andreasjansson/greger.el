@@ -239,6 +239,7 @@
   (require 'greger-parser)
   (require 'greger-provider-claude)
   (require 'greger-tools)
+  (require 'json)
   (let* ((filename (read-string "Save to filename (default: request.json): " nil nil "request.json"))
          (buffer-content (buffer-substring-no-properties (point-min) (point-max)))
          (dialog (greger-parser-parse-dialog buffer-content))
@@ -258,28 +259,19 @@
     (setq request-data (greger-provider-claude--build-data model-name dialog tools))
 
     ;; Parse the JSON and re-encode with proper formatting
-    (let* ((parsed-json (json-read-from-string request-data))
-           (formatted-json (json-encode-alist parsed-json)))
-      ;; Write to file with proper indentation
-      (with-temp-file filename
-        (insert formatted-json)
-        ;; Add newlines for better readability
-        (goto-char (point-min))
-        (while (search-forward "," nil t)
-          (when (not (looking-at "\\s-*\n"))
-            (insert "\n")))
-        (goto-char (point-min))
-        (while (search-forward "{" nil t)
-          (unless (looking-at "\\s-*\n")
-            (insert "\n")))
-        (goto-char (point-min))
-        (while (search-forward "}" nil t)
-          (unless (looking-at "\\s-*\n")
-            (insert "\n")))
-        ;; Basic indentation
-        (json-pretty-print (point-min) (point-max)))
-
-      (message "Request data saved to %s" filename))))
+    (condition-case err
+        (let* ((parsed-json (json-read-from-string request-data)))
+          ;; Write to file with proper indentation
+          (with-temp-file filename
+            (let ((json-encoding-pretty-print t))
+              (insert (json-encode parsed-json))))
+          (message "Request data saved to %s" filename))
+      (error
+       ;; Fallback: just save the raw JSON string if parsing fails
+       (with-temp-file filename
+         (insert request-data))
+       (message "Request data saved to %s (raw format due to parsing error: %s)"
+                filename (error-message-string err)))))
 
 ;; Tool section collapsing functions
 
