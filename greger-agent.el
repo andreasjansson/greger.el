@@ -133,8 +133,8 @@
 
         (if (greger-agent--request-approval tool-name tool-input)
             (condition-case err
-                (let* ((default-directory greger-agent--directory)
-                       (result (greger-tools-execute tool-name tool-input greger-agent--chat-buffer)))
+                (let* ((default-directory (greger-agent-state-directory agent-state))
+                       (result (greger-tools-execute tool-name tool-input (greger-agent-state-chat-buffer agent-state))))
                   (push `((type . "tool_result")
                          (tool_use_id . ,tool-id)
                          (content . ,result))
