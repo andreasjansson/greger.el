@@ -146,7 +146,8 @@
                 (git_commit_message . ((type . "string")
                                        (description . "Git commit message for this change"))))
   :required '("file_path" "line_number" "content" "git_commit_message")
-  :function 'greger-tools--insert)
+  :function 'greger-tools--insert
+  :pass-buffer t)
 
 (greger-register-tool "git-log"
   :description "View git commit logs."
