@@ -59,7 +59,11 @@ Example:
   "Execute TOOL-NAME with ARGS."
   (let ((tool-def (gethash tool-name greger-tools-registry)))
     (if tool-def
-        (let ((func (plist-get tool-def :function)))
+        (let ((func (plist-get tool-def :function))
+              (pass-buffer (plist-get tool-def :pass-buffer)))
+          ;; Add buffer parameter if pass-buffer is set
+          (when pass-buffer
+            (setq args (cons (cons 'buffer (current-buffer)) args)))
           (greger-tools--call-function-with-args func args tool-def))
       (error "Unknown tool: %s" tool-name))))
 
