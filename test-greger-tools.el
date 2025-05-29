@@ -252,12 +252,14 @@
 
     ;; Test tool without :pass-buffer - should not receive buffer
     (let ((result (greger-tools-execute "test-no-buffer"
-                                        '((message . "hello")))))
+                                        '((message . "hello"))
+                                        (current-buffer))))
       (should (string= "message: hello, buffer: none" result)))
 
     ;; Test tool with :pass-buffer t - should receive buffer
     (let ((result (greger-tools-execute "test-with-buffer"
-                                        '((message . "hello")))))
+                                        '((message . "hello"))
+                                        (current-buffer))))
       (should (string= "message: hello, buffer: *test-buffer*" result))))
 
   ;; Clean up
