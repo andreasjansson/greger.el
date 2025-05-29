@@ -1107,3 +1107,72 @@ ID: toolu_012Mae2myEr61N9T5u1bDemw
 ## ASSISTANT:
 
 Now I need to modify the function to check if the chat file is already tracked in version control before adding it to the list of files to stage. I'll add a helper function to check if a file is tracked by git, and then modify the existing function:
+
+
+## TOOL USE:
+
+Name: str-replace
+ID: toolu_01BbYmFgcSCtndQt9kTGumKv
+
+### file_path
+
+<tool.toolu_01BbYmFgcSCtndQt9kTGumKv>
+greger-stdlib.el
+</tool.toolu_01BbYmFgcSCtndQt9kTGumKv>
+
+### original_content
+
+<tool.toolu_01BbYmFgcSCtndQt9kTGumKv>
+;; Helper functions
+
+(defun greger-tools--find-git-repo-root (start-dir)
+  "Find the git repository root starting from START-DIR."
+  (let ((dir (expand-file-name start-dir)))
+    (while (and dir
+                (not (file-exists-p (expand-file-name ".git" dir)))
+                (not (string= dir (directory-file-name dir))))
+      (setq dir (file-name-directory (directory-file-name dir))))
+    (when (and dir (file-exists-p (expand-file-name ".git" dir)))
+      dir)))
+</tool.toolu_01BbYmFgcSCtndQt9kTGumKv>
+
+### new_content
+
+<tool.toolu_01BbYmFgcSCtndQt9kTGumKv>
+;; Helper functions
+
+(defun greger-tools--find-git-repo-root (start-dir)
+  "Find the git repository root starting from START-DIR."
+  (let ((dir (expand-file-name start-dir)))
+    (while (and dir
+                (not (file-exists-p (expand-file-name ".git" dir)))
+                (not (string= dir (directory-file-name dir))))
+      (setq dir (file-name-directory (directory-file-name dir))))
+    (when (and dir (file-exists-p (expand-file-name ".git" dir)))
+      dir)))
+
+(defun greger-tools--is-file-tracked-by-git (file-path repo-root)
+  "Check if FILE-PATH is tracked by git in REPO-ROOT.
+Returns t if the file is tracked, nil otherwise."
+  (let ((default-directory repo-root)
+        (relative-path (file-relative-name (expand-file-name file-path) repo-root)))
+    (= 0 (call-process "git" nil nil nil "ls-files" "--error-unmatch" relative-path))))
+</tool.toolu_01BbYmFgcSCtndQt9kTGumKv>
+
+### git_commit_message
+
+<tool.toolu_01BbYmFgcSCtndQt9kTGumKv>
+Add helper function to check if file is tracked by git
+</tool.toolu_01BbYmFgcSCtndQt9kTGumKv>
+
+## TOOL RESULT:
+
+ID: toolu_01BbYmFgcSCtndQt9kTGumKv
+
+<tool.toolu_01BbYmFgcSCtndQt9kTGumKv>
+Successfully replaced content in /Users/andreas/projects/aichat3/greger-stdlib.el. Successfully staged 2 file(s) and committed with message: Add helper function to check if file is tracked by git
+</tool.toolu_01BbYmFgcSCtndQt9kTGumKv>
+
+## ASSISTANT:
+
+Now I need to modify the `greger-tools--git-stage-and-commit` function to use this helper function and only add the chat file if it's already tracked:

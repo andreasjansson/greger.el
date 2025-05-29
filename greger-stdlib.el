@@ -249,15 +249,17 @@ If CHAT-BUFFER is provided, also stage and commit the chat buffer file."
         (let ((default-directory repo-root)
               (all-files files))
 
-          ;; Add chat buffer file if provided and it has a file
+          ;; Add chat buffer file if provided, it has a file, and it's already tracked in git
           (when (and chat-buffer (buffer-file-name chat-buffer))
             (let ((chat-file (buffer-file-name chat-buffer)))
-              ;; Save the chat buffer first if it has unsaved changes
-              (with-current-buffer chat-buffer
-                (when (buffer-modified-p)
-                  (save-buffer)))
-              ;; Add chat file to the list of files to stage
-              (push chat-file all-files)))
+              ;; Only proceed if the chat file is already tracked by git
+              (when (greger-tools--is-file-tracked-by-git chat-file repo-root)
+                ;; Save the chat buffer first if it has unsaved changes
+                (with-current-buffer chat-buffer
+                  (when (buffer-modified-p)
+                    (save-buffer)))
+                ;; Add chat file to the list of files to stage
+                (push chat-file all-files))))
 
           ;; Stage the files
           (dolist (file all-files)
