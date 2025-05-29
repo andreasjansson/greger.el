@@ -533,8 +533,9 @@ If BUFFER is provided, it will be staged and committed along with the renamed fi
             (format "Successfully renamed %s to %s. %s" expanded-old-path expanded-new-path git-result)))
       (error (format "Failed to rename file: %s" (error-message-string err))))))
 
-(defun greger-tools--replace-function (file-path function-name contents line-number commit-message)
-  "Replace FUNCTION-NAME in FILE-PATH with new CONTENTS at LINE-NUMBER."
+(defun greger-tools--replace-function (file-path function-name contents line-number commit-message &optional buffer)
+  "Replace FUNCTION-NAME in FILE-PATH with new CONTENTS at LINE-NUMBER.
+If BUFFER is provided, it will be staged and committed along with the modified file."
   (unless (stringp file-path)
     (error "file_path must be a string"))
 
