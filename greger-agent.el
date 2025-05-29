@@ -8,6 +8,7 @@
 (require 'json)
 (require 'cl-lib)
 (require 'greger)
+(require 'greger-parser)
 (require 'greger-stream)
 (require 'greger-tools)
 
