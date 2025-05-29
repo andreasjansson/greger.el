@@ -226,6 +226,13 @@
     (when (and dir (file-exists-p (expand-file-name ".git" dir)))
       dir)))
 
+(defun greger-tools--is-file-tracked-by-git (file-path repo-root)
+  "Check if FILE-PATH is tracked by git in REPO-ROOT.
+Returns t if the file is tracked, nil otherwise."
+  (let ((default-directory repo-root)
+        (relative-path (file-relative-name (expand-file-name file-path) repo-root)))
+    (= 0 (call-process "git" nil nil nil "ls-files" "--error-unmatch" relative-path))))
+
 ;; Tools below
 
 (defun greger-tools--git-stage-and-commit (files commit-message &optional chat-buffer)

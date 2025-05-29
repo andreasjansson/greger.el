@@ -2,2116 +2,1108 @@
 
 ## USER:
 
-Make a greger-debug-request function that prompts the user to save to a filename, default being request.json, and then parses the entire buffer and outputs the greger-provider-claude--build-data output to that file, with json intended properly and with newlines.
+In greger-tools--git-stage-and-commit in greger-stdlib.el, only save and stage the chat file if the chat file is already in version control (don't add it if it's untracked)
 
 ## ASSISTANT:
 
-I'll help you create a `greger-debug-request` function. First, let me explore the codebase to understand the structure and find the relevant functions.
+I'll help you modify the `greger-tools--git-stage-and-commit` function in `greger-stdlib.el` to only save and stage the chat file if it's already in version control. Let me first examine the current implementation.
 
 ## TOOL USE:
 
-Name: list-directory
-ID: toolu_019iev7Wy8DkYSFKrRnbWdP3
+Name: read-file
+ID: toolu_013ayqdde6MgzHqjGcpThfss
 
 ### path
 
-<tool.toolu_019iev7Wy8DkYSFKrRnbWdP3>
-.
-</tool.toolu_019iev7Wy8DkYSFKrRnbWdP3>
-
-## TOOL RESULT:
-
-ID: toolu_019iev7Wy8DkYSFKrRnbWdP3
-
-<tool.toolu_019iev7Wy8DkYSFKrRnbWdP3>
-chat.ai
-chat2.ai
-chat3.ai
-chat4.ai
-chat5.ai
-greger-agent.el
-greger-parser.el
-greger-provider-claude.el
-greger-provider-google.el
-greger-provider-openai.el
-greger-providers.el
+<tool.toolu_013ayqdde6MgzHqjGcpThfss>
 greger-stdlib.el
-greger-stream.el
-greger-tools.el
-greger-web.el
-greger.el
-test-greger-parser.el
-test-greger-stdlib.el
-test-greger-tools.el
-</tool.toolu_019iev7Wy8DkYSFKrRnbWdP3>
+</tool.toolu_013ayqdde6MgzHqjGcpThfss>
+
+### include_line_numbers
+
+<tool.toolu_013ayqdde6MgzHqjGcpThfss>
+true
+</tool.toolu_013ayqdde6MgzHqjGcpThfss>
+
+## TOOL RESULT:
+
+ID: toolu_013ayqdde6MgzHqjGcpThfss
+
+<tool.toolu_013ayqdde6MgzHqjGcpThfss>
+  1: ;;; greger-stdlib.el --- Tool definitions for greger agent -*- lexical-binding: t -*-
+  2:
+  3: ;;; Commentary:
+  4: ;; Defines tools available to the greger agent
+  5:
+  6: ;;; Code:
+  7:
+  8: (require 'greger-tools)
+  9: (require 'greger-web)
+ 10:
+ 11: ;; Register all tools using the macro
+ 12: (greger-register-tool "read-file"
+ 13:   :description "Read the contents of a file from the filesystem"
+ 14:   :properties '((path . ((type . "string")
+ 15:                          (description . "Path to the file to read")))
+ 16:                 (include_line_numbers . ((type . "boolean")
+ 17:                                          (description . "Whether to include line numbers in the output. If you plan to modify the file, you should include line numbers here so you know which lines to edit.")
+ 18:                                          (default . nil)))
+ 19:                 (start_line . ((type . "integer")
+ 20:                                (description . "Starting line number (1-based) to begin reading from. If not specified, reads from the beginning of the file.")
+ 21:                                (default . nil)))
+ 22:                 (end_line . ((type . "integer")
+ 23:                              (description . "Ending line number (1-based) to stop reading at (inclusive). If not specified, reads to the end of the file.")
+ 24:                              (default . nil))))
+ 25:   :required '("path")
+ 26:   :function 'greger-tools--read-file)
+ 27:
+ 28: (greger-register-tool "list-directory"
+ 29:   :description "List files and directories in a given directory"
+ 30:   :properties '((path . ((type . "string")
+ 31:                          (description . "Path to the directory to list. Defaults to current directory.")
+ 32:                          (default . ".")))
+ 33:                 (show-hidden . ((type . "boolean")
+ 34:                                 (description . "Whether to show hidden files starting with .")
+ 35:                                 (default . nil)))
+ 36:                 (recursive . ((type . "boolean")
+ 37:                               (description . "Whether to list files recursively")
+ 38:                               (default . nil))))
+ 39:   :required '()
+ 40:   :function 'greger-tools--list-directory)
+ 41:
+ 42: (greger-register-tool "ripgrep"
+ 43:   :description "Search for patterns in files using ripgrep (rg) command line tool. Note that ripgrep only matches on single lines, so you can't search across multiple lines."
+ 44:   :properties '((pattern . ((type . "string")
+ 45:                             (description . "The search pattern (regex or literal string)")))
+ 46:                 (path . ((type . "string")
+ 47:                          (description . "Directory or file path to search in")
+ 48:                          (default . ".")))
+ 49:                 (case-sensitive . ((type . "boolean")
+ 50:                                    (description . "Whether the search should be case-sensitive")
+ 51:                                    (default . nil)))
+ 52:                 (file-type . ((type . "string")
+ 53:                               (description . "Restrict search to specific file types (e.g., 'py', 'js', 'md')")))
+ 54:                 (context-lines . ((type . "integer")
+ 55:                                   (description . "Number of context lines to show around matches")
+ 56:                                   (default . 0)))
+ 57:                 (max-results . ((type . "integer")
+ 58:                                 (description . "Maximum number of results to return")
+ 59:                                 (default . 50))))
+ 60:   :required '("pattern")
+ 61:   :function 'greger-tools--ripgrep)
+ 62:
+ 63: (greger-register-tool "write-new-file"
+ 64:   :description "Write a new file with the given contents. Fails if the file already exists."
+ 65:   :properties '((file_path . ((type . "string")
+ 66:                               (description . "Absolute path to the new file")))
+ 67:                 (contents . ((type . "string")
+ 68:                              (description . "Contents to write to the new file")))
+ 69:                 (git_commit_message . ((type . "string")
+ 70:                                        (description . "Git commit message for this change"))))
+ 71:   :required '("file_path" "contents" "git_commit_message")
+ 72:   :function 'greger-tools--write-new-file
+ 73:   :pass-buffer t)
+ 74:
+ 75: (greger-register-tool "make-directory"
+ 76:   :description "Recursively create a directory and all parent directories if they don't exist"
+ 77:   :properties '((path . ((type . "string")
+ 78:                          (description . "Path to the directory to create")))
+ 79:                 (git_commit_message . ((type . "string")
+ 80:                                        (description . "Git commit message for this change"))))
+ 81:   :required '("path" "git_commit_message")
+ 82:   :function 'greger-tools--make-directory
+ 83:   :pass-buffer t)
+ 84:
+ 85: (greger-register-tool "rename-file"
+ 86:   :description "Rename or move a file from one path to another"
+ 87:   :properties '((old_path . ((type . "string")
+ 88:                              (description . "Current path of the file")))
+ 89:                 (new_path . ((type . "string")
+ 90:                              (description . "New path for the file")))
+ 91:                 (git_commit_message . ((type . "string")
+ 92:                                        (description . "Git commit message for this change"))))
+ 93:   :required '("old_path" "new_path" "git_commit_message")
+ 94:   :function 'greger-tools--rename-file
+ 95:   :pass-buffer t)
+ 96:
+ 97: (greger-register-tool "replace-function"
+ 98:   :description "Replace a function in a Python or Elisp file with new contents. Fast and reliable - only supports 'def function_name' and '(defun function_name ())' forms. Use replace-file for complete file replacement or str-replace for other specific changes."
+ 99:   :properties '((file_path . ((type . "string")
+100:                               (description . "Path to the file containing the function")))
+101:                 (function_name . ((type . "string")
+102:                                   (description . "Name of the function to replace")))
+103:                 (contents . ((type . "string")
+104:                              (description . "New function contents to replace the existing function")))
+105:                 (line_number . ((type . "integer")
+106:                                 (description . "Line number where the function is defined")))
+107:                 (commit_message . ((type . "string")
+108:                                    (description . "Git commit message for this change"))))
+109:   :required '("file_path" "function_name" "contents" "line_number" "commit_message")
+110:   :function 'greger-tools--replace-function
+111:   :pass-buffer t)
+112:
+113: (greger-register-tool "replace-file"
+114:   :description "Replace the entire contents of an existing file. Slow but reliable - replaces the complete file contents. Use str-replace for specific changes in large files, or replace-function for Python/Elisp functions."
+115:   :properties '((file_path . ((type . "string")
+116:                               (description . "Path to the file to replace")))
+117:                 (contents . ((type . "string")
+118:                              (description . "New contents to replace the entire file")))
+119:                 (git_commit_message . ((type . "string")
+120:                                        (description . "Git commit message for this change"))))
+121:   :required '("file_path" "contents" "git_commit_message")
+122:   :function 'greger-tools--replace-file
+123:   :pass-buffer t)
+124:
+125: (greger-register-tool "str-replace"
+126:   :description "Replace a specific string or content block in a file with new content. Finds the exact original content and replaces it with new content. Be extra careful to format the original_content exactly correctly, taking extra care with whitespace and newlines. If you're making large swaths of changes, consider using replace-file instead"
+127:   :properties '((file_path . ((type . "string")
+128:                               (description . "Path to the file to modify")))
+129:                 (original_content . ((type . "string")
+130:                                      (description . "The exact content to find and replace")))
+131:                 (new_content . ((type . "string")
+132:                                 (description . "The new content to replace the original content with")))
+133:                 (git_commit_message . ((type . "string")
+134:                                        (description . "Git commit message for this change"))))
+135:   :required '("file_path" "original_content" "new_content" "git_commit_message")
+136:   :function 'greger-tools--str-replace
+137:   :pass-buffer t)
+138:
+139: (greger-register-tool "insert"
+140:   :description "Insert text at a specific line number in a file. The text will be inserted before the specified line number (use 0 to insert at the beginning of the file, 1 to insert before the first line, etc.). Useful for adding new content, comments, or code blocks at precise locations without replacing existing content."
+141:   :properties '((file_path . ((type . "string")
+142:                               (description . "Path to the file to modify")))
+143:                 (line_number . ((type . "integer")
+144:                                 (description . "Line number before which to insert the content (0 for beginning of file, 1 to insert before first line, etc.)")))
+145:                 (content . ((type . "string")
+146:                             (description . "Content to insert at the specified location")))
+147:                 (git_commit_message . ((type . "string")
+148:                                        (description . "Git commit message for this change"))))
+149:   :required '("file_path" "line_number" "content" "git_commit_message")
+150:   :function 'greger-tools--insert
+151:   :pass-buffer t)
+152:
+153: (greger-register-tool "git-log"
+154:   :description "View git commit logs."
+155:   :properties '((path . ((type . "string")
+156:                          (description . "Path to the git repository or any file in the repository view logs for")
+157:                          (default . ".")))
+158:                 (max_rows . ((type . "integer")
+159:                             (description . "Maximum number of log entries to return")
+160:                             (default . 100))))
+161:   :required '()
+162:   :function 'greger-tools--git-log)
+163:
+164: (greger-register-tool "git-show-commit"
+165:   :description "View a specific git commit."
+166:   :properties '((commit_hash . ((type . "string")
+167:                                 (description . "The commit hash to view")))
+168:                 (path . ((type . "string")
+169:                          (description . "Path to the git repository or any file in the repository")
+170:                          (default . "."))))
+171:   :required '("commit_hash")
+172:   :function 'greger-tools--git-show-commit)
+173:
+174: (greger-register-tool "ert-test"
+175:   :description "Execute ERT tests by evaluating Emacs lisp test functions and running them with ert"
+176:   :properties '((test_file_path . ((type . "string")
+177:                                    (description . "Path to the test file containing ERT tests")))
+178:                 (function_names . ((type . "array")
+179:                                    (items . ((type . "string")))
+180:                                    (description . "List of ERT test function names to evaluate and run"))))
+181:   :required '("test_file_path" "function_names")
+182:   :function 'greger-tools--ert-test)
+183:
+184: (greger-register-tool "eval-elisp-defuns"
+185:   :description "Evaluate Emacs lisp defuns in a specific file. Note that defuns must be evaluated before you run ert-test to test them, if you've updated the code."
+186:   :properties '((file_path . ((type . "string")
+187:                               (description . "Path to the file containing functions/defuns to evaluate")))
+188:                 (function_names . ((type . "array")
+189:                                    (items . ((type . "string")))
+190:                                    (description . "List of function names to evaluate and run"))))
+191:   :required '("file_path" "function_names")
+192:   :function 'greger-tools--eval-elisp-defuns)
+193:
+194: (greger-register-tool "shell-command"
+195:   :description "Execute an arbitrary shell command and return the output. Prompts for permission before running the command for security."
+196:   :properties '((command . ((type . "string")
+197:                             (description . "The shell command to execute")))
+198:                 (working_directory . ((type . "string")
+199:                                       (description . "Directory to run the command in")
+200:                                       (default . "."))))
+201:   :required '("command")
+202:   :function 'greger-tools--shell-command)
+203:
+204: (greger-register-tool "read-webpage"
+205:   :description "Read webpage content from a URL. Can return either extracted text or raw HTML."
+206:   :properties '((url . ((type . "string")
+207:                         (description . "The URL to read content from")))
+208:                 (extract_text . ((type . "boolean")
+209:                                  (description . "Whether to extract text content or return raw HTML")
+210:                                  (default . t)))
+211:                 (use_highest_readability . ((type . "boolean")
+212:                                             (description . "Whether to use eww's aggressive highest readability setting for better text extraction")
+213:                                             (default . nil))))
+214:   :required '("url")
+215:   :function 'greger-tools--read-webpage)
+216:
+217: ;; Helper functions
+218:
+219: (defun greger-tools--find-git-repo-root (start-dir)
+220:   "Find the git repository root starting from START-DIR."
+221:   (let ((dir (expand-file-name start-dir)))
+222:     (while (and dir
+223:                 (not (file-exists-p (expand-file-name ".git" dir)))
+224:                 (not (string= dir (directory-file-name dir))))
+225:       (setq dir (file-name-directory (directory-file-name dir))))
+226:     (when (and dir (file-exists-p (expand-file-name ".git" dir)))
+227:       dir)))
+228:
+229: ;; Tools below
+230:
+231: (defun greger-tools--git-stage-and-commit (files commit-message &optional chat-buffer)
+232:   "Stage FILES and commit with COMMIT-MESSAGE using git command line.
+233: If CHAT-BUFFER is provided, also stage and commit the chat buffer file."
+234:   (condition-case err
+235:       (let* ((first-file (car files))
+236:              (file-dir (file-name-directory (expand-file-name first-file)))
+237:              (repo-root (greger-tools--find-git-repo-root file-dir)))
+238:         (unless repo-root
+239:           (error "File %s is not in a git repository" first-file))
+240:
+241:         ;; Set default-directory to the repository root for git operations
+242:         (let ((default-directory repo-root)
+243:               (all-files files))
+244:
+245:           ;; Add chat buffer file if provided and it has a file
+246:           (when (and chat-buffer (buffer-file-name chat-buffer))
+247:             (let ((chat-file (buffer-file-name chat-buffer)))
+248:               ;; Save the chat buffer first if it has unsaved changes
+249:               (with-current-buffer chat-buffer
+250:                 (when (buffer-modified-p)
+251:                   (save-buffer)))
+252:               ;; Add chat file to the list of files to stage
+253:               (push chat-file all-files)))
+254:
+255:           ;; Stage the files
+256:           (dolist (file all-files)
+257:             (let ((relative-path (file-relative-name (expand-file-name file) repo-root)))
+258:               (unless (= 0 (call-process "git" nil nil nil "add" relative-path))
+259:                 (error "Failed to stage file: %s" file))))
+260:
+261:           ;; Create the commit
+262:           (unless (= 0 (call-process "git" nil nil nil "commit" "-m" commit-message))
+263:             (error "Failed to create commit"))
+264:
+265:           (format "Successfully staged %d file(s) and committed with message: %s"
+266:                   (length all-files) commit-message)))
+267:     (error
+268:      (format "Git operation failed: %s" (error-message-string err)))))
+269:
+270: (defun greger-tools--read-file (path &optional include-line-numbers start-line end-line)
+271:   "Read file at PATH. If INCLUDE-LINE-NUMBERS is non-nil, prepend line numbers.
+272: If START-LINE is specified, start reading from that line (1-based).
+273: If END-LINE is specified, stop reading at that line (inclusive, 1-based)."
+274:   (unless (stringp path)
+275:     (error "Path must be a string"))
+276:
+277:   (when (and start-line (not (integerp start-line)))
+278:     (error "start-line must be an integer"))
+279:
+280:   (when (and end-line (not (integerp end-line)))
+281:     (error "end-line must be an integer"))
+282:
+283:   (when (and start-line (< start-line 1))
+284:     (error "start-line must be >= 1"))
+285:
+286:   (when (and end-line (< end-line 1))
+287:     (error "end-line must be >= 1"))
+288:
+289:   (when (and start-line end-line (> start-line end-line))
+290:     (error "start-line must be <= end-line"))
+291:
+292:   (let ((expanded-path (expand-file-name path)))
+293:     (unless (file-exists-p expanded-path)
+294:       (error "File does not exist: %s" expanded-path))
+295:
+296:     (unless (file-readable-p expanded-path)
+297:       (error "File is not readable: %s" expanded-path))
+298:
+299:     (when (file-directory-p expanded-path)
+300:       (error "Path is a directory, not a file: %s" expanded-path))
+301:
+302:     (condition-case err
+303:         (with-temp-buffer
+304:           (insert-file-contents expanded-path)
+305:           (let* ((all-lines (split-string (buffer-string) "\n"))
+306:                  (total-lines (length all-lines))
+307:                  (actual-start (or start-line 1))
+308:                  (actual-end (or end-line total-lines))
+309:                  (selected-lines (greger-tools--extract-line-range all-lines actual-start actual-end))
+310:                  (contents (mapconcat 'identity selected-lines "\n")))
+311:             (if include-line-numbers
+312:                 (greger-tools--add-line-numbers-with-offset contents actual-start)
+313:               contents)))
+314:       (error (format "Failed to read file: %s" (error-message-string err))))))
+315:
+316: (defun greger-tools--extract-line-range (lines start-line end-line)
+317:   "Extract lines from LINES between START-LINE and END-LINE (1-based, inclusive)."
+318:   (let ((start-index (1- start-line))  ; Convert to 0-based index
+319:         (end-index (1- end-line)))     ; Convert to 0-based index
+320:     ;; Ensure indices are within bounds
+321:     (setq start-index (max 0 start-index))
+322:     (setq end-index (min (1- (length lines)) end-index))
+323:     ;; Extract the range
+324:     (cl-subseq lines start-index (1+ end-index))))
+325:
+326: (defun greger-tools--add-line-numbers-with-offset (content start-line-num)
+327:   "Add line numbers to CONTENT string starting from START-LINE-NUM."
+328:   (let ((lines (split-string content "\n"))
+329:         (line-num start-line-num)
+330:         (max-width 0)
+331:         result)
+332:
+333:     ;; Calculate the width needed for line numbers (based on the highest line number)
+334:     (setq max-width (length (number-to-string (+ start-line-num (length lines) -1))))
+335:
+336:     ;; Add line numbers to each line
+337:     (dolist (line lines)
+338:       (push (format (concat "%" (number-to-string max-width) "d: %s") line-num line) result)
+339:       (setq line-num (1+ line-num)))
+340:
+341:     ;; Join back with newlines
+342:     (mapconcat 'identity (reverse result) "\n")))
+343:
+344: (defun greger-tools--list-directory (path &optional show-hidden recursive)
+345:   "List directory contents at PATH."
+346:   (unless (stringp path)
+347:     (error "Path must be a string"))
+348:
+349:   (let ((expanded-path (expand-file-name path)))
+350:     (unless (file-exists-p expanded-path)
+351:       (error "Directory does not exist: %s" expanded-path))
+352:
+353:     (unless (file-directory-p expanded-path)
+354:       (error "Path is not a directory: %s" expanded-path))
+355:
+356:     (unless (file-readable-p expanded-path)
+357:       (error "Directory is not readable: %s" expanded-path))
+358:
+359:     (condition-case err
+360:         (let ((files (if recursive
+361:                          (greger-tools--list-directory-recursive expanded-path show-hidden)
+362:                        (directory-files expanded-path nil
+363:                                         (if show-hidden "^[^.]\\|^\\.[^.]" "^[^.]")))))
+364:           (if files
+365:               (mapconcat (lambda (file)
+366:                            (let ((full-path (expand-file-name file expanded-path)))
+367:                              (format "%s%s"
+368:                                      file
+369:                                      (if (file-directory-p full-path) "/" ""))))
+370:                          files "\n")
+371:             "Directory is empty"))
+372:       (error (format "Failed to list directory: %s" (error-message-string err))))))
+373:
+374: (defun greger-tools--list-directory-recursive (path show-hidden &optional prefix)
+375:   "Recursively list directory contents at PATH."
+376:   (let ((files '())
+377:         (prefix (or prefix "")))
+378:
+379:     (dolist (file (directory-files path nil
+380:                                    (if show-hidden "^[^.]\\|^\\.[^.]" "^[^.]")))
+381:       (let ((full-path (expand-file-name file path))
+382:             (display-name (concat prefix file)))
+383:
+384:         (if (file-directory-p full-path)
+385:             (progn
+386:               (push (concat display-name "/") files)
+387:               (setq files (append files
+388:                                   (greger-tools--list-directory-recursive
+389:                                    full-path show-hidden (concat prefix file "/")))))
+390:           (push display-name files))))
+391:
+392:     (reverse files)))
+393:
+394: (defun greger-tools--ripgrep (pattern path &optional case-sensitive file-type context-lines max-results)
+395:   "Search for PATTERN in PATH using the rg command line tool directly."
+396:   (unless (stringp pattern)
+397:     (error "Pattern must be a string"))
+398:
+399:   (unless (stringp path)
+400:     (error "Path must be a string"))
+401:
+402:   ;; Check if rg executable is available
+403:   (unless (executable-find "rg")
+404:     (error "ripgrep (rg) command not found. Please install ripgrep"))
+405:
+406:   (let ((expanded-path (expand-file-name path)))
+407:     (unless (file-exists-p expanded-path)
+408:       (error "Path does not exist: %s" expanded-path))
+409:
+410:     ;; Build the rg command arguments
+411:     (let ((args '("rg")))
+412:
+413:       ;; Add case sensitivity flag
+414:       (if case-sensitive
+415:           (setq args (append args '("--case-sensitive")))
+416:         (setq args (append args '("--smart-case"))))
+417:
+418:       ;; Add context lines if specified
+419:       (when (and context-lines (> context-lines 0))
+420:         (setq args (append args (list "--context" (number-to-string context-lines)))))
+421:
+422:       ;; Add max results limit if specified (using --max-count)
+423:       (when (and max-results (> max-results 0))
+424:         (setq args (append args (list "--max-count" (number-to-string max-results)))))
+425:
+426:       ;; Add file type if specified
+427:       (when (and file-type (not (string-empty-p file-type)))
+428:         (setq args (append args (list "--type" file-type))))
+429:
+430:       ;; Add line numbers and no heading for better output format
+431:       (setq args (append args '("--line-number" "--no-heading")))
+432:
+433:       ;; Add the pattern and path
+434:       (setq args (append args (list pattern expanded-path)))
+435:
+436:       (condition-case err
+437:           (let ((command (mapconcat 'shell-quote-argument args " ")))
+438:             ;; Execute the command and capture output
+439:             (let ((output (shell-command-to-string command)))
+440:               ;; Return results or indicate no matches
+441:               (if (string-empty-p (string-trim output))
+442:                   "No matches found"
+443:                 output)))
+444:         (error (format "Failed to execute ripgrep search: %s" (error-message-string err)))))))
+445:
+446: (defun greger-tools--write-new-file (file-path contents git-commit-message &optional buffer)
+447:   "Write CONTENTS to a new file at FILE-PATH. Fails if file already exists.
+448: If BUFFER is provided, it will be staged and committed along with the new file."
+449:   (unless (stringp file-path)
+450:     (error "file_path must be a string"))
+451:
+452:   (unless (stringp contents)
+453:     (error "contents must be a string"))
+454:
+455:   (let ((expanded-path (expand-file-name file-path)))
+456:
+457:     ;; Check if file already exists
+458:     (when (file-exists-p expanded-path)
+459:       (error "File already exists: %s" expanded-path))
+460:
+461:     ;; Check if parent directory exists, if not create it
+462:     (let ((parent-dir (file-name-directory expanded-path)))
+463:       (unless (file-exists-p parent-dir)
+464:         (make-directory parent-dir t)))
+465:
+466:     ;; Write the file
+467:     (condition-case err
+468:         (with-temp-buffer
+469:           (insert contents)
+470:           (write-file expanded-path))
+471:       (error (format "Failed to write file: %s" (error-message-string err))))
+472:
+473:     ;; Stage and commit changes - infer the file to stage
+474:     (let ((git-result (greger-tools--git-stage-and-commit (list expanded-path) git-commit-message buffer)))
+475:       (format "Successfully wrote new file %s with %d characters. %s"
+476:               expanded-path (length contents) git-result))))
+477:
+478: (defun greger-tools--make-directory (path git-commit-message &optional buffer)
+479:   "Recursively create directory at PATH.
+480: If BUFFER is provided, it will be staged and committed along with the directory."
+481:   (unless (stringp path)
+482:     (error "path must be a string"))
+483:
+484:   (let ((expanded-path (expand-file-name path)))
+485:
+486:     ;; Check if path already exists
+487:     (if (file-exists-p expanded-path)
+488:         (if (file-directory-p expanded-path)
+489:             (format "Directory already exists: %s" expanded-path)
+490:           (error "Path exists but is not a directory: %s" expanded-path))
+491:
+492:       ;; Create directory recursively
+493:       (condition-case err
+494:           (progn
+495:             (make-directory expanded-path t)
+496:             ;; For directory creation, we might want to stage a .gitkeep file or similar
+497:             ;; For now, we'll stage the directory path itself (though git doesn't track empty dirs)
+498:             (let ((git-result (greger-tools--git-stage-and-commit (list expanded-path) git-commit-message buffer)))
+499:               (format "Successfully created directory: %s. %s" expanded-path git-result)))
+500:         (error (format "Failed to create directory: %s" (error-message-string err)))))))
+501:
+502: (defun greger-tools--rename-file (old-path new-path git-commit-message &optional buffer)
+503:   "Rename file from OLD-PATH to NEW-PATH.
+504: If BUFFER is provided, it will be staged and committed along with the renamed file."
+505:   (unless (stringp old-path)
+506:     (error "old_path must be a string"))
+507:
+508:   (unless (stringp new-path)
+509:     (error "new_path must be a string"))
+510:
+511:   (let ((expanded-old-path (expand-file-name old-path))
+512:         (expanded-new-path (expand-file-name new-path)))
+513:
+514:     ;; Check if old file exists
+515:     (unless (file-exists-p expanded-old-path)
+516:       (error "Source file does not exist: %s" expanded-old-path))
+517:
+518:     ;; Check if new file already exists
+519:     (when (file-exists-p expanded-new-path)
+520:       (error "Destination file already exists: %s" expanded-new-path))
+521:
+522:     ;; Ensure destination directory exists
+523:     (let ((parent-dir (file-name-directory expanded-new-path)))
+524:       (unless (file-exists-p parent-dir)
+525:         (make-directory parent-dir t)))
+526:
+527:     ;; Rename the file
+528:     (condition-case err
+529:         (progn
+530:           (rename-file expanded-old-path expanded-new-path)
+531:           ;; Stage both old and new paths (git mv operation)
+532:           (let ((git-result (greger-tools--git-stage-and-commit
+533:                              (list expanded-old-path expanded-new-path)
+534:                              git-commit-message buffer)))
+535:             (format "Successfully renamed %s to %s. %s" expanded-old-path expanded-new-path git-result)))
+536:       (error (format "Failed to rename file: %s" (error-message-string err))))))
+537:
+538: (defun greger-tools--replace-function (file-path function-name contents line-number commit-message &optional buffer)
+539:   "Replace FUNCTION-NAME in FILE-PATH with new CONTENTS at LINE-NUMBER.
+540: If BUFFER is provided, it will be staged and committed along with the modified file."
+541:   (unless (stringp file-path)
+542:     (error "file_path must be a string"))
+543:
+544:   (unless (stringp function-name)
+545:     (error "function_name must be a string"))
+546:
+547:   (unless (stringp contents)
+548:     (error "contents must be a string"))
+549:
+550:   (unless (integerp line-number)
+551:     (error "line_number must be an integer"))
+552:
+553:   (unless (stringp commit-message)
+554:     (error "commit_message must be a string"))
+555:
+556:   (let ((expanded-path (expand-file-name file-path)))
+557:
+558:     ;; Check if file exists
+559:     (unless (file-exists-p expanded-path)
+560:       (error "File does not exist: %s" expanded-path))
+561:
+562:     ;; Check file extension for supported languages
+563:     (unless (or (string-suffix-p ".py" expanded-path)
+564:                 (string-suffix-p ".el" expanded-path))
+565:       (error "Only Python (.py) and Elisp (.el) files are supported"))
+566:
+567:     (with-current-buffer (find-file-noselect expanded-path)
+568:      ;; Go to the specified line number
+569:      (goto-line line-number)
+570:
+571:      ;; Verify function name is at this line
+572:      (beginning-of-line)
+573:      (let ((line-content (buffer-substring-no-properties
+574:                           (line-beginning-position)
+575:                           (line-end-position))))
+576:
+577:        ;; Check if function is defined on this line based on file type
+578:        (let ((function-pattern
+579:               (cond
+580:                ((string-suffix-p ".py" expanded-path)
+581:                 (format "^\\s-*def\\s-+%s\\s-*(" (regexp-quote function-name)))
+582:                ((string-suffix-p ".el" expanded-path)
+583:                 (format "^\\s-*(defun\\s-+%s\\s-*(" (regexp-quote function-name)))
+584:                (t (error "Unsupported file type")))))
+585:
+586:          (unless (string-match-p function-pattern line-content)
+587:            (error "Function '%s' not found at line %d in %s. Line content: %s"
+588:                   function-name line-number expanded-path line-content))))
+589:
+590:      ;; Delete the existing function using end-of-defun then beginning-of-defun
+591:      (let (start-pos end-pos)
+592:        ;; First go to end of defun to get the end position
+593:        (end-of-defun)
+594:        (setq end-pos (point))
+595:
+596:        ;; Then go to beginning of defun to get start position
+597:        (beginning-of-defun)
+598:        (setq start-pos (point))
+599:
+600:        ;; Delete the function
+601:        (delete-region start-pos end-pos)
+602:
+603:        ;; Insert new contents
+604:        (insert contents)
+605:
+606:        ;; Ensure there's a newline at the end if not present
+607:        (unless (string-suffix-p "\n" contents)
+608:          (insert "\n")))
+609:
+610:      ;; Save the file
+611:      (save-buffer))
+612:
+613:     ;; Stage and commit the file
+614:     (let ((git-result (greger-tools--git-stage-and-commit (list expanded-path) commit-message buffer)))
+615:       (format "Successfully replaced function '%s' in %s. %s"
+616:               function-name expanded-path git-result))))
+617:
+618: (defun greger-tools--replace-file (file-path contents git-commit-message &optional buffer)
+619:   "Replace the entire contents of FILE-PATH with CONTENTS.
+620: If BUFFER is provided, it will be staged and committed along with the modified file."
+621:   (unless (stringp file-path)
+622:     (error "file_path must be a string"))
+623:
+624:   (unless (stringp contents)
+625:     (error "contents must be a string"))
+626:
+627:   (unless (stringp git-commit-message)
+628:     (error "git_commit_message must be a string"))
+629:
+630:   (let ((expanded-path (expand-file-name file-path)))
+631:
+632:     ;; Check if file exists
+633:     (unless (file-exists-p expanded-path)
+634:       (error "File does not exist: %s" expanded-path))
+635:
+636:     ;; Check if it's actually a file and not a directory
+637:     (when (file-directory-p expanded-path)
+638:       (error "Path is a directory, not a file: %s" expanded-path))
+639:
+640:     (with-current-buffer (find-file-noselect expanded-path)
+641:      ;; Select all content and replace it
+642:      (erase-buffer)
+643:      (insert contents)
+644:
+645:      ;; Save the file
+646:      (save-buffer))
+647:
+648:     ;; Stage and commit the file
+649:     (let ((git-result (greger-tools--git-stage-and-commit (list expanded-path) git-commit-message buffer)))
+650:       (format "Successfully replaced contents of %s with %d characters. %s"
+651:               expanded-path (length contents) git-result))))
+652:
+653: (defun greger-tools--str-replace (file-path original-content new-content git-commit-message &optional buffer)
+654:   "Replace ORIGINAL-CONTENT with NEW-CONTENT in FILE-PATH.
+655: If BUFFER is provided, it will be staged and committed along with the modified file."
+656:   (unless (stringp file-path)
+657:     (error "file_path must be a string"))
+658:
+659:   (unless (stringp original-content)
+660:     (error "original_content must be a string"))
+661:
+662:   (unless (stringp new-content)
+663:     (error "new_content must be a string"))
+664:
+665:   (unless (stringp git-commit-message)
+666:     (error "git_commit_message must be a string"))
+667:
+668:   (let ((expanded-path (expand-file-name file-path)))
+669:
+670:     ;; Check if file exists
+671:     (unless (file-exists-p expanded-path)
+672:       (error "File does not exist: %s" expanded-path))
+673:
+674:     ;; Check if it's actually a file and not a directory
+675:     (when (file-directory-p expanded-path)
+676:       (error "Path is a directory, not a file: %s" expanded-path))
+677:
+678:     (with-current-buffer (find-file-noselect expanded-path)
+679:      ;; Use isearch to find the original content
+680:      (goto-char (point-min))
+681:      (let ((case-fold-search nil)) ; Make search case-sensitive
+682:        (if (search-forward original-content nil t)
+683:            (progn
+684:              ;; Replace the found content
+685:              (replace-match new-content nil t)
+686:              ;; Save the file
+687:              (save-buffer))
+688:          (error "Original content not found in file: %s -- Try again!" expanded-path))))
+689:
+690:     ;; Stage and commit the file
+691:     (let ((git-result (greger-tools--git-stage-and-commit (list expanded-path) git-commit-message buffer)))
+692:       (format "Successfully replaced content in %s. %s" expanded-path git-result))))
+693:
+694: (defun greger-tools--insert (file-path line-number content git-commit-message &optional buffer)
+695:   "Insert CONTENT at LINE-NUMBER in FILE-PATH.
+696: If BUFFER is provided, it will be staged and committed along with the modified file."
+697:   (unless (stringp file-path)
+698:     (error "file_path must be a string"))
+699:
+700:   (unless (integerp line-number)
+701:     (error "line_number must be an integer"))
+702:
+703:   (unless (>= line-number 0)
+704:     (error "line_number must be >= 0"))
+705:
+706:   (unless (stringp content)
+707:     (error "content must be a string"))
+708:
+709:   (unless (stringp git-commit-message)
+710:     (error "git_commit_message must be a string"))
+711:
+712:   (let ((expanded-path (expand-file-name file-path)))
+713:
+714:     ;; Check if file exists
+715:     (unless (file-exists-p expanded-path)
+716:       (error "File does not exist: %s" expanded-path))
+717:
+718:     ;; Check if it's actually a file and not a directory
+719:     (when (file-directory-p expanded-path)
+720:       (error "Path is a directory, not a file: %s" expanded-path))
+721:
+722:     (with-current-buffer (find-file-noselect expanded-path)
+723:      ;; Navigate to the insertion point
+724:      (goto-char (point-min))
+725:      (if (= line-number 0)
+726:          ;; Insert at beginning of file
+727:          (goto-char (point-min))
+728:        ;; Go to the specified line - this is where the fix is needed
+729:        (goto-line line-number)
+730:        ;; Move to beginning of line to insert before it, not after it
+731:        (beginning-of-line))
+732:
+733:      ;; Insert the content
+734:      (if (= line-number 0)
+735:          ;; At beginning of file, insert content and newline
+736:          (progn
+737:            (insert content)
+738:            (unless (string-suffix-p "\n" content)
+739:              (insert "\n")))
+740:        ;; Before a line, insert content then newline
+741:        (progn
+742:          (insert content)
+743:          (unless (string-suffix-p "\n" content)
+744:            (insert "\n"))))
+745:
+746:      ;; Save the file
+747:      (save-buffer))
+748:
+749:     ;; Stage and commit the file
+750:     (let ((git-result (greger-tools--git-stage-and-commit (list expanded-path) git-commit-message buffer)))
+751:       (format "Successfully inserted %d characters at line %d in %s. %s"
+752:               (length content) line-number expanded-path git-result))))
+753:
+754: (defun greger-tools--git-log (path &optional max-rows)
+755:   "View git commit logs using git command line for PATH."
+756:   (unless (stringp path)
+757:     (error "path must be a string"))
+758:
+759:   (let ((expanded-path (expand-file-name path))
+760:         (max-count (or max-rows 100)))
+761:
+762:     (unless (file-exists-p expanded-path)
+763:       (error "Path does not exist: %s" expanded-path))
+764:
+765:     ;; Get the directory to search for git repo (if path is a file, use its directory)
+766:     (let* ((search-dir (if (file-directory-p expanded-path)
+767:                           expanded-path
+768:                         (file-name-directory expanded-path)))
+769:            (repo-root (greger-tools--find-git-repo-root search-dir)))
+770:       (unless repo-root
+771:         (error "Path %s is not in a git repository" expanded-path))
+772:
+773:       (condition-case err
+774:           (let ((default-directory repo-root))
+775:             (with-temp-buffer
+776:               (let ((exit-code (call-process "git" nil t nil "log"
+777:                                            "--oneline" "--decorate" "--graph"
+778:                                            (format "--max-count=%d" max-count))))
+779:                 (if (= exit-code 0)
+780:                     (let ((results (buffer-string)))
+781:                       (if (string-empty-p (string-trim results))
+782:                           "No git log available"
+783:                         results))
+784:                   (error "Git log command failed with exit code %d" exit-code)))))
+785:         (error (format "Failed to retrieve git log: %s" (error-message-string err)))))))
+786:
+787: (defun greger-tools--git-show-commit (commit-hash path)
+788:   "View git commit using git command line for PATH."
+789:   (unless (stringp commit-hash)
+790:     (error "commit_hash must be a string"))
+791:
+792:   (unless (stringp path)
+793:     (error "path must be a string"))
+794:
+795:   (let ((expanded-path (expand-file-name path)))
+796:
+797:     (unless (file-exists-p expanded-path)
+798:       (error "Path does not exist: %s" expanded-path))
+799:
+800:     ;; Get the directory to search for git repo (if path is a file, use its directory)
+801:     (let* ((search-dir (if (file-directory-p expanded-path)
+802:                           expanded-path
+803:                         (file-name-directory expanded-path)))
+804:            (repo-root (greger-tools--find-git-repo-root search-dir)))
+805:       (unless repo-root
+806:         (error "Path %s is not in a git repository" expanded-path))
+807:
+808:       (condition-case err
+809:           (let ((default-directory repo-root))
+810:             (with-temp-buffer
+811:               (let ((exit-code (call-process "git" nil t nil "show" commit-hash)))
+812:                 (if (= exit-code 0)
+813:                     (let ((results (buffer-string)))
+814:                       (if (string-empty-p (string-trim results))
+815:                           "No git commit available"
+816:                         results))
+817:                   (error "Git show command failed with exit code %d" exit-code)))))
+818:         (error (format "Failed to show git commit: %s" (error-message-string err)))))))
+819:
+820: (defun greger-tools--eval-elisp-defuns (file-path function-names)
+821:   (unless (stringp file-path)
+822:     (error "File path must be a string"))
+823:
+824:   (unless (vectorp function-names)
+825:     (error "Function names must be a vector"))
+826:
+827:   (let ((expanded-path (expand-file-name file-path)))
+828:     ;; Check if file exists
+829:     (unless (file-exists-p expanded-path)
+830:       (error "File does not exist: %s" expanded-path))
+831:
+832:     ;; Check if it's actually a file
+833:     (when (file-directory-p expanded-path)
+834:       (error "Path is a directory, not a file: %s" expanded-path))
+835:
+836:     (with-current-buffer (find-file-noselect expanded-path)
+837:      ;; Navigate to and evaluate each function
+838:      (dotimes (i (length function-names))
+839:        (let ((function-name (aref function-names i)))
+840:          (goto-char (point-min))
+841:
+842:          ;; Search for the function definition
+843:          (let ((function-pattern (format "^\\s-*(\\(ert-deftest\\|defun\\)\\s-+%s\\s-*("
+844:                                          (regexp-quote function-name))))
+845:            (unless (re-search-forward function-pattern nil t)
+846:              (error "Function '%s' not found in %s" function-name expanded-path))
+847:
+848:            ;; Move to beginning of defun and evaluate it
+849:            (beginning-of-defun)
+850:            (eval-defun nil)))))
+851:     "Eval successful"))
+852:
+853: (defun greger-tools--ert-test (test-file-path function-names)
+854:   "Execute ERT tests by evaluating test functions and running them with ert.
+855: TEST-FILE-PATH is the path to the test file.
+856: FUNCTION-NAMES is a vector of test function names to evaluate and run."
+857:
+858:   ;; First eval the test function names
+859:   (greger-tools--eval-elisp-defuns test-file-path function-names)
+860:
+861:   (condition-case err
+862:       (progn
+863:         ;; Now run the tests using ert-run-tests with a custom listener
+864:         (let* ((function-names-list (append function-names nil)) ; Convert vector to list for processing
+865:                (test-selector `(member ,@(mapcar #'intern function-names-list)))
+866:                (output-lines '())
+867:                (stats nil))
+868:
+869:           ;; Define a custom listener to capture test output
+870:           (let ((listener
+871:                  (lambda (event-type &rest event-args)
+872:                    (cl-case event-type
+873:                      (run-started
+874:                       (cl-destructuring-bind (stats-obj) event-args
+875:                         (setq stats stats-obj)
+876:                         (push (format "Running %d tests (%s)"
+877:                                       (length (ert--stats-tests stats-obj))
+878:                                       (current-time-string))
+879:                               output-lines)))
+880:                      (test-started
+881:                       (cl-destructuring-bind (stats-obj test) event-args
+882:                         (push (format "Test %S started" (ert-test-name test))
+883:                               output-lines)))
+884:                      (test-ended
+885:                       (cl-destructuring-bind (stats-obj test result) event-args
+886:                         (let ((test-name (ert-test-name test))
+887:                               (expected-p (ert-test-result-expected-p test result)))
+888:                           (push (format "Test %S: %s%s%s"
+889:                                         test-name
+890:                                         (ert-string-for-test-result result expected-p)
+891:                                         (if (ert-test-result-duration result)
+892:                                             (format " (%.3fs)" (ert-test-result-duration result))
+893:                                           "")
+894:                                         (let ((reason (ert-reason-for-test-result result)))
+895:                                           (if (string-empty-p reason) "" reason)))
+896:                                 output-lines)
+897:                           ;; Add condition details for failures
+898:                           (when (and (ert-test-result-with-condition-p result)
+899:                                      (not expected-p))
+900:                             (let ((condition (ert-test-result-with-condition-condition result)))
+901:                               (push (format "  Condition: %S" condition) output-lines))))))
+902:                      (run-ended
+903:                       (cl-destructuring-bind (stats-obj aborted-p) event-args
+904:                         (let ((completed (ert-stats-completed stats-obj))
+905:                               (expected (ert-stats-completed-expected stats-obj))
+906:                               (unexpected (ert-stats-completed-unexpected stats-obj))
+907:                               (skipped (ert-stats-skipped stats-obj)))
+908:                           (push (format "\n%sRan %d tests, %d results as expected, %d unexpected%s"
+909:                                         (if aborted-p "Aborted: " "")
+910:                                         completed
+911:                                         expected
+912:                                         unexpected
+913:                                         (if (zerop skipped) "" (format ", %d skipped" skipped)))
+914:                                 output-lines))))))))
+915:
+916:             ;; Run the tests
+917:             (setq stats (ert-run-tests test-selector listener))
+918:
+919:             ;; Format the results
+920:             (let ((result-text (string-join (nreverse output-lines) "\n")))
+921:               (format "Successfully evaluated %d test function(s) from %s and executed them with ert.\n\nTest Results:\n%s"
+922:                       (length function-names) test-file-path result-text)))))
+923:
+924:     (error (format "Failed to execute ERT tests: %s" (error-message-string err)))))
+925:
+926: (defun greger-tools--shell-command (command &optional working-directory)
+927:   "Execute COMMAND in WORKING-DIRECTORY and return the output.
+928: Prompts for permission before running the command for security."
+929:   (unless (stringp command)
+930:     (error "Command must be a string"))
+931:
+932:   (when (string-empty-p (string-trim command))
+933:     (error "Command cannot be empty"))
+934:
+935:   (let ((work-dir (or working-directory ".")))
+936:     (unless (stringp work-dir)
+937:       (error "Working directory must be a string"))
+938:
+939:     (let ((expanded-work-dir (expand-file-name work-dir)))
+940:       (unless (file-exists-p expanded-work-dir)
+941:         (error "Working directory does not exist: %s" expanded-work-dir))
+942:
+943:       (unless (file-directory-p expanded-work-dir)
+944:         (error "Working directory path is not a directory: %s" expanded-work-dir))
+945:
+946:       ;; Prompt for permission to run the command
+947:       (unless (y-or-n-p (format "Execute shell command: '%s' in directory '%s'? "
+948:                                 command expanded-work-dir))
+949:         (error "Shell command execution cancelled by user"))
+950:
+951:       (condition-case err
+952:           (let ((default-directory expanded-work-dir)
+953:                 (output "")
+954:                 (exit-code 0))
+955:             ;; Execute the command and capture both output and exit code
+956:             (with-temp-buffer
+957:               (setq exit-code (call-process-shell-command command nil t nil))
+958:               (setq output (buffer-string)))
+959:
+960:             ;; Format the result with exit code information
+961:             (if (= exit-code 0)
+962:                 (format "Command executed successfully (exit code 0):\n%s"
+963:                         (if (string-empty-p (string-trim output))
+964:                             "(no output)"
+965:                           output))
+966:               (format "Command failed with exit code %d:\n%s"
+967:                       exit-code
+968:                       (if (string-empty-p (string-trim output))
+969:                           "(no output)"
+970:                         output))))
+971:         (error (format "Failed to execute shell command: %s" (error-message-string err)))))))
+972:
+973: (defun greger-tools--read-webpage (url &optional extract-text use-highest-readability)
+974:   "Read webpage content from URL.
+975: If EXTRACT-TEXT is non-nil (default t), extract and return text content.
+976: If EXTRACT-TEXT is nil, return raw HTML.
+977: If USE-HIGHEST-READABILITY is non-nil, use eww's aggressive readability setting."
+978:   (unless (stringp url)
+979:     (error "URL must be a string"))
+980:
+981:   (when (string-empty-p (string-trim url))
+982:     (error "URL cannot be empty"))
+983:
+984:   (unless (greger-web-is-web-url-p url)
+985:     (error "Invalid URL format: %s (must start with http:// or https://)" url))
+986:
+987:   (condition-case err
+988:       (greger-web-download-page url extract-text use-highest-readability)
+989:     (error (format "Failed to read webpage: %s" (error-message-string err)))))
+990:
+991: (provide 'greger-stdlib)
+992:
+993: ;;; greger-stdlib.el ends here
+994:
+</tool.toolu_013ayqdde6MgzHqjGcpThfss>
 
 ## ASSISTANT:
 
-Let me examine the `greger-provider-claude.el` file to understand the `greger-provider-claude--build-data` function:
+Now I need to find the `greger-tools--git-stage-and-commit` function and modify it to check if the chat file is already tracked in version control before staging it. Let me look at the function starting at line 231:
 
 ## TOOL USE:
 
 Name: read-file
-ID: toolu_01M9Ra13aggwbSWVUVJicKyh
+ID: toolu_012Mae2myEr61N9T5u1bDemw
 
 ### path
 
-<tool.toolu_01M9Ra13aggwbSWVUVJicKyh>
-greger-provider-claude.el
-</tool.toolu_01M9Ra13aggwbSWVUVJicKyh>
-
-## TOOL RESULT:
-
-ID: toolu_01M9Ra13aggwbSWVUVJicKyh
-
-<tool.toolu_01M9Ra13aggwbSWVUVJicKyh>
-;;; greger-provider-claude.el --- Claude provider support -*- lexical-binding: t -*-
-
-;;; Commentary:
-;; Support for Anthropic's Claude models
-
-;;; Code:
-
-(require 'json)
-
-(defun greger-provider-claude-config (provider-name model-name)
-  "Create configuration for Claude PROVIDER-NAME with MODEL-NAME."
-  (list :provider provider-name
-        :model model-name
-        :url "https://api.anthropic.com/v1/messages"
-        :request-builder #'greger-provider-claude--build-request
-        :text-extractor #'greger-provider-claude--extract-text))
-
-(defun greger-provider-claude--build-request (config dialog &optional tools)
-  "Build Claude request using CONFIG for DIALOG with optional TOOLS."
-  (let* ((provider-name (plist-get config :provider))
-         (model-name (plist-get config :model))
-         (url (plist-get config :url))
-         (api-key (greger-providers--get-api-key provider-name))
-         (headers (greger-provider-claude--build-headers api-key))
-         (data (greger-provider-claude--build-data model-name dialog tools)))
-    (list :url url
-          :method "POST"
-          :headers headers
-          :data data)))
-
-(defun greger-provider-claude--build-headers (api-key)
-  "Build headers for Claude with API-KEY."
-  `(("Content-Type" . "application/json")
-    ("x-api-key" . ,api-key)
-    ("anthropic-version" . "2023-06-01")
-    ("anthropic-beta" . "token-efficient-tools-2025-02-19")))
-
-(defun greger-provider-claude--build-data (model-name dialog &optional tools)
-  "Build request data for Claude MODEL-NAME with DIALOG and optional TOOLS."
-  (let ((system-message nil)
-        (user-messages ())
-        (request-data nil))
-
-    ;; Separate system messages from user/assistant messages
-    (dolist (message dialog)
-      (let ((role (alist-get 'role message))
-            (content (alist-get 'content message)))
-        (if (string= role "system")
-            (unless system-message
-              (setq system-message content))
-          (push `((role . ,role)
-                  (content . ,content))
-                user-messages))))
-
-    ;; Reverse to get correct order
-    (setq user-messages (nreverse user-messages))
-
-    ;; Find the last message with dict content and add ephemeral cache control
-    (let ((last-dict-message nil))
-      (dolist (message user-messages)
-        (let ((content (alist-get 'content message)))
-          (when (and (listp content) (not (stringp content)))
-            (setq last-dict-message message))))
-
-      (when last-dict-message
-        (let ((content-list (alist-get 'content last-dict-message)))
-          ;; Modify the first content item in place
-          (when (and content-list (listp content-list))
-            (let ((first-content-item (car content-list)))
-              (when (and first-content-item (listp first-content-item))
-                ;; Modify the car of the content-list directly
-                (setcar content-list
-                        (cons '(cache_control . ((type . "ephemeral")))
-                              first-content-item))))))))
-
-    ;; Build base request
-    (setq request-data `(("model" . ,model-name)
-                        ("messages" . ,user-messages)
-                        ("max_tokens" . 8192)
-                        ("stream" . t)))
-
-    ;; Add system message if present
-    (when system-message
-      (push `("system" . ,system-message) request-data))
-
-    ;; Add tools if present
-    (when tools
-      (push `("tools" . ,tools) request-data)
-      (push `("tool_choice" . (("type" . "auto"))) request-data))
-
-    (json-encode request-data)))
-
-(defun greger-provider-claude--extract-text (event)
-  "Extract text from Claude EVENT."
-  (let ((event-parts (split-string event "\n" t)))
-    (when (>= (length event-parts) 2)
-      (let ((event-type (car event-parts))
-            (event-data (substring (cadr event-parts) 6)))
-        (if (string-prefix-p "event: content_block_delta" event-type)
-            (greger-provider-claude--extract-delta-text event-data)
-          "")))))
-
-(defun greger-provider-claude--extract-delta-text (data)
-  "Extract text from Claude content_block_delta DATA."
-  (condition-case nil
-      (let* ((block-data (json-read-from-string data))
-             (delta (assoc-default 'delta block-data))
-             (text (assoc-default 'text delta)))
-        (or text ""))
-    (error "")))
-
-(provide 'greger-provider-claude)
-
-;;; greger-provider-claude.el ends hereb
-
-</tool.toolu_01M9Ra13aggwbSWVUVJicKyh>
-
-## ASSISTANT:
-
-Now let me check the main greger.el file to understand the buffer structure and how dialogs are parsed:
-
-## TOOL USE:
-
-Name: read-file
-ID: toolu_01De3dmEdrpWRVij9ARwPaoV
-
-### path
-
-<tool.toolu_01De3dmEdrpWRVij9ARwPaoV>
-greger.el
-</tool.toolu_01De3dmEdrpWRVij9ARwPaoV>
-
-## TOOL RESULT:
-
-ID: toolu_01De3dmEdrpWRVij9ARwPaoV
-
-<tool.toolu_01De3dmEdrpWRVij9ARwPaoV>
-;;; greger.el --- Chat with language models -*- lexical-binding: t -*-
-
-;; Copyright (C) 2023 Andreas Jansson
-
-;; Author: Andreas Jansson <andreas@jansson.me.uk>
-;; Version: 0.1.0
-;; URL: https://github.com/andreasjansson/greger.el
-;; Package-Requires: ((emacs "28.0") (parsec "0.1.3"))
-
-;;; Commentary:
-;; This package provides an interface for interacting with AI language models
-
-;;; Code:
-
-(require 'greger-stream)
-(require 'greger-parser)
-(require 'cl-lib)
-
-(defconst greger-available-models
-  '(replicate/meta/meta-llama-3.1-405b-instruct
-    replicate/meta/meta-llama-3-70b-instruct
-    replicate/meta/meta-llama-3-70b
-    replicate/meta/meta-llama-3-8b-instruct
-    replicate/meta/meta-llama-3-8b
-    replicate/snowflake/snowflake-arctic-instruct
-    claude/claude-3-haiku-20240307
-    claude/claude-3-opus-20240229
-    claude/claude-3-5-sonnet-20240620
-    claude/claude-3-7-sonnet-latest
-    claude/claude-sonnet-4-20250514
-    claude/claude-opus-4-20250514
-    openai/o1-preview
-    openai/gpt-4-turbo
-    openai/gpt-4o
-    openai/gpt-4o-2024-08-06
-    openai/gpt-4o-mini
-    google/gemini-pro
-    groq/llama3-8b-8192
-    groq/llama3-70b-8192
-    groq/mixtral-8x7b-32768
-    ollama/llama3:8b
-    ollama/llama3:text
-    ollama/mistral:7b
-    ollama/phi3:3.8b
-    ollama/wizardlm2:7b
-    ollama/gemma:2b)
-  "List of available models.")
-
-(defcustom greger-model 'claude/claude-sonnet-4-20250514
-  "The currently used model."
-  :type `(choice ,@(mapcar (lambda (model) `(const ,model)) greger-available-models))
-  :group 'greger)
-
-(defcustom greger-default-system-prompt "You are a helpful assistant."
-  "Default system prompt used for AI interactions."
-  :type 'string
-  :group 'greger)
-
-(defcustom greger-temperature 0.8
-  "Sampling temperature between 0 and 1."
-  :type 'float
-  :group 'greger)
-
-(defvar greger-user-tag "## USER:")
-(defvar greger-assistant-tag "## ASSISTANT:")
-(defvar greger-system-tag "## SYSTEM:")
-
-;; Tool section collapsing variables
-(defvar greger-tool-section-max-lines 4
-  "Maximum number of lines to show in collapsed tool sections.")
-
-(defvar greger-tool-overlays nil
-  "List of overlays used for collapsible tool sections.")
-
-;; Face definitions for tool tags
-(defface greger-tool-tag-face
-  '((t :height 0.6 :foreground "gray70"))
-  "Face for tool opening and closing tags."
-  :group 'greger)
-
-(defface greger-tool-content-face
-  '((t :inherit default))
-  "Face for tool content."
-  :group 'greger)
-
-(defface greger-tool-param-heading-face
-  '((t :foreground "#6699CC" :weight bold :height 1.0))
-  "Face for ### tool parameter headings in greger mode."
-  :group 'greger)
-
-(defface greger-user-heading-face
-  '((t :foreground "#66DD66" :weight bold :height 1.2))
-  "Face for ## USER: headings in greger mode."
-  :group 'greger)
-
-(defface greger-tool-result-heading-face
-  '((t :foreground "#66AA88" :weight bold :height 1.2))
-  "Face for ## TOOL RESULT: headings in greger mode."
-  :group 'greger)
-
-(defface greger-assistant-heading-face
-  '((t :foreground "#AA9922" :weight bold :height 1.2))
-  "Face for ## ASSISTANT: headings in greger mode."
-  :group 'greger)
-
-(defface greger-thinking-heading-face
-  '((t :foreground "#9966CC" :weight bold :height 1.2))
-  "Face for ## THINKING: headings in greger mode."
-  :group 'greger)
-
-(defface greger-tool-use-heading-face
-  '((t :foreground "#8866BB" :weight bold :height 1.2))
-  "Face for ## TOOL USE: headings in greger mode."
-  :group 'greger)
-
-(defface greger-system-heading-face
-  '((t :foreground "#CC6666" :weight bold :height 1.2))
-  "Face for ## SYSTEM: headings in greger mode."
-  :group 'greger)
-
-(defvar greger-mode-map
-  (let ((map (make-sparse-keymap)))
-    (define-key map (kbd "M-<return>") #'greger-agent-buffer)
-    (define-key map (kbd "C-M-<return>") #'greger-buffer-no-tools)
-                                        ;(define-key map (kbd "M-<return>") #'greger-buffer)
-    (define-key map (kbd "C-; a") #'greger-insert-assistant-tag)
-    (define-key map (kbd "C-; u") #'greger-insert-user-tag)
-    (define-key map (kbd "C-; s") #'greger-insert-system-tag)
-    (define-key map (kbd "C-; i") #'greger-insert-include)
-    (define-key map (kbd "C-; I") #'greger-insert-include-code)
-    (define-key map (kbd "C-; f") #'greger-insert-include-file)
-    (define-key map (kbd "C-; b") #'greger-insert-include-buffer-code)
-    (define-key map (kbd "C-; m") #'greger-set-model)
-    (define-key map (kbd "C-; c") #'greger-copy-code)
-    (define-key map (kbd "TAB") #'greger-toggle-tool-section)
-    (define-key map (kbd "<tab>") #'greger-toggle-tool-section)
-    map)
-  "Keymap for `greger-mode'.")
-
-(define-derived-mode greger-mode gfm-mode "AI"
-  "Major mode for interacting with AI."
-  (use-local-map greger-mode-map)
-  (setq-local markdown-fontify-code-blocks-natively t)
-  (setq-local mode-line-misc-info '(:eval (symbol-name greger-model)))
-  ;; Set up invisible text for tool sections
-  (add-to-invisibility-spec 'greger-tool-section)
-  ;; Set up tool section highlighting and collapsing
-  (greger--setup-tool-sections)
-  ;; Set up custom heading font-lock
-  (greger--setup-heading-font-lock)
-  ;; Add hook to update tool sections when buffer changes
-  (add-hook 'after-change-functions #'greger--after-change-function nil t))
-
-;;;###autoload
-(defun greger ()
-  "Create a new buffer and switch to `greger-mode`."
-  (interactive)
-  (let ((buffer (generate-new-buffer "*greger*")))
-    (switch-to-buffer buffer)
-    (greger-mode)
-    (insert greger-system-tag
-            "\n\n" greger-default-system-prompt "\n\n"
-            greger-user-tag
-            "\n\n")
-    (message (format "Using model %s" greger-model))))
-
-(defun greger-insert-assistant-tag ()
-  "Insert the assistant tag into the buffer."
-  (interactive)
-  (insert greger-assistant-tag "\n\n"))
-
-(defun greger-insert-user-tag ()
-  "Insert the user tag into the buffer."
-  (interactive)
-  (insert greger-user-tag "\n\n"))
-
-(defun greger-insert-system-tag ()
-  "Insert the system tag into the buffer."
-  (interactive)
-  (insert greger-system-tag "\n\n"))
-
-(defun greger-buffer-no-tools ()
-  "Send the buffer content to AI as a dialog without tool use."
-  (interactive)
-  (let ((greger-agent-tools '()))
-    (greger-agent-buffer)))
-
-(defun greger-insert-include ()
-  "Prompt the user to select a file and insert an <include> at point."
-  (interactive)
-  (let ((file (read-string "Filename or URL: ")))
-    (insert (format "<include>%s</include>\n\n" file))))
-
-(defun greger-insert-include-file ()
-  "Prompt the user to select a file and insert an <include> at point."
-  (interactive)
-  (let ((file (expand-file-name (read-file-name "Select file: " nil nil t))))
-    (if (file-exists-p file)
-        (insert (format "<include>%s</include>\n\n" file))
-      (message "File does not exist!"))))
-
-(defun greger-insert-include-code ()
-  "Prompt the user to select a file and insert an <include> at point."
-  (interactive)
-  (let ((file (read-string "Filename or URL: ")))
-    (insert (format "<include code>%s</include>\n\n" file))))
-
-(defun greger-insert-include-buffer-code ()
-  "Prompt the user to select a buffer and insert an <include code> at point."
-  (interactive)
-  (let ((buffer-name (read-buffer "Select buffer: " nil t)))
-    (when buffer-name
-      (let ((buffer (get-buffer buffer-name)))
-        (when buffer
-          (let ((path (buffer-file-name buffer)))
-            (insert (format "<include code>%s</include>\n\n" path))))))))
-
-(defun greger-copy-code ()
-  "Copy the current code block under point."
-  (interactive)
-  (let ((code-block (greger--get-current-code-block)))
-    (if code-block
-        (progn
-          (kill-new code-block)
-          (message (format "Copied code: %s" (greger--truncate-with-ellipsis code-block 40))))
-      (error "Point is not inside a code block"))))
-
-(defun greger-set-model ()
-  "Set the current AI model."
-  (interactive)
-  (let ((model (completing-read "Choose AI model: " greger-available-models nil t)))
-    (customize-set-variable 'greger-model (intern model))
-    (message "Model set to %s" model)))
-
-;; Tool section collapsing functions
-
-(defun greger--setup-tool-sections ()
-  "Set up tool section highlighting and collapsing in the current buffer."
-  (greger--clear-tool-overlays)
-  (greger--find-and-setup-tool-sections))
-
-(defun greger--clear-tool-overlays ()
-  "Clear all tool section overlays in the current buffer."
-  (cl-loop for overlay in greger-tool-overlays
-           do (delete-overlay overlay))
-  (setq greger-tool-overlays nil))
-
-(defun greger--find-and-setup-tool-sections ()
-  "Find all tool sections and set them up with appropriate faces and collapsing."
-  (save-excursion
-    (goto-char (point-min))
-    (cl-loop while (re-search-forward "<tool\\.[^>]+>" nil t)
-             do (greger--setup-single-tool-section))))
-
-(defun greger--setup-single-tool-section ()
-  "Set up a single tool section starting from the current match."
-  (let ((start-tag-start (match-beginning 0))
-        (start-tag-end (match-end 0))
-        (tool-id (greger--extract-tool-id (match-string 0))))
-    (when tool-id
-      (let ((end-tag-pattern (concat "</tool\\." (regexp-quote tool-id) ">"))
-            (content-start start-tag-end)
-            content-end
-            end-tag-start
-            end-tag-end)
-
-        ;; Find the corresponding closing tag
-        (when (re-search-forward end-tag-pattern nil t)
-          (setq end-tag-start (match-beginning 0)
-                end-tag-end (match-end 0)
-                content-end end-tag-start)
-
-          ;; Create overlays for styling
-          (greger--create-tag-overlay start-tag-start start-tag-end)
-          (greger--create-tag-overlay end-tag-start end-tag-end)
-
-          ;; Set up collapsible content
-          (greger--setup-collapsible-content content-start content-end tool-id))))))
-
-(defun greger--extract-tool-id (tag-string)
-  "Extract tool ID from a tool tag string like '<tool.abc123>'."
-  (when (string-match "<tool\\.\\([^>]+\\)>" tag-string)
-    (match-string 1 tag-string)))
-
-(defun greger--create-tag-overlay (start end)
-  "Create an overlay for a tool tag to make it small and less visible."
-  (let ((overlay (make-overlay start end)))
-    (overlay-put overlay 'face 'greger-tool-tag-face)
-    (overlay-put overlay 'greger-tool-tag t)
-    (push overlay greger-tool-overlays)
-    overlay))
-
-(defun greger--setup-collapsible-content (content-start content-end tool-id)
-  "Set up collapsible content between CONTENT-START and CONTENT-END for TOOL-ID."
-  (let* ((content (buffer-substring-no-properties content-start content-end))
-         (lines (split-string content "\n"))
-         (line-count (length lines)))
-
-    (when (> line-count greger-tool-section-max-lines)
-      ;; Create the collapsible overlay
-      (greger--create-collapsible-overlay content-start content-end tool-id lines))))
-
-(defun greger--create-collapsible-overlay (content-start content-end tool-id lines)
-  "Create a collapsible overlay for tool content."
-  (let* ((visible-lines (cl-subseq lines 0 greger-tool-section-max-lines))
-         (hidden-lines (cl-subseq lines greger-tool-section-max-lines))
-         (total-lines (length lines))
-         (hidden-line-count (length hidden-lines))
-         (visible-text (mapconcat #'identity visible-lines "\n"))
-         (hidden-text (mapconcat #'identity hidden-lines "\n"))
-
-         ;; Calculate positions for visible and hidden parts
-         (visible-end (+ content-start (length visible-text)))
-         (hidden-start (+ visible-end 1)) ; +1 for the newline
-
-         ;; Create overlay for the hidden part
-         (hidden-overlay (make-overlay hidden-start content-end)))
-
-    (overlay-put hidden-overlay 'invisible 'greger-tool-section)
-    (overlay-put hidden-overlay 'greger-tool-section t)
-    (overlay-put hidden-overlay 'greger-tool-id tool-id)
-    (overlay-put hidden-overlay 'greger-collapsed t)
-
-    ;; Add expansion indicator with line count
-    (let ((indicator-overlay (make-overlay visible-end visible-end)))
-      (overlay-put indicator-overlay 'after-string
-                   (propertize (format "... [+%d lines, TAB to expand]" hidden-line-count)
-                              'face 'greger-tool-tag-face))
-      (overlay-put indicator-overlay 'greger-tool-indicator t)
-      (overlay-put indicator-overlay 'greger-tool-id tool-id)
-      (push indicator-overlay greger-tool-overlays))
-
-    (push hidden-overlay greger-tool-overlays)))
-
-(defun greger-toggle-tool-section ()
-  "Toggle the tool section at point between collapsed and expanded state."
-  (interactive)
-  (let ((tool-id (greger--get-tool-id-at-point)))
-    (if tool-id
-        (greger--toggle-tool-section-by-id tool-id)
-      (message "Not inside a tool section"))))
-
-(defun greger--get-tool-id-at-point ()
-  "Get the tool ID for the tool section at point, if any."
-  ;; First check overlays at point
-  (or (cl-loop for overlay in (overlays-at (point))
-               for tool-id = (overlay-get overlay 'greger-tool-id)
-               when tool-id return tool-id)
-      ;; If not found, search backwards and forwards for tool tags
-      (greger--find-tool-id-near-point)))
-
-(defun greger--find-tool-id-near-point ()
-  "Find tool ID near point by searching for tool tags."
-  (save-excursion
-    (let ((start-pos (point))
-          tool-id)
-      ;; Search backwards for opening tag
-      (when (re-search-backward "<tool\\.[^>]+>" nil t)
-        (let ((open-tag-start (match-beginning 0))
-              (open-tag-end (match-end 0))
-              (tag-tool-id (greger--extract-tool-id (match-string 0))))
-          ;; Check if we're within this tool section
-          (when tag-tool-id
-            (let ((close-pattern (concat "</tool\\." (regexp-quote tag-tool-id) ">")))
-              (when (re-search-forward close-pattern nil t)
-                (let ((close-tag-end (match-end 0)))
-                  ;; If original point is between open and close tags
-                  (when (and (>= start-pos open-tag-start)
-                             (<= start-pos close-tag-end))
-                    (setq tool-id tag-tool-id))))))))
-      tool-id)))
-
-(defun greger--toggle-tool-section-by-id (tool-id)
-  "Toggle the tool section with the given TOOL-ID."
-  (cl-loop for overlay in greger-tool-overlays
-           when (and (overlay-get overlay 'greger-tool-section)
-                     (string= (overlay-get overlay 'greger-tool-id) tool-id))
-           do (greger--toggle-overlay-visibility overlay tool-id)))
-
-(defun greger--toggle-overlay-visibility (overlay tool-id)
-  "Toggle the visibility of OVERLAY for TOOL-ID."
-  (let ((is-collapsed (overlay-get overlay 'greger-collapsed)))
-    (if is-collapsed
-        (greger--expand-tool-section overlay tool-id)
-      (greger--collapse-tool-section overlay tool-id))))
-
-(defun greger--expand-tool-section (overlay tool-id)
-  "Expand the tool section by making OVERLAY visible."
-  (overlay-put overlay 'invisible nil)
-  (overlay-put overlay 'greger-collapsed nil)
-
-  ;; Remove the expansion indicator
-  (cl-loop for indicator-overlay in greger-tool-overlays
-           when (and (overlay-get indicator-overlay 'greger-tool-indicator)
-                     (string= (overlay-get indicator-overlay 'greger-tool-id) tool-id))
-           do (progn
-                (delete-overlay indicator-overlay)
-                (setq greger-tool-overlays
-                      (remove indicator-overlay greger-tool-overlays)))))
-
-(defun greger--collapse-tool-section (overlay tool-id)
-  "Collapse the tool section by making OVERLAY invisible."
-  (overlay-put overlay 'invisible 'greger-tool-section)
-  (overlay-put overlay 'greger-collapsed t)
-
-  ;; Calculate the number of hidden lines for the indicator
-  (let* ((content (buffer-substring-no-properties (overlay-start overlay) (overlay-end overlay)))
-         (lines (split-string content "\n"))
-         (hidden-line-count (length lines))
-         (overlay-start (overlay-start overlay))
-         (indicator-pos (max (point-min) (1- overlay-start)))
-         (indicator-overlay (make-overlay indicator-pos indicator-pos)))
-    (overlay-put indicator-overlay 'after-string
-                 (propertize (format "... [+%d lines, TAB to expand]" hidden-line-count)
-                            'face 'greger-tool-tag-face))
-    (overlay-put indicator-overlay 'greger-tool-indicator t)
-    (overlay-put indicator-overlay 'greger-tool-id tool-id)
-    (push indicator-overlay greger-tool-overlays)))
-
-(defun greger--setup-heading-font-lock ()
-  "Set up font-lock for headings to override markdown's larger font sizes."
-  ;; Remove existing markdown heading font-lock rules for level 2 and 3 headings
-  (setq-local font-lock-keywords
-              (cl-remove-if
-               (lambda (rule)
-                 (and (listp rule)
-                      (stringp (car rule))
-                      (or (string-match-p "^\\^##" (car rule))
-                          (string-match-p "^\\^###" (car rule))
-                          (string-match-p "markdown-header-face-[23]" (format "%s" rule)))))
-               font-lock-keywords))
-
-  ;; Add our custom font-lock rules with highest priority
-  (font-lock-add-keywords
-   nil
-   '(;; Level 2 headings (conversation roles)
-     ("^## USER:.*$" 0 'greger-user-heading-face t)
-     ("^## ASSISTANT:.*$" 0 'greger-assistant-heading-face t)
-     ("^## SYSTEM:.*$" 0 'greger-system-heading-face t)
-     ("^## THINKING:.*$" 0 'greger-thinking-heading-face t)
-     ("^## TOOL USE:.*$" 0 'greger-tool-use-heading-face t)
-     ("^## TOOL RESULT:.*$" 0 'greger-tool-result-heading-face t)
-     ;; Level 3 headings (tool parameters)
-     ("^###\\s-+.*$" 0 'greger-tool-param-heading-face t))
-   'prepend)
-
-  ;; Also remap the markdown faces
-  ;(face-remap-add-relative 'markdown-header-face-2 'greger-assistant-heading-face)
-  ;(face-remap-add-relative 'markdown-header-face-3 'greger-tool-param-heading-face)
-  (font-lock-flush))
-
-(defun greger--after-change-function (beg end len)
-  "Update tool sections after buffer changes."
-  ;; Simple approach: refresh all tool sections
-  ;; This could be optimized to only refresh affected sections
-  (when (> (- end beg) 0)  ; Only if there was an actual change
-    (run-with-idle-timer 0.1 nil #'greger--setup-tool-sections)))
-
-;; Private helper functions
-
-(defun greger--get-current-code-block ()
-  "Return the current code block under point, or nil if not found."
-  (save-excursion
-    (when (re-search-backward "^```" nil t)
-      (forward-line)
-      (let ((start (point)))
-        (when (re-search-forward "^```" nil t)
-          (backward-char 4)
-          (buffer-substring-no-properties start (point)))))))
-
-(defun greger--truncate-with-ellipsis (str max-width)
-  "Truncate STR to MAX-WIDTH characters, adding an ellipsis if necessary."
-  (let ((len (length str)))
-    (if (<= len max-width)
-        str
-      (concat (substring str 0 (- max-width 3)) "..."))))
-
-(provide 'greger)
-
-;;; greger.el ends here
-
-</tool.toolu_01De3dmEdrpWRVij9ARwPaoV>
-
-## ASSISTANT:
-
-Now let me check the greger-parser.el file to understand how the buffer content is parsed into a dialog:
-
-## TOOL USE:
-
-Name: read-file
-ID: toolu_01DncYWmqGes83AHjK5DxKpP
-
-### path
-
-<tool.toolu_01DncYWmqGes83AHjK5DxKpP>
-greger-parser.el
-</tool.toolu_01DncYWmqGes83AHjK5DxKpP>
-
-## TOOL RESULT:
-
-ID: toolu_01DncYWmqGes83AHjK5DxKpP
-
-<tool.toolu_01DncYWmqGes83AHjK5DxKpP>
-;;; greger-parser.el --- Parser for greger dialog format -*- lexical-binding: t -*-
-
-;;; Commentary:
-;; Parses markdown-style dialog format with sections like ## USER:, ## ASSISTANT:, etc.
-;; Handles tool use, thinking blocks, and complex content structures.
-
-;;; Code:
-
-(require 'json)
-(require 'cl-lib)
-(require 'greger-web)
-
-;; Section tag constants
-(defconst greger-parser-user-tag "## USER:")
-(defconst greger-parser-assistant-tag "## ASSISTANT:")
-(defconst greger-parser-system-tag "## SYSTEM:")
-(defconst greger-parser-tool-use-tag "## TOOL USE:")
-(defconst greger-parser-tool-result-tag "## TOOL RESULT:")
-(defconst greger-parser-thinking-tag "## THINKING:")
-
-;;; Parser state structure
-
-(cl-defstruct greger-parser-state
-  input
-  pos
-  length
-  debug)
-
-(defun greger-parser--create-state (input &optional debug)
-  "Create a parser state for INPUT with optional DEBUG flag."
-  (make-greger-parser-state
-   :input (or input "")
-   :pos 0
-   :length (length (or input ""))
-   :debug debug))
-
-(defun greger-parser--debug (state format-string &rest args)
-  "Debug logging function using STATE."
-  (when (greger-parser-state-debug state)
-    (message "[PARSER DEBUG] %s" (apply #'format format-string args))))
-
-;; Main parsing entry points
-
-(defun greger-parser-parse-dialog (markdown &optional debug)
-  "Parse MARKDOWN into dialog format with optional DEBUG flag."
-  (if (or (null markdown) (string-empty-p (string-trim markdown)))
-      '()
-    (let ((state (greger-parser--create-state markdown debug)))
-      (condition-case err
-          (greger-parser--parse-document state)
-        (error
-         (greger-parser--debug state "Parse error: %s" (error-message-string err))
-         '())))))
-
-(defun greger-parser-dialog-to-markdown (dialog)
-  "Convert DIALOG to markdown format."
-  (if (null dialog)
-      ""
-    (mapconcat #'greger-parser--message-to-markdown dialog "\n\n")))
-
-;; Parser infrastructure
-
-(defun greger-parser--at-end-p (state)
-  "True if at end of input in STATE."
-  (>= (greger-parser-state-pos state) (greger-parser-state-length state)))
-
-(defun greger-parser--peek (state &optional offset)
-  "Peek at character at current position plus OFFSET in STATE."
-  (let ((pos (+ (greger-parser-state-pos state) (or offset 0))))
-    (if (and (>= pos 0) (< pos (greger-parser-state-length state)))
-        (aref (greger-parser-state-input state) pos)
-      nil)))
-
-(defun greger-parser--advance (state &optional n)
-  "Advance position by N characters (default 1) in STATE."
-  (let ((old-pos (greger-parser-state-pos state)))
-    (setf (greger-parser-state-pos state)
-          (min (greger-parser-state-length state)
-               (+ (greger-parser-state-pos state) (or n 1))))
-    (greger-parser--debug state "Advanced from %d to %d" old-pos (greger-parser-state-pos state))))
-
-(defun greger-parser--current-pos (state)
-  "Get current position from STATE."
-  (greger-parser-state-pos state))
-
-(defun greger-parser--insert-content-at-pos (state content)
-  "Insert CONTENT into STATE at the current position and update length."
-  (let* ((pos (greger-parser-state-pos state))
-         (input (greger-parser-state-input state))
-         (before (substring input 0 pos))
-         (after (substring input pos))
-         (new-input (concat before content after)))
-    (setf (greger-parser-state-input state) new-input)
-    (setf (greger-parser-state-length state) (length new-input))))
-
-(defun greger-parser--substring (state start &optional end)
-  "Get substring from START to END (or current position) in STATE."
-  (let ((input (greger-parser-state-input state))
-        (length (greger-parser-state-length state))
-        (current-pos (greger-parser-state-pos state)))
-    (if (and (>= start 0)
-             (<= start length)
-             (or (null end) (<= end length)))
-        (substring input start (or end current-pos))
-      "")))
-
-(defun greger-parser--looking-at (state string)
-  "True if current position matches STRING in STATE."
-  (and string
-       (<= (+ (greger-parser-state-pos state) (length string)) (greger-parser-state-length state))
-       (string= (greger-parser--substring state (greger-parser-state-pos state)
-                                         (+ (greger-parser-state-pos state) (length string)))
-                string)))
-
-(defun greger-parser--at-triple-backticks (state)
-  "True if current position matches ``` at beginning of line in STATE."
-  (and (greger-parser--at-line-start-p state)
-       (greger-parser--looking-at state "```")))
-
-;; Character tests
-
-(defun greger-parser--whitespace-p (char)
-  "True if CHAR is whitespace."
-  (and char (memq char '(?\s ?\t ?\n ?\r))))
-
-(defun greger-parser--horizontal-whitespace-p (char)
-  "True if CHAR is horizontal whitespace."
-  (and char (memq char '(?\s ?\t))))
-
-(defun greger-parser--newline-p (char)
-  "True if CHAR is newline."
-  (and char (eq char ?\n)))
-
-;; Navigation
-
-(defun greger-parser--skip-whitespace (state)
-  "Skip all whitespace in STATE."
-  (let ((start-pos (greger-parser-state-pos state)))
-    (while (and (not (greger-parser--at-end-p state))
-                (greger-parser--whitespace-p (greger-parser--peek state)))
-      (greger-parser--advance state))
-    (when (> (greger-parser-state-pos state) start-pos)
-      (greger-parser--debug state "Skipped whitespace from %d to %d" start-pos (greger-parser-state-pos state)))))
-
-(defun greger-parser--skip-horizontal-whitespace (state)
-  "Skip spaces and tabs in STATE."
-  (while (and (not (greger-parser--at-end-p state))
-              (greger-parser--horizontal-whitespace-p (greger-parser--peek state)))
-    (greger-parser--advance state)))
-
-(defun greger-parser--at-line-start-p (state)
-  "True if at start of line in STATE."
-  (or (= (greger-parser-state-pos state) 0)
-      (greger-parser--newline-p (greger-parser--peek state -1))))
-
-(defun greger-parser--skip-to-line-end (state)
-  "Skip to end of current line in STATE."
-  (while (and (not (greger-parser--at-end-p state))
-              (not (greger-parser--newline-p (greger-parser--peek state))))
-    (greger-parser--advance state)))
-
-(defun greger-parser--read-line (state)
-  "Read rest of current line in STATE."
-  (let ((start (greger-parser--current-pos state)))
-    (greger-parser--skip-to-line-end state)
-    (string-trim (greger-parser--substring state start))))
-
-;; Section tag handling
-
-(defun greger-parser--section-tags ()
-  "List of all section tags."
-  (list greger-parser-user-tag
-        greger-parser-assistant-tag
-        greger-parser-system-tag
-        greger-parser-tool-use-tag
-        greger-parser-tool-result-tag
-        greger-parser-thinking-tag))
-
-(defun greger-parser--find-section-tag (state)
-  "Find section tag at current position if at line start in STATE."
-  (when (greger-parser--at-line-start-p state)
-    (let ((tag (cl-find-if (lambda (tag) (greger-parser--looking-at state tag)) (greger-parser--section-tags))))
-      (greger-parser--debug state "Found section tag: %s at pos %d" tag (greger-parser-state-pos state))
-      tag)))
-
-(defun greger-parser--consume-section-tag (state tag)
-  "Consume TAG and return it in STATE."
-  (when (greger-parser--looking-at state tag)
-    (greger-parser--debug state "Consuming tag: %s" tag)
-    (greger-parser--advance state (length tag))
-    tag))
-
-;; Code block detection and skipping
-
-(defun greger-parser--skip-code-block (state)
-  "Skip triple-backtick code block in STATE."
-  (greger-parser--debug state "Skipping code block at pos %d" (greger-parser-state-pos state))
-  (greger-parser--advance state 3) ; Skip opening ```
-  (greger-parser--skip-to-line-end state) ; Skip language specifier
-  (when (greger-parser--newline-p (greger-parser--peek state))
-    (greger-parser--advance state))
-
-  ;; Find closing ```
-  (while (and (not (greger-parser--at-end-p state))
-              (not (greger-parser--at-triple-backticks state)))
-    (greger-parser--advance state))
-
-  ;; Skip closing ```
-  (when (greger-parser--at-triple-backticks state)
-    (greger-parser--advance state 3)))
-
-(defun greger-parser--skip-inline-code (state)
-  "Skip inline code with double backticks in STATE."
-  (greger-parser--debug state "Skipping inline code at pos %d" (greger-parser-state-pos state))
-  (greger-parser--advance state 1) ; Skip opening `
-  (while (and (not (greger-parser--at-end-p state))
-              (not (greger-parser--looking-at state "`")))
-    (greger-parser--advance state))
-  (when (greger-parser--looking-at state "`")
-    (greger-parser--advance state 1)))
-
-(defun greger-parser--skip-html-comment (state)
-  "Skip HTML comment in STATE."
-  (greger-parser--debug state "Skipping HTML comment at pos %d" (greger-parser-state-pos state))
-  (greger-parser--advance state 4) ; Skip <!--
-  (while (and (not (greger-parser--at-end-p state))
-              (not (greger-parser--looking-at state "-->")))
-    (greger-parser--advance state))
-  (when (greger-parser--looking-at state "-->")
-    (greger-parser--advance state 3)))
-
-;; Web URL text extraction (moved to greger-web.el)
-
-;; Include tag processing
-
-(defun greger-parser--process-include-tag (state)
-  "Process an include tag and return the included content in STATE."
-  (greger-parser--debug state "Processing include tag at pos %d" (greger-parser-state-pos state))
-  (let ((tag-start (greger-parser--current-pos state)))
-    ;; Parse the opening tag
-    (when (greger-parser--looking-at state "<include")
-      (greger-parser--advance state 8) ; Skip "<include"
-      (let ((has-code-attr nil))
-        ;; Check for optional "code" attribute
-        (greger-parser--skip-horizontal-whitespace state)
-        (when (greger-parser--looking-at state "code")
-          (setq has-code-attr t)
-          (greger-parser--advance state 4)
-          (greger-parser--skip-horizontal-whitespace state))
-
-        ;; Skip to closing bracket of opening tag
-        (when (greger-parser--looking-at state ">")
-          (greger-parser--advance state 1)
-
-          ;; Extract the file path
-          (let ((path-start (greger-parser--current-pos state)))
-            (when (greger-parser--find-closing-tag state "</include>")
-              (let ((file-path (string-trim (greger-parser--substring state path-start))))
-                (greger-parser--advance state 10) ; Skip "</include>"
-
-                ;; Read and process the file
-                (greger-parser--include-file state file-path has-code-attr)))))))))
-
-(defun greger-parser--include-file (state file-path has-code-attr)
-  "Include a file's content, optionally formatting as code using STATE.
-Supports both local files and web URLs (http:// or https://).
-For local files without code attribute, inserts content into state for recursive parsing.
-Returns nil when content is inserted, or the content string when it should be appended."
-  (greger-parser--debug state "Including file: %s (code: %s)" file-path has-code-attr)
-  (condition-case err
-      (let ((content
-             (if (greger-web-is-web-url-p file-path)
-                 ;; Handle web URL
-                 (progn
-                   (greger-parser--debug state "Downloading content from URL: %s" file-path)
-                   (greger-web-text-from-url file-path t)) ; Use readability heuristics
-               ;; Handle local file
-               (with-temp-buffer
-                 (insert-file-contents file-path)
-                 (buffer-string)))))
-
-        ;; Remove trailing newline from content if present
-        (when (and (> (length content) 0)
-                   (eq (aref content (1- (length content))) ?\n))
-          (setq content (substring content 0 -1)))
-
-        (cond
-         ;; For files with code attribute or web URLs, return formatted content
-         ((or has-code-attr (greger-web-is-web-url-p file-path))
-          (if has-code-attr
-              (format "%s:\n```\n%s\n```" file-path content)
-            content))
-         ;; For local files without code attribute, insert content into state for recursive parsing
-         (t
-          (greger-parser--insert-content-at-pos state content)
-          nil))) ; Return nil to indicate content was inserted
-    (error
-     (greger-parser--debug state "Error reading %s %s: %s"
-                          (if (greger-web-is-web-url-p file-path) "URL" "file")
-                          file-path
-                          (error-message-string err))
-     ;; Return error message as content instead of failing silently
-     (format "[Error reading %s: %s]"
-             (if (greger-parser--is-web-url-p file-path) "URL" "file")
-             file-path))))
-
-(defun greger-parser--skip-include-tag (state)
-  "Skip include tag without processing it in STATE."
-  (greger-parser--debug state "Skipping include tag at pos %d" (greger-parser-state-pos state))
-  (greger-parser--advance state 8) ; Skip "<include"
-
-  ;; Skip optional "code" attribute
-  (greger-parser--skip-horizontal-whitespace state)
-  (when (greger-parser--looking-at state "code")
-    (greger-parser--advance state 4)
-    (greger-parser--skip-horizontal-whitespace state))
-
-  ;; Skip to closing bracket of opening tag
-  (when (greger-parser--looking-at state ">")
-    (greger-parser--advance state 1)
-
-    ;; Skip to closing tag
-    (when (greger-parser--find-closing-tag state "</include>")
-      (greger-parser--advance state 10)))) ; Skip "</include>"
-
-;; Content reading
-
-(defun greger-parser--read-until-section-tag (state)
-  "Read characters until section tag, handling code blocks and include tags in STATE."
-  (let ((start-pos (greger-parser-state-pos state))
-        (iterations 0)
-        (max-iterations (* (greger-parser-state-length state) 2))) ; Safety limit
-    (while (and (not (greger-parser--at-end-p state))
-                (not (and (greger-parser--at-line-start-p state)
-                          (greger-parser--find-section-tag state)))
-                (< iterations max-iterations))
-      (setq iterations (1+ iterations))
-      (let ((old-pos (greger-parser-state-pos state)))
-        (cond
-         ((greger-parser--at-triple-backticks state)
-          (greger-parser--skip-code-block state))
-         ((greger-parser--looking-at state "`")
-          (greger-parser--skip-inline-code state))
-         ((greger-parser--looking-at state "<!--")
-          (greger-parser--skip-html-comment state))
-         ((greger-parser--looking-at state "<include")
-          (greger-parser--skip-include-tag state))
-         (t
-          (greger-parser--advance state)))
-        ;; Safety check: ensure we're making progress
-        (when (= old-pos (greger-parser-state-pos state))
-          (greger-parser--debug state "No progress at pos %d, forcing advance" (greger-parser-state-pos state))
-          (greger-parser--advance state))))
-    (when (>= iterations max-iterations)
-      (greger-parser--debug state "Hit max iterations in read-until-section-tag")
-      (setf (greger-parser-state-pos state) (greger-parser-state-length state)))))
-
-(defun greger-parser--read-until-section (state)
-  "Read content until next section in STATE."
-  (let ((start (greger-parser--current-pos state)))
-    (greger-parser--read-until-section-tag state)
-    (greger-parser--substring state start)))
-
-(defun greger-parser--read-until-section-with-comment-removal (state)
-  "Read content until next section, removing HTML comments and processing include tags in STATE."
-  (let ((result "")
-        (start (greger-parser--current-pos state))
-        (iterations 0)
-        (max-iterations (* (greger-parser-state-length state) 2))) ; Safety limit
-    (while (and (not (greger-parser--at-end-p state))
-                (not (and (greger-parser--at-line-start-p state)
-                          (greger-parser--find-section-tag state)))
-                (< iterations max-iterations))
-      (setq iterations (1+ iterations))
-      (let ((old-pos (greger-parser-state-pos state)))
-        (cond
-         ((greger-parser--at-triple-backticks state)
-          ;; Add content up to code block
-          (setq result (concat result (greger-parser--substring state start)))
-          (setq start (greger-parser--current-pos state))
-          (greger-parser--skip-code-block state)
-          ;; Add the code block
-          (setq result (concat result (greger-parser--substring state start)))
-          (setq start (greger-parser--current-pos state)))
-         ((greger-parser--looking-at state "`")
-          ;; Add content up to inline code
-          (setq result (concat result (greger-parser--substring state start)))
-          (setq start (greger-parser--current-pos state))
-          (greger-parser--skip-inline-code state)
-          ;; Add the inline code
-          (setq result (concat result (greger-parser--substring state start)))
-          (setq start (greger-parser--current-pos state)))
-         ((greger-parser--looking-at state "<!--")
-          ;; Add content up to comment, skip comment entirely
-          (setq result (concat result (greger-parser--substring state start)))
-          (greger-parser--skip-html-comment state)
-          (setq start (greger-parser--current-pos state)))
-         ((greger-parser--looking-at state "<include")
-          ;; Add content up to include tag
-          (setq result (concat result (greger-parser--substring state start)))
-          ;; Process the include tag
-          (let ((include-content (greger-parser--process-include-tag state)))
-            (if include-content
-                ;; Content was returned (web URL or code), append it
-                (setq result (concat result include-content))
-              ;; Content was inserted into state (local file), continue parsing from current position
-              nil))
-          (setq start (greger-parser--current-pos state)))
-         (t
-          (greger-parser--advance state)))
-        ;; Safety check: ensure we're making progress
-        (when (= old-pos (greger-parser-state-pos state))
-          (greger-parser--debug state "No progress at pos %d, forcing advance" (greger-parser-state-pos state))
-          (greger-parser--advance state))))
-    (when (>= iterations max-iterations)
-      (greger-parser--debug state "Hit max iterations in read-until-section-with-comment-removal")
-      (setf (greger-parser-state-pos state) (greger-parser-state-length state)))
-    ;; Add remaining content
-    (setq result (concat result (greger-parser--substring state start)))
-    result))
-
-(defun greger-parser--parse-section-content (state)
-  "Parse content until next section, skipping HTML comments in STATE."
-  (greger-parser--skip-whitespace state)
-  (let ((content (greger-parser--read-until-section-with-comment-removal state)))
-    (when (and content (not (string-empty-p (string-trim content))))
-      (string-trim content))))
-
-;; High-level parsing
-
-(defun greger-parser--parse-document (state)
-  "Parse entire document using STATE."
-  (greger-parser--skip-whitespace state)
-  (if (greger-parser--at-end-p state)
-      '()
-    (let ((sections '())
-          (iterations 0)
-          (max-iterations 1000)) ; Safety limit
-      ;; Handle untagged content at start
-      (let ((untagged (greger-parser--parse-untagged-content state)))
-        (when untagged
-          (push untagged sections)))
-
-      ;; Parse tagged sections
-      (while (and (not (greger-parser--at-end-p state))
-                  (< iterations max-iterations))
-        (setq iterations (1+ iterations))
-        (let ((old-pos (greger-parser-state-pos state)))
-          (greger-parser--skip-whitespace state)
-          (when (not (greger-parser--at-end-p state))
-            (let ((section (greger-parser--parse-section state)))
-              (when section
-                (push section sections))))
-          ;; Safety check: ensure we're making progress
-          (when (= old-pos (greger-parser-state-pos state))
-            (greger-parser--debug state "No progress in document parsing at pos %d, breaking" (greger-parser-state-pos state))
-            (break))))
-
-      (when (>= iterations max-iterations)
-        (greger-parser--debug state "Hit max iterations in parse-document"))
-
-      (greger-parser--merge-consecutive-messages (reverse sections)))))
-
-(defun greger-parser--parse-untagged-content (state)
-  "Parse content before first section tag using STATE."
-  (let ((content (greger-parser--parse-section-content state)))
-    (when content
-      (greger-parser--create-user-message content))))
-
-(defun greger-parser--parse-section (state)
-  "Parse a section starting with a tag using STATE."
-  (let ((tag (greger-parser--find-section-tag state)))
-    (when tag
-      (greger-parser--consume-section-tag state tag)
-      (cond
-       ((string= tag greger-parser-user-tag)
-        (greger-parser--parse-user-section state))
-       ((string= tag greger-parser-assistant-tag)
-        (greger-parser--parse-assistant-section state))
-       ((string= tag greger-parser-system-tag)
-        (greger-parser--parse-system-section state))
-       ((string= tag greger-parser-thinking-tag)
-        (greger-parser--parse-thinking-section state))
-       ((string= tag greger-parser-tool-use-tag)
-        (greger-parser--parse-tool-use-section state))
-       ((string= tag greger-parser-tool-result-tag)
-        (greger-parser--parse-tool-result-section state))))))
-
-;; Section parsers
-
-(defun greger-parser--parse-user-section (state)
-  "Parse USER section using STATE."
-  (let ((content (greger-parser--parse-section-content state)))
-    (when content
-      (greger-parser--create-user-message content))))
-
-(defun greger-parser--parse-assistant-section (state)
-  "Parse ASSISTANT section using STATE."
-  (let ((content (greger-parser--parse-section-content state)))
-    (when content
-      (greger-parser--create-assistant-message content))))
-
-(defun greger-parser--parse-system-section (state)
-  "Parse SYSTEM section using STATE."
-  (let ((content (greger-parser--parse-section-content state)))
-    (when content
-      (greger-parser--create-system-message content))))
-
-(defun greger-parser--parse-thinking-section (state)
-  "Parse THINKING section using STATE."
-  (let ((content (greger-parser--parse-section-content state)))
-    (when content
-      (greger-parser--create-thinking-message content))))
-
-(defun greger-parser--parse-tool-use-section (state)
-  "Parse TOOL USE section using STATE."
-  (greger-parser--skip-whitespace state)
-  (let ((name (greger-parser--parse-name-line state))
-        (id (greger-parser--parse-id-line state))
-        (input (greger-parser--parse-tool-input state)))
-    (when (and name id)
-      (greger-parser--create-tool-use-message name id input))))
-
-(defun greger-parser--parse-tool-result-section (state)
-  "Parse TOOL RESULT section using STATE."
-  (greger-parser--skip-whitespace state)
-  (let ((id (greger-parser--parse-id-line state))
-        (content (greger-parser--parse-tool-result-content state)))
-    (when id
-      (greger-parser--create-tool-result-message id content))))
-
-;; Tool parsing helpers
-
-(defun greger-parser--parse-name-line (state)
-  "Parse 'Name: value' line using STATE."
-  (when (greger-parser--looking-at state "Name:")
-    (greger-parser--advance state 5)
-    (greger-parser--skip-horizontal-whitespace state)
-    (greger-parser--read-line state)))
-
-(defun greger-parser--parse-id-line (state)
-  "Parse 'ID: value' line using STATE."
-  (greger-parser--skip-whitespace state)
-  (when (greger-parser--looking-at state "ID:")
-    (greger-parser--advance state 3)
-    (greger-parser--skip-horizontal-whitespace state)
-    (greger-parser--read-line state)))
-
-(defun greger-parser--parse-tool-input (state)
-  "Parse tool input parameters using STATE."
-  (let ((params '())
-        (iterations 0)
-        (max-iterations 100)) ; Safety limit
-    (greger-parser--skip-whitespace state)
-    (while (and (greger-parser--can-parse-parameter-p state)
-                (< iterations max-iterations))
-      (setq iterations (1+ iterations))
-      (let ((old-pos (greger-parser-state-pos state))
-            (param (greger-parser--parse-tool-parameter state)))
-        (when param
-          (push param params))
-        (greger-parser--skip-whitespace state)
-        ;; Safety check: ensure we're making progress
-        (when (= old-pos (greger-parser-state-pos state))
-          (greger-parser--debug state "No progress in tool input parsing at pos %d, breaking" (greger-parser-state-pos state))
-          (break))))
-    (when (>= iterations max-iterations)
-      (greger-parser--debug state "Hit max iterations in parse-tool-input"))
-    (reverse params)))
-
-(defun greger-parser--can-parse-parameter-p (state)
-  "Check if we can parse a parameter using STATE."
-  (and (not (greger-parser--at-end-p state))
-       (not (and (greger-parser--at-line-start-p state)
-                 (greger-parser--find-section-tag state)))
-       (greger-parser--at-line-start-p state)
-       (greger-parser--looking-at state "###")))
-
-(defun greger-parser--parse-tool-parameter (state)
-  "Parse single tool parameter using STATE."
-  (when (greger-parser--looking-at state "###")
-    (greger-parser--advance state 3)
-    (greger-parser--skip-horizontal-whitespace state)
-    (let ((name (greger-parser--read-line state)))
-      (greger-parser--skip-whitespace state)
-      (let ((value (greger-parser--parse-tool-value state)))
-        (when (and name (not (string-empty-p name)))
-          (cons (intern name) (greger-parser--convert-value (or value ""))))))))
-
-(defun greger-parser--parse-tool-value (state)
-  "Parse tool parameter value in XML-style tags using STATE."
-  (when (greger-parser--looking-at state "<tool.")
-    (let ((tag-start (greger-parser--current-pos state)))
-      ;; Find end of opening tag
-      (greger-parser--skip-to-closing-angle state)
-      (when (eq (greger-parser--peek state) ?>)
-        (let* ((opening-tag (greger-parser--substring state tag-start (+ (greger-parser--current-pos state) 1)))
-               (closing-tag (greger-parser--make-closing-tag opening-tag)))
-          (greger-parser--advance state) ; Skip >
-          (greger-parser--skip-whitespace state)
-
-          (let ((content-start (greger-parser--current-pos state)))
-            (if (greger-parser--find-closing-tag state closing-tag)
-                (let ((content (greger-parser--substring state content-start)))
-                  (greger-parser--advance state (length closing-tag))
-                  (greger-parser--normalize-tool-content content))
-              ;; If no closing tag found, consume to end of section
-              (let ((content (greger-parser--read-until-section state)))
-                (greger-parser--normalize-tool-content content)))))))))
-
-(defun greger-parser--skip-to-closing-angle (state)
-  "Skip to closing angle bracket using STATE."
-  (let ((iterations 0)
-        (max-iterations 1000)) ; Safety limit
-    (while (and (not (greger-parser--at-end-p state))
-                (not (eq (greger-parser--peek state) ?>))
-                (< iterations max-iterations))
-      (setq iterations (1+ iterations))
-      (greger-parser--advance state))
-    (when (>= iterations max-iterations)
-      (greger-parser--debug state "Hit max iterations in skip-to-closing-angle"))))
-
-(defun greger-parser--make-closing-tag (opening-tag)
-  "Make closing tag from opening tag."
-  (concat "</" (substring opening-tag 1)))
-
-(defun greger-parser--find-closing-tag (state closing-tag)
-  "Find closing tag, treating all content inside as raw text using STATE."
-  (let ((found nil)
-        (iterations 0)
-        (max-iterations (* (greger-parser-state-length state) 2))) ; Safety limit
-    (while (and (not found)
-                (not (greger-parser--at-end-p state))
-                (< iterations max-iterations))
-      (setq iterations (1+ iterations))
-      (if (greger-parser--looking-at state closing-tag)
-          (setq found t)
-        (greger-parser--advance state)))
-    (when (>= iterations max-iterations)
-      (greger-parser--debug state "Hit max iterations in find-closing-tag"))
-    found))
-
-(defun greger-parser--parse-tool-result-content (state)
-  "Parse tool result content using STATE."
-  (greger-parser--skip-whitespace state)
-  (or (greger-parser--parse-tool-value state) ""))
-
-(defun greger-parser--normalize-tool-content (content)
-  "Normalize tool content by trimming outer newlines."
-  (if (string-empty-p content)
-      ""
-    (let ((result content))
-      ;; Remove leading newline
-      (when (and (> (length result) 0)
-                 (eq (aref result 0) ?\n))
-        (setq result (substring result 1)))
-      ;; Remove trailing newline
-      (when (and (> (length result) 0)
-                 (eq (aref result (1- (length result))) ?\n))
-        (setq result (substring result 0 -1)))
-      result)))
-
-(defun greger-parser--convert-value (str)
-  "Convert string to appropriate Elisp value."
-  (let ((trimmed (string-trim str)))
-    (cond
-     ((string= trimmed "true") t)
-     ((string= trimmed "false") nil)
-     ((string-match-p "^-?[0-9]+$" trimmed)
-      (string-to-number trimmed))
-     ((string-match-p "^-?[0-9]*\\.[0-9]+$" trimmed)
-      (string-to-number trimmed))
-     ((and (string-prefix-p "[" trimmed) (string-suffix-p "]" trimmed))
-      (greger-parser--parse-json-array trimmed))
-     ((and (string-prefix-p "{" trimmed) (string-suffix-p "}" trimmed))
-      (greger-parser--parse-json-object trimmed))
-     (t trimmed))))
-
-(defun greger-parser--parse-json-array (str)
-  "Parse JSON array string."
-  (condition-case nil
-      (json-read-from-string str)
-    (error str)))
-
-(defun greger-parser--parse-json-object (str)
-  "Parse JSON object string."
-  (condition-case nil
-      (let ((parsed (json-read-from-string str)))
-        (mapcar (lambda (pair)
-                  (cons (intern (symbol-name (car pair))) (cdr pair)))
-                parsed))
-    (error str)))
-
-;; Message creation
-
-(defun greger-parser--create-user-message (content)
-  "Create user message."
-  `((role . "user") (content . ,content)))
-
-(defun greger-parser--create-assistant-message (content)
-  "Create assistant message."
-  `((role . "assistant") (content . ,content)))
-
-(defun greger-parser--create-system-message (content)
-  "Create system message."
-  `((role . "system") (content . ,content)))
-
-(defun greger-parser--create-thinking-message (content)
-  "Create thinking message."
-  `((role . "assistant")
-    (content . (((type . "thinking") (thinking . ,content))))))
-
-(defun greger-parser--create-tool-use-message (name id input)
-  "Create tool use message."
-  `((role . "assistant")
-    (content . (((type . "tool_use")
-                 (id . ,id)
-                 (name . ,name)
-                 (input . ,input))))))
-
-(defun greger-parser--create-tool-result-message (id content)
-  "Create tool result message."
-  `((role . "user")
-    (content . (((type . "tool_result")
-                 (tool_use_id . ,id)
-                 (content . ,content))))))
-
-;; Message merging
-
-(defun greger-parser--merge-consecutive-messages (messages)
-  "Merge consecutive messages with same role."
-  (if (null messages)
-      '()
-    (let ((result (list (car messages))))
-      (dolist (msg (cdr messages))
-        (let* ((last (car result))
-               (last-role (alist-get 'role last))
-               (curr-role (alist-get 'role msg)))
-          (if (string= last-role curr-role)
-              ;; Merge with previous
-              (progn
-                (let ((merged (greger-parser--merge-message-contents last msg)))
-                  (setcar result merged)))
-            ;; Add as new message
-            (progn
-              (push msg result)))))
-      (reverse result))))
-
-(defun greger-parser--merge-message-contents (msg1 msg2)
-  "Merge contents of two messages."
-  (let ((role (alist-get 'role msg1))
-        (content1 (alist-get 'content msg1))
-        (content2 (alist-get 'content msg2)))
-    (let ((merged-content (greger-parser--merge-contents content1 content2)))
-      `((role . ,role)
-        (content . ,merged-content)))))
-
-(defun greger-parser--merge-contents (content1 content2)
-  "Merge two content values."
-  (let ((blocks1 (greger-parser--content-to-blocks content1))
-        (blocks2 (greger-parser--content-to-blocks content2)))
-    (let ((result (append blocks1 blocks2)))
-      result)))
-
-(defun greger-parser--content-to-blocks (content)
-  "Convert content to content blocks."
-  (let ((result (cond
-                 ((stringp content)
-                  `(((type . "text") (text . ,content))))
-                 ((listp content)
-                  content)
-                 (t
-                  `(((type . "text") (text . ,(format "%s" content))))))))
-    result))
-
-;; Markdown generation
-
-(defun greger-parser--message-to-markdown (message)
-  "Convert message to markdown."
-  (let ((role (alist-get 'role message))
-        (content (alist-get 'content message)))
-    (cond
-     ((string= role "user")
-      (greger-parser--user-to-markdown content))
-     ((string= role "assistant")
-      (greger-parser--assistant-to-markdown content))
-     ((string= role "system")
-      (greger-parser--system-to-markdown content))
-     (t ""))))
-
-(defun greger-parser--user-to-markdown (content)
-  "Convert user content to markdown."
-  (if (stringp content)
-      (concat greger-parser-user-tag "\n\n" content)
-    (concat greger-parser-user-tag "\n\n"
-            (greger-parser--content-blocks-to-markdown content))))
-
-(defun greger-parser--assistant-to-markdown (content)
-  "Convert assistant content to markdown."
-  (if (stringp content)
-      (concat greger-parser-assistant-tag "\n\n" content)
-    (greger-parser--content-blocks-to-markdown content)))
-
-(defun greger-parser--system-to-markdown (content)
-  "Convert system content to markdown."
-  (concat greger-parser-system-tag "\n\n" content))
-
-(defun greger-parser--content-blocks-to-markdown (blocks)
-  "Convert content blocks to markdown."
-  (mapconcat #'greger-parser--block-to-markdown blocks "\n\n"))
-
-(defun greger-parser--block-to-markdown (block)
-  "Convert single block to markdown."
-  (let ((type (alist-get 'type block)))
-    (cond
-     ((string= type "text")
-      (concat greger-parser-assistant-tag "\n\n"
-              (alist-get 'text block)))
-     ((string= type "thinking")
-      (concat greger-parser-thinking-tag "\n\n"
-              (alist-get 'thinking block)))
-     ((string= type "tool_use")
-      (greger-parser--tool-use-to-markdown block))
-     ((string= type "tool_result")
-      (greger-parser--tool-result-to-markdown block))
-     (t ""))))
-
-(defun greger-parser--tool-use-to-markdown (tool-use)
-  "Convert tool use to markdown."
-  (let ((name (alist-get 'name tool-use))
-        (id (alist-get 'id tool-use))
-        (input (alist-get 'input tool-use)))
-    (concat greger-parser-tool-use-tag "\n\n"
-            "Name: " name "\n"
-            "ID: " id "\n\n"
-            (greger-parser--tool-params-to-markdown id input))))
-
-(defun greger-parser--tool-result-to-markdown (tool-result)
-  "Convert tool result to markdown."
-  (let ((id (alist-get 'tool_use_id tool-result))
-        (content (alist-get 'content tool-result)))
-    (concat greger-parser-tool-result-tag "\n\n"
-            "ID: " id "\n\n"
-            "<tool." id ">\n"
-            content "\n"
-            "</tool." id ">")))
-
-(defun greger-parser--tool-params-to-markdown (id input)
-  "Convert tool parameters to markdown."
-  (if (null input)
-      ""
-    (mapconcat (lambda (param)
-                 (let ((name (symbol-name (car param)))
-                       (value (cdr param)))
-                   (concat "### " name "\n\n"
-                           "<tool." id ">\n"
-                           (greger-parser--value-to-string value) "\n"
-                           "</tool." id ">")))
-               input "\n\n")))
-
-(defun greger-parser--value-to-string (value)
-  "Convert value to string representation."
-  (cond
-   ((stringp value) value)
-   ((numberp value) (number-to-string value))
-   ((eq value t) "true")
-   ((eq value nil) "false")
-   ((vectorp value) (json-encode value))
-   ((listp value) (json-encode value))
-   (t (format "%s" value))))
-
-;; Global debug flag for interactive debugging
-(defvar greger-parser--global-debug nil
-  "Global debug flag for interactive debugging.")
-
-;; Debug helper functions
-(defun greger-parser-enable-debug ()
-  "Enable parser debug output."
-  (interactive)
-  (setq greger-parser--global-debug t)
-  (message "Parser debug enabled"))
-
-(defun greger-parser-disable-debug ()
-  "Disable parser debug output."
-  (interactive)
-  (setq greger-parser--global-debug nil)
-  (message "Parser debug disabled"))
-
-(defun greger-parser-parse-dialog-debug (markdown)
-  "Parse MARKDOWN into dialog format with debug enabled."
-  (greger-parser-parse-dialog markdown (or greger-parser--global-debug t)))
-
-(provide 'greger-parser)
-
-;;; greger-parser.el ends here
-
-</tool.toolu_01DncYWmqGes83AHjK5DxKpP>
-
-## ASSISTANT:
-
-Now let me check the greger-agent.el file to see how the dialog is processed and sent to the provider:
-
-## TOOL USE:
-
-Name: ripgrep
-ID: toolu_01YRus945eydrSEkwXYc7tk1
-
-### pattern
-
-<tool.toolu_01YRus945eydrSEkwXYc7tk1>
-greger-agent-buffer
-</tool.toolu_01YRus945eydrSEkwXYc7tk1>
-
-### file-type
-
-<tool.toolu_01YRus945eydrSEkwXYc7tk1>
-el
-</tool.toolu_01YRus945eydrSEkwXYc7tk1>
-
-## TOOL RESULT:
-
-ID: toolu_01YRus945eydrSEkwXYc7tk1
-
-<tool.toolu_01YRus945eydrSEkwXYc7tk1>
-/Users/andreas/projects/aichat3/greger-agent.el:43:(defun greger-agent-buffer ()
-/Users/andreas/projects/aichat3/greger.el:123:    (define-key map (kbd "M-<return>") #'greger-agent-buffer)
-/Users/andreas/projects/aichat3/greger.el:186:    (greger-agent-buffer)))
-
-</tool.toolu_01YRus945eydrSEkwXYc7tk1>
-
-## TOOL USE:
-
-Name: read-file
-ID: toolu_0181XYhtYxo3bR5b9ffaoz5R
-
-### path
-
-<tool.toolu_0181XYhtYxo3bR5b9ffaoz5R>
-greger-agent.el
-</tool.toolu_0181XYhtYxo3bR5b9ffaoz5R>
-
-## TOOL RESULT:
-
-ID: toolu_0181XYhtYxo3bR5b9ffaoz5R
-
-<tool.toolu_0181XYhtYxo3bR5b9ffaoz5R>
-;;; greger-agent.el --- Agent capabilities for greger -*- lexical-binding: t -*-
-
-;;; Commentary:
-;; Provides agent functionality with tool support for greger
-
-;;; Code:
-
-(require 'json)
-(require 'cl-lib)
-(require 'greger)
-(require 'greger-parser)
-(require 'greger-stream)
-(require 'greger-tools)
-
-;; not using patch tool, it's too messy
-(defcustom greger-agent-tools '("read-file" "list-directory" "str-replace" "insert" "write-new-file" "replace-file" "replace-function" "make-directory" "rename-file" "ripgrep" "git-log" "git-show-commit" "shell-command")
-  "List of tools available to the agent."
-  :type '(repeat symbol)
-  :group 'greger)
-
-(defcustom greger-agent-max-iterations 100
-  "Maximum number of agent iterations before stopping."
-  :type 'integer
-  :group 'greger)
-
-(defcustom greger-agent-auto-approve t
-  "Whether to automatically approve tool calls without user confirmation."
-  :type 'boolean
-  :group 'greger)
-
-(defcustom greger-agent-debug t
-  "Whether to show debug information."
-  :type 'boolean
-  :group 'greger)
-
-;;; Agent state structure
-
-(cl-defstruct greger-agent-state
-  current-iteration
-  chat-buffer
-  directory)
-
-(defun greger-agent-buffer ()
-  "Send buffer content to AI as an agent dialog with tool support."
-  (interactive)
-  (let* ((buffer-content (buffer-substring-no-properties (point-min) (point-max)))
-         (dialog (greger-parser-parse-dialog buffer-content)))
-    (unless dialog
-      (error "Failed to parse dialog. Did you forget to close a html tag?"))
-
-    (goto-char (point-max))
-
-    (let ((agent-state (make-greger-agent-state
-                        :current-iteration 0
-                        :chat-buffer (current-buffer)
-                        :directory default-directory)))
-
-      (greger-agent--debug "--- DIALOG --- %s" dialog)
-      (greger-agent--debug "=== STARTING AGENT SESSION ===")
-
-      (greger-agent--run-agent-loop agent-state))))
-
-(defun greger-agent--debug (format-string &rest args)
-  "Debug logging function."
-  (when greger-agent-debug
-    (message "[AGENT DEBUG] %s" (apply #'format format-string args))))
-
-(defun greger-agent--run-agent-loop (agent-state)
-  "Run the main agent loop with AGENT-STATE."
-  (let* ((tools (greger-tools-get-schemas greger-agent-tools))
-         (chat-buffer (greger-agent-state-chat-buffer agent-state))
-         (buffer-content (with-current-buffer chat-buffer
-                           (buffer-substring-no-properties (point-min) (point-max))))
-         (current-dialog (greger-parser-parse-dialog buffer-content))
-         (current-iteration (greger-agent-state-current-iteration agent-state)))
-
-    (greger-agent--debug "=== ITERATION %d ===" current-iteration)
-    (greger-agent--debug "Dialog length: %d messages" (length current-dialog))
-
-    ;; Check max iterations
-    (if (>= current-iteration greger-agent-max-iterations)
-        (progn
-          (greger-agent--debug "MAX ITERATIONS REACHED - STOPPING")
-          (greger-agent--append-text (format "\n\nMaximum iterations (%d) reached. Stopping agent execution.\n\n"
-                                             greger-agent-max-iterations)
-                                     agent-state)
-          (greger-agent--finish-response agent-state))
-
-      ;; Get Claude's response
-      (greger-agent--debug "CALLING greger-stream-to-buffer-with-tools...")
-      (greger-stream-to-buffer-with-tools
-       :model greger-model
-       :dialog current-dialog
-       :tools tools
-       :buffer chat-buffer
-       :text-start-callback (lambda ()
-                              (greger-agent--append-text (concat "\n\n" greger-assistant-tag "\n\n") agent-state))
-       :text-callback (lambda (text)
-                        (greger-agent--append-text text agent-state))
-       :complete-callback (lambda (content-blocks)
-                            (greger-agent--debug "RECEIVED PARSED CONTENT BLOCKS")
-                            (greger-agent--handle-parsed-response content-blocks agent-state))))))
-
-(defun greger-agent--handle-parsed-response (content-blocks agent-state)
-  "Handle the parsed CONTENT-BLOCKS from Claude using AGENT-STATE."
-  (greger-agent--debug "CONTENT BLOCKS: %s" content-blocks)
-
-  ;; Check if we have tool calls
-  (let ((tool-calls (greger-agent--extract-tool-calls content-blocks)))
-    (if tool-calls
-        (progn
-          (greger-agent--debug "TOOL USE DETECTED! Found %d tool calls" (length tool-calls))
-          (setf (greger-agent-state-current-iteration agent-state)
-                (1+ (greger-agent-state-current-iteration agent-state)))
-          (greger-agent--execute-tools tool-calls agent-state))
-      (progn
-        (greger-agent--debug "NO TOOL USE - CONVERSATION COMPLETE")
-        (greger-agent--finish-response agent-state)))))
-
-(defun greger-agent--extract-tool-calls (content-blocks)
-  "Extract tool calls from CONTENT-BLOCKS."
-  (let ((tool-calls '()))
-    (dolist (block content-blocks)
-      (when (string= (alist-get 'type block) "tool_use")
-        (greger-agent--debug "EXTRACTING TOOL CALL: %s with input: %s"
-                            (alist-get 'name block)
-                            (json-encode (alist-get 'input block)))
-        (push block tool-calls)))
-    (reverse tool-calls)))
-
-(defun greger-agent--execute-tools (tool-calls agent-state)
-  "Execute TOOL-CALLS using AGENT-STATE and continue the conversation."
-  (let ((results '()))
-    (dolist (tool-call tool-calls)
-      (let* ((tool-name (alist-get 'name tool-call))
-             (tool-input (alist-get 'input tool-call))
-             (tool-id (alist-get 'id tool-call)))
-
-        (if (greger-agent--request-approval tool-name tool-input)
-            (condition-case err
-                (let* ((default-directory (greger-agent-state-directory agent-state))
-                       (result (greger-tools-execute tool-name tool-input (greger-agent-state-chat-buffer agent-state))))
-                  (push `((type . "tool_result")
-                         (tool_use_id . ,tool-id)
-                         (content . ,result))
-                        results))
-              (error
-               (push `((type . "tool_result")
-                      (tool_use_id . ,tool-id)
-                      (content . ,(format "Error executing tool: %s" (error-message-string err)))
-                      (is_error . t))
-                     results)))
-          (push `((type . "tool_result")
-                 (tool_use_id . ,tool-id)
-                 (content . "Tool execution declined by user")
-                 (is_error . t))
-                results))))
-
-    ;; Display tool execution
-    (greger-agent--display-tool-execution tool-calls (reverse results) agent-state)
-
-    ;; Continue the loop
-    (greger-agent--run-agent-loop agent-state)))
-
-(defun greger-agent--append-text (text agent-state)
-  (with-current-buffer (greger-agent-state-chat-buffer agent-state)
-    (goto-char (point-max))
-    (insert text)))
-
-(defun greger-agent--display-tool-execution (tool-calls results agent-state)
-  "Display the execution of TOOL-CALLS and their RESULTS using AGENT-STATE."
-  (with-current-buffer (greger-agent-state-chat-buffer agent-state)
-    (goto-char (point-max))
-
-    ;; The tool calls are already in the right format, just convert them
-    (let ((tool-blocks-markdown (greger-parser--content-blocks-to-markdown tool-calls)))
-      (unless (string-empty-p tool-blocks-markdown)
-        (insert "\n\n" tool-blocks-markdown)))
-
-    ;; Convert tool results to markdown
-    (let ((result-blocks-markdown (greger-parser--content-blocks-to-markdown results)))
-      (unless (string-empty-p result-blocks-markdown)
-        (insert "\n\n" result-blocks-markdown)))))
-
-(defun greger-agent--finish-response (agent-state)
-  "Finish the agent response using AGENT-STATE."
-  (greger-agent--debug "=== FINISHING RESPONSE - CONVERSATION COMPLETE ===")
-  (with-current-buffer (greger-agent-state-chat-buffer agent-state)
-    (goto-char (point-max))
-    (unless (looking-back (concat greger-user-tag "\n\n") nil)
-      (insert "\n\n" greger-user-tag "\n\n")))
-  ;; Reset the state
-  (setf (greger-agent-state-current-iteration agent-state) 0))
-
-(defun greger-agent--request-approval (tool-name tool-input)
-  "Request approval for TOOL-NAME with TOOL-INPUT."
-  (if greger-agent-auto-approve
-      t
-    (y-or-n-p (format "Execute %s with %s? " tool-name (json-encode tool-input)))))
-
-(defun greger-agent-set-auto-approve (enable)
-  "Set auto-approval of tool calls to ENABLE."
-  (interactive "P")
-  (setq greger-agent-auto-approve (if enable t nil))
-  (message "Auto-approval %s"
-           (if greger-agent-auto-approve "enabled" "disabled")))
-
-(defun greger-agent-toggle-debug ()
-  "Toggle debug output."
-  (interactive)
-  (setq greger-agent-debug (not greger-agent-debug))
-  (message "Agent debug %s" (if greger-agent-debug "enabled" "disabled")))
-
-(provide 'greger-agent)
-
-;;; greger-agent.el ends here
-
-</tool.toolu_0181XYhtYxo3bR5b9ffaoz5R>
-
-
-
-## ASSISTANT:
-
-Now I have a good understanding of the codebase. I can see that:
-
-1. `greger-parser-parse-dialog` parses the buffer content into a dialog format
-2. `greger-provider-claude--build-data` takes the parsed dialog and builds the request data for Claude
-3. The function takes parameters: `model-name`, `dialog`, and optional `tools`
-
-Let me now create the `greger-debug-request` function. I'll add it to the main greger.el file:
-
-
-## TOOL USE:
-
-Name: str-replace
-ID: toolu_01MJKrSkdiu5DQpzgSr4HREb
-
-### file_path
-
-<tool.toolu_01MJKrSkdiu5DQpzgSr4HREb>
-greger.el
-</tool.toolu_01MJKrSkdiu5DQpzgSr4HREb>
-
-### original_content
-
-<tool.toolu_01MJKrSkdiu5DQpzgSr4HREb>
-(defun greger-set-model ()
-  "Set the current AI model."
-  (interactive)
-  (let ((model (completing-read "Choose AI model: " greger-available-models nil t)))
-    (customize-set-variable 'greger-model (intern model))
-    (message "Model set to %s" model)))
-</tool.toolu_01MJKrSkdiu5DQpzgSr4HREb>
-
-### new_content
-
-<tool.toolu_01MJKrSkdiu5DQpzgSr4HREb>
-(defun greger-set-model ()
-  "Set the current AI model."
-  (interactive)
-  (let ((model (completing-read "Choose AI model: " greger-available-models nil t)))
-    (customize-set-variable 'greger-model (intern model))
-    (message "Model set to %s" model)))
-
-(defun greger-debug-request ()
-  "Debug the request data by parsing the buffer and saving the greger-provider-claude--build-data output."
-  (interactive)
-  (require 'greger-parser)
-  (require 'greger-provider-claude)
-  (require 'greger-tools)
-  (let* ((filename (read-string "Save to filename (default: request.json): " nil nil "request.json"))
-         (buffer-content (buffer-substring-no-properties (point-min) (point-max)))
-         (dialog (greger-parser-parse-dialog buffer-content))
-         (tools (when greger-agent-tools
-                  (greger-tools-get-schemas greger-agent-tools)))
-         (model-name (symbol-name greger-model))
-         (request-data nil))
-
-    (unless dialog
-      (error "Failed to parse dialog. Check your buffer format"))
-
-    ;; Extract just the model name part (e.g., "claude-sonnet-4-20250514" from "claude/claude-sonnet-4-20250514")
-    (when (string-match "^[^/]+/\\(.+\\)$" model-name)
-      (setq model-name (match-string 1 model-name)))
-
-    ;; Get the JSON request data
-    (setq request-data (greger-provider-claude--build-data model-name dialog tools))
-
-    ;; Parse the JSON and re-encode with proper formatting
-    (let* ((parsed-json (json-read-from-string request-data))
-           (formatted-json (json-encode-alist parsed-json)))
-      ;; Write to file with proper indentation
-      (with-temp-file filename
-        (insert formatted-json)
-        ;; Add newlines for better readability
-        (goto-char (point-min))
-        (while (search-forward "," nil t)
-          (when (not (looking-at "\\s-*\n"))
-            (insert "\n")))
-        (goto-char (point-min))
-        (while (search-forward "{" nil t)
-          (unless (looking-at "\\s-*\n")
-            (insert "\n")))
-        (goto-char (point-min))
-        (while (search-forward "}" nil t)
-          (unless (looking-at "\\s-*\n")
-            (insert "\n")))
-        ;; Basic indentation
-        (json-pretty-print (point-min) (point-max)))
-
-      (message "Request data saved to %s" filename))))
-</tool.toolu_01MJKrSkdiu5DQpzgSr4HREb>
-
-### git_commit_message
-
-<tool.toolu_01MJKrSkdiu5DQpzgSr4HREb>
-Add greger-debug-request function to save Claude request data to JSON file
-</tool.toolu_01MJKrSkdiu5DQpzgSr4HREb>
-
-## TOOL RESULT:
-
-ID: toolu_01MJKrSkdiu5DQpzgSr4HREb
-
-<tool.toolu_01MJKrSkdiu5DQpzgSr4HREb>
-Successfully replaced content in /Users/andreas/projects/aichat3/greger.el. Successfully staged 2 file(s) and committed with message: Add greger-debug-request function to save Claude request data to JSON file
-</tool.toolu_01MJKrSkdiu5DQpzgSr4HREb>
-
-## ASSISTANT:
-
-Now I need to add the keybinding for this function to the keymap. Let me add it to the greger-mode-map:
-
-
-## TOOL USE:
-
-Name: str-replace
-ID: toolu_01G1orouGkL6LAXpyW4jfrUg
-
-### file_path
-
-<tool.toolu_01G1orouGkL6LAXpyW4jfrUg>
-greger.el
-</tool.toolu_01G1orouGkL6LAXpyW4jfrUg>
-
-### original_content
-
-<tool.toolu_01G1orouGkL6LAXpyW4jfrUg>
-    (define-key map (kbd "C-; m") #'greger-set-model)
-    (define-key map (kbd "C-; c") #'greger-copy-code)
-    (define-key map (kbd "TAB") #'greger-toggle-tool-section)
-    (define-key map (kbd "<tab>") #'greger-toggle-tool-section)
-</tool.toolu_01G1orouGkL6LAXpyW4jfrUg>
-
-### new_content
-
-<tool.toolu_01G1orouGkL6LAXpyW4jfrUg>
-    (define-key map (kbd "C-; m") #'greger-set-model)
-    (define-key map (kbd "C-; c") #'greger-copy-code)
-    (define-key map (kbd "C-; d") #'greger-debug-request)
-    (define-key map (kbd "TAB") #'greger-toggle-tool-section)
-    (define-key map (kbd "<tab>") #'greger-toggle-tool-section)
-</tool.toolu_01G1orouGkL6LAXpyW4jfrUg>
-
-### git_commit_message
-
-<tool.toolu_01G1orouGkL6LAXpyW4jfrUg>
-Add C-; d keybinding for greger-debug-request function
-</tool.toolu_01G1orouGkL6LAXpyW4jfrUg>
-
-## TOOL RESULT:
-
-ID: toolu_01G1orouGkL6LAXpyW4jfrUg
-
-<tool.toolu_01G1orouGkL6LAXpyW4jfrUg>
-Successfully replaced content in /Users/andreas/projects/aichat3/greger.el. Successfully staged 2 file(s) and committed with message: Add C-; d keybinding for greger-debug-request function
-</tool.toolu_01G1orouGkL6LAXpyW4jfrUg>
-
-## ASSISTANT:
-
-Now let me test the function to make sure it works properly. Let me create a simple test by reading one of the existing chat files:
-
-## TOOL USE:
-
-Name: read-file
-ID: toolu_01ELWjEXXm5SAeCRHgFsBrZZ
-
-### path
-
-<tool.toolu_01ELWjEXXm5SAeCRHgFsBrZZ>
-chat.ai
-</tool.toolu_01ELWjEXXm5SAeCRHgFsBrZZ>
+<tool.toolu_012Mae2myEr61N9T5u1bDemw>
+greger-stdlib.el
+</tool.toolu_012Mae2myEr61N9T5u1bDemw>
 
 ### start_line
 
-<tool.toolu_01ELWjEXXm5SAeCRHgFsBrZZ>
-1
-</tool.toolu_01ELWjEXXm5SAeCRHgFsBrZZ>
+<tool.toolu_012Mae2myEr61N9T5u1bDemw>
+231
+</tool.toolu_012Mae2myEr61N9T5u1bDemw>
 
 ### end_line
 
-<tool.toolu_01ELWjEXXm5SAeCRHgFsBrZZ>
-20
-</tool.toolu_01ELWjEXXm5SAeCRHgFsBrZZ>
+<tool.toolu_012Mae2myEr61N9T5u1bDemw>
+268
+</tool.toolu_012Mae2myEr61N9T5u1bDemw>
+
+### include_line_numbers
+
+<tool.toolu_012Mae2myEr61N9T5u1bDemw>
+true
+</tool.toolu_012Mae2myEr61N9T5u1bDemw>
 
 ## TOOL RESULT:
 
-ID: toolu_01ELWjEXXm5SAeCRHgFsBrZZ
+ID: toolu_012Mae2myEr61N9T5u1bDemw
 
-<tool.toolu_01ELWjEXXm5SAeCRHgFsBrZZ>
-## SYSTEM:
-
-## USER:
-
-Make a greger-debug-request function that prompts the user to save to a filename, default being request.json, and then parses the entire buffer and outputs the greger-provider-claude--build-data output to that file, with json intended properly and with newlines.
-
-## ASSISTANT:
-
-I'll help you create a `greger-debug-request` function. First, let me explore the codebase to understand the structure and find the relevant functions.
-
-## TOOL USE:
-
-Name: list-directory
-ID: toolu_019iev7Wy8DkYSFKrRnbWdP3
-
-### path
-
-<tool.toolu_019iev7Wy8DkYSFKrRnbWdP3>
-.
-</tool.toolu_019iev7Wy8DkYSFKrRnbWdP3>
-</tool.toolu_01ELWjEXXm5SAeCRHgFsBrZZ>
-
-## ASSISTANT:
-
-Perfect! I can see this is a valid greger dialog format. Now let me test if there are any syntax errors in my function by doing a quick elisp evaluation check. First, let me make sure I have access to all required modules:
-
-## TOOL USE:
-
-Name: ripgrep
-ID: toolu_013Cvyc5DGzCwKUmM3W4SXEV
-
-### pattern
-
-<tool.toolu_013Cvyc5DGzCwKUmM3W4SXEV>
-defun greger-tools-get-schemas
-</tool.toolu_013Cvyc5DGzCwKUmM3W4SXEV>
-
-### file-type
-
-<tool.toolu_013Cvyc5DGzCwKUmM3W4SXEV>
-el
-</tool.toolu_013Cvyc5DGzCwKUmM3W4SXEV>
-
-## TOOL RESULT:
-
-ID: toolu_013Cvyc5DGzCwKUmM3W4SXEV
-
-<tool.toolu_013Cvyc5DGzCwKUmM3W4SXEV>
-/Users/andreas/projects/aichat3/greger-tools.el:49:(defun greger-tools-get-schemas (tool-names)
-/Users/andreas/projects/aichat3/chat4.ai:209:179: (defun greger-tools-get-schemas (tool-names)
-
-</tool.toolu_013Cvyc5DGzCwKUmM3W4SXEV>
+<tool.toolu_012Mae2myEr61N9T5u1bDemw>
+231: (defun greger-tools--git-stage-and-commit (files commit-message &optional chat-buffer)
+232:   "Stage FILES and commit with COMMIT-MESSAGE using git command line.
+233: If CHAT-BUFFER is provided, also stage and commit the chat buffer file."
+234:   (condition-case err
+235:       (let* ((first-file (car files))
+236:              (file-dir (file-name-directory (expand-file-name first-file)))
+237:              (repo-root (greger-tools--find-git-repo-root file-dir)))
+238:         (unless repo-root
+239:           (error "File %s is not in a git repository" first-file))
+240:
+241:         ;; Set default-directory to the repository root for git operations
+242:         (let ((default-directory repo-root)
+243:               (all-files files))
+244:
+245:           ;; Add chat buffer file if provided and it has a file
+246:           (when (and chat-buffer (buffer-file-name chat-buffer))
+247:             (let ((chat-file (buffer-file-name chat-buffer)))
+248:               ;; Save the chat buffer first if it has unsaved changes
+249:               (with-current-buffer chat-buffer
+250:                 (when (buffer-modified-p)
+251:                   (save-buffer)))
+252:               ;; Add chat file to the list of files to stage
+253:               (push chat-file all-files)))
+254:
+255:           ;; Stage the files
+256:           (dolist (file all-files)
+257:             (let ((relative-path (file-relative-name (expand-file-name file) repo-root)))
+258:               (unless (= 0 (call-process "git" nil nil nil "add" relative-path))
+259:                 (error "Failed to stage file: %s" file))))
+260:
+261:           ;; Create the commit
+262:           (unless (= 0 (call-process "git" nil nil nil "commit" "-m" commit-message))
+263:             (error "Failed to create commit"))
+264:
+265:           (format "Successfully staged %d file(s) and committed with message: %s"
+266:                   (length all-files) commit-message)))
+267:     (error
+268:      (format "Git operation failed: %s" (error-message-string err)))))
+</tool.toolu_012Mae2myEr61N9T5u1bDemw>
 
 ## ASSISTANT:
 
-Great! Now let me also add a require statement for json-pretty-print functionality and improve the function to handle JSON formatting better:
+Now I need to modify the function to check if the chat file is already tracked in version control before adding it to the list of files to stage. I'll add a helper function to check if a file is tracked by git, and then modify the existing function:
