@@ -151,7 +151,7 @@
   :function 'greger-tools--git-log)
 
 (greger-register-tool "git-show-commit"
-  :description "View a specific git commit using magit in a split screen"
+  :description "View a specific git commit using the git command line"
   :properties '((commit_hash . ((type . "string")
                                 (description . "The commit hash to view")))
                 (path . ((type . "string")
