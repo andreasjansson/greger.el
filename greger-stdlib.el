@@ -429,8 +429,6 @@ If END-LINE is specified, stop reading at that line (inclusive, 1-based)."
                 output)))
         (error (format "Failed to execute ripgrep search: %s" (error-message-string err)))))))
 
-
-
 (defun greger-tools--write-new-file (file-path contents git-commit-message &optional buffer)
   "Write CONTENTS to a new file at FILE-PATH. Fails if file already exists.
 If BUFFER is provided, it will be staged and committed along with the new file."
