@@ -81,10 +81,9 @@
     (if (>= current-iteration greger-agent-max-iterations)
         (progn
           (greger-agent--debug "MAX ITERATIONS REACHED - STOPPING")
-          (with-current-buffer chat-buffer
-            (goto-char (point-max))
-            (insert (format "\n\nMaximum iterations (%d) reached. Stopping agent execution.\n\n"
-                           greger-agent-max-iterations)))
+          (greger-agent--append-text (format "\n\nMaximum iterations (%d) reached. Stopping agent execution.\n\n"
+                                             greger-agent-max-iterations)
+                                     agent-state)
           (greger-agent--finish-response agent-state))
 
       ;; Get Claude's response
@@ -94,14 +93,10 @@
        :dialog current-dialog
        :tools tools
        :buffer chat-buffer
-       :text-start-callback (lambda (state)
-                              (with-current-buffer (greger-agent-state-chat-buffer agent-state)
-                                (goto-char (point-max))
-                                (insert (concat "\n\n" greger-assistant-tag "\n\n"))))
-       :text-callback (lambda (state text)
-                        (with-current-buffer (greger-agent-state-chat-buffer agent-state)
-                          (goto-char (point-max))
-                          (insert text)))
+       :text-start-callback (lambda ()
+                              (greger-agent--append-text (concat "\n\n" greger-assistant-tag "\n\n") agent-state))
+       :text-callback (lambda (text)
+                        (greger-agent--append-text text agent-state))
        :complete-callback (lambda (content-blocks)
                             (greger-agent--debug "RECEIVED PARSED CONTENT BLOCKS")
                             (greger-agent--handle-parsed-response content-blocks agent-state))))))
@@ -167,7 +162,10 @@
     ;; Continue the loop
     (greger-agent--run-agent-loop agent-state)))
 
-;; In greger-agent.el, update the display function:
+(defun greger-agent--append-text (text agent-state)
+  (with-current-buffer (greger-agent-state-chat-buffer agent-state)
+    (goto-char (point-max))
+    (insert text)))
 
 (defun greger-agent--display-tool-execution (tool-calls results agent-state)
   "Display the execution of TOOL-CALLS and their RESULTS using AGENT-STATE."

@@ -48,7 +48,7 @@ BUFFER defaults to current buffer if not specified."
 (cl-defun greger-stream-to-buffer-with-tools (&key model dialog tools buffer text-start-callback text-callback complete-callback cancel-callback)
   "Send streaming request for MODEL with DIALOG and TOOLS, inserting text into BUFFER.
 TEXT-START-CALLBACK is called when text streaming starts.
-TEXT-CALLBACK is called for each text chunk with (state text).
+TEXT-CALLBACK is called for each text chunk with (text).
 COMPLETE-CALLBACK is called when done with the parsed content blocks array.
 CANCEL-CALLBACK is called if cancelled.
 BUFFER defaults to current buffer if not specified."
@@ -196,7 +196,7 @@ BUFFER defaults to current buffer if not specified."
 
         (when (and (string= (alist-get 'type content-block) "text")
                    (greger-stream-state-text-start-callback state))
-          (funcall (greger-stream-state-text-start-callback state) state))
+          (funcall (greger-stream-state-text-start-callback state)))
 
         ;; Add block at the right index
         (greger-stream--ensure-block-at-index blocks index content-block state)))
@@ -218,7 +218,7 @@ BUFFER defaults to current buffer if not specified."
                       (concat (alist-get 'text block) text))
                 ;; Call text callback for live display
                 (when (greger-stream-state-text-callback state)
-                  (funcall (greger-stream-state-text-callback state) state text))))
+                  (funcall (greger-stream-state-text-callback state) text))))
 
              ;; Tool input delta
              ((string= delta-type "input_json_delta")
