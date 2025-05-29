@@ -126,9 +126,9 @@
     (define-key map (kbd "C-; a") #'greger-insert-assistant-tag)
     (define-key map (kbd "C-; u") #'greger-insert-user-tag)
     (define-key map (kbd "C-; s") #'greger-insert-system-tag)
-    (define-key map (kbd "C-; f") #'greger-context-file)
-    (define-key map (kbd "C-; b") #'greger-context-buffer)
-    (define-key map (kbd "C-; h") #'greger-context-http-url)
+    (define-key map (kbd "C-; i") #'greger-insert-include)
+    (define-key map (kbd "C-; I") #'greger-insert-include-code)
+    (define-key map (kbd "C-; b") #'greger-insert-include-buffer-code)
     (define-key map (kbd "C-; m") #'greger-set-model)
     (define-key map (kbd "C-; c") #'greger-copy-code)
     (define-key map (kbd "TAB") #'greger-toggle-tool-section)
@@ -184,28 +184,31 @@
   (let ((greger-agent-tools '()))
     (greger-agent-buffer)))
 
-(defun greger-context-file ()
-  "Prompt the user to select a file and insert an <ai-context> at point."
+(defun greger-insert-include ()
+  "Prompt the user to select a file and insert an <include> at point."
   (interactive)
   (let ((file (expand-file-name (read-file-name "Select file: " nil nil t))))
     (if (file-exists-p file)
-        (insert (format "<ai-context>%s</ai-context>\n\n" file))
+        (insert (format "<include>%s</include>\n\n" file))
       (message "File does not exist!"))))
 
-(defun greger-context-buffer ()
-  "Prompt the user to select a buffer and insert an <ai-context> at point."
+(defun greger-insert-include-code ()
+  "Prompt the user to select a file and insert an <include code> at point."
+  (interactive)
+  (let ((file (expand-file-name (read-file-name "Select file: " nil nil t))))
+    (if (file-exists-p file)
+        (insert (format "<include code>%s</include>\n\n" file))
+      (message "File does not exist!"))))
+
+(defun greger-insert-include-buffer-code ()
+  "Prompt the user to select a buffer and insert an <include code> at point."
   (interactive)
   (let ((buffer-name (read-buffer "Select buffer: " nil t)))
     (when buffer-name
       (let ((buffer (get-buffer buffer-name)))
         (when buffer
           (let ((path (buffer-file-name buffer)))
-            (insert (format "<ai-context>%s</ai-context>\n\n" path))))))))
-
-(defun greger-context-http-url (url)
-  "Insert an <ai-context> to the provided URL at point."
-  (interactive "sURL: ")
-  (insert (format "<ai-context>%s</ai-context>\n\n" url)))
+            (insert (format "<include code>%s</include>\n\n" path))))))))
 
 (defun greger-copy-code ()
   "Copy the current code block under point."
@@ -223,42 +226,6 @@
   (let ((model (completing-read "Choose AI model: " greger-available-models nil t)))
     (customize-set-variable 'greger-model (intern model))
     (message "Model set to %s" model)))
-
-(defun greger-paragraph ()
-  "Generate a response for the current paragraph."
-  (interactive)
-  (let (para-start para-end para-text)
-    (backward-paragraph)
-    (setq para-start (point))
-    (forward-paragraph)
-    (setq para-end (point))
-    (setq para-text (string-trim (buffer-substring-no-properties para-start para-end)))
-    (goto-char para-end)
-    (insert "\n\n")
-    (greger-stream greger-default-system-prompt para-text)))
-
-(defun greger-prompt (prompt)
-  "Ask AI a PROMPT and insert the response at the current point."
-  (interactive "sPrompt: ")
-  (greger-stream greger-default-system-prompt prompt))
-
-(defun greger-stream (system-prompt prompt &optional complete-callback cancel-callback)
-  "Stream the AI response for SYSTEM-PROMPT and user PROMPT.
-COMPLETE-CALLBACK is called when done.
-CANCEL-CALLBACK is called if cancelled."
-  (let ((dialog `(((role . "system") (content . ,system-prompt))
-                  ((role . "user") (content . ,prompt)))))
-    (greger-stream-dialog dialog complete-callback cancel-callback)))
-
-(defun greger-stream-dialog (dialog &optional complete-callback cancel-callback)
-  "Stream the AI response for the multi-turn DIALOG.
-COMPLETE-CALLBACK is called when done.
-CANCEL-CALLBACK is called if cancelled."
-  (greger-stream-to-buffer
-   :model greger-model
-   :dialog dialog
-   :complete-callback complete-callback
-   :cancel-callback cancel-callback))
 
 ;; Tool section collapsing functions
 
