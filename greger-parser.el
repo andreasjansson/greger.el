@@ -442,10 +442,10 @@ Supports both local files and web URLs (http:// or https://)."
     (setq result (concat result (greger-parser--substring state start)))
     result))
 
-(defun greger-parser--parse-section-content ()
-  "Parse content until next section, skipping HTML comments."
-  (greger-parser--skip-whitespace)
-  (let ((content (greger-parser--read-until-section-with-comment-removal)))
+(defun greger-parser--parse-section-content (state)
+  "Parse content until next section, skipping HTML comments in STATE."
+  (greger-parser--skip-whitespace state)
+  (let ((content (greger-parser--read-until-section-with-comment-removal state)))
     (when (and content (not (string-empty-p (string-trim content))))
       (string-trim content))))
 
