@@ -445,8 +445,11 @@ Returns nil when content is inserted, or the content string when it should be ap
           (setq result (concat result (greger-parser--substring state start)))
           ;; Process the include tag
           (let ((include-content (greger-parser--process-include-tag state)))
-            (when include-content
-              (setq result (concat result include-content))))
+            (if include-content
+                ;; Content was returned (web URL or code), append it
+                (setq result (concat result include-content))
+              ;; Content was inserted into state (local file), continue parsing from current position
+              nil))
           (setq start (greger-parser--current-pos state)))
          (t
           (greger-parser--advance state)))
