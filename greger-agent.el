@@ -174,15 +174,15 @@
       (unless (string-empty-p result-blocks-markdown)
         (insert "\n\n" result-blocks-markdown)))))
 
-(defun greger-agent--finish-response ()
-  "Finish the agent response."
+(defun greger-agent--finish-response (agent-state)
+  "Finish the agent response using AGENT-STATE."
   (greger-agent--debug "=== FINISHING RESPONSE - CONVERSATION COMPLETE ===")
-  (with-current-buffer greger-agent--chat-buffer  ; Ensure we're in the chat buffer
+  (with-current-buffer (greger-agent-state-chat-buffer agent-state)
     (goto-char (point-max))
     (unless (looking-back (concat greger-user-tag "\n\n") nil)
       (insert "\n\n" greger-user-tag "\n\n")))
-  (setq greger-agent--current-iteration 0)
-  (setq greger-agent--chat-buffer nil))
+  ;; Reset the state
+  (setf (greger-agent-state-current-iteration agent-state) 0))
 
 (defun greger-agent--request-approval (tool-name tool-input)
   "Request approval for TOOL-NAME with TOOL-INPUT."

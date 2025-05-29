@@ -3854,3 +3854,117 @@ ID: toolu_01FZLp6sMedrZ3b8oeodueJ9
   (greger-agent--debug "=== FINISHING RESPONSE - CONVERSATION COMPLETE ===")
   (with-current-buffer greger-agent--chat-buffer  ; Ensure we're in the chat buffer
 </tool.toolu_01FZLp6sMedrZ3b8oeodueJ9>
+
+
+## TOOL USE:
+
+Name: str-replace
+ID: toolu_0195ghQEYUGHXuNm9Fg58Ga8
+
+### file_path
+
+<tool.toolu_0195ghQEYUGHXuNm9Fg58Ga8>
+greger-agent.el
+</tool.toolu_0195ghQEYUGHXuNm9Fg58Ga8>
+
+### original_content
+
+<tool.toolu_0195ghQEYUGHXuNm9Fg58Ga8>
+(defun greger-agent--display-tool-execution (tool-calls results)
+  "Display the execution of TOOL-CALLS and their RESULTS using parser markdown conversion."
+  (with-current-buffer greger-agent--chat-buffer
+    (goto-char (point-max))
+
+    ;; The tool calls are already in the right format, just convert them
+    (let ((tool-blocks-markdown (greger-parser--content-blocks-to-markdown tool-calls)))
+      (unless (string-empty-p tool-blocks-markdown)
+        (insert "\n\n" tool-blocks-markdown)))
+
+    ;; Convert tool results to markdown
+    (let ((result-blocks-markdown (greger-parser--content-blocks-to-markdown results)))
+      (unless (string-empty-p result-blocks-markdown)
+        (insert "\n\n" result-blocks-markdown)))))
+</tool.toolu_0195ghQEYUGHXuNm9Fg58Ga8>
+
+### new_content
+
+<tool.toolu_0195ghQEYUGHXuNm9Fg58Ga8>
+(defun greger-agent--display-tool-execution (tool-calls results agent-state)
+  "Display the execution of TOOL-CALLS and their RESULTS using AGENT-STATE."
+  (with-current-buffer (greger-agent-state-chat-buffer agent-state)
+    (goto-char (point-max))
+
+    ;; The tool calls are already in the right format, just convert them
+    (let ((tool-blocks-markdown (greger-parser--content-blocks-to-markdown tool-calls)))
+      (unless (string-empty-p tool-blocks-markdown)
+        (insert "\n\n" tool-blocks-markdown)))
+
+    ;; Convert tool results to markdown
+    (let ((result-blocks-markdown (greger-parser--content-blocks-to-markdown results)))
+      (unless (string-empty-p result-blocks-markdown)
+        (insert "\n\n" result-blocks-markdown)))))
+</tool.toolu_0195ghQEYUGHXuNm9Fg58Ga8>
+
+### git_commit_message
+
+<tool.toolu_0195ghQEYUGHXuNm9Fg58Ga8>
+Update greger-agent--display-tool-execution to use agent state
+</tool.toolu_0195ghQEYUGHXuNm9Fg58Ga8>
+
+## TOOL RESULT:
+
+ID: toolu_0195ghQEYUGHXuNm9Fg58Ga8
+
+<tool.toolu_0195ghQEYUGHXuNm9Fg58Ga8>
+Successfully replaced content in /Users/andreas/projects/aichat3/greger-agent.el. Successfully staged 2 file(s) and committed with message: Update greger-agent--display-tool-execution to use agent state
+</tool.toolu_0195ghQEYUGHXuNm9Fg58Ga8>
+
+## ASSISTANT:
+
+Now let me update the finish-response function:
+
+## TOOL USE:
+
+Name: read-file
+ID: toolu_011qgJNQsaz4u5uzG9AbApeC
+
+### path
+
+<tool.toolu_011qgJNQsaz4u5uzG9AbApeC>
+greger-agent.el
+</tool.toolu_011qgJNQsaz4u5uzG9AbApeC>
+
+### start_line
+
+<tool.toolu_011qgJNQsaz4u5uzG9AbApeC>
+180
+</tool.toolu_011qgJNQsaz4u5uzG9AbApeC>
+
+### end_line
+
+<tool.toolu_011qgJNQsaz4u5uzG9AbApeC>
+195
+</tool.toolu_011qgJNQsaz4u5uzG9AbApeC>
+
+## TOOL RESULT:
+
+ID: toolu_011qgJNQsaz4u5uzG9AbApeC
+
+<tool.toolu_011qgJNQsaz4u5uzG9AbApeC>
+  (with-current-buffer greger-agent--chat-buffer  ; Ensure we're in the chat buffer
+    (goto-char (point-max))
+    (unless (looking-back (concat greger-user-tag "\n\n") nil)
+      (insert "\n\n" greger-user-tag "\n\n")))
+  (setq greger-agent--current-iteration 0)
+  (setq greger-agent--chat-buffer nil))
+
+(defun greger-agent--request-approval (tool-name tool-input)
+  "Request approval for TOOL-NAME with TOOL-INPUT."
+  (if greger-agent-auto-approve
+      t
+    (y-or-n-p (format "Execute %s with %s? " tool-name (json-encode tool-input)))))
+
+(defun greger-agent-set-auto-approve (enable)
+  "Set auto-approval of tool calls to ENABLE."
+  (interactive "P")
+</tool.toolu_011qgJNQsaz4u5uzG9AbApeC>
