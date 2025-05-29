@@ -30,17 +30,14 @@
   :type 'boolean
   :group 'greger)
 
-(defvar greger-agent--current-iteration 0
+(defvar-local greger-agent--current-iteration 0
   "Current iteration count for the active agent session.")
-(make-variable-buffer-local 'greger-agent--current-iteration)
 
-(defvar greger-agent--chat-buffer nil
+(defvar-local greger-agent--chat-buffer nil
   "Buffer where the agent conversation is taking place.")
-(make-variable-buffer-local 'greger-agent--chat-buffer)
 
-(defvar greger-agent--directory nil
+(defvar-local greger-agent--directory nil
   "Directory where the agent should execute commands.")
-(make-variable-buffer-local 'greger-agent--directory)
 
 (defun greger-agent-buffer ()
   "Send buffer content to AI as an agent dialog with tool support."
