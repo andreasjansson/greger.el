@@ -1268,3 +1268,104 @@ Successfully replaced content in /Users/andreas/projects/aichat3/greger-parser.e
 ## ASSISTANT:
 
 Now I need to update the macro and the main parsing entry points:
+
+
+## TOOL USE:
+
+Name: str-replace
+ID: toolu_01HeygREytSXZAchQfwS1c7E
+
+### file_path
+
+<tool.toolu_01HeygREytSXZAchQfwS1c7E>
+greger-parser.el
+</tool.toolu_01HeygREytSXZAchQfwS1c7E>
+
+### original_content
+
+<tool.toolu_01HeygREytSXZAchQfwS1c7E>
+(defmacro greger-parser--with-input (input &rest body)
+  "Execute BODY with INPUT as parser source."
+  `(let ((greger-parser--input (or ,input ""))
+         (greger-parser--pos 0)
+         (greger-parser--length (length (or ,input ""))))
+     ,@body))
+
+(defun greger-parser--debug (format-string &rest args)
+  "Debug logging function."
+  (when greger-parser--debug
+    (message "[PARSER DEBUG] %s" (apply #'format format-string args))))
+
+;; Main parsing entry points
+
+(defun greger-parser-parse-dialog (markdown)
+  "Parse MARKDOWN into dialog format."
+  (if (or (null markdown) (string-empty-p (string-trim markdown)))
+      '()
+    (greger-parser--with-input markdown
+      (condition-case err
+          (greger-parser--parse-document)
+        (error
+         (greger-parser--debug "Parse error: %s" (error-message-string err))
+         '())))))
+
+(defun greger-parser-dialog-to-markdown (dialog)
+  "Convert DIALOG to markdown format."
+  (if (null dialog)
+      ""
+    (mapconcat #'greger-parser--message-to-markdown dialog "\n\n")))
+</tool.toolu_01HeygREytSXZAchQfwS1c7E>
+
+### new_content
+
+<tool.toolu_01HeygREytSXZAchQfwS1c7E>
+(defun greger-parser--create-state (input &optional debug)
+  "Create a parser state for INPUT with optional DEBUG flag."
+  (make-greger-parser-state
+   :input (or input "")
+   :pos 0
+   :length (length (or input ""))
+   :debug debug))
+
+(defun greger-parser--debug (state format-string &rest args)
+  "Debug logging function using STATE."
+  (when (greger-parser-state-debug state)
+    (message "[PARSER DEBUG] %s" (apply #'format format-string args))))
+
+;; Main parsing entry points
+
+(defun greger-parser-parse-dialog (markdown &optional debug)
+  "Parse MARKDOWN into dialog format with optional DEBUG flag."
+  (if (or (null markdown) (string-empty-p (string-trim markdown)))
+      '()
+    (let ((state (greger-parser--create-state markdown debug)))
+      (condition-case err
+          (greger-parser--parse-document state)
+        (error
+         (greger-parser--debug state "Parse error: %s" (error-message-string err))
+         '())))))
+
+(defun greger-parser-dialog-to-markdown (dialog)
+  "Convert DIALOG to markdown format."
+  (if (null dialog)
+      ""
+    (mapconcat #'greger-parser--message-to-markdown dialog "\n\n")))
+</tool.toolu_01HeygREytSXZAchQfwS1c7E>
+
+### git_commit_message
+
+<tool.toolu_01HeygREytSXZAchQfwS1c7E>
+Update parser entry points to use state structure
+</tool.toolu_01HeygREytSXZAchQfwS1c7E>
+
+## TOOL RESULT:
+
+ID: toolu_01HeygREytSXZAchQfwS1c7E
+
+<tool.toolu_01HeygREytSXZAchQfwS1c7E>
+Successfully replaced content in /Users/andreas/projects/aichat3/greger-parser.el. Successfully staged 2 file(s) and committed with message: Update parser entry points to use state structure
+</tool.toolu_01HeygREytSXZAchQfwS1c7E>
+
+## ASSISTANT:
+
+Now I need to update all the parser infrastructure functions to take a state parameter:

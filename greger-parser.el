@@ -62,48 +62,52 @@
 
 ;; Parser infrastructure
 
-(defun greger-parser--at-end-p ()
-  "True if at end of input."
-  (>= greger-parser--pos greger-parser--length))
+(defun greger-parser--at-end-p (state)
+  "True if at end of input in STATE."
+  (>= (greger-parser-state-pos state) (greger-parser-state-length state)))
 
-(defun greger-parser--peek (&optional offset)
-  "Peek at character at current position plus OFFSET."
-  (let ((pos (+ greger-parser--pos (or offset 0))))
-    (if (and (>= pos 0) (< pos greger-parser--length))
-        (aref greger-parser--input pos)
+(defun greger-parser--peek (state &optional offset)
+  "Peek at character at current position plus OFFSET in STATE."
+  (let ((pos (+ (greger-parser-state-pos state) (or offset 0))))
+    (if (and (>= pos 0) (< pos (greger-parser-state-length state)))
+        (aref (greger-parser-state-input state) pos)
       nil)))
 
-(defun greger-parser--advance (&optional n)
-  "Advance position by N characters (default 1)."
-  (let ((old-pos greger-parser--pos))
-    (setq greger-parser--pos (min greger-parser--length
-                                 (+ greger-parser--pos (or n 1))))
-    (greger-parser--debug "Advanced from %d to %d" old-pos greger-parser--pos)))
+(defun greger-parser--advance (state &optional n)
+  "Advance position by N characters (default 1) in STATE."
+  (let ((old-pos (greger-parser-state-pos state)))
+    (setf (greger-parser-state-pos state)
+          (min (greger-parser-state-length state)
+               (+ (greger-parser-state-pos state) (or n 1))))
+    (greger-parser--debug state "Advanced from %d to %d" old-pos (greger-parser-state-pos state))))
 
-(defun greger-parser--current-pos ()
-  "Get current position."
-  greger-parser--pos)
+(defun greger-parser--current-pos (state)
+  "Get current position from STATE."
+  (greger-parser-state-pos state))
 
-(defun greger-parser--substring (start &optional end)
-  "Get substring from START to END (or current position)."
-  (if (and (>= start 0)
-           (<= start greger-parser--length)
-           (or (null end) (<= end greger-parser--length)))
-      (substring greger-parser--input start (or end greger-parser--pos))
-    ""))
+(defun greger-parser--substring (state start &optional end)
+  "Get substring from START to END (or current position) in STATE."
+  (let ((input (greger-parser-state-input state))
+        (length (greger-parser-state-length state))
+        (current-pos (greger-parser-state-pos state)))
+    (if (and (>= start 0)
+             (<= start length)
+             (or (null end) (<= end length)))
+        (substring input start (or end current-pos))
+      "")))
 
-(defun greger-parser--looking-at (string)
-  "True if current position matches STRING."
+(defun greger-parser--looking-at (state string)
+  "True if current position matches STRING in STATE."
   (and string
-       (<= (+ greger-parser--pos (length string)) greger-parser--length)
-       (string= (greger-parser--substring greger-parser--pos
-                                         (+ greger-parser--pos (length string)))
+       (<= (+ (greger-parser-state-pos state) (length string)) (greger-parser-state-length state))
+       (string= (greger-parser--substring state (greger-parser-state-pos state)
+                                         (+ (greger-parser-state-pos state) (length string)))
                 string)))
 
-(defun greger-parser--at-triple-backticks ()
-  "True if current position matches ``` at beginning of line."
-  (and (greger-parser--at-line-start-p)
-       (greger-parser--looking-at "```")))
+(defun greger-parser--at-triple-backticks (state)
+  "True if current position matches ``` at beginning of line in STATE."
+  (and (greger-parser--at-line-start-p state)
+       (greger-parser--looking-at state "```")))
 
 ;; Character tests
 
