@@ -66,8 +66,11 @@
 (defun greger-agent--run-agent-loop (agent-state)
   "Run the main agent loop with AGENT-STATE."
   (let* ((tools (greger-tools-get-schemas greger-agent-tools))
-         (buffer-content (buffer-substring-no-properties (point-min) (point-max)))
-         (current-dialog (greger-parser-parse-dialog buffer-content)))
+         (chat-buffer (greger-agent-state-chat-buffer agent-state))
+         (buffer-content (with-current-buffer chat-buffer
+                           (buffer-substring-no-properties (point-min) (point-max))))
+         (current-dialog (greger-parser-parse-dialog buffer-content))
+         (current-iteration (greger-agent-state-current-iteration agent-state)))
 
     (greger-agent--debug "=== ITERATION %d ===" greger-agent--current-iteration)
     (greger-agent--debug "Dialog length: %d messages" (length current-dialog))
