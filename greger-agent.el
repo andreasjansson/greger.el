@@ -96,8 +96,8 @@
                             (greger-agent--debug "RECEIVED PARSED CONTENT BLOCKS")
                             (greger-agent--handle-parsed-response content-blocks agent-state))))))
 
-(defun greger-agent--handle-parsed-response (content-blocks)
-  "Handle the parsed CONTENT-BLOCKS from Claude."
+(defun greger-agent--handle-parsed-response (content-blocks agent-state)
+  "Handle the parsed CONTENT-BLOCKS from Claude using AGENT-STATE."
   (greger-agent--debug "CONTENT BLOCKS: %s" content-blocks)
 
   ;; Check if we have tool calls
