@@ -2941,3 +2941,61 @@ Successfully replaced content in /Users/andreas/projects/aichat3/greger-parser.e
 ## ASSISTANT:
 
 Now I need to update the remaining tool parsing helper functions:
+
+
+## TOOL USE:
+
+Name: str-replace
+ID: toolu_01L1CCQneFMmZEmMA9mM88H5
+
+### file_path
+
+<tool.toolu_01L1CCQneFMmZEmMA9mM88H5>
+greger-parser.el
+</tool.toolu_01L1CCQneFMmZEmMA9mM88H5>
+
+### original_content
+
+<tool.toolu_01L1CCQneFMmZEmMA9mM88H5>
+(defun greger-parser--skip-to-closing-angle ()
+  "Skip to closing angle bracket."
+  (let ((iterations 0)
+        (max-iterations 1000)) ; Safety limit
+    (while (and (not (greger-parser--at-end-p))
+                (not (eq (greger-parser--peek) ?>))
+                (< iterations max-iterations))
+      (setq iterations (1+ iterations))
+      (greger-parser--advance))
+    (when (>= iterations max-iterations)
+      (greger-parser--debug "Hit max iterations in skip-to-closing-angle"))))
+</tool.toolu_01L1CCQneFMmZEmMA9mM88H5>
+
+### new_content
+
+<tool.toolu_01L1CCQneFMmZEmMA9mM88H5>
+(defun greger-parser--skip-to-closing-angle (state)
+  "Skip to closing angle bracket using STATE."
+  (let ((iterations 0)
+        (max-iterations 1000)) ; Safety limit
+    (while (and (not (greger-parser--at-end-p state))
+                (not (eq (greger-parser--peek state) ?>))
+                (< iterations max-iterations))
+      (setq iterations (1+ iterations))
+      (greger-parser--advance state))
+    (when (>= iterations max-iterations)
+      (greger-parser--debug state "Hit max iterations in skip-to-closing-angle"))))
+</tool.toolu_01L1CCQneFMmZEmMA9mM88H5>
+
+### git_commit_message
+
+<tool.toolu_01L1CCQneFMmZEmMA9mM88H5>
+Update skip-to-closing-angle function to use state parameter
+</tool.toolu_01L1CCQneFMmZEmMA9mM88H5>
+
+## TOOL RESULT:
+
+ID: toolu_01L1CCQneFMmZEmMA9mM88H5
+
+<tool.toolu_01L1CCQneFMmZEmMA9mM88H5>
+Successfully replaced content in /Users/andreas/projects/aichat3/greger-parser.el. Successfully staged 2 file(s) and committed with message: Update skip-to-closing-angle function to use state parameter
+</tool.toolu_01L1CCQneFMmZEmMA9mM88H5>

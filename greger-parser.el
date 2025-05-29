@@ -647,26 +647,26 @@ Supports both local files and web URLs (http:// or https://)."
   "Make closing tag from opening tag."
   (concat "</" (substring opening-tag 1)))
 
-(defun greger-parser--find-closing-tag (closing-tag)
-  "Find closing tag, treating all content inside as raw text."
+(defun greger-parser--find-closing-tag (state closing-tag)
+  "Find closing tag, treating all content inside as raw text using STATE."
   (let ((found nil)
         (iterations 0)
-        (max-iterations (* greger-parser--length 2))) ; Safety limit
+        (max-iterations (* (greger-parser-state-length state) 2))) ; Safety limit
     (while (and (not found)
-                (not (greger-parser--at-end-p))
+                (not (greger-parser--at-end-p state))
                 (< iterations max-iterations))
       (setq iterations (1+ iterations))
-      (if (greger-parser--looking-at closing-tag)
+      (if (greger-parser--looking-at state closing-tag)
           (setq found t)
-        (greger-parser--advance)))
+        (greger-parser--advance state)))
     (when (>= iterations max-iterations)
-      (greger-parser--debug "Hit max iterations in find-closing-tag"))
+      (greger-parser--debug state "Hit max iterations in find-closing-tag"))
     found))
 
-(defun greger-parser--parse-tool-result-content ()
-  "Parse tool result content."
-  (greger-parser--skip-whitespace)
-  (or (greger-parser--parse-tool-value) ""))
+(defun greger-parser--parse-tool-result-content (state)
+  "Parse tool result content using STATE."
+  (greger-parser--skip-whitespace state)
+  (or (greger-parser--parse-tool-value state) ""))
 
 (defun greger-parser--normalize-tool-content (content)
   "Normalize tool content by trimming outer newlines."
