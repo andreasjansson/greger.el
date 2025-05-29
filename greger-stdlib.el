@@ -68,7 +68,8 @@
                 (git_commit_message . ((type . "string")
                                        (description . "Git commit message for this change"))))
   :required '("file_path" "contents" "git_commit_message")
-  :function 'greger-tools--write-new-file)
+  :function 'greger-tools--write-new-file
+  :pass-buffer t)
 
 (greger-register-tool "make-directory"
   :description "Recursively create a directory and all parent directories if they don't exist"
