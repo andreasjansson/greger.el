@@ -41,11 +41,12 @@ BUFFER defaults to current buffer if not specified."
    :complete-callback complete-callback
    :cancel-callback cancel-callback))
 
-(defun greger-stream-to-buffer-with-tools (model dialog tools complete-callback &optional cancel-callback)
-  "Send streaming request for MODEL with DIALOG and TOOLS, inserting text into current buffer.
+(cl-defun greger-stream-to-buffer-with-tools (&key model dialog tools buffer complete-callback cancel-callback)
+  "Send streaming request for MODEL with DIALOG and TOOLS, inserting text into BUFFER.
 COMPLETE-CALLBACK is called when done with the parsed content blocks array.
-CANCEL-CALLBACK is called if cancelled."
-  (let* ((output-buffer (current-buffer))
+CANCEL-CALLBACK is called if cancelled.
+BUFFER defaults to current buffer if not specified."
+  (let* ((output-buffer (or buffer (current-buffer)))
          (insert-position (point))
          (undo-handle (prepare-change-group output-buffer))
          (original-quit-binding (local-key-binding (kbd "C-g")))
