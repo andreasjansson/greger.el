@@ -692,7 +692,7 @@ If BUFFER is provided, it will be staged and committed along with the modified f
          (error "Original content not found in file: %s -- Try again!" expanded-path))))
 
     ;; Stage and commit the file
-    (let ((git-result (greger-tools--git-stage-and-commit (list expanded-path) git-commit-message)))
+    (let ((git-result (greger-tools--git-stage-and-commit (list expanded-path) git-commit-message buffer)))
       (format "Successfully replaced content in %s. %s" expanded-path git-result))))
 
 (defun greger-tools--insert (file-path line-number content git-commit-message)
