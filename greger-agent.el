@@ -152,10 +152,10 @@
                 results))))
 
     ;; Display tool execution
-    (greger-agent--display-tool-execution tool-calls (reverse results))
+    (greger-agent--display-tool-execution tool-calls (reverse results) agent-state)
 
     ;; Continue the loop
-    (greger-agent--run-agent-loop)))
+    (greger-agent--run-agent-loop agent-state)))
 
 ;; In greger-agent.el, update the display function:
 
