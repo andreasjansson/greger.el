@@ -268,30 +268,30 @@ INLINE-SEPARATOR separates inline elements."
 
 ;; Include tag processing
 
-(defun greger-parser--process-include-tag ()
-  "Process an include tag and return the included content."
-  (greger-parser--debug "Processing include tag at pos %d" greger-parser--pos)
-  (let ((tag-start (greger-parser--current-pos)))
+(defun greger-parser--process-include-tag (state)
+  "Process an include tag and return the included content in STATE."
+  (greger-parser--debug state "Processing include tag at pos %d" (greger-parser-state-pos state))
+  (let ((tag-start (greger-parser--current-pos state)))
     ;; Parse the opening tag
-    (when (greger-parser--looking-at "<include")
-      (greger-parser--advance 8) ; Skip "<include"
+    (when (greger-parser--looking-at state "<include")
+      (greger-parser--advance state 8) ; Skip "<include"
       (let ((has-code-attr nil))
         ;; Check for optional "code" attribute
-        (greger-parser--skip-horizontal-whitespace)
-        (when (greger-parser--looking-at "code")
+        (greger-parser--skip-horizontal-whitespace state)
+        (when (greger-parser--looking-at state "code")
           (setq has-code-attr t)
-          (greger-parser--advance 4)
-          (greger-parser--skip-horizontal-whitespace))
+          (greger-parser--advance state 4)
+          (greger-parser--skip-horizontal-whitespace state))
 
         ;; Skip to closing bracket of opening tag
-        (when (greger-parser--looking-at ">")
-          (greger-parser--advance 1)
+        (when (greger-parser--looking-at state ">")
+          (greger-parser--advance state 1)
 
           ;; Extract the file path
-          (let ((path-start (greger-parser--current-pos)))
-            (when (greger-parser--find-closing-tag "</include>")
-              (let ((file-path (string-trim (greger-parser--substring path-start))))
-                (greger-parser--advance 10) ; Skip "</include>"
+          (let ((path-start (greger-parser--current-pos state)))
+            (when (greger-parser--find-closing-tag state "</include>")
+              (let ((file-path (string-trim (greger-parser--substring state path-start))))
+                (greger-parser--advance state 10) ; Skip "</include>"
 
                 ;; Read and process the file
                 (greger-parser--include-file file-path has-code-attr)))))))))
