@@ -106,7 +106,8 @@
                 (commit_message . ((type . "string")
                                    (description . "Git commit message for this change"))))
   :required '("file_path" "function_name" "contents" "line_number" "commit_message")
-  :function 'greger-tools--replace-function)
+  :function 'greger-tools--replace-function
+  :pass-buffer t)
 
 (greger-register-tool "replace-file"
   :description "Replace the entire contents of an existing file. Slow but reliable - replaces the complete file contents. Use str-replace for specific changes in large files, or replace-function for Python/Elisp functions."
