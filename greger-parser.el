@@ -511,44 +511,44 @@ Supports both local files and web URLs (http:// or https://)."
 
 ;; Section parsers
 
-(defun greger-parser--parse-user-section ()
-  "Parse USER section."
-  (let ((content (greger-parser--parse-section-content)))
+(defun greger-parser--parse-user-section (state)
+  "Parse USER section using STATE."
+  (let ((content (greger-parser--parse-section-content state)))
     (when content
       (greger-parser--create-user-message content))))
 
-(defun greger-parser--parse-assistant-section ()
-  "Parse ASSISTANT section."
-  (let ((content (greger-parser--parse-section-content)))
+(defun greger-parser--parse-assistant-section (state)
+  "Parse ASSISTANT section using STATE."
+  (let ((content (greger-parser--parse-section-content state)))
     (when content
       (greger-parser--create-assistant-message content))))
 
-(defun greger-parser--parse-system-section ()
-  "Parse SYSTEM section."
-  (let ((content (greger-parser--parse-section-content)))
+(defun greger-parser--parse-system-section (state)
+  "Parse SYSTEM section using STATE."
+  (let ((content (greger-parser--parse-section-content state)))
     (when content
       (greger-parser--create-system-message content))))
 
-(defun greger-parser--parse-thinking-section ()
-  "Parse THINKING section."
-  (let ((content (greger-parser--parse-section-content)))
+(defun greger-parser--parse-thinking-section (state)
+  "Parse THINKING section using STATE."
+  (let ((content (greger-parser--parse-section-content state)))
     (when content
       (greger-parser--create-thinking-message content))))
 
-(defun greger-parser--parse-tool-use-section ()
-  "Parse TOOL USE section."
-  (greger-parser--skip-whitespace)
-  (let ((name (greger-parser--parse-name-line))
-        (id (greger-parser--parse-id-line))
-        (input (greger-parser--parse-tool-input)))
+(defun greger-parser--parse-tool-use-section (state)
+  "Parse TOOL USE section using STATE."
+  (greger-parser--skip-whitespace state)
+  (let ((name (greger-parser--parse-name-line state))
+        (id (greger-parser--parse-id-line state))
+        (input (greger-parser--parse-tool-input state)))
     (when (and name id)
       (greger-parser--create-tool-use-message name id input))))
 
-(defun greger-parser--parse-tool-result-section ()
-  "Parse TOOL RESULT section."
-  (greger-parser--skip-whitespace)
-  (let ((id (greger-parser--parse-id-line))
-        (content (greger-parser--parse-tool-result-content)))
+(defun greger-parser--parse-tool-result-section (state)
+  "Parse TOOL RESULT section using STATE."
+  (greger-parser--skip-whitespace state)
+  (let ((id (greger-parser--parse-id-line state))
+        (content (greger-parser--parse-tool-result-content state)))
     (when id
       (greger-parser--create-tool-result-message id content))))
 
