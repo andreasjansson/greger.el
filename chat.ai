@@ -3214,3 +3214,444 @@ ID: toolu_01CuQsxx9mxvbBVkmaEPp5Gg
 Good, the remaining functions without parameters are appropriate - `greger-parser--section-tags` returns constants, and the debug functions are global utilities.
 
 Let me test the refactored parser by running a simple test:
+
+
+## TOOL USE:
+
+Name: write-new-file
+ID: toolu_01GGDMGvszPkqx7JKCsSYQSJ
+
+### file_path
+
+<tool.toolu_01GGDMGvszPkqx7JKCsSYQSJ>
+test-parser-state.el
+</tool.toolu_01GGDMGvszPkqx7JKCsSYQSJ>
+
+### contents
+
+<tool.toolu_01GGDMGvszPkqx7JKCsSYQSJ>
+;;; Test file for greger-parser state refactoring
+
+(require 'greger-parser)
+
+;; Test basic parsing
+(let ((test-input "## USER:\n\nHello world\n\n## ASSISTANT:\n\nHi there!"))
+  (message "Testing basic parse...")
+  (let ((result (greger-parser-parse-dialog test-input)))
+    (message "Parse result: %S" result)
+    (if (= (length result) 2)
+        (message "✓ Basic parsing test passed")
+      (message "✗ Basic parsing test failed"))))
+
+;; Test with debug
+(let ((test-input "## USER:\n\nHello world"))
+  (message "Testing debug parse...")
+  (let ((result (greger-parser-parse-dialog test-input t)))
+    (message "Debug parse result: %S" result)
+    (if (= (length result) 1)
+        (message "✓ Debug parsing test passed")
+      (message "✗ Debug parsing test failed"))))
+
+(message "Parser state refactoring tests complete")
+</tool.toolu_01GGDMGvszPkqx7JKCsSYQSJ>
+
+### git_commit_message
+
+<tool.toolu_01GGDMGvszPkqx7JKCsSYQSJ>
+Add test file for parser state refactoring
+</tool.toolu_01GGDMGvszPkqx7JKCsSYQSJ>
+
+## TOOL RESULT:
+
+ID: toolu_01GGDMGvszPkqx7JKCsSYQSJ
+
+<tool.toolu_01GGDMGvszPkqx7JKCsSYQSJ>
+Successfully wrote new file /Users/andreas/projects/aichat3/test-parser-state.el with 825 characters. Successfully staged 2 file(s) and committed with message: Add test file for parser state refactoring
+</tool.toolu_01GGDMGvszPkqx7JKCsSYQSJ>
+
+## TOOL USE:
+
+Name: shell-command
+ID: toolu_01CYXic8oDRdPME7uoRTrNpt
+
+### command
+
+<tool.toolu_01CYXic8oDRdPME7uoRTrNpt>
+emacs --batch -l test-parser-state.el
+</tool.toolu_01CYXic8oDRdPME7uoRTrNpt>
+
+## TOOL RESULT:
+
+ID: toolu_01CYXic8oDRdPME7uoRTrNpt
+
+<tool.toolu_01CYXic8oDRdPME7uoRTrNpt>
+Error executing tool: Shell command execution cancelled by user
+</tool.toolu_01CYXic8oDRdPME7uoRTrNpt>
+
+## USER:
+
+The test-greger-parser.el tests are failing after these changes:
+
+```
+Selector: t
+Passed:  18
+Failed:  11 (11 unexpected)
+Skipped: 0
+Total:   29/29
+
+Started at:   2025-05-29 15:26:06+0200
+Finished.
+Finished at:  2025-05-29 15:26:07+0200
+
+.....FFFFF...FFFFFF..........
+
+F greger-parser-test-include-tag-basic
+    Test basic include tag functionality.
+    (ert-test-failed
+     ((should
+       (= 1
+          (length parsed)))
+      :form
+      (= 1 0)
+      :value nil))
+
+F greger-parser-test-include-tag-in-assistant-section
+    Test include tag in assistant section.
+    (ert-test-failed
+     ((should
+       (= 2
+          (length parsed)))
+      :form
+      (= 2 0)
+      :value nil))
+
+F greger-parser-test-include-tag-invalid-url
+    Test include tag with invalid web URL.
+    (ert-test-failed
+     ((should
+       (= 1
+          (length parsed)))
+      :form
+      (= 1 0)
+      :value nil))
+
+F greger-parser-test-include-tag-multiline-content
+    Test include tag with multiline file content.
+    (ert-test-failed
+     ((should
+       (= 1
+          (length parsed)))
+      :form
+      (= 1 0)
+      :value nil))
+
+F greger-parser-test-include-tag-nonexistent-file
+    Test include tag with nonexistent file.
+    (ert-test-failed
+     ((should
+       (= 1
+          (length parsed)))
+      :form
+      (= 1 0)
+      :value nil))
+
+F greger-parser-test-include-tag-recursive
+    Test include tag with file that contains another include tag.
+    (ert-test-failed
+     ((should
+       (= 1
+          (length parsed)))
+      :form
+      (= 1 0)
+      :value nil))
+
+F greger-parser-test-include-tag-web-url
+    Test include tag with web URL functionality.
+    (ert-test-failed
+     ((should
+       (= 1
+          (length parsed)))
+      :form
+      (= 1 0)
+      :value nil))
+
+F greger-parser-test-include-tag-web-url-with-code
+    Test include tag with web URL and code attribute.
+    (ert-test-failed
+     ((should
+       (= 1
+          (length parsed)))
+      :form
+      (= 1 0)
+      :value nil))
+
+F greger-parser-test-include-tag-with-code
+    Test include tag with code attribute.
+    (ert-test-failed
+     ((should
+       (= 1
+          (length parsed)))
+      :form
+      (= 1 0)
+      :value nil))
+
+F greger-parser-test-include-tag-with-code-in-code-block
+    Test include tag with code attribute where content has code blocks.
+    (ert-test-failed
+     ((should
+       (= 1
+          (length parsed)))
+      :form
+      (= 1 0)
+      :value nil))
+
+F greger-parser-test-include-tag-with-section-headers
+    Test include tag with content containing section headers.
+    (ert-test-failed
+     ((should
+       (= 2
+          (length parsed)))
+      :form
+      (= 2 0)
+      :value nil))
+
+```
+
+## ASSISTANT:
+
+I see the issue. All the include tag tests are failing because they're getting empty results (length 0 instead of expected length). The problem is likely that the `greger-parser--include-file` function doesn't take a state parameter, but it's being called from functions that do use state. Let me check the current state of that function and fix it.
+
+## TOOL USE:
+
+Name: ripgrep
+ID: toolu_01KVevgyS2XQrDXwoeHL59xW
+
+### pattern
+
+<tool.toolu_01KVevgyS2XQrDXwoeHL59xW>
+greger-parser--include-file
+</tool.toolu_01KVevgyS2XQrDXwoeHL59xW>
+
+### path
+
+<tool.toolu_01KVevgyS2XQrDXwoeHL59xW>
+greger-parser.el
+</tool.toolu_01KVevgyS2XQrDXwoeHL59xW>
+
+### context-lines
+
+<tool.toolu_01KVevgyS2XQrDXwoeHL59xW>
+5
+</tool.toolu_01KVevgyS2XQrDXwoeHL59xW>
+
+## TOOL RESULT:
+
+ID: toolu_01KVevgyS2XQrDXwoeHL59xW
+
+<tool.toolu_01KVevgyS2XQrDXwoeHL59xW>
+297:                (greger-parser--include-file file-path has-code-attr)))))))))
+299:(defun greger-parser--include-file (file-path has-code-attr)
+
+</tool.toolu_01KVevgyS2XQrDXwoeHL59xW>
+
+## ASSISTANT:
+
+Let me see the full `greger-parser--include-file` function:
+
+## TOOL USE:
+
+Name: read-file
+ID: toolu_01TLDvHYEPb3rmUD3xNQEmaw
+
+### path
+
+<tool.toolu_01TLDvHYEPb3rmUD3xNQEmaw>
+greger-parser.el
+</tool.toolu_01TLDvHYEPb3rmUD3xNQEmaw>
+
+### start_line
+
+<tool.toolu_01TLDvHYEPb3rmUD3xNQEmaw>
+299
+</tool.toolu_01TLDvHYEPb3rmUD3xNQEmaw>
+
+### end_line
+
+<tool.toolu_01TLDvHYEPb3rmUD3xNQEmaw>
+325
+</tool.toolu_01TLDvHYEPb3rmUD3xNQEmaw>
+
+## TOOL RESULT:
+
+ID: toolu_01TLDvHYEPb3rmUD3xNQEmaw
+
+<tool.toolu_01TLDvHYEPb3rmUD3xNQEmaw>
+(defun greger-parser--include-file (file-path has-code-attr)
+  "Include a file's content, optionally formatting as code.
+Supports both local files and web URLs (http:// or https://)."
+  (greger-parser--debug "Including file: %s (code: %s)" file-path has-code-attr)
+  (condition-case err
+      (let ((content
+             (if (greger-parser--is-web-url-p file-path)
+                 ;; Handle web URL
+                 (progn
+                   (greger-parser--debug "Downloading content from URL: %s" file-path)
+                   (greger-parser--text-from-url file-path t)) ; Use readability heuristics
+               ;; Handle local file
+               (with-temp-buffer
+                 (insert-file-contents file-path)
+                 (buffer-string)))))
+
+        ;; Remove trailing newline from content if present
+        (when (and (> (length content) 0)
+                   (eq (aref content (1- (length content))) ?\n))
+          (setq content (substring content 0 -1)))
+
+        (if has-code-attr
+            (format "%s:\n```\n%s\n```" file-path content)
+          content))
+    (error
+     (greger-parser--debug "Error reading %s %s: %s"
+                          (if (greger-parser--is-web-url-p file-path) "URL" "file")
+</tool.toolu_01TLDvHYEPb3rmUD3xNQEmaw>
+
+## ASSISTANT:
+
+I see the issue! The `greger-parser--include-file` function calls `greger-parser--debug` but it doesn't have a state parameter to pass to it. The debug function now requires a state parameter. Let me look at the whole function and fix it:
+
+## TOOL USE:
+
+Name: read-file
+ID: toolu_01JA7JJhprDzmqH27nanL3g6
+
+### path
+
+<tool.toolu_01JA7JJhprDzmqH27nanL3g6>
+greger-parser.el
+</tool.toolu_01JA7JJhprDzmqH27nanL3g6>
+
+### start_line
+
+<tool.toolu_01JA7JJhprDzmqH27nanL3g6>
+299
+</tool.toolu_01JA7JJhprDzmqH27nanL3g6>
+
+### end_line
+
+<tool.toolu_01JA7JJhprDzmqH27nanL3g6>
+330
+</tool.toolu_01JA7JJhprDzmqH27nanL3g6>
+
+## TOOL RESULT:
+
+ID: toolu_01JA7JJhprDzmqH27nanL3g6
+
+<tool.toolu_01JA7JJhprDzmqH27nanL3g6>
+(defun greger-parser--include-file (file-path has-code-attr)
+  "Include a file's content, optionally formatting as code.
+Supports both local files and web URLs (http:// or https://)."
+  (greger-parser--debug "Including file: %s (code: %s)" file-path has-code-attr)
+  (condition-case err
+      (let ((content
+             (if (greger-parser--is-web-url-p file-path)
+                 ;; Handle web URL
+                 (progn
+                   (greger-parser--debug "Downloading content from URL: %s" file-path)
+                   (greger-parser--text-from-url file-path t)) ; Use readability heuristics
+               ;; Handle local file
+               (with-temp-buffer
+                 (insert-file-contents file-path)
+                 (buffer-string)))))
+
+        ;; Remove trailing newline from content if present
+        (when (and (> (length content) 0)
+                   (eq (aref content (1- (length content))) ?\n))
+          (setq content (substring content 0 -1)))
+
+        (if has-code-attr
+            (format "%s:\n```\n%s\n```" file-path content)
+          content))
+    (error
+     (greger-parser--debug "Error reading %s %s: %s"
+                          (if (greger-parser--is-web-url-p file-path) "URL" "file")
+                          file-path
+                          (error-message-string err))
+     ;; Return error message as content instead of failing silently
+     (format "[Error reading %s: %s]"
+             (if (greger-parser--is-web-url-p file-path) "URL" "file")
+</tool.toolu_01JA7JJhprDzmqH27nanL3g6>
+
+## ASSISTANT:
+
+Let me see the complete function:
+
+## TOOL USE:
+
+Name: read-file
+ID: toolu_01P8qwf41jb4JNMJ7cax6Uc7
+
+### path
+
+<tool.toolu_01P8qwf41jb4JNMJ7cax6Uc7>
+greger-parser.el
+</tool.toolu_01P8qwf41jb4JNMJ7cax6Uc7>
+
+### start_line
+
+<tool.toolu_01P8qwf41jb4JNMJ7cax6Uc7>
+299
+</tool.toolu_01P8qwf41jb4JNMJ7cax6Uc7>
+
+### end_line
+
+<tool.toolu_01P8qwf41jb4JNMJ7cax6Uc7>
+335
+</tool.toolu_01P8qwf41jb4JNMJ7cax6Uc7>
+
+## TOOL RESULT:
+
+ID: toolu_01P8qwf41jb4JNMJ7cax6Uc7
+
+<tool.toolu_01P8qwf41jb4JNMJ7cax6Uc7>
+(defun greger-parser--include-file (file-path has-code-attr)
+  "Include a file's content, optionally formatting as code.
+Supports both local files and web URLs (http:// or https://)."
+  (greger-parser--debug "Including file: %s (code: %s)" file-path has-code-attr)
+  (condition-case err
+      (let ((content
+             (if (greger-parser--is-web-url-p file-path)
+                 ;; Handle web URL
+                 (progn
+                   (greger-parser--debug "Downloading content from URL: %s" file-path)
+                   (greger-parser--text-from-url file-path t)) ; Use readability heuristics
+               ;; Handle local file
+               (with-temp-buffer
+                 (insert-file-contents file-path)
+                 (buffer-string)))))
+
+        ;; Remove trailing newline from content if present
+        (when (and (> (length content) 0)
+                   (eq (aref content (1- (length content))) ?\n))
+          (setq content (substring content 0 -1)))
+
+        (if has-code-attr
+            (format "%s:\n```\n%s\n```" file-path content)
+          content))
+    (error
+     (greger-parser--debug "Error reading %s %s: %s"
+                          (if (greger-parser--is-web-url-p file-path) "URL" "file")
+                          file-path
+                          (error-message-string err))
+     ;; Return error message as content instead of failing silently
+     (format "[Error reading %s: %s]"
+             (if (greger-parser--is-web-url-p file-path) "URL" "file")
+             file-path))))
+
+(defun greger-parser--skip-include-tag (state)
+  "Skip include tag without processing it in STATE."
+  (greger-parser--debug state "Skipping include tag at pos %d" (greger-parser-state-pos state))
+</tool.toolu_01P8qwf41jb4JNMJ7cax6Uc7>
+
+## ASSISTANT:
+
+Now I need to fix the `greger-parser--include-file` function to take a state parameter and use it for debug calls:

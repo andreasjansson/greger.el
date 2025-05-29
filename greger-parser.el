@@ -296,16 +296,16 @@ INLINE-SEPARATOR separates inline elements."
                 ;; Read and process the file
                 (greger-parser--include-file file-path has-code-attr)))))))))
 
-(defun greger-parser--include-file (file-path has-code-attr)
-  "Include a file's content, optionally formatting as code.
+(defun greger-parser--include-file (state file-path has-code-attr)
+  "Include a file's content, optionally formatting as code using STATE.
 Supports both local files and web URLs (http:// or https://)."
-  (greger-parser--debug "Including file: %s (code: %s)" file-path has-code-attr)
+  (greger-parser--debug state "Including file: %s (code: %s)" file-path has-code-attr)
   (condition-case err
       (let ((content
              (if (greger-parser--is-web-url-p file-path)
                  ;; Handle web URL
                  (progn
-                   (greger-parser--debug "Downloading content from URL: %s" file-path)
+                   (greger-parser--debug state "Downloading content from URL: %s" file-path)
                    (greger-parser--text-from-url file-path t)) ; Use readability heuristics
                ;; Handle local file
                (with-temp-buffer
@@ -321,7 +321,7 @@ Supports both local files and web URLs (http:// or https://)."
             (format "%s:\n```\n%s\n```" file-path content)
           content))
     (error
-     (greger-parser--debug "Error reading %s %s: %s"
+     (greger-parser--debug state "Error reading %s %s: %s"
                           (if (greger-parser--is-web-url-p file-path) "URL" "file")
                           file-path
                           (error-message-string err))
