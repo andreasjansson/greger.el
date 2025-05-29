@@ -220,4 +220,48 @@
   ;; Clean up
   (remhash "test-required" greger-tools-registry))
 
+(ert-deftest greger-tools-test-pass-buffer-functionality ()
+  "Test that tools can receive buffer parameter when :pass-buffer is set."
+  ;; Define a test function that expects a buffer parameter
+  (defun greger-test-buffer-param (message &optional buffer)
+    "Test function that accepts a buffer parameter."
+    (if buffer
+        (format "message: %s, buffer: %s" message (buffer-name buffer))
+      (format "message: %s, buffer: none" message)))
+
+  ;; Register tool without :pass-buffer
+  (greger-register-tool "test-no-buffer"
+    :description "Test tool without buffer passing"
+    :properties '((message . ((type . "string")
+                              (description . "Test message"))))
+    :required '("message")
+    :function 'greger-test-buffer-param)
+
+  ;; Register tool with :pass-buffer t
+  (greger-register-tool "test-with-buffer"
+    :description "Test tool with buffer passing"
+    :properties '((message . ((type . "string")
+                              (description . "Test message"))))
+    :required '("message")
+    :function 'greger-test-buffer-param
+    :pass-buffer t)
+
+  ;; Create a test buffer
+  (with-temp-buffer
+    (rename-buffer "*test-buffer*")
+
+    ;; Test tool without :pass-buffer - should not receive buffer
+    (let ((result (greger-tools-execute "test-no-buffer"
+                                        '((message . "hello")))))
+      (should (string= "message: hello, buffer: none" result)))
+
+    ;; Test tool with :pass-buffer t - should receive buffer
+    (let ((result (greger-tools-execute "test-with-buffer"
+                                        '((message . "hello")))))
+      (should (string= "message: hello, buffer: *test-buffer*" result))))
+
+  ;; Clean up
+  (remhash "test-no-buffer" greger-tools-registry)
+  (remhash "test-with-buffer" greger-tools-registry))
+
 ;;; test-greger-tools.el ends here
