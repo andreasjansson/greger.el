@@ -3753,3 +3753,104 @@ ID: toolu_015DYm3tKuLZqJAZN9hqwmgR
 <tool.toolu_015DYm3tKuLZqJAZN9hqwmgR>
 Successfully replaced content in /Users/andreas/projects/aichat3/greger-agent.el. Successfully staged 2 file(s) and committed with message: Update tool execution to use agent state
 </tool.toolu_015DYm3tKuLZqJAZN9hqwmgR>
+
+
+## TOOL USE:
+
+Name: str-replace
+ID: toolu_01E1NPPR2hGXSPDwRXHAtdS4
+
+### file_path
+
+<tool.toolu_01E1NPPR2hGXSPDwRXHAtdS4>
+greger-agent.el
+</tool.toolu_01E1NPPR2hGXSPDwRXHAtdS4>
+
+### original_content
+
+<tool.toolu_01E1NPPR2hGXSPDwRXHAtdS4>
+;; Display tool execution
+    (greger-agent--display-tool-execution tool-calls (reverse results))
+
+    ;; Continue the loop
+    (greger-agent--run-agent-loop)))
+</tool.toolu_01E1NPPR2hGXSPDwRXHAtdS4>
+
+### new_content
+
+<tool.toolu_01E1NPPR2hGXSPDwRXHAtdS4>
+;; Display tool execution
+    (greger-agent--display-tool-execution tool-calls (reverse results) agent-state)
+
+    ;; Continue the loop
+    (greger-agent--run-agent-loop agent-state)))
+</tool.toolu_01E1NPPR2hGXSPDwRXHAtdS4>
+
+### git_commit_message
+
+<tool.toolu_01E1NPPR2hGXSPDwRXHAtdS4>
+Update tool execution completion to pass agent state
+</tool.toolu_01E1NPPR2hGXSPDwRXHAtdS4>
+
+## TOOL RESULT:
+
+ID: toolu_01E1NPPR2hGXSPDwRXHAtdS4
+
+<tool.toolu_01E1NPPR2hGXSPDwRXHAtdS4>
+Successfully replaced content in /Users/andreas/projects/aichat3/greger-agent.el. Successfully staged 2 file(s) and committed with message: Update tool execution completion to pass agent state
+</tool.toolu_01E1NPPR2hGXSPDwRXHAtdS4>
+
+## ASSISTANT:
+
+Now let me update the display function:
+
+## TOOL USE:
+
+Name: read-file
+ID: toolu_01FZLp6sMedrZ3b8oeodueJ9
+
+### path
+
+<tool.toolu_01FZLp6sMedrZ3b8oeodueJ9>
+greger-agent.el
+</tool.toolu_01FZLp6sMedrZ3b8oeodueJ9>
+
+### start_line
+
+<tool.toolu_01FZLp6sMedrZ3b8oeodueJ9>
+160
+</tool.toolu_01FZLp6sMedrZ3b8oeodueJ9>
+
+### end_line
+
+<tool.toolu_01FZLp6sMedrZ3b8oeodueJ9>
+180
+</tool.toolu_01FZLp6sMedrZ3b8oeodueJ9>
+
+## TOOL RESULT:
+
+ID: toolu_01FZLp6sMedrZ3b8oeodueJ9
+
+<tool.toolu_01FZLp6sMedrZ3b8oeodueJ9>
+;; In greger-agent.el, update the display function:
+
+(defun greger-agent--display-tool-execution (tool-calls results)
+  "Display the execution of TOOL-CALLS and their RESULTS using parser markdown conversion."
+  (with-current-buffer greger-agent--chat-buffer
+    (goto-char (point-max))
+
+    ;; The tool calls are already in the right format, just convert them
+    (let ((tool-blocks-markdown (greger-parser--content-blocks-to-markdown tool-calls)))
+      (unless (string-empty-p tool-blocks-markdown)
+        (insert "\n\n" tool-blocks-markdown)))
+
+    ;; Convert tool results to markdown
+    (let ((result-blocks-markdown (greger-parser--content-blocks-to-markdown results)))
+      (unless (string-empty-p result-blocks-markdown)
+        (insert "\n\n" result-blocks-markdown)))))
+
+(defun greger-agent--finish-response ()
+  "Finish the agent response."
+  (greger-agent--debug "=== FINISHING RESPONSE - CONVERSATION COMPLETE ===")
+  (with-current-buffer greger-agent--chat-buffer  ; Ensure we're in the chat buffer
+</tool.toolu_01FZLp6sMedrZ3b8oeodueJ9>

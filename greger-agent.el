@@ -159,9 +159,9 @@
 
 ;; In greger-agent.el, update the display function:
 
-(defun greger-agent--display-tool-execution (tool-calls results)
-  "Display the execution of TOOL-CALLS and their RESULTS using parser markdown conversion."
-  (with-current-buffer greger-agent--chat-buffer
+(defun greger-agent--display-tool-execution (tool-calls results agent-state)
+  "Display the execution of TOOL-CALLS and their RESULTS using AGENT-STATE."
+  (with-current-buffer (greger-agent-state-chat-buffer agent-state)
     (goto-char (point-max))
 
     ;; The tool calls are already in the right format, just convert them
