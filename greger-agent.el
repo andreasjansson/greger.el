@@ -118,7 +118,7 @@
 
         (if (greger-agent--request-approval tool-name tool-input)
             (condition-case err
-                (let ((result (greger-tools-execute tool-name tool-input)))
+                (let ((result (greger-tools-execute tool-name tool-input (current-buffer))))
                   (push `((type . "tool_result")
                          (tool_use_id . ,tool-id)
                          (content . ,result))
