@@ -615,8 +615,9 @@ If BUFFER is provided, it will be staged and committed along with the modified f
       (format "Successfully replaced function '%s' in %s. %s"
               function-name expanded-path git-result))))
 
-(defun greger-tools--replace-file (file-path contents git-commit-message)
-  "Replace the entire contents of FILE-PATH with CONTENTS."
+(defun greger-tools--replace-file (file-path contents git-commit-message &optional buffer)
+  "Replace the entire contents of FILE-PATH with CONTENTS.
+If BUFFER is provided, it will be staged and committed along with the modified file."
   (unless (stringp file-path)
     (error "file_path must be a string"))
 
