@@ -232,6 +232,54 @@
     (customize-set-variable 'greger-model (intern model))
     (message "Model set to %s" model)))
 
+(defun greger-debug-request ()
+  "Debug the request data by parsing the buffer and saving the greger-provider-claude--build-data output."
+  (interactive)
+  (require 'greger-parser)
+  (require 'greger-provider-claude)
+  (require 'greger-tools)
+  (let* ((filename (read-string "Save to filename (default: request.json): " nil nil "request.json"))
+         (buffer-content (buffer-substring-no-properties (point-min) (point-max)))
+         (dialog (greger-parser-parse-dialog buffer-content))
+         (tools (when greger-agent-tools
+                  (greger-tools-get-schemas greger-agent-tools)))
+         (model-name (symbol-name greger-model))
+         (request-data nil))
+
+    (unless dialog
+      (error "Failed to parse dialog. Check your buffer format"))
+
+    ;; Extract just the model name part (e.g., "claude-sonnet-4-20250514" from "claude/claude-sonnet-4-20250514")
+    (when (string-match "^[^/]+/\\(.+\\)$" model-name)
+      (setq model-name (match-string 1 model-name)))
+
+    ;; Get the JSON request data
+    (setq request-data (greger-provider-claude--build-data model-name dialog tools))
+
+    ;; Parse the JSON and re-encode with proper formatting
+    (let* ((parsed-json (json-read-from-string request-data))
+           (formatted-json (json-encode-alist parsed-json)))
+      ;; Write to file with proper indentation
+      (with-temp-file filename
+        (insert formatted-json)
+        ;; Add newlines for better readability
+        (goto-char (point-min))
+        (while (search-forward "," nil t)
+          (when (not (looking-at "\\s-*\n"))
+            (insert "\n")))
+        (goto-char (point-min))
+        (while (search-forward "{" nil t)
+          (unless (looking-at "\\s-*\n")
+            (insert "\n")))
+        (goto-char (point-min))
+        (while (search-forward "}" nil t)
+          (unless (looking-at "\\s-*\n")
+            (insert "\n")))
+        ;; Basic indentation
+        (json-pretty-print (point-min) (point-max)))
+
+      (message "Request data saved to %s" filename))))
+
 ;; Tool section collapsing functions
 
 (defun greger--setup-tool-sections ()
