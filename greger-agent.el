@@ -123,8 +123,8 @@
         (push block tool-calls)))
     (reverse tool-calls)))
 
-(defun greger-agent--execute-tools (tool-calls)
-  "Execute TOOL-CALLS and continue the conversation."
+(defun greger-agent--execute-tools (tool-calls agent-state)
+  "Execute TOOL-CALLS using AGENT-STATE and continue the conversation."
   (let ((results '()))
     (dolist (tool-call tool-calls)
       (let* ((tool-name (alist-get 'name tool-call))

@@ -3494,3 +3494,129 @@ ID: toolu_01DG3aS9rKbP8urYRVGG3NcJ
         (greger-agent--debug "EXTRACTING TOOL CALL: %s with input: %s"
                             (alist-get 'name block)
 </tool.toolu_01DG3aS9rKbP8urYRVGG3NcJ>
+
+
+## TOOL USE:
+
+Name: str-replace
+ID: toolu_01DTWbjUFpYAE5ZWMKcWcVoY
+
+### file_path
+
+<tool.toolu_01DTWbjUFpYAE5ZWMKcWcVoY>
+greger-agent.el
+</tool.toolu_01DTWbjUFpYAE5ZWMKcWcVoY>
+
+### original_content
+
+<tool.toolu_01DTWbjUFpYAE5ZWMKcWcVoY>
+;; Check if we have tool calls
+  (let ((tool-calls (greger-agent--extract-tool-calls content-blocks)))
+    (if tool-calls
+        (progn
+          (greger-agent--debug "TOOL USE DETECTED! Found %d tool calls" (length tool-calls))
+          (setq greger-agent--current-iteration (1+ greger-agent--current-iteration))
+          (greger-agent--execute-tools tool-calls))
+      (progn
+        (greger-agent--debug "NO TOOL USE - CONVERSATION COMPLETE")
+        (greger-agent--finish-response))))
+</tool.toolu_01DTWbjUFpYAE5ZWMKcWcVoY>
+
+### new_content
+
+<tool.toolu_01DTWbjUFpYAE5ZWMKcWcVoY>
+;; Check if we have tool calls
+  (let ((tool-calls (greger-agent--extract-tool-calls content-blocks)))
+    (if tool-calls
+        (progn
+          (greger-agent--debug "TOOL USE DETECTED! Found %d tool calls" (length tool-calls))
+          (setf (greger-agent-state-current-iteration agent-state)
+                (1+ (greger-agent-state-current-iteration agent-state)))
+          (greger-agent--execute-tools tool-calls agent-state))
+      (progn
+        (greger-agent--debug "NO TOOL USE - CONVERSATION COMPLETE")
+        (greger-agent--finish-response agent-state))))
+</tool.toolu_01DTWbjUFpYAE5ZWMKcWcVoY>
+
+### git_commit_message
+
+<tool.toolu_01DTWbjUFpYAE5ZWMKcWcVoY>
+Update handle-parsed-response to use agent state
+</tool.toolu_01DTWbjUFpYAE5ZWMKcWcVoY>
+
+## TOOL RESULT:
+
+ID: toolu_01DTWbjUFpYAE5ZWMKcWcVoY
+
+<tool.toolu_01DTWbjUFpYAE5ZWMKcWcVoY>
+Successfully replaced content in /Users/andreas/projects/aichat3/greger-agent.el. Successfully staged 2 file(s) and committed with message: Update handle-parsed-response to use agent state
+</tool.toolu_01DTWbjUFpYAE5ZWMKcWcVoY>
+
+## ASSISTANT:
+
+Now let me update the execute-tools function:
+
+## ASSISTANT:
+
+
+
+## TOOL USE:
+
+Name: read-file
+ID: toolu_018XEchEi5dhNQqCD28BBtKs
+
+### path
+
+<tool.toolu_018XEchEi5dhNQqCD28BBtKs>
+greger-agent.el
+</tool.toolu_018XEchEi5dhNQqCD28BBtKs>
+
+### start_line
+
+<tool.toolu_018XEchEi5dhNQqCD28BBtKs>
+120
+</tool.toolu_018XEchEi5dhNQqCD28BBtKs>
+
+### end_line
+
+<tool.toolu_018XEchEi5dhNQqCD28BBtKs>
+150
+</tool.toolu_018XEchEi5dhNQqCD28BBtKs>
+
+## TOOL RESULT:
+
+ID: toolu_018XEchEi5dhNQqCD28BBtKs
+
+<tool.toolu_018XEchEi5dhNQqCD28BBtKs>
+        (greger-agent--debug "EXTRACTING TOOL CALL: %s with input: %s"
+                            (alist-get 'name block)
+                            (json-encode (alist-get 'input block)))
+        (push block tool-calls)))
+    (reverse tool-calls)))
+
+(defun greger-agent--execute-tools (tool-calls)
+  "Execute TOOL-CALLS and continue the conversation."
+  (let ((results '()))
+    (dolist (tool-call tool-calls)
+      (let* ((tool-name (alist-get 'name tool-call))
+             (tool-input (alist-get 'input tool-call))
+             (tool-id (alist-get 'id tool-call)))
+
+        (if (greger-agent--request-approval tool-name tool-input)
+            (condition-case err
+                (let* ((default-directory greger-agent--directory)
+                       (result (greger-tools-execute tool-name tool-input greger-agent--chat-buffer)))
+                  (push `((type . "tool_result")
+                         (tool_use_id . ,tool-id)
+                         (content . ,result))
+                        results))
+              (error
+               (push `((type . "tool_result")
+                      (tool_use_id . ,tool-id)
+                      (content . ,(format "Error executing tool: %s" (error-message-string err)))
+                      (is_error . t))
+                     results)))
+          (push `((type . "tool_result")
+                 (tool_use_id . ,tool-id)
+                 (content . "Tool execution declined by user")
+</tool.toolu_018XEchEi5dhNQqCD28BBtKs>
