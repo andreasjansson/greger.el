@@ -631,17 +631,17 @@ Supports both local files and web URLs (http:// or https://)."
               (let ((content (greger-parser--read-until-section state)))
                 (greger-parser--normalize-tool-content content)))))))))
 
-(defun greger-parser--skip-to-closing-angle ()
-  "Skip to closing angle bracket."
+(defun greger-parser--skip-to-closing-angle (state)
+  "Skip to closing angle bracket using STATE."
   (let ((iterations 0)
         (max-iterations 1000)) ; Safety limit
-    (while (and (not (greger-parser--at-end-p))
-                (not (eq (greger-parser--peek) ?>))
+    (while (and (not (greger-parser--at-end-p state))
+                (not (eq (greger-parser--peek state) ?>))
                 (< iterations max-iterations))
       (setq iterations (1+ iterations))
-      (greger-parser--advance))
+      (greger-parser--advance state))
     (when (>= iterations max-iterations)
-      (greger-parser--debug "Hit max iterations in skip-to-closing-angle"))))
+      (greger-parser--debug state "Hit max iterations in skip-to-closing-angle"))))
 
 (defun greger-parser--make-closing-tag (opening-tag)
   "Make closing tag from opening tag."
