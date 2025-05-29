@@ -184,42 +184,42 @@
 
 ;; Code block detection and skipping
 
-(defun greger-parser--skip-code-block ()
-  "Skip triple-backtick code block."
-  (greger-parser--debug "Skipping code block at pos %d" greger-parser--pos)
-  (greger-parser--advance 3) ; Skip opening ```
-  (greger-parser--skip-to-line-end) ; Skip language specifier
-  (when (greger-parser--newline-p (greger-parser--peek))
-    (greger-parser--advance))
+(defun greger-parser--skip-code-block (state)
+  "Skip triple-backtick code block in STATE."
+  (greger-parser--debug state "Skipping code block at pos %d" (greger-parser-state-pos state))
+  (greger-parser--advance state 3) ; Skip opening ```
+  (greger-parser--skip-to-line-end state) ; Skip language specifier
+  (when (greger-parser--newline-p (greger-parser--peek state))
+    (greger-parser--advance state))
 
   ;; Find closing ```
-  (while (and (not (greger-parser--at-end-p))
-              (not (greger-parser--at-triple-backticks)))
-    (greger-parser--advance))
+  (while (and (not (greger-parser--at-end-p state))
+              (not (greger-parser--at-triple-backticks state)))
+    (greger-parser--advance state))
 
   ;; Skip closing ```
-  (when (greger-parser--at-triple-backticks)
-    (greger-parser--advance 3)))
+  (when (greger-parser--at-triple-backticks state)
+    (greger-parser--advance state 3)))
 
-(defun greger-parser--skip-inline-code ()
-  "Skip inline code with double backticks."
-  (greger-parser--debug "Skipping inline code at pos %d" greger-parser--pos)
-  (greger-parser--advance 1) ; Skip opening `
-  (while (and (not (greger-parser--at-end-p))
-              (not (greger-parser--looking-at "`")))
-    (greger-parser--advance))
-  (when (greger-parser--looking-at "`")
-    (greger-parser--advance 1)))
+(defun greger-parser--skip-inline-code (state)
+  "Skip inline code with double backticks in STATE."
+  (greger-parser--debug state "Skipping inline code at pos %d" (greger-parser-state-pos state))
+  (greger-parser--advance state 1) ; Skip opening `
+  (while (and (not (greger-parser--at-end-p state))
+              (not (greger-parser--looking-at state "`")))
+    (greger-parser--advance state))
+  (when (greger-parser--looking-at state "`")
+    (greger-parser--advance state 1)))
 
-(defun greger-parser--skip-html-comment ()
-  "Skip HTML comment."
-  (greger-parser--debug "Skipping HTML comment at pos %d" greger-parser--pos)
-  (greger-parser--advance 4) ; Skip <!--
-  (while (and (not (greger-parser--at-end-p))
-              (not (greger-parser--looking-at "-->")))
-    (greger-parser--advance))
-  (when (greger-parser--looking-at "-->")
-    (greger-parser--advance 3)))
+(defun greger-parser--skip-html-comment (state)
+  "Skip HTML comment in STATE."
+  (greger-parser--debug state "Skipping HTML comment at pos %d" (greger-parser-state-pos state))
+  (greger-parser--advance state 4) ; Skip <!--
+  (while (and (not (greger-parser--at-end-p state))
+              (not (greger-parser--looking-at state "-->")))
+    (greger-parser--advance state))
+  (when (greger-parser--looking-at state "-->")
+    (greger-parser--advance state 3)))
 
 ;; Web URL text extraction (inspired by old aichat parser)
 

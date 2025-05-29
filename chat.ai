@@ -1635,3 +1635,91 @@ Successfully replaced content in /Users/andreas/projects/aichat3/greger-parser.e
 ## ASSISTANT:
 
 Now I need to update the section tag handling functions:
+
+
+## TOOL USE:
+
+Name: str-replace
+ID: toolu_01NYUEYqwTxngxAZEaa7ofow
+
+### file_path
+
+<tool.toolu_01NYUEYqwTxngxAZEaa7ofow>
+greger-parser.el
+</tool.toolu_01NYUEYqwTxngxAZEaa7ofow>
+
+### original_content
+
+<tool.toolu_01NYUEYqwTxngxAZEaa7ofow>
+;; Section tag handling
+
+(defun greger-parser--section-tags ()
+  "List of all section tags."
+  (list greger-parser-user-tag
+        greger-parser-assistant-tag
+        greger-parser-system-tag
+        greger-parser-tool-use-tag
+        greger-parser-tool-result-tag
+        greger-parser-thinking-tag))
+
+(defun greger-parser--find-section-tag ()
+  "Find section tag at current position if at line start."
+  (when (greger-parser--at-line-start-p)
+    (let ((tag (cl-find-if #'greger-parser--looking-at (greger-parser--section-tags))))
+      (greger-parser--debug "Found section tag: %s at pos %d" tag greger-parser--pos)
+      tag)))
+
+(defun greger-parser--consume-section-tag (tag)
+  "Consume TAG and return it."
+  (when (greger-parser--looking-at tag)
+    (greger-parser--debug "Consuming tag: %s" tag)
+    (greger-parser--advance (length tag))
+    tag))
+</tool.toolu_01NYUEYqwTxngxAZEaa7ofow>
+
+### new_content
+
+<tool.toolu_01NYUEYqwTxngxAZEaa7ofow>
+;; Section tag handling
+
+(defun greger-parser--section-tags ()
+  "List of all section tags."
+  (list greger-parser-user-tag
+        greger-parser-assistant-tag
+        greger-parser-system-tag
+        greger-parser-tool-use-tag
+        greger-parser-tool-result-tag
+        greger-parser-thinking-tag))
+
+(defun greger-parser--find-section-tag (state)
+  "Find section tag at current position if at line start in STATE."
+  (when (greger-parser--at-line-start-p state)
+    (let ((tag (cl-find-if (lambda (tag) (greger-parser--looking-at state tag)) (greger-parser--section-tags))))
+      (greger-parser--debug state "Found section tag: %s at pos %d" tag (greger-parser-state-pos state))
+      tag)))
+
+(defun greger-parser--consume-section-tag (state tag)
+  "Consume TAG and return it in STATE."
+  (when (greger-parser--looking-at state tag)
+    (greger-parser--debug state "Consuming tag: %s" tag)
+    (greger-parser--advance state (length tag))
+    tag))
+</tool.toolu_01NYUEYqwTxngxAZEaa7ofow>
+
+### git_commit_message
+
+<tool.toolu_01NYUEYqwTxngxAZEaa7ofow>
+Update section tag handling functions to use state parameter
+</tool.toolu_01NYUEYqwTxngxAZEaa7ofow>
+
+## TOOL RESULT:
+
+ID: toolu_01NYUEYqwTxngxAZEaa7ofow
+
+<tool.toolu_01NYUEYqwTxngxAZEaa7ofow>
+Successfully replaced content in /Users/andreas/projects/aichat3/greger-parser.el. Successfully staged 2 file(s) and committed with message: Update section tag handling functions to use state parameter
+</tool.toolu_01NYUEYqwTxngxAZEaa7ofow>
+
+## ASSISTANT:
+
+Now I need to update the code block detection and skipping functions:
