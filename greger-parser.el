@@ -28,29 +28,30 @@
   length
   debug)
 
-(defmacro greger-parser--with-input (input &rest body)
-  "Execute BODY with INPUT as parser source."
-  `(let ((greger-parser--input (or ,input ""))
-         (greger-parser--pos 0)
-         (greger-parser--length (length (or ,input ""))))
-     ,@body))
+(defun greger-parser--create-state (input &optional debug)
+  "Create a parser state for INPUT with optional DEBUG flag."
+  (make-greger-parser-state
+   :input (or input "")
+   :pos 0
+   :length (length (or input ""))
+   :debug debug))
 
-(defun greger-parser--debug (format-string &rest args)
-  "Debug logging function."
-  (when greger-parser--debug
+(defun greger-parser--debug (state format-string &rest args)
+  "Debug logging function using STATE."
+  (when (greger-parser-state-debug state)
     (message "[PARSER DEBUG] %s" (apply #'format format-string args))))
 
 ;; Main parsing entry points
 
-(defun greger-parser-parse-dialog (markdown)
-  "Parse MARKDOWN into dialog format."
+(defun greger-parser-parse-dialog (markdown &optional debug)
+  "Parse MARKDOWN into dialog format with optional DEBUG flag."
   (if (or (null markdown) (string-empty-p (string-trim markdown)))
       '()
-    (greger-parser--with-input markdown
+    (let ((state (greger-parser--create-state markdown debug)))
       (condition-case err
-          (greger-parser--parse-document)
+          (greger-parser--parse-document state)
         (error
-         (greger-parser--debug "Parse error: %s" (error-message-string err))
+         (greger-parser--debug state "Parse error: %s" (error-message-string err))
          '())))))
 
 (defun greger-parser-dialog-to-markdown (dialog)

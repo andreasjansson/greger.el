@@ -1172,3 +1172,99 @@ ID: toolu_01Vs9oLCckJEddPN5MntFTe8
 ## ASSISTANT:
 
 Now I understand the pattern. I need to create a `greger-parser-state` structure and refactor all the parser functions to use it. Let me create the refactored version:
+
+
+## TOOL USE:
+
+Name: str-replace
+ID: toolu_011Lws1XhppEpH9ECp5P5Zkb
+
+### file_path
+
+<tool.toolu_011Lws1XhppEpH9ECp5P5Zkb>
+greger-parser.el
+</tool.toolu_011Lws1XhppEpH9ECp5P5Zkb>
+
+### original_content
+
+<tool.toolu_011Lws1XhppEpH9ECp5P5Zkb>
+;;; greger-parser.el --- Parser for greger dialog format -*- lexical-binding: t -*-
+
+;;; Commentary:
+;; Parses markdown-style dialog format with sections like ## USER:, ## ASSISTANT:, etc.
+;; Handles tool use, thinking blocks, and complex content structures.
+
+;;; Code:
+
+(require 'json)
+(require 'cl-lib)
+(require 'url)
+(require 'dom)
+(require 'eww)
+
+;; Section tag constants
+(defconst greger-parser-user-tag "## USER:")
+(defconst greger-parser-assistant-tag "## ASSISTANT:")
+(defconst greger-parser-system-tag "## SYSTEM:")
+(defconst greger-parser-tool-use-tag "## TOOL USE:")
+(defconst greger-parser-tool-result-tag "## TOOL RESULT:")
+(defconst greger-parser-thinking-tag "## THINKING:")
+
+;; Parser state
+(defvar greger-parser--input "")
+(defvar greger-parser--pos 0)
+(defvar greger-parser--length 0)
+(defvar greger-parser--debug nil)
+</tool.toolu_011Lws1XhppEpH9ECp5P5Zkb>
+
+### new_content
+
+<tool.toolu_011Lws1XhppEpH9ECp5P5Zkb>
+;;; greger-parser.el --- Parser for greger dialog format -*- lexical-binding: t -*-
+
+;;; Commentary:
+;; Parses markdown-style dialog format with sections like ## USER:, ## ASSISTANT:, etc.
+;; Handles tool use, thinking blocks, and complex content structures.
+
+;;; Code:
+
+(require 'json)
+(require 'cl-lib)
+(require 'url)
+(require 'dom)
+(require 'eww)
+
+;; Section tag constants
+(defconst greger-parser-user-tag "## USER:")
+(defconst greger-parser-assistant-tag "## ASSISTANT:")
+(defconst greger-parser-system-tag "## SYSTEM:")
+(defconst greger-parser-tool-use-tag "## TOOL USE:")
+(defconst greger-parser-tool-result-tag "## TOOL RESULT:")
+(defconst greger-parser-thinking-tag "## THINKING:")
+
+;;; Parser state structure
+
+(cl-defstruct greger-parser-state
+  input
+  pos
+  length
+  debug)
+</tool.toolu_011Lws1XhppEpH9ECp5P5Zkb>
+
+### git_commit_message
+
+<tool.toolu_011Lws1XhppEpH9ECp5P5Zkb>
+Refactor greger-parser to use state structure instead of global variables
+</tool.toolu_011Lws1XhppEpH9ECp5P5Zkb>
+
+## TOOL RESULT:
+
+ID: toolu_011Lws1XhppEpH9ECp5P5Zkb
+
+<tool.toolu_011Lws1XhppEpH9ECp5P5Zkb>
+Successfully replaced content in /Users/andreas/projects/aichat3/greger-parser.el. Successfully staged 2 file(s) and committed with message: Refactor greger-parser to use state structure instead of global variables
+</tool.toolu_011Lws1XhppEpH9ECp5P5Zkb>
+
+## ASSISTANT:
+
+Now I need to update the macro and the main parsing entry points:
