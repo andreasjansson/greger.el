@@ -2139,3 +2139,394 @@ Can you use defvar-local instead?
 ## ASSISTANT:
 
 Yes, absolutely! Using `defvar-local` is much cleaner and more idiomatic. It combines `defvar` and `make-variable-buffer-local` into a single macro. Let me update the code to use `defvar-local` instead:
+
+
+## TOOL USE:
+
+Name: str-replace
+ID: toolu_01RDMiNPn8rbbNZ4yEXDvnCb
+
+### file_path
+
+<tool.toolu_01RDMiNPn8rbbNZ4yEXDvnCb>
+greger-agent.el
+</tool.toolu_01RDMiNPn8rbbNZ4yEXDvnCb>
+
+### original_content
+
+<tool.toolu_01RDMiNPn8rbbNZ4yEXDvnCb>
+(defvar greger-agent--current-iteration 0
+  "Current iteration count for the active agent session.")
+(make-variable-buffer-local 'greger-agent--current-iteration)
+
+(defvar greger-agent--chat-buffer nil
+  "Buffer where the agent conversation is taking place.")
+(make-variable-buffer-local 'greger-agent--chat-buffer)
+
+(defvar greger-agent--directory nil
+  "Directory where the agent should execute commands.")
+(make-variable-buffer-local 'greger-agent--directory)
+</tool.toolu_01RDMiNPn8rbbNZ4yEXDvnCb>
+
+### new_content
+
+<tool.toolu_01RDMiNPn8rbbNZ4yEXDvnCb>
+(defvar-local greger-agent--current-iteration 0
+  "Current iteration count for the active agent session.")
+
+(defvar-local greger-agent--chat-buffer nil
+  "Buffer where the agent conversation is taking place.")
+
+(defvar-local greger-agent--directory nil
+  "Directory where the agent should execute commands.")
+</tool.toolu_01RDMiNPn8rbbNZ4yEXDvnCb>
+
+### git_commit_message
+
+<tool.toolu_01RDMiNPn8rbbNZ4yEXDvnCb>
+Use defvar-local instead of defvar + make-variable-buffer-local
+</tool.toolu_01RDMiNPn8rbbNZ4yEXDvnCb>
+
+## TOOL RESULT:
+
+ID: toolu_01RDMiNPn8rbbNZ4yEXDvnCb
+
+<tool.toolu_01RDMiNPn8rbbNZ4yEXDvnCb>
+Successfully replaced content in /Users/andreas/projects/aichat3/greger-agent.el. Successfully staged 2 file(s) and committed with message: Use defvar-local instead of defvar + make-variable-buffer-local
+</tool.toolu_01RDMiNPn8rbbNZ4yEXDvnCb>
+
+## ASSISTANT:
+
+Perfect! Using `defvar-local` is much cleaner and more concise. It's the preferred way to define buffer-local variables in modern Emacs Lisp code since it:
+
+1. **Combines two operations into one** - no need for separate `defvar` and `make-variable-buffer-local` calls
+2. **Is more readable** - the intent is immediately clear from the macro name
+3. **Is more maintainable** - less code and no risk of forgetting the `make-variable-buffer-local` call
+4. **Is the modern idiom** - it's the recommended approach in current Emacs Lisp style
+
+The functionality is exactly the same - each of these variables will now be automatically buffer-local, meaning that when they are set in a buffer, that value only applies to that specific buffer, allowing multiple greger instances to run simultaneously without interfering with each other.
+
+## USER:
+
+Actually making them buffer-local is not enough if I navigate around in emacs while greger is running in the background. You'll need to pass around a state object with current-iteration, chat-buffer, and directory.
+
+## ASSISTANT:
+
+You're absolutely right! Buffer-local variables won't help if the user navigates to different buffers while greger is running in the background. We need to pass around a state object that contains all the necessary context. Let me implement this properly.
+
+First, let me examine the current code structure to understand how to implement this:
+
+## TOOL USE:
+
+Name: read-file
+ID: toolu_01NEdoaEJKwzEo8kPmxMZxQg
+
+### path
+
+<tool.toolu_01NEdoaEJKwzEo8kPmxMZxQg>
+greger-agent.el
+</tool.toolu_01NEdoaEJKwzEo8kPmxMZxQg>
+
+### start_line
+
+<tool.toolu_01NEdoaEJKwzEo8kPmxMZxQg>
+1
+</tool.toolu_01NEdoaEJKwzEo8kPmxMZxQg>
+
+### end_line
+
+<tool.toolu_01NEdoaEJKwzEo8kPmxMZxQg>
+60
+</tool.toolu_01NEdoaEJKwzEo8kPmxMZxQg>
+
+## TOOL RESULT:
+
+ID: toolu_01NEdoaEJKwzEo8kPmxMZxQg
+
+<tool.toolu_01NEdoaEJKwzEo8kPmxMZxQg>
+;;; greger-agent.el --- Agent capabilities for greger -*- lexical-binding: t -*-
+
+;;; Commentary:
+;; Provides agent functionality with tool support for greger
+
+;;; Code:
+
+(require 'json)
+(require 'greger-stream)
+(require 'greger-tools)
+
+;; not using patch tool, it's too messy
+(defcustom greger-agent-tools '("read-file" "list-directory" "str-replace" "insert" "write-new-file" "replace-file" "replace-function" "make-directory" "rename-file" "ripgrep" "git-log" "git-show-commit" "shell-command")
+  "List of tools available to the agent."
+  :type '(repeat symbol)
+  :group 'greger)
+
+(defcustom greger-agent-max-iterations 100
+  "Maximum number of agent iterations before stopping."
+  :type 'integer
+  :group 'greger)
+
+(defcustom greger-agent-auto-approve t
+  "Whether to automatically approve tool calls without user confirmation."
+  :type 'boolean
+  :group 'greger)
+
+(defcustom greger-agent-debug t
+  "Whether to show debug information."
+  :type 'boolean
+  :group 'greger)
+
+(defvar-local greger-agent--current-iteration 0
+  "Current iteration count for the active agent session.")
+
+(defvar-local greger-agent--chat-buffer nil
+  "Buffer where the agent conversation is taking place.")
+
+(defvar-local greger-agent--directory nil
+  "Directory where the agent should execute commands.")
+
+(defun greger-agent-buffer ()
+  "Send buffer content to AI as an agent dialog with tool support."
+  (interactive)
+  (let* ((buffer-content (buffer-substring-no-properties (point-min) (point-max)))
+         (dialog (greger-parser-parse-dialog buffer-content)))
+    (unless dialog
+      (error "Failed to parse dialog. Did you forget to close a html tag?"))
+
+    (goto-char (point-max))
+
+    (setq greger-agent--current-iteration 0)
+    (setq greger-agent--chat-buffer (current-buffer))  ; Store the chat buffer
+    (setq greger-agent--directory default-directory)
+
+    (greger-agent--debug "--- DIALOG --- %s" dialog)
+
+    (greger-agent--debug "=== STARTING AGENT SESSION ===")
+
+    (greger-agent--run-agent-loop)))
+</tool.toolu_01NEdoaEJKwzEo8kPmxMZxQg>
+
+## ASSISTANT:
+
+Let me see the rest of the functions:
+
+## TOOL USE:
+
+Name: read-file
+ID: toolu_01GAesMwAgfuSYtqqsgj8rii
+
+### path
+
+<tool.toolu_01GAesMwAgfuSYtqqsgj8rii>
+greger-agent.el
+</tool.toolu_01GAesMwAgfuSYtqqsgj8rii>
+
+### start_line
+
+<tool.toolu_01GAesMwAgfuSYtqqsgj8rii>
+60
+</tool.toolu_01GAesMwAgfuSYtqqsgj8rii>
+
+### end_line
+
+<tool.toolu_01GAesMwAgfuSYtqqsgj8rii>
+120
+</tool.toolu_01GAesMwAgfuSYtqqsgj8rii>
+
+## TOOL RESULT:
+
+ID: toolu_01GAesMwAgfuSYtqqsgj8rii
+
+<tool.toolu_01GAesMwAgfuSYtqqsgj8rii>
+    (greger-agent--run-agent-loop)))
+
+(defun greger-agent--debug (format-string &rest args)
+  "Debug logging function."
+  (when greger-agent-debug
+    (message "[AGENT DEBUG] %s" (apply #'format format-string args))))
+
+(defun greger-agent--run-agent-loop ()
+  "Run the main agent loop."
+  (let* ((tools (greger-tools-get-schemas greger-agent-tools))
+         (buffer-content (buffer-substring-no-properties (point-min) (point-max)))
+         (current-dialog (greger-parser-parse-dialog buffer-content)))
+
+    (greger-agent--debug "=== ITERATION %d ===" greger-agent--current-iteration)
+    (greger-agent--debug "Dialog length: %d messages" (length current-dialog))
+
+    ;; Check max iterations
+    (if (>= greger-agent--current-iteration greger-agent-max-iterations)
+        (progn
+          (greger-agent--debug "MAX ITERATIONS REACHED - STOPPING")
+          (insert (format "\n\nMaximum iterations (%d) reached. Stopping agent execution.\n\n"
+                         greger-agent-max-iterations))
+          (greger-agent--finish-response))
+
+      ;; Get Claude's response
+      (greger-agent--debug "CALLING greger-stream-to-buffer-with-tools...")
+      (greger-stream-to-buffer-with-tools
+       :model greger-model
+       :dialog current-dialog
+       :tools tools
+       :buffer greger-agent--chat-buffer
+       :complete-callback (lambda (content-blocks)
+                            (greger-agent--debug "RECEIVED PARSED CONTENT BLOCKS")
+                            (greger-agent--handle-parsed-response content-blocks))))))
+
+(defun greger-agent--handle-parsed-response (content-blocks)
+  "Handle the parsed CONTENT-BLOCKS from Claude."
+  (greger-agent--debug "CONTENT BLOCKS: %s" content-blocks)
+
+  ;; Check if we have tool calls
+  (let ((tool-calls (greger-agent--extract-tool-calls content-blocks)))
+    (if tool-calls
+        (progn
+          (greger-agent--debug "TOOL USE DETECTED! Found %d tool calls" (length tool-calls))
+          (setq greger-agent--current-iteration (1+ greger-agent--current-iteration))
+          (greger-agent--execute-tools tool-calls))
+      (progn
+        (greger-agent--debug "NO TOOL USE - CONVERSATION COMPLETE")
+        (greger-agent--finish-response)))))
+
+(defun greger-agent--extract-tool-calls (content-blocks)
+  "Extract tool calls from CONTENT-BLOCKS."
+  (let ((tool-calls '()))
+    (dolist (block content-blocks)
+      (when (string= (alist-get 'type block) "tool_use")
+        (greger-agent--debug "EXTRACTING TOOL CALL: %s with input: %s"
+                            (alist-get 'name block)
+                            (json-encode (alist-get 'input block)))
+        (push block tool-calls)))
+    (reverse tool-calls)))
+
+</tool.toolu_01GAesMwAgfuSYtqqsgj8rii>
+
+## ASSISTANT:
+
+Let me see the rest:
+
+## TOOL USE:
+
+Name: read-file
+ID: toolu_012WMcBLWz8ADGStNb7GbXrx
+
+### path
+
+<tool.toolu_012WMcBLWz8ADGStNb7GbXrx>
+greger-agent.el
+</tool.toolu_012WMcBLWz8ADGStNb7GbXrx>
+
+### start_line
+
+<tool.toolu_012WMcBLWz8ADGStNb7GbXrx>
+120
+</tool.toolu_012WMcBLWz8ADGStNb7GbXrx>
+
+### end_line
+
+<tool.toolu_012WMcBLWz8ADGStNb7GbXrx>
+180
+</tool.toolu_012WMcBLWz8ADGStNb7GbXrx>
+
+## TOOL RESULT:
+
+ID: toolu_012WMcBLWz8ADGStNb7GbXrx
+
+<tool.toolu_012WMcBLWz8ADGStNb7GbXrx>
+
+(defun greger-agent--execute-tools (tool-calls)
+  "Execute TOOL-CALLS and continue the conversation."
+  (let ((results '()))
+    (dolist (tool-call tool-calls)
+      (let* ((tool-name (alist-get 'name tool-call))
+             (tool-input (alist-get 'input tool-call))
+             (tool-id (alist-get 'id tool-call)))
+
+        (if (greger-agent--request-approval tool-name tool-input)
+            (condition-case err
+                (let* ((default-directory greger-agent--directory)
+                       (result (greger-tools-execute tool-name tool-input greger-agent--chat-buffer)))
+                  (push `((type . "tool_result")
+                         (tool_use_id . ,tool-id)
+                         (content . ,result))
+                        results))
+              (error
+               (push `((type . "tool_result")
+                      (tool_use_id . ,tool-id)
+                      (content . ,(format "Error executing tool: %s" (error-message-string err)))
+                      (is_error . t))
+                     results)))
+          (push `((type . "tool_result")
+                 (tool_use_id . ,tool-id)
+                 (content . "Tool execution declined by user")
+                 (is_error . t))
+                results))))
+
+    ;; Display tool execution
+    (greger-agent--display-tool-execution tool-calls (reverse results))
+
+    ;; Continue the loop
+    (greger-agent--run-agent-loop)))
+
+;; In greger-agent.el, update the display function:
+
+(defun greger-agent--display-tool-execution (tool-calls results)
+  "Display the execution of TOOL-CALLS and their RESULTS using parser markdown conversion."
+  (with-current-buffer greger-agent--chat-buffer
+    (goto-char (point-max))
+
+    ;; The tool calls are already in the right format, just convert them
+    (let ((tool-blocks-markdown (greger-parser--content-blocks-to-markdown tool-calls)))
+      (unless (string-empty-p tool-blocks-markdown)
+        (insert "\n\n" tool-blocks-markdown)))
+
+    ;; Convert tool results to markdown
+    (let ((result-blocks-markdown (greger-parser--content-blocks-to-markdown results)))
+      (unless (string-empty-p result-blocks-markdown)
+        (insert "\n\n" result-blocks-markdown)))))
+
+(defun greger-agent--finish-response ()
+  "Finish the agent response."
+  (greger-agent--debug "=== FINISHING RESPONSE - CONVERSATION COMPLETE ===")
+  (with-current-buffer greger-agent--chat-buffer  ; Ensure we're in the chat buffer
+    (goto-char (point-max))
+    (unless (looking-back (concat greger-user-tag "\n\n") nil)
+      (insert "\n\n" greger-user-tag "\n\n")))
+  (setq greger-agent--current-iteration 0)
+  (setq greger-agent--chat-buffer nil))
+</tool.toolu_012WMcBLWz8ADGStNb7GbXrx>
+
+## ASSISTANT:
+
+Let me also check how greger-tools-execute works:
+
+## TOOL USE:
+
+Name: ripgrep
+ID: toolu_01W3RDzdBMm1TKnGQjRCxCUE
+
+### pattern
+
+<tool.toolu_01W3RDzdBMm1TKnGQjRCxCUE>
+defun greger-tools-execute
+</tool.toolu_01W3RDzdBMm1TKnGQjRCxCUE>
+
+### context-lines
+
+<tool.toolu_01W3RDzdBMm1TKnGQjRCxCUE>
+3
+</tool.toolu_01W3RDzdBMm1TKnGQjRCxCUE>
+
+## TOOL RESULT:
+
+ID: toolu_01W3RDzdBMm1TKnGQjRCxCUE
+
+<tool.toolu_01W3RDzdBMm1TKnGQjRCxCUE>
+/Users/andreas/projects/aichat3/greger-tools.el:58:(defun greger-tools-execute (tool-name args &optional buffer)
+/Users/andreas/projects/aichat3/chat4.ai:216:186: (defun greger-tools-execute (tool-name args)
+
+</tool.toolu_01W3RDzdBMm1TKnGQjRCxCUE>
+
+## ASSISTANT:
+
+Now I'll implement the state object approach. First, let me create a proper state structure and modify the functions to use it:

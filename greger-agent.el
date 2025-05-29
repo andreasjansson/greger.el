@@ -6,6 +6,7 @@
 ;;; Code:
 
 (require 'json)
+(require 'cl-lib)
 (require 'greger-stream)
 (require 'greger-tools)
 
