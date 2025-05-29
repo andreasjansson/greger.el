@@ -31,14 +31,12 @@
   :type 'boolean
   :group 'greger)
 
-(defvar-local greger-agent--current-iteration 0
-  "Current iteration count for the active agent session.")
+;;; Agent state structure
 
-(defvar-local greger-agent--chat-buffer nil
-  "Buffer where the agent conversation is taking place.")
-
-(defvar-local greger-agent--directory nil
-  "Directory where the agent should execute commands.")
+(cl-defstruct greger-agent-state
+  current-iteration
+  chat-buffer
+  directory)
 
 (defun greger-agent-buffer ()
   "Send buffer content to AI as an agent dialog with tool support."
