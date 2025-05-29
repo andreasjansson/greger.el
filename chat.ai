@@ -1881,3 +1881,103 @@ Now I have a good understanding of the codebase. I can see that:
 3. The function takes parameters: `model-name`, `dialog`, and optional `tools`
 
 Let me now create the `greger-debug-request` function. I'll add it to the main greger.el file:
+
+
+## TOOL USE:
+
+Name: str-replace
+ID: toolu_01MJKrSkdiu5DQpzgSr4HREb
+
+### file_path
+
+<tool.toolu_01MJKrSkdiu5DQpzgSr4HREb>
+greger.el
+</tool.toolu_01MJKrSkdiu5DQpzgSr4HREb>
+
+### original_content
+
+<tool.toolu_01MJKrSkdiu5DQpzgSr4HREb>
+(defun greger-set-model ()
+  "Set the current AI model."
+  (interactive)
+  (let ((model (completing-read "Choose AI model: " greger-available-models nil t)))
+    (customize-set-variable 'greger-model (intern model))
+    (message "Model set to %s" model)))
+</tool.toolu_01MJKrSkdiu5DQpzgSr4HREb>
+
+### new_content
+
+<tool.toolu_01MJKrSkdiu5DQpzgSr4HREb>
+(defun greger-set-model ()
+  "Set the current AI model."
+  (interactive)
+  (let ((model (completing-read "Choose AI model: " greger-available-models nil t)))
+    (customize-set-variable 'greger-model (intern model))
+    (message "Model set to %s" model)))
+
+(defun greger-debug-request ()
+  "Debug the request data by parsing the buffer and saving the greger-provider-claude--build-data output."
+  (interactive)
+  (require 'greger-parser)
+  (require 'greger-provider-claude)
+  (require 'greger-tools)
+  (let* ((filename (read-string "Save to filename (default: request.json): " nil nil "request.json"))
+         (buffer-content (buffer-substring-no-properties (point-min) (point-max)))
+         (dialog (greger-parser-parse-dialog buffer-content))
+         (tools (when greger-agent-tools
+                  (greger-tools-get-schemas greger-agent-tools)))
+         (model-name (symbol-name greger-model))
+         (request-data nil))
+
+    (unless dialog
+      (error "Failed to parse dialog. Check your buffer format"))
+
+    ;; Extract just the model name part (e.g., "claude-sonnet-4-20250514" from "claude/claude-sonnet-4-20250514")
+    (when (string-match "^[^/]+/\\(.+\\)$" model-name)
+      (setq model-name (match-string 1 model-name)))
+
+    ;; Get the JSON request data
+    (setq request-data (greger-provider-claude--build-data model-name dialog tools))
+
+    ;; Parse the JSON and re-encode with proper formatting
+    (let* ((parsed-json (json-read-from-string request-data))
+           (formatted-json (json-encode-alist parsed-json)))
+      ;; Write to file with proper indentation
+      (with-temp-file filename
+        (insert formatted-json)
+        ;; Add newlines for better readability
+        (goto-char (point-min))
+        (while (search-forward "," nil t)
+          (when (not (looking-at "\\s-*\n"))
+            (insert "\n")))
+        (goto-char (point-min))
+        (while (search-forward "{" nil t)
+          (unless (looking-at "\\s-*\n")
+            (insert "\n")))
+        (goto-char (point-min))
+        (while (search-forward "}" nil t)
+          (unless (looking-at "\\s-*\n")
+            (insert "\n")))
+        ;; Basic indentation
+        (json-pretty-print (point-min) (point-max)))
+
+      (message "Request data saved to %s" filename))))
+</tool.toolu_01MJKrSkdiu5DQpzgSr4HREb>
+
+### git_commit_message
+
+<tool.toolu_01MJKrSkdiu5DQpzgSr4HREb>
+Add greger-debug-request function to save Claude request data to JSON file
+</tool.toolu_01MJKrSkdiu5DQpzgSr4HREb>
+
+## TOOL RESULT:
+
+ID: toolu_01MJKrSkdiu5DQpzgSr4HREb
+
+<tool.toolu_01MJKrSkdiu5DQpzgSr4HREb>
+Successfully replaced content in /Users/andreas/projects/aichat3/greger.el. Successfully staged 2 file(s) and committed with message: Add greger-debug-request function to save Claude request data to JSON file
+</tool.toolu_01MJKrSkdiu5DQpzgSr4HREb>
+
+## ASSISTANT:
+
+Now I need to add the keybinding for this function to the keymap. Let me add it to the greger-mode-map:

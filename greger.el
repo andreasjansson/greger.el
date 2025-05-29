@@ -132,6 +132,7 @@
     (define-key map (kbd "C-; b") #'greger-insert-include-buffer-code)
     (define-key map (kbd "C-; m") #'greger-set-model)
     (define-key map (kbd "C-; c") #'greger-copy-code)
+    (define-key map (kbd "C-; d") #'greger-debug-request)
     (define-key map (kbd "TAB") #'greger-toggle-tool-section)
     (define-key map (kbd "<tab>") #'greger-toggle-tool-section)
     map)
