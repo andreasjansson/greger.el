@@ -2669,3 +2669,75 @@ Successfully replaced content in /Users/andreas/projects/aichat3/greger-parser.e
 ## ASSISTANT:
 
 Now I need to update the tool parsing helpers:
+
+
+## TOOL USE:
+
+Name: str-replace
+ID: toolu_01HRSz1Y9k7N69KKCrHSDGon
+
+### file_path
+
+<tool.toolu_01HRSz1Y9k7N69KKCrHSDGon>
+greger-parser.el
+</tool.toolu_01HRSz1Y9k7N69KKCrHSDGon>
+
+### original_content
+
+<tool.toolu_01HRSz1Y9k7N69KKCrHSDGon>
+;; Tool parsing helpers
+
+(defun greger-parser--parse-name-line ()
+  "Parse 'Name: value' line."
+  (when (greger-parser--looking-at "Name:")
+    (greger-parser--advance 5)
+    (greger-parser--skip-horizontal-whitespace)
+    (greger-parser--read-line)))
+
+(defun greger-parser--parse-id-line ()
+  "Parse 'ID: value' line."
+  (greger-parser--skip-whitespace)
+  (when (greger-parser--looking-at "ID:")
+    (greger-parser--advance 3)
+    (greger-parser--skip-horizontal-whitespace)
+    (greger-parser--read-line)))
+</tool.toolu_01HRSz1Y9k7N69KKCrHSDGon>
+
+### new_content
+
+<tool.toolu_01HRSz1Y9k7N69KKCrHSDGon>
+;; Tool parsing helpers
+
+(defun greger-parser--parse-name-line (state)
+  "Parse 'Name: value' line using STATE."
+  (when (greger-parser--looking-at state "Name:")
+    (greger-parser--advance state 5)
+    (greger-parser--skip-horizontal-whitespace state)
+    (greger-parser--read-line state)))
+
+(defun greger-parser--parse-id-line (state)
+  "Parse 'ID: value' line using STATE."
+  (greger-parser--skip-whitespace state)
+  (when (greger-parser--looking-at state "ID:")
+    (greger-parser--advance state 3)
+    (greger-parser--skip-horizontal-whitespace state)
+    (greger-parser--read-line state)))
+</tool.toolu_01HRSz1Y9k7N69KKCrHSDGon>
+
+### git_commit_message
+
+<tool.toolu_01HRSz1Y9k7N69KKCrHSDGon>
+Update tool parsing helper functions to use state parameter
+</tool.toolu_01HRSz1Y9k7N69KKCrHSDGon>
+
+## TOOL RESULT:
+
+ID: toolu_01HRSz1Y9k7N69KKCrHSDGon
+
+<tool.toolu_01HRSz1Y9k7N69KKCrHSDGon>
+Successfully replaced content in /Users/andreas/projects/aichat3/greger-parser.el. Successfully staged 2 file(s) and committed with message: Update tool parsing helper functions to use state parameter
+</tool.toolu_01HRSz1Y9k7N69KKCrHSDGon>
+
+## ASSISTANT:
+
+Now I need to update the tool input parsing functions:

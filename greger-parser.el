@@ -569,44 +569,44 @@ Supports both local files and web URLs (http:// or https://)."
     (greger-parser--skip-horizontal-whitespace state)
     (greger-parser--read-line state)))
 
-(defun greger-parser--parse-tool-input ()
-  "Parse tool input parameters."
+(defun greger-parser--parse-tool-input (state)
+  "Parse tool input parameters using STATE."
   (let ((params '())
         (iterations 0)
         (max-iterations 100)) ; Safety limit
-    (greger-parser--skip-whitespace)
-    (while (and (greger-parser--can-parse-parameter-p)
+    (greger-parser--skip-whitespace state)
+    (while (and (greger-parser--can-parse-parameter-p state)
                 (< iterations max-iterations))
       (setq iterations (1+ iterations))
-      (let ((old-pos greger-parser--pos)
-            (param (greger-parser--parse-tool-parameter)))
+      (let ((old-pos (greger-parser-state-pos state))
+            (param (greger-parser--parse-tool-parameter state)))
         (when param
           (push param params))
-        (greger-parser--skip-whitespace)
+        (greger-parser--skip-whitespace state)
         ;; Safety check: ensure we're making progress
-        (when (= old-pos greger-parser--pos)
-          (greger-parser--debug "No progress in tool input parsing at pos %d, breaking" greger-parser--pos)
+        (when (= old-pos (greger-parser-state-pos state))
+          (greger-parser--debug state "No progress in tool input parsing at pos %d, breaking" (greger-parser-state-pos state))
           (break))))
     (when (>= iterations max-iterations)
-      (greger-parser--debug "Hit max iterations in parse-tool-input"))
+      (greger-parser--debug state "Hit max iterations in parse-tool-input"))
     (reverse params)))
 
-(defun greger-parser--can-parse-parameter-p ()
-  "Check if we can parse a parameter."
-  (and (not (greger-parser--at-end-p))
-       (not (and (greger-parser--at-line-start-p)
-                 (greger-parser--find-section-tag)))
-       (greger-parser--at-line-start-p)
-       (greger-parser--looking-at "###")))
+(defun greger-parser--can-parse-parameter-p (state)
+  "Check if we can parse a parameter using STATE."
+  (and (not (greger-parser--at-end-p state))
+       (not (and (greger-parser--at-line-start-p state)
+                 (greger-parser--find-section-tag state)))
+       (greger-parser--at-line-start-p state)
+       (greger-parser--looking-at state "###")))
 
-(defun greger-parser--parse-tool-parameter ()
-  "Parse single tool parameter."
-  (when (greger-parser--looking-at "###")
-    (greger-parser--advance 3)
-    (greger-parser--skip-horizontal-whitespace)
-    (let ((name (greger-parser--read-line)))
-      (greger-parser--skip-whitespace)
-      (let ((value (greger-parser--parse-tool-value)))
+(defun greger-parser--parse-tool-parameter (state)
+  "Parse single tool parameter using STATE."
+  (when (greger-parser--looking-at state "###")
+    (greger-parser--advance state 3)
+    (greger-parser--skip-horizontal-whitespace state)
+    (let ((name (greger-parser--read-line state)))
+      (greger-parser--skip-whitespace state)
+      (let ((value (greger-parser--parse-tool-value state)))
         (when (and name (not (string-empty-p name)))
           (cons (intern name) (greger-parser--convert-value (or value ""))))))))
 
