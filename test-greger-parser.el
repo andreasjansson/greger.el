@@ -1323,14 +1323,14 @@ ID: tool_123
 
 Check this out:
 
-<include>https://httpbin.org/json</include>
+<include>https://pub-b88c9764a4fc46baa90b9e8e1544f59e.r2.dev/hello.html</include>
 
 What do you think?")
-        (expected-pattern "## USER:
+        (expected "## USER:
 
 Check this out:
 
-.*
+Hello world!
 
 What do you think?"))
     ;; This test just verifies that URL handling doesn't crash
@@ -1338,26 +1338,20 @@ What do you think?"))
     (let ((parsed (greger-parser-parse-dialog markdown)))
       (should (= 1 (length parsed)))
       (let ((generated-markdown (greger-parser-dialog-to-markdown parsed)))
-        (should (string-match-p expected-pattern generated-markdown))
-        ;; Should not contain the original URL tag
-        (should-not (string-match-p "<include>https://httpbin.org/json</include>" generated-markdown))))))
+        (should (string= expected generated-markdown))))))
 
 (ert-deftest greger-parser-test-include-tag-web-url-with-code ()
   "Test include tag with web URL and code attribute."
   (let ((markdown "## USER:
 
-Here's some JSON:
-
-<include code>https://httpbin.org/json</include>
+<include code>https://pub-b88c9764a4fc46baa90b9e8e1544f59e.r2.dev/hello.html</include>
 
 Pretty cool!")
-        (expected-pattern "## USER:
+        (expected "## USER:
 
-Here's some JSON:
-
-https://httpbin.org/json:
+https://pub-b88c9764a4fc46baa90b9e8e1544f59e.r2.dev/hello.html:
 ```
-.*
+Hello world!
 ```
 
 Pretty cool!"))
@@ -1365,7 +1359,7 @@ Pretty cool!"))
     (let ((parsed (greger-parser-parse-dialog markdown)))
       (should (= 1 (length parsed)))
       (let ((generated-markdown (greger-parser-dialog-to-markdown parsed)))
-        (should (string-match-p expected-pattern generated-markdown))))))
+        (should (string= expected generated-markdown))))))
 
 (ert-deftest greger-parser-test-include-tag-invalid-url ()
   "Test include tag with invalid web URL."
