@@ -737,18 +737,22 @@ Always returns focus to the original window after executing BODY."
       (format "Successfully inserted %d characters at line %d in %s. %s"
               (length content) line-number expanded-path git-result))))
 
-(defun greger-tools--git-log (path)
+(defun greger-tools--git-log (path &optional max-rows)
   "View git commit logs using git command line for PATH."
   (unless (stringp path)
     (error "path must be a string"))
 
-  (let ((expanded-path (expand-file-name path)))
+  (let ((expanded-path (expand-file-name path))
+        (max-count (or max-rows 100)))
 
     (unless (file-exists-p expanded-path)
       (error "Path does not exist: %s" expanded-path))
 
-    ;; Find git repository root
-    (let ((repo-root (greger-tools--find-git-repo-root expanded-path)))
+    ;; Get the directory to search for git repo (if path is a file, use its directory)
+    (let* ((search-dir (if (file-directory-p expanded-path)
+                          expanded-path
+                        (file-name-directory expanded-path)))
+           (repo-root (greger-tools--find-git-repo-root search-dir)))
       (unless repo-root
         (error "Path %s is not in a git repository" expanded-path))
 
@@ -757,7 +761,7 @@ Always returns focus to the original window after executing BODY."
             (with-temp-buffer
               (let ((exit-code (call-process "git" nil t nil "log"
                                            "--oneline" "--decorate" "--graph"
-                                           "--max-count=50")))
+                                           (format "--max-count=%d" max-count))))
                 (if (= exit-code 0)
                     (let ((results (buffer-string)))
                       (if (string-empty-p (string-trim results))
