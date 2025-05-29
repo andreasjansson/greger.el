@@ -8,6 +8,7 @@
 (require 'json)
 (require 'cl-lib)
 (require 'greger-providers)
+(require 'greger)
 
 ;;; Data structures
 
