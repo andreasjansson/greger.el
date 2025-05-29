@@ -2077,3 +2077,113 @@ Now I'll proceed with the implementation. I need to:
 3. Add a new tool to `greger-stdlib.el` for downloading web pages
 
 Let's start by creating the new `greger-web.el` file:
+
+
+## TOOL USE:
+
+Name: write-new-file
+ID: toolu_01VM9pFXkRpEEa7r2MHEyvxf
+
+### file_path
+
+<tool.toolu_01VM9pFXkRpEEa7r2MHEyvxf>
+greger-web.el
+</tool.toolu_01VM9pFXkRpEEa7r2MHEyvxf>
+
+### contents
+
+<tool.toolu_01VM9pFXkRpEEa7r2MHEyvxf>
+;;; greger-web.el --- Web content handling for greger -*- lexical-binding: t -*-
+
+;;; Commentary:
+;; Functions for downloading web content and extracting text from URLs.
+;; Originally part of greger-parser.el, moved here for better organization.
+
+;;; Code:
+
+(require 'url)
+(require 'dom)
+(require 'eww)
+
+(defun greger-web-text-from-url (url &optional use-highest-readability)
+  "Retrieve the text content from URL.
+If USE-HIGHEST-READABILITY is non-nil, use eww's readability heuristics."
+  (with-current-buffer
+      (url-retrieve-synchronously url t nil 10.0)
+    ;; Skip HTTP headers - they end with a double newline
+    (goto-char (point-min))
+    (when (re-search-forward "\r?\n\r?\n" nil t)
+      (delete-region (point-min) (point)))
+
+    ;; Parse the HTML content
+    (let ((dom (libxml-parse-html-region (point-min) (point-max))))
+      (when use-highest-readability
+        (setq dom (eww-highest-readability dom))
+        (eww-score-readability dom))
+      (greger-web-dom-texts-inline-aware dom))))
+
+(defun greger-web-dom-texts-inline-aware (node &optional block-separator inline-separator)
+  "Extract text from the DOM NODE, aware of inline and block elements.
+BLOCK-SEPARATOR separates block elements.
+INLINE-SEPARATOR separates inline elements."
+  (let ((block-separator (or block-separator "\n"))
+        (inline-separator (or inline-separator " ")))
+    (mapconcat
+     (lambda (elem)
+       (cond
+        ((stringp elem)
+         (when (> (length (string-trim elem)) 0)
+           elem))
+        ((memq (dom-tag elem) '(head meta script style details footer)) "")
+        ((memq (dom-tag elem) '(p div h1 h2 h3 h4 h5 h6 pre br hr ul ol li))
+         (concat (greger-web-dom-texts-inline-aware elem block-separator inline-separator)
+                 block-separator))
+        (t
+         (greger-web-dom-texts-inline-aware elem block-separator inline-separator))))
+     (dom-children node)
+     inline-separator)))
+
+(defun greger-web-is-web-url-p (path)
+  "Return non-nil if PATH is a web URL (starts with http:// or https://)."
+  (or (string-prefix-p "http://" path)
+      (string-prefix-p "https://" path)))
+
+(defun greger-web-download-page (url &optional extract-text use-highest-readability)
+  "Download webpage from URL and optionally extract text.
+If EXTRACT-TEXT is non-nil (default t), extract and return text content.
+If EXTRACT-TEXT is nil, return raw HTML.
+If USE-HIGHEST-READABILITY is non-nil, use eww's aggressive readability setting."
+  (let ((extract-text (if (eq extract-text nil) nil t))) ; Default to true
+    (if extract-text
+        (greger-web-text-from-url url use-highest-readability)
+      ;; Return raw HTML
+      (with-current-buffer
+          (url-retrieve-synchronously url t nil 10.0)
+        ;; Skip HTTP headers - they end with a double newline
+        (goto-char (point-min))
+        (when (re-search-forward "\r?\n\r?\n" nil t)
+          (delete-region (point-min) (point)))
+        (buffer-string)))))
+
+(provide 'greger-web)
+
+;;; greger-web.el ends here
+</tool.toolu_01VM9pFXkRpEEa7r2MHEyvxf>
+
+### git_commit_message
+
+<tool.toolu_01VM9pFXkRpEEa7r2MHEyvxf>
+Create greger-web.el with web content handling functions
+</tool.toolu_01VM9pFXkRpEEa7r2MHEyvxf>
+
+## TOOL RESULT:
+
+ID: toolu_01VM9pFXkRpEEa7r2MHEyvxf
+
+<tool.toolu_01VM9pFXkRpEEa7r2MHEyvxf>
+Successfully wrote new file /Users/andreas/projects/aichat3/greger-web.el with 3004 characters. Successfully staged 2 file(s) and committed with message: Create greger-web.el with web content handling functions
+</tool.toolu_01VM9pFXkRpEEa7r2MHEyvxf>
+
+## ASSISTANT:
+
+Now I need to update `greger-parser.el` to remove the moved functions and add a require for the new module, plus update the function calls:
