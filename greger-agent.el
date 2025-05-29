@@ -32,6 +32,15 @@
 
 (defvar greger-agent--current-iteration 0
   "Current iteration count for the active agent session.")
+(make-variable-buffer-local 'greger-agent--current-iteration)
+
+(defvar greger-agent--chat-buffer nil
+  "Buffer where the agent conversation is taking place.")
+(make-variable-buffer-local 'greger-agent--chat-buffer)
+
+(defvar greger-agent--directory nil
+  "Directory where the agent should execute commands.")
+(make-variable-buffer-local 'greger-agent--directory)
 
 (defun greger-agent-buffer ()
   "Send buffer content to AI as an agent dialog with tool support."
@@ -45,6 +54,7 @@
 
     (setq greger-agent--current-iteration 0)
     (setq greger-agent--chat-buffer (current-buffer))  ; Store the chat buffer
+    (setq greger-agent--directory default-directory)
 
     (greger-agent--debug "--- DIALOG --- %s" dialog)
 
@@ -118,7 +128,8 @@
 
         (if (greger-agent--request-approval tool-name tool-input)
             (condition-case err
-                (let ((result (greger-tools-execute tool-name tool-input (current-buffer))))
+                (let* ((default-directory greger-agent--directory)
+                       (result (greger-tools-execute tool-name tool-input greger-agent--chat-buffer)))
                   (push `((type . "tool_result")
                          (tool_use_id . ,tool-id)
                          (content . ,result))
