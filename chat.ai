@@ -3079,3 +3079,138 @@ Successfully replaced content in /Users/andreas/projects/aichat3/greger-parser.e
 ## ASSISTANT:
 
 Now I need to add debug control functions that work with the new state structure and update the existing debug control functions to use a global debug flag since the debug functionality is still needed for testing:
+
+
+## TOOL USE:
+
+Name: str-replace
+ID: toolu_01M7J67jDfQfTcRHx48xsQvN
+
+### file_path
+
+<tool.toolu_01M7J67jDfQfTcRHx48xsQvN>
+greger-parser.el
+</tool.toolu_01M7J67jDfQfTcRHx48xsQvN>
+
+### original_content
+
+<tool.toolu_01M7J67jDfQfTcRHx48xsQvN>
+;; Debug helper function
+(defun greger-parser-enable-debug ()
+  "Enable parser debug output."
+  (interactive)
+  (setq greger-parser--debug t)
+  (message "Parser debug enabled"))
+
+(defun greger-parser-disable-debug ()
+  "Disable parser debug output."
+  (interactive)
+  (setq greger-parser--debug nil)
+  (message "Parser debug disabled"))
+</tool.toolu_01M7J67jDfQfTcRHx48xsQvN>
+
+### new_content
+
+<tool.toolu_01M7J67jDfQfTcRHx48xsQvN>
+;; Global debug flag for interactive debugging
+(defvar greger-parser--global-debug nil
+  "Global debug flag for interactive debugging.")
+
+;; Debug helper functions
+(defun greger-parser-enable-debug ()
+  "Enable parser debug output."
+  (interactive)
+  (setq greger-parser--global-debug t)
+  (message "Parser debug enabled"))
+
+(defun greger-parser-disable-debug ()
+  "Disable parser debug output."
+  (interactive)
+  (setq greger-parser--global-debug nil)
+  (message "Parser debug disabled"))
+
+(defun greger-parser-parse-dialog-debug (markdown)
+  "Parse MARKDOWN into dialog format with debug enabled."
+  (greger-parser-parse-dialog markdown (or greger-parser--global-debug t)))
+</tool.toolu_01M7J67jDfQfTcRHx48xsQvN>
+
+### git_commit_message
+
+<tool.toolu_01M7J67jDfQfTcRHx48xsQvN>
+Add global debug flag and debug helper functions for interactive use
+</tool.toolu_01M7J67jDfQfTcRHx48xsQvN>
+
+## TOOL RESULT:
+
+ID: toolu_01M7J67jDfQfTcRHx48xsQvN
+
+<tool.toolu_01M7J67jDfQfTcRHx48xsQvN>
+Successfully replaced content in /Users/andreas/projects/aichat3/greger-parser.el. Successfully staged 2 file(s) and committed with message: Add global debug flag and debug helper functions for interactive use
+</tool.toolu_01M7J67jDfQfTcRHx48xsQvN>
+
+## ASSISTANT:
+
+Now I need to verify that there are no references to the old global variables left in the file. Let me search for any remaining issues:
+
+## TOOL USE:
+
+Name: ripgrep
+ID: toolu_01X78CeQAA9Pys9pcXZB6jkx
+
+### pattern
+
+<tool.toolu_01X78CeQAA9Pys9pcXZB6jkx>
+greger-parser--input|greger-parser--pos|greger-parser--length
+</tool.toolu_01X78CeQAA9Pys9pcXZB6jkx>
+
+### path
+
+<tool.toolu_01X78CeQAA9Pys9pcXZB6jkx>
+greger-parser.el
+</tool.toolu_01X78CeQAA9Pys9pcXZB6jkx>
+
+## TOOL RESULT:
+
+ID: toolu_01X78CeQAA9Pys9pcXZB6jkx
+
+<tool.toolu_01X78CeQAA9Pys9pcXZB6jkx>
+No matches found
+</tool.toolu_01X78CeQAA9Pys9pcXZB6jkx>
+
+## ASSISTANT:
+
+Great! Now let me check that all functions that need state parameters have been updated by looking for functions that might not have been converted:
+
+## TOOL USE:
+
+Name: ripgrep
+ID: toolu_01CuQsxx9mxvbBVkmaEPp5Gg
+
+### pattern
+
+<tool.toolu_01CuQsxx9mxvbBVkmaEPp5Gg>
+\(defun greger-parser.*\(\)
+</tool.toolu_01CuQsxx9mxvbBVkmaEPp5Gg>
+
+### path
+
+<tool.toolu_01CuQsxx9mxvbBVkmaEPp5Gg>
+greger-parser.el
+</tool.toolu_01CuQsxx9mxvbBVkmaEPp5Gg>
+
+## TOOL RESULT:
+
+ID: toolu_01CuQsxx9mxvbBVkmaEPp5Gg
+
+<tool.toolu_01CuQsxx9mxvbBVkmaEPp5Gg>
+162:(defun greger-parser--section-tags ()
+900:(defun greger-parser-enable-debug ()
+906:(defun greger-parser-disable-debug ()
+
+</tool.toolu_01CuQsxx9mxvbBVkmaEPp5Gg>
+
+## ASSISTANT:
+
+Good, the remaining functions without parameters are appropriate - `greger-parser--section-tags` returns constants, and the debug functions are global utilities.
+
+Let me test the refactored parser by running a simple test:
