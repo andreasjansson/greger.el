@@ -719,3 +719,161 @@ ID: toolu_01JnT6u4tHhzD8sWEHr9rde1
 87:
 88: (defun greger-parser--substring (state start &optional end)
 </tool.toolu_01JnT6u4tHhzD8sWEHr9rde1>
+
+
+## TOOL USE:
+
+Name: str-replace
+ID: toolu_01LtuPFvbubeXGprk3gdtX2m
+
+### file_path
+
+<tool.toolu_01LtuPFvbubeXGprk3gdtX2m>
+greger-parser.el
+</tool.toolu_01LtuPFvbubeXGprk3gdtX2m>
+
+### original_content
+
+<tool.toolu_01LtuPFvbubeXGprk3gdtX2m>
+(defun greger-parser--current-pos (state)
+  "Get current position from STATE."
+  (greger-parser-state-pos state))
+</tool.toolu_01LtuPFvbubeXGprk3gdtX2m>
+
+### new_content
+
+<tool.toolu_01LtuPFvbubeXGprk3gdtX2m>
+(defun greger-parser--current-pos (state)
+  "Get current position from STATE."
+  (greger-parser-state-pos state))
+
+(defun greger-parser--insert-content-at-pos (state content)
+  "Insert CONTENT into STATE at the current position and update length."
+  (let* ((pos (greger-parser-state-pos state))
+         (input (greger-parser-state-input state))
+         (before (substring input 0 pos))
+         (after (substring input pos))
+         (new-input (concat before content after)))
+    (setf (greger-parser-state-input state) new-input)
+    (setf (greger-parser-state-length state) (length new-input))))
+</tool.toolu_01LtuPFvbubeXGprk3gdtX2m>
+
+### git_commit_message
+
+<tool.toolu_01LtuPFvbubeXGprk3gdtX2m>
+Add helper function to insert content into parser state
+</tool.toolu_01LtuPFvbubeXGprk3gdtX2m>
+
+## TOOL RESULT:
+
+ID: toolu_01LtuPFvbubeXGprk3gdtX2m
+
+<tool.toolu_01LtuPFvbubeXGprk3gdtX2m>
+Successfully replaced content in /Users/andreas/projects/aichat3/greger-parser.el. Successfully staged 2 file(s) and committed with message: Add helper function to insert content into parser state
+</tool.toolu_01LtuPFvbubeXGprk3gdtX2m>
+
+## ASSISTANT:
+
+Now I need to modify the `greger-parser--include-file` function to distinguish between cases where we want to insert content for further parsing vs. cases where we want to return formatted content directly. Let me check the `greger-parser--is-web-url-p` function first:
+
+## TOOL USE:
+
+Name: ripgrep
+ID: toolu_011yJFYGicpMQAEANaU7NNEE
+
+### pattern
+
+<tool.toolu_011yJFYGicpMQAEANaU7NNEE>
+greger-parser--is-web-url-p
+</tool.toolu_011yJFYGicpMQAEANaU7NNEE>
+
+### path
+
+<tool.toolu_011yJFYGicpMQAEANaU7NNEE>
+greger-parser.el
+</tool.toolu_011yJFYGicpMQAEANaU7NNEE>
+
+## TOOL RESULT:
+
+ID: toolu_011yJFYGicpMQAEANaU7NNEE
+
+<tool.toolu_011yJFYGicpMQAEANaU7NNEE>
+274:(defun greger-parser--is-web-url-p (path)
+315:             (if (greger-parser--is-web-url-p file-path)
+335:                          (if (greger-parser--is-web-url-p file-path) "URL" "file")
+340:             (if (greger-parser--is-web-url-p file-path) "URL" "file")
+
+</tool.toolu_011yJFYGicpMQAEANaU7NNEE>
+
+## TOOL USE:
+
+Name: ripgrep
+ID: toolu_01YDCxHmxnX4MzMGzJfdfbNe
+
+### pattern
+
+<tool.toolu_01YDCxHmxnX4MzMGzJfdfbNe>
+defun greger-parser--is-web-url-p
+</tool.toolu_01YDCxHmxnX4MzMGzJfdfbNe>
+
+### path
+
+<tool.toolu_01YDCxHmxnX4MzMGzJfdfbNe>
+greger-parser.el
+</tool.toolu_01YDCxHmxnX4MzMGzJfdfbNe>
+
+### context-lines
+
+<tool.toolu_01YDCxHmxnX4MzMGzJfdfbNe>
+5
+</tool.toolu_01YDCxHmxnX4MzMGzJfdfbNe>
+
+## TOOL RESULT:
+
+ID: toolu_01YDCxHmxnX4MzMGzJfdfbNe
+
+<tool.toolu_01YDCxHmxnX4MzMGzJfdfbNe>
+274:(defun greger-parser--is-web-url-p (path)
+
+</tool.toolu_01YDCxHmxnX4MzMGzJfdfbNe>
+
+## TOOL USE:
+
+Name: read-file
+ID: toolu_01V8r6yvXfcK2RU4rnH1ix4o
+
+### path
+
+<tool.toolu_01V8r6yvXfcK2RU4rnH1ix4o>
+greger-parser.el
+</tool.toolu_01V8r6yvXfcK2RU4rnH1ix4o>
+
+### start_line
+
+<tool.toolu_01V8r6yvXfcK2RU4rnH1ix4o>
+274
+</tool.toolu_01V8r6yvXfcK2RU4rnH1ix4o>
+
+### end_line
+
+<tool.toolu_01V8r6yvXfcK2RU4rnH1ix4o>
+280
+</tool.toolu_01V8r6yvXfcK2RU4rnH1ix4o>
+
+## TOOL RESULT:
+
+ID: toolu_01V8r6yvXfcK2RU4rnH1ix4o
+
+<tool.toolu_01V8r6yvXfcK2RU4rnH1ix4o>
+(defun greger-parser--is-web-url-p (path)
+  "Return non-nil if PATH is a web URL (starts with http:// or https://)."
+  (or (string-prefix-p "http://" path)
+      (string-prefix-p "https://" path)))
+
+;; Include tag processing
+
+</tool.toolu_01V8r6yvXfcK2RU4rnH1ix4o>
+
+## ASSISTANT:
+
+Now I'll modify the `greger-parser--include-file` function to return a special indicator when content should be inserted into the state instead of being returned directly:

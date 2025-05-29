@@ -308,7 +308,9 @@ INLINE-SEPARATOR separates inline elements."
 
 (defun greger-parser--include-file (state file-path has-code-attr)
   "Include a file's content, optionally formatting as code using STATE.
-Supports both local files and web URLs (http:// or https://)."
+Supports both local files and web URLs (http:// or https://).
+For local files without code attribute, inserts content into state for recursive parsing.
+Returns nil when content is inserted, or the content string when it should be appended."
   (greger-parser--debug state "Including file: %s (code: %s)" file-path has-code-attr)
   (condition-case err
       (let ((content
@@ -327,9 +329,16 @@ Supports both local files and web URLs (http:// or https://)."
                    (eq (aref content (1- (length content))) ?\n))
           (setq content (substring content 0 -1)))
 
-        (if has-code-attr
-            (format "%s:\n```\n%s\n```" file-path content)
-          content))
+        (cond
+         ;; For files with code attribute or web URLs, return formatted content
+         ((or has-code-attr (greger-parser--is-web-url-p file-path))
+          (if has-code-attr
+              (format "%s:\n```\n%s\n```" file-path content)
+            content))
+         ;; For local files without code attribute, insert content into state for recursive parsing
+         (t
+          (greger-parser--insert-content-at-pos state content)
+          nil))) ; Return nil to indicate content was inserted
     (error
      (greger-parser--debug state "Error reading %s %s: %s"
                           (if (greger-parser--is-web-url-p file-path) "URL" "file")
