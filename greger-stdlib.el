@@ -695,8 +695,9 @@ If BUFFER is provided, it will be staged and committed along with the modified f
     (let ((git-result (greger-tools--git-stage-and-commit (list expanded-path) git-commit-message buffer)))
       (format "Successfully replaced content in %s. %s" expanded-path git-result))))
 
-(defun greger-tools--insert (file-path line-number content git-commit-message)
-  "Insert CONTENT at LINE-NUMBER in FILE-PATH."
+(defun greger-tools--insert (file-path line-number content git-commit-message &optional buffer)
+  "Insert CONTENT at LINE-NUMBER in FILE-PATH.
+If BUFFER is provided, it will be staged and committed along with the modified file."
   (unless (stringp file-path)
     (error "file_path must be a string"))
 
