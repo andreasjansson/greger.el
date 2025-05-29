@@ -296,7 +296,7 @@ Returns nil when content is inserted, or the content string when it should be ap
           nil))) ; Return nil to indicate content was inserted
     (error
      (greger-parser--debug state "Error reading %s %s: %s"
-                          (if (greger-parser--is-web-url-p file-path) "URL" "file")
+                          (if (greger-web-is-web-url-p file-path) "URL" "file")
                           file-path
                           (error-message-string err))
      ;; Return error message as content instead of failing silently
