@@ -168,18 +168,18 @@
         greger-parser-tool-result-tag
         greger-parser-thinking-tag))
 
-(defun greger-parser--find-section-tag ()
-  "Find section tag at current position if at line start."
-  (when (greger-parser--at-line-start-p)
-    (let ((tag (cl-find-if #'greger-parser--looking-at (greger-parser--section-tags))))
-      (greger-parser--debug "Found section tag: %s at pos %d" tag greger-parser--pos)
+(defun greger-parser--find-section-tag (state)
+  "Find section tag at current position if at line start in STATE."
+  (when (greger-parser--at-line-start-p state)
+    (let ((tag (cl-find-if (lambda (tag) (greger-parser--looking-at state tag)) (greger-parser--section-tags))))
+      (greger-parser--debug state "Found section tag: %s at pos %d" tag (greger-parser-state-pos state))
       tag)))
 
-(defun greger-parser--consume-section-tag (tag)
-  "Consume TAG and return it."
-  (when (greger-parser--looking-at tag)
-    (greger-parser--debug "Consuming tag: %s" tag)
-    (greger-parser--advance (length tag))
+(defun greger-parser--consume-section-tag (state tag)
+  "Consume TAG and return it in STATE."
+  (when (greger-parser--looking-at state tag)
+    (greger-parser--debug state "Consuming tag: %s" tag)
+    (greger-parser--advance state (length tag))
     tag))
 
 ;; Code block detection and skipping
