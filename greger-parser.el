@@ -381,11 +381,11 @@ Supports both local files and web URLs (http:// or https://)."
       (greger-parser--debug state "Hit max iterations in read-until-section-tag")
       (setf (greger-parser-state-pos state) (greger-parser-state-length state)))))
 
-(defun greger-parser--read-until-section ()
-  "Read content until next section."
-  (let ((start (greger-parser--current-pos)))
-    (greger-parser--read-until-section-tag)
-    (greger-parser--substring start)))
+(defun greger-parser--read-until-section (state)
+  "Read content until next section in STATE."
+  (let ((start (greger-parser--current-pos state)))
+    (greger-parser--read-until-section-tag state)
+    (greger-parser--substring state start)))
 
 (defun greger-parser--read-until-section-with-comment-removal ()
   "Read content until next section, removing HTML comments and processing include tags."

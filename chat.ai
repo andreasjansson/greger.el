@@ -2009,3 +2009,101 @@ Successfully replaced content in /Users/andreas/projects/aichat3/greger-parser.e
 ## ASSISTANT:
 
 Now I need to update the content reading functions. This is a large section, so I'll do it carefully:
+
+
+## TOOL USE:
+
+Name: str-replace
+ID: toolu_01NoMJycegaLw5nv7YB9M6fD
+
+### file_path
+
+<tool.toolu_01NoMJycegaLw5nv7YB9M6fD>
+greger-parser.el
+</tool.toolu_01NoMJycegaLw5nv7YB9M6fD>
+
+### original_content
+
+<tool.toolu_01NoMJycegaLw5nv7YB9M6fD>
+;; Content reading
+
+(defun greger-parser--read-until-section-tag ()
+  "Read characters until section tag, handling code blocks and include tags."
+  (let ((start-pos greger-parser--pos)
+        (iterations 0)
+        (max-iterations (* greger-parser--length 2))) ; Safety limit
+    (while (and (not (greger-parser--at-end-p))
+                (not (and (greger-parser--at-line-start-p)
+                          (greger-parser--find-section-tag)))
+                (< iterations max-iterations))
+      (setq iterations (1+ iterations))
+      (let ((old-pos greger-parser--pos))
+        (cond
+         ((greger-parser--at-triple-backticks)
+          (greger-parser--skip-code-block))
+         ((greger-parser--looking-at "`")
+          (greger-parser--skip-inline-code))
+         ((greger-parser--looking-at "<!--")
+          (greger-parser--skip-html-comment))
+         ((greger-parser--looking-at "<include")
+          (greger-parser--skip-include-tag))
+         (t
+          (greger-parser--advance)))
+        ;; Safety check: ensure we're making progress
+        (when (= old-pos greger-parser--pos)
+          (greger-parser--debug "No progress at pos %d, forcing advance" greger-parser--pos)
+          (greger-parser--advance))))
+    (when (>= iterations max-iterations)
+      (greger-parser--debug "Hit max iterations in read-until-section-tag")
+      (setq greger-parser--pos greger-parser--length))))
+</tool.toolu_01NoMJycegaLw5nv7YB9M6fD>
+
+### new_content
+
+<tool.toolu_01NoMJycegaLw5nv7YB9M6fD>
+;; Content reading
+
+(defun greger-parser--read-until-section-tag (state)
+  "Read characters until section tag, handling code blocks and include tags in STATE."
+  (let ((start-pos (greger-parser-state-pos state))
+        (iterations 0)
+        (max-iterations (* (greger-parser-state-length state) 2))) ; Safety limit
+    (while (and (not (greger-parser--at-end-p state))
+                (not (and (greger-parser--at-line-start-p state)
+                          (greger-parser--find-section-tag state)))
+                (< iterations max-iterations))
+      (setq iterations (1+ iterations))
+      (let ((old-pos (greger-parser-state-pos state)))
+        (cond
+         ((greger-parser--at-triple-backticks state)
+          (greger-parser--skip-code-block state))
+         ((greger-parser--looking-at state "`")
+          (greger-parser--skip-inline-code state))
+         ((greger-parser--looking-at state "<!--")
+          (greger-parser--skip-html-comment state))
+         ((greger-parser--looking-at state "<include")
+          (greger-parser--skip-include-tag state))
+         (t
+          (greger-parser--advance state)))
+        ;; Safety check: ensure we're making progress
+        (when (= old-pos (greger-parser-state-pos state))
+          (greger-parser--debug state "No progress at pos %d, forcing advance" (greger-parser-state-pos state))
+          (greger-parser--advance state))))
+    (when (>= iterations max-iterations)
+      (greger-parser--debug state "Hit max iterations in read-until-section-tag")
+      (setf (greger-parser-state-pos state) (greger-parser-state-length state)))))
+</tool.toolu_01NoMJycegaLw5nv7YB9M6fD>
+
+### git_commit_message
+
+<tool.toolu_01NoMJycegaLw5nv7YB9M6fD>
+Update read-until-section-tag function to use state parameter
+</tool.toolu_01NoMJycegaLw5nv7YB9M6fD>
+
+## TOOL RESULT:
+
+ID: toolu_01NoMJycegaLw5nv7YB9M6fD
+
+<tool.toolu_01NoMJycegaLw5nv7YB9M6fD>
+Successfully replaced content in /Users/andreas/projects/aichat3/greger-parser.el. Successfully staged 2 file(s) and committed with message: Update read-until-section-tag function to use state parameter
+</tool.toolu_01NoMJycegaLw5nv7YB9M6fD>
