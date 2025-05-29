@@ -735,7 +735,7 @@ Always returns focus to the original window after executing BODY."
               (length content) line-number expanded-path git-result))))
 
 (defun greger-tools--git-log (path)
-  "View git commit logs using magit in a split screen for PATH."
+  "View git commit logs using git command line for PATH."
   (unless (stringp path)
     (error "path must be a string"))
 
@@ -745,21 +745,22 @@ Always returns focus to the original window after executing BODY."
       (error "Path does not exist: %s" expanded-path))
 
     ;; Find git repository root
-    (let ((repo-root (magit-toplevel expanded-path)))
+    (let ((repo-root (greger-tools--find-git-repo-root expanded-path)))
       (unless repo-root
         (error "Path %s is not in a git repository" expanded-path))
 
       (condition-case err
-          (let ((default-directory repo-root)
-                (magit-save-repository-buffers nil)
-                (results))
-            (with-current-buffer (magit-log-all '())
-              (setq results (buffer-substring-no-properties (point-min) (point-max)))
-              (magit-log-bury-buffer 0))
-
-            (if (string-empty-p (string-trim results))
-                "No git log available"
-              results))
+          (let ((default-directory repo-root))
+            (with-temp-buffer
+              (let ((exit-code (call-process "git" nil t nil "log"
+                                           "--oneline" "--decorate" "--graph"
+                                           "--max-count=50")))
+                (if (= exit-code 0)
+                    (let ((results (buffer-string)))
+                      (if (string-empty-p (string-trim results))
+                          "No git log available"
+                        results))
+                  (error "Git log command failed with exit code %d" exit-code)))))
         (error (format "Failed to retrieve git log: %s" (error-message-string err)))))))
 
 (defun greger-tools--git-show-commit (commit-hash path)
