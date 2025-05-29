@@ -269,11 +269,11 @@ Returns nil when content is inserted, or the content string when it should be ap
   (greger-parser--debug state "Including file: %s (code: %s)" file-path has-code-attr)
   (condition-case err
       (let ((content
-             (if (greger-parser--is-web-url-p file-path)
+             (if (greger-web-is-web-url-p file-path)
                  ;; Handle web URL
                  (progn
                    (greger-parser--debug state "Downloading content from URL: %s" file-path)
-                   (greger-parser--text-from-url file-path t)) ; Use readability heuristics
+                   (greger-web-text-from-url file-path t)) ; Use readability heuristics
                ;; Handle local file
                (with-temp-buffer
                  (insert-file-contents file-path)

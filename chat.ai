@@ -2235,3 +2235,318 @@ Successfully replaced content in /Users/andreas/projects/aichat3/greger-parser.e
 ## ASSISTANT:
 
 Now I need to remove the web-related functions from greger-parser.el:
+
+
+## TOOL USE:
+
+Name: str-replace
+ID: toolu_014MzXuNR9dPepTA3ZTEgCre
+
+### file_path
+
+<tool.toolu_014MzXuNR9dPepTA3ZTEgCre>
+greger-parser.el
+</tool.toolu_014MzXuNR9dPepTA3ZTEgCre>
+
+### original_content
+
+<tool.toolu_014MzXuNR9dPepTA3ZTEgCre>
+;; Web URL text extraction (inspired by old aichat parser)
+
+(defun greger-parser--text-from-url (url &optional use-highest-readability)
+  "Retrieve the text content from URL.
+If USE-HIGHEST-READABILITY is non-nil, use eww's readability heuristics."
+  (with-current-buffer
+      (url-retrieve-synchronously url t nil 10.0)
+    ;; Skip HTTP headers - they end with a double newline
+    (goto-char (point-min))
+    (when (re-search-forward "\r?\n\r?\n" nil t)
+      (delete-region (point-min) (point)))
+
+    ;; Parse the HTML content
+    (let ((dom (libxml-parse-html-region (point-min) (point-max))))
+      (when use-highest-readability
+        (setq dom (eww-highest-readability dom))
+        (eww-score-readability dom))
+      (greger-parser--dom-texts-inline-aware dom))))
+
+(defun greger-parser--dom-texts-inline-aware (node &optional block-separator inline-separator)
+  "Extract text from the DOM NODE, aware of inline and block elements.
+BLOCK-SEPARATOR separates block elements.
+INLINE-SEPARATOR separates inline elements."
+  (let ((block-separator (or block-separator "\n"))
+        (inline-separator (or inline-separator " ")))
+    (mapconcat
+     (lambda (elem)
+       (cond
+        ((stringp elem)
+         (when (> (length (string-trim elem)) 0)
+           elem))
+        ((memq (dom-tag elem) '(head meta script style details footer)) "")
+        ((memq (dom-tag elem) '(p div h1 h2 h3 h4 h5 h6 pre br hr ul ol li))
+         (concat (greger-parser--dom-texts-inline-aware elem block-separator inline-separator)
+                 block-separator))
+        (t
+         (greger-parser--dom-texts-inline-aware elem block-separator inline-separator))))
+     (dom-children node)
+     inline-separator)))
+
+(defun greger-parser--is-web-url-p (path)
+  "Return non-nil if PATH is a web URL (starts with http:// or https://)."
+  (or (string-prefix-p "http://" path)
+      (string-prefix-p "https://" path)))
+</tool.toolu_014MzXuNR9dPepTA3ZTEgCre>
+
+### new_content
+
+<tool.toolu_014MzXuNR9dPepTA3ZTEgCre>
+;; Web URL text extraction (moved to greger-web.el)
+</tool.toolu_014MzXuNR9dPepTA3ZTEgCre>
+
+### git_commit_message
+
+<tool.toolu_014MzXuNR9dPepTA3ZTEgCre>
+Remove web-related functions from greger-parser.el (moved to greger-web.el)
+</tool.toolu_014MzXuNR9dPepTA3ZTEgCre>
+
+## TOOL RESULT:
+
+ID: toolu_014MzXuNR9dPepTA3ZTEgCre
+
+<tool.toolu_014MzXuNR9dPepTA3ZTEgCre>
+Successfully replaced content in /Users/andreas/projects/aichat3/greger-parser.el. Successfully staged 2 file(s) and committed with message: Remove web-related functions from greger-parser.el (moved to greger-web.el)
+</tool.toolu_014MzXuNR9dPepTA3ZTEgCre>
+
+## ASSISTANT:
+
+Now I need to update the function calls to use the new module:
+
+## TOOL USE:
+
+Name: str-replace
+ID: toolu_01MxD6YWo8qGBP7qNQqSt9hS
+
+### file_path
+
+<tool.toolu_01MxD6YWo8qGBP7qNQqSt9hS>
+greger-parser.el
+</tool.toolu_01MxD6YWo8qGBP7qNQqSt9hS>
+
+### original_content
+
+<tool.toolu_01MxD6YWo8qGBP7qNQqSt9hS>
+         (let ((content
+              (if (greger-parser--is-web-url-p file-path)
+                  ;; Handle web URL
+                  (progn
+                    (greger-parser--debug state "Downloading content from URL: %s" file-path)
+                    (greger-parser--text-from-url file-path t)) ; Use readability heuristics
+</tool.toolu_01MxD6YWo8qGBP7qNQqSt9hS>
+
+### new_content
+
+<tool.toolu_01MxD6YWo8qGBP7qNQqSt9hS>
+         (let ((content
+              (if (greger-web-is-web-url-p file-path)
+                  ;; Handle web URL
+                  (progn
+                    (greger-parser--debug state "Downloading content from URL: %s" file-path)
+                    (greger-web-text-from-url file-path t)) ; Use readability heuristics
+</tool.toolu_01MxD6YWo8qGBP7qNQqSt9hS>
+
+### git_commit_message
+
+<tool.toolu_01MxD6YWo8qGBP7qNQqSt9hS>
+Update function calls to use greger-web functions
+</tool.toolu_01MxD6YWo8qGBP7qNQqSt9hS>
+
+## TOOL RESULT:
+
+ID: toolu_01MxD6YWo8qGBP7qNQqSt9hS
+
+<tool.toolu_01MxD6YWo8qGBP7qNQqSt9hS>
+Error executing tool: Original content not found in file: /Users/andreas/projects/aichat3/greger-parser.el -- Try again!
+</tool.toolu_01MxD6YWo8qGBP7qNQqSt9hS>
+
+## ASSISTANT:
+
+Let me check the exact content around that area:
+
+## TOOL USE:
+
+Name: read-file
+ID: toolu_01KFzfv1DaRLJavPuiFPaaYF
+
+### path
+
+<tool.toolu_01KFzfv1DaRLJavPuiFPaaYF>
+greger-parser.el
+</tool.toolu_01KFzfv1DaRLJavPuiFPaaYF>
+
+### start_line
+
+<tool.toolu_01KFzfv1DaRLJavPuiFPaaYF>
+310
+</tool.toolu_01KFzfv1DaRLJavPuiFPaaYF>
+
+### end_line
+
+<tool.toolu_01KFzfv1DaRLJavPuiFPaaYF>
+330
+</tool.toolu_01KFzfv1DaRLJavPuiFPaaYF>
+
+## TOOL RESULT:
+
+ID: toolu_01KFzfv1DaRLJavPuiFPaaYF
+
+<tool.toolu_01KFzfv1DaRLJavPuiFPaaYF>
+  (greger-parser--advance state 8) ; Skip "<include"
+
+  ;; Skip optional "code" attribute
+  (greger-parser--skip-horizontal-whitespace state)
+  (when (greger-parser--looking-at state "code")
+    (greger-parser--advance state 4)
+    (greger-parser--skip-horizontal-whitespace state))
+
+  ;; Skip to closing bracket of opening tag
+  (when (greger-parser--looking-at state ">")
+    (greger-parser--advance state 1)
+
+    ;; Skip to closing tag
+    (when (greger-parser--find-closing-tag state "</include>")
+      (greger-parser--advance state 10)))) ; Skip "</include>"
+
+;; Content reading
+
+(defun greger-parser--read-until-section-tag (state)
+  "Read characters until section tag, handling code blocks and include tags in STATE."
+  (let ((start-pos (greger-parser-state-pos state))
+</tool.toolu_01KFzfv1DaRLJavPuiFPaaYF>
+
+## ASSISTANT:
+
+Let me search for the function calls that need to be updated:
+
+## TOOL USE:
+
+Name: ripgrep
+ID: toolu_015TxwygDduh7SKE2CrX9t6k
+
+### pattern
+
+<tool.toolu_015TxwygDduh7SKE2CrX9t6k>
+greger-parser--.*-web-url-p|greger-parser--text-from-url
+</tool.toolu_015TxwygDduh7SKE2CrX9t6k>
+
+### path
+
+<tool.toolu_015TxwygDduh7SKE2CrX9t6k>
+greger-parser.el
+</tool.toolu_015TxwygDduh7SKE2CrX9t6k>
+
+## TOOL RESULT:
+
+ID: toolu_015TxwygDduh7SKE2CrX9t6k
+
+<tool.toolu_015TxwygDduh7SKE2CrX9t6k>
+272:             (if (greger-parser--is-web-url-p file-path)
+276:                   (greger-parser--text-from-url file-path t)) ; Use readability heuristics
+289:         ((or has-code-attr (greger-parser--is-web-url-p file-path))
+299:                          (if (greger-parser--is-web-url-p file-path) "URL" "file")
+304:             (if (greger-parser--is-web-url-p file-path) "URL" "file")
+
+</tool.toolu_015TxwygDduh7SKE2CrX9t6k>
+
+## ASSISTANT:
+
+Now I can update these calls:
+
+## TOOL USE:
+
+Name: str-replace
+ID: toolu_016QEXnLSonbFK11KmszTkQR
+
+### file_path
+
+<tool.toolu_016QEXnLSonbFK11KmszTkQR>
+greger-parser.el
+</tool.toolu_016QEXnLSonbFK11KmszTkQR>
+
+### original_content
+
+<tool.toolu_016QEXnLSonbFK11KmszTkQR>
+             (if (greger-parser--is-web-url-p file-path)
+                  ;; Handle web URL
+                  (progn
+                    (greger-parser--debug state "Downloading content from URL: %s" file-path)
+                    (greger-parser--text-from-url file-path t)) ; Use readability heuristics
+</tool.toolu_016QEXnLSonbFK11KmszTkQR>
+
+### new_content
+
+<tool.toolu_016QEXnLSonbFK11KmszTkQR>
+             (if (greger-web-is-web-url-p file-path)
+                  ;; Handle web URL
+                  (progn
+                    (greger-parser--debug state "Downloading content from URL: %s" file-path)
+                    (greger-web-text-from-url file-path t)) ; Use readability heuristics
+</tool.toolu_016QEXnLSonbFK11KmszTkQR>
+
+### git_commit_message
+
+<tool.toolu_016QEXnLSonbFK11KmszTkQR>
+Update greger-parser--include-file to use greger-web functions
+</tool.toolu_016QEXnLSonbFK11KmszTkQR>
+
+## TOOL RESULT:
+
+ID: toolu_016QEXnLSonbFK11KmszTkQR
+
+<tool.toolu_016QEXnLSonbFK11KmszTkQR>
+Error executing tool: Original content not found in file: /Users/andreas/projects/aichat3/greger-parser.el -- Try again!
+</tool.toolu_016QEXnLSonbFK11KmszTkQR>
+
+## ASSISTANT:
+
+Let me check the exact content around line 272:
+
+## TOOL USE:
+
+Name: read-file
+ID: toolu_012jbJrcqHHgJJBTNvxkBmrY
+
+### path
+
+<tool.toolu_012jbJrcqHHgJJBTNvxkBmrY>
+greger-parser.el
+</tool.toolu_012jbJrcqHHgJJBTNvxkBmrY>
+
+### start_line
+
+<tool.toolu_012jbJrcqHHgJJBTNvxkBmrY>
+270
+</tool.toolu_012jbJrcqHHgJJBTNvxkBmrY>
+
+### end_line
+
+<tool.toolu_012jbJrcqHHgJJBTNvxkBmrY>
+280
+</tool.toolu_012jbJrcqHHgJJBTNvxkBmrY>
+
+## TOOL RESULT:
+
+ID: toolu_012jbJrcqHHgJJBTNvxkBmrY
+
+<tool.toolu_012jbJrcqHHgJJBTNvxkBmrY>
+  (condition-case err
+      (let ((content
+             (if (greger-parser--is-web-url-p file-path)
+                 ;; Handle web URL
+                 (progn
+                   (greger-parser--debug state "Downloading content from URL: %s" file-path)
+                   (greger-parser--text-from-url file-path t)) ; Use readability heuristics
+               ;; Handle local file
+               (with-temp-buffer
+                 (insert-file-contents file-path)
+                 (buffer-string)))))
+</tool.toolu_012jbJrcqHHgJJBTNvxkBmrY>
