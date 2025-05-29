@@ -783,8 +783,11 @@ Always returns focus to the original window after executing BODY."
     (unless (file-exists-p expanded-path)
       (error "Path does not exist: %s" expanded-path))
 
-    ;; Find git repository root
-    (let ((repo-root (greger-tools--find-git-repo-root expanded-path)))
+    ;; Get the directory to search for git repo (if path is a file, use its directory)
+    (let* ((search-dir (if (file-directory-p expanded-path)
+                          expanded-path
+                        (file-name-directory expanded-path)))
+           (repo-root (greger-tools--find-git-repo-root search-dir)))
       (unless repo-root
         (error "Path %s is not in a git repository" expanded-path))
 
