@@ -1326,3 +1326,66 @@ Now I understand the current structure. Let me analyze what needs to be changed:
 Let me start by implementing these changes:
 
 ## 1. First, let's create the `greger-stream-to-buffer` function:
+
+
+## TOOL USE:
+
+Name: str-replace
+ID: toolu_01SpDLDmuz75MR6oCKSXQpcv
+
+### file_path
+
+<tool.toolu_01SpDLDmuz75MR6oCKSXQpcv>
+greger-stream.el
+</tool.toolu_01SpDLDmuz75MR6oCKSXQpcv>
+
+### original_content
+
+<tool.toolu_01SpDLDmuz75MR6oCKSXQpcv>
+;;; Public API
+
+(cl-defun greger-stream-to-buffer-with-tools (&key model dialog tools buffer complete-callback cancel-callback)
+</tool.toolu_01SpDLDmuz75MR6oCKSXQpcv>
+
+### new_content
+
+<tool.toolu_01SpDLDmuz75MR6oCKSXQpcv>
+;;; Public API
+
+(cl-defun greger-stream-to-buffer (&key model dialog buffer text-start-callback text-callback complete-callback cancel-callback)
+  "Send streaming request for MODEL with DIALOG, inserting text into BUFFER.
+TEXT-START-CALLBACK is called when text streaming starts.
+TEXT-CALLBACK is called for each text chunk with (state text).
+COMPLETE-CALLBACK is called when done with the parsed content blocks array.
+CANCEL-CALLBACK is called if cancelled.
+BUFFER defaults to current buffer if not specified."
+  (greger-stream-to-buffer-with-tools
+   :model model
+   :dialog dialog
+   :tools nil
+   :buffer buffer
+   :text-start-callback text-start-callback
+   :text-callback text-callback
+   :complete-callback complete-callback
+   :cancel-callback cancel-callback))
+
+(cl-defun greger-stream-to-buffer-with-tools (&key model dialog tools buffer text-start-callback text-callback complete-callback cancel-callback)
+</tool.toolu_01SpDLDmuz75MR6oCKSXQpcv>
+
+### git_commit_message
+
+<tool.toolu_01SpDLDmuz75MR6oCKSXQpcv>
+Add greger-stream-to-buffer function with new callback parameters
+</tool.toolu_01SpDLDmuz75MR6oCKSXQpcv>
+
+## TOOL RESULT:
+
+ID: toolu_01SpDLDmuz75MR6oCKSXQpcv
+
+<tool.toolu_01SpDLDmuz75MR6oCKSXQpcv>
+Successfully replaced content in /Users/andreas/projects/aichat3/greger-stream.el. Successfully staged 2 file(s) and committed with message: Add greger-stream-to-buffer function with new callback parameters
+</tool.toolu_01SpDLDmuz75MR6oCKSXQpcv>
+
+## ASSISTANT:
+
+## 2. Now let's update the greger-stream-to-buffer-with-tools function to use the new callbacks and remove insert-position:

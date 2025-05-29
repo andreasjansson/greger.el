@@ -48,11 +48,12 @@ BUFFER defaults to current buffer if not specified."
 
 (cl-defun greger-stream-to-buffer-with-tools (&key model dialog tools buffer text-start-callback text-callback complete-callback cancel-callback)
   "Send streaming request for MODEL with DIALOG and TOOLS, inserting text into BUFFER.
+TEXT-START-CALLBACK is called when text streaming starts.
+TEXT-CALLBACK is called for each text chunk with (state text).
 COMPLETE-CALLBACK is called when done with the parsed content blocks array.
 CANCEL-CALLBACK is called if cancelled.
 BUFFER defaults to current buffer if not specified."
   (let* ((output-buffer (or buffer (current-buffer)))
-         (insert-position (point))
          (undo-handle (prepare-change-group output-buffer))
          (original-quit-binding (local-key-binding (kbd "C-g")))
          (provider-config (greger-providers-get-config model))
@@ -63,9 +64,6 @@ BUFFER defaults to current buffer if not specified."
                                               (greger-stream-state-original-quit-binding state))
                                (undo-amalgamate-change-group (greger-stream-state-undo-handle state))
                                (accept-change-group (greger-stream-state-undo-handle state)))))
-         (text-start-callback (lambda (state)
-                                (greger-stream--insert state (concat "\n\n" greger-assistant-tag "\n\n")))
-                              )
          (wrapped-complete-callback (lambda (parsed-blocks state)
                                       (when complete-callback
                                         (funcall complete-callback parsed-blocks))))
@@ -76,12 +74,11 @@ BUFFER defaults to current buffer if not specified."
                  :parsed-content-blocks '()
                  :process process
                  :text-start-callback text-start-callback
-                 :text-callback 'greger-stream--insert
+                 :text-callback text-callback
                  :complete-callback wrapped-complete-callback
                  :cancel-callback cancel-callback
                  :restore-callback restore-callback
                  :output-buffer output-buffer
-                 :insert-position insert-position
                  :undo-handle undo-handle
                  :original-quit-binding original-quit-binding)))
 
