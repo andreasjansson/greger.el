@@ -652,8 +652,9 @@ If BUFFER is provided, it will be staged and committed along with the modified f
       (format "Successfully replaced contents of %s with %d characters. %s"
               expanded-path (length contents) git-result))))
 
-(defun greger-tools--str-replace (file-path original-content new-content git-commit-message)
-  "Replace ORIGINAL-CONTENT with NEW-CONTENT in FILE-PATH."
+(defun greger-tools--str-replace (file-path original-content new-content git-commit-message &optional buffer)
+  "Replace ORIGINAL-CONTENT with NEW-CONTENT in FILE-PATH.
+If BUFFER is provided, it will be staged and committed along with the modified file."
   (unless (stringp file-path)
     (error "file_path must be a string"))
 
