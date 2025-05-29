@@ -429,24 +429,7 @@ If END-LINE is specified, stop reading at that line (inclusive, 1-based)."
                 output)))
         (error (format "Failed to execute ripgrep search: %s" (error-message-string err)))))))
 
-(defmacro greger-tools--with-split-window (&rest body)
-  "Execute BODY in a split window context, returning focus to original window.
-If not split, split horizontally and select other window.
-If already split, select next window.
-Always returns focus to the original window after executing BODY."
-  `(let ((original-window (selected-window)))
-     (unwind-protect
-         (progn
-           (if (= (length (window-list)) 1)
-               ;; Not split, split horizontally and select other window
-               (progn
-                 (split-window-horizontally)
-                 (other-window 1))
-             ;; Already split, select next window
-             (other-window 1))
-           ,@body)
-       ;; Always return to original window
-       (select-window original-window))))
+
 
 (defun greger-tools--write-new-file (file-path contents git-commit-message &optional buffer)
   "Write CONTENTS to a new file at FILE-PATH. Fails if file already exists.
