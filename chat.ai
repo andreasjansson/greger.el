@@ -2301,3 +2301,55 @@ ID: toolu_01E1JkDgHi4ra1F4P74udqG7
 <tool.toolu_01E1JkDgHi4ra1F4P74udqG7>
 Successfully replaced content in /Users/andreas/projects/aichat3/greger-parser.el. Successfully staged 2 file(s) and committed with message: Update read-until-section-with-comment-removal function to use state parameter
 </tool.toolu_01E1JkDgHi4ra1F4P74udqG7>
+
+
+## TOOL USE:
+
+Name: str-replace
+ID: toolu_01JGbVeHo5Utd29DHaedUJXr
+
+### file_path
+
+<tool.toolu_01JGbVeHo5Utd29DHaedUJXr>
+greger-parser.el
+</tool.toolu_01JGbVeHo5Utd29DHaedUJXr>
+
+### original_content
+
+<tool.toolu_01JGbVeHo5Utd29DHaedUJXr>
+(defun greger-parser--parse-section-content ()
+  "Parse content until next section, skipping HTML comments."
+  (greger-parser--skip-whitespace)
+  (let ((content (greger-parser--read-until-section-with-comment-removal)))
+    (when (and content (not (string-empty-p (string-trim content))))
+      (string-trim content))))
+</tool.toolu_01JGbVeHo5Utd29DHaedUJXr>
+
+### new_content
+
+<tool.toolu_01JGbVeHo5Utd29DHaedUJXr>
+(defun greger-parser--parse-section-content (state)
+  "Parse content until next section, skipping HTML comments in STATE."
+  (greger-parser--skip-whitespace state)
+  (let ((content (greger-parser--read-until-section-with-comment-removal state)))
+    (when (and content (not (string-empty-p (string-trim content))))
+      (string-trim content))))
+</tool.toolu_01JGbVeHo5Utd29DHaedUJXr>
+
+### git_commit_message
+
+<tool.toolu_01JGbVeHo5Utd29DHaedUJXr>
+Update parse-section-content function to use state parameter
+</tool.toolu_01JGbVeHo5Utd29DHaedUJXr>
+
+## TOOL RESULT:
+
+ID: toolu_01JGbVeHo5Utd29DHaedUJXr
+
+<tool.toolu_01JGbVeHo5Utd29DHaedUJXr>
+Successfully replaced content in /Users/andreas/projects/aichat3/greger-parser.el. Successfully staged 2 file(s) and committed with message: Update parse-section-content function to use state parameter
+</tool.toolu_01JGbVeHo5Utd29DHaedUJXr>
+
+## ASSISTANT:
+
+Now I need to update the high-level parsing functions:

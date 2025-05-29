@@ -451,36 +451,36 @@ Supports both local files and web URLs (http:// or https://)."
 
 ;; High-level parsing
 
-(defun greger-parser--parse-document ()
-  "Parse entire document."
-  (greger-parser--skip-whitespace)
-  (if (greger-parser--at-end-p)
+(defun greger-parser--parse-document (state)
+  "Parse entire document using STATE."
+  (greger-parser--skip-whitespace state)
+  (if (greger-parser--at-end-p state)
       '()
     (let ((sections '())
           (iterations 0)
           (max-iterations 1000)) ; Safety limit
       ;; Handle untagged content at start
-      (let ((untagged (greger-parser--parse-untagged-content)))
+      (let ((untagged (greger-parser--parse-untagged-content state)))
         (when untagged
           (push untagged sections)))
 
       ;; Parse tagged sections
-      (while (and (not (greger-parser--at-end-p))
+      (while (and (not (greger-parser--at-end-p state))
                   (< iterations max-iterations))
         (setq iterations (1+ iterations))
-        (let ((old-pos greger-parser--pos))
-          (greger-parser--skip-whitespace)
-          (when (not (greger-parser--at-end-p))
-            (let ((section (greger-parser--parse-section)))
+        (let ((old-pos (greger-parser-state-pos state)))
+          (greger-parser--skip-whitespace state)
+          (when (not (greger-parser--at-end-p state))
+            (let ((section (greger-parser--parse-section state)))
               (when section
                 (push section sections))))
           ;; Safety check: ensure we're making progress
-          (when (= old-pos greger-parser--pos)
-            (greger-parser--debug "No progress in document parsing at pos %d, breaking" greger-parser--pos)
+          (when (= old-pos (greger-parser-state-pos state))
+            (greger-parser--debug state "No progress in document parsing at pos %d, breaking" (greger-parser-state-pos state))
             (break))))
 
       (when (>= iterations max-iterations)
-        (greger-parser--debug "Hit max iterations in parse-document"))
+        (greger-parser--debug state "Hit max iterations in parse-document"))
 
       (greger-parser--merge-consecutive-messages (reverse sections)))))
 
