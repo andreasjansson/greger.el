@@ -2929,3 +2929,63 @@ Create greger-test-stdlib.el and write a test to test the new greger-tools--read
 ## ASSISTANT:
 
 I'll rename the tool to `read-webpage` and create a test file for it.
+
+
+## TOOL USE:
+
+Name: str-replace
+ID: toolu_01SHVjNxrn78yn3vcDU3XqSk
+
+### file_path
+
+<tool.toolu_01SHVjNxrn78yn3vcDU3XqSk>
+greger-stdlib.el
+</tool.toolu_01SHVjNxrn78yn3vcDU3XqSk>
+
+### original_content
+
+<tool.toolu_01SHVjNxrn78yn3vcDU3XqSk>
+(greger-register-tool "download-webpage"
+  :description "Download webpage content from a URL. Can return either extracted text or raw HTML."
+  :properties '((url . ((type . "string")
+                        (description . "The URL to download content from")))
+                (extract_text . ((type . "boolean")
+                                 (description . "Whether to extract text content or return raw HTML")
+                                 (default . t)))
+                (use_highest_readability . ((type . "boolean")
+                                            (description . "Whether to use eww's aggressive highest readability setting for better text extraction")
+                                            (default . nil))))
+  :required '("url")
+  :function 'greger-tools--download-webpage)
+</tool.toolu_01SHVjNxrn78yn3vcDU3XqSk>
+
+### new_content
+
+<tool.toolu_01SHVjNxrn78yn3vcDU3XqSk>
+(greger-register-tool "read-webpage"
+  :description "Read webpage content from a URL. Can return either extracted text or raw HTML."
+  :properties '((url . ((type . "string")
+                        (description . "The URL to read content from")))
+                (extract_text . ((type . "boolean")
+                                 (description . "Whether to extract text content or return raw HTML")
+                                 (default . t)))
+                (use_highest_readability . ((type . "boolean")
+                                            (description . "Whether to use eww's aggressive highest readability setting for better text extraction")
+                                            (default . nil))))
+  :required '("url")
+  :function 'greger-tools--read-webpage)
+</tool.toolu_01SHVjNxrn78yn3vcDU3XqSk>
+
+### git_commit_message
+
+<tool.toolu_01SHVjNxrn78yn3vcDU3XqSk>
+Rename download-webpage tool to read-webpage
+</tool.toolu_01SHVjNxrn78yn3vcDU3XqSk>
+
+## TOOL RESULT:
+
+ID: toolu_01SHVjNxrn78yn3vcDU3XqSk
+
+<tool.toolu_01SHVjNxrn78yn3vcDU3XqSk>
+Successfully replaced content in /Users/andreas/projects/aichat3/greger-stdlib.el. Successfully staged 2 file(s) and committed with message: Rename download-webpage tool to read-webpage
+</tool.toolu_01SHVjNxrn78yn3vcDU3XqSk>

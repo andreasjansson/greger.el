@@ -970,8 +970,8 @@ Prompts for permission before running the command for security."
                         output))))
         (error (format "Failed to execute shell command: %s" (error-message-string err)))))))
 
-(defun greger-tools--download-webpage (url &optional extract-text use-highest-readability)
-  "Download webpage content from URL.
+(defun greger-tools--read-webpage (url &optional extract-text use-highest-readability)
+  "Read webpage content from URL.
 If EXTRACT-TEXT is non-nil (default t), extract and return text content.
 If EXTRACT-TEXT is nil, return raw HTML.
 If USE-HIGHEST-READABILITY is non-nil, use eww's aggressive readability setting."
@@ -987,10 +987,10 @@ If USE-HIGHEST-READABILITY is non-nil, use eww's aggressive readability setting.
   (condition-case err
       (let ((content (greger-web-download-page url extract-text use-highest-readability)))
         (if extract-text
-            (format "Successfully downloaded and extracted text from %s (%d characters):\n\n%s"
+            (format "Successfully read and extracted text from %s (%d characters):\n\n%s"
                     url (length content) content)
-          (format "Successfully downloaded raw HTML from %s (%d characters):\n\n%s"
+          (format "Successfully read raw HTML from %s (%d characters):\n\n%s"
                   url (length content) content)))
-    (error (format "Failed to download webpage: %s" (error-message-string err)))))
+    (error (format "Failed to read webpage: %s" (error-message-string err)))))
 
 ;;; greger-stdlib.el ends here
