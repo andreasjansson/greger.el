@@ -484,30 +484,30 @@ Supports both local files and web URLs (http:// or https://)."
 
       (greger-parser--merge-consecutive-messages (reverse sections)))))
 
-(defun greger-parser--parse-untagged-content ()
-  "Parse content before first section tag."
-  (let ((content (greger-parser--parse-section-content)))
+(defun greger-parser--parse-untagged-content (state)
+  "Parse content before first section tag using STATE."
+  (let ((content (greger-parser--parse-section-content state)))
     (when content
       (greger-parser--create-user-message content))))
 
-(defun greger-parser--parse-section ()
-  "Parse a section starting with a tag."
-  (let ((tag (greger-parser--find-section-tag)))
+(defun greger-parser--parse-section (state)
+  "Parse a section starting with a tag using STATE."
+  (let ((tag (greger-parser--find-section-tag state)))
     (when tag
-      (greger-parser--consume-section-tag tag)
+      (greger-parser--consume-section-tag state tag)
       (cond
        ((string= tag greger-parser-user-tag)
-        (greger-parser--parse-user-section))
+        (greger-parser--parse-user-section state))
        ((string= tag greger-parser-assistant-tag)
-        (greger-parser--parse-assistant-section))
+        (greger-parser--parse-assistant-section state))
        ((string= tag greger-parser-system-tag)
-        (greger-parser--parse-system-section))
+        (greger-parser--parse-system-section state))
        ((string= tag greger-parser-thinking-tag)
-        (greger-parser--parse-thinking-section))
+        (greger-parser--parse-thinking-section state))
        ((string= tag greger-parser-tool-use-tag)
-        (greger-parser--parse-tool-use-section))
+        (greger-parser--parse-tool-use-section state))
        ((string= tag greger-parser-tool-result-tag)
-        (greger-parser--parse-tool-result-section))))))
+        (greger-parser--parse-tool-result-section state))))))
 
 ;; Section parsers
 
