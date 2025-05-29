@@ -1077,3 +1077,135 @@ I can see that the following functions use `greger-tools--with-split-window`:
 Now I'll update each of these functions to work in the background without using split windows. I'll need to replace the `greger-tools--with-split-window` calls with simple background operations using `with-current-buffer` and `find-file-noselect`.
 
 Let's start with `greger-tools--replace-function`:
+
+
+## TOOL USE:
+
+Name: str-replace
+ID: toolu_019w6ekNpkrgPdQzkQLkFkHo
+
+### file_path
+
+<tool.toolu_019w6ekNpkrgPdQzkQLkFkHo>
+greger-stdlib.el
+</tool.toolu_019w6ekNpkrgPdQzkQLkFkHo>
+
+### original_content
+
+<tool.toolu_019w6ekNpkrgPdQzkQLkFkHo>
+    (greger-tools--with-split-window
+     (find-file expanded-path)
+
+     ;; Go to the specified line number
+     (goto-line line-number)
+
+     ;; Verify function name is at this line
+     (beginning-of-line)
+     (let ((line-content (buffer-substring-no-properties
+                          (line-beginning-position)
+                          (line-end-position))))
+
+       ;; Check if function is defined on this line based on file type
+       (let ((function-pattern
+              (cond
+               ((string-suffix-p ".py" expanded-path)
+                (format "^\\s-*def\\s-+%s\\s-*(" (regexp-quote function-name)))
+               ((string-suffix-p ".el" expanded-path)
+                (format "^\\s-*(defun\\s-+%s\\s-*(" (regexp-quote function-name)))
+               (t (error "Unsupported file type")))))
+
+         (unless (string-match-p function-pattern line-content)
+           (error "Function '%s' not found at line %d in %s. Line content: %s"
+                  function-name line-number expanded-path line-content))))
+
+     ;; Delete the existing function using end-of-defun then beginning-of-defun
+     (let (start-pos end-pos)
+       ;; First go to end of defun to get the end position
+       (end-of-defun)
+       (setq end-pos (point))
+
+       ;; Then go to beginning of defun to get start position
+       (beginning-of-defun)
+       (setq start-pos (point))
+
+       ;; Delete the function
+       (delete-region start-pos end-pos)
+
+       ;; Insert new contents
+       (insert contents)
+
+       ;; Ensure there's a newline at the end if not present
+       (unless (string-suffix-p "\n" contents)
+         (insert "\n")))
+
+     ;; Save the file
+     (save-buffer))
+</tool.toolu_019w6ekNpkrgPdQzkQLkFkHo>
+
+### new_content
+
+<tool.toolu_019w6ekNpkrgPdQzkQLkFkHo>
+    (with-current-buffer (find-file-noselect expanded-path)
+     ;; Go to the specified line number
+     (goto-line line-number)
+
+     ;; Verify function name is at this line
+     (beginning-of-line)
+     (let ((line-content (buffer-substring-no-properties
+                          (line-beginning-position)
+                          (line-end-position))))
+
+       ;; Check if function is defined on this line based on file type
+       (let ((function-pattern
+              (cond
+               ((string-suffix-p ".py" expanded-path)
+                (format "^\\s-*def\\s-+%s\\s-*(" (regexp-quote function-name)))
+               ((string-suffix-p ".el" expanded-path)
+                (format "^\\s-*(defun\\s-+%s\\s-*(" (regexp-quote function-name)))
+               (t (error "Unsupported file type")))))
+
+         (unless (string-match-p function-pattern line-content)
+           (error "Function '%s' not found at line %d in %s. Line content: %s"
+                  function-name line-number expanded-path line-content))))
+
+     ;; Delete the existing function using end-of-defun then beginning-of-defun
+     (let (start-pos end-pos)
+       ;; First go to end of defun to get the end position
+       (end-of-defun)
+       (setq end-pos (point))
+
+       ;; Then go to beginning of defun to get start position
+       (beginning-of-defun)
+       (setq start-pos (point))
+
+       ;; Delete the function
+       (delete-region start-pos end-pos)
+
+       ;; Insert new contents
+       (insert contents)
+
+       ;; Ensure there's a newline at the end if not present
+       (unless (string-suffix-p "\n" contents)
+         (insert "\n")))
+
+     ;; Save the file
+     (save-buffer))
+</tool.toolu_019w6ekNpkrgPdQzkQLkFkHo>
+
+### git_commit_message
+
+<tool.toolu_019w6ekNpkrgPdQzkQLkFkHo>
+Update greger-tools--replace-function to work in background without split window
+</tool.toolu_019w6ekNpkrgPdQzkQLkFkHo>
+
+## TOOL RESULT:
+
+ID: toolu_019w6ekNpkrgPdQzkQLkFkHo
+
+<tool.toolu_019w6ekNpkrgPdQzkQLkFkHo>
+Successfully replaced content in /Users/andreas/projects/aichat3/greger-stdlib.el. Successfully staged 2 file(s) and committed with message: Update greger-tools--replace-function to work in background without split window
+</tool.toolu_019w6ekNpkrgPdQzkQLkFkHo>
+
+## ASSISTANT:
+
+Now let's update `greger-tools--replace-file`:
