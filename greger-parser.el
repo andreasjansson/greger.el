@@ -892,18 +892,26 @@ Supports both local files and web URLs (http:// or https://)."
    ((listp value) (json-encode value))
    (t (format "%s" value))))
 
-;; Debug helper function
+;; Global debug flag for interactive debugging
+(defvar greger-parser--global-debug nil
+  "Global debug flag for interactive debugging.")
+
+;; Debug helper functions
 (defun greger-parser-enable-debug ()
   "Enable parser debug output."
   (interactive)
-  (setq greger-parser--debug t)
+  (setq greger-parser--global-debug t)
   (message "Parser debug enabled"))
 
 (defun greger-parser-disable-debug ()
   "Disable parser debug output."
   (interactive)
-  (setq greger-parser--debug nil)
+  (setq greger-parser--global-debug nil)
   (message "Parser debug disabled"))
+
+(defun greger-parser-parse-dialog-debug (markdown)
+  "Parse MARKDOWN into dialog format with debug enabled."
+  (greger-parser-parse-dialog markdown (or greger-parser--global-debug t)))
 
 (provide 'greger-parser)
 

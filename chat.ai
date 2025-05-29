@@ -2999,3 +2999,83 @@ ID: toolu_01L1CCQneFMmZEmMA9mM88H5
 <tool.toolu_01L1CCQneFMmZEmMA9mM88H5>
 Successfully replaced content in /Users/andreas/projects/aichat3/greger-parser.el. Successfully staged 2 file(s) and committed with message: Update skip-to-closing-angle function to use state parameter
 </tool.toolu_01L1CCQneFMmZEmMA9mM88H5>
+
+
+## TOOL USE:
+
+Name: str-replace
+ID: toolu_01HAei6SwM6XFUgg4L68WnT3
+
+### file_path
+
+<tool.toolu_01HAei6SwM6XFUgg4L68WnT3>
+greger-parser.el
+</tool.toolu_01HAei6SwM6XFUgg4L68WnT3>
+
+### original_content
+
+<tool.toolu_01HAei6SwM6XFUgg4L68WnT3>
+(defun greger-parser--find-closing-tag (closing-tag)
+  "Find closing tag, treating all content inside as raw text."
+  (let ((found nil)
+        (iterations 0)
+        (max-iterations (* greger-parser--length 2))) ; Safety limit
+    (while (and (not found)
+                (not (greger-parser--at-end-p))
+                (< iterations max-iterations))
+      (setq iterations (1+ iterations))
+      (if (greger-parser--looking-at closing-tag)
+          (setq found t)
+        (greger-parser--advance)))
+    (when (>= iterations max-iterations)
+      (greger-parser--debug "Hit max iterations in find-closing-tag"))
+    found))
+
+(defun greger-parser--parse-tool-result-content ()
+  "Parse tool result content."
+  (greger-parser--skip-whitespace)
+  (or (greger-parser--parse-tool-value) ""))
+</tool.toolu_01HAei6SwM6XFUgg4L68WnT3>
+
+### new_content
+
+<tool.toolu_01HAei6SwM6XFUgg4L68WnT3>
+(defun greger-parser--find-closing-tag (state closing-tag)
+  "Find closing tag, treating all content inside as raw text using STATE."
+  (let ((found nil)
+        (iterations 0)
+        (max-iterations (* (greger-parser-state-length state) 2))) ; Safety limit
+    (while (and (not found)
+                (not (greger-parser--at-end-p state))
+                (< iterations max-iterations))
+      (setq iterations (1+ iterations))
+      (if (greger-parser--looking-at state closing-tag)
+          (setq found t)
+        (greger-parser--advance state)))
+    (when (>= iterations max-iterations)
+      (greger-parser--debug state "Hit max iterations in find-closing-tag"))
+    found))
+
+(defun greger-parser--parse-tool-result-content (state)
+  "Parse tool result content using STATE."
+  (greger-parser--skip-whitespace state)
+  (or (greger-parser--parse-tool-value state) ""))
+</tool.toolu_01HAei6SwM6XFUgg4L68WnT3>
+
+### git_commit_message
+
+<tool.toolu_01HAei6SwM6XFUgg4L68WnT3>
+Update find-closing-tag and parse-tool-result-content functions to use state parameter
+</tool.toolu_01HAei6SwM6XFUgg4L68WnT3>
+
+## TOOL RESULT:
+
+ID: toolu_01HAei6SwM6XFUgg4L68WnT3
+
+<tool.toolu_01HAei6SwM6XFUgg4L68WnT3>
+Successfully replaced content in /Users/andreas/projects/aichat3/greger-parser.el. Successfully staged 2 file(s) and committed with message: Update find-closing-tag and parse-tool-result-content functions to use state parameter
+</tool.toolu_01HAei6SwM6XFUgg4L68WnT3>
+
+## ASSISTANT:
+
+Now I need to add debug control functions that work with the new state structure and update the existing debug control functions to use a global debug flag since the debug functionality is still needed for testing:
