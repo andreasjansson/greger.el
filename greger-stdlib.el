@@ -680,9 +680,7 @@ If BUFFER is provided, it will be staged and committed along with the modified f
     (when (file-directory-p expanded-path)
       (error "Path is a directory, not a file: %s" expanded-path))
 
-    (greger-tools--with-split-window
-     (find-file expanded-path)
-
+    (with-current-buffer (find-file-noselect expanded-path)
      ;; Use isearch to find the original content
      (goto-char (point-min))
      (let ((case-fold-search nil)) ; Make search case-sensitive
