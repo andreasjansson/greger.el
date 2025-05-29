@@ -764,7 +764,7 @@ Always returns focus to the original window after executing BODY."
         (error (format "Failed to retrieve git log: %s" (error-message-string err)))))))
 
 (defun greger-tools--git-show-commit (commit-hash path)
-  "View git commit using magit in a split screen for PATH."
+  "View git commit using git command line for PATH."
   (unless (stringp commit-hash)
     (error "commit_hash must be a string"))
 
@@ -777,21 +777,20 @@ Always returns focus to the original window after executing BODY."
       (error "Path does not exist: %s" expanded-path))
 
     ;; Find git repository root
-    (let ((repo-root (magit-toplevel expanded-path)))
+    (let ((repo-root (greger-tools--find-git-repo-root expanded-path)))
       (unless repo-root
         (error "Path %s is not in a git repository" expanded-path))
 
       (condition-case err
-          (let ((default-directory repo-root)
-                (magit-save-repository-buffers nil)
-                (results))
-            (with-current-buffer (magit-revision-setup-buffer commit-hash nil nil)
-              (setq results (buffer-substring-no-properties (point-min) (point-max)))
-              (magit-log-bury-buffer 0))
-
-            (if (string-empty-p (string-trim results))
-                "No git commit available"
-              results))
+          (let ((default-directory repo-root))
+            (with-temp-buffer
+              (let ((exit-code (call-process "git" nil t nil "show" commit-hash)))
+                (if (= exit-code 0)
+                    (let ((results (buffer-string)))
+                      (if (string-empty-p (string-trim results))
+                          "No git commit available"
+                        results))
+                  (error "Git show command failed with exit code %d" exit-code)))))
         (error (format "Failed to show git commit: %s" (error-message-string err)))))))
 
 (defun greger-tools--eval-elisp-defuns (file-path function-names)
