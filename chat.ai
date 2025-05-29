@@ -1839,3 +1839,97 @@ Successfully replaced content in /Users/andreas/projects/aichat3/greger-parser.e
 ## ASSISTANT:
 
 Now I need to update the include tag processing functions. This is a large section, so I'll do it in parts:
+
+
+## TOOL USE:
+
+Name: str-replace
+ID: toolu_01PkMeFmXYF8M4jRNyAK4BAN
+
+### file_path
+
+<tool.toolu_01PkMeFmXYF8M4jRNyAK4BAN>
+greger-parser.el
+</tool.toolu_01PkMeFmXYF8M4jRNyAK4BAN>
+
+### original_content
+
+<tool.toolu_01PkMeFmXYF8M4jRNyAK4BAN>
+;; Include tag processing
+
+(defun greger-parser--process-include-tag ()
+  "Process an include tag and return the included content."
+  (greger-parser--debug "Processing include tag at pos %d" greger-parser--pos)
+  (let ((tag-start (greger-parser--current-pos)))
+    ;; Parse the opening tag
+    (when (greger-parser--looking-at "<include")
+      (greger-parser--advance 8) ; Skip "<include"
+      (let ((has-code-attr nil))
+        ;; Check for optional "code" attribute
+        (greger-parser--skip-horizontal-whitespace)
+        (when (greger-parser--looking-at "code")
+          (setq has-code-attr t)
+          (greger-parser--advance 4)
+          (greger-parser--skip-horizontal-whitespace))
+
+        ;; Skip to closing bracket of opening tag
+        (when (greger-parser--looking-at ">")
+          (greger-parser--advance 1)
+
+          ;; Extract the file path
+          (let ((path-start (greger-parser--current-pos)))
+            (when (greger-parser--find-closing-tag "</include>")
+              (let ((file-path (string-trim (greger-parser--substring path-start))))
+                (greger-parser--advance 10) ; Skip "</include>"
+
+                ;; Read and process the file
+                (greger-parser--include-file file-path has-code-attr)))))))))
+</tool.toolu_01PkMeFmXYF8M4jRNyAK4BAN>
+
+### new_content
+
+<tool.toolu_01PkMeFmXYF8M4jRNyAK4BAN>
+;; Include tag processing
+
+(defun greger-parser--process-include-tag (state)
+  "Process an include tag and return the included content in STATE."
+  (greger-parser--debug state "Processing include tag at pos %d" (greger-parser-state-pos state))
+  (let ((tag-start (greger-parser--current-pos state)))
+    ;; Parse the opening tag
+    (when (greger-parser--looking-at state "<include")
+      (greger-parser--advance state 8) ; Skip "<include"
+      (let ((has-code-attr nil))
+        ;; Check for optional "code" attribute
+        (greger-parser--skip-horizontal-whitespace state)
+        (when (greger-parser--looking-at state "code")
+          (setq has-code-attr t)
+          (greger-parser--advance state 4)
+          (greger-parser--skip-horizontal-whitespace state))
+
+        ;; Skip to closing bracket of opening tag
+        (when (greger-parser--looking-at state ">")
+          (greger-parser--advance state 1)
+
+          ;; Extract the file path
+          (let ((path-start (greger-parser--current-pos state)))
+            (when (greger-parser--find-closing-tag state "</include>")
+              (let ((file-path (string-trim (greger-parser--substring state path-start))))
+                (greger-parser--advance state 10) ; Skip "</include>"
+
+                ;; Read and process the file
+                (greger-parser--include-file file-path has-code-attr)))))))))
+</tool.toolu_01PkMeFmXYF8M4jRNyAK4BAN>
+
+### git_commit_message
+
+<tool.toolu_01PkMeFmXYF8M4jRNyAK4BAN>
+Update include tag processing function to use state parameter
+</tool.toolu_01PkMeFmXYF8M4jRNyAK4BAN>
+
+## TOOL RESULT:
+
+ID: toolu_01PkMeFmXYF8M4jRNyAK4BAN
+
+<tool.toolu_01PkMeFmXYF8M4jRNyAK4BAN>
+Successfully replaced content in /Users/andreas/projects/aichat3/greger-parser.el. Successfully staged 2 file(s) and committed with message: Update include tag processing function to use state parameter
+</tool.toolu_01PkMeFmXYF8M4jRNyAK4BAN>

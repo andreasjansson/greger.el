@@ -330,24 +330,24 @@ Supports both local files and web URLs (http:// or https://)."
              (if (greger-parser--is-web-url-p file-path) "URL" "file")
              file-path))))
 
-(defun greger-parser--skip-include-tag ()
-  "Skip include tag without processing it."
-  (greger-parser--debug "Skipping include tag at pos %d" greger-parser--pos)
-  (greger-parser--advance 8) ; Skip "<include"
+(defun greger-parser--skip-include-tag (state)
+  "Skip include tag without processing it in STATE."
+  (greger-parser--debug state "Skipping include tag at pos %d" (greger-parser-state-pos state))
+  (greger-parser--advance state 8) ; Skip "<include"
 
   ;; Skip optional "code" attribute
-  (greger-parser--skip-horizontal-whitespace)
-  (when (greger-parser--looking-at "code")
-    (greger-parser--advance 4)
-    (greger-parser--skip-horizontal-whitespace))
+  (greger-parser--skip-horizontal-whitespace state)
+  (when (greger-parser--looking-at state "code")
+    (greger-parser--advance state 4)
+    (greger-parser--skip-horizontal-whitespace state))
 
   ;; Skip to closing bracket of opening tag
-  (when (greger-parser--looking-at ">")
-    (greger-parser--advance 1)
+  (when (greger-parser--looking-at state ">")
+    (greger-parser--advance state 1)
 
     ;; Skip to closing tag
-    (when (greger-parser--find-closing-tag "</include>")
-      (greger-parser--advance 10)))) ; Skip "</include>"
+    (when (greger-parser--find-closing-tag state "</include>")
+      (greger-parser--advance state 10)))) ; Skip "</include>"
 
 ;; Content reading
 
