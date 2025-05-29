@@ -72,7 +72,7 @@
          (current-dialog (greger-parser-parse-dialog buffer-content))
          (current-iteration (greger-agent-state-current-iteration agent-state)))
 
-    (greger-agent--debug "=== ITERATION %d ===" greger-agent--current-iteration)
+    (greger-agent--debug "=== ITERATION %d ===" current-iteration)
     (greger-agent--debug "Dialog length: %d messages" (length current-dialog))
 
     ;; Check max iterations
