@@ -351,35 +351,35 @@ Supports both local files and web URLs (http:// or https://)."
 
 ;; Content reading
 
-(defun greger-parser--read-until-section-tag ()
-  "Read characters until section tag, handling code blocks and include tags."
-  (let ((start-pos greger-parser--pos)
+(defun greger-parser--read-until-section-tag (state)
+  "Read characters until section tag, handling code blocks and include tags in STATE."
+  (let ((start-pos (greger-parser-state-pos state))
         (iterations 0)
-        (max-iterations (* greger-parser--length 2))) ; Safety limit
-    (while (and (not (greger-parser--at-end-p))
-                (not (and (greger-parser--at-line-start-p)
-                          (greger-parser--find-section-tag)))
+        (max-iterations (* (greger-parser-state-length state) 2))) ; Safety limit
+    (while (and (not (greger-parser--at-end-p state))
+                (not (and (greger-parser--at-line-start-p state)
+                          (greger-parser--find-section-tag state)))
                 (< iterations max-iterations))
       (setq iterations (1+ iterations))
-      (let ((old-pos greger-parser--pos))
+      (let ((old-pos (greger-parser-state-pos state)))
         (cond
-         ((greger-parser--at-triple-backticks)
-          (greger-parser--skip-code-block))
-         ((greger-parser--looking-at "`")
-          (greger-parser--skip-inline-code))
-         ((greger-parser--looking-at "<!--")
-          (greger-parser--skip-html-comment))
-         ((greger-parser--looking-at "<include")
-          (greger-parser--skip-include-tag))
+         ((greger-parser--at-triple-backticks state)
+          (greger-parser--skip-code-block state))
+         ((greger-parser--looking-at state "`")
+          (greger-parser--skip-inline-code state))
+         ((greger-parser--looking-at state "<!--")
+          (greger-parser--skip-html-comment state))
+         ((greger-parser--looking-at state "<include")
+          (greger-parser--skip-include-tag state))
          (t
-          (greger-parser--advance)))
+          (greger-parser--advance state)))
         ;; Safety check: ensure we're making progress
-        (when (= old-pos greger-parser--pos)
-          (greger-parser--debug "No progress at pos %d, forcing advance" greger-parser--pos)
-          (greger-parser--advance))))
+        (when (= old-pos (greger-parser-state-pos state))
+          (greger-parser--debug state "No progress at pos %d, forcing advance" (greger-parser-state-pos state))
+          (greger-parser--advance state))))
     (when (>= iterations max-iterations)
-      (greger-parser--debug "Hit max iterations in read-until-section-tag")
-      (setq greger-parser--pos greger-parser--length))))
+      (greger-parser--debug state "Hit max iterations in read-until-section-tag")
+      (setf (greger-parser-state-pos state) (greger-parser-state-length state)))))
 
 (defun greger-parser--read-until-section ()
   "Read content until next section."
