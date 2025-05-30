@@ -72,7 +72,8 @@
          (chat-buffer (greger-agent-state-chat-buffer agent-state))
          (buffer-content (with-current-buffer chat-buffer
                            (buffer-substring-no-properties (point-min) (point-max))))
-         (current-dialog (greger-parser-parse-dialog buffer-content))
+         (parse-result (greger-parser-parse-dialog buffer-content))
+         (current-dialog (plist-get parse-result :messages))
          (current-iteration (greger-agent-state-current-iteration agent-state)))
 
     (greger-agent--debug "=== ITERATION %d ===" current-iteration)
