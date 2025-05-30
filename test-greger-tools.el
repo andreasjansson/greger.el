@@ -382,8 +382,37 @@
     (should (string= "processed: world" result))
     (should (null error)))
 
+  ;; Test combining :pass-callback with :pass-buffer
+  (defun greger-test-callback-with-buffer (message callback &optional buffer)
+    "Test function that accepts both callback and buffer parameters."
+    (let ((buffer-name (if buffer (buffer-name buffer) "no-buffer"))
+          (result (format "message: %s, buffer: %s" message buffer-name)))
+      (funcall callback result nil)))
+
+  (greger-register-tool "test-callback-with-buffer"
+    :description "Test tool with both callback and buffer passing"
+    :properties '((message . ((type . "string")
+                              (description . "Test message"))))
+    :required '("message")
+    :function 'greger-test-callback-with-buffer
+    :pass-callback callback
+    :pass-buffer t)
+
+  ;; Test with both buffer and callback
+  (with-temp-buffer
+    (rename-buffer "*test-callback-buffer*")
+    (let ((result nil)
+          (error nil))
+      (greger-tools-execute "test-callback-with-buffer"
+                            '((message . "test"))
+                            (lambda (r e) (setq result r error e))
+                            (current-buffer))
+      (should (string= "message: test, buffer: *test-callback-buffer*" result))
+      (should (null error))))
+
   ;; Clean up
   (remhash "test-normal-callback" greger-tools-registry)
-  (remhash "test-pass-callback" greger-tools-registry))
+  (remhash "test-pass-callback" greger-tools-registry)
+  (remhash "test-callback-with-buffer" greger-tools-registry))
 
 ;;; test-greger-tools.el ends here

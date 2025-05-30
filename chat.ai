@@ -836,4 +836,83 @@ test-greger-tools.el
 Add test for :pass-callback functionality
 </tool.toolu_01XM2ELs7iB31fVVaZKJsYrn>
 
-<!-- TOOL_RESULT_PLACEHOLDER_toolu_01XM2ELs7iB31fVVaZKJsYrn -->
+## TOOL RESULT:
+
+ID: toolu_01XM2ELs7iB31fVVaZKJsYrn
+
+<tool.toolu_01XM2ELs7iB31fVVaZKJsYrn>
+Successfully replaced content in /Users/andreas/projects/aichat3/test-greger-tools.el. Successfully staged 2 file(s) and committed with message: Add test for :pass-callback functionality
+</tool.toolu_01XM2ELs7iB31fVVaZKJsYrn>
+
+
+## ASSISTANT:
+
+Let me also add a test case that shows how `:pass-callback` can be combined with other features like `:pass-buffer`:
+
+## TOOL USE:
+
+Name: str-replace
+ID: toolu_01UEqZkhxfftQh4jKprBmc77
+
+### file_path
+
+<tool.toolu_01UEqZkhxfftQh4jKprBmc77>
+test-greger-tools.el
+</tool.toolu_01UEqZkhxfftQh4jKprBmc77>
+
+### original_content
+
+<tool.toolu_01UEqZkhxfftQh4jKprBmc77>
+  ;; Clean up
+  (remhash "test-normal-callback" greger-tools-registry)
+  (remhash "test-pass-callback" greger-tools-registry))
+
+;;; test-greger-tools.el ends here
+</tool.toolu_01UEqZkhxfftQh4jKprBmc77>
+
+### new_content
+
+<tool.toolu_01UEqZkhxfftQh4jKprBmc77>
+  ;; Test combining :pass-callback with :pass-buffer
+  (defun greger-test-callback-with-buffer (message callback &optional buffer)
+    "Test function that accepts both callback and buffer parameters."
+    (let ((buffer-name (if buffer (buffer-name buffer) "no-buffer"))
+          (result (format "message: %s, buffer: %s" message buffer-name)))
+      (funcall callback result nil)))
+
+  (greger-register-tool "test-callback-with-buffer"
+    :description "Test tool with both callback and buffer passing"
+    :properties '((message . ((type . "string")
+                              (description . "Test message"))))
+    :required '("message")
+    :function 'greger-test-callback-with-buffer
+    :pass-callback callback
+    :pass-buffer t)
+
+  ;; Test with both buffer and callback
+  (with-temp-buffer
+    (rename-buffer "*test-callback-buffer*")
+    (let ((result nil)
+          (error nil))
+      (greger-tools-execute "test-callback-with-buffer"
+                            '((message . "test"))
+                            (lambda (r e) (setq result r error e))
+                            (current-buffer))
+      (should (string= "message: test, buffer: *test-callback-buffer*" result))
+      (should (null error))))
+
+  ;; Clean up
+  (remhash "test-normal-callback" greger-tools-registry)
+  (remhash "test-pass-callback" greger-tools-registry)
+  (remhash "test-callback-with-buffer" greger-tools-registry))
+
+;;; test-greger-tools.el ends here
+</tool.toolu_01UEqZkhxfftQh4jKprBmc77>
+
+### git_commit_message
+
+<tool.toolu_01UEqZkhxfftQh4jKprBmc77>
+Add test for :pass-callback combined with :pass-buffer
+</tool.toolu_01UEqZkhxfftQh4jKprBmc77>
+
+<!-- TOOL_RESULT_PLACEHOLDER_toolu_01UEqZkhxfftQh4jKprBmc77 -->
