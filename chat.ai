@@ -2103,4 +2103,54 @@ test-greger-tools.el
 Update tool execution tests to use callback API
 </tool.toolu_01DLCwW9v4mUDAFNfgapi7TM>
 
-<!-- TOOL_RESULT_PLACEHOLDER_toolu_01DLCwW9v4mUDAFNfgapi7TM -->
+## TOOL RESULT:
+
+ID: toolu_01DLCwW9v4mUDAFNfgapi7TM
+
+<tool.toolu_01DLCwW9v4mUDAFNfgapi7TM>
+Successfully replaced content in /Users/andreas/projects/aichat3/test-greger-tools.el. Successfully staged 2 file(s) and committed with message: Update tool execution tests to use callback API
+</tool.toolu_01DLCwW9v4mUDAFNfgapi7TM>
+
+
+## TOOL USE:
+
+Name: str-replace
+ID: toolu_01Aj5Ckma2pyM4LTDvnQbuGU
+
+### file_path
+
+<tool.toolu_01Aj5Ckma2pyM4LTDvnQbuGU>
+test-greger-tools.el
+</tool.toolu_01Aj5Ckma2pyM4LTDvnQbuGU>
+
+### original_content
+
+<tool.toolu_01Aj5Ckma2pyM4LTDvnQbuGU>
+(ert-deftest greger-tools-test-unknown-tool-error ()
+  "Test that executing unknown tools raises an error."
+  (should-error
+   (greger-tools-execute "nonexistent-tool" '((param . "value")))
+   :type 'error))
+</tool.toolu_01Aj5Ckma2pyM4LTDvnQbuGU>
+
+### new_content
+
+<tool.toolu_01Aj5Ckma2pyM4LTDvnQbuGU>
+(ert-deftest greger-tools-test-unknown-tool-error ()
+  "Test that executing unknown tools calls callback with error."
+  (let ((result nil)
+        (error nil))
+    (greger-tools-execute "nonexistent-tool" '((param . "value"))
+                          (lambda (r e) (setq result r error e)) nil)
+    (should (null result))
+    (should (stringp error))
+    (should (string-match "Unknown tool" error))))
+</tool.toolu_01Aj5Ckma2pyM4LTDvnQbuGU>
+
+### git_commit_message
+
+<tool.toolu_01Aj5Ckma2pyM4LTDvnQbuGU>
+Update unknown tool error test to use callback API
+</tool.toolu_01Aj5Ckma2pyM4LTDvnQbuGU>
+
+<!-- TOOL_RESULT_PLACEHOLDER_toolu_01Aj5Ckma2pyM4LTDvnQbuGU -->

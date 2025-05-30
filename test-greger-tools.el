@@ -49,10 +49,14 @@
   (remhash "test-subtract" greger-tools-registry))
 
 (ert-deftest greger-tools-test-unknown-tool-error ()
-  "Test that executing unknown tools raises an error."
-  (should-error
-   (greger-tools-execute "nonexistent-tool" '((param . "value")))
-   :type 'error))
+  "Test that executing unknown tools calls callback with error."
+  (let ((result nil)
+        (error nil))
+    (greger-tools-execute "nonexistent-tool" '((param . "value"))
+                          (lambda (r e) (setq result r error e)) nil)
+    (should (null result))
+    (should (stringp error))
+    (should (string-match "Unknown tool" error))))
 
 (ert-deftest greger-tools-test-parameter-mapping ()
   "Test that parameters are correctly mapped from underscores to hyphens."
