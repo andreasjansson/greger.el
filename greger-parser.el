@@ -42,15 +42,16 @@
 ;; Main parsing entry points
 
 (defun greger-parser-parse-dialog (markdown &optional debug)
-  "Parse MARKDOWN into dialog format with optional DEBUG flag."
+  "Parse MARKDOWN into dialog format with optional DEBUG flag.
+Returns a plist with :messages and :metadata keys."
   (if (or (null markdown) (string-empty-p (string-trim markdown)))
-      '()
+      '(:messages () :metadata ())
     (let ((state (greger-parser--create-state markdown debug)))
       (condition-case err
           (greger-parser--parse-document state)
         (error
          (greger-parser--debug state "Parse error: %s" (error-message-string err))
-         '())))))
+         '(:messages () :metadata ()))))))
 
 (defun greger-parser-dialog-to-markdown (dialog)
   "Convert DIALOG to markdown format."
