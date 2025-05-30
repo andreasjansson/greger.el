@@ -133,8 +133,42 @@ Tool executed: Hello World
                           (name . "test-tool-b")
                           (input . ((value . "input-b"))))))
             ;; Expected content contains both tool results
-            (expected-patterns '("## TOOL RESULT:\n\nID: test_a\n\n<tool.test_a>\nTool A result: input-a\n</tool.test_a>"
-                               "## TOOL RESULT:\n\nID: test_b\n\n<tool.test_b>\nTool B result: input-b\n</tool.test_b>")))
+            (expected-patterns '("## TOOL USE:
+
+Name: test-tool-a
+ID: test_a
+
+### value
+
+<tool.test_a>
+input-a
+</tool.test_a>
+
+## TOOL RESULT:
+
+ID: test_a
+
+<tool.test_a>
+Tool A result: input-a
+</tool.test_a>"
+                               "## TOOL USE:
+
+Name: test-tool-b
+ID: test_b
+
+### value
+
+<tool.test_b>
+input-b
+</tool.test_b>
+
+## TOOL RESULT:
+
+ID: test_b
+
+<tool.test_b>
+Tool B result: input-b
+</tool.test_b>")))
 
         ;; Mock greger-agent--run-agent-loop to capture completion
         (cl-letf (((symbol-function 'greger-agent--run-agent-loop)

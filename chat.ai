@@ -3771,4 +3771,133 @@ Echo: hello world
 Fix simple string comparison test with multi-line expected content including TOOL USE
 </tool.toolu_013YaUjkNdK8WVdyVGJzPev7>
 
-<!-- TOOL_RESULT_PLACEHOLDER_toolu_013YaUjkNdK8WVdyVGJzPev7 -->
+## TOOL RESULT:
+
+ID: toolu_013YaUjkNdK8WVdyVGJzPev7
+
+<tool.toolu_013YaUjkNdK8WVdyVGJzPev7>
+Successfully replaced content in /Users/andreas/projects/aichat3/test-greger-agent.el. Successfully staged 2 file(s) and committed with message: Fix simple string comparison test with multi-line expected content including TOOL USE
+</tool.toolu_013YaUjkNdK8WVdyVGJzPev7>
+
+
+## ASSISTANT:
+
+Now let me also update the multiple tools test to use multi-line format for the expected patterns:
+
+## TOOL USE:
+
+Name: read-file
+ID: toolu_0126jMD7dSJQSkPA1BWxjozR
+
+### path
+
+<tool.toolu_0126jMD7dSJQSkPA1BWxjozR>
+test-greger-agent.el
+</tool.toolu_0126jMD7dSJQSkPA1BWxjozR>
+
+### start_line
+
+<tool.toolu_0126jMD7dSJQSkPA1BWxjozR>
+130
+</tool.toolu_0126jMD7dSJQSkPA1BWxjozR>
+
+### end_line
+
+<tool.toolu_0126jMD7dSJQSkPA1BWxjozR>
+150
+</tool.toolu_0126jMD7dSJQSkPA1BWxjozR>
+
+## TOOL RESULT:
+
+ID: toolu_0126jMD7dSJQSkPA1BWxjozR
+
+<tool.toolu_0126jMD7dSJQSkPA1BWxjozR>
+                          (input . ((value . "input-a"))))
+                         ((type . "tool_use")
+                          (id . "test_b")
+                          (name . "test-tool-b")
+                          (input . ((value . "input-b"))))))
+            ;; Expected content contains both tool results
+            (expected-patterns '("## TOOL RESULT:\n\nID: test_a\n\n<tool.test_a>\nTool A result: input-a\n</tool.test_a>"
+                               "## TOOL RESULT:\n\nID: test_b\n\n<tool.test_b>\nTool B result: input-b\n</tool.test_b>")))
+
+        ;; Mock greger-agent--run-agent-loop to capture completion
+        (cl-letf (((symbol-function 'greger-agent--run-agent-loop)
+                   (lambda (state)
+                     (setq tools-completed t))))
+
+          ;; Execute tools
+          (greger-agent--execute-tools tool-calls agent-state)
+
+          ;; Check that all tools completed
+          (should tools-completed)
+
+          ;; Check buffer contains both expected tool results
+</tool.toolu_0126jMD7dSJQSkPA1BWxjozR>
+
+## TOOL USE:
+
+Name: str-replace
+ID: toolu_01BuUbnmorRasweNE2BBMGTm
+
+### file_path
+
+<tool.toolu_01BuUbnmorRasweNE2BBMGTm>
+test-greger-agent.el
+</tool.toolu_01BuUbnmorRasweNE2BBMGTm>
+
+### original_content
+
+<tool.toolu_01BuUbnmorRasweNE2BBMGTm>
+(expected-patterns '("## TOOL RESULT:\n\nID: test_a\n\n<tool.test_a>\nTool A result: input-a\n</tool.test_a>"
+                               "## TOOL RESULT:\n\nID: test_b\n\n<tool.test_b>\nTool B result: input-b\n</tool.test_b>"))
+</tool.toolu_01BuUbnmorRasweNE2BBMGTm>
+
+### new_content
+
+<tool.toolu_01BuUbnmorRasweNE2BBMGTm>
+(expected-patterns '("## TOOL USE:
+
+Name: test-tool-a
+ID: test_a
+
+### value
+
+<tool.test_a>
+input-a
+</tool.test_a>
+
+## TOOL RESULT:
+
+ID: test_a
+
+<tool.test_a>
+Tool A result: input-a
+</tool.test_a>"
+                               "## TOOL USE:
+
+Name: test-tool-b
+ID: test_b
+
+### value
+
+<tool.test_b>
+input-b
+</tool.test_b>
+
+## TOOL RESULT:
+
+ID: test_b
+
+<tool.test_b>
+Tool B result: input-b
+</tool.test_b>"))
+</tool.toolu_01BuUbnmorRasweNE2BBMGTm>
+
+### git_commit_message
+
+<tool.toolu_01BuUbnmorRasweNE2BBMGTm>
+Convert multiple tools test expected patterns to multi-line format
+</tool.toolu_01BuUbnmorRasweNE2BBMGTm>
+
+<!-- TOOL_RESULT_PLACEHOLDER_toolu_01BuUbnmorRasweNE2BBMGTm -->
