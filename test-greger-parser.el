@@ -849,7 +849,7 @@ ID: toolu_abc
 ## ASSISTANT:
 
 I understand you have untagged content."))
-    (let ((parsed (greger-parser-parse-dialog markdown)))
+    (let ((parsed (greger-parser-parse-dialog-messages-only markdown)))
       (should (= 2 (length parsed)))
       (should (string= "user" (alist-get 'role (car parsed))))
       (should (string= "Hello, this is untagged content" (alist-get 'content (car parsed))))
@@ -886,7 +886,7 @@ multiple
 value3
 </tool.tool_123>
 "))
-    (let ((parsed (greger-parser-parse-dialog markdown)))
+    (let ((parsed (greger-parser-parse-dialog-messages-only markdown)))
       (should (= 1 (length parsed)))
       (let* ((assistant-msg (car parsed))
              (content-blocks (alist-get 'content assistant-msg))
@@ -915,7 +915,7 @@ Real content continues.
 ## ASSISTANT:
 
 I see your code."))
-    (let ((parsed (greger-parser-parse-dialog markdown)))
+    (let ((parsed (greger-parser-parse-dialog-messages-only markdown)))
       (should (= 2 (length parsed)))
       ;; First message should contain the entire user content including code block
       (let ((user-content (alist-get 'content (car parsed))))
@@ -935,7 +935,7 @@ Use ``## ASSISTANT: response`` to format.
 ## ASSISTANT:
 
 Got it!"))
-    (let ((parsed (greger-parser-parse-dialog markdown)))
+    (let ((parsed (greger-parser-parse-dialog-messages-only markdown)))
       (should (= 2 (length parsed)))
       (should (string-match-p "## ASSISTANT: response" (alist-get 'content (car parsed))))
       (should (string= "Got it!" (alist-get 'content (cadr parsed)))))))
@@ -956,7 +956,7 @@ print(\"## ASSISTANT: also preserved\")
 ```
 </tool.tool_123>
 "))
-    (let ((parsed (greger-parser-parse-dialog markdown)))
+    (let ((parsed (greger-parser-parse-dialog-messages-only markdown)))
       (should (= 1 (length parsed)))
       (let* ((assistant-msg (car parsed))
              (content-blocks (alist-get 'content assistant-msg))
@@ -991,7 +991,7 @@ Hello from included file!
 
 What do you think?")
 
-          (let ((parsed (greger-parser-parse-dialog markdown)))
+          (let ((parsed (greger-parser-parse-dialog-messages-only markdown)))
             (should (= 1 (length parsed)))
             (let ((generated-markdown (greger-parser-dialog-to-markdown parsed)))
               (should (string= expected generated-markdown)))))
@@ -1025,7 +1025,7 @@ def hello():
 
 Review this code." test-file))
 
-          (let ((parsed (greger-parser-parse-dialog markdown)))
+          (let ((parsed (greger-parser-parse-dialog-messages-only markdown)))
             (should (= 1 (length parsed)))
             (let ((generated-markdown (greger-parser-dialog-to-markdown parsed)))
               (should (string= expected generated-markdown)))))
@@ -1075,7 +1075,7 @@ Line 4 after empty line
 
 End of message.")
 
-          (let ((parsed (greger-parser-parse-dialog markdown)))
+          (let ((parsed (greger-parser-parse-dialog-messages-only markdown)))
             (should (= 1 (length parsed)))
             (let ((generated-markdown (greger-parser-dialog-to-markdown parsed)))
               (should (string= expected generated-markdown)))))
@@ -1111,7 +1111,7 @@ After include
 
 Done.")
 
-          (let ((parsed (greger-parser-parse-dialog markdown)))
+          (let ((parsed (greger-parser-parse-dialog-messages-only markdown)))
             (should (= 1 (length parsed)))
             (let ((generated-markdown (greger-parser-dialog-to-markdown parsed)))
               (should (string= expected generated-markdown)))))
@@ -1151,7 +1151,7 @@ Assistant included content
 
 Hope this helps!")
 
-          (let ((parsed (greger-parser-parse-dialog markdown)))
+          (let ((parsed (greger-parser-parse-dialog-messages-only markdown)))
             (should (= 2 (length parsed)))
             (let ((generated-markdown (greger-parser-dialog-to-markdown parsed)))
               (should (string= expected generated-markdown)))))
@@ -1177,7 +1177,7 @@ def example():
     pass
 ```" test-file))
 
-          (let ((parsed (greger-parser-parse-dialog markdown)))
+          (let ((parsed (greger-parser-parse-dialog-messages-only markdown)))
             (should (= 1 (length parsed)))
             (let ((generated-markdown (greger-parser-dialog-to-markdown parsed)))
               (should (string= expected generated-markdown)))))
@@ -1212,7 +1212,7 @@ Here's some code with an include tag:
 
 The include should not be processed." test-file))
 
-          (let ((parsed (greger-parser-parse-dialog markdown)))
+          (let ((parsed (greger-parser-parse-dialog-messages-only markdown)))
             (should (= 1 (length parsed)))
             (let ((generated-markdown (greger-parser-dialog-to-markdown parsed)))
               (should (string= expected generated-markdown)))))
@@ -1238,7 +1238,7 @@ Use `<include>%s</include>` to include files.
 
 The include in backticks should not be processed." test-file))
 
-          (let ((parsed (greger-parser-parse-dialog markdown)))
+          (let ((parsed (greger-parser-parse-dialog-messages-only markdown)))
             (should (= 1 (length parsed)))
             (let ((generated-markdown (greger-parser-dialog-to-markdown parsed)))
               (should (string= expected generated-markdown)))))
@@ -1274,7 +1274,7 @@ ID: tool_123
 <include>%s</include>
 </tool.tool_123>" test-file))
 
-          (let ((parsed (greger-parser-parse-dialog markdown)))
+          (let ((parsed (greger-parser-parse-dialog-messages-only markdown)))
             (should (= 1 (length parsed)))
             (let ((generated-markdown (greger-parser-dialog-to-markdown parsed)))
               (should (string= expected generated-markdown)))))
@@ -1299,7 +1299,7 @@ Hello world!
 What do you think?"))
     ;; This test just verifies that URL handling doesn't crash
     ;; The exact content will vary based on the response
-    (let ((parsed (greger-parser-parse-dialog markdown)))
+    (let ((parsed (greger-parser-parse-dialog-messages-only markdown)))
       (should (= 1 (length parsed)))
       (let ((generated-markdown (greger-parser-dialog-to-markdown parsed)))
         (should (string= expected generated-markdown))))))
@@ -1320,7 +1320,7 @@ Hello world!
 
 Pretty cool!"))
     ;; This test verifies URL handling with code formatting
-    (let ((parsed (greger-parser-parse-dialog markdown)))
+    (let ((parsed (greger-parser-parse-dialog-messages-only markdown)))
       (should (= 1 (length parsed)))
       (let ((generated-markdown (greger-parser-dialog-to-markdown parsed)))
         (should (string= expected generated-markdown))))))
@@ -1341,7 +1341,7 @@ This should fail:
 [Error reading URL: https://invalid-url-that-does-not-exist-12345.com]
 
 Error handling test"))
-    (let ((parsed (greger-parser-parse-dialog markdown)))
+    (let ((parsed (greger-parser-parse-dialog-messages-only markdown)))
       (should (= 1 (length parsed)))
       (let ((generated-markdown (greger-parser-dialog-to-markdown parsed)))
         (should (string= expected generated-markdown))))))
