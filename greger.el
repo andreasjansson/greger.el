@@ -271,7 +271,7 @@
        (with-temp-file filename
          (insert request-data))
        (message "Request data saved to %s (raw format due to parsing error: %s)"
-                filename (error-message-string err)))))
+                filename (error-message-string err))))))
 
 ;; Tool section collapsing functions
 

@@ -1176,3 +1176,74 @@ Successfully replaced content in /Users/andreas/projects/aichat3/greger-stdlib.e
 ## ASSISTANT:
 
 Now I need to modify the `greger-tools--git-stage-and-commit` function to use this helper function and only add the chat file if it's already tracked:
+
+
+## TOOL USE:
+
+Name: str-replace
+ID: toolu_01GU8AmRWuTbdXxLx5fWKahr
+
+### file_path
+
+<tool.toolu_01GU8AmRWuTbdXxLx5fWKahr>
+greger-stdlib.el
+</tool.toolu_01GU8AmRWuTbdXxLx5fWKahr>
+
+### original_content
+
+<tool.toolu_01GU8AmRWuTbdXxLx5fWKahr>
+          ;; Add chat buffer file if provided and it has a file
+          (when (and chat-buffer (buffer-file-name chat-buffer))
+            (let ((chat-file (buffer-file-name chat-buffer)))
+              ;; Save the chat buffer first if it has unsaved changes
+              (with-current-buffer chat-buffer
+                (when (buffer-modified-p)
+                  (save-buffer)))
+              ;; Add chat file to the list of files to stage
+              (push chat-file all-files)))
+</tool.toolu_01GU8AmRWuTbdXxLx5fWKahr>
+
+### new_content
+
+<tool.toolu_01GU8AmRWuTbdXxLx5fWKahr>
+          ;; Add chat buffer file if provided, it has a file, and it's already tracked in git
+          (when (and chat-buffer (buffer-file-name chat-buffer))
+            (let ((chat-file (buffer-file-name chat-buffer)))
+              ;; Only proceed if the chat file is already tracked by git
+              (when (greger-tools--is-file-tracked-by-git chat-file repo-root)
+                ;; Save the chat buffer first if it has unsaved changes
+                (with-current-buffer chat-buffer
+                  (when (buffer-modified-p)
+                    (save-buffer)))
+                ;; Add chat file to the list of files to stage
+                (push chat-file all-files))))
+</tool.toolu_01GU8AmRWuTbdXxLx5fWKahr>
+
+### git_commit_message
+
+<tool.toolu_01GU8AmRWuTbdXxLx5fWKahr>
+Only save and stage chat file if already tracked in version control
+</tool.toolu_01GU8AmRWuTbdXxLx5fWKahr>
+
+## TOOL RESULT:
+
+ID: toolu_01GU8AmRWuTbdXxLx5fWKahr
+
+<tool.toolu_01GU8AmRWuTbdXxLx5fWKahr>
+Successfully replaced content in /Users/andreas/projects/aichat3/greger-stdlib.el. Successfully staged 2 file(s) and committed with message: Only save and stage chat file if already tracked in version control
+</tool.toolu_01GU8AmRWuTbdXxLx5fWKahr>
+
+## ASSISTANT:
+
+Perfect! I've successfully modified the `greger-tools--git-stage-and-commit` function in `greger-stdlib.el` to only save and stage the chat file if it's already tracked in version control. Here's what I changed:
+
+1. **Added a helper function** `greger-tools--is-file-tracked-by-git` that checks if a file is tracked by git using the `git ls-files --error-unmatch` command, which returns exit code 0 if the file is tracked and non-zero if it's untracked.
+
+2. **Modified the main function** to check if the chat file is tracked before processing it:
+   - The condition now includes a check: `(greger-tools--is-file-tracked-by-git chat-file repo-root)`
+   - Only if this returns `t` (meaning the file is tracked) will the function proceed to save the buffer and add the chat file to the list of files to stage
+   - If the chat file is untracked, it will be ignored completely
+
+This ensures that untracked chat files won't be automatically added to version control, while still allowing tracked chat files to be saved and staged as part of the commit process.
+
+## USER:
