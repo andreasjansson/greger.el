@@ -5070,4 +5070,115 @@ test-greger-stdlib.el
 Add cl-lib requirement for cl-letf in tests
 </tool.toolu_01De2Rv15B5yNZa7vCAkccUF>
 
-<!-- TOOL_RESULT_PLACEHOLDER_toolu_01De2Rv15B5yNZa7vCAkccUF -->
+## TOOL RESULT:
+
+ID: toolu_01De2Rv15B5yNZa7vCAkccUF
+
+<tool.toolu_01De2Rv15B5yNZa7vCAkccUF>
+Successfully replaced content in /Users/andreas/projects/aichat3/test-greger-stdlib.el. Successfully staged 2 file(s) and committed with message: Add cl-lib requirement for cl-letf in tests
+</tool.toolu_01De2Rv15B5yNZa7vCAkccUF>
+
+
+## ASSISTANT:
+
+Now let me verify the tests would work by checking that the functions are called with the right signatures. Let me check if the function signature matches what I'm testing:
+
+## TOOL USE:
+
+Name: ripgrep
+ID: toolu_01LYi3fY59QRcP7RnWiVXBoC
+
+### pattern
+
+<tool.toolu_01LYi3fY59QRcP7RnWiVXBoC>
+defun greger-tools--shell-command
+</tool.toolu_01LYi3fY59QRcP7RnWiVXBoC>
+
+### path
+
+<tool.toolu_01LYi3fY59QRcP7RnWiVXBoC>
+greger-stdlib.el
+</tool.toolu_01LYi3fY59QRcP7RnWiVXBoC>
+
+### context-lines
+
+<tool.toolu_01LYi3fY59QRcP7RnWiVXBoC>
+2
+</tool.toolu_01LYi3fY59QRcP7RnWiVXBoC>
+
+## TOOL RESULT:
+
+ID: toolu_01LYi3fY59QRcP7RnWiVXBoC
+
+<tool.toolu_01LYi3fY59QRcP7RnWiVXBoC>
+979:(defun greger-tools--shell-command (command callback &optional working-directory)
+
+</tool.toolu_01LYi3fY59QRcP7RnWiVXBoC>
+
+## ASSISTANT:
+
+Perfect! The function signature is `(command callback &optional working-directory)`, which matches what I'm using in the tests.
+
+Let me also add a test for the case where a command fails, to make sure error handling works properly:
+
+## TOOL USE:
+
+Name: str-replace
+ID: toolu_019Mb7EssY5vN5vdKVsWA2WS
+
+### file_path
+
+<tool.toolu_019Mb7EssY5vN5vdKVsWA2WS>
+test-greger-stdlib.el
+</tool.toolu_019Mb7EssY5vN5vdKVsWA2WS>
+
+### original_content
+
+<tool.toolu_019Mb7EssY5vN5vdKVsWA2WS>
+(should (string-match "cancelled by user" error)))))
+
+;;; greger-test-stdlib.el ends here
+</tool.toolu_019Mb7EssY5vN5vdKVsWA2WS>
+
+### new_content
+
+<tool.toolu_019Mb7EssY5vN5vdKVsWA2WS>
+(should (string-match "cancelled by user" error)))))
+
+(ert-deftest greger-test-shell-command-command-failure ()
+  "Test shell-command tool when command fails."
+  (let ((result nil)
+        (error nil)
+        (callback-called nil))
+
+    ;; Mock the permission prompt to always return yes
+    (cl-letf (((symbol-function 'y-or-n-p) (lambda (prompt) t)))
+
+      ;; Execute a command that should fail
+      (greger-tools--shell-command
+       "false"  ; Command that always exits with code 1
+       (lambda (output err)
+         (setq result output error err callback-called t)))
+
+      ;; Wait for async operation to complete
+      (let ((timeout 0))
+        (while (and (not callback-called) (< timeout 50))  ; 5 second timeout
+          (sit-for 0.1)
+          (setq timeout (1+ timeout))))
+
+      ;; Verify the results
+      (should callback-called)
+      (should (null result))
+      (should (stringp error))
+      (should (string-match "failed with exit code" error)))))
+
+;;; greger-test-stdlib.el ends here
+</tool.toolu_019Mb7EssY5vN5vdKVsWA2WS>
+
+### git_commit_message
+
+<tool.toolu_019Mb7EssY5vN5vdKVsWA2WS>
+Add test for shell-command error handling when command fails
+</tool.toolu_019Mb7EssY5vN5vdKVsWA2WS>
+
+<!-- TOOL_RESULT_PLACEHOLDER_toolu_019Mb7EssY5vN5vdKVsWA2WS -->

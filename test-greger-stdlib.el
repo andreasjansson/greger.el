@@ -147,4 +147,31 @@
       (should (stringp error))
       (should (string-match "cancelled by user" error)))))
 
+(ert-deftest greger-test-shell-command-command-failure ()
+  "Test shell-command tool when command fails."
+  (let ((result nil)
+        (error nil)
+        (callback-called nil))
+
+    ;; Mock the permission prompt to always return yes
+    (cl-letf (((symbol-function 'y-or-n-p) (lambda (prompt) t)))
+
+      ;; Execute a command that should fail
+      (greger-tools--shell-command
+       "false"  ; Command that always exits with code 1
+       (lambda (output err)
+         (setq result output error err callback-called t)))
+
+      ;; Wait for async operation to complete
+      (let ((timeout 0))
+        (while (and (not callback-called) (< timeout 50))  ; 5 second timeout
+          (sit-for 0.1)
+          (setq timeout (1+ timeout))))
+
+      ;; Verify the results
+      (should callback-called)
+      (should (null result))
+      (should (stringp error))
+      (should (string-match "failed with exit code" error)))))
+
 ;;; greger-test-stdlib.el ends here
