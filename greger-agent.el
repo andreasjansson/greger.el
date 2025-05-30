@@ -125,12 +125,15 @@
         (push block tool-calls)))
     (reverse tool-calls)))
 
+(defun greger-agent--tool-placeholder (tool-id)
+  "Generate placeholder string for TOOL-ID."
+  (format "<!-- TOOL_RESULT_PLACEHOLDER_%s -->" tool-id))
+
 (defun greger-agent--execute-tools (tool-calls agent-state)
   "Execute TOOL-CALLS using AGENT-STATE in parallel with callbacks."
   (let* ((total-tools (length tool-calls))
          (completed-tools 0)
-         (results (make-hash-table :test 'equal))
-         (tool-positions (make-hash-table :test 'equal)))
+         (search-start-pos nil))
 
     ;; First, display the tool calls and reserve space for each tool's output
     (with-current-buffer (greger-agent-state-chat-buffer agent-state)
@@ -141,13 +144,13 @@
         (unless (string-empty-p tool-blocks-markdown)
           (insert "\n\n" tool-blocks-markdown)))
 
-      ;; Create placeholders for each tool result and remember their positions
+      ;; Remember where to start searching for placeholders
+      (setq search-start-pos (point))
+
+      ;; Create placeholders for each tool result
       (dolist (tool-call tool-calls)
         (let ((tool-id (alist-get 'id tool-call)))
-          (insert "\n\n")
-          (let ((start-pos (point)))
-            (insert (format "<!-- TOOL_RESULT_PLACEHOLDER_%s -->" tool-id))
-            (puthash tool-id start-pos tool-positions)))))
+          (insert "\n\n" (greger-agent--tool-placeholder tool-id)))))
 
     ;; Execute all tools in parallel
     (dolist (tool-call tool-calls)
@@ -161,13 +164,12 @@
            tool-input
            (lambda (result error)
              (greger-agent--handle-tool-completion
-              tool-id result error agent-state
-              results tool-positions
+              tool-id result error agent-state search-start-pos
               (lambda ()
                 (setq completed-tools (1+ completed-tools))
                 (when (= completed-tools total-tools)
                   (greger-agent--run-agent-loop agent-state)))))
-           (greger-agent-state-chat-buffer agent-state))))))
+           (greger-agent-state-chat-buffer agent-state)))))))
 
 (defun greger-agent--append-text (text agent-state)
   (with-current-buffer (greger-agent-state-chat-buffer agent-state)

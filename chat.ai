@@ -1221,3 +1221,188 @@ ID: toolu_01ELytAeUQt7CEawjQv9hbjx
 <tool.toolu_01ELytAeUQt7CEawjQv9hbjx>
 Successfully replaced content in /Users/andreas/projects/aichat3/greger-agent.el. Successfully staged 2 file(s) and committed with message: Remove approval logic from tool execution
 </tool.toolu_01ELytAeUQt7CEawjQv9hbjx>
+
+
+## TOOL USE:
+
+Name: str-replace
+ID: toolu_01SCSQhwXqz19wxXL57EwRDb
+
+### file_path
+
+<tool.toolu_01SCSQhwXqz19wxXL57EwRDb>
+greger-agent.el
+</tool.toolu_01SCSQhwXqz19wxXL57EwRDb>
+
+### original_content
+
+<tool.toolu_01SCSQhwXqz19wxXL57EwRDb>
+(defun greger-agent--request-approval (tool-name tool-input)
+  "Request approval for TOOL-NAME with TOOL-INPUT."
+  (if greger-agent-auto-approve
+      t
+    (y-or-n-p (format "Execute %s with %s? " tool-name (json-encode tool-input)))))
+
+(defun greger-agent-set-auto-approve (enable)
+  "Set auto-approval of tool calls to ENABLE."
+  (interactive "P")
+  (setq greger-agent-auto-approve (if enable t nil))
+  (message "Auto-approval %s"
+           (if greger-agent-auto-approve "enabled" "disabled")))
+</tool.toolu_01SCSQhwXqz19wxXL57EwRDb>
+
+### new_content
+
+<tool.toolu_01SCSQhwXqz19wxXL57EwRDb>
+
+</tool.toolu_01SCSQhwXqz19wxXL57EwRDb>
+
+### git_commit_message
+
+<tool.toolu_01SCSQhwXqz19wxXL57EwRDb>
+Remove approval functions
+</tool.toolu_01SCSQhwXqz19wxXL57EwRDb>
+
+## TOOL RESULT:
+
+ID: toolu_01SCSQhwXqz19wxXL57EwRDb
+
+<tool.toolu_01SCSQhwXqz19wxXL57EwRDb>
+Successfully replaced content in /Users/andreas/projects/aichat3/greger-agent.el. Successfully staged 2 file(s) and committed with message: Remove approval functions
+</tool.toolu_01SCSQhwXqz19wxXL57EwRDb>
+
+## ASSISTANT:
+
+Perfect! I've removed all the approval logic:
+
+1. Removed the `greger-agent-auto-approve` customization variable
+2. Removed the approval check in the tool execution loop - now tools always execute
+3. Removed the `greger-agent--request-approval` function
+4. Removed the `greger-agent-set-auto-approve` function
+
+The code is now much cleaner and simpler, with tools always executing automatically without any approval prompts.
+
+## USER:
+
+Do we even need to tool-positions if we're searching for the placeholder anyway? Can we not just start search from where we are in the buffer before starting to execute tools in parallel? Also make the (format "<!-- TOOL_RESULT_PLACEHOLDER_%s -->" tool-id) a separate helper function
+
+## ASSISTANT:
+
+You're absolutely right! We don't need to track positions if we're searching for the placeholder. Let me simplify this:
+
+## TOOL USE:
+
+Name: str-replace
+ID: toolu_011tdB5fUjPxoMUTHsmfEwU4
+
+### file_path
+
+<tool.toolu_011tdB5fUjPxoMUTHsmfEwU4>
+greger-agent.el
+</tool.toolu_011tdB5fUjPxoMUTHsmfEwU4>
+
+### original_content
+
+<tool.toolu_011tdB5fUjPxoMUTHsmfEwU4>
+(defun greger-agent--execute-tools (tool-calls agent-state)
+  "Execute TOOL-CALLS using AGENT-STATE in parallel with callbacks."
+  (let* ((total-tools (length tool-calls))
+         (completed-tools 0)
+         (results (make-hash-table :test 'equal))
+         (tool-positions (make-hash-table :test 'equal)))
+
+    ;; First, display the tool calls and reserve space for each tool's output
+    (with-current-buffer (greger-agent-state-chat-buffer agent-state)
+      (goto-char (point-max))
+
+      ;; Display tool calls
+      (let ((tool-blocks-markdown (greger-parser--content-blocks-to-markdown tool-calls)))
+        (unless (string-empty-p tool-blocks-markdown)
+          (insert "\n\n" tool-blocks-markdown)))
+
+      ;; Create placeholders for each tool result and remember their positions
+      (dolist (tool-call tool-calls)
+        (let ((tool-id (alist-get 'id tool-call)))
+          (insert "\n\n")
+          (let ((start-pos (point)))
+            (insert (format "<!-- TOOL_RESULT_PLACEHOLDER_%s -->" tool-id))
+            (puthash tool-id start-pos tool-positions)))))
+
+    ;; Execute all tools in parallel
+    (dolist (tool-call tool-calls)
+      (let* ((tool-name (alist-get 'name tool-call))
+             (tool-input (alist-get 'input tool-call))
+             (tool-id (alist-get 'id tool-call)))
+
+        (let ((default-directory (greger-agent-state-directory agent-state)))
+          (greger-tools-execute
+           tool-name
+           tool-input
+           (lambda (result error)
+             (greger-agent--handle-tool-completion
+              tool-id result error agent-state
+              results tool-positions
+              (lambda ()
+                (setq completed-tools (1+ completed-tools))
+                (when (= completed-tools total-tools)
+                  (greger-agent--run-agent-loop agent-state)))))
+           (greger-agent-state-chat-buffer agent-state))))))
+</tool.toolu_011tdB5fUjPxoMUTHsmfEwU4>
+
+### new_content
+
+<tool.toolu_011tdB5fUjPxoMUTHsmfEwU4>
+(defun greger-agent--tool-placeholder (tool-id)
+  "Generate placeholder string for TOOL-ID."
+  (format "<!-- TOOL_RESULT_PLACEHOLDER_%s -->" tool-id))
+
+(defun greger-agent--execute-tools (tool-calls agent-state)
+  "Execute TOOL-CALLS using AGENT-STATE in parallel with callbacks."
+  (let* ((total-tools (length tool-calls))
+         (completed-tools 0)
+         (search-start-pos nil))
+
+    ;; First, display the tool calls and reserve space for each tool's output
+    (with-current-buffer (greger-agent-state-chat-buffer agent-state)
+      (goto-char (point-max))
+
+      ;; Display tool calls
+      (let ((tool-blocks-markdown (greger-parser--content-blocks-to-markdown tool-calls)))
+        (unless (string-empty-p tool-blocks-markdown)
+          (insert "\n\n" tool-blocks-markdown)))
+
+      ;; Remember where to start searching for placeholders
+      (setq search-start-pos (point))
+
+      ;; Create placeholders for each tool result
+      (dolist (tool-call tool-calls)
+        (let ((tool-id (alist-get 'id tool-call)))
+          (insert "\n\n" (greger-agent--tool-placeholder tool-id)))))
+
+    ;; Execute all tools in parallel
+    (dolist (tool-call tool-calls)
+      (let* ((tool-name (alist-get 'name tool-call))
+             (tool-input (alist-get 'input tool-call))
+             (tool-id (alist-get 'id tool-call)))
+
+        (let ((default-directory (greger-agent-state-directory agent-state)))
+          (greger-tools-execute
+           tool-name
+           tool-input
+           (lambda (result error)
+             (greger-agent--handle-tool-completion
+              tool-id result error agent-state search-start-pos
+              (lambda ()
+                (setq completed-tools (1+ completed-tools))
+                (when (= completed-tools total-tools)
+                  (greger-agent--run-agent-loop agent-state)))))
+           (greger-agent-state-chat-buffer agent-state))))))
+</tool.toolu_011tdB5fUjPxoMUTHsmfEwU4>
+
+### git_commit_message
+
+<tool.toolu_011tdB5fUjPxoMUTHsmfEwU4>
+Simplify tool execution by removing position tracking and adding placeholder helper
+</tool.toolu_011tdB5fUjPxoMUTHsmfEwU4>
+
+<!-- TOOL_RESULT_PLACEHOLDER_toolu_011tdB5fUjPxoMUTHsmfEwU4 -->
