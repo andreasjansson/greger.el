@@ -1785,4 +1785,69 @@ test-greger-tools.el
 Fix combined test assertions for asynchronous callback
 </tool.toolu_01L1EUz8L4YHmAX4by9KJiv7>
 
-<!-- TOOL_RESULT_PLACEHOLDER_toolu_01L1EUz8L4YHmAX4by9KJiv7 -->
+## TOOL RESULT:
+
+ID: toolu_01L1EUz8L4YHmAX4by9KJiv7
+
+<tool.toolu_01L1EUz8L4YHmAX4by9KJiv7>
+Successfully replaced content in /Users/andreas/projects/aichat3/test-greger-tools.el. Successfully staged 2 file(s) and committed with message: Fix combined test assertions for asynchronous callback
+</tool.toolu_01L1EUz8L4YHmAX4by9KJiv7>
+
+
+## ASSISTANT:
+
+Let me also update the example in the documentation to show the correct usage:
+
+## TOOL USE:
+
+Name: str-replace
+ID: toolu_01MVSmHSTRd3yge8MHqaxSwz
+
+### file_path
+
+<tool.toolu_01MVSmHSTRd3yge8MHqaxSwz>
+greger-tools.el
+</tool.toolu_01MVSmHSTRd3yge8MHqaxSwz>
+
+### original_content
+
+<tool.toolu_01MVSmHSTRd3yge8MHqaxSwz>
+Example:
+  (greger-register-tool \"rename-file\"
+    :description \"Rename or move a file from one path to another\"
+    :properties '((old_path . ((type . \"string\")
+                              (description . \"Current path of the file\")))
+                  (new_path . ((type . \"string\")
+                              (description . \"New path for the file\")))
+                  (git_commit_message . ((type . \"string\")
+                                        (description . \"Git commit message for this change\"))))
+    :required '(\"old_path\" \"new_path\" \"git_commit_message\")
+    :function 'greger-tools--rename-file
+    :pass-buffer t)
+</tool.toolu_01MVSmHSTRd3yge8MHqaxSwz>
+
+### new_content
+
+<tool.toolu_01MVSmHSTRd3yge8MHqaxSwz>
+Example:
+  (greger-register-tool \"rename-file\"
+    :description \"Rename or move a file from one path to another\"
+    :properties '((old_path . ((type . \"string\")
+                              (description . \"Current path of the file\")))
+                  (new_path . ((type . \"string\")
+                              (description . \"New path for the file\")))
+                  (git_commit_message . ((type . \"string\")
+                                        (description . \"Git commit message for this change\"))))
+    :required '(\"old_path\" \"new_path\" \"git_commit_message\")
+    :function 'greger-tools--rename-file
+    :pass-buffer t
+    :pass-callback t)
+</tool.toolu_01MVSmHSTRd3yge8MHqaxSwz>
+
+### git_commit_message
+
+<tool.toolu_01MVSmHSTRd3yge8MHqaxSwz>
+Update example to show pass-callback usage
+</tool.toolu_01MVSmHSTRd3yge8MHqaxSwz>
+
+<!-- TOOL_RESULT_PLACEHOLDER_toolu_01MVSmHSTRd3yge8MHqaxSwz -->

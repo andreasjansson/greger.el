@@ -29,7 +29,8 @@ Example:
                                         (description . \"Git commit message for this change\"))))
     :required '(\"old_path\" \"new_path\" \"git_commit_message\")
     :function 'greger-tools--rename-file
-    :pass-buffer t)
+    :pass-buffer t
+    :pass-callback t)
 
   When :pass-callback is set to t, the callback function will be passed to the tool
   function as a 'callback parameter instead of greger-tools-execute calling the callback with the result."
