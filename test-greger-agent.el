@@ -298,7 +298,24 @@ Processed: test-data
                           (id . "unknown_test")
                           (name . "nonexistent-tool")
                           (input . ((param . "value"))))))
-            (expected-error-content "## TOOL RESULT:\n\nID: unknown_test\n\n<tool.unknown_test>\nUnknown tool: nonexistent-tool\n</tool.unknown_test>"))
+            (expected-error-content "## TOOL USE:
+
+Name: nonexistent-tool
+ID: unknown_test
+
+### param
+
+<tool.unknown_test>
+value
+</tool.unknown_test>
+
+## TOOL RESULT:
+
+ID: unknown_test
+
+<tool.unknown_test>
+Unknown tool: nonexistent-tool
+</tool.unknown_test>"))
 
         ;; Mock greger-agent--run-agent-loop to capture completion
         (cl-letf (((symbol-function 'greger-agent--run-agent-loop)

@@ -3268,4 +3268,184 @@ Processed: test-data
 Fix placeholder replacement test with correct multi-line expected content including TOOL USE
 </tool.toolu_01VLcKuYMz6ZgQT8o5qUqnjc>
 
-<!-- TOOL_RESULT_PLACEHOLDER_toolu_01VLcKuYMz6ZgQT8o5qUqnjc -->
+## TOOL RESULT:
+
+ID: toolu_01VLcKuYMz6ZgQT8o5qUqnjc
+
+<tool.toolu_01VLcKuYMz6ZgQT8o5qUqnjc>
+Successfully replaced content in /Users/andreas/projects/aichat3/test-greger-agent.el. Successfully staged 2 file(s) and committed with message: Fix placeholder replacement test with correct multi-line expected content including TOOL USE
+</tool.toolu_01VLcKuYMz6ZgQT8o5qUqnjc>
+
+
+## ASSISTANT:
+
+Now let me fix the unknown tool error test:
+
+## TOOL USE:
+
+Name: read-file
+ID: toolu_01XzQu5J1EC37DL1yBC6QWYB
+
+### path
+
+<tool.toolu_01XzQu5J1EC37DL1yBC6QWYB>
+test-greger-agent.el
+</tool.toolu_01XzQu5J1EC37DL1yBC6QWYB>
+
+### start_line
+
+<tool.toolu_01XzQu5J1EC37DL1yBC6QWYB>
+270
+</tool.toolu_01XzQu5J1EC37DL1yBC6QWYB>
+
+### end_line
+
+<tool.toolu_01XzQu5J1EC37DL1yBC6QWYB>
+300
+</tool.toolu_01XzQu5J1EC37DL1yBC6QWYB>
+
+## TOOL RESULT:
+
+ID: toolu_01XzQu5J1EC37DL1yBC6QWYB
+
+<tool.toolu_01XzQu5J1EC37DL1yBC6QWYB>
+        (cl-letf (((symbol-function 'greger-agent--run-agent-loop)
+                   (lambda (state)
+                     (setq test-completed t))))
+
+          ;; Execute tools
+          (greger-agent--execute-tools tool-calls agent-state)
+
+          ;; Check that execution completed
+          (should test-completed)
+
+          ;; Check that placeholder was replaced with exact expected content
+          (let ((actual-content (buffer-substring-no-properties (point-min) (point-max))))
+            (should (string= expected-content actual-content))))))
+
+    ;; Clean up
+    (remhash "test-placeholder" greger-tools-registry)))
+
+(ert-deftest greger-agent-test-unknown-tool-error ()
+  "Test handling of unknown tool execution."
+  (let ((test-completed nil))
+
+    ;; Create test buffer
+    (with-temp-buffer
+      (let ((agent-state (make-greger-agent-state
+                          :current-iteration 0
+                          :chat-buffer (current-buffer)
+                          :directory default-directory))
+            (tool-calls `(((type . "tool_use")
+                          (id . "unknown_test")
+                          (name . "nonexistent-tool")
+                          (input . ((param . "value"))))))
+</tool.toolu_01XzQu5J1EC37DL1yBC6QWYB>
+
+## TOOL USE:
+
+Name: read-file
+ID: toolu_01HKyatYnN91fuRiuZSeF4pW
+
+### path
+
+<tool.toolu_01HKyatYnN91fuRiuZSeF4pW>
+test-greger-agent.el
+</tool.toolu_01HKyatYnN91fuRiuZSeF4pW>
+
+### start_line
+
+<tool.toolu_01HKyatYnN91fuRiuZSeF4pW>
+295
+</tool.toolu_01HKyatYnN91fuRiuZSeF4pW>
+
+### end_line
+
+<tool.toolu_01HKyatYnN91fuRiuZSeF4pW>
+320
+</tool.toolu_01HKyatYnN91fuRiuZSeF4pW>
+
+## TOOL RESULT:
+
+ID: toolu_01HKyatYnN91fuRiuZSeF4pW
+
+<tool.toolu_01HKyatYnN91fuRiuZSeF4pW>
+                          :chat-buffer (current-buffer)
+                          :directory default-directory))
+            (tool-calls `(((type . "tool_use")
+                          (id . "unknown_test")
+                          (name . "nonexistent-tool")
+                          (input . ((param . "value"))))))
+            (expected-error-content "## TOOL RESULT:\n\nID: unknown_test\n\n<tool.unknown_test>\nUnknown tool: nonexistent-tool\n</tool.unknown_test>"))
+
+        ;; Mock greger-agent--run-agent-loop to capture completion
+        (cl-letf (((symbol-function 'greger-agent--run-agent-loop)
+                   (lambda (state)
+                     (setq test-completed t))))
+
+          ;; Execute tools
+          (greger-agent--execute-tools tool-calls agent-state)
+
+          ;; Check that execution completed despite unknown tool
+          (should test-completed)
+
+          ;; Check buffer contents match expected error message exactly
+          (let ((actual-content (buffer-substring-no-properties (point-min) (point-max))))
+            (should (string= expected-error-content actual-content))))))))
+
+(ert-deftest greger-agent-test-exact-tool-output-formatting ()
+  "Test exact tool output formatting with multiple scenarios."
+  (let ((test-completed nil))
+</tool.toolu_01HKyatYnN91fuRiuZSeF4pW>
+
+## ASSISTANT:
+
+Let me fix the unknown tool error test:
+
+## TOOL USE:
+
+Name: str-replace
+ID: toolu_01VExSnVQ4dMBSnVqGDCnZyc
+
+### file_path
+
+<tool.toolu_01VExSnVQ4dMBSnVqGDCnZyc>
+test-greger-agent.el
+</tool.toolu_01VExSnVQ4dMBSnVqGDCnZyc>
+
+### original_content
+
+<tool.toolu_01VExSnVQ4dMBSnVqGDCnZyc>
+(expected-error-content "## TOOL RESULT:\n\nID: unknown_test\n\n<tool.unknown_test>\nUnknown tool: nonexistent-tool\n</tool.unknown_test>"))
+</tool.toolu_01VExSnVQ4dMBSnVqGDCnZyc>
+
+### new_content
+
+<tool.toolu_01VExSnVQ4dMBSnVqGDCnZyc>
+(expected-error-content "## TOOL USE:
+
+Name: nonexistent-tool
+ID: unknown_test
+
+### param
+
+<tool.unknown_test>
+value
+</tool.unknown_test>
+
+## TOOL RESULT:
+
+ID: unknown_test
+
+<tool.unknown_test>
+Unknown tool: nonexistent-tool
+</tool.unknown_test>"))
+</tool.toolu_01VExSnVQ4dMBSnVqGDCnZyc>
+
+### git_commit_message
+
+<tool.toolu_01VExSnVQ4dMBSnVqGDCnZyc>
+Fix unknown tool error test with multi-line expected content including TOOL USE
+</tool.toolu_01VExSnVQ4dMBSnVqGDCnZyc>
+
+<!-- TOOL_RESULT_PLACEHOLDER_toolu_01VExSnVQ4dMBSnVqGDCnZyc -->
