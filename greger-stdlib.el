@@ -199,7 +199,8 @@
                                       (description . "Directory to run the command in")
                                       (default . "."))))
   :required '("command")
-  :function 'greger-tools--shell-command)
+  :function 'greger-tools--shell-command
+  :pass-callback t)
 
 (greger-register-tool "read-webpage"
   :description "Read webpage content from a URL. Can return either extracted text or raw HTML."

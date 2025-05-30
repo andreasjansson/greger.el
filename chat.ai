@@ -3430,4 +3430,63 @@ CALLBACK will be called with (output nil) on success or (nil error-message) on f
 Add shared async subprocess utility function
 </tool.toolu_011wanB1ud2RiX6ZDRTs3GUx>
 
-<!-- TOOL_RESULT_PLACEHOLDER_toolu_011wanB1ud2RiX6ZDRTs3GUx -->
+## TOOL RESULT:
+
+ID: toolu_011wanB1ud2RiX6ZDRTs3GUx
+
+<tool.toolu_011wanB1ud2RiX6ZDRTs3GUx>
+Successfully replaced content in /Users/andreas/projects/aichat3/greger-stdlib.el. Successfully staged 2 file(s) and committed with message: Add shared async subprocess utility function
+</tool.toolu_011wanB1ud2RiX6ZDRTs3GUx>
+
+
+## ASSISTANT:
+
+Now I need to update the `shell-command` tool to use the callback pattern:
+
+## TOOL USE:
+
+Name: str-replace
+ID: toolu_01HfgFkHKB9DhyK6MQMPUKNh
+
+### file_path
+
+<tool.toolu_01HfgFkHKB9DhyK6MQMPUKNh>
+greger-stdlib.el
+</tool.toolu_01HfgFkHKB9DhyK6MQMPUKNh>
+
+### original_content
+
+<tool.toolu_01HfgFkHKB9DhyK6MQMPUKNh>
+(greger-register-tool "shell-command"
+  :description "Execute an arbitrary shell command and return the output. Prompts for permission before running the command for security."
+  :properties '((command . ((type . "string")
+                            (description . "The shell command to execute")))
+                (working_directory . ((type . "string")
+                                      (description . "Directory to run the command in")
+                                      (default . "."))))
+  :required '("command")
+  :function 'greger-tools--shell-command)
+</tool.toolu_01HfgFkHKB9DhyK6MQMPUKNh>
+
+### new_content
+
+<tool.toolu_01HfgFkHKB9DhyK6MQMPUKNh>
+(greger-register-tool "shell-command"
+  :description "Execute an arbitrary shell command and return the output. Prompts for permission before running the command for security."
+  :properties '((command . ((type . "string")
+                            (description . "The shell command to execute")))
+                (working_directory . ((type . "string")
+                                      (description . "Directory to run the command in")
+                                      (default . "."))))
+  :required '("command")
+  :function 'greger-tools--shell-command
+  :pass-callback t)
+</tool.toolu_01HfgFkHKB9DhyK6MQMPUKNh>
+
+### git_commit_message
+
+<tool.toolu_01HfgFkHKB9DhyK6MQMPUKNh>
+Update shell-command tool to use callback pattern
+</tool.toolu_01HfgFkHKB9DhyK6MQMPUKNh>
+
+<!-- TOOL_RESULT_PLACEHOLDER_toolu_01HfgFkHKB9DhyK6MQMPUKNh -->
