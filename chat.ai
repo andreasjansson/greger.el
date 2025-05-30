@@ -2153,4 +2153,54 @@ test-greger-tools.el
 Update unknown tool error test to use callback API
 </tool.toolu_01Aj5Ckma2pyM4LTDvnQbuGU>
 
-<!-- TOOL_RESULT_PLACEHOLDER_toolu_01Aj5Ckma2pyM4LTDvnQbuGU -->
+## TOOL RESULT:
+
+ID: toolu_01Aj5Ckma2pyM4LTDvnQbuGU
+
+<tool.toolu_01Aj5Ckma2pyM4LTDvnQbuGU>
+Successfully replaced content in /Users/andreas/projects/aichat3/test-greger-tools.el. Successfully staged 2 file(s) and committed with message: Update unknown tool error test to use callback API
+</tool.toolu_01Aj5Ckma2pyM4LTDvnQbuGU>
+
+
+## TOOL USE:
+
+Name: str-replace
+ID: toolu_014xRP1Ja7eEvSqqFXKXTwge
+
+### file_path
+
+<tool.toolu_014xRP1Ja7eEvSqqFXKXTwge>
+test-greger-tools.el
+</tool.toolu_014xRP1Ja7eEvSqqFXKXTwge>
+
+### original_content
+
+<tool.toolu_014xRP1Ja7eEvSqqFXKXTwge>
+  ;; Test execution with underscore parameters
+  (let ((result (greger-tools-execute "test-hyphens"
+                                      '((file_path . "/path/to/file")
+                                        (commit_message . "test commit")))))
+    (should (string= "file: /path/to/file, message: test commit" result)))
+</tool.toolu_014xRP1Ja7eEvSqqFXKXTwge>
+
+### new_content
+
+<tool.toolu_014xRP1Ja7eEvSqqFXKXTwge>
+  ;; Test execution with underscore parameters
+  (let ((result nil)
+        (error nil))
+    (greger-tools-execute "test-hyphens"
+                          '((file_path . "/path/to/file")
+                            (commit_message . "test commit"))
+                          (lambda (r e) (setq result r error e)) nil)
+    (should (string= "file: /path/to/file, message: test commit" result))
+    (should (null error)))
+</tool.toolu_014xRP1Ja7eEvSqqFXKXTwge>
+
+### git_commit_message
+
+<tool.toolu_014xRP1Ja7eEvSqqFXKXTwge>
+Update parameter mapping test to use callback API
+</tool.toolu_014xRP1Ja7eEvSqqFXKXTwge>
+
+<!-- TOOL_RESULT_PLACEHOLDER_toolu_014xRP1Ja7eEvSqqFXKXTwge -->

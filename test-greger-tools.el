@@ -76,10 +76,14 @@
     :function 'greger-test-hyphenated-params)
 
   ;; Test execution with underscore parameters
-  (let ((result (greger-tools-execute "test-hyphens"
-                                      '((file_path . "/path/to/file")
-                                        (commit_message . "test commit")))))
-    (should (string= "file: /path/to/file, message: test commit" result)))
+  (let ((result nil)
+        (error nil))
+    (greger-tools-execute "test-hyphens"
+                          '((file_path . "/path/to/file")
+                            (commit_message . "test commit"))
+                          (lambda (r e) (setq result r error e)) nil)
+    (should (string= "file: /path/to/file, message: test commit" result))
+    (should (null error)))
 
   ;; Clean up
   (remhash "test-hyphens" greger-tools-registry))
