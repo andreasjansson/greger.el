@@ -566,8 +566,9 @@ Returns a plist with :messages and :metadata keys."
             (let ((section-result (greger-parser--parse-section state)))
               (when section-result
                 (if (and (listp section-result) (eq (car section-result) :metadata))
-                    ;; This is metadata, not a message
-                    (setq metadata (append metadata (cdr section-result)))
+                    ;; This is metadata, not a message - merge the metadata plist
+                    (let ((new-metadata (cadr section-result)))
+                      (setq metadata (append metadata new-metadata)))
                   ;; This is a regular message
                   (push section-result sections)))))
           ;; Safety check: ensure we're making progress
