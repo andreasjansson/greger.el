@@ -231,18 +231,7 @@ This function is kept for backward compatibility but is no longer used in the ne
   ;; Reset the state
   (setf (greger-agent-state-current-iteration agent-state) 0))
 
-(defun greger-agent--request-approval (tool-name tool-input)
-  "Request approval for TOOL-NAME with TOOL-INPUT."
-  (if greger-agent-auto-approve
-      t
-    (y-or-n-p (format "Execute %s with %s? " tool-name (json-encode tool-input)))))
 
-(defun greger-agent-set-auto-approve (enable)
-  "Set auto-approval of tool calls to ENABLE."
-  (interactive "P")
-  (setq greger-agent-auto-approve (if enable t nil))
-  (message "Auto-approval %s"
-           (if greger-agent-auto-approve "enabled" "disabled")))
 
 (defun greger-agent-toggle-debug ()
   "Toggle debug output."
