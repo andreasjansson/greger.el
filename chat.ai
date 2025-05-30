@@ -1405,4 +1405,96 @@ greger-agent.el
 Simplify tool execution by removing position tracking and adding placeholder helper
 </tool.toolu_011tdB5fUjPxoMUTHsmfEwU4>
 
-<!-- TOOL_RESULT_PLACEHOLDER_toolu_011tdB5fUjPxoMUTHsmfEwU4 -->
+## TOOL RESULT:
+
+ID: toolu_011tdB5fUjPxoMUTHsmfEwU4
+
+<tool.toolu_011tdB5fUjPxoMUTHsmfEwU4>
+Successfully replaced content in /Users/andreas/projects/aichat3/greger-agent.el. Successfully staged 2 file(s) and committed with message: Simplify tool execution by removing position tracking and adding placeholder helper
+</tool.toolu_011tdB5fUjPxoMUTHsmfEwU4>
+
+
+## TOOL USE:
+
+Name: str-replace
+ID: toolu_01QbuqzeCcVAJpBGeQcpHSwj
+
+### file_path
+
+<tool.toolu_01QbuqzeCcVAJpBGeQcpHSwj>
+greger-agent.el
+</tool.toolu_01QbuqzeCcVAJpBGeQcpHSwj>
+
+### original_content
+
+<tool.toolu_01QbuqzeCcVAJpBGeQcpHSwj>
+(defun greger-agent--handle-tool-completion (tool-id result error agent-state results tool-positions completion-callback)
+  "Handle completion of a tool execution by updating the buffer and calling COMPLETION-CALLBACK."
+  (let* ((tool-result (if error
+                         `((type . "tool_result")
+                           (tool_use_id . ,tool-id)
+                           (content . ,(if (stringp error)
+                                          error
+                                        (format "Error executing tool: %s" (error-message-string error))))
+                           (is_error . t))
+                       `((type . "tool_result")
+                         (tool_use_id . ,tool-id)
+                         (content . ,result))))
+         (placeholder-pos (gethash tool-id tool-positions)))
+
+    ;; Store the result
+    (puthash tool-id tool-result results)
+
+    ;; Update the buffer at the correct position
+    (with-current-buffer (greger-agent-state-chat-buffer agent-state)
+      (save-excursion
+        (goto-char placeholder-pos)
+        ;; Find and replace the placeholder
+        (when (search-forward (format "<!-- TOOL_RESULT_PLACEHOLDER_%s -->" tool-id) nil t)
+          (replace-match "")
+          (let ((result-markdown (greger-parser--content-blocks-to-markdown (list tool-result))))
+            (unless (string-empty-p result-markdown)
+              (insert result-markdown))))))
+
+    ;; Call completion callback
+    (funcall completion-callback)))
+</tool.toolu_01QbuqzeCcVAJpBGeQcpHSwj>
+
+### new_content
+
+<tool.toolu_01QbuqzeCcVAJpBGeQcpHSwj>
+(defun greger-agent--handle-tool-completion (tool-id result error agent-state search-start-pos completion-callback)
+  "Handle completion of a tool execution by updating the buffer and calling COMPLETION-CALLBACK."
+  (let ((tool-result (if error
+                        `((type . "tool_result")
+                          (tool_use_id . ,tool-id)
+                          (content . ,(if (stringp error)
+                                         error
+                                       (format "Error executing tool: %s" (error-message-string error))))
+                          (is_error . t))
+                      `((type . "tool_result")
+                        (tool_use_id . ,tool-id)
+                        (content . ,result)))))
+
+    ;; Update the buffer at the correct position
+    (with-current-buffer (greger-agent-state-chat-buffer agent-state)
+      (save-excursion
+        (goto-char search-start-pos)
+        ;; Find and replace the placeholder
+        (when (search-forward (greger-agent--tool-placeholder tool-id) nil t)
+          (replace-match "")
+          (let ((result-markdown (greger-parser--content-blocks-to-markdown (list tool-result))))
+            (unless (string-empty-p result-markdown)
+              (insert result-markdown))))))
+
+    ;; Call completion callback
+    (funcall completion-callback)))
+</tool.toolu_01QbuqzeCcVAJpBGeQcpHSwj>
+
+### git_commit_message
+
+<tool.toolu_01QbuqzeCcVAJpBGeQcpHSwj>
+Update tool completion handler to use search-start-pos and placeholder helper
+</tool.toolu_01QbuqzeCcVAJpBGeQcpHSwj>
+
+<!-- TOOL_RESULT_PLACEHOLDER_toolu_01QbuqzeCcVAJpBGeQcpHSwj -->

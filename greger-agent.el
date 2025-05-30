@@ -176,29 +176,25 @@
     (goto-char (point-max))
     (insert text)))
 
-(defun greger-agent--handle-tool-completion (tool-id result error agent-state results tool-positions completion-callback)
+(defun greger-agent--handle-tool-completion (tool-id result error agent-state search-start-pos completion-callback)
   "Handle completion of a tool execution by updating the buffer and calling COMPLETION-CALLBACK."
-  (let* ((tool-result (if error
-                         `((type . "tool_result")
-                           (tool_use_id . ,tool-id)
-                           (content . ,(if (stringp error)
-                                          error
-                                        (format "Error executing tool: %s" (error-message-string error))))
-                           (is_error . t))
-                       `((type . "tool_result")
-                         (tool_use_id . ,tool-id)
-                         (content . ,result))))
-         (placeholder-pos (gethash tool-id tool-positions)))
-
-    ;; Store the result
-    (puthash tool-id tool-result results)
+  (let ((tool-result (if error
+                        `((type . "tool_result")
+                          (tool_use_id . ,tool-id)
+                          (content . ,(if (stringp error)
+                                         error
+                                       (format "Error executing tool: %s" (error-message-string error))))
+                          (is_error . t))
+                      `((type . "tool_result")
+                        (tool_use_id . ,tool-id)
+                        (content . ,result)))))
 
     ;; Update the buffer at the correct position
     (with-current-buffer (greger-agent-state-chat-buffer agent-state)
       (save-excursion
-        (goto-char placeholder-pos)
+        (goto-char search-start-pos)
         ;; Find and replace the placeholder
-        (when (search-forward (format "<!-- TOOL_RESULT_PLACEHOLDER_%s -->" tool-id) nil t)
+        (when (search-forward (greger-agent--tool-placeholder tool-id) nil t)
           (replace-match "")
           (let ((result-markdown (greger-parser--content-blocks-to-markdown (list tool-result))))
             (unless (string-empty-p result-markdown)
