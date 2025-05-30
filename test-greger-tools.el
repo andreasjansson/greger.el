@@ -400,7 +400,7 @@
                               (description . "Test message"))))
     :required '("message")
     :function 'greger-test-callback-with-buffer
-    :pass-callback callback
+    :pass-callback t
     :pass-buffer t)
 
   ;; Test with both buffer and callback

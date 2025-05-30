@@ -1662,4 +1662,60 @@ test-greger-tools.el
 Fix test to properly verify asynchronous callback behavior
 </tool.toolu_017ipXptCiHnbqeHLg6eq4Nd>
 
-<!-- TOOL_RESULT_PLACEHOLDER_toolu_017ipXptCiHnbqeHLg6eq4Nd -->
+## TOOL RESULT:
+
+ID: toolu_017ipXptCiHnbqeHLg6eq4Nd
+
+<tool.toolu_017ipXptCiHnbqeHLg6eq4Nd>
+Successfully replaced content in /Users/andreas/projects/aichat3/test-greger-tools.el. Successfully staged 2 file(s) and committed with message: Fix test to properly verify asynchronous callback behavior
+</tool.toolu_017ipXptCiHnbqeHLg6eq4Nd>
+
+
+## ASSISTANT:
+
+I also need to fix the combined test with buffer and callback:
+
+## TOOL USE:
+
+Name: str-replace
+ID: toolu_01DedaqVvW4Fk2fJ28BpGDCK
+
+### file_path
+
+<tool.toolu_01DedaqVvW4Fk2fJ28BpGDCK>
+test-greger-tools.el
+</tool.toolu_01DedaqVvW4Fk2fJ28BpGDCK>
+
+### original_content
+
+<tool.toolu_01DedaqVvW4Fk2fJ28BpGDCK>
+  (greger-register-tool "test-callback-with-buffer"
+    :description "Test tool with both callback and buffer passing"
+    :properties '((message . ((type . "string")
+                              (description . "Test message"))))
+    :required '("message")
+    :function 'greger-test-callback-with-buffer
+    :pass-callback callback
+    :pass-buffer t)
+</tool.toolu_01DedaqVvW4Fk2fJ28BpGDCK>
+
+### new_content
+
+<tool.toolu_01DedaqVvW4Fk2fJ28BpGDCK>
+  (greger-register-tool "test-callback-with-buffer"
+    :description "Test tool with both callback and buffer passing"
+    :properties '((message . ((type . "string")
+                              (description . "Test message"))))
+    :required '("message")
+    :function 'greger-test-callback-with-buffer
+    :pass-callback t
+    :pass-buffer t)
+</tool.toolu_01DedaqVvW4Fk2fJ28BpGDCK>
+
+### git_commit_message
+
+<tool.toolu_01DedaqVvW4Fk2fJ28BpGDCK>
+Fix combined test to use boolean pass-callback
+</tool.toolu_01DedaqVvW4Fk2fJ28BpGDCK>
+
+<!-- TOOL_RESULT_PLACEHOLDER_toolu_01DedaqVvW4Fk2fJ28BpGDCK -->
