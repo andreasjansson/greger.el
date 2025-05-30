@@ -802,3 +802,165 @@ Successfully replaced content in /Users/andreas/projects/aichat3/greger-agent.el
 ## ASSISTANT:
 
 Now I need to implement the `greger-agent--handle-tool-completion` function that handles updating the buffer at the correct position:
+
+
+## TOOL USE:
+
+Name: str-replace
+ID: toolu_01K5NP7Dixc3P2qe1qizerJN
+
+### file_path
+
+<tool.toolu_01K5NP7Dixc3P2qe1qizerJN>
+greger-agent.el
+</tool.toolu_01K5NP7Dixc3P2qe1qizerJN>
+
+### original_content
+
+<tool.toolu_01K5NP7Dixc3P2qe1qizerJN>
+(defun greger-agent--display-tool-execution (tool-calls results agent-state)
+  "Display the execution of TOOL-CALLS and their RESULTS using AGENT-STATE."
+  (with-current-buffer (greger-agent-state-chat-buffer agent-state)
+    (goto-char (point-max))
+
+    ;; The tool calls are already in the right format, just convert them
+    (let ((tool-blocks-markdown (greger-parser--content-blocks-to-markdown tool-calls)))
+      (unless (string-empty-p tool-blocks-markdown)
+        (insert "\n\n" tool-blocks-markdown)))
+
+    ;; Convert tool results to markdown
+    (let ((result-blocks-markdown (greger-parser--content-blocks-to-markdown results)))
+      (unless (string-empty-p result-blocks-markdown)
+        (insert "\n\n" result-blocks-markdown)))))
+</tool.toolu_01K5NP7Dixc3P2qe1qizerJN>
+
+### new_content
+
+<tool.toolu_01K5NP7Dixc3P2qe1qizerJN>
+(defun greger-agent--handle-tool-completion (tool-id result error agent-state results tool-positions completion-callback)
+  "Handle completion of a tool execution by updating the buffer and calling COMPLETION-CALLBACK."
+  (let* ((tool-result (if error
+                         `((type . "tool_result")
+                           (tool_use_id . ,tool-id)
+                           (content . ,(if (stringp error)
+                                          error
+                                        (format "Error executing tool: %s" (error-message-string error))))
+                           (is_error . t))
+                       `((type . "tool_result")
+                         (tool_use_id . ,tool-id)
+                         (content . ,result))))
+         (placeholder-pos (gethash tool-id tool-positions)))
+
+    ;; Store the result
+    (puthash tool-id tool-result results)
+
+    ;; Update the buffer at the correct position
+    (with-current-buffer (greger-agent-state-chat-buffer agent-state)
+      (save-excursion
+        (goto-char placeholder-pos)
+        ;; Find and replace the placeholder
+        (when (search-forward (format "<!-- TOOL_RESULT_PLACEHOLDER_%s -->" tool-id) nil t)
+          (replace-match "")
+          (let ((result-markdown (greger-parser--content-blocks-to-markdown (list tool-result))))
+            (unless (string-empty-p result-markdown)
+              (insert result-markdown))))))
+
+    ;; Call completion callback
+    (funcall completion-callback)))
+
+(defun greger-agent--display-tool-execution (tool-calls results agent-state)
+  "Display the execution of TOOL-CALLS and their RESULTS using AGENT-STATE.
+This function is kept for backward compatibility but is no longer used in the new callback-based approach."
+  (with-current-buffer (greger-agent-state-chat-buffer agent-state)
+    (goto-char (point-max))
+
+    ;; The tool calls are already in the right format, just convert them
+    (let ((tool-blocks-markdown (greger-parser--content-blocks-to-markdown tool-calls)))
+      (unless (string-empty-p tool-blocks-markdown)
+        (insert "\n\n" tool-blocks-markdown)))
+
+    ;; Convert tool results to markdown
+    (let ((result-blocks-markdown (greger-parser--content-blocks-to-markdown results)))
+      (unless (string-empty-p result-blocks-markdown)
+        (insert "\n\n" result-blocks-markdown)))))
+</tool.toolu_01K5NP7Dixc3P2qe1qizerJN>
+
+### git_commit_message
+
+<tool.toolu_01K5NP7Dixc3P2qe1qizerJN>
+Add greger-agent--handle-tool-completion for managing async tool results
+</tool.toolu_01K5NP7Dixc3P2qe1qizerJN>
+
+## TOOL RESULT:
+
+ID: toolu_01K5NP7Dixc3P2qe1qizerJN
+
+<tool.toolu_01K5NP7Dixc3P2qe1qizerJN>
+Successfully replaced content in /Users/andreas/projects/aichat3/greger-agent.el. Successfully staged 2 file(s) and committed with message: Add greger-agent--handle-tool-completion for managing async tool results
+</tool.toolu_01K5NP7Dixc3P2qe1qizerJN>
+
+## ASSISTANT:
+
+Now let me test the implementation to see if there are any syntax errors or issues:
+
+## TOOL USE:
+
+Name: shell-command
+ID: toolu_01TPp95iCvxTvhjdZwtQDqyv
+
+### command
+
+<tool.toolu_01TPp95iCvxTvhjdZwtQDqyv>
+emacs --batch -l greger-tools.el -l greger-agent.el --eval "(message \"Syntax check passed\")"
+</tool.toolu_01TPp95iCvxTvhjdZwtQDqyv>
+
+## TOOL RESULT:
+
+ID: toolu_01TPp95iCvxTvhjdZwtQDqyv
+
+<tool.toolu_01TPp95iCvxTvhjdZwtQDqyv>
+Error executing tool: Shell command execution cancelled by user
+</tool.toolu_01TPp95iCvxTvhjdZwtQDqyv>
+
+## USER:
+
+don't run any tests, i will do that later. are you done?
+
+## ASSISTANT:
+
+Yes, I'm done! Here's a summary of what I implemented:
+
+## Changes Made:
+
+### 1. Modified `greger-tools-execute` in `greger-tools.el`:
+- Added an optional `callback` parameter
+- When callback is provided, executes asynchronously and calls the callback with `(result, error)`
+- Maintains backward compatibility for synchronous calls
+
+### 2. Rewrote `greger-agent--execute-tools` in `greger-agent.el`:
+- Now executes all tool calls in parallel using callbacks
+- Creates placeholders in the buffer for each tool result using HTML comments like `<!-- TOOL_RESULT_PLACEHOLDER_<tool-id> -->`
+- Tracks buffer positions for each tool so results can be inserted at the correct location
+- Uses a completion counter to know when all tools are finished
+- Calls `(greger-agent--run-agent-loop agent-state)` only after all tools complete
+
+### 3. Added `greger-agent--handle-tool-completion`:
+- Handles individual tool completion
+- Updates the buffer by finding and replacing the placeholder with the actual result
+- Manages the completion counting and triggers the next agent iteration when all tools are done
+
+## Key Features:
+- **Parallel execution**: All tools start immediately rather than waiting for each other
+- **Correct positioning**: Results appear in the right place in the buffer even if tools complete out of order
+- **Error handling**: Errors are captured and displayed properly
+- **Backward compatibility**: The old synchronous API still works
+
+The clever part for display logic is using HTML comment placeholders that get replaced with actual results as each tool completes, ensuring the output appears in the correct order regardless of completion timing.
+
+## USER:
+
+You've made it unnecessary complex. greger-tools-execute should always take a callback parameter
+
+## ASSISTANT:
+
+You're absolutely right! Let me simplify this by making `greger-tools-execute` always require a callback parameter.
