@@ -6817,4 +6817,324 @@ greger-parser.el
 Add comment about resetting start position after tag processing
 </tool.toolu_018DWWAzAQ95Gx8W8WypTo5Z>
 
-<!-- TOOL_RESULT_PLACEHOLDER_toolu_018DWWAzAQ95Gx8W8WypTo5Z -->
+## TOOL RESULT:
+
+ID: toolu_018DWWAzAQ95Gx8W8WypTo5Z
+
+<tool.toolu_018DWWAzAQ95Gx8W8WypTo5Z>
+Successfully replaced content in /Users/andreas/projects/aichat3/greger-parser.el. Successfully staged 2 file(s) and committed with message: Add comment about resetting start position after tag processing
+</tool.toolu_018DWWAzAQ95Gx8W8WypTo5Z>
+
+
+## ASSISTANT:
+
+Actually, I think the issue might be more fundamental. Let me look at how include tags are handled since they work correctly. The issue might be in the `greger-parser--find-closing-tag` function when called with the safe-shell-commands tag.
+
+Let me check if the problem is that I'm using the wrong function to find the closing tag. Looking at include tag processing:
+
+## TOOL USE:
+
+Name: read-file
+ID: toolu_019N1PSmh92QThm7tk62Ec2L
+
+### path
+
+<tool.toolu_019N1PSmh92QThm7tk62Ec2L>
+greger-parser.el
+</tool.toolu_019N1PSmh92QThm7tk62Ec2L>
+
+### start_line
+
+<tool.toolu_019N1PSmh92QThm7tk62Ec2L>
+300
+</tool.toolu_019N1PSmh92QThm7tk62Ec2L>
+
+### end_line
+
+<tool.toolu_019N1PSmh92QThm7tk62Ec2L>
+320
+</tool.toolu_019N1PSmh92QThm7tk62Ec2L>
+
+## TOOL RESULT:
+
+ID: toolu_019N1PSmh92QThm7tk62Ec2L
+
+<tool.toolu_019N1PSmh92QThm7tk62Ec2L>
+            content))
+         ;; For local files without code attribute, insert content into state for recursive parsing
+         (t
+          (greger-parser--insert-content-at-pos state content)
+          nil))) ; Return nil to indicate content was inserted
+    (error
+     (greger-parser--debug state "Error reading %s %s: %s"
+                          (if (greger-web-is-web-url-p file-path) "URL" "file")
+                          file-path
+                          (error-message-string err))
+     ;; Return error message as content instead of failing silently
+     (format "[Error reading %s: %s]"
+             (if (greger-parser--is-web-url-p file-path) "URL" "file")
+             file-path))))
+
+(defun greger-parser--skip-include-tag (state)
+  "Skip include tag without processing it in STATE."
+  (greger-parser--debug state "Skipping include tag at pos %d" (greger-parser-state-pos state))
+  (greger-parser--advance state 8) ; Skip "<include"
+
+  ;; Skip optional "code" attribute
+</tool.toolu_019N1PSmh92QThm7tk62Ec2L>
+
+## ASSISTANT:
+
+Let me look at the include tag processing pattern to see how they handle finding the closing tag:
+
+## TOOL USE:
+
+Name: read-file
+ID: toolu_01XhFM3eTgpZyRsNmxuWw39J
+
+### path
+
+<tool.toolu_01XhFM3eTgpZyRsNmxuWw39J>
+greger-parser.el
+</tool.toolu_01XhFM3eTgpZyRsNmxuWw39J>
+
+### start_line
+
+<tool.toolu_01XhFM3eTgpZyRsNmxuWw39J>
+240
+</tool.toolu_01XhFM3eTgpZyRsNmxuWw39J>
+
+### end_line
+
+<tool.toolu_01XhFM3eTgpZyRsNmxuWw39J>
+260
+</tool.toolu_01XhFM3eTgpZyRsNmxuWw39J>
+
+## TOOL RESULT:
+
+ID: toolu_01XhFM3eTgpZyRsNmxuWw39J
+
+<tool.toolu_01XhFM3eTgpZyRsNmxuWw39J>
+;; Web URL text extraction (moved to greger-web.el)
+
+;; Include tag processing
+
+(defun greger-parser--process-include-tag (state)
+  "Process an include tag and return the included content in STATE."
+  (greger-parser--debug state "Processing include tag at pos %d" (greger-parser-state-pos state))
+  (let ((tag-start (greger-parser--current-pos state)))
+    ;; Parse the opening tag
+    (when (greger-parser--looking-at state "<include")
+      (greger-parser--advance state 8) ; Skip "<include"
+      (let ((has-code-attr nil))
+        ;; Check for optional "code" attribute
+        (greger-parser--skip-horizontal-whitespace state)
+        (when (greger-parser--looking-at state "code")
+          (setq has-code-attr t)
+          (greger-parser--advance state 4)
+          (greger-parser--skip-horizontal-whitespace state))
+
+        ;; Skip to closing bracket of opening tag
+        (when (greger-parser--looking-at state ">")
+</tool.toolu_01XhFM3eTgpZyRsNmxuWw39J>
+
+## ASSISTANT:
+
+I see! The include tag processing is more complex because it handles attributes. But the core pattern is similar - it advances past the opening tag and then finds the closing tag.
+
+Let me look at the `greger-parser--find-closing-tag` function to see if it's working correctly:
+
+## TOOL USE:
+
+Name: ripgrep
+ID: toolu_01XQ3JbetwcBoVe4ritVRDiX
+
+### pattern
+
+<tool.toolu_01XQ3JbetwcBoVe4ritVRDiX>
+greger-parser--find-closing-tag
+</tool.toolu_01XQ3JbetwcBoVe4ritVRDiX>
+
+### path
+
+<tool.toolu_01XQ3JbetwcBoVe4ritVRDiX>
+greger-parser.el
+</tool.toolu_01XQ3JbetwcBoVe4ritVRDiX>
+
+### context-lines
+
+<tool.toolu_01XQ3JbetwcBoVe4ritVRDiX>
+10
+</tool.toolu_01XQ3JbetwcBoVe4ritVRDiX>
+
+## TOOL RESULT:
+
+ID: toolu_01XQ3JbetwcBoVe4ritVRDiX
+
+<tool.toolu_01XQ3JbetwcBoVe4ritVRDiX>
+265:            (when (greger-parser--find-closing-tag state "</include>")
+331:    (when (greger-parser--find-closing-tag state "</include>")
+342:      (when (greger-parser--find-closing-tag state "</safe-shell-commands>")
+740:            (if (greger-parser--find-closing-tag state closing-tag)
+764:(defun greger-parser--find-closing-tag (state closing-tag)
+
+</tool.toolu_01XQ3JbetwcBoVe4ritVRDiX>
+
+## TOOL USE:
+
+Name: read-file
+ID: toolu_01JGEvq5zyL6BLUXcCdvvB5m
+
+### path
+
+<tool.toolu_01JGEvq5zyL6BLUXcCdvvB5m>
+greger-parser.el
+</tool.toolu_01JGEvq5zyL6BLUXcCdvvB5m>
+
+### start_line
+
+<tool.toolu_01JGEvq5zyL6BLUXcCdvvB5m>
+764
+</tool.toolu_01JGEvq5zyL6BLUXcCdvvB5m>
+
+### end_line
+
+<tool.toolu_01JGEvq5zyL6BLUXcCdvvB5m>
+784
+</tool.toolu_01JGEvq5zyL6BLUXcCdvvB5m>
+
+## TOOL RESULT:
+
+ID: toolu_01JGEvq5zyL6BLUXcCdvvB5m
+
+<tool.toolu_01JGEvq5zyL6BLUXcCdvvB5m>
+(defun greger-parser--find-closing-tag (state closing-tag)
+  "Find closing tag, treating all content inside as raw text using STATE."
+  (let ((found nil)
+        (iterations 0)
+        (max-iterations (* (greger-parser-state-length state) 2))) ; Safety limit
+    (while (and (not found)
+                (not (greger-parser--at-end-p state))
+                (< iterations max-iterations))
+      (setq iterations (1+ iterations))
+      (if (greger-parser--looking-at state closing-tag)
+          (setq found t)
+        (greger-parser--advance state)))
+    (when (>= iterations max-iterations)
+      (greger-parser--debug state "Hit max iterations in find-closing-tag"))
+    found))
+
+(defun greger-parser--parse-tool-result-content (state)
+  "Parse tool result content using STATE."
+  (greger-parser--skip-whitespace state)
+  (or (greger-parser--parse-tool-value state) ""))
+
+</tool.toolu_01JGEvq5zyL6BLUXcCdvvB5m>
+
+## ASSISTANT:
+
+The `greger-parser--find-closing-tag` function looks correct.
+
+Wait, I think I see a potential issue! When the safe-shell-commands tag is processed, we might have whitespace issues. Let me check if the issue is that whitespace after the closing tag is being treated as content.
+
+Actually, let me step back and think about this differently. The test failure shows content as `">"`, which is very specific. This suggests that somehow the closing `>` of the opening tag is being captured as content.
+
+Let me look at how the metadata extraction works in the section content parser:
+
+## TOOL USE:
+
+Name: read-file
+ID: toolu_01DANnd2N1iiCEGrdcSd9EzT
+
+### path
+
+<tool.toolu_01DANnd2N1iiCEGrdcSd9EzT>
+greger-parser.el
+</tool.toolu_01DANnd2N1iiCEGrdcSd9EzT>
+
+### start_line
+
+<tool.toolu_01DANnd2N1iiCEGrdcSd9EzT>
+520
+</tool.toolu_01DANnd2N1iiCEGrdcSd9EzT>
+
+### end_line
+
+<tool.toolu_01DANnd2N1iiCEGrdcSd9EzT>
+530
+</tool.toolu_01DANnd2N1iiCEGrdcSd9EzT>
+
+## TOOL RESULT:
+
+ID: toolu_01DANnd2N1iiCEGrdcSd9EzT
+
+<tool.toolu_01DANnd2N1iiCEGrdcSd9EzT>
+    (setq result (concat result (greger-parser--substring state start)))
+
+    ;; Return result with metadata
+    (let ((trimmed-content (when (and result (not (string-empty-p (string-trim result))))
+                            (string-trim result))))
+      (list :content trimmed-content
+            :safe-shell-commands safe-shell-commands))))
+
+(defun greger-parser--parse-section-content (state)
+  "Parse content until next section, skipping HTML comments in STATE."
+  (greger-parser--skip-whitespace state)
+</tool.toolu_01DANnd2N1iiCEGrdcSd9EzT>
+
+## ASSISTANT:
+
+I think I found the issue! The problem is in the final step where we add the remaining content. After processing the safe-shell-commands tag, we have remaining content from the current start position to the end, and that might include some leftover characters.
+
+The issue is likely that after processing the tag, the start position isn't correctly set, or there's some remaining content that shouldn't be there.
+
+Let me add some debug output to understand what's happening. But first, let me review the logic of the metadata extraction function one more time:
+
+1. We start with `start` at the beginning of the content
+2. When we encounter `<safe-shell-commands>`, we add content from `start` to current position to `result`
+3. We process the tag and advance past it
+4. We set `start` to the new current position
+5. At the end, we add remaining content from `start` to current position to `result`
+
+The issue might be that step 5 is adding content when there shouldn't be any. In the case of the test, if there's only whitespace and the safe-shell-commands tag, then after processing the tag, there should be no remaining content.
+
+Let me check if the issue is that we're not properly trimming whitespace before and after the tag. The solution might be to ensure that if we only have safe-shell-commands tags and whitespace, we don't create any content at all.
+
+## TOOL USE:
+
+Name: str-replace
+ID: toolu_01YKbFMjhDC7BtDqmAL2AJn3
+
+### file_path
+
+<tool.toolu_01YKbFMjhDC7BtDqmAL2AJn3>
+greger-parser.el
+</tool.toolu_01YKbFMjhDC7BtDqmAL2AJn3>
+
+### original_content
+
+<tool.toolu_01YKbFMjhDC7BtDqmAL2AJn3>
+    ;; Return result with metadata
+    (let ((trimmed-content (when (and result (not (string-empty-p (string-trim result))))
+                            (string-trim result))))
+      (list :content trimmed-content
+            :safe-shell-commands safe-shell-commands))))
+</tool.toolu_01YKbFMjhDC7BtDqmAL2AJn3>
+
+### new_content
+
+<tool.toolu_01YKbFMjhDC7BtDqmAL2AJn3>
+    ;; Return result with metadata
+    (let ((trimmed-content (when (and result (not (string-empty-p (string-trim result))))
+                            (string-trim result))))
+      (list :content trimmed-content
+            :safe-shell-commands safe-shell-commands))))
+</tool.toolu_01YKbFMjhDC7BtDqmAL2AJn3>
+
+### git_commit_message
+
+<tool.toolu_01YKbFMjhDC7BtDqmAL2AJn3>
+Keep metadata extraction return logic as is for now
+</tool.toolu_01YKbFMjhDC7BtDqmAL2AJn3>
+
+<!-- TOOL_RESULT_PLACEHOLDER_toolu_01YKbFMjhDC7BtDqmAL2AJn3 -->
