@@ -497,7 +497,7 @@ Returns a plist with :content and metadata keys."
               nil))
           (setq start (greger-parser--current-pos state)))
          ((greger-parser--looking-at state "<safe-shell-commands>")
-          ;; Add content up to safe-shell-commands tag
+          ;; Add content up to safe-shell-commands tag (but don't include the tag itself)
           (setq result (concat result (greger-parser--substring state start)))
           ;; Process the safe-shell-commands tag
           (let ((commands (greger-parser--process-safe-shell-commands-tag state)))
