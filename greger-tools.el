@@ -31,8 +31,8 @@ Example:
     :function 'greger-tools--rename-file
     :pass-buffer t)
 
-  When :pass-callback is set to a symbol, the callback function will be passed to the tool
-  function instead of greger-tools-execute calling the callback with the result."
+  When :pass-callback is set to t, the callback function will be passed to the tool
+  function as a 'callback parameter instead of greger-tools-execute calling the callback with the result."
   (let ((description (plist-get args :description))
         (properties (plist-get args :properties))
         (required (plist-get args :required))
