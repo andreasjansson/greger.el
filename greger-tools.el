@@ -16,7 +16,7 @@
 
 (defmacro greger-register-tool (name &rest args)
   "Register a tool with NAME and properties specified in ARGS.
-ARGS should be a plist containing :description, :properties, :required, :function, and optionally :pass-buffer.
+ARGS should be a plist containing :description, :properties, :required, :function, and optionally :pass-buffer and :pass-callback.
 
 Example:
   (greger-register-tool \"rename-file\"
@@ -29,12 +29,16 @@ Example:
                                         (description . \"Git commit message for this change\"))))
     :required '(\"old_path\" \"new_path\" \"git_commit_message\")
     :function 'greger-tools--rename-file
-    :pass-buffer t)"
+    :pass-buffer t)
+
+  When :pass-callback is set to a symbol, the callback function will be passed to the tool
+  function instead of greger-tools-execute calling the callback with the result."
   (let ((description (plist-get args :description))
         (properties (plist-get args :properties))
         (required (plist-get args :required))
         (function (plist-get args :function))
-        (pass-buffer (plist-get args :pass-buffer)))
+        (pass-buffer (plist-get args :pass-buffer))
+        (pass-callback (plist-get args :pass-callback)))
     `(puthash ,name
               (list :schema (list (cons 'name ,name)
                                   (cons 'description ,description)
@@ -43,7 +47,8 @@ Example:
                                               (cons 'properties ,properties)
                                               (cons 'required ,required))))
                     :function ,function
-                    :pass-buffer ,pass-buffer)
+                    :pass-buffer ,pass-buffer
+                    :pass-callback ,pass-callback)
               greger-tools-registry)))
 
 (defun greger-tools-get-schemas (tool-names)
