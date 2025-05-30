@@ -216,6 +216,45 @@
 
 ;; Helper functions
 
+(defun greger-tools--run-async-subprocess (command args working-directory callback)
+  "Run COMMAND with ARGS in WORKING-DIRECTORY and call CALLBACK with (output error).
+CALLBACK will be called with (output nil) on success or (nil error-message) on failure."
+  (let* ((process-name (format "greger-subprocess-%s" (make-temp-name "")))
+         (process-buffer (generate-new-buffer (format " *%s*" process-name)))
+         (default-directory (expand-file-name (or working-directory ".")))
+         (full-command (cons command args)))
+
+    (condition-case err
+        (let ((process (apply #'start-process process-name process-buffer command args)))
+          (set-process-query-on-exit-flag process nil)
+
+          (set-process-sentinel
+           process
+           (lambda (proc event)
+             (let ((exit-status (process-exit-status proc))
+                   (output (with-current-buffer process-buffer
+                            (buffer-string))))
+               (kill-buffer process-buffer)
+               (cond
+                ((= exit-status 0)
+                 (funcall callback
+                         (if (string-empty-p (string-trim output))
+                             "(no output)"
+                           output)
+                         nil))
+                (t
+                 (funcall callback nil
+                         (format "Command failed with exit code %d: %s"
+                                exit-status
+                                (if (string-empty-p (string-trim output))
+                                    "(no output)"
+                                  output))))))))
+          process)
+      (error
+       (when (buffer-live-p process-buffer)
+         (kill-buffer process-buffer))
+       (funcall callback nil (format "Failed to start process: %s" (error-message-string err)))))))
+
 (defun greger-tools--find-git-repo-root (start-dir)
   "Find the git repository root starting from START-DIR."
   (let ((dir (expand-file-name start-dir)))
