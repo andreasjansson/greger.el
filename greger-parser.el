@@ -505,6 +505,7 @@ Returns a plist with :content and metadata keys."
               (if safe-shell-commands
                   (greger-parser--debug state "Warning: multiple <safe-shell-commands> tags found")
                 (setq safe-shell-commands commands))))
+          ;; Reset start position for next content
           (setq start (greger-parser--current-pos state)))
          (t
           (greger-parser--advance state)))

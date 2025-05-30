@@ -6740,4 +6740,81 @@ greger-parser.el
 Fix hard-coded length in closing tag processing
 </tool.toolu_01Y1cRFmkSjB5EWvjRMGS1yn>
 
-<!-- TOOL_RESULT_PLACEHOLDER_toolu_01Y1cRFmkSjB5EWvjRMGS1yn -->
+## TOOL RESULT:
+
+ID: toolu_01Y1cRFmkSjB5EWvjRMGS1yn
+
+<tool.toolu_01Y1cRFmkSjB5EWvjRMGS1yn>
+Successfully replaced content in /Users/andreas/projects/aichat3/greger-parser.el. Successfully staged 2 file(s) and committed with message: Fix hard-coded length in closing tag processing
+</tool.toolu_01Y1cRFmkSjB5EWvjRMGS1yn>
+
+
+## ASSISTANT:
+
+Now the issue might be that the `>` character is still being left in the content because of the way I'm handling the content boundaries. Let me trace through the logic more carefully.
+
+When we encounter `<safe-shell-commands>`, we should:
+1. Add any content from start up to the current position (before the tag)
+2. Process the tag and extract commands
+3. Set start to the current position (after the closing tag)
+
+But if there's whitespace between where start was set and where the tag begins, that whitespace might include the `>` character.
+
+Actually, let me check if the issue is simpler - maybe the tag name length is wrong. Let me verify:
+
+- `<safe-shell-commands>` is 20 characters
+- `</safe-shell-commands>` is 21 characters
+
+That's correct. But wait, let me double-check the system section parser logic. The issue might be that the content extraction is including the tag instead of excluding it.
+
+Looking at the test failure again, I think the issue is that when we add content up to the safe-shell-commands tag, we might be including part of the tag itself. Let me revise the approach:
+
+## TOOL USE:
+
+Name: str-replace
+ID: toolu_018DWWAzAQ95Gx8W8WypTo5Z
+
+### file_path
+
+<tool.toolu_018DWWAzAQ95Gx8W8WypTo5Z>
+greger-parser.el
+</tool.toolu_018DWWAzAQ95Gx8W8WypTo5Z>
+
+### original_content
+
+<tool.toolu_018DWWAzAQ95Gx8W8WypTo5Z>
+((greger-parser--looking-at state "<safe-shell-commands>")
+          ;; Add content up to safe-shell-commands tag (but don't include the tag itself)
+          (setq result (concat result (greger-parser--substring state start)))
+          ;; Process the safe-shell-commands tag
+          (let ((commands (greger-parser--process-safe-shell-commands-tag state)))
+            (when commands
+              (if safe-shell-commands
+                  (greger-parser--debug state "Warning: multiple <safe-shell-commands> tags found")
+                (setq safe-shell-commands commands))))
+          (setq start (greger-parser--current-pos state)))
+</tool.toolu_018DWWAzAQ95Gx8W8WypTo5Z>
+
+### new_content
+
+<tool.toolu_018DWWAzAQ95Gx8W8WypTo5Z>
+((greger-parser--looking-at state "<safe-shell-commands>")
+          ;; Add content up to safe-shell-commands tag (but don't include the tag itself)
+          (setq result (concat result (greger-parser--substring state start)))
+          ;; Process the safe-shell-commands tag
+          (let ((commands (greger-parser--process-safe-shell-commands-tag state)))
+            (when commands
+              (if safe-shell-commands
+                  (greger-parser--debug state "Warning: multiple <safe-shell-commands> tags found")
+                (setq safe-shell-commands commands))))
+          ;; Reset start position for next content
+          (setq start (greger-parser--current-pos state)))
+</tool.toolu_018DWWAzAQ95Gx8W8WypTo5Z>
+
+### git_commit_message
+
+<tool.toolu_018DWWAzAQ95Gx8W8WypTo5Z>
+Add comment about resetting start position after tag processing
+</tool.toolu_018DWWAzAQ95Gx8W8WypTo5Z>
+
+<!-- TOOL_RESULT_PLACEHOLDER_toolu_018DWWAzAQ95Gx8W8WypTo5Z -->
