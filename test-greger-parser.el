@@ -717,7 +717,7 @@ ID: toolu_123
 File contents here
 with multiple lines
 </tool.toolu_123>"))
-    (let ((parsed (greger-parser-parse-dialog tool-result-markdown)))
+    (let ((parsed (greger-parser-parse-dialog-messages-only tool-result-markdown)))
       (should (= 1 (length parsed)))
       (let ((user-msg (car parsed)))
         (should (string= "user" (alist-get 'role user-msg)))
