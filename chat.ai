@@ -8595,3 +8595,388 @@ The key changes:
 This approach allows safe-shell-commands to coexist with system content, which is the correct behavior you requested.
 
 ## USER:
+
+Add a test to test-greger-stdlib.el that tests that safe-shell-commands work
+
+## ASSISTANT:
+
+I'll add a test to `test-greger-stdlib.el` that verifies the safe-shell-commands functionality works end-to-end with the shell-command tool.
+
+## TOOL USE:
+
+Name: read-file
+ID: toolu_01BSd8Rb36Ad8LQ4XfcbpuAq
+
+### path
+
+<tool.toolu_01BSd8Rb36Ad8LQ4XfcbpuAq>
+test-greger-stdlib.el
+</tool.toolu_01BSd8Rb36Ad8LQ4XfcbpuAq>
+
+### start_line
+
+<tool.toolu_01BSd8Rb36Ad8LQ4XfcbpuAq>
+1
+</tool.toolu_01BSd8Rb36Ad8LQ4XfcbpuAq>
+
+### end_line
+
+<tool.toolu_01BSd8Rb36Ad8LQ4XfcbpuAq>
+30
+</tool.toolu_01BSd8Rb36Ad8LQ4XfcbpuAq>
+
+## TOOL RESULT:
+
+ID: toolu_01BSd8Rb36Ad8LQ4XfcbpuAq
+
+<tool.toolu_01BSd8Rb36Ad8LQ4XfcbpuAq>
+;;; greger-test-stdlib.el --- Tests for greger stdlib tools -*- lexical-binding: t -*-
+
+;;; Commentary:
+;; Tests for the tools defined in greger-stdlib.el
+
+;;; Code:
+
+(require 'ert)
+(require 'cl-lib)
+(require 'greger-stdlib)
+(require 'greger-web)
+
+(ert-deftest greger-test-read-webpage-valid-url ()
+  "Test reading a webpage with a valid URL."
+  (let ((test-url "https://pub-b88c9764a4fc46baa90b9e8e1544f59e.r2.dev/hello.html"))
+
+    ;; Test with text extraction (default)
+    (let ((result (greger-tools--read-webpage test-url t)))
+      (should (stringp result))
+      (should (string= "Hello world!\n" result)))
+
+    ;; Test with raw HTML
+    (let ((result (greger-tools--read-webpage test-url nil)))
+      (should (stringp result))
+      (should (string= "<h1>Hello world!</h1>\n" result)))
+
+    ;; Test with readability enhancement
+    (let ((result (greger-tools--read-webpage test-url t t)))
+      (should (stringp result))
+      (should (string= "Hello world!\n" result)))))
+</tool.toolu_01BSd8Rb36Ad8LQ4XfcbpuAq>
+
+## ASSISTANT:
+
+Let me find where shell-command tests are located in the file:
+
+## TOOL USE:
+
+Name: ripgrep
+ID: toolu_01MxGVEkEehR5CwCUbM3bwoH
+
+### pattern
+
+<tool.toolu_01MxGVEkEehR5CwCUbM3bwoH>
+shell-command
+</tool.toolu_01MxGVEkEehR5CwCUbM3bwoH>
+
+### path
+
+<tool.toolu_01MxGVEkEehR5CwCUbM3bwoH>
+test-greger-stdlib.el
+</tool.toolu_01MxGVEkEehR5CwCUbM3bwoH>
+
+### context-lines
+
+<tool.toolu_01MxGVEkEehR5CwCUbM3bwoH>
+3
+</tool.toolu_01MxGVEkEehR5CwCUbM3bwoH>
+
+## TOOL RESULT:
+
+ID: toolu_01MxGVEkEehR5CwCUbM3bwoH
+
+<tool.toolu_01MxGVEkEehR5CwCUbM3bwoH>
+73:(ert-deftest greger-test-shell-command-simple ()
+74:  "Test shell-command tool with a simple command."
+83:      (greger-tools--shell-command
+101:(ert-deftest greger-test-shell-command-with-pipe ()
+102:  "Test shell-command tool with a command containing a pipe."
+111:      (greger-tools--shell-command
+129:(ert-deftest greger-test-shell-command-permission-denied ()
+130:  "Test shell-command tool when user denies permission."
+139:      (greger-tools--shell-command
+150:(ert-deftest greger-test-shell-command-command-failure ()
+151:  "Test shell-command tool when command fails."
+160:      (greger-tools--shell-command
+
+</tool.toolu_01MxGVEkEehR5CwCUbM3bwoH>
+
+## ASSISTANT:
+
+Let me look at one of the existing shell-command tests to understand the structure:
+
+## TOOL USE:
+
+Name: read-file
+ID: toolu_01PPbSSSiE5eXjUtvTh4epvo
+
+### path
+
+<tool.toolu_01PPbSSSiE5eXjUtvTh4epvo>
+test-greger-stdlib.el
+</tool.toolu_01PPbSSSiE5eXjUtvTh4epvo>
+
+### start_line
+
+<tool.toolu_01PPbSSSiE5eXjUtvTh4epvo>
+73
+</tool.toolu_01PPbSSSiE5eXjUtvTh4epvo>
+
+### end_line
+
+<tool.toolu_01PPbSSSiE5eXjUtvTh4epvo>
+100
+</tool.toolu_01PPbSSSiE5eXjUtvTh4epvo>
+
+## TOOL RESULT:
+
+ID: toolu_01PPbSSSiE5eXjUtvTh4epvo
+
+<tool.toolu_01PPbSSSiE5eXjUtvTh4epvo>
+(ert-deftest greger-test-shell-command-simple ()
+  "Test shell-command tool with a simple command."
+  (let ((result nil)
+        (error nil)
+        (callback-called nil))
+
+    ;; Mock the permission prompt to always return yes
+    (cl-letf (((symbol-function 'y-or-n-p) (lambda (prompt) t)))
+
+      ;; Execute a simple echo command
+      (greger-tools--shell-command
+       "echo hello world"
+       (lambda (output err)
+         (setq result output error err callback-called t)))
+
+      ;; Wait for async operation to complete
+      (let ((timeout 0))
+        (while (and (not callback-called) (< timeout 50))  ; 5 second timeout
+          (sit-for 0.1)
+          (setq timeout (1+ timeout))))
+
+      ;; Verify the results
+      (should callback-called)
+      (should (null error))
+      (should (stringp result))
+      (should (string-match "Command executed successfully" result))
+      (should (string-match "hello world" result)))))
+
+</tool.toolu_01PPbSSSiE5eXjUtvTh4epvo>
+
+## ASSISTANT:
+
+Now let me add a test for safe-shell-commands. I'll add it after the existing shell-command tests:
+
+## TOOL USE:
+
+Name: read-file
+ID: toolu_01Bn5tayGz4jXZCcuiLn3fu8
+
+### path
+
+<tool.toolu_01Bn5tayGz4jXZCcuiLn3fu8>
+test-greger-stdlib.el
+</tool.toolu_01Bn5tayGz4jXZCcuiLn3fu8>
+
+### start_line
+
+<tool.toolu_01Bn5tayGz4jXZCcuiLn3fu8>
+160
+</tool.toolu_01Bn5tayGz4jXZCcuiLn3fu8>
+
+### end_line
+
+<tool.toolu_01Bn5tayGz4jXZCcuiLn3fu8>
+180
+</tool.toolu_01Bn5tayGz4jXZCcuiLn3fu8>
+
+## TOOL RESULT:
+
+ID: toolu_01Bn5tayGz4jXZCcuiLn3fu8
+
+<tool.toolu_01Bn5tayGz4jXZCcuiLn3fu8>
+      (greger-tools--shell-command
+       "false"  ; Command that always exits with code 1
+       (lambda (output err)
+         (setq result output error err callback-called t)))
+
+      ;; Wait for async operation to complete
+      (let ((timeout 0))
+        (while (and (not callback-called) (< timeout 50))  ; 5 second timeout
+          (sit-for 0.1)
+          (setq timeout (1+ timeout))))
+
+      ;; Verify the results
+      (should callback-called)
+      (should (null result))
+      (should (stringp error))
+      (should (string-match "failed with exit code" error)))))
+
+;;; greger-test-stdlib.el ends here
+
+</tool.toolu_01Bn5tayGz4jXZCcuiLn3fu8>
+
+## TOOL USE:
+
+Name: str-replace
+ID: toolu_01TE5wN4jg8NEY19vjXegQZ6
+
+### file_path
+
+<tool.toolu_01TE5wN4jg8NEY19vjXegQZ6>
+test-greger-stdlib.el
+</tool.toolu_01TE5wN4jg8NEY19vjXegQZ6>
+
+### original_content
+
+<tool.toolu_01TE5wN4jg8NEY19vjXegQZ6>
+      ;; Verify the results
+      (should callback-called)
+      (should (null result))
+      (should (stringp error))
+      (should (string-match "failed with exit code" error)))))
+
+;;; greger-test-stdlib.el ends here
+</tool.toolu_01TE5wN4jg8NEY19vjXegQZ6>
+
+### new_content
+
+<tool.toolu_01TE5wN4jg8NEY19vjXegQZ6>
+      ;; Verify the results
+      (should callback-called)
+      (should (null result))
+      (should (stringp error))
+      (should (string-match "failed with exit code" error)))))
+
+(ert-deftest greger-test-shell-command-safe-commands ()
+  "Test shell-command tool with safe-shell-commands metadata to skip permission prompt."
+  (let ((result nil)
+        (error nil)
+        (callback-called nil)
+        (prompt-called nil))
+
+    ;; Mock the permission prompt to track if it's called
+    (cl-letf (((symbol-function 'y-or-n-p)
+               (lambda (prompt)
+                 (setq prompt-called t)
+                 t)))
+
+      ;; Create metadata with safe shell commands
+      (let ((metadata '(:safe-shell-commands ("echo safe command" "pwd" "ls -la"))))
+
+        ;; Execute a command that's in the safe list
+        (greger-tools--shell-command
+         "echo safe command"
+         (lambda (output err)
+           (setq result output error err callback-called t))
+         "."  ; working directory
+         metadata)
+
+        ;; Wait for async operation to complete
+        (let ((timeout 0))
+          (while (and (not callback-called) (< timeout 50))  ; 5 second timeout
+            (sit-for 0.1)
+            (setq timeout (1+ timeout))))
+
+        ;; Verify the results
+        (should callback-called)
+        (should (null error))
+        (should (stringp result))
+        (should (string-match "Command executed successfully" result))
+        (should (string-match "safe command" result))
+        ;; Most importantly: permission prompt should NOT have been called
+        (should (null prompt-called))))))
+
+(ert-deftest greger-test-shell-command-unsafe-commands-with-metadata ()
+  "Test shell-command tool with metadata but command not in safe list still prompts."
+  (let ((result nil)
+        (error nil)
+        (callback-called nil)
+        (prompt-called nil))
+
+    ;; Mock the permission prompt to track if it's called and return yes
+    (cl-letf (((symbol-function 'y-or-n-p)
+               (lambda (prompt)
+                 (setq prompt-called t)
+                 t)))
+
+      ;; Create metadata with safe shell commands
+      (let ((metadata '(:safe-shell-commands ("echo safe command" "pwd"))))
+
+        ;; Execute a command that's NOT in the safe list
+        (greger-tools--shell-command
+         "echo unsafe command"
+         (lambda (output err)
+           (setq result output error err callback-called t))
+         "."  ; working directory
+         metadata)
+
+        ;; Wait for async operation to complete
+        (let ((timeout 0))
+          (while (and (not callback-called) (< timeout 50))  ; 5 second timeout
+            (sit-for 0.1)
+            (setq timeout (1+ timeout))))
+
+        ;; Verify the results
+        (should callback-called)
+        (should (null error))
+        (should (stringp result))
+        (should (string-match "Command executed successfully" result))
+        (should (string-match "unsafe command" result))
+        ;; Permission prompt SHOULD have been called since command not in safe list
+        (should prompt-called)))))
+
+(ert-deftest greger-test-shell-command-no-metadata-still-prompts ()
+  "Test shell-command tool without metadata still prompts for permission."
+  (let ((result nil)
+        (error nil)
+        (callback-called nil)
+        (prompt-called nil))
+
+    ;; Mock the permission prompt to track if it's called and return yes
+    (cl-letf (((symbol-function 'y-or-n-p)
+               (lambda (prompt)
+                 (setq prompt-called t)
+                 t)))
+
+        ;; Execute a command without any metadata
+        (greger-tools--shell-command
+         "echo no metadata"
+         (lambda (output err)
+           (setq result output error err callback-called t))
+         "."  ; working directory
+         nil)  ; no metadata
+
+        ;; Wait for async operation to complete
+        (let ((timeout 0))
+          (while (and (not callback-called) (< timeout 50))  ; 5 second timeout
+            (sit-for 0.1)
+            (setq timeout (1+ timeout))))
+
+        ;; Verify the results
+        (should callback-called)
+        (should (null error))
+        (should (stringp result))
+        (should (string-match "Command executed successfully" result))
+        (should (string-match "no metadata" result))
+        ;; Permission prompt SHOULD have been called since no metadata provided
+        (should prompt-called))))
+
+;;; greger-test-stdlib.el ends here
+</tool.toolu_01TE5wN4jg8NEY19vjXegQZ6>
+
+### git_commit_message
+
+<tool.toolu_01TE5wN4jg8NEY19vjXegQZ6>
+Add comprehensive tests for safe-shell-commands functionality
+</tool.toolu_01TE5wN4jg8NEY19vjXegQZ6>
+
+<!-- TOOL_RESULT_PLACEHOLDER_toolu_01TE5wN4jg8NEY19vjXegQZ6 -->
