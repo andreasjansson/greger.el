@@ -1377,8 +1377,13 @@ Please be careful."))
       ;; Should have a system message since there's other content
       (should (= 1 (length (plist-get result :messages))))
       (should (string= "system" (alist-get 'role (car (plist-get result :messages)))))
-      ;; But no metadata since safe-shell-commands was mixed with content
-      (should (equal '() (plist-get result :metadata))))))
+      ;; Should also have metadata since safe-shell-commands can coexist with content
+      (should (equal '(:safe-shell-commands ("ls" "pwd")) (plist-get result :metadata)))
+      ;; System message should contain the text content but not the safe-shell-commands
+      (let ((system-content (alist-get 'content (car (plist-get result :messages)))))
+        (should (string-match-p "You are a helpful assistant" system-content))
+        (should (string-match-p "Please be careful" system-content))
+        (should-not (string-match-p "safe-shell-commands" system-content))))))
 
 (ert-deftest greger-parser-test-safe-shell-commands-only-once ()
   "Test that only one safe-shell-commands block is allowed."

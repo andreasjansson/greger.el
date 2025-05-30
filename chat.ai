@@ -8371,4 +8371,85 @@ greger-parser.el
 Combine metadata from section returns and parser state
 </tool.toolu_01FGZ18Rk6dTZYoKYDbE9s11>
 
-<!-- TOOL_RESULT_PLACEHOLDER_toolu_01FGZ18Rk6dTZYoKYDbE9s11 -->
+## TOOL RESULT:
+
+ID: toolu_01FGZ18Rk6dTZYoKYDbE9s11
+
+<tool.toolu_01FGZ18Rk6dTZYoKYDbE9s11>
+Successfully replaced content in /Users/andreas/projects/aichat3/greger-parser.el. Successfully staged 2 file(s) and committed with message: Combine metadata from section returns and parser state
+</tool.toolu_01FGZ18Rk6dTZYoKYDbE9s11>
+
+
+## ASSISTANT:
+
+Now I need to update the test that was checking for the incorrect logic:
+
+## TOOL USE:
+
+Name: str-replace
+ID: toolu_01GfBUyaUm2EjmoM4HGPB7Je
+
+### file_path
+
+<tool.toolu_01GfBUyaUm2EjmoM4HGPB7Je>
+test-greger-parser.el
+</tool.toolu_01GfBUyaUm2EjmoM4HGPB7Je>
+
+### original_content
+
+<tool.toolu_01GfBUyaUm2EjmoM4HGPB7Je>
+(ert-deftest greger-parser-test-safe-shell-commands-with-system-content ()
+  "Test safe-shell-commands with other system content."
+  (let ((markdown "## SYSTEM:
+
+You are a helpful assistant.
+
+<safe-shell-commands>
+ls
+pwd
+</safe-shell-commands>
+
+Please be careful."))
+    (let ((result (greger-parser-parse-dialog markdown)))
+      ;; Should have a system message since there's other content
+      (should (= 1 (length (plist-get result :messages))))
+      (should (string= "system" (alist-get 'role (car (plist-get result :messages)))))
+      ;; But no metadata since safe-shell-commands was mixed with content
+      (should (equal '() (plist-get result :metadata))))))
+</tool.toolu_01GfBUyaUm2EjmoM4HGPB7Je>
+
+### new_content
+
+<tool.toolu_01GfBUyaUm2EjmoM4HGPB7Je>
+(ert-deftest greger-parser-test-safe-shell-commands-with-system-content ()
+  "Test safe-shell-commands with other system content."
+  (let ((markdown "## SYSTEM:
+
+You are a helpful assistant.
+
+<safe-shell-commands>
+ls
+pwd
+</safe-shell-commands>
+
+Please be careful."))
+    (let ((result (greger-parser-parse-dialog markdown)))
+      ;; Should have a system message since there's other content
+      (should (= 1 (length (plist-get result :messages))))
+      (should (string= "system" (alist-get 'role (car (plist-get result :messages)))))
+      ;; Should also have metadata since safe-shell-commands can coexist with content
+      (should (equal '(:safe-shell-commands ("ls" "pwd")) (plist-get result :metadata)))
+      ;; System message should contain the text content but not the safe-shell-commands
+      (let ((system-content (alist-get 'content (car (plist-get result :messages)))))
+        (should (string-match-p "You are a helpful assistant" system-content))
+        (should (string-match-p "Please be careful" system-content))
+        (should-not (string-match-p "safe-shell-commands" system-content))))))
+</tool.toolu_01GfBUyaUm2EjmoM4HGPB7Je>
+
+### git_commit_message
+
+<tool.toolu_01GfBUyaUm2EjmoM4HGPB7Je>
+Update test to expect both system content and safe-shell-commands metadata
+</tool.toolu_01GfBUyaUm2EjmoM4HGPB7Je>
+
+<!-- TOOL_RESULT_PLACEHOLDER_toolu_01GfBUyaUm2EjmoM4HGPB7Je -->
