@@ -977,52 +977,51 @@ FUNCTION-NAMES is a vector of test function names to evaluate and run."
 
     (error (format "Failed to execute ERT tests: %s" (error-message-string err)))))
 
-(defun greger-tools--shell-command (command &optional working-directory)
-  "Execute COMMAND in WORKING-DIRECTORY and return the output.
+(defun greger-tools--shell-command (command callback &optional working-directory)
+  "Execute COMMAND in WORKING-DIRECTORY and call CALLBACK with (result error).
 Prompts for permission before running the command for security."
   (unless (stringp command)
-    (error "Command must be a string"))
+    (funcall callback nil "Command must be a string")
+    (return))
 
   (when (string-empty-p (string-trim command))
-    (error "Command cannot be empty"))
+    (funcall callback nil "Command cannot be empty")
+    (return))
 
   (let ((work-dir (or working-directory ".")))
     (unless (stringp work-dir)
-      (error "Working directory must be a string"))
+      (funcall callback nil "Working directory must be a string")
+      (return))
 
     (let ((expanded-work-dir (expand-file-name work-dir)))
       (unless (file-exists-p expanded-work-dir)
-        (error "Working directory does not exist: %s" expanded-work-dir))
+        (funcall callback nil (format "Working directory does not exist: %s" expanded-work-dir))
+        (return))
 
       (unless (file-directory-p expanded-work-dir)
-        (error "Working directory path is not a directory: %s" expanded-work-dir))
+        (funcall callback nil (format "Working directory path is not a directory: %s" expanded-work-dir))
+        (return))
 
       ;; Prompt for permission to run the command
       (unless (y-or-n-p (format "Execute shell command: '%s' in directory '%s'? "
                                 command expanded-work-dir))
-        (error "Shell command execution cancelled by user"))
+        (funcall callback nil "Shell command execution cancelled by user")
+        (return))
 
-      (condition-case err
-          (let ((default-directory expanded-work-dir)
-                (output "")
-                (exit-code 0))
-            ;; Execute the command and capture both output and exit code
-            (with-temp-buffer
-              (setq exit-code (call-process-shell-command command nil t nil))
-              (setq output (buffer-string)))
+      ;; Parse the command into program and arguments
+      (let* ((command-parts (split-string-and-unquote command))
+             (program (car command-parts))
+             (args (cdr command-parts)))
 
-            ;; Format the result with exit code information
-            (if (= exit-code 0)
-                (format "Command executed successfully (exit code 0):\n%s"
-                        (if (string-empty-p (string-trim output))
-                            "(no output)"
-                          output))
-              (format "Command failed with exit code %d:\n%s"
-                      exit-code
-                      (if (string-empty-p (string-trim output))
-                          "(no output)"
-                        output))))
-        (error (format "Failed to execute shell command: %s" (error-message-string err)))))))
+        ;; Execute the command asynchronously
+        (greger-tools--run-async-subprocess
+         program args expanded-work-dir
+         (lambda (output error)
+           (if error
+               (funcall callback nil error)
+             (funcall callback
+                     (format "Command executed successfully:\n%s" output)
+                     nil))))))))
 
 (defun greger-tools--read-webpage (url &optional extract-text use-highest-readability)
   "Read webpage content from URL.
