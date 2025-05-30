@@ -7,16 +7,17 @@
 
 (ert-deftest greger-agent-test-tool-placeholder ()
   "Test the tool placeholder helper function."
-  (should (string= "<!-- TOOL_RESULT_PLACEHOLDER_test123 -->"
-                   (greger-agent--tool-placeholder "test123")))
-  (should (string= "<!-- TOOL_RESULT_PLACEHOLDER_tool_abc_def -->"
-                   (greger-agent--tool-placeholder "tool_abc_def"))))
+  (let ((expected-1 "<!-- TOOL_RESULT_PLACEHOLDER_test123 -->")
+        (expected-2 "<!-- TOOL_RESULT_PLACEHOLDER_tool_abc_def -->"))
+    (should (string= expected-1
+                     (greger-agent--tool-placeholder "test123")))
+    (should (string= expected-2
+                     (greger-agent--tool-placeholder "tool_abc_def")))))
 
 (ert-deftest greger-agent-test-single-tool-execution ()
   "Test execution of a single tool with callback."
   (let ((test-completed nil)
-        (test-result nil)
-        (test-error nil))
+        (expected-content-parts '("test-simple" "Tool executed: Hello World")))
 
     ;; Define a simple test function
     (defun greger-test-simple-tool (message)
@@ -52,18 +53,19 @@
           ;; Check that the function completed
           (should test-completed)
 
-          ;; Check buffer contents
-          (let ((buffer-content (buffer-substring-no-properties (point-min) (point-max))))
-            (should (string-match-p "test-simple" buffer-content))
-            (should (string-match-p "Tool executed: Hello World" buffer-content))))))
+          ;; Check buffer contents against expected parts
+          (let ((actual-content (buffer-substring-no-properties (point-min) (point-max))))
+            (dolist (expected-part expected-content-parts)
+              (should (string-match-p expected-part actual-content)))))))
 
     ;; Clean up
     (remhash "test-simple" greger-tools-registry)))
 
 (ert-deftest greger-agent-test-multiple-tools-parallel ()
   "Test execution of multiple tools in parallel."
-  (let ((completion-count 0)
-        (tools-completed nil))
+  (let ((tools-completed nil)
+        (expected-content-parts '("test-tool-a" "test-tool-b"
+                                 "Tool A result: input-a" "Tool B result: input-b")))
 
     ;; Define test functions with different execution times
     (defun greger-test-tool-a (value)
@@ -113,12 +115,10 @@
           ;; Check that all tools completed
           (should tools-completed)
 
-          ;; Check buffer contents - both tools should have executed
-          (let ((buffer-content (buffer-substring-no-properties (point-min) (point-max))))
-            (should (string-match-p "Tool A result: input-a" buffer-content))
-            (should (string-match-p "Tool B result: input-b" buffer-content))
-            (should (string-match-p "test-tool-a" buffer-content))
-            (should (string-match-p "test-tool-b" buffer-content))))))
+          ;; Check buffer contents against expected parts
+          (let ((actual-content (buffer-substring-no-properties (point-min) (point-max))))
+            (dolist (expected-part expected-content-parts)
+              (should (string-match-p expected-part actual-content)))))))
 
     ;; Clean up
     (remhash "test-tool-a" greger-tools-registry)
@@ -126,7 +126,8 @@
 
 (ert-deftest greger-agent-test-tool-error-handling ()
   "Test that tool errors are properly handled and displayed."
-  (let ((test-completed nil))
+  (let ((test-completed nil)
+        (expected-error-parts '("Error executing tool" "Simulated tool error" "bad-input")))
 
     ;; Define a tool function that throws an error
     (defun greger-test-error-tool (input)
@@ -162,18 +163,19 @@
           ;; Check that execution completed despite error
           (should test-completed)
 
-          ;; Check buffer contents - error should be displayed
-          (let ((buffer-content (buffer-substring-no-properties (point-min) (point-max))))
-            (should (string-match-p "Error executing tool" buffer-content))
-            (should (string-match-p "Simulated tool error" buffer-content))
-            (should (string-match-p "bad-input" buffer-content))))))
+          ;; Check buffer contents against expected error parts
+          (let ((actual-content (buffer-substring-no-properties (point-min) (point-max))))
+            (dolist (expected-part expected-error-parts)
+              (should (string-match-p expected-part actual-content)))))))
 
     ;; Clean up
     (remhash "test-error" greger-tools-registry)))
 
 (ert-deftest greger-agent-test-placeholder-replacement ()
   "Test that placeholders are correctly replaced with tool results."
-  (let ((test-completed nil))
+  (let ((test-completed nil)
+        (expected-result "Processed: test-data")
+        (unexpected-placeholder "TOOL_RESULT_PLACEHOLDER_placeholder_test"))
 
     ;; Define a simple test function
     (defun greger-test-placeholder-tool (data)
@@ -209,19 +211,20 @@
           ;; Check that execution completed
           (should test-completed)
 
-          ;; Check that placeholder was replaced
-          (let ((buffer-content (buffer-substring-no-properties (point-min) (point-max))))
+          ;; Check that placeholder was replaced and result is present
+          (let ((actual-content (buffer-substring-no-properties (point-min) (point-max))))
             ;; Placeholder should not exist anymore
-            (should-not (string-match-p "TOOL_RESULT_PLACEHOLDER_placeholder_test" buffer-content))
-            ;; Result should be present
-            (should (string-match-p "Processed: test-data" buffer-content))))))
+            (should-not (string-match-p unexpected-placeholder actual-content))
+            ;; Expected result should be present
+            (should (string-match-p expected-result actual-content))))))
 
     ;; Clean up
     (remhash "test-placeholder" greger-tools-registry)))
 
 (ert-deftest greger-agent-test-unknown-tool-error ()
   "Test handling of unknown tool execution."
-  (let ((test-completed nil))
+  (let ((test-completed nil)
+        (expected-error "Unknown tool: nonexistent-tool"))
 
     ;; Create test buffer
     (with-temp-buffer
@@ -245,9 +248,9 @@
           ;; Check that execution completed despite unknown tool
           (should test-completed)
 
-          ;; Check buffer contents - error should be displayed
-          (let ((buffer-content (buffer-substring-no-properties (point-min) (point-max))))
-            (should (string-match-p "Unknown tool: nonexistent-tool" buffer-content)))))))
+          ;; Check buffer contents against expected error
+          (let ((actual-content (buffer-substring-no-properties (point-min) (point-max))))
+            (should (string-match-p expected-error actual-content))))))))
 
 (provide 'test-greger-agent)
 
