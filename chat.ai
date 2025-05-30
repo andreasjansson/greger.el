@@ -1850,4 +1850,147 @@ Example:
 Update example to show pass-callback usage
 </tool.toolu_01MVSmHSTRd3yge8MHqaxSwz>
 
-<!-- TOOL_RESULT_PLACEHOLDER_toolu_01MVSmHSTRd3yge8MHqaxSwz -->
+## TOOL RESULT:
+
+ID: toolu_01MVSmHSTRd3yge8MHqaxSwz
+
+<tool.toolu_01MVSmHSTRd3yge8MHqaxSwz>
+Successfully replaced content in /Users/andreas/projects/aichat3/greger-tools.el. Successfully staged 2 file(s) and committed with message: Update example to show pass-callback usage
+</tool.toolu_01MVSmHSTRd3yge8MHqaxSwz>
+
+
+## ASSISTANT:
+
+Now let me verify the current state of the files to make sure everything is correct:
+
+## TOOL USE:
+
+Name: read-file
+ID: toolu_01WuEUD86hLQNmFP7cigSBUE
+
+### path
+
+<tool.toolu_01WuEUD86hLQNmFP7cigSBUE>
+greger-tools.el
+</tool.toolu_01WuEUD86hLQNmFP7cigSBUE>
+
+### start_line
+
+<tool.toolu_01WuEUD86hLQNmFP7cigSBUE>
+75
+</tool.toolu_01WuEUD86hLQNmFP7cigSBUE>
+
+### end_line
+
+<tool.toolu_01WuEUD86hLQNmFP7cigSBUE>
+90
+</tool.toolu_01WuEUD86hLQNmFP7cigSBUE>
+
+## TOOL RESULT:
+
+ID: toolu_01WuEUD86hLQNmFP7cigSBUE
+
+<tool.toolu_01WuEUD86hLQNmFP7cigSBUE>
+          (when (and pass-buffer buffer)
+            (setq args (cons (cons 'buffer buffer) args)))
+          ;; Add callback parameter if pass-callback is set
+          (when pass-callback
+            (setq args (cons (cons 'callback callback) args)))
+          (condition-case err
+              (if pass-callback
+                  ;; When pass-callback is set, the function handles calling the callback
+                  (greger-tools--call-function-with-args func args tool-def)
+                ;; Normal case: call callback with result
+                (let ((result (greger-tools--call-function-with-args func args tool-def)))
+                  (funcall callback result nil)))
+            (error
+             (funcall callback nil err))))
+      (funcall callback nil (format "Unknown tool: %s" tool-name)))))
+
+</tool.toolu_01WuEUD86hLQNmFP7cigSBUE>
+
+## ASSISTANT:
+
+Perfect! Now let me check the test to make sure it's properly structured:
+
+## TOOL USE:
+
+Name: read-file
+ID: toolu_019wa4KnwQgmNHTviNbXKYmC
+
+### path
+
+<tool.toolu_019wa4KnwQgmNHTviNbXKYmC>
+test-greger-tools.el
+</tool.toolu_019wa4KnwQgmNHTviNbXKYmC>
+
+### start_line
+
+<tool.toolu_019wa4KnwQgmNHTviNbXKYmC>
+355
+</tool.toolu_019wa4KnwQgmNHTviNbXKYmC>
+
+### end_line
+
+<tool.toolu_019wa4KnwQgmNHTviNbXKYmC>
+385
+</tool.toolu_019wa4KnwQgmNHTviNbXKYmC>
+
+## TOOL RESULT:
+
+ID: toolu_019wa4KnwQgmNHTviNbXKYmC
+
+<tool.toolu_019wa4KnwQgmNHTviNbXKYmC>
+
+  ;; Register tool with :pass-callback set to 'callback
+  (greger-register-tool "test-pass-callback"
+    :description "Test tool with callback parameter passing"
+    :properties '((message . ((type . "string")
+                              (description . "Test message"))))
+    :required '("message")
+    :function 'greger-test-callback-param
+    :pass-callback t)
+
+  ;; Test normal tool - greger-tools-execute calls callback with result
+  (let ((result nil)
+        (error nil))
+    (greger-tools-execute "test-normal-callback"
+                          '((message . "hello"))
+                          (lambda (r e) (setq result r error e))
+                          nil)
+    (should (string= "result: hello" result))
+    (should (null error)))
+
+  ;; Test tool with :pass-callback - function calls callback directly
+  (let ((result nil)
+        (error nil)
+        (callback-called nil))
+    (greger-tools-execute "test-pass-callback"
+                          '((message . "world"))
+                          (lambda (r e)
+                            (setq result r error e callback-called t))
+                          nil)
+    ;; Since the callback is called synchronously in our test function,
+    ;; we can check the results immediately
+</tool.toolu_019wa4KnwQgmNHTviNbXKYmC>
+
+## ASSISTANT:
+
+Good! The implementation should now work correctly. Let me summarize what I fixed:
+
+## Summary of Fixes
+
+1. **Fixed the callback parameter passing**: Changed from using the `:pass-callback` value as the parameter name to using a standard `'callback` parameter name when `:pass-callback` is `t`.
+
+2. **Updated documentation**: Clarified that `:pass-callback` is a boolean flag, not a symbol for the parameter name.
+
+3. **Fixed the test**: Added a `callback-called` flag to verify that the callback is actually being called, since the callback execution is handled by the tool function itself rather than by `greger-tools-execute`.
+
+The key insight was that when `:pass-callback` is `t`:
+- The callback function gets passed to the tool function as a parameter named `callback`
+- The tool function is responsible for calling this callback with the result
+- `greger-tools-execute` doesn't call the callback itself or expect a return value from the tool function
+
+This allows for truly asynchronous tool execution where the tool can call the callback at any time, not just when the function returns.
+
+## USER:

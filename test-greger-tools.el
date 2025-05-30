@@ -390,8 +390,8 @@
   ;; Test combining :pass-callback with :pass-buffer
   (defun greger-test-callback-with-buffer (message callback &optional buffer)
     "Test function that accepts both callback and buffer parameters."
-    (let ((buffer-name (if buffer (buffer-name buffer) "no-buffer"))
-          (result (format "message: %s, buffer: %s" message buffer-name)))
+    (let* ((buffer-name (if buffer (buffer-name buffer) "no-buffer"))
+           (result (format "message: %s, buffer: %s" message buffer-name)))
       (funcall callback result nil)))
 
   (greger-register-tool "test-callback-with-buffer"
