@@ -172,7 +172,8 @@
                 (setq completed-tools (1+ completed-tools))
                 (when (= completed-tools total-tools)
                   (greger-agent--run-agent-loop agent-state)))))
-           (greger-agent-state-chat-buffer agent-state)))))))
+           (greger-agent-state-chat-buffer agent-state)
+           (greger-agent-state-metadata agent-state)))))))
 
 (defun greger-agent--append-text (text agent-state)
   (with-current-buffer (greger-agent-state-chat-buffer agent-state)
