@@ -55,9 +55,10 @@ Example:
                 (error "Unknown tool: %s" tool-name))))
           tool-names))
 
-(defun greger-tools-execute (tool-name args &optional buffer)
+(defun greger-tools-execute (tool-name args &optional buffer callback)
   "Execute TOOL-NAME with ARGS.
-If BUFFER is provided and the tool has :pass-buffer set, the buffer will be passed to the tool function."
+If BUFFER is provided and the tool has :pass-buffer set, the buffer will be passed to the tool function.
+If CALLBACK is provided, execute asynchronously and call CALLBACK with the result."
   (let ((tool-def (gethash tool-name greger-tools-registry)))
     (if tool-def
         (let ((func (plist-get tool-def :function))
@@ -65,8 +66,18 @@ If BUFFER is provided and the tool has :pass-buffer set, the buffer will be pass
           ;; Add buffer parameter if pass-buffer is set and buffer is provided
           (when (and pass-buffer buffer)
             (setq args (cons (cons 'buffer buffer) args)))
-          (greger-tools--call-function-with-args func args tool-def))
-      (error "Unknown tool: %s" tool-name))))
+          (if callback
+              ;; Async execution
+              (condition-case err
+                  (let ((result (greger-tools--call-function-with-args func args tool-def)))
+                    (funcall callback result nil))
+                (error
+                 (funcall callback nil err)))
+            ;; Sync execution (backward compatibility)
+            (greger-tools--call-function-with-args func args tool-def)))
+      (if callback
+          (funcall callback nil (error "Unknown tool: %s" tool-name))
+        (error "Unknown tool: %s" tool-name)))))
 
 (defun greger-tools--call-function-with-args (func args tool-def)
   "Call FUNC with arguments extracted from ARGS alist based on function signature.
