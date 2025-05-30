@@ -443,59 +443,58 @@ If END-LINE is specified, stop reading at that line (inclusive, 1-based)."
 
 (defun greger-tools--ripgrep (pattern path callback &optional case-sensitive file-type context-lines max-results)
   "Search for PATTERN in PATH using the rg command line tool directly."
-  (unless (stringp pattern)
-    (error "Pattern must be a string"))
+  (cond
+   ((not (stringp pattern))
+    (funcall callback nil "Pattern must be a string"))
 
-  (unless (stringp path)
-    (error "Path must be a string"))
+   ((not (stringp path))
+    (funcall callback nil "Path must be a string"))
 
-  ;; Check if rg executable is available
-  (unless (executable-find "rg")
-    (funcall callback nil "ripgrep (rg) command not found. Please install ripgrep")
-    (return-from greger-tools--ripgrep))
+   ((not (executable-find "rg"))
+    (funcall callback nil "ripgrep (rg) command not found. Please install ripgrep"))
 
-  (let ((expanded-path (expand-file-name path)))
-    (unless (file-exists-p expanded-path)
-      (funcall callback nil (format "Path does not exist: %s" expanded-path))
-      (return-from greger-tools--ripgrep))
+   (t
+    (let ((expanded-path (expand-file-name path)))
+      (if (not (file-exists-p expanded-path))
+          (funcall callback nil (format "Path does not exist: %s" expanded-path))
 
-    ;; Build the rg command arguments
-    (let ((args '()))
+        ;; Build the rg command arguments
+        (let ((args '()))
 
-      ;; Add case sensitivity flag
-      (if case-sensitive
-          (setq args (append args '("--case-sensitive")))
-        (setq args (append args '("--smart-case"))))
+          ;; Add case sensitivity flag
+          (if case-sensitive
+              (setq args (append args '("--case-sensitive")))
+            (setq args (append args '("--smart-case"))))
 
-      ;; Add context lines if specified
-      (when (and context-lines (> context-lines 0))
-        (setq args (append args (list "--context" (number-to-string context-lines)))))
+          ;; Add context lines if specified
+          (when (and context-lines (> context-lines 0))
+            (setq args (append args (list "--context" (number-to-string context-lines)))))
 
-      ;; Add max results limit if specified (using --max-count)
-      (when (and max-results (> max-results 0))
-        (setq args (append args (list "--max-count" (number-to-string max-results)))))
+          ;; Add max results limit if specified (using --max-count)
+          (when (and max-results (> max-results 0))
+            (setq args (append args (list "--max-count" (number-to-string max-results)))))
 
-      ;; Add file type if specified
-      (when (and file-type (not (string-empty-p file-type)))
-        (setq args (append args (list "--type" file-type))))
+          ;; Add file type if specified
+          (when (and file-type (not (string-empty-p file-type)))
+            (setq args (append args (list "--type" file-type))))
 
-      ;; Add line numbers and no heading for better output format
-      (setq args (append args '("--line-number" "--no-heading")))
+          ;; Add line numbers and no heading for better output format
+          (setq args (append args '("--line-number" "--no-heading")))
 
-      ;; Add the pattern and path
-      (setq args (append args (list pattern expanded-path)))
+          ;; Add the pattern and path
+          (setq args (append args (list pattern expanded-path)))
 
-      ;; Execute the command asynchronously
-      (greger-tools--run-async-subprocess
-       "rg" args nil
-       (lambda (output error)
-         (if error
-             (funcall callback nil (format "Failed to execute ripgrep search: %s" error))
-           (funcall callback
-                   (if (string-empty-p (string-trim output))
-                       "No matches found"
-                     output)
-                   nil)))))))
+          ;; Execute the command asynchronously
+          (greger-tools--run-async-subprocess
+           "rg" args nil
+           (lambda (output error)
+             (if error
+                 (funcall callback nil (format "Failed to execute ripgrep search: %s" error))
+               (funcall callback
+                       (if (string-empty-p (string-trim output))
+                           "No matches found"
+                         output)
+                       nil)))))))))
 
 (defun greger-tools--write-new-file (file-path contents git-commit-message &optional buffer)
   "Write CONTENTS to a new file at FILE-PATH. Fails if file already exists.
