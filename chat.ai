@@ -4401,4 +4401,51 @@ greger-stdlib.el
 Add :pass-metadata flag to shell-command tool
 </tool.toolu_0118dQtRDqMsJMQTYhEdHZxd>
 
-<!-- TOOL_RESULT_PLACEHOLDER_toolu_0118dQtRDqMsJMQTYhEdHZxd -->
+## TOOL RESULT:
+
+ID: toolu_0118dQtRDqMsJMQTYhEdHZxd
+
+<tool.toolu_0118dQtRDqMsJMQTYhEdHZxd>
+Successfully replaced content in /Users/andreas/projects/aichat3/greger-stdlib.el. Successfully staged 2 file(s) and committed with message: Add :pass-metadata flag to shell-command tool
+</tool.toolu_0118dQtRDqMsJMQTYhEdHZxd>
+
+
+## ASSISTANT:
+
+Now let me update the shell-command function signature and implementation:
+
+## TOOL USE:
+
+Name: str-replace
+ID: toolu_01HeERUudEWGBAyCtRr2P3zw
+
+### file_path
+
+<tool.toolu_01HeERUudEWGBAyCtRr2P3zw>
+greger-stdlib.el
+</tool.toolu_01HeERUudEWGBAyCtRr2P3zw>
+
+### original_content
+
+<tool.toolu_01HeERUudEWGBAyCtRr2P3zw>
+(defun greger-tools--shell-command (command callback &optional working-directory)
+  "Execute COMMAND in WORKING-DIRECTORY and call CALLBACK with (result error).
+Prompts for permission before running the command for security."
+</tool.toolu_01HeERUudEWGBAyCtRr2P3zw>
+
+### new_content
+
+<tool.toolu_01HeERUudEWGBAyCtRr2P3zw>
+(defun greger-tools--shell-command (command callback &optional working-directory metadata)
+  "Execute COMMAND in WORKING-DIRECTORY and call CALLBACK with (result error).
+Prompts for permission before running the command for security.
+If METADATA contains safe-shell-commands and COMMAND is in that list, skips permission prompt."
+</tool.toolu_01HeERUudEWGBAyCtRr2P3zw>
+
+### git_commit_message
+
+<tool.toolu_01HeERUudEWGBAyCtRr2P3zw>
+Update shell-command function signature to accept metadata
+</tool.toolu_01HeERUudEWGBAyCtRr2P3zw>
+
+<!-- TOOL_RESULT_PLACEHOLDER_toolu_01HeERUudEWGBAyCtRr2P3zw -->

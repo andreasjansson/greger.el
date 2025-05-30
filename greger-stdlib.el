@@ -977,9 +977,10 @@ FUNCTION-NAMES is a vector of test function names to evaluate and run."
 
     (error (format "Failed to execute ERT tests: %s" (error-message-string err)))))
 
-(defun greger-tools--shell-command (command callback &optional working-directory)
+(defun greger-tools--shell-command (command callback &optional working-directory metadata)
   "Execute COMMAND in WORKING-DIRECTORY and call CALLBACK with (result error).
-Prompts for permission before running the command for security."
+Prompts for permission before running the command for security.
+If METADATA contains safe-shell-commands and COMMAND is in that list, skips permission prompt."
   (let ((work-dir (or working-directory ".")))
     (cond
      ((not (stringp command))
