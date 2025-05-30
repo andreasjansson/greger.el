@@ -23,10 +23,7 @@
   :type 'integer
   :group 'greger)
 
-(defcustom greger-agent-auto-approve t
-  "Whether to automatically approve tool calls without user confirmation."
-  :type 'boolean
-  :group 'greger)
+
 
 (defcustom greger-agent-debug t
   "Whether to show debug information."
