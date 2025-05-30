@@ -509,10 +509,27 @@ Returns a plist with :messages and :metadata keys."
       (greger-parser--create-assistant-message content))))
 
 (defun greger-parser--parse-system-section (state)
-  "Parse SYSTEM section using STATE."
-  (let ((content (greger-parser--parse-section-content state)))
-    (when content
-      (greger-parser--create-system-message content))))
+  "Parse SYSTEM section using STATE.
+Returns either a system message or metadata if safe-shell-commands are found."
+  (let ((content (greger-parser--parse-section-content-with-metadata state)))
+    (cond
+     ;; If we extracted safe-shell-commands, return as metadata
+     ((and (plist-get content :safe-shell-commands)
+           (not (plist-get content :content)))
+      (list :metadata (list :safe-shell-commands (plist-get content :safe-shell-commands))))
+
+     ;; If we have both content and safe-shell-commands, return system message and warn about metadata
+     ((and (plist-get content :safe-shell-commands)
+           (plist-get content :content))
+      (greger-parser--debug state "Warning: safe-shell-commands found with other content in SYSTEM section")
+      (greger-parser--create-system-message (plist-get content :content)))
+
+     ;; Just regular content
+     ((plist-get content :content)
+      (greger-parser--create-system-message (plist-get content :content)))
+
+     ;; No content
+     (t nil))))
 
 (defun greger-parser--parse-thinking-section (state)
   "Parse THINKING section using STATE."

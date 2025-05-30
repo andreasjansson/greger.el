@@ -3048,4 +3048,71 @@ Returns a plist with :messages and :metadata keys."
 Update document parser to collect metadata from sections
 </tool.toolu_01EWeXjdoU7H59QdM6ZxxzEX>
 
-<!-- TOOL_RESULT_PLACEHOLDER_toolu_01EWeXjdoU7H59QdM6ZxxzEX -->
+## TOOL RESULT:
+
+ID: toolu_01EWeXjdoU7H59QdM6ZxxzEX
+
+<tool.toolu_01EWeXjdoU7H59QdM6ZxxzEX>
+Successfully replaced content in /Users/andreas/projects/aichat3/greger-parser.el. Successfully staged 2 file(s) and committed with message: Update document parser to collect metadata from sections
+</tool.toolu_01EWeXjdoU7H59QdM6ZxxzEX>
+
+
+## ASSISTANT:
+
+Now let's update the system section parser to handle safe shell commands:
+
+## TOOL USE:
+
+Name: str-replace
+ID: toolu_019xMhNVBSNLWKzpgvusb7Ag
+
+### file_path
+
+<tool.toolu_019xMhNVBSNLWKzpgvusb7Ag>
+greger-parser.el
+</tool.toolu_019xMhNVBSNLWKzpgvusb7Ag>
+
+### original_content
+
+<tool.toolu_019xMhNVBSNLWKzpgvusb7Ag>
+(defun greger-parser--parse-system-section (state)
+  "Parse SYSTEM section using STATE."
+  (let ((content (greger-parser--parse-section-content state)))
+    (when content
+      (greger-parser--create-system-message content))))
+</tool.toolu_019xMhNVBSNLWKzpgvusb7Ag>
+
+### new_content
+
+<tool.toolu_019xMhNVBSNLWKzpgvusb7Ag>
+(defun greger-parser--parse-system-section (state)
+  "Parse SYSTEM section using STATE.
+Returns either a system message or metadata if safe-shell-commands are found."
+  (let ((content (greger-parser--parse-section-content-with-metadata state)))
+    (cond
+     ;; If we extracted safe-shell-commands, return as metadata
+     ((and (plist-get content :safe-shell-commands)
+           (not (plist-get content :content)))
+      (list :metadata (list :safe-shell-commands (plist-get content :safe-shell-commands))))
+
+     ;; If we have both content and safe-shell-commands, return system message and warn about metadata
+     ((and (plist-get content :safe-shell-commands)
+           (plist-get content :content))
+      (greger-parser--debug state "Warning: safe-shell-commands found with other content in SYSTEM section")
+      (greger-parser--create-system-message (plist-get content :content)))
+
+     ;; Just regular content
+     ((plist-get content :content)
+      (greger-parser--create-system-message (plist-get content :content)))
+
+     ;; No content
+     (t nil))))
+</tool.toolu_019xMhNVBSNLWKzpgvusb7Ag>
+
+### git_commit_message
+
+<tool.toolu_019xMhNVBSNLWKzpgvusb7Ag>
+Update system section parser to handle safe-shell-commands metadata
+</tool.toolu_019xMhNVBSNLWKzpgvusb7Ag>
+
+<!-- TOOL_RESULT_PLACEHOLDER_toolu_019xMhNVBSNLWKzpgvusb7Ag -->
