@@ -3489,4 +3489,85 @@ greger-stdlib.el
 Update shell-command tool to use callback pattern
 </tool.toolu_01HfgFkHKB9DhyK6MQMPUKNh>
 
-<!-- TOOL_RESULT_PLACEHOLDER_toolu_01HfgFkHKB9DhyK6MQMPUKNh -->
+## TOOL RESULT:
+
+ID: toolu_01HfgFkHKB9DhyK6MQMPUKNh
+
+<tool.toolu_01HfgFkHKB9DhyK6MQMPUKNh>
+Successfully replaced content in /Users/andreas/projects/aichat3/greger-stdlib.el. Successfully staged 2 file(s) and committed with message: Update shell-command tool to use callback pattern
+</tool.toolu_01HfgFkHKB9DhyK6MQMPUKNh>
+
+
+## ASSISTANT:
+
+Now I need to update the `ripgrep` tool to use the callback pattern:
+
+## TOOL USE:
+
+Name: str-replace
+ID: toolu_01TGvwf9YyttEvPtrQPowVLM
+
+### file_path
+
+<tool.toolu_01TGvwf9YyttEvPtrQPowVLM>
+greger-stdlib.el
+</tool.toolu_01TGvwf9YyttEvPtrQPowVLM>
+
+### original_content
+
+<tool.toolu_01TGvwf9YyttEvPtrQPowVLM>
+(greger-register-tool "ripgrep"
+  :description "Search for patterns in files using ripgrep (rg) command line tool. Note that ripgrep only matches on single lines, so you can't search across multiple lines."
+  :properties '((pattern . ((type . "string")
+                            (description . "The search pattern (regex or literal string)")))
+                (path . ((type . "string")
+                         (description . "Directory or file path to search in")
+                         (default . ".")))
+                (case-sensitive . ((type . "boolean")
+                                   (description . "Whether the search should be case-sensitive")
+                                   (default . nil)))
+                (file-type . ((type . "string")
+                              (description . "Restrict search to specific file types (e.g., 'py', 'js', 'md')")))
+                (context-lines . ((type . "integer")
+                                  (description . "Number of context lines to show around matches")
+                                  (default . 0)))
+                (max-results . ((type . "integer")
+                                (description . "Maximum number of results to return")
+                                (default . 50))))
+  :required '("pattern")
+  :function 'greger-tools--ripgrep)
+</tool.toolu_01TGvwf9YyttEvPtrQPowVLM>
+
+### new_content
+
+<tool.toolu_01TGvwf9YyttEvPtrQPowVLM>
+(greger-register-tool "ripgrep"
+  :description "Search for patterns in files using ripgrep (rg) command line tool. Note that ripgrep only matches on single lines, so you can't search across multiple lines."
+  :properties '((pattern . ((type . "string")
+                            (description . "The search pattern (regex or literal string)")))
+                (path . ((type . "string")
+                         (description . "Directory or file path to search in")
+                         (default . ".")))
+                (case-sensitive . ((type . "boolean")
+                                   (description . "Whether the search should be case-sensitive")
+                                   (default . nil)))
+                (file-type . ((type . "string")
+                              (description . "Restrict search to specific file types (e.g., 'py', 'js', 'md')")))
+                (context-lines . ((type . "integer")
+                                  (description . "Number of context lines to show around matches")
+                                  (default . 0)))
+                (max-results . ((type . "integer")
+                                (description . "Maximum number of results to return")
+                                (default . 50))))
+  :required '("pattern")
+  :function 'greger-tools--ripgrep
+  :pass-callback t)
+</tool.toolu_01TGvwf9YyttEvPtrQPowVLM>
+
+### git_commit_message
+
+<tool.toolu_01TGvwf9YyttEvPtrQPowVLM>
+Update ripgrep tool to use callback pattern
+</tool.toolu_01TGvwf9YyttEvPtrQPowVLM>
+
+<!-- TOOL_RESULT_PLACEHOLDER_toolu_01TGvwf9YyttEvPtrQPowVLM -->
