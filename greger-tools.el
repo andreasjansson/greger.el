@@ -65,22 +65,27 @@ Example:
                 (error "Unknown tool: %s" tool-name))))
           tool-names))
 
-(defun greger-tools-execute (tool-name args callback buffer)
+(defun greger-tools-execute (tool-name args callback buffer &optional metadata)
   "Execute TOOL-NAME with ARGS and call CALLBACK with (result error).
 If the tool has :pass-buffer set, BUFFER will be passed to the tool function.
 If the tool has :pass-callback set, CALLBACK will be passed to the tool function
-instead of greger-tools-execute calling the callback with the result."
+instead of greger-tools-execute calling the callback with the result.
+If the tool has :pass-metadata set, METADATA will be passed to the tool function."
   (let ((tool-def (gethash tool-name greger-tools-registry)))
     (if tool-def
         (let ((func (plist-get tool-def :function))
               (pass-buffer (plist-get tool-def :pass-buffer))
-              (pass-callback (plist-get tool-def :pass-callback)))
+              (pass-callback (plist-get tool-def :pass-callback))
+              (pass-metadata (plist-get tool-def :pass-metadata)))
           ;; Add buffer parameter if pass-buffer is set and buffer is provided
           (when (and pass-buffer buffer)
             (setq args (cons (cons 'buffer buffer) args)))
           ;; Add callback parameter if pass-callback is set
           (when pass-callback
             (setq args (cons (cons 'callback callback) args)))
+          ;; Add metadata parameter if pass-metadata is set and metadata is provided
+          (when (and pass-metadata metadata)
+            (setq args (cons (cons 'metadata metadata) args)))
           (condition-case err
               (if pass-callback
                   ;; When pass-callback is set, the function handles calling the callback
