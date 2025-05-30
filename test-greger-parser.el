@@ -694,7 +694,7 @@ hello.txt
 true
 </tool.toolu_123>
 "))
-    (let ((parsed (greger-parser-parse-dialog tool-use-markdown)))
+    (let ((parsed (greger-parser-parse-dialog-messages-only tool-use-markdown)))
       (should (= 1 (length parsed)))
       (let ((assistant-msg (car parsed)))
         (should (string= "assistant" (alist-get 'role assistant-msg)))
