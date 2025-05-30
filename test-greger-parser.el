@@ -750,10 +750,10 @@ This is a complex problem."
   "Test parser error handling for malformed input."
   ;; Test that malformed input returns empty result instead of error
   (should (condition-case err
-              (progn (greger-parser-parse-dialog "## TOOL USE:\n\nMalformed") t)
+              (progn (greger-parser-parse-dialog-messages-only "## TOOL USE:\n\nMalformed") t)
             (error nil)))
   (should (condition-case err
-              (progn (greger-parser-parse-dialog "## TOOL RESULT:\n\nMalformed") t)
+              (progn (greger-parser-parse-dialog-messages-only "## TOOL RESULT:\n\nMalformed") t)
             (error nil))))
 
 (ert-deftest greger-parser-test-edge-cases ()

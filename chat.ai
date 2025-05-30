@@ -5354,4 +5354,52 @@ test-greger-parser.el
 Update edge case tests
 </tool.toolu_01CPPJuHCW2bwJ6JLVPeFd9F>
 
-<!-- TOOL_RESULT_PLACEHOLDER_toolu_01CPPJuHCW2bwJ6JLVPeFd9F -->
+## TOOL RESULT:
+
+ID: toolu_01CPPJuHCW2bwJ6JLVPeFd9F
+
+<tool.toolu_01CPPJuHCW2bwJ6JLVPeFd9F>
+Successfully replaced content in /Users/andreas/projects/aichat3/test-greger-parser.el. Successfully staged 2 file(s) and committed with message: Update edge case tests
+</tool.toolu_01CPPJuHCW2bwJ6JLVPeFd9F>
+
+
+## TOOL USE:
+
+Name: str-replace
+ID: toolu_01SYgBQLYHzMygVBAwA7FPYH
+
+### file_path
+
+<tool.toolu_01SYgBQLYHzMygVBAwA7FPYH>
+test-greger-parser.el
+</tool.toolu_01SYgBQLYHzMygVBAwA7FPYH>
+
+### original_content
+
+<tool.toolu_01SYgBQLYHzMygVBAwA7FPYH>
+(should (condition-case err
+              (progn (greger-parser-parse-dialog "## TOOL USE:\n\nMalformed") t)
+            (error nil)))
+  (should (condition-case err
+              (progn (greger-parser-parse-dialog "## TOOL RESULT:\n\nMalformed") t)
+            (error nil))))
+</tool.toolu_01SYgBQLYHzMygVBAwA7FPYH>
+
+### new_content
+
+<tool.toolu_01SYgBQLYHzMygVBAwA7FPYH>
+(should (condition-case err
+              (progn (greger-parser-parse-dialog-messages-only "## TOOL USE:\n\nMalformed") t)
+            (error nil)))
+  (should (condition-case err
+              (progn (greger-parser-parse-dialog-messages-only "## TOOL RESULT:\n\nMalformed") t)
+            (error nil))))
+</tool.toolu_01SYgBQLYHzMygVBAwA7FPYH>
+
+### git_commit_message
+
+<tool.toolu_01SYgBQLYHzMygVBAwA7FPYH>
+Update error handling tests
+</tool.toolu_01SYgBQLYHzMygVBAwA7FPYH>
+
+<!-- TOOL_RESULT_PLACEHOLDER_toolu_01SYgBQLYHzMygVBAwA7FPYH -->
