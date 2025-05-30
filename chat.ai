@@ -5717,4 +5717,91 @@ Don't process that."))
 Add comprehensive tests for safe-shell-commands metadata parsing
 </tool.toolu_01ThtYt9kcekECywB3wtHHDd>
 
-<!-- TOOL_RESULT_PLACEHOLDER_toolu_01ThtYt9kcekECywB3wtHHDd -->
+## TOOL RESULT:
+
+ID: toolu_01ThtYt9kcekECywB3wtHHDd
+
+<tool.toolu_01ThtYt9kcekECywB3wtHHDd>
+Successfully replaced content in /Users/andreas/projects/aichat3/test-greger-parser.el. Successfully staged 2 file(s) and committed with message: Add comprehensive tests for safe-shell-commands metadata parsing
+</tool.toolu_01ThtYt9kcekECywB3wtHHDd>
+
+
+## ASSISTANT:
+
+Now let me check that everything compiles correctly:
+
+## TOOL USE:
+
+Name: shell-command
+ID: toolu_01GSvgnenNVYU2BeratJWgY9
+
+### command
+
+<tool.toolu_01GSvgnenNVYU2BeratJWgY9>
+cd /Users/andreas/projects/aichat3 && emacs -Q --batch -l greger-parser.el -f batch-byte-compile greger-parser.el
+</tool.toolu_01GSvgnenNVYU2BeratJWgY9>
+
+## TOOL RESULT:
+
+ID: toolu_01GSvgnenNVYU2BeratJWgY9
+
+<tool.toolu_01GSvgnenNVYU2BeratJWgY9>
+Shell command execution cancelled by user
+</tool.toolu_01GSvgnenNVYU2BeratJWgY9>
+
+## ASSISTANT:
+
+Let me test the basic functionality by creating a simple test:
+
+## TOOL USE:
+
+Name: write-new-file
+ID: toolu_01L29Hzmb8aZ5BAyPYuqWqrf
+
+### file_path
+
+<tool.toolu_01L29Hzmb8aZ5BAyPYuqWqrf>
+/Users/andreas/projects/aichat3/test-metadata.el
+</tool.toolu_01L29Hzmb8aZ5BAyPYuqWqrf>
+
+### contents
+
+<tool.toolu_01L29Hzmb8aZ5BAyPYuqWqrf>
+;;; test-metadata.el --- Quick test for metadata functionality
+
+(require 'greger-parser)
+
+;; Test basic safe-shell-commands parsing
+(let ((markdown "## SYSTEM:
+
+<safe-shell-commands>
+ls -la
+pwd
+echo hello
+</safe-shell-commands>"))
+  (let ((result (greger-parser-parse-dialog markdown)))
+    (message "Messages: %s" (plist-get result :messages))
+    (message "Metadata: %s" (plist-get result :metadata))))
+
+;; Test with system content
+(let ((markdown "## SYSTEM:
+
+You are helpful.
+
+## USER:
+
+Hello"))
+  (let ((result (greger-parser-parse-dialog markdown)))
+    (message "Messages: %s" (plist-get result :messages))
+    (message "Metadata: %s" (plist-get result :metadata))))
+
+(message "Test completed")
+</tool.toolu_01L29Hzmb8aZ5BAyPYuqWqrf>
+
+### git_commit_message
+
+<tool.toolu_01L29Hzmb8aZ5BAyPYuqWqrf>
+Add quick test file for metadata functionality
+</tool.toolu_01L29Hzmb8aZ5BAyPYuqWqrf>
+
+<!-- TOOL_RESULT_PLACEHOLDER_toolu_01L29Hzmb8aZ5BAyPYuqWqrf -->
