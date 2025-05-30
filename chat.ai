@@ -8567,4 +8567,31 @@ Hello"))
 Add test for the exact user example of system content with safe-shell-commands
 </tool.toolu_01B6JSSfjz49FzhYXoryAmgV>
 
-<!-- TOOL_RESULT_PLACEHOLDER_toolu_01B6JSSfjz49FzhYXoryAmgV -->
+## TOOL RESULT:
+
+ID: toolu_01B6JSSfjz49FzhYXoryAmgV
+
+<tool.toolu_01B6JSSfjz49FzhYXoryAmgV>
+Successfully replaced content in /Users/andreas/projects/aichat3/test-greger-parser.el. Successfully staged 2 file(s) and committed with message: Add test for the exact user example of system content with safe-shell-commands
+</tool.toolu_01B6JSSfjz49FzhYXoryAmgV>
+
+
+## ASSISTANT:
+
+The implementation should now correctly handle:
+
+1. **Safe-shell-commands only**: Returns metadata only
+2. **System content only**: Returns system message only
+3. **Both system content and safe-shell-commands**: Returns both system message and metadata
+4. **Mixed scenarios**: Handle appropriately
+
+The key changes:
+
+1. **Parser state**: Added metadata field to store metadata that needs to be combined with section-level metadata
+2. **System section parser**: When both content and safe-shell-commands are present, it stores the metadata in the parser state and returns the system message
+3. **Document parser**: Combines metadata from section returns and parser state
+4. **Tests**: Updated to expect both content and metadata when both are present
+
+This approach allows safe-shell-commands to coexist with system content, which is the correct behavior you requested.
+
+## USER:
