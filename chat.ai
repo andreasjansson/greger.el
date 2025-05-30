@@ -2941,4 +2941,111 @@ Returns a plist with :messages and :metadata keys."
 Update greger-parser-parse-dialog to return metadata structure
 </tool.toolu_01JoXDpzQbmnVEVqtmhjYFai>
 
-<!-- TOOL_RESULT_PLACEHOLDER_toolu_01JoXDpzQbmnVEVqtmhjYFai -->
+## TOOL RESULT:
+
+ID: toolu_01JoXDpzQbmnVEVqtmhjYFai
+
+<tool.toolu_01JoXDpzQbmnVEVqtmhjYFai>
+Successfully replaced content in /Users/andreas/projects/aichat3/greger-parser.el. Successfully staged 2 file(s) and committed with message: Update greger-parser-parse-dialog to return metadata structure
+</tool.toolu_01JoXDpzQbmnVEVqtmhjYFai>
+
+
+## TOOL USE:
+
+Name: str-replace
+ID: toolu_01EWeXjdoU7H59QdM6ZxxzEX
+
+### file_path
+
+<tool.toolu_01EWeXjdoU7H59QdM6ZxxzEX>
+greger-parser.el
+</tool.toolu_01EWeXjdoU7H59QdM6ZxxzEX>
+
+### original_content
+
+<tool.toolu_01EWeXjdoU7H59QdM6ZxxzEX>
+(defun greger-parser--parse-document (state)
+  "Parse entire document using STATE."
+  (greger-parser--skip-whitespace state)
+  (if (greger-parser--at-end-p state)
+      '()
+    (let ((sections '())
+          (iterations 0)
+          (max-iterations 1000)) ; Safety limit
+      ;; Handle untagged content at start
+      (let ((untagged (greger-parser--parse-untagged-content state)))
+        (when untagged
+          (push untagged sections)))
+
+      ;; Parse tagged sections
+      (while (and (not (greger-parser--at-end-p state))
+                  (< iterations max-iterations))
+        (setq iterations (1+ iterations))
+        (let ((old-pos (greger-parser-state-pos state)))
+          (greger-parser--skip-whitespace state)
+          (when (not (greger-parser--at-end-p state))
+            (let ((section (greger-parser--parse-section state)))
+              (when section
+                (push section sections))))
+          ;; Safety check: ensure we're making progress
+          (when (= old-pos (greger-parser-state-pos state))
+            (greger-parser--debug state "No progress in document parsing at pos %d, breaking" (greger-parser-state-pos state))
+            (break))))
+
+      (when (>= iterations max-iterations)
+        (greger-parser--debug state "Hit max iterations in parse-document"))
+
+      (greger-parser--merge-consecutive-messages (reverse sections)))))
+</tool.toolu_01EWeXjdoU7H59QdM6ZxxzEX>
+
+### new_content
+
+<tool.toolu_01EWeXjdoU7H59QdM6ZxxzEX>
+(defun greger-parser--parse-document (state)
+  "Parse entire document using STATE.
+Returns a plist with :messages and :metadata keys."
+  (greger-parser--skip-whitespace state)
+  (if (greger-parser--at-end-p state)
+      '(:messages () :metadata ())
+    (let ((sections '())
+          (metadata '())
+          (iterations 0)
+          (max-iterations 1000)) ; Safety limit
+      ;; Handle untagged content at start
+      (let ((untagged (greger-parser--parse-untagged-content state)))
+        (when untagged
+          (push untagged sections)))
+
+      ;; Parse tagged sections
+      (while (and (not (greger-parser--at-end-p state))
+                  (< iterations max-iterations))
+        (setq iterations (1+ iterations))
+        (let ((old-pos (greger-parser-state-pos state)))
+          (greger-parser--skip-whitespace state)
+          (when (not (greger-parser--at-end-p state))
+            (let ((section-result (greger-parser--parse-section state)))
+              (when section-result
+                (if (and (listp section-result) (eq (car section-result) :metadata))
+                    ;; This is metadata, not a message
+                    (setq metadata (append metadata (cdr section-result)))
+                  ;; This is a regular message
+                  (push section-result sections)))))
+          ;; Safety check: ensure we're making progress
+          (when (= old-pos (greger-parser-state-pos state))
+            (greger-parser--debug state "No progress in document parsing at pos %d, breaking" (greger-parser-state-pos state))
+            (break))))
+
+      (when (>= iterations max-iterations)
+        (greger-parser--debug state "Hit max iterations in parse-document"))
+
+      (list :messages (greger-parser--merge-consecutive-messages (reverse sections))
+            :metadata metadata))))
+</tool.toolu_01EWeXjdoU7H59QdM6ZxxzEX>
+
+### git_commit_message
+
+<tool.toolu_01EWeXjdoU7H59QdM6ZxxzEX>
+Update document parser to collect metadata from sections
+</tool.toolu_01EWeXjdoU7H59QdM6ZxxzEX>
+
+<!-- TOOL_RESULT_PLACEHOLDER_toolu_01EWeXjdoU7H59QdM6ZxxzEX -->

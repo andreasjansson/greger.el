@@ -430,11 +430,13 @@ Returns nil when content is inserted, or the content string when it should be ap
 ;; High-level parsing
 
 (defun greger-parser--parse-document (state)
-  "Parse entire document using STATE."
+  "Parse entire document using STATE.
+Returns a plist with :messages and :metadata keys."
   (greger-parser--skip-whitespace state)
   (if (greger-parser--at-end-p state)
-      '()
+      '(:messages () :metadata ())
     (let ((sections '())
+          (metadata '())
           (iterations 0)
           (max-iterations 1000)) ; Safety limit
       ;; Handle untagged content at start
@@ -449,9 +451,13 @@ Returns nil when content is inserted, or the content string when it should be ap
         (let ((old-pos (greger-parser-state-pos state)))
           (greger-parser--skip-whitespace state)
           (when (not (greger-parser--at-end-p state))
-            (let ((section (greger-parser--parse-section state)))
-              (when section
-                (push section sections))))
+            (let ((section-result (greger-parser--parse-section state)))
+              (when section-result
+                (if (and (listp section-result) (eq (car section-result) :metadata))
+                    ;; This is metadata, not a message
+                    (setq metadata (append metadata (cdr section-result)))
+                  ;; This is a regular message
+                  (push section-result sections)))))
           ;; Safety check: ensure we're making progress
           (when (= old-pos (greger-parser-state-pos state))
             (greger-parser--debug state "No progress in document parsing at pos %d, breaking" (greger-parser-state-pos state))
@@ -460,7 +466,8 @@ Returns nil when content is inserted, or the content string when it should be ap
       (when (>= iterations max-iterations)
         (greger-parser--debug state "Hit max iterations in parse-document"))
 
-      (greger-parser--merge-consecutive-messages (reverse sections)))))
+      (list :messages (greger-parser--merge-consecutive-messages (reverse sections))
+            :metadata metadata))))
 
 (defun greger-parser--parse-untagged-content (state)
   "Parse content before first section tag using STATE."
