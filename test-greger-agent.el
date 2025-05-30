@@ -287,7 +287,7 @@ Error executing tool: Simulated tool error: bad-input
                           (id . "placeholder_test")
                           (name . "test-placeholder")
                           (input . ((data . "test-data"))))))
-            (expected-content "
+            (expected-content "<!-- TOOL_RESULT_PLACEHOLDER_placeholder_test -->
 
 ## TOOL USE:
 
