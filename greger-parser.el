@@ -630,7 +630,7 @@ Returns either a system message or metadata if safe-shell-commands are found."
      ((and (plist-get content :safe-shell-commands)
            (or (not (plist-get content :content))
                (string-match-p "^[[:space:]>]*$" (plist-get content :content))))
-      (list :metadata (list :safe-shell-commands (plist-get content :safe-shell-commands))))
+      (list :metadata :safe-shell-commands (plist-get content :safe-shell-commands)))
 
      ;; If we have both content and safe-shell-commands, return system message and warn about metadata
      ((and (plist-get content :safe-shell-commands)
