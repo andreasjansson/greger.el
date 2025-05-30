@@ -735,7 +735,7 @@ with multiple lines"
 
 I need to think about this carefully.
 This is a complex problem."))
-    (let ((parsed (greger-parser-parse-dialog thinking-markdown)))
+    (let ((parsed (greger-parser-parse-dialog-messages-only thinking-markdown)))
       (should (= 1 (length parsed)))
       (let ((assistant-msg (car parsed)))
         (should (string= "assistant" (alist-get 'role assistant-msg)))
