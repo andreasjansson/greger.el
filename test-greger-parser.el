@@ -809,7 +809,7 @@ ID: toolu_abc
 <tool.toolu_abc>
 .
 </tool.toolu_abc>"))
-    (let ((parsed (greger-parser-parse-dialog complex-markdown)))
+    (let ((parsed (greger-parser-parse-dialog-messages-only complex-markdown)))
       (should (= 2 (length parsed)))
       ;; First message should be user
       (should (string= "user" (alist-get 'role (car parsed))))
