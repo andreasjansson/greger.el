@@ -75,7 +75,7 @@ instead of greger-tools-execute calling the callback with the result."
             (setq args (cons (cons 'buffer buffer) args)))
           ;; Add callback parameter if pass-callback is set
           (when pass-callback
-            (setq args (cons (cons pass-callback callback) args)))
+            (setq args (cons (cons 'callback callback) args)))
           (condition-case err
               (if pass-callback
                   ;; When pass-callback is set, the function handles calling the callback
