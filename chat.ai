@@ -295,18 +295,232 @@ Now I'll update the test file to make it more readable by adding explicit expect
 
 ## TOOL USE:
 
-Name: replace-file
-ID: toolu_01BFLePrB8aFBBJtigVk9ytd
+Name: str-replace
+ID: toolu_01QCd1GkFfBv8QteT6LertmU
 
 ### file_path
 
-<tool.toolu_01BFLePrB8aFBBJtigVk9ytd>
+<tool.toolu_01QCd1GkFfBv8QteT6LertmU>
 test-greger-agent.el
-</tool.toolu_01BFLePrB8aFBBJtigVk9ytd>
+</tool.toolu_01QCd1GkFfBv8QteT6LertmU>
 
-### contents
+### original_content
 
-<tool.toolu_01BFLePrB8aFBBJtigVk9ytd>
+<tool.toolu_01QCd1GkFfBv8QteT6LertmU>
+(ert-deftest greger-agent-test-single-tool-execution ()
+  "Test execution of a single tool with callback."
+  (let ((test-completed nil)
+        (test-result nil)
+        (test-error nil))
+
+    ;; Define a simple test function
+    (defun greger-test-simple-tool (message)
+      (format "Tool executed: %s" message))
+
+    ;; Register test tool
+    (greger-register-tool "test-simple"
+      :description "Simple test tool"
+      :properties '((message . ((type . "string")
+                                (description . "Test message"))))
+      :required '("message")
+      :function 'greger-test-simple-tool)
+
+    ;; Create test buffer
+    (with-temp-buffer
+      (let ((agent-state (make-greger-agent-state
+                          :current-iteration 0
+                          :chat-buffer (current-buffer)
+                          :directory default-directory))
+            (tool-calls `(((type . "tool_use")
+                          (id . "test_001")
+                          (name . "test-simple")
+                          (input . ((message . "Hello World")))))))
+
+        ;; Mock greger-agent--run-agent-loop to capture completion
+        (cl-letf (((symbol-function 'greger-agent--run-agent-loop)
+                   (lambda (state)
+                     (setq test-completed t))))
+
+          ;; Execute tools
+          (greger-agent--execute-tools tool-calls agent-state)
+
+          ;; Check that the function completed
+          (should test-completed)
+
+          ;; Check buffer contents
+          (let ((buffer-content (buffer-substring-no-properties (point-min) (point-max))))
+            (should (string-match-p "test-simple" buffer-content))
+            (should (string-match-p "Tool executed: Hello World" buffer-content))))))
+
+    ;; Clean up
+    (remhash "test-simple" greger-tools-registry)))
+</tool.toolu_01QCd1GkFfBv8QteT6LertmU>
+
+### new_content
+
+<tool.toolu_01QCd1GkFfBv8QteT6LertmU>
+(ert-deftest greger-agent-test-single-tool-execution ()
+  "Test execution of a single tool with callback."
+  (let ((test-completed nil)
+        (expected-content "Tool: test-simple\nTool executed: Hello World"))
+
+    ;; Define a simple test function
+    (defun greger-test-simple-tool (message)
+      (format "Tool executed: %s" message))
+
+    ;; Register test tool
+    (greger-register-tool "test-simple"
+      :description "Simple test tool"
+      :properties '((message . ((type . "string")
+                                (description . "Test message"))))
+      :required '("message")
+      :function 'greger-test-simple-tool)
+
+    ;; Create test buffer
+    (with-temp-buffer
+      (let ((agent-state (make-greger-agent-state
+                          :current-iteration 0
+                          :chat-buffer (current-buffer)
+                          :directory default-directory))
+            (tool-calls `(((type . "tool_use")
+                          (id . "test_001")
+                          (name . "test-simple")
+                          (input . ((message . "Hello World")))))))
+
+        ;; Mock greger-agent--run-agent-loop to capture completion
+        (cl-letf (((symbol-function 'greger-agent--run-agent-loop)
+                   (lambda (state)
+                     (setq test-completed t))))
+
+          ;; Execute tools
+          (greger-agent--execute-tools tool-calls agent-state)
+
+          ;; Check that the function completed
+          (should test-completed)
+
+          ;; Check buffer contents match expected output
+          (let ((actual-content (string-trim (buffer-substring-no-properties (point-min) (point-max)))))
+            (should (string= expected-content actual-content))))))
+
+    ;; Clean up
+    (remhash "test-simple" greger-tools-registry)))
+</tool.toolu_01QCd1GkFfBv8QteT6LertmU>
+
+### git_commit_message
+
+<tool.toolu_01QCd1GkFfBv8QteT6LertmU>
+Update single tool execution test to use explicit expected content
+</tool.toolu_01QCd1GkFfBv8QteT6LertmU>
+
+## TOOL RESULT:
+
+ID: toolu_01QCd1GkFfBv8QteT6LertmU
+
+<tool.toolu_01QCd1GkFfBv8QteT6LertmU>
+Error executing tool: Original content not found in file: /Users/andreas/projects/aichat3/test-greger-agent.el -- Try again!
+</tool.toolu_01QCd1GkFfBv8QteT6LertmU>
+
+## ASSISTANT:
+
+Let me check the exact spacing and formatting in the file:
+
+## TOOL USE:
+
+Name: read-file
+ID: toolu_01D9VYwS8RsTdUu2huMGr1KT
+
+### path
+
+<tool.toolu_01D9VYwS8RsTdUu2huMGr1KT>
+test-greger-agent.el
+</tool.toolu_01D9VYwS8RsTdUu2huMGr1KT>
+
+### start_line
+
+<tool.toolu_01D9VYwS8RsTdUu2huMGr1KT>
+15
+</tool.toolu_01D9VYwS8RsTdUu2huMGr1KT>
+
+### end_line
+
+<tool.toolu_01D9VYwS8RsTdUu2huMGr1KT>
+61
+</tool.toolu_01D9VYwS8RsTdUu2huMGr1KT>
+
+## TOOL RESULT:
+
+ID: toolu_01D9VYwS8RsTdUu2huMGr1KT
+
+<tool.toolu_01D9VYwS8RsTdUu2huMGr1KT>
+(ert-deftest greger-agent-test-single-tool-execution ()
+  "Test execution of a single tool with callback."
+  (let ((test-completed nil)
+        (expected-content-patterns '("test-simple" "Tool executed: Hello World")))
+
+    ;; Define a simple test function
+    (defun greger-test-simple-tool (message)
+      (format "Tool executed: %s" message))
+
+    ;; Register test tool
+    (greger-register-tool "test-simple"
+      :description "Simple test tool"
+      :properties '((message . ((type . "string")
+                                (description . "Test message"))))
+      :required '("message")
+      :function 'greger-test-simple-tool)
+
+    ;; Create test buffer
+    (with-temp-buffer
+      (let ((agent-state (make-greger-agent-state
+                          :current-iteration 0
+                          :chat-buffer (current-buffer)
+                          :directory default-directory))
+            (tool-calls `(((type . "tool_use")
+                          (id . "test_001")
+                          (name . "test-simple")
+                          (input . ((message . "Hello World")))))))
+
+        ;; Mock greger-agent--run-agent-loop to capture completion
+        (cl-letf (((symbol-function 'greger-agent--run-agent-loop)
+                   (lambda (state)
+                     (setq test-completed t))))
+
+          ;; Execute tools
+          (greger-agent--execute-tools tool-calls agent-state)
+
+          ;; Check that the function completed
+          (should test-completed)
+
+          ;; Check buffer contents against expected patterns
+          (let ((actual-content (buffer-substring-no-properties (point-min) (point-max))))
+            (dolist (pattern expected-content-patterns)
+              (should (string-match-p pattern actual-content)))))))
+
+    ;; Clean up
+    (remhash "test-simple" greger-tools-registry)))
+
+</tool.toolu_01D9VYwS8RsTdUu2huMGr1KT>
+
+## ASSISTANT:
+
+I see the file has already been partially updated. Let me read the entire file again to see the current state:
+
+## TOOL USE:
+
+Name: read-file
+ID: toolu_01G9JSjmG6KP9V9PazjEAxYc
+
+### path
+
+<tool.toolu_01G9JSjmG6KP9V9PazjEAxYc>
+test-greger-agent.el
+</tool.toolu_01G9JSjmG6KP9V9PazjEAxYc>
+
+## TOOL RESULT:
+
+ID: toolu_01G9JSjmG6KP9V9PazjEAxYc
+
+<tool.toolu_01G9JSjmG6KP9V9PazjEAxYc>
 ;;; test-greger-agent.el --- Tests for greger agent functionality -*- lexical-binding: t -*-
 
 (require 'ert)
@@ -617,19 +831,643 @@ test-greger-agent.el
 (provide 'test-greger-agent)
 
 ;;; test-greger-agent.el ends here
-</tool.toolu_01BFLePrB8aFBBJtigVk9ytd>
+
+</tool.toolu_01G9JSjmG6KP9V9PazjEAxYc>
+
+## ASSISTANT:
+
+I can see the file has already been updated with better expected content patterns. However, I notice it's still mostly using pattern matching rather than exact string comparisons. Let me improve it further by making the tests more precise with exact expected outputs where possible. I'll also need to understand how the actual tool output formatting works first.
+
+Let me check the greger-agent.el file to understand the exact format of tool output:
+
+## TOOL USE:
+
+Name: ripgrep
+ID: toolu_01D1x1g7beddbdtXhU14yFAX
+
+### pattern
+
+<tool.toolu_01D1x1g7beddbdtXhU14yFAX>
+Tool:
+</tool.toolu_01D1x1g7beddbdtXhU14yFAX>
+
+### file-type
+
+<tool.toolu_01D1x1g7beddbdtXhU14yFAX>
+el
+</tool.toolu_01D1x1g7beddbdtXhU14yFAX>
+
+### context-lines
+
+<tool.toolu_01D1x1g7beddbdtXhU14yFAX>
+3
+</tool.toolu_01D1x1g7beddbdtXhU14yFAX>
+
+## TOOL RESULT:
+
+ID: toolu_01D1x1g7beddbdtXhU14yFAX
+
+<tool.toolu_01D1x1g7beddbdtXhU14yFAX>
+No matches found
+</tool.toolu_01D1x1g7beddbdtXhU14yFAX>
+
+## TOOL USE:
+
+Name: ripgrep
+ID: toolu_01BCuzocboNgvPszHsTHAcvy
+
+### pattern
+
+<tool.toolu_01BCuzocboNgvPszHsTHAcvy>
+tool.*result
+</tool.toolu_01BCuzocboNgvPszHsTHAcvy>
+
+### file-type
+
+<tool.toolu_01BCuzocboNgvPszHsTHAcvy>
+el
+</tool.toolu_01BCuzocboNgvPszHsTHAcvy>
+
+### context-lines
+
+<tool.toolu_01BCuzocboNgvPszHsTHAcvy>
+2
+</tool.toolu_01BCuzocboNgvPszHsTHAcvy>
+
+## TOOL RESULT:
+
+ID: toolu_01BCuzocboNgvPszHsTHAcvy
+
+<tool.toolu_01BCuzocboNgvPszHsTHAcvy>
+/Users/andreas/projects/aichat3/greger-agent.el:130:  (format "<!-- TOOL_RESULT_PLACEHOLDER_%s -->" tool-id))
+/Users/andreas/projects/aichat3/greger-agent.el:150:      ;; Create placeholders for each tool result
+/Users/andreas/projects/aichat3/greger-agent.el:167:              tool-id result error agent-state search-start-pos
+/Users/andreas/projects/aichat3/greger-agent.el:179:(defun greger-agent--handle-tool-completion (tool-id result error agent-state search-start-pos completion-callback)
+/Users/andreas/projects/aichat3/greger-agent.el:181:  (let ((tool-result (if error
+/Users/andreas/projects/aichat3/greger-agent.el:182:                        `((type . "tool_result")
+/Users/andreas/projects/aichat3/greger-agent.el:188:                      `((type . "tool_result")
+/Users/andreas/projects/aichat3/greger-agent.el:199:          (let ((result-markdown (greger-parser--content-blocks-to-markdown (list tool-result))))
+/Users/andreas/projects/aichat3/greger-agent.el:206:(defun greger-agent--display-tool-execution (tool-calls results agent-state)
+/Users/andreas/projects/aichat3/greger-agent.el:207:  "Display the execution of TOOL-CALLS and their RESULTS using AGENT-STATE.
+/Users/andreas/projects/aichat3/greger-agent.el:217:    ;; Convert tool results to markdown
+/Users/andreas/projects/aichat3/test-greger-agent.el:10:  (let ((expected1 "<!-- TOOL_RESULT_PLACEHOLDER_test123 -->")
+/Users/andreas/projects/aichat3/test-greger-agent.el:11:        (expected2 "<!-- TOOL_RESULT_PLACEHOLDER_tool_abc_def -->"))
+/Users/andreas/projects/aichat3/test-greger-agent.el:65:        (expected-content-patterns '("Tool A result: input-a"
+/Users/andreas/projects/aichat3/test-greger-agent.el:66:                                   "Tool B result: input-b"
+/Users/andreas/projects/aichat3/test-greger-agent.el:72:      (format "Tool A result: %s" value))
+/Users/andreas/projects/aichat3/test-greger-agent.el:75:      (format "Tool B result: %s" value))
+/Users/andreas/projects/aichat3/test-greger-agent.el:177:  "Test that placeholders are correctly replaced with tool results."
+/Users/andreas/projects/aichat3/test-greger-agent.el:180:        (unexpected-placeholder "TOOL_RESULT_PLACEHOLDER_placeholder_test"))
+/Users/andreas/projects/aichat3/test-greger-agent.el:276:      (insert "<!-- TOOL_RESULT_PLACEHOLDER_exact_001 -->")
+/Users/andreas/projects/aichat3/greger-parser.el:18:(defconst greger-parser-tool-result-tag "## TOOL RESULT:")
+/Users/andreas/projects/aichat3/greger-parser.el:176:        greger-parser-tool-result-tag
+/Users/andreas/projects/aichat3/greger-parser.el:486:       ((string= tag greger-parser-tool-result-tag)
+/Users/andreas/projects/aichat3/greger-parser.el:487:        (greger-parser--parse-tool-result-section state))))))
+/Users/andreas/projects/aichat3/greger-parser.el:524:(defun greger-parser--parse-tool-result-section (state)
+/Users/andreas/projects/aichat3/greger-parser.el:525:  "Parse TOOL RESULT section using STATE."
+/Users/andreas/projects/aichat3/greger-parser.el:528:        (content (greger-parser--parse-tool-result-content state)))
+/Users/andreas/projects/aichat3/greger-parser.el:530:      (greger-parser--create-tool-result-message id content))))
+/Users/andreas/projects/aichat3/greger-parser.el:643:(defun greger-parser--parse-tool-result-content (state)
+/Users/andreas/projects/aichat3/greger-parser.el:644:  "Parse tool result content using STATE."
+/Users/andreas/projects/aichat3/greger-parser.el:721:(defun greger-parser--create-tool-result-message (id content)
+/Users/andreas/projects/aichat3/greger-parser.el:722:  "Create tool result message."
+/Users/andreas/projects/aichat3/greger-parser.el:724:    (content . (((type . "tool_result")
+/Users/andreas/projects/aichat3/greger-parser.el:824:     ((string= type "tool_result")
+/Users/andreas/projects/aichat3/greger-parser.el:825:      (greger-parser--tool-result-to-markdown block))
+/Users/andreas/projects/aichat3/greger-parser.el:838:(defun greger-parser--tool-result-to-markdown (tool-result)
+/Users/andreas/projects/aichat3/greger-parser.el:839:  "Convert tool result to markdown."
+/Users/andreas/projects/aichat3/greger-parser.el:840:  (let ((id (alist-get 'tool_use_id tool-result))
+/Users/andreas/projects/aichat3/greger-parser.el:841:        (content (alist-get 'content tool-result)))
+/Users/andreas/projects/aichat3/greger-parser.el:842:    (concat greger-parser-tool-result-tag "\n\n"
+/Users/andreas/projects/aichat3/greger-stdlib.el:403:(defun greger-tools--ripgrep (pattern path &optional case-sensitive file-type context-lines max-results)
+/Users/andreas/projects/aichat3/greger.el:96:(defface greger-tool-result-heading-face
+/Users/andreas/projects/aichat3/greger.el:98:  "Face for ## TOOL RESULT: headings in greger mode."
+/Users/andreas/projects/aichat3/greger.el:483:     ("^## TOOL RESULT:.*$" 0 'greger-tool-result-heading-face t)
+/Users/andreas/projects/aichat3/chat5.ai:33:## TOOL RESULT:
+/Users/andreas/projects/aichat3/chat5.ai:53:## TOOL RESULT:
+/Users/andreas/projects/aichat3/chat5.ai:84:## TOOL RESULT:
+/Users/andreas/projects/aichat3/chat.ai:30:## TOOL RESULT:
+/Users/andreas/projects/aichat3/chat.ai:44: 10:   (should (string= "<!-- TOOL_RESULT_PLACEHOLDER_test123 -->"
+/Users/andreas/projects/aichat3/chat.ai:46: 12:   (should (string= "<!-- TOOL_RESULT_PLACEHOLDER_tool_abc_def -->"
+/Users/andreas/projects/aichat3/chat.ai:104: 70:       (format "Tool A result: %s" value))
+/Users/andreas/projects/aichat3/chat.ai:107: 73:       (format "Tool B result: %s" value))
+/Users/andreas/projects/aichat3/chat.ai:152:118:             (should (string-match-p "Tool A result: input-a" buffer-content))
+/Users/andreas/projects/aichat3/chat.ai:153:119:             (should (string-match-p "Tool B result: input-b" buffer-content))
+/Users/andreas/projects/aichat3/chat.ai:209:175:   "Test that placeholders are correctly replaced with tool results."
+/Users/andreas/projects/aichat3/chat.ai:249:215:             (should-not (string-match-p "TOOL_RESULT_PLACEHOLDER_placeholder_test" buffer-content))
+/Users/andreas/projects/aichat3/chat.ai:319:  (let ((expected1 "<!-- TOOL_RESULT_PLACEHOLDER_test123 -->")
+/Users/andreas/projects/aichat3/chat.ai:320:        (expected2 "<!-- TOOL_RESULT_PLACEHOLDER_tool_abc_def -->"))
+/Users/andreas/projects/aichat3/chat.ai:374:        (expected-content-patterns '("Tool A result: input-a"
+/Users/andreas/projects/aichat3/chat.ai:375:                                   "Tool B result: input-b"
+/Users/andreas/projects/aichat3/chat.ai:381:      (format "Tool A result: %s" value))
+/Users/andreas/projects/aichat3/chat.ai:384:      (format "Tool B result: %s" value))
+/Users/andreas/projects/aichat3/chat.ai:486:  "Test that placeholders are correctly replaced with tool results."
+/Users/andreas/projects/aichat3/chat.ai:489:        (unexpected-placeholder "TOOL_RESULT_PLACEHOLDER_placeholder_test"))
+/Users/andreas/projects/aichat3/chat.ai:585:      (insert "<!-- TOOL_RESULT_PLACEHOLDER_exact_001 -->")
+/Users/andreas/projects/aichat3/chat.ai:635:<!-- TOOL_RESULT_PLACEHOLDER_toolu_01BFLePrB8aFBBJtigVk9ytd -->
+/Users/andreas/projects/aichat3/greger-tools.el:59:  "Execute TOOL-NAME with ARGS and call CALLBACK with (result error).
+/Users/andreas/projects/aichat3/chat4.ai:27:## TOOL RESULT:
+/Users/andreas/projects/aichat3/chat4.ai:419:389: (defun greger-tools--ripgrep (pattern path &optional case-sensitive file-type context-lines max-results)
+/Users/andreas/projects/aichat3/chat4.ai:1032:## TOOL RESULT:
+/Users/andreas/projects/aichat3/chat4.ai:1073:## TOOL RESULT:
+/Users/andreas/projects/aichat3/chat4.ai:1173:## TOOL RESULT:
+/Users/andreas/projects/aichat3/chat4.ai:1251:## TOOL RESULT:
+/Users/andreas/projects/aichat3/chat4.ai:1288:## TOOL RESULT:
+/Users/andreas/projects/aichat3/chat4.ai:1321:## TOOL RESULT:
+/Users/andreas/projects/aichat3/chat4.ai:1362:## TOOL RESULT:
+/Users/andreas/projects/aichat3/chat4.ai:1400:## TOOL RESULT:
+/Users/andreas/projects/aichat3/test-greger-parser.el:74:## TOOL RESULT:
+/Users/andreas/projects/aichat3/test-greger-parser.el:87:              ((role . "user") (content . (((type . "tool_result") (tool_use_id . "toolu_123") (content . "Hello, world!")))))
+/Users/andreas/projects/aichat3/test-greger-parser.el:119:## TOOL RESULT:
+/Users/andreas/projects/aichat3/test-greger-parser.el:133:              ((role . "user") (content . (((type . "tool_result") (tool_use_id . "toolu_456") (content . "src/main.py:10:def main():\nsrc/utils.py:25:def main_helper():")))))
+/Users/andreas/projects/aichat3/test-greger-parser.el:169:## TOOL RESULT:
+/Users/andreas/projects/aichat3/test-greger-parser.el:181:              ((role . "assistant") (content . (((type . "thinking") (thinking . "The user is asking about the current king of Sweden. This is a factual question that I can search for to get the most up-to-date information. I'll use the search function to find this information.")) ((type . "tool_use") (id . "toolu_01Kf8avk1cBqH5ZHoXL92Duc") (name . "search-286d2fd3") (input . ((query . "current king of Sweden 2024") (include_answer . "basic") (max_results . 3)))))))
+/Users/andreas/projects/aichat3/test-greger-parser.el:182:              ((role . "user") (content . (((type . "tool_result") (tool_use_id . "toolu_01Kf8avk1cBqH5ZHoXL92Duc") (content . "{\"query\": \"current king of Sweden 2024\", \"answer\": \"Carl XVI Gustaf\", \"response_time\": 2.38}")))))
+/Users/andreas/projects/aichat3/test-greger-parser.el:202:## TOOL RESULT:
+/Users/andreas/projects/aichat3/test-greger-parser.el:223:## TOOL RESULT:
+/Users/andreas/projects/aichat3/test-greger-parser.el:236:              ((role . "user") (content . (((type . "tool_result") (tool_use_id . "toolu_111") (content . "file1.txt\nfile2.txt\nREADME.md")))))
+/Users/andreas/projects/aichat3/test-greger-parser.el:238:              ((role . "user") (content . (((type . "tool_result") (tool_use_id . "toolu_222") (content . "This is the content of file1.")))))
+/Users/andreas/projects/aichat3/test-greger-parser.el:276:## TOOL RESULT:
+/Users/andreas/projects/aichat3/test-greger-parser.el:289:              ((role . "user") (content . (((type . "tool_result") (tool_use_id . "toolu_789") (content . "Successfully wrote new file script.py with 85 characters.")))))
+/Users/andreas/projects/aichat3/test-greger-parser.el:347:    ;; Tool result with empty lines preserved
+/Users/andreas/projects/aichat3/test-greger-parser.el:425:## TOOL RESULT:
+/Users/andreas/projects/aichat3/test-greger-parser.el:438:                    ((role . "user") (content . (((type . "tool_result") (tool_use_id . "toolu_999") (content . "File written successfully")))))
+/Users/andreas/projects/aichat3/test-greger-parser.el:512:## TOOL RESULT:
+/Users/andreas/projects/aichat3/test-greger-parser.el:525:                    ((role . "user") (content . (((type . "tool_result") (tool_use_id . "toolu_complex") (content . "Success")))))
+/Users/andreas/projects/aichat3/test-greger-parser.el:528:    (:name "tool-result-empty-lines"
+/Users/andreas/projects/aichat3/test-greger-parser.el:543:## TOOL RESULT:
+/Users/andreas/projects/aichat3/test-greger-parser.el:558:                    ((role . "user") (content . (((type . "tool_result") (tool_use_id . "tool_123") (content . "foo\n\n\nbar")))))
+/Users/andreas/projects/aichat3/test-greger-parser.el:634:          ((string= type "tool_result")
+/Users/andreas/projects/aichat3/test-greger-parser.el:710:(ert-deftest greger-parser-test-tool-result-parsing ()
+/Users/andreas/projects/aichat3/test-greger-parser.el:711:  "Test specific tool result parsing functionality."
+/Users/andreas/projects/aichat3/test-greger-parser.el:712:  (let ((tool-result-markdown "## TOOL RESULT:
+/Users/andreas/projects/aichat3/test-greger-parser.el:720:    (let ((parsed (greger-parser-parse-dialog tool-result-markdown)))
+/Users/andreas/projects/aichat3/test-greger-parser.el:725:               (tool-result-block (car content-blocks)))
+/Users/andreas/projects/aichat3/test-greger-parser.el:726:          (should (string= "tool_result" (alist-get 'type tool-result-block)))
+/Users/andreas/projects/aichat3/test-greger-parser.el:727:          (should (string= "toolu_123" (alist-get 'tool_use_id tool-result-block)))
+/Users/andreas/projects/aichat3/test-greger-parser.el:730:                          (alist-get 'content tool-result-block))))))))
+/Users/andreas/projects/aichat3/test-greger-parser.el:756:              (progn (greger-parser-parse-dialog "## TOOL RESULT:\n\nMalformed") t)
+/Users/andreas/projects/aichat3/test-greger-parser.el:830:                  ((role . "user") (content . (((type . "tool_result") (tool_use_id . "tool_123") (content . "Tool output")))))
+/Users/andreas/projects/aichat3/test-greger-parser.el:838:      (should (string-match-p "## TOOL RESULT:" markdown))
+/Users/andreas/projects/aichat3/request.json:419:          "type": "tool_result",
+/Users/andreas/projects/aichat3/request.json:421:          "content": "1: ;;; test-greger-agent.el --- Tests for greger agent functionality -*- lexical-binding: t -*-\n  2: \n  3: (require 'ert)\n  4: (require 'greger-agent)\n  5: (require 'greger-tools)\n  6: (require 'greger-parser)\n  7: \n  8: (ert-deftest greger-agent-test-tool-placeholder ()\n  9:   \"Test the tool placeholder helper function.\"\n 10:   (should (string= \"<!-- TOOL_RESULT_PLACEHOLDER_test123 -->\"\n 11:                    (greger-agent--tool-placeholder \"test123\")))\n 12:   (should (string= \"<!-- TOOL_RESULT_PLACEHOLDER_tool_abc_def -->\"\n 13:                    (greger-agent--tool-placeholder \"tool_abc_def\"))))\n 14: \n 15: (ert-deftest greger-agent-test-single-tool-execution ()\n 16:   \"Test execution of a single tool with callback.\"\n 17:   (let ((test-completed nil)\n 18:         (test-result nil)\n 19:         (test-error nil))\n 20: \n 21:     ;; Define a simple test function\n 22:     (defun greger-test-simple-tool (message)\n 23:       (format \"Tool executed: %s\" message))\n 24: \n 25:     ;; Register test tool\n 26:     (greger-register-tool \"test-simple\"\n 27:       :description \"Simple test tool\"\n 28:       :properties '((message . ((type . \"string\")\n 29:                                 (description . \"Test message\"))))\n 30:       :required '(\"message\")\n 31:       :function 'greger-test-simple-tool)\n 32: \n 33:     ;; Create test buffer\n 34:     (with-temp-buffer\n 35:       (let ((agent-state (make-greger-agent-state\n 36:                           :current-iteration 0\n 37:                           :chat-buffer (current-buffer)\n 38:                           :directory default-directory))\n 39:             (tool-calls `(((type . \"tool_use\")\n 40:                           (id . \"test_001\")\n 41:                           (name . \"test-simple\")\n 42:                           (input . ((message . \"Hello World\")))))))\n 43: \n 44:         ;; Mock greger-agent--run-agent-loop to capture completion\n 45:         (cl-letf (((symbol-function 'greger-agent--run-agent-loop)\n 46:                    (lambda (state)\n 47:                      (setq test-completed t))))\n 48: \n 49:           ;; Execute tools\n 50:           (greger-agent--execute-tools tool-calls agent-state)\n 51: \n 52:           ;; Check that the function completed\n 53:           (should test-completed)\n 54: \n 55:           ;; Check buffer contents\n 56:           (let ((buffer-content (buffer-substring-no-properties (point-min) (point-max))))\n 57:             (should (string-match-p \"test-simple\" buffer-content))\n 58:             (should (string-match-p \"Tool executed: Hello World\" buffer-content))))))\n 59: \n 60:     ;; Clean up\n 61:     (remhash \"test-simple\" greger-tools-registry)))\n 62: \n 63: (ert-deftest greger-agent-test-multiple-tools-parallel ()\n 64:   \"Test execution of multiple tools in parallel.\"\n 65:   (let ((completion-count 0)\n 66:         (tools-completed nil))\n 67: \n 68:     ;; Define test functions with different execution times\n 69:     (defun greger-test-tool-a (value)\n 70:       (format \"Tool A result: %s\" value))\n 71: \n 72:     (defun greger-test-tool-b (value)\n 73:       (format \"Tool B result: %s\" value))\n 74: \n 75:     ;; Register test tools\n 76:     (greger-register-tool \"test-tool-a\"\n 77:       :description \"Test tool A\"\n 78:       :properties '((value . ((type . \"string\")\n 79:                               (description . \"Input value\"))))\n 80:       :required '(\"value\")\n 81:       :function 'greger-test-tool-a)\n 82: \n 83:     (greger-register-tool \"test-tool-b\"\n 84:       :description \"Test tool B\"\n 85:       :properties '((value . ((type . \"string\")\n 86:                               (description . \"Input value\"))))\n 87:       :required '(\"value\")\n 88:       :function 'greger-test-tool-b)\n 89: \n 90:     ;; Create test buffer\n 91:     (with-temp-buffer\n 92:       (let ((agent-state (make-greger-agent-state\n 93:                           :current-iteration 0\n 94:                           :chat-buffer (current-buffer)\n 95:                           :directory default-directory))\n 96:             (tool-calls `(((type . \"tool_use\")\n 97:                           (id . \"test_a\")\n 98:                           (name . \"test-tool-a\")\n 99:                           (input . ((value . \"input-a\"))))\n100:                          ((type . \"tool_use\")\n101:                           (id . \"test_b\")\n102:                           (name . \"test-tool-b\")\n103:                           (input . ((value . \"input-b\")))))))\n104: \n105:         ;; Mock greger-agent--run-agent-loop to capture completion\n106:         (cl-letf (((symbol-function 'greger-agent--run-agent-loop)\n107:                    (lambda (state)\n108:                      (setq tools-completed t))))\n109: \n110:           ;; Execute tools\n111:           (greger-agent--execute-tools tool-calls agent-state)\n112: \n113:           ;; Check that all tools completed\n114:           (should tools-completed)\n115: \n116:           ;; Check buffer contents - both tools should have executed\n117:           (let ((buffer-content (buffer-substring-no-properties (point-min) (point-max))))\n118:             (should (string-match-p \"Tool A result: input-a\" buffer-content))\n119:             (should (string-match-p \"Tool B result: input-b\" buffer-content))\n120:             (should (string-match-p \"test-tool-a\" buffer-content))\n121:             (should (string-match-p \"test-tool-b\" buffer-content))))))\n122: \n123:     ;; Clean up\n124:     (remhash \"test-tool-a\" greger-tools-registry)\n125:     (remhash \"test-tool-b\" greger-tools-registry)))\n126: \n127: (ert-deftest greger-agent-test-tool-error-handling ()\n128:   \"Test that tool errors are properly handled and displayed.\"\n129:   (let ((test-completed nil))\n130: \n131:     ;; Define a tool function that throws an error\n132:     (defun greger-test-error-tool (input)\n133:       (error \"Simulated tool error: %s\" input))\n134: \n135:     ;; Register test tool\n136:     (greger-register-tool \"test-error\"\n137:       :description \"Tool that throws an error\"\n138:       :properties '((input . ((type . \"string\")\n139:                               (description . \"Input that will cause error\"))))\n140:       :required '(\"input\")\n141:       :function 'greger-test-error-tool)\n142: \n143:     ;; Create test buffer\n144:     (with-temp-buffer\n145:       (let ((agent-state (make-greger-agent-state\n146:                           :current-iteration 0\n147:                           :chat-buffer (current-buffer)\n148:                           :directory default-directory))\n149:             (tool-calls `(((type . \"tool_use\")\n150:                           (id . \"error_test\")\n151:                           (name . \"test-error\")\n152:                           (input . ((input . \"bad-input\")))))))\n153: \n154:         ;; Mock greger-agent--run-agent-loop to capture completion\n155:         (cl-letf (((symbol-function 'greger-agent--run-agent-loop)\n156:                    (lambda (state)\n157:                      (setq test-completed t))))\n158: \n159:           ;; Execute tools\n160:           (greger-agent--execute-tools tool-calls agent-state)\n161: \n162:           ;; Check that execution completed despite error\n163:           (should test-completed)\n164: \n165:           ;; Check buffer contents - error should be displayed\n166:           (let ((buffer-content (buffer-substring-no-properties (point-min) (point-max))))\n167:             (should (string-match-p \"Error executing tool\" buffer-content))\n168:             (should (string-match-p \"Simulated tool error\" buffer-content))\n169:             (should (string-match-p \"bad-input\" buffer-content))))))\n170: \n171:     ;; Clean up\n172:     (remhash \"test-error\" greger-tools-registry)))\n173: \n174: (ert-deftest greger-agent-test-placeholder-replacement ()\n175:   \"Test that placeholders are correctly replaced with tool results.\"\n176:   (let ((test-completed nil))\n177: \n178:     ;; Define a simple test function\n179:     (defun greger-test-placeholder-tool (data)\n180:       (format \"Processed: %s\" data))\n181: \n182:     ;; Register test tool\n183:     (greger-register-tool \"test-placeholder\"\n184:       :description \"Test placeholder replacement\"\n185:       :properties '((data . ((type . \"string\")\n186:                              (description . \"Data to process\"))))\n187:       :required '(\"data\")\n188:       :function 'greger-test-placeholder-tool)\n189: \n190:     ;; Create test buffer\n191:     (with-temp-buffer\n192:       (let ((agent-state (make-greger-agent-state\n193:                           :current-iteration 0\n194:                           :chat-buffer (current-buffer)\n195:                           :directory default-directory))\n196:             (tool-calls `(((type . \"tool_use\")\n197:                           (id . \"placeholder_test\")\n198:                           (name . \"test-placeholder\")\n199:                           (input . ((data . \"test-data\")))))))\n200: \n201:         ;; Mock greger-agent--run-agent-loop to capture completion\n202:         (cl-letf (((symbol-function 'greger-agent--run-agent-loop)\n203:                    (lambda (state)\n204:                      (setq test-completed t))))\n205: \n206:           ;; Execute tools\n207:           (greger-agent--execute-tools tool-calls agent-state)\n208: \n209:           ;; Check that execution completed\n210:           (should test-completed)\n211: \n212:           ;; Check that placeholder was replaced\n213:           (let ((buffer-content (buffer-substring-no-properties (point-min) (point-max))))\n214:             ;; Placeholder should not exist anymore\n215:             (should-not (string-match-p \"TOOL_RESULT_PLACEHOLDER_placeholder_test\" buffer-content))\n216:             ;; Result should be present\n217:             (should (string-match-p \"Processed: test-data\" buffer-content))))))\n218: \n219:     ;; Clean up\n220:     (remhash \"test-placeholder\" greger-tools-registry)))\n221: \n222: (ert-deftest greger-agent-test-unknown-tool-error ()\n223:   \"Test handling of unknown tool execution.\"\n224:   (let ((test-completed nil))\n225: \n226:     ;; Create test buffer\n227:     (with-temp-buffer\n228:       (let ((agent-state (make-greger-agent-state\n229:                           :current-iteration 0\n230:                           :chat-buffer (current-buffer)\n231:                           :directory default-directory))\n232:             (tool-calls `(((type . \"tool_use\")\n233:                           (id . \"unknown_test\")\n234:                           (name . \"nonexistent-tool\")\n235:                           (input . ((param . \"value\")))))))\n236: \n237:         ;; Mock greger-agent--run-agent-loop to capture completion\n238:         (cl-letf (((symbol-function 'greger-agent--run-agent-loop)\n239:                    (lambda (state)\n240:                      (setq test-completed t))))\n241: \n242:           ;; Execute tools\n243:           (greger-agent--execute-tools tool-calls agent-state)\n244: \n245:           ;; Check that execution completed despite unknown tool\n246:           (should test-completed)\n247: \n248:           ;; Check buffer contents - error should be displayed\n249:           (let ((buffer-content (buffer-substring-no-properties (point-min) (point-max))))\n250:             (should (string-match-p \"Unknown tool: nonexistent-tool\" buffer-content))))))))\n251: \n252: (provide 'test-greger-agent)\n253: \n254: ;;; test-greger-agent.el ends here\n255: "
+/Users/andreas/projects/aichat3/chat3.ai:29:## TOOL RESULT:
+/Users/andreas/projects/aichat3/chat3.ai:50: 17: (defconst greger-parser-tool-result-tag "## TOOL RESULT:")
+/Users/andreas/projects/aichat3/chat3.ai:186:153:         greger-parser-tool-result-tag
+/Users/andreas/projects/aichat3/chat3.ai:390:357:        ((string= tag greger-parser-tool-result-tag)
+/Users/andreas/projects/aichat3/chat3.ai:391:358:         (greger-parser--parse-tool-result-section))))))
+/Users/andreas/projects/aichat3/chat3.ai:428:395: (defun greger-parser--parse-tool-result-section ()
+/Users/andreas/projects/aichat3/chat3.ai:429:396:   "Parse TOOL RESULT section."
+/Users/andreas/projects/aichat3/chat3.ai:432:399:         (content (greger-parser--parse-tool-result-content)))
+/Users/andreas/projects/aichat3/chat3.ai:434:401:       (greger-parser--create-tool-result-message id content))))
+/Users/andreas/projects/aichat3/chat3.ai:547:514: (defun greger-parser--parse-tool-result-content ()
+/Users/andreas/projects/aichat3/chat3.ai:548:515:   "Parse tool result content."
+/Users/andreas/projects/aichat3/chat3.ai:625:592: (defun greger-parser--create-tool-result-message (id content)
+/Users/andreas/projects/aichat3/chat3.ai:626:593:   "Create tool result message."
+/Users/andreas/projects/aichat3/chat3.ai:628:595:     (content . (((type . "tool_result")
+/Users/andreas/projects/aichat3/chat3.ai:728:695:      ((string= type "tool_result")
+/Users/andreas/projects/aichat3/chat3.ai:729:696:       (greger-parser--tool-result-to-markdown block))
+/Users/andreas/projects/aichat3/chat3.ai:742:709: (defun greger-parser--tool-result-to-markdown (tool-result)
+/Users/andreas/projects/aichat3/chat3.ai:743:710:   "Convert tool result to markdown."
+/Users/andreas/projects/aichat3/chat3.ai:744:711:   (let ((id (alist-get 'tool_use_id tool-result))
+/Users/andreas/projects/aichat3/chat3.ai:745:712:         (content (alist-get 'content tool-result)))
+/Users/andreas/projects/aichat3/chat3.ai:746:713:     (concat greger-parser-tool-result-tag "\n\n"
+/Users/andreas/projects/aichat3/chat3.ai:828:## TOOL RESULT:
+/Users/andreas/projects/aichat3/chat3.ai:881:## TOOL RESULT:
+/Users/andreas/projects/aichat3/chat3.ai:942:## TOOL RESULT:
+/Users/andreas/projects/aichat3/chat3.ai:1014:## TOOL RESULT:
+/Users/andreas/projects/aichat3/chat3.ai:1057:## TOOL RESULT:
+/Users/andreas/projects/aichat3/chat3.ai:1073:## TOOL RESULT:
+/Users/andreas/projects/aichat3/chat3.ai:1109:## TOOL RESULT:
+/Users/andreas/projects/aichat3/chat3.ai:1117:## TOOL RESULT:
+/Users/andreas/projects/aichat3/chat3.ai:1150:## TOOL RESULT:
+/Users/andreas/projects/aichat3/chat3.ai:1163:## TOOL RESULT:
+/Users/andreas/projects/aichat3/chat3.ai:1195:## TOOL RESULT:
+/Users/andreas/projects/aichat3/chat3.ai:1203:## TOOL RESULT:
+/Users/andreas/projects/aichat3/chat3.ai:1224:## TOOL RESULT:
+/Users/andreas/projects/aichat3/chat3.ai:1234:## TOOL RESULT:
+/Users/andreas/projects/aichat3/chat3.ai:1271:## TOOL RESULT:
+/Users/andreas/projects/aichat3/chat3.ai:1283:## TOOL RESULT:
+/Users/andreas/projects/aichat3/chat3.ai:1314:## TOOL RESULT:
+/Users/andreas/projects/aichat3/chat3.ai:1328:## TOOL RESULT:
+/Users/andreas/projects/aichat3/chat3.ai:1361:## TOOL RESULT:
+/Users/andreas/projects/aichat3/chat3.ai:1374:## TOOL RESULT:
+/Users/andreas/projects/aichat3/chat3.ai:1397:## TOOL RESULT:
+/Users/andreas/projects/aichat3/chat3.ai:1410:## TOOL RESULT:
+/Users/andreas/projects/aichat3/chat3.ai:1430:## TOOL RESULT:
+/Users/andreas/projects/aichat3/chat3.ai:1440:## TOOL RESULT:
+/Users/andreas/projects/aichat3/chat3.ai:1473:## TOOL RESULT:
+/Users/andreas/projects/aichat3/chat3.ai:1526:49:           ((string= expected-type "tool_result")
+/Users/andreas/projects/aichat3/chat3.ai:1530:## TOOL RESULT:
+/Users/andreas/projects/aichat3/chat3.ai:1563:## TOOL RESULT:
+/Users/andreas/projects/aichat3/chat3.ai:1659:141: (ert-deftest test-greger-parser-tool-result ()
+/Users/andreas/projects/aichat3/chat3.ai:1660:142:   "Test parsing tool result."
+/Users/andreas/projects/aichat3/chat3.ai:1661:143:   (let ((input "## TOOL RESULT:\n\nID: calc_001\n\n<tool.calc_001>\n6\n</tool.calc_001>"))
+/Users/andreas/projects/aichat3/chat3.ai:1664:146:                 (content . (((type . "tool_result")
+/Users/andreas/projects/aichat3/chat3.ai:1671:## TOOL RESULT:
+/Users/andreas/projects/aichat3/chat3.ai:1704:## TOOL RESULT:
+/Users/andreas/projects/aichat3/chat2.ai:22:((role . user) (content ((type . tool_result) (tool_use_id . toolu_01MJJr7QF6wWEpmMzPt2Fv7o) (content . andreas_poem.txt
+/Users/andreas/projects/aichat3/chat2.ai:31:((role . user) (content ((type . tool_result) (tool_use_id . toolu_01MJJr7QF6wWEpmMzPt2Fv7o) (content . andreas_poem.txt
+/Users/andreas/projects/aichat3/chat2.ai:107:content: ((cache_control (type . ephemeral)) ((type . tool_result) (tool_use_id . toolu_017WsZWw8yKoAvkCbM9ZES57) (content . Error executing tool: File does not exist: /Users/andreas/test-arithmetic.el)) ((type . text) (text . hi)))
+/Users/andreas/projects/aichat3/chat2.ai:108:last-dict-message: ((role . user) (content ((type . tool_result) (tool_use_id . toolu_017WsZWw8yKoAvkCbM9ZES57) (content . Error executing tool: File does not exist: /Users/andreas/test-arithmetic.el)) ((type . text) (text . hi))))
+/Users/andreas/projects/aichat3/chat2.ai:345:DEBUG: Found dict message: ((role . user) (content ((type . tool_result) (tool_use_id . toolu_012NT73mLrrQoc6CQNSYWMY2) (content . andreas_poem.txt
+/Users/andreas/projects/aichat3/chat2.ai:352:DEBUG: Found dict message: ((role . user) (content ((type . tool_result) (tool_use_id . toolu_01F1Bxfr5EZrEptZC9XdzHBK) (content . andreas_poem.txt
+/Users/andreas/projects/aichat3/chat2.ai:359:DEBUG: Found dict message: ((role . user) (content ((type . tool_result) (tool_use_id . toolu_01SKGtSBshFETXic3QcYPbep) (content . andreas_poem.txt
+/Users/andreas/projects/aichat3/chat2.ai:366:DEBUG: Found dict message: ((role . user) (content ((type . tool_result) (tool_use_id . toolu_017WsZWw8yKoAvkCbM9ZES57) (content . Error executing tool: File does not exist: /Users/andreas/test-arithmetic.el)) ((type . text) (text . hi))))
+/Users/andreas/projects/aichat3/chat2.ai:367:DEBUG: last-dict-message: ((role . user) (content ((type . tool_result) (tool_use_id . toolu_017WsZWw8yKoAvkCbM9ZES57) (content . Error executing tool: File does not exist: /Users/andreas/test-arithmetic.el)) ((type . text) (text . hi))))
+/Users/andreas/projects/aichat3/chat2.ai:368:DEBUG: content-list: (((type . tool_result) (tool_use_id . toolu_017WsZWw8yKoAvkCbM9ZES57) (content . Error executing tool: File does not exist: /Users/andreas/test-arithmetic.el)) ((type . text) (text . hi)))
+/Users/andreas/projects/aichat3/chat2.ai:369:DEBUG: first-content-item BEFORE: ((type . tool_result) (tool_use_id . toolu_017WsZWw8yKoAvkCbM9ZES57) (content . Error executing tool: File does not exist: /Users/andreas/test-arithmetic.el))
+/Users/andreas/projects/aichat3/chat2.ai:370:DEBUG: first-content-item AFTER: ((cache_control (type . ephemeral)) (type . tool_result) (tool_use_id . toolu_017WsZWw8yKoAvkCbM9ZES57) (content . Error executing tool: File does not exist: /Users/andreas/test-arithmetic.el))
+/Users/andreas/projects/aichat3/chat2.ai:371:DEBUG: content-list AFTER: (((type . tool_result) (tool_use_id . toolu_017WsZWw8yKoAvkCbM9ZES57) (content . Error executing tool: File does not exist: /Users/andreas/test-arithmetic.el)) ((type . text) (text . hi)))
+/Users/andreas/projects/aichat3/chat2.ai:372:DEBUG: last-dict-message AFTER: ((role . user) (content ((type . tool_result) (tool_use_id . toolu_017WsZWw8yKoAvkCbM9ZES57) (content . Error executing tool: File does not exist: /Users/andreas/test-arithmetic.el)) ((type . text) (text . hi))))
+/Users/andreas/projects/aichat3/chat2.ai:373:DEBUG: Final user-messages: (((role . user) (content . ls)) ((role . assistant) (content ((type . text) (text . I'll list the files and directories in the current directory for you.)) ((type . tool_use) (id . toolu_012NT73mLrrQoc6CQNSYWMY2) (name . list-directory) (input (path . .))))) ((role . user) (content ((type . tool_result) (tool_use_id . toolu_012NT73mLrrQoc6CQNSYWMY2) (content . andreas_poem.txt
+/Users/andreas/projects/aichat3/chat2.ai:391:This looks like an Emacs Lisp project for an AI agent system with support for multiple providers (Claude, Google, OpenAI) and various tools and parsing capabilities.)) ((role . user) (content . ls)) ((role . assistant) (content ((type . tool_use) (id . toolu_01F1Bxfr5EZrEptZC9XdzHBK) (name . list-directory) (input (path . .))))) ((role . user) (content ((type . tool_result) (tool_use_id . toolu_01F1Bxfr5EZrEptZC9XdzHBK) (content . andreas_poem.txt
+/Users/andreas/projects/aichat3/chat2.ai:430:- patch)) ((role . user) (content . ls)) ((role . assistant) (content ((type . tool_use) (id . toolu_01SKGtSBshFETXic3QcYPbep) (name . list-directory) (input (path . .))))) ((role . user) (content ((type . tool_result) (tool_use_id . toolu_01SKGtSBshFETXic3QcYPbep) (content . andreas_poem.txt
+/Users/andreas/projects/aichat3/chat2.ai:482:I'm here and ready to help with whatever you need! What would you like to work on?)) ((role . user) (content . test)) ((role . assistant) (content ((type . text) (text . Let me help you with testing! I'll start by looking at what tests are available in your test files.)) ((type . tool_use) (id . toolu_017WsZWw8yKoAvkCbM9ZES57) (name . read-file) (input (path . test-arithmetic.el))))) ((role . user) (content ((type . tool_result) (tool_use_id . toolu_017WsZWw8yKoAvkCbM9ZES57) (content . Error executing tool: File does not exist: /Users/andreas/test-arithmetic.el)) ((type . text) (text . hi)))) ((role . assistant) (content . Hi! How can I help you today? I'm ready to assist with whatever you need - whether it's working with files, running code, testing, or anything else. What would you like to do?)) ((role . user) (content . hi)) ((role . assistant) (content . Hello! Good to see you again. What can I do for you today? I'm here to help with whatever you need!)) ((role . user) (content . hi)) ((role . assistant) (content . Hi there! I'm here and ready to help. What would you like to work on today?)) ((role . user) (content . hi)) ((role . assistant) (content . Hello! I'm here whenever you're ready. What can I help you with?)) ((role . user) (content . hi)))
+/Users/andreas/projects/aichat3/chat2.ai:492:DEBUG: first-content-item AFTER: ((cache_control (type . ephemeral)) (type . tool_result) (tool_use_id . toolu_017WsZWw8yKoAvkCbM9ZES57) (content . Error executing tool: File does not exist: /Users/andreas/test-arithmetic.el))
+
+</tool.toolu_01BCuzocboNgvPszHsTHAcvy>
+
+## ASSISTANT:
+
+Now I understand the format better. From the output, I can see that tool results are formatted as markdown with the pattern `## TOOL RESULT:` followed by the tool ID and content. Let me check the parser to understand the exact format:
+
+## TOOL USE:
+
+Name: read-file
+ID: toolu_01RDjKu6jWfrwTGCjFdXiJ5E
+
+### path
+
+<tool.toolu_01RDjKu6jWfrwTGCjFdXiJ5E>
+greger-parser.el
+</tool.toolu_01RDjKu6jWfrwTGCjFdXiJ5E>
+
+### start_line
+
+<tool.toolu_01RDjKu6jWfrwTGCjFdXiJ5E>
+838
+</tool.toolu_01RDjKu6jWfrwTGCjFdXiJ5E>
+
+### end_line
+
+<tool.toolu_01RDjKu6jWfrwTGCjFdXiJ5E>
+850
+</tool.toolu_01RDjKu6jWfrwTGCjFdXiJ5E>
+
+## TOOL RESULT:
+
+ID: toolu_01RDjKu6jWfrwTGCjFdXiJ5E
+
+<tool.toolu_01RDjKu6jWfrwTGCjFdXiJ5E>
+(defun greger-parser--tool-result-to-markdown (tool-result)
+  "Convert tool result to markdown."
+  (let ((id (alist-get 'tool_use_id tool-result))
+        (content (alist-get 'content tool-result)))
+    (concat greger-parser-tool-result-tag "\n\n"
+            "ID: " id "\n\n"
+            "<tool." id ">\n"
+            content "\n"
+            "</tool." id ">")))
+
+(defun greger-parser--tool-params-to-markdown (id input)
+  "Convert tool parameters to markdown."
+  (if (null input)
+</tool.toolu_01RDjKu6jWfrwTGCjFdXiJ5E>
+
+## ASSISTANT:
+
+Perfect! Now I understand the exact format. Tool results are formatted as:
+```
+## TOOL RESULT:
+
+ID: <tool_id>
+
+<tool.<tool_id>>
+<content>
+</tool.<tool_id>>
+```
+
+Now I can create exact expected content for the tests. Let me update the test file to use precise string comparisons:
+
+## TOOL USE:
+
+Name: replace-file
+ID: toolu_01Jri1xgAQLuDYvTGj6Dt27Z
+
+### file_path
+
+<tool.toolu_01Jri1xgAQLuDYvTGj6Dt27Z>
+test-greger-agent.el
+</tool.toolu_01Jri1xgAQLuDYvTGj6Dt27Z>
+
+### contents
+
+<tool.toolu_01Jri1xgAQLuDYvTGj6Dt27Z>
+;;; test-greger-agent.el --- Tests for greger agent functionality -*- lexical-binding: t -*-
+
+(require 'ert)
+(require 'greger-agent)
+(require 'greger-tools)
+(require 'greger-parser)
+
+(ert-deftest greger-agent-test-tool-placeholder ()
+  "Test the tool placeholder helper function."
+  (let ((expected1 "<!-- TOOL_RESULT_PLACEHOLDER_test123 -->")
+        (expected2 "<!-- TOOL_RESULT_PLACEHOLDER_tool_abc_def -->"))
+    (should (string= expected1 (greger-agent--tool-placeholder "test123")))
+    (should (string= expected2 (greger-agent--tool-placeholder "tool_abc_def")))))
+
+(ert-deftest greger-agent-test-single-tool-execution ()
+  "Test execution of a single tool with callback."
+  (let ((test-completed nil))
+
+    ;; Define a simple test function
+    (defun greger-test-simple-tool (message)
+      (format "Tool executed: %s" message))
+
+    ;; Register test tool
+    (greger-register-tool "test-simple"
+      :description "Simple test tool"
+      :properties '((message . ((type . "string")
+                                (description . "Test message"))))
+      :required '("message")
+      :function 'greger-test-simple-tool)
+
+    ;; Create test buffer
+    (with-temp-buffer
+      (let ((agent-state (make-greger-agent-state
+                          :current-iteration 0
+                          :chat-buffer (current-buffer)
+                          :directory default-directory))
+            (tool-calls `(((type . "tool_use")
+                          (id . "test_001")
+                          (name . "test-simple")
+                          (input . ((message . "Hello World"))))))
+            (expected-content "## TOOL RESULT:\n\nID: test_001\n\n<tool.test_001>\nTool executed: Hello World\n</tool.test_001>"))
+
+        ;; Mock greger-agent--run-agent-loop to capture completion
+        (cl-letf (((symbol-function 'greger-agent--run-agent-loop)
+                   (lambda (state)
+                     (setq test-completed t))))
+
+          ;; Execute tools
+          (greger-agent--execute-tools tool-calls agent-state)
+
+          ;; Check that the function completed
+          (should test-completed)
+
+          ;; Check buffer contents match expected output exactly
+          (let ((actual-content (buffer-substring-no-properties (point-min) (point-max))))
+            (should (string= expected-content actual-content))))))
+
+    ;; Clean up
+    (remhash "test-simple" greger-tools-registry)))
+
+(ert-deftest greger-agent-test-multiple-tools-parallel ()
+  "Test execution of multiple tools in parallel."
+  (let ((tools-completed nil))
+
+    ;; Define test functions with deterministic output
+    (defun greger-test-tool-a (value)
+      (format "Tool A result: %s" value))
+
+    (defun greger-test-tool-b (value)
+      (format "Tool B result: %s" value))
+
+    ;; Register test tools
+    (greger-register-tool "test-tool-a"
+      :description "Test tool A"
+      :properties '((value . ((type . "string")
+                              (description . "Input value"))))
+      :required '("value")
+      :function 'greger-test-tool-a)
+
+    (greger-register-tool "test-tool-b"
+      :description "Test tool B"
+      :properties '((value . ((type . "string")
+                              (description . "Input value"))))
+      :required '("value")
+      :function 'greger-test-tool-b)
+
+    ;; Create test buffer
+    (with-temp-buffer
+      (let ((agent-state (make-greger-agent-state
+                          :current-iteration 0
+                          :chat-buffer (current-buffer)
+                          :directory default-directory))
+            (tool-calls `(((type . "tool_use")
+                          (id . "test_a")
+                          (name . "test-tool-a")
+                          (input . ((value . "input-a"))))
+                         ((type . "tool_use")
+                          (id . "test_b")
+                          (name . "test-tool-b")
+                          (input . ((value . "input-b"))))))
+            ;; Expected content contains both tool results
+            (expected-patterns '("## TOOL RESULT:\n\nID: test_a\n\n<tool.test_a>\nTool A result: input-a\n</tool.test_a>"
+                               "## TOOL RESULT:\n\nID: test_b\n\n<tool.test_b>\nTool B result: input-b\n</tool.test_b>")))
+
+        ;; Mock greger-agent--run-agent-loop to capture completion
+        (cl-letf (((symbol-function 'greger-agent--run-agent-loop)
+                   (lambda (state)
+                     (setq tools-completed t))))
+
+          ;; Execute tools
+          (greger-agent--execute-tools tool-calls agent-state)
+
+          ;; Check that all tools completed
+          (should tools-completed)
+
+          ;; Check buffer contains both expected tool results
+          (let ((actual-content (buffer-substring-no-properties (point-min) (point-max))))
+            (dolist (expected-pattern expected-patterns)
+              (should (string-match-p (regexp-quote expected-pattern) actual-content)))))))
+
+    ;; Clean up
+    (remhash "test-tool-a" greger-tools-registry)
+    (remhash "test-tool-b" greger-tools-registry)))
+
+(ert-deftest greger-agent-test-tool-error-handling ()
+  "Test that tool errors are properly handled and displayed."
+  (let ((test-completed nil))
+
+    ;; Define a tool function that throws an error
+    (defun greger-test-error-tool (input)
+      (error "Simulated tool error: %s" input))
+
+    ;; Register test tool
+    (greger-register-tool "test-error"
+      :description "Tool that throws an error"
+      :properties '((input . ((type . "string")
+                              (description . "Input that will cause error"))))
+      :required '("input")
+      :function 'greger-test-error-tool)
+
+    ;; Create test buffer
+    (with-temp-buffer
+      (let ((agent-state (make-greger-agent-state
+                          :current-iteration 0
+                          :chat-buffer (current-buffer)
+                          :directory default-directory))
+            (tool-calls `(((type . "tool_use")
+                          (id . "error_test")
+                          (name . "test-error")
+                          (input . ((input . "bad-input"))))))
+            (expected-error-content "## TOOL RESULT:\n\nID: error_test\n\n<tool.error_test>\nError executing tool test-error: Simulated tool error: bad-input\n</tool.error_test>"))
+
+        ;; Mock greger-agent--run-agent-loop to capture completion
+        (cl-letf (((symbol-function 'greger-agent--run-agent-loop)
+                   (lambda (state)
+                     (setq test-completed t))))
+
+          ;; Execute tools
+          (greger-agent--execute-tools tool-calls agent-state)
+
+          ;; Check that execution completed despite error
+          (should test-completed)
+
+          ;; Check buffer contents match expected error format
+          (let ((actual-content (buffer-substring-no-properties (point-min) (point-max))))
+            (should (string= expected-error-content actual-content))))))
+
+    ;; Clean up
+    (remhash "test-error" greger-tools-registry)))
+
+(ert-deftest greger-agent-test-placeholder-replacement ()
+  "Test that placeholders are correctly replaced with tool results."
+  (let ((test-completed nil))
+
+    ;; Define a simple test function
+    (defun greger-test-placeholder-tool (data)
+      (format "Processed: %s" data))
+
+    ;; Register test tool
+    (greger-register-tool "test-placeholder"
+      :description "Test placeholder replacement"
+      :properties '((data . ((type . "string")
+                             (description . "Data to process"))))
+      :required '("data")
+      :function 'greger-test-placeholder-tool)
+
+    ;; Create test buffer with placeholder
+    (with-temp-buffer
+      (insert "<!-- TOOL_RESULT_PLACEHOLDER_placeholder_test -->")
+
+      (let ((agent-state (make-greger-agent-state
+                          :current-iteration 0
+                          :chat-buffer (current-buffer)
+                          :directory default-directory))
+            (tool-calls `(((type . "tool_use")
+                          (id . "placeholder_test")
+                          (name . "test-placeholder")
+                          (input . ((data . "test-data"))))))
+            (expected-content "## TOOL RESULT:\n\nID: placeholder_test\n\n<tool.placeholder_test>\nProcessed: test-data\n</tool.placeholder_test>"))
+
+        ;; Mock greger-agent--run-agent-loop to capture completion
+        (cl-letf (((symbol-function 'greger-agent--run-agent-loop)
+                   (lambda (state)
+                     (setq test-completed t))))
+
+          ;; Execute tools
+          (greger-agent--execute-tools tool-calls agent-state)
+
+          ;; Check that execution completed
+          (should test-completed)
+
+          ;; Check that placeholder was replaced with exact expected content
+          (let ((actual-content (buffer-substring-no-properties (point-min) (point-max))))
+            (should (string= expected-content actual-content))))))
+
+    ;; Clean up
+    (remhash "test-placeholder" greger-tools-registry)))
+
+(ert-deftest greger-agent-test-unknown-tool-error ()
+  "Test handling of unknown tool execution."
+  (let ((test-completed nil))
+
+    ;; Create test buffer
+    (with-temp-buffer
+      (let ((agent-state (make-greger-agent-state
+                          :current-iteration 0
+                          :chat-buffer (current-buffer)
+                          :directory default-directory))
+            (tool-calls `(((type . "tool_use")
+                          (id . "unknown_test")
+                          (name . "nonexistent-tool")
+                          (input . ((param . "value"))))))
+            (expected-error-content "## TOOL RESULT:\n\nID: unknown_test\n\n<tool.unknown_test>\nUnknown tool: nonexistent-tool\n</tool.unknown_test>"))
+
+        ;; Mock greger-agent--run-agent-loop to capture completion
+        (cl-letf (((symbol-function 'greger-agent--run-agent-loop)
+                   (lambda (state)
+                     (setq test-completed t))))
+
+          ;; Execute tools
+          (greger-agent--execute-tools tool-calls agent-state)
+
+          ;; Check that execution completed despite unknown tool
+          (should test-completed)
+
+          ;; Check buffer contents match expected error message exactly
+          (let ((actual-content (buffer-substring-no-properties (point-min) (point-max))))
+            (should (string= expected-error-content actual-content))))))))
+
+(ert-deftest greger-agent-test-exact-tool-output-formatting ()
+  "Test exact tool output formatting with multiple scenarios."
+  (let ((test-completed nil))
+
+    ;; Define a tool that returns multi-line content
+    (defun greger-test-multiline-tool (content)
+      (format "Line 1: %s\nLine 2: More content\nLine 3: End" content))
+
+    ;; Register test tool
+    (greger-register-tool "test-multiline"
+      :description "Tool with multi-line output"
+      :properties '((content . ((type . "string")
+                                (description . "Content for first line"))))
+      :required '("content")
+      :function 'greger-test-multiline-tool)
+
+    ;; Create test buffer
+    (with-temp-buffer
+      (let ((agent-state (make-greger-agent-state
+                          :current-iteration 0
+                          :chat-buffer (current-buffer)
+                          :directory default-directory))
+            (tool-calls `(((type . "tool_use")
+                          (id . "multiline_test")
+                          (name . "test-multiline")
+                          (input . ((content . "Start"))))))
+            (expected-content "## TOOL RESULT:\n\nID: multiline_test\n\n<tool.multiline_test>\nLine 1: Start\nLine 2: More content\nLine 3: End\n</tool.multiline_test>"))
+
+        ;; Mock greger-agent--run-agent-loop to capture completion
+        (cl-letf (((symbol-function 'greger-agent--run-agent-loop)
+                   (lambda (state)
+                     (setq test-completed t))))
+
+          ;; Execute tools
+          (greger-agent--execute-tools tool-calls agent-state)
+
+          ;; Check that execution completed
+          (should test-completed)
+
+          ;; Check exact multi-line formatting
+          (let ((actual-content (buffer-substring-no-properties (point-min) (point-max))))
+            (should (string= expected-content actual-content))))))
+
+    ;; Clean up
+    (remhash "test-multiline" greger-tools-registry)))
+
+(provide 'test-greger-agent)
+
+;;; test-greger-agent.el ends here
+</tool.toolu_01Jri1xgAQLuDYvTGj6Dt27Z>
 
 ### git_commit_message
 
-<tool.toolu_01BFLePrB8aFBBJtigVk9ytd>
-Refactor test-greger-agent.el for better readability with explicit expected inputs
+<tool.toolu_01Jri1xgAQLuDYvTGj6Dt27Z>
+Update test-greger-agent.el with exact expected content using string= comparisons
+</tool.toolu_01Jri1xgAQLuDYvTGj6Dt27Z>
 
-- Add clear expected content variables for each test
-- Use descriptive variable names like expected-content-patterns, expected-error-patterns
-- Group related assertions together with clear comments
-- Add new test greger-agent-test-exact-buffer-content that demonstrates exact string= comparison
-- Make test intentions more explicit and easier to understand
-- Maintain all existing test functionality while improving readability
-</tool.toolu_01BFLePrB8aFBBJtigVk9ytd>
-
-<!-- TOOL_RESULT_PLACEHOLDER_toolu_01BFLePrB8aFBBJtigVk9ytd -->
+<!-- TOOL_RESULT_PLACEHOLDER_toolu_01Jri1xgAQLuDYvTGj6Dt27Z -->
