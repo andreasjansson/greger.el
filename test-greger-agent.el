@@ -1,5 +1,22 @@
 ;;; test-greger-agent.el --- Tests for greger agent functionality -*- lexical-binding: t -*-
 
+;;; Commentary:
+;;
+;; This file contains tests for the greger agent functionality.
+;;
+;; Testing Approach:
+;; - Each test has explicit "expected" content that defines the exact buffer state after execution
+;; - Tests use string= for exact content comparison where possible
+;; - Expected content follows the greger tool result format:
+;;   ## TOOL RESULT:
+;;
+;;   ID: <tool_id>
+;;
+;;   <tool.<tool_id>>
+;;   <tool_output>
+;;   </tool.<tool_id>>
+;; - This makes tests more readable and maintainable by clearly showing what the expected output should be
+
 (require 'ert)
 (require 'greger-agent)
 (require 'greger-tools)

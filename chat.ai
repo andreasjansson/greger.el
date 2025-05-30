@@ -2342,4 +2342,73 @@ test-greger-agent.el
 Add simple string comparison test demonstrating clear before/after pattern
 </tool.toolu_01GiL59wL8pLDyYk4gdoGj8u>
 
-<!-- TOOL_RESULT_PLACEHOLDER_toolu_01GiL59wL8pLDyYk4gdoGj8u -->
+## TOOL RESULT:
+
+ID: toolu_01GiL59wL8pLDyYk4gdoGj8u
+
+<tool.toolu_01GiL59wL8pLDyYk4gdoGj8u>
+Successfully replaced content in /Users/andreas/projects/aichat3/test-greger-agent.el. Successfully staged 2 file(s) and committed with message: Add simple string comparison test demonstrating clear before/after pattern
+</tool.toolu_01GiL59wL8pLDyYk4gdoGj8u>
+
+
+## ASSISTANT:
+
+Now let me add a small improvement to the test file to add a comment block at the top explaining the testing approach:
+
+## TOOL USE:
+
+Name: str-replace
+ID: toolu_0152Yy2WS4C8N9T8XrUwoHmR
+
+### file_path
+
+<tool.toolu_0152Yy2WS4C8N9T8XrUwoHmR>
+test-greger-agent.el
+</tool.toolu_0152Yy2WS4C8N9T8XrUwoHmR>
+
+### original_content
+
+<tool.toolu_0152Yy2WS4C8N9T8XrUwoHmR>
+;;; test-greger-agent.el --- Tests for greger agent functionality -*- lexical-binding: t -*-
+
+(require 'ert)
+(require 'greger-agent)
+(require 'greger-tools)
+(require 'greger-parser)
+</tool.toolu_0152Yy2WS4C8N9T8XrUwoHmR>
+
+### new_content
+
+<tool.toolu_0152Yy2WS4C8N9T8XrUwoHmR>
+;;; test-greger-agent.el --- Tests for greger agent functionality -*- lexical-binding: t -*-
+
+;;; Commentary:
+;;
+;; This file contains tests for the greger agent functionality.
+;;
+;; Testing Approach:
+;; - Each test has explicit "expected" content that defines the exact buffer state after execution
+;; - Tests use string= for exact content comparison where possible
+;; - Expected content follows the greger tool result format:
+;;   ## TOOL RESULT:
+;;
+;;   ID: <tool_id>
+;;
+;;   <tool.<tool_id>>
+;;   <tool_output>
+;;   </tool.<tool_id>>
+;; - This makes tests more readable and maintainable by clearly showing what the expected output should be
+
+(require 'ert)
+(require 'greger-agent)
+(require 'greger-tools)
+(require 'greger-parser)
+</tool.toolu_0152Yy2WS4C8N9T8XrUwoHmR>
+
+### git_commit_message
+
+<tool.toolu_0152Yy2WS4C8N9T8XrUwoHmR>
+Add commentary explaining the testing approach with explicit expected content
+</tool.toolu_0152Yy2WS4C8N9T8XrUwoHmR>
+
+<!-- TOOL_RESULT_PLACEHOLDER_toolu_0152Yy2WS4C8N9T8XrUwoHmR -->
