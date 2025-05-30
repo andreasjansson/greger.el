@@ -4425,4 +4425,479 @@ test-greger-tools.el
 Add test for async subprocess utility function
 </tool.toolu_01VuU5NUXpUcfBuuUhBqr9SJ>
 
-<!-- TOOL_RESULT_PLACEHOLDER_toolu_01VuU5NUXpUcfBuuUhBqr9SJ -->
+## TOOL RESULT:
+
+ID: toolu_01VuU5NUXpUcfBuuUhBqr9SJ
+
+<tool.toolu_01VuU5NUXpUcfBuuUhBqr9SJ>
+Successfully replaced content in /Users/andreas/projects/aichat3/test-greger-tools.el. Successfully staged 2 file(s) and committed with message: Add test for async subprocess utility function
+</tool.toolu_01VuU5NUXpUcfBuuUhBqr9SJ>
+
+
+## ASSISTANT:
+
+Now let me verify that the files are syntactically correct by checking key sections:
+
+## TOOL USE:
+
+Name: ripgrep
+ID: toolu_01K2LtDVbreNTkoqKrHK1LYk
+
+### pattern
+
+<tool.toolu_01K2LtDVbreNTkoqKrHK1LYk>
+defun greger-tools--shell-command
+</tool.toolu_01K2LtDVbreNTkoqKrHK1LYk>
+
+### path
+
+<tool.toolu_01K2LtDVbreNTkoqKrHK1LYk>
+greger-stdlib.el
+</tool.toolu_01K2LtDVbreNTkoqKrHK1LYk>
+
+### context-lines
+
+<tool.toolu_01K2LtDVbreNTkoqKrHK1LYk>
+3
+</tool.toolu_01K2LtDVbreNTkoqKrHK1LYk>
+
+## TOOL RESULT:
+
+ID: toolu_01K2LtDVbreNTkoqKrHK1LYk
+
+<tool.toolu_01K2LtDVbreNTkoqKrHK1LYk>
+979:(defun greger-tools--shell-command (command callback &optional working-directory)
+
+</tool.toolu_01K2LtDVbreNTkoqKrHK1LYk>
+
+## TOOL USE:
+
+Name: ripgrep
+ID: toolu_01TJKzvTrgc4Vzyjixboz8t4
+
+### pattern
+
+<tool.toolu_01TJKzvTrgc4Vzyjixboz8t4>
+defun greger-tools--ripgrep
+</tool.toolu_01TJKzvTrgc4Vzyjixboz8t4>
+
+### path
+
+<tool.toolu_01TJKzvTrgc4Vzyjixboz8t4>
+greger-stdlib.el
+</tool.toolu_01TJKzvTrgc4Vzyjixboz8t4>
+
+### context-lines
+
+<tool.toolu_01TJKzvTrgc4Vzyjixboz8t4>
+3
+</tool.toolu_01TJKzvTrgc4Vzyjixboz8t4>
+
+## TOOL RESULT:
+
+ID: toolu_01TJKzvTrgc4Vzyjixboz8t4
+
+<tool.toolu_01TJKzvTrgc4Vzyjixboz8t4>
+444:(defun greger-tools--ripgrep (pattern path callback &optional case-sensitive file-type context-lines max-results)
+
+</tool.toolu_01TJKzvTrgc4Vzyjixboz8t4>
+
+## USER:
+
+Add two tests to test-greger-stdlib.el that test the greger-tools--shell-command function. One should be simple, and one should have a pipe in it. If you think pipes won't work, update the code in greger-stdlib. Both tests obviously need to pass callbacks and the assertions need to happen in those callbacks, however that will work in ert
+
+## ASSISTANT:
+
+I need to examine the current shell-command implementation and create tests for it. Let me first check if there's already a test file for greger-stdlib:
+
+## TOOL USE:
+
+Name: list-directory
+ID: toolu_012rTyby668E5d61sJ3RB7cT
+
+### path
+
+<tool.toolu_012rTyby668E5d61sJ3RB7cT>
+.
+</tool.toolu_012rTyby668E5d61sJ3RB7cT>
+
+### show-hidden
+
+<tool.toolu_012rTyby668E5d61sJ3RB7cT>
+true
+</tool.toolu_012rTyby668E5d61sJ3RB7cT>
+
+## TOOL RESULT:
+
+ID: toolu_012rTyby668E5d61sJ3RB7cT
+
+<tool.toolu_012rTyby668E5d61sJ3RB7cT>
+chat.ai
+chat2.ai
+chat3.ai
+chat4.ai
+chat5.ai
+greger-agent.el
+greger-parser.el
+greger-provider-claude.el
+greger-provider-google.el
+greger-provider-openai.el
+greger-providers.el
+greger-stdlib.el
+greger-stream.el
+greger-tools.el
+greger-web.el
+greger.el
+request.json
+test-greger-agent.el
+test-greger-parser.el
+test-greger-stdlib.el
+test-greger-tools.el
+</tool.toolu_012rTyby668E5d61sJ3RB7cT>
+
+## ASSISTANT:
+
+Great! There's already a `test-greger-stdlib.el` file. Let me examine it first:
+
+## TOOL USE:
+
+Name: read-file
+ID: toolu_01EavNYUNjEd4C7cYX1vgcCM
+
+### path
+
+<tool.toolu_01EavNYUNjEd4C7cYX1vgcCM>
+test-greger-stdlib.el
+</tool.toolu_01EavNYUNjEd4C7cYX1vgcCM>
+
+## TOOL RESULT:
+
+ID: toolu_01EavNYUNjEd4C7cYX1vgcCM
+
+<tool.toolu_01EavNYUNjEd4C7cYX1vgcCM>
+;;; greger-test-stdlib.el --- Tests for greger stdlib tools -*- lexical-binding: t -*-
+
+;;; Commentary:
+;; Tests for the tools defined in greger-stdlib.el
+
+;;; Code:
+
+(require 'ert)
+(require 'greger-stdlib)
+(require 'greger-web)
+
+(ert-deftest greger-test-read-webpage-valid-url ()
+  "Test reading a webpage with a valid URL."
+  (let ((test-url "https://pub-b88c9764a4fc46baa90b9e8e1544f59e.r2.dev/hello.html"))
+
+    ;; Test with text extraction (default)
+    (let ((result (greger-tools--read-webpage test-url t)))
+      (should (stringp result))
+      (should (string= "Hello world!\n" result)))
+
+    ;; Test with raw HTML
+    (let ((result (greger-tools--read-webpage test-url nil)))
+      (should (stringp result))
+      (should (string= "<h1>Hello world!</h1>\n" result)))
+
+    ;; Test with readability enhancement
+    (let ((result (greger-tools--read-webpage test-url t t)))
+      (should (stringp result))
+      (should (string= "Hello world!\n" result)))))
+
+(ert-deftest greger-test-read-webpage-invalid-url ()
+  "Test reading a webpage with invalid URLs."
+  ;; Test empty URL
+  (should-error (greger-tools--read-webpage ""))
+  (should-error (greger-tools--read-webpage "   "))
+
+  ;; Test non-string URL
+  (should-error (greger-tools--read-webpage nil))
+  (should-error (greger-tools--read-webpage 123))
+
+  ;; Test invalid URL format
+  (should-error (greger-tools--read-webpage "ftp://example.com"))
+  (should-error (greger-tools--read-webpage "not-a-url"))
+  (should-error (greger-tools--read-webpage "file:///path/to/file")))
+
+(ert-deftest greger-test-read-webpage-network-error ()
+  "Test reading a webpage when network error occurs."
+  ;; Mock the web download function to simulate network error
+  (cl-letf (((symbol-function 'greger-web-download-page)
+             (lambda (url extract-text use-highest-readability)
+               (error "Network timeout"))))
+
+    (let ((result (greger-tools--read-webpage "https://pub-b88c9764a4fc46baa90b9e8e1544f59e.r2.dev/hello.html")))
+      (should (stringp result))
+      (should (string-match-p "Failed to read webpage" result))
+      (should (string-match-p "Network timeout" result)))))
+
+(ert-deftest greger-test-web-url-validation ()
+  "Test the web URL validation function."
+  ;; Valid URLs
+  (should (greger-web-is-web-url-p "http://example.com"))
+  (should (greger-web-is-web-url-p "https://example.com"))
+  (should (greger-web-is-web-url-p "https://subdomain.example.com/path"))
+
+  ;; Invalid URLs
+  (should-not (greger-web-is-web-url-p "ftp://example.com"))
+  (should-not (greger-web-is-web-url-p "file:///path/to/file"))
+  (should-not (greger-web-is-web-url-p "/local/path"))
+  (should-not (greger-web-is-web-url-p "example.com"))
+  (should-not (greger-web-is-web-url-p "")))
+
+;;; greger-test-stdlib.el ends here
+
+</tool.toolu_01EavNYUNjEd4C7cYX1vgcCM>
+
+## ASSISTANT:
+
+Now let me look at the current shell-command implementation to understand how it parses commands:
+
+## TOOL USE:
+
+Name: read-file
+ID: toolu_01HWuaHDae2XgZXr36H4zGPw
+
+### path
+
+<tool.toolu_01HWuaHDae2XgZXr36H4zGPw>
+greger-stdlib.el
+</tool.toolu_01HWuaHDae2XgZXr36H4zGPw>
+
+### start_line
+
+<tool.toolu_01HWuaHDae2XgZXr36H4zGPw>
+1010
+</tool.toolu_01HWuaHDae2XgZXr36H4zGPw>
+
+### end_line
+
+<tool.toolu_01HWuaHDae2XgZXr36H4zGPw>
+1025
+</tool.toolu_01HWuaHDae2XgZXr36H4zGPw>
+
+## TOOL RESULT:
+
+ID: toolu_01HWuaHDae2XgZXr36H4zGPw
+
+<tool.toolu_01HWuaHDae2XgZXr36H4zGPw>
+                 (args (cdr command-parts)))
+
+            ;; Execute the command asynchronously
+            (greger-tools--run-async-subprocess
+             program args expanded-work-dir
+             (lambda (output error)
+               (if error
+                   (funcall callback nil error)
+                 (funcall callback
+                         (format "Command executed successfully:\n%s" output)
+                         nil)))))))))))))
+
+(defun greger-tools--read-webpage (url &optional extract-text use-highest-readability)
+  "Read webpage content from URL.
+If EXTRACT-TEXT is non-nil (default t), extract and return text content.
+If EXTRACT-TEXT is nil, return raw HTML.
+</tool.toolu_01HWuaHDae2XgZXr36H4zGPw>
+
+## ASSISTANT:
+
+I can see that the current implementation uses `split-string-and-unquote` to parse commands, which won't handle pipes properly since pipes are shell features that need to be handled by the shell itself. Let me check how the async subprocess function works and then decide whether to modify the implementation.
+
+The issue is that the current implementation tries to parse the command into separate program + args, but pipes (`|`) are shell operators that require running the entire command through a shell. Let me modify the implementation to handle this properly:
+
+## TOOL USE:
+
+Name: str-replace
+ID: toolu_01H6grG39AB7QhetDyF8U4nh
+
+### file_path
+
+<tool.toolu_01H6grG39AB7QhetDyF8U4nh>
+greger-stdlib.el
+</tool.toolu_01H6grG39AB7QhetDyF8U4nh>
+
+### original_content
+
+<tool.toolu_01H6grG39AB7QhetDyF8U4nh>
+         (t
+          ;; Parse the command into program and arguments
+          (let* ((command-parts (split-string-and-unquote command))
+                 (program (car command-parts))
+                 (args (cdr command-parts)))
+
+            ;; Execute the command asynchronously
+            (greger-tools--run-async-subprocess
+             program args expanded-work-dir
+             (lambda (output error)
+               (if error
+                   (funcall callback nil error)
+                 (funcall callback
+                         (format "Command executed successfully:\n%s" output)
+                         nil))))))))))))))
+</tool.toolu_01H6grG39AB7QhetDyF8U4nh>
+
+### new_content
+
+<tool.toolu_01H6grG39AB7QhetDyF8U4nh>
+         (t
+          ;; Check if command contains shell operators (pipes, redirections, etc.)
+          (if (string-match-p "[|><&;]" command)
+              ;; Use shell to execute commands with shell operators
+              (greger-tools--run-async-subprocess
+               "sh" (list "-c" command) expanded-work-dir
+               (lambda (output error)
+                 (if error
+                     (funcall callback nil error)
+                   (funcall callback
+                           (format "Command executed successfully:\n%s" output)
+                           nil))))
+            ;; For simple commands, parse into program and arguments
+            (let* ((command-parts (split-string-and-unquote command))
+                   (program (car command-parts))
+                   (args (cdr command-parts)))
+
+              ;; Execute the command asynchronously
+              (greger-tools--run-async-subprocess
+               program args expanded-work-dir
+               (lambda (output error)
+                 (if error
+                     (funcall callback nil error)
+                   (funcall callback
+                           (format "Command executed successfully:\n%s" output)
+                           nil))))))))))))))))
+</tool.toolu_01H6grG39AB7QhetDyF8U4nh>
+
+### git_commit_message
+
+<tool.toolu_01H6grG39AB7QhetDyF8U4nh>
+Update shell-command to handle pipes and shell operators via sh -c
+</tool.toolu_01H6grG39AB7QhetDyF8U4nh>
+
+## TOOL RESULT:
+
+ID: toolu_01H6grG39AB7QhetDyF8U4nh
+
+<tool.toolu_01H6grG39AB7QhetDyF8U4nh>
+Error executing tool: Original content not found in file: /Users/andreas/projects/aichat3/greger-stdlib.el -- Try again!
+</tool.toolu_01H6grG39AB7QhetDyF8U4nh>
+
+## ASSISTANT:
+
+Let me find the exact content to replace:
+
+## TOOL USE:
+
+Name: read-file
+ID: toolu_01T55WaWVE3911vaYiSdKvMa
+
+### path
+
+<tool.toolu_01T55WaWVE3911vaYiSdKvMa>
+greger-stdlib.el
+</tool.toolu_01T55WaWVE3911vaYiSdKvMa>
+
+### start_line
+
+<tool.toolu_01T55WaWVE3911vaYiSdKvMa>
+1005
+</tool.toolu_01T55WaWVE3911vaYiSdKvMa>
+
+### end_line
+
+<tool.toolu_01T55WaWVE3911vaYiSdKvMa>
+1020
+</tool.toolu_01T55WaWVE3911vaYiSdKvMa>
+
+## TOOL RESULT:
+
+ID: toolu_01T55WaWVE3911vaYiSdKvMa
+
+<tool.toolu_01T55WaWVE3911vaYiSdKvMa>
+
+         (t
+          ;; Parse the command into program and arguments
+          (let* ((command-parts (split-string-and-unquote command))
+                 (program (car command-parts))
+                 (args (cdr command-parts)))
+
+            ;; Execute the command asynchronously
+            (greger-tools--run-async-subprocess
+             program args expanded-work-dir
+             (lambda (output error)
+               (if error
+                   (funcall callback nil error)
+                 (funcall callback
+                         (format "Command executed successfully:\n%s" output)
+                         nil)))))))))))))
+</tool.toolu_01T55WaWVE3911vaYiSdKvMa>
+
+## TOOL USE:
+
+Name: str-replace
+ID: toolu_011CLx3SFFVCGThEuNKHegWB
+
+### file_path
+
+<tool.toolu_011CLx3SFFVCGThEuNKHegWB>
+greger-stdlib.el
+</tool.toolu_011CLx3SFFVCGThEuNKHegWB>
+
+### original_content
+
+<tool.toolu_011CLx3SFFVCGThEuNKHegWB>
+         (t
+          ;; Parse the command into program and arguments
+          (let* ((command-parts (split-string-and-unquote command))
+                 (program (car command-parts))
+                 (args (cdr command-parts)))
+
+            ;; Execute the command asynchronously
+            (greger-tools--run-async-subprocess
+             program args expanded-work-dir
+             (lambda (output error)
+               (if error
+                   (funcall callback nil error)
+                 (funcall callback
+                         (format "Command executed successfully:\n%s" output)
+                         nil)))))))))))))
+</tool.toolu_011CLx3SFFVCGThEuNKHegWB>
+
+### new_content
+
+<tool.toolu_011CLx3SFFVCGThEuNKHegWB>
+         (t
+          ;; Check if command contains shell operators (pipes, redirections, etc.)
+          (if (string-match-p "[|><&;]" command)
+              ;; Use shell to execute commands with shell operators
+              (greger-tools--run-async-subprocess
+               "sh" (list "-c" command) expanded-work-dir
+               (lambda (output error)
+                 (if error
+                     (funcall callback nil error)
+                   (funcall callback
+                           (format "Command executed successfully:\n%s" output)
+                           nil))))
+            ;; For simple commands, parse into program and arguments
+            (let* ((command-parts (split-string-and-unquote command))
+                   (program (car command-parts))
+                   (args (cdr command-parts)))
+
+              ;; Execute the command asynchronously
+              (greger-tools--run-async-subprocess
+               program args expanded-work-dir
+               (lambda (output error)
+                 (if error
+                     (funcall callback nil error)
+                   (funcall callback
+                           (format "Command executed successfully:\n%s" output)
+                           nil))))))))))))))))
+</tool.toolu_011CLx3SFFVCGThEuNKHegWB>
+
+### git_commit_message
+
+<tool.toolu_011CLx3SFFVCGThEuNKHegWB>
+Update shell-command to handle pipes and shell operators via sh -c
+</tool.toolu_011CLx3SFFVCGThEuNKHegWB>
+
+<!-- TOOL_RESULT_PLACEHOLDER_toolu_011CLx3SFFVCGThEuNKHegWB -->

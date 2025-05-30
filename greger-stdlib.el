@@ -1004,20 +1004,31 @@ Prompts for permission before running the command for security."
           (funcall callback nil "Shell command execution cancelled by user"))
 
          (t
-          ;; Parse the command into program and arguments
-          (let* ((command-parts (split-string-and-unquote command))
-                 (program (car command-parts))
-                 (args (cdr command-parts)))
+          ;; Check if command contains shell operators (pipes, redirections, etc.)
+          (if (string-match-p "[|><&;]" command)
+              ;; Use shell to execute commands with shell operators
+              (greger-tools--run-async-subprocess
+               "sh" (list "-c" command) expanded-work-dir
+               (lambda (output error)
+                 (if error
+                     (funcall callback nil error)
+                   (funcall callback
+                           (format "Command executed successfully:\n%s" output)
+                           nil))))
+            ;; For simple commands, parse into program and arguments
+            (let* ((command-parts (split-string-and-unquote command))
+                   (program (car command-parts))
+                   (args (cdr command-parts)))
 
-            ;; Execute the command asynchronously
-            (greger-tools--run-async-subprocess
-             program args expanded-work-dir
-             (lambda (output error)
-               (if error
-                   (funcall callback nil error)
-                 (funcall callback
-                         (format "Command executed successfully:\n%s" output)
-                         nil)))))))))))))
+              ;; Execute the command asynchronously
+              (greger-tools--run-async-subprocess
+               program args expanded-work-dir
+               (lambda (output error)
+                 (if error
+                     (funcall callback nil error)
+                   (funcall callback
+                           (format "Command executed successfully:\n%s" output)
+                           nil))))))))))))))))
 
 (defun greger-tools--read-webpage (url &optional extract-text use-highest-readability)
   "Read webpage content from URL.
