@@ -129,38 +129,57 @@
     (reverse tool-calls)))
 
 (defun greger-agent--execute-tools (tool-calls agent-state)
-  "Execute TOOL-CALLS using AGENT-STATE and continue the conversation."
-  (let ((results '()))
+  "Execute TOOL-CALLS using AGENT-STATE in parallel with callbacks."
+  (let* ((total-tools (length tool-calls))
+         (completed-tools 0)
+         (results (make-hash-table :test 'equal))
+         (tool-positions (make-hash-table :test 'equal)))
+
+    ;; First, display the tool calls and reserve space for each tool's output
+    (with-current-buffer (greger-agent-state-chat-buffer agent-state)
+      (goto-char (point-max))
+
+      ;; Display tool calls
+      (let ((tool-blocks-markdown (greger-parser--content-blocks-to-markdown tool-calls)))
+        (unless (string-empty-p tool-blocks-markdown)
+          (insert "\n\n" tool-blocks-markdown)))
+
+      ;; Create placeholders for each tool result and remember their positions
+      (dolist (tool-call tool-calls)
+        (let ((tool-id (alist-get 'id tool-call)))
+          (insert "\n\n")
+          (let ((start-pos (point)))
+            (insert (format "<!-- TOOL_RESULT_PLACEHOLDER_%s -->" tool-id))
+            (puthash tool-id start-pos tool-positions)))))
+
+    ;; Execute all tools in parallel
     (dolist (tool-call tool-calls)
       (let* ((tool-name (alist-get 'name tool-call))
              (tool-input (alist-get 'input tool-call))
              (tool-id (alist-get 'id tool-call)))
 
         (if (greger-agent--request-approval tool-name tool-input)
-            (condition-case err
-                (let* ((default-directory (greger-agent-state-directory agent-state))
-                       (result (greger-tools-execute tool-name tool-input (greger-agent-state-chat-buffer agent-state))))
-                  (push `((type . "tool_result")
-                         (tool_use_id . ,tool-id)
-                         (content . ,result))
-                        results))
-              (error
-               (push `((type . "tool_result")
-                      (tool_use_id . ,tool-id)
-                      (content . ,(format "Error executing tool: %s" (error-message-string err)))
-                      (is_error . t))
-                     results)))
-          (push `((type . "tool_result")
-                 (tool_use_id . ,tool-id)
-                 (content . "Tool execution declined by user")
-                 (is_error . t))
-                results))))
-
-    ;; Display tool execution
-    (greger-agent--display-tool-execution tool-calls (reverse results) agent-state)
-
-    ;; Continue the loop
-    (greger-agent--run-agent-loop agent-state)))
+            (let ((default-directory (greger-agent-state-directory agent-state)))
+              (greger-tools-execute
+               tool-name
+               tool-input
+               (greger-agent-state-chat-buffer agent-state)
+               (lambda (result error)
+                 (greger-agent--handle-tool-completion
+                  tool-id result error agent-state
+                  results tool-positions
+                  (lambda ()
+                    (setq completed-tools (1+ completed-tools))
+                    (when (= completed-tools total-tools)
+                      (greger-agent--run-agent-loop agent-state)))))))
+          ;; Tool execution declined
+          (greger-agent--handle-tool-completion
+           tool-id nil "Tool execution declined by user" agent-state
+           results tool-positions
+           (lambda ()
+             (setq completed-tools (1+ completed-tools))
+             (when (= completed-tools total-tools)
+               (greger-agent--run-agent-loop agent-state))))))))
 
 (defun greger-agent--append-text (text agent-state)
   (with-current-buffer (greger-agent-state-chat-buffer agent-state)
