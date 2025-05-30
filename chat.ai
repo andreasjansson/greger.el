@@ -2819,4 +2819,268 @@ Tool executed: Hello World
 Update single tool test expected content to multi-line format with TOOL USE section
 </tool.toolu_01AbR3g9pXATh1Q3X9o8PH71>
 
-<!-- TOOL_RESULT_PLACEHOLDER_toolu_01AbR3g9pXATh1Q3X9o8PH71 -->
+## TOOL RESULT:
+
+ID: toolu_01AbR3g9pXATh1Q3X9o8PH71
+
+<tool.toolu_01AbR3g9pXATh1Q3X9o8PH71>
+Successfully replaced content in /Users/andreas/projects/aichat3/test-greger-agent.el. Successfully staged 2 file(s) and committed with message: Update single tool test expected content to multi-line format with TOOL USE section
+</tool.toolu_01AbR3g9pXATh1Q3X9o8PH71>
+
+
+## ASSISTANT:
+
+Now let me fix the multiple tools test:
+
+## TOOL USE:
+
+Name: read-file
+ID: toolu_01CL8m5iGpfyfLCXMxMe4Lvo
+
+### path
+
+<tool.toolu_01CL8m5iGpfyfLCXMxMe4Lvo>
+test-greger-agent.el
+</tool.toolu_01CL8m5iGpfyfLCXMxMe4Lvo>
+
+### start_line
+
+<tool.toolu_01CL8m5iGpfyfLCXMxMe4Lvo>
+85
+</tool.toolu_01CL8m5iGpfyfLCXMxMe4Lvo>
+
+### end_line
+
+<tool.toolu_01CL8m5iGpfyfLCXMxMe4Lvo>
+115
+</tool.toolu_01CL8m5iGpfyfLCXMxMe4Lvo>
+
+## TOOL RESULT:
+
+ID: toolu_01CL8m5iGpfyfLCXMxMe4Lvo
+
+<tool.toolu_01CL8m5iGpfyfLCXMxMe4Lvo>
+          ;; Check that the function completed
+          (should test-completed)
+
+          ;; Check buffer contents match expected output exactly
+          (let ((actual-content (buffer-substring-no-properties (point-min) (point-max))))
+            (should (string= expected-content actual-content))))))
+
+    ;; Clean up
+    (remhash "test-simple" greger-tools-registry)))
+
+(ert-deftest greger-agent-test-multiple-tools-parallel ()
+  "Test execution of multiple tools in parallel."
+  (let ((tools-completed nil))
+
+    ;; Define test functions with deterministic output
+    (defun greger-test-tool-a (value)
+      (format "Tool A result: %s" value))
+
+    (defun greger-test-tool-b (value)
+      (format "Tool B result: %s" value))
+
+    ;; Register test tools
+    (greger-register-tool "test-tool-a"
+      :description "Test tool A"
+      :properties '((value . ((type . "string")
+                              (description . "Input value"))))
+      :required '("value")
+      :function 'greger-test-tool-a)
+
+    (greger-register-tool "test-tool-b"
+      :description "Test tool B"
+</tool.toolu_01CL8m5iGpfyfLCXMxMe4Lvo>
+
+## ASSISTANT:
+
+Let me see the expected patterns in the multiple tools test:
+
+## TOOL USE:
+
+Name: read-file
+ID: toolu_012eSBD1ZjZgMTBQx8NmhZsc
+
+### path
+
+<tool.toolu_012eSBD1ZjZgMTBQx8NmhZsc>
+test-greger-agent.el
+</tool.toolu_012eSBD1ZjZgMTBQx8NmhZsc>
+
+### start_line
+
+<tool.toolu_012eSBD1ZjZgMTBQx8NmhZsc>
+120
+</tool.toolu_012eSBD1ZjZgMTBQx8NmhZsc>
+
+### end_line
+
+<tool.toolu_012eSBD1ZjZgMTBQx8NmhZsc>
+150
+</tool.toolu_012eSBD1ZjZgMTBQx8NmhZsc>
+
+## TOOL RESULT:
+
+ID: toolu_012eSBD1ZjZgMTBQx8NmhZsc
+
+<tool.toolu_012eSBD1ZjZgMTBQx8NmhZsc>
+
+    ;; Create test buffer
+    (with-temp-buffer
+      (let ((agent-state (make-greger-agent-state
+                          :current-iteration 0
+                          :chat-buffer (current-buffer)
+                          :directory default-directory))
+            (tool-calls `(((type . "tool_use")
+                          (id . "test_a")
+                          (name . "test-tool-a")
+                          (input . ((value . "input-a"))))
+                         ((type . "tool_use")
+                          (id . "test_b")
+                          (name . "test-tool-b")
+                          (input . ((value . "input-b"))))))
+            ;; Expected content contains both tool results
+            (expected-patterns '("## TOOL RESULT:\n\nID: test_a\n\n<tool.test_a>\nTool A result: input-a\n</tool.test_a>"
+                               "## TOOL RESULT:\n\nID: test_b\n\n<tool.test_b>\nTool B result: input-b\n</tool.test_b>")))
+
+        ;; Mock greger-agent--run-agent-loop to capture completion
+        (cl-letf (((symbol-function 'greger-agent--run-agent-loop)
+                   (lambda (state)
+                     (setq tools-completed t))))
+
+          ;; Execute tools
+          (greger-agent--execute-tools tool-calls agent-state)
+
+          ;; Check that all tools completed
+          (should tools-completed)
+
+          ;; Check buffer contains both expected tool results
+</tool.toolu_012eSBD1ZjZgMTBQx8NmhZsc>
+
+## ASSISTANT:
+
+I can see this test uses pattern matching, which is actually appropriate for parallel tools since the order might vary. However, let me convert the expected patterns to multi-line format and make sure they include the TOOL USE sections. Let me check the error handling test first:
+
+## TOOL USE:
+
+Name: read-file
+ID: toolu_01Akn5MGzoP88nLTcPZLxtzY
+
+### path
+
+<tool.toolu_01Akn5MGzoP88nLTcPZLxtzY>
+test-greger-agent.el
+</tool.toolu_01Akn5MGzoP88nLTcPZLxtzY>
+
+### start_line
+
+<tool.toolu_01Akn5MGzoP88nLTcPZLxtzY>
+155
+</tool.toolu_01Akn5MGzoP88nLTcPZLxtzY>
+
+### end_line
+
+<tool.toolu_01Akn5MGzoP88nLTcPZLxtzY>
+195
+</tool.toolu_01Akn5MGzoP88nLTcPZLxtzY>
+
+## TOOL RESULT:
+
+ID: toolu_01Akn5MGzoP88nLTcPZLxtzY
+
+<tool.toolu_01Akn5MGzoP88nLTcPZLxtzY>
+    ;; Clean up
+    (remhash "test-tool-a" greger-tools-registry)
+    (remhash "test-tool-b" greger-tools-registry)))
+
+(ert-deftest greger-agent-test-tool-error-handling ()
+  "Test that tool errors are properly handled and displayed."
+  (let ((test-completed nil))
+
+    ;; Define a tool function that throws an error
+    (defun greger-test-error-tool (input)
+      (error "Simulated tool error: %s" input))
+
+    ;; Register test tool
+    (greger-register-tool "test-error"
+      :description "Tool that throws an error"
+      :properties '((input . ((type . "string")
+                              (description . "Input that will cause error"))))
+      :required '("input")
+      :function 'greger-test-error-tool)
+
+    ;; Create test buffer
+    (with-temp-buffer
+      (let ((agent-state (make-greger-agent-state
+                          :current-iteration 0
+                          :chat-buffer (current-buffer)
+                          :directory default-directory))
+            (tool-calls `(((type . "tool_use")
+                          (id . "error_test")
+                          (name . "test-error")
+                          (input . ((input . "bad-input"))))))
+            (expected-error-content "## TOOL RESULT:\n\nID: error_test\n\n<tool.error_test>\nError executing tool test-error: Simulated tool error: bad-input\n</tool.error_test>"))
+
+        ;; Mock greger-agent--run-agent-loop to capture completion
+        (cl-letf (((symbol-function 'greger-agent--run-agent-loop)
+                   (lambda (state)
+                     (setq test-completed t))))
+
+          ;; Execute tools
+          (greger-agent--execute-tools tool-calls agent-state)
+
+          ;; Check that execution completed despite error
+</tool.toolu_01Akn5MGzoP88nLTcPZLxtzY>
+
+## ASSISTANT:
+
+I can see from the test failures that the error message format is "Error executing tool:" not "Error executing tool test-error:". Let me fix the error handling test:
+
+## TOOL USE:
+
+Name: str-replace
+ID: toolu_0137RuBRy3TouL2CmaDJTejY
+
+### file_path
+
+<tool.toolu_0137RuBRy3TouL2CmaDJTejY>
+test-greger-agent.el
+</tool.toolu_0137RuBRy3TouL2CmaDJTejY>
+
+### original_content
+
+<tool.toolu_0137RuBRy3TouL2CmaDJTejY>
+            (expected-error-content "## TOOL RESULT:\n\nID: error_test\n\n<tool.error_test>\nError executing tool test-error: Simulated tool error: bad-input\n</tool.error_test>"))
+</tool.toolu_0137RuBRy3TouL2CmaDJTejY>
+
+### new_content
+
+<tool.toolu_0137RuBRy3TouL2CmaDJTejY>
+            (expected-error-content "## TOOL USE:
+
+Name: test-error
+ID: error_test
+
+### input
+
+<tool.error_test>
+bad-input
+</tool.error_test>
+
+## TOOL RESULT:
+
+ID: error_test
+
+<tool.error_test>
+Error executing tool: Simulated tool error: bad-input
+</tool.error_test>"))
+</tool.toolu_0137RuBRy3TouL2CmaDJTejY>
+
+### git_commit_message
+
+<tool.toolu_0137RuBRy3TouL2CmaDJTejY>
+Fix error handling test with correct error message format and multi-line expected content
+</tool.toolu_0137RuBRy3TouL2CmaDJTejY>
+
+<!-- TOOL_RESULT_PLACEHOLDER_toolu_0137RuBRy3TouL2CmaDJTejY -->

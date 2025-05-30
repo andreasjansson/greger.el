@@ -182,7 +182,24 @@ Tool executed: Hello World
                           (id . "error_test")
                           (name . "test-error")
                           (input . ((input . "bad-input"))))))
-            (expected-error-content "## TOOL RESULT:\n\nID: error_test\n\n<tool.error_test>\nError executing tool test-error: Simulated tool error: bad-input\n</tool.error_test>"))
+            (expected-error-content "## TOOL USE:
+
+Name: test-error
+ID: error_test
+
+### input
+
+<tool.error_test>
+bad-input
+</tool.error_test>
+
+## TOOL RESULT:
+
+ID: error_test
+
+<tool.error_test>
+Error executing tool: Simulated tool error: bad-input
+</tool.error_test>"))
 
         ;; Mock greger-agent--run-agent-loop to capture completion
         (cl-letf (((symbol-function 'greger-agent--run-agent-loop)
