@@ -4054,4 +4054,131 @@ greger-stdlib.el
 Restructure ripgrep function to use proper control flow
 </tool.toolu_01T6TjE5Wcc2oF7x1UqYiJbt>
 
-<!-- TOOL_RESULT_PLACEHOLDER_toolu_01T6TjE5Wcc2oF7x1UqYiJbt -->
+## TOOL RESULT:
+
+ID: toolu_01T6TjE5Wcc2oF7x1UqYiJbt
+
+<tool.toolu_01T6TjE5Wcc2oF7x1UqYiJbt>
+Successfully replaced content in /Users/andreas/projects/aichat3/greger-stdlib.el. Successfully staged 2 file(s) and committed with message: Restructure ripgrep function to use proper control flow
+</tool.toolu_01T6TjE5Wcc2oF7x1UqYiJbt>
+
+
+## ASSISTANT:
+
+Now let me fix the shell-command function similarly:
+
+## TOOL USE:
+
+Name: str-replace
+ID: toolu_01BNV4okuHpZMJa8VtQH86R8
+
+### file_path
+
+<tool.toolu_01BNV4okuHpZMJa8VtQH86R8>
+greger-stdlib.el
+</tool.toolu_01BNV4okuHpZMJa8VtQH86R8>
+
+### original_content
+
+<tool.toolu_01BNV4okuHpZMJa8VtQH86R8>
+(defun greger-tools--shell-command (command callback &optional working-directory)
+  "Execute COMMAND in WORKING-DIRECTORY and call CALLBACK with (result error).
+Prompts for permission before running the command for security."
+  (unless (stringp command)
+    (funcall callback nil "Command must be a string")
+    (return))
+
+  (when (string-empty-p (string-trim command))
+    (funcall callback nil "Command cannot be empty")
+    (return))
+
+  (let ((work-dir (or working-directory ".")))
+    (unless (stringp work-dir)
+      (funcall callback nil "Working directory must be a string")
+      (return))
+
+    (let ((expanded-work-dir (expand-file-name work-dir)))
+      (unless (file-exists-p expanded-work-dir)
+        (funcall callback nil (format "Working directory does not exist: %s" expanded-work-dir))
+        (return))
+
+      (unless (file-directory-p expanded-work-dir)
+        (funcall callback nil (format "Working directory path is not a directory: %s" expanded-work-dir))
+        (return))
+
+      ;; Prompt for permission to run the command
+      (unless (y-or-n-p (format "Execute shell command: '%s' in directory '%s'? "
+                                command expanded-work-dir))
+        (funcall callback nil "Shell command execution cancelled by user")
+        (return))
+
+      ;; Parse the command into program and arguments
+      (let* ((command-parts (split-string-and-unquote command))
+             (program (car command-parts))
+             (args (cdr command-parts)))
+
+        ;; Execute the command asynchronously
+        (greger-tools--run-async-subprocess
+         program args expanded-work-dir
+         (lambda (output error)
+           (if error
+               (funcall callback nil error)
+             (funcall callback
+                     (format "Command executed successfully:\n%s" output)
+                     nil))))))))
+</tool.toolu_01BNV4okuHpZMJa8VtQH86R8>
+
+### new_content
+
+<tool.toolu_01BNV4okuHpZMJa8VtQH86R8>
+(defun greger-tools--shell-command (command callback &optional working-directory)
+  "Execute COMMAND in WORKING-DIRECTORY and call CALLBACK with (result error).
+Prompts for permission before running the command for security."
+  (let ((work-dir (or working-directory ".")))
+    (cond
+     ((not (stringp command))
+      (funcall callback nil "Command must be a string"))
+
+     ((string-empty-p (string-trim command))
+      (funcall callback nil "Command cannot be empty"))
+
+     ((not (stringp work-dir))
+      (funcall callback nil "Working directory must be a string"))
+
+     (t
+      (let ((expanded-work-dir (expand-file-name work-dir)))
+        (cond
+         ((not (file-exists-p expanded-work-dir))
+          (funcall callback nil (format "Working directory does not exist: %s" expanded-work-dir)))
+
+         ((not (file-directory-p expanded-work-dir))
+          (funcall callback nil (format "Working directory path is not a directory: %s" expanded-work-dir)))
+
+         ((not (y-or-n-p (format "Execute shell command: '%s' in directory '%s'? "
+                                command expanded-work-dir)))
+          (funcall callback nil "Shell command execution cancelled by user"))
+
+         (t
+          ;; Parse the command into program and arguments
+          (let* ((command-parts (split-string-and-unquote command))
+                 (program (car command-parts))
+                 (args (cdr command-parts)))
+
+            ;; Execute the command asynchronously
+            (greger-tools--run-async-subprocess
+             program args expanded-work-dir
+             (lambda (output error)
+               (if error
+                   (funcall callback nil error)
+                 (funcall callback
+                         (format "Command executed successfully:\n%s" output)
+                         nil)))))))))))))
+</tool.toolu_01BNV4okuHpZMJa8VtQH86R8>
+
+### git_commit_message
+
+<tool.toolu_01BNV4okuHpZMJa8VtQH86R8>
+Restructure shell-command function to use proper control flow
+</tool.toolu_01BNV4okuHpZMJa8VtQH86R8>
+
+<!-- TOOL_RESULT_PLACEHOLDER_toolu_01BNV4okuHpZMJa8VtQH86R8 -->

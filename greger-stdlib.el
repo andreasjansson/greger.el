@@ -979,48 +979,45 @@ FUNCTION-NAMES is a vector of test function names to evaluate and run."
 (defun greger-tools--shell-command (command callback &optional working-directory)
   "Execute COMMAND in WORKING-DIRECTORY and call CALLBACK with (result error).
 Prompts for permission before running the command for security."
-  (unless (stringp command)
-    (funcall callback nil "Command must be a string")
-    (return))
-
-  (when (string-empty-p (string-trim command))
-    (funcall callback nil "Command cannot be empty")
-    (return))
-
   (let ((work-dir (or working-directory ".")))
-    (unless (stringp work-dir)
-      (funcall callback nil "Working directory must be a string")
-      (return))
+    (cond
+     ((not (stringp command))
+      (funcall callback nil "Command must be a string"))
 
-    (let ((expanded-work-dir (expand-file-name work-dir)))
-      (unless (file-exists-p expanded-work-dir)
-        (funcall callback nil (format "Working directory does not exist: %s" expanded-work-dir))
-        (return))
+     ((string-empty-p (string-trim command))
+      (funcall callback nil "Command cannot be empty"))
 
-      (unless (file-directory-p expanded-work-dir)
-        (funcall callback nil (format "Working directory path is not a directory: %s" expanded-work-dir))
-        (return))
+     ((not (stringp work-dir))
+      (funcall callback nil "Working directory must be a string"))
 
-      ;; Prompt for permission to run the command
-      (unless (y-or-n-p (format "Execute shell command: '%s' in directory '%s'? "
-                                command expanded-work-dir))
-        (funcall callback nil "Shell command execution cancelled by user")
-        (return))
+     (t
+      (let ((expanded-work-dir (expand-file-name work-dir)))
+        (cond
+         ((not (file-exists-p expanded-work-dir))
+          (funcall callback nil (format "Working directory does not exist: %s" expanded-work-dir)))
 
-      ;; Parse the command into program and arguments
-      (let* ((command-parts (split-string-and-unquote command))
-             (program (car command-parts))
-             (args (cdr command-parts)))
+         ((not (file-directory-p expanded-work-dir))
+          (funcall callback nil (format "Working directory path is not a directory: %s" expanded-work-dir)))
 
-        ;; Execute the command asynchronously
-        (greger-tools--run-async-subprocess
-         program args expanded-work-dir
-         (lambda (output error)
-           (if error
-               (funcall callback nil error)
-             (funcall callback
-                     (format "Command executed successfully:\n%s" output)
-                     nil))))))))
+         ((not (y-or-n-p (format "Execute shell command: '%s' in directory '%s'? "
+                                command expanded-work-dir)))
+          (funcall callback nil "Shell command execution cancelled by user"))
+
+         (t
+          ;; Parse the command into program and arguments
+          (let* ((command-parts (split-string-and-unquote command))
+                 (program (car command-parts))
+                 (args (cdr command-parts)))
+
+            ;; Execute the command asynchronously
+            (greger-tools--run-async-subprocess
+             program args expanded-work-dir
+             (lambda (output error)
+               (if error
+                   (funcall callback nil error)
+                 (funcall callback
+                         (format "Command executed successfully:\n%s" output)
+                         nil)))))))))))))
 
 (defun greger-tools--read-webpage (url &optional extract-text use-highest-readability)
   "Read webpage content from URL.
