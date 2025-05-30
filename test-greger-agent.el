@@ -247,7 +247,24 @@ Error executing tool: Simulated tool error: bad-input
                           (id . "placeholder_test")
                           (name . "test-placeholder")
                           (input . ((data . "test-data"))))))
-            (expected-content "## TOOL RESULT:\n\nID: placeholder_test\n\n<tool.placeholder_test>\nProcessed: test-data\n</tool.placeholder_test>"))
+            (expected-content "## TOOL USE:
+
+Name: test-placeholder
+ID: placeholder_test
+
+### data
+
+<tool.placeholder_test>
+test-data
+</tool.placeholder_test>
+
+## TOOL RESULT:
+
+ID: placeholder_test
+
+<tool.placeholder_test>
+Processed: test-data
+</tool.placeholder_test>"))
 
         ;; Mock greger-agent--run-agent-loop to capture completion
         (cl-letf (((symbol-function 'greger-agent--run-agent-loop)

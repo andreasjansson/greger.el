@@ -3083,4 +3083,189 @@ Error executing tool: Simulated tool error: bad-input
 Fix error handling test with correct error message format and multi-line expected content
 </tool.toolu_0137RuBRy3TouL2CmaDJTejY>
 
-<!-- TOOL_RESULT_PLACEHOLDER_toolu_0137RuBRy3TouL2CmaDJTejY -->
+## TOOL RESULT:
+
+ID: toolu_0137RuBRy3TouL2CmaDJTejY
+
+<tool.toolu_0137RuBRy3TouL2CmaDJTejY>
+Successfully replaced content in /Users/andreas/projects/aichat3/test-greger-agent.el. Successfully staged 2 file(s) and committed with message: Fix error handling test with correct error message format and multi-line expected content
+</tool.toolu_0137RuBRy3TouL2CmaDJTejY>
+
+
+## ASSISTANT:
+
+Now let me fix the placeholder replacement test:
+
+## TOOL USE:
+
+Name: read-file
+ID: toolu_012tgyRdTk4mFsAZ6rMoshcJ
+
+### path
+
+<tool.toolu_012tgyRdTk4mFsAZ6rMoshcJ>
+test-greger-agent.el
+</tool.toolu_012tgyRdTk4mFsAZ6rMoshcJ>
+
+### start_line
+
+<tool.toolu_012tgyRdTk4mFsAZ6rMoshcJ>
+210
+</tool.toolu_012tgyRdTk4mFsAZ6rMoshcJ>
+
+### end_line
+
+<tool.toolu_012tgyRdTk4mFsAZ6rMoshcJ>
+240
+</tool.toolu_012tgyRdTk4mFsAZ6rMoshcJ>
+
+## TOOL RESULT:
+
+ID: toolu_012tgyRdTk4mFsAZ6rMoshcJ
+
+<tool.toolu_012tgyRdTk4mFsAZ6rMoshcJ>
+          (greger-agent--execute-tools tool-calls agent-state)
+
+          ;; Check that execution completed despite error
+          (should test-completed)
+
+          ;; Check buffer contents match expected error format
+          (let ((actual-content (buffer-substring-no-properties (point-min) (point-max))))
+            (should (string= expected-error-content actual-content))))))
+
+    ;; Clean up
+    (remhash "test-error" greger-tools-registry)))
+
+(ert-deftest greger-agent-test-placeholder-replacement ()
+  "Test that placeholders are correctly replaced with tool results."
+  (let ((test-completed nil))
+
+    ;; Define a simple test function
+    (defun greger-test-placeholder-tool (data)
+      (format "Processed: %s" data))
+
+    ;; Register test tool
+    (greger-register-tool "test-placeholder"
+      :description "Test placeholder replacement"
+      :properties '((data . ((type . "string")
+                             (description . "Data to process"))))
+      :required '("data")
+      :function 'greger-test-placeholder-tool)
+
+    ;; Create test buffer with placeholder
+    (with-temp-buffer
+      (insert "<!-- TOOL_RESULT_PLACEHOLDER_placeholder_test -->")
+</tool.toolu_012tgyRdTk4mFsAZ6rMoshcJ>
+
+## TOOL USE:
+
+Name: read-file
+ID: toolu_01D6j869k3J3oA8NVsjimgRF
+
+### path
+
+<tool.toolu_01D6j869k3J3oA8NVsjimgRF>
+test-greger-agent.el
+</tool.toolu_01D6j869k3J3oA8NVsjimgRF>
+
+### start_line
+
+<tool.toolu_01D6j869k3J3oA8NVsjimgRF>
+240
+</tool.toolu_01D6j869k3J3oA8NVsjimgRF>
+
+### end_line
+
+<tool.toolu_01D6j869k3J3oA8NVsjimgRF>
+270
+</tool.toolu_01D6j869k3J3oA8NVsjimgRF>
+
+## TOOL RESULT:
+
+ID: toolu_01D6j869k3J3oA8NVsjimgRF
+
+<tool.toolu_01D6j869k3J3oA8NVsjimgRF>
+      (insert "<!-- TOOL_RESULT_PLACEHOLDER_placeholder_test -->")
+
+      (let ((agent-state (make-greger-agent-state
+                          :current-iteration 0
+                          :chat-buffer (current-buffer)
+                          :directory default-directory))
+            (tool-calls `(((type . "tool_use")
+                          (id . "placeholder_test")
+                          (name . "test-placeholder")
+                          (input . ((data . "test-data"))))))
+            (expected-content "## TOOL RESULT:\n\nID: placeholder_test\n\n<tool.placeholder_test>\nProcessed: test-data\n</tool.placeholder_test>"))
+
+        ;; Mock greger-agent--run-agent-loop to capture completion
+        (cl-letf (((symbol-function 'greger-agent--run-agent-loop)
+                   (lambda (state)
+                     (setq test-completed t))))
+
+          ;; Execute tools
+          (greger-agent--execute-tools tool-calls agent-state)
+
+          ;; Check that execution completed
+          (should test-completed)
+
+          ;; Check that placeholder was replaced with exact expected content
+          (let ((actual-content (buffer-substring-no-properties (point-min) (point-max))))
+            (should (string= expected-content actual-content))))))
+
+    ;; Clean up
+    (remhash "test-placeholder" greger-tools-registry)))
+
+(ert-deftest greger-agent-test-unknown-tool-error ()
+</tool.toolu_01D6j869k3J3oA8NVsjimgRF>
+
+## ASSISTANT:
+
+I see the issue with the placeholder test. The buffer starts with a placeholder, but the tool execution adds the TOOL USE section before replacing the placeholder. Let me fix this:
+
+## TOOL USE:
+
+Name: str-replace
+ID: toolu_01VLcKuYMz6ZgQT8o5qUqnjc
+
+### file_path
+
+<tool.toolu_01VLcKuYMz6ZgQT8o5qUqnjc>
+test-greger-agent.el
+</tool.toolu_01VLcKuYMz6ZgQT8o5qUqnjc>
+
+### original_content
+
+<tool.toolu_01VLcKuYMz6ZgQT8o5qUqnjc>
+(expected-content "## TOOL RESULT:\n\nID: placeholder_test\n\n<tool.placeholder_test>\nProcessed: test-data\n</tool.placeholder_test>"))
+</tool.toolu_01VLcKuYMz6ZgQT8o5qUqnjc>
+
+### new_content
+
+<tool.toolu_01VLcKuYMz6ZgQT8o5qUqnjc>
+(expected-content "## TOOL USE:
+
+Name: test-placeholder
+ID: placeholder_test
+
+### data
+
+<tool.placeholder_test>
+test-data
+</tool.placeholder_test>
+
+## TOOL RESULT:
+
+ID: placeholder_test
+
+<tool.placeholder_test>
+Processed: test-data
+</tool.placeholder_test>"))
+</tool.toolu_01VLcKuYMz6ZgQT8o5qUqnjc>
+
+### git_commit_message
+
+<tool.toolu_01VLcKuYMz6ZgQT8o5qUqnjc>
+Fix placeholder replacement test with correct multi-line expected content including TOOL USE
+</tool.toolu_01VLcKuYMz6ZgQT8o5qUqnjc>
+
+<!-- TOOL_RESULT_PLACEHOLDER_toolu_01VLcKuYMz6ZgQT8o5qUqnjc -->
