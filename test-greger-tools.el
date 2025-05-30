@@ -172,22 +172,34 @@
     :function 'greger-test-default-params)
 
   ;; Test with only required parameter - should use defaults
-  (let ((result (greger-tools-execute "test-defaults"
-                                      '((message . "hello")))))
-    (should (string= ">>> hello (repeated 5 times)" result)))
+  (let ((result nil)
+        (error nil))
+    (greger-tools-execute "test-defaults"
+                          '((message . "hello"))
+                          (lambda (r e) (setq result r error e)) nil)
+    (should (string= ">>> hello (repeated 5 times)" result))
+    (should (null error)))
 
   ;; Test with one default overridden
-  (let ((result (greger-tools-execute "test-defaults"
-                                      '((message . "hello")
-                                        (count . 2)))))
-    (should (string= ">>> hello (repeated 2 times)" result)))
+  (let ((result nil)
+        (error nil))
+    (greger-tools-execute "test-defaults"
+                          '((message . "hello")
+                            (count . 2))
+                          (lambda (r e) (setq result r error e)) nil)
+    (should (string= ">>> hello (repeated 2 times)" result))
+    (should (null error)))
 
   ;; Test with both defaults overridden
-  (let ((result (greger-tools-execute "test-defaults"
-                                      '((message . "hello")
-                                        (count . 2)
-                                        (prefix . "***")))))
-    (should (string= "*** hello (repeated 2 times)" result)))
+  (let ((result nil)
+        (error nil))
+    (greger-tools-execute "test-defaults"
+                          '((message . "hello")
+                            (count . 2)
+                            (prefix . "***"))
+                          (lambda (r e) (setq result r error e)) nil)
+    (should (string= "*** hello (repeated 2 times)" result))
+    (should (null error)))
 
   ;; Clean up
   (remhash "test-defaults" greger-tools-registry))

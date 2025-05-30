@@ -2285,4 +2285,86 @@ test-greger-tools.el
 Update optional parameters test to use callback API
 </tool.toolu_01VCaghLmKVLqE8zmAegx7GP>
 
-<!-- TOOL_RESULT_PLACEHOLDER_toolu_01VCaghLmKVLqE8zmAegx7GP -->
+## TOOL RESULT:
+
+ID: toolu_01VCaghLmKVLqE8zmAegx7GP
+
+<tool.toolu_01VCaghLmKVLqE8zmAegx7GP>
+Successfully replaced content in /Users/andreas/projects/aichat3/test-greger-tools.el. Successfully staged 2 file(s) and committed with message: Update optional parameters test to use callback API
+</tool.toolu_01VCaghLmKVLqE8zmAegx7GP>
+
+
+## TOOL USE:
+
+Name: str-replace
+ID: toolu_01RHuqmKp6ZSWKfKkmKDknFz
+
+### file_path
+
+<tool.toolu_01RHuqmKp6ZSWKfKkmKDknFz>
+test-greger-tools.el
+</tool.toolu_01RHuqmKp6ZSWKfKkmKDknFz>
+
+### original_content
+
+<tool.toolu_01RHuqmKp6ZSWKfKkmKDknFz>
+;; Test with only required parameter - should use defaults
+  (let ((result (greger-tools-execute "test-defaults"
+                                      '((message . "hello")))))
+    (should (string= ">>> hello (repeated 5 times)" result)))
+
+  ;; Test with one default overridden
+  (let ((result (greger-tools-execute "test-defaults"
+                                      '((message . "hello")
+                                        (count . 2)))))
+    (should (string= ">>> hello (repeated 2 times)" result)))
+
+  ;; Test with both defaults overridden
+  (let ((result (greger-tools-execute "test-defaults"
+                                      '((message . "hello")
+                                        (count . 2)
+                                        (prefix . "***")))))
+    (should (string= "*** hello (repeated 2 times)" result)))
+</tool.toolu_01RHuqmKp6ZSWKfKkmKDknFz>
+
+### new_content
+
+<tool.toolu_01RHuqmKp6ZSWKfKkmKDknFz>
+;; Test with only required parameter - should use defaults
+  (let ((result nil)
+        (error nil))
+    (greger-tools-execute "test-defaults"
+                          '((message . "hello"))
+                          (lambda (r e) (setq result r error e)) nil)
+    (should (string= ">>> hello (repeated 5 times)" result))
+    (should (null error)))
+
+  ;; Test with one default overridden
+  (let ((result nil)
+        (error nil))
+    (greger-tools-execute "test-defaults"
+                          '((message . "hello")
+                            (count . 2))
+                          (lambda (r e) (setq result r error e)) nil)
+    (should (string= ">>> hello (repeated 2 times)" result))
+    (should (null error)))
+
+  ;; Test with both defaults overridden
+  (let ((result nil)
+        (error nil))
+    (greger-tools-execute "test-defaults"
+                          '((message . "hello")
+                            (count . 2)
+                            (prefix . "***"))
+                          (lambda (r e) (setq result r error e)) nil)
+    (should (string= "*** hello (repeated 2 times)" result))
+    (should (null error)))
+</tool.toolu_01RHuqmKp6ZSWKfKkmKDknFz>
+
+### git_commit_message
+
+<tool.toolu_01RHuqmKp6ZSWKfKkmKDknFz>
+Update default parameters test to use callback API
+</tool.toolu_01RHuqmKp6ZSWKfKkmKDknFz>
+
+<!-- TOOL_RESULT_PLACEHOLDER_toolu_01RHuqmKp6ZSWKfKkmKDknFz -->
