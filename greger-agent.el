@@ -35,7 +35,8 @@
 (cl-defstruct greger-agent-state
   current-iteration
   chat-buffer
-  directory)
+  directory
+  metadata)
 
 (defun greger-agent-buffer ()
   "Send buffer content to AI as an agent dialog with tool support."
