@@ -50,7 +50,8 @@
       (let ((agent-state (make-greger-agent-state
                           :current-iteration 0
                           :chat-buffer (current-buffer)
-                          :directory default-directory))
+                          :directory default-directory
+                          :metadata nil))
             (tool-calls `(((type . "tool_use")
                           (id . "test_001")
                           (name . "test-simple")
