@@ -964,3 +964,78 @@ You've made it unnecessary complex. greger-tools-execute should always take a ca
 ## ASSISTANT:
 
 You're absolutely right! Let me simplify this by making `greger-tools-execute` always require a callback parameter.
+
+
+## TOOL USE:
+
+Name: str-replace
+ID: toolu_01Czm4SmZdsf6sGcWRqxCc8h
+
+### file_path
+
+<tool.toolu_01Czm4SmZdsf6sGcWRqxCc8h>
+greger-tools.el
+</tool.toolu_01Czm4SmZdsf6sGcWRqxCc8h>
+
+### original_content
+
+<tool.toolu_01Czm4SmZdsf6sGcWRqxCc8h>
+(defun greger-tools-execute (tool-name args &optional buffer callback)
+  "Execute TOOL-NAME with ARGS.
+If BUFFER is provided and the tool has :pass-buffer set, the buffer will be passed to the tool function.
+If CALLBACK is provided, execute asynchronously and call CALLBACK with the result."
+  (let ((tool-def (gethash tool-name greger-tools-registry)))
+    (if tool-def
+        (let ((func (plist-get tool-def :function))
+              (pass-buffer (plist-get tool-def :pass-buffer)))
+          ;; Add buffer parameter if pass-buffer is set and buffer is provided
+          (when (and pass-buffer buffer)
+            (setq args (cons (cons 'buffer buffer) args)))
+          (if callback
+              ;; Async execution
+              (condition-case err
+                  (let ((result (greger-tools--call-function-with-args func args tool-def)))
+                    (funcall callback result nil))
+                (error
+                 (funcall callback nil err)))
+            ;; Sync execution (backward compatibility)
+            (greger-tools--call-function-with-args func args tool-def)))
+      (if callback
+          (funcall callback nil (error "Unknown tool: %s" tool-name))
+        (error "Unknown tool: %s" tool-name)))))
+</tool.toolu_01Czm4SmZdsf6sGcWRqxCc8h>
+
+### new_content
+
+<tool.toolu_01Czm4SmZdsf6sGcWRqxCc8h>
+(defun greger-tools-execute (tool-name args callback &optional buffer)
+  "Execute TOOL-NAME with ARGS and call CALLBACK with (result error).
+If BUFFER is provided and the tool has :pass-buffer set, the buffer will be passed to the tool function."
+  (let ((tool-def (gethash tool-name greger-tools-registry)))
+    (if tool-def
+        (let ((func (plist-get tool-def :function))
+              (pass-buffer (plist-get tool-def :pass-buffer)))
+          ;; Add buffer parameter if pass-buffer is set and buffer is provided
+          (when (and pass-buffer buffer)
+            (setq args (cons (cons 'buffer buffer) args)))
+          (condition-case err
+              (let ((result (greger-tools--call-function-with-args func args tool-def)))
+                (funcall callback result nil))
+            (error
+             (funcall callback nil err))))
+      (funcall callback nil (format "Unknown tool: %s" tool-name)))))
+</tool.toolu_01Czm4SmZdsf6sGcWRqxCc8h>
+
+### git_commit_message
+
+<tool.toolu_01Czm4SmZdsf6sGcWRqxCc8h>
+Simplify greger-tools-execute to always require callback parameter
+</tool.toolu_01Czm4SmZdsf6sGcWRqxCc8h>
+
+## TOOL RESULT:
+
+ID: toolu_01Czm4SmZdsf6sGcWRqxCc8h
+
+<tool.toolu_01Czm4SmZdsf6sGcWRqxCc8h>
+Successfully replaced content in /Users/andreas/projects/aichat3/greger-tools.el. Successfully staged 2 file(s) and committed with message: Simplify greger-tools-execute to always require callback parameter
+</tool.toolu_01Czm4SmZdsf6sGcWRqxCc8h>

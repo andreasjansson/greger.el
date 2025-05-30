@@ -163,7 +163,6 @@
               (greger-tools-execute
                tool-name
                tool-input
-               (greger-agent-state-chat-buffer agent-state)
                (lambda (result error)
                  (greger-agent--handle-tool-completion
                   tool-id result error agent-state
@@ -171,7 +170,8 @@
                   (lambda ()
                     (setq completed-tools (1+ completed-tools))
                     (when (= completed-tools total-tools)
-                      (greger-agent--run-agent-loop agent-state)))))))
+                      (greger-agent--run-agent-loop agent-state)))))
+               (greger-agent-state-chat-buffer agent-state)))
           ;; Tool execution declined
           (greger-agent--handle-tool-completion
            tool-id nil "Tool execution declined by user" agent-state
