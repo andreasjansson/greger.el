@@ -425,4 +425,23 @@
   (remhash "test-pass-callback" greger-tools-registry)
   (remhash "test-callback-with-buffer" greger-tools-registry))
 
+(ert-deftest greger-tools-test-async-subprocess-utility ()
+  "Test the shared async subprocess utility function."
+  (let ((result nil)
+        (error nil)
+        (callback-called nil))
+
+    ;; Test a simple command that should succeed
+    (greger-tools--run-async-subprocess
+     "echo" '("hello world") nil
+     (lambda (output err)
+       (setq result output error err callback-called t)))
+
+    ;; Wait a bit for the async process to complete
+    (sit-for 0.5)
+
+    (should callback-called)
+    (should (string-match "hello world" result))
+    (should (null error))))
+
 ;;; test-greger-tools.el ends here

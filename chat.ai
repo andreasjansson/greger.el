@@ -4181,4 +4181,248 @@ Prompts for permission before running the command for security."
 Restructure shell-command function to use proper control flow
 </tool.toolu_01BNV4okuHpZMJa8VtQH86R8>
 
-<!-- TOOL_RESULT_PLACEHOLDER_toolu_01BNV4okuHpZMJa8VtQH86R8 -->
+## TOOL RESULT:
+
+ID: toolu_01BNV4okuHpZMJa8VtQH86R8
+
+<tool.toolu_01BNV4okuHpZMJa8VtQH86R8>
+Successfully replaced content in /Users/andreas/projects/aichat3/greger-stdlib.el. Successfully staged 2 file(s) and committed with message: Restructure shell-command function to use proper control flow
+</tool.toolu_01BNV4okuHpZMJa8VtQH86R8>
+
+
+## ASSISTANT:
+
+Let me check if there are any syntax errors by reading the relevant parts of the file:
+
+## TOOL USE:
+
+Name: read-file
+ID: toolu_01AVB2Q7kpKzpY4JUjtSFy4U
+
+### path
+
+<tool.toolu_01AVB2Q7kpKzpY4JUjtSFy4U>
+greger-stdlib.el
+</tool.toolu_01AVB2Q7kpKzpY4JUjtSFy4U>
+
+### start_line
+
+<tool.toolu_01AVB2Q7kpKzpY4JUjtSFy4U>
+200
+</tool.toolu_01AVB2Q7kpKzpY4JUjtSFy4U>
+
+### end_line
+
+<tool.toolu_01AVB2Q7kpKzpY4JUjtSFy4U>
+220
+</tool.toolu_01AVB2Q7kpKzpY4JUjtSFy4U>
+
+## TOOL RESULT:
+
+ID: toolu_01AVB2Q7kpKzpY4JUjtSFy4U
+
+<tool.toolu_01AVB2Q7kpKzpY4JUjtSFy4U>
+                                      (description . "Directory to run the command in")
+                                      (default . "."))))
+  :required '("command")
+  :function 'greger-tools--shell-command
+  :pass-callback t)
+
+(greger-register-tool "read-webpage"
+  :description "Read webpage content from a URL. Can return either extracted text or raw HTML."
+  :properties '((url . ((type . "string")
+                        (description . "The URL to read content from")))
+                (extract_text . ((type . "boolean")
+                                 (description . "Whether to extract text content or return raw HTML")
+                                 (default . t)))
+                (use_highest_readability . ((type . "boolean")
+                                            (description . "Whether to use eww's aggressive highest readability setting for better text extraction")
+                                            (default . nil))))
+  :required '("url")
+  :function 'greger-tools--read-webpage)
+
+;; Helper functions
+
+</tool.toolu_01AVB2Q7kpKzpY4JUjtSFy4U>
+
+## ASSISTANT:
+
+Good, that looks fine. Let me also create a simple test to verify that the async functionality works. But first, let me check the current async subprocess function:
+
+## TOOL USE:
+
+Name: read-file
+ID: toolu_01GoTVtq5koftuiWTBde6gtJ
+
+### path
+
+<tool.toolu_01GoTVtq5koftuiWTBde6gtJ>
+greger-stdlib.el
+</tool.toolu_01GoTVtq5koftuiWTBde6gtJ>
+
+### start_line
+
+<tool.toolu_01GoTVtq5koftuiWTBde6gtJ>
+222
+</tool.toolu_01GoTVtq5koftuiWTBde6gtJ>
+
+### end_line
+
+<tool.toolu_01GoTVtq5koftuiWTBde6gtJ>
+255
+</tool.toolu_01GoTVtq5koftuiWTBde6gtJ>
+
+## TOOL RESULT:
+
+ID: toolu_01GoTVtq5koftuiWTBde6gtJ
+
+<tool.toolu_01GoTVtq5koftuiWTBde6gtJ>
+  "Run COMMAND with ARGS in WORKING-DIRECTORY and call CALLBACK with (output error).
+CALLBACK will be called with (output nil) on success or (nil error-message) on failure."
+  (let* ((process-name (format "greger-subprocess-%s" (make-temp-name "")))
+         (process-buffer (generate-new-buffer (format " *%s*" process-name)))
+         (default-directory (expand-file-name (or working-directory ".")))
+         (full-command (cons command args)))
+
+    (condition-case err
+        (let ((process (apply #'start-process process-name process-buffer command args)))
+          (set-process-query-on-exit-flag process nil)
+
+          (set-process-sentinel
+           process
+           (lambda (proc event)
+             (let ((exit-status (process-exit-status proc))
+                   (output (with-current-buffer process-buffer
+                            (buffer-string))))
+               (kill-buffer process-buffer)
+               (cond
+                ((= exit-status 0)
+                 (funcall callback
+                         (if (string-empty-p (string-trim output))
+                             "(no output)"
+                           output)
+                         nil))
+                (t
+                 (funcall callback nil
+                         (format "Command failed with exit code %d: %s"
+                                exit-status
+                                (if (string-empty-p (string-trim output))
+                                    "(no output)"
+                                  output))))))))
+          process)
+      (error
+</tool.toolu_01GoTVtq5koftuiWTBde6gtJ>
+
+## ASSISTANT:
+
+Let me see the rest of the async subprocess function:
+
+## TOOL USE:
+
+Name: read-file
+ID: toolu_014NFSbx1n4VmZhidiH2v1oh
+
+### path
+
+<tool.toolu_014NFSbx1n4VmZhidiH2v1oh>
+greger-stdlib.el
+</tool.toolu_014NFSbx1n4VmZhidiH2v1oh>
+
+### start_line
+
+<tool.toolu_014NFSbx1n4VmZhidiH2v1oh>
+250
+</tool.toolu_014NFSbx1n4VmZhidiH2v1oh>
+
+### end_line
+
+<tool.toolu_014NFSbx1n4VmZhidiH2v1oh>
+265
+</tool.toolu_014NFSbx1n4VmZhidiH2v1oh>
+
+## TOOL RESULT:
+
+ID: toolu_014NFSbx1n4VmZhidiH2v1oh
+
+<tool.toolu_014NFSbx1n4VmZhidiH2v1oh>
+                                exit-status
+                                (if (string-empty-p (string-trim output))
+                                    "(no output)"
+                                  output))))))))
+          process)
+      (error
+       (when (buffer-live-p process-buffer)
+         (kill-buffer process-buffer))
+       (funcall callback nil (format "Failed to start process: %s" (error-message-string err)))))))
+
+(defun greger-tools--find-git-repo-root (start-dir)
+  "Find the git repository root starting from START-DIR."
+  (let ((dir (expand-file-name start-dir)))
+    (while (and dir
+                (not (file-exists-p (expand-file-name ".git" dir)))
+                (not (string= dir (directory-file-name dir))))
+</tool.toolu_014NFSbx1n4VmZhidiH2v1oh>
+
+## ASSISTANT:
+
+Perfect! The async subprocess function looks good. Now let me create a test to verify the functionality works. But first, let me add one more test to the existing test file to verify the new callback functionality:
+
+## TOOL USE:
+
+Name: str-replace
+ID: toolu_01VuU5NUXpUcfBuuUhBqr9SJ
+
+### file_path
+
+<tool.toolu_01VuU5NUXpUcfBuuUhBqr9SJ>
+test-greger-tools.el
+</tool.toolu_01VuU5NUXpUcfBuuUhBqr9SJ>
+
+### original_content
+
+<tool.toolu_01VuU5NUXpUcfBuuUhBqr9SJ>
+;; Clean up
+  (remhash "test-normal-callback" greger-tools-registry)
+  (remhash "test-pass-callback" greger-tools-registry)
+  (remhash "test-callback-with-buffer" greger-tools-registry))
+
+;;; test-greger-tools.el ends here
+</tool.toolu_01VuU5NUXpUcfBuuUhBqr9SJ>
+
+### new_content
+
+<tool.toolu_01VuU5NUXpUcfBuuUhBqr9SJ>
+;; Clean up
+  (remhash "test-normal-callback" greger-tools-registry)
+  (remhash "test-pass-callback" greger-tools-registry)
+  (remhash "test-callback-with-buffer" greger-tools-registry))
+
+(ert-deftest greger-tools-test-async-subprocess-utility ()
+  "Test the shared async subprocess utility function."
+  (let ((result nil)
+        (error nil)
+        (callback-called nil))
+
+    ;; Test a simple command that should succeed
+    (greger-tools--run-async-subprocess
+     "echo" '("hello world") nil
+     (lambda (output err)
+       (setq result output error err callback-called t)))
+
+    ;; Wait a bit for the async process to complete
+    (sit-for 0.5)
+
+    (should callback-called)
+    (should (string-match "hello world" result))
+    (should (null error))))
+
+;;; test-greger-tools.el ends here
+</tool.toolu_01VuU5NUXpUcfBuuUhBqr9SJ>
+
+### git_commit_message
+
+<tool.toolu_01VuU5NUXpUcfBuuUhBqr9SJ>
+Add test for async subprocess utility function
+</tool.toolu_01VuU5NUXpUcfBuuUhBqr9SJ>
+
+<!-- TOOL_RESULT_PLACEHOLDER_toolu_01VuU5NUXpUcfBuuUhBqr9SJ -->
