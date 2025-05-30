@@ -427,6 +427,13 @@ Returns nil when content is inserted, or the content string when it should be ap
     (when (and content (not (string-empty-p (string-trim content))))
       (string-trim content))))
 
+(defun greger-parser--parse-section-content-with-metadata (state)
+  "Parse content until next section, extracting metadata like safe-shell-commands.
+Returns a plist with :content and metadata keys like :safe-shell-commands."
+  (greger-parser--skip-whitespace state)
+  (let ((result (greger-parser--read-until-section-with-metadata-extraction state)))
+    result))
+
 ;; High-level parsing
 
 (defun greger-parser--parse-document (state)

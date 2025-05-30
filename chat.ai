@@ -3115,4 +3115,63 @@ Returns either a system message or metadata if safe-shell-commands are found."
 Update system section parser to handle safe-shell-commands metadata
 </tool.toolu_019xMhNVBSNLWKzpgvusb7Ag>
 
-<!-- TOOL_RESULT_PLACEHOLDER_toolu_019xMhNVBSNLWKzpgvusb7Ag -->
+## TOOL RESULT:
+
+ID: toolu_019xMhNVBSNLWKzpgvusb7Ag
+
+<tool.toolu_019xMhNVBSNLWKzpgvusb7Ag>
+Successfully replaced content in /Users/andreas/projects/aichat3/greger-parser.el. Successfully staged 2 file(s) and committed with message: Update system section parser to handle safe-shell-commands metadata
+</tool.toolu_019xMhNVBSNLWKzpgvusb7Ag>
+
+
+## ASSISTANT:
+
+Now let's add the function to parse section content with metadata extraction:
+
+## TOOL USE:
+
+Name: str-replace
+ID: toolu_017FzZzPqbuDcBXw6pW9Gpcp
+
+### file_path
+
+<tool.toolu_017FzZzPqbuDcBXw6pW9Gpcp>
+greger-parser.el
+</tool.toolu_017FzZzPqbuDcBXw6pW9Gpcp>
+
+### original_content
+
+<tool.toolu_017FzZzPqbuDcBXw6pW9Gpcp>
+(defun greger-parser--parse-section-content (state)
+  "Parse content until next section, skipping HTML comments in STATE."
+  (greger-parser--skip-whitespace state)
+  (let ((content (greger-parser--read-until-section-with-comment-removal state)))
+    (when (and content (not (string-empty-p (string-trim content))))
+      (string-trim content))))
+</tool.toolu_017FzZzPqbuDcBXw6pW9Gpcp>
+
+### new_content
+
+<tool.toolu_017FzZzPqbuDcBXw6pW9Gpcp>
+(defun greger-parser--parse-section-content (state)
+  "Parse content until next section, skipping HTML comments in STATE."
+  (greger-parser--skip-whitespace state)
+  (let ((content (greger-parser--read-until-section-with-comment-removal state)))
+    (when (and content (not (string-empty-p (string-trim content))))
+      (string-trim content))))
+
+(defun greger-parser--parse-section-content-with-metadata (state)
+  "Parse content until next section, extracting metadata like safe-shell-commands.
+Returns a plist with :content and metadata keys like :safe-shell-commands."
+  (greger-parser--skip-whitespace state)
+  (let ((result (greger-parser--read-until-section-with-metadata-extraction state)))
+    result))
+</tool.toolu_017FzZzPqbuDcBXw6pW9Gpcp>
+
+### git_commit_message
+
+<tool.toolu_017FzZzPqbuDcBXw6pW9Gpcp>
+Add function to parse section content with metadata extraction
+</tool.toolu_017FzZzPqbuDcBXw6pW9Gpcp>
+
+<!-- TOOL_RESULT_PLACEHOLDER_toolu_017FzZzPqbuDcBXw6pW9Gpcp -->
