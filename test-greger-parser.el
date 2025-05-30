@@ -759,14 +759,14 @@ This is a complex problem."
 (ert-deftest greger-parser-test-edge-cases ()
   "Test edge cases like empty content, whitespace handling."
   ;; Empty content
-  (should (equal '() (greger-parser-parse-dialog "")))
-  (should (equal '() (greger-parser-parse-dialog "\n\n  ")))
+  (should (equal '() (greger-parser-parse-dialog-messages-only "")))
+  (should (equal '() (greger-parser-parse-dialog-messages-only "\n\n  ")))
 
   ;; Only whitespace in sections - should return empty list
-  (should (equal '() (greger-parser-parse-dialog "## USER:\n\n\n\n")))
+  (should (equal '() (greger-parser-parse-dialog-messages-only "## USER:\n\n\n\n")))
 
   ;; Multiple consecutive newlines
-  (let ((result (greger-parser-parse-dialog "## USER:\n\n\n\nHello\n\n\n\n## ASSISTANT:\n\n\n\nHi")))
+  (let ((result (greger-parser-parse-dialog-messages-only "## USER:\n\n\n\nHello\n\n\n\n## ASSISTANT:\n\n\n\nHi")))
     (should (= 2 (length result)))
     (should (string= "Hello" (alist-get 'content (car result))))
     (should (string= "Hi" (alist-get 'content (cadr result))))))

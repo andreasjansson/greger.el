@@ -5298,4 +5298,60 @@ test-greger-parser.el
 Update thinking test
 </tool.toolu_01XtUdGzpfSGJ9p44RhzJef7>
 
-<!-- TOOL_RESULT_PLACEHOLDER_toolu_01XtUdGzpfSGJ9p44RhzJef7 -->
+## TOOL RESULT:
+
+ID: toolu_01XtUdGzpfSGJ9p44RhzJef7
+
+<tool.toolu_01XtUdGzpfSGJ9p44RhzJef7>
+Successfully replaced content in /Users/andreas/projects/aichat3/test-greger-parser.el. Successfully staged 2 file(s) and committed with message: Update thinking test
+</tool.toolu_01XtUdGzpfSGJ9p44RhzJef7>
+
+
+## ASSISTANT:
+
+Let me replace the empty dialog tests:
+
+## TOOL USE:
+
+Name: str-replace
+ID: toolu_01CPPJuHCW2bwJ6JLVPeFd9F
+
+### file_path
+
+<tool.toolu_01CPPJuHCW2bwJ6JLVPeFd9F>
+test-greger-parser.el
+</tool.toolu_01CPPJuHCW2bwJ6JLVPeFd9F>
+
+### original_content
+
+<tool.toolu_01CPPJuHCW2bwJ6JLVPeFd9F>
+(should (equal '() (greger-parser-parse-dialog "")))
+  (should (equal '() (greger-parser-parse-dialog "\n\n  ")))
+
+  ;; Only whitespace in sections - should return empty list
+  (should (equal '() (greger-parser-parse-dialog "## USER:\n\n\n\n")))
+
+  ;; Multiple consecutive newlines
+  (let ((result (greger-parser-parse-dialog "## USER:\n\n\n\nHello\n\n\n\n## ASSISTANT:\n\n\n\nHi")))
+</tool.toolu_01CPPJuHCW2bwJ6JLVPeFd9F>
+
+### new_content
+
+<tool.toolu_01CPPJuHCW2bwJ6JLVPeFd9F>
+(should (equal '() (greger-parser-parse-dialog-messages-only "")))
+  (should (equal '() (greger-parser-parse-dialog-messages-only "\n\n  ")))
+
+  ;; Only whitespace in sections - should return empty list
+  (should (equal '() (greger-parser-parse-dialog-messages-only "## USER:\n\n\n\n")))
+
+  ;; Multiple consecutive newlines
+  (let ((result (greger-parser-parse-dialog-messages-only "## USER:\n\n\n\nHello\n\n\n\n## ASSISTANT:\n\n\n\nHi")))
+</tool.toolu_01CPPJuHCW2bwJ6JLVPeFd9F>
+
+### git_commit_message
+
+<tool.toolu_01CPPJuHCW2bwJ6JLVPeFd9F>
+Update edge case tests
+</tool.toolu_01CPPJuHCW2bwJ6JLVPeFd9F>
+
+<!-- TOOL_RESULT_PLACEHOLDER_toolu_01CPPJuHCW2bwJ6JLVPeFd9F -->
