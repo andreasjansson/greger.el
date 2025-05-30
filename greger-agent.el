@@ -52,7 +52,8 @@
     (let ((agent-state (make-greger-agent-state
                         :current-iteration 0
                         :chat-buffer (current-buffer)
-                        :directory default-directory)))
+                        :directory default-directory
+                        :metadata metadata)))
 
       (greger-agent--debug "--- DIALOG --- %s" dialog)
       (greger-agent--debug "=== STARTING AGENT SESSION ===")
