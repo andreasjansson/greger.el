@@ -1346,6 +1346,111 @@ Error handling test"))
       (let ((generated-markdown (greger-parser-dialog-to-markdown parsed)))
         (should (string= expected generated-markdown))))))
 
+;; Tests for safe-shell-commands metadata
+(ert-deftest greger-parser-test-safe-shell-commands-basic ()
+  "Test basic safe-shell-commands parsing."
+  (let ((markdown "## SYSTEM:
+
+<safe-shell-commands>
+ls -la
+pwd
+echo hello
+</safe-shell-commands>")
+        (expected-metadata '(:safe-shell-commands ("ls -la" "pwd" "echo hello"))))
+    (let ((result (greger-parser-parse-dialog markdown)))
+      (should (equal '() (plist-get result :messages)))
+      (should (equal expected-metadata (plist-get result :metadata))))))
+
+(ert-deftest greger-parser-test-safe-shell-commands-with-system-content ()
+  "Test safe-shell-commands with other system content."
+  (let ((markdown "## SYSTEM:
+
+You are a helpful assistant.
+
+<safe-shell-commands>
+ls
+pwd
+</safe-shell-commands>
+
+Please be careful."))
+    (let ((result (greger-parser-parse-dialog markdown)))
+      ;; Should have a system message since there's other content
+      (should (= 1 (length (plist-get result :messages))))
+      (should (string= "system" (alist-get 'role (car (plist-get result :messages)))))
+      ;; But no metadata since safe-shell-commands was mixed with content
+      (should (equal '() (plist-get result :metadata))))))
+
+(ert-deftest greger-parser-test-safe-shell-commands-only-once ()
+  "Test that only one safe-shell-commands block is allowed."
+  (let ((markdown "## SYSTEM:
+
+<safe-shell-commands>
+ls
+pwd
+</safe-shell-commands>
+
+<safe-shell-commands>
+echo hello
+</safe-shell-commands>"))
+    (let ((result (greger-parser-parse-dialog markdown)))
+      ;; Should extract the first one found
+      (should (equal '(:safe-shell-commands ("ls" "pwd")) (plist-get result :metadata))))))
+
+(ert-deftest greger-parser-test-safe-shell-commands-empty-lines ()
+  "Test safe-shell-commands with empty lines and whitespace."
+  (let ((markdown "## SYSTEM:
+
+<safe-shell-commands>
+
+ls -la
+
+pwd
+
+echo hello
+
+</safe-shell-commands>"))
+    (let ((result (greger-parser-parse-dialog markdown)))
+      (should (equal '(:safe-shell-commands ("ls -la" "pwd" "echo hello"))
+                     (plist-get result :metadata))))))
+
+(ert-deftest greger-parser-test-safe-shell-commands-not-in-system ()
+  "Test that safe-shell-commands outside SYSTEM section are ignored."
+  (let ((markdown "## USER:
+
+<safe-shell-commands>
+ls -la
+</safe-shell-commands>
+
+What files are here?"))
+    (let ((result (greger-parser-parse-dialog markdown)))
+      ;; Should have no metadata
+      (should (equal '() (plist-get result :metadata)))
+      ;; Should have user message with the tag as regular content
+      (should (= 1 (length (plist-get result :messages))))
+      (should (string-match-p "<safe-shell-commands>"
+                             (alist-get 'content (car (plist-get result :messages))))))))
+
+(ert-deftest greger-parser-test-safe-shell-commands-in-code-block ()
+  "Test that safe-shell-commands inside code blocks are not processed."
+  (let ((markdown "## SYSTEM:
+
+Here's an example:
+
+```
+<safe-shell-commands>
+ls -la
+</safe-shell-commands>
+```
+
+Don't process that."))
+    (let ((result (greger-parser-parse-dialog markdown)))
+      ;; Should have no metadata
+      (should (equal '() (plist-get result :metadata)))
+      ;; Should have system message with code block
+      (should (= 1 (length (plist-get result :messages))))
+      (should (string-match-p "<safe-shell-commands>"
+                             (alist-get 'content (car (plist-get result :messages))))))))
+
 (provide 'test-greger-parser)
 
 ;;; test-greger-parser.el ends here

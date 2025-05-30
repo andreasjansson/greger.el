@@ -5482,4 +5482,239 @@ test-greger-parser.el
 Update complex test
 </tool.toolu_01R1Y5JEPHeFXkbjW3GenfxA>
 
-<!-- TOOL_RESULT_PLACEHOLDER_toolu_01R1Y5JEPHeFXkbjW3GenfxA -->
+## TOOL RESULT:
+
+ID: toolu_01R1Y5JEPHeFXkbjW3GenfxA
+
+<tool.toolu_01R1Y5JEPHeFXkbjW3GenfxA>
+Successfully replaced content in /Users/andreas/projects/aichat3/test-greger-parser.el. Successfully staged 2 file(s) and committed with message: Update complex test
+</tool.toolu_01R1Y5JEPHeFXkbjW3GenfxA>
+
+
+## ASSISTANT:
+
+Let me just do a bulk replacement for the rest:
+
+## TOOL USE:
+
+Name: shell-command
+ID: toolu_01EsQh6gM5Ac95KFvwATUKXg
+
+### command
+
+<tool.toolu_01EsQh6gM5Ac95KFvwATUKXg>
+cd /Users/andreas/projects/aichat3 && sed -i '' 's/greger-parser-parse-dialog markdown/greger-parser-parse-dialog-messages-only markdown/g' test-greger-parser.el
+</tool.toolu_01EsQh6gM5Ac95KFvwATUKXg>
+
+## TOOL RESULT:
+
+ID: toolu_01EsQh6gM5Ac95KFvwATUKXg
+
+<tool.toolu_01EsQh6gM5Ac95KFvwATUKXg>
+Command executed successfully:
+(no output)
+</tool.toolu_01EsQh6gM5Ac95KFvwATUKXg>
+
+## TOOL USE:
+
+Name: shell-command
+ID: toolu_01LxQfk8MFSVEprZYEtBLsGY
+
+### command
+
+<tool.toolu_01LxQfk8MFSVEprZYEtBLsGY>
+cd /Users/andreas/projects/aichat3 && git add test-greger-parser.el && git commit -m "Bulk update remaining test calls to use compatibility function"
+</tool.toolu_01LxQfk8MFSVEprZYEtBLsGY>
+
+## TOOL RESULT:
+
+ID: toolu_01LxQfk8MFSVEprZYEtBLsGY
+
+<tool.toolu_01LxQfk8MFSVEprZYEtBLsGY>
+Command executed successfully:
+[safe-shell-commands 246f61d] Bulk update remaining test calls to use compatibility function
+ 1 file changed, 17 insertions(+), 17 deletions(-)
+
+</tool.toolu_01LxQfk8MFSVEprZYEtBLsGY>
+
+## ASSISTANT:
+
+Now let me add the specific tests for safe-shell-commands:
+
+## TOOL USE:
+
+Name: str-replace
+ID: toolu_01ThtYt9kcekECywB3wtHHDd
+
+### file_path
+
+<tool.toolu_01ThtYt9kcekECywB3wtHHDd>
+test-greger-parser.el
+</tool.toolu_01ThtYt9kcekECywB3wtHHDd>
+
+### original_content
+
+<tool.toolu_01ThtYt9kcekECywB3wtHHDd>
+(ert-deftest greger-parser-test-include-tag-invalid-url ()
+  "Test include tag with invalid web URL."
+  (let ((markdown "## USER:
+
+This should fail:
+
+<include>https://invalid-url-that-does-not-exist-12345.com</include>
+
+Error handling test")
+        (expected "## USER:
+
+This should fail:
+
+[Error reading URL: https://invalid-url-that-does-not-exist-12345.com]
+
+Error handling test"))
+    (let ((parsed (greger-parser-parse-dialog-messages-only markdown)))
+      (should (= 1 (length parsed)))
+      (let ((generated-markdown (greger-parser-dialog-to-markdown parsed)))
+        (should (string= expected generated-markdown))))))
+
+(provide 'test-greger-parser)
+</tool.toolu_01ThtYt9kcekECywB3wtHHDd>
+
+### new_content
+
+<tool.toolu_01ThtYt9kcekECywB3wtHHDd>
+(ert-deftest greger-parser-test-include-tag-invalid-url ()
+  "Test include tag with invalid web URL."
+  (let ((markdown "## USER:
+
+This should fail:
+
+<include>https://invalid-url-that-does-not-exist-12345.com</include>
+
+Error handling test")
+        (expected "## USER:
+
+This should fail:
+
+[Error reading URL: https://invalid-url-that-does-not-exist-12345.com]
+
+Error handling test"))
+    (let ((parsed (greger-parser-parse-dialog-messages-only markdown)))
+      (should (= 1 (length parsed)))
+      (let ((generated-markdown (greger-parser-dialog-to-markdown parsed)))
+        (should (string= expected generated-markdown))))))
+
+;; Tests for safe-shell-commands metadata
+(ert-deftest greger-parser-test-safe-shell-commands-basic ()
+  "Test basic safe-shell-commands parsing."
+  (let ((markdown "## SYSTEM:
+
+<safe-shell-commands>
+ls -la
+pwd
+echo hello
+</safe-shell-commands>")
+        (expected-metadata '(:safe-shell-commands ("ls -la" "pwd" "echo hello"))))
+    (let ((result (greger-parser-parse-dialog markdown)))
+      (should (equal '() (plist-get result :messages)))
+      (should (equal expected-metadata (plist-get result :metadata))))))
+
+(ert-deftest greger-parser-test-safe-shell-commands-with-system-content ()
+  "Test safe-shell-commands with other system content."
+  (let ((markdown "## SYSTEM:
+
+You are a helpful assistant.
+
+<safe-shell-commands>
+ls
+pwd
+</safe-shell-commands>
+
+Please be careful."))
+    (let ((result (greger-parser-parse-dialog markdown)))
+      ;; Should have a system message since there's other content
+      (should (= 1 (length (plist-get result :messages))))
+      (should (string= "system" (alist-get 'role (car (plist-get result :messages)))))
+      ;; But no metadata since safe-shell-commands was mixed with content
+      (should (equal '() (plist-get result :metadata))))))
+
+(ert-deftest greger-parser-test-safe-shell-commands-only-once ()
+  "Test that only one safe-shell-commands block is allowed."
+  (let ((markdown "## SYSTEM:
+
+<safe-shell-commands>
+ls
+pwd
+</safe-shell-commands>
+
+<safe-shell-commands>
+echo hello
+</safe-shell-commands>"))
+    (let ((result (greger-parser-parse-dialog markdown)))
+      ;; Should extract the first one found
+      (should (equal '(:safe-shell-commands ("ls" "pwd")) (plist-get result :metadata))))))
+
+(ert-deftest greger-parser-test-safe-shell-commands-empty-lines ()
+  "Test safe-shell-commands with empty lines and whitespace."
+  (let ((markdown "## SYSTEM:
+
+<safe-shell-commands>
+
+ls -la
+
+pwd
+
+echo hello
+
+</safe-shell-commands>"))
+    (let ((result (greger-parser-parse-dialog markdown)))
+      (should (equal '(:safe-shell-commands ("ls -la" "pwd" "echo hello"))
+                     (plist-get result :metadata))))))
+
+(ert-deftest greger-parser-test-safe-shell-commands-not-in-system ()
+  "Test that safe-shell-commands outside SYSTEM section are ignored."
+  (let ((markdown "## USER:
+
+<safe-shell-commands>
+ls -la
+</safe-shell-commands>
+
+What files are here?"))
+    (let ((result (greger-parser-parse-dialog markdown)))
+      ;; Should have no metadata
+      (should (equal '() (plist-get result :metadata)))
+      ;; Should have user message with the tag as regular content
+      (should (= 1 (length (plist-get result :messages))))
+      (should (string-match-p "<safe-shell-commands>"
+                             (alist-get 'content (car (plist-get result :messages))))))))
+
+(ert-deftest greger-parser-test-safe-shell-commands-in-code-block ()
+  "Test that safe-shell-commands inside code blocks are not processed."
+  (let ((markdown "## SYSTEM:
+
+Here's an example:
+
+```
+<safe-shell-commands>
+ls -la
+</safe-shell-commands>
+```
+
+Don't process that."))
+    (let ((result (greger-parser-parse-dialog markdown)))
+      ;; Should have no metadata
+      (should (equal '() (plist-get result :metadata)))
+      ;; Should have system message with code block
+      (should (= 1 (length (plist-get result :messages))))
+      (should (string-match-p "<safe-shell-commands>"
+                             (alist-get 'content (car (plist-get result :messages))))))))
+
+(provide 'test-greger-parser)
+</tool.toolu_01ThtYt9kcekECywB3wtHHDd>
+
+### git_commit_message
+
+<tool.toolu_01ThtYt9kcekECywB3wtHHDd>
+Add comprehensive tests for safe-shell-commands metadata parsing
+</tool.toolu_01ThtYt9kcekECywB3wtHHDd>
+
+<!-- TOOL_RESULT_PLACEHOLDER_toolu_01ThtYt9kcekECywB3wtHHDd -->
