@@ -134,7 +134,7 @@ Tool executed: Hello World
                           (id . "test_b")
                           (name . "test-tool-b")
                           (input . ((value . "input-b"))))))
-            ;; Expected content has all tool uses first, then all tool results
+            ;; Expected content has each tool use followed by its result
             (expected-content "
 
 ## TOOL USE:
@@ -148,6 +148,14 @@ ID: test_a
 input-a
 </tool.test_a>
 
+## TOOL RESULT:
+
+ID: test_a
+
+<tool.test_a>
+Tool A result: input-a
+</tool.test_a>
+
 ## TOOL USE:
 
 Name: test-tool-b
@@ -158,14 +166,6 @@ ID: test_b
 <tool.test_b>
 input-b
 </tool.test_b>
-
-## TOOL RESULT:
-
-ID: test_a
-
-<tool.test_a>
-Tool A result: input-a
-</tool.test_a>
 
 ## TOOL RESULT:
 

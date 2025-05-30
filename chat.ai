@@ -5326,4 +5326,124 @@ greger-agent.el
 Fix tool execution to display each tool use followed by its placeholder instead of grouping all tool uses together
 </tool.toolu_01Y9HbiLb5qf8nK3rRjMeN3G>
 
-<!-- TOOL_RESULT_PLACEHOLDER_toolu_01Y9HbiLb5qf8nK3rRjMeN3G -->
+## TOOL RESULT:
+
+ID: toolu_01Y9HbiLb5qf8nK3rRjMeN3G
+
+<tool.toolu_01Y9HbiLb5qf8nK3rRjMeN3G>
+Successfully replaced content in /Users/andreas/projects/aichat3/greger-agent.el. Successfully staged 2 file(s) and committed with message: Fix tool execution to display each tool use followed by its placeholder instead of grouping all tool uses together
+</tool.toolu_01Y9HbiLb5qf8nK3rRjMeN3G>
+
+
+## ASSISTANT:
+
+Now I need to update the test expectations back to the correct format where each tool use is followed by its tool result:
+
+## TOOL USE:
+
+Name: str-replace
+ID: toolu_01Xu5q1a68afMevsA4LW6YVQ
+
+### file_path
+
+<tool.toolu_01Xu5q1a68afMevsA4LW6YVQ>
+test-greger-agent.el
+</tool.toolu_01Xu5q1a68afMevsA4LW6YVQ>
+
+### original_content
+
+<tool.toolu_01Xu5q1a68afMevsA4LW6YVQ>
+;; Expected content has all tool uses first, then all tool results
+            (expected-content "
+
+## TOOL USE:
+
+Name: test-tool-a
+ID: test_a
+
+### value
+
+<tool.test_a>
+input-a
+</tool.test_a>
+
+## TOOL USE:
+
+Name: test-tool-b
+ID: test_b
+
+### value
+
+<tool.test_b>
+input-b
+</tool.test_b>
+
+## TOOL RESULT:
+
+ID: test_a
+
+<tool.test_a>
+Tool A result: input-a
+</tool.test_a>
+
+## TOOL RESULT:
+
+ID: test_b
+
+<tool.test_b>
+Tool B result: input-b
+</tool.test_b>")
+</tool.toolu_01Xu5q1a68afMevsA4LW6YVQ>
+
+### new_content
+
+<tool.toolu_01Xu5q1a68afMevsA4LW6YVQ>
+;; Expected content has each tool use followed by its result
+            (expected-content "
+
+## TOOL USE:
+
+Name: test-tool-a
+ID: test_a
+
+### value
+
+<tool.test_a>
+input-a
+</tool.test_a>
+
+## TOOL RESULT:
+
+ID: test_a
+
+<tool.test_a>
+Tool A result: input-a
+</tool.test_a>
+
+## TOOL USE:
+
+Name: test-tool-b
+ID: test_b
+
+### value
+
+<tool.test_b>
+input-b
+</tool.test_b>
+
+## TOOL RESULT:
+
+ID: test_b
+
+<tool.test_b>
+Tool B result: input-b
+</tool.test_b>")
+</tool.toolu_01Xu5q1a68afMevsA4LW6YVQ>
+
+### git_commit_message
+
+<tool.toolu_01Xu5q1a68afMevsA4LW6YVQ>
+Update multiple tools test to expect correct format: each tool use followed by its result
+</tool.toolu_01Xu5q1a68afMevsA4LW6YVQ>
+
+<!-- TOOL_RESULT_PLACEHOLDER_toolu_01Xu5q1a68afMevsA4LW6YVQ -->
