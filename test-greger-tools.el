@@ -331,4 +331,59 @@
   (remhash "test-no-buffer" greger-tools-registry)
   (remhash "test-with-buffer" greger-tools-registry))
 
+(ert-deftest greger-tools-test-pass-callback-functionality ()
+  "Test that tools can receive and use callback parameter when :pass-callback is set."
+  ;; Define a test function that accepts a callback parameter and calls it asynchronously
+  (defun greger-test-callback-param (message callback)
+    "Test function that accepts and uses a callback parameter."
+    ;; Simulate some processing, then call the callback
+    (let ((result (format "processed: %s" message)))
+      (funcall callback result nil)))
+
+  ;; Define a test function that doesn't use callback
+  (defun greger-test-no-callback-param (message)
+    "Test function that returns a result normally."
+    (format "result: %s" message))
+
+  ;; Register tool without :pass-callback (normal behavior)
+  (greger-register-tool "test-normal-callback"
+    :description "Test tool with normal callback handling"
+    :properties '((message . ((type . "string")
+                              (description . "Test message"))))
+    :required '("message")
+    :function 'greger-test-no-callback-param)
+
+  ;; Register tool with :pass-callback set to 'callback
+  (greger-register-tool "test-pass-callback"
+    :description "Test tool with callback parameter passing"
+    :properties '((message . ((type . "string")
+                              (description . "Test message"))))
+    :required '("message")
+    :function 'greger-test-callback-param
+    :pass-callback callback)
+
+  ;; Test normal tool - greger-tools-execute calls callback with result
+  (let ((result nil)
+        (error nil))
+    (greger-tools-execute "test-normal-callback"
+                          '((message . "hello"))
+                          (lambda (r e) (setq result r error e))
+                          nil)
+    (should (string= "result: hello" result))
+    (should (null error)))
+
+  ;; Test tool with :pass-callback - function calls callback directly
+  (let ((result nil)
+        (error nil))
+    (greger-tools-execute "test-pass-callback"
+                          '((message . "world"))
+                          (lambda (r e) (setq result r error e))
+                          nil)
+    (should (string= "processed: world" result))
+    (should (null error)))
+
+  ;; Clean up
+  (remhash "test-normal-callback" greger-tools-registry)
+  (remhash "test-pass-callback" greger-tools-registry))
+
 ;;; test-greger-tools.el ends here
