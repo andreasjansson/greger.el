@@ -1028,7 +1028,7 @@ Prompts for permission before running the command for security."
                      (funcall callback nil error)
                    (funcall callback
                            (format "Command executed successfully:\n%s" output)
-                           nil))))))))))))))))
+                           nil))))))))))))))
 
 (defun greger-tools--read-webpage (url &optional extract-text use-highest-readability)
   "Read webpage content from URL.
