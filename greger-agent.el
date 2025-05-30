@@ -41,7 +41,9 @@
   "Send buffer content to AI as an agent dialog with tool support."
   (interactive)
   (let* ((buffer-content (buffer-substring-no-properties (point-min) (point-max)))
-         (dialog (greger-parser-parse-dialog buffer-content)))
+         (parse-result (greger-parser-parse-dialog buffer-content))
+         (dialog (plist-get parse-result :messages))
+         (metadata (plist-get parse-result :metadata)))
     (unless dialog
       (error "Failed to parse dialog. Did you forget to close a html tag?"))
 

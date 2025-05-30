@@ -3501,4 +3501,249 @@ greger-parser.el
 Add function to process safe-shell-commands tags
 </tool.toolu_01HPYKoBJnC4C7Z8BRh64Ryr>
 
-<!-- TOOL_RESULT_PLACEHOLDER_toolu_01HPYKoBJnC4C7Z8BRh64Ryr -->
+## TOOL RESULT:
+
+ID: toolu_01HPYKoBJnC4C7Z8BRh64Ryr
+
+<tool.toolu_01HPYKoBJnC4C7Z8BRh64Ryr>
+Successfully replaced content in /Users/andreas/projects/aichat3/greger-parser.el. Successfully staged 2 file(s) and committed with message: Add function to process safe-shell-commands tags
+</tool.toolu_01HPYKoBJnC4C7Z8BRh64Ryr>
+
+
+## ASSISTANT:
+
+Now we need to update all the callers of `greger-parser-parse-dialog` to handle the new return format. Let me check what calls this function:
+
+## TOOL USE:
+
+Name: ripgrep
+ID: toolu_01Nc8K4aQohLtjqXCXeMiEqF
+
+### pattern
+
+<tool.toolu_01Nc8K4aQohLtjqXCXeMiEqF>
+greger-parser-parse-dialog
+</tool.toolu_01Nc8K4aQohLtjqXCXeMiEqF>
+
+### file-type
+
+<tool.toolu_01Nc8K4aQohLtjqXCXeMiEqF>
+el
+</tool.toolu_01Nc8K4aQohLtjqXCXeMiEqF>
+
+## TOOL RESULT:
+
+ID: toolu_01Nc8K4aQohLtjqXCXeMiEqF
+
+<tool.toolu_01Nc8K4aQohLtjqXCXeMiEqF>
+/Users/andreas/projects/aichat3/greger-agent.el:44:         (dialog (greger-parser-parse-dialog buffer-content)))
+/Users/andreas/projects/aichat3/greger-agent.el:71:         (current-dialog (greger-parser-parse-dialog buffer-content))
+/Users/andreas/projects/aichat3/greger.el:245:         (dialog (greger-parser-parse-dialog buffer-content))
+/Users/andreas/projects/aichat3/test-greger-parser.el:662:      (let ((actual-dialog (greger-parser-parse-dialog markdown)))
+/Users/andreas/projects/aichat3/test-greger-parser.el:671:      (let* ((dialog (greger-parser-parse-dialog original-markdown))
+/Users/andreas/projects/aichat3/test-greger-parser.el:673:             (roundtrip-dialog (greger-parser-parse-dialog roundtrip-markdown)))
+/Users/andreas/projects/aichat3/test-greger-parser.el:697:    (let ((parsed (greger-parser-parse-dialog tool-use-markdown)))
+/Users/andreas/projects/aichat3/test-greger-parser.el:720:    (let ((parsed (greger-parser-parse-dialog tool-result-markdown)))
+/Users/andreas/projects/aichat3/test-greger-parser.el:738:    (let ((parsed (greger-parser-parse-dialog thinking-markdown)))
+/Users/andreas/projects/aichat3/test-greger-parser.el:753:              (progn (greger-parser-parse-dialog "## TOOL USE:\n\nMalformed") t)
+/Users/andreas/projects/aichat3/test-greger-parser.el:756:              (progn (greger-parser-parse-dialog "## TOOL RESULT:\n\nMalformed") t)
+/Users/andreas/projects/aichat3/test-greger-parser.el:762:  (should (equal '() (greger-parser-parse-dialog "")))
+/Users/andreas/projects/aichat3/test-greger-parser.el:763:  (should (equal '() (greger-parser-parse-dialog "\n\n  ")))
+/Users/andreas/projects/aichat3/test-greger-parser.el:766:  (should (equal '() (greger-parser-parse-dialog "## USER:\n\n\n\n")))
+/Users/andreas/projects/aichat3/test-greger-parser.el:769:  (let ((result (greger-parser-parse-dialog "## USER:\n\n\n\nHello\n\n\n\n## ASSISTANT:\n\n\n\nHi")))
+/Users/andreas/projects/aichat3/test-greger-parser.el:783:      (greger-parser-parse-dialog large-markdown)
+/Users/andreas/projects/aichat3/test-greger-parser.el:812:    (let ((parsed (greger-parser-parse-dialog complex-markdown)))
+/Users/andreas/projects/aichat3/test-greger-parser.el:852:    (let ((parsed (greger-parser-parse-dialog markdown)))
+/Users/andreas/projects/aichat3/test-greger-parser.el:889:    (let ((parsed (greger-parser-parse-dialog markdown)))
+/Users/andreas/projects/aichat3/test-greger-parser.el:918:    (let ((parsed (greger-parser-parse-dialog markdown)))
+/Users/andreas/projects/aichat3/test-greger-parser.el:938:    (let ((parsed (greger-parser-parse-dialog markdown)))
+/Users/andreas/projects/aichat3/test-greger-parser.el:959:    (let ((parsed (greger-parser-parse-dialog markdown)))
+/Users/andreas/projects/aichat3/test-greger-parser.el:994:          (let ((parsed (greger-parser-parse-dialog markdown)))
+/Users/andreas/projects/aichat3/test-greger-parser.el:1028:          (let ((parsed (greger-parser-parse-dialog markdown)))
+/Users/andreas/projects/aichat3/test-greger-parser.el:1047:    (let ((parsed (greger-parser-parse-dialog markdown)))
+/Users/andreas/projects/aichat3/test-greger-parser.el:1078:          (let ((parsed (greger-parser-parse-dialog markdown)))
+/Users/andreas/projects/aichat3/test-greger-parser.el:1114:          (let ((parsed (greger-parser-parse-dialog markdown)))
+/Users/andreas/projects/aichat3/test-greger-parser.el:1154:          (let ((parsed (greger-parser-parse-dialog markdown)))
+/Users/andreas/projects/aichat3/test-greger-parser.el:1180:          (let ((parsed (greger-parser-parse-dialog markdown)))
+/Users/andreas/projects/aichat3/test-greger-parser.el:1215:          (let ((parsed (greger-parser-parse-dialog markdown)))
+/Users/andreas/projects/aichat3/test-greger-parser.el:1241:          (let ((parsed (greger-parser-parse-dialog markdown)))
+/Users/andreas/projects/aichat3/test-greger-parser.el:1277:          (let ((parsed (greger-parser-parse-dialog markdown)))
+/Users/andreas/projects/aichat3/test-greger-parser.el:1302:    (let ((parsed (greger-parser-parse-dialog markdown)))
+/Users/andreas/projects/aichat3/test-greger-parser.el:1323:    (let ((parsed (greger-parser-parse-dialog markdown)))
+/Users/andreas/projects/aichat3/test-greger-parser.el:1344:    (let ((parsed (greger-parser-parse-dialog markdown)))
+/Users/andreas/projects/aichat3/greger-parser.el:44:(defun greger-parser-parse-dialog (markdown &optional debug)
+/Users/andreas/projects/aichat3/greger-parser.el:1018:(defun greger-parser-parse-dialog-debug (markdown)
+/Users/andreas/projects/aichat3/greger-parser.el:1020:  (greger-parser-parse-dialog markdown (or greger-parser--global-debug t)))
+/Users/andreas/projects/aichat3/chat.ai:141:(defun greger-parser-parse-dialog (markdown &optional debug)
+/Users/andreas/projects/aichat3/chat.ai:986:(defun greger-parser-parse-dialog-debug (markdown)
+/Users/andreas/projects/aichat3/chat.ai:988:  (greger-parser-parse-dialog markdown (or greger-parser--global-debug t)))
+/Users/andreas/projects/aichat3/chat.ai:1877:      (let ((actual-dialog (greger-parser-parse-dialog markdown)))
+/Users/andreas/projects/aichat3/chat.ai:1886:      (let* ((dialog (greger-parser-parse-dialog original-markdown))
+/Users/andreas/projects/aichat3/chat.ai:1888:             (roundtrip-dialog (greger-parser-parse-dialog roundtrip-markdown)))
+/Users/andreas/projects/aichat3/chat.ai:1912:    (let ((parsed (greger-parser-parse-dialog tool-use-markdown)))
+/Users/andreas/projects/aichat3/chat.ai:1935:    (let ((parsed (greger-parser-parse-dialog tool-result-markdown)))
+/Users/andreas/projects/aichat3/chat.ai:1953:    (let ((parsed (greger-parser-parse-dialog thinking-markdown)))
+/Users/andreas/projects/aichat3/chat.ai:1968:              (progn (greger-parser-parse-dialog "## TOOL USE:\n\nMalformed") t)
+/Users/andreas/projects/aichat3/chat.ai:1971:              (progn (greger-parser-parse-dialog "## TOOL RESULT:\n\nMalformed") t)
+/Users/andreas/projects/aichat3/chat.ai:1977:  (should (equal '() (greger-parser-parse-dialog "")))
+/Users/andreas/projects/aichat3/chat.ai:1978:  (should (equal '() (greger-parser-parse-dialog "\n\n  ")))
+/Users/andreas/projects/aichat3/chat.ai:1981:  (should (equal '() (greger-parser-parse-dialog "## USER:\n\n\n\n")))
+/Users/andreas/projects/aichat3/chat.ai:1984:  (let ((result (greger-parser-parse-dialog "## USER:\n\n\n\nHello\n\n\n\n## ASSISTANT:\n\n\n\nHi")))
+/Users/andreas/projects/aichat3/chat.ai:1998:      (greger-parser-parse-dialog large-markdown)
+/Users/andreas/projects/aichat3/chat.ai:2027:    (let ((parsed (greger-parser-parse-dialog complex-markdown)))
+/Users/andreas/projects/aichat3/chat.ai:2067:    (let ((parsed (greger-parser-parse-dialog markdown)))
+/Users/andreas/projects/aichat3/chat.ai:2104:    (let ((parsed (greger-parser-parse-dialog markdown)))
+/Users/andreas/projects/aichat3/chat.ai:2133:    (let ((parsed (greger-parser-parse-dialog markdown)))
+/Users/andreas/projects/aichat3/chat.ai:2153:    (let ((parsed (greger-parser-parse-dialog markdown)))
+/Users/andreas/projects/aichat3/chat.ai:2174:    (let ((parsed (greger-parser-parse-dialog markdown)))
+/Users/andreas/projects/aichat3/chat.ai:2209:          (let ((parsed (greger-parser-parse-dialog markdown)))
+/Users/andreas/projects/aichat3/chat.ai:2243:          (let ((parsed (greger-parser-parse-dialog markdown)))
+/Users/andreas/projects/aichat3/chat.ai:2262:    (let ((parsed (greger-parser-parse-dialog markdown)))
+/Users/andreas/projects/aichat3/chat.ai:2293:          (let ((parsed (greger-parser-parse-dialog markdown)))
+/Users/andreas/projects/aichat3/chat.ai:2329:          (let ((parsed (greger-parser-parse-dialog markdown)))
+/Users/andreas/projects/aichat3/chat.ai:2369:          (let ((parsed (greger-parser-parse-dialog markdown)))
+/Users/andreas/projects/aichat3/chat.ai:2395:          (let ((parsed (greger-parser-parse-dialog markdown)))
+/Users/andreas/projects/aichat3/chat.ai:2430:          (let ((parsed (greger-parser-parse-dialog markdown)))
+/Users/andreas/projects/aichat3/chat.ai:2456:          (let ((parsed (greger-parser-parse-dialog markdown)))
+/Users/andreas/projects/aichat3/chat.ai:2492:          (let ((parsed (greger-parser-parse-dialog markdown)))
+/Users/andreas/projects/aichat3/chat.ai:2517:    (let ((parsed (greger-parser-parse-dialog markdown)))
+/Users/andreas/projects/aichat3/chat.ai:2538:    (let ((parsed (greger-parser-parse-dialog markdown)))
+/Users/andreas/projects/aichat3/chat.ai:2559:    (let ((parsed (greger-parser-parse-dialog markdown)))
+/Users/andreas/projects/aichat3/chat.ai:2910:(defun greger-parser-parse-dialog (markdown &optional debug)
+/Users/andreas/projects/aichat3/chat.ai:2925:(defun greger-parser-parse-dialog (markdown &optional debug)
+/Users/andreas/projects/aichat3/chat.ai:2941:Update greger-parser-parse-dialog to return metadata structure
+/Users/andreas/projects/aichat3/chat.ai:2949:Successfully replaced content in /Users/andreas/projects/aichat3/greger-parser.el. Successfully staged 2 file(s) and committed with message: Update greger-parser-parse-dialog to return metadata structure
+/Users/andreas/projects/aichat3/chat3.ai:73: 40: (defun greger-parser-parse-dialog (markdown)
+/Users/andreas/projects/aichat3/chat3.ai:1576:58:   (should (equal '() (greger-parser-parse-dialog "")))
+/Users/andreas/projects/aichat3/chat3.ai:1577:59:   (should (equal '() (greger-parser-parse-dialog nil))))
+/Users/andreas/projects/aichat3/chat3.ai:1584:66:              (greger-parser-parse-dialog input)))))
+/Users/andreas/projects/aichat3/chat3.ai:1591:73:              (greger-parser-parse-dialog input)))))
+/Users/andreas/projects/aichat3/chat3.ai:1599:81:              (greger-parser-parse-dialog input)))))
+/Users/andreas/projects/aichat3/chat3.ai:1607:89:              (greger-parser-parse-dialog input)))))
+/Users/andreas/projects/aichat3/chat3.ai:1614:96:              (greger-parser-parse-dialog input)))))
+/Users/andreas/projects/aichat3/chat3.ai:1621:103:              (greger-parser-parse-dialog input)))))
+/Users/andreas/projects/aichat3/chat3.ai:1628:110:              (greger-parser-parse-dialog input)))))
+/Users/andreas/projects/aichat3/chat3.ai:1635:117:              (greger-parser-parse-dialog input)))))
+/Users/andreas/projects/aichat3/chat3.ai:1643:125:              (greger-parser-parse-dialog input)))))
+/Users/andreas/projects/aichat3/chat3.ai:1657:139:              (greger-parser-parse-dialog input)))))
+/Users/andreas/projects/aichat3/chat3.ai:1667:149:              (greger-parser-parse-dialog input)))))
+
+</tool.toolu_01Nc8K4aQohLtjqXCXeMiEqF>
+
+## ASSISTANT:
+
+I need to update the main usage points. Let me start with the greger-agent.el:
+
+## TOOL USE:
+
+Name: read-file
+ID: toolu_014FB3RSsHZB7v8qJt8QfyHY
+
+### path
+
+<tool.toolu_014FB3RSsHZB7v8qJt8QfyHY>
+greger-agent.el
+</tool.toolu_014FB3RSsHZB7v8qJt8QfyHY>
+
+### start_line
+
+<tool.toolu_014FB3RSsHZB7v8qJt8QfyHY>
+40
+</tool.toolu_014FB3RSsHZB7v8qJt8QfyHY>
+
+### end_line
+
+<tool.toolu_014FB3RSsHZB7v8qJt8QfyHY>
+80
+</tool.toolu_014FB3RSsHZB7v8qJt8QfyHY>
+
+## TOOL RESULT:
+
+ID: toolu_014FB3RSsHZB7v8qJt8QfyHY
+
+<tool.toolu_014FB3RSsHZB7v8qJt8QfyHY>
+(defun greger-agent-buffer ()
+  "Send buffer content to AI as an agent dialog with tool support."
+  (interactive)
+  (let* ((buffer-content (buffer-substring-no-properties (point-min) (point-max)))
+         (dialog (greger-parser-parse-dialog buffer-content)))
+    (unless dialog
+      (error "Failed to parse dialog. Did you forget to close a html tag?"))
+
+    (goto-char (point-max))
+
+    (let ((agent-state (make-greger-agent-state
+                        :current-iteration 0
+                        :chat-buffer (current-buffer)
+                        :directory default-directory)))
+
+      (greger-agent--debug "--- DIALOG --- %s" dialog)
+      (greger-agent--debug "=== STARTING AGENT SESSION ===")
+
+      (greger-agent--run-agent-loop agent-state))))
+
+(defun greger-agent--debug (format-string &rest args)
+  "Debug logging function."
+  (when greger-agent-debug
+    (message "[AGENT DEBUG] %s" (apply #'format format-string args))))
+
+(defun greger-agent--run-agent-loop (agent-state)
+  "Run the main agent loop with AGENT-STATE."
+  (let* ((tools (greger-tools-get-schemas greger-agent-tools))
+         (chat-buffer (greger-agent-state-chat-buffer agent-state))
+         (buffer-content (with-current-buffer chat-buffer
+                           (buffer-substring-no-properties (point-min) (point-max))))
+         (current-dialog (greger-parser-parse-dialog buffer-content))
+         (current-iteration (greger-agent-state-current-iteration agent-state)))
+
+    (greger-agent--debug "=== ITERATION %d ===" current-iteration)
+    (greger-agent--debug "Dialog length: %d messages" (length current-dialog))
+
+    ;; Check max iterations
+    (if (>= current-iteration greger-agent-max-iterations)
+        (progn
+          (greger-agent--debug "MAX ITERATIONS REACHED - STOPPING")
+</tool.toolu_014FB3RSsHZB7v8qJt8QfyHY>
+
+## ASSISTANT:
+
+I see the issue. Let me update greger-agent.el to handle the new format:
+
+## TOOL USE:
+
+Name: str-replace
+ID: toolu_01K55zquYQPFaVnBj4MqmAXF
+
+### file_path
+
+<tool.toolu_01K55zquYQPFaVnBj4MqmAXF>
+greger-agent.el
+</tool.toolu_01K55zquYQPFaVnBj4MqmAXF>
+
+### original_content
+
+<tool.toolu_01K55zquYQPFaVnBj4MqmAXF>
+  (let* ((buffer-content (buffer-substring-no-properties (point-min) (point-max)))
+         (dialog (greger-parser-parse-dialog buffer-content)))
+    (unless dialog
+      (error "Failed to parse dialog. Did you forget to close a html tag?"))
+</tool.toolu_01K55zquYQPFaVnBj4MqmAXF>
+
+### new_content
+
+<tool.toolu_01K55zquYQPFaVnBj4MqmAXF>
+  (let* ((buffer-content (buffer-substring-no-properties (point-min) (point-max)))
+         (parse-result (greger-parser-parse-dialog buffer-content))
+         (dialog (plist-get parse-result :messages))
+         (metadata (plist-get parse-result :metadata)))
+    (unless dialog
+      (error "Failed to parse dialog. Did you forget to close a html tag?"))
+</tool.toolu_01K55zquYQPFaVnBj4MqmAXF>
+
+### git_commit_message
+
+<tool.toolu_01K55zquYQPFaVnBj4MqmAXF>
+Update greger-agent-buffer to handle new parser format with metadata
+</tool.toolu_01K55zquYQPFaVnBj4MqmAXF>
+
+<!-- TOOL_RESULT_PLACEHOLDER_toolu_01K55zquYQPFaVnBj4MqmAXF -->
