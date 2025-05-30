@@ -69,4 +69,81 @@
   (should-not (greger-web-is-web-url-p "example.com"))
   (should-not (greger-web-is-web-url-p "")))
 
+(ert-deftest greger-test-shell-command-simple ()
+  "Test shell-command tool with a simple command."
+  (let ((result nil)
+        (error nil)
+        (callback-called nil))
+
+    ;; Mock the permission prompt to always return yes
+    (cl-letf (((symbol-function 'y-or-n-p) (lambda (prompt) t)))
+
+      ;; Execute a simple echo command
+      (greger-tools--shell-command
+       "echo hello world"
+       (lambda (output err)
+         (setq result output error err callback-called t)))
+
+      ;; Wait for async operation to complete
+      (let ((timeout 0))
+        (while (and (not callback-called) (< timeout 50))  ; 5 second timeout
+          (sit-for 0.1)
+          (setq timeout (1+ timeout))))
+
+      ;; Verify the results
+      (should callback-called)
+      (should (null error))
+      (should (stringp result))
+      (should (string-match "Command executed successfully" result))
+      (should (string-match "hello world" result)))))
+
+(ert-deftest greger-test-shell-command-with-pipe ()
+  "Test shell-command tool with a command containing a pipe."
+  (let ((result nil)
+        (error nil)
+        (callback-called nil))
+
+    ;; Mock the permission prompt to always return yes
+    (cl-letf (((symbol-function 'y-or-n-p) (lambda (prompt) t)))
+
+      ;; Execute a command with a pipe
+      (greger-tools--shell-command
+       "echo 'apple\nbanana\ncherry' | grep 'an'"
+       (lambda (output err)
+         (setq result output error err callback-called t)))
+
+      ;; Wait for async operation to complete
+      (let ((timeout 0))
+        (while (and (not callback-called) (< timeout 50))  ; 5 second timeout
+          (sit-for 0.1)
+          (setq timeout (1+ timeout))))
+
+      ;; Verify the results
+      (should callback-called)
+      (should (null error))
+      (should (stringp result))
+      (should (string-match "Command executed successfully" result))
+      (should (string-match "banana" result)))))
+
+(ert-deftest greger-test-shell-command-permission-denied ()
+  "Test shell-command tool when user denies permission."
+  (let ((result nil)
+        (error nil)
+        (callback-called nil))
+
+    ;; Mock the permission prompt to always return no
+    (cl-letf (((symbol-function 'y-or-n-p) (lambda (prompt) nil)))
+
+      ;; Try to execute a command
+      (greger-tools--shell-command
+       "echo test"
+       (lambda (output err)
+         (setq result output error err callback-called t)))
+
+      ;; Should call callback immediately with error
+      (should callback-called)
+      (should (null result))
+      (should (stringp error))
+      (should (string-match "cancelled by user" error)))))
+
 ;;; greger-test-stdlib.el ends here
