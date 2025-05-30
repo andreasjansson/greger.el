@@ -224,38 +224,55 @@
     :required '("required_param1" "required_param2")
     :function 'greger-test-required-params)
 
-  ;; Test that missing first required parameter throws error
-  (should-error
-   (greger-tools-execute "test-required"
-                         '((required_param2 . "value2")
-                           (optional_param . "optional")))
-   :type 'error)
+  ;; Test that missing first required parameter calls callback with error
+  (let ((result nil)
+        (error nil))
+    (greger-tools-execute "test-required"
+                          '((required_param2 . "value2")
+                            (optional_param . "optional"))
+                          (lambda (r e) (setq result r error e)) nil)
+    (should (null result))
+    (should error))
 
-  ;; Test that missing second required parameter throws error
-  (should-error
-   (greger-tools-execute "test-required"
-                         '((required_param1 . "value1")
-                           (optional_param . "optional")))
-   :type 'error)
+  ;; Test that missing second required parameter calls callback with error
+  (let ((result nil)
+        (error nil))
+    (greger-tools-execute "test-required"
+                          '((required_param1 . "value1")
+                            (optional_param . "optional"))
+                          (lambda (r e) (setq result r error e)) nil)
+    (should (null result))
+    (should error))
 
-  ;; Test that missing both required parameters throws error
-  (should-error
-   (greger-tools-execute "test-required"
-                         '((optional_param . "optional")))
-   :type 'error)
+  ;; Test that missing both required parameters calls callback with error
+  (let ((result nil)
+        (error nil))
+    (greger-tools-execute "test-required"
+                          '((optional_param . "optional"))
+                          (lambda (r e) (setq result r error e)) nil)
+    (should (null result))
+    (should error))
 
   ;; Test that providing all required parameters works (even without optional)
-  (let ((result (greger-tools-execute "test-required"
-                                      '((required_param1 . "value1")
-                                        (required_param2 . "value2")))))
-    (should (string= "req1: value1, req2: value2, opt: default" result)))
+  (let ((result nil)
+        (error nil))
+    (greger-tools-execute "test-required"
+                          '((required_param1 . "value1")
+                            (required_param2 . "value2"))
+                          (lambda (r e) (setq result r error e)) nil)
+    (should (string= "req1: value1, req2: value2, opt: default" result))
+    (should (null error)))
 
   ;; Test that providing all parameters works
-  (let ((result (greger-tools-execute "test-required"
-                                      '((required_param1 . "value1")
-                                        (required_param2 . "value2")
-                                        (optional_param . "provided")))))
-    (should (string= "req1: value1, req2: value2, opt: provided" result)))
+  (let ((result nil)
+        (error nil))
+    (greger-tools-execute "test-required"
+                          '((required_param1 . "value1")
+                            (required_param2 . "value2")
+                            (optional_param . "provided"))
+                          (lambda (r e) (setq result r error e)) nil)
+    (should (string= "req1: value1, req2: value2, opt: provided" result))
+    (should (null error)))
 
   ;; Clean up
   (remhash "test-required" greger-tools-registry))

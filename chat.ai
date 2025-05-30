@@ -2367,4 +2367,121 @@ test-greger-tools.el
 Update default parameters test to use callback API
 </tool.toolu_01RHuqmKp6ZSWKfKkmKDknFz>
 
-<!-- TOOL_RESULT_PLACEHOLDER_toolu_01RHuqmKp6ZSWKfKkmKDknFz -->
+## TOOL RESULT:
+
+ID: toolu_01RHuqmKp6ZSWKfKkmKDknFz
+
+<tool.toolu_01RHuqmKp6ZSWKfKkmKDknFz>
+Successfully replaced content in /Users/andreas/projects/aichat3/test-greger-tools.el. Successfully staged 2 file(s) and committed with message: Update default parameters test to use callback API
+</tool.toolu_01RHuqmKp6ZSWKfKkmKDknFz>
+
+
+## TOOL USE:
+
+Name: str-replace
+ID: toolu_01K84cB3rjN3rc2TR142HdRm
+
+### file_path
+
+<tool.toolu_01K84cB3rjN3rc2TR142HdRm>
+test-greger-tools.el
+</tool.toolu_01K84cB3rjN3rc2TR142HdRm>
+
+### original_content
+
+<tool.toolu_01K84cB3rjN3rc2TR142HdRm>
+;; Test that missing first required parameter throws error
+  (should-error
+   (greger-tools-execute "test-required"
+                         '((required_param2 . "value2")
+                           (optional_param . "optional")))
+   :type 'error)
+
+  ;; Test that missing second required parameter throws error
+  (should-error
+   (greger-tools-execute "test-required"
+                         '((required_param1 . "value1")
+                           (optional_param . "optional")))
+   :type 'error)
+
+  ;; Test that missing both required parameters throws error
+  (should-error
+   (greger-tools-execute "test-required"
+                         '((optional_param . "optional")))
+   :type 'error)
+
+  ;; Test that providing all required parameters works (even without optional)
+  (let ((result (greger-tools-execute "test-required"
+                                      '((required_param1 . "value1")
+                                        (required_param2 . "value2")))))
+    (should (string= "req1: value1, req2: value2, opt: default" result)))
+
+  ;; Test that providing all parameters works
+  (let ((result (greger-tools-execute "test-required"
+                                      '((required_param1 . "value1")
+                                        (required_param2 . "value2")
+                                        (optional_param . "provided")))))
+    (should (string= "req1: value1, req2: value2, opt: provided" result)))
+</tool.toolu_01K84cB3rjN3rc2TR142HdRm>
+
+### new_content
+
+<tool.toolu_01K84cB3rjN3rc2TR142HdRm>
+;; Test that missing first required parameter calls callback with error
+  (let ((result nil)
+        (error nil))
+    (greger-tools-execute "test-required"
+                          '((required_param2 . "value2")
+                            (optional_param . "optional"))
+                          (lambda (r e) (setq result r error e)) nil)
+    (should (null result))
+    (should error))
+
+  ;; Test that missing second required parameter calls callback with error
+  (let ((result nil)
+        (error nil))
+    (greger-tools-execute "test-required"
+                          '((required_param1 . "value1")
+                            (optional_param . "optional"))
+                          (lambda (r e) (setq result r error e)) nil)
+    (should (null result))
+    (should error))
+
+  ;; Test that missing both required parameters calls callback with error
+  (let ((result nil)
+        (error nil))
+    (greger-tools-execute "test-required"
+                          '((optional_param . "optional"))
+                          (lambda (r e) (setq result r error e)) nil)
+    (should (null result))
+    (should error))
+
+  ;; Test that providing all required parameters works (even without optional)
+  (let ((result nil)
+        (error nil))
+    (greger-tools-execute "test-required"
+                          '((required_param1 . "value1")
+                            (required_param2 . "value2"))
+                          (lambda (r e) (setq result r error e)) nil)
+    (should (string= "req1: value1, req2: value2, opt: default" result))
+    (should (null error)))
+
+  ;; Test that providing all parameters works
+  (let ((result nil)
+        (error nil))
+    (greger-tools-execute "test-required"
+                          '((required_param1 . "value1")
+                            (required_param2 . "value2")
+                            (optional_param . "provided"))
+                          (lambda (r e) (setq result r error e)) nil)
+    (should (string= "req1: value1, req2: value2, opt: provided" result))
+    (should (null error)))
+</tool.toolu_01K84cB3rjN3rc2TR142HdRm>
+
+### git_commit_message
+
+<tool.toolu_01K84cB3rjN3rc2TR142HdRm>
+Update required parameters test to use callback API
+</tool.toolu_01K84cB3rjN3rc2TR142HdRm>
+
+<!-- TOOL_RESULT_PLACEHOLDER_toolu_01K84cB3rjN3rc2TR142HdRm -->
