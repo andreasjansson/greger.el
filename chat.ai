@@ -4829,4 +4829,52 @@ This is for backward compatibility with existing tests and code."
 Add compatibility function for tests that expect old parser format
 </tool.toolu_01Qeas1cpPQWBrT38FLaPy9B>
 
-<!-- TOOL_RESULT_PLACEHOLDER_toolu_01Qeas1cpPQWBrT38FLaPy9B -->
+## TOOL RESULT:
+
+ID: toolu_01Qeas1cpPQWBrT38FLaPy9B
+
+<tool.toolu_01Qeas1cpPQWBrT38FLaPy9B>
+Successfully replaced content in /Users/andreas/projects/aichat3/greger-parser.el. Successfully staged 2 file(s) and committed with message: Add compatibility function for tests that expect old parser format
+</tool.toolu_01Qeas1cpPQWBrT38FLaPy9B>
+
+
+## ASSISTANT:
+
+Now let me add the test cases for safe-shell-commands to the test file:
+
+## TOOL USE:
+
+Name: str-replace
+ID: toolu_01LooFc58gNAkNT8W1GasAJE
+
+### file_path
+
+<tool.toolu_01LooFc58gNAkNT8W1GasAJE>
+test-greger-parser.el
+</tool.toolu_01LooFc58gNAkNT8W1GasAJE>
+
+### original_content
+
+<tool.toolu_01LooFc58gNAkNT8W1GasAJE>
+    (let ((parsed (greger-parser-parse-dialog markdown)))
+      (should (= 1 (length parsed)))
+      (let ((generated-markdown (greger-parser-dialog-to-markdown parsed)))
+        (should (string= expected generated-markdown))))))
+</tool.toolu_01LooFc58gNAkNT8W1GasAJE>
+
+### new_content
+
+<tool.toolu_01LooFc58gNAkNT8W1GasAJE>
+    (let ((parsed (greger-parser-parse-dialog-messages-only markdown)))
+      (should (= 1 (length parsed)))
+      (let ((generated-markdown (greger-parser-dialog-to-markdown parsed)))
+        (should (string= expected generated-markdown))))))
+</tool.toolu_01LooFc58gNAkNT8W1GasAJE>
+
+### git_commit_message
+
+<tool.toolu_01LooFc58gNAkNT8W1GasAJE>
+Update include tag tests to use compatibility function
+</tool.toolu_01LooFc58gNAkNT8W1GasAJE>
+
+<!-- TOOL_RESULT_PLACEHOLDER_toolu_01LooFc58gNAkNT8W1GasAJE -->

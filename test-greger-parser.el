@@ -1044,7 +1044,7 @@ This should handle errors gracefully.")
 Try to include: [Error reading file: /nonexistent/file.txt]
 
 This should handle errors gracefully."))
-    (let ((parsed (greger-parser-parse-dialog markdown)))
+    (let ((parsed (greger-parser-parse-dialog-messages-only markdown)))
       (should (= 1 (length parsed)))
       (let ((generated-markdown (greger-parser-dialog-to-markdown parsed)))
         (should (string= expected generated-markdown))))))
