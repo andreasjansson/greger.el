@@ -3900,4 +3900,493 @@ Tool B result: input-b
 Convert multiple tools test expected patterns to multi-line format
 </tool.toolu_01BuUbnmorRasweNE2BBMGTm>
 
-<!-- TOOL_RESULT_PLACEHOLDER_toolu_01BuUbnmorRasweNE2BBMGTm -->
+## TOOL RESULT:
+
+ID: toolu_01BuUbnmorRasweNE2BBMGTm
+
+<tool.toolu_01BuUbnmorRasweNE2BBMGTm>
+Successfully replaced content in /Users/andreas/projects/aichat3/test-greger-agent.el. Successfully staged 2 file(s) and committed with message: Convert multiple tools test expected patterns to multi-line format
+</tool.toolu_01BuUbnmorRasweNE2BBMGTm>
+
+
+## ASSISTANT:
+
+Now let's run the tests to see if they pass:
+
+## TOOL USE:
+
+Name: shell-command
+ID: toolu_01CozXkXRUykcoYL4ZfyAdaW
+
+### command
+
+<tool.toolu_01CozXkXRUykcoYL4ZfyAdaW>
+cd /Users/andreas/projects/aichat3 && emacs -batch -l ert -l test-greger-agent.el -f ert-run-tests-batch-and-exit
+</tool.toolu_01CozXkXRUykcoYL4ZfyAdaW>
+
+## TOOL RESULT:
+
+ID: toolu_01CozXkXRUykcoYL4ZfyAdaW
+
+<tool.toolu_01CozXkXRUykcoYL4ZfyAdaW>
+Error executing tool: Shell command execution cancelled by user
+</tool.toolu_01CozXkXRUykcoYL4ZfyAdaW>
+
+## USER:
+
+Fix these two failing tests in test-greger-agent.el:
+
+``` emacs-lisp
+F greger-agent-test-multiple-tools-parallel
+    Test execution of multiple tools in parallel.
+    (ert-test-failed
+     ((should
+       (string= expected-content actual-content))
+      :form
+      (string= "
+
+## TOOL USE:
+
+Name: test-tool-a
+ID: test_a
+
+### value
+
+<tool.test_a>
+input-a
+</tool.test_a>
+
+## TOOL RESULT:
+
+ID: test_a
+
+<tool.test_a>
+Tool A result: input-a
+</tool.test_a>
+
+## TOOL USE:
+
+Name: test-tool-b
+ID: test_b
+
+### value
+
+<tool.test_b>
+input-b
+</tool.test_b>
+
+## TOOL RESULT:
+
+ID: test_b
+
+<tool.test_b>
+Tool B result: input-b
+</tool.test_b>" "
+
+## TOOL USE:
+
+Name: test-tool-a
+ID: test_a
+
+### value
+
+<tool.test_a>
+input-a
+</tool.test_a>
+
+## TOOL USE:
+
+Name: test-tool-b
+ID: test_b
+
+### value
+
+<tool.test_b>
+input-b
+</tool.test_b>
+
+## TOOL RESULT:
+
+ID: test_a
+
+<tool.test_a>
+Tool A result: input-a
+</tool.test_a>
+
+## TOOL RESULT:
+
+ID: test_b
+
+<tool.test_b>
+Tool B result: input-b
+</tool.test_b>")
+      :value nil :explanation
+      (array-elt 103
+                 (different-atoms
+                  (82 "#x52" "?R")
+                  (85 "#x55" "?U")))))
+
+F greger-agent-test-placeholder-replacement
+    Test that placeholders are correctly replaced with tool results.
+    (ert-test-failed
+     ((should
+       (string= expected-content actual-content))
+      :form
+      (string= "
+
+## TOOL USE:
+
+Name: test-placeholder
+ID: placeholder_test
+
+### data
+
+<tool.placeholder_test>
+test-data
+</tool.placeholder_test>
+
+## TOOL RESULT:
+
+ID: placeholder_test
+
+<tool.placeholder_test>
+Processed: test-data
+</tool.placeholder_test>" "<!-- TOOL_RESULT_PLACEHOLDER_placeholder_test -->
+
+## TOOL USE:
+
+Name: test-placeholder
+ID: placeholder_test
+
+### data
+
+<tool.placeholder_test>
+test-data
+</tool.placeholder_test>
+
+## TOOL RESULT:
+
+ID: placeholder_test
+
+<tool.placeholder_test>
+Processed: test-data
+</tool.placeholder_test>")
+```
+
+## ASSISTANT:
+
+I can see the issues:
+
+1. **Multiple tools test**: The expected content assumes the tool results come right after each tool use, but actually all tool uses are grouped together first, then all tool results come after.
+
+2. **Placeholder replacement test**: The placeholder is not being replaced - it's still there in the actual content.
+
+Let me fix these tests:
+
+## TOOL USE:
+
+Name: str-replace
+ID: toolu_014Pw6XKV3kkNS2K7Mj1REh9
+
+### file_path
+
+<tool.toolu_014Pw6XKV3kkNS2K7Mj1REh9>
+test-greger-agent.el
+</tool.toolu_014Pw6XKV3kkNS2K7Mj1REh9>
+
+### original_content
+
+<tool.toolu_014Pw6XKV3kkNS2K7Mj1REh9>
+            ;; Expected content contains both tool results
+            (expected-patterns '("## TOOL USE:
+
+Name: test-tool-a
+ID: test_a
+
+### value
+
+<tool.test_a>
+input-a
+</tool.test_a>
+
+## TOOL RESULT:
+
+ID: test_a
+
+<tool.test_a>
+Tool A result: input-a
+</tool.test_a>"
+                               "## TOOL USE:
+
+Name: test-tool-b
+ID: test_b
+
+### value
+
+<tool.test_b>
+input-b
+</tool.test_b>
+
+## TOOL RESULT:
+
+ID: test_b
+
+<tool.test_b>
+Tool B result: input-b
+</tool.test_b>"))
+</tool.toolu_014Pw6XKV3kkNS2K7Mj1REh9>
+
+### new_content
+
+<tool.toolu_014Pw6XKV3kkNS2K7Mj1REh9>
+            ;; Expected content has all tool uses first, then all tool results
+            (expected-content "## TOOL USE:
+
+Name: test-tool-a
+ID: test_a
+
+### value
+
+<tool.test_a>
+input-a
+</tool.test_a>
+
+## TOOL USE:
+
+Name: test-tool-b
+ID: test_b
+
+### value
+
+<tool.test_b>
+input-b
+</tool.test_b>
+
+## TOOL RESULT:
+
+ID: test_a
+
+<tool.test_a>
+Tool A result: input-a
+</tool.test_a>
+
+## TOOL RESULT:
+
+ID: test_b
+
+<tool.test_b>
+Tool B result: input-b
+</tool.test_b>"))
+</tool.toolu_014Pw6XKV3kkNS2K7Mj1REh9>
+
+### git_commit_message
+
+<tool.toolu_014Pw6XKV3kkNS2K7Mj1REh9>
+Fix multiple tools test expected content to match actual tool execution order
+</tool.toolu_014Pw6XKV3kkNS2K7Mj1REh9>
+
+## TOOL RESULT:
+
+ID: toolu_014Pw6XKV3kkNS2K7Mj1REh9
+
+<tool.toolu_014Pw6XKV3kkNS2K7Mj1REh9>
+Error executing tool: Original content not found in file: /Users/andreas/projects/aichat3/test-greger-agent.el -- Try again!
+</tool.toolu_014Pw6XKV3kkNS2K7Mj1REh9>
+
+## ASSISTANT:
+
+Let me check the exact content in the multiple tools test:
+
+## TOOL USE:
+
+Name: read-file
+ID: toolu_01H9EXxrCGK3VCvwGD6H7spU
+
+### path
+
+<tool.toolu_01H9EXxrCGK3VCvwGD6H7spU>
+test-greger-agent.el
+</tool.toolu_01H9EXxrCGK3VCvwGD6H7spU>
+
+### start_line
+
+<tool.toolu_01H9EXxrCGK3VCvwGD6H7spU>
+125
+</tool.toolu_01H9EXxrCGK3VCvwGD6H7spU>
+
+### end_line
+
+<tool.toolu_01H9EXxrCGK3VCvwGD6H7spU>
+175
+</tool.toolu_01H9EXxrCGK3VCvwGD6H7spU>
+
+## TOOL RESULT:
+
+ID: toolu_01H9EXxrCGK3VCvwGD6H7spU
+
+<tool.toolu_01H9EXxrCGK3VCvwGD6H7spU>
+      (let ((agent-state (make-greger-agent-state
+                          :current-iteration 0
+                          :chat-buffer (current-buffer)
+                          :directory default-directory))
+            (tool-calls `(((type . "tool_use")
+                          (id . "test_a")
+                          (name . "test-tool-a")
+                          (input . ((value . "input-a"))))
+                         ((type . "tool_use")
+                          (id . "test_b")
+                          (name . "test-tool-b")
+                          (input . ((value . "input-b"))))))
+            ;; Expected content contains both tool results
+            (expected-content "
+
+## TOOL USE:
+
+Name: test-tool-a
+ID: test_a
+
+### value
+
+<tool.test_a>
+input-a
+</tool.test_a>
+
+## TOOL RESULT:
+
+ID: test_a
+
+<tool.test_a>
+Tool A result: input-a
+</tool.test_a>
+
+## TOOL USE:
+
+Name: test-tool-b
+ID: test_b
+
+### value
+
+<tool.test_b>
+input-b
+</tool.test_b>
+
+## TOOL RESULT:
+
+ID: test_b
+
+<tool.test_b>
+Tool B result: input-b
+</tool.toolu_01H9EXxrCGK3VCvwGD6H7spU>
+
+## ASSISTANT:
+
+I can see the issue now. Let me fix the multiple tools test by updating the expected content to match the actual execution order:
+
+## TOOL USE:
+
+Name: str-replace
+ID: toolu_01HW9xZDxUzWNSb1Wzxi99YC
+
+### file_path
+
+<tool.toolu_01HW9xZDxUzWNSb1Wzxi99YC>
+test-greger-agent.el
+</tool.toolu_01HW9xZDxUzWNSb1Wzxi99YC>
+
+### original_content
+
+<tool.toolu_01HW9xZDxUzWNSb1Wzxi99YC>
+            ;; Expected content contains both tool results
+            (expected-content "
+
+## TOOL USE:
+
+Name: test-tool-a
+ID: test_a
+
+### value
+
+<tool.test_a>
+input-a
+</tool.test_a>
+
+## TOOL RESULT:
+
+ID: test_a
+
+<tool.test_a>
+Tool A result: input-a
+</tool.test_a>
+
+## TOOL USE:
+
+Name: test-tool-b
+ID: test_b
+
+### value
+
+<tool.test_b>
+input-b
+</tool.test_b>
+
+## TOOL RESULT:
+
+ID: test_b
+
+<tool.test_b>
+Tool B result: input-b
+</tool.test_b>")
+</tool.toolu_01HW9xZDxUzWNSb1Wzxi99YC>
+
+### new_content
+
+<tool.toolu_01HW9xZDxUzWNSb1Wzxi99YC>
+            ;; Expected content has all tool uses first, then all tool results
+            (expected-content "
+
+## TOOL USE:
+
+Name: test-tool-a
+ID: test_a
+
+### value
+
+<tool.test_a>
+input-a
+</tool.test_a>
+
+## TOOL USE:
+
+Name: test-tool-b
+ID: test_b
+
+### value
+
+<tool.test_b>
+input-b
+</tool.test_b>
+
+## TOOL RESULT:
+
+ID: test_a
+
+<tool.test_a>
+Tool A result: input-a
+</tool.test_a>
+
+## TOOL RESULT:
+
+ID: test_b
+
+<tool.test_b>
+Tool B result: input-b
+</tool.test_b>")
+</tool.toolu_01HW9xZDxUzWNSb1Wzxi99YC>
+
+### git_commit_message
+
+<tool.toolu_01HW9xZDxUzWNSb1Wzxi99YC>
+Fix multiple tools test to match actual execution order (all tool uses first, then all results)
+</tool.toolu_01HW9xZDxUzWNSb1Wzxi99YC>
+
+<!-- TOOL_RESULT_PLACEHOLDER_toolu_01HW9xZDxUzWNSb1Wzxi99YC -->

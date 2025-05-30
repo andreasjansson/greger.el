@@ -55,7 +55,9 @@
                           (id . "test_001")
                           (name . "test-simple")
                           (input . ((message . "Hello World"))))))
-            (expected-content "## TOOL USE:
+            (expected-content "
+
+## TOOL USE:
 
 Name: test-simple
 ID: test_001
@@ -132,8 +134,10 @@ Tool executed: Hello World
                           (id . "test_b")
                           (name . "test-tool-b")
                           (input . ((value . "input-b"))))))
-            ;; Expected content contains both tool results
-            (expected-patterns '("## TOOL USE:
+            ;; Expected content has all tool uses first, then all tool results
+            (expected-content "
+
+## TOOL USE:
 
 Name: test-tool-a
 ID: test_a
@@ -144,14 +148,7 @@ ID: test_a
 input-a
 </tool.test_a>
 
-## TOOL RESULT:
-
-ID: test_a
-
-<tool.test_a>
-Tool A result: input-a
-</tool.test_a>"
-                               "## TOOL USE:
+## TOOL USE:
 
 Name: test-tool-b
 ID: test_b
@@ -164,11 +161,19 @@ input-b
 
 ## TOOL RESULT:
 
+ID: test_a
+
+<tool.test_a>
+Tool A result: input-a
+</tool.test_a>
+
+## TOOL RESULT:
+
 ID: test_b
 
 <tool.test_b>
 Tool B result: input-b
-</tool.test_b>")))
+</tool.test_b>"))
 
         ;; Mock greger-agent--run-agent-loop to capture completion
         (cl-letf (((symbol-function 'greger-agent--run-agent-loop)
@@ -183,8 +188,7 @@ Tool B result: input-b
 
           ;; Check buffer contains both expected tool results
           (let ((actual-content (buffer-substring-no-properties (point-min) (point-max))))
-            (dolist (expected-pattern expected-patterns)
-              (should (string-match-p (regexp-quote expected-pattern) actual-content)))))))
+            (should (string= expected-content actual-content))))))
 
     ;; Clean up
     (remhash "test-tool-a" greger-tools-registry)
@@ -216,7 +220,9 @@ Tool B result: input-b
                           (id . "error_test")
                           (name . "test-error")
                           (input . ((input . "bad-input"))))))
-            (expected-error-content "## TOOL USE:
+            (expected-error-content "
+
+## TOOL USE:
 
 Name: test-error
 ID: error_test
@@ -281,7 +287,9 @@ Error executing tool: Simulated tool error: bad-input
                           (id . "placeholder_test")
                           (name . "test-placeholder")
                           (input . ((data . "test-data"))))))
-            (expected-content "## TOOL USE:
+            (expected-content "
+
+## TOOL USE:
 
 Name: test-placeholder
 ID: placeholder_test
@@ -332,7 +340,9 @@ Processed: test-data
                           (id . "unknown_test")
                           (name . "nonexistent-tool")
                           (input . ((param . "value"))))))
-            (expected-error-content "## TOOL USE:
+            (expected-error-content "
+
+## TOOL USE:
 
 Name: nonexistent-tool
 ID: unknown_test
@@ -392,7 +402,9 @@ Unknown tool: nonexistent-tool
                           (id . "multiline_test")
                           (name . "test-multiline")
                           (input . ((content . "Start"))))))
-            (expected-content "## TOOL USE:
+            (expected-content "
+
+## TOOL USE:
 
 Name: test-multiline
 ID: multiline_test
@@ -460,7 +472,9 @@ Line 3: End
                           (name . "test-echo")
                           (input . ((input . "hello world"))))))
             ;; Expected content after tool execution
-            (expected-final-content "## TOOL USE:
+            (expected-final-content "
+
+## TOOL USE:
 
 Name: test-echo
 ID: echo_001
