@@ -62,17 +62,27 @@ Example:
 
 (defun greger-tools-execute (tool-name args callback buffer)
   "Execute TOOL-NAME with ARGS and call CALLBACK with (result error).
-If the tool has :pass-buffer set, BUFFER will be passed to the tool function."
+If the tool has :pass-buffer set, BUFFER will be passed to the tool function.
+If the tool has :pass-callback set, CALLBACK will be passed to the tool function
+instead of greger-tools-execute calling the callback with the result."
   (let ((tool-def (gethash tool-name greger-tools-registry)))
     (if tool-def
         (let ((func (plist-get tool-def :function))
-              (pass-buffer (plist-get tool-def :pass-buffer)))
+              (pass-buffer (plist-get tool-def :pass-buffer))
+              (pass-callback (plist-get tool-def :pass-callback)))
           ;; Add buffer parameter if pass-buffer is set and buffer is provided
           (when (and pass-buffer buffer)
             (setq args (cons (cons 'buffer buffer) args)))
+          ;; Add callback parameter if pass-callback is set
+          (when pass-callback
+            (setq args (cons (cons pass-callback callback) args)))
           (condition-case err
-              (let ((result (greger-tools--call-function-with-args func args tool-def)))
-                (funcall callback result nil))
+              (if pass-callback
+                  ;; When pass-callback is set, the function handles calling the callback
+                  (greger-tools--call-function-with-args func args tool-def)
+                ;; Normal case: call callback with result
+                (let ((result (greger-tools--call-function-with-args func args tool-def)))
+                  (funcall callback result nil)))
             (error
              (funcall callback nil err))))
       (funcall callback nil (format "Unknown tool: %s" tool-name)))))

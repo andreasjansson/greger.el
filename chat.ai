@@ -649,4 +649,86 @@ Example:
 Add :pass-callback support to greger-register-tool macro
 </tool.toolu_01FpHjUB3RfqFDZbKMb49LKq>
 
-<!-- TOOL_RESULT_PLACEHOLDER_toolu_01FpHjUB3RfqFDZbKMb49LKq -->
+## TOOL RESULT:
+
+ID: toolu_01FpHjUB3RfqFDZbKMb49LKq
+
+<tool.toolu_01FpHjUB3RfqFDZbKMb49LKq>
+Successfully replaced content in /Users/andreas/projects/aichat3/greger-tools.el. Successfully staged 2 file(s) and committed with message: Add :pass-callback support to greger-register-tool macro
+</tool.toolu_01FpHjUB3RfqFDZbKMb49LKq>
+
+
+## ASSISTANT:
+
+Now I need to modify the `greger-tools-execute` function to handle the `:pass-callback` option:
+
+## TOOL USE:
+
+Name: str-replace
+ID: toolu_01XdtmLvWAb8YDBWNWMJfWSf
+
+### file_path
+
+<tool.toolu_01XdtmLvWAb8YDBWNWMJfWSf>
+greger-tools.el
+</tool.toolu_01XdtmLvWAb8YDBWNWMJfWSf>
+
+### original_content
+
+<tool.toolu_01XdtmLvWAb8YDBWNWMJfWSf>
+(defun greger-tools-execute (tool-name args callback buffer)
+  "Execute TOOL-NAME with ARGS and call CALLBACK with (result error).
+If the tool has :pass-buffer set, BUFFER will be passed to the tool function."
+  (let ((tool-def (gethash tool-name greger-tools-registry)))
+    (if tool-def
+        (let ((func (plist-get tool-def :function))
+              (pass-buffer (plist-get tool-def :pass-buffer)))
+          ;; Add buffer parameter if pass-buffer is set and buffer is provided
+          (when (and pass-buffer buffer)
+            (setq args (cons (cons 'buffer buffer) args)))
+          (condition-case err
+              (let ((result (greger-tools--call-function-with-args func args tool-def)))
+                (funcall callback result nil))
+            (error
+             (funcall callback nil err))))
+      (funcall callback nil (format "Unknown tool: %s" tool-name)))))
+</tool.toolu_01XdtmLvWAb8YDBWNWMJfWSf>
+
+### new_content
+
+<tool.toolu_01XdtmLvWAb8YDBWNWMJfWSf>
+(defun greger-tools-execute (tool-name args callback buffer)
+  "Execute TOOL-NAME with ARGS and call CALLBACK with (result error).
+If the tool has :pass-buffer set, BUFFER will be passed to the tool function.
+If the tool has :pass-callback set, CALLBACK will be passed to the tool function
+instead of greger-tools-execute calling the callback with the result."
+  (let ((tool-def (gethash tool-name greger-tools-registry)))
+    (if tool-def
+        (let ((func (plist-get tool-def :function))
+              (pass-buffer (plist-get tool-def :pass-buffer))
+              (pass-callback (plist-get tool-def :pass-callback)))
+          ;; Add buffer parameter if pass-buffer is set and buffer is provided
+          (when (and pass-buffer buffer)
+            (setq args (cons (cons 'buffer buffer) args)))
+          ;; Add callback parameter if pass-callback is set
+          (when pass-callback
+            (setq args (cons (cons pass-callback callback) args)))
+          (condition-case err
+              (if pass-callback
+                  ;; When pass-callback is set, the function handles calling the callback
+                  (greger-tools--call-function-with-args func args tool-def)
+                ;; Normal case: call callback with result
+                (let ((result (greger-tools--call-function-with-args func args tool-def)))
+                  (funcall callback result nil)))
+            (error
+             (funcall callback nil err))))
+      (funcall callback nil (format "Unknown tool: %s" tool-name)))))
+</tool.toolu_01XdtmLvWAb8YDBWNWMJfWSf>
+
+### git_commit_message
+
+<tool.toolu_01XdtmLvWAb8YDBWNWMJfWSf>
+Modify greger-tools-execute to support :pass-callback functionality
+</tool.toolu_01XdtmLvWAb8YDBWNWMJfWSf>
+
+<!-- TOOL_RESULT_PLACEHOLDER_toolu_01XdtmLvWAb8YDBWNWMJfWSf -->
