@@ -55,9 +55,9 @@ Example:
                 (error "Unknown tool: %s" tool-name))))
           tool-names))
 
-(defun greger-tools-execute (tool-name args callback &optional buffer)
+(defun greger-tools-execute (tool-name args callback buffer)
   "Execute TOOL-NAME with ARGS and call CALLBACK with (result error).
-If BUFFER is provided and the tool has :pass-buffer set, the buffer will be passed to the tool function."
+If the tool has :pass-buffer set, BUFFER will be passed to the tool function."
   (let ((tool-def (gethash tool-name greger-tools-registry)))
     (if tool-def
         (let ((func (plist-get tool-def :function))

@@ -1497,4 +1497,26 @@ greger-agent.el
 Update tool completion handler to use search-start-pos and placeholder helper
 </tool.toolu_01QbuqzeCcVAJpBGeQcpHSwj>
 
-<!-- TOOL_RESULT_PLACEHOLDER_toolu_01QbuqzeCcVAJpBGeQcpHSwj -->
+## TOOL RESULT:
+
+ID: toolu_01QbuqzeCcVAJpBGeQcpHSwj
+
+<tool.toolu_01QbuqzeCcVAJpBGeQcpHSwj>
+Successfully replaced content in /Users/andreas/projects/aichat3/greger-agent.el. Successfully staged 2 file(s) and committed with message: Update tool completion handler to use search-start-pos and placeholder helper
+</tool.toolu_01QbuqzeCcVAJpBGeQcpHSwj>
+
+
+## ASSISTANT:
+
+Perfect! Much cleaner now:
+
+1. **Removed `tool-positions` hash table** - no longer needed since we search for placeholders
+2. **Removed `results` hash table** - we weren't actually using it for anything
+3. **Added `greger-agent--tool-placeholder` helper function** - generates the placeholder string consistently
+4. **Use `search-start-pos`** - we remember where the tool execution section starts and search from there, which is more efficient and reliable
+
+The code is now much simpler and does exactly what it needs to do without unnecessary complexity.
+
+## USER:
+
+Write
