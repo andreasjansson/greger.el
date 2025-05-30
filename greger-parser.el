@@ -33,7 +33,8 @@
    :input (or input "")
    :pos 0
    :length (length (or input ""))
-   :debug debug))
+   :debug debug
+   :metadata '()))
 
 (defun greger-parser--debug (state format-string &rest args)
   "Debug logging function using STATE."
