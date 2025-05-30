@@ -4919,4 +4919,46 @@ test-greger-parser.el
 Update main test to use compatibility function
 </tool.toolu_012ABVgcqxbGCJbttLcokvpU>
 
-<!-- TOOL_RESULT_PLACEHOLDER_toolu_012ABVgcqxbGCJbttLcokvpU -->
+## TOOL RESULT:
+
+ID: toolu_012ABVgcqxbGCJbttLcokvpU
+
+<tool.toolu_012ABVgcqxbGCJbttLcokvpU>
+Successfully replaced content in /Users/andreas/projects/aichat3/test-greger-parser.el. Successfully staged 2 file(s) and committed with message: Update main test to use compatibility function
+</tool.toolu_012ABVgcqxbGCJbttLcokvpU>
+
+
+## TOOL USE:
+
+Name: str-replace
+ID: toolu_01UUKym6qFdrZjvWE4Xdjwz9
+
+### file_path
+
+<tool.toolu_01UUKym6qFdrZjvWE4Xdjwz9>
+test-greger-parser.el
+</tool.toolu_01UUKym6qFdrZjvWE4Xdjwz9>
+
+### original_content
+
+<tool.toolu_01UUKym6qFdrZjvWE4Xdjwz9>
+(let* ((dialog (greger-parser-parse-dialog original-markdown))
+             (roundtrip-markdown (greger-parser-dialog-to-markdown dialog))
+             (roundtrip-dialog (greger-parser-parse-dialog roundtrip-markdown)))
+</tool.toolu_01UUKym6qFdrZjvWE4Xdjwz9>
+
+### new_content
+
+<tool.toolu_01UUKym6qFdrZjvWE4Xdjwz9>
+(let* ((dialog (greger-parser-parse-dialog-messages-only original-markdown))
+             (roundtrip-markdown (greger-parser-dialog-to-markdown dialog))
+             (roundtrip-dialog (greger-parser-parse-dialog-messages-only roundtrip-markdown)))
+</tool.toolu_01UUKym6qFdrZjvWE4Xdjwz9>
+
+### git_commit_message
+
+<tool.toolu_01UUKym6qFdrZjvWE4Xdjwz9>
+Update roundtrip test to use compatibility function
+</tool.toolu_01UUKym6qFdrZjvWE4Xdjwz9>
+
+<!-- TOOL_RESULT_PLACEHOLDER_toolu_01UUKym6qFdrZjvWE4Xdjwz9 -->

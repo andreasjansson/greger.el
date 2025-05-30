@@ -668,9 +668,9 @@ What do you think?"
     (let ((name (plist-get test-case :name))
           (original-markdown (plist-get test-case :markdown)))
       (message "Testing roundtrip for: %s" name)
-      (let* ((dialog (greger-parser-parse-dialog original-markdown))
+      (let* ((dialog (greger-parser-parse-dialog-messages-only original-markdown))
              (roundtrip-markdown (greger-parser-dialog-to-markdown dialog))
-             (roundtrip-dialog (greger-parser-parse-dialog roundtrip-markdown)))
+             (roundtrip-dialog (greger-parser-parse-dialog-messages-only roundtrip-markdown)))
         ;; The dialog should be structurally equivalent after round-trip
         (should (= (length dialog) (length roundtrip-dialog)))
         (should (greger-parser-test--dialog-equal dialog roundtrip-dialog))))))
