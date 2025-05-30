@@ -30,12 +30,20 @@
       (should (string= "Subtract second number from first number" (alist-get 'description schema)))))
 
   ;; Test tool execution
-  (let ((result (greger-tools-execute "test-subtract" '((a . 5) (b . 3)))))
-    (should (= 2 result)))
+  (let ((result nil)
+        (error nil))
+    (greger-tools-execute "test-subtract" '((a . 5) (b . 3))
+                          (lambda (r e) (setq result r error e)) nil)
+    (should (= 2 result))
+    (should (null error)))
 
   ;; Test execution with different parameters
-  (let ((result (greger-tools-execute "test-subtract" '((b . 1) (a . 4)))))
-    (should (= 3 result)))
+  (let ((result nil)
+        (error nil))
+    (greger-tools-execute "test-subtract" '((b . 1) (a . 4))
+                          (lambda (r e) (setq result r error e)) nil)
+    (should (= 3 result))
+    (should (null error)))
 
   ;; Clean up - remove test tool from registry
   (remhash "test-subtract" greger-tools-registry))
