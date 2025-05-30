@@ -452,12 +452,12 @@ If END-LINE is specified, stop reading at that line (inclusive, 1-based)."
   ;; Check if rg executable is available
   (unless (executable-find "rg")
     (funcall callback nil "ripgrep (rg) command not found. Please install ripgrep")
-    (return))
+    (return-from greger-tools--ripgrep))
 
   (let ((expanded-path (expand-file-name path)))
     (unless (file-exists-p expanded-path)
       (funcall callback nil (format "Path does not exist: %s" expanded-path))
-      (return))
+      (return-from greger-tools--ripgrep))
 
     ;; Build the rg command arguments
     (let ((args '()))
