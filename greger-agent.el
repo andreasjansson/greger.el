@@ -139,17 +139,15 @@
     (with-current-buffer (greger-agent-state-chat-buffer agent-state)
       (goto-char (point-max))
 
-      ;; Display tool calls
-      (let ((tool-blocks-markdown (greger-parser--content-blocks-to-markdown tool-calls)))
-        (unless (string-empty-p tool-blocks-markdown)
-          (insert "\n\n" tool-blocks-markdown)))
-
       ;; Remember where to start searching for placeholders
       (setq search-start-pos (point))
 
-      ;; Create placeholders for each tool result
+      ;; Display each tool call followed by its placeholder
       (dolist (tool-call tool-calls)
-        (let ((tool-id (alist-get 'id tool-call)))
+        (let ((tool-id (alist-get 'id tool-call))
+              (tool-block-markdown (greger-parser--content-blocks-to-markdown (list tool-call))))
+          (unless (string-empty-p tool-block-markdown)
+            (insert "\n\n" tool-block-markdown))
           (insert "\n\n" (greger-agent--tool-placeholder tool-id)))))
 
     ;; Execute all tools in parallel

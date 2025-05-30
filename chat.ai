@@ -5104,4 +5104,226 @@ Processed: test-data
 Replace placeholder replacement test with simpler tool execution with existing content test
 </tool.toolu_018cRf4CAUSzvx4tXFcWAhCw>
 
-<!-- TOOL_RESULT_PLACEHOLDER_toolu_018cRf4CAUSzvx4tXFcWAhCw -->
+## TOOL RESULT:
+
+ID: toolu_018cRf4CAUSzvx4tXFcWAhCw
+
+<tool.toolu_018cRf4CAUSzvx4tXFcWAhCw>
+Successfully replaced content in /Users/andreas/projects/aichat3/test-greger-agent.el. Successfully staged 2 file(s) and committed with message: Replace placeholder replacement test with simpler tool execution with existing content test
+</tool.toolu_018cRf4CAUSzvx4tXFcWAhCw>
+
+
+## ASSISTANT:
+
+Now let's test our changes by running a few tests to make sure they work:
+
+## TOOL USE:
+
+Name: shell-command
+ID: toolu_01SyEkD4oCd6Tr6uffs6RcXq
+
+### command
+
+<tool.toolu_01SyEkD4oCd6Tr6uffs6RcXq>
+cd /Users/andreas/projects/aichat3 && emacs -batch -l ert -l test-greger-agent.el -f ert-run-tests-batch-and-exit 2>&1 | head -20
+</tool.toolu_01SyEkD4oCd6Tr6uffs6RcXq>
+
+## TOOL RESULT:
+
+ID: toolu_01SyEkD4oCd6Tr6uffs6RcXq
+
+<tool.toolu_01SyEkD4oCd6Tr6uffs6RcXq>
+Error executing tool: Shell command execution cancelled by user
+</tool.toolu_01SyEkD4oCd6Tr6uffs6RcXq>
+
+## USER:
+
+No that's not right, the parallel calls test pass now, but the tool results are both at the bottom when they should be below the tool use for that particular ID (like it was before). So this looks like a legit bug in greger-agent.el
+
+## ASSISTANT:
+
+You're absolutely right! This is indeed a bug in the greger-agent.el code. The tool results should appear immediately after their corresponding tool use sections, not all grouped at the bottom.
+
+Let me examine the greger-agent.el code to understand how tool execution and display works:
+
+## TOOL USE:
+
+Name: read-file
+ID: toolu_011AzMbV2AmJ1XByVRSS5ei3
+
+### path
+
+<tool.toolu_011AzMbV2AmJ1XByVRSS5ei3>
+greger-agent.el
+</tool.toolu_011AzMbV2AmJ1XByVRSS5ei3>
+
+### start_line
+
+<tool.toolu_011AzMbV2AmJ1XByVRSS5ei3>
+140
+</tool.toolu_011AzMbV2AmJ1XByVRSS5ei3>
+
+### end_line
+
+<tool.toolu_011AzMbV2AmJ1XByVRSS5ei3>
+180
+</tool.toolu_011AzMbV2AmJ1XByVRSS5ei3>
+
+## TOOL RESULT:
+
+ID: toolu_011AzMbV2AmJ1XByVRSS5ei3
+
+<tool.toolu_011AzMbV2AmJ1XByVRSS5ei3>
+      (goto-char (point-max))
+
+      ;; Remember where to start searching for placeholders
+      (setq search-start-pos (point))
+
+      ;; Display tool calls
+      (let ((tool-blocks-markdown (greger-parser--content-blocks-to-markdown tool-calls)))
+        (unless (string-empty-p tool-blocks-markdown)
+          (insert "\n\n" tool-blocks-markdown)))
+
+      ;; Create placeholders for each tool result
+      (dolist (tool-call tool-calls)
+        (let ((tool-id (alist-get 'id tool-call)))
+          (insert "\n\n" (greger-agent--tool-placeholder tool-id)))))
+
+    ;; Execute all tools in parallel
+    (dolist (tool-call tool-calls)
+      (let* ((tool-name (alist-get 'name tool-call))
+             (tool-input (alist-get 'input tool-call))
+             (tool-id (alist-get 'id tool-call)))
+
+        (let ((default-directory (greger-agent-state-directory agent-state)))
+          (greger-tools-execute
+           tool-name
+           tool-input
+           (lambda (result error)
+             (greger-agent--handle-tool-completion
+              tool-id result error agent-state search-start-pos
+              (lambda ()
+                (setq completed-tools (1+ completed-tools))
+                (when (= completed-tools total-tools)
+                  (greger-agent--run-agent-loop agent-state)))))
+           (greger-agent-state-chat-buffer agent-state)))))))
+
+(defun greger-agent--append-text (text agent-state)
+  (with-current-buffer (greger-agent-state-chat-buffer agent-state)
+    (goto-char (point-max))
+    (insert text)))
+
+(defun greger-agent--handle-tool-completion (tool-id result error agent-state search-start-pos completion-callback)
+  "Handle completion of a tool execution by updating the buffer and calling COMPLETION-CALLBACK."
+</tool.toolu_011AzMbV2AmJ1XByVRSS5ei3>
+
+## ASSISTANT:
+
+I can see the issue! The current implementation:
+
+1. Displays all tool use blocks first
+2. Creates placeholders for each tool result
+3. Executes tools in parallel
+4. Each tool completion replaces its placeholder with the result
+
+But the problem is in step 1 - it's displaying ALL tool use blocks together first instead of interspersing them with their placeholders. Let me look at the tool display logic:
+
+## TOOL USE:
+
+Name: ripgrep
+ID: toolu_01A6HN3iev6PyxotZ5g11aQp
+
+### pattern
+
+<tool.toolu_01A6HN3iev6PyxotZ5g11aQp>
+content-blocks-to-markdown
+</tool.toolu_01A6HN3iev6PyxotZ5g11aQp>
+
+### file-type
+
+<tool.toolu_01A6HN3iev6PyxotZ5g11aQp>
+el
+</tool.toolu_01A6HN3iev6PyxotZ5g11aQp>
+
+### context-lines
+
+<tool.toolu_01A6HN3iev6PyxotZ5g11aQp>
+3
+</tool.toolu_01A6HN3iev6PyxotZ5g11aQp>
+
+## TOOL RESULT:
+
+ID: toolu_01A6HN3iev6PyxotZ5g11aQp
+
+<tool.toolu_01A6HN3iev6PyxotZ5g11aQp>
+/Users/andreas/projects/aichat3/greger-agent.el:146:      (let ((tool-blocks-markdown (greger-parser--content-blocks-to-markdown tool-calls)))
+/Users/andreas/projects/aichat3/greger-agent.el:199:          (let ((result-markdown (greger-parser--content-blocks-to-markdown (list tool-result))))
+/Users/andreas/projects/aichat3/greger-agent.el:213:    (let ((tool-blocks-markdown (greger-parser--content-blocks-to-markdown tool-calls)))
+/Users/andreas/projects/aichat3/greger-agent.el:218:    (let ((result-blocks-markdown (greger-parser--content-blocks-to-markdown results)))
+/Users/andreas/projects/aichat3/greger-parser.el:796:            (greger-parser--content-blocks-to-markdown content))))
+/Users/andreas/projects/aichat3/greger-parser.el:802:    (greger-parser--content-blocks-to-markdown content)))
+/Users/andreas/projects/aichat3/greger-parser.el:808:(defun greger-parser--content-blocks-to-markdown (blocks)
+/Users/andreas/projects/aichat3/chat3.ai:700:667:             (greger-parser--content-blocks-to-markdown content))))
+/Users/andreas/projects/aichat3/chat3.ai:706:673:     (greger-parser--content-blocks-to-markdown content)))
+/Users/andreas/projects/aichat3/chat3.ai:712:679: (defun greger-parser--content-blocks-to-markdown (blocks)
+/Users/andreas/projects/aichat3/chat.ai:909:/Users/andreas/projects/aichat3/greger-agent.el:199:          (let ((result-markdown (greger-parser--content-blocks-to-markdown (list tool-result))))
+/Users/andreas/projects/aichat3/chat.ai:4923:          (let ((result-markdown (greger-parser--content-blocks-to-markdown (list tool-result))))
+
+</tool.toolu_01A6HN3iev6PyxotZ5g11aQp>
+
+## ASSISTANT:
+
+The issue is clear now. In line 146, the code does:
+
+```elisp
+(let ((tool-blocks-markdown (greger-parser--content-blocks-to-markdown tool-calls)))
+```
+
+This converts ALL tool calls to markdown at once, which results in all tool use blocks being displayed together. Then it creates placeholders for each tool afterwards.
+
+The fix should be to display each tool use block followed immediately by its placeholder. Let me fix this:
+
+## TOOL USE:
+
+Name: str-replace
+ID: toolu_01Y9HbiLb5qf8nK3rRjMeN3G
+
+### file_path
+
+<tool.toolu_01Y9HbiLb5qf8nK3rRjMeN3G>
+greger-agent.el
+</tool.toolu_01Y9HbiLb5qf8nK3rRjMeN3G>
+
+### original_content
+
+<tool.toolu_01Y9HbiLb5qf8nK3rRjMeN3G>
+      ;; Display tool calls
+      (let ((tool-blocks-markdown (greger-parser--content-blocks-to-markdown tool-calls)))
+        (unless (string-empty-p tool-blocks-markdown)
+          (insert "\n\n" tool-blocks-markdown)))
+
+      ;; Create placeholders for each tool result
+      (dolist (tool-call tool-calls)
+        (let ((tool-id (alist-get 'id tool-call)))
+          (insert "\n\n" (greger-agent--tool-placeholder tool-id))))
+</tool.toolu_01Y9HbiLb5qf8nK3rRjMeN3G>
+
+### new_content
+
+<tool.toolu_01Y9HbiLb5qf8nK3rRjMeN3G>
+      ;; Display each tool call followed by its placeholder
+      (dolist (tool-call tool-calls)
+        (let ((tool-id (alist-get 'id tool-call))
+              (tool-block-markdown (greger-parser--content-blocks-to-markdown (list tool-call))))
+          (unless (string-empty-p tool-block-markdown)
+            (insert "\n\n" tool-block-markdown))
+          (insert "\n\n" (greger-agent--tool-placeholder tool-id))))
+</tool.toolu_01Y9HbiLb5qf8nK3rRjMeN3G>
+
+### git_commit_message
+
+<tool.toolu_01Y9HbiLb5qf8nK3rRjMeN3G>
+Fix tool execution to display each tool use followed by its placeholder instead of grouping all tool uses together
+</tool.toolu_01Y9HbiLb5qf8nK3rRjMeN3G>
+
+<!-- TOOL_RESULT_PLACEHOLDER_toolu_01Y9HbiLb5qf8nK3rRjMeN3G -->
