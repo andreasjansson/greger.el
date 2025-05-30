@@ -2484,4 +2484,70 @@ test-greger-tools.el
 Update required parameters test to use callback API
 </tool.toolu_01K84cB3rjN3rc2TR142HdRm>
 
-<!-- TOOL_RESULT_PLACEHOLDER_toolu_01K84cB3rjN3rc2TR142HdRm -->
+## TOOL RESULT:
+
+ID: toolu_01K84cB3rjN3rc2TR142HdRm
+
+<tool.toolu_01K84cB3rjN3rc2TR142HdRm>
+Successfully replaced content in /Users/andreas/projects/aichat3/test-greger-tools.el. Successfully staged 2 file(s) and committed with message: Update required parameters test to use callback API
+</tool.toolu_01K84cB3rjN3rc2TR142HdRm>
+
+
+## TOOL USE:
+
+Name: str-replace
+ID: toolu_013dJ6h7fyjxAsqLE1BZZ1Xu
+
+### file_path
+
+<tool.toolu_013dJ6h7fyjxAsqLE1BZZ1Xu>
+test-greger-tools.el
+</tool.toolu_013dJ6h7fyjxAsqLE1BZZ1Xu>
+
+### original_content
+
+<tool.toolu_013dJ6h7fyjxAsqLE1BZZ1Xu>
+;; Test tool without :pass-buffer - should not receive buffer
+    (let ((result (greger-tools-execute "test-no-buffer"
+                                        '((message . "hello"))
+                                        (current-buffer))))
+      (should (string= "message: hello, buffer: none" result)))
+
+    ;; Test tool with :pass-buffer t - should receive buffer
+    (let ((result (greger-tools-execute "test-with-buffer"
+                                        '((message . "hello"))
+                                        (current-buffer))))
+      (should (string= "message: hello, buffer: *test-buffer*" result)))
+</tool.toolu_013dJ6h7fyjxAsqLE1BZZ1Xu>
+
+### new_content
+
+<tool.toolu_013dJ6h7fyjxAsqLE1BZZ1Xu>
+;; Test tool without :pass-buffer - should not receive buffer
+    (let ((result nil)
+          (error nil))
+      (greger-tools-execute "test-no-buffer"
+                            '((message . "hello"))
+                            (lambda (r e) (setq result r error e))
+                            (current-buffer))
+      (should (string= "message: hello, buffer: none" result))
+      (should (null error)))
+
+    ;; Test tool with :pass-buffer t - should receive buffer
+    (let ((result nil)
+          (error nil))
+      (greger-tools-execute "test-with-buffer"
+                            '((message . "hello"))
+                            (lambda (r e) (setq result r error e))
+                            (current-buffer))
+      (should (string= "message: hello, buffer: *test-buffer*" result))
+      (should (null error)))
+</tool.toolu_013dJ6h7fyjxAsqLE1BZZ1Xu>
+
+### git_commit_message
+
+<tool.toolu_013dJ6h7fyjxAsqLE1BZZ1Xu>
+Update pass-buffer test to use callback API
+</tool.toolu_013dJ6h7fyjxAsqLE1BZZ1Xu>
+
+<!-- TOOL_RESULT_PLACEHOLDER_toolu_013dJ6h7fyjxAsqLE1BZZ1Xu -->

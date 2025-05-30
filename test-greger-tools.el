@@ -308,16 +308,24 @@
     (rename-buffer "*test-buffer*")
 
     ;; Test tool without :pass-buffer - should not receive buffer
-    (let ((result (greger-tools-execute "test-no-buffer"
-                                        '((message . "hello"))
-                                        (current-buffer))))
-      (should (string= "message: hello, buffer: none" result)))
+    (let ((result nil)
+          (error nil))
+      (greger-tools-execute "test-no-buffer"
+                            '((message . "hello"))
+                            (lambda (r e) (setq result r error e))
+                            (current-buffer))
+      (should (string= "message: hello, buffer: none" result))
+      (should (null error)))
 
     ;; Test tool with :pass-buffer t - should receive buffer
-    (let ((result (greger-tools-execute "test-with-buffer"
-                                        '((message . "hello"))
-                                        (current-buffer))))
-      (should (string= "message: hello, buffer: *test-buffer*" result))))
+    (let ((result nil)
+          (error nil))
+      (greger-tools-execute "test-with-buffer"
+                            '((message . "hello"))
+                            (lambda (r e) (setq result r error e))
+                            (current-buffer))
+      (should (string= "message: hello, buffer: *test-buffer*" result))
+      (should (null error))))
 
   ;; Clean up
   (remhash "test-no-buffer" greger-tools-registry)
