@@ -4448,4 +4448,108 @@ If METADATA contains safe-shell-commands and COMMAND is in that list, skips perm
 Update shell-command function signature to accept metadata
 </tool.toolu_01HeERUudEWGBAyCtRr2P3zw>
 
-<!-- TOOL_RESULT_PLACEHOLDER_toolu_01HeERUudEWGBAyCtRr2P3zw -->
+## TOOL RESULT:
+
+ID: toolu_01HeERUudEWGBAyCtRr2P3zw
+
+<tool.toolu_01HeERUudEWGBAyCtRr2P3zw>
+Successfully replaced content in /Users/andreas/projects/aichat3/greger-stdlib.el. Successfully staged 2 file(s) and committed with message: Update shell-command function signature to accept metadata
+</tool.toolu_01HeERUudEWGBAyCtRr2P3zw>
+
+
+## ASSISTANT:
+
+Now let me update the implementation to check for safe commands:
+
+## TOOL USE:
+
+Name: read-file
+ID: toolu_01HB95e3JaFoBA2QRkCyRS6S
+
+### path
+
+<tool.toolu_01HB95e3JaFoBA2QRkCyRS6S>
+greger-stdlib.el
+</tool.toolu_01HB95e3JaFoBA2QRkCyRS6S>
+
+### start_line
+
+<tool.toolu_01HB95e3JaFoBA2QRkCyRS6S>
+990
+</tool.toolu_01HB95e3JaFoBA2QRkCyRS6S>
+
+### end_line
+
+<tool.toolu_01HB95e3JaFoBA2QRkCyRS6S>
+1015
+</tool.toolu_01HB95e3JaFoBA2QRkCyRS6S>
+
+## TOOL RESULT:
+
+ID: toolu_01HB95e3JaFoBA2QRkCyRS6S
+
+<tool.toolu_01HB95e3JaFoBA2QRkCyRS6S>
+      (funcall callback nil "Command cannot be empty"))
+
+     ((not (stringp work-dir))
+      (funcall callback nil "Working directory must be a string"))
+
+     (t
+      (let ((expanded-work-dir (expand-file-name work-dir)))
+        (cond
+         ((not (file-exists-p expanded-work-dir))
+          (funcall callback nil (format "Working directory does not exist: %s" expanded-work-dir)))
+
+         ((not (file-directory-p expanded-work-dir))
+          (funcall callback nil (format "Working directory path is not a directory: %s" expanded-work-dir)))
+
+         ((not (y-or-n-p (format "Execute shell command: '%s' in directory '%s'? "
+                                command expanded-work-dir)))
+          (funcall callback nil "Shell command execution cancelled by user"))
+
+         (t
+          ;; Check if command contains shell operators (pipes, redirections, etc.)
+          (if (string-match-p "[|><&;]" command)
+              ;; Use shell to execute commands with shell operators
+              (greger-tools--run-async-subprocess
+               "sh" (list "-c" command) expanded-work-dir
+               (lambda (output error)
+                 (if error
+</tool.toolu_01HB95e3JaFoBA2QRkCyRS6S>
+
+## TOOL USE:
+
+Name: str-replace
+ID: toolu_01DoSQVPaZkeXsqE1skvgsiw
+
+### file_path
+
+<tool.toolu_01DoSQVPaZkeXsqE1skvgsiw>
+greger-stdlib.el
+</tool.toolu_01DoSQVPaZkeXsqE1skvgsiw>
+
+### original_content
+
+<tool.toolu_01DoSQVPaZkeXsqE1skvgsiw>
+         ((not (y-or-n-p (format "Execute shell command: '%s' in directory '%s'? "
+                                command expanded-work-dir)))
+          (funcall callback nil "Shell command execution cancelled by user"))
+</tool.toolu_01DoSQVPaZkeXsqE1skvgsiw>
+
+### new_content
+
+<tool.toolu_01DoSQVPaZkeXsqE1skvgsiw>
+         ((let ((safe-commands (plist-get metadata :safe-shell-commands)))
+            (and (not (member command safe-commands))
+                 (not (y-or-n-p (format "Execute shell command: '%s' in directory '%s'? "
+                                       command expanded-work-dir)))))
+          (funcall callback nil "Shell command execution cancelled by user"))
+</tool.toolu_01DoSQVPaZkeXsqE1skvgsiw>
+
+### git_commit_message
+
+<tool.toolu_01DoSQVPaZkeXsqE1skvgsiw>
+Update shell-command to check safe-shell-commands metadata and skip prompt
+</tool.toolu_01DoSQVPaZkeXsqE1skvgsiw>
+
+<!-- TOOL_RESULT_PLACEHOLDER_toolu_01DoSQVPaZkeXsqE1skvgsiw -->

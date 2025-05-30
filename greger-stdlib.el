@@ -1001,8 +1001,10 @@ If METADATA contains safe-shell-commands and COMMAND is in that list, skips perm
          ((not (file-directory-p expanded-work-dir))
           (funcall callback nil (format "Working directory path is not a directory: %s" expanded-work-dir)))
 
-         ((not (y-or-n-p (format "Execute shell command: '%s' in directory '%s'? "
-                                command expanded-work-dir)))
+         ((let ((safe-commands (plist-get metadata :safe-shell-commands)))
+            (and (not (member command safe-commands))
+                 (not (y-or-n-p (format "Execute shell command: '%s' in directory '%s'? "
+                                       command expanded-work-dir)))))
           (funcall callback nil "Shell command execution cancelled by user"))
 
          (t
