@@ -293,6 +293,58 @@
     ;; Clean up
     (remhash "test-multiline" greger-tools-registry)))
 
+(ert-deftest greger-agent-test-simple-string-comparison ()
+  "Test simple tool execution with clear before/after string comparison."
+  (let ((test-completed nil))
+
+    ;; Define a predictable tool function
+    (defun greger-test-simple-echo (input)
+      (format "Echo: %s" input))
+
+    ;; Register test tool
+    (greger-register-tool "test-echo"
+      :description "Simple echo tool"
+      :properties '((input . ((type . "string")
+                              (description . "Input to echo"))))
+      :required '("input")
+      :function 'greger-test-simple-echo)
+
+    ;; Create test buffer
+    (with-temp-buffer
+      ;; Initial buffer state (empty)
+      (let ((initial-content "")
+            (agent-state (make-greger-agent-state
+                          :current-iteration 0
+                          :chat-buffer (current-buffer)
+                          :directory default-directory))
+            (tool-calls `(((type . "tool_use")
+                          (id . "echo_001")
+                          (name . "test-echo")
+                          (input . ((input . "hello world"))))))
+            ;; Expected content after tool execution
+            (expected-final-content "## TOOL RESULT:\n\nID: echo_001\n\n<tool.echo_001>\nEcho: hello world\n</tool.echo_001>"))
+
+        ;; Verify initial state
+        (should (string= initial-content (buffer-substring-no-properties (point-min) (point-max))))
+
+        ;; Mock greger-agent--run-agent-loop to capture completion
+        (cl-letf (((symbol-function 'greger-agent--run-agent-loop)
+                   (lambda (state)
+                     (setq test-completed t))))
+
+          ;; Execute tools
+          (greger-agent--execute-tools tool-calls agent-state)
+
+          ;; Verify completion
+          (should test-completed)
+
+          ;; Verify exact final content using string= comparison
+          (let ((actual-final-content (buffer-substring-no-properties (point-min) (point-max))))
+            (should (string= expected-final-content actual-final-content))))))
+
+    ;; Clean up
+    (remhash "test-echo" greger-tools-registry)))
+
 (provide 'test-greger-agent)
 
 ;;; test-greger-agent.el ends here
