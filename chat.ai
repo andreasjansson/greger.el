@@ -7861,4 +7861,228 @@ greger-parser.el
 Simplify metadata merging since structure is now flat
 </tool.toolu_01Mkt8MyoQXw2dvMeXWDgz9q>
 
-<!-- TOOL_RESULT_PLACEHOLDER_toolu_01Mkt8MyoQXw2dvMeXWDgz9q -->
+## TOOL RESULT:
+
+ID: toolu_01Mkt8MyoQXw2dvMeXWDgz9q
+
+<tool.toolu_01Mkt8MyoQXw2dvMeXWDgz9q>
+Successfully replaced content in /Users/andreas/projects/aichat3/greger-parser.el. Successfully staged 2 file(s) and committed with message: Simplify metadata merging since structure is now flat
+</tool.toolu_01Mkt8MyoQXw2dvMeXWDgz9q>
+
+
+## ASSISTANT:
+
+Now let's run the tests to see if we've fixed the issues. But first, let me check the failing test about "safe-shell-commands with system content" - that test expects 1 message but gets 0. Looking at the test:
+
+## TOOL USE:
+
+Name: read-file
+ID: toolu_016xXbAd4k5ffiNoZjqN5Fup
+
+### path
+
+<tool.toolu_016xXbAd4k5ffiNoZjqN5Fup>
+test-greger-parser.el
+</tool.toolu_016xXbAd4k5ffiNoZjqN5Fup>
+
+### start_line
+
+<tool.toolu_016xXbAd4k5ffiNoZjqN5Fup>
+1385
+</tool.toolu_016xXbAd4k5ffiNoZjqN5Fup>
+
+### end_line
+
+<tool.toolu_016xXbAd4k5ffiNoZjqN5Fup>
+1400
+</tool.toolu_016xXbAd4k5ffiNoZjqN5Fup>
+
+## TOOL RESULT:
+
+ID: toolu_016xXbAd4k5ffiNoZjqN5Fup
+
+<tool.toolu_016xXbAd4k5ffiNoZjqN5Fup>
+  (let ((markdown "## SYSTEM:
+
+<safe-shell-commands>
+ls
+pwd
+</safe-shell-commands>
+
+<safe-shell-commands>
+echo hello
+</safe-shell-commands>"))
+    (let ((result (greger-parser-parse-dialog markdown)))
+      ;; Should extract the first one found
+      (should (equal '(:safe-shell-commands ("ls" "pwd")) (plist-get result :metadata))))))
+
+(ert-deftest greger-parser-test-safe-shell-commands-empty-lines ()
+  "Test safe-shell-commands with empty lines and whitespace."
+</tool.toolu_016xXbAd4k5ffiNoZjqN5Fup>
+
+## ASSISTANT:
+
+Let me find the correct test:
+
+## TOOL USE:
+
+Name: ripgrep
+ID: toolu_01YLie9s6TGN1Z6ZpDrGdmGr
+
+### pattern
+
+<tool.toolu_01YLie9s6TGN1Z6ZpDrGdmGr>
+safe-shell-commands-with-system-content
+</tool.toolu_01YLie9s6TGN1Z6ZpDrGdmGr>
+
+### path
+
+<tool.toolu_01YLie9s6TGN1Z6ZpDrGdmGr>
+test-greger-parser.el
+</tool.toolu_01YLie9s6TGN1Z6ZpDrGdmGr>
+
+### context-lines
+
+<tool.toolu_01YLie9s6TGN1Z6ZpDrGdmGr>
+5
+</tool.toolu_01YLie9s6TGN1Z6ZpDrGdmGr>
+
+## TOOL RESULT:
+
+ID: toolu_01YLie9s6TGN1Z6ZpDrGdmGr
+
+<tool.toolu_01YLie9s6TGN1Z6ZpDrGdmGr>
+1364:(ert-deftest greger-parser-test-safe-shell-commands-with-system-content ()
+
+</tool.toolu_01YLie9s6TGN1Z6ZpDrGdmGr>
+
+## TOOL USE:
+
+Name: read-file
+ID: toolu_01Vh5WCTM4nYWcBCZcur7h52
+
+### path
+
+<tool.toolu_01Vh5WCTM4nYWcBCZcur7h52>
+test-greger-parser.el
+</tool.toolu_01Vh5WCTM4nYWcBCZcur7h52>
+
+### start_line
+
+<tool.toolu_01Vh5WCTM4nYWcBCZcur7h52>
+1364
+</tool.toolu_01Vh5WCTM4nYWcBCZcur7h52>
+
+### end_line
+
+<tool.toolu_01Vh5WCTM4nYWcBCZcur7h52>
+1384
+</tool.toolu_01Vh5WCTM4nYWcBCZcur7h52>
+
+## TOOL RESULT:
+
+ID: toolu_01Vh5WCTM4nYWcBCZcur7h52
+
+<tool.toolu_01Vh5WCTM4nYWcBCZcur7h52>
+(ert-deftest greger-parser-test-safe-shell-commands-with-system-content ()
+  "Test safe-shell-commands with other system content."
+  (let ((markdown "## SYSTEM:
+
+You are a helpful assistant.
+
+<safe-shell-commands>
+ls
+pwd
+</safe-shell-commands>
+
+Please be careful."))
+    (let ((result (greger-parser-parse-dialog markdown)))
+      ;; Should have a system message since there's other content
+      (should (= 1 (length (plist-get result :messages))))
+      (should (string= "system" (alist-get 'role (car (plist-get result :messages)))))
+      ;; But no metadata since safe-shell-commands was mixed with content
+      (should (equal '() (plist-get result :metadata))))))
+
+(ert-deftest greger-parser-test-safe-shell-commands-only-once ()
+  "Test that only one safe-shell-commands block is allowed."
+</tool.toolu_01Vh5WCTM4nYWcBCZcur7h52>
+
+## ASSISTANT:
+
+I see the issue. This test expects that when there's mixed content (both text and safe-shell-commands), it should create a system message with the text content and ignore the safe-shell-commands for metadata. But my current logic with the regex pattern `^[[:space:]>]*$` might be matching the mixed content incorrectly.
+
+Let me fix the system section parser to properly distinguish between the cases:
+
+## TOOL USE:
+
+Name: str-replace
+ID: toolu_01QaKnhNWjYZenUKhzccDgU6
+
+### file_path
+
+<tool.toolu_01QaKnhNWjYZenUKhzccDgU6>
+greger-parser.el
+</tool.toolu_01QaKnhNWjYZenUKhzccDgU6>
+
+### original_content
+
+<tool.toolu_01QaKnhNWjYZenUKhzccDgU6>
+(defun greger-parser--parse-system-section (state)
+  "Parse SYSTEM section using STATE.
+Returns either a system message or metadata if safe-shell-commands are found."
+  (let ((content (greger-parser--parse-section-content-with-metadata state)))
+    (cond
+     ;; If we extracted safe-shell-commands and content is empty or just whitespace/punctuation, return as metadata
+     ((and (plist-get content :safe-shell-commands)
+           (or (not (plist-get content :content))
+               (string-match-p "^[[:space:]>]*$" (plist-get content :content))))
+      (list :metadata :safe-shell-commands (plist-get content :safe-shell-commands)))
+
+     ;; If we have both content and safe-shell-commands, return system message and warn about metadata
+     ((and (plist-get content :safe-shell-commands)
+           (plist-get content :content))
+      (greger-parser--debug state "Warning: safe-shell-commands found with other content in SYSTEM section")
+      (greger-parser--create-system-message (plist-get content :content)))
+
+     ;; Just regular content
+     ((plist-get content :content)
+      (greger-parser--create-system-message (plist-get content :content)))
+
+     ;; No content
+     (t nil))))
+</tool.toolu_01QaKnhNWjYZenUKhzccDgU6>
+
+### new_content
+
+<tool.toolu_01QaKnhNWjYZenUKhzccDgU6>
+(defun greger-parser--parse-system-section (state)
+  "Parse SYSTEM section using STATE.
+Returns either a system message or metadata if safe-shell-commands are found."
+  (let ((content (greger-parser--parse-section-content-with-metadata state)))
+    (cond
+     ;; If we extracted safe-shell-commands and no meaningful content, return as metadata
+     ((and (plist-get content :safe-shell-commands)
+           (not (plist-get content :content)))
+      (list :metadata :safe-shell-commands (plist-get content :safe-shell-commands)))
+
+     ;; If we have both content and safe-shell-commands, return system message and ignore metadata
+     ((and (plist-get content :safe-shell-commands)
+           (plist-get content :content))
+      (greger-parser--debug state "Warning: safe-shell-commands found with other content in SYSTEM section - ignoring safe-shell-commands")
+      (greger-parser--create-system-message (plist-get content :content)))
+
+     ;; Just regular content
+     ((plist-get content :content)
+      (greger-parser--create-system-message (plist-get content :content)))
+
+     ;; No content
+     (t nil))))
+</tool.toolu_01QaKnhNWjYZenUKhzccDgU6>
+
+### git_commit_message
+
+<tool.toolu_01QaKnhNWjYZenUKhzccDgU6>
+Simplify system section logic to ignore stray characters and handle mixed content correctly
+</tool.toolu_01QaKnhNWjYZenUKhzccDgU6>
+
+<!-- TOOL_RESULT_PLACEHOLDER_toolu_01QaKnhNWjYZenUKhzccDgU6 -->

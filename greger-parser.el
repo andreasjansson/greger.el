@@ -625,16 +625,15 @@ Returns a plist with :messages and :metadata keys."
 Returns either a system message or metadata if safe-shell-commands are found."
   (let ((content (greger-parser--parse-section-content-with-metadata state)))
     (cond
-     ;; If we extracted safe-shell-commands and content is empty or just whitespace/punctuation, return as metadata
+     ;; If we extracted safe-shell-commands and no meaningful content, return as metadata
      ((and (plist-get content :safe-shell-commands)
-           (or (not (plist-get content :content))
-               (string-match-p "^[[:space:]>]*$" (plist-get content :content))))
+           (not (plist-get content :content)))
       (list :metadata :safe-shell-commands (plist-get content :safe-shell-commands)))
 
-     ;; If we have both content and safe-shell-commands, return system message and warn about metadata
+     ;; If we have both content and safe-shell-commands, return system message and ignore metadata
      ((and (plist-get content :safe-shell-commands)
            (plist-get content :content))
-      (greger-parser--debug state "Warning: safe-shell-commands found with other content in SYSTEM section")
+      (greger-parser--debug state "Warning: safe-shell-commands found with other content in SYSTEM section - ignoring safe-shell-commands")
       (greger-parser--create-system-message (plist-get content :content)))
 
      ;; Just regular content
