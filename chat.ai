@@ -3570,4 +3570,150 @@ greger-stdlib.el
 Update ripgrep tool to use callback pattern
 </tool.toolu_01TGvwf9YyttEvPtrQPowVLM>
 
-<!-- TOOL_RESULT_PLACEHOLDER_toolu_01TGvwf9YyttEvPtrQPowVLM -->
+## TOOL RESULT:
+
+ID: toolu_01TGvwf9YyttEvPtrQPowVLM
+
+<tool.toolu_01TGvwf9YyttEvPtrQPowVLM>
+Successfully replaced content in /Users/andreas/projects/aichat3/greger-stdlib.el. Successfully staged 2 file(s) and committed with message: Update ripgrep tool to use callback pattern
+</tool.toolu_01TGvwf9YyttEvPtrQPowVLM>
+
+
+## ASSISTANT:
+
+Now I need to update the actual implementation functions to use the callback pattern and the new async subprocess utility:
+
+## TOOL USE:
+
+Name: str-replace
+ID: toolu_01HmkqWVJnp4EV4rKh6wfvch
+
+### file_path
+
+<tool.toolu_01HmkqWVJnp4EV4rKh6wfvch>
+greger-stdlib.el
+</tool.toolu_01HmkqWVJnp4EV4rKh6wfvch>
+
+### original_content
+
+<tool.toolu_01HmkqWVJnp4EV4rKh6wfvch>
+(defun greger-tools--ripgrep (pattern path &optional case-sensitive file-type context-lines max-results)
+  "Search for PATTERN in PATH using the rg command line tool directly."
+  (unless (stringp pattern)
+    (error "Pattern must be a string"))
+
+  (unless (stringp path)
+    (error "Path must be a string"))
+
+  ;; Check if rg executable is available
+  (unless (executable-find "rg")
+    (error "ripgrep (rg) command not found. Please install ripgrep"))
+
+  (let ((expanded-path (expand-file-name path)))
+    (unless (file-exists-p expanded-path)
+      (error "Path does not exist: %s" expanded-path))
+
+    ;; Build the rg command arguments
+    (let ((args '("rg")))
+
+      ;; Add case sensitivity flag
+      (if case-sensitive
+          (setq args (append args '("--case-sensitive")))
+        (setq args (append args '("--smart-case"))))
+
+      ;; Add context lines if specified
+      (when (and context-lines (> context-lines 0))
+        (setq args (append args (list "--context" (number-to-string context-lines)))))
+
+      ;; Add max results limit if specified (using --max-count)
+      (when (and max-results (> max-results 0))
+        (setq args (append args (list "--max-count" (number-to-string max-results)))))
+
+      ;; Add file type if specified
+      (when (and file-type (not (string-empty-p file-type)))
+        (setq args (append args (list "--type" file-type))))
+
+      ;; Add line numbers and no heading for better output format
+      (setq args (append args '("--line-number" "--no-heading")))
+
+      ;; Add the pattern and path
+      (setq args (append args (list pattern expanded-path)))
+
+      (condition-case err
+          (let ((command (mapconcat 'shell-quote-argument args " ")))
+            ;; Execute the command and capture output
+            (let ((output (shell-command-to-string command)))
+              ;; Return results or indicate no matches
+              (if (string-empty-p (string-trim output))
+                  "No matches found"
+                output)))
+        (error (format "Failed to execute ripgrep search: %s" (error-message-string err)))))))
+</tool.toolu_01HmkqWVJnp4EV4rKh6wfvch>
+
+### new_content
+
+<tool.toolu_01HmkqWVJnp4EV4rKh6wfvch>
+(defun greger-tools--ripgrep (pattern path callback &optional case-sensitive file-type context-lines max-results)
+  "Search for PATTERN in PATH using the rg command line tool directly."
+  (unless (stringp pattern)
+    (error "Pattern must be a string"))
+
+  (unless (stringp path)
+    (error "Path must be a string"))
+
+  ;; Check if rg executable is available
+  (unless (executable-find "rg")
+    (funcall callback nil "ripgrep (rg) command not found. Please install ripgrep")
+    (return))
+
+  (let ((expanded-path (expand-file-name path)))
+    (unless (file-exists-p expanded-path)
+      (funcall callback nil (format "Path does not exist: %s" expanded-path))
+      (return))
+
+    ;; Build the rg command arguments
+    (let ((args '()))
+
+      ;; Add case sensitivity flag
+      (if case-sensitive
+          (setq args (append args '("--case-sensitive")))
+        (setq args (append args '("--smart-case"))))
+
+      ;; Add context lines if specified
+      (when (and context-lines (> context-lines 0))
+        (setq args (append args (list "--context" (number-to-string context-lines)))))
+
+      ;; Add max results limit if specified (using --max-count)
+      (when (and max-results (> max-results 0))
+        (setq args (append args (list "--max-count" (number-to-string max-results)))))
+
+      ;; Add file type if specified
+      (when (and file-type (not (string-empty-p file-type)))
+        (setq args (append args (list "--type" file-type))))
+
+      ;; Add line numbers and no heading for better output format
+      (setq args (append args '("--line-number" "--no-heading")))
+
+      ;; Add the pattern and path
+      (setq args (append args (list pattern expanded-path)))
+
+      ;; Execute the command asynchronously
+      (greger-tools--run-async-subprocess
+       "rg" args nil
+       (lambda (output error)
+         (if error
+             (funcall callback nil (format "Failed to execute ripgrep search: %s" error))
+           (funcall callback
+                   (if (string-empty-p (string-trim output))
+                       "No matches found"
+                     output)
+                   nil)))))))
+</tool.toolu_01HmkqWVJnp4EV4rKh6wfvch>
+
+### git_commit_message
+
+<tool.toolu_01HmkqWVJnp4EV4rKh6wfvch>
+Update ripgrep implementation to use async callback pattern
+</tool.toolu_01HmkqWVJnp4EV4rKh6wfvch>
+
+<!-- TOOL_RESULT_PLACEHOLDER_toolu_01HmkqWVJnp4EV4rKh6wfvch -->
