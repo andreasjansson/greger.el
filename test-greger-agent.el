@@ -426,7 +426,24 @@ Line 3: End
                           (name . "test-echo")
                           (input . ((input . "hello world"))))))
             ;; Expected content after tool execution
-            (expected-final-content "## TOOL RESULT:\n\nID: echo_001\n\n<tool.echo_001>\nEcho: hello world\n</tool.echo_001>"))
+            (expected-final-content "## TOOL USE:
+
+Name: test-echo
+ID: echo_001
+
+### input
+
+<tool.echo_001>
+hello world
+</tool.echo_001>
+
+## TOOL RESULT:
+
+ID: echo_001
+
+<tool.echo_001>
+Echo: hello world
+</tool.echo_001>"))
 
         ;; Verify initial state
         (should (string= initial-content (buffer-substring-no-properties (point-min) (point-max))))

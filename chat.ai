@@ -3580,4 +3580,195 @@ Line 3: End
 Fix multiline tool test with multi-line expected content including TOOL USE
 </tool.toolu_01PpLybmfWxkfb5XpdhQYNMZ>
 
-<!-- TOOL_RESULT_PLACEHOLDER_toolu_01PpLybmfWxkfb5XpdhQYNMZ -->
+## TOOL RESULT:
+
+ID: toolu_01PpLybmfWxkfb5XpdhQYNMZ
+
+<tool.toolu_01PpLybmfWxkfb5XpdhQYNMZ>
+Successfully replaced content in /Users/andreas/projects/aichat3/test-greger-agent.el. Successfully staged 2 file(s) and committed with message: Fix multiline tool test with multi-line expected content including TOOL USE
+</tool.toolu_01PpLybmfWxkfb5XpdhQYNMZ>
+
+
+## ASSISTANT:
+
+Now let me fix the simple string comparison test:
+
+## TOOL USE:
+
+Name: read-file
+ID: toolu_01XseGawcVAVQMDfdCyZ65DT
+
+### path
+
+<tool.toolu_01XseGawcVAVQMDfdCyZ65DT>
+test-greger-agent.el
+</tool.toolu_01XseGawcVAVQMDfdCyZ65DT>
+
+### start_line
+
+<tool.toolu_01XseGawcVAVQMDfdCyZ65DT>
+385
+</tool.toolu_01XseGawcVAVQMDfdCyZ65DT>
+
+### end_line
+
+<tool.toolu_01XseGawcVAVQMDfdCyZ65DT>
+425
+</tool.toolu_01XseGawcVAVQMDfdCyZ65DT>
+
+## TOOL RESULT:
+
+ID: toolu_01XseGawcVAVQMDfdCyZ65DT
+
+<tool.toolu_01XseGawcVAVQMDfdCyZ65DT>
+                     (setq test-completed t))))
+
+          ;; Execute tools
+          (greger-agent--execute-tools tool-calls agent-state)
+
+          ;; Check that execution completed
+          (should test-completed)
+
+          ;; Check exact multi-line formatting
+          (let ((actual-content (buffer-substring-no-properties (point-min) (point-max))))
+            (should (string= expected-content actual-content))))))
+
+    ;; Clean up
+    (remhash "test-multiline" greger-tools-registry)))
+
+(ert-deftest greger-agent-test-simple-string-comparison ()
+  "Test simple tool execution with clear before/after string comparison."
+  (let ((test-completed nil))
+
+    ;; Define a predictable tool function
+    (defun greger-test-simple-echo (input)
+      (format "Echo: %s" input))
+
+    ;; Register test tool
+    (greger-register-tool "test-echo"
+      :description "Simple echo tool"
+      :properties '((input . ((type . "string")
+                              (description . "Input to echo"))))
+      :required '("input")
+      :function 'greger-test-simple-echo)
+
+    ;; Create test buffer
+    (with-temp-buffer
+      ;; Initial buffer state (empty)
+      (let ((initial-content "")
+            (agent-state (make-greger-agent-state
+                          :current-iteration 0
+                          :chat-buffer (current-buffer)
+                          :directory default-directory))
+            (tool-calls `(((type . "tool_use")
+                          (id . "echo_001")
+</tool.toolu_01XseGawcVAVQMDfdCyZ65DT>
+
+## TOOL USE:
+
+Name: read-file
+ID: toolu_018J6iFFBy16KEsuiEFCCemU
+
+### path
+
+<tool.toolu_018J6iFFBy16KEsuiEFCCemU>
+test-greger-agent.el
+</tool.toolu_018J6iFFBy16KEsuiEFCCemU>
+
+### start_line
+
+<tool.toolu_018J6iFFBy16KEsuiEFCCemU>
+425
+</tool.toolu_018J6iFFBy16KEsuiEFCCemU>
+
+### end_line
+
+<tool.toolu_018J6iFFBy16KEsuiEFCCemU>
+465
+</tool.toolu_018J6iFFBy16KEsuiEFCCemU>
+
+## TOOL RESULT:
+
+ID: toolu_018J6iFFBy16KEsuiEFCCemU
+
+<tool.toolu_018J6iFFBy16KEsuiEFCCemU>
+                          (id . "echo_001")
+                          (name . "test-echo")
+                          (input . ((input . "hello world"))))))
+            ;; Expected content after tool execution
+            (expected-final-content "## TOOL RESULT:\n\nID: echo_001\n\n<tool.echo_001>\nEcho: hello world\n</tool.echo_001>"))
+
+        ;; Verify initial state
+        (should (string= initial-content (buffer-substring-no-properties (point-min) (point-max))))
+
+        ;; Mock greger-agent--run-agent-loop to capture completion
+        (cl-letf (((symbol-function 'greger-agent--run-agent-loop)
+                   (lambda (state)
+                     (setq test-completed t))))
+
+          ;; Execute tools
+          (greger-agent--execute-tools tool-calls agent-state)
+
+          ;; Verify completion
+          (should test-completed)
+
+          ;; Verify exact final content using string= comparison
+          (let ((actual-final-content (buffer-substring-no-properties (point-min) (point-max))))
+            (should (string= expected-final-content actual-final-content))))))
+
+    ;; Clean up
+    (remhash "test-echo" greger-tools-registry)))
+
+(provide 'test-greger-agent)
+
+;;; test-greger-agent.el ends here
+
+</tool.toolu_018J6iFFBy16KEsuiEFCCemU>
+
+## TOOL USE:
+
+Name: str-replace
+ID: toolu_013YaUjkNdK8WVdyVGJzPev7
+
+### file_path
+
+<tool.toolu_013YaUjkNdK8WVdyVGJzPev7>
+test-greger-agent.el
+</tool.toolu_013YaUjkNdK8WVdyVGJzPev7>
+
+### original_content
+
+<tool.toolu_013YaUjkNdK8WVdyVGJzPev7>
+(expected-final-content "## TOOL RESULT:\n\nID: echo_001\n\n<tool.echo_001>\nEcho: hello world\n</tool.echo_001>"))
+</tool.toolu_013YaUjkNdK8WVdyVGJzPev7>
+
+### new_content
+
+<tool.toolu_013YaUjkNdK8WVdyVGJzPev7>
+(expected-final-content "## TOOL USE:
+
+Name: test-echo
+ID: echo_001
+
+### input
+
+<tool.echo_001>
+hello world
+</tool.echo_001>
+
+## TOOL RESULT:
+
+ID: echo_001
+
+<tool.echo_001>
+Echo: hello world
+</tool.echo_001>"))
+</tool.toolu_013YaUjkNdK8WVdyVGJzPev7>
+
+### git_commit_message
+
+<tool.toolu_013YaUjkNdK8WVdyVGJzPev7>
+Fix simple string comparison test with multi-line expected content including TOOL USE
+</tool.toolu_013YaUjkNdK8WVdyVGJzPev7>
+
+<!-- TOOL_RESULT_PLACEHOLDER_toolu_013YaUjkNdK8WVdyVGJzPev7 -->
