@@ -1519,4 +1519,521 @@ The code is now much simpler and does exactly what it needs to do without unnece
 
 ## USER:
 
-Write
+Create a unit test file test-greger-agent.el (similar to test-greger-tools.el) that tests this tool calling logic in a few different ways
+
+
+## ASSISTANT:
+
+I'll create a unit test file for the agent tool calling logic. Let me first look at the existing test file to understand the testing pattern:
+
+## TOOL USE:
+
+Name: read-file
+ID: toolu_01LhwR5ssXah9PgJQYfSLe9w
+
+### path
+
+<tool.toolu_01LhwR5ssXah9PgJQYfSLe9w>
+test-greger-tools.el
+</tool.toolu_01LhwR5ssXah9PgJQYfSLe9w>
+
+### start_line
+
+<tool.toolu_01LhwR5ssXah9PgJQYfSLe9w>
+1
+</tool.toolu_01LhwR5ssXah9PgJQYfSLe9w>
+
+### end_line
+
+<tool.toolu_01LhwR5ssXah9PgJQYfSLe9w>
+50
+</tool.toolu_01LhwR5ssXah9PgJQYfSLe9w>
+
+## TOOL RESULT:
+
+ID: toolu_01LhwR5ssXah9PgJQYfSLe9w
+
+<tool.toolu_01LhwR5ssXah9PgJQYfSLe9w>
+;;; test-greger-tools.el --- Tests for greger tools -*- lexical-binding: t -*-
+
+(require 'ert)
+(require 'greger-tools)
+
+(ert-deftest greger-tools-test-tool-registration-and-execution ()
+  "Test that tools can be registered and executed correctly."
+  ;; Define a simple test function
+  (defun greger-test-subtract-numbers (a b)
+    (- a b))
+
+  ;; Register a test tool
+  (greger-register-tool "test-subtract"
+    :description "Subtract second number from first number"
+    :properties '((a . ((type . "integer")
+                        (description . "First number")))
+                  (b . ((type . "integer")
+                        (description . "Second number"))))
+    :required '("a" "b")
+    :function 'greger-test-subtract-numbers)
+
+  ;; Test that the tool was registered
+  (should (gethash "test-subtract" greger-tools-registry))
+
+  ;; Test getting tool schema
+  (let ((schemas (greger-tools-get-schemas '("test-subtract"))))
+    (should (= 1 (length schemas)))
+    (let ((schema (car schemas)))
+      (should (string= "test-subtract" (alist-get 'name schema)))
+      (should (string= "Subtract second number from first number" (alist-get 'description schema)))))
+
+  ;; Test tool execution
+  (let ((result (greger-tools-execute "test-subtract" '((a . 5) (b . 3)))))
+    (should (= 2 result)))
+
+  ;; Test execution with different parameters
+  (let ((result (greger-tools-execute "test-subtract" '((b . 1) (a . 4)))))
+    (should (= 3 result)))
+
+  ;; Clean up - remove test tool from registry
+  (remhash "test-subtract" greger-tools-registry))
+
+(ert-deftest greger-tools-test-unknown-tool-error ()
+  "Test that executing unknown tools raises an error."
+  (should-error
+   (greger-tools-execute "nonexistent-tool" '((param . "value")))
+   :type 'error))
+
+(ert-deftest greger-tools-test-parameter-mapping ()
+  "Test that parameters are correctly mapped from underscores to hyphens."
+</tool.toolu_01LhwR5ssXah9PgJQYfSLe9w>
+
+## ASSISTANT:
+
+Now let me see more of the test structure:
+
+## TOOL USE:
+
+Name: read-file
+ID: toolu_01DS274XLRa6CAUecPg2zCfS
+
+### path
+
+<tool.toolu_01DS274XLRa6CAUecPg2zCfS>
+test-greger-tools.el
+</tool.toolu_01DS274XLRa6CAUecPg2zCfS>
+
+### start_line
+
+<tool.toolu_01DS274XLRa6CAUecPg2zCfS>
+40
+</tool.toolu_01DS274XLRa6CAUecPg2zCfS>
+
+### end_line
+
+<tool.toolu_01DS274XLRa6CAUecPg2zCfS>
+100
+</tool.toolu_01DS274XLRa6CAUecPg2zCfS>
+
+## TOOL RESULT:
+
+ID: toolu_01DS274XLRa6CAUecPg2zCfS
+
+<tool.toolu_01DS274XLRa6CAUecPg2zCfS>
+  ;; Clean up - remove test tool from registry
+  (remhash "test-subtract" greger-tools-registry))
+
+(ert-deftest greger-tools-test-unknown-tool-error ()
+  "Test that executing unknown tools raises an error."
+  (should-error
+   (greger-tools-execute "nonexistent-tool" '((param . "value")))
+   :type 'error))
+
+(ert-deftest greger-tools-test-parameter-mapping ()
+  "Test that parameters are correctly mapped from underscores to hyphens."
+  ;; Define a test function with hyphenated parameter names
+  (defun greger-test-hyphenated-params (file-path commit-message)
+    "Test function with hyphenated parameters."
+    (format "file: %s, message: %s" file-path commit-message))
+
+  ;; Register tool with underscore parameter names (as they come from JSON)
+  (greger-register-tool "test-hyphens"
+    :description "Test hyphenated parameter mapping"
+    :properties '((file_path . ((type . "string")
+                                (description . "File path")))
+                  (commit_message . ((type . "string")
+                                     (description . "Commit message"))))
+    :required '("file_path" "commit_message")
+    :function 'greger-test-hyphenated-params)
+
+  ;; Test execution with underscore parameters
+  (let ((result (greger-tools-execute "test-hyphens"
+                                      '((file_path . "/path/to/file")
+                                        (commit_message . "test commit")))))
+    (should (string= "file: /path/to/file, message: test commit" result)))
+
+  ;; Clean up
+  (remhash "test-hyphens" greger-tools-registry))
+
+(provide 'test-greger-tools)
+
+(ert-deftest greger-tools-test-optional-parameters ()
+  "Test that tools work correctly with optional parameters."
+  ;; Define a test function with optional parameters
+  (defun greger-test-optional-params (required-param &optional optional-param1 optional-param2)
+    "Test function with optional parameters."
+    (format "required: %s, opt1: %s, opt2: %s"
+            required-param
+            (or optional-param1 "default1")
+            (or optional-param2 "default2")))
+
+  ;; Register tool with some optional parameters
+  (greger-register-tool "test-optional"
+    :description "Test optional parameter handling"
+    :properties '((required_param . ((type . "string")
+                                     (description . "Required parameter")))
+                  (optional_param1 . ((type . "string")
+                                      (description . "First optional parameter")))
+                  (optional_param2 . ((type . "string")
+                                      (description . "Second optional parameter"))))
+    :required '("required_param")
+    :function 'greger-test-optional-params)
+
+  ;; Test with only required parameter
+  (let ((result (greger-tools-execute "test-optional"
+</tool.toolu_01DS274XLRa6CAUecPg2zCfS>
+
+## ASSISTANT:
+
+Now let me check how the callback-based execution should work by looking at the current API:
+
+## TOOL USE:
+
+Name: read-file
+ID: toolu_01RZSif14NsEAzMyxrkwnkAc
+
+### path
+
+<tool.toolu_01RZSif14NsEAzMyxrkwnkAc>
+greger-tools.el
+</tool.toolu_01RZSif14NsEAzMyxrkwnkAc>
+
+### start_line
+
+<tool.toolu_01RZSif14NsEAzMyxrkwnkAc>
+55
+</tool.toolu_01RZSif14NsEAzMyxrkwnkAc>
+
+### end_line
+
+<tool.toolu_01RZSif14NsEAzMyxrkwnkAc>
+75
+</tool.toolu_01RZSif14NsEAzMyxrkwnkAc>
+
+## TOOL RESULT:
+
+ID: toolu_01RZSif14NsEAzMyxrkwnkAc
+
+<tool.toolu_01RZSif14NsEAzMyxrkwnkAc>
+                (error "Unknown tool: %s" tool-name))))
+          tool-names))
+
+(defun greger-tools-execute (tool-name args callback buffer)
+  "Execute TOOL-NAME with ARGS and call CALLBACK with (result error).
+If the tool has :pass-buffer set, BUFFER will be passed to the tool function."
+  (let ((tool-def (gethash tool-name greger-tools-registry)))
+    (if tool-def
+        (let ((func (plist-get tool-def :function))
+              (pass-buffer (plist-get tool-def :pass-buffer)))
+          ;; Add buffer parameter if pass-buffer is set and buffer is provided
+          (when (and pass-buffer buffer)
+            (setq args (cons (cons 'buffer buffer) args)))
+          (condition-case err
+              (let ((result (greger-tools--call-function-with-args func args tool-def)))
+                (funcall callback result nil))
+            (error
+             (funcall callback nil err))))
+      (funcall callback nil (format "Unknown tool: %s" tool-name)))))
+
+(defun greger-tools--call-function-with-args (func args tool-def)
+</tool.toolu_01RZSif14NsEAzMyxrkwnkAc>
+
+## ASSISTANT:
+
+I notice there's an issue with the current API - the old tests expect a synchronous API but we changed it to always require a callback. Let me create the test file with the new callback-based API:
+
+## TOOL USE:
+
+Name: write-new-file
+ID: toolu_01S1EqyqTbiwrtudqeHbrCVG
+
+### file_path
+
+<tool.toolu_01S1EqyqTbiwrtudqeHbrCVG>
+test-greger-agent.el
+</tool.toolu_01S1EqyqTbiwrtudqeHbrCVG>
+
+### contents
+
+<tool.toolu_01S1EqyqTbiwrtudqeHbrCVG>
+;;; test-greger-agent.el --- Tests for greger agent functionality -*- lexical-binding: t -*-
+
+(require 'ert)
+(require 'greger-agent)
+(require 'greger-tools)
+(require 'greger-parser)
+
+(ert-deftest greger-agent-test-tool-placeholder ()
+  "Test the tool placeholder helper function."
+  (should (string= "<!-- TOOL_RESULT_PLACEHOLDER_test123 -->"
+                   (greger-agent--tool-placeholder "test123")))
+  (should (string= "<!-- TOOL_RESULT_PLACEHOLDER_tool_abc_def -->"
+                   (greger-agent--tool-placeholder "tool_abc_def"))))
+
+(ert-deftest greger-agent-test-single-tool-execution ()
+  "Test execution of a single tool with callback."
+  (let ((test-completed nil)
+        (test-result nil)
+        (test-error nil))
+
+    ;; Define a simple test function
+    (defun greger-test-simple-tool (message)
+      (format "Tool executed: %s" message))
+
+    ;; Register test tool
+    (greger-register-tool "test-simple"
+      :description "Simple test tool"
+      :properties '((message . ((type . "string")
+                                (description . "Test message"))))
+      :required '("message")
+      :function 'greger-test-simple-tool)
+
+    ;; Create test buffer
+    (with-temp-buffer
+      (let ((agent-state (make-greger-agent-state
+                          :current-iteration 0
+                          :chat-buffer (current-buffer)
+                          :directory default-directory))
+            (tool-calls `(((type . "tool_use")
+                          (id . "test_001")
+                          (name . "test-simple")
+                          (input . ((message . "Hello World")))))))
+
+        ;; Mock greger-agent--run-agent-loop to capture completion
+        (cl-letf (((symbol-function 'greger-agent--run-agent-loop)
+                   (lambda (state)
+                     (setq test-completed t))))
+
+          ;; Execute tools
+          (greger-agent--execute-tools tool-calls agent-state)
+
+          ;; Check that the function completed
+          (should test-completed)
+
+          ;; Check buffer contents
+          (let ((buffer-content (buffer-substring-no-properties (point-min) (point-max))))
+            (should (string-match-p "test-simple" buffer-content))
+            (should (string-match-p "Tool executed: Hello World" buffer-content))))))
+
+    ;; Clean up
+    (remhash "test-simple" greger-tools-registry)))
+
+(ert-deftest greger-agent-test-multiple-tools-parallel ()
+  "Test execution of multiple tools in parallel."
+  (let ((completion-count 0)
+        (tools-completed nil))
+
+    ;; Define test functions with different execution times
+    (defun greger-test-tool-a (value)
+      (format "Tool A result: %s" value))
+
+    (defun greger-test-tool-b (value)
+      (format "Tool B result: %s" value))
+
+    ;; Register test tools
+    (greger-register-tool "test-tool-a"
+      :description "Test tool A"
+      :properties '((value . ((type . "string")
+                              (description . "Input value"))))
+      :required '("value")
+      :function 'greger-test-tool-a)
+
+    (greger-register-tool "test-tool-b"
+      :description "Test tool B"
+      :properties '((value . ((type . "string")
+                              (description . "Input value"))))
+      :required '("value")
+      :function 'greger-test-tool-b)
+
+    ;; Create test buffer
+    (with-temp-buffer
+      (let ((agent-state (make-greger-agent-state
+                          :current-iteration 0
+                          :chat-buffer (current-buffer)
+                          :directory default-directory))
+            (tool-calls `(((type . "tool_use")
+                          (id . "test_a")
+                          (name . "test-tool-a")
+                          (input . ((value . "input-a"))))
+                         ((type . "tool_use")
+                          (id . "test_b")
+                          (name . "test-tool-b")
+                          (input . ((value . "input-b")))))))
+
+        ;; Mock greger-agent--run-agent-loop to capture completion
+        (cl-letf (((symbol-function 'greger-agent--run-agent-loop)
+                   (lambda (state)
+                     (setq tools-completed t))))
+
+          ;; Execute tools
+          (greger-agent--execute-tools tool-calls agent-state)
+
+          ;; Check that all tools completed
+          (should tools-completed)
+
+          ;; Check buffer contents - both tools should have executed
+          (let ((buffer-content (buffer-substring-no-properties (point-min) (point-max))))
+            (should (string-match-p "Tool A result: input-a" buffer-content))
+            (should (string-match-p "Tool B result: input-b" buffer-content))
+            (should (string-match-p "test-tool-a" buffer-content))
+            (should (string-match-p "test-tool-b" buffer-content))))))
+
+    ;; Clean up
+    (remhash "test-tool-a" greger-tools-registry)
+    (remhash "test-tool-b" greger-tools-registry)))
+
+(ert-deftest greger-agent-test-tool-error-handling ()
+  "Test that tool errors are properly handled and displayed."
+  (let ((test-completed nil))
+
+    ;; Define a tool function that throws an error
+    (defun greger-test-error-tool (input)
+      (error "Simulated tool error: %s" input))
+
+    ;; Register test tool
+    (greger-register-tool "test-error"
+      :description "Tool that throws an error"
+      :properties '((input . ((type . "string")
+                              (description . "Input that will cause error"))))
+      :required '("input")
+      :function 'greger-test-error-tool)
+
+    ;; Create test buffer
+    (with-temp-buffer
+      (let ((agent-state (make-greger-agent-state
+                          :current-iteration 0
+                          :chat-buffer (current-buffer)
+                          :directory default-directory))
+            (tool-calls `(((type . "tool_use")
+                          (id . "error_test")
+                          (name . "test-error")
+                          (input . ((input . "bad-input")))))))
+
+        ;; Mock greger-agent--run-agent-loop to capture completion
+        (cl-letf (((symbol-function 'greger-agent--run-agent-loop)
+                   (lambda (state)
+                     (setq test-completed t))))
+
+          ;; Execute tools
+          (greger-agent--execute-tools tool-calls agent-state)
+
+          ;; Check that execution completed despite error
+          (should test-completed)
+
+          ;; Check buffer contents - error should be displayed
+          (let ((buffer-content (buffer-substring-no-properties (point-min) (point-max))))
+            (should (string-match-p "Error executing tool" buffer-content))
+            (should (string-match-p "Simulated tool error" buffer-content))
+            (should (string-match-p "bad-input" buffer-content))))))
+
+    ;; Clean up
+    (remhash "test-error" greger-tools-registry)))
+
+(ert-deftest greger-agent-test-placeholder-replacement ()
+  "Test that placeholders are correctly replaced with tool results."
+  (let ((test-completed nil))
+
+    ;; Define a simple test function
+    (defun greger-test-placeholder-tool (data)
+      (format "Processed: %s" data))
+
+    ;; Register test tool
+    (greger-register-tool "test-placeholder"
+      :description "Test placeholder replacement"
+      :properties '((data . ((type . "string")
+                             (description . "Data to process"))))
+      :required '("data")
+      :function 'greger-test-placeholder-tool)
+
+    ;; Create test buffer
+    (with-temp-buffer
+      (let ((agent-state (make-greger-agent-state
+                          :current-iteration 0
+                          :chat-buffer (current-buffer)
+                          :directory default-directory))
+            (tool-calls `(((type . "tool_use")
+                          (id . "placeholder_test")
+                          (name . "test-placeholder")
+                          (input . ((data . "test-data")))))))
+
+        ;; Mock greger-agent--run-agent-loop to capture completion
+        (cl-letf (((symbol-function 'greger-agent--run-agent-loop)
+                   (lambda (state)
+                     (setq test-completed t))))
+
+          ;; Execute tools
+          (greger-agent--execute-tools tool-calls agent-state)
+
+          ;; Check that execution completed
+          (should test-completed)
+
+          ;; Check that placeholder was replaced
+          (let ((buffer-content (buffer-substring-no-properties (point-min) (point-max))))
+            ;; Placeholder should not exist anymore
+            (should-not (string-match-p "TOOL_RESULT_PLACEHOLDER_placeholder_test" buffer-content))
+            ;; Result should be present
+            (should (string-match-p "Processed: test-data" buffer-content))))))
+
+    ;; Clean up
+    (remhash "test-placeholder" greger-tools-registry)))
+
+(ert-deftest greger-agent-test-unknown-tool-error ()
+  "Test handling of unknown tool execution."
+  (let ((test-completed nil))
+
+    ;; Create test buffer
+    (with-temp-buffer
+      (let ((agent-state (make-greger-agent-state
+                          :current-iteration 0
+                          :chat-buffer (current-buffer)
+                          :directory default-directory))
+            (tool-calls `(((type . "tool_use")
+                          (id . "unknown_test")
+                          (name . "nonexistent-tool")
+                          (input . ((param . "value")))))))
+
+        ;; Mock greger-agent--run-agent-loop to capture completion
+        (cl-letf (((symbol-function 'greger-agent--run-agent-loop)
+                   (lambda (state)
+                     (setq test-completed t))))
+
+          ;; Execute tools
+          (greger-agent--execute-tools tool-calls agent-state)
+
+          ;; Check that execution completed despite unknown tool
+          (should test-completed)
+
+          ;; Check buffer contents - error should be displayed
+          (let ((buffer-content (buffer-substring-no-properties (point-min) (point-max))))
+            (should (string-match-p "Unknown tool: nonexistent-tool" buffer-content)))))))
+
+(provide 'test-greger-agent)
+
+;;; test-greger-agent.el ends here
+</tool.toolu_01S1EqyqTbiwrtudqeHbrCVG>
+
+### git_commit_message
+
+<tool.toolu_01S1EqyqTbiwrtudqeHbrCVG>
+Add comprehensive unit tests for greger-agent tool execution
+</tool.toolu_01S1EqyqTbiwrtudqeHbrCVG>
+
+<!-- TOOL_RESULT_PLACEHOLDER_toolu_01S1EqyqTbiwrtudqeHbrCVG -->
