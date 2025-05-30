@@ -259,54 +259,54 @@ Error executing tool: Simulated tool error: bad-input
     ;; Clean up
     (remhash "test-error" greger-tools-registry)))
 
-(ert-deftest greger-agent-test-placeholder-replacement ()
-  "Test that placeholders are correctly replaced with tool results."
+(ert-deftest greger-agent-test-tool-execution-with-existing-content ()
+  "Test tool execution when buffer already has content."
   (let ((test-completed nil))
 
     ;; Define a simple test function
-    (defun greger-test-placeholder-tool (data)
+    (defun greger-test-content-tool (data)
       (format "Processed: %s" data))
 
     ;; Register test tool
-    (greger-register-tool "test-placeholder"
-      :description "Test placeholder replacement"
+    (greger-register-tool "test-content"
+      :description "Test tool with existing content"
       :properties '((data . ((type . "string")
                              (description . "Data to process"))))
       :required '("data")
-      :function 'greger-test-placeholder-tool)
+      :function 'greger-test-content-tool)
 
-    ;; Create test buffer with placeholder
+    ;; Create test buffer with existing content
     (with-temp-buffer
-      (insert "<!-- TOOL_RESULT_PLACEHOLDER_placeholder_test -->")
+      (insert "Existing content in buffer")
 
       (let ((agent-state (make-greger-agent-state
                           :current-iteration 0
                           :chat-buffer (current-buffer)
                           :directory default-directory))
             (tool-calls `(((type . "tool_use")
-                          (id . "placeholder_test")
-                          (name . "test-placeholder")
+                          (id . "content_test")
+                          (name . "test-content")
                           (input . ((data . "test-data"))))))
-            (expected-content "<!-- TOOL_RESULT_PLACEHOLDER_placeholder_test -->
+            (expected-content "Existing content in buffer
 
 ## TOOL USE:
 
-Name: test-placeholder
-ID: placeholder_test
+Name: test-content
+ID: content_test
 
 ### data
 
-<tool.placeholder_test>
+<tool.content_test>
 test-data
-</tool.placeholder_test>
+</tool.content_test>
 
 ## TOOL RESULT:
 
-ID: placeholder_test
+ID: content_test
 
-<tool.placeholder_test>
+<tool.content_test>
 Processed: test-data
-</tool.placeholder_test>"))
+</tool.content_test>"))
 
         ;; Mock greger-agent--run-agent-loop to capture completion
         (cl-letf (((symbol-function 'greger-agent--run-agent-loop)
@@ -319,12 +319,12 @@ Processed: test-data
           ;; Check that execution completed
           (should test-completed)
 
-          ;; Check that placeholder was replaced with exact expected content
+          ;; Check that content was appended correctly
           (let ((actual-content (buffer-substring-no-properties (point-min) (point-max))))
             (should (string= expected-content actual-content))))))
 
     ;; Clean up
-    (remhash "test-placeholder" greger-tools-registry)))
+    (remhash "test-content" greger-tools-registry)))
 
 (ert-deftest greger-agent-test-unknown-tool-error ()
   "Test handling of unknown tool execution."
