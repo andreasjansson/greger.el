@@ -677,3 +677,128 @@ Successfully replaced content in /Users/andreas/projects/aichat3/greger-tools.el
 ## ASSISTANT:
 
 Now I need to implement the new `greger-agent--execute-tools` function that uses callbacks for parallel execution. This is the tricky part - I need to track buffer positions for each tool call so they can insert their responses in the right place even when other tools are executing concurrently.
+
+
+## TOOL USE:
+
+Name: str-replace
+ID: toolu_019jkEjhFjdeBNL5r3RbnkNW
+
+### file_path
+
+<tool.toolu_019jkEjhFjdeBNL5r3RbnkNW>
+greger-agent.el
+</tool.toolu_019jkEjhFjdeBNL5r3RbnkNW>
+
+### original_content
+
+<tool.toolu_019jkEjhFjdeBNL5r3RbnkNW>
+(defun greger-agent--execute-tools (tool-calls agent-state)
+  "Execute TOOL-CALLS using AGENT-STATE and continue the conversation."
+  (let ((results '()))
+    (dolist (tool-call tool-calls)
+      (let* ((tool-name (alist-get 'name tool-call))
+             (tool-input (alist-get 'input tool-call))
+             (tool-id (alist-get 'id tool-call)))
+
+        (if (greger-agent--request-approval tool-name tool-input)
+            (condition-case err
+                (let* ((default-directory (greger-agent-state-directory agent-state))
+                       (result (greger-tools-execute tool-name tool-input (greger-agent-state-chat-buffer agent-state))))
+                  (push `((type . "tool_result")
+                         (tool_use_id . ,tool-id)
+                         (content . ,result))
+                        results))
+              (error
+               (push `((type . "tool_result")
+                      (tool_use_id . ,tool-id)
+                      (content . ,(format "Error executing tool: %s" (error-message-string err)))
+                      (is_error . t))
+                     results)))
+          (push `((type . "tool_result")
+                 (tool_use_id . ,tool-id)
+                 (content . "Tool execution declined by user")
+                 (is_error . t))
+                results))))
+
+    ;; Display tool execution
+    (greger-agent--display-tool-execution tool-calls (reverse results) agent-state)
+
+    ;; Continue the loop
+    (greger-agent--run-agent-loop agent-state)))
+</tool.toolu_019jkEjhFjdeBNL5r3RbnkNW>
+
+### new_content
+
+<tool.toolu_019jkEjhFjdeBNL5r3RbnkNW>
+(defun greger-agent--execute-tools (tool-calls agent-state)
+  "Execute TOOL-CALLS using AGENT-STATE in parallel with callbacks."
+  (let* ((total-tools (length tool-calls))
+         (completed-tools 0)
+         (results (make-hash-table :test 'equal))
+         (tool-positions (make-hash-table :test 'equal)))
+
+    ;; First, display the tool calls and reserve space for each tool's output
+    (with-current-buffer (greger-agent-state-chat-buffer agent-state)
+      (goto-char (point-max))
+
+      ;; Display tool calls
+      (let ((tool-blocks-markdown (greger-parser--content-blocks-to-markdown tool-calls)))
+        (unless (string-empty-p tool-blocks-markdown)
+          (insert "\n\n" tool-blocks-markdown)))
+
+      ;; Create placeholders for each tool result and remember their positions
+      (dolist (tool-call tool-calls)
+        (let ((tool-id (alist-get 'id tool-call)))
+          (insert "\n\n")
+          (let ((start-pos (point)))
+            (insert (format "<!-- TOOL_RESULT_PLACEHOLDER_%s -->" tool-id))
+            (puthash tool-id start-pos tool-positions)))))
+
+    ;; Execute all tools in parallel
+    (dolist (tool-call tool-calls)
+      (let* ((tool-name (alist-get 'name tool-call))
+             (tool-input (alist-get 'input tool-call))
+             (tool-id (alist-get 'id tool-call)))
+
+        (if (greger-agent--request-approval tool-name tool-input)
+            (let ((default-directory (greger-agent-state-directory agent-state)))
+              (greger-tools-execute
+               tool-name
+               tool-input
+               (greger-agent-state-chat-buffer agent-state)
+               (lambda (result error)
+                 (greger-agent--handle-tool-completion
+                  tool-id result error agent-state
+                  results tool-positions
+                  (lambda ()
+                    (setq completed-tools (1+ completed-tools))
+                    (when (= completed-tools total-tools)
+                      (greger-agent--run-agent-loop agent-state)))))))
+          ;; Tool execution declined
+          (greger-agent--handle-tool-completion
+           tool-id nil "Tool execution declined by user" agent-state
+           results tool-positions
+           (lambda ()
+             (setq completed-tools (1+ completed-tools))
+             (when (= completed-tools total-tools)
+               (greger-agent--run-agent-loop agent-state))))))))
+</tool.toolu_019jkEjhFjdeBNL5r3RbnkNW>
+
+### git_commit_message
+
+<tool.toolu_019jkEjhFjdeBNL5r3RbnkNW>
+Rewrite greger-agent--execute-tools to use parallel execution with callbacks
+</tool.toolu_019jkEjhFjdeBNL5r3RbnkNW>
+
+## TOOL RESULT:
+
+ID: toolu_019jkEjhFjdeBNL5r3RbnkNW
+
+<tool.toolu_019jkEjhFjdeBNL5r3RbnkNW>
+Successfully replaced content in /Users/andreas/projects/aichat3/greger-agent.el. Successfully staged 2 file(s) and committed with message: Rewrite greger-agent--execute-tools to use parallel execution with callbacks
+</tool.toolu_019jkEjhFjdeBNL5r3RbnkNW>
+
+## ASSISTANT:
+
+Now I need to implement the `greger-agent--handle-tool-completion` function that handles updating the buffer at the correct position:

@@ -186,8 +186,40 @@
     (goto-char (point-max))
     (insert text)))
 
+(defun greger-agent--handle-tool-completion (tool-id result error agent-state results tool-positions completion-callback)
+  "Handle completion of a tool execution by updating the buffer and calling COMPLETION-CALLBACK."
+  (let* ((tool-result (if error
+                         `((type . "tool_result")
+                           (tool_use_id . ,tool-id)
+                           (content . ,(if (stringp error)
+                                          error
+                                        (format "Error executing tool: %s" (error-message-string error))))
+                           (is_error . t))
+                       `((type . "tool_result")
+                         (tool_use_id . ,tool-id)
+                         (content . ,result))))
+         (placeholder-pos (gethash tool-id tool-positions)))
+
+    ;; Store the result
+    (puthash tool-id tool-result results)
+
+    ;; Update the buffer at the correct position
+    (with-current-buffer (greger-agent-state-chat-buffer agent-state)
+      (save-excursion
+        (goto-char placeholder-pos)
+        ;; Find and replace the placeholder
+        (when (search-forward (format "<!-- TOOL_RESULT_PLACEHOLDER_%s -->" tool-id) nil t)
+          (replace-match "")
+          (let ((result-markdown (greger-parser--content-blocks-to-markdown (list tool-result))))
+            (unless (string-empty-p result-markdown)
+              (insert result-markdown))))))
+
+    ;; Call completion callback
+    (funcall completion-callback)))
+
 (defun greger-agent--display-tool-execution (tool-calls results agent-state)
-  "Display the execution of TOOL-CALLS and their RESULTS using AGENT-STATE."
+  "Display the execution of TOOL-CALLS and their RESULTS using AGENT-STATE.
+This function is kept for backward compatibility but is no longer used in the new callback-based approach."
   (with-current-buffer (greger-agent-state-chat-buffer agent-state)
     (goto-char (point-max))
 
