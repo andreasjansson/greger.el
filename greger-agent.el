@@ -155,28 +155,19 @@
              (tool-input (alist-get 'input tool-call))
              (tool-id (alist-get 'id tool-call)))
 
-        (if (greger-agent--request-approval tool-name tool-input)
-            (let ((default-directory (greger-agent-state-directory agent-state)))
-              (greger-tools-execute
-               tool-name
-               tool-input
-               (lambda (result error)
-                 (greger-agent--handle-tool-completion
-                  tool-id result error agent-state
-                  results tool-positions
-                  (lambda ()
-                    (setq completed-tools (1+ completed-tools))
-                    (when (= completed-tools total-tools)
-                      (greger-agent--run-agent-loop agent-state)))))
-               (greger-agent-state-chat-buffer agent-state)))
-          ;; Tool execution declined
-          (greger-agent--handle-tool-completion
-           tool-id nil "Tool execution declined by user" agent-state
-           results tool-positions
-           (lambda ()
-             (setq completed-tools (1+ completed-tools))
-             (when (= completed-tools total-tools)
-               (greger-agent--run-agent-loop agent-state))))))))
+        (let ((default-directory (greger-agent-state-directory agent-state)))
+          (greger-tools-execute
+           tool-name
+           tool-input
+           (lambda (result error)
+             (greger-agent--handle-tool-completion
+              tool-id result error agent-state
+              results tool-positions
+              (lambda ()
+                (setq completed-tools (1+ completed-tools))
+                (when (= completed-tools total-tools)
+                  (greger-agent--run-agent-loop agent-state)))))
+           (greger-agent-state-chat-buffer agent-state))))))
 
 (defun greger-agent--append-text (text agent-state)
   (with-current-buffer (greger-agent-state-chat-buffer agent-state)
