@@ -3448,4 +3448,136 @@ Unknown tool: nonexistent-tool
 Fix unknown tool error test with multi-line expected content including TOOL USE
 </tool.toolu_01VExSnVQ4dMBSnVqGDCnZyc>
 
-<!-- TOOL_RESULT_PLACEHOLDER_toolu_01VExSnVQ4dMBSnVqGDCnZyc -->
+## TOOL RESULT:
+
+ID: toolu_01VExSnVQ4dMBSnVqGDCnZyc
+
+<tool.toolu_01VExSnVQ4dMBSnVqGDCnZyc>
+Successfully replaced content in /Users/andreas/projects/aichat3/test-greger-agent.el. Successfully staged 2 file(s) and committed with message: Fix unknown tool error test with multi-line expected content including TOOL USE
+</tool.toolu_01VExSnVQ4dMBSnVqGDCnZyc>
+
+
+## ASSISTANT:
+
+Now let me fix the exact tool output formatting test:
+
+## TOOL USE:
+
+Name: read-file
+ID: toolu_018LBGWX1cKbs1VAKex3GzWY
+
+### path
+
+<tool.toolu_018LBGWX1cKbs1VAKex3GzWY>
+test-greger-agent.el
+</tool.toolu_018LBGWX1cKbs1VAKex3GzWY>
+
+### start_line
+
+<tool.toolu_018LBGWX1cKbs1VAKex3GzWY>
+325
+</tool.toolu_018LBGWX1cKbs1VAKex3GzWY>
+
+### end_line
+
+<tool.toolu_018LBGWX1cKbs1VAKex3GzWY>
+365
+</tool.toolu_018LBGWX1cKbs1VAKex3GzWY>
+
+## TOOL RESULT:
+
+ID: toolu_018LBGWX1cKbs1VAKex3GzWY
+
+<tool.toolu_018LBGWX1cKbs1VAKex3GzWY>
+          ;; Execute tools
+          (greger-agent--execute-tools tool-calls agent-state)
+
+          ;; Check that execution completed despite unknown tool
+          (should test-completed)
+
+          ;; Check buffer contents match expected error message exactly
+          (let ((actual-content (buffer-substring-no-properties (point-min) (point-max))))
+            (should (string= expected-error-content actual-content))))))))
+
+(ert-deftest greger-agent-test-exact-tool-output-formatting ()
+  "Test exact tool output formatting with multiple scenarios."
+  (let ((test-completed nil))
+
+    ;; Define a tool that returns multi-line content
+    (defun greger-test-multiline-tool (content)
+      (format "Line 1: %s\nLine 2: More content\nLine 3: End" content))
+
+    ;; Register test tool
+    (greger-register-tool "test-multiline"
+      :description "Tool with multi-line output"
+      :properties '((content . ((type . "string")
+                                (description . "Content for first line"))))
+      :required '("content")
+      :function 'greger-test-multiline-tool)
+
+    ;; Create test buffer
+    (with-temp-buffer
+      (let ((agent-state (make-greger-agent-state
+                          :current-iteration 0
+                          :chat-buffer (current-buffer)
+                          :directory default-directory))
+            (tool-calls `(((type . "tool_use")
+                          (id . "multiline_test")
+                          (name . "test-multiline")
+                          (input . ((content . "Start"))))))
+            (expected-content "## TOOL RESULT:\n\nID: multiline_test\n\n<tool.multiline_test>\nLine 1: Start\nLine 2: More content\nLine 3: End\n</tool.multiline_test>"))
+
+        ;; Mock greger-agent--run-agent-loop to capture completion
+        (cl-letf (((symbol-function 'greger-agent--run-agent-loop)
+                   (lambda (state)
+</tool.toolu_018LBGWX1cKbs1VAKex3GzWY>
+
+## TOOL USE:
+
+Name: str-replace
+ID: toolu_01PpLybmfWxkfb5XpdhQYNMZ
+
+### file_path
+
+<tool.toolu_01PpLybmfWxkfb5XpdhQYNMZ>
+test-greger-agent.el
+</tool.toolu_01PpLybmfWxkfb5XpdhQYNMZ>
+
+### original_content
+
+<tool.toolu_01PpLybmfWxkfb5XpdhQYNMZ>
+(expected-content "## TOOL RESULT:\n\nID: multiline_test\n\n<tool.multiline_test>\nLine 1: Start\nLine 2: More content\nLine 3: End\n</tool.multiline_test>"))
+</tool.toolu_01PpLybmfWxkfb5XpdhQYNMZ>
+
+### new_content
+
+<tool.toolu_01PpLybmfWxkfb5XpdhQYNMZ>
+(expected-content "## TOOL USE:
+
+Name: test-multiline
+ID: multiline_test
+
+### content
+
+<tool.multiline_test>
+Start
+</tool.multiline_test>
+
+## TOOL RESULT:
+
+ID: multiline_test
+
+<tool.multiline_test>
+Line 1: Start
+Line 2: More content
+Line 3: End
+</tool.multiline_test>"))
+</tool.toolu_01PpLybmfWxkfb5XpdhQYNMZ>
+
+### git_commit_message
+
+<tool.toolu_01PpLybmfWxkfb5XpdhQYNMZ>
+Fix multiline tool test with multi-line expected content including TOOL USE
+</tool.toolu_01PpLybmfWxkfb5XpdhQYNMZ>
+
+<!-- TOOL_RESULT_PLACEHOLDER_toolu_01PpLybmfWxkfb5XpdhQYNMZ -->

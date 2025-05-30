@@ -358,7 +358,26 @@ Unknown tool: nonexistent-tool
                           (id . "multiline_test")
                           (name . "test-multiline")
                           (input . ((content . "Start"))))))
-            (expected-content "## TOOL RESULT:\n\nID: multiline_test\n\n<tool.multiline_test>\nLine 1: Start\nLine 2: More content\nLine 3: End\n</tool.multiline_test>"))
+            (expected-content "## TOOL USE:
+
+Name: test-multiline
+ID: multiline_test
+
+### content
+
+<tool.multiline_test>
+Start
+</tool.multiline_test>
+
+## TOOL RESULT:
+
+ID: multiline_test
+
+<tool.multiline_test>
+Line 1: Start
+Line 2: More content
+Line 3: End
+</tool.multiline_test>"))
 
         ;; Mock greger-agent--run-agent-loop to capture completion
         (cl-letf (((symbol-function 'greger-agent--run-agent-loop)
