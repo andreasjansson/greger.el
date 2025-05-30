@@ -4772,4 +4772,61 @@ greger-agent.el
 Pass metadata to greger-tools-execute in agent
 </tool.toolu_01SLBMVVnMdPyAxU44fErzwV>
 
-<!-- TOOL_RESULT_PLACEHOLDER_toolu_01SLBMVVnMdPyAxU44fErzwV -->
+## TOOL RESULT:
+
+ID: toolu_01SLBMVVnMdPyAxU44fErzwV
+
+<tool.toolu_01SLBMVVnMdPyAxU44fErzwV>
+Successfully replaced content in /Users/andreas/projects/aichat3/greger-agent.el. Successfully staged 2 file(s) and committed with message: Pass metadata to greger-tools-execute in agent
+</tool.toolu_01SLBMVVnMdPyAxU44fErzwV>
+
+
+## ASSISTANT:
+
+Now I need to update the test files to handle the new parser format. Let me first create a compatibility function to help with the transition:
+
+## TOOL USE:
+
+Name: str-replace
+ID: toolu_01Qeas1cpPQWBrT38FLaPy9B
+
+### file_path
+
+<tool.toolu_01Qeas1cpPQWBrT38FLaPy9B>
+greger-parser.el
+</tool.toolu_01Qeas1cpPQWBrT38FLaPy9B>
+
+### original_content
+
+<tool.toolu_01Qeas1cpPQWBrT38FLaPy9B>
+(defun greger-parser-dialog-to-markdown (dialog)
+  "Convert DIALOG to markdown format."
+  (if (null dialog)
+      ""
+    (mapconcat #'greger-parser--message-to-markdown dialog "\n\n")))
+</tool.toolu_01Qeas1cpPQWBrT38FLaPy9B>
+
+### new_content
+
+<tool.toolu_01Qeas1cpPQWBrT38FLaPy9B>
+(defun greger-parser-dialog-to-markdown (dialog)
+  "Convert DIALOG to markdown format."
+  (if (null dialog)
+      ""
+    (mapconcat #'greger-parser--message-to-markdown dialog "\n\n")))
+
+;; Compatibility function for tests and existing code
+(defun greger-parser-parse-dialog-messages-only (markdown &optional debug)
+  "Parse MARKDOWN into dialog format, returning only the messages (old format).
+This is for backward compatibility with existing tests and code."
+  (let ((result (greger-parser-parse-dialog markdown debug)))
+    (plist-get result :messages)))
+</tool.toolu_01Qeas1cpPQWBrT38FLaPy9B>
+
+### git_commit_message
+
+<tool.toolu_01Qeas1cpPQWBrT38FLaPy9B>
+Add compatibility function for tests that expect old parser format
+</tool.toolu_01Qeas1cpPQWBrT38FLaPy9B>
+
+<!-- TOOL_RESULT_PLACEHOLDER_toolu_01Qeas1cpPQWBrT38FLaPy9B -->

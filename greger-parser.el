@@ -59,6 +59,13 @@ Returns a plist with :messages and :metadata keys."
       ""
     (mapconcat #'greger-parser--message-to-markdown dialog "\n\n")))
 
+;; Compatibility function for tests and existing code
+(defun greger-parser-parse-dialog-messages-only (markdown &optional debug)
+  "Parse MARKDOWN into dialog format, returning only the messages (old format).
+This is for backward compatibility with existing tests and code."
+  (let ((result (greger-parser-parse-dialog markdown debug)))
+    (plist-get result :messages)))
+
 ;; Parser infrastructure
 
 (defun greger-parser--at-end-p (state)
