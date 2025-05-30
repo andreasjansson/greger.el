@@ -324,6 +324,28 @@ Returns nil when content is inserted, or the content string when it should be ap
     (when (greger-parser--find-closing-tag state "</include>")
       (greger-parser--advance state 10)))) ; Skip "</include>"
 
+(defun greger-parser--process-safe-shell-commands-tag (state)
+  "Process a safe-shell-commands tag and return the list of commands in STATE."
+  (greger-parser--debug state "Processing safe-shell-commands tag at pos %d" (greger-parser-state-pos state))
+  (when (greger-parser--looking-at state "<safe-shell-commands>")
+    (greger-parser--advance state 20) ; Skip "<safe-shell-commands>"
+
+    ;; Extract the commands content
+    (let ((content-start (greger-parser--current-pos state)))
+      (when (greger-parser--find-closing-tag state "</safe-shell-commands>")
+        (let ((commands-content (greger-parser--substring state content-start)))
+          (greger-parser--advance state 21) ; Skip "</safe-shell-commands>"
+
+          ;; Parse commands - split by lines and filter empty ones
+          (let ((commands (delq nil
+                               (mapcar (lambda (line)
+                                        (let ((trimmed (string-trim line)))
+                                          (when (not (string-empty-p trimmed))
+                                            trimmed)))
+                                      (split-string commands-content "\n")))))
+            (greger-parser--debug state "Extracted safe shell commands: %s" commands)
+            commands))))))
+
 ;; Content reading
 
 (defun greger-parser--read-until-section-tag (state)

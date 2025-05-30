@@ -3403,4 +3403,102 @@ Returns a plist with :content and metadata keys."
 Add function to read section content while extracting safe-shell-commands metadata
 </tool.toolu_011VRkAR5WoCKgZZBwqcJH4b>
 
-<!-- TOOL_RESULT_PLACEHOLDER_toolu_011VRkAR5WoCKgZZBwqcJH4b -->
+## TOOL RESULT:
+
+ID: toolu_011VRkAR5WoCKgZZBwqcJH4b
+
+<tool.toolu_011VRkAR5WoCKgZZBwqcJH4b>
+Successfully replaced content in /Users/andreas/projects/aichat3/greger-parser.el. Successfully staged 2 file(s) and committed with message: Add function to read section content while extracting safe-shell-commands metadata
+</tool.toolu_011VRkAR5WoCKgZZBwqcJH4b>
+
+
+## ASSISTANT:
+
+Now let's add the function to process safe-shell-commands tags:
+
+## TOOL USE:
+
+Name: str-replace
+ID: toolu_01HPYKoBJnC4C7Z8BRh64Ryr
+
+### file_path
+
+<tool.toolu_01HPYKoBJnC4C7Z8BRh64Ryr>
+greger-parser.el
+</tool.toolu_01HPYKoBJnC4C7Z8BRh64Ryr>
+
+### original_content
+
+<tool.toolu_01HPYKoBJnC4C7Z8BRh64Ryr>
+(defun greger-parser--skip-include-tag (state)
+  "Skip include tag without processing it in STATE."
+  (greger-parser--debug state "Skipping include tag at pos %d" (greger-parser-state-pos state))
+  (greger-parser--advance state 8) ; Skip "<include"
+
+  ;; Skip optional "code" attribute
+  (greger-parser--skip-horizontal-whitespace state)
+  (when (greger-parser--looking-at state "code")
+    (greger-parser--advance state 4)
+    (greger-parser--skip-horizontal-whitespace state))
+
+  ;; Skip to closing bracket of opening tag
+  (when (greger-parser--looking-at state ">")
+    (greger-parser--advance state 1)
+
+    ;; Skip to closing tag
+    (when (greger-parser--find-closing-tag state "</include>")
+      (greger-parser--advance state 10)))) ; Skip "</include>"
+</tool.toolu_01HPYKoBJnC4C7Z8BRh64Ryr>
+
+### new_content
+
+<tool.toolu_01HPYKoBJnC4C7Z8BRh64Ryr>
+(defun greger-parser--skip-include-tag (state)
+  "Skip include tag without processing it in STATE."
+  (greger-parser--debug state "Skipping include tag at pos %d" (greger-parser-state-pos state))
+  (greger-parser--advance state 8) ; Skip "<include"
+
+  ;; Skip optional "code" attribute
+  (greger-parser--skip-horizontal-whitespace state)
+  (when (greger-parser--looking-at state "code")
+    (greger-parser--advance state 4)
+    (greger-parser--skip-horizontal-whitespace state))
+
+  ;; Skip to closing bracket of opening tag
+  (when (greger-parser--looking-at state ">")
+    (greger-parser--advance state 1)
+
+    ;; Skip to closing tag
+    (when (greger-parser--find-closing-tag state "</include>")
+      (greger-parser--advance state 10)))) ; Skip "</include>"
+
+(defun greger-parser--process-safe-shell-commands-tag (state)
+  "Process a safe-shell-commands tag and return the list of commands in STATE."
+  (greger-parser--debug state "Processing safe-shell-commands tag at pos %d" (greger-parser-state-pos state))
+  (when (greger-parser--looking-at state "<safe-shell-commands>")
+    (greger-parser--advance state 20) ; Skip "<safe-shell-commands>"
+
+    ;; Extract the commands content
+    (let ((content-start (greger-parser--current-pos state)))
+      (when (greger-parser--find-closing-tag state "</safe-shell-commands>")
+        (let ((commands-content (greger-parser--substring state content-start)))
+          (greger-parser--advance state 21) ; Skip "</safe-shell-commands>"
+
+          ;; Parse commands - split by lines and filter empty ones
+          (let ((commands (delq nil
+                               (mapcar (lambda (line)
+                                        (let ((trimmed (string-trim line)))
+                                          (when (not (string-empty-p trimmed))
+                                            trimmed)))
+                                      (split-string commands-content "\n")))))
+            (greger-parser--debug state "Extracted safe shell commands: %s" commands)
+            commands))))))
+</tool.toolu_01HPYKoBJnC4C7Z8BRh64Ryr>
+
+### git_commit_message
+
+<tool.toolu_01HPYKoBJnC4C7Z8BRh64Ryr>
+Add function to process safe-shell-commands tags
+</tool.toolu_01HPYKoBJnC4C7Z8BRh64Ryr>
+
+<!-- TOOL_RESULT_PLACEHOLDER_toolu_01HPYKoBJnC4C7Z8BRh64Ryr -->
