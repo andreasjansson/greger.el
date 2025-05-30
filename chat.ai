@@ -8452,4 +8452,119 @@ Please be careful."))
 Update test to expect both system content and safe-shell-commands metadata
 </tool.toolu_01GfBUyaUm2EjmoM4HGPB7Je>
 
-<!-- TOOL_RESULT_PLACEHOLDER_toolu_01GfBUyaUm2EjmoM4HGPB7Je -->
+## TOOL RESULT:
+
+ID: toolu_01GfBUyaUm2EjmoM4HGPB7Je
+
+<tool.toolu_01GfBUyaUm2EjmoM4HGPB7Je>
+Successfully replaced content in /Users/andreas/projects/aichat3/test-greger-parser.el. Successfully staged 2 file(s) and committed with message: Update test to expect both system content and safe-shell-commands metadata
+</tool.toolu_01GfBUyaUm2EjmoM4HGPB7Je>
+
+
+## ASSISTANT:
+
+Now let me also add a test to verify this exact scenario you mentioned:
+
+## TOOL USE:
+
+Name: str-replace
+ID: toolu_01B6JSSfjz49FzhYXoryAmgV
+
+### file_path
+
+<tool.toolu_01B6JSSfjz49FzhYXoryAmgV>
+test-greger-parser.el
+</tool.toolu_01B6JSSfjz49FzhYXoryAmgV>
+
+### original_content
+
+<tool.toolu_01B6JSSfjz49FzhYXoryAmgV>
+(ert-deftest greger-parser-test-safe-shell-commands-in-code-block ()
+  "Test that safe-shell-commands inside code blocks are not processed."
+  (let ((markdown "## SYSTEM:
+
+Here's an example:
+
+```
+<safe-shell-commands>
+ls -la
+</safe-shell-commands>
+```
+
+Don't process that."))
+    (let ((result (greger-parser-parse-dialog markdown)))
+      ;; Should have no metadata
+      (should (equal '() (plist-get result :metadata)))
+      ;; Should have system message with code block
+      (should (= 1 (length (plist-get result :messages))))
+      (should (string-match-p "<safe-shell-commands>"
+                             (alist-get 'content (car (plist-get result :messages))))))))
+
+(provide 'test-greger-parser)
+</tool.toolu_01B6JSSfjz49FzhYXoryAmgV>
+
+### new_content
+
+<tool.toolu_01B6JSSfjz49FzhYXoryAmgV>
+(ert-deftest greger-parser-test-safe-shell-commands-in-code-block ()
+  "Test that safe-shell-commands inside code blocks are not processed."
+  (let ((markdown "## SYSTEM:
+
+Here's an example:
+
+```
+<safe-shell-commands>
+ls -la
+</safe-shell-commands>
+```
+
+Don't process that."))
+    (let ((result (greger-parser-parse-dialog markdown)))
+      ;; Should have no metadata
+      (should (equal '() (plist-get result :metadata)))
+      ;; Should have system message with code block
+      (should (= 1 (length (plist-get result :messages))))
+      (should (string-match-p "<safe-shell-commands>"
+                             (alist-get 'content (car (plist-get result :messages))))))))
+
+(ert-deftest greger-parser-test-system-content-with-safe-commands-example ()
+  "Test the exact example from the user: system content with safe-shell-commands."
+  (let ((markdown "## SYSTEM:
+
+you are a friendly assistant
+
+<safe-shell-commands>
+command1
+command2
+</safe-shell-commands>
+
+## USER:
+
+Hello"))
+    (let ((result (greger-parser-parse-dialog markdown)))
+      ;; Should have both system and user messages
+      (should (= 2 (length (plist-get result :messages))))
+
+      ;; Check system message
+      (let ((system-msg (car (plist-get result :messages))))
+        (should (string= "system" (alist-get 'role system-msg)))
+        (should (string= "you are a friendly assistant" (alist-get 'content system-msg))))
+
+      ;; Check user message
+      (let ((user-msg (cadr (plist-get result :messages))))
+        (should (string= "user" (alist-get 'role user-msg)))
+        (should (string= "Hello" (alist-get 'content user-msg))))
+
+      ;; Should have metadata with safe shell commands
+      (should (equal '(:safe-shell-commands ("command1" "command2")) (plist-get result :metadata))))))
+
+(provide 'test-greger-parser)
+</tool.toolu_01B6JSSfjz49FzhYXoryAmgV>
+
+### git_commit_message
+
+<tool.toolu_01B6JSSfjz49FzhYXoryAmgV>
+Add test for the exact user example of system content with safe-shell-commands
+</tool.toolu_01B6JSSfjz49FzhYXoryAmgV>
+
+<!-- TOOL_RESULT_PLACEHOLDER_toolu_01B6JSSfjz49FzhYXoryAmgV -->

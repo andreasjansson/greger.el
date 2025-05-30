@@ -1456,6 +1456,37 @@ Don't process that."))
       (should (string-match-p "<safe-shell-commands>"
                              (alist-get 'content (car (plist-get result :messages))))))))
 
+(ert-deftest greger-parser-test-system-content-with-safe-commands-example ()
+  "Test the exact example from the user: system content with safe-shell-commands."
+  (let ((markdown "## SYSTEM:
+
+you are a friendly assistant
+
+<safe-shell-commands>
+command1
+command2
+</safe-shell-commands>
+
+## USER:
+
+Hello"))
+    (let ((result (greger-parser-parse-dialog markdown)))
+      ;; Should have both system and user messages
+      (should (= 2 (length (plist-get result :messages))))
+
+      ;; Check system message
+      (let ((system-msg (car (plist-get result :messages))))
+        (should (string= "system" (alist-get 'role system-msg)))
+        (should (string= "you are a friendly assistant" (alist-get 'content system-msg))))
+
+      ;; Check user message
+      (let ((user-msg (cadr (plist-get result :messages))))
+        (should (string= "user" (alist-get 'role user-msg)))
+        (should (string= "Hello" (alist-get 'content user-msg))))
+
+      ;; Should have metadata with safe shell commands
+      (should (equal '(:safe-shell-commands ("command1" "command2")) (plist-get result :metadata))))))
+
 (provide 'test-greger-parser)
 
 ;;; test-greger-parser.el ends here
