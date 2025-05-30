@@ -4340,4 +4340,65 @@ If the tool has :pass-metadata set, METADATA will be passed to the tool function
 Add metadata parameter support to greger-tools-execute
 </tool.toolu_01QxhVURYG3fJ6c6MtK5pPW7>
 
-<!-- TOOL_RESULT_PLACEHOLDER_toolu_01QxhVURYG3fJ6c6MtK5pPW7 -->
+## TOOL RESULT:
+
+ID: toolu_01QxhVURYG3fJ6c6MtK5pPW7
+
+<tool.toolu_01QxhVURYG3fJ6c6MtK5pPW7>
+Successfully replaced content in /Users/andreas/projects/aichat3/greger-tools.el. Successfully staged 2 file(s) and committed with message: Add metadata parameter support to greger-tools-execute
+</tool.toolu_01QxhVURYG3fJ6c6MtK5pPW7>
+
+
+## ASSISTANT:
+
+Now let me update the shell-command tool to support metadata and check for safe commands:
+
+## TOOL USE:
+
+Name: str-replace
+ID: toolu_0118dQtRDqMsJMQTYhEdHZxd
+
+### file_path
+
+<tool.toolu_0118dQtRDqMsJMQTYhEdHZxd>
+greger-stdlib.el
+</tool.toolu_0118dQtRDqMsJMQTYhEdHZxd>
+
+### original_content
+
+<tool.toolu_0118dQtRDqMsJMQTYhEdHZxd>
+(greger-register-tool "shell-command"
+  :description "Execute an arbitrary shell command and return the output. Prompts for permission before running the command for security."
+  :properties '((command . ((type . "string")
+                            (description . "The shell command to execute")))
+                (working_directory . ((type . "string")
+                                      (description . "Directory to run the command in")
+                                      (default . "."))))
+  :required '("command")
+  :function 'greger-tools--shell-command
+  :pass-callback t)
+</tool.toolu_0118dQtRDqMsJMQTYhEdHZxd>
+
+### new_content
+
+<tool.toolu_0118dQtRDqMsJMQTYhEdHZxd>
+(greger-register-tool "shell-command"
+  :description "Execute an arbitrary shell command and return the output. Prompts for permission before running the command for security."
+  :properties '((command . ((type . "string")
+                            (description . "The shell command to execute")))
+                (working_directory . ((type . "string")
+                                      (description . "Directory to run the command in")
+                                      (default . "."))))
+  :required '("command")
+  :function 'greger-tools--shell-command
+  :pass-callback t
+  :pass-metadata t)
+</tool.toolu_0118dQtRDqMsJMQTYhEdHZxd>
+
+### git_commit_message
+
+<tool.toolu_0118dQtRDqMsJMQTYhEdHZxd>
+Add :pass-metadata flag to shell-command tool
+</tool.toolu_0118dQtRDqMsJMQTYhEdHZxd>
+
+<!-- TOOL_RESULT_PLACEHOLDER_toolu_0118dQtRDqMsJMQTYhEdHZxd -->

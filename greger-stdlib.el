@@ -201,7 +201,8 @@
                                       (default . "."))))
   :required '("command")
   :function 'greger-tools--shell-command
-  :pass-callback t)
+  :pass-callback t
+  :pass-metadata t)
 
 (greger-register-tool "read-webpage"
   :description "Read webpage content from a URL. Can return either extracted text or raw HTML."
