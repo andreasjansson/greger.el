@@ -659,7 +659,7 @@ What do you think?"
           (markdown (plist-get test-case :markdown))
           (expected-dialog (plist-get test-case :dialog)))
       (message "Testing markdown-to-dialog for: %s" name)
-      (let ((actual-dialog (greger-parser-parse-dialog markdown)))
+      (let ((actual-dialog (greger-parser-parse-dialog-messages-only markdown)))
         (should (greger-parser-test--dialog-equal expected-dialog actual-dialog))))))
 
 (ert-deftest greger-parser-test-roundtrip ()
