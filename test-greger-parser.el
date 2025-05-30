@@ -780,7 +780,7 @@ This is a complex problem."
           (number-sequence 1 100)
           "\n\n")))
     (let ((start-time (current-time)))
-      (greger-parser-parse-dialog large-markdown)
+      (greger-parser-parse-dialog-messages-only large-markdown)
       (let ((elapsed (float-time (time-subtract (current-time) start-time))))
         ;; Should parse 100 message pairs in under 1 second
         (should (< elapsed 1.0))))))
