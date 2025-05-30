@@ -24,7 +24,8 @@
   input
   pos
   length
-  debug)
+  debug
+  metadata)
 
 (defun greger-parser--create-state (input &optional debug)
   "Create a parser state for INPUT with optional DEBUG flag."
