@@ -1718,4 +1718,71 @@ test-greger-tools.el
 Fix combined test to use boolean pass-callback
 </tool.toolu_01DedaqVvW4Fk2fJ28BpGDCK>
 
-<!-- TOOL_RESULT_PLACEHOLDER_toolu_01DedaqVvW4Fk2fJ28BpGDCK -->
+## TOOL RESULT:
+
+ID: toolu_01DedaqVvW4Fk2fJ28BpGDCK
+
+<tool.toolu_01DedaqVvW4Fk2fJ28BpGDCK>
+Successfully replaced content in /Users/andreas/projects/aichat3/test-greger-tools.el. Successfully staged 2 file(s) and committed with message: Fix combined test to use boolean pass-callback
+</tool.toolu_01DedaqVvW4Fk2fJ28BpGDCK>
+
+
+## ASSISTANT:
+
+And also fix the combined test assertions:
+
+## TOOL USE:
+
+Name: str-replace
+ID: toolu_01L1EUz8L4YHmAX4by9KJiv7
+
+### file_path
+
+<tool.toolu_01L1EUz8L4YHmAX4by9KJiv7>
+test-greger-tools.el
+</tool.toolu_01L1EUz8L4YHmAX4by9KJiv7>
+
+### original_content
+
+<tool.toolu_01L1EUz8L4YHmAX4by9KJiv7>
+;; Test with both buffer and callback
+  (with-temp-buffer
+    (rename-buffer "*test-callback-buffer*")
+    (let ((result nil)
+          (error nil))
+      (greger-tools-execute "test-callback-with-buffer"
+                            '((message . "test"))
+                            (lambda (r e) (setq result r error e))
+                            (current-buffer))
+      (should (string= "message: test, buffer: *test-callback-buffer*" result))
+      (should (null error))))
+</tool.toolu_01L1EUz8L4YHmAX4by9KJiv7>
+
+### new_content
+
+<tool.toolu_01L1EUz8L4YHmAX4by9KJiv7>
+;; Test with both buffer and callback
+  (with-temp-buffer
+    (rename-buffer "*test-callback-buffer*")
+    (let ((result nil)
+          (error nil)
+          (callback-called nil))
+      (greger-tools-execute "test-callback-with-buffer"
+                            '((message . "test"))
+                            (lambda (r e)
+                              (setq result r error e callback-called t))
+                            (current-buffer))
+      ;; Since the callback is called synchronously in our test function,
+      ;; we can check the results immediately
+      (should callback-called)
+      (should (string= "message: test, buffer: *test-callback-buffer*" result))
+      (should (null error))))
+</tool.toolu_01L1EUz8L4YHmAX4by9KJiv7>
+
+### git_commit_message
+
+<tool.toolu_01L1EUz8L4YHmAX4by9KJiv7>
+Fix combined test assertions for asynchronous callback
+</tool.toolu_01L1EUz8L4YHmAX4by9KJiv7>
+
+<!-- TOOL_RESULT_PLACEHOLDER_toolu_01L1EUz8L4YHmAX4by9KJiv7 -->

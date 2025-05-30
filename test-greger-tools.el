@@ -407,11 +407,16 @@
   (with-temp-buffer
     (rename-buffer "*test-callback-buffer*")
     (let ((result nil)
-          (error nil))
+          (error nil)
+          (callback-called nil))
       (greger-tools-execute "test-callback-with-buffer"
                             '((message . "test"))
-                            (lambda (r e) (setq result r error e))
+                            (lambda (r e)
+                              (setq result r error e callback-called t))
                             (current-buffer))
+      ;; Since the callback is called synchronously in our test function,
+      ;; we can check the results immediately
+      (should callback-called)
       (should (string= "message: test, buffer: *test-callback-buffer*" result))
       (should (null error))))
 
