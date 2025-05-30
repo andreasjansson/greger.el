@@ -2411,4 +2411,412 @@ test-greger-agent.el
 Add commentary explaining the testing approach with explicit expected content
 </tool.toolu_0152Yy2WS4C8N9T8XrUwoHmR>
 
-<!-- TOOL_RESULT_PLACEHOLDER_toolu_0152Yy2WS4C8N9T8XrUwoHmR -->
+## TOOL RESULT:
+
+ID: toolu_0152Yy2WS4C8N9T8XrUwoHmR
+
+<tool.toolu_0152Yy2WS4C8N9T8XrUwoHmR>
+Successfully replaced content in /Users/andreas/projects/aichat3/test-greger-agent.el. Successfully staged 2 file(s) and committed with message: Add commentary explaining the testing approach with explicit expected content
+</tool.toolu_0152Yy2WS4C8N9T8XrUwoHmR>
+
+
+## ASSISTANT:
+
+Perfect! I have successfully updated the `test-greger-agent.el` file to be much more readable and maintainable. Here's a summary of the improvements made:
+
+## Summary of Changes
+
+1. **Added Clear Commentary**: Added a comment block at the top explaining the testing approach and the format of expected content.
+
+2. **Explicit Expected Content**: Each test now defines explicit expected content that shows exactly what the buffer should contain after tool execution.
+
+3. **Used `string=` for Exact Comparisons**: Where possible, tests now use `string=` for exact string comparisons instead of pattern matching with `string-match-p`.
+
+4. **Predictable Tool Result Format**: All tests follow the consistent greger tool result format:
+   ```
+   ## TOOL RESULT:
+
+   ID: <tool_id>
+
+   <tool.<tool_id>>
+   <tool_output>
+   </tool.<tool_id>>
+   ```
+
+5. **Before/After Pattern**: Added a test that clearly demonstrates the before and after states of the buffer, making it easy to understand what the test is verifying.
+
+## Key Improvements for Readability
+
+- **Clear Expected Outcomes**: Each test explicitly defines what the buffer content should be after execution
+- **Exact Comparisons**: Using `string=` makes failures more precise and easier to debug
+- **Consistent Format**: All expected content follows the same markdown format used by the greger system
+- **Self-Documenting**: The expected content serves as documentation of the tool output format
+- **Maintainable**: Changes to the tool output format will be immediately visible in test failures
+
+The tests are now much more readable and it's immediately clear what each test expects as output, making debugging and maintenance significantly easier.
+
+## USER:
+
+Make the expected-content multi-line strings, e.g.
+
+``` emacs-lisp
+(expected-content "## TOOL RESULT:
+
+ID: multiline_test
+
+<tool.multiline_test>
+Line 1: Start
+Line 2: More content
+Line 3: End
+</tool.multiline_test>"
+)
+```
+
+Also fix the test errors
+
+```
+F greger-agent-test-exact-tool-output-formatting
+    Test exact tool output formatting with multiple scenarios.
+    (ert-test-failed
+     ((should
+       (string= expected-content actual-content))
+      :form
+      (string= "## TOOL RESULT:\n\nID: multiline_test\n\n<tool.multiline_test>\nLine 1: Start\nLine 2: More content\nLine 3: End\n</tool.multiline_test>" "\n\n## TOOL USE:\n\nName: test-multiline\nID: multiline_test\n\n### content\n\n<tool.multiline_test>\nStart\n</tool.multiline_test>\n\n## TOOL RESULT:\n\nID: multiline_test\n\n<tool.multiline_test>\nLine 1: Start\nLine 2: More content\nLine 3: End\n</tool.multiline_test>")
+      :value nil :explanation
+      (arrays-of-different-length 128 250 "## TOOL RESULT:\n\nID: multiline_test\n\n<tool.multiline_test>\nLine 1: Start\nLine 2: More content\nLine 3: End\n</tool.multiline_test>" "\n\n## TOOL USE:\n\nName: test-multiline\nID: multiline_test\n\n### content\n\n<tool.multiline_test>\nStart\n</tool.multiline_test>\n\n## TOOL RESULT:\n\nID: multiline_test\n\n<tool.multiline_test>\nLine 1: Start\nLine 2: More content\nLine 3: End\n</tool.multiline_test>" first-mismatch-at 0)))
+
+F greger-agent-test-placeholder-replacement
+    Test that placeholders are correctly replaced with tool results.
+    (ert-test-failed
+     ((should
+       (string= expected-content actual-content))
+      :form
+      (string= "## TOOL RESULT:\n\nID: placeholder_test\n\n<tool.placeholder_test>\nProcessed: test-data\n</tool.placeholder_test>" "<!-- TOOL_RESULT_PLACEHOLDER_placeholder_test -->\n\n## TOOL USE:\n\nName: test-placeholder\nID: placeholder_test\n\n### data\n\n<tool.placeholder_test>\ntest-data\n</tool.placeholder_test>\n\n## TOOL RESULT:\n\nID: placeholder_test\n\n<tool.placeholder_test>\nProcessed: test-data\n</tool.placeholder_test>")
+      :value nil :explanation
+      (arrays-of-different-length 108 288 "## TOOL RESULT:\n\nID: placeholder_test\n\n<tool.placeholder_test>\nProcessed: test-data\n</tool.placeholder_test>" "<!-- TOOL_RESULT_PLACEHOLDER_placeholder_test -->\n\n## TOOL USE:\n\nName: test-placeholder\nID: placeholder_test\n\n### data\n\n<tool.placeholder_test>\ntest-data\n</tool.placeholder_test>\n\n## TOOL RESULT:\n\nID: placeholder_test\n\n<tool.placeholder_test>\nProcessed: test-data\n</tool.placeholder_test>" first-mismatch-at 0)))
+
+F greger-agent-test-simple-string-comparison
+    Test simple tool execution with clear before/after string comparison.
+    (ert-test-failed
+     ((should
+       (string= expected-final-content actual-final-content))
+      :form
+      (string= "## TOOL RESULT:\n\nID: echo_001\n\n<tool.echo_001>\nEcho: hello world\n</tool.echo_001>" "\n\n## TOOL USE:\n\nName: test-echo\nID: echo_001\n\n### input\n\n<tool.echo_001>\nhello world\n</tool.echo_001>\n\n## TOOL RESULT:\n\nID: echo_001\n\n<tool.echo_001>\nEcho: hello world\n</tool.echo_001>")
+      :value nil :explanation
+      (arrays-of-different-length 81 184 "## TOOL RESULT:\n\nID: echo_001\n\n<tool.echo_001>\nEcho: hello world\n</tool.echo_001>" "\n\n## TOOL USE:\n\nName: test-echo\nID: echo_001\n\n### input\n\n<tool.echo_001>\nhello world\n</tool.echo_001>\n\n## TOOL RESULT:\n\nID: echo_001\n\n<tool.echo_001>\nEcho: hello world\n</tool.echo_001>" first-mismatch-at 0)))
+
+F greger-agent-test-single-tool-execution
+    Test execution of a single tool with callback.
+    (ert-test-failed
+     ((should
+       (string= expected-content actual-content))
+      :form
+      (string= "## TOOL RESULT:\n\nID: test_001\n\n<tool.test_001>\nTool executed: Hello World\n</tool.test_001>" "\n\n## TOOL USE:\n\nName: test-simple\nID: test_001\n\n### message\n\n<tool.test_001>\nHello World\n</tool.test_001>\n\n## TOOL RESULT:\n\nID: test_001\n\n<tool.test_001>\nTool executed: Hello World\n</tool.test_001>")
+      :value nil :explanation
+      (arrays-of-different-length 90 197 "## TOOL RESULT:\n\nID: test_001\n\n<tool.test_001>\nTool executed: Hello World\n</tool.test_001>" "\n\n## TOOL USE:\n\nName: test-simple\nID: test_001\n\n### message\n\n<tool.test_001>\nHello World\n</tool.test_001>\n\n## TOOL RESULT:\n\nID: test_001\n\n<tool.test_001>\nTool executed: Hello World\n</tool.test_001>" first-mismatch-at 0)))
+
+F greger-agent-test-tool-error-handling
+    Test that tool errors are properly handled and displayed.
+    (ert-test-failed
+     ((should
+       (string= expected-error-content actual-content))
+      :form
+      (string= "## TOOL RESULT:\n\nID: error_test\n\n<tool.error_test>\nError executing tool test-error: Simulated tool error: bad-input\n</tool.error_test>" "\n\n## TOOL USE:\n\nName: test-error\nID: error_test\n\n### input\n\n<tool.error_test>\nbad-input\n</tool.error_test>\n\n## TOOL RESULT:\n\nID: error_test\n\n<tool.error_test>\nError executing tool: Simulated tool error: bad-input\n</tool.error_test>")
+      :value nil :explanation
+      (arrays-of-different-length 134 231 "## TOOL RESULT:\n\nID: error_test\n\n<tool.error_test>\nError executing tool test-error: Simulated tool error: bad-input\n</tool.error_test>" "\n\n## TOOL USE:\n\nName: test-error\nID: error_test\n\n### input\n\n<tool.error_test>\nbad-input\n</tool.error_test>\n\n## TOOL RESULT:\n\nID: error_test\n\n<tool.error_test>\nError executing tool: Simulated tool error: bad-input\n</tool.error_test>" first-mismatch-at 0)))
+
+F greger-agent-test-unknown-tool-error
+    Test handling of unknown tool execution.
+    (ert-test-failed
+     ((should
+       (string= expected-error-content actual-content))
+      :form
+      (string= "## TOOL RESULT:\n\nID: unknown_test\n\n<tool.unknown_test>\nUnknown tool: nonexistent-tool\n</tool.unknown_test>" "\n\n## TOOL USE:\n\nName: nonexistent-tool\nID: unknown_test\n\n### param\n\n<tool.unknown_test>\nvalue\n</tool.unknown_test>\n\n## TOOL RESULT:\n\nID: unknown_test\n\n<tool.unknown_test>\nUnknown tool: nonexistent-tool\n</tool.unknown_test>")
+      :value nil :explanation
+      (arrays-of-different-length 106 222 "## TOOL RESULT:\n\nID: unknown_test\n\n<tool.unknown_test>\nUnknown tool: nonexistent-tool\n</tool.unknown_test>" "\n\n## TOOL USE:\n\nName: nonexistent-tool\nID: unknown_test\n\n### param\n\n<tool.unknown_test>\nvalue\n</tool.unknown_test>\n\n## TOOL RESULT:\n\nID: unknown_test\n\n<tool.unknown_test>\nUnknown tool: nonexistent-tool\n</tool.unknown_test>" first-mismatch-at 0)))
+```
+
+## ASSISTANT:
+
+I can see the issues! The tests are failing because:
+
+1. The actual output includes both `## TOOL USE:` and `## TOOL RESULT:` sections, but our expected content only includes the `## TOOL RESULT:` part
+2. The error message format is slightly different than expected
+3. The strings need to be converted to multi-line format as requested
+
+Let me fix these issues:
+
+## TOOL USE:
+
+Name: str-replace
+ID: toolu_01EWsPKMGMycC1ENFWUqBDAo
+
+### file_path
+
+<tool.toolu_01EWsPKMGMycC1ENFWUqBDAo>
+test-greger-agent.el
+</tool.toolu_01EWsPKMGMycC1ENFWUqBDAo>
+
+### original_content
+
+<tool.toolu_01EWsPKMGMycC1ENFWUqBDAo>
+(ert-deftest greger-agent-test-single-tool-execution ()
+  "Test execution of a single tool with callback."
+  (let ((test-completed nil)
+        (expected-content "## TOOL RESULT:\n\nID: test_001\n\n<tool.test_001>\nTool executed: Hello World\n</tool.test_001>"))
+
+    ;; Define a simple test function
+    (defun greger-test-simple-tool (message)
+      (format "Tool executed: %s" message))
+
+    ;; Register test tool
+    (greger-register-tool "test-simple"
+      :description "Simple test tool"
+      :properties '((message . ((type . "string")
+                                (description . "Test message"))))
+      :required '("message")
+      :function 'greger-test-simple-tool)
+
+    ;; Create test buffer
+    (with-temp-buffer
+      (let ((agent-state (make-greger-agent-state
+                          :current-iteration 0
+                          :chat-buffer (current-buffer)
+                          :directory default-directory))
+            (tool-calls `(((type . "tool_use")
+                          (id . "test_001")
+                          (name . "test-simple")
+                          (input . ((message . "Hello World"))))))
+            (expected-content "## TOOL RESULT:\n\nID: test_001\n\n<tool.test_001>\nTool executed: Hello World\n</tool.test_001>"))
+
+        ;; Mock greger-agent--run-agent-loop to capture completion
+        (cl-letf (((symbol-function 'greger-agent--run-agent-loop)
+                   (lambda (state)
+                     (setq test-completed t))))
+
+          ;; Execute tools
+          (greger-agent--execute-tools tool-calls agent-state)
+
+          ;; Check that the function completed
+          (should test-completed)
+
+          ;; Check buffer contents match expected output exactly
+          (let ((actual-content (string-trim (buffer-substring-no-properties (point-min) (point-max)))))
+            (should (string= expected-content actual-content))))))
+
+    ;; Clean up
+    (remhash "test-simple" greger-tools-registry)))
+</tool.toolu_01EWsPKMGMycC1ENFWUqBDAo>
+
+### new_content
+
+<tool.toolu_01EWsPKMGMycC1ENFWUqBDAo>
+(ert-deftest greger-agent-test-single-tool-execution ()
+  "Test execution of a single tool with callback."
+  (let ((test-completed nil)
+        (expected-content "## TOOL USE:
+
+Name: test-simple
+ID: test_001
+
+### message
+
+<tool.test_001>
+Hello World
+</tool.test_001>
+
+## TOOL RESULT:
+
+ID: test_001
+
+<tool.test_001>
+Tool executed: Hello World
+</tool.test_001>"))
+
+    ;; Define a simple test function
+    (defun greger-test-simple-tool (message)
+      (format "Tool executed: %s" message))
+
+    ;; Register test tool
+    (greger-register-tool "test-simple"
+      :description "Simple test tool"
+      :properties '((message . ((type . "string")
+                                (description . "Test message"))))
+      :required '("message")
+      :function 'greger-test-simple-tool)
+
+    ;; Create test buffer
+    (with-temp-buffer
+      (let ((agent-state (make-greger-agent-state
+                          :current-iteration 0
+                          :chat-buffer (current-buffer)
+                          :directory default-directory))
+            (tool-calls `(((type . "tool_use")
+                          (id . "test_001")
+                          (name . "test-simple")
+                          (input . ((message . "Hello World")))))))
+
+        ;; Mock greger-agent--run-agent-loop to capture completion
+        (cl-letf (((symbol-function 'greger-agent--run-agent-loop)
+                   (lambda (state)
+                     (setq test-completed t))))
+
+          ;; Execute tools
+          (greger-agent--execute-tools tool-calls agent-state)
+
+          ;; Check that the function completed
+          (should test-completed)
+
+          ;; Check buffer contents match expected output exactly
+          (let ((actual-content (string-trim (buffer-substring-no-properties (point-min) (point-max)))))
+            (should (string= expected-content actual-content))))))
+
+    ;; Clean up
+    (remhash "test-simple" greger-tools-registry)))
+</tool.toolu_01EWsPKMGMycC1ENFWUqBDAo>
+
+### git_commit_message
+
+<tool.toolu_01EWsPKMGMycC1ENFWUqBDAo>
+Fix single tool execution test with correct expected content including TOOL USE section
+</tool.toolu_01EWsPKMGMycC1ENFWUqBDAo>
+
+## TOOL RESULT:
+
+ID: toolu_01EWsPKMGMycC1ENFWUqBDAo
+
+<tool.toolu_01EWsPKMGMycC1ENFWUqBDAo>
+Error executing tool: Original content not found in file: /Users/andreas/projects/aichat3/test-greger-agent.el -- Try again!
+</tool.toolu_01EWsPKMGMycC1ENFWUqBDAo>
+
+## ASSISTANT:
+
+Let me check the current content of the single tool test:
+
+## TOOL USE:
+
+Name: read-file
+ID: toolu_01SK4JRQUmQ1zW5A3YxKB4ct
+
+### path
+
+<tool.toolu_01SK4JRQUmQ1zW5A3YxKB4ct>
+test-greger-agent.el
+</tool.toolu_01SK4JRQUmQ1zW5A3YxKB4ct>
+
+### start_line
+
+<tool.toolu_01SK4JRQUmQ1zW5A3YxKB4ct>
+25
+</tool.toolu_01SK4JRQUmQ1zW5A3YxKB4ct>
+
+### end_line
+
+<tool.toolu_01SK4JRQUmQ1zW5A3YxKB4ct>
+70
+</tool.toolu_01SK4JRQUmQ1zW5A3YxKB4ct>
+
+## TOOL RESULT:
+
+ID: toolu_01SK4JRQUmQ1zW5A3YxKB4ct
+
+<tool.toolu_01SK4JRQUmQ1zW5A3YxKB4ct>
+(ert-deftest greger-agent-test-tool-placeholder ()
+  "Test the tool placeholder helper function."
+  (let ((expected1 "<!-- TOOL_RESULT_PLACEHOLDER_test123 -->")
+        (expected2 "<!-- TOOL_RESULT_PLACEHOLDER_tool_abc_def -->"))
+    (should (string= expected1 (greger-agent--tool-placeholder "test123")))
+    (should (string= expected2 (greger-agent--tool-placeholder "tool_abc_def")))))
+
+(ert-deftest greger-agent-test-single-tool-execution ()
+  "Test execution of a single tool with callback."
+  (let ((test-completed nil))
+
+    ;; Define a simple test function
+    (defun greger-test-simple-tool (message)
+      (format "Tool executed: %s" message))
+
+    ;; Register test tool
+    (greger-register-tool "test-simple"
+      :description "Simple test tool"
+      :properties '((message . ((type . "string")
+                                (description . "Test message"))))
+      :required '("message")
+      :function 'greger-test-simple-tool)
+
+    ;; Create test buffer
+    (with-temp-buffer
+      (let ((agent-state (make-greger-agent-state
+                          :current-iteration 0
+                          :chat-buffer (current-buffer)
+                          :directory default-directory))
+            (tool-calls `(((type . "tool_use")
+                          (id . "test_001")
+                          (name . "test-simple")
+                          (input . ((message . "Hello World"))))))
+            (expected-content "## TOOL RESULT:\n\nID: test_001\n\n<tool.test_001>\nTool executed: Hello World\n</tool.test_001>"))
+
+        ;; Mock greger-agent--run-agent-loop to capture completion
+        (cl-letf (((symbol-function 'greger-agent--run-agent-loop)
+                   (lambda (state)
+                     (setq test-completed t))))
+
+          ;; Execute tools
+          (greger-agent--execute-tools tool-calls agent-state)
+
+          ;; Check that the function completed
+          (should test-completed)
+
+</tool.toolu_01SK4JRQUmQ1zW5A3YxKB4ct>
+
+## ASSISTANT:
+
+Now I can see the current format. Let me update it properly:
+
+## TOOL USE:
+
+Name: str-replace
+ID: toolu_01AbR3g9pXATh1Q3X9o8PH71
+
+### file_path
+
+<tool.toolu_01AbR3g9pXATh1Q3X9o8PH71>
+test-greger-agent.el
+</tool.toolu_01AbR3g9pXATh1Q3X9o8PH71>
+
+### original_content
+
+<tool.toolu_01AbR3g9pXATh1Q3X9o8PH71>
+            (expected-content "## TOOL RESULT:\n\nID: test_001\n\n<tool.test_001>\nTool executed: Hello World\n</tool.test_001>"))
+</tool.toolu_01AbR3g9pXATh1Q3X9o8PH71>
+
+### new_content
+
+<tool.toolu_01AbR3g9pXATh1Q3X9o8PH71>
+            (expected-content "## TOOL USE:
+
+Name: test-simple
+ID: test_001
+
+### message
+
+<tool.test_001>
+Hello World
+</tool.test_001>
+
+## TOOL RESULT:
+
+ID: test_001
+
+<tool.test_001>
+Tool executed: Hello World
+</tool.test_001>"))
+</tool.toolu_01AbR3g9pXATh1Q3X9o8PH71>
+
+### git_commit_message
+
+<tool.toolu_01AbR3g9pXATh1Q3X9o8PH71>
+Update single tool test expected content to multi-line format with TOOL USE section
+</tool.toolu_01AbR3g9pXATh1Q3X9o8PH71>
+
+<!-- TOOL_RESULT_PLACEHOLDER_toolu_01AbR3g9pXATh1Q3X9o8PH71 -->

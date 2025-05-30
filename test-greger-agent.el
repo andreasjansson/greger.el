@@ -55,7 +55,24 @@
                           (id . "test_001")
                           (name . "test-simple")
                           (input . ((message . "Hello World"))))))
-            (expected-content "## TOOL RESULT:\n\nID: test_001\n\n<tool.test_001>\nTool executed: Hello World\n</tool.test_001>"))
+            (expected-content "## TOOL USE:
+
+Name: test-simple
+ID: test_001
+
+### message
+
+<tool.test_001>
+Hello World
+</tool.test_001>
+
+## TOOL RESULT:
+
+ID: test_001
+
+<tool.test_001>
+Tool executed: Hello World
+</tool.test_001>"))
 
         ;; Mock greger-agent--run-agent-loop to capture completion
         (cl-letf (((symbol-function 'greger-agent--run-agent-loop)
