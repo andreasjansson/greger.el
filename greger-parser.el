@@ -335,7 +335,7 @@ Returns nil when content is inserted, or the content string when it should be ap
   "Process a safe-shell-commands tag and return the list of commands in STATE."
   (greger-parser--debug state "Processing safe-shell-commands tag at pos %d" (greger-parser-state-pos state))
   (when (greger-parser--looking-at state "<safe-shell-commands>")
-    (greger-parser--advance state 20) ; Skip "<safe-shell-commands>"
+    (greger-parser--advance state (length "<safe-shell-commands>")) ; Skip "<safe-shell-commands>"
 
     ;; Extract the commands content
     (let ((content-start (greger-parser--current-pos state)))

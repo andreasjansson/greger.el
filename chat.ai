@@ -6502,4 +6502,204 @@ echo hello
 Add debug test to investigate safe-shell-commands parsing issue
 </tool.toolu_01C7ftTL5s9tuTA4enrr7F8v>
 
-<!-- TOOL_RESULT_PLACEHOLDER_toolu_01C7ftTL5s9tuTA4enrr7F8v -->
+## TOOL RESULT:
+
+ID: toolu_01C7ftTL5s9tuTA4enrr7F8v
+
+<tool.toolu_01C7ftTL5s9tuTA4enrr7F8v>
+Successfully wrote new file /Users/andreas/projects/aichat3/debug-test.el with 581 characters. Successfully staged 2 file(s) and committed with message: Add debug test to investigate safe-shell-commands parsing issue
+</tool.toolu_01C7ftTL5s9tuTA4enrr7F8v>
+
+
+## ASSISTANT:
+
+Actually, let me think about this differently. Looking at the test failure, it shows that the content is being parsed as `">"` which suggests that only the `>` character from the opening tag is being captured. This suggests that the safe-shell-commands tag processing is working (since the tag itself is being consumed), but there's a bug in how the content is being handled.
+
+The issue might be in the logic flow in `greger-parser--read-until-section-with-metadata-extraction`. Let me trace through what should happen:
+
+1. We encounter `<safe-shell-commands>`
+2. We add content up to the tag (should be empty or whitespace)
+3. We process the tag and extract commands
+4. We set start to current position (after the closing tag)
+
+The problem might be that we're not properly handling the case where the safe-shell-commands is the only content in the system section. Let me check the system section parser:
+
+## TOOL USE:
+
+Name: read-file
+ID: toolu_01XaKEg6wLqxE43rkHxDG6Jx
+
+### path
+
+<tool.toolu_01XaKEg6wLqxE43rkHxDG6Jx>
+greger-parser.el
+</tool.toolu_01XaKEg6wLqxE43rkHxDG6Jx>
+
+### start_line
+
+<tool.toolu_01XaKEg6wLqxE43rkHxDG6Jx>
+650
+</tool.toolu_01XaKEg6wLqxE43rkHxDG6Jx>
+
+### end_line
+
+<tool.toolu_01XaKEg6wLqxE43rkHxDG6Jx>
+670
+</tool.toolu_01XaKEg6wLqxE43rkHxDG6Jx>
+
+## TOOL RESULT:
+
+ID: toolu_01XaKEg6wLqxE43rkHxDG6Jx
+
+<tool.toolu_01XaKEg6wLqxE43rkHxDG6Jx>
+
+(defun greger-parser--parse-tool-use-section (state)
+  "Parse TOOL USE section using STATE."
+  (greger-parser--skip-whitespace state)
+  (let ((name (greger-parser--parse-name-line state))
+        (id (greger-parser--parse-id-line state))
+        (input (greger-parser--parse-tool-input state)))
+    (when (and name id)
+      (greger-parser--create-tool-use-message name id input))))
+
+(defun greger-parser--parse-tool-result-section (state)
+  "Parse TOOL RESULT section using STATE."
+  (greger-parser--skip-whitespace state)
+  (let ((id (greger-parser--parse-id-line state))
+        (content (greger-parser--parse-tool-result-content state)))
+    (when id
+      (greger-parser--create-tool-result-message id content))))
+
+;; Tool parsing helpers
+
+(defun greger-parser--parse-name-line (state)
+</tool.toolu_01XaKEg6wLqxE43rkHxDG6Jx>
+
+## ASSISTANT:
+
+Let me find the system section parser:
+
+## TOOL USE:
+
+Name: ripgrep
+ID: toolu_01CzJA5e4MdhRqWFTBWcXswh
+
+### pattern
+
+<tool.toolu_01CzJA5e4MdhRqWFTBWcXswh>
+greger-parser--parse-system-section
+</tool.toolu_01CzJA5e4MdhRqWFTBWcXswh>
+
+### path
+
+<tool.toolu_01CzJA5e4MdhRqWFTBWcXswh>
+greger-parser.el
+</tool.toolu_01CzJA5e4MdhRqWFTBWcXswh>
+
+### context-lines
+
+<tool.toolu_01CzJA5e4MdhRqWFTBWcXswh>
+15
+</tool.toolu_01CzJA5e4MdhRqWFTBWcXswh>
+
+## TOOL RESULT:
+
+ID: toolu_01CzJA5e4MdhRqWFTBWcXswh
+
+<tool.toolu_01CzJA5e4MdhRqWFTBWcXswh>
+600:        (greger-parser--parse-system-section state))
+622:(defun greger-parser--parse-system-section (state)
+
+</tool.toolu_01CzJA5e4MdhRqWFTBWcXswh>
+
+## TOOL USE:
+
+Name: read-file
+ID: toolu_014HZqkut1ZaZZetpRDnJTck
+
+### path
+
+<tool.toolu_014HZqkut1ZaZZetpRDnJTck>
+greger-parser.el
+</tool.toolu_014HZqkut1ZaZZetpRDnJTck>
+
+### start_line
+
+<tool.toolu_014HZqkut1ZaZZetpRDnJTck>
+622
+</tool.toolu_014HZqkut1ZaZZetpRDnJTck>
+
+### end_line
+
+<tool.toolu_014HZqkut1ZaZZetpRDnJTck>
+642
+</tool.toolu_014HZqkut1ZaZZetpRDnJTck>
+
+## TOOL RESULT:
+
+ID: toolu_014HZqkut1ZaZZetpRDnJTck
+
+<tool.toolu_014HZqkut1ZaZZetpRDnJTck>
+(defun greger-parser--parse-system-section (state)
+  "Parse SYSTEM section using STATE.
+Returns either a system message or metadata if safe-shell-commands are found."
+  (let ((content (greger-parser--parse-section-content-with-metadata state)))
+    (cond
+     ;; If we extracted safe-shell-commands, return as metadata
+     ((and (plist-get content :safe-shell-commands)
+           (not (plist-get content :content)))
+      (list :metadata (list :safe-shell-commands (plist-get content :safe-shell-commands))))
+
+     ;; If we have both content and safe-shell-commands, return system message and warn about metadata
+     ((and (plist-get content :safe-shell-commands)
+           (plist-get content :content))
+      (greger-parser--debug state "Warning: safe-shell-commands found with other content in SYSTEM section")
+      (greger-parser--create-system-message (plist-get content :content)))
+
+     ;; Just regular content
+     ((plist-get content :content)
+      (greger-parser--create-system-message (plist-get content :content)))
+
+     ;; No content
+</tool.toolu_014HZqkut1ZaZZetpRDnJTck>
+
+## ASSISTANT:
+
+I think I found the issue! When there's no content other than the safe-shell-commands, the function returns metadata correctly, but when there's mixed content, I'm ignoring the metadata. However, the test failure suggests that some content is being created even when there should be only safe-shell-commands.
+
+Let me examine what happens in the case where we have only `<safe-shell-commands>`. The issue might be that some whitespace or the `>` character is being captured as content.
+
+Looking at the test failure again: the content is `">"`. This suggests that somehow only the `>` character is being captured, which means the parsing of the opening tag is not working correctly.
+
+Let me check if the issue is in the tag length calculation:
+
+## TOOL USE:
+
+Name: str-replace
+ID: toolu_01VufpPcy4t8AnhmP38xXKmP
+
+### file_path
+
+<tool.toolu_01VufpPcy4t8AnhmP38xXKmP>
+greger-parser.el
+</tool.toolu_01VufpPcy4t8AnhmP38xXKmP>
+
+### original_content
+
+<tool.toolu_01VufpPcy4t8AnhmP38xXKmP>
+(greger-parser--advance state 20) ; Skip "<safe-shell-commands>"
+</tool.toolu_01VufpPcy4t8AnhmP38xXKmP>
+
+### new_content
+
+<tool.toolu_01VufpPcy4t8AnhmP38xXKmP>
+(greger-parser--advance state (length "<safe-shell-commands>")) ; Skip "<safe-shell-commands>"
+</tool.toolu_01VufpPcy4t8AnhmP38xXKmP>
+
+### git_commit_message
+
+<tool.toolu_01VufpPcy4t8AnhmP38xXKmP>
+Fix hard-coded length in safe-shell-commands tag processing
+</tool.toolu_01VufpPcy4t8AnhmP38xXKmP>
+
+<!-- TOOL_RESULT_PLACEHOLDER_toolu_01VufpPcy4t8AnhmP38xXKmP -->
