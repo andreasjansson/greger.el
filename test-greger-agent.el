@@ -126,7 +126,7 @@ Tool executed: Hello World
       (let ((agent-state (make-greger-agent-state
                           :current-iteration 0
                           :chat-buffer (current-buffer)
-                          :directory default-directory))
+                          :directory default-directory :metadata nil))
             (tool-calls `(((type . "tool_use")
                           (id . "test_a")
                           (name . "test-tool-a")
@@ -216,7 +216,7 @@ Tool B result: input-b
       (let ((agent-state (make-greger-agent-state
                           :current-iteration 0
                           :chat-buffer (current-buffer)
-                          :directory default-directory))
+                          :directory default-directory :metadata nil))
             (tool-calls `(((type . "tool_use")
                           (id . "error_test")
                           (name . "test-error")
@@ -283,7 +283,7 @@ Error executing tool: Simulated tool error: bad-input
       (let ((agent-state (make-greger-agent-state
                           :current-iteration 0
                           :chat-buffer (current-buffer)
-                          :directory default-directory))
+                          :directory default-directory :metadata nil))
             (tool-calls `(((type . "tool_use")
                           (id . "content_test")
                           (name . "test-content")
@@ -336,7 +336,7 @@ Processed: test-data
       (let ((agent-state (make-greger-agent-state
                           :current-iteration 0
                           :chat-buffer (current-buffer)
-                          :directory default-directory))
+                          :directory default-directory :metadata nil))
             (tool-calls `(((type . "tool_use")
                           (id . "unknown_test")
                           (name . "nonexistent-tool")
@@ -398,7 +398,7 @@ Unknown tool: nonexistent-tool
       (let ((agent-state (make-greger-agent-state
                           :current-iteration 0
                           :chat-buffer (current-buffer)
-                          :directory default-directory))
+                          :directory default-directory :metadata nil))
             (tool-calls `(((type . "tool_use")
                           (id . "multiline_test")
                           (name . "test-multiline")
@@ -467,7 +467,7 @@ Line 3: End
             (agent-state (make-greger-agent-state
                           :current-iteration 0
                           :chat-buffer (current-buffer)
-                          :directory default-directory))
+                          :directory default-directory :metadata nil))
             (tool-calls `(((type . "tool_use")
                           (id . "echo_001")
                           (name . "test-echo")
