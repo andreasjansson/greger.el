@@ -580,8 +580,10 @@ Returns a plist with :messages and :metadata keys."
       (when (>= iterations max-iterations)
         (greger-parser--debug state "Hit max iterations in parse-document"))
 
-      (list :messages (greger-parser--merge-consecutive-messages (reverse sections))
-            :metadata metadata))))
+      ;; Combine metadata from section returns and parser state
+      (let ((combined-metadata (append metadata (greger-parser-state-metadata state))))
+        (list :messages (greger-parser--merge-consecutive-messages (reverse sections))
+              :metadata combined-metadata)))))
 
 (defun greger-parser--parse-untagged-content (state)
   "Parse content before first section tag using STATE."
