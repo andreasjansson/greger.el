@@ -2203,4 +2203,86 @@ test-greger-tools.el
 Update parameter mapping test to use callback API
 </tool.toolu_014xRP1Ja7eEvSqqFXKXTwge>
 
-<!-- TOOL_RESULT_PLACEHOLDER_toolu_014xRP1Ja7eEvSqqFXKXTwge -->
+## TOOL RESULT:
+
+ID: toolu_014xRP1Ja7eEvSqqFXKXTwge
+
+<tool.toolu_014xRP1Ja7eEvSqqFXKXTwge>
+Successfully replaced content in /Users/andreas/projects/aichat3/test-greger-tools.el. Successfully staged 2 file(s) and committed with message: Update parameter mapping test to use callback API
+</tool.toolu_014xRP1Ja7eEvSqqFXKXTwge>
+
+
+## TOOL USE:
+
+Name: str-replace
+ID: toolu_01VCaghLmKVLqE8zmAegx7GP
+
+### file_path
+
+<tool.toolu_01VCaghLmKVLqE8zmAegx7GP>
+test-greger-tools.el
+</tool.toolu_01VCaghLmKVLqE8zmAegx7GP>
+
+### original_content
+
+<tool.toolu_01VCaghLmKVLqE8zmAegx7GP>
+;; Test with only required parameter
+  (let ((result (greger-tools-execute "test-optional"
+                                      '((required_param . "test")))))
+    (should (string= "required: test, opt1: default1, opt2: default2" result)))
+
+  ;; Test with required + one optional parameter
+  (let ((result (greger-tools-execute "test-optional"
+                                      '((required_param . "test")
+                                        (optional_param1 . "provided1")))))
+    (should (string= "required: test, opt1: provided1, opt2: default2" result)))
+
+  ;; Test with all parameters provided
+  (let ((result (greger-tools-execute "test-optional"
+                                      '((required_param . "test")
+                                        (optional_param1 . "provided1")
+                                        (optional_param2 . "provided2")))))
+    (should (string= "required: test, opt1: provided1, opt2: provided2" result)))
+</tool.toolu_01VCaghLmKVLqE8zmAegx7GP>
+
+### new_content
+
+<tool.toolu_01VCaghLmKVLqE8zmAegx7GP>
+;; Test with only required parameter
+  (let ((result nil)
+        (error nil))
+    (greger-tools-execute "test-optional"
+                          '((required_param . "test"))
+                          (lambda (r e) (setq result r error e)) nil)
+    (should (string= "required: test, opt1: default1, opt2: default2" result))
+    (should (null error)))
+
+  ;; Test with required + one optional parameter
+  (let ((result nil)
+        (error nil))
+    (greger-tools-execute "test-optional"
+                          '((required_param . "test")
+                            (optional_param1 . "provided1"))
+                          (lambda (r e) (setq result r error e)) nil)
+    (should (string= "required: test, opt1: provided1, opt2: default2" result))
+    (should (null error)))
+
+  ;; Test with all parameters provided
+  (let ((result nil)
+        (error nil))
+    (greger-tools-execute "test-optional"
+                          '((required_param . "test")
+                            (optional_param1 . "provided1")
+                            (optional_param2 . "provided2"))
+                          (lambda (r e) (setq result r error e)) nil)
+    (should (string= "required: test, opt1: provided1, opt2: provided2" result))
+    (should (null error)))
+</tool.toolu_01VCaghLmKVLqE8zmAegx7GP>
+
+### git_commit_message
+
+<tool.toolu_01VCaghLmKVLqE8zmAegx7GP>
+Update optional parameters test to use callback API
+</tool.toolu_01VCaghLmKVLqE8zmAegx7GP>
+
+<!-- TOOL_RESULT_PLACEHOLDER_toolu_01VCaghLmKVLqE8zmAegx7GP -->

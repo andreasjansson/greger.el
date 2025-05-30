@@ -113,22 +113,34 @@
     :function 'greger-test-optional-params)
 
   ;; Test with only required parameter
-  (let ((result (greger-tools-execute "test-optional"
-                                      '((required_param . "test")))))
-    (should (string= "required: test, opt1: default1, opt2: default2" result)))
+  (let ((result nil)
+        (error nil))
+    (greger-tools-execute "test-optional"
+                          '((required_param . "test"))
+                          (lambda (r e) (setq result r error e)) nil)
+    (should (string= "required: test, opt1: default1, opt2: default2" result))
+    (should (null error)))
 
   ;; Test with required + one optional parameter
-  (let ((result (greger-tools-execute "test-optional"
-                                      '((required_param . "test")
-                                        (optional_param1 . "provided1")))))
-    (should (string= "required: test, opt1: provided1, opt2: default2" result)))
+  (let ((result nil)
+        (error nil))
+    (greger-tools-execute "test-optional"
+                          '((required_param . "test")
+                            (optional_param1 . "provided1"))
+                          (lambda (r e) (setq result r error e)) nil)
+    (should (string= "required: test, opt1: provided1, opt2: default2" result))
+    (should (null error)))
 
   ;; Test with all parameters provided
-  (let ((result (greger-tools-execute "test-optional"
-                                      '((required_param . "test")
-                                        (optional_param1 . "provided1")
-                                        (optional_param2 . "provided2")))))
-    (should (string= "required: test, opt1: provided1, opt2: provided2" result)))
+  (let ((result nil)
+        (error nil))
+    (greger-tools-execute "test-optional"
+                          '((required_param . "test")
+                            (optional_param1 . "provided1")
+                            (optional_param2 . "provided2"))
+                          (lambda (r e) (setq result r error e)) nil)
+    (should (string= "required: test, opt1: provided1, opt2: provided2" result))
+    (should (null error)))
 
   ;; Clean up
   (remhash "test-optional" greger-tools-registry))
