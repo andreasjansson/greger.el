@@ -341,7 +341,7 @@ Returns nil when content is inserted, or the content string when it should be ap
     (let ((content-start (greger-parser--current-pos state)))
       (when (greger-parser--find-closing-tag state "</safe-shell-commands>")
         (let ((commands-content (greger-parser--substring state content-start)))
-          (greger-parser--advance state 21) ; Skip "</safe-shell-commands>"
+          (greger-parser--advance state (length "</safe-shell-commands>")) ; Skip "</safe-shell-commands>"
 
           ;; Parse commands - split by lines and filter empty ones
           (let ((commands (delq nil
