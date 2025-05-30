@@ -1599,4 +1599,67 @@ When :pass-callback is set to t, the callback function will be passed to the too
 Update documentation to clarify pass-callback is boolean
 </tool.toolu_01QKtdSP2PFaDDN7X4WHoGkE>
 
-<!-- TOOL_RESULT_PLACEHOLDER_toolu_01QKtdSP2PFaDDN7X4WHoGkE -->
+## TOOL RESULT:
+
+ID: toolu_01QKtdSP2PFaDDN7X4WHoGkE
+
+<tool.toolu_01QKtdSP2PFaDDN7X4WHoGkE>
+Successfully replaced content in /Users/andreas/projects/aichat3/greger-tools.el. Successfully staged 2 file(s) and committed with message: Update documentation to clarify pass-callback is boolean
+</tool.toolu_01QKtdSP2PFaDDN7X4WHoGkE>
+
+
+## ASSISTANT:
+
+Now I need to fix the test to handle the asynchronous nature properly. The problem is that when `:pass-callback` is used, the test assertions need to happen inside the callback that gets passed to the tool function, not in the main test thread:
+
+## TOOL USE:
+
+Name: str-replace
+ID: toolu_017ipXptCiHnbqeHLg6eq4Nd
+
+### file_path
+
+<tool.toolu_017ipXptCiHnbqeHLg6eq4Nd>
+test-greger-tools.el
+</tool.toolu_017ipXptCiHnbqeHLg6eq4Nd>
+
+### original_content
+
+<tool.toolu_017ipXptCiHnbqeHLg6eq4Nd>
+;; Test tool with :pass-callback - function calls callback directly
+  (let ((result nil)
+        (error nil))
+    (greger-tools-execute "test-pass-callback"
+                          '((message . "world"))
+                          (lambda (r e) (setq result r error e))
+                          nil)
+    (should (string= "processed: world" result))
+    (should (null error)))
+</tool.toolu_017ipXptCiHnbqeHLg6eq4Nd>
+
+### new_content
+
+<tool.toolu_017ipXptCiHnbqeHLg6eq4Nd>
+;; Test tool with :pass-callback - function calls callback directly
+  (let ((result nil)
+        (error nil)
+        (callback-called nil))
+    (greger-tools-execute "test-pass-callback"
+                          '((message . "world"))
+                          (lambda (r e)
+                            (setq result r error e callback-called t))
+                          nil)
+    ;; Since the callback is called synchronously in our test function,
+    ;; we can check the results immediately
+    (should callback-called)
+    (should (string= "processed: world" result))
+    (should (null error)))
+</tool.toolu_017ipXptCiHnbqeHLg6eq4Nd>
+
+### git_commit_message
+
+<tool.toolu_017ipXptCiHnbqeHLg6eq4Nd>
+Fix test to properly verify asynchronous callback behavior
+</tool.toolu_017ipXptCiHnbqeHLg6eq4Nd>
+
+<!-- TOOL_RESULT_PLACEHOLDER_toolu_017ipXptCiHnbqeHLg6eq4Nd -->

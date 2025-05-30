@@ -360,7 +360,7 @@
                               (description . "Test message"))))
     :required '("message")
     :function 'greger-test-callback-param
-    :pass-callback callback)
+    :pass-callback t)
 
   ;; Test normal tool - greger-tools-execute calls callback with result
   (let ((result nil)
@@ -374,11 +374,16 @@
 
   ;; Test tool with :pass-callback - function calls callback directly
   (let ((result nil)
-        (error nil))
+        (error nil)
+        (callback-called nil))
     (greger-tools-execute "test-pass-callback"
                           '((message . "world"))
-                          (lambda (r e) (setq result r error e))
+                          (lambda (r e)
+                            (setq result r error e callback-called t))
                           nil)
+    ;; Since the callback is called synchronously in our test function,
+    ;; we can check the results immediately
+    (should callback-called)
     (should (string= "processed: world" result))
     (should (null error)))
 
