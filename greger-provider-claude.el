@@ -76,7 +76,7 @@
     ;; Build base request
     (setq request-data `(("model" . ,model-name)
                         ("messages" . ,user-messages)
-                        ("max_tokens" . 8192)
+                        ("max_tokens" . 64000)
                         ("stream" . t)))
 
     ;; Add system message if present
