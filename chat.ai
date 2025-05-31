@@ -6157,4 +6157,78 @@ Add LSP requirements checking and test skipping
 - Avoid test failures on systems without LSP setup
 </tool.toolu_015h3FVgrAXfrBxVQup7ZBk3>
 
-<!-- TOOL_RESULT_PLACEHOLDER_toolu_015h3FVgrAXfrBxVQup7ZBk3 -->
+## TOOL RESULT:
+
+ID: toolu_015h3FVgrAXfrBxVQup7ZBk3
+
+<tool.toolu_015h3FVgrAXfrBxVQup7ZBk3>
+Successfully replaced content in /Users/andreas/projects/aichat3/test-greger-lib-lsp.el. Successfully staged 2 file(s) and committed with message: Add LSP requirements checking and test skipping
+
+- Check for lsp-mode, python-mode, and Python LSP servers
+- Skip tests gracefully if requirements not met
+- Avoid test failures on systems without LSP setup
+</tool.toolu_015h3FVgrAXfrBxVQup7ZBk3>
+
+
+## ASSISTANT:
+
+Finally, let me add one more approach to handle the project root issue more directly by mocking the prompting functions:
+
+## TOOL USE:
+
+Name: str-replace
+ID: toolu_01QCCJa9Nqfto9X4zbZXMsmP
+
+### file_path
+
+<tool.toolu_01QCCJa9Nqfto9X4zbZXMsmP>
+./test-greger-lib-lsp.el
+</tool.toolu_01QCCJa9Nqfto9X4zbZXMsmP>
+
+### original_content
+
+<tool.toolu_01QCCJa9Nqfto9X4zbZXMsmP>
+        ;; Mock the project root finder to return our test directory
+        (cl-letf (((symbol-function 'lsp--calculate-root)
+                   (lambda (session file-name)
+                     greger-lsp-test-project-root))
+                  ((symbol-function 'lsp--suggest-project-root)
+                   (lambda ()
+                     greger-lsp-test-project-root))
+                  ((symbol-function 'lsp--find-root-interactively)
+                   (lambda (session)
+                     greger-lsp-test-project-root)))
+</tool.toolu_01QCCJa9Nqfto9X4zbZXMsmP>
+
+### new_content
+
+<tool.toolu_01QCCJa9Nqfto9X4zbZXMsmP>
+        ;; Mock the project root finder and prompting functions
+        (cl-letf (((symbol-function 'lsp--calculate-root)
+                   (lambda (session file-name)
+                     greger-lsp-test-project-root))
+                  ((symbol-function 'lsp--suggest-project-root)
+                   (lambda ()
+                     greger-lsp-test-project-root))
+                  ((symbol-function 'lsp--find-root-interactively)
+                   (lambda (session)
+                     greger-lsp-test-project-root))
+                  ((symbol-function 'lsp--read-char)
+                   (lambda (prompt &optional options)
+                     ?. )) ; Always choose "current directory"
+                  ((symbol-function 'read-directory-name)
+                   (lambda (&rest args)
+                     greger-lsp-test-project-root)))
+</tool.toolu_01QCCJa9Nqfto9X4zbZXMsmP>
+
+### git_commit_message
+
+<tool.toolu_01QCCJa9Nqfto9X4zbZXMsmP>
+Mock additional LSP prompting functions
+
+- Mock lsp--read-char to automatically select current directory option
+- Mock read-directory-name to return test project root
+- Prevent any interactive prompts during LSP initialization
+</tool.toolu_01QCCJa9Nqfto9X4zbZXMsmP>
+
+<!-- TOOL_RESULT_PLACEHOLDER_toolu_01QCCJa9Nqfto9X4zbZXMsmP -->

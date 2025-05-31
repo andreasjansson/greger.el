@@ -172,7 +172,7 @@ description = \"Test project for greger LSP tools\"
             (lsp-restart 'ignore)  ; Don't prompt for restart
             (lsp-warn-no-matched-clients nil)) ; Don't warn about no clients
 
-        ;; Mock the project root finder to return our test directory
+        ;; Mock the project root finder and prompting functions
         (cl-letf (((symbol-function 'lsp--calculate-root)
                    (lambda (session file-name)
                      greger-lsp-test-project-root))
@@ -181,6 +181,12 @@ description = \"Test project for greger LSP tools\"
                      greger-lsp-test-project-root))
                   ((symbol-function 'lsp--find-root-interactively)
                    (lambda (session)
+                     greger-lsp-test-project-root))
+                  ((symbol-function 'lsp--read-char)
+                   (lambda (prompt &optional options)
+                     ?. )) ; Always choose "current directory"
+                  ((symbol-function 'read-directory-name)
+                   (lambda (&rest args)
                      greger-lsp-test-project-root)))
 
           ;; Start LSP
