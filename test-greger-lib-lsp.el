@@ -27,6 +27,14 @@
   (setq greger-lsp-test-temp-dir (make-temp-file "greger-lsp-test-" t))
   (setq greger-lsp-test-project-root greger-lsp-test-temp-dir)
 
+  ;; Ensure we have a clean LSP session
+  (when (bound-and-true-p lsp--session)
+    ;; Clear any existing workspace folders that might interfere
+    (setf (lsp-session-folders lsp--session)
+          (cl-remove-if (lambda (folder)
+                         (string-prefix-p "/tmp" folder))
+                        (lsp-session-folders lsp--session))))
+
   ;; Create a simple Python project structure
   (let ((src-dir (file-name-as-directory (expand-file-name "src" greger-lsp-test-temp-dir))))
     (make-directory src-dir)

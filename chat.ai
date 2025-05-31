@@ -5931,4 +5931,68 @@ Fix LSP test setup to avoid interactive prompts
 - Disable LSP restart prompts and warnings
 </tool.toolu_019cVQbKyvSBoxuhNHncZyFt>
 
-<!-- TOOL_RESULT_PLACEHOLDER_toolu_019cVQbKyvSBoxuhNHncZyFt -->
+## TOOL RESULT:
+
+ID: toolu_019cVQbKyvSBoxuhNHncZyFt
+
+<tool.toolu_019cVQbKyvSBoxuhNHncZyFt>
+Successfully replaced content in /Users/andreas/projects/aichat3/test-greger-lib-lsp.el. Successfully staged 2 file(s) and committed with message: Fix LSP test setup to avoid interactive prompts
+
+- Mock lsp--calculate-root and related functions to return test directory
+- Add test project to lsp-session-folders before starting LSP
+- Increase timeout and improve error handling for LSP startup
+- Disable LSP restart prompts and warnings
+</tool.toolu_019cVQbKyvSBoxuhNHncZyFt>
+
+
+## ASSISTANT:
+
+Now let me also add a better setup function that ensures we have a clean test environment:
+
+## TOOL USE:
+
+Name: str-replace
+ID: toolu_01Lts8oAwayxtSKd3DjHbCxe
+
+### file_path
+
+<tool.toolu_01Lts8oAwayxtSKd3DjHbCxe>
+./test-greger-lib-lsp.el
+</tool.toolu_01Lts8oAwayxtSKd3DjHbCxe>
+
+### original_content
+
+<tool.toolu_01Lts8oAwayxtSKd3DjHbCxe>
+(defun greger-lsp-test-setup ()
+  "Set up test environment with temporary Python project."
+  (setq greger-lsp-test-temp-dir (make-temp-file "greger-lsp-test-" t))
+  (setq greger-lsp-test-project-root greger-lsp-test-temp-dir)
+</tool.toolu_01Lts8oAwayxtSKd3DjHbCxe>
+
+### new_content
+
+<tool.toolu_01Lts8oAwayxtSKd3DjHbCxe>
+(defun greger-lsp-test-setup ()
+  "Set up test environment with temporary Python project."
+  (setq greger-lsp-test-temp-dir (make-temp-file "greger-lsp-test-" t))
+  (setq greger-lsp-test-project-root greger-lsp-test-temp-dir)
+
+  ;; Ensure we have a clean LSP session
+  (when (bound-and-true-p lsp--session)
+    ;; Clear any existing workspace folders that might interfere
+    (setf (lsp-session-folders lsp--session)
+          (cl-remove-if (lambda (folder)
+                         (string-prefix-p "/tmp" folder))
+                        (lsp-session-folders lsp--session))))
+</tool.toolu_01Lts8oAwayxtSKd3DjHbCxe>
+
+### git_commit_message
+
+<tool.toolu_01Lts8oAwayxtSKd3DjHbCxe>
+Clean up LSP session before test setup
+
+- Remove any temporary folders from previous tests
+- Ensure clean LSP session state for each test
+</tool.toolu_01Lts8oAwayxtSKd3DjHbCxe>
+
+<!-- TOOL_RESULT_PLACEHOLDER_toolu_01Lts8oAwayxtSKd3DjHbCxe -->
