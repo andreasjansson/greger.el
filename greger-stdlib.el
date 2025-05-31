@@ -201,7 +201,8 @@
                                       (default . "."))))
   :required '("command")
   :function 'greger-tools--shell-command
-  :pass-callback t)
+  :pass-callback t
+  :pass-metadata t)
 
 (greger-register-tool "read-webpage"
   :description "Read webpage content from a URL. Can return either extracted text or raw HTML."
@@ -976,9 +977,10 @@ FUNCTION-NAMES is a vector of test function names to evaluate and run."
 
     (error (format "Failed to execute ERT tests: %s" (error-message-string err)))))
 
-(defun greger-tools--shell-command (command callback &optional working-directory)
+(defun greger-tools--shell-command (command callback &optional working-directory metadata)
   "Execute COMMAND in WORKING-DIRECTORY and call CALLBACK with (result error).
-Prompts for permission before running the command for security."
+Prompts for permission before running the command for security.
+If METADATA contains safe-shell-commands and COMMAND is in that list, skips permission prompt."
   (let ((work-dir (or working-directory ".")))
     (cond
      ((not (stringp command))
@@ -999,8 +1001,10 @@ Prompts for permission before running the command for security."
          ((not (file-directory-p expanded-work-dir))
           (funcall callback nil (format "Working directory path is not a directory: %s" expanded-work-dir)))
 
-         ((not (y-or-n-p (format "Execute shell command: '%s' in directory '%s'? "
-                                command expanded-work-dir)))
+         ((let ((safe-commands (plist-get metadata :safe-shell-commands)))
+            (and (not (member command safe-commands))
+                 (not (y-or-n-p (format "Execute shell command: '%s' in directory '%s'? "
+                                       command expanded-work-dir)))))
           (funcall callback nil "Shell command execution cancelled by user"))
 
          (t

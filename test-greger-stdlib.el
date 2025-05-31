@@ -174,4 +174,118 @@
       (should (stringp error))
       (should (string-match "failed with exit code" error)))))
 
+(ert-deftest greger-test-shell-command-safe-commands ()
+  "Test shell-command tool with safe-shell-commands metadata to skip permission prompt."
+  (let ((result nil)
+        (error nil)
+        (callback-called nil)
+        (prompt-called nil))
+
+    ;; Mock the permission prompt to track if it's called
+    (cl-letf (((symbol-function 'y-or-n-p)
+               (lambda (prompt)
+                 (setq prompt-called t)
+                 t)))
+
+      ;; Create metadata with safe shell commands
+      (let ((metadata '(:safe-shell-commands ("echo safe command" "pwd" "ls -la"))))
+
+        ;; Execute a command that's in the safe list
+        (greger-tools--shell-command
+         "echo safe command"
+         (lambda (output err)
+           (setq result output error err callback-called t))
+         "."  ; working directory
+         metadata)
+
+        ;; Wait for async operation to complete
+        (let ((timeout 0))
+          (while (and (not callback-called) (< timeout 50))  ; 5 second timeout
+            (sit-for 0.1)
+            (setq timeout (1+ timeout))))
+
+        ;; Verify the results
+        (should callback-called)
+        (should (null error))
+        (should (stringp result))
+        (should (string-match "Command executed successfully" result))
+        (should (string-match "safe command" result))
+        ;; Most importantly: permission prompt should NOT have been called
+        (should (null prompt-called))))))
+
+(ert-deftest greger-test-shell-command-unsafe-commands-with-metadata ()
+  "Test shell-command tool with metadata but command not in safe list still prompts."
+  (let ((result nil)
+        (error nil)
+        (callback-called nil)
+        (prompt-called nil))
+
+    ;; Mock the permission prompt to track if it's called and return yes
+    (cl-letf (((symbol-function 'y-or-n-p)
+               (lambda (prompt)
+                 (setq prompt-called t)
+                 t)))
+
+      ;; Create metadata with safe shell commands
+      (let ((metadata '(:safe-shell-commands ("echo safe command" "pwd"))))
+
+        ;; Execute a command that's NOT in the safe list
+        (greger-tools--shell-command
+         "echo unsafe command"
+         (lambda (output err)
+           (setq result output error err callback-called t))
+         "."  ; working directory
+         metadata)
+
+        ;; Wait for async operation to complete
+        (let ((timeout 0))
+          (while (and (not callback-called) (< timeout 50))  ; 5 second timeout
+            (sit-for 0.1)
+            (setq timeout (1+ timeout))))
+
+        ;; Verify the results
+        (should callback-called)
+        (should (null error))
+        (should (stringp result))
+        (should (string-match "Command executed successfully" result))
+        (should (string-match "unsafe command" result))
+        ;; Permission prompt SHOULD have been called since command not in safe list
+        (should prompt-called)))))
+
+(ert-deftest greger-test-shell-command-no-metadata-still-prompts ()
+  "Test shell-command tool without metadata still prompts for permission."
+  (let ((result nil)
+        (error nil)
+        (callback-called nil)
+        (prompt-called nil))
+
+    ;; Mock the permission prompt to track if it's called and return yes
+    (cl-letf (((symbol-function 'y-or-n-p)
+               (lambda (prompt)
+                 (setq prompt-called t)
+                 t)))
+
+        ;; Execute a command without any metadata
+        (greger-tools--shell-command
+         "echo no metadata"
+         (lambda (output err)
+           (setq result output error err callback-called t))
+         "."  ; working directory
+         nil)  ; no metadata
+
+        ;; Wait for async operation to complete
+        (let ((timeout 0))
+          (while (and (not callback-called) (< timeout 50))  ; 5 second timeout
+            (sit-for 0.1)
+            (setq timeout (1+ timeout))))
+
+        ;; Verify the results
+        (should callback-called)
+        (should (null error))
+        (should (stringp result))
+        (should (string-match "Command executed successfully" result))
+        (should (string-match "no metadata" result))
+        ;; Permission prompt SHOULD have been called since no metadata provided
+        (should prompt-called))))
+
 ;;; greger-test-stdlib.el ends here

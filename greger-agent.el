@@ -35,13 +35,16 @@
 (cl-defstruct greger-agent-state
   current-iteration
   chat-buffer
-  directory)
+  directory
+  metadata)
 
 (defun greger-agent-buffer ()
   "Send buffer content to AI as an agent dialog with tool support."
   (interactive)
   (let* ((buffer-content (buffer-substring-no-properties (point-min) (point-max)))
-         (dialog (greger-parser-parse-dialog buffer-content)))
+         (parse-result (greger-parser-parse-dialog buffer-content))
+         (dialog (plist-get parse-result :messages))
+         (metadata (plist-get parse-result :metadata)))
     (unless dialog
       (error "Failed to parse dialog. Did you forget to close a html tag?"))
 
@@ -50,7 +53,8 @@
     (let ((agent-state (make-greger-agent-state
                         :current-iteration 0
                         :chat-buffer (current-buffer)
-                        :directory default-directory)))
+                        :directory default-directory
+                        :metadata metadata)))
 
       (greger-agent--debug "--- DIALOG --- %s" dialog)
       (greger-agent--debug "=== STARTING AGENT SESSION ===")
@@ -68,7 +72,8 @@
          (chat-buffer (greger-agent-state-chat-buffer agent-state))
          (buffer-content (with-current-buffer chat-buffer
                            (buffer-substring-no-properties (point-min) (point-max))))
-         (current-dialog (greger-parser-parse-dialog buffer-content))
+         (parse-result (greger-parser-parse-dialog buffer-content))
+         (current-dialog (plist-get parse-result :messages))
          (current-iteration (greger-agent-state-current-iteration agent-state)))
 
     (greger-agent--debug "=== ITERATION %d ===" current-iteration)
@@ -167,7 +172,8 @@
                 (setq completed-tools (1+ completed-tools))
                 (when (= completed-tools total-tools)
                   (greger-agent--run-agent-loop agent-state)))))
-           (greger-agent-state-chat-buffer agent-state)))))))
+           (greger-agent-state-chat-buffer agent-state)
+           (greger-agent-state-metadata agent-state)))))))
 
 (defun greger-agent--append-text (text agent-state)
   (with-current-buffer (greger-agent-state-chat-buffer agent-state)

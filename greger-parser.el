@@ -24,7 +24,8 @@
   input
   pos
   length
-  debug)
+  debug
+  metadata)
 
 (defun greger-parser--create-state (input &optional debug)
   "Create a parser state for INPUT with optional DEBUG flag."
@@ -32,7 +33,8 @@
    :input (or input "")
    :pos 0
    :length (length (or input ""))
-   :debug debug))
+   :debug debug
+   :metadata '()))
 
 (defun greger-parser--debug (state format-string &rest args)
   "Debug logging function using STATE."
@@ -42,21 +44,29 @@
 ;; Main parsing entry points
 
 (defun greger-parser-parse-dialog (markdown &optional debug)
-  "Parse MARKDOWN into dialog format with optional DEBUG flag."
+  "Parse MARKDOWN into dialog format with optional DEBUG flag.
+Returns a plist with :messages and :metadata keys."
   (if (or (null markdown) (string-empty-p (string-trim markdown)))
-      '()
+      '(:messages () :metadata ())
     (let ((state (greger-parser--create-state markdown debug)))
       (condition-case err
           (greger-parser--parse-document state)
         (error
          (greger-parser--debug state "Parse error: %s" (error-message-string err))
-         '())))))
+         '(:messages () :metadata ()))))))
 
 (defun greger-parser-dialog-to-markdown (dialog)
   "Convert DIALOG to markdown format."
   (if (null dialog)
       ""
     (mapconcat #'greger-parser--message-to-markdown dialog "\n\n")))
+
+;; Compatibility function for tests and existing code
+(defun greger-parser-parse-dialog-messages-only (markdown &optional debug)
+  "Parse MARKDOWN into dialog format, returning only the messages (old format).
+This is for backward compatibility with existing tests and code."
+  (let ((result (greger-parser-parse-dialog markdown debug)))
+    (plist-get result :messages)))
 
 ;; Parser infrastructure
 
@@ -323,6 +333,28 @@ Returns nil when content is inserted, or the content string when it should be ap
     (when (greger-parser--find-closing-tag state "</include>")
       (greger-parser--advance state 10)))) ; Skip "</include>"
 
+(defun greger-parser--process-safe-shell-commands-tag (state)
+  "Process a safe-shell-commands tag and return the list of commands in STATE."
+  (greger-parser--debug state "Processing safe-shell-commands tag at pos %d" (greger-parser-state-pos state))
+  (when (greger-parser--looking-at state "<safe-shell-commands>")
+    (greger-parser--advance state (length "<safe-shell-commands>")) ; Skip "<safe-shell-commands>"
+
+    ;; Extract the commands content
+    (let ((content-start (greger-parser--current-pos state)))
+      (when (greger-parser--find-closing-tag state "</safe-shell-commands>")
+        (let ((commands-content (greger-parser--substring state content-start)))
+          (greger-parser--advance state (length "</safe-shell-commands>")) ; Skip "</safe-shell-commands>"
+
+          ;; Parse commands - split by lines and filter empty ones
+          (let ((commands (delq nil
+                               (mapcar (lambda (line)
+                                        (let ((trimmed (string-trim line)))
+                                          (when (not (string-empty-p trimmed))
+                                            trimmed)))
+                                      (split-string commands-content "\n")))))
+            (greger-parser--debug state "Extracted safe shell commands: %s" commands)
+            commands))))))
+
 ;; Content reading
 
 (defun greger-parser--read-until-section-tag (state)
@@ -419,6 +451,82 @@ Returns nil when content is inserted, or the content string when it should be ap
     (setq result (concat result (greger-parser--substring state start)))
     result))
 
+(defun greger-parser--read-until-section-with-metadata-extraction (state)
+  "Read content until next section, extracting metadata like safe-shell-commands.
+Returns a plist with :content and metadata keys."
+  (let ((result "")
+        (safe-shell-commands nil)
+        (start (greger-parser--current-pos state))
+        (iterations 0)
+        (max-iterations (* (greger-parser-state-length state) 2))) ; Safety limit
+    (while (and (not (greger-parser--at-end-p state))
+                (not (and (greger-parser--at-line-start-p state)
+                          (greger-parser--find-section-tag state)))
+                (< iterations max-iterations))
+      (setq iterations (1+ iterations))
+      (let ((old-pos (greger-parser-state-pos state)))
+        (cond
+         ((greger-parser--at-triple-backticks state)
+          ;; Add content up to code block
+          (setq result (concat result (greger-parser--substring state start)))
+          (setq start (greger-parser--current-pos state))
+          (greger-parser--skip-code-block state)
+          ;; Add the code block
+          (setq result (concat result (greger-parser--substring state start)))
+          (setq start (greger-parser--current-pos state)))
+         ((greger-parser--looking-at state "`")
+          ;; Add content up to inline code
+          (setq result (concat result (greger-parser--substring state start)))
+          (setq start (greger-parser--current-pos state))
+          (greger-parser--skip-inline-code state)
+          ;; Add the inline code
+          (setq result (concat result (greger-parser--substring state start)))
+          (setq start (greger-parser--current-pos state)))
+         ((greger-parser--looking-at state "<!--")
+          ;; Add content up to comment, skip comment entirely
+          (setq result (concat result (greger-parser--substring state start)))
+          (greger-parser--skip-html-comment state)
+          (setq start (greger-parser--current-pos state)))
+         ((greger-parser--looking-at state "<include")
+          ;; Add content up to include tag
+          (setq result (concat result (greger-parser--substring state start)))
+          ;; Process the include tag
+          (let ((include-content (greger-parser--process-include-tag state)))
+            (if include-content
+                ;; Content was returned (web URL or code), append it
+                (setq result (concat result include-content))
+              ;; Content was inserted into state (local file), continue parsing from current position
+              nil))
+          (setq start (greger-parser--current-pos state)))
+         ((greger-parser--looking-at state "<safe-shell-commands>")
+          ;; Add content up to safe-shell-commands tag (but don't include the tag itself)
+          (setq result (concat result (greger-parser--substring state start)))
+          ;; Process the safe-shell-commands tag
+          (let ((commands (greger-parser--process-safe-shell-commands-tag state)))
+            (when commands
+              (if safe-shell-commands
+                  (greger-parser--debug state "Warning: multiple <safe-shell-commands> tags found")
+                (setq safe-shell-commands commands))))
+          ;; Reset start position for next content
+          (setq start (greger-parser--current-pos state)))
+         (t
+          (greger-parser--advance state)))
+        ;; Safety check: ensure we're making progress
+        (when (= old-pos (greger-parser-state-pos state))
+          (greger-parser--debug state "No progress at pos %d, forcing advance" (greger-parser-state-pos state))
+          (greger-parser--advance state))))
+    (when (>= iterations max-iterations)
+      (greger-parser--debug state "Hit max iterations in read-until-section-with-metadata-extraction")
+      (setf (greger-parser-state-pos state) (greger-parser-state-length state)))
+    ;; Add remaining content
+    (setq result (concat result (greger-parser--substring state start)))
+
+    ;; Return result with metadata
+    (let ((trimmed-content (when (and result (not (string-empty-p (string-trim result))))
+                            (string-trim result))))
+      (list :content trimmed-content
+            :safe-shell-commands safe-shell-commands))))
+
 (defun greger-parser--parse-section-content (state)
   "Parse content until next section, skipping HTML comments in STATE."
   (greger-parser--skip-whitespace state)
@@ -426,14 +534,23 @@ Returns nil when content is inserted, or the content string when it should be ap
     (when (and content (not (string-empty-p (string-trim content))))
       (string-trim content))))
 
+(defun greger-parser--parse-section-content-with-metadata (state)
+  "Parse content until next section, extracting metadata like safe-shell-commands.
+Returns a plist with :content and metadata keys like :safe-shell-commands."
+  (greger-parser--skip-whitespace state)
+  (let ((result (greger-parser--read-until-section-with-metadata-extraction state)))
+    result))
+
 ;; High-level parsing
 
 (defun greger-parser--parse-document (state)
-  "Parse entire document using STATE."
+  "Parse entire document using STATE.
+Returns a plist with :messages and :metadata keys."
   (greger-parser--skip-whitespace state)
   (if (greger-parser--at-end-p state)
-      '()
+      '(:messages () :metadata ())
     (let ((sections '())
+          (metadata '())
           (iterations 0)
           (max-iterations 1000)) ; Safety limit
       ;; Handle untagged content at start
@@ -448,9 +565,13 @@ Returns nil when content is inserted, or the content string when it should be ap
         (let ((old-pos (greger-parser-state-pos state)))
           (greger-parser--skip-whitespace state)
           (when (not (greger-parser--at-end-p state))
-            (let ((section (greger-parser--parse-section state)))
-              (when section
-                (push section sections))))
+            (let ((section-result (greger-parser--parse-section state)))
+              (when section-result
+                (if (and (listp section-result) (eq (car section-result) :metadata))
+                    ;; This is metadata, not a message - merge the metadata plist
+                    (setq metadata (append metadata (cdr section-result)))
+                  ;; This is a regular message
+                  (push section-result sections)))))
           ;; Safety check: ensure we're making progress
           (when (= old-pos (greger-parser-state-pos state))
             (greger-parser--debug state "No progress in document parsing at pos %d, breaking" (greger-parser-state-pos state))
@@ -459,7 +580,10 @@ Returns nil when content is inserted, or the content string when it should be ap
       (when (>= iterations max-iterations)
         (greger-parser--debug state "Hit max iterations in parse-document"))
 
-      (greger-parser--merge-consecutive-messages (reverse sections)))))
+      ;; Combine metadata from section returns and parser state
+      (let ((combined-metadata (append metadata (greger-parser-state-metadata state))))
+        (list :messages (greger-parser--merge-consecutive-messages (reverse sections))
+              :metadata combined-metadata)))))
 
 (defun greger-parser--parse-untagged-content (state)
   "Parse content before first section tag using STATE."
@@ -501,10 +625,33 @@ Returns nil when content is inserted, or the content string when it should be ap
       (greger-parser--create-assistant-message content))))
 
 (defun greger-parser--parse-system-section (state)
-  "Parse SYSTEM section using STATE."
-  (let ((content (greger-parser--parse-section-content state)))
-    (when content
-      (greger-parser--create-system-message content))))
+  "Parse SYSTEM section using STATE.
+Returns either a system message, metadata, or both."
+  (let ((content (greger-parser--parse-section-content-with-metadata state)))
+    (cond
+     ;; If we extracted safe-shell-commands and no meaningful content, return only metadata
+     ((and (plist-get content :safe-shell-commands)
+           (not (plist-get content :content)))
+      (list :metadata :safe-shell-commands (plist-get content :safe-shell-commands)))
+
+     ;; If we have both content and safe-shell-commands, we need to return both
+     ;; Since we can only return one thing, we'll return the system message
+     ;; and handle metadata extraction at the document level
+     ((and (plist-get content :safe-shell-commands)
+           (plist-get content :content))
+      (greger-parser--debug state "Found safe-shell-commands with system content - both will be processed")
+      ;; Store metadata for later extraction and return system message
+      (setf (greger-parser-state-metadata state)
+            (append (or (greger-parser-state-metadata state) '())
+                    (list :safe-shell-commands (plist-get content :safe-shell-commands))))
+      (greger-parser--create-system-message (plist-get content :content)))
+
+     ;; Just regular content
+     ((plist-get content :content)
+      (greger-parser--create-system-message (plist-get content :content)))
+
+     ;; No content
+     (t nil))))
 
 (defun greger-parser--parse-thinking-section (state)
   "Parse THINKING section using STATE."

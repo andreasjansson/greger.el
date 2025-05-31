@@ -659,7 +659,7 @@ What do you think?"
           (markdown (plist-get test-case :markdown))
           (expected-dialog (plist-get test-case :dialog)))
       (message "Testing markdown-to-dialog for: %s" name)
-      (let ((actual-dialog (greger-parser-parse-dialog markdown)))
+      (let ((actual-dialog (greger-parser-parse-dialog-messages-only markdown)))
         (should (greger-parser-test--dialog-equal expected-dialog actual-dialog))))))
 
 (ert-deftest greger-parser-test-roundtrip ()
@@ -668,9 +668,9 @@ What do you think?"
     (let ((name (plist-get test-case :name))
           (original-markdown (plist-get test-case :markdown)))
       (message "Testing roundtrip for: %s" name)
-      (let* ((dialog (greger-parser-parse-dialog original-markdown))
+      (let* ((dialog (greger-parser-parse-dialog-messages-only original-markdown))
              (roundtrip-markdown (greger-parser-dialog-to-markdown dialog))
-             (roundtrip-dialog (greger-parser-parse-dialog roundtrip-markdown)))
+             (roundtrip-dialog (greger-parser-parse-dialog-messages-only roundtrip-markdown)))
         ;; The dialog should be structurally equivalent after round-trip
         (should (= (length dialog) (length roundtrip-dialog)))
         (should (greger-parser-test--dialog-equal dialog roundtrip-dialog))))))
@@ -694,7 +694,7 @@ hello.txt
 true
 </tool.toolu_123>
 "))
-    (let ((parsed (greger-parser-parse-dialog tool-use-markdown)))
+    (let ((parsed (greger-parser-parse-dialog-messages-only tool-use-markdown)))
       (should (= 1 (length parsed)))
       (let ((assistant-msg (car parsed)))
         (should (string= "assistant" (alist-get 'role assistant-msg)))
@@ -717,7 +717,7 @@ ID: toolu_123
 File contents here
 with multiple lines
 </tool.toolu_123>"))
-    (let ((parsed (greger-parser-parse-dialog tool-result-markdown)))
+    (let ((parsed (greger-parser-parse-dialog-messages-only tool-result-markdown)))
       (should (= 1 (length parsed)))
       (let ((user-msg (car parsed)))
         (should (string= "user" (alist-get 'role user-msg)))
@@ -735,7 +735,7 @@ with multiple lines"
 
 I need to think about this carefully.
 This is a complex problem."))
-    (let ((parsed (greger-parser-parse-dialog thinking-markdown)))
+    (let ((parsed (greger-parser-parse-dialog-messages-only thinking-markdown)))
       (should (= 1 (length parsed)))
       (let ((assistant-msg (car parsed)))
         (should (string= "assistant" (alist-get 'role assistant-msg)))
@@ -750,23 +750,23 @@ This is a complex problem."
   "Test parser error handling for malformed input."
   ;; Test that malformed input returns empty result instead of error
   (should (condition-case err
-              (progn (greger-parser-parse-dialog "## TOOL USE:\n\nMalformed") t)
+              (progn (greger-parser-parse-dialog-messages-only "## TOOL USE:\n\nMalformed") t)
             (error nil)))
   (should (condition-case err
-              (progn (greger-parser-parse-dialog "## TOOL RESULT:\n\nMalformed") t)
+              (progn (greger-parser-parse-dialog-messages-only "## TOOL RESULT:\n\nMalformed") t)
             (error nil))))
 
 (ert-deftest greger-parser-test-edge-cases ()
   "Test edge cases like empty content, whitespace handling."
   ;; Empty content
-  (should (equal '() (greger-parser-parse-dialog "")))
-  (should (equal '() (greger-parser-parse-dialog "\n\n  ")))
+  (should (equal '() (greger-parser-parse-dialog-messages-only "")))
+  (should (equal '() (greger-parser-parse-dialog-messages-only "\n\n  ")))
 
   ;; Only whitespace in sections - should return empty list
-  (should (equal '() (greger-parser-parse-dialog "## USER:\n\n\n\n")))
+  (should (equal '() (greger-parser-parse-dialog-messages-only "## USER:\n\n\n\n")))
 
   ;; Multiple consecutive newlines
-  (let ((result (greger-parser-parse-dialog "## USER:\n\n\n\nHello\n\n\n\n## ASSISTANT:\n\n\n\nHi")))
+  (let ((result (greger-parser-parse-dialog-messages-only "## USER:\n\n\n\nHello\n\n\n\n## ASSISTANT:\n\n\n\nHi")))
     (should (= 2 (length result)))
     (should (string= "Hello" (alist-get 'content (car result))))
     (should (string= "Hi" (alist-get 'content (cadr result))))))
@@ -780,7 +780,7 @@ This is a complex problem."
           (number-sequence 1 100)
           "\n\n")))
     (let ((start-time (current-time)))
-      (greger-parser-parse-dialog large-markdown)
+      (greger-parser-parse-dialog-messages-only large-markdown)
       (let ((elapsed (float-time (time-subtract (current-time) start-time))))
         ;; Should parse 100 message pairs in under 1 second
         (should (< elapsed 1.0))))))
@@ -809,7 +809,7 @@ ID: toolu_abc
 <tool.toolu_abc>
 .
 </tool.toolu_abc>"))
-    (let ((parsed (greger-parser-parse-dialog complex-markdown)))
+    (let ((parsed (greger-parser-parse-dialog-messages-only complex-markdown)))
       (should (= 2 (length parsed)))
       ;; First message should be user
       (should (string= "user" (alist-get 'role (car parsed))))
@@ -849,7 +849,7 @@ ID: toolu_abc
 ## ASSISTANT:
 
 I understand you have untagged content."))
-    (let ((parsed (greger-parser-parse-dialog markdown)))
+    (let ((parsed (greger-parser-parse-dialog-messages-only markdown)))
       (should (= 2 (length parsed)))
       (should (string= "user" (alist-get 'role (car parsed))))
       (should (string= "Hello, this is untagged content" (alist-get 'content (car parsed))))
@@ -886,7 +886,7 @@ multiple
 value3
 </tool.tool_123>
 "))
-    (let ((parsed (greger-parser-parse-dialog markdown)))
+    (let ((parsed (greger-parser-parse-dialog-messages-only markdown)))
       (should (= 1 (length parsed)))
       (let* ((assistant-msg (car parsed))
              (content-blocks (alist-get 'content assistant-msg))
@@ -915,7 +915,7 @@ Real content continues.
 ## ASSISTANT:
 
 I see your code."))
-    (let ((parsed (greger-parser-parse-dialog markdown)))
+    (let ((parsed (greger-parser-parse-dialog-messages-only markdown)))
       (should (= 2 (length parsed)))
       ;; First message should contain the entire user content including code block
       (let ((user-content (alist-get 'content (car parsed))))
@@ -935,7 +935,7 @@ Use ``## ASSISTANT: response`` to format.
 ## ASSISTANT:
 
 Got it!"))
-    (let ((parsed (greger-parser-parse-dialog markdown)))
+    (let ((parsed (greger-parser-parse-dialog-messages-only markdown)))
       (should (= 2 (length parsed)))
       (should (string-match-p "## ASSISTANT: response" (alist-get 'content (car parsed))))
       (should (string= "Got it!" (alist-get 'content (cadr parsed)))))))
@@ -956,7 +956,7 @@ print(\"## ASSISTANT: also preserved\")
 ```
 </tool.tool_123>
 "))
-    (let ((parsed (greger-parser-parse-dialog markdown)))
+    (let ((parsed (greger-parser-parse-dialog-messages-only markdown)))
       (should (= 1 (length parsed)))
       (let* ((assistant-msg (car parsed))
              (content-blocks (alist-get 'content assistant-msg))
@@ -991,7 +991,7 @@ Hello from included file!
 
 What do you think?")
 
-          (let ((parsed (greger-parser-parse-dialog markdown)))
+          (let ((parsed (greger-parser-parse-dialog-messages-only markdown)))
             (should (= 1 (length parsed)))
             (let ((generated-markdown (greger-parser-dialog-to-markdown parsed)))
               (should (string= expected generated-markdown)))))
@@ -1025,7 +1025,7 @@ def hello():
 
 Review this code." test-file))
 
-          (let ((parsed (greger-parser-parse-dialog markdown)))
+          (let ((parsed (greger-parser-parse-dialog-messages-only markdown)))
             (should (= 1 (length parsed)))
             (let ((generated-markdown (greger-parser-dialog-to-markdown parsed)))
               (should (string= expected generated-markdown)))))
@@ -1044,7 +1044,7 @@ This should handle errors gracefully.")
 Try to include: [Error reading file: /nonexistent/file.txt]
 
 This should handle errors gracefully."))
-    (let ((parsed (greger-parser-parse-dialog markdown)))
+    (let ((parsed (greger-parser-parse-dialog-messages-only markdown)))
       (should (= 1 (length parsed)))
       (let ((generated-markdown (greger-parser-dialog-to-markdown parsed)))
         (should (string= expected generated-markdown))))))
@@ -1075,7 +1075,7 @@ Line 4 after empty line
 
 End of message.")
 
-          (let ((parsed (greger-parser-parse-dialog markdown)))
+          (let ((parsed (greger-parser-parse-dialog-messages-only markdown)))
             (should (= 1 (length parsed)))
             (let ((generated-markdown (greger-parser-dialog-to-markdown parsed)))
               (should (string= expected generated-markdown)))))
@@ -1111,7 +1111,7 @@ After include
 
 Done.")
 
-          (let ((parsed (greger-parser-parse-dialog markdown)))
+          (let ((parsed (greger-parser-parse-dialog-messages-only markdown)))
             (should (= 1 (length parsed)))
             (let ((generated-markdown (greger-parser-dialog-to-markdown parsed)))
               (should (string= expected generated-markdown)))))
@@ -1151,7 +1151,7 @@ Assistant included content
 
 Hope this helps!")
 
-          (let ((parsed (greger-parser-parse-dialog markdown)))
+          (let ((parsed (greger-parser-parse-dialog-messages-only markdown)))
             (should (= 2 (length parsed)))
             (let ((generated-markdown (greger-parser-dialog-to-markdown parsed)))
               (should (string= expected generated-markdown)))))
@@ -1177,7 +1177,7 @@ def example():
     pass
 ```" test-file))
 
-          (let ((parsed (greger-parser-parse-dialog markdown)))
+          (let ((parsed (greger-parser-parse-dialog-messages-only markdown)))
             (should (= 1 (length parsed)))
             (let ((generated-markdown (greger-parser-dialog-to-markdown parsed)))
               (should (string= expected generated-markdown)))))
@@ -1212,7 +1212,7 @@ Here's some code with an include tag:
 
 The include should not be processed." test-file))
 
-          (let ((parsed (greger-parser-parse-dialog markdown)))
+          (let ((parsed (greger-parser-parse-dialog-messages-only markdown)))
             (should (= 1 (length parsed)))
             (let ((generated-markdown (greger-parser-dialog-to-markdown parsed)))
               (should (string= expected generated-markdown)))))
@@ -1238,7 +1238,7 @@ Use `<include>%s</include>` to include files.
 
 The include in backticks should not be processed." test-file))
 
-          (let ((parsed (greger-parser-parse-dialog markdown)))
+          (let ((parsed (greger-parser-parse-dialog-messages-only markdown)))
             (should (= 1 (length parsed)))
             (let ((generated-markdown (greger-parser-dialog-to-markdown parsed)))
               (should (string= expected generated-markdown)))))
@@ -1274,7 +1274,7 @@ ID: tool_123
 <include>%s</include>
 </tool.tool_123>" test-file))
 
-          (let ((parsed (greger-parser-parse-dialog markdown)))
+          (let ((parsed (greger-parser-parse-dialog-messages-only markdown)))
             (should (= 1 (length parsed)))
             (let ((generated-markdown (greger-parser-dialog-to-markdown parsed)))
               (should (string= expected generated-markdown)))))
@@ -1299,7 +1299,7 @@ Hello world!
 What do you think?"))
     ;; This test just verifies that URL handling doesn't crash
     ;; The exact content will vary based on the response
-    (let ((parsed (greger-parser-parse-dialog markdown)))
+    (let ((parsed (greger-parser-parse-dialog-messages-only markdown)))
       (should (= 1 (length parsed)))
       (let ((generated-markdown (greger-parser-dialog-to-markdown parsed)))
         (should (string= expected generated-markdown))))))
@@ -1320,7 +1320,7 @@ Hello world!
 
 Pretty cool!"))
     ;; This test verifies URL handling with code formatting
-    (let ((parsed (greger-parser-parse-dialog markdown)))
+    (let ((parsed (greger-parser-parse-dialog-messages-only markdown)))
       (should (= 1 (length parsed)))
       (let ((generated-markdown (greger-parser-dialog-to-markdown parsed)))
         (should (string= expected generated-markdown))))))
@@ -1341,10 +1341,151 @@ This should fail:
 [Error reading URL: https://invalid-url-that-does-not-exist-12345.com]
 
 Error handling test"))
-    (let ((parsed (greger-parser-parse-dialog markdown)))
+    (let ((parsed (greger-parser-parse-dialog-messages-only markdown)))
       (should (= 1 (length parsed)))
       (let ((generated-markdown (greger-parser-dialog-to-markdown parsed)))
         (should (string= expected generated-markdown))))))
+
+;; Tests for safe-shell-commands metadata
+(ert-deftest greger-parser-test-safe-shell-commands-basic ()
+  "Test basic safe-shell-commands parsing."
+  (let ((markdown "## SYSTEM:
+
+<safe-shell-commands>
+ls -la
+pwd
+echo hello
+</safe-shell-commands>")
+        (expected-metadata '(:safe-shell-commands ("ls -la" "pwd" "echo hello"))))
+    (let ((result (greger-parser-parse-dialog markdown)))
+      (should (equal '() (plist-get result :messages)))
+      (should (equal expected-metadata (plist-get result :metadata))))))
+
+(ert-deftest greger-parser-test-safe-shell-commands-with-system-content ()
+  "Test safe-shell-commands with other system content."
+  (let ((markdown "## SYSTEM:
+
+You are a helpful assistant.
+
+<safe-shell-commands>
+ls
+pwd
+</safe-shell-commands>
+
+Please be careful."))
+    (let ((result (greger-parser-parse-dialog markdown)))
+      ;; Should have a system message since there's other content
+      (should (= 1 (length (plist-get result :messages))))
+      (should (string= "system" (alist-get 'role (car (plist-get result :messages)))))
+      ;; Should also have metadata since safe-shell-commands can coexist with content
+      (should (equal '(:safe-shell-commands ("ls" "pwd")) (plist-get result :metadata)))
+      ;; System message should contain the text content but not the safe-shell-commands
+      (let ((system-content (alist-get 'content (car (plist-get result :messages)))))
+        (should (string-match-p "You are a helpful assistant" system-content))
+        (should (string-match-p "Please be careful" system-content))
+        (should-not (string-match-p "safe-shell-commands" system-content))))))
+
+(ert-deftest greger-parser-test-safe-shell-commands-only-once ()
+  "Test that only one safe-shell-commands block is allowed."
+  (let ((markdown "## SYSTEM:
+
+<safe-shell-commands>
+ls
+pwd
+</safe-shell-commands>
+
+<safe-shell-commands>
+echo hello
+</safe-shell-commands>"))
+    (let ((result (greger-parser-parse-dialog markdown)))
+      ;; Should extract the first one found
+      (should (equal '(:safe-shell-commands ("ls" "pwd")) (plist-get result :metadata))))))
+
+(ert-deftest greger-parser-test-safe-shell-commands-empty-lines ()
+  "Test safe-shell-commands with empty lines and whitespace."
+  (let ((markdown "## SYSTEM:
+
+<safe-shell-commands>
+
+ls -la
+
+pwd
+
+echo hello
+
+</safe-shell-commands>"))
+    (let ((result (greger-parser-parse-dialog markdown)))
+      (should (equal '(:safe-shell-commands ("ls -la" "pwd" "echo hello"))
+                     (plist-get result :metadata))))))
+
+(ert-deftest greger-parser-test-safe-shell-commands-not-in-system ()
+  "Test that safe-shell-commands outside SYSTEM section are ignored."
+  (let ((markdown "## USER:
+
+<safe-shell-commands>
+ls -la
+</safe-shell-commands>
+
+What files are here?"))
+    (let ((result (greger-parser-parse-dialog markdown)))
+      ;; Should have no metadata
+      (should (equal '() (plist-get result :metadata)))
+      ;; Should have user message with the tag as regular content
+      (should (= 1 (length (plist-get result :messages))))
+      (should (string-match-p "<safe-shell-commands>"
+                             (alist-get 'content (car (plist-get result :messages))))))))
+
+(ert-deftest greger-parser-test-safe-shell-commands-in-code-block ()
+  "Test that safe-shell-commands inside code blocks are not processed."
+  (let ((markdown "## SYSTEM:
+
+Here's an example:
+
+```
+<safe-shell-commands>
+ls -la
+</safe-shell-commands>
+```
+
+Don't process that."))
+    (let ((result (greger-parser-parse-dialog markdown)))
+      ;; Should have no metadata
+      (should (equal '() (plist-get result :metadata)))
+      ;; Should have system message with code block
+      (should (= 1 (length (plist-get result :messages))))
+      (should (string-match-p "<safe-shell-commands>"
+                             (alist-get 'content (car (plist-get result :messages))))))))
+
+(ert-deftest greger-parser-test-system-content-with-safe-commands-example ()
+  "Test the exact example from the user: system content with safe-shell-commands."
+  (let ((markdown "## SYSTEM:
+
+you are a friendly assistant
+
+<safe-shell-commands>
+command1
+command2
+</safe-shell-commands>
+
+## USER:
+
+Hello"))
+    (let ((result (greger-parser-parse-dialog markdown)))
+      ;; Should have both system and user messages
+      (should (= 2 (length (plist-get result :messages))))
+
+      ;; Check system message
+      (let ((system-msg (car (plist-get result :messages))))
+        (should (string= "system" (alist-get 'role system-msg)))
+        (should (string= "you are a friendly assistant" (alist-get 'content system-msg))))
+
+      ;; Check user message
+      (let ((user-msg (cadr (plist-get result :messages))))
+        (should (string= "user" (alist-get 'role user-msg)))
+        (should (string= "Hello" (alist-get 'content user-msg))))
+
+      ;; Should have metadata with safe shell commands
+      (should (equal '(:safe-shell-commands ("command1" "command2")) (plist-get result :metadata))))))
 
 (provide 'test-greger-parser)
 
