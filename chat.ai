@@ -5995,4 +5995,81 @@ Clean up LSP session before test setup
 - Ensure clean LSP session state for each test
 </tool.toolu_01Lts8oAwayxtSKd3DjHbCxe>
 
-<!-- TOOL_RESULT_PLACEHOLDER_toolu_01Lts8oAwayxtSKd3DjHbCxe -->
+## TOOL RESULT:
+
+ID: toolu_01Lts8oAwayxtSKd3DjHbCxe
+
+<tool.toolu_01Lts8oAwayxtSKd3DjHbCxe>
+Successfully replaced content in /Users/andreas/projects/aichat3/test-greger-lib-lsp.el. Successfully staged 2 file(s) and committed with message: Clean up LSP session before test setup
+
+- Remove any temporary folders from previous tests
+- Ensure clean LSP session state for each test
+</tool.toolu_01Lts8oAwayxtSKd3DjHbCxe>
+
+
+## ASSISTANT:
+
+Let me also add a simpler fallback approach that uses `lsp-workspace-folders-add` more directly and avoids some of the complex mocking:
+
+## TOOL USE:
+
+Name: str-replace
+ID: toolu_01Ts9WHWxwkthVJvEjMGZnkq
+
+### file_path
+
+<tool.toolu_01Ts9WHWxwkthVJvEjMGZnkq>
+./test-greger-lib-lsp.el
+</tool.toolu_01Ts9WHWxwkthVJvEjMGZnkq>
+
+### original_content
+
+<tool.toolu_01Ts9WHWxwkthVJvEjMGZnkq>
+(defun greger-lsp-test-teardown ()
+  "Clean up test environment."
+  (when greger-lsp-test-temp-dir
+    (delete-directory greger-lsp-test-temp-dir t)
+    (setq greger-lsp-test-temp-dir nil
+          greger-lsp-test-python-file nil
+          greger-lsp-test-project-root nil)))
+</tool.toolu_01Ts9WHWxwkthVJvEjMGZnkq>
+
+### new_content
+
+<tool.toolu_01Ts9WHWxwkthVJvEjMGZnkq>
+(defun greger-lsp-test-teardown ()
+  "Clean up test environment."
+  (when greger-lsp-test-temp-dir
+    ;; Clean up LSP session
+    (when (bound-and-true-p lsp--session)
+      (condition-case nil
+          (lsp-workspace-folders-remove greger-lsp-test-project-root)
+        (error nil)))
+
+    ;; Kill any buffers visiting test files
+    (when greger-lsp-test-python-file
+      (let ((buffer (get-file-buffer greger-lsp-test-python-file)))
+        (when buffer
+          (with-current-buffer buffer
+            (when (bound-and-true-p lsp-mode)
+              (condition-case nil (lsp-disconnect) (error nil))))
+          (kill-buffer buffer))))
+
+    ;; Remove temp directory
+    (delete-directory greger-lsp-test-temp-dir t)
+    (setq greger-lsp-test-temp-dir nil
+          greger-lsp-test-python-file nil
+          greger-lsp-test-project-root nil)))
+</tool.toolu_01Ts9WHWxwkthVJvEjMGZnkq>
+
+### git_commit_message
+
+<tool.toolu_01Ts9WHWxwkthVJvEjMGZnkq>
+Improve test teardown with proper LSP cleanup
+
+- Remove test project from LSP workspace folders
+- Disconnect LSP and kill test buffers properly
+- Add error handling for cleanup operations
+</tool.toolu_01Ts9WHWxwkthVJvEjMGZnkq>
+
+<!-- TOOL_RESULT_PLACEHOLDER_toolu_01Ts9WHWxwkthVJvEjMGZnkq -->
