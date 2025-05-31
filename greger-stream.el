@@ -112,21 +112,24 @@ BUFFER defaults to current buffer if not specified."
                      (interactive)
                      (greger-stream--cancel-request state)))))
 
+(defun greger-stream--check-for-error (output)
+  "Check OUTPUT for error responses and raise an error if found.
+Returns nil if no error found or if OUTPUT is not valid JSON."
+  (condition-case nil
+      (let ((data (json-read-from-string output)))
+        (when (string= (alist-get 'type data) "error")
+          (let* ((error-info (alist-get 'error data))
+                 (error-message (alist-get 'message error-info))
+                 (error-type (alist-get 'type error-info)))
+            (error "API Error (%s): %s" error-type error-message))))
+    (json-error nil)))
+
 (defun greger-stream--process-output-chunk (output state provider-config)
   "Process a chunk of OUTPUT using STATE."
-  ;; Always accumulate for complete response
-
   ;; Check for error responses and raise an error if found
-  (when (string-match-p "^{\"type\":\"error\"" output)
-    (condition-case nil
-        (let* ((error-data (json-read-from-string output))
-               (error-info (alist-get 'error error-data))
-               (error-message (alist-get 'message error-info))
-               (error-type (alist-get 'type error-info)))
-          (error "API Error (%s): %s" error-type error-message))
-      (json-error
-       (error "API Error: %s" output))))
+  (greger-stream--check-for-error output)
 
+  ;; Always accumulate for complete response
   (setf (greger-stream-state-complete-response state)
         (concat (greger-stream-state-complete-response state) output))
 
