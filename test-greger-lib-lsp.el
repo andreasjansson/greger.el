@@ -199,16 +199,33 @@ description = \"Test project for greger LSP tools\"
              (error "Failed to start LSP server for test: %s" (error-message-string err)))))))
     buffer))
 
+;;; Helper functions for test requirements
+
+(defun greger-lsp-test-requirements-met-p ()
+  "Check if requirements for LSP tests are met."
+  (and (fboundp 'lsp)
+       (fboundp 'python-mode)
+       (or (executable-find "pyright")
+           (executable-find "pylsp")
+           (executable-find "python-lsp-server"))))
+
+(defun greger-lsp-test-skip-if-requirements-not-met ()
+  "Skip test if LSP requirements are not met."
+  (unless (greger-lsp-test-requirements-met-p)
+    (ert-skip "LSP mode or Python LSP server not available")))
+
 ;;; Helper macros
 
 (defmacro greger-lsp-test-with-setup (&rest body)
   "Execute BODY with LSP test setup and teardown."
-  `(unwind-protect
-       (progn
-         (greger-lsp-test-setup)
-         (greger-lsp-test-ensure-lsp-started)
-         ,@body)
-     (greger-lsp-test-teardown)))
+  `(progn
+     (greger-lsp-test-skip-if-requirements-not-met)
+     (unwind-protect
+         (progn
+           (greger-lsp-test-setup)
+           (greger-lsp-test-ensure-lsp-started)
+           ,@body)
+       (greger-lsp-test-teardown))))
 
 ;;; Tests for helper functions
 
