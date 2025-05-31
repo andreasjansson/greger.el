@@ -116,9 +116,16 @@ BUFFER defaults to current buffer if not specified."
   "Process a chunk of OUTPUT using STATE."
   ;; Always accumulate for complete response
 
-  ;; TODO: handle errors of the format
-  ;; output={"type":"error","error":{"type":"invalid_request_error","message":"tools.0.custom.input_schema: Input does not match the expected shape."}}
-  ;(message (format "output: %s" output))
+  ;; Check for error responses and raise an error if found
+  (when (string-match-p "^{\"type\":\"error\"" output)
+    (condition-case nil
+        (let* ((error-data (json-read-from-string output))
+               (error-info (alist-get 'error error-data))
+               (error-message (alist-get 'message error-info))
+               (error-type (alist-get 'type error-info)))
+          (error "API Error (%s): %s" error-type error-message))
+      (json-error
+       (error "API Error: %s" output))))
 
   (setf (greger-stream-state-complete-response state)
         (concat (greger-stream-state-complete-response state) output))
