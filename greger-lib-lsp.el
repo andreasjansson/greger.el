@@ -162,8 +162,35 @@ LINE is 1-based, COLUMN is 0-based."
             formatted-location
             (if container (format " (in %s)" container) ""))))
 
-(defun greger-lsp--format-document-symbol (symbol &optional indent-level)
-  "Format a document symbol SYMBOL for display with optional INDENT-LEVEL."
+(defun greger-lsp--detailed-symbol-kind-p (kind)
+  "Check if symbol KIND is a detailed type that should be filtered in non-detailed mode."
+  (member kind '(13   ; Variable
+                 14   ; Constant
+                 15   ; String
+                 16   ; Number
+                 17   ; Boolean
+                 18   ; Array
+                 19   ; Object
+                 20   ; Key
+                 21   ; Null
+                 22   ; EnumMember
+                 23   ; Struct
+                 24   ; Event
+                 25   ; Operator
+                 26   ; TypeParameter
+                 )))
+
+(defun greger-lsp--filter-detailed-symbols (symbols detailed)
+  "Filter SYMBOLS based on DETAILED flag. If DETAILED is nil, remove detailed symbol types."
+  (if detailed
+      symbols
+    (cl-remove-if (lambda (symbol)
+                    (let ((kind (gethash "kind" symbol)))
+                      (greger-lsp--detailed-symbol-kind-p kind)))
+                  symbols)))
+
+(defun greger-lsp--format-document-symbol (symbol &optional indent-level detailed)
+  "Format a document symbol SYMBOL for display with optional INDENT-LEVEL and DETAILED flag."
   (let* ((indent-level (or indent-level 0))
          (indent (make-string (* indent-level 2) ?\ ))
          (name (gethash "name" symbol))
@@ -174,15 +201,16 @@ LINE is 1-based, COLUMN is 0-based."
          (line (1+ (gethash "line" start)))
          (character (gethash "character" start))
          (children (gethash "children" symbol))
+         (filtered-children (when children (greger-lsp--filter-detailed-symbols children detailed)))
          (result (format "%s%s [%s] (line %d, col %d)"
                         indent name kind-name line character)))
 
-    ;; Add children if they exist
-    (when (and children (> (length children) 0))
+    ;; Add children if they exist after filtering
+    (when (and filtered-children (> (length filtered-children) 0))
       (setq result (concat result "\n"
                           (mapconcat (lambda (child)
-                                      (greger-lsp--format-document-symbol child (1+ indent-level)))
-                                    children "\n"))))
+                                      (greger-lsp--format-document-symbol child (1+ indent-level) detailed))
+                                    filtered-children "\n"))))
     result))
 
 (defun greger-lsp--format-document-symbols (symbols file-path)

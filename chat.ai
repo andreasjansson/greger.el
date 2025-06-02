@@ -2362,4 +2362,116 @@ greger-lib-lsp.el
 Add detailed parameter to lsp-document-symbols tool
 </tool.toolu_011X469q3J2KMe9CbRCTD5cZ>
 
-<!-- TOOL_RESULT_PLACEHOLDER_toolu_011X469q3J2KMe9CbRCTD5cZ -->
+## TOOL RESULT:
+
+ID: toolu_011X469q3J2KMe9CbRCTD5cZ
+
+<tool.toolu_011X469q3J2KMe9CbRCTD5cZ>
+Successfully replaced content in /Users/andreas/projects/greger.el/greger-lib-lsp.el. Successfully staged 2 file(s) and committed with message: Add detailed parameter to lsp-document-symbols tool
+</tool.toolu_011X469q3J2KMe9CbRCTD5cZ>
+
+
+## ASSISTANT:
+
+Now I need to add the filtering logic. First, let me add a helper function to check if a symbol kind should be filtered out:
+
+## TOOL USE:
+
+Name: str-replace
+ID: toolu_017Tm1n6QmDTgLUzgJtJPULv
+
+### file_path
+
+<tool.toolu_017Tm1n6QmDTgLUzgJtJPULv>
+greger-lib-lsp.el
+</tool.toolu_017Tm1n6QmDTgLUzgJtJPULv>
+
+### original_content
+
+<tool.toolu_017Tm1n6QmDTgLUzgJtJPULv>
+(defun greger-lsp--format-document-symbol (symbol &optional indent-level)
+  "Format a document symbol SYMBOL for display with optional INDENT-LEVEL."
+  (let* ((indent-level (or indent-level 0))
+         (indent (make-string (* indent-level 2) ?\ ))
+         (name (gethash "name" symbol))
+         (kind (gethash "kind" symbol))
+         (kind-name (alist-get kind lsp-symbol-kinds "Unknown"))
+         (range (gethash "range" symbol))
+         (start (gethash "start" range))
+         (line (1+ (gethash "line" start)))
+         (character (gethash "character" start))
+         (children (gethash "children" symbol))
+         (result (format "%s%s [%s] (line %d, col %d)"
+                        indent name kind-name line character)))
+
+    ;; Add children if they exist
+    (when (and children (> (length children) 0))
+      (setq result (concat result "\n"
+                          (mapconcat (lambda (child)
+                                      (greger-lsp--format-document-symbol child (1+ indent-level)))
+                                    children "\n"))))
+    result))
+</tool.toolu_017Tm1n6QmDTgLUzgJtJPULv>
+
+### new_content
+
+<tool.toolu_017Tm1n6QmDTgLUzgJtJPULv>
+(defun greger-lsp--detailed-symbol-kind-p (kind)
+  "Check if symbol KIND is a detailed type that should be filtered in non-detailed mode."
+  (member kind '(13   ; Variable
+                 14   ; Constant
+                 15   ; String
+                 16   ; Number
+                 17   ; Boolean
+                 18   ; Array
+                 19   ; Object
+                 20   ; Key
+                 21   ; Null
+                 22   ; EnumMember
+                 23   ; Struct
+                 24   ; Event
+                 25   ; Operator
+                 26   ; TypeParameter
+                 )))
+
+(defun greger-lsp--filter-detailed-symbols (symbols detailed)
+  "Filter SYMBOLS based on DETAILED flag. If DETAILED is nil, remove detailed symbol types."
+  (if detailed
+      symbols
+    (cl-remove-if (lambda (symbol)
+                    (let ((kind (gethash "kind" symbol)))
+                      (greger-lsp--detailed-symbol-kind-p kind)))
+                  symbols)))
+
+(defun greger-lsp--format-document-symbol (symbol &optional indent-level detailed)
+  "Format a document symbol SYMBOL for display with optional INDENT-LEVEL and DETAILED flag."
+  (let* ((indent-level (or indent-level 0))
+         (indent (make-string (* indent-level 2) ?\ ))
+         (name (gethash "name" symbol))
+         (kind (gethash "kind" symbol))
+         (kind-name (alist-get kind lsp-symbol-kinds "Unknown"))
+         (range (gethash "range" symbol))
+         (start (gethash "start" range))
+         (line (1+ (gethash "line" start)))
+         (character (gethash "character" start))
+         (children (gethash "children" symbol))
+         (filtered-children (when children (greger-lsp--filter-detailed-symbols children detailed)))
+         (result (format "%s%s [%s] (line %d, col %d)"
+                        indent name kind-name line character)))
+
+    ;; Add children if they exist after filtering
+    (when (and filtered-children (> (length filtered-children) 0))
+      (setq result (concat result "\n"
+                          (mapconcat (lambda (child)
+                                      (greger-lsp--format-document-symbol child (1+ indent-level) detailed))
+                                    filtered-children "\n"))))
+    result))
+</tool.toolu_017Tm1n6QmDTgLUzgJtJPULv>
+
+### git_commit_message
+
+<tool.toolu_017Tm1n6QmDTgLUzgJtJPULv>
+Add symbol filtering logic and update formatting function
+</tool.toolu_017Tm1n6QmDTgLUzgJtJPULv>
+
+<!-- TOOL_RESULT_PLACEHOLDER_toolu_017Tm1n6QmDTgLUzgJtJPULv -->
