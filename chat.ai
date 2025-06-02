@@ -9389,4 +9389,50 @@ greger-lib-lsp.el
 Remove text properties from symbol-info in find-definition
 </tool.toolu_014ezS5J9vBUMnJhpFx2oVwP>
 
-<!-- TOOL_RESULT_PLACEHOLDER_toolu_014ezS5J9vBUMnJhpFx2oVwP -->
+## TOOL RESULT:
+
+ID: toolu_014ezS5J9vBUMnJhpFx2oVwP
+
+<tool.toolu_014ezS5J9vBUMnJhpFx2oVwP>
+Successfully replaced content in /Users/andreas/projects/greger.el/greger-lib-lsp.el. Successfully staged 2 file(s) and committed with message: Remove text properties from symbol-info in find-definition
+</tool.toolu_014ezS5J9vBUMnJhpFx2oVwP>
+
+
+## ASSISTANT:
+
+Let me also fix the rename function:
+
+## TOOL USE:
+
+Name: str-replace
+ID: toolu_01TM3pN24PKDoMMHLmHK8FSS
+
+### file_path
+
+<tool.toolu_01TM3pN24PKDoMMHLmHK8FSS>
+greger-lib-lsp.el
+</tool.toolu_01TM3pN24PKDoMMHLmHK8FSS>
+
+### original_content
+
+<tool.toolu_01TM3pN24PKDoMMHLmHK8FSS>
+(let* ((symbol-info (condition-case nil
+                                  (thing-at-point 'symbol)
+                                (error "unknown")))
+</tool.toolu_01TM3pN24PKDoMMHLmHK8FSS>
+
+### new_content
+
+<tool.toolu_01TM3pN24PKDoMMHLmHK8FSS>
+(let* ((symbol-info (condition-case nil
+                                  (substring-no-properties (or (thing-at-point 'symbol) "unknown"))
+                                (error "unknown")))
+</tool.toolu_01TM3pN24PKDoMMHLmHK8FSS>
+
+### git_commit_message
+
+<tool.toolu_01TM3pN24PKDoMMHLmHK8FSS>
+Remove text properties from symbol-info in rename
+</tool.toolu_01TM3pN24PKDoMMHLmHK8FSS>
+
+<!-- TOOL_RESULT_PLACEHOLDER_toolu_01TM3pN24PKDoMMHLmHK8FSS -->

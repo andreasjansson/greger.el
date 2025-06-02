@@ -327,7 +327,7 @@ If HIERARCHICAL is true, format with indentation to show structure."
             (error "LSP server does not support find-references"))
 
           (let* ((symbol-info (condition-case nil
-                                  (thing-at-point 'symbol)
+                                  (substring-no-properties (or (thing-at-point 'symbol) "unknown"))
                                 (error "unknown")))
                  (params `(:textDocument ,(lsp--text-document-identifier)
                           :position ,(lsp--cur-position)
