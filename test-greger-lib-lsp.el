@@ -294,8 +294,6 @@ description = \"Test project for greger LSP tools\"
 
 (ert-deftest greger-lsp-test-format-file ()
   "Test formatting entire file."
-  (ert-skip "Pyright LSP doesn't support formatting")
-
   (greger-lsp-test-with-setup
    ;; First, mess up the formatting
    (with-current-buffer (find-file-noselect greger-lsp-test-python-file)
@@ -313,8 +311,6 @@ description = \"Test project for greger LSP tools\"
 
 (ert-deftest greger-lsp-test-format-range ()
   "Test formatting a specific range."
-  (ert-skip "Pyright LSP doesn't support formatting")
-
   (greger-lsp-test-with-setup
    (let ((result (greger-lib-lsp--format
                   greger-lsp-test-python-file
@@ -480,8 +476,8 @@ create_calculator [Function] (line 33, col 0)
 main [Function] (line 40, col 0)
 
 Symbols in src/utils.py:
-advanced_calculation [Function] (line 6, col 0)
-format_result [Function] (line 12, col 0)"))
+advanced_calculation [Function] (line 7, col 0)
+format_result [Function] (line 14, col 0)"))
      (should (stringp result))
      (should (string= expected result)))))
 

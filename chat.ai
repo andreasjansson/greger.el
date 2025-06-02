@@ -2827,4 +2827,265 @@ format_result [Function] (line 12, col 0)"))
 Update multiple files test to use non-detailed mode
 </tool.toolu_01VLp3R8pgNnGk9cnq2hdJKY>
 
-<!-- TOOL_RESULT_PLACEHOLDER_toolu_01VLp3R8pgNnGk9cnq2hdJKY -->
+## TOOL RESULT:
+
+ID: toolu_01VLp3R8pgNnGk9cnq2hdJKY
+
+<tool.toolu_01VLp3R8pgNnGk9cnq2hdJKY>
+Successfully replaced content in /Users/andreas/projects/greger.el/test-greger-lib-lsp.el. Successfully staged 2 file(s) and committed with message: Update multiple files test to use non-detailed mode
+</tool.toolu_01VLp3R8pgNnGk9cnq2hdJKY>
+
+
+## ASSISTANT:
+
+Perfect! I've successfully added the optional "detailed" argument to the `lsp-document-symbols` tool. Here's a summary of the changes:
+
+## Tool Enhancement:
+
+1. **Added `detailed` parameter** to the tool registration with default `false`
+2. **Added filtering logic** with `greger-lsp--detailed-symbol-kind-p` that identifies detailed symbol types:
+   - Variable (13)
+   - Constant (14)
+   - String (15)
+   - Number (16)
+   - Boolean (17)
+   - Array (18)
+   - Object (19)
+   - Key (20)
+   - Null (21)
+   - EnumMember (22)
+   - Struct (23)
+   - Event (24)
+   - Operator (25)
+   - TypeParameter (26)
+
+3. **Updated all formatting functions** to support the detailed flag:
+   - `greger-lsp--filter-detailed-symbols`: Filters out detailed symbols when detailed=false
+   - `greger-lsp--format-document-symbol`: Accepts detailed flag and filters children
+   - `greger-lsp--format-document-symbols`: Applies filtering to top-level symbols
+   - `greger-lib-lsp--document-symbols`: Main function now accepts optional detailed parameter
+
+## Test Updates:
+
+1. **Split the single file test** into two versions:
+   - `greger-lsp-test-document-symbols-single-file-non-detailed`: Shows only classes, methods, and functions
+   - `greger-lsp-test-document-symbols-single-file-detailed`: Shows all symbols including variables and parameters
+
+2. **Updated multiple files test** to use non-detailed mode by default, showing a cleaner output
+
+3. **Kept the empty file test** unchanged since it tests edge cases
+
+## Behavior:
+
+- **Default (detailed=false)**: Shows only high-level symbols like classes, functions, methods, constructors, etc. - much cleaner and less cluttered
+- **Detailed mode (detailed=true)**: Shows everything including variables, parameters, constants, etc. - comprehensive but verbose
+
+This gives users the flexibility to get either a clean overview of the code structure or a detailed view of all symbols depending on their needs.
+
+## USER:
+
+``` emacs-lisp
+F greger-lsp-test-document-symbols-multiple-files-non-detailed
+    Test getting document symbols for multiple files without detailed symbols.
+    (ert-test-failed
+     ((should
+       (string= expected result))
+      :form
+      (string= "Symbols in src/main.py:\nCalculator [Class] (line 9, col 0)\n  __init__ [Method] (line 12, col 4)\n  add_numbers [Method] (line 16, col 4)\n  multiply_numbers [Method] (line 22, col 4)\n  get_history [Method] (line 28, col 4)\ncreate_calculator [Function] (line 33, col 0)\nmain [Function] (line 40, col 0)\n\nSymbols in src/utils.py:\nadvanced_calculation [Function] (line 6, col 0)\nformat_result [Function] (line 12, col 0)" "Symbols in src/main.py:\nCalculator [Class] (line 9, col 0)\n  __init__ [Method] (line 12, col 4)\n  add_numbers [Method] (line 16, col 4)\n  multiply_numbers [Method] (line 22, col 4)\n  get_history [Method] (line 28, col 4)\ncreate_calculator [Function] (line 33, col 0)\nmain [Function] (line 40, col 0)\n\nSymbols in src/utils.py:\nadvanced_calculation [Function] (line 7, col 0)\nformat_result [Function] (line 14, col 0)")
+      :value nil :explanation
+      (array-elt 364
+                 (different-atoms
+                  (54 "#x36" "?6")
+                  (55 "#x37" "?7")))))
+
+
+
+```
+
+## ASSISTANT:
+
+I see the issue - the line numbers in the utils.py file are off by 1. The functions are actually on lines 7 and 14, not 6 and 12. Let me check the actual content of the utils.py file that's being created in the test:
+
+## TOOL USE:
+
+Name: read-file
+ID: toolu_01WTewSBDqcZj9g9CL8Y6Urv
+
+### path
+
+<tool.toolu_01WTewSBDqcZj9g9CL8Y6Urv>
+test-greger-lib-lsp.el
+</tool.toolu_01WTewSBDqcZj9g9CL8Y6Urv>
+
+### start_line
+
+<tool.toolu_01WTewSBDqcZj9g9CL8Y6Urv>
+80
+</tool.toolu_01WTewSBDqcZj9g9CL8Y6Urv>
+
+### end_line
+
+<tool.toolu_01WTewSBDqcZj9g9CL8Y6Urv>
+95
+</tool.toolu_01WTewSBDqcZj9g9CL8Y6Urv>
+
+## TOOL RESULT:
+
+ID: toolu_01WTewSBDqcZj9g9CL8Y6Urv
+
+<tool.toolu_01WTewSBDqcZj9g9CL8Y6Urv>
+        precision = 2
+    return Calculator(precision)
+
+
+def main():
+    \"\"\"Main function for testing.\"\"\"
+    calc = create_calculator(3)
+    result1 = calc.add_numbers(10.5, 20.3)
+    result2 = calc.multiply_numbers(result1, 2.0)
+
+    print(f\"Final result: {result2}\")
+    print(\"History:\")
+    for entry in calc.get_history():
+        print(f\"  {entry}\")
+
+
+</tool.toolu_01WTewSBDqcZj9g9CL8Y6Urv>
+
+## ASSISTANT:
+
+Let me find the utils.py creation part:
+
+## TOOL USE:
+
+Name: ripgrep
+ID: toolu_013Vk6jkDKHKAAmUFYj9Ec5v
+
+### pattern
+
+<tool.toolu_013Vk6jkDKHKAAmUFYj9Ec5v>
+utils.py
+</tool.toolu_013Vk6jkDKHKAAmUFYj9Ec5v>
+
+### path
+
+<tool.toolu_013Vk6jkDKHKAAmUFYj9Ec5v>
+test-greger-lib-lsp.el
+</tool.toolu_013Vk6jkDKHKAAmUFYj9Ec5v>
+
+### context-lines
+
+<tool.toolu_013Vk6jkDKHKAAmUFYj9Ec5v>
+5
+</tool.toolu_013Vk6jkDKHKAAmUFYj9Ec5v>
+
+## TOOL RESULT:
+
+ID: toolu_013Vk6jkDKHKAAmUFYj9Ec5v
+
+<tool.toolu_013Vk6jkDKHKAAmUFYj9Ec5v>
+100:    ;; Create utils.py for reference testing
+101:    (let ((utils-file (expand-file-name "utils.py" src-dir)))
+141:    ;; Also check for utils.py buffer
+142:    (let ((utils-file (expand-file-name "src/utils.py" greger-lsp-test-temp-dir)))
+407:utils.py:4:17"))
+465:   (let* ((utils-file (expand-file-name "src/utils.py" greger-lsp-test-temp-dir))
+478:Symbols in src/utils.py:
+
+</tool.toolu_013Vk6jkDKHKAAmUFYj9Ec5v>
+
+## TOOL USE:
+
+Name: read-file
+ID: toolu_013y49GkEaMQhYYQ1LTJ9qwk
+
+### path
+
+<tool.toolu_013y49GkEaMQhYYQ1LTJ9qwk>
+test-greger-lib-lsp.el
+</tool.toolu_013y49GkEaMQhYYQ1LTJ9qwk>
+
+### start_line
+
+<tool.toolu_013y49GkEaMQhYYQ1LTJ9qwk>
+100
+</tool.toolu_013y49GkEaMQhYYQ1LTJ9qwk>
+
+### end_line
+
+<tool.toolu_013y49GkEaMQhYYQ1LTJ9qwk>
+115
+</tool.toolu_013y49GkEaMQhYYQ1LTJ9qwk>
+
+## TOOL RESULT:
+
+ID: toolu_013y49GkEaMQhYYQ1LTJ9qwk
+
+<tool.toolu_013y49GkEaMQhYYQ1LTJ9qwk>
+    ;; Create utils.py for reference testing
+    (let ((utils-file (expand-file-name "utils.py" src-dir)))
+      (with-temp-file utils-file
+        (insert "#!/usr/bin/env python3
+\"\"\"Utility functions.\"\"\"
+
+from main import Calculator, create_calculator
+
+
+def advanced_calculation(x: float, y: float) -> float:
+    \"\"\"Perform advanced calculation using Calculator.\"\"\"
+    calc = create_calculator(4)
+    intermediate = calc.add_numbers(x, y)
+    return calc.multiply_numbers(intermediate, 1.5)
+
+
+</tool.toolu_013y49GkEaMQhYYQ1LTJ9qwk>
+
+## ASSISTANT:
+
+I can see the issue. Looking at the utils.py content:
+- Line 1: `#!/usr/bin/env python3`
+- Line 2: `"""Utility functions."""`
+- Line 3: (empty)
+- Line 4: `from main import Calculator, create_calculator`
+- Line 5: (empty)
+- Line 6: (empty)
+- Line 7: `def advanced_calculation(x: float, y: float) -> float:` ← This is line 7, not 6
+- ...
+- Line 14: `def format_result(value: float) -> str:` ← This is line 14, not 12
+
+Let me update the test to use the correct line numbers:
+
+## TOOL USE:
+
+Name: str-replace
+ID: toolu_017NAop6zsEHxiSS1QcVWFd5
+
+### file_path
+
+<tool.toolu_017NAop6zsEHxiSS1QcVWFd5>
+test-greger-lib-lsp.el
+</tool.toolu_017NAop6zsEHxiSS1QcVWFd5>
+
+### original_content
+
+<tool.toolu_017NAop6zsEHxiSS1QcVWFd5>
+Symbols in src/utils.py:
+advanced_calculation [Function] (line 6, col 0)
+format_result [Function] (line 12, col 0)
+</tool.toolu_017NAop6zsEHxiSS1QcVWFd5>
+
+### new_content
+
+<tool.toolu_017NAop6zsEHxiSS1QcVWFd5>
+Symbols in src/utils.py:
+advanced_calculation [Function] (line 7, col 0)
+format_result [Function] (line 14, col 0)
+</tool.toolu_017NAop6zsEHxiSS1QcVWFd5>
+
+### git_commit_message
+
+<tool.toolu_017NAop6zsEHxiSS1QcVWFd5>
+Fix line numbers in utils.py test expectations
+</tool.toolu_017NAop6zsEHxiSS1QcVWFd5>
+
+<!-- TOOL_RESULT_PLACEHOLDER_toolu_017NAop6zsEHxiSS1QcVWFd5 -->
