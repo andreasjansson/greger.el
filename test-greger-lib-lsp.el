@@ -287,7 +287,7 @@ description = \"Test project for greger LSP tools\"
    (let ((result (greger-tools--lsp-rename
                   "NewName"
                   greger-lsp-test-python-file
-                  3 0)))  ; Line with comment
+                  49 0)))  ; Line with comment
      (should (stringp result))
      (should (or (string-match-p "No changes made" result)
              (string-match-p "failed" result))))))
