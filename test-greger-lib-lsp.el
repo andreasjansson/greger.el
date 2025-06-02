@@ -415,11 +415,29 @@ utils.py:4:17"))
 
 ;;; Tests for lsp-document-symbols tool
 
-(ert-deftest greger-lsp-test-document-symbols-single-file ()
-  "Test getting document symbols for a single file."
+(ert-deftest greger-lsp-test-document-symbols-single-file-non-detailed ()
+  "Test getting document symbols for a single file without detailed symbols."
   (greger-lsp-test-with-setup
    (let ((result (greger-lib-lsp--document-symbols
-                  (list greger-lsp-test-python-file)))
+                  (list greger-lsp-test-python-file)
+                  nil)) ; detailed = false (default)
+         (expected "Symbols in src/main.py:
+Calculator [Class] (line 9, col 0)
+  __init__ [Method] (line 12, col 4)
+  add_numbers [Method] (line 16, col 4)
+  multiply_numbers [Method] (line 22, col 4)
+  get_history [Method] (line 28, col 4)
+create_calculator [Function] (line 33, col 0)
+main [Function] (line 40, col 0)"))
+     (should (stringp result))
+     (should (string= expected result)))))
+
+(ert-deftest greger-lsp-test-document-symbols-single-file-detailed ()
+  "Test getting document symbols for a single file with detailed symbols."
+  (greger-lsp-test-with-setup
+   (let ((result (greger-lib-lsp--document-symbols
+                  (list greger-lsp-test-python-file)
+                  t)) ; detailed = true
          (expected "Symbols in src/main.py:
 Calculator [Class] (line 9, col 0)
   __init__ [Method] (line 12, col 4)

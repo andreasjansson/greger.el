@@ -2611,4 +2611,120 @@ greger-lib-lsp.el
 Update main document-symbols function to accept detailed parameter
 </tool.toolu_012SzBdvCwFwCbX4QoNbAv4a>
 
-<!-- TOOL_RESULT_PLACEHOLDER_toolu_012SzBdvCwFwCbX4QoNbAv4a -->
+## TOOL RESULT:
+
+ID: toolu_012SzBdvCwFwCbX4QoNbAv4a
+
+<tool.toolu_012SzBdvCwFwCbX4QoNbAv4a>
+Successfully replaced content in /Users/andreas/projects/greger.el/greger-lib-lsp.el. Successfully staged 2 file(s) and committed with message: Update main document-symbols function to accept detailed parameter
+</tool.toolu_012SzBdvCwFwCbX4QoNbAv4a>
+
+
+## ASSISTANT:
+
+Now I need to add tests for both the detailed and non-detailed modes. Let me add a test for the non-detailed mode first:
+
+## TOOL USE:
+
+Name: str-replace
+ID: toolu_01TcDpNPqEwievGAuiVY72zB
+
+### file_path
+
+<tool.toolu_01TcDpNPqEwievGAuiVY72zB>
+test-greger-lib-lsp.el
+</tool.toolu_01TcDpNPqEwievGAuiVY72zB>
+
+### original_content
+
+<tool.toolu_01TcDpNPqEwievGAuiVY72zB>
+(ert-deftest greger-lsp-test-document-symbols-single-file ()
+  "Test getting document symbols for a single file."
+  (greger-lsp-test-with-setup
+   (let ((result (greger-lib-lsp--document-symbols
+                  (list greger-lsp-test-python-file)))
+         (expected "Symbols in src/main.py:
+Calculator [Class] (line 9, col 0)
+  __init__ [Method] (line 12, col 4)
+    precision [Variable] (line 12, col 23)
+  add_numbers [Method] (line 16, col 4)
+    a [Variable] (line 16, col 26)
+    b [Variable] (line 16, col 36)
+    result [Variable] (line 18, col 8)
+  multiply_numbers [Method] (line 22, col 4)
+    a [Variable] (line 22, col 31)
+    b [Variable] (line 22, col 41)
+    result [Variable] (line 24, col 8)
+  get_history [Method] (line 28, col 4)
+  precision [Variable] (line 13, col 13)
+  history [Variable] (line 14, col 13)
+create_calculator [Function] (line 33, col 0)
+  precision [Variable] (line 33, col 22)
+main [Function] (line 40, col 0)
+  calc [Variable] (line 42, col 4)
+  result1 [Variable] (line 43, col 4)
+  result2 [Variable] (line 44, col 4)
+  entry [Variable] (line 48, col 8)"))
+     (should (stringp result))
+     (should (string= expected result)))))
+</tool.toolu_01TcDpNPqEwievGAuiVY72zB>
+
+### new_content
+
+<tool.toolu_01TcDpNPqEwievGAuiVY72zB>
+(ert-deftest greger-lsp-test-document-symbols-single-file-non-detailed ()
+  "Test getting document symbols for a single file without detailed symbols."
+  (greger-lsp-test-with-setup
+   (let ((result (greger-lib-lsp--document-symbols
+                  (list greger-lsp-test-python-file)
+                  nil)) ; detailed = false (default)
+         (expected "Symbols in src/main.py:
+Calculator [Class] (line 9, col 0)
+  __init__ [Method] (line 12, col 4)
+  add_numbers [Method] (line 16, col 4)
+  multiply_numbers [Method] (line 22, col 4)
+  get_history [Method] (line 28, col 4)
+create_calculator [Function] (line 33, col 0)
+main [Function] (line 40, col 0)"))
+     (should (stringp result))
+     (should (string= expected result)))))
+
+(ert-deftest greger-lsp-test-document-symbols-single-file-detailed ()
+  "Test getting document symbols for a single file with detailed symbols."
+  (greger-lsp-test-with-setup
+   (let ((result (greger-lib-lsp--document-symbols
+                  (list greger-lsp-test-python-file)
+                  t)) ; detailed = true
+         (expected "Symbols in src/main.py:
+Calculator [Class] (line 9, col 0)
+  __init__ [Method] (line 12, col 4)
+    precision [Variable] (line 12, col 23)
+  add_numbers [Method] (line 16, col 4)
+    a [Variable] (line 16, col 26)
+    b [Variable] (line 16, col 36)
+    result [Variable] (line 18, col 8)
+  multiply_numbers [Method] (line 22, col 4)
+    a [Variable] (line 22, col 31)
+    b [Variable] (line 22, col 41)
+    result [Variable] (line 24, col 8)
+  get_history [Method] (line 28, col 4)
+  precision [Variable] (line 13, col 13)
+  history [Variable] (line 14, col 13)
+create_calculator [Function] (line 33, col 0)
+  precision [Variable] (line 33, col 22)
+main [Function] (line 40, col 0)
+  calc [Variable] (line 42, col 4)
+  result1 [Variable] (line 43, col 4)
+  result2 [Variable] (line 44, col 4)
+  entry [Variable] (line 48, col 8)"))
+     (should (stringp result))
+     (should (string= expected result)))))
+</tool.toolu_01TcDpNPqEwievGAuiVY72zB>
+
+### git_commit_message
+
+<tool.toolu_01TcDpNPqEwievGAuiVY72zB>
+Split single file test into detailed and non-detailed versions
+</tool.toolu_01TcDpNPqEwievGAuiVY72zB>
+
+<!-- TOOL_RESULT_PLACEHOLDER_toolu_01TcDpNPqEwievGAuiVY72zB -->
