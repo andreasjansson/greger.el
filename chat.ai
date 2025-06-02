@@ -4291,4 +4291,126 @@ greger-lib-lsp.el
 Fix documentChanges handling to work with vectors and use lsp-get for hash table access
 </tool.toolu_01LzFREZUQwvqCj5PBnm4MAG>
 
-<!-- TOOL_RESULT_PLACEHOLDER_toolu_01LzFREZUQwvqCj5PBnm4MAG -->
+## TOOL RESULT:
+
+ID: toolu_01LzFREZUQwvqCj5PBnm4MAG
+
+<tool.toolu_01LzFREZUQwvqCj5PBnm4MAG>
+Successfully replaced content in /Users/andreas/projects/greger.el/greger-lib-lsp.el. Successfully staged 2 file(s) and committed with message: Fix documentChanges handling to work with vectors and use lsp-get for hash table access
+</tool.toolu_01LzFREZUQwvqCj5PBnm4MAG>
+
+
+## ASSISTANT:
+
+I also need to fix the change counting for documentChanges since it's a vector:
+
+## TOOL USE:
+
+Name: read-file
+ID: toolu_01JyLGCkUMGCVJrRjdGCGW64
+
+### path
+
+<tool.toolu_01JyLGCkUMGCVJrRjdGCGW64>
+greger-lib-lsp.el
+</tool.toolu_01JyLGCkUMGCVJrRjdGCGW64>
+
+### start_line
+
+<tool.toolu_01JyLGCkUMGCVJrRjdGCGW64>
+215
+</tool.toolu_01JyLGCkUMGCVJrRjdGCGW64>
+
+### end_line
+
+<tool.toolu_01JyLGCkUMGCVJrRjdGCGW64>
+235
+</tool.toolu_01JyLGCkUMGCVJrRjdGCGW64>
+
+## TOOL RESULT:
+
+ID: toolu_01JyLGCkUMGCVJrRjdGCGW64
+
+<tool.toolu_01JyLGCkUMGCVJrRjdGCGW64>
+                                (with-current-buffer buffer
+                                  (save-buffer)))))
+                          changes?)))
+
+             ;; Count the changes - WorkspaceEdit can have either changes or documentChanges
+             (let ((change-count
+                    (-let (((&WorkspaceEdit :document-changes? :changes?) edits))
+                      (+ (if document-changes? (length document-changes?) 0)
+                         (if changes?
+                             (let ((total 0))
+                               (lsp-map (lambda (_uri text-edits)
+                                          (setq total (+ total (length text-edits))))
+                                        changes?)
+                               total)
+                           0)))))
+               (substring-no-properties
+                (format "Successfully renamed '%s' to '%s' in %d location(s)"
+                        symbol-info
+                        new-name
+                        change-count))))
+         "No changes made - symbol may not exist or rename not applicable")))))
+</tool.toolu_01JyLGCkUMGCVJrRjdGCGW64>
+
+## ASSISTANT:
+
+The counting logic looks correct since `(length document-changes?)` should work fine with vectors. However, I need to count the actual text edits within each document change, not just the number of documents. Let me fix this:
+
+## TOOL USE:
+
+Name: str-replace
+ID: toolu_017DF8TrPAPqyaAnjWPd3MgH
+
+### file_path
+
+<tool.toolu_017DF8TrPAPqyaAnjWPd3MgH>
+greger-lib-lsp.el
+</tool.toolu_017DF8TrPAPqyaAnjWPd3MgH>
+
+### original_content
+
+<tool.toolu_017DF8TrPAPqyaAnjWPd3MgH>
+;; Count the changes - WorkspaceEdit can have either changes or documentChanges
+             (let ((change-count
+                    (-let (((&WorkspaceEdit :document-changes? :changes?) edits))
+                      (+ (if document-changes? (length document-changes?) 0)
+                         (if changes?
+                             (let ((total 0))
+                               (lsp-map (lambda (_uri text-edits)
+                                          (setq total (+ total (length text-edits))))
+                                        changes?)
+                               total)
+                           0)))))
+</tool.toolu_017DF8TrPAPqyaAnjWPd3MgH>
+
+### new_content
+
+<tool.toolu_017DF8TrPAPqyaAnjWPd3MgH>
+;; Count the changes - WorkspaceEdit can have either changes or documentChanges
+             (let ((change-count
+                    (-let (((&WorkspaceEdit :document-changes? :changes?) edits))
+                      (+ (if document-changes?
+                             ;; Count edits in each document change
+                             (seq-reduce (lambda (total change)
+                                          (+ total (length (lsp-get change :edits))))
+                                        document-changes? 0)
+                           0)
+                         (if changes?
+                             (let ((total 0))
+                               (lsp-map (lambda (_uri text-edits)
+                                          (setq total (+ total (length text-edits))))
+                                        changes?)
+                               total)
+                           0)))))
+</tool.toolu_017DF8TrPAPqyaAnjWPd3MgH>
+
+### git_commit_message
+
+<tool.toolu_017DF8TrPAPqyaAnjWPd3MgH>
+Fix change counting to count actual text edits rather than document count
+</tool.toolu_017DF8TrPAPqyaAnjWPd3MgH>
+
+<!-- TOOL_RESULT_PLACEHOLDER_toolu_017DF8TrPAPqyaAnjWPd3MgH -->

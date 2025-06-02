@@ -219,7 +219,12 @@ LINE is 1-based, COLUMN is 0-based."
              ;; Count the changes - WorkspaceEdit can have either changes or documentChanges
              (let ((change-count
                     (-let (((&WorkspaceEdit :document-changes? :changes?) edits))
-                      (+ (if document-changes? (length document-changes?) 0)
+                      (+ (if document-changes?
+                             ;; Count edits in each document change
+                             (seq-reduce (lambda (total change)
+                                          (+ total (length (lsp-get change :edits))))
+                                        document-changes? 0)
+                           0)
                          (if changes?
                              (let ((total 0))
                                (lsp-map (lambda (_uri text-edits)
