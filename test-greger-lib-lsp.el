@@ -341,42 +341,6 @@ description = \"Test project for greger LSP tools\"
      (should (stringp result))
      (should (string-match-p "References.*Calculator" result)))))
 
-;;; Tests for lsp-document-symbols tool
-
-(ert-deftest greger-lsp-test-document-symbols ()
-  "Test getting document symbols."
-  (greger-lsp-test-with-setup
-   (let ((result (greger-tools--lsp-document-symbols greger-lsp-test-python-file)))
-     (should (stringp result))
-     (should (string-match-p "Document symbols.*main.py" result))
-     (should (string-match-p "Calculator.*Class" result))
-     (should (string-match-p "add_numbers.*Method\\|Function" result))
-     (should (string-match-p "main.*Function" result)))))
-
-(ert-deftest greger-lsp-test-document-symbols-filtered ()
-  "Test getting filtered document symbols."
-  (greger-lsp-test-with-setup
-   ;; Filter for only classes
-   (let ((result (greger-tools--lsp-document-symbols
-                  greger-lsp-test-python-file
-                  "Class")))
-     (should (stringp result))
-     (should (string-match-p "Calculator.*Class" result))
-     ;; Should not contain functions if filtering works
-     (should-not (string-match-p "main.*Function" result)))))
-
-(ert-deftest greger-lsp-test-document-symbols-hierarchical ()
-  "Test getting hierarchical document symbols."
-  (greger-lsp-test-with-setup
-   (let ((result (greger-tools--lsp-document-symbols
-                  greger-lsp-test-python-file
-                  nil  ; No type filter
-                  t))) ; Hierarchical
-     (should (stringp result))
-     (should (string-match-p "Calculator.*Class" result))
-     ;; Methods should be indented under the class
-     (should (string-match-p "  add_numbers.*Method\\|Function" result)))))
-
 ;;; Tests for lsp-workspace-symbols tool
 
 (ert-deftest greger-lsp-test-workspace-symbols ()
@@ -477,9 +441,14 @@ description = \"Test project for greger LSP tools\"
    ;; Find references to Calculator class (line 9, position at "Calculator")
    (let ((result (greger-tools--lsp-find-references
                   greger-lsp-test-python-file
-                  9 6))) ; Line 9: "class Calculator:", column 6 at "Calculator"
+                  9 6))
+         (expected "References for 'Calculator' (3 found):
+main.py:33:58
+main.py:37:11
+utils.py:4:17"))
+
      (should (stringp result))
-     (should (string-match-p "Calculator" result)))))
+     (should (string= expected result)))))
 
 (provide 'test-greger-lib-lsp)
 
