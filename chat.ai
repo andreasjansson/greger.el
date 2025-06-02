@@ -2313,4 +2313,168 @@ test-greger-lib-lsp.el
 Improve LSP workspace root detection in tests by disabling auto-guess
 </tool.toolu_01EaLkuxw6YtvfYEBnRTdTt8>
 
-<!-- TOOL_RESULT_PLACEHOLDER_toolu_01EaLkuxw6YtvfYEBnRTdTt8 -->
+## TOOL RESULT:
+
+ID: toolu_01EaLkuxw6YtvfYEBnRTdTt8
+
+<tool.toolu_01EaLkuxw6YtvfYEBnRTdTt8>
+Successfully replaced content in /Users/andreas/projects/greger.el/test-greger-lib-lsp.el. Successfully staged 2 file(s) and committed with message: Improve LSP workspace root detection in tests by disabling auto-guess
+</tool.toolu_01EaLkuxw6YtvfYEBnRTdTt8>
+
+
+## ASSISTANT:
+
+Actually, let me also look at another approach. Maybe we need to use the `lsp-workspace-folders-add` function instead of manually manipulating the session:
+
+## TOOL USE:
+
+Name: read-file
+ID: toolu_016StuU5JAh81pJBNatq8Hmj
+
+### path
+
+<tool.toolu_016StuU5JAh81pJBNatq8Hmj>
+~/.emacs.d/elpa/lsp-mode-20231118.1818/lsp-mode.el
+</tool.toolu_016StuU5JAh81pJBNatq8Hmj>
+
+### start_line
+
+<tool.toolu_016StuU5JAh81pJBNatq8Hmj>
+3924
+</tool.toolu_016StuU5JAh81pJBNatq8Hmj>
+
+### end_line
+
+<tool.toolu_016StuU5JAh81pJBNatq8Hmj>
+3940
+</tool.toolu_016StuU5JAh81pJBNatq8Hmj>
+
+## TOOL RESULT:
+
+ID: toolu_016StuU5JAh81pJBNatq8Hmj
+
+<tool.toolu_016StuU5JAh81pJBNatq8Hmj>
+(defun lsp-workspace-folders-add (project-root)
+  "Add PROJECT-ROOT to the list of workspace folders."
+  (interactive
+   (list (read-directory-name "Select folder to add: "
+                              (or (lsp--suggest-project-root) default-directory) nil t)))
+  (cl-pushnew (lsp-f-canonical project-root)
+              (lsp-session-folders (lsp-session)) :test 'equal)
+  (lsp--persist-session (lsp-session))
+
+  (run-hook-with-args 'lsp-workspace-folders-changed-functions (list project-root) nil))
+
+(defun lsp-workspace-folders-remove (project-root)
+  "Remove PROJECT-ROOT from the list of workspace folders."
+  (interactive (list (completing-read "Select folder to remove: "
+                                      (lsp-session-folders (lsp-session))
+                                      nil t nil nil
+                                      (lsp-find-session-folder (lsp-session) default-directory))))
+</tool.toolu_016StuU5JAh81pJBNatq8Hmj>
+
+## ASSISTANT:
+
+That's better! Using `lsp-workspace-folders-add` would be more proper. Let me also check if there are other best practices for creating an LSP workspace programmatically. But first, let me try a different approach that might be simpler.
+
+Looking at the code, the issue might be that we're trying to manually set things up, but LSP mode has its own initialization logic. Let me try to use a more direct approach where we disable automatic root detection and force LSP to use our directory:
+
+## TOOL USE:
+
+Name: str-replace
+ID: toolu_01KP8t8oexnBzvKP8wVGA3bE
+
+### file_path
+
+<tool.toolu_01KP8t8oexnBzvKP8wVGA3bE>
+test-greger-lib-lsp.el
+</tool.toolu_01KP8t8oexnBzvKP8wVGA3bE>
+
+### original_content
+
+<tool.toolu_01KP8t8oexnBzvKP8wVGA3bE>
+(defun greger-lsp-test-ensure-lsp-started ()
+  "Ensure LSP is started for the test Python file."
+  (let ((buffer (find-file-noselect greger-lsp-test-python-file)))
+    (with-current-buffer buffer
+      (python-mode)
+
+      ;; Set up LSP to use our specific test project root
+      (let ((session (lsp-session))
+            ;; Temporarily override LSP root detection to prevent auto-guessing
+            (lsp-auto-guess-root nil)
+            (lsp-guess-root-without-session nil))
+
+        ;; Add test project to LSP session folders to avoid prompts
+        (unless (member greger-lsp-test-project-root (lsp-session-folders session))
+          (push greger-lsp-test-project-root (lsp-session-folders session)))
+
+        ;; Start LSP - it should automatically pick up the project root we added
+        (condition-case err
+            (progn
+              ;; Bind LSP variables to ensure proper root detection
+              (let ((lsp-auto-guess-root nil)
+                    (lsp-guess-root-without-session nil))
+                (lsp))
+              ;; Wait for LSP to initialize with reasonable timeout
+              (let ((timeout 0))
+                (while (and (not lsp--buffer-workspaces) (< timeout 100))
+                  (sit-for 0.1)
+                  (setq timeout (1+ timeout))))
+              (unless lsp--buffer-workspaces
+                (error "Failed to start LSP server for test")))
+          (error
+           (message "LSP startup error: %s" (error-message-string err))
+           (error "Failed to start LSP server for test: %s" (error-message-string err)))))
+    buffer))
+</tool.toolu_01KP8t8oexnBzvKP8wVGA3bE>
+
+### new_content
+
+<tool.toolu_01KP8t8oexnBzvKP8wVGA3bE>
+(defun greger-lsp-test-ensure-lsp-started ()
+  "Ensure LSP is started for the test Python file."
+  (let ((buffer (find-file-noselect greger-lsp-test-python-file)))
+    (with-current-buffer buffer
+      (python-mode)
+
+      ;; Use lsp-workspace-folders-add to properly register our test directory
+      (lsp-workspace-folders-add greger-lsp-test-project-root)
+
+      ;; Start LSP with our configured workspace
+      (condition-case err
+          (progn
+            ;; Bind LSP variables to ensure proper root detection
+            (let ((lsp-auto-guess-root nil)
+                  (lsp-guess-root-without-session nil))
+              (lsp))
+            ;; Wait for LSP to initialize with reasonable timeout
+            (let ((timeout 0))
+              (while (and (not lsp--buffer-workspaces) (< timeout 100))
+                (sit-for 0.1)
+                (setq timeout (1+ timeout))))
+            (unless lsp--buffer-workspaces
+              (error "Failed to start LSP server for test"))
+
+            ;; Verify we got the right workspace root
+            (let ((workspace-root (lsp-workspace-root)))
+              (unless (string= (file-truename workspace-root)
+                              (file-truename greger-lsp-test-project-root))
+                (message "Expected workspace root: %s" (file-truename greger-lsp-test-project-root))
+                (message "Actual workspace root: %s" (file-truename workspace-root))
+                (message "Session folders: %s" (lsp-session-folders (lsp-session)))
+                (error "LSP workspace root mismatch: expected %s, got %s"
+                       greger-lsp-test-project-root workspace-root))))
+        (error
+         (message "LSP startup error: %s" (error-message-string err))
+         (error "Failed to start LSP server for test: %s" (error-message-string err)))))
+    buffer))
+</tool.toolu_01KP8t8oexnBzvKP8wVGA3bE>
+
+### git_commit_message
+
+<tool.toolu_01KP8t8oexnBzvKP8wVGA3bE>
+Add workspace root verification and use proper lsp-workspace-folders-add function
+</tool.toolu_01KP8t8oexnBzvKP8wVGA3bE>
+
+<!-- TOOL_RESULT_PLACEHOLDER_toolu_01KP8t8oexnBzvKP8wVGA3bE -->

@@ -155,33 +155,36 @@ description = \"Test project for greger LSP tools\"
     (with-current-buffer buffer
       (python-mode)
 
-      ;; Set up LSP to use our specific test project root
-      (let ((session (lsp-session))
-            ;; Temporarily override LSP root detection to prevent auto-guessing
-            (lsp-auto-guess-root nil)
-            (lsp-guess-root-without-session nil))
+      ;; Use lsp-workspace-folders-add to properly register our test directory
+      (lsp-workspace-folders-add greger-lsp-test-project-root)
 
-        ;; Add test project to LSP session folders to avoid prompts
-        (unless (member greger-lsp-test-project-root (lsp-session-folders session))
-          (push greger-lsp-test-project-root (lsp-session-folders session)))
+      ;; Start LSP with our configured workspace
+      (condition-case err
+          (progn
+            ;; Bind LSP variables to ensure proper root detection
+            (let ((lsp-auto-guess-root nil)
+                  (lsp-guess-root-without-session nil))
+              (lsp))
+            ;; Wait for LSP to initialize with reasonable timeout
+            (let ((timeout 0))
+              (while (and (not lsp--buffer-workspaces) (< timeout 100))
+                (sit-for 0.1)
+                (setq timeout (1+ timeout))))
+            (unless lsp--buffer-workspaces
+              (error "Failed to start LSP server for test"))
 
-        ;; Start LSP - it should automatically pick up the project root we added
-        (condition-case err
-            (progn
-              ;; Bind LSP variables to ensure proper root detection
-              (let ((lsp-auto-guess-root nil)
-                    (lsp-guess-root-without-session nil))
-                (lsp))
-              ;; Wait for LSP to initialize with reasonable timeout
-              (let ((timeout 0))
-                (while (and (not lsp--buffer-workspaces) (< timeout 100))
-                  (sit-for 0.1)
-                  (setq timeout (1+ timeout))))
-              (unless lsp--buffer-workspaces
-                (error "Failed to start LSP server for test")))
-          (error
-           (message "LSP startup error: %s" (error-message-string err))
-           (error "Failed to start LSP server for test: %s" (error-message-string err)))))
+            ;; Verify we got the right workspace root
+            (let ((workspace-root (lsp-workspace-root)))
+              (unless (string= (file-truename workspace-root)
+                              (file-truename greger-lsp-test-project-root))
+                (message "Expected workspace root: %s" (file-truename greger-lsp-test-project-root))
+                (message "Actual workspace root: %s" (file-truename workspace-root))
+                (message "Session folders: %s" (lsp-session-folders (lsp-session)))
+                (error "LSP workspace root mismatch: expected %s, got %s"
+                       greger-lsp-test-project-root workspace-root))))
+        (error
+         (message "LSP startup error: %s" (error-message-string err))
+         (error "Failed to start LSP server for test: %s" (error-message-string err)))))
     buffer))
 
 ;;; Helper functions for test requirements
