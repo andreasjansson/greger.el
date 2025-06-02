@@ -502,7 +502,7 @@ description = \"Test project for greger LSP tools\"
          ;; Find references to the new name (after a brief delay for LSP to update)
          (sit-for 0.5)
          (let ((new-refs (greger-tools--lsp-find-references
-                          greger-lsp-test-python-file 57 6)))
+                          greger-lsp-test-python-file 9 6)))
            (should (stringp new-refs))))))))
 
 (ert-deftest greger-lsp-test-cross-file-references ()
