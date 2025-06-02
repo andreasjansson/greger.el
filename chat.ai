@@ -1636,4 +1636,63 @@ format_result [Function] (line 12, col 0)"))
 Update document symbols multiple files test to use exact string matching
 </tool.toolu_01USYfziQgePe7JBj6aix8wa>
 
-<!-- TOOL_RESULT_PLACEHOLDER_toolu_01USYfziQgePe7JBj6aix8wa -->
+## TOOL RESULT:
+
+ID: toolu_01USYfziQgePe7JBj6aix8wa
+
+<tool.toolu_01USYfziQgePe7JBj6aix8wa>
+Successfully replaced content in /Users/andreas/projects/greger.el/test-greger-lib-lsp.el. Successfully staged 2 file(s) and committed with message: Update document symbols multiple files test to use exact string matching
+</tool.toolu_01USYfziQgePe7JBj6aix8wa>
+
+
+## TOOL USE:
+
+Name: str-replace
+ID: toolu_01RXoEqpXttFvjDgKJArxK6W
+
+### file_path
+
+<tool.toolu_01RXoEqpXttFvjDgKJArxK6W>
+test-greger-lib-lsp.el
+</tool.toolu_01RXoEqpXttFvjDgKJArxK6W>
+
+### original_content
+
+<tool.toolu_01RXoEqpXttFvjDgKJArxK6W>
+(ert-deftest greger-lsp-test-document-symbols-empty-file ()
+  "Test getting document symbols for file with no symbols."
+  (greger-lsp-test-with-setup
+   ;; Create an empty Python file
+   (let* ((empty-file (expand-file-name "empty.py" greger-lsp-test-temp-dir)))
+     (with-temp-file empty-file
+       (insert "# Just a comment\n"))
+
+     (let ((result (greger-lib-lsp--document-symbols (list empty-file))))
+       (should (stringp result))
+       (should (string-match-p "No symbols found" result))))))
+</tool.toolu_01RXoEqpXttFvjDgKJArxK6W>
+
+### new_content
+
+<tool.toolu_01RXoEqpXttFvjDgKJArxK6W>
+(ert-deftest greger-lsp-test-document-symbols-empty-file ()
+  "Test getting document symbols for file with no symbols."
+  (greger-lsp-test-with-setup
+   ;; Create an empty Python file
+   (let* ((empty-file (expand-file-name "empty.py" greger-lsp-test-temp-dir))
+          (expected "No symbols found in empty.py"))
+     (with-temp-file empty-file
+       (insert "# Just a comment\n"))
+
+     (let ((result (greger-lib-lsp--document-symbols (list empty-file))))
+       (should (stringp result))
+       (should (string= expected result))))))
+</tool.toolu_01RXoEqpXttFvjDgKJArxK6W>
+
+### git_commit_message
+
+<tool.toolu_01RXoEqpXttFvjDgKJArxK6W>
+Update document symbols empty file test to use exact string matching
+</tool.toolu_01RXoEqpXttFvjDgKJArxK6W>
+
+<!-- TOOL_RESULT_PLACEHOLDER_toolu_01RXoEqpXttFvjDgKJArxK6W -->

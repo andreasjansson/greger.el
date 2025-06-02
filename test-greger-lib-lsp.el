@@ -456,13 +456,14 @@ format_result [Function] (line 12, col 0)"))
   "Test getting document symbols for file with no symbols."
   (greger-lsp-test-with-setup
    ;; Create an empty Python file
-   (let* ((empty-file (expand-file-name "empty.py" greger-lsp-test-temp-dir)))
+   (let* ((empty-file (expand-file-name "empty.py" greger-lsp-test-temp-dir))
+          (expected "No symbols found in empty.py"))
      (with-temp-file empty-file
        (insert "# Just a comment\n"))
 
      (let ((result (greger-lib-lsp--document-symbols (list empty-file))))
        (should (stringp result))
-       (should (string-match-p "No symbols found" result))))))
+       (should (string= expected result))))))
 
 (provide 'test-greger-lib-lsp)
 
