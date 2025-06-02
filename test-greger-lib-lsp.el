@@ -496,7 +496,7 @@ description = \"Test project for greger LSP tools\"
      (let ((inhibit-message t)
            (use-dialog-box nil)
            (executing-kbd-macro t)) ; Simulate running in macro to avoid interactive prompts
-       (let ((result (greger-tools--lsp-rename "MathEngine" greger-lsp-test-python-file 57 6)))
+       (let ((result (greger-tools--lsp-rename "MathEngine" greger-lsp-test-python-file 9 6)))
          (should (stringp result))
 
          ;; Find references to the new name (after a brief delay for LSP to update)
