@@ -184,13 +184,16 @@ LINE is 1-based, COLUMN is 0-based."
 
 (defun greger-lsp--format-document-symbols (symbols file-path)
   "Format document SYMBOLS for FILE-PATH as a readable string."
-  (if (or (null symbols) (= (length symbols) 0))
-      (format "No symbols found in %s" (file-relative-name file-path))
-    (format "Symbols in %s:\n%s"
-            (file-relative-name file-path)
-            (mapconcat (lambda (symbol)
-                        (greger-lsp--format-document-symbol symbol))
-                      symbols "\n"))))
+  (let ((relative-path (if (and (bound-and-true-p lsp-mode) (lsp-workspace-root))
+                           (file-relative-name file-path (lsp-workspace-root))
+                         (file-relative-name file-path))))
+    (if (or (null symbols) (= (length symbols) 0))
+        (format "No symbols found in %s" relative-path)
+      (format "Symbols in %s:\n%s"
+              relative-path
+              (mapconcat (lambda (symbol)
+                          (greger-lsp--format-document-symbol symbol))
+                        symbols "\n")))))
 
 ;;; Tool implementations
 

@@ -1891,4 +1891,120 @@ greger-lib-lsp.el
 Keep file-relative-name for consistent path formatting
 </tool.toolu_012CXjVWRBYeHW8pL8Yq46gh>
 
-<!-- TOOL_RESULT_PLACEHOLDER_toolu_012CXjVWRBYeHW8pL8Yq46gh -->
+## TOOL RESULT:
+
+ID: toolu_012CXjVWRBYeHW8pL8Yq46gh
+
+<tool.toolu_012CXjVWRBYeHW8pL8Yq46gh>
+Successfully replaced content in /Users/andreas/projects/greger.el/greger-lib-lsp.el. Successfully staged 2 file(s) and committed with message: Keep file-relative-name for consistent path formatting
+</tool.toolu_012CXjVWRBYeHW8pL8Yq46gh>
+
+
+## ASSISTANT:
+
+Actually, the issue is that `file-relative-name` is returning just the filename. Let me check what the actual file path structure is and then fix the formatting function:
+
+## TOOL USE:
+
+Name: read-file
+ID: toolu_01NaAGcywdPsv3MwSefVqTkE
+
+### path
+
+<tool.toolu_01NaAGcywdPsv3MwSefVqTkE>
+test-greger-lib-lsp.el
+</tool.toolu_01NaAGcywdPsv3MwSefVqTkE>
+
+### start_line
+
+<tool.toolu_01NaAGcywdPsv3MwSefVqTkE>
+40
+</tool.toolu_01NaAGcywdPsv3MwSefVqTkE>
+
+### end_line
+
+<tool.toolu_01NaAGcywdPsv3MwSefVqTkE>
+60
+</tool.toolu_01NaAGcywdPsv3MwSefVqTkE>
+
+## TOOL RESULT:
+
+ID: toolu_01NaAGcywdPsv3MwSefVqTkE
+
+<tool.toolu_01NaAGcywdPsv3MwSefVqTkE>
+    (make-directory src-dir)
+
+    ;; Create main.py with some example code
+    (setq greger-lsp-test-python-file (expand-file-name "main.py" src-dir))
+    (with-temp-file greger-lsp-test-python-file
+      (insert "#!/usr/bin/env python3
+\"\"\"Example Python module for testing LSP tools.\"\"\"
+
+import os
+import sys
+from typing import List, Optional
+
+
+class Calculator:
+    \"\"\"A simple calculator class.\"\"\"
+
+    def __init__(self, precision: int = 2):
+        self.precision = precision
+        self.history: List[str] = []
+
+    def add_numbers(self, a: float, b: float) -> float:
+</tool.toolu_01NaAGcywdPsv3MwSefVqTkE>
+
+## ASSISTANT:
+
+I see - the file is being created in a `src` subdirectory. The issue is that `file-relative-name` might be returning a relative path from the current working directory. Let me modify the formatting function to ensure we get the correct relative path from the project root:
+
+## TOOL USE:
+
+Name: str-replace
+ID: toolu_01WTi2RZYJBj3k3kMm19ToUk
+
+### file_path
+
+<tool.toolu_01WTi2RZYJBj3k3kMm19ToUk>
+greger-lib-lsp.el
+</tool.toolu_01WTi2RZYJBj3k3kMm19ToUk>
+
+### original_content
+
+<tool.toolu_01WTi2RZYJBj3k3kMm19ToUk>
+(defun greger-lsp--format-document-symbols (symbols file-path)
+  "Format document SYMBOLS for FILE-PATH as a readable string."
+  (if (or (null symbols) (= (length symbols) 0))
+      (format "No symbols found in %s" (file-relative-name file-path))
+    (format "Symbols in %s:\n%s"
+            (file-relative-name file-path)
+            (mapconcat (lambda (symbol)
+                        (greger-lsp--format-document-symbol symbol))
+                      symbols "\n"))))
+</tool.toolu_01WTi2RZYJBj3k3kMm19ToUk>
+
+### new_content
+
+<tool.toolu_01WTi2RZYJBj3k3kMm19ToUk>
+(defun greger-lsp--format-document-symbols (symbols file-path)
+  "Format document SYMBOLS for FILE-PATH as a readable string."
+  (let ((relative-path (if (and (bound-and-true-p lsp-mode) (lsp-workspace-root))
+                           (file-relative-name file-path (lsp-workspace-root))
+                         (file-relative-name file-path))))
+    (if (or (null symbols) (= (length symbols) 0))
+        (format "No symbols found in %s" relative-path)
+      (format "Symbols in %s:\n%s"
+              relative-path
+              (mapconcat (lambda (symbol)
+                          (greger-lsp--format-document-symbol symbol))
+                        symbols "\n")))))
+</tool.toolu_01WTi2RZYJBj3k3kMm19ToUk>
+
+### git_commit_message
+
+<tool.toolu_01WTi2RZYJBj3k3kMm19ToUk>
+Update document symbols formatting to use workspace-relative paths
+</tool.toolu_01WTi2RZYJBj3k3kMm19ToUk>
+
+<!-- TOOL_RESULT_PLACEHOLDER_toolu_01WTi2RZYJBj3k3kMm19ToUk -->
