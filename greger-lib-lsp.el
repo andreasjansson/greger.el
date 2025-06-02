@@ -201,9 +201,6 @@ LINE is 1-based, COLUMN is 0-based."
                                  (save-buffer)))))
                          document-changes?))
 
-               ;; TODO: remove debug
-               (message (format "changes: %s" changes))
-
                ;; Save buffers modified by changes
                (when changes?
                  (lsp-map (lambda (uri _text-edits)
