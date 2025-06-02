@@ -300,8 +300,10 @@ If HIERARCHICAL is true, format with indentation to show structure."
             ;; Also get declarations if requested and supported
             (when (and include-declaration
                        (greger-lsp--feature-supported-p "textDocument/declaration"))
-              (let ((declarations (lsp-request "textDocument/declaration"
-                                             (lsp--text-document-position-params))))
+              (let ((declarations (let ((lsp-response-timeout 10))
+                                        (lsp-request "textDocument/declaration"
+                                                   `(:textDocument ,(lsp--text-document-identifier)
+                                                     :position ,(lsp--cur-position))))))
                 (when declarations
                   (setq result-text (concat result-text "\n\nDeclarations:\n"
                                           (greger-lsp--format-locations declarations))))))

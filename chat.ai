@@ -6471,4 +6471,50 @@ greger-lib-lsp.el
 Fix find-definition API and add shorter timeout
 </tool.toolu_01EA4F7Lf2TtMHQCSDzJaGZD>
 
-<!-- TOOL_RESULT_PLACEHOLDER_toolu_01EA4F7Lf2TtMHQCSDzJaGZD -->
+## TOOL RESULT:
+
+ID: toolu_01EA4F7Lf2TtMHQCSDzJaGZD
+
+<tool.toolu_01EA4F7Lf2TtMHQCSDzJaGZD>
+Successfully replaced content in /Users/andreas/projects/aichat3/greger-lib-lsp.el. Successfully staged 2 file(s) and committed with message: Fix find-definition API and add shorter timeout
+</tool.toolu_01EA4F7Lf2TtMHQCSDzJaGZD>
+
+
+## ASSISTANT:
+
+And the declaration API call:
+
+## TOOL USE:
+
+Name: str-replace
+ID: toolu_01QHuUQXonmEz91zuXJSkCbg
+
+### file_path
+
+<tool.toolu_01QHuUQXonmEz91zuXJSkCbg>
+greger-lib-lsp.el
+</tool.toolu_01QHuUQXonmEz91zuXJSkCbg>
+
+### original_content
+
+<tool.toolu_01QHuUQXonmEz91zuXJSkCbg>
+(let ((declarations (lsp-request "textDocument/declaration"
+                                             (lsp--text-document-position-params))))
+</tool.toolu_01QHuUQXonmEz91zuXJSkCbg>
+
+### new_content
+
+<tool.toolu_01QHuUQXonmEz91zuXJSkCbg>
+(let ((declarations (let ((lsp-response-timeout 10))
+                                        (lsp-request "textDocument/declaration"
+                                                   `(:textDocument ,(lsp--text-document-identifier)
+                                                     :position ,(lsp--cur-position))))))
+</tool.toolu_01QHuUQXonmEz91zuXJSkCbg>
+
+### git_commit_message
+
+<tool.toolu_01QHuUQXonmEz91zuXJSkCbg>
+Fix declaration API and add shorter timeout
+</tool.toolu_01QHuUQXonmEz91zuXJSkCbg>
+
+<!-- TOOL_RESULT_PLACEHOLDER_toolu_01QHuUQXonmEz91zuXJSkCbg -->
