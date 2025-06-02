@@ -1397,4 +1397,81 @@ Fix workspace cleanup to handle both single workspaces and lists
 - This should fix the wrong-type-argument error in test cleanup
 </tool.toolu_01DW4HFhbuPs8X1jeAeYDwBM>
 
-<!-- TOOL_RESULT_PLACEHOLDER_toolu_01DW4HFhbuPs8X1jeAeYDwBM -->
+## TOOL RESULT:
+
+ID: toolu_01DW4HFhbuPs8X1jeAeYDwBM
+
+<tool.toolu_01DW4HFhbuPs8X1jeAeYDwBM>
+Successfully replaced content in /Users/andreas/projects/greger.el/test-greger-lib-lsp.el. Successfully staged 2 file(s) and committed with message: Fix workspace cleanup to handle both single workspaces and lists
+
+- Handle case where lsp-session-folder->servers contains lists of workspaces
+- Add proper type checks with lsp--workspace-p before accessing workspace fields
+- Add processp check before calling process-live-p
+- This should fix the wrong-type-argument error in test cleanup
+</tool.toolu_01DW4HFhbuPs8X1jeAeYDwBM>
+
+
+## ASSISTANT:
+
+Now let me also fix the setup function's workspace cleanup to handle the same issue:
+
+## TOOL USE:
+
+Name: str-replace
+ID: toolu_01C2AxgvHm8bgS9wtyeboDd6
+
+### file_path
+
+<tool.toolu_01C2AxgvHm8bgS9wtyeboDd6>
+test-greger-lib-lsp.el
+</tool.toolu_01C2AxgvHm8bgS9wtyeboDd6>
+
+### original_content
+
+<tool.toolu_01C2AxgvHm8bgS9wtyeboDd6>
+;; Also clean up any leftover workspaces from previous test runs
+    (let ((workspaces-to-remove '()))
+      (maphash (lambda (key workspace)
+                (when (and (lsp--workspace-root workspace)
+                          (string-prefix-p "/tmp" (lsp--workspace-root workspace)))
+                  (push workspace workspaces-to-remove)))
+              (lsp-session-folder->servers lsp--session))
+
+      (dolist (workspace workspaces-to-remove)
+        (condition-case nil
+            (lsp--shutdown-workspace workspace)
+          (error nil))))
+</tool.toolu_01C2AxgvHm8bgS9wtyeboDd6>
+
+### new_content
+
+<tool.toolu_01C2AxgvHm8bgS9wtyeboDd6>
+;; Also clean up any leftover workspaces from previous test runs
+    (let ((workspaces-to-remove '()))
+      (maphash (lambda (key workspace-list)
+                ;; workspace-list might be a single workspace or a list of workspaces
+                (let ((workspaces (if (listp workspace-list) workspace-list (list workspace-list))))
+                  (dolist (workspace workspaces)
+                    (when (and (lsp--workspace-p workspace)
+                              (lsp--workspace-root workspace)
+                              (string-prefix-p "/tmp" (lsp--workspace-root workspace)))
+                      (push workspace workspaces-to-remove)))))
+              (lsp-session-folder->servers lsp--session))
+
+      (dolist (workspace workspaces-to-remove)
+        (condition-case nil
+            (lsp--shutdown-workspace workspace)
+          (error nil))))
+</tool.toolu_01C2AxgvHm8bgS9wtyeboDd6>
+
+### git_commit_message
+
+<tool.toolu_01C2AxgvHm8bgS9wtyeboDd6>
+Fix setup workspace cleanup to handle workspace lists properly
+
+- Apply same fix to setup function as teardown function
+- Handle both single workspaces and lists of workspaces in folder->servers mapping
+- Add proper type checks before accessing workspace properties
+</tool.toolu_01C2AxgvHm8bgS9wtyeboDd6>
+
+<!-- TOOL_RESULT_PLACEHOLDER_toolu_01C2AxgvHm8bgS9wtyeboDd6 -->

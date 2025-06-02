@@ -37,10 +37,14 @@
 
     ;; Also clean up any leftover workspaces from previous test runs
     (let ((workspaces-to-remove '()))
-      (maphash (lambda (key workspace)
-                (when (and (lsp--workspace-root workspace)
-                          (string-prefix-p "/tmp" (lsp--workspace-root workspace)))
-                  (push workspace workspaces-to-remove)))
+      (maphash (lambda (key workspace-list)
+                ;; workspace-list might be a single workspace or a list of workspaces
+                (let ((workspaces (if (listp workspace-list) workspace-list (list workspace-list))))
+                  (dolist (workspace workspaces)
+                    (when (and (lsp--workspace-p workspace)
+                              (lsp--workspace-root workspace)
+                              (string-prefix-p "/tmp" (lsp--workspace-root workspace)))
+                      (push workspace workspaces-to-remove)))))
               (lsp-session-folder->servers lsp--session))
 
       (dolist (workspace workspaces-to-remove)
