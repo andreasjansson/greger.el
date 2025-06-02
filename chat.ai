@@ -2477,4 +2477,90 @@ test-greger-lib-lsp.el
 Add workspace root verification and use proper lsp-workspace-folders-add function
 </tool.toolu_01KP8t8oexnBzvKP8wVGA3bE>
 
-<!-- TOOL_RESULT_PLACEHOLDER_toolu_01KP8t8oexnBzvKP8wVGA3bE -->
+## TOOL RESULT:
+
+ID: toolu_01KP8t8oexnBzvKP8wVGA3bE
+
+<tool.toolu_01KP8t8oexnBzvKP8wVGA3bE>
+Successfully replaced content in /Users/andreas/projects/greger.el/test-greger-lib-lsp.el. Successfully staged 2 file(s) and committed with message: Add workspace root verification and use proper lsp-workspace-folders-add function
+</tool.toolu_01KP8t8oexnBzvKP8wVGA3bE>
+
+
+## ASSISTANT:
+
+Now let me also improve the cleanup to remove the workspace folder properly:
+
+## TOOL USE:
+
+Name: str-replace
+ID: toolu_015DgL8zLxZVUojH8rJaR5Sd
+
+### file_path
+
+<tool.toolu_015DgL8zLxZVUojH8rJaR5Sd>
+test-greger-lib-lsp.el
+</tool.toolu_015DgL8zLxZVUojH8rJaR5Sd>
+
+### original_content
+
+<tool.toolu_015DgL8zLxZVUojH8rJaR5Sd>
+(defun greger-lsp-test-teardown ()
+  "Clean up test environment."
+  (when greger-lsp-test-temp-dir
+    ;; Clean up LSP session
+    (when (bound-and-true-p lsp--session)
+      (condition-case nil
+          (lsp-workspace-folders-remove greger-lsp-test-project-root)
+        (error nil)))
+
+    ;; Kill any buffers visiting test files
+    (when greger-lsp-test-python-file
+      (let ((buffer (get-file-buffer greger-lsp-test-python-file)))
+        (when buffer
+          (with-current-buffer buffer
+            (when (bound-and-true-p lsp-mode)
+              (condition-case nil (lsp-disconnect) (error nil))))
+          (kill-buffer buffer))))
+
+    ;; Remove temp directory
+    (delete-directory greger-lsp-test-temp-dir t)
+    (setq greger-lsp-test-temp-dir nil
+          greger-lsp-test-python-file nil
+          greger-lsp-test-project-root nil)))
+</tool.toolu_015DgL8zLxZVUojH8rJaR5Sd>
+
+### new_content
+
+<tool.toolu_015DgL8zLxZVUojH8rJaR5Sd>
+(defun greger-lsp-test-teardown ()
+  "Clean up test environment."
+  (when greger-lsp-test-temp-dir
+    ;; Kill any buffers visiting test files first
+    (when greger-lsp-test-python-file
+      (let ((buffer (get-file-buffer greger-lsp-test-python-file)))
+        (when buffer
+          (with-current-buffer buffer
+            (when (bound-and-true-p lsp-mode)
+              (condition-case nil (lsp-disconnect) (error nil))))
+          (kill-buffer buffer))))
+
+    ;; Clean up LSP session after disconnecting
+    (when (and (bound-and-true-p lsp--session) greger-lsp-test-project-root)
+      (condition-case nil
+          (lsp-workspace-folders-remove greger-lsp-test-project-root)
+        (error nil)))
+
+    ;; Remove temp directory
+    (delete-directory greger-lsp-test-temp-dir t)
+    (setq greger-lsp-test-temp-dir nil
+          greger-lsp-test-python-file nil
+          greger-lsp-test-project-root nil)))
+</tool.toolu_015DgL8zLxZVUojH8rJaR5Sd>
+
+### git_commit_message
+
+<tool.toolu_015DgL8zLxZVUojH8rJaR5Sd>
+Improve test cleanup order - disconnect LSP before removing workspace folders
+</tool.toolu_015DgL8zLxZVUojH8rJaR5Sd>
+
+<!-- TOOL_RESULT_PLACEHOLDER_toolu_015DgL8zLxZVUojH8rJaR5Sd -->

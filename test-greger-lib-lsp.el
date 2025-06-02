@@ -128,13 +128,7 @@ description = \"Test project for greger LSP tools\"
 (defun greger-lsp-test-teardown ()
   "Clean up test environment."
   (when greger-lsp-test-temp-dir
-    ;; Clean up LSP session
-    (when (bound-and-true-p lsp--session)
-      (condition-case nil
-          (lsp-workspace-folders-remove greger-lsp-test-project-root)
-        (error nil)))
-
-    ;; Kill any buffers visiting test files
+    ;; Kill any buffers visiting test files first
     (when greger-lsp-test-python-file
       (let ((buffer (get-file-buffer greger-lsp-test-python-file)))
         (when buffer
@@ -142,6 +136,12 @@ description = \"Test project for greger LSP tools\"
             (when (bound-and-true-p lsp-mode)
               (condition-case nil (lsp-disconnect) (error nil))))
           (kill-buffer buffer))))
+
+    ;; Clean up LSP session after disconnecting
+    (when (and (bound-and-true-p lsp--session) greger-lsp-test-project-root)
+      (condition-case nil
+          (lsp-workspace-folders-remove greger-lsp-test-project-root)
+        (error nil)))
 
     ;; Remove temp directory
     (delete-directory greger-lsp-test-temp-dir t)
