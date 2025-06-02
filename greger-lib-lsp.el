@@ -230,7 +230,7 @@ If HIERARCHICAL is true, format with indentation to show structure."
 
           ;; Get symbol info first to show what we're renaming
           (let* ((symbol-info (condition-case nil
-                                  (thing-at-point 'symbol)
+                                  (substring-no-properties (or (thing-at-point 'symbol) "unknown"))
                                 (error "unknown")))
                  (edits (let ((lsp-response-timeout 10)) ; Shorter timeout for tests
                                  (lsp-request "textDocument/rename"

@@ -9151,4 +9151,153 @@ greger-lib-lsp.el
 Remove text properties from find-references result
 </tool.toolu_01N7MExtTqRrw9GYGCK2QahV>
 
-<!-- TOOL_RESULT_PLACEHOLDER_toolu_01N7MExtTqRrw9GYGCK2QahV -->
+## TOOL RESULT:
+
+ID: toolu_01N7MExtTqRrw9GYGCK2QahV
+
+<tool.toolu_01N7MExtTqRrw9GYGCK2QahV>
+Successfully replaced content in /Users/andreas/projects/greger.el/greger-lib-lsp.el. Successfully staged 2 file(s) and committed with message: Remove text properties from find-references result
+</tool.toolu_01N7MExtTqRrw9GYGCK2QahV>
+
+
+## ASSISTANT:
+
+Let me also check if `greger-lsp--format-locations` needs similar treatment:
+
+## TOOL USE:
+
+Name: read-file
+ID: toolu_01CwZQ8BehLBDzQLE45mBLfu
+
+### path
+
+<tool.toolu_01CwZQ8BehLBDzQLE45mBLfu>
+greger-lib-lsp.el
+</tool.toolu_01CwZQ8BehLBDzQLE45mBLfu>
+
+### start_line
+
+<tool.toolu_01CwZQ8BehLBDzQLE45mBLfu>
+145
+</tool.toolu_01CwZQ8BehLBDzQLE45mBLfu>
+
+### end_line
+
+<tool.toolu_01CwZQ8BehLBDzQLE45mBLfu>
+155
+</tool.toolu_01CwZQ8BehLBDzQLE45mBLfu>
+
+### include_line_numbers
+
+<tool.toolu_01CwZQ8BehLBDzQLE45mBLfu>
+true
+</tool.toolu_01CwZQ8BehLBDzQLE45mBLfu>
+
+## TOOL RESULT:
+
+ID: toolu_01CwZQ8BehLBDzQLE45mBLfu
+
+<tool.toolu_01CwZQ8BehLBDzQLE45mBLfu>
+145:   "Create LSP position parameters for FILE-PATH at LINE and COLUMN."
+146:   (greger-lsp--with-buffer-at-position file-path line column
+147:     (lambda ()
+148:       (lsp--text-document-position-params))))
+149:
+150: (defun greger-lsp--format-location (location)
+151:   "Format a single LSP LOCATION for display."
+152:   (let* ((uri (lsp:location-uri location))
+153:          (range (lsp:location-range location))
+154:          (start (lsp:range-start range))
+155:          (line (1+ (lsp:position-line start)))
+</tool.toolu_01CwZQ8BehLBDzQLE45mBLfu>
+
+## TOOL USE:
+
+Name: read-file
+ID: toolu_01DaYzQesXYZ7QJgKZqsbqyk
+
+### path
+
+<tool.toolu_01DaYzQesXYZ7QJgKZqsbqyk>
+greger-lib-lsp.el
+</tool.toolu_01DaYzQesXYZ7QJgKZqsbqyk>
+
+### start_line
+
+<tool.toolu_01DaYzQesXYZ7QJgKZqsbqyk>
+155
+</tool.toolu_01DaYzQesXYZ7QJgKZqsbqyk>
+
+### end_line
+
+<tool.toolu_01DaYzQesXYZ7QJgKZqsbqyk>
+170
+</tool.toolu_01DaYzQesXYZ7QJgKZqsbqyk>
+
+### include_line_numbers
+
+<tool.toolu_01DaYzQesXYZ7QJgKZqsbqyk>
+true
+</tool.toolu_01DaYzQesXYZ7QJgKZqsbqyk>
+
+## TOOL RESULT:
+
+ID: toolu_01DaYzQesXYZ7QJgKZqsbqyk
+
+<tool.toolu_01DaYzQesXYZ7QJgKZqsbqyk>
+155:          (line (1+ (lsp:position-line start)))
+156:          (character (lsp:position-character start))
+157:          (file-path (lsp--uri-to-path uri)))
+158:     (format "%s:%d:%d" (file-relative-name file-path) line character)))
+159:
+160: (defun greger-lsp--format-locations (locations)
+161:   "Format a list of LSP LOCATIONS for display."
+162:   (if (null locations)
+163:       "No locations found"
+164:     (mapconcat #'greger-lsp--format-location locations "\n")))
+165:
+166: (defun greger-lsp--format-symbol (symbol)
+167:   "Format a single LSP SYMBOL for display."
+168:   (let* ((name (lsp:symbol-information-name symbol))
+169:          (kind (lsp:symbol-information-kind symbol))
+170:          (location (lsp:symbol-information-location symbol))
+</tool.toolu_01DaYzQesXYZ7QJgKZqsbqyk>
+
+## ASSISTANT:
+
+The issue might be in the `file-relative-name` call or in the `thing-at-point` call. Let me check what `thing-at-point` returns and ensure it doesn't have text properties:
+
+## TOOL USE:
+
+Name: str-replace
+ID: toolu_01NmT8RSNPnynEHynAobC2gN
+
+### file_path
+
+<tool.toolu_01NmT8RSNPnynEHynAobC2gN>
+greger-lib-lsp.el
+</tool.toolu_01NmT8RSNPnynEHynAobC2gN>
+
+### original_content
+
+<tool.toolu_01NmT8RSNPnynEHynAobC2gN>
+(let* ((symbol-info (condition-case nil
+                                  (thing-at-point 'symbol)
+                                (error "unknown")))
+</tool.toolu_01NmT8RSNPnynEHynAobC2gN>
+
+### new_content
+
+<tool.toolu_01NmT8RSNPnynEHynAobC2gN>
+(let* ((symbol-info (condition-case nil
+                                  (substring-no-properties (or (thing-at-point 'symbol) "unknown"))
+                                (error "unknown")))
+</tool.toolu_01NmT8RSNPnynEHynAobC2gN>
+
+### git_commit_message
+
+<tool.toolu_01NmT8RSNPnynEHynAobC2gN>
+Remove text properties from symbol-info in find-references
+</tool.toolu_01NmT8RSNPnynEHynAobC2gN>
+
+<!-- TOOL_RESULT_PLACEHOLDER_toolu_01NmT8RSNPnynEHynAobC2gN -->
