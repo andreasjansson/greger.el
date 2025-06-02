@@ -72,7 +72,10 @@
   :description "Get document symbols for one or more files"
   :properties '((file_paths . ((type . "array")
                               (items . ((type . "string")))
-                              (description . "List of file paths to get symbols for"))))
+                              (description . "List of file paths to get symbols for")))
+                (detailed . ((type . "boolean")
+                            (description . "Include detailed symbols like variables, constants, etc.")
+                            (default . :json-false))))
   :required '("file_paths")
   :function 'greger-lib-lsp--document-symbols)
 

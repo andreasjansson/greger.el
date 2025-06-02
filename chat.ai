@@ -2268,4 +2268,98 @@ test-greger-lib-lsp.el
 Keep empty file test as is since it's in project root
 </tool.toolu_015mBoFFGf17eykoGhBzXVmX>
 
-<!-- TOOL_RESULT_PLACEHOLDER_toolu_015mBoFFGf17eykoGhBzXVmX -->
+## TOOL RESULT:
+
+ID: toolu_015mBoFFGf17eykoGhBzXVmX
+
+<tool.toolu_015mBoFFGf17eykoGhBzXVmX>
+Successfully replaced content in /Users/andreas/projects/greger.el/test-greger-lib-lsp.el. Successfully staged 2 file(s) and committed with message: Keep empty file test as is since it's in project root
+</tool.toolu_015mBoFFGf17eykoGhBzXVmX>
+
+
+## ASSISTANT:
+
+Perfect! I've updated the `lsp-document-symbols` tool and tests to:
+
+1. **Tool Enhancement**: Modified `greger-lsp--format-document-symbols` to use workspace-relative paths, so files in the `src/` directory show as `src/main.py` instead of just `main.py`.
+
+2. **Test Updates**: Updated all three tests to use exact string matching with the actual LSP output:
+   - **Single file test**: Now expects the full `src/main.py` path and includes all the detailed symbols that LSP returns (including variables and parameters within functions/methods)
+   - **Multiple files test**: Shows symbols from both `src/main.py` and `src/utils.py` with all their variables
+   - **Empty file test**: Handles files with no symbols (just comments)
+
+The LSP server (Pyright) is much more detailed than initially expected, returning not just functions and classes but also:
+- Method parameters as variables
+- Local variables within functions
+- Instance variables within classes
+
+This gives a very comprehensive view of the code structure, which is actually quite useful for understanding the full symbol hierarchy in a file.
+
+## USER:
+
+Add an optional "detailed" argument with default "false" that, when false, filters out symbols of these detailed types (for less clutter):
+
+     Variable
+     Constant
+     String
+     Number
+     Boolean
+     Array
+     Object
+     Key
+     Null
+     EnumMember
+     Struct
+     Event
+     Operator
+     TypeParameter
+
+## ASSISTANT:
+
+I'll add the optional "detailed" argument to filter out the detailed symbol types when set to false. Let me update the tool registration, implementation, and tests.
+
+## TOOL USE:
+
+Name: str-replace
+ID: toolu_011X469q3J2KMe9CbRCTD5cZ
+
+### file_path
+
+<tool.toolu_011X469q3J2KMe9CbRCTD5cZ>
+greger-lib-lsp.el
+</tool.toolu_011X469q3J2KMe9CbRCTD5cZ>
+
+### original_content
+
+<tool.toolu_011X469q3J2KMe9CbRCTD5cZ>
+(greger-register-tool "lsp-document-symbols"
+  :description "Get document symbols for one or more files"
+  :properties '((file_paths . ((type . "array")
+                              (items . ((type . "string")))
+                              (description . "List of file paths to get symbols for"))))
+  :required '("file_paths")
+  :function 'greger-lib-lsp--document-symbols)
+</tool.toolu_011X469q3J2KMe9CbRCTD5cZ>
+
+### new_content
+
+<tool.toolu_011X469q3J2KMe9CbRCTD5cZ>
+(greger-register-tool "lsp-document-symbols"
+  :description "Get document symbols for one or more files"
+  :properties '((file_paths . ((type . "array")
+                              (items . ((type . "string")))
+                              (description . "List of file paths to get symbols for")))
+                (detailed . ((type . "boolean")
+                            (description . "Include detailed symbols like variables, constants, etc.")
+                            (default . :json-false))))
+  :required '("file_paths")
+  :function 'greger-lib-lsp--document-symbols)
+</tool.toolu_011X469q3J2KMe9CbRCTD5cZ>
+
+### git_commit_message
+
+<tool.toolu_011X469q3J2KMe9CbRCTD5cZ>
+Add detailed parameter to lsp-document-symbols tool
+</tool.toolu_011X469q3J2KMe9CbRCTD5cZ>
+
+<!-- TOOL_RESULT_PLACEHOLDER_toolu_011X469q3J2KMe9CbRCTD5cZ -->
