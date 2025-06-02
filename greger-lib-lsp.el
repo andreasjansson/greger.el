@@ -8,6 +8,7 @@
 (require 'greger-tools)
 (require 'lsp-mode)
 (require 'cl-lib)
+(require 'ht)
 
 ;;; Tool registrations
 
