@@ -27,6 +27,10 @@
   (setq greger-lsp-test-temp-dir (make-temp-file "greger-lsp-test-" t))
   (setq greger-lsp-test-project-root greger-lsp-test-temp-dir)
 
+  ;; Configure LSP to work non-interactively
+  (setq lsp-auto-guess-root t
+        lsp-guess-root-without-session t)
+
   ;; Ensure we have a clean LSP session
   (when (bound-and-true-p lsp--session)
     ;; Clear any existing workspace folders that might interfere
