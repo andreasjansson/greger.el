@@ -10666,4 +10666,98 @@ greger-lib-lsp.el
 Restore condition-case and simplify workspace symbols capability check
 </tool.toolu_015PmEdGhTfVzhZB2QguCkAn>
 
-<!-- TOOL_RESULT_PLACEHOLDER_toolu_015PmEdGhTfVzhZB2QguCkAn -->
+## TOOL RESULT:
+
+ID: toolu_015PmEdGhTfVzhZB2QguCkAn
+
+<tool.toolu_015PmEdGhTfVzhZB2QguCkAn>
+Successfully replaced content in /Users/andreas/projects/greger.el/greger-lib-lsp.el. Successfully staged 2 file(s) and committed with message: Restore condition-case and simplify workspace symbols capability check
+</tool.toolu_015PmEdGhTfVzhZB2QguCkAn>
+
+
+## ASSISTANT:
+
+Now I need to add the closing part of the condition-case:
+
+## TOOL USE:
+
+Name: read-file
+ID: toolu_01TZfPQC4UgXQUErbJoYNe56
+
+### path
+
+<tool.toolu_01TZfPQC4UgXQUErbJoYNe56>
+greger-lib-lsp.el
+</tool.toolu_01TZfPQC4UgXQUErbJoYNe56>
+
+### start_line
+
+<tool.toolu_01TZfPQC4UgXQUErbJoYNe56>
+335
+</tool.toolu_01TZfPQC4UgXQUErbJoYNe56>
+
+### end_line
+
+<tool.toolu_01TZfPQC4UgXQUErbJoYNe56>
+345
+</tool.toolu_01TZfPQC4UgXQUErbJoYNe56>
+
+### include_line_numbers
+
+<tool.toolu_01TZfPQC4UgXQUErbJoYNe56>
+true
+</tool.toolu_01TZfPQC4UgXQUErbJoYNe56>
+
+## TOOL RESULT:
+
+ID: toolu_01TZfPQC4UgXQUErbJoYNe56
+
+<tool.toolu_01TZfPQC4UgXQUErbJoYNe56>
+335:                query
+336:                (if symbol-type (format " (type: %s)" symbol-type) "")
+337:                (length filtered-symbols)
+338:                (if (and max-results (> (length filtered-symbols) max-results))
+339:                    (format ", showing first %d" max-results)
+340:                  "")
+341:                result-text)))))
+342:
+343:
+344: (provide 'greger-lib-lsp)
+345:
+</tool.toolu_01TZfPQC4UgXQUErbJoYNe56>
+
+## ASSISTANT:
+
+I need to add the error handling part of the condition-case:
+
+## TOOL USE:
+
+Name: str-replace
+ID: toolu_01SgiNHYZeMbcb3n2q796Wi3
+
+### file_path
+
+<tool.toolu_01SgiNHYZeMbcb3n2q796Wi3>
+greger-lib-lsp.el
+</tool.toolu_01SgiNHYZeMbcb3n2q796Wi3>
+
+### original_content
+
+<tool.toolu_01SgiNHYZeMbcb3n2q796Wi3>
+                result-text))))
+</tool.toolu_01SgiNHYZeMbcb3n2q796Wi3>
+
+### new_content
+
+<tool.toolu_01SgiNHYZeMbcb3n2q796Wi3>
+                result-text))))
+    (error (format "LSP workspace-symbols failed: %s" (error-message-string err)))))
+</tool.toolu_01SgiNHYZeMbcb3n2q796Wi3>
+
+### git_commit_message
+
+<tool.toolu_01SgiNHYZeMbcb3n2q796Wi3>
+Add error handling to workspace symbols condition-case
+</tool.toolu_01SgiNHYZeMbcb3n2q796Wi3>
+
+<!-- TOOL_RESULT_PLACEHOLDER_toolu_01SgiNHYZeMbcb3n2q796Wi3 -->

@@ -294,7 +294,8 @@ LINE is 1-based, COLUMN is 0-based."
                           (if (and max-results (> (length locations) max-results))
                               (format ", showing first %d" max-results)
                             "")
-                          result-text)))))
+                          result-text))))
+    (error (format "LSP workspace-symbols failed: %s" (error-message-string err))))))
     (error (format "LSP find-references failed: %s" (error-message-string err)))))
 
 (defun greger-tools--lsp-workspace-symbols (query &optional max-results symbol-type)
