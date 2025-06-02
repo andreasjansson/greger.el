@@ -463,43 +463,25 @@ main [Function] (line 40, col 0)
      (should (stringp result))
      (should (string= expected result)))))
 
-(ert-deftest greger-lsp-test-document-symbols-multiple-files ()
-  "Test getting document symbols for multiple files."
+(ert-deftest greger-lsp-test-document-symbols-multiple-files-non-detailed ()
+  "Test getting document symbols for multiple files without detailed symbols."
   (greger-lsp-test-with-setup
    (let* ((utils-file (expand-file-name "src/utils.py" greger-lsp-test-temp-dir))
           (result (greger-lib-lsp--document-symbols
-                   (list greger-lsp-test-python-file utils-file)))
+                   (list greger-lsp-test-python-file utils-file)
+                   nil)) ; detailed = false
           (expected "Symbols in src/main.py:
 Calculator [Class] (line 9, col 0)
   __init__ [Method] (line 12, col 4)
-    precision [Variable] (line 12, col 23)
   add_numbers [Method] (line 16, col 4)
-    a [Variable] (line 16, col 26)
-    b [Variable] (line 16, col 36)
-    result [Variable] (line 18, col 8)
   multiply_numbers [Method] (line 22, col 4)
-    a [Variable] (line 22, col 31)
-    b [Variable] (line 22, col 41)
-    result [Variable] (line 24, col 8)
   get_history [Method] (line 28, col 4)
-  precision [Variable] (line 13, col 13)
-  history [Variable] (line 14, col 13)
 create_calculator [Function] (line 33, col 0)
-  precision [Variable] (line 33, col 22)
 main [Function] (line 40, col 0)
-  calc [Variable] (line 42, col 4)
-  result1 [Variable] (line 43, col 4)
-  result2 [Variable] (line 44, col 4)
-  entry [Variable] (line 48, col 8)
 
 Symbols in src/utils.py:
 advanced_calculation [Function] (line 6, col 0)
-  x [Variable] (line 6, col 27)
-  y [Variable] (line 6, col 37)
-  calc [Variable] (line 8, col 4)
-  intermediate [Variable] (line 9, col 4)
-format_result [Function] (line 12, col 0)
-  value [Variable] (line 12, col 19)"))
+format_result [Function] (line 12, col 0)"))
      (should (stringp result))
      (should (string= expected result)))))
 
