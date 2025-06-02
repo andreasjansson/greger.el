@@ -2462,4 +2462,30 @@ Remove timing delays from test macro
 - Let LSP manage its own timing
 </tool.toolu_01FHApKXCjP68eSTr5kGe2hq>
 
-<!-- TOOL_RESULT_PLACEHOLDER_toolu_01FHApKXCjP68eSTr5kGe2hq -->
+## TOOL RESULT:
+
+ID: toolu_01FHApKXCjP68eSTr5kGe2hq
+
+<tool.toolu_01FHApKXCjP68eSTr5kGe2hq>
+Successfully replaced content in /Users/andreas/projects/greger.el/test-greger-lib-lsp.el. Successfully staged 2 file(s) and committed with message: Remove timing delays from test macro
+
+- Remove sit-for delays that were potentially causing issues
+- Return to simpler test isolation approach
+- Let LSP manage its own timing
+</tool.toolu_01FHApKXCjP68eSTr5kGe2hq>
+
+
+## ASSISTANT:
+
+Now the test setup should be much simpler and less likely to interfere with LSP operation. The key changes I've made to fix the original issue while avoiding the timeout problem:
+
+1. **Simplified teardown**: Only kill buffers for the specific test files and do basic session folder cleanup
+2. **Removed aggressive cleanup**: No more workspace killing, process termination, or complex state manipulation
+3. **Removed timing delays**: Let LSP manage its own timing instead of forcing delays
+4. **Simplified setup**: Just basic session folder cleanup, no complex workspace management
+
+The main improvement for test isolation is that we now properly clean up both the main test file buffer AND the utils.py buffer, which was likely the source of the original test interference. This should provide adequate isolation without breaking LSP functionality.
+
+Try running your tests now - they should work without timeouts while still providing better isolation between test runs.
+
+## USER:
