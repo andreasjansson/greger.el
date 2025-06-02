@@ -8445,4 +8445,188 @@ test-greger-lib-lsp.el
 Simplify LSP test setup by removing dangerous hacks
 </tool.toolu_011kxykCk9u7QNsSVHD1ySGK>
 
-<!-- TOOL_RESULT_PLACEHOLDER_toolu_011kxykCk9u7QNsSVHD1ySGK -->
+## TOOL RESULT:
+
+ID: toolu_011kxykCk9u7QNsSVHD1ySGK
+
+<tool.toolu_011kxykCk9u7QNsSVHD1ySGK>
+Successfully replaced content in /Users/andreas/projects/greger.el/test-greger-lib-lsp.el. Successfully staged 2 file(s) and committed with message: Simplify LSP test setup by removing dangerous hacks
+</tool.toolu_011kxykCk9u7QNsSVHD1ySGK>
+
+
+## ASSISTANT:
+
+Now let me also clean up the setup function to remove the unnecessary LSP configuration changes:
+
+## TOOL USE:
+
+Name: str-replace
+ID: toolu_01VExfWenzHN2gf5hbVRjQZx
+
+### file_path
+
+<tool.toolu_01VExfWenzHN2gf5hbVRjQZx>
+test-greger-lib-lsp.el
+</tool.toolu_01VExfWenzHN2gf5hbVRjQZx>
+
+### original_content
+
+<tool.toolu_01VExfWenzHN2gf5hbVRjQZx>
+(defun greger-lsp-test-setup ()
+  "Set up test environment with temporary Python project."
+  (setq greger-lsp-test-temp-dir (make-temp-file "greger-lsp-test-" t))
+  (setq greger-lsp-test-project-root greger-lsp-test-temp-dir)
+
+  ;; Configure LSP to work non-interactively
+  (setq lsp-auto-guess-root t
+        lsp-guess-root-without-session t)
+
+  ;; Ensure we have a clean LSP session
+  (when (bound-and-true-p lsp--session)
+    ;; Clear any existing workspace folders that might interfere
+    (setf (lsp-session-folders lsp--session)
+          (cl-remove-if (lambda (folder)
+                         (string-prefix-p "/tmp" folder))
+                        (lsp-session-folders lsp--session))))
+</tool.toolu_01VExfWenzHN2gf5hbVRjQZx>
+
+### new_content
+
+<tool.toolu_01VExfWenzHN2gf5hbVRjQZx>
+(defun greger-lsp-test-setup ()
+  "Set up test environment with temporary Python project."
+  (setq greger-lsp-test-temp-dir (make-temp-file "greger-lsp-test-" t))
+  (setq greger-lsp-test-project-root greger-lsp-test-temp-dir)
+
+  ;; Clean up any old test folders from LSP session (but don't touch user folders)
+  (when (bound-and-true-p lsp--session)
+    (setf (lsp-session-folders lsp--session)
+          (cl-remove-if (lambda (folder)
+                         (string-prefix-p "/tmp" folder))
+                        (lsp-session-folders lsp--session))))
+</tool.toolu_01VExfWenzHN2gf5hbVRjQZx>
+
+### git_commit_message
+
+<tool.toolu_01VExfWenzHN2gf5hbVRjQZx>
+Remove LSP configuration changes from test setup
+</tool.toolu_01VExfWenzHN2gf5hbVRjQZx>
+
+## TOOL RESULT:
+
+ID: toolu_01VExfWenzHN2gf5hbVRjQZx
+
+<tool.toolu_01VExfWenzHN2gf5hbVRjQZx>
+Error executing tool: Original content not found in file: /Users/andreas/projects/greger.el/test-greger-lib-lsp.el -- Try again!
+</tool.toolu_01VExfWenzHN2gf5hbVRjQZx>
+
+## ASSISTANT:
+
+Let me check the current setup function:
+
+## TOOL USE:
+
+Name: read-file
+ID: toolu_01NTghLimbGVobsJXpdcPEuE
+
+### path
+
+<tool.toolu_01NTghLimbGVobsJXpdcPEuE>
+test-greger-lib-lsp.el
+</tool.toolu_01NTghLimbGVobsJXpdcPEuE>
+
+### start_line
+
+<tool.toolu_01NTghLimbGVobsJXpdcPEuE>
+25
+</tool.toolu_01NTghLimbGVobsJXpdcPEuE>
+
+### end_line
+
+<tool.toolu_01NTghLimbGVobsJXpdcPEuE>
+45
+</tool.toolu_01NTghLimbGVobsJXpdcPEuE>
+
+### include_line_numbers
+
+<tool.toolu_01NTghLimbGVobsJXpdcPEuE>
+true
+</tool.toolu_01NTghLimbGVobsJXpdcPEuE>
+
+## TOOL RESULT:
+
+ID: toolu_01NTghLimbGVobsJXpdcPEuE
+
+<tool.toolu_01NTghLimbGVobsJXpdcPEuE>
+25: (defun greger-lsp-test-setup ()
+26:   "Set up test environment with temporary Python project."
+27:   (setq greger-lsp-test-temp-dir (make-temp-file "greger-lsp-test-" t))
+28:   (setq greger-lsp-test-project-root greger-lsp-test-temp-dir)
+29:
+30:   ;; Configure LSP to work non-interactively
+31:   (let ((lsp-auto-guess-root t)
+32:         (lsp-guess-root-without-session t))
+33:
+34:     ;; Ensure we have a clean LSP session
+35:     (when (bound-and-true-p lsp--session)
+36:       ;; Clear any existing workspace folders that might interfere
+37:       (setf (lsp-session-folders lsp--session)
+38:             (cl-remove-if (lambda (folder)
+39:                             (string-prefix-p "/tmp" folder))
+40:                           (lsp-session-folders lsp--session)))))
+41:
+42:   ;; Create a simple Python project structure
+43:   (let ((src-dir (file-name-as-directory (expand-file-name "src" greger-lsp-test-temp-dir))))
+44:     (make-directory src-dir)
+45:
+</tool.toolu_01NTghLimbGVobsJXpdcPEuE>
+
+## ASSISTANT:
+
+I see the issue - it's using `let` not `setq`. Let me fix it properly:
+
+## TOOL USE:
+
+Name: str-replace
+ID: toolu_01K2ArktqfMxp8j6ESs4p7rH
+
+### file_path
+
+<tool.toolu_01K2ArktqfMxp8j6ESs4p7rH>
+test-greger-lib-lsp.el
+</tool.toolu_01K2ArktqfMxp8j6ESs4p7rH>
+
+### original_content
+
+<tool.toolu_01K2ArktqfMxp8j6ESs4p7rH>
+;; Configure LSP to work non-interactively
+  (let ((lsp-auto-guess-root t)
+        (lsp-guess-root-without-session t))
+
+    ;; Ensure we have a clean LSP session
+    (when (bound-and-true-p lsp--session)
+      ;; Clear any existing workspace folders that might interfere
+      (setf (lsp-session-folders lsp--session)
+            (cl-remove-if (lambda (folder)
+                            (string-prefix-p "/tmp" folder))
+                          (lsp-session-folders lsp--session)))))
+</tool.toolu_01K2ArktqfMxp8j6ESs4p7rH>
+
+### new_content
+
+<tool.toolu_01K2ArktqfMxp8j6ESs4p7rH>
+;; Clean up any old test folders from LSP session (but don't touch user folders)
+  (when (bound-and-true-p lsp--session)
+    (setf (lsp-session-folders lsp--session)
+          (cl-remove-if (lambda (folder)
+                         (string-prefix-p "/tmp" folder))
+                        (lsp-session-folders lsp--session))))
+</tool.toolu_01K2ArktqfMxp8j6ESs4p7rH>
+
+### git_commit_message
+
+<tool.toolu_01K2ArktqfMxp8j6ESs4p7rH>
+Remove LSP configuration changes from test setup
+</tool.toolu_01K2ArktqfMxp8j6ESs4p7rH>
+
+<!-- TOOL_RESULT_PLACEHOLDER_toolu_01K2ArktqfMxp8j6ESs4p7rH -->

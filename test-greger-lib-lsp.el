@@ -27,17 +27,12 @@
   (setq greger-lsp-test-temp-dir (make-temp-file "greger-lsp-test-" t))
   (setq greger-lsp-test-project-root greger-lsp-test-temp-dir)
 
-  ;; Configure LSP to work non-interactively
-  (let ((lsp-auto-guess-root t)
-        (lsp-guess-root-without-session t))
-
-    ;; Ensure we have a clean LSP session
-    (when (bound-and-true-p lsp--session)
-      ;; Clear any existing workspace folders that might interfere
-      (setf (lsp-session-folders lsp--session)
-            (cl-remove-if (lambda (folder)
-                            (string-prefix-p "/tmp" folder))
-                          (lsp-session-folders lsp--session)))))
+  ;; Clean up any old test folders from LSP session (but don't touch user folders)
+  (when (bound-and-true-p lsp--session)
+    (setf (lsp-session-folders lsp--session)
+          (cl-remove-if (lambda (folder)
+                         (string-prefix-p "/tmp" folder))
+                        (lsp-session-folders lsp--session))))
 
   ;; Create a simple Python project structure
   (let ((src-dir (file-name-as-directory (expand-file-name "src" greger-lsp-test-temp-dir))))
