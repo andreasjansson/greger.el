@@ -8,7 +8,7 @@
 (require 'json)
 (require 'cl-lib)
 (require 'greger-providers)
-(require 'greger)
+
 
 ;;; Data structures
 
@@ -99,9 +99,6 @@ BUFFER defaults to current buffer if not specified."
 
     state))
 
-
-
-
 ;;; Internal implementation
 
 (defun greger-stream--setup-cancel-binding (state)
@@ -112,14 +109,26 @@ BUFFER defaults to current buffer if not specified."
                      (interactive)
                      (greger-stream--cancel-request state)))))
 
+(defun greger-stream--check-for-error (output)
+  "Check OUTPUT for error responses and raise an error if found.
+Returns nil if no error found or if OUTPUT is not valid JSON."
+  (condition-case nil
+      (let ((data (json-read-from-string output)))
+        (when (and (listp data)
+                   (string= (alist-get 'type data) "error"))
+          (let* ((error-info (alist-get 'error data))
+                 (error-message (alist-get 'message error-info))
+                 (error-type (alist-get 'type error-info)))
+            (error "API Error (%s): %s" error-type error-message))))
+    (json-error nil)
+    (json-readtable-error nil)))
+
 (defun greger-stream--process-output-chunk (output state provider-config)
   "Process a chunk of OUTPUT using STATE."
+  ;; Check for error responses and raise an error if found
+  (greger-stream--check-for-error output)
+
   ;; Always accumulate for complete response
-
-  ;; TODO: handle errors of the format
-  ;; output={"type":"error","error":{"type":"invalid_request_error","message":"tools.0.custom.input_schema: Input does not match the expected shape."}}
-  ;(message (format "output: %s" output))
-
   (setf (greger-stream-state-complete-response state)
         (concat (greger-stream-state-complete-response state) output))
 
