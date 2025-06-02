@@ -353,7 +353,7 @@ description = \"Test project for greger LSP tools\"
    ;; Find references to Calculator class
    (let ((result (greger-tools--lsp-find-references
                   greger-lsp-test-python-file
-                  9 6)))  ; Line with "class Calculator", column at "Calculator"
+                  57 6)))  ; Line with "class Calculator", column at "Calculator"
      (should (stringp result))
      (should (string-match-p "References.*Calculator" result))
      (should (string-match-p "main.py:" result)))))
