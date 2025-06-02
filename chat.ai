@@ -5192,4 +5192,70 @@ greger-lib-lsp.el
 Add robust error handling to document symbol formatting
 </tool.toolu_01PNwirFVCsoGUg9rum6zo1o>
 
-<!-- TOOL_RESULT_PLACEHOLDER_toolu_01PNwirFVCsoGUg9rum6zo1o -->
+## TOOL RESULT:
+
+ID: toolu_01PNwirFVCsoGUg9rum6zo1o
+
+<tool.toolu_01PNwirFVCsoGUg9rum6zo1o>
+Successfully replaced content in /Users/andreas/projects/aichat3/greger-lib-lsp.el. Successfully staged 2 file(s) and committed with message: Add robust error handling to document symbol formatting
+</tool.toolu_01PNwirFVCsoGUg9rum6zo1o>
+
+
+## ASSISTANT:
+
+Now let me also fix the "End of buffer" errors by making the position functions more robust:
+
+## TOOL USE:
+
+Name: str-replace
+ID: toolu_015hoUXKMEtCHbjSWr2vjo3q
+
+### file_path
+
+<tool.toolu_015hoUXKMEtCHbjSWr2vjo3q>
+greger-lib-lsp.el
+</tool.toolu_015hoUXKMEtCHbjSWr2vjo3q>
+
+### original_content
+
+<tool.toolu_015hoUXKMEtCHbjSWr2vjo3q>
+(defun greger-lsp--with-buffer-at-position (file-path line column func)
+  "Execute FUNC in buffer visiting FILE-PATH at LINE and COLUMN.
+LINE is 1-based, COLUMN is 0-based."
+  (let ((buffer (greger-lsp--ensure-server file-path)))
+    (with-current-buffer buffer
+      (save-excursion
+        (goto-char (point-min))
+        (forward-line (1- line))
+        (forward-char column)
+        (funcall func)))))
+</tool.toolu_015hoUXKMEtCHbjSWr2vjo3q>
+
+### new_content
+
+<tool.toolu_015hoUXKMEtCHbjSWr2vjo3q>
+(defun greger-lsp--with-buffer-at-position (file-path line column func)
+  "Execute FUNC in buffer visiting FILE-PATH at LINE and COLUMN.
+LINE is 1-based, COLUMN is 0-based."
+  (let ((buffer (greger-lsp--ensure-server file-path)))
+    (with-current-buffer buffer
+      (save-excursion
+        (goto-char (point-min))
+        (condition-case nil
+            (progn
+              (forward-line (1- line))
+              (forward-char (min column (- (line-end-position) (line-beginning-position))))
+              (funcall func))
+          (error
+           ;; If we can't reach the position, go to end of buffer and try
+           (goto-char (point-max))
+           (funcall func)))))))
+</tool.toolu_015hoUXKMEtCHbjSWr2vjo3q>
+
+### git_commit_message
+
+<tool.toolu_015hoUXKMEtCHbjSWr2vjo3q>
+Add bounds checking to position navigation
+</tool.toolu_015hoUXKMEtCHbjSWr2vjo3q>
+
+<!-- TOOL_RESULT_PLACEHOLDER_toolu_015hoUXKMEtCHbjSWr2vjo3q -->

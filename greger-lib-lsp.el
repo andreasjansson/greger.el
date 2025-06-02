@@ -118,9 +118,15 @@ LINE is 1-based, COLUMN is 0-based."
     (with-current-buffer buffer
       (save-excursion
         (goto-char (point-min))
-        (forward-line (1- line))
-        (forward-char column)
-        (funcall func)))))
+        (condition-case nil
+            (progn
+              (forward-line (1- line))
+              (forward-char (min column (- (line-end-position) (line-beginning-position))))
+              (funcall func))
+          (error
+           ;; If we can't reach the position, go to end of buffer and try
+           (goto-char (point-max))
+           (funcall func)))))))
 
 (defun greger-lsp--feature-supported-p (method)
   "Check if the current LSP server supports METHOD."
