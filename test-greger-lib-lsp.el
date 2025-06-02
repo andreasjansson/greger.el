@@ -480,7 +480,7 @@ description = \"Test project for greger LSP tools\"
      (should (string-match-p "Calculator" original-refs))
 
      ;; Rename the symbol
-     (greger-tools--lsp-rename "MathEngine" greger-lsp-test-python-file 9 6)
+     (greger-tools--lsp-rename "MathEngine" greger-lsp-test-python-file 57 6)
 
      ;; Find references to the new name (after a brief delay for LSP to update)
      (sit-for 0.5)
