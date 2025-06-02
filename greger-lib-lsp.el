@@ -117,16 +117,25 @@ LINE is 1-based, COLUMN is 0-based."
   (let ((buffer (greger-lsp--ensure-server file-path)))
     (with-current-buffer buffer
       (save-excursion
-        (goto-char (point-min))
-        (condition-case nil
+        (condition-case err
             (progn
+              ;; Ensure line is within buffer bounds
+              (let ((max-line (line-number-at-pos (point-max))))
+                (when (> line max-line)
+                  (error "Line %d exceeds file length (%d lines)" line max-line)))
+
+              ;; Go to the specified line
+              (goto-char (point-min))
               (forward-line (1- line))
-              (forward-char (min column (- (line-end-position) (line-beginning-position))))
+
+              ;; Ensure column is within line bounds
+              (let ((line-length (- (line-end-position) (line-beginning-position))))
+                (forward-char (min column line-length)))
+
               (funcall func))
           (error
-           ;; If we can't reach the position, go to end of buffer and try
-           (goto-char (point-max))
-           (funcall func)))))))
+           (error "Position error in %s at line %d, column %d: %s"
+                  file-path line column (error-message-string err))))))))
 
 (defun greger-lsp--feature-supported-p (method)
   "Check if the current LSP server supports METHOD."

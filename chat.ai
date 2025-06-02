@@ -6338,4 +6338,85 @@ test-greger-lib-lsp.el
 Fix cross-file references test to use Calculator class instead
 </tool.toolu_01X43a6mjH9QWXUfE28MkjMP>
 
-<!-- TOOL_RESULT_PLACEHOLDER_toolu_01X43a6mjH9QWXUfE28MkjMP -->
+## TOOL RESULT:
+
+ID: toolu_01X43a6mjH9QWXUfE28MkjMP
+
+<tool.toolu_01X43a6mjH9QWXUfE28MkjMP>
+Successfully replaced content in /Users/andreas/projects/aichat3/test-greger-lib-lsp.el. Successfully staged 2 file(s) and committed with message: Fix cross-file references test to use Calculator class instead
+</tool.toolu_01X43a6mjH9QWXUfE28MkjMP>
+
+
+## ASSISTANT:
+
+Now let me also improve the position validation in the greger-lsp--with-buffer-at-position function to better handle invalid positions:
+
+## TOOL USE:
+
+Name: str-replace
+ID: toolu_019Y3dAUK9X7SjRL6GbFsULZ
+
+### file_path
+
+<tool.toolu_019Y3dAUK9X7SjRL6GbFsULZ>
+greger-lib-lsp.el
+</tool.toolu_019Y3dAUK9X7SjRL6GbFsULZ>
+
+### original_content
+
+<tool.toolu_019Y3dAUK9X7SjRL6GbFsULZ>
+(defun greger-lsp--with-buffer-at-position (file-path line column func)
+  "Execute FUNC in buffer visiting FILE-PATH at LINE and COLUMN.
+LINE is 1-based, COLUMN is 0-based."
+  (let ((buffer (greger-lsp--ensure-server file-path)))
+    (with-current-buffer buffer
+      (save-excursion
+        (goto-char (point-min))
+        (condition-case nil
+            (progn
+              (forward-line (1- line))
+              (forward-char (min column (- (line-end-position) (line-beginning-position))))
+              (funcall func))
+          (error
+           ;; If we can't reach the position, go to end of buffer and try
+           (goto-char (point-max))
+           (funcall func)))))))
+</tool.toolu_019Y3dAUK9X7SjRL6GbFsULZ>
+
+### new_content
+
+<tool.toolu_019Y3dAUK9X7SjRL6GbFsULZ>
+(defun greger-lsp--with-buffer-at-position (file-path line column func)
+  "Execute FUNC in buffer visiting FILE-PATH at LINE and COLUMN.
+LINE is 1-based, COLUMN is 0-based."
+  (let ((buffer (greger-lsp--ensure-server file-path)))
+    (with-current-buffer buffer
+      (save-excursion
+        (condition-case err
+            (progn
+              ;; Ensure line is within buffer bounds
+              (let ((max-line (line-number-at-pos (point-max))))
+                (when (> line max-line)
+                  (error "Line %d exceeds file length (%d lines)" line max-line)))
+
+              ;; Go to the specified line
+              (goto-char (point-min))
+              (forward-line (1- line))
+
+              ;; Ensure column is within line bounds
+              (let ((line-length (- (line-end-position) (line-beginning-position))))
+                (forward-char (min column line-length)))
+
+              (funcall func))
+          (error
+           (error "Position error in %s at line %d, column %d: %s"
+                  file-path line column (error-message-string err))))))))
+</tool.toolu_019Y3dAUK9X7SjRL6GbFsULZ>
+
+### git_commit_message
+
+<tool.toolu_019Y3dAUK9X7SjRL6GbFsULZ>
+Improve position validation with better error messages
+</tool.toolu_019Y3dAUK9X7SjRL6GbFsULZ>
+
+<!-- TOOL_RESULT_PLACEHOLDER_toolu_019Y3dAUK9X7SjRL6GbFsULZ -->
