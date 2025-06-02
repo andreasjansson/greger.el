@@ -420,7 +420,7 @@ utils.py:4:17"))
   (greger-lsp-test-with-setup
    (let ((result (greger-lib-lsp--document-symbols
                   (list greger-lsp-test-python-file)))
-         (expected "Symbols in main.py:
+         (expected "Symbols in src/main.py:
 Calculator [Class] (line 9, col 0)
   __init__ [Method] (line 12, col 4)
     precision [Variable] (line 12, col 23)
