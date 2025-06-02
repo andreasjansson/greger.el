@@ -496,7 +496,7 @@ description = \"Test project for greger LSP tools\"
      ;; Find references to create_calculator (used in both files)
      (let ((result (greger-tools--lsp-find-references
                     greger-lsp-test-python-file
-                    45 11))) ; Line with create_calculator definition
+                    81 0))) ; Line with create_calculator definition
        (should (stringp result))
        (should (string-match-p "create_calculator" result))
        ;; Should find references in both main.py and utils.py
