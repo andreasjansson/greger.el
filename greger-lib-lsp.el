@@ -338,13 +338,14 @@ If HIERARCHICAL is true, format with indentation to show structure."
                                     locations))
                  (result-text (greger-lsp--format-locations limited-locations)))
 
-            (format "References for '%s' (%d found%s):\n%s"
-                    symbol-info
-                    (length locations)
-                    (if (and max-results (> (length locations) max-results))
-                        (format ", showing first %d" max-results)
-                      "")
-                    result-text))))
+            (substring-no-properties
+                  (format "References for '%s' (%d found%s):\n%s"
+                          symbol-info
+                          (length locations)
+                          (if (and max-results (> (length locations) max-results))
+                              (format ", showing first %d" max-results)
+                            "")
+                          result-text)))))
     (error (format "LSP find-references failed: %s" (error-message-string err)))))
 
 (defun greger-tools--lsp-document-symbols (file-path &optional symbol-type hierarchical)
