@@ -9629,4 +9629,46 @@ greger-lib-lsp.el
 Remove text properties from workspace symbols result
 </tool.toolu_01CCCRz6QA5Pb8TJHzoc8tTx>
 
-<!-- TOOL_RESULT_PLACEHOLDER_toolu_01CCCRz6QA5Pb8TJHzoc8tTx -->
+## TOOL RESULT:
+
+ID: toolu_01CCCRz6QA5Pb8TJHzoc8tTx
+
+<tool.toolu_01CCCRz6QA5Pb8TJHzoc8tTx>
+Successfully replaced content in /Users/andreas/projects/greger.el/greger-lib-lsp.el. Successfully staged 2 file(s) and committed with message: Remove text properties from workspace symbols result
+</tool.toolu_01CCCRz6QA5Pb8TJHzoc8tTx>
+
+
+## ASSISTANT:
+
+Now let me also fix the `file-relative-name` calls which might be contributing to the issue:
+
+## TOOL USE:
+
+Name: str-replace
+ID: toolu_016QDSnnQGuX3zU4FnXTbSsz
+
+### file_path
+
+<tool.toolu_016QDSnnQGuX3zU4FnXTbSsz>
+greger-lib-lsp.el
+</tool.toolu_016QDSnnQGuX3zU4FnXTbSsz>
+
+### original_content
+
+<tool.toolu_016QDSnnQGuX3zU4FnXTbSsz>
+(format "%s:%d:%d" (file-relative-name file-path) line character)
+</tool.toolu_016QDSnnQGuX3zU4FnXTbSsz>
+
+### new_content
+
+<tool.toolu_016QDSnnQGuX3zU4FnXTbSsz>
+(format "%s:%d:%d" (substring-no-properties (file-relative-name file-path)) line character)
+</tool.toolu_016QDSnnQGuX3zU4FnXTbSsz>
+
+### git_commit_message
+
+<tool.toolu_016QDSnnQGuX3zU4FnXTbSsz>
+Remove text properties from file-relative-name in format-location
+</tool.toolu_016QDSnnQGuX3zU4FnXTbSsz>
+
+<!-- TOOL_RESULT_PLACEHOLDER_toolu_016QDSnnQGuX3zU4FnXTbSsz -->

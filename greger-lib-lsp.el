@@ -155,7 +155,7 @@ LINE is 1-based, COLUMN is 0-based."
          (line (1+ (lsp:position-line start)))
          (character (lsp:position-character start))
          (file-path (lsp--uri-to-path uri)))
-    (format "%s:%d:%d" (file-relative-name file-path) line character)))
+    (format "%s:%d:%d" (substring-no-properties (file-relative-name file-path)) line character)))
 
 (defun greger-lsp--format-locations (locations)
   "Format a list of LSP LOCATIONS for display."
