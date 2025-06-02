@@ -376,10 +376,11 @@ If HIERARCHICAL is true, format with indentation to show structure."
                                    symbols))
                  (result-text (greger-lsp--format-document-symbols filtered-symbols hierarchical)))
 
-            (format "Document symbols for %s%s:\n%s"
-                    (file-relative-name file-path)
-                    (if symbol-type (format " (type: %s)" symbol-type) "")
-                    result-text))))
+            (substring-no-properties
+                  (format "Document symbols for %s%s:\n%s"
+                          (file-relative-name file-path)
+                          (if symbol-type (format " (type: %s)" symbol-type) "")
+                          result-text)))))
     (error (format "LSP document-symbols failed: %s" (error-message-string err)))))
 
 (defun greger-tools--lsp-workspace-symbols (query &optional max-results symbol-type)

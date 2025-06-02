@@ -9531,4 +9531,49 @@ greger-lib-lsp.el
 Remove text properties from format success result
 </tool.toolu_01C9FgdGQt7MQHdC8wnwh4zi>
 
-<!-- TOOL_RESULT_PLACEHOLDER_toolu_01C9FgdGQt7MQHdC8wnwh4zi -->
+## TOOL RESULT:
+
+ID: toolu_01C9FgdGQt7MQHdC8wnwh4zi
+
+<tool.toolu_01C9FgdGQt7MQHdC8wnwh4zi>
+Successfully replaced content in /Users/andreas/projects/greger.el/greger-lib-lsp.el. Successfully staged 2 file(s) and committed with message: Remove text properties from format success result
+</tool.toolu_01C9FgdGQt7MQHdC8wnwh4zi>
+
+
+## TOOL USE:
+
+Name: str-replace
+ID: toolu_01JgNmS7KFmbdtZdpfikK3yQ
+
+### file_path
+
+<tool.toolu_01JgNmS7KFmbdtZdpfikK3yQ>
+greger-lib-lsp.el
+</tool.toolu_01JgNmS7KFmbdtZdpfikK3yQ>
+
+### original_content
+
+<tool.toolu_01JgNmS7KFmbdtZdpfikK3yQ>
+(format "Document symbols for %s%s:\n%s"
+                    (file-relative-name file-path)
+                    (if symbol-type (format " (type: %s)" symbol-type) "")
+                    result-text)
+</tool.toolu_01JgNmS7KFmbdtZdpfikK3yQ>
+
+### new_content
+
+<tool.toolu_01JgNmS7KFmbdtZdpfikK3yQ>
+(substring-no-properties
+                  (format "Document symbols for %s%s:\n%s"
+                          (file-relative-name file-path)
+                          (if symbol-type (format " (type: %s)" symbol-type) "")
+                          result-text))
+</tool.toolu_01JgNmS7KFmbdtZdpfikK3yQ>
+
+### git_commit_message
+
+<tool.toolu_01JgNmS7KFmbdtZdpfikK3yQ>
+Remove text properties from document symbols result
+</tool.toolu_01JgNmS7KFmbdtZdpfikK3yQ>
+
+<!-- TOOL_RESULT_PLACEHOLDER_toolu_01JgNmS7KFmbdtZdpfikK3yQ -->
