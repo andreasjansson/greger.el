@@ -25,7 +25,7 @@
 
 
 
-(defcustom greger-agent-debug t
+(defcustom greger-agent-debug nil
   "Whether to show debug information."
   :type 'boolean
   :group 'greger)
