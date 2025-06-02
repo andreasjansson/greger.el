@@ -196,6 +196,9 @@ description = \"Test project for greger LSP tools\"
     ;; Wait a moment for cleanup to complete
     (sit-for 0.3)
 
+    ;; As a final safety measure, force reset any remaining LSP state
+    (greger-lsp-test-force-reset-lsp-state)
+
     ;; Remove temp directory
     (condition-case nil
         (delete-directory greger-lsp-test-temp-dir t)

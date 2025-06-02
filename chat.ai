@@ -1172,4 +1172,79 @@ Add nuclear option for LSP state reset in tests
 - This provides a backup cleanup method for cases where normal cleanup isn't sufficient
 </tool.toolu_015qz4YqkkVpioiUP7CEVJpE>
 
-<!-- TOOL_RESULT_PLACEHOLDER_toolu_015qz4YqkkVpioiUP7CEVJpE -->
+## TOOL RESULT:
+
+ID: toolu_015qz4YqkkVpioiUP7CEVJpE
+
+<tool.toolu_015qz4YqkkVpioiUP7CEVJpE>
+Successfully replaced content in /Users/andreas/projects/greger.el/test-greger-lib-lsp.el. Successfully staged 2 file(s) and committed with message: Add nuclear option for LSP state reset in tests
+
+- Add greger-lsp-test-force-reset-lsp-state function for complete LSP state cleanup
+- Clears all LSP session mappings related to temp directories
+- This provides a backup cleanup method for cases where normal cleanup isn't sufficient
+</tool.toolu_015qz4YqkkVpioiUP7CEVJpE>
+
+
+## ASSISTANT:
+
+Now let's update the teardown function to use this nuclear option as a fallback:
+
+## TOOL USE:
+
+Name: str-replace
+ID: toolu_01C5vMyK4ckfnDU5PEE5SCtU
+
+### file_path
+
+<tool.toolu_01C5vMyK4ckfnDU5PEE5SCtU>
+test-greger-lib-lsp.el
+</tool.toolu_01C5vMyK4ckfnDU5PEE5SCtU>
+
+### original_content
+
+<tool.toolu_01C5vMyK4ckfnDU5PEE5SCtU>
+    ;; Wait a moment for cleanup to complete
+    (sit-for 0.3)
+
+    ;; Remove temp directory
+    (condition-case nil
+        (delete-directory greger-lsp-test-temp-dir t)
+      (error nil))
+
+    ;; Reset test variables
+    (setq greger-lsp-test-temp-dir nil
+          greger-lsp-test-python-file nil
+          greger-lsp-test-project-root nil)))
+</tool.toolu_01C5vMyK4ckfnDU5PEE5SCtU>
+
+### new_content
+
+<tool.toolu_01C5vMyK4ckfnDU5PEE5SCtU>
+    ;; Wait a moment for cleanup to complete
+    (sit-for 0.3)
+
+    ;; As a final safety measure, force reset any remaining LSP state
+    (greger-lsp-test-force-reset-lsp-state)
+
+    ;; Remove temp directory
+    (condition-case nil
+        (delete-directory greger-lsp-test-temp-dir t)
+      (error nil))
+
+    ;; Reset test variables
+    (setq greger-lsp-test-temp-dir nil
+          greger-lsp-test-python-file nil
+          greger-lsp-test-project-root nil)))
+</tool.toolu_01C5vMyK4ckfnDU5PEE5SCtU>
+
+### git_commit_message
+
+<tool.toolu_01C5vMyK4ckfnDU5PEE5SCtU>
+Use nuclear LSP state reset as final cleanup step
+
+- Call greger-lsp-test-force-reset-lsp-state at the end of teardown
+- This ensures any remaining LSP state related to temp directories is cleared
+- Provides maximum isolation between test runs
+</tool.toolu_01C5vMyK4ckfnDU5PEE5SCtU>
+
+<!-- TOOL_RESULT_PLACEHOLDER_toolu_01C5vMyK4ckfnDU5PEE5SCtU -->
