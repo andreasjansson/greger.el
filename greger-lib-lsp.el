@@ -68,18 +68,13 @@
   :required '("file_path" "line" "column")
   :function 'greger-lib-lsp--find-references)
 
-(greger-register-tool "lsp-workspace-symbols"
-  :description "Search for symbols across the entire workspace"
-  :properties '((query . ((type . "string")
-                         (description . "Search query for symbol names")))
-                (max_results . ((type . "integer")
-                               (description . "Maximum number of results")
-                               (default . 50)))
-                (symbol_type . ((type . "string")
-                               (description . "Filter by symbol type (Function, Class, Variable, etc.)")
-                               (default . nil))))
-  :required '("query")
-  :function 'greger-lib-lsp--workspace-symbols)
+(greger-register-tool "lsp-document-symbols"
+  :description "Get document symbols for one or more files"
+  :properties '((file_paths . ((type . "array")
+                              (items . ((type . "string")))
+                              (description . "List of file paths to get symbols for"))))
+  :required '("file_paths")
+  :function 'greger-lib-lsp--document-symbols)
 
 ;;; Helper functions
 
@@ -331,48 +326,6 @@ LINE is 1-based, COLUMN is 0-based."
                     (format ", showing first %d" max-results)
                   "")
                 result-text))))))
-
-(defun greger-lib-lsp--workspace-symbols (query &optional max-results symbol-type)
-  "Search for symbols across workspace using LSP."
-  (progn
-    ;; Ensure we have at least one LSP workspace
-    (unless lsp--session
-      (error "No LSP session found. Please open a file with LSP support first"))
-
-    (unless (lsp--session-workspaces lsp--session)
-      (error "No active LSP workspaces found"))
-
-    (let* ((symbols (let ((lsp-response-timeout 10)) ; Shorter timeout for tests
-                      (lsp-request "workspace/symbol" `(:query ,query))))
-           ;; Filter by symbol type if specified
-           (filtered-symbols (if symbol-type
-                                 ;; Find the numeric kind value for the string symbol type
-                                 (let ((target-kind (cl-loop for (kind . name) in lsp-symbol-kinds
-                                                             when (string-equal-ignore-case symbol-type name)
-                                                             return kind)))
-                                   (if target-kind
-                                       (seq-filter (lambda (sym)
-                                                     (= (lsp:symbol-information-kind sym) target-kind))
-                                                   symbols)
-                                     symbols))
-                               symbols))
-           ;; Limit results if specified
-           (limited-symbols (if max-results
-                                (seq-take filtered-symbols max-results)
-                              filtered-symbols))
-           (result-text (if (null limited-symbols)
-                            "No symbols found"
-                          (mapconcat #'greger-lsp--format-symbol limited-symbols "\n"))))
-
-      (substring-no-properties
-       (format "Workspace symbols for query '%s'%s (%d found%s):\n%s"
-               query
-               (if symbol-type (format " (type: %s)" symbol-type) "")
-               (length filtered-symbols)
-               (if (and max-results (> (length filtered-symbols) max-results))
-                   (format ", showing first %d" max-results)
-                 "")
-               result-text)))))
 
 
 (provide 'greger-lib-lsp)

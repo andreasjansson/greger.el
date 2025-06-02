@@ -2,873 +2,404 @@
 
 ## USER:
 
-Something weird happens in test-greger-lib-lsp.el. When I run the whole test suite, some of the later tests fail.
+Add a lsp-document-symbols tool to greger-lib-lsp.el (and a test in test-greger-lib-lsp.el). lsp-document-symbols should take 1 argument: file_paths (list of file paths, at least one).
 
-But when I run the tests in isolation they work. I think it's because the tests aren't tore down/re-initialized properly in greger-lsp-test-with-setup, so there's state hanging on between runs
+For each path, it should invoke `(lsp--get-document-symbols)` which returns something like
 
+``` emacs-lisp
+(#s(hash-table size 5 test equal rehash-size 1.5 rehash-threshold 0.8125 data ("name" "main" "kind" 12 "range" #s(hash-table size 2 test equal rehash-size 1.5 rehash-threshold 0.8125 data ("start" #s(hash-table size 2 test equal rehash-size 1.5 rehash-threshold 0.8125 data ("line" 5 "character" 0)) "end" #s(hash-table size 2 test equal rehash-size 1.5 rehash-threshold 0.8125 data ("line" 6 "character" 16)))) "selectionRange" #s(hash-table size 2 test equal rehash-size 1.5 rehash-threshold 0.8125 data ("start" #s(hash-table size 2 test equal rehash-size 1.5 rehash-threshold 0.8125 data ("line" 5 "character" 4)) "end" #s(hash-table size 2 test equal rehash-size 1.5 rehash-threshold 0.8125 data ("line" 5 "character" 8)))) "children" [])))
+```
+
+Take that hash table and format it as a readable string and return it from the tool.
 
 ## ASSISTANT:
 
-I'll help you investigate the test isolation issue in your test file. Let me first look at the test file and the `greger-lsp-test-with-setup` macro to understand the current setup and teardown behavior.
+I'll help you add the `lsp-document-symbols` tool to `greger-lib-lsp.el` and create a test for it. Let me first examine the existing files to understand the structure.
 
 ## TOOL USE:
 
 Name: read-file
-ID: toolu_015twkfJ9hfo8Az5EZASGSx5
+ID: toolu_01SjWFXEfU5AZQwih4ZFWxtd
 
 ### path
 
-<tool.toolu_015twkfJ9hfo8Az5EZASGSx5>
-test-greger-lib-lsp.el
-</tool.toolu_015twkfJ9hfo8Az5EZASGSx5>
-
-### include_line_numbers
-
-<tool.toolu_015twkfJ9hfo8Az5EZASGSx5>
-true
-</tool.toolu_015twkfJ9hfo8Az5EZASGSx5>
+<tool.toolu_01SjWFXEfU5AZQwih4ZFWxtd>
+greger-lib-lsp.el
+</tool.toolu_01SjWFXEfU5AZQwih4ZFWxtd>
 
 ## TOOL RESULT:
 
-ID: toolu_015twkfJ9hfo8Az5EZASGSx5
+ID: toolu_01SjWFXEfU5AZQwih4ZFWxtd
 
-<tool.toolu_015twkfJ9hfo8Az5EZASGSx5>
-  1: ;;; test-greger-lib-lsp.el --- Tests for greger LSP tools -*- lexical-binding: t -*-
-  2:
-  3: ;;; Commentary:
-  4: ;; Tests for the LSP-powered tools defined in greger-lib-lsp.el
-  5:
-  6: ;;; Code:
-  7:
-  8: (require 'ert)
-  9: (require 'cl-lib)
- 10: (require 'greger-lib-lsp)
- 11: (require 'lsp-mode)
- 12: (require 'lsp-pyright)  ; Python LSP server
- 13:
- 14: ;;; Test utilities
- 15:
- 16: (defvar greger-lsp-test-temp-dir nil
- 17:   "Temporary directory for LSP tests.")
- 18:
- 19: (defvar greger-lsp-test-python-file nil
- 20:   "Path to test Python file.")
- 21:
- 22: (defvar greger-lsp-test-project-root nil
- 23:   "Root directory of test project.")
- 24:
- 25: (defun greger-lsp-test-setup ()
- 26:   "Set up test environment with temporary Python project."
- 27:   (setq greger-lsp-test-temp-dir (make-temp-file "greger-lsp-test-" t))
- 28:   (setq greger-lsp-test-project-root greger-lsp-test-temp-dir)
- 29:
- 30:   ;; Clean up any old test folders from LSP session (but don't touch user folders)
- 31:   (when (bound-and-true-p lsp--session)
- 32:     (setf (lsp-session-folders lsp--session)
- 33:           (cl-remove-if (lambda (folder)
- 34:                          (string-prefix-p "/tmp" folder))
- 35:                         (lsp-session-folders lsp--session))))
- 36:
- 37:   ;; Create a simple Python project structure
- 38:   (let ((src-dir (file-name-as-directory (expand-file-name "src" greger-lsp-test-temp-dir))))
- 39:     (make-directory src-dir)
- 40:
- 41:     ;; Create main.py with some example code
- 42:     (setq greger-lsp-test-python-file (expand-file-name "main.py" src-dir))
- 43:     (with-temp-file greger-lsp-test-python-file
- 44:       (insert "#!/usr/bin/env python3
- 45: \"\"\"Example Python module for testing LSP tools.\"\"\"
- 46:
- 47: import os
- 48: import sys
- 49: from typing import List, Optional
- 50:
- 51:
- 52: class Calculator:
- 53:     \"\"\"A simple calculator class.\"\"\"
- 54:
- 55:     def __init__(self, precision: int = 2):
- 56:         self.precision = precision
- 57:         self.history: List[str] = []
- 58:
- 59:     def add_numbers(self, a: float, b: float) -> float:
- 60:         \"\"\"Add two numbers together.\"\"\"
- 61:         result = a + b
- 62:         self.history.append(f\"{a} + {b} = {result}\")
- 63:         return round(result, self.precision)
- 64:
- 65:     def multiply_numbers(self, a: float, b: float) -> float:
- 66:         \"\"\"Multiply two numbers.\"\"\"
- 67:         result = a * b
- 68:         self.history.append(f\"{a} * {b} = {result}\")
- 69:         return round(result, self.precision)
- 70:
- 71:     def get_history(self) -> List[str]:
- 72:         \"\"\"Get calculation history.\"\"\"
- 73:         return self.history.copy()
- 74:
- 75:
- 76: def create_calculator(precision: Optional[int] = None) -> Calculator:
- 77:     \"\"\"Factory function to create a calculator.\"\"\"
- 78:     if precision is None:
- 79:         precision = 2
- 80:     return Calculator(precision)
- 81:
- 82:
- 83: def main():
- 84:     \"\"\"Main function for testing.\"\"\"
- 85:     calc = create_calculator(3)
- 86:     result1 = calc.add_numbers(10.5, 20.3)
- 87:     result2 = calc.multiply_numbers(result1, 2.0)
- 88:
- 89:     print(f\"Final result: {result2}\")
- 90:     print(\"History:\")
- 91:     for entry in calc.get_history():
- 92:         print(f\"  {entry}\")
- 93:
- 94:
- 95: if __name__ == \"__main__\":
- 96:     main()
- 97: "))
- 98:
- 99:     ;; Create utils.py for reference testing
-100:     (let ((utils-file (expand-file-name "utils.py" src-dir)))
-101:       (with-temp-file utils-file
-102:         (insert "#!/usr/bin/env python3
-103: \"\"\"Utility functions.\"\"\"
-104:
-105: from main import Calculator, create_calculator
-106:
-107:
-108: def advanced_calculation(x: float, y: float) -> float:
-109:     \"\"\"Perform advanced calculation using Calculator.\"\"\"
-110:     calc = create_calculator(4)
-111:     intermediate = calc.add_numbers(x, y)
-112:     return calc.multiply_numbers(intermediate, 1.5)
-113:
-114:
-115: def format_result(value: float) -> str:
-116:     \"\"\"Format a calculation result.\"\"\"
-117:     return f\"Result: {value:.2f}\"
-118: ")))
-119:
-120:     ;; Create a simple pyproject.toml for LSP to recognize the project
-121:     (with-temp-file (expand-file-name "pyproject.toml" greger-lsp-test-temp-dir)
-122:       (insert "[project]
-123: name = \"greger-lsp-test\"
-124: version = \"0.1.0\"
-125: description = \"Test project for greger LSP tools\"
-126: "))))
-127:
-128: (defun greger-lsp-test-teardown ()
-129:   "Clean up test environment."
-130:   (when greger-lsp-test-temp-dir
-131:     ;; Kill any buffers visiting test files first
-132:     (when greger-lsp-test-python-file
-133:       (let ((buffer (get-file-buffer greger-lsp-test-python-file)))
-134:         (when buffer
-135:           (with-current-buffer buffer
-136:             (when (bound-and-true-p lsp-mode)
-137:               (condition-case nil (lsp-disconnect) (error nil))))
-138:           (kill-buffer buffer))))
-139:
-140:     ;; Clean up LSP session after disconnecting
-141:     (when (and (bound-and-true-p lsp--session) greger-lsp-test-project-root)
-142:       (condition-case nil
-143:           (lsp-workspace-folders-remove greger-lsp-test-project-root)
-144:         (error nil)))
-145:
-146:     ;; Remove temp directory
-147:     (delete-directory greger-lsp-test-temp-dir t)
-148:     (setq greger-lsp-test-temp-dir nil
-149:           greger-lsp-test-python-file nil
-150:           greger-lsp-test-project-root nil)))
-151:
-152: (defun greger-lsp-test-ensure-lsp-started ()
-153:   "Ensure LSP is started for the test Python file."
-154:   (let ((buffer (find-file-noselect greger-lsp-test-python-file)))
-155:     (with-current-buffer buffer
-156:       (python-mode)
-157:
-158:       ;; Use lsp-workspace-folders-add to properly register our test directory
-159:       (lsp-workspace-folders-add greger-lsp-test-project-root)
-160:
-161:       ;; Start LSP with our configured workspace
-162:       (condition-case err
-163:           (progn
-164:             ;; Bind LSP variables to ensure proper root detection
-165:             (let ((lsp-auto-guess-root nil)
-166:                   (lsp-guess-root-without-session nil))
-167:               (lsp))
-168:             ;; Wait for LSP to initialize with reasonable timeout
-169:             (let ((timeout 0))
-170:               (while (and (not lsp--buffer-workspaces) (< timeout 100))
-171:                 (sit-for 0.1)
-172:                 (setq timeout (1+ timeout))))
-173:             (unless lsp--buffer-workspaces
-174:               (error "Failed to start LSP server for test"))
-175:
-176:             ;; Verify we got the right workspace root
-177:             (let ((workspace-root (lsp-workspace-root)))
-178:               (unless (string= (file-truename workspace-root)
-179:                               (file-truename greger-lsp-test-project-root))
-180:                 (error "LSP workspace root mismatch: expected %s, got %s"
-181:                        greger-lsp-test-project-root workspace-root))))
-182:         (error
-183:          (message "LSP startup error: %s" (error-message-string err))
-184:          (error "Failed to start LSP server for test: %s" (error-message-string err)))))
-185:
-186:     ;; TODO: better way to detect that buffer is ready
-187:     (sit-for 1.0)
-188:
-189:     buffer))
-190:
-191: ;;; Helper functions for test requirements
-192:
-193: (defun greger-lsp-test-requirements-met-p ()
-194:   "Check if requirements for LSP tests are met."
-195:   (and (fboundp 'lsp)
-196:        (fboundp 'python-mode)
-197:        (or (executable-find "pyright")
-198:            (executable-find "pylsp")
-199:            (executable-find "python-lsp-server"))))
-200:
-201: (defun greger-lsp-test-skip-if-requirements-not-met ()
-202:   "Skip test if LSP requirements are not met."
-203:   (unless (greger-lsp-test-requirements-met-p)
-204:     (ert-skip "LSP mode or Python LSP server not available")))
-205:
-206: ;;; Helper macros
-207:
-208: (defmacro greger-lsp-test-with-setup (&rest body)
-209:   "Execute BODY with LSP test setup and teardown."
-210:   `(progn
-211:      (greger-lsp-test-skip-if-requirements-not-met)
-212:      (unwind-protect
-213:          (progn
-214:            (greger-lsp-test-setup)
-215:            (greger-lsp-test-ensure-lsp-started)
-216:            ,@body)
-217:        (greger-lsp-test-teardown))))
-218:
-219: ;;; Tests for helper functions
-220:
-221: (ert-deftest greger-lsp-test-ensure-server ()
-222:   "Test LSP server initialization helper."
-223:   (greger-lsp-test-with-setup
-224:    (let ((buffer (greger-lsp--ensure-server greger-lsp-test-python-file)))
-225:      (should (bufferp buffer))
-226:      (with-current-buffer buffer
-227:        (should (bound-and-true-p lsp-mode))
-228:        (should lsp--buffer-workspaces)))))
-229:
-230: (ert-deftest greger-lsp-test-with-buffer-at-position ()
-231:   "Test executing code at specific buffer position."
-232:   (greger-lsp-test-with-setup
-233:    (let ((result nil))
-234:      (greger-lsp--with-buffer-at-position
-235:       greger-lsp-test-python-file 9 0  ; Line 9: class definition
-236:       (lambda ()
-237:         (setq result (thing-at-point 'word))))
-238:      (should (equal result "class")))))
-239:
-240: ;;; Tests for lsp-rename tool
-241:
-242: (ert-deftest greger-lsp-test-rename-success ()
-243:   "Test successful symbol rename."
-244:   (greger-lsp-test-with-setup
-245:    ;; Rename the Calculator class to MathCalculator
-246:    (let ((result (greger-lib-lsp--rename
-247:                   "MathCalculator"
-248:                   greger-lsp-test-python-file
-249:                   9 6)))  ; Line 9: "class Calculator:", column at "Calculator"
-250:      (should (stringp result))
-251:      (should (string= "Successfully renamed 'Calculator' to 'MathCalculator' in 4 location(s)" result))
-252:
-253:      ;; Verify the file was actually changed
-254:      (with-temp-buffer
-255:        (insert-file-contents greger-lsp-test-python-file)
-256:        (goto-char (point-min))
-257:        (should (search-forward "class MathCalculator:" nil t))))))
-258:
-259: (ert-deftest greger-lsp-test-rename-invalid-symbol ()
-260:   "Test rename on invalid symbol position."
-261:   (greger-lsp-test-with-setup
-262:    ;; Try to rename at a comment line
-263:    (let ((result (greger-lib-lsp--rename
-264:                   "NewName"
-265:                   greger-lsp-test-python-file
-266:                   2 0)))  ; Line 2: comment line
-267:      (should (stringp result))
-268:      (should (or (string-match-p "No changes made" result)
-269:              (string-match-p "failed" result))))))
-270:
-271: ;;; Tests for lsp-format tool
-272:
-273: (ert-deftest greger-lsp-test-format-file ()
-274:   "Test formatting entire file."
-275:   (ert-skip "Pyright LSP doesn't support formatting")
-276:
-277:   (greger-lsp-test-with-setup
-278:    ;; First, mess up the formatting
-279:    (with-current-buffer (find-file-noselect greger-lsp-test-python-file)
-280:      (goto-char (point-min))
-281:      (search-forward "def add_numbers")
-282:      (beginning-of-line)
-283:      (insert "   ")  ; Add extra indentation
-284:      (save-buffer))
-285:
-286:    ;; Now format the file
-287:    (let ((result (greger-lib-lsp--format greger-lsp-test-python-file)))
-288:      (should (stringp result))
-289:      (should (or (string-match-p "Successfully formatted" result)
-290:              (string-match-p "No formatting changes needed" result))))))
-291:
-292: (ert-deftest greger-lsp-test-format-range ()
-293:   "Test formatting a specific range."
-294:   (ert-skip "Pyright LSP doesn't support formatting")
-295:
-296:   (greger-lsp-test-with-setup
-297:    (let ((result (greger-lib-lsp--format
-298:                   greger-lsp-test-python-file
-299:                   10 20)))  ; Format lines 10-20 (around Calculator class)
-300:      (should (stringp result))
-301:      (should (or (string-match-p "Successfully formatted" result)
-302:              (string-match-p "No formatting changes needed" result)
-303:              (string-match-p "does not support range formatting" result))))))
-304:
-305: ;;; Tests for lsp-find-definition tool
-306:
-307: (ert-deftest greger-lsp-test-find-definition ()
-308:   "Test finding symbol definition."
-309:   (greger-lsp-test-with-setup
-310:    ;; Find definition of create_calculator usage
-311:    (let ((result (greger-lib-lsp--find-definition
-312:                   greger-lsp-test-python-file
-313:                   42 11)))  ; Line 42: "calc = create_calculator(3)", position at "create_calculator"
-314:
-315:      (should (stringp result))
-316:      (should (string-match-p "Definition.*create_calculator" result))
-317:      (should (string-match-p "main.py:" result)))))
-318:
-319: (ert-deftest greger-lsp-test-find-definition-with-declaration ()
-320:   "Test finding definition with declarations."
-321:   (greger-lsp-test-with-setup
-322:    (let ((result (greger-lib-lsp--find-definition
-323:                   greger-lsp-test-python-file
-324:                   42 11  ; Line 43: "calc = create_calculator(3)", position at "create_calculator"
-325:                   t)))   ; Include declarations
-326:      (should (stringp result))
-327:      (should (string-match-p "Definition.*create_calculator" result)))))
-328:
-329: ;;; Tests for lsp-find-references tool
-330:
-331: (ert-deftest greger-lsp-test-find-references ()
-332:   "Test finding symbol references."
-333:   (greger-lsp-test-with-setup
-334:    ;; Find references to Calculator class
-335:    (let ((result (greger-lib-lsp--find-references
-336:                   greger-lsp-test-python-file
-337:                   9 6)))  ; Line 9: "class Calculator:", column at "Calculator"
-338:      (should (stringp result))
-339:      (should (string-match-p "References.*Calculator" result))
-340:      (should (string-match-p "main.py:" result)))))
-341:
-342: (ert-deftest greger-lsp-test-find-references-limited ()
-343:   "Test finding references with result limit."
-344:   (greger-lsp-test-with-setup
-345:    (let ((result (greger-lib-lsp--find-references
-346:                   greger-lsp-test-python-file
-347:                   9 6      ; Line 9: "class Calculator:", column at "Calculator"
-348:                   t        ; Include declaration
-349:                   5)))     ; Max 5 results
-350:      (should (stringp result))
-351:      (should (string-match-p "References.*Calculator" result)))))
-352:
-353: ;;; Tests for lsp-workspace-symbols tool
-354:
-355: (ert-deftest greger-lsp-test-workspace-symbols ()
-356:   "Test searching workspace symbols."
-357:   (greger-lsp-test-with-setup
-358:    (let ((result (greger-lib-lsp--workspace-symbols "Calculator")))
-359:      (should (stringp result))
-360:      (should (string-match-p "Workspace symbols.*Calculator" result))
-361:      (should (string-match-p "Calculator.*Class" result))
-362:      (should (string-match-p "main.py:" result)))))
-363:
-364: (ert-deftest greger-lsp-test-workspace-symbols-limited ()
-365:   "Test searching workspace symbols with limits."
-366:   (greger-lsp-test-with-setup
-367:    (let ((result (greger-lib-lsp--workspace-symbols
-368:                   "add"  ; Search for "add"
-369:                   3)))   ; Max 3 results
-370:      (should (stringp result))
-371:      (should (string-match-p "Workspace symbols.*add" result)))))
-372:
-373: (ert-deftest greger-lsp-test-workspace-symbols-typed ()
-374:   "Test searching workspace symbols by type."
-375:   (greger-lsp-test-with-setup
-376:    (let ((result (greger-lib-lsp--workspace-symbols
-377:                   "main"     ; Search for "main"
-378:                   nil        ; No result limit
-379:                   "Function"))) ; Only functions
-380:      (should (stringp result))
-381:      (should (string-match-p "Workspace symbols.*main.*Function" result)))))
-382:
-383: ;;; Tests for error handling
-384:
-385: (ert-deftest greger-lsp-test-unsupported-feature ()
-386:   "Test behavior when LSP server doesn't support a feature."
-387:   (greger-lsp-test-with-setup
-388:    ;; Mock feature detection to return false
-389:    (cl-letf (((symbol-function 'greger-lsp--feature-supported-p)
-390:               (lambda (method) nil)))
-391:      (let ((result (greger-lib-lsp--rename "newname" greger-lsp-test-python-file 9 6)))
-392:        (should (stringp result))
-393:        (should (string-match-p "does not support" result))))))
-394:
-395: ;;; Integration tests
-396:
-397: (ert-deftest greger-lsp-test-rename-and-find-references ()
-398:   "Integration test: rename a symbol and verify references are updated."
-399:   (greger-lsp-test-with-setup
-400:    ;; First, find references to the original name
-401:    (let ((original-refs (greger-lib-lsp--find-references
-402:                          greger-lsp-test-python-file 9 6))) ; Line 9: Calculator class
-403:      (should (string-match-p "Calculator" original-refs))
-404:
-405:      ;; Perform rename in a way that avoids minibuffer issues
-406:      (let ((inhibit-message t)
-407:            (use-dialog-box nil)
-408:            (executing-kbd-macro t)) ; Simulate running in macro to avoid interactive prompts
-409:        (let ((result (greger-lib-lsp--rename "MathEngine" greger-lsp-test-python-file 9 6)))
-410:          (should (stringp result))
-411:
-412:          ;; Find references to the new name (after a brief delay for LSP to update)
-413:          (sit-for 0.5)
-414:          (let ((new-refs (greger-lib-lsp--find-references
-415:                           greger-lsp-test-python-file 9 6)))
-416:            (should (stringp new-refs))))))))
-417:
-418: (ert-deftest greger-lsp-test-cross-file-references ()
-419:   "Test finding references across multiple files."
-420:   (greger-lsp-test-with-setup
-421:    ;; Wait a moment for LSP to fully initialize
-422:    (sit-for 1)
-423:
-424:    ;; Find references to Calculator class (line 9, position at "Calculator")
-425:    (let ((result (greger-lib-lsp--find-references
-426:                   greger-lsp-test-python-file
-427:                   9 6))
-428:          (expected "References for 'Calculator' (3 found):
-429: main.py:33:58
-430: main.py:37:11
-431: utils.py:4:17"))
-432:
-433:      (should (stringp result))
-434:      (should (string= expected result)))))
-435:
-436: (provide 'test-greger-lib-lsp)
-437:
-438: ;;; test-greger-lib-lsp.el ends here
-439:
-</tool.toolu_015twkfJ9hfo8Az5EZASGSx5>
+<tool.toolu_01SjWFXEfU5AZQwih4ZFWxtd>
+;;; greger-lib-lsp.el --- LSP-based tools for greger agent -*- lexical-binding: t -*-
 
-## ASSISTANT:
+;;; Commentary:
+;; Provides LSP-powered refactoring and code analysis tools for greger
 
-Now let me examine the `greger-lsp-test-with-setup` macro and the setup/teardown functions more closely. I can see some potential issues that could cause state to leak between tests:
+;;; Code:
 
-1. The teardown might not be completely cleaning up LSP state
-2. There could be timing issues with LSP server shutdown
-3. Global variables and LSP session state might not be fully reset
+(require 'greger-tools)
+(require 'lsp-mode)
+(require 'cl-lib)
 
-Let me also check if there are any other related files or if I can see the actual greger-lib-lsp.el file to better understand the interactions:
+;;; Tool registrations
+
+(greger-register-tool "lsp-rename"
+  :description "Rename a symbol across the entire codebase using LSP"
+  :properties '((new_name . ((type . "string")
+                            (description . "New name for the symbol")))
+                (file_path . ((type . "string")
+                             (description . "Path to file containing the symbol")))
+                (line . ((type . "integer")
+                        (description . "Line number (1-based) where symbol is located")))
+                (column . ((type . "integer")
+                          (description . "Column number (0-based) where symbol starts"))))
+  :required '("new_name" "file_path" "line" "column")
+  :function 'greger-lib-lsp--rename)
+
+(greger-register-tool "lsp-format"
+  :description "Format code according to language standards using LSP"
+  :properties '((file_path . ((type . "string")
+                             (description . "Path to the file to format")))
+                (start_line . ((type . "integer")
+                              (description . "Start line for range formatting (1-based). If not provided, formats entire file")
+                              (default . nil)))
+                (end_line . ((type . "integer")
+                            (description . "End line for range formatting (1-based). If not provided, formats entire file")
+                            (default . nil))))
+  :required '("file_path")
+  :function 'greger-lib-lsp--format)
+
+(greger-register-tool "lsp-find-definition"
+  :description "Find the definition(s) of a symbol at a specific location"
+  :properties '((file_path . ((type . "string")
+                             (description . "Path to the file")))
+                (line . ((type . "integer")
+                        (description . "Line number (1-based)")))
+                (column . ((type . "integer")
+                          (description . "Column number (0-based)")))
+                (include_declaration . ((type . "boolean")
+                                       (description . "Also include declarations")
+                                       (default . :json-false))))
+  :required '("file_path" "line" "column")
+  :function 'greger-lib-lsp--find-definition)
+
+(greger-register-tool "lsp-find-references"
+  :description "Find all references to a symbol at a specific location"
+  :properties '((file_path . ((type . "string")
+                             (description . "Path to the file")))
+                (line . ((type . "integer")
+                        (description . "Line number (1-based)")))
+                (column . ((type . "integer")
+                          (description . "Column number (0-based)")))
+                (include_declaration . ((type . "boolean")
+                                       (description . "Include the symbol declaration in results")
+                                       (default . :json-true)))
+                (max_results . ((type . "integer")
+                               (description . "Maximum number of references to return")
+                               (default . 100))))
+  :required '("file_path" "line" "column")
+  :function 'greger-lib-lsp--find-references)
+
+;;; Helper functions
+
+(defun greger-lsp--ensure-server (file-path)
+  "Ensure LSP server is running for FILE-PATH.
+Returns the buffer visiting the file, or signals an error if LSP is not available."
+  (let ((buffer (or (find-buffer-visiting file-path)
+                    (find-file-noselect file-path))))
+    (with-current-buffer buffer
+      (unless (and (bound-and-true-p lsp-mode) lsp--buffer-workspaces)
+        (if (fboundp 'lsp)
+            (progn
+              (lsp)
+              (unless lsp--buffer-workspaces
+                (error "Failed to start LSP server for %s" file-path)))
+          (error "LSP mode not available. Please install and configure lsp-mode"))))
+    buffer))
+
+(defun greger-lsp--with-buffer-at-position (file-path line column func)
+  "Execute FUNC in buffer visiting FILE-PATH at LINE and COLUMN.
+LINE is 1-based, COLUMN is 0-based."
+  (let ((buffer (greger-lsp--ensure-server file-path)))
+    (with-current-buffer buffer
+      (save-excursion
+        (condition-case err
+            (progn
+              ;; Ensure line is within buffer bounds
+              (let ((max-line (line-number-at-pos (point-max))))
+                (when (> line max-line)
+                  (error "Line %d exceeds file length (%d lines)" line max-line)))
+
+              ;; Go to the specified line
+              (goto-char (point-min))
+              (forward-line (1- line))
+
+              ;; Ensure column is within line bounds
+              (let ((line-length (- (line-end-position) (line-beginning-position))))
+                (forward-char (min column line-length)))
+
+              (funcall func))
+          (error
+           (error "Position error in %s at line %d, column %d: %s"
+                  file-path line column (error-message-string err))))))))
+
+(defun greger-lsp--feature-supported-p (method)
+  "Check if the current LSP server supports METHOD."
+  (lsp-feature? method))
+
+(defun greger-lsp--position-params (file-path line column)
+  "Create LSP position parameters for FILE-PATH at LINE and COLUMN."
+  (greger-lsp--with-buffer-at-position file-path line column
+    (lambda ()
+      (lsp--text-document-position-params))))
+
+(defun greger-lsp--format-location (location)
+  "Format a single LSP LOCATION for display."
+  (let* ((uri (lsp:location-uri location))
+         (range (lsp:location-range location))
+         (start (lsp:range-start range))
+         (line (1+ (lsp:position-line start)))
+         (character (lsp:position-character start))
+         (file-path (lsp--uri-to-path uri)))
+    (format "%s:%d:%d" (substring-no-properties (file-relative-name file-path)) line character)))
+
+(defun greger-lsp--format-locations (locations)
+  "Format a list of LSP LOCATIONS for display."
+  (if (null locations)
+      "No locations found"
+    (mapconcat #'greger-lsp--format-location locations "\n")))
+
+(defun greger-lsp--format-symbol (symbol)
+  "Format a single LSP SYMBOL for display."
+  (let* ((name (lsp:symbol-information-name symbol))
+         (kind (lsp:symbol-information-kind symbol))
+         (location (lsp:symbol-information-location symbol))
+         (container (lsp:symbol-information-container-name symbol))
+         (kind-name (alist-get kind lsp-symbol-kinds "Unknown"))
+         (formatted-location (greger-lsp--format-location location)))
+    (format "%s [%s] %s%s"
+            name
+            kind-name
+            formatted-location
+            (if container (format " (in %s)" container) ""))))
+
+;;; Tool implementations
+
+(defun greger-lib-lsp--rename (new-name file-path line column)
+  "Rename symbol at FILE-PATH:LINE:COLUMN to NEW-NAME using LSP."
+  (greger-lsp--with-buffer-at-position
+   file-path line column
+   (lambda ()
+     (unless (greger-lsp--feature-supported-p "textDocument/rename")
+       (error "LSP server does not support rename"))
+
+     ;; Get symbol info first to show what we're renaming
+     (let* ((symbol-info (condition-case nil
+                             (substring-no-properties (or (thing-at-point 'symbol) "unknown"))
+                           (error "unknown")))
+            (edits (let ((lsp-response-timeout 10)) ; Shorter timeout for tests
+                     (lsp-request "textDocument/rename"
+                                  `(:textDocument ,(lsp--text-document-identifier)
+                                                  :position ,(lsp--cur-position)
+                                                  :newName ,new-name)))))
+
+       (if edits
+           (progn
+             (lsp--apply-workspace-edit edits 'rename)
+
+             ;; Save all modified buffers to ensure changes are persisted
+             (-let (((&WorkspaceEdit :document-changes? :changes?) edits))
+               ;; Save buffers modified by documentChanges
+               (when document-changes?
+                 (seq-do (lambda (change)
+                           (when-let ((text-doc (lsp-get change :textDocument))
+                                     (uri (lsp-get text-doc :uri))
+                                     (file-path (lsp--uri-to-path uri)))
+                             (when-let ((buffer (get-file-buffer file-path)))
+                               (with-current-buffer buffer
+                                 (save-buffer)))))
+                         document-changes?))
+
+               ;; Save buffers modified by changes
+               (when changes?
+                 (lsp-map (lambda (uri _text-edits)
+                            (when-let ((file-path (lsp--uri-to-path uri)))
+                              (when-let ((buffer (get-file-buffer file-path)))
+                                (with-current-buffer buffer
+                                  (save-buffer)))))
+                          changes?)))
+
+             ;; Count the changes - WorkspaceEdit can have either changes or documentChanges
+             (let ((change-count
+                    (-let (((&WorkspaceEdit :document-changes? :changes?) edits))
+                      (+ (if document-changes?
+                             ;; Count edits in each document change
+                             (seq-reduce (lambda (total change)
+                                          (+ total (length (lsp-get change :edits))))
+                                        document-changes? 0)
+                           0)
+                         (if changes?
+                             (let ((total 0))
+                               (lsp-map (lambda (_uri text-edits)
+                                          (setq total (+ total (length text-edits))))
+                                        changes?)
+                               total)
+                           0)))))
+               (substring-no-properties
+                (format "Successfully renamed '%s' to '%s' in %d location(s)"
+                        symbol-info
+                        new-name
+                        change-count))))
+         "No changes made - symbol may not exist or rename not applicable")))))
+
+(defun greger-lib-lsp--format (file-path &optional start-line end-line)
+  "Format FILE-PATH using LSP. If START-LINE and END-LINE provided, format only that range."
+  (let ((buffer (greger-lsp--ensure-server file-path)))
+    (with-current-buffer buffer
+      (let ((edits (if (and start-line end-line)
+                       ;; Range formatting
+                       (progn
+                         (unless (greger-lsp--feature-supported-p "textDocument/rangeFormatting")
+                           (error "LSP server does not support range formatting"))
+                         (save-excursion
+                           (goto-char (point-min))
+                           (forward-line (1- start-line))
+                           (let ((start-pos (point)))
+                             (forward-line (- end-line start-line))
+                             (let ((lsp-response-timeout 10))
+                               (lsp-request "textDocument/rangeFormatting"
+                                            `(:textDocument ,(lsp--text-document-identifier)
+                                                            :range (:start ,(lsp--point-to-position start-pos)
+                                                                           :end ,(lsp--point-to-position (point)))
+                                                            :options (:tabSize 4 :insertSpaces t)))))))
+                     ;; Full document formatting
+                     (progn
+                       (unless (greger-lsp--feature-supported-p "textDocument/formatting")
+                         (error "LSP server does not support formatting"))
+                       (let ((lsp-response-timeout 10))
+                         (lsp-request "textDocument/formatting"
+                                      `(:textDocument ,(lsp--text-document-identifier)
+                                                      :options (:tabSize 4 :insertSpaces t))))))))
+        (if (and edits (not (seq-empty-p edits)))
+            (progn
+              (lsp--apply-text-edits edits 'format)
+              (save-buffer)
+              (substring-no-properties
+               (format "Successfully formatted %s (%d edit(s) applied)"
+                       (file-relative-name file-path)
+                       (length edits))))
+          "No formatting changes needed")))))
+
+(defun greger-lib-lsp--find-definition (file-path line column &optional include-declaration)
+  "Find definition(s) of symbol at FILE-PATH:LINE:COLUMN using LSP."
+  (greger-lsp--with-buffer-at-position
+   file-path line column
+   (lambda ()
+     (unless (greger-lsp--feature-supported-p "textDocument/definition")
+       (error "LSP server does not support go-to-definition"))
+
+     (let* ((symbol-info (condition-case nil
+                             (substring-no-properties (or (thing-at-point 'symbol) "unknown"))
+                           (error "unknown")))
+            (locations (let ((lsp-response-timeout 10)) ; Shorter timeout for tests
+                         (lsp-request "textDocument/definition"
+                                      `(:textDocument ,(lsp--text-document-identifier)
+                                                      :position ,(lsp--cur-position)))))
+            (result-text (greger-lsp--format-locations locations)))
+
+       ;; Also get declarations if requested and supported
+       (when (and include-declaration
+                  (greger-lsp--feature-supported-p "textDocument/declaration"))
+         (let ((declarations (let ((lsp-response-timeout 10))
+                               (lsp-request "textDocument/declaration"
+                                            `(:textDocument ,(lsp--text-document-identifier)
+                                                            :position ,(lsp--cur-position))))))
+           (when declarations
+             (setq result-text (concat result-text "\n\nDeclarations:\n"
+                                       (greger-lsp--format-locations declarations))))))
+
+       (substring-no-properties
+        (format "Definition(s) for '%s':\n%s" symbol-info result-text))))))
+
+(defun greger-lib-lsp--find-references (file-path line column &optional include-declaration max-results)
+  "Find references to symbol at FILE-PATH:LINE:COLUMN using LSP."
+  (greger-lsp--with-buffer-at-position
+   file-path line column
+   (lambda ()
+     (unless (greger-lsp--feature-supported-p "textDocument/references")
+       (error "LSP server does not support find-references"))
+
+     (let* ((symbol-info (condition-case nil
+                             (substring-no-properties (or (thing-at-point 'symbol) "unknown"))
+                           (error "unknown")))
+            (params `(:textDocument ,(lsp--text-document-identifier)
+                                    :position ,(lsp--cur-position)
+                                    :context (:includeDeclaration ,(if include-declaration t :json-false))))
+            (locations (let ((lsp-response-timeout 10)) ; Shorter timeout for tests
+                         (lsp-request "textDocument/references" params)))
+            (limited-locations (if max-results
+                                   (seq-take locations max-results)
+                                 locations))
+            (result-text (greger-lsp--format-locations limited-locations)))
+
+       (substring-no-properties
+        (format "References for '%s' (%d found%s):\n%s"
+                symbol-info
+                (length locations)
+                (if (and max-results (> (length locations) max-results))
+                    (format ", showing first %d" max-results)
+                  "")
+                result-text))))))
+
+
+(provide 'greger-lib-lsp)
+
+;;; greger-lib-lsp.el ends here
+
+</tool.toolu_01SjWFXEfU5AZQwih4ZFWxtd>
 
 ## TOOL USE:
 
 Name: read-file
-ID: toolu_01L7yQT9VSG17kxUQvFGtcpj
+ID: toolu_01DMYv71jBLjhb5eBmRQEZDE
 
 ### path
 
-<tool.toolu_01L7yQT9VSG17kxUQvFGtcpj>
-greger-lib-lsp.el
-</tool.toolu_01L7yQT9VSG17kxUQvFGtcpj>
-
-### include_line_numbers
-
-<tool.toolu_01L7yQT9VSG17kxUQvFGtcpj>
-true
-</tool.toolu_01L7yQT9VSG17kxUQvFGtcpj>
-
-### start_line
-
-<tool.toolu_01L7yQT9VSG17kxUQvFGtcpj>
-1
-</tool.toolu_01L7yQT9VSG17kxUQvFGtcpj>
-
-### end_line
-
-<tool.toolu_01L7yQT9VSG17kxUQvFGtcpj>
-50
-</tool.toolu_01L7yQT9VSG17kxUQvFGtcpj>
-
-## TOOL RESULT:
-
-ID: toolu_01L7yQT9VSG17kxUQvFGtcpj
-
-<tool.toolu_01L7yQT9VSG17kxUQvFGtcpj>
- 1: ;;; greger-lib-lsp.el --- LSP-based tools for greger agent -*- lexical-binding: t -*-
- 2:
- 3: ;;; Commentary:
- 4: ;; Provides LSP-powered refactoring and code analysis tools for greger
- 5:
- 6: ;;; Code:
- 7:
- 8: (require 'greger-tools)
- 9: (require 'lsp-mode)
-10: (require 'cl-lib)
-11:
-12: ;;; Tool registrations
-13:
-14: (greger-register-tool "lsp-rename"
-15:   :description "Rename a symbol across the entire codebase using LSP"
-16:   :properties '((new_name . ((type . "string")
-17:                             (description . "New name for the symbol")))
-18:                 (file_path . ((type . "string")
-19:                              (description . "Path to file containing the symbol")))
-20:                 (line . ((type . "integer")
-21:                         (description . "Line number (1-based) where symbol is located")))
-22:                 (column . ((type . "integer")
-23:                           (description . "Column number (0-based) where symbol starts"))))
-24:   :required '("new_name" "file_path" "line" "column")
-25:   :function 'greger-lib-lsp--rename)
-26:
-27: (greger-register-tool "lsp-format"
-28:   :description "Format code according to language standards using LSP"
-29:   :properties '((file_path . ((type . "string")
-30:                              (description . "Path to the file to format")))
-31:                 (start_line . ((type . "integer")
-32:                               (description . "Start line for range formatting (1-based). If not provided, formats entire file")
-33:                               (default . nil)))
-34:                 (end_line . ((type . "integer")
-35:                             (description . "End line for range formatting (1-based). If not provided, formats entire file")
-36:                             (default . nil))))
-37:   :required '("file_path")
-38:   :function 'greger-lib-lsp--format)
-39:
-40: (greger-register-tool "lsp-find-definition"
-41:   :description "Find the definition(s) of a symbol at a specific location"
-42:   :properties '((file_path . ((type . "string")
-43:                              (description . "Path to the file")))
-44:                 (line . ((type . "integer")
-45:                         (description . "Line number (1-based)")))
-46:                 (column . ((type . "integer")
-47:                           (description . "Column number (0-based)")))
-48:                 (include_declaration . ((type . "boolean")
-49:                                        (description . "Also include declarations")
-50:                                        (default . :json-false))))
-</tool.toolu_01L7yQT9VSG17kxUQvFGtcpj>
-
-## ASSISTANT:
-
-Let me look at more of the implementation to understand how LSP state is managed:
-
-## TOOL USE:
-
-Name: ripgrep
-ID: toolu_01VKcpuMkYnYzaR6RsKmJ4g4
-
-### pattern
-
-<tool.toolu_01VKcpuMkYnYzaR6RsKmJ4g4>
-greger-lsp--ensure-server
-</tool.toolu_01VKcpuMkYnYzaR6RsKmJ4g4>
-
-### path
-
-<tool.toolu_01VKcpuMkYnYzaR6RsKmJ4g4>
-greger-lib-lsp.el
-</tool.toolu_01VKcpuMkYnYzaR6RsKmJ4g4>
-
-## TOOL RESULT:
-
-ID: toolu_01VKcpuMkYnYzaR6RsKmJ4g4
-
-<tool.toolu_01VKcpuMkYnYzaR6RsKmJ4g4>
-86:(defun greger-lsp--ensure-server (file-path)
-104:  (let ((buffer (greger-lsp--ensure-server file-path)))
-238:  (let ((buffer (greger-lsp--ensure-server file-path)))
-
-</tool.toolu_01VKcpuMkYnYzaR6RsKmJ4g4>
-
-## TOOL USE:
-
-Name: read-file
-ID: toolu_01G6oUVYgaT53LUvq1i9cTWD
-
-### path
-
-<tool.toolu_01G6oUVYgaT53LUvq1i9cTWD>
-greger-lib-lsp.el
-</tool.toolu_01G6oUVYgaT53LUvq1i9cTWD>
-
-### include_line_numbers
-
-<tool.toolu_01G6oUVYgaT53LUvq1i9cTWD>
-true
-</tool.toolu_01G6oUVYgaT53LUvq1i9cTWD>
-
-### start_line
-
-<tool.toolu_01G6oUVYgaT53LUvq1i9cTWD>
-80
-</tool.toolu_01G6oUVYgaT53LUvq1i9cTWD>
-
-### end_line
-
-<tool.toolu_01G6oUVYgaT53LUvq1i9cTWD>
-130
-</tool.toolu_01G6oUVYgaT53LUvq1i9cTWD>
-
-## TOOL RESULT:
-
-ID: toolu_01G6oUVYgaT53LUvq1i9cTWD
-
-<tool.toolu_01G6oUVYgaT53LUvq1i9cTWD>
- 80:                                (default . nil))))
- 81:   :required '("query")
- 82:   :function 'greger-lib-lsp--workspace-symbols)
- 83:
- 84: ;;; Helper functions
- 85:
- 86: (defun greger-lsp--ensure-server (file-path)
- 87:   "Ensure LSP server is running for FILE-PATH.
- 88: Returns the buffer visiting the file, or signals an error if LSP is not available."
- 89:   (let ((buffer (or (find-buffer-visiting file-path)
- 90:                     (find-file-noselect file-path))))
- 91:     (with-current-buffer buffer
- 92:       (unless (and (bound-and-true-p lsp-mode) lsp--buffer-workspaces)
- 93:         (if (fboundp 'lsp)
- 94:             (progn
- 95:               (lsp)
- 96:               (unless lsp--buffer-workspaces
- 97:                 (error "Failed to start LSP server for %s" file-path)))
- 98:           (error "LSP mode not available. Please install and configure lsp-mode"))))
- 99:     buffer))
-100:
-101: (defun greger-lsp--with-buffer-at-position (file-path line column func)
-102:   "Execute FUNC in buffer visiting FILE-PATH at LINE and COLUMN.
-103: LINE is 1-based, COLUMN is 0-based."
-104:   (let ((buffer (greger-lsp--ensure-server file-path)))
-105:     (with-current-buffer buffer
-106:       (save-excursion
-107:         (condition-case err
-108:             (progn
-109:               ;; Ensure line is within buffer bounds
-110:               (let ((max-line (line-number-at-pos (point-max))))
-111:                 (when (> line max-line)
-112:                   (error "Line %d exceeds file length (%d lines)" line max-line)))
-113:
-114:               ;; Go to the specified line
-115:               (goto-char (point-min))
-116:               (forward-line (1- line))
-117:
-118:               ;; Ensure column is within line bounds
-119:               (let ((line-length (- (line-end-position) (line-beginning-position))))
-120:                 (forward-char (min column line-length)))
-121:
-122:               (funcall func))
-123:           (error
-124:            (error "Position error in %s at line %d, column %d: %s"
-125:                   file-path line column (error-message-string err))))))))
-126:
-127: (defun greger-lsp--feature-supported-p (method)
-128:   "Check if the current LSP server supports METHOD."
-129:   (lsp-feature? method))
-130:
-</tool.toolu_01G6oUVYgaT53LUvq1i9cTWD>
-
-## ASSISTANT:
-
-Now I can see the issue! The problem is that the `greger-lsp-test-teardown` function doesn't properly clean up all LSP state, and there are several areas where state can leak between tests:
-
-1. **LSP server processes**: The LSP server processes themselves may not be properly killed
-2. **LSP session state**: The global `lsp--session` may retain state beyond what's being cleaned up
-3. **Buffer state**: Other buffers may still be connected to the LSP server
-4. **Timing issues**: The teardown may not wait for LSP server shutdown to complete
-
-Let me create an improved version of the test setup that provides better isolation:
-
-## TOOL USE:
-
-Name: str-replace
-ID: toolu_019phy3wAyyJoZPedPz2Hb2M
-
-### file_path
-
-<tool.toolu_019phy3wAyyJoZPedPz2Hb2M>
+<tool.toolu_01DMYv71jBLjhb5eBmRQEZDE>
 test-greger-lib-lsp.el
-</tool.toolu_019phy3wAyyJoZPedPz2Hb2M>
-
-### original_content
-
-<tool.toolu_019phy3wAyyJoZPedPz2Hb2M>
-(defun greger-lsp-test-teardown ()
-  "Clean up test environment."
-  (when greger-lsp-test-temp-dir
-    ;; Kill any buffers visiting test files first
-    (when greger-lsp-test-python-file
-      (let ((buffer (get-file-buffer greger-lsp-test-python-file)))
-        (when buffer
-          (with-current-buffer buffer
-            (when (bound-and-true-p lsp-mode)
-              (condition-case nil (lsp-disconnect) (error nil))))
-          (kill-buffer buffer))))
-
-    ;; Clean up LSP session after disconnecting
-    (when (and (bound-and-true-p lsp--session) greger-lsp-test-project-root)
-      (condition-case nil
-          (lsp-workspace-folders-remove greger-lsp-test-project-root)
-        (error nil)))
-
-    ;; Remove temp directory
-    (delete-directory greger-lsp-test-temp-dir t)
-    (setq greger-lsp-test-temp-dir nil
-          greger-lsp-test-python-file nil
-          greger-lsp-test-project-root nil)))
-</tool.toolu_019phy3wAyyJoZPedPz2Hb2M>
-
-### new_content
-
-<tool.toolu_019phy3wAyyJoZPedPz2Hb2M>
-(defun greger-lsp-test-teardown ()
-  "Clean up test environment with thorough LSP state cleanup."
-  (when greger-lsp-test-temp-dir
-    ;; Kill all buffers visiting files in our test directory
-    (let ((test-dir-prefix (file-truename greger-lsp-test-temp-dir)))
-      (dolist (buffer (buffer-list))
-        (when (buffer-file-name buffer)
-          (let ((file-path (file-truename (buffer-file-name buffer))))
-            (when (string-prefix-p test-dir-prefix file-path)
-              (with-current-buffer buffer
-                ;; Disconnect LSP for this buffer
-                (when (bound-and-true-p lsp-mode)
-                  (condition-case nil
-                      (lsp-disconnect)
-                    (error nil))))
-              ;; Kill the buffer
-              (kill-buffer buffer))))))
-
-    ;; More aggressive LSP session cleanup
-    (when (bound-and-true-p lsp--session)
-      ;; Remove our test workspace from all LSP state
-      (when greger-lsp-test-project-root
-        (let ((test-root (file-truename greger-lsp-test-project-root)))
-          ;; Remove from workspace folders
-          (condition-case nil
-              (lsp-workspace-folders-remove test-root)
-            (error nil))
-
-          ;; Clean up session folders
-          (setf (lsp-session-folders lsp--session)
-                (cl-remove-if (lambda (folder)
-                               (string-prefix-p test-root (file-truename folder)))
-                             (lsp-session-folders lsp--session)))
-
-          ;; Kill any workspaces associated with our test directory
-          (let ((workspaces-to-kill '()))
-            (maphash (lambda (key workspace)
-                      (when (and (lsp--workspace-root workspace)
-                                (string-prefix-p test-root
-                                               (file-truename (lsp--workspace-root workspace))))
-                        (push workspace workspaces-to-kill)))
-                    (lsp-session-folder->servers lsp--session))
-
-            (dolist (workspace workspaces-to-kill)
-              (condition-case nil
-                  (lsp--shutdown-workspace workspace)
-                (error nil))))))
-
-    ;; Wait a moment for cleanup to complete
-    (sit-for 0.2)
-
-    ;; Remove temp directory
-    (condition-case nil
-        (delete-directory greger-lsp-test-temp-dir t)
-      (error nil))
-
-    ;; Reset test variables
-    (setq greger-lsp-test-temp-dir nil
-          greger-lsp-test-python-file nil
-          greger-lsp-test-project-root nil)))
-</tool.toolu_019phy3wAyyJoZPedPz2Hb2M>
-
-### git_commit_message
-
-<tool.toolu_019phy3wAyyJoZPedPz2Hb2M>
-Improve LSP test teardown to better isolate tests
-
-- Kill all buffers visiting files in test directory, not just the main test file
-- More aggressive LSP session cleanup including workspace removal
-- Clean up session folders and kill associated workspaces
-- Add brief delay for cleanup completion
-- Better error handling in cleanup operations
-
-This should prevent state leakage between test runs.
-</tool.toolu_019phy3wAyyJoZPedPz2Hb2M>
+</tool.toolu_01DMYv71jBLjhb5eBmRQEZDE>
 
 ## TOOL RESULT:
 
-ID: toolu_019phy3wAyyJoZPedPz2Hb2M
+ID: toolu_01DMYv71jBLjhb5eBmRQEZDE
 
-<tool.toolu_019phy3wAyyJoZPedPz2Hb2M>
-Successfully replaced content in /Users/andreas/projects/greger.el/test-greger-lib-lsp.el. Successfully staged 2 file(s) and committed with message: Improve LSP test teardown to better isolate tests
+<tool.toolu_01DMYv71jBLjhb5eBmRQEZDE>
+;;; test-greger-lib-lsp.el --- Tests for greger LSP tools -*- lexical-binding: t -*-
 
-- Kill all buffers visiting files in test directory, not just the main test file
-- More aggressive LSP session cleanup including workspace removal
-- Clean up session folders and kill associated workspaces
-- Add brief delay for cleanup completion
-- Better error handling in cleanup operations
+;;; Commentary:
+;; Tests for the LSP-powered tools defined in greger-lib-lsp.el
 
-This should prevent state leakage between test runs.
-</tool.toolu_019phy3wAyyJoZPedPz2Hb2M>
+;;; Code:
 
+(require 'ert)
+(require 'cl-lib)
+(require 'greger-lib-lsp)
+(require 'lsp-mode)
+(require 'lsp-pyright)  ; Python LSP server
 
-## ASSISTANT:
+;;; Test utilities
 
-Now let me also improve the setup function to ensure better initial state:
+(defvar greger-lsp-test-temp-dir nil
+  "Temporary directory for LSP tests.")
 
-## TOOL USE:
+(defvar greger-lsp-test-python-file nil
+  "Path to test Python file.")
 
-Name: str-replace
-ID: toolu_019VKT73QagyeNLacVcxhUTh
+(defvar greger-lsp-test-project-root nil
+  "Root directory of test project.")
 
-### file_path
-
-<tool.toolu_019VKT73QagyeNLacVcxhUTh>
-test-greger-lib-lsp.el
-</tool.toolu_019VKT73QagyeNLacVcxhUTh>
-
-### original_content
-
-<tool.toolu_019VKT73QagyeNLacVcxhUTh>
-(defun greger-lsp-test-setup ()
-  "Set up test environment with temporary Python project."
-  (setq greger-lsp-test-temp-dir (make-temp-file "greger-lsp-test-" t))
-  (setq greger-lsp-test-project-root greger-lsp-test-temp-dir)
-
-  ;; Clean up any old test folders from LSP session (but don't touch user folders)
-  (when (bound-and-true-p lsp--session)
-    (setf (lsp-session-folders lsp--session)
-          (cl-remove-if (lambda (folder)
-                         (string-prefix-p "/tmp" folder))
-                        (lsp-session-folders lsp--session))))
-</tool.toolu_019VKT73QagyeNLacVcxhUTh>
-
-### new_content
-
-<tool.toolu_019VKT73QagyeNLacVcxhUTh>
 (defun greger-lsp-test-setup ()
   "Set up test environment with temporary Python project."
   ;; Create unique temp directory
@@ -880,1566 +411,200 @@ test-greger-lib-lsp.el
     (setf (lsp-session-folders lsp--session)
           (cl-remove-if (lambda (folder)
                          (string-prefix-p "/tmp" folder))
-                        (lsp-session-folders lsp--session)))
-
-    ;; Also clean up any leftover workspaces from previous test runs
-    (let ((workspaces-to-remove '()))
-      (maphash (lambda (key workspace)
-                (when (and (lsp--workspace-root workspace)
-                          (string-prefix-p "/tmp" (lsp--workspace-root workspace)))
-                  (push workspace workspaces-to-remove)))
-              (lsp-session-folder->servers lsp--session))
-
-      (dolist (workspace workspaces-to-remove)
-        (condition-case nil
-            (lsp--shutdown-workspace workspace)
-          (error nil)))))
-</tool.toolu_019VKT73QagyeNLacVcxhUTh>
-
-### git_commit_message
-
-<tool.toolu_019VKT73QagyeNLacVcxhUTh>
-Improve LSP test setup to clean up leftover workspaces
-
-- Also remove any leftover LSP workspaces from previous test runs in /tmp
-- This ensures a cleaner starting state for each test
-</tool.toolu_019VKT73QagyeNLacVcxhUTh>
-
-## TOOL RESULT:
-
-ID: toolu_019VKT73QagyeNLacVcxhUTh
-
-<tool.toolu_019VKT73QagyeNLacVcxhUTh>
-Successfully replaced content in /Users/andreas/projects/greger.el/test-greger-lib-lsp.el. Successfully staged 2 file(s) and committed with message: Improve LSP test setup to clean up leftover workspaces
-
-- Also remove any leftover LSP workspaces from previous test runs in /tmp
-- This ensures a cleaner starting state for each test
-</tool.toolu_019VKT73QagyeNLacVcxhUTh>
-
-
-## ASSISTANT:
-
-Now let me also add a small improvement to the macro to ensure better state isolation and add a delay between test runs:
-
-## TOOL USE:
-
-Name: str-replace
-ID: toolu_01HmWHCwMuJqmzBaWydMBohs
-
-### file_path
-
-<tool.toolu_01HmWHCwMuJqmzBaWydMBohs>
-test-greger-lib-lsp.el
-</tool.toolu_01HmWHCwMuJqmzBaWydMBohs>
-
-### original_content
-
-<tool.toolu_01HmWHCwMuJqmzBaWydMBohs>
-(defmacro greger-lsp-test-with-setup (&rest body)
-  "Execute BODY with LSP test setup and teardown."
-  `(progn
-     (greger-lsp-test-skip-if-requirements-not-met)
-     (unwind-protect
-         (progn
-           (greger-lsp-test-setup)
-           (greger-lsp-test-ensure-lsp-started)
-           ,@body)
-       (greger-lsp-test-teardown))))
-</tool.toolu_01HmWHCwMuJqmzBaWydMBohs>
-
-### new_content
-
-<tool.toolu_01HmWHCwMuJqmzBaWydMBohs>
-(defmacro greger-lsp-test-with-setup (&rest body)
-  "Execute BODY with LSP test setup and teardown.
-Ensures proper isolation between test runs."
-  `(progn
-     (greger-lsp-test-skip-if-requirements-not-met)
-
-     ;; Brief delay to ensure any previous LSP cleanup is complete
-     (sit-for 0.1)
-
-     (unwind-protect
-         (progn
-           (greger-lsp-test-setup)
-           (greger-lsp-test-ensure-lsp-started)
-           ,@body)
-       (greger-lsp-test-teardown)
-       ;; Brief delay after teardown to ensure cleanup completes
-       ;; before next test starts
-       (sit-for 0.1))))
-</tool.toolu_01HmWHCwMuJqmzBaWydMBohs>
-
-### git_commit_message
-
-<tool.toolu_01HmWHCwMuJqmzBaWydMBohs>
-Add timing delays to test macro for better LSP state isolation
-
-- Add brief delay before setup to ensure previous cleanup is complete
-- Add brief delay after teardown to ensure cleanup completes before next test
-- This should help prevent timing-related test failures
-</tool.toolu_01HmWHCwMuJqmzBaWydMBohs>
-
-## TOOL RESULT:
-
-ID: toolu_01HmWHCwMuJqmzBaWydMBohs
-
-<tool.toolu_01HmWHCwMuJqmzBaWydMBohs>
-Successfully replaced content in /Users/andreas/projects/greger.el/test-greger-lib-lsp.el. Successfully staged 2 file(s) and committed with message: Add timing delays to test macro for better LSP state isolation
-
-- Add brief delay before setup to ensure previous cleanup is complete
-- Add brief delay after teardown to ensure cleanup completes before next test
-- This should help prevent timing-related test failures
-</tool.toolu_01HmWHCwMuJqmzBaWydMBohs>
-
-
-## ASSISTANT:
-
-Let me also add one more improvement - better handling of LSP server process cleanup. Let me check if there's a way to more aggressively clean up LSP server processes:
-
-## TOOL USE:
-
-Name: ripgrep
-ID: toolu_01JGJGs7tkyrdTL4hzQAavCQ
-
-### pattern
-
-<tool.toolu_01JGJGs7tkyrdTL4hzQAavCQ>
-lsp--shutdown-workspace|lsp-kill-process|lsp-workspace-shutdown"
-</tool.toolu_01JGJGs7tkyrdTL4hzQAavCQ>
-
-### path
-
-<tool.toolu_01JGJGs7tkyrdTL4hzQAavCQ>
-.
-</tool.toolu_01JGJGs7tkyrdTL4hzQAavCQ>
-
-### file-type
-
-<tool.toolu_01JGJGs7tkyrdTL4hzQAavCQ>
-el
-</tool.toolu_01JGJGs7tkyrdTL4hzQAavCQ>
-
-## TOOL RESULT:
-
-ID: toolu_01JGJGs7tkyrdTL4hzQAavCQ
-
-<tool.toolu_01JGJGs7tkyrdTL4hzQAavCQ>
-/Users/andreas/projects/greger.el/test-greger-lib-lsp.el:48:            (lsp--shutdown-workspace workspace)
-/Users/andreas/projects/greger.el/test-greger-lib-lsp.el:187:                  (lsp--shutdown-workspace workspace)
-/Users/andreas/projects/greger.el/chat.ai:790:                  (lsp--shutdown-workspace workspace)
-/Users/andreas/projects/greger.el/chat.ai:895:            (lsp--shutdown-workspace workspace)
-
-</tool.toolu_01JGJGs7tkyrdTL4hzQAavCQ>
-
-## ASSISTANT:
-
-Now let me add one more improvement to explicitly force shutdown of LSP processes if they exist:
-
-## TOOL USE:
-
-Name: str-replace
-ID: toolu_01V3ELz6zHxvRThvf2vGUgBD
-
-### file_path
-
-<tool.toolu_01V3ELz6zHxvRThvf2vGUgBD>
-test-greger-lib-lsp.el
-</tool.toolu_01V3ELz6zHxvRThvf2vGUgBD>
-
-### original_content
-
-<tool.toolu_01V3ELz6zHxvRThvf2vGUgBD>
-            (dolist (workspace workspaces-to-kill)
-              (condition-case nil
-                  (lsp--shutdown-workspace workspace)
-                (error nil))))))
-
-    ;; Wait a moment for cleanup to complete
-    (sit-for 0.2)
-</tool.toolu_01V3ELz6zHxvRThvf2vGUgBD>
-
-### new_content
-
-<tool.toolu_01V3ELz6zHxvRThvf2vGUgBD>
-            (dolist (workspace workspaces-to-kill)
-              (condition-case nil
-                  (progn
-                    (lsp--shutdown-workspace workspace)
-                    ;; Force kill the process if it's still running
-                    (when (lsp--workspace-proc workspace)
-                      (let ((proc (lsp--workspace-proc workspace)))
-                        (when (process-live-p proc)
-                          (kill-process proc)))))
-                (error nil))))))
-
-    ;; Wait a moment for cleanup to complete
-    (sit-for 0.3)
-</tool.toolu_01V3ELz6zHxvRThvf2vGUgBD>
-
-### git_commit_message
-
-<tool.toolu_01V3ELz6zHxvRThvf2vGUgBD>
-Add more aggressive LSP process cleanup in tests
-
-- Explicitly kill LSP server processes if they're still running after workspace shutdown
-- Increase cleanup delay to allow more time for process termination
-- This should prevent lingering LSP processes from affecting subsequent tests
-</tool.toolu_01V3ELz6zHxvRThvf2vGUgBD>
-
-## TOOL RESULT:
-
-ID: toolu_01V3ELz6zHxvRThvf2vGUgBD
-
-<tool.toolu_01V3ELz6zHxvRThvf2vGUgBD>
-Successfully replaced content in /Users/andreas/projects/greger.el/test-greger-lib-lsp.el. Successfully staged 2 file(s) and committed with message: Add more aggressive LSP process cleanup in tests
-
-- Explicitly kill LSP server processes if they're still running after workspace shutdown
-- Increase cleanup delay to allow more time for process termination
-- This should prevent lingering LSP processes from affecting subsequent tests
-</tool.toolu_01V3ELz6zHxvRThvf2vGUgBD>
-
-
-## ASSISTANT:
-
-Let me also add a helper function to completely reset LSP state for the most problematic cases:
-
-## TOOL USE:
-
-Name: str-replace
-ID: toolu_015qz4YqkkVpioiUP7CEVJpE
-
-### file_path
-
-<tool.toolu_015qz4YqkkVpioiUP7CEVJpE>
-test-greger-lib-lsp.el
-</tool.toolu_015qz4YqkkVpioiUP7CEVJpE>
-
-### original_content
-
-<tool.toolu_015qz4YqkkVpioiUP7CEVJpE>
-(defun greger-lsp-test-skip-if-requirements-not-met ()
-  "Skip test if LSP requirements are not met."
-  (unless (greger-lsp-test-requirements-met-p)
-    (ert-skip "LSP mode or Python LSP server not available")))
-</tool.toolu_015qz4YqkkVpioiUP7CEVJpE>
-
-### new_content
-
-<tool.toolu_015qz4YqkkVpioiUP7CEVJpE>
-(defun greger-lsp-test-skip-if-requirements-not-met ()
-  "Skip test if LSP requirements are not met."
-  (unless (greger-lsp-test-requirements-met-p)
-    (ert-skip "LSP mode or Python LSP server not available")))
-
-(defun greger-lsp-test-force-reset-lsp-state ()
-  "Force reset of global LSP state for problematic test isolation.
-This is a nuclear option when normal cleanup isn't sufficient."
-  (when (bound-and-true-p lsp--session)
-    ;; Clear all workspace folders that are in temp directories
-    (setf (lsp-session-folders lsp--session)
-          (cl-remove-if (lambda (folder)
-                         (string-prefix-p "/tmp" folder))
-                        (lsp-session-folders lsp--session)))
-
-    ;; Clear folder->servers mapping for temp directories
-    (let ((new-mapping (make-hash-table :test 'equal)))
-      (maphash (lambda (folder servers)
-                (unless (string-prefix-p "/tmp" folder)
-                  (puthash folder servers new-mapping)))
-              (lsp-session-folder->servers lsp--session))
-      (setf (lsp-session-folder->servers lsp--session) new-mapping))
-
-    ;; Clear server->folders mapping for servers associated with temp dirs
-    (let ((new-mapping (make-hash-table :test 'equal)))
-      (maphash (lambda (server folders)
-                (let ((filtered-folders (cl-remove-if (lambda (folder)
-                                                       (string-prefix-p "/tmp" folder))
-                                                     folders)))
-                  (when filtered-folders
-                    (puthash server filtered-folders new-mapping))))
-              (lsp-session-server->folders lsp--session))
-      (setf (lsp-session-server->folders lsp--session) new-mapping))))
-</tool.toolu_015qz4YqkkVpioiUP7CEVJpE>
-
-### git_commit_message
-
-<tool.toolu_015qz4YqkkVpioiUP7CEVJpE>
-Add nuclear option for LSP state reset in tests
-
-- Add greger-lsp-test-force-reset-lsp-state function for complete LSP state cleanup
-- Clears all LSP session mappings related to temp directories
-- This provides a backup cleanup method for cases where normal cleanup isn't sufficient
-</tool.toolu_015qz4YqkkVpioiUP7CEVJpE>
-
-## TOOL RESULT:
-
-ID: toolu_015qz4YqkkVpioiUP7CEVJpE
-
-<tool.toolu_015qz4YqkkVpioiUP7CEVJpE>
-Successfully replaced content in /Users/andreas/projects/greger.el/test-greger-lib-lsp.el. Successfully staged 2 file(s) and committed with message: Add nuclear option for LSP state reset in tests
-
-- Add greger-lsp-test-force-reset-lsp-state function for complete LSP state cleanup
-- Clears all LSP session mappings related to temp directories
-- This provides a backup cleanup method for cases where normal cleanup isn't sufficient
-</tool.toolu_015qz4YqkkVpioiUP7CEVJpE>
-
-
-## ASSISTANT:
-
-Now let's update the teardown function to use this nuclear option as a fallback:
-
-## TOOL USE:
-
-Name: str-replace
-ID: toolu_01C5vMyK4ckfnDU5PEE5SCtU
-
-### file_path
-
-<tool.toolu_01C5vMyK4ckfnDU5PEE5SCtU>
-test-greger-lib-lsp.el
-</tool.toolu_01C5vMyK4ckfnDU5PEE5SCtU>
-
-### original_content
-
-<tool.toolu_01C5vMyK4ckfnDU5PEE5SCtU>
-    ;; Wait a moment for cleanup to complete
-    (sit-for 0.3)
-
-    ;; Remove temp directory
-    (condition-case nil
-        (delete-directory greger-lsp-test-temp-dir t)
-      (error nil))
-
-    ;; Reset test variables
-    (setq greger-lsp-test-temp-dir nil
-          greger-lsp-test-python-file nil
-          greger-lsp-test-project-root nil)))
-</tool.toolu_01C5vMyK4ckfnDU5PEE5SCtU>
-
-### new_content
-
-<tool.toolu_01C5vMyK4ckfnDU5PEE5SCtU>
-    ;; Wait a moment for cleanup to complete
-    (sit-for 0.3)
-
-    ;; As a final safety measure, force reset any remaining LSP state
-    (greger-lsp-test-force-reset-lsp-state)
-
-    ;; Remove temp directory
-    (condition-case nil
-        (delete-directory greger-lsp-test-temp-dir t)
-      (error nil))
-
-    ;; Reset test variables
-    (setq greger-lsp-test-temp-dir nil
-          greger-lsp-test-python-file nil
-          greger-lsp-test-project-root nil)))
-</tool.toolu_01C5vMyK4ckfnDU5PEE5SCtU>
-
-### git_commit_message
-
-<tool.toolu_01C5vMyK4ckfnDU5PEE5SCtU>
-Use nuclear LSP state reset as final cleanup step
-
-- Call greger-lsp-test-force-reset-lsp-state at the end of teardown
-- This ensures any remaining LSP state related to temp directories is cleared
-- Provides maximum isolation between test runs
-</tool.toolu_01C5vMyK4ckfnDU5PEE5SCtU>
-
-## TOOL RESULT:
-
-ID: toolu_01C5vMyK4ckfnDU5PEE5SCtU
-
-<tool.toolu_01C5vMyK4ckfnDU5PEE5SCtU>
-Successfully replaced content in /Users/andreas/projects/greger.el/test-greger-lib-lsp.el. Successfully staged 2 file(s) and committed with message: Use nuclear LSP state reset as final cleanup step
-
-- Call greger-lsp-test-force-reset-lsp-state at the end of teardown
-- This ensures any remaining LSP state related to temp directories is cleared
-- Provides maximum isolation between test runs
-</tool.toolu_01C5vMyK4ckfnDU5PEE5SCtU>
-
-
-## USER:
-
-``` emacs-lisp
-F greger-lsp-test-cross-file-references
-    Test finding references across multiple files.
-    (wrong-type-argument lsp--workspace
-                         (#s(lsp--workspace nil #s(hash-table size 16 test equal rehash-size 1.5 rehash-threshold 0.8125 data
-                                                              ("textDocumentSync" 2 "definitionProvider" #s(hash-table size 1 test equal rehash-size 1.5 rehash-threshold 0.8125 data
-                                                                                                                       ("workDoneProgress" t))
-                                                               "declarationProvider" #s(hash-table size 1 test equal rehash-size 1.5 rehash-threshold 0.8125 data
-                                                                                                   ("workDoneProgress" t))
-                                                               "typeDefinitionProvider" #s(hash-table size 1 test equal rehash-size 1.5 rehash-threshold 0.8125 data
-                                                                                                      ("workDoneProgress" t))
-                                                               "referencesProvider" #s(hash-table size 1 test equal rehash-size 1.5 rehash-threshold 0.8125 data
-                                                                                                  ("workDoneProgress" t))
-                                                               "documentSymbolProvider" #s(hash-table size 1 test equal rehash-size 1.5 rehash-threshold 0.8125 data
-                                                                                                      ("workDoneProgress" t))
-                                                               "workspaceSymbolProvider" #s(hash-table size 1 test equal rehash-size 1.5 rehash-threshold 0.8125 data
-                                                                                                       ("workDoneProgress" t))
-                                                               "hoverProvider" #s(hash-table size 1 test equal rehash-size 1.5 rehash-threshold 0.8125 data
-                                                                                             ("workDoneProgress" t))
-                                                               "documentHighlightProvider" #s(hash-table size 1 test equal rehash-size 1.5 rehash-threshold 0.8125 data
-                                                                                                         ("workDoneProgress" t))
-                                                               "renameProvider" #s(hash-table size 2 test equal rehash-size 1.5 rehash-threshold 0.8125 data
-                                                                                              ("prepareProvider" t "workDoneProgress" t))
-                                                               ...))
-                                            (#s(lsp--registered-capability "a2a7c44a-6907-41d4-8143-f9696847a8fe" "workspace/didChangeWatchedFiles" #s(hash-table size 1 test equal rehash-size 1.5 rehash-threshold 0.8125 data
-                                                                                                                                                                  ("watchers"
-                                                                                                                                                                   [#s(hash-table size 2 test equal rehash-size 1.5 rehash-threshold 0.8125 data
-                                                                                                                                                                                  ("globPattern" "**/pyrightconfig.json" "kind" 7))
-                                                                                                                                                                      #s(hash-table size 2 test equal rehash-size 1.5 rehash-threshold 0.8125 data
-                                                                                                                                                                                    ("globPattern" "**" "kind" 7))]))))
-                                            "/var/folders/pt/0j3p9zzj49x5vkv1mmkpvs0c0000gn/T/greger-lsp-test-Gb5MhF" #s(lsp--client nil nil
-                                                                                                                                     (:connect
-                                                                                                                                       #[1285 "\305\306!\203\23\0\307\11!\204\23\0\310\1\311\300!\"\207\311\300!\312\4!\313\4!\32\314\315\316\3\"!\317 \31\320\33\321\34\322\323\3\324\325\326\315\327\6\11\"\330\331\332\6\f\333\6\23\334\6\24\335\6\20\336\337\340\337&\24\341\1\342\"\210\341\343\3!\342\"\210r\344\2!q\210\345 ,\210\211\1B\266\202)\207"
-                                                                                                                                              [... default-directory process-environment tramp-use-ssh-controlmaster-options tramp-ssh-controlmaster-options functionp json-rpc-connection file-remote-p lsp-json-rpc-connection lsp-resolve-final-command ...]
-                                                                                                                                              29 "\n\n(fn FILTER SENTINEL NAME ENVIRONMENT-FN WORKSPACE)"]
-                                                                                                                                       :test?
-                                                                                                                                       #[0 "\301\302\300\303\"!\207"
-                                                                                                                                           [... lsp-server-present? lsp-resolve-final-command t]
-                                                                                                                                           4])
-                                                                                                                                     nil nil #s(hash-table size 65 test equal rehash-size 1.5 rehash-threshold 0.8125 data
-                                                                                                                                                           ("pyright/beginProgress" lsp-pyright--begin-progress-callback "pyright/reportProgress" lsp-pyright--report-progress-callback "pyright/endProgress" lsp-pyright--end-progress-callback))
-                                                                                                                                     #s(hash-table size 65 test equal rehash-size 1.5 rehash-threshold 0.8125 data
-                                                                                                                                                   ())
-                                                                                                                                     #s(hash-table size 65 test eql rehash-size 1.5 rehash-threshold 0.8125 data
-                                                                                                                                                   ())
-                                                                                                                                     nil ...)
-                                            nil #<process pyright> #<process pyright> nil ...)))
-
-
-
-```
-
-## ASSISTANT:
-
-I see the issue! The error `wrong-type-argument lsp--workspace` suggests that the LSP workspace cleanup code is trying to operate on a list containing a workspace object, but it's expecting just the workspace object itself.
-
-Looking at the error, it seems like `lsp--buffer-workspaces` or some similar variable contains a list with a workspace object, but the cleanup code is expecting just the workspace object directly.
-
-Let me fix the teardown function to handle this properly:
-
-## TOOL USE:
-
-Name: str-replace
-ID: toolu_01DW4HFhbuPs8X1jeAeYDwBM
-
-### file_path
-
-<tool.toolu_01DW4HFhbuPs8X1jeAeYDwBM>
-test-greger-lib-lsp.el
-</tool.toolu_01DW4HFhbuPs8X1jeAeYDwBM>
-
-### original_content
-
-<tool.toolu_01DW4HFhbuPs8X1jeAeYDwBM>
-          ;; Kill any workspaces associated with our test directory
-          (let ((workspaces-to-kill '()))
-            (maphash (lambda (key workspace)
-                      (when (and (lsp--workspace-root workspace)
-                                (string-prefix-p test-root
-                                               (file-truename (lsp--workspace-root workspace))))
-                        (push workspace workspaces-to-kill)))
-                    (lsp-session-folder->servers lsp--session))
-
-            (dolist (workspace workspaces-to-kill)
-              (condition-case nil
-                  (progn
-                    (lsp--shutdown-workspace workspace)
-                    ;; Force kill the process if it's still running
-                    (when (lsp--workspace-proc workspace)
-                      (let ((proc (lsp--workspace-proc workspace)))
-                        (when (process-live-p proc)
-                          (kill-process proc)))))
-                (error nil))))))
-</tool.toolu_01DW4HFhbuPs8X1jeAeYDwBM>
-
-### new_content
-
-<tool.toolu_01DW4HFhbuPs8X1jeAeYDwBM>
-          ;; Kill any workspaces associated with our test directory
-          (let ((workspaces-to-kill '()))
-            (maphash (lambda (key workspace-list)
-                      ;; workspace-list might be a single workspace or a list of workspaces
-                      (let ((workspaces (if (listp workspace-list) workspace-list (list workspace-list))))
-                        (dolist (workspace workspaces)
-                          (when (and (lsp--workspace-p workspace)
-                                    (lsp--workspace-root workspace)
-                                    (string-prefix-p test-root
-                                                   (file-truename (lsp--workspace-root workspace))))
-                            (push workspace workspaces-to-kill)))))
-                    (lsp-session-folder->servers lsp--session))
-
-            (dolist (workspace workspaces-to-kill)
-              (condition-case nil
-                  (progn
-                    (lsp--shutdown-workspace workspace)
-                    ;; Force kill the process if it's still running
-                    (when (and (lsp--workspace-p workspace)
-                              (lsp--workspace-proc workspace))
-                      (let ((proc (lsp--workspace-proc workspace)))
-                        (when (and (processp proc) (process-live-p proc))
-                          (kill-process proc)))))
-                (error nil))))))
-</tool.toolu_01DW4HFhbuPs8X1jeAeYDwBM>
-
-### git_commit_message
-
-<tool.toolu_01DW4HFhbuPs8X1jeAeYDwBM>
-Fix workspace cleanup to handle both single workspaces and lists
-
-- Handle case where lsp-session-folder->servers contains lists of workspaces
-- Add proper type checks with lsp--workspace-p before accessing workspace fields
-- Add processp check before calling process-live-p
-- This should fix the wrong-type-argument error in test cleanup
-</tool.toolu_01DW4HFhbuPs8X1jeAeYDwBM>
-
-## TOOL RESULT:
-
-ID: toolu_01DW4HFhbuPs8X1jeAeYDwBM
-
-<tool.toolu_01DW4HFhbuPs8X1jeAeYDwBM>
-Successfully replaced content in /Users/andreas/projects/greger.el/test-greger-lib-lsp.el. Successfully staged 2 file(s) and committed with message: Fix workspace cleanup to handle both single workspaces and lists
-
-- Handle case where lsp-session-folder->servers contains lists of workspaces
-- Add proper type checks with lsp--workspace-p before accessing workspace fields
-- Add processp check before calling process-live-p
-- This should fix the wrong-type-argument error in test cleanup
-</tool.toolu_01DW4HFhbuPs8X1jeAeYDwBM>
-
-
-## ASSISTANT:
-
-Now let me also fix the setup function's workspace cleanup to handle the same issue:
-
-## TOOL USE:
-
-Name: str-replace
-ID: toolu_01C2AxgvHm8bgS9wtyeboDd6
-
-### file_path
-
-<tool.toolu_01C2AxgvHm8bgS9wtyeboDd6>
-test-greger-lib-lsp.el
-</tool.toolu_01C2AxgvHm8bgS9wtyeboDd6>
-
-### original_content
-
-<tool.toolu_01C2AxgvHm8bgS9wtyeboDd6>
-;; Also clean up any leftover workspaces from previous test runs
-    (let ((workspaces-to-remove '()))
-      (maphash (lambda (key workspace)
-                (when (and (lsp--workspace-root workspace)
-                          (string-prefix-p "/tmp" (lsp--workspace-root workspace)))
-                  (push workspace workspaces-to-remove)))
-              (lsp-session-folder->servers lsp--session))
-
-      (dolist (workspace workspaces-to-remove)
-        (condition-case nil
-            (lsp--shutdown-workspace workspace)
-          (error nil))))
-</tool.toolu_01C2AxgvHm8bgS9wtyeboDd6>
-
-### new_content
-
-<tool.toolu_01C2AxgvHm8bgS9wtyeboDd6>
-;; Also clean up any leftover workspaces from previous test runs
-    (let ((workspaces-to-remove '()))
-      (maphash (lambda (key workspace-list)
-                ;; workspace-list might be a single workspace or a list of workspaces
-                (let ((workspaces (if (listp workspace-list) workspace-list (list workspace-list))))
-                  (dolist (workspace workspaces)
-                    (when (and (lsp--workspace-p workspace)
-                              (lsp--workspace-root workspace)
-                              (string-prefix-p "/tmp" (lsp--workspace-root workspace)))
-                      (push workspace workspaces-to-remove)))))
-              (lsp-session-folder->servers lsp--session))
-
-      (dolist (workspace workspaces-to-remove)
-        (condition-case nil
-            (lsp--shutdown-workspace workspace)
-          (error nil))))
-</tool.toolu_01C2AxgvHm8bgS9wtyeboDd6>
-
-### git_commit_message
-
-<tool.toolu_01C2AxgvHm8bgS9wtyeboDd6>
-Fix setup workspace cleanup to handle workspace lists properly
-
-- Apply same fix to setup function as teardown function
-- Handle both single workspaces and lists of workspaces in folder->servers mapping
-- Add proper type checks before accessing workspace properties
-</tool.toolu_01C2AxgvHm8bgS9wtyeboDd6>
-
-## TOOL RESULT:
-
-ID: toolu_01C2AxgvHm8bgS9wtyeboDd6
-
-<tool.toolu_01C2AxgvHm8bgS9wtyeboDd6>
-Successfully replaced content in /Users/andreas/projects/greger.el/test-greger-lib-lsp.el. Successfully staged 2 file(s) and committed with message: Fix setup workspace cleanup to handle workspace lists properly
-
-- Apply same fix to setup function as teardown function
-- Handle both single workspaces and lists of workspaces in folder->servers mapping
-- Add proper type checks before accessing workspace properties
-</tool.toolu_01C2AxgvHm8bgS9wtyeboDd6>
-
-
-## USER:
-
-F greger-lsp-test-cross-file-references
-    Test finding references across multiple files.
-    (void-function lsp-session-server->folders)
-
-
-lsp-mode is here if you want to read the source ~/.emacs.d/elpa/lsp-mode-20231118.1818/
-
-## ASSISTANT:
-
-I need to check the actual LSP mode source to see what the correct function names are. Let me look at the LSP session structure:
-
-## TOOL USE:
-
-Name: read-file
-ID: toolu_017M48DBumBCEHn4unZcWSeb
-
-### path
-
-<tool.toolu_017M48DBumBCEHn4unZcWSeb>
-~/.emacs.d/elpa/lsp-mode-20231118.1818/lsp-mode.el
-</tool.toolu_017M48DBumBCEHn4unZcWSeb>
-
-### start_line
-
-<tool.toolu_017M48DBumBCEHn4unZcWSeb>
-1
-</tool.toolu_017M48DBumBCEHn4unZcWSeb>
-
-### end_line
-
-<tool.toolu_017M48DBumBCEHn4unZcWSeb>
-100
-</tool.toolu_017M48DBumBCEHn4unZcWSeb>
-
-## TOOL RESULT:
-
-ID: toolu_017M48DBumBCEHn4unZcWSeb
-
-<tool.toolu_017M48DBumBCEHn4unZcWSeb>
-;;; lsp-mode.el --- LSP mode                              -*- lexical-binding: t; -*-
-
-;; Copyright (C) 2020 emacs-lsp maintainers
-
-;; Author: Vibhav Pant, Fangrui Song, Ivan Yonchovski
-;; Keywords: languages
-;; Package-Requires: ((emacs "27.1") (dash "2.18.0") (f "0.20.0") (ht "2.3") (spinner "1.7.3") (markdown-mode "2.3") (lv "0") (eldoc "1.11"))
-;; Version: 8.0.1
-
-;; URL: https://github.com/emacs-lsp/lsp-mode
-;; This program is free software; you can redistribute it and/or modify
-;; it under the terms of the GNU General Public License as published by
-;; the Free Software Foundation, either version 3 of the License, or
-;; (at your option) any later version.
-
-;; This program is distributed in the hope that it will be useful,
-;; but WITHOUT ANY WARRANTY; without even the implied warranty of
-;; MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-;; GNU General Public License for more details.
-
-;; You should have received a copy of the GNU General Public License
-;; along with this program.  If not, see <https://www.gnu.org/licenses/>.
-
-;;; Commentary:
-
-;; Emacs client/library for the Language Server Protocol
-
-;;; Code:
-
-(require 'cl-generic)
-(require 'cl-lib)
-(require 'compile)
-(require 'dash)
-(require 'epg)
-(require 'ewoc)
-(require 'f)
-(require 'filenotify)
-(require 'files)
-(require 'ht)
-(require 'imenu)
-(require 'inline)
-(require 'json)
-(require 'lv)
-(require 'markdown-mode)
-(require 'network-stream)
-(require 'pcase)
-(require 'rx)
-(require 's)
-(require 'seq)
-(require 'spinner)
-(require 'subr-x)
-(require 'tree-widget)
-(require 'url-parse)
-(require 'url-util)
-(require 'widget)
-(require 'xref)
-(require 'minibuffer)
-(require 'help-mode)
-(require 'yasnippet nil t)
-(require 'lsp-protocol)
-
-(defgroup lsp-mode nil
-  "Language Server Protocol client."
-  :group 'tools
-  :tag "Language Server (lsp-mode)")
-
-(declare-function evil-set-command-property "ext:evil-common")
-(declare-function projectile-project-root "ext:projectile")
-(declare-function yas-expand-snippet "ext:yasnippet")
-(declare-function dap-mode "ext:dap-mode")
-(declare-function dap-auto-configure-mode "ext:dap-mode")
-
-(defvar yas-inhibit-overlay-modification-protection)
-(defvar yas-indent-line)
-(defvar yas-wrap-around-region)
-(defvar yas-also-auto-indent-first-line)
-(defvar dap-auto-configure-mode)
-(defvar dap-ui-menu-items)
-(defvar company-minimum-prefix-length)
-
-(defconst lsp--message-type-face
-  `((1 . ,compilation-error-face)
-    (2 . ,compilation-warning-face)
-    (3 . ,compilation-message-face)
-    (4 . ,compilation-info-face)))
-
-(defconst lsp--errors
-  '((-32700 "Parse Error")
-    (-32600 "Invalid Request")
-    (-32601 "Method not Found")
-    (-32602 "Invalid Parameters")
-    (-32603 "Internal Error")
-    (-32099 "Server Start Error")
-    (-32000 "Server End Error")
-    (-32002 "Server Not Initialized")
-    (-32001 "Unknown Error Code")
-    (-32800 "Request Cancelled"))
-  "Alist of error codes to user friendly strings.")
-
-(defconst lsp--empty-ht (make-hash-table))
-</tool.toolu_017M48DBumBCEHn4unZcWSeb>
-
-## ASSISTANT:
-
-Let me search for the session structure definition:
-
-## TOOL USE:
-
-Name: ripgrep
-ID: toolu_01G2gnsx7Pa1BwhtFC1GVKrY
-
-### pattern
-
-<tool.toolu_01G2gnsx7Pa1BwhtFC1GVKrY>
-cl-defstruct.*lsp-session
-</tool.toolu_01G2gnsx7Pa1BwhtFC1GVKrY>
-
-### path
-
-<tool.toolu_01G2gnsx7Pa1BwhtFC1GVKrY>
-~/.emacs.d/elpa/lsp-mode-20231118.1818/
-</tool.toolu_01G2gnsx7Pa1BwhtFC1GVKrY>
-
-## TOOL RESULT:
-
-ID: toolu_01G2gnsx7Pa1BwhtFC1GVKrY
-
-<tool.toolu_01G2gnsx7Pa1BwhtFC1GVKrY>
-/Users/andreas/.emacs.d/elpa/lsp-mode-20231118.1818/lsp-mode.el:3058:(cl-defstruct lsp-session
-
-</tool.toolu_01G2gnsx7Pa1BwhtFC1GVKrY>
-
-## TOOL USE:
-
-Name: read-file
-ID: toolu_0114QztkEcwNxzdGfKeLiCZ1
-
-### path
-
-<tool.toolu_0114QztkEcwNxzdGfKeLiCZ1>
-~/.emacs.d/elpa/lsp-mode-20231118.1818/lsp-mode.el
-</tool.toolu_0114QztkEcwNxzdGfKeLiCZ1>
-
-### start_line
-
-<tool.toolu_0114QztkEcwNxzdGfKeLiCZ1>
-3058
-</tool.toolu_0114QztkEcwNxzdGfKeLiCZ1>
-
-### end_line
-
-<tool.toolu_0114QztkEcwNxzdGfKeLiCZ1>
-3080
-</tool.toolu_0114QztkEcwNxzdGfKeLiCZ1>
-
-## TOOL RESULT:
-
-ID: toolu_0114QztkEcwNxzdGfKeLiCZ1
-
-<tool.toolu_0114QztkEcwNxzdGfKeLiCZ1>
-(cl-defstruct lsp-session
-  ;; contains the folders that are part of the current session
-  folders
-  ;; contains the folders that must not be imported in the current workspace.
-  folders-blocklist
-  ;; contains the list of folders that must be imported in a project in case of
-  ;; multi root LSP server.
-  (server-id->folders (make-hash-table :test 'equal))
-  ;; folder to list of the servers that are associated with the folder.
-  (folder->servers (make-hash-table :test 'equal))
-  ;; ‘metadata’ is a generic storage for workspace specific data. It is
-  ;; accessed via `lsp-workspace-set-metadata' and `lsp-workspace-set-metadata'
-  (metadata (make-hash-table :test 'equal)))
-
-(defun lsp-workspace-status (status-string &optional workspace)
-  "Set current workspace status to STATUS-STRING.
-If WORKSPACE is not specified defaults to lsp--cur-workspace."
-  (let ((status-string (when status-string (replace-regexp-in-string "%" "%%" status-string))))
-    (setf (lsp--workspace-status-string (or workspace lsp--cur-workspace)) status-string)))
-
-(defun lsp-session-set-metadata (key value &optional _workspace)
-  "Associate KEY with VALUE in the WORKSPACE metadata.
-If WORKSPACE is not provided current workspace will be used."
-</tool.toolu_0114QztkEcwNxzdGfKeLiCZ1>
-
-## ASSISTANT:
-
-Perfect! Now I can see the correct structure. The session has `folder->servers` and `server-id->folders`, not `server->folders`. Let me fix the cleanup function:
-
-## TOOL USE:
-
-Name: str-replace
-ID: toolu_01EkK8wxhDQ3NLuaBaC3jeaR
-
-### file_path
-
-<tool.toolu_01EkK8wxhDQ3NLuaBaC3jeaR>
-test-greger-lib-lsp.el
-</tool.toolu_01EkK8wxhDQ3NLuaBaC3jeaR>
-
-### original_content
-
-<tool.toolu_01EkK8wxhDQ3NLuaBaC3jeaR>
-    ;; Clear server->folders mapping for servers associated with temp dirs
-    (let ((new-mapping (make-hash-table :test 'equal)))
-      (maphash (lambda (server folders)
-                (let ((filtered-folders (cl-remove-if (lambda (folder)
-                                                       (string-prefix-p "/tmp" folder))
-                                                     folders)))
-                  (when filtered-folders
-                    (puthash server filtered-folders new-mapping))))
-              (lsp-session-server->folders lsp--session))
-      (setf (lsp-session-server->folders lsp--session) new-mapping)))
-</tool.toolu_01EkK8wxhDQ3NLuaBaC3jeaR>
-
-### new_content
-
-<tool.toolu_01EkK8wxhDQ3NLuaBaC3jeaR>
-    ;; Clear server-id->folders mapping for servers associated with temp dirs
-    (let ((new-mapping (make-hash-table :test 'equal)))
-      (maphash (lambda (server-id folders)
-                (let ((filtered-folders (cl-remove-if (lambda (folder)
-                                                       (string-prefix-p "/tmp" folder))
-                                                     folders)))
-                  (when filtered-folders
-                    (puthash server-id filtered-folders new-mapping))))
-              (lsp-session-server-id->folders lsp--session))
-      (setf (lsp-session-server-id->folders lsp--session) new-mapping)))
-</tool.toolu_01EkK8wxhDQ3NLuaBaC3jeaR>
-
-### git_commit_message
-
-<tool.toolu_01EkK8wxhDQ3NLuaBaC3jeaR>
-Fix LSP session field name in cleanup function
-
-- Use correct lsp-session-server-id->folders instead of non-existent lsp-session-server->folders
-- This should fix the void-function error in test cleanup
-</tool.toolu_01EkK8wxhDQ3NLuaBaC3jeaR>
-
-## TOOL RESULT:
-
-ID: toolu_01EkK8wxhDQ3NLuaBaC3jeaR
-
-<tool.toolu_01EkK8wxhDQ3NLuaBaC3jeaR>
-Successfully replaced content in /Users/andreas/projects/greger.el/test-greger-lib-lsp.el. Successfully staged 2 file(s) and committed with message: Fix LSP session field name in cleanup function
-
-- Use correct lsp-session-server-id->folders instead of non-existent lsp-session-server->folders
-- This should fix the void-function error in test cleanup
-</tool.toolu_01EkK8wxhDQ3NLuaBaC3jeaR>
-
-
-## ASSISTANT:
-
-Now the tests should run without the void-function error. The main improvements I've made to fix the test isolation issues are:
-
-1. **More comprehensive buffer cleanup**: Kill all buffers visiting files in the test directory, not just the main test file
-2. **Better LSP workspace cleanup**: Properly handle both single workspaces and lists of workspaces in the session mappings
-3. **Process cleanup**: Explicitly kill LSP server processes if they're still running after workspace shutdown
-4. **Session state cleanup**: Clear all LSP session mappings related to temp directories
-5. **Timing improvements**: Add delays before and after test setup/teardown to ensure cleanup completes
-6. **Nuclear cleanup option**: Added a fallback function to completely reset LSP state if normal cleanup isn't sufficient
-7. **Fixed field names**: Use the correct LSP session structure field names
-
-These changes should prevent state leakage between test runs by ensuring that:
-
-- All LSP server processes are properly terminated
-- All LSP session state related to test directories is cleared
-- All buffers associated with test files are killed
-- Proper delays allow cleanup operations to complete
-
-The test isolation should now be much more reliable, and running the full test suite should work as well as running individual tests.
-
-## USER:
-
-no something is still messed up. the lsp server times out waiting for a response. it didn't use to do that so you broke something in your last set of changes
-
-## ASSISTANT:
-
-You're right, I likely broke something with the aggressive cleanup. Let me revert to a simpler approach that focuses on the core issue without being so aggressive about LSP state management.
-
-The main problem was probably that I'm being too aggressive about killing LSP processes and clearing state, which might interfere with normal LSP operation.
-
-Let me revert to a more conservative approach:
-
-## TOOL USE:
-
-Name: str-replace
-ID: toolu_01YFaDDL6yurA2RgmDbNTXgJ
-
-### file_path
-
-<tool.toolu_01YFaDDL6yurA2RgmDbNTXgJ>
-test-greger-lib-lsp.el
-</tool.toolu_01YFaDDL6yurA2RgmDbNTXgJ>
-
-### original_content
-
-<tool.toolu_01YFaDDL6yurA2RgmDbNTXgJ>
-(defun greger-lsp-test-teardown ()
-  "Clean up test environment with thorough LSP state cleanup."
-  (when greger-lsp-test-temp-dir
-    ;; Kill all buffers visiting files in our test directory
-    (let ((test-dir-prefix (file-truename greger-lsp-test-temp-dir)))
-      (dolist (buffer (buffer-list))
-        (when (buffer-file-name buffer)
-          (let ((file-path (file-truename (buffer-file-name buffer))))
-            (when (string-prefix-p test-dir-prefix file-path)
-              (with-current-buffer buffer
-                ;; Disconnect LSP for this buffer
-                (when (bound-and-true-p lsp-mode)
-                  (condition-case nil
-                      (lsp-disconnect)
-                    (error nil))))
-              ;; Kill the buffer
-              (kill-buffer buffer))))))
-
-    ;; More aggressive LSP session cleanup
-    (when (bound-and-true-p lsp--session)
-      ;; Remove our test workspace from all LSP state
-      (when greger-lsp-test-project-root
-        (let ((test-root (file-truename greger-lsp-test-project-root)))
-          ;; Remove from workspace folders
-          (condition-case nil
-              (lsp-workspace-folders-remove test-root)
-            (error nil))
-
-          ;; Clean up session folders
-          (setf (lsp-session-folders lsp--session)
-                (cl-remove-if (lambda (folder)
-                               (string-prefix-p test-root (file-truename folder)))
-                             (lsp-session-folders lsp--session)))
-
-          ;; Kill any workspaces associated with our test directory
-          (let ((workspaces-to-kill '()))
-            (maphash (lambda (key workspace-list)
-                      ;; workspace-list might be a single workspace or a list of workspaces
-                      (let ((workspaces (if (listp workspace-list) workspace-list (list workspace-list))))
-                        (dolist (workspace workspaces)
-                          (when (and (lsp--workspace-p workspace)
-                                    (lsp--workspace-root workspace)
-                                    (string-prefix-p test-root
-                                                   (file-truename (lsp--workspace-root workspace))))
-                            (push workspace workspaces-to-kill)))))
-                    (lsp-session-folder->servers lsp--session))
-
-            (dolist (workspace workspaces-to-kill)
-              (condition-case nil
-                  (progn
-                    (lsp--shutdown-workspace workspace)
-                    ;; Force kill the process if it's still running
-                    (when (and (lsp--workspace-p workspace)
-                              (lsp--workspace-proc workspace))
-                      (let ((proc (lsp--workspace-proc workspace)))
-                        (when (and (processp proc) (process-live-p proc))
-                          (kill-process proc)))))
-                (error nil)))))
-
-    ;; Wait a moment for cleanup to complete
-    (sit-for 0.3)
-
-    ;; As a final safety measure, force reset any remaining LSP state
-    (greger-lsp-test-force-reset-lsp-state)
-
-    ;; Remove temp directory
-    (condition-case nil
-        (delete-directory greger-lsp-test-temp-dir t)
-      (error nil))
-
-    ;; Reset test variables
-    (setq greger-lsp-test-temp-dir nil
-          greger-lsp-test-python-file nil
-          greger-lsp-test-project-root nil)))
-</tool.toolu_01YFaDDL6yurA2RgmDbNTXgJ>
-
-### new_content
-
-<tool.toolu_01YFaDDL6yurA2RgmDbNTXgJ>
-(defun greger-lsp-test-teardown ()
-  "Clean up test environment."
-  (when greger-lsp-test-temp-dir
-    ;; Kill any buffers visiting test files
-    (when greger-lsp-test-python-file
-      (let ((buffer (get-file-buffer greger-lsp-test-python-file)))
-        (when buffer
-          (with-current-buffer buffer
-            (when (bound-and-true-p lsp-mode)
-              (condition-case nil (lsp-disconnect) (error nil))))
-          (kill-buffer buffer))))
-
-    ;; Also check for utils.py buffer
-    (let ((utils-file (expand-file-name "src/utils.py" greger-lsp-test-temp-dir)))
-      (let ((buffer (get-file-buffer utils-file)))
-        (when buffer
-          (with-current-buffer buffer
-            (when (bound-and-true-p lsp-mode)
-              (condition-case nil (lsp-disconnect) (error nil))))
-          (kill-buffer buffer))))
-
-    ;; Clean up LSP session folders (but don't be too aggressive)
-    (when (and (bound-and-true-p lsp--session) greger-lsp-test-project-root)
-      (condition-case nil
-          (lsp-workspace-folders-remove greger-lsp-test-project-root)
-        (error nil))
-
-      ;; Remove from session folders
-      (setf (lsp-session-folders lsp--session)
-            (cl-remove-if (lambda (folder)
-                           (string-prefix-p "/tmp" folder))
-                         (lsp-session-folders lsp--session))))
-
-    ;; Remove temp directory
-    (condition-case nil
-        (delete-directory greger-lsp-test-temp-dir t)
-      (error nil))
-
-    ;; Reset test variables
-    (setq greger-lsp-test-temp-dir nil
-          greger-lsp-test-python-file nil
-          greger-lsp-test-project-root nil)))
-</tool.toolu_01YFaDDL6yurA2RgmDbNTXgJ>
-
-### git_commit_message
-
-<tool.toolu_01YFaDDL6yurA2RgmDbNTXgJ>
-Revert to simpler LSP test teardown to avoid breaking LSP operation
-
-- Remove aggressive workspace killing and process termination
-- Keep basic buffer cleanup and session folder removal
-- Avoid interfering with LSP server operation
-- This should fix timeout issues while still providing test isolation
-</tool.toolu_01YFaDDL6yurA2RgmDbNTXgJ>
-
-## TOOL RESULT:
-
-ID: toolu_01YFaDDL6yurA2RgmDbNTXgJ
-
-<tool.toolu_01YFaDDL6yurA2RgmDbNTXgJ>
-Error executing tool: Original content not found in file: /Users/andreas/projects/greger.el/test-greger-lib-lsp.el -- Try again!
-</tool.toolu_01YFaDDL6yurA2RgmDbNTXgJ>
-
-## ASSISTANT:
-
-Let me check the current state of the file:
-
-## TOOL USE:
-
-Name: read-file
-ID: toolu_01NUwD2o9UTtmavhWJErTYQK
-
-### path
-
-<tool.toolu_01NUwD2o9UTtmavhWJErTYQK>
-test-greger-lib-lsp.el
-</tool.toolu_01NUwD2o9UTtmavhWJErTYQK>
-
-### start_line
-
-<tool.toolu_01NUwD2o9UTtmavhWJErTYQK>
-128
-</tool.toolu_01NUwD2o9UTtmavhWJErTYQK>
-
-### end_line
-
-<tool.toolu_01NUwD2o9UTtmavhWJErTYQK>
-200
-</tool.toolu_01NUwD2o9UTtmavhWJErTYQK>
-
-### include_line_numbers
-
-<tool.toolu_01NUwD2o9UTtmavhWJErTYQK>
-true
-</tool.toolu_01NUwD2o9UTtmavhWJErTYQK>
-
-## TOOL RESULT:
-
-ID: toolu_01NUwD2o9UTtmavhWJErTYQK
-
-<tool.toolu_01NUwD2o9UTtmavhWJErTYQK>
-128:     calc = create_calculator(4)
-129:     intermediate = calc.add_numbers(x, y)
-130:     return calc.multiply_numbers(intermediate, 1.5)
-131:
-132:
-133: def format_result(value: float) -> str:
-134:     \"\"\"Format a calculation result.\"\"\"
-135:     return f\"Result: {value:.2f}\"
-136: ")))
-137:
-138:     ;; Create a simple pyproject.toml for LSP to recognize the project
-139:     (with-temp-file (expand-file-name "pyproject.toml" greger-lsp-test-temp-dir)
-140:       (insert "[project]
-141: name = \"greger-lsp-test\"
-142: version = \"0.1.0\"
-143: description = \"Test project for greger LSP tools\"
-144: "))))
-145:
-146: (defun greger-lsp-test-teardown ()
-147:   "Clean up test environment with thorough LSP state cleanup."
-148:   (when greger-lsp-test-temp-dir
-149:     ;; Kill all buffers visiting files in our test directory
-150:     (let ((test-dir-prefix (file-truename greger-lsp-test-temp-dir)))
-151:       (dolist (buffer (buffer-list))
-152:         (when (buffer-file-name buffer)
-153:           (let ((file-path (file-truename (buffer-file-name buffer))))
-154:             (when (string-prefix-p test-dir-prefix file-path)
-155:               (with-current-buffer buffer
-156:                 ;; Disconnect LSP for this buffer
-157:                 (when (bound-and-true-p lsp-mode)
-158:                   (condition-case nil
-159:                       (lsp-disconnect)
-160:                     (error nil))))
-161:               ;; Kill the buffer
-162:               (kill-buffer buffer))))))
-163:
-164:     ;; More aggressive LSP session cleanup
-165:     (when (bound-and-true-p lsp--session)
-166:       ;; Remove our test workspace from all LSP state
-167:       (when greger-lsp-test-project-root
-168:         (let ((test-root (file-truename greger-lsp-test-project-root)))
-169:           ;; Remove from workspace folders
-170:           (condition-case nil
-171:               (lsp-workspace-folders-remove test-root)
-172:             (error nil))
-173:
-174:           ;; Clean up session folders
-175:           (setf (lsp-session-folders lsp--session)
-176:                 (cl-remove-if (lambda (folder)
-177:                                (string-prefix-p test-root (file-truename folder)))
-178:                              (lsp-session-folders lsp--session)))
-179:
-180:           ;; Kill any workspaces associated with our test directory
-181:           (let ((workspaces-to-kill '()))
-182:             (maphash (lambda (key workspace-list)
-183:                       ;; workspace-list might be a single workspace or a list of workspaces
-184:                       (let ((workspaces (if (listp workspace-list) workspace-list (list workspace-list))))
-185:                         (dolist (workspace workspaces)
-186:                           (when (and (lsp--workspace-p workspace)
-187:                                     (lsp--workspace-root workspace)
-188:                                     (string-prefix-p test-root
-189:                                                    (file-truename (lsp--workspace-root workspace))))
-190:                             (push workspace workspaces-to-kill)))))
-191:                     (lsp-session-folder->servers lsp--session))
-192:
-193:             (dolist (workspace workspaces-to-kill)
-194:               (condition-case nil
-195:                   (progn
-196:                     (lsp--shutdown-workspace workspace)
-197:                     ;; Force kill the process if it's still running
-198:                     (when (and (lsp--workspace-p workspace)
-199:                               (lsp--workspace-proc workspace))
-200:                       (let ((proc (lsp--workspace-proc workspace)))
-</tool.toolu_01NUwD2o9UTtmavhWJErTYQK>
-
-## TOOL USE:
-
-Name: read-file
-ID: toolu_01NLSQuAqfHSvFcY8mjfHC9e
-
-### path
-
-<tool.toolu_01NLSQuAqfHSvFcY8mjfHC9e>
-test-greger-lib-lsp.el
-</tool.toolu_01NLSQuAqfHSvFcY8mjfHC9e>
-
-### start_line
-
-<tool.toolu_01NLSQuAqfHSvFcY8mjfHC9e>
-200
-</tool.toolu_01NLSQuAqfHSvFcY8mjfHC9e>
-
-### end_line
-
-<tool.toolu_01NLSQuAqfHSvFcY8mjfHC9e>
-230
-</tool.toolu_01NLSQuAqfHSvFcY8mjfHC9e>
-
-### include_line_numbers
-
-<tool.toolu_01NLSQuAqfHSvFcY8mjfHC9e>
-true
-</tool.toolu_01NLSQuAqfHSvFcY8mjfHC9e>
-
-## TOOL RESULT:
-
-ID: toolu_01NLSQuAqfHSvFcY8mjfHC9e
-
-<tool.toolu_01NLSQuAqfHSvFcY8mjfHC9e>
-200:                       (let ((proc (lsp--workspace-proc workspace)))
-201:                         (when (and (processp proc) (process-live-p proc))
-202:                           (kill-process proc)))))
-203:                 (error nil))))))
-204:
-205:     ;; Wait a moment for cleanup to complete
-206:     (sit-for 0.3)
-207:
-208:     ;; As a final safety measure, force reset any remaining LSP state
-209:     (greger-lsp-test-force-reset-lsp-state)
-210:
-211:     ;; Remove temp directory
-212:     (condition-case nil
-213:         (delete-directory greger-lsp-test-temp-dir t)
-214:       (error nil))
-215:
-216:     ;; Reset test variables
-217:     (setq greger-lsp-test-temp-dir nil
-218:           greger-lsp-test-python-file nil
-219:           greger-lsp-test-project-root nil))))
-220:
-221: (defun greger-lsp-test-ensure-lsp-started ()
-222:   "Ensure LSP is started for the test Python file."
-223:   (let ((buffer (find-file-noselect greger-lsp-test-python-file)))
-224:     (with-current-buffer buffer
-225:       (python-mode)
-226:
-227:       ;; Use lsp-workspace-folders-add to properly register our test directory
-228:       (lsp-workspace-folders-add greger-lsp-test-project-root)
-229:
-230:       ;; Start LSP with our configured workspace
-</tool.toolu_01NLSQuAqfHSvFcY8mjfHC9e>
-
-## ASSISTANT:
-
-Now let me replace the teardown function with a simpler version:
-
-## TOOL USE:
-
-Name: replace-function
-ID: toolu_01AH8NzWDaQecB5BqpU1pqM9
-
-### file_path
-
-<tool.toolu_01AH8NzWDaQecB5BqpU1pqM9>
-test-greger-lib-lsp.el
-</tool.toolu_01AH8NzWDaQecB5BqpU1pqM9>
-
-### function_name
-
-<tool.toolu_01AH8NzWDaQecB5BqpU1pqM9>
-greger-lsp-test-teardown
-</tool.toolu_01AH8NzWDaQecB5BqpU1pqM9>
-
-### line_number
-
-<tool.toolu_01AH8NzWDaQecB5BqpU1pqM9>
-146
-</tool.toolu_01AH8NzWDaQecB5BqpU1pqM9>
-
-### contents
-
-<tool.toolu_01AH8NzWDaQecB5BqpU1pqM9>
-(defun greger-lsp-test-teardown ()
-  "Clean up test environment."
-  (when greger-lsp-test-temp-dir
-    ;; Kill any buffers visiting test files
-    (when greger-lsp-test-python-file
-      (let ((buffer (get-file-buffer greger-lsp-test-python-file)))
-        (when buffer
-          (with-current-buffer buffer
-            (when (bound-and-true-p lsp-mode)
-              (condition-case nil (lsp-disconnect) (error nil))))
-          (kill-buffer buffer))))
-
-    ;; Also check for utils.py buffer
-    (let ((utils-file (expand-file-name "src/utils.py" greger-lsp-test-temp-dir)))
-      (let ((buffer (get-file-buffer utils-file)))
-        (when buffer
-          (with-current-buffer buffer
-            (when (bound-and-true-p lsp-mode)
-              (condition-case nil (lsp-disconnect) (error nil))))
-          (kill-buffer buffer))))
-
-    ;; Clean up LSP session folders (but don't be too aggressive)
-    (when (and (bound-and-true-p lsp--session) greger-lsp-test-project-root)
-      (condition-case nil
-          (lsp-workspace-folders-remove greger-lsp-test-project-root)
-        (error nil))
-
-      ;; Remove from session folders
-      (setf (lsp-session-folders lsp--session)
-            (cl-remove-if (lambda (folder)
-                           (string-prefix-p "/tmp" folder))
-                         (lsp-session-folders lsp--session))))
-
-    ;; Remove temp directory
-    (condition-case nil
-        (delete-directory greger-lsp-test-temp-dir t)
-      (error nil))
-
-    ;; Reset test variables
-    (setq greger-lsp-test-temp-dir nil
-          greger-lsp-test-python-file nil
-          greger-lsp-test-project-root nil)))
-</tool.toolu_01AH8NzWDaQecB5BqpU1pqM9>
-
-### commit_message
-
-<tool.toolu_01AH8NzWDaQecB5BqpU1pqM9>
-Revert to simpler LSP test teardown to avoid breaking LSP operation
-
-- Remove aggressive workspace killing and process termination
-- Keep basic buffer cleanup and session folder removal
-- Avoid interfering with LSP server operation
-- This should fix timeout issues while still providing test isolation
-</tool.toolu_01AH8NzWDaQecB5BqpU1pqM9>
-
-## TOOL RESULT:
-
-ID: toolu_01AH8NzWDaQecB5BqpU1pqM9
-
-<tool.toolu_01AH8NzWDaQecB5BqpU1pqM9>
-Successfully replaced function 'greger-lsp-test-teardown' in /Users/andreas/projects/greger.el/test-greger-lib-lsp.el. Successfully staged 2 file(s) and committed with message: Revert to simpler LSP test teardown to avoid breaking LSP operation
-
-- Remove aggressive workspace killing and process termination
-- Keep basic buffer cleanup and session folder removal
-- Avoid interfering with LSP server operation
-- This should fix timeout issues while still providing test isolation
-</tool.toolu_01AH8NzWDaQecB5BqpU1pqM9>
-
-
-## ASSISTANT:
-
-Now let me also simplify the setup function to avoid the complex workspace cleanup:
-
-## TOOL USE:
-
-Name: str-replace
-ID: toolu_01Rs5gzSR9dk7an5HbAHkL5W
-
-### file_path
-
-<tool.toolu_01Rs5gzSR9dk7an5HbAHkL5W>
-test-greger-lib-lsp.el
-</tool.toolu_01Rs5gzSR9dk7an5HbAHkL5W>
-
-### original_content
-
-<tool.toolu_01Rs5gzSR9dk7an5HbAHkL5W>
-  ;; Clean up any old test folders from LSP session (but don't touch user folders)
-  (when (bound-and-true-p lsp--session)
-    (setf (lsp-session-folders lsp--session)
-          (cl-remove-if (lambda (folder)
-                         (string-prefix-p "/tmp" folder))
-                        (lsp-session-folders lsp--session)))
-
-    ;; Also clean up any leftover workspaces from previous test runs
-    (let ((workspaces-to-remove '()))
-      (maphash (lambda (key workspace-list)
-                ;; workspace-list might be a single workspace or a list of workspaces
-                (let ((workspaces (if (listp workspace-list) workspace-list (list workspace-list))))
-                  (dolist (workspace workspaces)
-                    (when (and (lsp--workspace-p workspace)
-                              (lsp--workspace-root workspace)
-                              (string-prefix-p "/tmp" (lsp--workspace-root workspace)))
-                      (push workspace workspaces-to-remove)))))
-              (lsp-session-folder->servers lsp--session))
-
-      (dolist (workspace workspaces-to-remove)
-        (condition-case nil
-            (lsp--shutdown-workspace workspace)
-          (error nil)))))
-</tool.toolu_01Rs5gzSR9dk7an5HbAHkL5W>
-
-### new_content
-
-<tool.toolu_01Rs5gzSR9dk7an5HbAHkL5W>
-  ;; Clean up any old test folders from LSP session (but don't touch user folders)
-  (when (bound-and-true-p lsp--session)
-    (setf (lsp-session-folders lsp--session)
-          (cl-remove-if (lambda (folder)
-                         (string-prefix-p "/tmp" folder))
                         (lsp-session-folders lsp--session))))
-</tool.toolu_01Rs5gzSR9dk7an5HbAHkL5W>
 
-### git_commit_message
+  ;; Create a simple Python project structure
+  (let ((src-dir (file-name-as-directory (expand-file-name "src" greger-lsp-test-temp-dir))))
+    (make-directory src-dir)
 
-<tool.toolu_01Rs5gzSR9dk7an5HbAHkL5W>
-Simplify LSP test setup to avoid complex workspace cleanup
+    ;; Create main.py with some example code
+    (setq greger-lsp-test-python-file (expand-file-name "main.py" src-dir))
+    (with-temp-file greger-lsp-test-python-file
+      (insert "#!/usr/bin/env python3
+\"\"\"Example Python module for testing LSP tools.\"\"\"
 
-- Remove complex workspace removal code from setup
-- Keep simple session folder cleanup
-- Avoid potential interference with LSP operation during setup
-</tool.toolu_01Rs5gzSR9dk7an5HbAHkL5W>
-
-## TOOL RESULT:
-
-ID: toolu_01Rs5gzSR9dk7an5HbAHkL5W
-
-<tool.toolu_01Rs5gzSR9dk7an5HbAHkL5W>
-Successfully replaced content in /Users/andreas/projects/greger.el/test-greger-lib-lsp.el. Successfully staged 2 file(s) and committed with message: Simplify LSP test setup to avoid complex workspace cleanup
-
-- Remove complex workspace removal code from setup
-- Keep simple session folder cleanup
-- Avoid potential interference with LSP operation during setup
-</tool.toolu_01Rs5gzSR9dk7an5HbAHkL5W>
+import os
+import sys
+from typing import List, Optional
 
 
-## ASSISTANT:
+class Calculator:
+    \"\"\"A simple calculator class.\"\"\"
 
-Now let me remove the nuclear cleanup function since we're not using it anymore and it was probably too aggressive:
+    def __init__(self, precision: int = 2):
+        self.precision = precision
+        self.history: List[str] = []
 
-## TOOL USE:
+    def add_numbers(self, a: float, b: float) -> float:
+        \"\"\"Add two numbers together.\"\"\"
+        result = a + b
+        self.history.append(f\"{a} + {b} = {result}\")
+        return round(result, self.precision)
 
-Name: str-replace
-ID: toolu_01Wjqt6A6Vqe8nBjxkM9T8WL
+    def multiply_numbers(self, a: float, b: float) -> float:
+        \"\"\"Multiply two numbers.\"\"\"
+        result = a * b
+        self.history.append(f\"{a} * {b} = {result}\")
+        return round(result, self.precision)
 
-### file_path
-
-<tool.toolu_01Wjqt6A6Vqe8nBjxkM9T8WL>
-test-greger-lib-lsp.el
-</tool.toolu_01Wjqt6A6Vqe8nBjxkM9T8WL>
-
-### original_content
-
-<tool.toolu_01Wjqt6A6Vqe8nBjxkM9T8WL>
-(defun greger-lsp-test-force-reset-lsp-state ()
-  "Force reset of global LSP state for problematic test isolation.
-This is a nuclear option when normal cleanup isn't sufficient."
-  (when (bound-and-true-p lsp--session)
-    ;; Clear all workspace folders that are in temp directories
-    (setf (lsp-session-folders lsp--session)
-          (cl-remove-if (lambda (folder)
-                         (string-prefix-p "/tmp" folder))
-                        (lsp-session-folders lsp--session)))
-
-    ;; Clear folder->servers mapping for temp directories
-    (let ((new-mapping (make-hash-table :test 'equal)))
-      (maphash (lambda (folder servers)
-                (unless (string-prefix-p "/tmp" folder)
-                  (puthash folder servers new-mapping)))
-              (lsp-session-folder->servers lsp--session))
-      (setf (lsp-session-folder->servers lsp--session) new-mapping))
-
-    ;; Clear server-id->folders mapping for servers associated with temp dirs
-    (let ((new-mapping (make-hash-table :test 'equal)))
-      (maphash (lambda (server-id folders)
-                (let ((filtered-folders (cl-remove-if (lambda (folder)
-                                                       (string-prefix-p "/tmp" folder))
-                                                     folders)))
-                  (when filtered-folders
-                    (puthash server-id filtered-folders new-mapping))))
-              (lsp-session-server-id->folders lsp--session))
-      (setf (lsp-session-server-id->folders lsp--session) new-mapping))))
-</tool.toolu_01Wjqt6A6Vqe8nBjxkM9T8WL>
-
-### new_content
-
-<tool.toolu_01Wjqt6A6Vqe8nBjxkM9T8WL>
-
-</tool.toolu_01Wjqt6A6Vqe8nBjxkM9T8WL>
-
-### git_commit_message
-
-<tool.toolu_01Wjqt6A6Vqe8nBjxkM9T8WL>
-Remove overly aggressive LSP state reset function
-
-- Remove greger-lsp-test-force-reset-lsp-state as it was too aggressive
-- Stick to simpler cleanup approach to avoid breaking LSP operation
-</tool.toolu_01Wjqt6A6Vqe8nBjxkM9T8WL>
-
-## TOOL RESULT:
-
-ID: toolu_01Wjqt6A6Vqe8nBjxkM9T8WL
-
-<tool.toolu_01Wjqt6A6Vqe8nBjxkM9T8WL>
-Successfully replaced content in /Users/andreas/projects/greger.el/test-greger-lib-lsp.el. Successfully staged 2 file(s) and committed with message: Remove overly aggressive LSP state reset function
-
-- Remove greger-lsp-test-force-reset-lsp-state as it was too aggressive
-- Stick to simpler cleanup approach to avoid breaking LSP operation
-</tool.toolu_01Wjqt6A6Vqe8nBjxkM9T8WL>
+    def get_history(self) -> List[str]:
+        \"\"\"Get calculation history.\"\"\"
+        return self.history.copy()
 
 
-## ASSISTANT:
+def create_calculator(precision: Optional[int] = None) -> Calculator:
+    \"\"\"Factory function to create a calculator.\"\"\"
+    if precision is None:
+        precision = 2
+    return Calculator(precision)
 
-Now let me also reduce the timing delays to be less intrusive:
 
-## TOOL USE:
+def main():
+    \"\"\"Main function for testing.\"\"\"
+    calc = create_calculator(3)
+    result1 = calc.add_numbers(10.5, 20.3)
+    result2 = calc.multiply_numbers(result1, 2.0)
 
-Name: str-replace
-ID: toolu_01FHApKXCjP68eSTr5kGe2hq
+    print(f\"Final result: {result2}\")
+    print(\"History:\")
+    for entry in calc.get_history():
+        print(f\"  {entry}\")
 
-### file_path
 
-<tool.toolu_01FHApKXCjP68eSTr5kGe2hq>
-test-greger-lib-lsp.el
-</tool.toolu_01FHApKXCjP68eSTr5kGe2hq>
+if __name__ == \"__main__\":
+    main()
+"))
 
-### original_content
+    ;; Create utils.py for reference testing
+    (let ((utils-file (expand-file-name "utils.py" src-dir)))
+      (with-temp-file utils-file
+        (insert "#!/usr/bin/env python3
+\"\"\"Utility functions.\"\"\"
 
-<tool.toolu_01FHApKXCjP68eSTr5kGe2hq>
-(defmacro greger-lsp-test-with-setup (&rest body)
-  "Execute BODY with LSP test setup and teardown.
-Ensures proper isolation between test runs."
-  `(progn
-     (greger-lsp-test-skip-if-requirements-not-met)
+from main import Calculator, create_calculator
 
-     ;; Brief delay to ensure any previous LSP cleanup is complete
-     (sit-for 0.1)
 
-     (unwind-protect
-         (progn
-           (greger-lsp-test-setup)
-           (greger-lsp-test-ensure-lsp-started)
-           ,@body)
-       (greger-lsp-test-teardown)
-       ;; Brief delay after teardown to ensure cleanup completes
-       ;; before next test starts
-       (sit-for 0.1))))
-</tool.toolu_01FHApKXCjP68eSTr5kGe2hq>
+def advanced_calculation(x: float, y: float) -> float:
+    \"\"\"Perform advanced calculation using Calculator.\"\"\"
+    calc = create_calculator(4)
+    intermediate = calc.add_numbers(x, y)
+    return calc.multiply_numbers(intermediate, 1.5)
 
-### new_content
 
-<tool.toolu_01FHApKXCjP68eSTr5kGe2hq>
+def format_result(value: float) -> str:
+    \"\"\"Format a calculation result.\"\"\"
+    return f\"Result: {value:.2f}\"
+")))
+
+    ;; Create a simple pyproject.toml for LSP to recognize the project
+    (with-temp-file (expand-file-name "pyproject.toml" greger-lsp-test-temp-dir)
+      (insert "[project]
+name = \"greger-lsp-test\"
+version = \"0.1.0\"
+description = \"Test project for greger LSP tools\"
+"))))
+
+(defun greger-lsp-test-teardown ()
+  "Clean up test environment."
+  (when greger-lsp-test-temp-dir
+    ;; Kill any buffers visiting test files
+    (when greger-lsp-test-python-file
+      (let ((buffer (get-file-buffer greger-lsp-test-python-file)))
+        (when buffer
+          (with-current-buffer buffer
+            (when (bound-and-true-p lsp-mode)
+              (condition-case nil (lsp-disconnect) (error nil))))
+          (kill-buffer buffer))))
+
+    ;; Also check for utils.py buffer
+    (let ((utils-file (expand-file-name "src/utils.py" greger-lsp-test-temp-dir)))
+      (let ((buffer (get-file-buffer utils-file)))
+        (when buffer
+          (with-current-buffer buffer
+            (when (bound-and-true-p lsp-mode)
+              (condition-case nil (lsp-disconnect) (error nil))))
+          (kill-buffer buffer))))
+
+    ;; Clean up LSP session folders (but don't be too aggressive)
+    (when (and (bound-and-true-p lsp--session) greger-lsp-test-project-root)
+      (condition-case nil
+          (lsp-workspace-folders-remove greger-lsp-test-project-root)
+        (error nil))
+
+      ;; Remove from session folders
+      (setf (lsp-session-folders lsp--session)
+            (cl-remove-if (lambda (folder)
+                           (string-prefix-p "/tmp" folder))
+                         (lsp-session-folders lsp--session))))
+
+    ;; Remove temp directory
+    (condition-case nil
+        (delete-directory greger-lsp-test-temp-dir t)
+      (error nil))
+
+    ;; Reset test variables
+    (setq greger-lsp-test-temp-dir nil
+          greger-lsp-test-python-file nil
+          greger-lsp-test-project-root nil)))
+
+(defun greger-lsp-test-ensure-lsp-started ()
+  "Ensure LSP is started for the test Python file."
+  (let ((buffer (find-file-noselect greger-lsp-test-python-file)))
+    (with-current-buffer buffer
+      (python-mode)
+
+      ;; Use lsp-workspace-folders-add to properly register our test directory
+      (lsp-workspace-folders-add greger-lsp-test-project-root)
+
+      ;; Start LSP with our configured workspace
+      (condition-case err
+          (progn
+            ;; Bind LSP variables to ensure proper root detection
+            (let ((lsp-auto-guess-root nil)
+                  (lsp-guess-root-without-session nil))
+              (lsp))
+            ;; Wait for LSP to initialize with reasonable timeout
+            (let ((timeout 0))
+              (while (and (not lsp--buffer-workspaces) (< timeout 100))
+                (sit-for 0.1)
+                (setq timeout (1+ timeout))))
+            (unless lsp--buffer-workspaces
+              (error "Failed to start LSP server for test"))
+
+            ;; Verify we got the right workspace root
+            (let ((workspace-root (lsp-workspace-root)))
+              (unless (string= (file-truename workspace-root)
+                              (file-truename greger-lsp-test-project-root))
+                (error "LSP workspace root mismatch: expected %s, got %s"
+                       greger-lsp-test-project-root workspace-root))))
+        (error
+         (message "LSP startup error: %s" (error-message-string err))
+         (error "Failed to start LSP server for test: %s" (error-message-string err)))))
+
+    ;; TODO: better way to detect that buffer is ready
+    (sleep-for 1.0)
+
+    buffer))
+
+;;; Helper functions for test requirements
+
+(defun greger-lsp-test-requirements-met-p ()
+  "Check if requirements for LSP tests are met."
+  (and (fboundp 'lsp)
+       (fboundp 'python-mode)
+       (or (executable-find "pyright")
+           (executable-find "pylsp")
+           (executable-find "python-lsp-server"))))
+
+(defun greger-lsp-test-skip-if-requirements-not-met ()
+  "Skip test if LSP requirements are not met."
+  (unless (greger-lsp-test-requirements-met-p)
+    (ert-skip "LSP mode or Python LSP server not available")))
+
+
+
+;;; Helper macros
+
 (defmacro greger-lsp-test-with-setup (&rest body)
   "Execute BODY with LSP test setup and teardown."
   `(progn
@@ -2450,42 +615,559 @@ Ensures proper isolation between test runs."
            (greger-lsp-test-ensure-lsp-started)
            ,@body)
        (greger-lsp-test-teardown))))
-</tool.toolu_01FHApKXCjP68eSTr5kGe2hq>
 
-### git_commit_message
+;;; Tests for helper functions
 
-<tool.toolu_01FHApKXCjP68eSTr5kGe2hq>
-Remove timing delays from test macro
+(ert-deftest greger-lsp-test-ensure-server ()
+  "Test LSP server initialization helper."
+  (greger-lsp-test-with-setup
+   (let ((buffer (greger-lsp--ensure-server greger-lsp-test-python-file)))
+     (should (bufferp buffer))
+     (with-current-buffer buffer
+       (should (bound-and-true-p lsp-mode))
+       (should lsp--buffer-workspaces)))))
 
-- Remove sit-for delays that were potentially causing issues
-- Return to simpler test isolation approach
-- Let LSP manage its own timing
-</tool.toolu_01FHApKXCjP68eSTr5kGe2hq>
+(ert-deftest greger-lsp-test-with-buffer-at-position ()
+  "Test executing code at specific buffer position."
+  (greger-lsp-test-with-setup
+   (let ((result nil))
+     (greger-lsp--with-buffer-at-position
+      greger-lsp-test-python-file 9 0  ; Line 9: class definition
+      (lambda ()
+        (setq result (thing-at-point 'word))))
+     (should (equal result "class")))))
 
-## TOOL RESULT:
+;;; Tests for lsp-rename tool
 
-ID: toolu_01FHApKXCjP68eSTr5kGe2hq
+(ert-deftest greger-lsp-test-rename-success ()
+  "Test successful symbol rename."
+  (greger-lsp-test-with-setup
+   ;; Rename the Calculator class to MathCalculator
+   (let ((result (greger-lib-lsp--rename
+                  "MathCalculator"
+                  greger-lsp-test-python-file
+                  9 6)))  ; Line 9: "class Calculator:", column at "Calculator"
+     (should (stringp result))
+     (should (string= "Successfully renamed 'Calculator' to 'MathCalculator' in 4 location(s)" result))
 
-<tool.toolu_01FHApKXCjP68eSTr5kGe2hq>
-Successfully replaced content in /Users/andreas/projects/greger.el/test-greger-lib-lsp.el. Successfully staged 2 file(s) and committed with message: Remove timing delays from test macro
+     ;; Verify the file was actually changed
+     (with-temp-buffer
+       (insert-file-contents greger-lsp-test-python-file)
+       (goto-char (point-min))
+       (should (search-forward "class MathCalculator:" nil t))))))
 
-- Remove sit-for delays that were potentially causing issues
-- Return to simpler test isolation approach
-- Let LSP manage its own timing
-</tool.toolu_01FHApKXCjP68eSTr5kGe2hq>
+(ert-deftest greger-lsp-test-rename-invalid-symbol ()
+  "Test rename on invalid symbol position."
+  (greger-lsp-test-with-setup
+   ;; Try to rename at a comment line
+   (let ((result (greger-lib-lsp--rename
+                  "NewName"
+                  greger-lsp-test-python-file
+                  2 0)))  ; Line 2: comment line
+     (should (stringp result))
+     (should (or (string-match-p "No changes made" result)
+             (string-match-p "failed" result))))))
 
+;;; Tests for lsp-format tool
+
+(ert-deftest greger-lsp-test-format-file ()
+  "Test formatting entire file."
+  (ert-skip "Pyright LSP doesn't support formatting")
+
+  (greger-lsp-test-with-setup
+   ;; First, mess up the formatting
+   (with-current-buffer (find-file-noselect greger-lsp-test-python-file)
+     (goto-char (point-min))
+     (search-forward "def add_numbers")
+     (beginning-of-line)
+     (insert "   ")  ; Add extra indentation
+     (save-buffer))
+
+   ;; Now format the file
+   (let ((result (greger-lib-lsp--format greger-lsp-test-python-file)))
+     (should (stringp result))
+     (should (or (string-match-p "Successfully formatted" result)
+             (string-match-p "No formatting changes needed" result))))))
+
+(ert-deftest greger-lsp-test-format-range ()
+  "Test formatting a specific range."
+  (ert-skip "Pyright LSP doesn't support formatting")
+
+  (greger-lsp-test-with-setup
+   (let ((result (greger-lib-lsp--format
+                  greger-lsp-test-python-file
+                  10 20)))  ; Format lines 10-20 (around Calculator class)
+     (should (stringp result))
+     (should (or (string-match-p "Successfully formatted" result)
+             (string-match-p "No formatting changes needed" result)
+             (string-match-p "does not support range formatting" result))))))
+
+;;; Tests for lsp-find-definition tool
+
+(ert-deftest greger-lsp-test-find-definition ()
+  "Test finding symbol definition."
+  (greger-lsp-test-with-setup
+   ;; Find definition of create_calculator usage
+   (let ((result (greger-lib-lsp--find-definition
+                  greger-lsp-test-python-file
+                  42 11)))  ; Line 42: "calc = create_calculator(3)", position at "create_calculator"
+
+     (should (stringp result))
+     (should (string-match-p "Definition.*create_calculator" result))
+     (should (string-match-p "main.py:" result)))))
+
+(ert-deftest greger-lsp-test-find-definition-with-declaration ()
+  "Test finding definition with declarations."
+  (greger-lsp-test-with-setup
+   (let ((result (greger-lib-lsp--find-definition
+                  greger-lsp-test-python-file
+                  42 11  ; Line 43: "calc = create_calculator(3)", position at "create_calculator"
+                  t)))   ; Include declarations
+     (should (stringp result))
+     (should (string-match-p "Definition.*create_calculator" result)))))
+
+;;; Tests for lsp-find-references tool
+
+(ert-deftest greger-lsp-test-find-references ()
+  "Test finding symbol references."
+  (greger-lsp-test-with-setup
+   ;; Find references to Calculator class
+   (let ((result (greger-lib-lsp--find-references
+                  greger-lsp-test-python-file
+                  9 6)))  ; Line 9: "class Calculator:", column at "Calculator"
+     (should (stringp result))
+     (should (string-match-p "References.*Calculator" result))
+     (should (string-match-p "main.py:" result)))))
+
+(ert-deftest greger-lsp-test-find-references-limited ()
+  "Test finding references with result limit."
+  (greger-lsp-test-with-setup
+   (let ((result (greger-lib-lsp--find-references
+                  greger-lsp-test-python-file
+                  9 6      ; Line 9: "class Calculator:", column at "Calculator"
+                  t        ; Include declaration
+                  5)))     ; Max 5 results
+     (should (stringp result))
+     (should (string-match-p "References.*Calculator" result)))))
+
+;;; Integration tests
+
+(ert-deftest greger-lsp-test-rename-and-find-references ()
+  "Integration test: rename a symbol and verify references are updated."
+  (greger-lsp-test-with-setup
+   ;; First, find references to the original name
+   (let ((original-refs (greger-lib-lsp--find-references
+                         greger-lsp-test-python-file 9 6))) ; Line 9: Calculator class
+     (should (string-match-p "Calculator" original-refs))
+
+     ;; Perform rename in a way that avoids minibuffer issues
+     (let ((inhibit-message t)
+           (use-dialog-box nil)
+           (executing-kbd-macro t)) ; Simulate running in macro to avoid interactive prompts
+       (let ((result (greger-lib-lsp--rename "MathEngine" greger-lsp-test-python-file 9 6)))
+         (should (stringp result))
+
+         ;; Find references to the new name (after a brief delay for LSP to update)
+         (sit-for 0.5)
+         (let ((new-refs (greger-lib-lsp--find-references
+                          greger-lsp-test-python-file 9 6)))
+           (should (stringp new-refs))))))))
+
+(ert-deftest greger-lsp-test-cross-file-references ()
+  "Test finding references across multiple files."
+  (greger-lsp-test-with-setup
+   ;; Wait a moment for LSP to fully initialize
+   (sit-for 1)
+
+   ;; Find references to Calculator class (line 9, position at "Calculator")
+   (let ((result (greger-lib-lsp--find-references
+                  greger-lsp-test-python-file
+                  9 6))
+         (expected "References for 'Calculator' (3 found):
+main.py:33:58
+main.py:37:11
+utils.py:4:17"))
+
+     (should (stringp result))
+     (should (string= expected result)))))
+
+(provide 'test-greger-lib-lsp)
+
+;;; test-greger-lib-lsp.el ends here
+
+</tool.toolu_01DMYv71jBLjhb5eBmRQEZDE>
 
 ## ASSISTANT:
 
-Now the test setup should be much simpler and less likely to interfere with LSP operation. The key changes I've made to fix the original issue while avoiding the timeout problem:
+Now I'll add the `lsp-document-symbols` tool to `greger-lib-lsp.el`. Based on the existing structure and the format of the hash table you provided, I'll need to:
 
-1. **Simplified teardown**: Only kill buffers for the specific test files and do basic session folder cleanup
-2. **Removed aggressive cleanup**: No more workspace killing, process termination, or complex state manipulation
-3. **Removed timing delays**: Let LSP manage its own timing instead of forcing delays
-4. **Simplified setup**: Just basic session folder cleanup, no complex workspace management
+1. Add the tool registration
+2. Create a helper function to format the hash table as a readable string
+3. Implement the main function
 
-The main improvement for test isolation is that we now properly clean up both the main test file buffer AND the utils.py buffer, which was likely the source of the original test interference. This should provide adequate isolation without breaking LSP functionality.
+## TOOL USE:
 
-Try running your tests now - they should work without timeouts while still providing better isolation between test runs.
+Name: str-replace
+ID: toolu_01GYdPJPEj5eRGtbbNWYErFp
 
-## USER:
+### file_path
+
+<tool.toolu_01GYdPJPEj5eRGtbbNWYErFp>
+greger-lib-lsp.el
+</tool.toolu_01GYdPJPEj5eRGtbbNWYErFp>
+
+### original_content
+
+<tool.toolu_01GYdPJPEj5eRGtbbNWYErFp>
+(greger-register-tool "lsp-find-references"
+  :description "Find all references to a symbol at a specific location"
+  :properties '((file_path . ((type . "string")
+                             (description . "Path to the file")))
+                (line . ((type . "integer")
+                        (description . "Line number (1-based)")))
+                (column . ((type . "integer")
+                          (description . "Column number (0-based)")))
+                (include_declaration . ((type . "boolean")
+                                       (description . "Include the symbol declaration in results")
+                                       (default . :json-true)))
+                (max_results . ((type . "integer")
+                               (description . "Maximum number of references to return")
+                               (default . 100))))
+  :required '("file_path" "line" "column")
+  :function 'greger-lib-lsp--find-references)
+</tool.toolu_01GYdPJPEj5eRGtbbNWYErFp>
+
+### new_content
+
+<tool.toolu_01GYdPJPEj5eRGtbbNWYErFp>
+(greger-register-tool "lsp-find-references"
+  :description "Find all references to a symbol at a specific location"
+  :properties '((file_path . ((type . "string")
+                             (description . "Path to the file")))
+                (line . ((type . "integer")
+                        (description . "Line number (1-based)")))
+                (column . ((type . "integer")
+                          (description . "Column number (0-based)")))
+                (include_declaration . ((type . "boolean")
+                                       (description . "Include the symbol declaration in results")
+                                       (default . :json-true)))
+                (max_results . ((type . "integer")
+                               (description . "Maximum number of references to return")
+                               (default . 100))))
+  :required '("file_path" "line" "column")
+  :function 'greger-lib-lsp--find-references)
+
+(greger-register-tool "lsp-document-symbols"
+  :description "Get document symbols for one or more files"
+  :properties '((file_paths . ((type . "array")
+                              (items . ((type . "string")))
+                              (description . "List of file paths to get symbols for"))))
+  :required '("file_paths")
+  :function 'greger-lib-lsp--document-symbols)
+</tool.toolu_01GYdPJPEj5eRGtbbNWYErFp>
+
+### git_commit_message
+
+<tool.toolu_01GYdPJPEj5eRGtbbNWYErFp>
+Add lsp-document-symbols tool registration
+</tool.toolu_01GYdPJPEj5eRGtbbNWYErFp>
+
+## TOOL RESULT:
+
+ID: toolu_01GYdPJPEj5eRGtbbNWYErFp
+
+<tool.toolu_01GYdPJPEj5eRGtbbNWYErFp>
+Error executing tool: Wrong type argument: listp, t
+</tool.toolu_01GYdPJPEj5eRGtbbNWYErFp>
+
+## ASSISTANT:
+
+Let me check if the file is corrupted or has some issue:
+
+## TOOL USE:
+
+Name: read-file
+ID: toolu_01NVqPcwGTwP3s2RquGMXA7Z
+
+### path
+
+<tool.toolu_01NVqPcwGTwP3s2RquGMXA7Z>
+greger-lib-lsp.el
+</tool.toolu_01NVqPcwGTwP3s2RquGMXA7Z>
+
+### start_line
+
+<tool.toolu_01NVqPcwGTwP3s2RquGMXA7Z>
+60
+</tool.toolu_01NVqPcwGTwP3s2RquGMXA7Z>
+
+### end_line
+
+<tool.toolu_01NVqPcwGTwP3s2RquGMXA7Z>
+75
+</tool.toolu_01NVqPcwGTwP3s2RquGMXA7Z>
+
+## TOOL RESULT:
+
+ID: toolu_01NVqPcwGTwP3s2RquGMXA7Z
+
+<tool.toolu_01NVqPcwGTwP3s2RquGMXA7Z>
+                (column . ((type . "integer")
+                          (description . "Column number (0-based)")))
+                (include_declaration . ((type . "boolean")
+                                       (description . "Include the symbol declaration in results")
+                                       (default . :json-true)))
+                (max_results . ((type . "integer")
+                               (description . "Maximum number of references to return")
+                               (default . 100))))
+  :required '("file_path" "line" "column")
+  :function 'greger-lib-lsp--find-references)
+
+;;; Helper functions
+
+(defun greger-lsp--ensure-server (file-path)
+  "Ensure LSP server is running for FILE-PATH.
+Returns the buffer visiting the file, or signals an error if LSP is not available."
+</tool.toolu_01NVqPcwGTwP3s2RquGMXA7Z>
+
+## ASSISTANT:
+
+Let me find the exact location to add the new tool registration:
+
+## TOOL USE:
+
+Name: read-file
+ID: toolu_01Y5Ek2EjUfb7rdojnPoL9Wb
+
+### path
+
+<tool.toolu_01Y5Ek2EjUfb7rdojnPoL9Wb>
+greger-lib-lsp.el
+</tool.toolu_01Y5Ek2EjUfb7rdojnPoL9Wb>
+
+### start_line
+
+<tool.toolu_01Y5Ek2EjUfb7rdojnPoL9Wb>
+50
+</tool.toolu_01Y5Ek2EjUfb7rdojnPoL9Wb>
+
+### end_line
+
+<tool.toolu_01Y5Ek2EjUfb7rdojnPoL9Wb>
+80
+</tool.toolu_01Y5Ek2EjUfb7rdojnPoL9Wb>
+
+## TOOL RESULT:
+
+ID: toolu_01Y5Ek2EjUfb7rdojnPoL9Wb
+
+<tool.toolu_01Y5Ek2EjUfb7rdojnPoL9Wb>
+                                       (default . :json-false))))
+  :required '("file_path" "line" "column")
+  :function 'greger-lib-lsp--find-definition)
+
+(greger-register-tool "lsp-find-references"
+  :description "Find all references to a symbol at a specific location"
+  :properties '((file_path . ((type . "string")
+                             (description . "Path to the file")))
+                (line . ((type . "integer")
+                        (description . "Line number (1-based)")))
+                (column . ((type . "integer")
+                          (description . "Column number (0-based)")))
+                (include_declaration . ((type . "boolean")
+                                       (description . "Include the symbol declaration in results")
+                                       (default . :json-true)))
+                (max_results . ((type . "integer")
+                               (description . "Maximum number of references to return")
+                               (default . 100))))
+  :required '("file_path" "line" "column")
+  :function 'greger-lib-lsp--find-references)
+
+;;; Helper functions
+
+(defun greger-lsp--ensure-server (file-path)
+  "Ensure LSP server is running for FILE-PATH.
+Returns the buffer visiting the file, or signals an error if LSP is not available."
+  (let ((buffer (or (find-buffer-visiting file-path)
+                    (find-file-noselect file-path))))
+    (with-current-buffer buffer
+      (unless (and (bound-and-true-p lsp-mode) lsp--buffer-workspaces)
+        (if (fboundp 'lsp)
+</tool.toolu_01Y5Ek2EjUfb7rdojnPoL9Wb>
+
+## ASSISTANT:
+
+Now I'll add the tool registration right after the lsp-find-references tool:
+
+## TOOL USE:
+
+Name: str-replace
+ID: toolu_01DPHS3p3gExyyWDX4FY9Z31
+
+### file_path
+
+<tool.toolu_01DPHS3p3gExyyWDX4FY9Z31>
+greger-lib-lsp.el
+</tool.toolu_01DPHS3p3gExyyWDX4FY9Z31>
+
+### original_content
+
+<tool.toolu_01DPHS3p3gExyyWDX4FY9Z31>
+  :required '("file_path" "line" "column")
+  :function 'greger-lib-lsp--find-references)
+
+;;; Helper functions
+</tool.toolu_01DPHS3p3gExyyWDX4FY9Z31>
+
+### new_content
+
+<tool.toolu_01DPHS3p3gExyyWDX4FY9Z31>
+  :required '("file_path" "line" "column")
+  :function 'greger-lib-lsp--find-references)
+
+(greger-register-tool "lsp-document-symbols"
+  :description "Get document symbols for one or more files"
+  :properties '((file_paths . ((type . "array")
+                              (items . ((type . "string")))
+                              (description . "List of file paths to get symbols for"))))
+  :required '("file_paths")
+  :function 'greger-lib-lsp--document-symbols)
+
+;;; Helper functions
+</tool.toolu_01DPHS3p3gExyyWDX4FY9Z31>
+
+### git_commit_message
+
+<tool.toolu_01DPHS3p3gExyyWDX4FY9Z31>
+Add lsp-document-symbols tool registration
+</tool.toolu_01DPHS3p3gExyyWDX4FY9Z31>
+
+## TOOL RESULT:
+
+ID: toolu_01DPHS3p3gExyyWDX4FY9Z31
+
+<tool.toolu_01DPHS3p3gExyyWDX4FY9Z31>
+Error executing tool: Wrong type argument: listp, t
+</tool.toolu_01DPHS3p3gExyyWDX4FY9Z31>
+
+## ASSISTANT:
+
+Let me try a different approach and check what might be causing this error:
+
+## TOOL USE:
+
+Name: ripgrep
+ID: toolu_01XjQsNRFiEswdS6kPuouDiW
+
+### pattern
+
+<tool.toolu_01XjQsNRFiEswdS6kPuouDiW>
+:function 'greger-lib-lsp--find-references
+</tool.toolu_01XjQsNRFiEswdS6kPuouDiW>
+
+### path
+
+<tool.toolu_01XjQsNRFiEswdS6kPuouDiW>
+greger-lib-lsp.el
+</tool.toolu_01XjQsNRFiEswdS6kPuouDiW>
+
+## TOOL RESULT:
+
+ID: toolu_01XjQsNRFiEswdS6kPuouDiW
+
+<tool.toolu_01XjQsNRFiEswdS6kPuouDiW>
+69:  :function 'greger-lib-lsp--find-references)
+
+</tool.toolu_01XjQsNRFiEswdS6kPuouDiW>
+
+## TOOL USE:
+
+Name: read-file
+ID: toolu_01Funt6AK8S35gEe7CzDHH7x
+
+### path
+
+<tool.toolu_01Funt6AK8S35gEe7CzDHH7x>
+greger-lib-lsp.el
+</tool.toolu_01Funt6AK8S35gEe7CzDHH7x>
+
+### start_line
+
+<tool.toolu_01Funt6AK8S35gEe7CzDHH7x>
+65
+</tool.toolu_01Funt6AK8S35gEe7CzDHH7x>
+
+### end_line
+
+<tool.toolu_01Funt6AK8S35gEe7CzDHH7x>
+75
+</tool.toolu_01Funt6AK8S35gEe7CzDHH7x>
+
+### include_line_numbers
+
+<tool.toolu_01Funt6AK8S35gEe7CzDHH7x>
+true
+</tool.toolu_01Funt6AK8S35gEe7CzDHH7x>
+
+## TOOL RESULT:
+
+ID: toolu_01Funt6AK8S35gEe7CzDHH7x
+
+<tool.toolu_01Funt6AK8S35gEe7CzDHH7x>
+65:                 (max_results . ((type . "integer")
+66:                                (description . "Maximum number of references to return")
+67:                                (default . 100))))
+68:   :required '("file_path" "line" "column")
+69:   :function 'greger-lib-lsp--find-references)
+70:
+71: ;;; Helper functions
+72:
+73: (defun greger-lsp--ensure-server (file-path)
+74:   "Ensure LSP server is running for FILE-PATH.
+75: Returns the buffer visiting the file, or signals an error if LSP is not available."
+</tool.toolu_01Funt6AK8S35gEe7CzDHH7x>
+
+## TOOL USE:
+
+Name: str-replace
+ID: toolu_01EfEPZEgEitjoPewPgybM1W
+
+### file_path
+
+<tool.toolu_01EfEPZEgEitjoPewPgybM1W>
+greger-lib-lsp.el
+</tool.toolu_01EfEPZEgEitjoPewPgybM1W>
+
+### original_content
+
+<tool.toolu_01EfEPZEgEitjoPewPgybM1W>
+  :required '("file_path" "line" "column")
+  :function 'greger-lib-lsp--find-references)
+
+;;; Helper functions
+</tool.toolu_01EfEPZEgEitjoPewPgybM1W>
+
+### new_content
+
+<tool.toolu_01EfEPZEgEitjoPewPgybM1W>
+  :required '("file_path" "line" "column")
+  :function 'greger-lib-lsp--find-references)
+
+(greger-register-tool "lsp-document-symbols"
+  :description "Get document symbols for one or more files"
+  :properties '((file_paths . ((type . "array")
+                              (items . ((type . "string")))
+                              (description . "List of file paths to get symbols for"))))
+  :required '("file_paths")
+  :function 'greger-lib-lsp--document-symbols)
+
+;;; Helper functions
+</tool.toolu_01EfEPZEgEitjoPewPgybM1W>
+
+### git_commit_message
+
+<tool.toolu_01EfEPZEgEitjoPewPgybM1W>
+Add lsp-document-symbols tool registration
+</tool.toolu_01EfEPZEgEitjoPewPgybM1W>
+
+<!-- TOOL_RESULT_PLACEHOLDER_toolu_01EfEPZEgEitjoPewPgybM1W -->
