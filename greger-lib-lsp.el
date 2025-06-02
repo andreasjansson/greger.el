@@ -395,8 +395,8 @@ LINE is 1-based, COLUMN is 0-based."
                   "")
                 result-text))))))
 
-(defun greger-lib-lsp--document-symbols (file-paths)
-  "Get document symbols for FILE-PATHS using LSP."
+(defun greger-lib-lsp--document-symbols (file-paths &optional detailed)
+  "Get document symbols for FILE-PATHS using LSP with optional DETAILED flag."
   (let ((results '()))
     (dolist (file-path file-paths)
       (let ((buffer (greger-lsp--ensure-server file-path)))
@@ -406,7 +406,7 @@ LINE is 1-based, COLUMN is 0-based."
 
           (let* ((symbols (let ((lsp-response-timeout 10))
                             (lsp--get-document-symbols)))
-                 (formatted (greger-lsp--format-document-symbols symbols file-path)))
+                 (formatted (greger-lsp--format-document-symbols symbols file-path detailed)))
             (push formatted results)))))
 
     (substring-no-properties
