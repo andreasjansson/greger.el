@@ -5553,4 +5553,570 @@ test-greger-lib-lsp.el
 Add debugging to show file contents with line numbers
 </tool.toolu_01B63iN5HMbn7bPTHcHsPb33>
 
-<!-- TOOL_RESULT_PLACEHOLDER_toolu_01B63iN5HMbn7bPTHcHsPb33 -->
+## TOOL RESULT:
+
+ID: toolu_01B63iN5HMbn7bPTHcHsPb33
+
+<tool.toolu_01B63iN5HMbn7bPTHcHsPb33>
+Successfully replaced content in /Users/andreas/projects/aichat3/test-greger-lib-lsp.el. Successfully staged 2 file(s) and committed with message: Add debugging to show file contents with line numbers
+</tool.toolu_01B63iN5HMbn7bPTHcHsPb33>
+
+
+## USER:
+
+Still lots of errors (I had to abort the test because it was taking so long with all the timeouts)
+
+``` emacs-lisp
+F greger-lsp-test-cross-file-references
+    Test finding references across multiple files.
+    (ert-test-failed
+     ((should
+       (string-match-p "create_calculator" result))
+      :form
+      (string-match-p "create_calculator" "LSP find-references failed: Timeout while waiting for response.  Method: textDocument/references")
+      :value nil))
+
+F greger-lsp-test-document-symbols
+    Test getting document symbols.
+    (ert-test-failed
+     ((should
+       (string-match-p "Document symbols.*main.py" result))
+      :form
+      (string-match-p "Document symbols.*main.py" "LSP document-symbols failed: Timeout while waiting for response.  Method: textDocument/documentSymbol")
+      :value nil))
+
+F greger-lsp-test-document-symbols-filtered
+    Test getting filtered document symbols.
+    (ert-test-failed
+     ((should
+       (string-match-p "Calculator.*Class" result))
+      :form
+      (string-match-p "Calculator.*Class" "LSP document-symbols failed: Timeout while waiting for response.  Method: textDocument/documentSymbol")
+      :value nil))
+
+F greger-lsp-test-document-symbols-hierarchical
+    Test getting hierarchical document symbols.
+    (ert-test-failed
+     ((should
+       (string-match-p "Calculator.*Class" result))
+      :form
+      (string-match-p "Calculator.*Class" "LSP document-symbols failed: Timeout while waiting for response.  Method: textDocument/documentSymbol")
+      :value nil))
+
+F greger-lsp-test-find-definition
+    Test finding symbol definition.
+    (ert-test-failed
+     ((should
+       (string-match-p "Definition.*create_calculator" result))
+      :form
+      (string-match-p "Definition.*create_calculator" "LSP find-definition failed: End of buffer")
+      :value nil))
+
+F greger-lsp-test-find-definition-with-declaration
+    Test finding definition with declarations.
+    (ert-test-failed
+     ((should
+       (string-match-p "Definition.*create_calculator" result))
+      :form
+      (string-match-p "Definition.*create_calculator" "LSP find-definition failed: End of buffer")
+      :value nil))
+
+F greger-lsp-test-find-references
+    Test finding symbol references.
+    (ert-test-failed
+     ((should
+       (string-match-p "References.*Calculator" result))
+      :form
+      (string-match-p "References.*Calculator" "LSP find-references failed: End of buffer")
+      :value nil))
+
+F greger-lsp-test-find-references-limited
+    Test finding references with result limit.
+    (ert-test-failed
+     ((should
+       (string-match-p "References.*Calculator" result))
+      :form
+      (string-match-p "References.*Calculator" "LSP find-references failed: End of buffer")
+      :value nil))
+
+F greger-lsp-test-format-file
+    Test formatting entire file.
+    (ert-test-failed
+     ((should
+       (or
+        (string-match-p "Successfully formatted" result)
+        (string-match-p "No formatting changes needed" result)))
+      :form
+      (or
+       (string-match-p "Successfully formatted" result)
+       (string-match-p "No formatting changes needed" result))
+      :value nil))
+
+F greger-lsp-test-rename-and-find-references
+    Integration test: rename a symbol and verify references are updated.
+    (ert-test-failed
+     ((should
+       (string-match-p "Calculator" original-refs))
+      :form
+      (string-match-p "Calculator" "LSP find-references failed: End of buffer")
+      :value nil))
+
+Q greger-lsp-test-rename-invalid-symbol
+    Test rename on invalid symbol position.
+    (quit)
+```
+
+Let's do this one test at a time. Start by working on the timeout error in greger-lsp-test-cross-file-references. Don't actually run the tests, I want to do that. Just tell me when the test is ready to run.
+
+## ASSISTANT:
+
+I see the issues. The main problems are:
+
+1. **Timeouts**: LSP server is taking too long or not responding properly
+2. **"End of buffer" errors**: Position calculations are still wrong
+3. **Tests taking too long**: We need to optimize the setup
+
+Let me fix these issues step by step. First, let me address the timeout and setup issues:
+
+## TOOL USE:
+
+Name: str-replace
+ID: toolu_01HnPdKpkNzNQdyvh3BiFAEe
+
+### file_path
+
+<tool.toolu_01HnPdKpkNzNQdyvh3BiFAEe>
+test-greger-lib-lsp.el
+</tool.toolu_01HnPdKpkNzNQdyvh3BiFAEe>
+
+### original_content
+
+<tool.toolu_01HnPdKpkNzNQdyvh3BiFAEe>
+          ;; Start LSP
+          (condition-case err
+              (progn
+                (lsp)
+                ;; Wait for LSP to initialize with longer timeout
+                (let ((timeout 0))
+                  (while (and (not lsp--buffer-workspaces) (< timeout 300))
+                    (sit-for 0.1)
+                    (setq timeout (1+ timeout))))
+                (unless lsp--buffer-workspaces
+                  (error "Failed to start LSP server for test")))
+            (error
+             (message "LSP startup error: %s" (error-message-string err))
+             (error "Failed to start LSP server for test: %s" (error-message-string err))))))))
+</tool.toolu_01HnPdKpkNzNQdyvh3BiFAEe>
+
+### new_content
+
+<tool.toolu_01HnPdKpkNzNQdyvh3BiFAEe>
+          ;; Start LSP with shorter timeout and better error handling
+          (condition-case err
+              (progn
+                ;; Set LSP request timeout to be shorter for tests
+                (let ((lsp-response-timeout 10)) ; 10 seconds instead of default
+                  (lsp)
+                  ;; Wait for LSP to initialize with reasonable timeout
+                  (let ((timeout 0))
+                    (while (and (not lsp--buffer-workspaces) (< timeout 100))
+                      (sit-for 0.1)
+                      (setq timeout (1+ timeout))))
+                  (unless lsp--buffer-workspaces
+                    (error "Failed to start LSP server for test"))))
+            (error
+             (message "LSP startup error: %s" (error-message-string err))
+             (error "Failed to start LSP server for test: %s" (error-message-string err))))))))
+</tool.toolu_01HnPdKpkNzNQdyvh3BiFAEe>
+
+### git_commit_message
+
+<tool.toolu_01HnPdKpkNzNQdyvh3BiFAEe>
+Reduce LSP timeouts and improve error handling for tests
+</tool.toolu_01HnPdKpkNzNQdyvh3BiFAEe>
+
+## TOOL RESULT:
+
+ID: toolu_01HnPdKpkNzNQdyvh3BiFAEe
+
+<tool.toolu_01HnPdKpkNzNQdyvh3BiFAEe>
+Error executing tool: Original content not found in file: /Users/andreas/projects/aichat3/test-greger-lib-lsp.el -- Try again!
+</tool.toolu_01HnPdKpkNzNQdyvh3BiFAEe>
+
+## ASSISTANT:
+
+Let me check the current content:
+
+## TOOL USE:
+
+Name: read-file
+ID: toolu_01E99M6yuHfDmTMY7VSrB4xm
+
+### path
+
+<tool.toolu_01E99M6yuHfDmTMY7VSrB4xm>
+test-greger-lib-lsp.el
+</tool.toolu_01E99M6yuHfDmTMY7VSrB4xm>
+
+### start_line
+
+<tool.toolu_01E99M6yuHfDmTMY7VSrB4xm>
+135
+</tool.toolu_01E99M6yuHfDmTMY7VSrB4xm>
+
+### end_line
+
+<tool.toolu_01E99M6yuHfDmTMY7VSrB4xm>
+155
+</tool.toolu_01E99M6yuHfDmTMY7VSrB4xm>
+
+### include_line_numbers
+
+<tool.toolu_01E99M6yuHfDmTMY7VSrB4xm>
+true
+</tool.toolu_01E99M6yuHfDmTMY7VSrB4xm>
+
+## TOOL RESULT:
+
+ID: toolu_01E99M6yuHfDmTMY7VSrB4xm
+
+<tool.toolu_01E99M6yuHfDmTMY7VSrB4xm>
+135:   (when greger-lsp-test-temp-dir
+136:     ;; Clean up LSP session
+137:     (when (bound-and-true-p lsp--session)
+138:       (condition-case nil
+139:           (lsp-workspace-folders-remove greger-lsp-test-project-root)
+140:         (error nil)))
+141:
+142:     ;; Kill any buffers visiting test files
+143:     (when greger-lsp-test-python-file
+144:       (let ((buffer (get-file-buffer greger-lsp-test-python-file)))
+145:         (when buffer
+146:           (with-current-buffer buffer
+147:             (when (bound-and-true-p lsp-mode)
+148:               (condition-case nil (lsp-disconnect) (error nil))))
+149:           (kill-buffer buffer))))
+150:
+151:     ;; Remove temp directory
+152:     (delete-directory greger-lsp-test-temp-dir t)
+153:     (setq greger-lsp-test-temp-dir nil
+154:           greger-lsp-test-python-file nil
+155:           greger-lsp-test-project-root nil)))
+</tool.toolu_01E99M6yuHfDmTMY7VSrB4xm>
+
+## TOOL USE:
+
+Name: read-file
+ID: toolu_016XxVbNeGK6WUCBWw4ccQEg
+
+### path
+
+<tool.toolu_016XxVbNeGK6WUCBWw4ccQEg>
+test-greger-lib-lsp.el
+</tool.toolu_016XxVbNeGK6WUCBWw4ccQEg>
+
+### start_line
+
+<tool.toolu_016XxVbNeGK6WUCBWw4ccQEg>
+180
+</tool.toolu_016XxVbNeGK6WUCBWw4ccQEg>
+
+### end_line
+
+<tool.toolu_016XxVbNeGK6WUCBWw4ccQEg>
+200
+</tool.toolu_016XxVbNeGK6WUCBWw4ccQEg>
+
+### include_line_numbers
+
+<tool.toolu_016XxVbNeGK6WUCBWw4ccQEg>
+true
+</tool.toolu_016XxVbNeGK6WUCBWw4ccQEg>
+
+## TOOL RESULT:
+
+ID: toolu_016XxVbNeGK6WUCBWw4ccQEg
+
+<tool.toolu_016XxVbNeGK6WUCBWw4ccQEg>
+180:
+181:         ;; Mock the project root detection functions to always return our test directory
+182:         (cl-letf (((symbol-function 'lsp--calculate-root)
+183:                    (lambda (session file-name)
+184:                      greger-lsp-test-project-root))
+185:                   ((symbol-function 'lsp--suggest-project-root)
+186:                    (lambda ()
+187:                      greger-lsp-test-project-root))
+188:                   ((symbol-function 'lsp--find-root-interactively)
+189:                    (lambda (session)
+190:                      greger-lsp-test-project-root))
+191:                   ((symbol-function 'lsp--read-char)
+192:                    (lambda (prompt &optional options)
+193:                      ?. )) ; Always choose "current directory"
+194:                   ((symbol-function 'read-directory-name)
+195:                    (lambda (&rest args)
+196:                      greger-lsp-test-project-root)))
+197:
+198:           ;; Start LSP
+199:           (condition-case err
+200:               (progn
+</tool.toolu_016XxVbNeGK6WUCBWw4ccQEg>
+
+## TOOL USE:
+
+Name: read-file
+ID: toolu_01K4ZcWa228VYXJEM2mk2riF
+
+### path
+
+<tool.toolu_01K4ZcWa228VYXJEM2mk2riF>
+test-greger-lib-lsp.el
+</tool.toolu_01K4ZcWa228VYXJEM2mk2riF>
+
+### start_line
+
+<tool.toolu_01K4ZcWa228VYXJEM2mk2riF>
+198
+</tool.toolu_01K4ZcWa228VYXJEM2mk2riF>
+
+### end_line
+
+<tool.toolu_01K4ZcWa228VYXJEM2mk2riF>
+220
+</tool.toolu_01K4ZcWa228VYXJEM2mk2riF>
+
+### include_line_numbers
+
+<tool.toolu_01K4ZcWa228VYXJEM2mk2riF>
+true
+</tool.toolu_01K4ZcWa228VYXJEM2mk2riF>
+
+## TOOL RESULT:
+
+ID: toolu_01K4ZcWa228VYXJEM2mk2riF
+
+<tool.toolu_01K4ZcWa228VYXJEM2mk2riF>
+198:           ;; Start LSP
+199:           (condition-case err
+200:               (progn
+201:                 (lsp)
+202:                 ;; Wait for LSP to initialize with longer timeout
+203:                 (let ((timeout 0))
+204:                   (while (and (not lsp--buffer-workspaces) (< timeout 300))
+205:                     (sit-for 0.1)
+206:                     (setq timeout (1+ timeout))))
+207:                 (unless lsp--buffer-workspaces
+208:                   (error "Failed to start LSP server for test")))
+209:             (error
+210:              (message "LSP startup error: %s" (error-message-string err))
+211:              (error "Failed to start LSP server for test: %s" (error-message-string err)))))))
+212:     buffer))
+213:
+214: ;;; Helper functions for test requirements
+215:
+216: (defun greger-lsp-test-requirements-met-p ()
+217:   "Check if requirements for LSP tests are met."
+218:   (and (fboundp 'lsp)
+219:        (fboundp 'python-mode)
+220:        (or (executable-find "pyright")
+</tool.toolu_01K4ZcWa228VYXJEM2mk2riF>
+
+## ASSISTANT:
+
+Now I can fix the timeout issue:
+
+## TOOL USE:
+
+Name: str-replace
+ID: toolu_01GGoQWE1ySHi8vuAThA31mw
+
+### file_path
+
+<tool.toolu_01GGoQWE1ySHi8vuAThA31mw>
+test-greger-lib-lsp.el
+</tool.toolu_01GGoQWE1ySHi8vuAThA31mw>
+
+### original_content
+
+<tool.toolu_01GGoQWE1ySHi8vuAThA31mw>
+          ;; Start LSP
+          (condition-case err
+              (progn
+                (lsp)
+                ;; Wait for LSP to initialize with longer timeout
+                (let ((timeout 0))
+                  (while (and (not lsp--buffer-workspaces) (< timeout 300))
+                    (sit-for 0.1)
+                    (setq timeout (1+ timeout))))
+                (unless lsp--buffer-workspaces
+                  (error "Failed to start LSP server for test")))
+            (error
+             (message "LSP startup error: %s" (error-message-string err))
+             (error "Failed to start LSP server for test: %s" (error-message-string err))))))))
+</tool.toolu_01GGoQWE1ySHi8vuAThA31mw>
+
+### new_content
+
+<tool.toolu_01GGoQWE1ySHi8vuAThA31mw>
+          ;; Start LSP with shorter timeout and better error handling
+          (condition-case err
+              (progn
+                ;; Set LSP request timeout to be shorter for tests
+                (let ((lsp-response-timeout 10)) ; 10 seconds instead of default
+                  (lsp)
+                  ;; Wait for LSP to initialize with reasonable timeout
+                  (let ((timeout 0))
+                    (while (and (not lsp--buffer-workspaces) (< timeout 100))
+                      (sit-for 0.1)
+                      (setq timeout (1+ timeout))))
+                  (unless lsp--buffer-workspaces
+                    (error "Failed to start LSP server for test"))))
+            (error
+             (message "LSP startup error: %s" (error-message-string err))
+             (error "Failed to start LSP server for test: %s" (error-message-string err))))))))
+</tool.toolu_01GGoQWE1ySHi8vuAThA31mw>
+
+### git_commit_message
+
+<tool.toolu_01GGoQWE1ySHi8vuAThA31mw>
+Reduce LSP timeouts for faster test execution
+</tool.toolu_01GGoQWE1ySHi8vuAThA31mw>
+
+## TOOL RESULT:
+
+ID: toolu_01GGoQWE1ySHi8vuAThA31mw
+
+<tool.toolu_01GGoQWE1ySHi8vuAThA31mw>
+Error executing tool: Original content not found in file: /Users/andreas/projects/aichat3/test-greger-lib-lsp.el -- Try again!
+</tool.toolu_01GGoQWE1ySHi8vuAThA31mw>
+
+## ASSISTANT:
+
+Let me get the exact content:
+
+## TOOL USE:
+
+Name: str-replace
+ID: toolu_01V3LyjBoeUW59hGJ6qi3zun
+
+### file_path
+
+<tool.toolu_01V3LyjBoeUW59hGJ6qi3zun>
+test-greger-lib-lsp.el
+</tool.toolu_01V3LyjBoeUW59hGJ6qi3zun>
+
+### original_content
+
+<tool.toolu_01V3LyjBoeUW59hGJ6qi3zun>
+          ;; Start LSP
+          (condition-case err
+              (progn
+                (lsp)
+                ;; Wait for LSP to initialize with longer timeout
+                (let ((timeout 0))
+                  (while (and (not lsp--buffer-workspaces) (< timeout 300))
+                    (sit-for 0.1)
+                    (setq timeout (1+ timeout))))
+                (unless lsp--buffer-workspaces
+                  (error "Failed to start LSP server for test")))
+            (error
+             (message "LSP startup error: %s" (error-message-string err))
+             (error "Failed to start LSP server for test: %s" (error-message-string err))))))))
+</tool.toolu_01V3LyjBoeUW59hGJ6qi3zun>
+
+### new_content
+
+<tool.toolu_01V3LyjBoeUW59hGJ6qi3zun>
+          ;; Start LSP with shorter timeout and better error handling
+          (condition-case err
+              (progn
+                ;; Set LSP request timeout to be shorter for tests
+                (let ((lsp-response-timeout 10)) ; 10 seconds instead of default
+                  (lsp)
+                  ;; Wait for LSP to initialize with reasonable timeout
+                  (let ((timeout 0))
+                    (while (and (not lsp--buffer-workspaces) (< timeout 100))
+                      (sit-for 0.1)
+                      (setq timeout (1+ timeout))))
+                  (unless lsp--buffer-workspaces
+                    (error "Failed to start LSP server for test"))))
+            (error
+             (message "LSP startup error: %s" (error-message-string err))
+             (error "Failed to start LSP server for test: %s" (error-message-string err))))))))
+</tool.toolu_01V3LyjBoeUW59hGJ6qi3zun>
+
+### git_commit_message
+
+<tool.toolu_01V3LyjBoeUW59hGJ6qi3zun>
+Reduce LSP timeouts for faster test execution
+</tool.toolu_01V3LyjBoeUW59hGJ6qi3zun>
+
+## TOOL RESULT:
+
+ID: toolu_01V3LyjBoeUW59hGJ6qi3zun
+
+<tool.toolu_01V3LyjBoeUW59hGJ6qi3zun>
+Error executing tool: Original content not found in file: /Users/andreas/projects/aichat3/test-greger-lib-lsp.el -- Try again!
+</tool.toolu_01V3LyjBoeUW59hGJ6qi3zun>
+
+## ASSISTANT:
+
+Let me be more precise with the whitespace:
+
+## TOOL USE:
+
+Name: str-replace
+ID: toolu_01RiF4SrTCB6VtLGAWXVRQiY
+
+### file_path
+
+<tool.toolu_01RiF4SrTCB6VtLGAWXVRQiY>
+test-greger-lib-lsp.el
+</tool.toolu_01RiF4SrTCB6VtLGAWXVRQiY>
+
+### original_content
+
+<tool.toolu_01RiF4SrTCB6VtLGAWXVRQiY>
+          ;; Start LSP
+          (condition-case err
+              (progn
+                (lsp)
+                ;; Wait for LSP to initialize with longer timeout
+                (let ((timeout 0))
+                  (while (and (not lsp--buffer-workspaces) (< timeout 300))
+                    (sit-for 0.1)
+                    (setq timeout (1+ timeout))))
+                (unless lsp--buffer-workspaces
+                  (error "Failed to start LSP server for test")))
+            (error
+             (message "LSP startup error: %s" (error-message-string err))
+             (error "Failed to start LSP server for test: %s" (error-message-string err)))))
+</tool.toolu_01RiF4SrTCB6VtLGAWXVRQiY>
+
+### new_content
+
+<tool.toolu_01RiF4SrTCB6VtLGAWXVRQiY>
+          ;; Start LSP with shorter timeout and better error handling
+          (condition-case err
+              (progn
+                ;; Set LSP request timeout to be shorter for tests
+                (let ((lsp-response-timeout 10)) ; 10 seconds instead of default
+                  (lsp)
+                  ;; Wait for LSP to initialize with reasonable timeout
+                  (let ((timeout 0))
+                    (while (and (not lsp--buffer-workspaces) (< timeout 100))
+                      (sit-for 0.1)
+                      (setq timeout (1+ timeout))))
+                  (unless lsp--buffer-workspaces
+                    (error "Failed to start LSP server for test"))))
+            (error
+             (message "LSP startup error: %s" (error-message-string err))
+             (error "Failed to start LSP server for test: %s" (error-message-string err)))))
+</tool.toolu_01RiF4SrTCB6VtLGAWXVRQiY>
+
+### git_commit_message
+
+<tool.toolu_01RiF4SrTCB6VtLGAWXVRQiY>
+Reduce LSP timeouts for faster test execution
+</tool.toolu_01RiF4SrTCB6VtLGAWXVRQiY>
+
+<!-- TOOL_RESULT_PLACEHOLDER_toolu_01RiF4SrTCB6VtLGAWXVRQiY -->

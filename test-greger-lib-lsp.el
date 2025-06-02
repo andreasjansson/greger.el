@@ -195,17 +195,19 @@ description = \"Test project for greger LSP tools\"
                    (lambda (&rest args)
                      greger-lsp-test-project-root)))
 
-          ;; Start LSP
+          ;; Start LSP with shorter timeout and better error handling
           (condition-case err
               (progn
-                (lsp)
-                ;; Wait for LSP to initialize with longer timeout
-                (let ((timeout 0))
-                  (while (and (not lsp--buffer-workspaces) (< timeout 300))
-                    (sit-for 0.1)
-                    (setq timeout (1+ timeout))))
-                (unless lsp--buffer-workspaces
-                  (error "Failed to start LSP server for test")))
+                ;; Set LSP request timeout to be shorter for tests
+                (let ((lsp-response-timeout 10)) ; 10 seconds instead of default
+                  (lsp)
+                  ;; Wait for LSP to initialize with reasonable timeout
+                  (let ((timeout 0))
+                    (while (and (not lsp--buffer-workspaces) (< timeout 100))
+                      (sit-for 0.1)
+                      (setq timeout (1+ timeout))))
+                  (unless lsp--buffer-workspaces
+                    (error "Failed to start LSP server for test"))))
             (error
              (message "LSP startup error: %s" (error-message-string err))
              (error "Failed to start LSP server for test: %s" (error-message-string err)))))))
@@ -255,7 +257,7 @@ description = \"Test project for greger LSP tools\"
        (let ((lines (split-string (buffer-string) "\n")))
          (dotimes (i (length lines))
            (message "Line %3d: %s" (1+ i) (nth i lines))))
-       (message "=== End file contents ==="))))))
+       (message "=== End file contents ===")))))
 
 (ert-deftest greger-lsp-test-with-buffer-at-position ()
   "Test executing code at specific buffer position."
