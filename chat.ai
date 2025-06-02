@@ -6192,4 +6192,45 @@ greger-lib-lsp.el
 Fix references API and add shorter timeout
 </tool.toolu_01FTZABWdbgVkbJyus5ZB7sr>
 
-<!-- TOOL_RESULT_PLACEHOLDER_toolu_01FTZABWdbgVkbJyus5ZB7sr -->
+## TOOL RESULT:
+
+ID: toolu_01FTZABWdbgVkbJyus5ZB7sr
+
+<tool.toolu_01FTZABWdbgVkbJyus5ZB7sr>
+Successfully replaced content in /Users/andreas/projects/aichat3/greger-lib-lsp.el. Successfully staged 2 file(s) and committed with message: Fix references API and add shorter timeout
+</tool.toolu_01FTZABWdbgVkbJyus5ZB7sr>
+
+
+## TOOL USE:
+
+Name: str-replace
+ID: toolu_01G9nH7cYpfvpD7MSLp6u5En
+
+### file_path
+
+<tool.toolu_01G9nH7cYpfvpD7MSLp6u5En>
+greger-lib-lsp.el
+</tool.toolu_01G9nH7cYpfvpD7MSLp6u5En>
+
+### original_content
+
+<tool.toolu_01G9nH7cYpfvpD7MSLp6u5En>
+(let* ((symbols (lsp-request "textDocument/documentSymbol"
+                                     `(:textDocument ,(lsp--text-document-identifier))))
+</tool.toolu_01G9nH7cYpfvpD7MSLp6u5En>
+
+### new_content
+
+<tool.toolu_01G9nH7cYpfvpD7MSLp6u5En>
+(let* ((symbols (let ((lsp-response-timeout 10)) ; Shorter timeout for tests
+                                  (lsp-request "textDocument/documentSymbol"
+                                               `(:textDocument ,(lsp--text-document-identifier)))))
+</tool.toolu_01G9nH7cYpfvpD7MSLp6u5En>
+
+### git_commit_message
+
+<tool.toolu_01G9nH7cYpfvpD7MSLp6u5En>
+Add shorter timeout to document symbols request
+</tool.toolu_01G9nH7cYpfvpD7MSLp6u5En>
+
+<!-- TOOL_RESULT_PLACEHOLDER_toolu_01G9nH7cYpfvpD7MSLp6u5En -->

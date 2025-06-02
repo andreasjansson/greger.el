@@ -336,8 +336,9 @@ If HIERARCHICAL is true, format with indentation to show structure."
           (unless (greger-lsp--feature-supported-p "textDocument/documentSymbol")
             (error "LSP server does not support document symbols"))
 
-          (let* ((symbols (lsp-request "textDocument/documentSymbol"
-                                     `(:textDocument ,(lsp--text-document-identifier))))
+          (let* ((symbols (let ((lsp-response-timeout 10)) ; Shorter timeout for tests
+                                  (lsp-request "textDocument/documentSymbol"
+                                               `(:textDocument ,(lsp--text-document-identifier)))))
                  ;; Filter by symbol type if specified
                  (filtered-symbols (if symbol-type
                                      (let ((target-kind (cl-position symbol-type lsp-symbol-kinds :test #'string-equal-ignore-case)))
