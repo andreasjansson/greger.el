@@ -119,13 +119,8 @@ LINE is 1-based, COLUMN is 0-based."
       (save-excursion
         (condition-case err
             (progn
-              ;; Debug: show buffer info
-              (let ((max-line (line-number-at-pos (point-max)))
-                    (buffer-length (point-max)))
-                (message "Buffer %s: %d lines, %d characters. Requested: line %d, column %d"
-                         (file-name-nondirectory file-path) max-line buffer-length line column)
-
-                ;; Ensure line is within buffer bounds
+              ;; Ensure line is within buffer bounds
+              (let ((max-line (line-number-at-pos (point-max))))
                 (when (> line max-line)
                   (error "Line %d exceeds file length (%d lines)" line max-line)))
 
@@ -133,15 +128,8 @@ LINE is 1-based, COLUMN is 0-based."
               (goto-char (point-min))
               (forward-line (1- line))
 
-              ;; Debug: show what line we're on
-              (let ((current-line-content (buffer-substring-no-properties
-                                         (line-beginning-position)
-                                         (line-end-position))))
-                (message "At line %d: '%s'" line current-line-content))
-
               ;; Ensure column is within line bounds
               (let ((line-length (- (line-end-position) (line-beginning-position))))
-                (message "Line length: %d, requested column: %d" line-length column)
                 (forward-char (min column line-length)))
 
               (funcall func))
