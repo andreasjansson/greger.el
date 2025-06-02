@@ -192,9 +192,11 @@ LINE is 1-based, COLUMN is 0-based."
                          (-let (((&WorkspaceEdit :document-changes? :changes?) edits))
                            (+ (if document-changes? (length document-changes?) 0)
                               (if changes?
-                                  (apply #'+ (mapcar (lambda (file-changes)
-                                                      (length (cdr file-changes)))
-                                                    (ht->alist changes?)))
+                                  (let ((total 0))
+                                    (lsp-map (lambda (_uri text-edits)
+                                              (setq total (+ total (length text-edits))))
+                                            changes?)
+                                    total)
                                 0)))))
                     (substring-no-properties
                      (format "Successfully renamed '%s' to '%s' in %d location(s)"
