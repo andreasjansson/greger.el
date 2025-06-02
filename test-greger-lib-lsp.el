@@ -155,8 +155,19 @@ description = \"Test project for greger LSP tools\"
     (with-current-buffer buffer
       (python-mode)
 
+      ;; Debug: show directory structure and current state
+      (message "=== LSP Test Debug Info ===")
+      (message "Test temp dir: %s" greger-lsp-test-temp-dir)
+      (message "Test project root: %s" greger-lsp-test-project-root)
+      (message "Python file: %s" greger-lsp-test-python-file)
+      (message "Current default-directory: %s" default-directory)
+      (message "LSP session folders before: %s" (when (bound-and-true-p lsp--session)
+                                                   (lsp-session-folders lsp--session)))
+
       ;; Use lsp-workspace-folders-add to properly register our test directory
       (lsp-workspace-folders-add greger-lsp-test-project-root)
+
+      (message "LSP session folders after add: %s" (lsp-session-folders (lsp-session)))
 
       ;; Start LSP with our configured workspace
       (condition-case err

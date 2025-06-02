@@ -2563,4 +2563,232 @@ test-greger-lib-lsp.el
 Improve test cleanup order - disconnect LSP before removing workspace folders
 </tool.toolu_015DgL8zLxZVUojH8rJaR5Sd>
 
-<!-- TOOL_RESULT_PLACEHOLDER_toolu_015DgL8zLxZVUojH8rJaR5Sd -->
+## TOOL RESULT:
+
+ID: toolu_015DgL8zLxZVUojH8rJaR5Sd
+
+<tool.toolu_015DgL8zLxZVUojH8rJaR5Sd>
+Successfully replaced content in /Users/andreas/projects/greger.el/test-greger-lib-lsp.el. Successfully staged 2 file(s) and committed with message: Improve test cleanup order - disconnect LSP before removing workspace folders
+</tool.toolu_015DgL8zLxZVUojH8rJaR5Sd>
+
+
+## ASSISTANT:
+
+Let me also look for any project file markers that LSP might be using to detect project roots. The temp directory creation might be causing issues if it's creating the directory in a place where project detection tools find a different root. Let me check what project markers are typically used:
+
+## TOOL USE:
+
+Name: ripgrep
+ID: toolu_01BojzBdayh1j8i5Qv7rhoCN
+
+### pattern
+
+<tool.toolu_01BojzBdayh1j8i5Qv7rhoCN>
+project.*root.*marker
+</tool.toolu_01BojzBdayh1j8i5Qv7rhoCN>
+
+### path
+
+<tool.toolu_01BojzBdayh1j8i5Qv7rhoCN>
+~/.emacs.d/elpa/lsp-mode-20231118.1818/
+</tool.toolu_01BojzBdayh1j8i5Qv7rhoCN>
+
+### file-type
+
+<tool.toolu_01BojzBdayh1j8i5Qv7rhoCN>
+el
+</tool.toolu_01BojzBdayh1j8i5Qv7rhoCN>
+
+### max-results
+
+<tool.toolu_01BojzBdayh1j8i5Qv7rhoCN>
+10
+</tool.toolu_01BojzBdayh1j8i5Qv7rhoCN>
+
+## TOOL RESULT:
+
+ID: toolu_01BojzBdayh1j8i5Qv7rhoCN
+
+<tool.toolu_01BojzBdayh1j8i5Qv7rhoCN>
+Failed to execute ripgrep search: Command failed with exit code 1: (no output)
+</tool.toolu_01BojzBdayh1j8i5Qv7rhoCN>
+
+## ASSISTANT:
+
+Let me check what files we're creating in the test directory to see if we can make it more explicitly a project root:
+
+## TOOL USE:
+
+Name: read-file
+ID: toolu_013XWhWy5LFz2xhvN3VKFeaB
+
+### path
+
+<tool.toolu_013XWhWy5LFz2xhvN3VKFeaB>
+test-greger-lib-lsp.el
+</tool.toolu_013XWhWy5LFz2xhvN3VKFeaB>
+
+### start_line
+
+<tool.toolu_013XWhWy5LFz2xhvN3VKFeaB>
+70
+</tool.toolu_013XWhWy5LFz2xhvN3VKFeaB>
+
+### end_line
+
+<tool.toolu_013XWhWy5LFz2xhvN3VKFeaB>
+90
+</tool.toolu_013XWhWy5LFz2xhvN3VKFeaB>
+
+## TOOL RESULT:
+
+ID: toolu_013XWhWy5LFz2xhvN3VKFeaB
+
+<tool.toolu_013XWhWy5LFz2xhvN3VKFeaB>
+
+    def get_history(self) -> List[str]:
+        \"\"\"Get calculation history.\"\"\"
+        return self.history.copy()
+
+
+def create_calculator(precision: Optional[int] = None) -> Calculator:
+    \"\"\"Factory function to create a calculator.\"\"\"
+    if precision is None:
+        precision = 2
+    return Calculator(precision)
+
+
+def main():
+    \"\"\"Main function for testing.\"\"\"
+    calc = create_calculator(3)
+    result1 = calc.add_numbers(10.5, 20.3)
+    result2 = calc.multiply_numbers(result1, 2.0)
+
+    print(f\"Final result: {result2}\")
+    print(\"History:\")
+</tool.toolu_013XWhWy5LFz2xhvN3VKFeaB>
+
+## ASSISTANT:
+
+Let me see the complete test setup where we create files:
+
+## TOOL USE:
+
+Name: read-file
+ID: toolu_016cQYFvHZWv4n4jwyj67AiN
+
+### path
+
+<tool.toolu_016cQYFvHZWv4n4jwyj67AiN>
+test-greger-lib-lsp.el
+</tool.toolu_016cQYFvHZWv4n4jwyj67AiN>
+
+### start_line
+
+<tool.toolu_016cQYFvHZWv4n4jwyj67AiN>
+100
+</tool.toolu_016cQYFvHZWv4n4jwyj67AiN>
+
+### end_line
+
+<tool.toolu_016cQYFvHZWv4n4jwyj67AiN>
+140
+</tool.toolu_016cQYFvHZWv4n4jwyj67AiN>
+
+## TOOL RESULT:
+
+ID: toolu_016cQYFvHZWv4n4jwyj67AiN
+
+<tool.toolu_016cQYFvHZWv4n4jwyj67AiN>
+    (let ((utils-file (expand-file-name "utils.py" src-dir)))
+      (with-temp-file utils-file
+        (insert "#!/usr/bin/env python3
+\"\"\"Utility functions.\"\"\"
+
+from main import Calculator, create_calculator
+
+
+def advanced_calculation(x: float, y: float) -> float:
+    \"\"\"Perform advanced calculation using Calculator.\"\"\"
+    calc = create_calculator(4)
+    intermediate = calc.add_numbers(x, y)
+    return calc.multiply_numbers(intermediate, 1.5)
+
+
+def format_result(value: float) -> str:
+    \"\"\"Format a calculation result.\"\"\"
+    return f\"Result: {value:.2f}\"
+")))
+
+    ;; Create a simple pyproject.toml for LSP to recognize the project
+    (with-temp-file (expand-file-name "pyproject.toml" greger-lsp-test-temp-dir)
+      (insert "[project]
+name = \"greger-lsp-test\"
+version = \"0.1.0\"
+description = \"Test project for greger LSP tools\"
+"))))
+
+(defun greger-lsp-test-teardown ()
+  "Clean up test environment."
+  (when greger-lsp-test-temp-dir
+    ;; Kill any buffers visiting test files first
+    (when greger-lsp-test-python-file
+      (let ((buffer (get-file-buffer greger-lsp-test-python-file)))
+        (when buffer
+          (with-current-buffer buffer
+            (when (bound-and-true-p lsp-mode)
+              (condition-case nil (lsp-disconnect) (error nil))))
+          (kill-buffer buffer))))
+
+    ;; Clean up LSP session after disconnecting
+</tool.toolu_016cQYFvHZWv4n4jwyj67AiN>
+
+## ASSISTANT:
+
+Good! We're already creating a `pyproject.toml` which should help mark it as a Python project. However, let me also look at what specific project markers different LSP servers and project detection tools use.
+
+Let me also add some debugging information to understand what's happening during the workspace root detection:
+
+## TOOL USE:
+
+Name: str-replace
+ID: toolu_01HPptma6cYybzsHH9WVVgFG
+
+### file_path
+
+<tool.toolu_01HPptma6cYybzsHH9WVVgFG>
+test-greger-lib-lsp.el
+</tool.toolu_01HPptma6cYybzsHH9WVVgFG>
+
+### original_content
+
+<tool.toolu_01HPptma6cYybzsHH9WVVgFG>
+      ;; Use lsp-workspace-folders-add to properly register our test directory
+      (lsp-workspace-folders-add greger-lsp-test-project-root)
+</tool.toolu_01HPptma6cYybzsHH9WVVgFG>
+
+### new_content
+
+<tool.toolu_01HPptma6cYybzsHH9WVVgFG>
+      ;; Debug: show directory structure and current state
+      (message "=== LSP Test Debug Info ===")
+      (message "Test temp dir: %s" greger-lsp-test-temp-dir)
+      (message "Test project root: %s" greger-lsp-test-project-root)
+      (message "Python file: %s" greger-lsp-test-python-file)
+      (message "Current default-directory: %s" default-directory)
+      (message "LSP session folders before: %s" (when (bound-and-true-p lsp--session)
+                                                   (lsp-session-folders lsp--session)))
+
+      ;; Use lsp-workspace-folders-add to properly register our test directory
+      (lsp-workspace-folders-add greger-lsp-test-project-root)
+
+      (message "LSP session folders after add: %s" (lsp-session-folders (lsp-session)))
+</tool.toolu_01HPptma6cYybzsHH9WVVgFG>
+
+### git_commit_message
+
+<tool.toolu_01HPptma6cYybzsHH9WVVgFG>
+Add debug information to diagnose workspace root detection issues
+</tool.toolu_01HPptma6cYybzsHH9WVVgFG>
+
+<!-- TOOL_RESULT_PLACEHOLDER_toolu_01HPptma6cYybzsHH9WVVgFG -->
