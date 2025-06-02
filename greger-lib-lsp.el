@@ -360,8 +360,7 @@ If HIERARCHICAL is true, format with indentation to show structure."
                          (lsp--session-workspaces lsp--session))
           (error "No LSP server supports workspace symbols"))
 
-        (let* ((symbols (lsp-request "workspace/symbol"
-                                   (lsp-make-workspace-symbol-params :query query)))
+        (let* ((symbols (lsp-request "workspace/symbol" `(:query ,query)))
                ;; Filter by symbol type if specified
                (filtered-symbols (if symbol-type
                                    (let ((target-kind (cl-position symbol-type lsp-symbol-kinds :test #'string-equal-ignore-case)))
