@@ -213,18 +213,19 @@ LINE is 1-based, COLUMN is 0-based."
                                     filtered-children "\n"))))
     result))
 
-(defun greger-lsp--format-document-symbols (symbols file-path)
-  "Format document SYMBOLS for FILE-PATH as a readable string."
+(defun greger-lsp--format-document-symbols (symbols file-path &optional detailed)
+  "Format document SYMBOLS for FILE-PATH as a readable string with optional DETAILED flag."
   (let ((relative-path (if (and (bound-and-true-p lsp-mode) (lsp-workspace-root))
                            (file-relative-name file-path (lsp-workspace-root))
-                         (file-relative-name file-path))))
-    (if (or (null symbols) (= (length symbols) 0))
+                         (file-relative-name file-path)))
+        (filtered-symbols (greger-lsp--filter-detailed-symbols symbols detailed)))
+    (if (or (null filtered-symbols) (= (length filtered-symbols) 0))
         (format "No symbols found in %s" relative-path)
       (format "Symbols in %s:\n%s"
               relative-path
               (mapconcat (lambda (symbol)
-                          (greger-lsp--format-document-symbol symbol))
-                        symbols "\n")))))
+                          (greger-lsp--format-document-symbol symbol 0 detailed))
+                        filtered-symbols "\n")))))
 
 ;;; Tool implementations
 

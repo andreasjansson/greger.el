@@ -2474,4 +2474,69 @@ greger-lib-lsp.el
 Add symbol filtering logic and update formatting function
 </tool.toolu_017Tm1n6QmDTgLUzgJtJPULv>
 
-<!-- TOOL_RESULT_PLACEHOLDER_toolu_017Tm1n6QmDTgLUzgJtJPULv -->
+## TOOL RESULT:
+
+ID: toolu_017Tm1n6QmDTgLUzgJtJPULv
+
+<tool.toolu_017Tm1n6QmDTgLUzgJtJPULv>
+Successfully replaced content in /Users/andreas/projects/greger.el/greger-lib-lsp.el. Successfully staged 2 file(s) and committed with message: Add symbol filtering logic and update formatting function
+</tool.toolu_017Tm1n6QmDTgLUzgJtJPULv>
+
+
+## ASSISTANT:
+
+Now I need to update the `greger-lsp--format-document-symbols` function to pass the detailed flag:
+
+## TOOL USE:
+
+Name: str-replace
+ID: toolu_01GUA39vZd4hCbjVwPeCKPL4
+
+### file_path
+
+<tool.toolu_01GUA39vZd4hCbjVwPeCKPL4>
+greger-lib-lsp.el
+</tool.toolu_01GUA39vZd4hCbjVwPeCKPL4>
+
+### original_content
+
+<tool.toolu_01GUA39vZd4hCbjVwPeCKPL4>
+(defun greger-lsp--format-document-symbols (symbols file-path)
+  "Format document SYMBOLS for FILE-PATH as a readable string."
+  (let ((relative-path (if (and (bound-and-true-p lsp-mode) (lsp-workspace-root))
+                           (file-relative-name file-path (lsp-workspace-root))
+                         (file-relative-name file-path))))
+    (if (or (null symbols) (= (length symbols) 0))
+        (format "No symbols found in %s" relative-path)
+      (format "Symbols in %s:\n%s"
+              relative-path
+              (mapconcat (lambda (symbol)
+                          (greger-lsp--format-document-symbol symbol))
+                        symbols "\n")))))
+</tool.toolu_01GUA39vZd4hCbjVwPeCKPL4>
+
+### new_content
+
+<tool.toolu_01GUA39vZd4hCbjVwPeCKPL4>
+(defun greger-lsp--format-document-symbols (symbols file-path &optional detailed)
+  "Format document SYMBOLS for FILE-PATH as a readable string with optional DETAILED flag."
+  (let ((relative-path (if (and (bound-and-true-p lsp-mode) (lsp-workspace-root))
+                           (file-relative-name file-path (lsp-workspace-root))
+                         (file-relative-name file-path)))
+        (filtered-symbols (greger-lsp--filter-detailed-symbols symbols detailed)))
+    (if (or (null filtered-symbols) (= (length filtered-symbols) 0))
+        (format "No symbols found in %s" relative-path)
+      (format "Symbols in %s:\n%s"
+              relative-path
+              (mapconcat (lambda (symbol)
+                          (greger-lsp--format-document-symbol symbol 0 detailed))
+                        filtered-symbols "\n")))))
+</tool.toolu_01GUA39vZd4hCbjVwPeCKPL4>
+
+### git_commit_message
+
+<tool.toolu_01GUA39vZd4hCbjVwPeCKPL4>
+Update format-document-symbols to support detailed filtering
+</tool.toolu_01GUA39vZd4hCbjVwPeCKPL4>
+
+<!-- TOOL_RESULT_PLACEHOLDER_toolu_01GUA39vZd4hCbjVwPeCKPL4 -->
