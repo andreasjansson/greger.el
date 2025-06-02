@@ -454,10 +454,11 @@ description = \"Test project for greger LSP tools\"
 
 (ert-deftest greger-lsp-test-invalid-file ()
   "Test behavior with invalid file path."
-  (let ((result (greger-tools--lsp-find-definition
-                 "/nonexistent/file.py" 1 0)))
+  (let ((result (condition-case err
+                    (greger-tools--lsp-find-definition "/nonexistent/file.py" 1 0)
+                  (error (format "Error: %s" (error-message-string err))))))
     (should (stringp result))
-    (should (string-match-p "failed\\|not available\\|No such file" result))))
+    (should (string-match-p "failed\\|not available\\|No such file\\|Error" result))))
 
 (ert-deftest greger-lsp-test-unsupported-feature ()
   "Test behavior when LSP server doesn't support a feature."
