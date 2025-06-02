@@ -186,6 +186,27 @@ LINE is 1-based, COLUMN is 0-based."
             (if edits
                 (progn
                   (lsp--apply-workspace-edit edits 'rename)
+
+                  ;; Save all modified buffers to ensure changes are persisted
+                  (-let (((&WorkspaceEdit :document-changes? :changes?) edits))
+                    ;; Save buffers modified by documentChanges
+                    (when document-changes?
+                      (dolist (change document-changes?)
+                        (when-let ((uri (plist-get change :textDocument))
+                                  (file-path (lsp--uri-to-path (plist-get uri :uri))))
+                          (when-let ((buffer (get-file-buffer file-path)))
+                            (with-current-buffer buffer
+                              (save-buffer))))))
+
+                    ;; Save buffers modified by changes
+                    (when changes?
+                      (lsp-map (lambda (uri _text-edits)
+                                (when-let ((file-path (lsp--uri-to-path uri)))
+                                  (when-let ((buffer (get-file-buffer file-path)))
+                                    (with-current-buffer buffer
+                                      (save-buffer)))))
+                              changes?)))
+
                   ;; Count the changes - WorkspaceEdit can have either changes or documentChanges
                   (let ((change-count
                          (-let (((&WorkspaceEdit :document-changes? :changes?) edits))
