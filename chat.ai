@@ -7072,4 +7072,106 @@ test-greger-lib-lsp.el
 Change test to use string= to debug actual result
 </tool.toolu_011oEw6sNpoph4DAcBpN6vKa>
 
-<!-- TOOL_RESULT_PLACEHOLDER_toolu_011oEw6sNpoph4DAcBpN6vKa -->
+## TOOL RESULT:
+
+ID: toolu_011oEw6sNpoph4DAcBpN6vKa
+
+<tool.toolu_011oEw6sNpoph4DAcBpN6vKa>
+Successfully replaced content in /Users/andreas/projects/aichat3/test-greger-lib-lsp.el. Successfully staged 2 file(s) and committed with message: Change test to use string= to debug actual result
+</tool.toolu_011oEw6sNpoph4DAcBpN6vKa>
+
+
+## ASSISTANT:
+
+Now, the more important issue is the "End of buffer" error. This suggests that the line numbers in our test are still wrong. Let me check what's actually on line 57 by looking at the debug output from the test that shows the file contents. But first, let me fix the position calculation issue by improving the debugging in the position function:
+
+## TOOL USE:
+
+Name: str-replace
+ID: toolu_01XGJF13RgPmz6HA2Ex6mA1V
+
+### file_path
+
+<tool.toolu_01XGJF13RgPmz6HA2Ex6mA1V>
+greger-lib-lsp.el
+</tool.toolu_01XGJF13RgPmz6HA2Ex6mA1V>
+
+### original_content
+
+<tool.toolu_01XGJF13RgPmz6HA2Ex6mA1V>
+(defun greger-lsp--with-buffer-at-position (file-path line column func)
+  "Execute FUNC in buffer visiting FILE-PATH at LINE and COLUMN.
+LINE is 1-based, COLUMN is 0-based."
+  (let ((buffer (greger-lsp--ensure-server file-path)))
+    (with-current-buffer buffer
+      (save-excursion
+        (condition-case err
+            (progn
+              ;; Ensure line is within buffer bounds
+              (let ((max-line (line-number-at-pos (point-max))))
+                (when (> line max-line)
+                  (error "Line %d exceeds file length (%d lines)" line max-line)))
+
+              ;; Go to the specified line
+              (goto-char (point-min))
+              (forward-line (1- line))
+
+              ;; Ensure column is within line bounds
+              (let ((line-length (- (line-end-position) (line-beginning-position))))
+                (forward-char (min column line-length)))
+
+              (funcall func))
+          (error
+           (error "Position error in %s at line %d, column %d: %s"
+                  file-path line column (error-message-string err))))))))
+</tool.toolu_01XGJF13RgPmz6HA2Ex6mA1V>
+
+### new_content
+
+<tool.toolu_01XGJF13RgPmz6HA2Ex6mA1V>
+(defun greger-lsp--with-buffer-at-position (file-path line column func)
+  "Execute FUNC in buffer visiting FILE-PATH at LINE and COLUMN.
+LINE is 1-based, COLUMN is 0-based."
+  (let ((buffer (greger-lsp--ensure-server file-path)))
+    (with-current-buffer buffer
+      (save-excursion
+        (condition-case err
+            (progn
+              ;; Debug: show buffer info
+              (let ((max-line (line-number-at-pos (point-max)))
+                    (buffer-length (point-max)))
+                (message "Buffer %s: %d lines, %d characters. Requested: line %d, column %d"
+                         (file-name-nondirectory file-path) max-line buffer-length line column)
+
+                ;; Ensure line is within buffer bounds
+                (when (> line max-line)
+                  (error "Line %d exceeds file length (%d lines)" line max-line)))
+
+              ;; Go to the specified line
+              (goto-char (point-min))
+              (forward-line (1- line))
+
+              ;; Debug: show what line we're on
+              (let ((current-line-content (buffer-substring-no-properties
+                                         (line-beginning-position)
+                                         (line-end-position))))
+                (message "At line %d: '%s'" line current-line-content))
+
+              ;; Ensure column is within line bounds
+              (let ((line-length (- (line-end-position) (line-beginning-position))))
+                (message "Line length: %d, requested column: %d" line-length column)
+                (forward-char (min column line-length)))
+
+              (funcall func))
+          (error
+           (error "Position error in %s at line %d, column %d: %s"
+                  file-path line column (error-message-string err))))))))
+</tool.toolu_01XGJF13RgPmz6HA2Ex6mA1V>
+
+### git_commit_message
+
+<tool.toolu_01XGJF13RgPmz6HA2Ex6mA1V>
+Add detailed debugging to position function
+</tool.toolu_01XGJF13RgPmz6HA2Ex6mA1V>
+
+<!-- TOOL_RESULT_PLACEHOLDER_toolu_01XGJF13RgPmz6HA2Ex6mA1V -->
