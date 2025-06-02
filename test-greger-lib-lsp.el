@@ -419,12 +419,17 @@ utils.py:4:17"))
   "Test getting document symbols for a single file."
   (greger-lsp-test-with-setup
    (let ((result (greger-lib-lsp--document-symbols
-                  (list greger-lsp-test-python-file))))
+                  (list greger-lsp-test-python-file)))
+         (expected "Symbols in src/main.py:
+Calculator [Class] (line 9, col 0)
+  __init__ [Method] (line 12, col 4)
+  add_numbers [Method] (line 16, col 4)
+  multiply_numbers [Method] (line 22, col 4)
+  get_history [Method] (line 28, col 4)
+create_calculator [Function] (line 33, col 0)
+main [Function] (line 40, col 0)"))
      (should (stringp result))
-     (should (string-match-p "Symbols in.*main.py:" result))
-     (should (string-match-p "Calculator.*\\[Class\\]" result))
-     (should (string-match-p "main.*\\[Function\\]" result))
-     (should (string-match-p "create_calculator.*\\[Function\\]" result)))))
+     (should (string= expected result)))))
 
 (ert-deftest greger-lsp-test-document-symbols-multiple-files ()
   "Test getting document symbols for multiple files."
