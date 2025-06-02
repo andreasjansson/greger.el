@@ -511,14 +511,12 @@ description = \"Test project for greger LSP tools\"
    ;; Wait a moment for LSP to fully initialize
    (sit-for 1)
 
-   ;; Find references to a simple symbol that we know exists
+   ;; Find references to Calculator class (line 9, position at "Calculator")
    (let ((result (greger-tools--lsp-find-references
                   greger-lsp-test-python-file
-                  57 6))) ; Line with "class Calculator:", position at "Calculator"
-     ;; Use string= to see the exact result for debugging
-     (should (string= result "This should show the actual result"))
-     ;; This will fail and show us what result actually contains
-     )))
+                  9 6))) ; Line 9: "class Calculator:", column 6 at "Calculator"
+     (should (stringp result))
+     (should (string-match-p "Calculator" result)))))
 
 (provide 'test-greger-lib-lsp)
 

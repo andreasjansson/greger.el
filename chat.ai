@@ -7174,4 +7174,151 @@ LINE is 1-based, COLUMN is 0-based."
 Add detailed debugging to position function
 </tool.toolu_01XGJF13RgPmz6HA2Ex6mA1V>
 
-<!-- TOOL_RESULT_PLACEHOLDER_toolu_01XGJF13RgPmz6HA2Ex6mA1V -->
+## TOOL RESULT:
+
+ID: toolu_01XGJF13RgPmz6HA2Ex6mA1V
+
+<tool.toolu_01XGJF13RgPmz6HA2Ex6mA1V>
+Successfully replaced content in /Users/andreas/projects/aichat3/greger-lib-lsp.el. Successfully staged 2 file(s) and committed with message: Add detailed debugging to position function
+</tool.toolu_01XGJF13RgPmz6HA2Ex6mA1V>
+
+
+## ASSISTANT:
+
+Now the test is ready to run. When you run it, you should see:
+
+1. The detailed debugging output showing the actual file contents and line numbers
+2. The test will fail with a clear message showing exactly what string was returned instead of the expected "This should show the actual result"
+
+This will help us understand:
+- What the actual line numbers are in the generated file
+- What's causing the "End of buffer" error
+- What the LSP server is actually returning
+
+Once we see this output, we can fix the line numbers and make the test work properly.
+
+## USER:
+
+```
+Buffer main.py: 54 lines, 1403 characters. Requested: line 57, column 6
+```
+
+I don't know where you get line 57 from. The contents of main.py is
+
+
+```
+#!/usr/bin/env python3
+\"\"\"Example Python module for testing LSP tools.\"\"\"
+
+import os
+import sys
+from typing import List, Optional
+
+
+class Calculator:
+    \"\"\"A simple calculator class.\"\"\"
+
+    def __init__(self, precision: int = 2):
+        self.precision = precision
+        self.history: List[str] = []
+
+    def add_numbers(self, a: float, b: float) -> float:
+        \"\"\"Add two numbers together.\"\"\"
+        result = a + b
+        self.history.append(f\"{a} + {b} = {result}\")
+        return round(result, self.precision)
+
+    def multiply_numbers(self, a: float, b: float) -> float:
+        \"\"\"Multiply two numbers.\"\"\"
+        result = a * b
+        self.history.append(f\"{a} * {b} = {result}\")
+        return round(result, self.precision)
+
+    def get_history(self) -> List[str]:
+        \"\"\"Get calculation history.\"\"\"
+        return self.history.copy()
+
+
+def create_calculator(precision: Optional[int] = None) -> Calculator:
+    \"\"\"Factory function to create a calculator.\"\"\"
+    if precision is None:
+        precision = 2
+    return Calculator(precision)
+
+
+def main():
+    \"\"\"Main function for testing.\"\"\"
+    calc = create_calculator(3)
+    result1 = calc.add_numbers(10.5, 20.3)
+    result2 = calc.multiply_numbers(result1, 2.0)
+
+    print(f\"Final result: {result2}\")
+    print(\"History:\")
+    for entry in calc.get_history():
+        print(f\"  {entry}\")
+
+
+if __name__ == \"__main__\":
+    main()
+```
+
+
+
+## ASSISTANT:
+
+You're absolutely right! I can see the issue now. Looking at the actual file contents, `class Calculator:` is on line 9, not line 57. The line numbers I was using were completely wrong. Let me fix all the tests to use the correct line numbers based on the actual file content.
+
+## TOOL USE:
+
+Name: str-replace
+ID: toolu_0171HrctZ6RfBBQ3R4AmkDr9
+
+### file_path
+
+<tool.toolu_0171HrctZ6RfBBQ3R4AmkDr9>
+test-greger-lib-lsp.el
+</tool.toolu_0171HrctZ6RfBBQ3R4AmkDr9>
+
+### original_content
+
+<tool.toolu_0171HrctZ6RfBBQ3R4AmkDr9>
+(ert-deftest greger-lsp-test-cross-file-references ()
+  "Test finding references across multiple files."
+  (greger-lsp-test-with-setup
+   ;; Wait a moment for LSP to fully initialize
+   (sit-for 1)
+
+   ;; Find references to a simple symbol that we know exists
+   (let ((result (greger-tools--lsp-find-references
+                  greger-lsp-test-python-file
+                  57 6))) ; Line with "class Calculator:", position at "Calculator"
+     ;; Use string= to see the exact result for debugging
+     (should (string= result "This should show the actual result"))
+     ;; This will fail and show us what result actually contains
+     )))
+</tool.toolu_0171HrctZ6RfBBQ3R4AmkDr9>
+
+### new_content
+
+<tool.toolu_0171HrctZ6RfBBQ3R4AmkDr9>
+(ert-deftest greger-lsp-test-cross-file-references ()
+  "Test finding references across multiple files."
+  (greger-lsp-test-with-setup
+   ;; Wait a moment for LSP to fully initialize
+   (sit-for 1)
+
+   ;; Find references to Calculator class (line 9, position at "Calculator")
+   (let ((result (greger-tools--lsp-find-references
+                  greger-lsp-test-python-file
+                  9 6))) ; Line 9: "class Calculator:", column 6 at "Calculator"
+     (should (stringp result))
+     (should (string-match-p "Calculator" result)))))
+</tool.toolu_0171HrctZ6RfBBQ3R4AmkDr9>
+
+### git_commit_message
+
+<tool.toolu_0171HrctZ6RfBBQ3R4AmkDr9>
+Fix cross-file references test to use correct line number (9)
+</tool.toolu_0171HrctZ6RfBBQ3R4AmkDr9>
+
+<!-- TOOL_RESULT_PLACEHOLDER_toolu_0171HrctZ6RfBBQ3R4AmkDr9 -->
