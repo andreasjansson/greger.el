@@ -325,9 +325,6 @@ If HIERARCHICAL is true, format with indentation to show structure."
           (unless (greger-lsp--feature-supported-p "textDocument/references")
             (error "LSP server does not support find-references"))
 
-          ;; Debug logging
-          (message "Finding references at %s:%d:%d" file-path line column)
-
           (let* ((symbol-info (condition-case nil
                                   (thing-at-point 'symbol)
                                 (error "unknown")))
@@ -335,7 +332,6 @@ If HIERARCHICAL is true, format with indentation to show structure."
                           :position ,(lsp--cur-position)
                           :context (:includeDeclaration ,(if include-declaration t :json-false))))
                  (locations (let ((lsp-response-timeout 10)) ; Shorter timeout for tests
-                              (message "Sending LSP request for references...")
                               (lsp-request "textDocument/references" params)))
                  (limited-locations (if max-results
                                       (seq-take locations max-results)

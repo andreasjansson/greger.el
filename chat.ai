@@ -8139,4 +8139,64 @@ LINE is 1-based, COLUMN is 0-based."
 Remove excessive debugging from position function
 </tool.toolu_01GCwXAq7earzYjrQS33xCMK>
 
-<!-- TOOL_RESULT_PLACEHOLDER_toolu_01GCwXAq7earzYjrQS33xCMK -->
+## TOOL RESULT:
+
+ID: toolu_01GCwXAq7earzYjrQS33xCMK
+
+<tool.toolu_01GCwXAq7earzYjrQS33xCMK>
+Successfully replaced content in /Users/andreas/projects/aichat3/greger-lib-lsp.el. Successfully staged 2 file(s) and committed with message: Remove excessive debugging from position function
+</tool.toolu_01GCwXAq7earzYjrQS33xCMK>
+
+
+## ASSISTANT:
+
+And also remove the debug logging from the find-references function:
+
+## TOOL USE:
+
+Name: str-replace
+ID: toolu_01Bic21n5aKwmRNpDpaHWnzM
+
+### file_path
+
+<tool.toolu_01Bic21n5aKwmRNpDpaHWnzM>
+greger-lib-lsp.el
+</tool.toolu_01Bic21n5aKwmRNpDpaHWnzM>
+
+### original_content
+
+<tool.toolu_01Bic21n5aKwmRNpDpaHWnzM>
+;; Debug logging
+          (message "Finding references at %s:%d:%d" file-path line column)
+
+          (let* ((symbol-info (condition-case nil
+                                  (thing-at-point 'symbol)
+                                (error "unknown")))
+                 (params `(:textDocument ,(lsp--text-document-identifier)
+                          :position ,(lsp--cur-position)
+                          :context (:includeDeclaration ,(if include-declaration t :json-false))))
+                 (locations (let ((lsp-response-timeout 10)) ; Shorter timeout for tests
+                              (message "Sending LSP request for references...")
+                              (lsp-request "textDocument/references" params)))
+</tool.toolu_01Bic21n5aKwmRNpDpaHWnzM>
+
+### new_content
+
+<tool.toolu_01Bic21n5aKwmRNpDpaHWnzM>
+(let* ((symbol-info (condition-case nil
+                                  (thing-at-point 'symbol)
+                                (error "unknown")))
+                 (params `(:textDocument ,(lsp--text-document-identifier)
+                          :position ,(lsp--cur-position)
+                          :context (:includeDeclaration ,(if include-declaration t :json-false))))
+                 (locations (let ((lsp-response-timeout 10)) ; Shorter timeout for tests
+                              (lsp-request "textDocument/references" params)))
+</tool.toolu_01Bic21n5aKwmRNpDpaHWnzM>
+
+### git_commit_message
+
+<tool.toolu_01Bic21n5aKwmRNpDpaHWnzM>
+Remove debug logging from find-references function
+</tool.toolu_01Bic21n5aKwmRNpDpaHWnzM>
+
+<!-- TOOL_RESULT_PLACEHOLDER_toolu_01Bic21n5aKwmRNpDpaHWnzM -->
