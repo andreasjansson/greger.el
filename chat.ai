@@ -2233,4 +2233,82 @@ Revert to simpler LSP test teardown to avoid breaking LSP operation
 - This should fix timeout issues while still providing test isolation
 </tool.toolu_01AH8NzWDaQecB5BqpU1pqM9>
 
-<!-- TOOL_RESULT_PLACEHOLDER_toolu_01AH8NzWDaQecB5BqpU1pqM9 -->
+## TOOL RESULT:
+
+ID: toolu_01AH8NzWDaQecB5BqpU1pqM9
+
+<tool.toolu_01AH8NzWDaQecB5BqpU1pqM9>
+Successfully replaced function 'greger-lsp-test-teardown' in /Users/andreas/projects/greger.el/test-greger-lib-lsp.el. Successfully staged 2 file(s) and committed with message: Revert to simpler LSP test teardown to avoid breaking LSP operation
+
+- Remove aggressive workspace killing and process termination
+- Keep basic buffer cleanup and session folder removal
+- Avoid interfering with LSP server operation
+- This should fix timeout issues while still providing test isolation
+</tool.toolu_01AH8NzWDaQecB5BqpU1pqM9>
+
+
+## ASSISTANT:
+
+Now let me also simplify the setup function to avoid the complex workspace cleanup:
+
+## TOOL USE:
+
+Name: str-replace
+ID: toolu_01Rs5gzSR9dk7an5HbAHkL5W
+
+### file_path
+
+<tool.toolu_01Rs5gzSR9dk7an5HbAHkL5W>
+test-greger-lib-lsp.el
+</tool.toolu_01Rs5gzSR9dk7an5HbAHkL5W>
+
+### original_content
+
+<tool.toolu_01Rs5gzSR9dk7an5HbAHkL5W>
+  ;; Clean up any old test folders from LSP session (but don't touch user folders)
+  (when (bound-and-true-p lsp--session)
+    (setf (lsp-session-folders lsp--session)
+          (cl-remove-if (lambda (folder)
+                         (string-prefix-p "/tmp" folder))
+                        (lsp-session-folders lsp--session)))
+
+    ;; Also clean up any leftover workspaces from previous test runs
+    (let ((workspaces-to-remove '()))
+      (maphash (lambda (key workspace-list)
+                ;; workspace-list might be a single workspace or a list of workspaces
+                (let ((workspaces (if (listp workspace-list) workspace-list (list workspace-list))))
+                  (dolist (workspace workspaces)
+                    (when (and (lsp--workspace-p workspace)
+                              (lsp--workspace-root workspace)
+                              (string-prefix-p "/tmp" (lsp--workspace-root workspace)))
+                      (push workspace workspaces-to-remove)))))
+              (lsp-session-folder->servers lsp--session))
+
+      (dolist (workspace workspaces-to-remove)
+        (condition-case nil
+            (lsp--shutdown-workspace workspace)
+          (error nil)))))
+</tool.toolu_01Rs5gzSR9dk7an5HbAHkL5W>
+
+### new_content
+
+<tool.toolu_01Rs5gzSR9dk7an5HbAHkL5W>
+  ;; Clean up any old test folders from LSP session (but don't touch user folders)
+  (when (bound-and-true-p lsp--session)
+    (setf (lsp-session-folders lsp--session)
+          (cl-remove-if (lambda (folder)
+                         (string-prefix-p "/tmp" folder))
+                        (lsp-session-folders lsp--session))))
+</tool.toolu_01Rs5gzSR9dk7an5HbAHkL5W>
+
+### git_commit_message
+
+<tool.toolu_01Rs5gzSR9dk7an5HbAHkL5W>
+Simplify LSP test setup to avoid complex workspace cleanup
+
+- Remove complex workspace removal code from setup
+- Keep simple session folder cleanup
+- Avoid potential interference with LSP operation during setup
+</tool.toolu_01Rs5gzSR9dk7an5HbAHkL5W>
+
+<!-- TOOL_RESULT_PLACEHOLDER_toolu_01Rs5gzSR9dk7an5HbAHkL5W -->

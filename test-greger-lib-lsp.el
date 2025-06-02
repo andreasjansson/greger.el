@@ -33,24 +33,7 @@
     (setf (lsp-session-folders lsp--session)
           (cl-remove-if (lambda (folder)
                          (string-prefix-p "/tmp" folder))
-                        (lsp-session-folders lsp--session)))
-
-    ;; Also clean up any leftover workspaces from previous test runs
-    (let ((workspaces-to-remove '()))
-      (maphash (lambda (key workspace-list)
-                ;; workspace-list might be a single workspace or a list of workspaces
-                (let ((workspaces (if (listp workspace-list) workspace-list (list workspace-list))))
-                  (dolist (workspace workspaces)
-                    (when (and (lsp--workspace-p workspace)
-                              (lsp--workspace-root workspace)
-                              (string-prefix-p "/tmp" (lsp--workspace-root workspace)))
-                      (push workspace workspaces-to-remove)))))
-              (lsp-session-folder->servers lsp--session))
-
-      (dolist (workspace workspaces-to-remove)
-        (condition-case nil
-            (lsp--shutdown-workspace workspace)
-          (error nil)))))
+                        (lsp-session-folders lsp--session))))
 
   ;; Create a simple Python project structure
   (let ((src-dir (file-name-as-directory (expand-file-name "src" greger-lsp-test-temp-dir))))
