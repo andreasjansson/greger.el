@@ -7462,4 +7462,50 @@ test-greger-lib-lsp.el
 Fix find-references test line number
 </tool.toolu_01FmmT9o9eKivW6BY4f92kkj>
 
-<!-- TOOL_RESULT_PLACEHOLDER_toolu_01FmmT9o9eKivW6BY4f92kkj -->
+## TOOL RESULT:
+
+ID: toolu_01FmmT9o9eKivW6BY4f92kkj
+
+<tool.toolu_01FmmT9o9eKivW6BY4f92kkj>
+Successfully replaced content in /Users/andreas/projects/aichat3/test-greger-lib-lsp.el. Successfully staged 2 file(s) and committed with message: Fix find-references test line number
+</tool.toolu_01FmmT9o9eKivW6BY4f92kkj>
+
+
+## TOOL USE:
+
+Name: str-replace
+ID: toolu_01Ru4uyNGoxWUHDRBDrnaXpe
+
+### file_path
+
+<tool.toolu_01Ru4uyNGoxWUHDRBDrnaXpe>
+test-greger-lib-lsp.el
+</tool.toolu_01Ru4uyNGoxWUHDRBDrnaXpe>
+
+### original_content
+
+<tool.toolu_01Ru4uyNGoxWUHDRBDrnaXpe>
+(let ((result (greger-tools--lsp-find-references
+                  greger-lsp-test-python-file
+                  57 6     ; Calculator class
+                  t        ; Include declaration
+                  5)))     ; Max 5 results
+</tool.toolu_01Ru4uyNGoxWUHDRBDrnaXpe>
+
+### new_content
+
+<tool.toolu_01Ru4uyNGoxWUHDRBDrnaXpe>
+(let ((result (greger-tools--lsp-find-references
+                  greger-lsp-test-python-file
+                  9 6      ; Line 9: "class Calculator:", column at "Calculator"
+                  t        ; Include declaration
+                  5)))     ; Max 5 results
+</tool.toolu_01Ru4uyNGoxWUHDRBDrnaXpe>
+
+### git_commit_message
+
+<tool.toolu_01Ru4uyNGoxWUHDRBDrnaXpe>
+Fix find-references-limited test line number
+</tool.toolu_01Ru4uyNGoxWUHDRBDrnaXpe>
+
+<!-- TOOL_RESULT_PLACEHOLDER_toolu_01Ru4uyNGoxWUHDRBDrnaXpe -->
