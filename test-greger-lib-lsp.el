@@ -175,7 +175,10 @@ description = \"Test project for greger LSP tools\"
             ;; Bind LSP variables to ensure proper root detection
             (let ((lsp-auto-guess-root nil)
                   (lsp-guess-root-without-session nil))
-              (lsp))
+              (message "Starting LSP with auto-guess-root: %s, guess-root-without-session: %s"
+                       lsp-auto-guess-root lsp-guess-root-without-session)
+              (lsp)
+              (message "LSP started. Workspaces: %s" lsp--buffer-workspaces))
             ;; Wait for LSP to initialize with reasonable timeout
             (let ((timeout 0))
               (while (and (not lsp--buffer-workspaces) (< timeout 100))

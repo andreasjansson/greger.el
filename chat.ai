@@ -2791,4 +2791,55 @@ test-greger-lib-lsp.el
 Add debug information to diagnose workspace root detection issues
 </tool.toolu_01HPptma6cYybzsHH9WVVgFG>
 
-<!-- TOOL_RESULT_PLACEHOLDER_toolu_01HPptma6cYybzsHH9WVVgFG -->
+## TOOL RESULT:
+
+ID: toolu_01HPptma6cYybzsHH9WVVgFG
+
+<tool.toolu_01HPptma6cYybzsHH9WVVgFG>
+Successfully replaced content in /Users/andreas/projects/greger.el/test-greger-lib-lsp.el. Successfully staged 2 file(s) and committed with message: Add debug information to diagnose workspace root detection issues
+</tool.toolu_01HPptma6cYybzsHH9WVVgFG>
+
+
+## ASSISTANT:
+
+Let me also add debugging for what happens during LSP startup:
+
+## TOOL USE:
+
+Name: str-replace
+ID: toolu_01Ho5gkjwcaUGLrLxsZ67p5r
+
+### file_path
+
+<tool.toolu_01Ho5gkjwcaUGLrLxsZ67p5r>
+test-greger-lib-lsp.el
+</tool.toolu_01Ho5gkjwcaUGLrLxsZ67p5r>
+
+### original_content
+
+<tool.toolu_01Ho5gkjwcaUGLrLxsZ67p5r>
+            ;; Bind LSP variables to ensure proper root detection
+            (let ((lsp-auto-guess-root nil)
+                  (lsp-guess-root-without-session nil))
+              (lsp))
+</tool.toolu_01Ho5gkjwcaUGLrLxsZ67p5r>
+
+### new_content
+
+<tool.toolu_01Ho5gkjwcaUGLrLxsZ67p5r>
+            ;; Bind LSP variables to ensure proper root detection
+            (let ((lsp-auto-guess-root nil)
+                  (lsp-guess-root-without-session nil))
+              (message "Starting LSP with auto-guess-root: %s, guess-root-without-session: %s"
+                       lsp-auto-guess-root lsp-guess-root-without-session)
+              (lsp)
+              (message "LSP started. Workspaces: %s" lsp--buffer-workspaces))
+</tool.toolu_01Ho5gkjwcaUGLrLxsZ67p5r>
+
+### git_commit_message
+
+<tool.toolu_01Ho5gkjwcaUGLrLxsZ67p5r>
+Add more debug info for LSP startup process
+</tool.toolu_01Ho5gkjwcaUGLrLxsZ67p5r>
+
+<!-- TOOL_RESULT_PLACEHOLDER_toolu_01Ho5gkjwcaUGLrLxsZ67p5r -->
