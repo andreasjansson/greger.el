@@ -262,8 +262,12 @@ If HIERARCHICAL is true, format with indentation to show structure."
                               (forward-line (1- start-line))
                               (let ((start-pos (point)))
                                 (forward-line (- end-line start-line))
+                                (let ((lsp-response-timeout 10))
                                 (lsp-request "textDocument/rangeFormatting"
-                                           (lsp--make-document-range-formatting-params start-pos (point))))))
+                                           `(:textDocument ,(lsp--text-document-identifier)
+                                             :range (:start ,(lsp--point-to-position start-pos)
+                                                     :end ,(lsp--point-to-position (point)))
+                                             :options (:tabSize 4 :insertSpaces t)))))))
                         ;; Full document formatting
                         (progn
                           (unless (greger-lsp--feature-supported-p "textDocument/formatting")
