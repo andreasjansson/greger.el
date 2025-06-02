@@ -6233,4 +6233,43 @@ greger-lib-lsp.el
 Add shorter timeout to document symbols request
 </tool.toolu_01G9nH7cYpfvpD7MSLp6u5En>
 
-<!-- TOOL_RESULT_PLACEHOLDER_toolu_01G9nH7cYpfvpD7MSLp6u5En -->
+## TOOL RESULT:
+
+ID: toolu_01G9nH7cYpfvpD7MSLp6u5En
+
+<tool.toolu_01G9nH7cYpfvpD7MSLp6u5En>
+Successfully replaced content in /Users/andreas/projects/aichat3/greger-lib-lsp.el. Successfully staged 2 file(s) and committed with message: Add shorter timeout to document symbols request
+</tool.toolu_01G9nH7cYpfvpD7MSLp6u5En>
+
+
+## TOOL USE:
+
+Name: str-replace
+ID: toolu_01WNQ3RTS84T4oshrNV3gWCi
+
+### file_path
+
+<tool.toolu_01WNQ3RTS84T4oshrNV3gWCi>
+greger-lib-lsp.el
+</tool.toolu_01WNQ3RTS84T4oshrNV3gWCi>
+
+### original_content
+
+<tool.toolu_01WNQ3RTS84T4oshrNV3gWCi>
+(let* ((symbols (lsp-request "workspace/symbol" `(:query ,query)))
+</tool.toolu_01WNQ3RTS84T4oshrNV3gWCi>
+
+### new_content
+
+<tool.toolu_01WNQ3RTS84T4oshrNV3gWCi>
+(let* ((symbols (let ((lsp-response-timeout 10)) ; Shorter timeout for tests
+                                  (lsp-request "workspace/symbol" `(:query ,query))))
+</tool.toolu_01WNQ3RTS84T4oshrNV3gWCi>
+
+### git_commit_message
+
+<tool.toolu_01WNQ3RTS84T4oshrNV3gWCi>
+Add shorter timeout to workspace symbols request
+</tool.toolu_01WNQ3RTS84T4oshrNV3gWCi>
+
+<!-- TOOL_RESULT_PLACEHOLDER_toolu_01WNQ3RTS84T4oshrNV3gWCi -->
