@@ -1474,4 +1474,297 @@ Fix setup workspace cleanup to handle workspace lists properly
 - Add proper type checks before accessing workspace properties
 </tool.toolu_01C2AxgvHm8bgS9wtyeboDd6>
 
-<!-- TOOL_RESULT_PLACEHOLDER_toolu_01C2AxgvHm8bgS9wtyeboDd6 -->
+## TOOL RESULT:
+
+ID: toolu_01C2AxgvHm8bgS9wtyeboDd6
+
+<tool.toolu_01C2AxgvHm8bgS9wtyeboDd6>
+Successfully replaced content in /Users/andreas/projects/greger.el/test-greger-lib-lsp.el. Successfully staged 2 file(s) and committed with message: Fix setup workspace cleanup to handle workspace lists properly
+
+- Apply same fix to setup function as teardown function
+- Handle both single workspaces and lists of workspaces in folder->servers mapping
+- Add proper type checks before accessing workspace properties
+</tool.toolu_01C2AxgvHm8bgS9wtyeboDd6>
+
+
+## USER:
+
+F greger-lsp-test-cross-file-references
+    Test finding references across multiple files.
+    (void-function lsp-session-server->folders)
+
+
+lsp-mode is here if you want to read the source ~/.emacs.d/elpa/lsp-mode-20231118.1818/
+
+## ASSISTANT:
+
+I need to check the actual LSP mode source to see what the correct function names are. Let me look at the LSP session structure:
+
+## TOOL USE:
+
+Name: read-file
+ID: toolu_017M48DBumBCEHn4unZcWSeb
+
+### path
+
+<tool.toolu_017M48DBumBCEHn4unZcWSeb>
+~/.emacs.d/elpa/lsp-mode-20231118.1818/lsp-mode.el
+</tool.toolu_017M48DBumBCEHn4unZcWSeb>
+
+### start_line
+
+<tool.toolu_017M48DBumBCEHn4unZcWSeb>
+1
+</tool.toolu_017M48DBumBCEHn4unZcWSeb>
+
+### end_line
+
+<tool.toolu_017M48DBumBCEHn4unZcWSeb>
+100
+</tool.toolu_017M48DBumBCEHn4unZcWSeb>
+
+## TOOL RESULT:
+
+ID: toolu_017M48DBumBCEHn4unZcWSeb
+
+<tool.toolu_017M48DBumBCEHn4unZcWSeb>
+;;; lsp-mode.el --- LSP mode                              -*- lexical-binding: t; -*-
+
+;; Copyright (C) 2020 emacs-lsp maintainers
+
+;; Author: Vibhav Pant, Fangrui Song, Ivan Yonchovski
+;; Keywords: languages
+;; Package-Requires: ((emacs "27.1") (dash "2.18.0") (f "0.20.0") (ht "2.3") (spinner "1.7.3") (markdown-mode "2.3") (lv "0") (eldoc "1.11"))
+;; Version: 8.0.1
+
+;; URL: https://github.com/emacs-lsp/lsp-mode
+;; This program is free software; you can redistribute it and/or modify
+;; it under the terms of the GNU General Public License as published by
+;; the Free Software Foundation, either version 3 of the License, or
+;; (at your option) any later version.
+
+;; This program is distributed in the hope that it will be useful,
+;; but WITHOUT ANY WARRANTY; without even the implied warranty of
+;; MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+;; GNU General Public License for more details.
+
+;; You should have received a copy of the GNU General Public License
+;; along with this program.  If not, see <https://www.gnu.org/licenses/>.
+
+;;; Commentary:
+
+;; Emacs client/library for the Language Server Protocol
+
+;;; Code:
+
+(require 'cl-generic)
+(require 'cl-lib)
+(require 'compile)
+(require 'dash)
+(require 'epg)
+(require 'ewoc)
+(require 'f)
+(require 'filenotify)
+(require 'files)
+(require 'ht)
+(require 'imenu)
+(require 'inline)
+(require 'json)
+(require 'lv)
+(require 'markdown-mode)
+(require 'network-stream)
+(require 'pcase)
+(require 'rx)
+(require 's)
+(require 'seq)
+(require 'spinner)
+(require 'subr-x)
+(require 'tree-widget)
+(require 'url-parse)
+(require 'url-util)
+(require 'widget)
+(require 'xref)
+(require 'minibuffer)
+(require 'help-mode)
+(require 'yasnippet nil t)
+(require 'lsp-protocol)
+
+(defgroup lsp-mode nil
+  "Language Server Protocol client."
+  :group 'tools
+  :tag "Language Server (lsp-mode)")
+
+(declare-function evil-set-command-property "ext:evil-common")
+(declare-function projectile-project-root "ext:projectile")
+(declare-function yas-expand-snippet "ext:yasnippet")
+(declare-function dap-mode "ext:dap-mode")
+(declare-function dap-auto-configure-mode "ext:dap-mode")
+
+(defvar yas-inhibit-overlay-modification-protection)
+(defvar yas-indent-line)
+(defvar yas-wrap-around-region)
+(defvar yas-also-auto-indent-first-line)
+(defvar dap-auto-configure-mode)
+(defvar dap-ui-menu-items)
+(defvar company-minimum-prefix-length)
+
+(defconst lsp--message-type-face
+  `((1 . ,compilation-error-face)
+    (2 . ,compilation-warning-face)
+    (3 . ,compilation-message-face)
+    (4 . ,compilation-info-face)))
+
+(defconst lsp--errors
+  '((-32700 "Parse Error")
+    (-32600 "Invalid Request")
+    (-32601 "Method not Found")
+    (-32602 "Invalid Parameters")
+    (-32603 "Internal Error")
+    (-32099 "Server Start Error")
+    (-32000 "Server End Error")
+    (-32002 "Server Not Initialized")
+    (-32001 "Unknown Error Code")
+    (-32800 "Request Cancelled"))
+  "Alist of error codes to user friendly strings.")
+
+(defconst lsp--empty-ht (make-hash-table))
+</tool.toolu_017M48DBumBCEHn4unZcWSeb>
+
+## ASSISTANT:
+
+Let me search for the session structure definition:
+
+## TOOL USE:
+
+Name: ripgrep
+ID: toolu_01G2gnsx7Pa1BwhtFC1GVKrY
+
+### pattern
+
+<tool.toolu_01G2gnsx7Pa1BwhtFC1GVKrY>
+cl-defstruct.*lsp-session
+</tool.toolu_01G2gnsx7Pa1BwhtFC1GVKrY>
+
+### path
+
+<tool.toolu_01G2gnsx7Pa1BwhtFC1GVKrY>
+~/.emacs.d/elpa/lsp-mode-20231118.1818/
+</tool.toolu_01G2gnsx7Pa1BwhtFC1GVKrY>
+
+## TOOL RESULT:
+
+ID: toolu_01G2gnsx7Pa1BwhtFC1GVKrY
+
+<tool.toolu_01G2gnsx7Pa1BwhtFC1GVKrY>
+/Users/andreas/.emacs.d/elpa/lsp-mode-20231118.1818/lsp-mode.el:3058:(cl-defstruct lsp-session
+
+</tool.toolu_01G2gnsx7Pa1BwhtFC1GVKrY>
+
+## TOOL USE:
+
+Name: read-file
+ID: toolu_0114QztkEcwNxzdGfKeLiCZ1
+
+### path
+
+<tool.toolu_0114QztkEcwNxzdGfKeLiCZ1>
+~/.emacs.d/elpa/lsp-mode-20231118.1818/lsp-mode.el
+</tool.toolu_0114QztkEcwNxzdGfKeLiCZ1>
+
+### start_line
+
+<tool.toolu_0114QztkEcwNxzdGfKeLiCZ1>
+3058
+</tool.toolu_0114QztkEcwNxzdGfKeLiCZ1>
+
+### end_line
+
+<tool.toolu_0114QztkEcwNxzdGfKeLiCZ1>
+3080
+</tool.toolu_0114QztkEcwNxzdGfKeLiCZ1>
+
+## TOOL RESULT:
+
+ID: toolu_0114QztkEcwNxzdGfKeLiCZ1
+
+<tool.toolu_0114QztkEcwNxzdGfKeLiCZ1>
+(cl-defstruct lsp-session
+  ;; contains the folders that are part of the current session
+  folders
+  ;; contains the folders that must not be imported in the current workspace.
+  folders-blocklist
+  ;; contains the list of folders that must be imported in a project in case of
+  ;; multi root LSP server.
+  (server-id->folders (make-hash-table :test 'equal))
+  ;; folder to list of the servers that are associated with the folder.
+  (folder->servers (make-hash-table :test 'equal))
+  ;; ‘metadata’ is a generic storage for workspace specific data. It is
+  ;; accessed via `lsp-workspace-set-metadata' and `lsp-workspace-set-metadata'
+  (metadata (make-hash-table :test 'equal)))
+
+(defun lsp-workspace-status (status-string &optional workspace)
+  "Set current workspace status to STATUS-STRING.
+If WORKSPACE is not specified defaults to lsp--cur-workspace."
+  (let ((status-string (when status-string (replace-regexp-in-string "%" "%%" status-string))))
+    (setf (lsp--workspace-status-string (or workspace lsp--cur-workspace)) status-string)))
+
+(defun lsp-session-set-metadata (key value &optional _workspace)
+  "Associate KEY with VALUE in the WORKSPACE metadata.
+If WORKSPACE is not provided current workspace will be used."
+</tool.toolu_0114QztkEcwNxzdGfKeLiCZ1>
+
+## ASSISTANT:
+
+Perfect! Now I can see the correct structure. The session has `folder->servers` and `server-id->folders`, not `server->folders`. Let me fix the cleanup function:
+
+## TOOL USE:
+
+Name: str-replace
+ID: toolu_01EkK8wxhDQ3NLuaBaC3jeaR
+
+### file_path
+
+<tool.toolu_01EkK8wxhDQ3NLuaBaC3jeaR>
+test-greger-lib-lsp.el
+</tool.toolu_01EkK8wxhDQ3NLuaBaC3jeaR>
+
+### original_content
+
+<tool.toolu_01EkK8wxhDQ3NLuaBaC3jeaR>
+    ;; Clear server->folders mapping for servers associated with temp dirs
+    (let ((new-mapping (make-hash-table :test 'equal)))
+      (maphash (lambda (server folders)
+                (let ((filtered-folders (cl-remove-if (lambda (folder)
+                                                       (string-prefix-p "/tmp" folder))
+                                                     folders)))
+                  (when filtered-folders
+                    (puthash server filtered-folders new-mapping))))
+              (lsp-session-server->folders lsp--session))
+      (setf (lsp-session-server->folders lsp--session) new-mapping)))
+</tool.toolu_01EkK8wxhDQ3NLuaBaC3jeaR>
+
+### new_content
+
+<tool.toolu_01EkK8wxhDQ3NLuaBaC3jeaR>
+    ;; Clear server-id->folders mapping for servers associated with temp dirs
+    (let ((new-mapping (make-hash-table :test 'equal)))
+      (maphash (lambda (server-id folders)
+                (let ((filtered-folders (cl-remove-if (lambda (folder)
+                                                       (string-prefix-p "/tmp" folder))
+                                                     folders)))
+                  (when filtered-folders
+                    (puthash server-id filtered-folders new-mapping))))
+              (lsp-session-server-id->folders lsp--session))
+      (setf (lsp-session-server-id->folders lsp--session) new-mapping)))
+</tool.toolu_01EkK8wxhDQ3NLuaBaC3jeaR>
+
+### git_commit_message
+
+<tool.toolu_01EkK8wxhDQ3NLuaBaC3jeaR>
+Fix LSP session field name in cleanup function
+
+- Use correct lsp-session-server-id->folders instead of non-existent lsp-session-server->folders
+- This should fix the void-function error in test cleanup
+</tool.toolu_01EkK8wxhDQ3NLuaBaC3jeaR>
+
+<!-- TOOL_RESULT_PLACEHOLDER_toolu_01EkK8wxhDQ3NLuaBaC3jeaR -->

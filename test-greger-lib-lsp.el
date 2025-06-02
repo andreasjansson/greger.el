@@ -290,16 +290,16 @@ This is a nuclear option when normal cleanup isn't sufficient."
               (lsp-session-folder->servers lsp--session))
       (setf (lsp-session-folder->servers lsp--session) new-mapping))
 
-    ;; Clear server->folders mapping for servers associated with temp dirs
+    ;; Clear server-id->folders mapping for servers associated with temp dirs
     (let ((new-mapping (make-hash-table :test 'equal)))
-      (maphash (lambda (server folders)
+      (maphash (lambda (server-id folders)
                 (let ((filtered-folders (cl-remove-if (lambda (folder)
                                                        (string-prefix-p "/tmp" folder))
                                                      folders)))
                   (when filtered-folders
-                    (puthash server filtered-folders new-mapping))))
-              (lsp-session-server->folders lsp--session))
-      (setf (lsp-session-server->folders lsp--session) new-mapping))))
+                    (puthash server-id filtered-folders new-mapping))))
+              (lsp-session-server-id->folders lsp--session))
+      (setf (lsp-session-server-id->folders lsp--session) new-mapping))))
 
 ;;; Helper macros
 
