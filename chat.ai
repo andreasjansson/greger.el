@@ -6727,4 +6727,80 @@ test-greger-lib-lsp.el
 Simplify cross-file references test with better error handling
 </tool.toolu_01WyBzWLr3FAm2XzaaFcpmVd>
 
-<!-- TOOL_RESULT_PLACEHOLDER_toolu_01WyBzWLr3FAm2XzaaFcpmVd -->
+## TOOL RESULT:
+
+ID: toolu_01WyBzWLr3FAm2XzaaFcpmVd
+
+<tool.toolu_01WyBzWLr3FAm2XzaaFcpmVd>
+Successfully replaced content in /Users/andreas/projects/aichat3/test-greger-lib-lsp.el. Successfully staged 2 file(s) and committed with message: Simplify cross-file references test with better error handling
+</tool.toolu_01WyBzWLr3FAm2XzaaFcpmVd>
+
+
+## ASSISTANT:
+
+Let me also add some error logging and debugging to help understand what's happening in the LSP communication:
+
+## TOOL USE:
+
+Name: str-replace
+ID: toolu_013JuSGJajq6ezCy56MhRQuL
+
+### file_path
+
+<tool.toolu_013JuSGJajq6ezCy56MhRQuL>
+greger-lib-lsp.el
+</tool.toolu_013JuSGJajq6ezCy56MhRQuL>
+
+### original_content
+
+<tool.toolu_013JuSGJajq6ezCy56MhRQuL>
+(defun greger-tools--lsp-find-references (file-path line column &optional include-declaration max-results)
+  "Find references to symbol at FILE-PATH:LINE:COLUMN using LSP."
+  (condition-case err
+      (greger-lsp--with-buffer-at-position file-path line column
+        (lambda ()
+          (unless (greger-lsp--feature-supported-p "textDocument/references")
+            (error "LSP server does not support find-references"))
+
+          (let* ((symbol-info (condition-case nil
+                                  (thing-at-point 'symbol)
+                                (error "unknown")))
+                 (params `(:textDocument ,(lsp--text-document-identifier)
+                          :position ,(lsp--cur-position)
+                          :context (:includeDeclaration ,(if include-declaration t :json-false))))
+                 (locations (let ((lsp-response-timeout 10)) ; Shorter timeout for tests
+                              (lsp-request "textDocument/references" params)))
+</tool.toolu_013JuSGJajq6ezCy56MhRQuL>
+
+### new_content
+
+<tool.toolu_013JuSGJajq6ezCy56MhRQuL>
+(defun greger-tools--lsp-find-references (file-path line column &optional include-declaration max-results)
+  "Find references to symbol at FILE-PATH:LINE:COLUMN using LSP."
+  (condition-case err
+      (greger-lsp--with-buffer-at-position file-path line column
+        (lambda ()
+          (unless (greger-lsp--feature-supported-p "textDocument/references")
+            (error "LSP server does not support find-references"))
+
+          ;; Debug logging
+          (message "Finding references at %s:%d:%d" file-path line column)
+
+          (let* ((symbol-info (condition-case nil
+                                  (thing-at-point 'symbol)
+                                (error "unknown")))
+                 (params `(:textDocument ,(lsp--text-document-identifier)
+                          :position ,(lsp--cur-position)
+                          :context (:includeDeclaration ,(if include-declaration t :json-false))))
+                 (locations (let ((lsp-response-timeout 10)) ; Shorter timeout for tests
+                              (message "Sending LSP request for references...")
+                              (lsp-request "textDocument/references" params)))
+</tool.toolu_013JuSGJajq6ezCy56MhRQuL>
+
+### git_commit_message
+
+<tool.toolu_013JuSGJajq6ezCy56MhRQuL>
+Add debug logging to find-references function
+</tool.toolu_013JuSGJajq6ezCy56MhRQuL>
+
+<!-- TOOL_RESULT_PLACEHOLDER_toolu_013JuSGJajq6ezCy56MhRQuL -->
