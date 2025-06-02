@@ -980,4 +980,111 @@ Add timing delays to test macro for better LSP state isolation
 - This should help prevent timing-related test failures
 </tool.toolu_01HmWHCwMuJqmzBaWydMBohs>
 
-<!-- TOOL_RESULT_PLACEHOLDER_toolu_01HmWHCwMuJqmzBaWydMBohs -->
+## TOOL RESULT:
+
+ID: toolu_01HmWHCwMuJqmzBaWydMBohs
+
+<tool.toolu_01HmWHCwMuJqmzBaWydMBohs>
+Successfully replaced content in /Users/andreas/projects/greger.el/test-greger-lib-lsp.el. Successfully staged 2 file(s) and committed with message: Add timing delays to test macro for better LSP state isolation
+
+- Add brief delay before setup to ensure previous cleanup is complete
+- Add brief delay after teardown to ensure cleanup completes before next test
+- This should help prevent timing-related test failures
+</tool.toolu_01HmWHCwMuJqmzBaWydMBohs>
+
+
+## ASSISTANT:
+
+Let me also add one more improvement - better handling of LSP server process cleanup. Let me check if there's a way to more aggressively clean up LSP server processes:
+
+## TOOL USE:
+
+Name: ripgrep
+ID: toolu_01JGJGs7tkyrdTL4hzQAavCQ
+
+### pattern
+
+<tool.toolu_01JGJGs7tkyrdTL4hzQAavCQ>
+lsp--shutdown-workspace|lsp-kill-process|lsp-workspace-shutdown"
+</tool.toolu_01JGJGs7tkyrdTL4hzQAavCQ>
+
+### path
+
+<tool.toolu_01JGJGs7tkyrdTL4hzQAavCQ>
+.
+</tool.toolu_01JGJGs7tkyrdTL4hzQAavCQ>
+
+### file-type
+
+<tool.toolu_01JGJGs7tkyrdTL4hzQAavCQ>
+el
+</tool.toolu_01JGJGs7tkyrdTL4hzQAavCQ>
+
+## TOOL RESULT:
+
+ID: toolu_01JGJGs7tkyrdTL4hzQAavCQ
+
+<tool.toolu_01JGJGs7tkyrdTL4hzQAavCQ>
+/Users/andreas/projects/greger.el/test-greger-lib-lsp.el:48:            (lsp--shutdown-workspace workspace)
+/Users/andreas/projects/greger.el/test-greger-lib-lsp.el:187:                  (lsp--shutdown-workspace workspace)
+/Users/andreas/projects/greger.el/chat.ai:790:                  (lsp--shutdown-workspace workspace)
+/Users/andreas/projects/greger.el/chat.ai:895:            (lsp--shutdown-workspace workspace)
+
+</tool.toolu_01JGJGs7tkyrdTL4hzQAavCQ>
+
+## ASSISTANT:
+
+Now let me add one more improvement to explicitly force shutdown of LSP processes if they exist:
+
+## TOOL USE:
+
+Name: str-replace
+ID: toolu_01V3ELz6zHxvRThvf2vGUgBD
+
+### file_path
+
+<tool.toolu_01V3ELz6zHxvRThvf2vGUgBD>
+test-greger-lib-lsp.el
+</tool.toolu_01V3ELz6zHxvRThvf2vGUgBD>
+
+### original_content
+
+<tool.toolu_01V3ELz6zHxvRThvf2vGUgBD>
+            (dolist (workspace workspaces-to-kill)
+              (condition-case nil
+                  (lsp--shutdown-workspace workspace)
+                (error nil))))))
+
+    ;; Wait a moment for cleanup to complete
+    (sit-for 0.2)
+</tool.toolu_01V3ELz6zHxvRThvf2vGUgBD>
+
+### new_content
+
+<tool.toolu_01V3ELz6zHxvRThvf2vGUgBD>
+            (dolist (workspace workspaces-to-kill)
+              (condition-case nil
+                  (progn
+                    (lsp--shutdown-workspace workspace)
+                    ;; Force kill the process if it's still running
+                    (when (lsp--workspace-proc workspace)
+                      (let ((proc (lsp--workspace-proc workspace)))
+                        (when (process-live-p proc)
+                          (kill-process proc)))))
+                (error nil))))))
+
+    ;; Wait a moment for cleanup to complete
+    (sit-for 0.3)
+</tool.toolu_01V3ELz6zHxvRThvf2vGUgBD>
+
+### git_commit_message
+
+<tool.toolu_01V3ELz6zHxvRThvf2vGUgBD>
+Add more aggressive LSP process cleanup in tests
+
+- Explicitly kill LSP server processes if they're still running after workspace shutdown
+- Increase cleanup delay to allow more time for process termination
+- This should prevent lingering LSP processes from affecting subsequent tests
+</tool.toolu_01V3ELz6zHxvRThvf2vGUgBD>
+
+<!-- TOOL_RESULT_PLACEHOLDER_toolu_01V3ELz6zHxvRThvf2vGUgBD -->

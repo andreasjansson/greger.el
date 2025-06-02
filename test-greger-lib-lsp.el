@@ -184,11 +184,17 @@ description = \"Test project for greger LSP tools\"
 
             (dolist (workspace workspaces-to-kill)
               (condition-case nil
-                  (lsp--shutdown-workspace workspace)
+                  (progn
+                    (lsp--shutdown-workspace workspace)
+                    ;; Force kill the process if it's still running
+                    (when (lsp--workspace-proc workspace)
+                      (let ((proc (lsp--workspace-proc workspace)))
+                        (when (process-live-p proc)
+                          (kill-process proc)))))
                 (error nil))))))
 
     ;; Wait a moment for cleanup to complete
-    (sit-for 0.2)
+    (sit-for 0.3)
 
     ;; Remove temp directory
     (condition-case nil
