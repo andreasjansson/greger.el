@@ -272,8 +272,10 @@ If HIERARCHICAL is true, format with indentation to show structure."
                         (progn
                           (unless (greger-lsp--feature-supported-p "textDocument/formatting")
                             (error "LSP server does not support formatting"))
-                          (lsp-request "textDocument/formatting"
-                                     (lsp--make-document-formatting-params))))))
+                          (let ((lsp-response-timeout 10))
+                                (lsp-request "textDocument/formatting"
+                                           `(:textDocument ,(lsp--text-document-identifier)
+                                             :options (:tabSize 4 :insertSpaces t))))))))
             (if (and edits (not (seq-empty-p edits)))
                 (progn
                   (lsp--apply-text-edits edits 'format)
