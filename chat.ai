@@ -9671,4 +9671,612 @@ greger-lib-lsp.el
 Remove text properties from file-relative-name in format-location
 </tool.toolu_016QDSnnQGuX3zU4FnXTbSsz>
 
-<!-- TOOL_RESULT_PLACEHOLDER_toolu_016QDSnnQGuX3zU4FnXTbSsz -->
+## TOOL RESULT:
+
+ID: toolu_016QDSnnQGuX3zU4FnXTbSsz
+
+<tool.toolu_016QDSnnQGuX3zU4FnXTbSsz>
+Successfully replaced content in /Users/andreas/projects/greger.el/greger-lib-lsp.el. Successfully staged 2 file(s) and committed with message: Remove text properties from file-relative-name in format-location
+</tool.toolu_016QDSnnQGuX3zU4FnXTbSsz>
+
+
+## ASSISTANT:
+
+Perfect! Now all the LSP functions should return plain text without any fontification or text properties. The test should now pass because both the expected string and the actual result will be plain text strings that can be compared with `string=`.
+
+The key issue was that Emacs' `thing-at-point` and `file-relative-name` functions can return strings with text properties (fontification), and LSP mode may also add text properties to some strings. By wrapping all the final return values with `substring-no-properties`, we ensure that the functions return clean strings suitable for testing.
+
+## USER:
+
+I removed the document-symbols tool since it's not so useful and unsupported in python. But the workspace symbols test fail with
+
+``` emacs-lisp
+F greger-lsp-test-workspace-symbols
+    Test searching workspace symbols.
+    (ert-test-failed
+     ((should
+       (string-match-p "Workspace symbols.*Calculator" result))
+      :form
+      (string-match-p "Workspace symbols.*Calculator" "LSP workspace-symbols failed: Wrong number of arguments: (1 . 1), 2")
+      :value nil))
+
+F greger-lsp-test-workspace-symbols-limited
+    Test searching workspace symbols with limits.
+    (ert-test-failed
+     ((should
+       (string-match-p "Workspace symbols.*add" result))
+      :form
+      (string-match-p "Workspace symbols.*add" "LSP workspace-symbols failed: Wrong number of arguments: (1 . 1), 2")
+      :value nil))
+
+F greger-lsp-test-workspace-symbols-typed
+    Test searching workspace symbols by type.
+    (ert-test-failed
+     ((should
+       (string-match-p "Workspace symbols.*main.*Function" result))
+      :form
+      (string-match-p "Workspace symbols.*main.*Function" "LSP workspace-symbols failed: Wrong number of arguments: (1 . 1), 2")
+      :value nil))
+
+
+```
+
+## ASSISTANT:
+
+The "Wrong number of arguments: (1 . 1), 2" error suggests there's still an issue with one of the function calls in the workspace symbols implementation. Let me examine the workspace symbols function to find the problematic call:
+
+## TOOL USE:
+
+Name: read-file
+ID: toolu_01EcggekVjUr76CfXYYmiDQn
+
+### path
+
+<tool.toolu_01EcggekVjUr76CfXYYmiDQn>
+greger-lib-lsp.el
+</tool.toolu_01EcggekVjUr76CfXYYmiDQn>
+
+### start_line
+
+<tool.toolu_01EcggekVjUr76CfXYYmiDQn>
+350
+</tool.toolu_01EcggekVjUr76CfXYYmiDQn>
+
+### end_line
+
+<tool.toolu_01EcggekVjUr76CfXYYmiDQn>
+390
+</tool.toolu_01EcggekVjUr76CfXYYmiDQn>
+
+### include_line_numbers
+
+<tool.toolu_01EcggekVjUr76CfXYYmiDQn>
+true
+</tool.toolu_01EcggekVjUr76CfXYYmiDQn>
+
+## TOOL RESULT:
+
+ID: toolu_01EcggekVjUr76CfXYYmiDQn
+
+<tool.toolu_01EcggekVjUr76CfXYYmiDQn>
+Failed to read file: Start index out of bounds: 349
+</tool.toolu_01EcggekVjUr76CfXYYmiDQn>
+
+## TOOL USE:
+
+Name: ripgrep
+ID: toolu_01W3cui11edDxqh7N1iMbHK7
+
+### pattern
+
+<tool.toolu_01W3cui11edDxqh7N1iMbHK7>
+greger-tools--lsp-workspace-symbols"
+</tool.toolu_01W3cui11edDxqh7N1iMbHK7>
+
+### path
+
+<tool.toolu_01W3cui11edDxqh7N1iMbHK7>
+greger-lib-lsp.el
+</tool.toolu_01W3cui11edDxqh7N1iMbHK7>
+
+### context-lines
+
+<tool.toolu_01W3cui11edDxqh7N1iMbHK7>
+10
+</tool.toolu_01W3cui11edDxqh7N1iMbHK7>
+
+## TOOL RESULT:
+
+ID: toolu_01W3cui11edDxqh7N1iMbHK7
+
+<tool.toolu_01W3cui11edDxqh7N1iMbHK7>
+Failed to execute ripgrep search: Command failed with exit code 1: (no output)
+</tool.toolu_01W3cui11edDxqh7N1iMbHK7>
+
+## TOOL USE:
+
+Name: ripgrep
+ID: toolu_01GzcrHutRc3iu9Txuj5TvGf
+
+### pattern
+
+<tool.toolu_01GzcrHutRc3iu9Txuj5TvGf>
+lsp-workspace-symbols"
+</tool.toolu_01GzcrHutRc3iu9Txuj5TvGf>
+
+### path
+
+<tool.toolu_01GzcrHutRc3iu9Txuj5TvGf>
+greger-lib-lsp.el
+</tool.toolu_01GzcrHutRc3iu9Txuj5TvGf>
+
+### context-lines
+
+<tool.toolu_01GzcrHutRc3iu9Txuj5TvGf>
+5
+</tool.toolu_01GzcrHutRc3iu9Txuj5TvGf>
+
+## TOOL RESULT:
+
+ID: toolu_01GzcrHutRc3iu9Txuj5TvGf
+
+<tool.toolu_01GzcrHutRc3iu9Txuj5TvGf>
+71:(greger-register-tool "lsp-workspace-symbols"
+
+</tool.toolu_01GzcrHutRc3iu9Txuj5TvGf>
+
+## ASSISTANT:
+
+Let me find the workspace symbols function:
+
+## TOOL USE:
+
+Name: ripgrep
+ID: toolu_01RzDqUnZ59E6UeoNW1LDpjL
+
+### pattern
+
+<tool.toolu_01RzDqUnZ59E6UeoNW1LDpjL>
+defun.*workspace-symbols"
+</tool.toolu_01RzDqUnZ59E6UeoNW1LDpjL>
+
+### path
+
+<tool.toolu_01RzDqUnZ59E6UeoNW1LDpjL>
+greger-lib-lsp.el
+</tool.toolu_01RzDqUnZ59E6UeoNW1LDpjL>
+
+### context-lines
+
+<tool.toolu_01RzDqUnZ59E6UeoNW1LDpjL>
+5
+</tool.toolu_01RzDqUnZ59E6UeoNW1LDpjL>
+
+## TOOL RESULT:
+
+ID: toolu_01RzDqUnZ59E6UeoNW1LDpjL
+
+<tool.toolu_01RzDqUnZ59E6UeoNW1LDpjL>
+Failed to execute ripgrep search: Command failed with exit code 1: (no output)
+</tool.toolu_01RzDqUnZ59E6UeoNW1LDpjL>
+
+## TOOL USE:
+
+Name: ripgrep
+ID: toolu_01CLhB7XJgTpLVkF66q1yE83
+
+### pattern
+
+<tool.toolu_01CLhB7XJgTpLVkF66q1yE83>
+workspace"
+</tool.toolu_01CLhB7XJgTpLVkF66q1yE83>
+
+### path
+
+<tool.toolu_01CLhB7XJgTpLVkF66q1yE83>
+greger-lib-lsp.el
+</tool.toolu_01CLhB7XJgTpLVkF66q1yE83>
+
+### context-lines
+
+<tool.toolu_01CLhB7XJgTpLVkF66q1yE83>
+2
+</tool.toolu_01CLhB7XJgTpLVkF66q1yE83>
+
+### max-results
+
+<tool.toolu_01CLhB7XJgTpLVkF66q1yE83>
+5
+</tool.toolu_01CLhB7XJgTpLVkF66q1yE83>
+
+## TOOL RESULT:
+
+ID: toolu_01CLhB7XJgTpLVkF66q1yE83
+
+<tool.toolu_01CLhB7XJgTpLVkF66q1yE83>
+72:  :description "Search for symbols across the entire workspace"
+
+</tool.toolu_01CLhB7XJgTpLVkF66q1yE83>
+
+## ASSISTANT:
+
+Let me search more broadly:
+
+## TOOL USE:
+
+Name: ripgrep
+ID: toolu_01DiBADx8BgkaBbq9FSpUCGv
+
+### pattern
+
+<tool.toolu_01DiBADx8BgkaBbq9FSpUCGv>
+workspace.*symbol"
+</tool.toolu_01DiBADx8BgkaBbq9FSpUCGv>
+
+### path
+
+<tool.toolu_01DiBADx8BgkaBbq9FSpUCGv>
+greger-lib-lsp.el
+</tool.toolu_01DiBADx8BgkaBbq9FSpUCGv>
+
+### context-lines
+
+<tool.toolu_01DiBADx8BgkaBbq9FSpUCGv>
+3
+</tool.toolu_01DiBADx8BgkaBbq9FSpUCGv>
+
+## TOOL RESULT:
+
+ID: toolu_01DiBADx8BgkaBbq9FSpUCGv
+
+<tool.toolu_01DiBADx8BgkaBbq9FSpUCGv>
+308:        (unless (cl-some (lambda (ws) (lsp-feature? "workspace/symbol" ws))
+313:                                  (lsp-request "workspace/symbol" `(:query ,query))))
+
+</tool.toolu_01DiBADx8BgkaBbq9FSpUCGv>
+
+## ASSISTANT:
+
+Let me read around that area:
+
+## TOOL USE:
+
+Name: read-file
+ID: toolu_01WwaKFGR8vU31KtXmrpjHpw
+
+### path
+
+<tool.toolu_01WwaKFGR8vU31KtXmrpjHpw>
+greger-lib-lsp.el
+</tool.toolu_01WwaKFGR8vU31KtXmrpjHpw>
+
+### start_line
+
+<tool.toolu_01WwaKFGR8vU31KtXmrpjHpw>
+300
+</tool.toolu_01WwaKFGR8vU31KtXmrpjHpw>
+
+### end_line
+
+<tool.toolu_01WwaKFGR8vU31KtXmrpjHpw>
+350
+</tool.toolu_01WwaKFGR8vU31KtXmrpjHpw>
+
+### include_line_numbers
+
+<tool.toolu_01WwaKFGR8vU31KtXmrpjHpw>
+true
+</tool.toolu_01WwaKFGR8vU31KtXmrpjHpw>
+
+## TOOL RESULT:
+
+ID: toolu_01WwaKFGR8vU31KtXmrpjHpw
+
+<tool.toolu_01WwaKFGR8vU31KtXmrpjHpw>
+300: (defun greger-tools--lsp-workspace-symbols (query &optional max-results symbol-type)
+301:   "Search for symbols across workspace using LSP."
+302:   (condition-case err
+303:       (progn
+304:         ;; Ensure we have at least one LSP workspace
+305:         (unless lsp--session
+306:           (error "No LSP session found. Please open a file with LSP support first"))
+307:
+308:         (unless (cl-some (lambda (ws) (lsp-feature? "workspace/symbol" ws))
+309:                          (lsp--session-workspaces lsp--session))
+310:           (error "No LSP server supports workspace symbols"))
+311:
+312:         (let* ((symbols (let ((lsp-response-timeout 10)) ; Shorter timeout for tests
+313:                                   (lsp-request "workspace/symbol" `(:query ,query))))
+314:                ;; Filter by symbol type if specified
+315:                (filtered-symbols (if symbol-type
+316:                                    (let ((target-kind (cl-position symbol-type lsp-symbol-kinds :test #'string-equal-ignore-case)))
+317:                                      (if target-kind
+318:                                          (seq-filter (lambda (sym)
+319:                                                       (= (lsp:symbol-information-kind sym) target-kind))
+320:                                                     symbols)
+321:                                        symbols))
+322:                                  symbols))
+323:                ;; Limit results if specified
+324:                (limited-symbols (if max-results
+325:                                   (seq-take filtered-symbols max-results)
+326:                                 filtered-symbols))
+327:                (result-text (if (null limited-symbols)
+328:                               "No symbols found"
+329:                             (mapconcat #'greger-lsp--format-symbol limited-symbols "\n"))))
+330:
+331:           (substring-no-properties
+332:                   (format "Workspace symbols for query '%s'%s (%d found%s):\n%s"
+333:                           query
+334:                           (if symbol-type (format " (type: %s)" symbol-type) "")
+335:                           (length filtered-symbols)
+336:                           (if (and max-results (> (length filtered-symbols) max-results))
+337:                               (format ", showing first %d" max-results)
+338:                             "")
+339:                           result-text))))
+340:     (error (format "LSP workspace-symbols failed: %s" (error-message-string err)))))
+341:
+342:
+343: (provide 'greger-lib-lsp)
+344:
+345: ;;; greger-lib-lsp.el ends here
+346:
+</tool.toolu_01WwaKFGR8vU31KtXmrpjHpw>
+
+## ASSISTANT:
+
+I found the issue! The problem is on line 316 with the `cl-position` call. The error message "Wrong number of arguments: (1 . 1), 2" suggests that `cl-position` is being called incorrectly. Let me check what `lsp-symbol-kinds` is and how it should be used:
+
+## TOOL USE:
+
+Name: ripgrep
+ID: toolu_01Dm3pqa2jNW6ZCkhQLV9Zj9
+
+### pattern
+
+<tool.toolu_01Dm3pqa2jNW6ZCkhQLV9Zj9>
+lsp-symbol-kinds"
+</tool.toolu_01Dm3pqa2jNW6ZCkhQLV9Zj9>
+
+### path
+
+<tool.toolu_01Dm3pqa2jNW6ZCkhQLV9Zj9>
+~/.emacs.d/elpa/lsp-mode-20231118.1818
+</tool.toolu_01Dm3pqa2jNW6ZCkhQLV9Zj9>
+
+### context-lines
+
+<tool.toolu_01Dm3pqa2jNW6ZCkhQLV9Zj9>
+3
+</tool.toolu_01Dm3pqa2jNW6ZCkhQLV9Zj9>
+
+### max-results
+
+<tool.toolu_01Dm3pqa2jNW6ZCkhQLV9Zj9>
+3
+</tool.toolu_01Dm3pqa2jNW6ZCkhQLV9Zj9>
+
+## TOOL RESULT:
+
+ID: toolu_01Dm3pqa2jNW6ZCkhQLV9Zj9
+
+<tool.toolu_01Dm3pqa2jNW6ZCkhQLV9Zj9>
+Failed to execute ripgrep search: Command failed with exit code 1: (no output)
+</tool.toolu_01Dm3pqa2jNW6ZCkhQLV9Zj9>
+
+## TOOL USE:
+
+Name: ripgrep
+ID: toolu_01R5ngTq2MHLsH8FUxFSCtQb
+
+### pattern
+
+<tool.toolu_01R5ngTq2MHLsH8FUxFSCtQb>
+symbol-kinds"
+</tool.toolu_01R5ngTq2MHLsH8FUxFSCtQb>
+
+### path
+
+<tool.toolu_01R5ngTq2MHLsH8FUxFSCtQb>
+~/.emacs.d/elpa/lsp-mode-20231118.1818
+</tool.toolu_01R5ngTq2MHLsH8FUxFSCtQb>
+
+### context-lines
+
+<tool.toolu_01R5ngTq2MHLsH8FUxFSCtQb>
+2
+</tool.toolu_01R5ngTq2MHLsH8FUxFSCtQb>
+
+### max-results
+
+<tool.toolu_01R5ngTq2MHLsH8FUxFSCtQb>
+3
+</tool.toolu_01R5ngTq2MHLsH8FUxFSCtQb>
+
+## TOOL RESULT:
+
+ID: toolu_01R5ngTq2MHLsH8FUxFSCtQb
+
+<tool.toolu_01R5ngTq2MHLsH8FUxFSCtQb>
+Failed to execute ripgrep search: Command failed with exit code 1: (no output)
+</tool.toolu_01R5ngTq2MHLsH8FUxFSCtQb>
+
+## ASSISTANT:
+
+Let me check how this is used in our existing code:
+
+## TOOL USE:
+
+Name: ripgrep
+ID: toolu_01Now1TFGnQtyNtirJdqrir9
+
+### pattern
+
+<tool.toolu_01Now1TFGnQtyNtirJdqrir9>
+lsp-symbol-kinds"
+</tool.toolu_01Now1TFGnQtyNtirJdqrir9>
+
+### path
+
+<tool.toolu_01Now1TFGnQtyNtirJdqrir9>
+greger-lib-lsp.el
+</tool.toolu_01Now1TFGnQtyNtirJdqrir9>
+
+### context-lines
+
+<tool.toolu_01Now1TFGnQtyNtirJdqrir9>
+2
+</tool.toolu_01Now1TFGnQtyNtirJdqrir9>
+
+## TOOL RESULT:
+
+ID: toolu_01Now1TFGnQtyNtirJdqrir9
+
+<tool.toolu_01Now1TFGnQtyNtirJdqrir9>
+Failed to execute ripgrep search: Command failed with exit code 1: (no output)
+</tool.toolu_01Now1TFGnQtyNtirJdqrir9>
+
+## TOOL USE:
+
+Name: ripgrep
+ID: toolu_01Tmfy7fedayq8KLitoyneYR
+
+### pattern
+
+<tool.toolu_01Tmfy7fedayq8KLitoyneYR>
+symbol-kinds"
+</tool.toolu_01Tmfy7fedayq8KLitoyneYR>
+
+### path
+
+<tool.toolu_01Tmfy7fedayq8KLitoyneYR>
+greger-lib-lsp.el
+</tool.toolu_01Tmfy7fedayq8KLitoyneYR>
+
+### context-lines
+
+<tool.toolu_01Tmfy7fedayq8KLitoyneYR>
+2
+</tool.toolu_01Tmfy7fedayq8KLitoyneYR>
+
+## TOOL RESULT:
+
+ID: toolu_01Tmfy7fedayq8KLitoyneYR
+
+<tool.toolu_01Tmfy7fedayq8KLitoyneYR>
+Failed to execute ripgrep search: Command failed with exit code 1: (no output)
+</tool.toolu_01Tmfy7fedayq8KLitoyneYR>
+
+## ASSISTANT:
+
+Let me check how the symbol kind filtering works by looking at the existing formatting functions:
+
+## TOOL USE:
+
+Name: read-file
+ID: toolu_01CF3VJVagHArvisHBWwtsJM
+
+### path
+
+<tool.toolu_01CF3VJVagHArvisHBWwtsJM>
+greger-lib-lsp.el
+</tool.toolu_01CF3VJVagHArvisHBWwtsJM>
+
+### start_line
+
+<tool.toolu_01CF3VJVagHArvisHBWwtsJM>
+155
+</tool.toolu_01CF3VJVagHArvisHBWwtsJM>
+
+### end_line
+
+<tool.toolu_01CF3VJVagHArvisHBWwtsJM>
+175
+</tool.toolu_01CF3VJVagHArvisHBWwtsJM>
+
+### include_line_numbers
+
+<tool.toolu_01CF3VJVagHArvisHBWwtsJM>
+true
+</tool.toolu_01CF3VJVagHArvisHBWwtsJM>
+
+## TOOL RESULT:
+
+ID: toolu_01CF3VJVagHArvisHBWwtsJM
+
+<tool.toolu_01CF3VJVagHArvisHBWwtsJM>
+155:   (let* ((name (lsp:symbol-information-name symbol))
+156:          (kind (lsp:symbol-information-kind symbol))
+157:          (location (lsp:symbol-information-location symbol))
+158:          (container (lsp:symbol-information-container-name symbol))
+159:          (kind-name (alist-get kind lsp-symbol-kinds "Unknown"))
+160:          (formatted-location (greger-lsp--format-location location)))
+161:     (format "%s [%s] %s%s"
+162:             name
+163:             kind-name
+164:             formatted-location
+165:             (if container (format " (in %s)" container) ""))))
+166:
+167: ;;; Tool implementations
+168:
+169: (defun greger-tools--lsp-rename (new-name file-path line column)
+170:   "Rename symbol at FILE-PATH:LINE:COLUMN to NEW-NAME using LSP."
+171:   (condition-case err
+172:       (greger-lsp--with-buffer-at-position file-path line column
+173:         (lambda ()
+174:           (unless (greger-lsp--feature-supported-p "textDocument/rename")
+175:             (error "LSP server does not support rename"))
+</tool.toolu_01CF3VJVagHArvisHBWwtsJM>
+
+## ASSISTANT:
+
+I can see that `lsp-symbol-kinds` is used as an alist with `alist-get`. The issue is that the `cl-position` function expects a sequence but `lsp-symbol-kinds` is an alist. Let me fix this by using a different approach:
+
+## TOOL USE:
+
+Name: str-replace
+ID: toolu_01YTUqouaWz6oRVnz3xFbNxC
+
+### file_path
+
+<tool.toolu_01YTUqouaWz6oRVnz3xFbNxC>
+greger-lib-lsp.el
+</tool.toolu_01YTUqouaWz6oRVnz3xFbNxC>
+
+### original_content
+
+<tool.toolu_01YTUqouaWz6oRVnz3xFbNxC>
+;; Filter by symbol type if specified
+               (filtered-symbols (if symbol-type
+                                   (let ((target-kind (cl-position symbol-type lsp-symbol-kinds :test #'string-equal-ignore-case)))
+                                     (if target-kind
+                                         (seq-filter (lambda (sym)
+                                                      (= (lsp:symbol-information-kind sym) target-kind))
+                                                    symbols)
+                                       symbols))
+                                 symbols))
+</tool.toolu_01YTUqouaWz6oRVnz3xFbNxC>
+
+### new_content
+
+<tool.toolu_01YTUqouaWz6oRVnz3xFbNxC>
+;; Filter by symbol type if specified
+               (filtered-symbols (if symbol-type
+                                   ;; Find the numeric kind value for the string symbol type
+                                   (let ((target-kind (cl-loop for (kind . name) in lsp-symbol-kinds
+                                                              when (string-equal-ignore-case symbol-type name)
+                                                              return kind)))
+                                     (if target-kind
+                                         (seq-filter (lambda (sym)
+                                                      (= (lsp:symbol-information-kind sym) target-kind))
+                                                    symbols)
+                                       symbols))
+                                 symbols))
+</tool.toolu_01YTUqouaWz6oRVnz3xFbNxC>
+
+### git_commit_message
+
+<tool.toolu_01YTUqouaWz6oRVnz3xFbNxC>
+Fix symbol type filtering by properly searching lsp-symbol-kinds alist
+</tool.toolu_01YTUqouaWz6oRVnz3xFbNxC>
+
+<!-- TOOL_RESULT_PLACEHOLDER_toolu_01YTUqouaWz6oRVnz3xFbNxC -->

@@ -68,19 +68,6 @@
   :required '("file_path" "line" "column")
   :function 'greger-tools--lsp-find-references)
 
-(greger-register-tool "lsp-document-symbols"
-  :description "Get all symbols (functions, classes, variables, etc.) in a document"
-  :properties '((file_path . ((type . "string")
-                             (description . "Path to the file")))
-                (symbol_type . ((type . "string")
-                               (description . "Filter by symbol type (Function, Class, Variable, etc.)")
-                               (default . nil)))
-                (hierarchical . ((type . "boolean")
-                                (description . "Return symbols in hierarchical structure")
-                                (default . :json-true))))
-  :required '("file_path")
-  :function 'greger-tools--lsp-document-symbols)
-
 (greger-register-tool "lsp-workspace-symbols"
   :description "Search for symbols across the entire workspace"
   :properties '((query . ((type . "string")
@@ -176,47 +163,6 @@ LINE is 1-based, COLUMN is 0-based."
             kind-name
             formatted-location
             (if container (format " (in %s)" container) ""))))
-
-(defun greger-lsp--format-document-symbol (symbol &optional indent)
-  "Format a single LSP document SYMBOL for display with optional INDENT."
-  (condition-case err
-      (let* ((name (cond
-                    ((lsp:document-symbol-name? symbol) (lsp:document-symbol-name symbol))
-                    ((lsp:symbol-information-name? symbol) (lsp:symbol-information-name symbol))
-                    (t (format "unknown-%s" symbol))))
-             (kind (cond
-                    ((lsp:document-symbol-kind? symbol) (lsp:document-symbol-kind symbol))
-                    ((lsp:symbol-information-kind? symbol) (lsp:symbol-information-kind symbol))
-                    (t 1))) ; Default to File kind
-             (kind-name (alist-get kind lsp-symbol-kinds "Unknown"))
-             (range (cond
-                     ((lsp:document-symbol-range? symbol) (lsp:document-symbol-range symbol))
-                     ((lsp:symbol-information-location? symbol)
-                      (lsp:location-range (lsp:symbol-information-location symbol)))
-                     (t nil)))
-             (line (if range
-                       (1+ (lsp:position-line (lsp:range-start range)))
-                     0))
-             (indent-str (make-string (or indent 0) ?\s)))
-        (format "%s%s [%s] (line %d)" indent-str name kind-name line))
-    (error (format "Error formatting symbol %s: %s" symbol (error-message-string err)))))
-
-(defun greger-lsp--format-document-symbols (symbols &optional hierarchical indent)
-  "Format a list of LSP document SYMBOLS for display.
-If HIERARCHICAL is true, format with indentation to show structure."
-  (if (null symbols)
-      "No symbols found"
-    (mapconcat
-     (lambda (symbol)
-       (let ((formatted (greger-lsp--format-document-symbol symbol indent)))
-         (if (and hierarchical (lsp:document-symbol-children? symbol))
-             (concat formatted "\n"
-                     (greger-lsp--format-document-symbols
-                      (append (lsp:document-symbol-children? symbol) nil)
-                      hierarchical
-                      (+ (or indent 0) 2)))
-           formatted)))
-     symbols "\n")))
 
 ;;; Tool implementations
 
@@ -351,38 +297,6 @@ If HIERARCHICAL is true, format with indentation to show structure."
                           result-text)))))
     (error (format "LSP find-references failed: %s" (error-message-string err)))))
 
-(defun greger-tools--lsp-document-symbols (file-path &optional symbol-type hierarchical)
-  "Get document symbols for FILE-PATH using LSP."
-  (condition-case err
-      (let ((buffer (greger-lsp--ensure-server file-path)))
-        (with-current-buffer buffer
-          (unless (greger-lsp--feature-supported-p "textDocument/documentSymbol")
-            (error "LSP server does not support document symbols"))
-
-          (let* ((symbols (let ((lsp-response-timeout 10)) ; Shorter timeout for tests
-                                  (lsp-request "textDocument/documentSymbol"
-                                               `(:textDocument ,(lsp--text-document-identifier)))))
-                 ;; Filter by symbol type if specified
-                 (filtered-symbols (if symbol-type
-                                     (let ((target-kind (cl-position symbol-type lsp-symbol-kinds :test #'string-equal-ignore-case)))
-                                       (if target-kind
-                                           (seq-filter (lambda (sym)
-                                                        (= (if (lsp:document-symbol-kind sym)
-                                                               (lsp:document-symbol-kind sym)
-                                                             (lsp:symbol-information-kind sym))
-                                                           target-kind))
-                                                      symbols)
-                                         symbols))
-                                   symbols))
-                 (result-text (greger-lsp--format-document-symbols filtered-symbols hierarchical)))
-
-            (substring-no-properties
-                  (format "Document symbols for %s%s:\n%s"
-                          (file-relative-name file-path)
-                          (if symbol-type (format " (type: %s)" symbol-type) "")
-                          result-text)))))
-    (error (format "LSP document-symbols failed: %s" (error-message-string err)))))
-
 (defun greger-tools--lsp-workspace-symbols (query &optional max-results symbol-type)
   "Search for symbols across workspace using LSP."
   (condition-case err
@@ -399,7 +313,10 @@ If HIERARCHICAL is true, format with indentation to show structure."
                                   (lsp-request "workspace/symbol" `(:query ,query))))
                ;; Filter by symbol type if specified
                (filtered-symbols (if symbol-type
-                                   (let ((target-kind (cl-position symbol-type lsp-symbol-kinds :test #'string-equal-ignore-case)))
+                                   ;; Find the numeric kind value for the string symbol type
+                                   (let ((target-kind (cl-loop for (kind . name) in lsp-symbol-kinds
+                                                              when (string-equal-ignore-case symbol-type name)
+                                                              return kind)))
                                      (if target-kind
                                          (seq-filter (lambda (sym)
                                                       (= (lsp:symbol-information-kind sym) target-kind))
