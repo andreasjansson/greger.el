@@ -2842,4 +2842,625 @@ test-greger-lib-lsp.el
 Add more debug info for LSP startup process
 </tool.toolu_01Ho5gkjwcaUGLrLxsZ67p5r>
 
-<!-- TOOL_RESULT_PLACEHOLDER_toolu_01Ho5gkjwcaUGLrLxsZ67p5r -->
+## TOOL RESULT:
+
+ID: toolu_01Ho5gkjwcaUGLrLxsZ67p5r
+
+<tool.toolu_01Ho5gkjwcaUGLrLxsZ67p5r>
+Successfully replaced content in /Users/andreas/projects/greger.el/test-greger-lib-lsp.el. Successfully staged 2 file(s) and committed with message: Add more debug info for LSP startup process
+</tool.toolu_01Ho5gkjwcaUGLrLxsZ67p5r>
+
+
+## ASSISTANT:
+
+``` emacs-lisp
+F greger-lsp-test-rename-success
+    Test successful symbol rename.
+    (ert-test-failed
+     ((should
+       (string-match-p "Successfully renamed" result))
+      :form
+      (string-match-p "Successfully renamed" "LSP rename failed: Position error in /var/folders/pt/0j3p9zzj49x5vkv1mmkpvs0c0000gn/T/greger-lsp-test-dZIMZG/src/main.py at line 9, column 6: Symbol’s function definition is void: lsp:workspace-edit-changes")
+      :value nil))
+
+
+
+```
+
+## ASSISTANT:
+
+
+
+Now I can see a different issue. The problem is not just with workspace root detection, but there's also an issue with `lsp:workspace-edit-changes` being undefined. This suggests that there might be a version compatibility issue with the LSP protocol definitions.
+
+Let me check what the correct function should be:
+
+## TOOL USE:
+
+Name: ripgrep
+ID: toolu_012kmPjT5SFvMGu3FyF3YbCv
+
+### pattern
+
+<tool.toolu_012kmPjT5SFvMGu3FyF3YbCv>
+workspace-edit.*changes
+</tool.toolu_012kmPjT5SFvMGu3FyF3YbCv>
+
+### path
+
+<tool.toolu_012kmPjT5SFvMGu3FyF3YbCv>
+~/.emacs.d/elpa/lsp-mode-20231118.1818/
+</tool.toolu_012kmPjT5SFvMGu3FyF3YbCv>
+
+### file-type
+
+<tool.toolu_012kmPjT5SFvMGu3FyF3YbCv>
+el
+</tool.toolu_012kmPjT5SFvMGu3FyF3YbCv>
+
+### max-results
+
+<tool.toolu_012kmPjT5SFvMGu3FyF3YbCv>
+10
+</tool.toolu_012kmPjT5SFvMGu3FyF3YbCv>
+
+## TOOL RESULT:
+
+ID: toolu_012kmPjT5SFvMGu3FyF3YbCv
+
+<tool.toolu_012kmPjT5SFvMGu3FyF3YbCv>
+Failed to execute ripgrep search: Command failed with exit code 1: (no output)
+</tool.toolu_012kmPjT5SFvMGu3FyF3YbCv>
+
+## TOOL USE:
+
+Name: ripgrep
+ID: toolu_01BPy7M1Tj1hBo3xTWhAUZLh
+
+### pattern
+
+<tool.toolu_01BPy7M1Tj1hBo3xTWhAUZLh>
+workspace-edit
+</tool.toolu_01BPy7M1Tj1hBo3xTWhAUZLh>
+
+### path
+
+<tool.toolu_01BPy7M1Tj1hBo3xTWhAUZLh>
+~/.emacs.d/elpa/lsp-mode-20231118.1818/
+</tool.toolu_01BPy7M1Tj1hBo3xTWhAUZLh>
+
+### file-type
+
+<tool.toolu_01BPy7M1Tj1hBo3xTWhAUZLh>
+el
+</tool.toolu_01BPy7M1Tj1hBo3xTWhAUZLh>
+
+### max-results
+
+<tool.toolu_01BPy7M1Tj1hBo3xTWhAUZLh>
+20
+</tool.toolu_01BPy7M1Tj1hBo3xTWhAUZLh>
+
+## TOOL RESULT:
+
+ID: toolu_01BPy7M1Tj1hBo3xTWhAUZLh
+
+<tool.toolu_01BPy7M1Tj1hBo3xTWhAUZLh>
+/Users/andreas/.emacs.d/elpa/lsp-mode-20231118.1818/lsp-mode.el:4281:(defun lsp--apply-workspace-edit (workspace-edit &optional operation)
+/Users/andreas/.emacs.d/elpa/lsp-mode-20231118.1818/lsp-mode.el:4282:  "Apply the WorkspaceEdit object WORKSPACE-EDIT.
+/Users/andreas/.emacs.d/elpa/lsp-mode-20231118.1818/lsp-mode.el:4284:  (-let (((&WorkspaceEdit :document-changes? :changes?) workspace-edit))
+/Users/andreas/.emacs.d/elpa/lsp-mode-20231118.1818/lsp-mode.el:5960:    (lsp--apply-workspace-edit edit? 'code-action))
+/Users/andreas/.emacs.d/elpa/lsp-mode-20231118.1818/lsp-mode.el:6389:    (lsp--apply-workspace-edit edits 'rename)))
+/Users/andreas/.emacs.d/elpa/lsp-mode-20231118.1818/lsp-mode.el:6404:          (lsp--apply-workspace-edit edits 'rename-file)
+/Users/andreas/.emacs.d/elpa/lsp-mode-20231118.1818/lsp-mode.el:6747:                                           (lsp--apply-workspace-edit (lsp:apply-workspace-edit-params-edit params) 'server-requested))
+
+</tool.toolu_01BPy7M1Tj1hBo3xTWhAUZLh>
+
+## ASSISTANT:
+
+Let me look at the actual WorkspaceEdit structure:
+
+## TOOL USE:
+
+Name: read-file
+ID: toolu_01YYjC7fuJBjaaoxvWfC893t
+
+### path
+
+<tool.toolu_01YYjC7fuJBjaaoxvWfC893t>
+~/.emacs.d/elpa/lsp-mode-20231118.1818/lsp-mode.el
+</tool.toolu_01YYjC7fuJBjaaoxvWfC893t>
+
+### start_line
+
+<tool.toolu_01YYjC7fuJBjaaoxvWfC893t>
+4281
+</tool.toolu_01YYjC7fuJBjaaoxvWfC893t>
+
+### end_line
+
+<tool.toolu_01YYjC7fuJBjaaoxvWfC893t>
+4300
+</tool.toolu_01YYjC7fuJBjaaoxvWfC893t>
+
+## TOOL RESULT:
+
+ID: toolu_01YYjC7fuJBjaaoxvWfC893t
+
+<tool.toolu_01YYjC7fuJBjaaoxvWfC893t>
+(defun lsp--apply-workspace-edit (workspace-edit &optional operation)
+  "Apply the WorkspaceEdit object WORKSPACE-EDIT.
+OPERATION is symbol representing the source of this text edit."
+  (-let (((&WorkspaceEdit :document-changes? :changes?) workspace-edit))
+    (if-let ((document-changes (seq-reverse document-changes?)))
+        (progn
+          (lsp--check-document-changes-version document-changes)
+          (->> document-changes
+               (seq-filter (-lambda ((&CreateFile :kind)) (equal kind "create")))
+               (seq-do (lambda (change) (lsp--apply-text-document-edit change operation))))
+          (->> document-changes
+               (seq-filter (-lambda ((&CreateFile :kind))
+                             (and (or (not kind) (equal kind "edit"))
+                                  (not (equal kind "create")))))
+               (seq-do (lambda (change) (lsp--apply-text-document-edit change operation))))
+          (->> document-changes
+               (seq-filter (-lambda ((&CreateFile :kind))
+                             (and (not (or (not kind) (equal kind "edit")))
+                                  (not (equal kind "create")))))
+               (seq-do (lambda (change) (lsp--apply-text-document-edit change operation)))))
+</tool.toolu_01YYjC7fuJBjaaoxvWfC893t>
+
+## ASSISTANT:
+
+Let me also check the LSP protocol definitions:
+
+## TOOL USE:
+
+Name: ripgrep
+ID: toolu_01LXerGh86xWjw8GgSAErP8j
+
+### pattern
+
+<tool.toolu_01LXerGh86xWjw8GgSAErP8j>
+WorkspaceEdit
+</tool.toolu_01LXerGh86xWjw8GgSAErP8j>
+
+### path
+
+<tool.toolu_01LXerGh86xWjw8GgSAErP8j>
+~/.emacs.d/elpa/lsp-mode-20231118.1818/lsp-protocol.el
+</tool.toolu_01LXerGh86xWjw8GgSAErP8j>
+
+### context-lines
+
+<tool.toolu_01LXerGh86xWjw8GgSAErP8j>
+5
+</tool.toolu_01LXerGh86xWjw8GgSAErP8j>
+
+### max-results
+
+<tool.toolu_01LXerGh86xWjw8GgSAErP8j>
+10
+</tool.toolu_01LXerGh86xWjw8GgSAErP8j>
+
+## TOOL RESULT:
+
+ID: toolu_01LXerGh86xWjw8GgSAErP8j
+
+<tool.toolu_01LXerGh86xWjw8GgSAErP8j>
+52:\(-let [(&ApplyWorkspaceEditResponse
+682: (WorkspaceEdit nil (:changes :documentChanges :resourceChanges))
+683: (WorkspaceEditCapabilities nil (:documentChanges :failureHandling :resourceChanges :resourceOperations))
+689: (ApplyWorkspaceEditParams (:edit) (:label))
+690: (ApplyWorkspaceEditResponse (:applied) nil)
+
+</tool.toolu_01LXerGh86xWjw8GgSAErP8j>
+
+## ASSISTANT:
+
+Now I can see the issue. The function I'm using in the greger-lib-lsp.el code doesn't exist. Let me check how to properly count the edits in a workspace edit:
+
+## TOOL USE:
+
+Name: read-file
+ID: toolu_01WAktf3JtoXUzwbVqH1xSdw
+
+### path
+
+<tool.toolu_01WAktf3JtoXUzwbVqH1xSdw>
+greger-lib-lsp.el
+</tool.toolu_01WAktf3JtoXUzwbVqH1xSdw>
+
+### start_line
+
+<tool.toolu_01WAktf3JtoXUzwbVqH1xSdw>
+145
+</tool.toolu_01WAktf3JtoXUzwbVqH1xSdw>
+
+### end_line
+
+<tool.toolu_01WAktf3JtoXUzwbVqH1xSdw>
+165
+</tool.toolu_01WAktf3JtoXUzwbVqH1xSdw>
+
+## TOOL RESULT:
+
+ID: toolu_01WAktf3JtoXUzwbVqH1xSdw
+
+<tool.toolu_01WAktf3JtoXUzwbVqH1xSdw>
+    (format "%s:%d:%d" (substring-no-properties (file-relative-name file-path)) line character)))
+
+(defun greger-lsp--format-locations (locations)
+  "Format a list of LSP LOCATIONS for display."
+  (if (null locations)
+      "No locations found"
+    (mapconcat #'greger-lsp--format-location locations "\n")))
+
+(defun greger-lsp--format-symbol (symbol)
+  "Format a single LSP SYMBOL for display."
+  (let* ((name (lsp:symbol-information-name symbol))
+         (kind (lsp:symbol-information-kind symbol))
+         (location (lsp:symbol-information-location symbol))
+         (container (lsp:symbol-information-container-name symbol))
+         (kind-name (alist-get kind lsp-symbol-kinds "Unknown"))
+         (formatted-location (greger-lsp--format-location location)))
+    (format "%s [%s] %s%s"
+            name
+            kind-name
+            formatted-location
+            (if container (format " (in %s)" container) ""))))
+</tool.toolu_01WAktf3JtoXUzwbVqH1xSdw>
+
+## ASSISTANT:
+
+Let me look at the rename function specifically:
+
+## TOOL USE:
+
+Name: read-file
+ID: toolu_01QGE3jJhPqdW2BX2n8Qp4AR
+
+### path
+
+<tool.toolu_01QGE3jJhPqdW2BX2n8Qp4AR>
+greger-lib-lsp.el
+</tool.toolu_01QGE3jJhPqdW2BX2n8Qp4AR>
+
+### start_line
+
+<tool.toolu_01QGE3jJhPqdW2BX2n8Qp4AR>
+170
+</tool.toolu_01QGE3jJhPqdW2BX2n8Qp4AR>
+
+### end_line
+
+<tool.toolu_01QGE3jJhPqdW2BX2n8Qp4AR>
+200
+</tool.toolu_01QGE3jJhPqdW2BX2n8Qp4AR>
+
+## TOOL RESULT:
+
+ID: toolu_01QGE3jJhPqdW2BX2n8Qp4AR
+
+<tool.toolu_01QGE3jJhPqdW2BX2n8Qp4AR>
+  "Rename symbol at FILE-PATH:LINE:COLUMN to NEW-NAME using LSP."
+  (condition-case err
+      (greger-lsp--with-buffer-at-position file-path line column
+        (lambda ()
+          (unless (greger-lsp--feature-supported-p "textDocument/rename")
+            (error "LSP server does not support rename"))
+
+          ;; Get symbol info first to show what we're renaming
+          (let* ((symbol-info (condition-case nil
+                                  (substring-no-properties (or (thing-at-point 'symbol) "unknown"))
+                                (error "unknown")))
+                 (edits (let ((lsp-response-timeout 10)) ; Shorter timeout for tests
+                                 (lsp-request "textDocument/rename"
+                                            `(:textDocument ,(lsp--text-document-identifier)
+                                              :position ,(lsp--cur-position)
+                                              :newName ,new-name)))))
+            (if edits
+                (progn
+                  (lsp--apply-workspace-edit edits 'rename)
+                  (substring-no-properties
+                  (format "Successfully renamed '%s' to '%s' in %d location(s)"
+                          symbol-info
+                          new-name
+                          (length (lsp:workspace-edit-changes edits)))))
+              "No changes made - symbol may not exist or rename not applicable"))))
+    (error (format "LSP rename failed: %s" (error-message-string err)))))
+
+(defun greger-lib-lsp--format (file-path &optional start-line end-line)
+  "Format FILE-PATH using LSP. If START-LINE and END-LINE provided, format only that range."
+  (condition-case err
+      (let ((buffer (greger-lsp--ensure-server file-path)))
+</tool.toolu_01QGE3jJhPqdW2BX2n8Qp4AR>
+
+## ASSISTANT:
+
+Found the issue! The problem is with `(lsp:workspace-edit-changes edits)` - this function doesn't exist. Let me check how to properly extract the changes count from a WorkspaceEdit:
+
+## TOOL USE:
+
+Name: ripgrep
+ID: toolu_01GpLAoackqiqmmHiaMaDBCm
+
+### pattern
+
+<tool.toolu_01GpLAoackqiqmmHiaMaDBCm>
+workspace-edit.*changes"
+</tool.toolu_01GpLAoackqiqmmHiaMaDBCm>
+
+### path
+
+<tool.toolu_01GpLAoackqiqmmHiaMaDBCm>
+~/.emacs.d/elpa/lsp-mode-20231118.1818/lsp-mode.el
+</tool.toolu_01GpLAoackqiqmmHiaMaDBCm>
+
+### context-lines
+
+<tool.toolu_01GpLAoackqiqmmHiaMaDBCm>
+3
+</tool.toolu_01GpLAoackqiqmmHiaMaDBCm>
+
+## TOOL RESULT:
+
+ID: toolu_01GpLAoackqiqmmHiaMaDBCm
+
+<tool.toolu_01GpLAoackqiqmmHiaMaDBCm>
+Failed to execute ripgrep search: Command failed with exit code 1: (no output)
+</tool.toolu_01GpLAoackqiqmmHiaMaDBCm>
+
+## TOOL USE:
+
+Name: ripgrep
+ID: toolu_01SHdjLBP7pA7CxrsSXC4kXk
+
+### pattern
+
+<tool.toolu_01SHdjLBP7pA7CxrsSXC4kXk>
+changes\?"
+</tool.toolu_01SHdjLBP7pA7CxrsSXC4kXk>
+
+### path
+
+<tool.toolu_01SHdjLBP7pA7CxrsSXC4kXk>
+~/.emacs.d/elpa/lsp-mode-20231118.1818/lsp-mode.el
+</tool.toolu_01SHdjLBP7pA7CxrsSXC4kXk>
+
+### context-lines
+
+<tool.toolu_01SHdjLBP7pA7CxrsSXC4kXk>
+3
+</tool.toolu_01SHdjLBP7pA7CxrsSXC4kXk>
+
+### max-results
+
+<tool.toolu_01SHdjLBP7pA7CxrsSXC4kXk>
+10
+</tool.toolu_01SHdjLBP7pA7CxrsSXC4kXk>
+
+## TOOL RESULT:
+
+ID: toolu_01SHdjLBP7pA7CxrsSXC4kXk
+
+<tool.toolu_01SHdjLBP7pA7CxrsSXC4kXk>
+Failed to execute ripgrep search: Command failed with exit code 1: (no output)
+</tool.toolu_01SHdjLBP7pA7CxrsSXC4kXk>
+
+## TOOL USE:
+
+Name: ripgrep
+ID: toolu_018pUDWHbctr16tKyN56ruxt
+
+### pattern
+
+<tool.toolu_018pUDWHbctr16tKyN56ruxt>
+:changes"
+</tool.toolu_018pUDWHbctr16tKyN56ruxt>
+
+### path
+
+<tool.toolu_018pUDWHbctr16tKyN56ruxt>
+~/.emacs.d/elpa/lsp-mode-20231118.1818/lsp-mode.el
+</tool.toolu_018pUDWHbctr16tKyN56ruxt>
+
+### context-lines
+
+<tool.toolu_018pUDWHbctr16tKyN56ruxt>
+3
+</tool.toolu_018pUDWHbctr16tKyN56ruxt>
+
+### max-results
+
+<tool.toolu_018pUDWHbctr16tKyN56ruxt>
+10
+</tool.toolu_018pUDWHbctr16tKyN56ruxt>
+
+## TOOL RESULT:
+
+ID: toolu_018pUDWHbctr16tKyN56ruxt
+
+<tool.toolu_018pUDWHbctr16tKyN56ruxt>
+Failed to execute ripgrep search: Command failed with exit code 1: (no output)
+</tool.toolu_018pUDWHbctr16tKyN56ruxt>
+
+## ASSISTANT:
+
+Let me look directly at the WorkspaceEdit structure by examining the protocol file:
+
+## TOOL USE:
+
+Name: read-file
+ID: toolu_01Em5xmPa3TqYvhbLC32boMU
+
+### path
+
+<tool.toolu_01Em5xmPa3TqYvhbLC32boMU>
+~/.emacs.d/elpa/lsp-mode-20231118.1818/lsp-protocol.el
+</tool.toolu_01Em5xmPa3TqYvhbLC32boMU>
+
+### start_line
+
+<tool.toolu_01Em5xmPa3TqYvhbLC32boMU>
+680
+</tool.toolu_01Em5xmPa3TqYvhbLC32boMU>
+
+### end_line
+
+<tool.toolu_01Em5xmPa3TqYvhbLC32boMU>
+690
+</tool.toolu_01Em5xmPa3TqYvhbLC32boMU>
+
+## TOOL RESULT:
+
+ID: toolu_01Em5xmPa3TqYvhbLC32boMU
+
+<tool.toolu_01Em5xmPa3TqYvhbLC32boMU>
+ (VersionedTextDocumentIdentifier (:uri) (:version))
+ (WorkspaceClientCapabilities nil (:applyEdit :configuration :didChangeConfiguration :didChangeWatchedFiles :executeCommand :symbol :workspaceEdit :workspaceFolders))
+ (WorkspaceEdit nil (:changes :documentChanges :resourceChanges))
+ (WorkspaceEditCapabilities nil (:documentChanges :failureHandling :resourceChanges :resourceOperations))
+ (WorkspaceFolder (:uri :name) nil)
+ (WorkspaceFoldersChangeEvent (:removed :added) nil)
+ (WorkspaceFoldersOptions nil (:changeNotifications :supported))
+ (WorkspaceServerCapabilities nil (:workspaceFolders :fileOperations))
+ (WorkspaceFileOperations nil (:didCreate :willCreate :didRename :willRename :didDelete :willDelete))
+ (ApplyWorkspaceEditParams (:edit) (:label))
+ (ApplyWorkspaceEditResponse (:applied) nil)
+</tool.toolu_01Em5xmPa3TqYvhbLC32boMU>
+
+## ASSISTANT:
+
+Based on the protocol definition, a WorkspaceEdit has `:changes`, `:documentChanges`, and `:resourceChanges` fields. Let me look at the `lsp--apply-workspace-edit` function again to see how it extracts these:
+
+## TOOL USE:
+
+Name: read-file
+ID: toolu_01NLpVDsNHpUhWp2oPTTFNsr
+
+### path
+
+<tool.toolu_01NLpVDsNHpUhWp2oPTTFNsr>
+~/.emacs.d/elpa/lsp-mode-20231118.1818/lsp-mode.el
+</tool.toolu_01NLpVDsNHpUhWp2oPTTFNsr>
+
+### start_line
+
+<tool.toolu_01NLpVDsNHpUhWp2oPTTFNsr>
+4280
+</tool.toolu_01NLpVDsNHpUhWp2oPTTFNsr>
+
+### end_line
+
+<tool.toolu_01NLpVDsNHpUhWp2oPTTFNsr>
+4320
+</tool.toolu_01NLpVDsNHpUhWp2oPTTFNsr>
+
+## TOOL RESULT:
+
+ID: toolu_01NLpVDsNHpUhWp2oPTTFNsr
+
+<tool.toolu_01NLpVDsNHpUhWp2oPTTFNsr>
+
+(defun lsp--apply-workspace-edit (workspace-edit &optional operation)
+  "Apply the WorkspaceEdit object WORKSPACE-EDIT.
+OPERATION is symbol representing the source of this text edit."
+  (-let (((&WorkspaceEdit :document-changes? :changes?) workspace-edit))
+    (if-let ((document-changes (seq-reverse document-changes?)))
+        (progn
+          (lsp--check-document-changes-version document-changes)
+          (->> document-changes
+               (seq-filter (-lambda ((&CreateFile :kind)) (equal kind "create")))
+               (seq-do (lambda (change) (lsp--apply-text-document-edit change operation))))
+          (->> document-changes
+               (seq-filter (-lambda ((&CreateFile :kind))
+                             (and (or (not kind) (equal kind "edit"))
+                                  (not (equal kind "create")))))
+               (seq-do (lambda (change) (lsp--apply-text-document-edit change operation))))
+          (->> document-changes
+               (seq-filter (-lambda ((&CreateFile :kind))
+                             (and (not (or (not kind) (equal kind "edit")))
+                                  (not (equal kind "create")))))
+               (seq-do (lambda (change) (lsp--apply-text-document-edit change operation)))))
+      (lsp-map
+       (lambda (uri text-edits)
+         (with-current-buffer (-> uri lsp--uri-to-path find-file-noselect)
+           (lsp--apply-text-edits text-edits operation)))
+       changes?))))
+
+(defmacro lsp-with-filename (file &rest body)
+  "Execute BODY with FILE as a context.
+Need to handle the case when FILE indicates virtual buffer."
+  (declare (indent 1) (debug t))
+  `(if-let ((lsp--virtual-buffer (get-text-property 0 'lsp-virtual-buffer ,file)))
+       (lsp-with-current-buffer lsp--virtual-buffer
+         ,@body)
+     ,@body))
+
+(defun lsp--apply-text-document-edit (edit &optional operation)
+  "Apply the TextDocumentEdit object EDIT.
+OPERATION is symbol representing the source of this text edit.
+If the file is not being visited by any buffer, it is opened with
+`find-file-noselect'.
+</tool.toolu_01NLpVDsNHpUhWp2oPTTFNsr>
+
+## ASSISTANT:
+
+Now I understand! The structure uses `:document-changes?` and `:changes?` with question marks (indicating optional fields). Let me fix the rename function to properly count the changes:
+
+## TOOL USE:
+
+Name: str-replace
+ID: toolu_01MHjB4b6au252PNJqeMhH9F
+
+### file_path
+
+<tool.toolu_01MHjB4b6au252PNJqeMhH9F>
+greger-lib-lsp.el
+</tool.toolu_01MHjB4b6au252PNJqeMhH9F>
+
+### original_content
+
+<tool.toolu_01MHjB4b6au252PNJqeMhH9F>
+            (if edits
+                (progn
+                  (lsp--apply-workspace-edit edits 'rename)
+                  (substring-no-properties
+                  (format "Successfully renamed '%s' to '%s' in %d location(s)"
+                          symbol-info
+                          new-name
+                          (length (lsp:workspace-edit-changes edits)))))
+              "No changes made - symbol may not exist or rename not applicable"))))
+</tool.toolu_01MHjB4b6au252PNJqeMhH9F>
+
+### new_content
+
+<tool.toolu_01MHjB4b6au252PNJqeMhH9F>
+            (if edits
+                (progn
+                  (lsp--apply-workspace-edit edits 'rename)
+                  ;; Count the changes - WorkspaceEdit can have either changes or documentChanges
+                  (let ((change-count
+                         (-let (((&WorkspaceEdit :document-changes? :changes?) edits))
+                           (+ (if document-changes? (length document-changes?) 0)
+                              (if changes?
+                                  (apply #'+ (mapcar (lambda (file-changes)
+                                                      (length (cdr file-changes)))
+                                                    (ht->alist changes?)))
+                                0)))))
+                    (substring-no-properties
+                     (format "Successfully renamed '%s' to '%s' in %d location(s)"
+                             symbol-info
+                             new-name
+                             change-count))))
+              "No changes made - symbol may not exist or rename not applicable"))))
+</tool.toolu_01MHjB4b6au252PNJqeMhH9F>
+
+### git_commit_message
+
+<tool.toolu_01MHjB4b6au252PNJqeMhH9F>
+Fix workspace edit changes counting by using proper WorkspaceEdit structure
+</tool.toolu_01MHjB4b6au252PNJqeMhH9F>
+
+<!-- TOOL_RESULT_PLACEHOLDER_toolu_01MHjB4b6au252PNJqeMhH9F -->

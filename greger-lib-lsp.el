@@ -22,7 +22,7 @@
                 (column . ((type . "integer")
                           (description . "Column number (0-based) where symbol starts"))))
   :required '("new_name" "file_path" "line" "column")
-  :function 'greger-tools--lsp-rename)
+  :function 'greger-lib-lsp--rename)
 
 (greger-register-tool "lsp-format"
   :description "Format code according to language standards using LSP"
@@ -35,7 +35,7 @@
                             (description . "End line for range formatting (1-based). If not provided, formats entire file")
                             (default . nil))))
   :required '("file_path")
-  :function 'greger-tools--lsp-format)
+  :function 'greger-lib-lsp--format)
 
 (greger-register-tool "lsp-find-definition"
   :description "Find the definition(s) of a symbol at a specific location"
@@ -49,7 +49,7 @@
                                        (description . "Also include declarations")
                                        (default . :json-false))))
   :required '("file_path" "line" "column")
-  :function 'greger-tools--lsp-find-definition)
+  :function 'greger-lib-lsp--find-definition)
 
 (greger-register-tool "lsp-find-references"
   :description "Find all references to a symbol at a specific location"
@@ -66,7 +66,7 @@
                                (description . "Maximum number of references to return")
                                (default . 100))))
   :required '("file_path" "line" "column")
-  :function 'greger-tools--lsp-find-references)
+  :function 'greger-lib-lsp--find-references)
 
 (greger-register-tool "lsp-workspace-symbols"
   :description "Search for symbols across the entire workspace"
@@ -79,7 +79,7 @@
                                (description . "Filter by symbol type (Function, Class, Variable, etc.)")
                                (default . nil))))
   :required '("query")
-  :function 'greger-tools--lsp-workspace-symbols)
+  :function 'greger-lib-lsp--workspace-symbols)
 
 ;;; Helper functions
 
@@ -166,7 +166,7 @@ LINE is 1-based, COLUMN is 0-based."
 
 ;;; Tool implementations
 
-(defun greger-tools--lsp-rename (new-name file-path line column)
+(defun greger-lib-lsp--rename (new-name file-path line column)
   "Rename symbol at FILE-PATH:LINE:COLUMN to NEW-NAME using LSP."
   (condition-case err
       (greger-lsp--with-buffer-at-position file-path line column
@@ -186,15 +186,24 @@ LINE is 1-based, COLUMN is 0-based."
             (if edits
                 (progn
                   (lsp--apply-workspace-edit edits 'rename)
-                  (substring-no-properties
-                  (format "Successfully renamed '%s' to '%s' in %d location(s)"
-                          symbol-info
-                          new-name
-                          (length (lsp:workspace-edit-changes edits)))))
+                  ;; Count the changes - WorkspaceEdit can have either changes or documentChanges
+                  (let ((change-count
+                         (-let (((&WorkspaceEdit :document-changes? :changes?) edits))
+                           (+ (if document-changes? (length document-changes?) 0)
+                              (if changes?
+                                  (apply #'+ (mapcar (lambda (file-changes)
+                                                      (length (cdr file-changes)))
+                                                    (ht->alist changes?)))
+                                0)))))
+                    (substring-no-properties
+                     (format "Successfully renamed '%s' to '%s' in %d location(s)"
+                             symbol-info
+                             new-name
+                             change-count))))
               "No changes made - symbol may not exist or rename not applicable"))))
     (error (format "LSP rename failed: %s" (error-message-string err)))))
 
-(defun greger-tools--lsp-format (file-path &optional start-line end-line)
+(defun greger-lib-lsp--format (file-path &optional start-line end-line)
   "Format FILE-PATH using LSP. If START-LINE and END-LINE provided, format only that range."
   (condition-case err
       (let ((buffer (greger-lsp--ensure-server file-path)))
@@ -234,7 +243,7 @@ LINE is 1-based, COLUMN is 0-based."
               "No formatting changes needed"))))
     (error (format "LSP format failed: %s" (error-message-string err)))))
 
-(defun greger-tools--lsp-find-definition (file-path line column &optional include-declaration)
+(defun greger-lib-lsp--find-definition (file-path line column &optional include-declaration)
   "Find definition(s) of symbol at FILE-PATH:LINE:COLUMN using LSP."
   (condition-case err
       (greger-lsp--with-buffer-at-position file-path line column
@@ -266,7 +275,7 @@ LINE is 1-based, COLUMN is 0-based."
                   (format "Definition(s) for '%s':\n%s" symbol-info result-text)))))
     (error (format "LSP find-definition failed: %s" (error-message-string err)))))
 
-(defun greger-tools--lsp-find-references (file-path line column &optional include-declaration max-results)
+(defun greger-lib-lsp--find-references (file-path line column &optional include-declaration max-results)
   "Find references to symbol at FILE-PATH:LINE:COLUMN using LSP."
   (condition-case err
       (greger-lsp--with-buffer-at-position file-path line column
@@ -296,9 +305,8 @@ LINE is 1-based, COLUMN is 0-based."
                             "")
                           result-text))))
     (error (format "LSP workspace-symbols failed: %s" (error-message-string err))))))
-    (error (format "LSP find-references failed: %s" (error-message-string err)))))
 
-(defun greger-tools--lsp-workspace-symbols (query &optional max-results symbol-type)
+(defun greger-lib-lsp--workspace-symbols (query &optional max-results symbol-type)
   "Search for symbols across workspace using LSP."
   (condition-case err
       (progn
@@ -339,7 +347,7 @@ LINE is 1-based, COLUMN is 0-based."
                (if (and max-results (> (length filtered-symbols) max-results))
                    (format ", showing first %d" max-results)
                  "")
-               result-text)))))
+               result-text))))))
 
 
 (provide 'greger-lib-lsp)
