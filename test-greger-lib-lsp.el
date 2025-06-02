@@ -223,34 +223,7 @@ description = \"Test project for greger LSP tools\"
   (unless (greger-lsp-test-requirements-met-p)
     (ert-skip "LSP mode or Python LSP server not available")))
 
-(defun greger-lsp-test-force-reset-lsp-state ()
-  "Force reset of global LSP state for problematic test isolation.
-This is a nuclear option when normal cleanup isn't sufficient."
-  (when (bound-and-true-p lsp--session)
-    ;; Clear all workspace folders that are in temp directories
-    (setf (lsp-session-folders lsp--session)
-          (cl-remove-if (lambda (folder)
-                         (string-prefix-p "/tmp" folder))
-                        (lsp-session-folders lsp--session)))
 
-    ;; Clear folder->servers mapping for temp directories
-    (let ((new-mapping (make-hash-table :test 'equal)))
-      (maphash (lambda (folder servers)
-                (unless (string-prefix-p "/tmp" folder)
-                  (puthash folder servers new-mapping)))
-              (lsp-session-folder->servers lsp--session))
-      (setf (lsp-session-folder->servers lsp--session) new-mapping))
-
-    ;; Clear server-id->folders mapping for servers associated with temp dirs
-    (let ((new-mapping (make-hash-table :test 'equal)))
-      (maphash (lambda (server-id folders)
-                (let ((filtered-folders (cl-remove-if (lambda (folder)
-                                                       (string-prefix-p "/tmp" folder))
-                                                     folders)))
-                  (when filtered-folders
-                    (puthash server-id filtered-folders new-mapping))))
-              (lsp-session-server-id->folders lsp--session))
-      (setf (lsp-session-server-id->folders lsp--session) new-mapping))))
 
 ;;; Helper macros
 

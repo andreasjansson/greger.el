@@ -2311,4 +2311,80 @@ Simplify LSP test setup to avoid complex workspace cleanup
 - Avoid potential interference with LSP operation during setup
 </tool.toolu_01Rs5gzSR9dk7an5HbAHkL5W>
 
-<!-- TOOL_RESULT_PLACEHOLDER_toolu_01Rs5gzSR9dk7an5HbAHkL5W -->
+## TOOL RESULT:
+
+ID: toolu_01Rs5gzSR9dk7an5HbAHkL5W
+
+<tool.toolu_01Rs5gzSR9dk7an5HbAHkL5W>
+Successfully replaced content in /Users/andreas/projects/greger.el/test-greger-lib-lsp.el. Successfully staged 2 file(s) and committed with message: Simplify LSP test setup to avoid complex workspace cleanup
+
+- Remove complex workspace removal code from setup
+- Keep simple session folder cleanup
+- Avoid potential interference with LSP operation during setup
+</tool.toolu_01Rs5gzSR9dk7an5HbAHkL5W>
+
+
+## ASSISTANT:
+
+Now let me remove the nuclear cleanup function since we're not using it anymore and it was probably too aggressive:
+
+## TOOL USE:
+
+Name: str-replace
+ID: toolu_01Wjqt6A6Vqe8nBjxkM9T8WL
+
+### file_path
+
+<tool.toolu_01Wjqt6A6Vqe8nBjxkM9T8WL>
+test-greger-lib-lsp.el
+</tool.toolu_01Wjqt6A6Vqe8nBjxkM9T8WL>
+
+### original_content
+
+<tool.toolu_01Wjqt6A6Vqe8nBjxkM9T8WL>
+(defun greger-lsp-test-force-reset-lsp-state ()
+  "Force reset of global LSP state for problematic test isolation.
+This is a nuclear option when normal cleanup isn't sufficient."
+  (when (bound-and-true-p lsp--session)
+    ;; Clear all workspace folders that are in temp directories
+    (setf (lsp-session-folders lsp--session)
+          (cl-remove-if (lambda (folder)
+                         (string-prefix-p "/tmp" folder))
+                        (lsp-session-folders lsp--session)))
+
+    ;; Clear folder->servers mapping for temp directories
+    (let ((new-mapping (make-hash-table :test 'equal)))
+      (maphash (lambda (folder servers)
+                (unless (string-prefix-p "/tmp" folder)
+                  (puthash folder servers new-mapping)))
+              (lsp-session-folder->servers lsp--session))
+      (setf (lsp-session-folder->servers lsp--session) new-mapping))
+
+    ;; Clear server-id->folders mapping for servers associated with temp dirs
+    (let ((new-mapping (make-hash-table :test 'equal)))
+      (maphash (lambda (server-id folders)
+                (let ((filtered-folders (cl-remove-if (lambda (folder)
+                                                       (string-prefix-p "/tmp" folder))
+                                                     folders)))
+                  (when filtered-folders
+                    (puthash server-id filtered-folders new-mapping))))
+              (lsp-session-server-id->folders lsp--session))
+      (setf (lsp-session-server-id->folders lsp--session) new-mapping))))
+</tool.toolu_01Wjqt6A6Vqe8nBjxkM9T8WL>
+
+### new_content
+
+<tool.toolu_01Wjqt6A6Vqe8nBjxkM9T8WL>
+
+</tool.toolu_01Wjqt6A6Vqe8nBjxkM9T8WL>
+
+### git_commit_message
+
+<tool.toolu_01Wjqt6A6Vqe8nBjxkM9T8WL>
+Remove overly aggressive LSP state reset function
+
+- Remove greger-lsp-test-force-reset-lsp-state as it was too aggressive
+- Stick to simpler cleanup approach to avoid breaking LSP operation
+</tool.toolu_01Wjqt6A6Vqe8nBjxkM9T8WL>
+
+<!-- TOOL_RESULT_PLACEHOLDER_toolu_01Wjqt6A6Vqe8nBjxkM9T8WL -->
