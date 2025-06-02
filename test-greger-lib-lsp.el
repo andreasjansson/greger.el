@@ -160,12 +160,14 @@ description = \"Test project for greger LSP tools\"
     (with-current-buffer buffer
       (python-mode)
 
-      ;; Add the test project to LSP workspace folders to avoid prompts
-      (unless (member greger-lsp-test-project-root (lsp-session-folders (lsp-session)))
-        (lsp-workspace-folders-add greger-lsp-test-project-root))
+      ;; Pre-add the test project to LSP session to avoid prompts
+      (let ((session (lsp-session)))
+        (unless (member greger-lsp-test-project-root (lsp-session-folders session))
+          (push greger-lsp-test-project-root (lsp-session-folders session))))
 
       ;; Temporarily disable lsp prompts and UI features
       (let ((lsp-auto-guess-root t)
+            (lsp-guess-root-without-session t)
             (lsp-enable-file-watchers nil)
             (lsp-signature-auto-activate nil)
             (lsp-eldoc-enable-hover nil)
@@ -176,7 +178,7 @@ description = \"Test project for greger LSP tools\"
             (lsp-restart 'ignore)  ; Don't prompt for restart
             (lsp-warn-no-matched-clients nil)) ; Don't warn about no clients
 
-        ;; Mock the project root finder and prompting functions
+        ;; Mock the project root detection functions to always return our test directory
         (cl-letf (((symbol-function 'lsp--calculate-root)
                    (lambda (session file-name)
                      greger-lsp-test-project-root))
@@ -199,7 +201,7 @@ description = \"Test project for greger LSP tools\"
                 (lsp)
                 ;; Wait for LSP to initialize with longer timeout
                 (let ((timeout 0))
-                  (while (and (not lsp--buffer-workspaces) (< timeout 200))
+                  (while (and (not lsp--buffer-workspaces) (< timeout 300))
                     (sit-for 0.1)
                     (setq timeout (1+ timeout))))
                 (unless lsp--buffer-workspaces
