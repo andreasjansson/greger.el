@@ -155,25 +155,33 @@ description = \"Test project for greger LSP tools\"
     (with-current-buffer buffer
       (python-mode)
 
-      ;; Add test project to LSP session folders to avoid prompts
-      (let ((session (lsp-session)))
-        (unless (member greger-lsp-test-project-root (lsp-session-folders session))
-          (push greger-lsp-test-project-root (lsp-session-folders session))))
+      ;; Set up LSP to use our specific test project root
+      (let ((session (lsp-session))
+            ;; Temporarily override LSP root detection to prevent auto-guessing
+            (lsp-auto-guess-root nil)
+            (lsp-guess-root-without-session nil))
 
-      ;; Start LSP - it should automatically pick up the project root we added
-      (condition-case err
-          (progn
-            (lsp)
-            ;; Wait for LSP to initialize with reasonable timeout
-            (let ((timeout 0))
-              (while (and (not lsp--buffer-workspaces) (< timeout 100))
-                (sit-for 0.1)
-                (setq timeout (1+ timeout))))
-            (unless lsp--buffer-workspaces
-              (error "Failed to start LSP server for test")))
-        (error
-         (message "LSP startup error: %s" (error-message-string err))
-         (error "Failed to start LSP server for test: %s" (error-message-string err)))))
+        ;; Add test project to LSP session folders to avoid prompts
+        (unless (member greger-lsp-test-project-root (lsp-session-folders session))
+          (push greger-lsp-test-project-root (lsp-session-folders session)))
+
+        ;; Start LSP - it should automatically pick up the project root we added
+        (condition-case err
+            (progn
+              ;; Bind LSP variables to ensure proper root detection
+              (let ((lsp-auto-guess-root nil)
+                    (lsp-guess-root-without-session nil))
+                (lsp))
+              ;; Wait for LSP to initialize with reasonable timeout
+              (let ((timeout 0))
+                (while (and (not lsp--buffer-workspaces) (< timeout 100))
+                  (sit-for 0.1)
+                  (setq timeout (1+ timeout))))
+              (unless lsp--buffer-workspaces
+                (error "Failed to start LSP server for test")))
+          (error
+           (message "LSP startup error: %s" (error-message-string err))
+           (error "Failed to start LSP server for test: %s" (error-message-string err)))))
     buffer))
 
 ;;; Helper functions for test requirements

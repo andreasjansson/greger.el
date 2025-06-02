@@ -2217,4 +2217,100 @@ test-greger-lib-lsp.el
 Fix workspace detection issue by improving test setup
 </tool.toolu_01VwSj7HTsUgMjrPmqbiJWdX>
 
-<!-- TOOL_RESULT_PLACEHOLDER_toolu_01VwSj7HTsUgMjrPmqbiJWdX -->
+## TOOL RESULT:
+
+ID: toolu_01VwSj7HTsUgMjrPmqbiJWdX
+
+<tool.toolu_01VwSj7HTsUgMjrPmqbiJWdX>
+Successfully replaced content in /Users/andreas/projects/greger.el/test-greger-lib-lsp.el. Successfully staged 2 file(s) and committed with message: Fix workspace detection issue by improving test setup
+</tool.toolu_01VwSj7HTsUgMjrPmqbiJWdX>
+
+
+## TOOL USE:
+
+Name: str-replace
+ID: toolu_01EaLkuxw6YtvfYEBnRTdTt8
+
+### file_path
+
+<tool.toolu_01EaLkuxw6YtvfYEBnRTdTt8>
+test-greger-lib-lsp.el
+</tool.toolu_01EaLkuxw6YtvfYEBnRTdTt8>
+
+### original_content
+
+<tool.toolu_01EaLkuxw6YtvfYEBnRTdTt8>
+(defun greger-lsp-test-ensure-lsp-started ()
+  "Ensure LSP is started for the test Python file."
+  (let ((buffer (find-file-noselect greger-lsp-test-python-file)))
+    (with-current-buffer buffer
+      (python-mode)
+
+      ;; Add test project to LSP session folders to avoid prompts
+      (let ((session (lsp-session)))
+        (unless (member greger-lsp-test-project-root (lsp-session-folders session))
+          (push greger-lsp-test-project-root (lsp-session-folders session))))
+
+      ;; Start LSP - it should automatically pick up the project root we added
+      (condition-case err
+          (progn
+            (lsp)
+            ;; Wait for LSP to initialize with reasonable timeout
+            (let ((timeout 0))
+              (while (and (not lsp--buffer-workspaces) (< timeout 100))
+                (sit-for 0.1)
+                (setq timeout (1+ timeout))))
+            (unless lsp--buffer-workspaces
+              (error "Failed to start LSP server for test")))
+        (error
+         (message "LSP startup error: %s" (error-message-string err))
+         (error "Failed to start LSP server for test: %s" (error-message-string err)))))
+    buffer))
+</tool.toolu_01EaLkuxw6YtvfYEBnRTdTt8>
+
+### new_content
+
+<tool.toolu_01EaLkuxw6YtvfYEBnRTdTt8>
+(defun greger-lsp-test-ensure-lsp-started ()
+  "Ensure LSP is started for the test Python file."
+  (let ((buffer (find-file-noselect greger-lsp-test-python-file)))
+    (with-current-buffer buffer
+      (python-mode)
+
+      ;; Set up LSP to use our specific test project root
+      (let ((session (lsp-session))
+            ;; Temporarily override LSP root detection to prevent auto-guessing
+            (lsp-auto-guess-root nil)
+            (lsp-guess-root-without-session nil))
+
+        ;; Add test project to LSP session folders to avoid prompts
+        (unless (member greger-lsp-test-project-root (lsp-session-folders session))
+          (push greger-lsp-test-project-root (lsp-session-folders session)))
+
+        ;; Start LSP - it should automatically pick up the project root we added
+        (condition-case err
+            (progn
+              ;; Bind LSP variables to ensure proper root detection
+              (let ((lsp-auto-guess-root nil)
+                    (lsp-guess-root-without-session nil))
+                (lsp))
+              ;; Wait for LSP to initialize with reasonable timeout
+              (let ((timeout 0))
+                (while (and (not lsp--buffer-workspaces) (< timeout 100))
+                  (sit-for 0.1)
+                  (setq timeout (1+ timeout))))
+              (unless lsp--buffer-workspaces
+                (error "Failed to start LSP server for test")))
+          (error
+           (message "LSP startup error: %s" (error-message-string err))
+           (error "Failed to start LSP server for test: %s" (error-message-string err)))))
+    buffer))
+</tool.toolu_01EaLkuxw6YtvfYEBnRTdTt8>
+
+### git_commit_message
+
+<tool.toolu_01EaLkuxw6YtvfYEBnRTdTt8>
+Improve LSP workspace root detection in tests by disabling auto-guess
+</tool.toolu_01EaLkuxw6YtvfYEBnRTdTt8>
+
+<!-- TOOL_RESULT_PLACEHOLDER_toolu_01EaLkuxw6YtvfYEBnRTdTt8 -->
