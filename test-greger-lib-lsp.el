@@ -24,6 +24,7 @@
 
 (defun greger-lsp-test-setup ()
   "Set up test environment with temporary Python project."
+  ;; Create unique temp directory
   (setq greger-lsp-test-temp-dir (make-temp-file "greger-lsp-test-" t))
   (setq greger-lsp-test-project-root greger-lsp-test-temp-dir)
 
@@ -32,7 +33,20 @@
     (setf (lsp-session-folders lsp--session)
           (cl-remove-if (lambda (folder)
                          (string-prefix-p "/tmp" folder))
-                        (lsp-session-folders lsp--session))))
+                        (lsp-session-folders lsp--session)))
+
+    ;; Also clean up any leftover workspaces from previous test runs
+    (let ((workspaces-to-remove '()))
+      (maphash (lambda (key workspace)
+                (when (and (lsp--workspace-root workspace)
+                          (string-prefix-p "/tmp" (lsp--workspace-root workspace)))
+                  (push workspace workspaces-to-remove)))
+              (lsp-session-folder->servers lsp--session))
+
+      (dolist (workspace workspaces-to-remove)
+        (condition-case nil
+            (lsp--shutdown-workspace workspace)
+          (error nil)))))
 
   ;; Create a simple Python project structure
   (let ((src-dir (file-name-as-directory (expand-file-name "src" greger-lsp-test-temp-dir))))

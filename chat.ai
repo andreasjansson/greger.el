@@ -818,4 +818,91 @@ Improve LSP test teardown to better isolate tests
 This should prevent state leakage between test runs.
 </tool.toolu_019phy3wAyyJoZPedPz2Hb2M>
 
-<!-- TOOL_RESULT_PLACEHOLDER_toolu_019phy3wAyyJoZPedPz2Hb2M -->
+## TOOL RESULT:
+
+ID: toolu_019phy3wAyyJoZPedPz2Hb2M
+
+<tool.toolu_019phy3wAyyJoZPedPz2Hb2M>
+Successfully replaced content in /Users/andreas/projects/greger.el/test-greger-lib-lsp.el. Successfully staged 2 file(s) and committed with message: Improve LSP test teardown to better isolate tests
+
+- Kill all buffers visiting files in test directory, not just the main test file
+- More aggressive LSP session cleanup including workspace removal
+- Clean up session folders and kill associated workspaces
+- Add brief delay for cleanup completion
+- Better error handling in cleanup operations
+
+This should prevent state leakage between test runs.
+</tool.toolu_019phy3wAyyJoZPedPz2Hb2M>
+
+
+## ASSISTANT:
+
+Now let me also improve the setup function to ensure better initial state:
+
+## TOOL USE:
+
+Name: str-replace
+ID: toolu_019VKT73QagyeNLacVcxhUTh
+
+### file_path
+
+<tool.toolu_019VKT73QagyeNLacVcxhUTh>
+test-greger-lib-lsp.el
+</tool.toolu_019VKT73QagyeNLacVcxhUTh>
+
+### original_content
+
+<tool.toolu_019VKT73QagyeNLacVcxhUTh>
+(defun greger-lsp-test-setup ()
+  "Set up test environment with temporary Python project."
+  (setq greger-lsp-test-temp-dir (make-temp-file "greger-lsp-test-" t))
+  (setq greger-lsp-test-project-root greger-lsp-test-temp-dir)
+
+  ;; Clean up any old test folders from LSP session (but don't touch user folders)
+  (when (bound-and-true-p lsp--session)
+    (setf (lsp-session-folders lsp--session)
+          (cl-remove-if (lambda (folder)
+                         (string-prefix-p "/tmp" folder))
+                        (lsp-session-folders lsp--session))))
+</tool.toolu_019VKT73QagyeNLacVcxhUTh>
+
+### new_content
+
+<tool.toolu_019VKT73QagyeNLacVcxhUTh>
+(defun greger-lsp-test-setup ()
+  "Set up test environment with temporary Python project."
+  ;; Create unique temp directory
+  (setq greger-lsp-test-temp-dir (make-temp-file "greger-lsp-test-" t))
+  (setq greger-lsp-test-project-root greger-lsp-test-temp-dir)
+
+  ;; Clean up any old test folders from LSP session (but don't touch user folders)
+  (when (bound-and-true-p lsp--session)
+    (setf (lsp-session-folders lsp--session)
+          (cl-remove-if (lambda (folder)
+                         (string-prefix-p "/tmp" folder))
+                        (lsp-session-folders lsp--session)))
+
+    ;; Also clean up any leftover workspaces from previous test runs
+    (let ((workspaces-to-remove '()))
+      (maphash (lambda (key workspace)
+                (when (and (lsp--workspace-root workspace)
+                          (string-prefix-p "/tmp" (lsp--workspace-root workspace)))
+                  (push workspace workspaces-to-remove)))
+              (lsp-session-folder->servers lsp--session))
+
+      (dolist (workspace workspaces-to-remove)
+        (condition-case nil
+            (lsp--shutdown-workspace workspace)
+          (error nil)))))
+</tool.toolu_019VKT73QagyeNLacVcxhUTh>
+
+### git_commit_message
+
+<tool.toolu_019VKT73QagyeNLacVcxhUTh>
+Improve LSP test setup to clean up leftover workspaces
+
+- Also remove any leftover LSP workspaces from previous test runs in /tmp
+- This ensures a cleaner starting state for each test
+</tool.toolu_019VKT73QagyeNLacVcxhUTh>
+
+<!-- TOOL_RESULT_PLACEHOLDER_toolu_019VKT73QagyeNLacVcxhUTh -->
