@@ -232,11 +232,11 @@ If HIERARCHICAL is true, format with indentation to show structure."
           (let* ((symbol-info (condition-case nil
                                   (thing-at-point 'symbol)
                                 (error "unknown")))
-                 (edits (lsp-request "textDocument/rename"
-                                   (lsp-make-rename-params
-                                    :text-document (lsp--text-document-identifier)
-                                    :position (lsp--cur-position)
-                                    :new-name new-name))))
+                 (edits (let ((lsp-response-timeout 10)) ; Shorter timeout for tests
+                                 (lsp-request "textDocument/rename"
+                                            `(:textDocument ,(lsp--text-document-identifier)
+                                              :position ,(lsp--cur-position)
+                                              :newName ,new-name)))))
             (if edits
                 (progn
                   (lsp--apply-workspace-edit edits 'rename)
