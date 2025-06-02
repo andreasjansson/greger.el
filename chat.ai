@@ -7374,4 +7374,48 @@ test-greger-lib-lsp.el
 Fix find-definition test to use correct line number (43)
 </tool.toolu_01Df55XJDxf6gx9S4S5wau1i>
 
-<!-- TOOL_RESULT_PLACEHOLDER_toolu_01Df55XJDxf6gx9S4S5wau1i -->
+## TOOL RESULT:
+
+ID: toolu_01Df55XJDxf6gx9S4S5wau1i
+
+<tool.toolu_01Df55XJDxf6gx9S4S5wau1i>
+Successfully replaced content in /Users/andreas/projects/aichat3/test-greger-lib-lsp.el. Successfully staged 2 file(s) and committed with message: Fix find-definition test to use correct line number (43)
+</tool.toolu_01Df55XJDxf6gx9S4S5wau1i>
+
+
+## TOOL USE:
+
+Name: str-replace
+ID: toolu_01CqXcrvvUZiycwPK8TepgPN
+
+### file_path
+
+<tool.toolu_01CqXcrvvUZiycwPK8TepgPN>
+test-greger-lib-lsp.el
+</tool.toolu_01CqXcrvvUZiycwPK8TepgPN>
+
+### original_content
+
+<tool.toolu_01CqXcrvvUZiycwPK8TepgPN>
+(let ((result (greger-tools--lsp-find-definition
+                  greger-lsp-test-python-file
+                  90 11  ; Line with "calc = create_calculator"
+                  t)))   ; Include declarations
+</tool.toolu_01CqXcrvvUZiycwPK8TepgPN>
+
+### new_content
+
+<tool.toolu_01CqXcrvvUZiycwPK8TepgPN>
+(let ((result (greger-tools--lsp-find-definition
+                  greger-lsp-test-python-file
+                  43 11  ; Line 43: "calc = create_calculator(3)", position at "create_calculator"
+                  t)))   ; Include declarations
+</tool.toolu_01CqXcrvvUZiycwPK8TepgPN>
+
+### git_commit_message
+
+<tool.toolu_01CqXcrvvUZiycwPK8TepgPN>
+Fix find-definition-with-declaration test line number
+</tool.toolu_01CqXcrvvUZiycwPK8TepgPN>
+
+<!-- TOOL_RESULT_PLACEHOLDER_toolu_01CqXcrvvUZiycwPK8TepgPN -->

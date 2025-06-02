@@ -349,7 +349,7 @@ description = \"Test project for greger LSP tools\"
   (greger-lsp-test-with-setup
    (let ((result (greger-tools--lsp-find-definition
                   greger-lsp-test-python-file
-                  90 11  ; Line with "calc = create_calculator"
+                  43 11  ; Line 43: "calc = create_calculator(3)", position at "create_calculator"
                   t)))   ; Include declarations
      (should (stringp result))
      (should (string-match-p "Definition.*create_calculator" result)))))
