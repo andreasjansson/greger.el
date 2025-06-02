@@ -9300,4 +9300,47 @@ greger-lib-lsp.el
 Remove text properties from symbol-info in find-references
 </tool.toolu_01NmT8RSNPnynEHynAobC2gN>
 
-<!-- TOOL_RESULT_PLACEHOLDER_toolu_01NmT8RSNPnynEHynAobC2gN -->
+## TOOL RESULT:
+
+ID: toolu_01NmT8RSNPnynEHynAobC2gN
+
+<tool.toolu_01NmT8RSNPnynEHynAobC2gN>
+Successfully replaced content in /Users/andreas/projects/greger.el/greger-lib-lsp.el. Successfully staged 2 file(s) and committed with message: Remove text properties from symbol-info in find-references
+</tool.toolu_01NmT8RSNPnynEHynAobC2gN>
+
+
+## ASSISTANT:
+
+Let me also fix the same issue in other functions. Let me check find-definition:
+
+## TOOL USE:
+
+Name: str-replace
+ID: toolu_01HgQJU1VU3W9Ur6nseE2oEC
+
+### file_path
+
+<tool.toolu_01HgQJU1VU3W9Ur6nseE2oEC>
+greger-lib-lsp.el
+</tool.toolu_01HgQJU1VU3W9Ur6nseE2oEC>
+
+### original_content
+
+<tool.toolu_01HgQJU1VU3W9Ur6nseE2oEC>
+(format "Definition(s) for '%s':\n%s" symbol-info result-text)
+</tool.toolu_01HgQJU1VU3W9Ur6nseE2oEC>
+
+### new_content
+
+<tool.toolu_01HgQJU1VU3W9Ur6nseE2oEC>
+(substring-no-properties
+                  (format "Definition(s) for '%s':\n%s" symbol-info result-text))
+</tool.toolu_01HgQJU1VU3W9Ur6nseE2oEC>
+
+### git_commit_message
+
+<tool.toolu_01HgQJU1VU3W9Ur6nseE2oEC>
+Remove text properties from find-definition result
+</tool.toolu_01HgQJU1VU3W9Ur6nseE2oEC>
+
+<!-- TOOL_RESULT_PLACEHOLDER_toolu_01HgQJU1VU3W9Ur6nseE2oEC -->

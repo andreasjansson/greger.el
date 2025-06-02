@@ -314,7 +314,8 @@ If HIERARCHICAL is true, format with indentation to show structure."
                   (setq result-text (concat result-text "\n\nDeclarations:\n"
                                           (greger-lsp--format-locations declarations))))))
 
-            (format "Definition(s) for '%s':\n%s" symbol-info result-text))))
+            (substring-no-properties
+                  (format "Definition(s) for '%s':\n%s" symbol-info result-text)))))
     (error (format "LSP find-definition failed: %s" (error-message-string err)))))
 
 (defun greger-tools--lsp-find-references (file-path line column &optional include-declaration max-results)
