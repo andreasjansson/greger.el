@@ -2204,4 +2204,68 @@ format_result [Function] (line 12, col 0)
 Update multiple files test to include all variables and parameters
 </tool.toolu_01HWEr82No3LFLJkpL12z454>
 
-<!-- TOOL_RESULT_PLACEHOLDER_toolu_01HWEr82No3LFLJkpL12z454 -->
+## TOOL RESULT:
+
+ID: toolu_01HWEr82No3LFLJkpL12z454
+
+<tool.toolu_01HWEr82No3LFLJkpL12z454>
+Successfully replaced content in /Users/andreas/projects/greger.el/test-greger-lib-lsp.el. Successfully staged 2 file(s) and committed with message: Update multiple files test to include all variables and parameters
+</tool.toolu_01HWEr82No3LFLJkpL12z454>
+
+
+## ASSISTANT:
+
+And finally, let me update the empty file test to use the correct path format:
+
+## TOOL USE:
+
+Name: str-replace
+ID: toolu_015mBoFFGf17eykoGhBzXVmX
+
+### file_path
+
+<tool.toolu_015mBoFFGf17eykoGhBzXVmX>
+test-greger-lib-lsp.el
+</tool.toolu_015mBoFFGf17eykoGhBzXVmX>
+
+### original_content
+
+<tool.toolu_015mBoFFGf17eykoGhBzXVmX>
+(ert-deftest greger-lsp-test-document-symbols-empty-file ()
+  "Test getting document symbols for file with no symbols."
+  (greger-lsp-test-with-setup
+   ;; Create an empty Python file
+   (let* ((empty-file (expand-file-name "empty.py" greger-lsp-test-temp-dir))
+          (expected "No symbols found in empty.py"))
+     (with-temp-file empty-file
+       (insert "# Just a comment\n"))
+
+     (let ((result (greger-lib-lsp--document-symbols (list empty-file))))
+       (should (stringp result))
+       (should (string= expected result))))))
+</tool.toolu_015mBoFFGf17eykoGhBzXVmX>
+
+### new_content
+
+<tool.toolu_015mBoFFGf17eykoGhBzXVmX>
+(ert-deftest greger-lsp-test-document-symbols-empty-file ()
+  "Test getting document symbols for file with no symbols."
+  (greger-lsp-test-with-setup
+   ;; Create an empty Python file
+   (let* ((empty-file (expand-file-name "empty.py" greger-lsp-test-temp-dir))
+          (expected "No symbols found in empty.py"))
+     (with-temp-file empty-file
+       (insert "# Just a comment\n"))
+
+     (let ((result (greger-lib-lsp--document-symbols (list empty-file))))
+       (should (stringp result))
+       (should (string= expected result))))))
+</tool.toolu_015mBoFFGf17eykoGhBzXVmX>
+
+### git_commit_message
+
+<tool.toolu_015mBoFFGf17eykoGhBzXVmX>
+Keep empty file test as is since it's in project root
+</tool.toolu_015mBoFFGf17eykoGhBzXVmX>
+
+<!-- TOOL_RESULT_PLACEHOLDER_toolu_015mBoFFGf17eykoGhBzXVmX -->
