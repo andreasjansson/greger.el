@@ -28,16 +28,16 @@
   (setq greger-lsp-test-project-root greger-lsp-test-temp-dir)
 
   ;; Configure LSP to work non-interactively
-  (setq lsp-auto-guess-root t
-        lsp-guess-root-without-session t)
+  (let ((lsp-auto-guess-root t)
+        (lsp-guess-root-without-session t))
 
-  ;; Ensure we have a clean LSP session
-  (when (bound-and-true-p lsp--session)
-    ;; Clear any existing workspace folders that might interfere
-    (setf (lsp-session-folders lsp--session)
-          (cl-remove-if (lambda (folder)
-                         (string-prefix-p "/tmp" folder))
-                        (lsp-session-folders lsp--session))))
+    ;; Ensure we have a clean LSP session
+    (when (bound-and-true-p lsp--session)
+      ;; Clear any existing workspace folders that might interfere
+      (setf (lsp-session-folders lsp--session)
+            (cl-remove-if (lambda (folder)
+                            (string-prefix-p "/tmp" folder))
+                          (lsp-session-folders lsp--session)))))
 
   ;; Create a simple Python project structure
   (let ((src-dir (file-name-as-directory (expand-file-name "src" greger-lsp-test-temp-dir))))
@@ -160,57 +160,25 @@ description = \"Test project for greger LSP tools\"
     (with-current-buffer buffer
       (python-mode)
 
-      ;; Pre-add the test project to LSP session to avoid prompts
+      ;; Add test project to LSP session folders to avoid prompts
       (let ((session (lsp-session)))
         (unless (member greger-lsp-test-project-root (lsp-session-folders session))
           (push greger-lsp-test-project-root (lsp-session-folders session))))
 
-      ;; Temporarily disable lsp prompts and UI features
-      (let ((lsp-auto-guess-root t)
-            (lsp-guess-root-without-session t)
-            (lsp-enable-file-watchers nil)
-            (lsp-signature-auto-activate nil)
-            (lsp-eldoc-enable-hover nil)
-            (lsp-enable-symbol-highlighting nil)
-            (lsp-headerline-breadcrumb-enable nil)
-            (lsp-ui-doc-enable nil)
-            (lsp-ui-sideline-enable nil)
-            (lsp-restart 'ignore)  ; Don't prompt for restart
-            (lsp-warn-no-matched-clients nil)) ; Don't warn about no clients
-
-        ;; Mock the project root detection functions to always return our test directory
-        (cl-letf (((symbol-function 'lsp--calculate-root)
-                   (lambda (session file-name)
-                     greger-lsp-test-project-root))
-                  ((symbol-function 'lsp--suggest-project-root)
-                   (lambda ()
-                     greger-lsp-test-project-root))
-                  ((symbol-function 'lsp--find-root-interactively)
-                   (lambda (session)
-                     greger-lsp-test-project-root))
-                  ((symbol-function 'lsp--read-char)
-                   (lambda (prompt &optional options)
-                     ?. )) ; Always choose "current directory"
-                  ((symbol-function 'read-directory-name)
-                   (lambda (&rest args)
-                     greger-lsp-test-project-root)))
-
-          ;; Start LSP with shorter timeout and better error handling
-          (condition-case err
-              (progn
-                ;; Set LSP request timeout to be shorter for tests
-                (let ((lsp-response-timeout 10)) ; 10 seconds instead of default
-                  (lsp)
-                  ;; Wait for LSP to initialize with reasonable timeout
-                  (let ((timeout 0))
-                    (while (and (not lsp--buffer-workspaces) (< timeout 100))
-                      (sit-for 0.1)
-                      (setq timeout (1+ timeout))))
-                  (unless lsp--buffer-workspaces
-                    (error "Failed to start LSP server for test"))))
-            (error
-             (message "LSP startup error: %s" (error-message-string err))
-             (error "Failed to start LSP server for test: %s" (error-message-string err)))))))
+      ;; Start LSP - it should automatically pick up the project root we added
+      (condition-case err
+          (progn
+            (lsp)
+            ;; Wait for LSP to initialize with reasonable timeout
+            (let ((timeout 0))
+              (while (and (not lsp--buffer-workspaces) (< timeout 100))
+                (sit-for 0.1)
+                (setq timeout (1+ timeout))))
+            (unless lsp--buffer-workspaces
+              (error "Failed to start LSP server for test")))
+        (error
+         (message "LSP startup error: %s" (error-message-string err))
+         (error "Failed to start LSP server for test: %s" (error-message-string err)))))
     buffer))
 
 ;;; Helper functions for test requirements
