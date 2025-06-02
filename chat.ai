@@ -1386,4 +1386,119 @@ greger-lib-lsp.el
 Add lsp-document-symbols implementation
 </tool.toolu_017SvA6Uzy6QybNqnN6jZckm>
 
-<!-- TOOL_RESULT_PLACEHOLDER_toolu_017SvA6Uzy6QybNqnN6jZckm -->
+## TOOL RESULT:
+
+ID: toolu_017SvA6Uzy6QybNqnN6jZckm
+
+<tool.toolu_017SvA6Uzy6QybNqnN6jZckm>
+Successfully replaced content in /Users/andreas/projects/greger.el/greger-lib-lsp.el. Successfully staged 2 file(s) and committed with message: Add lsp-document-symbols implementation
+</tool.toolu_017SvA6Uzy6QybNqnN6jZckm>
+
+
+## ASSISTANT:
+
+Now I need to add a test for the new function in the test file:
+
+## TOOL USE:
+
+Name: str-replace
+ID: toolu_01RxmorzoSfqfGcxTAB4sEmN
+
+### file_path
+
+<tool.toolu_01RxmorzoSfqfGcxTAB4sEmN>
+test-greger-lib-lsp.el
+</tool.toolu_01RxmorzoSfqfGcxTAB4sEmN>
+
+### original_content
+
+<tool.toolu_01RxmorzoSfqfGcxTAB4sEmN>
+(ert-deftest greger-lsp-test-cross-file-references ()
+  "Test finding references across multiple files."
+  (greger-lsp-test-with-setup
+   ;; Wait a moment for LSP to fully initialize
+   (sit-for 1)
+
+   ;; Find references to Calculator class (line 9, position at "Calculator")
+   (let ((result (greger-lib-lsp--find-references
+                  greger-lsp-test-python-file
+                  9 6))
+         (expected "References for 'Calculator' (3 found):
+main.py:33:58
+main.py:37:11
+utils.py:4:17"))
+
+     (should (stringp result))
+     (should (string= expected result)))))
+
+(provide 'test-greger-lib-lsp)
+</tool.toolu_01RxmorzoSfqfGcxTAB4sEmN>
+
+### new_content
+
+<tool.toolu_01RxmorzoSfqfGcxTAB4sEmN>
+(ert-deftest greger-lsp-test-cross-file-references ()
+  "Test finding references across multiple files."
+  (greger-lsp-test-with-setup
+   ;; Wait a moment for LSP to fully initialize
+   (sit-for 1)
+
+   ;; Find references to Calculator class (line 9, position at "Calculator")
+   (let ((result (greger-lib-lsp--find-references
+                  greger-lsp-test-python-file
+                  9 6))
+         (expected "References for 'Calculator' (3 found):
+main.py:33:58
+main.py:37:11
+utils.py:4:17"))
+
+     (should (stringp result))
+     (should (string= expected result)))))
+
+;;; Tests for lsp-document-symbols tool
+
+(ert-deftest greger-lsp-test-document-symbols-single-file ()
+  "Test getting document symbols for a single file."
+  (greger-lsp-test-with-setup
+   (let ((result (greger-lib-lsp--document-symbols
+                  (list greger-lsp-test-python-file))))
+     (should (stringp result))
+     (should (string-match-p "Symbols in.*main.py:" result))
+     (should (string-match-p "Calculator.*\\[Class\\]" result))
+     (should (string-match-p "main.*\\[Function\\]" result))
+     (should (string-match-p "create_calculator.*\\[Function\\]" result)))))
+
+(ert-deftest greger-lsp-test-document-symbols-multiple-files ()
+  "Test getting document symbols for multiple files."
+  (greger-lsp-test-with-setup
+   (let* ((utils-file (expand-file-name "src/utils.py" greger-lsp-test-temp-dir))
+          (result (greger-lib-lsp--document-symbols
+                   (list greger-lsp-test-python-file utils-file))))
+     (should (stringp result))
+     (should (string-match-p "Symbols in.*main.py:" result))
+     (should (string-match-p "Symbols in.*utils.py:" result))
+     (should (string-match-p "Calculator.*\\[Class\\]" result))
+     (should (string-match-p "advanced_calculation.*\\[Function\\]" result)))))
+
+(ert-deftest greger-lsp-test-document-symbols-empty-file ()
+  "Test getting document symbols for file with no symbols."
+  (greger-lsp-test-with-setup
+   ;; Create an empty Python file
+   (let* ((empty-file (expand-file-name "empty.py" greger-lsp-test-temp-dir)))
+     (with-temp-file empty-file
+       (insert "# Just a comment\n"))
+
+     (let ((result (greger-lib-lsp--document-symbols (list empty-file))))
+       (should (stringp result))
+       (should (string-match-p "No symbols found" result))))))
+
+(provide 'test-greger-lib-lsp)
+</tool.toolu_01RxmorzoSfqfGcxTAB4sEmN>
+
+### git_commit_message
+
+<tool.toolu_01RxmorzoSfqfGcxTAB4sEmN>
+Add tests for lsp-document-symbols tool
+</tool.toolu_01RxmorzoSfqfGcxTAB4sEmN>
+
+<!-- TOOL_RESULT_PLACEHOLDER_toolu_01RxmorzoSfqfGcxTAB4sEmN -->

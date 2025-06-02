@@ -372,42 +372,6 @@ description = \"Test project for greger LSP tools\"
      (should (stringp result))
      (should (string-match-p "References.*Calculator" result)))))
 
-;;; Tests for lsp-workspace-symbols tool
-
-(ert-deftest greger-lsp-test-workspace-symbols ()
-  "Test searching workspace symbols."
-  (ert-skip "Pyright LSP doesn't support workspace symbols")
-
-  (greger-lsp-test-with-setup
-   (let ((result (greger-lib-lsp--workspace-symbols "Calculator")))
-     (should (stringp result))
-     (should (string-match-p "Workspace symbols.*Calculator" result))
-     (should (string-match-p "Calculator.*Class" result))
-     (should (string-match-p "main.py:" result)))))
-
-(ert-deftest greger-lsp-test-workspace-symbols-limited ()
-  "Test searching workspace symbols with limits."
-  (ert-skip "Pyright LSP doesn't support workspace symbols")
-
-  (greger-lsp-test-with-setup
-   (let ((result (greger-lib-lsp--workspace-symbols
-                  "add"  ; Search for "add"
-                  3)))   ; Max 3 results
-     (should (stringp result))
-     (should (string-match-p "Workspace symbols.*add" result)))))
-
-(ert-deftest greger-lsp-test-workspace-symbols-typed ()
-  "Test searching workspace symbols by type."
-  (ert-skip "Pyright LSP doesn't support workspace symbols")
-
-  (greger-lsp-test-with-setup
-   (let ((result (greger-lib-lsp--workspace-symbols
-                  "main"     ; Search for "main"
-                  nil        ; No result limit
-                  "Function"))) ; Only functions
-     (should (stringp result))
-     (should (string-match-p "Workspace symbols.*main.*Function" result)))))
-
 ;;; Integration tests
 
 (ert-deftest greger-lsp-test-rename-and-find-references ()
@@ -448,6 +412,43 @@ utils.py:4:17"))
 
      (should (stringp result))
      (should (string= expected result)))))
+
+;;; Tests for lsp-document-symbols tool
+
+(ert-deftest greger-lsp-test-document-symbols-single-file ()
+  "Test getting document symbols for a single file."
+  (greger-lsp-test-with-setup
+   (let ((result (greger-lib-lsp--document-symbols
+                  (list greger-lsp-test-python-file))))
+     (should (stringp result))
+     (should (string-match-p "Symbols in.*main.py:" result))
+     (should (string-match-p "Calculator.*\\[Class\\]" result))
+     (should (string-match-p "main.*\\[Function\\]" result))
+     (should (string-match-p "create_calculator.*\\[Function\\]" result)))))
+
+(ert-deftest greger-lsp-test-document-symbols-multiple-files ()
+  "Test getting document symbols for multiple files."
+  (greger-lsp-test-with-setup
+   (let* ((utils-file (expand-file-name "src/utils.py" greger-lsp-test-temp-dir))
+          (result (greger-lib-lsp--document-symbols
+                   (list greger-lsp-test-python-file utils-file))))
+     (should (stringp result))
+     (should (string-match-p "Symbols in.*main.py:" result))
+     (should (string-match-p "Symbols in.*utils.py:" result))
+     (should (string-match-p "Calculator.*\\[Class\\]" result))
+     (should (string-match-p "advanced_calculation.*\\[Function\\]" result)))))
+
+(ert-deftest greger-lsp-test-document-symbols-empty-file ()
+  "Test getting document symbols for file with no symbols."
+  (greger-lsp-test-with-setup
+   ;; Create an empty Python file
+   (let* ((empty-file (expand-file-name "empty.py" greger-lsp-test-temp-dir)))
+     (with-temp-file empty-file
+       (insert "# Just a comment\n"))
+
+     (let ((result (greger-lib-lsp--document-symbols (list empty-file))))
+       (should (stringp result))
+       (should (string-match-p "No symbols found" result))))))
 
 (provide 'test-greger-lib-lsp)
 
