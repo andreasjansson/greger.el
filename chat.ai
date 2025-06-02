@@ -1569,4 +1569,71 @@ main [Function] (line 40, col 0)"))
 Update document symbols single file test to use exact string matching
 </tool.toolu_01G8GnBgaVs9rMZiSdSqXzqu>
 
-<!-- TOOL_RESULT_PLACEHOLDER_toolu_01G8GnBgaVs9rMZiSdSqXzqu -->
+## TOOL RESULT:
+
+ID: toolu_01G8GnBgaVs9rMZiSdSqXzqu
+
+<tool.toolu_01G8GnBgaVs9rMZiSdSqXzqu>
+Successfully replaced content in /Users/andreas/projects/greger.el/test-greger-lib-lsp.el. Successfully staged 2 file(s) and committed with message: Update document symbols single file test to use exact string matching
+</tool.toolu_01G8GnBgaVs9rMZiSdSqXzqu>
+
+
+## TOOL USE:
+
+Name: str-replace
+ID: toolu_01USYfziQgePe7JBj6aix8wa
+
+### file_path
+
+<tool.toolu_01USYfziQgePe7JBj6aix8wa>
+test-greger-lib-lsp.el
+</tool.toolu_01USYfziQgePe7JBj6aix8wa>
+
+### original_content
+
+<tool.toolu_01USYfziQgePe7JBj6aix8wa>
+(ert-deftest greger-lsp-test-document-symbols-multiple-files ()
+  "Test getting document symbols for multiple files."
+  (greger-lsp-test-with-setup
+   (let* ((utils-file (expand-file-name "src/utils.py" greger-lsp-test-temp-dir))
+          (result (greger-lib-lsp--document-symbols
+                   (list greger-lsp-test-python-file utils-file))))
+     (should (stringp result))
+     (should (string-match-p "Symbols in.*main.py:" result))
+     (should (string-match-p "Symbols in.*utils.py:" result))
+     (should (string-match-p "Calculator.*\\[Class\\]" result))
+     (should (string-match-p "advanced_calculation.*\\[Function\\]" result)))))
+</tool.toolu_01USYfziQgePe7JBj6aix8wa>
+
+### new_content
+
+<tool.toolu_01USYfziQgePe7JBj6aix8wa>
+(ert-deftest greger-lsp-test-document-symbols-multiple-files ()
+  "Test getting document symbols for multiple files."
+  (greger-lsp-test-with-setup
+   (let* ((utils-file (expand-file-name "src/utils.py" greger-lsp-test-temp-dir))
+          (result (greger-lib-lsp--document-symbols
+                   (list greger-lsp-test-python-file utils-file)))
+          (expected "Symbols in src/main.py:
+Calculator [Class] (line 9, col 0)
+  __init__ [Method] (line 12, col 4)
+  add_numbers [Method] (line 16, col 4)
+  multiply_numbers [Method] (line 22, col 4)
+  get_history [Method] (line 28, col 4)
+create_calculator [Function] (line 33, col 0)
+main [Function] (line 40, col 0)
+
+Symbols in src/utils.py:
+advanced_calculation [Function] (line 6, col 0)
+format_result [Function] (line 12, col 0)"))
+     (should (stringp result))
+     (should (string= expected result)))))
+</tool.toolu_01USYfziQgePe7JBj6aix8wa>
+
+### git_commit_message
+
+<tool.toolu_01USYfziQgePe7JBj6aix8wa>
+Update document symbols multiple files test to use exact string matching
+</tool.toolu_01USYfziQgePe7JBj6aix8wa>
+
+<!-- TOOL_RESULT_PLACEHOLDER_toolu_01USYfziQgePe7JBj6aix8wa -->

@@ -436,12 +436,21 @@ main [Function] (line 40, col 0)"))
   (greger-lsp-test-with-setup
    (let* ((utils-file (expand-file-name "src/utils.py" greger-lsp-test-temp-dir))
           (result (greger-lib-lsp--document-symbols
-                   (list greger-lsp-test-python-file utils-file))))
+                   (list greger-lsp-test-python-file utils-file)))
+          (expected "Symbols in src/main.py:
+Calculator [Class] (line 9, col 0)
+  __init__ [Method] (line 12, col 4)
+  add_numbers [Method] (line 16, col 4)
+  multiply_numbers [Method] (line 22, col 4)
+  get_history [Method] (line 28, col 4)
+create_calculator [Function] (line 33, col 0)
+main [Function] (line 40, col 0)
+
+Symbols in src/utils.py:
+advanced_calculation [Function] (line 6, col 0)
+format_result [Function] (line 12, col 0)"))
      (should (stringp result))
-     (should (string-match-p "Symbols in.*main.py:" result))
-     (should (string-match-p "Symbols in.*utils.py:" result))
-     (should (string-match-p "Calculator.*\\[Class\\]" result))
-     (should (string-match-p "advanced_calculation.*\\[Function\\]" result)))))
+     (should (string= expected result)))))
 
 (ert-deftest greger-lsp-test-document-symbols-empty-file ()
   "Test getting document symbols for file with no symbols."
