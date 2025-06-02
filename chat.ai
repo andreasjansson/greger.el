@@ -1087,4 +1087,89 @@ Add more aggressive LSP process cleanup in tests
 - This should prevent lingering LSP processes from affecting subsequent tests
 </tool.toolu_01V3ELz6zHxvRThvf2vGUgBD>
 
-<!-- TOOL_RESULT_PLACEHOLDER_toolu_01V3ELz6zHxvRThvf2vGUgBD -->
+## TOOL RESULT:
+
+ID: toolu_01V3ELz6zHxvRThvf2vGUgBD
+
+<tool.toolu_01V3ELz6zHxvRThvf2vGUgBD>
+Successfully replaced content in /Users/andreas/projects/greger.el/test-greger-lib-lsp.el. Successfully staged 2 file(s) and committed with message: Add more aggressive LSP process cleanup in tests
+
+- Explicitly kill LSP server processes if they're still running after workspace shutdown
+- Increase cleanup delay to allow more time for process termination
+- This should prevent lingering LSP processes from affecting subsequent tests
+</tool.toolu_01V3ELz6zHxvRThvf2vGUgBD>
+
+
+## ASSISTANT:
+
+Let me also add a helper function to completely reset LSP state for the most problematic cases:
+
+## TOOL USE:
+
+Name: str-replace
+ID: toolu_015qz4YqkkVpioiUP7CEVJpE
+
+### file_path
+
+<tool.toolu_015qz4YqkkVpioiUP7CEVJpE>
+test-greger-lib-lsp.el
+</tool.toolu_015qz4YqkkVpioiUP7CEVJpE>
+
+### original_content
+
+<tool.toolu_015qz4YqkkVpioiUP7CEVJpE>
+(defun greger-lsp-test-skip-if-requirements-not-met ()
+  "Skip test if LSP requirements are not met."
+  (unless (greger-lsp-test-requirements-met-p)
+    (ert-skip "LSP mode or Python LSP server not available")))
+</tool.toolu_015qz4YqkkVpioiUP7CEVJpE>
+
+### new_content
+
+<tool.toolu_015qz4YqkkVpioiUP7CEVJpE>
+(defun greger-lsp-test-skip-if-requirements-not-met ()
+  "Skip test if LSP requirements are not met."
+  (unless (greger-lsp-test-requirements-met-p)
+    (ert-skip "LSP mode or Python LSP server not available")))
+
+(defun greger-lsp-test-force-reset-lsp-state ()
+  "Force reset of global LSP state for problematic test isolation.
+This is a nuclear option when normal cleanup isn't sufficient."
+  (when (bound-and-true-p lsp--session)
+    ;; Clear all workspace folders that are in temp directories
+    (setf (lsp-session-folders lsp--session)
+          (cl-remove-if (lambda (folder)
+                         (string-prefix-p "/tmp" folder))
+                        (lsp-session-folders lsp--session)))
+
+    ;; Clear folder->servers mapping for temp directories
+    (let ((new-mapping (make-hash-table :test 'equal)))
+      (maphash (lambda (folder servers)
+                (unless (string-prefix-p "/tmp" folder)
+                  (puthash folder servers new-mapping)))
+              (lsp-session-folder->servers lsp--session))
+      (setf (lsp-session-folder->servers lsp--session) new-mapping))
+
+    ;; Clear server->folders mapping for servers associated with temp dirs
+    (let ((new-mapping (make-hash-table :test 'equal)))
+      (maphash (lambda (server folders)
+                (let ((filtered-folders (cl-remove-if (lambda (folder)
+                                                       (string-prefix-p "/tmp" folder))
+                                                     folders)))
+                  (when filtered-folders
+                    (puthash server filtered-folders new-mapping))))
+              (lsp-session-server->folders lsp--session))
+      (setf (lsp-session-server->folders lsp--session) new-mapping))))
+</tool.toolu_015qz4YqkkVpioiUP7CEVJpE>
+
+### git_commit_message
+
+<tool.toolu_015qz4YqkkVpioiUP7CEVJpE>
+Add nuclear option for LSP state reset in tests
+
+- Add greger-lsp-test-force-reset-lsp-state function for complete LSP state cleanup
+- Clears all LSP session mappings related to temp directories
+- This provides a backup cleanup method for cases where normal cleanup isn't sufficient
+</tool.toolu_015qz4YqkkVpioiUP7CEVJpE>
+
+<!-- TOOL_RESULT_PLACEHOLDER_toolu_015qz4YqkkVpioiUP7CEVJpE -->
