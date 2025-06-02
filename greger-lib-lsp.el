@@ -414,14 +414,15 @@ If HIERARCHICAL is true, format with indentation to show structure."
                               "No symbols found"
                             (mapconcat #'greger-lsp--format-symbol limited-symbols "\n"))))
 
-          (format "Workspace symbols for query '%s'%s (%d found%s):\n%s"
-                  query
-                  (if symbol-type (format " (type: %s)" symbol-type) "")
-                  (length filtered-symbols)
-                  (if (and max-results (> (length filtered-symbols) max-results))
-                      (format ", showing first %d" max-results)
-                    "")
-                  result-text)))
+          (substring-no-properties
+                  (format "Workspace symbols for query '%s'%s (%d found%s):\n%s"
+                          query
+                          (if symbol-type (format " (type: %s)" symbol-type) "")
+                          (length filtered-symbols)
+                          (if (and max-results (> (length filtered-symbols) max-results))
+                              (format ", showing first %d" max-results)
+                            "")
+                          result-text))))
     (error (format "LSP workspace-symbols failed: %s" (error-message-string err)))))
 
 

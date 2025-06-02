@@ -9576,4 +9576,57 @@ greger-lib-lsp.el
 Remove text properties from document symbols result
 </tool.toolu_01JgNmS7KFmbdtZdpfikK3yQ>
 
-<!-- TOOL_RESULT_PLACEHOLDER_toolu_01JgNmS7KFmbdtZdpfikK3yQ -->
+## TOOL RESULT:
+
+ID: toolu_01JgNmS7KFmbdtZdpfikK3yQ
+
+<tool.toolu_01JgNmS7KFmbdtZdpfikK3yQ>
+Successfully replaced content in /Users/andreas/projects/greger.el/greger-lib-lsp.el. Successfully staged 2 file(s) and committed with message: Remove text properties from document symbols result
+</tool.toolu_01JgNmS7KFmbdtZdpfikK3yQ>
+
+
+## TOOL USE:
+
+Name: str-replace
+ID: toolu_01CCCRz6QA5Pb8TJHzoc8tTx
+
+### file_path
+
+<tool.toolu_01CCCRz6QA5Pb8TJHzoc8tTx>
+greger-lib-lsp.el
+</tool.toolu_01CCCRz6QA5Pb8TJHzoc8tTx>
+
+### original_content
+
+<tool.toolu_01CCCRz6QA5Pb8TJHzoc8tTx>
+(format "Workspace symbols for query '%s'%s (%d found%s):\n%s"
+                  query
+                  (if symbol-type (format " (type: %s)" symbol-type) "")
+                  (length filtered-symbols)
+                  (if (and max-results (> (length filtered-symbols) max-results))
+                      (format ", showing first %d" max-results)
+                    "")
+                  result-text)
+</tool.toolu_01CCCRz6QA5Pb8TJHzoc8tTx>
+
+### new_content
+
+<tool.toolu_01CCCRz6QA5Pb8TJHzoc8tTx>
+(substring-no-properties
+                  (format "Workspace symbols for query '%s'%s (%d found%s):\n%s"
+                          query
+                          (if symbol-type (format " (type: %s)" symbol-type) "")
+                          (length filtered-symbols)
+                          (if (and max-results (> (length filtered-symbols) max-results))
+                              (format ", showing first %d" max-results)
+                            "")
+                          result-text))
+</tool.toolu_01CCCRz6QA5Pb8TJHzoc8tTx>
+
+### git_commit_message
+
+<tool.toolu_01CCCRz6QA5Pb8TJHzoc8tTx>
+Remove text properties from workspace symbols result
+</tool.toolu_01CCCRz6QA5Pb8TJHzoc8tTx>
+
+<!-- TOOL_RESULT_PLACEHOLDER_toolu_01CCCRz6QA5Pb8TJHzoc8tTx -->
