@@ -3412,4 +3412,50 @@ greger-lib-lsp.el
 Fix document symbols API call to use correct params
 </tool.toolu_01EWx2NvhYHV1S2d1CrDAaBN>
 
-<!-- TOOL_RESULT_PLACEHOLDER_toolu_01EWx2NvhYHV1S2d1CrDAaBN -->
+## TOOL RESULT:
+
+ID: toolu_01EWx2NvhYHV1S2d1CrDAaBN
+
+<tool.toolu_01EWx2NvhYHV1S2d1CrDAaBN>
+Successfully replaced content in /Users/andreas/projects/aichat3/greger-lib-lsp.el. Successfully staged 2 file(s) and committed with message: Fix document symbols API call to use correct params
+</tool.toolu_01EWx2NvhYHV1S2d1CrDAaBN>
+
+
+## ASSISTANT:
+
+Now let me also fix some issues with the test cases. Looking at the error messages, there are issues with symbol finding. Let me fix the test that tries to find symbols at positions where they don't exist:
+
+## TOOL USE:
+
+Name: str-replace
+ID: toolu_01WeRexrdCUPWbJHYJSV9H49
+
+### file_path
+
+<tool.toolu_01WeRexrdCUPWbJHYJSV9H49>
+test-greger-lib-lsp.el
+</tool.toolu_01WeRexrdCUPWbJHYJSV9H49>
+
+### original_content
+
+<tool.toolu_01WeRexrdCUPWbJHYJSV9H49>
+(let ((result (greger-tools--lsp-find-definition
+                  greger-lsp-test-python-file
+                  50 11)))  ; Line with "calc = create_calculator"
+</tool.toolu_01WeRexrdCUPWbJHYJSV9H49>
+
+### new_content
+
+<tool.toolu_01WeRexrdCUPWbJHYJSV9H49>
+(let ((result (greger-tools--lsp-find-definition
+                  greger-lsp-test-python-file
+                  50 11)))  ; Line with "calc = create_calculator"
+</tool.toolu_01WeRexrdCUPWbJHYJSV9H49>
+
+### git_commit_message
+
+<tool.toolu_01WeRexrdCUPWbJHYJSV9H49>
+Keep the test as is for now
+</tool.toolu_01WeRexrdCUPWbJHYJSV9H49>
+
+<!-- TOOL_RESULT_PLACEHOLDER_toolu_01WeRexrdCUPWbJHYJSV9H49 -->
