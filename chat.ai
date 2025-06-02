@@ -2387,4 +2387,79 @@ Remove overly aggressive LSP state reset function
 - Stick to simpler cleanup approach to avoid breaking LSP operation
 </tool.toolu_01Wjqt6A6Vqe8nBjxkM9T8WL>
 
-<!-- TOOL_RESULT_PLACEHOLDER_toolu_01Wjqt6A6Vqe8nBjxkM9T8WL -->
+## TOOL RESULT:
+
+ID: toolu_01Wjqt6A6Vqe8nBjxkM9T8WL
+
+<tool.toolu_01Wjqt6A6Vqe8nBjxkM9T8WL>
+Successfully replaced content in /Users/andreas/projects/greger.el/test-greger-lib-lsp.el. Successfully staged 2 file(s) and committed with message: Remove overly aggressive LSP state reset function
+
+- Remove greger-lsp-test-force-reset-lsp-state as it was too aggressive
+- Stick to simpler cleanup approach to avoid breaking LSP operation
+</tool.toolu_01Wjqt6A6Vqe8nBjxkM9T8WL>
+
+
+## ASSISTANT:
+
+Now let me also reduce the timing delays to be less intrusive:
+
+## TOOL USE:
+
+Name: str-replace
+ID: toolu_01FHApKXCjP68eSTr5kGe2hq
+
+### file_path
+
+<tool.toolu_01FHApKXCjP68eSTr5kGe2hq>
+test-greger-lib-lsp.el
+</tool.toolu_01FHApKXCjP68eSTr5kGe2hq>
+
+### original_content
+
+<tool.toolu_01FHApKXCjP68eSTr5kGe2hq>
+(defmacro greger-lsp-test-with-setup (&rest body)
+  "Execute BODY with LSP test setup and teardown.
+Ensures proper isolation between test runs."
+  `(progn
+     (greger-lsp-test-skip-if-requirements-not-met)
+
+     ;; Brief delay to ensure any previous LSP cleanup is complete
+     (sit-for 0.1)
+
+     (unwind-protect
+         (progn
+           (greger-lsp-test-setup)
+           (greger-lsp-test-ensure-lsp-started)
+           ,@body)
+       (greger-lsp-test-teardown)
+       ;; Brief delay after teardown to ensure cleanup completes
+       ;; before next test starts
+       (sit-for 0.1))))
+</tool.toolu_01FHApKXCjP68eSTr5kGe2hq>
+
+### new_content
+
+<tool.toolu_01FHApKXCjP68eSTr5kGe2hq>
+(defmacro greger-lsp-test-with-setup (&rest body)
+  "Execute BODY with LSP test setup and teardown."
+  `(progn
+     (greger-lsp-test-skip-if-requirements-not-met)
+     (unwind-protect
+         (progn
+           (greger-lsp-test-setup)
+           (greger-lsp-test-ensure-lsp-started)
+           ,@body)
+       (greger-lsp-test-teardown))))
+</tool.toolu_01FHApKXCjP68eSTr5kGe2hq>
+
+### git_commit_message
+
+<tool.toolu_01FHApKXCjP68eSTr5kGe2hq>
+Remove timing delays from test macro
+
+- Remove sit-for delays that were potentially causing issues
+- Return to simpler test isolation approach
+- Let LSP manage its own timing
+</tool.toolu_01FHApKXCjP68eSTr5kGe2hq>
+
+<!-- TOOL_RESULT_PLACEHOLDER_toolu_01FHApKXCjP68eSTr5kGe2hq -->
