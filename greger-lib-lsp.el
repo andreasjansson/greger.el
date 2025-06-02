@@ -295,7 +295,7 @@ If HIERARCHICAL is true, format with indentation to show structure."
             (error "LSP server does not support go-to-definition"))
 
           (let* ((symbol-info (condition-case nil
-                                  (thing-at-point 'symbol)
+                                  (substring-no-properties (or (thing-at-point 'symbol) "unknown"))
                                 (error "unknown")))
                  (locations (let ((lsp-response-timeout 10)) ; Shorter timeout for tests
                               (lsp-request "textDocument/definition"

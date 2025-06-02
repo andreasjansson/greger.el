@@ -9343,4 +9343,50 @@ greger-lib-lsp.el
 Remove text properties from find-definition result
 </tool.toolu_01HgQJU1VU3W9Ur6nseE2oEC>
 
-<!-- TOOL_RESULT_PLACEHOLDER_toolu_01HgQJU1VU3W9Ur6nseE2oEC -->
+## TOOL RESULT:
+
+ID: toolu_01HgQJU1VU3W9Ur6nseE2oEC
+
+<tool.toolu_01HgQJU1VU3W9Ur6nseE2oEC>
+Successfully replaced content in /Users/andreas/projects/greger.el/greger-lib-lsp.el. Successfully staged 2 file(s) and committed with message: Remove text properties from find-definition result
+</tool.toolu_01HgQJU1VU3W9Ur6nseE2oEC>
+
+
+## ASSISTANT:
+
+And fix the symbol-info there too:
+
+## TOOL USE:
+
+Name: str-replace
+ID: toolu_014ezS5J9vBUMnJhpFx2oVwP
+
+### file_path
+
+<tool.toolu_014ezS5J9vBUMnJhpFx2oVwP>
+greger-lib-lsp.el
+</tool.toolu_014ezS5J9vBUMnJhpFx2oVwP>
+
+### original_content
+
+<tool.toolu_014ezS5J9vBUMnJhpFx2oVwP>
+(let* ((symbol-info (condition-case nil
+                                  (thing-at-point 'symbol)
+                                (error "unknown")))
+</tool.toolu_014ezS5J9vBUMnJhpFx2oVwP>
+
+### new_content
+
+<tool.toolu_014ezS5J9vBUMnJhpFx2oVwP>
+(let* ((symbol-info (condition-case nil
+                                  (substring-no-properties (or (thing-at-point 'symbol) "unknown"))
+                                (error "unknown")))
+</tool.toolu_014ezS5J9vBUMnJhpFx2oVwP>
+
+### git_commit_message
+
+<tool.toolu_014ezS5J9vBUMnJhpFx2oVwP>
+Remove text properties from symbol-info in find-definition
+</tool.toolu_014ezS5J9vBUMnJhpFx2oVwP>
+
+<!-- TOOL_RESULT_PLACEHOLDER_toolu_014ezS5J9vBUMnJhpFx2oVwP -->
