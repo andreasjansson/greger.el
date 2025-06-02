@@ -4867,4 +4867,329 @@ greger-lib-lsp.el
 Fix workspace symbols variable reference
 </tool.toolu_01KKB8kqtvDDjabnpRYmKRvh>
 
-<!-- TOOL_RESULT_PLACEHOLDER_toolu_01KKB8kqtvDDjabnpRYmKRvh -->
+## TOOL RESULT:
+
+ID: toolu_01KKB8kqtvDDjabnpRYmKRvh
+
+<tool.toolu_01KKB8kqtvDDjabnpRYmKRvh>
+Successfully replaced content in /Users/andreas/projects/aichat3/greger-lib-lsp.el. Successfully staged 2 file(s) and committed with message: Fix workspace symbols variable reference
+</tool.toolu_01KKB8kqtvDDjabnpRYmKRvh>
+
+
+## ASSISTANT:
+
+Now let me fix the document symbols issue. The error suggests that the LSP server is returning a different format than expected. Let me check how to handle both formats:
+
+## TOOL USE:
+
+Name: read-file
+ID: toolu_01XnDAGcYMkzLaxm3ubBbifL
+
+### path
+
+<tool.toolu_01XnDAGcYMkzLaxm3ubBbifL>
+~/.emacs.d/elpa/lsp-mode-20231118.1818/lsp-mode.el
+</tool.toolu_01XnDAGcYMkzLaxm3ubBbifL>
+
+### start_line
+
+<tool.toolu_01XnDAGcYMkzLaxm3ubBbifL>
+6190
+</tool.toolu_01XnDAGcYMkzLaxm3ubBbifL>
+
+### end_line
+
+<tool.toolu_01XnDAGcYMkzLaxm3ubBbifL>
+6220
+</tool.toolu_01XnDAGcYMkzLaxm3ubBbifL>
+
+### include_line_numbers
+
+<tool.toolu_01XnDAGcYMkzLaxm3ubBbifL>
+true
+</tool.toolu_01XnDAGcYMkzLaxm3ubBbifL>
+
+## TOOL RESULT:
+
+ID: toolu_01XnDAGcYMkzLaxm3ubBbifL
+
+<tool.toolu_01XnDAGcYMkzLaxm3ubBbifL>
+6190:       lsp--document-symbols
+6191:     (let ((method "textDocument/documentSymbol")
+6192:           (params `(:textDocument ,(lsp--text-document-identifier)))
+6193:           (tick (buffer-chars-modified-tick)))
+6194:       (if (not lsp--document-symbols-request-async)
+6195:           (prog1
+6196:               (setq lsp--document-symbols (lsp-request method params))
+6197:             (setq lsp--document-symbols-tick tick))
+6198:         (lsp-request-async method params
+6199:                            (lambda (document-symbols)
+6200:                              (setq lsp--document-symbols document-symbols
+6201:                                    lsp--document-symbols-tick tick)
+6202:                              (lsp--imenu-refresh))
+6203:                            :mode 'alive
+6204:                            :cancel-token :document-symbols)
+6205:         lsp--document-symbols))))
+6206:
+6207: (advice-add 'imenu-update-menubar :around
+6208:             (lambda (oldfun &rest r)
+6209:               (let ((lsp--document-symbols-request-async t))
+6210:                 (apply oldfun r))))
+6211:
+6212: (defun lsp--document-symbols->document-symbols-hierarchy (document-symbols current-position)
+6213:   "Convert DOCUMENT-SYMBOLS to symbols hierarchy on CURRENT-POSITION."
+6214:   (-let (((symbol &as &DocumentSymbol? :children?)
+6215:           (seq-find (-lambda ((&DocumentSymbol :range))
+6216:                       (lsp-point-in-range? current-position range))
+6217:                     document-symbols)))
+6218:     (if children?
+6219:         (cons symbol (lsp--document-symbols->document-symbols-hierarchy children? current-position))
+6220:       (when symbol
+</tool.toolu_01XnDAGcYMkzLaxm3ubBbifL>
+
+## ASSISTANT:
+
+I can see that the LSP server can return either `DocumentSymbol` or `SymbolInformation`. Let me check how the existing code handles this:
+
+## TOOL USE:
+
+Name: ripgrep
+ID: toolu_01WF4vvNVB2ry8j5DXjmqpdx
+
+### pattern
+
+<tool.toolu_01WF4vvNVB2ry8j5DXjmqpdx>
+DocumentSymbol\?.*SymbolInformation"
+</tool.toolu_01WF4vvNVB2ry8j5DXjmqpdx>
+
+### path
+
+<tool.toolu_01WF4vvNVB2ry8j5DXjmqpdx>
+~/.emacs.d/elpa/lsp-mode-20231118.1818
+</tool.toolu_01WF4vvNVB2ry8j5DXjmqpdx>
+
+### context-lines
+
+<tool.toolu_01WF4vvNVB2ry8j5DXjmqpdx>
+3
+</tool.toolu_01WF4vvNVB2ry8j5DXjmqpdx>
+
+## TOOL RESULT:
+
+ID: toolu_01WF4vvNVB2ry8j5DXjmqpdx
+
+<tool.toolu_01WF4vvNVB2ry8j5DXjmqpdx>
+Failed to execute ripgrep search: Command failed with exit code 1: (no output)
+</tool.toolu_01WF4vvNVB2ry8j5DXjmqpdx>
+
+## TOOL USE:
+
+Name: ripgrep
+ID: toolu_01CFpKuzwM6UMRdDys8apto7
+
+### pattern
+
+<tool.toolu_01CFpKuzwM6UMRdDys8apto7>
+SymbolInformation"
+</tool.toolu_01CFpKuzwM6UMRdDys8apto7>
+
+### path
+
+<tool.toolu_01CFpKuzwM6UMRdDys8apto7>
+~/.emacs.d/elpa/lsp-mode-20231118.1818
+</tool.toolu_01CFpKuzwM6UMRdDys8apto7>
+
+### context-lines
+
+<tool.toolu_01CFpKuzwM6UMRdDys8apto7>
+2
+</tool.toolu_01CFpKuzwM6UMRdDys8apto7>
+
+### max-results
+
+<tool.toolu_01CFpKuzwM6UMRdDys8apto7>
+5
+</tool.toolu_01CFpKuzwM6UMRdDys8apto7>
+
+## TOOL RESULT:
+
+ID: toolu_01CFpKuzwM6UMRdDys8apto7
+
+<tool.toolu_01CFpKuzwM6UMRdDys8apto7>
+Failed to execute ripgrep search: Command failed with exit code 1: (no output)
+</tool.toolu_01CFpKuzwM6UMRdDys8apto7>
+
+## ASSISTANT:
+
+Let me look at how lsp-mode handles document symbols:
+
+## TOOL USE:
+
+Name: ripgrep
+ID: toolu_01Y45YPRPg2rMd8jB3LvDa2X
+
+### pattern
+
+<tool.toolu_01Y45YPRPg2rMd8jB3LvDa2X>
+document-symbol.*name"
+</tool.toolu_01Y45YPRPg2rMd8jB3LvDa2X>
+
+### path
+
+<tool.toolu_01Y45YPRPg2rMd8jB3LvDa2X>
+~/.emacs.d/elpa/lsp-mode-20231118.1818
+</tool.toolu_01Y45YPRPg2rMd8jB3LvDa2X>
+
+### context-lines
+
+<tool.toolu_01Y45YPRPg2rMd8jB3LvDa2X>
+2
+</tool.toolu_01Y45YPRPg2rMd8jB3LvDa2X>
+
+### max-results
+
+<tool.toolu_01Y45YPRPg2rMd8jB3LvDa2X>
+3
+</tool.toolu_01Y45YPRPg2rMd8jB3LvDa2X>
+
+## TOOL RESULT:
+
+ID: toolu_01Y45YPRPg2rMd8jB3LvDa2X
+
+<tool.toolu_01Y45YPRPg2rMd8jB3LvDa2X>
+Failed to execute ripgrep search: Command failed with exit code 1: (no output)
+</tool.toolu_01Y45YPRPg2rMd8jB3LvDa2X>
+
+## ASSISTANT:
+
+Let me check how the current code handles symbol names:
+
+## TOOL USE:
+
+Name: read-file
+ID: toolu_01CcETnTDxKh7XBLGkXhntP8
+
+### path
+
+<tool.toolu_01CcETnTDxKh7XBLGkXhntP8>
+greger-lib-lsp.el
+</tool.toolu_01CcETnTDxKh7XBLGkXhntP8>
+
+### start_line
+
+<tool.toolu_01CcETnTDxKh7XBLGkXhntP8>
+160
+</tool.toolu_01CcETnTDxKh7XBLGkXhntP8>
+
+### end_line
+
+<tool.toolu_01CcETnTDxKh7XBLGkXhntP8>
+180
+</tool.toolu_01CcETnTDxKh7XBLGkXhntP8>
+
+### include_line_numbers
+
+<tool.toolu_01CcETnTDxKh7XBLGkXhntP8>
+true
+</tool.toolu_01CcETnTDxKh7XBLGkXhntP8>
+
+## TOOL RESULT:
+
+ID: toolu_01CcETnTDxKh7XBLGkXhntP8
+
+<tool.toolu_01CcETnTDxKh7XBLGkXhntP8>
+160:             name
+161:             kind-name
+162:             formatted-location
+163:             (if container (format " (in %s)" container) ""))))
+164:
+165: (defun greger-lsp--format-document-symbol (symbol &optional indent)
+166:   "Format a single LSP document SYMBOL for display with optional INDENT."
+167:   (let* ((name (if (lsp:document-symbol-name symbol)
+168:                    (lsp:document-symbol-name symbol)
+169:                  (lsp:symbol-information-name symbol)))
+170:          (kind (if (lsp:document-symbol-kind symbol)
+171:                    (lsp:document-symbol-kind symbol)
+172:                  (lsp:symbol-information-kind symbol)))
+173:          (kind-name (alist-get kind lsp-symbol-kinds "Unknown"))
+174:          (range (if (lsp:document-symbol-range symbol)
+175:                     (lsp:document-symbol-range symbol)
+176:                   (lsp:range (lsp:location-range
+177:                              (lsp:symbol-information-location symbol)))))
+178:          (start (lsp:range-start range))
+179:          (line (1+ (lsp:position-line start)))
+180:          (indent-str (make-string (or indent 0) ?\s)))
+</tool.toolu_01CcETnTDxKh7XBLGkXhntP8>
+
+## ASSISTANT:
+
+This looks like it should handle both formats correctly. The issue might be that the LSP server is returning something unexpected. Let me add some debugging and error handling to the functions:
+
+## TOOL USE:
+
+Name: str-replace
+ID: toolu_01PNwirFVCsoGUg9rum6zo1o
+
+### file_path
+
+<tool.toolu_01PNwirFVCsoGUg9rum6zo1o>
+greger-lib-lsp.el
+</tool.toolu_01PNwirFVCsoGUg9rum6zo1o>
+
+### original_content
+
+<tool.toolu_01PNwirFVCsoGUg9rum6zo1o>
+(defun greger-lsp--format-document-symbol (symbol &optional indent)
+  "Format a single LSP document SYMBOL for display with optional INDENT."
+  (let* ((name (if (lsp:document-symbol-name symbol)
+                   (lsp:document-symbol-name symbol)
+                 (lsp:symbol-information-name symbol)))
+         (kind (if (lsp:document-symbol-kind symbol)
+                   (lsp:document-symbol-kind symbol)
+                 (lsp:symbol-information-kind symbol)))
+         (kind-name (alist-get kind lsp-symbol-kinds "Unknown"))
+         (range (if (lsp:document-symbol-range symbol)
+                    (lsp:document-symbol-range symbol)
+                  (lsp:range (lsp:location-range
+                             (lsp:symbol-information-location symbol)))))
+         (start (lsp:range-start range))
+         (line (1+ (lsp:position-line start)))
+         (indent-str (make-string (or indent 0) ?\s)))
+    (format "%s%s [%s] (line %d)" indent-str name kind-name line)))
+</tool.toolu_01PNwirFVCsoGUg9rum6zo1o>
+
+### new_content
+
+<tool.toolu_01PNwirFVCsoGUg9rum6zo1o>
+(defun greger-lsp--format-document-symbol (symbol &optional indent)
+  "Format a single LSP document SYMBOL for display with optional INDENT."
+  (condition-case err
+      (let* ((name (cond
+                    ((lsp:document-symbol-name? symbol) (lsp:document-symbol-name symbol))
+                    ((lsp:symbol-information-name? symbol) (lsp:symbol-information-name symbol))
+                    (t (format "unknown-%s" symbol))))
+             (kind (cond
+                    ((lsp:document-symbol-kind? symbol) (lsp:document-symbol-kind symbol))
+                    ((lsp:symbol-information-kind? symbol) (lsp:symbol-information-kind symbol))
+                    (t 1))) ; Default to File kind
+             (kind-name (alist-get kind lsp-symbol-kinds "Unknown"))
+             (range (cond
+                     ((lsp:document-symbol-range? symbol) (lsp:document-symbol-range symbol))
+                     ((lsp:symbol-information-location? symbol)
+                      (lsp:location-range (lsp:symbol-information-location symbol)))
+                     (t nil)))
+             (line (if range
+                       (1+ (lsp:position-line (lsp:range-start range)))
+                     0))
+             (indent-str (make-string (or indent 0) ?\s)))
+        (format "%s%s [%s] (line %d)" indent-str name kind-name line))
+    (error (format "Error formatting symbol %s: %s" symbol (error-message-string err)))))
+</tool.toolu_01PNwirFVCsoGUg9rum6zo1o>
+
+### git_commit_message
+
+<tool.toolu_01PNwirFVCsoGUg9rum6zo1o>
+Add robust error handling to document symbol formatting
+</tool.toolu_01PNwirFVCsoGUg9rum6zo1o>
+
+<!-- TOOL_RESULT_PLACEHOLDER_toolu_01PNwirFVCsoGUg9rum6zo1o -->

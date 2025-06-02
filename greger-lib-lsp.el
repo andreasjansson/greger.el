@@ -164,21 +164,27 @@ LINE is 1-based, COLUMN is 0-based."
 
 (defun greger-lsp--format-document-symbol (symbol &optional indent)
   "Format a single LSP document SYMBOL for display with optional INDENT."
-  (let* ((name (if (lsp:document-symbol-name symbol)
-                   (lsp:document-symbol-name symbol)
-                 (lsp:symbol-information-name symbol)))
-         (kind (if (lsp:document-symbol-kind symbol)
-                   (lsp:document-symbol-kind symbol)
-                 (lsp:symbol-information-kind symbol)))
-         (kind-name (alist-get kind lsp-symbol-kinds "Unknown"))
-         (range (if (lsp:document-symbol-range symbol)
-                    (lsp:document-symbol-range symbol)
-                  (lsp:range (lsp:location-range
-                             (lsp:symbol-information-location symbol)))))
-         (start (lsp:range-start range))
-         (line (1+ (lsp:position-line start)))
-         (indent-str (make-string (or indent 0) ?\s)))
-    (format "%s%s [%s] (line %d)" indent-str name kind-name line)))
+  (condition-case err
+      (let* ((name (cond
+                    ((lsp:document-symbol-name? symbol) (lsp:document-symbol-name symbol))
+                    ((lsp:symbol-information-name? symbol) (lsp:symbol-information-name symbol))
+                    (t (format "unknown-%s" symbol))))
+             (kind (cond
+                    ((lsp:document-symbol-kind? symbol) (lsp:document-symbol-kind symbol))
+                    ((lsp:symbol-information-kind? symbol) (lsp:symbol-information-kind symbol))
+                    (t 1))) ; Default to File kind
+             (kind-name (alist-get kind lsp-symbol-kinds "Unknown"))
+             (range (cond
+                     ((lsp:document-symbol-range? symbol) (lsp:document-symbol-range symbol))
+                     ((lsp:symbol-information-location? symbol)
+                      (lsp:location-range (lsp:symbol-information-location symbol)))
+                     (t nil)))
+             (line (if range
+                       (1+ (lsp:position-line (lsp:range-start range)))
+                     0))
+             (indent-str (make-string (or indent 0) ?\s)))
+        (format "%s%s [%s] (line %d)" indent-str name kind-name line))
+    (error (format "Error formatting symbol %s: %s" symbol (error-message-string err)))))
 
 (defun greger-lsp--format-document-symbols (symbols &optional hierarchical indent)
   "Format a list of LSP document SYMBOLS for display.
