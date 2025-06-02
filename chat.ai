@@ -7321,4 +7321,57 @@ test-greger-lib-lsp.el
 Fix cross-file references test to use correct line number (9)
 </tool.toolu_0171HrctZ6RfBBQ3R4AmkDr9>
 
-<!-- TOOL_RESULT_PLACEHOLDER_toolu_0171HrctZ6RfBBQ3R4AmkDr9 -->
+## TOOL RESULT:
+
+ID: toolu_0171HrctZ6RfBBQ3R4AmkDr9
+
+<tool.toolu_0171HrctZ6RfBBQ3R4AmkDr9>
+Successfully replaced content in /Users/andreas/projects/aichat3/test-greger-lib-lsp.el. Successfully staged 2 file(s) and committed with message: Fix cross-file references test to use correct line number (9)
+</tool.toolu_0171HrctZ6RfBBQ3R4AmkDr9>
+
+
+## ASSISTANT:
+
+Now let me fix all the other tests with the correct line numbers. Looking at the file:
+
+- Line 9: `class Calculator:`
+- Line 33: `def create_calculator(precision: Optional[int] = None) -> Calculator:`
+- Line 41: `def main():`
+- Line 43: `calc = create_calculator(3)`
+
+## TOOL USE:
+
+Name: str-replace
+ID: toolu_01Df55XJDxf6gx9S4S5wau1i
+
+### file_path
+
+<tool.toolu_01Df55XJDxf6gx9S4S5wau1i>
+test-greger-lib-lsp.el
+</tool.toolu_01Df55XJDxf6gx9S4S5wau1i>
+
+### original_content
+
+<tool.toolu_01Df55XJDxf6gx9S4S5wau1i>
+;; Find definition of Calculator usage
+   (let ((result (greger-tools--lsp-find-definition
+                  greger-lsp-test-python-file
+                  90 11)))  ; Line with "calc = create_calculator"
+</tool.toolu_01Df55XJDxf6gx9S4S5wau1i>
+
+### new_content
+
+<tool.toolu_01Df55XJDxf6gx9S4S5wau1i>
+;; Find definition of create_calculator usage
+   (let ((result (greger-tools--lsp-find-definition
+                  greger-lsp-test-python-file
+                  43 11)))  ; Line 43: "calc = create_calculator(3)", position at "create_calculator"
+</tool.toolu_01Df55XJDxf6gx9S4S5wau1i>
+
+### git_commit_message
+
+<tool.toolu_01Df55XJDxf6gx9S4S5wau1i>
+Fix find-definition test to use correct line number (43)
+</tool.toolu_01Df55XJDxf6gx9S4S5wau1i>
+
+<!-- TOOL_RESULT_PLACEHOLDER_toolu_01Df55XJDxf6gx9S4S5wau1i -->

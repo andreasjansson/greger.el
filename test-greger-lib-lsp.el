@@ -336,10 +336,10 @@ description = \"Test project for greger LSP tools\"
 (ert-deftest greger-lsp-test-find-definition ()
   "Test finding symbol definition."
   (greger-lsp-test-with-setup
-   ;; Find definition of Calculator usage
+   ;; Find definition of create_calculator usage
    (let ((result (greger-tools--lsp-find-definition
                   greger-lsp-test-python-file
-                  90 11)))  ; Line with "calc = create_calculator"
+                  43 11)))  ; Line 43: "calc = create_calculator(3)", position at "create_calculator"
      (should (stringp result))
      (should (string-match-p "Definition.*create_calculator" result))
      (should (string-match-p "main.py:" result)))))
