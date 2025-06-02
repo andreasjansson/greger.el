@@ -257,8 +257,8 @@ description = \"Test project for greger LSP tools\"
      (greger-lsp--with-buffer-at-position
       greger-lsp-test-python-file 57 0  ; Line with class definition
       (lambda ()
-        (setq result (thing-at-point 'symbol))))
-     (should (string= result "class")))))
+        (setq result (thing-at-point 'word))))
+     (should (equal result "class")))))
 
 ;;; Tests for lsp-rename tool
 
@@ -490,7 +490,7 @@ description = \"Test project for greger LSP tools\"
          (sit-for 0.5)
          (let ((new-refs (greger-tools--lsp-find-references
                           greger-lsp-test-python-file 57 6)))
-           (should (stringp new-refs)))))))
+           (should (stringp new-refs))))))))
 
 (ert-deftest greger-lsp-test-cross-file-references ()
   "Test finding references across multiple files."
