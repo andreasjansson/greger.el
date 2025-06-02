@@ -372,7 +372,7 @@ If HIERARCHICAL is true, format with indentation to show structure."
                ;; Limit results if specified
                (limited-symbols (if max-results
                                   (seq-take filtered-symbols max-results)
-                                symbols))
+                                filtered-symbols))
                (result-text (if (null limited-symbols)
                               "No symbols found"
                             (mapconcat #'greger-lsp--format-symbol limited-symbols "\n"))))
