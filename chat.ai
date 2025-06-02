@@ -905,4 +905,79 @@ Improve LSP test setup to clean up leftover workspaces
 - This ensures a cleaner starting state for each test
 </tool.toolu_019VKT73QagyeNLacVcxhUTh>
 
-<!-- TOOL_RESULT_PLACEHOLDER_toolu_019VKT73QagyeNLacVcxhUTh -->
+## TOOL RESULT:
+
+ID: toolu_019VKT73QagyeNLacVcxhUTh
+
+<tool.toolu_019VKT73QagyeNLacVcxhUTh>
+Successfully replaced content in /Users/andreas/projects/greger.el/test-greger-lib-lsp.el. Successfully staged 2 file(s) and committed with message: Improve LSP test setup to clean up leftover workspaces
+
+- Also remove any leftover LSP workspaces from previous test runs in /tmp
+- This ensures a cleaner starting state for each test
+</tool.toolu_019VKT73QagyeNLacVcxhUTh>
+
+
+## ASSISTANT:
+
+Now let me also add a small improvement to the macro to ensure better state isolation and add a delay between test runs:
+
+## TOOL USE:
+
+Name: str-replace
+ID: toolu_01HmWHCwMuJqmzBaWydMBohs
+
+### file_path
+
+<tool.toolu_01HmWHCwMuJqmzBaWydMBohs>
+test-greger-lib-lsp.el
+</tool.toolu_01HmWHCwMuJqmzBaWydMBohs>
+
+### original_content
+
+<tool.toolu_01HmWHCwMuJqmzBaWydMBohs>
+(defmacro greger-lsp-test-with-setup (&rest body)
+  "Execute BODY with LSP test setup and teardown."
+  `(progn
+     (greger-lsp-test-skip-if-requirements-not-met)
+     (unwind-protect
+         (progn
+           (greger-lsp-test-setup)
+           (greger-lsp-test-ensure-lsp-started)
+           ,@body)
+       (greger-lsp-test-teardown))))
+</tool.toolu_01HmWHCwMuJqmzBaWydMBohs>
+
+### new_content
+
+<tool.toolu_01HmWHCwMuJqmzBaWydMBohs>
+(defmacro greger-lsp-test-with-setup (&rest body)
+  "Execute BODY with LSP test setup and teardown.
+Ensures proper isolation between test runs."
+  `(progn
+     (greger-lsp-test-skip-if-requirements-not-met)
+
+     ;; Brief delay to ensure any previous LSP cleanup is complete
+     (sit-for 0.1)
+
+     (unwind-protect
+         (progn
+           (greger-lsp-test-setup)
+           (greger-lsp-test-ensure-lsp-started)
+           ,@body)
+       (greger-lsp-test-teardown)
+       ;; Brief delay after teardown to ensure cleanup completes
+       ;; before next test starts
+       (sit-for 0.1))))
+</tool.toolu_01HmWHCwMuJqmzBaWydMBohs>
+
+### git_commit_message
+
+<tool.toolu_01HmWHCwMuJqmzBaWydMBohs>
+Add timing delays to test macro for better LSP state isolation
+
+- Add brief delay before setup to ensure previous cleanup is complete
+- Add brief delay after teardown to ensure cleanup completes before next test
+- This should help prevent timing-related test failures
+</tool.toolu_01HmWHCwMuJqmzBaWydMBohs>
+
+<!-- TOOL_RESULT_PLACEHOLDER_toolu_01HmWHCwMuJqmzBaWydMBohs -->

@@ -257,15 +257,23 @@ description = \"Test project for greger LSP tools\"
 ;;; Helper macros
 
 (defmacro greger-lsp-test-with-setup (&rest body)
-  "Execute BODY with LSP test setup and teardown."
+  "Execute BODY with LSP test setup and teardown.
+Ensures proper isolation between test runs."
   `(progn
      (greger-lsp-test-skip-if-requirements-not-met)
+
+     ;; Brief delay to ensure any previous LSP cleanup is complete
+     (sit-for 0.1)
+
      (unwind-protect
          (progn
            (greger-lsp-test-setup)
            (greger-lsp-test-ensure-lsp-started)
            ,@body)
-       (greger-lsp-test-teardown))))
+       (greger-lsp-test-teardown)
+       ;; Brief delay after teardown to ensure cleanup completes
+       ;; before next test starts
+       (sit-for 0.1))))
 
 ;;; Tests for helper functions
 
