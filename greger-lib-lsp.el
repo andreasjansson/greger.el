@@ -360,6 +360,23 @@ LINE is 1-based, COLUMN is 0-based."
                   "")
                 result-text))))))
 
+(defun greger-lib-lsp--document-symbols (file-paths)
+  "Get document symbols for FILE-PATHS using LSP."
+  (let ((results '()))
+    (dolist (file-path file-paths)
+      (let ((buffer (greger-lsp--ensure-server file-path)))
+        (with-current-buffer buffer
+          (unless (greger-lsp--feature-supported-p "textDocument/documentSymbol")
+            (error "LSP server does not support document symbols"))
+
+          (let* ((symbols (let ((lsp-response-timeout 10))
+                            (lsp--get-document-symbols)))
+                 (formatted (greger-lsp--format-document-symbols symbols file-path)))
+            (push formatted results)))))
+
+    (substring-no-properties
+     (mapconcat #'identity (reverse results) "\n\n"))))
+
 
 (provide 'greger-lib-lsp)
 

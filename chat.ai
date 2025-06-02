@@ -1269,4 +1269,121 @@ greger-lib-lsp.el
 Add helper functions for formatting document symbols
 </tool.toolu_017ocQsj73Kg6KcM67Ppgj9X>
 
-<!-- TOOL_RESULT_PLACEHOLDER_toolu_017ocQsj73Kg6KcM67Ppgj9X -->
+## TOOL RESULT:
+
+ID: toolu_017ocQsj73Kg6KcM67Ppgj9X
+
+<tool.toolu_017ocQsj73Kg6KcM67Ppgj9X>
+Successfully replaced content in /Users/andreas/projects/greger.el/greger-lib-lsp.el. Successfully staged 2 file(s) and committed with message: Add helper functions for formatting document symbols
+</tool.toolu_017ocQsj73Kg6KcM67Ppgj9X>
+
+
+## ASSISTANT:
+
+Now I need to add the main implementation function. Let me find where to add it:
+
+## TOOL USE:
+
+Name: read-file
+ID: toolu_01AJfkJKyRg7HNQYivk5q3TZ
+
+### path
+
+<tool.toolu_01AJfkJKyRg7HNQYivk5q3TZ>
+greger-lib-lsp.el
+</tool.toolu_01AJfkJKyRg7HNQYivk5q3TZ>
+
+### start_line
+
+<tool.toolu_01AJfkJKyRg7HNQYivk5q3TZ>
+350
+</tool.toolu_01AJfkJKyRg7HNQYivk5q3TZ>
+
+### end_line
+
+<tool.toolu_01AJfkJKyRg7HNQYivk5q3TZ>
+370
+</tool.toolu_01AJfkJKyRg7HNQYivk5q3TZ>
+
+## TOOL RESULT:
+
+ID: toolu_01AJfkJKyRg7HNQYivk5q3TZ
+
+<tool.toolu_01AJfkJKyRg7HNQYivk5q3TZ>
+                                   (seq-take locations max-results)
+                                 locations))
+            (result-text (greger-lsp--format-locations limited-locations)))
+
+       (substring-no-properties
+        (format "References for '%s' (%d found%s):\n%s"
+                symbol-info
+                (length locations)
+                (if (and max-results (> (length locations) max-results))
+                    (format ", showing first %d" max-results)
+                  "")
+                result-text))))))
+
+
+(provide 'greger-lib-lsp)
+
+;;; greger-lib-lsp.el ends here
+
+</tool.toolu_01AJfkJKyRg7HNQYivk5q3TZ>
+
+## ASSISTANT:
+
+Let me add the implementation before the provide statement:
+
+## TOOL USE:
+
+Name: str-replace
+ID: toolu_017SvA6Uzy6QybNqnN6jZckm
+
+### file_path
+
+<tool.toolu_017SvA6Uzy6QybNqnN6jZckm>
+greger-lib-lsp.el
+</tool.toolu_017SvA6Uzy6QybNqnN6jZckm>
+
+### original_content
+
+<tool.toolu_017SvA6Uzy6QybNqnN6jZckm>
+                result-text))))))
+
+
+(provide 'greger-lib-lsp)
+</tool.toolu_017SvA6Uzy6QybNqnN6jZckm>
+
+### new_content
+
+<tool.toolu_017SvA6Uzy6QybNqnN6jZckm>
+                result-text))))))
+
+(defun greger-lib-lsp--document-symbols (file-paths)
+  "Get document symbols for FILE-PATHS using LSP."
+  (let ((results '()))
+    (dolist (file-path file-paths)
+      (let ((buffer (greger-lsp--ensure-server file-path)))
+        (with-current-buffer buffer
+          (unless (greger-lsp--feature-supported-p "textDocument/documentSymbol")
+            (error "LSP server does not support document symbols"))
+
+          (let* ((symbols (let ((lsp-response-timeout 10))
+                            (lsp--get-document-symbols)))
+                 (formatted (greger-lsp--format-document-symbols symbols file-path)))
+            (push formatted results)))))
+
+    (substring-no-properties
+     (mapconcat #'identity (reverse results) "\n\n"))))
+
+
+(provide 'greger-lib-lsp)
+</tool.toolu_017SvA6Uzy6QybNqnN6jZckm>
+
+### git_commit_message
+
+<tool.toolu_017SvA6Uzy6QybNqnN6jZckm>
+Add lsp-document-symbols implementation
+</tool.toolu_017SvA6Uzy6QybNqnN6jZckm>
+
+<!-- TOOL_RESULT_PLACEHOLDER_toolu_017SvA6Uzy6QybNqnN6jZckm -->
