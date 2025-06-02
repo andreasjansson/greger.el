@@ -184,9 +184,6 @@ LINE is 1-based, COLUMN is 0-based."
                                                   :position ,(lsp--cur-position)
                                                   :newName ,new-name)))))
 
-       ;; TODO: remove debug
-       (message (format "edits: %s" edits))
-
        (if edits
            (progn
              (lsp--apply-workspace-edit edits 'rename)
