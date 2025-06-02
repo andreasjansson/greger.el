@@ -291,8 +291,10 @@ If HIERARCHICAL is true, format with indentation to show structure."
           (let* ((symbol-info (condition-case nil
                                   (thing-at-point 'symbol)
                                 (error "unknown")))
-                 (locations (lsp-request "textDocument/definition"
-                                       (lsp--text-document-position-params)))
+                 (locations (let ((lsp-response-timeout 10)) ; Shorter timeout for tests
+                              (lsp-request "textDocument/definition"
+                                         `(:textDocument ,(lsp--text-document-identifier)
+                                           :position ,(lsp--cur-position)))))
                  (result-text (greger-lsp--format-locations locations)))
 
             ;; Also get declarations if requested and supported

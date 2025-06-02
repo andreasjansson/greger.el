@@ -6419,4 +6419,56 @@ LINE is 1-based, COLUMN is 0-based."
 Improve position validation with better error messages
 </tool.toolu_019Y3dAUK9X7SjRL6GbFsULZ>
 
-<!-- TOOL_RESULT_PLACEHOLDER_toolu_019Y3dAUK9X7SjRL6GbFsULZ -->
+## TOOL RESULT:
+
+ID: toolu_019Y3dAUK9X7SjRL6GbFsULZ
+
+<tool.toolu_019Y3dAUK9X7SjRL6GbFsULZ>
+Successfully replaced content in /Users/andreas/projects/aichat3/greger-lib-lsp.el. Successfully staged 2 file(s) and committed with message: Improve position validation with better error messages
+</tool.toolu_019Y3dAUK9X7SjRL6GbFsULZ>
+
+
+## ASSISTANT:
+
+Now I need to also fix the find-definition API call since it still has the old API format:
+
+## TOOL USE:
+
+Name: str-replace
+ID: toolu_01EA4F7Lf2TtMHQCSDzJaGZD
+
+### file_path
+
+<tool.toolu_01EA4F7Lf2TtMHQCSDzJaGZD>
+greger-lib-lsp.el
+</tool.toolu_01EA4F7Lf2TtMHQCSDzJaGZD>
+
+### original_content
+
+<tool.toolu_01EA4F7Lf2TtMHQCSDzJaGZD>
+(let* ((symbol-info (condition-case nil
+                                  (thing-at-point 'symbol)
+                                (error "unknown")))
+                 (locations (lsp-request "textDocument/definition"
+                                       (lsp--text-document-position-params)))
+</tool.toolu_01EA4F7Lf2TtMHQCSDzJaGZD>
+
+### new_content
+
+<tool.toolu_01EA4F7Lf2TtMHQCSDzJaGZD>
+(let* ((symbol-info (condition-case nil
+                                  (thing-at-point 'symbol)
+                                (error "unknown")))
+                 (locations (let ((lsp-response-timeout 10)) ; Shorter timeout for tests
+                              (lsp-request "textDocument/definition"
+                                         `(:textDocument ,(lsp--text-document-identifier)
+                                           :position ,(lsp--cur-position)))))
+</tool.toolu_01EA4F7Lf2TtMHQCSDzJaGZD>
+
+### git_commit_message
+
+<tool.toolu_01EA4F7Lf2TtMHQCSDzJaGZD>
+Fix find-definition API and add shorter timeout
+</tool.toolu_01EA4F7Lf2TtMHQCSDzJaGZD>
+
+<!-- TOOL_RESULT_PLACEHOLDER_toolu_01EA4F7Lf2TtMHQCSDzJaGZD -->
