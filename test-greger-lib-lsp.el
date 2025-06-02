@@ -278,7 +278,7 @@ description = \"Test project for greger LSP tools\"
    (let ((result (greger-tools--lsp-rename
                   "MathCalculator"
                   greger-lsp-test-python-file
-                  57 6)))  ; Line with "class Calculator:"
+                  9 6)))  ; Line 9: "class Calculator:", column at "Calculator"
      (should (stringp result))
      (should (string-match-p "Successfully renamed" result))
      (should (string-match-p "Calculator.*MathCalculator" result))
