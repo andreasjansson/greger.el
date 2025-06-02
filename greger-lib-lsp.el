@@ -281,9 +281,10 @@ If HIERARCHICAL is true, format with indentation to show structure."
                 (progn
                   (lsp--apply-text-edits edits 'format)
                   (save-buffer)
+                  (substring-no-properties
                   (format "Successfully formatted %s (%d edit(s) applied)"
                           (file-relative-name file-path)
-                          (length edits)))
+                          (length edits))))
               "No formatting changes needed"))))
     (error (format "LSP format failed: %s" (error-message-string err)))))
 
