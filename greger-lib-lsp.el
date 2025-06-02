@@ -9,6 +9,91 @@
 (require 'lsp-mode)
 (require 'cl-lib)
 
+;;; Tool registrations
+
+(greger-register-tool "lsp-rename"
+  :description "Rename a symbol across the entire codebase using LSP"
+  :properties '((new_name . ((type . "string")
+                            (description . "New name for the symbol")))
+                (file_path . ((type . "string")
+                             (description . "Path to file containing the symbol")))
+                (line . ((type . "integer")
+                        (description . "Line number (1-based) where symbol is located")))
+                (column . ((type . "integer")
+                          (description . "Column number (0-based) where symbol starts"))))
+  :required '("new_name" "file_path" "line" "column")
+  :function 'greger-tools--lsp-rename)
+
+(greger-register-tool "lsp-format"
+  :description "Format code according to language standards using LSP"
+  :properties '((file_path . ((type . "string")
+                             (description . "Path to the file to format")))
+                (start_line . ((type . "integer")
+                              (description . "Start line for range formatting (1-based). If not provided, formats entire file")
+                              (default . nil)))
+                (end_line . ((type . "integer")
+                            (description . "End line for range formatting (1-based). If not provided, formats entire file")
+                            (default . nil))))
+  :required '("file_path")
+  :function 'greger-tools--lsp-format)
+
+(greger-register-tool "lsp-find-definition"
+  :description "Find the definition(s) of a symbol at a specific location"
+  :properties '((file_path . ((type . "string")
+                             (description . "Path to the file")))
+                (line . ((type . "integer")
+                        (description . "Line number (1-based)")))
+                (column . ((type . "integer")
+                          (description . "Column number (0-based)")))
+                (include_declaration . ((type . "boolean")
+                                       (description . "Also include declarations")
+                                       (default . :json-false))))
+  :required '("file_path" "line" "column")
+  :function 'greger-tools--lsp-find-definition)
+
+(greger-register-tool "lsp-find-references"
+  :description "Find all references to a symbol at a specific location"
+  :properties '((file_path . ((type . "string")
+                             (description . "Path to the file")))
+                (line . ((type . "integer")
+                        (description . "Line number (1-based)")))
+                (column . ((type . "integer")
+                          (description . "Column number (0-based)")))
+                (include_declaration . ((type . "boolean")
+                                       (description . "Include the symbol declaration in results")
+                                       (default . :json-true)))
+                (max_results . ((type . "integer")
+                               (description . "Maximum number of references to return")
+                               (default . 100))))
+  :required '("file_path" "line" "column")
+  :function 'greger-tools--lsp-find-references)
+
+(greger-register-tool "lsp-document-symbols"
+  :description "Get all symbols (functions, classes, variables, etc.) in a document"
+  :properties '((file_path . ((type . "string")
+                             (description . "Path to the file")))
+                (symbol_type . ((type . "string")
+                               (description . "Filter by symbol type (Function, Class, Variable, etc.)")
+                               (default . nil)))
+                (hierarchical . ((type . "boolean")
+                                (description . "Return symbols in hierarchical structure")
+                                (default . :json-true))))
+  :required '("file_path")
+  :function 'greger-tools--lsp-document-symbols)
+
+(greger-register-tool "lsp-workspace-symbols"
+  :description "Search for symbols across the entire workspace"
+  :properties '((query . ((type . "string")
+                         (description . "Search query for symbol names")))
+                (max_results . ((type . "integer")
+                               (description . "Maximum number of results")
+                               (default . 50)))
+                (symbol_type . ((type . "string")
+                               (description . "Filter by symbol type (Function, Class, Variable, etc.)")
+                               (default . nil))))
+  :required '("query")
+  :function 'greger-tools--lsp-workspace-symbols)
+
 ;;; Helper functions
 
 (defun greger-lsp--ensure-server (file-path)
@@ -103,10 +188,10 @@ If HIERARCHICAL is true, format with indentation to show structure."
     (mapconcat
      (lambda (symbol)
        (let ((formatted (greger-lsp--format-document-symbol symbol indent)))
-         (if (and hierarchical (lsp:document-symbol-children symbol))
+         (if (and hierarchical (lsp:document-symbol-children? symbol))
              (concat formatted "\n"
                      (greger-lsp--format-document-symbols
-                      (append (lsp:document-symbol-children symbol) nil)
+                      (append (lsp:document-symbol-children? symbol) nil)
                       hierarchical
                       (+ (or indent 0) 2)))
            formatted)))
@@ -304,90 +389,6 @@ If HIERARCHICAL is true, format with indentation to show structure."
                   result-text)))
     (error (format "LSP workspace-symbols failed: %s" (error-message-string err)))))
 
-;;; Tool registrations
-
-(greger-register-tool "lsp-rename"
-  :description "Rename a symbol across the entire codebase using LSP"
-  :properties '((new_name . ((type . "string")
-                            (description . "New name for the symbol")))
-                (file_path . ((type . "string")
-                             (description . "Path to file containing the symbol")))
-                (line . ((type . "integer")
-                        (description . "Line number (1-based) where symbol is located")))
-                (column . ((type . "integer")
-                          (description . "Column number (0-based) where symbol starts"))))
-  :required '("new_name" "file_path" "line" "column")
-  :function 'greger-tools--lsp-rename)
-
-(greger-register-tool "lsp-format"
-  :description "Format code according to language standards using LSP"
-  :properties '((file_path . ((type . "string")
-                             (description . "Path to the file to format")))
-                (start_line . ((type . "integer")
-                              (description . "Start line for range formatting (1-based). If not provided, formats entire file")
-                              (default . nil)))
-                (end_line . ((type . "integer")
-                            (description . "End line for range formatting (1-based). If not provided, formats entire file")
-                            (default . nil))))
-  :required '("file_path")
-  :function 'greger-tools--lsp-format)
-
-(greger-register-tool "lsp-find-definition"
-  :description "Find the definition(s) of a symbol at a specific location"
-  :properties '((file_path . ((type . "string")
-                             (description . "Path to the file")))
-                (line . ((type . "integer")
-                        (description . "Line number (1-based)")))
-                (column . ((type . "integer")
-                          (description . "Column number (0-based)")))
-                (include_declaration . ((type . "boolean")
-                                       (description . "Also include declarations")
-                                       (default . :json-false))))
-  :required '("file_path" "line" "column")
-  :function 'greger-tools--lsp-find-definition)
-
-(greger-register-tool "lsp-find-references"
-  :description "Find all references to a symbol at a specific location"
-  :properties '((file_path . ((type . "string")
-                             (description . "Path to the file")))
-                (line . ((type . "integer")
-                        (description . "Line number (1-based)")))
-                (column . ((type . "integer")
-                          (description . "Column number (0-based)")))
-                (include_declaration . ((type . "boolean")
-                                       (description . "Include the symbol declaration in results")
-                                       (default . :json-true)))
-                (max_results . ((type . "integer")
-                               (description . "Maximum number of references to return")
-                               (default . 100))))
-  :required '("file_path" "line" "column")
-  :function 'greger-tools--lsp-find-references)
-
-(greger-register-tool "lsp-document-symbols"
-  :description "Get all symbols (functions, classes, variables, etc.) in a document"
-  :properties '((file_path . ((type . "string")
-                             (description . "Path to the file")))
-                (symbol_type . ((type . "string")
-                               (description . "Filter by symbol type (Function, Class, Variable, etc.)")
-                               (default . nil)))
-                (hierarchical . ((type . "boolean")
-                                (description . "Return symbols in hierarchical structure")
-                                (default . :json-true))))
-  :required '("file_path")
-  :function 'greger-tools--lsp-document-symbols)
-
-(greger-register-tool "lsp-workspace-symbols"
-  :description "Search for symbols across the entire workspace"
-  :properties '((query . ((type . "string")
-                         (description . "Search query for symbol names")))
-                (max_results . ((type . "integer")
-                               (description . "Maximum number of results")
-                               (default . 50)))
-                (symbol_type . ((type . "string")
-                               (description . "Filter by symbol type (Function, Class, Variable, etc.)")
-                               (default . nil))))
-  :required '("query")
-  :function 'greger-tools--lsp-workspace-symbols)
 
 (provide 'greger-lib-lsp)
 
