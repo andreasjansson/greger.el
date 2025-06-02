@@ -363,7 +363,7 @@ description = \"Test project for greger LSP tools\"
   (greger-lsp-test-with-setup
    (let ((result (greger-tools--lsp-find-references
                   greger-lsp-test-python-file
-                  9 6      ; Calculator class
+                  57 6     ; Calculator class
                   t        ; Include declaration
                   5)))     ; Max 5 results
      (should (stringp result))
