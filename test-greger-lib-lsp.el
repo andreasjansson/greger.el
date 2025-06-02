@@ -248,7 +248,14 @@ description = \"Test project for greger LSP tools\"
      (should (bufferp buffer))
      (with-current-buffer buffer
        (should (bound-and-true-p lsp-mode))
-       (should lsp--buffer-workspaces)))))
+       (should lsp--buffer-workspaces)
+
+       ;; Debug: print file contents with line numbers
+       (message "=== Python file contents ===")
+       (let ((lines (split-string (buffer-string) "\n")))
+         (dotimes (i (length lines))
+           (message "Line %3d: %s" (1+ i) (nth i lines))))
+       (message "=== End file contents ==="))))))
 
 (ert-deftest greger-lsp-test-with-buffer-at-position ()
   "Test executing code at specific buffer position."

@@ -5490,4 +5490,67 @@ test-greger-lib-lsp.el
 Keep file content as is for debugging
 </tool.toolu_01KKYwVNF79SJHSWJdR3t3Qy>
 
-<!-- TOOL_RESULT_PLACEHOLDER_toolu_01KKYwVNF79SJHSWJdR3t3Qy -->
+## TOOL RESULT:
+
+ID: toolu_01KKYwVNF79SJHSWJdR3t3Qy
+
+<tool.toolu_01KKYwVNF79SJHSWJdR3t3Qy>
+Successfully replaced content in /Users/andreas/projects/aichat3/test-greger-lib-lsp.el. Successfully staged 2 file(s) and committed with message: Keep file content as is for debugging
+</tool.toolu_01KKYwVNF79SJHSWJdR3t3Qy>
+
+
+## ASSISTANT:
+
+Actually, let me create a debugging version that will show us what's actually in the file and what line numbers correspond to what. Let me add a test that just prints the file contents with line numbers:
+
+## TOOL USE:
+
+Name: str-replace
+ID: toolu_01B63iN5HMbn7bPTHcHsPb33
+
+### file_path
+
+<tool.toolu_01B63iN5HMbn7bPTHcHsPb33>
+test-greger-lib-lsp.el
+</tool.toolu_01B63iN5HMbn7bPTHcHsPb33>
+
+### original_content
+
+<tool.toolu_01B63iN5HMbn7bPTHcHsPb33>
+(ert-deftest greger-lsp-test-ensure-server ()
+  "Test LSP server initialization helper."
+  (greger-lsp-test-with-setup
+   (let ((buffer (greger-lsp--ensure-server greger-lsp-test-python-file)))
+     (should (bufferp buffer))
+     (with-current-buffer buffer
+       (should (bound-and-true-p lsp-mode))
+       (should lsp--buffer-workspaces)))))
+</tool.toolu_01B63iN5HMbn7bPTHcHsPb33>
+
+### new_content
+
+<tool.toolu_01B63iN5HMbn7bPTHcHsPb33>
+(ert-deftest greger-lsp-test-ensure-server ()
+  "Test LSP server initialization helper."
+  (greger-lsp-test-with-setup
+   (let ((buffer (greger-lsp--ensure-server greger-lsp-test-python-file)))
+     (should (bufferp buffer))
+     (with-current-buffer buffer
+       (should (bound-and-true-p lsp-mode))
+       (should lsp--buffer-workspaces)
+
+       ;; Debug: print file contents with line numbers
+       (message "=== Python file contents ===")
+       (let ((lines (split-string (buffer-string) "\n")))
+         (dotimes (i (length lines))
+           (message "Line %3d: %s" (1+ i) (nth i lines))))
+       (message "=== End file contents ==="))))))
+</tool.toolu_01B63iN5HMbn7bPTHcHsPb33>
+
+### git_commit_message
+
+<tool.toolu_01B63iN5HMbn7bPTHcHsPb33>
+Add debugging to show file contents with line numbers
+</tool.toolu_01B63iN5HMbn7bPTHcHsPb33>
+
+<!-- TOOL_RESULT_PLACEHOLDER_toolu_01B63iN5HMbn7bPTHcHsPb33 -->
