@@ -69,7 +69,7 @@
   :function 'greger-lib-lsp--find-references)
 
 (greger-register-tool "lsp-document-symbols"
-  :description "Get document symbols for one or more files"
+  :description "Get document symbols for one or more files. This is a cheap way to list all the functions in one or more files to get familiar with unseed code."
   :properties '((file_paths . ((type . "array")
                               (items . ((type . "string")))
                               (description . "List of file paths to get symbols for")))
@@ -396,9 +396,14 @@ LINE is 1-based, COLUMN is 0-based."
                 result-text))))))
 
 (defun greger-lib-lsp--document-symbols (file-paths &optional detailed)
-  "Get document symbols for FILE-PATHS using LSP with optional DETAILED flag."
-  (let ((results '()))
-    (dolist (file-path file-paths)
+  "Get document symbols for FILE-PATHS using LSP with optional DETAILED flag.
+FILE-PATHS can be either a list or a vector of file paths."
+  (let ((results '())
+        ;; Convert vector to list if needed
+        (paths (if (vectorp file-paths)
+                   (append file-paths nil)
+                 file-paths)))
+    (dolist (file-path paths)
       (let ((buffer (greger-lsp--ensure-server file-path)))
         (with-current-buffer buffer
           (unless (greger-lsp--feature-supported-p "textDocument/documentSymbol")
