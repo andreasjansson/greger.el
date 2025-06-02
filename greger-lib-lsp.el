@@ -159,6 +159,39 @@ LINE is 1-based, COLUMN is 0-based."
             formatted-location
             (if container (format " (in %s)" container) ""))))
 
+(defun greger-lsp--format-document-symbol (symbol &optional indent-level)
+  "Format a document symbol SYMBOL for display with optional INDENT-LEVEL."
+  (let* ((indent-level (or indent-level 0))
+         (indent (make-string (* indent-level 2) ?\ ))
+         (name (gethash "name" symbol))
+         (kind (gethash "kind" symbol))
+         (kind-name (alist-get kind lsp-symbol-kinds "Unknown"))
+         (range (gethash "range" symbol))
+         (start (gethash "start" range))
+         (line (1+ (gethash "line" start)))
+         (character (gethash "character" start))
+         (children (gethash "children" symbol))
+         (result (format "%s%s [%s] (line %d, col %d)"
+                        indent name kind-name line character)))
+
+    ;; Add children if they exist
+    (when (and children (> (length children) 0))
+      (setq result (concat result "\n"
+                          (mapconcat (lambda (child)
+                                      (greger-lsp--format-document-symbol child (1+ indent-level)))
+                                    children "\n"))))
+    result))
+
+(defun greger-lsp--format-document-symbols (symbols file-path)
+  "Format document SYMBOLS for FILE-PATH as a readable string."
+  (if (or (null symbols) (= (length symbols) 0))
+      (format "No symbols found in %s" (file-relative-name file-path))
+    (format "Symbols in %s:\n%s"
+            (file-relative-name file-path)
+            (mapconcat (lambda (symbol)
+                        (greger-lsp--format-document-symbol symbol))
+                      symbols "\n"))))
+
 ;;; Tool implementations
 
 (defun greger-lib-lsp--rename (new-name file-path line column)

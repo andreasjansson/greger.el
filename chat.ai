@@ -1170,4 +1170,103 @@ greger-lib-lsp.el
 Add lsp-document-symbols tool registration
 </tool.toolu_01EfEPZEgEitjoPewPgybM1W>
 
-<!-- TOOL_RESULT_PLACEHOLDER_toolu_01EfEPZEgEitjoPewPgybM1W -->
+## TOOL RESULT:
+
+ID: toolu_01EfEPZEgEitjoPewPgybM1W
+
+<tool.toolu_01EfEPZEgEitjoPewPgybM1W>
+Successfully replaced content in /Users/andreas/projects/greger.el/greger-lib-lsp.el. Successfully staged 2 file(s) and committed with message: Add lsp-document-symbols tool registration
+</tool.toolu_01EfEPZEgEitjoPewPgybM1W>
+
+
+## ASSISTANT:
+
+Good! Now I need to add the helper function to format the hash table and the implementation function. Let me add the helper function first:
+
+## TOOL USE:
+
+Name: str-replace
+ID: toolu_017ocQsj73Kg6KcM67Ppgj9X
+
+### file_path
+
+<tool.toolu_017ocQsj73Kg6KcM67Ppgj9X>
+greger-lib-lsp.el
+</tool.toolu_017ocQsj73Kg6KcM67Ppgj9X>
+
+### original_content
+
+<tool.toolu_017ocQsj73Kg6KcM67Ppgj9X>
+(defun greger-lsp--format-symbol (symbol)
+  "Format a single LSP SYMBOL for display."
+  (let* ((name (lsp:symbol-information-name symbol))
+         (kind (lsp:symbol-information-kind symbol))
+         (location (lsp:symbol-information-location symbol))
+         (container (lsp:symbol-information-container-name symbol))
+         (kind-name (alist-get kind lsp-symbol-kinds "Unknown"))
+         (formatted-location (greger-lsp--format-location location)))
+    (format "%s [%s] %s%s"
+            name
+            kind-name
+            formatted-location
+            (if container (format " (in %s)" container) ""))))
+</tool.toolu_017ocQsj73Kg6KcM67Ppgj9X>
+
+### new_content
+
+<tool.toolu_017ocQsj73Kg6KcM67Ppgj9X>
+(defun greger-lsp--format-symbol (symbol)
+  "Format a single LSP SYMBOL for display."
+  (let* ((name (lsp:symbol-information-name symbol))
+         (kind (lsp:symbol-information-kind symbol))
+         (location (lsp:symbol-information-location symbol))
+         (container (lsp:symbol-information-container-name symbol))
+         (kind-name (alist-get kind lsp-symbol-kinds "Unknown"))
+         (formatted-location (greger-lsp--format-location location)))
+    (format "%s [%s] %s%s"
+            name
+            kind-name
+            formatted-location
+            (if container (format " (in %s)" container) ""))))
+
+(defun greger-lsp--format-document-symbol (symbol &optional indent-level)
+  "Format a document symbol SYMBOL for display with optional INDENT-LEVEL."
+  (let* ((indent-level (or indent-level 0))
+         (indent (make-string (* indent-level 2) ?\ ))
+         (name (gethash "name" symbol))
+         (kind (gethash "kind" symbol))
+         (kind-name (alist-get kind lsp-symbol-kinds "Unknown"))
+         (range (gethash "range" symbol))
+         (start (gethash "start" range))
+         (line (1+ (gethash "line" start)))
+         (character (gethash "character" start))
+         (children (gethash "children" symbol))
+         (result (format "%s%s [%s] (line %d, col %d)"
+                        indent name kind-name line character)))
+
+    ;; Add children if they exist
+    (when (and children (> (length children) 0))
+      (setq result (concat result "\n"
+                          (mapconcat (lambda (child)
+                                      (greger-lsp--format-document-symbol child (1+ indent-level)))
+                                    children "\n"))))
+    result))
+
+(defun greger-lsp--format-document-symbols (symbols file-path)
+  "Format document SYMBOLS for FILE-PATH as a readable string."
+  (if (or (null symbols) (= (length symbols) 0))
+      (format "No symbols found in %s" (file-relative-name file-path))
+    (format "Symbols in %s:\n%s"
+            (file-relative-name file-path)
+            (mapconcat (lambda (symbol)
+                        (greger-lsp--format-document-symbol symbol))
+                      symbols "\n"))))
+</tool.toolu_017ocQsj73Kg6KcM67Ppgj9X>
+
+### git_commit_message
+
+<tool.toolu_017ocQsj73Kg6KcM67Ppgj9X>
+Add helper functions for formatting document symbols
+</tool.toolu_017ocQsj73Kg6KcM67Ppgj9X>
+
+<!-- TOOL_RESULT_PLACEHOLDER_toolu_017ocQsj73Kg6KcM67Ppgj9X -->
