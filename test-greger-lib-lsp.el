@@ -144,69 +144,37 @@ description = \"Test project for greger LSP tools\"
 "))))
 
 (defun greger-lsp-test-teardown ()
-  "Clean up test environment with thorough LSP state cleanup."
+  "Clean up test environment."
   (when greger-lsp-test-temp-dir
-    ;; Kill all buffers visiting files in our test directory
-    (let ((test-dir-prefix (file-truename greger-lsp-test-temp-dir)))
-      (dolist (buffer (buffer-list))
-        (when (buffer-file-name buffer)
-          (let ((file-path (file-truename (buffer-file-name buffer))))
-            (when (string-prefix-p test-dir-prefix file-path)
-              (with-current-buffer buffer
-                ;; Disconnect LSP for this buffer
-                (when (bound-and-true-p lsp-mode)
-                  (condition-case nil
-                      (lsp-disconnect)
-                    (error nil))))
-              ;; Kill the buffer
-              (kill-buffer buffer))))))
+    ;; Kill any buffers visiting test files
+    (when greger-lsp-test-python-file
+      (let ((buffer (get-file-buffer greger-lsp-test-python-file)))
+        (when buffer
+          (with-current-buffer buffer
+            (when (bound-and-true-p lsp-mode)
+              (condition-case nil (lsp-disconnect) (error nil))))
+          (kill-buffer buffer))))
 
-    ;; More aggressive LSP session cleanup
-    (when (bound-and-true-p lsp--session)
-      ;; Remove our test workspace from all LSP state
-      (when greger-lsp-test-project-root
-        (let ((test-root (file-truename greger-lsp-test-project-root)))
-          ;; Remove from workspace folders
-          (condition-case nil
-              (lsp-workspace-folders-remove test-root)
-            (error nil))
+    ;; Also check for utils.py buffer
+    (let ((utils-file (expand-file-name "src/utils.py" greger-lsp-test-temp-dir)))
+      (let ((buffer (get-file-buffer utils-file)))
+        (when buffer
+          (with-current-buffer buffer
+            (when (bound-and-true-p lsp-mode)
+              (condition-case nil (lsp-disconnect) (error nil))))
+          (kill-buffer buffer))))
 
-          ;; Clean up session folders
-          (setf (lsp-session-folders lsp--session)
-                (cl-remove-if (lambda (folder)
-                               (string-prefix-p test-root (file-truename folder)))
-                             (lsp-session-folders lsp--session)))
+    ;; Clean up LSP session folders (but don't be too aggressive)
+    (when (and (bound-and-true-p lsp--session) greger-lsp-test-project-root)
+      (condition-case nil
+          (lsp-workspace-folders-remove greger-lsp-test-project-root)
+        (error nil))
 
-          ;; Kill any workspaces associated with our test directory
-          (let ((workspaces-to-kill '()))
-            (maphash (lambda (key workspace-list)
-                      ;; workspace-list might be a single workspace or a list of workspaces
-                      (let ((workspaces (if (listp workspace-list) workspace-list (list workspace-list))))
-                        (dolist (workspace workspaces)
-                          (when (and (lsp--workspace-p workspace)
-                                    (lsp--workspace-root workspace)
-                                    (string-prefix-p test-root
-                                                   (file-truename (lsp--workspace-root workspace))))
-                            (push workspace workspaces-to-kill)))))
-                    (lsp-session-folder->servers lsp--session))
-
-            (dolist (workspace workspaces-to-kill)
-              (condition-case nil
-                  (progn
-                    (lsp--shutdown-workspace workspace)
-                    ;; Force kill the process if it's still running
-                    (when (and (lsp--workspace-p workspace)
-                              (lsp--workspace-proc workspace))
-                      (let ((proc (lsp--workspace-proc workspace)))
-                        (when (and (processp proc) (process-live-p proc))
-                          (kill-process proc)))))
-                (error nil))))))
-
-    ;; Wait a moment for cleanup to complete
-    (sit-for 0.3)
-
-    ;; As a final safety measure, force reset any remaining LSP state
-    (greger-lsp-test-force-reset-lsp-state)
+      ;; Remove from session folders
+      (setf (lsp-session-folders lsp--session)
+            (cl-remove-if (lambda (folder)
+                           (string-prefix-p "/tmp" folder))
+                         (lsp-session-folders lsp--session))))
 
     ;; Remove temp directory
     (condition-case nil
@@ -216,7 +184,7 @@ description = \"Test project for greger LSP tools\"
     ;; Reset test variables
     (setq greger-lsp-test-temp-dir nil
           greger-lsp-test-python-file nil
-          greger-lsp-test-project-root nil))))
+          greger-lsp-test-project-root nil)))
 
 (defun greger-lsp-test-ensure-lsp-started ()
   "Ensure LSP is started for the test Python file."
