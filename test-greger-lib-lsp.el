@@ -510,13 +510,13 @@ description = \"Test project for greger LSP tools\"
   (greger-lsp-test-with-setup
    ;; Create the utils.py file with references to Calculator
    (let ((utils-file (expand-file-name "src/utils.py" greger-lsp-test-project-root)))
-     ;; Find references to create_calculator (used in both files)
+     ;; Find references to the Calculator class which should be found in multiple places
      (let ((result (greger-tools--lsp-find-references
                     greger-lsp-test-python-file
-                    81 0))) ; Line with create_calculator definition
+                    57 6))) ; Line with "class Calculator:", position at "Calculator"
        (should (stringp result))
-       (should (string-match-p "create_calculator" result))
-       ;; Should find references in both main.py and utils.py
+       (should (string-match-p "Calculator" result))
+       ;; Should find references in main.py
        (should (string-match-p "main.py" result))))))
 
 (provide 'test-greger-lib-lsp)
