@@ -316,7 +316,7 @@ description = \"Test project for greger LSP tools\"
   (greger-lsp-test-with-setup
    (let ((result (greger-tools--lsp-format
                   greger-lsp-test-python-file
-                  10 15)))  ; Format lines 10-15
+                  60 70)))  ; Format lines 60-70
      (should (stringp result))
      (should (or (string-match-p "Successfully formatted" result)
              (string-match-p "No formatting changes needed" result)
