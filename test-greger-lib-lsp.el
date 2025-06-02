@@ -255,7 +255,7 @@ description = \"Test project for greger LSP tools\"
   (greger-lsp-test-with-setup
    (let ((result nil))
      (greger-lsp--with-buffer-at-position
-      greger-lsp-test-python-file 10 0  ; Line with class definition
+      greger-lsp-test-python-file 57 0  ; Line with class definition
       (lambda ()
         (setq result (thing-at-point 'symbol))))
      (should (string= result "class")))))
