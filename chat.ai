@@ -3458,4 +3458,169 @@ test-greger-lib-lsp.el
 Keep the test as is for now
 </tool.toolu_01WeRexrdCUPWbJHYJSV9H49>
 
-<!-- TOOL_RESULT_PLACEHOLDER_toolu_01WeRexrdCUPWbJHYJSV9H49 -->
+## TOOL RESULT:
+
+ID: toolu_01WeRexrdCUPWbJHYJSV9H49
+
+<tool.toolu_01WeRexrdCUPWbJHYJSV9H49>
+Successfully replaced content in /Users/andreas/projects/aichat3/test-greger-lib-lsp.el. Successfully staged 2 file(s) and committed with message: Keep the test as is for now
+</tool.toolu_01WeRexrdCUPWbJHYJSV9H49>
+
+
+## ASSISTANT:
+
+Let me check what is actually on line 50 in the test file:
+
+## TOOL USE:
+
+Name: read-file
+ID: toolu_012ayPjPwehxfcu2pKJWEa1L
+
+### path
+
+<tool.toolu_012ayPjPwehxfcu2pKJWEa1L>
+test-greger-lib-lsp.el
+</tool.toolu_012ayPjPwehxfcu2pKJWEa1L>
+
+### start_line
+
+<tool.toolu_012ayPjPwehxfcu2pKJWEa1L>
+50
+</tool.toolu_012ayPjPwehxfcu2pKJWEa1L>
+
+### end_line
+
+<tool.toolu_012ayPjPwehxfcu2pKJWEa1L>
+80
+</tool.toolu_012ayPjPwehxfcu2pKJWEa1L>
+
+### include_line_numbers
+
+<tool.toolu_012ayPjPwehxfcu2pKJWEa1L>
+true
+</tool.toolu_012ayPjPwehxfcu2pKJWEa1L>
+
+## TOOL RESULT:
+
+ID: toolu_012ayPjPwehxfcu2pKJWEa1L
+
+<tool.toolu_012ayPjPwehxfcu2pKJWEa1L>
+50: \"\"\"Example Python module for testing LSP tools.\"\"\"
+51:
+52: import os
+53: import sys
+54: from typing import List, Optional
+55:
+56:
+57: class Calculator:
+58:     \"\"\"A simple calculator class.\"\"\"
+59:
+60:     def __init__(self, precision: int = 2):
+61:         self.precision = precision
+62:         self.history: List[str] = []
+63:
+64:     def add_numbers(self, a: float, b: float) -> float:
+65:         \"\"\"Add two numbers together.\"\"\"
+66:         result = a + b
+67:         self.history.append(f\"{a} + {b} = {result}\")
+68:         return round(result, self.precision)
+69:
+70:     def multiply_numbers(self, a: float, b: float) -> float:
+71:         \"\"\"Multiply two numbers.\"\"\"
+72:         result = a * b
+73:         self.history.append(f\"{a} * {b} = {result}\")
+74:         return round(result, self.precision)
+75:
+76:     def get_history(self) -> List[str]:
+77:         \"\"\"Get calculation history.\"\"\"
+78:         return self.history.copy()
+79:
+80:
+</tool.toolu_012ayPjPwehxfcu2pKJWEa1L>
+
+## ASSISTANT:
+
+The problem is that line 50 in the generated file is different than expected. Let me find the actual line with `create_calculator`:
+
+## TOOL USE:
+
+Name: ripgrep
+ID: toolu_016RBziVNC8Hbv7bCUicj52v
+
+### pattern
+
+<tool.toolu_016RBziVNC8Hbv7bCUicj52v>
+create_calculator
+</tool.toolu_016RBziVNC8Hbv7bCUicj52v>
+
+### path
+
+<tool.toolu_016RBziVNC8Hbv7bCUicj52v>
+test-greger-lib-lsp.el
+</tool.toolu_016RBziVNC8Hbv7bCUicj52v>
+
+### context-lines
+
+<tool.toolu_016RBziVNC8Hbv7bCUicj52v>
+2
+</tool.toolu_016RBziVNC8Hbv7bCUicj52v>
+
+## TOOL RESULT:
+
+ID: toolu_016RBziVNC8Hbv7bCUicj52v
+
+<tool.toolu_016RBziVNC8Hbv7bCUicj52v>
+81:def create_calculator(precision: Optional[int] = None) -> Calculator:
+90:    calc = create_calculator(3)
+110:from main import Calculator, create_calculator
+115:    calc = create_calculator(4)
+333:                  50 11)))  ; Line with "calc = create_calculator"
+335:     (should (string-match-p "Definition.*create_calculator" result))
+343:                  50 11  ; Line with "calc = create_calculator"
+346:     (should (string-match-p "Definition.*create_calculator" result)))))
+496:     ;; Find references to create_calculator (used in both files)
+499:                    45 11))) ; Line with create_calculator definition
+501:       (should (string-match-p "create_calculator" result))
+
+</tool.toolu_016RBziVNC8Hbv7bCUicj52v>
+
+## ASSISTANT:
+
+Now I can see that `create_calculator` function definition is on line 81, and its usage is on line 90. Let me fix the test cases to use the correct line numbers:
+
+## TOOL USE:
+
+Name: str-replace
+ID: toolu_01PbsXrp9RYmn6S9AFRotUoR
+
+### file_path
+
+<tool.toolu_01PbsXrp9RYmn6S9AFRotUoR>
+test-greger-lib-lsp.el
+</tool.toolu_01PbsXrp9RYmn6S9AFRotUoR>
+
+### original_content
+
+<tool.toolu_01PbsXrp9RYmn6S9AFRotUoR>
+   ;; Find definition of Calculator usage
+   (let ((result (greger-tools--lsp-find-definition
+                  greger-lsp-test-python-file
+                  50 11)))  ; Line with "calc = create_calculator"
+</tool.toolu_01PbsXrp9RYmn6S9AFRotUoR>
+
+### new_content
+
+<tool.toolu_01PbsXrp9RYmn6S9AFRotUoR>
+   ;; Find definition of Calculator usage
+   (let ((result (greger-tools--lsp-find-definition
+                  greger-lsp-test-python-file
+                  90 11)))  ; Line with "calc = create_calculator"
+</tool.toolu_01PbsXrp9RYmn6S9AFRotUoR>
+
+### git_commit_message
+
+<tool.toolu_01PbsXrp9RYmn6S9AFRotUoR>
+Fix line number for create_calculator usage
+</tool.toolu_01PbsXrp9RYmn6S9AFRotUoR>
+
+<!-- TOOL_RESULT_PLACEHOLDER_toolu_01PbsXrp9RYmn6S9AFRotUoR -->
