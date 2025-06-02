@@ -309,12 +309,11 @@ If HIERARCHICAL is true, format with indentation to show structure."
           (let* ((symbol-info (condition-case nil
                                   (thing-at-point 'symbol)
                                 (error "unknown")))
-                 (params (lsp-make-reference-params
-                         :text-document (lsp--text-document-identifier)
-                         :position (lsp--cur-position)
-                         :context (lsp-make-reference-context
-                                  :include-declaration (if include-declaration t :json-false))))
-                 (locations (lsp-request "textDocument/references" params))
+                 (params `(:textDocument ,(lsp--text-document-identifier)
+                          :position ,(lsp--cur-position)
+                          :context (:includeDeclaration ,(if include-declaration t :json-false))))
+                 (locations (let ((lsp-response-timeout 10)) ; Shorter timeout for tests
+                              (lsp-request "textDocument/references" params)))
                  (limited-locations (if max-results
                                       (seq-take locations max-results)
                                     locations))
