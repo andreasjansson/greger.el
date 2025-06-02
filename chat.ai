@@ -10451,4 +10451,219 @@ greger-lib-lsp.el
 Fix lsp-feature? call to use workspace context
 </tool.toolu_01R2NAjaDu8g44gSE1DFcJDF>
 
-<!-- TOOL_RESULT_PLACEHOLDER_toolu_01R2NAjaDu8g44gSE1DFcJDF -->
+## TOOL RESULT:
+
+ID: toolu_01R2NAjaDu8g44gSE1DFcJDF
+
+<tool.toolu_01R2NAjaDu8g44gSE1DFcJDF>
+Successfully replaced content in /Users/andreas/projects/greger.el/greger-lib-lsp.el. Successfully staged 2 file(s) and committed with message: Fix lsp-feature? call to use workspace context
+</tool.toolu_01R2NAjaDu8g44gSE1DFcJDF>
+
+
+## ASSISTANT:
+
+Now the workspace symbols function should work correctly. The issue was that `lsp-feature?` expects to be called in a workspace context, not with a workspace as an argument. By wrapping the call with `with-lsp-workspace`, we set the proper context for the `lsp-feature?` function to work correctly.
+
+The error "Wrong number of arguments: (1 . 1), 2" was because `lsp-feature?` only accepts 1 argument (the method name) but we were trying to pass 2 arguments (method name and workspace).
+
+## USER:
+
+I'm getting
+
+```
+    (error "The connected server(s) does not support method workspace/symbol.\nTo find out what capabilities support your server use ‘M-x lsp-describe-session’\nand expand the capabilities section")
+```
+
+but when I describe session I see
+
+```
+       |-[-] workspaceSymbolProvider:
+       |  `-[X] workDoneProgress: t
+
+```
+
+## ASSISTANT:
+
+The issue is that while the server declares it supports `workspaceSymbolProvider`, the current implementation of `lsp-feature?` might not be detecting it correctly, or there might be a different way to check for workspace symbol support.
+
+Let me simplify the check to just try the request directly and handle the error gracefully:
+
+## TOOL USE:
+
+Name: str-replace
+ID: toolu_013SQmfvbZJDGpGQigtU7vrW
+
+### file_path
+
+<tool.toolu_013SQmfvbZJDGpGQigtU7vrW>
+greger-lib-lsp.el
+</tool.toolu_013SQmfvbZJDGpGQigtU7vrW>
+
+### original_content
+
+<tool.toolu_013SQmfvbZJDGpGQigtU7vrW>
+(defun greger-tools--lsp-workspace-symbols (query &optional max-results symbol-type)
+  "Search for symbols across workspace using LSP."
+  (condition-case err
+      (progn
+        ;; Ensure we have at least one LSP workspace
+        (unless lsp--session
+          (error "No LSP session found. Please open a file with LSP support first"))
+
+        (unless (cl-some (lambda (ws)
+                           (with-lsp-workspace ws
+                             (lsp-feature? "workspace/symbol")))
+                         (lsp--session-workspaces lsp--session))
+          (error "No LSP server supports workspace symbols"))
+
+        (let* ((symbols (let ((lsp-response-timeout 10)) ; Shorter timeout for tests
+                          (lsp-request "workspace/symbol" `(:query ,query))))
+</tool.toolu_013SQmfvbZJDGpGQigtU7vrW>
+
+### new_content
+
+<tool.toolu_013SQmfvbZJDGpGQigtU7vrW>
+(defun greger-tools--lsp-workspace-symbols (query &optional max-results symbol-type)
+  "Search for symbols across workspace using LSP."
+  (condition-case err
+      (progn
+        ;; Ensure we have at least one LSP workspace
+        (unless lsp--session
+          (error "No LSP session found. Please open a file with LSP support first"))
+
+        (unless (lsp--session-workspaces lsp--session)
+          (error "No active LSP workspaces found"))
+
+        (let* ((symbols (let ((lsp-response-timeout 10)) ; Shorter timeout for tests
+                          (lsp-request "workspace/symbol" `(:query ,query))))
+</tool.toolu_013SQmfvbZJDGpGQigtU7vrW>
+
+### git_commit_message
+
+<tool.toolu_013SQmfvbZJDGpGQigtU7vrW>
+Simplify workspace symbols check to avoid capability detection issues
+</tool.toolu_013SQmfvbZJDGpGQigtU7vrW>
+
+## TOOL RESULT:
+
+ID: toolu_013SQmfvbZJDGpGQigtU7vrW
+
+<tool.toolu_013SQmfvbZJDGpGQigtU7vrW>
+Error executing tool: Original content not found in file: /Users/andreas/projects/greger.el/greger-lib-lsp.el -- Try again!
+</tool.toolu_013SQmfvbZJDGpGQigtU7vrW>
+
+## ASSISTANT:
+
+Let me check the current state of the file:
+
+## TOOL USE:
+
+Name: read-file
+ID: toolu_01Ntjgak3JUK52echbPZ449c
+
+### path
+
+<tool.toolu_01Ntjgak3JUK52echbPZ449c>
+greger-lib-lsp.el
+</tool.toolu_01Ntjgak3JUK52echbPZ449c>
+
+### start_line
+
+<tool.toolu_01Ntjgak3JUK52echbPZ449c>
+300
+</tool.toolu_01Ntjgak3JUK52echbPZ449c>
+
+### end_line
+
+<tool.toolu_01Ntjgak3JUK52echbPZ449c>
+320
+</tool.toolu_01Ntjgak3JUK52echbPZ449c>
+
+### include_line_numbers
+
+<tool.toolu_01Ntjgak3JUK52echbPZ449c>
+true
+</tool.toolu_01Ntjgak3JUK52echbPZ449c>
+
+## TOOL RESULT:
+
+ID: toolu_01Ntjgak3JUK52echbPZ449c
+
+<tool.toolu_01Ntjgak3JUK52echbPZ449c>
+300: (defun greger-tools--lsp-workspace-symbols (query &optional max-results symbol-type)
+301:   "Search for symbols across workspace using LSP."
+302:   (progn
+303:     ;; Ensure we have at least one LSP workspace
+304:     (unless lsp--session
+305:       (error "No LSP session found. Please open a file with LSP support first"))
+306:
+307:     (unless (cl-some (lambda (ws)
+308:                        (with-lsp-workspace ws
+309:                          (lsp-feature? "workspace/symbol")))
+310:                      (lsp--session-workspaces lsp--session))
+311:       (error "No LSP server supports workspace symbols"))
+312:
+313:     (let* ((symbols (let ((lsp-response-timeout 10)) ; Shorter timeout for tests
+314:                       (lsp-request "workspace/symbol" `(:query ,query))))
+315:            ;; Filter by symbol type if specified
+316:            (filtered-symbols (if symbol-type
+317:                                  ;; Find the numeric kind value for the string symbol type
+318:                                  (let ((target-kind (cl-loop for (kind . name) in lsp-symbol-kinds
+319:                                                              when (string-equal-ignore-case symbol-type name)
+320:                                                              return kind)))
+</tool.toolu_01Ntjgak3JUK52echbPZ449c>
+
+## ASSISTANT:
+
+I notice the `condition-case` wrapper was removed. Let me restore it and fix the capability check:
+
+## TOOL USE:
+
+Name: str-replace
+ID: toolu_015PmEdGhTfVzhZB2QguCkAn
+
+### file_path
+
+<tool.toolu_015PmEdGhTfVzhZB2QguCkAn>
+greger-lib-lsp.el
+</tool.toolu_015PmEdGhTfVzhZB2QguCkAn>
+
+### original_content
+
+<tool.toolu_015PmEdGhTfVzhZB2QguCkAn>
+(defun greger-tools--lsp-workspace-symbols (query &optional max-results symbol-type)
+  "Search for symbols across workspace using LSP."
+  (progn
+    ;; Ensure we have at least one LSP workspace
+    (unless lsp--session
+      (error "No LSP session found. Please open a file with LSP support first"))
+
+    (unless (cl-some (lambda (ws)
+                       (with-lsp-workspace ws
+                         (lsp-feature? "workspace/symbol")))
+                     (lsp--session-workspaces lsp--session))
+      (error "No LSP server supports workspace symbols"))
+</tool.toolu_015PmEdGhTfVzhZB2QguCkAn>
+
+### new_content
+
+<tool.toolu_015PmEdGhTfVzhZB2QguCkAn>
+(defun greger-tools--lsp-workspace-symbols (query &optional max-results symbol-type)
+  "Search for symbols across workspace using LSP."
+  (condition-case err
+      (progn
+        ;; Ensure we have at least one LSP workspace
+        (unless lsp--session
+          (error "No LSP session found. Please open a file with LSP support first"))
+
+        (unless (lsp--session-workspaces lsp--session)
+          (error "No active LSP workspaces found"))
+</tool.toolu_015PmEdGhTfVzhZB2QguCkAn>
+
+### git_commit_message
+
+<tool.toolu_015PmEdGhTfVzhZB2QguCkAn>
+Restore condition-case and simplify workspace symbols capability check
+</tool.toolu_015PmEdGhTfVzhZB2QguCkAn>
+
+<!-- TOOL_RESULT_PLACEHOLDER_toolu_015PmEdGhTfVzhZB2QguCkAn -->

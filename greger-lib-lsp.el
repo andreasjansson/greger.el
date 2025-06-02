@@ -299,16 +299,14 @@ LINE is 1-based, COLUMN is 0-based."
 
 (defun greger-tools--lsp-workspace-symbols (query &optional max-results symbol-type)
   "Search for symbols across workspace using LSP."
-  (progn
-    ;; Ensure we have at least one LSP workspace
-    (unless lsp--session
-      (error "No LSP session found. Please open a file with LSP support first"))
+  (condition-case err
+      (progn
+        ;; Ensure we have at least one LSP workspace
+        (unless lsp--session
+          (error "No LSP session found. Please open a file with LSP support first"))
 
-    (unless (cl-some (lambda (ws)
-                       (with-lsp-workspace ws
-                         (lsp-feature? "workspace/symbol")))
-                     (lsp--session-workspaces lsp--session))
-      (error "No LSP server supports workspace symbols"))
+        (unless (lsp--session-workspaces lsp--session)
+          (error "No active LSP workspaces found"))
 
     (let* ((symbols (let ((lsp-response-timeout 10)) ; Shorter timeout for tests
                       (lsp-request "workspace/symbol" `(:query ,query))))
