@@ -299,48 +299,48 @@ LINE is 1-based, COLUMN is 0-based."
 
 (defun greger-tools--lsp-workspace-symbols (query &optional max-results symbol-type)
   "Search for symbols across workspace using LSP."
-  (condition-case err
-      (progn
-        ;; Ensure we have at least one LSP workspace
-        (unless lsp--session
-          (error "No LSP session found. Please open a file with LSP support first"))
+  (progn
+    ;; Ensure we have at least one LSP workspace
+    (unless lsp--session
+      (error "No LSP session found. Please open a file with LSP support first"))
 
-        (unless (cl-some (lambda (ws) (lsp-feature? "workspace/symbol" ws))
-                         (lsp--session-workspaces lsp--session))
-          (error "No LSP server supports workspace symbols"))
+    (unless (cl-some (lambda (ws)
+                       (with-lsp-workspace ws
+                         (lsp-feature? "workspace/symbol")))
+                     (lsp--session-workspaces lsp--session))
+      (error "No LSP server supports workspace symbols"))
 
-        (let* ((symbols (let ((lsp-response-timeout 10)) ; Shorter timeout for tests
-                                  (lsp-request "workspace/symbol" `(:query ,query))))
-               ;; Filter by symbol type if specified
-               (filtered-symbols (if symbol-type
-                                   ;; Find the numeric kind value for the string symbol type
-                                   (let ((target-kind (cl-loop for (kind . name) in lsp-symbol-kinds
-                                                              when (string-equal-ignore-case symbol-type name)
-                                                              return kind)))
-                                     (if target-kind
-                                         (seq-filter (lambda (sym)
-                                                      (= (lsp:symbol-information-kind sym) target-kind))
-                                                    symbols)
-                                       symbols))
-                                 symbols))
-               ;; Limit results if specified
-               (limited-symbols (if max-results
-                                  (seq-take filtered-symbols max-results)
-                                filtered-symbols))
-               (result-text (if (null limited-symbols)
-                              "No symbols found"
-                            (mapconcat #'greger-lsp--format-symbol limited-symbols "\n"))))
+    (let* ((symbols (let ((lsp-response-timeout 10)) ; Shorter timeout for tests
+                      (lsp-request "workspace/symbol" `(:query ,query))))
+           ;; Filter by symbol type if specified
+           (filtered-symbols (if symbol-type
+                                 ;; Find the numeric kind value for the string symbol type
+                                 (let ((target-kind (cl-loop for (kind . name) in lsp-symbol-kinds
+                                                             when (string-equal-ignore-case symbol-type name)
+                                                             return kind)))
+                                   (if target-kind
+                                       (seq-filter (lambda (sym)
+                                                     (= (lsp:symbol-information-kind sym) target-kind))
+                                                   symbols)
+                                     symbols))
+                               symbols))
+           ;; Limit results if specified
+           (limited-symbols (if max-results
+                                (seq-take filtered-symbols max-results)
+                              filtered-symbols))
+           (result-text (if (null limited-symbols)
+                            "No symbols found"
+                          (mapconcat #'greger-lsp--format-symbol limited-symbols "\n"))))
 
-          (substring-no-properties
-                  (format "Workspace symbols for query '%s'%s (%d found%s):\n%s"
-                          query
-                          (if symbol-type (format " (type: %s)" symbol-type) "")
-                          (length filtered-symbols)
-                          (if (and max-results (> (length filtered-symbols) max-results))
-                              (format ", showing first %d" max-results)
-                            "")
-                          result-text))))
-    (error (format "LSP workspace-symbols failed: %s" (error-message-string err)))))
+      (substring-no-properties
+       (format "Workspace symbols for query '%s'%s (%d found%s):\n%s"
+               query
+               (if symbol-type (format " (type: %s)" symbol-type) "")
+               (length filtered-symbols)
+               (if (and max-results (> (length filtered-symbols) max-results))
+                   (format ", showing first %d" max-results)
+                 "")
+               result-text)))))
 
 
 (provide 'greger-lib-lsp)
