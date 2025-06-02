@@ -168,177 +168,180 @@ LINE is 1-based, COLUMN is 0-based."
 
 (defun greger-lib-lsp--rename (new-name file-path line column)
   "Rename symbol at FILE-PATH:LINE:COLUMN to NEW-NAME using LSP."
-  (condition-case err
-      (greger-lsp--with-buffer-at-position file-path line column
-        (lambda ()
-          (unless (greger-lsp--feature-supported-p "textDocument/rename")
-            (error "LSP server does not support rename"))
+  (greger-lsp--with-buffer-at-position
+   file-path line column
+   (lambda ()
+     (unless (greger-lsp--feature-supported-p "textDocument/rename")
+       (error "LSP server does not support rename"))
 
-          ;; Get symbol info first to show what we're renaming
-          (let* ((symbol-info (condition-case nil
-                                  (substring-no-properties (or (thing-at-point 'symbol) "unknown"))
-                                (error "unknown")))
-                 (edits (let ((lsp-response-timeout 10)) ; Shorter timeout for tests
-                                 (lsp-request "textDocument/rename"
-                                            `(:textDocument ,(lsp--text-document-identifier)
-                                              :position ,(lsp--cur-position)
-                                              :newName ,new-name)))))
-            (if edits
-                (progn
-                  (lsp--apply-workspace-edit edits 'rename)
+     ;; Get symbol info first to show what we're renaming
+     (let* ((symbol-info (condition-case nil
+                             (substring-no-properties (or (thing-at-point 'symbol) "unknown"))
+                           (error "unknown")))
+            (edits (let ((lsp-response-timeout 10)) ; Shorter timeout for tests
+                     (lsp-request "textDocument/rename"
+                                  `(:textDocument ,(lsp--text-document-identifier)
+                                                  :position ,(lsp--cur-position)
+                                                  :newName ,new-name)))))
 
-                  ;; Save all modified buffers to ensure changes are persisted
-                  (-let (((&WorkspaceEdit :document-changes? :changes?) edits))
-                    ;; Save buffers modified by documentChanges
-                    (when document-changes?
-                      (dolist (change document-changes?)
-                        (when-let ((uri (plist-get change :textDocument))
-                                  (file-path (lsp--uri-to-path (plist-get uri :uri))))
-                          (when-let ((buffer (get-file-buffer file-path)))
-                            (with-current-buffer buffer
-                              (save-buffer))))))
+       ;; TODO: remove debug
+       (message (format "edits: %s" edits))
 
-                    ;; Save buffers modified by changes
-                    (when changes?
-                      (lsp-map (lambda (uri _text-edits)
-                                (when-let ((file-path (lsp--uri-to-path uri)))
-                                  (when-let ((buffer (get-file-buffer file-path)))
-                                    (with-current-buffer buffer
-                                      (save-buffer)))))
-                              changes?)))
+       (if edits
+           (progn
+             (lsp--apply-workspace-edit edits 'rename)
 
-                  ;; Count the changes - WorkspaceEdit can have either changes or documentChanges
-                  (let ((change-count
-                         (-let (((&WorkspaceEdit :document-changes? :changes?) edits))
-                           (+ (if document-changes? (length document-changes?) 0)
-                              (if changes?
-                                  (let ((total 0))
-                                    (lsp-map (lambda (_uri text-edits)
-                                              (setq total (+ total (length text-edits))))
-                                            changes?)
-                                    total)
-                                0)))))
-                    (substring-no-properties
-                     (format "Successfully renamed '%s' to '%s' in %d location(s)"
-                             symbol-info
-                             new-name
-                             change-count))))
-              "No changes made - symbol may not exist or rename not applicable"))))
-    (error (format "LSP rename failed: %s" (error-message-string err)))))
+             ;; Save all modified buffers to ensure changes are persisted
+             (-let (((&WorkspaceEdit :document-changes? :changes?) edits))
+               ;; Save buffers modified by documentChanges
+               (when document-changes?
+                 (seq-do (lambda (change)
+                           (when-let ((text-doc (lsp-get change :textDocument))
+                                     (uri (lsp-get text-doc :uri))
+                                     (file-path (lsp--uri-to-path uri)))
+                             (when-let ((buffer (get-file-buffer file-path)))
+                               (with-current-buffer buffer
+                                 (save-buffer)))))
+                         document-changes?))
+
+               ;; TODO: remove debug
+               (message (format "changes: %s" changes))
+
+               ;; Save buffers modified by changes
+               (when changes?
+                 (lsp-map (lambda (uri _text-edits)
+                            (when-let ((file-path (lsp--uri-to-path uri)))
+                              (when-let ((buffer (get-file-buffer file-path)))
+                                (with-current-buffer buffer
+                                  (save-buffer)))))
+                          changes?)))
+
+             ;; Count the changes - WorkspaceEdit can have either changes or documentChanges
+             (let ((change-count
+                    (-let (((&WorkspaceEdit :document-changes? :changes?) edits))
+                      (+ (if document-changes? (length document-changes?) 0)
+                         (if changes?
+                             (let ((total 0))
+                               (lsp-map (lambda (_uri text-edits)
+                                          (setq total (+ total (length text-edits))))
+                                        changes?)
+                               total)
+                           0)))))
+               (substring-no-properties
+                (format "Successfully renamed '%s' to '%s' in %d location(s)"
+                        symbol-info
+                        new-name
+                        change-count))))
+         "No changes made - symbol may not exist or rename not applicable")))))
 
 (defun greger-lib-lsp--format (file-path &optional start-line end-line)
   "Format FILE-PATH using LSP. If START-LINE and END-LINE provided, format only that range."
-  (condition-case err
-      (let ((buffer (greger-lsp--ensure-server file-path)))
-        (with-current-buffer buffer
-          (let ((edits (if (and start-line end-line)
-                          ;; Range formatting
-                          (progn
-                            (unless (greger-lsp--feature-supported-p "textDocument/rangeFormatting")
-                              (error "LSP server does not support range formatting"))
-                            (save-excursion
-                              (goto-char (point-min))
-                              (forward-line (1- start-line))
-                              (let ((start-pos (point)))
-                                (forward-line (- end-line start-line))
-                                (let ((lsp-response-timeout 10))
-                                (lsp-request "textDocument/rangeFormatting"
-                                           `(:textDocument ,(lsp--text-document-identifier)
-                                             :range (:start ,(lsp--point-to-position start-pos)
-                                                     :end ,(lsp--point-to-position (point)))
-                                             :options (:tabSize 4 :insertSpaces t)))))))
-                        ;; Full document formatting
-                        (progn
-                          (unless (greger-lsp--feature-supported-p "textDocument/formatting")
-                            (error "LSP server does not support formatting"))
-                          (let ((lsp-response-timeout 10))
-                                (lsp-request "textDocument/formatting"
-                                           `(:textDocument ,(lsp--text-document-identifier)
-                                             :options (:tabSize 4 :insertSpaces t))))))))
-            (if (and edits (not (seq-empty-p edits)))
-                (progn
-                  (lsp--apply-text-edits edits 'format)
-                  (save-buffer)
-                  (substring-no-properties
-                  (format "Successfully formatted %s (%d edit(s) applied)"
-                          (file-relative-name file-path)
-                          (length edits))))
-              "No formatting changes needed"))))
-    (error (format "LSP format failed: %s" (error-message-string err)))))
+  (let ((buffer (greger-lsp--ensure-server file-path)))
+    (with-current-buffer buffer
+      (let ((edits (if (and start-line end-line)
+                       ;; Range formatting
+                       (progn
+                         (unless (greger-lsp--feature-supported-p "textDocument/rangeFormatting")
+                           (error "LSP server does not support range formatting"))
+                         (save-excursion
+                           (goto-char (point-min))
+                           (forward-line (1- start-line))
+                           (let ((start-pos (point)))
+                             (forward-line (- end-line start-line))
+                             (let ((lsp-response-timeout 10))
+                               (lsp-request "textDocument/rangeFormatting"
+                                            `(:textDocument ,(lsp--text-document-identifier)
+                                                            :range (:start ,(lsp--point-to-position start-pos)
+                                                                           :end ,(lsp--point-to-position (point)))
+                                                            :options (:tabSize 4 :insertSpaces t)))))))
+                     ;; Full document formatting
+                     (progn
+                       (unless (greger-lsp--feature-supported-p "textDocument/formatting")
+                         (error "LSP server does not support formatting"))
+                       (let ((lsp-response-timeout 10))
+                         (lsp-request "textDocument/formatting"
+                                      `(:textDocument ,(lsp--text-document-identifier)
+                                                      :options (:tabSize 4 :insertSpaces t))))))))
+        (if (and edits (not (seq-empty-p edits)))
+            (progn
+              (lsp--apply-text-edits edits 'format)
+              (save-buffer)
+              (substring-no-properties
+               (format "Successfully formatted %s (%d edit(s) applied)"
+                       (file-relative-name file-path)
+                       (length edits))))
+          "No formatting changes needed")))))
 
 (defun greger-lib-lsp--find-definition (file-path line column &optional include-declaration)
   "Find definition(s) of symbol at FILE-PATH:LINE:COLUMN using LSP."
-  (condition-case err
-      (greger-lsp--with-buffer-at-position file-path line column
-        (lambda ()
-          (unless (greger-lsp--feature-supported-p "textDocument/definition")
-            (error "LSP server does not support go-to-definition"))
+  (greger-lsp--with-buffer-at-position
+   file-path line column
+   (lambda ()
+     (unless (greger-lsp--feature-supported-p "textDocument/definition")
+       (error "LSP server does not support go-to-definition"))
 
-          (let* ((symbol-info (condition-case nil
-                                  (substring-no-properties (or (thing-at-point 'symbol) "unknown"))
-                                (error "unknown")))
-                 (locations (let ((lsp-response-timeout 10)) ; Shorter timeout for tests
-                              (lsp-request "textDocument/definition"
-                                         `(:textDocument ,(lsp--text-document-identifier)
-                                           :position ,(lsp--cur-position)))))
-                 (result-text (greger-lsp--format-locations locations)))
+     (let* ((symbol-info (condition-case nil
+                             (substring-no-properties (or (thing-at-point 'symbol) "unknown"))
+                           (error "unknown")))
+            (locations (let ((lsp-response-timeout 10)) ; Shorter timeout for tests
+                         (lsp-request "textDocument/definition"
+                                      `(:textDocument ,(lsp--text-document-identifier)
+                                                      :position ,(lsp--cur-position)))))
+            (result-text (greger-lsp--format-locations locations)))
 
-            ;; Also get declarations if requested and supported
-            (when (and include-declaration
-                       (greger-lsp--feature-supported-p "textDocument/declaration"))
-              (let ((declarations (let ((lsp-response-timeout 10))
-                                        (lsp-request "textDocument/declaration"
-                                                   `(:textDocument ,(lsp--text-document-identifier)
-                                                     :position ,(lsp--cur-position))))))
-                (when declarations
-                  (setq result-text (concat result-text "\n\nDeclarations:\n"
-                                          (greger-lsp--format-locations declarations))))))
+       ;; Also get declarations if requested and supported
+       (when (and include-declaration
+                  (greger-lsp--feature-supported-p "textDocument/declaration"))
+         (let ((declarations (let ((lsp-response-timeout 10))
+                               (lsp-request "textDocument/declaration"
+                                            `(:textDocument ,(lsp--text-document-identifier)
+                                                            :position ,(lsp--cur-position))))))
+           (when declarations
+             (setq result-text (concat result-text "\n\nDeclarations:\n"
+                                       (greger-lsp--format-locations declarations))))))
 
-            (substring-no-properties
-                  (format "Definition(s) for '%s':\n%s" symbol-info result-text)))))
-    (error (format "LSP find-definition failed: %s" (error-message-string err)))))
+       (substring-no-properties
+        (format "Definition(s) for '%s':\n%s" symbol-info result-text))))))
 
 (defun greger-lib-lsp--find-references (file-path line column &optional include-declaration max-results)
   "Find references to symbol at FILE-PATH:LINE:COLUMN using LSP."
-  (condition-case err
-      (greger-lsp--with-buffer-at-position file-path line column
-        (lambda ()
-          (unless (greger-lsp--feature-supported-p "textDocument/references")
-            (error "LSP server does not support find-references"))
+  (greger-lsp--with-buffer-at-position
+   file-path line column
+   (lambda ()
+     (unless (greger-lsp--feature-supported-p "textDocument/references")
+       (error "LSP server does not support find-references"))
 
-          (let* ((symbol-info (condition-case nil
-                                  (substring-no-properties (or (thing-at-point 'symbol) "unknown"))
-                                (error "unknown")))
-                 (params `(:textDocument ,(lsp--text-document-identifier)
-                          :position ,(lsp--cur-position)
-                          :context (:includeDeclaration ,(if include-declaration t :json-false))))
-                 (locations (let ((lsp-response-timeout 10)) ; Shorter timeout for tests
-                              (lsp-request "textDocument/references" params)))
-                 (limited-locations (if max-results
-                                      (seq-take locations max-results)
-                                    locations))
-                 (result-text (greger-lsp--format-locations limited-locations)))
+     (let* ((symbol-info (condition-case nil
+                             (substring-no-properties (or (thing-at-point 'symbol) "unknown"))
+                           (error "unknown")))
+            (params `(:textDocument ,(lsp--text-document-identifier)
+                                    :position ,(lsp--cur-position)
+                                    :context (:includeDeclaration ,(if include-declaration t :json-false))))
+            (locations (let ((lsp-response-timeout 10)) ; Shorter timeout for tests
+                         (lsp-request "textDocument/references" params)))
+            (limited-locations (if max-results
+                                   (seq-take locations max-results)
+                                 locations))
+            (result-text (greger-lsp--format-locations limited-locations)))
 
-            (substring-no-properties
-                  (format "References for '%s' (%d found%s):\n%s"
-                          symbol-info
-                          (length locations)
-                          (if (and max-results (> (length locations) max-results))
-                              (format ", showing first %d" max-results)
-                            "")
-                          result-text))))
-    (error (format "LSP workspace-symbols failed: %s" (error-message-string err))))))
+       (substring-no-properties
+        (format "References for '%s' (%d found%s):\n%s"
+                symbol-info
+                (length locations)
+                (if (and max-results (> (length locations) max-results))
+                    (format ", showing first %d" max-results)
+                  "")
+                result-text))))))
 
 (defun greger-lib-lsp--workspace-symbols (query &optional max-results symbol-type)
   "Search for symbols across workspace using LSP."
-  (condition-case err
-      (progn
-        ;; Ensure we have at least one LSP workspace
-        (unless lsp--session
-          (error "No LSP session found. Please open a file with LSP support first"))
+  (progn
+    ;; Ensure we have at least one LSP workspace
+    (unless lsp--session
+      (error "No LSP session found. Please open a file with LSP support first"))
 
-        (unless (lsp--session-workspaces lsp--session)
-          (error "No active LSP workspaces found"))
+    (unless (lsp--session-workspaces lsp--session)
+      (error "No active LSP workspaces found"))
 
     (let* ((symbols (let ((lsp-response-timeout 10)) ; Shorter timeout for tests
                       (lsp-request "workspace/symbol" `(:query ,query))))
@@ -370,7 +373,7 @@ LINE is 1-based, COLUMN is 0-based."
                (if (and max-results (> (length filtered-symbols) max-results))
                    (format ", showing first %d" max-results)
                  "")
-               result-text))))))
+               result-text)))))
 
 
 (provide 'greger-lib-lsp)
