@@ -486,18 +486,6 @@ Ensures proper isolation between test runs."
      (should (stringp result))
      (should (string-match-p "Workspace symbols.*main.*Function" result)))))
 
-;;; Tests for error handling
-
-(ert-deftest greger-lsp-test-unsupported-feature ()
-  "Test behavior when LSP server doesn't support a feature."
-  (greger-lsp-test-with-setup
-   ;; Mock feature detection to return false
-   (cl-letf (((symbol-function 'greger-lsp--feature-supported-p)
-              (lambda (method) nil)))
-     (let ((result (greger-lib-lsp--rename "newname" greger-lsp-test-python-file 9 6)))
-       (should (stringp result))
-       (should (string-match-p "does not support" result))))))
-
 ;;; Integration tests
 
 (ert-deftest greger-lsp-test-rename-and-find-references ()

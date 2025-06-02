@@ -8,7 +8,7 @@
 (require 'json)
 (require 'cl-lib)
 (require 'greger-providers)
-(require 'greger)
+
 
 ;;; Data structures
 
@@ -120,12 +120,13 @@ Returns nil if no error found or if OUTPUT is not valid JSON."
                  (error-message (alist-get 'message error-info))
                  (error-type (alist-get 'type error-info)))
             (error "API Error (%s): %s" error-type error-message))))
-    (error nil)))
+    (json-error nil)
+    (json-readtable-error nil)))
 
 (defun greger-stream--process-output-chunk (output state provider-config)
   "Process a chunk of OUTPUT using STATE."
   ;; Check for error responses and raise an error if found
-  ;(greger-stream--check-for-error output)
+  (greger-stream--check-for-error output)
 
   ;; Always accumulate for complete response
   (setf (greger-stream-state-complete-response state)
