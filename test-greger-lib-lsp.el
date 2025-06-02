@@ -175,11 +175,15 @@ description = \"Test project for greger LSP tools\"
 
           ;; Kill any workspaces associated with our test directory
           (let ((workspaces-to-kill '()))
-            (maphash (lambda (key workspace)
-                      (when (and (lsp--workspace-root workspace)
-                                (string-prefix-p test-root
-                                               (file-truename (lsp--workspace-root workspace))))
-                        (push workspace workspaces-to-kill)))
+            (maphash (lambda (key workspace-list)
+                      ;; workspace-list might be a single workspace or a list of workspaces
+                      (let ((workspaces (if (listp workspace-list) workspace-list (list workspace-list))))
+                        (dolist (workspace workspaces)
+                          (when (and (lsp--workspace-p workspace)
+                                    (lsp--workspace-root workspace)
+                                    (string-prefix-p test-root
+                                                   (file-truename (lsp--workspace-root workspace))))
+                            (push workspace workspaces-to-kill)))))
                     (lsp-session-folder->servers lsp--session))
 
             (dolist (workspace workspaces-to-kill)
@@ -187,9 +191,10 @@ description = \"Test project for greger LSP tools\"
                   (progn
                     (lsp--shutdown-workspace workspace)
                     ;; Force kill the process if it's still running
-                    (when (lsp--workspace-proc workspace)
+                    (when (and (lsp--workspace-p workspace)
+                              (lsp--workspace-proc workspace))
                       (let ((proc (lsp--workspace-proc workspace)))
-                        (when (process-live-p proc)
+                        (when (and (processp proc) (process-live-p proc))
                           (kill-process proc)))))
                 (error nil))))))
 
@@ -207,7 +212,7 @@ description = \"Test project for greger LSP tools\"
     ;; Reset test variables
     (setq greger-lsp-test-temp-dir nil
           greger-lsp-test-python-file nil
-          greger-lsp-test-project-root nil)))
+          greger-lsp-test-project-root nil))))
 
 (defun greger-lsp-test-ensure-lsp-started ()
   "Ensure LSP is started for the test Python file."

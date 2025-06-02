@@ -1247,4 +1247,154 @@ Use nuclear LSP state reset as final cleanup step
 - Provides maximum isolation between test runs
 </tool.toolu_01C5vMyK4ckfnDU5PEE5SCtU>
 
-<!-- TOOL_RESULT_PLACEHOLDER_toolu_01C5vMyK4ckfnDU5PEE5SCtU -->
+## TOOL RESULT:
+
+ID: toolu_01C5vMyK4ckfnDU5PEE5SCtU
+
+<tool.toolu_01C5vMyK4ckfnDU5PEE5SCtU>
+Successfully replaced content in /Users/andreas/projects/greger.el/test-greger-lib-lsp.el. Successfully staged 2 file(s) and committed with message: Use nuclear LSP state reset as final cleanup step
+
+- Call greger-lsp-test-force-reset-lsp-state at the end of teardown
+- This ensures any remaining LSP state related to temp directories is cleared
+- Provides maximum isolation between test runs
+</tool.toolu_01C5vMyK4ckfnDU5PEE5SCtU>
+
+
+## USER:
+
+``` emacs-lisp
+F greger-lsp-test-cross-file-references
+    Test finding references across multiple files.
+    (wrong-type-argument lsp--workspace
+                         (#s(lsp--workspace nil #s(hash-table size 16 test equal rehash-size 1.5 rehash-threshold 0.8125 data
+                                                              ("textDocumentSync" 2 "definitionProvider" #s(hash-table size 1 test equal rehash-size 1.5 rehash-threshold 0.8125 data
+                                                                                                                       ("workDoneProgress" t))
+                                                               "declarationProvider" #s(hash-table size 1 test equal rehash-size 1.5 rehash-threshold 0.8125 data
+                                                                                                   ("workDoneProgress" t))
+                                                               "typeDefinitionProvider" #s(hash-table size 1 test equal rehash-size 1.5 rehash-threshold 0.8125 data
+                                                                                                      ("workDoneProgress" t))
+                                                               "referencesProvider" #s(hash-table size 1 test equal rehash-size 1.5 rehash-threshold 0.8125 data
+                                                                                                  ("workDoneProgress" t))
+                                                               "documentSymbolProvider" #s(hash-table size 1 test equal rehash-size 1.5 rehash-threshold 0.8125 data
+                                                                                                      ("workDoneProgress" t))
+                                                               "workspaceSymbolProvider" #s(hash-table size 1 test equal rehash-size 1.5 rehash-threshold 0.8125 data
+                                                                                                       ("workDoneProgress" t))
+                                                               "hoverProvider" #s(hash-table size 1 test equal rehash-size 1.5 rehash-threshold 0.8125 data
+                                                                                             ("workDoneProgress" t))
+                                                               "documentHighlightProvider" #s(hash-table size 1 test equal rehash-size 1.5 rehash-threshold 0.8125 data
+                                                                                                         ("workDoneProgress" t))
+                                                               "renameProvider" #s(hash-table size 2 test equal rehash-size 1.5 rehash-threshold 0.8125 data
+                                                                                              ("prepareProvider" t "workDoneProgress" t))
+                                                               ...))
+                                            (#s(lsp--registered-capability "a2a7c44a-6907-41d4-8143-f9696847a8fe" "workspace/didChangeWatchedFiles" #s(hash-table size 1 test equal rehash-size 1.5 rehash-threshold 0.8125 data
+                                                                                                                                                                  ("watchers"
+                                                                                                                                                                   [#s(hash-table size 2 test equal rehash-size 1.5 rehash-threshold 0.8125 data
+                                                                                                                                                                                  ("globPattern" "**/pyrightconfig.json" "kind" 7))
+                                                                                                                                                                      #s(hash-table size 2 test equal rehash-size 1.5 rehash-threshold 0.8125 data
+                                                                                                                                                                                    ("globPattern" "**" "kind" 7))]))))
+                                            "/var/folders/pt/0j3p9zzj49x5vkv1mmkpvs0c0000gn/T/greger-lsp-test-Gb5MhF" #s(lsp--client nil nil
+                                                                                                                                     (:connect
+                                                                                                                                       #[1285 "\305\306!\203\23\0\307\11!\204\23\0\310\1\311\300!\"\207\311\300!\312\4!\313\4!\32\314\315\316\3\"!\317 \31\320\33\321\34\322\323\3\324\325\326\315\327\6\11\"\330\331\332\6\f\333\6\23\334\6\24\335\6\20\336\337\340\337&\24\341\1\342\"\210\341\343\3!\342\"\210r\344\2!q\210\345 ,\210\211\1B\266\202)\207"
+                                                                                                                                              [... default-directory process-environment tramp-use-ssh-controlmaster-options tramp-ssh-controlmaster-options functionp json-rpc-connection file-remote-p lsp-json-rpc-connection lsp-resolve-final-command ...]
+                                                                                                                                              29 "\n\n(fn FILTER SENTINEL NAME ENVIRONMENT-FN WORKSPACE)"]
+                                                                                                                                       :test?
+                                                                                                                                       #[0 "\301\302\300\303\"!\207"
+                                                                                                                                           [... lsp-server-present? lsp-resolve-final-command t]
+                                                                                                                                           4])
+                                                                                                                                     nil nil #s(hash-table size 65 test equal rehash-size 1.5 rehash-threshold 0.8125 data
+                                                                                                                                                           ("pyright/beginProgress" lsp-pyright--begin-progress-callback "pyright/reportProgress" lsp-pyright--report-progress-callback "pyright/endProgress" lsp-pyright--end-progress-callback))
+                                                                                                                                     #s(hash-table size 65 test equal rehash-size 1.5 rehash-threshold 0.8125 data
+                                                                                                                                                   ())
+                                                                                                                                     #s(hash-table size 65 test eql rehash-size 1.5 rehash-threshold 0.8125 data
+                                                                                                                                                   ())
+                                                                                                                                     nil ...)
+                                            nil #<process pyright> #<process pyright> nil ...)))
+
+
+
+```
+
+## ASSISTANT:
+
+I see the issue! The error `wrong-type-argument lsp--workspace` suggests that the LSP workspace cleanup code is trying to operate on a list containing a workspace object, but it's expecting just the workspace object itself.
+
+Looking at the error, it seems like `lsp--buffer-workspaces` or some similar variable contains a list with a workspace object, but the cleanup code is expecting just the workspace object directly.
+
+Let me fix the teardown function to handle this properly:
+
+## TOOL USE:
+
+Name: str-replace
+ID: toolu_01DW4HFhbuPs8X1jeAeYDwBM
+
+### file_path
+
+<tool.toolu_01DW4HFhbuPs8X1jeAeYDwBM>
+test-greger-lib-lsp.el
+</tool.toolu_01DW4HFhbuPs8X1jeAeYDwBM>
+
+### original_content
+
+<tool.toolu_01DW4HFhbuPs8X1jeAeYDwBM>
+          ;; Kill any workspaces associated with our test directory
+          (let ((workspaces-to-kill '()))
+            (maphash (lambda (key workspace)
+                      (when (and (lsp--workspace-root workspace)
+                                (string-prefix-p test-root
+                                               (file-truename (lsp--workspace-root workspace))))
+                        (push workspace workspaces-to-kill)))
+                    (lsp-session-folder->servers lsp--session))
+
+            (dolist (workspace workspaces-to-kill)
+              (condition-case nil
+                  (progn
+                    (lsp--shutdown-workspace workspace)
+                    ;; Force kill the process if it's still running
+                    (when (lsp--workspace-proc workspace)
+                      (let ((proc (lsp--workspace-proc workspace)))
+                        (when (process-live-p proc)
+                          (kill-process proc)))))
+                (error nil))))))
+</tool.toolu_01DW4HFhbuPs8X1jeAeYDwBM>
+
+### new_content
+
+<tool.toolu_01DW4HFhbuPs8X1jeAeYDwBM>
+          ;; Kill any workspaces associated with our test directory
+          (let ((workspaces-to-kill '()))
+            (maphash (lambda (key workspace-list)
+                      ;; workspace-list might be a single workspace or a list of workspaces
+                      (let ((workspaces (if (listp workspace-list) workspace-list (list workspace-list))))
+                        (dolist (workspace workspaces)
+                          (when (and (lsp--workspace-p workspace)
+                                    (lsp--workspace-root workspace)
+                                    (string-prefix-p test-root
+                                                   (file-truename (lsp--workspace-root workspace))))
+                            (push workspace workspaces-to-kill)))))
+                    (lsp-session-folder->servers lsp--session))
+
+            (dolist (workspace workspaces-to-kill)
+              (condition-case nil
+                  (progn
+                    (lsp--shutdown-workspace workspace)
+                    ;; Force kill the process if it's still running
+                    (when (and (lsp--workspace-p workspace)
+                              (lsp--workspace-proc workspace))
+                      (let ((proc (lsp--workspace-proc workspace)))
+                        (when (and (processp proc) (process-live-p proc))
+                          (kill-process proc)))))
+                (error nil))))))
+</tool.toolu_01DW4HFhbuPs8X1jeAeYDwBM>
+
+### git_commit_message
+
+<tool.toolu_01DW4HFhbuPs8X1jeAeYDwBM>
+Fix workspace cleanup to handle both single workspaces and lists
+
+- Handle case where lsp-session-folder->servers contains lists of workspaces
+- Add proper type checks with lsp--workspace-p before accessing workspace fields
+- Add processp check before calling process-live-p
+- This should fix the wrong-type-argument error in test cleanup
+</tool.toolu_01DW4HFhbuPs8X1jeAeYDwBM>
+
+<!-- TOOL_RESULT_PLACEHOLDER_toolu_01DW4HFhbuPs8X1jeAeYDwBM -->
