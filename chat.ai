@@ -9435,4 +9435,53 @@ greger-lib-lsp.el
 Remove text properties from symbol-info in rename
 </tool.toolu_01TM3pN24PKDoMMHLmHK8FSS>
 
-<!-- TOOL_RESULT_PLACEHOLDER_toolu_01TM3pN24PKDoMMHLmHK8FSS -->
+## TOOL RESULT:
+
+ID: toolu_01TM3pN24PKDoMMHLmHK8FSS
+
+<tool.toolu_01TM3pN24PKDoMMHLmHK8FSS>
+Successfully replaced content in /Users/andreas/projects/greger.el/greger-lib-lsp.el. Successfully staged 2 file(s) and committed with message: Remove text properties from symbol-info in rename
+</tool.toolu_01TM3pN24PKDoMMHLmHK8FSS>
+
+
+## ASSISTANT:
+
+And the return value:
+
+## TOOL USE:
+
+Name: str-replace
+ID: toolu_01P8EGo7ucBmeBufpZjos66t
+
+### file_path
+
+<tool.toolu_01P8EGo7ucBmeBufpZjos66t>
+greger-lib-lsp.el
+</tool.toolu_01P8EGo7ucBmeBufpZjos66t>
+
+### original_content
+
+<tool.toolu_01P8EGo7ucBmeBufpZjos66t>
+(format "Successfully renamed '%s' to '%s' in %d location(s)"
+                          symbol-info
+                          new-name
+                          (length (lsp:workspace-edit-changes edits)))
+</tool.toolu_01P8EGo7ucBmeBufpZjos66t>
+
+### new_content
+
+<tool.toolu_01P8EGo7ucBmeBufpZjos66t>
+(substring-no-properties
+                  (format "Successfully renamed '%s' to '%s' in %d location(s)"
+                          symbol-info
+                          new-name
+                          (length (lsp:workspace-edit-changes edits))))
+</tool.toolu_01P8EGo7ucBmeBufpZjos66t>
+
+### git_commit_message
+
+<tool.toolu_01P8EGo7ucBmeBufpZjos66t>
+Remove text properties from rename success result
+</tool.toolu_01P8EGo7ucBmeBufpZjos66t>
+
+<!-- TOOL_RESULT_PLACEHOLDER_toolu_01P8EGo7ucBmeBufpZjos66t -->

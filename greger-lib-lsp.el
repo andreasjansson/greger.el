@@ -240,10 +240,11 @@ If HIERARCHICAL is true, format with indentation to show structure."
             (if edits
                 (progn
                   (lsp--apply-workspace-edit edits 'rename)
+                  (substring-no-properties
                   (format "Successfully renamed '%s' to '%s' in %d location(s)"
                           symbol-info
                           new-name
-                          (length (lsp:workspace-edit-changes edits))))
+                          (length (lsp:workspace-edit-changes edits)))))
               "No changes made - symbol may not exist or rename not applicable"))))
     (error (format "LSP rename failed: %s" (error-message-string err)))))
 
