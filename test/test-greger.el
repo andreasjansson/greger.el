@@ -95,7 +95,7 @@ Tool executed: Hello World
     ;; Clean up
     (remhash "test-simple" greger-tools-registry)))
 
-(ert-deftest greger-agent-test-multiple-tools-parallel ()
+(ert-deftest greger-test-multiple-tools-parallel ()
   "Test execution of multiple tools in parallel."
   (let ((tools-completed nil))
 
