@@ -788,7 +788,7 @@ If BUFFER is provided, it will be staged and committed along with the modified f
 (defun greger-stdlib--count-paren-balance (content)
   "Count paren balance in CONTENT, ignoring parens in strings and comments.
 Returns the difference between left and right parens (left - right).
-Uses parse-partial-sexp to properly handle strings and comments."
+Uses `parse-partial-sexp' to properly handle strings and comments."
   (with-temp-buffer
     ;; Set up the buffer with lisp-mode syntax table for proper parsing
     (with-syntax-table lisp-data-mode-syntax-table
