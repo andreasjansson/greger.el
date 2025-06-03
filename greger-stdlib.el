@@ -405,7 +405,7 @@ If END-LINE is specified, stop reading at that line (inclusive, 1-based)."
       (setq line-num (1+ line-num)))
 
     ;; Join back with newlines
-    (mapconcat 'identity (reverse result) "\n")))
+    (mapconcat #'identity (reverse result) "\n")))
 
 (defun greger-stdlib--list-directory (path &optional show-hidden recursive)
   "List directory contents at PATH."
