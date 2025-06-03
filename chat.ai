@@ -4612,4 +4612,57 @@ test/test-end-to-end.el
 Fix text callback in end-to-end test to actually insert text into buffer
 </tool.toolu_016wzzW4NjvNayqsvFg1wYfG>
 
-<!-- TOOL_RESULT_PLACEHOLDER_toolu_016wzzW4NjvNayqsvFg1wYfG -->
+## TOOL RESULT:
+
+ID: toolu_016wzzW4NjvNayqsvFg1wYfG
+
+<tool.toolu_016wzzW4NjvNayqsvFg1wYfG>
+Successfully replaced content in /Users/andreas/projects/greger.el/test/test-end-to-end.el. Successfully staged 2 file(s) and committed with message: Fix text callback in end-to-end test to actually insert text into buffer
+</tool.toolu_016wzzW4NjvNayqsvFg1wYfG>
+
+
+## ASSISTANT:
+
+Now let me fix the tool use test. Claude's tool format seems to have changed. Let me update it to use the correct format:
+
+## TOOL USE:
+
+Name: str-replace
+ID: toolu_01Bb7cfmJkuBx3rZfyH2XHUU
+
+### file_path
+
+<tool.toolu_01Bb7cfmJkuBx3rZfyH2XHUU>
+test/test-end-to-end.el
+</tool.toolu_01Bb7cfmJkuBx3rZfyH2XHUU>
+
+### original_content
+
+<tool.toolu_01Bb7cfmJkuBx3rZfyH2XHUU>
+(test-tools '(((type . "function")
+                       (function . ((name . "calculator")
+                                   (description . "Performs basic arithmetic calculations")
+                                   (parameters . ((type . "object")
+                                                 (properties . ((expression . ((type . "string")
+                                                                               (description . "Mathematical expression to evaluate")))))
+                                                 (required . ["expression"])))))))))
+</tool.toolu_01Bb7cfmJkuBx3rZfyH2XHUU>
+
+### new_content
+
+<tool.toolu_01Bb7cfmJkuBx3rZfyH2XHUU>
+(test-tools '(((name . "calculator")
+                       (description . "Performs basic arithmetic calculations")
+                       (input_schema . ((type . "object")
+                                       (properties . ((expression . ((type . "string")
+                                                                     (description . "Mathematical expression to evaluate")))))
+                                       (required . ["expression"]))))))
+</tool.toolu_01Bb7cfmJkuBx3rZfyH2XHUU>
+
+### git_commit_message
+
+<tool.toolu_01Bb7cfmJkuBx3rZfyH2XHUU>
+Fix tool schema format in end-to-end test to match Claude's expected format
+</tool.toolu_01Bb7cfmJkuBx3rZfyH2XHUU>
+
+<!-- TOOL_RESULT_PLACEHOLDER_toolu_01Bb7cfmJkuBx3rZfyH2XHUU -->
