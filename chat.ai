@@ -1455,4 +1455,94 @@ script/package-lint
 Update package-lint script to handle both CI and local environments with appropriate package loading
 </tool.toolu_017zxpruDz7nXXRgcQRwS7gT>
 
-<!-- TOOL_RESULT_PLACEHOLDER_toolu_017zxpruDz7nXXRgcQRwS7gT -->
+## TOOL RESULT:
+
+ID: toolu_017zxpruDz7nXXRgcQRwS7gT
+
+<tool.toolu_017zxpruDz7nXXRgcQRwS7gT>
+Successfully replaced content in /Users/andreas/projects/greger.el/script/package-lint. Successfully staged 2 file(s) and committed with message: Update package-lint script to handle both CI and local environments with appropriate package loading
+</tool.toolu_017zxpruDz7nXXRgcQRwS7gT>
+
+
+## ASSISTANT:
+
+I also need to update the error case re-run section to use the same logic:
+
+## TOOL USE:
+
+Name: str-replace
+ID: toolu_017Jor9xvuNaRJ6hY3VRjJQS
+
+### file_path
+
+<tool.toolu_017Jor9xvuNaRJ6hY3VRjJQS>
+script/package-lint
+</tool.toolu_017Jor9xvuNaRJ6hY3VRjJQS>
+
+### original_content
+
+<tool.toolu_017Jor9xvuNaRJ6hY3VRjJQS>
+# Re-run to show the actual issues
+        emacs --batch -Q \
+            --eval "(progn
+                      (setq debug-on-error t)
+                      (package-initialize)
+                      (add-to-list 'load-path \"$PACKAGE_LINT_PATH\")
+                      (add-to-list 'load-path \".\")
+                      (require 'package-lint)
+                      (find-file \"$file\")
+                      (let ((results (package-lint-buffer)))
+                        (dolist (result results)
+                          (let ((line (nth 0 result))
+                                (col (nth 1 result))
+                                (type (nth 2 result))
+                                (msg (nth 3 result)))
+                            (princ (format \"    %s:%d:%d: %s: %s\\n\" \"$file\" line col type msg))))))" 2>/dev/null
+</tool.toolu_017Jor9xvuNaRJ6hY3VRjJQS>
+
+### new_content
+
+<tool.toolu_017Jor9xvuNaRJ6hY3VRjJQS>
+# Re-run to show the actual issues
+        if [ -n "$CI" ]; then
+            ERROR_EVAL_CODE="(progn
+                               (setq debug-on-error t)
+                               (require 'package)
+                               (add-to-list 'package-archives '(\"melpa\" . \"https://melpa.org/packages/\") t)
+                               (package-initialize)
+                               (add-to-list 'load-path \".\")
+                               (require 'package-lint)
+                               (find-file \"$file\")
+                               (let ((results (package-lint-buffer)))
+                                 (dolist (result results)
+                                   (let ((line (nth 0 result))
+                                         (col (nth 1 result))
+                                         (type (nth 2 result))
+                                         (msg (nth 3 result)))
+                                     (princ (format \"    %s:%d:%d: %s: %s\\n\" \"$file\" line col type msg))))))"
+        else
+            ERROR_EVAL_CODE="(progn
+                               (setq debug-on-error t)
+                               (package-initialize)
+                               (add-to-list 'load-path \"$PACKAGE_LINT_PATH\")
+                               (add-to-list 'load-path \".\")
+                               (require 'package-lint)
+                               (find-file \"$file\")
+                               (let ((results (package-lint-buffer)))
+                                 (dolist (result results)
+                                   (let ((line (nth 0 result))
+                                         (col (nth 1 result))
+                                         (type (nth 2 result))
+                                         (msg (nth 3 result)))
+                                     (princ (format \"    %s:%d:%d: %s: %s\\n\" \"$file\" line col type msg))))))"
+        fi
+        emacs --batch -Q --eval "$ERROR_EVAL_CODE" 2>/dev/null
+</tool.toolu_017Jor9xvuNaRJ6hY3VRjJQS>
+
+### git_commit_message
+
+<tool.toolu_017Jor9xvuNaRJ6hY3VRjJQS>
+Update error reporting in package-lint script to handle both CI and local environments
+</tool.toolu_017Jor9xvuNaRJ6hY3VRjJQS>
+
+<!-- TOOL_RESULT_PLACEHOLDER_toolu_017Jor9xvuNaRJ6hY3VRjJQS -->

@@ -108,21 +108,39 @@ for file in "${FILES_TO_LINT[@]}"; do
         echo -e "  ${RED}✗ Issues found${NC}"
         OVERALL_EXIT_CODE=1
         # Re-run to show the actual issues
-        emacs --batch -Q \
-            --eval "(progn
-                      (setq debug-on-error t)
-                      (package-initialize)
-                      (add-to-list 'load-path \"$PACKAGE_LINT_PATH\")
-                      (add-to-list 'load-path \".\")
-                      (require 'package-lint)
-                      (find-file \"$file\")
-                      (let ((results (package-lint-buffer)))
-                        (dolist (result results)
-                          (let ((line (nth 0 result))
-                                (col (nth 1 result))
-                                (type (nth 2 result))
-                                (msg (nth 3 result)))
-                            (princ (format \"    %s:%d:%d: %s: %s\\n\" \"$file\" line col type msg))))))" 2>/dev/null
+        if [ -n "$CI" ]; then
+            ERROR_EVAL_CODE="(progn
+                               (setq debug-on-error t)
+                               (require 'package)
+                               (add-to-list 'package-archives '(\"melpa\" . \"https://melpa.org/packages/\") t)
+                               (package-initialize)
+                               (add-to-list 'load-path \".\")
+                               (require 'package-lint)
+                               (find-file \"$file\")
+                               (let ((results (package-lint-buffer)))
+                                 (dolist (result results)
+                                   (let ((line (nth 0 result))
+                                         (col (nth 1 result))
+                                         (type (nth 2 result))
+                                         (msg (nth 3 result)))
+                                     (princ (format \"    %s:%d:%d: %s: %s\\n\" \"$file\" line col type msg))))))"
+        else
+            ERROR_EVAL_CODE="(progn
+                               (setq debug-on-error t)
+                               (package-initialize)
+                               (add-to-list 'load-path \"$PACKAGE_LINT_PATH\")
+                               (add-to-list 'load-path \".\")
+                               (require 'package-lint)
+                               (find-file \"$file\")
+                               (let ((results (package-lint-buffer)))
+                                 (dolist (result results)
+                                   (let ((line (nth 0 result))
+                                         (col (nth 1 result))
+                                         (type (nth 2 result))
+                                         (msg (nth 3 result)))
+                                     (princ (format \"    %s:%d:%d: %s: %s\\n\" \"$file\" line col type msg))))))"
+        fi
+        emacs --batch -Q --eval "$ERROR_EVAL_CODE" 2>/dev/null
     fi
     echo
 done
