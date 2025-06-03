@@ -15,10 +15,15 @@
 
 (require 'greger-client)
 (require 'greger-parser)
+(require 'greger-tools)
+(require 'greger-stdlib)
 (require 'cl-lib)
+(require 'json)
 
-;; Forward declarations
-(defvar greger-agent-tools nil "List of tools available to the agent.")
+;; Optional LSP integration
+(condition-case nil
+    (require 'greger-lib-lsp)
+  (error nil))
 
 (defconst greger-available-models
   '(claude-sonnet-4-20250514
