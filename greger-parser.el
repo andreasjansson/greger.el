@@ -931,7 +931,7 @@ Returns either a system message, metadata, or both."
         (content . ,merged-content)))))
 
 (defun greger-parser--merge-contents (content1 content2)
-  "Merge two content values."
+  "Merge CONTENT1 and CONTENT2 values."
   (let ((blocks1 (greger-parser--content-to-blocks content1))
         (blocks2 (greger-parser--content-to-blocks content2)))
     (let ((result (append blocks1 blocks2)))
