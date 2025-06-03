@@ -941,7 +941,7 @@ If BUFFER is provided, it will be staged and committed along with the modified f
                           "No git log available"
                         results))
                   (error "Git log command failed with exit code %d" exit-code)))))
-        (error (format "Failed to retrieve git log: %s" (error-message-string err)))))))
+        (error "Failed to retrieve git log: %s" (error-message-string err))))))
 
 (defun greger-stdlib--git-show-commit (commit-hash path)
   "View git commit using git command line for PATH."
