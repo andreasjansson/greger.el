@@ -8517,4 +8517,283 @@ test/test-end-to-end.el
 Relax no-tools test expectations for conversation completion
 </tool.toolu_013aD4JSy7u7Z99RVTxKavWv>
 
-<!-- TOOL_RESULT_PLACEHOLDER_toolu_013aD4JSy7u7Z99RVTxKavWv -->
+## TOOL RESULT:
+
+ID: toolu_013aD4JSy7u7Z99RVTxKavWv
+
+<tool.toolu_013aD4JSy7u7Z99RVTxKavWv>
+Successfully replaced content in /Users/andreas/projects/greger.el/test/test-end-to-end.el. Successfully staged 2 file(s) and committed with message: Relax no-tools test expectations for conversation completion
+</tool.toolu_013aD4JSy7u7Z99RVTxKavWv>
+
+
+## ASSISTANT:
+
+Now let's run the tests again to see if they work better:
+
+## TOOL USE:
+
+Name: shell-command
+ID: toolu_01BjRWKMrDMmYhnvi79SN76Q
+
+### command
+
+<tool.toolu_01BjRWKMrDMmYhnvi79SN76Q>
+bash script/test --verbose --file test/test-end-to-end.el
+</tool.toolu_01BjRWKMrDMmYhnvi79SN76Q>
+
+## TOOL RESULT:
+
+ID: toolu_01BjRWKMrDMmYhnvi79SN76Q
+
+<tool.toolu_01BjRWKMrDMmYhnvi79SN76Q>
+Command failed with exit code 1: [0;34mRunning ERT tests for greger package...[0m
+
+Running tests in [1;33mtest/test-end-to-end.el[0m (verbose mode)...
+Loading /Users/andreas/projects/greger.el/greger.el (source)...
+Source file ‘/opt/homebrew/Cellar/emacs-plus@29/29.0.90/share/emacs/29.0.91/lisp/net/eww.el’ newer than byte-compiled file; using older file
+Loading /Users/andreas/projects/greger.el/greger-parser.el (source)...
+Loading /Users/andreas/projects/greger.el/greger-stdlib.el (source)...
+Loading /Users/andreas/projects/greger.el/greger-lib-lsp.el (source)...
+Loading /Users/andreas/projects/greger.el/greger-tools.el (source)...
+Loading /Users/andreas/projects/greger.el/greger-client.el (source)...
+Loading /Users/andreas/projects/greger.el/greger-web.el (source)...
+Loading /Users/andreas/projects/greger.el/test/test-end-to-end.el (source)...
+Running 6 tests (2025-06-03 14:57:23+0200, selector ‘t’)
+Using model claude-sonnet-4-20250514
+   passed  1/6  greger-end-to-end-test-greger-function (0.003151 sec)
+Using model claude-sonnet-4-20250514
+   passed  2/6  greger-end-to-end-test-markdown-features (0.000187 sec)
+Using model claude-sonnet-4-20250514
+   passed  3/6  greger-end-to-end-test-model-configuration (0.000148 sec)
+Using model claude-sonnet-4-20250514
+   passed  4/6  greger-end-to-end-test-no-tools-mode (3.017064 sec)
+Using model claude-sonnet-4-20250514
+Test greger-end-to-end-test-simple-conversation backtrace:
+  set-buffer(#<killed buffer>)
+  (save-current-buffer (set-buffer (progn (or (progn (and (memq (type-
+  greger--append-text(".txt`.\n\nIf you'd like me to help" #s(greger-s
+  (closure ((agent-state . #s(greger-state :current-iteration 0 :chat-
+  funcall((closure ((agent-state . #s(greger-state :current-iteration
+  (progn (funcall (progn (or (progn (and (memq (type-of state) cl-stru
+  (if (progn (or (progn (and (memq (type-of state) cl-struct-greger-cl
+  (let ((text (alist-get 'text delta))) (let* ((p (if (and nil (not (e
+  (cond ((string= delta-type "text_delta") (let ((text (alist-get 'tex
+  (let ((block (nth index blocks))) (cond ((string= delta-type "text_d
+  (progn (let ((block (nth index blocks))) (cond ((string= delta-type
+  (if (< index (length blocks)) (progn (let ((block (nth index blocks)
+  (let* ((index (alist-get 'index data)) (delta (alist-get 'delta data
+  (cond ((string= type "content_block_start") (let* ((index (alist-get
+  (let* ((data (json-read-from-string data-json)) (type (alist-get 'ty
+  greger-client--handle-claude-event("{\"type\":\"content_block_delta\
+  (if (string= data-json "[DONE]") nil (greger-client--handle-claude-e
+  (let ((data-json (substring line 6))) (if (string= data-json "[DONE]
+  (progn (let ((data-json (substring line 6))) (if (string= data-json
+  (if (string-prefix-p "data: " line) (progn (let ((data-json (substri
+  (let* ((line-end (match-end 0)) (line (substring accumulated 0 (1- l
+  (while (string-match "\n" accumulated) (let* ((line-end (match-end 0
+  (let ((accumulated (progn (or (progn (and (memq ... cl-struct-greger
+  greger-client--process-claude-events(#s(greger-client-state :accumul
+  greger-client--process-output-chunk("event: content_block_delta\ndat
+  (closure ((state . #s(greger-client-state :accumulated-output "event
+  sleep-for(0.5)
+  sit-for(0.5)
+  (while (and (not completed) (< (float-time (time-subtract (current-t
+  (let ((start-time (current-time)) (completed nil) (initial-content (
+  greger-test-wait-for-response(#<killed buffer> 30)
+  apply(greger-test-wait-for-response (#<killed buffer> 30))
+  (setq value-45 (apply fn-43 args-44))
+  (unwind-protect (setq value-45 (apply fn-43 args-44)) (setq form-des
+  (if (unwind-protect (setq value-45 (apply fn-43 args-44)) (setq form
+  (let (form-description-47) (if (unwind-protect (setq value-45 (apply
+  (let ((value-45 'ert-form-evaluation-aborted-46)) (let (form-descrip
+  (let* ((fn-43 #'greger-test-wait-for-response) (args-44 (condition-c
+  (progn (greger) (setq greger-buffer (current-buffer)) (goto-char (po
+  (unwind-protect (progn (greger) (setq greger-buffer (current-buffer)
+  (let ((greger-buffer nil)) (unwind-protect (progn (greger) (setq gre
+  (closure (t) nil (let* ((fn-38 #'greger-test-has-api-key) (args-39 (
+  ert--run-test-internal(#s(ert--test-execution-info :test ... :result
+  ert-run-test(#s(ert-test :name greger-end-to-end-test-simple-convers
+  ert-run-or-rerun-test(#s(ert--stats :selector t :tests ... :test-map
+  ert-run-tests(t #f(compiled-function (event-type &rest event-args) #
+  ert-run-tests-batch(t)
+  ert-run-tests-batch-and-exit(t)
+  (let ((ert-quiet nil)) (ert-run-tests-batch-and-exit t))
+  (progn (setq debug-on-error t) (add-to-list 'load-path ".") (require
+  eval((progn (setq debug-on-error t) (add-to-list 'load-path ".") (re
+  command-line-1(("--eval" "(progn\n                  (setq debug-on-e
+  command-line()
+  normal-top-level()
+Test greger-end-to-end-test-simple-conversation condition:
+    (error "Selecting deleted buffer")
+   FAILED  5/6  greger-end-to-end-test-simple-conversation (0.128936 sec) at test/test-end-to-end.el:86
+Using model claude-sonnet-4-20250514
+Test greger-end-to-end-test-tool-use-conversation backtrace:
+  set-buffer(#<killed buffer>)
+  (save-current-buffer (set-buffer (progn (or (progn (and (memq (type-
+  greger--append-text(".txt`.\n\nIf you'd like me to help" #s(greger-s
+  (closure ((agent-state . #s(greger-state :current-iteration 0 :chat-
+  funcall((closure ((agent-state . #s(greger-state :current-iteration
+  (progn (funcall (progn (or (progn (and (memq (type-of state) cl-stru
+  (if (progn (or (progn (and (memq (type-of state) cl-struct-greger-cl
+  (let ((text (alist-get 'text delta))) (let* ((p (if (and nil (not (e
+  (cond ((string= delta-type "text_delta") (let ((text (alist-get 'tex
+  (let ((block (nth index blocks))) (cond ((string= delta-type "text_d
+  (progn (let ((block (nth index blocks))) (cond ((string= delta-type
+  (if (< index (length blocks)) (progn (let ((block (nth index blocks)
+  (let* ((index (alist-get 'index data)) (delta (alist-get 'delta data
+  (cond ((string= type "content_block_start") (let* ((index (alist-get
+  (let* ((data (json-read-from-string data-json)) (type (alist-get 'ty
+  greger-client--handle-claude-event("{\"type\":\"content_block_delta\
+  (if (string= data-json "[DONE]") nil (greger-client--handle-claude-e
+  (let ((data-json (substring line 6))) (if (string= data-json "[DONE]
+  (progn (let ((data-json (substring line 6))) (if (string= data-json
+  (if (string-prefix-p "data: " line) (progn (let ((data-json (substri
+  (let* ((line-end (match-end 0)) (line (substring accumulated 0 (1- l
+  (while (string-match "\n" accumulated) (let* ((line-end (match-end 0
+  (let ((accumulated (progn (or (progn (and (memq ... cl-struct-greger
+  greger-client--process-claude-events(#s(greger-client-state :accumul
+  greger-client--process-output-chunk("event: content_block_delta\ndat
+  (closure ((state . #s(greger-client-state :accumulated-output "event
+  sleep-for(0.5)
+  sit-for(0.5)
+  (while (and (not completed) (< (float-time (time-subtract (current-t
+  (let ((start-time (current-time)) (completed nil) (initial-content (
+  greger-test-wait-for-response(#<killed buffer> 60)
+  apply(greger-test-wait-for-response (#<killed buffer> 60))
+  (setq value-67 (apply fn-65 args-66))
+  (unwind-protect (setq value-67 (apply fn-65 args-66)) (setq form-des
+  (if (unwind-protect (setq value-67 (apply fn-65 args-66)) (setq form
+  (let (form-description-69) (if (unwind-protect (setq value-67 (apply
+  (let ((value-67 'ert-form-evaluation-aborted-68)) (let (form-descrip
+  (let* ((fn-65 #'greger-test-wait-for-response) (args-66 (condition-c
+  (progn (setq test-file (make-temp-file "greger-test-" nil ".txt")) (
+  (unwind-protect (progn (setq test-file (make-temp-file "greger-test-
+  (let ((greger-buffer nil) (test-file nil)) (unwind-protect (progn (s
+  (closure (t) nil (let* ((fn-60 #'greger-test-has-api-key) (args-61 (
+  ert--run-test-internal(#s(ert--test-execution-info :test ... :result
+  ert-run-test(#s(ert-test :name greger-end-to-end-test-tool-use-conve
+  ert-run-or-rerun-test(#s(ert--stats :selector t :tests ... :test-map
+  ert-run-tests(t #f(compiled-function (event-type &rest event-args) #
+  ert-run-tests-batch(t)
+  ert-run-tests-batch-and-exit(t)
+  (let ((ert-quiet nil)) (ert-run-tests-batch-and-exit t))
+  (progn (setq debug-on-error t) (add-to-list 'load-path ".") (require
+  eval((progn (setq debug-on-error t) (add-to-list 'load-path ".") (re
+  command-line-1(("--eval" "(progn\n                  (setq debug-on-e
+  command-line()
+  normal-top-level()
+Test greger-end-to-end-test-tool-use-conversation condition:
+    (error "Selecting deleted buffer")
+   FAILED  6/6  greger-end-to-end-test-tool-use-conversation (0.091988 sec) at test/test-end-to-end.el:120
+
+Ran 6 tests, 4 results as expected, 2 unexpected (2025-06-03 14:57:28+0200, 4.456498 sec)
+
+2 unexpected results:
+   FAILED  greger-end-to-end-test-simple-conversation
+   FAILED  greger-end-to-end-test-tool-use-conversation
+
+
+</tool.toolu_01BjRWKMrDMmYhnvi79SN76Q>
+
+## USER:
+
+continue
+
+## ASSISTANT:
+
+I see the issue - the buffer is being killed during the cleanup phase of the test while the streaming response is still being processed. This is a timing issue where the unwind-protect cleanup happens before the streaming is complete.
+
+Let me fix this by improving the test structure to ensure the streaming completes before cleanup:
+
+## ASSISTANT:
+
+
+
+## TOOL USE:
+
+Name: str-replace
+ID: toolu_01LEMdpeDWVq2TvuD4cXk51X
+
+### file_path
+
+<tool.toolu_01LEMdpeDWVq2TvuD4cXk51X>
+test/test-end-to-end.el
+</tool.toolu_01LEMdpeDWVq2TvuD4cXk51X>
+
+### original_content
+
+<tool.toolu_01LEMdpeDWVq2TvuD4cXk51X>
+(defun greger-test-wait-for-response (buffer timeout)
+  "Wait for a response to appear in BUFFER within TIMEOUT seconds."
+  (let ((start-time (current-time))
+        (completed nil)
+        (initial-content (with-current-buffer buffer (buffer-string))))
+
+    (while (and (not completed)
+                (< (float-time (time-subtract (current-time) start-time)) timeout)
+                (buffer-live-p buffer))
+      (sit-for 0.5)
+      ;; Check if buffer content has changed (response received)
+      (when (buffer-live-p buffer)
+        (with-current-buffer buffer
+          (let ((current-content (buffer-string)))
+            (when (and (not (string= initial-content current-content))
+                      (string-match-p "## ASSISTANT:" current-content))
+              ;; Content changed and we have an assistant response
+              ;; Wait a bit more to see if we get a USER prompt (conversation finished)
+              (sit-for 1.0)
+              (setq current-content (buffer-string))
+              (if (string-match-p "## USER:\n\n$" current-content)
+                  (setq completed t)
+                ;; If no USER prompt yet, wait more but consider it completed if response exists
+                (when (string-match-p "## ASSISTANT:" current-content)
+                  (setq completed t))))))))
+
+    completed))
+</tool.toolu_01LEMdpeDWVq2TvuD4cXk51X>
+
+### new_content
+
+<tool.toolu_01LEMdpeDWVq2TvuD4cXk51X>
+(defun greger-test-wait-for-response (buffer timeout)
+  "Wait for a response to appear in BUFFER within TIMEOUT seconds."
+  (let ((start-time (current-time))
+        (completed nil)
+        (response-started nil)
+        (initial-content (with-current-buffer buffer (buffer-string))))
+
+    (while (and (not completed)
+                (< (float-time (time-subtract (current-time) start-time)) timeout)
+                (buffer-live-p buffer))
+      (sit-for 0.2)
+      ;; Check if buffer content has changed (response received)
+      (when (buffer-live-p buffer)
+        (with-current-buffer buffer
+          (let ((current-content (buffer-string)))
+            ;; Check if response started
+            (when (and (not response-started)
+                      (not (string= initial-content current-content))
+                      (string-match-p "## ASSISTANT:" current-content))
+              (setq response-started t))
+
+            ;; If response started, wait for it to finish
+            (when response-started
+              ;; Check if conversation is complete (has USER prompt at end)
+              (if (string-match-p "## USER:\n\n$" current-content)
+                  (setq completed t)
+                ;; Or if it's been a while since response started, consider it done
+                (let ((response-time (- (float-time (current-time))
+                                       (float-time start-time))))
+                  (when (> response-time 5.0) ; If response has been going for 5+ seconds
+                    (setq completed t)))))))))
+
+    completed))
+</tool.toolu_01LEMdpeDWVq2TvuD4cXk51X>
+
+### git_commit_message
+
+<tool.toolu_01LEMdpeDWVq2TvuD4cXk51X>
+Improve response waiting function to better handle streaming completion
+</tool.toolu_01LEMdpeDWVq2TvuD4cXk51X>
+
+<!-- TOOL_RESULT_PLACEHOLDER_toolu_01LEMdpeDWVq2TvuD4cXk51X -->

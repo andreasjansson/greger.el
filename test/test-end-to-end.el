@@ -23,27 +23,33 @@
   "Wait for a response to appear in BUFFER within TIMEOUT seconds."
   (let ((start-time (current-time))
         (completed nil)
+        (response-started nil)
         (initial-content (with-current-buffer buffer (buffer-string))))
 
     (while (and (not completed)
                 (< (float-time (time-subtract (current-time) start-time)) timeout)
                 (buffer-live-p buffer))
-      (sit-for 0.5)
+      (sit-for 0.2)
       ;; Check if buffer content has changed (response received)
       (when (buffer-live-p buffer)
         (with-current-buffer buffer
           (let ((current-content (buffer-string)))
-            (when (and (not (string= initial-content current-content))
+            ;; Check if response started
+            (when (and (not response-started)
+                      (not (string= initial-content current-content))
                       (string-match-p "## ASSISTANT:" current-content))
-              ;; Content changed and we have an assistant response
-              ;; Wait a bit more to see if we get a USER prompt (conversation finished)
-              (sit-for 1.0)
-              (setq current-content (buffer-string))
+              (setq response-started t))
+
+            ;; If response started, wait for it to finish
+            (when response-started
+              ;; Check if conversation is complete (has USER prompt at end)
               (if (string-match-p "## USER:\n\n$" current-content)
                   (setq completed t)
-                ;; If no USER prompt yet, wait more but consider it completed if response exists
-                (when (string-match-p "## ASSISTANT:" current-content)
-                  (setq completed t))))))))
+                ;; Or if it's been a while since response started, consider it done
+                (let ((response-time (- (float-time (current-time))
+                                       (float-time start-time))))
+                  (when (> response-time 5.0) ; If response has been going for 5+ seconds
+                    (setq completed t)))))))))
 
     completed))
 
