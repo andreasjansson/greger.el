@@ -40,14 +40,16 @@
 ;;; Public API
 
 (cl-defun greger-client-stream (&key model dialog tools buffer text-start-callback text-callback complete-callback cancel-callback)
-  "Send streaming request for MODEL with DIALOG and TOOLS, inserting text into BUFFER.
+  "Send streaming request for MODEL with DIALOG and TOOLS.
+Text is inserted into BUFFER.
 TEXT-START-CALLBACK is called when text streaming starts.
 TEXT-CALLBACK is called for each text chunk with (text).
 COMPLETE-CALLBACK is called when done with the parsed content blocks array.
 CANCEL-CALLBACK is called if cancelled.
 BUFFER defaults to current buffer if not specified.
 
-MODEL should be one of the supported Claude models: claude-sonnet-4-20250514 or claude-opus-4-20250514."
+MODEL should be one of the supported Claude models:
+claude-sonnet-4-20250514 or claude-opus-4-20250514."
   (unless (memq model greger-client-supported-models)
     (error "Unsupported model: %s. Supported models: %s"
            model greger-client-supported-models))
@@ -182,7 +184,8 @@ MODEL should be one of the supported Claude models: claude-sonnet-4-20250514 or 
 ;;; Stream processing
 
 (defun greger-client--setup-cancel-binding (state)
-  "Setup C-g binding for cancellation in the output buffer."
+  "Setup \\[keyboard-quit] binding for cancellation in the output buffer.
+STATE contains the client state information."
   (with-current-buffer (greger-client-state-output-buffer state)
     (local-set-key (kbd "C-g")
                    (lambda ()
@@ -334,7 +337,8 @@ Example of incoming data json (one data-json per line):
                    (setf (alist-get 'input block) '()))))))))))))
 
 (defun greger-client--ensure-block-at-index (blocks index new-block state)
-  "Ensure BLOCKS list has NEW-BLOCK at INDEX, extending if necessary."
+  "Ensure BLOCKS list has NEW-BLOCK at INDEX, extending if necessary.
+STATE is used to update the parsed content blocks."
   (let ((current-blocks (greger-client-state-parsed-content-blocks state)))
     ;; Extend list if needed
     (while (<= (length current-blocks) index)
