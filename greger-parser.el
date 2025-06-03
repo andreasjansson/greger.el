@@ -315,7 +315,7 @@ Returns nil when content is inserted, or the content string when it should be ap
                           (error-message-string err))
      ;; Return error message as content instead of failing silently
      (format "[Error reading %s: %s]"
-             (if (greger-parser--is-web-url-p file-path) "URL" "file")
+             (if (greger-web-is-web-url-p file-path) "URL" "file")
              file-path))))
 
 (defun greger-parser--skip-include-tag (state)
