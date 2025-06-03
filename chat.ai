@@ -2584,4 +2584,150 @@ script/test
 Clean up error parsing to remove duplicates and show cleaner output
 </tool.toolu_01ExK4ynVUT74S2yj1Hygb9j>
 
-<!-- TOOL_RESULT_PLACEHOLDER_toolu_01ExK4ynVUT74S2yj1Hygb9j -->
+## TOOL RESULT:
+
+ID: toolu_01ExK4ynVUT74S2yj1Hygb9j
+
+<tool.toolu_01ExK4ynVUT74S2yj1Hygb9j>
+Successfully replaced content in /Users/andreas/projects/greger.el/script/test. Successfully staged 2 file(s) and committed with message: Clean up error parsing to remove duplicates and show cleaner output
+</tool.toolu_01ExK4ynVUT74S2yj1Hygb9j>
+
+
+## TOOL USE:
+
+Name: shell-command
+ID: toolu_01EEiuntHX7DeRvFvmHkVHgG
+
+### command
+
+<tool.toolu_01EEiuntHX7DeRvFvmHkVHgG>
+bash script/test --file test/test-failure-demo.el
+</tool.toolu_01EEiuntHX7DeRvFvmHkVHgG>
+
+## TOOL RESULT:
+
+ID: toolu_01EEiuntHX7DeRvFvmHkVHgG
+
+<tool.toolu_01EEiuntHX7DeRvFvmHkVHgG>
+Command failed with exit code 1: [0;34mRunning ERT tests for greger package...[0m
+
+Running tests in [1;33mtest/test-failure-demo.el[0m...
+  [0;31m✗ Some tests failed[0m
+  [0;31mFailed tests:[0m
+    [0;31m• 1[0m
+    [0;31m• 2[0m
+    [0;31m• test-demo-failure-1[0m
+    [0;31m• test-demo-failure-2[0m
+  [0;31mError details:[0m
+    [1;33m   FAILED  1/3  test-demo-failure-1 (0.000073 sec) at test/test-failure-demo.el:5[0m
+    [1;33m   FAILED  2/3  test-demo-failure-2 (0.000092 sec) at test/test-failure-demo.el:9[0m
+[0;34mTest Summary:[0m
+  Files run: 1
+  Files passed: [0;32m0[0m
+  Files failed: [0;31m1[0m
+[0;31mSome tests failed.[0m
+
+</tool.toolu_01EEiuntHX7DeRvFvmHkVHgG>
+
+## ASSISTANT:
+
+I still see duplicates in the failed tests list. Let me debug the grep pattern:
+
+## TOOL USE:
+
+Name: shell-command
+ID: toolu_015Aoz8vMpmkiA3oWvVKdWQy
+
+### command
+
+<tool.toolu_015Aoz8vMpmkiA3oWvVKdWQy>
+emacs --batch -Q --eval "(progn (add-to-list 'load-path \".\") (require 'ert) (load-file \"test/test-failure-demo.el\") (ert-run-tests-batch-and-exit t))" 2>&1 | grep -E "^[[:space:]]*FAILED[[:space:]]+[a-zA-Z0-9_-]+"
+</tool.toolu_015Aoz8vMpmkiA3oWvVKdWQy>
+
+## TOOL RESULT:
+
+ID: toolu_015Aoz8vMpmkiA3oWvVKdWQy
+
+<tool.toolu_015Aoz8vMpmkiA3oWvVKdWQy>
+Command executed successfully:
+   FAILED  1/3  test-demo-failure-1 (0.000068 sec) at test/test-failure-demo.el:5
+   FAILED  2/3  test-demo-failure-2 (0.000101 sec) at test/test-failure-demo.el:9
+   FAILED  test-demo-failure-1
+   FAILED  test-demo-failure-2
+
+</tool.toolu_015Aoz8vMpmkiA3oWvVKdWQy>
+
+## ASSISTANT:
+
+I see! There are two different types of FAILED lines. Let me fix this by only using the summary lines at the end:
+
+## TOOL USE:
+
+Name: str-replace
+ID: toolu_01FbeUcW7fxywHYqYv4wkqKZ
+
+### file_path
+
+<tool.toolu_01FbeUcW7fxywHYqYv4wkqKZ>
+script/test
+</tool.toolu_01FbeUcW7fxywHYqYv4wkqKZ>
+
+### original_content
+
+<tool.toolu_01FbeUcW7fxywHYqYv4wkqKZ>
+# Extract and display failure information
+
+        # Extract failed test names from the summary at the end ("FAILED test-name")
+        failed_tests=$(grep -E "^[[:space:]]*FAILED[[:space:]]+[a-zA-Z0-9_-]+" "$temp_output" | sed -E 's/^[[:space:]]*FAILED[[:space:]]+([a-zA-Z0-9_-]+).*/\1/')
+
+        if [ -n "$failed_tests" ]; then
+            echo -e "  ${RED}Failed tests:${NC}"
+            echo "$failed_tests" | while read -r test_name; do
+                if [ -n "$test_name" ]; then
+                    echo -e "    ${RED}• $test_name${NC}"
+                fi
+            done
+
+            # Show error details - extract failed assertions from the detailed output
+            echo -e "  ${RED}Error details:${NC}"
+
+            # Look for the FAILED lines with timing and location information
+            grep -E "^[[:space:]]*FAILED.*\([0-9.]+.*sec\).*at.*\.el:" "$temp_output" | while IFS= read -r line; do
+                echo -e "    ${YELLOW}$line${NC}"
+            done
+        fi
+</tool.toolu_01FbeUcW7fxywHYqYv4wkqKZ>
+
+### new_content
+
+<tool.toolu_01FbeUcW7fxywHYqYv4wkqKZ>
+# Extract and display failure information
+
+        # Extract failed test names from the summary lines at the end (just "FAILED test-name" without timing)
+        failed_tests=$(grep -E "^[[:space:]]*FAILED[[:space:]]+[a-zA-Z0-9_-]+$" "$temp_output" | sed -E 's/^[[:space:]]*FAILED[[:space:]]+([a-zA-Z0-9_-]+)$/\1/')
+
+        if [ -n "$failed_tests" ]; then
+            echo -e "  ${RED}Failed tests:${NC}"
+            echo "$failed_tests" | while read -r test_name; do
+                if [ -n "$test_name" ]; then
+                    echo -e "    ${RED}• $test_name${NC}"
+                fi
+            done
+
+            # Show error details - extract the detailed FAILED lines with timing and location information
+            echo -e "  ${RED}Error details:${NC}"
+
+            # Look for the FAILED lines with timing and location information (the detailed ones)
+            grep -E "^[[:space:]]*FAILED.*\([0-9.]+.*sec\).*at.*\.el:" "$temp_output" | while IFS= read -r line; do
+                echo -e "    ${YELLOW}$line${NC}"
+            done
+        fi
+</tool.toolu_01FbeUcW7fxywHYqYv4wkqKZ>
+
+### git_commit_message
+
+<tool.toolu_01FbeUcW7fxywHYqYv4wkqKZ>
+Fix duplicate test names by using only summary FAILED lines
+</tool.toolu_01FbeUcW7fxywHYqYv4wkqKZ>
+
+<!-- TOOL_RESULT_PLACEHOLDER_toolu_01FbeUcW7fxywHYqYv4wkqKZ -->

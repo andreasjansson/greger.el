@@ -80,8 +80,8 @@ run_test_file() {
 
         # Extract and display failure information
 
-        # Extract failed test names from the summary at the end ("FAILED test-name")
-        failed_tests=$(grep -E "^[[:space:]]*FAILED[[:space:]]+[a-zA-Z0-9_-]+" "$temp_output" | sed -E 's/^[[:space:]]*FAILED[[:space:]]+([a-zA-Z0-9_-]+).*/\1/')
+        # Extract failed test names from the summary lines at the end (just "FAILED test-name" without timing)
+        failed_tests=$(grep -E "^[[:space:]]*FAILED[[:space:]]+[a-zA-Z0-9_-]+$" "$temp_output" | sed -E 's/^[[:space:]]*FAILED[[:space:]]+([a-zA-Z0-9_-]+)$/\1/')
 
         if [ -n "$failed_tests" ]; then
             echo -e "  ${RED}Failed tests:${NC}"
@@ -91,10 +91,10 @@ run_test_file() {
                 fi
             done
 
-            # Show error details - extract failed assertions from the detailed output
+            # Show error details - extract the detailed FAILED lines with timing and location information
             echo -e "  ${RED}Error details:${NC}"
 
-            # Look for the FAILED lines with timing and location information
+            # Look for the FAILED lines with timing and location information (the detailed ones)
             grep -E "^[[:space:]]*FAILED.*\([0-9.]+.*sec\).*at.*\.el:" "$temp_output" | while IFS= read -r line; do
                 echo -e "    ${YELLOW}$line${NC}"
             done
