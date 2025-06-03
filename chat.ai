@@ -1363,15 +1363,381 @@ Now I can see the issue! The `greger-stdlib--read-webpage` function uses a `cond
 
 Let me check the main branch to see how this should work:
 
+
+## ASSISTANT:
+
+
+
 ## TOOL USE:
 
 Name: shell-command
-ID: toolu_017HtnTfkf6grbZwFs6DJNaT
+ID: toolu_0123AZtwBs1JB8vEqS2NEtV5
 
 ### command
 
-<tool.toolu_017HtnTfkf6grbZwFs6DJNaT>
-git log --oneline -10
-</tool.toolu_017HtnTfkf6grbZwFs6DJNaT>
+<tool.toolu_0123AZtwBs1JB8vEqS2NEtV5>
+git log --oneline -5
+</tool.toolu_0123AZtwBs1JB8vEqS2NEtV5>
 
-<!-- TOOL_RESULT_PLACEHOLDER_toolu_017HtnTfkf6grbZwFs6DJNaT -->
+## TOOL RESULT:
+
+ID: toolu_0123AZtwBs1JB8vEqS2NEtV5
+
+<tool.toolu_0123AZtwBs1JB8vEqS2NEtV5>
+Shell command execution cancelled by user
+</tool.toolu_0123AZtwBs1JB8vEqS2NEtV5>
+
+## TOOL USE:
+
+Name: git-log
+ID: toolu_01EvY781z9Dq8bhQ2gPEL72a
+
+### path
+
+<tool.toolu_01EvY781z9Dq8bhQ2gPEL72a>
+.
+</tool.toolu_01EvY781z9Dq8bhQ2gPEL72a>
+
+### max_rows
+
+<tool.toolu_01EvY781z9Dq8bhQ2gPEL72a>
+10
+</tool.toolu_01EvY781z9Dq8bhQ2gPEL72a>
+
+## TOOL RESULT:
+
+ID: toolu_01EvY781z9Dq8bhQ2gPEL72a
+
+<tool.toolu_01EvY781z9Dq8bhQ2gPEL72a>
+* a58b981 (HEAD -> melpazoid, origin/melpazoid) Melpazoid linting
+* 469503d Remove lsp references from verbose test function
+* 0a1a81d Remove greger-lib-lsp.el loading from test script
+* 43bf0ec Remove lsp-mode installation from test script
+* 75d64d1 Remove greger-lib-lsp test from test script
+* fe31dfb Remove greger-lib-lsp loading from greger.el
+* bd74902 Remove greger-lib-lsp.el and its test due to linting complexity
+* ed1cfee Fix checkdoc error message capitalization
+* 3dc626d Make lsp-mode require conditional in greger-lib-lsp.el
+* 269cebe Add MIT LICENSE file
+
+</tool.toolu_01EvY781z9Dq8bhQ2gPEL72a>
+
+## ASSISTANT:
+
+Let me check what the main branch looks like:
+
+
+
+## ASSISTANT:
+
+
+
+## TOOL USE:
+
+Name: shell-command
+ID: toolu_013kxku8mrmm4HE75C3p6uQ4
+
+### command
+
+<tool.toolu_013kxku8mrmm4HE75C3p6uQ4>
+git show-branch main HEAD
+</tool.toolu_013kxku8mrmm4HE75C3p6uQ4>
+
+## TOOL RESULT:
+
+ID: toolu_013kxku8mrmm4HE75C3p6uQ4
+
+<tool.toolu_013kxku8mrmm4HE75C3p6uQ4>
+Command executed successfully:
+! [main] updated chat
+ ! [HEAD] Melpazoid linting
+--
+ + [HEAD] Melpazoid linting
+ + [HEAD^] Remove lsp references from verbose test function
+ + [HEAD~2] Remove greger-lib-lsp.el loading from test script
+ + [HEAD~3] Remove lsp-mode installation from test script
+ + [HEAD~4] Remove greger-lib-lsp test from test script
+ + [HEAD~5] Remove greger-lib-lsp loading from greger.el
+ + [HEAD~6] Remove greger-lib-lsp.el and its test due to linting complexity
+ + [HEAD~7] Fix checkdoc error message capitalization
+ + [HEAD~8] Make lsp-mode require conditional in greger-lib-lsp.el
+ + [HEAD~9] Add MIT LICENSE file
+ + [HEAD~10] Add MIT license header to greger-web.el
+ + [HEAD~11] Add MIT license header to greger-tools.el
+ + [HEAD~12] Add MIT license header to greger-stdlib.el
+ + [HEAD~13] Add MIT license header to greger-pkg.el
+ + [HEAD~14] Add MIT license header to greger-lib-lsp.el
+ + [HEAD~15] Update license to MIT in greger-client.el
+ + [HEAD~16] Update license to MIT in greger-parser.el
+ + [HEAD~17] Update license to MIT in greger.el
+ + [HEAD~18] Add proper license header to greger-client.el
+ + [HEAD~19] Add proper license header to greger-parser.el
+ + [HEAD~20] Add proper license header to greger.el
+ + [HEAD~21] Fix docstring for greger-parser--value-to-string
+ + [HEAD~22] Fix docstring for greger-parser--tool-params-to-markdown
+ + [HEAD~23] Fix docstring for greger-parser--tool-result-to-markdown
+ + [HEAD~24] Fix docstring for greger-parser--tool-use-to-markdown
+ + [HEAD~25] Fix docstring for greger-parser--block-to-markdown
+ + [HEAD~26] Fix docstring for greger-parser--content-blocks-to-markdown
+ + [HEAD~27] Fix docstring for greger-parser--system-to-markdown
+ + [HEAD~28] Fix docstring for greger-parser--assistant-to-markdown
+ + [HEAD~29] Fix docstring for greger-parser--user-to-markdown
+ + [HEAD~30] Fix docstring for greger-parser--message-to-markdown
+ + [HEAD~31] Fix docstring for greger-parser--content-to-blocks
+ + [HEAD~32] Fix docstring for greger-parser--merge-contents
+ + [HEAD~33] Fix docstring for greger-parser--merge-message-contents
+ + [HEAD~34] Fix docstring for greger-parser--merge-consecutive-messages
+ + [HEAD~35] Fix docstring for greger-parser--create-tool-result-message
+ + [HEAD~36] Fix docstring for greger-parser--create-tool-use-message
+ + [HEAD~37] Fix docstring for greger-parser--create-thinking-message
+ + [HEAD~38] Fix docstring for greger-parser--generate-safe-shell-commands-text
+ + [HEAD~39] Fix docstring for greger-parser--create-system-message
+ + [HEAD~40] Fix docstring for greger-parser--create-assistant-message
+ + [HEAD~41] Fix docstring for greger-parser--create-user-message
+ + [HEAD~42] Fix docstring for greger-parser--parse-json-object
+ + [HEAD~43] Fix docstring for greger-parser--parse-json-array
+ + [HEAD~44] Fix docstring for greger-parser--convert-value
+ + [HEAD~45] Fix docstring for greger-parser--normalize-tool-content
+ + [HEAD~46] Fix docstring for greger-parser--find-closing-tag
+ + [HEAD~47] Fix docstring for greger-parser--make-closing-tag
+ + [HEAD~48] Fix docstring for greger-parser--parse-section-content-with-metadata
+ + [HEAD~49] Break up another long docstring line in greger-client.el
+ + [HEAD~50] Break up long docstring line in greger-client.el
+ + [HEAD~51] Fix checkdoc issue - add STATE description to greger-parser--parse-section-content
+ + [HEAD~52] Fix checkdoc issue - add STATE description to greger-parser--read-until-section-with-metadata-extraction
+ + [HEAD~53] Fix checkdoc issues - fix docstring format and add STATE description
+ + [HEAD~54] Fix checkdoc issue - add argument descriptions to greger-parser--include-file
+ + [HEAD~55] Fix checkdoc issue - add DEBUG description to greger-parser-parse-dialog-messages-only
+ + [HEAD~56] Fix checkdoc issue - add argument descriptions to greger-parser--debug
+ + [HEAD~57] Break up long docstring line in greger-client--handle-claude-event
+ + [HEAD~58] Remove unused max-width variable and calculation
+ + [HEAD~59] Fix unused argument 'blocks' by prefixing with underscore
+ + [HEAD~60] Remove unused variable 'remaining' in greger-client--process-claude-events
+ + [HEAD~61] Fix unused arguments in process callbacks by prefixing with underscore
+ + [HEAD~62] Fix unused argument warning - prefix with underscore
+ + [HEAD~63] Fix docstring width in greger-parser--read-until-section-tag
+ + [HEAD~64] Fix docstring width in greger-stdlib--shell-command
+ + [HEAD~65] Fix docstring width in greger-stdlib--replace-function
+ + [HEAD~66] Fix docstring width in greger-stdlib--delete-files
+ + [HEAD~67] Fix docstring width in greger-stdlib--rename-file
+ + [HEAD~68] Fix docstring width in greger-stdlib--ripgrep
+ + [HEAD~69] Fix format string in greger-stdlib.el - remove extra max-width argument
+ + [HEAD~70] Remove reference to unused optional-started variable
+ + [HEAD~71] Remove unused optional-started variable in greger-tools--extract-function-args
+ + [HEAD~72] Fix docstring width and escape characters in greger-tools-execute
+ + [HEAD~73] Capitalize error messages in greger-stdlib--rename-file
+ + [HEAD~74] Capitalize error messages in greger-stdlib--replace-file
+ + [HEAD~75] Fix missing GIT-COMMIT-MESSAGE documentation in greger-stdlib--replace-file
+ + [HEAD~76] Remove period from error message in greger-stdlib--str-replace
+ + [HEAD~77] Add documentation string for greger-stdlib--eval-elisp-defuns
+ + [HEAD~78] Capitalize error messages in greger-stdlib--git-show-commit
+ + [HEAD~79] Fix missing COMMIT-HASH documentation in greger-stdlib--git-show-commit
+ + [HEAD~80] Capitalize error message in greger-stdlib--git-log
+ + [HEAD~81] Fix missing MAX-ROWS documentation in greger-stdlib--git-log
+ + [HEAD~82] Capitalize error message in greger-stdlib--make-directory
+ + [HEAD~83] Fix all checkdoc issues in greger-lib-lsp.el
+ + [HEAD~84] Fix all checkdoc issues in greger-client.el
+ + [HEAD~85] Capitalize error messages in greger-stdlib--insert
+ + [HEAD~86] Fix missing GIT-COMMIT-MESSAGE documentation and line length in greger-stdlib--insert
+ + [HEAD~87] Capitalize error messages in greger-stdlib--str-replace
+ + [HEAD~88] Fix missing GIT-COMMIT-MESSAGE documentation and line length in greger-stdlib--str-replace
+ + [HEAD~89] Quote parse-partial-sexp in docstring
+ + [HEAD~90] Capitalize error messages in greger-stdlib--write-new-file
+ + [HEAD~91] Fix missing GIT-COMMIT-MESSAGE documentation in greger-stdlib--delete-files
+ + [HEAD~92] Revert error format change - function should return formatted string not raise error
+ + [HEAD~93] Fix missing GIT-COMMIT-MESSAGE documentation in greger-stdlib--rename-file
+ + [HEAD~94] Fix missing GIT-COMMIT-MESSAGE documentation in greger-stdlib--make-directory
+ + [HEAD~95] Fix missing GIT-COMMIT-MESSAGE documentation in greger-stdlib--write-new-file
+ + [HEAD~96] Capitalize error messages in greger-stdlib--read-file
+ + [HEAD~97] Fix missing CALLBACK argument documentation in greger-stdlib--ripgrep
+ + [HEAD~98] Fix missing argument documentation in greger-stdlib--list-directory-recursive
+ + [HEAD~99] Fix missing argument documentation in greger-stdlib--list-directory
+ + [HEAD~100] Combine format and concat in greger-stdlib.el line 404
+ + [HEAD~101] Fix error format usage - remove unnecessary format in greger-stdlib.el line 1162
+ + [HEAD~102] Fix error format usage - remove unnecessary format in greger-stdlib.el line 333
+ + [HEAD~103] Fix assignment to free variable optional-started in greger-tools
+ + [HEAD~104] Fix greger-tools-execute docstring width
+ + [HEAD~105] Fix greger-tools.el docstring width and quote usage
+ + [HEAD~106] Fix docstring for greger--expand-tool-section to include TOOL-ID argument
+ + [HEAD~107] Fix docstring for greger--create-collapsible-overlay to include argument names
+ + [HEAD~108] Fix remaining break function usage in greger-parser.el
+ + [HEAD~109] Fix format string construction for line numbers
+ + [HEAD~110] Break long line in greger-lib-lsp--format docstring
+ + [HEAD~111] Break long line in greger-lib-lsp--format-document-symbols docstring
+ + [HEAD~112] Break long line in greger-lib-lsp--format-document-symbol docstring
+ + [HEAD~113] Break long line in greger-lib-lsp--filter-detailed-symbols docstring
+ + [HEAD~114] Break long line in greger-lib-lsp--detailed-symbol-kind-p docstring
+ + [HEAD~115] Break long line in greger-lib-lsp--ensure-server docstring
+ + [HEAD~116] Fix loop termination by setting parser position to end instead of using break
+ + [HEAD~117] Use null instead of eq value nil
+ + [HEAD~118] Replace break with loop termination condition
+ + [HEAD~119] Fix unescaped single quotes in greger-parser--parse-id-line docstring
+ + [HEAD~120] Fix unescaped single quotes in greger-parser--parse-name-line docstring
+ + [HEAD~121] Break long line in greger-parser--read-until-section-with-comment-removal docstring
+ + [HEAD~122] Remove unused variable start-pos
+ + [HEAD~123] Break long lines in greger-parser--include-file docstring
+ + [HEAD~124] Remove unused variable tag-start
+ + [HEAD~125] Fix condition-case error handling to return formatted string
+ + [HEAD~126] Replace goto-line with forward-line for programmatic use
+ + [HEAD~127] Replace goto-line with forward-line for programmatic use
+ + [HEAD~128] Simplify format string construction using width specifier
+ + [HEAD~129] Remove unnecessary format call in error message
+ + [HEAD~130] Remove unnecessary format call in error message
+ + [HEAD~131] Remove unnecessary format call in error message
+ + [HEAD~132] Remove unnecessary format call in error message
+ + [HEAD~133] Remove unnecessary format call in error message
+ + [HEAD~134] Remove unnecessary format call in error message
+ + [HEAD~135] Remove unnecessary format call in error message
+ + [HEAD~136] Remove unnecessary format call in error message
+ + [HEAD~137] Remove unnecessary format call in error message
+ + [HEAD~138] Remove unnecessary format call in error message
+ + [HEAD~139] Use sharp-quote for function reference
+ + [HEAD~140] Use sharp-quote for function reference
+ + [HEAD~141] Use sharp-quote for function reference
+ + [HEAD~142] Mark unused argument event with underscore prefix
+ + [HEAD~143] Remove unused variable full-command
+ + [HEAD~144] Break long line in greger-stdlib--run-async-subprocess docstring
+ + [HEAD~145] Remove unused variable optional-started
+ + [HEAD~146] Break long line in greger-tools--extract-function-args docstring
+ + [HEAD~147] Fix long line and quoting in greger-tools-execute docstring
+ + [HEAD~148] Fix unescaped single quotes in greger-tools.el docstring example
+ + [HEAD~149] Break long line in greger-tools.el docstring
+ + [HEAD~150] Shorten docstring to fit within 80 characters
+ + [HEAD~151] Mark unused argument len with underscore prefix
+ + [HEAD~152] Remove unused variable open-tag-end
+ + [HEAD~153] Remove unused variables total-lines and hidden-text
+ + [HEAD~154] Add missing argument documentation for greger--after-change-function
+ + [HEAD~155] Add missing argument documentation for greger--collapse-tool-section
+ + [HEAD~156] Add missing argument documentation for greger--toggle-tool-section-by-id
+ + [HEAD~157] Add missing argument documentation for greger--setup-collapsible-content
+ + [HEAD~158] Add missing argument documentation for greger--create-tag-overlay
+ + [HEAD~159] Add missing argument documentation for greger--extract-tool-id
+ + [HEAD~160] Add missing argument documentation for greger--handle-tool-completion
+ + [HEAD~161] Add missing argument documentation for greger--debug
+ + [HEAD~162] Fix another unnecessary format call in greger.el
+ + [HEAD~163] Fix unnecessary format call in greger.el
+++ [main] updated chat
+
+</tool.toolu_013kxku8mrmm4HE75C3p6uQ4>
+
+## ASSISTANT:
+
+Let me check the `greger-stdlib--read-webpage` function on the main branch:
+
+## TOOL USE:
+
+Name: shell-command
+ID: toolu_01CLG26VQhoV6nYH4psrdaBi
+
+### command
+
+<tool.toolu_01CLG26VQhoV6nYH4psrdaBi>
+git show main:greger-stdlib.el | grep -A 15 "defun greger-stdlib--read-webpage"
+</tool.toolu_01CLG26VQhoV6nYH4psrdaBi>
+
+## TOOL RESULT:
+
+ID: toolu_01CLG26VQhoV6nYH4psrdaBi
+
+<tool.toolu_01CLG26VQhoV6nYH4psrdaBi>
+Command executed successfully:
+(defun greger-stdlib--read-webpage (url &optional extract-text use-highest-readability)
+  "Read webpage content from URL.
+If EXTRACT-TEXT is non-nil (default t), extract and return text content.
+If EXTRACT-TEXT is nil, return raw HTML.
+If USE-HIGHEST-READABILITY is non-nil, use eww's aggressive readability setting."
+  (unless (stringp url)
+    (error "URL must be a string"))
+
+  (when (string-empty-p (string-trim url))
+    (error "URL cannot be empty"))
+
+  (unless (greger-web-is-web-url-p url)
+    (error "Invalid URL format: %s (must start with http:// or https://)" url))
+
+  (condition-case err
+      (greger-web-download-page url extract-text use-highest-readability)
+
+</tool.toolu_01CLG26VQhoV6nYH4psrdaBi>
+
+## TOOL USE:
+
+Name: shell-command
+ID: toolu_01XF1cAfb4Wnhr3DzRUfxH9M
+
+### command
+
+<tool.toolu_01XF1cAfb4Wnhr3DzRUfxH9M>
+git show main:greger-stdlib.el | grep -A 20 "defun greger-stdlib--read-webpage"
+</tool.toolu_01XF1cAfb4Wnhr3DzRUfxH9M>
+
+## TOOL RESULT:
+
+ID: toolu_01XF1cAfb4Wnhr3DzRUfxH9M
+
+<tool.toolu_01XF1cAfb4Wnhr3DzRUfxH9M>
+Command executed successfully:
+(defun greger-stdlib--read-webpage (url &optional extract-text use-highest-readability)
+  "Read webpage content from URL.
+If EXTRACT-TEXT is non-nil (default t), extract and return text content.
+If EXTRACT-TEXT is nil, return raw HTML.
+If USE-HIGHEST-READABILITY is non-nil, use eww's aggressive readability setting."
+  (unless (stringp url)
+    (error "URL must be a string"))
+
+  (when (string-empty-p (string-trim url))
+    (error "URL cannot be empty"))
+
+  (unless (greger-web-is-web-url-p url)
+    (error "Invalid URL format: %s (must start with http:// or https://)" url))
+
+  (condition-case err
+      (greger-web-download-page url extract-text use-highest-readability)
+    (error (format "Failed to read webpage: %s" (error-message-string err)))))
+
+(provide 'greger-stdlib)
+
+;;; greger-stdlib.el ends here
+
+</tool.toolu_01XF1cAfb4Wnhr3DzRUfxH9M>
+
+## ASSISTANT:
+
+Perfect! Now I can see the issue. In the main branch, the `condition-case` error handler returns a formatted string with the error message, but in the current branch it's not using the correct format.
+
+Let me fix the `greger-stdlib--read-webpage` function:
+
+## TOOL USE:
+
+Name: str-replace
+ID: toolu_01CsUZniEKuWm5gNhnYvSGR7
+
+### file_path
+
+<tool.toolu_01CsUZniEKuWm5gNhnYvSGR7>
+greger-stdlib.el
+</tool.toolu_01CsUZniEKuWm5gNhnYvSGR7>
+
+### original_content
+
+<tool.toolu_01CsUZniEKuWm5gNhnYvSGR7>
+  (condition-case err
+      (greger-web-download-page url extract-text use-highest-readability)
+    (format "Failed to read webpage: %s" (error-message-string err))))
+</tool.toolu_01CsUZniEKuWm5gNhnYvSGR7>
+
+### new_content
+
+<tool.toolu_01CsUZniEKuWm5gNhnYvSGR7>
+  (condition-case err
+      (greger-web-download-page url extract-text use-highest-readability)
+    (error (format "Failed to read webpage: %s" (error-message-string err)))))
+</tool.toolu_01CsUZniEKuWm5gNhnYvSGR7>
+
+### git_commit_message
+
+<tool.toolu_01CsUZniEKuWm5gNhnYvSGR7>
+Fix error handling in greger-stdlib--read-webpage to return formatted string instead of re-signaling error
+</tool.toolu_01CsUZniEKuWm5gNhnYvSGR7>
+
+<!-- TOOL_RESULT_PLACEHOLDER_toolu_01CsUZniEKuWm5gNhnYvSGR7 -->
