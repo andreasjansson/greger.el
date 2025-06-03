@@ -36,7 +36,10 @@ run_test_file() {
         return 1
     fi
 
-    # Run the tests with ERT
+    # Create temporary file to capture output
+    local temp_output=$(mktemp)
+
+    # Run the tests with ERT and capture all output
     if emacs --batch -Q \
         --eval "(progn
                   (setq debug-on-error t)
@@ -68,11 +71,40 @@ run_test_file() {
                   (load-file \"$test_file\")
                   ;; Run all tests defined in this file
                   (let ((ert-quiet nil))
-                    (ert-run-tests-batch-and-exit t)))" 2>/dev/null; then
+                    (ert-run-tests-batch-and-exit t)))" > "$temp_output" 2>&1; then
         echo -e "  ${GREEN}✓ All tests passed${NC}"
+        rm -f "$temp_output"
         return 0
     else
         echo -e "  ${RED}✗ Some tests failed${NC}"
+
+        # Extract and display failure information
+        echo -e "  ${RED}Failed tests:${NC}"
+
+        # Look for test failures in the output
+        grep -E "^F " "$temp_output" | while read -r line; do
+            test_name=$(echo "$line" | sed 's/^F //')
+            echo -e "    ${RED}• $test_name${NC}"
+        done
+
+        # Look for error details - find lines that start with test names followed by FAILED
+        grep -A 10 "FAILED" "$temp_output" | while IFS= read -r line; do
+            if [[ $line =~ ^[[:space:]]*[a-zA-Z0-9_-]+.*FAILED ]]; then
+                test_name=$(echo "$line" | sed -E 's/^[[:space:]]*([a-zA-Z0-9_-]+).*FAILED.*/\1/')
+                echo -e "    ${RED}• $test_name${NC}"
+            elif [[ $line =~ ^[[:space:]]*.*should.*but.*was ]]; then
+                echo -e "      ${YELLOW}Error: $line${NC}"
+            elif [[ $line =~ ^[[:space:]]*.*error.*: ]]; then
+                echo -e "      ${YELLOW}Error: $line${NC}"
+            fi
+        done
+
+        # Alternative: look for assertion failures
+        grep -E "(ert-test-failed|should.*but)" "$temp_output" | head -10 | while IFS= read -r line; do
+            echo -e "    ${YELLOW}$line${NC}"
+        done
+
+        rm -f "$temp_output"
         return 1
     fi
 }

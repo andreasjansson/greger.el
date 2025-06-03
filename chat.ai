@@ -1269,3 +1269,412 @@ Perfect! I have successfully removed all the conditional checks for `ANTHROPIC_A
 Now all these tests will run unconditionally and will require the `ANTHROPIC_API_KEY` environment variable to be set (as enforced by the actual client code in `greger-client.el`). If the API key is not set, the tests will fail with an appropriate error message from the client rather than being skipped.
 
 ## USER:
+
+Make script/test output the names of the failing test cases, as well as the errors, even when not verbose
+
+## ASSISTANT:
+
+I'll help you modify the test script to output the names of failing test cases and their errors even when not in verbose mode. Let me first examine the current test script to understand how it works.
+
+## TOOL USE:
+
+Name: read-file
+ID: toolu_01AEgGuyaXvYsMgrACEMVDUK
+
+### path
+
+<tool.toolu_01AEgGuyaXvYsMgrACEMVDUK>
+script/test
+</tool.toolu_01AEgGuyaXvYsMgrACEMVDUK>
+
+## TOOL RESULT:
+
+ID: toolu_01AEgGuyaXvYsMgrACEMVDUK
+
+<tool.toolu_01AEgGuyaXvYsMgrACEMVDUK>
+#!/bin/bash
+
+# Test script for greger package
+# Runs all ERT tests for the package
+
+set -e
+
+# Colors for output
+RED='\033[0;31m'
+GREEN='\033[0;32m'
+YELLOW='\033[1;33m'
+BLUE='\033[0;34m'
+NC='\033[0m' # No Color
+
+# Test files to run
+TEST_FILES=(
+    "test/test-greger.el"
+    "test/test-greger-parser.el"
+    "test/test-greger-stdlib.el"
+    "test/test-greger-lib-lsp.el"
+    "test/test-greger-tools.el"
+    "test/test-greger-client.el"
+    "test/test-end-to-end.el"
+)
+
+echo -e "${BLUE}Running ERT tests for greger package...${NC}"
+echo
+
+# Function to run tests for a single file
+run_test_file() {
+    local test_file="$1"
+    echo -e "Running tests in ${YELLOW}$test_file${NC}..."
+
+    if [ ! -f "$test_file" ]; then
+        echo -e "  ${RED}✗ Test file not found: $test_file${NC}"
+        return 1
+    fi
+
+    # Run the tests with ERT
+    if emacs --batch -Q \
+        --eval "(progn
+                  (setq debug-on-error t)
+                  (add-to-list 'load-path \".\")
+                  ;; Setup package archives and install dependencies if needed
+                  (require 'package)
+                  (setq package-archives '((\"melpa\" . \"https://melpa.org/packages/\")
+                                           (\"gnu\" . \"https://elpa.gnu.org/packages/\")))
+                  (package-initialize)
+                  ;; Install lsp-mode and lsp-pyright if not available
+                  (unless (package-installed-p 'lsp-mode)
+                    (package-refresh-contents)
+                    (package-install 'lsp-mode))
+                  (unless (package-installed-p 'lsp-pyright)
+                    (package-refresh-contents)
+                    (package-install 'lsp-pyright))
+                  ;; Load required packages
+                  (require 'ert)
+                  (require 'cl-lib)
+                  ;; Load main greger files
+                  (load-file \"greger.el\")
+                  (load-file \"greger-parser.el\")
+                  (load-file \"greger-stdlib.el\")
+                  (load-file \"greger-lib-lsp.el\")
+                  (load-file \"greger-tools.el\")
+                  (load-file \"greger-client.el\")
+                  (load-file \"greger-web.el\")
+                  ;; Load test file
+                  (load-file \"$test_file\")
+                  ;; Run all tests defined in this file
+                  (let ((ert-quiet nil))
+                    (ert-run-tests-batch-and-exit t)))" 2>/dev/null; then
+        echo -e "  ${GREEN}✓ All tests passed${NC}"
+        return 0
+    else
+        echo -e "  ${RED}✗ Some tests failed${NC}"
+        return 1
+    fi
+}
+
+# Function to run tests with verbose output
+run_test_file_verbose() {
+    local test_file="$1"
+    echo -e "Running tests in ${YELLOW}$test_file${NC} (verbose mode)..."
+
+    emacs --batch -Q \
+        --eval "(progn
+                  (setq debug-on-error t)
+                  (add-to-list 'load-path \".\")
+                  ;; Setup package archives and install dependencies if needed
+                  (require 'package)
+                  (setq package-archives '((\"melpa\" . \"https://melpa.org/packages/\")
+                                           (\"gnu\" . \"https://elpa.gnu.org/packages/\")))
+                  (package-initialize)
+                  ;; Install lsp-mode and lsp-pyright if not available
+                  (unless (package-installed-p 'lsp-mode)
+                    (package-refresh-contents)
+                    (package-install 'lsp-mode))
+                  (unless (package-installed-p 'lsp-pyright)
+                    (package-refresh-contents)
+                    (package-install 'lsp-pyright))
+                  ;; Load required packages
+                  (require 'ert)
+                  (require 'cl-lib)
+                  ;; Load main greger files
+                  (load-file \"greger.el\")
+                  (load-file \"greger-parser.el\")
+                  (load-file \"greger-stdlib.el\")
+                  (load-file \"greger-lib-lsp.el\")
+                  (load-file \"greger-tools.el\")
+                  (load-file \"greger-client.el\")
+                  (load-file \"greger-web.el\")
+                  ;; Load test file
+                  (load-file \"$test_file\")
+                  ;; Run all tests defined in this file with verbose output
+                  (let ((ert-quiet nil))
+                    (ert-run-tests-batch-and-exit t)))"
+}
+
+# Parse command line arguments
+VERBOSE=false
+SPECIFIC_FILE=""
+HELP=false
+
+while [[ $# -gt 0 ]]; do
+    case $1 in
+        -v|--verbose)
+            VERBOSE=true
+            shift
+            ;;
+        -f|--file)
+            SPECIFIC_FILE="$2"
+            shift 2
+            ;;
+        -h|--help)
+            HELP=true
+            shift
+            ;;
+        *)
+            echo -e "${RED}Unknown option: $1${NC}"
+            HELP=true
+            shift
+            ;;
+    esac
+done
+
+# Show help if requested
+if [ "$HELP" = true ]; then
+    echo "Usage: $0 [OPTIONS]"
+    echo ""
+    echo "Options:"
+    echo "  -v, --verbose    Show verbose test output"
+    echo "  -f, --file FILE  Run tests only for specific file"
+    echo "  -h, --help       Show this help message"
+    echo ""
+    echo "Test files available:"
+    for file in "${TEST_FILES[@]}"; do
+        echo "  - $file"
+    done
+    exit 0
+fi
+
+# Run tests
+OVERALL_EXIT_CODE=0
+TOTAL_FILES=0
+PASSED_FILES=0
+
+if [ -n "$SPECIFIC_FILE" ]; then
+    # Run tests for specific file
+    TOTAL_FILES=1
+    if [ "$VERBOSE" = true ]; then
+        run_test_file_verbose "$SPECIFIC_FILE"
+        OVERALL_EXIT_CODE=$?
+    else
+        if run_test_file "$SPECIFIC_FILE"; then
+            PASSED_FILES=1
+        else
+            OVERALL_EXIT_CODE=1
+        fi
+    fi
+else
+    # Run tests for all files
+    for test_file in "${TEST_FILES[@]}"; do
+        TOTAL_FILES=$((TOTAL_FILES + 1))
+
+        if [ "$VERBOSE" = true ]; then
+            echo
+            run_test_file_verbose "$test_file"
+            if [ $? -ne 0 ]; then
+                OVERALL_EXIT_CODE=1
+            else
+                PASSED_FILES=$((PASSED_FILES + 1))
+            fi
+        else
+            if run_test_file "$test_file"; then
+                PASSED_FILES=$((PASSED_FILES + 1))
+            else
+                OVERALL_EXIT_CODE=1
+            fi
+        fi
+        echo
+    done
+fi
+
+# Print summary
+echo -e "${BLUE}Test Summary:${NC}"
+echo -e "  Files run: $TOTAL_FILES"
+echo -e "  Files passed: ${GREEN}$PASSED_FILES${NC}"
+echo -e "  Files failed: ${RED}$((TOTAL_FILES - PASSED_FILES))${NC}"
+
+if [ $OVERALL_EXIT_CODE -eq 0 ]; then
+    echo -e "${GREEN}All tests passed!${NC}"
+else
+    echo -e "${RED}Some tests failed.${NC}"
+fi
+
+exit $OVERALL_EXIT_CODE
+
+</tool.toolu_01AEgGuyaXvYsMgrACEMVDUK>
+
+## ASSISTANT:
+
+I can see that the current script redirects stderr to `/dev/null` in the non-verbose mode (`2>/dev/null`), which hides the detailed test output including failure names and errors. I need to modify the script to capture and display test failure information even in non-verbose mode.
+
+Let me create a modified version that captures test output and extracts failure information:
+
+
+## TOOL USE:
+
+Name: str-replace
+ID: toolu_018K7U9SpWCYQ8mbRQVNunCu
+
+### file_path
+
+<tool.toolu_018K7U9SpWCYQ8mbRQVNunCu>
+script/test
+</tool.toolu_018K7U9SpWCYQ8mbRQVNunCu>
+
+### original_content
+
+<tool.toolu_018K7U9SpWCYQ8mbRQVNunCu>
+# Function to run tests for a single file
+run_test_file() {
+    local test_file="$1"
+    echo -e "Running tests in ${YELLOW}$test_file${NC}..."
+
+    if [ ! -f "$test_file" ]; then
+        echo -e "  ${RED}✗ Test file not found: $test_file${NC}"
+        return 1
+    fi
+
+    # Run the tests with ERT
+    if emacs --batch -Q \
+        --eval "(progn
+                  (setq debug-on-error t)
+                  (add-to-list 'load-path \".\")
+                  ;; Setup package archives and install dependencies if needed
+                  (require 'package)
+                  (setq package-archives '((\"melpa\" . \"https://melpa.org/packages/\")
+                                           (\"gnu\" . \"https://elpa.gnu.org/packages/\")))
+                  (package-initialize)
+                  ;; Install lsp-mode and lsp-pyright if not available
+                  (unless (package-installed-p 'lsp-mode)
+                    (package-refresh-contents)
+                    (package-install 'lsp-mode))
+                  (unless (package-installed-p 'lsp-pyright)
+                    (package-refresh-contents)
+                    (package-install 'lsp-pyright))
+                  ;; Load required packages
+                  (require 'ert)
+                  (require 'cl-lib)
+                  ;; Load main greger files
+                  (load-file \"greger.el\")
+                  (load-file \"greger-parser.el\")
+                  (load-file \"greger-stdlib.el\")
+                  (load-file \"greger-lib-lsp.el\")
+                  (load-file \"greger-tools.el\")
+                  (load-file \"greger-client.el\")
+                  (load-file \"greger-web.el\")
+                  ;; Load test file
+                  (load-file \"$test_file\")
+                  ;; Run all tests defined in this file
+                  (let ((ert-quiet nil))
+                    (ert-run-tests-batch-and-exit t)))" 2>/dev/null; then
+        echo -e "  ${GREEN}✓ All tests passed${NC}"
+        return 0
+    else
+        echo -e "  ${RED}✗ Some tests failed${NC}"
+        return 1
+    fi
+}
+</tool.toolu_018K7U9SpWCYQ8mbRQVNunCu>
+
+### new_content
+
+<tool.toolu_018K7U9SpWCYQ8mbRQVNunCu>
+# Function to run tests for a single file
+run_test_file() {
+    local test_file="$1"
+    echo -e "Running tests in ${YELLOW}$test_file${NC}..."
+
+    if [ ! -f "$test_file" ]; then
+        echo -e "  ${RED}✗ Test file not found: $test_file${NC}"
+        return 1
+    fi
+
+    # Create temporary file to capture output
+    local temp_output=$(mktemp)
+
+    # Run the tests with ERT and capture all output
+    if emacs --batch -Q \
+        --eval "(progn
+                  (setq debug-on-error t)
+                  (add-to-list 'load-path \".\")
+                  ;; Setup package archives and install dependencies if needed
+                  (require 'package)
+                  (setq package-archives '((\"melpa\" . \"https://melpa.org/packages/\")
+                                           (\"gnu\" . \"https://elpa.gnu.org/packages/\")))
+                  (package-initialize)
+                  ;; Install lsp-mode and lsp-pyright if not available
+                  (unless (package-installed-p 'lsp-mode)
+                    (package-refresh-contents)
+                    (package-install 'lsp-mode))
+                  (unless (package-installed-p 'lsp-pyright)
+                    (package-refresh-contents)
+                    (package-install 'lsp-pyright))
+                  ;; Load required packages
+                  (require 'ert)
+                  (require 'cl-lib)
+                  ;; Load main greger files
+                  (load-file \"greger.el\")
+                  (load-file \"greger-parser.el\")
+                  (load-file \"greger-stdlib.el\")
+                  (load-file \"greger-lib-lsp.el\")
+                  (load-file \"greger-tools.el\")
+                  (load-file \"greger-client.el\")
+                  (load-file \"greger-web.el\")
+                  ;; Load test file
+                  (load-file \"$test_file\")
+                  ;; Run all tests defined in this file
+                  (let ((ert-quiet nil))
+                    (ert-run-tests-batch-and-exit t)))" > "$temp_output" 2>&1; then
+        echo -e "  ${GREEN}✓ All tests passed${NC}"
+        rm -f "$temp_output"
+        return 0
+    else
+        echo -e "  ${RED}✗ Some tests failed${NC}"
+
+        # Extract and display failure information
+        echo -e "  ${RED}Failed tests:${NC}"
+
+        # Look for test failures in the output
+        grep -E "^F " "$temp_output" | while read -r line; do
+            test_name=$(echo "$line" | sed 's/^F //')
+            echo -e "    ${RED}• $test_name${NC}"
+        done
+
+        # Look for error details - find lines that start with test names followed by FAILED
+        grep -A 10 "FAILED" "$temp_output" | while IFS= read -r line; do
+            if [[ $line =~ ^[[:space:]]*[a-zA-Z0-9_-]+.*FAILED ]]; then
+                test_name=$(echo "$line" | sed -E 's/^[[:space:]]*([a-zA-Z0-9_-]+).*FAILED.*/\1/')
+                echo -e "    ${RED}• $test_name${NC}"
+            elif [[ $line =~ ^[[:space:]]*.*should.*but.*was ]]; then
+                echo -e "      ${YELLOW}Error: $line${NC}"
+            elif [[ $line =~ ^[[:space:]]*.*error.*: ]]; then
+                echo -e "      ${YELLOW}Error: $line${NC}"
+            fi
+        done
+
+        # Alternative: look for assertion failures
+        grep -E "(ert-test-failed|should.*but)" "$temp_output" | head -10 | while IFS= read -r line; do
+            echo -e "    ${YELLOW}$line${NC}"
+        done
+
+        rm -f "$temp_output"
+        return 1
+    fi
+}
+</tool.toolu_018K7U9SpWCYQ8mbRQVNunCu>
+
+### git_commit_message
+
+<tool.toolu_018K7U9SpWCYQ8mbRQVNunCu>
+Modify test script to show failing test names and errors in non-verbose mode
+</tool.toolu_018K7U9SpWCYQ8mbRQVNunCu>
+
+<!-- TOOL_RESULT_PLACEHOLDER_toolu_018K7U9SpWCYQ8mbRQVNunCu -->
