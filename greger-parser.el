@@ -250,7 +250,7 @@ This is for backward compatibility with existing tests and code."
 (defun greger-parser--process-include-tag (state)
   "Process an include tag and return the included content in STATE."
   (greger-parser--debug state "Processing include tag at pos %d" (greger-parser-state-pos state))
-  (let ((tag-start (greger-parser--current-pos state)))
+  (progn
     ;; Parse the opening tag
     (when (greger-parser--looking-at state "<include")
       (greger-parser--advance state 8) ; Skip "<include"
