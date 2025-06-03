@@ -433,7 +433,7 @@ ARGS are arguments to format."
     (insert text)))
 
 (defun greger--handle-tool-completion (tool-id result error agent-state search-start-pos completion-callback)
-  "Handle completion of a tool execution by updating the buffer and calling COMPLETION-CALLBACK.
+  "Handle completion of a tool execution by updating buffer and calling callback.
 TOOL-ID is the tool identifier.
 RESULT is the tool execution result.
 ERROR is any error that occurred.
