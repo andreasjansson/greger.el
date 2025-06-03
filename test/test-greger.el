@@ -22,12 +22,12 @@
 (require 'greger-tools)
 (require 'greger-parser)
 
-(ert-deftest greger-agent-test-tool-placeholder ()
+(ert-deftest greger-test-tool-placeholder ()
   "Test the tool placeholder helper function."
   (let ((expected1 "<!-- TOOL_RESULT_PLACEHOLDER_test123 -->")
         (expected2 "<!-- TOOL_RESULT_PLACEHOLDER_tool_abc_def -->"))
-    (should (string= expected1 (greger-agent--tool-placeholder "test123")))
-    (should (string= expected2 (greger-agent--tool-placeholder "tool_abc_def")))))
+    (should (string= expected1 (greger--tool-placeholder "test123")))
+    (should (string= expected2 (greger--tool-placeholder "tool_abc_def")))))
 
 (ert-deftest greger-agent-test-single-tool-execution ()
   "Test execution of a single tool with callback."
