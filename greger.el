@@ -5,7 +5,7 @@
 ;; Author: Andreas Jansson <andreas@jansson.me.uk>
 ;; Version: 0.1.0
 ;; URL: https://github.com/andreasjansson/greger.el
-;; Package-Requires: ((emacs "28.0") (markdown-mode "2.3"))
+;; Package-Requires: ((emacs "25.1") (markdown-mode "2.3"))
 ;; Keywords: ai, chat, language-models, tools
 
 ;;; Commentary:
