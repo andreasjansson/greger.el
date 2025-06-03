@@ -1044,3 +1044,7 @@ Returns either a system message, metadata, or both."
 (provide 'greger-parser)
 
 ;;; greger-parser.el ends here
+
+;; Local Variables:
+;; package-lint-main-file: "greger.el"
+;; End:

@@ -60,3 +60,7 @@
 (provide 'greger-providers)
 
 ;;; greger-providers.el ends here
+
+;; Local Variables:
+;; package-lint-main-file: "greger.el"
+;; End:

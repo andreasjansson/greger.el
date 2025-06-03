@@ -320,3 +320,7 @@ Returns nil if no error found or if OUTPUT is not valid JSON."
 (provide 'greger-stream)
 
 ;;; greger-stream.el ends here
+
+;; Local Variables:
+;; package-lint-main-file: "greger.el"
+;; End:

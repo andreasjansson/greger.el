@@ -73,3 +73,7 @@
 (provide 'greger-provider-google)
 
 ;;; greger-provider-google.el ends here
+
+;; Local Variables:
+;; package-lint-main-file: "greger.el"
+;; End:

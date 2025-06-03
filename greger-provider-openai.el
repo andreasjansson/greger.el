@@ -115,3 +115,7 @@
 (provide 'greger-provider-openai)
 
 ;;; greger-provider-openai.el ends here
+
+;; Local Variables:
+;; package-lint-main-file: "greger.el"
+;; End:
