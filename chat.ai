@@ -945,4 +945,77 @@ jobs:
 Update CI to test only on Emacs 28.1+ and run on both Linux and macOS
 </tool.toolu_01NBriswtQxGtE6yG4uL6UvW>
 
-<!-- TOOL_RESULT_PLACEHOLDER_toolu_01NBriswtQxGtE6yG4uL6UvW -->
+## TOOL RESULT:
+
+ID: toolu_01NBriswtQxGtE6yG4uL6UvW
+
+<tool.toolu_01NBriswtQxGtE6yG4uL6UvW>
+Successfully replaced content in /Users/andreas/projects/greger.el/.github/workflows/ci.yml. Successfully staged 2 file(s) and committed with message: Update CI to test only on Emacs 28.1+ and run on both Linux and macOS
+</tool.toolu_01NBriswtQxGtE6yG4uL6UvW>
+
+
+## ASSISTANT:
+
+Perfect! I've updated the GitHub Actions workflow with the following changes:
+
+## Updated Features:
+
+1. **Emacs Version Support**: Now only tests on Emacs versions that meet your requirement (28.1+):
+   - 28.1 (minimum required version)
+   - 28.2
+   - 29.1
+   - 29.4
+   - snapshot (latest development version)
+
+2. **Multi-platform Testing**: Tests run on both:
+   - `ubuntu-latest` (Linux)
+   - `macos-latest` (macOS)
+
+3. **Matrix Strategy**: This creates a total of 10 test jobs (5 Emacs versions × 2 operating systems), ensuring your package works correctly across different platforms and supported Emacs versions.
+
+The workflow will now:
+- Only test on Emacs versions that your package actually supports
+- Verify compatibility on both major platforms where Emacs is commonly used
+- Provide better coverage for your users who might be on different operating systems
+- Still fail gracefully (one failing combination won't stop the others from running)
+
+This gives you comprehensive testing while being efficient by only testing on relevant Emacs versions.
+
+## USER:
+
+Don't test on so many versions, 28.1 and 29.4 are enough
+
+## ASSISTANT:
+
+I'll update the workflow to only test on Emacs 28.1 and 29.4 as requested.
+
+## TOOL USE:
+
+Name: str-replace
+ID: toolu_013BsF7RGt7XTfRef47wt6kS
+
+### file_path
+
+<tool.toolu_013BsF7RGt7XTfRef47wt6kS>
+.github/workflows/ci.yml
+</tool.toolu_013BsF7RGt7XTfRef47wt6kS>
+
+### original_content
+
+<tool.toolu_013BsF7RGt7XTfRef47wt6kS>
+        emacs_version: [28.1, 28.2, 29.1, 29.4, snapshot]
+</tool.toolu_013BsF7RGt7XTfRef47wt6kS>
+
+### new_content
+
+<tool.toolu_013BsF7RGt7XTfRef47wt6kS>
+        emacs_version: [28.1, 29.4]
+</tool.toolu_013BsF7RGt7XTfRef47wt6kS>
+
+### git_commit_message
+
+<tool.toolu_013BsF7RGt7XTfRef47wt6kS>
+Simplify CI to test only on Emacs 28.1 and 29.4
+</tool.toolu_013BsF7RGt7XTfRef47wt6kS>
+
+<!-- TOOL_RESULT_PLACEHOLDER_toolu_013BsF7RGt7XTfRef47wt6kS -->
