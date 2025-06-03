@@ -333,7 +333,7 @@ Example of incoming data json (one data-json per line):
                   (error
                    (setf (alist-get 'input block) '()))))))))))))
 
-(defun greger-client--ensure-block-at-index (blocks index new-block state)
+(defun greger-client--ensure-block-at-index (_blocks index new-block state)
   "Ensure BLOCKS list has NEW-BLOCK at INDEX, extending if necessary.
 STATE is used to update the parsed content blocks."
   (let ((current-blocks (greger-client-state-parsed-content-blocks state)))
