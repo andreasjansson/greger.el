@@ -3995,4 +3995,426 @@ test/test-greger-parser.el
 Update test to use string= instead of string-match-p for exact content comparison
 </tool.toolu_014BvhFf2BXcLhsmmerj4XWM>
 
-<!-- TOOL_RESULT_PLACEHOLDER_toolu_014BvhFf2BXcLhsmmerj4XWM -->
+## TOOL RESULT:
+
+ID: toolu_014BvhFf2BXcLhsmmerj4XWM
+
+<tool.toolu_014BvhFf2BXcLhsmmerj4XWM>
+Successfully replaced content in /Users/andreas/projects/greger.el/test/test-greger-parser.el. Successfully staged 2 file(s) and committed with message: Update test to use string= instead of string-match-p for exact content comparison
+</tool.toolu_014BvhFf2BXcLhsmmerj4XWM>
+
+
+## ASSISTANT:
+
+Let's run the tests to make sure the updated test still passes:
+
+## TOOL USE:
+
+Name: shell-command
+ID: toolu_016QwX4P2sYc7U8ZUq9aNZ93
+
+### command
+
+<tool.toolu_016QwX4P2sYc7U8ZUq9aNZ93>
+bash script/test --verbose --file test/test-greger-parser.el
+</tool.toolu_016QwX4P2sYc7U8ZUq9aNZ93>
+
+## TOOL RESULT:
+
+ID: toolu_016QwX4P2sYc7U8ZUq9aNZ93
+
+<tool.toolu_016QwX4P2sYc7U8ZUq9aNZ93>
+Command executed successfully:
+[0;34mRunning ERT tests for greger package...[0m
+
+Running tests in [1;33mtest/test-greger-parser.el[0m (verbose mode)...
+Loading /Users/andreas/projects/greger.el/greger.el (source)...
+Source file ‘/opt/homebrew/Cellar/emacs-plus@29/29.0.90/share/emacs/29.0.91/lisp/net/eww.el’ newer than byte-compiled file; using older file
+Loading /Users/andreas/projects/greger.el/greger-parser.el (source)...
+Loading /Users/andreas/projects/greger.el/greger-stdlib.el (source)...
+Loading /Users/andreas/projects/greger.el/greger-lib-lsp.el (source)...
+Loading /Users/andreas/projects/greger.el/greger-tools.el (source)...
+Loading /Users/andreas/projects/greger.el/greger-client.el (source)...
+Loading /Users/andreas/projects/greger.el/greger-web.el (source)...
+Loading /Users/andreas/projects/greger.el/test/test-greger-parser.el (source)...
+Running 35 tests (2025-06-03 17:31:14+0200, selector ‘t’)
+   passed   1/35  greger-parser-test-code-block-parsing (0.001696 sec)
+   passed   2/35  greger-parser-test-code-blocks-in-tool-params (0.000865 sec)
+   passed   3/35  greger-parser-test-complex-mixed-content (0.002410 sec)
+   passed   4/35  greger-parser-test-edge-cases (0.000479 sec)
+   passed   5/35  greger-parser-test-error-handling (0.000286 sec)
+   passed   6/35  greger-parser-test-include-tag-basic (0.002686 sec)
+   passed   7/35  greger-parser-test-include-tag-in-assistant-section (0.002705 sec)
+   passed   8/35  greger-parser-test-include-tag-invalid-url (0.046899 sec)
+   passed   9/35  greger-parser-test-include-tag-multiline-content (0.002408 sec)
+   passed  10/35  greger-parser-test-include-tag-nonexistent-file (0.001034 sec)
+   passed  11/35  greger-parser-test-include-tag-not-processed-in-code-blocks (0.002720 sec)
+   passed  12/35  greger-parser-test-include-tag-not-processed-in-inline-code (0.002335 sec)
+   passed  13/35  greger-parser-test-include-tag-not-processed-in-tool-params (0.001655 sec)
+   passed  14/35  greger-parser-test-include-tag-recursive (0.003561 sec)
+   passed  15/35  greger-parser-test-include-tag-web-url (0.255516 sec)
+   passed  16/35  greger-parser-test-include-tag-web-url-with-code (0.092985 sec)
+   passed  17/35  greger-parser-test-include-tag-with-code (0.006748 sec)
+   passed  18/35  greger-parser-test-include-tag-with-code-in-code-block (0.003367 sec)
+   passed  19/35  greger-parser-test-inline-code-blocks (0.001331 sec)
+   passed  20/35  greger-parser-test-markdown-generation (0.000156 sec)
+Testing markdown-to-dialog for: simple-user-message
+Testing markdown-to-dialog for: system-and-user
+Testing markdown-to-dialog for: simple-conversation
+Testing markdown-to-dialog for: thinking-section
+Testing markdown-to-dialog for: tool-use-single-param
+Testing markdown-to-dialog for: tool-use-multiple-params
+Testing markdown-to-dialog for: complex-workflow
+Testing markdown-to-dialog for: multiple-tool-uses
+Testing markdown-to-dialog for: tool-use-multiline-params
+Testing markdown-to-dialog for: thinking-only
+Testing markdown-to-dialog for: tool-use-only
+Testing markdown-to-dialog for: tool-use-with-tags
+Testing markdown-to-dialog for: code-block-triple-backticks
+Testing markdown-to-dialog for: code-block-double-backticks
+Testing markdown-to-dialog for: mixed-code-blocks-and-sections
+Testing markdown-to-dialog for: tool-use-with-code-in-params
+Testing markdown-to-dialog for: nested-code-blocks
+Testing markdown-to-dialog for: tool-use-complex-params
+Testing markdown-to-dialog for: tool-result-empty-lines
+Testing markdown-to-dialog for: html-comments
+   passed  21/35  greger-parser-test-markdown-to-dialog (0.065048 sec)
+   passed  22/35  greger-parser-test-performance (0.052686 sec)
+Testing roundtrip for: simple-user-message
+Testing roundtrip for: system-and-user
+Testing roundtrip for: simple-conversation
+Testing roundtrip for: thinking-section
+Testing roundtrip for: tool-use-single-param
+Testing roundtrip for: tool-use-multiple-params
+Testing roundtrip for: complex-workflow
+Testing roundtrip for: multiple-tool-uses
+Testing roundtrip for: tool-use-multiline-params
+Testing roundtrip for: thinking-only
+Testing roundtrip for: tool-use-only
+Testing roundtrip for: tool-use-with-tags
+Testing roundtrip for: code-block-triple-backticks
+Testing roundtrip for: code-block-double-backticks
+Testing roundtrip for: mixed-code-blocks-and-sections
+Testing roundtrip for: tool-use-with-code-in-params
+Testing roundtrip for: nested-code-blocks
+Testing roundtrip for: tool-use-complex-params
+Testing roundtrip for: tool-result-empty-lines
+Testing roundtrip for: html-comments
+   passed  23/35  greger-parser-test-roundtrip (0.110397 sec)
+   passed  24/35  greger-parser-test-safe-shell-commands-basic (0.000337 sec)
+   passed  25/35  greger-parser-test-safe-shell-commands-empty-lines (0.000317 sec)
+   passed  26/35  greger-parser-test-safe-shell-commands-in-code-block (0.001023 sec)
+   passed  27/35  greger-parser-test-safe-shell-commands-not-in-system (0.001243 sec)
+   passed  28/35  greger-parser-test-safe-shell-commands-only-once (0.000481 sec)
+   passed  29/35  greger-parser-test-safe-shell-commands-with-system-content (0.001144 sec)
+   passed  30/35  greger-parser-test-system-content-with-safe-commands-example (0.000960 sec)
+   passed  31/35  greger-parser-test-thinking-parsing (0.000985 sec)
+   passed  32/35  greger-parser-test-tool-result-parsing (0.000433 sec)
+   passed  33/35  greger-parser-test-tool-use-parsing (0.000659 sec)
+   passed  34/35  greger-parser-test-tool-use-whitespace (0.000913 sec)
+   passed  35/35  greger-parser-test-untagged-content (0.001110 sec)
+
+Ran 35 tests, 35 results as expected, 0 unexpected (2025-06-03 17:31:15+0200, 0.701926 sec)
+
+[0;34mTest Summary:[0m
+  Files run: 1
+  Files passed: [0;32m0[0m
+  Files failed: [0;31m1[0m
+[0;32mAll tests passed![0m
+
+</tool.toolu_016QwX4P2sYc7U8ZUq9aNZ93>
+
+## ASSISTANT:
+
+Perfect! All tests are passing. Let's run the full test suite one more time to make sure everything is working correctly:
+
+## TOOL USE:
+
+Name: shell-command
+ID: toolu_01LNLF6vYypDBtRypWGzn2GT
+
+### command
+
+<tool.toolu_01LNLF6vYypDBtRypWGzn2GT>
+bash script/test
+</tool.toolu_01LNLF6vYypDBtRypWGzn2GT>
+
+## TOOL RESULT:
+
+ID: toolu_01LNLF6vYypDBtRypWGzn2GT
+
+<tool.toolu_01LNLF6vYypDBtRypWGzn2GT>
+Command executed successfully:
+[0;34mRunning ERT tests for greger package...[0m
+
+Running tests in [1;33mtest/test-greger.el[0m...
+  [0;32m✓ All tests passed[0m
+
+Running tests in [1;33mtest/test-greger-parser.el[0m...
+  [0;32m✓ All tests passed[0m
+
+Running tests in [1;33mtest/test-greger-stdlib.el[0m...
+  [0;32m✓ All tests passed[0m
+
+Running tests in [1;33mtest/test-greger-lib-lsp.el[0m...
+  [0;32m✓ All tests passed[0m
+
+Running tests in [1;33mtest/test-greger-tools.el[0m...
+  [0;32m✓ All tests passed[0m
+
+Running tests in [1;33mtest/test-greger-client.el[0m...
+  [0;32m✓ All tests passed[0m
+
+Running tests in [1;33mtest/test-end-to-end.el[0m...
+  [0;32m✓ All tests passed[0m
+
+[0;34mTest Summary:[0m
+  Files run: 7
+  Files passed: [0;32m7[0m
+  Files failed: [0;31m0[0m
+[0;32mAll tests passed![0m
+
+</tool.toolu_01LNLF6vYypDBtRypWGzn2GT>
+
+## ASSISTANT:
+
+Excellent! All changes have been successfully implemented:
+
+## Summary
+
+1. **Removed SAFE_SHELL_COMMANDS.md** - The separate documentation file has been removed as requested.
+
+2. **Updated README.md** - Added comprehensive documentation for the safe shell commands auto-generation feature in the main README.md file, including:
+   - Basic usage with `<safe-shell-commands>` tags
+   - Example of the auto-generated descriptive text
+   - How to combine safe shell commands with other system content
+   - Clear examples showing both input and output
+
+3. **Fixed the test** - Updated `greger-parser-test-system-content-with-safe-commands-example` to use `string=` instead of `string-match-p` for exact content comparison, ensuring the test validates the precise expected output.
+
+All tests pass and the implementation is complete. The feature now automatically generates user-friendly descriptive text when safe shell commands are defined, making it clear to the AI what commands can be run without confirmation while maintaining all the existing functionality.
+
+## USER:
+
+Great! Update the other safe shell commands tests to also string=. I updated greger-parser-test-system-content-with-safe-commands-example to write out the newlines in a multiline string instead of using `\n`. Do that in the other tests too.
+
+## ASSISTANT:
+
+I'll update the other safe shell commands tests to use `string=` with multiline strings instead of `string-match-p` and `\n` escape sequences.
+
+## TOOL USE:
+
+Name: read-file
+ID: toolu_01BQhfybebNW7H7bxajiXzw1
+
+### path
+
+<tool.toolu_01BQhfybebNW7H7bxajiXzw1>
+test/test-greger-parser.el
+</tool.toolu_01BQhfybebNW7H7bxajiXzw1>
+
+### start_line
+
+<tool.toolu_01BQhfybebNW7H7bxajiXzw1>
+1350
+</tool.toolu_01BQhfybebNW7H7bxajiXzw1>
+
+### end_line
+
+<tool.toolu_01BQhfybebNW7H7bxajiXzw1>
+1380
+</tool.toolu_01BQhfybebNW7H7bxajiXzw1>
+
+### include_line_numbers
+
+<tool.toolu_01BQhfybebNW7H7bxajiXzw1>
+true
+</tool.toolu_01BQhfybebNW7H7bxajiXzw1>
+
+## TOOL RESULT:
+
+ID: toolu_01BQhfybebNW7H7bxajiXzw1
+
+<tool.toolu_01BQhfybebNW7H7bxajiXzw1>
+1350: (ert-deftest greger-parser-test-safe-shell-commands-basic ()
+1351:   "Test basic safe-shell-commands parsing."
+1352:   (let ((markdown "## SYSTEM:
+1353:
+1354: <safe-shell-commands>
+1355: ls -la
+1356: pwd
+1357: echo hello
+1358: </safe-shell-commands>")
+1359:         (expected-metadata '(:safe-shell-commands ("ls -la" "pwd" "echo hello"))))
+1360:     (let ((result (greger-parser-parse-dialog markdown)))
+1361:       ;; Should have one system message with the auto-generated descriptive text
+1362:       (should (= 1 (length (plist-get result :messages))))
+1363:       (let ((system-msg (car (plist-get result :messages))))
+1364:         (should (string= "system" (alist-get 'role system-msg)))
+1365:         (let ((content (alist-get 'content system-msg)))
+1366:           (should (string-match-p "You can run arbitrary shell commands with the shell-command tool" content))
+1367:           (should (string-match-p "safe shell commands that will run without requiring user confirmation" content))
+1368:           (should (string-match-p "`ls -la`" content))
+1369:           (should (string-match-p "`pwd`" content))
+1370:           (should (string-match-p "`echo hello`" content))))
+1371:       (should (equal expected-metadata (plist-get result :metadata))))))
+1372:
+1373: (ert-deftest greger-parser-test-safe-shell-commands-with-system-content ()
+1374:   "Test safe-shell-commands with other system content."
+1375:   (let ((markdown "## SYSTEM:
+1376:
+1377: You are a helpful assistant.
+1378:
+1379: <safe-shell-commands>
+1380: ls
+</tool.toolu_01BQhfybebNW7H7bxajiXzw1>
+
+## ASSISTANT:
+
+Let me first look at the current state of the test that was already updated to see the format:
+
+## TOOL USE:
+
+Name: read-file
+ID: toolu_01F24kEyYqkgCuanfubf6emg
+
+### path
+
+<tool.toolu_01F24kEyYqkgCuanfubf6emg>
+test/test-greger-parser.el
+</tool.toolu_01F24kEyYqkgCuanfubf6emg>
+
+### start_line
+
+<tool.toolu_01F24kEyYqkgCuanfubf6emg>
+1486
+</tool.toolu_01F24kEyYqkgCuanfubf6emg>
+
+### end_line
+
+<tool.toolu_01F24kEyYqkgCuanfubf6emg>
+1494
+</tool.toolu_01F24kEyYqkgCuanfubf6emg>
+
+### include_line_numbers
+
+<tool.toolu_01F24kEyYqkgCuanfubf6emg>
+true
+</tool.toolu_01F24kEyYqkgCuanfubf6emg>
+
+## TOOL RESULT:
+
+ID: toolu_01F24kEyYqkgCuanfubf6emg
+
+<tool.toolu_01F24kEyYqkgCuanfubf6emg>
+1486:       ;; Check system message - should contain both original content and auto-generated safe commands text
+1487:       (let ((system-msg (car (plist-get result :messages))))
+1488:         (should (string= "system" (alist-get 'role system-msg)))
+1489:         (let ((content (alist-get 'content system-msg)))
+1490:           (should (string= "you are a friendly assistant
+1491:
+1492: You can run arbitrary shell commands with the shell-command tool, but the following are safe shell commands that will run without requiring user confirmation:
+1493:
+1494: * `command1`
+</tool.toolu_01F24kEyYqkgCuanfubf6emg>
+
+## TOOL USE:
+
+Name: read-file
+ID: toolu_01GZNXXGuEykZLPQXMz9nFZa
+
+### path
+
+<tool.toolu_01GZNXXGuEykZLPQXMz9nFZa>
+test/test-greger-parser.el
+</tool.toolu_01GZNXXGuEykZLPQXMz9nFZa>
+
+### start_line
+
+<tool.toolu_01GZNXXGuEykZLPQXMz9nFZa>
+1490
+</tool.toolu_01GZNXXGuEykZLPQXMz9nFZa>
+
+### end_line
+
+<tool.toolu_01GZNXXGuEykZLPQXMz9nFZa>
+1500
+</tool.toolu_01GZNXXGuEykZLPQXMz9nFZa>
+
+### include_line_numbers
+
+<tool.toolu_01GZNXXGuEykZLPQXMz9nFZa>
+true
+</tool.toolu_01GZNXXGuEykZLPQXMz9nFZa>
+
+## TOOL RESULT:
+
+ID: toolu_01GZNXXGuEykZLPQXMz9nFZa
+
+<tool.toolu_01GZNXXGuEykZLPQXMz9nFZa>
+1490:           (should (string= "you are a friendly assistant
+1491:
+1492: You can run arbitrary shell commands with the shell-command tool, but the following are safe shell commands that will run without requiring user confirmation:
+1493:
+1494: * `command1`
+1495: * `command2`"
+1496:                            content))))
+1497:
+1498:       ;; Check user message
+1499:       (let ((user-msg (cadr (plist-get result :messages))))
+1500:         (should (string= "user" (alist-get 'role user-msg)))
+</tool.toolu_01GZNXXGuEykZLPQXMz9nFZa>
+
+## ASSISTANT:
+
+Perfect! I can see the format. Now let me update the basic safe shell commands test:
+
+## TOOL USE:
+
+Name: str-replace
+ID: toolu_015dnbErtJHVJzdtqcynEmXc
+
+### file_path
+
+<tool.toolu_015dnbErtJHVJzdtqcynEmXc>
+test/test-greger-parser.el
+</tool.toolu_015dnbErtJHVJzdtqcynEmXc>
+
+### original_content
+
+<tool.toolu_015dnbErtJHVJzdtqcynEmXc>
+      ;; Should have one system message with the auto-generated descriptive text
+      (should (= 1 (length (plist-get result :messages))))
+      (let ((system-msg (car (plist-get result :messages))))
+        (should (string= "system" (alist-get 'role system-msg)))
+        (let ((content (alist-get 'content system-msg)))
+          (should (string-match-p "You can run arbitrary shell commands with the shell-command tool" content))
+          (should (string-match-p "safe shell commands that will run without requiring user confirmation" content))
+          (should (string-match-p "`ls -la`" content))
+          (should (string-match-p "`pwd`" content))
+          (should (string-match-p "`echo hello`" content))))
+</tool.toolu_015dnbErtJHVJzdtqcynEmXc>
+
+### new_content
+
+<tool.toolu_015dnbErtJHVJzdtqcynEmXc>
+      ;; Should have one system message with the auto-generated descriptive text
+      (should (= 1 (length (plist-get result :messages))))
+      (let ((system-msg (car (plist-get result :messages))))
+        (should (string= "system" (alist-get 'role system-msg)))
+        (let ((content (alist-get 'content system-msg)))
+          (should (string= "You can run arbitrary shell commands with the shell-command tool, but the following are safe shell commands that will run without requiring user confirmation:
+
+* `ls -la`
+* `pwd`
+* `echo hello`"
+                           content))))
+</tool.toolu_015dnbErtJHVJzdtqcynEmXc>
+
+### git_commit_message
+
+<tool.toolu_015dnbErtJHVJzdtqcynEmXc>
+Update safe-shell-commands-basic test to use string= with multiline string
+</tool.toolu_015dnbErtJHVJzdtqcynEmXc>
+
+<!-- TOOL_RESULT_PLACEHOLDER_toolu_015dnbErtJHVJzdtqcynEmXc -->

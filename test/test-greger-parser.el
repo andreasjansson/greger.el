@@ -1363,11 +1363,12 @@ echo hello
       (let ((system-msg (car (plist-get result :messages))))
         (should (string= "system" (alist-get 'role system-msg)))
         (let ((content (alist-get 'content system-msg)))
-          (should (string-match-p "You can run arbitrary shell commands with the shell-command tool" content))
-          (should (string-match-p "safe shell commands that will run without requiring user confirmation" content))
-          (should (string-match-p "`ls -la`" content))
-          (should (string-match-p "`pwd`" content))
-          (should (string-match-p "`echo hello`" content))))
+          (should (string= "You can run arbitrary shell commands with the shell-command tool, but the following are safe shell commands that will run without requiring user confirmation:
+
+* `ls -la`
+* `pwd`
+* `echo hello`"
+                           content))))
       (should (equal expected-metadata (plist-get result :metadata))))))
 
 (ert-deftest greger-parser-test-safe-shell-commands-with-system-content ()
@@ -1487,7 +1488,13 @@ Hello"))
       (let ((system-msg (car (plist-get result :messages))))
         (should (string= "system" (alist-get 'role system-msg)))
         (let ((content (alist-get 'content system-msg)))
-          (should (string= "you are a friendly assistant\n\nYou can run arbitrary shell commands with the shell-command tool, but the following are safe shell commands that will run without requiring user confirmation:\n\n* `command1`\n* `command2`" content))))
+          (should (string= "you are a friendly assistant
+
+You can run arbitrary shell commands with the shell-command tool, but the following are safe shell commands that will run without requiring user confirmation:
+
+* `command1`
+* `command2`"
+                           content))))
 
       ;; Check user message
       (let ((user-msg (cadr (plist-get result :messages))))
