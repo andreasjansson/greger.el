@@ -138,7 +138,7 @@
 (ert-deftest greger-end-to-end-test-tool-use-conversation ()
   "Test a conversation that involves tool use using the public API."
   :tags '(end-to-end public-api tools)
-  (skip-unless (greger-test-has-api-key))
+
 
   (let ((greger-buffer nil)
         (test-file nil))
