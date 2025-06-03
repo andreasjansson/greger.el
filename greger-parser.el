@@ -938,7 +938,7 @@ Returns either a system message, metadata, or both."
       result)))
 
 (defun greger-parser--content-to-blocks (content)
-  "Convert content to content blocks."
+  "Convert CONTENT to content blocks."
   (let ((result (cond
                  ((stringp content)
                   `(((type . "text") (text . ,content))))
