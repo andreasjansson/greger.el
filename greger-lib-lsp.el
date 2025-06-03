@@ -94,7 +94,8 @@
 
 (defun greger-lib-lsp--ensure-server (file-path)
   "Ensure LSP server is running for FILE-PATH.
-Returns the buffer visiting the file, or signals an error if LSP is not available."
+Returns the buffer visiting the file, or signals an error if LSP is not
+available."
   (let ((buffer (or (find-buffer-visiting file-path)
                     (find-file-noselect file-path))))
     (with-current-buffer buffer
