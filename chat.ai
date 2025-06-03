@@ -1560,4 +1560,133 @@ greger-stdlib.el
 Combine format and concat in greger-stdlib.el line 404
 </tool.toolu_01DwQux7QoUVNHd9rqAyuqfC>
 
-<!-- TOOL_RESULT_PLACEHOLDER_toolu_01DwQux7QoUVNHd9rqAyuqfC -->
+## TOOL RESULT:
+
+ID: toolu_01DwQux7QoUVNHd9rqAyuqfC
+
+<tool.toolu_01DwQux7QoUVNHd9rqAyuqfC>
+Successfully replaced content in /Users/andreas/projects/greger.el/greger-stdlib.el. Successfully staged 2 file(s) and committed with message: Combine format and concat in greger-stdlib.el line 404
+</tool.toolu_01DwQux7QoUVNHd9rqAyuqfC>
+
+
+## ASSISTANT:
+
+Now let me fix some of the docstring and capitalization issues in greger-stdlib.el. Let me work on chunks to be more efficient:
+
+## TOOL USE:
+
+Name: read-file
+ID: toolu_01KURyJBCEiVwD63qtkWE1yL
+
+### path
+
+<tool.toolu_01KURyJBCEiVwD63qtkWE1yL>
+greger-stdlib.el
+</tool.toolu_01KURyJBCEiVwD63qtkWE1yL>
+
+### start_line
+
+<tool.toolu_01KURyJBCEiVwD63qtkWE1yL>
+408
+</tool.toolu_01KURyJBCEiVwD63qtkWE1yL>
+
+### end_line
+
+<tool.toolu_01KURyJBCEiVwD63qtkWE1yL>
+450
+</tool.toolu_01KURyJBCEiVwD63qtkWE1yL>
+
+### include_line_numbers
+
+<tool.toolu_01KURyJBCEiVwD63qtkWE1yL>
+true
+</tool.toolu_01KURyJBCEiVwD63qtkWE1yL>
+
+## TOOL RESULT:
+
+ID: toolu_01KURyJBCEiVwD63qtkWE1yL
+
+<tool.toolu_01KURyJBCEiVwD63qtkWE1yL>
+408:
+409: (defun greger-stdlib--list-directory (path &optional show-hidden recursive)
+410:   "List directory contents at PATH."
+411:   (unless (stringp path)
+412:     (error "Path must be a string"))
+413:
+414:   (let ((expanded-path (expand-file-name path)))
+415:     (unless (file-exists-p expanded-path)
+416:       (error "Directory does not exist: %s" expanded-path))
+417:
+418:     (unless (file-directory-p expanded-path)
+419:       (error "Path is not a directory: %s" expanded-path))
+420:
+421:     (unless (file-readable-p expanded-path)
+422:       (error "Directory is not readable: %s" expanded-path))
+423:
+424:     (condition-case err
+425:         (let ((files (if recursive
+426:                          (greger-stdlib--list-directory-recursive expanded-path show-hidden)
+427:                        (directory-files expanded-path nil
+428:                                         (if show-hidden "^[^.]\\|^\\.[^.]" "^[^.]")))))
+429:           (if files
+430:               (mapconcat (lambda (file)
+431:                            (let ((full-path (expand-file-name file expanded-path)))
+432:                              (format "%s%s"
+433:                                      file
+434:                                      (if (file-directory-p full-path) "/" ""))))
+435:                          files "\n")
+436:             "Directory is empty"))
+437:       (error "Failed to list directory: %s" (error-message-string err)))))
+438:
+439: (defun greger-stdlib--list-directory-recursive (path show-hidden &optional prefix)
+440:   "Recursively list directory contents at PATH."
+441:   (let ((files '())
+442:         (prefix (or prefix "")))
+443:
+444:     (dolist (file (directory-files path nil
+445:                                    (if show-hidden "^[^.]\\|^\\.[^.]" "^[^.]")))
+446:       (let ((full-path (expand-file-name file path))
+447:             (display-name (concat prefix file)))
+448:
+449:         (if (file-directory-p full-path)
+450:             (progn
+</tool.toolu_01KURyJBCEiVwD63qtkWE1yL>
+
+## ASSISTANT:
+
+Let me fix the missing SHOW-HIDDEN documentation:
+
+## TOOL USE:
+
+Name: str-replace
+ID: toolu_01GTKpueDtnEWh42iq9Y6KAx
+
+### file_path
+
+<tool.toolu_01GTKpueDtnEWh42iq9Y6KAx>
+greger-stdlib.el
+</tool.toolu_01GTKpueDtnEWh42iq9Y6KAx>
+
+### original_content
+
+<tool.toolu_01GTKpueDtnEWh42iq9Y6KAx>
+(defun greger-stdlib--list-directory (path &optional show-hidden recursive)
+  "List directory contents at PATH."
+</tool.toolu_01GTKpueDtnEWh42iq9Y6KAx>
+
+### new_content
+
+<tool.toolu_01GTKpueDtnEWh42iq9Y6KAx>
+(defun greger-stdlib--list-directory (path &optional show-hidden recursive)
+  "List directory contents at PATH.
+If SHOW-HIDDEN is non-nil, include hidden files.
+If RECURSIVE is non-nil, list files recursively."
+</tool.toolu_01GTKpueDtnEWh42iq9Y6KAx>
+
+### git_commit_message
+
+<tool.toolu_01GTKpueDtnEWh42iq9Y6KAx>
+Fix missing argument documentation in greger-stdlib--list-directory
+</tool.toolu_01GTKpueDtnEWh42iq9Y6KAx>
+
+<!-- TOOL_RESULT_PLACEHOLDER_toolu_01GTKpueDtnEWh42iq9Y6KAx -->

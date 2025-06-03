@@ -407,7 +407,9 @@ If END-LINE is specified, stop reading at that line (inclusive, 1-based)."
     (mapconcat #'identity (reverse result) "\n")))
 
 (defun greger-stdlib--list-directory (path &optional show-hidden recursive)
-  "List directory contents at PATH."
+  "List directory contents at PATH.
+If SHOW-HIDDEN is non-nil, include hidden files.
+If RECURSIVE is non-nil, list files recursively."
   (unless (stringp path)
     (error "Path must be a string"))
 
