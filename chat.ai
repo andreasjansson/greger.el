@@ -1781,4 +1781,91 @@ script/test
 Improve error parsing logic in test script for better failure reporting
 </tool.toolu_01CnmtMeJJdGJRe4fmPtgx7f>
 
-<!-- TOOL_RESULT_PLACEHOLDER_toolu_01CnmtMeJJdGJRe4fmPtgx7f -->
+## TOOL RESULT:
+
+ID: toolu_01CnmtMeJJdGJRe4fmPtgx7f
+
+<tool.toolu_01CnmtMeJJdGJRe4fmPtgx7f>
+Successfully replaced content in /Users/andreas/projects/greger.el/script/test. Successfully staged 2 file(s) and committed with message: Improve error parsing logic in test script for better failure reporting
+</tool.toolu_01CnmtMeJJdGJRe4fmPtgx7f>
+
+
+## ASSISTANT:
+
+Let me test this by running the test script to see if it works correctly:
+
+## TOOL USE:
+
+Name: shell-command
+ID: toolu_01EhTVm1yhZSPKCWGDJxj8wf
+
+### command
+
+<tool.toolu_01EhTVm1yhZSPKCWGDJxj8wf>
+bash script/test --file test/test-greger.el
+</tool.toolu_01EhTVm1yhZSPKCWGDJxj8wf>
+
+## TOOL RESULT:
+
+ID: toolu_01EhTVm1yhZSPKCWGDJxj8wf
+
+<tool.toolu_01EhTVm1yhZSPKCWGDJxj8wf>
+Command executed successfully:
+[0;34mRunning ERT tests for greger package...[0m
+
+Running tests in [1;33mtest/test-greger.el[0m...
+  [0;32m✓ All tests passed[0m
+[0;34mTest Summary:[0m
+  Files run: 1
+  Files passed: [0;32m1[0m
+  Files failed: [0;31m0[0m
+[0;32mAll tests passed![0m
+
+</tool.toolu_01EhTVm1yhZSPKCWGDJxj8wf>
+
+## ASSISTANT:
+
+Good! The script works when tests pass. Now let me create a test file with a failing test to verify the error reporting works:
+
+## TOOL USE:
+
+Name: write-new-file
+ID: toolu_01CfaQhHi1ysRLUbTYSSWR8X
+
+### file_path
+
+<tool.toolu_01CfaQhHi1ysRLUbTYSSWR8X>
+test/test-failure-demo.el
+</tool.toolu_01CfaQhHi1ysRLUbTYSSWR8X>
+
+### contents
+
+<tool.toolu_01CfaQhHi1ysRLUbTYSSWR8X>
+;;; test-failure-demo.el --- Demo test file with failures -*- lexical-binding: t -*-
+
+(require 'ert)
+
+(ert-deftest test-demo-failure-1 ()
+  "A test that should fail for demonstration."
+  (should (= 1 2)))
+
+(ert-deftest test-demo-failure-2 ()
+  "Another test that should fail for demonstration."
+  (should (string= "hello" "world")))
+
+(ert-deftest test-demo-success ()
+  "A test that should pass."
+  (should (= 1 1)))
+
+(provide 'test-failure-demo)
+
+;;; test-failure-demo.el ends here
+</tool.toolu_01CfaQhHi1ysRLUbTYSSWR8X>
+
+### git_commit_message
+
+<tool.toolu_01CfaQhHi1ysRLUbTYSSWR8X>
+Add demo test file with failures to test error reporting
+</tool.toolu_01CfaQhHi1ysRLUbTYSSWR8X>
+
+<!-- TOOL_RESULT_PLACEHOLDER_toolu_01CfaQhHi1ysRLUbTYSSWR8X -->
