@@ -4008,4 +4008,94 @@ greger-parser.el
 Fix docstring for greger-parser--block-to-markdown
 </tool.toolu_01Khd3zsxpNSDhDcWkoHJwGE>
 
-<!-- TOOL_RESULT_PLACEHOLDER_toolu_01Khd3zsxpNSDhDcWkoHJwGE -->
+## TOOL RESULT:
+
+ID: toolu_01Khd3zsxpNSDhDcWkoHJwGE
+
+<tool.toolu_01Khd3zsxpNSDhDcWkoHJwGE>
+Successfully replaced content in /Users/andreas/projects/greger.el/greger-parser.el. Successfully staged 2 file(s) and committed with message: Fix docstring for greger-parser--block-to-markdown
+</tool.toolu_01Khd3zsxpNSDhDcWkoHJwGE>
+
+
+## ASSISTANT:
+
+Let me continue with the next functions around line 1003 and beyond:
+
+## TOOL USE:
+
+Name: read-file
+ID: toolu_01X8W5dATokfGvSxNx5Bji8C
+
+### path
+
+<tool.toolu_01X8W5dATokfGvSxNx5Bji8C>
+greger-parser.el
+</tool.toolu_01X8W5dATokfGvSxNx5Bji8C>
+
+### start_line
+
+<tool.toolu_01X8W5dATokfGvSxNx5Bji8C>
+1000
+</tool.toolu_01X8W5dATokfGvSxNx5Bji8C>
+
+### end_line
+
+<tool.toolu_01X8W5dATokfGvSxNx5Bji8C>
+1015
+</tool.toolu_01X8W5dATokfGvSxNx5Bji8C>
+
+## TOOL RESULT:
+
+ID: toolu_01X8W5dATokfGvSxNx5Bji8C
+
+<tool.toolu_01X8W5dATokfGvSxNx5Bji8C>
+      (greger-parser--tool-result-to-markdown block))
+     (t ""))))
+
+(defun greger-parser--tool-use-to-markdown (tool-use)
+  "Convert tool use to markdown."
+  (let ((name (alist-get 'name tool-use))
+        (id (alist-get 'id tool-use))
+        (input (alist-get 'input tool-use)))
+    (concat greger-parser-tool-use-tag "\n\n"
+            "Name: " name "\n"
+            "ID: " id "\n\n"
+            (greger-parser--tool-params-to-markdown id input))))
+
+(defun greger-parser--tool-result-to-markdown (tool-result)
+  "Convert tool result to markdown."
+  (let ((id (alist-get 'tool_use_id tool-result))
+</tool.toolu_01X8W5dATokfGvSxNx5Bji8C>
+
+## TOOL USE:
+
+Name: str-replace
+ID: toolu_01G3WyPoJp2Q97qj7tsuwCq6
+
+### file_path
+
+<tool.toolu_01G3WyPoJp2Q97qj7tsuwCq6>
+greger-parser.el
+</tool.toolu_01G3WyPoJp2Q97qj7tsuwCq6>
+
+### original_content
+
+<tool.toolu_01G3WyPoJp2Q97qj7tsuwCq6>
+(defun greger-parser--tool-use-to-markdown (tool-use)
+  "Convert tool use to markdown."
+</tool.toolu_01G3WyPoJp2Q97qj7tsuwCq6>
+
+### new_content
+
+<tool.toolu_01G3WyPoJp2Q97qj7tsuwCq6>
+(defun greger-parser--tool-use-to-markdown (tool-use)
+  "Convert TOOL-USE to markdown."
+</tool.toolu_01G3WyPoJp2Q97qj7tsuwCq6>
+
+### git_commit_message
+
+<tool.toolu_01G3WyPoJp2Q97qj7tsuwCq6>
+Fix docstring for greger-parser--tool-use-to-markdown
+</tool.toolu_01G3WyPoJp2Q97qj7tsuwCq6>
+
+<!-- TOOL_RESULT_PLACEHOLDER_toolu_01G3WyPoJp2Q97qj7tsuwCq6 -->

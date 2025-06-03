@@ -1001,7 +1001,7 @@ Returns either a system message, metadata, or both."
      (t ""))))
 
 (defun greger-parser--tool-use-to-markdown (tool-use)
-  "Convert tool use to markdown."
+  "Convert TOOL-USE to markdown."
   (let ((name (alist-get 'name tool-use))
         (id (alist-get 'id tool-use))
         (input (alist-get 'input tool-use)))
