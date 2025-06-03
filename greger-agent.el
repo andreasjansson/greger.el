@@ -261,3 +261,7 @@ This function is kept for backward compatibility but is no longer used in the ne
 (provide 'greger-agent)
 
 ;;; greger-agent.el ends here
+
+;; Local Variables:
+;; package-lint-main-file: "greger.el"
+;; End:
