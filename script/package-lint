@@ -11,12 +11,26 @@ GREEN='\033[0;32m'
 YELLOW='\033[1;33m'
 NC='\033[0m' # No Color
 
-# Find package-lint
-PACKAGE_LINT_PATH="$HOME/.emacs.d/elpa/package-lint-20240507.1722"
-if [ ! -d "$PACKAGE_LINT_PATH" ]; then
-    echo -e "${RED}Error: package-lint not found at $PACKAGE_LINT_PATH${NC}"
-    echo "Please install package-lint or update the path in this script"
-    exit 1
+# Find package-lint - try common locations
+PACKAGE_LINT_PATH=""
+if [ -n "$CI" ]; then
+    # In CI environment, package-lint is installed via package.el
+    echo -e "${YELLOW}CI environment detected, using package.el to find package-lint${NC}"
+else
+    # Try to find package-lint in local .emacs.d
+    for path in "$HOME/.emacs.d/elpa/package-lint-"*; do
+        if [ -d "$path" ]; then
+            PACKAGE_LINT_PATH="$path"
+            break
+        fi
+    done
+
+    if [ -z "$PACKAGE_LINT_PATH" ]; then
+        echo -e "${RED}Error: package-lint not found in $HOME/.emacs.d/elpa/${NC}"
+        echo "Please install package-lint with: M-x package-install RET package-lint RET"
+        exit 1
+    fi
+    echo -e "${YELLOW}Found package-lint at: $PACKAGE_LINT_PATH${NC}"
 fi
 
 # Files to lint (exclude test files and debug files)
