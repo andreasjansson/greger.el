@@ -20,7 +20,7 @@
       (should (string= "Hello world!\n" result)))
 
     ;; Test with raw HTML
-    (let ((result (greger-tools--read-webpage test-url nil)))
+    (let ((result (greger-stdlib--read-webpage test-url nil)))
       (should (stringp result))
       (should (string= "<h1>Hello world!</h1>\n" result)))
 
