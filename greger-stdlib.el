@@ -1159,7 +1159,7 @@ If USE-HIGHEST-READABILITY is non-nil, use eww's aggressive readability setting.
 
   (condition-case err
       (greger-web-download-page url extract-text use-highest-readability)
-    (error "Failed to read webpage: %s" (error-message-string err))))
+    (error (format "Failed to read webpage: %s" (error-message-string err)))))
 
 (provide 'greger-stdlib)
 

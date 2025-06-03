@@ -4170,4 +4170,302 @@ greger-stdlib.el
 Replace goto-line with forward-line for programmatic use
 </tool.toolu_019FqQ5UQQWah82XBp7tAWq5>
 
-<!-- TOOL_RESULT_PLACEHOLDER_toolu_019FqQ5UQQWah82XBp7tAWq5 -->
+## TOOL RESULT:
+
+ID: toolu_019FqQ5UQQWah82XBp7tAWq5
+
+<tool.toolu_019FqQ5UQQWah82XBp7tAWq5>
+Successfully replaced content in /Users/andreas/projects/greger.el/greger-stdlib.el. Successfully staged 2 file(s) and committed with message: Replace goto-line with forward-line for programmatic use
+</tool.toolu_019FqQ5UQQWah82XBp7tAWq5>
+
+
+## ASSISTANT:
+
+Now let me run tests to make sure everything is still working:
+
+## TOOL USE:
+
+Name: shell-command
+ID: toolu_0122sWg7zaPnAMxdRNo2Rb5A
+
+### command
+
+<tool.toolu_0122sWg7zaPnAMxdRNo2Rb5A>
+bash script/test
+</tool.toolu_0122sWg7zaPnAMxdRNo2Rb5A>
+
+## TOOL RESULT:
+
+ID: toolu_0122sWg7zaPnAMxdRNo2Rb5A
+
+<tool.toolu_0122sWg7zaPnAMxdRNo2Rb5A>
+Command failed with exit code 1: [0;34mRunning ERT tests for greger package...[0m
+
+Running tests in [1;33mtest/test-greger.el[0m...
+  [0;32m✓ All tests passed[0m
+
+Running tests in [1;33mtest/test-greger-parser.el[0m...
+  [0;32m✓ All tests passed[0m
+
+Running tests in [1;33mtest/test-greger-stdlib.el[0m...
+  [0;31m✗ Some tests failed[0m
+  [0;31mFailed tests:[0m
+    [0;31m• greger-test-read-webpage-network-error[0m
+  [0;31mError details:[0m
+    [1;33m   FAILED  10/21  greger-test-read-webpage-network-error (0.000084 sec) at test/test-greger-stdlib.el:47[0m
+
+Running tests in [1;33mtest/test-greger-lib-lsp.el[0m...
+  [0;32m✓ All tests passed[0m
+
+Running tests in [1;33mtest/test-greger-tools.el[0m...
+  [0;32m✓ All tests passed[0m
+
+Running tests in [1;33mtest/test-greger-client.el[0m...
+  [0;32m✓ All tests passed[0m
+
+Running tests in [1;33mtest/test-end-to-end.el[0m...
+  [0;32m✓ All tests passed[0m
+
+[0;34mTest Summary:[0m
+  Files run: 7
+  Files passed: [0;32m6[0m
+  Files failed: [0;31m1[0m
+[0;31mSome tests failed.[0m
+
+</tool.toolu_0122sWg7zaPnAMxdRNo2Rb5A>
+
+## ASSISTANT:
+
+I have a failing test. Let me check what's wrong with the webpage test:
+
+## TOOL USE:
+
+Name: read-file
+ID: toolu_01SdAcvmTzBpndnu4gZCUNu9
+
+### path
+
+<tool.toolu_01SdAcvmTzBpndnu4gZCUNu9>
+test/test-greger-stdlib.el
+</tool.toolu_01SdAcvmTzBpndnu4gZCUNu9>
+
+### include_line_numbers
+
+<tool.toolu_01SdAcvmTzBpndnu4gZCUNu9>
+true
+</tool.toolu_01SdAcvmTzBpndnu4gZCUNu9>
+
+### start_line
+
+<tool.toolu_01SdAcvmTzBpndnu4gZCUNu9>
+40
+</tool.toolu_01SdAcvmTzBpndnu4gZCUNu9>
+
+### end_line
+
+<tool.toolu_01SdAcvmTzBpndnu4gZCUNu9>
+50
+</tool.toolu_01SdAcvmTzBpndnu4gZCUNu9>
+
+## TOOL RESULT:
+
+ID: toolu_01SdAcvmTzBpndnu4gZCUNu9
+
+<tool.toolu_01SdAcvmTzBpndnu4gZCUNu9>
+40:   (should-error (greger-stdlib--read-webpage 123))
+41:
+42:   ;; Test invalid URL format
+43:   (should-error (greger-stdlib--read-webpage "ftp://example.com"))
+44:   (should-error (greger-stdlib--read-webpage "not-a-url"))
+45:   (should-error (greger-stdlib--read-webpage "file:///path/to/file")))
+46:
+47: (ert-deftest greger-test-read-webpage-network-error ()
+48:   "Test reading a webpage when network error occurs."
+49:   ;; Mock the web download function to simulate network error
+50:   (cl-letf (((symbol-function 'greger-web-download-page)
+</tool.toolu_01SdAcvmTzBpndnu4gZCUNu9>
+
+## ASSISTANT:
+
+Let me see more of this test:
+
+## TOOL USE:
+
+Name: read-file
+ID: toolu_01CJXwS1DxyWKRmeXvD62rAx
+
+### path
+
+<tool.toolu_01CJXwS1DxyWKRmeXvD62rAx>
+test/test-greger-stdlib.el
+</tool.toolu_01CJXwS1DxyWKRmeXvD62rAx>
+
+### include_line_numbers
+
+<tool.toolu_01CJXwS1DxyWKRmeXvD62rAx>
+true
+</tool.toolu_01CJXwS1DxyWKRmeXvD62rAx>
+
+### start_line
+
+<tool.toolu_01CJXwS1DxyWKRmeXvD62rAx>
+47
+</tool.toolu_01CJXwS1DxyWKRmeXvD62rAx>
+
+### end_line
+
+<tool.toolu_01CJXwS1DxyWKRmeXvD62rAx>
+60
+</tool.toolu_01CJXwS1DxyWKRmeXvD62rAx>
+
+## TOOL RESULT:
+
+ID: toolu_01CJXwS1DxyWKRmeXvD62rAx
+
+<tool.toolu_01CJXwS1DxyWKRmeXvD62rAx>
+47: (ert-deftest greger-test-read-webpage-network-error ()
+48:   "Test reading a webpage when network error occurs."
+49:   ;; Mock the web download function to simulate network error
+50:   (cl-letf (((symbol-function 'greger-web-download-page)
+51:              (lambda (url extract-text use-highest-readability)
+52:                (error "Network timeout"))))
+53:
+54:     (let ((result (greger-stdlib--read-webpage "https://pub-b88c9764a4fc46baa90b9e8e1544f59e.r2.dev/hello.html")))
+55:       (should (stringp result))
+56:       (should (string-match-p "Failed to read webpage" result))
+57:       (should (string-match-p "Network timeout" result)))))
+58:
+59: (ert-deftest greger-test-web-url-validation ()
+60:   "Test the web URL validation function."
+</tool.toolu_01CJXwS1DxyWKRmeXvD62rAx>
+
+## ASSISTANT:
+
+The test expects the webpage reading to return a string with error information rather than throwing an error. But it seems my changes may have affected the error handling. Let me check the greger-stdlib--read-webpage function:
+
+## TOOL USE:
+
+Name: ripgrep
+ID: toolu_01XFMYx5xwLcn41ffJJXLUFk
+
+### pattern
+
+<tool.toolu_01XFMYx5xwLcn41ffJJXLUFk>
+defun greger-stdlib--read-webpage
+</tool.toolu_01XFMYx5xwLcn41ffJJXLUFk>
+
+### path
+
+<tool.toolu_01XFMYx5xwLcn41ffJJXLUFk>
+greger-stdlib.el
+</tool.toolu_01XFMYx5xwLcn41ffJJXLUFk>
+
+### context-lines
+
+<tool.toolu_01XFMYx5xwLcn41ffJJXLUFk>
+10
+</tool.toolu_01XFMYx5xwLcn41ffJJXLUFk>
+
+## TOOL RESULT:
+
+ID: toolu_01XFMYx5xwLcn41ffJJXLUFk
+
+<tool.toolu_01XFMYx5xwLcn41ffJJXLUFk>
+1146:(defun greger-stdlib--read-webpage (url &optional extract-text use-highest-readability)
+
+</tool.toolu_01XFMYx5xwLcn41ffJJXLUFk>
+
+## TOOL USE:
+
+Name: read-file
+ID: toolu_01LE84fn5q2vJM7oHmjuyGRi
+
+### path
+
+<tool.toolu_01LE84fn5q2vJM7oHmjuyGRi>
+greger-stdlib.el
+</tool.toolu_01LE84fn5q2vJM7oHmjuyGRi>
+
+### include_line_numbers
+
+<tool.toolu_01LE84fn5q2vJM7oHmjuyGRi>
+true
+</tool.toolu_01LE84fn5q2vJM7oHmjuyGRi>
+
+### start_line
+
+<tool.toolu_01LE84fn5q2vJM7oHmjuyGRi>
+1146
+</tool.toolu_01LE84fn5q2vJM7oHmjuyGRi>
+
+### end_line
+
+<tool.toolu_01LE84fn5q2vJM7oHmjuyGRi>
+1165
+</tool.toolu_01LE84fn5q2vJM7oHmjuyGRi>
+
+## TOOL RESULT:
+
+ID: toolu_01LE84fn5q2vJM7oHmjuyGRi
+
+<tool.toolu_01LE84fn5q2vJM7oHmjuyGRi>
+1146: (defun greger-stdlib--read-webpage (url &optional extract-text use-highest-readability)
+1147:   "Read webpage content from URL.
+1148: If EXTRACT-TEXT is non-nil (default t), extract and return text content.
+1149: If EXTRACT-TEXT is nil, return raw HTML.
+1150: If USE-HIGHEST-READABILITY is non-nil, use eww's aggressive readability setting."
+1151:   (unless (stringp url)
+1152:     (error "URL must be a string"))
+1153:
+1154:   (when (string-empty-p (string-trim url))
+1155:     (error "URL cannot be empty"))
+1156:
+1157:   (unless (greger-web-is-web-url-p url)
+1158:     (error "Invalid URL format: %s (must start with http:// or https://)" url))
+1159:
+1160:   (condition-case err
+1161:       (greger-web-download-page url extract-text use-highest-readability)
+1162:     (error "Failed to read webpage: %s" (error-message-string err))))
+1163:
+1164: (provide 'greger-stdlib)
+1165:
+</tool.toolu_01LE84fn5q2vJM7oHmjuyGRi>
+
+## ASSISTANT:
+
+Aha! I see the issue. When I fixed the format call on line 1162, I accidentally changed the error handling. It should be wrapped in `condition-case` to catch errors and return a string, not throw them. Let me fix this:
+
+## TOOL USE:
+
+Name: str-replace
+ID: toolu_01PonibDxp6E2BhXKmQzBg9Z
+
+### file_path
+
+<tool.toolu_01PonibDxp6E2BhXKmQzBg9Z>
+greger-stdlib.el
+</tool.toolu_01PonibDxp6E2BhXKmQzBg9Z>
+
+### original_content
+
+<tool.toolu_01PonibDxp6E2BhXKmQzBg9Z>
+(condition-case err
+      (greger-web-download-page url extract-text use-highest-readability)
+    (error "Failed to read webpage: %s" (error-message-string err)))
+</tool.toolu_01PonibDxp6E2BhXKmQzBg9Z>
+
+### new_content
+
+<tool.toolu_01PonibDxp6E2BhXKmQzBg9Z>
+(condition-case err
+      (greger-web-download-page url extract-text use-highest-readability)
+    (error (format "Failed to read webpage: %s" (error-message-string err))))
+</tool.toolu_01PonibDxp6E2BhXKmQzBg9Z>
+
+### git_commit_message
+
+<tool.toolu_01PonibDxp6E2BhXKmQzBg9Z>
+Fix condition-case error handling to return formatted string
+</tool.toolu_01PonibDxp6E2BhXKmQzBg9Z>
+
+<!-- TOOL_RESULT_PLACEHOLDER_toolu_01PonibDxp6E2BhXKmQzBg9Z -->
