@@ -568,7 +568,7 @@ If BUFFER is provided, it will be staged and committed along with the directory.
 (defun greger-stdlib--rename-file (old-path new-path git-commit-message &optional buffer)
   "Rename file from OLD-PATH to NEW-PATH.
 GIT-COMMIT-MESSAGE will be used for the git commit.
-If BUFFER is provided, it will be staged and committed along with the renamed file."
+If BUFFER is provided, it will be staged and committed with the renamed file."
   (unless (stringp old-path)
     (error "Invalid type: old_path must be a string"))
 
