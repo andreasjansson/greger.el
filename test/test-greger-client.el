@@ -34,7 +34,7 @@
 (ert-deftest greger-end-to-end-test-simple-text-generation ()
   "Test simple text generation with Claude API."
   :tags '(end-to-end api)
-  (skip-unless (greger-test-has-api-key))
+
 
   (let ((response-received nil)
         (text-chunks '())
