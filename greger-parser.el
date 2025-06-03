@@ -846,7 +846,7 @@ Returns either a system message, metadata, or both."
      (t trimmed))))
 
 (defun greger-parser--parse-json-array (str)
-  "Parse JSON array string."
+  "Parse JSON array STR."
   (condition-case nil
       (json-read-from-string str)
     (error str)))
