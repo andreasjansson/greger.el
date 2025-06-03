@@ -41,12 +41,7 @@
 (require 'greger-tools)
 (require 'greger-stdlib)
 
-;; Optional dependency - only load if available
-(defvar greger--lsp-available
-  (condition-case nil
-      (progn (require 'greger-lib-lsp) t)
-    (error nil))
-  "Whether lsp-mode is available.")
+
 
 ;; Optional LSP integration
 (condition-case nil
