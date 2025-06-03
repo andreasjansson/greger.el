@@ -178,9 +178,11 @@
          (test-dialog '(((role . "user") (content . "Hello"))
                         ((role . "assistant") (content . "Hi there!"))
                         ((role . "user") (content . "How are you?"))))
-         (test-tools '(((type . "function")
-                        (function . ((name . "test_tool")
-                                    (description . "A test tool"))))))
+         (test-tools '(((name . "test_tool")
+                        (description . "A test tool")
+                        (input_schema . ((type . "object")
+                                        (properties . ())
+                                        (required . []))))))
          (request-spec (greger-client--build-request test-model test-dialog test-tools)))
 
     ;; Verify request structure

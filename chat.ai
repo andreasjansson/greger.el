@@ -4665,4 +4665,482 @@ test/test-end-to-end.el
 Fix tool schema format in end-to-end test to match Claude's expected format
 </tool.toolu_01Bb7cfmJkuBx3rZfyH2XHUU>
 
-<!-- TOOL_RESULT_PLACEHOLDER_toolu_01Bb7cfmJkuBx3rZfyH2XHUU -->
+## TOOL RESULT:
+
+ID: toolu_01Bb7cfmJkuBx3rZfyH2XHUU
+
+<tool.toolu_01Bb7cfmJkuBx3rZfyH2XHUU>
+Successfully replaced content in /Users/andreas/projects/greger.el/test/test-end-to-end.el. Successfully staged 2 file(s) and committed with message: Fix tool schema format in end-to-end test to match Claude's expected format
+</tool.toolu_01Bb7cfmJkuBx3rZfyH2XHUU>
+
+
+## ASSISTANT:
+
+Now let's run the test again to see if it works better:
+
+## TOOL USE:
+
+Name: shell-command
+ID: toolu_01SaVtq5JLA7LRek518fPY2Z
+
+### command
+
+<tool.toolu_01SaVtq5JLA7LRek518fPY2Z>
+bash script/test --verbose --file test/test-end-to-end.el
+</tool.toolu_01SaVtq5JLA7LRek518fPY2Z>
+
+## TOOL RESULT:
+
+ID: toolu_01SaVtq5JLA7LRek518fPY2Z
+
+<tool.toolu_01SaVtq5JLA7LRek518fPY2Z>
+Command failed with exit code 255: [0;34mRunning ERT tests for greger package...[0m
+
+Running tests in [1;33mtest/test-end-to-end.el[0m (verbose mode)...
+Loading /Users/andreas/projects/greger.el/greger.el (source)...
+Source file ‘/opt/homebrew/Cellar/emacs-plus@29/29.0.90/share/emacs/29.0.91/lisp/net/eww.el’ newer than byte-compiled file; using older file
+Loading /Users/andreas/projects/greger.el/greger-agent.el (source)...
+Loading /Users/andreas/projects/greger.el/greger-parser.el (source)...
+Loading /Users/andreas/projects/greger.el/greger-stdlib.el (source)...
+Loading /Users/andreas/projects/greger.el/greger-lib-lsp.el (source)...
+Loading /Users/andreas/projects/greger.el/greger-tools.el (source)...
+Loading /Users/andreas/projects/greger.el/greger-client.el (source)...
+Loading /Users/andreas/projects/greger.el/greger-web.el (source)...
+Loading /Users/andreas/projects/greger.el/test/test-end-to-end.el (source)...
+
+Error: end-of-file ("/Users/andreas/projects/greger.el/test/test-end-to-end.el")
+  mapbacktrace(#f(compiled-function (evald func args flags) #<bytecode -0xce2dc589a512f81>))
+  debug-early-backtrace()
+  debug-early(error (end-of-file "/Users/andreas/projects/greger.el/test/test-end-to-end.el"))
+  read(#<buffer  *load*>)
+  eval-buffer(#<buffer  *load*> nil "/Users/andreas/projects/greger.el/test/test-end-to-end.el" nil t)
+  load-with-code-conversion("/Users/andreas/projects/greger.el/test/test-end-to-end.el" "/Users/andreas/projects/greger.el/test/test-end-to-end.el" nil nil)
+  load("/Users/andreas/projects/greger.el/test/test-end-to-end.el" nil nil t)
+  load-file("test/test-end-to-end.el")
+  (progn (setq debug-on-error t) (add-to-list 'load-path ".") (require 'package) (setq package-archives '(("melpa" . "https://melpa.org/packages/") ("gnu" . "https://elpa.gnu.org/packages/"))) (package-initialize) (unless (package-installed-p 'lsp-mode) (package-refresh-contents) (package-install 'lsp-mode)) (unless (package-installed-p 'lsp-pyright) (package-refresh-contents) (package-install 'lsp-pyright)) (require 'ert) (require 'cl-lib) (load-file "greger.el") (load-file "greger-agent.el") (load-file "greger-parser.el") (load-file "greger-stdlib.el") (load-file "greger-lib-lsp.el") (load-file "greger-tools.el") (load-file "greger-client.el") (load-file "greger-web.el") (load-file "test/test-end-to-end.el") (let ((ert-quiet nil)) (ert-run-tests-batch-and-exit t)))
+  eval((progn (setq debug-on-error t) (add-to-list 'load-path ".") (require 'package) (setq package-archives '(("melpa" . "https://melpa.org/packages/") ("gnu" . "https://elpa.gnu.org/packages/"))) (package-initialize) (unless (package-installed-p 'lsp-mode) (package-refresh-contents) (package-install 'lsp-mode)) (unless (package-installed-p 'lsp-pyright) (package-refresh-contents) (package-install 'lsp-pyright)) (require 'ert) (require 'cl-lib) (load-file "greger.el") (load-file "greger-agent.el") (load-file "greger-parser.el") (load-file "greger-stdlib.el") (load-file "greger-lib-lsp.el") (load-file "greger-tools.el") (load-file "greger-client.el") (load-file "greger-web.el") (load-file "test/test-end-to-end.el") (let ((ert-quiet nil)) (ert-run-tests-batch-and-exit t))) t)
+  command-line-1(("--eval" "(progn\n                  (setq debug-on-error t)\n                  (add-to-list 'load-path \".\")\n                  ;; Setup package archives and install dependencies if needed\n                  (require 'package)\n                  (setq package-archives '((\"melpa\" . \"https://melpa.org/packages/\")\n                                           (\"gnu\" . \"https://elpa.gnu.org/packages/\")))\n                  (package-initialize)\n                  ;; Install lsp-mode and lsp-pyright if not available\n                  (unless (package-installed-p 'lsp-mode)\n                    (package-refresh-contents)\n                    (package-install 'lsp-mode))\n                  (unless (package-installed-p 'lsp-pyright)\n                    (package-refresh-contents)\n                    (package-install 'lsp-pyright))\n                  ;; Load required packages\n                  (require 'ert)\n                  (require 'cl-lib)\n                  ;; Load main greger files\n                  (load-file \"greger.el\")\n                  (load-file \"greger-agent.el\")\n                  (load-file \"greger-parser.el\")\n                  (load-file \"greger-stdlib.el\")\n                  (load-file \"greger-lib-lsp.el\")\n                  (load-file \"greger-tools.el\")\n                  (load-file \"greger-client.el\")\n                  (load-file \"greger-web.el\")\n                  ;; Load test file\n                  (load-file \"test/test-end-to-end.el\")\n                  ;; Run all tests defined in this file with verbose output\n                  (let ((ert-quiet nil))\n                    (ert-run-tests-batch-and-exit t)))"))
+  command-line()
+  normal-top-level()
+End of file during parsing: /Users/andreas/projects/greger.el/test/test-end-to-end.el
+
+</tool.toolu_01SaVtq5JLA7LRek518fPY2Z>
+
+## ASSISTANT:
+
+There's a syntax error in the test file. Let me check the end of the file:
+
+## TOOL USE:
+
+Name: read-file
+ID: toolu_01XnunA1Y6LfE2LVqXMiojtQ
+
+### path
+
+<tool.toolu_01XnunA1Y6LfE2LVqXMiojtQ>
+test/test-end-to-end.el
+</tool.toolu_01XnunA1Y6LfE2LVqXMiojtQ>
+
+### start_line
+
+<tool.toolu_01XnunA1Y6LfE2LVqXMiojtQ>
+140
+</tool.toolu_01XnunA1Y6LfE2LVqXMiojtQ>
+
+### end_line
+
+<tool.toolu_01XnunA1Y6LfE2LVqXMiojtQ>
+160
+</tool.toolu_01XnunA1Y6LfE2LVqXMiojtQ>
+
+## TOOL RESULT:
+
+ID: toolu_01XnunA1Y6LfE2LVqXMiojtQ
+
+<tool.toolu_01XnunA1Y6LfE2LVqXMiojtQ>
+                                  (string= (alist-get 'type block) "text"))
+                                final-blocks)))))))))
+
+(ert-deftest greger-end-to-end-test-error-handling ()
+  "Test error handling with invalid model."
+  :tags '(end-to-end error-handling)
+  (skip-unless (greger-test-has-api-key))
+
+  (let ((error-caught nil))
+
+    ;; Test with invalid model - should fail validation
+    (condition-case err
+        (greger-client-stream
+         :model 'invalid-model
+         :dialog '(((role . "user") (content . "test"))))
+      (error
+       (setq error-caught t)
+       (should (string-match-p "Unsupported model" (error-message-string err)))))
+
+    (should error-caught)))
+
+</tool.toolu_01XnunA1Y6LfE2LVqXMiojtQ>
+
+## TOOL USE:
+
+Name: read-file
+ID: toolu_019jKAEqhqKuCeCExAnTYXBr
+
+### path
+
+<tool.toolu_019jKAEqhqKuCeCExAnTYXBr>
+test/test-end-to-end.el
+</tool.toolu_019jKAEqhqKuCeCExAnTYXBr>
+
+### start_line
+
+<tool.toolu_019jKAEqhqKuCeCExAnTYXBr>
+160
+</tool.toolu_019jKAEqhqKuCeCExAnTYXBr>
+
+### end_line
+
+<tool.toolu_019jKAEqhqKuCeCExAnTYXBr>
+-1
+</tool.toolu_019jKAEqhqKuCeCExAnTYXBr>
+
+## TOOL RESULT:
+
+ID: toolu_019jKAEqhqKuCeCExAnTYXBr
+
+<tool.toolu_019jKAEqhqKuCeCExAnTYXBr>
+Error executing tool: end-line must be >= 1
+</tool.toolu_019jKAEqhqKuCeCExAnTYXBr>
+
+## TOOL USE:
+
+Name: read-file
+ID: toolu_012iQNPHtY1VC52Y3Ruax5gq
+
+### path
+
+<tool.toolu_012iQNPHtY1VC52Y3Ruax5gq>
+test/test-end-to-end.el
+</tool.toolu_012iQNPHtY1VC52Y3Ruax5gq>
+
+### start_line
+
+<tool.toolu_012iQNPHtY1VC52Y3Ruax5gq>
+160
+</tool.toolu_012iQNPHtY1VC52Y3Ruax5gq>
+
+## TOOL RESULT:
+
+ID: toolu_012iQNPHtY1VC52Y3Ruax5gq
+
+<tool.toolu_012iQNPHtY1VC52Y3Ruax5gq>
+
+(ert-deftest greger-end-to-end-test-supported-models ()
+  "Test that supported models are accepted."
+  :tags '(end-to-end models)
+
+  ;; Test that both supported models are accepted (we won't actually call API)
+  (should (memq 'claude-sonnet-4-20250514 greger-client-supported-models))
+  (should (memq 'claude-opus-4-20250514 greger-client-supported-models))
+
+  ;; Test that only these models are supported
+  (should (= 2 (length greger-client-supported-models))))
+
+(ert-deftest greger-end-to-end-test-request-building ()
+  "Test that request building works correctly."
+  :tags '(end-to-end request-building)
+  (skip-unless (greger-test-has-api-key))
+
+  (let* ((test-model 'claude-sonnet-4-20250514)
+         (test-dialog '(((role . "user") (content . "Hello"))
+                        ((role . "assistant") (content . "Hi there!"))
+                        ((role . "user") (content . "How are you?"))))
+         (test-tools '(((type . "function")
+                        (function . ((name . "test_tool")
+                                    (description . "A test tool"))))))
+         (request-spec (greger-client--build-request test-model test-dialog test-tools)))
+
+    ;; Verify request structure
+    (should (plist-get request-spec :url))
+    (should (string= (plist-get request-spec :url) greger-client-api-url))
+    (should (string= (plist-get request-spec :method) "POST"))
+    (should (plist-get request-spec :headers))
+    (should (plist-get request-spec :data))
+
+    ;; Verify headers
+    (let ((headers (plist-get request-spec :headers)))
+      (should (assoc "Content-Type" headers))
+      (should (assoc "x-api-key" headers))
+      (should (assoc "anthropic-version" headers)))
+
+    ;; Verify data is valid JSON
+    (let ((data (plist-get request-spec :data)))
+      (should (stringp data))
+      (should (json-read-from-string data)))))
+
+(provide 'test-end-to-end)
+
+;;; test-end-to-end.el ends here
+
+</tool.toolu_012iQNPHtY1VC52Y3Ruax5gq>
+
+## ASSISTANT:
+
+I see the issue. In the request building test, I'm still using the old tool format. Let me fix that:
+
+## TOOL USE:
+
+Name: str-replace
+ID: toolu_01RervaibHSZgQqKBtezkd52
+
+### file_path
+
+<tool.toolu_01RervaibHSZgQqKBtezkd52>
+test/test-end-to-end.el
+</tool.toolu_01RervaibHSZgQqKBtezkd52>
+
+### original_content
+
+<tool.toolu_01RervaibHSZgQqKBtezkd52>
+         (test-tools '(((type . "function")
+                        (function . ((name . "test_tool")
+                                    (description . "A test tool")))))))
+</tool.toolu_01RervaibHSZgQqKBtezkd52>
+
+### new_content
+
+<tool.toolu_01RervaibHSZgQqKBtezkd52>
+         (test-tools '(((name . "test_tool")
+                        (description . "A test tool")
+                        (input_schema . ((type . "object")
+                                        (properties . ())
+                                        (required . [])))))))
+</tool.toolu_01RervaibHSZgQqKBtezkd52>
+
+### git_commit_message
+
+<tool.toolu_01RervaibHSZgQqKBtezkd52>
+Fix tool format in request building test
+</tool.toolu_01RervaibHSZgQqKBtezkd52>
+
+## TOOL RESULT:
+
+ID: toolu_01RervaibHSZgQqKBtezkd52
+
+<tool.toolu_01RervaibHSZgQqKBtezkd52>
+Error executing tool: Original content not found in file: /Users/andreas/projects/greger.el/test/test-end-to-end.el -- Try again!
+</tool.toolu_01RervaibHSZgQqKBtezkd52>
+
+## ASSISTANT:
+
+Let me check the exact content around that line:
+
+## TOOL USE:
+
+Name: read-file
+ID: toolu_01Cq4JaahRisLnjuBn29wg36
+
+### path
+
+<tool.toolu_01Cq4JaahRisLnjuBn29wg36>
+test/test-end-to-end.el
+</tool.toolu_01Cq4JaahRisLnjuBn29wg36>
+
+### start_line
+
+<tool.toolu_01Cq4JaahRisLnjuBn29wg36>
+175
+</tool.toolu_01Cq4JaahRisLnjuBn29wg36>
+
+### end_line
+
+<tool.toolu_01Cq4JaahRisLnjuBn29wg36>
+185
+</tool.toolu_01Cq4JaahRisLnjuBn29wg36>
+
+## TOOL RESULT:
+
+ID: toolu_01Cq4JaahRisLnjuBn29wg36
+
+<tool.toolu_01Cq4JaahRisLnjuBn29wg36>
+  (skip-unless (greger-test-has-api-key))
+
+  (let* ((test-model 'claude-sonnet-4-20250514)
+         (test-dialog '(((role . "user") (content . "Hello"))
+                        ((role . "assistant") (content . "Hi there!"))
+                        ((role . "user") (content . "How are you?"))))
+         (test-tools '(((type . "function")
+                        (function . ((name . "test_tool")
+                                    (description . "A test tool"))))))
+         (request-spec (greger-client--build-request test-model test-dialog test-tools)))
+
+</tool.toolu_01Cq4JaahRisLnjuBn29wg36>
+
+## TOOL USE:
+
+Name: str-replace
+ID: toolu_01Wito1akrMsZQN8VeikpAWX
+
+### file_path
+
+<tool.toolu_01Wito1akrMsZQN8VeikpAWX>
+test/test-end-to-end.el
+</tool.toolu_01Wito1akrMsZQN8VeikpAWX>
+
+### original_content
+
+<tool.toolu_01Wito1akrMsZQN8VeikpAWX>
+         (test-tools '(((type . "function")
+                        (function . ((name . "test_tool")
+                                    (description . "A test tool")))))))
+</tool.toolu_01Wito1akrMsZQN8VeikpAWX>
+
+### new_content
+
+<tool.toolu_01Wito1akrMsZQN8VeikpAWX>
+         (test-tools '(((name . "test_tool")
+                        (description . "A test tool")
+                        (input_schema . ((type . "object")
+                                        (properties . ())
+                                        (required . [])))))))
+</tool.toolu_01Wito1akrMsZQN8VeikpAWX>
+
+### git_commit_message
+
+<tool.toolu_01Wito1akrMsZQN8VeikpAWX>
+Fix tool format in request building test
+</tool.toolu_01Wito1akrMsZQN8VeikpAWX>
+
+## TOOL RESULT:
+
+ID: toolu_01Wito1akrMsZQN8VeikpAWX
+
+<tool.toolu_01Wito1akrMsZQN8VeikpAWX>
+Error executing tool: Original content not found in file: /Users/andreas/projects/greger.el/test/test-end-to-end.el -- Try again!
+</tool.toolu_01Wito1akrMsZQN8VeikpAWX>
+
+## ASSISTANT:
+
+Let me get the exact whitespace:
+
+## TOOL USE:
+
+Name: str-replace
+ID: toolu_01UArBrLnFmsgZEKmXbk53Gg
+
+### file_path
+
+<tool.toolu_01UArBrLnFmsgZEKmXbk53Gg>
+test/test-end-to-end.el
+</tool.toolu_01UArBrLnFmsgZEKmXbk53Gg>
+
+### original_content
+
+<tool.toolu_01UArBrLnFmsgZEKmXbk53Gg>
+         (test-tools '(((type . "function")
+                        (function . ((name . "test_tool")
+                                    (description . "A test tool")))))))
+</tool.toolu_01UArBrLnFmsgZEKmXbk53Gg>
+
+### new_content
+
+<tool.toolu_01UArBrLnFmsgZEKmXbk53Gg>
+         (test-tools '(((name . "test_tool")
+                        (description . "A test tool")
+                        (input_schema . ((type . "object")
+                                        (properties . ())
+                                        (required . [])))))))
+</tool.toolu_01UArBrLnFmsgZEKmXbk53Gg>
+
+### git_commit_message
+
+<tool.toolu_01UArBrLnFmsgZEKmXbk53Gg>
+Fix tool format in request building test
+</tool.toolu_01UArBrLnFmsgZEKmXbk53Gg>
+
+## TOOL RESULT:
+
+ID: toolu_01UArBrLnFmsgZEKmXbk53Gg
+
+<tool.toolu_01UArBrLnFmsgZEKmXbk53Gg>
+Error executing tool: Original content not found in file: /Users/andreas/projects/greger.el/test/test-end-to-end.el -- Try again!
+</tool.toolu_01UArBrLnFmsgZEKmXbk53Gg>
+
+## ASSISTANT:
+
+Let me read a larger context to get the exact formatting:
+
+## TOOL USE:
+
+Name: read-file
+ID: toolu_0115JgY3rN1q2CC2rqLjDZbB
+
+### path
+
+<tool.toolu_0115JgY3rN1q2CC2rqLjDZbB>
+test/test-end-to-end.el
+</tool.toolu_0115JgY3rN1q2CC2rqLjDZbB>
+
+### start_line
+
+<tool.toolu_0115JgY3rN1q2CC2rqLjDZbB>
+176
+</tool.toolu_0115JgY3rN1q2CC2rqLjDZbB>
+
+### end_line
+
+<tool.toolu_0115JgY3rN1q2CC2rqLjDZbB>
+183
+</tool.toolu_0115JgY3rN1q2CC2rqLjDZbB>
+
+## TOOL RESULT:
+
+ID: toolu_0115JgY3rN1q2CC2rqLjDZbB
+
+<tool.toolu_0115JgY3rN1q2CC2rqLjDZbB>
+
+  (let* ((test-model 'claude-sonnet-4-20250514)
+         (test-dialog '(((role . "user") (content . "Hello"))
+                        ((role . "assistant") (content . "Hi there!"))
+                        ((role . "user") (content . "How are you?"))))
+         (test-tools '(((type . "function")
+                        (function . ((name . "test_tool")
+                                    (description . "A test tool"))))))
+</tool.toolu_0115JgY3rN1q2CC2rqLjDZbB>
+
+## TOOL USE:
+
+Name: str-replace
+ID: toolu_01Y6YNiQLiZHJuigi8q8cf9h
+
+### file_path
+
+<tool.toolu_01Y6YNiQLiZHJuigi8q8cf9h>
+test/test-end-to-end.el
+</tool.toolu_01Y6YNiQLiZHJuigi8q8cf9h>
+
+### original_content
+
+<tool.toolu_01Y6YNiQLiZHJuigi8q8cf9h>
+         (test-tools '(((type . "function")
+                        (function . ((name . "test_tool")
+                                    (description . "A test tool"))))))
+</tool.toolu_01Y6YNiQLiZHJuigi8q8cf9h>
+
+### new_content
+
+<tool.toolu_01Y6YNiQLiZHJuigi8q8cf9h>
+         (test-tools '(((name . "test_tool")
+                        (description . "A test tool")
+                        (input_schema . ((type . "object")
+                                        (properties . ())
+                                        (required . []))))))
+</tool.toolu_01Y6YNiQLiZHJuigi8q8cf9h>
+
+### git_commit_message
+
+<tool.toolu_01Y6YNiQLiZHJuigi8q8cf9h>
+Fix tool format in request building test
+</tool.toolu_01Y6YNiQLiZHJuigi8q8cf9h>
+
+<!-- TOOL_RESULT_PLACEHOLDER_toolu_01Y6YNiQLiZHJuigi8q8cf9h -->
