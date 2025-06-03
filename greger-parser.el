@@ -278,8 +278,9 @@ This is for backward compatibility with existing tests and code."
 (defun greger-parser--include-file (state file-path has-code-attr)
   "Include a file's content, optionally formatting as code using STATE.
 Supports both local files and web URLs (http:// or https://).
-For local files without code attribute, inserts content into state for recursive parsing.
-Returns nil when content is inserted, or the content string when it should be appended."
+For local files without code attribute, inserts content into state for
+recursive parsing.  Returns nil when content is inserted, or the content
+string when it should be appended."
   (greger-parser--debug state "Including file: %s (code: %s)" file-path has-code-attr)
   (condition-case err
       (let ((content
