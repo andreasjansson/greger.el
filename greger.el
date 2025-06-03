@@ -25,7 +25,7 @@
     claude-opus-4-20250514)
   "List of available models.")
 
-(defcustom greger-model 'claude/claude-sonnet-4-20250514
+(defcustom greger-model 'claude-sonnet-4-20250514
   "The currently used model."
   :type `(choice ,@(mapcar (lambda (model) `(const ,model)) greger-available-models))
   :group 'greger)
