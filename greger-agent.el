@@ -11,9 +11,11 @@
 (require 'greger-parser)
 (require 'greger-stream)
 (require 'greger-tools)
+(require 'greger-stdlib)
+(require 'greger-lib-lsp)
 
 ;; not using patch tool, it's too messy
-(defcustom greger-agent-tools '("read-file" "list-directory" "str-replace" "insert" "write-new-file" "replace-file" "replace-function" "make-directory" "rename-file" "ripgrep" "git-log" "git-show-commit" "shell-command" "read-webpage" "lsp-rename" "lsp-find-definition" "lsp-find-references")
+(defcustom greger-agent-tools '("read-file" "list-directory" "str-replace" "insert" "write-new-file" "replace-file" "replace-function" "make-directory" "rename-file" "ripgrep" "git-log" "git-show-commit" "shell-command" "read-webpage" "lsp-rename" "lsp-find-definition" "lsp-find-references" "lsp-format" "lsp-document-symbols")
   "List of tools available to the agent."
   :type '(repeat symbol)
   :group 'greger)
