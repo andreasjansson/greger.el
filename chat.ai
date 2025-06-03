@@ -6814,4 +6814,81 @@ greger.el
 Add agent configuration and state structure to greger.el
 </tool.toolu_01HDVmkjdue253ejvWgwE39g>
 
-<!-- TOOL_RESULT_PLACEHOLDER_toolu_01HDVmkjdue253ejvWgwE39g -->
+## TOOL RESULT:
+
+ID: toolu_01HDVmkjdue253ejvWgwE39g
+
+<tool.toolu_01HDVmkjdue253ejvWgwE39g>
+Successfully replaced content in /Users/andreas/projects/greger.el/greger.el. Successfully staged 2 file(s) and committed with message: Add agent configuration and state structure to greger.el
+</tool.toolu_01HDVmkjdue253ejvWgwE39g>
+
+
+## ASSISTANT:
+
+Now let me update the keymap to use the new function names:
+
+## TOOL USE:
+
+Name: str-replace
+ID: toolu_01VFujH33HU1rPCt1QiPfzBc
+
+### file_path
+
+<tool.toolu_01VFujH33HU1rPCt1QiPfzBc>
+greger.el
+</tool.toolu_01VFujH33HU1rPCt1QiPfzBc>
+
+### original_content
+
+<tool.toolu_01VFujH33HU1rPCt1QiPfzBc>
+(defvar greger-mode-map
+  (let ((map (make-sparse-keymap)))
+    (define-key map (kbd "M-<return>") #'greger-agent-buffer)
+    (define-key map (kbd "C-M-<return>") #'greger-buffer-no-tools)
+                                        ;(define-key map (kbd "M-<return>") #'greger-buffer)
+    (define-key map (kbd "C-; a") #'greger-insert-assistant-tag)
+    (define-key map (kbd "C-; u") #'greger-insert-user-tag)
+    (define-key map (kbd "C-; s") #'greger-insert-system-tag)
+    (define-key map (kbd "C-; i") #'greger-insert-include)
+    (define-key map (kbd "C-; I") #'greger-insert-include-code)
+    (define-key map (kbd "C-; f") #'greger-insert-include-file)
+    (define-key map (kbd "C-; b") #'greger-insert-include-buffer-code)
+    (define-key map (kbd "C-; m") #'greger-set-model)
+    (define-key map (kbd "C-; c") #'greger-copy-code)
+    (define-key map (kbd "C-; d") #'greger-debug-request)
+    (define-key map (kbd "TAB") #'greger-toggle-tool-section)
+    (define-key map (kbd "<tab>") #'greger-toggle-tool-section)
+    map)
+  "Keymap for `greger-mode'.")
+</tool.toolu_01VFujH33HU1rPCt1QiPfzBc>
+
+### new_content
+
+<tool.toolu_01VFujH33HU1rPCt1QiPfzBc>
+(defvar greger-mode-map
+  (let ((map (make-sparse-keymap)))
+    (define-key map (kbd "M-<return>") #'greger-buffer)
+    (define-key map (kbd "C-M-<return>") #'greger-buffer-no-tools)
+    (define-key map (kbd "C-; a") #'greger-insert-assistant-tag)
+    (define-key map (kbd "C-; u") #'greger-insert-user-tag)
+    (define-key map (kbd "C-; s") #'greger-insert-system-tag)
+    (define-key map (kbd "C-; i") #'greger-insert-include)
+    (define-key map (kbd "C-; I") #'greger-insert-include-code)
+    (define-key map (kbd "C-; f") #'greger-insert-include-file)
+    (define-key map (kbd "C-; b") #'greger-insert-include-buffer-code)
+    (define-key map (kbd "C-; m") #'greger-set-model)
+    (define-key map (kbd "C-; c") #'greger-copy-code)
+    (define-key map (kbd "C-; d") #'greger-debug-request)
+    (define-key map (kbd "TAB") #'greger-toggle-tool-section)
+    (define-key map (kbd "<tab>") #'greger-toggle-tool-section)
+    map)
+  "Keymap for `greger-mode'.")
+</tool.toolu_01VFujH33HU1rPCt1QiPfzBc>
+
+### git_commit_message
+
+<tool.toolu_01VFujH33HU1rPCt1QiPfzBc>
+Update keymap to use greger-buffer instead of greger-agent-buffer
+</tool.toolu_01VFujH33HU1rPCt1QiPfzBc>
+
+<!-- TOOL_RESULT_PLACEHOLDER_toolu_01VFujH33HU1rPCt1QiPfzBc -->
