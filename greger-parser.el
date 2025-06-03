@@ -903,7 +903,7 @@ Returns either a system message, metadata, or both."
 ;; Message merging
 
 (defun greger-parser--merge-consecutive-messages (messages)
-  "Merge consecutive messages with same role."
+  "Merge consecutive MESSAGES with same role."
   (if (null messages)
       '()
     (let ((result (list (car messages))))

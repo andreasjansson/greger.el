@@ -3345,4 +3345,101 @@ greger-parser.el
 Fix docstring for greger-parser--create-tool-result-message
 </tool.toolu_01QgGuAm7G2SZfpB7bNcziNK>
 
-<!-- TOOL_RESULT_PLACEHOLDER_toolu_01QgGuAm7G2SZfpB7bNcziNK -->
+## TOOL RESULT:
+
+ID: toolu_01QgGuAm7G2SZfpB7bNcziNK
+
+<tool.toolu_01QgGuAm7G2SZfpB7bNcziNK>
+Successfully replaced content in /Users/andreas/projects/greger.el/greger-parser.el. Successfully staged 2 file(s) and committed with message: Fix docstring for greger-parser--create-tool-result-message
+</tool.toolu_01QgGuAm7G2SZfpB7bNcziNK>
+
+
+## ASSISTANT:
+
+Now let me continue with the next functions around line 905:
+
+## TOOL USE:
+
+Name: read-file
+ID: toolu_018QkfifYf7hKzuPiY8YRMpt
+
+### path
+
+<tool.toolu_018QkfifYf7hKzuPiY8YRMpt>
+greger-parser.el
+</tool.toolu_018QkfifYf7hKzuPiY8YRMpt>
+
+### start_line
+
+<tool.toolu_018QkfifYf7hKzuPiY8YRMpt>
+903
+</tool.toolu_018QkfifYf7hKzuPiY8YRMpt>
+
+### end_line
+
+<tool.toolu_018QkfifYf7hKzuPiY8YRMpt>
+925
+</tool.toolu_018QkfifYf7hKzuPiY8YRMpt>
+
+## TOOL RESULT:
+
+ID: toolu_018QkfifYf7hKzuPiY8YRMpt
+
+<tool.toolu_018QkfifYf7hKzuPiY8YRMpt>
+;; Message merging
+
+(defun greger-parser--merge-consecutive-messages (messages)
+  "Merge consecutive messages with same role."
+  (if (null messages)
+      '()
+    (let ((result (list (car messages))))
+      (dolist (msg (cdr messages))
+        (let* ((last (car result))
+               (last-role (alist-get 'role last))
+               (curr-role (alist-get 'role msg)))
+          (if (string= last-role curr-role)
+              ;; Merge with previous
+              (progn
+                (let ((merged (greger-parser--merge-message-contents last msg)))
+                  (setcar result merged)))
+            ;; Add as new message
+            (progn
+              (push msg result)))))
+      (reverse result))))
+
+(defun greger-parser--merge-message-contents (msg1 msg2)
+  "Merge contents of two messages."
+</tool.toolu_018QkfifYf7hKzuPiY8YRMpt>
+
+## TOOL USE:
+
+Name: str-replace
+ID: toolu_01QS7vtXQibs137jdc97JJDE
+
+### file_path
+
+<tool.toolu_01QS7vtXQibs137jdc97JJDE>
+greger-parser.el
+</tool.toolu_01QS7vtXQibs137jdc97JJDE>
+
+### original_content
+
+<tool.toolu_01QS7vtXQibs137jdc97JJDE>
+(defun greger-parser--merge-consecutive-messages (messages)
+  "Merge consecutive messages with same role."
+</tool.toolu_01QS7vtXQibs137jdc97JJDE>
+
+### new_content
+
+<tool.toolu_01QS7vtXQibs137jdc97JJDE>
+(defun greger-parser--merge-consecutive-messages (messages)
+  "Merge consecutive MESSAGES with same role."
+</tool.toolu_01QS7vtXQibs137jdc97JJDE>
+
+### git_commit_message
+
+<tool.toolu_01QS7vtXQibs137jdc97JJDE>
+Fix docstring for greger-parser--merge-consecutive-messages
+</tool.toolu_01QS7vtXQibs137jdc97JJDE>
+
+<!-- TOOL_RESULT_PLACEHOLDER_toolu_01QS7vtXQibs137jdc97JJDE -->
