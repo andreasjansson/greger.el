@@ -15,7 +15,7 @@
   (let ((test-url "https://pub-b88c9764a4fc46baa90b9e8e1544f59e.r2.dev/hello.html"))
 
     ;; Test with text extraction (default)
-    (let ((result (greger-tools--read-webpage test-url t)))
+    (let ((result (greger-stdlib--read-webpage test-url t)))
       (should (stringp result))
       (should (string= "Hello world!\n" result)))
 

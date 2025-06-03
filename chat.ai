@@ -1,1562 +1,76 @@
 ## SYSTEM:
 
 You can run arbitrary shell commands with the shell-command tool, but the following shell commands are known to be safe to run and won't require the user to approve them:
-* `bash script/package-lint`
-* `bash script/test`
-* `bash script/test --verbose --file test-greger-parser.el`
+* `bash script/test --verbose`
+* `bash script/test --verbose --file test-greger-stdlib.el`
+* `bash script/test --verbose --file test-greger-lib-lsp.el`
+* `bash script/test --verbose --file test-greger-tools.el`
+
 
 <safe-shell-commands>
-bash script/package-lint
-bash script/test
-bash script/test --verbose --file test-greger-parser.el
+bash script/test --verbose
+bash script/test --verbose --file test-greger-stdlib.el
+bash script/test --verbose --file test-greger-lib-lsp.el
+bash script/test --verbose --file test-greger-tools.el
 </safe-shell-commands>
 
 ## USER:
 
-test-greger-parser.el has errors, fix them
+The tests hav errors, probably because I've renamed functions in the main files but not in the test. Fix those issues.
+
 
 ## ASSISTANT:
 
-I'll help you fix the errors in test-greger-parser.el. First, let me examine the file to see what issues exist.
-
-## TOOL USE:
-
-Name: read-file
-ID: toolu_01Lc4CT1AwNV85LvqgkWRgLz
-
-### path
-
-<tool.toolu_01Lc4CT1AwNV85LvqgkWRgLz>
-test-greger-parser.el
-</tool.toolu_01Lc4CT1AwNV85LvqgkWRgLz>
-
-### include_line_numbers
-
-<tool.toolu_01Lc4CT1AwNV85LvqgkWRgLz>
-true
-</tool.toolu_01Lc4CT1AwNV85LvqgkWRgLz>
-
-## TOOL RESULT:
-
-ID: toolu_01Lc4CT1AwNV85LvqgkWRgLz
-
-<tool.toolu_01Lc4CT1AwNV85LvqgkWRgLz>
-   1: ;;; test-greger-parser.el --- Tests for greger parser -*- lexical-binding: t -*-
-   2:
-   3: (require 'ert)
-   4: (require 'greger-parser)
-   5: (require 'cl-lib)
-   6:
-   7: ;; Test cases with tool use, thinking, and complex scenarios
-   8: (defconst greger-parser-test-cases
-   9:   '(
-  10:     ;; Simple user message
-  11:     (:name "simple-user-message"
-  12:      :markdown "## USER:
-  13:
-  14: Hello, how are you?"
-  15:      :dialog (((role . "user") (content . "Hello, how are you?"))))
-  16:
-  17:     ;; System and user message
-  18:     (:name "system-and-user"
-  19:      :markdown "## SYSTEM:
-  20:
-  21: You are a helpful assistant.
-  22:
-  23: ## USER:
-  24:
-  25: What's the weather like?"
-  26:      :dialog (((role . "system") (content . "You are a helpful assistant."))
-  27:               ((role . "user") (content . "What's the weather like?"))))
-  28:
-  29:     ;; Simple conversation
-  30:     (:name "simple-conversation"
-  31:      :markdown "## USER:
-  32:
-  33: Hello
-  34:
-  35: ## ASSISTANT:
-  36:
-  37: Hi there! How can I help you today?"
-  38:      :dialog (((role . "user") (content . "Hello"))
-  39:               ((role . "assistant") (content . "Hi there! How can I help you today?"))))
-  40:
-  41:     ;; Thinking section (becomes part of assistant message)
-  42:     (:name "thinking-section"
-  43:      :markdown "## USER:
-  44:
-  45: What's 2+2?
-  46:
-  47: ## THINKING:
-  48:
-  49: This is a simple arithmetic question. I can answer this directly without needing any tools.
-  50:
-  51: ## ASSISTANT:
-  52:
-  53: 2 + 2 = 4"
-  54:      :dialog (((role . "user") (content . "What's 2+2?"))
-  55:               ((role . "assistant") (content . (((type . "thinking") (thinking . "This is a simple arithmetic question. I can answer this directly without needing any tools.")) ((type . "text") (text . "2 + 2 = 4")))))))
-  56:
-  57:     ;; Tool use with single parameter
-  58:     (:name "tool-use-single-param"
-  59:      :markdown "## USER:
-  60:
-  61: Read the file hello.txt
-  62:
-  63: ## TOOL USE:
-  64:
-  65: Name: read-file
-  66: ID: toolu_123
-  67:
-  68: ### path
-  69:
-  70: <tool.toolu_123>
-  71: hello.txt
-  72: </tool.toolu_123>
-  73:
-  74: ## TOOL RESULT:
-  75:
-  76: ID: toolu_123
-  77:
-  78: <tool.toolu_123>
-  79: Hello, world!
-  80: </tool.toolu_123>
-  81:
-  82: ## ASSISTANT:
-  83:
-  84: The file contains: Hello, world!"
-  85:      :dialog (((role . "user") (content . "Read the file hello.txt"))
-  86:               ((role . "assistant") (content . (((type . "tool_use") (id . "toolu_123") (name . "read-file") (input . ((path . "hello.txt")))))))
-  87:               ((role . "user") (content . (((type . "tool_result") (tool_use_id . "toolu_123") (content . "Hello, world!")))))
-  88:               ((role . "assistant") (content . "The file contains: Hello, world!"))))
-  89:
-  90:     ;; Tool use with multiple parameters
-  91:     (:name "tool-use-multiple-params"
-  92:      :markdown "## USER:
-  93:
-  94: Search for python files containing 'def main'
-  95:
-  96: ## TOOL USE:
-  97:
-  98: Name: ripgrep
-  99: ID: toolu_456
- 100:
- 101: ### pattern
- 102:
- 103: <tool.toolu_456>
- 104: def main
- 105: </tool.toolu_456>
- 106:
- 107: ### file-type
- 108:
- 109: <tool.toolu_456>
- 110: py
- 111: </tool.toolu_456>
- 112:
- 113: ### context-lines
- 114:
- 115: <tool.toolu_456>
- 116: 2
- 117: </tool.toolu_456>
- 118:
- 119: ## TOOL RESULT:
- 120:
- 121: ID: toolu_456
- 122:
- 123: <tool.toolu_456>
- 124: src/main.py:10:def main():
- 125: src/utils.py:25:def main_helper():
- 126: </tool.toolu_456>
- 127:
- 128: ## ASSISTANT:
- 129:
- 130: I found 2 matches for 'def main' in Python files."
- 131:      :dialog (((role . "user") (content . "Search for python files containing 'def main'"))
- 132:               ((role . "assistant") (content . (((type . "tool_use") (id . "toolu_456") (name . "ripgrep") (input . ((pattern . "def main") (file-type . "py") (context-lines . 2)))))))
- 133:               ((role . "user") (content . (((type . "tool_result") (tool_use_id . "toolu_456") (content . "src/main.py:10:def main():\nsrc/utils.py:25:def main_helper():")))))
- 134:               ((role . "assistant") (content . "I found 2 matches for 'def main' in Python files."))))
- 135:
- 136:     ;; Complex workflow with thinking, tool use, and multiple responses
- 137:     (:name "complex-workflow"
- 138:      :markdown "## USER:
- 139:
- 140: who's the current king of sweden?
- 141:
- 142: ## THINKING:
- 143:
- 144: The user is asking about the current king of Sweden. This is a factual question that I can search for to get the most up-to-date information. I'll use the search function to find this information.
- 145:
- 146: ## TOOL USE:
- 147:
- 148: Name: search-286d2fd3
- 149: ID: toolu_01Kf8avk1cBqH5ZHoXL92Duc
- 150:
- 151: ### query
- 152:
- 153: <tool.toolu_01Kf8avk1cBqH5ZHoXL92Duc>
- 154: current king of Sweden 2024
- 155: </tool.toolu_01Kf8avk1cBqH5ZHoXL92Duc>
- 156:
- 157: ### include_answer
- 158:
- 159: <tool.toolu_01Kf8avk1cBqH5ZHoXL92Duc>
- 160: basic
- 161: </tool.toolu_01Kf8avk1cBqH5ZHoXL92Duc>
- 162:
- 163: ### max_results
- 164:
- 165: <tool.toolu_01Kf8avk1cBqH5ZHoXL92Duc>
- 166: 3
- 167: </tool.toolu_01Kf8avk1cBqH5ZHoXL92Duc>
- 168:
- 169: ## TOOL RESULT:
- 170:
- 171: ID: toolu_01Kf8avk1cBqH5ZHoXL92Duc
- 172:
- 173: <tool.toolu_01Kf8avk1cBqH5ZHoXL92Duc>
- 174: {\"query\": \"current king of Sweden 2024\", \"answer\": \"Carl XVI Gustaf\", \"response_time\": 2.38}
- 175: </tool.toolu_01Kf8avk1cBqH5ZHoXL92Duc>
- 176:
- 177: ## ASSISTANT:
- 178:
- 179: The current King of Sweden is **Carl XVI Gustaf**. He has been reigning since 1973 and is the longest-reigning monarch in Swedish history."
- 180:      :dialog (((role . "user") (content . "who's the current king of sweden?"))
- 181:               ((role . "assistant") (content . (((type . "thinking") (thinking . "The user is asking about the current king of Sweden. This is a factual question that I can search for to get the most up-to-date information. I'll use the search function to find this information.")) ((type . "tool_use") (id . "toolu_01Kf8avk1cBqH5ZHoXL92Duc") (name . "search-286d2fd3") (input . ((query . "current king of Sweden 2024") (include_answer . "basic") (max_results . 3)))))))
- 182:               ((role . "user") (content . (((type . "tool_result") (tool_use_id . "toolu_01Kf8avk1cBqH5ZHoXL92Duc") (content . "{\"query\": \"current king of Sweden 2024\", \"answer\": \"Carl XVI Gustaf\", \"response_time\": 2.38}")))))
- 183:               ((role . "assistant") (content . "The current King of Sweden is **Carl XVI Gustaf**. He has been reigning since 1973 and is the longest-reigning monarch in Swedish history."))))
- 184:
- 185:     ;; Multiple tool uses in sequence
- 186:     (:name "multiple-tool-uses"
- 187:      :markdown "## USER:
- 188:
- 189: List files and read the first one
- 190:
- 191: ## TOOL USE:
- 192:
- 193: Name: list-directory
- 194: ID: toolu_111
- 195:
- 196: ### path
- 197:
- 198: <tool.toolu_111>
- 199: .
- 200: </tool.toolu_111>
- 201:
- 202: ## TOOL RESULT:
- 203:
- 204: ID: toolu_111
- 205:
- 206: <tool.toolu_111>
- 207: file1.txt
- 208: file2.txt
- 209: README.md
- 210: </tool.toolu_111>
- 211:
- 212: ## TOOL USE:
- 213:
- 214: Name: read-file
- 215: ID: toolu_222
- 216:
- 217: ### path
- 218:
- 219: <tool.toolu_222>
- 220: file1.txt
- 221: </tool.toolu_222>
- 222:
- 223: ## TOOL RESULT:
- 224:
- 225: ID: toolu_222
- 226:
- 227: <tool.toolu_222>
- 228: This is the content of file1.
- 229: </tool.toolu_222>
- 230:
- 231: ## ASSISTANT:
- 232:
- 233: I found 3 files in the directory. The first file (file1.txt) contains: \"This is the content of file1.\""
- 234:      :dialog (((role . "user") (content . "List files and read the first one"))
- 235:               ((role . "assistant") (content . (((type . "tool_use") (id . "toolu_111") (name . "list-directory") (input . ((path . ".")))))))
- 236:               ((role . "user") (content . (((type . "tool_result") (tool_use_id . "toolu_111") (content . "file1.txt\nfile2.txt\nREADME.md")))))
- 237:               ((role . "assistant") (content . (((type . "tool_use") (id . "toolu_222") (name . "read-file") (input . ((path . "file1.txt")))))))
- 238:               ((role . "user") (content . (((type . "tool_result") (tool_use_id . "toolu_222") (content . "This is the content of file1.")))))
- 239:               ((role . "assistant") (content . "I found 3 files in the directory. The first file (file1.txt) contains: \"This is the content of file1.\""))))
- 240:
- 241:     ;; Tool use with multiline parameter values
- 242:     (:name "tool-use-multiline-params"
- 243:      :markdown "## USER:
- 244:
- 245: Write a new Python file
- 246:
- 247: ## TOOL USE:
- 248:
- 249: Name: write-new-file
- 250: ID: toolu_789
- 251:
- 252: ### file_path
- 253:
- 254: <tool.toolu_789>
- 255: script.py
- 256: </tool.toolu_789>
- 257:
- 258: ### contents
- 259:
- 260: <tool.toolu_789>
- 261: #!/usr/bin/env python3
- 262:
- 263: def main():
- 264:     print(\"Hello, world!\")
- 265:
- 266: if __name__ == \"__main__\":
- 267:     main()
- 268: </tool.toolu_789>
- 269:
- 270: ### git_commit_message
- 271:
- 272: <tool.toolu_789>
- 273: Add new Python script
- 274: </tool.toolu_789>
- 275:
- 276: ## TOOL RESULT:
- 277:
- 278: ID: toolu_789
- 279:
- 280: <tool.toolu_789>
- 281: Successfully wrote new file script.py with 85 characters.
- 282: </tool.toolu_789>
- 283:
- 284: ## ASSISTANT:
- 285:
- 286: I've created a new Python script file with a basic Hello World program."
- 287:      :dialog (((role . "user") (content . "Write a new Python file"))
- 288:               ((role . "assistant") (content . (((type . "tool_use") (id . "toolu_789") (name . "write-new-file") (input . ((file_path . "script.py") (contents . "#!/usr/bin/env python3\n\ndef main():\n    print(\"Hello, world!\")\n\nif __name__ == \"__main__\":\n    main()") (git_commit_message . "Add new Python script")))))))
- 289:               ((role . "user") (content . (((type . "tool_result") (tool_use_id . "toolu_789") (content . "Successfully wrote new file script.py with 85 characters.")))))
- 290:               ((role . "assistant") (content . "I've created a new Python script file with a basic Hello World program."))))
- 291:
- 292:     ;; Just thinking without any other content
- 293:     (:name "thinking-only"
- 294:      :markdown "## USER:
- 295:
- 296: Let me think about this
- 297:
- 298: ## THINKING:
- 299:
- 300: I need to consider all the options carefully before responding."
- 301:      :dialog (((role . "user") (content . "Let me think about this"))
- 302:               ((role . "assistant") (content . (((type . "thinking") (thinking . "I need to consider all the options carefully before responding.")))))))
- 303:
- 304:     ;; Tool use without any following content
- 305:     (:name "tool-use-only"
- 306:      :markdown "## USER:
- 307:
- 308: Read a file
- 309:
- 310: ## TOOL USE:
- 311:
- 312: Name: read-file
- 313: ID: toolu_999
- 314:
- 315: ### path
- 316:
- 317: <tool.toolu_999>
- 318: test.txt
- 319: </tool.toolu_999>
- 320: "
- 321:      :dialog (((role . "user") (content . "Read a file"))
- 322:               ((role . "assistant") (content . (((type . "tool_use") (id . "toolu_999") (name . "read-file") (input . ((path . "test.txt")))))))))
- 323:
- 324:     (:name "tool-use-with-tags"
- 325:      :markdown "## USER:
- 326:
- 327: Read a file
- 328:
- 329: ## TOOL USE:
- 330:
- 331: Name: read-file
- 332: ID: toolu_999
- 333:
- 334: ### path
- 335:
- 336: <tool.toolu_999>
- 337: test.txt
- 338:
- 339: ## USER:
- 340:
- 341: foo
- 342: </tool.toolu_999>
- 343: "
- 344:      :dialog (((role . "user") (content . "Read a file"))
- 345:               ((role . "assistant") (content . (((type . "tool_use") (id . "toolu_999") (name . "read-file") (input . ((path . "test.txt\n\n## USER:\n\nfoo")))))))))
- 346:
- 347:     ;; Tool result with empty lines preserved
- 348:     (:name "code-block-triple-backticks"
- 349:            :markdown "## USER:
- 350:
- 351: Here's some code:
- 352:
- 353: ```
- 354: ## ASSISTANT:
- 355: This should not be parsed as a section header
- 356: ## TOOL USE:
- 357: Neither should this
- 358: ```
- 359:
- 360: What do you think?"
- 361:            :dialog (((role . "user") (content . "Here's some code:\n\n```\n## ASSISTANT:\nThis should not be parsed as a section header\n## TOOL USE:\nNeither should this\n```\n\nWhat do you think?"))))
- 362:
- 363:     ;; Code blocks with section headers inside (double backticks)
- 364:     (:name "code-block-double-backticks"
- 365:            :markdown "## USER:
- 366:
- 367: Inline code: ``## ASSISTANT: not a header`` and more text.
- 368:
- 369: ## ASSISTANT:
- 370:
- 371: I see the inline code."
- 372:            :dialog (((role . "user") (content . "Inline code: ``## ASSISTANT: not a header`` and more text."))
- 373:                     ((role . "assistant") (content . "I see the inline code."))))
- 374:
- 375:     ;; Mixed code blocks and real sections
- 376:     (:name "mixed-code-blocks-and-sections"
- 377:            :markdown "## USER:
- 378:
- 379: Here's a code example:
- 380:
- 381: ```python
- 382: def example():
- 383:     # This has ## USER: in a comment
- 384:     print(\"## ASSISTANT: not a real header\")
- 385: ```
- 386:
- 387: Now please analyze it.
- 388:
- 389: ## ASSISTANT:
- 390:
- 391: I can see your code example."
- 392:            :dialog (((role . "user") (content . "Here's a code example:\n\n```python\ndef example():\n    # This has ## USER: in a comment\n    print(\"## ASSISTANT: not a real header\")\n```\n\nNow please analyze it."))
- 393:                     ((role . "assistant") (content . "I can see your code example."))))
- 394:
- 395:     ;; Tool use with code blocks in parameters
- 396:     (:name "tool-use-with-code-in-params"
- 397:            :markdown "## USER:
- 398:
- 399: Write some Python code
- 400:
- 401: ## TOOL USE:
- 402:
- 403: Name: write-file
- 404: ID: toolu_999
- 405:
- 406: ### filename
- 407:
- 408: <tool.toolu_999>
- 409: example.py
- 410: </tool.toolu_999>
- 411:
- 412: ### content
- 413:
- 414: <tool.toolu_999>
- 415: ```python
- 416: def main():
- 417:     # This ## USER: comment should not break parsing
- 418:     print(\"Hello world\")
- 419:
- 420: if __name__ == \"__main__\":
- 421:     main()
- 422: ```
- 423: </tool.toolu_999>
- 424:
- 425: ## TOOL RESULT:
- 426:
- 427: ID: toolu_999
- 428:
- 429: <tool.toolu_999>
- 430: File written successfully
- 431: </tool.toolu_999>
- 432:
- 433: ## ASSISTANT:
- 434:
- 435: I've written the Python file."
- 436:            :dialog (((role . "user") (content . "Write some Python code"))
- 437:                     ((role . "assistant") (content . (((type . "tool_use") (id . "toolu_999") (name . "write-file") (input . ((filename . "example.py") (content . "```python\ndef main():\n    # This ## USER: comment should not break parsing\n    print(\"Hello world\")\n\nif __name__ == \"__main__\":\n    main()\n```")))))))
- 438:                     ((role . "user") (content . (((type . "tool_result") (tool_use_id . "toolu_999") (content . "File written successfully")))))
- 439:                     ((role . "assistant") (content . "I've written the Python file."))))
- 440:
- 441:     ;; Nested code blocks (backticks inside code blocks)
- 442:     (:name "nested-code-blocks"
- 443:            :markdown "## USER:
- 444:
- 445: How do I use backticks in markdown?
- 446:
- 447: ## ASSISTANT:
- 448:
- 449: You can use triple backticks:
- 450:
- 451: ```
- 452: Here's how to show `inline code` in a code block:
- 453: Use single backticks around `your code`.
- 454: ```
- 455:
- 456: Does that help?"
- 457:            :dialog (((role . "user") (content . "How do I use backticks in markdown?"))
- 458:                     ((role . "assistant") (content . "You can use triple backticks:\n\n```\nHere's how to show `inline code` in a code block:\nUse single backticks around `your code`.\n```\n\nDoes that help?"))))
- 459:
- 460:     (:name "tool-use-complex-params"
- 461:            :markdown "## USER:
- 462:
- 463: Test complex parameters
- 464:
- 465: ## TOOL USE:
- 466:
- 467: Name: complex-tool
- 468: ID: toolu_complex
- 469:
- 470: ### string_param
- 471:
- 472: <tool.toolu_complex>
- 473: hello world
- 474: </tool.toolu_complex>
- 475:
- 476: ### number_param
- 477:
- 478: <tool.toolu_complex>
- 479: 42
- 480: </tool.toolu_complex>
- 481:
- 482: ### float_param
- 483:
- 484: <tool.toolu_complex>
- 485: 3.14
- 486: </tool.toolu_complex>
- 487:
- 488: ### bool_true
- 489:
- 490: <tool.toolu_complex>
- 491: true
- 492: </tool.toolu_complex>
- 493:
- 494: ### bool_false
- 495:
- 496: <tool.toolu_complex>
- 497: false
- 498: </tool.toolu_complex>
- 499:
- 500: ### list_param
- 501:
- 502: <tool.toolu_complex>
- 503: [\"item1\", \"item2\", 3]
- 504: </tool.toolu_complex>
- 505:
- 506: ### dict_param
- 507:
- 508: <tool.toolu_complex>
- 509: {\"key\": \"value\", \"count\": 5}
- 510: </tool.toolu_complex>
- 511:
- 512: ## TOOL RESULT:
- 513:
- 514: ID: toolu_complex
- 515:
- 516: <tool.toolu_complex>
- 517: Success
- 518: </tool.toolu_complex>
- 519:
- 520: ## ASSISTANT:
- 521:
- 522: Tool executed with complex parameters."
- 523:            :dialog (((role . "user") (content . "Test complex parameters"))
- 524:                     ((role . "assistant") (content . (((type . "tool_use") (id . "toolu_complex") (name . "complex-tool") (input . ((string_param . "hello world") (number_param . 42) (float_param . 3.14) (bool_true . t) (bool_false) (list_param . ["item1" "item2" 3]) (dict_param . ((key . "value") (count . 5)))))))))
- 525:                     ((role . "user") (content . (((type . "tool_result") (tool_use_id . "toolu_complex") (content . "Success")))))
- 526:                     ((role . "assistant") (content . "Tool executed with complex parameters."))))
- 527:
- 528:     (:name "tool-result-empty-lines"
- 529:            :markdown "## TOOL USE:
- 530:
- 531: Name: write-file
- 532: ID: tool_123
- 533:
- 534: ### content
- 535:
- 536: <tool.tool_123>
- 537: foo
- 538:
- 539:
- 540: bar
- 541: </tool.tool_123>
- 542:
- 543: ## TOOL RESULT:
- 544:
- 545: ID: tool_123
- 546:
- 547: <tool.tool_123>
- 548: foo
- 549:
- 550:
- 551: bar
- 552: </tool.tool_123>
- 553:
- 554: ## ASSISTANT:
- 555:
- 556: File written successfully."
- 557:            :dialog (((role . "assistant") (content . (((type . "tool_use") (id . "tool_123") (name . "write-file") (input . ((content . "foo\n\n\nbar")))))))
- 558:                     ((role . "user") (content . (((type . "tool_result") (tool_use_id . "tool_123") (content . "foo\n\n\nbar")))))
- 559:                     ((role . "assistant") (content . "File written successfully."))))
- 560:
- 561:     (:name "html-comments"
- 562:            :markdown "## USER:
- 563:
- 564: Here's some code:
- 565:
- 566: <!-- comment -->
- 567: <!-- multi
- 568: line
- 569:
- 570: comment -->
- 571:
- 572: ```
- 573: <!-- comment should be included -->
- 574: ## ASSISTANT:
- 575: This should not be parsed as a section header
- 576: ## TOOL USE:
- 577: Neither should this
- 578: ```
- 579:
- 580: What do you think?"
- 581:            :dialog (((role . "user") (content . "Here's some code:\n\n\n\n\n```\n<!-- comment should be included -->\n## ASSISTANT:\nThis should not be parsed as a section header\n## TOOL USE:\nNeither should this\n```\n\nWhat do you think?"))))
- 582:     ))
- 583:
- 584: ;; Helper functions for tests
- 585: (defun greger-parser-test--dialog-equal (expected actual)
- 586:   "Compare two dialog structures, handling content blocks."
- 587:   (and (listp expected) (listp actual)
- 588:        (= (length expected) (length actual))
- 589:        (cl-every
- 590:         (lambda (pair)
- 591:           (let ((exp-msg (car pair))
- 592:                 (act-msg (cdr pair)))
- 593:             (and (string= (alist-get 'role exp-msg) (alist-get 'role act-msg))
- 594:                  (greger-parser-test--content-equal
- 595:                   (alist-get 'content exp-msg)
- 596:                   (alist-get 'content act-msg)))))
- 597:         (cl-mapcar #'cons expected actual))))
- 598:
- 599: (defun greger-parser-test--content-equal (expected actual)
- 600:   "Compare message content, handling both strings and content block lists."
- 601:   (cond
- 602:    ;; Both are strings - direct comparison
- 603:    ((and (stringp expected) (stringp actual))
- 604:     (string= expected actual))
- 605:
- 606:    ;; Both are lists (content blocks) - compare structure
- 607:    ((and (listp expected) (listp actual))
- 608:     (greger-parser-test--content-blocks-equal expected actual))
- 609:
- 610:    ;; Fallback to string comparison
- 611:    (t (string= (format "%s" expected) (format "%s" actual)))))
- 612:
- 613: (defun greger-parser-test--content-blocks-equal (expected actual)
- 614:   "Compare two content block lists."
- 615:   (and (= (length expected) (length actual))
- 616:        (cl-every
- 617:         (lambda (pair)
- 618:           (greger-parser-test--content-block-equal (car pair) (cdr pair)))
- 619:         (cl-mapcar #'cons expected actual))))
- 620:
- 621: (defun greger-parser-test--content-block-equal (expected actual)
- 622:   "Compare two content blocks."
- 623:   (and (string= (alist-get 'type expected) (alist-get 'type actual))
- 624:        (let ((type (alist-get 'type expected)))
- 625:          (cond
- 626:           ((string= type "text")
- 627:            (string= (alist-get 'text expected) (alist-get 'text actual)))
- 628:           ((string= type "thinking")
- 629:            (string= (alist-get 'thinking expected) (alist-get 'thinking actual)))
- 630:           ((string= type "tool_use")
- 631:            (and (string= (alist-get 'id expected) (alist-get 'id actual))
- 632:                 (string= (alist-get 'name expected) (alist-get 'name actual))
- 633:                 (greger-parser-test--input-equal (alist-get 'input expected) (alist-get 'input actual))))
- 634:           ((string= type "tool_result")
- 635:            (and (string= (alist-get 'tool_use_id expected) (alist-get 'tool_use_id actual))
- 636:                 (string= (alist-get 'content expected) (alist-get 'content actual))))
- 637:           (t t)))))
- 638:
- 639: (defun greger-parser-test--input-equal (expected actual)
- 640:   "Compare tool input parameters."
- 641:   (and (= (length expected) (length actual))
- 642:        (cl-every
- 643:         (lambda (exp-param)
- 644:           (let ((key (car exp-param))
- 645:                 (exp-val (cdr exp-param)))
- 646:             (let ((act-val (alist-get key actual)))
- 647:               (equal exp-val act-val))))
- 648:         expected)))
- 649:
- 650: (defun greger-parser-test--normalize-whitespace (str)
- 651:   "Normalize whitespace in string for comparison."
- 652:   (string-trim (replace-regexp-in-string "[ \t\n\r]+" " " str)))
- 653:
- 654: ;; Main test suite
- 655: (ert-deftest greger-parser-test-markdown-to-dialog ()
- 656:   "Test converting markdown to dialog format."
- 657:   (dolist (test-case greger-parser-test-cases)
- 658:     (let ((name (plist-get test-case :name))
- 659:           (markdown (plist-get test-case :markdown))
- 660:           (expected-dialog (plist-get test-case :dialog)))
- 661:       (message "Testing markdown-to-dialog for: %s" name)
- 662:       (let ((actual-dialog (greger-parser-parse-dialog-messages-only markdown)))
- 663:         (should (greger-parser-test--dialog-equal expected-dialog actual-dialog))))))
- 664:
- 665: (ert-deftest greger-parser-test-roundtrip ()
- 666:   "Test that markdown -> dialog -> markdown preserves structure."
- 667:   (dolist (test-case greger-parser-test-cases)
- 668:     (let ((name (plist-get test-case :name))
- 669:           (original-markdown (plist-get test-case :markdown)))
- 670:       (message "Testing roundtrip for: %s" name)
- 671:       (let* ((dialog (greger-parser-parse-dialog-messages-only original-markdown))
- 672:              (roundtrip-markdown (greger-parser-dialog-to-markdown dialog))
- 673:              (roundtrip-dialog (greger-parser-parse-dialog-messages-only roundtrip-markdown)))
- 674:         ;; The dialog should be structurally equivalent after round-trip
- 675:         (should (= (length dialog) (length roundtrip-dialog)))
- 676:         (should (greger-parser-test--dialog-equal dialog roundtrip-dialog))))))
- 677:
- 678: (ert-deftest greger-parser-test-tool-use-parsing ()
- 679:   "Test specific tool use parsing functionality."
- 680:   (let ((tool-use-markdown "## TOOL USE:
- 681:
- 682: Name: read-file
- 683: ID: toolu_123
- 684:
- 685: ### path
- 686:
- 687: <tool.toolu_123>
- 688: hello.txt
- 689: </tool.toolu_123>
- 690:
- 691: ### include_line_numbers
- 692:
- 693: <tool.toolu_123>
- 694: true
- 695: </tool.toolu_123>
- 696: "))
- 697:     (let ((parsed (greger-parser-parse-dialog-messages-only tool-use-markdown)))
- 698:       (should (= 1 (length parsed)))
- 699:       (let ((assistant-msg (car parsed)))
- 700:         (should (string= "assistant" (alist-get 'role assistant-msg)))
- 701:         (let* ((content-blocks (alist-get 'content assistant-msg))
- 702:                (tool-use-block (car content-blocks)))
- 703:           (should (string= "tool_use" (alist-get 'type tool-use-block)))
- 704:           (should (string= "toolu_123" (alist-get 'id tool-use-block)))
- 705:           (should (string= "read-file" (alist-get 'name tool-use-block)))
- 706:           (let ((input (alist-get 'input tool-use-block)))
- 707:             (should (string= "hello.txt" (alist-get 'path input)))
- 708:             (should (eq t (alist-get 'include_line_numbers input)))))))))
- 709:
- 710: (ert-deftest greger-parser-test-tool-result-parsing ()
- 711:   "Test specific tool result parsing functionality."
- 712:   (let ((tool-result-markdown "## TOOL RESULT:
- 713:
- 714: ID: toolu_123
- 715:
- 716: <tool.toolu_123>
- 717: File contents here
- 718: with multiple lines
- 719: </tool.toolu_123>"))
- 720:     (let ((parsed (greger-parser-parse-dialog-messages-only tool-result-markdown)))
- 721:       (should (= 1 (length parsed)))
- 722:       (let ((user-msg (car parsed)))
- 723:         (should (string= "user" (alist-get 'role user-msg)))
- 724:         (let* ((content-blocks (alist-get 'content user-msg))
- 725:                (tool-result-block (car content-blocks)))
- 726:           (should (string= "tool_result" (alist-get 'type tool-result-block)))
- 727:           (should (string= "toolu_123" (alist-get 'tool_use_id tool-result-block)))
- 728:           (should (string= "File contents here
- 729: with multiple lines"
- 730:                           (alist-get 'content tool-result-block))))))))
- 731:
- 732: (ert-deftest greger-parser-test-thinking-parsing ()
- 733:   "Test thinking section parsing."
- 734:   (let ((thinking-markdown "## THINKING:
- 735:
- 736: I need to think about this carefully.
- 737: This is a complex problem."))
- 738:     (let ((parsed (greger-parser-parse-dialog-messages-only thinking-markdown)))
- 739:       (should (= 1 (length parsed)))
- 740:       (let ((assistant-msg (car parsed)))
- 741:         (should (string= "assistant" (alist-get 'role assistant-msg)))
- 742:         (let* ((content-blocks (alist-get 'content assistant-msg))
- 743:                (thinking-block (car content-blocks)))
- 744:           (should (string= "thinking" (alist-get 'type thinking-block)))
- 745:           (should (string= "I need to think about this carefully.
- 746: This is a complex problem."
- 747:                           (alist-get 'thinking thinking-block))))))))
- 748:
- 749: (ert-deftest greger-parser-test-error-handling ()
- 750:   "Test parser error handling for malformed input."
- 751:   ;; Test that malformed input returns empty result instead of error
- 752:   (should (condition-case err
- 753:               (progn (greger-parser-parse-dialog-messages-only "## TOOL USE:\n\nMalformed") t)
- 754:             (error nil)))
- 755:   (should (condition-case err
- 756:               (progn (greger-parser-parse-dialog-messages-only "## TOOL RESULT:\n\nMalformed") t)
- 757:             (error nil))))
- 758:
- 759: (ert-deftest greger-parser-test-edge-cases ()
- 760:   "Test edge cases like empty content, whitespace handling."
- 761:   ;; Empty content
- 762:   (should (equal '() (greger-parser-parse-dialog-messages-only "")))
- 763:   (should (equal '() (greger-parser-parse-dialog-messages-only "\n\n  ")))
- 764:
- 765:   ;; Only whitespace in sections - should return empty list
- 766:   (should (equal '() (greger-parser-parse-dialog-messages-only "## USER:\n\n\n\n")))
- 767:
- 768:   ;; Multiple consecutive newlines
- 769:   (let ((result (greger-parser-parse-dialog-messages-only "## USER:\n\n\n\nHello\n\n\n\n## ASSISTANT:\n\n\n\nHi")))
- 770:     (should (= 2 (length result)))
- 771:     (should (string= "Hello" (alist-get 'content (car result))))
- 772:     (should (string= "Hi" (alist-get 'content (cadr result))))))
- 773:
- 774: (ert-deftest greger-parser-test-performance ()
- 775:   "Test parser performance with large dialogs."
- 776:   (let ((large-markdown
- 777:          (mapconcat
- 778:           (lambda (i)
- 779:             (format "## USER:\n\nMessage %d\n\n## ASSISTANT:\n\nResponse %d" i i))
- 780:           (number-sequence 1 100)
- 781:           "\n\n")))
- 782:     (let ((start-time (current-time)))
- 783:       (greger-parser-parse-dialog-messages-only large-markdown)
- 784:       (let ((elapsed (float-time (time-subtract (current-time) start-time))))
- 785:         ;; Should parse 100 message pairs in under 1 second
- 786:         (should (< elapsed 1.0))))))
- 787:
- 788: (ert-deftest greger-parser-test-complex-mixed-content ()
- 789:   "Test parsing of complex mixed content with thinking, tools, and text."
- 790:   (let ((complex-markdown "## USER:
- 791:
- 792: Help me with a file
- 793:
- 794: ## THINKING:
- 795:
- 796: The user wants help with a file. I should ask what they need.
- 797:
- 798: ## ASSISTANT:
- 799:
- 800: What kind of help do you need with the file?
- 801:
- 802: ## TOOL USE:
- 803:
- 804: Name: list-directory
- 805: ID: toolu_abc
- 806:
- 807: ### path
- 808:
- 809: <tool.toolu_abc>
- 810: .
- 811: </tool.toolu_abc>"))
- 812:     (let ((parsed (greger-parser-parse-dialog-messages-only complex-markdown)))
- 813:       (should (= 2 (length parsed)))
- 814:       ;; First message should be user
- 815:       (should (string= "user" (alist-get 'role (car parsed))))
- 816:       ;; Second message should be assistant with mixed content
- 817:       (let ((assistant-msg (cadr parsed)))
- 818:         (should (string= "assistant" (alist-get 'role assistant-msg)))
- 819:         (let ((content-blocks (alist-get 'content assistant-msg)))
- 820:           (should (= 3 (length content-blocks)))
- 821:           ;; Should have thinking, text, and tool_use blocks
- 822:           (should (string= "thinking" (alist-get 'type (car content-blocks))))
- 823:           (should (string= "text" (alist-get 'type (cadr content-blocks))))
- 824:           (should (string= "tool_use" (alist-get 'type (caddr content-blocks)))))))))
- 825:
- 826: (ert-deftest greger-parser-test-markdown-generation ()
- 827:   "Test that generated markdown follows expected format."
- 828:   (let ((dialog '(((role . "user") (content . "Test message"))
- 829:                   ((role . "assistant") (content . (((type . "thinking") (thinking . "Let me think")) ((type . "text") (text . "Here's my response")) ((type . "tool_use") (id . "tool_123") (name . "test-tool") (input . ((param . "value")))))))
- 830:                   ((role . "user") (content . (((type . "tool_result") (tool_use_id . "tool_123") (content . "Tool output")))))
- 831:                   ((role . "assistant") (content . "Final response")))))
- 832:     (let ((markdown (greger-parser-dialog-to-markdown dialog)))
- 833:       ;; Should contain all expected sections
- 834:       (should (string-match-p "## USER:" markdown))
- 835:       (should (string-match-p "## THINKING:" markdown))
- 836:       (should (string-match-p "## ASSISTANT:" markdown))
- 837:       (should (string-match-p "## TOOL USE:" markdown))
- 838:       (should (string-match-p "## TOOL RESULT:" markdown))
- 839:       (should (string-match-p "Name: test-tool" markdown))
- 840:       (should (string-match-p "ID: tool_123" markdown))
- 841:       (should (string-match-p "### param" markdown))
- 842:       (should (string-match-p "value" markdown)))))
- 843:
- 844: ;; Test untagged content at the beginning
- 845: (ert-deftest greger-parser-test-untagged-content ()
- 846:   "Test that untagged content at the beginning is treated as user message."
- 847:   (let ((markdown "Hello, this is untagged content
- 848:
- 849: ## ASSISTANT:
- 850:
- 851: I understand you have untagged content."))
- 852:     (let ((parsed (greger-parser-parse-dialog-messages-only markdown)))
- 853:       (should (= 2 (length parsed)))
- 854:       (should (string= "user" (alist-get 'role (car parsed))))
- 855:       (should (string= "Hello, this is untagged content" (alist-get 'content (car parsed))))
- 856:       (should (string= "assistant" (alist-get 'role (cadr parsed))))
- 857:       (should (string= "I understand you have untagged content." (alist-get 'content (cadr parsed)))))))
- 858:
- 859: ;; Test that we handle tool use parameters correctly with various whitespace
- 860: (ert-deftest greger-parser-test-tool-use-whitespace ()
- 861:   "Test tool use parsing with various whitespace patterns."
- 862:   (let ((markdown "## TOOL USE:
- 863:
- 864: Name: test-tool
- 865: ID: tool_123
- 866:
- 867: ### param1
- 868:
- 869: <tool.tool_123>
- 870: value1
- 871: </tool.tool_123>
- 872:
- 873: ### param2
- 874:
- 875: <tool.tool_123>
- 876: value2 with
- 877: multiple
- 878:
- 879:
- 880:   lines
- 881: </tool.tool_123>
- 882:
- 883: ### param3
- 884:
- 885: <tool.tool_123>
- 886: value3
- 887: </tool.tool_123>
- 888: "))
- 889:     (let ((parsed (greger-parser-parse-dialog-messages-only markdown)))
- 890:       (should (= 1 (length parsed)))
- 891:       (let* ((assistant-msg (car parsed))
- 892:              (content-blocks (alist-get 'content assistant-msg))
- 893:              (tool-block (car content-blocks))
- 894:              (input (alist-get 'input tool-block)))
- 895:         (should (= 3 (length input)))
- 896:         (should (string= "value1" (alist-get 'param1 input)))
- 897:         (should (string= "value2 with\nmultiple\n\n\n  lines" (alist-get 'param2 input)))
- 898:         (should (string= "value3" (alist-get 'param3 input)))))))
- 899:
- 900: (ert-deftest greger-parser-test-code-block-parsing ()
- 901:   "Test that section headers inside code blocks are not parsed."
- 902:   (let ((markdown "## USER:
- 903:
- 904: Here's code with fake headers:
- 905:
- 906: ```
- 907: ## ASSISTANT:
- 908: This looks like a header but isn't
- 909: ## TOOL USE:
- 910: Same with this
- 911: ```
- 912:
- 913: Real content continues.
- 914:
- 915: ## ASSISTANT:
- 916:
- 917: I see your code."))
- 918:     (let ((parsed (greger-parser-parse-dialog-messages-only markdown)))
- 919:       (should (= 2 (length parsed)))
- 920:       ;; First message should contain the entire user content including code block
- 921:       (let ((user-content (alist-get 'content (car parsed))))
- 922:         (should (string-match-p "## ASSISTANT:" user-content))
- 923:         (should (string-match-p "## TOOL USE:" user-content))
- 924:         (should (string-match-p "Real content continues" user-content)))
- 925:       ;; Second message should be the real assistant response
- 926:       (should (string= "assistant" (alist-get 'role (cadr parsed))))
- 927:       (should (string= "I see your code." (alist-get 'content (cadr parsed)))))))
- 928:
- 929: (ert-deftest greger-parser-test-inline-code-blocks ()
- 930:   "Test that section headers inside inline code are not parsed."
- 931:   (let ((markdown "## USER:
- 932:
- 933: Use ``## ASSISTANT: response`` to format.
- 934:
- 935: ## ASSISTANT:
- 936:
- 937: Got it!"))
- 938:     (let ((parsed (greger-parser-parse-dialog-messages-only markdown)))
- 939:       (should (= 2 (length parsed)))
- 940:       (should (string-match-p "## ASSISTANT: response" (alist-get 'content (car parsed))))
- 941:       (should (string= "Got it!" (alist-get 'content (cadr parsed)))))))
- 942:
- 943: (ert-deftest greger-parser-test-code-blocks-in-tool-params ()
- 944:   "Test that code blocks in tool parameters are preserved correctly."
- 945:   (let ((markdown "## TOOL USE:
- 946:
- 947: Name: write-file
- 948: ID: tool_123
- 949:
- 950: ### content
- 951:
- 952: <tool.tool_123>
- 953: ```python
- 954: # This ## USER: comment should be preserved
- 955: print(\"## ASSISTANT: also preserved\")
- 956: ```
- 957: </tool.tool_123>
- 958: "))
- 959:     (let ((parsed (greger-parser-parse-dialog-messages-only markdown)))
- 960:       (should (= 1 (length parsed)))
- 961:       (let* ((assistant-msg (car parsed))
- 962:              (content-blocks (alist-get 'content assistant-msg))
- 963:              (tool-block (car content-blocks))
- 964:              (input (alist-get 'input tool-block))
- 965:              (content-param (alist-get 'content input)))
- 966:         (should (string-match-p "## USER:" content-param))
- 967:         (should (string-match-p "## ASSISTANT:" content-param))
- 968:         (should (string-match-p "```python" content-param))))))
- 969:
- 970: ;; Include tag tests
- 971: (ert-deftest greger-parser-test-include-tag-basic ()
- 972:   "Test basic include tag functionality."
- 973:   (let ((test-file (make-temp-file "greger-test-include" nil ".txt" "Hello from included file!"))
- 974:         (markdown nil)
- 975:         (expected nil))
- 976:     (unwind-protect
- 977:         (progn
- 978:           (setq markdown (format "## USER:
- 979:
- 980: Here's the content:
- 981:
- 982: <include>%s</include>
- 983:
- 984: What do you think?" test-file))
- 985:
- 986:           (setq expected "## USER:
- 987:
- 988: Here's the content:
- 989:
- 990: Hello from included file!
- 991:
- 992: What do you think?")
- 993:
- 994:           (let ((parsed (greger-parser-parse-dialog-messages-only markdown)))
- 995:             (should (= 1 (length parsed)))
- 996:             (let ((generated-markdown (greger-parser-dialog-to-markdown parsed)))
- 997:               (should (string= expected generated-markdown)))))
- 998:       (when (file-exists-p test-file)
- 999:         (delete-file test-file)))))
-1000:
-1001: (ert-deftest greger-parser-test-include-tag-with-code ()
-1002:   "Test include tag with code attribute."
-1003:   (let ((test-file (make-temp-file "greger-test-include" nil ".py" "def hello():\n    print('Hello, world!')"))
-1004:         (markdown nil)
-1005:         (expected nil))
-1006:     (unwind-protect
-1007:         (progn
-1008:           (setq markdown (format "## USER:
-1009:
-1010: Here's the Python code:
-1011:
-1012: <include code>%s</include>
-1013:
-1014: Review this code." test-file))
-1015:
-1016:           (setq expected (format "## USER:
-1017:
-1018: Here's the Python code:
-1019:
-1020: %s:
-1021: ```
-1022: def hello():
-1023:     print('Hello, world!')
-1024: ```
-1025:
-1026: Review this code." test-file))
-1027:
-1028:           (let ((parsed (greger-parser-parse-dialog-messages-only markdown)))
-1029:             (should (= 1 (length parsed)))
-1030:             (let ((generated-markdown (greger-parser-dialog-to-markdown parsed)))
-1031:               (should (string= expected generated-markdown)))))
-1032:       (when (file-exists-p test-file)
-1033:         (delete-file test-file)))))
-1034:
-1035: (ert-deftest greger-parser-test-include-tag-nonexistent-file ()
-1036:   "Test include tag with nonexistent file."
-1037:   (let ((markdown "## USER:
-1038:
-1039: Try to include: <include>/nonexistent/file.txt</include>
-1040:
-1041: This should handle errors gracefully.")
-1042:         (expected "## USER:
-1043:
-1044: Try to include: [Error reading file: /nonexistent/file.txt]
-1045:
-1046: This should handle errors gracefully."))
-1047:     (let ((parsed (greger-parser-parse-dialog-messages-only markdown)))
-1048:       (should (= 1 (length parsed)))
-1049:       (let ((generated-markdown (greger-parser-dialog-to-markdown parsed)))
-1050:         (should (string= expected generated-markdown))))))
-1051:
-1052: (ert-deftest greger-parser-test-include-tag-multiline-content ()
-1053:   "Test include tag with multiline file content."
-1054:   (let ((test-file (make-temp-file "greger-test-include" nil ".txt" "Line 1\nLine 2\n\nLine 4 after empty line"))
-1055:         (markdown nil)
-1056:         (expected nil))
-1057:     (unwind-protect
-1058:         (progn
-1059:           (setq markdown (format "## USER:
-1060:
-1061: Multiline content:
-1062:
-1063: <include>%s</include>
-1064:
-1065: End of message." test-file))
-1066:
-1067:           (setq expected "## USER:
-1068:
-1069: Multiline content:
-1070:
-1071: Line 1
-1072: Line 2
-1073:
-1074: Line 4 after empty line
-1075:
-1076: End of message.")
-1077:
-1078:           (let ((parsed (greger-parser-parse-dialog-messages-only markdown)))
-1079:             (should (= 1 (length parsed)))
-1080:             (let ((generated-markdown (greger-parser-dialog-to-markdown parsed)))
-1081:               (should (string= expected generated-markdown)))))
-1082:       (when (file-exists-p test-file)
-1083:         (delete-file test-file)))))
-1084:
-1085:
-1086: (ert-deftest greger-parser-test-include-tag-recursive ()
-1087:   "Test include tag with file that contains another include tag."
-1088:   (let ((inner-file (make-temp-file "greger-test-inner" nil ".txt" "Inner file content"))
-1089:         (outer-file nil)
-1090:         (markdown nil)
-1091:         (expected nil))
-1092:     (unwind-protect
-1093:         (progn
-1094:           (setq outer-file (make-temp-file "greger-test-outer" nil ".txt"
-1095:                                           (format "Before include\n<include>%s</include>\nAfter include" inner-file)))
-1096:           (setq markdown (format "## USER:
-1097:
-1098: Recursive include:
-1099:
-1100: <include>%s</include>
-1101:
-1102: Done." outer-file))
-1103:
-1104:           (setq expected "## USER:
-1105:
-1106: Recursive include:
-1107:
-1108: Before include
-1109: Inner file content
-1110: After include
-1111:
-1112: Done.")
-1113:
-1114:           (let ((parsed (greger-parser-parse-dialog-messages-only markdown)))
-1115:             (should (= 1 (length parsed)))
-1116:             (let ((generated-markdown (greger-parser-dialog-to-markdown parsed)))
-1117:               (should (string= expected generated-markdown)))))
-1118:       (when (and inner-file (file-exists-p inner-file))
-1119:         (delete-file inner-file))
-1120:       (when (and outer-file (file-exists-p outer-file))
-1121:         (delete-file outer-file)))))
-1122:
-1123: (ert-deftest greger-parser-test-include-tag-in-assistant-section ()
-1124:   "Test include tag in assistant section."
-1125:   (let ((test-file (make-temp-file "greger-test-include" nil ".txt" "Assistant included content"))
-1126:         (markdown nil)
-1127:         (expected nil))
-1128:     (unwind-protect
-1129:         (progn
-1130:           (setq markdown (format "## USER:
-1131:
-1132: Show me the file.
-1133:
-1134: ## ASSISTANT:
-1135:
-1136: Here's the content:
-1137:
-1138: <include>%s</include>
-1139:
-1140: Hope this helps!" test-file))
-1141:
-1142:           (setq expected "## USER:
-1143:
-1144: Show me the file.
-1145:
-1146: ## ASSISTANT:
-1147:
-1148: Here's the content:
-1149:
-1150: Assistant included content
-1151:
-1152: Hope this helps!")
-1153:
-1154:           (let ((parsed (greger-parser-parse-dialog-messages-only markdown)))
-1155:             (should (= 2 (length parsed)))
-1156:             (let ((generated-markdown (greger-parser-dialog-to-markdown parsed)))
-1157:               (should (string= expected generated-markdown)))))
-1158:       (when (file-exists-p test-file)
-1159:         (delete-file test-file)))))
-1160:
-1161: (ert-deftest greger-parser-test-include-tag-with-code-in-code-block ()
-1162:   "Test include tag with code attribute where content has code blocks."
-1163:   (let ((test-file (make-temp-file "greger-test-include" nil ".py" "def example():\n    pass\n"))
-1164:         (markdown nil)
-1165:         (expected nil))
-1166:     (unwind-protect
-1167:         (progn
-1168:           (setq markdown (format "## USER:
-1169:
-1170: <include code>%s</include>" test-file))
-1171:
-1172:           (setq expected (format "## USER:
-1173:
-1174: %s:
-1175: ```
-1176: def example():
-1177:     pass
-1178: ```" test-file))
-1179:
-1180:           (let ((parsed (greger-parser-parse-dialog-messages-only markdown)))
-1181:             (should (= 1 (length parsed)))
-1182:             (let ((generated-markdown (greger-parser-dialog-to-markdown parsed)))
-1183:               (should (string= expected generated-markdown)))))
-1184:       (when (file-exists-p test-file)
-1185:         (delete-file test-file)))))
-1186:
-1187: ;; Tests to ensure include tags are NOT processed in code blocks or tool content
-1188: (ert-deftest greger-parser-test-include-tag-not-processed-in-code-blocks ()
-1189:   "Test that include tags inside code blocks are not processed."
-1190:   (let ((test-file (make-temp-file "greger-test-include" nil ".txt" "This should not be included"))
-1191:         (markdown nil)
-1192:         (expected nil))
-1193:     (unwind-protect
-1194:         (progn
-1195:           (setq markdown (format "## USER:
-1196:
-1197: Here's some code with an include tag:
-1198:
-1199: ```
-1200: <include>%s</include>
-1201: ```
-1202:
-1203: The include should not be processed." test-file))
-1204:
-1205:           (setq expected (format "## USER:
-1206:
-1207: Here's some code with an include tag:
-1208:
-1209: ```
-1210: <include>%s</include>
-1211: ```
-1212:
-1213: The include should not be processed." test-file))
-1214:
-1215:           (let ((parsed (greger-parser-parse-dialog-messages-only markdown)))
-1216:             (should (= 1 (length parsed)))
-1217:             (let ((generated-markdown (greger-parser-dialog-to-markdown parsed)))
-1218:               (should (string= expected generated-markdown)))))
-1219:       (when (file-exists-p test-file)
-1220:         (delete-file test-file)))))
-1221:
-1222: (ert-deftest greger-parser-test-include-tag-not-processed-in-inline-code ()
-1223:   "Test that include tags inside inline code are not processed."
-1224:   (let ((test-file (make-temp-file "greger-test-include" nil ".txt" "This should not be included"))
-1225:         (markdown nil)
-1226:         (expected nil))
-1227:     (unwind-protect
-1228:         (progn
-1229:           (setq markdown (format "## USER:
-1230:
-1231: Use `<include>%s</include>` to include files.
-1232:
-1233: The include in backticks should not be processed." test-file))
-1234:
-1235:           (setq expected (format "## USER:
-1236:
-1237: Use `<include>%s</include>` to include files.
-1238:
-1239: The include in backticks should not be processed." test-file))
-1240:
-1241:           (let ((parsed (greger-parser-parse-dialog-messages-only markdown)))
-1242:             (should (= 1 (length parsed)))
-1243:             (let ((generated-markdown (greger-parser-dialog-to-markdown parsed)))
-1244:               (should (string= expected generated-markdown)))))
-1245:       (when (file-exists-p test-file)
-1246:         (delete-file test-file)))))
-1247:
-1248: (ert-deftest greger-parser-test-include-tag-not-processed-in-tool-params ()
-1249:   "Test that include tags inside tool parameters are not processed."
-1250:   (let ((test-file (make-temp-file "greger-test-include" nil ".txt" "This should not be included"))
-1251:         (markdown nil)
-1252:         (expected nil))
-1253:     (unwind-protect
-1254:         (progn
-1255:           (setq markdown (format "## TOOL USE:
-1256:
-1257: Name: write-file
-1258: ID: tool_123
-1259:
-1260: ### content
-1261:
-1262: <tool.tool_123>
-1263: <include>%s</include>
-1264: </tool.tool_123>" test-file))
-1265:
-1266:           (setq expected (format "## TOOL USE:
-1267:
-1268: Name: write-file
-1269: ID: tool_123
-1270:
-1271: ### content
-1272:
-1273: <tool.tool_123>
-1274: <include>%s</include>
-1275: </tool.tool_123>" test-file))
-1276:
-1277:           (let ((parsed (greger-parser-parse-dialog-messages-only markdown)))
-1278:             (should (= 1 (length parsed)))
-1279:             (let ((generated-markdown (greger-parser-dialog-to-markdown parsed)))
-1280:               (should (string= expected generated-markdown)))))
-1281:       (when (file-exists-p test-file)
-1282:         (delete-file test-file)))))
-1283:
-1284: (ert-deftest greger-parser-test-include-tag-web-url ()
-1285:   "Test include tag with web URL functionality."
-1286:   (let ((markdown "## USER:
-1287:
-1288: Check this out:
-1289:
-1290: <include>https://pub-b88c9764a4fc46baa90b9e8e1544f59e.r2.dev/hello.html</include>
-1291:
-1292: What do you think?")
-1293:         (expected "## USER:
-1294:
-1295: Check this out:
-1296:
-1297: Hello world!
-1298:
-1299: What do you think?"))
-1300:     ;; This test just verifies that URL handling doesn't crash
-1301:     ;; The exact content will vary based on the response
-1302:     (let ((parsed (greger-parser-parse-dialog-messages-only markdown)))
-1303:       (should (= 1 (length parsed)))
-1304:       (let ((generated-markdown (greger-parser-dialog-to-markdown parsed)))
-1305:         (should (string= expected generated-markdown))))))
-1306:
-1307: (ert-deftest greger-parser-test-include-tag-web-url-with-code ()
-1308:   "Test include tag with web URL and code attribute."
-1309:   (let ((markdown "## USER:
-1310:
-1311: <include code>https://pub-b88c9764a4fc46baa90b9e8e1544f59e.r2.dev/hello.html</include>
-1312:
-1313: Pretty cool!")
-1314:         (expected "## USER:
-1315:
-1316: https://pub-b88c9764a4fc46baa90b9e8e1544f59e.r2.dev/hello.html:
-1317: ```
-1318: Hello world!
-1319: ```
-1320:
-1321: Pretty cool!"))
-1322:     ;; This test verifies URL handling with code formatting
-1323:     (let ((parsed (greger-parser-parse-dialog-messages-only markdown)))
-1324:       (should (= 1 (length parsed)))
-1325:       (let ((generated-markdown (greger-parser-dialog-to-markdown parsed)))
-1326:         (should (string= expected generated-markdown))))))
-1327:
-1328: (ert-deftest greger-parser-test-include-tag-invalid-url ()
-1329:   "Test include tag with invalid web URL."
-1330:   (let ((markdown "## USER:
-1331:
-1332: This should fail:
-1333:
-1334: <include>https://invalid-url-that-does-not-exist-12345.com</include>
-1335:
-1336: Error handling test")
-1337:         (expected "## USER:
-1338:
-1339: This should fail:
-1340:
-1341: [Error reading URL: https://invalid-url-that-does-not-exist-12345.com]
-1342:
-1343: Error handling test"))
-1344:     (let ((parsed (greger-parser-parse-dialog-messages-only markdown)))
-1345:       (should (= 1 (length parsed)))
-1346:       (let ((generated-markdown (greger-parser-dialog-to-markdown parsed)))
-1347:         (should (string= expected generated-markdown))))))
-1348:
-1349: ;; Tests for safe-shell-commands metadata
-1350: (ert-deftest greger-parser-test-safe-shell-commands-basic ()
-1351:   "Test basic safe-shell-commands parsing."
-1352:   (let ((markdown "## SYSTEM:
-1353:
-1354: <safe-shell-commands>
-1355: ls -la
-1356: pwd
-1357: echo hello
-1358: </safe-shell-commands>")
-1359:         (expected-metadata '(:safe-shell-commands ("ls -la" "pwd" "echo hello"))))
-1360:     (let ((result (greger-parser-parse-dialog markdown)))
-1361:       (should (equal '() (plist-get result :messages)))
-1362:       (should (equal expected-metadata (plist-get result :metadata))))))
-1363:
-1364: (ert-deftest greger-parser-test-safe-shell-commands-with-system-content ()
-1365:   "Test safe-shell-commands with other system content."
-1366:   (let ((markdown "## SYSTEM:
-1367:
-1368: You are a helpful assistant.
-1369:
-1370: <safe-shell-commands>
-1371: ls
-1372: pwd
-1373: </safe-shell-commands>
-1374:
-1375: Please be careful."))
-1376:     (let ((result (greger-parser-parse-dialog markdown)))
-1377:       ;; Should have a system message since there's other content
-1378:       (should (= 1 (length (plist-get result :messages))))
-1379:       (should (string= "system" (alist-get 'role (car (plist-get result :messages)))))
-1380:       ;; Should also have metadata since safe-shell-commands can coexist with content
-1381:       (should (equal '(:safe-shell-commands ("ls" "pwd")) (plist-get result :metadata)))
-1382:       ;; System message should contain the text content but not the safe-shell-commands
-1383:       (let ((system-content (alist-get 'content (car (plist-get result :messages)))))
-1384:         (should (string-match-p "You are a helpful assistant" system-content))
-1385:         (should (string-match-p "Please be careful" system-content))
-1386:         (should-not (string-match-p "safe-shell-commands" system-content))))))
-1387:
-1388: (ert-deftest greger-parser-test-safe-shell-commands-only-once ()
-1389:   "Test that only one safe-shell-commands block is allowed."
-1390:   (let ((markdown "## SYSTEM:
-1391:
-1392: <safe-shell-commands>
-1393: ls
-1394: pwd
-1395: </safe-shell-commands>
-1396:
-1397: <safe-shell-commands>
-1398: echo hello
-1399: </safe-shell-commands>"))
-1400:     (let ((result (greger-parser-parse-dialog markdown)))
-1401:       ;; Should extract the first one found
-1402:       (should (equal '(:safe-shell-commands ("ls" "pwd")) (plist-get result :metadata))))))
-1403:
-1404: (ert-deftest greger-parser-test-safe-shell-commands-empty-lines ()
-1405:   "Test safe-shell-commands with empty lines and whitespace."
-1406:   (let ((markdown "## SYSTEM:
-1407:
-1408: <safe-shell-commands>
-1409:
-1410: ls -la
-1411:
-1412: pwd
-1413:
-1414: echo hello
-1415:
-1416: </safe-shell-commands>"))
-1417:     (let ((result (greger-parser-parse-dialog markdown)))
-1418:       (should (equal '(:safe-shell-commands ("ls -la" "pwd" "echo hello"))
-1419:                      (plist-get result :metadata))))))
-1420:
-1421: (ert-deftest greger-parser-test-safe-shell-commands-not-in-system ()
-1422:   "Test that safe-shell-commands outside SYSTEM section are ignored."
-1423:   (let ((markdown "## USER:
-1424:
-1425: <safe-shell-commands>
-1426: ls -la
-1427: </safe-shell-commands>
-1428:
-1429: What files are here?"))
-1430:     (let ((result (greger-parser-parse-dialog markdown)))
-1431:       ;; Should have no metadata
-1432:       (should (equal '() (plist-get result :metadata)))
-1433:       ;; Should have user message with the tag as regular content
-1434:       (should (= 1 (length (plist-get result :messages))))
-1435:       (should (string-match-p "<safe-shell-commands>"
-1436:                              (alist-get 'content (car (plist-get result :messages))))))))
-1437:
-1438: (ert-deftest greger-parser-test-safe-shell-commands-in-code-block ()
-1439:   "Test that safe-shell-commands inside code blocks are not processed."
-1440:   (let ((markdown "## SYSTEM:
-1441:
-1442: Here's an example:
-1443:
-1444: ```
-1445: <safe-shell-commands>
-1446: ls -la
-1447: </safe-shell-commands>
-1448: ```
-1449:
-1450: Don't process that."))
-1451:     (let ((result (greger-parser-parse-dialog markdown)))
-1452:       ;; Should have no metadata
-1453:       (should (equal '() (plist-get result :metadata)))
-1454:       ;; Should have system message with code block
-1455:       (should (= 1 (length (plist-get result :messages))))
-1456:       (should (string-match-p "<safe-shell-commands>"
-1457:                              (alist-get 'content (car (plist-get result :messages))))))))
-1458:
-1459: (ert-deftest greger-parser-test-system-content-with-safe-commands-example ()
-1460:   "Test the exact example from the user: system content with safe-shell-commands."
-1461:   (let ((markdown "## SYSTEM:
-1462:
-1463: you are a friendly assistant
-1464:
-1465: <safe-shell-commands>
-1466: command1
-1467: command2
-1468: </safe-shell-commands>
-1469:
-1470: ## USER:
-1471:
-1472: Hello"))
-1473:     (let ((result (greger-parser-parse-dialog markdown)))
-1474:       ;; Should have both system and user messages
-1475:       (should (= 2 (length (plist-get result :messages))))
-1476:
-1477:       ;; Check system message
-1478:       (let ((system-msg (car (plist-get result :messages))))
-1479:         (should (string= "system" (alist-get 'role system-msg)))
-1480:         (should (string= "you are a friendly assistant" (alist-get 'content system-msg))))
-1481:
-1482:       ;; Check user message
-1483:       (let ((user-msg (cadr (plist-get result :messages))))
-1484:         (should (string= "user" (alist-get 'role user-msg)))
-1485:         (should (string= "Hello" (alist-get 'content user-msg))))
-1486:
-1487:       ;; Should have metadata with safe shell commands
-1488:       (should (equal '(:safe-shell-commands ("command1" "command2")) (plist-get result :metadata))))))
-1489:
-1490: (provide 'test-greger-parser)
-1491:
-1492: ;;; test-greger-parser.el ends here
-1493:
-</tool.toolu_01Lc4CT1AwNV85LvqgkWRgLz>
-
-## ASSISTANT:
-
-Now let me run the tests to see what specific errors occur:
+I'll help you fix the test errors by first running the tests to see what's failing, then identifying and fixing the function name mismatches.
 
 ## TOOL USE:
 
 Name: shell-command
-ID: toolu_0156YpHQqNGfw1FJWgshy6LY
+ID: toolu_01PedDkp5zvv9NywpNZr1bFw
 
 ### command
 
-<tool.toolu_0156YpHQqNGfw1FJWgshy6LY>
-bash script/test --verbose --file test-greger-parser.el
-</tool.toolu_0156YpHQqNGfw1FJWgshy6LY>
+<tool.toolu_01PedDkp5zvv9NywpNZr1bFw>
+bash script/test --verbose
+</tool.toolu_01PedDkp5zvv9NywpNZr1bFw>
 
 ## TOOL RESULT:
 
-ID: toolu_0156YpHQqNGfw1FJWgshy6LY
+ID: toolu_01PedDkp5zvv9NywpNZr1bFw
 
-<tool.toolu_0156YpHQqNGfw1FJWgshy6LY>
+<tool.toolu_01PedDkp5zvv9NywpNZr1bFw>
 Command failed with exit code 1: [0;34mRunning ERT tests for greger package...[0m
+
+
+Running tests in [1;33mtest-greger-agent.el[0m (verbose mode)...
+Loading /Users/andreas/projects/greger.el/greger.el (source)...
+Source file ‘/opt/homebrew/Cellar/emacs-plus@29/29.0.90/share/emacs/29.0.91/lisp/net/eww.el’ newer than byte-compiled file; using older file
+Loading /Users/andreas/projects/greger.el/greger-agent.el (source)...
+Source file ‘/Users/andreas/projects/greger.el/greger-lib-lsp.el’ newer than byte-compiled file; using older file
+Loading /Users/andreas/projects/greger.el/greger-parser.el (source)...
+Loading /Users/andreas/projects/greger.el/greger-stdlib.el (source)...
+Loading /Users/andreas/projects/greger.el/greger-lib-lsp.el (source)...
+Loading /Users/andreas/projects/greger.el/greger-tools.el (source)...
+Loading /Users/andreas/projects/greger.el/greger-stream.el (source)...
+Loading /Users/andreas/projects/greger.el/greger-providers.el (source)...
+Loading /Users/andreas/projects/greger.el/greger-provider-claude.el (source)...
+Loading /Users/andreas/projects/greger.el/greger-provider-openai.el (source)...
+Loading /Users/andreas/projects/greger.el/greger-provider-google.el (source)...
+Loading /Users/andreas/projects/greger.el/greger-web.el (source)...
+Loading /Users/andreas/projects/greger.el/test-greger-agent.el (source)...
+Running 8 tests (2025-06-03 14:02:36+0200, selector ‘t’)
+   passed  1/8  greger-agent-test-exact-tool-output-formatting (0.000190 sec)
+   passed  2/8  greger-agent-test-multiple-tools-parallel (0.000150 sec)
+   passed  3/8  greger-agent-test-simple-string-comparison (0.000093 sec)
+   passed  4/8  greger-agent-test-single-tool-execution (0.000086 sec)
+   passed  5/8  greger-agent-test-tool-error-handling (0.000088 sec)
+   passed  6/8  greger-agent-test-tool-execution-with-existing-content (0.000087 sec)
+   passed  7/8  greger-agent-test-tool-placeholder (0.000019 sec)
+   passed  8/8  greger-agent-test-unknown-tool-error (0.000077 sec)
+
+Ran 8 tests, 8 results as expected, 0 unexpected (2025-06-03 14:02:36+0200, 0.014795 sec)
+
+
 
 Running tests in [1;33mtest-greger-parser.el[0m (verbose mode)...
 Loading /Users/andreas/projects/greger.el/greger.el (source)...
@@ -1574,87 +88,27 @@ Loading /Users/andreas/projects/greger.el/greger-provider-openai.el (source)...
 Loading /Users/andreas/projects/greger.el/greger-provider-google.el (source)...
 Loading /Users/andreas/projects/greger.el/greger-web.el (source)...
 Loading /Users/andreas/projects/greger.el/test-greger-parser.el (source)...
-Running 35 tests (2025-06-03 14:00:10+0200, selector ‘t’)
-   passed   1/35  greger-parser-test-code-block-parsing (0.001162 sec)
-   passed   2/35  greger-parser-test-code-blocks-in-tool-params (0.000574 sec)
-   passed   3/35  greger-parser-test-complex-mixed-content (0.001786 sec)
-   passed   4/35  greger-parser-test-edge-cases (0.000375 sec)
-   passed   5/35  greger-parser-test-error-handling (0.000253 sec)
-   passed   6/35  greger-parser-test-include-tag-basic (0.002430 sec)
-   passed   7/35  greger-parser-test-include-tag-in-assistant-section (0.001867 sec)
-Test greger-parser-test-include-tag-invalid-url backtrace:
-  signal(ert-test-failed (((should (= 1 (length parsed))) :form (= 1 0
-  ert-fail(((should (= 1 (length parsed))) :form (= 1 0) :value nil))
-  (if (unwind-protect (setq value-451 (apply fn-449 args-450)) (setq f
-  (let (form-description-453) (if (unwind-protect (setq value-451 (app
-  (let ((value-451 'ert-form-evaluation-aborted-452)) (let (form-descr
-  (let* ((fn-449 #'=) (args-450 (condition-case err (let ((signal-hook
-  (let ((parsed (greger-parser-parse-dialog-messages-only markdown)))
-  (let ((markdown "## USER:\n\nThis should fail:\n\n<include>https://i
-  (closure (t) nil (let ((markdown "## USER:\n\nThis should fail:\n\n<
-  ert--run-test-internal(#s(ert--test-execution-info :test #s(ert-test
-  ert-run-test(#s(ert-test :name greger-parser-test-include-tag-invali
-  ert-run-or-rerun-test(#s(ert--stats :selector t :tests ... :test-map
-  ert-run-tests(t #f(compiled-function (event-type &rest event-args) #
-  ert-run-tests-batch(t)
-  ert-run-tests-batch-and-exit(t)
-  (let ((ert-quiet nil)) (ert-run-tests-batch-and-exit t))
-  (progn (setq debug-on-error t) (add-to-list 'load-path ".") (require
-  eval((progn (setq debug-on-error t) (add-to-list 'load-path ".") (re
-  command-line-1(("--eval" "(progn\n                  (setq debug-on-e
-  command-line()
-  normal-top-level()
-Test greger-parser-test-include-tag-invalid-url condition:
-    (ert-test-failed
-     ((should
-       (= 1
-(length parsed)))
-      :form
-      (= 1 0)
-      :value nil))
-   FAILED   8/35  greger-parser-test-include-tag-invalid-url (0.010626 sec) at test-greger-parser.el:1328
-   passed   9/35  greger-parser-test-include-tag-multiline-content (0.002302 sec)
-Test greger-parser-test-include-tag-nonexistent-file backtrace:
-  signal(ert-test-failed (((should (= 1 (length parsed))) :form (= 1 0
-  ert-fail(((should (= 1 (length parsed))) :form (= 1 0) :value nil))
-  (if (unwind-protect (setq value-351 (apply fn-349 args-350)) (setq f
-  (let (form-description-353) (if (unwind-protect (setq value-351 (app
-  (let ((value-351 'ert-form-evaluation-aborted-352)) (let (form-descr
-  (let* ((fn-349 #'=) (args-350 (condition-case err (let ((signal-hook
-  (let ((parsed (greger-parser-parse-dialog-messages-only markdown)))
-  (let ((markdown "## USER:\n\nTry to include: <include>/nonexistent/f
-  (closure (t) nil (let ((markdown "## USER:\n\nTry to include: <inclu
-  ert--run-test-internal(#s(ert--test-execution-info :test #s(ert-test
-  ert-run-test(#s(ert-test :name greger-parser-test-include-tag-nonexi
-  ert-run-or-rerun-test(#s(ert--stats :selector t :tests ... :test-map
-  ert-run-tests(t #f(compiled-function (event-type &rest event-args) #
-  ert-run-tests-batch(t)
-  ert-run-tests-batch-and-exit(t)
-  (let ((ert-quiet nil)) (ert-run-tests-batch-and-exit t))
-  (progn (setq debug-on-error t) (add-to-list 'load-path ".") (require
-  eval((progn (setq debug-on-error t) (add-to-list 'load-path ".") (re
-  command-line-1(("--eval" "(progn\n                  (setq debug-on-e
-  command-line()
-  normal-top-level()
-Test greger-parser-test-include-tag-nonexistent-file condition:
-    (ert-test-failed
-     ((should
-       (= 1
-(length parsed)))
-      :form
-      (= 1 0)
-      :value nil))
-   FAILED  10/35  greger-parser-test-include-tag-nonexistent-file (0.000421 sec) at test-greger-parser.el:1035
-   passed  11/35  greger-parser-test-include-tag-not-processed-in-code-blocks (0.002086 sec)
-   passed  12/35  greger-parser-test-include-tag-not-processed-in-inline-code (0.002255 sec)
-   passed  13/35  greger-parser-test-include-tag-not-processed-in-tool-params (0.001316 sec)
-   passed  14/35  greger-parser-test-include-tag-recursive (0.003944 sec)
-   passed  15/35  greger-parser-test-include-tag-web-url (0.177335 sec)
-   passed  16/35  greger-parser-test-include-tag-web-url-with-code (0.103719 sec)
-   passed  17/35  greger-parser-test-include-tag-with-code (0.006570 sec)
-   passed  18/35  greger-parser-test-include-tag-with-code-in-code-block (0.002647 sec)
-   passed  19/35  greger-parser-test-inline-code-blocks (0.001615 sec)
-   passed  20/35  greger-parser-test-markdown-generation (0.000183 sec)
+Running 35 tests (2025-06-03 14:02:37+0200, selector ‘t’)
+   passed   1/35  greger-parser-test-code-block-parsing (0.001405 sec)
+   passed   2/35  greger-parser-test-code-blocks-in-tool-params (0.000688 sec)
+   passed   3/35  greger-parser-test-complex-mixed-content (0.001927 sec)
+   passed   4/35  greger-parser-test-edge-cases (0.000401 sec)
+   passed   5/35  greger-parser-test-error-handling (0.000241 sec)
+   passed   6/35  greger-parser-test-include-tag-basic (0.004329 sec)
+   passed   7/35  greger-parser-test-include-tag-in-assistant-section (0.002360 sec)
+   passed   8/35  greger-parser-test-include-tag-invalid-url (0.011406 sec)
+   passed   9/35  greger-parser-test-include-tag-multiline-content (0.002246 sec)
+   passed  10/35  greger-parser-test-include-tag-nonexistent-file (0.000740 sec)
+   passed  11/35  greger-parser-test-include-tag-not-processed-in-code-blocks (0.001754 sec)
+   passed  12/35  greger-parser-test-include-tag-not-processed-in-inline-code (0.013401 sec)
+   passed  13/35  greger-parser-test-include-tag-not-processed-in-tool-params (0.001340 sec)
+   passed  14/35  greger-parser-test-include-tag-recursive (0.003423 sec)
+   passed  15/35  greger-parser-test-include-tag-web-url (0.194722 sec)
+   passed  16/35  greger-parser-test-include-tag-web-url-with-code (0.099325 sec)
+   passed  17/35  greger-parser-test-include-tag-with-code (0.005051 sec)
+   passed  18/35  greger-parser-test-include-tag-with-code-in-code-block (0.002604 sec)
+   passed  19/35  greger-parser-test-inline-code-blocks (0.001180 sec)
+   passed  20/35  greger-parser-test-markdown-generation (0.000126 sec)
 Testing markdown-to-dialog for: simple-user-message
 Testing markdown-to-dialog for: system-and-user
 Testing markdown-to-dialog for: simple-conversation
@@ -1675,8 +129,8 @@ Testing markdown-to-dialog for: nested-code-blocks
 Testing markdown-to-dialog for: tool-use-complex-params
 Testing markdown-to-dialog for: tool-result-empty-lines
 Testing markdown-to-dialog for: html-comments
-   passed  21/35  greger-parser-test-markdown-to-dialog (0.068164 sec)
-   passed  22/35  greger-parser-test-performance (0.059503 sec)
+   passed  21/35  greger-parser-test-markdown-to-dialog (0.068131 sec)
+   passed  22/35  greger-parser-test-performance (0.058145 sec)
 Testing roundtrip for: simple-user-message
 Testing roundtrip for: system-and-user
 Testing roundtrip for: simple-conversation
@@ -1697,296 +151,735 @@ Testing roundtrip for: nested-code-blocks
 Testing roundtrip for: tool-use-complex-params
 Testing roundtrip for: tool-result-empty-lines
 Testing roundtrip for: html-comments
-   passed  23/35  greger-parser-test-roundtrip (0.068407 sec)
-   passed  24/35  greger-parser-test-safe-shell-commands-basic (0.000216 sec)
-   passed  25/35  greger-parser-test-safe-shell-commands-empty-lines (0.000227 sec)
-   passed  26/35  greger-parser-test-safe-shell-commands-in-code-block (0.000763 sec)
-   passed  27/35  greger-parser-test-safe-shell-commands-not-in-system (0.000831 sec)
-   passed  28/35  greger-parser-test-safe-shell-commands-only-once (0.000278 sec)
-   passed  29/35  greger-parser-test-safe-shell-commands-with-system-content (0.000815 sec)
-   passed  30/35  greger-parser-test-system-content-with-safe-commands-example (0.000811 sec)
-   passed  31/35  greger-parser-test-thinking-parsing (0.000777 sec)
-   passed  32/35  greger-parser-test-tool-result-parsing (0.000345 sec)
-   passed  33/35  greger-parser-test-tool-use-parsing (0.000513 sec)
-   passed  34/35  greger-parser-test-tool-use-whitespace (0.000704 sec)
-   passed  35/35  greger-parser-test-untagged-content (0.000877 sec)
+   passed  23/35  greger-parser-test-roundtrip (0.068676 sec)
+   passed  24/35  greger-parser-test-safe-shell-commands-basic (0.000208 sec)
+   passed  25/35  greger-parser-test-safe-shell-commands-empty-lines (0.000206 sec)
+   passed  26/35  greger-parser-test-safe-shell-commands-in-code-block (0.000706 sec)
+   passed  27/35  greger-parser-test-safe-shell-commands-not-in-system (0.000774 sec)
+   passed  28/35  greger-parser-test-safe-shell-commands-only-once (0.000281 sec)
+   passed  29/35  greger-parser-test-safe-shell-commands-with-system-content (0.000774 sec)
+   passed  30/35  greger-parser-test-system-content-with-safe-commands-example (0.000950 sec)
+   passed  31/35  greger-parser-test-thinking-parsing (0.000870 sec)
+   passed  32/35  greger-parser-test-tool-result-parsing (0.000411 sec)
+   passed  33/35  greger-parser-test-tool-use-parsing (0.000576 sec)
+   passed  34/35  greger-parser-test-tool-use-whitespace (0.000768 sec)
+   passed  35/35  greger-parser-test-untagged-content (0.000996 sec)
 
-Ran 35 tests, 33 results as expected, 2 unexpected (2025-06-03 14:00:10+0200, 0.810344 sec)
-
-2 unexpected results:
-   FAILED  greger-parser-test-include-tag-invalid-url
-   FAILED  greger-parser-test-include-tag-nonexistent-file
+Ran 35 tests, 35 results as expected, 0 unexpected (2025-06-03 14:02:37+0200, 0.624814 sec)
 
 
-</tool.toolu_0156YpHQqNGfw1FJWgshy6LY>
+
+Running tests in [1;33mtest-greger-stdlib.el[0m (verbose mode)...
+Loading /Users/andreas/projects/greger.el/greger.el (source)...
+Source file ‘/opt/homebrew/Cellar/emacs-plus@29/29.0.90/share/emacs/29.0.91/lisp/net/eww.el’ newer than byte-compiled file; using older file
+Loading /Users/andreas/projects/greger.el/greger-agent.el (source)...
+Source file ‘/Users/andreas/projects/greger.el/greger-lib-lsp.el’ newer than byte-compiled file; using older file
+Loading /Users/andreas/projects/greger.el/greger-parser.el (source)...
+Loading /Users/andreas/projects/greger.el/greger-stdlib.el (source)...
+Loading /Users/andreas/projects/greger.el/greger-lib-lsp.el (source)...
+Loading /Users/andreas/projects/greger.el/greger-tools.el (source)...
+Loading /Users/andreas/projects/greger.el/greger-stream.el (source)...
+Loading /Users/andreas/projects/greger.el/greger-providers.el (source)...
+Loading /Users/andreas/projects/greger.el/greger-provider-claude.el (source)...
+Loading /Users/andreas/projects/greger.el/greger-provider-openai.el (source)...
+Loading /Users/andreas/projects/greger.el/greger-provider-google.el (source)...
+Loading /Users/andreas/projects/greger.el/greger-web.el (source)...
+Loading /Users/andreas/projects/greger.el/test-greger-stdlib.el (source)...
+Running 11 tests (2025-06-03 14:02:37+0200, selector ‘t’)
+   passed   1/11  greger-test-read-webpage-invalid-url (0.000073 sec)
+Test greger-test-read-webpage-network-error backtrace:
+  (greger-tools--read-webpage "https://pub-b88c9764a4fc46baa90b9e8e154
+  (let ((result (greger-tools--read-webpage "https://pub-b88c9764a4fc4
+  (progn (fset 'greger-web-download-page vnew) (let ((result (greger-t
+  (unwind-protect (progn (fset 'greger-web-download-page vnew) (let ((
+  (let* ((vnew #'(lambda (url extract-text use-highest-readability) (e
+  (closure (t) nil (let* ((vnew #'(lambda (url extract-text use-highes
+  ert--run-test-internal(#s(ert--test-execution-info :test #s(ert-test
+  ert-run-test(#s(ert-test :name greger-test-read-webpage-network-erro
+  ert-run-or-rerun-test(#s(ert--stats :selector t :tests [#s(ert-test
+  ert-run-tests(t #f(compiled-function (event-type &rest event-args) #
+  ert-run-tests-batch(t)
+  ert-run-tests-batch-and-exit(t)
+  (let ((ert-quiet nil)) (ert-run-tests-batch-and-exit t))
+  (progn (setq debug-on-error t) (add-to-list 'load-path ".") (require
+  eval((progn (setq debug-on-error t) (add-to-list 'load-path ".") (re
+  command-line-1(("--eval" "(progn\n                  (setq debug-on-e
+  command-line()
+  normal-top-level()
+Test greger-test-read-webpage-network-error condition:
+    (void-function greger-tools--read-webpage)
+   FAILED   2/11  greger-test-read-webpage-network-error (0.000045 sec) at test-greger-stdlib.el:47
+Test greger-test-read-webpage-valid-url backtrace:
+  (greger-tools--read-webpage test-url t)
+  (let ((result (greger-tools--read-webpage test-url t))) (let* ((fn-0
+  (let ((test-url "https://pub-b88c9764a4fc46baa90b9e8e1544f59e.r2.de.
+  (closure (t) nil (let ((test-url "https://pub-b88c9764a4fc46baa90b9e
+  ert--run-test-internal(#s(ert--test-execution-info :test #s(ert-test
+  ert-run-test(#s(ert-test :name greger-test-read-webpage-valid-url :d
+  ert-run-or-rerun-test(#s(ert--stats :selector t :tests [... ... ...
+  ert-run-tests(t #f(compiled-function (event-type &rest event-args) #
+  ert-run-tests-batch(t)
+  ert-run-tests-batch-and-exit(t)
+  (let ((ert-quiet nil)) (ert-run-tests-batch-and-exit t))
+  (progn (setq debug-on-error t) (add-to-list 'load-path ".") (require
+  eval((progn (setq debug-on-error t) (add-to-list 'load-path ".") (re
+  command-line-1(("--eval" "(progn\n                  (setq debug-on-e
+  command-line()
+  normal-top-level()
+Test greger-test-read-webpage-valid-url condition:
+    (void-function greger-tools--read-webpage)
+   FAILED   3/11  greger-test-read-webpage-valid-url (0.000068 sec) at test-greger-stdlib.el:13
+Test greger-test-shell-command-command-failure backtrace:
+  (greger-tools--shell-command "false" #'(lambda (output err) (progn (
+  (progn (fset 'y-or-n-p vnew) (greger-tools--shell-command "false" #'
+  (unwind-protect (progn (fset 'y-or-n-p vnew) (greger-tools--shell-co
+  (let* ((vnew #'(lambda (prompt) t)) (old (symbol-function 'y-or-n-p)
+  (let ((result nil) (error nil) (callback-called nil)) (let* ((vnew #
+  (closure (t) nil (let ((result nil) (error nil) (callback-called nil
+  ert--run-test-internal(#s(ert--test-execution-info :test #s(ert-test
+  ert-run-test(#s(ert-test :name greger-test-shell-command-command-fai
+  ert-run-or-rerun-test(#s(ert--stats :selector t :tests ... :test-map
+  ert-run-tests(t #f(compiled-function (event-type &rest event-args) #
+  ert-run-tests-batch(t)
+  ert-run-tests-batch-and-exit(t)
+  (let ((ert-quiet nil)) (ert-run-tests-batch-and-exit t))
+  (progn (setq debug-on-error t) (add-to-list 'load-path ".") (require
+  eval((progn (setq debug-on-error t) (add-to-list 'load-path ".") (re
+  command-line-1(("--eval" "(progn\n                  (setq debug-on-e
+  command-line()
+  normal-top-level()
+Test greger-test-shell-command-command-failure condition:
+    (void-function greger-tools--shell-command)
+   FAILED   4/11  greger-test-shell-command-command-failure (0.000094 sec) at test-greger-stdlib.el:150
+Test greger-test-shell-command-no-metadata-still-prompts backtrace:
+  (greger-tools--shell-command "echo no metadata" #'(lambda (output er
+  (progn (fset 'y-or-n-p vnew) (greger-tools--shell-command "echo no m
+  (unwind-protect (progn (fset 'y-or-n-p vnew) (greger-tools--shell-co
+  (let* ((vnew #'(lambda (prompt) (setq prompt-called t) t)) (old (sym
+  (let ((result nil) (error nil) (callback-called nil) (prompt-called
+  (closure (t) nil (let ((result nil) (error nil) (callback-called nil
+  ert--run-test-internal(#s(ert--test-execution-info :test #s(ert-test
+  ert-run-test(#s(ert-test :name greger-test-shell-command-no-metadata
+  ert-run-or-rerun-test(#s(ert--stats :selector t :tests ... :test-map
+  ert-run-tests(t #f(compiled-function (event-type &rest event-args) #
+  ert-run-tests-batch(t)
+  ert-run-tests-batch-and-exit(t)
+  (let ((ert-quiet nil)) (ert-run-tests-batch-and-exit t))
+  (progn (setq debug-on-error t) (add-to-list 'load-path ".") (require
+  eval((progn (setq debug-on-error t) (add-to-list 'load-path ".") (re
+  command-line-1(("--eval" "(progn\n                  (setq debug-on-e
+  command-line()
+  normal-top-level()
+Test greger-test-shell-command-no-metadata-still-prompts condition:
+    (void-function greger-tools--shell-command)
+   FAILED   5/11  greger-test-shell-command-no-metadata-still-prompts (0.000112 sec) at test-greger-stdlib.el:255
+Test greger-test-shell-command-permission-denied backtrace:
+  (greger-tools--shell-command "echo test" #'(lambda (output err) (pro
+  (progn (fset 'y-or-n-p vnew) (greger-tools--shell-command "echo test
+  (unwind-protect (progn (fset 'y-or-n-p vnew) (greger-tools--shell-co
+  (let* ((vnew #'(lambda (prompt) nil)) (old (symbol-function 'y-or-n-
+  (let ((result nil) (error nil) (callback-called nil)) (let* ((vnew #
+  (closure (t) nil (let ((result nil) (error nil) (callback-called nil
+  ert--run-test-internal(#s(ert--test-execution-info :test #s(ert-test
+  ert-run-test(#s(ert-test :name greger-test-shell-command-permission-
+  ert-run-or-rerun-test(#s(ert--stats :selector t :tests ... :test-map
+  ert-run-tests(t #f(compiled-function (event-type &rest event-args) #
+  ert-run-tests-batch(t)
+  ert-run-tests-batch-and-exit(t)
+  (let ((ert-quiet nil)) (ert-run-tests-batch-and-exit t))
+  (progn (setq debug-on-error t) (add-to-list 'load-path ".") (require
+  eval((progn (setq debug-on-error t) (add-to-list 'load-path ".") (re
+  command-line-1(("--eval" "(progn\n                  (setq debug-on-e
+  command-line()
+  normal-top-level()
+Test greger-test-shell-command-permission-denied condition:
+    (void-function greger-tools--shell-command)
+   FAILED   6/11  greger-test-shell-command-permission-denied (0.000074 sec) at test-greger-stdlib.el:129
+Test greger-test-shell-command-safe-commands backtrace:
+  (greger-tools--shell-command "echo safe command" #'(lambda (output e
+  (let ((metadata '(:safe-shell-commands ("echo safe command" "pwd" "l
+  (progn (fset 'y-or-n-p vnew) (let ((metadata '(:safe-shell-commands
+  (unwind-protect (progn (fset 'y-or-n-p vnew) (let ((metadata '(:safe
+  (let* ((vnew #'(lambda (prompt) (setq prompt-called t) t)) (old (sym
+  (let ((result nil) (error nil) (callback-called nil) (prompt-called
+  (closure (t) nil (let ((result nil) (error nil) (callback-called nil
+  ert--run-test-internal(#s(ert--test-execution-info :test #s(ert-test
+  ert-run-test(#s(ert-test :name greger-test-shell-command-safe-comman
+  ert-run-or-rerun-test(#s(ert--stats :selector t :tests ... :test-map
+  ert-run-tests(t #f(compiled-function (event-type &rest event-args) #
+  ert-run-tests-batch(t)
+  ert-run-tests-batch-and-exit(t)
+  (let ((ert-quiet nil)) (ert-run-tests-batch-and-exit t))
+  (progn (setq debug-on-error t) (add-to-list 'load-path ".") (require
+  eval((progn (setq debug-on-error t) (add-to-list 'load-path ".") (re
+  command-line-1(("--eval" "(progn\n                  (setq debug-on-e
+  command-line()
+  normal-top-level()
+Test greger-test-shell-command-safe-commands condition:
+    (void-function greger-tools--shell-command)
+   FAILED   7/11  greger-test-shell-command-safe-commands (0.000161 sec) at test-greger-stdlib.el:177
+Test greger-test-shell-command-simple backtrace:
+  (greger-tools--shell-command "echo hello world" #'(lambda (output er
+  (progn (fset 'y-or-n-p vnew) (greger-tools--shell-command "echo hell
+  (unwind-protect (progn (fset 'y-or-n-p vnew) (greger-tools--shell-co
+  (let* ((vnew #'(lambda (prompt) t)) (old (symbol-function 'y-or-n-p)
+  (let ((result nil) (error nil) (callback-called nil)) (let* ((vnew #
+  (closure (t) nil (let ((result nil) (error nil) (callback-called nil
+  ert--run-test-internal(#s(ert--test-execution-info :test #s(ert-test
+  ert-run-test(#s(ert-test :name greger-test-shell-command-simple :doc
+  ert-run-or-rerun-test(#s(ert--stats :selector t :tests ... :test-map
+  ert-run-tests(t #f(compiled-function (event-type &rest event-args) #
+  ert-run-tests-batch(t)
+  ert-run-tests-batch-and-exit(t)
+  (let ((ert-quiet nil)) (ert-run-tests-batch-and-exit t))
+  (progn (setq debug-on-error t) (add-to-list 'load-path ".") (require
+  eval((progn (setq debug-on-error t) (add-to-list 'load-path ".") (re
+  command-line-1(("--eval" "(progn\n                  (setq debug-on-e
+  command-line()
+  normal-top-level()
+Test greger-test-shell-command-simple condition:
+    (void-function greger-tools--shell-command)
+   FAILED   8/11  greger-test-shell-command-simple (0.000070 sec) at test-greger-stdlib.el:73
+Test greger-test-shell-command-unsafe-commands-with-metadata backtrace:
+  (greger-tools--shell-command "echo unsafe command" #'(lambda (output
+  (let ((metadata '(:safe-shell-commands ("echo safe command" "pwd")))
+  (progn (fset 'y-or-n-p vnew) (let ((metadata '(:safe-shell-commands
+  (unwind-protect (progn (fset 'y-or-n-p vnew) (let ((metadata '(:safe
+  (let* ((vnew #'(lambda (prompt) (setq prompt-called t) t)) (old (sym
+  (let ((result nil) (error nil) (callback-called nil) (prompt-called
+  (closure (t) nil (let ((result nil) (error nil) (callback-called nil
+  ert--run-test-internal(#s(ert--test-execution-info :test #s(ert-test
+  ert-run-test(#s(ert-test :name greger-test-shell-command-unsafe-comm
+  ert-run-or-rerun-test(#s(ert--stats :selector t :tests ... :test-map
+  ert-run-tests(t #f(compiled-function (event-type &rest event-args) #
+  ert-run-tests-batch(t)
+  ert-run-tests-batch-and-exit(t)
+  (let ((ert-quiet nil)) (ert-run-tests-batch-and-exit t))
+  (progn (setq debug-on-error t) (add-to-list 'load-path ".") (require
+  eval((progn (setq debug-on-error t) (add-to-list 'load-path ".") (re
+  command-line-1(("--eval" "(progn\n                  (setq debug-on-e
+  command-line()
+  normal-top-level()
+Test greger-test-shell-command-unsafe-commands-with-metadata condition:
+    (void-function greger-tools--shell-command)
+   FAILED   9/11  greger-test-shell-command-unsafe-commands-with-metadata (0.000096 sec) at test-greger-stdlib.el:216
+Test greger-test-shell-command-with-pipe backtrace:
+  (greger-tools--shell-command "echo 'apple\nbanana\ncherry' | grep 'a
+  (progn (fset 'y-or-n-p vnew) (greger-tools--shell-command "echo 'app
+  (unwind-protect (progn (fset 'y-or-n-p vnew) (greger-tools--shell-co
+  (let* ((vnew #'(lambda (prompt) t)) (old (symbol-function 'y-or-n-p)
+  (let ((result nil) (error nil) (callback-called nil)) (let* ((vnew #
+  (closure (t) nil (let ((result nil) (error nil) (callback-called nil
+  ert--run-test-internal(#s(ert--test-execution-info :test #s(ert-test
+  ert-run-test(#s(ert-test :name greger-test-shell-command-with-pipe :
+  ert-run-or-rerun-test(#s(ert--stats :selector t :tests ... :test-map
+  ert-run-tests(t #f(compiled-function (event-type &rest event-args) #
+  ert-run-tests-batch(t)
+  ert-run-tests-batch-and-exit(t)
+  (let ((ert-quiet nil)) (ert-run-tests-batch-and-exit t))
+  (progn (setq debug-on-error t) (add-to-list 'load-path ".") (require
+  eval((progn (setq debug-on-error t) (add-to-list 'load-path ".") (re
+  command-line-1(("--eval" "(progn\n                  (setq debug-on-e
+  command-line()
+  normal-top-level()
+Test greger-test-shell-command-with-pipe condition:
+    (void-function greger-tools--shell-command)
+   FAILED  10/11  greger-test-shell-command-with-pipe (0.000077 sec) at test-greger-stdlib.el:101
+   passed  11/11  greger-test-web-url-validation (0.000065 sec)
+
+Ran 11 tests, 2 results as expected, 9 unexpected (2025-06-03 14:02:38+0200, 0.702853 sec)
+
+9 unexpected results:
+   FAILED  greger-test-read-webpage-network-error
+   FAILED  greger-test-read-webpage-valid-url
+   FAILED  greger-test-shell-command-command-failure
+   FAILED  greger-test-shell-command-no-metadata-still-prompts
+   FAILED  greger-test-shell-command-permission-denied
+   FAILED  greger-test-shell-command-safe-commands
+   FAILED  greger-test-shell-command-simple
+   FAILED  greger-test-shell-command-unsafe-commands-with-metadata
+   FAILED  greger-test-shell-command-with-pipe
+
+
+</tool.toolu_01PedDkp5zvv9NywpNZr1bFw>
 
 ## ASSISTANT:
 
-I can see that there are two failing tests related to include tag error handling. The tests are expecting that when there's an error (invalid URL or nonexistent file), the parser should still return a parsed result with an error message, but it's returning an empty list instead.
+I see the issue! The tests are failing because they're calling functions with outdated names. Let me check what the current function names are in the stdlib and tools files:
 
-Let me examine the greger-parser.el file to understand how include tags are processed:
+## TOOL USE:
+
+Name: lsp-document-symbols
+ID: toolu_01UW812Lid4uk6wRw2AC9cw5
+
+### file_paths
+
+<tool.toolu_01UW812Lid4uk6wRw2AC9cw5>
+["greger-stdlib.el","greger-tools.el"]
+</tool.toolu_01UW812Lid4uk6wRw2AC9cw5>
+
+## TOOL RESULT:
+
+ID: toolu_01UW812Lid4uk6wRw2AC9cw5
+
+<tool.toolu_01UW812Lid4uk6wRw2AC9cw5>
+Error executing tool: Failed to start LSP server for greger-stdlib.el
+</tool.toolu_01UW812Lid4uk6wRw2AC9cw5>
+
+## ASSISTANT:
+
+Let me check the function names directly:
 
 ## TOOL USE:
 
 Name: ripgrep
-ID: toolu_014UoJKXfE8F7zinDKaZPE9R
+ID: toolu_01Tq1Ze3MjTaLrL52oGcVWFt
 
 ### pattern
 
-<tool.toolu_014UoJKXfE8F7zinDKaZPE9R>
-greger-parser.*include
-</tool.toolu_014UoJKXfE8F7zinDKaZPE9R>
+<tool.toolu_01Tq1Ze3MjTaLrL52oGcVWFt>
+^(defun|defvar|defcustom)
+</tool.toolu_01Tq1Ze3MjTaLrL52oGcVWFt>
 
-### context-lines
+### path
 
-<tool.toolu_014UoJKXfE8F7zinDKaZPE9R>
-5
-</tool.toolu_014UoJKXfE8F7zinDKaZPE9R>
+<tool.toolu_01Tq1Ze3MjTaLrL52oGcVWFt>
+greger-stdlib.el
+</tool.toolu_01Tq1Ze3MjTaLrL52oGcVWFt>
 
 ## TOOL RESULT:
 
-ID: toolu_014UoJKXfE8F7zinDKaZPE9R
+ID: toolu_01Tq1Ze3MjTaLrL52oGcVWFt
 
-<tool.toolu_014UoJKXfE8F7zinDKaZPE9R>
-/Users/andreas/projects/greger.el/test-greger-parser.el:971:(ert-deftest greger-parser-test-include-tag-basic ()
-/Users/andreas/projects/greger.el/test-greger-parser.el:1001:(ert-deftest greger-parser-test-include-tag-with-code ()
-/Users/andreas/projects/greger.el/test-greger-parser.el:1035:(ert-deftest greger-parser-test-include-tag-nonexistent-file ()
-/Users/andreas/projects/greger.el/test-greger-parser.el:1052:(ert-deftest greger-parser-test-include-tag-multiline-content ()
-/Users/andreas/projects/greger.el/test-greger-parser.el:1086:(ert-deftest greger-parser-test-include-tag-recursive ()
-/Users/andreas/projects/greger.el/test-greger-parser.el:1123:(ert-deftest greger-parser-test-include-tag-in-assistant-section ()
-/Users/andreas/projects/greger.el/test-greger-parser.el:1161:(ert-deftest greger-parser-test-include-tag-with-code-in-code-block ()
-/Users/andreas/projects/greger.el/test-greger-parser.el:1188:(ert-deftest greger-parser-test-include-tag-not-processed-in-code-blocks ()
-/Users/andreas/projects/greger.el/test-greger-parser.el:1222:(ert-deftest greger-parser-test-include-tag-not-processed-in-inline-code ()
-/Users/andreas/projects/greger.el/test-greger-parser.el:1248:(ert-deftest greger-parser-test-include-tag-not-processed-in-tool-params ()
-/Users/andreas/projects/greger.el/test-greger-parser.el:1284:(ert-deftest greger-parser-test-include-tag-web-url ()
-/Users/andreas/projects/greger.el/test-greger-parser.el:1307:(ert-deftest greger-parser-test-include-tag-web-url-with-code ()
-/Users/andreas/projects/greger.el/test-greger-parser.el:1328:(ert-deftest greger-parser-test-include-tag-invalid-url ()
-/Users/andreas/projects/greger.el/greger-parser.el:250:(defun greger-parser--process-include-tag (state)
-/Users/andreas/projects/greger.el/greger-parser.el:252:  (greger-parser--debug state "Processing include tag at pos %d" (greger-parser-state-pos state))
-/Users/andreas/projects/greger.el/greger-parser.el:255:    (when (greger-parser--looking-at state "<include")
-/Users/andreas/projects/greger.el/greger-parser.el:256:      (greger-parser--advance state 8) ; Skip "<include"
-/Users/andreas/projects/greger.el/greger-parser.el:271:            (when (greger-parser--find-closing-tag state "</include>")
-/Users/andreas/projects/greger.el/greger-parser.el:273:                (greger-parser--advance state 10) ; Skip "</include>"
-/Users/andreas/projects/greger.el/greger-parser.el:276:                (greger-parser--include-file state file-path has-code-attr)))))))))
-/Users/andreas/projects/greger.el/greger-parser.el:278:(defun greger-parser--include-file (state file-path has-code-attr)
-/Users/andreas/projects/greger.el/greger-parser.el:321:(defun greger-parser--skip-include-tag (state)
-/Users/andreas/projects/greger.el/greger-parser.el:323:  (greger-parser--debug state "Skipping include tag at pos %d" (greger-parser-state-pos state))
-/Users/andreas/projects/greger.el/greger-parser.el:324:  (greger-parser--advance state 8) ; Skip "<include"
-/Users/andreas/projects/greger.el/greger-parser.el:337:    (when (greger-parser--find-closing-tag state "</include>")
-/Users/andreas/projects/greger.el/greger-parser.el:338:      (greger-parser--advance state 10)))) ; Skip "</include>"
-/Users/andreas/projects/greger.el/greger-parser.el:382:         ((greger-parser--looking-at state "<include")
-/Users/andreas/projects/greger.el/greger-parser.el:383:          (greger-parser--skip-include-tag state))
-/Users/andreas/projects/greger.el/greger-parser.el:434:         ((greger-parser--looking-at state "<include")
-/Users/andreas/projects/greger.el/greger-parser.el:438:          (let ((include-content (greger-parser--process-include-tag state)))
-/Users/andreas/projects/greger.el/greger-parser.el:494:         ((greger-parser--looking-at state "<include")
-/Users/andreas/projects/greger.el/greger-parser.el:498:          (let ((include-content (greger-parser--process-include-tag state)))
-/Users/andreas/projects/greger.el/chat.ai:356:/Users/andreas/projects/greger.el/test-greger-parser.el:971:(ert-deftest greger-parser-test-include-tag-basic ()
-/Users/andreas/projects/greger.el/chat.ai:357:/Users/andreas/projects/greger.el/test-greger-parser.el:1001:(ert-deftest greger-parser-test-include-tag-with-code ()
-/Users/andreas/projects/greger.el/chat.ai:358:/Users/andreas/projects/greger.el/test-greger-parser.el:1035:(ert-deftest greger-parser-test-include-tag-nonexistent-file ()
-/Users/andreas/projects/greger.el/chat.ai:359:/Users/andreas/projects/greger.el/test-greger-parser.el:1052:(ert-deftest greger-parser-test-include-tag-multiline-content ()
-/Users/andreas/projects/greger.el/chat.ai:360:/Users/andreas/projects/greger.el/test-greger-parser.el:1086:(ert-deftest greger-parser-test-include-tag-recursive ()
-/Users/andreas/projects/greger.el/chat.ai:361:/Users/andreas/projects/greger.el/test-greger-parser.el:1123:(ert-deftest greger-parser-test-include-tag-in-assistant-section ()
-/Users/andreas/projects/greger.el/chat.ai:362:/Users/andreas/projects/greger.el/test-greger-parser.el:1161:(ert-deftest greger-parser-test-include-tag-with-code-in-code-block ()
-/Users/andreas/projects/greger.el/chat.ai:363:/Users/andreas/projects/greger.el/test-greger-parser.el:1188:(ert-deftest greger-parser-test-include-tag-not-processed-in-code-blocks ()
-/Users/andreas/projects/greger.el/chat.ai:364:/Users/andreas/projects/greger.el/test-greger-parser.el:1222:(ert-deftest greger-parser-test-include-tag-not-processed-in-inline-code ()
-/Users/andreas/projects/greger.el/chat.ai:365:/Users/andreas/projects/greger.el/test-greger-parser.el:1248:(ert-deftest greger-parser-test-include-tag-not-processed-in-tool-params ()
-/Users/andreas/projects/greger.el/chat.ai:366:/Users/andreas/projects/greger.el/test-greger-parser.el:1284:(ert-deftest greger-parser-test-include-tag-web-url ()
-/Users/andreas/projects/greger.el/chat.ai:367:/Users/andreas/projects/greger.el/test-greger-parser.el:1307:(ert-deftest greger-parser-test-include-tag-web-url-with-code ()
-/Users/andreas/projects/greger.el/chat.ai:368:/Users/andreas/projects/greger.el/test-greger-parser.el:1328:(ert-deftest greger-parser-test-include-tag-invalid-url ()
-/Users/andreas/projects/greger.el/chat.ai:915:   passed   6/35  greger-parser-test-include-tag-basic (0.002128 sec)
-/Users/andreas/projects/greger.el/chat.ai:916:   passed   7/35  greger-parser-test-include-tag-in-assistant-section (0.002173 sec)
-/Users/andreas/projects/greger.el/chat.ai:917:Test greger-parser-test-include-tag-invalid-url backtrace:
-/Users/andreas/projects/greger.el/chat.ai:928:  ert-run-test(#s(ert-test :name greger-parser-test-include-tag-invali
-/Users/andreas/projects/greger.el/chat.ai:939:Test greger-parser-test-include-tag-invalid-url condition:
-/Users/andreas/projects/greger.el/chat.ai:947:   FAILED   8/35  greger-parser-test-include-tag-invalid-url (0.010639 sec) at test-greger-parser.el:1328
-/Users/andreas/projects/greger.el/chat.ai:948:   passed   9/35  greger-parser-test-include-tag-multiline-content (0.002162 sec)
-/Users/andreas/projects/greger.el/chat.ai:949:Test greger-parser-test-include-tag-nonexistent-file backtrace:
-/Users/andreas/projects/greger.el/chat.ai:960:  ert-run-test(#s(ert-test :name greger-parser-test-include-tag-nonexi
-/Users/andreas/projects/greger.el/chat.ai:971:Test greger-parser-test-include-tag-nonexistent-file condition:
-/Users/andreas/projects/greger.el/chat.ai:979:   FAILED  10/35  greger-parser-test-include-tag-nonexistent-file (0.000416 sec) at test-greger-parser.el:1035
-/Users/andreas/projects/greger.el/chat.ai:980:   passed  11/35  greger-parser-test-include-tag-not-processed-in-code-blocks (0.002571 sec)
-/Users/andreas/projects/greger.el/chat.ai:981:   passed  12/35  greger-parser-test-include-tag-not-processed-in-inline-code (0.001623 sec)
-/Users/andreas/projects/greger.el/chat.ai:982:   passed  13/35  greger-parser-test-include-tag-not-processed-in-tool-params (0.001616 sec)
-/Users/andreas/projects/greger.el/chat.ai:983:   passed  14/35  greger-parser-test-include-tag-recursive (0.004951 sec)
-/Users/andreas/projects/greger.el/chat.ai:984:   passed  15/35  greger-parser-test-include-tag-web-url (0.193000 sec)
-/Users/andreas/projects/greger.el/chat.ai:985:   passed  16/35  greger-parser-test-include-tag-web-url-with-code (0.107840 sec)
-/Users/andreas/projects/greger.el/chat.ai:986:   passed  17/35  greger-parser-test-include-tag-with-code (0.004928 sec)
-/Users/andreas/projects/greger.el/chat.ai:987:   passed  18/35  greger-parser-test-include-tag-with-code-in-code-block (0.003308 sec)
-/Users/andreas/projects/greger.el/chat.ai:1049:   FAILED  greger-parser-test-include-tag-invalid-url
-/Users/andreas/projects/greger.el/chat.ai:1050:   FAILED  greger-parser-test-include-tag-nonexistent-file
+<tool.toolu_01Tq1Ze3MjTaLrL52oGcVWFt>
+Failed to execute ripgrep search: Command failed with exit code 1: (no output)
+</tool.toolu_01Tq1Ze3MjTaLrL52oGcVWFt>
 
-</tool.toolu_014UoJKXfE8F7zinDKaZPE9R>
+## TOOL USE:
+
+Name: ripgrep
+ID: toolu_01Tma9KbKkLAkzEN9Y1cJdeF
+
+### pattern
+
+<tool.toolu_01Tma9KbKkLAkzEN9Y1cJdeF>
+defun.*greger
+</tool.toolu_01Tma9KbKkLAkzEN9Y1cJdeF>
+
+### path
+
+<tool.toolu_01Tma9KbKkLAkzEN9Y1cJdeF>
+greger-stdlib.el
+</tool.toolu_01Tma9KbKkLAkzEN9Y1cJdeF>
+
+## TOOL RESULT:
+
+ID: toolu_01Tma9KbKkLAkzEN9Y1cJdeF
+
+<tool.toolu_01Tma9KbKkLAkzEN9Y1cJdeF>
+226:(defun greger-stdlib--run-async-subprocess (command args working-directory callback)
+265:(defun greger-stdlib--find-git-repo-root (start-dir)
+275:(defun greger-stdlib--is-file-tracked-by-git (file-path repo-root)
+284:(defun greger-stdlib--git-stage-and-commit (files commit-message &optional chat-buffer)
+325:(defun greger-stdlib--read-file (path &optional include-line-numbers start-line end-line)
+371:(defun greger-stdlib--extract-line-range (lines start-line end-line)
+381:(defun greger-stdlib--add-line-numbers-with-offset (content start-line-num)
+399:(defun greger-stdlib--list-directory (path &optional show-hidden recursive)
+429:(defun greger-stdlib--list-directory-recursive (path show-hidden &optional prefix)
+449:(defun greger-stdlib--ripgrep (pattern path callback &optional case-sensitive file-type context-lines max-results)
+504:(defun greger-stdlib--write-new-file (file-path contents git-commit-message &optional buffer)
+536:(defun greger-stdlib--make-directory (path git-commit-message &optional buffer)
+560:(defun greger-stdlib--rename-file (old-path new-path git-commit-message &optional buffer)
+596:(defun greger-stdlib--replace-function (file-path function-name contents line-number commit-message &optional buffer)
+676:(defun greger-stdlib--replace-file (file-path contents git-commit-message &optional buffer)
+711:(defun greger-stdlib--str-replace (file-path original-content new-content git-commit-message &optional buffer)
+752:(defun greger-stdlib--insert (file-path line-number content git-commit-message &optional buffer)
+812:(defun greger-stdlib--git-log (path &optional max-rows)
+845:(defun greger-stdlib--git-show-commit (commit-hash path)
+878:(defun greger-stdlib--eval-elisp-defuns (file-path function-names)
+911:(defun greger-stdlib--ert-test (test-file-path function-names)
+984:(defun greger-stdlib--shell-command (command callback &optional working-directory metadata)
+1041:(defun greger-stdlib--read-webpage (url &optional extract-text use-highest-readability)
+
+</tool.toolu_01Tma9KbKkLAkzEN9Y1cJdeF>
+
+## TOOL USE:
+
+Name: ripgrep
+ID: toolu_01Uuu87ex54HSxCBBXyuftpB
+
+### pattern
+
+<tool.toolu_01Uuu87ex54HSxCBBXyuftpB>
+defun.*greger
+</tool.toolu_01Uuu87ex54HSxCBBXyuftpB>
+
+### path
+
+<tool.toolu_01Uuu87ex54HSxCBBXyuftpB>
+greger-tools.el
+</tool.toolu_01Uuu87ex54HSxCBBXyuftpB>
+
+## TOOL RESULT:
+
+ID: toolu_01Uuu87ex54HSxCBBXyuftpB
+
+<tool.toolu_01Uuu87ex54HSxCBBXyuftpB>
+64:(defun greger-tools-get-schemas (tool-names)
+73:(defun greger-tools-execute (tool-name args callback buffer &optional metadata)
+105:(defun greger-tools--call-function-with-args (func args tool-def)
+111:(defun greger-tools--extract-function-args (func args tool-def)
+156:(defun greger-tools--arg-provided-p (arg-name args)
+162:(defun greger-tools--get-arg-value (arg-name args tool-def)
+179:(defun greger-tools--get-default-from-schema (arg-key tool-def)
+
+</tool.toolu_01Uuu87ex54HSxCBBXyuftpB>
 
 ## ASSISTANT:
 
-Let me look at the `greger-parser--include-file` function to see how it handles errors:
+Now I can see the issue! The test file is calling `greger-tools--read-webpage` and `greger-tools--shell-command`, but these functions are actually `greger-stdlib--read-webpage` and `greger-stdlib--shell-command`. Let me examine the test file to see what needs to be fixed:
 
 ## TOOL USE:
 
 Name: read-file
-ID: toolu_011H1wG2Bm7WHdxxv5HUGMNC
+ID: toolu_01V4moHL2txusYY6XNCPvkc3
 
 ### path
 
-<tool.toolu_011H1wG2Bm7WHdxxv5HUGMNC>
-greger-parser.el
-</tool.toolu_011H1wG2Bm7WHdxxv5HUGMNC>
-
-### start_line
-
-<tool.toolu_011H1wG2Bm7WHdxxv5HUGMNC>
-278
-</tool.toolu_011H1wG2Bm7WHdxxv5HUGMNC>
-
-### end_line
-
-<tool.toolu_011H1wG2Bm7WHdxxv5HUGMNC>
-320
-</tool.toolu_011H1wG2Bm7WHdxxv5HUGMNC>
+<tool.toolu_01V4moHL2txusYY6XNCPvkc3>
+test-greger-stdlib.el
+</tool.toolu_01V4moHL2txusYY6XNCPvkc3>
 
 ## TOOL RESULT:
 
-ID: toolu_011H1wG2Bm7WHdxxv5HUGMNC
+ID: toolu_01V4moHL2txusYY6XNCPvkc3
 
-<tool.toolu_011H1wG2Bm7WHdxxv5HUGMNC>
-(defun greger-parser--include-file (state file-path has-code-attr)
-  "Include a file's content, optionally formatting as code using STATE.
-Supports both local files and web URLs (http:// or https://).
-For local files without code attribute, inserts content into state for recursive parsing.
-Returns nil when content is inserted, or the content string when it should be appended."
-  (greger-parser--debug state "Including file: %s (code: %s)" file-path has-code-attr)
-  (condition-case err
-      (let ((content
-             (if (greger-web-is-web-url-p file-path)
-                 ;; Handle web URL
-                 (progn
-                   (greger-parser--debug state "Downloading content from URL: %s" file-path)
-                   (greger-web-text-from-url file-path t)) ; Use readability heuristics
-               ;; Handle local file
-               (with-temp-buffer
-                 (insert-file-contents file-path)
-                 (buffer-string)))))
+<tool.toolu_01V4moHL2txusYY6XNCPvkc3>
+;;; greger-test-stdlib.el --- Tests for greger stdlib tools -*- lexical-binding: t -*-
 
-        ;; Remove trailing newline from content if present
-        (when (and (> (length content) 0)
-                   (eq (aref content (1- (length content))) ?\n))
-          (setq content (substring content 0 -1)))
+;;; Commentary:
+;; Tests for the tools defined in greger-stdlib.el
 
-        (cond
-         ;; For files with code attribute or web URLs, return formatted content
-         ((or has-code-attr (greger-web-is-web-url-p file-path))
-          (if has-code-attr
-              (format "%s:\n```\n%s\n```" file-path content)
-            content))
-         ;; For local files without code attribute, insert content into state for recursive parsing
-         (t
-          (greger-parser--insert-content-at-pos state content)
-          nil))) ; Return nil to indicate content was inserted
-    (error
-     (greger-parser--debug state "Error reading %s %s: %s"
-                          (if (greger-web-is-web-url-p file-path) "URL" "file")
-                          file-path
-                          (error-message-string err))
-     ;; Return error message as content instead of failing silently
-     (format "[Error reading %s: %s]"
-             (if (greger-parser--is-web-url-p file-path) "URL" "file")
-             file-path))))
+;;; Code:
 
-</tool.toolu_011H1wG2Bm7WHdxxv5HUGMNC>
+(require 'ert)
+(require 'cl-lib)
+(require 'greger-stdlib)
+(require 'greger-web)
+
+(ert-deftest greger-test-read-webpage-valid-url ()
+  "Test reading a webpage with a valid URL."
+  (let ((test-url "https://pub-b88c9764a4fc46baa90b9e8e1544f59e.r2.dev/hello.html"))
+
+    ;; Test with text extraction (default)
+    (let ((result (greger-tools--read-webpage test-url t)))
+      (should (stringp result))
+      (should (string= "Hello world!\n" result)))
+
+    ;; Test with raw HTML
+    (let ((result (greger-tools--read-webpage test-url nil)))
+      (should (stringp result))
+      (should (string= "<h1>Hello world!</h1>\n" result)))
+
+    ;; Test with readability enhancement
+    (let ((result (greger-tools--read-webpage test-url t t)))
+      (should (stringp result))
+      (should (string= "Hello world!\n" result)))))
+
+(ert-deftest greger-test-read-webpage-invalid-url ()
+  "Test reading a webpage with invalid URLs."
+  ;; Test empty URL
+  (should-error (greger-tools--read-webpage ""))
+  (should-error (greger-tools--read-webpage "   "))
+
+  ;; Test non-string URL
+  (should-error (greger-tools--read-webpage nil))
+  (should-error (greger-tools--read-webpage 123))
+
+  ;; Test invalid URL format
+  (should-error (greger-tools--read-webpage "ftp://example.com"))
+  (should-error (greger-tools--read-webpage "not-a-url"))
+  (should-error (greger-tools--read-webpage "file:///path/to/file")))
+
+(ert-deftest greger-test-read-webpage-network-error ()
+  "Test reading a webpage when network error occurs."
+  ;; Mock the web download function to simulate network error
+  (cl-letf (((symbol-function 'greger-web-download-page)
+             (lambda (url extract-text use-highest-readability)
+               (error "Network timeout"))))
+
+    (let ((result (greger-tools--read-webpage "https://pub-b88c9764a4fc46baa90b9e8e1544f59e.r2.dev/hello.html")))
+      (should (stringp result))
+      (should (string-match-p "Failed to read webpage" result))
+      (should (string-match-p "Network timeout" result)))))
+
+(ert-deftest greger-test-web-url-validation ()
+  "Test the web URL validation function."
+  ;; Valid URLs
+  (should (greger-web-is-web-url-p "http://example.com"))
+  (should (greger-web-is-web-url-p "https://example.com"))
+  (should (greger-web-is-web-url-p "https://subdomain.example.com/path"))
+
+  ;; Invalid URLs
+  (should-not (greger-web-is-web-url-p "ftp://example.com"))
+  (should-not (greger-web-is-web-url-p "file:///path/to/file"))
+  (should-not (greger-web-is-web-url-p "/local/path"))
+  (should-not (greger-web-is-web-url-p "example.com"))
+  (should-not (greger-web-is-web-url-p "")))
+
+(ert-deftest greger-test-shell-command-simple ()
+  "Test shell-command tool with a simple command."
+  (let ((result nil)
+        (error nil)
+        (callback-called nil))
+
+    ;; Mock the permission prompt to always return yes
+    (cl-letf (((symbol-function 'y-or-n-p) (lambda (prompt) t)))
+
+      ;; Execute a simple echo command
+      (greger-tools--shell-command
+       "echo hello world"
+       (lambda (output err)
+         (setq result output error err callback-called t)))
+
+      ;; Wait for async operation to complete
+      (let ((timeout 0))
+        (while (and (not callback-called) (< timeout 50))  ; 5 second timeout
+          (sit-for 0.1)
+          (setq timeout (1+ timeout))))
+
+      ;; Verify the results
+      (should callback-called)
+      (should (null error))
+      (should (stringp result))
+      (should (string-match "Command executed successfully" result))
+      (should (string-match "hello world" result)))))
+
+(ert-deftest greger-test-shell-command-with-pipe ()
+  "Test shell-command tool with a command containing a pipe."
+  (let ((result nil)
+        (error nil)
+        (callback-called nil))
+
+    ;; Mock the permission prompt to always return yes
+    (cl-letf (((symbol-function 'y-or-n-p) (lambda (prompt) t)))
+
+      ;; Execute a command with a pipe
+      (greger-tools--shell-command
+       "echo 'apple\nbanana\ncherry' | grep 'an'"
+       (lambda (output err)
+         (setq result output error err callback-called t)))
+
+      ;; Wait for async operation to complete
+      (let ((timeout 0))
+        (while (and (not callback-called) (< timeout 50))  ; 5 second timeout
+          (sit-for 0.1)
+          (setq timeout (1+ timeout))))
+
+      ;; Verify the results
+      (should callback-called)
+      (should (null error))
+      (should (stringp result))
+      (should (string-match "Command executed successfully" result))
+      (should (string-match "banana" result)))))
+
+(ert-deftest greger-test-shell-command-permission-denied ()
+  "Test shell-command tool when user denies permission."
+  (let ((result nil)
+        (error nil)
+        (callback-called nil))
+
+    ;; Mock the permission prompt to always return no
+    (cl-letf (((symbol-function 'y-or-n-p) (lambda (prompt) nil)))
+
+      ;; Try to execute a command
+      (greger-tools--shell-command
+       "echo test"
+       (lambda (output err)
+         (setq result output error err callback-called t)))
+
+      ;; Should call callback immediately with error
+      (should callback-called)
+      (should (null result))
+      (should (stringp error))
+      (should (string-match "cancelled by user" error)))))
+
+(ert-deftest greger-test-shell-command-command-failure ()
+  "Test shell-command tool when command fails."
+  (let ((result nil)
+        (error nil)
+        (callback-called nil))
+
+    ;; Mock the permission prompt to always return yes
+    (cl-letf (((symbol-function 'y-or-n-p) (lambda (prompt) t)))
+
+      ;; Execute a command that should fail
+      (greger-tools--shell-command
+       "false"  ; Command that always exits with code 1
+       (lambda (output err)
+         (setq result output error err callback-called t)))
+
+      ;; Wait for async operation to complete
+      (let ((timeout 0))
+        (while (and (not callback-called) (< timeout 50))  ; 5 second timeout
+          (sit-for 0.1)
+          (setq timeout (1+ timeout))))
+
+      ;; Verify the results
+      (should callback-called)
+      (should (null result))
+      (should (stringp error))
+      (should (string-match "failed with exit code" error)))))
+
+(ert-deftest greger-test-shell-command-safe-commands ()
+  "Test shell-command tool with safe-shell-commands metadata to skip permission prompt."
+  (let ((result nil)
+        (error nil)
+        (callback-called nil)
+        (prompt-called nil))
+
+    ;; Mock the permission prompt to track if it's called
+    (cl-letf (((symbol-function 'y-or-n-p)
+               (lambda (prompt)
+                 (setq prompt-called t)
+                 t)))
+
+      ;; Create metadata with safe shell commands
+      (let ((metadata '(:safe-shell-commands ("echo safe command" "pwd" "ls -la"))))
+
+        ;; Execute a command that's in the safe list
+        (greger-tools--shell-command
+         "echo safe command"
+         (lambda (output err)
+           (setq result output error err callback-called t))
+         "."  ; working directory
+         metadata)
+
+        ;; Wait for async operation to complete
+        (let ((timeout 0))
+          (while (and (not callback-called) (< timeout 50))  ; 5 second timeout
+            (sit-for 0.1)
+            (setq timeout (1+ timeout))))
+
+        ;; Verify the results
+        (should callback-called)
+        (should (null error))
+        (should (stringp result))
+        (should (string-match "Command executed successfully" result))
+        (should (string-match "safe command" result))
+        ;; Most importantly: permission prompt should NOT have been called
+        (should (null prompt-called))))))
+
+(ert-deftest greger-test-shell-command-unsafe-commands-with-metadata ()
+  "Test shell-command tool with metadata but command not in safe list still prompts."
+  (let ((result nil)
+        (error nil)
+        (callback-called nil)
+        (prompt-called nil))
+
+    ;; Mock the permission prompt to track if it's called and return yes
+    (cl-letf (((symbol-function 'y-or-n-p)
+               (lambda (prompt)
+                 (setq prompt-called t)
+                 t)))
+
+      ;; Create metadata with safe shell commands
+      (let ((metadata '(:safe-shell-commands ("echo safe command" "pwd"))))
+
+        ;; Execute a command that's NOT in the safe list
+        (greger-tools--shell-command
+         "echo unsafe command"
+         (lambda (output err)
+           (setq result output error err callback-called t))
+         "."  ; working directory
+         metadata)
+
+        ;; Wait for async operation to complete
+        (let ((timeout 0))
+          (while (and (not callback-called) (< timeout 50))  ; 5 second timeout
+            (sit-for 0.1)
+            (setq timeout (1+ timeout))))
+
+        ;; Verify the results
+        (should callback-called)
+        (should (null error))
+        (should (stringp result))
+        (should (string-match "Command executed successfully" result))
+        (should (string-match "unsafe command" result))
+        ;; Permission prompt SHOULD have been called since command not in safe list
+        (should prompt-called)))))
+
+(ert-deftest greger-test-shell-command-no-metadata-still-prompts ()
+  "Test shell-command tool without metadata still prompts for permission."
+  (let ((result nil)
+        (error nil)
+        (callback-called nil)
+        (prompt-called nil))
+
+    ;; Mock the permission prompt to track if it's called and return yes
+    (cl-letf (((symbol-function 'y-or-n-p)
+               (lambda (prompt)
+                 (setq prompt-called t)
+                 t)))
+
+        ;; Execute a command without any metadata
+        (greger-tools--shell-command
+         "echo no metadata"
+         (lambda (output err)
+           (setq result output error err callback-called t))
+         "."  ; working directory
+         nil)  ; no metadata
+
+        ;; Wait for async operation to complete
+        (let ((timeout 0))
+          (while (and (not callback-called) (< timeout 50))  ; 5 second timeout
+            (sit-for 0.1)
+            (setq timeout (1+ timeout))))
+
+        ;; Verify the results
+        (should callback-called)
+        (should (null error))
+        (should (stringp result))
+        (should (string-match "Command executed successfully" result))
+        (should (string-match "no metadata" result))
+        ;; Permission prompt SHOULD have been called since no metadata provided
+        (should prompt-called))))
+
+;;; greger-test-stdlib.el ends here
+
+</tool.toolu_01V4moHL2txusYY6XNCPvkc3>
 
 ## ASSISTANT:
 
-I see the issue! In the error handling case, the function is calling `greger-parser--is-web-url-p` but it should be calling `greger-web-is-web-url-p` (which is used in the main logic). Let me check if this function exists:
-
-## TOOL USE:
-
-Name: ripgrep
-ID: toolu_016Bdj9UvSoty6jCGjo33oUZ
-
-### pattern
-
-<tool.toolu_016Bdj9UvSoty6jCGjo33oUZ>
-greger-parser--is-web-url-p
-</tool.toolu_016Bdj9UvSoty6jCGjo33oUZ>
-
-## TOOL RESULT:
-
-ID: toolu_016Bdj9UvSoty6jCGjo33oUZ
-
-<tool.toolu_016Bdj9UvSoty6jCGjo33oUZ>
-/Users/andreas/projects/greger.el/greger-parser.el:318:             (if (greger-parser--is-web-url-p file-path) "URL" "file")
-
-</tool.toolu_016Bdj9UvSoty6jCGjo33oUZ>
-
-## TOOL USE:
-
-Name: ripgrep
-ID: toolu_01Ay1JzrX52zWDAC1sK4qeHN
-
-### pattern
-
-<tool.toolu_01Ay1JzrX52zWDAC1sK4qeHN>
-greger-web-is-web-url-p
-</tool.toolu_01Ay1JzrX52zWDAC1sK4qeHN>
-
-## TOOL RESULT:
-
-ID: toolu_01Ay1JzrX52zWDAC1sK4qeHN
-
-<tool.toolu_01Ay1JzrX52zWDAC1sK4qeHN>
-/Users/andreas/projects/greger.el/greger-web.el:55:(defun greger-web-is-web-url-p (path)
-/Users/andreas/projects/greger.el/greger-parser.el:286:             (if (greger-web-is-web-url-p file-path)
-/Users/andreas/projects/greger.el/greger-parser.el:303:         ((or has-code-attr (greger-web-is-web-url-p file-path))
-/Users/andreas/projects/greger.el/greger-parser.el:313:                          (if (greger-web-is-web-url-p file-path) "URL" "file")
-/Users/andreas/projects/greger.el/test-greger-stdlib.el:62:  (should (greger-web-is-web-url-p "http://example.com"))
-/Users/andreas/projects/greger.el/test-greger-stdlib.el:63:  (should (greger-web-is-web-url-p "https://example.com"))
-/Users/andreas/projects/greger.el/test-greger-stdlib.el:64:  (should (greger-web-is-web-url-p "https://subdomain.example.com/path"))
-/Users/andreas/projects/greger.el/test-greger-stdlib.el:67:  (should-not (greger-web-is-web-url-p "ftp://example.com"))
-/Users/andreas/projects/greger.el/test-greger-stdlib.el:68:  (should-not (greger-web-is-web-url-p "file:///path/to/file"))
-/Users/andreas/projects/greger.el/test-greger-stdlib.el:69:  (should-not (greger-web-is-web-url-p "/local/path"))
-/Users/andreas/projects/greger.el/test-greger-stdlib.el:70:  (should-not (greger-web-is-web-url-p "example.com"))
-/Users/andreas/projects/greger.el/test-greger-stdlib.el:71:  (should-not (greger-web-is-web-url-p "")))
-/Users/andreas/projects/greger.el/greger-stdlib.el:1052:  (unless (greger-web-is-web-url-p url)
-
-</tool.toolu_01Ay1JzrX52zWDAC1sK4qeHN>
-
-## ASSISTANT:
-
-Perfect! The issue is that the error handling code is calling `greger-parser--is-web-url-p` which doesn't exist, but it should be calling `greger-web-is-web-url-p`. Let me fix this:
+Now I can see the issue clearly! The test file is calling `greger-tools--read-webpage` and `greger-tools--shell-command`, but these functions are actually named `greger-stdlib--read-webpage` and `greger-stdlib--shell-command`. Let me fix these function calls:
 
 ## TOOL USE:
 
 Name: str-replace
-ID: toolu_0123KAJKwnPnZ96Vu5FqDMLN
+ID: toolu_01CTX8gtz7JkL54MKdJ32gFr
 
 ### file_path
 
-<tool.toolu_0123KAJKwnPnZ96Vu5FqDMLN>
-greger-parser.el
-</tool.toolu_0123KAJKwnPnZ96Vu5FqDMLN>
+<tool.toolu_01CTX8gtz7JkL54MKdJ32gFr>
+test-greger-stdlib.el
+</tool.toolu_01CTX8gtz7JkL54MKdJ32gFr>
 
 ### original_content
 
-<tool.toolu_0123KAJKwnPnZ96Vu5FqDMLN>
-     ;; Return error message as content instead of failing silently
-     (format "[Error reading %s: %s]"
-             (if (greger-parser--is-web-url-p file-path) "URL" "file")
-             file-path))))
-</tool.toolu_0123KAJKwnPnZ96Vu5FqDMLN>
+<tool.toolu_01CTX8gtz7JkL54MKdJ32gFr>
+    (let ((result (greger-tools--read-webpage test-url t)))
+</tool.toolu_01CTX8gtz7JkL54MKdJ32gFr>
 
 ### new_content
 
-<tool.toolu_0123KAJKwnPnZ96Vu5FqDMLN>
-     ;; Return error message as content instead of failing silently
-     (format "[Error reading %s: %s]"
-             (if (greger-web-is-web-url-p file-path) "URL" "file")
-             file-path))))
-</tool.toolu_0123KAJKwnPnZ96Vu5FqDMLN>
+<tool.toolu_01CTX8gtz7JkL54MKdJ32gFr>
+    (let ((result (greger-stdlib--read-webpage test-url t)))
+</tool.toolu_01CTX8gtz7JkL54MKdJ32gFr>
 
 ### git_commit_message
 
-<tool.toolu_0123KAJKwnPnZ96Vu5FqDMLN>
-Fix typo in error handling: use correct function name greger-web-is-web-url-p
-</tool.toolu_0123KAJKwnPnZ96Vu5FqDMLN>
+<tool.toolu_01CTX8gtz7JkL54MKdJ32gFr>
+Fix function name from greger-tools--read-webpage to greger-stdlib--read-webpage
+</tool.toolu_01CTX8gtz7JkL54MKdJ32gFr>
 
-<!-- TOOL_RESULT_PLACEHOLDER_toolu_0123KAJKwnPnZ96Vu5FqDMLN -->
+<!-- TOOL_RESULT_PLACEHOLDER_toolu_01CTX8gtz7JkL54MKdJ32gFr -->
