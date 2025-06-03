@@ -1,5 +1,9 @@
 ;;; greger-providers.el --- AI provider configurations -*- lexical-binding: t -*-
 
+;; Author: Andreas Jansson <andreas@jansson.me.uk>
+;; Version: 0.1.0
+;; URL: https://github.com/andreasjansson/greger.el
+
 ;;; Commentary:
 ;; Manages different AI provider configurations and request building
 
@@ -56,3 +60,7 @@
 (provide 'greger-providers)
 
 ;;; greger-providers.el ends here
+
+;; Local Variables:
+;; package-lint-main-file: "greger.el"
+;; End:

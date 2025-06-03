@@ -1,5 +1,9 @@
 ;;; greger-parser.el --- Parser for greger dialog format -*- lexical-binding: t -*-
 
+;; Author: Andreas Jansson <andreas@jansson.me.uk>
+;; Version: 0.1.0
+;; URL: https://github.com/andreasjansson/greger.el
+
 ;;; Commentary:
 ;; Parses markdown-style dialog format with sections like ## USER:, ## ASSISTANT:, etc.
 ;; Handles tool use, thinking blocks, and complex content structures.
@@ -311,7 +315,7 @@ Returns nil when content is inserted, or the content string when it should be ap
                           (error-message-string err))
      ;; Return error message as content instead of failing silently
      (format "[Error reading %s: %s]"
-             (if (greger-parser--is-web-url-p file-path) "URL" "file")
+             (if (greger-web-is-web-url-p file-path) "URL" "file")
              file-path))))
 
 (defun greger-parser--skip-include-tag (state)
@@ -1040,3 +1044,7 @@ Returns either a system message, metadata, or both."
 (provide 'greger-parser)
 
 ;;; greger-parser.el ends here
+
+;; Local Variables:
+;; package-lint-main-file: "greger.el"
+;; End:

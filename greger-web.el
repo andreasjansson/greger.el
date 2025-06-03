@@ -1,5 +1,9 @@
 ;;; greger-web.el --- Web content handling for greger -*- lexical-binding: t -*-
 
+;; Author: Andreas Jansson <andreas@jansson.me.uk>
+;; Version: 0.1.0
+;; URL: https://github.com/andreasjansson/greger.el
+
 ;;; Commentary:
 ;; Functions for downloading web content and extracting text from URLs.
 ;; Originally part of greger-parser.el, moved here for better organization.
@@ -72,3 +76,7 @@ If USE-HIGHEST-READABILITY is non-nil, use eww's aggressive readability setting.
 (provide 'greger-web)
 
 ;;; greger-web.el ends here
+
+;; Local Variables:
+;; package-lint-main-file: "greger.el"
+;; End:

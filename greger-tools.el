@@ -1,19 +1,24 @@
 ;;; greger-tools.el --- Tool registry for greger agent -*- lexical-binding: t -*-
 
+;; Author: Andreas Jansson <andreas@jansson.me.uk>
+;; Version: 0.1.0
+;; URL: https://github.com/andreasjansson/greger.el
+
 ;;; Commentary:
 ;; Defines tools registration functions
 
 ;;; Code:
 
 (require 'json)
-(require 'magit)
-(require 'rg)
 (require 'cl-lib)
 
 ;; Registry to hold tool definitions
 (defvar greger-tools-registry (make-hash-table :test 'equal)
   "Hash table mapping tool names to their definitions.")
 
+;; greger-register-tool is the main public API of this package, so it uses the package prefix "greger-"
+;; rather than the file prefix "greger-tools-"
+;; package-lint: disable=wrong-prefix
 (defmacro greger-register-tool (name &rest args)
   "Register a tool with NAME and properties specified in ARGS.
 ARGS should be a plist containing :description, :properties, :required, :function, and optionally :pass-buffer, :pass-callback, and :pass-metadata.
@@ -184,3 +189,7 @@ Returns a list of arguments in the correct order for the function."
 (provide 'greger-tools)
 
 ;;; greger-tools.el ends here
+
+;; Local Variables:
+;; package-lint-main-file: "greger.el"
+;; End:

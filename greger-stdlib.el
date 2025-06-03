@@ -1,5 +1,9 @@
 ;;; greger-stdlib.el --- Tool definitions for greger agent -*- lexical-binding: t -*-
 
+;; Author: Andreas Jansson <andreas@jansson.me.uk>
+;; Version: 0.1.0
+;; URL: https://github.com/andreasjansson/greger.el
+
 ;;; Commentary:
 ;; Defines tools available to the greger agent
 
@@ -23,7 +27,7 @@
                              (description . "Ending line number (1-based) to stop reading at (inclusive). If not specified, reads to the end of the file.")
                              (default . nil))))
   :required '("path")
-  :function 'greger-tools--read-file)
+  :function 'greger-stdlib--read-file)
 
 (greger-register-tool "list-directory"
   :description "List files and directories in a given directory"
@@ -37,7 +41,7 @@
                               (description . "Whether to list files recursively")
                               (default . nil))))
   :required '()
-  :function 'greger-tools--list-directory)
+  :function 'greger-stdlib--list-directory)
 
 (greger-register-tool "ripgrep"
   :description "Search for patterns in files using ripgrep (rg) command line tool. Note that ripgrep only matches on single lines, so you can't search across multiple lines."
@@ -58,7 +62,7 @@
                                 (description . "Maximum number of results to return")
                                 (default . 50))))
   :required '("pattern")
-  :function 'greger-tools--ripgrep
+  :function 'greger-stdlib--ripgrep
   :pass-callback t)
 
 (greger-register-tool "write-new-file"
@@ -70,7 +74,7 @@
                 (git_commit_message . ((type . "string")
                                        (description . "Git commit message for this change"))))
   :required '("file_path" "contents" "git_commit_message")
-  :function 'greger-tools--write-new-file
+  :function 'greger-stdlib--write-new-file
   :pass-buffer t)
 
 (greger-register-tool "make-directory"
@@ -80,7 +84,7 @@
                 (git_commit_message . ((type . "string")
                                        (description . "Git commit message for this change"))))
   :required '("path" "git_commit_message")
-  :function 'greger-tools--make-directory
+  :function 'greger-stdlib--make-directory
   :pass-buffer t)
 
 (greger-register-tool "rename-file"
@@ -92,7 +96,7 @@
                 (git_commit_message . ((type . "string")
                                        (description . "Git commit message for this change"))))
   :required '("old_path" "new_path" "git_commit_message")
-  :function 'greger-tools--rename-file
+  :function 'greger-stdlib--rename-file
   :pass-buffer t)
 
 (greger-register-tool "replace-function"
@@ -108,7 +112,7 @@
                 (commit_message . ((type . "string")
                                    (description . "Git commit message for this change"))))
   :required '("file_path" "function_name" "contents" "line_number" "commit_message")
-  :function 'greger-tools--replace-function
+  :function 'greger-stdlib--replace-function
   :pass-buffer t)
 
 (greger-register-tool "replace-file"
@@ -120,7 +124,7 @@
                 (git_commit_message . ((type . "string")
                                        (description . "Git commit message for this change"))))
   :required '("file_path" "contents" "git_commit_message")
-  :function 'greger-tools--replace-file
+  :function 'greger-stdlib--replace-file
   :pass-buffer t)
 
 (greger-register-tool "str-replace"
@@ -134,7 +138,7 @@
                 (git_commit_message . ((type . "string")
                                        (description . "Git commit message for this change"))))
   :required '("file_path" "original_content" "new_content" "git_commit_message")
-  :function 'greger-tools--str-replace
+  :function 'greger-stdlib--str-replace
   :pass-buffer t)
 
 (greger-register-tool "insert"
@@ -148,7 +152,7 @@
                 (git_commit_message . ((type . "string")
                                        (description . "Git commit message for this change"))))
   :required '("file_path" "line_number" "content" "git_commit_message")
-  :function 'greger-tools--insert
+  :function 'greger-stdlib--insert
   :pass-buffer t)
 
 (greger-register-tool "git-log"
@@ -160,7 +164,7 @@
                             (description . "Maximum number of log entries to return")
                             (default . 100))))
   :required '()
-  :function 'greger-tools--git-log)
+  :function 'greger-stdlib--git-log)
 
 (greger-register-tool "git-show-commit"
   :description "View a specific git commit."
@@ -170,7 +174,7 @@
                          (description . "Path to the git repository or any file in the repository")
                          (default . "."))))
   :required '("commit_hash")
-  :function 'greger-tools--git-show-commit)
+  :function 'greger-stdlib--git-show-commit)
 
 (greger-register-tool "ert-test"
   :description "Execute ERT tests by evaluating Emacs lisp test functions and running them with ert"
@@ -180,7 +184,7 @@
                                    (items . ((type . "string")))
                                    (description . "List of ERT test function names to evaluate and run"))))
   :required '("test_file_path" "function_names")
-  :function 'greger-tools--ert-test)
+  :function 'greger-stdlib--ert-test)
 
 (greger-register-tool "eval-elisp-defuns"
   :description "Evaluate Emacs lisp defuns in a specific file. Note that defuns must be evaluated before you run ert-test to test them, if you've updated the code."
@@ -190,7 +194,7 @@
                                    (items . ((type . "string")))
                                    (description . "List of function names to evaluate and run"))))
   :required '("file_path" "function_names")
-  :function 'greger-tools--eval-elisp-defuns)
+  :function 'greger-stdlib--eval-elisp-defuns)
 
 (greger-register-tool "shell-command"
   :description "Execute an arbitrary shell command and return the output. Prompts for permission before running the command for security."
@@ -200,7 +204,7 @@
                                       (description . "Directory to run the command in")
                                       (default . "."))))
   :required '("command")
-  :function 'greger-tools--shell-command
+  :function 'greger-stdlib--shell-command
   :pass-callback t
   :pass-metadata t)
 
@@ -215,11 +219,11 @@
                                             (description . "Whether to use eww's aggressive highest readability setting for better text extraction")
                                             (default . nil))))
   :required '("url")
-  :function 'greger-tools--read-webpage)
+  :function 'greger-stdlib--read-webpage)
 
 ;; Helper functions
 
-(defun greger-tools--run-async-subprocess (command args working-directory callback)
+(defun greger-stdlib--run-async-subprocess (command args working-directory callback)
   "Run COMMAND with ARGS in WORKING-DIRECTORY and call CALLBACK with (output error).
 CALLBACK will be called with (output nil) on success or (nil error-message) on failure."
   (let* ((process-name (format "greger-subprocess-%s" (make-temp-name "")))
@@ -258,7 +262,7 @@ CALLBACK will be called with (output nil) on success or (nil error-message) on f
          (kill-buffer process-buffer))
        (funcall callback nil (format "Failed to start process: %s" (error-message-string err)))))))
 
-(defun greger-tools--find-git-repo-root (start-dir)
+(defun greger-stdlib--find-git-repo-root (start-dir)
   "Find the git repository root starting from START-DIR."
   (let ((dir (expand-file-name start-dir)))
     (while (and dir
@@ -268,7 +272,7 @@ CALLBACK will be called with (output nil) on success or (nil error-message) on f
     (when (and dir (file-exists-p (expand-file-name ".git" dir)))
       dir)))
 
-(defun greger-tools--is-file-tracked-by-git (file-path repo-root)
+(defun greger-stdlib--is-file-tracked-by-git (file-path repo-root)
   "Check if FILE-PATH is tracked by git in REPO-ROOT.
 Returns t if the file is tracked, nil otherwise."
   (let ((default-directory repo-root)
@@ -277,13 +281,13 @@ Returns t if the file is tracked, nil otherwise."
 
 ;; Tools below
 
-(defun greger-tools--git-stage-and-commit (files commit-message &optional chat-buffer)
+(defun greger-stdlib--git-stage-and-commit (files commit-message &optional chat-buffer)
   "Stage FILES and commit with COMMIT-MESSAGE using git command line.
 If CHAT-BUFFER is provided, also stage and commit the chat buffer file."
   (condition-case err
       (let* ((first-file (car files))
              (file-dir (file-name-directory (expand-file-name first-file)))
-             (repo-root (greger-tools--find-git-repo-root file-dir)))
+             (repo-root (greger-stdlib--find-git-repo-root file-dir)))
         (unless repo-root
           (error "File %s is not in a git repository" first-file))
 
@@ -295,7 +299,7 @@ If CHAT-BUFFER is provided, also stage and commit the chat buffer file."
           (when (and chat-buffer (buffer-file-name chat-buffer))
             (let ((chat-file (buffer-file-name chat-buffer)))
               ;; Only proceed if the chat file is already tracked by git
-              (when (greger-tools--is-file-tracked-by-git chat-file repo-root)
+              (when (greger-stdlib--is-file-tracked-by-git chat-file repo-root)
                 ;; Save the chat buffer first if it has unsaved changes
                 (with-current-buffer chat-buffer
                   (when (buffer-modified-p)
@@ -318,7 +322,7 @@ If CHAT-BUFFER is provided, also stage and commit the chat buffer file."
     (error
      (format "Git operation failed: %s" (error-message-string err)))))
 
-(defun greger-tools--read-file (path &optional include-line-numbers start-line end-line)
+(defun greger-stdlib--read-file (path &optional include-line-numbers start-line end-line)
   "Read file at PATH. If INCLUDE-LINE-NUMBERS is non-nil, prepend line numbers.
 If START-LINE is specified, start reading from that line (1-based).
 If END-LINE is specified, stop reading at that line (inclusive, 1-based)."
@@ -357,14 +361,14 @@ If END-LINE is specified, stop reading at that line (inclusive, 1-based)."
                  (total-lines (length all-lines))
                  (actual-start (or start-line 1))
                  (actual-end (or end-line total-lines))
-                 (selected-lines (greger-tools--extract-line-range all-lines actual-start actual-end))
+                 (selected-lines (greger-stdlib--extract-line-range all-lines actual-start actual-end))
                  (contents (mapconcat 'identity selected-lines "\n")))
             (if include-line-numbers
-                (greger-tools--add-line-numbers-with-offset contents actual-start)
+                (greger-stdlib--add-line-numbers-with-offset contents actual-start)
               contents)))
       (error (format "Failed to read file: %s" (error-message-string err))))))
 
-(defun greger-tools--extract-line-range (lines start-line end-line)
+(defun greger-stdlib--extract-line-range (lines start-line end-line)
   "Extract lines from LINES between START-LINE and END-LINE (1-based, inclusive)."
   (let ((start-index (1- start-line))  ; Convert to 0-based index
         (end-index (1- end-line)))     ; Convert to 0-based index
@@ -374,7 +378,7 @@ If END-LINE is specified, stop reading at that line (inclusive, 1-based)."
     ;; Extract the range
     (cl-subseq lines start-index (1+ end-index))))
 
-(defun greger-tools--add-line-numbers-with-offset (content start-line-num)
+(defun greger-stdlib--add-line-numbers-with-offset (content start-line-num)
   "Add line numbers to CONTENT string starting from START-LINE-NUM."
   (let ((lines (split-string content "\n"))
         (line-num start-line-num)
@@ -392,7 +396,7 @@ If END-LINE is specified, stop reading at that line (inclusive, 1-based)."
     ;; Join back with newlines
     (mapconcat 'identity (reverse result) "\n")))
 
-(defun greger-tools--list-directory (path &optional show-hidden recursive)
+(defun greger-stdlib--list-directory (path &optional show-hidden recursive)
   "List directory contents at PATH."
   (unless (stringp path)
     (error "Path must be a string"))
@@ -409,7 +413,7 @@ If END-LINE is specified, stop reading at that line (inclusive, 1-based)."
 
     (condition-case err
         (let ((files (if recursive
-                         (greger-tools--list-directory-recursive expanded-path show-hidden)
+                         (greger-stdlib--list-directory-recursive expanded-path show-hidden)
                        (directory-files expanded-path nil
                                         (if show-hidden "^[^.]\\|^\\.[^.]" "^[^.]")))))
           (if files
@@ -422,7 +426,7 @@ If END-LINE is specified, stop reading at that line (inclusive, 1-based)."
             "Directory is empty"))
       (error (format "Failed to list directory: %s" (error-message-string err))))))
 
-(defun greger-tools--list-directory-recursive (path show-hidden &optional prefix)
+(defun greger-stdlib--list-directory-recursive (path show-hidden &optional prefix)
   "Recursively list directory contents at PATH."
   (let ((files '())
         (prefix (or prefix "")))
@@ -436,13 +440,13 @@ If END-LINE is specified, stop reading at that line (inclusive, 1-based)."
             (progn
               (push (concat display-name "/") files)
               (setq files (append files
-                                  (greger-tools--list-directory-recursive
+                                  (greger-stdlib--list-directory-recursive
                                    full-path show-hidden (concat prefix file "/")))))
           (push display-name files))))
 
     (reverse files)))
 
-(defun greger-tools--ripgrep (pattern path callback &optional case-sensitive file-type context-lines max-results)
+(defun greger-stdlib--ripgrep (pattern path callback &optional case-sensitive file-type context-lines max-results)
   "Search for PATTERN in PATH using the rg command line tool directly."
   (cond
    ((not (stringp pattern))
@@ -486,7 +490,7 @@ If END-LINE is specified, stop reading at that line (inclusive, 1-based)."
           (setq args (append args (list pattern expanded-path)))
 
           ;; Execute the command asynchronously
-          (greger-tools--run-async-subprocess
+          (greger-stdlib--run-async-subprocess
            "rg" args nil
            (lambda (output error)
              (if error
@@ -495,9 +499,9 @@ If END-LINE is specified, stop reading at that line (inclusive, 1-based)."
                        (if (string-empty-p (string-trim output))
                            "No matches found"
                          output)
-                       nil)))))))))
+                       nil))))))))))
 
-(defun greger-tools--write-new-file (file-path contents git-commit-message &optional buffer)
+(defun greger-stdlib--write-new-file (file-path contents git-commit-message &optional buffer)
   "Write CONTENTS to a new file at FILE-PATH. Fails if file already exists.
 If BUFFER is provided, it will be staged and committed along with the new file."
   (unless (stringp file-path)
@@ -525,11 +529,11 @@ If BUFFER is provided, it will be staged and committed along with the new file."
       (error (format "Failed to write file: %s" (error-message-string err))))
 
     ;; Stage and commit changes - infer the file to stage
-    (let ((git-result (greger-tools--git-stage-and-commit (list expanded-path) git-commit-message buffer)))
+    (let ((git-result (greger-stdlib--git-stage-and-commit (list expanded-path) git-commit-message buffer)))
       (format "Successfully wrote new file %s with %d characters. %s"
               expanded-path (length contents) git-result))))
 
-(defun greger-tools--make-directory (path git-commit-message &optional buffer)
+(defun greger-stdlib--make-directory (path git-commit-message &optional buffer)
   "Recursively create directory at PATH.
 If BUFFER is provided, it will be staged and committed along with the directory."
   (unless (stringp path)
@@ -549,11 +553,11 @@ If BUFFER is provided, it will be staged and committed along with the directory.
             (make-directory expanded-path t)
             ;; For directory creation, we might want to stage a .gitkeep file or similar
             ;; For now, we'll stage the directory path itself (though git doesn't track empty dirs)
-            (let ((git-result (greger-tools--git-stage-and-commit (list expanded-path) git-commit-message buffer)))
+            (let ((git-result (greger-stdlib--git-stage-and-commit (list expanded-path) git-commit-message buffer)))
               (format "Successfully created directory: %s. %s" expanded-path git-result)))
         (error (format "Failed to create directory: %s" (error-message-string err)))))))
 
-(defun greger-tools--rename-file (old-path new-path git-commit-message &optional buffer)
+(defun greger-stdlib--rename-file (old-path new-path git-commit-message &optional buffer)
   "Rename file from OLD-PATH to NEW-PATH.
 If BUFFER is provided, it will be staged and committed along with the renamed file."
   (unless (stringp old-path)
@@ -583,13 +587,13 @@ If BUFFER is provided, it will be staged and committed along with the renamed fi
         (progn
           (rename-file expanded-old-path expanded-new-path)
           ;; Stage both old and new paths (git mv operation)
-          (let ((git-result (greger-tools--git-stage-and-commit
+          (let ((git-result (greger-stdlib--git-stage-and-commit
                              (list expanded-old-path expanded-new-path)
                              git-commit-message buffer)))
             (format "Successfully renamed %s to %s. %s" expanded-old-path expanded-new-path git-result)))
       (error (format "Failed to rename file: %s" (error-message-string err))))))
 
-(defun greger-tools--replace-function (file-path function-name contents line-number commit-message &optional buffer)
+(defun greger-stdlib--replace-function (file-path function-name contents line-number commit-message &optional buffer)
   "Replace FUNCTION-NAME in FILE-PATH with new CONTENTS at LINE-NUMBER.
 If BUFFER is provided, it will be staged and committed along with the modified file."
   (unless (stringp file-path)
@@ -665,11 +669,11 @@ If BUFFER is provided, it will be staged and committed along with the modified f
      (save-buffer))
 
     ;; Stage and commit the file
-    (let ((git-result (greger-tools--git-stage-and-commit (list expanded-path) commit-message buffer)))
+    (let ((git-result (greger-stdlib--git-stage-and-commit (list expanded-path) commit-message buffer)))
       (format "Successfully replaced function '%s' in %s. %s"
               function-name expanded-path git-result))))
 
-(defun greger-tools--replace-file (file-path contents git-commit-message &optional buffer)
+(defun greger-stdlib--replace-file (file-path contents git-commit-message &optional buffer)
   "Replace the entire contents of FILE-PATH with CONTENTS.
 If BUFFER is provided, it will be staged and committed along with the modified file."
   (unless (stringp file-path)
@@ -700,11 +704,11 @@ If BUFFER is provided, it will be staged and committed along with the modified f
      (save-buffer))
 
     ;; Stage and commit the file
-    (let ((git-result (greger-tools--git-stage-and-commit (list expanded-path) git-commit-message buffer)))
+    (let ((git-result (greger-stdlib--git-stage-and-commit (list expanded-path) git-commit-message buffer)))
       (format "Successfully replaced contents of %s with %d characters. %s"
               expanded-path (length contents) git-result))))
 
-(defun greger-tools--str-replace (file-path original-content new-content git-commit-message &optional buffer)
+(defun greger-stdlib--str-replace (file-path original-content new-content git-commit-message &optional buffer)
   "Replace ORIGINAL-CONTENT with NEW-CONTENT in FILE-PATH.
 If BUFFER is provided, it will be staged and committed along with the modified file."
   (unless (stringp file-path)
@@ -742,10 +746,10 @@ If BUFFER is provided, it will be staged and committed along with the modified f
          (error "Original content not found in file: %s -- Try again!" expanded-path))))
 
     ;; Stage and commit the file
-    (let ((git-result (greger-tools--git-stage-and-commit (list expanded-path) git-commit-message buffer)))
+    (let ((git-result (greger-stdlib--git-stage-and-commit (list expanded-path) git-commit-message buffer)))
       (format "Successfully replaced content in %s. %s" expanded-path git-result))))
 
-(defun greger-tools--insert (file-path line-number content git-commit-message &optional buffer)
+(defun greger-stdlib--insert (file-path line-number content git-commit-message &optional buffer)
   "Insert CONTENT at LINE-NUMBER in FILE-PATH.
 If BUFFER is provided, it will be staged and committed along with the modified file."
   (unless (stringp file-path)
@@ -801,11 +805,11 @@ If BUFFER is provided, it will be staged and committed along with the modified f
      (save-buffer))
 
     ;; Stage and commit the file
-    (let ((git-result (greger-tools--git-stage-and-commit (list expanded-path) git-commit-message buffer)))
+    (let ((git-result (greger-stdlib--git-stage-and-commit (list expanded-path) git-commit-message buffer)))
       (format "Successfully inserted %d characters at line %d in %s. %s"
               (length content) line-number expanded-path git-result))))
 
-(defun greger-tools--git-log (path &optional max-rows)
+(defun greger-stdlib--git-log (path &optional max-rows)
   "View git commit logs using git command line for PATH."
   (unless (stringp path)
     (error "path must be a string"))
@@ -820,7 +824,7 @@ If BUFFER is provided, it will be staged and committed along with the modified f
     (let* ((search-dir (if (file-directory-p expanded-path)
                           expanded-path
                         (file-name-directory expanded-path)))
-           (repo-root (greger-tools--find-git-repo-root search-dir)))
+           (repo-root (greger-stdlib--find-git-repo-root search-dir)))
       (unless repo-root
         (error "Path %s is not in a git repository" expanded-path))
 
@@ -838,7 +842,7 @@ If BUFFER is provided, it will be staged and committed along with the modified f
                   (error "Git log command failed with exit code %d" exit-code)))))
         (error (format "Failed to retrieve git log: %s" (error-message-string err)))))))
 
-(defun greger-tools--git-show-commit (commit-hash path)
+(defun greger-stdlib--git-show-commit (commit-hash path)
   "View git commit using git command line for PATH."
   (unless (stringp commit-hash)
     (error "commit_hash must be a string"))
@@ -855,7 +859,7 @@ If BUFFER is provided, it will be staged and committed along with the modified f
     (let* ((search-dir (if (file-directory-p expanded-path)
                           expanded-path
                         (file-name-directory expanded-path)))
-           (repo-root (greger-tools--find-git-repo-root search-dir)))
+           (repo-root (greger-stdlib--find-git-repo-root search-dir)))
       (unless repo-root
         (error "Path %s is not in a git repository" expanded-path))
 
@@ -871,7 +875,7 @@ If BUFFER is provided, it will be staged and committed along with the modified f
                   (error "Git show command failed with exit code %d" exit-code)))))
         (error (format "Failed to show git commit: %s" (error-message-string err)))))))
 
-(defun greger-tools--eval-elisp-defuns (file-path function-names)
+(defun greger-stdlib--eval-elisp-defuns (file-path function-names)
   (unless (stringp file-path)
     (error "File path must be a string"))
 
@@ -904,13 +908,13 @@ If BUFFER is provided, it will be staged and committed along with the modified f
            (eval-defun nil)))))
     "Eval successful"))
 
-(defun greger-tools--ert-test (test-file-path function-names)
+(defun greger-stdlib--ert-test (test-file-path function-names)
   "Execute ERT tests by evaluating test functions and running them with ert.
 TEST-FILE-PATH is the path to the test file.
 FUNCTION-NAMES is a vector of test function names to evaluate and run."
 
   ;; First eval the test function names
-  (greger-tools--eval-elisp-defuns test-file-path function-names)
+  (greger-stdlib--eval-elisp-defuns test-file-path function-names)
 
   (condition-case err
       (progn
@@ -977,7 +981,7 @@ FUNCTION-NAMES is a vector of test function names to evaluate and run."
 
     (error (format "Failed to execute ERT tests: %s" (error-message-string err)))))
 
-(defun greger-tools--shell-command (command callback &optional working-directory metadata)
+(defun greger-stdlib--shell-command (command callback &optional working-directory metadata)
   "Execute COMMAND in WORKING-DIRECTORY and call CALLBACK with (result error).
 Prompts for permission before running the command for security.
 If METADATA contains safe-shell-commands and COMMAND is in that list, skips permission prompt."
@@ -1011,7 +1015,7 @@ If METADATA contains safe-shell-commands and COMMAND is in that list, skips perm
           ;; Check if command contains shell operators (pipes, redirections, etc.)
           (if (string-match-p "[|><&;]" command)
               ;; Use shell to execute commands with shell operators
-              (greger-tools--run-async-subprocess
+              (greger-stdlib--run-async-subprocess
                "sh" (list "-c" command) expanded-work-dir
                (lambda (output error)
                  (if error
@@ -1025,16 +1029,16 @@ If METADATA contains safe-shell-commands and COMMAND is in that list, skips perm
                    (args (cdr command-parts)))
 
               ;; Execute the command asynchronously
-              (greger-tools--run-async-subprocess
+              (greger-stdlib--run-async-subprocess
                program args expanded-work-dir
                (lambda (output error)
                  (if error
                      (funcall callback nil error)
                    (funcall callback
                            (format "Command executed successfully:\n%s" output)
-                           nil))))))))))))))
+                           nil)))))))))))))
 
-(defun greger-tools--read-webpage (url &optional extract-text use-highest-readability)
+(defun greger-stdlib--read-webpage (url &optional extract-text use-highest-readability)
   "Read webpage content from URL.
 If EXTRACT-TEXT is non-nil (default t), extract and return text content.
 If EXTRACT-TEXT is nil, return raw HTML.
@@ -1055,3 +1059,7 @@ If USE-HIGHEST-READABILITY is non-nil, use eww's aggressive readability setting.
 (provide 'greger-stdlib)
 
 ;;; greger-stdlib.el ends here
+
+;; Local Variables:
+;; package-lint-main-file: "greger.el"
+;; End:

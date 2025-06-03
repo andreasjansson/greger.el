@@ -1,5 +1,9 @@
 ;;; greger-provider-claude.el --- Claude provider support -*- lexical-binding: t -*-
 
+;; Author: Andreas Jansson <andreas@jansson.me.uk>
+;; Version: 0.1.0
+;; URL: https://github.com/andreasjansson/greger.el
+
 ;;; Commentary:
 ;; Support for Anthropic's Claude models
 
@@ -111,4 +115,8 @@
 
 (provide 'greger-provider-claude)
 
-;;; greger-provider-claude.el ends hereb
+;;; greger-provider-claude.el ends here
+
+;; Local Variables:
+;; package-lint-main-file: "greger.el"
+;; End:

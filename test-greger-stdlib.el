@@ -15,34 +15,34 @@
   (let ((test-url "https://pub-b88c9764a4fc46baa90b9e8e1544f59e.r2.dev/hello.html"))
 
     ;; Test with text extraction (default)
-    (let ((result (greger-tools--read-webpage test-url t)))
+    (let ((result (greger-stdlib--read-webpage test-url t)))
       (should (stringp result))
       (should (string= "Hello world!\n" result)))
 
     ;; Test with raw HTML
-    (let ((result (greger-tools--read-webpage test-url nil)))
+    (let ((result (greger-stdlib--read-webpage test-url nil)))
       (should (stringp result))
       (should (string= "<h1>Hello world!</h1>\n" result)))
 
     ;; Test with readability enhancement
-    (let ((result (greger-tools--read-webpage test-url t t)))
+    (let ((result (greger-stdlib--read-webpage test-url t t)))
       (should (stringp result))
       (should (string= "Hello world!\n" result)))))
 
 (ert-deftest greger-test-read-webpage-invalid-url ()
   "Test reading a webpage with invalid URLs."
   ;; Test empty URL
-  (should-error (greger-tools--read-webpage ""))
-  (should-error (greger-tools--read-webpage "   "))
+  (should-error (greger-stdlib--read-webpage ""))
+  (should-error (greger-stdlib--read-webpage "   "))
 
   ;; Test non-string URL
-  (should-error (greger-tools--read-webpage nil))
-  (should-error (greger-tools--read-webpage 123))
+  (should-error (greger-stdlib--read-webpage nil))
+  (should-error (greger-stdlib--read-webpage 123))
 
   ;; Test invalid URL format
-  (should-error (greger-tools--read-webpage "ftp://example.com"))
-  (should-error (greger-tools--read-webpage "not-a-url"))
-  (should-error (greger-tools--read-webpage "file:///path/to/file")))
+  (should-error (greger-stdlib--read-webpage "ftp://example.com"))
+  (should-error (greger-stdlib--read-webpage "not-a-url"))
+  (should-error (greger-stdlib--read-webpage "file:///path/to/file")))
 
 (ert-deftest greger-test-read-webpage-network-error ()
   "Test reading a webpage when network error occurs."
@@ -51,7 +51,7 @@
              (lambda (url extract-text use-highest-readability)
                (error "Network timeout"))))
 
-    (let ((result (greger-tools--read-webpage "https://pub-b88c9764a4fc46baa90b9e8e1544f59e.r2.dev/hello.html")))
+    (let ((result (greger-stdlib--read-webpage "https://pub-b88c9764a4fc46baa90b9e8e1544f59e.r2.dev/hello.html")))
       (should (stringp result))
       (should (string-match-p "Failed to read webpage" result))
       (should (string-match-p "Network timeout" result)))))
@@ -80,7 +80,7 @@
     (cl-letf (((symbol-function 'y-or-n-p) (lambda (prompt) t)))
 
       ;; Execute a simple echo command
-      (greger-tools--shell-command
+      (greger-stdlib--shell-command
        "echo hello world"
        (lambda (output err)
          (setq result output error err callback-called t)))
@@ -108,7 +108,7 @@
     (cl-letf (((symbol-function 'y-or-n-p) (lambda (prompt) t)))
 
       ;; Execute a command with a pipe
-      (greger-tools--shell-command
+      (greger-stdlib--shell-command
        "echo 'apple\nbanana\ncherry' | grep 'an'"
        (lambda (output err)
          (setq result output error err callback-called t)))
@@ -136,7 +136,7 @@
     (cl-letf (((symbol-function 'y-or-n-p) (lambda (prompt) nil)))
 
       ;; Try to execute a command
-      (greger-tools--shell-command
+      (greger-stdlib--shell-command
        "echo test"
        (lambda (output err)
          (setq result output error err callback-called t)))
@@ -157,7 +157,7 @@
     (cl-letf (((symbol-function 'y-or-n-p) (lambda (prompt) t)))
 
       ;; Execute a command that should fail
-      (greger-tools--shell-command
+      (greger-stdlib--shell-command
        "false"  ; Command that always exits with code 1
        (lambda (output err)
          (setq result output error err callback-called t)))
@@ -191,7 +191,7 @@
       (let ((metadata '(:safe-shell-commands ("echo safe command" "pwd" "ls -la"))))
 
         ;; Execute a command that's in the safe list
-        (greger-tools--shell-command
+        (greger-stdlib--shell-command
          "echo safe command"
          (lambda (output err)
            (setq result output error err callback-called t))
@@ -230,7 +230,7 @@
       (let ((metadata '(:safe-shell-commands ("echo safe command" "pwd"))))
 
         ;; Execute a command that's NOT in the safe list
-        (greger-tools--shell-command
+        (greger-stdlib--shell-command
          "echo unsafe command"
          (lambda (output err)
            (setq result output error err callback-called t))
@@ -266,7 +266,7 @@
                  t)))
 
         ;; Execute a command without any metadata
-        (greger-tools--shell-command
+        (greger-stdlib--shell-command
          "echo no metadata"
          (lambda (output err)
            (setq result output error err callback-called t))

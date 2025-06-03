@@ -1,5 +1,9 @@
 ;;; greger-agent.el --- Agent capabilities for greger -*- lexical-binding: t -*-
 
+;; Author: Andreas Jansson <andreas@jansson.me.uk>
+;; Version: 0.1.0
+;; URL: https://github.com/andreasjansson/greger.el
+
 ;;; Commentary:
 ;; Provides agent functionality with tool support for greger
 
@@ -12,10 +16,21 @@
 (require 'greger-stream)
 (require 'greger-tools)
 (require 'greger-stdlib)
-(require 'greger-lib-lsp)
+;; Optional LSP integration
+(condition-case nil
+    (require 'greger-lib-lsp)
+  (error nil))
 
 ;; not using patch tool, it's too messy
-(defcustom greger-agent-tools '("read-file" "list-directory" "str-replace" "insert" "write-new-file" "replace-file" "replace-function" "make-directory" "rename-file" "ripgrep" "git-log" "git-show-commit" "shell-command" "read-webpage" "lsp-rename" "lsp-find-definition" "lsp-find-references" "lsp-format" "lsp-document-symbols")
+(defun greger-agent--default-tools ()
+  "Return default tools list, including LSP tools if available."
+  (let ((base-tools '("read-file" "list-directory" "str-replace" "insert" "write-new-file" "replace-file" "replace-function" "make-directory" "rename-file" "ripgrep" "git-log" "git-show-commit" "shell-command" "read-webpage"))
+        (lsp-tools '("lsp-rename" "lsp-find-definition" "lsp-find-references" "lsp-format" "lsp-document-symbols")))
+    (if (and (boundp 'greger-lib-lsp-available) greger-lib-lsp-available)
+        (append base-tools lsp-tools)
+      base-tools)))
+
+(defcustom greger-agent-tools (greger-agent--default-tools)
   "List of tools available to the agent."
   :type '(repeat symbol)
   :group 'greger)
@@ -246,3 +261,7 @@ This function is kept for backward compatibility but is no longer used in the ne
 (provide 'greger-agent)
 
 ;;; greger-agent.el ends here
+
+;; Local Variables:
+;; package-lint-main-file: "greger.el"
+;; End:

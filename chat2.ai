@@ -1,0 +1,1104 @@
+## SYSTEM:
+
+## USER:
+
+I got an error when the tool sent a vector as file-paths to greger-lib-lsp--document-symbols. Update that to expect a vector rather than an elisp list, and update the tests in test-greger-lib-lsp.el accordingly
+
+## ASSISTANT:
+
+I'll help you fix the issue with the vector parameter in the LSP document symbols function. Let me first examine the current code to understand the structure.
+
+## TOOL USE:
+
+Name: list-directory
+ID: toolu_01Nkwh2EoC4QA1rFmsK2Agbb
+
+### path
+
+<tool.toolu_01Nkwh2EoC4QA1rFmsK2Agbb>
+.
+</tool.toolu_01Nkwh2EoC4QA1rFmsK2Agbb>
+
+## TOOL RESULT:
+
+ID: toolu_01Nkwh2EoC4QA1rFmsK2Agbb
+
+<tool.toolu_01Nkwh2EoC4QA1rFmsK2Agbb>
+chat.ai
+chat2.ai
+chat3.ai
+chat4.ai
+chat5.ai
+debug-test.el
+greger-agent.el
+greger-lib-lsp.el
+greger-parser.el
+greger-provider-claude.el
+greger-provider-google.el
+greger-provider-openai.el
+greger-providers.el
+greger-stdlib.el
+greger-stream.el
+greger-tools.el
+greger-web.el
+greger.el
+request.json
+test-greger-agent.el
+test-greger-lib-lsp.el
+test-greger-parser.el
+test-greger-stdlib.el
+test-greger-tools.el
+</tool.toolu_01Nkwh2EoC4QA1rFmsK2Agbb>
+
+## ASSISTANT:
+
+Now let me examine the current implementation of the LSP document symbols function:
+
+## TOOL USE:
+
+Name: read-file
+ID: toolu_01UdtsBVAc9Z3dTcBuUMTQN9
+
+### path
+
+<tool.toolu_01UdtsBVAc9Z3dTcBuUMTQN9>
+greger-lib-lsp.el
+</tool.toolu_01UdtsBVAc9Z3dTcBuUMTQN9>
+
+## TOOL RESULT:
+
+ID: toolu_01UdtsBVAc9Z3dTcBuUMTQN9
+
+<tool.toolu_01UdtsBVAc9Z3dTcBuUMTQN9>
+;;; greger-lib-lsp.el --- LSP-based tools for greger agent -*- lexical-binding: t -*-
+
+;;; Commentary:
+;; Provides LSP-powered refactoring and code analysis tools for greger
+
+;;; Code:
+
+(require 'greger-tools)
+(require 'lsp-mode)
+(require 'cl-lib)
+
+;;; Tool registrations
+
+(greger-register-tool "lsp-rename"
+  :description "Rename a symbol across the entire codebase using LSP"
+  :properties '((new_name . ((type . "string")
+                            (description . "New name for the symbol")))
+                (file_path . ((type . "string")
+                             (description . "Path to file containing the symbol")))
+                (line . ((type . "integer")
+                        (description . "Line number (1-based) where symbol is located")))
+                (column . ((type . "integer")
+                          (description . "Column number (0-based) where symbol starts"))))
+  :required '("new_name" "file_path" "line" "column")
+  :function 'greger-lib-lsp--rename)
+
+(greger-register-tool "lsp-format"
+  :description "Format code according to language standards using LSP"
+  :properties '((file_path . ((type . "string")
+                             (description . "Path to the file to format")))
+                (start_line . ((type . "integer")
+                              (description . "Start line for range formatting (1-based). If not provided, formats entire file")
+                              (default . nil)))
+                (end_line . ((type . "integer")
+                            (description . "End line for range formatting (1-based). If not provided, formats entire file")
+                            (default . nil))))
+  :required '("file_path")
+  :function 'greger-lib-lsp--format)
+
+(greger-register-tool "lsp-find-definition"
+  :description "Find the definition(s) of a symbol at a specific location"
+  :properties '((file_path . ((type . "string")
+                             (description . "Path to the file")))
+                (line . ((type . "integer")
+                        (description . "Line number (1-based)")))
+                (column . ((type . "integer")
+                          (description . "Column number (0-based)")))
+                (include_declaration . ((type . "boolean")
+                                       (description . "Also include declarations")
+                                       (default . :json-false))))
+  :required '("file_path" "line" "column")
+  :function 'greger-lib-lsp--find-definition)
+
+(greger-register-tool "lsp-find-references"
+  :description "Find all references to a symbol at a specific location"
+  :properties '((file_path . ((type . "string")
+                             (description . "Path to the file")))
+                (line . ((type . "integer")
+                        (description . "Line number (1-based)")))
+                (column . ((type . "integer")
+                          (description . "Column number (0-based)")))
+                (include_declaration . ((type . "boolean")
+                                       (description . "Include the symbol declaration in results")
+                                       (default . :json-true)))
+                (max_results . ((type . "integer")
+                               (description . "Maximum number of references to return")
+                               (default . 100))))
+  :required '("file_path" "line" "column")
+  :function 'greger-lib-lsp--find-references)
+
+(greger-register-tool "lsp-document-symbols"
+  :description "Get document symbols for one or more files. This is a cheap way to list all the functions in one or more files to get familiar with unseed code."
+  :properties '((file_paths . ((type . "array")
+                              (items . ((type . "string")))
+                              (description . "List of file paths to get symbols for")))
+                (detailed . ((type . "boolean")
+                            (description . "Include detailed symbols like variables, constants, etc.")
+                            (default . :json-false))))
+  :required '("file_paths")
+  :function 'greger-lib-lsp--document-symbols)
+
+;;; Helper functions
+
+(defun greger-lsp--ensure-server (file-path)
+  "Ensure LSP server is running for FILE-PATH.
+Returns the buffer visiting the file, or signals an error if LSP is not available."
+  (let ((buffer (or (find-buffer-visiting file-path)
+                    (find-file-noselect file-path))))
+    (with-current-buffer buffer
+      (unless (and (bound-and-true-p lsp-mode) lsp--buffer-workspaces)
+        (if (fboundp 'lsp)
+            (progn
+              (lsp)
+              (unless lsp--buffer-workspaces
+                (error "Failed to start LSP server for %s" file-path)))
+          (error "LSP mode not available. Please install and configure lsp-mode"))))
+    buffer))
+
+(defun greger-lsp--with-buffer-at-position (file-path line column func)
+  "Execute FUNC in buffer visiting FILE-PATH at LINE and COLUMN.
+LINE is 1-based, COLUMN is 0-based."
+  (let ((buffer (greger-lsp--ensure-server file-path)))
+    (with-current-buffer buffer
+      (save-excursion
+        (condition-case err
+            (progn
+              ;; Ensure line is within buffer bounds
+              (let ((max-line (line-number-at-pos (point-max))))
+                (when (> line max-line)
+                  (error "Line %d exceeds file length (%d lines)" line max-line)))
+
+              ;; Go to the specified line
+              (goto-char (point-min))
+              (forward-line (1- line))
+
+              ;; Ensure column is within line bounds
+              (let ((line-length (- (line-end-position) (line-beginning-position))))
+                (forward-char (min column line-length)))
+
+              (funcall func))
+          (error
+           (error "Position error in %s at line %d, column %d: %s"
+                  file-path line column (error-message-string err))))))))
+
+(defun greger-lsp--feature-supported-p (method)
+  "Check if the current LSP server supports METHOD."
+  (lsp-feature? method))
+
+(defun greger-lsp--position-params (file-path line column)
+  "Create LSP position parameters for FILE-PATH at LINE and COLUMN."
+  (greger-lsp--with-buffer-at-position file-path line column
+    (lambda ()
+      (lsp--text-document-position-params))))
+
+(defun greger-lsp--format-location (location)
+  "Format a single LSP LOCATION for display."
+  (let* ((uri (lsp:location-uri location))
+         (range (lsp:location-range location))
+         (start (lsp:range-start range))
+         (line (1+ (lsp:position-line start)))
+         (character (lsp:position-character start))
+         (file-path (lsp--uri-to-path uri)))
+    (format "%s:%d:%d" (substring-no-properties (file-relative-name file-path)) line character)))
+
+(defun greger-lsp--format-locations (locations)
+  "Format a list of LSP LOCATIONS for display."
+  (if (null locations)
+      "No locations found"
+    (mapconcat #'greger-lsp--format-location locations "\n")))
+
+(defun greger-lsp--format-symbol (symbol)
+  "Format a single LSP SYMBOL for display."
+  (let* ((name (lsp:symbol-information-name symbol))
+         (kind (lsp:symbol-information-kind symbol))
+         (location (lsp:symbol-information-location symbol))
+         (container (lsp:symbol-information-container-name symbol))
+         (kind-name (alist-get kind lsp-symbol-kinds "Unknown"))
+         (formatted-location (greger-lsp--format-location location)))
+    (format "%s [%s] %s%s"
+            name
+            kind-name
+            formatted-location
+            (if container (format " (in %s)" container) ""))))
+
+(defun greger-lsp--detailed-symbol-kind-p (kind)
+  "Check if symbol KIND is a detailed type that should be filtered in non-detailed mode."
+  (member kind '(13   ; Variable
+                 14   ; Constant
+                 15   ; String
+                 16   ; Number
+                 17   ; Boolean
+                 18   ; Array
+                 19   ; Object
+                 20   ; Key
+                 21   ; Null
+                 22   ; EnumMember
+                 23   ; Struct
+                 24   ; Event
+                 25   ; Operator
+                 26   ; TypeParameter
+                 )))
+
+(defun greger-lsp--filter-detailed-symbols (symbols detailed)
+  "Filter SYMBOLS based on DETAILED flag. If DETAILED is nil, remove detailed symbol types."
+  (if detailed
+      symbols
+    (cl-remove-if (lambda (symbol)
+                    (let ((kind (gethash "kind" symbol)))
+                      (greger-lsp--detailed-symbol-kind-p kind)))
+                  symbols)))
+
+(defun greger-lsp--format-document-symbol (symbol &optional indent-level detailed)
+  "Format a document symbol SYMBOL for display with optional INDENT-LEVEL and DETAILED flag."
+  (let* ((indent-level (or indent-level 0))
+         (indent (make-string (* indent-level 2) ?\ ))
+         (name (gethash "name" symbol))
+         (kind (gethash "kind" symbol))
+         (kind-name (alist-get kind lsp-symbol-kinds "Unknown"))
+         (range (gethash "range" symbol))
+         (start (gethash "start" range))
+         (line (1+ (gethash "line" start)))
+         (character (gethash "character" start))
+         (children (gethash "children" symbol))
+         (filtered-children (when children (greger-lsp--filter-detailed-symbols children detailed)))
+         (result (format "%s%s [%s] (line %d, col %d)"
+                        indent name kind-name line character)))
+
+    ;; Add children if they exist after filtering
+    (when (and filtered-children (> (length filtered-children) 0))
+      (setq result (concat result "\n"
+                          (mapconcat (lambda (child)
+                                      (greger-lsp--format-document-symbol child (1+ indent-level) detailed))
+                                    filtered-children "\n"))))
+    result))
+
+(defun greger-lsp--format-document-symbols (symbols file-path &optional detailed)
+  "Format document SYMBOLS for FILE-PATH as a readable string with optional DETAILED flag."
+  (let ((relative-path (if (and (bound-and-true-p lsp-mode) (lsp-workspace-root))
+                           (file-relative-name file-path (lsp-workspace-root))
+                         (file-relative-name file-path)))
+        (filtered-symbols (greger-lsp--filter-detailed-symbols symbols detailed)))
+    (if (or (null filtered-symbols) (= (length filtered-symbols) 0))
+        (format "No symbols found in %s" relative-path)
+      (format "Symbols in %s:\n%s"
+              relative-path
+              (mapconcat (lambda (symbol)
+                          (greger-lsp--format-document-symbol symbol 0 detailed))
+                        filtered-symbols "\n")))))
+
+;;; Tool implementations
+
+(defun greger-lib-lsp--rename (new-name file-path line column)
+  "Rename symbol at FILE-PATH:LINE:COLUMN to NEW-NAME using LSP."
+  (greger-lsp--with-buffer-at-position
+   file-path line column
+   (lambda ()
+     (unless (greger-lsp--feature-supported-p "textDocument/rename")
+       (error "LSP server does not support rename"))
+
+     ;; Get symbol info first to show what we're renaming
+     (let* ((symbol-info (condition-case nil
+                             (substring-no-properties (or (thing-at-point 'symbol) "unknown"))
+                           (error "unknown")))
+            (edits (let ((lsp-response-timeout 10)) ; Shorter timeout for tests
+                     (lsp-request "textDocument/rename"
+                                  `(:textDocument ,(lsp--text-document-identifier)
+                                                  :position ,(lsp--cur-position)
+                                                  :newName ,new-name)))))
+
+       (if edits
+           (progn
+             (lsp--apply-workspace-edit edits 'rename)
+
+             ;; Save all modified buffers to ensure changes are persisted
+             (-let (((&WorkspaceEdit :document-changes? :changes?) edits))
+               ;; Save buffers modified by documentChanges
+               (when document-changes?
+                 (seq-do (lambda (change)
+                           (when-let ((text-doc (lsp-get change :textDocument))
+                                     (uri (lsp-get text-doc :uri))
+                                     (file-path (lsp--uri-to-path uri)))
+                             (when-let ((buffer (get-file-buffer file-path)))
+                               (with-current-buffer buffer
+                                 (save-buffer)))))
+                         document-changes?))
+
+               ;; Save buffers modified by changes
+               (when changes?
+                 (lsp-map (lambda (uri _text-edits)
+                            (when-let ((file-path (lsp--uri-to-path uri)))
+                              (when-let ((buffer (get-file-buffer file-path)))
+                                (with-current-buffer buffer
+                                  (save-buffer)))))
+                          changes?)))
+
+             ;; Count the changes - WorkspaceEdit can have either changes or documentChanges
+             (let ((change-count
+                    (-let (((&WorkspaceEdit :document-changes? :changes?) edits))
+                      (+ (if document-changes?
+                             ;; Count edits in each document change
+                             (seq-reduce (lambda (total change)
+                                          (+ total (length (lsp-get change :edits))))
+                                        document-changes? 0)
+                           0)
+                         (if changes?
+                             (let ((total 0))
+                               (lsp-map (lambda (_uri text-edits)
+                                          (setq total (+ total (length text-edits))))
+                                        changes?)
+                               total)
+                           0)))))
+               (substring-no-properties
+                (format "Successfully renamed '%s' to '%s' in %d location(s)"
+                        symbol-info
+                        new-name
+                        change-count))))
+         "No changes made - symbol may not exist or rename not applicable")))))
+
+(defun greger-lib-lsp--format (file-path &optional start-line end-line)
+  "Format FILE-PATH using LSP. If START-LINE and END-LINE provided, format only that range."
+  (let ((buffer (greger-lsp--ensure-server file-path)))
+    (with-current-buffer buffer
+      (let ((edits (if (and start-line end-line)
+                       ;; Range formatting
+                       (progn
+                         (unless (greger-lsp--feature-supported-p "textDocument/rangeFormatting")
+                           (error "LSP server does not support range formatting"))
+                         (save-excursion
+                           (goto-char (point-min))
+                           (forward-line (1- start-line))
+                           (let ((start-pos (point)))
+                             (forward-line (- end-line start-line))
+                             (let ((lsp-response-timeout 10))
+                               (lsp-request "textDocument/rangeFormatting"
+                                            `(:textDocument ,(lsp--text-document-identifier)
+                                                            :range (:start ,(lsp--point-to-position start-pos)
+                                                                           :end ,(lsp--point-to-position (point)))
+                                                            :options (:tabSize 4 :insertSpaces t)))))))
+                     ;; Full document formatting
+                     (progn
+                       (unless (greger-lsp--feature-supported-p "textDocument/formatting")
+                         (error "LSP server does not support formatting"))
+                       (let ((lsp-response-timeout 10))
+                         (lsp-request "textDocument/formatting"
+                                      `(:textDocument ,(lsp--text-document-identifier)
+                                                      :options (:tabSize 4 :insertSpaces t))))))))
+        (if (and edits (not (seq-empty-p edits)))
+            (progn
+              (lsp--apply-text-edits edits 'format)
+              (save-buffer)
+              (substring-no-properties
+               (format "Successfully formatted %s (%d edit(s) applied)"
+                       (file-relative-name file-path)
+                       (length edits))))
+          "No formatting changes needed")))))
+
+(defun greger-lib-lsp--find-definition (file-path line column &optional include-declaration)
+  "Find definition(s) of symbol at FILE-PATH:LINE:COLUMN using LSP."
+  (greger-lsp--with-buffer-at-position
+   file-path line column
+   (lambda ()
+     (unless (greger-lsp--feature-supported-p "textDocument/definition")
+       (error "LSP server does not support go-to-definition"))
+
+     (let* ((symbol-info (condition-case nil
+                             (substring-no-properties (or (thing-at-point 'symbol) "unknown"))
+                           (error "unknown")))
+            (locations (let ((lsp-response-timeout 10)) ; Shorter timeout for tests
+                         (lsp-request "textDocument/definition"
+                                      `(:textDocument ,(lsp--text-document-identifier)
+                                                      :position ,(lsp--cur-position)))))
+            (result-text (greger-lsp--format-locations locations)))
+
+       ;; Also get declarations if requested and supported
+       (when (and include-declaration
+                  (greger-lsp--feature-supported-p "textDocument/declaration"))
+         (let ((declarations (let ((lsp-response-timeout 10))
+                               (lsp-request "textDocument/declaration"
+                                            `(:textDocument ,(lsp--text-document-identifier)
+                                                            :position ,(lsp--cur-position))))))
+           (when declarations
+             (setq result-text (concat result-text "\n\nDeclarations:\n"
+                                       (greger-lsp--format-locations declarations))))))
+
+       (substring-no-properties
+        (format "Definition(s) for '%s':\n%s" symbol-info result-text))))))
+
+(defun greger-lib-lsp--find-references (file-path line column &optional include-declaration max-results)
+  "Find references to symbol at FILE-PATH:LINE:COLUMN using LSP."
+  (greger-lsp--with-buffer-at-position
+   file-path line column
+   (lambda ()
+     (unless (greger-lsp--feature-supported-p "textDocument/references")
+       (error "LSP server does not support find-references"))
+
+     (let* ((symbol-info (condition-case nil
+                             (substring-no-properties (or (thing-at-point 'symbol) "unknown"))
+                           (error "unknown")))
+            (params `(:textDocument ,(lsp--text-document-identifier)
+                                    :position ,(lsp--cur-position)
+                                    :context (:includeDeclaration ,(if include-declaration t :json-false))))
+            (locations (let ((lsp-response-timeout 10)) ; Shorter timeout for tests
+                         (lsp-request "textDocument/references" params)))
+            (limited-locations (if max-results
+                                   (seq-take locations max-results)
+                                 locations))
+            (result-text (greger-lsp--format-locations limited-locations)))
+
+       (substring-no-properties
+        (format "References for '%s' (%d found%s):\n%s"
+                symbol-info
+                (length locations)
+                (if (and max-results (> (length locations) max-results))
+                    (format ", showing first %d" max-results)
+                  "")
+                result-text))))))
+
+(defun greger-lib-lsp--document-symbols (file-paths &optional detailed)
+  "Get document symbols for FILE-PATHS using LSP with optional DETAILED flag."
+  (let ((results '()))
+    (dolist (file-path file-paths)
+      (let ((buffer (greger-lsp--ensure-server file-path)))
+        (with-current-buffer buffer
+          (unless (greger-lsp--feature-supported-p "textDocument/documentSymbol")
+            (error "LSP server does not support document symbols"))
+
+          (let* ((symbols (let ((lsp-response-timeout 10))
+                            (lsp--get-document-symbols)))
+                 (formatted (greger-lsp--format-document-symbols symbols file-path detailed)))
+            (push formatted results)))))
+
+    (substring-no-properties
+     (mapconcat #'identity (reverse results) "\n\n"))))
+
+
+(provide 'greger-lib-lsp)
+
+;;; greger-lib-lsp.el ends here
+
+</tool.toolu_01UdtsBVAc9Z3dTcBuUMTQN9>
+
+## ASSISTANT:
+
+Now let me examine the test file to understand the current test structure:
+
+## TOOL USE:
+
+Name: read-file
+ID: toolu_01XYXNMnApHbZtztgPucWEBv
+
+### path
+
+<tool.toolu_01XYXNMnApHbZtztgPucWEBv>
+test-greger-lib-lsp.el
+</tool.toolu_01XYXNMnApHbZtztgPucWEBv>
+
+## TOOL RESULT:
+
+ID: toolu_01XYXNMnApHbZtztgPucWEBv
+
+<tool.toolu_01XYXNMnApHbZtztgPucWEBv>
+;;; test-greger-lib-lsp.el --- Tests for greger LSP tools -*- lexical-binding: t -*-
+
+;;; Commentary:
+;; Tests for the LSP-powered tools defined in greger-lib-lsp.el
+
+;;; Code:
+
+(require 'ert)
+(require 'cl-lib)
+(require 'greger-lib-lsp)
+(require 'lsp-mode)
+(require 'lsp-pyright)  ; Python LSP server
+
+;;; Test utilities
+
+(defvar greger-lsp-test-temp-dir nil
+  "Temporary directory for LSP tests.")
+
+(defvar greger-lsp-test-python-file nil
+  "Path to test Python file.")
+
+(defvar greger-lsp-test-project-root nil
+  "Root directory of test project.")
+
+(defun greger-lsp-test-setup ()
+  "Set up test environment with temporary Python project."
+  ;; Create unique temp directory
+  (setq greger-lsp-test-temp-dir (make-temp-file "greger-lsp-test-" t))
+  (setq greger-lsp-test-project-root greger-lsp-test-temp-dir)
+
+  ;; Clean up any old test folders from LSP session (but don't touch user folders)
+  (when (bound-and-true-p lsp--session)
+    (setf (lsp-session-folders lsp--session)
+          (cl-remove-if (lambda (folder)
+                         (string-prefix-p "/tmp" folder))
+                        (lsp-session-folders lsp--session))))
+
+  ;; Create a simple Python project structure
+  (let ((src-dir (file-name-as-directory (expand-file-name "src" greger-lsp-test-temp-dir))))
+    (make-directory src-dir)
+
+    ;; Create main.py with some example code
+    (setq greger-lsp-test-python-file (expand-file-name "main.py" src-dir))
+    (with-temp-file greger-lsp-test-python-file
+      (insert "#!/usr/bin/env python3
+\"\"\"Example Python module for testing LSP tools.\"\"\"
+
+import os
+import sys
+from typing import List, Optional
+
+
+class Calculator:
+    \"\"\"A simple calculator class.\"\"\"
+
+    def __init__(self, precision: int = 2):
+        self.precision = precision
+        self.history: List[str] = []
+
+    def add_numbers(self, a: float, b: float) -> float:
+        \"\"\"Add two numbers together.\"\"\"
+        result = a + b
+        self.history.append(f\"{a} + {b} = {result}\")
+        return round(result, self.precision)
+
+    def multiply_numbers(self, a: float, b: float) -> float:
+        \"\"\"Multiply two numbers.\"\"\"
+        result = a * b
+        self.history.append(f\"{a} * {b} = {result}\")
+        return round(result, self.precision)
+
+    def get_history(self) -> List[str]:
+        \"\"\"Get calculation history.\"\"\"
+        return self.history.copy()
+
+
+def create_calculator(precision: Optional[int] = None) -> Calculator:
+    \"\"\"Factory function to create a calculator.\"\"\"
+    if precision is None:
+        precision = 2
+    return Calculator(precision)
+
+
+def main():
+    \"\"\"Main function for testing.\"\"\"
+    calc = create_calculator(3)
+    result1 = calc.add_numbers(10.5, 20.3)
+    result2 = calc.multiply_numbers(result1, 2.0)
+
+    print(f\"Final result: {result2}\")
+    print(\"History:\")
+    for entry in calc.get_history():
+        print(f\"  {entry}\")
+
+
+if __name__ == \"__main__\":
+    main()
+"))
+
+    ;; Create utils.py for reference testing
+    (let ((utils-file (expand-file-name "utils.py" src-dir)))
+      (with-temp-file utils-file
+        (insert "#!/usr/bin/env python3
+\"\"\"Utility functions.\"\"\"
+
+from main import Calculator, create_calculator
+
+
+def advanced_calculation(x: float, y: float) -> float:
+    \"\"\"Perform advanced calculation using Calculator.\"\"\"
+    calc = create_calculator(4)
+    intermediate = calc.add_numbers(x, y)
+    return calc.multiply_numbers(intermediate, 1.5)
+
+
+def format_result(value: float) -> str:
+    \"\"\"Format a calculation result.\"\"\"
+    return f\"Result: {value:.2f}\"
+")))
+
+    ;; Create a simple pyproject.toml for LSP to recognize the project
+    (with-temp-file (expand-file-name "pyproject.toml" greger-lsp-test-temp-dir)
+      (insert "[project]
+name = \"greger-lsp-test\"
+version = \"0.1.0\"
+description = \"Test project for greger LSP tools\"
+"))))
+
+(defun greger-lsp-test-teardown ()
+  "Clean up test environment."
+  (when greger-lsp-test-temp-dir
+    ;; Kill any buffers visiting test files
+    (when greger-lsp-test-python-file
+      (let ((buffer (get-file-buffer greger-lsp-test-python-file)))
+        (when buffer
+          (with-current-buffer buffer
+            (when (bound-and-true-p lsp-mode)
+              (condition-case nil (lsp-disconnect) (error nil))))
+          (kill-buffer buffer))))
+
+    ;; Also check for utils.py buffer
+    (let ((utils-file (expand-file-name "src/utils.py" greger-lsp-test-temp-dir)))
+      (let ((buffer (get-file-buffer utils-file)))
+        (when buffer
+          (with-current-buffer buffer
+            (when (bound-and-true-p lsp-mode)
+              (condition-case nil (lsp-disconnect) (error nil))))
+          (kill-buffer buffer))))
+
+    ;; Clean up LSP session folders (but don't be too aggressive)
+    (when (and (bound-and-true-p lsp--session) greger-lsp-test-project-root)
+      (condition-case nil
+          (lsp-workspace-folders-remove greger-lsp-test-project-root)
+        (error nil))
+
+      ;; Remove from session folders
+      (setf (lsp-session-folders lsp--session)
+            (cl-remove-if (lambda (folder)
+                           (string-prefix-p "/tmp" folder))
+                         (lsp-session-folders lsp--session))))
+
+    ;; Remove temp directory
+    (condition-case nil
+        (delete-directory greger-lsp-test-temp-dir t)
+      (error nil))
+
+    ;; Reset test variables
+    (setq greger-lsp-test-temp-dir nil
+          greger-lsp-test-python-file nil
+          greger-lsp-test-project-root nil)))
+
+(defun greger-lsp-test-ensure-lsp-started ()
+  "Ensure LSP is started for the test Python file."
+  (let ((buffer (find-file-noselect greger-lsp-test-python-file)))
+    (with-current-buffer buffer
+      (python-mode)
+
+      ;; Use lsp-workspace-folders-add to properly register our test directory
+      (lsp-workspace-folders-add greger-lsp-test-project-root)
+
+      ;; Start LSP with our configured workspace
+      (condition-case err
+          (progn
+            ;; Bind LSP variables to ensure proper root detection
+            (let ((lsp-auto-guess-root nil)
+                  (lsp-guess-root-without-session nil))
+              (lsp))
+            ;; Wait for LSP to initialize with reasonable timeout
+            (let ((timeout 0))
+              (while (and (not lsp--buffer-workspaces) (< timeout 100))
+                (sit-for 0.1)
+                (setq timeout (1+ timeout))))
+            (unless lsp--buffer-workspaces
+              (error "Failed to start LSP server for test"))
+
+            ;; Verify we got the right workspace root
+            (let ((workspace-root (lsp-workspace-root)))
+              (unless (string= (file-truename workspace-root)
+                              (file-truename greger-lsp-test-project-root))
+                (error "LSP workspace root mismatch: expected %s, got %s"
+                       greger-lsp-test-project-root workspace-root))))
+        (error
+         (message "LSP startup error: %s" (error-message-string err))
+         (error "Failed to start LSP server for test: %s" (error-message-string err)))))
+
+    ;; TODO: better way to detect that buffer is ready
+    (sleep-for 1.0)
+
+    buffer))
+
+;;; Helper functions for test requirements
+
+(defun greger-lsp-test-requirements-met-p ()
+  "Check if requirements for LSP tests are met."
+  (and (fboundp 'lsp)
+       (fboundp 'python-mode)
+       (or (executable-find "pyright")
+           (executable-find "pylsp")
+           (executable-find "python-lsp-server"))))
+
+(defun greger-lsp-test-skip-if-requirements-not-met ()
+  "Skip test if LSP requirements are not met."
+  (unless (greger-lsp-test-requirements-met-p)
+    (ert-skip "LSP mode or Python LSP server not available")))
+
+
+
+;;; Helper macros
+
+(defmacro greger-lsp-test-with-setup (&rest body)
+  "Execute BODY with LSP test setup and teardown."
+  `(progn
+     (greger-lsp-test-skip-if-requirements-not-met)
+     (unwind-protect
+         (progn
+           (greger-lsp-test-setup)
+           (greger-lsp-test-ensure-lsp-started)
+           ,@body)
+       (greger-lsp-test-teardown))))
+
+;;; Tests for helper functions
+
+(ert-deftest greger-lsp-test-ensure-server ()
+  "Test LSP server initialization helper."
+  (greger-lsp-test-with-setup
+   (let ((buffer (greger-lsp--ensure-server greger-lsp-test-python-file)))
+     (should (bufferp buffer))
+     (with-current-buffer buffer
+       (should (bound-and-true-p lsp-mode))
+       (should lsp--buffer-workspaces)))))
+
+(ert-deftest greger-lsp-test-with-buffer-at-position ()
+  "Test executing code at specific buffer position."
+  (greger-lsp-test-with-setup
+   (let ((result nil))
+     (greger-lsp--with-buffer-at-position
+      greger-lsp-test-python-file 9 0  ; Line 9: class definition
+      (lambda ()
+        (setq result (thing-at-point 'word))))
+     (should (equal result "class")))))
+
+;;; Tests for lsp-rename tool
+
+(ert-deftest greger-lsp-test-rename-success ()
+  "Test successful symbol rename."
+  (greger-lsp-test-with-setup
+   ;; Rename the Calculator class to MathCalculator
+   (let ((result (greger-lib-lsp--rename
+                  "MathCalculator"
+                  greger-lsp-test-python-file
+                  9 6)))  ; Line 9: "class Calculator:", column at "Calculator"
+     (should (stringp result))
+     (should (string= "Successfully renamed 'Calculator' to 'MathCalculator' in 4 location(s)" result))
+
+     ;; Verify the file was actually changed
+     (with-temp-buffer
+       (insert-file-contents greger-lsp-test-python-file)
+       (goto-char (point-min))
+       (should (search-forward "class MathCalculator:" nil t))))))
+
+(ert-deftest greger-lsp-test-rename-invalid-symbol ()
+  "Test rename on invalid symbol position."
+  (greger-lsp-test-with-setup
+   ;; Try to rename at a comment line
+   (let ((result (greger-lib-lsp--rename
+                  "NewName"
+                  greger-lsp-test-python-file
+                  2 0)))  ; Line 2: comment line
+     (should (stringp result))
+     (should (or (string-match-p "No changes made" result)
+             (string-match-p "failed" result))))))
+
+;;; Tests for lsp-format tool
+
+(ert-deftest greger-lsp-test-format-file ()
+  "Test formatting entire file."
+  (greger-lsp-test-with-setup
+   ;; First, mess up the formatting
+   (with-current-buffer (find-file-noselect greger-lsp-test-python-file)
+     (goto-char (point-min))
+     (search-forward "def add_numbers")
+     (beginning-of-line)
+     (insert "   ")  ; Add extra indentation
+     (save-buffer))
+
+   ;; Now format the file
+   (let ((result (greger-lib-lsp--format greger-lsp-test-python-file)))
+     (should (stringp result))
+     (should (or (string-match-p "Successfully formatted" result)
+             (string-match-p "No formatting changes needed" result))))))
+
+(ert-deftest greger-lsp-test-format-range ()
+  "Test formatting a specific range."
+  (greger-lsp-test-with-setup
+   (let ((result (greger-lib-lsp--format
+                  greger-lsp-test-python-file
+                  10 20)))  ; Format lines 10-20 (around Calculator class)
+     (should (stringp result))
+     (should (or (string-match-p "Successfully formatted" result)
+             (string-match-p "No formatting changes needed" result)
+             (string-match-p "does not support range formatting" result))))))
+
+;;; Tests for lsp-find-definition tool
+
+(ert-deftest greger-lsp-test-find-definition ()
+  "Test finding symbol definition."
+  (greger-lsp-test-with-setup
+   ;; Find definition of create_calculator usage
+   (let ((result (greger-lib-lsp--find-definition
+                  greger-lsp-test-python-file
+                  42 11)))  ; Line 42: "calc = create_calculator(3)", position at "create_calculator"
+
+     (should (stringp result))
+     (should (string-match-p "Definition.*create_calculator" result))
+     (should (string-match-p "main.py:" result)))))
+
+(ert-deftest greger-lsp-test-find-definition-with-declaration ()
+  "Test finding definition with declarations."
+  (greger-lsp-test-with-setup
+   (let ((result (greger-lib-lsp--find-definition
+                  greger-lsp-test-python-file
+                  42 11  ; Line 43: "calc = create_calculator(3)", position at "create_calculator"
+                  t)))   ; Include declarations
+     (should (stringp result))
+     (should (string-match-p "Definition.*create_calculator" result)))))
+
+;;; Tests for lsp-find-references tool
+
+(ert-deftest greger-lsp-test-find-references ()
+  "Test finding symbol references."
+  (greger-lsp-test-with-setup
+   ;; Find references to Calculator class
+   (let ((result (greger-lib-lsp--find-references
+                  greger-lsp-test-python-file
+                  9 6)))  ; Line 9: "class Calculator:", column at "Calculator"
+     (should (stringp result))
+     (should (string-match-p "References.*Calculator" result))
+     (should (string-match-p "main.py:" result)))))
+
+(ert-deftest greger-lsp-test-find-references-limited ()
+  "Test finding references with result limit."
+  (greger-lsp-test-with-setup
+   (let ((result (greger-lib-lsp--find-references
+                  greger-lsp-test-python-file
+                  9 6      ; Line 9: "class Calculator:", column at "Calculator"
+                  t        ; Include declaration
+                  5)))     ; Max 5 results
+     (should (stringp result))
+     (should (string-match-p "References.*Calculator" result)))))
+
+;;; Integration tests
+
+(ert-deftest greger-lsp-test-rename-and-find-references ()
+  "Integration test: rename a symbol and verify references are updated."
+  (greger-lsp-test-with-setup
+   ;; First, find references to the original name
+   (let ((original-refs (greger-lib-lsp--find-references
+                         greger-lsp-test-python-file 9 6))) ; Line 9: Calculator class
+     (should (string-match-p "Calculator" original-refs))
+
+     ;; Perform rename in a way that avoids minibuffer issues
+     (let ((inhibit-message t)
+           (use-dialog-box nil)
+           (executing-kbd-macro t)) ; Simulate running in macro to avoid interactive prompts
+       (let ((result (greger-lib-lsp--rename "MathEngine" greger-lsp-test-python-file 9 6)))
+         (should (stringp result))
+
+         ;; Find references to the new name (after a brief delay for LSP to update)
+         (sit-for 0.5)
+         (let ((new-refs (greger-lib-lsp--find-references
+                          greger-lsp-test-python-file 9 6)))
+           (should (stringp new-refs))))))))
+
+(ert-deftest greger-lsp-test-cross-file-references ()
+  "Test finding references across multiple files."
+  (greger-lsp-test-with-setup
+   ;; Wait a moment for LSP to fully initialize
+   (sit-for 1)
+
+   ;; Find references to Calculator class (line 9, position at "Calculator")
+   (let ((result (greger-lib-lsp--find-references
+                  greger-lsp-test-python-file
+                  9 6))
+         (expected "References for 'Calculator' (3 found):
+main.py:33:58
+main.py:37:11
+utils.py:4:17"))
+
+     (should (stringp result))
+     (should (string= expected result)))))
+
+;;; Tests for lsp-document-symbols tool
+
+(ert-deftest greger-lsp-test-document-symbols-single-file-non-detailed ()
+  "Test getting document symbols for a single file without detailed symbols."
+  (greger-lsp-test-with-setup
+   (let ((result (greger-lib-lsp--document-symbols
+                  (list greger-lsp-test-python-file)
+                  nil)) ; detailed = false (default)
+         (expected "Symbols in src/main.py:
+Calculator [Class] (line 9, col 0)
+  __init__ [Method] (line 12, col 4)
+  add_numbers [Method] (line 16, col 4)
+  multiply_numbers [Method] (line 22, col 4)
+  get_history [Method] (line 28, col 4)
+create_calculator [Function] (line 33, col 0)
+main [Function] (line 40, col 0)"))
+     (should (stringp result))
+     (should (string= expected result)))))
+
+(ert-deftest greger-lsp-test-document-symbols-single-file-detailed ()
+  "Test getting document symbols for a single file with detailed symbols."
+  (greger-lsp-test-with-setup
+   (let ((result (greger-lib-lsp--document-symbols
+                  (list greger-lsp-test-python-file)
+                  t)) ; detailed = true
+         (expected "Symbols in src/main.py:
+Calculator [Class] (line 9, col 0)
+  __init__ [Method] (line 12, col 4)
+    precision [Variable] (line 12, col 23)
+  add_numbers [Method] (line 16, col 4)
+    a [Variable] (line 16, col 26)
+    b [Variable] (line 16, col 36)
+    result [Variable] (line 18, col 8)
+  multiply_numbers [Method] (line 22, col 4)
+    a [Variable] (line 22, col 31)
+    b [Variable] (line 22, col 41)
+    result [Variable] (line 24, col 8)
+  get_history [Method] (line 28, col 4)
+  precision [Variable] (line 13, col 13)
+  history [Variable] (line 14, col 13)
+create_calculator [Function] (line 33, col 0)
+  precision [Variable] (line 33, col 22)
+main [Function] (line 40, col 0)
+  calc [Variable] (line 42, col 4)
+  result1 [Variable] (line 43, col 4)
+  result2 [Variable] (line 44, col 4)
+  entry [Variable] (line 48, col 8)"))
+     (should (stringp result))
+     (should (string= expected result)))))
+
+(ert-deftest greger-lsp-test-document-symbols-multiple-files-non-detailed ()
+  "Test getting document symbols for multiple files without detailed symbols."
+  (greger-lsp-test-with-setup
+   (let* ((utils-file (expand-file-name "src/utils.py" greger-lsp-test-temp-dir))
+          (result (greger-lib-lsp--document-symbols
+                   (list greger-lsp-test-python-file utils-file)
+                   nil)) ; detailed = false
+          (expected "Symbols in src/main.py:
+Calculator [Class] (line 9, col 0)
+  __init__ [Method] (line 12, col 4)
+  add_numbers [Method] (line 16, col 4)
+  multiply_numbers [Method] (line 22, col 4)
+  get_history [Method] (line 28, col 4)
+create_calculator [Function] (line 33, col 0)
+main [Function] (line 40, col 0)
+
+Symbols in src/utils.py:
+advanced_calculation [Function] (line 7, col 0)
+format_result [Function] (line 14, col 0)"))
+     (should (stringp result))
+     (should (string= expected result)))))
+
+(ert-deftest greger-lsp-test-document-symbols-empty-file ()
+  "Test getting document symbols for file with no symbols."
+  (greger-lsp-test-with-setup
+   ;; Create an empty Python file
+   (let* ((empty-file (expand-file-name "empty.py" greger-lsp-test-temp-dir))
+          (expected "No symbols found in empty.py"))
+     (with-temp-file empty-file
+       (insert "# Just a comment\n"))
+
+     (let ((result (greger-lib-lsp--document-symbols (list empty-file))))
+       (should (stringp result))
+       (should (string= expected result))))))
+
+(provide 'test-greger-lib-lsp)
+
+;;; test-greger-lib-lsp.el ends here
+
+</tool.toolu_01XYXNMnApHbZtztgPucWEBv>
+
+## ASSISTANT:
+
+Now I can see the issue. Looking at the `greger-lib-lsp--document-symbols` function, it expects `file-paths` as a parameter, but the function is designed to work with Elisp lists. However, when called from the tool interface, it receives a JSON array which gets converted to an Elisp vector. I need to update the function to handle vectors instead of lists.
+
+Let me update the function to handle vectors:
+
+## TOOL USE:
+
+Name: str-replace
+ID: toolu_01RDG4MtXGLw3VeY2HA6rzhU
+
+### file_path
+
+<tool.toolu_01RDG4MtXGLw3VeY2HA6rzhU>
+greger-lib-lsp.el
+</tool.toolu_01RDG4MtXGLw3VeY2HA6rzhU>
+
+### original_content
+
+<tool.toolu_01RDG4MtXGLw3VeY2HA6rzhU>
+(defun greger-lib-lsp--document-symbols (file-paths &optional detailed)
+  "Get document symbols for FILE-PATHS using LSP with optional DETAILED flag."
+  (let ((results '()))
+    (dolist (file-path file-paths)
+      (let ((buffer (greger-lsp--ensure-server file-path)))
+        (with-current-buffer buffer
+          (unless (greger-lsp--feature-supported-p "textDocument/documentSymbol")
+            (error "LSP server does not support document symbols"))
+
+          (let* ((symbols (let ((lsp-response-timeout 10))
+                            (lsp--get-document-symbols)))
+                 (formatted (greger-lsp--format-document-symbols symbols file-path detailed)))
+            (push formatted results)))))
+
+    (substring-no-properties
+     (mapconcat #'identity (reverse results) "\n\n"))))
+</tool.toolu_01RDG4MtXGLw3VeY2HA6rzhU>
+
+### new_content
+
+<tool.toolu_01RDG4MtXGLw3VeY2HA6rzhU>
+(defun greger-lib-lsp--document-symbols (file-paths &optional detailed)
+  "Get document symbols for FILE-PATHS using LSP with optional DETAILED flag.
+FILE-PATHS can be either a list or a vector of file paths."
+  (let ((results '())
+        ;; Convert vector to list if needed
+        (paths (if (vectorp file-paths)
+                   (append file-paths nil)
+                 file-paths)))
+    (dolist (file-path paths)
+      (let ((buffer (greger-lsp--ensure-server file-path)))
+        (with-current-buffer buffer
+          (unless (greger-lsp--feature-supported-p "textDocument/documentSymbol")
+            (error "LSP server does not support document symbols"))
+
+          (let* ((symbols (let ((lsp-response-timeout 10))
+                            (lsp--get-document-symbols)))
+                 (formatted (greger-lsp--format-document-symbols symbols file-path detailed)))
+            (push formatted results)))))
+
+    (substring-no-properties
+     (mapconcat #'identity (reverse results) "\n\n"))))
+</tool.toolu_01RDG4MtXGLw3VeY2HA6rzhU>
+
+### git_commit_message
+
+<tool.toolu_01RDG4MtXGLw3VeY2HA6rzhU>
+Update greger-lib-lsp--document-symbols to handle vector input
+
+The function now accepts both lists and vectors for file-paths parameter,
+converting vectors to lists when needed. This fixes the issue when the
+tool is called with a JSON array that gets converted to an Elisp vector.
+</tool.toolu_01RDG4MtXGLw3VeY2HA6rzhU>
+
+## TOOL RESULT:
+
+ID: toolu_01RDG4MtXGLw3VeY2HA6rzhU
+
+<tool.toolu_01RDG4MtXGLw3VeY2HA6rzhU>
+Successfully replaced content in /Users/andreas/projects/greger.el/greger-lib-lsp.el. Successfully staged 1 file(s) and committed with message: Update greger-lib-lsp--document-symbols to handle vector input
+
+The function now accepts both lists and vectors for file-paths parameter,
+converting vectors to lists when needed. This fixes the issue when the
+tool is called with a JSON array that gets converted to an Elisp vector.
+</tool.toolu_01RDG4MtXGLw3VeY2HA6rzhU>
+
+## ASSISTANT:
+
+Now I need to update the tests to include test cases for vector inputs. Let me add tests that specifically test the vector functionality:

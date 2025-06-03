@@ -1,5 +1,9 @@
 ;;; greger-stream.el --- Streaming support for greger -*- lexical-binding: t -*-
 
+;; Author: Andreas Jansson <andreas@jansson.me.uk>
+;; Version: 0.1.0
+;; URL: https://github.com/andreasjansson/greger.el
+
 ;;; Commentary:
 ;; Handles streaming responses from AI providers
 
@@ -316,3 +320,7 @@ Returns nil if no error found or if OUTPUT is not valid JSON."
 (provide 'greger-stream)
 
 ;;; greger-stream.el ends here
+
+;; Local Variables:
+;; package-lint-main-file: "greger.el"
+;; End:

@@ -5,7 +5,8 @@
 ;; Author: Andreas Jansson <andreas@jansson.me.uk>
 ;; Version: 0.1.0
 ;; URL: https://github.com/andreasjansson/greger.el
-;; Package-Requires: ((emacs "28.0") (parsec "0.1.3"))
+;; Package-Requires: ((emacs "28.1") (markdown-mode "2.3"))
+;; Keywords: ai, chat, language-models, tools
 
 ;;; Commentary:
 ;; This package provides an interface for interacting with AI language models
@@ -15,6 +16,9 @@
 (require 'greger-stream)
 (require 'greger-parser)
 (require 'cl-lib)
+
+;; Forward declarations
+(defvar greger-agent-tools nil "List of tools available to the agent.")
 
 (defconst greger-available-models
   '(replicate/meta/meta-llama-3.1-405b-instruct
