@@ -886,7 +886,8 @@ If BUFFER is provided, it will be staged and committed along with the modified f
          ;; Insert at beginning of file
          (goto-char (point-min))
        ;; Go to the specified line - this is where the fix is needed
-       (goto-line line-number)
+       (goto-char (point-min))
+        (forward-line (1- line-number))
        ;; Move to beginning of line to insert before it, not after it
        (beginning-of-line))
 
