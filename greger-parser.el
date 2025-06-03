@@ -547,7 +547,8 @@ STATE contains the parser state."
 
 (defun greger-parser--parse-section-content-with-metadata (state)
   "Parse content until next section, extracting metadata like safe-shell-commands.
-Returns a plist with :content and metadata keys like :safe-shell-commands."
+Returns a plist with :content and metadata keys like :safe-shell-commands.
+STATE contains the parser state."
   (greger-parser--skip-whitespace state)
   (let ((result (greger-parser--read-until-section-with-metadata-extraction state)))
     result))
