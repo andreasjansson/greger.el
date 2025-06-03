@@ -25,16 +25,16 @@ ARGS should be a plist containing :description, :properties, :required,
 :function, and optionally :pass-buffer, :pass-callback, and :pass-metadata.
 
 Example:
-  (greger-register-tool \"rename-file\"
-    :description \"Rename or move a file from one path to another\"
-    :properties '((old_path . ((type . \"string\")
-                              (description . \"Current path of the file\")))
-                  (new_path . ((type . \"string\")
-                              (description . \"New path for the file\")))
-                  (git_commit_message . ((type . \"string\")
-                                        (description . \"Git commit message for this change\"))))
-    :required '(\"old_path\" \"new_path\" \"git_commit_message\")
-    :function 'greger-tools--rename-file
+  (greger-register-tool \\='rename-file\\='
+    :description \\='Rename or move a file from one path to another\\='
+    :properties \\='((old_path . ((type . \\='string\\=')
+                              (description . \\='Current path of the file\\=')))
+                  (new_path . ((type . \\='string\\=')
+                              (description . \\='New path for the file\\=')))
+                  (git_commit_message . ((type . \\='string\\=')
+                                        (description . \\='Git commit message for this change\\='))))
+    :required \\='(\\='old_path\\=' \\='new_path\\=' \\='git_commit_message\\=')
+    :function \\='greger-tools--rename-file
     :pass-buffer t
     :pass-callback t
     :pass-metadata t)
