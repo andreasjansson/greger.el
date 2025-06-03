@@ -7,18 +7,36 @@
 ;; URL: https://github.com/andreasjansson/greger.el
 ;; Package-Requires: ((emacs "28.1") (markdown-mode "2.3"))
 ;; Keywords: ai, chat, language-models, tools
+;; SPDX-License-Identifier: GPL-3.0-or-later
+
+;; This file is not part of GNU Emacs.
+
+;; This program is free software; you can redistribute it and/or modify
+;; it under the terms of the GNU General Public License as published by
+;; the Free Software Foundation, either version 3 of the License, or
+;; (at your option) any later version.
+
+;; This program is distributed in the hope that it will be useful,
+;; but WITHOUT ANY WARRANTY; without even the implied warranty of
+;; MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+;; GNU General Public License for more details.
+
+;; You should have received a copy of the GNU General Public License
+;; along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 ;;; Commentary:
 ;; This package provides an interface for interacting with AI language models
 
 ;;; Code:
 
+(require 'cl-lib)
+(require 'json)
+(require 'markdown-mode)
+
 (require 'greger-client)
 (require 'greger-parser)
 (require 'greger-tools)
 (require 'greger-stdlib)
-(require 'cl-lib)
-(require 'json)
 
 ;; Optional dependency - only load if available
 (defvar greger--lsp-available
