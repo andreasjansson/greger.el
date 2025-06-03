@@ -453,7 +453,7 @@ PREFIX is used internally for nested directory structure."
 (defun greger-stdlib--ripgrep (pattern path callback &optional case-sensitive file-type context-lines max-results)
   "Search for PATTERN in PATH using the rg command line tool directly.
 CALLBACK is called with (result error) when search completes.
-CASE-SENSITIVE, FILE-TYPE, CONTEXT-LINES and MAX-RESULTS are optional parameters."
+CASE-SENSITIVE, FILE-TYPE, CONTEXT-LINES and MAX-RESULTS are optional."
   (cond
    ((not (stringp pattern))
     (funcall callback nil "Pattern must be a string"))
