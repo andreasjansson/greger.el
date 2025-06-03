@@ -971,7 +971,7 @@ Returns either a system message, metadata, or both."
             (greger-parser--content-blocks-to-markdown content))))
 
 (defun greger-parser--assistant-to-markdown (content)
-  "Convert assistant content to markdown."
+  "Convert assistant CONTENT to markdown."
   (if (stringp content)
       (concat greger-parser-assistant-tag "\n\n" content)
     (greger-parser--content-blocks-to-markdown content)))
