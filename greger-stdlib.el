@@ -499,7 +499,7 @@ If END-LINE is specified, stop reading at that line (inclusive, 1-based)."
                        (if (string-empty-p (string-trim output))
                            "No matches found"
                          output)
-                       nil)))))))))
+                       nil))))))))))
 
 (defun greger-stdlib--write-new-file (file-path contents git-commit-message &optional buffer)
   "Write CONTENTS to a new file at FILE-PATH. Fails if file already exists.
@@ -979,7 +979,7 @@ FUNCTION-NAMES is a vector of test function names to evaluate and run."
               (format "Successfully evaluated %d test function(s) from %s and executed them with ert.\n\nTest Results:\n%s"
                       (length function-names) test-file-path result-text)))))
 
-    (error (format "Failed to execute ERT tests: %s" (error-message-string err))))
+    (error (format "Failed to execute ERT tests: %s" (error-message-string err)))))
 
 (defun greger-stdlib--shell-command (command callback &optional working-directory metadata)
   "Execute COMMAND in WORKING-DIRECTORY and call CALLBACK with (result error).
