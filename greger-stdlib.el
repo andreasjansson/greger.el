@@ -435,7 +435,7 @@ If END-LINE is specified, stop reading at that line (inclusive, 1-based)."
                                      (if (file-directory-p full-path) "/" ""))))
                          files "\n")
             "Directory is empty"))
-      (error (format "Failed to list directory: %s" (error-message-string err))))))
+      (error "Failed to list directory: %s" (error-message-string err)))))
 
 (defun greger-stdlib--list-directory-recursive (path show-hidden &optional prefix)
   "Recursively list directory contents at PATH."
