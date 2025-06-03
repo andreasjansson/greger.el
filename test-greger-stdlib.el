@@ -266,7 +266,7 @@
                  t)))
 
         ;; Execute a command without any metadata
-        (greger-tools--shell-command
+        (greger-stdlib--shell-command
          "echo no metadata"
          (lambda (output err)
            (setq result output error err callback-called t))
