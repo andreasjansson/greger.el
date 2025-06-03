@@ -8849,4 +8849,67 @@ test/test-end-to-end.el
 Add function to wait for streaming processes to complete
 </tool.toolu_013PCjdw6cvPKfgfCNnYcrYU>
 
-<!-- TOOL_RESULT_PLACEHOLDER_toolu_013PCjdw6cvPKfgfCNnYcrYU -->
+## TOOL RESULT:
+
+ID: toolu_013PCjdw6cvPKfgfCNnYcrYU
+
+<tool.toolu_013PCjdw6cvPKfgfCNnYcrYU>
+Successfully replaced content in /Users/andreas/projects/greger.el/test/test-end-to-end.el. Successfully staged 2 file(s) and committed with message: Add function to wait for streaming processes to complete
+</tool.toolu_013PCjdw6cvPKfgfCNnYcrYU>
+
+
+## ASSISTANT:
+
+Now let me update the test cases to wait for streaming to complete before cleanup:
+
+## TOOL USE:
+
+Name: str-replace
+ID: toolu_01SXu1VBmbsjQnbFFnhx9Y7i
+
+### file_path
+
+<tool.toolu_01SXu1VBmbsjQnbFFnhx9Y7i>
+test/test-end-to-end.el
+</tool.toolu_01SXu1VBmbsjQnbFFnhx9Y7i>
+
+### original_content
+
+<tool.toolu_01SXu1VBmbsjQnbFFnhx9Y7i>
+          ;; Wait for response
+          (should (greger-test-wait-for-response greger-buffer greger-test-timeout))
+
+          ;; Verify response was added to buffer
+          (let ((content (buffer-string)))
+            (should (string-match-p "## ASSISTANT:" content))
+            (should (string-match-p "Hello from greger test!" content))
+            ;; Should have a new USER section at the end (or at least assistant response)
+            (should (or (string-match-p "## USER:\n\n$" content)
+                       (string-match-p "## ASSISTANT:" content)))))
+</tool.toolu_01SXu1VBmbsjQnbFFnhx9Y7i>
+
+### new_content
+
+<tool.toolu_01SXu1VBmbsjQnbFFnhx9Y7i>
+          ;; Wait for response
+          (should (greger-test-wait-for-response greger-buffer greger-test-timeout))
+
+          ;; Wait for streaming to complete
+          (greger-test-wait-for-streaming-complete)
+
+          ;; Verify response was added to buffer
+          (let ((content (buffer-string)))
+            (should (string-match-p "## ASSISTANT:" content))
+            (should (string-match-p "Hello from greger test!" content))
+            ;; Should have a new USER section at the end (or at least assistant response)
+            (should (or (string-match-p "## USER:\n\n$" content)
+                       (string-match-p "## ASSISTANT:" content)))))
+</tool.toolu_01SXu1VBmbsjQnbFFnhx9Y7i>
+
+### git_commit_message
+
+<tool.toolu_01SXu1VBmbsjQnbFFnhx9Y7i>
+Add streaming completion wait to simple conversation test
+</tool.toolu_01SXu1VBmbsjQnbFFnhx9Y7i>
+
+<!-- TOOL_RESULT_PLACEHOLDER_toolu_01SXu1VBmbsjQnbFFnhx9Y7i -->
