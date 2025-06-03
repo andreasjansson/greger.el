@@ -426,6 +426,8 @@ FILE-PATHS can be either a list or a vector of file paths."
      (mapconcat #'identity (reverse results) "\n\n"))))
 
 
+) ; End of when greger-lib-lsp-available
+
 (provide 'greger-lib-lsp)
 
 ;;; greger-lib-lsp.el ends here
