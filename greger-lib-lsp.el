@@ -6,8 +6,14 @@
 ;;; Code:
 
 (require 'greger-tools)
-(require 'lsp-mode)
 (require 'cl-lib)
+
+;; Optional dependency - only load if available
+(defvar greger-lib-lsp-available
+  (condition-case nil
+      (progn (require 'lsp-mode) t)
+    (error nil))
+  "Whether lsp-mode is available.")
 
 ;;; Tool registrations
 

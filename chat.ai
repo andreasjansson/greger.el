@@ -3313,4 +3313,52 @@ greger-tools.el
 Make magit and rg optional dependencies in greger-tools.el
 </tool.toolu_01CJfYRywvVpPtofBXmfUTk8>
 
-<!-- TOOL_RESULT_PLACEHOLDER_toolu_01CJfYRywvVpPtofBXmfUTk8 -->
+## TOOL RESULT:
+
+ID: toolu_01CJfYRywvVpPtofBXmfUTk8
+
+<tool.toolu_01CJfYRywvVpPtofBXmfUTk8>
+Successfully replaced content in /Users/andreas/projects/greger.el/greger-tools.el. Successfully staged 2 file(s) and committed with message: Make magit and rg optional dependencies in greger-tools.el
+</tool.toolu_01CJfYRywvVpPtofBXmfUTk8>
+
+
+## TOOL USE:
+
+Name: str-replace
+ID: toolu_01FrEE5HoEEKJPvdSk1Ey2jr
+
+### file_path
+
+<tool.toolu_01FrEE5HoEEKJPvdSk1Ey2jr>
+greger-lib-lsp.el
+</tool.toolu_01FrEE5HoEEKJPvdSk1Ey2jr>
+
+### original_content
+
+<tool.toolu_01FrEE5HoEEKJPvdSk1Ey2jr>
+(require 'greger-tools)
+(require 'lsp-mode)
+(require 'cl-lib)
+</tool.toolu_01FrEE5HoEEKJPvdSk1Ey2jr>
+
+### new_content
+
+<tool.toolu_01FrEE5HoEEKJPvdSk1Ey2jr>
+(require 'greger-tools)
+(require 'cl-lib)
+
+;; Optional dependency - only load if available
+(defvar greger-lib-lsp-available
+  (condition-case nil
+      (progn (require 'lsp-mode) t)
+    (error nil))
+  "Whether lsp-mode is available.")
+</tool.toolu_01FrEE5HoEEKJPvdSk1Ey2jr>
+
+### git_commit_message
+
+<tool.toolu_01FrEE5HoEEKJPvdSk1Ey2jr>
+Make lsp-mode an optional dependency in greger-lib-lsp.el
+</tool.toolu_01FrEE5HoEEKJPvdSk1Ey2jr>
+
+<!-- TOOL_RESULT_PLACEHOLDER_toolu_01FrEE5HoEEKJPvdSk1Ey2jr -->
