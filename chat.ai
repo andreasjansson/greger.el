@@ -3251,4 +3251,63 @@ If BUFFER is provided, it will be staged and committed along with the deleted fi
 Fix delete-files to handle JSON array strings
 </tool.toolu_01PUSq6o1osKvDD9NSKxjAqC>
 
-<!-- TOOL_RESULT_PLACEHOLDER_toolu_01PUSq6o1osKvDD9NSKxjAqC -->
+## TOOL RESULT:
+
+ID: toolu_01PUSq6o1osKvDD9NSKxjAqC
+
+<tool.toolu_01PUSq6o1osKvDD9NSKxjAqC>
+Successfully replaced content in /Users/andreas/projects/greger.el/greger-stdlib.el. Successfully staged 2 file(s) and committed with message: Fix delete-files to handle JSON array strings
+</tool.toolu_01PUSq6o1osKvDD9NSKxjAqC>
+
+
+## ASSISTANT:
+
+Similarly, let me fix the eval-elisp-defuns function to handle JSON array strings:
+
+## TOOL USE:
+
+Name: str-replace
+ID: toolu_012ymquj6ho55U95rjaF794H
+
+### file_path
+
+<tool.toolu_012ymquj6ho55U95rjaF794H>
+greger-stdlib.el
+</tool.toolu_012ymquj6ho55U95rjaF794H>
+
+### original_content
+
+<tool.toolu_012ymquj6ho55U95rjaF794H>
+(defun greger-stdlib--eval-elisp-defuns (file-path function-names)
+  (unless (stringp file-path)
+    (error "File path must be a string"))
+
+  (unless (or (vectorp function-names) (listp function-names))
+    (error "Function names must be a vector or list"))
+</tool.toolu_012ymquj6ho55U95rjaF794H>
+
+### new_content
+
+<tool.toolu_012ymquj6ho55U95rjaF794H>
+(defun greger-stdlib--eval-elisp-defuns (file-path function-names)
+  (unless (stringp file-path)
+    (error "File path must be a string"))
+
+  ;; Handle JSON array strings by parsing them
+  (when (stringp function-names)
+    (condition-case nil
+        (setq function-names (json-parse-string function-names :array-type 'list))
+      (error
+        (error "function_names must be a valid JSON array string, vector, or list: %s" function-names))))
+
+  (unless (or (vectorp function-names) (listp function-names))
+    (error "Function names must be a vector or list"))
+</tool.toolu_012ymquj6ho55U95rjaF794H>
+
+### git_commit_message
+
+<tool.toolu_012ymquj6ho55U95rjaF794H>
+Fix eval-elisp-defuns to handle JSON array strings
+</tool.toolu_012ymquj6ho55U95rjaF794H>
+
+<!-- TOOL_RESULT_PLACEHOLDER_toolu_012ymquj6ho55U95rjaF794H -->
