@@ -3,7 +3,7 @@
 ;; Author: Andreas Jansson <andreas@jansson.me.uk>
 ;; Version: 0.1.0
 ;; URL: https://github.com/andreasjansson/greger.el
-;; Package-Requires: ((emacs "25.1"))
+;; Package-Requires: ((emacs "28.1"))
 
 ;;; Commentary:
 ;; Provides agent functionality with tool support for greger
