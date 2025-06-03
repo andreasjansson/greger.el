@@ -3,7 +3,6 @@
 ;; Author: Andreas Jansson <andreas@jansson.me.uk>
 ;; Version: 0.1.0
 ;; URL: https://github.com/andreasjansson/greger.el
-;; Package-Requires: ((emacs "28.1"))
 
 ;;; Commentary:
 ;; Provides LSP-powered refactoring and code analysis tools for greger
@@ -93,7 +92,7 @@
 
 ;;; Helper functions
 
-(defun greger-lsp--ensure-server (file-path)
+(defun greger-lib-lsp--ensure-server (file-path)
   "Ensure LSP server is running for FILE-PATH.
 Returns the buffer visiting the file, or signals an error if LSP is not available."
   (let ((buffer (or (find-buffer-visiting file-path)
@@ -108,10 +107,10 @@ Returns the buffer visiting the file, or signals an error if LSP is not availabl
           (error "LSP mode not available. Please install and configure lsp-mode"))))
     buffer))
 
-(defun greger-lsp--with-buffer-at-position (file-path line column func)
+(defun greger-lib-lsp--with-buffer-at-position (file-path line column func)
   "Execute FUNC in buffer visiting FILE-PATH at LINE and COLUMN.
 LINE is 1-based, COLUMN is 0-based."
-  (let ((buffer (greger-lsp--ensure-server file-path)))
+  (let ((buffer (greger-lib-lsp--ensure-server file-path)))
     (with-current-buffer buffer
       (save-excursion
         (condition-case err
@@ -134,17 +133,17 @@ LINE is 1-based, COLUMN is 0-based."
            (error "Position error in %s at line %d, column %d: %s"
                   file-path line column (error-message-string err))))))))
 
-(defun greger-lsp--feature-supported-p (method)
+(defun greger-lib-lsp--feature-supported-p (method)
   "Check if the current LSP server supports METHOD."
   (lsp-feature? method))
 
-(defun greger-lsp--position-params (file-path line column)
+(defun greger-lib-lsp--position-params (file-path line column)
   "Create LSP position parameters for FILE-PATH at LINE and COLUMN."
-  (greger-lsp--with-buffer-at-position file-path line column
+  (greger-lib-lsp--with-buffer-at-position file-path line column
                                        (lambda ()
                                          (lsp--text-document-position-params))))
 
-(defun greger-lsp--format-location (location)
+(defun greger-lib-lsp--format-location (location)
   "Format a single LSP LOCATION for display."
   (let* ((uri (lsp:location-uri location))
          (range (lsp:location-range location))
@@ -154,27 +153,27 @@ LINE is 1-based, COLUMN is 0-based."
          (file-path (lsp--uri-to-path uri)))
     (format "%s:%d:%d" (substring-no-properties (file-relative-name file-path)) line character)))
 
-(defun greger-lsp--format-locations (locations)
+(defun greger-lib-lsp--format-locations (locations)
   "Format a list of LSP LOCATIONS for display."
   (if (null locations)
       "No locations found"
-    (mapconcat #'greger-lsp--format-location locations "\n")))
+    (mapconcat #'greger-lib-lsp--format-location locations "\n")))
 
-(defun greger-lsp--format-symbol (symbol)
+(defun greger-lib-lsp--format-symbol (symbol)
   "Format a single LSP SYMBOL for display."
   (let* ((name (lsp:symbol-information-name symbol))
          (kind (lsp:symbol-information-kind symbol))
          (location (lsp:symbol-information-location symbol))
          (container (lsp:symbol-information-container-name symbol))
          (kind-name (alist-get kind lsp-symbol-kinds "Unknown"))
-         (formatted-location (greger-lsp--format-location location)))
+         (formatted-location (greger-lib-lsp--format-location location)))
     (format "%s [%s] %s%s"
             name
             kind-name
             formatted-location
             (if container (format " (in %s)" container) ""))))
 
-(defun greger-lsp--detailed-symbol-kind-p (kind)
+(defun greger-lib-lsp--detailed-symbol-kind-p (kind)
   "Check if symbol KIND is a detailed type that should be filtered in non-detailed mode."
   (member kind '(13   ; Variable
                  14   ; Constant
@@ -192,16 +191,16 @@ LINE is 1-based, COLUMN is 0-based."
                  26   ; TypeParameter
                  )))
 
-(defun greger-lsp--filter-detailed-symbols (symbols detailed)
+(defun greger-lib-lsp--filter-detailed-symbols (symbols detailed)
   "Filter SYMBOLS based on DETAILED flag. If DETAILED is nil, remove detailed symbol types."
   (if detailed
       symbols
     (cl-remove-if (lambda (symbol)
                     (let ((kind (gethash "kind" symbol)))
-                      (greger-lsp--detailed-symbol-kind-p kind)))
+                      (greger-lib-lsp--detailed-symbol-kind-p kind)))
                   symbols)))
 
-(defun greger-lsp--format-document-symbol (symbol &optional indent-level detailed)
+(defun greger-lib-lsp--format-document-symbol (symbol &optional indent-level detailed)
   "Format a document symbol SYMBOL for display with optional INDENT-LEVEL and DETAILED flag."
   (let* ((indent-level (or indent-level 0))
          (indent (make-string (* indent-level 2) ?\ ))
@@ -213,7 +212,7 @@ LINE is 1-based, COLUMN is 0-based."
          (line (1+ (gethash "line" start)))
          (character (gethash "character" start))
          (children (gethash "children" symbol))
-         (filtered-children (when children (greger-lsp--filter-detailed-symbols children detailed)))
+         (filtered-children (when children (greger-lib-lsp--filter-detailed-symbols children detailed)))
          (result (format "%s%s [%s] (line %d, col %d)"
                          indent name kind-name line character)))
 
@@ -221,32 +220,32 @@ LINE is 1-based, COLUMN is 0-based."
     (when (and filtered-children (> (length filtered-children) 0))
       (setq result (concat result "\n"
                            (mapconcat (lambda (child)
-                                        (greger-lsp--format-document-symbol child (1+ indent-level) detailed))
+                                        (greger-lib-lsp--format-document-symbol child (1+ indent-level) detailed))
                                       filtered-children "\n"))))
     result))
 
-(defun greger-lsp--format-document-symbols (symbols file-path &optional detailed)
+(defun greger-lib-lsp--format-document-symbols (symbols file-path &optional detailed)
   "Format document SYMBOLS for FILE-PATH as a readable string with optional DETAILED flag."
   (let ((relative-path (if (and (bound-and-true-p lsp-mode) (lsp-workspace-root))
                            (file-relative-name file-path (lsp-workspace-root))
                          (file-relative-name file-path)))
-        (filtered-symbols (greger-lsp--filter-detailed-symbols symbols detailed)))
+        (filtered-symbols (greger-lib-lsp--filter-detailed-symbols symbols detailed)))
     (if (or (null filtered-symbols) (= (length filtered-symbols) 0))
         (format "No symbols found in %s" relative-path)
       (format "Symbols in %s:\n%s"
               relative-path
               (mapconcat (lambda (symbol)
-                           (greger-lsp--format-document-symbol symbol 0 detailed))
+                           (greger-lib-lsp--format-document-symbol symbol 0 detailed))
                          filtered-symbols "\n")))))
 
 ;;; Tool implementations
 
 (defun greger-lib-lsp--rename (new-name file-path line column)
   "Rename symbol at FILE-PATH:LINE:COLUMN to NEW-NAME using LSP."
-  (greger-lsp--with-buffer-at-position
+  (greger-lib-lsp--with-buffer-at-position
    file-path line column
    (lambda ()
-     (unless (greger-lsp--feature-supported-p "textDocument/rename")
+     (unless (greger-lib-lsp--feature-supported-p "textDocument/rename")
        (error "LSP server does not support rename"))
 
      ;; Get symbol info first to show what we're renaming
@@ -310,12 +309,12 @@ LINE is 1-based, COLUMN is 0-based."
 
 (defun greger-lib-lsp--format (file-path &optional start-line end-line)
   "Format FILE-PATH using LSP. If START-LINE and END-LINE provided, format only that range."
-  (let ((buffer (greger-lsp--ensure-server file-path)))
+  (let ((buffer (greger-lib-lsp--ensure-server file-path)))
     (with-current-buffer buffer
       (let ((edits (if (and start-line end-line)
                        ;; Range formatting
                        (progn
-                         (unless (greger-lsp--feature-supported-p "textDocument/rangeFormatting")
+                         (unless (greger-lib-lsp--feature-supported-p "textDocument/rangeFormatting")
                            (error "LSP server does not support range formatting"))
                          (save-excursion
                            (goto-char (point-min))
@@ -330,7 +329,7 @@ LINE is 1-based, COLUMN is 0-based."
                                                             :options (:tabSize 4 :insertSpaces t)))))))
                      ;; Full document formatting
                      (progn
-                       (unless (greger-lsp--feature-supported-p "textDocument/formatting")
+                       (unless (greger-lib-lsp--feature-supported-p "textDocument/formatting")
                          (error "LSP server does not support formatting"))
                        (let ((lsp-response-timeout 10))
                          (lsp-request "textDocument/formatting"
@@ -348,10 +347,10 @@ LINE is 1-based, COLUMN is 0-based."
 
 (defun greger-lib-lsp--find-definition (file-path line column &optional include-declaration)
   "Find definition(s) of symbol at FILE-PATH:LINE:COLUMN using LSP."
-  (greger-lsp--with-buffer-at-position
+  (greger-lib-lsp--with-buffer-at-position
    file-path line column
    (lambda ()
-     (unless (greger-lsp--feature-supported-p "textDocument/definition")
+     (unless (greger-lib-lsp--feature-supported-p "textDocument/definition")
        (error "LSP server does not support go-to-definition"))
 
      (let* ((symbol-info (condition-case nil
@@ -361,28 +360,28 @@ LINE is 1-based, COLUMN is 0-based."
                          (lsp-request "textDocument/definition"
                                       `(:textDocument ,(lsp--text-document-identifier)
                                                       :position ,(lsp--cur-position)))))
-            (result-text (greger-lsp--format-locations locations)))
+            (result-text (greger-lib-lsp--format-locations locations)))
 
        ;; Also get declarations if requested and supported
        (when (and include-declaration
-                  (greger-lsp--feature-supported-p "textDocument/declaration"))
+                  (greger-lib-lsp--feature-supported-p "textDocument/declaration"))
          (let ((declarations (let ((lsp-response-timeout 10))
                                (lsp-request "textDocument/declaration"
                                             `(:textDocument ,(lsp--text-document-identifier)
                                                             :position ,(lsp--cur-position))))))
            (when declarations
              (setq result-text (concat result-text "\n\nDeclarations:\n"
-                                       (greger-lsp--format-locations declarations))))))
+                                       (greger-lib-lsp--format-locations declarations))))))
 
        (substring-no-properties
         (format "Definition(s) for '%s':\n%s" symbol-info result-text))))))
 
 (defun greger-lib-lsp--find-references (file-path line column &optional include-declaration max-results)
   "Find references to symbol at FILE-PATH:LINE:COLUMN using LSP."
-  (greger-lsp--with-buffer-at-position
+  (greger-lib-lsp--with-buffer-at-position
    file-path line column
    (lambda ()
-     (unless (greger-lsp--feature-supported-p "textDocument/references")
+     (unless (greger-lib-lsp--feature-supported-p "textDocument/references")
        (error "LSP server does not support find-references"))
 
      (let* ((symbol-info (condition-case nil
@@ -396,7 +395,7 @@ LINE is 1-based, COLUMN is 0-based."
             (limited-locations (if max-results
                                    (seq-take locations max-results)
                                  locations))
-            (result-text (greger-lsp--format-locations limited-locations)))
+            (result-text (greger-lib-lsp--format-locations limited-locations)))
 
        (substring-no-properties
         (format "References for '%s' (%d found%s):\n%s"
@@ -416,14 +415,14 @@ FILE-PATHS can be either a list or a vector of file paths."
                    (append file-paths nil)
                  file-paths)))
     (dolist (file-path paths)
-      (let ((buffer (greger-lsp--ensure-server file-path)))
+      (let ((buffer (greger-lib-lsp--ensure-server file-path)))
         (with-current-buffer buffer
-          (unless (greger-lsp--feature-supported-p "textDocument/documentSymbol")
+          (unless (greger-lib-lsp--feature-supported-p "textDocument/documentSymbol")
             (error "LSP server does not support document symbols"))
 
           (let* ((symbols (let ((lsp-response-timeout 10))
                             (lsp--get-document-symbols)))
-                 (formatted (greger-lsp--format-document-symbols symbols file-path detailed)))
+                 (formatted (greger-lib-lsp--format-document-symbols symbols file-path detailed)))
             (push formatted results)))))
 
     (substring-no-properties
