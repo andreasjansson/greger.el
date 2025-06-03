@@ -229,7 +229,8 @@ and DETAILED flag."
     result))
 
 (defun greger-lib-lsp--format-document-symbols (symbols file-path &optional detailed)
-  "Format document SYMBOLS for FILE-PATH as a readable string with optional DETAILED flag."
+  "Format document SYMBOLS for FILE-PATH as a readable string with optional
+DETAILED flag."
   (let ((relative-path (if (and (bound-and-true-p lsp-mode) (lsp-workspace-root))
                            (file-relative-name file-path (lsp-workspace-root))
                          (file-relative-name file-path)))
