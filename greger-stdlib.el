@@ -1082,7 +1082,7 @@ FUNCTION-NAMES is a vector of test function names to evaluate and run."
               (format "Successfully evaluated %d test function(s) from %s and executed them with ert.\n\nTest Results:\n%s"
                       (length function-names) test-file-path result-text)))))
 
-    (error (format "Failed to execute ERT tests: %s" (error-message-string err)))))
+    (error "Failed to execute ERT tests: %s" (error-message-string err))))
 
 (defun greger-stdlib--shell-command (command callback &optional working-directory metadata)
   "Execute COMMAND in WORKING-DIRECTORY and call CALLBACK with (result error).
