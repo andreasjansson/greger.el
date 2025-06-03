@@ -559,10 +559,8 @@ TOOL-ID is the tool identifier."
   "Create a collapsible overlay for tool content."
   (let* ((visible-lines (cl-subseq lines 0 greger-tool-section-max-lines))
          (hidden-lines (cl-subseq lines greger-tool-section-max-lines))
-         (total-lines (length lines))
          (hidden-line-count (length hidden-lines))
          (visible-text (mapconcat #'identity visible-lines "\n"))
-         (hidden-text (mapconcat #'identity hidden-lines "\n"))
 
          ;; Calculate positions for visible and hidden parts
          (visible-end (+ content-start (length visible-text)))
