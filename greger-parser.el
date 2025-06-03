@@ -1034,7 +1034,7 @@ Returns either a system message, metadata, or both."
                input "\n\n")))
 
 (defun greger-parser--value-to-string (value)
-  "Convert value to string representation."
+  "Convert VALUE to string representation."
   (cond
    ((stringp value) value)
    ((numberp value) (number-to-string value))
