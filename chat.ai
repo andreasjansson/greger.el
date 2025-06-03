@@ -6118,4 +6118,98 @@ greger-stdlib.el
 Remove period from error message in greger-stdlib--str-replace
 </tool.toolu_01YEae7BZbeE8WuueoCPFHbC>
 
-<!-- TOOL_RESULT_PLACEHOLDER_toolu_01YEae7BZbeE8WuueoCPFHbC -->
+## TOOL RESULT:
+
+ID: toolu_01YEae7BZbeE8WuueoCPFHbC
+
+<tool.toolu_01YEae7BZbeE8WuueoCPFHbC>
+Successfully replaced content in /Users/andreas/projects/greger.el/greger-stdlib.el. Successfully staged 2 file(s) and committed with message: Remove period from error message in greger-stdlib--str-replace
+</tool.toolu_01YEae7BZbeE8WuueoCPFHbC>
+
+
+## ASSISTANT:
+
+Now let me find the remaining missing GIT-COMMIT-MESSAGE documentation for greger-stdlib--replace-file:
+
+## TOOL USE:
+
+Name: read-file
+ID: toolu_01XnRfbEjyxwK8xkLMB3PSDg
+
+### path
+
+<tool.toolu_01XnRfbEjyxwK8xkLMB3PSDg>
+greger-stdlib.el
+</tool.toolu_01XnRfbEjyxwK8xkLMB3PSDg>
+
+### start_line
+
+<tool.toolu_01XnRfbEjyxwK8xkLMB3PSDg>
+750
+</tool.toolu_01XnRfbEjyxwK8xkLMB3PSDg>
+
+### end_line
+
+<tool.toolu_01XnRfbEjyxwK8xkLMB3PSDg>
+760
+</tool.toolu_01XnRfbEjyxwK8xkLMB3PSDg>
+
+### include_line_numbers
+
+<tool.toolu_01XnRfbEjyxwK8xkLMB3PSDg>
+true
+</tool.toolu_01XnRfbEjyxwK8xkLMB3PSDg>
+
+## TOOL RESULT:
+
+ID: toolu_01XnRfbEjyxwK8xkLMB3PSDg
+
+<tool.toolu_01XnRfbEjyxwK8xkLMB3PSDg>
+750:       (format "Successfully replaced function '%s' in %s. %s"
+751:               function-name expanded-path git-result))))
+752:
+753: (defun greger-stdlib--replace-file (file-path contents git-commit-message &optional buffer)
+754:   "Replace the entire contents of FILE-PATH with CONTENTS.
+755: If BUFFER is provided, it will be staged and committed along with the modified file."
+756:   (unless (stringp file-path)
+757:     (error "file_path must be a string"))
+758:
+759:   (unless (stringp contents)
+760:     (error "contents must be a string"))
+</tool.toolu_01XnRfbEjyxwK8xkLMB3PSDg>
+
+## TOOL USE:
+
+Name: str-replace
+ID: toolu_013YgLoxPiy4tR9zGShc1m3N
+
+### file_path
+
+<tool.toolu_013YgLoxPiy4tR9zGShc1m3N>
+greger-stdlib.el
+</tool.toolu_013YgLoxPiy4tR9zGShc1m3N>
+
+### original_content
+
+<tool.toolu_013YgLoxPiy4tR9zGShc1m3N>
+(defun greger-stdlib--replace-file (file-path contents git-commit-message &optional buffer)
+  "Replace the entire contents of FILE-PATH with CONTENTS.
+If BUFFER is provided, it will be staged and committed along with the modified file."
+</tool.toolu_013YgLoxPiy4tR9zGShc1m3N>
+
+### new_content
+
+<tool.toolu_013YgLoxPiy4tR9zGShc1m3N>
+(defun greger-stdlib--replace-file (file-path contents git-commit-message &optional buffer)
+  "Replace the entire contents of FILE-PATH with CONTENTS.
+GIT-COMMIT-MESSAGE will be used for the git commit.
+If BUFFER is provided, it will be staged and committed along with the file."
+</tool.toolu_013YgLoxPiy4tR9zGShc1m3N>
+
+### git_commit_message
+
+<tool.toolu_013YgLoxPiy4tR9zGShc1m3N>
+Fix missing GIT-COMMIT-MESSAGE documentation in greger-stdlib--replace-file
+</tool.toolu_013YgLoxPiy4tR9zGShc1m3N>
+
+<!-- TOOL_RESULT_PLACEHOLDER_toolu_013YgLoxPiy4tR9zGShc1m3N -->
