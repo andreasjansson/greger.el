@@ -340,19 +340,19 @@ If END-LINE is specified, stop reading at that line (inclusive, 1-based)."
     (error "Path must be a string"))
 
   (when (and start-line (not (integerp start-line)))
-    (error "start-line must be an integer"))
+    (error "Start-line must be an integer"))
 
   (when (and end-line (not (integerp end-line)))
-    (error "end-line must be an integer"))
+    (error "End-line must be an integer"))
 
   (when (and start-line (< start-line 1))
-    (error "start-line must be >= 1"))
+    (error "Start-line must be >= 1"))
 
   (when (and end-line (< end-line 1))
-    (error "end-line must be >= 1"))
+    (error "End-line must be >= 1"))
 
   (when (and start-line end-line (> start-line end-line))
-    (error "start-line must be <= end-line"))
+    (error "Start-line must be <= end-line"))
 
   (let ((expanded-path (expand-file-name path)))
     (unless (file-exists-p expanded-path)
