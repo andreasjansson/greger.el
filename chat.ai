@@ -2729,4 +2729,88 @@ FORMAT-STRING is the format template and ARGS are the format arguments."
 Fix checkdoc issue - add argument descriptions to greger-parser--debug
 </tool.toolu_01AGaWvDaadFm89KyfoK11xn>
 
-<!-- TOOL_RESULT_PLACEHOLDER_toolu_01AGaWvDaadFm89KyfoK11xn -->
+## TOOL RESULT:
+
+ID: toolu_01AGaWvDaadFm89KyfoK11xn
+
+<tool.toolu_01AGaWvDaadFm89KyfoK11xn>
+Successfully replaced content in /Users/andreas/projects/greger.el/greger-parser.el. Successfully staged 2 file(s) and committed with message: Fix checkdoc issue - add argument descriptions to greger-parser--debug
+</tool.toolu_01AGaWvDaadFm89KyfoK11xn>
+
+
+## TOOL USE:
+
+Name: read-file
+ID: toolu_01Lx3YWTkAMLpxMtSrrHr6fj
+
+### path
+
+<tool.toolu_01Lx3YWTkAMLpxMtSrrHr6fj>
+greger-parser.el
+</tool.toolu_01Lx3YWTkAMLpxMtSrrHr6fj>
+
+### start_line
+
+<tool.toolu_01Lx3YWTkAMLpxMtSrrHr6fj>
+65
+</tool.toolu_01Lx3YWTkAMLpxMtSrrHr6fj>
+
+### end_line
+
+<tool.toolu_01Lx3YWTkAMLpxMtSrrHr6fj>
+75
+</tool.toolu_01Lx3YWTkAMLpxMtSrrHr6fj>
+
+## TOOL RESULT:
+
+ID: toolu_01Lx3YWTkAMLpxMtSrrHr6fj
+
+<tool.toolu_01Lx3YWTkAMLpxMtSrrHr6fj>
+  (if (null dialog)
+      ""
+    (mapconcat #'greger-parser--message-to-markdown dialog "\n\n")))
+
+;; Compatibility function for tests and existing code
+(defun greger-parser-parse-dialog-messages-only (markdown &optional debug)
+  "Parse MARKDOWN into dialog format, returning only the messages (old format).
+This is for backward compatibility with existing tests and code."
+  (let ((result (greger-parser-parse-dialog markdown debug)))
+    (plist-get result :messages)))
+
+</tool.toolu_01Lx3YWTkAMLpxMtSrrHr6fj>
+
+## TOOL USE:
+
+Name: str-replace
+ID: toolu_01Bx71g1J4J4STeaEe9FtYwC
+
+### file_path
+
+<tool.toolu_01Bx71g1J4J4STeaEe9FtYwC>
+greger-parser.el
+</tool.toolu_01Bx71g1J4J4STeaEe9FtYwC>
+
+### original_content
+
+<tool.toolu_01Bx71g1J4J4STeaEe9FtYwC>
+(defun greger-parser-parse-dialog-messages-only (markdown &optional debug)
+  "Parse MARKDOWN into dialog format, returning only the messages (old format).
+This is for backward compatibility with existing tests and code."
+</tool.toolu_01Bx71g1J4J4STeaEe9FtYwC>
+
+### new_content
+
+<tool.toolu_01Bx71g1J4J4STeaEe9FtYwC>
+(defun greger-parser-parse-dialog-messages-only (markdown &optional debug)
+  "Parse MARKDOWN into dialog format, returning only the messages (old format).
+This is for backward compatibility with existing tests and code.
+DEBUG enables debug logging."
+</tool.toolu_01Bx71g1J4J4STeaEe9FtYwC>
+
+### git_commit_message
+
+<tool.toolu_01Bx71g1J4J4STeaEe9FtYwC>
+Fix checkdoc issue - add DEBUG description to greger-parser-parse-dialog-messages-only
+</tool.toolu_01Bx71g1J4J4STeaEe9FtYwC>
+
+<!-- TOOL_RESULT_PLACEHOLDER_toolu_01Bx71g1J4J4STeaEe9FtYwC -->

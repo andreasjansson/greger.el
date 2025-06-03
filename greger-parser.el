@@ -69,7 +69,8 @@ Returns a plist with :messages and :metadata keys."
 ;; Compatibility function for tests and existing code
 (defun greger-parser-parse-dialog-messages-only (markdown &optional debug)
   "Parse MARKDOWN into dialog format, returning only the messages (old format).
-This is for backward compatibility with existing tests and code."
+This is for backward compatibility with existing tests and code.
+DEBUG enables debug logging."
   (let ((result (greger-parser-parse-dialog markdown debug)))
     (plist-get result :messages)))
 
