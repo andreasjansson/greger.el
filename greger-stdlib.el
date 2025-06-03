@@ -519,6 +519,7 @@ CASE-SENSITIVE, FILE-TYPE, CONTEXT-LINES and MAX-RESULTS are optional parameters
 
 (defun greger-stdlib--write-new-file (file-path contents git-commit-message &optional buffer)
   "Write CONTENTS to a new file at FILE-PATH. Fails if file already exists.
+GIT-COMMIT-MESSAGE will be used for the git commit.
 If BUFFER is provided, it will be staged and committed along with the new file."
   (unless (stringp file-path)
     (error "file_path must be a string"))
