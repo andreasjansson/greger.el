@@ -708,9 +708,35 @@ If BUFFER is provided, it will be staged and committed along with the modified f
       (format "Successfully replaced contents of %s with %d characters. %s"
               expanded-path (length contents) git-result))))
 
+(defun greger-stdlib--count-paren-balance (content)
+  "Count paren balance in CONTENT, ignoring parens in strings and comments.
+Returns the difference between left and right parens (left - right).
+Uses parse-partial-sexp to properly handle strings and comments."
+  (with-temp-buffer
+    ;; Set up the buffer with lisp-mode syntax table for proper parsing
+    (with-syntax-table lisp-data-mode-syntax-table
+      (insert content)
+      (goto-char (point-min))
+      (let ((balance 0)
+            (state nil)
+            (pos (point-min)))
+        (while (< pos (point-max))
+          ;; Parse to the next character
+          (setq state (parse-partial-sexp pos (1+ pos) nil nil state))
+          (let ((char (char-after pos)))
+            ;; Only count parens if we're not in a string or comment
+            (unless (or (nth 3 state)  ; in string
+                        (nth 4 state)) ; in comment
+              (cond
+               ((eq char ?\() (setq balance (1+ balance)))
+               ((eq char ?\)) (setq balance (1- balance))))))
+          (setq pos (1+ pos)))
+        balance))))
+
 (defun greger-stdlib--str-replace (file-path original-content new-content git-commit-message &optional buffer)
   "Replace ORIGINAL-CONTENT with NEW-CONTENT in FILE-PATH.
-If BUFFER is provided, it will be staged and committed along with the modified file."
+If BUFFER is provided, it will be staged and committed along with the modified file.
+For Emacs Lisp files (.el), checks that parentheses balance is maintained."
   (unless (stringp file-path)
     (error "file_path must be a string"))
 
@@ -732,6 +758,14 @@ If BUFFER is provided, it will be staged and committed along with the modified f
     ;; Check if it's actually a file and not a directory
     (when (file-directory-p expanded-path)
       (error "Path is a directory, not a file: %s" expanded-path))
+
+    ;; Check paren balance for Emacs Lisp files
+    (when (string-suffix-p ".el" expanded-path)
+      (let ((orig-balance (greger-stdlib--count-paren-balance original-content))
+            (new-balance (greger-stdlib--count-paren-balance new-content)))
+        (unless (= orig-balance new-balance)
+          (error "Parentheses balance mismatch in Emacs Lisp file: original has balance %d, new has balance %d. They must be equal."
+                 orig-balance new-balance))))
 
     (with-current-buffer (find-file-noselect expanded-path)
      ;; Use isearch to find the original content
