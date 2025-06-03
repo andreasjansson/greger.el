@@ -239,7 +239,7 @@
     (if code-block
         (progn
           (kill-new code-block)
-          (message (format "Copied code: %s" (greger--truncate-with-ellipsis code-block 40))))
+          (message "Copied code: %s" (greger--truncate-with-ellipsis code-block 40)))
       (error "Point is not inside a code block"))))
 
 (defun greger-set-model ()
