@@ -6759,4 +6759,57 @@ greger-tools.el
 Remove debug code from greger-tools-execute
 </tool.toolu_01KVVgANdcSrYt9evm2ZwKfu>
 
-<!-- TOOL_RESULT_PLACEHOLDER_toolu_01KVVgANdcSrYt9evm2ZwKfu -->
+## TOOL RESULT:
+
+ID: toolu_01KVVgANdcSrYt9evm2ZwKfu
+
+<tool.toolu_01KVVgANdcSrYt9evm2ZwKfu>
+Successfully replaced content in /Users/andreas/projects/greger.el/greger-tools.el. Successfully staged 2 file(s) and committed with message: Remove debug code from greger-tools-execute
+</tool.toolu_01KVVgANdcSrYt9evm2ZwKfu>
+
+
+## TOOL USE:
+
+Name: str-replace
+ID: toolu_017PUdVA7KSziBz9FhWuZiMy
+
+### file_path
+
+<tool.toolu_017PUdVA7KSziBz9FhWuZiMy>
+greger-stdlib.el
+</tool.toolu_017PUdVA7KSziBz9FhWuZiMy>
+
+### original_content
+
+<tool.toolu_017PUdVA7KSziBz9FhWuZiMy>
+(defun greger-stdlib--delete-files (file-paths git-commit-message &optional buffer)
+  "Delete files at FILE-PATHS and stage the deletion in git if tracked.
+If BUFFER is provided, it will be staged and committed along with the deleted files."
+  (unless (or (vectorp file-paths) (listp file-paths))
+    (error "file_paths must be a vector or list"))
+</tool.toolu_017PUdVA7KSziBz9FhWuZiMy>
+
+### new_content
+
+<tool.toolu_017PUdVA7KSziBz9FhWuZiMy>
+(defun greger-stdlib--delete-files (file-paths git-commit-message &optional buffer)
+  "Delete files at FILE-PATHS and stage the deletion in git if tracked.
+If BUFFER is provided, it will be staged and committed along with the deleted files."
+  ;; Handle JSON array strings by parsing them into lists
+  (when (stringp file-paths)
+    (condition-case nil
+        (setq file-paths (json-parse-string file-paths :array-type 'list))
+      (error
+        (error "file_paths must be a valid JSON array string, vector, or list: %s" file-paths))))
+
+  (unless (or (vectorp file-paths) (listp file-paths))
+    (error "file_paths must be a vector or list"))
+</tool.toolu_017PUdVA7KSziBz9FhWuZiMy>
+
+### git_commit_message
+
+<tool.toolu_017PUdVA7KSziBz9FhWuZiMy>
+Add back JSON parsing to delete-files to handle string arrays
+</tool.toolu_017PUdVA7KSziBz9FhWuZiMy>
+
+<!-- TOOL_RESULT_PLACEHOLDER_toolu_017PUdVA7KSziBz9FhWuZiMy -->
