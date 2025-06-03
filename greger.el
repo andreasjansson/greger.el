@@ -704,11 +704,11 @@ TOOL-ID is the tool identifier."
   ;(face-remap-add-relative 'markdown-header-face-3 'greger-tool-param-heading-face)
   (font-lock-flush))
 
-(defun greger--after-change-function (beg end len)
+(defun greger--after-change-function (beg end _len)
   "Update tool sections after buffer changes.
 BEG is the beginning of the changed region.
 END is the end of the changed region.
-LEN is the length of the pre-change text."
+_LEN is the length of the pre-change text (unused)."
   ;; Simple approach: refresh all tool sections
   ;; This could be optimized to only refresh affected sections
   (when (> (- end beg) 0)  ; Only if there was an actual change
