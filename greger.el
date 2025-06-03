@@ -647,7 +647,8 @@ TOOL-ID is the identifier of the tool section to toggle."
       (greger--collapse-tool-section overlay tool-id))))
 
 (defun greger--expand-tool-section (overlay tool-id)
-  "Expand the tool section by making OVERLAY visible."
+  "Expand the tool section by making OVERLAY visible.
+OVERLAY is the overlay to expand, TOOL-ID identifies the tool."
   (overlay-put overlay 'invisible nil)
   (overlay-put overlay 'greger-collapsed nil)
 
