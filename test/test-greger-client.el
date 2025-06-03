@@ -85,7 +85,7 @@
 (ert-deftest greger-end-to-end-test-tool-use ()
   "Test tool use functionality with Claude API."
   :tags '(end-to-end api tools)
-  (skip-unless (greger-test-has-api-key))
+
 
   (let ((response-received nil)
         (final-blocks nil)
