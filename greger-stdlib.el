@@ -961,10 +961,10 @@ MAX-ROWS limits the number of log entries returned (default 100)."
   "View git commit using git command line for PATH.
 COMMIT-HASH specifies which commit to show."
   (unless (stringp commit-hash)
-    (error "commit_hash must be a string"))
+    (error "Commit_hash must be a string"))
 
   (unless (stringp path)
-    (error "path must be a string"))
+    (error "Path must be a string"))
 
   (let ((expanded-path (expand-file-name path)))
 
