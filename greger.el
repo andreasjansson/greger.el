@@ -433,7 +433,13 @@ ARGS are arguments to format."
     (insert text)))
 
 (defun greger--handle-tool-completion (tool-id result error agent-state search-start-pos completion-callback)
-  "Handle completion of a tool execution by updating the buffer and calling COMPLETION-CALLBACK."
+  "Handle completion of a tool execution by updating the buffer and calling COMPLETION-CALLBACK.
+TOOL-ID is the tool identifier.
+RESULT is the tool execution result.
+ERROR is any error that occurred.
+AGENT-STATE contains the current agent state.
+SEARCH-START-POS is where to start searching for placeholders.
+COMPLETION-CALLBACK is called when complete."
   (let ((tool-result (if error
                         `((type . "tool_result")
                           (tool_use_id . ,tool-id)
