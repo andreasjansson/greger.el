@@ -3296,4 +3296,148 @@ bash script/test --verbose
 Add test for combined system content with safe shell commands
 </tool.toolu_018CviaiPvSe4DZ9rrsYge6E>
 
-<!-- TOOL_RESULT_PLACEHOLDER_toolu_018CviaiPvSe4DZ9rrsYge6E -->
+## TOOL RESULT:
+
+ID: toolu_018CviaiPvSe4DZ9rrsYge6E
+
+<tool.toolu_018CviaiPvSe4DZ9rrsYge6E>
+Successfully wrote new file /Users/andreas/projects/greger.el/test_combined_content.el with 682 characters. Successfully staged 2 file(s) and committed with message: Add test for combined system content with safe shell commands
+</tool.toolu_018CviaiPvSe4DZ9rrsYge6E>
+
+
+## TOOL USE:
+
+Name: shell-command
+ID: toolu_01XBbagSFrKyR9UmpjH8gcem
+
+### command
+
+<tool.toolu_01XBbagSFrKyR9UmpjH8gcem>
+emacs --batch -l test_combined_content.el
+</tool.toolu_01XBbagSFrKyR9UmpjH8gcem>
+
+## TOOL RESULT:
+
+ID: toolu_01XBbagSFrKyR9UmpjH8gcem
+
+<tool.toolu_01XBbagSFrKyR9UmpjH8gcem>
+Command executed successfully:
+Source file ‘/opt/homebrew/Cellar/emacs-plus@29/29.0.90/share/emacs/29.0.91/lisp/net/eww.el’ newer than byte-compiled file; using older file
+Combined system message content:
+You are a helpful assistant for an Emacs Lisp project.
+
+You can run arbitrary shell commands with the shell-command tool, but the following are safe shell commands that will run without requiring user confirmation:
+
+* `bash script/package-lint`
+* `bash script/test --verbose`
+
+</tool.toolu_01XBbagSFrKyR9UmpjH8gcem>
+
+## TOOL USE:
+
+Name: shell-command
+ID: toolu_01FqcrG7k6YsJt6Nb21SAUdV
+
+### command
+
+<tool.toolu_01FqcrG7k6YsJt6Nb21SAUdV>
+rm test_combined_content.el
+</tool.toolu_01FqcrG7k6YsJt6Nb21SAUdV>
+
+## TOOL RESULT:
+
+ID: toolu_01FqcrG7k6YsJt6Nb21SAUdV
+
+<tool.toolu_01FqcrG7k6YsJt6Nb21SAUdV>
+Command executed successfully:
+(no output)
+</tool.toolu_01FqcrG7k6YsJt6Nb21SAUdV>
+
+## ASSISTANT:
+
+Perfect! The implementation is working exactly as requested. Let me create a final commit to document what was implemented:
+
+## TOOL USE:
+
+Name: write-new-file
+ID: toolu_015Q57KhmvFygMDjiTkm2tsa
+
+### file_path
+
+<tool.toolu_015Q57KhmvFygMDjiTkm2tsa>
+SAFE_SHELL_COMMANDS.md
+</tool.toolu_015Q57KhmvFygMDjiTkm2tsa>
+
+### contents
+
+<tool.toolu_015Q57KhmvFygMDjiTkm2tsa>
+# Safe Shell Commands Auto-Generation
+
+The greger parser now automatically generates descriptive text for safe shell commands when parsing `<safe-shell-commands>` tags in system sections.
+
+## Behavior
+
+When you have a chat like this:
+
+```markdown
+## SYSTEM:
+
+<safe-shell-commands>
+bash script/package-lint
+bash script/test --verbose
+bash script/test --verbose --file test/test-parser.el
+bash script/test --verbose --file test/test-greger.el
+bash script/test --verbose --file test/test-greger-lib-lsp.el
+</safe-shell-commands>
+```
+
+The parser will automatically generate the following system prompt:
+
+```
+You can run arbitrary shell commands with the shell-command tool, but the following are safe shell commands that will run without requiring user confirmation:
+
+* `bash script/package-lint`
+* `bash script/test --verbose`
+* `bash script/test --verbose --file test/test-parser.el`
+* `bash script/test --verbose --file test/test-greger.el`
+* `bash script/test --verbose --file test/test-greger-lib-lsp.el`
+```
+
+## Combined Content
+
+If you have both system content and safe shell commands:
+
+```markdown
+## SYSTEM:
+
+You are a helpful assistant for an Emacs Lisp project.
+
+<safe-shell-commands>
+bash script/package-lint
+bash script/test --verbose
+</safe-shell-commands>
+```
+
+The parser will combine them:
+
+```
+You are a helpful assistant for an Emacs Lisp project.
+
+You can run arbitrary shell commands with the shell-command tool, but the following are safe shell commands that will run without requiring user confirmation:
+
+* `bash script/package-lint`
+* `bash script/test --verbose`
+```
+
+## Metadata
+
+The safe shell commands are still extracted as metadata and can be used by the shell-command tool to skip permission prompts for the listed commands.
+</tool.toolu_015Q57KhmvFygMDjiTkm2tsa>
+
+### git_commit_message
+
+<tool.toolu_015Q57KhmvFygMDjiTkm2tsa>
+Add documentation for safe shell commands auto-generation feature
+</tool.toolu_015Q57KhmvFygMDjiTkm2tsa>
+
+<!-- TOOL_RESULT_PLACEHOLDER_toolu_015Q57KhmvFygMDjiTkm2tsa -->
