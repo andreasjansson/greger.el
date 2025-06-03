@@ -390,4 +390,219 @@
       (when (file-exists-p test-file)
         (delete-file test-file)))))
 
+(ert-deftest greger-test-delete-files-basic ()
+  "Test basic delete-files functionality."
+  (let ((test-file1 (make-temp-file "test1" nil ".txt"))
+        (test-file2 (make-temp-file "test2" nil ".txt"))
+        (test-content "Test content"))
+
+    (unwind-protect
+        (progn
+          ;; Write test content to files
+          (with-temp-file test-file1
+            (insert test-content))
+          (with-temp-file test-file2
+            (insert test-content))
+
+          ;; Verify files exist
+          (should (file-exists-p test-file1))
+          (should (file-exists-p test-file2))
+
+          ;; Mock git operations to avoid actual git commits
+          (cl-letf (((symbol-function 'greger-stdlib--git-stage-and-commit)
+                     (lambda (files commit-message buffer) "Mocked git result")))
+
+            ;; Test successful deletion with array input
+            (let ((result (greger-stdlib--delete-files
+                          (vector test-file1 test-file2)
+                          "Test commit message")))
+              (should (stringp result))
+              (should (string-match "Successfully deleted 2 file" result))
+              (should (string-match (file-name-nondirectory test-file1) result))
+              (should (string-match (file-name-nondirectory test-file2) result)))
+
+            ;; Verify files are deleted
+            (should-not (file-exists-p test-file1))
+            (should-not (file-exists-p test-file2))))
+
+      ;; Clean up any remaining files
+      (when (file-exists-p test-file1)
+        (delete-file test-file1))
+      (when (file-exists-p test-file2)
+        (delete-file test-file2)))))
+
+(ert-deftest greger-test-delete-files-list-input ()
+  "Test delete-files with list input instead of vector."
+  (let ((test-file (make-temp-file "test" nil ".txt"))
+        (test-content "Test content"))
+
+    (unwind-protect
+        (progn
+          ;; Write test content to file
+          (with-temp-file test-file
+            (insert test-content))
+
+          ;; Verify file exists
+          (should (file-exists-p test-file))
+
+          ;; Mock git operations to avoid actual git commits
+          (cl-letf (((symbol-function 'greger-stdlib--git-stage-and-commit)
+                     (lambda (files commit-message buffer) "Mocked git result")))
+
+            ;; Test successful deletion with list input
+            (let ((result (greger-stdlib--delete-files
+                          (list test-file)
+                          "Test commit message")))
+              (should (stringp result))
+              (should (string-match "Successfully deleted 1 file" result))
+              (should (string-match (file-name-nondirectory test-file) result)))
+
+            ;; Verify file is deleted
+            (should-not (file-exists-p test-file))))
+
+      ;; Clean up any remaining files
+      (when (file-exists-p test-file)
+        (delete-file test-file)))))
+
+(ert-deftest greger-test-delete-files-nonexistent-file ()
+  "Test delete-files with non-existent file."
+  (let ((nonexistent-file "/tmp/does-not-exist.txt"))
+
+    ;; Ensure file doesn't exist
+    (should-not (file-exists-p nonexistent-file))
+
+    ;; Mock git operations to avoid actual git commits
+    (cl-letf (((symbol-function 'greger-stdlib--git-stage-and-commit)
+               (lambda (files commit-message buffer) "Mocked git result")))
+
+      ;; Should error when trying to delete non-existent file
+      (should-error (greger-stdlib--delete-files
+                    (list nonexistent-file)
+                    "Test commit message")
+                   :type 'error))))
+
+(ert-deftest greger-test-delete-files-directory ()
+  "Test delete-files with directory path (should fail)."
+  (let ((test-dir (make-temp-file "test-dir" t)))
+
+    (unwind-protect
+        (progn
+          ;; Verify directory exists
+          (should (file-exists-p test-dir))
+          (should (file-directory-p test-dir))
+
+          ;; Mock git operations to avoid actual git commits
+          (cl-letf (((symbol-function 'greger-stdlib--git-stage-and-commit)
+                     (lambda (files commit-message buffer) "Mocked git result")))
+
+            ;; Should error when trying to delete directory
+            (should-error (greger-stdlib--delete-files
+                          (list test-dir)
+                          "Test commit message")
+                         :type 'error)))
+
+      ;; Clean up
+      (when (file-exists-p test-dir)
+        (delete-directory test-dir)))))
+
+(ert-deftest greger-test-delete-files-invalid-input ()
+  "Test delete-files with invalid input types."
+  ;; Mock git operations to avoid actual git commits
+  (cl-letf (((symbol-function 'greger-stdlib--git-stage-and-commit)
+             (lambda (files commit-message buffer) "Mocked git result")))
+
+    ;; Test with non-string file paths
+    (should-error (greger-stdlib--delete-files
+                  (list 123)
+                  "Test commit message")
+                 :type 'error)
+
+    ;; Test with non-string/non-list file_paths
+    (should-error (greger-stdlib--delete-files
+                  "not-a-list"
+                  "Test commit message")
+                 :type 'error)
+
+    ;; Test with non-string commit message
+    (should-error (greger-stdlib--delete-files
+                  (list "/tmp/test.txt")
+                  123)
+                 :type 'error)))
+
+(ert-deftest greger-test-delete-files-git-tracking ()
+  "Test delete-files git tracking behavior."
+  (let ((test-file (make-temp-file "test" nil ".txt"))
+        (test-content "Test content")
+        (git-tracked-called nil)
+        (git-stage-called nil)
+        (staged-files nil))
+
+    (unwind-protect
+        (progn
+          ;; Write test content to file
+          (with-temp-file test-file
+            (insert test-content))
+
+          ;; Mock git functions
+          (cl-letf (((symbol-function 'greger-stdlib--find-git-repo-root)
+                     (lambda (dir) "/fake/repo/root"))
+                    ((symbol-function 'greger-stdlib--is-file-tracked-by-git)
+                     (lambda (file repo-root)
+                       (setq git-tracked-called t)
+                       t))  ; Simulate file is tracked
+                    ((symbol-function 'greger-stdlib--git-stage-and-commit)
+                     (lambda (files commit-message buffer)
+                       (setq git-stage-called t)
+                       (setq staged-files files)
+                       "Mocked git result")))
+
+            ;; Test deletion of git-tracked file
+            (let ((result (greger-stdlib--delete-files
+                          (list test-file)
+                          "Delete test file")))
+              (should (stringp result))
+              (should (string-match "Successfully deleted 1 file" result))
+              (should git-tracked-called)
+              (should git-stage-called)
+              (should (member test-file staged-files))
+              (should-not (file-exists-p test-file)))))
+
+      ;; Clean up any remaining files
+      (when (file-exists-p test-file)
+        (delete-file test-file)))))
+
+(ert-deftest greger-test-delete-files-not-git-tracked ()
+  "Test delete-files with files not tracked by git."
+  (let ((test-file (make-temp-file "test" nil ".txt"))
+        (test-content "Test content")
+        (git-stage-called nil))
+
+    (unwind-protect
+        (progn
+          ;; Write test content to file
+          (with-temp-file test-file
+            (insert test-content))
+
+          ;; Mock git functions
+          (cl-letf (((symbol-function 'greger-stdlib--find-git-repo-root)
+                     (lambda (dir) nil))  ; No git repo found
+                    ((symbol-function 'greger-stdlib--git-stage-and-commit)
+                     (lambda (files commit-message buffer)
+                       (setq git-stage-called t)
+                       "Should not be called")))
+
+            ;; Test deletion of non-git-tracked file
+            (let ((result (greger-stdlib--delete-files
+                          (list test-file)
+                          "Delete test file")))
+              (should (stringp result))
+              (should (string-match "Successfully deleted 1 file" result))
+              (should (string-match "No files were tracked by git" result))
+              (should-not git-stage-called)
+              (should-not (file-exists-p test-file)))))
+
+      ;; Clean up any remaining files
+      (when (file-exists-p test-file)
+        (delete-file test-file)))))
+
 ;;; greger-test-stdlib.el ends here
