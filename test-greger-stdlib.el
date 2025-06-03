@@ -230,7 +230,7 @@
       (let ((metadata '(:safe-shell-commands ("echo safe command" "pwd"))))
 
         ;; Execute a command that's NOT in the safe list
-        (greger-tools--shell-command
+        (greger-stdlib--shell-command
          "echo unsafe command"
          (lambda (output err)
            (setq result output error err callback-called t))
