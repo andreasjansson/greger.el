@@ -2232,4 +2232,46 @@ greger-stdlib.el
 Restore proper line number formatting with padding based on maximum width
 </tool.toolu_01M64XpA6onmvDpA2ULhfz5P>
 
-<!-- TOOL_RESULT_PLACEHOLDER_toolu_01M64XpA6onmvDpA2ULhfz5P -->
+## TOOL RESULT:
+
+ID: toolu_01M64XpA6onmvDpA2ULhfz5P
+
+<tool.toolu_01M64XpA6onmvDpA2ULhfz5P>
+Successfully replaced content in /Users/andreas/projects/greger.el/greger-stdlib.el. Successfully staged 2 file(s) and committed with message: Restore proper line number formatting with padding based on maximum width
+</tool.toolu_01M64XpA6onmvDpA2ULhfz5P>
+
+
+## ASSISTANT:
+
+Now I need to fix the error handling in the read-file function to match the main branch format:
+
+## TOOL USE:
+
+Name: str-replace
+ID: toolu_01DhYKQYy1yAHizmnWGNThUP
+
+### file_path
+
+<tool.toolu_01DhYKQYy1yAHizmnWGNThUP>
+greger-stdlib.el
+</tool.toolu_01DhYKQYy1yAHizmnWGNThUP>
+
+### original_content
+
+<tool.toolu_01DhYKQYy1yAHizmnWGNThUP>
+      (error "Failed to read file: %s" (error-message-string err)))))
+</tool.toolu_01DhYKQYy1yAHizmnWGNThUP>
+
+### new_content
+
+<tool.toolu_01DhYKQYy1yAHizmnWGNThUP>
+      (error (format "Failed to read file: %s" (error-message-string err))))))
+</tool.toolu_01DhYKQYy1yAHizmnWGNThUP>
+
+### git_commit_message
+
+<tool.toolu_01DhYKQYy1yAHizmnWGNThUP>
+Fix error handling in greger-stdlib--read-file to return formatted string
+</tool.toolu_01DhYKQYy1yAHizmnWGNThUP>
+
+<!-- TOOL_RESULT_PLACEHOLDER_toolu_01DhYKQYy1yAHizmnWGNThUP -->

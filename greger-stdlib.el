@@ -387,7 +387,7 @@ If END-LINE is specified, stop reading at that line (inclusive, 1-based)."
             (if include-line-numbers
                 (greger-stdlib--add-line-numbers-with-offset contents actual-start)
               contents)))
-      (error "Failed to read file: %s" (error-message-string err)))))
+      (error (format "Failed to read file: %s" (error-message-string err))))))
 
 (defun greger-stdlib--extract-line-range (lines start-line end-line)
   "Extract lines from LINES between START-LINE and END-LINE (1-based, inclusive)."
