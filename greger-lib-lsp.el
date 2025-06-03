@@ -35,7 +35,7 @@
 
 ;; Only require lsp-mode if it's available
 (unless (require 'lsp-mode nil 'noerror)
-  (error "lsp-mode is required for greger-lib-lsp functionality"))
+  (error "LSP-mode is required for greger-lib-lsp functionality"))
 
 ;;; Tool registrations
 
