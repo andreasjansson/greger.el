@@ -602,7 +602,7 @@ If BUFFER is provided, it will be staged and committed along with the renamed fi
                              (list expanded-old-path expanded-new-path)
                              git-commit-message buffer)))
             (format "Successfully renamed %s to %s. %s" expanded-old-path expanded-new-path git-result)))
-      (error (format "Failed to rename file: %s" (error-message-string err))))))
+      (error "Failed to rename file: %s" (error-message-string err)))))
 
 (defun greger-stdlib--delete-files (file-paths git-commit-message &optional buffer)
   "Delete files at FILE-PATHS and stage the deletion in git if tracked.
