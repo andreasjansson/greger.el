@@ -987,6 +987,13 @@ If BUFFER is provided, it will be staged and committed along with the modified f
   (unless (stringp file-path)
     (error "File path must be a string"))
 
+  ;; Handle JSON array strings by parsing them into lists
+  (when (stringp function-names)
+    (condition-case nil
+        (setq function-names (json-parse-string function-names :array-type 'list))
+      (error
+        (error "function_names must be a valid JSON array string, vector, or list: %s" function-names))))
+
   (unless (or (vectorp function-names) (listp function-names))
     (error "Function names must be a vector or list"))
 
