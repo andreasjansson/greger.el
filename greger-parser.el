@@ -1021,7 +1021,7 @@ Returns either a system message, metadata, or both."
             "</tool." id ">")))
 
 (defun greger-parser--tool-params-to-markdown (id input)
-  "Convert tool parameters to markdown."
+  "Convert tool parameters with ID and INPUT to markdown."
   (if (null input)
       ""
     (mapconcat (lambda (param)
