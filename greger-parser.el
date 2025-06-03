@@ -794,7 +794,7 @@ Returns either a system message, metadata, or both."
   (concat "</" (substring opening-tag 1)))
 
 (defun greger-parser--find-closing-tag (state closing-tag)
-  "Find closing tag, treating all content inside as raw text using STATE."
+  "Find CLOSING-TAG, treating all content inside as raw text using STATE."
   (let ((found nil)
         (iterations 0)
         (max-iterations (* (greger-parser-state-length state) 2))) ; Safety limit
