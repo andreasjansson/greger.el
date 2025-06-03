@@ -1036,7 +1036,7 @@ If METADATA contains safe-shell-commands and COMMAND is in that list, skips perm
                      (funcall callback nil error)
                    (funcall callback
                            (format "Command executed successfully:\n%s" output)
-                           nil))))))))))))
+                           nil)))))))))))))
 
 (defun greger-stdlib--read-webpage (url &optional extract-text use-highest-readability)
   "Read webpage content from URL.
