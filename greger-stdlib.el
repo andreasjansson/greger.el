@@ -605,7 +605,7 @@ If BUFFER is provided, it will be staged and committed with the renamed file."
 (defun greger-stdlib--delete-files (file-paths git-commit-message &optional buffer)
   "Delete files at FILE-PATHS and stage the deletion in git if tracked.
 GIT-COMMIT-MESSAGE will be used for the git commit.
-If BUFFER is provided, it will be staged and committed along with the deleted files."
+If BUFFER is provided, it will be staged and committed with deleted files."
   (unless (or (vectorp file-paths) (listp file-paths))
     (error "Invalid type: file_paths must be a vector or list"))
 
