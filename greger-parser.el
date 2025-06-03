@@ -881,7 +881,7 @@ Returns either a system message, metadata, or both."
             (mapconcat (lambda (cmd) (format "* `%s`" cmd)) commands "\n"))))
 
 (defun greger-parser--create-thinking-message (content)
-  "Create thinking message."
+  "Create thinking message with CONTENT."
   `((role . "assistant")
     (content . (((type . "thinking") (thinking . ,content))))))
 
