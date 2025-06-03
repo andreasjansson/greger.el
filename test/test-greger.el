@@ -260,7 +260,7 @@ Error executing tool: Simulated tool error: bad-input
     ;; Clean up
     (remhash "test-error" greger-tools-registry)))
 
-(ert-deftest greger-agent-test-tool-execution-with-existing-content ()
+(ert-deftest greger-test-tool-execution-with-existing-content ()
   "Test tool execution when buffer already has content."
   (let ((test-completed nil))
 
