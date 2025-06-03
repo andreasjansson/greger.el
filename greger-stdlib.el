@@ -974,7 +974,7 @@ If BUFFER is provided, it will be staged and committed along with the modified f
                           "No git commit available"
                         results))
                   (error "Git show command failed with exit code %d" exit-code)))))
-        (error (format "Failed to show git commit: %s" (error-message-string err)))))))
+        (error "Failed to show git commit: %s" (error-message-string err))))))
 
 (defun greger-stdlib--eval-elisp-defuns (file-path function-names)
   (unless (stringp file-path)
