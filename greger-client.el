@@ -1,8 +1,26 @@
 ;;; greger-client.el --- Claude client for greger -*- lexical-binding: t -*-
 
+;; Copyright (C) 2023 Andreas Jansson
+
 ;; Author: Andreas Jansson <andreas@jansson.me.uk>
 ;; Version: 0.1.0
 ;; URL: https://github.com/andreasjansson/greger.el
+;; SPDX-License-Identifier: GPL-3.0-or-later
+
+;; This file is not part of GNU Emacs.
+
+;; This program is free software; you can redistribute it and/or modify
+;; it under the terms of the GNU General Public License as published by
+;; the Free Software Foundation, either version 3 of the License, or
+;; (at your option) any later version.
+
+;; This program is distributed in the hope that it will be useful,
+;; but WITHOUT ANY WARRANTY; without even the implied warranty of
+;; MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+;; GNU General Public License for more details.
+
+;; You should have received a copy of the GNU General Public License
+;; along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 ;;; Commentary:
 ;; Simplified Claude client supporting only claude-sonnet-4 and claude-opus-4
@@ -241,37 +259,7 @@ Returns nil if no error found or if OUTPUT is not valid JSON."
     (setf (greger-client-state-accumulated-output state) accumulated)))
 
 (defun greger-client--handle-claude-event (data-json state)
-  "Handle a Claude streaming event with DATA-JSON using STATE.
-
-Example of incoming data json (one data-json per line):
-{\"type\":\"message_start\",\"message\":{\"id\":\"msg_01Qm7bzEMGbdRyAuF5Lrb1Tg\",
-\"type\":\"message\",\"role\":\"assistant\",\"model\":\"claude-sonnet-4-20250514\",
-\"content\":[],\"stop_reason\":null,\"stop_sequence\":null,
-\"usage\":{\"input_tokens\":2626,\"cache_creation_input_tokens\":0,
-\"cache_read_input_tokens\":0,\"output_tokens\":1,\"service_tier\":\"standard\"}}}
-{\"type\":\"content_block_start\",\"index\":0,\"content_block\":{\"type\":\"text\",\"text\":\"\"}}
-{\"type\": \"ping\"}
-{\"type\":\"content_block_delta\",\"index\":0,\"delta\":{\"type\":\"text_delta\",\"text\":\"I\"}}
-{\"type\":\"content_block_delta\",\"index\":0,\"delta\":{\"type\":\"text_delta\",
-\"text\":\"'ll first read the existing file to see what's already there,\"}}
-{\"type\":\"content_block_delta\",\"index\":0,\"delta\":{\"type\":\"text_delta\",
-\"text\":\" then add a new function in the same style.\"}}
-{\"type\":\"content_block_stop\",\"index\":0}
-{\"type\":\"content_block_start\",\"index\":1,\"content_block\":{\"type\":\"tool_use\",\"id\":\"toolu_01NmTNDZcJdGAMsrWQy1Heff\",\"name\":\"read-file\",\"input\":{}}}
-{\"type\":\"content_block_delta\",\"index\":1,\"delta\":{\"type\":\"input_json_delta\",\"partial_json\":\"\"}}
-{\"type\":\"content_block_delta\",\"index\":1,\"delta\":{\"type\":\"input_json_delta\",\"partial_json\":\"{\\\"\"}}
-{\"type\":\"content_block_delta\",\"index\":1,\"delta\":{\"type\":\"input_json_delta\",\"partial_json\":\"path\\\": \\\"~/s\"}}
-{\"type\":\"content_block_delta\",\"index\":1,\"delta\":{\"type\":\"input_json_delta\",\"partial_json\":\"cratch/aicha\"}}
-{\"type\":\"content_block_delta\",\"index\":1,\"delta\":{\"type\":\"input_json_delta\",\"partial_json\":\"t/hel\"}}
-{\"type\":\"content_block_delta\",\"index\":1,\"delta\":{\"type\":\"input_json_delta\",\"partial_json\":\"lo.\"}}
-{\"type\":\"content_block_delta\",\"index\":1,\"delta\":{\"type\":\"input_json_delta\",\"partial_json\":\"py\\\"\"}}
-{\"type\":\"content_block_delta\",\"index\":1,\"delta\":{\"type\":\"input_json_delta\",\"partial_json\":\", \\\"includ\"}}
-{\"type\":\"content_block_delta\",\"index\":1,\"delta\":{\"type\":\"input_json_delta\",\"partial_json\":\"e_li\"}}
-{\"type\":\"content_block_delta\",\"index\":1,\"delta\":{\"type\":\"input_json_delta\",\"partial_json\":\"ne_numb\"}}
-{\"type\":\"content_block_delta\",\"index\":1,\"delta\":{\"type\":\"input_json_delta\",\"partial_json\":\"ers\\\": true}\"}}
-{\"type\":\"content_block_stop\",\"index\":1}
-{\"type\":\"message_delta\",\"delta\":{\"stop_reason\":\"tool_use\",\"stop_sequence\":null},\"usage\":{\"output_tokens\":108}}
-{\"type\":\"message_stop\"}"
+  "Handle a Claude streaming event with DATA-JSON using STATE."
   (let* ((data (json-read-from-string data-json))
          (type (alist-get 'type data)))
     (cond
