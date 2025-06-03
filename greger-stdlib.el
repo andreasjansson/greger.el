@@ -992,6 +992,8 @@ COMMIT-HASH specifies which commit to show."
         (error "Failed to show git commit: %s" (error-message-string err))))))
 
 (defun greger-stdlib--eval-elisp-defuns (file-path function-names)
+  "Evaluate Emacs Lisp function definitions from FILE-PATH.
+FUNCTION-NAMES specifies which functions to evaluate."
   (unless (stringp file-path)
     (error "File path must be a string"))
 
