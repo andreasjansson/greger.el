@@ -128,7 +128,7 @@ parameters.  Returns a list of arguments in the correct order for the function."
       (cond
        ;; Handle &optional marker
        ((eq arg-name '&optional)
-        (setq optional-started t))
+        t)
        ;; Handle &rest marker (stop processing)
        ((eq arg-name '&rest)
         (cl-return))
