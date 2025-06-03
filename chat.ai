@@ -2512,4 +2512,367 @@ greger-agent.el
 Update function call to use greger-client-stream instead of greger-stream-to-buffer-with-tools
 </tool.toolu_01H395pAB1bmhNQ7U9R6BTE6>
 
-<!-- TOOL_RESULT_PLACEHOLDER_toolu_01H395pAB1bmhNQ7U9R6BTE6 -->
+## TOOL RESULT:
+
+ID: toolu_01H395pAB1bmhNQ7U9R6BTE6
+
+<tool.toolu_01H395pAB1bmhNQ7U9R6BTE6>
+Successfully replaced content in /Users/andreas/projects/greger.el/greger-agent.el. Successfully staged 2 file(s) and committed with message: Update function call to use greger-client-stream instead of greger-stream-to-buffer-with-tools
+</tool.toolu_01H395pAB1bmhNQ7U9R6BTE6>
+
+
+## ASSISTANT:
+
+Now let me delete the old files that are no longer needed:
+
+## TOOL USE:
+
+Name: shell-command
+ID: toolu_0127Em3F4LydJd3UHRyvPwab
+
+### command
+
+<tool.toolu_0127Em3F4LydJd3UHRyvPwab>
+rm greger-stream.el greger-providers.el greger-provider-claude.el
+</tool.toolu_0127Em3F4LydJd3UHRyvPwab>
+
+## TOOL RESULT:
+
+ID: toolu_0127Em3F4LydJd3UHRyvPwab
+
+<tool.toolu_0127Em3F4LydJd3UHRyvPwab>
+Command executed successfully:
+(no output)
+</tool.toolu_0127Em3F4LydJd3UHRyvPwab>
+
+## TOOL USE:
+
+Name: shell-command
+ID: toolu_01E76V19j58LrKxerPhdPNuc
+
+### command
+
+<tool.toolu_01E76V19j58LrKxerPhdPNuc>
+git add -A && git commit -m "Remove obsolete provider files that have been consolidated into greger-client.el"
+</tool.toolu_01E76V19j58LrKxerPhdPNuc>
+
+## TOOL RESULT:
+
+ID: toolu_01E76V19j58LrKxerPhdPNuc
+
+<tool.toolu_01E76V19j58LrKxerPhdPNuc>
+Command executed successfully:
+[refactor 3b2038c] Remove obsolete provider files that have been consolidated into greger-client.el
+ 3 files changed, 497 deletions(-)
+ delete mode 100644 greger-provider-claude.el
+ delete mode 100644 greger-providers.el
+ delete mode 100644 greger-stream.el
+
+</tool.toolu_01E76V19j58LrKxerPhdPNuc>
+
+## ASSISTANT:
+
+Now let me check if there are any other provider files that should be removed since we're only supporting Claude:
+
+## TOOL USE:
+
+Name: list-directory
+ID: toolu_01LCT1sGsoLMDtYX8XsaG9TS
+
+### path
+
+<tool.toolu_01LCT1sGsoLMDtYX8XsaG9TS>
+.
+</tool.toolu_01LCT1sGsoLMDtYX8XsaG9TS>
+
+## TOOL RESULT:
+
+ID: toolu_01LCT1sGsoLMDtYX8XsaG9TS
+
+<tool.toolu_01LCT1sGsoLMDtYX8XsaG9TS>
+README.md
+chat.ai
+greger-agent.el
+greger-client.el
+greger-lib-lsp.el
+greger-parser.el
+greger-pkg.el
+greger-provider-google.el
+greger-provider-openai.el
+greger-stdlib.el
+greger-tools.el
+greger-web.el
+greger.el
+recipes/
+script/
+test/
+</tool.toolu_01LCT1sGsoLMDtYX8XsaG9TS>
+
+## ASSISTANT:
+
+Let me remove the other provider files since we're no longer supporting those models:
+
+## TOOL USE:
+
+Name: shell-command
+ID: toolu_019pviYYNt9tsJE9rZDZDtQd
+
+### command
+
+<tool.toolu_019pviYYNt9tsJE9rZDZDtQd>
+rm greger-provider-google.el greger-provider-openai.el
+</tool.toolu_019pviYYNt9tsJE9rZDZDtQd>
+
+## TOOL RESULT:
+
+ID: toolu_019pviYYNt9tsJE9rZDZDtQd
+
+<tool.toolu_019pviYYNt9tsJE9rZDZDtQd>
+Command executed successfully:
+(no output)
+</tool.toolu_019pviYYNt9tsJE9rZDZDtQd>
+
+## TOOL USE:
+
+Name: shell-command
+ID: toolu_01BTpjYjse7iMt2izBQuzhcz
+
+### command
+
+<tool.toolu_01BTpjYjse7iMt2izBQuzhcz>
+git add -A && git commit -m "Remove unsupported provider files (Google and OpenAI)"
+</tool.toolu_01BTpjYjse7iMt2izBQuzhcz>
+
+## TOOL RESULT:
+
+ID: toolu_01BTpjYjse7iMt2izBQuzhcz
+
+<tool.toolu_01BTpjYjse7iMt2izBQuzhcz>
+Command executed successfully:
+[refactor 696b923] Remove unsupported provider files (Google and OpenAI)
+ 2 files changed, 200 deletions(-)
+ delete mode 100644 greger-provider-google.el
+ delete mode 100644 greger-provider-openai.el
+
+</tool.toolu_01BTpjYjse7iMt2izBQuzhcz>
+
+## ASSISTANT:
+
+Now let me update the README to reflect the simplified model support:
+
+## TOOL USE:
+
+Name: read-file
+ID: toolu_01F1YG8f3hui34UrYj43iABg
+
+### path
+
+<tool.toolu_01F1YG8f3hui34UrYj43iABg>
+README.md
+</tool.toolu_01F1YG8f3hui34UrYj43iABg>
+
+## TOOL RESULT:
+
+ID: toolu_01F1YG8f3hui34UrYj43iABg
+
+<tool.toolu_01F1YG8f3hui34UrYj43iABg>
+# Greger - Chat with Language Models
+
+Greger is an Emacs package that provides an interface for interacting with AI language models including Claude, OpenAI GPT, Google Gemini, and more. It features a rich chat interface with support for tool use, code execution, and streaming responses.
+
+## Features
+
+- **Multiple AI Providers**: Support for Claude, OpenAI, Google Gemini, Groq, Ollama, and Replicate models
+- **Tool Integration**: Extensible tool system with built-in tools for file operations, web browsing, LSP integration, and more
+- **Rich Chat Interface**: Markdown-based chat format with syntax highlighting and collapsible tool sections
+- **Streaming Responses**: Real-time streaming of AI responses
+- **Code Integration**: Easy inclusion of files, code blocks, and buffer contents in conversations
+- **Customizable**: Extensive customization options for models, prompts, and behavior
+
+## Installation
+
+Install from MELPA:
+
+```elisp
+M-x package-install RET greger RET
+```
+
+Or manually:
+
+```elisp
+(use-package greger
+  :commands (greger)
+  :config
+  ;; Set your preferred model
+  (setq greger-model 'claude/claude-sonnet-4-20250514))
+```
+
+## Configuration
+
+Configure API keys for your preferred providers:
+
+```elisp
+;; For Claude
+(setq claude-api-key "your-claude-api-key")
+
+;; For OpenAI
+(setq openai-api-key "your-openai-api-key")
+
+;; For Google Gemini
+(setq google-api-key "your-google-api-key")
+```
+
+## Usage
+
+Start a new chat session:
+
+```
+M-x greger
+```
+
+### Key Bindings
+
+In greger buffers:
+
+- `M-RET` - Send message with tool support
+- `C-M-RET` - Send message without tools
+- `C-; a` - Insert assistant tag
+- `C-; u` - Insert user tag
+- `C-; s` - Insert system tag
+- `C-; i` - Insert include directive
+- `C-; f` - Insert file include
+- `C-; c` - Copy code block at point
+- `C-; m` - Change AI model
+- `TAB` - Toggle tool section visibility
+
+### Including Files and Code
+
+You can include file contents in your conversations:
+
+```markdown
+<include>/path/to/file.txt</include>
+<include code>/path/to/source.py</include>
+```
+
+## Available Models
+
+Greger supports many models across different providers:
+
+- **Claude**: claude-3-haiku, claude-3-opus, claude-3-5-sonnet, claude-sonnet-4, claude-opus-4
+- **OpenAI**: gpt-4o, gpt-4o-mini, gpt-4-turbo, o1-preview
+- **Google**: gemini-pro
+- **Groq**: llama3-8b-8192, llama3-70b-8192, mixtral-8x7b-32768
+- **Ollama**: Various local models
+- **Replicate**: Meta Llama models, Snowflake Arctic
+
+## Tool System
+
+Greger includes a powerful tool system that allows AI models to perform actions:
+
+- File operations (read, write, edit files)
+- Web browsing and content extraction
+- LSP integration (rename symbols, find definitions/references)
+- Git operations
+- Shell command execution
+- Directory operations
+
+Tools can be easily extended by defining new functions and registering them with the tool system.
+
+## Development
+
+### Running Tests
+
+The project includes comprehensive ERT tests for all major components. Use the test script to run them:
+
+```bash
+# Run all tests
+bash script/test
+
+# Run tests for a specific file
+bash script/test -f test-greger-agent.el
+
+# Run tests with verbose output
+bash script/test --verbose
+
+# Show help
+bash script/test --help
+```
+
+Test files include:
+- `test-greger-agent.el` - Agent and tool execution tests
+- `test-greger-parser.el` - Markdown parsing and dialog conversion tests
+- `test-greger-stdlib.el` - Standard library function tests
+- `test-greger-lib-lsp.el` - LSP integration tests
+- `test-greger-tools.el` - Tool registration and parameter handling tests
+
+### Package Linting
+
+Check code quality with package-lint:
+
+```bash
+bash script/package-lint
+```
+
+## License
+
+Copyright (C) 2023 Andreas Jansson
+
+This program is free software; you can redistribute it and/or modify
+it under the terms of the GNU General Public License as published by
+the Free Software Foundation, either version 3 of the License, or
+(at your option) any later version.
+
+</tool.toolu_01F1YG8f3hui34UrYj43iABg>
+
+## TOOL USE:
+
+Name: str-replace
+ID: toolu_016PLVQBKEmBH38Y4tSE4EtR
+
+### file_path
+
+<tool.toolu_016PLVQBKEmBH38Y4tSE4EtR>
+README.md
+</tool.toolu_016PLVQBKEmBH38Y4tSE4EtR>
+
+### original_content
+
+<tool.toolu_016PLVQBKEmBH38Y4tSE4EtR>
+# Greger - Chat with Language Models
+
+Greger is an Emacs package that provides an interface for interacting with AI language models including Claude, OpenAI GPT, Google Gemini, and more. It features a rich chat interface with support for tool use, code execution, and streaming responses.
+
+## Features
+
+- **Multiple AI Providers**: Support for Claude, OpenAI, Google Gemini, Groq, Ollama, and Replicate models
+- **Tool Integration**: Extensible tool system with built-in tools for file operations, web browsing, LSP integration, and more
+- **Rich Chat Interface**: Markdown-based chat format with syntax highlighting and collapsible tool sections
+- **Streaming Responses**: Real-time streaming of AI responses
+- **Code Integration**: Easy inclusion of files, code blocks, and buffer contents in conversations
+- **Customizable**: Extensive customization options for models, prompts, and behavior
+</tool.toolu_016PLVQBKEmBH38Y4tSE4EtR>
+
+### new_content
+
+<tool.toolu_016PLVQBKEmBH38Y4tSE4EtR>
+# Greger - Chat with Claude Language Models
+
+Greger is a simplified Emacs package that provides an interface for interacting with Claude AI models. It features a rich chat interface with support for tool use, code execution, and streaming responses.
+
+## Features
+
+- **Claude Integration**: Focused support for Claude Sonnet 4 and Opus 4 models
+- **Tool Integration**: Extensible tool system with built-in tools for file operations, web browsing, LSP integration, and more
+- **Rich Chat Interface**: Markdown-based chat format with syntax highlighting and collapsible tool sections
+- **Streaming Responses**: Real-time streaming of AI responses
+- **Code Integration**: Easy inclusion of files, code blocks, and buffer contents in conversations
+- **Customizable**: Extensive customization options for models, prompts, and behavior
+</tool.toolu_016PLVQBKEmBH38Y4tSE4EtR>
+
+### git_commit_message
+
+<tool.toolu_016PLVQBKEmBH38Y4tSE4EtR>
+Update README to reflect simplified Claude-only support
+</tool.toolu_016PLVQBKEmBH38Y4tSE4EtR>
+
+<!-- TOOL_RESULT_PLACEHOLDER_toolu_016PLVQBKEmBH38Y4tSE4EtR -->

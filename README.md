@@ -1,10 +1,10 @@
-# Greger - Chat with Language Models
+# Greger - Chat with Claude Language Models
 
-Greger is an Emacs package that provides an interface for interacting with AI language models including Claude, OpenAI GPT, Google Gemini, and more. It features a rich chat interface with support for tool use, code execution, and streaming responses.
+Greger is a simplified Emacs package that provides an interface for interacting with Claude AI models. It features a rich chat interface with support for tool use, code execution, and streaming responses.
 
 ## Features
 
-- **Multiple AI Providers**: Support for Claude, OpenAI, Google Gemini, Groq, Ollama, and Replicate models
+- **Claude Integration**: Focused support for Claude Sonnet 4 and Opus 4 models
 - **Tool Integration**: Extensible tool system with built-in tools for file operations, web browsing, LSP integration, and more
 - **Rich Chat Interface**: Markdown-based chat format with syntax highlighting and collapsible tool sections
 - **Streaming Responses**: Real-time streaming of AI responses
