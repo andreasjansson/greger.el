@@ -18,7 +18,7 @@
 ;; - This makes tests more readable and maintainable by clearly showing what the expected output should be
 
 (require 'ert)
-(require 'greger-agent)
+(require 'greger)
 (require 'greger-tools)
 (require 'greger-parser)
 
