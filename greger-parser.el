@@ -398,7 +398,8 @@ string when it should be appended."
     (greger-parser--substring state start)))
 
 (defun greger-parser--read-until-section-with-comment-removal (state)
-  "Read content until next section, removing HTML comments and processing include tags in STATE."
+  "Read content until next section, removing HTML comments and processing
+include tags in STATE."
   (let ((result "")
         (start (greger-parser--current-pos state))
         (iterations 0)
