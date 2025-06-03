@@ -25,7 +25,7 @@
       (should (string= "<h1>Hello world!</h1>\n" result)))
 
     ;; Test with readability enhancement
-    (let ((result (greger-tools--read-webpage test-url t t)))
+    (let ((result (greger-stdlib--read-webpage test-url t t)))
       (should (stringp result))
       (should (string= "Hello world!\n" result)))))
 
