@@ -3439,4 +3439,149 @@ greger-stdlib.el
 Capitalize error messages in greger-stdlib--str-replace
 </tool.toolu_01ApRE8AV7cicUgFVgEfZKhK>
 
-<!-- TOOL_RESULT_PLACEHOLDER_toolu_01ApRE8AV7cicUgFVgEfZKhK -->
+## TOOL RESULT:
+
+ID: toolu_01ApRE8AV7cicUgFVgEfZKhK
+
+<tool.toolu_01ApRE8AV7cicUgFVgEfZKhK>
+Successfully replaced content in /Users/andreas/projects/greger.el/greger-stdlib.el. Successfully staged 2 file(s) and committed with message: Capitalize error messages in greger-stdlib--str-replace
+</tool.toolu_01ApRE8AV7cicUgFVgEfZKhK>
+
+
+## ASSISTANT:
+
+Now let me find and fix the greger-stdlib--insert function:
+
+## TOOL USE:
+
+Name: read-file
+ID: toolu_014nLstMLMAFXEfsfMtKt3AD
+
+### path
+
+<tool.toolu_014nLstMLMAFXEfsfMtKt3AD>
+greger-stdlib.el
+</tool.toolu_014nLstMLMAFXEfsfMtKt3AD>
+
+### start_line
+
+<tool.toolu_014nLstMLMAFXEfsfMtKt3AD>
+870
+</tool.toolu_014nLstMLMAFXEfsfMtKt3AD>
+
+### end_line
+
+<tool.toolu_014nLstMLMAFXEfsfMtKt3AD>
+880
+</tool.toolu_014nLstMLMAFXEfsfMtKt3AD>
+
+### include_line_numbers
+
+<tool.toolu_014nLstMLMAFXEfsfMtKt3AD>
+true
+</tool.toolu_014nLstMLMAFXEfsfMtKt3AD>
+
+## TOOL RESULT:
+
+ID: toolu_014nLstMLMAFXEfsfMtKt3AD
+
+<tool.toolu_014nLstMLMAFXEfsfMtKt3AD>
+870:   (unless (integerp line-number)
+871:     (error "line_number must be an integer"))
+872:
+873:   (unless (>= line-number 0)
+874:     (error "line_number must be >= 0"))
+875:
+876:   (unless (stringp content)
+877:     (error "content must be a string"))
+878:
+879:   (unless (stringp git-commit-message)
+880:     (error "git_commit_message must be a string"))
+</tool.toolu_014nLstMLMAFXEfsfMtKt3AD>
+
+## ASSISTANT:
+
+Let me find the function definition:
+
+## TOOL USE:
+
+Name: read-file
+ID: toolu_01KiTGKnjXiN1gE5tT4B26ZK
+
+### path
+
+<tool.toolu_01KiTGKnjXiN1gE5tT4B26ZK>
+greger-stdlib.el
+</tool.toolu_01KiTGKnjXiN1gE5tT4B26ZK>
+
+### start_line
+
+<tool.toolu_01KiTGKnjXiN1gE5tT4B26ZK>
+862
+</tool.toolu_01KiTGKnjXiN1gE5tT4B26ZK>
+
+### end_line
+
+<tool.toolu_01KiTGKnjXiN1gE5tT4B26ZK>
+872
+</tool.toolu_01KiTGKnjXiN1gE5tT4B26ZK>
+
+### include_line_numbers
+
+<tool.toolu_01KiTGKnjXiN1gE5tT4B26ZK>
+true
+</tool.toolu_01KiTGKnjXiN1gE5tT4B26ZK>
+
+## TOOL RESULT:
+
+ID: toolu_01KiTGKnjXiN1gE5tT4B26ZK
+
+<tool.toolu_01KiTGKnjXiN1gE5tT4B26ZK>
+862:       (format "Successfully replaced content in %s. %s" expanded-path git-result))))
+863:
+864: (defun greger-stdlib--insert (file-path line-number content git-commit-message &optional buffer)
+865:   "Insert CONTENT at LINE-NUMBER in FILE-PATH.
+866: If BUFFER is provided, it will be staged and committed along with the modified file."
+867:   (unless (stringp file-path)
+868:     (error "file_path must be a string"))
+869:
+870:   (unless (integerp line-number)
+871:     (error "line_number must be an integer"))
+872:
+</tool.toolu_01KiTGKnjXiN1gE5tT4B26ZK>
+
+## TOOL USE:
+
+Name: str-replace
+ID: toolu_016HkURigwiGK7YXLQ1noV1b
+
+### file_path
+
+<tool.toolu_016HkURigwiGK7YXLQ1noV1b>
+greger-stdlib.el
+</tool.toolu_016HkURigwiGK7YXLQ1noV1b>
+
+### original_content
+
+<tool.toolu_016HkURigwiGK7YXLQ1noV1b>
+(defun greger-stdlib--insert (file-path line-number content git-commit-message &optional buffer)
+  "Insert CONTENT at LINE-NUMBER in FILE-PATH.
+If BUFFER is provided, it will be staged and committed along with the modified file."
+</tool.toolu_016HkURigwiGK7YXLQ1noV1b>
+
+### new_content
+
+<tool.toolu_016HkURigwiGK7YXLQ1noV1b>
+(defun greger-stdlib--insert (file-path line-number content git-commit-message &optional buffer)
+  "Insert CONTENT at LINE-NUMBER in FILE-PATH.
+GIT-COMMIT-MESSAGE will be used for the git commit.
+If BUFFER is provided, it will be staged and committed along with the file."
+</tool.toolu_016HkURigwiGK7YXLQ1noV1b>
+
+### git_commit_message
+
+<tool.toolu_016HkURigwiGK7YXLQ1noV1b>
+Fix missing GIT-COMMIT-MESSAGE documentation and line length in greger-stdlib--insert
+</tool.toolu_016HkURigwiGK7YXLQ1noV1b>
+
+<!-- TOOL_RESULT_PLACEHOLDER_toolu_016HkURigwiGK7YXLQ1noV1b -->

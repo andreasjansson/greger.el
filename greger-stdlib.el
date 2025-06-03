@@ -863,7 +863,8 @@ For Emacs Lisp files (.el), checks that parentheses balance is maintained."
 
 (defun greger-stdlib--insert (file-path line-number content git-commit-message &optional buffer)
   "Insert CONTENT at LINE-NUMBER in FILE-PATH.
-If BUFFER is provided, it will be staged and committed along with the modified file."
+GIT-COMMIT-MESSAGE will be used for the git commit.
+If BUFFER is provided, it will be staged and committed along with the file."
   (unless (stringp file-path)
     (error "file_path must be a string"))
 
