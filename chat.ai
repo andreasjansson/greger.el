@@ -3128,4 +3128,172 @@ bash script/test --verbose --file test/test-greger-lib-lsp.el
 Add test script to demonstrate safe shell commands auto-generation
 </tool.toolu_011Uz6yHf2TSuei1Ay1koeJ4>
 
-<!-- TOOL_RESULT_PLACEHOLDER_toolu_011Uz6yHf2TSuei1Ay1koeJ4 -->
+## TOOL RESULT:
+
+ID: toolu_011Uz6yHf2TSuei1Ay1koeJ4
+
+<tool.toolu_011Uz6yHf2TSuei1Ay1koeJ4>
+Successfully wrote new file /Users/andreas/projects/greger.el/test_safe_commands_example.el with 976 characters. Successfully staged 2 file(s) and committed with message: Add test script to demonstrate safe shell commands auto-generation
+</tool.toolu_011Uz6yHf2TSuei1Ay1koeJ4>
+
+
+## TOOL USE:
+
+Name: shell-command
+ID: toolu_013cL2AoekSmnsfmCGQA8LwA
+
+### command
+
+<tool.toolu_013cL2AoekSmnsfmCGQA8LwA>
+emacs --batch -l test_safe_commands_example.el
+</tool.toolu_013cL2AoekSmnsfmCGQA8LwA>
+
+## TOOL RESULT:
+
+ID: toolu_013cL2AoekSmnsfmCGQA8LwA
+
+<tool.toolu_013cL2AoekSmnsfmCGQA8LwA>
+Command executed successfully:
+Source file ‘/opt/homebrew/Cellar/emacs-plus@29/29.0.90/share/emacs/29.0.91/lisp/net/eww.el’ newer than byte-compiled file; using older file
+Messages: (((role . "system") (content . "You can run arbitrary shell commands with the shell-command tool, but the following are safe shell commands that will run without requiring user confirmation:
+
+* `bash script/package-lint`
+* `bash script/test --verbose`
+* `bash script/test --verbose --file test/test-parser.el`
+* `bash script/test --verbose --file test/test-greger.el`
+* `bash script/test --verbose --file test/test-greger-lib-lsp.el`")))
+Metadata: (:safe-shell-commands ("bash script/package-lint" "bash script/test --verbose" "bash script/test --verbose --file test/test-parser.el" "bash script/test --verbose --file test/test-greger.el" "bash script/test --verbose --file test/test-greger-lib-lsp.el"))
+
+Generated system message content:
+You can run arbitrary shell commands with the shell-command tool, but the following are safe shell commands that will run without requiring user confirmation:
+
+* `bash script/package-lint`
+* `bash script/test --verbose`
+* `bash script/test --verbose --file test/test-parser.el`
+* `bash script/test --verbose --file test/test-greger.el`
+* `bash script/test --verbose --file test/test-greger-lib-lsp.el`
+
+</tool.toolu_013cL2AoekSmnsfmCGQA8LwA>
+
+## ASSISTANT:
+
+Excellent! The functionality is working perfectly. Let me clean up the test file since it was just for demonstration:
+
+## TOOL USE:
+
+Name: shell-command
+ID: toolu_01SuLVAy3jyYxYyPRuBQMdRd
+
+### command
+
+<tool.toolu_01SuLVAy3jyYxYyPRuBQMdRd>
+rm test_safe_commands_example.el
+</tool.toolu_01SuLVAy3jyYxYyPRuBQMdRd>
+
+## TOOL RESULT:
+
+ID: toolu_01SuLVAy3jyYxYyPRuBQMdRd
+
+<tool.toolu_01SuLVAy3jyYxYyPRuBQMdRd>
+Command executed successfully:
+(no output)
+</tool.toolu_01SuLVAy3jyYxYyPRuBQMdRd>
+
+## ASSISTANT:
+
+Let's also run the package linter to make sure everything is still clean:
+
+## TOOL USE:
+
+Name: shell-command
+ID: toolu_01RPpDck7Q8ZDvEet6ptHQaL
+
+### command
+
+<tool.toolu_01RPpDck7Q8ZDvEet6ptHQaL>
+bash script/package-lint
+</tool.toolu_01RPpDck7Q8ZDvEet6ptHQaL>
+
+## TOOL RESULT:
+
+ID: toolu_01RPpDck7Q8ZDvEet6ptHQaL
+
+<tool.toolu_01RPpDck7Q8ZDvEet6ptHQaL>
+Command executed successfully:
+[1;33mRunning package-lint on greger package...[0m
+
+Linting [1;33mgreger.el[0m...
+  [0;32m✓ No issues found[0m
+
+[1;33mWarning: greger-agent.el not found, skipping[0m
+Linting [1;33mgreger-parser.el[0m...
+  [0;32m✓ No issues found[0m
+
+Linting [1;33mgreger-client.el[0m...
+  [0;32m✓ No issues found[0m
+
+Linting [1;33mgreger-tools.el[0m...
+  [0;32m✓ No issues found[0m
+
+Linting [1;33mgreger-stdlib.el[0m...
+  [0;32m✓ No issues found[0m
+
+Linting [1;33mgreger-lib-lsp.el[0m...
+  [0;32m✓ No issues found[0m
+
+Linting [1;33mgreger-web.el[0m...
+  [0;32m✓ No issues found[0m
+
+[1;33mPackage-lint complete![0m
+[0;32mNo issues found in any files![0m
+
+</tool.toolu_01RPpDck7Q8ZDvEet6ptHQaL>
+
+## ASSISTANT:
+
+Perfect! Let me also test the case where there's both system content AND safe shell commands to make sure that works correctly too:
+
+## TOOL USE:
+
+Name: write-new-file
+ID: toolu_018CviaiPvSe4DZ9rrsYge6E
+
+### file_path
+
+<tool.toolu_018CviaiPvSe4DZ9rrsYge6E>
+test_combined_content.el
+</tool.toolu_018CviaiPvSe4DZ9rrsYge6E>
+
+### contents
+
+<tool.toolu_018CviaiPvSe4DZ9rrsYge6E>
+;;; Test combining system content with safe shell commands
+
+(add-to-list 'load-path ".")
+(require 'greger-parser)
+
+;; Test combining existing system content with safe shell commands
+(let ((markdown "## SYSTEM:
+
+You are a helpful assistant for an Emacs Lisp project.
+
+<safe-shell-commands>
+bash script/package-lint
+bash script/test --verbose
+</safe-shell-commands>"))
+
+  (let ((result (greger-parser-parse-dialog markdown)))
+    (when (= 1 (length (plist-get result :messages)))
+      (let* ((system-msg (car (plist-get result :messages)))
+             (content (alist-get 'content system-msg)))
+        (message "Combined system message content:")
+        (message "%s" content)))))
+</tool.toolu_018CviaiPvSe4DZ9rrsYge6E>
+
+### git_commit_message
+
+<tool.toolu_018CviaiPvSe4DZ9rrsYge6E>
+Add test for combined system content with safe shell commands
+</tool.toolu_018CviaiPvSe4DZ9rrsYge6E>
+
+<!-- TOOL_RESULT_PLACEHOLDER_toolu_018CviaiPvSe4DZ9rrsYge6E -->
