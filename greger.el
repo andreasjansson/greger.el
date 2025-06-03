@@ -533,7 +533,9 @@ TAG-STRING is the tag string to extract from."
     (match-string 1 tag-string)))
 
 (defun greger--create-tag-overlay (start end)
-  "Create an overlay for a tool tag to make it small and less visible."
+  "Create an overlay for a tool tag to make it small and less visible.
+START is the beginning position.
+END is the ending position."
   (let ((overlay (make-overlay start end)))
     (overlay-put overlay 'face 'greger-tool-tag-face)
     (overlay-put overlay 'greger-tool-tag t)
