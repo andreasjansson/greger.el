@@ -537,7 +537,7 @@ If BUFFER is provided, it will be staged and committed along with the new file."
         (with-temp-buffer
           (insert contents)
           (write-file expanded-path))
-      (error (format "Failed to write file: %s" (error-message-string err))))
+      (error "Failed to write file: %s" (error-message-string err)))
 
     ;; Stage and commit changes - infer the file to stage
     (let ((git-result (greger-stdlib--git-stage-and-commit (list expanded-path) git-commit-message buffer)))
