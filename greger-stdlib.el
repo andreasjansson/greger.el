@@ -290,6 +290,32 @@ Returns t if the file is tracked, nil otherwise."
         (relative-path (file-relative-name (expand-file-name file-path) repo-root)))
     (= 0 (call-process "git" nil nil nil "ls-files" "--error-unmatch" relative-path))))
 
+;; Test tool for JSON parsing (temporary)
+(defun greger-stdlib--test-json-types (name items count enabled &optional rate)
+  "Test function with mixed parameter types."
+  (format "name: %s (type: %s), items: %S (type: %s, length: %d), count: %s (type: %s), enabled: %s (type: %s), rate: %s (type: %s)"
+          name (type-of name)
+          items (type-of items) (if (listp items) (length items) 0)
+          count (type-of count)
+          enabled (type-of enabled)
+          rate (type-of rate)))
+
+(greger-register-tool "test-json-types"
+  :description "Test mixed parameter type JSON parsing"
+  :properties '((name . ((type . "string")
+                         (description . "String name")))
+                (items . ((type . "array")
+                          (items . ((type . "string")))
+                          (description . "List of items")))
+                (count . ((type . "integer")
+                          (description . "Integer count")))
+                (enabled . ((type . "boolean")
+                            (description . "Boolean flag")))
+                (rate . ((type . "number")
+                         (description . "Optional rate"))))
+  :required '("name" "items" "count" "enabled")
+  :function 'greger-stdlib--test-json-types)
+
 ;; Tools below
 
 (defun greger-stdlib--git-stage-and-commit (files commit-message &optional chat-buffer)

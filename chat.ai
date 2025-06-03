@@ -9524,4 +9524,200 @@ test/test-greger-tools.el
 Add comprehensive tests for JSON parsing in greger-tools
 </tool.toolu_012zQjYA8fYwN2f1oqAhKdUr>
 
-<!-- TOOL_RESULT_PLACEHOLDER_toolu_012zQjYA8fYwN2f1oqAhKdUr -->
+## TOOL RESULT:
+
+ID: toolu_012zQjYA8fYwN2f1oqAhKdUr
+
+<tool.toolu_012zQjYA8fYwN2f1oqAhKdUr>
+Successfully replaced content in /Users/andreas/projects/greger.el/test/test-greger-tools.el. Successfully staged 2 file(s) and committed with message: Add comprehensive tests for JSON parsing in greger-tools
+</tool.toolu_012zQjYA8fYwN2f1oqAhKdUr>
+
+
+## ASSISTANT:
+
+Now let's run the tests to make sure our enhanced JSON parsing works correctly:
+
+## TOOL USE:
+
+Name: shell-command
+ID: toolu_01Pq8y5xbcnc8jfqHV3NSaGZ
+
+### command
+
+<tool.toolu_01Pq8y5xbcnc8jfqHV3NSaGZ>
+bash script/test --verbose --file test/test-greger-tools.el
+</tool.toolu_01Pq8y5xbcnc8jfqHV3NSaGZ>
+
+## TOOL RESULT:
+
+ID: toolu_01Pq8y5xbcnc8jfqHV3NSaGZ
+
+<tool.toolu_01Pq8y5xbcnc8jfqHV3NSaGZ>
+Command executed successfully:
+[0;34mRunning ERT tests for greger package...[0m
+
+Running tests in [1;33mtest/test-greger-tools.el[0m (verbose mode)...
+Loading /Users/andreas/projects/greger.el/greger.el (source)...
+Source file ‘/opt/homebrew/Cellar/emacs-plus@29/29.0.90/share/emacs/29.0.91/lisp/net/eww.el’ newer than byte-compiled file; using older file
+Loading /Users/andreas/projects/greger.el/greger-parser.el (source)...
+Loading /Users/andreas/projects/greger.el/greger-stdlib.el (source)...
+Loading /Users/andreas/projects/greger.el/greger-lib-lsp.el (source)...
+Loading /Users/andreas/projects/greger.el/greger-tools.el (source)...
+Loading /Users/andreas/projects/greger.el/greger-client.el (source)...
+Loading /Users/andreas/projects/greger.el/greger-web.el (source)...
+Loading /Users/andreas/projects/greger.el/test/test-greger-tools.el (source)...
+Running 15 tests (2025-06-03 22:23:18+0200, selector ‘t’)
+   passed   1/15  greger-tools-test-argument-extraction-edge-cases (0.000139 sec)
+   passed   2/15  greger-tools-test-async-subprocess-utility (0.508885 sec)
+count: 5
+prefix: nil
+count: 2
+prefix: nil
+count: 2
+prefix: ***
+   passed   3/15  greger-tools-test-default-parameter-values (0.000311 sec)
+   passed   4/15  greger-tools-test-json-parsing-arrays (0.000773 sec)
+   passed   5/15  greger-tools-test-json-parsing-booleans (0.000192 sec)
+   passed   6/15  greger-tools-test-json-parsing-fallback (0.000092 sec)
+   passed   7/15  greger-tools-test-json-parsing-mixed-types (0.000125 sec)
+   passed   8/15  greger-tools-test-json-parsing-numbers (0.000163 sec)
+   passed   9/15  greger-tools-test-missing-required-parameter-error (0.000222 sec)
+   passed  10/15  greger-tools-test-optional-parameters (0.000172 sec)
+   passed  11/15  greger-tools-test-parameter-mapping (0.000090 sec)
+   passed  12/15  greger-tools-test-pass-buffer-functionality (0.000131 sec)
+   passed  13/15  greger-tools-test-pass-callback-functionality (0.000302 sec)
+   passed  14/15  greger-tools-test-tool-registration-and-execution (0.000143 sec)
+   passed  15/15  greger-tools-test-unknown-tool-error (0.000065 sec)
+
+Ran 15 tests, 15 results as expected, 0 unexpected (2025-06-03 22:23:18+0200, 0.565443 sec)
+
+[0;34mTest Summary:[0m
+  Files run: 1
+  Files passed: [0;32m0[0m
+  Files failed: [0;31m1[0m
+[0;32mAll tests passed![0m
+
+</tool.toolu_01Pq8y5xbcnc8jfqHV3NSaGZ>
+
+## ASSISTANT:
+
+Excellent! All tests are passing. Let's also run the stdlib tests to make sure we didn't break anything:
+
+## TOOL USE:
+
+Name: shell-command
+ID: toolu_01VbpsFZiirbUHef42UoMiZh
+
+### command
+
+<tool.toolu_01VbpsFZiirbUHef42UoMiZh>
+bash script/test --file test/test-greger-stdlib.el
+</tool.toolu_01VbpsFZiirbUHef42UoMiZh>
+
+## TOOL RESULT:
+
+ID: toolu_01VbpsFZiirbUHef42UoMiZh
+
+<tool.toolu_01VbpsFZiirbUHef42UoMiZh>
+Command executed successfully:
+[0;34mRunning ERT tests for greger package...[0m
+
+Running tests in [1;33mtest/test-greger-stdlib.el[0m...
+  [0;32m✓ All tests passed[0m
+[0;34mTest Summary:[0m
+  Files run: 1
+  Files passed: [0;32m1[0m
+  Files failed: [0;31m0[0m
+[0;32mAll tests passed![0m
+
+</tool.toolu_01VbpsFZiirbUHef42UoMiZh>
+
+## ASSISTANT:
+
+Perfect! Let's test our enhanced JSON parsing with a practical example. Let me create a quick test tool to verify all the types work:
+
+## TOOL USE:
+
+Name: eval-elisp-defuns
+ID: toolu_01X3aLKVS6HNGgnV8Usx6Tbt
+
+### file_path
+
+<tool.toolu_01X3aLKVS6HNGgnV8Usx6Tbt>
+test/test-greger-tools.el
+</tool.toolu_01X3aLKVS6HNGgnV8Usx6Tbt>
+
+### function_names
+
+<tool.toolu_01X3aLKVS6HNGgnV8Usx6Tbt>
+["greger-test-mixed-params"]
+</tool.toolu_01X3aLKVS6HNGgnV8Usx6Tbt>
+
+## TOOL RESULT:
+
+ID: toolu_01X3aLKVS6HNGgnV8Usx6Tbt
+
+<tool.toolu_01X3aLKVS6HNGgnV8Usx6Tbt>
+Eval successful
+</tool.toolu_01X3aLKVS6HNGgnV8Usx6Tbt>
+
+## ASSISTANT:
+
+Let me manually test that the JSON parsing works for different types by creating a test tool and using it:
+
+## TOOL USE:
+
+Name: str-replace
+ID: toolu_01AVEqPEM1Xq7HRsJA3Qk58n
+
+### file_path
+
+<tool.toolu_01AVEqPEM1Xq7HRsJA3Qk58n>
+greger-stdlib.el
+</tool.toolu_01AVEqPEM1Xq7HRsJA3Qk58n>
+
+### original_content
+
+<tool.toolu_01AVEqPEM1Xq7HRsJA3Qk58n>
+;; Tools below
+</tool.toolu_01AVEqPEM1Xq7HRsJA3Qk58n>
+
+### new_content
+
+<tool.toolu_01AVEqPEM1Xq7HRsJA3Qk58n>
+;; Test tool for JSON parsing (temporary)
+(defun greger-stdlib--test-json-types (name items count enabled &optional rate)
+  "Test function with mixed parameter types."
+  (format "name: %s (type: %s), items: %S (type: %s, length: %d), count: %s (type: %s), enabled: %s (type: %s), rate: %s (type: %s)"
+          name (type-of name)
+          items (type-of items) (if (listp items) (length items) 0)
+          count (type-of count)
+          enabled (type-of enabled)
+          rate (type-of rate)))
+
+(greger-register-tool "test-json-types"
+  :description "Test mixed parameter type JSON parsing"
+  :properties '((name . ((type . "string")
+                         (description . "String name")))
+                (items . ((type . "array")
+                          (items . ((type . "string")))
+                          (description . "List of items")))
+                (count . ((type . "integer")
+                          (description . "Integer count")))
+                (enabled . ((type . "boolean")
+                            (description . "Boolean flag")))
+                (rate . ((type . "number")
+                         (description . "Optional rate"))))
+  :required '("name" "items" "count" "enabled")
+  :function 'greger-stdlib--test-json-types)
+
+;; Tools below
+</tool.toolu_01AVEqPEM1Xq7HRsJA3Qk58n>
+
+### git_commit_message
+
+<tool.toolu_01AVEqPEM1Xq7HRsJA3Qk58n>
+Add temporary test tool for JSON type parsing verification
+</tool.toolu_01AVEqPEM1Xq7HRsJA3Qk58n>
+
+<!-- TOOL_RESULT_PLACEHOLDER_toolu_01AVEqPEM1Xq7HRsJA3Qk58n -->
