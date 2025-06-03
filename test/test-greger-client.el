@@ -141,7 +141,7 @@
 (ert-deftest greger-end-to-end-test-error-handling ()
   "Test error handling with invalid model."
   :tags '(end-to-end error-handling)
-  (skip-unless (greger-test-has-api-key))
+
 
   (let ((error-caught nil))
 
