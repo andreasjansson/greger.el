@@ -32,16 +32,18 @@ Example:
                   (new_path . ((type . \\='string\\=')
                               (description . \\='New path for the file\\=')))
                   (git_commit_message . ((type . \\='string\\=')
-                                        (description . \\='Git commit message for this change\\='))))
+                                        (description . \\='Git commit message\\='))))
     :required \\='(\\='old_path\\=' \\='new_path\\=' \\='git_commit_message\\=')
     :function \\='greger-tools--rename-file
     :pass-buffer t
     :pass-callback t
     :pass-metadata t)
 
-  When :pass-callback is set to t, the callback function will be passed to the tool
-  function as a 'callback parameter instead of greger-tools-execute calling the callback with the result.
-  When :pass-metadata is set to t, the metadata from the parser will be passed as a 'metadata parameter."
+  When :pass-callback is set to t, the callback function will be passed to the
+  tool function as a \\='callback\\=' parameter instead of `greger-tools-execute\\='
+  calling the callback with the result.
+  When :pass-metadata is set to t, the metadata from the parser will be passed
+  as a \\='metadata\\=' parameter."
   (let ((description (plist-get args :description))
         (properties (plist-get args :properties))
         (required (plist-get args :required))
