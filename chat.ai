@@ -9239,4 +9239,289 @@ Handles arrays, booleans, and numbers."
 Enhance JSON parsing to handle booleans and numbers
 </tool.toolu_013cVW5Yp4shhiyAmqP7XaQE>
 
-<!-- TOOL_RESULT_PLACEHOLDER_toolu_013cVW5Yp4shhiyAmqP7XaQE -->
+## TOOL RESULT:
+
+ID: toolu_013cVW5Yp4shhiyAmqP7XaQE
+
+<tool.toolu_013cVW5Yp4shhiyAmqP7XaQE>
+Successfully replaced content in /Users/andreas/projects/greger.el/greger-tools.el. Successfully staged 2 file(s) and committed with message: Enhance JSON parsing to handle booleans and numbers
+</tool.toolu_013cVW5Yp4shhiyAmqP7XaQE>
+
+
+## ASSISTANT:
+
+Now let's add comprehensive tests for the argument extraction functionality. I'll add them to the existing test file:
+
+## TOOL USE:
+
+Name: str-replace
+ID: toolu_012zQjYA8fYwN2f1oqAhKdUr
+
+### file_path
+
+<tool.toolu_012zQjYA8fYwN2f1oqAhKdUr>
+test/test-greger-tools.el
+</tool.toolu_012zQjYA8fYwN2f1oqAhKdUr>
+
+### original_content
+
+<tool.toolu_012zQjYA8fYwN2f1oqAhKdUr>
+;;; test-greger-tools.el ends here
+</tool.toolu_012zQjYA8fYwN2f1oqAhKdUr>
+
+### new_content
+
+<tool.toolu_012zQjYA8fYwN2f1oqAhKdUr>
+(ert-deftest greger-tools-test-json-parsing-arrays ()
+  "Test that array parameters are correctly parsed from JSON strings."
+  ;; Define a test function that expects a list
+  (defun greger-test-array-param (items)
+    "Test function that expects an array parameter."
+    (format "received %d items: %s" (length items) (mapconcat 'identity items ", ")))
+
+  ;; Register tool with array parameter
+  (greger-register-tool "test-array-parsing"
+    :description "Test array parameter JSON parsing"
+    :properties '((items . ((type . "array")
+                            (items . ((type . "string")))
+                            (description . "List of items"))))
+    :required '("items")
+    :function 'greger-test-array-param)
+
+  ;; Test with JSON array string
+  (let ((result nil)
+        (error nil))
+    (greger-tools-execute "test-array-parsing"
+                          '((items . "[\"apple\", \"banana\", \"cherry\"]"))
+                          (lambda (r e) (setq result r error e)) nil)
+    (should (string= "received 3 items: apple, banana, cherry" result))
+    (should (null error)))
+
+  ;; Test with already parsed list (should work fine)
+  (let ((result nil)
+        (error nil))
+    (greger-tools-execute "test-array-parsing"
+                          '((items . ("apple" "banana")))
+                          (lambda (r e) (setq result r error e)) nil)
+    (should (string= "received 2 items: apple, banana" result))
+    (should (null error)))
+
+  ;; Clean up
+  (remhash "test-array-parsing" greger-tools-registry))
+
+(ert-deftest greger-tools-test-json-parsing-booleans ()
+  "Test that boolean parameters are correctly parsed from JSON strings."
+  ;; Define a test function that expects booleans
+  (defun greger-test-boolean-params (flag1 &optional flag2)
+    "Test function that expects boolean parameters."
+    (format "flag1: %s, flag2: %s" flag1 flag2))
+
+  ;; Register tool with boolean parameters
+  (greger-register-tool "test-boolean-parsing"
+    :description "Test boolean parameter JSON parsing"
+    :properties '((flag1 . ((type . "boolean")
+                            (description . "First boolean flag")))
+                  (flag2 . ((type . "boolean")
+                            (description . "Second boolean flag"))))
+    :required '("flag1")
+    :function 'greger-test-boolean-params)
+
+  ;; Test with JSON boolean strings
+  (let ((result nil)
+        (error nil))
+    (greger-tools-execute "test-boolean-parsing"
+                          '((flag1 . "true") (flag2 . "false"))
+                          (lambda (r e) (setq result r error e)) nil)
+    (should (string= "flag1: t, flag2: nil" result))
+    (should (null error)))
+
+  ;; Test with :json-true/:json-false format
+  (let ((result nil)
+        (error nil))
+    (greger-tools-execute "test-boolean-parsing"
+                          '((flag1 . ":json-false") (flag2 . ":json-true"))
+                          (lambda (r e) (setq result r error e)) nil)
+    (should (string= "flag1: nil, flag2: t" result))
+    (should (null error)))
+
+  ;; Test with already parsed booleans (should work fine)
+  (let ((result nil)
+        (error nil))
+    (greger-tools-execute "test-boolean-parsing"
+                          '((flag1 . t) (flag2 . nil))
+                          (lambda (r e) (setq result r error e)) nil)
+    (should (string= "flag1: t, flag2: nil" result))
+    (should (null error)))
+
+  ;; Clean up
+  (remhash "test-boolean-parsing" greger-tools-registry))
+
+(ert-deftest greger-tools-test-json-parsing-numbers ()
+  "Test that number parameters are correctly parsed from JSON strings."
+  ;; Define a test function that expects numbers
+  (defun greger-test-number-params (count &optional rate)
+    "Test function that expects number parameters."
+    (format "count: %s (type: %s), rate: %s (type: %s)"
+            count (type-of count) rate (type-of rate)))
+
+  ;; Register tool with number parameters
+  (greger-register-tool "test-number-parsing"
+    :description "Test number parameter JSON parsing"
+    :properties '((count . ((type . "integer")
+                            (description . "Integer count")))
+                  (rate . ((type . "number")
+                           (description . "Floating point rate"))))
+    :required '("count")
+    :function 'greger-test-number-params)
+
+  ;; Test with JSON number strings
+  (let ((result nil)
+        (error nil))
+    (greger-tools-execute "test-number-parsing"
+                          '((count . "42") (rate . "3.14"))
+                          (lambda (r e) (setq result r error e)) nil)
+    (should (string= "count: 42 (type: integer), rate: 3.14 (type: float)" result))
+    (should (null error)))
+
+  ;; Test with negative numbers
+  (let ((result nil)
+        (error nil))
+    (greger-tools-execute "test-number-parsing"
+                          '((count . "-5") (rate . "-2.5"))
+                          (lambda (r e) (setq result r error e)) nil)
+    (should (string= "count: -5 (type: integer), rate: -2.5 (type: float)" result))
+    (should (null error)))
+
+  ;; Test with already parsed numbers (should work fine)
+  (let ((result nil)
+        (error nil))
+    (greger-tools-execute "test-number-parsing"
+                          '((count . 10) (rate . 1.5))
+                          (lambda (r e) (setq result r error e)) nil)
+    (should (string= "count: 10 (type: integer), rate: 1.5 (type: float)" result))
+    (should (null error)))
+
+  ;; Clean up
+  (remhash "test-number-parsing" greger-tools-registry))
+
+(ert-deftest greger-tools-test-json-parsing-mixed-types ()
+  "Test that mixed parameter types are correctly handled."
+  ;; Define a test function with mixed parameter types
+  (defun greger-test-mixed-params (name items count enabled &optional rate)
+    "Test function with mixed parameter types."
+    (format "name: %s, items: %d, count: %s, enabled: %s, rate: %s"
+            name (length items) count enabled rate))
+
+  ;; Register tool with mixed parameter types
+  (greger-register-tool "test-mixed-parsing"
+    :description "Test mixed parameter type JSON parsing"
+    :properties '((name . ((type . "string")
+                           (description . "String name")))
+                  (items . ((type . "array")
+                            (items . ((type . "string")))
+                            (description . "List of items")))
+                  (count . ((type . "integer")
+                            (description . "Integer count")))
+                  (enabled . ((type . "boolean")
+                              (description . "Boolean flag")))
+                  (rate . ((type . "number")
+                           (description . "Optional rate"))))
+    :required '("name" "items" "count" "enabled")
+    :function 'greger-test-mixed-params)
+
+  ;; Test with mixed JSON strings and parsed values
+  (let ((result nil)
+        (error nil))
+    (greger-tools-execute "test-mixed-parsing"
+                          '((name . "test")
+                            (items . "[\"a\", \"b\", \"c\"]")
+                            (count . "5")
+                            (enabled . "true")
+                            (rate . "2.5"))
+                          (lambda (r e) (setq result r error e)) nil)
+    (should (string= "name: test, items: 3, count: 5, enabled: t, rate: 2.5" result))
+    (should (null error)))
+
+  ;; Clean up
+  (remhash "test-mixed-parsing" greger-tools-registry))
+
+(ert-deftest greger-tools-test-argument-extraction-edge-cases ()
+  "Test edge cases in argument extraction."
+  ;; Define a test function with various parameter patterns
+  (defun greger-test-edge-cases (required-param &optional optional-param1 optional-param2)
+    "Test function with edge case parameter patterns."
+    (format "required: %s, opt1: %s, opt2: %s"
+            required-param optional-param1 optional-param2))
+
+  ;; Register tool
+  (greger-register-tool "test-edge-cases"
+    :description "Test edge cases in argument extraction"
+    :properties '((required_param . ((type . "string")
+                                     (description . "Required parameter")))
+                  (optional_param1 . ((type . "boolean")
+                                      (description . "Optional boolean")))
+                  (optional_param2 . ((type . "integer")
+                                      (description . "Optional integer"))))
+    :required '("required_param")
+    :function 'greger-test-edge-cases)
+
+  ;; Test with only required parameter
+  (let ((result nil)
+        (error nil))
+    (greger-tools-execute "test-edge-cases"
+                          '((required_param . "test"))
+                          (lambda (r e) (setq result r error e)) nil)
+    (should (string= "required: test, opt1: nil, opt2: nil" result))
+    (should (null error)))
+
+  ;; Test with invalid JSON that should be returned as-is
+  (let ((result nil)
+        (error nil))
+    (greger-tools-execute "test-edge-cases"
+                          '((required_param . "test")
+                            (optional_param1 . "not-a-boolean")
+                            (optional_param2 . "not-a-number"))
+                          (lambda (r e) (setq result r error e)) nil)
+    (should (string= "required: test, opt1: not-a-boolean, opt2: not-a-number" result))
+    (should (null error)))
+
+  ;; Clean up
+  (remhash "test-edge-cases" greger-tools-registry))
+
+(ert-deftest greger-tools-test-json-parsing-fallback ()
+  "Test that invalid JSON falls back gracefully."
+  ;; Define a test function
+  (defun greger-test-fallback (items)
+    "Test function for fallback behavior."
+    (format "received: %s (type: %s)" items (type-of items)))
+
+  ;; Register tool with array parameter
+  (greger-register-tool "test-fallback"
+    :description "Test JSON parsing fallback"
+    :properties '((items . ((type . "array")
+                            (description . "List of items"))))
+    :required '("items")
+    :function 'greger-test-fallback)
+
+  ;; Test with invalid JSON - should return original string
+  (let ((result nil)
+        (error nil))
+    (greger-tools-execute "test-fallback"
+                          '((items . "[invalid json"))
+                          (lambda (r e) (setq result r error e)) nil)
+    (should (string= "received: [invalid json (type: string)" result))
+    (should (null error)))
+
+  ;; Clean up
+  (remhash "test-fallback" greger-tools-registry))
+
+;;; test-greger-tools.el ends here
+</tool.toolu_012zQjYA8fYwN2f1oqAhKdUr>
+
+### git_commit_message
+
+<tool.toolu_012zQjYA8fYwN2f1oqAhKdUr>
+Add comprehensive tests for JSON parsing in greger-tools
+</tool.toolu_012zQjYA8fYwN2f1oqAhKdUr>
+
+<!-- TOOL_RESULT_PLACEHOLDER_toolu_012zQjYA8fYwN2f1oqAhKdUr -->
