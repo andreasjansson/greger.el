@@ -59,25 +59,50 @@ for file in "${FILES_TO_LINT[@]}"; do
     echo -e "Linting ${YELLOW}$file${NC}..."
 
     # Run package-lint on the file
-    if emacs --batch -Q \
-        --eval "(progn
-                  (setq debug-on-error t)
-                  (package-initialize)
-                  (add-to-list 'load-path \"$PACKAGE_LINT_PATH\")
-                  (add-to-list 'load-path \".\")
-                  (require 'package-lint)
-                  (find-file \"$file\")
-                  (let ((results (package-lint-buffer)))
-                    (if results
-                        (progn
-                          (dolist (result results)
-                            (let ((line (nth 0 result))
-                                  (col (nth 1 result))
-                                  (type (nth 2 result))
-                                  (msg (nth 3 result)))
-                              (princ (format \"%s:%d:%d: %s: %s\\n\" \"$file\" line col type msg))))
-                          (kill-emacs 1))
-                        (kill-emacs 0))))" 2>/dev/null; then
+    if [ -n "$CI" ]; then
+        # In CI, use package.el to load package-lint
+        EVAL_CODE="(progn
+                     (setq debug-on-error t)
+                     (require 'package)
+                     (add-to-list 'package-archives '(\"melpa\" . \"https://melpa.org/packages/\") t)
+                     (package-initialize)
+                     (add-to-list 'load-path \".\")
+                     (require 'package-lint)
+                     (find-file \"$file\")
+                     (let ((results (package-lint-buffer)))
+                       (if results
+                           (progn
+                             (dolist (result results)
+                               (let ((line (nth 0 result))
+                                     (col (nth 1 result))
+                                     (type (nth 2 result))
+                                     (msg (nth 3 result)))
+                                 (princ (format \"%s:%d:%d: %s: %s\\n\" \"$file\" line col type msg))))
+                             (kill-emacs 1))
+                           (kill-emacs 0))))"
+    else
+        # Local environment, use found path
+        EVAL_CODE="(progn
+                     (setq debug-on-error t)
+                     (package-initialize)
+                     (add-to-list 'load-path \"$PACKAGE_LINT_PATH\")
+                     (add-to-list 'load-path \".\")
+                     (require 'package-lint)
+                     (find-file \"$file\")
+                     (let ((results (package-lint-buffer)))
+                       (if results
+                           (progn
+                             (dolist (result results)
+                               (let ((line (nth 0 result))
+                                     (col (nth 1 result))
+                                     (type (nth 2 result))
+                                     (msg (nth 3 result)))
+                                 (princ (format \"%s:%d:%d: %s: %s\\n\" \"$file\" line col type msg))))
+                             (kill-emacs 1))
+                           (kill-emacs 0))))"
+    fi
+
+    if emacs --batch -Q --eval "$EVAL_CODE" 2>/dev/null; then
         echo -e "  ${GREEN}✓ No issues found${NC}"
     else
         echo -e "  ${RED}✗ Issues found${NC}"

@@ -1350,4 +1350,109 @@ fi
 Update package-lint script to work in CI environment and find package-lint dynamically
 </tool.toolu_01HqfPttTcQ1oHM98rbGgc4f>
 
-<!-- TOOL_RESULT_PLACEHOLDER_toolu_01HqfPttTcQ1oHM98rbGgc4f -->
+## TOOL RESULT:
+
+ID: toolu_01HqfPttTcQ1oHM98rbGgc4f
+
+<tool.toolu_01HqfPttTcQ1oHM98rbGgc4f>
+Successfully replaced content in /Users/andreas/projects/greger.el/script/package-lint. Successfully staged 2 file(s) and committed with message: Update package-lint script to work in CI environment and find package-lint dynamically
+</tool.toolu_01HqfPttTcQ1oHM98rbGgc4f>
+
+
+## ASSISTANT:
+
+Now I need to update the Emacs invocation to handle both CI and local environments:
+
+## TOOL USE:
+
+Name: str-replace
+ID: toolu_017zxpruDz7nXXRgcQRwS7gT
+
+### file_path
+
+<tool.toolu_017zxpruDz7nXXRgcQRwS7gT>
+script/package-lint
+</tool.toolu_017zxpruDz7nXXRgcQRwS7gT>
+
+### original_content
+
+<tool.toolu_017zxpruDz7nXXRgcQRwS7gT>
+    # Run package-lint on the file
+    if emacs --batch -Q \
+        --eval "(progn
+                  (setq debug-on-error t)
+                  (package-initialize)
+                  (add-to-list 'load-path \"$PACKAGE_LINT_PATH\")
+                  (add-to-list 'load-path \".\")
+                  (require 'package-lint)
+                  (find-file \"$file\")
+                  (let ((results (package-lint-buffer)))
+                    (if results
+                        (progn
+                          (dolist (result results)
+                            (let ((line (nth 0 result))
+                                  (col (nth 1 result))
+                                  (type (nth 2 result))
+                                  (msg (nth 3 result)))
+                              (princ (format \"%s:%d:%d: %s: %s\\n\" \"$file\" line col type msg))))
+                          (kill-emacs 1))
+                        (kill-emacs 0))))" 2>/dev/null; then
+</tool.toolu_017zxpruDz7nXXRgcQRwS7gT>
+
+### new_content
+
+<tool.toolu_017zxpruDz7nXXRgcQRwS7gT>
+    # Run package-lint on the file
+    if [ -n "$CI" ]; then
+        # In CI, use package.el to load package-lint
+        EVAL_CODE="(progn
+                     (setq debug-on-error t)
+                     (require 'package)
+                     (add-to-list 'package-archives '(\"melpa\" . \"https://melpa.org/packages/\") t)
+                     (package-initialize)
+                     (add-to-list 'load-path \".\")
+                     (require 'package-lint)
+                     (find-file \"$file\")
+                     (let ((results (package-lint-buffer)))
+                       (if results
+                           (progn
+                             (dolist (result results)
+                               (let ((line (nth 0 result))
+                                     (col (nth 1 result))
+                                     (type (nth 2 result))
+                                     (msg (nth 3 result)))
+                                 (princ (format \"%s:%d:%d: %s: %s\\n\" \"$file\" line col type msg))))
+                             (kill-emacs 1))
+                           (kill-emacs 0))))"
+    else
+        # Local environment, use found path
+        EVAL_CODE="(progn
+                     (setq debug-on-error t)
+                     (package-initialize)
+                     (add-to-list 'load-path \"$PACKAGE_LINT_PATH\")
+                     (add-to-list 'load-path \".\")
+                     (require 'package-lint)
+                     (find-file \"$file\")
+                     (let ((results (package-lint-buffer)))
+                       (if results
+                           (progn
+                             (dolist (result results)
+                               (let ((line (nth 0 result))
+                                     (col (nth 1 result))
+                                     (type (nth 2 result))
+                                     (msg (nth 3 result)))
+                                 (princ (format \"%s:%d:%d: %s: %s\\n\" \"$file\" line col type msg))))
+                             (kill-emacs 1))
+                           (kill-emacs 0))))"
+    fi
+
+    if emacs --batch -Q --eval "$EVAL_CODE" 2>/dev/null; then
+</tool.toolu_017zxpruDz7nXXRgcQRwS7gT>
+
+### git_commit_message
+
+<tool.toolu_017zxpruDz7nXXRgcQRwS7gT>
+Update package-lint script to handle both CI and local environments with appropriate package loading
+</tool.toolu_017zxpruDz7nXXRgcQRwS7gT>
+
+<!-- TOOL_RESULT_PLACEHOLDER_toolu_017zxpruDz7nXXRgcQRwS7gT -->
