@@ -894,7 +894,7 @@ Returns either a system message, metadata, or both."
                  (input . ,input))))))
 
 (defun greger-parser--create-tool-result-message (id content)
-  "Create tool result message."
+  "Create tool result message with ID and CONTENT."
   `((role . "user")
     (content . (((type . "tool_result")
                  (tool_use_id . ,id)
