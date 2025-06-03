@@ -175,7 +175,8 @@ LINE is 1-based, COLUMN is 0-based."
             (if container (format " (in %s)" container) ""))))
 
 (defun greger-lib-lsp--detailed-symbol-kind-p (kind)
-  "Check if symbol KIND is a detailed type that should be filtered in non-detailed mode."
+  "Check if symbol KIND is a detailed type that should be filtered in
+non-detailed mode."
   (member kind '(13   ; Variable
                  14   ; Constant
                  15   ; String
