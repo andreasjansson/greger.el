@@ -16,7 +16,7 @@ jobs:
       fail-fast: false
       matrix:
         os: [ubuntu-latest, macos-latest]
-        emacs_version: [28.1, 29.3]
+        emacs_version: [28.1, 29.2]
 
     steps:
       - name: Setup Emacs
@@ -31,4 +31,4 @@ jobs:
         run: ./script/package-lint
 
       - name: Run tests
-        run: ./script/test
+        run: ./script/test --verbose
