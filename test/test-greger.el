@@ -444,7 +444,7 @@ Line 3: End
     ;; Clean up
     (remhash "test-multiline" greger-tools-registry)))
 
-(ert-deftest greger-agent-test-simple-string-comparison ()
+(ert-deftest greger-test-simple-string-comparison ()
   "Test simple tool execution with clear before/after string comparison."
   (let ((test-completed nil))
 
