@@ -1311,4 +1311,607 @@ Create consolidated greger-client.el with simplified Claude-only support
 - Simplifies error handling and configuration
 </tool.toolu_01Xbt6ouf1FQkTEABBmiVqHX>
 
-<!-- TOOL_RESULT_PLACEHOLDER_toolu_01Xbt6ouf1FQkTEABBmiVqHX -->
+## TOOL RESULT:
+
+ID: toolu_01Xbt6ouf1FQkTEABBmiVqHX
+
+<tool.toolu_01Xbt6ouf1FQkTEABBmiVqHX>
+Successfully wrote new file /Users/andreas/projects/greger.el/greger-client.el with 17874 characters. Successfully staged 2 file(s) and committed with message: Create consolidated greger-client.el with simplified Claude-only support
+
+- Consolidates greger-stream.el, greger-providers.el, and greger-provider-claude.el
+- Supports only claude-sonnet-4-20250514 and claude-opus-4-20250514
+- Renames greger-stream-to-buffer-with-tools to greger-client-stream
+- Removes provider abstraction since only Claude is supported
+- Simplifies error handling and configuration
+</tool.toolu_01Xbt6ouf1FQkTEABBmiVqHX>
+
+
+## ASSISTANT:
+
+Now I need to update the files that depend on the old modules. Let me start by updating `greger.el`:
+
+## TOOL USE:
+
+Name: read-file
+ID: toolu_01Rj3oRS3Qp9NmBpKnWbgM19
+
+### path
+
+<tool.toolu_01Rj3oRS3Qp9NmBpKnWbgM19>
+greger.el
+</tool.toolu_01Rj3oRS3Qp9NmBpKnWbgM19>
+
+### include_line_numbers
+
+<tool.toolu_01Rj3oRS3Qp9NmBpKnWbgM19>
+true
+</tool.toolu_01Rj3oRS3Qp9NmBpKnWbgM19>
+
+## TOOL RESULT:
+
+ID: toolu_01Rj3oRS3Qp9NmBpKnWbgM19
+
+<tool.toolu_01Rj3oRS3Qp9NmBpKnWbgM19>
+  1: ;;; greger.el --- Chat with language models -*- lexical-binding: t -*-
+  2:
+  3: ;; Copyright (C) 2023 Andreas Jansson
+  4:
+  5: ;; Author: Andreas Jansson <andreas@jansson.me.uk>
+  6: ;; Version: 0.1.0
+  7: ;; URL: https://github.com/andreasjansson/greger.el
+  8: ;; Package-Requires: ((emacs "28.1") (markdown-mode "2.3"))
+  9: ;; Keywords: ai, chat, language-models, tools
+ 10:
+ 11: ;;; Commentary:
+ 12: ;; This package provides an interface for interacting with AI language models
+ 13:
+ 14: ;;; Code:
+ 15:
+ 16: (require 'greger-stream)
+ 17: (require 'greger-parser)
+ 18: (require 'cl-lib)
+ 19:
+ 20: ;; Forward declarations
+ 21: (defvar greger-agent-tools nil "List of tools available to the agent.")
+ 22:
+ 23: (defconst greger-available-models
+ 24:   '(replicate/meta/meta-llama-3.1-405b-instruct
+ 25:     replicate/meta/meta-llama-3-70b-instruct
+ 26:     replicate/meta/meta-llama-3-70b
+ 27:     replicate/meta/meta-llama-3-8b-instruct
+ 28:     replicate/meta/meta-llama-3-8b
+ 29:     replicate/snowflake/snowflake-arctic-instruct
+ 30:     claude/claude-3-haiku-20240307
+ 31:     claude/claude-3-opus-20240229
+ 32:     claude/claude-3-5-sonnet-20240620
+ 33:     claude/claude-3-7-sonnet-latest
+ 34:     claude/claude-sonnet-4-20250514
+ 35:     claude/claude-opus-4-20250514
+ 36:     openai/o1-preview
+ 37:     openai/gpt-4-turbo
+ 38:     openai/gpt-4o
+ 39:     openai/gpt-4o-2024-08-06
+ 40:     openai/gpt-4o-mini
+ 41:     google/gemini-pro
+ 42:     groq/llama3-8b-8192
+ 43:     groq/llama3-70b-8192
+ 44:     groq/mixtral-8x7b-32768
+ 45:     ollama/llama3:8b
+ 46:     ollama/llama3:text
+ 47:     ollama/mistral:7b
+ 48:     ollama/phi3:3.8b
+ 49:     ollama/wizardlm2:7b
+ 50:     ollama/gemma:2b)
+ 51:   "List of available models.")
+ 52:
+ 53: (defcustom greger-model 'claude/claude-sonnet-4-20250514
+ 54:   "The currently used model."
+ 55:   :type `(choice ,@(mapcar (lambda (model) `(const ,model)) greger-available-models))
+ 56:   :group 'greger)
+ 57:
+ 58: (defcustom greger-default-system-prompt "You are a helpful assistant."
+ 59:   "Default system prompt used for AI interactions."
+ 60:   :type 'string
+ 61:   :group 'greger)
+ 62:
+ 63: (defcustom greger-temperature 0.8
+ 64:   "Sampling temperature between 0 and 1."
+ 65:   :type 'float
+ 66:   :group 'greger)
+ 67:
+ 68: (defvar greger-user-tag "## USER:")
+ 69: (defvar greger-assistant-tag "## ASSISTANT:")
+ 70: (defvar greger-system-tag "## SYSTEM:")
+ 71:
+ 72: ;; Tool section collapsing variables
+ 73: (defvar greger-tool-section-max-lines 4
+ 74:   "Maximum number of lines to show in collapsed tool sections.")
+ 75:
+ 76: (defvar greger-tool-overlays nil
+ 77:   "List of overlays used for collapsible tool sections.")
+ 78:
+ 79: ;; Face definitions for tool tags
+ 80: (defface greger-tool-tag-face
+ 81:   '((t :height 0.6 :foreground "gray70"))
+ 82:   "Face for tool opening and closing tags."
+ 83:   :group 'greger)
+ 84:
+ 85: (defface greger-tool-content-face
+ 86:   '((t :inherit default))
+ 87:   "Face for tool content."
+ 88:   :group 'greger)
+ 89:
+ 90: (defface greger-tool-param-heading-face
+ 91:   '((t :foreground "#6699CC" :weight bold :height 1.0))
+ 92:   "Face for ### tool parameter headings in greger mode."
+ 93:   :group 'greger)
+ 94:
+ 95: (defface greger-user-heading-face
+ 96:   '((t :foreground "#66DD66" :weight bold :height 1.2))
+ 97:   "Face for ## USER: headings in greger mode."
+ 98:   :group 'greger)
+ 99:
+100: (defface greger-tool-result-heading-face
+101:   '((t :foreground "#66AA88" :weight bold :height 1.2))
+102:   "Face for ## TOOL RESULT: headings in greger mode."
+103:   :group 'greger)
+104:
+105: (defface greger-assistant-heading-face
+106:   '((t :foreground "#AA9922" :weight bold :height 1.2))
+107:   "Face for ## ASSISTANT: headings in greger mode."
+108:   :group 'greger)
+109:
+110: (defface greger-thinking-heading-face
+111:   '((t :foreground "#9966CC" :weight bold :height 1.2))
+112:   "Face for ## THINKING: headings in greger mode."
+113:   :group 'greger)
+114:
+115: (defface greger-tool-use-heading-face
+116:   '((t :foreground "#8866BB" :weight bold :height 1.2))
+117:   "Face for ## TOOL USE: headings in greger mode."
+118:   :group 'greger)
+119:
+120: (defface greger-system-heading-face
+121:   '((t :foreground "#CC6666" :weight bold :height 1.2))
+122:   "Face for ## SYSTEM: headings in greger mode."
+123:   :group 'greger)
+124:
+125: (defvar greger-mode-map
+126:   (let ((map (make-sparse-keymap)))
+127:     (define-key map (kbd "M-<return>") #'greger-agent-buffer)
+128:     (define-key map (kbd "C-M-<return>") #'greger-buffer-no-tools)
+129:                                         ;(define-key map (kbd "M-<return>") #'greger-buffer)
+130:     (define-key map (kbd "C-; a") #'greger-insert-assistant-tag)
+131:     (define-key map (kbd "C-; u") #'greger-insert-user-tag)
+132:     (define-key map (kbd "C-; s") #'greger-insert-system-tag)
+133:     (define-key map (kbd "C-; i") #'greger-insert-include)
+134:     (define-key map (kbd "C-; I") #'greger-insert-include-code)
+135:     (define-key map (kbd "C-; f") #'greger-insert-include-file)
+136:     (define-key map (kbd "C-; b") #'greger-insert-include-buffer-code)
+137:     (define-key map (kbd "C-; m") #'greger-set-model)
+138:     (define-key map (kbd "C-; c") #'greger-copy-code)
+139:     (define-key map (kbd "C-; d") #'greger-debug-request)
+140:     (define-key map (kbd "TAB") #'greger-toggle-tool-section)
+141:     (define-key map (kbd "<tab>") #'greger-toggle-tool-section)
+142:     map)
+143:   "Keymap for `greger-mode'.")
+144:
+145: (define-derived-mode greger-mode gfm-mode "AI"
+146:   "Major mode for interacting with AI."
+147:   (use-local-map greger-mode-map)
+148:   (setq-local markdown-fontify-code-blocks-natively t)
+149:   (setq-local mode-line-misc-info '(:eval (symbol-name greger-model)))
+150:   ;; Set up invisible text for tool sections
+151:   (add-to-invisibility-spec 'greger-tool-section)
+152:   ;; Set up tool section highlighting and collapsing
+153:   (greger--setup-tool-sections)
+154:   ;; Set up custom heading font-lock
+155:   (greger--setup-heading-font-lock)
+156:   ;; Add hook to update tool sections when buffer changes
+157:   (add-hook 'after-change-functions #'greger--after-change-function nil t))
+158:
+159: ;;;###autoload
+160: (defun greger ()
+161:   "Create a new buffer and switch to `greger-mode`."
+162:   (interactive)
+163:   (let ((buffer (generate-new-buffer "*greger*")))
+164:     (switch-to-buffer buffer)
+165:     (greger-mode)
+166:     (insert greger-system-tag
+167:             "\n\n" greger-default-system-prompt "\n\n"
+168:             greger-user-tag
+169:             "\n\n")
+170:     (message (format "Using model %s" greger-model))))
+171:
+172: (defun greger-insert-assistant-tag ()
+173:   "Insert the assistant tag into the buffer."
+174:   (interactive)
+175:   (insert greger-assistant-tag "\n\n"))
+176:
+177: (defun greger-insert-user-tag ()
+178:   "Insert the user tag into the buffer."
+179:   (interactive)
+180:   (insert greger-user-tag "\n\n"))
+181:
+182: (defun greger-insert-system-tag ()
+183:   "Insert the system tag into the buffer."
+184:   (interactive)
+185:   (insert greger-system-tag "\n\n"))
+186:
+187: (defun greger-buffer-no-tools ()
+188:   "Send the buffer content to AI as a dialog without tool use."
+189:   (interactive)
+190:   (let ((greger-agent-tools '()))
+191:     (greger-agent-buffer)))
+192:
+193: (defun greger-insert-include ()
+194:   "Prompt the user to select a file and insert an <include> at point."
+195:   (interactive)
+196:   (let ((file (read-string "Filename or URL: ")))
+197:     (insert (format "<include>%s</include>\n\n" file))))
+198:
+199: (defun greger-insert-include-file ()
+200:   "Prompt the user to select a file and insert an <include> at point."
+201:   (interactive)
+202:   (let ((file (expand-file-name (read-file-name "Select file: " nil nil t))))
+203:     (if (file-exists-p file)
+204:         (insert (format "<include>%s</include>\n\n" file))
+205:       (message "File does not exist!"))))
+206:
+207: (defun greger-insert-include-code ()
+208:   "Prompt the user to select a file and insert an <include> at point."
+209:   (interactive)
+210:   (let ((file (read-string "Filename or URL: ")))
+211:     (insert (format "<include code>%s</include>\n\n" file))))
+212:
+213: (defun greger-insert-include-buffer-code ()
+214:   "Prompt the user to select a buffer and insert an <include code> at point."
+215:   (interactive)
+216:   (let ((buffer-name (read-buffer "Select buffer: " nil t)))
+217:     (when buffer-name
+218:       (let ((buffer (get-buffer buffer-name)))
+219:         (when buffer
+220:           (let ((path (buffer-file-name buffer)))
+221:             (insert (format "<include code>%s</include>\n\n" path))))))))
+222:
+223: (defun greger-copy-code ()
+224:   "Copy the current code block under point."
+225:   (interactive)
+226:   (let ((code-block (greger--get-current-code-block)))
+227:     (if code-block
+228:         (progn
+229:           (kill-new code-block)
+230:           (message (format "Copied code: %s" (greger--truncate-with-ellipsis code-block 40))))
+231:       (error "Point is not inside a code block"))))
+232:
+233: (defun greger-set-model ()
+234:   "Set the current AI model."
+235:   (interactive)
+236:   (let ((model (completing-read "Choose AI model: " greger-available-models nil t)))
+237:     (customize-set-variable 'greger-model (intern model))
+238:     (message "Model set to %s" model)))
+239:
+240: (defun greger-debug-request ()
+241:   "Debug the request data by parsing the buffer and saving the greger-provider-claude--build-data output."
+242:   (interactive)
+243:   (require 'greger-parser)
+244:   (require 'greger-provider-claude)
+245:   (require 'greger-tools)
+246:   (require 'json)
+247:   (let* ((filename (read-string "Save to filename (default: request.json): " nil nil "request.json"))
+248:          (buffer-content (buffer-substring-no-properties (point-min) (point-max)))
+249:          (parse-result (greger-parser-parse-dialog buffer-content))
+250:          (dialog (plist-get parse-result :messages))
+251:          (tools (when greger-agent-tools
+252:                   (greger-tools-get-schemas greger-agent-tools)))
+253:          (model-name (symbol-name greger-model))
+254:          (request-data nil))
+255:
+256:     (unless dialog
+257:       (error "Failed to parse dialog. Check your buffer format"))
+258:
+259:     ;; Extract just the model name part (e.g., "claude-sonnet-4-20250514" from "claude/claude-sonnet-4-20250514")
+260:     (when (string-match "^[^/]+/\\(.+\\)$" model-name)
+261:       (setq model-name (match-string 1 model-name)))
+262:
+263:     ;; Get the JSON request data
+264:     (setq request-data (greger-provider-claude--build-data model-name dialog tools))
+265:
+266:     ;; Parse the JSON and re-encode with proper formatting
+267:     (condition-case err
+268:         (let* ((parsed-json (json-read-from-string request-data)))
+269:           ;; Write to file with proper indentation
+270:           (with-temp-file filename
+271:             (let ((json-encoding-pretty-print t))
+272:               (insert (json-encode parsed-json))))
+273:           (message "Request data saved to %s" filename))
+274:       (error
+275:        ;; Fallback: just save the raw JSON string if parsing fails
+276:        (with-temp-file filename
+277:          (insert request-data))
+278:        (message "Request data saved to %s (raw format due to parsing error: %s)"
+279:                 filename (error-message-string err))))))
+280:
+281: ;; Tool section collapsing functions
+282:
+283: (defun greger--setup-tool-sections ()
+284:   "Set up tool section highlighting and collapsing in the current buffer."
+285:   (greger--clear-tool-overlays)
+286:   (greger--find-and-setup-tool-sections))
+287:
+288: (defun greger--clear-tool-overlays ()
+289:   "Clear all tool section overlays in the current buffer."
+290:   (cl-loop for overlay in greger-tool-overlays
+291:            do (delete-overlay overlay))
+292:   (setq greger-tool-overlays nil))
+293:
+294: (defun greger--find-and-setup-tool-sections ()
+295:   "Find all tool sections and set them up with appropriate faces and collapsing."
+296:   (save-excursion
+297:     (goto-char (point-min))
+298:     (cl-loop while (re-search-forward "<tool\\.[^>]+>" nil t)
+299:              do (greger--setup-single-tool-section))))
+300:
+301: (defun greger--setup-single-tool-section ()
+302:   "Set up a single tool section starting from the current match."
+303:   (let ((start-tag-start (match-beginning 0))
+304:         (start-tag-end (match-end 0))
+305:         (tool-id (greger--extract-tool-id (match-string 0))))
+306:     (when tool-id
+307:       (let ((end-tag-pattern (concat "</tool\\." (regexp-quote tool-id) ">"))
+308:             (content-start start-tag-end)
+309:             content-end
+310:             end-tag-start
+311:             end-tag-end)
+312:
+313:         ;; Find the corresponding closing tag
+314:         (when (re-search-forward end-tag-pattern nil t)
+315:           (setq end-tag-start (match-beginning 0)
+316:                 end-tag-end (match-end 0)
+317:                 content-end end-tag-start)
+318:
+319:           ;; Create overlays for styling
+320:           (greger--create-tag-overlay start-tag-start start-tag-end)
+321:           (greger--create-tag-overlay end-tag-start end-tag-end)
+322:
+323:           ;; Set up collapsible content
+324:           (greger--setup-collapsible-content content-start content-end tool-id))))))
+325:
+326: (defun greger--extract-tool-id (tag-string)
+327:   "Extract tool ID from a tool tag string like '<tool.abc123>'."
+328:   (when (string-match "<tool\\.\\([^>]+\\)>" tag-string)
+329:     (match-string 1 tag-string)))
+330:
+331: (defun greger--create-tag-overlay (start end)
+332:   "Create an overlay for a tool tag to make it small and less visible."
+333:   (let ((overlay (make-overlay start end)))
+334:     (overlay-put overlay 'face 'greger-tool-tag-face)
+335:     (overlay-put overlay 'greger-tool-tag t)
+336:     (push overlay greger-tool-overlays)
+337:     overlay))
+338:
+339: (defun greger--setup-collapsible-content (content-start content-end tool-id)
+340:   "Set up collapsible content between CONTENT-START and CONTENT-END for TOOL-ID."
+341:   (let* ((content (buffer-substring-no-properties content-start content-end))
+342:          (lines (split-string content "\n"))
+343:          (line-count (length lines)))
+344:
+345:     (when (> line-count greger-tool-section-max-lines)
+346:       ;; Create the collapsible overlay
+347:       (greger--create-collapsible-overlay content-start content-end tool-id lines))))
+348:
+349: (defun greger--create-collapsible-overlay (content-start content-end tool-id lines)
+350:   "Create a collapsible overlay for tool content."
+351:   (let* ((visible-lines (cl-subseq lines 0 greger-tool-section-max-lines))
+352:          (hidden-lines (cl-subseq lines greger-tool-section-max-lines))
+353:          (total-lines (length lines))
+354:          (hidden-line-count (length hidden-lines))
+355:          (visible-text (mapconcat #'identity visible-lines "\n"))
+356:          (hidden-text (mapconcat #'identity hidden-lines "\n"))
+357:
+358:          ;; Calculate positions for visible and hidden parts
+359:          (visible-end (+ content-start (length visible-text)))
+360:          (hidden-start (+ visible-end 1)) ; +1 for the newline
+361:
+362:          ;; Create overlay for the hidden part
+363:          (hidden-overlay (make-overlay hidden-start content-end)))
+364:
+365:     (overlay-put hidden-overlay 'invisible 'greger-tool-section)
+366:     (overlay-put hidden-overlay 'greger-tool-section t)
+367:     (overlay-put hidden-overlay 'greger-tool-id tool-id)
+368:     (overlay-put hidden-overlay 'greger-collapsed t)
+369:
+370:     ;; Add expansion indicator with line count
+371:     (let ((indicator-overlay (make-overlay visible-end visible-end)))
+372:       (overlay-put indicator-overlay 'after-string
+373:                    (propertize (format "... [+%d lines, TAB to expand]" hidden-line-count)
+374:                               'face 'greger-tool-tag-face))
+375:       (overlay-put indicator-overlay 'greger-tool-indicator t)
+376:       (overlay-put indicator-overlay 'greger-tool-id tool-id)
+377:       (push indicator-overlay greger-tool-overlays))
+378:
+379:     (push hidden-overlay greger-tool-overlays)))
+380:
+381: (defun greger-toggle-tool-section ()
+382:   "Toggle the tool section at point between collapsed and expanded state."
+383:   (interactive)
+384:   (let ((tool-id (greger--get-tool-id-at-point)))
+385:     (if tool-id
+386:         (greger--toggle-tool-section-by-id tool-id)
+387:       (message "Not inside a tool section"))))
+388:
+389: (defun greger--get-tool-id-at-point ()
+390:   "Get the tool ID for the tool section at point, if any."
+391:   ;; First check overlays at point
+392:   (or (cl-loop for overlay in (overlays-at (point))
+393:                for tool-id = (overlay-get overlay 'greger-tool-id)
+394:                when tool-id return tool-id)
+395:       ;; If not found, search backwards and forwards for tool tags
+396:       (greger--find-tool-id-near-point)))
+397:
+398: (defun greger--find-tool-id-near-point ()
+399:   "Find tool ID near point by searching for tool tags."
+400:   (save-excursion
+401:     (let ((start-pos (point))
+402:           tool-id)
+403:       ;; Search backwards for opening tag
+404:       (when (re-search-backward "<tool\\.[^>]+>" nil t)
+405:         (let ((open-tag-start (match-beginning 0))
+406:               (open-tag-end (match-end 0))
+407:               (tag-tool-id (greger--extract-tool-id (match-string 0))))
+408:           ;; Check if we're within this tool section
+409:           (when tag-tool-id
+410:             (let ((close-pattern (concat "</tool\\." (regexp-quote tag-tool-id) ">")))
+411:               (when (re-search-forward close-pattern nil t)
+412:                 (let ((close-tag-end (match-end 0)))
+413:                   ;; If original point is between open and close tags
+414:                   (when (and (>= start-pos open-tag-start)
+415:                              (<= start-pos close-tag-end))
+416:                     (setq tool-id tag-tool-id))))))))
+417:       tool-id)))
+418:
+419: (defun greger--toggle-tool-section-by-id (tool-id)
+420:   "Toggle the tool section with the given TOOL-ID."
+421:   (cl-loop for overlay in greger-tool-overlays
+422:            when (and (overlay-get overlay 'greger-tool-section)
+423:                      (string= (overlay-get overlay 'greger-tool-id) tool-id))
+424:            do (greger--toggle-overlay-visibility overlay tool-id)))
+425:
+426: (defun greger--toggle-overlay-visibility (overlay tool-id)
+427:   "Toggle the visibility of OVERLAY for TOOL-ID."
+428:   (let ((is-collapsed (overlay-get overlay 'greger-collapsed)))
+429:     (if is-collapsed
+430:         (greger--expand-tool-section overlay tool-id)
+431:       (greger--collapse-tool-section overlay tool-id))))
+432:
+433: (defun greger--expand-tool-section (overlay tool-id)
+434:   "Expand the tool section by making OVERLAY visible."
+435:   (overlay-put overlay 'invisible nil)
+436:   (overlay-put overlay 'greger-collapsed nil)
+437:
+438:   ;; Remove the expansion indicator
+439:   (cl-loop for indicator-overlay in greger-tool-overlays
+440:            when (and (overlay-get indicator-overlay 'greger-tool-indicator)
+441:                      (string= (overlay-get indicator-overlay 'greger-tool-id) tool-id))
+442:            do (progn
+443:                 (delete-overlay indicator-overlay)
+444:                 (setq greger-tool-overlays
+445:                       (remove indicator-overlay greger-tool-overlays)))))
+446:
+447: (defun greger--collapse-tool-section (overlay tool-id)
+448:   "Collapse the tool section by making OVERLAY invisible."
+449:   (overlay-put overlay 'invisible 'greger-tool-section)
+450:   (overlay-put overlay 'greger-collapsed t)
+451:
+452:   ;; Calculate the number of hidden lines for the indicator
+453:   (let* ((content (buffer-substring-no-properties (overlay-start overlay) (overlay-end overlay)))
+454:          (lines (split-string content "\n"))
+455:          (hidden-line-count (length lines))
+456:          (overlay-start (overlay-start overlay))
+457:          (indicator-pos (max (point-min) (1- overlay-start)))
+458:          (indicator-overlay (make-overlay indicator-pos indicator-pos)))
+459:     (overlay-put indicator-overlay 'after-string
+460:                  (propertize (format "... [+%d lines, TAB to expand]" hidden-line-count)
+461:                             'face 'greger-tool-tag-face))
+462:     (overlay-put indicator-overlay 'greger-tool-indicator t)
+463:     (overlay-put indicator-overlay 'greger-tool-id tool-id)
+464:     (push indicator-overlay greger-tool-overlays)))
+465:
+466: (defun greger--setup-heading-font-lock ()
+467:   "Set up font-lock for headings to override markdown's larger font sizes."
+468:   ;; Remove existing markdown heading font-lock rules for level 2 and 3 headings
+469:   (setq-local font-lock-keywords
+470:               (cl-remove-if
+471:                (lambda (rule)
+472:                  (and (listp rule)
+473:                       (stringp (car rule))
+474:                       (or (string-match-p "^\\^##" (car rule))
+475:                           (string-match-p "^\\^###" (car rule))
+476:                           (string-match-p "markdown-header-face-[23]" (format "%s" rule)))))
+477:                font-lock-keywords))
+478:
+479:   ;; Add our custom font-lock rules with highest priority
+480:   (font-lock-add-keywords
+481:    nil
+482:    '(;; Level 2 headings (conversation roles)
+483:      ("^## USER:.*$" 0 'greger-user-heading-face t)
+484:      ("^## ASSISTANT:.*$" 0 'greger-assistant-heading-face t)
+485:      ("^## SYSTEM:.*$" 0 'greger-system-heading-face t)
+486:      ("^## THINKING:.*$" 0 'greger-thinking-heading-face t)
+487:      ("^## TOOL USE:.*$" 0 'greger-tool-use-heading-face t)
+488:      ("^## TOOL RESULT:.*$" 0 'greger-tool-result-heading-face t)
+489:      ;; Level 3 headings (tool parameters)
+490:      ("^###\\s-+.*$" 0 'greger-tool-param-heading-face t))
+491:    'prepend)
+492:
+493:   ;; Also remap the markdown faces
+494:   ;(face-remap-add-relative 'markdown-header-face-2 'greger-assistant-heading-face)
+495:   ;(face-remap-add-relative 'markdown-header-face-3 'greger-tool-param-heading-face)
+496:   (font-lock-flush))
+497:
+498: (defun greger--after-change-function (beg end len)
+499:   "Update tool sections after buffer changes."
+500:   ;; Simple approach: refresh all tool sections
+501:   ;; This could be optimized to only refresh affected sections
+502:   (when (> (- end beg) 0)  ; Only if there was an actual change
+503:     (run-with-idle-timer 0.1 nil #'greger--setup-tool-sections)))
+504:
+505: ;; Private helper functions
+506:
+507: (defun greger--get-current-code-block ()
+508:   "Return the current code block under point, or nil if not found."
+509:   (save-excursion
+510:     (when (re-search-backward "^```" nil t)
+511:       (forward-line)
+512:       (let ((start (point)))
+513:         (when (re-search-forward "^```" nil t)
+514:           (backward-char 4)
+515:           (buffer-substring-no-properties start (point)))))))
+516:
+517: (defun greger--truncate-with-ellipsis (str max-width)
+518:   "Truncate STR to MAX-WIDTH characters, adding an ellipsis if necessary."
+519:   (let ((len (length str)))
+520:     (if (<= len max-width)
+521:         str
+522:       (concat (substring str 0 (- max-width 3)) "..."))))
+523:
+524: (provide 'greger)
+525:
+526: ;;; greger.el ends here
+527:
+</tool.toolu_01Rj3oRS3Qp9NmBpKnWbgM19>
+
+## ASSISTANT:
+
+Now I need to update `greger.el` to use the new `greger-client.el` instead of the old files:
+
+## TOOL USE:
+
+Name: str-replace
+ID: toolu_0174LMFKiDDMwxkgZxbfXTzN
+
+### file_path
+
+<tool.toolu_0174LMFKiDDMwxkgZxbfXTzN>
+greger.el
+</tool.toolu_0174LMFKiDDMwxkgZxbfXTzN>
+
+### original_content
+
+<tool.toolu_0174LMFKiDDMwxkgZxbfXTzN>
+(require 'greger-stream)
+</tool.toolu_0174LMFKiDDMwxkgZxbfXTzN>
+
+### new_content
+
+<tool.toolu_0174LMFKiDDMwxkgZxbfXTzN>
+(require 'greger-client)
+</tool.toolu_0174LMFKiDDMwxkgZxbfXTzN>
+
+### git_commit_message
+
+<tool.toolu_0174LMFKiDDMwxkgZxbfXTzN>
+Update greger.el to use greger-client instead of greger-stream
+</tool.toolu_0174LMFKiDDMwxkgZxbfXTzN>
+
+<!-- TOOL_RESULT_PLACEHOLDER_toolu_0174LMFKiDDMwxkgZxbfXTzN -->

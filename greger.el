@@ -13,7 +13,7 @@
 
 ;;; Code:
 
-(require 'greger-stream)
+(require 'greger-client)
 (require 'greger-parser)
 (require 'cl-lib)
 
