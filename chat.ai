@@ -3919,4 +3919,93 @@ greger-parser.el
 Fix docstring for greger-parser--content-blocks-to-markdown
 </tool.toolu_015Ew5Du4BZ9rHkGzuhkBZ3x>
 
-<!-- TOOL_RESULT_PLACEHOLDER_toolu_015Ew5Du4BZ9rHkGzuhkBZ3x -->
+## TOOL RESULT:
+
+ID: toolu_015Ew5Du4BZ9rHkGzuhkBZ3x
+
+<tool.toolu_015Ew5Du4BZ9rHkGzuhkBZ3x>
+Successfully replaced content in /Users/andreas/projects/greger.el/greger-parser.el. Successfully staged 2 file(s) and committed with message: Fix docstring for greger-parser--content-blocks-to-markdown
+</tool.toolu_015Ew5Du4BZ9rHkGzuhkBZ3x>
+
+
+## ASSISTANT:
+
+Let me continue with the next functions around line 983:
+
+## TOOL USE:
+
+Name: read-file
+ID: toolu_015CEzL5aceXk2MbmCbd2BkU
+
+### path
+
+<tool.toolu_015CEzL5aceXk2MbmCbd2BkU>
+greger-parser.el
+</tool.toolu_015CEzL5aceXk2MbmCbd2BkU>
+
+### start_line
+
+<tool.toolu_015CEzL5aceXk2MbmCbd2BkU>
+981
+</tool.toolu_015CEzL5aceXk2MbmCbd2BkU>
+
+### end_line
+
+<tool.toolu_015CEzL5aceXk2MbmCbd2BkU>
+995
+</tool.toolu_015CEzL5aceXk2MbmCbd2BkU>
+
+## TOOL RESULT:
+
+ID: toolu_015CEzL5aceXk2MbmCbd2BkU
+
+<tool.toolu_015CEzL5aceXk2MbmCbd2BkU>
+  (concat greger-parser-system-tag "\n\n" content))
+
+(defun greger-parser--content-blocks-to-markdown (blocks)
+  "Convert content BLOCKS to markdown."
+  (mapconcat #'greger-parser--block-to-markdown blocks "\n\n"))
+
+(defun greger-parser--block-to-markdown (block)
+  "Convert single block to markdown."
+  (let ((type (alist-get 'type block)))
+    (cond
+     ((string= type "text")
+      (concat greger-parser-assistant-tag "\n\n"
+              (alist-get 'text block)))
+     ((string= type "thinking")
+      (concat greger-parser-thinking-tag "\n\n"
+</tool.toolu_015CEzL5aceXk2MbmCbd2BkU>
+
+## TOOL USE:
+
+Name: str-replace
+ID: toolu_01Khd3zsxpNSDhDcWkoHJwGE
+
+### file_path
+
+<tool.toolu_01Khd3zsxpNSDhDcWkoHJwGE>
+greger-parser.el
+</tool.toolu_01Khd3zsxpNSDhDcWkoHJwGE>
+
+### original_content
+
+<tool.toolu_01Khd3zsxpNSDhDcWkoHJwGE>
+(defun greger-parser--block-to-markdown (block)
+  "Convert single block to markdown."
+</tool.toolu_01Khd3zsxpNSDhDcWkoHJwGE>
+
+### new_content
+
+<tool.toolu_01Khd3zsxpNSDhDcWkoHJwGE>
+(defun greger-parser--block-to-markdown (block)
+  "Convert single BLOCK to markdown."
+</tool.toolu_01Khd3zsxpNSDhDcWkoHJwGE>
+
+### git_commit_message
+
+<tool.toolu_01Khd3zsxpNSDhDcWkoHJwGE>
+Fix docstring for greger-parser--block-to-markdown
+</tool.toolu_01Khd3zsxpNSDhDcWkoHJwGE>
+
+<!-- TOOL_RESULT_PLACEHOLDER_toolu_01Khd3zsxpNSDhDcWkoHJwGE -->

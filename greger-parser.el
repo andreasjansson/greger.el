@@ -985,7 +985,7 @@ Returns either a system message, metadata, or both."
   (mapconcat #'greger-parser--block-to-markdown blocks "\n\n"))
 
 (defun greger-parser--block-to-markdown (block)
-  "Convert single block to markdown."
+  "Convert single BLOCK to markdown."
   (let ((type (alist-get 'type block)))
     (cond
      ((string= type "text")
