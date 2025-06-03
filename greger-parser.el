@@ -922,7 +922,7 @@ Returns either a system message, metadata, or both."
       (reverse result))))
 
 (defun greger-parser--merge-message-contents (msg1 msg2)
-  "Merge contents of two messages."
+  "Merge contents of MSG1 and MSG2."
   (let ((role (alist-get 'role msg1))
         (content1 (alist-get 'content msg1))
         (content2 (alist-get 'content msg2)))
