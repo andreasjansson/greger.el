@@ -108,7 +108,7 @@
     (cl-letf (((symbol-function 'y-or-n-p) (lambda (prompt) t)))
 
       ;; Execute a command with a pipe
-      (greger-tools--shell-command
+      (greger-stdlib--shell-command
        "echo 'apple\nbanana\ncherry' | grep 'an'"
        (lambda (output err)
          (setq result output error err callback-called t)))
