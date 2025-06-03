@@ -27,12 +27,10 @@ In Greger buffers:
 
 ## Installation
 
-```emacs-lisp
-(use-package greger
-  :commands (greger)
-  :config
-  ;; Set your preferred model
-  (setq greger-model 'claude-sonnet-4-20250514))
+Greger is not on MELPA yet, so for now you'll need to download the repo and add it to your load path, and then
+
+``` emacs-lisp
+(require 'greger)
 ```
 
 ## Configuration
