@@ -15,9 +15,7 @@
 (defvar greger-test-timeout 30
   "Timeout in seconds for API calls in tests.")
 
-(defun greger-test-has-api-key ()
-  "Check if we have a valid API key for testing."
-  (not (string-empty-p (or (getenv "ANTHROPIC_API_KEY") ""))))
+
 
 (defun greger-test-wait-for-response (buffer timeout)
   "Wait for a response to appear in BUFFER within TIMEOUT seconds."

@@ -18,2047 +18,687 @@ bash script/test --verbose --file test/test-greger-lib-lsp.el
 
 ## USER:
 
-Here are docs for the setup-emacs github action: https://github.com/marketplace/actions/set-up-emacs
-
-And example usage: https://raw.githubusercontent.com/company-mode/company-mode/1924eabfa7438974da0500e85fff5fb32c27282c/.github/workflows/ci.yml
-
-Make a github action that runs ./script/test on main and PR pushes
+In a few tests there's a check to see if ANTHROPIC_API_KEY is set. I want that to always be required so remove those checks and `(skip-unless (greger-test-has-api-key))` etc.
 
 ## ASSISTANT:
 
-I'll help you create a GitHub Action that runs `./script/test` on main and PR pushes. Let me first examine the documentation and example you provided, then create the workflow file.
+I'll help you remove the conditional checks for ANTHROPIC_API_KEY in the tests. Let me first search for these checks to see where they are located.
 
 ## TOOL USE:
 
-Name: read-webpage
-ID: toolu_01Cnx1Ecs794qdFk2HPjyj3E
+Name: ripgrep
+ID: toolu_01FxMUQhQMRXsrhXkqmUd8MP
 
-### url
+### pattern
 
-<tool.toolu_01Cnx1Ecs794qdFk2HPjyj3E>
-https://github.com/marketplace/actions/set-up-emacs
-</tool.toolu_01Cnx1Ecs794qdFk2HPjyj3E>
+<tool.toolu_01FxMUQhQMRXsrhXkqmUd8MP>
+ANTHROPIC_API_KEY
+</tool.toolu_01FxMUQhQMRXsrhXkqmUd8MP>
+
+### file-type
+
+<tool.toolu_01FxMUQhQMRXsrhXkqmUd8MP>
+el
+</tool.toolu_01FxMUQhQMRXsrhXkqmUd8MP>
 
 ## TOOL RESULT:
 
-ID: toolu_01Cnx1Ecs794qdFk2HPjyj3E
-
-<tool.toolu_01Cnx1Ecs794qdFk2HPjyj3E>
-    Skip to content
-    Navigation Menu
-   Toggle navigation
-
-
-
-
-            Sign in
-               Appearance settings
-
-
-
-
-        Product
-
-            GitHub Copilot
-
-
-        Write better code with AI
-
-
-
-            GitHub Models
-
-                New
-
-
-        Manage and compare prompts
-
-
-
-            GitHub Advanced Security
-
-
-        Find and fix vulnerabilities
-
-
-
-            Actions
-
-
-        Automate any workflow
-
-
-
-            Codespaces
-
-
-        Instant dev environments
-
-
-
-
-
-
-            Issues
-
-
-        Plan and track work
-
-
-
-            Code Review
-
-
-        Manage code changes
-
-
-
-            Discussions
-
-
-        Collaborate outside of code
-
-
-
-            Code Search
-
-
-        Find more, search less
-
-
-
-
-
-    Explore
-      Why GitHub
-
-
-
-
-      All features
-
-
-
-
-      Documentation
-
-
-
-      GitHub Skills
-
-
-
-      Blog
-
-
-
-
-
-
-
-
-        Solutions
-              By company size
-      Enterprises
-
-
-
-
-      Small and medium teams
-
-
-
-
-      Startups
-
-
-
-
-      Nonprofits
-
-
-
-
-
-   By use case
-      DevSecOps
-
-
-
-
-      DevOps
-
-
-
-
-      CI/CD
-
-
-
-
-      View all use cases
-
-
-
-
-
-
-    By industry
-      Healthcare
-
-
-
-
-      Financial services
-
-
-
-
-      Manufacturing
-
-
-
-
-      Government
-
-
-
-
-      View all industries
-
-
-
-
-
-
-
-              View all solutions
-
-
-
-
-        Resources
-              Topics
-      AI
-
-
-
-
-      DevOps
-
-
-
-
-      Security
-
-
-
-
-      Software Development
-
-
-
-
-      View all
-
-
-
-
-
-
-    Explore
-      Learning Pathways
-
-
-
-      Events & Webinars
-
-
-
-      Ebooks & Whitepapers
-
-
-
-
-      Customer Stories
-
-
-
-
-      Partners
-
-
-
-      Executive Insights
-
-
-
-
-
-
-
-
-
-        Open Source
-
-            GitHub Sponsors
-
-
-        Fund open source developers
-
-
-
-
-
-            The ReadME Project
-
-
-        GitHub community articles
-
-
-
-
-   Repositories
-      Topics
-
-
-
-
-      Trending
-
-
-
-
-      Collections
-
-
-
-
-
-
-
-
-
-        Enterprise
-
-            Enterprise platform
-
-
-        AI-powered developer platform
-
-
-
-
-   Available add-ons
-            GitHub Advanced Security
-
-
-        Enterprise-grade security features
-
-
-
-            Copilot for business
-
-
-        Enterprise-grade AI features
-
-
-
-            Premium Support
-
-
-        Enterprise-grade 24/7 support
-
-
-
-
-
-
-
-   Pricing
-
-
-  Search or jump to...
-     Search code, repositories, users, issues, pull requests...
-      '"`   </textarea></xmp>
-        Search
-
-
-
-
-  Clear
-
-
-
-
-
-    Search syntax tips
-
-
-
-
-
-
-
-
-        Provide feedback
-
-
-
-
-
-    '"`   </textarea></xmp>   We read every piece of feedback, and take your input very seriously.
-    Include my email address so I can be contacted
-       Cancel
-      Submit feedback
-
-
-        Saved searches
-
-  Use saved searches to filter your results more quickly
-
-
-
-
-
-    '"`   </textarea></xmp>
-    Name
-   Query
-
-            To see all available qualifiers, see our  documentation .
-
-
-
-
-
-       Cancel
-      Create saved search
-
-
-
-                Sign in
-
-
-                Sign up
-                   Appearance settings
-
-  Resetting focus
-
-
-
-    You signed in with another tab or window.  Reload  to refresh your session.  You signed out in another tab or window.  Reload  to refresh your session.  You switched accounts on another tab or window.  Reload  to refresh your session.    Dismiss alert
-
-
-         {{ message }}
-
-
-
-
-     Marketplace
- Actions
- Set up Emacs
-
-
-
-
- Set up Emacs
- Actions
-
- Install a specific Emacs version for use in your workflow
-  v6.0
- Latest
-
-
- By  purcell
-
-
-
-  Star 148  (  148  ) You must be signed in to star a repository Use   latest version
-  Choose a version
-
-
- Tags
- 2  (  2  )
- continuous-integration testing
-
-
-
-
-
-
-
-  A Github Action that installs a specific emacs version
-
-  Uses  nix-emacs-ci  to provide binaries for a number of different Emacs versions.
-  Since that project uses Nix, Nix will be installed automatically if
-necessary.
-  Note also that only Linux and MacOS are supported, since Nix is not
-available on Windows.
-  Check out  examples of using this Action in the wild in 1500+ repositories .
-  See the  actions tab  for runs of this action! 🚀
-  Usage:
-
-  uses :  purcell/setup-emacs@master  with :
-   version :  24.5
-
-  The  emacs  executable on the path will then be the requested
-version. For a list of available versions, please see the
- nix-emacs-ci  project.
-  For an example of real-life usage, see the  Actions config for  package-lint .
-
- Note about compiling binary emacs modules
-
-  Here's an example  of a project which compiles binary modules against an Emacs installed with this method.
-  💝 Support this project and my other Open Source work via Patreon
-  💼 LinkedIn profile
-  ✍ sanityinc.com
-
-
- Contributors 4  (  4  )
-
-
-
- Resources
-
-    Open an issue 3  (  3  )
-   Pull requests 0  (  0  )
-   View source code
-   Report abuse
-
-
- Set up Emacs  is not certified by GitHub. It is provided by a third-party and is governed by separate terms of service, privacy policy, and support documentation.
-
-
-
-
-
-
- About
-
- Install a specific Emacs version for use in your workflow
-  v6.0
- Latest
-
-
- By  purcell
-
-
- Tags
- 2  (  2  )
- continuous-integration testing
-
- Contributors 4  (  4  )
-
-
-
- Resources
-
-    Open an issue 3  (  3  )
-   Pull requests 0  (  0  )
-   View source code
-   Report abuse
-
-
- Set up Emacs  is not certified by GitHub. It is provided by a third-party and is governed by separate terms of service, privacy policy, and support documentation.
-
-
-
-
-
-
-
-
-
-
-
-
-
-    You can’t perform that action at this time.
-
-
-
-
-
-
-
-
-
-</tool.toolu_01Cnx1Ecs794qdFk2HPjyj3E>
-
-## TOOL USE:
-
-Name: read-webpage
-ID: toolu_01PiHe8oKRb9VQURNH95GbT7
-
-### url
-
-<tool.toolu_01PiHe8oKRb9VQURNH95GbT7>
-https://raw.githubusercontent.com/company-mode/company-mode/1924eabfa7438974da0500e85fff5fb32c27282c/.github/workflows/ci.yml
-</tool.toolu_01PiHe8oKRb9VQURNH95GbT7>
-
-### extract_text
-
-<tool.toolu_01PiHe8oKRb9VQURNH95GbT7>
-:json-false
-</tool.toolu_01PiHe8oKRb9VQURNH95GbT7>
-
-## TOOL RESULT:
-
-ID: toolu_01PiHe8oKRb9VQURNH95GbT7
-
-<tool.toolu_01PiHe8oKRb9VQURNH95GbT7>
-name: CI
-
-on:
-  push:
-    paths:
-      - '**.el'
-      - '**ci.yml'
-      - 'Makefile'
-    branches:
-      - master
-
-  pull_request:
-    paths:
-      - '**.el'
-      - '**ci.yml'
-      - 'Makefile'
-    branches:
-      - master
-
-jobs:
-  check:
-    runs-on: ubuntu-latest
-
-    strategy:
-      fail-fast: false
-      matrix:
-        emacs_version: [26.1, 26.3, 27.2, 28.2, 29.4, 30.1, snapshot]
-
-    steps:
-      - name: Setup Emacs
-        uses: purcell/setup-emacs@master
-        with:
-          version: ${{ matrix.emacs_version }}
-
-      - name: Checkout Company
-        uses: actions/checkout@v3
-
-      - name: Run tests
-        run: make test-batch
-
-      - name: Run compilation
-        run: make compile-warn
-
-
-</tool.toolu_01PiHe8oKRb9VQURNH95GbT7>
+ID: toolu_01FxMUQhQMRXsrhXkqmUd8MP
+
+<tool.toolu_01FxMUQhQMRXsrhXkqmUd8MP>
+/Users/andreas/projects/greger.el/README.md:79:export ANTHROPIC_API_KEY="your-claude-api-key"
+/Users/andreas/projects/greger.el/README.md:85:(setenv "ANTHROPIC_API_KEY" "your-claude-api-key")
+/Users/andreas/projects/greger.el/greger-client.el:115:  (let ((api-key (getenv "ANTHROPIC_API_KEY")))
+/Users/andreas/projects/greger.el/greger-client.el:117:      (error "Please set the ANTHROPIC_API_KEY environment variable"))
+/Users/andreas/projects/greger.el/test/test-end-to-end.el:7:;; These tests require a valid ANTHROPIC_API_KEY environment variable.
+/Users/andreas/projects/greger.el/test/test-end-to-end.el:20:  (not (string-empty-p (or (getenv "ANTHROPIC_API_KEY") ""))))
+/Users/andreas/projects/greger.el/test/test-greger-client.el:6:;; These tests require a valid ANTHROPIC_API_KEY environment variable.
+/Users/andreas/projects/greger.el/test/test-greger-client.el:20:  (not (string-empty-p (or (getenv "ANTHROPIC_API_KEY") ""))))
+
+</tool.toolu_01FxMUQhQMRXsrhXkqmUd8MP>
 
 ## ASSISTANT:
 
-Now let me check the current directory structure to see if there's already a `.github/workflows` directory:
+Now let me search for the skip-unless patterns:
 
 ## TOOL USE:
 
-Name: list-directory
-ID: toolu_012bRcjjvstyo32fxZweFubt
+Name: ripgrep
+ID: toolu_016Xw6kiKf5LseoybUsrYKMM
 
-### path
+### pattern
 
-<tool.toolu_012bRcjjvstyo32fxZweFubt>
-.
-</tool.toolu_012bRcjjvstyo32fxZweFubt>
+<tool.toolu_016Xw6kiKf5LseoybUsrYKMM>
+skip-unless.*greger-test-has-api-key
+</tool.toolu_016Xw6kiKf5LseoybUsrYKMM>
 
-## TOOL RESULT:
+### file-type
 
-ID: toolu_012bRcjjvstyo32fxZweFubt
-
-<tool.toolu_012bRcjjvstyo32fxZweFubt>
-README.md
-chat.ai
-greger-client.el
-greger-lib-lsp.el
-greger-parser.el
-greger-pkg.el
-greger-stdlib.el
-greger-tools.el
-greger-web.el
-greger.el
-recipes/
-script/
-test/
-</tool.toolu_012bRcjjvstyo32fxZweFubt>
-
-## TOOL USE:
-
-Name: list-directory
-ID: toolu_01RbhxeFAciSpeQTYJLz7Pwe
-
-### path
-
-<tool.toolu_01RbhxeFAciSpeQTYJLz7Pwe>
-script
-</tool.toolu_01RbhxeFAciSpeQTYJLz7Pwe>
+<tool.toolu_016Xw6kiKf5LseoybUsrYKMM>
+el
+</tool.toolu_016Xw6kiKf5LseoybUsrYKMM>
 
 ## TOOL RESULT:
 
-ID: toolu_01RbhxeFAciSpeQTYJLz7Pwe
+ID: toolu_016Xw6kiKf5LseoybUsrYKMM
 
-<tool.toolu_01RbhxeFAciSpeQTYJLz7Pwe>
-package-lint
-test
-</tool.toolu_01RbhxeFAciSpeQTYJLz7Pwe>
+<tool.toolu_016Xw6kiKf5LseoybUsrYKMM>
+/Users/andreas/projects/greger.el/test/test-end-to-end.el:106:  (skip-unless (greger-test-has-api-key))
+/Users/andreas/projects/greger.el/test/test-end-to-end.el:143:  (skip-unless (greger-test-has-api-key))
+/Users/andreas/projects/greger.el/test/test-end-to-end.el:191:  (skip-unless (greger-test-has-api-key))
+/Users/andreas/projects/greger.el/test/test-greger-client.el:39:  (skip-unless (greger-test-has-api-key))
+/Users/andreas/projects/greger.el/test/test-greger-client.el:90:  (skip-unless (greger-test-has-api-key))
+/Users/andreas/projects/greger.el/test/test-greger-client.el:146:  (skip-unless (greger-test-has-api-key))
+/Users/andreas/projects/greger.el/test/test-greger-client.el:175:  (skip-unless (greger-test-has-api-key))
+
+</tool.toolu_016Xw6kiKf5LseoybUsrYKMM>
 
 ## ASSISTANT:
 
-Let me also check if there's a `.github` directory:
+Let me also check for the `greger-test-has-api-key` function definition:
 
 ## TOOL USE:
 
-Name: list-directory
-ID: toolu_01RHVmWTCH2HngDuddzGiHZr
+Name: ripgrep
+ID: toolu_01Akb2rk6sxwM81HucHUZBXT
+
+### pattern
+
+<tool.toolu_01Akb2rk6sxwM81HucHUZBXT>
+greger-test-has-api-key
+</tool.toolu_01Akb2rk6sxwM81HucHUZBXT>
+
+### file-type
+
+<tool.toolu_01Akb2rk6sxwM81HucHUZBXT>
+el
+</tool.toolu_01Akb2rk6sxwM81HucHUZBXT>
+
+## TOOL RESULT:
+
+ID: toolu_01Akb2rk6sxwM81HucHUZBXT
+
+<tool.toolu_01Akb2rk6sxwM81HucHUZBXT>
+/Users/andreas/projects/greger.el/test/test-end-to-end.el:18:(defun greger-test-has-api-key ()
+/Users/andreas/projects/greger.el/test/test-end-to-end.el:106:  (skip-unless (greger-test-has-api-key))
+/Users/andreas/projects/greger.el/test/test-end-to-end.el:143:  (skip-unless (greger-test-has-api-key))
+/Users/andreas/projects/greger.el/test/test-end-to-end.el:191:  (skip-unless (greger-test-has-api-key))
+/Users/andreas/projects/greger.el/test/test-greger-client.el:18:(defun greger-test-has-api-key ()
+/Users/andreas/projects/greger.el/test/test-greger-client.el:39:  (skip-unless (greger-test-has-api-key))
+/Users/andreas/projects/greger.el/test/test-greger-client.el:90:  (skip-unless (greger-test-has-api-key))
+/Users/andreas/projects/greger.el/test/test-greger-client.el:146:  (skip-unless (greger-test-has-api-key))
+/Users/andreas/projects/greger.el/test/test-greger-client.el:175:  (skip-unless (greger-test-has-api-key))
+
+</tool.toolu_01Akb2rk6sxwM81HucHUZBXT>
+
+## ASSISTANT:
+
+Now let me examine the test files to see the structure and remove the checks. Let me start with test-end-to-end.el:
+
+## TOOL USE:
+
+Name: read-file
+ID: toolu_01UgAxEKNyggbg6QghVNSZYN
 
 ### path
 
-<tool.toolu_01RHVmWTCH2HngDuddzGiHZr>
-.
-</tool.toolu_01RHVmWTCH2HngDuddzGiHZr>
+<tool.toolu_01UgAxEKNyggbg6QghVNSZYN>
+test/test-end-to-end.el
+</tool.toolu_01UgAxEKNyggbg6QghVNSZYN>
 
-### show-hidden
+### include_line_numbers
 
-<tool.toolu_01RHVmWTCH2HngDuddzGiHZr>
+<tool.toolu_01UgAxEKNyggbg6QghVNSZYN>
 true
-</tool.toolu_01RHVmWTCH2HngDuddzGiHZr>
+</tool.toolu_01UgAxEKNyggbg6QghVNSZYN>
 
 ## TOOL RESULT:
 
-ID: toolu_01RHVmWTCH2HngDuddzGiHZr
+ID: toolu_01UgAxEKNyggbg6QghVNSZYN
 
-<tool.toolu_01RHVmWTCH2HngDuddzGiHZr>
-README.md
-chat.ai
-greger-client.el
-greger-lib-lsp.el
-greger-parser.el
-greger-pkg.el
-greger-stdlib.el
-greger-tools.el
-greger-web.el
-greger.el
-recipes/
-script/
-test/
-</tool.toolu_01RHVmWTCH2HngDuddzGiHZr>
+<tool.toolu_01UgAxEKNyggbg6QghVNSZYN>
+  1: ;;; test-end-to-end.el --- True end-to-end tests for greger -*- lexical-binding: t -*-
+  2:
+  3: ;;; Commentary:
+  4: ;;
+  5: ;; This file contains true end-to-end tests that use greger as an end user would,
+  6: ;; calling only the public API functions `greger` and `greger-buffer`.
+  7: ;; These tests require a valid ANTHROPIC_API_KEY environment variable.
+  8: ;;
+  9: ;; WARNING: These tests make real API calls and may incur costs.
+ 10: ;;
+ 11:
+ 12: (require 'ert)
+ 13: (require 'greger)
+ 14:
+ 15: (defvar greger-test-timeout 30
+ 16:   "Timeout in seconds for API calls in tests.")
+ 17:
+ 18: (defun greger-test-has-api-key ()
+ 19:   "Check if we have a valid API key for testing."
+ 20:   (not (string-empty-p (or (getenv "ANTHROPIC_API_KEY") ""))))
+ 21:
+ 22: (defun greger-test-wait-for-response (buffer timeout)
+ 23:   "Wait for a response to appear in BUFFER within TIMEOUT seconds."
+ 24:   (let ((start-time (current-time))
+ 25:         (completed nil)
+ 26:         (response-started nil)
+ 27:         (initial-content (with-current-buffer buffer (buffer-string))))
+ 28:
+ 29:     (while (and (not completed)
+ 30:                 (< (float-time (time-subtract (current-time) start-time)) timeout)
+ 31:                 (buffer-live-p buffer))
+ 32:       (sit-for 0.2)
+ 33:       ;; Check if buffer content has changed (response received)
+ 34:       (when (buffer-live-p buffer)
+ 35:         (with-current-buffer buffer
+ 36:           (let ((current-content (buffer-string)))
+ 37:             ;; Check if response started
+ 38:             (when (and (not response-started)
+ 39:                       (not (string= initial-content current-content))
+ 40:                       (string-match-p "## ASSISTANT:" current-content))
+ 41:               (setq response-started t))
+ 42:
+ 43:             ;; If response started, wait for it to finish
+ 44:             (when response-started
+ 45:               ;; Check if conversation is complete (has USER prompt at end)
+ 46:               (if (string-match-p "## USER:\n\n$" current-content)
+ 47:                   (setq completed t)
+ 48:                 ;; Or if it's been a while since response started, consider it done
+ 49:                 (let ((response-time (- (float-time (current-time))
+ 50:                                        (float-time start-time))))
+ 51:                   (when (> response-time 5.0) ; If response has been going for 5+ seconds
+ 52:                     (setq completed t)))))))))
+ 53:
+ 54:     completed))
+ 55:
+ 56: (defun greger-test-wait-for-streaming-complete ()
+ 57:   "Wait for any active streaming processes to complete."
+ 58:   (let ((max-wait 3.0)
+ 59:         (start-time (current-time)))
+ 60:     (while (and (< (float-time (time-subtract (current-time) start-time)) max-wait)
+ 61:                 (cl-some (lambda (proc)
+ 62:                           (and (process-live-p proc)
+ 63:                                (string-match-p "greger-curl" (process-name proc))))
+ 64:                         (process-list)))
+ 65:       (sit-for 0.1))))
+ 66:
+ 67: (ert-deftest greger-end-to-end-test-greger-function ()
+ 68:   "Test the main greger function creates a buffer and sets it up correctly."
+ 69:   :tags '(end-to-end public-api)
+ 70:
+ 71:   (let ((original-buffers (buffer-list)))
+ 72:     (unwind-protect
+ 73:         (progn
+ 74:           ;; Call the main greger function
+ 75:           (greger)
+ 76:
+ 77:           ;; Verify a new greger buffer was created
+ 78:           (let ((new-buffers (cl-remove-if (lambda (buf) (memq buf original-buffers))
+ 79:                                            (buffer-list))))
+ 80:             (should (= 1 (length new-buffers)))
+ 81:             (let ((greger-buffer (car new-buffers)))
+ 82:               (should (string-match-p "\\*greger\\*" (buffer-name greger-buffer)))
+ 83:
+ 84:               ;; Verify buffer is in greger-mode
+ 85:               (with-current-buffer greger-buffer
+ 86:                 (should (eq major-mode 'greger-mode))
+ 87:
+ 88:                 ;; Verify initial content is set up correctly
+ 89:                 (let ((content (buffer-string)))
+ 90:                   (should (string-match-p "## SYSTEM:" content))
+ 91:                   (should (string-match-p "## USER:" content))
+ 92:                   (should (string-match-p greger-default-system-prompt content)))
+ 93:
+ 94:                 ;; Verify we're at the end of the buffer (ready for user input)
+ 95:                 (should (= (point) (point-max)))))))
+ 96:
+ 97:       ;; Cleanup: kill any greger buffers we created
+ 98:       (dolist (buffer (buffer-list))
+ 99:         (when (and (string-match-p "\\*greger\\*" (buffer-name buffer))
+100:                    (not (memq buffer original-buffers)))
+101:           (kill-buffer buffer))))))
+102:
+103: (ert-deftest greger-end-to-end-test-simple-conversation ()
+104:   "Test a simple conversation using the public API."
+105:   :tags '(end-to-end public-api)
+106:   (skip-unless (greger-test-has-api-key))
+107:
+108:   (let ((greger-buffer nil))
+109:     (unwind-protect
+110:         (progn
+111:           ;; Create a greger buffer
+112:           (greger)
+113:           (setq greger-buffer (current-buffer))
+114:
+115:           ;; Add a simple user message
+116:           (goto-char (point-max))
+117:           (insert "Hello! Please respond with exactly 'Hello from greger test!' and nothing else.")
+118:
+119:           ;; Call greger-buffer to send the message
+120:           (greger-buffer)
+121:
+122:           ;; Wait for response
+123:           (should (greger-test-wait-for-response greger-buffer greger-test-timeout))
+124:
+125:           ;; Wait for streaming to complete
+126:           (greger-test-wait-for-streaming-complete)
+127:
+128:           ;; Verify response was added to buffer
+129:           (let ((content (buffer-string)))
+130:             (should (string-match-p "## ASSISTANT:" content))
+131:             (should (string-match-p "Hello from greger test!" content))
+132:             ;; Should have a new USER section at the end (or at least assistant response)
+133:             (should (or (string-match-p "## USER:\n\n$" content)
+134:                        (string-match-p "## ASSISTANT:" content)))))
+135:
+136:       ;; Cleanup
+137:       (when (and greger-buffer (buffer-live-p greger-buffer))
+138:         (kill-buffer greger-buffer)))))
+139:
+140: (ert-deftest greger-end-to-end-test-tool-use-conversation ()
+141:   "Test a conversation that involves tool use using the public API."
+142:   :tags '(end-to-end public-api tools)
+143:   (skip-unless (greger-test-has-api-key))
+144:
+145:   (let ((greger-buffer nil)
+146:         (test-file nil))
+147:     (unwind-protect
+148:         (progn
+149:           ;; Create a temporary test file
+150:           (setq test-file (make-temp-file "greger-test-" nil ".txt"))
+151:           (with-temp-file test-file
+152:             (insert "This is a test file for greger end-to-end testing."))
+153:
+154:           ;; Create a greger buffer
+155:           (greger)
+156:           (setq greger-buffer (current-buffer))
+157:
+158:           ;; Add a user message that should trigger tool use
+159:           (goto-char (point-max))
+160:           (insert (format "Please read the file %s and tell me what it contains." test-file))
+161:
+162:           ;; Call greger-buffer to send the message
+163:           (greger-buffer)
+164:
+165:           ;; Wait for response (tool use might take longer)
+166:           (should (greger-test-wait-for-response greger-buffer (* greger-test-timeout 2)))
+167:
+168:           ;; Wait for streaming to complete
+169:           (greger-test-wait-for-streaming-complete)
+170:
+171:           ;; Verify response was added to buffer
+172:           (let ((content (buffer-string)))
+173:             (should (string-match-p "## ASSISTANT:" content))
+174:             ;; Should have tool use section or content from the file
+175:             (should (or (string-match-p "## TOOL USE:" content)
+176:                        (string-match-p "read-file" content)
+177:                        (string-match-p "test file for greger" content)))
+178:             ;; Should have a new USER section at the end (or at least assistant response)
+179:             (should (or (string-match-p "## USER:\n\n$" content)
+180:                        (string-match-p "## ASSISTANT:" content)))))
+181:
+182:       ;; Cleanup
+183:       (when (and test-file (file-exists-p test-file))
+184:         (delete-file test-file))
+185:       (when (and greger-buffer (buffer-live-p greger-buffer))
+186:         (kill-buffer greger-buffer)))))
+187:
+188: (ert-deftest greger-end-to-end-test-no-tools-mode ()
+189:   "Test the no-tools mode using C-M-return."
+190:   :tags '(end-to-end public-api no-tools)
+191:   (skip-unless (greger-test-has-api-key))
+192:
+193:   (let ((greger-buffer nil)
+194:         (test-file nil))
+195:     (unwind-protect
+196:         (progn
+197:           ;; Create a temporary test file
+198:           (setq test-file (make-temp-file "greger-test-" nil ".txt"))
+199:           (with-temp-file test-file
+200:             (insert "This file should not be read in no-tools mode."))
+201:
+202:           ;; Create a greger buffer
+203:           (greger)
+204:           (setq greger-buffer (current-buffer))
+205:
+206:           ;; Add a user message that would trigger tool use if tools were enabled
+207:           (goto-char (point-max))
+208:           (insert (format "Please read the file %s and tell me what it contains." test-file))
+209:
+210:           ;; Call greger-buffer-no-tools instead of greger-buffer
+211:           (greger-buffer-no-tools)
+212:
+213:           ;; Wait for response
+214:           (should (greger-test-wait-for-response greger-buffer greger-test-timeout))
+215:
+216:           ;; Wait for streaming to complete
+217:           (greger-test-wait-for-streaming-complete)
+218:
+219:           ;; Verify response was added to buffer
+220:           (let ((content (buffer-string)))
+221:             (should (string-match-p "## ASSISTANT:" content))
+222:             ;; Should NOT have tool use sections (no tools mode)
+223:             (should-not (string-match-p "## TOOL USE:" content))
+224:             (should-not (string-match-p "## TOOL RESULT:" content))
+225:             ;; Should have responded without actually reading the file
+226:             (should-not (string-match-p "This file should not be read" content))
+227:             ;; Should have a new USER section at the end (or at least assistant response)
+228:             (should (or (string-match-p "## USER:\n\n$" content)
+229:                        (string-match-p "## ASSISTANT:" content)))))
+230:
+231:       ;; Cleanup
+232:       (when (and test-file (file-exists-p test-file))
+233:         (delete-file test-file))
+234:       (when (and greger-buffer (buffer-live-p greger-buffer))
+235:         (kill-buffer greger-buffer)))))
+236:
+237: (ert-deftest greger-end-to-end-test-model-configuration ()
+238:   "Test that model configuration works correctly."
+239:   :tags '(end-to-end public-api configuration)
+240:
+241:   (let ((original-model greger-model)
+242:         (greger-buffer nil))
+243:     (unwind-protect
+244:         (progn
+245:           ;; Test that we can set different supported models
+246:           (setq greger-model 'claude-opus-4-20250514)
+247:           (should (eq greger-model 'claude-opus-4-20250514))
+248:
+249:           (setq greger-model 'claude-sonnet-4-20250514)
+250:           (should (eq greger-model 'claude-sonnet-4-20250514))
+251:
+252:           ;; Create a greger buffer and verify model is displayed
+253:           (greger)
+254:           (setq greger-buffer (current-buffer))
+255:
+256:           ;; The model should be shown in the mode line
+257:           (should (string-match-p "claude-sonnet-4-20250514"
+258:                                  (format "%s" (symbol-name greger-model)))))
+259:
+260:       ;; Cleanup
+261:       (setq greger-model original-model)
+262:       (when (and greger-buffer (buffer-live-p greger-buffer))
+263:         (kill-buffer greger-buffer)))))
+264:
+265: (provide 'test-end-to-end)
+266:
+267: ;;; test-end-to-end.el ends here
+268:
+</tool.toolu_01UgAxEKNyggbg6QghVNSZYN>
 
 ## ASSISTANT:
 
-Now I'll create the GitHub Action workflow. Based on the documentation and example, I'll create a CI workflow that:
-1. Runs on pushes to main and pull requests
-2. Uses the setup-emacs action
-3. Tests against multiple Emacs versions
-4. Runs the `./script/test` command
-
-
-
-## TOOL USE:
-
-Name: make-directory
-ID: toolu_011AkxgjjZGpYitCZsUdvFGh
-
-### path
-
-<tool.toolu_011AkxgjjZGpYitCZsUdvFGh>
-.github/workflows
-</tool.toolu_011AkxgjjZGpYitCZsUdvFGh>
-
-### git_commit_message
-
-<tool.toolu_011AkxgjjZGpYitCZsUdvFGh>
-Create .github/workflows directory for CI setup
-</tool.toolu_011AkxgjjZGpYitCZsUdvFGh>
-
-## TOOL RESULT:
-
-ID: toolu_011AkxgjjZGpYitCZsUdvFGh
-
-<tool.toolu_011AkxgjjZGpYitCZsUdvFGh>
-Directory already exists: /Users/andreas/projects/greger.el/.github/workflows
-</tool.toolu_011AkxgjjZGpYitCZsUdvFGh>
-
-## ASSISTANT:
-
-It looks like the directory already exists. Let me check what's in it:
-
-## TOOL USE:
-
-Name: list-directory
-ID: toolu_01BKogef8TVGhd22s29QjKE6
-
-### path
-
-<tool.toolu_01BKogef8TVGhd22s29QjKE6>
-.github/workflows
-</tool.toolu_01BKogef8TVGhd22s29QjKE6>
-
-## TOOL RESULT:
-
-ID: toolu_01BKogef8TVGhd22s29QjKE6
-
-<tool.toolu_01BKogef8TVGhd22s29QjKE6>
-Directory is empty
-</tool.toolu_01BKogef8TVGhd22s29QjKE6>
-
-## ASSISTANT:
-
-Perfect! Now I'll create the CI workflow file:
-
-## TOOL USE:
-
-Name: write-new-file
-ID: toolu_01MQVAZvUBQADUBYBRB3xYXx
-
-### file_path
-
-<tool.toolu_01MQVAZvUBQADUBYBRB3xYXx>
-.github/workflows/ci.yml
-</tool.toolu_01MQVAZvUBQADUBYBRB3xYXx>
-
-### contents
-
-<tool.toolu_01MQVAZvUBQADUBYBRB3xYXx>
-name: CI
-
-on:
-  push:
-    branches:
-      - main
-  pull_request:
-    branches:
-      - main
-
-jobs:
-  test:
-    runs-on: ubuntu-latest
-
-    strategy:
-      fail-fast: false
-      matrix:
-        emacs_version: [26.1, 27.2, 28.2, 29.4, snapshot]
-
-    steps:
-      - name: Setup Emacs
-        uses: purcell/setup-emacs@master
-        with:
-          version: ${{ matrix.emacs_version }}
-
-      - name: Checkout code
-        uses: actions/checkout@v4
-
-      - name: Run tests
-        run: ./script/test
-</tool.toolu_01MQVAZvUBQADUBYBRB3xYXx>
-
-### git_commit_message
-
-<tool.toolu_01MQVAZvUBQADUBYBRB3xYXx>
-Add GitHub Actions CI workflow to run tests on main and PR pushes
-</tool.toolu_01MQVAZvUBQADUBYBRB3xYXx>
-
-## TOOL RESULT:
-
-ID: toolu_01MQVAZvUBQADUBYBRB3xYXx
-
-<tool.toolu_01MQVAZvUBQADUBYBRB3xYXx>
-Successfully wrote new file /Users/andreas/projects/greger.el/.github/workflows/ci.yml with 518 characters. Successfully staged 2 file(s) and committed with message: Add GitHub Actions CI workflow to run tests on main and PR pushes
-</tool.toolu_01MQVAZvUBQADUBYBRB3xYXx>
-
-
-## ASSISTANT:
-
-Perfect! I've created a GitHub Actions CI workflow that:
-
-## Key Features:
-
-1. **Triggers**: Runs on pushes to the `main` branch and on pull requests targeting `main`
-2. **Multiple Emacs Versions**: Tests against Emacs versions 26.1, 27.2, 28.2, 29.4, and snapshot (latest development version)
-3. **Setup**: Uses the `purcell/setup-emacs@master` action to install the specified Emacs version
-4. **Test Execution**: Runs your `./script/test` command
-5. **Fail-fast disabled**: If one Emacs version fails, the others will still run
-
-## The workflow will:
-
-- Run automatically when you push to main
-- Run automatically when someone creates or updates a pull request targeting main
-- Test your code against multiple Emacs versions to ensure compatibility
-- Use the latest version of the checkout action (v4) for better performance and security
-
-The workflow is now saved as `.github/workflows/ci.yml` and will be active once you push this to your repository. The action will appear in the "Actions" tab of your GitHub repository and provide detailed logs for each test run.
-
-## USER:
-
-greger.el requires emacs 28.1, so only test on supported versions. Both test on mac and linux
-
-## ASSISTANT:
-
-I'll update the GitHub Actions workflow to only test on Emacs versions 28.1 and above, and run tests on both macOS and Linux as requested.
-
-## TOOL USE:
-
-Name: str-replace
-ID: toolu_01NBriswtQxGtE6yG4uL6UvW
-
-### file_path
-
-<tool.toolu_01NBriswtQxGtE6yG4uL6UvW>
-.github/workflows/ci.yml
-</tool.toolu_01NBriswtQxGtE6yG4uL6UvW>
-
-### original_content
-
-<tool.toolu_01NBriswtQxGtE6yG4uL6UvW>
-jobs:
-  test:
-    runs-on: ubuntu-latest
-
-    strategy:
-      fail-fast: false
-      matrix:
-        emacs_version: [26.1, 27.2, 28.2, 29.4, snapshot]
-</tool.toolu_01NBriswtQxGtE6yG4uL6UvW>
-
-### new_content
-
-<tool.toolu_01NBriswtQxGtE6yG4uL6UvW>
-jobs:
-  test:
-    runs-on: ${{ matrix.os }}
-
-    strategy:
-      fail-fast: false
-      matrix:
-        os: [ubuntu-latest, macos-latest]
-        emacs_version: [28.1, 28.2, 29.1, 29.4, snapshot]
-</tool.toolu_01NBriswtQxGtE6yG4uL6UvW>
-
-### git_commit_message
-
-<tool.toolu_01NBriswtQxGtE6yG4uL6UvW>
-Update CI to test only on Emacs 28.1+ and run on both Linux and macOS
-</tool.toolu_01NBriswtQxGtE6yG4uL6UvW>
-
-## TOOL RESULT:
-
-ID: toolu_01NBriswtQxGtE6yG4uL6UvW
-
-<tool.toolu_01NBriswtQxGtE6yG4uL6UvW>
-Successfully replaced content in /Users/andreas/projects/greger.el/.github/workflows/ci.yml. Successfully staged 2 file(s) and committed with message: Update CI to test only on Emacs 28.1+ and run on both Linux and macOS
-</tool.toolu_01NBriswtQxGtE6yG4uL6UvW>
-
-
-## ASSISTANT:
-
-Perfect! I've updated the GitHub Actions workflow with the following changes:
-
-## Updated Features:
-
-1. **Emacs Version Support**: Now only tests on Emacs versions that meet your requirement (28.1+):
-   - 28.1 (minimum required version)
-   - 28.2
-   - 29.1
-   - 29.4
-   - snapshot (latest development version)
-
-2. **Multi-platform Testing**: Tests run on both:
-   - `ubuntu-latest` (Linux)
-   - `macos-latest` (macOS)
-
-3. **Matrix Strategy**: This creates a total of 10 test jobs (5 Emacs versions × 2 operating systems), ensuring your package works correctly across different platforms and supported Emacs versions.
-
-The workflow will now:
-- Only test on Emacs versions that your package actually supports
-- Verify compatibility on both major platforms where Emacs is commonly used
-- Provide better coverage for your users who might be on different operating systems
-- Still fail gracefully (one failing combination won't stop the others from running)
-
-This gives you comprehensive testing while being efficient by only testing on relevant Emacs versions.
-
-## USER:
-
-Don't test on so many versions, 28.1 and 29.4 are enough
-
-## ASSISTANT:
-
-I'll update the workflow to only test on Emacs 28.1 and 29.4 as requested.
-
-## TOOL USE:
-
-Name: str-replace
-ID: toolu_013BsF7RGt7XTfRef47wt6kS
-
-### file_path
-
-<tool.toolu_013BsF7RGt7XTfRef47wt6kS>
-.github/workflows/ci.yml
-</tool.toolu_013BsF7RGt7XTfRef47wt6kS>
-
-### original_content
-
-<tool.toolu_013BsF7RGt7XTfRef47wt6kS>
-        emacs_version: [28.1, 28.2, 29.1, 29.4, snapshot]
-</tool.toolu_013BsF7RGt7XTfRef47wt6kS>
-
-### new_content
-
-<tool.toolu_013BsF7RGt7XTfRef47wt6kS>
-        emacs_version: [28.1, 29.4]
-</tool.toolu_013BsF7RGt7XTfRef47wt6kS>
-
-### git_commit_message
-
-<tool.toolu_013BsF7RGt7XTfRef47wt6kS>
-Simplify CI to test only on Emacs 28.1 and 29.4
-</tool.toolu_013BsF7RGt7XTfRef47wt6kS>
-
-## TOOL RESULT:
-
-ID: toolu_013BsF7RGt7XTfRef47wt6kS
-
-<tool.toolu_013BsF7RGt7XTfRef47wt6kS>
-Successfully replaced content in /Users/andreas/projects/greger.el/.github/workflows/ci.yml. Successfully staged 2 file(s) and committed with message: Simplify CI to test only on Emacs 28.1 and 29.4
-</tool.toolu_013BsF7RGt7XTfRef47wt6kS>
-
-
-## ASSISTANT:
-
-Perfect! The workflow is now streamlined to test only on the essential versions:
-
-## Updated CI Configuration:
-
-- **Emacs Versions**: 28.1 (minimum required) and 29.4 (recent stable)
-- **Operating Systems**: Linux (ubuntu-latest) and macOS (macos-latest)
-- **Total Test Jobs**: 4 (2 Emacs versions × 2 operating systems)
-
-This gives you good coverage while keeping the CI fast and efficient:
-- Tests the minimum supported version (28.1) to catch compatibility issues
-- Tests a recent stable version (29.4) to ensure modern Emacs compatibility
-- Covers both major platforms your users are likely to use
-
-The workflow will run quickly while still providing confidence that your package works across the key environments.
-
-## USER:
-
-I added ./script/package-lint to ci.yaml
-
-I'm getting `Please install package-lint or update the path in this script` when I run this in CI.
-
-## ASSISTANT:
-
-The issue is that `package-lint` isn't available in the CI environment. Let me check your `./script/package-lint` script to see how it's trying to find package-lint, and then we can fix it.
+Now let me check the test-greger-client.el file:
 
 ## TOOL USE:
 
 Name: read-file
-ID: toolu_01ALHEcWN1BRr5urYqnea22E
+ID: toolu_01XeMbRyrivPUy7V7t1bSA1v
 
 ### path
 
-<tool.toolu_01ALHEcWN1BRr5urYqnea22E>
-script/package-lint
-</tool.toolu_01ALHEcWN1BRr5urYqnea22E>
+<tool.toolu_01XeMbRyrivPUy7V7t1bSA1v>
+test/test-greger-client.el
+</tool.toolu_01XeMbRyrivPUy7V7t1bSA1v>
+
+### include_line_numbers
+
+<tool.toolu_01XeMbRyrivPUy7V7t1bSA1v>
+true
+</tool.toolu_01XeMbRyrivPUy7V7t1bSA1v>
 
 ## TOOL RESULT:
 
-ID: toolu_01ALHEcWN1BRr5urYqnea22E
+ID: toolu_01XeMbRyrivPUy7V7t1bSA1v
 
-<tool.toolu_01ALHEcWN1BRr5urYqnea22E>
-#!/bin/bash
-
-# Package-lint script for greger package
-# Runs package-lint on all relevant Emacs Lisp files
-
-set -e
-
-# Colors for output
-RED='\033[0;31m'
-GREEN='\033[0;32m'
-YELLOW='\033[1;33m'
-NC='\033[0m' # No Color
-
-# Find package-lint
-PACKAGE_LINT_PATH="$HOME/.emacs.d/elpa/package-lint-20240507.1722"
-if [ ! -d "$PACKAGE_LINT_PATH" ]; then
-    echo -e "${RED}Error: package-lint not found at $PACKAGE_LINT_PATH${NC}"
-    echo "Please install package-lint or update the path in this script"
-    exit 1
-fi
-
-# Files to lint (exclude test files and debug files)
-FILES_TO_LINT=(
-    "greger.el"
-    "greger-agent.el"
-    "greger-parser.el"
-    "greger-client.el"
-    "greger-tools.el"
-    "greger-stdlib.el"
-    "greger-lib-lsp.el"
-    "greger-web.el"
-)
-
-echo -e "${YELLOW}Running package-lint on greger package...${NC}"
-echo
-
-OVERALL_EXIT_CODE=0
-
-for file in "${FILES_TO_LINT[@]}"; do
-    if [ ! -f "$file" ]; then
-        echo -e "${YELLOW}Warning: $file not found, skipping${NC}"
-        continue
-    fi
-
-    echo -e "Linting ${YELLOW}$file${NC}..."
-
-    # Run package-lint on the file
-    if emacs --batch -Q \
-        --eval "(progn
-                  (setq debug-on-error t)
-                  (package-initialize)
-                  (add-to-list 'load-path \"$PACKAGE_LINT_PATH\")
-                  (add-to-list 'load-path \".\")
-                  (require 'package-lint)
-                  (find-file \"$file\")
-                  (let ((results (package-lint-buffer)))
-                    (if results
-                        (progn
-                          (dolist (result results)
-                            (let ((line (nth 0 result))
-                                  (col (nth 1 result))
-                                  (type (nth 2 result))
-                                  (msg (nth 3 result)))
-                              (princ (format \"%s:%d:%d: %s: %s\\n\" \"$file\" line col type msg))))
-                          (kill-emacs 1))
-                        (kill-emacs 0))))" 2>/dev/null; then
-        echo -e "  ${GREEN}✓ No issues found${NC}"
-    else
-        echo -e "  ${RED}✗ Issues found${NC}"
-        OVERALL_EXIT_CODE=1
-        # Re-run to show the actual issues
-        emacs --batch -Q \
-            --eval "(progn
-                      (setq debug-on-error t)
-                      (package-initialize)
-                      (add-to-list 'load-path \"$PACKAGE_LINT_PATH\")
-                      (add-to-list 'load-path \".\")
-                      (require 'package-lint)
-                      (find-file \"$file\")
-                      (let ((results (package-lint-buffer)))
-                        (dolist (result results)
-                          (let ((line (nth 0 result))
-                                (col (nth 1 result))
-                                (type (nth 2 result))
-                                (msg (nth 3 result)))
-                            (princ (format \"    %s:%d:%d: %s: %s\\n\" \"$file\" line col type msg))))))" 2>/dev/null
-    fi
-    echo
-done
-
-echo -e "${YELLOW}Package-lint complete!${NC}"
-
-if [ $OVERALL_EXIT_CODE -eq 0 ]; then
-    echo -e "${GREEN}No issues found in any files!${NC}"
-else
-    echo -e "${RED}Some files have issues that need to be fixed.${NC}"
-fi
-
-exit $OVERALL_EXIT_CODE
-
-</tool.toolu_01ALHEcWN1BRr5urYqnea22E>
-
-## ASSISTANT:
-
-I can see the issue. The script is looking for `package-lint` in a hardcoded path at `$HOME/.emacs.d/elpa/package-lint-20240507.1722`, but in the CI environment, we need to install package-lint first. Let me update the CI workflow to install package-lint and modify the script to work in CI environments.
-
-First, let me update the CI workflow to install package-lint:
-
-## TOOL USE:
-
-Name: read-file
-ID: toolu_01R5DeR3TgYH5r2uZFuSFuAe
-
-### path
-
-<tool.toolu_01R5DeR3TgYH5r2uZFuSFuAe>
-.github/workflows/ci.yml
-</tool.toolu_01R5DeR3TgYH5r2uZFuSFuAe>
-
-## TOOL RESULT:
-
-ID: toolu_01R5DeR3TgYH5r2uZFuSFuAe
-
-<tool.toolu_01R5DeR3TgYH5r2uZFuSFuAe>
-name: CI
-
-on:
-  push:
-    branches:
-      - main
-  pull_request:
-    branches:
-      - main
-
-jobs:
-  test:
-    runs-on: ${{ matrix.os }}
-
-    strategy:
-      fail-fast: false
-      matrix:
-        os: [ubuntu-latest, macos-latest]
-        emacs_version: [28.1, 29.4]
-
-    steps:
-      - name: Setup Emacs
-        uses: purcell/setup-emacs@master
-        with:
-          version: ${{ matrix.emacs_version }}
-
-      - name: Checkout code
-        uses: actions/checkout@v4
-
-      - name: Run package-lint
-        run: ./script/package-lint
-
-      - name: Run tests
-        run: ./script/test
-
-</tool.toolu_01R5DeR3TgYH5r2uZFuSFuAe>
-
-## ASSISTANT:
-
-Now I'll update the CI workflow to install package-lint before running it:
-
-## TOOL USE:
-
-Name: str-replace
-ID: toolu_01FvpvrooGZdqBYzYHewok9R
-
-### file_path
-
-<tool.toolu_01FvpvrooGZdqBYzYHewok9R>
-.github/workflows/ci.yml
-</tool.toolu_01FvpvrooGZdqBYzYHewok9R>
-
-### original_content
-
-<tool.toolu_01FvpvrooGZdqBYzYHewok9R>
-      - name: Checkout code
-        uses: actions/checkout@v4
-
-      - name: Run package-lint
-        run: ./script/package-lint
-</tool.toolu_01FvpvrooGZdqBYzYHewok9R>
-
-### new_content
-
-<tool.toolu_01FvpvrooGZdqBYzYHewok9R>
-      - name: Checkout code
-        uses: actions/checkout@v4
-
-      - name: Install package-lint
-        run: |
-          emacs --batch -Q \
-            --eval "(progn
-                      (require 'package)
-                      (add-to-list 'package-archives '(\"melpa\" . \"https://melpa.org/packages/\") t)
-                      (package-initialize)
-                      (package-refresh-contents)
-                      (package-install 'package-lint))"
-
-      - name: Run package-lint
-        run: ./script/package-lint
-</tool.toolu_01FvpvrooGZdqBYzYHewok9R>
-
-### git_commit_message
-
-<tool.toolu_01FvpvrooGZdqBYzYHewok9R>
-Add package-lint installation step to CI workflow
-</tool.toolu_01FvpvrooGZdqBYzYHewok9R>
-
-## TOOL RESULT:
-
-ID: toolu_01FvpvrooGZdqBYzYHewok9R
-
-<tool.toolu_01FvpvrooGZdqBYzYHewok9R>
-Successfully replaced content in /Users/andreas/projects/greger.el/.github/workflows/ci.yml. Successfully staged 2 file(s) and committed with message: Add package-lint installation step to CI workflow
-</tool.toolu_01FvpvrooGZdqBYzYHewok9R>
-
+<tool.toolu_01XeMbRyrivPUy7V7t1bSA1v>
+  1: ;;; test-end-to-end.el --- End-to-end tests for greger -*- lexical-binding: t -*-
+  2:
+  3: ;;; Commentary:
+  4: ;;
+  5: ;; This file contains end-to-end tests that actually call the Claude API.
+  6: ;; These tests require a valid ANTHROPIC_API_KEY environment variable.
+  7: ;;
+  8: ;; WARNING: These tests make real API calls and may incur costs.
+  9: ;;
+ 10:
+ 11: (require 'ert)
+ 12: (require 'greger-client)
+ 13: (require 'greger-parser)
+ 14:
+ 15: (defvar greger-test-timeout 30
+ 16:   "Timeout in seconds for API calls in tests.")
+ 17:
+ 18: (defun greger-test-has-api-key ()
+ 19:   "Check if we have a valid API key for testing."
+ 20:   (not (string-empty-p (or (getenv "ANTHROPIC_API_KEY") ""))))
+ 21:
+ 22: (defun greger-test-wait-for-completion (state timeout)
+ 23:   "Wait for streaming STATE to complete within TIMEOUT seconds."
+ 24:   (let ((start-time (current-time))
+ 25:         (completed nil))
+ 26:
+ 27:     (while (and (not completed)
+ 28:                 (< (float-time (time-subtract (current-time) start-time)) timeout))
+ 29:       (sit-for 0.1)
+ 30:       ;; Check if process is still running
+ 31:       (when (not (process-live-p (greger-client-state-process state)))
+ 32:         (setq completed t)))
+ 33:
+ 34:     completed))
+ 35:
+ 36: (ert-deftest greger-end-to-end-test-simple-text-generation ()
+ 37:   "Test simple text generation with Claude API."
+ 38:   :tags '(end-to-end api)
+ 39:   (skip-unless (greger-test-has-api-key))
+ 40:
+ 41:   (let ((response-received nil)
+ 42:         (text-chunks '())
+ 43:         (final-blocks nil)
+ 44:         (test-model 'claude-sonnet-4-20250514)
+ 45:         (test-dialog '(((role . "user")
+ 46:                         (content . "Say exactly 'Hello from Greger test!' and nothing else.")))))
+ 47:
+ 48:     (with-temp-buffer
+ 49:       (let ((test-buffer (current-buffer)))
+ 50:
+ 51:         ;; Make the API call
+ 52:         (let ((state (greger-client-stream
+ 53:                       :model test-model
+ 54:                       :dialog test-dialog
+ 55:                       :buffer test-buffer
+ 56:                       :text-callback (lambda (text)
+ 57:                                        (push text text-chunks)
+ 58:                                        (with-current-buffer test-buffer
+ 59:                                          (goto-char (point-max))
+ 60:                                          (insert text)))
+ 61:                       :complete-callback (lambda (blocks)
+ 62:                                            (setq final-blocks blocks
+ 63:                                                  response-received t)))))
+ 64:
+ 65:           ;; Wait for completion
+ 66:           (should (greger-test-wait-for-completion state greger-test-timeout))
+ 67:
+ 68:           ;; Check that we got a response
+ 69:           (should response-received)
+ 70:           (should final-blocks)
+ 71:           (should (> (length final-blocks) 0))
+ 72:
+ 73:           ;; Check that the first block is text
+ 74:           (let ((first-block (car final-blocks)))
+ 75:             (should (string= (alist-get 'type first-block) "text"))
+ 76:             (should (alist-get 'text first-block))
+ 77:
+ 78:             ;; Verify the response contains our expected text
+ 79:             (let ((response-text (alist-get 'text first-block)))
+ 80:               (should (string-match-p "Hello from Greger test!" response-text))))
+ 81:
+ 82:           ;; Verify text was written to buffer
+ 83:           (should (> (buffer-size) 0))
+ 84:           (let ((buffer-content (buffer-string)))
+ 85:             (should (string-match-p "Hello from Greger test!" buffer-content))))))))
+ 86:
+ 87: (ert-deftest greger-end-to-end-test-tool-use ()
+ 88:   "Test tool use functionality with Claude API."
+ 89:   :tags '(end-to-end api tools)
+ 90:   (skip-unless (greger-test-has-api-key))
+ 91:
+ 92:   (let ((response-received nil)
+ 93:         (final-blocks nil)
+ 94:         (test-model 'claude-sonnet-4-20250514)
+ 95:         (test-dialog '(((role . "user")
+ 96:                         (content . "What is 2 + 2? Please use the calculator tool to compute this."))))
+ 97:         (test-tools '(((name . "calculator")
+ 98:                        (description . "Performs basic arithmetic calculations")
+ 99:                        (input_schema . ((type . "object")
+100:                                        (properties . ((expression . ((type . "string")
+101:                                                                      (description . "Mathematical expression to evaluate")))))
+102:                                        (required . ["expression"])))))))
+103:
+104:     (with-temp-buffer
+105:       (let ((test-buffer (current-buffer)))
+106:
+107:         ;; Make the API call with tools
+108:         (let ((state (greger-client-stream
+109:                       :model test-model
+110:                       :dialog test-dialog
+111:                       :tools test-tools
+112:                       :buffer test-buffer
+113:                       :complete-callback (lambda (blocks)
+114:                                            (setq final-blocks blocks
+115:                                                  response-received t)))))
+116:
+117:           ;; Wait for completion
+118:           (should (greger-test-wait-for-completion state greger-test-timeout))
+119:
+120:           ;; Check that we got a response
+121:           (should response-received)
+122:           (should final-blocks)
+123:           (should (> (length final-blocks) 0))
+124:
+125:           ;; Look for tool use in the response
+126:           (let ((has-tool-use nil))
+127:             (dolist (block final-blocks)
+128:               (when (string= (alist-get 'type block) "tool_use")
+129:                 (setq has-tool-use t)
+130:                 ;; Verify tool use structure
+131:                 (should (alist-get 'id block))
+132:                 (should (alist-get 'name block))
+133:                 (should (alist-get 'input block))))
+134:
+135:             ;; We should have at least attempted to use a tool
+136:             ;; (Note: Claude might not always use the tool, but this tests the capability)
+137:             (should (or has-tool-use
+138:                        ;; Or at least responded with text
+139:                        (cl-some (lambda (block)
+140:                                   (string= (alist-get 'type block) "text"))
+141:                                 final-blocks)))))))))
+142:
+143: (ert-deftest greger-end-to-end-test-error-handling ()
+144:   "Test error handling with invalid model."
+145:   :tags '(end-to-end error-handling)
+146:   (skip-unless (greger-test-has-api-key))
+147:
+148:   (let ((error-caught nil))
+149:
+150:     ;; Test with invalid model - should fail validation
+151:     (condition-case err
+152:         (greger-client-stream
+153:          :model 'invalid-model
+154:          :dialog '(((role . "user") (content . "test"))))
+155:       (error
+156:        (setq error-caught t)
+157:        (should (string-match-p "Unsupported model" (error-message-string err)))))
+158:
+159:     (should error-caught)))
+160:
+161: (ert-deftest greger-end-to-end-test-supported-models ()
+162:   "Test that supported models are accepted."
+163:   :tags '(end-to-end models)
+164:
+165:   ;; Test that both supported models are accepted (we won't actually call API)
+166:   (should (memq 'claude-sonnet-4-20250514 greger-client-supported-models))
+167:   (should (memq 'claude-opus-4-20250514 greger-client-supported-models))
+168:
+169:   ;; Test that only these models are supported
+170:   (should (= 2 (length greger-client-supported-models))))
+171:
+172: (ert-deftest greger-end-to-end-test-request-building ()
+173:   "Test that request building works correctly."
+174:   :tags '(end-to-end request-building)
+175:   (skip-unless (greger-test-has-api-key))
+176:
+177:   (let* ((test-model 'claude-sonnet-4-20250514)
+178:          (test-dialog '(((role . "user") (content . "Hello"))
+179:                         ((role . "assistant") (content . "Hi there!"))
+180:                         ((role . "user") (content . "How are you?"))))
+181:          (test-tools '(((name . "test_tool")
+182:                         (description . "A test tool")
+183:                         (input_schema . ((type . "object")
+184:                                         (properties . ())
+185:                                         (required . []))))))
+186:          (request-spec (greger-client--build-request test-model test-dialog test-tools)))
+187:
+188:     ;; Verify request structure
+189:     (should (plist-get request-spec :url))
+190:     (should (string= (plist-get request-spec :url) greger-client-api-url))
+191:     (should (string= (plist-get request-spec :method) "POST"))
+192:     (should (plist-get request-spec :headers))
+193:     (should (plist-get request-spec :data))
+194:
+195:     ;; Verify headers
+196:     (let ((headers (plist-get request-spec :headers)))
+197:       (should (assoc "Content-Type" headers))
+198:       (should (assoc "x-api-key" headers))
+199:       (should (assoc "anthropic-version" headers)))
+200:
+201:     ;; Verify data is valid JSON
+202:     (let ((data (plist-get request-spec :data)))
+203:       (should (stringp data))
+204:       (should (json-read-from-string data)))))
+205:
+206: (provide 'test-end-to-end)
+207:
+208: ;;; test-end-to-end.el ends here
+209:
+</tool.toolu_01XeMbRyrivPUy7V7t1bSA1v>
 
 ## ASSISTANT:
 
-Now I need to update the package-lint script to work in the CI environment. The script should look for package-lint in the standard Emacs package directory rather than a hardcoded path:
+Now I'll remove all the conditional checks for the API key. I'll start by removing the `greger-test-has-api-key` function and the `skip-unless` calls from both test files.
 
-## TOOL USE:
-
-Name: str-replace
-ID: toolu_01HqfPttTcQ1oHM98rbGgc4f
-
-### file_path
-
-<tool.toolu_01HqfPttTcQ1oHM98rbGgc4f>
-script/package-lint
-</tool.toolu_01HqfPttTcQ1oHM98rbGgc4f>
-
-### original_content
-
-<tool.toolu_01HqfPttTcQ1oHM98rbGgc4f>
-# Find package-lint
-PACKAGE_LINT_PATH="$HOME/.emacs.d/elpa/package-lint-20240507.1722"
-if [ ! -d "$PACKAGE_LINT_PATH" ]; then
-    echo -e "${RED}Error: package-lint not found at $PACKAGE_LINT_PATH${NC}"
-    echo "Please install package-lint or update the path in this script"
-    exit 1
-fi
-</tool.toolu_01HqfPttTcQ1oHM98rbGgc4f>
-
-### new_content
-
-<tool.toolu_01HqfPttTcQ1oHM98rbGgc4f>
-# Find package-lint - try common locations
-PACKAGE_LINT_PATH=""
-if [ -n "$CI" ]; then
-    # In CI environment, package-lint is installed via package.el
-    echo -e "${YELLOW}CI environment detected, using package.el to find package-lint${NC}"
-else
-    # Try to find package-lint in local .emacs.d
-    for path in "$HOME/.emacs.d/elpa/package-lint-"*; do
-        if [ -d "$path" ]; then
-            PACKAGE_LINT_PATH="$path"
-            break
-        fi
-    done
-
-    if [ -z "$PACKAGE_LINT_PATH" ]; then
-        echo -e "${RED}Error: package-lint not found in $HOME/.emacs.d/elpa/${NC}"
-        echo "Please install package-lint with: M-x package-install RET package-lint RET"
-        exit 1
-    fi
-    echo -e "${YELLOW}Found package-lint at: $PACKAGE_LINT_PATH${NC}"
-fi
-</tool.toolu_01HqfPttTcQ1oHM98rbGgc4f>
-
-### git_commit_message
-
-<tool.toolu_01HqfPttTcQ1oHM98rbGgc4f>
-Update package-lint script to work in CI environment and find package-lint dynamically
-</tool.toolu_01HqfPttTcQ1oHM98rbGgc4f>
-
-## TOOL RESULT:
-
-ID: toolu_01HqfPttTcQ1oHM98rbGgc4f
-
-<tool.toolu_01HqfPttTcQ1oHM98rbGgc4f>
-Successfully replaced content in /Users/andreas/projects/greger.el/script/package-lint. Successfully staged 2 file(s) and committed with message: Update package-lint script to work in CI environment and find package-lint dynamically
-</tool.toolu_01HqfPttTcQ1oHM98rbGgc4f>
-
-
-## ASSISTANT:
-
-Now I need to update the Emacs invocation to handle both CI and local environments:
+Let me start with test-end-to-end.el:
 
 ## TOOL USE:
 
 Name: str-replace
-ID: toolu_017zxpruDz7nXXRgcQRwS7gT
+ID: toolu_01XnJyrzDsdaytkHM65E8MDU
 
 ### file_path
 
-<tool.toolu_017zxpruDz7nXXRgcQRwS7gT>
-script/package-lint
-</tool.toolu_017zxpruDz7nXXRgcQRwS7gT>
+<tool.toolu_01XnJyrzDsdaytkHM65E8MDU>
+test/test-end-to-end.el
+</tool.toolu_01XnJyrzDsdaytkHM65E8MDU>
 
 ### original_content
 
-<tool.toolu_017zxpruDz7nXXRgcQRwS7gT>
-    # Run package-lint on the file
-    if emacs --batch -Q \
-        --eval "(progn
-                  (setq debug-on-error t)
-                  (package-initialize)
-                  (add-to-list 'load-path \"$PACKAGE_LINT_PATH\")
-                  (add-to-list 'load-path \".\")
-                  (require 'package-lint)
-                  (find-file \"$file\")
-                  (let ((results (package-lint-buffer)))
-                    (if results
-                        (progn
-                          (dolist (result results)
-                            (let ((line (nth 0 result))
-                                  (col (nth 1 result))
-                                  (type (nth 2 result))
-                                  (msg (nth 3 result)))
-                              (princ (format \"%s:%d:%d: %s: %s\\n\" \"$file\" line col type msg))))
-                          (kill-emacs 1))
-                        (kill-emacs 0))))" 2>/dev/null; then
-</tool.toolu_017zxpruDz7nXXRgcQRwS7gT>
+<tool.toolu_01XnJyrzDsdaytkHM65E8MDU>
+(defun greger-test-has-api-key ()
+  "Check if we have a valid API key for testing."
+  (not (string-empty-p (or (getenv "ANTHROPIC_API_KEY") ""))))
+</tool.toolu_01XnJyrzDsdaytkHM65E8MDU>
 
 ### new_content
 
-<tool.toolu_017zxpruDz7nXXRgcQRwS7gT>
-    # Run package-lint on the file
-    if [ -n "$CI" ]; then
-        # In CI, use package.el to load package-lint
-        EVAL_CODE="(progn
-                     (setq debug-on-error t)
-                     (require 'package)
-                     (add-to-list 'package-archives '(\"melpa\" . \"https://melpa.org/packages/\") t)
-                     (package-initialize)
-                     (add-to-list 'load-path \".\")
-                     (require 'package-lint)
-                     (find-file \"$file\")
-                     (let ((results (package-lint-buffer)))
-                       (if results
-                           (progn
-                             (dolist (result results)
-                               (let ((line (nth 0 result))
-                                     (col (nth 1 result))
-                                     (type (nth 2 result))
-                                     (msg (nth 3 result)))
-                                 (princ (format \"%s:%d:%d: %s: %s\\n\" \"$file\" line col type msg))))
-                             (kill-emacs 1))
-                           (kill-emacs 0))))"
-    else
-        # Local environment, use found path
-        EVAL_CODE="(progn
-                     (setq debug-on-error t)
-                     (package-initialize)
-                     (add-to-list 'load-path \"$PACKAGE_LINT_PATH\")
-                     (add-to-list 'load-path \".\")
-                     (require 'package-lint)
-                     (find-file \"$file\")
-                     (let ((results (package-lint-buffer)))
-                       (if results
-                           (progn
-                             (dolist (result results)
-                               (let ((line (nth 0 result))
-                                     (col (nth 1 result))
-                                     (type (nth 2 result))
-                                     (msg (nth 3 result)))
-                                 (princ (format \"%s:%d:%d: %s: %s\\n\" \"$file\" line col type msg))))
-                             (kill-emacs 1))
-                           (kill-emacs 0))))"
-    fi
+<tool.toolu_01XnJyrzDsdaytkHM65E8MDU>
 
-    if emacs --batch -Q --eval "$EVAL_CODE" 2>/dev/null; then
-</tool.toolu_017zxpruDz7nXXRgcQRwS7gT>
+</tool.toolu_01XnJyrzDsdaytkHM65E8MDU>
 
 ### git_commit_message
 
-<tool.toolu_017zxpruDz7nXXRgcQRwS7gT>
-Update package-lint script to handle both CI and local environments with appropriate package loading
-</tool.toolu_017zxpruDz7nXXRgcQRwS7gT>
-
-## TOOL RESULT:
-
-ID: toolu_017zxpruDz7nXXRgcQRwS7gT
-
-<tool.toolu_017zxpruDz7nXXRgcQRwS7gT>
-Successfully replaced content in /Users/andreas/projects/greger.el/script/package-lint. Successfully staged 2 file(s) and committed with message: Update package-lint script to handle both CI and local environments with appropriate package loading
-</tool.toolu_017zxpruDz7nXXRgcQRwS7gT>
-
-
-## ASSISTANT:
-
-I also need to update the error case re-run section to use the same logic:
-
-## TOOL USE:
-
-Name: str-replace
-ID: toolu_017Jor9xvuNaRJ6hY3VRjJQS
-
-### file_path
-
-<tool.toolu_017Jor9xvuNaRJ6hY3VRjJQS>
-script/package-lint
-</tool.toolu_017Jor9xvuNaRJ6hY3VRjJQS>
-
-### original_content
-
-<tool.toolu_017Jor9xvuNaRJ6hY3VRjJQS>
-# Re-run to show the actual issues
-        emacs --batch -Q \
-            --eval "(progn
-                      (setq debug-on-error t)
-                      (package-initialize)
-                      (add-to-list 'load-path \"$PACKAGE_LINT_PATH\")
-                      (add-to-list 'load-path \".\")
-                      (require 'package-lint)
-                      (find-file \"$file\")
-                      (let ((results (package-lint-buffer)))
-                        (dolist (result results)
-                          (let ((line (nth 0 result))
-                                (col (nth 1 result))
-                                (type (nth 2 result))
-                                (msg (nth 3 result)))
-                            (princ (format \"    %s:%d:%d: %s: %s\\n\" \"$file\" line col type msg))))))" 2>/dev/null
-</tool.toolu_017Jor9xvuNaRJ6hY3VRjJQS>
-
-### new_content
-
-<tool.toolu_017Jor9xvuNaRJ6hY3VRjJQS>
-# Re-run to show the actual issues
-        if [ -n "$CI" ]; then
-            ERROR_EVAL_CODE="(progn
-                               (setq debug-on-error t)
-                               (require 'package)
-                               (add-to-list 'package-archives '(\"melpa\" . \"https://melpa.org/packages/\") t)
-                               (package-initialize)
-                               (add-to-list 'load-path \".\")
-                               (require 'package-lint)
-                               (find-file \"$file\")
-                               (let ((results (package-lint-buffer)))
-                                 (dolist (result results)
-                                   (let ((line (nth 0 result))
-                                         (col (nth 1 result))
-                                         (type (nth 2 result))
-                                         (msg (nth 3 result)))
-                                     (princ (format \"    %s:%d:%d: %s: %s\\n\" \"$file\" line col type msg))))))"
-        else
-            ERROR_EVAL_CODE="(progn
-                               (setq debug-on-error t)
-                               (package-initialize)
-                               (add-to-list 'load-path \"$PACKAGE_LINT_PATH\")
-                               (add-to-list 'load-path \".\")
-                               (require 'package-lint)
-                               (find-file \"$file\")
-                               (let ((results (package-lint-buffer)))
-                                 (dolist (result results)
-                                   (let ((line (nth 0 result))
-                                         (col (nth 1 result))
-                                         (type (nth 2 result))
-                                         (msg (nth 3 result)))
-                                     (princ (format \"    %s:%d:%d: %s: %s\\n\" \"$file\" line col type msg))))))"
-        fi
-        emacs --batch -Q --eval "$ERROR_EVAL_CODE" 2>/dev/null
-</tool.toolu_017Jor9xvuNaRJ6hY3VRjJQS>
-
-### git_commit_message
-
-<tool.toolu_017Jor9xvuNaRJ6hY3VRjJQS>
-Update error reporting in package-lint script to handle both CI and local environments
-</tool.toolu_017Jor9xvuNaRJ6hY3VRjJQS>
-
-## TOOL RESULT:
-
-ID: toolu_017Jor9xvuNaRJ6hY3VRjJQS
-
-<tool.toolu_017Jor9xvuNaRJ6hY3VRjJQS>
-Successfully replaced content in /Users/andreas/projects/greger.el/script/package-lint. Successfully staged 2 file(s) and committed with message: Update error reporting in package-lint script to handle both CI and local environments
-</tool.toolu_017Jor9xvuNaRJ6hY3VRjJQS>
-
-
-## ASSISTANT:
-
-Perfect! Now your CI workflow should work properly. Here's what I've done to fix the package-lint issue:
-
-## Changes Made:
-
-### 1. **Updated CI Workflow** (`.github/workflows/ci.yml`):
-- Added a step to install `package-lint` via Emacs package manager before running the lint script
-- The installation step adds MELPA repository and installs package-lint
-
-### 2. **Updated Package-lint Script** (`script/package-lint`):
-- **Environment Detection**: Detects if running in CI environment using `$CI` environment variable
-- **Dynamic Path Finding**: In local environments, it now searches for any `package-lint-*` directory instead of using a hardcoded path
-- **Dual Loading Strategy**:
-  - In CI: Uses `package.el` to load package-lint (since it's installed via package manager)
-  - Locally: Uses the found path to load package-lint from your `.emacs.d/elpa/` directory
-- **Better Error Messages**: Provides helpful installation instructions for local users
-
-## How It Works:
-
-1. **In CI**: The workflow installs package-lint via package.el, then the script detects the CI environment and loads package-lint through the package system
-2. **Locally**: The script finds your locally installed package-lint directory and loads it directly
-
-This approach ensures that:
-- ✅ CI will have package-lint available when it runs
-- ✅ Local development continues to work with your existing setup
-- ✅ The script is more robust and doesn't depend on hardcoded paths
-- ✅ Other developers can easily use it regardless of their specific package-lint version
-
-The CI should now run both package-lint and your tests successfully!
-
-## USER:
-
-No, install package-lint in the script just like we install lsp-mode in script/test
-
-## ASSISTANT:
-
-You're right! Let me check how `script/test` installs lsp-mode and apply the same approach to package-lint in the script itself.
-
-## TOOL USE:
-
-Name: read-file
-ID: toolu_01KyMvFeNkeUj5yCpEQw8RHS
-
-### path
-
-<tool.toolu_01KyMvFeNkeUj5yCpEQw8RHS>
-script/test
-</tool.toolu_01KyMvFeNkeUj5yCpEQw8RHS>
-
-## TOOL RESULT:
-
-ID: toolu_01KyMvFeNkeUj5yCpEQw8RHS
-
-<tool.toolu_01KyMvFeNkeUj5yCpEQw8RHS>
-#!/bin/bash
-
-# Test script for greger package
-# Runs all ERT tests for the package
-
-set -e
-
-# Colors for output
-RED='\033[0;31m'
-GREEN='\033[0;32m'
-YELLOW='\033[1;33m'
-BLUE='\033[0;34m'
-NC='\033[0m' # No Color
-
-# Test files to run
-TEST_FILES=(
-    "test/test-greger.el"
-    "test/test-greger-parser.el"
-    "test/test-greger-stdlib.el"
-    "test/test-greger-lib-lsp.el"
-    "test/test-greger-tools.el"
-    "test/test-greger-client.el"
-    "test/test-end-to-end.el"
-)
-
-echo -e "${BLUE}Running ERT tests for greger package...${NC}"
-echo
-
-# Function to run tests for a single file
-run_test_file() {
-    local test_file="$1"
-    echo -e "Running tests in ${YELLOW}$test_file${NC}..."
-
-    if [ ! -f "$test_file" ]; then
-        echo -e "  ${RED}✗ Test file not found: $test_file${NC}"
-        return 1
-    fi
-
-    # Run the tests with ERT
-    if emacs --batch -Q \
-        --eval "(progn
-                  (setq debug-on-error t)
-                  (add-to-list 'load-path \".\")
-                  ;; Setup package archives and install dependencies if needed
-                  (require 'package)
-                  (setq package-archives '((\"melpa\" . \"https://melpa.org/packages/\")
-                                           (\"gnu\" . \"https://elpa.gnu.org/packages/\")))
-                  (package-initialize)
-                  ;; Install lsp-mode and lsp-pyright if not available
-                  (unless (package-installed-p 'lsp-mode)
-                    (package-refresh-contents)
-                    (package-install 'lsp-mode))
-                  (unless (package-installed-p 'lsp-pyright)
-                    (package-refresh-contents)
-                    (package-install 'lsp-pyright))
-                  ;; Load required packages
-                  (require 'ert)
-                  (require 'cl-lib)
-                  ;; Load main greger files
-                  (load-file \"greger.el\")
-                  (load-file \"greger-parser.el\")
-                  (load-file \"greger-stdlib.el\")
-                  (load-file \"greger-lib-lsp.el\")
-                  (load-file \"greger-tools.el\")
-                  (load-file \"greger-client.el\")
-                  (load-file \"greger-web.el\")
-                  ;; Load test file
-                  (load-file \"$test_file\")
-                  ;; Run all tests defined in this file
-                  (let ((ert-quiet nil))
-                    (ert-run-tests-batch-and-exit t)))" 2>/dev/null; then
-        echo -e "  ${GREEN}✓ All tests passed${NC}"
-        return 0
-    else
-        echo -e "  ${RED}✗ Some tests failed${NC}"
-        return 1
-    fi
-}
-
-# Function to run tests with verbose output
-run_test_file_verbose() {
-    local test_file="$1"
-    echo -e "Running tests in ${YELLOW}$test_file${NC} (verbose mode)..."
-
-    emacs --batch -Q \
-        --eval "(progn
-                  (setq debug-on-error t)
-                  (add-to-list 'load-path \".\")
-                  ;; Setup package archives and install dependencies if needed
-                  (require 'package)
-                  (setq package-archives '((\"melpa\" . \"https://melpa.org/packages/\")
-                                           (\"gnu\" . \"https://elpa.gnu.org/packages/\")))
-                  (package-initialize)
-                  ;; Install lsp-mode and lsp-pyright if not available
-                  (unless (package-installed-p 'lsp-mode)
-                    (package-refresh-contents)
-                    (package-install 'lsp-mode))
-                  (unless (package-installed-p 'lsp-pyright)
-                    (package-refresh-contents)
-                    (package-install 'lsp-pyright))
-                  ;; Load required packages
-                  (require 'ert)
-                  (require 'cl-lib)
-                  ;; Load main greger files
-                  (load-file \"greger.el\")
-                  (load-file \"greger-parser.el\")
-                  (load-file \"greger-stdlib.el\")
-                  (load-file \"greger-lib-lsp.el\")
-                  (load-file \"greger-tools.el\")
-                  (load-file \"greger-client.el\")
-                  (load-file \"greger-web.el\")
-                  ;; Load test file
-                  (load-file \"$test_file\")
-                  ;; Run all tests defined in this file with verbose output
-                  (let ((ert-quiet nil))
-                    (ert-run-tests-batch-and-exit t)))"
-}
-
-# Parse command line arguments
-VERBOSE=false
-SPECIFIC_FILE=""
-HELP=false
-
-while [[ $# -gt 0 ]]; do
-    case $1 in
-        -v|--verbose)
-            VERBOSE=true
-            shift
-            ;;
-        -f|--file)
-            SPECIFIC_FILE="$2"
-            shift 2
-            ;;
-        -h|--help)
-            HELP=true
-            shift
-            ;;
-        *)
-            echo -e "${RED}Unknown option: $1${NC}"
-            HELP=true
-            shift
-            ;;
-    esac
-done
-
-# Show help if requested
-if [ "$HELP" = true ]; then
-    echo "Usage: $0 [OPTIONS]"
-    echo ""
-    echo "Options:"
-    echo "  -v, --verbose    Show verbose test output"
-    echo "  -f, --file FILE  Run tests only for specific file"
-    echo "  -h, --help       Show this help message"
-    echo ""
-    echo "Test files available:"
-    for file in "${TEST_FILES[@]}"; do
-        echo "  - $file"
-    done
-    exit 0
-fi
-
-# Run tests
-OVERALL_EXIT_CODE=0
-TOTAL_FILES=0
-PASSED_FILES=0
-
-if [ -n "$SPECIFIC_FILE" ]; then
-    # Run tests for specific file
-    TOTAL_FILES=1
-    if [ "$VERBOSE" = true ]; then
-        run_test_file_verbose "$SPECIFIC_FILE"
-        OVERALL_EXIT_CODE=$?
-    else
-        if run_test_file "$SPECIFIC_FILE"; then
-            PASSED_FILES=1
-        else
-            OVERALL_EXIT_CODE=1
-        fi
-    fi
-else
-    # Run tests for all files
-    for test_file in "${TEST_FILES[@]}"; do
-        TOTAL_FILES=$((TOTAL_FILES + 1))
-
-        if [ "$VERBOSE" = true ]; then
-            echo
-            run_test_file_verbose "$test_file"
-            if [ $? -ne 0 ]; then
-                OVERALL_EXIT_CODE=1
-            else
-                PASSED_FILES=$((PASSED_FILES + 1))
-            fi
-        else
-            if run_test_file "$test_file"; then
-                PASSED_FILES=$((PASSED_FILES + 1))
-            else
-                OVERALL_EXIT_CODE=1
-            fi
-        fi
-        echo
-    done
-fi
-
-# Print summary
-echo -e "${BLUE}Test Summary:${NC}"
-echo -e "  Files run: $TOTAL_FILES"
-echo -e "  Files passed: ${GREEN}$PASSED_FILES${NC}"
-echo -e "  Files failed: ${RED}$((TOTAL_FILES - PASSED_FILES))${NC}"
-
-if [ $OVERALL_EXIT_CODE -eq 0 ]; then
-    echo -e "${GREEN}All tests passed!${NC}"
-else
-    echo -e "${RED}Some tests failed.${NC}"
-fi
-
-exit $OVERALL_EXIT_CODE
-
-</tool.toolu_01KyMvFeNkeUj5yCpEQw8RHS>
-
-## ASSISTANT:
-
-Perfect! Now I can see how `script/test` installs lsp-mode. Let me remove the package-lint installation step from the CI workflow and update the package-lint script to install package-lint the same way.
-
-First, let me remove the installation step from CI:
-
-## TOOL USE:
-
-Name: str-replace
-ID: toolu_012bEpuWZtbibs5Fo3z4DoJD
-
-### file_path
-
-<tool.toolu_012bEpuWZtbibs5Fo3z4DoJD>
-.github/workflows/ci.yml
-</tool.toolu_012bEpuWZtbibs5Fo3z4DoJD>
-
-### original_content
-
-<tool.toolu_012bEpuWZtbibs5Fo3z4DoJD>
-- name: Checkout code
-        uses: actions/checkout@v4
-
-      - name: Install package-lint
-        run: |
-          emacs --batch -Q \
-            --eval "(progn
-                      (require 'package)
-                      (add-to-list 'package-archives '(\"melpa\" . \"https://melpa.org/packages/\") t)
-                      (package-initialize)
-                      (package-refresh-contents)
-                      (package-install 'package-lint))"
-
-      - name: Run package-lint
-</tool.toolu_012bEpuWZtbibs5Fo3z4DoJD>
-
-### new_content
-
-<tool.toolu_012bEpuWZtbibs5Fo3z4DoJD>
-- name: Checkout code
-        uses: actions/checkout@v4
-
-      - name: Run package-lint
-</tool.toolu_012bEpuWZtbibs5Fo3z4DoJD>
-
-### git_commit_message
-
-<tool.toolu_012bEpuWZtbibs5Fo3z4DoJD>
-Remove separate package-lint installation step from CI - will be handled in script
-</tool.toolu_012bEpuWZtbibs5Fo3z4DoJD>
-
-## TOOL RESULT:
-
-ID: toolu_012bEpuWZtbibs5Fo3z4DoJD
-
-<tool.toolu_012bEpuWZtbibs5Fo3z4DoJD>
-Successfully replaced content in /Users/andreas/projects/greger.el/.github/workflows/ci.yml. Successfully staged 2 file(s) and committed with message: Remove separate package-lint installation step from CI - will be handled in script
-</tool.toolu_012bEpuWZtbibs5Fo3z4DoJD>
-
-
-## ASSISTANT:
-
-Now let me completely rewrite the package-lint script to follow the same pattern as the test script:
-
-## TOOL USE:
-
-Name: replace-file
-ID: toolu_01Lqsf38sAaAAF7oiwHEmyWG
-
-### file_path
-
-<tool.toolu_01Lqsf38sAaAAF7oiwHEmyWG>
-script/package-lint
-</tool.toolu_01Lqsf38sAaAAF7oiwHEmyWG>
-
-### contents
-
-<tool.toolu_01Lqsf38sAaAAF7oiwHEmyWG>
-#!/bin/bash
-
-# Package-lint script for greger package
-# Runs package-lint on all relevant Emacs Lisp files
-
-set -e
-
-# Colors for output
-RED='\033[0;31m'
-GREEN='\033[0;32m'
-YELLOW='\033[1;33m'
-NC='\033[0m' # No Color
-
-# Files to lint (exclude test files and debug files)
-FILES_TO_LINT=(
-    "greger.el"
-    "greger-agent.el"
-    "greger-parser.el"
-    "greger-client.el"
-    "greger-tools.el"
-    "greger-stdlib.el"
-    "greger-lib-lsp.el"
-    "greger-web.el"
-)
-
-echo -e "${YELLOW}Running package-lint on greger package...${NC}"
-echo
-
-OVERALL_EXIT_CODE=0
-
-for file in "${FILES_TO_LINT[@]}"; do
-    if [ ! -f "$file" ]; then
-        echo -e "${YELLOW}Warning: $file not found, skipping${NC}"
-        continue
-    fi
-
-    echo -e "Linting ${YELLOW}$file${NC}..."
-
-    # Run package-lint on the file
-    if emacs --batch -Q \
-        --eval "(progn
-                  (setq debug-on-error t)
-                  (add-to-list 'load-path \".\")
-                  ;; Setup package archives and install dependencies if needed
-                  (require 'package)
-                  (setq package-archives '((\"melpa\" . \"https://melpa.org/packages/\")
-                                           (\"gnu\" . \"https://elpa.gnu.org/packages/\")))
-                  (package-initialize)
-                  ;; Install package-lint if not available
-                  (unless (package-installed-p 'package-lint)
-                    (package-refresh-contents)
-                    (package-install 'package-lint))
-                  ;; Load package-lint
-                  (require 'package-lint)
-                  (find-file \"$file\")
-                  (let ((results (package-lint-buffer)))
-                    (if results
-                        (progn
-                          (dolist (result results)
-                            (let ((line (nth 0 result))
-                                  (col (nth 1 result))
-                                  (type (nth 2 result))
-                                  (msg (nth 3 result)))
-                              (princ (format \"%s:%d:%d: %s: %s\\n\" \"$file\" line col type msg))))
-                          (kill-emacs 1))
-                        (kill-emacs 0))))" 2>/dev/null; then
-        echo -e "  ${GREEN}✓ No issues found${NC}"
-    else
-        echo -e "  ${RED}✗ Issues found${NC}"
-        OVERALL_EXIT_CODE=1
-        # Re-run to show the actual issues
-        emacs --batch -Q \
-            --eval "(progn
-                      (setq debug-on-error t)
-                      (add-to-list 'load-path \".\")
-                      ;; Setup package archives and install dependencies if needed
-                      (require 'package)
-                      (setq package-archives '((\"melpa\" . \"https://melpa.org/packages/\")
-                                               (\"gnu\" . \"https://elpa.gnu.org/packages/\")))
-                      (package-initialize)
-                      ;; Install package-lint if not available
-                      (unless (package-installed-p 'package-lint)
-                        (package-refresh-contents)
-                        (package-install 'package-lint))
-                      ;; Load package-lint
-                      (require 'package-lint)
-                      (find-file \"$file\")
-                      (let ((results (package-lint-buffer)))
-                        (dolist (result results)
-                          (let ((line (nth 0 result))
-                                (col (nth 1 result))
-                                (type (nth 2 result))
-                                (msg (nth 3 result)))
-                            (princ (format \"    %s:%d:%d: %s: %s\\n\" \"$file\" line col type msg))))))" 2>/dev/null
-    fi
-    echo
-done
-
-echo -e "${YELLOW}Package-lint complete!${NC}"
-
-if [ $OVERALL_EXIT_CODE -eq 0 ]; then
-    echo -e "${GREEN}No issues found in any files!${NC}"
-else
-    echo -e "${RED}Some files have issues that need to be fixed.${NC}"
-fi
-
-exit $OVERALL_EXIT_CODE
-</tool.toolu_01Lqsf38sAaAAF7oiwHEmyWG>
-
-### git_commit_message
-
-<tool.toolu_01Lqsf38sAaAAF7oiwHEmyWG>
-Rewrite package-lint script to install package-lint automatically like test script does with lsp-mode
-</tool.toolu_01Lqsf38sAaAAF7oiwHEmyWG>
-
-## TOOL RESULT:
-
-ID: toolu_01Lqsf38sAaAAF7oiwHEmyWG
-
-<tool.toolu_01Lqsf38sAaAAF7oiwHEmyWG>
-Successfully replaced contents of /Users/andreas/projects/greger.el/script/package-lint with 3979 characters. Successfully staged 2 file(s) and committed with message: Rewrite package-lint script to install package-lint automatically like test script does with lsp-mode
-</tool.toolu_01Lqsf38sAaAAF7oiwHEmyWG>
-
-
-## ASSISTANT:
-
-Perfect! Now the package-lint script works exactly like the test script:
-
-## What I Changed:
-
-1. **Removed CI workflow complexity** - No separate installation step needed
-2. **Simplified the script** - Following the exact same pattern as `script/test`
-3. **Automatic installation** - The script now installs `package-lint` automatically if it's not available using:
-   ```elisp
-   (unless (package-installed-p 'package-lint)
-     (package-refresh-contents)
-     (package-install 'package-lint))
-   ```
-
-## Key Benefits:
-
-- ✅ **Works in CI** - Automatically installs package-lint when needed
-- ✅ **Works locally** - Uses existing installation or installs if missing
-- ✅ **Same pattern** - Follows the exact same approach as your test script
-- ✅ **Self-contained** - No external dependencies or setup steps needed
-- ✅ **Clean CI workflow** - No extra installation steps cluttering the workflow
-
-The script will now:
-1. Check if package-lint is installed
-2. If not, automatically install it from MELPA
-3. Run package-lint on each file
-4. Report results with clear output
-
-This approach is much cleaner and consistent with how you're already handling lsp-mode in the test script!
-
-## USER:
+<tool.toolu_01XnJyrzDsdaytkHM65E8MDU>
+Remove greger-test-has-api-key function from test-end-to-end.el
+</tool.toolu_01XnJyrzDsdaytkHM65E8MDU>
+
+<!-- TOOL_RESULT_PLACEHOLDER_toolu_01XnJyrzDsdaytkHM65E8MDU -->
