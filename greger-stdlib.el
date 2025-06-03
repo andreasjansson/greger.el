@@ -555,7 +555,7 @@ If BUFFER is provided, it will be staged and committed along with the new file."
 GIT-COMMIT-MESSAGE will be used for the git commit.
 If BUFFER is provided, it will be staged and committed along with the directory."
   (unless (stringp path)
-    (error "path must be a string"))
+    (error "Path must be a string"))
 
   (let ((expanded-path (expand-file-name path)))
 
