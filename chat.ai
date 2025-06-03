@@ -5103,4 +5103,59 @@ If BUFFER is provided, it will be staged and committed along with the deleted fi
 Remove JSON parsing workaround from delete-files - parser should handle this
 </tool.toolu_01TmSpDkiKGMUYukJzfzb8Vd>
 
-<!-- TOOL_RESULT_PLACEHOLDER_toolu_01TmSpDkiKGMUYukJzfzb8Vd -->
+## TOOL RESULT:
+
+ID: toolu_01TmSpDkiKGMUYukJzfzb8Vd
+
+<tool.toolu_01TmSpDkiKGMUYukJzfzb8Vd>
+Successfully replaced content in /Users/andreas/projects/greger.el/greger-stdlib.el. Successfully staged 2 file(s) and committed with message: Remove JSON parsing workaround from delete-files - parser should handle this
+</tool.toolu_01TmSpDkiKGMUYukJzfzb8Vd>
+
+
+## TOOL USE:
+
+Name: str-replace
+ID: toolu_01UEJwKVkUAExx73AH6htLCw
+
+### file_path
+
+<tool.toolu_01UEJwKVkUAExx73AH6htLCw>
+greger-stdlib.el
+</tool.toolu_01UEJwKVkUAExx73AH6htLCw>
+
+### original_content
+
+<tool.toolu_01UEJwKVkUAExx73AH6htLCw>
+(defun greger-stdlib--eval-elisp-defuns (file-path function-names)
+  (unless (stringp file-path)
+    (error "File path must be a string"))
+
+  ;; Handle JSON array strings by parsing them
+  (when (stringp function-names)
+    (condition-case nil
+        (setq function-names (json-parse-string function-names :array-type 'list))
+      (error
+        (error "function_names must be a valid JSON array string, vector, or list: %s" function-names))))
+
+  (unless (or (vectorp function-names) (listp function-names))
+    (error "Function names must be a vector or list"))
+</tool.toolu_01UEJwKVkUAExx73AH6htLCw>
+
+### new_content
+
+<tool.toolu_01UEJwKVkUAExx73AH6htLCw>
+(defun greger-stdlib--eval-elisp-defuns (file-path function-names)
+  (unless (stringp file-path)
+    (error "File path must be a string"))
+
+  (unless (or (vectorp function-names) (listp function-names))
+    (error "Function names must be a vector or list"))
+</tool.toolu_01UEJwKVkUAExx73AH6htLCw>
+
+### git_commit_message
+
+<tool.toolu_01UEJwKVkUAExx73AH6htLCw>
+Remove JSON parsing workaround from eval-elisp-defuns - parser should handle this
+</tool.toolu_01UEJwKVkUAExx73AH6htLCw>
+
+<!-- TOOL_RESULT_PLACEHOLDER_toolu_01UEJwKVkUAExx73AH6htLCw -->
