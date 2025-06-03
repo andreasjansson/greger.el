@@ -333,7 +333,7 @@ Processed: test-data
 
     ;; Create test buffer
     (with-temp-buffer
-      (let ((agent-state (make-greger-agent-state
+      (let ((agent-state (make-greger-state
                           :current-iteration 0
                           :chat-buffer (current-buffer)
                           :directory default-directory :metadata nil))
