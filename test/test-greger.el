@@ -327,7 +327,7 @@ Processed: test-data
     ;; Clean up
     (remhash "test-content" greger-tools-registry)))
 
-(ert-deftest greger-agent-test-unknown-tool-error ()
+(ert-deftest greger-test-unknown-tool-error ()
   "Test handling of unknown tool execution."
   (let ((test-completed nil))
 
