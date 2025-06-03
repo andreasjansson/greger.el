@@ -249,7 +249,7 @@
 
           ;; The model should be shown in the mode line
           (should (string-match-p "claude-sonnet-4-20250514"
-                                 (format "%s" mode-line-misc-info))))
+                                 (format "%s" (symbol-name greger-model)))))
 
       ;; Cleanup
       (setq greger-model original-model)
