@@ -2428,4 +2428,704 @@ Hello"))
 Update system content with safe commands test to expect combined content
 </tool.toolu_01XtaG6RhJqLJs2T1u2uEqTb>
 
-<!-- TOOL_RESULT_PLACEHOLDER_toolu_01XtaG6RhJqLJs2T1u2uEqTb -->
+## TOOL RESULT:
+
+ID: toolu_01XtaG6RhJqLJs2T1u2uEqTb
+
+<tool.toolu_01XtaG6RhJqLJs2T1u2uEqTb>
+Successfully replaced content in /Users/andreas/projects/greger.el/test/test-greger-parser.el. Successfully staged 2 file(s) and committed with message: Update system content with safe commands test to expect combined content
+</tool.toolu_01XtaG6RhJqLJs2T1u2uEqTb>
+
+
+## ASSISTANT:
+
+Now let's run the tests again to see if they pass:
+
+## TOOL USE:
+
+Name: shell-command
+ID: toolu_01Q1FKVwVDjdVP2zuj2LmDS7
+
+### command
+
+<tool.toolu_01Q1FKVwVDjdVP2zuj2LmDS7>
+bash script/test --verbose --file test/test-greger-parser.el
+</tool.toolu_01Q1FKVwVDjdVP2zuj2LmDS7>
+
+## TOOL RESULT:
+
+ID: toolu_01Q1FKVwVDjdVP2zuj2LmDS7
+
+<tool.toolu_01Q1FKVwVDjdVP2zuj2LmDS7>
+Command executed successfully:
+[0;34mRunning ERT tests for greger package...[0m
+
+Running tests in [1;33mtest/test-greger-parser.el[0m (verbose mode)...
+Loading /Users/andreas/projects/greger.el/greger.el (source)...
+Source file ‘/opt/homebrew/Cellar/emacs-plus@29/29.0.90/share/emacs/29.0.91/lisp/net/eww.el’ newer than byte-compiled file; using older file
+Loading /Users/andreas/projects/greger.el/greger-parser.el (source)...
+Loading /Users/andreas/projects/greger.el/greger-stdlib.el (source)...
+Loading /Users/andreas/projects/greger.el/greger-lib-lsp.el (source)...
+Loading /Users/andreas/projects/greger.el/greger-tools.el (source)...
+Loading /Users/andreas/projects/greger.el/greger-client.el (source)...
+Loading /Users/andreas/projects/greger.el/greger-web.el (source)...
+Loading /Users/andreas/projects/greger.el/test/test-greger-parser.el (source)...
+Running 35 tests (2025-06-03 17:20:00+0200, selector ‘t’)
+   passed   1/35  greger-parser-test-code-block-parsing (0.001729 sec)
+   passed   2/35  greger-parser-test-code-blocks-in-tool-params (0.000865 sec)
+   passed   3/35  greger-parser-test-complex-mixed-content (0.002387 sec)
+   passed   4/35  greger-parser-test-edge-cases (0.000479 sec)
+   passed   5/35  greger-parser-test-error-handling (0.000277 sec)
+   passed   6/35  greger-parser-test-include-tag-basic (0.002334 sec)
+   passed   7/35  greger-parser-test-include-tag-in-assistant-section (0.002656 sec)
+   passed   8/35  greger-parser-test-include-tag-invalid-url (0.044407 sec)
+   passed   9/35  greger-parser-test-include-tag-multiline-content (0.002393 sec)
+   passed  10/35  greger-parser-test-include-tag-nonexistent-file (0.001059 sec)
+   passed  11/35  greger-parser-test-include-tag-not-processed-in-code-blocks (0.002068 sec)
+   passed  12/35  greger-parser-test-include-tag-not-processed-in-inline-code (0.002127 sec)
+   passed  13/35  greger-parser-test-include-tag-not-processed-in-tool-params (0.001329 sec)
+   passed  14/35  greger-parser-test-include-tag-recursive (0.003270 sec)
+   passed  15/35  greger-parser-test-include-tag-web-url (0.184568 sec)
+   passed  16/35  greger-parser-test-include-tag-web-url-with-code (0.096786 sec)
+   passed  17/35  greger-parser-test-include-tag-with-code (0.008687 sec)
+   passed  18/35  greger-parser-test-include-tag-with-code-in-code-block (0.003533 sec)
+   passed  19/35  greger-parser-test-inline-code-blocks (0.002249 sec)
+   passed  20/35  greger-parser-test-markdown-generation (0.000305 sec)
+Testing markdown-to-dialog for: simple-user-message
+Testing markdown-to-dialog for: system-and-user
+Testing markdown-to-dialog for: simple-conversation
+Testing markdown-to-dialog for: thinking-section
+Testing markdown-to-dialog for: tool-use-single-param
+Testing markdown-to-dialog for: tool-use-multiple-params
+Testing markdown-to-dialog for: complex-workflow
+Testing markdown-to-dialog for: multiple-tool-uses
+Testing markdown-to-dialog for: tool-use-multiline-params
+Testing markdown-to-dialog for: thinking-only
+Testing markdown-to-dialog for: tool-use-only
+Testing markdown-to-dialog for: tool-use-with-tags
+Testing markdown-to-dialog for: code-block-triple-backticks
+Testing markdown-to-dialog for: code-block-double-backticks
+Testing markdown-to-dialog for: mixed-code-blocks-and-sections
+Testing markdown-to-dialog for: tool-use-with-code-in-params
+Testing markdown-to-dialog for: nested-code-blocks
+Testing markdown-to-dialog for: tool-use-complex-params
+Testing markdown-to-dialog for: tool-result-empty-lines
+Testing markdown-to-dialog for: html-comments
+   passed  21/35  greger-parser-test-markdown-to-dialog (0.060089 sec)
+   passed  22/35  greger-parser-test-performance (0.095656 sec)
+Testing roundtrip for: simple-user-message
+Testing roundtrip for: system-and-user
+Testing roundtrip for: simple-conversation
+Testing roundtrip for: thinking-section
+Testing roundtrip for: tool-use-single-param
+Testing roundtrip for: tool-use-multiple-params
+Testing roundtrip for: complex-workflow
+Testing roundtrip for: multiple-tool-uses
+Testing roundtrip for: tool-use-multiline-params
+Testing roundtrip for: thinking-only
+Testing roundtrip for: tool-use-only
+Testing roundtrip for: tool-use-with-tags
+Testing roundtrip for: code-block-triple-backticks
+Testing roundtrip for: code-block-double-backticks
+Testing roundtrip for: mixed-code-blocks-and-sections
+Testing roundtrip for: tool-use-with-code-in-params
+Testing roundtrip for: nested-code-blocks
+Testing roundtrip for: tool-use-complex-params
+Testing roundtrip for: tool-result-empty-lines
+Testing roundtrip for: html-comments
+   passed  23/35  greger-parser-test-roundtrip (0.076892 sec)
+   passed  24/35  greger-parser-test-safe-shell-commands-basic (0.000349 sec)
+   passed  25/35  greger-parser-test-safe-shell-commands-empty-lines (0.000352 sec)
+   passed  26/35  greger-parser-test-safe-shell-commands-in-code-block (0.001201 sec)
+   passed  27/35  greger-parser-test-safe-shell-commands-not-in-system (0.001125 sec)
+   passed  28/35  greger-parser-test-safe-shell-commands-only-once (0.000409 sec)
+   passed  29/35  greger-parser-test-safe-shell-commands-with-system-content (0.001033 sec)
+   passed  30/35  greger-parser-test-system-content-with-safe-commands-example (0.000978 sec)
+   passed  31/35  greger-parser-test-thinking-parsing (0.001000 sec)
+   passed  32/35  greger-parser-test-tool-result-parsing (0.000448 sec)
+   passed  33/35  greger-parser-test-tool-use-parsing (0.000762 sec)
+   passed  34/35  greger-parser-test-tool-use-whitespace (0.000913 sec)
+   passed  35/35  greger-parser-test-untagged-content (0.001073 sec)
+
+Ran 35 tests, 35 results as expected, 0 unexpected (2025-06-03 17:20:00+0200, 0.633789 sec)
+
+[0;34mTest Summary:[0m
+  Files run: 1
+  Files passed: [0;32m0[0m
+  Files failed: [0;31m1[0m
+[0;32mAll tests passed![0m
+
+</tool.toolu_01Q1FKVwVDjdVP2zuj2LmDS7>
+
+## ASSISTANT:
+
+Great! All tests are now passing. Let's also run the complete test suite to make sure I haven't broken anything else:
+
+## TOOL USE:
+
+Name: shell-command
+ID: toolu_016GeYd9vYyNzzzy4iH9jc6u
+
+### command
+
+<tool.toolu_016GeYd9vYyNzzzy4iH9jc6u>
+bash script/test --verbose
+</tool.toolu_016GeYd9vYyNzzzy4iH9jc6u>
+
+## TOOL RESULT:
+
+ID: toolu_016GeYd9vYyNzzzy4iH9jc6u
+
+<tool.toolu_016GeYd9vYyNzzzy4iH9jc6u>
+Command executed successfully:
+[0;34mRunning ERT tests for greger package...[0m
+
+
+Running tests in [1;33mtest/test-greger.el[0m (verbose mode)...
+Loading /Users/andreas/projects/greger.el/greger.el (source)...
+Source file ‘/opt/homebrew/Cellar/emacs-plus@29/29.0.90/share/emacs/29.0.91/lisp/net/eww.el’ newer than byte-compiled file; using older file
+Loading /Users/andreas/projects/greger.el/greger-parser.el (source)...
+Loading /Users/andreas/projects/greger.el/greger-stdlib.el (source)...
+Loading /Users/andreas/projects/greger.el/greger-lib-lsp.el (source)...
+Loading /Users/andreas/projects/greger.el/greger-tools.el (source)...
+Loading /Users/andreas/projects/greger.el/greger-client.el (source)...
+Loading /Users/andreas/projects/greger.el/greger-web.el (source)...
+Loading /Users/andreas/projects/greger.el/test/test-greger.el (source)...
+Running 8 tests (2025-06-03 17:20:08+0200, selector ‘t’)
+   passed  1/8  greger-test-exact-tool-output-formatting (0.000189 sec)
+   passed  2/8  greger-test-multiple-tools-parallel (0.000202 sec)
+   passed  3/8  greger-test-simple-string-comparison (0.000124 sec)
+   passed  4/8  greger-test-single-tool-execution (0.000125 sec)
+   passed  5/8  greger-test-tool-error-handling (0.000125 sec)
+   passed  6/8  greger-test-tool-execution-with-existing-content (0.000114 sec)
+   passed  7/8  greger-test-tool-placeholder (0.000028 sec)
+   passed  8/8  greger-test-unknown-tool-error (0.000105 sec)
+
+Ran 8 tests, 8 results as expected, 0 unexpected (2025-06-03 17:20:08+0200, 0.001248 sec)
+
+
+
+Running tests in [1;33mtest/test-greger-parser.el[0m (verbose mode)...
+Loading /Users/andreas/projects/greger.el/greger.el (source)...
+Source file ‘/opt/homebrew/Cellar/emacs-plus@29/29.0.90/share/emacs/29.0.91/lisp/net/eww.el’ newer than byte-compiled file; using older file
+Loading /Users/andreas/projects/greger.el/greger-parser.el (source)...
+Loading /Users/andreas/projects/greger.el/greger-stdlib.el (source)...
+Loading /Users/andreas/projects/greger.el/greger-lib-lsp.el (source)...
+Loading /Users/andreas/projects/greger.el/greger-tools.el (source)...
+Loading /Users/andreas/projects/greger.el/greger-client.el (source)...
+Loading /Users/andreas/projects/greger.el/greger-web.el (source)...
+Loading /Users/andreas/projects/greger.el/test/test-greger-parser.el (source)...
+Running 35 tests (2025-06-03 17:20:09+0200, selector ‘t’)
+   passed   1/35  greger-parser-test-code-block-parsing (0.001661 sec)
+   passed   2/35  greger-parser-test-code-blocks-in-tool-params (0.000835 sec)
+   passed   3/35  greger-parser-test-complex-mixed-content (0.002364 sec)
+   passed   4/35  greger-parser-test-edge-cases (0.000468 sec)
+   passed   5/35  greger-parser-test-error-handling (0.000273 sec)
+   passed   6/35  greger-parser-test-include-tag-basic (0.003170 sec)
+   passed   7/35  greger-parser-test-include-tag-in-assistant-section (0.002327 sec)
+   passed   8/35  greger-parser-test-include-tag-invalid-url (0.044974 sec)
+   passed   9/35  greger-parser-test-include-tag-multiline-content (0.002621 sec)
+   passed  10/35  greger-parser-test-include-tag-nonexistent-file (0.001045 sec)
+   passed  11/35  greger-parser-test-include-tag-not-processed-in-code-blocks (0.002144 sec)
+   passed  12/35  greger-parser-test-include-tag-not-processed-in-inline-code (0.002041 sec)
+   passed  13/35  greger-parser-test-include-tag-not-processed-in-tool-params (0.001377 sec)
+   passed  14/35  greger-parser-test-include-tag-recursive (0.003199 sec)
+   passed  15/35  greger-parser-test-include-tag-web-url (0.195963 sec)
+   passed  16/35  greger-parser-test-include-tag-web-url-with-code (0.085253 sec)
+   passed  17/35  greger-parser-test-include-tag-with-code (0.006818 sec)
+   passed  18/35  greger-parser-test-include-tag-with-code-in-code-block (0.004300 sec)
+   passed  19/35  greger-parser-test-inline-code-blocks (0.002836 sec)
+   passed  20/35  greger-parser-test-markdown-generation (0.000393 sec)
+Testing markdown-to-dialog for: simple-user-message
+Testing markdown-to-dialog for: system-and-user
+Testing markdown-to-dialog for: simple-conversation
+Testing markdown-to-dialog for: thinking-section
+Testing markdown-to-dialog for: tool-use-single-param
+Testing markdown-to-dialog for: tool-use-multiple-params
+Testing markdown-to-dialog for: complex-workflow
+Testing markdown-to-dialog for: multiple-tool-uses
+Testing markdown-to-dialog for: tool-use-multiline-params
+Testing markdown-to-dialog for: thinking-only
+Testing markdown-to-dialog for: tool-use-only
+Testing markdown-to-dialog for: tool-use-with-tags
+Testing markdown-to-dialog for: code-block-triple-backticks
+Testing markdown-to-dialog for: code-block-double-backticks
+Testing markdown-to-dialog for: mixed-code-blocks-and-sections
+Testing markdown-to-dialog for: tool-use-with-code-in-params
+Testing markdown-to-dialog for: nested-code-blocks
+Testing markdown-to-dialog for: tool-use-complex-params
+Testing markdown-to-dialog for: tool-result-empty-lines
+Testing markdown-to-dialog for: html-comments
+   passed  21/35  greger-parser-test-markdown-to-dialog (0.055510 sec)
+   passed  22/35  greger-parser-test-performance (0.092059 sec)
+Testing roundtrip for: simple-user-message
+Testing roundtrip for: system-and-user
+Testing roundtrip for: simple-conversation
+Testing roundtrip for: thinking-section
+Testing roundtrip for: tool-use-single-param
+Testing roundtrip for: tool-use-multiple-params
+Testing roundtrip for: complex-workflow
+Testing roundtrip for: multiple-tool-uses
+Testing roundtrip for: tool-use-multiline-params
+Testing roundtrip for: thinking-only
+Testing roundtrip for: tool-use-only
+Testing roundtrip for: tool-use-with-tags
+Testing roundtrip for: code-block-triple-backticks
+Testing roundtrip for: code-block-double-backticks
+Testing roundtrip for: mixed-code-blocks-and-sections
+Testing roundtrip for: tool-use-with-code-in-params
+Testing roundtrip for: nested-code-blocks
+Testing roundtrip for: tool-use-complex-params
+Testing roundtrip for: tool-result-empty-lines
+Testing roundtrip for: html-comments
+   passed  23/35  greger-parser-test-roundtrip (0.074624 sec)
+   passed  24/35  greger-parser-test-safe-shell-commands-basic (0.000325 sec)
+   passed  25/35  greger-parser-test-safe-shell-commands-empty-lines (0.000306 sec)
+   passed  26/35  greger-parser-test-safe-shell-commands-in-code-block (0.001025 sec)
+   passed  27/35  greger-parser-test-safe-shell-commands-not-in-system (0.001134 sec)
+   passed  28/35  greger-parser-test-safe-shell-commands-only-once (0.000387 sec)
+   passed  29/35  greger-parser-test-safe-shell-commands-with-system-content (0.001044 sec)
+   passed  30/35  greger-parser-test-system-content-with-safe-commands-example (0.000978 sec)
+   passed  31/35  greger-parser-test-thinking-parsing (0.000997 sec)
+   passed  32/35  greger-parser-test-tool-result-parsing (0.000433 sec)
+   passed  33/35  greger-parser-test-tool-use-parsing (0.000679 sec)
+   passed  34/35  greger-parser-test-tool-use-whitespace (0.000877 sec)
+   passed  35/35  greger-parser-test-untagged-content (0.001147 sec)
+
+Ran 35 tests, 35 results as expected, 0 unexpected (2025-06-03 17:20:09+0200, 0.625336 sec)
+
+
+
+Running tests in [1;33mtest/test-greger-stdlib.el[0m (verbose mode)...
+Loading /Users/andreas/projects/greger.el/greger.el (source)...
+Source file ‘/opt/homebrew/Cellar/emacs-plus@29/29.0.90/share/emacs/29.0.91/lisp/net/eww.el’ newer than byte-compiled file; using older file
+Loading /Users/andreas/projects/greger.el/greger-parser.el (source)...
+Loading /Users/andreas/projects/greger.el/greger-stdlib.el (source)...
+Loading /Users/andreas/projects/greger.el/greger-lib-lsp.el (source)...
+Loading /Users/andreas/projects/greger.el/greger-tools.el (source)...
+Loading /Users/andreas/projects/greger.el/greger-client.el (source)...
+Loading /Users/andreas/projects/greger.el/greger-web.el (source)...
+Loading /Users/andreas/projects/greger.el/test/test-greger-stdlib.el (source)...
+Running 11 tests (2025-06-03 17:20:10+0200, selector ‘t’)
+   passed   1/11  greger-test-read-webpage-invalid-url (0.000117 sec)
+   passed   2/11  greger-test-read-webpage-network-error (0.000038 sec)
+   passed   3/11  greger-test-read-webpage-valid-url (0.427654 sec)
+   passed   4/11  greger-test-shell-command-command-failure (0.117673 sec)
+   passed   5/11  greger-test-shell-command-no-metadata-still-prompts (0.114198 sec)
+   passed   6/11  greger-test-shell-command-permission-denied (0.000515 sec)
+   passed   7/11  greger-test-shell-command-safe-commands (0.115077 sec)
+   passed   8/11  greger-test-shell-command-simple (0.110793 sec)
+   passed   9/11  greger-test-shell-command-unsafe-commands-with-metadata (0.110260 sec)
+   passed  10/11  greger-test-shell-command-with-pipe (0.114995 sec)
+   passed  11/11  greger-test-web-url-validation (0.000247 sec)
+
+Ran 11 tests, 11 results as expected, 0 unexpected (2025-06-03 17:20:11+0200, 1.113534 sec)
+
+
+
+Running tests in [1;33mtest/test-greger-lib-lsp.el[0m (verbose mode)...
+Loading /Users/andreas/projects/greger.el/greger.el (source)...
+Source file ‘/opt/homebrew/Cellar/emacs-plus@29/29.0.90/share/emacs/29.0.91/lisp/net/eww.el’ newer than byte-compiled file; using older file
+Loading /Users/andreas/projects/greger.el/greger-parser.el (source)...
+Loading /Users/andreas/projects/greger.el/greger-stdlib.el (source)...
+Loading /Users/andreas/projects/greger.el/greger-lib-lsp.el (source)...
+Loading /Users/andreas/projects/greger.el/greger-tools.el (source)...
+Loading /Users/andreas/projects/greger.el/greger-client.el (source)...
+Loading /Users/andreas/projects/greger.el/greger-web.el (source)...
+Loading /Users/andreas/projects/greger.el/test/test-greger-lib-lsp.el (source)...
+Running 16 tests (2025-06-03 17:20:12+0200, selector ‘t’)
+Source file ‘/opt/homebrew/Cellar/emacs-plus@29/29.0.90/share/emacs/29.0.91/lisp/net/tramp-sh.el’ newer than byte-compiled file; using older file
+LSP :: Connected to [pyright:9112/starting /var/folders/pt/0j3p9zzj49x5vkv1mmkpvs0c0000gn/T/greger-lsp-test-ugRdbQ][ruff:9113/starting /var/folders/pt/0j3p9zzj49x5vkv1mmkpvs0c0000gn/T/greger-lsp-test-ugRdbQ][ty-ls:9114/starting /var/folders/pt/0j3p9zzj49x5vkv1mmkpvs0c0000gn/T/greger-lsp-test-ugRdbQ].
+LSP :: ty-ls:9114 initialized successfully in folders: (/var/folders/pt/0j3p9zzj49x5vkv1mmkpvs0c0000gn/T/greger-lsp-test-ugRdbQ)
+LSP :: ruff:9113 initialized successfully in folders: (/var/folders/pt/0j3p9zzj49x5vkv1mmkpvs0c0000gn/T/greger-lsp-test-ugRdbQ)
+LSP :: pyright:9112 initialized successfully in folders: (/var/folders/pt/0j3p9zzj49x5vkv1mmkpvs0c0000gn/T/greger-lsp-test-ugRdbQ)
+LSP :: Disconnected
+LSP :: Shutdown ty-ls:9114 since folder /var/folders/pt/0j3p9zzj49x5vkv1mmkpvs0c0000gn/T/greger-lsp-test-ugRdbQ is removed...
+LSP :: Shutdown ruff:9113 since folder /var/folders/pt/0j3p9zzj49x5vkv1mmkpvs0c0000gn/T/greger-lsp-test-ugRdbQ is removed...
+LSP :: Shutdown pyright:9112 since folder /var/folders/pt/0j3p9zzj49x5vkv1mmkpvs0c0000gn/T/greger-lsp-test-ugRdbQ is removed...
+   passed   1/16  greger-lsp-test-cross-file-references (2.718349 sec)
+LSP :: Connected to [pyright:9476/starting /var/folders/pt/0j3p9zzj49x5vkv1mmkpvs0c0000gn/T/greger-lsp-test-agxCw4][ruff:9477/starting /var/folders/pt/0j3p9zzj49x5vkv1mmkpvs0c0000gn/T/greger-lsp-test-agxCw4][ty-ls:9478/starting /var/folders/pt/0j3p9zzj49x5vkv1mmkpvs0c0000gn/T/greger-lsp-test-agxCw4].
+LSP :: ty-ls:9478 initialized successfully in folders: (/var/folders/pt/0j3p9zzj49x5vkv1mmkpvs0c0000gn/T/greger-lsp-test-agxCw4)
+LSP :: ruff:9477 initialized successfully in folders: (/var/folders/pt/0j3p9zzj49x5vkv1mmkpvs0c0000gn/T/greger-lsp-test-agxCw4)
+LSP :: pyright:9476 initialized successfully in folders: (/var/folders/pt/0j3p9zzj49x5vkv1mmkpvs0c0000gn/T/greger-lsp-test-agxCw4)
+LSP :: ty-ls has exited (killed: 9)
+LSP :: Workspace ty-ls:9114 shutdown.
+LSP :: ruff has exited (killed: 9)
+LSP :: Workspace ruff:9113 shutdown.
+LSP :: pyright has exited (killed: 9)
+LSP :: Workspace pyright:9112 shutdown.
+Can’t guess python-indent-offset, using defaults: 4
+LSP :: Connected to [pyright:9476 /var/folders/pt/0j3p9zzj49x5vkv1mmkpvs0c0000gn/T/greger-lsp-test-agxCw4][ruff:9477 /var/folders/pt/0j3p9zzj49x5vkv1mmkpvs0c0000gn/T/greger-lsp-test-agxCw4][ty-ls:9478 /var/folders/pt/0j3p9zzj49x5vkv1mmkpvs0c0000gn/T/greger-lsp-test-agxCw4].
+LSP :: Disconnected
+LSP :: Shutdown ty-ls:9478 since folder /var/folders/pt/0j3p9zzj49x5vkv1mmkpvs0c0000gn/T/greger-lsp-test-agxCw4 is removed...
+LSP :: Shutdown ruff:9477 since folder /var/folders/pt/0j3p9zzj49x5vkv1mmkpvs0c0000gn/T/greger-lsp-test-agxCw4 is removed...
+LSP :: Shutdown pyright:9476 since folder /var/folders/pt/0j3p9zzj49x5vkv1mmkpvs0c0000gn/T/greger-lsp-test-agxCw4 is removed...
+   passed   2/16  greger-lsp-test-document-symbols-empty-file (1.251233 sec)
+LSP :: Connected to [pyright:9833/starting /var/folders/pt/0j3p9zzj49x5vkv1mmkpvs0c0000gn/T/greger-lsp-test-unxw3S][ruff:9834/starting /var/folders/pt/0j3p9zzj49x5vkv1mmkpvs0c0000gn/T/greger-lsp-test-unxw3S][ty-ls:9835/starting /var/folders/pt/0j3p9zzj49x5vkv1mmkpvs0c0000gn/T/greger-lsp-test-unxw3S].
+LSP :: ruff:9834 initialized successfully in folders: (/var/folders/pt/0j3p9zzj49x5vkv1mmkpvs0c0000gn/T/greger-lsp-test-unxw3S)
+LSP :: ty-ls:9835 initialized successfully in folders: (/var/folders/pt/0j3p9zzj49x5vkv1mmkpvs0c0000gn/T/greger-lsp-test-unxw3S)
+LSP :: pyright:9833 initialized successfully in folders: (/var/folders/pt/0j3p9zzj49x5vkv1mmkpvs0c0000gn/T/greger-lsp-test-unxw3S)
+LSP :: ty-ls<1> has exited (killed: 9)
+LSP :: Workspace ty-ls:9478 shutdown.
+LSP :: ruff<1> has exited (killed: 9)
+LSP :: Workspace ruff:9477 shutdown.
+LSP :: pyright<1> has exited (killed: 9)
+LSP :: Workspace pyright:9476 shutdown.
+LSP :: Connected to [pyright:9833 /var/folders/pt/0j3p9zzj49x5vkv1mmkpvs0c0000gn/T/greger-lsp-test-unxw3S][ruff:9834 /var/folders/pt/0j3p9zzj49x5vkv1mmkpvs0c0000gn/T/greger-lsp-test-unxw3S][ty-ls:9835 /var/folders/pt/0j3p9zzj49x5vkv1mmkpvs0c0000gn/T/greger-lsp-test-unxw3S].
+LSP :: Disconnected
+LSP :: Disconnected
+LSP :: Shutdown ty-ls:9835 since folder /var/folders/pt/0j3p9zzj49x5vkv1mmkpvs0c0000gn/T/greger-lsp-test-unxw3S is removed...
+LSP :: Shutdown ruff:9834 since folder /var/folders/pt/0j3p9zzj49x5vkv1mmkpvs0c0000gn/T/greger-lsp-test-unxw3S is removed...
+LSP :: Shutdown pyright:9833 since folder /var/folders/pt/0j3p9zzj49x5vkv1mmkpvs0c0000gn/T/greger-lsp-test-unxw3S is removed...
+   passed   3/16  greger-lsp-test-document-symbols-multiple-files-non-detailed (1.298018 sec)
+LSP :: Connected to [pyright:10188/starting /var/folders/pt/0j3p9zzj49x5vkv1mmkpvs0c0000gn/T/greger-lsp-test-56LZQK][ruff:10189/starting /var/folders/pt/0j3p9zzj49x5vkv1mmkpvs0c0000gn/T/greger-lsp-test-56LZQK][ty-ls:10190/starting /var/folders/pt/0j3p9zzj49x5vkv1mmkpvs0c0000gn/T/greger-lsp-test-56LZQK].
+LSP :: ty-ls:10190 initialized successfully in folders: (/var/folders/pt/0j3p9zzj49x5vkv1mmkpvs0c0000gn/T/greger-lsp-test-56LZQK)
+LSP :: ruff:10189 initialized successfully in folders: (/var/folders/pt/0j3p9zzj49x5vkv1mmkpvs0c0000gn/T/greger-lsp-test-56LZQK)
+LSP :: pyright:10188 initialized successfully in folders: (/var/folders/pt/0j3p9zzj49x5vkv1mmkpvs0c0000gn/T/greger-lsp-test-56LZQK)
+LSP :: ty-ls has exited (killed: 9)
+LSP :: Workspace ty-ls:9835 shutdown.
+LSP :: ruff has exited (killed: 9)
+LSP :: Workspace ruff:9834 shutdown.
+LSP :: pyright has exited (killed: 9)
+LSP :: Workspace pyright:9833 shutdown.
+LSP :: Disconnected
+LSP :: Shutdown ty-ls:10190 since folder /var/folders/pt/0j3p9zzj49x5vkv1mmkpvs0c0000gn/T/greger-lsp-test-56LZQK is removed...
+LSP :: Shutdown ruff:10189 since folder /var/folders/pt/0j3p9zzj49x5vkv1mmkpvs0c0000gn/T/greger-lsp-test-56LZQK is removed...
+LSP :: Shutdown pyright:10188 since folder /var/folders/pt/0j3p9zzj49x5vkv1mmkpvs0c0000gn/T/greger-lsp-test-56LZQK is removed...
+   passed   4/16  greger-lsp-test-document-symbols-single-file-detailed (1.301086 sec)
+LSP :: Connected to [pyright:10544/starting /var/folders/pt/0j3p9zzj49x5vkv1mmkpvs0c0000gn/T/greger-lsp-test-vqaQnZ][ruff:10545/starting /var/folders/pt/0j3p9zzj49x5vkv1mmkpvs0c0000gn/T/greger-lsp-test-vqaQnZ][ty-ls:10546/starting /var/folders/pt/0j3p9zzj49x5vkv1mmkpvs0c0000gn/T/greger-lsp-test-vqaQnZ].
+LSP :: ty-ls:10546 initialized successfully in folders: (/var/folders/pt/0j3p9zzj49x5vkv1mmkpvs0c0000gn/T/greger-lsp-test-vqaQnZ)
+LSP :: ruff:10545 initialized successfully in folders: (/var/folders/pt/0j3p9zzj49x5vkv1mmkpvs0c0000gn/T/greger-lsp-test-vqaQnZ)
+LSP :: pyright:10544 initialized successfully in folders: (/var/folders/pt/0j3p9zzj49x5vkv1mmkpvs0c0000gn/T/greger-lsp-test-vqaQnZ)
+LSP :: ty-ls<1> has exited (killed: 9)
+LSP :: Workspace ty-ls:10190 shutdown.
+LSP :: ruff<1> has exited (killed: 9)
+LSP :: Workspace ruff:10189 shutdown.
+LSP :: pyright<1> has exited (killed: 9)
+LSP :: Workspace pyright:10188 shutdown.
+LSP :: Disconnected
+LSP :: Shutdown ty-ls:10546 since folder /var/folders/pt/0j3p9zzj49x5vkv1mmkpvs0c0000gn/T/greger-lsp-test-vqaQnZ is removed...
+LSP :: Shutdown ruff:10545 since folder /var/folders/pt/0j3p9zzj49x5vkv1mmkpvs0c0000gn/T/greger-lsp-test-vqaQnZ is removed...
+LSP :: Shutdown pyright:10544 since folder /var/folders/pt/0j3p9zzj49x5vkv1mmkpvs0c0000gn/T/greger-lsp-test-vqaQnZ is removed...
+   passed   5/16  greger-lsp-test-document-symbols-single-file-non-detailed (1.200406 sec)
+LSP :: Connected to [pyright:10900/starting /var/folders/pt/0j3p9zzj49x5vkv1mmkpvs0c0000gn/T/greger-lsp-test-DcRNnN][ruff:10901/starting /var/folders/pt/0j3p9zzj49x5vkv1mmkpvs0c0000gn/T/greger-lsp-test-DcRNnN][ty-ls:10902/starting /var/folders/pt/0j3p9zzj49x5vkv1mmkpvs0c0000gn/T/greger-lsp-test-DcRNnN].
+LSP :: ty-ls:10902 initialized successfully in folders: (/var/folders/pt/0j3p9zzj49x5vkv1mmkpvs0c0000gn/T/greger-lsp-test-DcRNnN)
+LSP :: ruff:10901 initialized successfully in folders: (/var/folders/pt/0j3p9zzj49x5vkv1mmkpvs0c0000gn/T/greger-lsp-test-DcRNnN)
+LSP :: pyright:10900 initialized successfully in folders: (/var/folders/pt/0j3p9zzj49x5vkv1mmkpvs0c0000gn/T/greger-lsp-test-DcRNnN)
+LSP :: ty-ls has exited (killed: 9)
+LSP :: Workspace ty-ls:10546 shutdown.
+LSP :: ruff has exited (killed: 9)
+LSP :: Workspace ruff:10545 shutdown.
+LSP :: pyright has exited (killed: 9)
+LSP :: Workspace pyright:10544 shutdown.
+LSP :: Disconnected
+LSP :: Shutdown ty-ls:10902 since folder /var/folders/pt/0j3p9zzj49x5vkv1mmkpvs0c0000gn/T/greger-lsp-test-DcRNnN is removed...
+LSP :: Shutdown ruff:10901 since folder /var/folders/pt/0j3p9zzj49x5vkv1mmkpvs0c0000gn/T/greger-lsp-test-DcRNnN is removed...
+LSP :: Shutdown pyright:10900 since folder /var/folders/pt/0j3p9zzj49x5vkv1mmkpvs0c0000gn/T/greger-lsp-test-DcRNnN is removed...
+LSP :: ty-ls<1> has exited (killed: 9)
+LSP :: Workspace ty-ls:10902 shutdown.
+LSP :: ruff<1> has exited (killed: 9)
+LSP :: Workspace ruff:10901 shutdown.
+   passed   6/16  greger-lsp-test-ensure-server (1.176964 sec)
+LSP :: Connected to [pyright:11255/starting /var/folders/pt/0j3p9zzj49x5vkv1mmkpvs0c0000gn/T/greger-lsp-test-zNTBeN][ruff:11256/starting /var/folders/pt/0j3p9zzj49x5vkv1mmkpvs0c0000gn/T/greger-lsp-test-zNTBeN][ty-ls:11257/starting /var/folders/pt/0j3p9zzj49x5vkv1mmkpvs0c0000gn/T/greger-lsp-test-zNTBeN].
+LSP :: pyright<1> has exited (killed: 9)
+LSP :: Workspace pyright:10900 shutdown.
+LSP :: ty-ls:11257 initialized successfully in folders: (/var/folders/pt/0j3p9zzj49x5vkv1mmkpvs0c0000gn/T/greger-lsp-test-zNTBeN)
+LSP :: ruff:11256 initialized successfully in folders: (/var/folders/pt/0j3p9zzj49x5vkv1mmkpvs0c0000gn/T/greger-lsp-test-zNTBeN)
+LSP :: pyright:11255 initialized successfully in folders: (/var/folders/pt/0j3p9zzj49x5vkv1mmkpvs0c0000gn/T/greger-lsp-test-zNTBeN)
+LSP :: Disconnected
+LSP :: Shutdown ty-ls:11257 since folder /var/folders/pt/0j3p9zzj49x5vkv1mmkpvs0c0000gn/T/greger-lsp-test-zNTBeN is removed...
+LSP :: Shutdown ruff:11256 since folder /var/folders/pt/0j3p9zzj49x5vkv1mmkpvs0c0000gn/T/greger-lsp-test-zNTBeN is removed...
+LSP :: Shutdown pyright:11255 since folder /var/folders/pt/0j3p9zzj49x5vkv1mmkpvs0c0000gn/T/greger-lsp-test-zNTBeN is removed...
+   passed   7/16  greger-lsp-test-find-definition (1.406306 sec)
+LSP :: Connected to [pyright:11610/starting /var/folders/pt/0j3p9zzj49x5vkv1mmkpvs0c0000gn/T/greger-lsp-test-pcDwit][ruff:11611/starting /var/folders/pt/0j3p9zzj49x5vkv1mmkpvs0c0000gn/T/greger-lsp-test-pcDwit][ty-ls:11612/starting /var/folders/pt/0j3p9zzj49x5vkv1mmkpvs0c0000gn/T/greger-lsp-test-pcDwit].
+LSP :: ruff:11611 initialized successfully in folders: (/var/folders/pt/0j3p9zzj49x5vkv1mmkpvs0c0000gn/T/greger-lsp-test-pcDwit)
+LSP :: ty-ls:11612 initialized successfully in folders: (/var/folders/pt/0j3p9zzj49x5vkv1mmkpvs0c0000gn/T/greger-lsp-test-pcDwit)
+LSP :: pyright:11610 initialized successfully in folders: (/var/folders/pt/0j3p9zzj49x5vkv1mmkpvs0c0000gn/T/greger-lsp-test-pcDwit)
+LSP :: ty-ls has exited (killed: 9)
+LSP :: Workspace ty-ls:11257 shutdown.
+LSP :: ruff has exited (killed: 9)
+LSP :: Workspace ruff:11256 shutdown.
+LSP :: pyright has exited (killed: 9)
+LSP :: Workspace pyright:11255 shutdown.
+LSP :: Disconnected
+LSP :: Shutdown ty-ls:11612 since folder /var/folders/pt/0j3p9zzj49x5vkv1mmkpvs0c0000gn/T/greger-lsp-test-pcDwit is removed...
+LSP :: Shutdown ruff:11611 since folder /var/folders/pt/0j3p9zzj49x5vkv1mmkpvs0c0000gn/T/greger-lsp-test-pcDwit is removed...
+LSP :: Shutdown pyright:11610 since folder /var/folders/pt/0j3p9zzj49x5vkv1mmkpvs0c0000gn/T/greger-lsp-test-pcDwit is removed...
+   passed   8/16  greger-lsp-test-find-definition-with-declaration (1.241745 sec)
+LSP :: Connected to [pyright:11967/starting /var/folders/pt/0j3p9zzj49x5vkv1mmkpvs0c0000gn/T/greger-lsp-test-HHkyJa][ruff:11968/starting /var/folders/pt/0j3p9zzj49x5vkv1mmkpvs0c0000gn/T/greger-lsp-test-HHkyJa][ty-ls:11969/starting /var/folders/pt/0j3p9zzj49x5vkv1mmkpvs0c0000gn/T/greger-lsp-test-HHkyJa].
+LSP :: ty-ls:11969 initialized successfully in folders: (/var/folders/pt/0j3p9zzj49x5vkv1mmkpvs0c0000gn/T/greger-lsp-test-HHkyJa)
+LSP :: ruff:11968 initialized successfully in folders: (/var/folders/pt/0j3p9zzj49x5vkv1mmkpvs0c0000gn/T/greger-lsp-test-HHkyJa)
+LSP :: pyright:11967 initialized successfully in folders: (/var/folders/pt/0j3p9zzj49x5vkv1mmkpvs0c0000gn/T/greger-lsp-test-HHkyJa)
+LSP :: ty-ls<1> has exited (killed: 9)
+LSP :: Workspace ty-ls:11612 shutdown.
+LSP :: ruff<1> has exited (killed: 9)
+LSP :: Workspace ruff:11611 shutdown.
+LSP :: pyright<1> has exited (killed: 9)
+LSP :: Workspace pyright:11610 shutdown.
+LSP :: Disconnected
+LSP :: Shutdown ty-ls:11969 since folder /var/folders/pt/0j3p9zzj49x5vkv1mmkpvs0c0000gn/T/greger-lsp-test-HHkyJa is removed...
+LSP :: Shutdown ruff:11968 since folder /var/folders/pt/0j3p9zzj49x5vkv1mmkpvs0c0000gn/T/greger-lsp-test-HHkyJa is removed...
+LSP :: Shutdown pyright:11967 since folder /var/folders/pt/0j3p9zzj49x5vkv1mmkpvs0c0000gn/T/greger-lsp-test-HHkyJa is removed...
+   passed   9/16  greger-lsp-test-find-references (1.222650 sec)
+LSP :: Connected to [pyright:12326/starting /var/folders/pt/0j3p9zzj49x5vkv1mmkpvs0c0000gn/T/greger-lsp-test-4FFItC][ruff:12327/starting /var/folders/pt/0j3p9zzj49x5vkv1mmkpvs0c0000gn/T/greger-lsp-test-4FFItC][ty-ls:12328/starting /var/folders/pt/0j3p9zzj49x5vkv1mmkpvs0c0000gn/T/greger-lsp-test-4FFItC].
+LSP :: ruff:12327 initialized successfully in folders: (/var/folders/pt/0j3p9zzj49x5vkv1mmkpvs0c0000gn/T/greger-lsp-test-4FFItC)
+LSP :: ty-ls:12328 initialized successfully in folders: (/var/folders/pt/0j3p9zzj49x5vkv1mmkpvs0c0000gn/T/greger-lsp-test-4FFItC)
+LSP :: pyright:12326 initialized successfully in folders: (/var/folders/pt/0j3p9zzj49x5vkv1mmkpvs0c0000gn/T/greger-lsp-test-4FFItC)
+LSP :: ty-ls has exited (killed: 9)
+LSP :: Workspace ty-ls:11969 shutdown.
+LSP :: ruff has exited (killed: 9)
+LSP :: Workspace ruff:11968 shutdown.
+LSP :: pyright has exited (killed: 9)
+LSP :: Workspace pyright:11967 shutdown.
+LSP :: Disconnected
+LSP :: Shutdown ty-ls:12328 since folder /var/folders/pt/0j3p9zzj49x5vkv1mmkpvs0c0000gn/T/greger-lsp-test-4FFItC is removed...
+LSP :: Shutdown ruff:12327 since folder /var/folders/pt/0j3p9zzj49x5vkv1mmkpvs0c0000gn/T/greger-lsp-test-4FFItC is removed...
+LSP :: Shutdown pyright:12326 since folder /var/folders/pt/0j3p9zzj49x5vkv1mmkpvs0c0000gn/T/greger-lsp-test-4FFItC is removed...
+   passed  10/16  greger-lsp-test-find-references-limited (1.177972 sec)
+LSP :: Connected to [pyright:12681/starting /var/folders/pt/0j3p9zzj49x5vkv1mmkpvs0c0000gn/T/greger-lsp-test-k3f0DX][ruff:12682/starting /var/folders/pt/0j3p9zzj49x5vkv1mmkpvs0c0000gn/T/greger-lsp-test-k3f0DX][ty-ls:12683/starting /var/folders/pt/0j3p9zzj49x5vkv1mmkpvs0c0000gn/T/greger-lsp-test-k3f0DX].
+LSP :: ty-ls:12683 initialized successfully in folders: (/var/folders/pt/0j3p9zzj49x5vkv1mmkpvs0c0000gn/T/greger-lsp-test-k3f0DX)
+LSP :: ruff:12682 initialized successfully in folders: (/var/folders/pt/0j3p9zzj49x5vkv1mmkpvs0c0000gn/T/greger-lsp-test-k3f0DX)
+LSP :: pyright:12681 initialized successfully in folders: (/var/folders/pt/0j3p9zzj49x5vkv1mmkpvs0c0000gn/T/greger-lsp-test-k3f0DX)
+LSP :: ty-ls<1> has exited (killed: 9)
+LSP :: Workspace ty-ls:12328 shutdown.
+LSP :: ruff<1> has exited (killed: 9)
+LSP :: Workspace ruff:12327 shutdown.
+LSP :: pyright<1> has exited (killed: 9)
+LSP :: Workspace pyright:12326 shutdown.
+LSP :: Disconnected
+LSP :: Shutdown ty-ls:12683 since folder /var/folders/pt/0j3p9zzj49x5vkv1mmkpvs0c0000gn/T/greger-lsp-test-k3f0DX is removed...
+LSP :: Shutdown ruff:12682 since folder /var/folders/pt/0j3p9zzj49x5vkv1mmkpvs0c0000gn/T/greger-lsp-test-k3f0DX is removed...
+LSP :: Shutdown pyright:12681 since folder /var/folders/pt/0j3p9zzj49x5vkv1mmkpvs0c0000gn/T/greger-lsp-test-k3f0DX is removed...
+   passed  11/16  greger-lsp-test-format-file (1.178978 sec)
+LSP :: Connected to [pyright:13036/starting /var/folders/pt/0j3p9zzj49x5vkv1mmkpvs0c0000gn/T/greger-lsp-test-IaulsC][ruff:13037/starting /var/folders/pt/0j3p9zzj49x5vkv1mmkpvs0c0000gn/T/greger-lsp-test-IaulsC][ty-ls:13038/starting /var/folders/pt/0j3p9zzj49x5vkv1mmkpvs0c0000gn/T/greger-lsp-test-IaulsC].
+LSP :: ty-ls:13038 initialized successfully in folders: (/var/folders/pt/0j3p9zzj49x5vkv1mmkpvs0c0000gn/T/greger-lsp-test-IaulsC)
+LSP :: ruff:13037 initialized successfully in folders: (/var/folders/pt/0j3p9zzj49x5vkv1mmkpvs0c0000gn/T/greger-lsp-test-IaulsC)
+LSP :: pyright:13036 initialized successfully in folders: (/var/folders/pt/0j3p9zzj49x5vkv1mmkpvs0c0000gn/T/greger-lsp-test-IaulsC)
+LSP :: ty-ls has exited (killed: 9)
+LSP :: Workspace ty-ls:12683 shutdown.
+LSP :: ruff has exited (killed: 9)
+LSP :: Workspace ruff:12682 shutdown.
+LSP :: pyright has exited (killed: 9)
+LSP :: Workspace pyright:12681 shutdown.
+LSP :: Applying 1 edits to `main.py' ...
+Applying 1 edits to `main.py' ...
+Applying 1 edits to `main.py' ...done
+LSP :: Disconnected
+LSP :: Shutdown ty-ls:13038 since folder /var/folders/pt/0j3p9zzj49x5vkv1mmkpvs0c0000gn/T/greger-lsp-test-IaulsC is removed...
+LSP :: Shutdown ruff:13037 since folder /var/folders/pt/0j3p9zzj49x5vkv1mmkpvs0c0000gn/T/greger-lsp-test-IaulsC is removed...
+LSP :: Shutdown pyright:13036 since folder /var/folders/pt/0j3p9zzj49x5vkv1mmkpvs0c0000gn/T/greger-lsp-test-IaulsC is removed...
+LSP :: ty-ls<1> has exited (killed: 9)
+LSP :: Workspace ty-ls:13038 shutdown.
+LSP :: ruff<1> has exited (killed: 9)
+LSP :: Workspace ruff:13037 shutdown.
+   passed  12/16  greger-lsp-test-format-range (1.176652 sec)
+LSP :: Connected to [pyright:13392/starting /var/folders/pt/0j3p9zzj49x5vkv1mmkpvs0c0000gn/T/greger-lsp-test-28pWNo][ruff:13393/starting /var/folders/pt/0j3p9zzj49x5vkv1mmkpvs0c0000gn/T/greger-lsp-test-28pWNo][ty-ls:13394/starting /var/folders/pt/0j3p9zzj49x5vkv1mmkpvs0c0000gn/T/greger-lsp-test-28pWNo].
+LSP :: pyright<1> has exited (killed: 9)
+LSP :: Workspace pyright:13036 shutdown.
+LSP :: ty-ls:13394 initialized successfully in folders: (/var/folders/pt/0j3p9zzj49x5vkv1mmkpvs0c0000gn/T/greger-lsp-test-28pWNo)
+LSP :: ruff:13393 initialized successfully in folders: (/var/folders/pt/0j3p9zzj49x5vkv1mmkpvs0c0000gn/T/greger-lsp-test-28pWNo)
+LSP :: pyright:13392 initialized successfully in folders: (/var/folders/pt/0j3p9zzj49x5vkv1mmkpvs0c0000gn/T/greger-lsp-test-28pWNo)
+LSP :: Disconnected
+LSP :: Shutdown ty-ls:13394 since folder /var/folders/pt/0j3p9zzj49x5vkv1mmkpvs0c0000gn/T/greger-lsp-test-28pWNo is removed...
+LSP :: Shutdown ruff:13393 since folder /var/folders/pt/0j3p9zzj49x5vkv1mmkpvs0c0000gn/T/greger-lsp-test-28pWNo is removed...
+LSP :: Shutdown pyright:13392 since folder /var/folders/pt/0j3p9zzj49x5vkv1mmkpvs0c0000gn/T/greger-lsp-test-28pWNo is removed...
+   passed  13/16  greger-lsp-test-rename-and-find-references (1.935857 sec)
+LSP :: Connected to [pyright:13754/starting /var/folders/pt/0j3p9zzj49x5vkv1mmkpvs0c0000gn/T/greger-lsp-test-fuBntu][ruff:13755/starting /var/folders/pt/0j3p9zzj49x5vkv1mmkpvs0c0000gn/T/greger-lsp-test-fuBntu][ty-ls:13756/starting /var/folders/pt/0j3p9zzj49x5vkv1mmkpvs0c0000gn/T/greger-lsp-test-fuBntu].
+LSP :: ty-ls:13756 initialized successfully in folders: (/var/folders/pt/0j3p9zzj49x5vkv1mmkpvs0c0000gn/T/greger-lsp-test-fuBntu)
+LSP :: ruff:13755 initialized successfully in folders: (/var/folders/pt/0j3p9zzj49x5vkv1mmkpvs0c0000gn/T/greger-lsp-test-fuBntu)
+LSP :: pyright:13754 initialized successfully in folders: (/var/folders/pt/0j3p9zzj49x5vkv1mmkpvs0c0000gn/T/greger-lsp-test-fuBntu)
+LSP :: ty-ls has exited (killed: 9)
+LSP :: Workspace ty-ls:13394 shutdown.
+LSP :: ruff has exited (killed: 9)
+LSP :: Workspace ruff:13393 shutdown.
+LSP :: pyright has exited (killed: 9)
+LSP :: Workspace pyright:13392 shutdown.
+LSP :: Disconnected
+LSP :: Shutdown ty-ls:13756 since folder /var/folders/pt/0j3p9zzj49x5vkv1mmkpvs0c0000gn/T/greger-lsp-test-fuBntu is removed...
+LSP :: Shutdown ruff:13755 since folder /var/folders/pt/0j3p9zzj49x5vkv1mmkpvs0c0000gn/T/greger-lsp-test-fuBntu is removed...
+LSP :: Shutdown pyright:13754 since folder /var/folders/pt/0j3p9zzj49x5vkv1mmkpvs0c0000gn/T/greger-lsp-test-fuBntu is removed...
+   passed  14/16  greger-lsp-test-rename-invalid-symbol (1.233543 sec)
+LSP :: Connected to [pyright:14109/starting /var/folders/pt/0j3p9zzj49x5vkv1mmkpvs0c0000gn/T/greger-lsp-test-b5kkNh][ruff:14110/starting /var/folders/pt/0j3p9zzj49x5vkv1mmkpvs0c0000gn/T/greger-lsp-test-b5kkNh][ty-ls:14111/starting /var/folders/pt/0j3p9zzj49x5vkv1mmkpvs0c0000gn/T/greger-lsp-test-b5kkNh].
+LSP :: ty-ls:14111 initialized successfully in folders: (/var/folders/pt/0j3p9zzj49x5vkv1mmkpvs0c0000gn/T/greger-lsp-test-b5kkNh)
+LSP :: ruff:14110 initialized successfully in folders: (/var/folders/pt/0j3p9zzj49x5vkv1mmkpvs0c0000gn/T/greger-lsp-test-b5kkNh)
+LSP :: pyright:14109 initialized successfully in folders: (/var/folders/pt/0j3p9zzj49x5vkv1mmkpvs0c0000gn/T/greger-lsp-test-b5kkNh)
+LSP :: ty-ls<1> has exited (killed: 9)
+LSP :: Workspace ty-ls:13756 shutdown.
+LSP :: ruff<1> has exited (killed: 9)
+LSP :: Workspace ruff:13755 shutdown.
+LSP :: pyright<1> has exited (killed: 9)
+LSP :: Workspace pyright:13754 shutdown.
+LSP :: Applying 1 edits to `utils.py' ...
+Applying 1 edits to `utils.py' ...
+Applying 1 edits to `utils.py' ...done
+LSP :: Applying 3 edits to `main.py' ...
+Applying 3 edits to `main.py' ...
+Applying 3 edits to `main.py' ...done
+LSP :: Disconnected
+LSP :: Shutdown ty-ls:14111 since folder /var/folders/pt/0j3p9zzj49x5vkv1mmkpvs0c0000gn/T/greger-lsp-test-b5kkNh is removed...
+LSP :: Shutdown ruff:14110 since folder /var/folders/pt/0j3p9zzj49x5vkv1mmkpvs0c0000gn/T/greger-lsp-test-b5kkNh is removed...
+LSP :: Shutdown pyright:14109 since folder /var/folders/pt/0j3p9zzj49x5vkv1mmkpvs0c0000gn/T/greger-lsp-test-b5kkNh is removed...
+   passed  15/16  greger-lsp-test-rename-success (1.175428 sec)
+LSP :: Connected to [pyright:14464/starting /var/folders/pt/0j3p9zzj49x5vkv1mmkpvs0c0000gn/T/greger-lsp-test-EinpO3][ruff:14465/starting /var/folders/pt/0j3p9zzj49x5vkv1mmkpvs0c0000gn/T/greger-lsp-test-EinpO3][ty-ls:14466/starting /var/folders/pt/0j3p9zzj49x5vkv1mmkpvs0c0000gn/T/greger-lsp-test-EinpO3].
+LSP :: ty-ls:14466 initialized successfully in folders: (/var/folders/pt/0j3p9zzj49x5vkv1mmkpvs0c0000gn/T/greger-lsp-test-EinpO3)
+LSP :: ruff:14465 initialized successfully in folders: (/var/folders/pt/0j3p9zzj49x5vkv1mmkpvs0c0000gn/T/greger-lsp-test-EinpO3)
+LSP :: pyright:14464 initialized successfully in folders: (/var/folders/pt/0j3p9zzj49x5vkv1mmkpvs0c0000gn/T/greger-lsp-test-EinpO3)
+LSP :: ty-ls has exited (killed: 9)
+LSP :: Workspace ty-ls:14111 shutdown.
+LSP :: ruff has exited (killed: 9)
+LSP :: Workspace ruff:14110 shutdown.
+LSP :: pyright has exited (killed: 9)
+LSP :: Workspace pyright:14109 shutdown.
+LSP :: Disconnected
+LSP :: Shutdown ty-ls:14466 since folder /var/folders/pt/0j3p9zzj49x5vkv1mmkpvs0c0000gn/T/greger-lsp-test-EinpO3 is removed...
+LSP :: Shutdown ruff:14465 since folder /var/folders/pt/0j3p9zzj49x5vkv1mmkpvs0c0000gn/T/greger-lsp-test-EinpO3 is removed...
+LSP :: Shutdown pyright:14464 since folder /var/folders/pt/0j3p9zzj49x5vkv1mmkpvs0c0000gn/T/greger-lsp-test-EinpO3 is removed...
+LSP :: ty-ls<1> has exited (killed: 9)
+LSP :: Workspace ty-ls:14466 shutdown.
+LSP :: ruff<1> has exited (killed: 9)
+LSP :: Workspace ruff:14465 shutdown.
+   passed  16/16  greger-lsp-test-with-buffer-at-position (1.169358 sec)
+
+Ran 16 tests, 16 results as expected, 0 unexpected (2025-06-03 17:20:34+0200, 21.865738 sec)
+
+
+
+Running tests in [1;33mtest/test-greger-tools.el[0m (verbose mode)...
+Loading /Users/andreas/projects/greger.el/greger.el (source)...
+Source file ‘/opt/homebrew/Cellar/emacs-plus@29/29.0.90/share/emacs/29.0.91/lisp/net/eww.el’ newer than byte-compiled file; using older file
+Loading /Users/andreas/projects/greger.el/greger-parser.el (source)...
+Loading /Users/andreas/projects/greger.el/greger-stdlib.el (source)...
+Loading /Users/andreas/projects/greger.el/greger-lib-lsp.el (source)...
+Loading /Users/andreas/projects/greger.el/greger-tools.el (source)...
+Loading /Users/andreas/projects/greger.el/greger-client.el (source)...
+Loading /Users/andreas/projects/greger.el/greger-web.el (source)...
+Loading /Users/andreas/projects/greger.el/test/test-greger-tools.el (source)...
+Running 9 tests (2025-06-03 17:20:35+0200, selector ‘t’)
+   passed  1/9  greger-tools-test-async-subprocess-utility (0.510133 sec)
+count: 5
+prefix: nil
+count: 2
+prefix: nil
+count: 2
+prefix: ***
+   passed  2/9  greger-tools-test-default-parameter-values (0.000880 sec)
+   passed  3/9  greger-tools-test-missing-required-parameter-error (0.000847 sec)
+   passed  4/9  greger-tools-test-optional-parameters (0.000556 sec)
+   passed  5/9  greger-tools-test-parameter-mapping (0.000251 sec)
+   passed  6/9  greger-tools-test-pass-buffer-functionality (0.000422 sec)
+   passed  7/9  greger-tools-test-pass-callback-functionality (0.000527 sec)
+   passed  8/9  greger-tools-test-tool-registration-and-execution (0.000672 sec)
+   passed  9/9  greger-tools-test-unknown-tool-error (0.000213 sec)
+
+Ran 9 tests, 9 results as expected, 0 unexpected (2025-06-03 17:20:35+0200, 0.515716 sec)
+
+
+
+Running tests in [1;33mtest/test-greger-client.el[0m (verbose mode)...
+Loading /Users/andreas/projects/greger.el/greger.el (source)...
+Source file ‘/opt/homebrew/Cellar/emacs-plus@29/29.0.90/share/emacs/29.0.91/lisp/net/eww.el’ newer than byte-compiled file; using older file
+Loading /Users/andreas/projects/greger.el/greger-parser.el (source)...
+Loading /Users/andreas/projects/greger.el/greger-stdlib.el (source)...
+Loading /Users/andreas/projects/greger.el/greger-lib-lsp.el (source)...
+Loading /Users/andreas/projects/greger.el/greger-tools.el (source)...
+Loading /Users/andreas/projects/greger.el/greger-client.el (source)...
+Loading /Users/andreas/projects/greger.el/greger-web.el (source)...
+Loading /Users/andreas/projects/greger.el/test/test-greger-client.el (source)...
+Running 5 tests (2025-06-03 17:20:36+0200, selector ‘t’)
+   passed  1/5  greger-end-to-end-test-error-handling (0.000075 sec)
+   passed  2/5  greger-end-to-end-test-request-building (0.000189 sec)
+   passed  3/5  greger-end-to-end-test-simple-text-generation (1.769698 sec)
+   passed  4/5  greger-end-to-end-test-supported-models (0.000119 sec)
+   passed  5/5  greger-end-to-end-test-tool-use (3.020941 sec)
+
+Ran 5 tests, 5 results as expected, 0 unexpected (2025-06-03 17:20:41+0200, 4.791638 sec)
+
+
+
+Running tests in [1;33mtest/test-end-to-end.el[0m (verbose mode)...
+Loading /Users/andreas/projects/greger.el/greger.el (source)...
+Source file ‘/opt/homebrew/Cellar/emacs-plus@29/29.0.90/share/emacs/29.0.91/lisp/net/eww.el’ newer than byte-compiled file; using older file
+Loading /Users/andreas/projects/greger.el/greger-parser.el (source)...
+Loading /Users/andreas/projects/greger.el/greger-stdlib.el (source)...
+Loading /Users/andreas/projects/greger.el/greger-lib-lsp.el (source)...
+Loading /Users/andreas/projects/greger.el/greger-tools.el (source)...
+Loading /Users/andreas/projects/greger.el/greger-client.el (source)...
+Loading /Users/andreas/projects/greger.el/greger-web.el (source)...
+Loading /Users/andreas/projects/greger.el/test/test-end-to-end.el (source)...
+Running 5 tests (2025-06-03 17:20:42+0200, selector ‘t’)
+Using model claude-sonnet-4-20250514
+   passed  1/5  greger-end-to-end-test-greger-function (0.005394 sec)
+Using model claude-sonnet-4-20250514
+   passed  2/5  greger-end-to-end-test-model-configuration (0.000241 sec)
+Using model claude-sonnet-4-20250514
+   passed  3/5  greger-end-to-end-test-no-tools-mode (4.486026 sec)
+Using model claude-sonnet-4-20250514
+   passed  4/5  greger-end-to-end-test-simple-conversation (2.073753 sec)
+Using model claude-sonnet-4-20250514
+   passed  5/5  greger-end-to-end-test-tool-use-conversation (7.025472 sec)
+
+Ran 5 tests, 5 results as expected, 0 unexpected (2025-06-03 17:20:55+0200, 13.591620 sec)
+
+
+[0;34mTest Summary:[0m
+  Files run: 7
+  Files passed: [0;32m7[0m
+  Files failed: [0;31m0[0m
+[0;32mAll tests passed![0m
+
+</tool.toolu_016GeYd9vYyNzzzy4iH9jc6u>
+
+## ASSISTANT:
+
+Perfect! All tests are passing. Now let's create a simple test to demonstrate that the functionality works as expected. Let me create a simple example to test the exact scenario you described:
+
+## TOOL USE:
+
+Name: write-new-file
+ID: toolu_011Uz6yHf2TSuei1Ay1koeJ4
+
+### file_path
+
+<tool.toolu_011Uz6yHf2TSuei1Ay1koeJ4>
+test_safe_commands_example.el
+</tool.toolu_011Uz6yHf2TSuei1Ay1koeJ4>
+
+### contents
+
+<tool.toolu_011Uz6yHf2TSuei1Ay1koeJ4>
+;;; Test the safe shell commands auto-generation functionality
+
+(add-to-list 'load-path ".")
+(require 'greger-parser)
+
+;; Test the exact scenario from the user's request
+(let ((markdown "## SYSTEM:
+
+<safe-shell-commands>
+bash script/package-lint
+bash script/test --verbose
+bash script/test --verbose --file test/test-parser.el
+bash script/test --verbose --file test/test-greger.el
+bash script/test --verbose --file test/test-greger-lib-lsp.el
+</safe-shell-commands>"))
+
+  (let ((result (greger-parser-parse-dialog markdown)))
+    (message "Messages: %S" (plist-get result :messages))
+    (message "Metadata: %S" (plist-get result :metadata))
+
+    ;; Should have one system message with auto-generated content
+    (when (= 1 (length (plist-get result :messages)))
+      (let* ((system-msg (car (plist-get result :messages)))
+             (content (alist-get 'content system-msg)))
+        (message "\nGenerated system message content:")
+        (message "%s" content)))))
+</tool.toolu_011Uz6yHf2TSuei1Ay1koeJ4>
+
+### git_commit_message
+
+<tool.toolu_011Uz6yHf2TSuei1Ay1koeJ4>
+Add test script to demonstrate safe shell commands auto-generation
+</tool.toolu_011Uz6yHf2TSuei1Ay1koeJ4>
+
+<!-- TOOL_RESULT_PLACEHOLDER_toolu_011Uz6yHf2TSuei1Ay1koeJ4 -->
