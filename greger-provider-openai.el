@@ -1,5 +1,10 @@
 ;;; greger-provider-openai.el --- OpenAI-compatible provider support -*- lexical-binding: t -*-
 
+;; Author: Andreas Jansson <andreas@jansson.me.uk>
+;; Version: 0.1.0
+;; URL: https://github.com/andreasjansson/greger.el
+;; Package-Requires: ((emacs "28.1"))
+
 ;;; Commentary:
 ;; Support for OpenAI and OpenAI-compatible providers (Replicate, Groq, Ollama)
 
