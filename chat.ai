@@ -5335,4 +5335,67 @@ If the tool has :pass-metadata set, METADATA will be passed to the tool function
 Add debugging to greger-tools-execute to see arg types
 </tool.toolu_01KkBB5cpqpcvgJ7BmQCXbpx>
 
-<!-- TOOL_RESULT_PLACEHOLDER_toolu_01KkBB5cpqpcvgJ7BmQCXbpx -->
+## TOOL RESULT:
+
+ID: toolu_01KkBB5cpqpcvgJ7BmQCXbpx
+
+<tool.toolu_01KkBB5cpqpcvgJ7BmQCXbpx>
+Successfully replaced content in /Users/andreas/projects/greger.el/greger-tools.el. Successfully staged 2 file(s) and committed with message: Add debugging to greger-tools-execute to see arg types
+</tool.toolu_01KkBB5cpqpcvgJ7BmQCXbpx>
+
+
+
+
+## TOOL USE:
+
+Name: str-replace
+ID: toolu_015h58aKWGg9FWwaerSTo6Em
+
+### file_path
+
+<tool.toolu_015h58aKWGg9FWwaerSTo6Em>
+greger-tools.el
+</tool.toolu_015h58aKWGg9FWwaerSTo6Em>
+
+### original_content
+
+<tool.toolu_015h58aKWGg9FWwaerSTo6Em>
+(defun greger-tools--extract-function-args (func args tool-def)
+  "Extract arguments for FUNC from ARGS alist based on function signature.
+TOOL-DEF provides the tool definition for accessing defaults and required parameters.
+Returns a list of arguments in the correct order for the function."
+  (let ((arg-list (help-function-arglist func))
+        (result '())
+        (optional-started nil)
+        (required-params (when tool-def
+                          (let* ((schema (plist-get tool-def :schema))
+                                 (input-schema (alist-get 'input_schema schema)))
+                            (alist-get 'required input-schema)))))
+</tool.toolu_015h58aKWGg9FWwaerSTo6Em>
+
+### new_content
+
+<tool.toolu_015h58aKWGg9FWwaerSTo6Em>
+(defun greger-tools--extract-function-args (func args tool-def)
+  "Extract arguments for FUNC from ARGS alist based on function signature.
+TOOL-DEF provides the tool definition for accessing defaults and required parameters.
+Returns a list of arguments in the correct order for the function."
+  ;; Debug: log what we receive
+  (message "[DEBUG] greger-tools--extract-function-args called for func: %s" func)
+  (message "[DEBUG] args: %S" args)
+  (let ((arg-list (help-function-arglist func))
+        (result '())
+        (optional-started nil)
+        (required-params (when tool-def
+                          (let* ((schema (plist-get tool-def :schema))
+                                 (input-schema (alist-get 'input_schema schema)))
+                            (alist-get 'required input-schema)))))
+</tool.toolu_015h58aKWGg9FWwaerSTo6Em>
+
+### git_commit_message
+
+<tool.toolu_015h58aKWGg9FWwaerSTo6Em>
+Add debugging to argument extraction function
+</tool.toolu_015h58aKWGg9FWwaerSTo6Em>
+
+<!-- TOOL_RESULT_PLACEHOLDER_toolu_015h58aKWGg9FWwaerSTo6Em -->

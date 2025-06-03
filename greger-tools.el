@@ -115,6 +115,9 @@ TOOL-DEF provides the tool definition for accessing defaults."
   "Extract arguments for FUNC from ARGS alist based on function signature.
 TOOL-DEF provides the tool definition for accessing defaults and required parameters.
 Returns a list of arguments in the correct order for the function."
+  ;; Debug: log what we receive
+  (message "[DEBUG] greger-tools--extract-function-args called for func: %s" func)
+  (message "[DEBUG] args: %S" args)
   (let ((arg-list (help-function-arglist func))
         (result '())
         (optional-started nil)
