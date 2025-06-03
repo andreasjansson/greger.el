@@ -824,7 +824,6 @@ Returns either a system message, metadata, or both."
 (defun greger-parser--convert-value (str)
   "Convert string to appropriate Elisp value."
   (let ((trimmed (string-trim str)))
-    (message "[DEBUG] greger-parser--convert-value called with: %S" trimmed)
     (cond
      ((string= trimmed "true") t)
      ((string= trimmed "false") nil)
@@ -833,10 +832,7 @@ Returns either a system message, metadata, or both."
      ((string-match-p "^-?[0-9]*\\.[0-9]+$" trimmed)
       (string-to-number trimmed))
      ((and (string-prefix-p "[" trimmed) (string-suffix-p "]" trimmed))
-      (message "[DEBUG] Parsing JSON array: %S" trimmed)
-      (let ((result (greger-parser--parse-json-array trimmed)))
-        (message "[DEBUG] JSON array parsed to: %S" result)
-        result))
+      (greger-parser--parse-json-array trimmed))
      ((and (string-prefix-p "{" trimmed) (string-suffix-p "}" trimmed))
       (greger-parser--parse-json-object trimmed))
      (t trimmed))))
