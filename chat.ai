@@ -2750,4 +2750,80 @@ Line 3
 Add temporary test file for debugging read-file function
 </tool.toolu_01YJwfFguvnHJc59mufvv1L9>
 
-<!-- TOOL_RESULT_PLACEHOLDER_toolu_01YJwfFguvnHJc59mufvv1L9 -->
+## TOOL RESULT:
+
+ID: toolu_01YJwfFguvnHJc59mufvv1L9
+
+<tool.toolu_01YJwfFguvnHJc59mufvv1L9>
+Successfully wrote new file /Users/andreas/projects/greger.el/test-read-file.txt with 20 characters. Successfully staged 2 file(s) and committed with message: Add temporary test file for debugging read-file function
+</tool.toolu_01YJwfFguvnHJc59mufvv1L9>
+
+
+## TOOL USE:
+
+Name: read-file
+ID: toolu_01HjZ2TQ4zMtrTwZ9Vo9TBTR
+
+### path
+
+<tool.toolu_01HjZ2TQ4zMtrTwZ9Vo9TBTR>
+test-read-file.txt
+</tool.toolu_01HjZ2TQ4zMtrTwZ9Vo9TBTR>
+
+### include_line_numbers
+
+<tool.toolu_01HjZ2TQ4zMtrTwZ9Vo9TBTR>
+true
+</tool.toolu_01HjZ2TQ4zMtrTwZ9Vo9TBTR>
+
+## TOOL RESULT:
+
+ID: toolu_01HjZ2TQ4zMtrTwZ9Vo9TBTR
+
+<tool.toolu_01HjZ2TQ4zMtrTwZ9Vo9TBTR>
+1: Line 1
+2: Line 2
+3: Line 3
+4:
+</tool.toolu_01HjZ2TQ4zMtrTwZ9Vo9TBTR>
+
+## ASSISTANT:
+
+I see the issue! The function is adding an extra empty line. This is because `split-string` on "Line 1\nLine 2\nLine 3" creates `["Line 1", "Line 2", "Line 3", ""]` - the trailing newline creates an empty string at the end.
+
+Let me check what happens when there's no trailing newline:
+
+## TOOL USE:
+
+Name: str-replace
+ID: toolu_01RfokSRBeFJRrK8rCx4NHnv
+
+### file_path
+
+<tool.toolu_01RfokSRBeFJRrK8rCx4NHnv>
+test-read-file.txt
+</tool.toolu_01RfokSRBeFJRrK8rCx4NHnv>
+
+### original_content
+
+<tool.toolu_01RfokSRBeFJRrK8rCx4NHnv>
+Line 1
+Line 2
+Line 3
+</tool.toolu_01RfokSRBeFJRrK8rCx4NHnv>
+
+### new_content
+
+<tool.toolu_01RfokSRBeFJRrK8rCx4NHnv>
+Line 1
+Line 2
+Line 3
+</tool.toolu_01RfokSRBeFJRrK8rCx4NHnv>
+
+### git_commit_message
+
+<tool.toolu_01RfokSRBeFJRrK8rCx4NHnv>
+Remove trailing newline from test file
+</tool.toolu_01RfokSRBeFJRrK8rCx4NHnv>
+
+<!-- TOOL_RESULT_PLACEHOLDER_toolu_01RfokSRBeFJRrK8rCx4NHnv -->
