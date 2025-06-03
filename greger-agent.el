@@ -106,8 +106,8 @@
           (greger-agent--finish-response agent-state))
 
       ;; Get Claude's response
-      (greger-agent--debug "CALLING greger-stream-to-buffer-with-tools...")
-      (greger-stream-to-buffer-with-tools
+      (greger-agent--debug "CALLING greger-client-stream...")
+      (greger-client-stream
        :model greger-model
        :dialog current-dialog
        :tools tools
