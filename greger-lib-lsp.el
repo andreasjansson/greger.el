@@ -313,7 +313,8 @@ DETAILED flag."
          "No changes made - symbol may not exist or rename not applicable")))))
 
 (defun greger-lib-lsp--format (file-path &optional start-line end-line)
-  "Format FILE-PATH using LSP. If START-LINE and END-LINE provided, format only that range."
+  "Format FILE-PATH using LSP.
+If START-LINE and END-LINE provided, format only that range."
   (let ((buffer (greger-lib-lsp--ensure-server file-path)))
     (with-current-buffer buffer
       (let ((edits (if (and start-line end-line)
