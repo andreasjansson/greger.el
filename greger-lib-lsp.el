@@ -32,7 +32,10 @@
 
 (require 'greger-tools)
 (require 'cl-lib)
-(require 'lsp-mode)
+
+;; Only require lsp-mode if it's available
+(unless (require 'lsp-mode nil 'noerror)
+  (error "lsp-mode is required for greger-lib-lsp functionality"))
 
 ;;; Tool registrations
 
