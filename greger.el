@@ -17,6 +17,9 @@
 (require 'greger-parser)
 (require 'cl-lib)
 
+;; Forward declarations
+(defvar greger-agent-tools nil "List of tools available to the agent.")
+
 (defconst greger-available-models
   '(replicate/meta/meta-llama-3.1-405b-instruct
     replicate/meta/meta-llama-3-70b-instruct
