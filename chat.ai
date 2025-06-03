@@ -3685,4 +3685,76 @@ Some other text with ((((more unbalanced
 Test unbalanced parens in non-el file
 </tool.toolu_014eG8yAXD2hH3f82xouFU11>
 
-<!-- TOOL_RESULT_PLACEHOLDER_toolu_014eG8yAXD2hH3f82xouFU11 -->
+## TOOL RESULT:
+
+ID: toolu_014eG8yAXD2hH3f82xouFU11
+
+<tool.toolu_014eG8yAXD2hH3f82xouFU11>
+Successfully replaced content in /Users/andreas/projects/greger.el/test-example.txt. Successfully staged 2 file(s) and committed with message: Test unbalanced parens in non-el file
+</tool.toolu_014eG8yAXD2hH3f82xouFU11>
+
+
+## ASSISTANT:
+
+Perfect! As expected, the paren balance checking is skipped for non-.el files, so the replacement succeeded even with unbalanced parens.
+
+Now let's clean up the test files:
+
+## TOOL USE:
+
+Name: shell-command
+ID: toolu_01WLGrLwEQfsxDRTkSW9trFN
+
+### command
+
+<tool.toolu_01WLGrLwEQfsxDRTkSW9trFN>
+rm test-example.el test-example.txt
+</tool.toolu_01WLGrLwEQfsxDRTkSW9trFN>
+
+## TOOL RESULT:
+
+ID: toolu_01WLGrLwEQfsxDRTkSW9trFN
+
+<tool.toolu_01WLGrLwEQfsxDRTkSW9trFN>
+Command executed successfully:
+(no output)
+</tool.toolu_01WLGrLwEQfsxDRTkSW9trFN>
+
+## ASSISTANT:
+
+## Summary
+
+I have successfully modified the `str-replace` function in `greger-stdlib.el` to add parentheses balance checking for Emacs Lisp files (.el extension). Here's what the implementation does:
+
+### Key Features:
+
+1. **Paren Balance Checking**: For .el files, the function now verifies that the parentheses balance (left parens - right parens) is the same in both the original content and new content.
+
+2. **Proper String and Comment Handling**: Uses `parse-partial-sexp` with the `lisp-data-mode-syntax-table` to correctly ignore parentheses that appear inside strings and comments, just like the Emacs Lisp parser does.
+
+3. **Non-intrusive**: Only applies the checking to .el files - other file types are unaffected.
+
+4. **Clear Error Messages**: Provides informative error messages when balance mismatches are detected.
+
+### Implementation Details:
+
+- **`greger-stdlib--count-paren-balance`**: A helper function that counts the paren balance in a string, properly handling strings and comments using `parse-partial-sexp`.
+
+- **Modified `greger-stdlib--str-replace`**: Added a check that runs before any file modification for .el files, ensuring the replacement maintains paren balance.
+
+### Test Coverage:
+
+I added comprehensive tests covering:
+- Balanced and unbalanced expressions
+- Parens in strings (should be ignored)
+- Parens in comments (should be ignored)
+- Mixed content with strings and comments
+- Integration tests with the str-replace function
+- Verification that non-.el files skip the check
+
+The implementation follows the requirement that parens don't need to be perfectly balanced, just _equally_ balanced between original and new content. For example, `(foo))` (balance: -1) can be replaced with `(a (b) c) d)` (balance: -1) but not with `(a (b) c d)` (balance: 0).
+
+All
+ existing tests continue to pass, ensuring no regressions were introduced.
+
+## USER:
