@@ -8759,4 +8759,59 @@ If BUFFER is provided, it will be staged and committed along with the deleted fi
 Remove JSON parsing from delete-files - now handled centrally in greger-tools
 </tool.toolu_01XAJ6W997xj2h7rsFri6p2o>
 
-<!-- TOOL_RESULT_PLACEHOLDER_toolu_01XAJ6W997xj2h7rsFri6p2o -->
+## TOOL RESULT:
+
+ID: toolu_01XAJ6W997xj2h7rsFri6p2o
+
+<tool.toolu_01XAJ6W997xj2h7rsFri6p2o>
+Successfully replaced content in /Users/andreas/projects/greger.el/greger-stdlib.el. Successfully staged 2 file(s) and committed with message: Remove JSON parsing from delete-files - now handled centrally in greger-tools
+</tool.toolu_01XAJ6W997xj2h7rsFri6p2o>
+
+
+## TOOL USE:
+
+Name: str-replace
+ID: toolu_0132C7rfopqwHuoUpNiBkQbP
+
+### file_path
+
+<tool.toolu_0132C7rfopqwHuoUpNiBkQbP>
+greger-stdlib.el
+</tool.toolu_0132C7rfopqwHuoUpNiBkQbP>
+
+### original_content
+
+<tool.toolu_0132C7rfopqwHuoUpNiBkQbP>
+(defun greger-stdlib--eval-elisp-defuns (file-path function-names)
+  (unless (stringp file-path)
+    (error "File path must be a string"))
+
+  ;; Handle JSON array strings by parsing them into lists
+  (when (stringp function-names)
+    (condition-case nil
+        (setq function-names (json-parse-string function-names :array-type 'list))
+      (error
+        (error "function_names must be a valid JSON array string, vector, or list: %s" function-names))))
+
+  (unless (or (vectorp function-names) (listp function-names))
+    (error "Function names must be a vector or list"))
+</tool.toolu_0132C7rfopqwHuoUpNiBkQbP>
+
+### new_content
+
+<tool.toolu_0132C7rfopqwHuoUpNiBkQbP>
+(defun greger-stdlib--eval-elisp-defuns (file-path function-names)
+  (unless (stringp file-path)
+    (error "File path must be a string"))
+
+  (unless (or (vectorp function-names) (listp function-names))
+    (error "Function names must be a vector or list"))
+</tool.toolu_0132C7rfopqwHuoUpNiBkQbP>
+
+### git_commit_message
+
+<tool.toolu_0132C7rfopqwHuoUpNiBkQbP>
+Remove JSON parsing from eval-elisp-defuns - now handled centrally in greger-tools
+</tool.toolu_0132C7rfopqwHuoUpNiBkQbP>
+
+<!-- TOOL_RESULT_PLACEHOLDER_toolu_0132C7rfopqwHuoUpNiBkQbP -->
