@@ -119,6 +119,7 @@ parameters.  Returns a list of arguments in the correct order for the function."
 
   (let ((arg-list (help-function-arglist func))
         (result '())
+        (optional-started nil)
         (required-params (when tool-def
                           (let* ((schema (plist-get tool-def :schema))
                                  (input-schema (alist-get 'input_schema schema)))
