@@ -411,7 +411,6 @@
              (tool-id (alist-get 'id tool-call)))
 
         (let ((default-directory (greger-state-directory agent-state)))
-          (message "[DEBUG] About to call greger-tools-execute with tool-name: %S, tool-input: %S" tool-name tool-input)
           (greger-tools-execute
            tool-name
            tool-input
