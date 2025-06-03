@@ -6,6 +6,7 @@
 ;; Version: 0.1.0
 ;; URL: https://github.com/andreasjansson/greger.el
 ;; Package-Requires: ((emacs "28.0") (markdown-mode "2.3"))
+;; Keywords: ai, chat, language-models, tools
 
 ;;; Commentary:
 ;; This package provides an interface for interacting with AI language models
