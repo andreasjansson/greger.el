@@ -1740,4 +1740,496 @@ greger-stdlib.el
 Fix error handling in greger-stdlib--read-webpage to return formatted string instead of re-signaling error
 </tool.toolu_01CsUZniEKuWm5gNhnYvSGR7>
 
-<!-- TOOL_RESULT_PLACEHOLDER_toolu_01CsUZniEKuWm5gNhnYvSGR7 -->
+## TOOL RESULT:
+
+ID: toolu_01CsUZniEKuWm5gNhnYvSGR7
+
+<tool.toolu_01CsUZniEKuWm5gNhnYvSGR7>
+Successfully replaced content in /Users/andreas/projects/greger.el/greger-stdlib.el. Successfully staged 2 file(s) and committed with message: Fix error handling in greger-stdlib--read-webpage to return formatted string instead of re-signaling error
+</tool.toolu_01CsUZniEKuWm5gNhnYvSGR7>
+
+
+## ASSISTANT:
+
+Now let's run the test again to see if it passes:
+
+## TOOL USE:
+
+Name: shell-command
+ID: toolu_01ERhEsMJj4J8W5TX9vueEZa
+
+### command
+
+<tool.toolu_01ERhEsMJj4J8W5TX9vueEZa>
+bash script/test --verbose --file test/test-greger-stdlib.el
+</tool.toolu_01ERhEsMJj4J8W5TX9vueEZa>
+
+## TOOL RESULT:
+
+ID: toolu_01ERhEsMJj4J8W5TX9vueEZa
+
+<tool.toolu_01ERhEsMJj4J8W5TX9vueEZa>
+Command executed successfully:
+[0;34mRunning ERT tests for greger package...[0m
+
+Running tests in [1;33mtest/test-greger-stdlib.el[0m (verbose mode)...
+Loading /Users/andreas/projects/greger.el/greger.el (source)...
+Source file ‘/opt/homebrew/Cellar/emacs-plus@29/29.0.90/share/emacs/29.0.91/lisp/net/eww.el’ newer than byte-compiled file; using older file
+Loading /Users/andreas/projects/greger.el/greger-parser.el (source)...
+Loading /Users/andreas/projects/greger.el/greger-stdlib.el (source)...
+Loading /Users/andreas/projects/greger.el/greger-tools.el (source)...
+Loading /Users/andreas/projects/greger.el/greger-client.el (source)...
+Loading /Users/andreas/projects/greger.el/greger-web.el (source)...
+Loading /Users/andreas/projects/greger.el/test/test-greger-stdlib.el (source)...
+Running 21 tests (2025-06-04 00:38:07+0200, selector ‘t’)
+   passed   1/21  greger-test-count-paren-balance (0.000441 sec)
+   passed   2/21  greger-test-delete-files-basic (0.003719 sec)
+   passed   3/21  greger-test-delete-files-directory (0.000614 sec)
+   passed   4/21  greger-test-delete-files-git-tracking (0.001135 sec)
+   passed   5/21  greger-test-delete-files-invalid-input (0.000059 sec)
+   passed   6/21  greger-test-delete-files-list-input (0.001115 sec)
+   passed   7/21  greger-test-delete-files-nonexistent-file (0.000081 sec)
+   passed   8/21  greger-test-delete-files-not-git-tracked (0.000974 sec)
+   passed   9/21  greger-test-read-webpage-invalid-url (0.000085 sec)
+   passed  10/21  greger-test-read-webpage-network-error (0.000035 sec)
+   passed  11/21  greger-test-read-webpage-valid-url (0.685633 sec)
+   passed  12/21  greger-test-shell-command-command-failure (0.113896 sec)
+   passed  13/21  greger-test-shell-command-no-metadata-still-prompts (0.111043 sec)
+   passed  14/21  greger-test-shell-command-permission-denied (0.000587 sec)
+   passed  15/21  greger-test-shell-command-safe-commands (0.117394 sec)
+   passed  16/21  greger-test-shell-command-simple (0.114010 sec)
+   passed  17/21  greger-test-shell-command-unsafe-commands-with-metadata (0.113041 sec)
+   passed  18/21  greger-test-shell-command-with-pipe (0.112197 sec)
+   passed  19/21  greger-test-str-replace-non-el-files-skip-paren-check (0.243239 sec)
+   passed  20/21  greger-test-str-replace-paren-balance-check (0.004493 sec)
+   passed  21/21  greger-test-web-url-validation (0.000050 sec)
+
+Ran 21 tests, 21 results as expected, 0 unexpected (2025-06-04 00:38:09+0200, 1.627249 sec)
+
+[0;34mTest Summary:[0m
+  Files run: 1
+  Files passed: [0;32m0[0m
+  Files failed: [0;31m1[0m
+[0;32mAll tests passed![0m
+
+</tool.toolu_01ERhEsMJj4J8W5TX9vueEZa>
+
+## ASSISTANT:
+
+Excellent! The test is now passing. Let me run all the tests to make sure I haven't broken anything else:
+
+## TOOL USE:
+
+Name: shell-command
+ID: toolu_01CEDgfk7fkWFu12GWTg8EtG
+
+### command
+
+<tool.toolu_01CEDgfk7fkWFu12GWTg8EtG>
+bash script/test
+</tool.toolu_01CEDgfk7fkWFu12GWTg8EtG>
+
+## TOOL RESULT:
+
+ID: toolu_01CEDgfk7fkWFu12GWTg8EtG
+
+<tool.toolu_01CEDgfk7fkWFu12GWTg8EtG>
+Command executed successfully:
+[0;34mRunning ERT tests for greger package...[0m
+
+Running tests in [1;33mtest/test-greger.el[0m...
+  [0;32m✓ All tests passed[0m
+
+Running tests in [1;33mtest/test-greger-parser.el[0m...
+  [0;32m✓ All tests passed[0m
+
+Running tests in [1;33mtest/test-greger-stdlib.el[0m...
+  [0;32m✓ All tests passed[0m
+
+Running tests in [1;33mtest/test-greger-tools.el[0m...
+  [0;32m✓ All tests passed[0m
+
+Running tests in [1;33mtest/test-greger-client.el[0m...
+  [0;32m✓ All tests passed[0m
+
+Running tests in [1;33mtest/test-end-to-end.el[0m...
+  [0;32m✓ All tests passed[0m
+
+[0;34mTest Summary:[0m
+  Files run: 6
+  Files passed: [0;32m6[0m
+  Files failed: [0;31m0[0m
+[0;32mAll tests passed![0m
+
+</tool.toolu_01CEDgfk7fkWFu12GWTg8EtG>
+
+## USER:
+
+Also bring back the formatting for read-file when include_line_numbers is true. It's broken on the melpazoid branch. Add a couple tests in test-greger-stdlib for read-file
+
+## ASSISTANT:
+
+I'll check the current implementation of the `read-file` function and compare it with the main branch to see what's broken with the line numbers formatting, then add some tests.
+
+## TOOL USE:
+
+Name: ripgrep
+ID: toolu_01RQXp3NiJLEzKQuvrApMevx
+
+### pattern
+
+<tool.toolu_01RQXp3NiJLEzKQuvrApMevx>
+defun greger-stdlib--read-file
+</tool.toolu_01RQXp3NiJLEzKQuvrApMevx>
+
+### context-lines
+
+<tool.toolu_01RQXp3NiJLEzKQuvrApMevx>
+20
+</tool.toolu_01RQXp3NiJLEzKQuvrApMevx>
+
+## TOOL RESULT:
+
+ID: toolu_01RQXp3NiJLEzKQuvrApMevx
+
+<tool.toolu_01RQXp3NiJLEzKQuvrApMevx>
+/Users/andreas/projects/greger.el/greger-stdlib.el:346:(defun greger-stdlib--read-file (path &optional include-line-numbers start-line end-line)
+/Users/andreas/projects/greger.el/chat.ai:585:(defun greger-stdlib--read-file (path &optional include-line-numbers start-line end-line)
+
+</tool.toolu_01RQXp3NiJLEzKQuvrApMevx>
+
+## TOOL USE:
+
+Name: read-file
+ID: toolu_01NTSzJzcnRqjeYBbd5F4uwA
+
+### path
+
+<tool.toolu_01NTSzJzcnRqjeYBbd5F4uwA>
+greger-stdlib.el
+</tool.toolu_01NTSzJzcnRqjeYBbd5F4uwA>
+
+### start_line
+
+<tool.toolu_01NTSzJzcnRqjeYBbd5F4uwA>
+346
+</tool.toolu_01NTSzJzcnRqjeYBbd5F4uwA>
+
+### end_line
+
+<tool.toolu_01NTSzJzcnRqjeYBbd5F4uwA>
+390
+</tool.toolu_01NTSzJzcnRqjeYBbd5F4uwA>
+
+### include_line_numbers
+
+<tool.toolu_01NTSzJzcnRqjeYBbd5F4uwA>
+true
+</tool.toolu_01NTSzJzcnRqjeYBbd5F4uwA>
+
+## TOOL RESULT:
+
+ID: toolu_01NTSzJzcnRqjeYBbd5F4uwA
+
+<tool.toolu_01NTSzJzcnRqjeYBbd5F4uwA>
+346: (defun greger-stdlib--read-file (path &optional include-line-numbers start-line end-line)
+347:   "Read file at PATH. If INCLUDE-LINE-NUMBERS is non-nil, prepend line numbers.
+348: If START-LINE is specified, start reading from that line (1-based).
+349: If END-LINE is specified, stop reading at that line (inclusive, 1-based)."
+350:   (unless (stringp path)
+351:     (error "Invalid type: path must be a string"))
+352:
+353:   (when (and start-line (not (integerp start-line)))
+354:     (error "Invalid type: start_line must be an integer"))
+355:
+356:   (when (and end-line (not (integerp end-line)))
+357:     (error "Invalid type: end_line must be an integer"))
+358:
+359:   (when (and start-line (< start-line 1))
+360:     (error "Invalid value: start_line must be >= 1"))
+361:
+362:   (when (and end-line (< end-line 1))
+363:     (error "Invalid value: end_line must be >= 1"))
+364:
+365:   (when (and start-line end-line (> start-line end-line))
+366:     (error "Invalid value: start_line must be <= end-line"))
+367:
+368:   (let ((expanded-path (expand-file-name path)))
+369:     (unless (file-exists-p expanded-path)
+370:       (error "File does not exist: %s" expanded-path))
+371:
+372:     (unless (file-readable-p expanded-path)
+373:       (error "File is not readable: %s" expanded-path))
+374:
+375:     (when (file-directory-p expanded-path)
+376:       (error "Path is a directory, not a file: %s" expanded-path))
+377:
+378:     (condition-case err
+379:         (with-temp-buffer
+380:           (insert-file-contents expanded-path)
+381:           (let* ((all-lines (split-string (buffer-string) "\n"))
+382:                  (total-lines (length all-lines))
+383:                  (actual-start (or start-line 1))
+384:                  (actual-end (or end-line total-lines))
+385:                  (selected-lines (greger-stdlib--extract-line-range all-lines actual-start actual-end))
+386:                  (contents (mapconcat #'identity selected-lines "\n")))
+387:             (if include-line-numbers
+388:                 (greger-stdlib--add-line-numbers-with-offset contents actual-start)
+389:               contents)))
+390:       (error "Failed to read file: %s" (error-message-string err)))))
+</tool.toolu_01NTSzJzcnRqjeYBbd5F4uwA>
+
+## ASSISTANT:
+
+Now let me check what the main branch version looks like:
+
+## TOOL USE:
+
+Name: shell-command
+ID: toolu_016p5i4QqpVRPsYnh7cNhqnc
+
+### command
+
+<tool.toolu_016p5i4QqpVRPsYnh7cNhqnc>
+git show main:greger-stdlib.el | grep -A 50 "defun greger-stdlib--read-file"
+</tool.toolu_016p5i4QqpVRPsYnh7cNhqnc>
+
+## TOOL RESULT:
+
+ID: toolu_016p5i4QqpVRPsYnh7cNhqnc
+
+<tool.toolu_016p5i4QqpVRPsYnh7cNhqnc>
+Command executed successfully:
+(defun greger-stdlib--read-file (path &optional include-line-numbers start-line end-line)
+  "Read file at PATH. If INCLUDE-LINE-NUMBERS is non-nil, prepend line numbers.
+If START-LINE is specified, start reading from that line (1-based).
+If END-LINE is specified, stop reading at that line (inclusive, 1-based)."
+  (unless (stringp path)
+    (error "Path must be a string"))
+
+  (when (and start-line (not (integerp start-line)))
+    (error "start-line must be an integer"))
+
+  (when (and end-line (not (integerp end-line)))
+    (error "end-line must be an integer"))
+
+  (when (and start-line (< start-line 1))
+    (error "start-line must be >= 1"))
+
+  (when (and end-line (< end-line 1))
+    (error "end-line must be >= 1"))
+
+  (when (and start-line end-line (> start-line end-line))
+    (error "start-line must be <= end-line"))
+
+  (let ((expanded-path (expand-file-name path)))
+    (unless (file-exists-p expanded-path)
+      (error "File does not exist: %s" expanded-path))
+
+    (unless (file-readable-p expanded-path)
+      (error "File is not readable: %s" expanded-path))
+
+    (when (file-directory-p expanded-path)
+      (error "Path is a directory, not a file: %s" expanded-path))
+
+    (condition-case err
+        (with-temp-buffer
+          (insert-file-contents expanded-path)
+          (let* ((all-lines (split-string (buffer-string) "\n"))
+                 (total-lines (length all-lines))
+                 (actual-start (or start-line 1))
+                 (actual-end (or end-line total-lines))
+                 (selected-lines (greger-stdlib--extract-line-range all-lines actual-start actual-end))
+                 (contents (mapconcat 'identity selected-lines "\n")))
+            (if include-line-numbers
+                (greger-stdlib--add-line-numbers-with-offset contents actual-start)
+              contents)))
+      (error (format "Failed to read file: %s" (error-message-string err))))))
+
+(defun greger-stdlib--extract-line-range (lines start-line end-line)
+  "Extract lines from LINES between START-LINE and END-LINE (1-based, inclusive)."
+  (let ((start-index (1- start-line))  ; Convert to 0-based index
+        (end-index (1- end-line)))     ; Convert to 0-based index
+    ;; Ensure indices are within bounds
+
+</tool.toolu_016p5i4QqpVRPsYnh7cNhqnc>
+
+## ASSISTANT:
+
+I see that the function looks almost the same between branches. Let me check the `greger-stdlib--add-line-numbers-with-offset` function to see if that's where the issue is:
+
+## TOOL USE:
+
+Name: ripgrep
+ID: toolu_01QHhTe9vV9MXiXmjiNWnFP8
+
+### pattern
+
+<tool.toolu_01QHhTe9vV9MXiXmjiNWnFP8>
+defun greger-stdlib--add-line-numbers-with-offset
+</tool.toolu_01QHhTe9vV9MXiXmjiNWnFP8>
+
+### context-lines
+
+<tool.toolu_01QHhTe9vV9MXiXmjiNWnFP8>
+15
+</tool.toolu_01QHhTe9vV9MXiXmjiNWnFP8>
+
+## TOOL RESULT:
+
+ID: toolu_01QHhTe9vV9MXiXmjiNWnFP8
+
+<tool.toolu_01QHhTe9vV9MXiXmjiNWnFP8>
+/Users/andreas/projects/greger.el/greger-stdlib.el:402:(defun greger-stdlib--add-line-numbers-with-offset (content start-line-num)
+/Users/andreas/projects/greger.el/chat.ai:641:(defun greger-stdlib--add-line-numbers-with-offset (content start-line-num)
+
+</tool.toolu_01QHhTe9vV9MXiXmjiNWnFP8>
+
+## TOOL USE:
+
+Name: read-file
+ID: toolu_01EBy8PB6gMroBppErZbfive
+
+### path
+
+<tool.toolu_01EBy8PB6gMroBppErZbfive>
+greger-stdlib.el
+</tool.toolu_01EBy8PB6gMroBppErZbfive>
+
+### start_line
+
+<tool.toolu_01EBy8PB6gMroBppErZbfive>
+402
+</tool.toolu_01EBy8PB6gMroBppErZbfive>
+
+### end_line
+
+<tool.toolu_01EBy8PB6gMroBppErZbfive>
+415
+</tool.toolu_01EBy8PB6gMroBppErZbfive>
+
+### include_line_numbers
+
+<tool.toolu_01EBy8PB6gMroBppErZbfive>
+true
+</tool.toolu_01EBy8PB6gMroBppErZbfive>
+
+## TOOL RESULT:
+
+ID: toolu_01EBy8PB6gMroBppErZbfive
+
+<tool.toolu_01EBy8PB6gMroBppErZbfive>
+402: (defun greger-stdlib--add-line-numbers-with-offset (content start-line-num)
+403:   "Add line numbers to CONTENT string starting from START-LINE-NUM."
+404:   (let ((lines (split-string content "\n"))
+405:         (line-num start-line-num)
+406:         result)
+407:
+408:     ;; Add line numbers to each line
+409:     (dolist (line lines)
+410:       (push (format "%d: %s" line-num line) result)
+411:       (setq line-num (1+ line-num)))
+412:
+413:     ;; Join back with newlines
+414:     (mapconcat #'identity (reverse result) "\n")))
+415:
+</tool.toolu_01EBy8PB6gMroBppErZbfive>
+
+## TOOL USE:
+
+Name: shell-command
+ID: toolu_01V9kxaMkhhabpiKEtPCrVEt
+
+### command
+
+<tool.toolu_01V9kxaMkhhabpiKEtPCrVEt>
+git show main:greger-stdlib.el | grep -A 15 "defun greger-stdlib--add-line-numbers-with-offset"
+</tool.toolu_01V9kxaMkhhabpiKEtPCrVEt>
+
+## TOOL RESULT:
+
+ID: toolu_01V9kxaMkhhabpiKEtPCrVEt
+
+<tool.toolu_01V9kxaMkhhabpiKEtPCrVEt>
+Command executed successfully:
+(defun greger-stdlib--add-line-numbers-with-offset (content start-line-num)
+  "Add line numbers to CONTENT string starting from START-LINE-NUM."
+  (let ((lines (split-string content "\n"))
+        (line-num start-line-num)
+        (max-width 0)
+        result)
+
+    ;; Calculate the width needed for line numbers (based on the highest line number)
+    (setq max-width (length (number-to-string (+ start-line-num (length lines) -1))))
+
+    ;; Add line numbers to each line
+    (dolist (line lines)
+      (push (format (concat "%" (number-to-string max-width) "d: %s") line-num line) result)
+      (setq line-num (1+ line-num)))
+
+    ;; Join back with newlines
+
+</tool.toolu_01V9kxaMkhhabpiKEtPCrVEt>
+
+## ASSISTANT:
+
+Ah! I found the issue. In the main branch, the line numbers are formatted with proper padding based on the maximum width needed, but in the current branch, that formatting was removed. Let me fix this:
+
+## TOOL USE:
+
+Name: str-replace
+ID: toolu_01M64XpA6onmvDpA2ULhfz5P
+
+### file_path
+
+<tool.toolu_01M64XpA6onmvDpA2ULhfz5P>
+greger-stdlib.el
+</tool.toolu_01M64XpA6onmvDpA2ULhfz5P>
+
+### original_content
+
+<tool.toolu_01M64XpA6onmvDpA2ULhfz5P>
+(defun greger-stdlib--add-line-numbers-with-offset (content start-line-num)
+  "Add line numbers to CONTENT string starting from START-LINE-NUM."
+  (let ((lines (split-string content "\n"))
+        (line-num start-line-num)
+        result)
+
+    ;; Add line numbers to each line
+    (dolist (line lines)
+      (push (format "%d: %s" line-num line) result)
+      (setq line-num (1+ line-num)))
+
+    ;; Join back with newlines
+    (mapconcat #'identity (reverse result) "\n")))
+</tool.toolu_01M64XpA6onmvDpA2ULhfz5P>
+
+### new_content
+
+<tool.toolu_01M64XpA6onmvDpA2ULhfz5P>
+(defun greger-stdlib--add-line-numbers-with-offset (content start-line-num)
+  "Add line numbers to CONTENT string starting from START-LINE-NUM."
+  (let ((lines (split-string content "\n"))
+        (line-num start-line-num)
+        (max-width 0)
+        result)
+
+    ;; Calculate the width needed for line numbers (based on the highest line number)
+    (setq max-width (length (number-to-string (+ start-line-num (length lines) -1))))
+
+    ;; Add line numbers to each line
+    (dolist (line lines)
+      (push (format (concat "%" (number-to-string max-width) "d: %s") line-num line) result)
+      (setq line-num (1+ line-num)))
+
+    ;; Join back with newlines
+    (mapconcat #'identity (reverse result) "\n")))
+</tool.toolu_01M64XpA6onmvDpA2ULhfz5P>
+
+### git_commit_message
+
+<tool.toolu_01M64XpA6onmvDpA2ULhfz5P>
+Restore proper line number formatting with padding based on maximum width
+</tool.toolu_01M64XpA6onmvDpA2ULhfz5P>
+
+<!-- TOOL_RESULT_PLACEHOLDER_toolu_01M64XpA6onmvDpA2ULhfz5P -->
