@@ -49,7 +49,7 @@
 
 (defun greger--default-tools ()
   "Return default tools list, including LSP tools if available."
-  (let ((base-tools '("read-file" "list-directory" "str-replace" "insert" "write-new-file" "replace-file" "replace-function" "make-directory" "rename-file" "ripgrep" "git-log" "git-show-commit" "shell-command" "read-webpage"))
+  (let ((base-tools '("read-file" "list-directory" "str-replace" "insert" "write-new-file" "replace-file" "replace-function" "make-directory" "rename-file" "ripgrep" "git-log" "git-show-commit" "shell-command" "read-webpage" "delete-files"))
         (lsp-tools '("lsp-rename" "lsp-find-definition" "lsp-find-references" "lsp-format" "lsp-document-symbols")))
     (if (and (boundp 'greger-lib-lsp-available) greger-lib-lsp-available)
         (append base-tools lsp-tools)
@@ -411,6 +411,7 @@
              (tool-id (alist-get 'id tool-call)))
 
         (let ((default-directory (greger-state-directory agent-state)))
+          (message "[DEBUG] About to call greger-tools-execute with tool-name: %S, tool-input: %S" tool-name tool-input)
           (greger-tools-execute
            tool-name
            tool-input
