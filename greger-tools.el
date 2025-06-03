@@ -190,6 +190,24 @@ Returns a list of arguments in the correct order for the function."
            (default-value (alist-get 'default arg-property)))
       default-value)))
 
+(defun greger-tools--maybe-parse-json-value (value arg-key tool-def)
+  "Parse VALUE as JSON if ARG-KEY is defined as array type in TOOL-DEF schema."
+  (if (and (stringp value) tool-def)
+      (let* ((schema (plist-get tool-def :schema))
+             (input-schema (alist-get 'input_schema schema))
+             (properties (alist-get 'properties input-schema))
+             (arg-property (alist-get arg-key properties))
+             (param-type (alist-get 'type arg-property)))
+        (if (string= param-type "array")
+            ;; Parse JSON array string
+            (condition-case nil
+                (json-parse-string value :array-type 'list)
+              (error value)) ; Return original value if parsing fails
+          ;; Not an array type, return as-is
+          value))
+    ;; Not a string or no tool-def, return as-is
+    value))
+
 (provide 'greger-tools)
 
 ;;; greger-tools.el ends here
