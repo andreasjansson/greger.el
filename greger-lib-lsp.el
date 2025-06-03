@@ -431,7 +431,3 @@ FILE-PATHS can be either a list or a vector of file paths."
 (provide 'greger-lib-lsp)
 
 ;;; greger-lib-lsp.el ends here
-
-;; Local Variables:
-;; package-lint-main-file: "greger.el"
-;; End:
