@@ -80,7 +80,7 @@
     (cl-letf (((symbol-function 'y-or-n-p) (lambda (prompt) t)))
 
       ;; Execute a simple echo command
-      (greger-tools--shell-command
+      (greger-stdlib--shell-command
        "echo hello world"
        (lambda (output err)
          (setq result output error err callback-called t)))
