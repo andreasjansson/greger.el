@@ -157,7 +157,7 @@
     (cl-letf (((symbol-function 'y-or-n-p) (lambda (prompt) t)))
 
       ;; Execute a command that should fail
-      (greger-tools--shell-command
+      (greger-stdlib--shell-command
        "false"  ; Command that always exits with code 1
        (lambda (output err)
          (setq result output error err callback-called t)))
