@@ -1,8 +1,8 @@
-;;; test-greger-agent.el --- Tests for greger agent functionality -*- lexical-binding: t -*-
+;;; test-greger.el --- Tests for greger functionality -*- lexical-binding: t -*-
 
 ;;; Commentary:
 ;;
-;; This file contains tests for the greger agent functionality.
+;; This file contains tests for the greger functionality (including agent capabilities).
 ;;
 ;; Testing Approach:
 ;; - Each test has explicit "expected" content that defines the exact buffer state after execution
