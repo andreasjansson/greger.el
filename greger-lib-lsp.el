@@ -11,84 +11,77 @@
 
 (require 'greger-tools)
 (require 'cl-lib)
-
-;; Optional dependency - only load if available
-(defvar greger-lib-lsp-available
-  (condition-case nil
-      (progn (require 'lsp-mode) t)
-    (error nil))
-  "Whether lsp-mode is available.")
+(require 'lsp-mode)
 
 ;;; Tool registrations
 
-(when greger-lib-lsp-available
-  (greger-register-tool "lsp-rename"
-                        :description "Rename a symbol across the entire codebase using LSP"
-                        :properties '((new_name . ((type . "string")
-                                                   (description . "New name for the symbol")))
-                                      (file_path . ((type . "string")
-                                                    (description . "Path to file containing the symbol")))
-                                      (line . ((type . "integer")
-                                               (description . "Line number (1-based) where symbol is located")))
-                                      (column . ((type . "integer")
-                                                 (description . "Column number (0-based) where symbol starts"))))
-                        :required '("new_name" "file_path" "line" "column")
-                        :function 'greger-lib-lsp--rename)
+(greger-register-tool "lsp-rename"
+                      :description "Rename a symbol across the entire codebase using LSP"
+                      :properties '((new_name . ((type . "string")
+                                                 (description . "New name for the symbol")))
+                                    (file_path . ((type . "string")
+                                                  (description . "Path to file containing the symbol")))
+                                    (line . ((type . "integer")
+                                             (description . "Line number (1-based) where symbol is located")))
+                                    (column . ((type . "integer")
+                                               (description . "Column number (0-based) where symbol starts"))))
+                      :required '("new_name" "file_path" "line" "column")
+                      :function 'greger-lib-lsp--rename)
 
-  (greger-register-tool "lsp-format"
-                        :description "Format code according to language standards using LSP"
-                        :properties '((file_path . ((type . "string")
-                                                    (description . "Path to the file to format")))
-                                      (start_line . ((type . "integer")
-                                                     (description . "Start line for range formatting (1-based). If not provided, formats entire file")
-                                                     (default . nil)))
-                                      (end_line . ((type . "integer")
-                                                   (description . "End line for range formatting (1-based). If not provided, formats entire file")
-                                                   (default . nil))))
-                        :required '("file_path")
-                        :function 'greger-lib-lsp--format)
+(greger-register-tool "lsp-format"
+                      :description "Format code according to language standards using LSP"
+                      :properties '((file_path . ((type . "string")
+                                                  (description . "Path to the file to format")))
+                                    (start_line . ((type . "integer")
+                                                   (description . "Start line for range formatting (1-based). If not provided, formats entire file")
+                                                   (default . nil)))
+                                    (end_line . ((type . "integer")
+                                                 (description . "End line for range formatting (1-based). If not provided, formats entire file")
+                                                 (default . nil))))
+                      :required '("file_path")
+                      :function 'greger-lib-lsp--format)
 
-  (greger-register-tool "lsp-find-definition"
-                        :description "Find the definition(s) of a symbol at a specific location"
-                        :properties '((file_path . ((type . "string")
-                                                    (description . "Path to the file")))
-                                      (line . ((type . "integer")
-                                               (description . "Line number (1-based)")))
-                                      (column . ((type . "integer")
-                                                 (description . "Column number (0-based)")))
-                                      (include_declaration . ((type . "boolean")
-                                                              (description . "Also include declarations")
-                                                              (default . :json-false))))
-                        :required '("file_path" "line" "column")
-                        :function 'greger-lib-lsp--find-definition)
+(greger-register-tool "lsp-find-definition"
+                      :description "Find the definition(s) of a symbol at a specific location"
+                      :properties '((file_path . ((type . "string")
+                                                  (description . "Path to the file")))
+                                    (line . ((type . "integer")
+                                             (description . "Line number (1-based)")))
+                                    (column . ((type . "integer")
+                                               (description . "Column number (0-based)")))
+                                    (include_declaration . ((type . "boolean")
+                                                            (description . "Also include declarations")
+                                                            (default . :json-false))))
+                      :required '("file_path" "line" "column")
+                      :function 'greger-lib-lsp--find-definition)
 
-  (greger-register-tool "lsp-find-references"
-                        :description "Find all references to a symbol at a specific location"
-                        :properties '((file_path . ((type . "string")
-                                                    (description . "Path to the file")))
-                                      (line . ((type . "integer")
-                                               (description . "Line number (1-based)")))
-                                      (column . ((type . "integer")
-                                                 (description . "Column number (0-based)")))
-                                      (include_declaration . ((type . "boolean")
-                                                              (description . "Include the symbol declaration in results")
-                                                              (default . :json-true)))
-                                      (max_results . ((type . "integer")
-                                                      (description . "Maximum number of references to return")
-                                                      (default . 100))))
-                        :required '("file_path" "line" "column")
-                        :function 'greger-lib-lsp--find-references)
+(greger-register-tool "lsp-find-references"
+                      :description "Find all references to a symbol at a specific location"
+                      :properties '((file_path . ((type . "string")
+                                                  (description . "Path to the file")))
+                                    (line . ((type . "integer")
+                                             (description . "Line number (1-based)")))
+                                    (column . ((type . "integer")
+                                               (description . "Column number (0-based)")))
+                                    (include_declaration . ((type . "boolean")
+                                                            (description . "Include the symbol declaration in results")
+                                                            (default . :json-true)))
+                                    (max_results . ((type . "integer")
+                                                    (description . "Maximum number of references to return")
+                                                    (default . 100))))
+                      :required '("file_path" "line" "column")
+                      :function 'greger-lib-lsp--find-references)
 
-  (greger-register-tool "lsp-document-symbols"
-                        :description "Get document symbols for one or more files. This is a cheap way to list all the functions in one or more files to get familiar with unseed code."
-                        :properties '((file_paths . ((type . "array")
-                                                     (items . ((type . "string")))
-                                                     (description . "List of file paths to get symbols for")))
-                                      (detailed . ((type . "boolean")
-                                                   (description . "Include detailed symbols like variables, constants, etc.")
-                                                   (default . :json-false))))
-                        :required '("file_paths")
-                        :function 'greger-lib-lsp--document-symbols))
+(greger-register-tool "lsp-document-symbols"
+                      :description "Get document symbols for one or more files. This is a cheap way to list all the functions in one or more files to get familiar with unseed code."
+                      :properties '((file_paths . ((type . "array")
+                                                   (items . ((type . "string")))
+                                                   (description . "List of file paths to get symbols for")))
+                                    (detailed . ((type . "boolean")
+                                                 (description . "Include detailed symbols like variables, constants, etc.")
+                                                 (default . :json-false))))
+                      :required '("file_paths")
+                      :function 'greger-lib-lsp--document-symbols)
 
 ;;; Helper functions
 
@@ -175,8 +168,8 @@ LINE is 1-based, COLUMN is 0-based."
             (if container (format " (in %s)" container) ""))))
 
 (defun greger-lib-lsp--detailed-symbol-kind-p (kind)
-  "Check if symbol KIND is a detailed type that should be filtered in
-non-detailed mode."
+  "Check if symbol KIND is a detailed type.
+Detailed types should be filtered in non-detailed mode."
   (member kind '(13   ; Variable
                  14   ; Constant
                  15   ; String
@@ -204,8 +197,8 @@ If DETAILED is nil, remove detailed symbol types."
                   symbols)))
 
 (defun greger-lib-lsp--format-document-symbol (symbol &optional indent-level detailed)
-  "Format a document symbol SYMBOL for display with optional INDENT-LEVEL
-and DETAILED flag."
+  "Format a document symbol SYMBOL for display.
+INDENT-LEVEL controls indentation, DETAILED controls detail level."
   (let* ((indent-level (or indent-level 0))
          (indent (make-string (* indent-level 2) ?\ ))
          (name (gethash "name" symbol))
@@ -229,8 +222,8 @@ and DETAILED flag."
     result))
 
 (defun greger-lib-lsp--format-document-symbols (symbols file-path &optional detailed)
-  "Format document SYMBOLS for FILE-PATH as a readable string with optional
-DETAILED flag."
+  "Format document SYMBOLS for FILE-PATH as a readable string.
+DETAILED controls whether to include detailed symbols."
   (let ((relative-path (if (and (bound-and-true-p lsp-mode) (lsp-workspace-root))
                            (file-relative-name file-path (lsp-workspace-root))
                          (file-relative-name file-path)))
@@ -352,7 +345,8 @@ If START-LINE and END-LINE provided, format only that range."
           "No formatting changes needed")))))
 
 (defun greger-lib-lsp--find-definition (file-path line column &optional include-declaration)
-  "Find definition(s) of symbol at FILE-PATH:LINE:COLUMN using LSP."
+  "Find definition(s) of symbol at FILE-PATH:LINE:COLUMN using LSP.
+INCLUDE-DECLARATION controls whether to also search for declarations."
   (greger-lib-lsp--with-buffer-at-position
    file-path line column
    (lambda ()
@@ -383,7 +377,9 @@ If START-LINE and END-LINE provided, format only that range."
         (format "Definition(s) for '%s':\n%s" symbol-info result-text))))))
 
 (defun greger-lib-lsp--find-references (file-path line column &optional include-declaration max-results)
-  "Find references to symbol at FILE-PATH:LINE:COLUMN using LSP."
+  "Find references to symbol at FILE-PATH:LINE:COLUMN using LSP.
+INCLUDE-DECLARATION controls whether to include declarations.
+MAX-RESULTS limits the number of results returned."
   (greger-lib-lsp--with-buffer-at-position
    file-path line column
    (lambda ()
@@ -413,8 +409,9 @@ If START-LINE and END-LINE provided, format only that range."
                 result-text))))))
 
 (defun greger-lib-lsp--document-symbols (file-paths &optional detailed)
-  "Get document symbols for FILE-PATHS using LSP with optional DETAILED flag.
-FILE-PATHS can be either a list or a vector of file paths."
+  "Get document symbols for FILE-PATHS using LSP.
+FILE-PATHS can be either a list or a vector of file paths.
+DETAILED controls whether to include detailed symbols."
   (let ((results '())
         ;; Convert vector to list if needed
         (paths (if (vectorp file-paths)
