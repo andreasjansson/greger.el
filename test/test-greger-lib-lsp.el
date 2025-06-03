@@ -253,7 +253,7 @@ description = \"Test project for greger LSP tools\"
   "Test executing code at specific buffer position."
   (greger-lsp-test-with-setup
    (let ((result nil))
-     (greger-lsp--with-buffer-at-position
+     (greger-lib-lsp--with-buffer-at-position
       greger-lsp-test-python-file 9 0  ; Line 9: class definition
       (lambda ()
         (setq result (thing-at-point 'word))))
