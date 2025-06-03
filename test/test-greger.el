@@ -182,7 +182,7 @@ Tool B result: input-b
                      (setq tools-completed t))))
 
           ;; Execute tools
-          (greger-agent--execute-tools tool-calls agent-state)
+          (greger--execute-tools tool-calls agent-state)
 
           ;; Check that all tools completed
           (should tools-completed)
