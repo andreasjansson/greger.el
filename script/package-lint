@@ -38,8 +38,7 @@ FILES_TO_LINT=(
 echo -e "${YELLOW}Running package-lint on greger package...${NC}"
 echo
 
-TOTAL_ERRORS=0
-TOTAL_WARNINGS=0
+OVERALL_EXIT_CODE=0
 
 for file in "${FILES_TO_LINT[@]}"; do
     if [ ! -f "$file" ]; then
@@ -50,7 +49,7 @@ for file in "${FILES_TO_LINT[@]}"; do
     echo -e "Linting ${YELLOW}$file${NC}..."
 
     # Run package-lint on the file
-    result=$(emacs --batch -Q \
+    if emacs --batch -Q \
         --eval "(progn
                   (setq debug-on-error t)
                   (package-initialize)
@@ -61,7 +60,6 @@ for file in "${FILES_TO_LINT[@]}"; do
                   (let ((results (package-lint-buffer)))
                     (if results
                         (progn
-                          (princ (format \"ISSUES_FOUND_IN_$file:\\n\"))
                           (dolist (result results)
                             (let ((line (nth 0 result))
                                   (col (nth 1 result))
@@ -69,36 +67,37 @@ for file in "${FILES_TO_LINT[@]}"; do
                                   (msg (nth 3 result)))
                               (princ (format \"%s:%d:%d: %s: %s\\n\" \"$file\" line col type msg))))
                           (kill-emacs 1))
-                        (progn
-                          (princ \"NO_ISSUES_FOUND\\n\")
-                          (kill-emacs 0)))))" 2>&1)
-
-    exit_code=$?
-
-    if [ $exit_code -eq 0 ]; then
+                        (kill-emacs 0))))" 2>/dev/null; then
         echo -e "  ${GREEN}✓ No issues found${NC}"
     else
-        echo -e "  ${RED}✗ Issues found:${NC}"
-        # Parse and display the issues
-        echo "$result" | grep "^$file:" | while read line; do
-            if [[ $line == *": error:"* ]]; then
-                echo -e "    ${RED}$line${NC}"
-                ((TOTAL_ERRORS++)) || true
-            elif [[ $line == *": warning:"* ]]; then
-                echo -e "    ${YELLOW}$line${NC}"
-                ((TOTAL_WARNINGS++)) || true
-            fi
-        done
+        echo -e "  ${RED}✗ Issues found${NC}"
+        OVERALL_EXIT_CODE=1
+        # Re-run to show the actual issues
+        emacs --batch -Q \
+            --eval "(progn
+                      (setq debug-on-error t)
+                      (package-initialize)
+                      (add-to-list 'load-path \"$PACKAGE_LINT_PATH\")
+                      (add-to-list 'load-path \".\")
+                      (require 'package-lint)
+                      (find-file \"$file\")
+                      (let ((results (package-lint-buffer)))
+                        (dolist (result results)
+                          (let ((line (nth 0 result))
+                                (col (nth 1 result))
+                                (type (nth 2 result))
+                                (msg (nth 3 result)))
+                            (princ (format \"    %s:%d:%d: %s: %s\\n\" \"$file\" line col type msg))))))" 2>/dev/null
     fi
     echo
 done
 
 echo -e "${YELLOW}Package-lint complete!${NC}"
 
-if [ $TOTAL_ERRORS -gt 0 ] || [ $TOTAL_WARNINGS -gt 0 ]; then
-    echo -e "Summary: ${RED}$TOTAL_ERRORS errors${NC}, ${YELLOW}$TOTAL_WARNINGS warnings${NC}"
-    exit 1
-else
+if [ $OVERALL_EXIT_CODE -eq 0 ]; then
     echo -e "${GREEN}No issues found in any files!${NC}"
-    exit 0
+else
+    echo -e "${RED}Some files have issues that need to be fixed.${NC}"
 fi
+
+exit $OVERALL_EXIT_CODE
