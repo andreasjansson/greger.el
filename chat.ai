@@ -8796,4 +8796,57 @@ test/test-end-to-end.el
 Improve response waiting function to better handle streaming completion
 </tool.toolu_01LEMdpeDWVq2TvuD4cXk51X>
 
-<!-- TOOL_RESULT_PLACEHOLDER_toolu_01LEMdpeDWVq2TvuD4cXk51X -->
+## TOOL RESULT:
+
+ID: toolu_01LEMdpeDWVq2TvuD4cXk51X
+
+<tool.toolu_01LEMdpeDWVq2TvuD4cXk51X>
+Successfully replaced content in /Users/andreas/projects/greger.el/test/test-end-to-end.el. Successfully staged 2 file(s) and committed with message: Improve response waiting function to better handle streaming completion
+</tool.toolu_01LEMdpeDWVq2TvuD4cXk51X>
+
+
+## ASSISTANT:
+
+Now let me also add a function to wait for any active streaming to complete before cleanup:
+
+## TOOL USE:
+
+Name: str-replace
+ID: toolu_013PCjdw6cvPKfgfCNnYcrYU
+
+### file_path
+
+<tool.toolu_013PCjdw6cvPKfgfCNnYcrYU>
+test/test-end-to-end.el
+</tool.toolu_013PCjdw6cvPKfgfCNnYcrYU>
+
+### original_content
+
+<tool.toolu_013PCjdw6cvPKfgfCNnYcrYU>
+    completed))
+</tool.toolu_013PCjdw6cvPKfgfCNnYcrYU>
+
+### new_content
+
+<tool.toolu_013PCjdw6cvPKfgfCNnYcrYU>
+    completed))
+
+(defun greger-test-wait-for-streaming-complete ()
+  "Wait for any active streaming processes to complete."
+  (let ((max-wait 3.0)
+        (start-time (current-time)))
+    (while (and (< (float-time (time-subtract (current-time) start-time)) max-wait)
+                (cl-some (lambda (proc)
+                          (and (process-live-p proc)
+                               (string-match-p "greger-curl" (process-name proc))))
+                        (process-list)))
+      (sit-for 0.1))))
+</tool.toolu_013PCjdw6cvPKfgfCNnYcrYU>
+
+### git_commit_message
+
+<tool.toolu_013PCjdw6cvPKfgfCNnYcrYU>
+Add function to wait for streaming processes to complete
+</tool.toolu_013PCjdw6cvPKfgfCNnYcrYU>
+
+<!-- TOOL_RESULT_PLACEHOLDER_toolu_013PCjdw6cvPKfgfCNnYcrYU -->
