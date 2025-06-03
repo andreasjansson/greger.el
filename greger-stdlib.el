@@ -842,7 +842,7 @@ For Emacs Lisp files (.el), checks that parentheses balance is maintained."
       (let ((orig-balance (greger-stdlib--count-paren-balance original-content))
             (new-balance (greger-stdlib--count-paren-balance new-content)))
         (unless (= orig-balance new-balance)
-          (error "Parentheses balance mismatch in Emacs Lisp file: original has balance %d, new has balance %d. They must be equal."
+          (error "Parentheses balance mismatch in Emacs Lisp file: original has balance %d, new has balance %d. They must be equal"
                  orig-balance new-balance))))
 
     (with-current-buffer (find-file-noselect expanded-path)
