@@ -6871,4 +6871,61 @@ greger-stdlib.el
 Add JSON parsing to eval-elisp-defuns to handle string arrays
 </tool.toolu_01HGhjiWvbaUyAhKwneDX7xW>
 
-<!-- TOOL_RESULT_PLACEHOLDER_toolu_01HGhjiWvbaUyAhKwneDX7xW -->
+## TOOL RESULT:
+
+ID: toolu_01HGhjiWvbaUyAhKwneDX7xW
+
+<tool.toolu_01HGhjiWvbaUyAhKwneDX7xW>
+Successfully replaced content in /Users/andreas/projects/greger.el/greger-stdlib.el. Successfully staged 2 file(s) and committed with message: Add JSON parsing to eval-elisp-defuns to handle string arrays
+</tool.toolu_01HGhjiWvbaUyAhKwneDX7xW>
+
+
+## TOOL USE:
+
+Name: str-replace
+ID: toolu_01QAd6cUKgYsujxUNdubpFDv
+
+### file_path
+
+<tool.toolu_01QAd6cUKgYsujxUNdubpFDv>
+greger-stdlib.el
+</tool.toolu_01QAd6cUKgYsujxUNdubpFDv>
+
+### original_content
+
+<tool.toolu_01QAd6cUKgYsujxUNdubpFDv>
+(defun greger-stdlib--ert-test (test-file-path function-names)
+  "Execute ERT tests by evaluating test functions and running them with ert.
+TEST-FILE-PATH is the path to the test file.
+FUNCTION-NAMES is a vector of test function names to evaluate and run."
+
+  ;; First eval the test function names
+  (greger-stdlib--eval-elisp-defuns test-file-path function-names)
+</tool.toolu_01QAd6cUKgYsujxUNdubpFDv>
+
+### new_content
+
+<tool.toolu_01QAd6cUKgYsujxUNdubpFDv>
+(defun greger-stdlib--ert-test (test-file-path function-names)
+  "Execute ERT tests by evaluating test functions and running them with ert.
+TEST-FILE-PATH is the path to the test file.
+FUNCTION-NAMES is a vector of test function names to evaluate and run."
+
+  ;; Handle JSON array strings by parsing them into lists
+  (when (stringp function-names)
+    (condition-case nil
+        (setq function-names (json-parse-string function-names :array-type 'list))
+      (error
+        (error "function_names must be a valid JSON array string, vector, or list: %s" function-names))))
+
+  ;; First eval the test function names
+  (greger-stdlib--eval-elisp-defuns test-file-path function-names)
+</tool.toolu_01QAd6cUKgYsujxUNdubpFDv>
+
+### git_commit_message
+
+<tool.toolu_01QAd6cUKgYsujxUNdubpFDv>
+Add JSON parsing to ert-test to handle string arrays
+</tool.toolu_01QAd6cUKgYsujxUNdubpFDv>
+
+<!-- TOOL_RESULT_PLACEHOLDER_toolu_01QAd6cUKgYsujxUNdubpFDv -->
