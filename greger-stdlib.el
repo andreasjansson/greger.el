@@ -657,7 +657,7 @@ If BUFFER is provided, it will be staged and committed along with the deleted fi
 
       (format "Successfully deleted %d file(s): %s. Git status: %s"
               (length deleted-files)
-              (mapconcat 'identity (reverse deleted-files) ", ")
+              (mapconcat #'identity (reverse deleted-files) ", ")
               git-result))))
 
 (defun greger-stdlib--replace-function (file-path function-name contents line-number commit-message &optional buffer)
