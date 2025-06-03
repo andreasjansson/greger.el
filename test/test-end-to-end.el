@@ -101,7 +101,7 @@
 (ert-deftest greger-end-to-end-test-simple-conversation ()
   "Test a simple conversation using the public API."
   :tags '(end-to-end public-api)
-  (skip-unless (greger-test-has-api-key))
+
 
   (let ((greger-buffer nil))
     (unwind-protect
