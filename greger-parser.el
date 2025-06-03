@@ -867,7 +867,7 @@ Returns either a system message, metadata, or both."
   `((role . "user") (content . ,content)))
 
 (defun greger-parser--create-assistant-message (content)
-  "Create assistant message."
+  "Create assistant message with CONTENT."
   `((role . "assistant") (content . ,content)))
 
 (defun greger-parser--create-system-message (content)
