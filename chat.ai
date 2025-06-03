@@ -1258,4 +1258,50 @@ greger.el
 Fix another unnecessary format call in greger.el
 </tool.toolu_01FdhMvviWdWr2RonguMFW7A>
 
-<!-- TOOL_RESULT_PLACEHOLDER_toolu_01FdhMvviWdWr2RonguMFW7A -->
+## TOOL RESULT:
+
+ID: toolu_01FdhMvviWdWr2RonguMFW7A
+
+<tool.toolu_01FdhMvviWdWr2RonguMFW7A>
+Successfully replaced content in /Users/andreas/projects/greger.el/greger.el. Successfully staged 2 file(s) and committed with message: Fix another unnecessary format call in greger.el
+</tool.toolu_01FdhMvviWdWr2RonguMFW7A>
+
+
+## TOOL USE:
+
+Name: str-replace
+ID: toolu_01AH5GJZKrEenDjdigPT1EKN
+
+### file_path
+
+<tool.toolu_01AH5GJZKrEenDjdigPT1EKN>
+greger.el
+</tool.toolu_01AH5GJZKrEenDjdigPT1EKN>
+
+### original_content
+
+<tool.toolu_01AH5GJZKrEenDjdigPT1EKN>
+(defun greger--debug (format-string &rest args)
+  "Debug logging function."
+  (when greger-debug
+    (message "[GREGER DEBUG] %s" (apply #'format format-string args))))
+</tool.toolu_01AH5GJZKrEenDjdigPT1EKN>
+
+### new_content
+
+<tool.toolu_01AH5GJZKrEenDjdigPT1EKN>
+(defun greger--debug (format-string &rest args)
+  "Debug logging function.
+FORMAT-STRING is the format string.
+ARGS are arguments to format."
+  (when greger-debug
+    (message "[GREGER DEBUG] %s" (apply #'format format-string args))))
+</tool.toolu_01AH5GJZKrEenDjdigPT1EKN>
+
+### git_commit_message
+
+<tool.toolu_01AH5GJZKrEenDjdigPT1EKN>
+Add missing argument documentation for greger--debug
+</tool.toolu_01AH5GJZKrEenDjdigPT1EKN>
+
+<!-- TOOL_RESULT_PLACEHOLDER_toolu_01AH5GJZKrEenDjdigPT1EKN -->

@@ -311,7 +311,9 @@
       (greger--run-agent-loop agent-state))))
 
 (defun greger--debug (format-string &rest args)
-  "Debug logging function."
+  "Debug logging function.
+FORMAT-STRING is the format string.
+ARGS are arguments to format."
   (when greger-debug
     (message "[GREGER DEBUG] %s" (apply #'format format-string args))))
 
