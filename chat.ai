@@ -2472,4 +2472,54 @@ test/test-greger.el
 Fix state constructor name in simple string comparison test
 </tool.toolu_01ToZ9LfZCYxpaPxdYNXx9o5>
 
-<!-- TOOL_RESULT_PLACEHOLDER_toolu_01ToZ9LfZCYxpaPxdYNXx9o5 -->
+## TOOL RESULT:
+
+ID: toolu_01ToZ9LfZCYxpaPxdYNXx9o5
+
+<tool.toolu_01ToZ9LfZCYxpaPxdYNXx9o5>
+Successfully replaced content in /Users/andreas/projects/greger.el/test/test-greger.el. Successfully staged 2 file(s) and committed with message: Fix state constructor name in simple string comparison test
+</tool.toolu_01ToZ9LfZCYxpaPxdYNXx9o5>
+
+
+## TOOL USE:
+
+Name: str-replace
+ID: toolu_01ErLj1wCYN6WPcdvnXngod6
+
+### file_path
+
+<tool.toolu_01ErLj1wCYN6WPcdvnXngod6>
+test/test-greger.el
+</tool.toolu_01ErLj1wCYN6WPcdvnXngod6>
+
+### original_content
+
+<tool.toolu_01ErLj1wCYN6WPcdvnXngod6>
+;; Mock greger-agent--run-agent-loop to capture completion
+        (cl-letf (((symbol-function 'greger-agent--run-agent-loop)
+                   (lambda (state)
+                     (setq test-completed t))))
+
+          ;; Execute tools
+          (greger-agent--execute-tools tool-calls agent-state)
+</tool.toolu_01ErLj1wCYN6WPcdvnXngod6>
+
+### new_content
+
+<tool.toolu_01ErLj1wCYN6WPcdvnXngod6>
+;; Mock greger--run-agent-loop to capture completion
+        (cl-letf (((symbol-function 'greger--run-agent-loop)
+                   (lambda (state)
+                     (setq test-completed t))))
+
+          ;; Execute tools
+          (greger--execute-tools tool-calls agent-state)
+</tool.toolu_01ErLj1wCYN6WPcdvnXngod6>
+
+### git_commit_message
+
+<tool.toolu_01ErLj1wCYN6WPcdvnXngod6>
+Fix mock and execute function names in simple string comparison test
+</tool.toolu_01ErLj1wCYN6WPcdvnXngod6>
+
+<!-- TOOL_RESULT_PLACEHOLDER_toolu_01ErLj1wCYN6WPcdvnXngod6 -->

@@ -497,13 +497,13 @@ Echo: hello world
         ;; Verify initial state
         (should (string= initial-content (buffer-substring-no-properties (point-min) (point-max))))
 
-        ;; Mock greger-agent--run-agent-loop to capture completion
-        (cl-letf (((symbol-function 'greger-agent--run-agent-loop)
+        ;; Mock greger--run-agent-loop to capture completion
+        (cl-letf (((symbol-function 'greger--run-agent-loop)
                    (lambda (state)
                      (setq test-completed t))))
 
           ;; Execute tools
-          (greger-agent--execute-tools tool-calls agent-state)
+          (greger--execute-tools tool-calls agent-state)
 
           ;; Verify completion
           (should test-completed)
