@@ -119,7 +119,7 @@ You can include file contents in your conversations:
 
 ### Safe Shell Commands
 
-Greger can automatically generate descriptive text for safe shell commands that don't require user confirmation. When you define safe commands in a system section:
+Greger automatically generates descriptive text for safe shell commands that don't require user confirmation. When you define safe commands in a system section:
 
 ```markdown
 ## SYSTEM:
@@ -154,7 +154,7 @@ bash script/test --verbose
 </safe-shell-commands>
 ```
 
-This will append the safe commands description to your existing system prompt.
+This will append the safe commands description to your existing system prompt. The commands listed in `<safe-shell-commands>` are extracted as metadata and used by the shell-command tool to skip permission prompts.
 
 ## Available Models
 
