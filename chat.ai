@@ -8912,4 +8912,69 @@ test/test-end-to-end.el
 Add streaming completion wait to simple conversation test
 </tool.toolu_01SXu1VBmbsjQnbFFnhx9Y7i>
 
-<!-- TOOL_RESULT_PLACEHOLDER_toolu_01SXu1VBmbsjQnbFFnhx9Y7i -->
+## TOOL RESULT:
+
+ID: toolu_01SXu1VBmbsjQnbFFnhx9Y7i
+
+<tool.toolu_01SXu1VBmbsjQnbFFnhx9Y7i>
+Successfully replaced content in /Users/andreas/projects/greger.el/test/test-end-to-end.el. Successfully staged 2 file(s) and committed with message: Add streaming completion wait to simple conversation test
+</tool.toolu_01SXu1VBmbsjQnbFFnhx9Y7i>
+
+
+## TOOL USE:
+
+Name: str-replace
+ID: toolu_01XtnsC6zuCDhwBbBPxEuQE2
+
+### file_path
+
+<tool.toolu_01XtnsC6zuCDhwBbBPxEuQE2>
+test/test-end-to-end.el
+</tool.toolu_01XtnsC6zuCDhwBbBPxEuQE2>
+
+### original_content
+
+<tool.toolu_01XtnsC6zuCDhwBbBPxEuQE2>
+;; Wait for response (tool use might take longer)
+          (should (greger-test-wait-for-response greger-buffer (* greger-test-timeout 2)))
+
+          ;; Verify response was added to buffer
+          (let ((content (buffer-string)))
+            (should (string-match-p "## ASSISTANT:" content))
+            ;; Should have tool use section or content from the file
+            (should (or (string-match-p "## TOOL USE:" content)
+                       (string-match-p "read-file" content)
+                       (string-match-p "test file for greger" content)))
+            ;; Should have a new USER section at the end (or at least assistant response)
+            (should (or (string-match-p "## USER:\n\n$" content)
+                       (string-match-p "## ASSISTANT:" content)))))
+</tool.toolu_01XtnsC6zuCDhwBbBPxEuQE2>
+
+### new_content
+
+<tool.toolu_01XtnsC6zuCDhwBbBPxEuQE2>
+;; Wait for response (tool use might take longer)
+          (should (greger-test-wait-for-response greger-buffer (* greger-test-timeout 2)))
+
+          ;; Wait for streaming to complete
+          (greger-test-wait-for-streaming-complete)
+
+          ;; Verify response was added to buffer
+          (let ((content (buffer-string)))
+            (should (string-match-p "## ASSISTANT:" content))
+            ;; Should have tool use section or content from the file
+            (should (or (string-match-p "## TOOL USE:" content)
+                       (string-match-p "read-file" content)
+                       (string-match-p "test file for greger" content)))
+            ;; Should have a new USER section at the end (or at least assistant response)
+            (should (or (string-match-p "## USER:\n\n$" content)
+                       (string-match-p "## ASSISTANT:" content)))))
+</tool.toolu_01XtnsC6zuCDhwBbBPxEuQE2>
+
+### git_commit_message
+
+<tool.toolu_01XtnsC6zuCDhwBbBPxEuQE2>
+Add streaming completion wait to tool use conversation test
+</tool.toolu_01XtnsC6zuCDhwBbBPxEuQE2>
+
+<!-- TOOL_RESULT_PLACEHOLDER_toolu_01XtnsC6zuCDhwBbBPxEuQE2 -->

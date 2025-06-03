@@ -165,6 +165,9 @@
           ;; Wait for response (tool use might take longer)
           (should (greger-test-wait-for-response greger-buffer (* greger-test-timeout 2)))
 
+          ;; Wait for streaming to complete
+          (greger-test-wait-for-streaming-complete)
+
           ;; Verify response was added to buffer
           (let ((content (buffer-string)))
             (should (string-match-p "## ASSISTANT:" content))
