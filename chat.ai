@@ -3742,4 +3742,70 @@ script/test
 Add lsp-mode and lsp-pyright installation to test script
 </tool.toolu_01GqNvyukZB9qDbVkQreHncg>
 
-<!-- TOOL_RESULT_PLACEHOLDER_toolu_01GqNvyukZB9qDbVkQreHncg -->
+## TOOL RESULT:
+
+ID: toolu_01GqNvyukZB9qDbVkQreHncg
+
+<tool.toolu_01GqNvyukZB9qDbVkQreHncg>
+Successfully replaced content in /Users/andreas/projects/greger.el/script/test. Successfully staged 2 file(s) and committed with message: Add lsp-mode and lsp-pyright installation to test script
+</tool.toolu_01GqNvyukZB9qDbVkQreHncg>
+
+
+## ASSISTANT:
+
+I also need to update the verbose test function with the same changes:
+
+## TOOL USE:
+
+Name: str-replace
+ID: toolu_01EDsFbiuL5bdk9EfuHfEtZg
+
+### file_path
+
+<tool.toolu_01EDsFbiuL5bdk9EfuHfEtZg>
+script/test
+</tool.toolu_01EDsFbiuL5bdk9EfuHfEtZg>
+
+### original_content
+
+<tool.toolu_01EDsFbiuL5bdk9EfuHfEtZg>
+emacs --batch -Q \
+        --eval "(progn
+                  (setq debug-on-error t)
+                  (add-to-list 'load-path \".\")
+                  ;; Load required packages
+                  (require 'ert)
+                  (require 'cl-lib)
+</tool.toolu_01EDsFbiuL5bdk9EfuHfEtZg>
+
+### new_content
+
+<tool.toolu_01EDsFbiuL5bdk9EfuHfEtZg>
+emacs --batch -Q \
+        --eval "(progn
+                  (setq debug-on-error t)
+                  (add-to-list 'load-path \".\")
+                  ;; Setup package archives and install dependencies if needed
+                  (require 'package)
+                  (setq package-archives '((\"melpa\" . \"https://melpa.org/packages/\")
+                                           (\"gnu\" . \"https://elpa.gnu.org/packages/\")))
+                  (package-initialize)
+                  ;; Install lsp-mode and lsp-pyright if not available
+                  (unless (package-installed-p 'lsp-mode)
+                    (package-refresh-contents)
+                    (package-install 'lsp-mode))
+                  (unless (package-installed-p 'lsp-pyright)
+                    (package-refresh-contents)
+                    (package-install 'lsp-pyright))
+                  ;; Load required packages
+                  (require 'ert)
+                  (require 'cl-lib)
+</tool.toolu_01EDsFbiuL5bdk9EfuHfEtZg>
+
+### git_commit_message
+
+<tool.toolu_01EDsFbiuL5bdk9EfuHfEtZg>
+Add lsp-mode and lsp-pyright installation to verbose test function
+</tool.toolu_01EDsFbiuL5bdk9EfuHfEtZg>
+
+<!-- TOOL_RESULT_PLACEHOLDER_toolu_01EDsFbiuL5bdk9EfuHfEtZg -->
