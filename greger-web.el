@@ -76,7 +76,3 @@ If USE-HIGHEST-READABILITY is non-nil, use eww's aggressive readability setting.
 (provide 'greger-web)
 
 ;;; greger-web.el ends here
-
-;; Local Variables:
-;; package-lint-main-file: "greger.el"
-;; End:
