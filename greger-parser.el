@@ -981,7 +981,7 @@ Returns either a system message, metadata, or both."
   (concat greger-parser-system-tag "\n\n" content))
 
 (defun greger-parser--content-blocks-to-markdown (blocks)
-  "Convert content blocks to markdown."
+  "Convert content BLOCKS to markdown."
   (mapconcat #'greger-parser--block-to-markdown blocks "\n\n"))
 
 (defun greger-parser--block-to-markdown (block)
