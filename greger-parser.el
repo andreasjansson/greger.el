@@ -694,7 +694,7 @@ Returns either a system message, metadata, or both."
 ;; Tool parsing helpers
 
 (defun greger-parser--parse-name-line (state)
-  "Parse 'Name: value' line using STATE."
+  "Parse \='Name: value\=' line using STATE."
   (when (greger-parser--looking-at state "Name:")
     (greger-parser--advance state 5)
     (greger-parser--skip-horizontal-whitespace state)
