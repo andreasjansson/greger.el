@@ -6891,4 +6891,54 @@ greger.el
 Update keymap to use greger-buffer instead of greger-agent-buffer
 </tool.toolu_01VFujH33HU1rPCt1QiPfzBc>
 
-<!-- TOOL_RESULT_PLACEHOLDER_toolu_01VFujH33HU1rPCt1QiPfzBc -->
+## TOOL RESULT:
+
+ID: toolu_01VFujH33HU1rPCt1QiPfzBc
+
+<tool.toolu_01VFujH33HU1rPCt1QiPfzBc>
+Successfully replaced content in /Users/andreas/projects/greger.el/greger.el. Successfully staged 2 file(s) and committed with message: Update keymap to use greger-buffer instead of greger-agent-buffer
+</tool.toolu_01VFujH33HU1rPCt1QiPfzBc>
+
+
+## ASSISTANT:
+
+Now let me update the buffer-no-tools function to use the new naming:
+
+## TOOL USE:
+
+Name: str-replace
+ID: toolu_01UxBzxSaCurabRtMzAY6p21
+
+### file_path
+
+<tool.toolu_01UxBzxSaCurabRtMzAY6p21>
+greger.el
+</tool.toolu_01UxBzxSaCurabRtMzAY6p21>
+
+### original_content
+
+<tool.toolu_01UxBzxSaCurabRtMzAY6p21>
+(defun greger-buffer-no-tools ()
+  "Send the buffer content to AI as a dialog without tool use."
+  (interactive)
+  (let ((greger-agent-tools '()))
+    (greger-agent-buffer)))
+</tool.toolu_01UxBzxSaCurabRtMzAY6p21>
+
+### new_content
+
+<tool.toolu_01UxBzxSaCurabRtMzAY6p21>
+(defun greger-buffer-no-tools ()
+  "Send the buffer content to AI as a dialog without tool use."
+  (interactive)
+  (let ((greger-tools '()))
+    (greger-buffer)))
+</tool.toolu_01UxBzxSaCurabRtMzAY6p21>
+
+### git_commit_message
+
+<tool.toolu_01UxBzxSaCurabRtMzAY6p21>
+Update greger-buffer-no-tools to use new variable name
+</tool.toolu_01UxBzxSaCurabRtMzAY6p21>
+
+<!-- TOOL_RESULT_PLACEHOLDER_toolu_01UxBzxSaCurabRtMzAY6p21 -->

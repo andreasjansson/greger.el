@@ -199,8 +199,8 @@
 (defun greger-buffer-no-tools ()
   "Send the buffer content to AI as a dialog without tool use."
   (interactive)
-  (let ((greger-agent-tools '()))
-    (greger-agent-buffer)))
+  (let ((greger-tools '()))
+    (greger-buffer)))
 
 (defun greger-insert-include ()
   "Prompt the user to select a file and insert an <include> at point."
