@@ -282,7 +282,8 @@ DEBUG enables debug logging."
 Supports both local files and web URLs (http:// or https://).
 For local files without code attribute, inserts content into state for
 recursive parsing.  Returns nil when content is inserted, or the content
-string when it should be appended."
+string when it should be appended.
+FILE-PATH is the path to include and HAS-CODE-ATTR indicates code formatting."
   (greger-parser--debug state "Including file: %s (code: %s)" file-path has-code-attr)
   (condition-case err
       (let ((content
