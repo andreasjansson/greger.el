@@ -26,15 +26,24 @@
         (initial-content (with-current-buffer buffer (buffer-string))))
 
     (while (and (not completed)
-                (< (float-time (time-subtract (current-time) start-time)) timeout))
+                (< (float-time (time-subtract (current-time) start-time)) timeout)
+                (buffer-live-p buffer))
       (sit-for 0.5)
       ;; Check if buffer content has changed (response received)
-      (with-current-buffer buffer
-        (let ((current-content (buffer-string)))
-          (when (not (string= initial-content current-content))
-            ;; Content changed, but let's wait a bit more to ensure completion
-            (when (string-match-p "## USER:" current-content)
-              (setq completed t))))))
+      (when (buffer-live-p buffer)
+        (with-current-buffer buffer
+          (let ((current-content (buffer-string)))
+            (when (and (not (string= initial-content current-content))
+                      (string-match-p "## ASSISTANT:" current-content))
+              ;; Content changed and we have an assistant response
+              ;; Wait a bit more to see if we get a USER prompt (conversation finished)
+              (sit-for 1.0)
+              (setq current-content (buffer-string))
+              (if (string-match-p "## USER:\n\n$" current-content)
+                  (setq completed t)
+                ;; If no USER prompt yet, wait more but consider it completed if response exists
+                (when (string-match-p "## ASSISTANT:" current-content)
+                  (setq completed t))))))))
 
     completed))
 

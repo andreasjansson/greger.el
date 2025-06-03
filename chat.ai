@@ -8266,4 +8266,89 @@ test/test-end-to-end.el
 Fix model configuration test to check the actual model variable
 </tool.toolu_012QKCM4piJGVRhcsd43XSo9>
 
-<!-- TOOL_RESULT_PLACEHOLDER_toolu_012QKCM4piJGVRhcsd43XSo9 -->
+## TOOL RESULT:
+
+ID: toolu_012QKCM4piJGVRhcsd43XSo9
+
+<tool.toolu_012QKCM4piJGVRhcsd43XSo9>
+Successfully replaced content in /Users/andreas/projects/greger.el/test/test-end-to-end.el. Successfully staged 2 file(s) and committed with message: Fix model configuration test to check the actual model variable
+</tool.toolu_012QKCM4piJGVRhcsd43XSo9>
+
+
+## ASSISTANT:
+
+Now let me fix the buffer killing issue by making the wait function more robust:
+
+## TOOL USE:
+
+Name: str-replace
+ID: toolu_01RuiL9Bh1wH6otYwnvHw9Zc
+
+### file_path
+
+<tool.toolu_01RuiL9Bh1wH6otYwnvHw9Zc>
+test/test-end-to-end.el
+</tool.toolu_01RuiL9Bh1wH6otYwnvHw9Zc>
+
+### original_content
+
+<tool.toolu_01RuiL9Bh1wH6otYwnvHw9Zc>
+(defun greger-test-wait-for-response (buffer timeout)
+  "Wait for a response to appear in BUFFER within TIMEOUT seconds."
+  (let ((start-time (current-time))
+        (completed nil)
+        (initial-content (with-current-buffer buffer (buffer-string))))
+
+    (while (and (not completed)
+                (< (float-time (time-subtract (current-time) start-time)) timeout))
+      (sit-for 0.5)
+      ;; Check if buffer content has changed (response received)
+      (with-current-buffer buffer
+        (let ((current-content (buffer-string)))
+          (when (not (string= initial-content current-content))
+            ;; Content changed, but let's wait a bit more to ensure completion
+            (when (string-match-p "## USER:" current-content)
+              (setq completed t))))))
+
+    completed))
+</tool.toolu_01RuiL9Bh1wH6otYwnvHw9Zc>
+
+### new_content
+
+<tool.toolu_01RuiL9Bh1wH6otYwnvHw9Zc>
+(defun greger-test-wait-for-response (buffer timeout)
+  "Wait for a response to appear in BUFFER within TIMEOUT seconds."
+  (let ((start-time (current-time))
+        (completed nil)
+        (initial-content (with-current-buffer buffer (buffer-string))))
+
+    (while (and (not completed)
+                (< (float-time (time-subtract (current-time) start-time)) timeout)
+                (buffer-live-p buffer))
+      (sit-for 0.5)
+      ;; Check if buffer content has changed (response received)
+      (when (buffer-live-p buffer)
+        (with-current-buffer buffer
+          (let ((current-content (buffer-string)))
+            (when (and (not (string= initial-content current-content))
+                      (string-match-p "## ASSISTANT:" current-content))
+              ;; Content changed and we have an assistant response
+              ;; Wait a bit more to see if we get a USER prompt (conversation finished)
+              (sit-for 1.0)
+              (setq current-content (buffer-string))
+              (if (string-match-p "## USER:\n\n$" current-content)
+                  (setq completed t)
+                ;; If no USER prompt yet, wait more but consider it completed if response exists
+                (when (string-match-p "## ASSISTANT:" current-content)
+                  (setq completed t))))))))
+
+    completed))
+</tool.toolu_01RuiL9Bh1wH6otYwnvHw9Zc>
+
+### git_commit_message
+
+<tool.toolu_01RuiL9Bh1wH6otYwnvHw9Zc>
+Fix wait function to handle buffer lifecycle and response detection better
+</tool.toolu_01RuiL9Bh1wH6otYwnvHw9Zc>
+
+<!-- TOOL_RESULT_PLACEHOLDER_toolu_01RuiL9Bh1wH6otYwnvHw9Zc -->
