@@ -580,7 +580,7 @@ Returns a plist with :messages and :metadata keys."
           ;; Safety check: ensure we're making progress
           (when (= old-pos (greger-parser-state-pos state))
             (greger-parser--debug state "No progress in document parsing at pos %d, breaking" (greger-parser-state-pos state))
-            (break))))
+            (setq iterations max-iterations))))
 
       (when (>= iterations max-iterations)
         (greger-parser--debug state "Hit max iterations in parse-document"))
