@@ -243,7 +243,7 @@ description = \"Test project for greger LSP tools\"
 (ert-deftest greger-lsp-test-ensure-server ()
   "Test LSP server initialization helper."
   (greger-lsp-test-with-setup
-   (let ((buffer (greger-lsp--ensure-server greger-lsp-test-python-file)))
+   (let ((buffer (greger-lib-lsp--ensure-server greger-lsp-test-python-file)))
      (should (bufferp buffer))
      (with-current-buffer buffer
        (should (bound-and-true-p lsp-mode))
