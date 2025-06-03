@@ -5662,4 +5662,96 @@ greger-stdlib.el
 Capitalize error message in greger-stdlib--make-directory
 </tool.toolu_01T7hBsspe1ZhoAvpbxb4zFP>
 
-<!-- TOOL_RESULT_PLACEHOLDER_toolu_01T7hBsspe1ZhoAvpbxb4zFP -->
+## TOOL RESULT:
+
+ID: toolu_01T7hBsspe1ZhoAvpbxb4zFP
+
+<tool.toolu_01T7hBsspe1ZhoAvpbxb4zFP>
+Successfully replaced content in /Users/andreas/projects/greger.el/greger-stdlib.el. Successfully staged 2 file(s) and committed with message: Capitalize error message in greger-stdlib--make-directory
+</tool.toolu_01T7hBsspe1ZhoAvpbxb4zFP>
+
+
+## ASSISTANT:
+
+Let me continue with the git-log and git-show-commit functions' missing documentation:
+
+## TOOL USE:
+
+Name: read-file
+ID: toolu_01Lm5BkFkEDNgdGzmcJo9rbJ
+
+### path
+
+<tool.toolu_01Lm5BkFkEDNgdGzmcJo9rbJ>
+greger-stdlib.el
+</tool.toolu_01Lm5BkFkEDNgdGzmcJo9rbJ>
+
+### start_line
+
+<tool.toolu_01Lm5BkFkEDNgdGzmcJo9rbJ>
+925
+</tool.toolu_01Lm5BkFkEDNgdGzmcJo9rbJ>
+
+### end_line
+
+<tool.toolu_01Lm5BkFkEDNgdGzmcJo9rbJ>
+935
+</tool.toolu_01Lm5BkFkEDNgdGzmcJo9rbJ>
+
+### include_line_numbers
+
+<tool.toolu_01Lm5BkFkEDNgdGzmcJo9rbJ>
+true
+</tool.toolu_01Lm5BkFkEDNgdGzmcJo9rbJ>
+
+## TOOL RESULT:
+
+ID: toolu_01Lm5BkFkEDNgdGzmcJo9rbJ
+
+<tool.toolu_01Lm5BkFkEDNgdGzmcJo9rbJ>
+925:
+926: (defun greger-stdlib--git-log (path &optional max-rows)
+927:   "View git commit logs using git command line for PATH."
+928:   (unless (stringp path)
+929:     (error "path must be a string"))
+930:
+931:   (let ((expanded-path (expand-file-name path))
+932:         (max-count (or max-rows 100)))
+933:
+934:     (unless (file-exists-p expanded-path)
+935:       (error "Path does not exist: %s" expanded-path))
+</tool.toolu_01Lm5BkFkEDNgdGzmcJo9rbJ>
+
+## TOOL USE:
+
+Name: str-replace
+ID: toolu_01Wkohztero1TM1XpmkS4MdL
+
+### file_path
+
+<tool.toolu_01Wkohztero1TM1XpmkS4MdL>
+greger-stdlib.el
+</tool.toolu_01Wkohztero1TM1XpmkS4MdL>
+
+### original_content
+
+<tool.toolu_01Wkohztero1TM1XpmkS4MdL>
+(defun greger-stdlib--git-log (path &optional max-rows)
+  "View git commit logs using git command line for PATH."
+</tool.toolu_01Wkohztero1TM1XpmkS4MdL>
+
+### new_content
+
+<tool.toolu_01Wkohztero1TM1XpmkS4MdL>
+(defun greger-stdlib--git-log (path &optional max-rows)
+  "View git commit logs using git command line for PATH.
+MAX-ROWS limits the number of log entries returned (default 100)."
+</tool.toolu_01Wkohztero1TM1XpmkS4MdL>
+
+### git_commit_message
+
+<tool.toolu_01Wkohztero1TM1XpmkS4MdL>
+Fix missing MAX-ROWS documentation in greger-stdlib--git-log
+</tool.toolu_01Wkohztero1TM1XpmkS4MdL>
+
+<!-- TOOL_RESULT_PLACEHOLDER_toolu_01Wkohztero1TM1XpmkS4MdL -->

@@ -924,7 +924,8 @@ If BUFFER is provided, it will be staged and committed along with the file."
               (length content) line-number expanded-path git-result))))
 
 (defun greger-stdlib--git-log (path &optional max-rows)
-  "View git commit logs using git command line for PATH."
+  "View git commit logs using git command line for PATH.
+MAX-ROWS limits the number of log entries returned (default 100)."
   (unless (stringp path)
     (error "path must be a string"))
 
