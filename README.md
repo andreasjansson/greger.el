@@ -26,22 +26,21 @@ Or manually:
   :commands (greger)
   :config
   ;; Set your preferred model
-  (setq greger-model 'claude/claude-sonnet-4-20250514))
+  (setq greger-model 'claude-sonnet-4-20250514))
 ```
 
 ## Configuration
 
-Configure API keys for your preferred providers:
+Configure your Claude API key:
+
+```bash
+export ANTHROPIC_API_KEY="your-claude-api-key"
+```
+
+Or set it in your Emacs configuration:
 
 ```elisp
-;; For Claude
-(setq claude-api-key "your-claude-api-key")
-
-;; For OpenAI
-(setq openai-api-key "your-openai-api-key")
-
-;; For Google Gemini
-(setq google-api-key "your-google-api-key")
+(setenv "ANTHROPIC_API_KEY" "your-claude-api-key")
 ```
 
 ## Usage
