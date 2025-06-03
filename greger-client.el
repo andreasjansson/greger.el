@@ -252,7 +252,8 @@ Example of incoming data json (one data-json per line):
 {\"type\":\"content_block_start\",\"index\":0,\"content_block\":{\"type\":\"text\",\"text\":\"\"}}
 {\"type\": \"ping\"}
 {\"type\":\"content_block_delta\",\"index\":0,\"delta\":{\"type\":\"text_delta\",\"text\":\"I\"}}
-{\"type\":\"content_block_delta\",\"index\":0,\"delta\":{\"type\":\"text_delta\",\"text\":\"'ll first read the existing file to see what's already there,\"}}
+{\"type\":\"content_block_delta\",\"index\":0,\"delta\":{\"type\":\"text_delta\",
+\"text\":\"'ll first read the existing file to see what's already there,\"}}
 {\"type\":\"content_block_delta\",\"index\":0,\"delta\":{\"type\":\"text_delta\",\"text\":\" then add a new function in the same style.\"}}
 {\"type\":\"content_block_stop\",\"index\":0}
 {\"type\":\"content_block_start\",\"index\":1,\"content_block\":{\"type\":\"tool_use\",\"id\":\"toolu_01NmTNDZcJdGAMsrWQy1Heff\",\"name\":\"read-file\",\"input\":{}}}
