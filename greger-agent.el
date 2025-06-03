@@ -18,7 +18,15 @@
   (error nil))
 
 ;; not using patch tool, it's too messy
-(defcustom greger-agent-tools '("read-file" "list-directory" "str-replace" "insert" "write-new-file" "replace-file" "replace-function" "make-directory" "rename-file" "ripgrep" "git-log" "git-show-commit" "shell-command" "read-webpage" "lsp-rename" "lsp-find-definition" "lsp-find-references" "lsp-format" "lsp-document-symbols")
+(defun greger-agent--default-tools ()
+  "Return default tools list, including LSP tools if available."
+  (let ((base-tools '("read-file" "list-directory" "str-replace" "insert" "write-new-file" "replace-file" "replace-function" "make-directory" "rename-file" "ripgrep" "git-log" "git-show-commit" "shell-command" "read-webpage"))
+        (lsp-tools '("lsp-rename" "lsp-find-definition" "lsp-find-references" "lsp-format" "lsp-document-symbols")))
+    (if (and (boundp 'greger-lib-lsp-available) greger-lib-lsp-available)
+        (append base-tools lsp-tools)
+      base-tools)))
+
+(defcustom greger-agent-tools (greger-agent--default-tools)
   "List of tools available to the agent."
   :type '(repeat symbol)
   :group 'greger)
