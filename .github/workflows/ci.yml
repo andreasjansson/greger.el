@@ -27,10 +27,10 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v4
 
-      - name: Run package-lint
+      - name: Lint
         run: ./script/lint
 
-      - name: Run tests
+      - name: Test
         env:
           ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
         run: ./script/test --verbose
