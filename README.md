@@ -12,7 +12,7 @@ M-x greger
 
 ### Keybindings
 
-In greger buffers:
+In Greger buffers:
 
 - `M-RET` - Send message with tool support
 - `C-M-RET` - Send message without tools
@@ -55,9 +55,9 @@ The chat buffer is a complete representation of all the messages in the conversa
 
 Token caching is automatically enabled for cost efficiency.
 
-### Available tools:
+### Available tools
 
-greger.el includes a set of tool out of the box:
+Greger includes a set of tool out of the box:
 
 - File operations (read, write, edit files)
 - Web browsing and content extraction
@@ -68,7 +68,7 @@ greger.el includes a set of tool out of the box:
 
 Tools can be easily extended by defining new functions and registering them with the tool system.
 
-### Including Files and Code
+### Including files and code
 
 You can include file contents in your conversations:
 
@@ -79,7 +79,7 @@ You can include file contents in your conversations:
 
 Note that the included files will be updated on each run, so it's often better to write out a file path and let Greger read the file itself.
 
-### Safe Shell Commands
+### Safe shell commands
 
 Greger automatically generates descriptive text for safe shell commands that don't require user confirmation. When you define safe commands in a system section:
 
@@ -103,27 +103,12 @@ You can run arbitrary shell commands with the shell-command tool, but the follow
 * `bash script/test --verbose --file test/test-parser.el`
 ```
 
-You can also combine safe shell commands with other system content:
-
-```markdown
-## SYSTEM:
-
-You are a helpful assistant for an Emacs Lisp project.
-
-<safe-shell-commands>
-bash script/package-lint
-bash script/test --verbose
-</safe-shell-commands>
-```
-
-This will append the safe commands description to your existing system prompt. The commands listed in `<safe-shell-commands>` are extracted as metadata and used by the shell-command tool to skip permission prompts.
-
 ### Available models
 
 Greger supports the latest Claude models:
 
-- **claude-sonnet-4-20250514** - Fast, high-quality model for most tasks
-- **claude-opus-4-20250514** - Most capable model for complex reasoning
+- **claude-sonnet-4-20250514**
+- **claude-opus-4-20250514**
 
 ## Development
 
