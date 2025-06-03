@@ -100,6 +100,41 @@ Greger includes a powerful tool system that allows AI models to perform actions:
 
 Tools can be easily extended by defining new functions and registering them with the tool system.
 
+## Development
+
+### Running Tests
+
+The project includes comprehensive ERT tests for all major components. Use the test script to run them:
+
+```bash
+# Run all tests
+bash script/test
+
+# Run tests for a specific file
+bash script/test -f test-greger-agent.el
+
+# Run tests with verbose output
+bash script/test --verbose
+
+# Show help
+bash script/test --help
+```
+
+Test files include:
+- `test-greger-agent.el` - Agent and tool execution tests
+- `test-greger-parser.el` - Markdown parsing and dialog conversion tests
+- `test-greger-stdlib.el` - Standard library function tests
+- `test-greger-lib-lsp.el` - LSP integration tests
+- `test-greger-tools.el` - Tool registration and parameter handling tests
+
+### Package Linting
+
+Check code quality with package-lint:
+
+```bash
+bash script/package-lint
+```
+
 ## License
 
 Copyright (C) 2023 Andreas Jansson
