@@ -1487,10 +1487,7 @@ Hello"))
       (let ((system-msg (car (plist-get result :messages))))
         (should (string= "system" (alist-get 'role system-msg)))
         (let ((content (alist-get 'content system-msg)))
-          (should (string-match-p "you are a friendly assistant" content))
-          (should (string-match-p "You can run arbitrary shell commands with the shell-command tool" content))
-          (should (string-match-p "`command1`" content))
-          (should (string-match-p "`command2`" content))))
+          (should (string= "you are a friendly assistant\n\nYou can run arbitrary shell commands with the shell-command tool, but the following are safe shell commands that will run without requiring user confirmation:\n\n* `command1`\n* `command2`" content))))
 
       ;; Check user message
       (let ((user-msg (cadr (plist-get result :messages))))

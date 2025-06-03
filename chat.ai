@@ -3814,4 +3814,185 @@ This will append the safe commands description to your existing system prompt.
 Add safe shell commands documentation to README.md
 </tool.toolu_014qkGKU1boSom7YKQTyCuma>
 
-<!-- TOOL_RESULT_PLACEHOLDER_toolu_014qkGKU1boSom7YKQTyCuma -->
+## TOOL RESULT:
+
+ID: toolu_014qkGKU1boSom7YKQTyCuma
+
+<tool.toolu_014qkGKU1boSom7YKQTyCuma>
+Successfully replaced content in /Users/andreas/projects/greger.el/README.md. Successfully staged 2 file(s) and committed with message: Add safe shell commands documentation to README.md
+</tool.toolu_014qkGKU1boSom7YKQTyCuma>
+
+
+## ASSISTANT:
+
+Now let's fix the test to use `string=` instead of `string-match-p`:
+
+## TOOL USE:
+
+Name: read-file
+ID: toolu_01UGRBTdeCn1JcH3XkunyWqe
+
+### path
+
+<tool.toolu_01UGRBTdeCn1JcH3XkunyWqe>
+test/test-greger-parser.el
+</tool.toolu_01UGRBTdeCn1JcH3XkunyWqe>
+
+### start_line
+
+<tool.toolu_01UGRBTdeCn1JcH3XkunyWqe>
+1459
+</tool.toolu_01UGRBTdeCn1JcH3XkunyWqe>
+
+### end_line
+
+<tool.toolu_01UGRBTdeCn1JcH3XkunyWqe>
+1490
+</tool.toolu_01UGRBTdeCn1JcH3XkunyWqe>
+
+### include_line_numbers
+
+<tool.toolu_01UGRBTdeCn1JcH3XkunyWqe>
+true
+</tool.toolu_01UGRBTdeCn1JcH3XkunyWqe>
+
+## TOOL RESULT:
+
+ID: toolu_01UGRBTdeCn1JcH3XkunyWqe
+
+<tool.toolu_01UGRBTdeCn1JcH3XkunyWqe>
+1459: Don't process that."))
+1460:     (let ((result (greger-parser-parse-dialog markdown)))
+1461:       ;; Should have no metadata
+1462:       (should (equal '() (plist-get result :metadata)))
+1463:       ;; Should have system message with code block
+1464:       (should (= 1 (length (plist-get result :messages))))
+1465:       (should (string-match-p "<safe-shell-commands>"
+1466:                              (alist-get 'content (car (plist-get result :messages))))))))
+1467:
+1468: (ert-deftest greger-parser-test-system-content-with-safe-commands-example ()
+1469:   "Test the exact example from the user: system content with safe-shell-commands."
+1470:   (let ((markdown "## SYSTEM:
+1471:
+1472: you are a friendly assistant
+1473:
+1474: <safe-shell-commands>
+1475: command1
+1476: command2
+1477: </safe-shell-commands>
+1478:
+1479: ## USER:
+1480:
+1481: Hello"))
+1482:     (let ((result (greger-parser-parse-dialog markdown)))
+1483:       ;; Should have both system and user messages
+1484:       (should (= 2 (length (plist-get result :messages))))
+1485:
+1486:       ;; Check system message - should contain both original content and auto-generated safe commands text
+1487:       (let ((system-msg (car (plist-get result :messages))))
+1488:         (should (string= "system" (alist-get 'role system-msg)))
+1489:         (let ((content (alist-get 'content system-msg)))
+1490:           (should (string-match-p "you are a friendly assistant" content))
+</tool.toolu_01UGRBTdeCn1JcH3XkunyWqe>
+
+## TOOL USE:
+
+Name: read-file
+ID: toolu_01QTXpnHdKdLkLX3iVp481iM
+
+### path
+
+<tool.toolu_01QTXpnHdKdLkLX3iVp481iM>
+test/test-greger-parser.el
+</tool.toolu_01QTXpnHdKdLkLX3iVp481iM>
+
+### start_line
+
+<tool.toolu_01QTXpnHdKdLkLX3iVp481iM>
+1486
+</tool.toolu_01QTXpnHdKdLkLX3iVp481iM>
+
+### end_line
+
+<tool.toolu_01QTXpnHdKdLkLX3iVp481iM>
+1505
+</tool.toolu_01QTXpnHdKdLkLX3iVp481iM>
+
+### include_line_numbers
+
+<tool.toolu_01QTXpnHdKdLkLX3iVp481iM>
+true
+</tool.toolu_01QTXpnHdKdLkLX3iVp481iM>
+
+## TOOL RESULT:
+
+ID: toolu_01QTXpnHdKdLkLX3iVp481iM
+
+<tool.toolu_01QTXpnHdKdLkLX3iVp481iM>
+1486:       ;; Check system message - should contain both original content and auto-generated safe commands text
+1487:       (let ((system-msg (car (plist-get result :messages))))
+1488:         (should (string= "system" (alist-get 'role system-msg)))
+1489:         (let ((content (alist-get 'content system-msg)))
+1490:           (should (string-match-p "you are a friendly assistant" content))
+1491:           (should (string-match-p "You can run arbitrary shell commands with the shell-command tool" content))
+1492:           (should (string-match-p "`command1`" content))
+1493:           (should (string-match-p "`command2`" content))))
+1494:
+1495:       ;; Check user message
+1496:       (let ((user-msg (cadr (plist-get result :messages))))
+1497:         (should (string= "user" (alist-get 'role user-msg)))
+1498:         (should (string= "Hello" (alist-get 'content user-msg))))
+1499:
+1500:       ;; Should have metadata with safe shell commands
+1501:       (should (equal '(:safe-shell-commands ("command1" "command2")) (plist-get result :metadata))))))
+1502:
+1503: (provide 'test-greger-parser)
+1504:
+1505: ;;; test-greger-parser.el ends here
+</tool.toolu_01QTXpnHdKdLkLX3iVp481iM>
+
+## ASSISTANT:
+
+Now I'll update the test to use `string=` with the exact expected content:
+
+## TOOL USE:
+
+Name: str-replace
+ID: toolu_014BvhFf2BXcLhsmmerj4XWM
+
+### file_path
+
+<tool.toolu_014BvhFf2BXcLhsmmerj4XWM>
+test/test-greger-parser.el
+</tool.toolu_014BvhFf2BXcLhsmmerj4XWM>
+
+### original_content
+
+<tool.toolu_014BvhFf2BXcLhsmmerj4XWM>
+      ;; Check system message - should contain both original content and auto-generated safe commands text
+      (let ((system-msg (car (plist-get result :messages))))
+        (should (string= "system" (alist-get 'role system-msg)))
+        (let ((content (alist-get 'content system-msg)))
+          (should (string-match-p "you are a friendly assistant" content))
+          (should (string-match-p "You can run arbitrary shell commands with the shell-command tool" content))
+          (should (string-match-p "`command1`" content))
+          (should (string-match-p "`command2`" content))))
+</tool.toolu_014BvhFf2BXcLhsmmerj4XWM>
+
+### new_content
+
+<tool.toolu_014BvhFf2BXcLhsmmerj4XWM>
+      ;; Check system message - should contain both original content and auto-generated safe commands text
+      (let ((system-msg (car (plist-get result :messages))))
+        (should (string= "system" (alist-get 'role system-msg)))
+        (let ((content (alist-get 'content system-msg)))
+          (should (string= "you are a friendly assistant\n\nYou can run arbitrary shell commands with the shell-command tool, but the following are safe shell commands that will run without requiring user confirmation:\n\n* `command1`\n* `command2`" content))))
+</tool.toolu_014BvhFf2BXcLhsmmerj4XWM>
+
+### git_commit_message
+
+<tool.toolu_014BvhFf2BXcLhsmmerj4XWM>
+Update test to use string= instead of string-match-p for exact content comparison
+</tool.toolu_014BvhFf2BXcLhsmmerj4XWM>
+
+<!-- TOOL_RESULT_PLACEHOLDER_toolu_014BvhFf2BXcLhsmmerj4XWM -->
