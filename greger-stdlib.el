@@ -958,7 +958,8 @@ MAX-ROWS limits the number of log entries returned (default 100)."
         (error "Failed to retrieve git log: %s" (error-message-string err))))))
 
 (defun greger-stdlib--git-show-commit (commit-hash path)
-  "View git commit using git command line for PATH."
+  "View git commit using git command line for PATH.
+COMMIT-HASH specifies which commit to show."
   (unless (stringp commit-hash)
     (error "commit_hash must be a string"))
 

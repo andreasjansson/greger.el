@@ -5794,4 +5794,96 @@ greger-stdlib.el
 Capitalize error message in greger-stdlib--git-log
 </tool.toolu_01DYmEzp7zN6TgxQq9XjHArY>
 
-<!-- TOOL_RESULT_PLACEHOLDER_toolu_01DYmEzp7zN6TgxQq9XjHArY -->
+## TOOL RESULT:
+
+ID: toolu_01DYmEzp7zN6TgxQq9XjHArY
+
+<tool.toolu_01DYmEzp7zN6TgxQq9XjHArY>
+Successfully replaced content in /Users/andreas/projects/greger.el/greger-stdlib.el. Successfully staged 2 file(s) and committed with message: Capitalize error message in greger-stdlib--git-log
+</tool.toolu_01DYmEzp7zN6TgxQq9XjHArY>
+
+
+## ASSISTANT:
+
+Now let me find the git-show-commit function:
+
+## TOOL USE:
+
+Name: read-file
+ID: toolu_014njBEmvHeeYoMyeF4sRzVy
+
+### path
+
+<tool.toolu_014njBEmvHeeYoMyeF4sRzVy>
+greger-stdlib.el
+</tool.toolu_014njBEmvHeeYoMyeF4sRzVy>
+
+### start_line
+
+<tool.toolu_014njBEmvHeeYoMyeF4sRzVy>
+960
+</tool.toolu_014njBEmvHeeYoMyeF4sRzVy>
+
+### end_line
+
+<tool.toolu_014njBEmvHeeYoMyeF4sRzVy>
+970
+</tool.toolu_014njBEmvHeeYoMyeF4sRzVy>
+
+### include_line_numbers
+
+<tool.toolu_014njBEmvHeeYoMyeF4sRzVy>
+true
+</tool.toolu_014njBEmvHeeYoMyeF4sRzVy>
+
+## TOOL RESULT:
+
+ID: toolu_014njBEmvHeeYoMyeF4sRzVy
+
+<tool.toolu_014njBEmvHeeYoMyeF4sRzVy>
+960: (defun greger-stdlib--git-show-commit (commit-hash path)
+961:   "View git commit using git command line for PATH."
+962:   (unless (stringp commit-hash)
+963:     (error "commit_hash must be a string"))
+964:
+965:   (unless (stringp path)
+966:     (error "path must be a string"))
+967:
+968:   (let ((expanded-path (expand-file-name path)))
+969:
+970:     (unless (file-exists-p expanded-path)
+</tool.toolu_014njBEmvHeeYoMyeF4sRzVy>
+
+## TOOL USE:
+
+Name: str-replace
+ID: toolu_01MmQ4xJd4LE857zpomomtRM
+
+### file_path
+
+<tool.toolu_01MmQ4xJd4LE857zpomomtRM>
+greger-stdlib.el
+</tool.toolu_01MmQ4xJd4LE857zpomomtRM>
+
+### original_content
+
+<tool.toolu_01MmQ4xJd4LE857zpomomtRM>
+(defun greger-stdlib--git-show-commit (commit-hash path)
+  "View git commit using git command line for PATH."
+</tool.toolu_01MmQ4xJd4LE857zpomomtRM>
+
+### new_content
+
+<tool.toolu_01MmQ4xJd4LE857zpomomtRM>
+(defun greger-stdlib--git-show-commit (commit-hash path)
+  "View git commit using git command line for PATH.
+COMMIT-HASH specifies which commit to show."
+</tool.toolu_01MmQ4xJd4LE857zpomomtRM>
+
+### git_commit_message
+
+<tool.toolu_01MmQ4xJd4LE857zpomomtRM>
+Fix missing COMMIT-HASH documentation in greger-stdlib--git-show-commit
+</tool.toolu_01MmQ4xJd4LE857zpomomtRM>
+
+<!-- TOOL_RESULT_PLACEHOLDER_toolu_01MmQ4xJd4LE857zpomomtRM -->
