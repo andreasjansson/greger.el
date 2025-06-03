@@ -373,7 +373,7 @@ If END-LINE is specified, stop reading at that line (inclusive, 1-based)."
                  (actual-start (or start-line 1))
                  (actual-end (or end-line total-lines))
                  (selected-lines (greger-stdlib--extract-line-range all-lines actual-start actual-end))
-                 (contents (mapconcat 'identity selected-lines "\n")))
+                 (contents (mapconcat #'identity selected-lines "\n")))
             (if include-line-numbers
                 (greger-stdlib--add-line-numbers-with-offset contents actual-start)
               contents)))
