@@ -3914,4 +3914,36 @@ ID: toolu_01LDBiRj4vnYxTeWLjX6PHD1
 Remove temporary test file used for debugging
 </tool.toolu_01LDBiRj4vnYxTeWLjX6PHD1>
 
-<!-- TOOL_RESULT_PLACEHOLDER_toolu_01LDBiRj4vnYxTeWLjX6PHD1 -->
+## TOOL RESULT:
+
+ID: toolu_01LDBiRj4vnYxTeWLjX6PHD1
+
+<tool.toolu_01LDBiRj4vnYxTeWLjX6PHD1>
+Successfully deleted 1 file(s): /Users/andreas/projects/greger.el/test-read-file.txt. Git status: Successfully staged 2 file(s) and committed with message: Remove temporary test file used for debugging
+</tool.toolu_01LDBiRj4vnYxTeWLjX6PHD1>
+
+
+## ASSISTANT:
+
+## Summary
+
+I've successfully fixed the issues in the `test-greger-stdlib.el` file:
+
+1. **Fixed the failing `greger-test-read-webpage-network-error` test** by correcting the error handling in `greger-stdlib--read-webpage`. The function now properly catches errors and returns a formatted string instead of re-signaling the error.
+
+2. **Restored proper line number formatting** in `greger-stdlib--add-line-numbers-with-offset` by bringing back the padding calculation based on the maximum line number width that was present in the main branch.
+
+3. **Fixed error handling** in `greger-stdlib--read-file` to match the main branch format.
+
+4. **Added comprehensive tests for the read-file function** including:
+   - Basic
+ file reading with and without line numbers
+   - Line range selection
+   - Line number formatting with proper padding
+   - Error cases for invalid inputs
+
+5. **Improved test readability** by using `string=` comparisons with multi-line string literals instead of regex matching, making the expected results much clearer and easier to understand.
+
+All tests are now passing, and the read-file functionality works correctly with proper line number formatting that includes padding based on the maximum line number in the selected range.
+
+## USER:
