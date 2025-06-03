@@ -4,6 +4,7 @@ You can run arbitrary shell commands with the shell-command tool, but the follow
 
 * `bash script/package-lint`
 * `bash script/test --verbose`
+* `bash script/test --verbose --file test/test-parser.el`
 * `bash script/test --verbose --file test/test-greger.el`
 * `bash script/test --verbose --file test/test-greger-lib-lsp.el`
 
@@ -11,6 +12,7 @@ You can run arbitrary shell commands with the shell-command tool, but the follow
 <safe-shell-commands>
 bash script/package-lint
 bash script/test --verbose
+bash script/test --verbose --file test/test-parser.el
 bash script/test --verbose --file test/test-greger.el
 bash script/test --verbose --file test/test-greger-lib-lsp.el
 </safe-shell-commands>
@@ -18,2716 +20,1694 @@ bash script/test --verbose --file test/test-greger-lib-lsp.el
 
 ## USER:
 
-In a few tests there's a check to see if ANTHROPIC_API_KEY is set. I want that to always be required so remove those checks and `(skip-unless (greger-test-has-api-key))` etc.
+When you parse safe shell commands in greger-parser.el, insert text in the system prompt along the lines of
+
+```
+You can run arbitrary shell commands with the shell-command tool, but the following are safe shell commands that will run without requiring user confirmation:
+
+* `bash script/package-lint`
+* `bash script/test --verbose`
+* `bash script/test --verbose --file test/test-parser.el`
+* `bash script/test --verbose --file test/test-greger.el`
+* `bash script/test --verbose --file test/test-greger-lib-lsp.el`
+```
 
 ## ASSISTANT:
 
-I'll help you remove the conditional checks for ANTHROPIC_API_KEY in the tests. Let me first search for these checks to see where they are located.
-
-## TOOL USE:
-
-Name: ripgrep
-ID: toolu_01FxMUQhQMRXsrhXkqmUd8MP
-
-### pattern
-
-<tool.toolu_01FxMUQhQMRXsrhXkqmUd8MP>
-ANTHROPIC_API_KEY
-</tool.toolu_01FxMUQhQMRXsrhXkqmUd8MP>
-
-### file-type
-
-<tool.toolu_01FxMUQhQMRXsrhXkqmUd8MP>
-el
-</tool.toolu_01FxMUQhQMRXsrhXkqmUd8MP>
-
-## TOOL RESULT:
-
-ID: toolu_01FxMUQhQMRXsrhXkqmUd8MP
-
-<tool.toolu_01FxMUQhQMRXsrhXkqmUd8MP>
-/Users/andreas/projects/greger.el/README.md:79:export ANTHROPIC_API_KEY="your-claude-api-key"
-/Users/andreas/projects/greger.el/README.md:85:(setenv "ANTHROPIC_API_KEY" "your-claude-api-key")
-/Users/andreas/projects/greger.el/greger-client.el:115:  (let ((api-key (getenv "ANTHROPIC_API_KEY")))
-/Users/andreas/projects/greger.el/greger-client.el:117:      (error "Please set the ANTHROPIC_API_KEY environment variable"))
-/Users/andreas/projects/greger.el/test/test-end-to-end.el:7:;; These tests require a valid ANTHROPIC_API_KEY environment variable.
-/Users/andreas/projects/greger.el/test/test-end-to-end.el:20:  (not (string-empty-p (or (getenv "ANTHROPIC_API_KEY") ""))))
-/Users/andreas/projects/greger.el/test/test-greger-client.el:6:;; These tests require a valid ANTHROPIC_API_KEY environment variable.
-/Users/andreas/projects/greger.el/test/test-greger-client.el:20:  (not (string-empty-p (or (getenv "ANTHROPIC_API_KEY") ""))))
-
-</tool.toolu_01FxMUQhQMRXsrhXkqmUd8MP>
-
-## ASSISTANT:
-
-Now let me search for the skip-unless patterns:
-
-## TOOL USE:
-
-Name: ripgrep
-ID: toolu_016Xw6kiKf5LseoybUsrYKMM
-
-### pattern
-
-<tool.toolu_016Xw6kiKf5LseoybUsrYKMM>
-skip-unless.*greger-test-has-api-key
-</tool.toolu_016Xw6kiKf5LseoybUsrYKMM>
-
-### file-type
-
-<tool.toolu_016Xw6kiKf5LseoybUsrYKMM>
-el
-</tool.toolu_016Xw6kiKf5LseoybUsrYKMM>
-
-## TOOL RESULT:
-
-ID: toolu_016Xw6kiKf5LseoybUsrYKMM
-
-<tool.toolu_016Xw6kiKf5LseoybUsrYKMM>
-/Users/andreas/projects/greger.el/test/test-end-to-end.el:106:  (skip-unless (greger-test-has-api-key))
-/Users/andreas/projects/greger.el/test/test-end-to-end.el:143:  (skip-unless (greger-test-has-api-key))
-/Users/andreas/projects/greger.el/test/test-end-to-end.el:191:  (skip-unless (greger-test-has-api-key))
-/Users/andreas/projects/greger.el/test/test-greger-client.el:39:  (skip-unless (greger-test-has-api-key))
-/Users/andreas/projects/greger.el/test/test-greger-client.el:90:  (skip-unless (greger-test-has-api-key))
-/Users/andreas/projects/greger.el/test/test-greger-client.el:146:  (skip-unless (greger-test-has-api-key))
-/Users/andreas/projects/greger.el/test/test-greger-client.el:175:  (skip-unless (greger-test-has-api-key))
-
-</tool.toolu_016Xw6kiKf5LseoybUsrYKMM>
-
-## ASSISTANT:
-
-Let me also check for the `greger-test-has-api-key` function definition:
-
-## TOOL USE:
-
-Name: ripgrep
-ID: toolu_01Akb2rk6sxwM81HucHUZBXT
-
-### pattern
-
-<tool.toolu_01Akb2rk6sxwM81HucHUZBXT>
-greger-test-has-api-key
-</tool.toolu_01Akb2rk6sxwM81HucHUZBXT>
-
-### file-type
-
-<tool.toolu_01Akb2rk6sxwM81HucHUZBXT>
-el
-</tool.toolu_01Akb2rk6sxwM81HucHUZBXT>
-
-## TOOL RESULT:
-
-ID: toolu_01Akb2rk6sxwM81HucHUZBXT
-
-<tool.toolu_01Akb2rk6sxwM81HucHUZBXT>
-/Users/andreas/projects/greger.el/test/test-end-to-end.el:18:(defun greger-test-has-api-key ()
-/Users/andreas/projects/greger.el/test/test-end-to-end.el:106:  (skip-unless (greger-test-has-api-key))
-/Users/andreas/projects/greger.el/test/test-end-to-end.el:143:  (skip-unless (greger-test-has-api-key))
-/Users/andreas/projects/greger.el/test/test-end-to-end.el:191:  (skip-unless (greger-test-has-api-key))
-/Users/andreas/projects/greger.el/test/test-greger-client.el:18:(defun greger-test-has-api-key ()
-/Users/andreas/projects/greger.el/test/test-greger-client.el:39:  (skip-unless (greger-test-has-api-key))
-/Users/andreas/projects/greger.el/test/test-greger-client.el:90:  (skip-unless (greger-test-has-api-key))
-/Users/andreas/projects/greger.el/test/test-greger-client.el:146:  (skip-unless (greger-test-has-api-key))
-/Users/andreas/projects/greger.el/test/test-greger-client.el:175:  (skip-unless (greger-test-has-api-key))
-
-</tool.toolu_01Akb2rk6sxwM81HucHUZBXT>
-
-## ASSISTANT:
-
-Now let me examine the test files to see the structure and remove the checks. Let me start with test-end-to-end.el:
+I'll help you add that text to the system prompt when parsing safe shell commands. Let me first examine the greger-parser.el file to understand the current structure and find the appropriate location to insert this text.
 
 ## TOOL USE:
 
 Name: read-file
-ID: toolu_01UgAxEKNyggbg6QghVNSZYN
+ID: toolu_01HQXHYdK6yp1RxTJebLucFs
 
 ### path
 
-<tool.toolu_01UgAxEKNyggbg6QghVNSZYN>
-test/test-end-to-end.el
-</tool.toolu_01UgAxEKNyggbg6QghVNSZYN>
+<tool.toolu_01HQXHYdK6yp1RxTJebLucFs>
+greger-parser.el
+</tool.toolu_01HQXHYdK6yp1RxTJebLucFs>
 
 ### include_line_numbers
 
-<tool.toolu_01UgAxEKNyggbg6QghVNSZYN>
+<tool.toolu_01HQXHYdK6yp1RxTJebLucFs>
 true
-</tool.toolu_01UgAxEKNyggbg6QghVNSZYN>
+</tool.toolu_01HQXHYdK6yp1RxTJebLucFs>
 
 ## TOOL RESULT:
 
-ID: toolu_01UgAxEKNyggbg6QghVNSZYN
+ID: toolu_01HQXHYdK6yp1RxTJebLucFs
 
-<tool.toolu_01UgAxEKNyggbg6QghVNSZYN>
-  1: ;;; test-end-to-end.el --- True end-to-end tests for greger -*- lexical-binding: t -*-
-  2:
-  3: ;;; Commentary:
-  4: ;;
-  5: ;; This file contains true end-to-end tests that use greger as an end user would,
-  6: ;; calling only the public API functions `greger` and `greger-buffer`.
-  7: ;; These tests require a valid ANTHROPIC_API_KEY environment variable.
-  8: ;;
-  9: ;; WARNING: These tests make real API calls and may incur costs.
- 10: ;;
- 11:
- 12: (require 'ert)
- 13: (require 'greger)
- 14:
- 15: (defvar greger-test-timeout 30
- 16:   "Timeout in seconds for API calls in tests.")
- 17:
- 18: (defun greger-test-has-api-key ()
- 19:   "Check if we have a valid API key for testing."
- 20:   (not (string-empty-p (or (getenv "ANTHROPIC_API_KEY") ""))))
- 21:
- 22: (defun greger-test-wait-for-response (buffer timeout)
- 23:   "Wait for a response to appear in BUFFER within TIMEOUT seconds."
- 24:   (let ((start-time (current-time))
- 25:         (completed nil)
- 26:         (response-started nil)
- 27:         (initial-content (with-current-buffer buffer (buffer-string))))
- 28:
- 29:     (while (and (not completed)
- 30:                 (< (float-time (time-subtract (current-time) start-time)) timeout)
- 31:                 (buffer-live-p buffer))
- 32:       (sit-for 0.2)
- 33:       ;; Check if buffer content has changed (response received)
- 34:       (when (buffer-live-p buffer)
- 35:         (with-current-buffer buffer
- 36:           (let ((current-content (buffer-string)))
- 37:             ;; Check if response started
- 38:             (when (and (not response-started)
- 39:                       (not (string= initial-content current-content))
- 40:                       (string-match-p "## ASSISTANT:" current-content))
- 41:               (setq response-started t))
- 42:
- 43:             ;; If response started, wait for it to finish
- 44:             (when response-started
- 45:               ;; Check if conversation is complete (has USER prompt at end)
- 46:               (if (string-match-p "## USER:\n\n$" current-content)
- 47:                   (setq completed t)
- 48:                 ;; Or if it's been a while since response started, consider it done
- 49:                 (let ((response-time (- (float-time (current-time))
- 50:                                        (float-time start-time))))
- 51:                   (when (> response-time 5.0) ; If response has been going for 5+ seconds
- 52:                     (setq completed t)))))))))
- 53:
- 54:     completed))
- 55:
- 56: (defun greger-test-wait-for-streaming-complete ()
- 57:   "Wait for any active streaming processes to complete."
- 58:   (let ((max-wait 3.0)
- 59:         (start-time (current-time)))
- 60:     (while (and (< (float-time (time-subtract (current-time) start-time)) max-wait)
- 61:                 (cl-some (lambda (proc)
- 62:                           (and (process-live-p proc)
- 63:                                (string-match-p "greger-curl" (process-name proc))))
- 64:                         (process-list)))
- 65:       (sit-for 0.1))))
- 66:
- 67: (ert-deftest greger-end-to-end-test-greger-function ()
- 68:   "Test the main greger function creates a buffer and sets it up correctly."
- 69:   :tags '(end-to-end public-api)
- 70:
- 71:   (let ((original-buffers (buffer-list)))
- 72:     (unwind-protect
- 73:         (progn
- 74:           ;; Call the main greger function
- 75:           (greger)
- 76:
- 77:           ;; Verify a new greger buffer was created
- 78:           (let ((new-buffers (cl-remove-if (lambda (buf) (memq buf original-buffers))
- 79:                                            (buffer-list))))
- 80:             (should (= 1 (length new-buffers)))
- 81:             (let ((greger-buffer (car new-buffers)))
- 82:               (should (string-match-p "\\*greger\\*" (buffer-name greger-buffer)))
- 83:
- 84:               ;; Verify buffer is in greger-mode
- 85:               (with-current-buffer greger-buffer
- 86:                 (should (eq major-mode 'greger-mode))
- 87:
- 88:                 ;; Verify initial content is set up correctly
- 89:                 (let ((content (buffer-string)))
- 90:                   (should (string-match-p "## SYSTEM:" content))
- 91:                   (should (string-match-p "## USER:" content))
- 92:                   (should (string-match-p greger-default-system-prompt content)))
- 93:
- 94:                 ;; Verify we're at the end of the buffer (ready for user input)
- 95:                 (should (= (point) (point-max)))))))
- 96:
- 97:       ;; Cleanup: kill any greger buffers we created
- 98:       (dolist (buffer (buffer-list))
- 99:         (when (and (string-match-p "\\*greger\\*" (buffer-name buffer))
-100:                    (not (memq buffer original-buffers)))
-101:           (kill-buffer buffer))))))
-102:
-103: (ert-deftest greger-end-to-end-test-simple-conversation ()
-104:   "Test a simple conversation using the public API."
-105:   :tags '(end-to-end public-api)
-106:   (skip-unless (greger-test-has-api-key))
-107:
-108:   (let ((greger-buffer nil))
-109:     (unwind-protect
-110:         (progn
-111:           ;; Create a greger buffer
-112:           (greger)
-113:           (setq greger-buffer (current-buffer))
-114:
-115:           ;; Add a simple user message
-116:           (goto-char (point-max))
-117:           (insert "Hello! Please respond with exactly 'Hello from greger test!' and nothing else.")
-118:
-119:           ;; Call greger-buffer to send the message
-120:           (greger-buffer)
-121:
-122:           ;; Wait for response
-123:           (should (greger-test-wait-for-response greger-buffer greger-test-timeout))
-124:
-125:           ;; Wait for streaming to complete
-126:           (greger-test-wait-for-streaming-complete)
-127:
-128:           ;; Verify response was added to buffer
-129:           (let ((content (buffer-string)))
-130:             (should (string-match-p "## ASSISTANT:" content))
-131:             (should (string-match-p "Hello from greger test!" content))
-132:             ;; Should have a new USER section at the end (or at least assistant response)
-133:             (should (or (string-match-p "## USER:\n\n$" content)
-134:                        (string-match-p "## ASSISTANT:" content)))))
-135:
-136:       ;; Cleanup
-137:       (when (and greger-buffer (buffer-live-p greger-buffer))
-138:         (kill-buffer greger-buffer)))))
-139:
-140: (ert-deftest greger-end-to-end-test-tool-use-conversation ()
-141:   "Test a conversation that involves tool use using the public API."
-142:   :tags '(end-to-end public-api tools)
-143:   (skip-unless (greger-test-has-api-key))
-144:
-145:   (let ((greger-buffer nil)
-146:         (test-file nil))
-147:     (unwind-protect
-148:         (progn
-149:           ;; Create a temporary test file
-150:           (setq test-file (make-temp-file "greger-test-" nil ".txt"))
-151:           (with-temp-file test-file
-152:             (insert "This is a test file for greger end-to-end testing."))
-153:
-154:           ;; Create a greger buffer
-155:           (greger)
-156:           (setq greger-buffer (current-buffer))
-157:
-158:           ;; Add a user message that should trigger tool use
-159:           (goto-char (point-max))
-160:           (insert (format "Please read the file %s and tell me what it contains." test-file))
-161:
-162:           ;; Call greger-buffer to send the message
-163:           (greger-buffer)
-164:
-165:           ;; Wait for response (tool use might take longer)
-166:           (should (greger-test-wait-for-response greger-buffer (* greger-test-timeout 2)))
-167:
-168:           ;; Wait for streaming to complete
-169:           (greger-test-wait-for-streaming-complete)
-170:
-171:           ;; Verify response was added to buffer
-172:           (let ((content (buffer-string)))
-173:             (should (string-match-p "## ASSISTANT:" content))
-174:             ;; Should have tool use section or content from the file
-175:             (should (or (string-match-p "## TOOL USE:" content)
-176:                        (string-match-p "read-file" content)
-177:                        (string-match-p "test file for greger" content)))
-178:             ;; Should have a new USER section at the end (or at least assistant response)
-179:             (should (or (string-match-p "## USER:\n\n$" content)
-180:                        (string-match-p "## ASSISTANT:" content)))))
-181:
-182:       ;; Cleanup
-183:       (when (and test-file (file-exists-p test-file))
-184:         (delete-file test-file))
-185:       (when (and greger-buffer (buffer-live-p greger-buffer))
-186:         (kill-buffer greger-buffer)))))
-187:
-188: (ert-deftest greger-end-to-end-test-no-tools-mode ()
-189:   "Test the no-tools mode using C-M-return."
-190:   :tags '(end-to-end public-api no-tools)
-191:   (skip-unless (greger-test-has-api-key))
-192:
-193:   (let ((greger-buffer nil)
-194:         (test-file nil))
-195:     (unwind-protect
-196:         (progn
-197:           ;; Create a temporary test file
-198:           (setq test-file (make-temp-file "greger-test-" nil ".txt"))
-199:           (with-temp-file test-file
-200:             (insert "This file should not be read in no-tools mode."))
-201:
-202:           ;; Create a greger buffer
-203:           (greger)
-204:           (setq greger-buffer (current-buffer))
-205:
-206:           ;; Add a user message that would trigger tool use if tools were enabled
-207:           (goto-char (point-max))
-208:           (insert (format "Please read the file %s and tell me what it contains." test-file))
-209:
-210:           ;; Call greger-buffer-no-tools instead of greger-buffer
-211:           (greger-buffer-no-tools)
-212:
-213:           ;; Wait for response
-214:           (should (greger-test-wait-for-response greger-buffer greger-test-timeout))
-215:
-216:           ;; Wait for streaming to complete
-217:           (greger-test-wait-for-streaming-complete)
-218:
-219:           ;; Verify response was added to buffer
-220:           (let ((content (buffer-string)))
-221:             (should (string-match-p "## ASSISTANT:" content))
-222:             ;; Should NOT have tool use sections (no tools mode)
-223:             (should-not (string-match-p "## TOOL USE:" content))
-224:             (should-not (string-match-p "## TOOL RESULT:" content))
-225:             ;; Should have responded without actually reading the file
-226:             (should-not (string-match-p "This file should not be read" content))
-227:             ;; Should have a new USER section at the end (or at least assistant response)
-228:             (should (or (string-match-p "## USER:\n\n$" content)
-229:                        (string-match-p "## ASSISTANT:" content)))))
-230:
-231:       ;; Cleanup
-232:       (when (and test-file (file-exists-p test-file))
-233:         (delete-file test-file))
-234:       (when (and greger-buffer (buffer-live-p greger-buffer))
-235:         (kill-buffer greger-buffer)))))
-236:
-237: (ert-deftest greger-end-to-end-test-model-configuration ()
-238:   "Test that model configuration works correctly."
-239:   :tags '(end-to-end public-api configuration)
-240:
-241:   (let ((original-model greger-model)
-242:         (greger-buffer nil))
-243:     (unwind-protect
-244:         (progn
-245:           ;; Test that we can set different supported models
-246:           (setq greger-model 'claude-opus-4-20250514)
-247:           (should (eq greger-model 'claude-opus-4-20250514))
-248:
-249:           (setq greger-model 'claude-sonnet-4-20250514)
-250:           (should (eq greger-model 'claude-sonnet-4-20250514))
-251:
-252:           ;; Create a greger buffer and verify model is displayed
-253:           (greger)
-254:           (setq greger-buffer (current-buffer))
-255:
-256:           ;; The model should be shown in the mode line
-257:           (should (string-match-p "claude-sonnet-4-20250514"
-258:                                  (format "%s" (symbol-name greger-model)))))
-259:
-260:       ;; Cleanup
-261:       (setq greger-model original-model)
-262:       (when (and greger-buffer (buffer-live-p greger-buffer))
-263:         (kill-buffer greger-buffer)))))
-264:
-265: (provide 'test-end-to-end)
-266:
-267: ;;; test-end-to-end.el ends here
-268:
-</tool.toolu_01UgAxEKNyggbg6QghVNSZYN>
+<tool.toolu_01HQXHYdK6yp1RxTJebLucFs>
+   1: ;;; greger-parser.el --- Parser for greger dialog format -*- lexical-binding: t -*-
+   2:
+   3: ;; Author: Andreas Jansson <andreas@jansson.me.uk>
+   4: ;; Version: 0.1.0
+   5: ;; URL: https://github.com/andreasjansson/greger.el
+   6:
+   7: ;;; Commentary:
+   8: ;; Parses markdown-style dialog format with sections like ## USER:, ## ASSISTANT:, etc.
+   9: ;; Handles tool use, thinking blocks, and complex content structures.
+  10:
+  11: ;;; Code:
+  12:
+  13: (require 'json)
+  14: (require 'cl-lib)
+  15: (require 'greger-web)
+  16:
+  17: ;; Section tag constants
+  18: (defconst greger-parser-user-tag "## USER:")
+  19: (defconst greger-parser-assistant-tag "## ASSISTANT:")
+  20: (defconst greger-parser-system-tag "## SYSTEM:")
+  21: (defconst greger-parser-tool-use-tag "## TOOL USE:")
+  22: (defconst greger-parser-tool-result-tag "## TOOL RESULT:")
+  23: (defconst greger-parser-thinking-tag "## THINKING:")
+  24:
+  25: ;;; Parser state structure
+  26:
+  27: (cl-defstruct greger-parser-state
+  28:   input
+  29:   pos
+  30:   length
+  31:   debug
+  32:   metadata)
+  33:
+  34: (defun greger-parser--create-state (input &optional debug)
+  35:   "Create a parser state for INPUT with optional DEBUG flag."
+  36:   (make-greger-parser-state
+  37:    :input (or input "")
+  38:    :pos 0
+  39:    :length (length (or input ""))
+  40:    :debug debug
+  41:    :metadata '()))
+  42:
+  43: (defun greger-parser--debug (state format-string &rest args)
+  44:   "Debug logging function using STATE."
+  45:   (when (greger-parser-state-debug state)
+  46:     (message "[PARSER DEBUG] %s" (apply #'format format-string args))))
+  47:
+  48: ;; Main parsing entry points
+  49:
+  50: (defun greger-parser-parse-dialog (markdown &optional debug)
+  51:   "Parse MARKDOWN into dialog format with optional DEBUG flag.
+  52: Returns a plist with :messages and :metadata keys."
+  53:   (if (or (null markdown) (string-empty-p (string-trim markdown)))
+  54:       '(:messages () :metadata ())
+  55:     (let ((state (greger-parser--create-state markdown debug)))
+  56:       (condition-case err
+  57:           (greger-parser--parse-document state)
+  58:         (error
+  59:          (greger-parser--debug state "Parse error: %s" (error-message-string err))
+  60:          '(:messages () :metadata ()))))))
+  61:
+  62: (defun greger-parser-dialog-to-markdown (dialog)
+  63:   "Convert DIALOG to markdown format."
+  64:   (if (null dialog)
+  65:       ""
+  66:     (mapconcat #'greger-parser--message-to-markdown dialog "\n\n")))
+  67:
+  68: ;; Compatibility function for tests and existing code
+  69: (defun greger-parser-parse-dialog-messages-only (markdown &optional debug)
+  70:   "Parse MARKDOWN into dialog format, returning only the messages (old format).
+  71: This is for backward compatibility with existing tests and code."
+  72:   (let ((result (greger-parser-parse-dialog markdown debug)))
+  73:     (plist-get result :messages)))
+  74:
+  75: ;; Parser infrastructure
+  76:
+  77: (defun greger-parser--at-end-p (state)
+  78:   "True if at end of input in STATE."
+  79:   (>= (greger-parser-state-pos state) (greger-parser-state-length state)))
+  80:
+  81: (defun greger-parser--peek (state &optional offset)
+  82:   "Peek at character at current position plus OFFSET in STATE."
+  83:   (let ((pos (+ (greger-parser-state-pos state) (or offset 0))))
+  84:     (if (and (>= pos 0) (< pos (greger-parser-state-length state)))
+  85:         (aref (greger-parser-state-input state) pos)
+  86:       nil)))
+  87:
+  88: (defun greger-parser--advance (state &optional n)
+  89:   "Advance position by N characters (default 1) in STATE."
+  90:   (let ((old-pos (greger-parser-state-pos state)))
+  91:     (setf (greger-parser-state-pos state)
+  92:           (min (greger-parser-state-length state)
+  93:                (+ (greger-parser-state-pos state) (or n 1))))
+  94:     (greger-parser--debug state "Advanced from %d to %d" old-pos (greger-parser-state-pos state))))
+  95:
+  96: (defun greger-parser--current-pos (state)
+  97:   "Get current position from STATE."
+  98:   (greger-parser-state-pos state))
+  99:
+ 100: (defun greger-parser--insert-content-at-pos (state content)
+ 101:   "Insert CONTENT into STATE at the current position and update length."
+ 102:   (let* ((pos (greger-parser-state-pos state))
+ 103:          (input (greger-parser-state-input state))
+ 104:          (before (substring input 0 pos))
+ 105:          (after (substring input pos))
+ 106:          (new-input (concat before content after)))
+ 107:     (setf (greger-parser-state-input state) new-input)
+ 108:     (setf (greger-parser-state-length state) (length new-input))))
+ 109:
+ 110: (defun greger-parser--substring (state start &optional end)
+ 111:   "Get substring from START to END (or current position) in STATE."
+ 112:   (let ((input (greger-parser-state-input state))
+ 113:         (length (greger-parser-state-length state))
+ 114:         (current-pos (greger-parser-state-pos state)))
+ 115:     (if (and (>= start 0)
+ 116:              (<= start length)
+ 117:              (or (null end) (<= end length)))
+ 118:         (substring input start (or end current-pos))
+ 119:       "")))
+ 120:
+ 121: (defun greger-parser--looking-at (state string)
+ 122:   "True if current position matches STRING in STATE."
+ 123:   (and string
+ 124:        (<= (+ (greger-parser-state-pos state) (length string)) (greger-parser-state-length state))
+ 125:        (string= (greger-parser--substring state (greger-parser-state-pos state)
+ 126:                                          (+ (greger-parser-state-pos state) (length string)))
+ 127:                 string)))
+ 128:
+ 129: (defun greger-parser--at-triple-backticks (state)
+ 130:   "True if current position matches ``` at beginning of line in STATE."
+ 131:   (and (greger-parser--at-line-start-p state)
+ 132:        (greger-parser--looking-at state "```")))
+ 133:
+ 134: ;; Character tests
+ 135:
+ 136: (defun greger-parser--whitespace-p (char)
+ 137:   "True if CHAR is whitespace."
+ 138:   (and char (memq char '(?\s ?\t ?\n ?\r))))
+ 139:
+ 140: (defun greger-parser--horizontal-whitespace-p (char)
+ 141:   "True if CHAR is horizontal whitespace."
+ 142:   (and char (memq char '(?\s ?\t))))
+ 143:
+ 144: (defun greger-parser--newline-p (char)
+ 145:   "True if CHAR is newline."
+ 146:   (and char (eq char ?\n)))
+ 147:
+ 148: ;; Navigation
+ 149:
+ 150: (defun greger-parser--skip-whitespace (state)
+ 151:   "Skip all whitespace in STATE."
+ 152:   (let ((start-pos (greger-parser-state-pos state)))
+ 153:     (while (and (not (greger-parser--at-end-p state))
+ 154:                 (greger-parser--whitespace-p (greger-parser--peek state)))
+ 155:       (greger-parser--advance state))
+ 156:     (when (> (greger-parser-state-pos state) start-pos)
+ 157:       (greger-parser--debug state "Skipped whitespace from %d to %d" start-pos (greger-parser-state-pos state)))))
+ 158:
+ 159: (defun greger-parser--skip-horizontal-whitespace (state)
+ 160:   "Skip spaces and tabs in STATE."
+ 161:   (while (and (not (greger-parser--at-end-p state))
+ 162:               (greger-parser--horizontal-whitespace-p (greger-parser--peek state)))
+ 163:     (greger-parser--advance state)))
+ 164:
+ 165: (defun greger-parser--at-line-start-p (state)
+ 166:   "True if at start of line in STATE."
+ 167:   (or (= (greger-parser-state-pos state) 0)
+ 168:       (greger-parser--newline-p (greger-parser--peek state -1))))
+ 169:
+ 170: (defun greger-parser--skip-to-line-end (state)
+ 171:   "Skip to end of current line in STATE."
+ 172:   (while (and (not (greger-parser--at-end-p state))
+ 173:               (not (greger-parser--newline-p (greger-parser--peek state))))
+ 174:     (greger-parser--advance state)))
+ 175:
+ 176: (defun greger-parser--read-line (state)
+ 177:   "Read rest of current line in STATE."
+ 178:   (let ((start (greger-parser--current-pos state)))
+ 179:     (greger-parser--skip-to-line-end state)
+ 180:     (string-trim (greger-parser--substring state start))))
+ 181:
+ 182: ;; Section tag handling
+ 183:
+ 184: (defun greger-parser--section-tags ()
+ 185:   "List of all section tags."
+ 186:   (list greger-parser-user-tag
+ 187:         greger-parser-assistant-tag
+ 188:         greger-parser-system-tag
+ 189:         greger-parser-tool-use-tag
+ 190:         greger-parser-tool-result-tag
+ 191:         greger-parser-thinking-tag))
+ 192:
+ 193: (defun greger-parser--find-section-tag (state)
+ 194:   "Find section tag at current position if at line start in STATE."
+ 195:   (when (greger-parser--at-line-start-p state)
+ 196:     (let ((tag (cl-find-if (lambda (tag) (greger-parser--looking-at state tag)) (greger-parser--section-tags))))
+ 197:       (greger-parser--debug state "Found section tag: %s at pos %d" tag (greger-parser-state-pos state))
+ 198:       tag)))
+ 199:
+ 200: (defun greger-parser--consume-section-tag (state tag)
+ 201:   "Consume TAG and return it in STATE."
+ 202:   (when (greger-parser--looking-at state tag)
+ 203:     (greger-parser--debug state "Consuming tag: %s" tag)
+ 204:     (greger-parser--advance state (length tag))
+ 205:     tag))
+ 206:
+ 207: ;; Code block detection and skipping
+ 208:
+ 209: (defun greger-parser--skip-code-block (state)
+ 210:   "Skip triple-backtick code block in STATE."
+ 211:   (greger-parser--debug state "Skipping code block at pos %d" (greger-parser-state-pos state))
+ 212:   (greger-parser--advance state 3) ; Skip opening ```
+ 213:   (greger-parser--skip-to-line-end state) ; Skip language specifier
+ 214:   (when (greger-parser--newline-p (greger-parser--peek state))
+ 215:     (greger-parser--advance state))
+ 216:
+ 217:   ;; Find closing ```
+ 218:   (while (and (not (greger-parser--at-end-p state))
+ 219:               (not (greger-parser--at-triple-backticks state)))
+ 220:     (greger-parser--advance state))
+ 221:
+ 222:   ;; Skip closing ```
+ 223:   (when (greger-parser--at-triple-backticks state)
+ 224:     (greger-parser--advance state 3)))
+ 225:
+ 226: (defun greger-parser--skip-inline-code (state)
+ 227:   "Skip inline code with double backticks in STATE."
+ 228:   (greger-parser--debug state "Skipping inline code at pos %d" (greger-parser-state-pos state))
+ 229:   (greger-parser--advance state 1) ; Skip opening `
+ 230:   (while (and (not (greger-parser--at-end-p state))
+ 231:               (not (greger-parser--looking-at state "`")))
+ 232:     (greger-parser--advance state))
+ 233:   (when (greger-parser--looking-at state "`")
+ 234:     (greger-parser--advance state 1)))
+ 235:
+ 236: (defun greger-parser--skip-html-comment (state)
+ 237:   "Skip HTML comment in STATE."
+ 238:   (greger-parser--debug state "Skipping HTML comment at pos %d" (greger-parser-state-pos state))
+ 239:   (greger-parser--advance state 4) ; Skip <!--
+ 240:   (while (and (not (greger-parser--at-end-p state))
+ 241:               (not (greger-parser--looking-at state "-->")))
+ 242:     (greger-parser--advance state))
+ 243:   (when (greger-parser--looking-at state "-->")
+ 244:     (greger-parser--advance state 3)))
+ 245:
+ 246: ;; Web URL text extraction (moved to greger-web.el)
+ 247:
+ 248: ;; Include tag processing
+ 249:
+ 250: (defun greger-parser--process-include-tag (state)
+ 251:   "Process an include tag and return the included content in STATE."
+ 252:   (greger-parser--debug state "Processing include tag at pos %d" (greger-parser-state-pos state))
+ 253:   (let ((tag-start (greger-parser--current-pos state)))
+ 254:     ;; Parse the opening tag
+ 255:     (when (greger-parser--looking-at state "<include")
+ 256:       (greger-parser--advance state 8) ; Skip "<include"
+ 257:       (let ((has-code-attr nil))
+ 258:         ;; Check for optional "code" attribute
+ 259:         (greger-parser--skip-horizontal-whitespace state)
+ 260:         (when (greger-parser--looking-at state "code")
+ 261:           (setq has-code-attr t)
+ 262:           (greger-parser--advance state 4)
+ 263:           (greger-parser--skip-horizontal-whitespace state))
+ 264:
+ 265:         ;; Skip to closing bracket of opening tag
+ 266:         (when (greger-parser--looking-at state ">")
+ 267:           (greger-parser--advance state 1)
+ 268:
+ 269:           ;; Extract the file path
+ 270:           (let ((path-start (greger-parser--current-pos state)))
+ 271:             (when (greger-parser--find-closing-tag state "</include>")
+ 272:               (let ((file-path (string-trim (greger-parser--substring state path-start))))
+ 273:                 (greger-parser--advance state 10) ; Skip "</include>"
+ 274:
+ 275:                 ;; Read and process the file
+ 276:                 (greger-parser--include-file state file-path has-code-attr)))))))))
+ 277:
+ 278: (defun greger-parser--include-file (state file-path has-code-attr)
+ 279:   "Include a file's content, optionally formatting as code using STATE.
+ 280: Supports both local files and web URLs (http:// or https://).
+ 281: For local files without code attribute, inserts content into state for recursive parsing.
+ 282: Returns nil when content is inserted, or the content string when it should be appended."
+ 283:   (greger-parser--debug state "Including file: %s (code: %s)" file-path has-code-attr)
+ 284:   (condition-case err
+ 285:       (let ((content
+ 286:              (if (greger-web-is-web-url-p file-path)
+ 287:                  ;; Handle web URL
+ 288:                  (progn
+ 289:                    (greger-parser--debug state "Downloading content from URL: %s" file-path)
+ 290:                    (greger-web-text-from-url file-path t)) ; Use readability heuristics
+ 291:                ;; Handle local file
+ 292:                (with-temp-buffer
+ 293:                  (insert-file-contents file-path)
+ 294:                  (buffer-string)))))
+ 295:
+ 296:         ;; Remove trailing newline from content if present
+ 297:         (when (and (> (length content) 0)
+ 298:                    (eq (aref content (1- (length content))) ?\n))
+ 299:           (setq content (substring content 0 -1)))
+ 300:
+ 301:         (cond
+ 302:          ;; For files with code attribute or web URLs, return formatted content
+ 303:          ((or has-code-attr (greger-web-is-web-url-p file-path))
+ 304:           (if has-code-attr
+ 305:               (format "%s:\n```\n%s\n```" file-path content)
+ 306:             content))
+ 307:          ;; For local files without code attribute, insert content into state for recursive parsing
+ 308:          (t
+ 309:           (greger-parser--insert-content-at-pos state content)
+ 310:           nil))) ; Return nil to indicate content was inserted
+ 311:     (error
+ 312:      (greger-parser--debug state "Error reading %s %s: %s"
+ 313:                           (if (greger-web-is-web-url-p file-path) "URL" "file")
+ 314:                           file-path
+ 315:                           (error-message-string err))
+ 316:      ;; Return error message as content instead of failing silently
+ 317:      (format "[Error reading %s: %s]"
+ 318:              (if (greger-web-is-web-url-p file-path) "URL" "file")
+ 319:              file-path))))
+ 320:
+ 321: (defun greger-parser--skip-include-tag (state)
+ 322:   "Skip include tag without processing it in STATE."
+ 323:   (greger-parser--debug state "Skipping include tag at pos %d" (greger-parser-state-pos state))
+ 324:   (greger-parser--advance state 8) ; Skip "<include"
+ 325:
+ 326:   ;; Skip optional "code" attribute
+ 327:   (greger-parser--skip-horizontal-whitespace state)
+ 328:   (when (greger-parser--looking-at state "code")
+ 329:     (greger-parser--advance state 4)
+ 330:     (greger-parser--skip-horizontal-whitespace state))
+ 331:
+ 332:   ;; Skip to closing bracket of opening tag
+ 333:   (when (greger-parser--looking-at state ">")
+ 334:     (greger-parser--advance state 1)
+ 335:
+ 336:     ;; Skip to closing tag
+ 337:     (when (greger-parser--find-closing-tag state "</include>")
+ 338:       (greger-parser--advance state 10)))) ; Skip "</include>"
+ 339:
+ 340: (defun greger-parser--process-safe-shell-commands-tag (state)
+ 341:   "Process a safe-shell-commands tag and return the list of commands in STATE."
+ 342:   (greger-parser--debug state "Processing safe-shell-commands tag at pos %d" (greger-parser-state-pos state))
+ 343:   (when (greger-parser--looking-at state "<safe-shell-commands>")
+ 344:     (greger-parser--advance state (length "<safe-shell-commands>")) ; Skip "<safe-shell-commands>"
+ 345:
+ 346:     ;; Extract the commands content
+ 347:     (let ((content-start (greger-parser--current-pos state)))
+ 348:       (when (greger-parser--find-closing-tag state "</safe-shell-commands>")
+ 349:         (let ((commands-content (greger-parser--substring state content-start)))
+ 350:           (greger-parser--advance state (length "</safe-shell-commands>")) ; Skip "</safe-shell-commands>"
+ 351:
+ 352:           ;; Parse commands - split by lines and filter empty ones
+ 353:           (let ((commands (delq nil
+ 354:                                (mapcar (lambda (line)
+ 355:                                         (let ((trimmed (string-trim line)))
+ 356:                                           (when (not (string-empty-p trimmed))
+ 357:                                             trimmed)))
+ 358:                                       (split-string commands-content "\n")))))
+ 359:             (greger-parser--debug state "Extracted safe shell commands: %s" commands)
+ 360:             commands))))))
+ 361:
+ 362: ;; Content reading
+ 363:
+ 364: (defun greger-parser--read-until-section-tag (state)
+ 365:   "Read characters until section tag, handling code blocks and include tags in STATE."
+ 366:   (let ((start-pos (greger-parser-state-pos state))
+ 367:         (iterations 0)
+ 368:         (max-iterations (* (greger-parser-state-length state) 2))) ; Safety limit
+ 369:     (while (and (not (greger-parser--at-end-p state))
+ 370:                 (not (and (greger-parser--at-line-start-p state)
+ 371:                           (greger-parser--find-section-tag state)))
+ 372:                 (< iterations max-iterations))
+ 373:       (setq iterations (1+ iterations))
+ 374:       (let ((old-pos (greger-parser-state-pos state)))
+ 375:         (cond
+ 376:          ((greger-parser--at-triple-backticks state)
+ 377:           (greger-parser--skip-code-block state))
+ 378:          ((greger-parser--looking-at state "`")
+ 379:           (greger-parser--skip-inline-code state))
+ 380:          ((greger-parser--looking-at state "<!--")
+ 381:           (greger-parser--skip-html-comment state))
+ 382:          ((greger-parser--looking-at state "<include")
+ 383:           (greger-parser--skip-include-tag state))
+ 384:          (t
+ 385:           (greger-parser--advance state)))
+ 386:         ;; Safety check: ensure we're making progress
+ 387:         (when (= old-pos (greger-parser-state-pos state))
+ 388:           (greger-parser--debug state "No progress at pos %d, forcing advance" (greger-parser-state-pos state))
+ 389:           (greger-parser--advance state))))
+ 390:     (when (>= iterations max-iterations)
+ 391:       (greger-parser--debug state "Hit max iterations in read-until-section-tag")
+ 392:       (setf (greger-parser-state-pos state) (greger-parser-state-length state)))))
+ 393:
+ 394: (defun greger-parser--read-until-section (state)
+ 395:   "Read content until next section in STATE."
+ 396:   (let ((start (greger-parser--current-pos state)))
+ 397:     (greger-parser--read-until-section-tag state)
+ 398:     (greger-parser--substring state start)))
+ 399:
+ 400: (defun greger-parser--read-until-section-with-comment-removal (state)
+ 401:   "Read content until next section, removing HTML comments and processing include tags in STATE."
+ 402:   (let ((result "")
+ 403:         (start (greger-parser--current-pos state))
+ 404:         (iterations 0)
+ 405:         (max-iterations (* (greger-parser-state-length state) 2))) ; Safety limit
+ 406:     (while (and (not (greger-parser--at-end-p state))
+ 407:                 (not (and (greger-parser--at-line-start-p state)
+ 408:                           (greger-parser--find-section-tag state)))
+ 409:                 (< iterations max-iterations))
+ 410:       (setq iterations (1+ iterations))
+ 411:       (let ((old-pos (greger-parser-state-pos state)))
+ 412:         (cond
+ 413:          ((greger-parser--at-triple-backticks state)
+ 414:           ;; Add content up to code block
+ 415:           (setq result (concat result (greger-parser--substring state start)))
+ 416:           (setq start (greger-parser--current-pos state))
+ 417:           (greger-parser--skip-code-block state)
+ 418:           ;; Add the code block
+ 419:           (setq result (concat result (greger-parser--substring state start)))
+ 420:           (setq start (greger-parser--current-pos state)))
+ 421:          ((greger-parser--looking-at state "`")
+ 422:           ;; Add content up to inline code
+ 423:           (setq result (concat result (greger-parser--substring state start)))
+ 424:           (setq start (greger-parser--current-pos state))
+ 425:           (greger-parser--skip-inline-code state)
+ 426:           ;; Add the inline code
+ 427:           (setq result (concat result (greger-parser--substring state start)))
+ 428:           (setq start (greger-parser--current-pos state)))
+ 429:          ((greger-parser--looking-at state "<!--")
+ 430:           ;; Add content up to comment, skip comment entirely
+ 431:           (setq result (concat result (greger-parser--substring state start)))
+ 432:           (greger-parser--skip-html-comment state)
+ 433:           (setq start (greger-parser--current-pos state)))
+ 434:          ((greger-parser--looking-at state "<include")
+ 435:           ;; Add content up to include tag
+ 436:           (setq result (concat result (greger-parser--substring state start)))
+ 437:           ;; Process the include tag
+ 438:           (let ((include-content (greger-parser--process-include-tag state)))
+ 439:             (if include-content
+ 440:                 ;; Content was returned (web URL or code), append it
+ 441:                 (setq result (concat result include-content))
+ 442:               ;; Content was inserted into state (local file), continue parsing from current position
+ 443:               nil))
+ 444:           (setq start (greger-parser--current-pos state)))
+ 445:          (t
+ 446:           (greger-parser--advance state)))
+ 447:         ;; Safety check: ensure we're making progress
+ 448:         (when (= old-pos (greger-parser-state-pos state))
+ 449:           (greger-parser--debug state "No progress at pos %d, forcing advance" (greger-parser-state-pos state))
+ 450:           (greger-parser--advance state))))
+ 451:     (when (>= iterations max-iterations)
+ 452:       (greger-parser--debug state "Hit max iterations in read-until-section-with-comment-removal")
+ 453:       (setf (greger-parser-state-pos state) (greger-parser-state-length state)))
+ 454:     ;; Add remaining content
+ 455:     (setq result (concat result (greger-parser--substring state start)))
+ 456:     result))
+ 457:
+ 458: (defun greger-parser--read-until-section-with-metadata-extraction (state)
+ 459:   "Read content until next section, extracting metadata like safe-shell-commands.
+ 460: Returns a plist with :content and metadata keys."
+ 461:   (let ((result "")
+ 462:         (safe-shell-commands nil)
+ 463:         (start (greger-parser--current-pos state))
+ 464:         (iterations 0)
+ 465:         (max-iterations (* (greger-parser-state-length state) 2))) ; Safety limit
+ 466:     (while (and (not (greger-parser--at-end-p state))
+ 467:                 (not (and (greger-parser--at-line-start-p state)
+ 468:                           (greger-parser--find-section-tag state)))
+ 469:                 (< iterations max-iterations))
+ 470:       (setq iterations (1+ iterations))
+ 471:       (let ((old-pos (greger-parser-state-pos state)))
+ 472:         (cond
+ 473:          ((greger-parser--at-triple-backticks state)
+ 474:           ;; Add content up to code block
+ 475:           (setq result (concat result (greger-parser--substring state start)))
+ 476:           (setq start (greger-parser--current-pos state))
+ 477:           (greger-parser--skip-code-block state)
+ 478:           ;; Add the code block
+ 479:           (setq result (concat result (greger-parser--substring state start)))
+ 480:           (setq start (greger-parser--current-pos state)))
+ 481:          ((greger-parser--looking-at state "`")
+ 482:           ;; Add content up to inline code
+ 483:           (setq result (concat result (greger-parser--substring state start)))
+ 484:           (setq start (greger-parser--current-pos state))
+ 485:           (greger-parser--skip-inline-code state)
+ 486:           ;; Add the inline code
+ 487:           (setq result (concat result (greger-parser--substring state start)))
+ 488:           (setq start (greger-parser--current-pos state)))
+ 489:          ((greger-parser--looking-at state "<!--")
+ 490:           ;; Add content up to comment, skip comment entirely
+ 491:           (setq result (concat result (greger-parser--substring state start)))
+ 492:           (greger-parser--skip-html-comment state)
+ 493:           (setq start (greger-parser--current-pos state)))
+ 494:          ((greger-parser--looking-at state "<include")
+ 495:           ;; Add content up to include tag
+ 496:           (setq result (concat result (greger-parser--substring state start)))
+ 497:           ;; Process the include tag
+ 498:           (let ((include-content (greger-parser--process-include-tag state)))
+ 499:             (if include-content
+ 500:                 ;; Content was returned (web URL or code), append it
+ 501:                 (setq result (concat result include-content))
+ 502:               ;; Content was inserted into state (local file), continue parsing from current position
+ 503:               nil))
+ 504:           (setq start (greger-parser--current-pos state)))
+ 505:          ((greger-parser--looking-at state "<safe-shell-commands>")
+ 506:           ;; Add content up to safe-shell-commands tag (but don't include the tag itself)
+ 507:           (setq result (concat result (greger-parser--substring state start)))
+ 508:           ;; Process the safe-shell-commands tag
+ 509:           (let ((commands (greger-parser--process-safe-shell-commands-tag state)))
+ 510:             (when commands
+ 511:               (if safe-shell-commands
+ 512:                   (greger-parser--debug state "Warning: multiple <safe-shell-commands> tags found")
+ 513:                 (setq safe-shell-commands commands))))
+ 514:           ;; Reset start position for next content
+ 515:           (setq start (greger-parser--current-pos state)))
+ 516:          (t
+ 517:           (greger-parser--advance state)))
+ 518:         ;; Safety check: ensure we're making progress
+ 519:         (when (= old-pos (greger-parser-state-pos state))
+ 520:           (greger-parser--debug state "No progress at pos %d, forcing advance" (greger-parser-state-pos state))
+ 521:           (greger-parser--advance state))))
+ 522:     (when (>= iterations max-iterations)
+ 523:       (greger-parser--debug state "Hit max iterations in read-until-section-with-metadata-extraction")
+ 524:       (setf (greger-parser-state-pos state) (greger-parser-state-length state)))
+ 525:     ;; Add remaining content
+ 526:     (setq result (concat result (greger-parser--substring state start)))
+ 527:
+ 528:     ;; Return result with metadata
+ 529:     (let ((trimmed-content (when (and result (not (string-empty-p (string-trim result))))
+ 530:                             (string-trim result))))
+ 531:       (list :content trimmed-content
+ 532:             :safe-shell-commands safe-shell-commands))))
+ 533:
+ 534: (defun greger-parser--parse-section-content (state)
+ 535:   "Parse content until next section, skipping HTML comments in STATE."
+ 536:   (greger-parser--skip-whitespace state)
+ 537:   (let ((content (greger-parser--read-until-section-with-comment-removal state)))
+ 538:     (when (and content (not (string-empty-p (string-trim content))))
+ 539:       (string-trim content))))
+ 540:
+ 541: (defun greger-parser--parse-section-content-with-metadata (state)
+ 542:   "Parse content until next section, extracting metadata like safe-shell-commands.
+ 543: Returns a plist with :content and metadata keys like :safe-shell-commands."
+ 544:   (greger-parser--skip-whitespace state)
+ 545:   (let ((result (greger-parser--read-until-section-with-metadata-extraction state)))
+ 546:     result))
+ 547:
+ 548: ;; High-level parsing
+ 549:
+ 550: (defun greger-parser--parse-document (state)
+ 551:   "Parse entire document using STATE.
+ 552: Returns a plist with :messages and :metadata keys."
+ 553:   (greger-parser--skip-whitespace state)
+ 554:   (if (greger-parser--at-end-p state)
+ 555:       '(:messages () :metadata ())
+ 556:     (let ((sections '())
+ 557:           (metadata '())
+ 558:           (iterations 0)
+ 559:           (max-iterations 1000)) ; Safety limit
+ 560:       ;; Handle untagged content at start
+ 561:       (let ((untagged (greger-parser--parse-untagged-content state)))
+ 562:         (when untagged
+ 563:           (push untagged sections)))
+ 564:
+ 565:       ;; Parse tagged sections
+ 566:       (while (and (not (greger-parser--at-end-p state))
+ 567:                   (< iterations max-iterations))
+ 568:         (setq iterations (1+ iterations))
+ 569:         (let ((old-pos (greger-parser-state-pos state)))
+ 570:           (greger-parser--skip-whitespace state)
+ 571:           (when (not (greger-parser--at-end-p state))
+ 572:             (let ((section-result (greger-parser--parse-section state)))
+ 573:               (when section-result
+ 574:                 (if (and (listp section-result) (eq (car section-result) :metadata))
+ 575:                     ;; This is metadata, not a message - merge the metadata plist
+ 576:                     (setq metadata (append metadata (cdr section-result)))
+ 577:                   ;; This is a regular message
+ 578:                   (push section-result sections)))))
+ 579:           ;; Safety check: ensure we're making progress
+ 580:           (when (= old-pos (greger-parser-state-pos state))
+ 581:             (greger-parser--debug state "No progress in document parsing at pos %d, breaking" (greger-parser-state-pos state))
+ 582:             (break))))
+ 583:
+ 584:       (when (>= iterations max-iterations)
+ 585:         (greger-parser--debug state "Hit max iterations in parse-document"))
+ 586:
+ 587:       ;; Combine metadata from section returns and parser state
+ 588:       (let ((combined-metadata (append metadata (greger-parser-state-metadata state))))
+ 589:         (list :messages (greger-parser--merge-consecutive-messages (reverse sections))
+ 590:               :metadata combined-metadata)))))
+ 591:
+ 592: (defun greger-parser--parse-untagged-content (state)
+ 593:   "Parse content before first section tag using STATE."
+ 594:   (let ((content (greger-parser--parse-section-content state)))
+ 595:     (when content
+ 596:       (greger-parser--create-user-message content))))
+ 597:
+ 598: (defun greger-parser--parse-section (state)
+ 599:   "Parse a section starting with a tag using STATE."
+ 600:   (let ((tag (greger-parser--find-section-tag state)))
+ 601:     (when tag
+ 602:       (greger-parser--consume-section-tag state tag)
+ 603:       (cond
+ 604:        ((string= tag greger-parser-user-tag)
+ 605:         (greger-parser--parse-user-section state))
+ 606:        ((string= tag greger-parser-assistant-tag)
+ 607:         (greger-parser--parse-assistant-section state))
+ 608:        ((string= tag greger-parser-system-tag)
+ 609:         (greger-parser--parse-system-section state))
+ 610:        ((string= tag greger-parser-thinking-tag)
+ 611:         (greger-parser--parse-thinking-section state))
+ 612:        ((string= tag greger-parser-tool-use-tag)
+ 613:         (greger-parser--parse-tool-use-section state))
+ 614:        ((string= tag greger-parser-tool-result-tag)
+ 615:         (greger-parser--parse-tool-result-section state))))))
+ 616:
+ 617: ;; Section parsers
+ 618:
+ 619: (defun greger-parser--parse-user-section (state)
+ 620:   "Parse USER section using STATE."
+ 621:   (let ((content (greger-parser--parse-section-content state)))
+ 622:     (when content
+ 623:       (greger-parser--create-user-message content))))
+ 624:
+ 625: (defun greger-parser--parse-assistant-section (state)
+ 626:   "Parse ASSISTANT section using STATE."
+ 627:   (let ((content (greger-parser--parse-section-content state)))
+ 628:     (when content
+ 629:       (greger-parser--create-assistant-message content))))
+ 630:
+ 631: (defun greger-parser--parse-system-section (state)
+ 632:   "Parse SYSTEM section using STATE.
+ 633: Returns either a system message, metadata, or both."
+ 634:   (let ((content (greger-parser--parse-section-content-with-metadata state)))
+ 635:     (cond
+ 636:      ;; If we extracted safe-shell-commands and no meaningful content, return only metadata
+ 637:      ((and (plist-get content :safe-shell-commands)
+ 638:            (not (plist-get content :content)))
+ 639:       (list :metadata :safe-shell-commands (plist-get content :safe-shell-commands)))
+ 640:
+ 641:      ;; If we have both content and safe-shell-commands, we need to return both
+ 642:      ;; Since we can only return one thing, we'll return the system message
+ 643:      ;; and handle metadata extraction at the document level
+ 644:      ((and (plist-get content :safe-shell-commands)
+ 645:            (plist-get content :content))
+ 646:       (greger-parser--debug state "Found safe-shell-commands with system content - both will be processed")
+ 647:       ;; Store metadata for later extraction and return system message
+ 648:       (setf (greger-parser-state-metadata state)
+ 649:             (append (or (greger-parser-state-metadata state) '())
+ 650:                     (list :safe-shell-commands (plist-get content :safe-shell-commands))))
+ 651:       (greger-parser--create-system-message (plist-get content :content)))
+ 652:
+ 653:      ;; Just regular content
+ 654:      ((plist-get content :content)
+ 655:       (greger-parser--create-system-message (plist-get content :content)))
+ 656:
+ 657:      ;; No content
+ 658:      (t nil))))
+ 659:
+ 660: (defun greger-parser--parse-thinking-section (state)
+ 661:   "Parse THINKING section using STATE."
+ 662:   (let ((content (greger-parser--parse-section-content state)))
+ 663:     (when content
+ 664:       (greger-parser--create-thinking-message content))))
+ 665:
+ 666: (defun greger-parser--parse-tool-use-section (state)
+ 667:   "Parse TOOL USE section using STATE."
+ 668:   (greger-parser--skip-whitespace state)
+ 669:   (let ((name (greger-parser--parse-name-line state))
+ 670:         (id (greger-parser--parse-id-line state))
+ 671:         (input (greger-parser--parse-tool-input state)))
+ 672:     (when (and name id)
+ 673:       (greger-parser--create-tool-use-message name id input))))
+ 674:
+ 675: (defun greger-parser--parse-tool-result-section (state)
+ 676:   "Parse TOOL RESULT section using STATE."
+ 677:   (greger-parser--skip-whitespace state)
+ 678:   (let ((id (greger-parser--parse-id-line state))
+ 679:         (content (greger-parser--parse-tool-result-content state)))
+ 680:     (when id
+ 681:       (greger-parser--create-tool-result-message id content))))
+ 682:
+ 683: ;; Tool parsing helpers
+ 684:
+ 685: (defun greger-parser--parse-name-line (state)
+ 686:   "Parse 'Name: value' line using STATE."
+ 687:   (when (greger-parser--looking-at state "Name:")
+ 688:     (greger-parser--advance state 5)
+ 689:     (greger-parser--skip-horizontal-whitespace state)
+ 690:     (greger-parser--read-line state)))
+ 691:
+ 692: (defun greger-parser--parse-id-line (state)
+ 693:   "Parse 'ID: value' line using STATE."
+ 694:   (greger-parser--skip-whitespace state)
+ 695:   (when (greger-parser--looking-at state "ID:")
+ 696:     (greger-parser--advance state 3)
+ 697:     (greger-parser--skip-horizontal-whitespace state)
+ 698:     (greger-parser--read-line state)))
+ 699:
+ 700: (defun greger-parser--parse-tool-input (state)
+ 701:   "Parse tool input parameters using STATE."
+ 702:   (let ((params '())
+ 703:         (iterations 0)
+ 704:         (max-iterations 100)) ; Safety limit
+ 705:     (greger-parser--skip-whitespace state)
+ 706:     (while (and (greger-parser--can-parse-parameter-p state)
+ 707:                 (< iterations max-iterations))
+ 708:       (setq iterations (1+ iterations))
+ 709:       (let ((old-pos (greger-parser-state-pos state))
+ 710:             (param (greger-parser--parse-tool-parameter state)))
+ 711:         (when param
+ 712:           (push param params))
+ 713:         (greger-parser--skip-whitespace state)
+ 714:         ;; Safety check: ensure we're making progress
+ 715:         (when (= old-pos (greger-parser-state-pos state))
+ 716:           (greger-parser--debug state "No progress in tool input parsing at pos %d, breaking" (greger-parser-state-pos state))
+ 717:           (break))))
+ 718:     (when (>= iterations max-iterations)
+ 719:       (greger-parser--debug state "Hit max iterations in parse-tool-input"))
+ 720:     (reverse params)))
+ 721:
+ 722: (defun greger-parser--can-parse-parameter-p (state)
+ 723:   "Check if we can parse a parameter using STATE."
+ 724:   (and (not (greger-parser--at-end-p state))
+ 725:        (not (and (greger-parser--at-line-start-p state)
+ 726:                  (greger-parser--find-section-tag state)))
+ 727:        (greger-parser--at-line-start-p state)
+ 728:        (greger-parser--looking-at state "###")))
+ 729:
+ 730: (defun greger-parser--parse-tool-parameter (state)
+ 731:   "Parse single tool parameter using STATE."
+ 732:   (when (greger-parser--looking-at state "###")
+ 733:     (greger-parser--advance state 3)
+ 734:     (greger-parser--skip-horizontal-whitespace state)
+ 735:     (let ((name (greger-parser--read-line state)))
+ 736:       (greger-parser--skip-whitespace state)
+ 737:       (let ((value (greger-parser--parse-tool-value state)))
+ 738:         (when (and name (not (string-empty-p name)))
+ 739:           (cons (intern name) (greger-parser--convert-value (or value ""))))))))
+ 740:
+ 741: (defun greger-parser--parse-tool-value (state)
+ 742:   "Parse tool parameter value in XML-style tags using STATE."
+ 743:   (when (greger-parser--looking-at state "<tool.")
+ 744:     (let ((tag-start (greger-parser--current-pos state)))
+ 745:       ;; Find end of opening tag
+ 746:       (greger-parser--skip-to-closing-angle state)
+ 747:       (when (eq (greger-parser--peek state) ?>)
+ 748:         (let* ((opening-tag (greger-parser--substring state tag-start (+ (greger-parser--current-pos state) 1)))
+ 749:                (closing-tag (greger-parser--make-closing-tag opening-tag)))
+ 750:           (greger-parser--advance state) ; Skip >
+ 751:           (greger-parser--skip-whitespace state)
+ 752:
+ 753:           (let ((content-start (greger-parser--current-pos state)))
+ 754:             (if (greger-parser--find-closing-tag state closing-tag)
+ 755:                 (let ((content (greger-parser--substring state content-start)))
+ 756:                   (greger-parser--advance state (length closing-tag))
+ 757:                   (greger-parser--normalize-tool-content content))
+ 758:               ;; If no closing tag found, consume to end of section
+ 759:               (let ((content (greger-parser--read-until-section state)))
+ 760:                 (greger-parser--normalize-tool-content content)))))))))
+ 761:
+ 762: (defun greger-parser--skip-to-closing-angle (state)
+ 763:   "Skip to closing angle bracket using STATE."
+ 764:   (let ((iterations 0)
+ 765:         (max-iterations 1000)) ; Safety limit
+ 766:     (while (and (not (greger-parser--at-end-p state))
+ 767:                 (not (eq (greger-parser--peek state) ?>))
+ 768:                 (< iterations max-iterations))
+ 769:       (setq iterations (1+ iterations))
+ 770:       (greger-parser--advance state))
+ 771:     (when (>= iterations max-iterations)
+ 772:       (greger-parser--debug state "Hit max iterations in skip-to-closing-angle"))))
+ 773:
+ 774: (defun greger-parser--make-closing-tag (opening-tag)
+ 775:   "Make closing tag from opening tag."
+ 776:   (concat "</" (substring opening-tag 1)))
+ 777:
+ 778: (defun greger-parser--find-closing-tag (state closing-tag)
+ 779:   "Find closing tag, treating all content inside as raw text using STATE."
+ 780:   (let ((found nil)
+ 781:         (iterations 0)
+ 782:         (max-iterations (* (greger-parser-state-length state) 2))) ; Safety limit
+ 783:     (while (and (not found)
+ 784:                 (not (greger-parser--at-end-p state))
+ 785:                 (< iterations max-iterations))
+ 786:       (setq iterations (1+ iterations))
+ 787:       (if (greger-parser--looking-at state closing-tag)
+ 788:           (setq found t)
+ 789:         (greger-parser--advance state)))
+ 790:     (when (>= iterations max-iterations)
+ 791:       (greger-parser--debug state "Hit max iterations in find-closing-tag"))
+ 792:     found))
+ 793:
+ 794: (defun greger-parser--parse-tool-result-content (state)
+ 795:   "Parse tool result content using STATE."
+ 796:   (greger-parser--skip-whitespace state)
+ 797:   (or (greger-parser--parse-tool-value state) ""))
+ 798:
+ 799: (defun greger-parser--normalize-tool-content (content)
+ 800:   "Normalize tool content by trimming outer newlines."
+ 801:   (if (string-empty-p content)
+ 802:       ""
+ 803:     (let ((result content))
+ 804:       ;; Remove leading newline
+ 805:       (when (and (> (length result) 0)
+ 806:                  (eq (aref result 0) ?\n))
+ 807:         (setq result (substring result 1)))
+ 808:       ;; Remove trailing newline
+ 809:       (when (and (> (length result) 0)
+ 810:                  (eq (aref result (1- (length result))) ?\n))
+ 811:         (setq result (substring result 0 -1)))
+ 812:       result)))
+ 813:
+ 814: (defun greger-parser--convert-value (str)
+ 815:   "Convert string to appropriate Elisp value."
+ 816:   (let ((trimmed (string-trim str)))
+ 817:     (cond
+ 818:      ((string= trimmed "true") t)
+ 819:      ((string= trimmed "false") nil)
+ 820:      ((string-match-p "^-?[0-9]+$" trimmed)
+ 821:       (string-to-number trimmed))
+ 822:      ((string-match-p "^-?[0-9]*\\.[0-9]+$" trimmed)
+ 823:       (string-to-number trimmed))
+ 824:      ((and (string-prefix-p "[" trimmed) (string-suffix-p "]" trimmed))
+ 825:       (greger-parser--parse-json-array trimmed))
+ 826:      ((and (string-prefix-p "{" trimmed) (string-suffix-p "}" trimmed))
+ 827:       (greger-parser--parse-json-object trimmed))
+ 828:      (t trimmed))))
+ 829:
+ 830: (defun greger-parser--parse-json-array (str)
+ 831:   "Parse JSON array string."
+ 832:   (condition-case nil
+ 833:       (json-read-from-string str)
+ 834:     (error str)))
+ 835:
+ 836: (defun greger-parser--parse-json-object (str)
+ 837:   "Parse JSON object string."
+ 838:   (condition-case nil
+ 839:       (let ((parsed (json-read-from-string str)))
+ 840:         (mapcar (lambda (pair)
+ 841:                   (cons (intern (symbol-name (car pair))) (cdr pair)))
+ 842:                 parsed))
+ 843:     (error str)))
+ 844:
+ 845: ;; Message creation
+ 846:
+ 847: (defun greger-parser--create-user-message (content)
+ 848:   "Create user message."
+ 849:   `((role . "user") (content . ,content)))
+ 850:
+ 851: (defun greger-parser--create-assistant-message (content)
+ 852:   "Create assistant message."
+ 853:   `((role . "assistant") (content . ,content)))
+ 854:
+ 855: (defun greger-parser--create-system-message (content)
+ 856:   "Create system message."
+ 857:   `((role . "system") (content . ,content)))
+ 858:
+ 859: (defun greger-parser--create-thinking-message (content)
+ 860:   "Create thinking message."
+ 861:   `((role . "assistant")
+ 862:     (content . (((type . "thinking") (thinking . ,content))))))
+ 863:
+ 864: (defun greger-parser--create-tool-use-message (name id input)
+ 865:   "Create tool use message."
+ 866:   `((role . "assistant")
+ 867:     (content . (((type . "tool_use")
+ 868:                  (id . ,id)
+ 869:                  (name . ,name)
+ 870:                  (input . ,input))))))
+ 871:
+ 872: (defun greger-parser--create-tool-result-message (id content)
+ 873:   "Create tool result message."
+ 874:   `((role . "user")
+ 875:     (content . (((type . "tool_result")
+ 876:                  (tool_use_id . ,id)
+ 877:                  (content . ,content))))))
+ 878:
+ 879: ;; Message merging
+ 880:
+ 881: (defun greger-parser--merge-consecutive-messages (messages)
+ 882:   "Merge consecutive messages with same role."
+ 883:   (if (null messages)
+ 884:       '()
+ 885:     (let ((result (list (car messages))))
+ 886:       (dolist (msg (cdr messages))
+ 887:         (let* ((last (car result))
+ 888:                (last-role (alist-get 'role last))
+ 889:                (curr-role (alist-get 'role msg)))
+ 890:           (if (string= last-role curr-role)
+ 891:               ;; Merge with previous
+ 892:               (progn
+ 893:                 (let ((merged (greger-parser--merge-message-contents last msg)))
+ 894:                   (setcar result merged)))
+ 895:             ;; Add as new message
+ 896:             (progn
+ 897:               (push msg result)))))
+ 898:       (reverse result))))
+ 899:
+ 900: (defun greger-parser--merge-message-contents (msg1 msg2)
+ 901:   "Merge contents of two messages."
+ 902:   (let ((role (alist-get 'role msg1))
+ 903:         (content1 (alist-get 'content msg1))
+ 904:         (content2 (alist-get 'content msg2)))
+ 905:     (let ((merged-content (greger-parser--merge-contents content1 content2)))
+ 906:       `((role . ,role)
+ 907:         (content . ,merged-content)))))
+ 908:
+ 909: (defun greger-parser--merge-contents (content1 content2)
+ 910:   "Merge two content values."
+ 911:   (let ((blocks1 (greger-parser--content-to-blocks content1))
+ 912:         (blocks2 (greger-parser--content-to-blocks content2)))
+ 913:     (let ((result (append blocks1 blocks2)))
+ 914:       result)))
+ 915:
+ 916: (defun greger-parser--content-to-blocks (content)
+ 917:   "Convert content to content blocks."
+ 918:   (let ((result (cond
+ 919:                  ((stringp content)
+ 920:                   `(((type . "text") (text . ,content))))
+ 921:                  ((listp content)
+ 922:                   content)
+ 923:                  (t
+ 924:                   `(((type . "text") (text . ,(format "%s" content))))))))
+ 925:     result))
+ 926:
+ 927: ;; Markdown generation
+ 928:
+ 929: (defun greger-parser--message-to-markdown (message)
+ 930:   "Convert message to markdown."
+ 931:   (let ((role (alist-get 'role message))
+ 932:         (content (alist-get 'content message)))
+ 933:     (cond
+ 934:      ((string= role "user")
+ 935:       (greger-parser--user-to-markdown content))
+ 936:      ((string= role "assistant")
+ 937:       (greger-parser--assistant-to-markdown content))
+ 938:      ((string= role "system")
+ 939:       (greger-parser--system-to-markdown content))
+ 940:      (t ""))))
+ 941:
+ 942: (defun greger-parser--user-to-markdown (content)
+ 943:   "Convert user content to markdown."
+ 944:   (if (stringp content)
+ 945:       (concat greger-parser-user-tag "\n\n" content)
+ 946:     (concat greger-parser-user-tag "\n\n"
+ 947:             (greger-parser--content-blocks-to-markdown content))))
+ 948:
+ 949: (defun greger-parser--assistant-to-markdown (content)
+ 950:   "Convert assistant content to markdown."
+ 951:   (if (stringp content)
+ 952:       (concat greger-parser-assistant-tag "\n\n" content)
+ 953:     (greger-parser--content-blocks-to-markdown content)))
+ 954:
+ 955: (defun greger-parser--system-to-markdown (content)
+ 956:   "Convert system content to markdown."
+ 957:   (concat greger-parser-system-tag "\n\n" content))
+ 958:
+ 959: (defun greger-parser--content-blocks-to-markdown (blocks)
+ 960:   "Convert content blocks to markdown."
+ 961:   (mapconcat #'greger-parser--block-to-markdown blocks "\n\n"))
+ 962:
+ 963: (defun greger-parser--block-to-markdown (block)
+ 964:   "Convert single block to markdown."
+ 965:   (let ((type (alist-get 'type block)))
+ 966:     (cond
+ 967:      ((string= type "text")
+ 968:       (concat greger-parser-assistant-tag "\n\n"
+ 969:               (alist-get 'text block)))
+ 970:      ((string= type "thinking")
+ 971:       (concat greger-parser-thinking-tag "\n\n"
+ 972:               (alist-get 'thinking block)))
+ 973:      ((string= type "tool_use")
+ 974:       (greger-parser--tool-use-to-markdown block))
+ 975:      ((string= type "tool_result")
+ 976:       (greger-parser--tool-result-to-markdown block))
+ 977:      (t ""))))
+ 978:
+ 979: (defun greger-parser--tool-use-to-markdown (tool-use)
+ 980:   "Convert tool use to markdown."
+ 981:   (let ((name (alist-get 'name tool-use))
+ 982:         (id (alist-get 'id tool-use))
+ 983:         (input (alist-get 'input tool-use)))
+ 984:     (concat greger-parser-tool-use-tag "\n\n"
+ 985:             "Name: " name "\n"
+ 986:             "ID: " id "\n\n"
+ 987:             (greger-parser--tool-params-to-markdown id input))))
+ 988:
+ 989: (defun greger-parser--tool-result-to-markdown (tool-result)
+ 990:   "Convert tool result to markdown."
+ 991:   (let ((id (alist-get 'tool_use_id tool-result))
+ 992:         (content (alist-get 'content tool-result)))
+ 993:     (concat greger-parser-tool-result-tag "\n\n"
+ 994:             "ID: " id "\n\n"
+ 995:             "<tool." id ">\n"
+ 996:             content "\n"
+ 997:             "</tool." id ">")))
+ 998:
+ 999: (defun greger-parser--tool-params-to-markdown (id input)
+1000:   "Convert tool parameters to markdown."
+1001:   (if (null input)
+1002:       ""
+1003:     (mapconcat (lambda (param)
+1004:                  (let ((name (symbol-name (car param)))
+1005:                        (value (cdr param)))
+1006:                    (concat "### " name "\n\n"
+1007:                            "<tool." id ">\n"
+1008:                            (greger-parser--value-to-string value) "\n"
+1009:                            "</tool." id ">")))
+1010:                input "\n\n")))
+1011:
+1012: (defun greger-parser--value-to-string (value)
+1013:   "Convert value to string representation."
+1014:   (cond
+1015:    ((stringp value) value)
+1016:    ((numberp value) (number-to-string value))
+1017:    ((eq value t) "true")
+1018:    ((eq value nil) "false")
+1019:    ((vectorp value) (json-encode value))
+1020:    ((listp value) (json-encode value))
+1021:    (t (format "%s" value))))
+1022:
+1023: ;; Global debug flag for interactive debugging
+1024: (defvar greger-parser--global-debug nil
+1025:   "Global debug flag for interactive debugging.")
+1026:
+1027: ;; Debug helper functions
+1028: (defun greger-parser-enable-debug ()
+1029:   "Enable parser debug output."
+1030:   (interactive)
+1031:   (setq greger-parser--global-debug t)
+1032:   (message "Parser debug enabled"))
+1033:
+1034: (defun greger-parser-disable-debug ()
+1035:   "Disable parser debug output."
+1036:   (interactive)
+1037:   (setq greger-parser--global-debug nil)
+1038:   (message "Parser debug disabled"))
+1039:
+1040: (defun greger-parser-parse-dialog-debug (markdown)
+1041:   "Parse MARKDOWN into dialog format with debug enabled."
+1042:   (greger-parser-parse-dialog markdown (or greger-parser--global-debug t)))
+1043:
+1044: (provide 'greger-parser)
+1045:
+1046: ;;; greger-parser.el ends here
+1047:
+1048: ;; Local Variables:
+1049: ;; package-lint-main-file: "greger.el"
+1050: ;; End:
+1051:
+</tool.toolu_01HQXHYdK6yp1RxTJebLucFs>
 
 ## ASSISTANT:
 
-Now let me check the test-greger-client.el file:
-
-## TOOL USE:
-
-Name: read-file
-ID: toolu_01XeMbRyrivPUy7V7t1bSA1v
-
-### path
-
-<tool.toolu_01XeMbRyrivPUy7V7t1bSA1v>
-test/test-greger-client.el
-</tool.toolu_01XeMbRyrivPUy7V7t1bSA1v>
-
-### include_line_numbers
-
-<tool.toolu_01XeMbRyrivPUy7V7t1bSA1v>
-true
-</tool.toolu_01XeMbRyrivPUy7V7t1bSA1v>
-
-## TOOL RESULT:
-
-ID: toolu_01XeMbRyrivPUy7V7t1bSA1v
-
-<tool.toolu_01XeMbRyrivPUy7V7t1bSA1v>
-  1: ;;; test-end-to-end.el --- End-to-end tests for greger -*- lexical-binding: t -*-
-  2:
-  3: ;;; Commentary:
-  4: ;;
-  5: ;; This file contains end-to-end tests that actually call the Claude API.
-  6: ;; These tests require a valid ANTHROPIC_API_KEY environment variable.
-  7: ;;
-  8: ;; WARNING: These tests make real API calls and may incur costs.
-  9: ;;
- 10:
- 11: (require 'ert)
- 12: (require 'greger-client)
- 13: (require 'greger-parser)
- 14:
- 15: (defvar greger-test-timeout 30
- 16:   "Timeout in seconds for API calls in tests.")
- 17:
- 18: (defun greger-test-has-api-key ()
- 19:   "Check if we have a valid API key for testing."
- 20:   (not (string-empty-p (or (getenv "ANTHROPIC_API_KEY") ""))))
- 21:
- 22: (defun greger-test-wait-for-completion (state timeout)
- 23:   "Wait for streaming STATE to complete within TIMEOUT seconds."
- 24:   (let ((start-time (current-time))
- 25:         (completed nil))
- 26:
- 27:     (while (and (not completed)
- 28:                 (< (float-time (time-subtract (current-time) start-time)) timeout))
- 29:       (sit-for 0.1)
- 30:       ;; Check if process is still running
- 31:       (when (not (process-live-p (greger-client-state-process state)))
- 32:         (setq completed t)))
- 33:
- 34:     completed))
- 35:
- 36: (ert-deftest greger-end-to-end-test-simple-text-generation ()
- 37:   "Test simple text generation with Claude API."
- 38:   :tags '(end-to-end api)
- 39:   (skip-unless (greger-test-has-api-key))
- 40:
- 41:   (let ((response-received nil)
- 42:         (text-chunks '())
- 43:         (final-blocks nil)
- 44:         (test-model 'claude-sonnet-4-20250514)
- 45:         (test-dialog '(((role . "user")
- 46:                         (content . "Say exactly 'Hello from Greger test!' and nothing else.")))))
- 47:
- 48:     (with-temp-buffer
- 49:       (let ((test-buffer (current-buffer)))
- 50:
- 51:         ;; Make the API call
- 52:         (let ((state (greger-client-stream
- 53:                       :model test-model
- 54:                       :dialog test-dialog
- 55:                       :buffer test-buffer
- 56:                       :text-callback (lambda (text)
- 57:                                        (push text text-chunks)
- 58:                                        (with-current-buffer test-buffer
- 59:                                          (goto-char (point-max))
- 60:                                          (insert text)))
- 61:                       :complete-callback (lambda (blocks)
- 62:                                            (setq final-blocks blocks
- 63:                                                  response-received t)))))
- 64:
- 65:           ;; Wait for completion
- 66:           (should (greger-test-wait-for-completion state greger-test-timeout))
- 67:
- 68:           ;; Check that we got a response
- 69:           (should response-received)
- 70:           (should final-blocks)
- 71:           (should (> (length final-blocks) 0))
- 72:
- 73:           ;; Check that the first block is text
- 74:           (let ((first-block (car final-blocks)))
- 75:             (should (string= (alist-get 'type first-block) "text"))
- 76:             (should (alist-get 'text first-block))
- 77:
- 78:             ;; Verify the response contains our expected text
- 79:             (let ((response-text (alist-get 'text first-block)))
- 80:               (should (string-match-p "Hello from Greger test!" response-text))))
- 81:
- 82:           ;; Verify text was written to buffer
- 83:           (should (> (buffer-size) 0))
- 84:           (let ((buffer-content (buffer-string)))
- 85:             (should (string-match-p "Hello from Greger test!" buffer-content))))))))
- 86:
- 87: (ert-deftest greger-end-to-end-test-tool-use ()
- 88:   "Test tool use functionality with Claude API."
- 89:   :tags '(end-to-end api tools)
- 90:   (skip-unless (greger-test-has-api-key))
- 91:
- 92:   (let ((response-received nil)
- 93:         (final-blocks nil)
- 94:         (test-model 'claude-sonnet-4-20250514)
- 95:         (test-dialog '(((role . "user")
- 96:                         (content . "What is 2 + 2? Please use the calculator tool to compute this."))))
- 97:         (test-tools '(((name . "calculator")
- 98:                        (description . "Performs basic arithmetic calculations")
- 99:                        (input_schema . ((type . "object")
-100:                                        (properties . ((expression . ((type . "string")
-101:                                                                      (description . "Mathematical expression to evaluate")))))
-102:                                        (required . ["expression"])))))))
-103:
-104:     (with-temp-buffer
-105:       (let ((test-buffer (current-buffer)))
-106:
-107:         ;; Make the API call with tools
-108:         (let ((state (greger-client-stream
-109:                       :model test-model
-110:                       :dialog test-dialog
-111:                       :tools test-tools
-112:                       :buffer test-buffer
-113:                       :complete-callback (lambda (blocks)
-114:                                            (setq final-blocks blocks
-115:                                                  response-received t)))))
-116:
-117:           ;; Wait for completion
-118:           (should (greger-test-wait-for-completion state greger-test-timeout))
-119:
-120:           ;; Check that we got a response
-121:           (should response-received)
-122:           (should final-blocks)
-123:           (should (> (length final-blocks) 0))
-124:
-125:           ;; Look for tool use in the response
-126:           (let ((has-tool-use nil))
-127:             (dolist (block final-blocks)
-128:               (when (string= (alist-get 'type block) "tool_use")
-129:                 (setq has-tool-use t)
-130:                 ;; Verify tool use structure
-131:                 (should (alist-get 'id block))
-132:                 (should (alist-get 'name block))
-133:                 (should (alist-get 'input block))))
-134:
-135:             ;; We should have at least attempted to use a tool
-136:             ;; (Note: Claude might not always use the tool, but this tests the capability)
-137:             (should (or has-tool-use
-138:                        ;; Or at least responded with text
-139:                        (cl-some (lambda (block)
-140:                                   (string= (alist-get 'type block) "text"))
-141:                                 final-blocks)))))))))
-142:
-143: (ert-deftest greger-end-to-end-test-error-handling ()
-144:   "Test error handling with invalid model."
-145:   :tags '(end-to-end error-handling)
-146:   (skip-unless (greger-test-has-api-key))
-147:
-148:   (let ((error-caught nil))
-149:
-150:     ;; Test with invalid model - should fail validation
-151:     (condition-case err
-152:         (greger-client-stream
-153:          :model 'invalid-model
-154:          :dialog '(((role . "user") (content . "test"))))
-155:       (error
-156:        (setq error-caught t)
-157:        (should (string-match-p "Unsupported model" (error-message-string err)))))
-158:
-159:     (should error-caught)))
-160:
-161: (ert-deftest greger-end-to-end-test-supported-models ()
-162:   "Test that supported models are accepted."
-163:   :tags '(end-to-end models)
-164:
-165:   ;; Test that both supported models are accepted (we won't actually call API)
-166:   (should (memq 'claude-sonnet-4-20250514 greger-client-supported-models))
-167:   (should (memq 'claude-opus-4-20250514 greger-client-supported-models))
-168:
-169:   ;; Test that only these models are supported
-170:   (should (= 2 (length greger-client-supported-models))))
-171:
-172: (ert-deftest greger-end-to-end-test-request-building ()
-173:   "Test that request building works correctly."
-174:   :tags '(end-to-end request-building)
-175:   (skip-unless (greger-test-has-api-key))
-176:
-177:   (let* ((test-model 'claude-sonnet-4-20250514)
-178:          (test-dialog '(((role . "user") (content . "Hello"))
-179:                         ((role . "assistant") (content . "Hi there!"))
-180:                         ((role . "user") (content . "How are you?"))))
-181:          (test-tools '(((name . "test_tool")
-182:                         (description . "A test tool")
-183:                         (input_schema . ((type . "object")
-184:                                         (properties . ())
-185:                                         (required . []))))))
-186:          (request-spec (greger-client--build-request test-model test-dialog test-tools)))
-187:
-188:     ;; Verify request structure
-189:     (should (plist-get request-spec :url))
-190:     (should (string= (plist-get request-spec :url) greger-client-api-url))
-191:     (should (string= (plist-get request-spec :method) "POST"))
-192:     (should (plist-get request-spec :headers))
-193:     (should (plist-get request-spec :data))
-194:
-195:     ;; Verify headers
-196:     (let ((headers (plist-get request-spec :headers)))
-197:       (should (assoc "Content-Type" headers))
-198:       (should (assoc "x-api-key" headers))
-199:       (should (assoc "anthropic-version" headers)))
-200:
-201:     ;; Verify data is valid JSON
-202:     (let ((data (plist-get request-spec :data)))
-203:       (should (stringp data))
-204:       (should (json-read-from-string data)))))
-205:
-206: (provide 'test-end-to-end)
-207:
-208: ;;; test-end-to-end.el ends here
-209:
-</tool.toolu_01XeMbRyrivPUy7V7t1bSA1v>
-
-## ASSISTANT:
-
-Now I'll remove all the conditional checks for the API key. I'll start by removing the `greger-test-has-api-key` function and the `skip-unless` calls from both test files.
-
-Let me start with test-end-to-end.el:
-
-## TOOL USE:
-
-Name: str-replace
-ID: toolu_01XnJyrzDsdaytkHM65E8MDU
-
-### file_path
-
-<tool.toolu_01XnJyrzDsdaytkHM65E8MDU>
-test/test-end-to-end.el
-</tool.toolu_01XnJyrzDsdaytkHM65E8MDU>
-
-### original_content
-
-<tool.toolu_01XnJyrzDsdaytkHM65E8MDU>
-(defun greger-test-has-api-key ()
-  "Check if we have a valid API key for testing."
-  (not (string-empty-p (or (getenv "ANTHROPIC_API_KEY") ""))))
-</tool.toolu_01XnJyrzDsdaytkHM65E8MDU>
-
-### new_content
-
-<tool.toolu_01XnJyrzDsdaytkHM65E8MDU>
-
-</tool.toolu_01XnJyrzDsdaytkHM65E8MDU>
-
-### git_commit_message
-
-<tool.toolu_01XnJyrzDsdaytkHM65E8MDU>
-Remove greger-test-has-api-key function from test-end-to-end.el
-</tool.toolu_01XnJyrzDsdaytkHM65E8MDU>
-
-## TOOL RESULT:
-
-ID: toolu_01XnJyrzDsdaytkHM65E8MDU
-
-<tool.toolu_01XnJyrzDsdaytkHM65E8MDU>
-Successfully replaced content in /Users/andreas/projects/greger.el/test/test-end-to-end.el. Successfully staged 2 file(s) and committed with message: Remove greger-test-has-api-key function from test-end-to-end.el
-</tool.toolu_01XnJyrzDsdaytkHM65E8MDU>
-
-
-## TOOL USE:
-
-Name: str-replace
-ID: toolu_01ART7c3TnfDCAW6CKC23Het
-
-### file_path
-
-<tool.toolu_01ART7c3TnfDCAW6CKC23Het>
-test/test-end-to-end.el
-</tool.toolu_01ART7c3TnfDCAW6CKC23Het>
-
-### original_content
-
-<tool.toolu_01ART7c3TnfDCAW6CKC23Het>
-  (skip-unless (greger-test-has-api-key))
-</tool.toolu_01ART7c3TnfDCAW6CKC23Het>
-
-### new_content
-
-<tool.toolu_01ART7c3TnfDCAW6CKC23Het>
-
-</tool.toolu_01ART7c3TnfDCAW6CKC23Het>
-
-### git_commit_message
-
-<tool.toolu_01ART7c3TnfDCAW6CKC23Het>
-Remove skip-unless check from greger-end-to-end-test-simple-conversation
-</tool.toolu_01ART7c3TnfDCAW6CKC23Het>
-
-## TOOL RESULT:
-
-ID: toolu_01ART7c3TnfDCAW6CKC23Het
-
-<tool.toolu_01ART7c3TnfDCAW6CKC23Het>
-Successfully replaced content in /Users/andreas/projects/greger.el/test/test-end-to-end.el. Successfully staged 2 file(s) and committed with message: Remove skip-unless check from greger-end-to-end-test-simple-conversation
-</tool.toolu_01ART7c3TnfDCAW6CKC23Het>
-
-
-## TOOL USE:
-
-Name: str-replace
-ID: toolu_01KQiMkej5aEhjPXTj6mMA55
-
-### file_path
-
-<tool.toolu_01KQiMkej5aEhjPXTj6mMA55>
-test/test-end-to-end.el
-</tool.toolu_01KQiMkej5aEhjPXTj6mMA55>
-
-### original_content
-
-<tool.toolu_01KQiMkej5aEhjPXTj6mMA55>
-  (skip-unless (greger-test-has-api-key))
-</tool.toolu_01KQiMkej5aEhjPXTj6mMA55>
-
-### new_content
-
-<tool.toolu_01KQiMkej5aEhjPXTj6mMA55>
-
-</tool.toolu_01KQiMkej5aEhjPXTj6mMA55>
-
-### git_commit_message
-
-<tool.toolu_01KQiMkej5aEhjPXTj6mMA55>
-Remove skip-unless check from greger-end-to-end-test-tool-use-conversation
-</tool.toolu_01KQiMkej5aEhjPXTj6mMA55>
-
-## TOOL RESULT:
-
-ID: toolu_01KQiMkej5aEhjPXTj6mMA55
-
-<tool.toolu_01KQiMkej5aEhjPXTj6mMA55>
-Successfully replaced content in /Users/andreas/projects/greger.el/test/test-end-to-end.el. Successfully staged 2 file(s) and committed with message: Remove skip-unless check from greger-end-to-end-test-tool-use-conversation
-</tool.toolu_01KQiMkej5aEhjPXTj6mMA55>
-
-
-## TOOL USE:
-
-Name: str-replace
-ID: toolu_014QLsGcPxZu1egNEWehi4dF
-
-### file_path
-
-<tool.toolu_014QLsGcPxZu1egNEWehi4dF>
-test/test-end-to-end.el
-</tool.toolu_014QLsGcPxZu1egNEWehi4dF>
-
-### original_content
-
-<tool.toolu_014QLsGcPxZu1egNEWehi4dF>
-(skip-unless (greger-test-has-api-key))
-</tool.toolu_014QLsGcPxZu1egNEWehi4dF>
-
-### new_content
-
-<tool.toolu_014QLsGcPxZu1egNEWehi4dF>
-
-</tool.toolu_014QLsGcPxZu1egNEWehi4dF>
-
-### git_commit_message
-
-<tool.toolu_014QLsGcPxZu1egNEWehi4dF>
-Remove skip-unless check from greger-end-to-end-test-no-tools-mode
-</tool.toolu_014QLsGcPxZu1egNEWehi4dF>
-
-## TOOL RESULT:
-
-ID: toolu_014QLsGcPxZu1egNEWehi4dF
-
-<tool.toolu_014QLsGcPxZu1egNEWehi4dF>
-Successfully replaced content in /Users/andreas/projects/greger.el/test/test-end-to-end.el. Successfully staged 2 file(s) and committed with message: Remove skip-unless check from greger-end-to-end-test-no-tools-mode
-</tool.toolu_014QLsGcPxZu1egNEWehi4dF>
-
-
-## ASSISTANT:
-
-Now let me do the same for test-greger-client.el:
-
-## TOOL USE:
-
-Name: str-replace
-ID: toolu_012gLPbE5mmsJzjmAxV3BRC9
-
-### file_path
-
-<tool.toolu_012gLPbE5mmsJzjmAxV3BRC9>
-test/test-greger-client.el
-</tool.toolu_012gLPbE5mmsJzjmAxV3BRC9>
-
-### original_content
-
-<tool.toolu_012gLPbE5mmsJzjmAxV3BRC9>
-(defun greger-test-has-api-key ()
-  "Check if we have a valid API key for testing."
-  (not (string-empty-p (or (getenv "ANTHROPIC_API_KEY") ""))))
-</tool.toolu_012gLPbE5mmsJzjmAxV3BRC9>
-
-### new_content
-
-<tool.toolu_012gLPbE5mmsJzjmAxV3BRC9>
-
-</tool.toolu_012gLPbE5mmsJzjmAxV3BRC9>
-
-### git_commit_message
-
-<tool.toolu_012gLPbE5mmsJzjmAxV3BRC9>
-Remove greger-test-has-api-key function from test-greger-client.el
-</tool.toolu_012gLPbE5mmsJzjmAxV3BRC9>
-
-## TOOL RESULT:
-
-ID: toolu_012gLPbE5mmsJzjmAxV3BRC9
-
-<tool.toolu_012gLPbE5mmsJzjmAxV3BRC9>
-Successfully replaced content in /Users/andreas/projects/greger.el/test/test-greger-client.el. Successfully staged 2 file(s) and committed with message: Remove greger-test-has-api-key function from test-greger-client.el
-</tool.toolu_012gLPbE5mmsJzjmAxV3BRC9>
-
-
-## TOOL USE:
-
-Name: str-replace
-ID: toolu_01PsHFyKwsLHBdz3aXyYUYSw
-
-### file_path
-
-<tool.toolu_01PsHFyKwsLHBdz3aXyYUYSw>
-test/test-greger-client.el
-</tool.toolu_01PsHFyKwsLHBdz3aXyYUYSw>
-
-### original_content
-
-<tool.toolu_01PsHFyKwsLHBdz3aXyYUYSw>
-(skip-unless (greger-test-has-api-key))
-</tool.toolu_01PsHFyKwsLHBdz3aXyYUYSw>
-
-### new_content
-
-<tool.toolu_01PsHFyKwsLHBdz3aXyYUYSw>
-
-</tool.toolu_01PsHFyKwsLHBdz3aXyYUYSw>
-
-### git_commit_message
-
-<tool.toolu_01PsHFyKwsLHBdz3aXyYUYSw>
-Remove skip-unless check from greger-end-to-end-test-simple-text-generation
-</tool.toolu_01PsHFyKwsLHBdz3aXyYUYSw>
-
-## TOOL RESULT:
-
-ID: toolu_01PsHFyKwsLHBdz3aXyYUYSw
-
-<tool.toolu_01PsHFyKwsLHBdz3aXyYUYSw>
-Successfully replaced content in /Users/andreas/projects/greger.el/test/test-greger-client.el. Successfully staged 2 file(s) and committed with message: Remove skip-unless check from greger-end-to-end-test-simple-text-generation
-</tool.toolu_01PsHFyKwsLHBdz3aXyYUYSw>
-
-
-## TOOL USE:
-
-Name: str-replace
-ID: toolu_01CD5caQULP13SYnVi1Dcb7x
-
-### file_path
-
-<tool.toolu_01CD5caQULP13SYnVi1Dcb7x>
-test/test-greger-client.el
-</tool.toolu_01CD5caQULP13SYnVi1Dcb7x>
-
-### original_content
-
-<tool.toolu_01CD5caQULP13SYnVi1Dcb7x>
-(skip-unless (greger-test-has-api-key))
-</tool.toolu_01CD5caQULP13SYnVi1Dcb7x>
-
-### new_content
-
-<tool.toolu_01CD5caQULP13SYnVi1Dcb7x>
-
-</tool.toolu_01CD5caQULP13SYnVi1Dcb7x>
-
-### git_commit_message
-
-<tool.toolu_01CD5caQULP13SYnVi1Dcb7x>
-Remove skip-unless check from greger-end-to-end-test-tool-use
-</tool.toolu_01CD5caQULP13SYnVi1Dcb7x>
-
-## TOOL RESULT:
-
-ID: toolu_01CD5caQULP13SYnVi1Dcb7x
-
-<tool.toolu_01CD5caQULP13SYnVi1Dcb7x>
-Successfully replaced content in /Users/andreas/projects/greger.el/test/test-greger-client.el. Successfully staged 2 file(s) and committed with message: Remove skip-unless check from greger-end-to-end-test-tool-use
-</tool.toolu_01CD5caQULP13SYnVi1Dcb7x>
-
-
-## TOOL USE:
-
-Name: str-replace
-ID: toolu_01LFyWkJ445u6MPPpHvfD49B
-
-### file_path
-
-<tool.toolu_01LFyWkJ445u6MPPpHvfD49B>
-test/test-greger-client.el
-</tool.toolu_01LFyWkJ445u6MPPpHvfD49B>
-
-### original_content
-
-<tool.toolu_01LFyWkJ445u6MPPpHvfD49B>
-(skip-unless (greger-test-has-api-key))
-</tool.toolu_01LFyWkJ445u6MPPpHvfD49B>
-
-### new_content
-
-<tool.toolu_01LFyWkJ445u6MPPpHvfD49B>
-
-</tool.toolu_01LFyWkJ445u6MPPpHvfD49B>
-
-### git_commit_message
-
-<tool.toolu_01LFyWkJ445u6MPPpHvfD49B>
-Remove skip-unless check from greger-end-to-end-test-error-handling
-</tool.toolu_01LFyWkJ445u6MPPpHvfD49B>
-
-## TOOL RESULT:
-
-ID: toolu_01LFyWkJ445u6MPPpHvfD49B
-
-<tool.toolu_01LFyWkJ445u6MPPpHvfD49B>
-Successfully replaced content in /Users/andreas/projects/greger.el/test/test-greger-client.el. Successfully staged 2 file(s) and committed with message: Remove skip-unless check from greger-end-to-end-test-error-handling
-</tool.toolu_01LFyWkJ445u6MPPpHvfD49B>
-
-
-## TOOL USE:
-
-Name: str-replace
-ID: toolu_01GoSyUFQZjkYNomcde8sCe7
-
-### file_path
-
-<tool.toolu_01GoSyUFQZjkYNomcde8sCe7>
-test/test-greger-client.el
-</tool.toolu_01GoSyUFQZjkYNomcde8sCe7>
-
-### original_content
-
-<tool.toolu_01GoSyUFQZjkYNomcde8sCe7>
-(skip-unless (greger-test-has-api-key))
-</tool.toolu_01GoSyUFQZjkYNomcde8sCe7>
-
-### new_content
-
-<tool.toolu_01GoSyUFQZjkYNomcde8sCe7>
-
-</tool.toolu_01GoSyUFQZjkYNomcde8sCe7>
-
-### git_commit_message
-
-<tool.toolu_01GoSyUFQZjkYNomcde8sCe7>
-Remove skip-unless check from greger-end-to-end-test-request-building
-</tool.toolu_01GoSyUFQZjkYNomcde8sCe7>
-
-## TOOL RESULT:
-
-ID: toolu_01GoSyUFQZjkYNomcde8sCe7
-
-<tool.toolu_01GoSyUFQZjkYNomcde8sCe7>
-Successfully replaced content in /Users/andreas/projects/greger.el/test/test-greger-client.el. Successfully staged 2 file(s) and committed with message: Remove skip-unless check from greger-end-to-end-test-request-building
-</tool.toolu_01GoSyUFQZjkYNomcde8sCe7>
-
-
-## ASSISTANT:
-
-Let me verify that all the changes were made correctly by checking if there are any remaining references to `greger-test-has-api-key`:
+Now I need to find where the safe shell commands are processed and where the system prompt would be generated. Let me look for the function that handles safe shell commands in the system prompt generation:
 
 ## TOOL USE:
 
 Name: ripgrep
-ID: toolu_01CmyE19axh4Cu9rkd3MhkGF
+ID: toolu_01Gt8PTaMqk4pcRusuqH5kU8
 
 ### pattern
 
-<tool.toolu_01CmyE19axh4Cu9rkd3MhkGF>
-greger-test-has-api-key
-</tool.toolu_01CmyE19axh4Cu9rkd3MhkGF>
+<tool.toolu_01Gt8PTaMqk4pcRusuqH5kU8>
+safe-shell-commands
+</tool.toolu_01Gt8PTaMqk4pcRusuqH5kU8>
 
-### file-type
+### context-lines
 
-<tool.toolu_01CmyE19axh4Cu9rkd3MhkGF>
-el
-</tool.toolu_01CmyE19axh4Cu9rkd3MhkGF>
+<tool.toolu_01Gt8PTaMqk4pcRusuqH5kU8>
+5
+</tool.toolu_01Gt8PTaMqk4pcRusuqH5kU8>
 
 ## TOOL RESULT:
 
-ID: toolu_01CmyE19axh4Cu9rkd3MhkGF
+ID: toolu_01Gt8PTaMqk4pcRusuqH5kU8
 
-<tool.toolu_01CmyE19axh4Cu9rkd3MhkGF>
-/Users/andreas/projects/greger.el/chat.ai:21:In a few tests there's a check to see if ANTHROPIC_API_KEY is set. I want that to always be required so remove those checks and `(skip-unless (greger-test-has-api-key))` etc.
-/Users/andreas/projects/greger.el/chat.ai:72:skip-unless.*greger-test-has-api-key
-/Users/andreas/projects/greger.el/chat.ai:86:/Users/andreas/projects/greger.el/test/test-end-to-end.el:106:  (skip-unless (greger-test-has-api-key))
-/Users/andreas/projects/greger.el/chat.ai:87:/Users/andreas/projects/greger.el/test/test-end-to-end.el:143:  (skip-unless (greger-test-has-api-key))
-/Users/andreas/projects/greger.el/chat.ai:88:/Users/andreas/projects/greger.el/test/test-end-to-end.el:191:  (skip-unless (greger-test-has-api-key))
-/Users/andreas/projects/greger.el/chat.ai:89:/Users/andreas/projects/greger.el/test/test-greger-client.el:39:  (skip-unless (greger-test-has-api-key))
-/Users/andreas/projects/greger.el/chat.ai:90:/Users/andreas/projects/greger.el/test/test-greger-client.el:90:  (skip-unless (greger-test-has-api-key))
-/Users/andreas/projects/greger.el/chat.ai:91:/Users/andreas/projects/greger.el/test/test-greger-client.el:146:  (skip-unless (greger-test-has-api-key))
-/Users/andreas/projects/greger.el/chat.ai:92:/Users/andreas/projects/greger.el/test/test-greger-client.el:175:  (skip-unless (greger-test-has-api-key))
-/Users/andreas/projects/greger.el/chat.ai:98:Let me also check for the `greger-test-has-api-key` function definition:
-/Users/andreas/projects/greger.el/chat.ai:108:greger-test-has-api-key
-/Users/andreas/projects/greger.el/chat.ai:122:/Users/andreas/projects/greger.el/test/test-end-to-end.el:18:(defun greger-test-has-api-key ()
-/Users/andreas/projects/greger.el/chat.ai:123:/Users/andreas/projects/greger.el/test/test-end-to-end.el:106:  (skip-unless (greger-test-has-api-key))
-/Users/andreas/projects/greger.el/chat.ai:124:/Users/andreas/projects/greger.el/test/test-end-to-end.el:143:  (skip-unless (greger-test-has-api-key))
-/Users/andreas/projects/greger.el/chat.ai:125:/Users/andreas/projects/greger.el/test/test-end-to-end.el:191:  (skip-unless (greger-test-has-api-key))
-/Users/andreas/projects/greger.el/chat.ai:126:/Users/andreas/projects/greger.el/test/test-greger-client.el:18:(defun greger-test-has-api-key ()
-/Users/andreas/projects/greger.el/chat.ai:127:/Users/andreas/projects/greger.el/test/test-greger-client.el:39:  (skip-unless (greger-test-has-api-key))
-/Users/andreas/projects/greger.el/chat.ai:128:/Users/andreas/projects/greger.el/test/test-greger-client.el:90:  (skip-unless (greger-test-has-api-key))
-/Users/andreas/projects/greger.el/chat.ai:129:/Users/andreas/projects/greger.el/test/test-greger-client.el:146:  (skip-unless (greger-test-has-api-key))
-/Users/andreas/projects/greger.el/chat.ai:130:/Users/andreas/projects/greger.el/test/test-greger-client.el:175:  (skip-unless (greger-test-has-api-key))
-/Users/andreas/projects/greger.el/chat.ai:177: 18: (defun greger-test-has-api-key ()
-/Users/andreas/projects/greger.el/chat.ai:265:106:   (skip-unless (greger-test-has-api-key))
-/Users/andreas/projects/greger.el/chat.ai:302:143:   (skip-unless (greger-test-has-api-key))
-/Users/andreas/projects/greger.el/chat.ai:350:191:   (skip-unless (greger-test-has-api-key))
-/Users/andreas/projects/greger.el/chat.ai:473: 18: (defun greger-test-has-api-key ()
-/Users/andreas/projects/greger.el/chat.ai:494: 39:   (skip-unless (greger-test-has-api-key))
-/Users/andreas/projects/greger.el/chat.ai:545: 90:   (skip-unless (greger-test-has-api-key))
-/Users/andreas/projects/greger.el/chat.ai:601:146:   (skip-unless (greger-test-has-api-key))
-/Users/andreas/projects/greger.el/chat.ai:630:175:   (skip-unless (greger-test-has-api-key))
-/Users/andreas/projects/greger.el/chat.ai:669:Now I'll remove all the conditional checks for the API key. I'll start by removing the `greger-test-has-api-key` function and the `skip-unless` calls from both test files.
-/Users/andreas/projects/greger.el/chat.ai:687:(defun greger-test-has-api-key ()
-/Users/andreas/projects/greger.el/chat.ai:701:Remove greger-test-has-api-key function from test-end-to-end.el
-/Users/andreas/projects/greger.el/chat.ai:709:Successfully replaced content in /Users/andreas/projects/greger.el/test/test-end-to-end.el. Successfully staged 2 file(s) and committed with message: Remove greger-test-has-api-key function from test-end-to-end.el
-/Users/andreas/projects/greger.el/chat.ai:727:  (skip-unless (greger-test-has-api-key))
-/Users/andreas/projects/greger.el/chat.ai:765:  (skip-unless (greger-test-has-api-key))
-/Users/andreas/projects/greger.el/chat.ai:803:(skip-unless (greger-test-has-api-key))
-/Users/andreas/projects/greger.el/chat.ai:845:(defun greger-test-has-api-key ()
-/Users/andreas/projects/greger.el/chat.ai:859:Remove greger-test-has-api-key function from test-greger-client.el
-/Users/andreas/projects/greger.el/chat.ai:867:Successfully replaced content in /Users/andreas/projects/greger.el/test/test-greger-client.el. Successfully staged 2 file(s) and committed with message: Remove greger-test-has-api-key function from test-greger-client.el
-/Users/andreas/projects/greger.el/chat.ai:885:(skip-unless (greger-test-has-api-key))
-/Users/andreas/projects/greger.el/chat.ai:923:(skip-unless (greger-test-has-api-key))
-/Users/andreas/projects/greger.el/chat.ai:961:(skip-unless (greger-test-has-api-key))
-/Users/andreas/projects/greger.el/chat.ai:999:(skip-unless (greger-test-has-api-key))
+<tool.toolu_01Gt8PTaMqk4pcRusuqH5kU8>
+/Users/andreas/projects/greger.el/chat.ai:12:<safe-shell-commands>
+/Users/andreas/projects/greger.el/chat.ai:18:</safe-shell-commands>
+/Users/andreas/projects/greger.el/greger-stdlib.el:987:If METADATA contains safe-shell-commands and COMMAND is in that list, skips permission prompt."
+/Users/andreas/projects/greger.el/greger-stdlib.el:1008:         ((let ((safe-commands (plist-get metadata :safe-shell-commands)))
+/Users/andreas/projects/greger.el/test/test-greger-stdlib.el:178:  "Test shell-command tool with safe-shell-commands metadata to skip permission prompt."
+/Users/andreas/projects/greger.el/test/test-greger-stdlib.el:191:      (let ((metadata '(:safe-shell-commands ("echo safe command" "pwd" "ls -la"))))
+/Users/andreas/projects/greger.el/test/test-greger-stdlib.el:230:      (let ((metadata '(:safe-shell-commands ("echo safe command" "pwd"))))
+/Users/andreas/projects/greger.el/greger-parser.el:340:(defun greger-parser--process-safe-shell-commands-tag (state)
+/Users/andreas/projects/greger.el/greger-parser.el:341:  "Process a safe-shell-commands tag and return the list of commands in STATE."
+/Users/andreas/projects/greger.el/greger-parser.el:342:  (greger-parser--debug state "Processing safe-shell-commands tag at pos %d" (greger-parser-state-pos state))
+/Users/andreas/projects/greger.el/greger-parser.el:343:  (when (greger-parser--looking-at state "<safe-shell-commands>")
+/Users/andreas/projects/greger.el/greger-parser.el:344:    (greger-parser--advance state (length "<safe-shell-commands>")) ; Skip "<safe-shell-commands>"
+/Users/andreas/projects/greger.el/greger-parser.el:348:      (when (greger-parser--find-closing-tag state "</safe-shell-commands>")
+/Users/andreas/projects/greger.el/greger-parser.el:350:          (greger-parser--advance state (length "</safe-shell-commands>")) ; Skip "</safe-shell-commands>"
+/Users/andreas/projects/greger.el/greger-parser.el:459:  "Read content until next section, extracting metadata like safe-shell-commands.
+/Users/andreas/projects/greger.el/greger-parser.el:462:        (safe-shell-commands nil)
+/Users/andreas/projects/greger.el/greger-parser.el:505:         ((greger-parser--looking-at state "<safe-shell-commands>")
+/Users/andreas/projects/greger.el/greger-parser.el:506:          ;; Add content up to safe-shell-commands tag (but don't include the tag itself)
+/Users/andreas/projects/greger.el/greger-parser.el:508:          ;; Process the safe-shell-commands tag
+/Users/andreas/projects/greger.el/greger-parser.el:509:          (let ((commands (greger-parser--process-safe-shell-commands-tag state)))
+/Users/andreas/projects/greger.el/greger-parser.el:511:              (if safe-shell-commands
+/Users/andreas/projects/greger.el/greger-parser.el:512:                  (greger-parser--debug state "Warning: multiple <safe-shell-commands> tags found")
+/Users/andreas/projects/greger.el/greger-parser.el:513:                (setq safe-shell-commands commands))))
+/Users/andreas/projects/greger.el/greger-parser.el:532:            :safe-shell-commands safe-shell-commands))))
+/Users/andreas/projects/greger.el/greger-parser.el:542:  "Parse content until next section, extracting metadata like safe-shell-commands.
+/Users/andreas/projects/greger.el/greger-parser.el:543:Returns a plist with :content and metadata keys like :safe-shell-commands."
+/Users/andreas/projects/greger.el/greger-parser.el:636:     ;; If we extracted safe-shell-commands and no meaningful content, return only metadata
+/Users/andreas/projects/greger.el/greger-parser.el:637:     ((and (plist-get content :safe-shell-commands)
+/Users/andreas/projects/greger.el/greger-parser.el:639:      (list :metadata :safe-shell-commands (plist-get content :safe-shell-commands)))
+/Users/andreas/projects/greger.el/greger-parser.el:641:     ;; If we have both content and safe-shell-commands, we need to return both
+/Users/andreas/projects/greger.el/greger-parser.el:644:     ((and (plist-get content :safe-shell-commands)
+/Users/andreas/projects/greger.el/greger-parser.el:646:      (greger-parser--debug state "Found safe-shell-commands with system content - both will be processed")
+/Users/andreas/projects/greger.el/greger-parser.el:650:                    (list :safe-shell-commands (plist-get content :safe-shell-commands))))
+/Users/andreas/projects/greger.el/test/test-greger-parser.el:1349:;; Tests for safe-shell-commands metadata
+/Users/andreas/projects/greger.el/test/test-greger-parser.el:1350:(ert-deftest greger-parser-test-safe-shell-commands-basic ()
+/Users/andreas/projects/greger.el/test/test-greger-parser.el:1351:  "Test basic safe-shell-commands parsing."
+/Users/andreas/projects/greger.el/test/test-greger-parser.el:1354:<safe-shell-commands>
+/Users/andreas/projects/greger.el/test/test-greger-parser.el:1358:</safe-shell-commands>")
+/Users/andreas/projects/greger.el/test/test-greger-parser.el:1359:        (expected-metadata '(:safe-shell-commands ("ls -la" "pwd" "echo hello"))))
+/Users/andreas/projects/greger.el/test/test-greger-parser.el:1364:(ert-deftest greger-parser-test-safe-shell-commands-with-system-content ()
+/Users/andreas/projects/greger.el/test/test-greger-parser.el:1365:  "Test safe-shell-commands with other system content."
+/Users/andreas/projects/greger.el/test/test-greger-parser.el:1370:<safe-shell-commands>
+/Users/andreas/projects/greger.el/test/test-greger-parser.el:1373:</safe-shell-commands>
+/Users/andreas/projects/greger.el/test/test-greger-parser.el:1380:      ;; Should also have metadata since safe-shell-commands can coexist with content
+/Users/andreas/projects/greger.el/test/test-greger-parser.el:1381:      (should (equal '(:safe-shell-commands ("ls" "pwd")) (plist-get result :metadata)))
+/Users/andreas/projects/greger.el/test/test-greger-parser.el:1382:      ;; System message should contain the text content but not the safe-shell-commands
+/Users/andreas/projects/greger.el/test/test-greger-parser.el:1386:        (should-not (string-match-p "safe-shell-commands" system-content))))))
+/Users/andreas/projects/greger.el/test/test-greger-parser.el:1388:(ert-deftest greger-parser-test-safe-shell-commands-only-once ()
+/Users/andreas/projects/greger.el/test/test-greger-parser.el:1389:  "Test that only one safe-shell-commands block is allowed."
+/Users/andreas/projects/greger.el/test/test-greger-parser.el:1392:<safe-shell-commands>
+/Users/andreas/projects/greger.el/test/test-greger-parser.el:1395:</safe-shell-commands>
+/Users/andreas/projects/greger.el/test/test-greger-parser.el:1397:<safe-shell-commands>
+/Users/andreas/projects/greger.el/test/test-greger-parser.el:1399:</safe-shell-commands>"))
+/Users/andreas/projects/greger.el/test/test-greger-parser.el:1402:      (should (equal '(:safe-shell-commands ("ls" "pwd")) (plist-get result :metadata))))))
+/Users/andreas/projects/greger.el/test/test-greger-parser.el:1404:(ert-deftest greger-parser-test-safe-shell-commands-empty-lines ()
+/Users/andreas/projects/greger.el/test/test-greger-parser.el:1405:  "Test safe-shell-commands with empty lines and whitespace."
+/Users/andreas/projects/greger.el/test/test-greger-parser.el:1408:<safe-shell-commands>
+/Users/andreas/projects/greger.el/test/test-greger-parser.el:1416:</safe-shell-commands>"))
+/Users/andreas/projects/greger.el/test/test-greger-parser.el:1418:      (should (equal '(:safe-shell-commands ("ls -la" "pwd" "echo hello"))
+/Users/andreas/projects/greger.el/test/test-greger-parser.el:1421:(ert-deftest greger-parser-test-safe-shell-commands-not-in-system ()
+/Users/andreas/projects/greger.el/test/test-greger-parser.el:1422:  "Test that safe-shell-commands outside SYSTEM section are ignored."
+/Users/andreas/projects/greger.el/test/test-greger-parser.el:1425:<safe-shell-commands>
+/Users/andreas/projects/greger.el/test/test-greger-parser.el:1427:</safe-shell-commands>
+/Users/andreas/projects/greger.el/test/test-greger-parser.el:1435:      (should (string-match-p "<safe-shell-commands>"
+/Users/andreas/projects/greger.el/test/test-greger-parser.el:1438:(ert-deftest greger-parser-test-safe-shell-commands-in-code-block ()
+/Users/andreas/projects/greger.el/test/test-greger-parser.el:1439:  "Test that safe-shell-commands inside code blocks are not processed."
+/Users/andreas/projects/greger.el/test/test-greger-parser.el:1445:<safe-shell-commands>
+/Users/andreas/projects/greger.el/test/test-greger-parser.el:1447:</safe-shell-commands>
+/Users/andreas/projects/greger.el/test/test-greger-parser.el:1456:      (should (string-match-p "<safe-shell-commands>"
+/Users/andreas/projects/greger.el/test/test-greger-parser.el:1460:  "Test the exact example from the user: system content with safe-shell-commands."
+/Users/andreas/projects/greger.el/test/test-greger-parser.el:1465:<safe-shell-commands>
+/Users/andreas/projects/greger.el/test/test-greger-parser.el:1468:</safe-shell-commands>
+/Users/andreas/projects/greger.el/test/test-greger-parser.el:1488:      (should (equal '(:safe-shell-commands ("command1" "command2")) (plist-get result :metadata))))))
 
-</tool.toolu_01CmyE19axh4Cu9rkd3MhkGF>
+</tool.toolu_01Gt8PTaMqk4pcRusuqH5kU8>
 
 ## ASSISTANT:
 
-Good! The only remaining references are in the chat.ai file (which is just our conversation history). Let me run a search specifically on the test files to make sure they're clean:
+Now I need to find where the system prompt is generated. Let me look for files that might handle the system prompt generation:
 
 ## TOOL USE:
 
 Name: ripgrep
-ID: toolu_01KD1UGtthxSZqiDp4t5i8Vb
+ID: toolu_01N6Hbyn1qaT88SfXWRTP2Sj
 
 ### pattern
 
-<tool.toolu_01KD1UGtthxSZqiDp4t5i8Vb>
-greger-test-has-api-key
-</tool.toolu_01KD1UGtthxSZqiDp4t5i8Vb>
+<tool.toolu_01N6Hbyn1qaT88SfXWRTP2Sj>
+system.*prompt
+</tool.toolu_01N6Hbyn1qaT88SfXWRTP2Sj>
 
-### path
+### context-lines
 
-<tool.toolu_01KD1UGtthxSZqiDp4t5i8Vb>
-test/
-</tool.toolu_01KD1UGtthxSZqiDp4t5i8Vb>
-
-### file-type
-
-<tool.toolu_01KD1UGtthxSZqiDp4t5i8Vb>
-el
-</tool.toolu_01KD1UGtthxSZqiDp4t5i8Vb>
+<tool.toolu_01N6Hbyn1qaT88SfXWRTP2Sj>
+3
+</tool.toolu_01N6Hbyn1qaT88SfXWRTP2Sj>
 
 ## TOOL RESULT:
 
-ID: toolu_01KD1UGtthxSZqiDp4t5i8Vb
+ID: toolu_01N6Hbyn1qaT88SfXWRTP2Sj
 
-<tool.toolu_01KD1UGtthxSZqiDp4t5i8Vb>
-Failed to execute ripgrep search: Command failed with exit code 1: (no output)
-</tool.toolu_01KD1UGtthxSZqiDp4t5i8Vb>
+<tool.toolu_01N6Hbyn1qaT88SfXWRTP2Sj>
+/Users/andreas/projects/greger.el/greger.el:38:(defcustom greger-default-system-prompt "You are a helpful assistant."
+/Users/andreas/projects/greger.el/greger.el:39:  "Default system prompt used for AI interactions."
+/Users/andreas/projects/greger.el/greger.el:179:            "\n\n" greger-default-system-prompt "\n\n"
+/Users/andreas/projects/greger.el/test/test-end-to-end.el:90:                  (should (string-match-p greger-default-system-prompt content)))
+
+</tool.toolu_01N6Hbyn1qaT88SfXWRTP2Sj>
 
 ## ASSISTANT:
 
-Perfect! No results means all references have been removed from the test files. Let me also check for any remaining `skip-unless` statements:
+Let me search more broadly for where system prompts or messages are built:
 
 ## TOOL USE:
 
 Name: ripgrep
-ID: toolu_01Rb3PuEUdYML3gGZGcWkCjP
+ID: toolu_01WhPqkCg4o9nmcmB4iyU9LY
 
 ### pattern
 
-<tool.toolu_01Rb3PuEUdYML3gGZGcWkCjP>
-skip-unless
-</tool.toolu_01Rb3PuEUdYML3gGZGcWkCjP>
+<tool.toolu_01WhPqkCg4o9nmcmB4iyU9LY>
+shell.*command.*tool
+</tool.toolu_01WhPqkCg4o9nmcmB4iyU9LY>
 
-### path
+### context-lines
 
-<tool.toolu_01Rb3PuEUdYML3gGZGcWkCjP>
-test/
-</tool.toolu_01Rb3PuEUdYML3gGZGcWkCjP>
-
-### file-type
-
-<tool.toolu_01Rb3PuEUdYML3gGZGcWkCjP>
-el
-</tool.toolu_01Rb3PuEUdYML3gGZGcWkCjP>
+<tool.toolu_01WhPqkCg4o9nmcmB4iyU9LY>
+5
+</tool.toolu_01WhPqkCg4o9nmcmB4iyU9LY>
 
 ## TOOL RESULT:
 
-ID: toolu_01Rb3PuEUdYML3gGZGcWkCjP
+ID: toolu_01WhPqkCg4o9nmcmB4iyU9LY
 
-<tool.toolu_01Rb3PuEUdYML3gGZGcWkCjP>
-Failed to execute ripgrep search: Command failed with exit code 1: (no output)
-</tool.toolu_01Rb3PuEUdYML3gGZGcWkCjP>
+<tool.toolu_01WhPqkCg4o9nmcmB4iyU9LY>
+/Users/andreas/projects/greger.el/test/test-greger-stdlib.el:74:  "Test shell-command tool with a simple command."
+/Users/andreas/projects/greger.el/test/test-greger-stdlib.el:102:  "Test shell-command tool with a command containing a pipe."
+/Users/andreas/projects/greger.el/test/test-greger-stdlib.el:130:  "Test shell-command tool when user denies permission."
+/Users/andreas/projects/greger.el/test/test-greger-stdlib.el:151:  "Test shell-command tool when command fails."
+/Users/andreas/projects/greger.el/test/test-greger-stdlib.el:178:  "Test shell-command tool with safe-shell-commands metadata to skip permission prompt."
+/Users/andreas/projects/greger.el/test/test-greger-stdlib.el:217:  "Test shell-command tool with metadata but command not in safe list still prompts."
+/Users/andreas/projects/greger.el/test/test-greger-stdlib.el:256:  "Test shell-command tool without metadata still prompts for permission."
+/Users/andreas/projects/greger.el/chat.ai:3:You can run arbitrary shell commands with the shell-command tool, but the following are safe shell commands that will run without user confirmation:
+
+</tool.toolu_01WhPqkCg4o9nmcmB4iyU9LY>
 
 ## ASSISTANT:
 
-Excellent! All the `skip-unless` checks have been removed as well. Let me verify the final state of both test files to make sure they look correct:
+I see! There's already an example in the chat.ai file. Let me look at that:
 
 ## TOOL USE:
 
 Name: read-file
-ID: toolu_012dswm9iJCZcQYtY6PPG4Bt
+ID: toolu_018UuUZvYrzCra4KhwK5f4vr
 
 ### path
 
-<tool.toolu_012dswm9iJCZcQYtY6PPG4Bt>
-test/test-end-to-end.el
-</tool.toolu_012dswm9iJCZcQYtY6PPG4Bt>
-
-### start_line
-
-<tool.toolu_012dswm9iJCZcQYtY6PPG4Bt>
-100
-</tool.toolu_012dswm9iJCZcQYtY6PPG4Bt>
-
-### end_line
-
-<tool.toolu_012dswm9iJCZcQYtY6PPG4Bt>
-110
-</tool.toolu_012dswm9iJCZcQYtY6PPG4Bt>
+<tool.toolu_018UuUZvYrzCra4KhwK5f4vr>
+chat.ai
+</tool.toolu_018UuUZvYrzCra4KhwK5f4vr>
 
 ## TOOL RESULT:
 
-ID: toolu_012dswm9iJCZcQYtY6PPG4Bt
+ID: toolu_018UuUZvYrzCra4KhwK5f4vr
 
-<tool.toolu_012dswm9iJCZcQYtY6PPG4Bt>
+<tool.toolu_018UuUZvYrzCra4KhwK5f4vr>
+## SYSTEM:
 
-(ert-deftest greger-end-to-end-test-simple-conversation ()
-  "Test a simple conversation using the public API."
-  :tags '(end-to-end public-api)
+You can run arbitrary shell commands with the shell-command tool, but the following are safe shell commands that will run without user confirmation:
 
-
-  (let ((greger-buffer nil))
-    (unwind-protect
-        (progn
-          ;; Create a greger buffer
-          (greger)
-</tool.toolu_012dswm9iJCZcQYtY6PPG4Bt>
-
-## TOOL USE:
-
-Name: read-file
-ID: toolu_01WrTgM3hGwix2pG5gezVKGn
-
-### path
-
-<tool.toolu_01WrTgM3hGwix2pG5gezVKGn>
-test/test-greger-client.el
-</tool.toolu_01WrTgM3hGwix2pG5gezVKGn>
-
-### start_line
-
-<tool.toolu_01WrTgM3hGwix2pG5gezVKGn>
-35
-</tool.toolu_01WrTgM3hGwix2pG5gezVKGn>
-
-### end_line
-
-<tool.toolu_01WrTgM3hGwix2pG5gezVKGn>
-45
-</tool.toolu_01WrTgM3hGwix2pG5gezVKGn>
-
-## TOOL RESULT:
-
-ID: toolu_01WrTgM3hGwix2pG5gezVKGn
-
-<tool.toolu_01WrTgM3hGwix2pG5gezVKGn>
-  "Test simple text generation with Claude API."
-  :tags '(end-to-end api)
+* `bash script/package-lint`
+* `bash script/test --verbose`
+* `bash script/test --verbose --file test/test-parser.el`
+* `bash script/test --verbose --file test/test-greger.el`
+* `bash script/test --verbose --file test/test-greger-lib-lsp.el`
 
 
-  (let ((response-received nil)
-        (text-chunks '())
-        (final-blocks nil)
-        (test-model 'claude-sonnet-4-20250514)
-        (test-dialog '(((role . "user")
-                        (content . "Say exactly 'Hello from Greger test!' and nothing else.")))))
+<safe-shell-commands>
+bash script/package-lint
+bash script/test --verbose
+bash script/test --verbose --file test/test-parser.el
+bash script/test --verbose --file test/test-greger.el
+bash script/test --verbose --file test/test-greger-lib-lsp.el
+</safe-shell-commands>
 
-</tool.toolu_01WrTgM3hGwix2pG5gezVKGn>
-
-## ASSISTANT:
-
-Perfect! I have successfully removed all the conditional checks for `ANTHROPIC_API_KEY` from the test files. Here's a summary of what was done:
-
-1. **Removed the `greger-test-has-api-key` function** from both `test/test-end-to-end.el` and `test/test-greger-client.el`
-
-2. **Removed all `(skip-unless (greger-test-has-api-key))` statements** from the following tests:
-   - In `test/test-end-to-end.el`:
-     - `greger-end-to-end-test-simple-conversation`
-     - `greger-end-to-end-test-tool-use-conversation`
-     - `greger-end-to-end-test-no-tools-mode`
-
-   - In `test/test-greger-client.el`:
-     - `greger-end-to-end-test-simple-text-generation`
-     - `greger-end-to-end-test-tool-use`
-     - `greger-end-to-end-test-error-handling`
-     - `greger-end-to-end-test-request-building`
-
-Now all these tests will run unconditionally and will require the `ANTHROPIC_API_KEY` environment variable to be set (as enforced by the actual client code in `greger-client.el`). If the API key is not set, the tests will fail with an appropriate error message from the client rather than being skipped.
 
 ## USER:
 
-Make script/test output the names of the failing test cases, as well as the errors, even when not verbose
+</tool.toolu_018UuUZvYrzCra4KhwK5f4vr>
 
 ## ASSISTANT:
 
-I'll help you modify the test script to output the names of failing test cases and their errors even when not in verbose mode. Let me first examine the current test script to understand how it works.
+Perfect! So the system message already contains the text I need to add. Now I need to find where this system prompt generation happens. Let me look for functions that build the system prompt or where safe shell commands get processed into the actual prompt text:
+
+## TOOL USE:
+
+Name: ripgrep
+ID: toolu_01PRVcfm51gXmFQSn2TKnKyH
+
+### pattern
+
+<tool.toolu_01PRVcfm51gXmFQSn2TKnKyH>
+shell.*command.*tool
+</tool.toolu_01PRVcfm51gXmFQSn2TKnKyH>
+
+### context-lines
+
+<tool.toolu_01PRVcfm51gXmFQSn2TKnKyH>
+5
+</tool.toolu_01PRVcfm51gXmFQSn2TKnKyH>
+
+## TOOL RESULT:
+
+ID: toolu_01PRVcfm51gXmFQSn2TKnKyH
+
+<tool.toolu_01PRVcfm51gXmFQSn2TKnKyH>
+/Users/andreas/projects/greger.el/chat.ai:3:You can run arbitrary shell commands with the shell-command tool, but the following are safe shell commands that will run without user confirmation:
+/Users/andreas/projects/greger.el/test/test-greger-stdlib.el:74:  "Test shell-command tool with a simple command."
+/Users/andreas/projects/greger.el/test/test-greger-stdlib.el:102:  "Test shell-command tool with a command containing a pipe."
+/Users/andreas/projects/greger.el/test/test-greger-stdlib.el:130:  "Test shell-command tool when user denies permission."
+/Users/andreas/projects/greger.el/test/test-greger-stdlib.el:151:  "Test shell-command tool when command fails."
+/Users/andreas/projects/greger.el/test/test-greger-stdlib.el:178:  "Test shell-command tool with safe-shell-commands metadata to skip permission prompt."
+/Users/andreas/projects/greger.el/test/test-greger-stdlib.el:217:  "Test shell-command tool with metadata but command not in safe list still prompts."
+/Users/andreas/projects/greger.el/test/test-greger-stdlib.el:256:  "Test shell-command tool without metadata still prompts for permission."
+
+</tool.toolu_01PRVcfm51gXmFQSn2TKnKyH>
+
+## ASSISTANT:
+
+Let me search for where messages are processed or system prompts are built:
+
+## TOOL USE:
+
+Name: ripgrep
+ID: toolu_01DP2EqiuqBzfi2s1raLF336
+
+### pattern
+
+<tool.toolu_01DP2EqiuqBzfi2s1raLF336>
+system.*message
+</tool.toolu_01DP2EqiuqBzfi2s1raLF336>
+
+### context-lines
+
+<tool.toolu_01DP2EqiuqBzfi2s1raLF336>
+3
+</tool.toolu_01DP2EqiuqBzfi2s1raLF336>
+
+## TOOL RESULT:
+
+ID: toolu_01DP2EqiuqBzfi2s1raLF336
+
+<tool.toolu_01DP2EqiuqBzfi2s1raLF336>
+/Users/andreas/projects/greger.el/greger-parser.el:633:Returns either a system message, metadata, or both."
+/Users/andreas/projects/greger.el/greger-parser.el:642:     ;; Since we can only return one thing, we'll return the system message
+/Users/andreas/projects/greger.el/greger-parser.el:647:      ;; Store metadata for later extraction and return system message
+/Users/andreas/projects/greger.el/greger-parser.el:651:      (greger-parser--create-system-message (plist-get content :content)))
+/Users/andreas/projects/greger.el/greger-parser.el:655:      (greger-parser--create-system-message (plist-get content :content)))
+/Users/andreas/projects/greger.el/greger-parser.el:855:(defun greger-parser--create-system-message (content)
+/Users/andreas/projects/greger.el/greger-parser.el:856:  "Create system message."
+/Users/andreas/projects/greger.el/greger-client.el:129:  (let ((system-message nil)
+/Users/andreas/projects/greger.el/greger-client.el:133:    ;; Separate system messages from user/assistant messages
+/Users/andreas/projects/greger.el/greger-client.el:138:            (unless system-message
+/Users/andreas/projects/greger.el/greger-client.el:139:              (setq system-message content))
+/Users/andreas/projects/greger.el/greger-client.el:171:    ;; Add system message if present
+/Users/andreas/projects/greger.el/greger-client.el:172:    (when system-message
+/Users/andreas/projects/greger.el/greger-client.el:173:      (push `("system" . ,system-message) request-data))
+/Users/andreas/projects/greger.el/test/test-greger-parser.el:17:    ;; System and user message
+/Users/andreas/projects/greger.el/test/test-greger-parser.el:1377:      ;; Should have a system message since there's other content
+/Users/andreas/projects/greger.el/test/test-greger-parser.el:1379:      (should (string= "system" (alist-get 'role (car (plist-get result :messages)))))
+/Users/andreas/projects/greger.el/test/test-greger-parser.el:1382:      ;; System message should contain the text content but not the safe-shell-commands
+/Users/andreas/projects/greger.el/test/test-greger-parser.el:1383:      (let ((system-content (alist-get 'content (car (plist-get result :messages)))))
+/Users/andreas/projects/greger.el/test/test-greger-parser.el:1454:      ;; Should have system message with code block
+/Users/andreas/projects/greger.el/test/test-greger-parser.el:1474:      ;; Should have both system and user messages
+/Users/andreas/projects/greger.el/test/test-greger-parser.el:1477:      ;; Check system message
+/Users/andreas/projects/greger.el/test/test-greger-parser.el:1478:      (let ((system-msg (car (plist-get result :messages))))
+
+</tool.toolu_01DP2EqiuqBzfi2s1raLF336>
+
+## ASSISTANT:
+
+Let me look at the greger-client.el file to understand how system messages are processed:
 
 ## TOOL USE:
 
 Name: read-file
-ID: toolu_01AEgGuyaXvYsMgrACEMVDUK
+ID: toolu_01A6jw3BGkMsem426WnK8n8e
 
 ### path
 
-<tool.toolu_01AEgGuyaXvYsMgrACEMVDUK>
-script/test
-</tool.toolu_01AEgGuyaXvYsMgrACEMVDUK>
+<tool.toolu_01A6jw3BGkMsem426WnK8n8e>
+greger-client.el
+</tool.toolu_01A6jw3BGkMsem426WnK8n8e>
+
+### start_line
+
+<tool.toolu_01A6jw3BGkMsem426WnK8n8e>
+120
+</tool.toolu_01A6jw3BGkMsem426WnK8n8e>
+
+### end_line
+
+<tool.toolu_01A6jw3BGkMsem426WnK8n8e>
+180
+</tool.toolu_01A6jw3BGkMsem426WnK8n8e>
+
+### include_line_numbers
+
+<tool.toolu_01A6jw3BGkMsem426WnK8n8e>
+true
+</tool.toolu_01A6jw3BGkMsem426WnK8n8e>
 
 ## TOOL RESULT:
 
-ID: toolu_01AEgGuyaXvYsMgrACEMVDUK
+ID: toolu_01A6jw3BGkMsem426WnK8n8e
 
-<tool.toolu_01AEgGuyaXvYsMgrACEMVDUK>
-#!/bin/bash
-
-# Test script for greger package
-# Runs all ERT tests for the package
-
-set -e
-
-# Colors for output
-RED='\033[0;31m'
-GREEN='\033[0;32m'
-YELLOW='\033[1;33m'
-BLUE='\033[0;34m'
-NC='\033[0m' # No Color
-
-# Test files to run
-TEST_FILES=(
-    "test/test-greger.el"
-    "test/test-greger-parser.el"
-    "test/test-greger-stdlib.el"
-    "test/test-greger-lib-lsp.el"
-    "test/test-greger-tools.el"
-    "test/test-greger-client.el"
-    "test/test-end-to-end.el"
-)
-
-echo -e "${BLUE}Running ERT tests for greger package...${NC}"
-echo
-
-# Function to run tests for a single file
-run_test_file() {
-    local test_file="$1"
-    echo -e "Running tests in ${YELLOW}$test_file${NC}..."
-
-    if [ ! -f "$test_file" ]; then
-        echo -e "  ${RED}✗ Test file not found: $test_file${NC}"
-        return 1
-    fi
-
-    # Run the tests with ERT
-    if emacs --batch -Q \
-        --eval "(progn
-                  (setq debug-on-error t)
-                  (add-to-list 'load-path \".\")
-                  ;; Setup package archives and install dependencies if needed
-                  (require 'package)
-                  (setq package-archives '((\"melpa\" . \"https://melpa.org/packages/\")
-                                           (\"gnu\" . \"https://elpa.gnu.org/packages/\")))
-                  (package-initialize)
-                  ;; Install lsp-mode and lsp-pyright if not available
-                  (unless (package-installed-p 'lsp-mode)
-                    (package-refresh-contents)
-                    (package-install 'lsp-mode))
-                  (unless (package-installed-p 'lsp-pyright)
-                    (package-refresh-contents)
-                    (package-install 'lsp-pyright))
-                  ;; Load required packages
-                  (require 'ert)
-                  (require 'cl-lib)
-                  ;; Load main greger files
-                  (load-file \"greger.el\")
-                  (load-file \"greger-parser.el\")
-                  (load-file \"greger-stdlib.el\")
-                  (load-file \"greger-lib-lsp.el\")
-                  (load-file \"greger-tools.el\")
-                  (load-file \"greger-client.el\")
-                  (load-file \"greger-web.el\")
-                  ;; Load test file
-                  (load-file \"$test_file\")
-                  ;; Run all tests defined in this file
-                  (let ((ert-quiet nil))
-                    (ert-run-tests-batch-and-exit t)))" 2>/dev/null; then
-        echo -e "  ${GREEN}✓ All tests passed${NC}"
-        return 0
-    else
-        echo -e "  ${RED}✗ Some tests failed${NC}"
-        return 1
-    fi
-}
-
-# Function to run tests with verbose output
-run_test_file_verbose() {
-    local test_file="$1"
-    echo -e "Running tests in ${YELLOW}$test_file${NC} (verbose mode)..."
-
-    emacs --batch -Q \
-        --eval "(progn
-                  (setq debug-on-error t)
-                  (add-to-list 'load-path \".\")
-                  ;; Setup package archives and install dependencies if needed
-                  (require 'package)
-                  (setq package-archives '((\"melpa\" . \"https://melpa.org/packages/\")
-                                           (\"gnu\" . \"https://elpa.gnu.org/packages/\")))
-                  (package-initialize)
-                  ;; Install lsp-mode and lsp-pyright if not available
-                  (unless (package-installed-p 'lsp-mode)
-                    (package-refresh-contents)
-                    (package-install 'lsp-mode))
-                  (unless (package-installed-p 'lsp-pyright)
-                    (package-refresh-contents)
-                    (package-install 'lsp-pyright))
-                  ;; Load required packages
-                  (require 'ert)
-                  (require 'cl-lib)
-                  ;; Load main greger files
-                  (load-file \"greger.el\")
-                  (load-file \"greger-parser.el\")
-                  (load-file \"greger-stdlib.el\")
-                  (load-file \"greger-lib-lsp.el\")
-                  (load-file \"greger-tools.el\")
-                  (load-file \"greger-client.el\")
-                  (load-file \"greger-web.el\")
-                  ;; Load test file
-                  (load-file \"$test_file\")
-                  ;; Run all tests defined in this file with verbose output
-                  (let ((ert-quiet nil))
-                    (ert-run-tests-batch-and-exit t)))"
-}
-
-# Parse command line arguments
-VERBOSE=false
-SPECIFIC_FILE=""
-HELP=false
-
-while [[ $# -gt 0 ]]; do
-    case $1 in
-        -v|--verbose)
-            VERBOSE=true
-            shift
-            ;;
-        -f|--file)
-            SPECIFIC_FILE="$2"
-            shift 2
-            ;;
-        -h|--help)
-            HELP=true
-            shift
-            ;;
-        *)
-            echo -e "${RED}Unknown option: $1${NC}"
-            HELP=true
-            shift
-            ;;
-    esac
-done
-
-# Show help if requested
-if [ "$HELP" = true ]; then
-    echo "Usage: $0 [OPTIONS]"
-    echo ""
-    echo "Options:"
-    echo "  -v, --verbose    Show verbose test output"
-    echo "  -f, --file FILE  Run tests only for specific file"
-    echo "  -h, --help       Show this help message"
-    echo ""
-    echo "Test files available:"
-    for file in "${TEST_FILES[@]}"; do
-        echo "  - $file"
-    done
-    exit 0
-fi
-
-# Run tests
-OVERALL_EXIT_CODE=0
-TOTAL_FILES=0
-PASSED_FILES=0
-
-if [ -n "$SPECIFIC_FILE" ]; then
-    # Run tests for specific file
-    TOTAL_FILES=1
-    if [ "$VERBOSE" = true ]; then
-        run_test_file_verbose "$SPECIFIC_FILE"
-        OVERALL_EXIT_CODE=$?
-    else
-        if run_test_file "$SPECIFIC_FILE"; then
-            PASSED_FILES=1
-        else
-            OVERALL_EXIT_CODE=1
-        fi
-    fi
-else
-    # Run tests for all files
-    for test_file in "${TEST_FILES[@]}"; do
-        TOTAL_FILES=$((TOTAL_FILES + 1))
-
-        if [ "$VERBOSE" = true ]; then
-            echo
-            run_test_file_verbose "$test_file"
-            if [ $? -ne 0 ]; then
-                OVERALL_EXIT_CODE=1
-            else
-                PASSED_FILES=$((PASSED_FILES + 1))
-            fi
-        else
-            if run_test_file "$test_file"; then
-                PASSED_FILES=$((PASSED_FILES + 1))
-            else
-                OVERALL_EXIT_CODE=1
-            fi
-        fi
-        echo
-    done
-fi
-
-# Print summary
-echo -e "${BLUE}Test Summary:${NC}"
-echo -e "  Files run: $TOTAL_FILES"
-echo -e "  Files passed: ${GREEN}$PASSED_FILES${NC}"
-echo -e "  Files failed: ${RED}$((TOTAL_FILES - PASSED_FILES))${NC}"
-
-if [ $OVERALL_EXIT_CODE -eq 0 ]; then
-    echo -e "${GREEN}All tests passed!${NC}"
-else
-    echo -e "${RED}Some tests failed.${NC}"
-fi
-
-exit $OVERALL_EXIT_CODE
-
-</tool.toolu_01AEgGuyaXvYsMgrACEMVDUK>
+<tool.toolu_01A6jw3BGkMsem426WnK8n8e>
+120: (defun greger-client--build-headers (api-key)
+121:   "Build headers for Claude with API-KEY."
+122:   `(("Content-Type" . "application/json")
+123:     ("x-api-key" . ,api-key)
+124:     ("anthropic-version" . "2023-06-01")
+125:     ("anthropic-beta" . "token-efficient-tools-2025-02-19")))
+126:
+127: (defun greger-client--build-data (model dialog &optional tools)
+128:   "Build request data for Claude MODEL with DIALOG and optional TOOLS."
+129:   (let ((system-message nil)
+130:         (user-messages ())
+131:         (request-data nil))
+132:
+133:     ;; Separate system messages from user/assistant messages
+134:     (dolist (message dialog)
+135:       (let ((role (alist-get 'role message))
+136:             (content (alist-get 'content message)))
+137:         (if (string= role "system")
+138:             (unless system-message
+139:               (setq system-message content))
+140:           (push `((role . ,role)
+141:                   (content . ,content))
+142:                 user-messages))))
+143:
+144:     ;; Reverse to get correct order
+145:     (setq user-messages (nreverse user-messages))
+146:
+147:     ;; Find the last message with dict content and add ephemeral cache control
+148:     (let ((last-dict-message nil))
+149:       (dolist (message user-messages)
+150:         (let ((content (alist-get 'content message)))
+151:           (when (and (listp content) (not (stringp content)))
+152:             (setq last-dict-message message))))
+153:
+154:       (when last-dict-message
+155:         (let ((content-list (alist-get 'content last-dict-message)))
+156:           ;; Modify the first content item in place
+157:           (when (and content-list (listp content-list))
+158:             (let ((first-content-item (car content-list)))
+159:               (when (and first-content-item (listp first-content-item))
+160:                 ;; Modify the car of the content-list directly
+161:                 (setcar content-list
+162:                         (cons '(cache_control . ((type . "ephemeral")))
+163:                               first-content-item))))))))
+164:
+165:     ;; Build base request
+166:     (setq request-data `(("model" . ,(symbol-name model))
+167:                         ("messages" . ,user-messages)
+168:                         ("max_tokens" . 64000)
+169:                         ("stream" . t)))
+170:
+171:     ;; Add system message if present
+172:     (when system-message
+173:       (push `("system" . ,system-message) request-data))
+174:
+175:     ;; Add tools if present
+176:     (when tools
+177:       (push `("tools" . ,tools) request-data)
+178:       (push `("tool_choice" . (("type" . "auto"))) request-data))
+179:
+180:     (json-encode request-data)))
+</tool.toolu_01A6jw3BGkMsem426WnK8n8e>
 
 ## ASSISTANT:
 
-I can see that the current script redirects stderr to `/dev/null` in the non-verbose mode (`2>/dev/null`), which hides the detailed test output including failure names and errors. I need to modify the script to capture and display test failure information even in non-verbose mode.
+I can see that the system message is processed in greger-client.el, but I need to find where the safe shell commands are transformed into the descriptive text. Let me look for where the metadata is used to enhance system prompts:
 
-Let me create a modified version that captures test output and extracts failure information:
+## TOOL USE:
 
+Name: ripgrep
+ID: toolu_012RbXgL3xYC1jLXSMxjQXTo
+
+### pattern
+
+<tool.toolu_012RbXgL3xYC1jLXSMxjQXTo>
+safe.*shell.*command.*run.*without
+</tool.toolu_012RbXgL3xYC1jLXSMxjQXTo>
+
+### context-lines
+
+<tool.toolu_012RbXgL3xYC1jLXSMxjQXTo>
+10
+</tool.toolu_012RbXgL3xYC1jLXSMxjQXTo>
+
+## TOOL RESULT:
+
+ID: toolu_012RbXgL3xYC1jLXSMxjQXTo
+
+<tool.toolu_012RbXgL3xYC1jLXSMxjQXTo>
+/Users/andreas/projects/greger.el/chat.ai:3:You can run arbitrary shell commands with the shell-command tool, but the following are safe shell commands that will run without user confirmation:
+
+</tool.toolu_012RbXgL3xYC1jLXSMxjQXTo>
+
+## ASSISTANT:
+
+Let me search for where this text might be generated in the code:
+
+## TOOL USE:
+
+Name: ripgrep
+ID: toolu_01JZPBv9Cfr1RgwwaLyrFNiZ
+
+### pattern
+
+<tool.toolu_01JZPBv9Cfr1RgwwaLyrFNiZ>
+You can run arbitrary shell commands
+</tool.toolu_01JZPBv9Cfr1RgwwaLyrFNiZ>
+
+### context-lines
+
+<tool.toolu_01JZPBv9Cfr1RgwwaLyrFNiZ>
+10
+</tool.toolu_01JZPBv9Cfr1RgwwaLyrFNiZ>
+
+## TOOL RESULT:
+
+ID: toolu_01JZPBv9Cfr1RgwwaLyrFNiZ
+
+<tool.toolu_01JZPBv9Cfr1RgwwaLyrFNiZ>
+/Users/andreas/projects/greger.el/chat.ai:3:You can run arbitrary shell commands with the shell-command tool, but the following are safe shell commands that will run without user confirmation:
+
+</tool.toolu_01JZPBv9Cfr1RgwwaLyrFNiZ>
+
+## ASSISTANT:
+
+It seems like this text is not generated programmatically yet. Based on the user's request, I need to modify the parser to insert this text when safe shell commands are found. Looking at the current parser structure, I need to modify the system message creation when safe shell commands are present.
+
+Let me look at the `greger-parser--parse-system-section` function more closely to see how I can modify it:
+
+## TOOL USE:
+
+Name: read-file
+ID: toolu_01ArKa68LuNXuCWfByaF2XH9
+
+### path
+
+<tool.toolu_01ArKa68LuNXuCWfByaF2XH9>
+greger-parser.el
+</tool.toolu_01ArKa68LuNXuCWfByaF2XH9>
+
+### start_line
+
+<tool.toolu_01ArKa68LuNXuCWfByaF2XH9>
+631
+</tool.toolu_01ArKa68LuNXuCWfByaF2XH9>
+
+### end_line
+
+<tool.toolu_01ArKa68LuNXuCWfByaF2XH9>
+658
+</tool.toolu_01ArKa68LuNXuCWfByaF2XH9>
+
+### include_line_numbers
+
+<tool.toolu_01ArKa68LuNXuCWfByaF2XH9>
+true
+</tool.toolu_01ArKa68LuNXuCWfByaF2XH9>
+
+## TOOL RESULT:
+
+ID: toolu_01ArKa68LuNXuCWfByaF2XH9
+
+<tool.toolu_01ArKa68LuNXuCWfByaF2XH9>
+631: (defun greger-parser--parse-system-section (state)
+632:   "Parse SYSTEM section using STATE.
+633: Returns either a system message, metadata, or both."
+634:   (let ((content (greger-parser--parse-section-content-with-metadata state)))
+635:     (cond
+636:      ;; If we extracted safe-shell-commands and no meaningful content, return only metadata
+637:      ((and (plist-get content :safe-shell-commands)
+638:            (not (plist-get content :content)))
+639:       (list :metadata :safe-shell-commands (plist-get content :safe-shell-commands)))
+640:
+641:      ;; If we have both content and safe-shell-commands, we need to return both
+642:      ;; Since we can only return one thing, we'll return the system message
+643:      ;; and handle metadata extraction at the document level
+644:      ((and (plist-get content :safe-shell-commands)
+645:            (plist-get content :content))
+646:       (greger-parser--debug state "Found safe-shell-commands with system content - both will be processed")
+647:       ;; Store metadata for later extraction and return system message
+648:       (setf (greger-parser-state-metadata state)
+649:             (append (or (greger-parser-state-metadata state) '())
+650:                     (list :safe-shell-commands (plist-get content :safe-shell-commands))))
+651:       (greger-parser--create-system-message (plist-get content :content)))
+652:
+653:      ;; Just regular content
+654:      ((plist-get content :content)
+655:       (greger-parser--create-system-message (plist-get content :content)))
+656:
+657:      ;; No content
+658:      (t nil))))
+</tool.toolu_01ArKa68LuNXuCWfByaF2XH9>
+
+## ASSISTANT:
+
+Now I need to create a helper function to generate the safe shell commands text and modify the system message creation. Let me create this function and update the parser:
 
 ## TOOL USE:
 
 Name: str-replace
-ID: toolu_018K7U9SpWCYQ8mbRQVNunCu
+ID: toolu_01LEeoPEe3Bf7ZHVpLhQHmbf
 
 ### file_path
 
-<tool.toolu_018K7U9SpWCYQ8mbRQVNunCu>
-script/test
-</tool.toolu_018K7U9SpWCYQ8mbRQVNunCu>
+<tool.toolu_01LEeoPEe3Bf7ZHVpLhQHmbf>
+greger-parser.el
+</tool.toolu_01LEeoPEe3Bf7ZHVpLhQHmbf>
 
 ### original_content
 
-<tool.toolu_018K7U9SpWCYQ8mbRQVNunCu>
-# Function to run tests for a single file
-run_test_file() {
-    local test_file="$1"
-    echo -e "Running tests in ${YELLOW}$test_file${NC}..."
+<tool.toolu_01LEeoPEe3Bf7ZHVpLhQHmbf>
+;; Message creation
 
-    if [ ! -f "$test_file" ]; then
-        echo -e "  ${RED}✗ Test file not found: $test_file${NC}"
-        return 1
-    fi
+(defun greger-parser--create-user-message (content)
+  "Create user message."
+  `((role . "user") (content . ,content)))
 
-    # Run the tests with ERT
-    if emacs --batch -Q \
-        --eval "(progn
-                  (setq debug-on-error t)
-                  (add-to-list 'load-path \".\")
-                  ;; Setup package archives and install dependencies if needed
-                  (require 'package)
-                  (setq package-archives '((\"melpa\" . \"https://melpa.org/packages/\")
-                                           (\"gnu\" . \"https://elpa.gnu.org/packages/\")))
-                  (package-initialize)
-                  ;; Install lsp-mode and lsp-pyright if not available
-                  (unless (package-installed-p 'lsp-mode)
-                    (package-refresh-contents)
-                    (package-install 'lsp-mode))
-                  (unless (package-installed-p 'lsp-pyright)
-                    (package-refresh-contents)
-                    (package-install 'lsp-pyright))
-                  ;; Load required packages
-                  (require 'ert)
-                  (require 'cl-lib)
-                  ;; Load main greger files
-                  (load-file \"greger.el\")
-                  (load-file \"greger-parser.el\")
-                  (load-file \"greger-stdlib.el\")
-                  (load-file \"greger-lib-lsp.el\")
-                  (load-file \"greger-tools.el\")
-                  (load-file \"greger-client.el\")
-                  (load-file \"greger-web.el\")
-                  ;; Load test file
-                  (load-file \"$test_file\")
-                  ;; Run all tests defined in this file
-                  (let ((ert-quiet nil))
-                    (ert-run-tests-batch-and-exit t)))" 2>/dev/null; then
-        echo -e "  ${GREEN}✓ All tests passed${NC}"
-        return 0
-    else
-        echo -e "  ${RED}✗ Some tests failed${NC}"
-        return 1
-    fi
-}
-</tool.toolu_018K7U9SpWCYQ8mbRQVNunCu>
+(defun greger-parser--create-assistant-message (content)
+  "Create assistant message."
+  `((role . "assistant") (content . ,content)))
+
+(defun greger-parser--create-system-message (content)
+  "Create system message."
+  `((role . "system") (content . ,content)))
+</tool.toolu_01LEeoPEe3Bf7ZHVpLhQHmbf>
 
 ### new_content
 
-<tool.toolu_018K7U9SpWCYQ8mbRQVNunCu>
-# Function to run tests for a single file
-run_test_file() {
-    local test_file="$1"
-    echo -e "Running tests in ${YELLOW}$test_file${NC}..."
+<tool.toolu_01LEeoPEe3Bf7ZHVpLhQHmbf>
+;; Message creation
 
-    if [ ! -f "$test_file" ]; then
-        echo -e "  ${RED}✗ Test file not found: $test_file${NC}"
-        return 1
-    fi
+(defun greger-parser--create-user-message (content)
+  "Create user message."
+  `((role . "user") (content . ,content)))
 
-    # Create temporary file to capture output
-    local temp_output=$(mktemp)
+(defun greger-parser--create-assistant-message (content)
+  "Create assistant message."
+  `((role . "assistant") (content . ,content)))
 
-    # Run the tests with ERT and capture all output
-    if emacs --batch -Q \
-        --eval "(progn
-                  (setq debug-on-error t)
-                  (add-to-list 'load-path \".\")
-                  ;; Setup package archives and install dependencies if needed
-                  (require 'package)
-                  (setq package-archives '((\"melpa\" . \"https://melpa.org/packages/\")
-                                           (\"gnu\" . \"https://elpa.gnu.org/packages/\")))
-                  (package-initialize)
-                  ;; Install lsp-mode and lsp-pyright if not available
-                  (unless (package-installed-p 'lsp-mode)
-                    (package-refresh-contents)
-                    (package-install 'lsp-mode))
-                  (unless (package-installed-p 'lsp-pyright)
-                    (package-refresh-contents)
-                    (package-install 'lsp-pyright))
-                  ;; Load required packages
-                  (require 'ert)
-                  (require 'cl-lib)
-                  ;; Load main greger files
-                  (load-file \"greger.el\")
-                  (load-file \"greger-parser.el\")
-                  (load-file \"greger-stdlib.el\")
-                  (load-file \"greger-lib-lsp.el\")
-                  (load-file \"greger-tools.el\")
-                  (load-file \"greger-client.el\")
-                  (load-file \"greger-web.el\")
-                  ;; Load test file
-                  (load-file \"$test_file\")
-                  ;; Run all tests defined in this file
-                  (let ((ert-quiet nil))
-                    (ert-run-tests-batch-and-exit t)))" > "$temp_output" 2>&1; then
-        echo -e "  ${GREEN}✓ All tests passed${NC}"
-        rm -f "$temp_output"
-        return 0
-    else
-        echo -e "  ${RED}✗ Some tests failed${NC}"
+(defun greger-parser--create-system-message (content)
+  "Create system message."
+  `((role . "system") (content . ,content)))
 
-        # Extract and display failure information
-        echo -e "  ${RED}Failed tests:${NC}"
-
-        # Look for test failures in the output
-        grep -E "^F " "$temp_output" | while read -r line; do
-            test_name=$(echo "$line" | sed 's/^F //')
-            echo -e "    ${RED}• $test_name${NC}"
-        done
-
-        # Look for error details - find lines that start with test names followed by FAILED
-        grep -A 10 "FAILED" "$temp_output" | while IFS= read -r line; do
-            if [[ $line =~ ^[[:space:]]*[a-zA-Z0-9_-]+.*FAILED ]]; then
-                test_name=$(echo "$line" | sed -E 's/^[[:space:]]*([a-zA-Z0-9_-]+).*FAILED.*/\1/')
-                echo -e "    ${RED}• $test_name${NC}"
-            elif [[ $line =~ ^[[:space:]]*.*should.*but.*was ]]; then
-                echo -e "      ${YELLOW}Error: $line${NC}"
-            elif [[ $line =~ ^[[:space:]]*.*error.*: ]]; then
-                echo -e "      ${YELLOW}Error: $line${NC}"
-            fi
-        done
-
-        # Alternative: look for assertion failures
-        grep -E "(ert-test-failed|should.*but)" "$temp_output" | head -10 | while IFS= read -r line; do
-            echo -e "    ${YELLOW}$line${NC}"
-        done
-
-        rm -f "$temp_output"
-        return 1
-    fi
-}
-</tool.toolu_018K7U9SpWCYQ8mbRQVNunCu>
+(defun greger-parser--generate-safe-shell-commands-text (commands)
+  "Generate descriptive text for safe shell commands list."
+  (when commands
+    (concat "You can run arbitrary shell commands with the shell-command tool, but the following are safe shell commands that will run without requiring user confirmation:\n\n"
+            (mapconcat (lambda (cmd) (format "* `%s`" cmd)) commands "\n"))))
+</tool.toolu_01LEeoPEe3Bf7ZHVpLhQHmbf>
 
 ### git_commit_message
 
-<tool.toolu_018K7U9SpWCYQ8mbRQVNunCu>
-Modify test script to show failing test names and errors in non-verbose mode
-</tool.toolu_018K7U9SpWCYQ8mbRQVNunCu>
-
-## TOOL RESULT:
-
-ID: toolu_018K7U9SpWCYQ8mbRQVNunCu
-
-<tool.toolu_018K7U9SpWCYQ8mbRQVNunCu>
-Successfully replaced content in /Users/andreas/projects/greger.el/script/test. Successfully staged 2 file(s) and committed with message: Modify test script to show failing test names and errors in non-verbose mode
-</tool.toolu_018K7U9SpWCYQ8mbRQVNunCu>
-
-
-## ASSISTANT:
-
-Now let me test this to see if it works properly. But first, let me improve the error parsing logic to be more robust:
-
-## TOOL USE:
-
-Name: str-replace
-ID: toolu_01CnmtMeJJdGJRe4fmPtgx7f
-
-### file_path
-
-<tool.toolu_01CnmtMeJJdGJRe4fmPtgx7f>
-script/test
-</tool.toolu_01CnmtMeJJdGJRe4fmPtgx7f>
-
-### original_content
-
-<tool.toolu_01CnmtMeJJdGJRe4fmPtgx7f>
-        # Extract and display failure information
-        echo -e "  ${RED}Failed tests:${NC}"
-
-        # Look for test failures in the output
-        grep -E "^F " "$temp_output" | while read -r line; do
-            test_name=$(echo "$line" | sed 's/^F //')
-            echo -e "    ${RED}• $test_name${NC}"
-        done
-
-        # Look for error details - find lines that start with test names followed by FAILED
-        grep -A 10 "FAILED" "$temp_output" | while IFS= read -r line; do
-            if [[ $line =~ ^[[:space:]]*[a-zA-Z0-9_-]+.*FAILED ]]; then
-                test_name=$(echo "$line" | sed -E 's/^[[:space:]]*([a-zA-Z0-9_-]+).*FAILED.*/\1/')
-                echo -e "    ${RED}• $test_name${NC}"
-            elif [[ $line =~ ^[[:space:]]*.*should.*but.*was ]]; then
-                echo -e "      ${YELLOW}Error: $line${NC}"
-            elif [[ $line =~ ^[[:space:]]*.*error.*: ]]; then
-                echo -e "      ${YELLOW}Error: $line${NC}"
-            fi
-        done
-
-        # Alternative: look for assertion failures
-        grep -E "(ert-test-failed|should.*but)" "$temp_output" | head -10 | while IFS= read -r line; do
-            echo -e "    ${YELLOW}$line${NC}"
-        done
-</tool.toolu_01CnmtMeJJdGJRe4fmPtgx7f>
-
-### new_content
-
-<tool.toolu_01CnmtMeJJdGJRe4fmPtgx7f>
-        # Extract and display failure information
-        echo -e "  ${RED}Failed tests:${NC}"
-
-        # Parse the ERT output for failures
-        # ERT batch output typically shows "F test-name" for failed tests
-        # and then shows detailed error information
-
-        # First, look for the summary line that shows failed tests
-        if grep -q "failed" "$temp_output"; then
-            # Extract failed test names from lines like "F test-name"
-            grep -E "^F " "$temp_output" | sed 's/^F //' | while read -r test_name; do
-                if [ -n "$test_name" ]; then
-                    echo -e "    ${RED}• $test_name${NC}"
-                fi
-            done
-
-            # If no "F test-name" format found, try to find test names from FAILED lines
-            if ! grep -q "^F " "$temp_output"; then
-                grep -i "failed" "$temp_output" | grep -E "[a-zA-Z0-9_-]+" | head -5 | while IFS= read -r line; do
-                    # Extract test name from various failure formats
-                    test_name=$(echo "$line" | sed -E 's/.*([a-zA-Z0-9_-]+[a-zA-Z0-9_-]*test[a-zA-Z0-9_-]*).*/\1/' | head -c 50)
-                    if [ -n "$test_name" ] && [[ $test_name =~ test ]]; then
-                        echo -e "    ${RED}• $test_name${NC}"
-                    fi
-                done
-            fi
-
-            # Show error details
-            echo -e "  ${RED}Error details:${NC}"
-
-            # Look for assertion failures and error messages
-            grep -E "(should|FAILED|Error|error)" "$temp_output" | head -5 | while IFS= read -r line; do
-                # Clean up the line and show it
-                clean_line=$(echo "$line" | sed 's/^[[:space:]]*//' | head -c 100)
-                if [ -n "$clean_line" ]; then
-                    echo -e "    ${YELLOW}$clean_line${NC}"
-                fi
-            done
-        fi
-</tool.toolu_01CnmtMeJJdGJRe4fmPtgx7f>
-
-### git_commit_message
-
-<tool.toolu_01CnmtMeJJdGJRe4fmPtgx7f>
-Improve error parsing logic in test script for better failure reporting
-</tool.toolu_01CnmtMeJJdGJRe4fmPtgx7f>
-
-## TOOL RESULT:
-
-ID: toolu_01CnmtMeJJdGJRe4fmPtgx7f
-
-<tool.toolu_01CnmtMeJJdGJRe4fmPtgx7f>
-Successfully replaced content in /Users/andreas/projects/greger.el/script/test. Successfully staged 2 file(s) and committed with message: Improve error parsing logic in test script for better failure reporting
-</tool.toolu_01CnmtMeJJdGJRe4fmPtgx7f>
-
-
-## ASSISTANT:
-
-Let me test this by running the test script to see if it works correctly:
-
-## TOOL USE:
-
-Name: shell-command
-ID: toolu_01EhTVm1yhZSPKCWGDJxj8wf
-
-### command
-
-<tool.toolu_01EhTVm1yhZSPKCWGDJxj8wf>
-bash script/test --file test/test-greger.el
-</tool.toolu_01EhTVm1yhZSPKCWGDJxj8wf>
-
-## TOOL RESULT:
-
-ID: toolu_01EhTVm1yhZSPKCWGDJxj8wf
-
-<tool.toolu_01EhTVm1yhZSPKCWGDJxj8wf>
-Command executed successfully:
-[0;34mRunning ERT tests for greger package...[0m
-
-Running tests in [1;33mtest/test-greger.el[0m...
-  [0;32m✓ All tests passed[0m
-[0;34mTest Summary:[0m
-  Files run: 1
-  Files passed: [0;32m1[0m
-  Files failed: [0;31m0[0m
-[0;32mAll tests passed![0m
-
-</tool.toolu_01EhTVm1yhZSPKCWGDJxj8wf>
-
-## ASSISTANT:
-
-Good! The script works when tests pass. Now let me create a test file with a failing test to verify the error reporting works:
-
-## TOOL USE:
-
-Name: write-new-file
-ID: toolu_01CfaQhHi1ysRLUbTYSSWR8X
-
-### file_path
-
-<tool.toolu_01CfaQhHi1ysRLUbTYSSWR8X>
-test/test-failure-demo.el
-</tool.toolu_01CfaQhHi1ysRLUbTYSSWR8X>
-
-### contents
-
-<tool.toolu_01CfaQhHi1ysRLUbTYSSWR8X>
-;;; test-failure-demo.el --- Demo test file with failures -*- lexical-binding: t -*-
-
-(require 'ert)
-
-(ert-deftest test-demo-failure-1 ()
-  "A test that should fail for demonstration."
-  (should (= 1 2)))
-
-(ert-deftest test-demo-failure-2 ()
-  "Another test that should fail for demonstration."
-  (should (string= "hello" "world")))
-
-(ert-deftest test-demo-success ()
-  "A test that should pass."
-  (should (= 1 1)))
-
-(provide 'test-failure-demo)
-
-;;; test-failure-demo.el ends here
-</tool.toolu_01CfaQhHi1ysRLUbTYSSWR8X>
-
-### git_commit_message
-
-<tool.toolu_01CfaQhHi1ysRLUbTYSSWR8X>
-Add demo test file with failures to test error reporting
-</tool.toolu_01CfaQhHi1ysRLUbTYSSWR8X>
-
-## TOOL RESULT:
-
-ID: toolu_01CfaQhHi1ysRLUbTYSSWR8X
-
-<tool.toolu_01CfaQhHi1ysRLUbTYSSWR8X>
-Successfully wrote new file /Users/andreas/projects/greger.el/test/test-failure-demo.el with 482 characters. Successfully staged 2 file(s) and committed with message: Add demo test file with failures to test error reporting
-</tool.toolu_01CfaQhHi1ysRLUbTYSSWR8X>
-
-
-## ASSISTANT:
-
-Now let me test the script with this failing test file:
-
-## TOOL USE:
-
-Name: shell-command
-ID: toolu_01PrPjjWDMjfdLMWazwhtqSr
-
-### command
-
-<tool.toolu_01PrPjjWDMjfdLMWazwhtqSr>
-bash script/test --file test/test-failure-demo.el
-</tool.toolu_01PrPjjWDMjfdLMWazwhtqSr>
-
-## TOOL RESULT:
-
-ID: toolu_01PrPjjWDMjfdLMWazwhtqSr
-
-<tool.toolu_01PrPjjWDMjfdLMWazwhtqSr>
-Command failed with exit code 1: [0;34mRunning ERT tests for greger package...[0m
-
-Running tests in [1;33mtest/test-failure-demo.el[0m...
-  [0;31m✗ Some tests failed[0m
-  [0;31mFailed tests:[0m
-    [0;31m• -test-failed[0m
-    [0;31m• -test-failed[0m
-    [0;31m•    FAILED  1/3  test-demo-failure-1 (0.000067 sec)[0m
-    [0;31m• -test-failed[0m
-    [0;31m• -test-failed[0m
-  [0;31mError details:[0m
-    [1;33msignal(ert-test-failed (((should (= 1 2)) :form (= 1 2) :value nil))[0m
-    [1;33mert-fail(((should (= 1 2)) :form (= 1 2) :value nil))[0m
-    [1;33m(progn (setq debug-on-error t) (add-to-list 'load-path ".") (require[0m
-    [1;33meval((progn (setq debug-on-error t) (add-to-list 'load-path ".") (re[0m
-    [1;33m((should[0m
-[0;34mTest Summary:[0m
-  Files run: 1
-  Files passed: [0;32m0[0m
-  Files failed: [0;31m1[0m
-[0;31mSome tests failed.[0m
-
-</tool.toolu_01PrPjjWDMjfdLMWazwhtqSr>
-
-## ASSISTANT:
-
-I can see the error reporting is working but the parsing needs improvement. Let me look at the actual output format and refine the parsing:
-
-## TOOL USE:
-
-Name: shell-command
-ID: toolu_01AgGtRmkfa2oU6sKq8vn5yG
-
-### command
-
-<tool.toolu_01AgGtRmkfa2oU6sKq8vn5yG>
-emacs --batch -Q --eval "(progn (add-to-list 'load-path \".\") (require 'ert) (load-file \"test/test-failure-demo.el\") (ert-run-tests-batch-and-exit t))" 2>&1 | head -20
-</tool.toolu_01AgGtRmkfa2oU6sKq8vn5yG>
-
-## TOOL RESULT:
-
-ID: toolu_01AgGtRmkfa2oU6sKq8vn5yG
-
-<tool.toolu_01AgGtRmkfa2oU6sKq8vn5yG>
-Command executed successfully:
-Loading /Users/andreas/projects/greger.el/test/test-failure-demo.el (source)...
-Running 3 tests (2025-06-03 16:08:53+0200, selector ‘t’)
-Test test-demo-failure-1 backtrace:
-  signal(ert-test-failed (((should (= 1 2)) :form (= 1 2) :value nil))
-  ert-fail(((should (= 1 2)) :form (= 1 2) :value nil))
-  (if (unwind-protect (setq value-2 (apply fn-0 args-1)) (setq form-de
-  (let (form-description-4) (if (unwind-protect (setq value-2 (apply f
-  (let ((value-2 'ert-form-evaluation-aborted-3)) (let (form-descripti
-  (let* ((fn-0 #'=) (args-1 (condition-case err (let ((signal-hook-fun
-  (closure (t) nil (let* ((fn-0 #'=) (args-1 (condition-case err (let
-  ert--run-test-internal(#s(ert--test-execution-info :test #s(ert-test
-  ert-run-test(#s(ert-test :name test-demo-failure-1 :documentation "A
-  ert-run-or-rerun-test(#s(ert--stats :selector t :tests [#s(ert-test
-  ert-run-tests(t #f(compiled-function (event-type &rest event-args) #
-  ert-run-tests-batch(t)
-  ert-run-tests-batch-and-exit(t)
-  (progn (add-to-list 'load-path ".") (require 'ert) (load-file "test/
-  eval((progn (add-to-list 'load-path ".") (require 'ert) (load-file "
-  command-line-1(("--eval" "(progn (add-to-list 'load-path \".\") (req
-  command-line()
-
-</tool.toolu_01AgGtRmkfa2oU6sKq8vn5yG>
-
-## ASSISTANT:
-
-Let me see more of the output to understand the full format:
-
-## TOOL USE:
-
-Name: shell-command
-ID: toolu_01BXsh26j6Q111PBb4mVXh54
-
-### command
-
-<tool.toolu_01BXsh26j6Q111PBb4mVXh54>
-emacs --batch -Q --eval "(progn (add-to-list 'load-path \".\") (require 'ert) (load-file \"test/test-failure-demo.el\") (ert-run-tests-batch-and-exit t))" 2>&1
-</tool.toolu_01BXsh26j6Q111PBb4mVXh54>
-
-## TOOL RESULT:
-
-ID: toolu_01BXsh26j6Q111PBb4mVXh54
-
-<tool.toolu_01BXsh26j6Q111PBb4mVXh54>
-Command failed with exit code 1: Loading /Users/andreas/projects/greger.el/test/test-failure-demo.el (source)...
-Running 3 tests (2025-06-03 16:09:00+0200, selector ‘t’)
-Test test-demo-failure-1 backtrace:
-  signal(ert-test-failed (((should (= 1 2)) :form (= 1 2) :value nil))
-  ert-fail(((should (= 1 2)) :form (= 1 2) :value nil))
-  (if (unwind-protect (setq value-2 (apply fn-0 args-1)) (setq form-de
-  (let (form-description-4) (if (unwind-protect (setq value-2 (apply f
-  (let ((value-2 'ert-form-evaluation-aborted-3)) (let (form-descripti
-  (let* ((fn-0 #'=) (args-1 (condition-case err (let ((signal-hook-fun
-  (closure (t) nil (let* ((fn-0 #'=) (args-1 (condition-case err (let
-  ert--run-test-internal(#s(ert--test-execution-info :test #s(ert-test
-  ert-run-test(#s(ert-test :name test-demo-failure-1 :documentation "A
-  ert-run-or-rerun-test(#s(ert--stats :selector t :tests [#s(ert-test
-  ert-run-tests(t #f(compiled-function (event-type &rest event-args) #
-  ert-run-tests-batch(t)
-  ert-run-tests-batch-and-exit(t)
-  (progn (add-to-list 'load-path ".") (require 'ert) (load-file "test/
-  eval((progn (add-to-list 'load-path ".") (require 'ert) (load-file "
-  command-line-1(("--eval" "(progn (add-to-list 'load-path \".\") (req
-  command-line()
-  normal-top-level()
-Test test-demo-failure-1 condition:
-    (ert-test-failed
-     ((should
-       (= 1 2))
-      :form
-      (= 1 2)
-      :value nil))
-   FAILED  1/3  test-demo-failure-1 (0.000066 sec) at test/test-failure-demo.el:5
-Test test-demo-failure-2 backtrace:
-  signal(ert-test-failed (((should (string= "hello" "world")) :form (s
-  ert-fail(((should (string= "hello" "world")) :form (string= "hello"
-  (if (unwind-protect (setq value-7 (apply fn-5 args-6)) (setq form-de
-  (let (form-description-9) (if (unwind-protect (setq value-7 (apply f
-  (let ((value-7 'ert-form-evaluation-aborted-8)) (let (form-descripti
-  (let* ((fn-5 #'string=) (args-6 (condition-case err (let ((signal-ho
-  (closure (t) nil (let* ((fn-5 #'string=) (args-6 (condition-case err
-  ert--run-test-internal(#s(ert--test-execution-info :test #s(ert-test
-  ert-run-test(#s(ert-test :name test-demo-failure-2 :documentation "A
-  ert-run-or-rerun-test(#s(ert--stats :selector t :tests [#s(ert-test
-  ert-run-tests(t #f(compiled-function (event-type &rest event-args) #
-  ert-run-tests-batch(t)
-  ert-run-tests-batch-and-exit(t)
-  (progn (add-to-list 'load-path ".") (require 'ert) (load-file "test/
-  eval((progn (add-to-list 'load-path ".") (require 'ert) (load-file "
-  command-line-1(("--eval" "(progn (add-to-list 'load-path \".\") (req
-  command-line()
-  normal-top-level()
-Test test-demo-failure-2 condition:
-    (ert-test-failed
-     ((should
-       (string= "hello" "world"))
-      :form
-      (string= "hello" "world")
-      :value nil :explanation
-      (array-elt 0
-(different-atoms
-(104 "#x68" "?h")
-(119 "#x77" "?w")))))
-   FAILED  2/3  test-demo-failure-2 (0.000091 sec) at test/test-failure-demo.el:9
-   passed  3/3  test-demo-success (0.000045 sec)
-
-Ran 3 tests, 1 results as expected, 2 unexpected (2025-06-03 16:09:00+0200, 0.167992 sec)
-
-2 unexpected results:
-   FAILED  test-demo-failure-1
-   FAILED  test-demo-failure-2
-
-
-</tool.toolu_01BXsh26j6Q111PBb4mVXh54>
-
-## ASSISTANT:
-
-Perfect! Now I can see the exact format. Let me update the parsing logic to correctly extract the test names and errors:
-
-## TOOL USE:
-
-Name: str-replace
-ID: toolu_01Bpt7F2LjLcNSCPFkDepaMU
-
-### file_path
-
-<tool.toolu_01Bpt7F2LjLcNSCPFkDepaMU>
-script/test
-</tool.toolu_01Bpt7F2LjLcNSCPFkDepaMU>
-
-### original_content
-
-<tool.toolu_01Bpt7F2LjLcNSCPFkDepaMU>
-# Extract and display failure information
-        echo -e "  ${RED}Failed tests:${NC}"
-
-        # Parse the ERT output for failures
-        # ERT batch output typically shows "F test-name" for failed tests
-        # and then shows detailed error information
-
-        # First, look for the summary line that shows failed tests
-        if grep -q "failed" "$temp_output"; then
-            # Extract failed test names from lines like "F test-name"
-            grep -E "^F " "$temp_output" | sed 's/^F //' | while read -r test_name; do
-                if [ -n "$test_name" ]; then
-                    echo -e "    ${RED}• $test_name${NC}"
-                fi
-            done
-
-            # If no "F test-name" format found, try to find test names from FAILED lines
-            if ! grep -q "^F " "$temp_output"; then
-                grep -i "failed" "$temp_output" | grep -E "[a-zA-Z0-9_-]+" | head -5 | while IFS= read -r line; do
-                    # Extract test name from various failure formats
-                    test_name=$(echo "$line" | sed -E 's/.*([a-zA-Z0-9_-]+[a-zA-Z0-9_-]*test[a-zA-Z0-9_-]*).*/\1/' | head -c 50)
-                    if [ -n "$test_name" ] && [[ $test_name =~ test ]]; then
-                        echo -e "    ${RED}• $test_name${NC}"
-                    fi
-                done
-            fi
-
-            # Show error details
-            echo -e "  ${RED}Error details:${NC}"
-
-            # Look for assertion failures and error messages
-            grep -E "(should|FAILED|Error|error)" "$temp_output" | head -5 | while IFS= read -r line; do
-                # Clean up the line and show it
-                clean_line=$(echo "$line" | sed 's/^[[:space:]]*//' | head -c 100)
-                if [ -n "$clean_line" ]; then
-                    echo -e "    ${YELLOW}$clean_line${NC}"
-                fi
-            done
-        fi
-</tool.toolu_01Bpt7F2LjLcNSCPFkDepaMU>
-
-### new_content
-
-<tool.toolu_01Bpt7F2LjLcNSCPFkDepaMU>
-# Extract and display failure information
-        echo -e "  ${RED}Failed tests:${NC}"
-
-        # Extract failed test names from "FAILED test-name" lines at the end of output
-        grep -E "^[[:space:]]*FAILED[[:space:]]+[a-zA-Z0-9_-]+" "$temp_output" | while IFS= read -r line; do
-            test_name=$(echo "$line" | sed -E 's/^[[:space:]]*FAILED[[:space:]]+([a-zA-Z0-9_-]+).*/\1/')
-            if [ -n "$test_name" ]; then
-                echo -e "    ${RED}• $test_name${NC}"
-            fi
-        done
-
-        # Show error details for each failed test
-        echo -e "  ${RED}Error details:${NC}"
-
-        # Look for condition sections that show the actual assertion failures
-        grep -A 5 "Test.*condition:" "$temp_output" | grep -E "(should|:form)" | head -3 | while IFS= read -r line; do
-            # Clean up and show the assertion that failed
-            clean_line=$(echo "$line" | sed 's/^[[:space:]]*//' | sed 's/))[[:space:]]*$//' | head -c 120)
-            if [[ $clean_line =~ should ]] || [[ $clean_line =~ :form ]]; then
-                echo -e "    ${YELLOW}$clean_line${NC}"
-            fi
-        done
-
-        # If no condition details found, look for the simpler FAILED lines with timing
-        if ! grep -q "condition:" "$temp_output"; then
-            grep -E "FAILED.*\([0-9.]+.*sec\)" "$temp_output" | head -3 | while IFS= read -r line; do
-                echo -e "    ${YELLOW}$line${NC}"
-            done
-        fi
-</tool.toolu_01Bpt7F2LjLcNSCPFkDepaMU>
-
-### git_commit_message
-
-<tool.toolu_01Bpt7F2LjLcNSCPFkDepaMU>
-Refine error parsing to properly extract test names and assertion failures
-</tool.toolu_01Bpt7F2LjLcNSCPFkDepaMU>
-
-## TOOL RESULT:
-
-ID: toolu_01Bpt7F2LjLcNSCPFkDepaMU
-
-<tool.toolu_01Bpt7F2LjLcNSCPFkDepaMU>
-Successfully replaced content in /Users/andreas/projects/greger.el/script/test. Successfully staged 2 file(s) and committed with message: Refine error parsing to properly extract test names and assertion failures
-</tool.toolu_01Bpt7F2LjLcNSCPFkDepaMU>
-
-
-## ASSISTANT:
-
-Now let me test the improved version:
-
-## TOOL USE:
-
-Name: shell-command
-ID: toolu_01C1gxyVTsnWVYYFehYJtYhH
-
-### command
-
-<tool.toolu_01C1gxyVTsnWVYYFehYJtYhH>
-bash script/test --file test/test-failure-demo.el
-</tool.toolu_01C1gxyVTsnWVYYFehYJtYhH>
-
-## TOOL RESULT:
-
-ID: toolu_01C1gxyVTsnWVYYFehYJtYhH
-
-<tool.toolu_01C1gxyVTsnWVYYFehYJtYhH>
-Command failed with exit code 1: [0;34mRunning ERT tests for greger package...[0m
-
-Running tests in [1;33mtest/test-failure-demo.el[0m...
-  [0;31m✗ Some tests failed[0m
-  [0;31mFailed tests:[0m
-    [0;31m• 1[0m
-    [0;31m• 2[0m
-    [0;31m• test-demo-failure-1[0m
-    [0;31m• test-demo-failure-2[0m
-  [0;31mError details:[0m
-    [1;33m((should[0m
-    [1;33m:form[0m
-    [1;33m((should[0m
-[0;34mTest Summary:[0m
-  Files run: 1
-  Files passed: [0;32m0[0m
-  Files failed: [0;31m1[0m
-[0;31mSome tests failed.[0m
-
-</tool.toolu_01C1gxyVTsnWVYYFehYJtYhH>
-
-## ASSISTANT:
-
-Good! It's now correctly extracting the test names. Let me refine the error details parsing to show more useful information:
-
-## TOOL USE:
-
-Name: str-replace
-ID: toolu_01Y8LZKkTGari92RoC1sRxfX
-
-### file_path
-
-<tool.toolu_01Y8LZKkTGari92RoC1sRxfX>
-script/test
-</tool.toolu_01Y8LZKkTGari92RoC1sRxfX>
-
-### original_content
-
-<tool.toolu_01Y8LZKkTGari92RoC1sRxfX>
-# Extract failed test names from "FAILED test-name" lines at the end of output
-        grep -E "^[[:space:]]*FAILED[[:space:]]+[a-zA-Z0-9_-]+" "$temp_output" | while IFS= read -r line; do
-            test_name=$(echo "$line" | sed -E 's/^[[:space:]]*FAILED[[:space:]]+([a-zA-Z0-9_-]+).*/\1/')
-            if [ -n "$test_name" ]; then
-                echo -e "    ${RED}• $test_name${NC}"
-            fi
-        done
-
-        # Show error details for each failed test
-        echo -e "  ${RED}Error details:${NC}"
-
-        # Look for condition sections that show the actual assertion failures
-        grep -A 5 "Test.*condition:" "$temp_output" | grep -E "(should|:form)" | head -3 | while IFS= read -r line; do
-            # Clean up and show the assertion that failed
-            clean_line=$(echo "$line" | sed 's/^[[:space:]]*//' | sed 's/))[[:space:]]*$//' | head -c 120)
-            if [[ $clean_line =~ should ]] || [[ $clean_line =~ :form ]]; then
-                echo -e "    ${YELLOW}$clean_line${NC}"
-            fi
-        done
-
-        # If no condition details found, look for the simpler FAILED lines with timing
-        if ! grep -q "condition:" "$temp_output"; then
-            grep -E "FAILED.*\([0-9.]+.*sec\)" "$temp_output" | head -3 | while IFS= read -r line; do
-                echo -e "    ${YELLOW}$line${NC}"
-            done
-        fi
-</tool.toolu_01Y8LZKkTGari92RoC1sRxfX>
-
-### new_content
-
-<tool.toolu_01Y8LZKkTGari92RoC1sRxfX>
-# Extract failed test names from the summary at the end
-        grep -E "^[[:space:]]*FAILED[[:space:]]+[a-zA-Z0-9_-]+" "$temp_output" | while IFS= read -r line; do
-            test_name=$(echo "$line" | sed -E 's/^[[:space:]]*FAILED[[:space:]]+([a-zA-Z0-9_-]+).*/\1/')
-            if [ -n "$test_name" ]; then
-                echo -e "    ${RED}• $test_name${NC}"
-            fi
-        done
-
-        # Show error details for each failed test
-        echo -e "  ${RED}Error details:${NC}"
-
-        # For each failed test, show the assertion that failed
-        grep -E "^[[:space:]]*FAILED[[:space:]]+[a-zA-Z0-9_-]+" "$temp_output" | while IFS= read -r line; do
-            test_name=$(echo "$line" | sed -E 's/^[[:space:]]*FAILED[[:space:]]+([a-zA-Z0-9_-]+).*/\1/')
-
-            # Find the condition section for this test and extract the should statement
-            awk "/Test $test_name condition:/,/Test.*condition:|^[[:space:]]*FAILED|^[[:space:]]*passed/" "$temp_output" | \
-            grep -E "should" | head -1 | while IFS= read -r should_line; do
-                clean_should=$(echo "$should_line" | sed 's/^[[:space:]]*//' | sed 's/)[[:space:]]*$//' | head -c 100)
-                if [ -n "$clean_should" ]; then
-                    echo -e "    ${YELLOW}$test_name: $clean_should${NC}"
-                fi
-            done
-        done
-
-        # If no detailed conditions found, show the FAILED lines with location info
-        if ! grep -q "condition:" "$temp_output"; then
-            grep -E "FAILED.*at.*\.el:" "$temp_output" | head -3 | while IFS= read -r line; do
-                echo -e "    ${YELLOW}$line${NC}"
-            done
-        fi
-</tool.toolu_01Y8LZKkTGari92RoC1sRxfX>
-
-### git_commit_message
-
-<tool.toolu_01Y8LZKkTGari92RoC1sRxfX>
-Improve error details to show test-specific assertion failures
-</tool.toolu_01Y8LZKkTGari92RoC1sRxfX>
-
-## TOOL RESULT:
-
-ID: toolu_01Y8LZKkTGari92RoC1sRxfX
-
-<tool.toolu_01Y8LZKkTGari92RoC1sRxfX>
-Successfully replaced content in /Users/andreas/projects/greger.el/script/test. Successfully staged 2 file(s) and committed with message: Improve error details to show test-specific assertion failures
-</tool.toolu_01Y8LZKkTGari92RoC1sRxfX>
-
-
-## TOOL USE:
-
-Name: shell-command
-ID: toolu_013vNVufdHV6WFv28Jr6NnSV
-
-### command
-
-<tool.toolu_013vNVufdHV6WFv28Jr6NnSV>
-bash script/test --file test/test-failure-demo.el
-</tool.toolu_013vNVufdHV6WFv28Jr6NnSV>
-
-## TOOL RESULT:
-
-ID: toolu_013vNVufdHV6WFv28Jr6NnSV
-
-<tool.toolu_013vNVufdHV6WFv28Jr6NnSV>
-Command failed with exit code 1: [0;34mRunning ERT tests for greger package...[0m
-
-Running tests in [1;33mtest/test-failure-demo.el[0m...
-  [0;31m✗ Some tests failed[0m
-  [0;31mFailed tests:[0m
-    [0;31m• 1[0m
-    [0;31m• 2[0m
-    [0;31m• test-demo-failure-1[0m
-    [0;31m• test-demo-failure-2[0m
-  [0;31mError details:[0m
-[0;34mTest Summary:[0m
-  Files run: 1
-  Files passed: [0;32m0[0m
-  Files failed: [0;31m1[0m
-[0;31mSome tests failed.[0m
-
-</tool.toolu_013vNVufdHV6WFv28Jr6NnSV>
-
-## ASSISTANT:
-
-I see the issue - let me look at the exact format again and simplify the approach:
-
-## TOOL USE:
-
-Name: shell-command
-ID: toolu_01PA9VditXgVEQ9SZ4CyztFX
-
-### command
-
-<tool.toolu_01PA9VditXgVEQ9SZ4CyztFX>
-emacs --batch -Q --eval "(progn (add-to-list 'load-path \".\") (require 'ert) (load-file \"test/test-failure-demo.el\") (ert-run-tests-batch-and-exit t))" 2>&1 | tail -10
-</tool.toolu_01PA9VditXgVEQ9SZ4CyztFX>
-
-## TOOL RESULT:
-
-ID: toolu_01PA9VditXgVEQ9SZ4CyztFX
-
-<tool.toolu_01PA9VditXgVEQ9SZ4CyztFX>
-Command executed successfully:
-          (119 "#x77" "?w")))))
-   FAILED  2/3  test-demo-failure-2 (0.000081 sec) at test/test-failure-demo.el:9
-   passed  3/3  test-demo-success (0.000039 sec)
-
-Ran 3 tests, 1 results as expected, 2 unexpected (2025-06-03 16:10:19+0200, 0.107276 sec)
-
-2 unexpected results:
-   FAILED  test-demo-failure-1
-   FAILED  test-demo-failure-2
-
-
-</tool.toolu_01PA9VditXgVEQ9SZ4CyztFX>
-
-## ASSISTANT:
-
-Perfect! Now I see the clean format. Let me simplify and fix the parsing:
-
-## TOOL USE:
-
-Name: str-replace
-ID: toolu_012HBJ2PcTofVJAaAPMXRhuZ
-
-### file_path
-
-<tool.toolu_012HBJ2PcTofVJAaAPMXRhuZ>
-script/test
-</tool.toolu_012HBJ2PcTofVJAaAPMXRhuZ>
-
-### original_content
-
-<tool.toolu_012HBJ2PcTofVJAaAPMXRhuZ>
-# Extract and display failure information
-        echo -e "  ${RED}Failed tests:${NC}"
-
-        # Extract failed test names from the summary at the end
-        grep -E "^[[:space:]]*FAILED[[:space:]]+[a-zA-Z0-9_-]+" "$temp_output" | while IFS= read -r line; do
-            test_name=$(echo "$line" | sed -E 's/^[[:space:]]*FAILED[[:space:]]+([a-zA-Z0-9_-]+).*/\1/')
-            if [ -n "$test_name" ]; then
-                echo -e "    ${RED}• $test_name${NC}"
-            fi
-        done
-
-        # Show error details for each failed test
-        echo -e "  ${RED}Error details:${NC}"
-
-        # For each failed test, show the assertion that failed
-        grep -E "^[[:space:]]*FAILED[[:space:]]+[a-zA-Z0-9_-]+" "$temp_output" | while IFS= read -r line; do
-            test_name=$(echo "$line" | sed -E 's/^[[:space:]]*FAILED[[:space:]]+([a-zA-Z0-9_-]+).*/\1/')
-
-            # Find the condition section for this test and extract the should statement
-            awk "/Test $test_name condition:/,/Test.*condition:|^[[:space:]]*FAILED|^[[:space:]]*passed/" "$temp_output" | \
-            grep -E "should" | head -1 | while IFS= read -r should_line; do
-                clean_should=$(echo "$should_line" | sed 's/^[[:space:]]*//' | sed 's/)[[:space:]]*$//' | head -c 100)
-                if [ -n "$clean_should" ]; then
-                    echo -e "    ${YELLOW}$test_name: $clean_should${NC}"
-                fi
-            done
-        done
-
-        # If no detailed conditions found, show the FAILED lines with location info
-        if ! grep -q "condition:" "$temp_output"; then
-            grep -E "FAILED.*at.*\.el:" "$temp_output" | head -3 | while IFS= read -r line; do
-                echo -e "    ${YELLOW}$line${NC}"
-            done
-        fi
-</tool.toolu_012HBJ2PcTofVJAaAPMXRhuZ>
-
-### new_content
-
-<tool.toolu_012HBJ2PcTofVJAaAPMXRhuZ>
-# Extract and display failure information
-        echo -e "  ${RED}Failed tests:${NC}"
-
-        # Extract failed test names from the summary at the end ("FAILED test-name")
-        grep -E "^[[:space:]]*FAILED[[:space:]]+[a-zA-Z0-9_-]+" "$temp_output" | sed -E 's/^[[:space:]]*FAILED[[:space:]]+([a-zA-Z0-9_-]+).*/\1/' | while read -r test_name; do
-            if [ -n "$test_name" ]; then
-                echo -e "    ${RED}• $test_name${NC}"
-            fi
-        done
-
-        # Show error details - extract failed assertions from the detailed output
-        echo -e "  ${RED}Error details:${NC}"
-
-        # Look for the FAILED lines with timing and location information
-        grep -E "^[[:space:]]*FAILED.*\([0-9.]+.*sec\)" "$temp_output" | while IFS= read -r line; do
-            echo -e "    ${YELLOW}$line${NC}"
-        done
-
-        # Also show the key assertion failures
-        grep -A 2 -B 1 "Test.*condition:" "$temp_output" | grep -E "should" | head -3 | while IFS= read -r line; do
-            clean_line=$(echo "$line" | sed 's/^[[:space:]]*//' | head -c 80)
-            if [ -n "$clean_line" ]; then
-                echo -e "    ${YELLOW}Assertion: $clean_line${NC}"
-            fi
-        done
-</tool.toolu_012HBJ2PcTofVJAaAPMXRhuZ>
-
-### git_commit_message
-
-<tool.toolu_012HBJ2PcTofVJAaAPMXRhuZ>
-Simplify error parsing to show failed test names and key error information
-</tool.toolu_012HBJ2PcTofVJAaAPMXRhuZ>
-
-## TOOL RESULT:
-
-ID: toolu_012HBJ2PcTofVJAaAPMXRhuZ
-
-<tool.toolu_012HBJ2PcTofVJAaAPMXRhuZ>
-Successfully replaced content in /Users/andreas/projects/greger.el/script/test. Successfully staged 2 file(s) and committed with message: Simplify error parsing to show failed test names and key error information
-</tool.toolu_012HBJ2PcTofVJAaAPMXRhuZ>
-
-
-## TOOL USE:
-
-Name: shell-command
-ID: toolu_01EPVfrcYpKjry1oM1duoCtD
-
-### command
-
-<tool.toolu_01EPVfrcYpKjry1oM1duoCtD>
-bash script/test --file test/test-failure-demo.el
-</tool.toolu_01EPVfrcYpKjry1oM1duoCtD>
-
-## TOOL RESULT:
-
-ID: toolu_01EPVfrcYpKjry1oM1duoCtD
-
-<tool.toolu_01EPVfrcYpKjry1oM1duoCtD>
-Command failed with exit code 1: [0;34mRunning ERT tests for greger package...[0m
-
-Running tests in [1;33mtest/test-failure-demo.el[0m...
-  [0;31m✗ Some tests failed[0m
-  [0;31mFailed tests:[0m
-    [0;31m• 1[0m
-    [0;31m• 2[0m
-    [0;31m• test-demo-failure-1[0m
-    [0;31m• test-demo-failure-2[0m
-  [0;31mError details:[0m
-    [1;33m   FAILED  1/3  test-demo-failure-1 (0.000070 sec) at test/test-failure-demo.el:5[0m
-    [1;33m   FAILED  2/3  test-demo-failure-2 (0.000095 sec) at test/test-failure-demo.el:9[0m
-    [1;33mAssertion: ((should[0m
-    [1;33mAssertion: ((should[0m
-[0;34mTest Summary:[0m
-  Files run: 1
-  Files passed: [0;32m0[0m
-  Files failed: [0;31m1[0m
-[0;31mSome tests failed.[0m
-
-</tool.toolu_01EPVfrcYpKjry1oM1duoCtD>
-
-## ASSISTANT:
-
-Good! Now I can see the test names and locations. The issue is that I'm getting duplicates from different grep patterns. Let me clean this up:
-
-## TOOL USE:
-
-Name: str-replace
-ID: toolu_01ExK4ynVUT74S2yj1Hygb9j
-
-### file_path
-
-<tool.toolu_01ExK4ynVUT74S2yj1Hygb9j>
-script/test
-</tool.toolu_01ExK4ynVUT74S2yj1Hygb9j>
-
-### original_content
-
-<tool.toolu_01ExK4ynVUT74S2yj1Hygb9j>
-# Extract and display failure information
-        echo -e "  ${RED}Failed tests:${NC}"
-
-        # Extract failed test names from the summary at the end ("FAILED test-name")
-        grep -E "^[[:space:]]*FAILED[[:space:]]+[a-zA-Z0-9_-]+" "$temp_output" | sed -E 's/^[[:space:]]*FAILED[[:space:]]+([a-zA-Z0-9_-]+).*/\1/' | while read -r test_name; do
-            if [ -n "$test_name" ]; then
-                echo -e "    ${RED}• $test_name${NC}"
-            fi
-        done
-
-        # Show error details - extract failed assertions from the detailed output
-        echo -e "  ${RED}Error details:${NC}"
-
-        # Look for the FAILED lines with timing and location information
-        grep -E "^[[:space:]]*FAILED.*\([0-9.]+.*sec\)" "$temp_output" | while IFS= read -r line; do
-            echo -e "    ${YELLOW}$line${NC}"
-        done
-
-        # Also show the key assertion failures
-        grep -A 2 -B 1 "Test.*condition:" "$temp_output" | grep -E "should" | head -3 | while IFS= read -r line; do
-            clean_line=$(echo "$line" | sed 's/^[[:space:]]*//' | head -c 80)
-            if [ -n "$clean_line" ]; then
-                echo -e "    ${YELLOW}Assertion: $clean_line${NC}"
-            fi
-        done
-</tool.toolu_01ExK4ynVUT74S2yj1Hygb9j>
-
-### new_content
-
-<tool.toolu_01ExK4ynVUT74S2yj1Hygb9j>
-# Extract and display failure information
-
-        # Extract failed test names from the summary at the end ("FAILED test-name")
-        failed_tests=$(grep -E "^[[:space:]]*FAILED[[:space:]]+[a-zA-Z0-9_-]+" "$temp_output" | sed -E 's/^[[:space:]]*FAILED[[:space:]]+([a-zA-Z0-9_-]+).*/\1/')
-
-        if [ -n "$failed_tests" ]; then
-            echo -e "  ${RED}Failed tests:${NC}"
-            echo "$failed_tests" | while read -r test_name; do
-                if [ -n "$test_name" ]; then
-                    echo -e "    ${RED}• $test_name${NC}"
-                fi
-            done
-
-            # Show error details - extract failed assertions from the detailed output
-            echo -e "  ${RED}Error details:${NC}"
-
-            # Look for the FAILED lines with timing and location information
-            grep -E "^[[:space:]]*FAILED.*\([0-9.]+.*sec\).*at.*\.el:" "$temp_output" | while IFS= read -r line; do
-                echo -e "    ${YELLOW}$line${NC}"
-            done
-        fi
-</tool.toolu_01ExK4ynVUT74S2yj1Hygb9j>
-
-### git_commit_message
-
-<tool.toolu_01ExK4ynVUT74S2yj1Hygb9j>
-Clean up error parsing to remove duplicates and show cleaner output
-</tool.toolu_01ExK4ynVUT74S2yj1Hygb9j>
-
-## TOOL RESULT:
-
-ID: toolu_01ExK4ynVUT74S2yj1Hygb9j
-
-<tool.toolu_01ExK4ynVUT74S2yj1Hygb9j>
-Successfully replaced content in /Users/andreas/projects/greger.el/script/test. Successfully staged 2 file(s) and committed with message: Clean up error parsing to remove duplicates and show cleaner output
-</tool.toolu_01ExK4ynVUT74S2yj1Hygb9j>
-
-
-## TOOL USE:
-
-Name: shell-command
-ID: toolu_01EEiuntHX7DeRvFvmHkVHgG
-
-### command
-
-<tool.toolu_01EEiuntHX7DeRvFvmHkVHgG>
-bash script/test --file test/test-failure-demo.el
-</tool.toolu_01EEiuntHX7DeRvFvmHkVHgG>
-
-## TOOL RESULT:
-
-ID: toolu_01EEiuntHX7DeRvFvmHkVHgG
-
-<tool.toolu_01EEiuntHX7DeRvFvmHkVHgG>
-Command failed with exit code 1: [0;34mRunning ERT tests for greger package...[0m
-
-Running tests in [1;33mtest/test-failure-demo.el[0m...
-  [0;31m✗ Some tests failed[0m
-  [0;31mFailed tests:[0m
-    [0;31m• 1[0m
-    [0;31m• 2[0m
-    [0;31m• test-demo-failure-1[0m
-    [0;31m• test-demo-failure-2[0m
-  [0;31mError details:[0m
-    [1;33m   FAILED  1/3  test-demo-failure-1 (0.000073 sec) at test/test-failure-demo.el:5[0m
-    [1;33m   FAILED  2/3  test-demo-failure-2 (0.000092 sec) at test/test-failure-demo.el:9[0m
-[0;34mTest Summary:[0m
-  Files run: 1
-  Files passed: [0;32m0[0m
-  Files failed: [0;31m1[0m
-[0;31mSome tests failed.[0m
-
-</tool.toolu_01EEiuntHX7DeRvFvmHkVHgG>
-
-## ASSISTANT:
-
-I still see duplicates in the failed tests list. Let me debug the grep pattern:
-
-## TOOL USE:
-
-Name: shell-command
-ID: toolu_015Aoz8vMpmkiA3oWvVKdWQy
-
-### command
-
-<tool.toolu_015Aoz8vMpmkiA3oWvVKdWQy>
-emacs --batch -Q --eval "(progn (add-to-list 'load-path \".\") (require 'ert) (load-file \"test/test-failure-demo.el\") (ert-run-tests-batch-and-exit t))" 2>&1 | grep -E "^[[:space:]]*FAILED[[:space:]]+[a-zA-Z0-9_-]+"
-</tool.toolu_015Aoz8vMpmkiA3oWvVKdWQy>
-
-## TOOL RESULT:
-
-ID: toolu_015Aoz8vMpmkiA3oWvVKdWQy
-
-<tool.toolu_015Aoz8vMpmkiA3oWvVKdWQy>
-Command executed successfully:
-   FAILED  1/3  test-demo-failure-1 (0.000068 sec) at test/test-failure-demo.el:5
-   FAILED  2/3  test-demo-failure-2 (0.000101 sec) at test/test-failure-demo.el:9
-   FAILED  test-demo-failure-1
-   FAILED  test-demo-failure-2
-
-</tool.toolu_015Aoz8vMpmkiA3oWvVKdWQy>
-
-## ASSISTANT:
-
-I see! There are two different types of FAILED lines. Let me fix this by only using the summary lines at the end:
-
-## TOOL USE:
-
-Name: str-replace
-ID: toolu_01FbeUcW7fxywHYqYv4wkqKZ
-
-### file_path
-
-<tool.toolu_01FbeUcW7fxywHYqYv4wkqKZ>
-script/test
-</tool.toolu_01FbeUcW7fxywHYqYv4wkqKZ>
-
-### original_content
-
-<tool.toolu_01FbeUcW7fxywHYqYv4wkqKZ>
-# Extract and display failure information
-
-        # Extract failed test names from the summary at the end ("FAILED test-name")
-        failed_tests=$(grep -E "^[[:space:]]*FAILED[[:space:]]+[a-zA-Z0-9_-]+" "$temp_output" | sed -E 's/^[[:space:]]*FAILED[[:space:]]+([a-zA-Z0-9_-]+).*/\1/')
-
-        if [ -n "$failed_tests" ]; then
-            echo -e "  ${RED}Failed tests:${NC}"
-            echo "$failed_tests" | while read -r test_name; do
-                if [ -n "$test_name" ]; then
-                    echo -e "    ${RED}• $test_name${NC}"
-                fi
-            done
-
-            # Show error details - extract failed assertions from the detailed output
-            echo -e "  ${RED}Error details:${NC}"
-
-            # Look for the FAILED lines with timing and location information
-            grep -E "^[[:space:]]*FAILED.*\([0-9.]+.*sec\).*at.*\.el:" "$temp_output" | while IFS= read -r line; do
-                echo -e "    ${YELLOW}$line${NC}"
-            done
-        fi
-</tool.toolu_01FbeUcW7fxywHYqYv4wkqKZ>
-
-### new_content
-
-<tool.toolu_01FbeUcW7fxywHYqYv4wkqKZ>
-# Extract and display failure information
-
-        # Extract failed test names from the summary lines at the end (just "FAILED test-name" without timing)
-        failed_tests=$(grep -E "^[[:space:]]*FAILED[[:space:]]+[a-zA-Z0-9_-]+$" "$temp_output" | sed -E 's/^[[:space:]]*FAILED[[:space:]]+([a-zA-Z0-9_-]+)$/\1/')
-
-        if [ -n "$failed_tests" ]; then
-            echo -e "  ${RED}Failed tests:${NC}"
-            echo "$failed_tests" | while read -r test_name; do
-                if [ -n "$test_name" ]; then
-                    echo -e "    ${RED}• $test_name${NC}"
-                fi
-            done
-
-            # Show error details - extract the detailed FAILED lines with timing and location information
-            echo -e "  ${RED}Error details:${NC}"
-
-            # Look for the FAILED lines with timing and location information (the detailed ones)
-            grep -E "^[[:space:]]*FAILED.*\([0-9.]+.*sec\).*at.*\.el:" "$temp_output" | while IFS= read -r line; do
-                echo -e "    ${YELLOW}$line${NC}"
-            done
-        fi
-</tool.toolu_01FbeUcW7fxywHYqYv4wkqKZ>
-
-### git_commit_message
-
-<tool.toolu_01FbeUcW7fxywHYqYv4wkqKZ>
-Fix duplicate test names by using only summary FAILED lines
-</tool.toolu_01FbeUcW7fxywHYqYv4wkqKZ>
-
-<!-- TOOL_RESULT_PLACEHOLDER_toolu_01FbeUcW7fxywHYqYv4wkqKZ -->
+<tool.toolu_01LEeoPEe3Bf7ZHVpLhQHmbf>
+Add helper function to generate safe shell commands descriptive text
+</tool.toolu_01LEeoPEe3Bf7ZHVpLhQHmbf>
+
+<!-- TOOL_RESULT_PLACEHOLDER_toolu_01LEeoPEe3Bf7ZHVpLhQHmbf -->

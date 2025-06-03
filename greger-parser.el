@@ -856,6 +856,12 @@ Returns either a system message, metadata, or both."
   "Create system message."
   `((role . "system") (content . ,content)))
 
+(defun greger-parser--generate-safe-shell-commands-text (commands)
+  "Generate descriptive text for safe shell commands list."
+  (when commands
+    (concat "You can run arbitrary shell commands with the shell-command tool, but the following are safe shell commands that will run without requiring user confirmation:\n\n"
+            (mapconcat (lambda (cmd) (format "* `%s`" cmd)) commands "\n"))))
+
 (defun greger-parser--create-thinking-message (content)
   "Create thinking message."
   `((role . "assistant")
