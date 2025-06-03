@@ -661,7 +661,7 @@ If BUFFER is provided, it will be staged and committed with deleted files."
 
 (defun greger-stdlib--replace-function (file-path function-name contents line-number commit-message &optional buffer)
   "Replace FUNCTION-NAME in FILE-PATH with new CONTENTS at LINE-NUMBER.
-If BUFFER is provided, it will be staged and committed along with the modified file."
+If BUFFER is provided, it will be staged and committed with the modified file."
   (unless (stringp file-path)
     (error "Invalid type: file_path must be a string"))
 
