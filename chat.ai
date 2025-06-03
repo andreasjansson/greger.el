@@ -5367,4 +5367,48 @@ This will append the safe commands description to your existing system prompt. T
 Improve safe shell commands documentation with metadata note
 </tool.toolu_0121Q3kgExzZCf6VhBVMKqzW>
 
-<!-- TOOL_RESULT_PLACEHOLDER_toolu_0121Q3kgExzZCf6VhBVMKqzW -->
+## TOOL RESULT:
+
+ID: toolu_0121Q3kgExzZCf6VhBVMKqzW
+
+<tool.toolu_0121Q3kgExzZCf6VhBVMKqzW>
+Successfully replaced content in /Users/andreas/projects/greger.el/README.md. Successfully staged 2 file(s) and committed with message: Improve safe shell commands documentation with metadata note
+</tool.toolu_0121Q3kgExzZCf6VhBVMKqzW>
+
+
+## ASSISTANT:
+
+## Summary
+
+I have successfully completed all the requested updates:
+
+### 1. Removed SAFE_SHELL_COMMANDS.md
+- Deleted the separate documentation file as requested
+
+### 2. Updated README.md
+- Added comprehensive documentation for the safe shell commands auto-generation feature
+- Included clear examples showing both input and output formats
+- Explained how the feature works with both standalone safe commands and combined with other system content
+- Added note about metadata extraction for the shell-command tool
+
+### 3. Updated safe shell commands tests
+- **greger-parser-test-safe-shell-commands-basic**: Updated to use `string=` with multiline string format instead of `string-match-p`
+- **greger-parser-test-safe-shell-commands-with-system-content**: Updated to use `string=` with the exact expected combined content, preserving the actual whitespace formatting
+- **greger-parser-test-safe-shell-commands-empty-lines**: Updated to check both the system message content and metadata using `string=` with multiline format
+- **greger-parser-test-system-content-with-safe-commands-example**: Already updated (reference example for the format)
+
+### Key Changes Made
+- All tests now use `string=` for exact content comparison instead of `string-match-p`
+- All expected content is written as multiline strings instead of using `\n` escape sequences
+- Tests properly account for the actual whitespace formatting in the parsed content
+- The tests validate the
+ complete auto-generated descriptive text
+
+### Test Results
+- All 35 parser tests pass
+- All 7 test files pass (70 total tests)
+- Package linting passes with no issues
+
+The implementation now provides a clean, consistent test suite that validates the exact behavior of the safe shell commands auto-generation feature while maintaining the improved readability of multiline string formatting in the test expectations.
+
+## USER:
