@@ -64,7 +64,7 @@ claude-sonnet-4-20250514 or claude-opus-4-20250514."
                                               (greger-client-state-original-quit-binding state))
                                (undo-amalgamate-change-group (greger-client-state-undo-handle state))
                                (accept-change-group (greger-client-state-undo-handle state)))))
-         (wrapped-complete-callback (lambda (parsed-blocks state)
+         (wrapped-complete-callback (lambda (parsed-blocks _state)
                                       (when complete-callback
                                         (funcall complete-callback parsed-blocks))))
          (process (greger-client--start-curl-process request-spec))
