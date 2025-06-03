@@ -3083,4 +3083,143 @@ Line 3
 Add trailing newline back to test file
 </tool.toolu_01Vh4j59y3pSLxDzrDcVHSZv>
 
-<!-- TOOL_RESULT_PLACEHOLDER_toolu_01Vh4j59y3pSLxDzrDcVHSZv -->
+## TOOL RESULT:
+
+ID: toolu_01Vh4j59y3pSLxDzrDcVHSZv
+
+<tool.toolu_01Vh4j59y3pSLxDzrDcVHSZv>
+Successfully replaced content in /Users/andreas/projects/greger.el/test-read-file.txt. Successfully staged 2 file(s) and committed with message: Add trailing newline back to test file
+</tool.toolu_01Vh4j59y3pSLxDzrDcVHSZv>
+
+
+## ASSISTANT:
+
+Let me also check what the raw file content looks like:
+
+## TOOL USE:
+
+Name: shell-command
+ID: toolu_01LFFK57UY8FgPub6RDcufmJ
+
+### command
+
+<tool.toolu_01LFFK57UY8FgPub6RDcufmJ>
+cat test-read-file.txt | od -c
+</tool.toolu_01LFFK57UY8FgPub6RDcufmJ>
+
+## TOOL RESULT:
+
+ID: toolu_01LFFK57UY8FgPub6RDcufmJ
+
+<tool.toolu_01LFFK57UY8FgPub6RDcufmJ>
+Command executed successfully:
+0000000    L   i   n   e       1  \n   L   i   n   e       2  \n   L   i
+0000020    n   e       3  \n
+0000025
+
+</tool.toolu_01LFFK57UY8FgPub6RDcufmJ>
+
+## ASSISTANT:
+
+So the file does have a trailing newline. The issue is in how `split-string` works - it creates an empty element for the trailing delimiter. I think I need to filter out empty lines that come from the splitting. Let me check the implementation to see if there's a better approach.
+
+Looking at the error more carefully, I see that we should handle this by filtering out the trailing empty string when it comes from splitting. Let me fix the `greger-stdlib--extract-line-range` function:
+
+## TOOL USE:
+
+Name: read-file
+ID: toolu_01TWk8ptrQGdJcTGXgsSLPP8
+
+### path
+
+<tool.toolu_01TWk8ptrQGdJcTGXgsSLPP8>
+greger-stdlib.el
+</tool.toolu_01TWk8ptrQGdJcTGXgsSLPP8>
+
+### start_line
+
+<tool.toolu_01TWk8ptrQGdJcTGXgsSLPP8>
+378
+</tool.toolu_01TWk8ptrQGdJcTGXgsSLPP8>
+
+### end_line
+
+<tool.toolu_01TWk8ptrQGdJcTGXgsSLPP8>
+390
+</tool.toolu_01TWk8ptrQGdJcTGXgsSLPP8>
+
+### include_line_numbers
+
+<tool.toolu_01TWk8ptrQGdJcTGXgsSLPP8>
+true
+</tool.toolu_01TWk8ptrQGdJcTGXgsSLPP8>
+
+## TOOL RESULT:
+
+ID: toolu_01TWk8ptrQGdJcTGXgsSLPP8
+
+<tool.toolu_01TWk8ptrQGdJcTGXgsSLPP8>
+378:     (condition-case err
+379:         (with-temp-buffer
+380:           (insert-file-contents expanded-path)
+381:           (let* ((all-lines (split-string (buffer-string) "\n"))
+382:                  (total-lines (length all-lines))
+383:                  (actual-start (or start-line 1))
+384:                  (actual-end (or end-line total-lines))
+385:                  (selected-lines (greger-stdlib--extract-line-range all-lines actual-start actual-end))
+386:                  (contents (mapconcat #'identity selected-lines "\n")))
+387:             (if include-line-numbers
+388:                 (greger-stdlib--add-line-numbers-with-offset contents actual-start)
+389:               contents)))
+390:       (error (format "Failed to read file: %s" (error-message-string err))))))
+</tool.toolu_01TWk8ptrQGdJcTGXgsSLPP8>
+
+## ASSISTANT:
+
+The issue is that when we split a file that ends with a newline, we get an empty string at the end. Let me check if this should be filtered out:
+
+## TOOL USE:
+
+Name: str-replace
+ID: toolu_015kzadd157CzjzsJRmjBmXn
+
+### file_path
+
+<tool.toolu_015kzadd157CzjzsJRmjBmXn>
+greger-stdlib.el
+</tool.toolu_015kzadd157CzjzsJRmjBmXn>
+
+### original_content
+
+<tool.toolu_015kzadd157CzjzsJRmjBmXn>
+          (let* ((all-lines (split-string (buffer-string) "\n"))
+                 (total-lines (length all-lines))
+                 (actual-start (or start-line 1))
+                 (actual-end (or end-line total-lines))
+                 (selected-lines (greger-stdlib--extract-line-range all-lines actual-start actual-end))
+                 (contents (mapconcat #'identity selected-lines "\n")))
+</tool.toolu_015kzadd157CzjzsJRmjBmXn>
+
+### new_content
+
+<tool.toolu_015kzadd157CzjzsJRmjBmXn>
+          (let* ((all-lines (split-string (buffer-string) "\n"))
+                 ;; Remove trailing empty line if it exists (from trailing newline)
+                 (all-lines (if (and (> (length all-lines) 0)
+                                    (string-empty-p (car (last all-lines))))
+                               (butlast all-lines)
+                             all-lines))
+                 (total-lines (length all-lines))
+                 (actual-start (or start-line 1))
+                 (actual-end (or end-line total-lines))
+                 (selected-lines (greger-stdlib--extract-line-range all-lines actual-start actual-end))
+                 (contents (mapconcat #'identity selected-lines "\n")))
+</tool.toolu_015kzadd157CzjzsJRmjBmXn>
+
+### git_commit_message
+
+<tool.toolu_015kzadd157CzjzsJRmjBmXn>
+Fix handling of trailing newlines in file reading by removing empty final line
+</tool.toolu_015kzadd157CzjzsJRmjBmXn>
+
+<!-- TOOL_RESULT_PLACEHOLDER_toolu_015kzadd157CzjzsJRmjBmXn -->

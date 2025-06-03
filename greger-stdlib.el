@@ -379,6 +379,11 @@ If END-LINE is specified, stop reading at that line (inclusive, 1-based)."
         (with-temp-buffer
           (insert-file-contents expanded-path)
           (let* ((all-lines (split-string (buffer-string) "\n"))
+                 ;; Remove trailing empty line if it exists (from trailing newline)
+                 (all-lines (if (and (> (length all-lines) 0)
+                                    (string-empty-p (car (last all-lines))))
+                               (butlast all-lines)
+                             all-lines))
                  (total-lines (length all-lines))
                  (actual-start (or start-line 1))
                  (actual-end (or end-line total-lines))
