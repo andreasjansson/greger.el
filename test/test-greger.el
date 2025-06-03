@@ -377,7 +377,7 @@ Unknown tool: nonexistent-tool
           (let ((actual-content (buffer-substring-no-properties (point-min) (point-max))))
             (should (string= expected-error-content actual-content))))))))
 
-(ert-deftest greger-agent-test-exact-tool-output-formatting ()
+(ert-deftest greger-test-exact-tool-output-formatting ()
   "Test exact tool output formatting with multiple scenarios."
   (let ((test-completed nil))
 
