@@ -8702,4 +8702,61 @@ greger-tools.el
 Add helper function to parse JSON values based on schema
 </tool.toolu_01UMPjDkgT589HixrKByirP4>
 
-<!-- TOOL_RESULT_PLACEHOLDER_toolu_01UMPjDkgT589HixrKByirP4 -->
+## TOOL RESULT:
+
+ID: toolu_01UMPjDkgT589HixrKByirP4
+
+<tool.toolu_01UMPjDkgT589HixrKByirP4>
+Successfully replaced content in /Users/andreas/projects/greger.el/greger-tools.el. Successfully staged 2 file(s) and committed with message: Add helper function to parse JSON values based on schema
+</tool.toolu_01UMPjDkgT589HixrKByirP4>
+
+
+## ASSISTANT:
+
+Now I need to remove the JSON parsing from our tool functions since it should be handled centrally:
+
+## TOOL USE:
+
+Name: str-replace
+ID: toolu_01XAJ6W997xj2h7rsFri6p2o
+
+### file_path
+
+<tool.toolu_01XAJ6W997xj2h7rsFri6p2o>
+greger-stdlib.el
+</tool.toolu_01XAJ6W997xj2h7rsFri6p2o>
+
+### original_content
+
+<tool.toolu_01XAJ6W997xj2h7rsFri6p2o>
+(defun greger-stdlib--delete-files (file-paths git-commit-message &optional buffer)
+  "Delete files at FILE-PATHS and stage the deletion in git if tracked.
+If BUFFER is provided, it will be staged and committed along with the deleted files."
+  ;; Handle JSON array strings by parsing them into lists
+  (when (stringp file-paths)
+    (condition-case nil
+        (setq file-paths (json-parse-string file-paths :array-type 'list))
+      (error
+        (error "file_paths must be a valid JSON array string, vector, or list: %s" file-paths))))
+
+  (unless (or (vectorp file-paths) (listp file-paths))
+    (error "file_paths must be a vector or list"))
+</tool.toolu_01XAJ6W997xj2h7rsFri6p2o>
+
+### new_content
+
+<tool.toolu_01XAJ6W997xj2h7rsFri6p2o>
+(defun greger-stdlib--delete-files (file-paths git-commit-message &optional buffer)
+  "Delete files at FILE-PATHS and stage the deletion in git if tracked.
+If BUFFER is provided, it will be staged and committed along with the deleted files."
+  (unless (or (vectorp file-paths) (listp file-paths))
+    (error "file_paths must be a vector or list"))
+</tool.toolu_01XAJ6W997xj2h7rsFri6p2o>
+
+### git_commit_message
+
+<tool.toolu_01XAJ6W997xj2h7rsFri6p2o>
+Remove JSON parsing from delete-files - now handled centrally in greger-tools
+</tool.toolu_01XAJ6W997xj2h7rsFri6p2o>
+
+<!-- TOOL_RESULT_PLACEHOLDER_toolu_01XAJ6W997xj2h7rsFri6p2o -->
