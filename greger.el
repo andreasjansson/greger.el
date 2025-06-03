@@ -20,6 +20,13 @@
 (require 'cl-lib)
 (require 'json)
 
+;; Optional dependency - only load if available
+(defvar greger--lsp-available
+  (condition-case nil
+      (progn (require 'greger-lib-lsp) t)
+    (error nil))
+  "Whether lsp-mode is available.")
+
 ;; Optional LSP integration
 (condition-case nil
     (require 'greger-lib-lsp)
@@ -51,7 +58,7 @@
   "Return default tools list, including LSP tools if available."
   (let ((base-tools '("read-file" "list-directory" "str-replace" "insert" "write-new-file" "replace-file" "replace-function" "make-directory" "rename-file" "ripgrep" "git-log" "git-show-commit" "shell-command" "read-webpage" "delete-files"))
         (lsp-tools '("lsp-rename" "lsp-find-definition" "lsp-find-references" "lsp-format" "lsp-document-symbols")))
-    (if (and (boundp 'greger-lib-lsp-available) greger-lib-lsp-available)
+    (if (and (boundp 'greger--lsp-available) greger--lsp-available)
         (append base-tools lsp-tools)
       base-tools)))
 
@@ -556,7 +563,9 @@ TOOL-ID is the tool identifier."
       (greger--create-collapsible-overlay content-start content-end tool-id lines))))
 
 (defun greger--create-collapsible-overlay (content-start content-end tool-id lines)
-  "Create a collapsible overlay for tool content."
+  "Create a collapsible overlay for tool content.
+CONTENT-START and CONTENT-END define the overlay bounds.
+TOOL-ID identifies the tool, and LINES contain the content."
   (let* ((visible-lines (cl-subseq lines 0 greger-tool-section-max-lines))
          (hidden-lines (cl-subseq lines greger-tool-section-max-lines))
          (hidden-line-count (length hidden-lines))
