@@ -552,6 +552,7 @@ If BUFFER is provided, it will be staged and committed along with the new file."
 
 (defun greger-stdlib--make-directory (path git-commit-message &optional buffer)
   "Recursively create directory at PATH.
+GIT-COMMIT-MESSAGE will be used for the git commit.
 If BUFFER is provided, it will be staged and committed along with the directory."
   (unless (stringp path)
     (error "path must be a string"))
