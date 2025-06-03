@@ -1,5 +1,10 @@
 ;;; greger-parser.el --- Parser for greger dialog format -*- lexical-binding: t -*-
 
+;; Author: Andreas Jansson <andreas@jansson.me.uk>
+;; Version: 0.1.0
+;; URL: https://github.com/andreasjansson/greger.el
+;; Package-Requires: ((emacs "28.1"))
+
 ;;; Commentary:
 ;; Parses markdown-style dialog format with sections like ## USER:, ## ASSISTANT:, etc.
 ;; Handles tool use, thinking blocks, and complex content structures.
