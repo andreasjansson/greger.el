@@ -170,7 +170,7 @@
 (ert-deftest greger-end-to-end-test-request-building ()
   "Test that request building works correctly."
   :tags '(end-to-end request-building)
-  (skip-unless (greger-test-has-api-key))
+
 
   (let* ((test-model 'claude-sonnet-4-20250514)
          (test-dialog '(((role . "user") (content . "Hello"))
