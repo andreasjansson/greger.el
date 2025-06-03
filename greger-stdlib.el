@@ -604,6 +604,62 @@ If BUFFER is provided, it will be staged and committed along with the renamed fi
             (format "Successfully renamed %s to %s. %s" expanded-old-path expanded-new-path git-result)))
       (error (format "Failed to rename file: %s" (error-message-string err))))))
 
+(defun greger-stdlib--delete-files (file-paths git-commit-message &optional buffer)
+  "Delete files at FILE-PATHS and stage the deletion in git if tracked.
+If BUFFER is provided, it will be staged and committed along with the deleted files."
+  (unless (or (vectorp file-paths) (listp file-paths))
+    (error "file_paths must be a vector or list"))
+
+  (unless (stringp git-commit-message)
+    (error "git_commit_message must be a string"))
+
+  (let ((paths-list (if (vectorp file-paths)
+                        (append file-paths nil)  ; Convert vector to list
+                      file-paths))              ; Already a list
+        (expanded-paths '())
+        (deleted-files '())
+        (git-tracked-files '()))
+
+    ;; Validate all files exist first
+    (dolist (file-path paths-list)
+      (unless (stringp file-path)
+        (error "Each file path must be a string"))
+      (let ((expanded-path (expand-file-name file-path)))
+        (unless (file-exists-p expanded-path)
+          (error "File does not exist: %s" expanded-path))
+        (when (file-directory-p expanded-path)
+          (error "Cannot delete directories: %s (only files are supported)" expanded-path))
+        (push expanded-path expanded-paths)))
+
+    ;; Check which files are tracked by git before deletion
+    (dolist (expanded-path (reverse expanded-paths))
+      (let* ((file-dir (file-name-directory expanded-path))
+             (repo-root (greger-stdlib--find-git-repo-root file-dir)))
+        (when (and repo-root
+                   (greger-stdlib--is-file-tracked-by-git expanded-path repo-root))
+          (push expanded-path git-tracked-files))))
+
+    ;; Delete the files
+    (condition-case err
+        (dolist (expanded-path (reverse expanded-paths))
+          (delete-file expanded-path)
+          (push expanded-path deleted-files))
+      (error (format "Failed to delete file: %s" (error-message-string err))))
+
+    ;; Stage and commit the deletions for git-tracked files
+    (let ((git-result
+           (if git-tracked-files
+               (greger-stdlib--git-stage-and-commit
+                (reverse git-tracked-files)
+                git-commit-message
+                buffer)
+             "No files were tracked by git")))
+
+      (format "Successfully deleted %d file(s): %s. Git status: %s"
+              (length deleted-files)
+              (mapconcat 'identity (reverse deleted-files) ", ")
+              git-result))))
+
 (defun greger-stdlib--replace-function (file-path function-name contents line-number commit-message &optional buffer)
   "Replace FUNCTION-NAME in FILE-PATH with new CONTENTS at LINE-NUMBER.
 If BUFFER is provided, it will be staged and committed along with the modified file."

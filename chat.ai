@@ -1682,4 +1682,170 @@ greger-stdlib.el
 Add delete-files tool registration
 </tool.toolu_012uiXS1bd3jYxVgbSYanyBy>
 
-<!-- TOOL_RESULT_PLACEHOLDER_toolu_012uiXS1bd3jYxVgbSYanyBy -->
+## TOOL RESULT:
+
+ID: toolu_012uiXS1bd3jYxVgbSYanyBy
+
+<tool.toolu_012uiXS1bd3jYxVgbSYanyBy>
+Successfully replaced content in /Users/andreas/projects/greger.el/greger-stdlib.el. Successfully staged 2 file(s) and committed with message: Add delete-files tool registration
+</tool.toolu_012uiXS1bd3jYxVgbSYanyBy>
+
+
+## ASSISTANT:
+
+Now I need to add the implementation function. I'll add it after the `greger-stdlib--rename-file` function:
+
+## TOOL USE:
+
+Name: str-replace
+ID: toolu_014p5UeqM1JaXEWmJEayAkj8
+
+### file_path
+
+<tool.toolu_014p5UeqM1JaXEWmJEayAkj8>
+greger-stdlib.el
+</tool.toolu_014p5UeqM1JaXEWmJEayAkj8>
+
+### original_content
+
+<tool.toolu_014p5UeqM1JaXEWmJEayAkj8>
+(defun greger-stdlib--rename-file (old-path new-path git-commit-message &optional buffer)
+  "Rename file from OLD-PATH to NEW-PATH.
+If BUFFER is provided, it will be staged and committed along with the renamed file."
+  (unless (stringp old-path)
+    (error "old_path must be a string"))
+
+  (unless (stringp new-path)
+    (error "new_path must be a string"))
+
+  (let ((expanded-old-path (expand-file-name old-path))
+        (expanded-new-path (expand-file-name new-path)))
+
+    ;; Check if old file exists
+    (unless (file-exists-p expanded-old-path)
+      (error "Source file does not exist: %s" expanded-old-path))
+
+    ;; Check if new file already exists
+    (when (file-exists-p expanded-new-path)
+      (error "Destination file already exists: %s" expanded-new-path))
+
+    ;; Ensure destination directory exists
+    (let ((parent-dir (file-name-directory expanded-new-path)))
+      (unless (file-exists-p parent-dir)
+        (make-directory parent-dir t)))
+
+    ;; Rename the file
+    (condition-case err
+        (progn
+          (rename-file expanded-old-path expanded-new-path)
+          ;; Stage both old and new paths (git mv operation)
+          (let ((git-result (greger-stdlib--git-stage-and-commit
+                             (list expanded-old-path expanded-new-path)
+                             git-commit-message buffer)))
+            (format "Successfully renamed %s to %s. %s" expanded-old-path expanded-new-path git-result)))
+      (error (format "Failed to rename file: %s" (error-message-string err))))))
+</tool.toolu_014p5UeqM1JaXEWmJEayAkj8>
+
+### new_content
+
+<tool.toolu_014p5UeqM1JaXEWmJEayAkj8>
+(defun greger-stdlib--rename-file (old-path new-path git-commit-message &optional buffer)
+  "Rename file from OLD-PATH to NEW-PATH.
+If BUFFER is provided, it will be staged and committed along with the renamed file."
+  (unless (stringp old-path)
+    (error "old_path must be a string"))
+
+  (unless (stringp new-path)
+    (error "new_path must be a string"))
+
+  (let ((expanded-old-path (expand-file-name old-path))
+        (expanded-new-path (expand-file-name new-path)))
+
+    ;; Check if old file exists
+    (unless (file-exists-p expanded-old-path)
+      (error "Source file does not exist: %s" expanded-old-path))
+
+    ;; Check if new file already exists
+    (when (file-exists-p expanded-new-path)
+      (error "Destination file already exists: %s" expanded-new-path))
+
+    ;; Ensure destination directory exists
+    (let ((parent-dir (file-name-directory expanded-new-path)))
+      (unless (file-exists-p parent-dir)
+        (make-directory parent-dir t)))
+
+    ;; Rename the file
+    (condition-case err
+        (progn
+          (rename-file expanded-old-path expanded-new-path)
+          ;; Stage both old and new paths (git mv operation)
+          (let ((git-result (greger-stdlib--git-stage-and-commit
+                             (list expanded-old-path expanded-new-path)
+                             git-commit-message buffer)))
+            (format "Successfully renamed %s to %s. %s" expanded-old-path expanded-new-path git-result)))
+      (error (format "Failed to rename file: %s" (error-message-string err))))))
+
+(defun greger-stdlib--delete-files (file-paths git-commit-message &optional buffer)
+  "Delete files at FILE-PATHS and stage the deletion in git if tracked.
+If BUFFER is provided, it will be staged and committed along with the deleted files."
+  (unless (or (vectorp file-paths) (listp file-paths))
+    (error "file_paths must be a vector or list"))
+
+  (unless (stringp git-commit-message)
+    (error "git_commit_message must be a string"))
+
+  (let ((paths-list (if (vectorp file-paths)
+                        (append file-paths nil)  ; Convert vector to list
+                      file-paths))              ; Already a list
+        (expanded-paths '())
+        (deleted-files '())
+        (git-tracked-files '()))
+
+    ;; Validate all files exist first
+    (dolist (file-path paths-list)
+      (unless (stringp file-path)
+        (error "Each file path must be a string"))
+      (let ((expanded-path (expand-file-name file-path)))
+        (unless (file-exists-p expanded-path)
+          (error "File does not exist: %s" expanded-path))
+        (when (file-directory-p expanded-path)
+          (error "Cannot delete directories: %s (only files are supported)" expanded-path))
+        (push expanded-path expanded-paths)))
+
+    ;; Check which files are tracked by git before deletion
+    (dolist (expanded-path (reverse expanded-paths))
+      (let* ((file-dir (file-name-directory expanded-path))
+             (repo-root (greger-stdlib--find-git-repo-root file-dir)))
+        (when (and repo-root
+                   (greger-stdlib--is-file-tracked-by-git expanded-path repo-root))
+          (push expanded-path git-tracked-files))))
+
+    ;; Delete the files
+    (condition-case err
+        (dolist (expanded-path (reverse expanded-paths))
+          (delete-file expanded-path)
+          (push expanded-path deleted-files))
+      (error (format "Failed to delete file: %s" (error-message-string err))))
+
+    ;; Stage and commit the deletions for git-tracked files
+    (let ((git-result
+           (if git-tracked-files
+               (greger-stdlib--git-stage-and-commit
+                (reverse git-tracked-files)
+                git-commit-message
+                buffer)
+             "No files were tracked by git")))
+
+      (format "Successfully deleted %d file(s): %s. Git status: %s"
+              (length deleted-files)
+              (mapconcat 'identity (reverse deleted-files) ", ")
+              git-result))))
+</tool.toolu_014p5UeqM1JaXEWmJEayAkj8>
+
+### git_commit_message
+
+<tool.toolu_014p5UeqM1JaXEWmJEayAkj8>
+Add delete-files implementation function
+</tool.toolu_014p5UeqM1JaXEWmJEayAkj8>
+
+<!-- TOOL_RESULT_PLACEHOLDER_toolu_014p5UeqM1JaXEWmJEayAkj8 -->
