@@ -439,7 +439,9 @@ If RECURSIVE is non-nil, list files recursively."
       (error "Failed to list directory: %s" (error-message-string err)))))
 
 (defun greger-stdlib--list-directory-recursive (path show-hidden &optional prefix)
-  "Recursively list directory contents at PATH."
+  "Recursively list directory contents at PATH.
+If SHOW-HIDDEN is non-nil, include hidden files.
+PREFIX is used internally for nested directory structure."
   (let ((files '())
         (prefix (or prefix "")))
 
