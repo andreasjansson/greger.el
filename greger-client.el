@@ -244,7 +244,11 @@ Returns nil if no error found or if OUTPUT is not valid JSON."
   "Handle a Claude streaming event with DATA-JSON using STATE.
 
 Example of incoming data json (one data-json per line):
-{\"type\":\"message_start\",\"message\":{\"id\":\"msg_01Qm7bzEMGbdRyAuF5Lrb1Tg\",\"type\":\"message\",\"role\":\"assistant\",\"model\":\"claude-sonnet-4-20250514\",\"content\":[],\"stop_reason\":null,\"stop_sequence\":null,\"usage\":{\"input_tokens\":2626,\"cache_creation_input_tokens\":0,\"cache_read_input_tokens\":0,\"output_tokens\":1,\"service_tier\":\"standard\"}}}
+{\"type\":\"message_start\",\"message\":{\"id\":\"msg_01Qm7bzEMGbdRyAuF5Lrb1Tg\",
+\"type\":\"message\",\"role\":\"assistant\",\"model\":\"claude-sonnet-4-20250514\",
+\"content\":[],\"stop_reason\":null,\"stop_sequence\":null,
+\"usage\":{\"input_tokens\":2626,\"cache_creation_input_tokens\":0,
+\"cache_read_input_tokens\":0,\"output_tokens\":1,\"service_tier\":\"standard\"}}}
 {\"type\":\"content_block_start\",\"index\":0,\"content_block\":{\"type\":\"text\",\"text\":\"\"}}
 {\"type\": \"ping\"}
 {\"type\":\"content_block_delta\",\"index\":0,\"delta\":{\"type\":\"text_delta\",\"text\":\"I\"}}
