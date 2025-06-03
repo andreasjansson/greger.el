@@ -364,8 +364,7 @@ string when it should be appended."
 
 (defun greger-parser--read-until-section-tag (state)
   "Read characters until section tag, handling code blocks and include tags in STATE."
-  (let ((start-pos (greger-parser-state-pos state))
-        (iterations 0)
+  (let ((iterations 0)
         (max-iterations (* (greger-parser-state-length state) 2))) ; Safety limit
     (while (and (not (greger-parser--at-end-p state))
                 (not (and (greger-parser--at-line-start-p state)
