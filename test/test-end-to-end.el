@@ -186,7 +186,7 @@
 (ert-deftest greger-end-to-end-test-no-tools-mode ()
   "Test the no-tools mode using C-M-return."
   :tags '(end-to-end public-api no-tools)
-  (skip-unless (greger-test-has-api-key))
+
 
   (let ((greger-buffer nil)
         (test-file nil))
