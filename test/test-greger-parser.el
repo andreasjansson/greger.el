@@ -1431,6 +1431,17 @@ echo hello
 
 </safe-shell-commands>"))
     (let ((result (greger-parser-parse-dialog markdown)))
+      ;; Should have one system message with the auto-generated descriptive text
+      (should (= 1 (length (plist-get result :messages))))
+      (let ((system-msg (car (plist-get result :messages))))
+        (should (string= "system" (alist-get 'role system-msg)))
+        (let ((content (alist-get 'content system-msg)))
+          (should (string= "You can run arbitrary shell commands with the shell-command tool, but the following are safe shell commands that will run without requiring user confirmation:
+
+* `ls -la`
+* `pwd`
+* `echo hello`"
+                           content))))
       (should (equal '(:safe-shell-commands ("ls -la" "pwd" "echo hello"))
                      (plist-get result :metadata))))))
 

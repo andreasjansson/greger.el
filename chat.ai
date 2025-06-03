@@ -4561,4 +4561,207 @@ You can run arbitrary shell commands with the shell-command tool, but the follow
 Update safe-shell-commands-with-system-content test to use string= with expected combined content
 </tool.toolu_01Trnx1kMy5m5hKBNL5PAkD3>
 
-<!-- TOOL_RESULT_PLACEHOLDER_toolu_01Trnx1kMy5m5hKBNL5PAkD3 -->
+## TOOL RESULT:
+
+ID: toolu_01Trnx1kMy5m5hKBNL5PAkD3
+
+<tool.toolu_01Trnx1kMy5m5hKBNL5PAkD3>
+Successfully replaced content in /Users/andreas/projects/greger.el/test/test-greger-parser.el. Successfully staged 2 file(s) and committed with message: Update safe-shell-commands-with-system-content test to use string= with expected combined content
+</tool.toolu_01Trnx1kMy5m5hKBNL5PAkD3>
+
+
+## ASSISTANT:
+
+Now let me check if there are any other tests that need updating by looking for more safe shell commands tests:
+
+## TOOL USE:
+
+Name: read-file
+ID: toolu_01YZNRCFKyDLpnp5TVs8PyJC
+
+### path
+
+<tool.toolu_01YZNRCFKyDLpnp5TVs8PyJC>
+test/test-greger-parser.el
+</tool.toolu_01YZNRCFKyDLpnp5TVs8PyJC>
+
+### start_line
+
+<tool.toolu_01YZNRCFKyDLpnp5TVs8PyJC>
+1418
+</tool.toolu_01YZNRCFKyDLpnp5TVs8PyJC>
+
+### end_line
+
+<tool.toolu_01YZNRCFKyDLpnp5TVs8PyJC>
+1440
+</tool.toolu_01YZNRCFKyDLpnp5TVs8PyJC>
+
+### include_line_numbers
+
+<tool.toolu_01YZNRCFKyDLpnp5TVs8PyJC>
+true
+</tool.toolu_01YZNRCFKyDLpnp5TVs8PyJC>
+
+## TOOL RESULT:
+
+ID: toolu_01YZNRCFKyDLpnp5TVs8PyJC
+
+<tool.toolu_01YZNRCFKyDLpnp5TVs8PyJC>
+1418:       (should (equal '(:safe-shell-commands ("ls" "pwd")) (plist-get result :metadata))))))
+1419:
+1420: (ert-deftest greger-parser-test-safe-shell-commands-empty-lines ()
+1421:   "Test safe-shell-commands with empty lines and whitespace."
+1422:   (let ((markdown "## SYSTEM:
+1423:
+1424: <safe-shell-commands>
+1425:
+1426: ls -la
+1427:
+1428: pwd
+1429:
+1430: echo hello
+1431:
+1432: </safe-shell-commands>"))
+1433:     (let ((result (greger-parser-parse-dialog markdown)))
+1434:       (should (equal '(:safe-shell-commands ("ls -la" "pwd" "echo hello"))
+1435:                      (plist-get result :metadata))))))
+1436:
+1437: (ert-deftest greger-parser-test-safe-shell-commands-not-in-system ()
+1438:   "Test that safe-shell-commands outside SYSTEM section are ignored."
+1439:   (let ((markdown "## USER:
+1440:
+</tool.toolu_01YZNRCFKyDLpnp5TVs8PyJC>
+
+## ASSISTANT:
+
+The `safe-shell-commands-empty-lines` test only checks metadata, not content, so it might need updating too. Let me check its full content:
+
+## TOOL USE:
+
+Name: read-file
+ID: toolu_01L2T2uRsSQyWNe9Jr2r6Lid
+
+### path
+
+<tool.toolu_01L2T2uRsSQyWNe9Jr2r6Lid>
+test/test-greger-parser.el
+</tool.toolu_01L2T2uRsSQyWNe9Jr2r6Lid>
+
+### start_line
+
+<tool.toolu_01L2T2uRsSQyWNe9Jr2r6Lid>
+1420
+</tool.toolu_01L2T2uRsSQyWNe9Jr2r6Lid>
+
+### end_line
+
+<tool.toolu_01L2T2uRsSQyWNe9Jr2r6Lid>
+1436
+</tool.toolu_01L2T2uRsSQyWNe9Jr2r6Lid>
+
+### include_line_numbers
+
+<tool.toolu_01L2T2uRsSQyWNe9Jr2r6Lid>
+true
+</tool.toolu_01L2T2uRsSQyWNe9Jr2r6Lid>
+
+## TOOL RESULT:
+
+ID: toolu_01L2T2uRsSQyWNe9Jr2r6Lid
+
+<tool.toolu_01L2T2uRsSQyWNe9Jr2r6Lid>
+1420: (ert-deftest greger-parser-test-safe-shell-commands-empty-lines ()
+1421:   "Test safe-shell-commands with empty lines and whitespace."
+1422:   (let ((markdown "## SYSTEM:
+1423:
+1424: <safe-shell-commands>
+1425:
+1426: ls -la
+1427:
+1428: pwd
+1429:
+1430: echo hello
+1431:
+1432: </safe-shell-commands>"))
+1433:     (let ((result (greger-parser-parse-dialog markdown)))
+1434:       (should (equal '(:safe-shell-commands ("ls -la" "pwd" "echo hello"))
+1435:                      (plist-get result :metadata))))))
+1436:
+</tool.toolu_01L2T2uRsSQyWNe9Jr2r6Lid>
+
+## ASSISTANT:
+
+This test is only checking metadata, but it should also check that a system message is generated. Let me update it:
+
+## TOOL USE:
+
+Name: str-replace
+ID: toolu_01MV2WbaYpkPkiABWBV6iW9k
+
+### file_path
+
+<tool.toolu_01MV2WbaYpkPkiABWBV6iW9k>
+test/test-greger-parser.el
+</tool.toolu_01MV2WbaYpkPkiABWBV6iW9k>
+
+### original_content
+
+<tool.toolu_01MV2WbaYpkPkiABWBV6iW9k>
+(ert-deftest greger-parser-test-safe-shell-commands-empty-lines ()
+  "Test safe-shell-commands with empty lines and whitespace."
+  (let ((markdown "## SYSTEM:
+
+<safe-shell-commands>
+
+ls -la
+
+pwd
+
+echo hello
+
+</safe-shell-commands>"))
+    (let ((result (greger-parser-parse-dialog markdown)))
+      (should (equal '(:safe-shell-commands ("ls -la" "pwd" "echo hello"))
+                     (plist-get result :metadata))))))
+</tool.toolu_01MV2WbaYpkPkiABWBV6iW9k>
+
+### new_content
+
+<tool.toolu_01MV2WbaYpkPkiABWBV6iW9k>
+(ert-deftest greger-parser-test-safe-shell-commands-empty-lines ()
+  "Test safe-shell-commands with empty lines and whitespace."
+  (let ((markdown "## SYSTEM:
+
+<safe-shell-commands>
+
+ls -la
+
+pwd
+
+echo hello
+
+</safe-shell-commands>"))
+    (let ((result (greger-parser-parse-dialog markdown)))
+      ;; Should have one system message with the auto-generated descriptive text
+      (should (= 1 (length (plist-get result :messages))))
+      (let ((system-msg (car (plist-get result :messages))))
+        (should (string= "system" (alist-get 'role system-msg)))
+        (let ((content (alist-get 'content system-msg)))
+          (should (string= "You can run arbitrary shell commands with the shell-command tool, but the following are safe shell commands that will run without requiring user confirmation:
+
+* `ls -la`
+* `pwd`
+* `echo hello`"
+                           content))))
+      (should (equal '(:safe-shell-commands ("ls -la" "pwd" "echo hello"))
+                     (plist-get result :metadata))))))
+</tool.toolu_01MV2WbaYpkPkiABWBV6iW9k>
+
+### git_commit_message
+
+<tool.toolu_01MV2WbaYpkPkiABWBV6iW9k>
+Update safe-shell-commands-empty-lines test to check system message content with string=
+</tool.toolu_01MV2WbaYpkPkiABWBV6iW9k>
+
+<!-- TOOL_RESULT_PLACEHOLDER_toolu_01MV2WbaYpkPkiABWBV6iW9k -->
