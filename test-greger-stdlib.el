@@ -32,17 +32,17 @@
 (ert-deftest greger-test-read-webpage-invalid-url ()
   "Test reading a webpage with invalid URLs."
   ;; Test empty URL
-  (should-error (greger-tools--read-webpage ""))
-  (should-error (greger-tools--read-webpage "   "))
+  (should-error (greger-stdlib--read-webpage ""))
+  (should-error (greger-stdlib--read-webpage "   "))
 
   ;; Test non-string URL
-  (should-error (greger-tools--read-webpage nil))
-  (should-error (greger-tools--read-webpage 123))
+  (should-error (greger-stdlib--read-webpage nil))
+  (should-error (greger-stdlib--read-webpage 123))
 
   ;; Test invalid URL format
-  (should-error (greger-tools--read-webpage "ftp://example.com"))
-  (should-error (greger-tools--read-webpage "not-a-url"))
-  (should-error (greger-tools--read-webpage "file:///path/to/file")))
+  (should-error (greger-stdlib--read-webpage "ftp://example.com"))
+  (should-error (greger-stdlib--read-webpage "not-a-url"))
+  (should-error (greger-stdlib--read-webpage "file:///path/to/file")))
 
 (ert-deftest greger-test-read-webpage-network-error ()
   "Test reading a webpage when network error occurs."
