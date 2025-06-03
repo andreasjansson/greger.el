@@ -99,7 +99,7 @@
                        (input_schema . ((type . "object")
                                        (properties . ((expression . ((type . "string")
                                                                      (description . "Mathematical expression to evaluate")))))
-                                       (required . ["expression"]))))))
+                                       (required . ["expression"])))))))
 
     (with-temp-buffer
       (let ((test-buffer (current-buffer)))
