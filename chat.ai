@@ -1731,4 +1731,97 @@ PREFIX is used internally for nested directory structure."
 Fix missing argument documentation in greger-stdlib--list-directory-recursive
 </tool.toolu_01TMkd7TPhFvg12Ne74q7uEf>
 
-<!-- TOOL_RESULT_PLACEHOLDER_toolu_01TMkd7TPhFvg12Ne74q7uEf -->
+## TOOL RESULT:
+
+ID: toolu_01TMkd7TPhFvg12Ne74q7uEf
+
+<tool.toolu_01TMkd7TPhFvg12Ne74q7uEf>
+Successfully replaced content in /Users/andreas/projects/greger.el/greger-stdlib.el. Successfully staged 2 file(s) and committed with message: Fix missing argument documentation in greger-stdlib--list-directory-recursive
+</tool.toolu_01TMkd7TPhFvg12Ne74q7uEf>
+
+
+## ASSISTANT:
+
+Now let me fix callback documentation:
+
+## TOOL USE:
+
+Name: read-file
+ID: toolu_01SA7oKoRn2WvpvZDFYAaj2B
+
+### path
+
+<tool.toolu_01SA7oKoRn2WvpvZDFYAaj2B>
+greger-stdlib.el
+</tool.toolu_01SA7oKoRn2WvpvZDFYAaj2B>
+
+### start_line
+
+<tool.toolu_01SA7oKoRn2WvpvZDFYAaj2B>
+460
+</tool.toolu_01SA7oKoRn2WvpvZDFYAaj2B>
+
+### end_line
+
+<tool.toolu_01SA7oKoRn2WvpvZDFYAaj2B>
+470
+</tool.toolu_01SA7oKoRn2WvpvZDFYAaj2B>
+
+### include_line_numbers
+
+<tool.toolu_01SA7oKoRn2WvpvZDFYAaj2B>
+true
+</tool.toolu_01SA7oKoRn2WvpvZDFYAaj2B>
+
+## TOOL RESULT:
+
+ID: toolu_01SA7oKoRn2WvpvZDFYAaj2B
+
+<tool.toolu_01SA7oKoRn2WvpvZDFYAaj2B>
+460:
+461:     (reverse files)))
+462:
+463: (defun greger-stdlib--ripgrep (pattern path callback &optional case-sensitive file-type context-lines max-results)
+464:   "Search for PATTERN in PATH using the rg command line tool directly."
+465:   (cond
+466:    ((not (stringp pattern))
+467:     (funcall callback nil "Pattern must be a string"))
+468:
+469:    ((not (stringp path))
+470:     (funcall callback nil "Path must be a string"))
+</tool.toolu_01SA7oKoRn2WvpvZDFYAaj2B>
+
+## TOOL USE:
+
+Name: str-replace
+ID: toolu_01BzJpSCELCdA3BNCWrbBRBz
+
+### file_path
+
+<tool.toolu_01BzJpSCELCdA3BNCWrbBRBz>
+greger-stdlib.el
+</tool.toolu_01BzJpSCELCdA3BNCWrbBRBz>
+
+### original_content
+
+<tool.toolu_01BzJpSCELCdA3BNCWrbBRBz>
+(defun greger-stdlib--ripgrep (pattern path callback &optional case-sensitive file-type context-lines max-results)
+  "Search for PATTERN in PATH using the rg command line tool directly."
+</tool.toolu_01BzJpSCELCdA3BNCWrbBRBz>
+
+### new_content
+
+<tool.toolu_01BzJpSCELCdA3BNCWrbBRBz>
+(defun greger-stdlib--ripgrep (pattern path callback &optional case-sensitive file-type context-lines max-results)
+  "Search for PATTERN in PATH using the rg command line tool directly.
+CALLBACK is called with (result error) when search completes.
+CASE-SENSITIVE, FILE-TYPE, CONTEXT-LINES and MAX-RESULTS are optional parameters."
+</tool.toolu_01BzJpSCELCdA3BNCWrbBRBz>
+
+### git_commit_message
+
+<tool.toolu_01BzJpSCELCdA3BNCWrbBRBz>
+Fix missing CALLBACK argument documentation in greger-stdlib--ripgrep
+</tool.toolu_01BzJpSCELCdA3BNCWrbBRBz>
+
+<!-- TOOL_RESULT_PLACEHOLDER_toolu_01BzJpSCELCdA3BNCWrbBRBz -->
