@@ -464,7 +464,7 @@ Line 3: End
     (with-temp-buffer
       ;; Initial buffer state (empty)
       (let ((initial-content "")
-            (agent-state (make-greger-agent-state
+            (agent-state (make-greger-state
                           :current-iteration 0
                           :chat-buffer (current-buffer)
                           :directory default-directory :metadata nil))
