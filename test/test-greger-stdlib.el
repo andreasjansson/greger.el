@@ -651,16 +651,30 @@
             (write-file test-file))
 
           ;; Test reading lines 8-12 with line numbers - should have 2-digit padding
-          (let ((result (greger-stdlib--read-file test-file t 8 12)))
+          (let ((result (greger-stdlib--read-file test-file t 8 12))
+                (expected " 8: Line 8
+ 9: Line 9
+10: Line 10
+11: Line 11
+12: Line 12"))
             (should (stringp result))
-            (should (string-match-p "^ 8: Line 8" result))
-            (should (string-match-p "12: Line 12$" result)))
+            (should (string= result expected)))
 
-          ;; Test reading lines 1-3 with line numbers - should still use 2-digit padding
-          (let ((result (greger-stdlib--read-file test-file t 1 3)))
+          ;; Test reading lines 1-3 with line numbers - padding based on range max (3)
+          (let ((result (greger-stdlib--read-file test-file t 1 3))
+                (expected "1: Line 1
+2: Line 2
+3: Line 3"))
             (should (stringp result))
-            (should (string-match-p "^ 1: Line 1" result))
-            (should (string-match-p "^ 3: Line 3$" result))))
+            (should (string= result expected)))
+
+          ;; Test reading lines 10-12 with line numbers - should have 2-digit padding
+          (let ((result (greger-stdlib--read-file test-file t 10 12))
+                (expected "10: Line 10
+11: Line 11
+12: Line 12"))
+            (should (stringp result))
+            (should (string= result expected))))
 
       ;; Clean up
       (when (file-exists-p test-file)
