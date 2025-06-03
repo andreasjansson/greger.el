@@ -605,4 +605,88 @@
       (when (file-exists-p test-file)
         (delete-file test-file)))))
 
+(ert-deftest greger-test-read-file-basic ()
+  "Test basic file reading functionality."
+  (let ((test-file (make-temp-file "greger-test-read-file")))
+    (unwind-protect
+        (progn
+          ;; Write test content to file
+          (with-temp-buffer
+            (insert "Line 1\nLine 2\nLine 3\n")
+            (write-file test-file))
+
+          ;; Test basic reading without line numbers
+          (let ((result (greger-stdlib--read-file test-file)))
+            (should (stringp result))
+            (should (string= result "Line 1\nLine 2\nLine 3\n")))
+
+          ;; Test reading with line numbers
+          (let ((result (greger-stdlib--read-file test-file t)))
+            (should (stringp result))
+            (should (string= result "1: Line 1\n2: Line 2\n3: Line 3\n")))
+
+          ;; Test reading with start and end lines
+          (let ((result (greger-stdlib--read-file test-file nil 2 2)))
+            (should (stringp result))
+            (should (string= result "Line 2")))
+
+          ;; Test reading with line numbers and range
+          (let ((result (greger-stdlib--read-file test-file t 1 2)))
+            (should (stringp result))
+            (should (string= result "1: Line 1\n2: Line 2"))))
+
+      ;; Clean up
+      (when (file-exists-p test-file)
+        (delete-file test-file)))))
+
+(ert-deftest greger-test-read-file-line-number-formatting ()
+  "Test that line numbers are properly formatted with padding."
+  (let ((test-file (make-temp-file "greger-test-read-file-padding")))
+    (unwind-protect
+        (progn
+          ;; Write test content with 12 lines to test padding
+          (with-temp-buffer
+            (dotimes (i 12)
+              (insert (format "Line %d\n" (1+ i))))
+            (write-file test-file))
+
+          ;; Test reading lines 8-12 with line numbers - should have 2-digit padding
+          (let ((result (greger-stdlib--read-file test-file t 8 12)))
+            (should (stringp result))
+            (should (string-match-p "^ 8: Line 8\n" result))
+            (should (string-match-p "^12: Line 12\n" result)))
+
+          ;; Test reading lines 1-3 with line numbers - should still use 2-digit padding
+          (let ((result (greger-stdlib--read-file test-file t 1 3)))
+            (should (stringp result))
+            (should (string-match-p "^ 1: Line 1\n" result))
+            (should (string-match-p "^ 3: Line 3\n" result))))
+
+      ;; Clean up
+      (when (file-exists-p test-file)
+        (delete-file test-file)))))
+
+(ert-deftest greger-test-read-file-error-cases ()
+  "Test error handling in read-file function."
+  ;; Test non-existent file
+  (should-error (greger-stdlib--read-file "/path/that/does/not/exist"))
+
+  ;; Test invalid path type
+  (should-error (greger-stdlib--read-file 123))
+
+  ;; Test invalid start-line type
+  (should-error (greger-stdlib--read-file "test-file" nil "not-a-number"))
+
+  ;; Test invalid end-line type
+  (should-error (greger-stdlib--read-file "test-file" nil 1 "not-a-number"))
+
+  ;; Test invalid start-line value
+  (should-error (greger-stdlib--read-file "test-file" nil 0))
+
+  ;; Test invalid end-line value
+  (should-error (greger-stdlib--read-file "test-file" nil 1 0))
+
+  ;; Test start-line > end-line
+  (should-error (greger-stdlib--read-file "test-file" nil 5 3)))
+
 ;;; greger-test-stdlib.el ends here
