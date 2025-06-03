@@ -51,7 +51,7 @@
              (lambda (url extract-text use-highest-readability)
                (error "Network timeout"))))
 
-    (let ((result (greger-tools--read-webpage "https://pub-b88c9764a4fc46baa90b9e8e1544f59e.r2.dev/hello.html")))
+    (let ((result (greger-stdlib--read-webpage "https://pub-b88c9764a4fc46baa90b9e8e1544f59e.r2.dev/hello.html")))
       (should (stringp result))
       (should (string-match-p "Failed to read webpage" result))
       (should (string-match-p "Network timeout" result)))))
