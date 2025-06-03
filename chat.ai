@@ -1545,4 +1545,338 @@ script/package-lint
 Update error reporting in package-lint script to handle both CI and local environments
 </tool.toolu_017Jor9xvuNaRJ6hY3VRjJQS>
 
-<!-- TOOL_RESULT_PLACEHOLDER_toolu_017Jor9xvuNaRJ6hY3VRjJQS -->
+## TOOL RESULT:
+
+ID: toolu_017Jor9xvuNaRJ6hY3VRjJQS
+
+<tool.toolu_017Jor9xvuNaRJ6hY3VRjJQS>
+Successfully replaced content in /Users/andreas/projects/greger.el/script/package-lint. Successfully staged 2 file(s) and committed with message: Update error reporting in package-lint script to handle both CI and local environments
+</tool.toolu_017Jor9xvuNaRJ6hY3VRjJQS>
+
+
+## ASSISTANT:
+
+Perfect! Now your CI workflow should work properly. Here's what I've done to fix the package-lint issue:
+
+## Changes Made:
+
+### 1. **Updated CI Workflow** (`.github/workflows/ci.yml`):
+- Added a step to install `package-lint` via Emacs package manager before running the lint script
+- The installation step adds MELPA repository and installs package-lint
+
+### 2. **Updated Package-lint Script** (`script/package-lint`):
+- **Environment Detection**: Detects if running in CI environment using `$CI` environment variable
+- **Dynamic Path Finding**: In local environments, it now searches for any `package-lint-*` directory instead of using a hardcoded path
+- **Dual Loading Strategy**:
+  - In CI: Uses `package.el` to load package-lint (since it's installed via package manager)
+  - Locally: Uses the found path to load package-lint from your `.emacs.d/elpa/` directory
+- **Better Error Messages**: Provides helpful installation instructions for local users
+
+## How It Works:
+
+1. **In CI**: The workflow installs package-lint via package.el, then the script detects the CI environment and loads package-lint through the package system
+2. **Locally**: The script finds your locally installed package-lint directory and loads it directly
+
+This approach ensures that:
+- ✅ CI will have package-lint available when it runs
+- ✅ Local development continues to work with your existing setup
+- ✅ The script is more robust and doesn't depend on hardcoded paths
+- ✅ Other developers can easily use it regardless of their specific package-lint version
+
+The CI should now run both package-lint and your tests successfully!
+
+## USER:
+
+No, install package-lint in the script just like we install lsp-mode in script/test
+
+## ASSISTANT:
+
+You're right! Let me check how `script/test` installs lsp-mode and apply the same approach to package-lint in the script itself.
+
+## TOOL USE:
+
+Name: read-file
+ID: toolu_01KyMvFeNkeUj5yCpEQw8RHS
+
+### path
+
+<tool.toolu_01KyMvFeNkeUj5yCpEQw8RHS>
+script/test
+</tool.toolu_01KyMvFeNkeUj5yCpEQw8RHS>
+
+## TOOL RESULT:
+
+ID: toolu_01KyMvFeNkeUj5yCpEQw8RHS
+
+<tool.toolu_01KyMvFeNkeUj5yCpEQw8RHS>
+#!/bin/bash
+
+# Test script for greger package
+# Runs all ERT tests for the package
+
+set -e
+
+# Colors for output
+RED='\033[0;31m'
+GREEN='\033[0;32m'
+YELLOW='\033[1;33m'
+BLUE='\033[0;34m'
+NC='\033[0m' # No Color
+
+# Test files to run
+TEST_FILES=(
+    "test/test-greger.el"
+    "test/test-greger-parser.el"
+    "test/test-greger-stdlib.el"
+    "test/test-greger-lib-lsp.el"
+    "test/test-greger-tools.el"
+    "test/test-greger-client.el"
+    "test/test-end-to-end.el"
+)
+
+echo -e "${BLUE}Running ERT tests for greger package...${NC}"
+echo
+
+# Function to run tests for a single file
+run_test_file() {
+    local test_file="$1"
+    echo -e "Running tests in ${YELLOW}$test_file${NC}..."
+
+    if [ ! -f "$test_file" ]; then
+        echo -e "  ${RED}✗ Test file not found: $test_file${NC}"
+        return 1
+    fi
+
+    # Run the tests with ERT
+    if emacs --batch -Q \
+        --eval "(progn
+                  (setq debug-on-error t)
+                  (add-to-list 'load-path \".\")
+                  ;; Setup package archives and install dependencies if needed
+                  (require 'package)
+                  (setq package-archives '((\"melpa\" . \"https://melpa.org/packages/\")
+                                           (\"gnu\" . \"https://elpa.gnu.org/packages/\")))
+                  (package-initialize)
+                  ;; Install lsp-mode and lsp-pyright if not available
+                  (unless (package-installed-p 'lsp-mode)
+                    (package-refresh-contents)
+                    (package-install 'lsp-mode))
+                  (unless (package-installed-p 'lsp-pyright)
+                    (package-refresh-contents)
+                    (package-install 'lsp-pyright))
+                  ;; Load required packages
+                  (require 'ert)
+                  (require 'cl-lib)
+                  ;; Load main greger files
+                  (load-file \"greger.el\")
+                  (load-file \"greger-parser.el\")
+                  (load-file \"greger-stdlib.el\")
+                  (load-file \"greger-lib-lsp.el\")
+                  (load-file \"greger-tools.el\")
+                  (load-file \"greger-client.el\")
+                  (load-file \"greger-web.el\")
+                  ;; Load test file
+                  (load-file \"$test_file\")
+                  ;; Run all tests defined in this file
+                  (let ((ert-quiet nil))
+                    (ert-run-tests-batch-and-exit t)))" 2>/dev/null; then
+        echo -e "  ${GREEN}✓ All tests passed${NC}"
+        return 0
+    else
+        echo -e "  ${RED}✗ Some tests failed${NC}"
+        return 1
+    fi
+}
+
+# Function to run tests with verbose output
+run_test_file_verbose() {
+    local test_file="$1"
+    echo -e "Running tests in ${YELLOW}$test_file${NC} (verbose mode)..."
+
+    emacs --batch -Q \
+        --eval "(progn
+                  (setq debug-on-error t)
+                  (add-to-list 'load-path \".\")
+                  ;; Setup package archives and install dependencies if needed
+                  (require 'package)
+                  (setq package-archives '((\"melpa\" . \"https://melpa.org/packages/\")
+                                           (\"gnu\" . \"https://elpa.gnu.org/packages/\")))
+                  (package-initialize)
+                  ;; Install lsp-mode and lsp-pyright if not available
+                  (unless (package-installed-p 'lsp-mode)
+                    (package-refresh-contents)
+                    (package-install 'lsp-mode))
+                  (unless (package-installed-p 'lsp-pyright)
+                    (package-refresh-contents)
+                    (package-install 'lsp-pyright))
+                  ;; Load required packages
+                  (require 'ert)
+                  (require 'cl-lib)
+                  ;; Load main greger files
+                  (load-file \"greger.el\")
+                  (load-file \"greger-parser.el\")
+                  (load-file \"greger-stdlib.el\")
+                  (load-file \"greger-lib-lsp.el\")
+                  (load-file \"greger-tools.el\")
+                  (load-file \"greger-client.el\")
+                  (load-file \"greger-web.el\")
+                  ;; Load test file
+                  (load-file \"$test_file\")
+                  ;; Run all tests defined in this file with verbose output
+                  (let ((ert-quiet nil))
+                    (ert-run-tests-batch-and-exit t)))"
+}
+
+# Parse command line arguments
+VERBOSE=false
+SPECIFIC_FILE=""
+HELP=false
+
+while [[ $# -gt 0 ]]; do
+    case $1 in
+        -v|--verbose)
+            VERBOSE=true
+            shift
+            ;;
+        -f|--file)
+            SPECIFIC_FILE="$2"
+            shift 2
+            ;;
+        -h|--help)
+            HELP=true
+            shift
+            ;;
+        *)
+            echo -e "${RED}Unknown option: $1${NC}"
+            HELP=true
+            shift
+            ;;
+    esac
+done
+
+# Show help if requested
+if [ "$HELP" = true ]; then
+    echo "Usage: $0 [OPTIONS]"
+    echo ""
+    echo "Options:"
+    echo "  -v, --verbose    Show verbose test output"
+    echo "  -f, --file FILE  Run tests only for specific file"
+    echo "  -h, --help       Show this help message"
+    echo ""
+    echo "Test files available:"
+    for file in "${TEST_FILES[@]}"; do
+        echo "  - $file"
+    done
+    exit 0
+fi
+
+# Run tests
+OVERALL_EXIT_CODE=0
+TOTAL_FILES=0
+PASSED_FILES=0
+
+if [ -n "$SPECIFIC_FILE" ]; then
+    # Run tests for specific file
+    TOTAL_FILES=1
+    if [ "$VERBOSE" = true ]; then
+        run_test_file_verbose "$SPECIFIC_FILE"
+        OVERALL_EXIT_CODE=$?
+    else
+        if run_test_file "$SPECIFIC_FILE"; then
+            PASSED_FILES=1
+        else
+            OVERALL_EXIT_CODE=1
+        fi
+    fi
+else
+    # Run tests for all files
+    for test_file in "${TEST_FILES[@]}"; do
+        TOTAL_FILES=$((TOTAL_FILES + 1))
+
+        if [ "$VERBOSE" = true ]; then
+            echo
+            run_test_file_verbose "$test_file"
+            if [ $? -ne 0 ]; then
+                OVERALL_EXIT_CODE=1
+            else
+                PASSED_FILES=$((PASSED_FILES + 1))
+            fi
+        else
+            if run_test_file "$test_file"; then
+                PASSED_FILES=$((PASSED_FILES + 1))
+            else
+                OVERALL_EXIT_CODE=1
+            fi
+        fi
+        echo
+    done
+fi
+
+# Print summary
+echo -e "${BLUE}Test Summary:${NC}"
+echo -e "  Files run: $TOTAL_FILES"
+echo -e "  Files passed: ${GREEN}$PASSED_FILES${NC}"
+echo -e "  Files failed: ${RED}$((TOTAL_FILES - PASSED_FILES))${NC}"
+
+if [ $OVERALL_EXIT_CODE -eq 0 ]; then
+    echo -e "${GREEN}All tests passed!${NC}"
+else
+    echo -e "${RED}Some tests failed.${NC}"
+fi
+
+exit $OVERALL_EXIT_CODE
+
+</tool.toolu_01KyMvFeNkeUj5yCpEQw8RHS>
+
+## ASSISTANT:
+
+Perfect! Now I can see how `script/test` installs lsp-mode. Let me remove the package-lint installation step from the CI workflow and update the package-lint script to install package-lint the same way.
+
+First, let me remove the installation step from CI:
+
+## TOOL USE:
+
+Name: str-replace
+ID: toolu_012bEpuWZtbibs5Fo3z4DoJD
+
+### file_path
+
+<tool.toolu_012bEpuWZtbibs5Fo3z4DoJD>
+.github/workflows/ci.yml
+</tool.toolu_012bEpuWZtbibs5Fo3z4DoJD>
+
+### original_content
+
+<tool.toolu_012bEpuWZtbibs5Fo3z4DoJD>
+- name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Install package-lint
+        run: |
+          emacs --batch -Q \
+            --eval "(progn
+                      (require 'package)
+                      (add-to-list 'package-archives '(\"melpa\" . \"https://melpa.org/packages/\") t)
+                      (package-initialize)
+                      (package-refresh-contents)
+                      (package-install 'package-lint))"
+
+      - name: Run package-lint
+</tool.toolu_012bEpuWZtbibs5Fo3z4DoJD>
+
+### new_content
+
+<tool.toolu_012bEpuWZtbibs5Fo3z4DoJD>
+- name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Run package-lint
+</tool.toolu_012bEpuWZtbibs5Fo3z4DoJD>
+
+### git_commit_message
+
+<tool.toolu_012bEpuWZtbibs5Fo3z4DoJD>
+Remove separate package-lint installation step from CI - will be handled in script
+</tool.toolu_012bEpuWZtbibs5Fo3z4DoJD>
+
+<!-- TOOL_RESULT_PLACEHOLDER_toolu_012bEpuWZtbibs5Fo3z4DoJD -->
