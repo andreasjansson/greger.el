@@ -301,7 +301,7 @@
   (should (= -1 (greger-stdlib--count-paren-balance ")")))
   (should (= -1 (greger-stdlib--count-paren-balance "(foo))")))  ; 1 open, 2 close = -1
   (should (= 1 (greger-stdlib--count-paren-balance "((foo)")))   ; 2 open, 1 close = 1
-  (should (= 2 (greger-stdlib--count-paren-balance "(((")))
+  (should (= 3 (greger-stdlib--count-paren-balance "(((")))
   (should (= -3 (greger-stdlib--count-paren-balance ")))")))
 
   ;; Test with strings (parens in strings should be ignored)
@@ -316,7 +316,7 @@
 
   ;; Test mixed content
   (should (= 0 (greger-stdlib--count-paren-balance "(foo \"string with (parens)\" bar) ; comment (with parens)")))
-  (should (= 0 (greger-stdlib--count-paren-balance "((foo \"string with )\" bar) ; comment (with parens)")))
+  (should (= 1 (greger-stdlib--count-paren-balance "((foo \"string with )\" bar) ; comment (with parens)")))
 
   ;; Test empty content
   (should (= 0 (greger-stdlib--count-paren-balance "")))
