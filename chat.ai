@@ -9893,4 +9893,56 @@ greger-stdlib.el
 Remove temporary test tool
 </tool.toolu_01KcXHuMRhZcVyGuZyj7scfE>
 
-<!-- TOOL_RESULT_PLACEHOLDER_toolu_01KcXHuMRhZcVyGuZyj7scfE -->
+## TOOL RESULT:
+
+ID: toolu_01KcXHuMRhZcVyGuZyj7scfE
+
+<tool.toolu_01KcXHuMRhZcVyGuZyj7scfE>
+Successfully replaced content in /Users/andreas/projects/greger.el/greger-stdlib.el. Successfully staged 2 file(s) and committed with message: Remove temporary test tool
+</tool.toolu_01KcXHuMRhZcVyGuZyj7scfE>
+
+
+## ASSISTANT:
+
+## Summary
+
+I have successfully enhanced the `greger-tools--maybe-parse-json-value` function and added comprehensive tests:
+
+### Enhanced JSON Parsing Function
+
+The updated function now handles:
+
+1. **Arrays**: JSON array strings like `["item1", "item2"]` → Emacs lists `("item1" "item2")`
+2. **Booleans**:
+   - `"true"` → `t`
+   - `"false"` → `nil`
+   - `":json-true"` → `t`
+   - `":json-false"` → `nil`
+3. **Numbers**:
+   - Integer strings like `"42"` → `42`
+   - Float strings like `"3.14"` → `3.14`
+   - Negative numbers like `"-5"` → `-5`
+4. **Graceful fallback**: Invalid JSON returns the original string value
+
+### Comprehensive Test Suite
+
+Added 6 new test functions in `test/test-greger-tools.el`:
+
+1. **`greger-tools-test-json-parsing-arrays`** - Tests array parsing with various formats
+2. **`greger-tools-test-json-parsing-booleans`** - Tests boolean parsing including `:json-true/:json-false`
+3. **`greger-tools-test-json-parsing-numbers`** - Tests integer and float parsing
+4. **`greger-tools-test-json-parsing-mixed-types`** - Tests all types together in one tool
+5. **`greger-tools-test-argument-extraction-edge-cases`** - Tests edge cases and error handling
+6. **`greger-tools-test-json-parsing-fallback`** - Tests graceful fallback for invalid JSON
+
+### Key Benefits
+
+- **Type-safe**: Parameters are automatically converted to the correct Emacs Lisp types based on the tool schema
+- **Robust**: Invalid JSON gracefully falls back to returning the original string
+- **Centralized**: All JSON parsing logic is in one place, no need for individual tools to handle it
+- **Schema-driven**: Uses the tool's parameter type definitions to determine what parsing to apply
+- **Well-tested**: Comprehensive test coverage ensures reliability
+
+All tests pass, confirming that the enhanced JSON parsing works correctly for all supported types while maintaining backward compatibility.
+
+## USER:
