@@ -77,14 +77,10 @@ You can include file contents in your conversations:
 
 ## Available Models
 
-Greger supports many models across different providers:
+Greger supports the latest Claude models:
 
-- **Claude**: claude-3-haiku, claude-3-opus, claude-3-5-sonnet, claude-sonnet-4, claude-opus-4
-- **OpenAI**: gpt-4o, gpt-4o-mini, gpt-4-turbo, o1-preview
-- **Google**: gemini-pro
-- **Groq**: llama3-8b-8192, llama3-70b-8192, mixtral-8x7b-32768
-- **Ollama**: Various local models
-- **Replicate**: Meta Llama models, Snowflake Arctic
+- **claude-sonnet-4-20250514** - Fast, high-quality model for most tasks
+- **claude-opus-4-20250514** - Most capable model for complex reasoning
 
 ## Tool System
 
