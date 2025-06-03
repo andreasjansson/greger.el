@@ -6416,4 +6416,166 @@ If BUFFER is provided, it will be staged and committed along with the deleted fi
 Re-add JSON parsing to handle direct tool calls that bypass parser
 </tool.toolu_01LGuD9WSLcMaXQnLBt24aGs>
 
-<!-- TOOL_RESULT_PLACEHOLDER_toolu_01LGuD9WSLcMaXQnLBt24aGs -->
+## TOOL RESULT:
+
+ID: toolu_01LGuD9WSLcMaXQnLBt24aGs
+
+<tool.toolu_01LGuD9WSLcMaXQnLBt24aGs>
+Successfully replaced content in /Users/andreas/projects/greger.el/greger-stdlib.el. Successfully staged 2 file(s) and committed with message: Re-add JSON parsing to handle direct tool calls that bypass parser
+</tool.toolu_01LGuD9WSLcMaXQnLBt24aGs>
+
+## USER:
+
+No, nothing should be bypassing the parser. Add your debug stuff back but return it as a string from the tool so you can actually see it (so it doesn't get stuck in *Messages*). And also tell me when you've added stuff so I can eval before you use the code you've written.
+
+## ASSISTANT:
+
+You're absolutely right! Let me add the debug code back and return it as a string so we can see what's actually happening. I'll add debug output to both functions.
+
+## TOOL USE:
+
+Name: str-replace
+ID: toolu_01V6vvFucsZ212KVu2MTc6rS
+
+### file_path
+
+<tool.toolu_01V6vvFucsZ212KVu2MTc6rS>
+greger-tools.el
+</tool.toolu_01V6vvFucsZ212KVu2MTc6rS>
+
+### original_content
+
+<tool.toolu_01V6vvFucsZ212KVu2MTc6rS>
+(defun greger-tools-execute (tool-name args callback buffer &optional metadata)
+  "Execute TOOL-NAME with ARGS and call CALLBACK with (result error).
+If the tool has :pass-buffer set, BUFFER will be passed to the tool function.
+If the tool has :pass-callback set, CALLBACK will be passed to the tool function
+instead of greger-tools-execute calling the callback with the result.
+If the tool has :pass-metadata set, METADATA will be passed to the tool function."
+  (let ((tool-def (gethash tool-name greger-tools-registry)))
+</tool.toolu_01V6vvFucsZ212KVu2MTc6rS>
+
+### new_content
+
+<tool.toolu_01V6vvFucsZ212KVu2MTc6rS>
+(defun greger-tools-execute (tool-name args callback buffer &optional metadata)
+  "Execute TOOL-NAME with ARGS and call CALLBACK with (result error).
+If the tool has :pass-buffer set, BUFFER will be passed to the tool function.
+If the tool has :pass-callback set, CALLBACK will be passed to the tool function
+instead of greger-tools-execute calling the callback with the result.
+If the tool has :pass-metadata set, METADATA will be passed to the tool function."
+  ;; Debug: return early for delete-files to show what we receive
+  (when (string= tool-name "delete-files")
+    (let ((debug-info (format "DEBUG greger-tools-execute:\n  tool-name: %s\n  args type: %s\n  args value: %S\n"
+                              tool-name (type-of args) args)))
+      (funcall callback debug-info nil)
+      (return-from greger-tools-execute)))
+
+  (let ((tool-def (gethash tool-name greger-tools-registry)))
+</tool.toolu_01V6vvFucsZ212KVu2MTc6rS>
+
+### git_commit_message
+
+<tool.toolu_01V6vvFucsZ212KVu2MTc6rS>
+Add debug output to greger-tools-execute for delete-files calls
+</tool.toolu_01V6vvFucsZ212KVu2MTc6rS>
+
+## TOOL RESULT:
+
+ID: toolu_01V6vvFucsZ212KVu2MTc6rS
+
+<tool.toolu_01V6vvFucsZ212KVu2MTc6rS>
+Error executing tool: Original content not found in file: /Users/andreas/projects/greger.el/greger-tools.el -- Try again!
+</tool.toolu_01V6vvFucsZ212KVu2MTc6rS>
+
+## TOOL USE:
+
+Name: read-file
+ID: toolu_01C5zgzkvsHSMKUxXy1ex1Ch
+
+### path
+
+<tool.toolu_01C5zgzkvsHSMKUxXy1ex1Ch>
+greger-tools.el
+</tool.toolu_01C5zgzkvsHSMKUxXy1ex1Ch>
+
+### start_line
+
+<tool.toolu_01C5zgzkvsHSMKUxXy1ex1Ch>
+73
+</tool.toolu_01C5zgzkvsHSMKUxXy1ex1Ch>
+
+### end_line
+
+<tool.toolu_01C5zgzkvsHSMKUxXy1ex1Ch>
+83
+</tool.toolu_01C5zgzkvsHSMKUxXy1ex1Ch>
+
+## TOOL RESULT:
+
+ID: toolu_01C5zgzkvsHSMKUxXy1ex1Ch
+
+<tool.toolu_01C5zgzkvsHSMKUxXy1ex1Ch>
+(defun greger-tools-execute (tool-name args callback buffer &optional metadata)
+  "Execute TOOL-NAME with ARGS and call CALLBACK with (result error).
+If the tool has :pass-buffer set, BUFFER will be passed to the tool function.
+If the tool has :pass-callback set, CALLBACK will be passed to the tool function
+instead of greger-tools-execute calling the callback with the result.
+If the tool has :pass-metadata set, METADATA will be passed to the tool function."
+
+  (let ((tool-def (gethash tool-name greger-tools-registry)))
+    (if tool-def
+        (let ((func (plist-get tool-def :function))
+              (pass-buffer (plist-get tool-def :pass-buffer))
+</tool.toolu_01C5zgzkvsHSMKUxXy1ex1Ch>
+
+## TOOL USE:
+
+Name: str-replace
+ID: toolu_016E7KkNRPjan4gBZtkJrZfu
+
+### file_path
+
+<tool.toolu_016E7KkNRPjan4gBZtkJrZfu>
+greger-tools.el
+</tool.toolu_016E7KkNRPjan4gBZtkJrZfu>
+
+### original_content
+
+<tool.toolu_016E7KkNRPjan4gBZtkJrZfu>
+(defun greger-tools-execute (tool-name args callback buffer &optional metadata)
+  "Execute TOOL-NAME with ARGS and call CALLBACK with (result error).
+If the tool has :pass-buffer set, BUFFER will be passed to the tool function.
+If the tool has :pass-callback set, CALLBACK will be passed to the tool function
+instead of greger-tools-execute calling the callback with the result.
+If the tool has :pass-metadata set, METADATA will be passed to the tool function."
+
+  (let ((tool-def (gethash tool-name greger-tools-registry)))
+</tool.toolu_016E7KkNRPjan4gBZtkJrZfu>
+
+### new_content
+
+<tool.toolu_016E7KkNRPjan4gBZtkJrZfu>
+(defun greger-tools-execute (tool-name args callback buffer &optional metadata)
+  "Execute TOOL-NAME with ARGS and call CALLBACK with (result error).
+If the tool has :pass-buffer set, BUFFER will be passed to the tool function.
+If the tool has :pass-callback set, CALLBACK will be passed to the tool function
+instead of greger-tools-execute calling the callback with the result.
+If the tool has :pass-metadata set, METADATA will be passed to the tool function."
+  ;; Debug: return early for delete-files to show what we receive
+  (when (string= tool-name "delete-files")
+    (let ((debug-info (format "DEBUG greger-tools-execute:\n  tool-name: %s\n  args type: %s\n  args value: %S\n"
+                              tool-name (type-of args) args)))
+      (funcall callback debug-info nil)
+      (return-from greger-tools-execute)))
+
+  (let ((tool-def (gethash tool-name greger-tools-registry)))
+</tool.toolu_016E7KkNRPjan4gBZtkJrZfu>
+
+### git_commit_message
+
+<tool.toolu_016E7KkNRPjan4gBZtkJrZfu>
+Add debug output to greger-tools-execute for delete-files calls
+</tool.toolu_016E7KkNRPjan4gBZtkJrZfu>
+
+<!-- TOOL_RESULT_PLACEHOLDER_toolu_016E7KkNRPjan4gBZtkJrZfu -->
