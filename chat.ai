@@ -2583,4 +2583,171 @@ test/test-greger-stdlib.el
 Add comprehensive tests for greger-stdlib--read-file function
 </tool.toolu_01H3refGEWk9fHbcNf2iWv94>
 
-<!-- TOOL_RESULT_PLACEHOLDER_toolu_01H3refGEWk9fHbcNf2iWv94 -->
+## TOOL RESULT:
+
+ID: toolu_01H3refGEWk9fHbcNf2iWv94
+
+<tool.toolu_01H3refGEWk9fHbcNf2iWv94>
+Successfully replaced content in /Users/andreas/projects/greger.el/test/test-greger-stdlib.el. Successfully staged 2 file(s) and committed with message: Add comprehensive tests for greger-stdlib--read-file function
+</tool.toolu_01H3refGEWk9fHbcNf2iWv94>
+
+
+## ASSISTANT:
+
+Now let's run the tests to make sure they pass:
+
+## TOOL USE:
+
+Name: shell-command
+ID: toolu_01Rw831EsK59gkUeZ8Gz8Vrf
+
+### command
+
+<tool.toolu_01Rw831EsK59gkUeZ8Gz8Vrf>
+bash script/test --verbose --file test/test-greger-stdlib.el
+</tool.toolu_01Rw831EsK59gkUeZ8Gz8Vrf>
+
+## TOOL RESULT:
+
+ID: toolu_01Rw831EsK59gkUeZ8Gz8Vrf
+
+<tool.toolu_01Rw831EsK59gkUeZ8Gz8Vrf>
+Command failed with exit code 1: [0;34mRunning ERT tests for greger package...[0m
+
+Running tests in [1;33mtest/test-greger-stdlib.el[0m (verbose mode)...
+Loading /Users/andreas/projects/greger.el/greger.el (source)...
+Source file ‘/opt/homebrew/Cellar/emacs-plus@29/29.0.90/share/emacs/29.0.91/lisp/net/eww.el’ newer than byte-compiled file; using older file
+Loading /Users/andreas/projects/greger.el/greger-parser.el (source)...
+Loading /Users/andreas/projects/greger.el/greger-stdlib.el (source)...
+Loading /Users/andreas/projects/greger.el/greger-tools.el (source)...
+Loading /Users/andreas/projects/greger.el/greger-client.el (source)...
+Loading /Users/andreas/projects/greger.el/greger-web.el (source)...
+Loading /Users/andreas/projects/greger.el/test/test-greger-stdlib.el (source)...
+Running 24 tests (2025-06-04 00:41:21+0200, selector ‘t’)
+   passed   1/24  greger-test-count-paren-balance (0.000378 sec)
+   passed   2/24  greger-test-delete-files-basic (0.003124 sec)
+   passed   3/24  greger-test-delete-files-directory (0.000588 sec)
+   passed   4/24  greger-test-delete-files-git-tracking (0.000593 sec)
+   passed   5/24  greger-test-delete-files-invalid-input (0.000049 sec)
+   passed   6/24  greger-test-delete-files-list-input (0.000699 sec)
+   passed   7/24  greger-test-delete-files-nonexistent-file (0.000214 sec)
+   passed   8/24  greger-test-delete-files-not-git-tracked (0.000990 sec)
+Test greger-test-read-file-basic backtrace:
+  signal(ert-test-failed (((should (string= result "1: Line 1\n2: Line
+  ert-fail(((should (string= result "1: Line 1\n2: Line 2\n3: Line 3\n
+  (if (unwind-protect (setq value-590 (apply fn-588 args-589)) (setq f
+  (let (form-description-592) (if (unwind-protect (setq value-590 (app
+  (let ((value-590 'ert-form-evaluation-aborted-591)) (let (form-descr
+  (let* ((fn-588 #'string=) (args-589 (condition-case err (let ((signa
+  (let ((result (greger-stdlib--read-file test-file t))) (let* ((fn-58
+  (progn (let ((temp-buffer (generate-new-buffer " *temp*" t))) (save-
+  (unwind-protect (progn (let ((temp-buffer (generate-new-buffer " *te
+  (let ((test-file (make-temp-file "greger-test-read-file"))) (unwind-
+  (closure (t) nil (let ((test-file (make-temp-file "greger-test-read-
+  ert--run-test-internal(#s(ert--test-execution-info :test #s(ert-test
+  ert-run-test(#s(ert-test :name greger-test-read-file-basic :document
+  ert-run-or-rerun-test(#s(ert--stats :selector t :tests ... :test-map
+  ert-run-tests(t #f(compiled-function (event-type &rest event-args) #
+  ert-run-tests-batch(t)
+  ert-run-tests-batch-and-exit(t)
+  (let ((ert-quiet nil)) (ert-run-tests-batch-and-exit t))
+  (progn (setq debug-on-error t) (add-to-list 'load-path ".") (require
+  eval((progn (setq debug-on-error t) (add-to-list 'load-path ".") (re
+  command-line-1(("--eval" "(progn\n                  (setq debug-on-e
+  command-line()
+  normal-top-level()
+Test greger-test-read-file-basic condition:
+    (ert-test-failed
+     ((should
+       (string= result "1: Line 1\n2: Line 2\n3: Line 3\n"))
+      :form
+      (string= "1: Line 1\n2: Line 2\n3: Line 3\n4: " "1: Line 1\n2: Line 2\n3: Line 3\n")
+      :value nil :explanation
+      (arrays-of-different-length 33 30 "1: Line 1\n2: Line 2\n3: Line 3\n4: " "1: Line 1\n2: Line 2\n3: Line 3\n" first-mismatch-at 30)))
+   FAILED   9/24  greger-test-read-file-basic (0.118817 sec) at test/test-greger-stdlib.el:608
+   passed  10/24  greger-test-read-file-error-cases (0.000182 sec)
+Test greger-test-read-file-line-number-formatting backtrace:
+  signal(ert-test-failed (((should (string-match-p "^12: Line 12\n" re
+  ert-fail(((should (string-match-p "^12: Line 12\n" result)) :form (s
+  (if (unwind-protect (setq value-625 (apply fn-623 args-624)) (setq f
+  (let (form-description-627) (if (unwind-protect (setq value-625 (app
+  (let ((value-625 'ert-form-evaluation-aborted-626)) (let (form-descr
+  (let* ((fn-623 #'string-match-p) (args-624 (condition-case err (let
+  (let ((result (greger-stdlib--read-file test-file t 8 12))) (let* ((
+  (progn (let ((temp-buffer (generate-new-buffer " *temp*" t))) (save-
+  (unwind-protect (progn (let ((temp-buffer (generate-new-buffer " *te
+  (let ((test-file (make-temp-file "greger-test-read-file-padding")))
+  (closure (t) nil (let ((test-file (make-temp-file "greger-test-read-
+  ert--run-test-internal(#s(ert--test-execution-info :test #s(ert-test
+  ert-run-test(#s(ert-test :name greger-test-read-file-line-number-for
+  ert-run-or-rerun-test(#s(ert--stats :selector t :tests ... :test-map
+  ert-run-tests(t #f(compiled-function (event-type &rest event-args) #
+  ert-run-tests-batch(t)
+  ert-run-tests-batch-and-exit(t)
+  (let ((ert-quiet nil)) (ert-run-tests-batch-and-exit t))
+  (progn (setq debug-on-error t) (add-to-list 'load-path ".") (require
+  eval((progn (setq debug-on-error t) (add-to-list 'load-path ".") (re
+  command-line-1(("--eval" "(progn\n                  (setq debug-on-e
+  command-line()
+  normal-top-level()
+Test greger-test-read-file-line-number-formatting condition:
+    (ert-test-failed
+     ((should
+       (string-match-p "^12: Line 12\n" result))
+      :form
+      (string-match-p "^12: Line 12\n" " 8: Line 8\n 9: Line 9\n10: Line 10\n11: Line 11\n12: Line 12")
+      :value nil))
+   FAILED  11/24  greger-test-read-file-line-number-formatting (0.004726 sec) at test/test-greger-stdlib.el:642
+   passed  12/24  greger-test-read-webpage-invalid-url (0.000165 sec)
+   passed  13/24  greger-test-read-webpage-network-error (0.000059 sec)
+   passed  14/24  greger-test-read-webpage-valid-url (0.734857 sec)
+   passed  15/24  greger-test-shell-command-command-failure (0.117703 sec)
+   passed  16/24  greger-test-shell-command-no-metadata-still-prompts (0.110741 sec)
+   passed  17/24  greger-test-shell-command-permission-denied (0.000955 sec)
+   passed  18/24  greger-test-shell-command-safe-commands (0.114493 sec)
+   passed  19/24  greger-test-shell-command-simple (0.115789 sec)
+   passed  20/24  greger-test-shell-command-unsafe-commands-with-metadata (0.110396 sec)
+   passed  21/24  greger-test-shell-command-with-pipe (0.115080 sec)
+   passed  22/24  greger-test-str-replace-non-el-files-skip-paren-check (0.009985 sec)
+   passed  23/24  greger-test-str-replace-paren-balance-check (0.006023 sec)
+   passed  24/24  greger-test-web-url-validation (0.000073 sec)
+
+Ran 24 tests, 22 results as expected, 2 unexpected (2025-06-04 00:41:22+0200, 1.824750 sec)
+
+2 unexpected results:
+   FAILED  greger-test-read-file-basic
+   FAILED  greger-test-read-file-line-number-formatting
+
+
+</tool.toolu_01Rw831EsK59gkUeZ8Gz8Vrf>
+
+## ASSISTANT:
+
+There are issues with my tests. Let me debug this by testing the function manually first:
+
+## TOOL USE:
+
+Name: write-new-file
+ID: toolu_01YJwfFguvnHJc59mufvv1L9
+
+### file_path
+
+<tool.toolu_01YJwfFguvnHJc59mufvv1L9>
+test-read-file.txt
+</tool.toolu_01YJwfFguvnHJc59mufvv1L9>
+
+### contents
+
+<tool.toolu_01YJwfFguvnHJc59mufvv1L9>
+Line 1
+Line 2
+Line 3
+</tool.toolu_01YJwfFguvnHJc59mufvv1L9>
+
+### git_commit_message
+
+<tool.toolu_01YJwfFguvnHJc59mufvv1L9>
+Add temporary test file for debugging read-file function
+</tool.toolu_01YJwfFguvnHJc59mufvv1L9>
+
+<!-- TOOL_RESULT_PLACEHOLDER_toolu_01YJwfFguvnHJc59mufvv1L9 -->
