@@ -432,7 +432,7 @@
         (callback-called nil))
 
     ;; Test a simple command that should succeed
-    (greger-tools--run-async-subprocess
+    (greger-stdlib--run-async-subprocess
      "echo" '("hello world") nil
      (lambda (output err)
        (setq result output error err callback-called t)))

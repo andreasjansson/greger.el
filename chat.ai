@@ -3808,4 +3808,118 @@ emacs --batch -Q \
 Add lsp-mode and lsp-pyright installation to verbose test function
 </tool.toolu_01EDsFbiuL5bdk9EfuHfEtZg>
 
-<!-- TOOL_RESULT_PLACEHOLDER_toolu_01EDsFbiuL5bdk9EfuHfEtZg -->
+## TOOL RESULT:
+
+ID: toolu_01EDsFbiuL5bdk9EfuHfEtZg
+
+<tool.toolu_01EDsFbiuL5bdk9EfuHfEtZg>
+Successfully replaced content in /Users/andreas/projects/greger.el/script/test. Successfully staged 2 file(s) and committed with message: Add lsp-mode and lsp-pyright installation to verbose test function
+</tool.toolu_01EDsFbiuL5bdk9EfuHfEtZg>
+
+
+## ASSISTANT:
+
+Now I also need to fix the issue with the tools test file. It's calling `greger-tools--run-async-subprocess` but that function is actually `greger-stdlib--run-async-subprocess`. Let me check and fix that:
+
+## TOOL USE:
+
+Name: read-file
+ID: toolu_014gZWWVQqG7eV85AnU3Abiq
+
+### path
+
+<tool.toolu_014gZWWVQqG7eV85AnU3Abiq>
+test-greger-tools.el
+</tool.toolu_014gZWWVQqG7eV85AnU3Abiq>
+
+### start_line
+
+<tool.toolu_014gZWWVQqG7eV85AnU3Abiq>
+420
+</tool.toolu_014gZWWVQqG7eV85AnU3Abiq>
+
+### end_line
+
+<tool.toolu_014gZWWVQqG7eV85AnU3Abiq>
+435
+</tool.toolu_014gZWWVQqG7eV85AnU3Abiq>
+
+## TOOL RESULT:
+
+ID: toolu_014gZWWVQqG7eV85AnU3Abiq
+
+<tool.toolu_014gZWWVQqG7eV85AnU3Abiq>
+      (should (string= "message: test, buffer: *test-callback-buffer*" result))
+      (should (null error))))
+
+  ;; Clean up
+  (remhash "test-normal-callback" greger-tools-registry)
+  (remhash "test-pass-callback" greger-tools-registry)
+  (remhash "test-callback-with-buffer" greger-tools-registry))
+
+(ert-deftest greger-tools-test-async-subprocess-utility ()
+  "Test the shared async subprocess utility function."
+  (let ((result nil)
+        (error nil)
+        (callback-called nil))
+
+    ;; Test a simple command that should succeed
+    (greger-tools--run-async-subprocess
+</tool.toolu_014gZWWVQqG7eV85AnU3Abiq>
+
+## TOOL USE:
+
+Name: ripgrep
+ID: toolu_01JZYw6UwdQupRpxHzNV4Ait
+
+### pattern
+
+<tool.toolu_01JZYw6UwdQupRpxHzNV4Ait>
+greger-tools--run-async-subprocess
+</tool.toolu_01JZYw6UwdQupRpxHzNV4Ait>
+
+### path
+
+<tool.toolu_01JZYw6UwdQupRpxHzNV4Ait>
+test-greger-tools.el
+</tool.toolu_01JZYw6UwdQupRpxHzNV4Ait>
+
+## TOOL RESULT:
+
+ID: toolu_01JZYw6UwdQupRpxHzNV4Ait
+
+<tool.toolu_01JZYw6UwdQupRpxHzNV4Ait>
+435:    (greger-tools--run-async-subprocess
+
+</tool.toolu_01JZYw6UwdQupRpxHzNV4Ait>
+
+## TOOL USE:
+
+Name: str-replace
+ID: toolu_01XPtikuvXoiWxMnWfPCPWBd
+
+### file_path
+
+<tool.toolu_01XPtikuvXoiWxMnWfPCPWBd>
+test-greger-tools.el
+</tool.toolu_01XPtikuvXoiWxMnWfPCPWBd>
+
+### original_content
+
+<tool.toolu_01XPtikuvXoiWxMnWfPCPWBd>
+greger-tools--run-async-subprocess
+</tool.toolu_01XPtikuvXoiWxMnWfPCPWBd>
+
+### new_content
+
+<tool.toolu_01XPtikuvXoiWxMnWfPCPWBd>
+greger-stdlib--run-async-subprocess
+</tool.toolu_01XPtikuvXoiWxMnWfPCPWBd>
+
+### git_commit_message
+
+<tool.toolu_01XPtikuvXoiWxMnWfPCPWBd>
+Fix function name from greger-tools--run-async-subprocess to greger-stdlib--run-async-subprocess
+</tool.toolu_01XPtikuvXoiWxMnWfPCPWBd>
+
+<!-- TOOL_RESULT_PLACEHOLDER_toolu_01XPtikuvXoiWxMnWfPCPWBd -->
