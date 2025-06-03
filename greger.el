@@ -655,7 +655,9 @@ TOOL-ID is the identifier of the tool section to toggle."
                       (remove indicator-overlay greger-tool-overlays)))))
 
 (defun greger--collapse-tool-section (overlay tool-id)
-  "Collapse the tool section by making OVERLAY invisible."
+  "Collapse the tool section by making OVERLAY invisible.
+OVERLAY is the overlay to hide.
+TOOL-ID is the tool identifier."
   (overlay-put overlay 'invisible 'greger-tool-section)
   (overlay-put overlay 'greger-collapsed t)
 
