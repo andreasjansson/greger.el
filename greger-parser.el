@@ -1032,7 +1032,7 @@ Returns either a system message, metadata, or both."
    ((stringp value) value)
    ((numberp value) (number-to-string value))
    ((eq value t) "true")
-   ((eq value nil) "false")
+   ((null value) "false")
    ((vectorp value) (json-encode value))
    ((listp value) (json-encode value))
    (t (format "%s" value))))
