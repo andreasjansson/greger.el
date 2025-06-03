@@ -328,9 +328,8 @@ Example of incoming data json (one data-json per line):
                 (condition-case nil
                     (if (string-empty-p input-str)
                         (setf (alist-get 'input block) '())
-                      (let ((parsed-input (json-read-from-string input-str)))
-                        (message "[DEBUG] greger-client parsed tool input: %S -> %S" input-str parsed-input)
-                        (setf (alist-get 'input block) parsed-input)))
+                      (setf (alist-get 'input block)
+                            (json-read-from-string input-str)))
                   (error
                    (setf (alist-get 'input block) '()))))))))))))
 
