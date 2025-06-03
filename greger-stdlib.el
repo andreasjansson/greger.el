@@ -755,10 +755,10 @@ If BUFFER is provided, it will be staged and committed along with the modified f
 GIT-COMMIT-MESSAGE will be used for the git commit.
 If BUFFER is provided, it will be staged and committed along with the file."
   (unless (stringp file-path)
-    (error "file_path must be a string"))
+    (error "File_path must be a string"))
 
   (unless (stringp contents)
-    (error "contents must be a string"))
+    (error "Contents must be a string"))
 
   (unless (stringp git-commit-message)
     (error "git_commit_message must be a string"))
