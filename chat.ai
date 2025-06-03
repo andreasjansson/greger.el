@@ -4,6 +4,7 @@
 <safe-shell-commands>
 bash script/test
 bash script/test --verbose --file test/test-greger-stdlib.el
+bash script/test --verbose --file test/test-greger-tools.el
 </safe-shell-commands>
 
 ## USER:
@@ -9040,4 +9041,202 @@ ID: toolu_01U7j9e4ZfamNhiL1WvJgPo8
 Delete multiple test files
 </tool.toolu_01U7j9e4ZfamNhiL1WvJgPo8>
 
-<!-- TOOL_RESULT_PLACEHOLDER_toolu_01U7j9e4ZfamNhiL1WvJgPo8 -->
+## TOOL RESULT:
+
+ID: toolu_01U7j9e4ZfamNhiL1WvJgPo8
+
+<tool.toolu_01U7j9e4ZfamNhiL1WvJgPo8>
+Successfully deleted 2 file(s): /Users/andreas/projects/greger.el/test-multi-1.txt, /Users/andreas/projects/greger.el/test-multi-2.txt. Git status: Successfully staged 3 file(s) and committed with message: Delete multiple test files
+</tool.toolu_01U7j9e4ZfamNhiL1WvJgPo8>
+
+
+## ASSISTANT:
+
+Perfect! Now let's test that the eval-elisp-defuns tool also works correctly with the centralized JSON parsing:
+
+## TOOL USE:
+
+Name: eval-elisp-defuns
+ID: toolu_015r23cay6VQ1YYgURN5WDcK
+
+### file_path
+
+<tool.toolu_015r23cay6VQ1YYgURN5WDcK>
+greger-stdlib.el
+</tool.toolu_015r23cay6VQ1YYgURN5WDcK>
+
+### function_names
+
+<tool.toolu_015r23cay6VQ1YYgURN5WDcK>
+["greger-stdlib--delete-files"]
+</tool.toolu_015r23cay6VQ1YYgURN5WDcK>
+
+## TOOL RESULT:
+
+ID: toolu_015r23cay6VQ1YYgURN5WDcK
+
+<tool.toolu_015r23cay6VQ1YYgURN5WDcK>
+Eval successful
+</tool.toolu_015r23cay6VQ1YYgURN5WDcK>
+
+## ASSISTANT:
+
+Excellent! Let's also run the tests to make sure everything still works:
+
+## TOOL USE:
+
+Name: shell-command
+ID: toolu_01DAoYMooiUnBpxhnLEHB57u
+
+### command
+
+<tool.toolu_01DAoYMooiUnBpxhnLEHB57u>
+bash script/test --file test/test-greger-stdlib.el
+</tool.toolu_01DAoYMooiUnBpxhnLEHB57u>
+
+## TOOL RESULT:
+
+ID: toolu_01DAoYMooiUnBpxhnLEHB57u
+
+<tool.toolu_01DAoYMooiUnBpxhnLEHB57u>
+Command executed successfully:
+[0;34mRunning ERT tests for greger package...[0m
+
+Running tests in [1;33mtest/test-greger-stdlib.el[0m...
+  [0;32m✓ All tests passed[0m
+[0;34mTest Summary:[0m
+  Files run: 1
+  Files passed: [0;32m1[0m
+  Files failed: [0;31m0[0m
+[0;32mAll tests passed![0m
+
+</tool.toolu_01DAoYMooiUnBpxhnLEHB57u>
+
+## ASSISTANT:
+
+Perfect!
+
+## Summary
+
+I have successfully implemented the `delete-files` tool and **more importantly**, found and fixed a fundamental issue with JSON array parameter handling in the greger toolset.
+
+### What I accomplished:
+
+1. **Added the `delete-files` tool** with comprehensive functionality:
+   - Deletes multiple files safely
+   - Validates file existence before deletion
+   - Prevents deletion of directories
+   - Integrates with git to stage deletions and commit changes
+   - Handles both git-tracked and non-tracked files appropriately
+
+2. **Fixed the core JSON array parsing issue** by implementing centralized JSON parsing in `greger-tools.el`:
+   - Added `greger-tools--maybe-parse-json-value()` function that checks the tool schema
+   - Modified `greger-tools--extract-function-args()` to automatically parse JSON arrays based on parameter type
+   - This fix benefits ALL tools with array parameters, not just `delete-files`
+
+3. **Added comprehensive tests** covering all edge cases and functionality
+
+### The key insight:
+
+You were absolutely right that individual tool functions shouldn't need to handle JSON parsing. The issue was that the tool execution infrastructure wasn't parsing JSON arrays from the tool interface. Now:
+
+- **Tool functions receive properly parsed data structures** (lists/vectors) regardless of how they're called
+- **The schema-driven approach** means new array parameters automatically get parsed correctly
+- **No more JSON parsing workarounds** needed in individual tool functions
+
+The `delete-files` tool is now fully functional and ready for use, and the JSON parsing fix improves the entire toolset's robustness.
+
+## USER:
+
+Can you update greger-tools--maybe-parse-json-value to also handle booleans and numbers? And write some tests for greger-tools--extract-function-args in test/test-greger-tools.el since it's getting complicated.
+
+## ASSISTANT:
+
+Absolutely! Let me update the JSON parsing function to handle all JSON types and add comprehensive tests.
+
+First, let's update the `greger-tools--maybe-parse-json-value` function:
+
+## TOOL USE:
+
+Name: str-replace
+ID: toolu_013cVW5Yp4shhiyAmqP7XaQE
+
+### file_path
+
+<tool.toolu_013cVW5Yp4shhiyAmqP7XaQE>
+greger-tools.el
+</tool.toolu_013cVW5Yp4shhiyAmqP7XaQE>
+
+### original_content
+
+<tool.toolu_013cVW5Yp4shhiyAmqP7XaQE>
+(defun greger-tools--maybe-parse-json-value (value arg-key tool-def)
+  "Parse VALUE as JSON if ARG-KEY is defined as array type in TOOL-DEF schema."
+  (if (and (stringp value) tool-def)
+      (let* ((schema (plist-get tool-def :schema))
+             (input-schema (alist-get 'input_schema schema))
+             (properties (alist-get 'properties input-schema))
+             (arg-property (alist-get arg-key properties))
+             (param-type (alist-get 'type arg-property)))
+        (if (string= param-type "array")
+            ;; Parse JSON array string
+            (condition-case nil
+                (json-parse-string value :array-type 'list)
+              (error value)) ; Return original value if parsing fails
+          ;; Not an array type, return as-is
+          value))
+    ;; Not a string or no tool-def, return as-is
+    value))
+</tool.toolu_013cVW5Yp4shhiyAmqP7XaQE>
+
+### new_content
+
+<tool.toolu_013cVW5Yp4shhiyAmqP7XaQE>
+(defun greger-tools--maybe-parse-json-value (value arg-key tool-def)
+  "Parse VALUE as JSON if ARG-KEY requires JSON parsing based on TOOL-DEF schema.
+Handles arrays, booleans, and numbers."
+  (if (and (stringp value) tool-def)
+      (let* ((schema (plist-get tool-def :schema))
+             (input-schema (alist-get 'input_schema schema))
+             (properties (alist-get 'properties input-schema))
+             (arg-property (alist-get arg-key properties))
+             (param-type (alist-get 'type arg-property)))
+        (cond
+         ;; Parse JSON array string
+         ((string= param-type "array")
+          (condition-case nil
+              (json-parse-string value :array-type 'list)
+            (error value))) ; Return original value if parsing fails
+
+         ;; Parse boolean strings
+         ((string= param-type "boolean")
+          (cond
+           ((string= value "true") t)
+           ((string= value "false") nil)
+           ((string= value ":json-true") t)
+           ((string= value ":json-false") nil)
+           (t value))) ; Return original if not a recognized boolean
+
+         ;; Parse number strings
+         ((or (string= param-type "integer") (string= param-type "number"))
+          (condition-case nil
+              (if (string-match-p "^-?[0-9]+$" value)
+                  (string-to-number value)
+                (if (string-match-p "^-?[0-9]*\\.[0-9]+$" value)
+                    (string-to-number value)
+                  value)) ; Return original if not a number
+            (error value)))
+
+         ;; For other types (string, object), return as-is
+         (t value)))
+    ;; Not a string or no tool-def, return as-is
+    value))
+</tool.toolu_013cVW5Yp4shhiyAmqP7XaQE>
+
+### git_commit_message
+
+<tool.toolu_013cVW5Yp4shhiyAmqP7XaQE>
+Enhance JSON parsing to handle booleans and numbers
+</tool.toolu_013cVW5Yp4shhiyAmqP7XaQE>
+
+<!-- TOOL_RESULT_PLACEHOLDER_toolu_013cVW5Yp4shhiyAmqP7XaQE -->
