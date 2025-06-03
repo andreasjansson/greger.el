@@ -99,6 +99,17 @@
   :function 'greger-stdlib--rename-file
   :pass-buffer t)
 
+(greger-register-tool "delete-files"
+  :description "Delete the files and if they're tracked in git it should stage the deletion and commit"
+  :properties '((file_paths . ((type . "array")
+                               (items . ((type . "string")))
+                               (description . "List of file paths to delete")))
+                (git_commit_message . ((type . "string")
+                                       (description . "Git commit message for this change"))))
+  :required '("file_paths" "git_commit_message")
+  :function 'greger-stdlib--delete-files
+  :pass-buffer t)
+
 (greger-register-tool "replace-function"
   :description "Replace a function in a Python or Elisp file with new contents. Fast and reliable - only supports 'def function_name' and '(defun function_name ())' forms. Use replace-file for complete file replacement or str-replace for other specific changes."
   :properties '((file_path . ((type . "string")
