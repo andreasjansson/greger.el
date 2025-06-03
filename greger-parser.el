@@ -964,7 +964,7 @@ Returns either a system message, metadata, or both."
      (t ""))))
 
 (defun greger-parser--user-to-markdown (content)
-  "Convert user content to markdown."
+  "Convert user CONTENT to markdown."
   (if (stringp content)
       (concat greger-parser-user-tag "\n\n" content)
     (concat greger-parser-user-tag "\n\n"
