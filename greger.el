@@ -610,7 +610,6 @@ TOOL-ID is the tool identifier."
       ;; Search backwards for opening tag
       (when (re-search-backward "<tool\\.[^>]+>" nil t)
         (let ((open-tag-start (match-beginning 0))
-              (open-tag-end (match-end 0))
               (tag-tool-id (greger--extract-tool-id (match-string 0))))
           ;; Check if we're within this tool section
           (when tag-tool-id
