@@ -1483,10 +1483,14 @@ Hello"))
       ;; Should have both system and user messages
       (should (= 2 (length (plist-get result :messages))))
 
-      ;; Check system message
+      ;; Check system message - should contain both original content and auto-generated safe commands text
       (let ((system-msg (car (plist-get result :messages))))
         (should (string= "system" (alist-get 'role system-msg)))
-        (should (string= "you are a friendly assistant" (alist-get 'content system-msg))))
+        (let ((content (alist-get 'content system-msg)))
+          (should (string-match-p "you are a friendly assistant" content))
+          (should (string-match-p "You can run arbitrary shell commands with the shell-command tool" content))
+          (should (string-match-p "`command1`" content))
+          (should (string-match-p "`command2`" content))))
 
       ;; Check user message
       (let ((user-msg (cadr (plist-get result :messages))))

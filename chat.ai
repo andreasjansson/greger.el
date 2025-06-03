@@ -2328,4 +2328,104 @@ echo hello
 Update safe-shell-commands basic test to expect auto-generated descriptive text
 </tool.toolu_01VzWShxNWLdMupNQnrWcWZi>
 
-<!-- TOOL_RESULT_PLACEHOLDER_toolu_01VzWShxNWLdMupNQnrWcWZi -->
+## TOOL RESULT:
+
+ID: toolu_01VzWShxNWLdMupNQnrWcWZi
+
+<tool.toolu_01VzWShxNWLdMupNQnrWcWZi>
+Successfully replaced content in /Users/andreas/projects/greger.el/test/test-greger-parser.el. Successfully staged 2 file(s) and committed with message: Update safe-shell-commands basic test to expect auto-generated descriptive text
+</tool.toolu_01VzWShxNWLdMupNQnrWcWZi>
+
+
+## TOOL USE:
+
+Name: str-replace
+ID: toolu_01XtaG6RhJqLJs2T1u2uEqTb
+
+### file_path
+
+<tool.toolu_01XtaG6RhJqLJs2T1u2uEqTb>
+test/test-greger-parser.el
+</tool.toolu_01XtaG6RhJqLJs2T1u2uEqTb>
+
+### original_content
+
+<tool.toolu_01XtaG6RhJqLJs2T1u2uEqTb>
+(ert-deftest greger-parser-test-system-content-with-safe-commands-example ()
+  "Test the exact example from the user: system content with safe-shell-commands."
+  (let ((markdown "## SYSTEM:
+
+you are a friendly assistant
+
+<safe-shell-commands>
+command1
+command2
+</safe-shell-commands>
+
+## USER:
+
+Hello"))
+    (let ((result (greger-parser-parse-dialog markdown)))
+      ;; Should have both system and user messages
+      (should (= 2 (length (plist-get result :messages))))
+
+      ;; Check system message
+      (let ((system-msg (car (plist-get result :messages))))
+        (should (string= "system" (alist-get 'role system-msg)))
+        (should (string= "you are a friendly assistant" (alist-get 'content system-msg))))
+
+      ;; Check user message
+      (let ((user-msg (cadr (plist-get result :messages))))
+        (should (string= "user" (alist-get 'role user-msg)))
+        (should (string= "Hello" (alist-get 'content user-msg))))
+
+      ;; Should have metadata with safe shell commands
+      (should (equal '(:safe-shell-commands ("command1" "command2")) (plist-get result :metadata))))))
+</tool.toolu_01XtaG6RhJqLJs2T1u2uEqTb>
+
+### new_content
+
+<tool.toolu_01XtaG6RhJqLJs2T1u2uEqTb>
+(ert-deftest greger-parser-test-system-content-with-safe-commands-example ()
+  "Test the exact example from the user: system content with safe-shell-commands."
+  (let ((markdown "## SYSTEM:
+
+you are a friendly assistant
+
+<safe-shell-commands>
+command1
+command2
+</safe-shell-commands>
+
+## USER:
+
+Hello"))
+    (let ((result (greger-parser-parse-dialog markdown)))
+      ;; Should have both system and user messages
+      (should (= 2 (length (plist-get result :messages))))
+
+      ;; Check system message - should contain both original content and auto-generated safe commands text
+      (let ((system-msg (car (plist-get result :messages))))
+        (should (string= "system" (alist-get 'role system-msg)))
+        (let ((content (alist-get 'content system-msg)))
+          (should (string-match-p "you are a friendly assistant" content))
+          (should (string-match-p "You can run arbitrary shell commands with the shell-command tool" content))
+          (should (string-match-p "`command1`" content))
+          (should (string-match-p "`command2`" content))))
+
+      ;; Check user message
+      (let ((user-msg (cadr (plist-get result :messages))))
+        (should (string= "user" (alist-get 'role user-msg)))
+        (should (string= "Hello" (alist-get 'content user-msg))))
+
+      ;; Should have metadata with safe shell commands
+      (should (equal '(:safe-shell-commands ("command1" "command2")) (plist-get result :metadata))))))
+</tool.toolu_01XtaG6RhJqLJs2T1u2uEqTb>
+
+### git_commit_message
+
+<tool.toolu_01XtaG6RhJqLJs2T1u2uEqTb>
+Update system content with safe commands test to expect combined content
+</tool.toolu_01XtaG6RhJqLJs2T1u2uEqTb>
+
+<!-- TOOL_RESULT_PLACEHOLDER_toolu_01XtaG6RhJqLJs2T1u2uEqTb -->
