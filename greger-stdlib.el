@@ -382,11 +382,7 @@ If END-LINE is specified, stop reading at that line (inclusive, 1-based)."
   "Add line numbers to CONTENT string starting from START-LINE-NUM."
   (let ((lines (split-string content "\n"))
         (line-num start-line-num)
-        (max-width 0)
         result)
-
-    ;; Calculate the width needed for line numbers (based on the highest line number)
-    (setq max-width (length (number-to-string (+ start-line-num (length lines) -1))))
 
     ;; Add line numbers to each line
     (dolist (line lines)
