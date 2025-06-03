@@ -815,7 +815,7 @@ Returns either a system message, metadata, or both."
   (or (greger-parser--parse-tool-value state) ""))
 
 (defun greger-parser--normalize-tool-content (content)
-  "Normalize tool content by trimming outer newlines."
+  "Normalize tool CONTENT by trimming outer newlines."
   (if (string-empty-p content)
       ""
     (let ((result content))
