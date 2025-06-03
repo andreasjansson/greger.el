@@ -1,8 +1,8 @@
-;;; test-greger-agent.el --- Tests for greger agent functionality -*- lexical-binding: t -*-
+;;; test-greger.el --- Tests for greger functionality -*- lexical-binding: t -*-
 
 ;;; Commentary:
 ;;
-;; This file contains tests for the greger agent functionality.
+;; This file contains tests for the greger functionality (including agent capabilities).
 ;;
 ;; Testing Approach:
 ;; - Each test has explicit "expected" content that defines the exact buffer state after execution
@@ -18,18 +18,18 @@
 ;; - This makes tests more readable and maintainable by clearly showing what the expected output should be
 
 (require 'ert)
-(require 'greger-agent)
+(require 'greger)
 (require 'greger-tools)
 (require 'greger-parser)
 
-(ert-deftest greger-agent-test-tool-placeholder ()
+(ert-deftest greger-test-tool-placeholder ()
   "Test the tool placeholder helper function."
   (let ((expected1 "<!-- TOOL_RESULT_PLACEHOLDER_test123 -->")
         (expected2 "<!-- TOOL_RESULT_PLACEHOLDER_tool_abc_def -->"))
-    (should (string= expected1 (greger-agent--tool-placeholder "test123")))
-    (should (string= expected2 (greger-agent--tool-placeholder "tool_abc_def")))))
+    (should (string= expected1 (greger--tool-placeholder "test123")))
+    (should (string= expected2 (greger--tool-placeholder "tool_abc_def")))))
 
-(ert-deftest greger-agent-test-single-tool-execution ()
+(ert-deftest greger-test-single-tool-execution ()
   "Test execution of a single tool with callback."
   (let ((test-completed nil))
 
@@ -47,7 +47,7 @@
 
     ;; Create test buffer
     (with-temp-buffer
-      (let ((agent-state (make-greger-agent-state
+      (let ((agent-state (make-greger-state
                           :current-iteration 0
                           :chat-buffer (current-buffer)
                           :directory default-directory
@@ -77,13 +77,13 @@ ID: test_001
 Tool executed: Hello World
 </tool.test_001>"))
 
-        ;; Mock greger-agent--run-agent-loop to capture completion
-        (cl-letf (((symbol-function 'greger-agent--run-agent-loop)
+        ;; Mock greger--run-agent-loop to capture completion
+        (cl-letf (((symbol-function 'greger--run-agent-loop)
                    (lambda (state)
                      (setq test-completed t))))
 
           ;; Execute tools
-          (greger-agent--execute-tools tool-calls agent-state)
+          (greger--execute-tools tool-calls agent-state)
 
           ;; Check that the function completed
           (should test-completed)
@@ -95,7 +95,7 @@ Tool executed: Hello World
     ;; Clean up
     (remhash "test-simple" greger-tools-registry)))
 
-(ert-deftest greger-agent-test-multiple-tools-parallel ()
+(ert-deftest greger-test-multiple-tools-parallel ()
   "Test execution of multiple tools in parallel."
   (let ((tools-completed nil))
 
@@ -123,7 +123,7 @@ Tool executed: Hello World
 
     ;; Create test buffer
     (with-temp-buffer
-      (let ((agent-state (make-greger-agent-state
+      (let ((agent-state (make-greger-state
                           :current-iteration 0
                           :chat-buffer (current-buffer)
                           :directory default-directory :metadata nil))
@@ -176,13 +176,13 @@ ID: test_b
 Tool B result: input-b
 </tool.test_b>"))
 
-        ;; Mock greger-agent--run-agent-loop to capture completion
-        (cl-letf (((symbol-function 'greger-agent--run-agent-loop)
+        ;; Mock greger--run-agent-loop to capture completion
+        (cl-letf (((symbol-function 'greger--run-agent-loop)
                    (lambda (state)
                      (setq tools-completed t))))
 
           ;; Execute tools
-          (greger-agent--execute-tools tool-calls agent-state)
+          (greger--execute-tools tool-calls agent-state)
 
           ;; Check that all tools completed
           (should tools-completed)
@@ -195,7 +195,7 @@ Tool B result: input-b
     (remhash "test-tool-a" greger-tools-registry)
     (remhash "test-tool-b" greger-tools-registry)))
 
-(ert-deftest greger-agent-test-tool-error-handling ()
+(ert-deftest greger-test-tool-error-handling ()
   "Test that tool errors are properly handled and displayed."
   (let ((test-completed nil))
 
@@ -213,7 +213,7 @@ Tool B result: input-b
 
     ;; Create test buffer
     (with-temp-buffer
-      (let ((agent-state (make-greger-agent-state
+      (let ((agent-state (make-greger-state
                           :current-iteration 0
                           :chat-buffer (current-buffer)
                           :directory default-directory :metadata nil))
@@ -242,13 +242,13 @@ ID: error_test
 Error executing tool: Simulated tool error: bad-input
 </tool.error_test>"))
 
-        ;; Mock greger-agent--run-agent-loop to capture completion
-        (cl-letf (((symbol-function 'greger-agent--run-agent-loop)
+        ;; Mock greger--run-agent-loop to capture completion
+        (cl-letf (((symbol-function 'greger--run-agent-loop)
                    (lambda (state)
                      (setq test-completed t))))
 
           ;; Execute tools
-          (greger-agent--execute-tools tool-calls agent-state)
+          (greger--execute-tools tool-calls agent-state)
 
           ;; Check that execution completed despite error
           (should test-completed)
@@ -260,7 +260,7 @@ Error executing tool: Simulated tool error: bad-input
     ;; Clean up
     (remhash "test-error" greger-tools-registry)))
 
-(ert-deftest greger-agent-test-tool-execution-with-existing-content ()
+(ert-deftest greger-test-tool-execution-with-existing-content ()
   "Test tool execution when buffer already has content."
   (let ((test-completed nil))
 
@@ -280,7 +280,7 @@ Error executing tool: Simulated tool error: bad-input
     (with-temp-buffer
       (insert "Existing content in buffer")
 
-      (let ((agent-state (make-greger-agent-state
+      (let ((agent-state (make-greger-state
                           :current-iteration 0
                           :chat-buffer (current-buffer)
                           :directory default-directory :metadata nil))
@@ -309,13 +309,13 @@ ID: content_test
 Processed: test-data
 </tool.content_test>"))
 
-        ;; Mock greger-agent--run-agent-loop to capture completion
-        (cl-letf (((symbol-function 'greger-agent--run-agent-loop)
+        ;; Mock greger--run-agent-loop to capture completion
+        (cl-letf (((symbol-function 'greger--run-agent-loop)
                    (lambda (state)
                      (setq test-completed t))))
 
           ;; Execute tools
-          (greger-agent--execute-tools tool-calls agent-state)
+          (greger--execute-tools tool-calls agent-state)
 
           ;; Check that execution completed
           (should test-completed)
@@ -327,13 +327,13 @@ Processed: test-data
     ;; Clean up
     (remhash "test-content" greger-tools-registry)))
 
-(ert-deftest greger-agent-test-unknown-tool-error ()
+(ert-deftest greger-test-unknown-tool-error ()
   "Test handling of unknown tool execution."
   (let ((test-completed nil))
 
     ;; Create test buffer
     (with-temp-buffer
-      (let ((agent-state (make-greger-agent-state
+      (let ((agent-state (make-greger-state
                           :current-iteration 0
                           :chat-buffer (current-buffer)
                           :directory default-directory :metadata nil))
@@ -362,13 +362,13 @@ ID: unknown_test
 Unknown tool: nonexistent-tool
 </tool.unknown_test>"))
 
-        ;; Mock greger-agent--run-agent-loop to capture completion
-        (cl-letf (((symbol-function 'greger-agent--run-agent-loop)
+        ;; Mock greger--run-agent-loop to capture completion
+        (cl-letf (((symbol-function 'greger--run-agent-loop)
                    (lambda (state)
                      (setq test-completed t))))
 
           ;; Execute tools
-          (greger-agent--execute-tools tool-calls agent-state)
+          (greger--execute-tools tool-calls agent-state)
 
           ;; Check that execution completed despite unknown tool
           (should test-completed)
@@ -377,7 +377,7 @@ Unknown tool: nonexistent-tool
           (let ((actual-content (buffer-substring-no-properties (point-min) (point-max))))
             (should (string= expected-error-content actual-content))))))))
 
-(ert-deftest greger-agent-test-exact-tool-output-formatting ()
+(ert-deftest greger-test-exact-tool-output-formatting ()
   "Test exact tool output formatting with multiple scenarios."
   (let ((test-completed nil))
 
@@ -395,7 +395,7 @@ Unknown tool: nonexistent-tool
 
     ;; Create test buffer
     (with-temp-buffer
-      (let ((agent-state (make-greger-agent-state
+      (let ((agent-state (make-greger-state
                           :current-iteration 0
                           :chat-buffer (current-buffer)
                           :directory default-directory :metadata nil))
@@ -426,13 +426,13 @@ Line 2: More content
 Line 3: End
 </tool.multiline_test>"))
 
-        ;; Mock greger-agent--run-agent-loop to capture completion
-        (cl-letf (((symbol-function 'greger-agent--run-agent-loop)
+        ;; Mock greger--run-agent-loop to capture completion
+        (cl-letf (((symbol-function 'greger--run-agent-loop)
                    (lambda (state)
                      (setq test-completed t))))
 
           ;; Execute tools
-          (greger-agent--execute-tools tool-calls agent-state)
+          (greger--execute-tools tool-calls agent-state)
 
           ;; Check that execution completed
           (should test-completed)
@@ -444,7 +444,7 @@ Line 3: End
     ;; Clean up
     (remhash "test-multiline" greger-tools-registry)))
 
-(ert-deftest greger-agent-test-simple-string-comparison ()
+(ert-deftest greger-test-simple-string-comparison ()
   "Test simple tool execution with clear before/after string comparison."
   (let ((test-completed nil))
 
@@ -464,7 +464,7 @@ Line 3: End
     (with-temp-buffer
       ;; Initial buffer state (empty)
       (let ((initial-content "")
-            (agent-state (make-greger-agent-state
+            (agent-state (make-greger-state
                           :current-iteration 0
                           :chat-buffer (current-buffer)
                           :directory default-directory :metadata nil))
@@ -497,13 +497,13 @@ Echo: hello world
         ;; Verify initial state
         (should (string= initial-content (buffer-substring-no-properties (point-min) (point-max))))
 
-        ;; Mock greger-agent--run-agent-loop to capture completion
-        (cl-letf (((symbol-function 'greger-agent--run-agent-loop)
+        ;; Mock greger--run-agent-loop to capture completion
+        (cl-letf (((symbol-function 'greger--run-agent-loop)
                    (lambda (state)
                      (setq test-completed t))))
 
           ;; Execute tools
-          (greger-agent--execute-tools tool-calls agent-state)
+          (greger--execute-tools tool-calls agent-state)
 
           ;; Verify completion
           (should test-completed)
@@ -515,6 +515,6 @@ Echo: hello world
     ;; Clean up
     (remhash "test-echo" greger-tools-registry)))
 
-(provide 'test-greger-agent)
+(provide 'test-greger)
 
-;;; test-greger-agent.el ends here
+;;; test-greger.el ends here

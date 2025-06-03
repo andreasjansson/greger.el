@@ -14,11 +14,13 @@ NC='\033[0m' # No Color
 
 # Test files to run
 TEST_FILES=(
-    "test-greger-agent.el"
-    "test-greger-parser.el"
-    "test-greger-stdlib.el"
-    "test-greger-lib-lsp.el"
-    "test-greger-tools.el"
+    "test/test-greger.el"
+    "test/test-greger-parser.el"
+    "test/test-greger-stdlib.el"
+    "test/test-greger-lib-lsp.el"
+    "test/test-greger-tools.el"
+    "test/test-greger-client.el"
+    "test/test-end-to-end.el"
 )
 
 echo -e "${BLUE}Running ERT tests for greger package...${NC}"
@@ -56,16 +58,11 @@ run_test_file() {
                   (require 'cl-lib)
                   ;; Load main greger files
                   (load-file \"greger.el\")
-                  (load-file \"greger-agent.el\")
                   (load-file \"greger-parser.el\")
                   (load-file \"greger-stdlib.el\")
                   (load-file \"greger-lib-lsp.el\")
                   (load-file \"greger-tools.el\")
-                  (load-file \"greger-stream.el\")
-                  (load-file \"greger-providers.el\")
-                  (load-file \"greger-provider-claude.el\")
-                  (load-file \"greger-provider-openai.el\")
-                  (load-file \"greger-provider-google.el\")
+                  (load-file \"greger-client.el\")
                   (load-file \"greger-web.el\")
                   ;; Load test file
                   (load-file \"$test_file\")
@@ -106,16 +103,11 @@ run_test_file_verbose() {
                   (require 'cl-lib)
                   ;; Load main greger files
                   (load-file \"greger.el\")
-                  (load-file \"greger-agent.el\")
                   (load-file \"greger-parser.el\")
                   (load-file \"greger-stdlib.el\")
                   (load-file \"greger-lib-lsp.el\")
                   (load-file \"greger-tools.el\")
-                  (load-file \"greger-stream.el\")
-                  (load-file \"greger-providers.el\")
-                  (load-file \"greger-provider-claude.el\")
-                  (load-file \"greger-provider-openai.el\")
-                  (load-file \"greger-provider-google.el\")
+                  (load-file \"greger-client.el\")
                   (load-file \"greger-web.el\")
                   ;; Load test file
                   (load-file \"$test_file\")
