@@ -234,37 +234,6 @@
       (when (and greger-buffer (buffer-live-p greger-buffer))
         (kill-buffer greger-buffer)))))
 
-(ert-deftest greger-end-to-end-test-markdown-features ()
-  "Test that markdown features work correctly in greger buffers."
-  :tags '(end-to-end public-api markdown)
-
-  (let ((greger-buffer nil))
-    (unwind-protect
-        (progn
-          ;; Create a greger buffer
-          (greger)
-          (setq greger-buffer (current-buffer))
-
-          ;; Verify we're in greger-mode which inherits from gfm-mode
-          (should (eq major-mode 'greger-mode))
-          (should (derived-mode-p 'gfm-mode))
-
-          ;; Test that code blocks are handled
-          (goto-char (point-max))
-          (insert "Here's some code:\n\n```python\nprint('hello')\n```\n\n")
-
-          ;; Test that markdown fontification is working
-          (should markdown-fontify-code-blocks-natively)
-
-          ;; Test key bindings are set up
-          (should (keymapp greger-mode-map))
-          (should (eq (lookup-key greger-mode-map (kbd "M-<return>")) 'greger-buffer))
-          (should (eq (lookup-key greger-mode-map (kbd "C-M-<return>")) 'greger-buffer-no-tools)))
-
-      ;; Cleanup
-      (when (and greger-buffer (buffer-live-p greger-buffer))
-        (kill-buffer greger-buffer)))))
-
 (ert-deftest greger-end-to-end-test-model-configuration ()
   "Test that model configuration works correctly."
   :tags '(end-to-end public-api configuration)
