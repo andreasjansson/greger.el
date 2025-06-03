@@ -2136,4 +2136,338 @@ greger.el
 Update debug function to use greger-client instead of old provider system
 </tool.toolu_018sdoLi1gKsDuURrpQTUM4S>
 
-<!-- TOOL_RESULT_PLACEHOLDER_toolu_018sdoLi1gKsDuURrpQTUM4S -->
+## TOOL RESULT:
+
+ID: toolu_018sdoLi1gKsDuURrpQTUM4S
+
+<tool.toolu_018sdoLi1gKsDuURrpQTUM4S>
+Successfully replaced content in /Users/andreas/projects/greger.el/greger.el. Successfully staged 2 file(s) and committed with message: Update debug function to use greger-client instead of old provider system
+</tool.toolu_018sdoLi1gKsDuURrpQTUM4S>
+
+
+## ASSISTANT:
+
+Now I need to update `greger-agent.el` to use the new client:
+
+## TOOL USE:
+
+Name: read-file
+ID: toolu_01KezCGttVamreEmF8iCASXR
+
+### path
+
+<tool.toolu_01KezCGttVamreEmF8iCASXR>
+greger-agent.el
+</tool.toolu_01KezCGttVamreEmF8iCASXR>
+
+### include_line_numbers
+
+<tool.toolu_01KezCGttVamreEmF8iCASXR>
+true
+</tool.toolu_01KezCGttVamreEmF8iCASXR>
+
+## TOOL RESULT:
+
+ID: toolu_01KezCGttVamreEmF8iCASXR
+
+<tool.toolu_01KezCGttVamreEmF8iCASXR>
+  1: ;;; greger-agent.el --- Agent capabilities for greger -*- lexical-binding: t -*-
+  2:
+  3: ;; Author: Andreas Jansson <andreas@jansson.me.uk>
+  4: ;; Version: 0.1.0
+  5: ;; URL: https://github.com/andreasjansson/greger.el
+  6:
+  7: ;;; Commentary:
+  8: ;; Provides agent functionality with tool support for greger
+  9:
+ 10: ;;; Code:
+ 11:
+ 12: (require 'json)
+ 13: (require 'cl-lib)
+ 14: (require 'greger)
+ 15: (require 'greger-parser)
+ 16: (require 'greger-stream)
+ 17: (require 'greger-tools)
+ 18: (require 'greger-stdlib)
+ 19: ;; Optional LSP integration
+ 20: (condition-case nil
+ 21:     (require 'greger-lib-lsp)
+ 22:   (error nil))
+ 23:
+ 24: ;; not using patch tool, it's too messy
+ 25: (defun greger-agent--default-tools ()
+ 26:   "Return default tools list, including LSP tools if available."
+ 27:   (let ((base-tools '("read-file" "list-directory" "str-replace" "insert" "write-new-file" "replace-file" "replace-function" "make-directory" "rename-file" "ripgrep" "git-log" "git-show-commit" "shell-command" "read-webpage"))
+ 28:         (lsp-tools '("lsp-rename" "lsp-find-definition" "lsp-find-references" "lsp-format" "lsp-document-symbols")))
+ 29:     (if (and (boundp 'greger-lib-lsp-available) greger-lib-lsp-available)
+ 30:         (append base-tools lsp-tools)
+ 31:       base-tools)))
+ 32:
+ 33: (defcustom greger-agent-tools (greger-agent--default-tools)
+ 34:   "List of tools available to the agent."
+ 35:   :type '(repeat symbol)
+ 36:   :group 'greger)
+ 37:
+ 38: (defcustom greger-agent-max-iterations 100
+ 39:   "Maximum number of agent iterations before stopping."
+ 40:   :type 'integer
+ 41:   :group 'greger)
+ 42:
+ 43:
+ 44:
+ 45: (defcustom greger-agent-debug nil
+ 46:   "Whether to show debug information."
+ 47:   :type 'boolean
+ 48:   :group 'greger)
+ 49:
+ 50: ;;; Agent state structure
+ 51:
+ 52: (cl-defstruct greger-agent-state
+ 53:   current-iteration
+ 54:   chat-buffer
+ 55:   directory
+ 56:   metadata)
+ 57:
+ 58: (defun greger-agent-buffer ()
+ 59:   "Send buffer content to AI as an agent dialog with tool support."
+ 60:   (interactive)
+ 61:   (let* ((buffer-content (buffer-substring-no-properties (point-min) (point-max)))
+ 62:          (parse-result (greger-parser-parse-dialog buffer-content))
+ 63:          (dialog (plist-get parse-result :messages))
+ 64:          (metadata (plist-get parse-result :metadata)))
+ 65:     (unless dialog
+ 66:       (error "Failed to parse dialog. Did you forget to close a html tag?"))
+ 67:
+ 68:     (goto-char (point-max))
+ 69:
+ 70:     (let ((agent-state (make-greger-agent-state
+ 71:                         :current-iteration 0
+ 72:                         :chat-buffer (current-buffer)
+ 73:                         :directory default-directory
+ 74:                         :metadata metadata)))
+ 75:
+ 76:       (greger-agent--debug "--- DIALOG --- %s" dialog)
+ 77:       (greger-agent--debug "=== STARTING AGENT SESSION ===")
+ 78:
+ 79:       (greger-agent--run-agent-loop agent-state))))
+ 80:
+ 81: (defun greger-agent--debug (format-string &rest args)
+ 82:   "Debug logging function."
+ 83:   (when greger-agent-debug
+ 84:     (message "[AGENT DEBUG] %s" (apply #'format format-string args))))
+ 85:
+ 86: (defun greger-agent--run-agent-loop (agent-state)
+ 87:   "Run the main agent loop with AGENT-STATE."
+ 88:   (let* ((tools (greger-tools-get-schemas greger-agent-tools))
+ 89:          (chat-buffer (greger-agent-state-chat-buffer agent-state))
+ 90:          (buffer-content (with-current-buffer chat-buffer
+ 91:                            (buffer-substring-no-properties (point-min) (point-max))))
+ 92:          (parse-result (greger-parser-parse-dialog buffer-content))
+ 93:          (current-dialog (plist-get parse-result :messages))
+ 94:          (current-iteration (greger-agent-state-current-iteration agent-state)))
+ 95:
+ 96:     (greger-agent--debug "=== ITERATION %d ===" current-iteration)
+ 97:     (greger-agent--debug "Dialog length: %d messages" (length current-dialog))
+ 98:
+ 99:     ;; Check max iterations
+100:     (if (>= current-iteration greger-agent-max-iterations)
+101:         (progn
+102:           (greger-agent--debug "MAX ITERATIONS REACHED - STOPPING")
+103:           (greger-agent--append-text (format "\n\nMaximum iterations (%d) reached. Stopping agent execution.\n\n"
+104:                                              greger-agent-max-iterations)
+105:                                      agent-state)
+106:           (greger-agent--finish-response agent-state))
+107:
+108:       ;; Get Claude's response
+109:       (greger-agent--debug "CALLING greger-stream-to-buffer-with-tools...")
+110:       (greger-stream-to-buffer-with-tools
+111:        :model greger-model
+112:        :dialog current-dialog
+113:        :tools tools
+114:        :buffer chat-buffer
+115:        :text-start-callback (lambda ()
+116:                               (greger-agent--append-text (concat "\n\n" greger-assistant-tag "\n\n") agent-state))
+117:        :text-callback (lambda (text)
+118:                         (greger-agent--append-text text agent-state))
+119:        :complete-callback (lambda (content-blocks)
+120:                             (greger-agent--debug "RECEIVED PARSED CONTENT BLOCKS")
+121:                             (greger-agent--handle-parsed-response content-blocks agent-state))))))
+122:
+123: (defun greger-agent--handle-parsed-response (content-blocks agent-state)
+124:   "Handle the parsed CONTENT-BLOCKS from Claude using AGENT-STATE."
+125:   (greger-agent--debug "CONTENT BLOCKS: %s" content-blocks)
+126:
+127:   ;; Check if we have tool calls
+128:   (let ((tool-calls (greger-agent--extract-tool-calls content-blocks)))
+129:     (if tool-calls
+130:         (progn
+131:           (greger-agent--debug "TOOL USE DETECTED! Found %d tool calls" (length tool-calls))
+132:           (setf (greger-agent-state-current-iteration agent-state)
+133:                 (1+ (greger-agent-state-current-iteration agent-state)))
+134:           (greger-agent--execute-tools tool-calls agent-state))
+135:       (progn
+136:         (greger-agent--debug "NO TOOL USE - CONVERSATION COMPLETE")
+137:         (greger-agent--finish-response agent-state)))))
+138:
+139: (defun greger-agent--extract-tool-calls (content-blocks)
+140:   "Extract tool calls from CONTENT-BLOCKS."
+141:   (let ((tool-calls '()))
+142:     (dolist (block content-blocks)
+143:       (when (string= (alist-get 'type block) "tool_use")
+144:         (greger-agent--debug "EXTRACTING TOOL CALL: %s with input: %s"
+145:                             (alist-get 'name block)
+146:                             (json-encode (alist-get 'input block)))
+147:         (push block tool-calls)))
+148:     (reverse tool-calls)))
+149:
+150: (defun greger-agent--tool-placeholder (tool-id)
+151:   "Generate placeholder string for TOOL-ID."
+152:   (format "<!-- TOOL_RESULT_PLACEHOLDER_%s -->" tool-id))
+153:
+154: (defun greger-agent--execute-tools (tool-calls agent-state)
+155:   "Execute TOOL-CALLS using AGENT-STATE in parallel with callbacks."
+156:   (let* ((total-tools (length tool-calls))
+157:          (completed-tools 0)
+158:          (search-start-pos nil))
+159:
+160:     ;; First, display the tool calls and reserve space for each tool's output
+161:     (with-current-buffer (greger-agent-state-chat-buffer agent-state)
+162:       (goto-char (point-max))
+163:
+164:       ;; Remember where to start searching for placeholders
+165:       (setq search-start-pos (point))
+166:
+167:       ;; Display each tool call followed by its placeholder
+168:       (dolist (tool-call tool-calls)
+169:         (let ((tool-id (alist-get 'id tool-call))
+170:               (tool-block-markdown (greger-parser--content-blocks-to-markdown (list tool-call))))
+171:           (unless (string-empty-p tool-block-markdown)
+172:             (insert "\n\n" tool-block-markdown))
+173:           (insert "\n\n" (greger-agent--tool-placeholder tool-id)))))
+174:
+175:     ;; Execute all tools in parallel
+176:     (dolist (tool-call tool-calls)
+177:       (let* ((tool-name (alist-get 'name tool-call))
+178:              (tool-input (alist-get 'input tool-call))
+179:              (tool-id (alist-get 'id tool-call)))
+180:
+181:         (let ((default-directory (greger-agent-state-directory agent-state)))
+182:           (greger-tools-execute
+183:            tool-name
+184:            tool-input
+185:            (lambda (result error)
+186:              (greger-agent--handle-tool-completion
+187:               tool-id result error agent-state search-start-pos
+188:               (lambda ()
+189:                 (setq completed-tools (1+ completed-tools))
+190:                 (when (= completed-tools total-tools)
+191:                   (greger-agent--run-agent-loop agent-state)))))
+192:            (greger-agent-state-chat-buffer agent-state)
+193:            (greger-agent-state-metadata agent-state)))))))
+194:
+195: (defun greger-agent--append-text (text agent-state)
+196:   (with-current-buffer (greger-agent-state-chat-buffer agent-state)
+197:     (goto-char (point-max))
+198:     (insert text)))
+199:
+200: (defun greger-agent--handle-tool-completion (tool-id result error agent-state search-start-pos completion-callback)
+201:   "Handle completion of a tool execution by updating the buffer and calling COMPLETION-CALLBACK."
+202:   (let ((tool-result (if error
+203:                         `((type . "tool_result")
+204:                           (tool_use_id . ,tool-id)
+205:                           (content . ,(if (stringp error)
+206:                                          error
+207:                                        (format "Error executing tool: %s" (error-message-string error))))
+208:                           (is_error . t))
+209:                       `((type . "tool_result")
+210:                         (tool_use_id . ,tool-id)
+211:                         (content . ,result)))))
+212:
+213:     ;; Update the buffer at the correct position
+214:     (with-current-buffer (greger-agent-state-chat-buffer agent-state)
+215:       (save-excursion
+216:         (goto-char search-start-pos)
+217:         ;; Find and replace the placeholder
+218:         (when (search-forward (greger-agent--tool-placeholder tool-id) nil t)
+219:           (replace-match "")
+220:           (let ((result-markdown (greger-parser--content-blocks-to-markdown (list tool-result))))
+221:             (unless (string-empty-p result-markdown)
+222:               (insert result-markdown))))))
+223:
+224:     ;; Call completion callback
+225:     (funcall completion-callback)))
+226:
+227: (defun greger-agent--display-tool-execution (tool-calls results agent-state)
+228:   "Display the execution of TOOL-CALLS and their RESULTS using AGENT-STATE.
+229: This function is kept for backward compatibility but is no longer used in the new callback-based approach."
+230:   (with-current-buffer (greger-agent-state-chat-buffer agent-state)
+231:     (goto-char (point-max))
+232:
+233:     ;; The tool calls are already in the right format, just convert them
+234:     (let ((tool-blocks-markdown (greger-parser--content-blocks-to-markdown tool-calls)))
+235:       (unless (string-empty-p tool-blocks-markdown)
+236:         (insert "\n\n" tool-blocks-markdown)))
+237:
+238:     ;; Convert tool results to markdown
+239:     (let ((result-blocks-markdown (greger-parser--content-blocks-to-markdown results)))
+240:       (unless (string-empty-p result-blocks-markdown)
+241:         (insert "\n\n" result-blocks-markdown)))))
+242:
+243: (defun greger-agent--finish-response (agent-state)
+244:   "Finish the agent response using AGENT-STATE."
+245:   (greger-agent--debug "=== FINISHING RESPONSE - CONVERSATION COMPLETE ===")
+246:   (with-current-buffer (greger-agent-state-chat-buffer agent-state)
+247:     (goto-char (point-max))
+248:     (unless (looking-back (concat greger-user-tag "\n\n") nil)
+249:       (insert "\n\n" greger-user-tag "\n\n")))
+250:   ;; Reset the state
+251:   (setf (greger-agent-state-current-iteration agent-state) 0))
+252:
+253:
+254:
+255: (defun greger-agent-toggle-debug ()
+256:   "Toggle debug output."
+257:   (interactive)
+258:   (setq greger-agent-debug (not greger-agent-debug))
+259:   (message "Agent debug %s" (if greger-agent-debug "enabled" "disabled")))
+260:
+261: (provide 'greger-agent)
+262:
+263: ;;; greger-agent.el ends here
+264:
+265: ;; Local Variables:
+266: ;; package-lint-main-file: "greger.el"
+267: ;; End:
+268:
+</tool.toolu_01KezCGttVamreEmF8iCASXR>
+
+## TOOL USE:
+
+Name: str-replace
+ID: toolu_01Tz3bcyZJyTEz3HCH2AFbUb
+
+### file_path
+
+<tool.toolu_01Tz3bcyZJyTEz3HCH2AFbUb>
+greger-agent.el
+</tool.toolu_01Tz3bcyZJyTEz3HCH2AFbUb>
+
+### original_content
+
+<tool.toolu_01Tz3bcyZJyTEz3HCH2AFbUb>
+(require 'greger-stream)
+</tool.toolu_01Tz3bcyZJyTEz3HCH2AFbUb>
+
+### new_content
+
+<tool.toolu_01Tz3bcyZJyTEz3HCH2AFbUb>
+(require 'greger-client)
+</tool.toolu_01Tz3bcyZJyTEz3HCH2AFbUb>
+
+### git_commit_message
+
+<tool.toolu_01Tz3bcyZJyTEz3HCH2AFbUb>
+Update greger-agent.el to use greger-client instead of greger-stream
+</tool.toolu_01Tz3bcyZJyTEz3HCH2AFbUb>
+
+<!-- TOOL_RESULT_PLACEHOLDER_toolu_01Tz3bcyZJyTEz3HCH2AFbUb -->

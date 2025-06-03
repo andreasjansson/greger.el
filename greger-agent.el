@@ -13,7 +13,7 @@
 (require 'cl-lib)
 (require 'greger)
 (require 'greger-parser)
-(require 'greger-stream)
+(require 'greger-client)
 (require 'greger-tools)
 (require 'greger-stdlib)
 ;; Optional LSP integration
