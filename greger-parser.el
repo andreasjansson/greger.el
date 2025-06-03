@@ -701,7 +701,7 @@ Returns either a system message, metadata, or both."
     (greger-parser--read-line state)))
 
 (defun greger-parser--parse-id-line (state)
-  "Parse 'ID: value' line using STATE."
+  "Parse \='ID: value\=' line using STATE."
   (greger-parser--skip-whitespace state)
   (when (greger-parser--looking-at state "ID:")
     (greger-parser--advance state 3)
