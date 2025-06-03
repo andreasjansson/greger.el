@@ -76,9 +76,7 @@ If the tool has :pass-buffer set, BUFFER will be passed to the tool function.
 If the tool has :pass-callback set, CALLBACK will be passed to the tool function
 instead of greger-tools-execute calling the callback with the result.
 If the tool has :pass-metadata set, METADATA will be passed to the tool function."
-  ;; Debug: log what we receive
-  (message "[DEBUG] greger-tools-execute called with tool-name: %s" tool-name)
-  (message "[DEBUG] args type: %s, value: %S" (type-of args) args)
+
   (let ((tool-def (gethash tool-name greger-tools-registry)))
     (if tool-def
         (let ((func (plist-get tool-def :function))

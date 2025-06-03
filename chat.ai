@@ -5398,4 +5398,919 @@ Returns a list of arguments in the correct order for the function."
 Add debugging to argument extraction function
 </tool.toolu_015h58aKWGg9FWwaerSTo6Em>
 
-<!-- TOOL_RESULT_PLACEHOLDER_toolu_015h58aKWGg9FWwaerSTo6Em -->
+## TOOL RESULT:
+
+ID: toolu_015h58aKWGg9FWwaerSTo6Em
+
+<tool.toolu_015h58aKWGg9FWwaerSTo6Em>
+Successfully replaced content in /Users/andreas/projects/greger.el/greger-tools.el. Successfully staged 2 file(s) and committed with message: Add debugging to argument extraction function
+</tool.toolu_015h58aKWGg9FWwaerSTo6Em>
+
+
+## TOOL USE:
+
+Name: delete-files
+ID: toolu_01XsrguZiZTPhCGWfWyQpfA1
+
+### file_paths
+
+<tool.toolu_01XsrguZiZTPhCGWfWyQpfA1>
+["test-clean-1.txt"]
+</tool.toolu_01XsrguZiZTPhCGWfWyQpfA1>
+
+### git_commit_message
+
+<tool.toolu_01XsrguZiZTPhCGWfWyQpfA1>
+Delete test file
+</tool.toolu_01XsrguZiZTPhCGWfWyQpfA1>
+
+## TOOL RESULT:
+
+ID: toolu_01XsrguZiZTPhCGWfWyQpfA1
+
+<tool.toolu_01XsrguZiZTPhCGWfWyQpfA1>
+Error executing tool: file_paths must be a vector or list
+</tool.toolu_01XsrguZiZTPhCGWfWyQpfA1>
+
+## TOOL USE:
+
+Name: delete-files
+ID: toolu_019tcgNZJzRuy9zeWEC16aDt
+
+### file_paths
+
+<tool.toolu_019tcgNZJzRuy9zeWEC16aDt>
+["test-clean-1.txt"]
+</tool.toolu_019tcgNZJzRuy9zeWEC16aDt>
+
+### git_commit_message
+
+<tool.toolu_019tcgNZJzRuy9zeWEC16aDt>
+Delete test file
+</tool.toolu_019tcgNZJzRuy9zeWEC16aDt>
+
+## TOOL RESULT:
+
+ID: toolu_019tcgNZJzRuy9zeWEC16aDt
+
+<tool.toolu_019tcgNZJzRuy9zeWEC16aDt>
+Error executing tool: file_paths must be a vector or list
+</tool.toolu_019tcgNZJzRuy9zeWEC16aDt>
+
+## ASSISTANT:
+
+Let me check the Messages buffer to see the debug output:
+
+## TOOL USE:
+
+Name: shell-command
+ID: toolu_014VsGnWRCAdaE6ykzG8f9QW
+
+### command
+
+<tool.toolu_014VsGnWRCAdaE6ykzG8f9QW>
+tail -20 ~/.emacs.d/logs/messages.log 2>/dev/null || tail -20 /tmp/emacs$(id -u)/server*/server.log 2>/dev/null || echo "No message log found"
+</tool.toolu_014VsGnWRCAdaE6ykzG8f9QW>
+
+## TOOL RESULT:
+
+ID: toolu_014VsGnWRCAdaE6ykzG8f9QW
+
+<tool.toolu_014VsGnWRCAdaE6ykzG8f9QW>
+Command executed successfully:
+No message log found
+
+</tool.toolu_014VsGnWRCAdaE6ykzG8f9QW>
+
+## ASSISTANT:
+
+The debug messages aren't showing up, which suggests that when tools are called through the normal chat interface, the greger-tools-execute function might be getting bypassed or the messages are being captured elsewhere. Let me check the *Messages* buffer:
+
+## TOOL USE:
+
+Name: shell-command
+ID: toolu_01W9vyVtFsJgMGR6tJTUnUPv
+
+### command
+
+<tool.toolu_01W9vyVtFsJgMGR6tJTUnUPv>
+tail -20 ~/.emacs.d/.local/cache/emacs/debug.log 2>/dev/null || echo "No debug log found"
+</tool.toolu_01W9vyVtFsJgMGR6tJTUnUPv>
+
+## TOOL RESULT:
+
+ID: toolu_01W9vyVtFsJgMGR6tJTUnUPv
+
+<tool.toolu_01W9vyVtFsJgMGR6tJTUnUPv>
+Command executed successfully:
+No debug log found
+
+</tool.toolu_01W9vyVtFsJgMGR6tJTUnUPv>
+
+## ASSISTANT:
+
+ are called via the AI interface, they might go through a different path. Let me check if there's debugging happening by examining how the tools are actually being executed. Let me look more carefully at where the tool arguments come from.
+
+The issue might be that we're being called from the tool interface where the JSON has already been parsed by the parser, but in a different format than expected. Let me check the test files to see how tools with arrays are tested:
+
+## TOOL USE:
+
+Name: read-file
+ID: toolu_015q2qSoBe2kC1p1siYRitUB
+
+### path
+
+<tool.toolu_015q2qSoBe2kC1p1siYRitUB>
+test/test-greger-tools.el
+</tool.toolu_015q2qSoBe2kC1p1siYRitUB>
+
+## TOOL RESULT:
+
+ID: toolu_015q2qSoBe2kC1p1siYRitUB
+
+<tool.toolu_015q2qSoBe2kC1p1siYRitUB>
+;;; test-greger-tools.el --- Tests for greger tools -*- lexical-binding: t -*-
+
+(require 'ert)
+(require 'greger-tools)
+
+(ert-deftest greger-tools-test-tool-registration-and-execution ()
+  "Test that tools can be registered and executed correctly."
+  ;; Define a simple test function
+  (defun greger-test-subtract-numbers (a b)
+    (- a b))
+
+  ;; Register a test tool
+  (greger-register-tool "test-subtract"
+    :description "Subtract second number from first number"
+    :properties '((a . ((type . "integer")
+                        (description . "First number")))
+                  (b . ((type . "integer")
+                        (description . "Second number"))))
+    :required '("a" "b")
+    :function 'greger-test-subtract-numbers)
+
+  ;; Test that the tool was registered
+  (should (gethash "test-subtract" greger-tools-registry))
+
+  ;; Test getting tool schema
+  (let ((schemas (greger-tools-get-schemas '("test-subtract"))))
+    (should (= 1 (length schemas)))
+    (let ((schema (car schemas)))
+      (should (string= "test-subtract" (alist-get 'name schema)))
+      (should (string= "Subtract second number from first number" (alist-get 'description schema)))))
+
+  ;; Test tool execution
+  (let ((result nil)
+        (error nil))
+    (greger-tools-execute "test-subtract" '((a . 5) (b . 3))
+                          (lambda (r e) (setq result r error e)) nil)
+    (should (= 2 result))
+    (should (null error)))
+
+  ;; Test execution with different parameters
+  (let ((result nil)
+        (error nil))
+    (greger-tools-execute "test-subtract" '((b . 1) (a . 4))
+                          (lambda (r e) (setq result r error e)) nil)
+    (should (= 3 result))
+    (should (null error)))
+
+  ;; Clean up - remove test tool from registry
+  (remhash "test-subtract" greger-tools-registry))
+
+(ert-deftest greger-tools-test-unknown-tool-error ()
+  "Test that executing unknown tools calls callback with error."
+  (let ((result nil)
+        (error nil))
+    (greger-tools-execute "nonexistent-tool" '((param . "value"))
+                          (lambda (r e) (setq result r error e)) nil)
+    (should (null result))
+    (should (stringp error))
+    (should (string-match "Unknown tool" error))))
+
+(ert-deftest greger-tools-test-parameter-mapping ()
+  "Test that parameters are correctly mapped from underscores to hyphens."
+  ;; Define a test function with hyphenated parameter names
+  (defun greger-test-hyphenated-params (file-path commit-message)
+    "Test function with hyphenated parameters."
+    (format "file: %s, message: %s" file-path commit-message))
+
+  ;; Register tool with underscore parameter names (as they come from JSON)
+  (greger-register-tool "test-hyphens"
+    :description "Test hyphenated parameter mapping"
+    :properties '((file_path . ((type . "string")
+                                (description . "File path")))
+                  (commit_message . ((type . "string")
+                                     (description . "Commit message"))))
+    :required '("file_path" "commit_message")
+    :function 'greger-test-hyphenated-params)
+
+  ;; Test execution with underscore parameters
+  (let ((result nil)
+        (error nil))
+    (greger-tools-execute "test-hyphens"
+                          '((file_path . "/path/to/file")
+                            (commit_message . "test commit"))
+                          (lambda (r e) (setq result r error e)) nil)
+    (should (string= "file: /path/to/file, message: test commit" result))
+    (should (null error)))
+
+  ;; Clean up
+  (remhash "test-hyphens" greger-tools-registry))
+
+(provide 'test-greger-tools)
+
+(ert-deftest greger-tools-test-optional-parameters ()
+  "Test that tools work correctly with optional parameters."
+  ;; Define a test function with optional parameters
+  (defun greger-test-optional-params (required-param &optional optional-param1 optional-param2)
+    "Test function with optional parameters."
+    (format "required: %s, opt1: %s, opt2: %s"
+            required-param
+            (or optional-param1 "default1")
+            (or optional-param2 "default2")))
+
+  ;; Register tool with some optional parameters
+  (greger-register-tool "test-optional"
+    :description "Test optional parameter handling"
+    :properties '((required_param . ((type . "string")
+                                     (description . "Required parameter")))
+                  (optional_param1 . ((type . "string")
+                                      (description . "First optional parameter")))
+                  (optional_param2 . ((type . "string")
+                                      (description . "Second optional parameter"))))
+    :required '("required_param")
+    :function 'greger-test-optional-params)
+
+  ;; Test with only required parameter
+  (let ((result nil)
+        (error nil))
+    (greger-tools-execute "test-optional"
+                          '((required_param . "test"))
+                          (lambda (r e) (setq result r error e)) nil)
+    (should (string= "required: test, opt1: default1, opt2: default2" result))
+    (should (null error)))
+
+  ;; Test with required + one optional parameter
+  (let ((result nil)
+        (error nil))
+    (greger-tools-execute "test-optional"
+                          '((required_param . "test")
+                            (optional_param1 . "provided1"))
+                          (lambda (r e) (setq result r error e)) nil)
+    (should (string= "required: test, opt1: provided1, opt2: default2" result))
+    (should (null error)))
+
+  ;; Test with all parameters provided
+  (let ((result nil)
+        (error nil))
+    (greger-tools-execute "test-optional"
+                          '((required_param . "test")
+                            (optional_param1 . "provided1")
+                            (optional_param2 . "provided2"))
+                          (lambda (r e) (setq result r error e)) nil)
+    (should (string= "required: test, opt1: provided1, opt2: provided2" result))
+    (should (null error)))
+
+  ;; Clean up
+  (remhash "test-optional" greger-tools-registry))
+
+(ert-deftest greger-tools-test-default-parameter-values ()
+  "Test that tools work correctly with default parameter values."
+  ;; Define a test function with default parameters
+  (defun greger-test-default-params (message &optional count prefix)
+    "Test function with default parameters."
+    ;; TODO: remove debug
+    (message (format "count: %s" count))
+    ;; TODO: remove debug
+    (message (format "prefix: %s" prefix))
+    (let ((actual-prefix (or prefix ">>>")))
+      (format "%s %s (repeated %d times)"
+              actual-prefix message count)))
+
+  ;; Register tool with default values in the schema
+  (greger-register-tool "test-defaults"
+    :description "Test default parameter handling"
+    :properties '((message . ((type . "string")
+                              (description . "Message to format")))
+                  (count . ((type . "integer")
+                            (description . "Number of repetitions")
+                            (default . 5)))
+                  (prefix . ((type . "string")
+                             (description . "Prefix for message"))))
+    :required '("message")
+    :function 'greger-test-default-params)
+
+  ;; Test with only required parameter - should use defaults
+  (let ((result nil)
+        (error nil))
+    (greger-tools-execute "test-defaults"
+                          '((message . "hello"))
+                          (lambda (r e) (setq result r error e)) nil)
+    (should (string= ">>> hello (repeated 5 times)" result))
+    (should (null error)))
+
+  ;; Test with one default overridden
+  (let ((result nil)
+        (error nil))
+    (greger-tools-execute "test-defaults"
+                          '((message . "hello")
+                            (count . 2))
+                          (lambda (r e) (setq result r error e)) nil)
+    (should (string= ">>> hello (repeated 2 times)" result))
+    (should (null error)))
+
+  ;; Test with both defaults overridden
+  (let ((result nil)
+        (error nil))
+    (greger-tools-execute "test-defaults"
+                          '((message . "hello")
+                            (count . 2)
+                            (prefix . "***"))
+                          (lambda (r e) (setq result r error e)) nil)
+    (should (string= "*** hello (repeated 2 times)" result))
+    (should (null error)))
+
+  ;; Clean up
+  (remhash "test-defaults" greger-tools-registry))
+
+(ert-deftest greger-tools-test-missing-required-parameter-error ()
+  "Test that missing required parameters throw an error."
+  ;; Define a test function with required and optional parameters
+  (defun greger-test-required-params (required-param1 required-param2 &optional optional-param)
+    "Test function with required parameters."
+    (format "req1: %s, req2: %s, opt: %s"
+            required-param1 required-param2 (or optional-param "default")))
+
+  ;; Register tool with multiple required parameters
+  (greger-register-tool "test-required"
+    :description "Test required parameter validation"
+    :properties '((required_param1 . ((type . "string")
+                                      (description . "First required parameter")))
+                  (required_param2 . ((type . "string")
+                                      (description . "Second required parameter")))
+                  (optional_param . ((type . "string")
+                                     (description . "Optional parameter"))))
+    :required '("required_param1" "required_param2")
+    :function 'greger-test-required-params)
+
+  ;; Test that missing first required parameter calls callback with error
+  (let ((result nil)
+        (error nil))
+    (greger-tools-execute "test-required"
+                          '((required_param2 . "value2")
+                            (optional_param . "optional"))
+                          (lambda (r e) (setq result r error e)) nil)
+    (should (null result))
+    (should error))
+
+  ;; Test that missing second required parameter calls callback with error
+  (let ((result nil)
+        (error nil))
+    (greger-tools-execute "test-required"
+                          '((required_param1 . "value1")
+                            (optional_param . "optional"))
+                          (lambda (r e) (setq result r error e)) nil)
+    (should (null result))
+    (should error))
+
+  ;; Test that missing both required parameters calls callback with error
+  (let ((result nil)
+        (error nil))
+    (greger-tools-execute "test-required"
+                          '((optional_param . "optional"))
+                          (lambda (r e) (setq result r error e)) nil)
+    (should (null result))
+    (should error))
+
+  ;; Test that providing all required parameters works (even without optional)
+  (let ((result nil)
+        (error nil))
+    (greger-tools-execute "test-required"
+                          '((required_param1 . "value1")
+                            (required_param2 . "value2"))
+                          (lambda (r e) (setq result r error e)) nil)
+    (should (string= "req1: value1, req2: value2, opt: default" result))
+    (should (null error)))
+
+  ;; Test that providing all parameters works
+  (let ((result nil)
+        (error nil))
+    (greger-tools-execute "test-required"
+                          '((required_param1 . "value1")
+                            (required_param2 . "value2")
+                            (optional_param . "provided"))
+                          (lambda (r e) (setq result r error e)) nil)
+    (should (string= "req1: value1, req2: value2, opt: provided" result))
+    (should (null error)))
+
+  ;; Clean up
+  (remhash "test-required" greger-tools-registry))
+
+(ert-deftest greger-tools-test-pass-buffer-functionality ()
+  "Test that tools can receive buffer parameter when :pass-buffer is set."
+  ;; Define a test function that expects a buffer parameter
+  (defun greger-test-buffer-param (message &optional buffer)
+    "Test function that accepts a buffer parameter."
+    (if buffer
+        (format "message: %s, buffer: %s" message (buffer-name buffer))
+      (format "message: %s, buffer: none" message)))
+
+  ;; Register tool without :pass-buffer
+  (greger-register-tool "test-no-buffer"
+    :description "Test tool without buffer passing"
+    :properties '((message . ((type . "string")
+                              (description . "Test message"))))
+    :required '("message")
+    :function 'greger-test-buffer-param)
+
+  ;; Register tool with :pass-buffer t
+  (greger-register-tool "test-with-buffer"
+    :description "Test tool with buffer passing"
+    :properties '((message . ((type . "string")
+                              (description . "Test message"))))
+    :required '("message")
+    :function 'greger-test-buffer-param
+    :pass-buffer t)
+
+  ;; Create a test buffer
+  (with-temp-buffer
+    (rename-buffer "*test-buffer*")
+
+    ;; Test tool without :pass-buffer - should not receive buffer
+    (let ((result nil)
+          (error nil))
+      (greger-tools-execute "test-no-buffer"
+                            '((message . "hello"))
+                            (lambda (r e) (setq result r error e))
+                            (current-buffer))
+      (should (string= "message: hello, buffer: none" result))
+      (should (null error)))
+
+    ;; Test tool with :pass-buffer t - should receive buffer
+    (let ((result nil)
+          (error nil))
+      (greger-tools-execute "test-with-buffer"
+                            '((message . "hello"))
+                            (lambda (r e) (setq result r error e))
+                            (current-buffer))
+      (should (string= "message: hello, buffer: *test-buffer*" result))
+      (should (null error))))
+
+  ;; Clean up
+  (remhash "test-no-buffer" greger-tools-registry)
+  (remhash "test-with-buffer" greger-tools-registry))
+
+(ert-deftest greger-tools-test-pass-callback-functionality ()
+  "Test that tools can receive and use callback parameter when :pass-callback is set."
+  ;; Define a test function that accepts a callback parameter and calls it asynchronously
+  (defun greger-test-callback-param (message callback)
+    "Test function that accepts and uses a callback parameter."
+    ;; Simulate some processing, then call the callback
+    (let ((result (format "processed: %s" message)))
+      (funcall callback result nil)))
+
+  ;; Define a test function that doesn't use callback
+  (defun greger-test-no-callback-param (message)
+    "Test function that returns a result normally."
+    (format "result: %s" message))
+
+  ;; Register tool without :pass-callback (normal behavior)
+  (greger-register-tool "test-normal-callback"
+    :description "Test tool with normal callback handling"
+    :properties '((message . ((type . "string")
+                              (description . "Test message"))))
+    :required '("message")
+    :function 'greger-test-no-callback-param)
+
+  ;; Register tool with :pass-callback set to 'callback
+  (greger-register-tool "test-pass-callback"
+    :description "Test tool with callback parameter passing"
+    :properties '((message . ((type . "string")
+                              (description . "Test message"))))
+    :required '("message")
+    :function 'greger-test-callback-param
+    :pass-callback t)
+
+  ;; Test normal tool - greger-tools-execute calls callback with result
+  (let ((result nil)
+        (error nil))
+    (greger-tools-execute "test-normal-callback"
+                          '((message . "hello"))
+                          (lambda (r e) (setq result r error e))
+                          nil)
+    (should (string= "result: hello" result))
+    (should (null error)))
+
+  ;; Test tool with :pass-callback - function calls callback directly
+  (let ((result nil)
+        (error nil)
+        (callback-called nil))
+    (greger-tools-execute "test-pass-callback"
+                          '((message . "world"))
+                          (lambda (r e)
+                            (setq result r error e callback-called t))
+                          nil)
+    ;; Since the callback is called synchronously in our test function,
+    ;; we can check the results immediately
+    (should callback-called)
+    (should (string= "processed: world" result))
+    (should (null error)))
+
+  ;; Test combining :pass-callback with :pass-buffer
+  (defun greger-test-callback-with-buffer (message callback &optional buffer)
+    "Test function that accepts both callback and buffer parameters."
+    (let* ((buffer-name (if buffer (buffer-name buffer) "no-buffer"))
+           (result (format "message: %s, buffer: %s" message buffer-name)))
+      (funcall callback result nil)))
+
+  (greger-register-tool "test-callback-with-buffer"
+    :description "Test tool with both callback and buffer passing"
+    :properties '((message . ((type . "string")
+                              (description . "Test message"))))
+    :required '("message")
+    :function 'greger-test-callback-with-buffer
+    :pass-callback t
+    :pass-buffer t)
+
+  ;; Test with both buffer and callback
+  (with-temp-buffer
+    (rename-buffer "*test-callback-buffer*")
+    (let ((result nil)
+          (error nil)
+          (callback-called nil))
+      (greger-tools-execute "test-callback-with-buffer"
+                            '((message . "test"))
+                            (lambda (r e)
+                              (setq result r error e callback-called t))
+                            (current-buffer))
+      ;; Since the callback is called synchronously in our test function,
+      ;; we can check the results immediately
+      (should callback-called)
+      (should (string= "message: test, buffer: *test-callback-buffer*" result))
+      (should (null error))))
+
+  ;; Clean up
+  (remhash "test-normal-callback" greger-tools-registry)
+  (remhash "test-pass-callback" greger-tools-registry)
+  (remhash "test-callback-with-buffer" greger-tools-registry))
+
+(ert-deftest greger-tools-test-async-subprocess-utility ()
+  "Test the shared async subprocess utility function."
+  (let ((result nil)
+        (error nil)
+        (callback-called nil))
+
+    ;; Test a simple command that should succeed
+    (greger-stdlib--run-async-subprocess
+     "echo" '("hello world") nil
+     (lambda (output err)
+       (setq result output error err callback-called t)))
+
+    ;; Wait a bit for the async process to complete
+    (sit-for 0.5)
+
+    (should callback-called)
+    (should (string-match "hello world" result))
+    (should (null error))))
+
+;;; test-greger-tools.el ends here
+
+</tool.toolu_015q2qSoBe2kC1p1siYRitUB>
+
+## USER:
+
+
+
+## ASSISTANT:
+
+I notice that in all the tests, the arrays are being passed as proper Emacs Lisp lists, not as JSON strings. The tests use alist formats like `'((a . 5) (b . 3))`. This suggests that the proper flow should indeed parse JSON arrays into Emacs Lisp data structures.
+
+Let me check if there are any actual array parameters being tested. I don't see any test with array types. Let me look for any tools that actually use arrays in their current form:
+
+## TOOL USE:
+
+Name: ripgrep
+ID: toolu_01L6WFztutv6eKj7mFc4pbTc
+
+### pattern
+
+<tool.toolu_01L6WFztutv6eKj7mFc4pbTc>
+type.*array.*description
+</tool.toolu_01L6WFztutv6eKj7mFc4pbTc>
+
+### path
+
+<tool.toolu_01L6WFztutv6eKj7mFc4pbTc>
+greger-stdlib.el
+</tool.toolu_01L6WFztutv6eKj7mFc4pbTc>
+
+### context-lines
+
+<tool.toolu_01L6WFztutv6eKj7mFc4pbTc>
+3
+</tool.toolu_01L6WFztutv6eKj7mFc4pbTc>
+
+## TOOL RESULT:
+
+ID: toolu_01L6WFztutv6eKj7mFc4pbTc
+
+<tool.toolu_01L6WFztutv6eKj7mFc4pbTc>
+Failed to execute ripgrep search: Command failed with exit code 1: (no output)
+</tool.toolu_01L6WFztutv6eKj7mFc4pbTc>
+
+## TOOL USE:
+
+Name: ripgrep
+ID: toolu_018nhFbkzZ9iBU6oiosiNcbt
+
+### pattern
+
+<tool.toolu_018nhFbkzZ9iBU6oiosiNcbt>
+type.*array
+</tool.toolu_018nhFbkzZ9iBU6oiosiNcbt>
+
+### path
+
+<tool.toolu_018nhFbkzZ9iBU6oiosiNcbt>
+greger-stdlib.el
+</tool.toolu_018nhFbkzZ9iBU6oiosiNcbt>
+
+### context-lines
+
+<tool.toolu_018nhFbkzZ9iBU6oiosiNcbt>
+1
+</tool.toolu_018nhFbkzZ9iBU6oiosiNcbt>
+
+## TOOL RESULT:
+
+ID: toolu_018nhFbkzZ9iBU6oiosiNcbt
+
+<tool.toolu_018nhFbkzZ9iBU6oiosiNcbt>
+104:  :properties '((file_paths . ((type . "array")
+194:                (function_names . ((type . "array")
+204:                (function_names . ((type . "array")
+
+</tool.toolu_018nhFbkzZ9iBU6oiosiNcbt>
+
+## ASSISTANT:
+
+So there are only 3 tools that use array types: `delete-files`, `ert-test`, and `eval-elisp-defuns`. These are the ones we're having trouble with.
+
+Let me create a simple test to see if the parser is working correctly for arrays. Let me check how the parser is supposed to work:
+
+## TOOL USE:
+
+Name: read-file
+ID: toolu_016QvfqxhUj6eSfrVJQpmNVP
+
+### path
+
+<tool.toolu_016QvfqxhUj6eSfrVJQpmNVP>
+test/test-greger-parser.el
+</tool.toolu_016QvfqxhUj6eSfrVJQpmNVP>
+
+### start_line
+
+<tool.toolu_016QvfqxhUj6eSfrVJQpmNVP>
+1
+</tool.toolu_016QvfqxhUj6eSfrVJQpmNVP>
+
+### end_line
+
+<tool.toolu_016QvfqxhUj6eSfrVJQpmNVP>
+50
+</tool.toolu_016QvfqxhUj6eSfrVJQpmNVP>
+
+## TOOL RESULT:
+
+ID: toolu_016QvfqxhUj6eSfrVJQpmNVP
+
+<tool.toolu_016QvfqxhUj6eSfrVJQpmNVP>
+;;; test-greger-parser.el --- Tests for greger parser -*- lexical-binding: t -*-
+
+(require 'ert)
+(require 'greger-parser)
+(require 'cl-lib)
+
+;; Test cases with tool use, thinking, and complex scenarios
+(defconst greger-parser-test-cases
+  '(
+    ;; Simple user message
+    (:name "simple-user-message"
+     :markdown "## USER:
+
+Hello, how are you?"
+     :dialog (((role . "user") (content . "Hello, how are you?"))))
+
+    ;; System and user message
+    (:name "system-and-user"
+     :markdown "## SYSTEM:
+
+You are a helpful assistant.
+
+## USER:
+
+What's the weather like?"
+     :dialog (((role . "system") (content . "You are a helpful assistant."))
+              ((role . "user") (content . "What's the weather like?"))))
+
+    ;; Simple conversation
+    (:name "simple-conversation"
+     :markdown "## USER:
+
+Hello
+
+## ASSISTANT:
+
+Hi there! How can I help you today?"
+     :dialog (((role . "user") (content . "Hello"))
+              ((role . "assistant") (content . "Hi there! How can I help you today?"))))
+
+    ;; Thinking section (becomes part of assistant message)
+    (:name "thinking-section"
+     :markdown "## USER:
+
+What's 2+2?
+
+## THINKING:
+
+This is a simple arithmetic question. I can answer this directly without needing any tools.
+
+</tool.toolu_016QvfqxhUj6eSfrVJQpmNVP>
+
+## ASSISTANT:
+
+Let me look for test cases that include array parameters in tool use:
+
+## TOOL USE:
+
+Name: ripgrep
+ID: toolu_01SGuCaHeg1ijRpzKSyc21JQ
+
+### pattern
+
+<tool.toolu_01SGuCaHeg1ijRpzKSyc21JQ>
+\\[.*\\]|array.*test
+</tool.toolu_01SGuCaHeg1ijRpzKSyc21JQ>
+
+### path
+
+<tool.toolu_01SGuCaHeg1ijRpzKSyc21JQ>
+test/test-greger-parser.el
+</tool.toolu_01SGuCaHeg1ijRpzKSyc21JQ>
+
+### context-lines
+
+<tool.toolu_01SGuCaHeg1ijRpzKSyc21JQ>
+5
+</tool.toolu_01SGuCaHeg1ijRpzKSyc21JQ>
+
+## TOOL RESULT:
+
+ID: toolu_01SGuCaHeg1ijRpzKSyc21JQ
+
+<tool.toolu_01SGuCaHeg1ijRpzKSyc21JQ>
+Failed to execute ripgrep search: Command failed with exit code 1: (no output)
+</tool.toolu_01SGuCaHeg1ijRpzKSyc21JQ>
+
+## TOOL USE:
+
+Name: ripgrep
+ID: toolu_01FBZVSBPwefGEgTHYMPSG1H
+
+### pattern
+
+<tool.toolu_01FBZVSBPwefGEgTHYMPSG1H>
+\[|\]
+</tool.toolu_01FBZVSBPwefGEgTHYMPSG1H>
+
+### path
+
+<tool.toolu_01FBZVSBPwefGEgTHYMPSG1H>
+test/test-greger-parser.el
+</tool.toolu_01FBZVSBPwefGEgTHYMPSG1H>
+
+### context-lines
+
+<tool.toolu_01FBZVSBPwefGEgTHYMPSG1H>
+3
+</tool.toolu_01FBZVSBPwefGEgTHYMPSG1H>
+
+## TOOL RESULT:
+
+ID: toolu_01FBZVSBPwefGEgTHYMPSG1H
+
+<tool.toolu_01FBZVSBPwefGEgTHYMPSG1H>
+503:[\"item1\", \"item2\", 3]
+524:                    ((role . "assistant") (content . (((type . "tool_use") (id . "toolu_complex") (name . "complex-tool") (input . ((string_param . "hello world") (number_param . 42) (float_param . 3.14) (bool_true . t) (bool_false) (list_param . ["item1" "item2" 3]) (dict_param . ((key . "value") (count . 5)))))))))
+652:  (string-trim (replace-regexp-in-string "[ \t\n\r]+" " " str)))
+1044:Try to include: [Error reading file: /nonexistent/file.txt]
+1341:[Error reading URL: https://invalid-url-that-does-not-exist-12345.com]
+
+</tool.toolu_01FBZVSBPwefGEgTHYMPSG1H>
+
+## ASSISTANT:
+
+Ah! There's a test case with an array! Let me look at that:
+
+## TOOL USE:
+
+Name: read-file
+ID: toolu_014L6bm9TTQ6qGU73Hk7DueS
+
+### path
+
+<tool.toolu_014L6bm9TTQ6qGU73Hk7DueS>
+test/test-greger-parser.el
+</tool.toolu_014L6bm9TTQ6qGU73Hk7DueS>
+
+### start_line
+
+<tool.toolu_014L6bm9TTQ6qGU73Hk7DueS>
+500
+</tool.toolu_014L6bm9TTQ6qGU73Hk7DueS>
+
+### end_line
+
+<tool.toolu_014L6bm9TTQ6qGU73Hk7DueS>
+530
+</tool.toolu_014L6bm9TTQ6qGU73Hk7DueS>
+
+## TOOL RESULT:
+
+ID: toolu_014L6bm9TTQ6qGU73Hk7DueS
+
+<tool.toolu_014L6bm9TTQ6qGU73Hk7DueS>
+### list_param
+
+<tool.toolu_complex>
+[\"item1\", \"item2\", 3]
+</tool.toolu_complex>
+
+### dict_param
+
+<tool.toolu_complex>
+{\"key\": \"value\", \"count\": 5}
+</tool.toolu_complex>
+
+## TOOL RESULT:
+
+ID: toolu_complex
+
+<tool.toolu_complex>
+Success
+</tool.toolu_complex>
+
+## ASSISTANT:
+
+Tool executed with complex parameters."
+           :dialog (((role . "user") (content . "Test complex parameters"))
+                    ((role . "assistant") (content . (((type . "tool_use") (id . "toolu_complex") (name . "complex-tool") (input . ((string_param . "hello world") (number_param . 42) (float_param . 3.14) (bool_true . t) (bool_false) (list_param . ["item1" "item2" 3]) (dict_param . ((key . "value") (count . 5)))))))))
+                    ((role . "user") (content . (((type . "tool_result") (tool_use_id . "toolu_complex") (content . "Success")))))
+                    ((role . "assistant") (content . "Tool executed with complex parameters."))))
+
+    (:name "tool-result-empty-lines"
+           :markdown "## TOOL USE:
+
+</tool.toolu_014L6bm9TTQ6qGU73Hk7DueS>
+
+## ASSISTANT:
+
+Perfect! This shows that the parser should be converting JSON arrays like `["item1", "item2", 3]` into the Emacs Lisp vector format `["item1" "item2" 3]`.
+
+So the issue isn't in the parser itself, but rather in how we're calling the tools when they go through the actual tool execution pipeline. Let me remove the debug code and focus on understanding why the tool execution path is different from the parser path.
+
+## TOOL USE:
+
+Name: str-replace
+ID: toolu_0115VukBwAXSYdRXdGkxRqBf
+
+### file_path
+
+<tool.toolu_0115VukBwAXSYdRXdGkxRqBf>
+greger-tools.el
+</tool.toolu_0115VukBwAXSYdRXdGkxRqBf>
+
+### original_content
+
+<tool.toolu_0115VukBwAXSYdRXdGkxRqBf>
+  ;; Debug: log what we receive
+  (message "[DEBUG] greger-tools-execute called with tool-name: %s" tool-name)
+  (message "[DEBUG] args type: %s, value: %S" (type-of args) args)
+</tool.toolu_0115VukBwAXSYdRXdGkxRqBf>
+
+### new_content
+
+<tool.toolu_0115VukBwAXSYdRXdGkxRqBf>
+
+</tool.toolu_0115VukBwAXSYdRXdGkxRqBf>
+
+### git_commit_message
+
+<tool.toolu_0115VukBwAXSYdRXdGkxRqBf>
+Remove debugging from greger-tools-execute
+</tool.toolu_0115VukBwAXSYdRXdGkxRqBf>
+
+<!-- TOOL_RESULT_PLACEHOLDER_toolu_0115VukBwAXSYdRXdGkxRqBf -->
