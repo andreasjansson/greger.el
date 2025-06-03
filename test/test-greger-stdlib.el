@@ -288,4 +288,107 @@
         ;; Permission prompt SHOULD have been called since no metadata provided
         (should prompt-called))))
 
+(ert-deftest greger-test-count-paren-balance ()
+  "Test the paren balance counting function."
+  ;; Test balanced expressions
+  (should (= 0 (greger-stdlib--count-paren-balance "()")))
+  (should (= 0 (greger-stdlib--count-paren-balance "(foo)")))
+  (should (= 0 (greger-stdlib--count-paren-balance "(foo (bar) baz)")))
+  (should (= 0 (greger-stdlib--count-paren-balance "(let ((x 1) (y 2)) (+ x y))")))
+
+  ;; Test unbalanced expressions
+  (should (= 1 (greger-stdlib--count-paren-balance "(")))
+  (should (= -1 (greger-stdlib--count-paren-balance ")")))
+  (should (= 1 (greger-stdlib--count-paren-balance "(foo))")))
+  (should (= -1 (greger-stdlib--count-paren-balance "((foo)")))
+  (should (= 2 (greger-stdlib--count-paren-balance "(((")))
+  (should (= -3 (greger-stdlib--count-paren-balance ")))")))
+
+  ;; Test with strings (parens in strings should be ignored)
+  (should (= 0 (greger-stdlib--count-paren-balance "\"()\"")))
+  (should (= 0 (greger-stdlib--count-paren-balance "\"(((\"")))
+  (should (= 1 (greger-stdlib--count-paren-balance "(message \"hello (world)\")")))
+  (should (= 0 (greger-stdlib--count-paren-balance "(message \"hello (world)\")")))
+
+  ;; Test with comments (parens in comments should be ignored)
+  (should (= 0 (greger-stdlib--count-paren-balance "; (((")))
+  (should (= 0 (greger-stdlib--count-paren-balance ";; This has (parens) in comment")))
+  (should (= 1 (greger-stdlib--count-paren-balance "(foo) ; comment with (parens)")))
+
+  ;; Test mixed content
+  (should (= 0 (greger-stdlib--count-paren-balance "(foo \"string with (parens)\" bar) ; comment (with parens)")))
+  (should (= 1 (greger-stdlib--count-paren-balance "((foo \"string with )\" bar) ; comment (with parens)")))
+
+  ;; Test empty content
+  (should (= 0 (greger-stdlib--count-paren-balance "")))
+  (should (= 0 (greger-stdlib--count-paren-balance "   ")))
+  (should (= 0 (greger-stdlib--count-paren-balance "foo bar baz"))))
+
+(ert-deftest greger-test-str-replace-paren-balance-check ()
+  "Test str-replace paren balance checking for .el files."
+  (let ((test-file (make-temp-file "test" nil ".el"))
+        (original-content "(defun foo () (+ 1 2))")
+        (new-content-balanced "(defun bar () (+ 3 4))")
+        (new-content-unbalanced "(defun bar () (+ 3 4"))
+
+    (unwind-protect
+        (progn
+          ;; Write test content to file
+          (with-temp-file test-file
+            (insert original-content))
+
+          ;; Mock git operations to avoid actual git commits
+          (cl-letf (((symbol-function 'greger-stdlib--git-stage-and-commit)
+                     (lambda (files commit-message buffer) "Mocked git result")))
+
+            ;; Test successful replacement with balanced parens
+            (should (stringp (greger-stdlib--str-replace
+                             test-file
+                             original-content
+                             new-content-balanced
+                             "Test commit")))
+
+            ;; Reset file content
+            (with-temp-file test-file
+              (insert original-content))
+
+            ;; Test failed replacement with unbalanced parens
+            (should-error (greger-stdlib--str-replace
+                          test-file
+                          original-content
+                          new-content-unbalanced
+                          "Test commit")
+                         :type 'error)))
+
+      ;; Clean up
+      (when (file-exists-p test-file)
+        (delete-file test-file)))))
+
+(ert-deftest greger-test-str-replace-non-el-files-skip-paren-check ()
+  "Test that str-replace skips paren checking for non-.el files."
+  (let ((test-file (make-temp-file "test" nil ".txt"))
+        (original-content "Some text with (unbalanced parens")
+        (new-content "Some other text with (((more unbalanced"))
+
+    (unwind-protect
+        (progn
+          ;; Write test content to file
+          (with-temp-file test-file
+            (insert original-content))
+
+          ;; Mock git operations to avoid actual git commits
+          (cl-letf (((symbol-function 'greger-stdlib--git-stage-and-commit)
+                     (lambda (files commit-message buffer) "Mocked git result")))
+
+            ;; Should succeed even with unbalanced parens since it's not a .el file
+            (should (stringp (greger-stdlib--str-replace
+                             test-file
+                             original-content
+                             new-content
+                             "Test commit")))))
+
+      ;; Clean up
+      (when (file-exists-p test-file)
+        (delete-file test-file)))))
+
 ;;; greger-test-stdlib.el ends here
