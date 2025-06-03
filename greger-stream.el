@@ -32,23 +32,6 @@
 
 ;;; Public API
 
-(cl-defun greger-stream-to-buffer (&key model dialog buffer text-start-callback text-callback complete-callback cancel-callback)
-  "Send streaming request for MODEL with DIALOG, inserting text into BUFFER.
-TEXT-START-CALLBACK is called when text streaming starts.
-TEXT-CALLBACK is called for each text chunk with (state text).
-COMPLETE-CALLBACK is called when done with the parsed content blocks array.
-CANCEL-CALLBACK is called if cancelled.
-BUFFER defaults to current buffer if not specified."
-  (greger-stream-to-buffer-with-tools
-   :model model
-   :dialog dialog
-   :tools nil
-   :buffer buffer
-   :text-start-callback text-start-callback
-   :text-callback text-callback
-   :complete-callback complete-callback
-   :cancel-callback cancel-callback))
-
 (cl-defun greger-stream-to-buffer-with-tools (&key model dialog tools buffer text-start-callback text-callback complete-callback cancel-callback)
   "Send streaming request for MODEL with DIALOG and TOOLS, inserting text into BUFFER.
 TEXT-START-CALLBACK is called when text streaming starts.
