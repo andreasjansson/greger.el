@@ -176,7 +176,7 @@ ID: test_b
 Tool B result: input-b
 </tool.test_b>"))
 
-        ;; Mock greger-agent--run-agent-loop to capture completion
+        ;; Mock greger--run-agent-loop to capture completion
         (cl-letf (((symbol-function 'greger-agent--run-agent-loop)
                    (lambda (state)
                      (setq tools-completed t))))
