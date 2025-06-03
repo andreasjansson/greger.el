@@ -8977,4 +8977,75 @@ test/test-end-to-end.el
 Add streaming completion wait to tool use conversation test
 </tool.toolu_01XtnsC6zuCDhwBbBPxEuQE2>
 
-<!-- TOOL_RESULT_PLACEHOLDER_toolu_01XtnsC6zuCDhwBbBPxEuQE2 -->
+## TOOL RESULT:
+
+ID: toolu_01XtnsC6zuCDhwBbBPxEuQE2
+
+<tool.toolu_01XtnsC6zuCDhwBbBPxEuQE2>
+Successfully replaced content in /Users/andreas/projects/greger.el/test/test-end-to-end.el. Successfully staged 2 file(s) and committed with message: Add streaming completion wait to tool use conversation test
+</tool.toolu_01XtnsC6zuCDhwBbBPxEuQE2>
+
+
+## ASSISTANT:
+
+Also let me add the streaming wait to the no-tools test:
+
+## TOOL USE:
+
+Name: str-replace
+ID: toolu_01FhNxfhseckPc74ZhnWavmC
+
+### file_path
+
+<tool.toolu_01FhNxfhseckPc74ZhnWavmC>
+test/test-end-to-end.el
+</tool.toolu_01FhNxfhseckPc74ZhnWavmC>
+
+### original_content
+
+<tool.toolu_01FhNxfhseckPc74ZhnWavmC>
+;; Wait for response
+          (should (greger-test-wait-for-response greger-buffer greger-test-timeout))
+
+          ;; Verify response was added to buffer
+          (let ((content (buffer-string)))
+            (should (string-match-p "## ASSISTANT:" content))
+            ;; Should NOT have tool use sections (no tools mode)
+            (should-not (string-match-p "## TOOL USE:" content))
+            (should-not (string-match-p "## TOOL RESULT:" content))
+            ;; Should have responded without actually reading the file
+            (should-not (string-match-p "This file should not be read" content))
+            ;; Should have a new USER section at the end (or at least assistant response)
+            (should (or (string-match-p "## USER:\n\n$" content)
+                       (string-match-p "## ASSISTANT:" content)))))
+</tool.toolu_01FhNxfhseckPc74ZhnWavmC>
+
+### new_content
+
+<tool.toolu_01FhNxfhseckPc74ZhnWavmC>
+;; Wait for response
+          (should (greger-test-wait-for-response greger-buffer greger-test-timeout))
+
+          ;; Wait for streaming to complete
+          (greger-test-wait-for-streaming-complete)
+
+          ;; Verify response was added to buffer
+          (let ((content (buffer-string)))
+            (should (string-match-p "## ASSISTANT:" content))
+            ;; Should NOT have tool use sections (no tools mode)
+            (should-not (string-match-p "## TOOL USE:" content))
+            (should-not (string-match-p "## TOOL RESULT:" content))
+            ;; Should have responded without actually reading the file
+            (should-not (string-match-p "This file should not be read" content))
+            ;; Should have a new USER section at the end (or at least assistant response)
+            (should (or (string-match-p "## USER:\n\n$" content)
+                       (string-match-p "## ASSISTANT:" content)))))
+</tool.toolu_01FhNxfhseckPc74ZhnWavmC>
+
+### git_commit_message
+
+<tool.toolu_01FhNxfhseckPc74ZhnWavmC>
+Add streaming completion wait to no-tools test
+</tool.toolu_01FhNxfhseckPc74ZhnWavmC>
+
+<!-- TOOL_RESULT_PLACEHOLDER_toolu_01FhNxfhseckPc74ZhnWavmC -->
