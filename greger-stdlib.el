@@ -913,10 +913,13 @@ If BUFFER is provided, it will be staged and committed along with the modified f
   (unless (stringp file-path)
     (error "File path must be a string"))
 
-  (unless (vectorp function-names)
-    (error "Function names must be a vector"))
+  (unless (or (vectorp function-names) (listp function-names))
+    (error "Function names must be a vector or list"))
 
-  (let ((expanded-path (expand-file-name file-path)))
+  (let ((expanded-path (expand-file-name file-path))
+        (names-list (if (vectorp function-names)
+                        (append function-names nil)  ; Convert vector to list
+                      function-names)))              ; Already a list
     ;; Check if file exists
     (unless (file-exists-p expanded-path)
       (error "File does not exist: %s" expanded-path))
@@ -927,19 +930,18 @@ If BUFFER is provided, it will be staged and committed along with the modified f
 
     (with-current-buffer (find-file-noselect expanded-path)
      ;; Navigate to and evaluate each function
-     (dotimes (i (length function-names))
-       (let ((function-name (aref function-names i)))
-         (goto-char (point-min))
+     (dolist (function-name names-list)
+       (goto-char (point-min))
 
-         ;; Search for the function definition
-         (let ((function-pattern (format "^\\s-*(\\(ert-deftest\\|defun\\)\\s-+%s\\s-*("
-                                         (regexp-quote function-name))))
-           (unless (re-search-forward function-pattern nil t)
-             (error "Function '%s' not found in %s" function-name expanded-path))
+       ;; Search for the function definition
+       (let ((function-pattern (format "^\\s-*(\\(ert-deftest\\|defun\\)\\s-+%s\\s-*("
+                                       (regexp-quote function-name))))
+         (unless (re-search-forward function-pattern nil t)
+           (error "Function '%s' not found in %s" function-name expanded-path))
 
-           ;; Move to beginning of defun and evaluate it
-           (beginning-of-defun)
-           (eval-defun nil)))))
+         ;; Move to beginning of defun and evaluate it
+         (beginning-of-defun)
+         (eval-defun nil))))
     "Eval successful"))
 
 (defun greger-stdlib--ert-test (test-file-path function-names)
