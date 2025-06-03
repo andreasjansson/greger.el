@@ -886,7 +886,7 @@ Returns either a system message, metadata, or both."
     (content . (((type . "thinking") (thinking . ,content))))))
 
 (defun greger-parser--create-tool-use-message (name id input)
-  "Create tool use message."
+  "Create tool use message with NAME, ID and INPUT."
   `((role . "assistant")
     (content . (((type . "tool_use")
                  (id . ,id)
