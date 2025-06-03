@@ -1011,7 +1011,7 @@ Returns either a system message, metadata, or both."
             (greger-parser--tool-params-to-markdown id input))))
 
 (defun greger-parser--tool-result-to-markdown (tool-result)
-  "Convert tool result to markdown."
+  "Convert TOOL-RESULT to markdown."
   (let ((id (alist-get 'tool_use_id tool-result))
         (content (alist-get 'content tool-result)))
     (concat greger-parser-tool-result-tag "\n\n"
