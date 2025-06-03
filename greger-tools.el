@@ -189,7 +189,3 @@ Returns a list of arguments in the correct order for the function."
 (provide 'greger-tools)
 
 ;;; greger-tools.el ends here
-
-;; Local Variables:
-;; package-lint-main-file: "greger.el"
-;; End:
