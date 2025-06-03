@@ -179,7 +179,7 @@
             "\n\n" greger-default-system-prompt "\n\n"
             greger-user-tag
             "\n\n")
-    (message (format "Using model %s" greger-model))))
+    (message "Using model %s" greger-model)))
 
 (defun greger-insert-assistant-tag ()
   "Insert the assistant tag into the buffer."

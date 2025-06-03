@@ -25,6 +25,10 @@ In Greger buffers:
 - `C-; m` - Change AI model
 - `TAB` - Toggle tool section visibility
 
+While Greger is generating output:
+
+- `C-g` - Interrupt the output.
+
 ## Installation
 
 Greger is not on MELPA yet, so for now you'll need to download the repo and add it to your load path, and then
