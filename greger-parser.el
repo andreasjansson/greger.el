@@ -951,7 +951,7 @@ Returns either a system message, metadata, or both."
 ;; Markdown generation
 
 (defun greger-parser--message-to-markdown (message)
-  "Convert message to markdown."
+  "Convert MESSAGE to markdown."
   (let ((role (alist-get 'role message))
         (content (alist-get 'content message)))
     (cond

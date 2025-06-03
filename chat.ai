@@ -3612,4 +3612,94 @@ greger-parser.el
 Fix docstring for greger-parser--content-to-blocks
 </tool.toolu_01VdST8JDubMYcUabdvUA66B>
 
-<!-- TOOL_RESULT_PLACEHOLDER_toolu_01VdST8JDubMYcUabdvUA66B -->
+## TOOL RESULT:
+
+ID: toolu_01VdST8JDubMYcUabdvUA66B
+
+<tool.toolu_01VdST8JDubMYcUabdvUA66B>
+Successfully replaced content in /Users/andreas/projects/greger.el/greger-parser.el. Successfully staged 2 file(s) and committed with message: Fix docstring for greger-parser--content-to-blocks
+</tool.toolu_01VdST8JDubMYcUabdvUA66B>
+
+
+## ASSISTANT:
+
+Let me continue with functions around line 952:
+
+## TOOL USE:
+
+Name: read-file
+ID: toolu_01YMFsyLyuwYhjgJ3HLiFyBR
+
+### path
+
+<tool.toolu_01YMFsyLyuwYhjgJ3HLiFyBR>
+greger-parser.el
+</tool.toolu_01YMFsyLyuwYhjgJ3HLiFyBR>
+
+### start_line
+
+<tool.toolu_01YMFsyLyuwYhjgJ3HLiFyBR>
+950
+</tool.toolu_01YMFsyLyuwYhjgJ3HLiFyBR>
+
+### end_line
+
+<tool.toolu_01YMFsyLyuwYhjgJ3HLiFyBR>
+965
+</tool.toolu_01YMFsyLyuwYhjgJ3HLiFyBR>
+
+## TOOL RESULT:
+
+ID: toolu_01YMFsyLyuwYhjgJ3HLiFyBR
+
+<tool.toolu_01YMFsyLyuwYhjgJ3HLiFyBR>
+
+;; Markdown generation
+
+(defun greger-parser--message-to-markdown (message)
+  "Convert message to markdown."
+  (let ((role (alist-get 'role message))
+        (content (alist-get 'content message)))
+    (cond
+     ((string= role "user")
+      (greger-parser--user-to-markdown content))
+     ((string= role "assistant")
+      (greger-parser--assistant-to-markdown content))
+     ((string= role "system")
+      (greger-parser--system-to-markdown content))
+     (t ""))))
+
+</tool.toolu_01YMFsyLyuwYhjgJ3HLiFyBR>
+
+## TOOL USE:
+
+Name: str-replace
+ID: toolu_01PbGZR4okpRJWTu27CLNGiV
+
+### file_path
+
+<tool.toolu_01PbGZR4okpRJWTu27CLNGiV>
+greger-parser.el
+</tool.toolu_01PbGZR4okpRJWTu27CLNGiV>
+
+### original_content
+
+<tool.toolu_01PbGZR4okpRJWTu27CLNGiV>
+(defun greger-parser--message-to-markdown (message)
+  "Convert message to markdown."
+</tool.toolu_01PbGZR4okpRJWTu27CLNGiV>
+
+### new_content
+
+<tool.toolu_01PbGZR4okpRJWTu27CLNGiV>
+(defun greger-parser--message-to-markdown (message)
+  "Convert MESSAGE to markdown."
+</tool.toolu_01PbGZR4okpRJWTu27CLNGiV>
+
+### git_commit_message
+
+<tool.toolu_01PbGZR4okpRJWTu27CLNGiV>
+Fix docstring for greger-parser--message-to-markdown
+</tool.toolu_01PbGZR4okpRJWTu27CLNGiV>
+
+<!-- TOOL_RESULT_PLACEHOLDER_toolu_01PbGZR4okpRJWTu27CLNGiV -->
