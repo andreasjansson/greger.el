@@ -8814,4 +8814,61 @@ greger-stdlib.el
 Remove JSON parsing from eval-elisp-defuns - now handled centrally in greger-tools
 </tool.toolu_0132C7rfopqwHuoUpNiBkQbP>
 
-<!-- TOOL_RESULT_PLACEHOLDER_toolu_0132C7rfopqwHuoUpNiBkQbP -->
+## TOOL RESULT:
+
+ID: toolu_0132C7rfopqwHuoUpNiBkQbP
+
+<tool.toolu_0132C7rfopqwHuoUpNiBkQbP>
+Successfully replaced content in /Users/andreas/projects/greger.el/greger-stdlib.el. Successfully staged 2 file(s) and committed with message: Remove JSON parsing from eval-elisp-defuns - now handled centrally in greger-tools
+</tool.toolu_0132C7rfopqwHuoUpNiBkQbP>
+
+
+## TOOL USE:
+
+Name: str-replace
+ID: toolu_01QiypEQTBZbejkwUeVbBRta
+
+### file_path
+
+<tool.toolu_01QiypEQTBZbejkwUeVbBRta>
+greger-stdlib.el
+</tool.toolu_01QiypEQTBZbejkwUeVbBRta>
+
+### original_content
+
+<tool.toolu_01QiypEQTBZbejkwUeVbBRta>
+(defun greger-stdlib--ert-test (test-file-path function-names)
+  "Execute ERT tests by evaluating test functions and running them with ert.
+TEST-FILE-PATH is the path to the test file.
+FUNCTION-NAMES is a vector of test function names to evaluate and run."
+
+  ;; Handle JSON array strings by parsing them into lists
+  (when (stringp function-names)
+    (condition-case nil
+        (setq function-names (json-parse-string function-names :array-type 'list))
+      (error
+        (error "function_names must be a valid JSON array string, vector, or list: %s" function-names))))
+
+  ;; First eval the test function names
+  (greger-stdlib--eval-elisp-defuns test-file-path function-names)
+</tool.toolu_01QiypEQTBZbejkwUeVbBRta>
+
+### new_content
+
+<tool.toolu_01QiypEQTBZbejkwUeVbBRta>
+(defun greger-stdlib--ert-test (test-file-path function-names)
+  "Execute ERT tests by evaluating test functions and running them with ert.
+TEST-FILE-PATH is the path to the test file.
+FUNCTION-NAMES is a vector of test function names to evaluate and run."
+
+  ;; First eval the test function names
+  (greger-stdlib--eval-elisp-defuns test-file-path function-names)
+</tool.toolu_01QiypEQTBZbejkwUeVbBRta>
+
+### git_commit_message
+
+<tool.toolu_01QiypEQTBZbejkwUeVbBRta>
+Remove JSON parsing from ert-test - now handled centrally in greger-tools
+</tool.toolu_01QiypEQTBZbejkwUeVbBRta>
+
+<!-- TOOL_RESULT_PLACEHOLDER_toolu_01QiypEQTBZbejkwUeVbBRta -->
