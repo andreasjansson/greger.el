@@ -1516,7 +1516,7 @@ ID: toolu_01S7zjgnmQQDjt4qiJAYLT6q
 /opt/homebrew/Cellar/emacs-plus@29/29.0.90/share/emacs/29.0.91/lisp/progmodes/perl-mode.el:483:     (nth 8 (parse-partial-sexp
 /opt/homebrew/Cellar/emacs-plus@29/29.0.90/share/emacs/29.0.91/lisp/progmodes/perl-mode.el:548:                   (parse-partial-sexp (point) (point-max)
 /opt/homebrew/Cellar/emacs-plus@29/29.0.90/share/emacs/29.0.91/lisp/progmodes/perl-mode.el:831:		(let ((pps (parse-partial-sexp
-/opt/homebrew/Cellar/emacs-plus@29/29.0.90/share/emacs/29.0.91/lisp/progmodes/make-mode.el:845:	      ;; `parse-partial-sexp' trying to parse all the way till
+/opt/homebrew/Cellar/emacs-plus@29/29.0.90/share/emacs/29.0.91/lisp/progmodes/make-mode.el:845:      ;; `parse-partial-sexp' trying to parse all the way till
 /opt/homebrew/Cellar/emacs-plus@29/29.0.90/share/emacs/29.0.91/lisp/progmodes/scheme.el:422:      ;; It's a sexp-comment.  Tell parse-partial-sexp where it ends.
 /opt/homebrew/Cellar/emacs-plus@29/29.0.90/share/emacs/29.0.91/lisp/progmodes/scheme.el:515:    (parse-partial-sexp (point) calculate-lisp-indent-last-sexp 0 t)
 /opt/homebrew/Cellar/emacs-plus@29/29.0.90/share/emacs/29.0.91/lisp/progmodes/scheme.el:524:                     (parse-partial-sexp (point)
@@ -3518,4 +3518,48 @@ test-example.el
 Test replacement with comment parens
 </tool.toolu_016UKMwUdZueGzSR12JoYuED>
 
-<!-- TOOL_RESULT_PLACEHOLDER_toolu_016UKMwUdZueGzSR12JoYuED -->
+## TOOL RESULT:
+
+ID: toolu_016UKMwUdZueGzSR12JoYuED
+
+<tool.toolu_016UKMwUdZueGzSR12JoYuED>
+Successfully replaced content in /Users/andreas/projects/greger.el/test-example.el. Successfully staged 2 file(s) and committed with message: Test replacement with comment parens
+</tool.toolu_016UKMwUdZueGzSR12JoYuED>
+
+
+## ASSISTANT:
+
+Excellent! That worked because both have balance 1 - the parens in the comment are correctly ignored.
+
+Let's test with strings too:
+
+## TOOL USE:
+
+Name: str-replace
+ID: toolu_01P1Q9RW5GAYr3pUxuiyu6wg
+
+### file_path
+
+<tool.toolu_01P1Q9RW5GAYr3pUxuiyu6wg>
+test-example.el
+</tool.toolu_01P1Q9RW5GAYr3pUxuiyu6wg>
+
+### original_content
+
+<tool.toolu_01P1Q9RW5GAYr3pUxuiyu6wg>
+(+ x y)
+</tool.toolu_01P1Q9RW5GAYr3pUxuiyu6wg>
+
+### new_content
+
+<tool.toolu_01P1Q9RW5GAYr3pUxuiyu6wg>
+(+ x (string-to-number "123)"))
+</tool.toolu_01P1Q9RW5GAYr3pUxuiyu6wg>
+
+### git_commit_message
+
+<tool.toolu_01P1Q9RW5GAYr3pUxuiyu6wg>
+Test replacement with string parens
+</tool.toolu_01P1Q9RW5GAYr3pUxuiyu6wg>
+
+<!-- TOOL_RESULT_PLACEHOLDER_toolu_01P1Q9RW5GAYr3pUxuiyu6wg -->
