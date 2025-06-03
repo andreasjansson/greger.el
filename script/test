@@ -81,40 +81,30 @@ run_test_file() {
         # Extract and display failure information
         echo -e "  ${RED}Failed tests:${NC}"
 
-        # Parse the ERT output for failures
-        # ERT batch output typically shows "F test-name" for failed tests
-        # and then shows detailed error information
-
-        # First, look for the summary line that shows failed tests
-        if grep -q "failed" "$temp_output"; then
-            # Extract failed test names from lines like "F test-name"
-            grep -E "^F " "$temp_output" | sed 's/^F //' | while read -r test_name; do
-                if [ -n "$test_name" ]; then
-                    echo -e "    ${RED}• $test_name${NC}"
-                fi
-            done
-
-            # If no "F test-name" format found, try to find test names from FAILED lines
-            if ! grep -q "^F " "$temp_output"; then
-                grep -i "failed" "$temp_output" | grep -E "[a-zA-Z0-9_-]+" | head -5 | while IFS= read -r line; do
-                    # Extract test name from various failure formats
-                    test_name=$(echo "$line" | sed -E 's/.*([a-zA-Z0-9_-]+[a-zA-Z0-9_-]*test[a-zA-Z0-9_-]*).*/\1/' | head -c 50)
-                    if [ -n "$test_name" ] && [[ $test_name =~ test ]]; then
-                        echo -e "    ${RED}• $test_name${NC}"
-                    fi
-                done
+        # Extract failed test names from "FAILED test-name" lines at the end of output
+        grep -E "^[[:space:]]*FAILED[[:space:]]+[a-zA-Z0-9_-]+" "$temp_output" | while IFS= read -r line; do
+            test_name=$(echo "$line" | sed -E 's/^[[:space:]]*FAILED[[:space:]]+([a-zA-Z0-9_-]+).*/\1/')
+            if [ -n "$test_name" ]; then
+                echo -e "    ${RED}• $test_name${NC}"
             fi
+        done
 
-            # Show error details
-            echo -e "  ${RED}Error details:${NC}"
+        # Show error details for each failed test
+        echo -e "  ${RED}Error details:${NC}"
 
-            # Look for assertion failures and error messages
-            grep -E "(should|FAILED|Error|error)" "$temp_output" | head -5 | while IFS= read -r line; do
-                # Clean up the line and show it
-                clean_line=$(echo "$line" | sed 's/^[[:space:]]*//' | head -c 100)
-                if [ -n "$clean_line" ]; then
-                    echo -e "    ${YELLOW}$clean_line${NC}"
-                fi
+        # Look for condition sections that show the actual assertion failures
+        grep -A 5 "Test.*condition:" "$temp_output" | grep -E "(should|:form)" | head -3 | while IFS= read -r line; do
+            # Clean up and show the assertion that failed
+            clean_line=$(echo "$line" | sed 's/^[[:space:]]*//' | sed 's/))[[:space:]]*$//' | head -c 120)
+            if [[ $clean_line =~ should ]] || [[ $clean_line =~ :form ]]; then
+                echo -e "    ${YELLOW}$clean_line${NC}"
+            fi
+        done
+
+        # If no condition details found, look for the simpler FAILED lines with timing
+        if ! grep -q "condition:" "$temp_output"; then
+            grep -E "FAILED.*\([0-9.]+.*sec\)" "$temp_output" | head -3 | while IFS= read -r line; do
+                echo -e "    ${YELLOW}$line${NC}"
             done
         fi
 

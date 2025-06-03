@@ -1868,4 +1868,291 @@ test/test-failure-demo.el
 Add demo test file with failures to test error reporting
 </tool.toolu_01CfaQhHi1ysRLUbTYSSWR8X>
 
-<!-- TOOL_RESULT_PLACEHOLDER_toolu_01CfaQhHi1ysRLUbTYSSWR8X -->
+## TOOL RESULT:
+
+ID: toolu_01CfaQhHi1ysRLUbTYSSWR8X
+
+<tool.toolu_01CfaQhHi1ysRLUbTYSSWR8X>
+Successfully wrote new file /Users/andreas/projects/greger.el/test/test-failure-demo.el with 482 characters. Successfully staged 2 file(s) and committed with message: Add demo test file with failures to test error reporting
+</tool.toolu_01CfaQhHi1ysRLUbTYSSWR8X>
+
+
+## ASSISTANT:
+
+Now let me test the script with this failing test file:
+
+## TOOL USE:
+
+Name: shell-command
+ID: toolu_01PrPjjWDMjfdLMWazwhtqSr
+
+### command
+
+<tool.toolu_01PrPjjWDMjfdLMWazwhtqSr>
+bash script/test --file test/test-failure-demo.el
+</tool.toolu_01PrPjjWDMjfdLMWazwhtqSr>
+
+## TOOL RESULT:
+
+ID: toolu_01PrPjjWDMjfdLMWazwhtqSr
+
+<tool.toolu_01PrPjjWDMjfdLMWazwhtqSr>
+Command failed with exit code 1: [0;34mRunning ERT tests for greger package...[0m
+
+Running tests in [1;33mtest/test-failure-demo.el[0m...
+  [0;31m✗ Some tests failed[0m
+  [0;31mFailed tests:[0m
+    [0;31m• -test-failed[0m
+    [0;31m• -test-failed[0m
+    [0;31m•    FAILED  1/3  test-demo-failure-1 (0.000067 sec)[0m
+    [0;31m• -test-failed[0m
+    [0;31m• -test-failed[0m
+  [0;31mError details:[0m
+    [1;33msignal(ert-test-failed (((should (= 1 2)) :form (= 1 2) :value nil))[0m
+    [1;33mert-fail(((should (= 1 2)) :form (= 1 2) :value nil))[0m
+    [1;33m(progn (setq debug-on-error t) (add-to-list 'load-path ".") (require[0m
+    [1;33meval((progn (setq debug-on-error t) (add-to-list 'load-path ".") (re[0m
+    [1;33m((should[0m
+[0;34mTest Summary:[0m
+  Files run: 1
+  Files passed: [0;32m0[0m
+  Files failed: [0;31m1[0m
+[0;31mSome tests failed.[0m
+
+</tool.toolu_01PrPjjWDMjfdLMWazwhtqSr>
+
+## ASSISTANT:
+
+I can see the error reporting is working but the parsing needs improvement. Let me look at the actual output format and refine the parsing:
+
+## TOOL USE:
+
+Name: shell-command
+ID: toolu_01AgGtRmkfa2oU6sKq8vn5yG
+
+### command
+
+<tool.toolu_01AgGtRmkfa2oU6sKq8vn5yG>
+emacs --batch -Q --eval "(progn (add-to-list 'load-path \".\") (require 'ert) (load-file \"test/test-failure-demo.el\") (ert-run-tests-batch-and-exit t))" 2>&1 | head -20
+</tool.toolu_01AgGtRmkfa2oU6sKq8vn5yG>
+
+## TOOL RESULT:
+
+ID: toolu_01AgGtRmkfa2oU6sKq8vn5yG
+
+<tool.toolu_01AgGtRmkfa2oU6sKq8vn5yG>
+Command executed successfully:
+Loading /Users/andreas/projects/greger.el/test/test-failure-demo.el (source)...
+Running 3 tests (2025-06-03 16:08:53+0200, selector ‘t’)
+Test test-demo-failure-1 backtrace:
+  signal(ert-test-failed (((should (= 1 2)) :form (= 1 2) :value nil))
+  ert-fail(((should (= 1 2)) :form (= 1 2) :value nil))
+  (if (unwind-protect (setq value-2 (apply fn-0 args-1)) (setq form-de
+  (let (form-description-4) (if (unwind-protect (setq value-2 (apply f
+  (let ((value-2 'ert-form-evaluation-aborted-3)) (let (form-descripti
+  (let* ((fn-0 #'=) (args-1 (condition-case err (let ((signal-hook-fun
+  (closure (t) nil (let* ((fn-0 #'=) (args-1 (condition-case err (let
+  ert--run-test-internal(#s(ert--test-execution-info :test #s(ert-test
+  ert-run-test(#s(ert-test :name test-demo-failure-1 :documentation "A
+  ert-run-or-rerun-test(#s(ert--stats :selector t :tests [#s(ert-test
+  ert-run-tests(t #f(compiled-function (event-type &rest event-args) #
+  ert-run-tests-batch(t)
+  ert-run-tests-batch-and-exit(t)
+  (progn (add-to-list 'load-path ".") (require 'ert) (load-file "test/
+  eval((progn (add-to-list 'load-path ".") (require 'ert) (load-file "
+  command-line-1(("--eval" "(progn (add-to-list 'load-path \".\") (req
+  command-line()
+
+</tool.toolu_01AgGtRmkfa2oU6sKq8vn5yG>
+
+## ASSISTANT:
+
+Let me see more of the output to understand the full format:
+
+## TOOL USE:
+
+Name: shell-command
+ID: toolu_01BXsh26j6Q111PBb4mVXh54
+
+### command
+
+<tool.toolu_01BXsh26j6Q111PBb4mVXh54>
+emacs --batch -Q --eval "(progn (add-to-list 'load-path \".\") (require 'ert) (load-file \"test/test-failure-demo.el\") (ert-run-tests-batch-and-exit t))" 2>&1
+</tool.toolu_01BXsh26j6Q111PBb4mVXh54>
+
+## TOOL RESULT:
+
+ID: toolu_01BXsh26j6Q111PBb4mVXh54
+
+<tool.toolu_01BXsh26j6Q111PBb4mVXh54>
+Command failed with exit code 1: Loading /Users/andreas/projects/greger.el/test/test-failure-demo.el (source)...
+Running 3 tests (2025-06-03 16:09:00+0200, selector ‘t’)
+Test test-demo-failure-1 backtrace:
+  signal(ert-test-failed (((should (= 1 2)) :form (= 1 2) :value nil))
+  ert-fail(((should (= 1 2)) :form (= 1 2) :value nil))
+  (if (unwind-protect (setq value-2 (apply fn-0 args-1)) (setq form-de
+  (let (form-description-4) (if (unwind-protect (setq value-2 (apply f
+  (let ((value-2 'ert-form-evaluation-aborted-3)) (let (form-descripti
+  (let* ((fn-0 #'=) (args-1 (condition-case err (let ((signal-hook-fun
+  (closure (t) nil (let* ((fn-0 #'=) (args-1 (condition-case err (let
+  ert--run-test-internal(#s(ert--test-execution-info :test #s(ert-test
+  ert-run-test(#s(ert-test :name test-demo-failure-1 :documentation "A
+  ert-run-or-rerun-test(#s(ert--stats :selector t :tests [#s(ert-test
+  ert-run-tests(t #f(compiled-function (event-type &rest event-args) #
+  ert-run-tests-batch(t)
+  ert-run-tests-batch-and-exit(t)
+  (progn (add-to-list 'load-path ".") (require 'ert) (load-file "test/
+  eval((progn (add-to-list 'load-path ".") (require 'ert) (load-file "
+  command-line-1(("--eval" "(progn (add-to-list 'load-path \".\") (req
+  command-line()
+  normal-top-level()
+Test test-demo-failure-1 condition:
+    (ert-test-failed
+     ((should
+       (= 1 2))
+      :form
+      (= 1 2)
+      :value nil))
+   FAILED  1/3  test-demo-failure-1 (0.000066 sec) at test/test-failure-demo.el:5
+Test test-demo-failure-2 backtrace:
+  signal(ert-test-failed (((should (string= "hello" "world")) :form (s
+  ert-fail(((should (string= "hello" "world")) :form (string= "hello"
+  (if (unwind-protect (setq value-7 (apply fn-5 args-6)) (setq form-de
+  (let (form-description-9) (if (unwind-protect (setq value-7 (apply f
+  (let ((value-7 'ert-form-evaluation-aborted-8)) (let (form-descripti
+  (let* ((fn-5 #'string=) (args-6 (condition-case err (let ((signal-ho
+  (closure (t) nil (let* ((fn-5 #'string=) (args-6 (condition-case err
+  ert--run-test-internal(#s(ert--test-execution-info :test #s(ert-test
+  ert-run-test(#s(ert-test :name test-demo-failure-2 :documentation "A
+  ert-run-or-rerun-test(#s(ert--stats :selector t :tests [#s(ert-test
+  ert-run-tests(t #f(compiled-function (event-type &rest event-args) #
+  ert-run-tests-batch(t)
+  ert-run-tests-batch-and-exit(t)
+  (progn (add-to-list 'load-path ".") (require 'ert) (load-file "test/
+  eval((progn (add-to-list 'load-path ".") (require 'ert) (load-file "
+  command-line-1(("--eval" "(progn (add-to-list 'load-path \".\") (req
+  command-line()
+  normal-top-level()
+Test test-demo-failure-2 condition:
+    (ert-test-failed
+     ((should
+       (string= "hello" "world"))
+      :form
+      (string= "hello" "world")
+      :value nil :explanation
+      (array-elt 0
+(different-atoms
+(104 "#x68" "?h")
+(119 "#x77" "?w")))))
+   FAILED  2/3  test-demo-failure-2 (0.000091 sec) at test/test-failure-demo.el:9
+   passed  3/3  test-demo-success (0.000045 sec)
+
+Ran 3 tests, 1 results as expected, 2 unexpected (2025-06-03 16:09:00+0200, 0.167992 sec)
+
+2 unexpected results:
+   FAILED  test-demo-failure-1
+   FAILED  test-demo-failure-2
+
+
+</tool.toolu_01BXsh26j6Q111PBb4mVXh54>
+
+## ASSISTANT:
+
+Perfect! Now I can see the exact format. Let me update the parsing logic to correctly extract the test names and errors:
+
+## TOOL USE:
+
+Name: str-replace
+ID: toolu_01Bpt7F2LjLcNSCPFkDepaMU
+
+### file_path
+
+<tool.toolu_01Bpt7F2LjLcNSCPFkDepaMU>
+script/test
+</tool.toolu_01Bpt7F2LjLcNSCPFkDepaMU>
+
+### original_content
+
+<tool.toolu_01Bpt7F2LjLcNSCPFkDepaMU>
+# Extract and display failure information
+        echo -e "  ${RED}Failed tests:${NC}"
+
+        # Parse the ERT output for failures
+        # ERT batch output typically shows "F test-name" for failed tests
+        # and then shows detailed error information
+
+        # First, look for the summary line that shows failed tests
+        if grep -q "failed" "$temp_output"; then
+            # Extract failed test names from lines like "F test-name"
+            grep -E "^F " "$temp_output" | sed 's/^F //' | while read -r test_name; do
+                if [ -n "$test_name" ]; then
+                    echo -e "    ${RED}• $test_name${NC}"
+                fi
+            done
+
+            # If no "F test-name" format found, try to find test names from FAILED lines
+            if ! grep -q "^F " "$temp_output"; then
+                grep -i "failed" "$temp_output" | grep -E "[a-zA-Z0-9_-]+" | head -5 | while IFS= read -r line; do
+                    # Extract test name from various failure formats
+                    test_name=$(echo "$line" | sed -E 's/.*([a-zA-Z0-9_-]+[a-zA-Z0-9_-]*test[a-zA-Z0-9_-]*).*/\1/' | head -c 50)
+                    if [ -n "$test_name" ] && [[ $test_name =~ test ]]; then
+                        echo -e "    ${RED}• $test_name${NC}"
+                    fi
+                done
+            fi
+
+            # Show error details
+            echo -e "  ${RED}Error details:${NC}"
+
+            # Look for assertion failures and error messages
+            grep -E "(should|FAILED|Error|error)" "$temp_output" | head -5 | while IFS= read -r line; do
+                # Clean up the line and show it
+                clean_line=$(echo "$line" | sed 's/^[[:space:]]*//' | head -c 100)
+                if [ -n "$clean_line" ]; then
+                    echo -e "    ${YELLOW}$clean_line${NC}"
+                fi
+            done
+        fi
+</tool.toolu_01Bpt7F2LjLcNSCPFkDepaMU>
+
+### new_content
+
+<tool.toolu_01Bpt7F2LjLcNSCPFkDepaMU>
+# Extract and display failure information
+        echo -e "  ${RED}Failed tests:${NC}"
+
+        # Extract failed test names from "FAILED test-name" lines at the end of output
+        grep -E "^[[:space:]]*FAILED[[:space:]]+[a-zA-Z0-9_-]+" "$temp_output" | while IFS= read -r line; do
+            test_name=$(echo "$line" | sed -E 's/^[[:space:]]*FAILED[[:space:]]+([a-zA-Z0-9_-]+).*/\1/')
+            if [ -n "$test_name" ]; then
+                echo -e "    ${RED}• $test_name${NC}"
+            fi
+        done
+
+        # Show error details for each failed test
+        echo -e "  ${RED}Error details:${NC}"
+
+        # Look for condition sections that show the actual assertion failures
+        grep -A 5 "Test.*condition:" "$temp_output" | grep -E "(should|:form)" | head -3 | while IFS= read -r line; do
+            # Clean up and show the assertion that failed
+            clean_line=$(echo "$line" | sed 's/^[[:space:]]*//' | sed 's/))[[:space:]]*$//' | head -c 120)
+            if [[ $clean_line =~ should ]] || [[ $clean_line =~ :form ]]; then
+                echo -e "    ${YELLOW}$clean_line${NC}"
+            fi
+        done
+
+        # If no condition details found, look for the simpler FAILED lines with timing
+        if ! grep -q "condition:" "$temp_output"; then
+            grep -E "FAILED.*\([0-9.]+.*sec\)" "$temp_output" | head -3 | while IFS= read -r line; do
+                echo -e "    ${YELLOW}$line${NC}"
+            done
+        fi
+</tool.toolu_01Bpt7F2LjLcNSCPFkDepaMU>
+
+### git_commit_message
+
+<tool.toolu_01Bpt7F2LjLcNSCPFkDepaMU>
+Refine error parsing to properly extract test names and assertion failures
+</tool.toolu_01Bpt7F2LjLcNSCPFkDepaMU>
+
+<!-- TOOL_RESULT_PLACEHOLDER_toolu_01Bpt7F2LjLcNSCPFkDepaMU -->
