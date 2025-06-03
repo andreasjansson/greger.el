@@ -136,7 +136,7 @@
     (cl-letf (((symbol-function 'y-or-n-p) (lambda (prompt) nil)))
 
       ;; Try to execute a command
-      (greger-tools--shell-command
+      (greger-stdlib--shell-command
        "echo test"
        (lambda (output err)
          (setq result output error err callback-called t)))
