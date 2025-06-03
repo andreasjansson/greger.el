@@ -644,7 +644,7 @@ If BUFFER is provided, it will be staged and committed along with the deleted fi
         (dolist (expanded-path (reverse expanded-paths))
           (delete-file expanded-path)
           (push expanded-path deleted-files))
-      (error (format "Failed to delete file: %s" (error-message-string err))))
+      (error "Failed to delete file: %s" (error-message-string err)))
 
     ;; Stage and commit the deletions for git-tracked files
     (let ((git-result
