@@ -5158,4 +5158,61 @@ greger-stdlib.el
 Remove JSON parsing workaround from eval-elisp-defuns - parser should handle this
 </tool.toolu_01UEJwKVkUAExx73AH6htLCw>
 
-<!-- TOOL_RESULT_PLACEHOLDER_toolu_01UEJwKVkUAExx73AH6htLCw -->
+## TOOL RESULT:
+
+ID: toolu_01UEJwKVkUAExx73AH6htLCw
+
+<tool.toolu_01UEJwKVkUAExx73AH6htLCw>
+Successfully replaced content in /Users/andreas/projects/greger.el/greger-stdlib.el. Successfully staged 2 file(s) and committed with message: Remove JSON parsing workaround from eval-elisp-defuns - parser should handle this
+</tool.toolu_01UEJwKVkUAExx73AH6htLCw>
+
+
+## TOOL USE:
+
+Name: str-replace
+ID: toolu_01CUhjykRqLyZmoojeV117Ra
+
+### file_path
+
+<tool.toolu_01CUhjykRqLyZmoojeV117Ra>
+greger-stdlib.el
+</tool.toolu_01CUhjykRqLyZmoojeV117Ra>
+
+### original_content
+
+<tool.toolu_01CUhjykRqLyZmoojeV117Ra>
+(defun greger-stdlib--ert-test (test-file-path function-names)
+  "Execute ERT tests by evaluating test functions and running them with ert.
+TEST-FILE-PATH is the path to the test file.
+FUNCTION-NAMES is a vector of test function names to evaluate and run."
+
+  ;; Handle JSON array strings by parsing them
+  (when (stringp function-names)
+    (condition-case nil
+        (setq function-names (json-parse-string function-names :array-type 'list))
+      (error
+        (error "function_names must be a valid JSON array string, vector, or list: %s" function-names))))
+
+  ;; First eval the test function names
+  (greger-stdlib--eval-elisp-defuns test-file-path function-names)
+</tool.toolu_01CUhjykRqLyZmoojeV117Ra>
+
+### new_content
+
+<tool.toolu_01CUhjykRqLyZmoojeV117Ra>
+(defun greger-stdlib--ert-test (test-file-path function-names)
+  "Execute ERT tests by evaluating test functions and running them with ert.
+TEST-FILE-PATH is the path to the test file.
+FUNCTION-NAMES is a vector of test function names to evaluate and run."
+
+  ;; First eval the test function names
+  (greger-stdlib--eval-elisp-defuns test-file-path function-names)
+</tool.toolu_01CUhjykRqLyZmoojeV117Ra>
+
+### git_commit_message
+
+<tool.toolu_01CUhjykRqLyZmoojeV117Ra>
+Remove JSON parsing workaround from ert-test - parser should handle this
+</tool.toolu_01CUhjykRqLyZmoojeV117Ra>
+
+<!-- TOOL_RESULT_PLACEHOLDER_toolu_01CUhjykRqLyZmoojeV117Ra -->

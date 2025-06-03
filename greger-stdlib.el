@@ -1016,13 +1016,6 @@ If BUFFER is provided, it will be staged and committed along with the modified f
 TEST-FILE-PATH is the path to the test file.
 FUNCTION-NAMES is a vector of test function names to evaluate and run."
 
-  ;; Handle JSON array strings by parsing them
-  (when (stringp function-names)
-    (condition-case nil
-        (setq function-names (json-parse-string function-names :array-type 'list))
-      (error
-        (error "function_names must be a valid JSON array string, vector, or list: %s" function-names))))
-
   ;; First eval the test function names
   (greger-stdlib--eval-elisp-defuns test-file-path function-names)
 
