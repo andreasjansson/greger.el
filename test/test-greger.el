@@ -309,13 +309,13 @@ ID: content_test
 Processed: test-data
 </tool.content_test>"))
 
-        ;; Mock greger-agent--run-agent-loop to capture completion
-        (cl-letf (((symbol-function 'greger-agent--run-agent-loop)
+        ;; Mock greger--run-agent-loop to capture completion
+        (cl-letf (((symbol-function 'greger--run-agent-loop)
                    (lambda (state)
                      (setq test-completed t))))
 
           ;; Execute tools
-          (greger-agent--execute-tools tool-calls agent-state)
+          (greger--execute-tools tool-calls agent-state)
 
           ;; Check that execution completed
           (should test-completed)
