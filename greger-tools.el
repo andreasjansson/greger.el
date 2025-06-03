@@ -77,8 +77,9 @@ Example:
   "Execute TOOL-NAME with ARGS and call CALLBACK with (result error).
 If the tool has :pass-buffer set, BUFFER will be passed to the tool function.
 If the tool has :pass-callback set, CALLBACK will be passed to the tool
-function instead of `greger-tools-execute\\=' calling the callback with result.
-If the tool has :pass-metadata set, METADATA will be passed to the tool function."
+function instead of `greger-tools-execute' calling the callback with result.
+If the tool has :pass-metadata set, METADATA will be passed to the tool
+function."
 
   (let ((tool-def (gethash tool-name greger-tools-registry)))
     (if tool-def
