@@ -866,19 +866,19 @@ For Emacs Lisp files (.el), checks that parentheses balance is maintained."
 GIT-COMMIT-MESSAGE will be used for the git commit.
 If BUFFER is provided, it will be staged and committed along with the file."
   (unless (stringp file-path)
-    (error "file_path must be a string"))
+    (error "File_path must be a string"))
 
   (unless (integerp line-number)
-    (error "line_number must be an integer"))
+    (error "Line_number must be an integer"))
 
   (unless (>= line-number 0)
-    (error "line_number must be >= 0"))
+    (error "Line_number must be >= 0"))
 
   (unless (stringp content)
-    (error "content must be a string"))
+    (error "Content must be a string"))
 
   (unless (stringp git-commit-message)
-    (error "git_commit_message must be a string"))
+    (error "Git_commit_message must be a string"))
 
   (let ((expanded-path (expand-file-name file-path)))
 
