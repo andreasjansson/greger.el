@@ -863,7 +863,7 @@ Returns either a system message, metadata, or both."
 ;; Message creation
 
 (defun greger-parser--create-user-message (content)
-  "Create user message."
+  "Create user message with CONTENT."
   `((role . "user") (content . ,content)))
 
 (defun greger-parser--create-assistant-message (content)
