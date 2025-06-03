@@ -1,5 +1,9 @@
 ;;; greger-agent.el --- Agent capabilities for greger -*- lexical-binding: t -*-
 
+;; Author: Andreas Jansson <andreas@jansson.me.uk>
+;; Version: 0.1.0
+;; URL: https://github.com/andreasjansson/greger.el
+
 ;;; Commentary:
 ;; Provides agent functionality with tool support for greger
 
