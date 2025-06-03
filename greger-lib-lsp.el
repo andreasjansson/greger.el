@@ -17,7 +17,8 @@
 
 ;;; Tool registrations
 
-(greger-register-tool "lsp-rename"
+(when greger-lib-lsp-available
+  (greger-register-tool "lsp-rename"
   :description "Rename a symbol across the entire codebase using LSP"
   :properties '((new_name . ((type . "string")
                             (description . "New name for the symbol")))

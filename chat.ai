@@ -3361,4 +3361,677 @@ greger-lib-lsp.el
 Make lsp-mode an optional dependency in greger-lib-lsp.el
 </tool.toolu_01FrEE5HoEEKJPvdSk1Ey2jr>
 
-<!-- TOOL_RESULT_PLACEHOLDER_toolu_01FrEE5HoEEKJPvdSk1Ey2jr -->
+## TOOL RESULT:
+
+ID: toolu_01FrEE5HoEEKJPvdSk1Ey2jr
+
+<tool.toolu_01FrEE5HoEEKJPvdSk1Ey2jr>
+Successfully replaced content in /Users/andreas/projects/greger.el/greger-lib-lsp.el. Successfully staged 2 file(s) and committed with message: Make lsp-mode an optional dependency in greger-lib-lsp.el
+</tool.toolu_01FrEE5HoEEKJPvdSk1Ey2jr>
+
+
+## ASSISTANT:
+
+Now I need to check if the tool registrations in these files need to be conditional too. Let me look for any usage of these optional dependencies:
+
+## TOOL USE:
+
+Name: ripgrep
+ID: toolu_01X5ABoovZRM3uRn4H2cwpfR
+
+### pattern
+
+<tool.toolu_01X5ABoovZRM3uRn4H2cwpfR>
+magit-|rg-|lsp-
+</tool.toolu_01X5ABoovZRM3uRn4H2cwpfR>
+
+### file-type
+
+<tool.toolu_01X5ABoovZRM3uRn4H2cwpfR>
+el
+</tool.toolu_01X5ABoovZRM3uRn4H2cwpfR>
+
+### path
+
+<tool.toolu_01X5ABoovZRM3uRn4H2cwpfR>
+greger-tools.el
+</tool.toolu_01X5ABoovZRM3uRn4H2cwpfR>
+
+### context-lines
+
+<tool.toolu_01X5ABoovZRM3uRn4H2cwpfR>
+2
+</tool.toolu_01X5ABoovZRM3uRn4H2cwpfR>
+
+## TOOL RESULT:
+
+ID: toolu_01X5ABoovZRM3uRn4H2cwpfR
+
+<tool.toolu_01X5ABoovZRM3uRn4H2cwpfR>
+12:(defvar greger-tools-magit-available
+18:(defvar greger-tools-rg-available
+121:  (let ((arg-list (help-function-arglist func))
+128:    (dolist (arg-name arg-list)
+131:       ((eq arg-name '&optional)
+134:       ((eq arg-name '&rest)
+138:        (let* ((arg-symbol (if (symbolp arg-name) arg-name (intern (symbol-name arg-name))))
+139:               (arg-key (intern (replace-regexp-in-string "-" "_" (symbol-name arg-symbol))))
+140:               (arg-provided-p (assoc arg-key args))
+141:               (is-required (member (symbol-name arg-key) required-params)))
+145:           ((and is-required (not arg-provided-p))
+146:            (error "Required parameter missing: %s" arg-key))
+149:           (arg-provided-p
+150:            (push (alist-get arg-key args) result))
+154:            (let ((default-value (greger-tools--get-default-from-schema arg-key tool-def)))
+162:(defun greger-tools--arg-provided-p (arg-name args)
+163:  "Check if ARG-NAME was provided in ARGS."
+164:  (let* ((arg-symbol (if (symbolp arg-name) arg-name (intern (symbol-name arg-name))))
+165:         (arg-key (intern (replace-regexp-in-string "-" "_" (symbol-name arg-symbol)))))
+166:    (assoc arg-key args)))
+168:(defun greger-tools--get-arg-value (arg-name args tool-def)
+169:  "Get value for ARG-NAME from ARGS alist, handling defaults from TOOL-DEF schema."
+170:  (let* ((arg-symbol (if (symbolp arg-name) arg-name (intern (symbol-name arg-name))))
+171:         (arg-key (intern (replace-regexp-in-string "-" "_" (symbol-name arg-symbol))))
+172:         (value (alist-get arg-key args)))
+177:      (or (greger-tools--get-default-from-schema arg-key tool-def)
+180:           ((eq arg-key 'path) ".")
+181:           ((eq arg-key 'context-lines) 0)
+182:           ((eq arg-key 'max-results) 50)
+185:(defun greger-tools--get-default-from-schema (arg-key tool-def)
+186:  "Get default value for ARG-KEY from TOOL-DEF schema."
+191:           (arg-property (alist-get arg-key properties))
+192:           (default-value (alist-get 'default arg-property)))
+
+</tool.toolu_01X5ABoovZRM3uRn4H2cwpfR>
+
+## ASSISTANT:
+
+Let me search more specifically for actual function usage:
+
+## TOOL USE:
+
+Name: ripgrep
+ID: toolu_01JeP9msAKXPUbUqUU99rEDg
+
+### pattern
+
+<tool.toolu_01JeP9msAKXPUbUqUU99rEDg>
+(magit-|\\brg-|\\blsp-"
+</tool.toolu_01JeP9msAKXPUbUqUU99rEDg>
+
+### file-type
+
+<tool.toolu_01JeP9msAKXPUbUqUU99rEDg>
+el
+</tool.toolu_01JeP9msAKXPUbUqUU99rEDg>
+
+### path
+
+<tool.toolu_01JeP9msAKXPUbUqUU99rEDg>
+greger-tools.el
+</tool.toolu_01JeP9msAKXPUbUqUU99rEDg>
+
+## TOOL RESULT:
+
+ID: toolu_01JeP9msAKXPUbUqUU99rEDg
+
+<tool.toolu_01JeP9msAKXPUbUqUU99rEDg>
+Failed to execute ripgrep search: Command failed with exit code 2: regex parse error:
+    (magit-|\\brg-|\\blsp-"
+    ^
+error: unclosed group
+
+</tool.toolu_01JeP9msAKXPUbUqUU99rEDg>
+
+## TOOL USE:
+
+Name: ripgrep
+ID: toolu_011ruUUstkPEmbqz8P2RVF8u
+
+### pattern
+
+<tool.toolu_011ruUUstkPEmbqz8P2RVF8u>
+(magit-|rg-run|lsp-)
+</tool.toolu_011ruUUstkPEmbqz8P2RVF8u>
+
+### file-type
+
+<tool.toolu_011ruUUstkPEmbqz8P2RVF8u>
+el
+</tool.toolu_011ruUUstkPEmbqz8P2RVF8u>
+
+### path
+
+<tool.toolu_011ruUUstkPEmbqz8P2RVF8u>
+greger-tools.el
+</tool.toolu_011ruUUstkPEmbqz8P2RVF8u>
+
+## TOOL RESULT:
+
+ID: toolu_011ruUUstkPEmbqz8P2RVF8u
+
+<tool.toolu_011ruUUstkPEmbqz8P2RVF8u>
+12:(defvar greger-tools-magit-available
+
+</tool.toolu_011ruUUstkPEmbqz8P2RVF8u>
+
+## ASSISTANT:
+
+It seems like the actual tool implementations might not be in this file. Let me check if there are any actual magit or rg function calls:
+
+## TOOL USE:
+
+Name: ripgrep
+ID: toolu_01Gp7ZovKTYkwK1ER96D2ccr
+
+### pattern
+
+<tool.toolu_01Gp7ZovKTYkwK1ER96D2ccr>
+magit
+</tool.toolu_01Gp7ZovKTYkwK1ER96D2ccr>
+
+### file-type
+
+<tool.toolu_01Gp7ZovKTYkwK1ER96D2ccr>
+el
+</tool.toolu_01Gp7ZovKTYkwK1ER96D2ccr>
+
+### path
+
+<tool.toolu_01Gp7ZovKTYkwK1ER96D2ccr>
+greger-tools.el
+</tool.toolu_01Gp7ZovKTYkwK1ER96D2ccr>
+
+## TOOL RESULT:
+
+ID: toolu_01Gp7ZovKTYkwK1ER96D2ccr
+
+<tool.toolu_01Gp7ZovKTYkwK1ER96D2ccr>
+12:(defvar greger-tools-magit-available
+14:      (progn (require 'magit) t)
+16:  "Whether magit is available.")
+
+</tool.toolu_01Gp7ZovKTYkwK1ER96D2ccr>
+
+## ASSISTANT:
+
+It seems like the tool definitions might be elsewhere or these were just preemptive requires. Let me check if greger-tools is actually using these dependencies by looking for their functions:
+
+## TOOL USE:
+
+Name: ripgrep
+ID: toolu_017z9553K1UEzWuhcQ2UGLY8
+
+### pattern
+
+<tool.toolu_017z9553K1UEzWuhcQ2UGLY8>
+rg-run|magit-status|lsp-rename"
+</tool.toolu_017z9553K1UEzWuhcQ2UGLY8>
+
+### file-type
+
+<tool.toolu_017z9553K1UEzWuhcQ2UGLY8>
+el
+</tool.toolu_017z9553K1UEzWuhcQ2UGLY8>
+
+## TOOL RESULT:
+
+ID: toolu_017z9553K1UEzWuhcQ2UGLY8
+
+<tool.toolu_017z9553K1UEzWuhcQ2UGLY8>
+/Users/andreas/projects/greger.el/greger-agent.el:18:(defcustom greger-agent-tools '("read-file" "list-directory" "str-replace" "insert" "write-new-file" "replace-file" "replace-function" "make-directory" "rename-file" "ripgrep" "git-log" "git-show-commit" "shell-command" "read-webpage" "lsp-rename" "lsp-find-definition" "lsp-find-references" "lsp-format" "lsp-document-symbols")
+/Users/andreas/projects/greger.el/greger-lib-lsp.el:20:(greger-register-tool "lsp-rename"
+/Users/andreas/projects/greger.el/chat2.ai:86:(greger-register-tool "lsp-rename"
+/Users/andreas/projects/greger.el/chat4.ai:464:434:             ;; Use rg-run to perform the search
+/Users/andreas/projects/greger.el/chat4.ai:465:435:             (rg-run pattern files-pattern search-dir literal nil flags)
+/Users/andreas/projects/greger.el/chat.ai:3262:(greger-register-tool "lsp-rename"
+
+</tool.toolu_017z9553K1UEzWuhcQ2UGLY8>
+
+## ASSISTANT:
+
+I can see that lsp functions are being used. Let me check the actual tool implementations that might need to be conditional:
+
+## TOOL USE:
+
+Name: ripgrep
+ID: toolu_01FXPemoYSZC3eCTcM5MLFjH
+
+### pattern
+
+<tool.toolu_01FXPemoYSZC3eCTcM5MLFjH>
+greger-register-tool.*lsp"
+</tool.toolu_01FXPemoYSZC3eCTcM5MLFjH>
+
+### file-type
+
+<tool.toolu_01FXPemoYSZC3eCTcM5MLFjH>
+el
+</tool.toolu_01FXPemoYSZC3eCTcM5MLFjH>
+
+### max-results
+
+<tool.toolu_01FXPemoYSZC3eCTcM5MLFjH>
+10
+</tool.toolu_01FXPemoYSZC3eCTcM5MLFjH>
+
+## TOOL RESULT:
+
+ID: toolu_01FXPemoYSZC3eCTcM5MLFjH
+
+<tool.toolu_01FXPemoYSZC3eCTcM5MLFjH>
+Failed to execute ripgrep search: Command failed with exit code 1: (no output)
+</tool.toolu_01FXPemoYSZC3eCTcM5MLFjH>
+
+## ASSISTANT:
+
+Let me check the lsp tool registrations:
+
+## TOOL USE:
+
+Name: read-file
+ID: toolu_01GVmYXCzSWwCjjAu6kFtyyq
+
+### path
+
+<tool.toolu_01GVmYXCzSWwCjjAu6kFtyyq>
+greger-lib-lsp.el
+</tool.toolu_01GVmYXCzSWwCjjAu6kFtyyq>
+
+### start_line
+
+<tool.toolu_01GVmYXCzSWwCjjAu6kFtyyq>
+15
+</tool.toolu_01GVmYXCzSWwCjjAu6kFtyyq>
+
+### end_line
+
+<tool.toolu_01GVmYXCzSWwCjjAu6kFtyyq>
+30
+</tool.toolu_01GVmYXCzSWwCjjAu6kFtyyq>
+
+## TOOL RESULT:
+
+ID: toolu_01GVmYXCzSWwCjjAu6kFtyyq
+
+<tool.toolu_01GVmYXCzSWwCjjAu6kFtyyq>
+    (error nil))
+  "Whether lsp-mode is available.")
+
+;;; Tool registrations
+
+(greger-register-tool "lsp-rename"
+  :description "Rename a symbol across the entire codebase using LSP"
+  :properties '((new_name . ((type . "string")
+                            (description . "New name for the symbol")))
+                (file_path . ((type . "string")
+                             (description . "Path to file containing the symbol")))
+                (line . ((type . "integer")
+                        (description . "Line number (1-based) where symbol is located")))
+                (column . ((type . "integer")
+                          (description . "Column number (0-based) where symbol starts"))))
+  :required '("new_name" "file_path" "line" "column")
+</tool.toolu_01GVmYXCzSWwCjjAu6kFtyyq>
+
+## ASSISTANT:
+
+I need to make the tool registrations conditional on the availability of the dependencies. Let me wrap the LSP tool registrations:
+
+## TOOL USE:
+
+Name: read-file
+ID: toolu_01KjuM5ViajMR7DxeYrEZUns
+
+### path
+
+<tool.toolu_01KjuM5ViajMR7DxeYrEZUns>
+greger-lib-lsp.el
+</tool.toolu_01KjuM5ViajMR7DxeYrEZUns>
+
+### start_line
+
+<tool.toolu_01KjuM5ViajMR7DxeYrEZUns>
+16
+</tool.toolu_01KjuM5ViajMR7DxeYrEZUns>
+
+### end_line
+
+<tool.toolu_01KjuM5ViajMR7DxeYrEZUns>
+80
+</tool.toolu_01KjuM5ViajMR7DxeYrEZUns>
+
+## TOOL RESULT:
+
+ID: toolu_01KjuM5ViajMR7DxeYrEZUns
+
+<tool.toolu_01KjuM5ViajMR7DxeYrEZUns>
+  "Whether lsp-mode is available.")
+
+;;; Tool registrations
+
+(greger-register-tool "lsp-rename"
+  :description "Rename a symbol across the entire codebase using LSP"
+  :properties '((new_name . ((type . "string")
+                            (description . "New name for the symbol")))
+                (file_path . ((type . "string")
+                             (description . "Path to file containing the symbol")))
+                (line . ((type . "integer")
+                        (description . "Line number (1-based) where symbol is located")))
+                (column . ((type . "integer")
+                          (description . "Column number (0-based) where symbol starts"))))
+  :required '("new_name" "file_path" "line" "column")
+  :function 'greger-lib-lsp--rename)
+
+(greger-register-tool "lsp-format"
+  :description "Format code according to language standards using LSP"
+  :properties '((file_path . ((type . "string")
+                             (description . "Path to the file to format")))
+                (start_line . ((type . "integer")
+                              (description . "Start line for range formatting (1-based). If not provided, formats entire file")
+                              (default . nil)))
+                (end_line . ((type . "integer")
+                            (description . "End line for range formatting (1-based). If not provided, formats entire file")
+                            (default . nil))))
+  :required '("file_path")
+  :function 'greger-lib-lsp--format)
+
+(greger-register-tool "lsp-find-definition"
+  :description "Find the definition(s) of a symbol at a specific location"
+  :properties '((file_path . ((type . "string")
+                             (description . "Path to the file")))
+                (line . ((type . "integer")
+                        (description . "Line number (1-based)")))
+                (column . ((type . "integer")
+                          (description . "Column number (0-based)")))
+                (include_declaration . ((type . "boolean")
+                                       (description . "Also include declarations")
+                                       (default . :json-false))))
+  :required '("file_path" "line" "column")
+  :function 'greger-lib-lsp--find-definition)
+
+(greger-register-tool "lsp-find-references"
+  :description "Find all references to a symbol at a specific location"
+  :properties '((file_path . ((type . "string")
+                             (description . "Path to the file")))
+                (line . ((type . "integer")
+                        (description . "Line number (1-based)")))
+                (column . ((type . "integer")
+                          (description . "Column number (0-based)")))
+                (include_declaration . ((type . "boolean")
+                                       (description . "Include the symbol declaration in results")
+                                       (default . :json-true)))
+                (max_results . ((type . "integer")
+                               (description . "Maximum number of references to return")
+                               (default . 100))))
+  :required '("file_path" "line" "column")
+  :function 'greger-lib-lsp--find-references)
+
+(greger-register-tool "lsp-document-symbols"
+  :description "Get document symbols for one or more files. This is a cheap way to list all the functions in one or more files to get familiar with unseed code."
+  :properties '((file_paths . ((type . "array")
+                              (items . ((type . "string")))
+</tool.toolu_01KjuM5ViajMR7DxeYrEZUns>
+
+## ASSISTANT:
+
+Now I need to wrap all these tool registrations in a conditional block. Let me see the complete file structure:
+
+## TOOL USE:
+
+Name: read-file
+ID: toolu_019gftRGR4JR97LAxcCyyD7B
+
+### path
+
+<tool.toolu_019gftRGR4JR97LAxcCyyD7B>
+greger-lib-lsp.el
+</tool.toolu_019gftRGR4JR97LAxcCyyD7B>
+
+### start_line
+
+<tool.toolu_019gftRGR4JR97LAxcCyyD7B>
+16
+</tool.toolu_019gftRGR4JR97LAxcCyyD7B>
+
+### end_line
+
+<tool.toolu_019gftRGR4JR97LAxcCyyD7B>
+25
+</tool.toolu_019gftRGR4JR97LAxcCyyD7B>
+
+## TOOL RESULT:
+
+ID: toolu_019gftRGR4JR97LAxcCyyD7B
+
+<tool.toolu_019gftRGR4JR97LAxcCyyD7B>
+  "Whether lsp-mode is available.")
+
+;;; Tool registrations
+
+(greger-register-tool "lsp-rename"
+  :description "Rename a symbol across the entire codebase using LSP"
+  :properties '((new_name . ((type . "string")
+                            (description . "New name for the symbol")))
+                (file_path . ((type . "string")
+                             (description . "Path to file containing the symbol")))
+</tool.toolu_019gftRGR4JR97LAxcCyyD7B>
+
+## ASSISTANT:
+
+I need to wrap the tool registrations conditionally. Let me find where they end:
+
+## TOOL USE:
+
+Name: ripgrep
+ID: toolu_01GoZkJEn3g12xKvGUCExiN8
+
+### pattern
+
+<tool.toolu_01GoZkJEn3g12xKvGUCExiN8>
+^;;; .*Functions"
+</tool.toolu_01GoZkJEn3g12xKvGUCExiN8>
+
+### file-type
+
+<tool.toolu_01GoZkJEn3g12xKvGUCExiN8>
+el
+</tool.toolu_01GoZkJEn3g12xKvGUCExiN8>
+
+### path
+
+<tool.toolu_01GoZkJEn3g12xKvGUCExiN8>
+greger-lib-lsp.el
+</tool.toolu_01GoZkJEn3g12xKvGUCExiN8>
+
+## TOOL RESULT:
+
+ID: toolu_01GoZkJEn3g12xKvGUCExiN8
+
+<tool.toolu_01GoZkJEn3g12xKvGUCExiN8>
+Failed to execute ripgrep search: Command failed with exit code 1: (no output)
+</tool.toolu_01GoZkJEn3g12xKvGUCExiN8>
+
+## TOOL USE:
+
+Name: ripgrep
+ID: toolu_013wiRutMBaUFRcMebVuuWWT
+
+### pattern
+
+<tool.toolu_013wiRutMBaUFRcMebVuuWWT>
+^;;;
+</tool.toolu_013wiRutMBaUFRcMebVuuWWT>
+
+### file-type
+
+<tool.toolu_013wiRutMBaUFRcMebVuuWWT>
+el
+</tool.toolu_013wiRutMBaUFRcMebVuuWWT>
+
+### path
+
+<tool.toolu_013wiRutMBaUFRcMebVuuWWT>
+greger-lib-lsp.el
+</tool.toolu_013wiRutMBaUFRcMebVuuWWT>
+
+## TOOL RESULT:
+
+ID: toolu_013wiRutMBaUFRcMebVuuWWT
+
+<tool.toolu_013wiRutMBaUFRcMebVuuWWT>
+1:;;; greger-lib-lsp.el --- LSP-based tools for greger agent -*- lexical-binding: t -*-
+3:;;; Commentary:
+6:;;; Code:
+18:;;; Tool registrations
+88:;;; Helper functions
+236:;;; Tool implementations
+429:;;; greger-lib-lsp.el ends here
+
+</tool.toolu_013wiRutMBaUFRcMebVuuWWT>
+
+## ASSISTANT:
+
+Perfect! I need to wrap the tool registrations (lines 20-87) conditionally. Let me do this:
+
+## TOOL USE:
+
+Name: read-file
+ID: toolu_017qxH1SR3DRarJXUd8wYC3D
+
+### path
+
+<tool.toolu_017qxH1SR3DRarJXUd8wYC3D>
+greger-lib-lsp.el
+</tool.toolu_017qxH1SR3DRarJXUd8wYC3D>
+
+### start_line
+
+<tool.toolu_017qxH1SR3DRarJXUd8wYC3D>
+18
+</tool.toolu_017qxH1SR3DRarJXUd8wYC3D>
+
+### end_line
+
+<tool.toolu_017qxH1SR3DRarJXUd8wYC3D>
+90
+</tool.toolu_017qxH1SR3DRarJXUd8wYC3D>
+
+## TOOL RESULT:
+
+ID: toolu_017qxH1SR3DRarJXUd8wYC3D
+
+<tool.toolu_017qxH1SR3DRarJXUd8wYC3D>
+;;; Tool registrations
+
+(greger-register-tool "lsp-rename"
+  :description "Rename a symbol across the entire codebase using LSP"
+  :properties '((new_name . ((type . "string")
+                            (description . "New name for the symbol")))
+                (file_path . ((type . "string")
+                             (description . "Path to file containing the symbol")))
+                (line . ((type . "integer")
+                        (description . "Line number (1-based) where symbol is located")))
+                (column . ((type . "integer")
+                          (description . "Column number (0-based) where symbol starts"))))
+  :required '("new_name" "file_path" "line" "column")
+  :function 'greger-lib-lsp--rename)
+
+(greger-register-tool "lsp-format"
+  :description "Format code according to language standards using LSP"
+  :properties '((file_path . ((type . "string")
+                             (description . "Path to the file to format")))
+                (start_line . ((type . "integer")
+                              (description . "Start line for range formatting (1-based). If not provided, formats entire file")
+                              (default . nil)))
+                (end_line . ((type . "integer")
+                            (description . "End line for range formatting (1-based). If not provided, formats entire file")
+                            (default . nil))))
+  :required '("file_path")
+  :function 'greger-lib-lsp--format)
+
+(greger-register-tool "lsp-find-definition"
+  :description "Find the definition(s) of a symbol at a specific location"
+  :properties '((file_path . ((type . "string")
+                             (description . "Path to the file")))
+                (line . ((type . "integer")
+                        (description . "Line number (1-based)")))
+                (column . ((type . "integer")
+                          (description . "Column number (0-based)")))
+                (include_declaration . ((type . "boolean")
+                                       (description . "Also include declarations")
+                                       (default . :json-false))))
+  :required '("file_path" "line" "column")
+  :function 'greger-lib-lsp--find-definition)
+
+(greger-register-tool "lsp-find-references"
+  :description "Find all references to a symbol at a specific location"
+  :properties '((file_path . ((type . "string")
+                             (description . "Path to the file")))
+                (line . ((type . "integer")
+                        (description . "Line number (1-based)")))
+                (column . ((type . "integer")
+                          (description . "Column number (0-based)")))
+                (include_declaration . ((type . "boolean")
+                                       (description . "Include the symbol declaration in results")
+                                       (default . :json-true)))
+                (max_results . ((type . "integer")
+                               (description . "Maximum number of references to return")
+                               (default . 100))))
+  :required '("file_path" "line" "column")
+  :function 'greger-lib-lsp--find-references)
+
+(greger-register-tool "lsp-document-symbols"
+  :description "Get document symbols for one or more files. This is a cheap way to list all the functions in one or more files to get familiar with unseed code."
+  :properties '((file_paths . ((type . "array")
+                              (items . ((type . "string")))
+                              (description . "List of file paths to get symbols for")))
+                (detailed . ((type . "boolean")
+                            (description . "Include detailed symbols like variables, constants, etc.")
+                            (default . :json-false))))
+  :required '("file_paths")
+  :function 'greger-lib-lsp--document-symbols)
+
+;;; Helper functions
+
+(defun greger-lsp--ensure-server (file-path)
+</tool.toolu_017qxH1SR3DRarJXUd8wYC3D>
+
+## ASSISTANT:
+
+Let me wrap the tool registrations in a conditional:
+
+## TOOL USE:
+
+Name: str-replace
+ID: toolu_01DVPS9USC1PUMRUABURkmB9
+
+### file_path
+
+<tool.toolu_01DVPS9USC1PUMRUABURkmB9>
+greger-lib-lsp.el
+</tool.toolu_01DVPS9USC1PUMRUABURkmB9>
+
+### original_content
+
+<tool.toolu_01DVPS9USC1PUMRUABURkmB9>
+;;; Tool registrations
+
+(greger-register-tool "lsp-rename"
+</tool.toolu_01DVPS9USC1PUMRUABURkmB9>
+
+### new_content
+
+<tool.toolu_01DVPS9USC1PUMRUABURkmB9>
+;;; Tool registrations
+
+(when greger-lib-lsp-available
+  (greger-register-tool "lsp-rename"
+</tool.toolu_01DVPS9USC1PUMRUABURkmB9>
+
+### git_commit_message
+
+<tool.toolu_01DVPS9USC1PUMRUABURkmB9>
+Make LSP tool registrations conditional on lsp-mode availability
+</tool.toolu_01DVPS9USC1PUMRUABURkmB9>
+
+<!-- TOOL_RESULT_PLACEHOLDER_toolu_01DVPS9USC1PUMRUABURkmB9 -->
