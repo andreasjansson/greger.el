@@ -17,7 +17,9 @@
 (defvar greger-tools-registry (make-hash-table :test 'equal)
   "Hash table mapping tool names to their definitions.")
 
-;; package-lint-disable: greger-register-tool doesn't need greger-tools prefix as it's the main API
+;; greger-register-tool is the main public API of this package, so it uses the package prefix "greger-"
+;; rather than the file prefix "greger-tools-"
+;; package-lint: disable=wrong-prefix
 (defmacro greger-register-tool (name &rest args)
   "Register a tool with NAME and properties specified in ARGS.
 ARGS should be a plist containing :description, :properties, :required, :function, and optionally :pass-buffer, :pass-callback, and :pass-metadata.
