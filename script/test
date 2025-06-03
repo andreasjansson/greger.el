@@ -116,6 +116,12 @@ run_test_file_verbose() {
                   (setq package-archives '((\"melpa\" . \"https://melpa.org/packages/\")
                                            (\"gnu\" . \"https://elpa.gnu.org/packages/\")))
                   (package-initialize)
+
+                  ;; Install required packages if not already installed
+                  (unless (package-installed-p 'markdown-mode)
+                    (package-refresh-contents)
+                    (package-install 'markdown-mode))
+
                   ;; Load required packages
                   (require 'ert)
                   (require 'cl-lib)
