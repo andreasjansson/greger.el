@@ -607,13 +607,6 @@ If BUFFER is provided, it will be staged and committed along with the renamed fi
 (defun greger-stdlib--delete-files (file-paths git-commit-message &optional buffer)
   "Delete files at FILE-PATHS and stage the deletion in git if tracked.
 If BUFFER is provided, it will be staged and committed along with the deleted files."
-  ;; Handle JSON array strings by parsing them
-  (when (stringp file-paths)
-    (condition-case nil
-        (setq file-paths (json-parse-string file-paths :array-type 'list))
-      (error
-        (error "file_paths must be a valid JSON array string, vector, or list: %s" file-paths))))
-
   (unless (or (vectorp file-paths) (listp file-paths))
     (error "file_paths must be a vector or list"))
 
