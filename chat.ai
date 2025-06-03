@@ -6353,4 +6353,67 @@ greger-tools.el
 Remove debugging from argument extraction function
 </tool.toolu_01X5XMfvgVMNhMcPZc2KkHgT>
 
-<!-- TOOL_RESULT_PLACEHOLDER_toolu_01X5XMfvgVMNhMcPZc2KkHgT -->
+## TOOL RESULT:
+
+ID: toolu_01X5XMfvgVMNhMcPZc2KkHgT
+
+<tool.toolu_01X5XMfvgVMNhMcPZc2KkHgT>
+Successfully replaced content in /Users/andreas/projects/greger.el/greger-tools.el. Successfully staged 2 file(s) and committed with message: Remove debugging from argument extraction function
+</tool.toolu_01X5XMfvgVMNhMcPZc2KkHgT>
+
+
+## ASSISTANT:
+
+Now let me think about this differently. The issue might be that when I call tools directly through the interface like `<invoke name="delete-files">`, the JSON array is being treated as a literal string and not parsed.
+
+Let me check if this is an issue specific to the tool interface we're using (the one that allows me to call tools directly in this conversation). The parser tests show that arrays should work fine when they go through the full markdown parsing pipeline.
+
+For the purposes of our implementation, I think our `delete-files` tool is correct as-is, without the JSON parsing workaround. The issue is likely with how the AI interface is passing tool arguments directly, which may not go through the same parser path.
+
+Let me add the JSON parsing workaround back to handle both cases properly:
+
+## TOOL USE:
+
+Name: str-replace
+ID: toolu_01LGuD9WSLcMaXQnLBt24aGs
+
+### file_path
+
+<tool.toolu_01LGuD9WSLcMaXQnLBt24aGs>
+greger-stdlib.el
+</tool.toolu_01LGuD9WSLcMaXQnLBt24aGs>
+
+### original_content
+
+<tool.toolu_01LGuD9WSLcMaXQnLBt24aGs>
+(defun greger-stdlib--delete-files (file-paths git-commit-message &optional buffer)
+  "Delete files at FILE-PATHS and stage the deletion in git if tracked.
+If BUFFER is provided, it will be staged and committed along with the deleted files."
+  (unless (or (vectorp file-paths) (listp file-paths))
+    (error "file_paths must be a vector or list"))
+</tool.toolu_01LGuD9WSLcMaXQnLBt24aGs>
+
+### new_content
+
+<tool.toolu_01LGuD9WSLcMaXQnLBt24aGs>
+(defun greger-stdlib--delete-files (file-paths git-commit-message &optional buffer)
+  "Delete files at FILE-PATHS and stage the deletion in git if tracked.
+If BUFFER is provided, it will be staged and committed along with the deleted files."
+  ;; Handle both properly parsed arrays and JSON strings (for direct tool calls)
+  (when (stringp file-paths)
+    (condition-case nil
+        (setq file-paths (json-parse-string file-paths :array-type 'list))
+      (error
+        (error "file_paths must be a valid JSON array string, vector, or list: %s" file-paths))))
+
+  (unless (or (vectorp file-paths) (listp file-paths))
+    (error "file_paths must be a vector or list"))
+</tool.toolu_01LGuD9WSLcMaXQnLBt24aGs>
+
+### git_commit_message
+
+<tool.toolu_01LGuD9WSLcMaXQnLBt24aGs>
+Re-add JSON parsing to handle direct tool calls that bypass parser
+</tool.toolu_01LGuD9WSLcMaXQnLBt24aGs>
+
+<!-- TOOL_RESULT_PLACEHOLDER_toolu_01LGuD9WSLcMaXQnLBt24aGs -->
