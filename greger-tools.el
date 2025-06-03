@@ -1,8 +1,29 @@
 ;;; greger-tools.el --- Tool registry for greger agent -*- lexical-binding: t -*-
 
+;; Copyright (C) 2023 Andreas Jansson
+
 ;; Author: Andreas Jansson <andreas@jansson.me.uk>
 ;; Version: 0.1.0
 ;; URL: https://github.com/andreasjansson/greger.el
+;; SPDX-License-Identifier: MIT
+
+;; Permission is hereby granted, free of charge, to any person obtaining a copy
+;; of this software and associated documentation files (the "Software"), to deal
+;; in the Software without restriction, including without limitation the rights
+;; to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+;; copies of the Software, and to permit persons to whom the Software is
+;; furnished to do so, subject to the following conditions:
+
+;; The above copyright notice and this permission notice shall be included in all
+;; copies or substantial portions of the Software.
+
+;; THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+;; IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+;; FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+;; AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+;; LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+;; OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+;; SOFTWARE.
 
 ;;; Commentary:
 ;; Defines tools registration functions
@@ -21,26 +42,29 @@
 ;; package-lint: disable=wrong-prefix
 (defmacro greger-register-tool (name &rest args)
   "Register a tool with NAME and properties specified in ARGS.
-ARGS should be a plist containing :description, :properties, :required, :function, and optionally :pass-buffer, :pass-callback, and :pass-metadata.
+ARGS should be a plist containing :description, :properties, :required,
+:function, and optionally :pass-buffer, :pass-callback, and :pass-metadata.
 
 Example:
-  (greger-register-tool \"rename-file\"
-    :description \"Rename or move a file from one path to another\"
-    :properties '((old_path . ((type . \"string\")
-                              (description . \"Current path of the file\")))
-                  (new_path . ((type . \"string\")
-                              (description . \"New path for the file\")))
-                  (git_commit_message . ((type . \"string\")
-                                        (description . \"Git commit message for this change\"))))
-    :required '(\"old_path\" \"new_path\" \"git_commit_message\")
-    :function 'greger-tools--rename-file
+  (greger-register-tool \\='rename-file\\='
+    :description \\='Rename or move a file from one path to another\\='
+    :properties \\='((old_path . ((type . \\='string\\=')
+                              (description . \\='Current path of the file\\=')))
+                  (new_path . ((type . \\='string\\=')
+                              (description . \\='New path for the file\\=')))
+                  (git_commit_message . ((type . \\='string\\=')
+                                        (description . \\='Git commit message\\='))))
+    :required \\='(\\='old_path\\=' \\='new_path\\=' \\='git_commit_message\\=')
+    :function \\='greger-tools--rename-file
     :pass-buffer t
     :pass-callback t
     :pass-metadata t)
 
-  When :pass-callback is set to t, the callback function will be passed to the tool
-  function as a 'callback parameter instead of greger-tools-execute calling the callback with the result.
-  When :pass-metadata is set to t, the metadata from the parser will be passed as a 'metadata parameter."
+  When :pass-callback is set to t, the callback function will be passed to the
+  tool function as a \\='callback\\=' parameter instead of `greger-tools-execute\\='
+  calling the callback with the result.
+  When :pass-metadata is set to t, the metadata from the parser will be passed
+  as a \\='metadata\\=' parameter."
   (let ((description (plist-get args :description))
         (properties (plist-get args :properties))
         (required (plist-get args :required))
@@ -73,9 +97,10 @@ Example:
 (defun greger-tools-execute (tool-name args callback buffer &optional metadata)
   "Execute TOOL-NAME with ARGS and call CALLBACK with (result error).
 If the tool has :pass-buffer set, BUFFER will be passed to the tool function.
-If the tool has :pass-callback set, CALLBACK will be passed to the tool function
-instead of greger-tools-execute calling the callback with the result.
-If the tool has :pass-metadata set, METADATA will be passed to the tool function."
+If the tool has :pass-callback set, CALLBACK will be passed to the tool
+function instead of `greger-tools-execute' calling the callback with result.
+If the tool has :pass-metadata set, METADATA will be passed to the tool
+function."
 
   (let ((tool-def (gethash tool-name greger-tools-registry)))
     (if tool-def
@@ -111,12 +136,11 @@ TOOL-DEF provides the tool definition for accessing defaults."
 
 (defun greger-tools--extract-function-args (func args tool-def)
   "Extract arguments for FUNC from ARGS alist based on function signature.
-TOOL-DEF provides the tool definition for accessing defaults and required parameters.
-Returns a list of arguments in the correct order for the function."
+TOOL-DEF provides the tool definition for accessing defaults and required
+parameters.  Returns a list of arguments in the correct order for the function."
 
   (let ((arg-list (help-function-arglist func))
         (result '())
-        (optional-started nil)
         (required-params (when tool-def
                           (let* ((schema (plist-get tool-def :schema))
                                  (input-schema (alist-get 'input_schema schema)))
@@ -125,7 +149,7 @@ Returns a list of arguments in the correct order for the function."
       (cond
        ;; Handle &optional marker
        ((eq arg-name '&optional)
-        (setq optional-started t))
+        t)
        ;; Handle &rest marker (stop processing)
        ((eq arg-name '&rest)
         (cl-return))

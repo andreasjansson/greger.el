@@ -1,8 +1,29 @@
 ;;; greger-client.el --- Claude client for greger -*- lexical-binding: t -*-
 
+;; Copyright (C) 2023 Andreas Jansson
+
 ;; Author: Andreas Jansson <andreas@jansson.me.uk>
 ;; Version: 0.1.0
 ;; URL: https://github.com/andreasjansson/greger.el
+;; SPDX-License-Identifier: MIT
+
+;; Permission is hereby granted, free of charge, to any person obtaining a copy
+;; of this software and associated documentation files (the "Software"), to deal
+;; in the Software without restriction, including without limitation the rights
+;; to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+;; copies of the Software, and to permit persons to whom the Software is
+;; furnished to do so, subject to the following conditions:
+
+;; The above copyright notice and this permission notice shall be included in all
+;; copies or substantial portions of the Software.
+
+;; THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+;; IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+;; FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+;; AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+;; LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+;; OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+;; SOFTWARE.
 
 ;;; Commentary:
 ;; Simplified Claude client supporting only claude-sonnet-4 and claude-opus-4
@@ -40,14 +61,16 @@
 ;;; Public API
 
 (cl-defun greger-client-stream (&key model dialog tools buffer text-start-callback text-callback complete-callback cancel-callback)
-  "Send streaming request for MODEL with DIALOG and TOOLS, inserting text into BUFFER.
+  "Send streaming request for MODEL with DIALOG and TOOLS.
+Text is inserted into BUFFER.
 TEXT-START-CALLBACK is called when text streaming starts.
 TEXT-CALLBACK is called for each text chunk with (text).
 COMPLETE-CALLBACK is called when done with the parsed content blocks array.
 CANCEL-CALLBACK is called if cancelled.
 BUFFER defaults to current buffer if not specified.
 
-MODEL should be one of the supported Claude models: claude-sonnet-4-20250514 or claude-opus-4-20250514."
+MODEL should be one of the supported Claude models:
+claude-sonnet-4-20250514 or claude-opus-4-20250514."
   (unless (memq model greger-client-supported-models)
     (error "Unsupported model: %s. Supported models: %s"
            model greger-client-supported-models))
@@ -62,7 +85,7 @@ MODEL should be one of the supported Claude models: claude-sonnet-4-20250514 or 
                                               (greger-client-state-original-quit-binding state))
                                (undo-amalgamate-change-group (greger-client-state-undo-handle state))
                                (accept-change-group (greger-client-state-undo-handle state)))))
-         (wrapped-complete-callback (lambda (parsed-blocks state)
+         (wrapped-complete-callback (lambda (parsed-blocks _state)
                                       (when complete-callback
                                         (funcall complete-callback parsed-blocks))))
          (process (greger-client--start-curl-process request-spec))
@@ -83,13 +106,11 @@ MODEL should be one of the supported Claude models: claude-sonnet-4-20250514 or 
     (activate-change-group undo-handle)
 
     (set-process-filter process
-                       (lambda (proc output)
-                         (declare (ignore proc))
+                       (lambda (_proc output)
                          (greger-client--process-output-chunk output state)))
 
     (set-process-sentinel process
-                         (lambda (proc event)
-                           (declare (ignore event))
+                         (lambda (proc _event)
                            (greger-client--handle-completion proc state)))
 
     (set-process-query-on-exit-flag process nil)
@@ -182,7 +203,8 @@ MODEL should be one of the supported Claude models: claude-sonnet-4-20250514 or 
 ;;; Stream processing
 
 (defun greger-client--setup-cancel-binding (state)
-  "Setup C-g binding for cancellation in the output buffer."
+  "Setup \\[keyboard-quit] binding for cancellation in the output buffer.
+STATE contains the client state information."
   (with-current-buffer (greger-client-state-output-buffer state)
     (local-set-key (kbd "C-g")
                    (lambda ()
@@ -220,8 +242,7 @@ Returns nil if no error found or if OUTPUT is not valid JSON."
 
 (defun greger-client--process-claude-events (state)
   "Process Claude streaming events from accumulated output in STATE."
-  (let ((accumulated (greger-client-state-accumulated-output state))
-        (remaining ""))
+  (let ((accumulated (greger-client-state-accumulated-output state)))
 
     ;; Process complete lines (events)
     (while (string-match "\n" accumulated)
@@ -241,31 +262,7 @@ Returns nil if no error found or if OUTPUT is not valid JSON."
     (setf (greger-client-state-accumulated-output state) accumulated)))
 
 (defun greger-client--handle-claude-event (data-json state)
-  "Handle a Claude streaming event with DATA-JSON using STATE.
-
-Example of incoming data json (one data-json per line):
-{\"type\":\"message_start\",\"message\":{\"id\":\"msg_01Qm7bzEMGbdRyAuF5Lrb1Tg\",\"type\":\"message\",\"role\":\"assistant\",\"model\":\"claude-sonnet-4-20250514\",\"content\":[],\"stop_reason\":null,\"stop_sequence\":null,\"usage\":{\"input_tokens\":2626,\"cache_creation_input_tokens\":0,\"cache_read_input_tokens\":0,\"output_tokens\":1,\"service_tier\":\"standard\"}}}
-{\"type\":\"content_block_start\",\"index\":0,\"content_block\":{\"type\":\"text\",\"text\":\"\"}}
-{\"type\": \"ping\"}
-{\"type\":\"content_block_delta\",\"index\":0,\"delta\":{\"type\":\"text_delta\",\"text\":\"I\"}}
-{\"type\":\"content_block_delta\",\"index\":0,\"delta\":{\"type\":\"text_delta\",\"text\":\"'ll first read the existing file to see what's already there,\"}}
-{\"type\":\"content_block_delta\",\"index\":0,\"delta\":{\"type\":\"text_delta\",\"text\":\" then add a new function in the same style.\"}}
-{\"type\":\"content_block_stop\",\"index\":0}
-{\"type\":\"content_block_start\",\"index\":1,\"content_block\":{\"type\":\"tool_use\",\"id\":\"toolu_01NmTNDZcJdGAMsrWQy1Heff\",\"name\":\"read-file\",\"input\":{}}}
-{\"type\":\"content_block_delta\",\"index\":1,\"delta\":{\"type\":\"input_json_delta\",\"partial_json\":\"\"}}
-{\"type\":\"content_block_delta\",\"index\":1,\"delta\":{\"type\":\"input_json_delta\",\"partial_json\":\"{\\\"\"}}
-{\"type\":\"content_block_delta\",\"index\":1,\"delta\":{\"type\":\"input_json_delta\",\"partial_json\":\"path\\\": \\\"~/s\"}}
-{\"type\":\"content_block_delta\",\"index\":1,\"delta\":{\"type\":\"input_json_delta\",\"partial_json\":\"cratch/aicha\"}}
-{\"type\":\"content_block_delta\",\"index\":1,\"delta\":{\"type\":\"input_json_delta\",\"partial_json\":\"t/hel\"}}
-{\"type\":\"content_block_delta\",\"index\":1,\"delta\":{\"type\":\"input_json_delta\",\"partial_json\":\"lo.\"}}
-{\"type\":\"content_block_delta\",\"index\":1,\"delta\":{\"type\":\"input_json_delta\",\"partial_json\":\"py\\\"\"}}
-{\"type\":\"content_block_delta\",\"index\":1,\"delta\":{\"type\":\"input_json_delta\",\"partial_json\":\", \\\"includ\"}}
-{\"type\":\"content_block_delta\",\"index\":1,\"delta\":{\"type\":\"input_json_delta\",\"partial_json\":\"e_li\"}}
-{\"type\":\"content_block_delta\",\"index\":1,\"delta\":{\"type\":\"input_json_delta\",\"partial_json\":\"ne_numb\"}}
-{\"type\":\"content_block_delta\",\"index\":1,\"delta\":{\"type\":\"input_json_delta\",\"partial_json\":\"ers\\\": true}\"}}
-{\"type\":\"content_block_stop\",\"index\":1}
-{\"type\":\"message_delta\",\"delta\":{\"stop_reason\":\"tool_use\",\"stop_sequence\":null},\"usage\":{\"output_tokens\":108}}
-{\"type\":\"message_stop\"}"
+  "Handle a Claude streaming event with DATA-JSON using STATE."
   (let* ((data (json-read-from-string data-json))
          (type (alist-get 'type data)))
     (cond
@@ -333,8 +330,9 @@ Example of incoming data json (one data-json per line):
                   (error
                    (setf (alist-get 'input block) '()))))))))))))
 
-(defun greger-client--ensure-block-at-index (blocks index new-block state)
-  "Ensure BLOCKS list has NEW-BLOCK at INDEX, extending if necessary."
+(defun greger-client--ensure-block-at-index (_blocks index new-block state)
+  "Ensure BLOCKS list has NEW-BLOCK at INDEX, extending if necessary.
+STATE is used to update the parsed content blocks."
   (let ((current-blocks (greger-client-state-parsed-content-blocks state)))
     ;; Extend list if needed
     (while (<= (length current-blocks) index)

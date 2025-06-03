@@ -1,8 +1,29 @@
 ;;; greger-parser.el --- Parser for greger dialog format -*- lexical-binding: t -*-
 
+;; Copyright (C) 2023 Andreas Jansson
+
 ;; Author: Andreas Jansson <andreas@jansson.me.uk>
 ;; Version: 0.1.0
 ;; URL: https://github.com/andreasjansson/greger.el
+;; SPDX-License-Identifier: MIT
+
+;; Permission is hereby granted, free of charge, to any person obtaining a copy
+;; of this software and associated documentation files (the "Software"), to deal
+;; in the Software without restriction, including without limitation the rights
+;; to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+;; copies of the Software, and to permit persons to whom the Software is
+;; furnished to do so, subject to the following conditions:
+
+;; The above copyright notice and this permission notice shall be included in all
+;; copies or substantial portions of the Software.
+
+;; THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+;; IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+;; FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+;; AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+;; LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+;; OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+;; SOFTWARE.
 
 ;;; Commentary:
 ;; Parses markdown-style dialog format with sections like ## USER:, ## ASSISTANT:, etc.
@@ -41,7 +62,8 @@
    :metadata '()))
 
 (defun greger-parser--debug (state format-string &rest args)
-  "Debug logging function using STATE."
+  "Debug logging function using STATE.
+FORMAT-STRING is the format template and ARGS are the format arguments."
   (when (greger-parser-state-debug state)
     (message "[PARSER DEBUG] %s" (apply #'format format-string args))))
 
@@ -68,7 +90,8 @@ Returns a plist with :messages and :metadata keys."
 ;; Compatibility function for tests and existing code
 (defun greger-parser-parse-dialog-messages-only (markdown &optional debug)
   "Parse MARKDOWN into dialog format, returning only the messages (old format).
-This is for backward compatibility with existing tests and code."
+This is for backward compatibility with existing tests and code.
+DEBUG enables debug logging."
   (let ((result (greger-parser-parse-dialog markdown debug)))
     (plist-get result :messages)))
 
@@ -250,7 +273,7 @@ This is for backward compatibility with existing tests and code."
 (defun greger-parser--process-include-tag (state)
   "Process an include tag and return the included content in STATE."
   (greger-parser--debug state "Processing include tag at pos %d" (greger-parser-state-pos state))
-  (let ((tag-start (greger-parser--current-pos state)))
+  (progn
     ;; Parse the opening tag
     (when (greger-parser--looking-at state "<include")
       (greger-parser--advance state 8) ; Skip "<include"
@@ -278,8 +301,10 @@ This is for backward compatibility with existing tests and code."
 (defun greger-parser--include-file (state file-path has-code-attr)
   "Include a file's content, optionally formatting as code using STATE.
 Supports both local files and web URLs (http:// or https://).
-For local files without code attribute, inserts content into state for recursive parsing.
-Returns nil when content is inserted, or the content string when it should be appended."
+For local files without code attribute, inserts content into state for
+recursive parsing.  Returns nil when content is inserted, or the content
+string when it should be appended.
+FILE-PATH is the path to include and HAS-CODE-ATTR indicates code formatting."
   (greger-parser--debug state "Including file: %s (code: %s)" file-path has-code-attr)
   (condition-case err
       (let ((content
@@ -362,9 +387,9 @@ Returns nil when content is inserted, or the content string when it should be ap
 ;; Content reading
 
 (defun greger-parser--read-until-section-tag (state)
-  "Read characters until section tag, handling code blocks and include tags in STATE."
-  (let ((start-pos (greger-parser-state-pos state))
-        (iterations 0)
+  "Read characters until section tag, handling code blocks and include tags.
+STATE contains the parser state."
+  (let ((iterations 0)
         (max-iterations (* (greger-parser-state-length state) 2))) ; Safety limit
     (while (and (not (greger-parser--at-end-p state))
                 (not (and (greger-parser--at-line-start-p state)
@@ -398,7 +423,8 @@ Returns nil when content is inserted, or the content string when it should be ap
     (greger-parser--substring state start)))
 
 (defun greger-parser--read-until-section-with-comment-removal (state)
-  "Read content until next section, removing HTML comments and processing include tags in STATE."
+  "Read content until next section, removing HTML comments and processing tags.
+STATE contains the parser state."
   (let ((result "")
         (start (greger-parser--current-pos state))
         (iterations 0)
@@ -457,7 +483,8 @@ Returns nil when content is inserted, or the content string when it should be ap
 
 (defun greger-parser--read-until-section-with-metadata-extraction (state)
   "Read content until next section, extracting metadata like safe-shell-commands.
-Returns a plist with :content and metadata keys."
+Returns a plist with :content and metadata keys.
+STATE contains the parser state."
   (let ((result "")
         (safe-shell-commands nil)
         (start (greger-parser--current-pos state))
@@ -532,7 +559,8 @@ Returns a plist with :content and metadata keys."
             :safe-shell-commands safe-shell-commands))))
 
 (defun greger-parser--parse-section-content (state)
-  "Parse content until next section, skipping HTML comments in STATE."
+  "Parse content until next section, skipping HTML comments.
+STATE contains the parser state."
   (greger-parser--skip-whitespace state)
   (let ((content (greger-parser--read-until-section-with-comment-removal state)))
     (when (and content (not (string-empty-p (string-trim content))))
@@ -540,7 +568,8 @@ Returns a plist with :content and metadata keys."
 
 (defun greger-parser--parse-section-content-with-metadata (state)
   "Parse content until next section, extracting metadata like safe-shell-commands.
-Returns a plist with :content and metadata keys like :safe-shell-commands."
+Returns a plist with :content and metadata keys like :safe-shell-commands.
+STATE contains the parser state."
   (greger-parser--skip-whitespace state)
   (let ((result (greger-parser--read-until-section-with-metadata-extraction state)))
     result))
@@ -578,8 +607,8 @@ Returns a plist with :messages and :metadata keys."
                   (push section-result sections)))))
           ;; Safety check: ensure we're making progress
           (when (= old-pos (greger-parser-state-pos state))
-            (greger-parser--debug state "No progress in document parsing at pos %d, breaking" (greger-parser-state-pos state))
-            (break))))
+            (greger-parser--debug state "No progress in document parsing at pos %d, forcing end" (greger-parser-state-pos state))
+            (setf (greger-parser-state-pos state) (greger-parser-state-length state)))))
 
       (when (>= iterations max-iterations)
         (greger-parser--debug state "Hit max iterations in parse-document"))
@@ -693,14 +722,14 @@ Returns either a system message, metadata, or both."
 ;; Tool parsing helpers
 
 (defun greger-parser--parse-name-line (state)
-  "Parse 'Name: value' line using STATE."
+  "Parse \='Name: value\=' line using STATE."
   (when (greger-parser--looking-at state "Name:")
     (greger-parser--advance state 5)
     (greger-parser--skip-horizontal-whitespace state)
     (greger-parser--read-line state)))
 
 (defun greger-parser--parse-id-line (state)
-  "Parse 'ID: value' line using STATE."
+  "Parse \='ID: value\=' line using STATE."
   (greger-parser--skip-whitespace state)
   (when (greger-parser--looking-at state "ID:")
     (greger-parser--advance state 3)
@@ -723,8 +752,8 @@ Returns either a system message, metadata, or both."
         (greger-parser--skip-whitespace state)
         ;; Safety check: ensure we're making progress
         (when (= old-pos (greger-parser-state-pos state))
-          (greger-parser--debug state "No progress in tool input parsing at pos %d, breaking" (greger-parser-state-pos state))
-          (break))))
+          (greger-parser--debug state "No progress in tool input parsing at pos %d, forcing end" (greger-parser-state-pos state))
+          (setf (greger-parser-state-pos state) (greger-parser-state-length state)))))
     (when (>= iterations max-iterations)
       (greger-parser--debug state "Hit max iterations in parse-tool-input"))
     (reverse params)))
@@ -782,11 +811,11 @@ Returns either a system message, metadata, or both."
       (greger-parser--debug state "Hit max iterations in skip-to-closing-angle"))))
 
 (defun greger-parser--make-closing-tag (opening-tag)
-  "Make closing tag from opening tag."
+  "Make closing tag from OPENING-TAG."
   (concat "</" (substring opening-tag 1)))
 
 (defun greger-parser--find-closing-tag (state closing-tag)
-  "Find closing tag, treating all content inside as raw text using STATE."
+  "Find CLOSING-TAG, treating all content inside as raw text using STATE."
   (let ((found nil)
         (iterations 0)
         (max-iterations (* (greger-parser-state-length state) 2))) ; Safety limit
@@ -807,7 +836,7 @@ Returns either a system message, metadata, or both."
   (or (greger-parser--parse-tool-value state) ""))
 
 (defun greger-parser--normalize-tool-content (content)
-  "Normalize tool content by trimming outer newlines."
+  "Normalize tool CONTENT by trimming outer newlines."
   (if (string-empty-p content)
       ""
     (let ((result content))
@@ -822,7 +851,7 @@ Returns either a system message, metadata, or both."
       result)))
 
 (defun greger-parser--convert-value (str)
-  "Convert string to appropriate Elisp value."
+  "Convert STR to appropriate Elisp value."
   (let ((trimmed (string-trim str)))
     (cond
      ((string= trimmed "true") t)
@@ -838,13 +867,13 @@ Returns either a system message, metadata, or both."
      (t trimmed))))
 
 (defun greger-parser--parse-json-array (str)
-  "Parse JSON array string."
+  "Parse JSON array STR."
   (condition-case nil
       (json-read-from-string str)
     (error str)))
 
 (defun greger-parser--parse-json-object (str)
-  "Parse JSON object string."
+  "Parse JSON object STR."
   (condition-case nil
       (let ((parsed (json-read-from-string str)))
         (mapcar (lambda (pair)
@@ -855,30 +884,30 @@ Returns either a system message, metadata, or both."
 ;; Message creation
 
 (defun greger-parser--create-user-message (content)
-  "Create user message."
+  "Create user message with CONTENT."
   `((role . "user") (content . ,content)))
 
 (defun greger-parser--create-assistant-message (content)
-  "Create assistant message."
+  "Create assistant message with CONTENT."
   `((role . "assistant") (content . ,content)))
 
 (defun greger-parser--create-system-message (content)
-  "Create system message."
+  "Create system message with CONTENT."
   `((role . "system") (content . ,content)))
 
 (defun greger-parser--generate-safe-shell-commands-text (commands)
-  "Generate descriptive text for safe shell commands list."
+  "Generate descriptive text for safe shell COMMANDS list."
   (when commands
     (concat "You can run arbitrary shell commands with the shell-command tool, but the following are safe shell commands that will run without requiring user confirmation:\n\n"
             (mapconcat (lambda (cmd) (format "* `%s`" cmd)) commands "\n"))))
 
 (defun greger-parser--create-thinking-message (content)
-  "Create thinking message."
+  "Create thinking message with CONTENT."
   `((role . "assistant")
     (content . (((type . "thinking") (thinking . ,content))))))
 
 (defun greger-parser--create-tool-use-message (name id input)
-  "Create tool use message."
+  "Create tool use message with NAME, ID and INPUT."
   `((role . "assistant")
     (content . (((type . "tool_use")
                  (id . ,id)
@@ -886,7 +915,7 @@ Returns either a system message, metadata, or both."
                  (input . ,input))))))
 
 (defun greger-parser--create-tool-result-message (id content)
-  "Create tool result message."
+  "Create tool result message with ID and CONTENT."
   `((role . "user")
     (content . (((type . "tool_result")
                  (tool_use_id . ,id)
@@ -895,7 +924,7 @@ Returns either a system message, metadata, or both."
 ;; Message merging
 
 (defun greger-parser--merge-consecutive-messages (messages)
-  "Merge consecutive messages with same role."
+  "Merge consecutive MESSAGES with same role."
   (if (null messages)
       '()
     (let ((result (list (car messages))))
@@ -914,7 +943,7 @@ Returns either a system message, metadata, or both."
       (reverse result))))
 
 (defun greger-parser--merge-message-contents (msg1 msg2)
-  "Merge contents of two messages."
+  "Merge contents of MSG1 and MSG2."
   (let ((role (alist-get 'role msg1))
         (content1 (alist-get 'content msg1))
         (content2 (alist-get 'content msg2)))
@@ -923,14 +952,14 @@ Returns either a system message, metadata, or both."
         (content . ,merged-content)))))
 
 (defun greger-parser--merge-contents (content1 content2)
-  "Merge two content values."
+  "Merge CONTENT1 and CONTENT2 values."
   (let ((blocks1 (greger-parser--content-to-blocks content1))
         (blocks2 (greger-parser--content-to-blocks content2)))
     (let ((result (append blocks1 blocks2)))
       result)))
 
 (defun greger-parser--content-to-blocks (content)
-  "Convert content to content blocks."
+  "Convert CONTENT to content blocks."
   (let ((result (cond
                  ((stringp content)
                   `(((type . "text") (text . ,content))))
@@ -943,7 +972,7 @@ Returns either a system message, metadata, or both."
 ;; Markdown generation
 
 (defun greger-parser--message-to-markdown (message)
-  "Convert message to markdown."
+  "Convert MESSAGE to markdown."
   (let ((role (alist-get 'role message))
         (content (alist-get 'content message)))
     (cond
@@ -956,28 +985,28 @@ Returns either a system message, metadata, or both."
      (t ""))))
 
 (defun greger-parser--user-to-markdown (content)
-  "Convert user content to markdown."
+  "Convert user CONTENT to markdown."
   (if (stringp content)
       (concat greger-parser-user-tag "\n\n" content)
     (concat greger-parser-user-tag "\n\n"
             (greger-parser--content-blocks-to-markdown content))))
 
 (defun greger-parser--assistant-to-markdown (content)
-  "Convert assistant content to markdown."
+  "Convert assistant CONTENT to markdown."
   (if (stringp content)
       (concat greger-parser-assistant-tag "\n\n" content)
     (greger-parser--content-blocks-to-markdown content)))
 
 (defun greger-parser--system-to-markdown (content)
-  "Convert system content to markdown."
+  "Convert system CONTENT to markdown."
   (concat greger-parser-system-tag "\n\n" content))
 
 (defun greger-parser--content-blocks-to-markdown (blocks)
-  "Convert content blocks to markdown."
+  "Convert content BLOCKS to markdown."
   (mapconcat #'greger-parser--block-to-markdown blocks "\n\n"))
 
 (defun greger-parser--block-to-markdown (block)
-  "Convert single block to markdown."
+  "Convert single BLOCK to markdown."
   (let ((type (alist-get 'type block)))
     (cond
      ((string= type "text")
@@ -993,7 +1022,7 @@ Returns either a system message, metadata, or both."
      (t ""))))
 
 (defun greger-parser--tool-use-to-markdown (tool-use)
-  "Convert tool use to markdown."
+  "Convert TOOL-USE to markdown."
   (let ((name (alist-get 'name tool-use))
         (id (alist-get 'id tool-use))
         (input (alist-get 'input tool-use)))
@@ -1003,7 +1032,7 @@ Returns either a system message, metadata, or both."
             (greger-parser--tool-params-to-markdown id input))))
 
 (defun greger-parser--tool-result-to-markdown (tool-result)
-  "Convert tool result to markdown."
+  "Convert TOOL-RESULT to markdown."
   (let ((id (alist-get 'tool_use_id tool-result))
         (content (alist-get 'content tool-result)))
     (concat greger-parser-tool-result-tag "\n\n"
@@ -1013,7 +1042,7 @@ Returns either a system message, metadata, or both."
             "</tool." id ">")))
 
 (defun greger-parser--tool-params-to-markdown (id input)
-  "Convert tool parameters to markdown."
+  "Convert tool parameters with ID and INPUT to markdown."
   (if (null input)
       ""
     (mapconcat (lambda (param)
@@ -1026,12 +1055,12 @@ Returns either a system message, metadata, or both."
                input "\n\n")))
 
 (defun greger-parser--value-to-string (value)
-  "Convert value to string representation."
+  "Convert VALUE to string representation."
   (cond
    ((stringp value) value)
    ((numberp value) (number-to-string value))
    ((eq value t) "true")
-   ((eq value nil) "false")
+   ((null value) "false")
    ((vectorp value) (json-encode value))
    ((listp value) (json-encode value))
    (t (format "%s" value))))

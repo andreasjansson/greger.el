@@ -7,18 +7,41 @@
 ;; URL: https://github.com/andreasjansson/greger.el
 ;; Package-Requires: ((emacs "28.1") (markdown-mode "2.3"))
 ;; Keywords: ai, chat, language-models, tools
+;; SPDX-License-Identifier: MIT
+
+;; Permission is hereby granted, free of charge, to any person obtaining a copy
+;; of this software and associated documentation files (the "Software"), to deal
+;; in the Software without restriction, including without limitation the rights
+;; to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+;; copies of the Software, and to permit persons to whom the Software is
+;; furnished to do so, subject to the following conditions:
+
+;; The above copyright notice and this permission notice shall be included in all
+;; copies or substantial portions of the Software.
+
+;; THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+;; IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+;; FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+;; AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+;; LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+;; OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+;; SOFTWARE.
 
 ;;; Commentary:
 ;; This package provides an interface for interacting with AI language models
 
 ;;; Code:
 
+(require 'cl-lib)
+(require 'json)
+(require 'markdown-mode)
+
 (require 'greger-client)
 (require 'greger-parser)
 (require 'greger-tools)
 (require 'greger-stdlib)
-(require 'cl-lib)
-(require 'json)
+
+
 
 ;; Optional LSP integration
 (condition-case nil
@@ -51,7 +74,7 @@
   "Return default tools list, including LSP tools if available."
   (let ((base-tools '("read-file" "list-directory" "str-replace" "insert" "write-new-file" "replace-file" "replace-function" "make-directory" "rename-file" "ripgrep" "git-log" "git-show-commit" "shell-command" "read-webpage" "delete-files"))
         (lsp-tools '("lsp-rename" "lsp-find-definition" "lsp-find-references" "lsp-format" "lsp-document-symbols")))
-    (if (and (boundp 'greger-lib-lsp-available) greger-lib-lsp-available)
+    (if (and (boundp 'greger--lsp-available) greger--lsp-available)
         (append base-tools lsp-tools)
       base-tools)))
 
@@ -179,7 +202,7 @@
             "\n\n" greger-default-system-prompt "\n\n"
             greger-user-tag
             "\n\n")
-    (message (format "Using model %s" greger-model))))
+    (message "Using model %s" greger-model)))
 
 (defun greger-insert-assistant-tag ()
   "Insert the assistant tag into the buffer."
@@ -239,7 +262,7 @@
     (if code-block
         (progn
           (kill-new code-block)
-          (message (format "Copied code: %s" (greger--truncate-with-ellipsis code-block 40))))
+          (message "Copied code: %s" (greger--truncate-with-ellipsis code-block 40)))
       (error "Point is not inside a code block"))))
 
 (defun greger-set-model ()
@@ -311,7 +334,9 @@
       (greger--run-agent-loop agent-state))))
 
 (defun greger--debug (format-string &rest args)
-  "Debug logging function."
+  "Debug logging function.
+FORMAT-STRING is the format string.
+ARGS are arguments to format."
   (when greger-debug
     (message "[GREGER DEBUG] %s" (apply #'format format-string args))))
 
@@ -431,7 +456,13 @@
     (insert text)))
 
 (defun greger--handle-tool-completion (tool-id result error agent-state search-start-pos completion-callback)
-  "Handle completion of a tool execution by updating the buffer and calling COMPLETION-CALLBACK."
+  "Handle completion of a tool execution by updating buffer and calling callback.
+TOOL-ID is the tool identifier.
+RESULT is the tool execution result.
+ERROR is any error that occurred.
+AGENT-STATE contains the current agent state.
+SEARCH-START-POS is where to start searching for placeholders.
+COMPLETION-CALLBACK is called when complete."
   (let ((tool-result (if error
                         `((type . "tool_result")
                           (tool_use_id . ,tool-id)
@@ -519,12 +550,15 @@
           (greger--setup-collapsible-content content-start content-end tool-id))))))
 
 (defun greger--extract-tool-id (tag-string)
-  "Extract tool ID from a tool tag string like '<tool.abc123>'."
+  "Extract tool ID from a tool tag string like '<tool.abc123>'.
+TAG-STRING is the tag string to extract from."
   (when (string-match "<tool\\.\\([^>]+\\)>" tag-string)
     (match-string 1 tag-string)))
 
 (defun greger--create-tag-overlay (start end)
-  "Create an overlay for a tool tag to make it small and less visible."
+  "Create an overlay for a tool tag to make it small and less visible.
+START is the beginning position.
+END is the ending position."
   (let ((overlay (make-overlay start end)))
     (overlay-put overlay 'face 'greger-tool-tag-face)
     (overlay-put overlay 'greger-tool-tag t)
@@ -532,7 +566,10 @@
     overlay))
 
 (defun greger--setup-collapsible-content (content-start content-end tool-id)
-  "Set up collapsible content between CONTENT-START and CONTENT-END for TOOL-ID."
+  "Set up collapsible content between CONTENT-START and CONTENT-END for TOOL-ID.
+CONTENT-START is the start position of the content.
+CONTENT-END is the end position of the content.
+TOOL-ID is the tool identifier."
   (let* ((content (buffer-substring-no-properties content-start content-end))
          (lines (split-string content "\n"))
          (line-count (length lines)))
@@ -542,13 +579,13 @@
       (greger--create-collapsible-overlay content-start content-end tool-id lines))))
 
 (defun greger--create-collapsible-overlay (content-start content-end tool-id lines)
-  "Create a collapsible overlay for tool content."
+  "Create a collapsible overlay for tool content.
+CONTENT-START and CONTENT-END define the overlay bounds.
+TOOL-ID identifies the tool, and LINES contain the content."
   (let* ((visible-lines (cl-subseq lines 0 greger-tool-section-max-lines))
          (hidden-lines (cl-subseq lines greger-tool-section-max-lines))
-         (total-lines (length lines))
          (hidden-line-count (length hidden-lines))
          (visible-text (mapconcat #'identity visible-lines "\n"))
-         (hidden-text (mapconcat #'identity hidden-lines "\n"))
 
          ;; Calculate positions for visible and hidden parts
          (visible-end (+ content-start (length visible-text)))
@@ -598,7 +635,6 @@
       ;; Search backwards for opening tag
       (when (re-search-backward "<tool\\.[^>]+>" nil t)
         (let ((open-tag-start (match-beginning 0))
-              (open-tag-end (match-end 0))
               (tag-tool-id (greger--extract-tool-id (match-string 0))))
           ;; Check if we're within this tool section
           (when tag-tool-id
@@ -612,7 +648,8 @@
       tool-id)))
 
 (defun greger--toggle-tool-section-by-id (tool-id)
-  "Toggle the tool section with the given TOOL-ID."
+  "Toggle the tool section with the given TOOL-ID.
+TOOL-ID is the identifier of the tool section to toggle."
   (cl-loop for overlay in greger-tool-overlays
            when (and (overlay-get overlay 'greger-tool-section)
                      (string= (overlay-get overlay 'greger-tool-id) tool-id))
@@ -626,7 +663,8 @@
       (greger--collapse-tool-section overlay tool-id))))
 
 (defun greger--expand-tool-section (overlay tool-id)
-  "Expand the tool section by making OVERLAY visible."
+  "Expand the tool section by making OVERLAY visible.
+OVERLAY is the overlay to expand, TOOL-ID identifies the tool."
   (overlay-put overlay 'invisible nil)
   (overlay-put overlay 'greger-collapsed nil)
 
@@ -640,7 +678,9 @@
                       (remove indicator-overlay greger-tool-overlays)))))
 
 (defun greger--collapse-tool-section (overlay tool-id)
-  "Collapse the tool section by making OVERLAY invisible."
+  "Collapse the tool section by making OVERLAY invisible.
+OVERLAY is the overlay to hide.
+TOOL-ID is the tool identifier."
   (overlay-put overlay 'invisible 'greger-tool-section)
   (overlay-put overlay 'greger-collapsed t)
 
@@ -690,8 +730,11 @@
   ;(face-remap-add-relative 'markdown-header-face-3 'greger-tool-param-heading-face)
   (font-lock-flush))
 
-(defun greger--after-change-function (beg end len)
-  "Update tool sections after buffer changes."
+(defun greger--after-change-function (beg end _len)
+  "Update tool sections after buffer changes.
+BEG is the beginning of the changed region.
+END is the end of the changed region.
+_LEN is the length of the pre-change text (unused)."
   ;; Simple approach: refresh all tool sections
   ;; This could be optimized to only refresh affected sections
   (when (> (- end beg) 0)  ; Only if there was an actual change

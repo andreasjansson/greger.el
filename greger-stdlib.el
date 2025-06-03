@@ -1,8 +1,29 @@
 ;;; greger-stdlib.el --- Tool definitions for greger agent -*- lexical-binding: t -*-
 
+;; Copyright (C) 2023 Andreas Jansson
+
 ;; Author: Andreas Jansson <andreas@jansson.me.uk>
 ;; Version: 0.1.0
 ;; URL: https://github.com/andreasjansson/greger.el
+;; SPDX-License-Identifier: MIT
+
+;; Permission is hereby granted, free of charge, to any person obtaining a copy
+;; of this software and associated documentation files (the "Software"), to deal
+;; in the Software without restriction, including without limitation the rights
+;; to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+;; copies of the Software, and to permit persons to whom the Software is
+;; furnished to do so, subject to the following conditions:
+
+;; The above copyright notice and this permission notice shall be included in all
+;; copies or substantial portions of the Software.
+
+;; THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+;; IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+;; FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+;; AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+;; LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+;; OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+;; SOFTWARE.
 
 ;;; Commentary:
 ;; Defines tools available to the greger agent
@@ -187,18 +208,8 @@
   :required '("commit_hash")
   :function 'greger-stdlib--git-show-commit)
 
-(greger-register-tool "ert-test"
-  :description "Execute ERT tests by evaluating Emacs lisp test functions and running them with ert"
-  :properties '((test_file_path . ((type . "string")
-                                   (description . "Path to the test file containing ERT tests")))
-                (function_names . ((type . "array")
-                                   (items . ((type . "string")))
-                                   (description . "List of ERT test function names to evaluate and run"))))
-  :required '("test_file_path" "function_names")
-  :function 'greger-stdlib--ert-test)
-
 (greger-register-tool "eval-elisp-defuns"
-  :description "Evaluate Emacs lisp defuns in a specific file. Note that defuns must be evaluated before you run ert-test to test them, if you've updated the code."
+  :description "Evaluate Emacs lisp defuns in a specific file. Useful when the code has changed and you want to use the updated code."
   :properties '((file_path . ((type . "string")
                               (description . "Path to the file containing functions/defuns to evaluate")))
                 (function_names . ((type . "array")
@@ -235,12 +246,12 @@
 ;; Helper functions
 
 (defun greger-stdlib--run-async-subprocess (command args working-directory callback)
-  "Run COMMAND with ARGS in WORKING-DIRECTORY and call CALLBACK with (output error).
-CALLBACK will be called with (output nil) on success or (nil error-message) on failure."
+  "Run COMMAND with ARGS in WORKING-DIRECTORY and call CALLBACK.
+CALLBACK will be called with (output nil) on success or (nil error-message) on
+failure."
   (let* ((process-name (format "greger-subprocess-%s" (make-temp-name "")))
          (process-buffer (generate-new-buffer (format " *%s*" process-name)))
-         (default-directory (expand-file-name (or working-directory ".")))
-         (full-command (cons command args)))
+         (default-directory (expand-file-name (or working-directory "."))))
 
     (condition-case err
         (let ((process (apply #'start-process process-name process-buffer command args)))
@@ -248,7 +259,7 @@ CALLBACK will be called with (output nil) on success or (nil error-message) on f
 
           (set-process-sentinel
            process
-           (lambda (proc event)
+           (lambda (proc _event)
              (let ((exit-status (process-exit-status proc))
                    (output (with-current-buffer process-buffer
                             (buffer-string))))
@@ -330,30 +341,29 @@ If CHAT-BUFFER is provided, also stage and commit the chat buffer file."
 
           (format "Successfully staged %d file(s) and committed with message: %s"
                   (length all-files) commit-message)))
-    (error
-     (format "Git operation failed: %s" (error-message-string err)))))
+    (error "Git operation failed: %s" (error-message-string err))))
 
 (defun greger-stdlib--read-file (path &optional include-line-numbers start-line end-line)
   "Read file at PATH. If INCLUDE-LINE-NUMBERS is non-nil, prepend line numbers.
 If START-LINE is specified, start reading from that line (1-based).
 If END-LINE is specified, stop reading at that line (inclusive, 1-based)."
   (unless (stringp path)
-    (error "Path must be a string"))
+    (error "Invalid type: path must be a string"))
 
   (when (and start-line (not (integerp start-line)))
-    (error "start-line must be an integer"))
+    (error "Invalid type: start_line must be an integer"))
 
   (when (and end-line (not (integerp end-line)))
-    (error "end-line must be an integer"))
+    (error "Invalid type: end_line must be an integer"))
 
   (when (and start-line (< start-line 1))
-    (error "start-line must be >= 1"))
+    (error "Invalid value: start_line must be >= 1"))
 
   (when (and end-line (< end-line 1))
-    (error "end-line must be >= 1"))
+    (error "Invalid value: end_line must be >= 1"))
 
   (when (and start-line end-line (> start-line end-line))
-    (error "start-line must be <= end-line"))
+    (error "Invalid value: start_line must be <= end-line"))
 
   (let ((expanded-path (expand-file-name path)))
     (unless (file-exists-p expanded-path)
@@ -369,11 +379,16 @@ If END-LINE is specified, stop reading at that line (inclusive, 1-based)."
         (with-temp-buffer
           (insert-file-contents expanded-path)
           (let* ((all-lines (split-string (buffer-string) "\n"))
+                 ;; Remove trailing empty line if it exists (from trailing newline)
+                 (all-lines (if (and (> (length all-lines) 0)
+                                    (string-empty-p (car (last all-lines))))
+                               (butlast all-lines)
+                             all-lines))
                  (total-lines (length all-lines))
                  (actual-start (or start-line 1))
                  (actual-end (or end-line total-lines))
                  (selected-lines (greger-stdlib--extract-line-range all-lines actual-start actual-end))
-                 (contents (mapconcat 'identity selected-lines "\n")))
+                 (contents (mapconcat #'identity selected-lines "\n")))
             (if include-line-numbers
                 (greger-stdlib--add-line-numbers-with-offset contents actual-start)
               contents)))
@@ -405,12 +420,14 @@ If END-LINE is specified, stop reading at that line (inclusive, 1-based)."
       (setq line-num (1+ line-num)))
 
     ;; Join back with newlines
-    (mapconcat 'identity (reverse result) "\n")))
+    (mapconcat #'identity (reverse result) "\n")))
 
 (defun greger-stdlib--list-directory (path &optional show-hidden recursive)
-  "List directory contents at PATH."
+  "List directory contents at PATH.
+If SHOW-HIDDEN is non-nil, include hidden files.
+If RECURSIVE is non-nil, list files recursively."
   (unless (stringp path)
-    (error "Path must be a string"))
+    (error "Invalid type: path must be a string"))
 
   (let ((expanded-path (expand-file-name path)))
     (unless (file-exists-p expanded-path)
@@ -435,10 +452,12 @@ If END-LINE is specified, stop reading at that line (inclusive, 1-based)."
                                      (if (file-directory-p full-path) "/" ""))))
                          files "\n")
             "Directory is empty"))
-      (error (format "Failed to list directory: %s" (error-message-string err))))))
+      (error "Failed to list directory: %s" (error-message-string err)))))
 
 (defun greger-stdlib--list-directory-recursive (path show-hidden &optional prefix)
-  "Recursively list directory contents at PATH."
+  "Recursively list directory contents at PATH.
+If SHOW-HIDDEN is non-nil, include hidden files.
+PREFIX is used internally for nested directory structure."
   (let ((files '())
         (prefix (or prefix "")))
 
@@ -458,7 +477,9 @@ If END-LINE is specified, stop reading at that line (inclusive, 1-based)."
     (reverse files)))
 
 (defun greger-stdlib--ripgrep (pattern path callback &optional case-sensitive file-type context-lines max-results)
-  "Search for PATTERN in PATH using the rg command line tool directly."
+  "Search for PATTERN in PATH using the rg command line tool directly.
+CALLBACK is called with (result error) when search completes.
+CASE-SENSITIVE, FILE-TYPE, CONTEXT-LINES and MAX-RESULTS are optional."
   (cond
    ((not (stringp pattern))
     (funcall callback nil "Pattern must be a string"))
@@ -514,12 +535,13 @@ If END-LINE is specified, stop reading at that line (inclusive, 1-based)."
 
 (defun greger-stdlib--write-new-file (file-path contents git-commit-message &optional buffer)
   "Write CONTENTS to a new file at FILE-PATH. Fails if file already exists.
+GIT-COMMIT-MESSAGE will be used for the git commit.
 If BUFFER is provided, it will be staged and committed along with the new file."
   (unless (stringp file-path)
-    (error "file_path must be a string"))
+    (error "Invalid type: file_path must be a string"))
 
   (unless (stringp contents)
-    (error "contents must be a string"))
+    (error "Invalid type: contents must be a string"))
 
   (let ((expanded-path (expand-file-name file-path)))
 
@@ -537,7 +559,7 @@ If BUFFER is provided, it will be staged and committed along with the new file."
         (with-temp-buffer
           (insert contents)
           (write-file expanded-path))
-      (error (format "Failed to write file: %s" (error-message-string err))))
+      (error "Failed to write file: %s" (error-message-string err)))
 
     ;; Stage and commit changes - infer the file to stage
     (let ((git-result (greger-stdlib--git-stage-and-commit (list expanded-path) git-commit-message buffer)))
@@ -546,9 +568,10 @@ If BUFFER is provided, it will be staged and committed along with the new file."
 
 (defun greger-stdlib--make-directory (path git-commit-message &optional buffer)
   "Recursively create directory at PATH.
+GIT-COMMIT-MESSAGE will be used for the git commit.
 If BUFFER is provided, it will be staged and committed along with the directory."
   (unless (stringp path)
-    (error "path must be a string"))
+    (error "Invalid type: path must be a string"))
 
   (let ((expanded-path (expand-file-name path)))
 
@@ -566,16 +589,17 @@ If BUFFER is provided, it will be staged and committed along with the directory.
             ;; For now, we'll stage the directory path itself (though git doesn't track empty dirs)
             (let ((git-result (greger-stdlib--git-stage-and-commit (list expanded-path) git-commit-message buffer)))
               (format "Successfully created directory: %s. %s" expanded-path git-result)))
-        (error (format "Failed to create directory: %s" (error-message-string err)))))))
+        (error "Failed to create directory: %s" (error-message-string err))))))
 
 (defun greger-stdlib--rename-file (old-path new-path git-commit-message &optional buffer)
   "Rename file from OLD-PATH to NEW-PATH.
-If BUFFER is provided, it will be staged and committed along with the renamed file."
+GIT-COMMIT-MESSAGE will be used for the git commit.
+If BUFFER is provided, it will be staged and committed with the renamed file."
   (unless (stringp old-path)
-    (error "old_path must be a string"))
+    (error "Invalid type: old_path must be a string"))
 
   (unless (stringp new-path)
-    (error "new_path must be a string"))
+    (error "Invalid type: new_path must be a string"))
 
   (let ((expanded-old-path (expand-file-name old-path))
         (expanded-new-path (expand-file-name new-path)))
@@ -602,16 +626,17 @@ If BUFFER is provided, it will be staged and committed along with the renamed fi
                              (list expanded-old-path expanded-new-path)
                              git-commit-message buffer)))
             (format "Successfully renamed %s to %s. %s" expanded-old-path expanded-new-path git-result)))
-      (error (format "Failed to rename file: %s" (error-message-string err))))))
+      (error "Failed to rename file: %s" (error-message-string err)))))
 
 (defun greger-stdlib--delete-files (file-paths git-commit-message &optional buffer)
   "Delete files at FILE-PATHS and stage the deletion in git if tracked.
-If BUFFER is provided, it will be staged and committed along with the deleted files."
+GIT-COMMIT-MESSAGE will be used for the git commit.
+If BUFFER is provided, it will be staged and committed with deleted files."
   (unless (or (vectorp file-paths) (listp file-paths))
-    (error "file_paths must be a vector or list"))
+    (error "Invalid type: file_paths must be a vector or list"))
 
   (unless (stringp git-commit-message)
-    (error "git_commit_message must be a string"))
+    (error "Invalid type: git_commit_message must be a string"))
 
   (let ((paths-list (if (vectorp file-paths)
                         (append file-paths nil)  ; Convert vector to list
@@ -644,7 +669,7 @@ If BUFFER is provided, it will be staged and committed along with the deleted fi
         (dolist (expanded-path (reverse expanded-paths))
           (delete-file expanded-path)
           (push expanded-path deleted-files))
-      (error (format "Failed to delete file: %s" (error-message-string err))))
+      (error "Failed to delete file: %s" (error-message-string err)))
 
     ;; Stage and commit the deletions for git-tracked files
     (let ((git-result
@@ -657,26 +682,26 @@ If BUFFER is provided, it will be staged and committed along with the deleted fi
 
       (format "Successfully deleted %d file(s): %s. Git status: %s"
               (length deleted-files)
-              (mapconcat 'identity (reverse deleted-files) ", ")
+              (mapconcat #'identity (reverse deleted-files) ", ")
               git-result))))
 
 (defun greger-stdlib--replace-function (file-path function-name contents line-number commit-message &optional buffer)
   "Replace FUNCTION-NAME in FILE-PATH with new CONTENTS at LINE-NUMBER.
-If BUFFER is provided, it will be staged and committed along with the modified file."
+If BUFFER is provided, it will be staged and committed with the modified file."
   (unless (stringp file-path)
-    (error "file_path must be a string"))
+    (error "Invalid type: file_path must be a string"))
 
   (unless (stringp function-name)
-    (error "function_name must be a string"))
+    (error "Invalid type: function_name must be a string"))
 
   (unless (stringp contents)
-    (error "contents must be a string"))
+    (error "Invalid type: contents must be a string"))
 
   (unless (integerp line-number)
-    (error "line_number must be an integer"))
+    (error "Invalid type: line_number must be an integer"))
 
   (unless (stringp commit-message)
-    (error "commit_message must be a string"))
+    (error "Invalid type: commit_message must be a string"))
 
   (let ((expanded-path (expand-file-name file-path)))
 
@@ -691,7 +716,8 @@ If BUFFER is provided, it will be staged and committed along with the modified f
 
     (with-current-buffer (find-file-noselect expanded-path)
      ;; Go to the specified line number
-     (goto-line line-number)
+     (goto-char (point-min))
+     (forward-line (1- line-number))
 
      ;; Verify function name is at this line
      (beginning-of-line)
@@ -742,15 +768,16 @@ If BUFFER is provided, it will be staged and committed along with the modified f
 
 (defun greger-stdlib--replace-file (file-path contents git-commit-message &optional buffer)
   "Replace the entire contents of FILE-PATH with CONTENTS.
-If BUFFER is provided, it will be staged and committed along with the modified file."
+GIT-COMMIT-MESSAGE will be used for the git commit.
+If BUFFER is provided, it will be staged and committed along with the file."
   (unless (stringp file-path)
-    (error "file_path must be a string"))
+    (error "Invalid type: file_path must be a string"))
 
   (unless (stringp contents)
-    (error "contents must be a string"))
+    (error "Invalid type: contents must be a string"))
 
   (unless (stringp git-commit-message)
-    (error "git_commit_message must be a string"))
+    (error "Invalid type: git_commit_message must be a string"))
 
   (let ((expanded-path (expand-file-name file-path)))
 
@@ -778,7 +805,7 @@ If BUFFER is provided, it will be staged and committed along with the modified f
 (defun greger-stdlib--count-paren-balance (content)
   "Count paren balance in CONTENT, ignoring parens in strings and comments.
 Returns the difference between left and right parens (left - right).
-Uses parse-partial-sexp to properly handle strings and comments."
+Uses `parse-partial-sexp' to properly handle strings and comments."
   (with-temp-buffer
     ;; Set up the buffer with lisp-mode syntax table for proper parsing
     (with-syntax-table lisp-data-mode-syntax-table
@@ -802,19 +829,20 @@ Uses parse-partial-sexp to properly handle strings and comments."
 
 (defun greger-stdlib--str-replace (file-path original-content new-content git-commit-message &optional buffer)
   "Replace ORIGINAL-CONTENT with NEW-CONTENT in FILE-PATH.
-If BUFFER is provided, it will be staged and committed along with the modified file.
+GIT-COMMIT-MESSAGE will be used for the git commit.
+If BUFFER is provided, it will be staged and committed along with the file.
 For Emacs Lisp files (.el), checks that parentheses balance is maintained."
   (unless (stringp file-path)
-    (error "file_path must be a string"))
+    (error "Invalid type: file_path must be a string"))
 
   (unless (stringp original-content)
-    (error "original_content must be a string"))
+    (error "Invalid type: original_content must be a string"))
 
   (unless (stringp new-content)
-    (error "new_content must be a string"))
+    (error "Invalid type: new_content must be a string"))
 
   (unless (stringp git-commit-message)
-    (error "git_commit_message must be a string"))
+    (error "Invalid type: git_commit_message must be a string"))
 
   (let ((expanded-path (expand-file-name file-path)))
 
@@ -831,7 +859,7 @@ For Emacs Lisp files (.el), checks that parentheses balance is maintained."
       (let ((orig-balance (greger-stdlib--count-paren-balance original-content))
             (new-balance (greger-stdlib--count-paren-balance new-content)))
         (unless (= orig-balance new-balance)
-          (error "Parentheses balance mismatch in Emacs Lisp file: original has balance %d, new has balance %d. They must be equal."
+          (error "Parentheses balance mismatch in Emacs Lisp file: original has balance %d, new has balance %d. They must be equal"
                  orig-balance new-balance))))
 
     (with-current-buffer (find-file-noselect expanded-path)
@@ -852,21 +880,22 @@ For Emacs Lisp files (.el), checks that parentheses balance is maintained."
 
 (defun greger-stdlib--insert (file-path line-number content git-commit-message &optional buffer)
   "Insert CONTENT at LINE-NUMBER in FILE-PATH.
-If BUFFER is provided, it will be staged and committed along with the modified file."
+GIT-COMMIT-MESSAGE will be used for the git commit.
+If BUFFER is provided, it will be staged and committed along with the file."
   (unless (stringp file-path)
-    (error "file_path must be a string"))
+    (error "Invalid type: file_path must be a string"))
 
   (unless (integerp line-number)
-    (error "line_number must be an integer"))
+    (error "Invalid type: line_number must be an integer"))
 
   (unless (>= line-number 0)
-    (error "line_number must be >= 0"))
+    (error "Invalid type: line_number must be >= 0"))
 
   (unless (stringp content)
-    (error "content must be a string"))
+    (error "Invalid type: content must be a string"))
 
   (unless (stringp git-commit-message)
-    (error "git_commit_message must be a string"))
+    (error "Invalid type: git_commit_message must be a string"))
 
   (let ((expanded-path (expand-file-name file-path)))
 
@@ -885,7 +914,8 @@ If BUFFER is provided, it will be staged and committed along with the modified f
          ;; Insert at beginning of file
          (goto-char (point-min))
        ;; Go to the specified line - this is where the fix is needed
-       (goto-line line-number)
+       (goto-char (point-min))
+        (forward-line (1- line-number))
        ;; Move to beginning of line to insert before it, not after it
        (beginning-of-line))
 
@@ -911,9 +941,10 @@ If BUFFER is provided, it will be staged and committed along with the modified f
               (length content) line-number expanded-path git-result))))
 
 (defun greger-stdlib--git-log (path &optional max-rows)
-  "View git commit logs using git command line for PATH."
+  "View git commit logs using git command line for PATH.
+MAX-ROWS limits the number of log entries returned (default 100)."
   (unless (stringp path)
-    (error "path must be a string"))
+    (error "Path must be a string"))
 
   (let ((expanded-path (expand-file-name path))
         (max-count (or max-rows 100)))
@@ -941,15 +972,16 @@ If BUFFER is provided, it will be staged and committed along with the modified f
                           "No git log available"
                         results))
                   (error "Git log command failed with exit code %d" exit-code)))))
-        (error (format "Failed to retrieve git log: %s" (error-message-string err)))))))
+        (error "Failed to retrieve git log: %s" (error-message-string err))))))
 
 (defun greger-stdlib--git-show-commit (commit-hash path)
-  "View git commit using git command line for PATH."
+  "View git commit using git command line for PATH.
+COMMIT-HASH specifies which commit to show."
   (unless (stringp commit-hash)
-    (error "commit_hash must be a string"))
+    (error "Invalid type: commit_hash must be a string"))
 
   (unless (stringp path)
-    (error "path must be a string"))
+    (error "Invalid type: path must be a string"))
 
   (let ((expanded-path (expand-file-name path)))
 
@@ -974,14 +1006,16 @@ If BUFFER is provided, it will be staged and committed along with the modified f
                           "No git commit available"
                         results))
                   (error "Git show command failed with exit code %d" exit-code)))))
-        (error (format "Failed to show git commit: %s" (error-message-string err)))))))
+        (error "Failed to show git commit: %s" (error-message-string err))))))
 
 (defun greger-stdlib--eval-elisp-defuns (file-path function-names)
+  "Evaluate Emacs Lisp function definitions from FILE-PATH.
+FUNCTION-NAMES specifies which functions to evaluate."
   (unless (stringp file-path)
-    (error "File path must be a string"))
+    (error "Invalid type: file_path must be a string"))
 
   (unless (or (vectorp function-names) (listp function-names))
-    (error "Function names must be a vector or list"))
+    (error "Invalid type: function_names must be a vector or list"))
 
   (let ((expanded-path (expand-file-name file-path))
         (names-list (if (vectorp function-names)
@@ -1011,83 +1045,11 @@ If BUFFER is provided, it will be staged and committed along with the modified f
          (eval-defun nil))))
     "Eval successful"))
 
-(defun greger-stdlib--ert-test (test-file-path function-names)
-  "Execute ERT tests by evaluating test functions and running them with ert.
-TEST-FILE-PATH is the path to the test file.
-FUNCTION-NAMES is a vector of test function names to evaluate and run."
-
-  ;; First eval the test function names
-  (greger-stdlib--eval-elisp-defuns test-file-path function-names)
-
-  (condition-case err
-      (progn
-        ;; Now run the tests using ert-run-tests with a custom listener
-        (let* ((function-names-list (append function-names nil)) ; Convert vector to list for processing
-               (test-selector `(member ,@(mapcar #'intern function-names-list)))
-               (output-lines '())
-               (stats nil))
-
-          ;; Define a custom listener to capture test output
-          (let ((listener
-                 (lambda (event-type &rest event-args)
-                   (cl-case event-type
-                     (run-started
-                      (cl-destructuring-bind (stats-obj) event-args
-                        (setq stats stats-obj)
-                        (push (format "Running %d tests (%s)"
-                                      (length (ert--stats-tests stats-obj))
-                                      (current-time-string))
-                              output-lines)))
-                     (test-started
-                      (cl-destructuring-bind (stats-obj test) event-args
-                        (push (format "Test %S started" (ert-test-name test))
-                              output-lines)))
-                     (test-ended
-                      (cl-destructuring-bind (stats-obj test result) event-args
-                        (let ((test-name (ert-test-name test))
-                              (expected-p (ert-test-result-expected-p test result)))
-                          (push (format "Test %S: %s%s%s"
-                                        test-name
-                                        (ert-string-for-test-result result expected-p)
-                                        (if (ert-test-result-duration result)
-                                            (format " (%.3fs)" (ert-test-result-duration result))
-                                          "")
-                                        (let ((reason (ert-reason-for-test-result result)))
-                                          (if (string-empty-p reason) "" reason)))
-                                output-lines)
-                          ;; Add condition details for failures
-                          (when (and (ert-test-result-with-condition-p result)
-                                     (not expected-p))
-                            (let ((condition (ert-test-result-with-condition-condition result)))
-                              (push (format "  Condition: %S" condition) output-lines))))))
-                     (run-ended
-                      (cl-destructuring-bind (stats-obj aborted-p) event-args
-                        (let ((completed (ert-stats-completed stats-obj))
-                              (expected (ert-stats-completed-expected stats-obj))
-                              (unexpected (ert-stats-completed-unexpected stats-obj))
-                              (skipped (ert-stats-skipped stats-obj)))
-                          (push (format "\n%sRan %d tests, %d results as expected, %d unexpected%s"
-                                        (if aborted-p "Aborted: " "")
-                                        completed
-                                        expected
-                                        unexpected
-                                        (if (zerop skipped) "" (format ", %d skipped" skipped)))
-                                output-lines))))))))
-
-            ;; Run the tests
-            (setq stats (ert-run-tests test-selector listener))
-
-            ;; Format the results
-            (let ((result-text (string-join (nreverse output-lines) "\n")))
-              (format "Successfully evaluated %d test function(s) from %s and executed them with ert.\n\nTest Results:\n%s"
-                      (length function-names) test-file-path result-text)))))
-
-    (error (format "Failed to execute ERT tests: %s" (error-message-string err)))))
-
 (defun greger-stdlib--shell-command (command callback &optional working-directory metadata)
   "Execute COMMAND in WORKING-DIRECTORY and call CALLBACK with (result error).
 Prompts for permission before running the command for security.
-If METADATA contains safe-shell-commands and COMMAND is in that list, skips permission prompt."
+If METADATA contains safe-shell-commands and COMMAND is in that list, skips
+permission prompt."
   (let ((work-dir (or working-directory ".")))
     (cond
      ((not (stringp command))
@@ -1147,10 +1109,10 @@ If EXTRACT-TEXT is non-nil (default t), extract and return text content.
 If EXTRACT-TEXT is nil, return raw HTML.
 If USE-HIGHEST-READABILITY is non-nil, use eww's aggressive readability setting."
   (unless (stringp url)
-    (error "URL must be a string"))
+    (error "Invalid type: url must be a string"))
 
   (when (string-empty-p (string-trim url))
-    (error "URL cannot be empty"))
+    (error "Invalid type: url cannot be empty"))
 
   (unless (greger-web-is-web-url-p url)
     (error "Invalid URL format: %s (must start with http:// or https://)" url))

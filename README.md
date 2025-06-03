@@ -1,6 +1,6 @@
 # Greger.el - Agentic coding in Emacs
 
-Greger is a Claude chat interface with tool use. It can read and edit code, navigate code with LSP, download web pages, run shell commands, etc.
+Greger is a Claude chat interface with tool use. It can read and edit code, download web pages, run shell commands, etc.
 
 ## Usage
 
@@ -24,6 +24,10 @@ In Greger buffers:
 - `C-; c` - Copy code block at point
 - `C-; m` - Change AI model
 - `TAB` - Toggle tool section visibility
+
+While Greger is generating output:
+
+- `C-g` - Interrupt the output.
 
 ## Installation
 
@@ -59,7 +63,6 @@ Greger includes a set of tool out of the box:
 
 - File operations (read, write, edit files)
 - Web browsing and content extraction
-- LSP integration (rename symbols, find definitions/references)
 - Git operations
 - Shell command execution
 - Directory operations
