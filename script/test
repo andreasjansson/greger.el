@@ -79,30 +79,26 @@ run_test_file() {
         echo -e "  ${RED}✗ Some tests failed${NC}"
 
         # Extract and display failure information
-        echo -e "  ${RED}Failed tests:${NC}"
 
         # Extract failed test names from the summary at the end ("FAILED test-name")
-        grep -E "^[[:space:]]*FAILED[[:space:]]+[a-zA-Z0-9_-]+" "$temp_output" | sed -E 's/^[[:space:]]*FAILED[[:space:]]+([a-zA-Z0-9_-]+).*/\1/' | while read -r test_name; do
-            if [ -n "$test_name" ]; then
-                echo -e "    ${RED}• $test_name${NC}"
-            fi
-        done
+        failed_tests=$(grep -E "^[[:space:]]*FAILED[[:space:]]+[a-zA-Z0-9_-]+" "$temp_output" | sed -E 's/^[[:space:]]*FAILED[[:space:]]+([a-zA-Z0-9_-]+).*/\1/')
 
-        # Show error details - extract failed assertions from the detailed output
-        echo -e "  ${RED}Error details:${NC}"
+        if [ -n "$failed_tests" ]; then
+            echo -e "  ${RED}Failed tests:${NC}"
+            echo "$failed_tests" | while read -r test_name; do
+                if [ -n "$test_name" ]; then
+                    echo -e "    ${RED}• $test_name${NC}"
+                fi
+            done
 
-        # Look for the FAILED lines with timing and location information
-        grep -E "^[[:space:]]*FAILED.*\([0-9.]+.*sec\)" "$temp_output" | while IFS= read -r line; do
-            echo -e "    ${YELLOW}$line${NC}"
-        done
+            # Show error details - extract failed assertions from the detailed output
+            echo -e "  ${RED}Error details:${NC}"
 
-        # Also show the key assertion failures
-        grep -A 2 -B 1 "Test.*condition:" "$temp_output" | grep -E "should" | head -3 | while IFS= read -r line; do
-            clean_line=$(echo "$line" | sed 's/^[[:space:]]*//' | head -c 80)
-            if [ -n "$clean_line" ]; then
-                echo -e "    ${YELLOW}Assertion: $clean_line${NC}"
-            fi
-        done
+            # Look for the FAILED lines with timing and location information
+            grep -E "^[[:space:]]*FAILED.*\([0-9.]+.*sec\).*at.*\.el:" "$temp_output" | while IFS= read -r line; do
+                echo -e "    ${YELLOW}$line${NC}"
+            done
+        fi
 
         rm -f "$temp_output"
         return 1
