@@ -392,7 +392,7 @@ If END-LINE is specified, stop reading at that line (inclusive, 1-based)."
             (if include-line-numbers
                 (greger-stdlib--add-line-numbers-with-offset contents actual-start)
               contents)))
-      (error (format "Failed to read file: %s" (error-message-string err))))))
+      (error "Failed to read file: %s" (error-message-string err)))))
 
 (defun greger-stdlib--extract-line-range (lines start-line end-line)
   "Extract lines from LINES between START-LINE and END-LINE (1-based, inclusive)."
@@ -406,17 +406,15 @@ If END-LINE is specified, stop reading at that line (inclusive, 1-based)."
 
 (defun greger-stdlib--add-line-numbers-with-offset (content start-line-num)
   "Add line numbers to CONTENT string starting from START-LINE-NUM."
-  (let ((lines (split-string content "\n"))
-        (line-num start-line-num)
-        (max-width 0)
-        result)
-
-    ;; Calculate the width needed for line numbers (based on the highest line number)
-    (setq max-width (length (number-to-string (+ start-line-num (length lines) -1))))
+  (let* ((lines (split-string content "\n"))
+         (line-num start-line-num)
+         (max-width (length (number-to-string (+ start-line-num (length lines) -1))))
+         (number-format (concat "%" (number-to-string max-width) "d: %s"))
+         result)
 
     ;; Add line numbers to each line
     (dolist (line lines)
-      (push (format (concat "%" (number-to-string max-width) "d: %s") line-num line) result)
+      (push (format number-format line-num line) result)
       (setq line-num (1+ line-num)))
 
     ;; Join back with newlines
@@ -1119,7 +1117,7 @@ If USE-HIGHEST-READABILITY is non-nil, use eww's aggressive readability setting.
 
   (condition-case err
       (greger-web-download-page url extract-text use-highest-readability)
-    (error (format "Failed to read webpage: %s" (error-message-string err)))))
+    (error "Failed to read webpage: %s" (error-message-string err))))
 
 (provide 'greger-stdlib)
 
