@@ -84,7 +84,7 @@
                             (description . "Include detailed symbols like variables, constants, etc.")
                             (default . :json-false))))
   :required '("file_paths")
-  :function 'greger-lib-lsp--document-symbols)
+  :function 'greger-lib-lsp--document-symbols))
 
 ;;; Helper functions
 
