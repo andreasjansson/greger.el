@@ -5,7 +5,7 @@
 ;; Author: Andreas Jansson <andreas@jansson.me.uk>
 ;; Version: 0.1.0
 ;; URL: https://github.com/andreasjansson/greger.el
-;; Package-Requires: ((emacs "28.0") (parsec "0.1.3"))
+;; Package-Requires: ((emacs "28.0") (markdown-mode "2.3"))
 
 ;;; Commentary:
 ;; This package provides an interface for interacting with AI language models
