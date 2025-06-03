@@ -615,7 +615,7 @@ If BUFFER is provided, it will be staged and committed along with the deleted fi
         (error "file_paths must be a valid JSON array string, vector, or list: %s" file-paths))))
 
   (unless (or (vectorp file-paths) (listp file-paths))
-    (error "file_paths must be a vector or list, got: %s (type: %s)" file-paths (type-of file-paths)))
+    (error "file_paths must be a vector or list"))
 
   (unless (stringp git-commit-message)
     (error "git_commit_message must be a string"))
