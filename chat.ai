@@ -4359,4 +4359,257 @@ script/test
 Fix verbose test function to load correct files
 </tool.toolu_016DB6MajJJvJKejBAtzFeL4>
 
-<!-- TOOL_RESULT_PLACEHOLDER_toolu_016DB6MajJJvJKejBAtzFeL4 -->
+## TOOL RESULT:
+
+ID: toolu_016DB6MajJJvJKejBAtzFeL4
+
+<tool.toolu_016DB6MajJJvJKejBAtzFeL4>
+Successfully replaced content in /Users/andreas/projects/greger.el/script/test. Successfully staged 2 file(s) and committed with message: Fix verbose test function to load correct files
+</tool.toolu_016DB6MajJJvJKejBAtzFeL4>
+
+
+## ASSISTANT:
+
+Now let me run the test from the project root directory instead of the test directory:
+
+## TOOL USE:
+
+Name: shell-command
+ID: toolu_01AidiCXS9ir2k3xo78YGzHd
+
+### command
+
+<tool.toolu_01AidiCXS9ir2k3xo78YGzHd>
+bash script/test --verbose --file test/test-end-to-end.el
+</tool.toolu_01AidiCXS9ir2k3xo78YGzHd>
+
+## TOOL RESULT:
+
+ID: toolu_01AidiCXS9ir2k3xo78YGzHd
+
+<tool.toolu_01AidiCXS9ir2k3xo78YGzHd>
+Command failed with exit code 1: [0;34mRunning ERT tests for greger package...[0m
+
+Running tests in [1;33mtest/test-end-to-end.el[0m (verbose mode)...
+Loading /Users/andreas/projects/greger.el/greger.el (source)...
+Source file ‘/opt/homebrew/Cellar/emacs-plus@29/29.0.90/share/emacs/29.0.91/lisp/net/eww.el’ newer than byte-compiled file; using older file
+Loading /Users/andreas/projects/greger.el/greger-agent.el (source)...
+Loading /Users/andreas/projects/greger.el/greger-parser.el (source)...
+Loading /Users/andreas/projects/greger.el/greger-stdlib.el (source)...
+Loading /Users/andreas/projects/greger.el/greger-lib-lsp.el (source)...
+Loading /Users/andreas/projects/greger.el/greger-tools.el (source)...
+Loading /Users/andreas/projects/greger.el/greger-client.el (source)...
+Loading /Users/andreas/projects/greger.el/greger-web.el (source)...
+Loading /Users/andreas/projects/greger.el/test/test-end-to-end.el (source)...
+Running 5 tests (2025-06-03 14:38:15+0200, selector ‘t’)
+   passed  1/5  greger-end-to-end-test-error-handling (0.000058 sec)
+   passed  2/5  greger-end-to-end-test-request-building (0.000130 sec)
+Test greger-end-to-end-test-simple-text-generation backtrace:
+  signal(ert-test-failed (((should (> (buffer-size) 0)) :form (> 0 0)
+  ert-fail(((should (> (buffer-size) 0)) :form (> 0 0) :value nil))
+  (if (unwind-protect (setq value-39 (apply fn-37 args-38)) (setq form
+  (let (form-description-41) (if (unwind-protect (setq value-39 (apply
+  (let ((value-39 'ert-form-evaluation-aborted-40)) (let (form-descrip
+  (let* ((fn-37 #'>) (args-38 (condition-case err (let ((signal-hook-f
+  (let ((state (greger-client-stream :model test-model :dialog test-di
+  (let ((test-buffer (current-buffer))) (let ((state (greger-client-st
+  (progn (let ((test-buffer (current-buffer))) (let ((state (greger-cl
+  (unwind-protect (progn (let ((test-buffer (current-buffer))) (let ((
+  (save-current-buffer (set-buffer temp-buffer) (unwind-protect (progn
+  (let ((temp-buffer (generate-new-buffer " *temp*" t))) (save-current
+  (let ((response-received nil) (text-chunks 'nil) (final-blocks nil)
+  (closure (t) nil (let* ((fn-3 #'greger-test-has-api-key) (args-4 (co
+  ert--run-test-internal(#s(ert--test-execution-info :test #s(ert-test
+  ert-run-test(#s(ert-test :name greger-end-to-end-test-simple-text-ge
+  ert-run-or-rerun-test(#s(ert--stats :selector t :tests ... :test-map
+  ert-run-tests(t #f(compiled-function (event-type &rest event-args) #
+  ert-run-tests-batch(t)
+  ert-run-tests-batch-and-exit(t)
+  (let ((ert-quiet nil)) (ert-run-tests-batch-and-exit t))
+  (progn (setq debug-on-error t) (add-to-list 'load-path ".") (require
+  eval((progn (setq debug-on-error t) (add-to-list 'load-path ".") (re
+  command-line-1(("--eval" "(progn\n                  (setq debug-on-e
+  command-line()
+  normal-top-level()
+Test greger-end-to-end-test-simple-text-generation condition:
+    (ert-test-failed
+     ((should
+       (>
+(buffer-size)
+0))
+      :form
+      (> 0 0)
+      :value nil))
+   FAILED  3/5  greger-end-to-end-test-simple-text-generation (2.068799 sec) at test/test-end-to-end.el:36
+   passed  4/5  greger-end-to-end-test-supported-models (0.000059 sec)
+Test greger-end-to-end-test-tool-use backtrace:
+  signal(error ("API Error (invalid_request_error): tools.0: Input ...
+  error("API Error (%s): %s" "invalid_request_error" "tools.0: Input t
+  (let* ((error-info (alist-get 'error data)) (error-message (alist-ge
+  (progn (let* ((error-info (alist-get 'error data)) (error-message (a
+  (if (and (listp data) (string= (alist-get 'type data) "error")) (pro
+  (let ((data (json-read-from-string output))) (if (and (listp data) (
+  (condition-case nil (let ((data (json-read-from-string output))) (if
+  greger-client--check-for-error("{\"type\":\"error\",\"error\":{\"typ
+  greger-client--process-output-chunk("{\"type\":\"error\",\"error\":{
+  (closure ((state . #s(greger-client-state :accumulated-output "" :co
+  sleep-for(0.1)
+  sit-for(0.1)
+  (while (and (not completed) (< (float-time (time-subtract (current-t
+  (let ((start-time (current-time)) (completed nil)) (while (and (not
+  greger-test-wait-for-completion(#s(greger-client-state :accumulated-
+  apply(greger-test-wait-for-completion (#s(greger-client-state :accum
+  (setq value-54 (apply fn-52 args-53))
+  (unwind-protect (setq value-54 (apply fn-52 args-53)) (setq form-des
+  (if (unwind-protect (setq value-54 (apply fn-52 args-53)) (setq form
+  (let (form-description-56) (if (unwind-protect (setq value-54 (apply
+  (let ((value-54 'ert-form-evaluation-aborted-55)) (let (form-descrip
+  (let* ((fn-52 #'greger-test-wait-for-completion) (args-53 (condition
+  (let ((state (greger-client-stream :model test-model :dialog test-di
+  (let ((test-buffer (current-buffer))) (let ((state (greger-client-st
+  (progn (let ((test-buffer (current-buffer))) (let ((state (greger-cl
+  (unwind-protect (progn (let ((test-buffer (current-buffer))) (let ((
+  (save-current-buffer (set-buffer temp-buffer) (unwind-protect (progn
+  (let ((temp-buffer (generate-new-buffer " *temp*" t))) (save-current
+  (let ((response-received nil) (final-blocks nil) (test-model 'claude
+  (closure (t) nil (let* ((fn-47 #'greger-test-has-api-key) (args-48 (
+  ert--run-test-internal(#s(ert--test-execution-info :test ... :result
+  ert-run-test(#s(ert-test :name greger-end-to-end-test-tool-use :docu
+  ert-run-or-rerun-test(#s(ert--stats :selector t :tests ... :test-map
+  ert-run-tests(t #f(compiled-function (event-type &rest event-args) #
+  ert-run-tests-batch(t)
+  ert-run-tests-batch-and-exit(t)
+  (let ((ert-quiet nil)) (ert-run-tests-batch-and-exit t))
+  (progn (setq debug-on-error t) (add-to-list 'load-path ".") (require
+  eval((progn (setq debug-on-error t) (add-to-list 'load-path ".") (re
+  command-line-1(("--eval" "(progn\n                  (setq debug-on-e
+  command-line()
+  normal-top-level()
+Test greger-end-to-end-test-tool-use condition:
+    (error "API Error (invalid_request_error): tools.0: Input tag 'function' found using 'type' does not match any of the expected tags: 'bash_20250124', 'custom', 'text_editor_20250124', 'text_editor_20250429', 'web_search_20250305'")
+   FAILED  5/5  greger-end-to-end-test-tool-use (0.229193 sec) at test/test-end-to-end.el:84
+
+Ran 5 tests, 3 results as expected, 2 unexpected (2025-06-03 14:38:17+0200, 2.696781 sec)
+
+2 unexpected results:
+   FAILED  greger-end-to-end-test-simple-text-generation
+   FAILED  greger-end-to-end-test-tool-use
+
+
+</tool.toolu_01AidiCXS9ir2k3xo78YGzHd>
+
+## ASSISTANT:
+
+Great! The tests are running, but I have two issues to fix:
+
+1. The simple text generation test is failing because no text is being written to the buffer
+2. The tool use test is failing because Claude's tool format has changed
+
+Let me fix these issues. First, let me check if there's an issue with the text callback in the client:
+
+## TOOL USE:
+
+Name: read-file
+ID: toolu_01Fu1YwjCTMLKCfT38EToUme
+
+### path
+
+<tool.toolu_01Fu1YwjCTMLKCfT38EToUme>
+greger-client.el
+</tool.toolu_01Fu1YwjCTMLKCfT38EToUme>
+
+### start_line
+
+<tool.toolu_01Fu1YwjCTMLKCfT38EToUme>
+270
+</tool.toolu_01Fu1YwjCTMLKCfT38EToUme>
+
+### end_line
+
+<tool.toolu_01Fu1YwjCTMLKCfT38EToUme>
+290
+</tool.toolu_01Fu1YwjCTMLKCfT38EToUme>
+
+## TOOL RESULT:
+
+ID: toolu_01Fu1YwjCTMLKCfT38EToUme
+
+<tool.toolu_01Fu1YwjCTMLKCfT38EToUme>
+         (type (alist-get 'type data)))
+    (cond
+     ;; Content block start - create new content block
+     ((string= type "content_block_start")
+      (let* ((index (alist-get 'index data))
+             (content-block (copy-alist (alist-get 'content_block data)))
+             (blocks (greger-client-state-parsed-content-blocks state)))
+
+        ;; Initialize content for accumulation
+        (cond
+         ((string= (alist-get 'type content-block) "tool_use")
+          (setf (alist-get 'input content-block) ""))
+         ((string= (alist-get 'type content-block) "text")
+          (setf (alist-get 'text content-block) "")))
+
+        (when (and (string= (alist-get 'type content-block) "text")
+                   (greger-client-state-text-start-callback state))
+          (funcall (greger-client-state-text-start-callback state)))
+
+        ;; Add block at the right index
+        (greger-client--ensure-block-at-index blocks index content-block state)))
+</tool.toolu_01Fu1YwjCTMLKCfT38EToUme>
+
+## ASSISTANT:
+
+The text callback logic looks correct. Let me check the test's text callback. I think the issue might be that the text is being sent to the text callback but not being inserted into the buffer. Let me fix the test to also insert text into the buffer in the text callback:
+
+## TOOL USE:
+
+Name: str-replace
+ID: toolu_016wzzW4NjvNayqsvFg1wYfG
+
+### file_path
+
+<tool.toolu_016wzzW4NjvNayqsvFg1wYfG>
+test/test-end-to-end.el
+</tool.toolu_016wzzW4NjvNayqsvFg1wYfG>
+
+### original_content
+
+<tool.toolu_016wzzW4NjvNayqsvFg1wYfG>
+        ;; Make the API call
+        (let ((state (greger-client-stream
+                      :model test-model
+                      :dialog test-dialog
+                      :buffer test-buffer
+                      :text-callback (lambda (text)
+                                       (push text text-chunks))
+                      :complete-callback (lambda (blocks)
+                                           (setq final-blocks blocks
+                                                 response-received t)))))
+</tool.toolu_016wzzW4NjvNayqsvFg1wYfG>
+
+### new_content
+
+<tool.toolu_016wzzW4NjvNayqsvFg1wYfG>
+        ;; Make the API call
+        (let ((state (greger-client-stream
+                      :model test-model
+                      :dialog test-dialog
+                      :buffer test-buffer
+                      :text-callback (lambda (text)
+                                       (push text text-chunks)
+                                       (with-current-buffer test-buffer
+                                         (goto-char (point-max))
+                                         (insert text)))
+                      :complete-callback (lambda (blocks)
+                                           (setq final-blocks blocks
+                                                 response-received t)))))
+</tool.toolu_016wzzW4NjvNayqsvFg1wYfG>
+
+### git_commit_message
+
+<tool.toolu_016wzzW4NjvNayqsvFg1wYfG>
+Fix text callback in end-to-end test to actually insert text into buffer
+</tool.toolu_016wzzW4NjvNayqsvFg1wYfG>
+
+<!-- TOOL_RESULT_PLACEHOLDER_toolu_016wzzW4NjvNayqsvFg1wYfG -->

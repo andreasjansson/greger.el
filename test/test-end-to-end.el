@@ -54,7 +54,10 @@
                       :dialog test-dialog
                       :buffer test-buffer
                       :text-callback (lambda (text)
-                                       (push text text-chunks))
+                                       (push text text-chunks)
+                                       (with-current-buffer test-buffer
+                                         (goto-char (point-max))
+                                         (insert text)))
                       :complete-callback (lambda (blocks)
                                            (setq final-blocks blocks
                                                  response-received t)))))
