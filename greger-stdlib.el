@@ -566,7 +566,7 @@ If BUFFER is provided, it will be staged and committed along with the directory.
             ;; For now, we'll stage the directory path itself (though git doesn't track empty dirs)
             (let ((git-result (greger-stdlib--git-stage-and-commit (list expanded-path) git-commit-message buffer)))
               (format "Successfully created directory: %s. %s" expanded-path git-result)))
-        (error (format "Failed to create directory: %s" (error-message-string err)))))))
+        (error "Failed to create directory: %s" (error-message-string err))))))
 
 (defun greger-stdlib--rename-file (old-path new-path git-commit-message &optional buffer)
   "Rename file from OLD-PATH to NEW-PATH.
