@@ -3396,4 +3396,50 @@ test/test-greger-stdlib.el
 Fix line number formatting test regex to not expect trailing newlines
 </tool.toolu_01R1tTM5qC311kDycMpKonHA>
 
-<!-- TOOL_RESULT_PLACEHOLDER_toolu_01R1tTM5qC311kDycMpKonHA -->
+## TOOL RESULT:
+
+ID: toolu_01R1tTM5qC311kDycMpKonHA
+
+<tool.toolu_01R1tTM5qC311kDycMpKonHA>
+Successfully replaced content in /Users/andreas/projects/greger.el/test/test-greger-stdlib.el. Successfully staged 2 file(s) and committed with message: Fix line number formatting test regex to not expect trailing newlines
+</tool.toolu_01R1tTM5qC311kDycMpKonHA>
+
+
+## TOOL USE:
+
+Name: str-replace
+ID: toolu_01BDMgBai6igTHi28wrBuFT6
+
+### file_path
+
+<tool.toolu_01BDMgBai6igTHi28wrBuFT6>
+test/test-greger-stdlib.el
+</tool.toolu_01BDMgBai6igTHi28wrBuFT6>
+
+### original_content
+
+<tool.toolu_01BDMgBai6igTHi28wrBuFT6>
+;; Test reading lines 1-3 with line numbers - should still use 2-digit padding
+          (let ((result (greger-stdlib--read-file test-file t 1 3)))
+            (should (stringp result))
+            (should (string-match-p "^ 1: Line 1\n" result))
+            (should (string-match-p "^ 3: Line 3\n" result)))
+</tool.toolu_01BDMgBai6igTHi28wrBuFT6>
+
+### new_content
+
+<tool.toolu_01BDMgBai6igTHi28wrBuFT6>
+;; Test reading lines 1-3 with line numbers - should still use 2-digit padding
+          (let ((result (greger-stdlib--read-file test-file t 1 3)))
+            (should (stringp result))
+            (should (string-match-p "^ 1: Line 1" result))
+            (should (string-match-p "^ 3: Line 3$" result)))
+</tool.toolu_01BDMgBai6igTHi28wrBuFT6>
+
+### git_commit_message
+
+<tool.toolu_01BDMgBai6igTHi28wrBuFT6>
+Fix remaining line number formatting test regex patterns
+</tool.toolu_01BDMgBai6igTHi28wrBuFT6>
+
+<!-- TOOL_RESULT_PLACEHOLDER_toolu_01BDMgBai6igTHi28wrBuFT6 -->

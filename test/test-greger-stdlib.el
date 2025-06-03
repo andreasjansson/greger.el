@@ -659,8 +659,8 @@
           ;; Test reading lines 1-3 with line numbers - should still use 2-digit padding
           (let ((result (greger-stdlib--read-file test-file t 1 3)))
             (should (stringp result))
-            (should (string-match-p "^ 1: Line 1\n" result))
-            (should (string-match-p "^ 3: Line 3\n" result))))
+            (should (string-match-p "^ 1: Line 1" result))
+            (should (string-match-p "^ 3: Line 3$" result))))
 
       ;; Clean up
       (when (file-exists-p test-file)
