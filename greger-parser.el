@@ -830,7 +830,7 @@ Returns either a system message, metadata, or both."
       result)))
 
 (defun greger-parser--convert-value (str)
-  "Convert string to appropriate Elisp value."
+  "Convert STR to appropriate Elisp value."
   (let ((trimmed (string-trim str)))
     (cond
      ((string= trimmed "true") t)
