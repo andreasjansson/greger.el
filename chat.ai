@@ -2155,4 +2155,142 @@ script/test
 Refine error parsing to properly extract test names and assertion failures
 </tool.toolu_01Bpt7F2LjLcNSCPFkDepaMU>
 
-<!-- TOOL_RESULT_PLACEHOLDER_toolu_01Bpt7F2LjLcNSCPFkDepaMU -->
+## TOOL RESULT:
+
+ID: toolu_01Bpt7F2LjLcNSCPFkDepaMU
+
+<tool.toolu_01Bpt7F2LjLcNSCPFkDepaMU>
+Successfully replaced content in /Users/andreas/projects/greger.el/script/test. Successfully staged 2 file(s) and committed with message: Refine error parsing to properly extract test names and assertion failures
+</tool.toolu_01Bpt7F2LjLcNSCPFkDepaMU>
+
+
+## ASSISTANT:
+
+Now let me test the improved version:
+
+## TOOL USE:
+
+Name: shell-command
+ID: toolu_01C1gxyVTsnWVYYFehYJtYhH
+
+### command
+
+<tool.toolu_01C1gxyVTsnWVYYFehYJtYhH>
+bash script/test --file test/test-failure-demo.el
+</tool.toolu_01C1gxyVTsnWVYYFehYJtYhH>
+
+## TOOL RESULT:
+
+ID: toolu_01C1gxyVTsnWVYYFehYJtYhH
+
+<tool.toolu_01C1gxyVTsnWVYYFehYJtYhH>
+Command failed with exit code 1: [0;34mRunning ERT tests for greger package...[0m
+
+Running tests in [1;33mtest/test-failure-demo.el[0m...
+  [0;31m✗ Some tests failed[0m
+  [0;31mFailed tests:[0m
+    [0;31m• 1[0m
+    [0;31m• 2[0m
+    [0;31m• test-demo-failure-1[0m
+    [0;31m• test-demo-failure-2[0m
+  [0;31mError details:[0m
+    [1;33m((should[0m
+    [1;33m:form[0m
+    [1;33m((should[0m
+[0;34mTest Summary:[0m
+  Files run: 1
+  Files passed: [0;32m0[0m
+  Files failed: [0;31m1[0m
+[0;31mSome tests failed.[0m
+
+</tool.toolu_01C1gxyVTsnWVYYFehYJtYhH>
+
+## ASSISTANT:
+
+Good! It's now correctly extracting the test names. Let me refine the error details parsing to show more useful information:
+
+## TOOL USE:
+
+Name: str-replace
+ID: toolu_01Y8LZKkTGari92RoC1sRxfX
+
+### file_path
+
+<tool.toolu_01Y8LZKkTGari92RoC1sRxfX>
+script/test
+</tool.toolu_01Y8LZKkTGari92RoC1sRxfX>
+
+### original_content
+
+<tool.toolu_01Y8LZKkTGari92RoC1sRxfX>
+# Extract failed test names from "FAILED test-name" lines at the end of output
+        grep -E "^[[:space:]]*FAILED[[:space:]]+[a-zA-Z0-9_-]+" "$temp_output" | while IFS= read -r line; do
+            test_name=$(echo "$line" | sed -E 's/^[[:space:]]*FAILED[[:space:]]+([a-zA-Z0-9_-]+).*/\1/')
+            if [ -n "$test_name" ]; then
+                echo -e "    ${RED}• $test_name${NC}"
+            fi
+        done
+
+        # Show error details for each failed test
+        echo -e "  ${RED}Error details:${NC}"
+
+        # Look for condition sections that show the actual assertion failures
+        grep -A 5 "Test.*condition:" "$temp_output" | grep -E "(should|:form)" | head -3 | while IFS= read -r line; do
+            # Clean up and show the assertion that failed
+            clean_line=$(echo "$line" | sed 's/^[[:space:]]*//' | sed 's/))[[:space:]]*$//' | head -c 120)
+            if [[ $clean_line =~ should ]] || [[ $clean_line =~ :form ]]; then
+                echo -e "    ${YELLOW}$clean_line${NC}"
+            fi
+        done
+
+        # If no condition details found, look for the simpler FAILED lines with timing
+        if ! grep -q "condition:" "$temp_output"; then
+            grep -E "FAILED.*\([0-9.]+.*sec\)" "$temp_output" | head -3 | while IFS= read -r line; do
+                echo -e "    ${YELLOW}$line${NC}"
+            done
+        fi
+</tool.toolu_01Y8LZKkTGari92RoC1sRxfX>
+
+### new_content
+
+<tool.toolu_01Y8LZKkTGari92RoC1sRxfX>
+# Extract failed test names from the summary at the end
+        grep -E "^[[:space:]]*FAILED[[:space:]]+[a-zA-Z0-9_-]+" "$temp_output" | while IFS= read -r line; do
+            test_name=$(echo "$line" | sed -E 's/^[[:space:]]*FAILED[[:space:]]+([a-zA-Z0-9_-]+).*/\1/')
+            if [ -n "$test_name" ]; then
+                echo -e "    ${RED}• $test_name${NC}"
+            fi
+        done
+
+        # Show error details for each failed test
+        echo -e "  ${RED}Error details:${NC}"
+
+        # For each failed test, show the assertion that failed
+        grep -E "^[[:space:]]*FAILED[[:space:]]+[a-zA-Z0-9_-]+" "$temp_output" | while IFS= read -r line; do
+            test_name=$(echo "$line" | sed -E 's/^[[:space:]]*FAILED[[:space:]]+([a-zA-Z0-9_-]+).*/\1/')
+
+            # Find the condition section for this test and extract the should statement
+            awk "/Test $test_name condition:/,/Test.*condition:|^[[:space:]]*FAILED|^[[:space:]]*passed/" "$temp_output" | \
+            grep -E "should" | head -1 | while IFS= read -r should_line; do
+                clean_should=$(echo "$should_line" | sed 's/^[[:space:]]*//' | sed 's/)[[:space:]]*$//' | head -c 100)
+                if [ -n "$clean_should" ]; then
+                    echo -e "    ${YELLOW}$test_name: $clean_should${NC}"
+                fi
+            done
+        done
+
+        # If no detailed conditions found, show the FAILED lines with location info
+        if ! grep -q "condition:" "$temp_output"; then
+            grep -E "FAILED.*at.*\.el:" "$temp_output" | head -3 | while IFS= read -r line; do
+                echo -e "    ${YELLOW}$line${NC}"
+            done
+        fi
+</tool.toolu_01Y8LZKkTGari92RoC1sRxfX>
+
+### git_commit_message
+
+<tool.toolu_01Y8LZKkTGari92RoC1sRxfX>
+Improve error details to show test-specific assertion failures
+</tool.toolu_01Y8LZKkTGari92RoC1sRxfX>
+
+<!-- TOOL_RESULT_PLACEHOLDER_toolu_01Y8LZKkTGari92RoC1sRxfX -->

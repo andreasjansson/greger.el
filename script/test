@@ -81,7 +81,7 @@ run_test_file() {
         # Extract and display failure information
         echo -e "  ${RED}Failed tests:${NC}"
 
-        # Extract failed test names from "FAILED test-name" lines at the end of output
+        # Extract failed test names from the summary at the end
         grep -E "^[[:space:]]*FAILED[[:space:]]+[a-zA-Z0-9_-]+" "$temp_output" | while IFS= read -r line; do
             test_name=$(echo "$line" | sed -E 's/^[[:space:]]*FAILED[[:space:]]+([a-zA-Z0-9_-]+).*/\1/')
             if [ -n "$test_name" ]; then
@@ -92,18 +92,23 @@ run_test_file() {
         # Show error details for each failed test
         echo -e "  ${RED}Error details:${NC}"
 
-        # Look for condition sections that show the actual assertion failures
-        grep -A 5 "Test.*condition:" "$temp_output" | grep -E "(should|:form)" | head -3 | while IFS= read -r line; do
-            # Clean up and show the assertion that failed
-            clean_line=$(echo "$line" | sed 's/^[[:space:]]*//' | sed 's/))[[:space:]]*$//' | head -c 120)
-            if [[ $clean_line =~ should ]] || [[ $clean_line =~ :form ]]; then
-                echo -e "    ${YELLOW}$clean_line${NC}"
-            fi
+        # For each failed test, show the assertion that failed
+        grep -E "^[[:space:]]*FAILED[[:space:]]+[a-zA-Z0-9_-]+" "$temp_output" | while IFS= read -r line; do
+            test_name=$(echo "$line" | sed -E 's/^[[:space:]]*FAILED[[:space:]]+([a-zA-Z0-9_-]+).*/\1/')
+
+            # Find the condition section for this test and extract the should statement
+            awk "/Test $test_name condition:/,/Test.*condition:|^[[:space:]]*FAILED|^[[:space:]]*passed/" "$temp_output" | \
+            grep -E "should" | head -1 | while IFS= read -r should_line; do
+                clean_should=$(echo "$should_line" | sed 's/^[[:space:]]*//' | sed 's/)[[:space:]]*$//' | head -c 100)
+                if [ -n "$clean_should" ]; then
+                    echo -e "    ${YELLOW}$test_name: $clean_should${NC}"
+                fi
+            done
         done
 
-        # If no condition details found, look for the simpler FAILED lines with timing
+        # If no detailed conditions found, show the FAILED lines with location info
         if ! grep -q "condition:" "$temp_output"; then
-            grep -E "FAILED.*\([0-9.]+.*sec\)" "$temp_output" | head -3 | while IFS= read -r line; do
+            grep -E "FAILED.*at.*\.el:" "$temp_output" | head -3 | while IFS= read -r line; do
                 echo -e "    ${YELLOW}$line${NC}"
             done
         fi
