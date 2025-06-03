@@ -27,6 +27,16 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v4
 
+      - name: Install package-lint
+        run: |
+          emacs --batch -Q \
+            --eval "(progn
+                      (require 'package)
+                      (add-to-list 'package-archives '(\"melpa\" . \"https://melpa.org/packages/\") t)
+                      (package-initialize)
+                      (package-refresh-contents)
+                      (package-install 'package-lint))"
+
       - name: Run package-lint
         run: ./script/package-lint
 
