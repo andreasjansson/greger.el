@@ -224,7 +224,7 @@
 
 ;; Helper functions
 
-(defun greger-tools--run-async-subprocess (command args working-directory callback)
+(defun greger-stdlib--run-async-subprocess (command args working-directory callback)
   "Run COMMAND with ARGS in WORKING-DIRECTORY and call CALLBACK with (output error).
 CALLBACK will be called with (output nil) on success or (nil error-message) on failure."
   (let* ((process-name (format "greger-subprocess-%s" (make-temp-name "")))
