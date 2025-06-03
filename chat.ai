@@ -3082,4 +3082,90 @@ STATE contains the parser state."
 Fix checkdoc issue - add STATE description to greger-parser--read-until-section-with-metadata-extraction
 </tool.toolu_01ALfkXdiVVJ14sb4mw6WPpY>
 
-<!-- TOOL_RESULT_PLACEHOLDER_toolu_01ALfkXdiVVJ14sb4mw6WPpY -->
+## TOOL RESULT:
+
+ID: toolu_01ALfkXdiVVJ14sb4mw6WPpY
+
+<tool.toolu_01ALfkXdiVVJ14sb4mw6WPpY>
+Successfully replaced content in /Users/andreas/projects/greger.el/greger-parser.el. Successfully staged 2 file(s) and committed with message: Fix checkdoc issue - add STATE description to greger-parser--read-until-section-with-metadata-extraction
+</tool.toolu_01ALfkXdiVVJ14sb4mw6WPpY>
+
+
+## ASSISTANT:
+
+Let me continue with more functions. There are quite a few, so I'll batch several at once:
+
+## TOOL USE:
+
+Name: read-file
+ID: toolu_01VaHpiCRPd6G1TZMNXBF7vx
+
+### path
+
+<tool.toolu_01VaHpiCRPd6G1TZMNXBF7vx>
+greger-parser.el
+</tool.toolu_01VaHpiCRPd6G1TZMNXBF7vx>
+
+### start_line
+
+<tool.toolu_01VaHpiCRPd6G1TZMNXBF7vx>
+538
+</tool.toolu_01VaHpiCRPd6G1TZMNXBF7vx>
+
+### end_line
+
+<tool.toolu_01VaHpiCRPd6G1TZMNXBF7vx>
+548
+</tool.toolu_01VaHpiCRPd6G1TZMNXBF7vx>
+
+## TOOL RESULT:
+
+ID: toolu_01VaHpiCRPd6G1TZMNXBF7vx
+
+<tool.toolu_01VaHpiCRPd6G1TZMNXBF7vx>
+            :safe-shell-commands safe-shell-commands))))
+
+(defun greger-parser--parse-section-content (state)
+  "Parse content until next section, skipping HTML comments in STATE."
+  (greger-parser--skip-whitespace state)
+  (let ((content (greger-parser--read-until-section-with-comment-removal state)))
+    (when (and content (not (string-empty-p (string-trim content))))
+      (string-trim content))))
+
+(defun greger-parser--parse-section-content-with-metadata (state)
+  "Parse content until next section, extracting metadata like safe-shell-commands.
+</tool.toolu_01VaHpiCRPd6G1TZMNXBF7vx>
+
+## TOOL USE:
+
+Name: str-replace
+ID: toolu_0178FhbHPk8xzXjSbyr3TJDN
+
+### file_path
+
+<tool.toolu_0178FhbHPk8xzXjSbyr3TJDN>
+greger-parser.el
+</tool.toolu_0178FhbHPk8xzXjSbyr3TJDN>
+
+### original_content
+
+<tool.toolu_0178FhbHPk8xzXjSbyr3TJDN>
+(defun greger-parser--parse-section-content (state)
+  "Parse content until next section, skipping HTML comments in STATE."
+</tool.toolu_0178FhbHPk8xzXjSbyr3TJDN>
+
+### new_content
+
+<tool.toolu_0178FhbHPk8xzXjSbyr3TJDN>
+(defun greger-parser--parse-section-content (state)
+  "Parse content until next section, skipping HTML comments.
+STATE contains the parser state."
+</tool.toolu_0178FhbHPk8xzXjSbyr3TJDN>
+
+### git_commit_message
+
+<tool.toolu_0178FhbHPk8xzXjSbyr3TJDN>
+Fix checkdoc issue - add STATE description to greger-parser--parse-section-content
+</tool.toolu_0178FhbHPk8xzXjSbyr3TJDN>
+
+<!-- TOOL_RESULT_PLACEHOLDER_toolu_0178FhbHPk8xzXjSbyr3TJDN -->

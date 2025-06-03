@@ -538,7 +538,8 @@ STATE contains the parser state."
             :safe-shell-commands safe-shell-commands))))
 
 (defun greger-parser--parse-section-content (state)
-  "Parse content until next section, skipping HTML comments in STATE."
+  "Parse content until next section, skipping HTML comments.
+STATE contains the parser state."
   (greger-parser--skip-whitespace state)
   (let ((content (greger-parser--read-until-section-with-comment-removal state)))
     (when (and content (not (string-empty-p (string-trim content))))
