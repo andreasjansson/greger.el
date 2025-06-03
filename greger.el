@@ -626,7 +626,8 @@ TOOL-ID is the tool identifier."
       tool-id)))
 
 (defun greger--toggle-tool-section-by-id (tool-id)
-  "Toggle the tool section with the given TOOL-ID."
+  "Toggle the tool section with the given TOOL-ID.
+TOOL-ID is the identifier of the tool section to toggle."
   (cl-loop for overlay in greger-tool-overlays
            when (and (overlay-get overlay 'greger-tool-section)
                      (string= (overlay-get overlay 'greger-tool-id) tool-id))
