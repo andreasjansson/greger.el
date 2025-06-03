@@ -401,7 +401,7 @@ If END-LINE is specified, stop reading at that line (inclusive, 1-based)."
 
     ;; Add line numbers to each line
     (dolist (line lines)
-      (push (format (concat "%" (number-to-string max-width) "d: %s") line-num line) result)
+      (push (format "%*d: %s" max-width line-num line) result)
       (setq line-num (1+ line-num)))
 
     ;; Join back with newlines
