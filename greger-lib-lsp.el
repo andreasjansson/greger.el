@@ -194,7 +194,8 @@ non-detailed mode."
                  )))
 
 (defun greger-lib-lsp--filter-detailed-symbols (symbols detailed)
-  "Filter SYMBOLS based on DETAILED flag. If DETAILED is nil, remove detailed symbol types."
+  "Filter SYMBOLS based on DETAILED flag.
+If DETAILED is nil, remove detailed symbol types."
   (if detailed
       symbols
     (cl-remove-if (lambda (symbol)
