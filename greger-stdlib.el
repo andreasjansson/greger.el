@@ -522,10 +522,10 @@ CASE-SENSITIVE, FILE-TYPE, CONTEXT-LINES and MAX-RESULTS are optional parameters
 GIT-COMMIT-MESSAGE will be used for the git commit.
 If BUFFER is provided, it will be staged and committed along with the new file."
   (unless (stringp file-path)
-    (error "file_path must be a string"))
+    (error "File_path must be a string"))
 
   (unless (stringp contents)
-    (error "contents must be a string"))
+    (error "Contents must be a string"))
 
   (let ((expanded-path (expand-file-name file-path)))
 
