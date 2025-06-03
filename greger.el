@@ -543,7 +543,10 @@ END is the ending position."
     overlay))
 
 (defun greger--setup-collapsible-content (content-start content-end tool-id)
-  "Set up collapsible content between CONTENT-START and CONTENT-END for TOOL-ID."
+  "Set up collapsible content between CONTENT-START and CONTENT-END for TOOL-ID.
+CONTENT-START is the start position of the content.
+CONTENT-END is the end position of the content.
+TOOL-ID is the tool identifier."
   (let* ((content (buffer-substring-no-properties content-start content-end))
          (lines (split-string content "\n"))
          (line-count (length lines)))
