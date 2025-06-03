@@ -259,8 +259,8 @@
          (buffer-content (buffer-substring-no-properties (point-min) (point-max)))
          (parse-result (greger-parser-parse-dialog buffer-content))
          (dialog (plist-get parse-result :messages))
-         (tools (when greger-agent-tools
-                  (greger-tools-get-schemas greger-agent-tools)))
+         (tools (when greger-tools
+                  (greger-tools-get-schemas greger-tools)))
          (model greger-model)
          (request-data nil))
 
