@@ -863,4 +863,86 @@ jobs:
 Add GitHub Actions CI workflow to run tests on main and PR pushes
 </tool.toolu_01MQVAZvUBQADUBYBRB3xYXx>
 
-<!-- TOOL_RESULT_PLACEHOLDER_toolu_01MQVAZvUBQADUBYBRB3xYXx -->
+## TOOL RESULT:
+
+ID: toolu_01MQVAZvUBQADUBYBRB3xYXx
+
+<tool.toolu_01MQVAZvUBQADUBYBRB3xYXx>
+Successfully wrote new file /Users/andreas/projects/greger.el/.github/workflows/ci.yml with 518 characters. Successfully staged 2 file(s) and committed with message: Add GitHub Actions CI workflow to run tests on main and PR pushes
+</tool.toolu_01MQVAZvUBQADUBYBRB3xYXx>
+
+
+## ASSISTANT:
+
+Perfect! I've created a GitHub Actions CI workflow that:
+
+## Key Features:
+
+1. **Triggers**: Runs on pushes to the `main` branch and on pull requests targeting `main`
+2. **Multiple Emacs Versions**: Tests against Emacs versions 26.1, 27.2, 28.2, 29.4, and snapshot (latest development version)
+3. **Setup**: Uses the `purcell/setup-emacs@master` action to install the specified Emacs version
+4. **Test Execution**: Runs your `./script/test` command
+5. **Fail-fast disabled**: If one Emacs version fails, the others will still run
+
+## The workflow will:
+
+- Run automatically when you push to main
+- Run automatically when someone creates or updates a pull request targeting main
+- Test your code against multiple Emacs versions to ensure compatibility
+- Use the latest version of the checkout action (v4) for better performance and security
+
+The workflow is now saved as `.github/workflows/ci.yml` and will be active once you push this to your repository. The action will appear in the "Actions" tab of your GitHub repository and provide detailed logs for each test run.
+
+## USER:
+
+greger.el requires emacs 28.1, so only test on supported versions. Both test on mac and linux
+
+## ASSISTANT:
+
+I'll update the GitHub Actions workflow to only test on Emacs versions 28.1 and above, and run tests on both macOS and Linux as requested.
+
+## TOOL USE:
+
+Name: str-replace
+ID: toolu_01NBriswtQxGtE6yG4uL6UvW
+
+### file_path
+
+<tool.toolu_01NBriswtQxGtE6yG4uL6UvW>
+.github/workflows/ci.yml
+</tool.toolu_01NBriswtQxGtE6yG4uL6UvW>
+
+### original_content
+
+<tool.toolu_01NBriswtQxGtE6yG4uL6UvW>
+jobs:
+  test:
+    runs-on: ubuntu-latest
+
+    strategy:
+      fail-fast: false
+      matrix:
+        emacs_version: [26.1, 27.2, 28.2, 29.4, snapshot]
+</tool.toolu_01NBriswtQxGtE6yG4uL6UvW>
+
+### new_content
+
+<tool.toolu_01NBriswtQxGtE6yG4uL6UvW>
+jobs:
+  test:
+    runs-on: ${{ matrix.os }}
+
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, macos-latest]
+        emacs_version: [28.1, 28.2, 29.1, 29.4, snapshot]
+</tool.toolu_01NBriswtQxGtE6yG4uL6UvW>
+
+### git_commit_message
+
+<tool.toolu_01NBriswtQxGtE6yG4uL6UvW>
+Update CI to test only on Emacs 28.1+ and run on both Linux and macOS
+</tool.toolu_01NBriswtQxGtE6yG4uL6UvW>
+
+<!-- TOOL_RESULT_PLACEHOLDER_toolu_01NBriswtQxGtE6yG4uL6UvW -->

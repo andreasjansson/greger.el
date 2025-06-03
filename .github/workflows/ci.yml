@@ -10,12 +10,13 @@ on:
 
 jobs:
   test:
-    runs-on: ubuntu-latest
+    runs-on: ${{ matrix.os }}
 
     strategy:
       fail-fast: false
       matrix:
-        emacs_version: [26.1, 27.2, 28.2, 29.4, snapshot]
+        os: [ubuntu-latest, macos-latest]
+        emacs_version: [28.1, 28.2, 29.1, 29.4, snapshot]
 
     steps:
       - name: Setup Emacs
