@@ -1022,7 +1022,8 @@ FUNCTION-NAMES specifies which functions to evaluate."
 (defun greger-stdlib--shell-command (command callback &optional working-directory metadata)
   "Execute COMMAND in WORKING-DIRECTORY and call CALLBACK with (result error).
 Prompts for permission before running the command for security.
-If METADATA contains safe-shell-commands and COMMAND is in that list, skips permission prompt."
+If METADATA contains safe-shell-commands and COMMAND is in that list, skips
+permission prompt."
   (let ((work-dir (or working-directory ".")))
     (cond
      ((not (stringp command))
