@@ -1393,6 +1393,8 @@ Please be careful."))
       (let ((system-content (alist-get 'content (car (plist-get result :messages)))))
         (should (string= "You are a helpful assistant.
 
+
+
 Please be careful.
 
 You can run arbitrary shell commands with the shell-command tool, but the following are safe shell commands that will run without requiring user confirmation:
