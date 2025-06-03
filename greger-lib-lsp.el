@@ -204,7 +204,8 @@ If DETAILED is nil, remove detailed symbol types."
                   symbols)))
 
 (defun greger-lib-lsp--format-document-symbol (symbol &optional indent-level detailed)
-  "Format a document symbol SYMBOL for display with optional INDENT-LEVEL and DETAILED flag."
+  "Format a document symbol SYMBOL for display with optional INDENT-LEVEL
+and DETAILED flag."
   (let* ((indent-level (or indent-level 0))
          (indent (make-string (* indent-level 2) ?\ ))
          (name (gethash "name" symbol))

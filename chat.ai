@@ -6390,4 +6390,94 @@ If DETAILED is nil, remove detailed symbol types.
 Break long line in greger-lib-lsp--filter-detailed-symbols docstring
 </tool.toolu_014Euj8D44ff3vP25Sybjbai>
 
-<!-- TOOL_RESULT_PLACEHOLDER_toolu_014Euj8D44ff3vP25Sybjbai -->
+## TOOL RESULT:
+
+ID: toolu_014Euj8D44ff3vP25Sybjbai
+
+<tool.toolu_014Euj8D44ff3vP25Sybjbai>
+Successfully replaced content in /Users/andreas/projects/greger.el/greger-lib-lsp.el. Successfully staged 2 file(s) and committed with message: Break long line in greger-lib-lsp--filter-detailed-symbols docstring
+</tool.toolu_014Euj8D44ff3vP25Sybjbai>
+
+
+## ASSISTANT:
+
+Now line 203:
+
+## TOOL USE:
+
+Name: read-file
+ID: toolu_017GkMMVJ8pkfGxEuNvEG16d
+
+### path
+
+<tool.toolu_017GkMMVJ8pkfGxEuNvEG16d>
+greger-lib-lsp.el
+</tool.toolu_017GkMMVJ8pkfGxEuNvEG16d>
+
+### include_line_numbers
+
+<tool.toolu_017GkMMVJ8pkfGxEuNvEG16d>
+true
+</tool.toolu_017GkMMVJ8pkfGxEuNvEG16d>
+
+### start_line
+
+<tool.toolu_017GkMMVJ8pkfGxEuNvEG16d>
+203
+</tool.toolu_017GkMMVJ8pkfGxEuNvEG16d>
+
+### end_line
+
+<tool.toolu_017GkMMVJ8pkfGxEuNvEG16d>
+213
+</tool.toolu_017GkMMVJ8pkfGxEuNvEG16d>
+
+## TOOL RESULT:
+
+ID: toolu_017GkMMVJ8pkfGxEuNvEG16d
+
+<tool.toolu_017GkMMVJ8pkfGxEuNvEG16d>
+203:                       (greger-lib-lsp--detailed-symbol-kind-p kind)))
+204:                   symbols)))
+205:
+206: (defun greger-lib-lsp--format-document-symbol (symbol &optional indent-level detailed)
+207:   "Format a document symbol SYMBOL for display with optional INDENT-LEVEL and DETAILED flag."
+208:   (let* ((indent-level (or indent-level 0))
+209:          (indent (make-string (* indent-level 2) ?\ ))
+210:          (name (gethash "name" symbol))
+211:          (kind (gethash "kind" symbol))
+212:          (kind-name (alist-get kind lsp-symbol-kinds "Unknown"))
+213:          (range (gethash "range" symbol))
+</tool.toolu_017GkMMVJ8pkfGxEuNvEG16d>
+
+## TOOL USE:
+
+Name: str-replace
+ID: toolu_01UfZMita4dzTEn5tjgH2x2k
+
+### file_path
+
+<tool.toolu_01UfZMita4dzTEn5tjgH2x2k>
+greger-lib-lsp.el
+</tool.toolu_01UfZMita4dzTEn5tjgH2x2k>
+
+### original_content
+
+<tool.toolu_01UfZMita4dzTEn5tjgH2x2k>
+Format a document symbol SYMBOL for display with optional INDENT-LEVEL and DETAILED flag.
+</tool.toolu_01UfZMita4dzTEn5tjgH2x2k>
+
+### new_content
+
+<tool.toolu_01UfZMita4dzTEn5tjgH2x2k>
+Format a document symbol SYMBOL for display with optional INDENT-LEVEL
+and DETAILED flag.
+</tool.toolu_01UfZMita4dzTEn5tjgH2x2k>
+
+### git_commit_message
+
+<tool.toolu_01UfZMita4dzTEn5tjgH2x2k>
+Break long line in greger-lib-lsp--format-document-symbol docstring
+</tool.toolu_01UfZMita4dzTEn5tjgH2x2k>
+
+<!-- TOOL_RESULT_PLACEHOLDER_toolu_01UfZMita4dzTEn5tjgH2x2k -->
