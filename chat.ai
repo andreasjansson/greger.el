@@ -1710,4 +1710,110 @@ greger-parser.el
 Add helper function to generate safe shell commands descriptive text
 </tool.toolu_01LEeoPEe3Bf7ZHVpLhQHmbf>
 
-<!-- TOOL_RESULT_PLACEHOLDER_toolu_01LEeoPEe3Bf7ZHVpLhQHmbf -->
+## TOOL RESULT:
+
+ID: toolu_01LEeoPEe3Bf7ZHVpLhQHmbf
+
+<tool.toolu_01LEeoPEe3Bf7ZHVpLhQHmbf>
+Successfully replaced content in /Users/andreas/projects/greger.el/greger-parser.el. Successfully staged 2 file(s) and committed with message: Add helper function to generate safe shell commands descriptive text
+</tool.toolu_01LEeoPEe3Bf7ZHVpLhQHmbf>
+
+
+## ASSISTANT:
+
+Now I need to modify the system section parsing to include this text when safe shell commands are present. I'll update the `greger-parser--parse-system-section` function:
+
+## TOOL USE:
+
+Name: str-replace
+ID: toolu_01FxQPDSevcjNztFKkEvHfTq
+
+### file_path
+
+<tool.toolu_01FxQPDSevcjNztFKkEvHfTq>
+greger-parser.el
+</tool.toolu_01FxQPDSevcjNztFKkEvHfTq>
+
+### original_content
+
+<tool.toolu_01FxQPDSevcjNztFKkEvHfTq>
+(defun greger-parser--parse-system-section (state)
+  "Parse SYSTEM section using STATE.
+Returns either a system message, metadata, or both."
+  (let ((content (greger-parser--parse-section-content-with-metadata state)))
+    (cond
+     ;; If we extracted safe-shell-commands and no meaningful content, return only metadata
+     ((and (plist-get content :safe-shell-commands)
+           (not (plist-get content :content)))
+      (list :metadata :safe-shell-commands (plist-get content :safe-shell-commands)))
+
+     ;; If we have both content and safe-shell-commands, we need to return both
+     ;; Since we can only return one thing, we'll return the system message
+     ;; and handle metadata extraction at the document level
+     ((and (plist-get content :safe-shell-commands)
+           (plist-get content :content))
+      (greger-parser--debug state "Found safe-shell-commands with system content - both will be processed")
+      ;; Store metadata for later extraction and return system message
+      (setf (greger-parser-state-metadata state)
+            (append (or (greger-parser-state-metadata state) '())
+                    (list :safe-shell-commands (plist-get content :safe-shell-commands))))
+      (greger-parser--create-system-message (plist-get content :content)))
+
+     ;; Just regular content
+     ((plist-get content :content)
+      (greger-parser--create-system-message (plist-get content :content)))
+
+     ;; No content
+     (t nil))))
+</tool.toolu_01FxQPDSevcjNztFKkEvHfTq>
+
+### new_content
+
+<tool.toolu_01FxQPDSevcjNztFKkEvHfTq>
+(defun greger-parser--parse-system-section (state)
+  "Parse SYSTEM section using STATE.
+Returns either a system message, metadata, or both."
+  (let ((content (greger-parser--parse-section-content-with-metadata state)))
+    (cond
+     ;; If we extracted safe-shell-commands and no meaningful content, generate system message with safe commands text
+     ((and (plist-get content :safe-shell-commands)
+           (not (plist-get content :content)))
+      (let ((safe-commands-text (greger-parser--generate-safe-shell-commands-text
+                                (plist-get content :safe-shell-commands))))
+        ;; Store metadata for later extraction and return system message with generated text
+        (setf (greger-parser-state-metadata state)
+              (append (or (greger-parser-state-metadata state) '())
+                      (list :safe-shell-commands (plist-get content :safe-shell-commands))))
+        (greger-parser--create-system-message safe-commands-text)))
+
+     ;; If we have both content and safe-shell-commands, combine them
+     ((and (plist-get content :safe-shell-commands)
+           (plist-get content :content))
+      (greger-parser--debug state "Found safe-shell-commands with system content - both will be processed")
+      ;; Store metadata for later extraction and return system message with combined content
+      (setf (greger-parser-state-metadata state)
+            (append (or (greger-parser-state-metadata state) '())
+                    (list :safe-shell-commands (plist-get content :safe-shell-commands))))
+      (let ((safe-commands-text (greger-parser--generate-safe-shell-commands-text
+                                (plist-get content :safe-shell-commands)))
+            (original-content (plist-get content :content)))
+        (greger-parser--create-system-message
+         (if safe-commands-text
+             (concat original-content "\n\n" safe-commands-text)
+           original-content))))
+
+     ;; Just regular content
+     ((plist-get content :content)
+      (greger-parser--create-system-message (plist-get content :content)))
+
+     ;; No content
+     (t nil))))
+</tool.toolu_01FxQPDSevcjNztFKkEvHfTq>
+
+### git_commit_message
+
+<tool.toolu_01FxQPDSevcjNztFKkEvHfTq>
+Modify system section parsing to insert safe shell commands descriptive text
+</tool.toolu_01FxQPDSevcjNztFKkEvHfTq>
+
+<!-- TOOL_RESULT_PLACEHOLDER_toolu_01FxQPDSevcjNztFKkEvHfTq -->

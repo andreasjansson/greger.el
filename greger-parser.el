@@ -633,22 +633,32 @@ Returns a plist with :messages and :metadata keys."
 Returns either a system message, metadata, or both."
   (let ((content (greger-parser--parse-section-content-with-metadata state)))
     (cond
-     ;; If we extracted safe-shell-commands and no meaningful content, return only metadata
+     ;; If we extracted safe-shell-commands and no meaningful content, generate system message with safe commands text
      ((and (plist-get content :safe-shell-commands)
            (not (plist-get content :content)))
-      (list :metadata :safe-shell-commands (plist-get content :safe-shell-commands)))
+      (let ((safe-commands-text (greger-parser--generate-safe-shell-commands-text
+                                (plist-get content :safe-shell-commands))))
+        ;; Store metadata for later extraction and return system message with generated text
+        (setf (greger-parser-state-metadata state)
+              (append (or (greger-parser-state-metadata state) '())
+                      (list :safe-shell-commands (plist-get content :safe-shell-commands))))
+        (greger-parser--create-system-message safe-commands-text)))
 
-     ;; If we have both content and safe-shell-commands, we need to return both
-     ;; Since we can only return one thing, we'll return the system message
-     ;; and handle metadata extraction at the document level
+     ;; If we have both content and safe-shell-commands, combine them
      ((and (plist-get content :safe-shell-commands)
            (plist-get content :content))
       (greger-parser--debug state "Found safe-shell-commands with system content - both will be processed")
-      ;; Store metadata for later extraction and return system message
+      ;; Store metadata for later extraction and return system message with combined content
       (setf (greger-parser-state-metadata state)
             (append (or (greger-parser-state-metadata state) '())
                     (list :safe-shell-commands (plist-get content :safe-shell-commands))))
-      (greger-parser--create-system-message (plist-get content :content)))
+      (let ((safe-commands-text (greger-parser--generate-safe-shell-commands-text
+                                (plist-get content :safe-shell-commands)))
+            (original-content (plist-get content :content)))
+        (greger-parser--create-system-message
+         (if safe-commands-text
+             (concat original-content "\n\n" safe-commands-text)
+           original-content))))
 
      ;; Just regular content
      ((plist-get content :content)
