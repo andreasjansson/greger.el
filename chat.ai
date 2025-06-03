@@ -10268,4 +10268,315 @@ TEST_FILES=(
 Add test-greger.el to test script file list
 </tool.toolu_019Bvg44nAvkYmeqm3AWnN7J>
 
-<!-- TOOL_RESULT_PLACEHOLDER_toolu_019Bvg44nAvkYmeqm3AWnN7J -->
+## TOOL RESULT:
+
+ID: toolu_019Bvg44nAvkYmeqm3AWnN7J
+
+<tool.toolu_019Bvg44nAvkYmeqm3AWnN7J>
+Successfully replaced content in /Users/andreas/projects/greger.el/script/test. Successfully staged 2 file(s) and committed with message: Add test-greger.el to test script file list
+</tool.toolu_019Bvg44nAvkYmeqm3AWnN7J>
+
+
+## ASSISTANT:
+
+Now let's test that the updated tests work correctly:
+
+## TOOL USE:
+
+Name: shell-command
+ID: toolu_01Hq7dtCSd6qYqA3CGsBsT4F
+
+### command
+
+<tool.toolu_01Hq7dtCSd6qYqA3CGsBsT4F>
+bash script/test --verbose --file test/test-greger.el
+</tool.toolu_01Hq7dtCSd6qYqA3CGsBsT4F>
+
+## TOOL RESULT:
+
+ID: toolu_01Hq7dtCSd6qYqA3CGsBsT4F
+
+<tool.toolu_01Hq7dtCSd6qYqA3CGsBsT4F>
+Command failed with exit code 1: [0;34mRunning ERT tests for greger package...[0m
+
+Running tests in [1;33mtest/test-greger.el[0m (verbose mode)...
+Loading /Users/andreas/projects/greger.el/greger.el (source)...
+Source file ‘/opt/homebrew/Cellar/emacs-plus@29/29.0.90/share/emacs/29.0.91/lisp/net/eww.el’ newer than byte-compiled file; using older file
+Loading /Users/andreas/projects/greger.el/greger-parser.el (source)...
+Loading /Users/andreas/projects/greger.el/greger-stdlib.el (source)...
+Loading /Users/andreas/projects/greger.el/greger-lib-lsp.el (source)...
+Loading /Users/andreas/projects/greger.el/greger-tools.el (source)...
+Loading /Users/andreas/projects/greger.el/greger-client.el (source)...
+Loading /Users/andreas/projects/greger.el/greger-web.el (source)...
+Loading /Users/andreas/projects/greger.el/test/test-greger.el (source)...
+Running 8 tests (2025-06-03 15:09:06+0200, selector ‘t’)
+Test greger-agent-test-exact-tool-output-formatting backtrace:
+  (make-greger-agent-state :current-iteration 0 :chat-buffer (current-
+  (let ((agent-state (make-greger-agent-state :current-iteration 0 :ch
+  (progn (let ((agent-state (make-greger-agent-state :current-iteratio
+  (unwind-protect (progn (let ((agent-state (make-greger-agent-state :
+  (save-current-buffer (set-buffer temp-buffer) (unwind-protect (progn
+  (let ((temp-buffer (generate-new-buffer " *temp*" t))) (save-current
+  (let ((test-completed nil)) (defalias 'greger-test-multiline-tool #'
+  (closure (t) nil (let ((test-completed nil)) (defalias 'greger-test-
+  ert--run-test-internal(#s(ert--test-execution-info :test #s(ert-test
+  ert-run-test(#s(ert-test :name greger-agent-test-exact-tool-output-f
+  ert-run-or-rerun-test(#s(ert--stats :selector t :tests [#s(ert-test
+  ert-run-tests(t #f(compiled-function (event-type &rest event-args) #
+  ert-run-tests-batch(t)
+  ert-run-tests-batch-and-exit(t)
+  (let ((ert-quiet nil)) (ert-run-tests-batch-and-exit t))
+  (progn (setq debug-on-error t) (add-to-list 'load-path ".") (require
+  eval((progn (setq debug-on-error t) (add-to-list 'load-path ".") (re
+  command-line-1(("--eval" "(progn\n                  (setq debug-on-e
+  command-line()
+  normal-top-level()
+Test greger-agent-test-exact-tool-output-formatting condition:
+    (void-function make-greger-agent-state)
+   FAILED  1/8  greger-agent-test-exact-tool-output-formatting (0.000100 sec) at test/test-greger.el:380
+Test greger-agent-test-simple-string-comparison backtrace:
+  (make-greger-agent-state :current-iteration 0 :chat-buffer (current-
+  (let ((initial-content "") (agent-state (make-greger-agent-state :cu
+  (progn (let ((initial-content "") (agent-state (make-greger-agent-st
+  (unwind-protect (progn (let ((initial-content "") (agent-state (make
+  (save-current-buffer (set-buffer temp-buffer) (unwind-protect (progn
+  (let ((temp-buffer (generate-new-buffer " *temp*" t))) (save-current
+  (let ((test-completed nil)) (defalias 'greger-test-simple-echo #'(la
+  (closure (t) nil (let ((test-completed nil)) (defalias 'greger-test-
+  ert--run-test-internal(#s(ert--test-execution-info :test #s(ert-test
+  ert-run-test(#s(ert-test :name greger-agent-test-simple-string-compa
+  ert-run-or-rerun-test(#s(ert--stats :selector t :tests ... :test-map
+  ert-run-tests(t #f(compiled-function (event-type &rest event-args) #
+  ert-run-tests-batch(t)
+  ert-run-tests-batch-and-exit(t)
+  (let ((ert-quiet nil)) (ert-run-tests-batch-and-exit t))
+  (progn (setq debug-on-error t) (add-to-list 'load-path ".") (require
+  eval((progn (setq debug-on-error t) (add-to-list 'load-path ".") (re
+  command-line-1(("--eval" "(progn\n                  (setq debug-on-e
+  command-line()
+  normal-top-level()
+Test greger-agent-test-simple-string-comparison condition:
+    (void-function make-greger-agent-state)
+   FAILED  2/8  greger-agent-test-simple-string-comparison (0.000106 sec) at test/test-greger.el:447
+Test greger-agent-test-tool-error-handling backtrace:
+  (make-greger-agent-state :current-iteration 0 :chat-buffer (current-
+  (let ((agent-state (make-greger-agent-state :current-iteration 0 :ch
+  (progn (let ((agent-state (make-greger-agent-state :current-iteratio
+  (unwind-protect (progn (let ((agent-state (make-greger-agent-state :
+  (save-current-buffer (set-buffer temp-buffer) (unwind-protect (progn
+  (let ((temp-buffer (generate-new-buffer " *temp*" t))) (save-current
+  (let ((test-completed nil)) (defalias 'greger-test-error-tool #'(lam
+  (closure (t) nil (let ((test-completed nil)) (defalias 'greger-test-
+  ert--run-test-internal(#s(ert--test-execution-info :test #s(ert-test
+  ert-run-test(#s(ert-test :name greger-agent-test-tool-error-handling
+  ert-run-or-rerun-test(#s(ert--stats :selector t :tests ... :test-map
+  ert-run-tests(t #f(compiled-function (event-type &rest event-args) #
+  ert-run-tests-batch(t)
+  ert-run-tests-batch-and-exit(t)
+  (let ((ert-quiet nil)) (ert-run-tests-batch-and-exit t))
+  (progn (setq debug-on-error t) (add-to-list 'load-path ".") (require
+  eval((progn (setq debug-on-error t) (add-to-list 'load-path ".") (re
+  command-line-1(("--eval" "(progn\n                  (setq debug-on-e
+  command-line()
+  normal-top-level()
+Test greger-agent-test-tool-error-handling condition:
+    (void-function make-greger-agent-state)
+   FAILED  3/8  greger-agent-test-tool-error-handling (0.000112 sec) at test/test-greger.el:198
+Test greger-agent-test-tool-execution-with-existing-content backtrace:
+  (make-greger-agent-state :current-iteration 0 :chat-buffer (current-
+  (let ((agent-state (make-greger-agent-state :current-iteration 0 :ch
+  (progn (insert "Existing content in buffer") (let ((agent-state (mak
+  (unwind-protect (progn (insert "Existing content in buffer") (let ((
+  (save-current-buffer (set-buffer temp-buffer) (unwind-protect (progn
+  (let ((temp-buffer (generate-new-buffer " *temp*" t))) (save-current
+  (let ((test-completed nil)) (defalias 'greger-test-content-tool #'(l
+  (closure (t) nil (let ((test-completed nil)) (defalias 'greger-test-
+  ert--run-test-internal(#s(ert--test-execution-info :test #s(ert-test
+  ert-run-test(#s(ert-test :name greger-agent-test-tool-execution-with
+  ert-run-or-rerun-test(#s(ert--stats :selector t :tests ... :test-map
+  ert-run-tests(t #f(compiled-function (event-type &rest event-args) #
+  ert-run-tests-batch(t)
+  ert-run-tests-batch-and-exit(t)
+  (let ((ert-quiet nil)) (ert-run-tests-batch-and-exit t))
+  (progn (setq debug-on-error t) (add-to-list 'load-path ".") (require
+  eval((progn (setq debug-on-error t) (add-to-list 'load-path ".") (re
+  command-line-1(("--eval" "(progn\n                  (setq debug-on-e
+  command-line()
+  normal-top-level()
+Test greger-agent-test-tool-execution-with-existing-content condition:
+    (void-function make-greger-agent-state)
+   FAILED  4/8  greger-agent-test-tool-execution-with-existing-content (0.000110 sec) at test/test-greger.el:263
+Test greger-agent-test-unknown-tool-error backtrace:
+  (make-greger-agent-state :current-iteration 0 :chat-buffer (current-
+  (let ((agent-state (make-greger-agent-state :current-iteration 0 :ch
+  (progn (let ((agent-state (make-greger-agent-state :current-iteratio
+  (unwind-protect (progn (let ((agent-state (make-greger-agent-state :
+  (save-current-buffer (set-buffer temp-buffer) (unwind-protect (progn
+  (let ((temp-buffer (generate-new-buffer " *temp*" t))) (save-current
+  (let ((test-completed nil)) (let ((temp-buffer (generate-new-buffer
+  (closure (t) nil (let ((test-completed nil)) (let ((temp-buffer (gen
+  ert--run-test-internal(#s(ert--test-execution-info :test #s(ert-test
+  ert-run-test(#s(ert-test :name greger-agent-test-unknown-tool-error
+  ert-run-or-rerun-test(#s(ert--stats :selector t :tests ... :test-map
+  ert-run-tests(t #f(compiled-function (event-type &rest event-args) #
+  ert-run-tests-batch(t)
+  ert-run-tests-batch-and-exit(t)
+  (let ((ert-quiet nil)) (ert-run-tests-batch-and-exit t))
+  (progn (setq debug-on-error t) (add-to-list 'load-path ".") (require
+  eval((progn (setq debug-on-error t) (add-to-list 'load-path ".") (re
+  command-line-1(("--eval" "(progn\n                  (setq debug-on-e
+  command-line()
+  normal-top-level()
+Test greger-agent-test-unknown-tool-error condition:
+    (void-function make-greger-agent-state)
+   FAILED  5/8  greger-agent-test-unknown-tool-error (0.000094 sec) at test/test-greger.el:330
+Test greger-test-multiple-tools-parallel backtrace:
+  (greger-agent--execute-tools tool-calls agent-state)
+  (progn (fset 'greger-agent--run-agent-loop vnew) (greger-agent--exec
+  (unwind-protect (progn (fset 'greger-agent--run-agent-loop vnew) (gr
+  (let* ((vnew #'(lambda (state) (setq tools-completed t))) (old (symb
+  (let ((agent-state (record 'greger-state 0 (current-buffer) default-
+  (progn (let ((agent-state (record 'greger-state 0 (current-buffer) d
+  (unwind-protect (progn (let ((agent-state (record 'greger-state 0 (c
+  (save-current-buffer (set-buffer temp-buffer) (unwind-protect (progn
+  (let ((temp-buffer (generate-new-buffer " *temp*" t))) (save-current
+  (let ((tools-completed nil)) (defalias 'greger-test-tool-a #'(lambda
+  (closure (t) nil (let ((tools-completed nil)) (defalias 'greger-test
+  ert--run-test-internal(#s(ert--test-execution-info :test #s(ert-test
+  ert-run-test(#s(ert-test :name greger-test-multiple-tools-parallel :
+  ert-run-or-rerun-test(#s(ert--stats :selector t :tests ... :test-map
+  ert-run-tests(t #f(compiled-function (event-type &rest event-args) #
+  ert-run-tests-batch(t)
+  ert-run-tests-batch-and-exit(t)
+  (let ((ert-quiet nil)) (ert-run-tests-batch-and-exit t))
+  (progn (setq debug-on-error t) (add-to-list 'load-path ".") (require
+  eval((progn (setq debug-on-error t) (add-to-list 'load-path ".") (re
+  command-line-1(("--eval" "(progn\n                  (setq debug-on-e
+  command-line()
+  normal-top-level()
+Test greger-test-multiple-tools-parallel condition:
+    (void-function greger-agent--execute-tools)
+   FAILED  6/8  greger-test-multiple-tools-parallel (0.000161 sec) at test/test-greger.el:98
+Test greger-test-single-tool-execution backtrace:
+  signal(ert-test-failed (((should test-completed) :form test-complete
+  ert-fail(((should test-completed) :form test-completed :value nil))
+  (if (unwind-protect (setq value-13 test-completed) (setq form-descri
+  (let (form-description-14) (if (unwind-protect (setq value-13 test-c
+  (let ((value-13 (gensym "ert-form-evaluation-aborted-"))) (let (form
+  (progn (fset 'greger-agent--run-agent-loop vnew) (greger--execute-to
+  (unwind-protect (progn (fset 'greger-agent--run-agent-loop vnew) (gr
+  (let* ((vnew #'(lambda (state) (setq test-completed t))) (old (symbo
+  (let ((agent-state (record 'greger-state 0 (current-buffer) default-
+  (progn (let ((agent-state (record 'greger-state 0 (current-buffer) d
+  (unwind-protect (progn (let ((agent-state (record 'greger-state 0 (c
+  (save-current-buffer (set-buffer temp-buffer) (unwind-protect (progn
+  (let ((temp-buffer (generate-new-buffer " *temp*" t))) (save-current
+  (let ((test-completed nil)) (defalias 'greger-test-simple-tool #'(la
+  (closure (t) nil (let ((test-completed nil)) (defalias 'greger-test-
+  ert--run-test-internal(#s(ert--test-execution-info :test #s(ert-test
+  ert-run-test(#s(ert-test :name greger-test-single-tool-execution :do
+  ert-run-or-rerun-test(#s(ert--stats :selector t :tests ... :test-map
+  ert-run-tests(t #f(compiled-function (event-type &rest event-args) #
+  ert-run-tests-batch(t)
+  ert-run-tests-batch-and-exit(t)
+  (let ((ert-quiet nil)) (ert-run-tests-batch-and-exit t))
+  (progn (setq debug-on-error t) (add-to-list 'load-path ".") (require
+  eval((progn (setq debug-on-error t) (add-to-list 'load-path ".") (re
+  command-line-1(("--eval" "(progn\n                  (setq debug-on-e
+  command-line()
+  normal-top-level()
+Test greger-test-single-tool-execution condition:
+    (ert-test-failed
+     ((should test-completed)
+      :form test-completed :value nil))
+   FAILED  7/8  greger-test-single-tool-execution (0.008115 sec) at test/test-greger.el:32
+   passed  8/8  greger-test-tool-placeholder (0.000088 sec)
+
+Ran 8 tests, 1 results as expected, 7 unexpected (2025-06-03 15:09:07+0200, 0.814785 sec)
+
+7 unexpected results:
+   FAILED  greger-agent-test-exact-tool-output-formatting
+   FAILED  greger-agent-test-simple-string-comparison
+   FAILED  greger-agent-test-tool-error-handling
+   FAILED  greger-agent-test-tool-execution-with-existing-content
+   FAILED  greger-agent-test-unknown-tool-error
+   FAILED  greger-test-multiple-tools-parallel
+   FAILED  greger-test-single-tool-execution
+
+
+</tool.toolu_01Hq7dtCSd6qYqA3CGsBsT4F>
+
+## ASSISTANT:
+
+I see several issues. There are still some old function references that I missed, and some test names weren't updated. Let me fix these issues:
+
+## TOOL USE:
+
+Name: ripgrep
+ID: toolu_016oL9RGHJ2XcuhN35MxGuCG
+
+### pattern
+
+<tool.toolu_016oL9RGHJ2XcuhN35MxGuCG>
+greger-agent-test-
+</tool.toolu_016oL9RGHJ2XcuhN35MxGuCG>
+
+### file-type
+
+<tool.toolu_016oL9RGHJ2XcuhN35MxGuCG>
+el
+</tool.toolu_016oL9RGHJ2XcuhN35MxGuCG>
+
+### path
+
+<tool.toolu_016oL9RGHJ2XcuhN35MxGuCG>
+test/test-greger.el
+</tool.toolu_016oL9RGHJ2XcuhN35MxGuCG>
+
+## TOOL RESULT:
+
+ID: toolu_016oL9RGHJ2XcuhN35MxGuCG
+
+<tool.toolu_016oL9RGHJ2XcuhN35MxGuCG>
+198:(ert-deftest greger-agent-test-tool-error-handling ()
+263:(ert-deftest greger-agent-test-tool-execution-with-existing-content ()
+330:(ert-deftest greger-agent-test-unknown-tool-error ()
+380:(ert-deftest greger-agent-test-exact-tool-output-formatting ()
+447:(ert-deftest greger-agent-test-simple-string-comparison ()
+
+</tool.toolu_016oL9RGHJ2XcuhN35MxGuCG>
+
+## ASSISTANT:
+
+I missed updating some test names. Let me fix them:
+
+## TOOL USE:
+
+Name: str-replace
+ID: toolu_01Qch1wwk494BCRW9DzkCWPM
+
+### file_path
+
+<tool.toolu_01Qch1wwk494BCRW9DzkCWPM>
+test/test-greger.el
+</tool.toolu_01Qch1wwk494BCRW9DzkCWPM>
+
+### original_content
+
+<tool.toolu_01Qch1wwk494BCRW9DzkCWPM>
+(ert-deftest greger-agent-test-tool-error-handling ()
+</tool.toolu_01Qch1wwk494BCRW9DzkCWPM>
+
+### new_content
+
+<tool.toolu_01Qch1wwk494BCRW9DzkCWPM>
+(ert-deftest greger-test-tool-error-handling ()
+</tool.toolu_01Qch1wwk494BCRW9DzkCWPM>
+
+### git_commit_message
+
+<tool.toolu_01Qch1wwk494BCRW9DzkCWPM>
+Fix remaining test name - tool-error-handling
+</tool.toolu_01Qch1wwk494BCRW9DzkCWPM>
+
+<!-- TOOL_RESULT_PLACEHOLDER_toolu_01Qch1wwk494BCRW9DzkCWPM -->

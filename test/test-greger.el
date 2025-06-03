@@ -195,7 +195,7 @@ Tool B result: input-b
     (remhash "test-tool-a" greger-tools-registry)
     (remhash "test-tool-b" greger-tools-registry)))
 
-(ert-deftest greger-agent-test-tool-error-handling ()
+(ert-deftest greger-test-tool-error-handling ()
   "Test that tool errors are properly handled and displayed."
   (let ((test-completed nil))
 
