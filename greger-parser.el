@@ -790,7 +790,7 @@ Returns either a system message, metadata, or both."
       (greger-parser--debug state "Hit max iterations in skip-to-closing-angle"))))
 
 (defun greger-parser--make-closing-tag (opening-tag)
-  "Make closing tag from opening tag."
+  "Make closing tag from OPENING-TAG."
   (concat "</" (substring opening-tag 1)))
 
 (defun greger-parser--find-closing-tag (state closing-tag)
