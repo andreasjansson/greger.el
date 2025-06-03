@@ -3346,4 +3346,54 @@ test/test-greger-stdlib.el
 Fix test expectations to account for Emacs automatic trailing newline handling
 </tool.toolu_01EjyjxAWGrqJcFNWKZoBnLo>
 
-<!-- TOOL_RESULT_PLACEHOLDER_toolu_01EjyjxAWGrqJcFNWKZoBnLo -->
+## TOOL RESULT:
+
+ID: toolu_01EjyjxAWGrqJcFNWKZoBnLo
+
+<tool.toolu_01EjyjxAWGrqJcFNWKZoBnLo>
+Successfully replaced content in /Users/andreas/projects/greger.el/test/test-greger-stdlib.el. Successfully staged 2 file(s) and committed with message: Fix test expectations to account for Emacs automatic trailing newline handling
+</tool.toolu_01EjyjxAWGrqJcFNWKZoBnLo>
+
+
+## ASSISTANT:
+
+Now I also need to fix the line number formatting test. The issue there is that the result doesn't end with a newline but my regex expects one:
+
+## TOOL USE:
+
+Name: str-replace
+ID: toolu_01R1tTM5qC311kDycMpKonHA
+
+### file_path
+
+<tool.toolu_01R1tTM5qC311kDycMpKonHA>
+test/test-greger-stdlib.el
+</tool.toolu_01R1tTM5qC311kDycMpKonHA>
+
+### original_content
+
+<tool.toolu_01R1tTM5qC311kDycMpKonHA>
+;; Test reading lines 8-12 with line numbers - should have 2-digit padding
+          (let ((result (greger-stdlib--read-file test-file t 8 12)))
+            (should (stringp result))
+            (should (string-match-p "^ 8: Line 8\n" result))
+            (should (string-match-p "^12: Line 12\n" result)))
+</tool.toolu_01R1tTM5qC311kDycMpKonHA>
+
+### new_content
+
+<tool.toolu_01R1tTM5qC311kDycMpKonHA>
+;; Test reading lines 8-12 with line numbers - should have 2-digit padding
+          (let ((result (greger-stdlib--read-file test-file t 8 12)))
+            (should (stringp result))
+            (should (string-match-p "^ 8: Line 8" result))
+            (should (string-match-p "12: Line 12$" result)))
+</tool.toolu_01R1tTM5qC311kDycMpKonHA>
+
+### git_commit_message
+
+<tool.toolu_01R1tTM5qC311kDycMpKonHA>
+Fix line number formatting test regex to not expect trailing newlines
+</tool.toolu_01R1tTM5qC311kDycMpKonHA>
+
+<!-- TOOL_RESULT_PLACEHOLDER_toolu_01R1tTM5qC311kDycMpKonHA -->
