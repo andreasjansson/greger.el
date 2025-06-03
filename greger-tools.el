@@ -8,19 +8,6 @@
 (require 'json)
 (require 'cl-lib)
 
-;; Optional dependencies - only load if available
-(defvar greger-tools-magit-available
-  (condition-case nil
-      (progn (require 'magit) t)
-    (error nil))
-  "Whether magit is available.")
-
-(defvar greger-tools-rg-available
-  (condition-case nil
-      (progn (require 'rg) t)
-    (error nil))
-  "Whether rg is available.")
-
 ;; Registry to hold tool definitions
 (defvar greger-tools-registry (make-hash-table :test 'equal)
   "Hash table mapping tool names to their definitions.")
