@@ -117,6 +117,45 @@ You can include file contents in your conversations:
 <include code>/path/to/source.py</include>
 ```
 
+### Safe Shell Commands
+
+Greger can automatically generate descriptive text for safe shell commands that don't require user confirmation. When you define safe commands in a system section:
+
+```markdown
+## SYSTEM:
+
+<safe-shell-commands>
+bash script/package-lint
+bash script/test --verbose
+bash script/test --verbose --file test/test-parser.el
+</safe-shell-commands>
+```
+
+The parser automatically generates this system prompt:
+
+```
+You can run arbitrary shell commands with the shell-command tool, but the following are safe shell commands that will run without requiring user confirmation:
+
+* `bash script/package-lint`
+* `bash script/test --verbose`
+* `bash script/test --verbose --file test/test-parser.el`
+```
+
+You can also combine safe shell commands with other system content:
+
+```markdown
+## SYSTEM:
+
+You are a helpful assistant for an Emacs Lisp project.
+
+<safe-shell-commands>
+bash script/package-lint
+bash script/test --verbose
+</safe-shell-commands>
+```
+
+This will append the safe commands description to your existing system prompt.
+
 ## Available Models
 
 Greger supports the latest Claude models:
