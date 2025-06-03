@@ -143,7 +143,9 @@ Returns a list of arguments in the correct order for the function."
 
            ;; Parameter provided (required or optional)
            (arg-provided-p
-            (push (alist-get arg-key args) result))
+            (let ((raw-value (alist-get arg-key args)))
+              ;; Check if this parameter should be parsed as JSON array
+              (push (greger-tools--maybe-parse-json-value raw-value arg-key tool-def) result)))
 
            ;; Optional parameter not provided - use default or nil
            ((not is-required)
