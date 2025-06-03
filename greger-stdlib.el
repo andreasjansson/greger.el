@@ -1059,7 +1059,3 @@ If USE-HIGHEST-READABILITY is non-nil, use eww's aggressive readability setting.
 (provide 'greger-stdlib)
 
 ;;; greger-stdlib.el ends here
-
-;; Local Variables:
-;; package-lint-main-file: "greger.el"
-;; End:
