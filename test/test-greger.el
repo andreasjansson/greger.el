@@ -515,6 +515,6 @@ Echo: hello world
     ;; Clean up
     (remhash "test-echo" greger-tools-registry)))
 
-(provide 'test-greger-agent)
+(provide 'test-greger)
 
-;;; test-greger-agent.el ends here
+;;; test-greger.el ends here
