@@ -41,7 +41,8 @@
    :metadata '()))
 
 (defun greger-parser--debug (state format-string &rest args)
-  "Debug logging function using STATE."
+  "Debug logging function using STATE.
+FORMAT-STRING is the format template and ARGS are the format arguments."
   (when (greger-parser-state-debug state)
     (message "[PARSER DEBUG] %s" (apply #'format format-string args))))
 
