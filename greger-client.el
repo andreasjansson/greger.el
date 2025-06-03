@@ -221,8 +221,7 @@ Returns nil if no error found or if OUTPUT is not valid JSON."
 
 (defun greger-client--process-claude-events (state)
   "Process Claude streaming events from accumulated output in STATE."
-  (let ((accumulated (greger-client-state-accumulated-output state))
-        (remaining ""))
+  (let ((accumulated (greger-client-state-accumulated-output state)))
 
     ;; Process complete lines (events)
     (while (string-match "\n" accumulated)
