@@ -927,7 +927,7 @@ If BUFFER is provided, it will be staged and committed along with the file."
   "View git commit logs using git command line for PATH.
 MAX-ROWS limits the number of log entries returned (default 100)."
   (unless (stringp path)
-    (error "path must be a string"))
+    (error "Path must be a string"))
 
   (let ((expanded-path (expand-file-name path))
         (max-count (or max-rows 100)))
