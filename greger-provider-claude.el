@@ -115,4 +115,8 @@
 
 (provide 'greger-provider-claude)
 
-;;; greger-provider-claude.el ends hereb
+;;; greger-provider-claude.el ends here
+
+;; Local Variables:
+;; package-lint-main-file: "greger.el"
+;; End:
