@@ -691,7 +691,8 @@ If BUFFER is provided, it will be staged and committed along with the modified f
 
     (with-current-buffer (find-file-noselect expanded-path)
      ;; Go to the specified line number
-     (goto-line line-number)
+     (goto-char (point-min))
+     (forward-line (1- line-number))
 
      ;; Verify function name is at this line
      (beginning-of-line)
