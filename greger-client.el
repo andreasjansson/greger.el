@@ -85,13 +85,11 @@ claude-sonnet-4-20250514 or claude-opus-4-20250514."
     (activate-change-group undo-handle)
 
     (set-process-filter process
-                       (lambda (proc output)
-                         (declare (ignore proc))
+                       (lambda (_proc output)
                          (greger-client--process-output-chunk output state)))
 
     (set-process-sentinel process
-                         (lambda (proc event)
-                           (declare (ignore event))
+                         (lambda (proc _event)
                            (greger-client--handle-completion proc state)))
 
     (set-process-query-on-exit-flag process nil)
