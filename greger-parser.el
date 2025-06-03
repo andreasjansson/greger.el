@@ -852,7 +852,7 @@ Returns either a system message, metadata, or both."
     (error str)))
 
 (defun greger-parser--parse-json-object (str)
-  "Parse JSON object string."
+  "Parse JSON object STR."
   (condition-case nil
       (let ((parsed (json-read-from-string str)))
         (mapcar (lambda (pair)
