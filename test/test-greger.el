@@ -29,7 +29,7 @@
     (should (string= expected1 (greger--tool-placeholder "test123")))
     (should (string= expected2 (greger--tool-placeholder "tool_abc_def")))))
 
-(ert-deftest greger-agent-test-single-tool-execution ()
+(ert-deftest greger-test-single-tool-execution ()
   "Test execution of a single tool with callback."
   (let ((test-completed nil))
 
