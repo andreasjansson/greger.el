@@ -1378,4 +1378,996 @@ test-greger-stdlib.el
 Fix function name from greger-tools--shell-command to greger-stdlib--shell-command
 </tool.toolu_01D2MZbtCX5gkx7mbYqWvfBZ>
 
-<!-- TOOL_RESULT_PLACEHOLDER_toolu_01D2MZbtCX5gkx7mbYqWvfBZ -->
+## TOOL RESULT:
+
+ID: toolu_01D2MZbtCX5gkx7mbYqWvfBZ
+
+<tool.toolu_01D2MZbtCX5gkx7mbYqWvfBZ>
+Successfully replaced content in /Users/andreas/projects/greger.el/test-greger-stdlib.el. Successfully staged 2 file(s) and committed with message: Fix function name from greger-tools--shell-command to greger-stdlib--shell-command
+</tool.toolu_01D2MZbtCX5gkx7mbYqWvfBZ>
+
+
+## ASSISTANT:
+
+Now let me check if there are any other test files with similar issues:
+
+## TOOL USE:
+
+Name: shell-command
+ID: toolu_012QHFMkfkY7XuHgZDDryt1w
+
+### command
+
+<tool.toolu_012QHFMkfkY7XuHgZDDryt1w>
+bash script/test --verbose --file test-greger-stdlib.el
+</tool.toolu_012QHFMkfkY7XuHgZDDryt1w>
+
+## TOOL RESULT:
+
+ID: toolu_012QHFMkfkY7XuHgZDDryt1w
+
+<tool.toolu_012QHFMkfkY7XuHgZDDryt1w>
+Command failed with exit code 1: [0;34mRunning ERT tests for greger package...[0m
+
+Running tests in [1;33mtest-greger-stdlib.el[0m (verbose mode)...
+Loading /Users/andreas/projects/greger.el/greger.el (source)...
+Source file ‘/opt/homebrew/Cellar/emacs-plus@29/29.0.90/share/emacs/29.0.91/lisp/net/eww.el’ newer than byte-compiled file; using older file
+Loading /Users/andreas/projects/greger.el/greger-agent.el (source)...
+Source file ‘/Users/andreas/projects/greger.el/greger-lib-lsp.el’ newer than byte-compiled file; using older file
+Loading /Users/andreas/projects/greger.el/greger-parser.el (source)...
+Loading /Users/andreas/projects/greger.el/greger-stdlib.el (source)...
+Loading /Users/andreas/projects/greger.el/greger-lib-lsp.el (source)...
+Loading /Users/andreas/projects/greger.el/greger-tools.el (source)...
+Loading /Users/andreas/projects/greger.el/greger-stream.el (source)...
+Loading /Users/andreas/projects/greger.el/greger-providers.el (source)...
+Loading /Users/andreas/projects/greger.el/greger-provider-claude.el (source)...
+Loading /Users/andreas/projects/greger.el/greger-provider-openai.el (source)...
+Loading /Users/andreas/projects/greger.el/greger-provider-google.el (source)...
+Loading /Users/andreas/projects/greger.el/greger-web.el (source)...
+Loading /Users/andreas/projects/greger.el/test-greger-stdlib.el (source)...
+Running 11 tests (2025-06-03 14:04:14+0200, selector ‘t’)
+   passed   1/11  greger-test-read-webpage-invalid-url (0.000119 sec)
+   passed   2/11  greger-test-read-webpage-network-error (0.000036 sec)
+   passed   3/11  greger-test-read-webpage-valid-url (0.366525 sec)
+Test greger-test-shell-command-command-failure backtrace:
+  (greger-stdlib--shell-command "false" #'(lambda (output err) (progn
+  (progn (fset 'y-or-n-p vnew) (greger-stdlib--shell-command "false" #
+  (unwind-protect (progn (fset 'y-or-n-p vnew) (greger-stdlib--shell-c
+  (let* ((vnew #'(lambda (prompt) t)) (old (symbol-function 'y-or-n-p)
+  (let ((result nil) (error nil) (callback-called nil)) (let* ((vnew #
+  (closure (t) nil (let ((result nil) (error nil) (callback-called nil
+  ert--run-test-internal(#s(ert--test-execution-info :test #s(ert-test
+  ert-run-test(#s(ert-test :name greger-test-shell-command-command-fai
+  ert-run-or-rerun-test(#s(ert--stats :selector t :tests ... :test-map
+  ert-run-tests(t #f(compiled-function (event-type &rest event-args) #
+  ert-run-tests-batch(t)
+  ert-run-tests-batch-and-exit(t)
+  (let ((ert-quiet nil)) (ert-run-tests-batch-and-exit t))
+  (progn (setq debug-on-error t) (add-to-list 'load-path ".") (require
+  eval((progn (setq debug-on-error t) (add-to-list 'load-path ".") (re
+  command-line-1(("--eval" "(progn\n                  (setq debug-on-e
+  command-line()
+  normal-top-level()
+Test greger-test-shell-command-command-failure condition:
+    (void-function greger-stdlib--shell-command)
+   FAILED   4/11  greger-test-shell-command-command-failure (0.000172 sec) at test-greger-stdlib.el:150
+Test greger-test-shell-command-no-metadata-still-prompts backtrace:
+  (greger-stdlib--shell-command "echo no metadata" #'(lambda (output e
+  (progn (fset 'y-or-n-p vnew) (greger-stdlib--shell-command "echo no
+  (unwind-protect (progn (fset 'y-or-n-p vnew) (greger-stdlib--shell-c
+  (let* ((vnew #'(lambda (prompt) (setq prompt-called t) t)) (old (sym
+  (let ((result nil) (error nil) (callback-called nil) (prompt-called
+  (closure (t) nil (let ((result nil) (error nil) (callback-called nil
+  ert--run-test-internal(#s(ert--test-execution-info :test #s(ert-test
+  ert-run-test(#s(ert-test :name greger-test-shell-command-no-metadata
+  ert-run-or-rerun-test(#s(ert--stats :selector t :tests ... :test-map
+  ert-run-tests(t #f(compiled-function (event-type &rest event-args) #
+  ert-run-tests-batch(t)
+  ert-run-tests-batch-and-exit(t)
+  (let ((ert-quiet nil)) (ert-run-tests-batch-and-exit t))
+  (progn (setq debug-on-error t) (add-to-list 'load-path ".") (require
+  eval((progn (setq debug-on-error t) (add-to-list 'load-path ".") (re
+  command-line-1(("--eval" "(progn\n                  (setq debug-on-e
+  command-line()
+  normal-top-level()
+Test greger-test-shell-command-no-metadata-still-prompts condition:
+    (void-function greger-stdlib--shell-command)
+   FAILED   5/11  greger-test-shell-command-no-metadata-still-prompts (0.000084 sec) at test-greger-stdlib.el:255
+Test greger-test-shell-command-permission-denied backtrace:
+  (greger-stdlib--shell-command "echo test" #'(lambda (output err) (pr
+  (progn (fset 'y-or-n-p vnew) (greger-stdlib--shell-command "echo tes
+  (unwind-protect (progn (fset 'y-or-n-p vnew) (greger-stdlib--shell-c
+  (let* ((vnew #'(lambda (prompt) nil)) (old (symbol-function 'y-or-n-
+  (let ((result nil) (error nil) (callback-called nil)) (let* ((vnew #
+  (closure (t) nil (let ((result nil) (error nil) (callback-called nil
+  ert--run-test-internal(#s(ert--test-execution-info :test #s(ert-test
+  ert-run-test(#s(ert-test :name greger-test-shell-command-permission-
+  ert-run-or-rerun-test(#s(ert--stats :selector t :tests ... :test-map
+  ert-run-tests(t #f(compiled-function (event-type &rest event-args) #
+  ert-run-tests-batch(t)
+  ert-run-tests-batch-and-exit(t)
+  (let ((ert-quiet nil)) (ert-run-tests-batch-and-exit t))
+  (progn (setq debug-on-error t) (add-to-list 'load-path ".") (require
+  eval((progn (setq debug-on-error t) (add-to-list 'load-path ".") (re
+  command-line-1(("--eval" "(progn\n                  (setq debug-on-e
+  command-line()
+  normal-top-level()
+Test greger-test-shell-command-permission-denied condition:
+    (void-function greger-stdlib--shell-command)
+   FAILED   6/11  greger-test-shell-command-permission-denied (0.000073 sec) at test-greger-stdlib.el:129
+Test greger-test-shell-command-safe-commands backtrace:
+  (greger-stdlib--shell-command "echo safe command" #'(lambda (output
+  (let ((metadata '(:safe-shell-commands ("echo safe command" "pwd" "l
+  (progn (fset 'y-or-n-p vnew) (let ((metadata '(:safe-shell-commands
+  (unwind-protect (progn (fset 'y-or-n-p vnew) (let ((metadata '(:safe
+  (let* ((vnew #'(lambda (prompt) (setq prompt-called t) t)) (old (sym
+  (let ((result nil) (error nil) (callback-called nil) (prompt-called
+  (closure (t) nil (let ((result nil) (error nil) (callback-called nil
+  ert--run-test-internal(#s(ert--test-execution-info :test #s(ert-test
+  ert-run-test(#s(ert-test :name greger-test-shell-command-safe-comman
+  ert-run-or-rerun-test(#s(ert--stats :selector t :tests ... :test-map
+  ert-run-tests(t #f(compiled-function (event-type &rest event-args) #
+  ert-run-tests-batch(t)
+  ert-run-tests-batch-and-exit(t)
+  (let ((ert-quiet nil)) (ert-run-tests-batch-and-exit t))
+  (progn (setq debug-on-error t) (add-to-list 'load-path ".") (require
+  eval((progn (setq debug-on-error t) (add-to-list 'load-path ".") (re
+  command-line-1(("--eval" "(progn\n                  (setq debug-on-e
+  command-line()
+  normal-top-level()
+Test greger-test-shell-command-safe-commands condition:
+    (void-function greger-stdlib--shell-command)
+   FAILED   7/11  greger-test-shell-command-safe-commands (0.000089 sec) at test-greger-stdlib.el:177
+Test greger-test-shell-command-simple backtrace:
+  (greger-stdlib--shell-command "echo hello world" #'(lambda (output e
+  (progn (fset 'y-or-n-p vnew) (greger-stdlib--shell-command "echo hel
+  (unwind-protect (progn (fset 'y-or-n-p vnew) (greger-stdlib--shell-c
+  (let* ((vnew #'(lambda (prompt) t)) (old (symbol-function 'y-or-n-p)
+  (let ((result nil) (error nil) (callback-called nil)) (let* ((vnew #
+  (closure (t) nil (let ((result nil) (error nil) (callback-called nil
+  ert--run-test-internal(#s(ert--test-execution-info :test #s(ert-test
+  ert-run-test(#s(ert-test :name greger-test-shell-command-simple :doc
+  ert-run-or-rerun-test(#s(ert--stats :selector t :tests ... :test-map
+  ert-run-tests(t #f(compiled-function (event-type &rest event-args) #
+  ert-run-tests-batch(t)
+  ert-run-tests-batch-and-exit(t)
+  (let ((ert-quiet nil)) (ert-run-tests-batch-and-exit t))
+  (progn (setq debug-on-error t) (add-to-list 'load-path ".") (require
+  eval((progn (setq debug-on-error t) (add-to-list 'load-path ".") (re
+  command-line-1(("--eval" "(progn\n                  (setq debug-on-e
+  command-line()
+  normal-top-level()
+Test greger-test-shell-command-simple condition:
+    (void-function greger-stdlib--shell-command)
+   FAILED   8/11  greger-test-shell-command-simple (0.000121 sec) at test-greger-stdlib.el:73
+Test greger-test-shell-command-unsafe-commands-with-metadata backtrace:
+  (greger-stdlib--shell-command "echo unsafe command" #'(lambda (outpu
+  (let ((metadata '(:safe-shell-commands ("echo safe command" "pwd")))
+  (progn (fset 'y-or-n-p vnew) (let ((metadata '(:safe-shell-commands
+  (unwind-protect (progn (fset 'y-or-n-p vnew) (let ((metadata '(:safe
+  (let* ((vnew #'(lambda (prompt) (setq prompt-called t) t)) (old (sym
+  (let ((result nil) (error nil) (callback-called nil) (prompt-called
+  (closure (t) nil (let ((result nil) (error nil) (callback-called nil
+  ert--run-test-internal(#s(ert--test-execution-info :test #s(ert-test
+  ert-run-test(#s(ert-test :name greger-test-shell-command-unsafe-comm
+  ert-run-or-rerun-test(#s(ert--stats :selector t :tests ... :test-map
+  ert-run-tests(t #f(compiled-function (event-type &rest event-args) #
+  ert-run-tests-batch(t)
+  ert-run-tests-batch-and-exit(t)
+  (let ((ert-quiet nil)) (ert-run-tests-batch-and-exit t))
+  (progn (setq debug-on-error t) (add-to-list 'load-path ".") (require
+  eval((progn (setq debug-on-error t) (add-to-list 'load-path ".") (re
+  command-line-1(("--eval" "(progn\n                  (setq debug-on-e
+  command-line()
+  normal-top-level()
+Test greger-test-shell-command-unsafe-commands-with-metadata condition:
+    (void-function greger-stdlib--shell-command)
+   FAILED   9/11  greger-test-shell-command-unsafe-commands-with-metadata (0.000141 sec) at test-greger-stdlib.el:216
+Test greger-test-shell-command-with-pipe backtrace:
+  (greger-stdlib--shell-command "echo 'apple\nbanana\ncherry' | grep '
+  (progn (fset 'y-or-n-p vnew) (greger-stdlib--shell-command "echo 'ap
+  (unwind-protect (progn (fset 'y-or-n-p vnew) (greger-stdlib--shell-c
+  (let* ((vnew #'(lambda (prompt) t)) (old (symbol-function 'y-or-n-p)
+  (let ((result nil) (error nil) (callback-called nil)) (let* ((vnew #
+  (closure (t) nil (let ((result nil) (error nil) (callback-called nil
+  ert--run-test-internal(#s(ert--test-execution-info :test #s(ert-test
+  ert-run-test(#s(ert-test :name greger-test-shell-command-with-pipe :
+  ert-run-or-rerun-test(#s(ert--stats :selector t :tests ... :test-map
+  ert-run-tests(t #f(compiled-function (event-type &rest event-args) #
+  ert-run-tests-batch(t)
+  ert-run-tests-batch-and-exit(t)
+  (let ((ert-quiet nil)) (ert-run-tests-batch-and-exit t))
+  (progn (setq debug-on-error t) (add-to-list 'load-path ".") (require
+  eval((progn (setq debug-on-error t) (add-to-list 'load-path ".") (re
+  command-line-1(("--eval" "(progn\n                  (setq debug-on-e
+  command-line()
+  normal-top-level()
+Test greger-test-shell-command-with-pipe condition:
+    (void-function greger-stdlib--shell-command)
+   FAILED  10/11  greger-test-shell-command-with-pipe (0.000079 sec) at test-greger-stdlib.el:101
+   passed  11/11  greger-test-web-url-validation (0.000083 sec)
+
+Ran 11 tests, 4 results as expected, 7 unexpected (2025-06-03 14:04:15+0200, 0.961780 sec)
+
+7 unexpected results:
+   FAILED  greger-test-shell-command-command-failure
+   FAILED  greger-test-shell-command-no-metadata-still-prompts
+   FAILED  greger-test-shell-command-permission-denied
+   FAILED  greger-test-shell-command-safe-commands
+   FAILED  greger-test-shell-command-simple
+   FAILED  greger-test-shell-command-unsafe-commands-with-metadata
+   FAILED  greger-test-shell-command-with-pipe
+
+
+</tool.toolu_012QHFMkfkY7XuHgZDDryt1w>
+
+## ASSISTANT:
+
+Great! The webpage tests are now passing, but the shell command tests are still failing because the function `greger-stdlib--shell-command` doesn't exist. Let me check what the actual function name is:
+
+## TOOL USE:
+
+Name: ripgrep
+ID: toolu_01E28ssRA3LzXSm8G5cJjPwS
+
+### pattern
+
+<tool.toolu_01E28ssRA3LzXSm8G5cJjPwS>
+defun.*shell-command
+</tool.toolu_01E28ssRA3LzXSm8G5cJjPwS>
+
+### path
+
+<tool.toolu_01E28ssRA3LzXSm8G5cJjPwS>
+greger-stdlib.el
+</tool.toolu_01E28ssRA3LzXSm8G5cJjPwS>
+
+## TOOL RESULT:
+
+ID: toolu_01E28ssRA3LzXSm8G5cJjPwS
+
+<tool.toolu_01E28ssRA3LzXSm8G5cJjPwS>
+984:(defun greger-stdlib--shell-command (command callback &optional working-directory metadata)
+
+</tool.toolu_01E28ssRA3LzXSm8G5cJjPwS>
+
+## ASSISTANT:
+
+The function name is correct in the stdlib file. Let me check if there's a missing argument in the function calls. Let me look at the function signature:
+
+## TOOL USE:
+
+Name: read-file
+ID: toolu_01DijcdxPFCRAKKqh4oCgvhm
+
+### path
+
+<tool.toolu_01DijcdxPFCRAKKqh4oCgvhm>
+greger-stdlib.el
+</tool.toolu_01DijcdxPFCRAKKqh4oCgvhm>
+
+### start_line
+
+<tool.toolu_01DijcdxPFCRAKKqh4oCgvhm>
+984
+</tool.toolu_01DijcdxPFCRAKKqh4oCgvhm>
+
+### end_line
+
+<tool.toolu_01DijcdxPFCRAKKqh4oCgvhm>
+1000
+</tool.toolu_01DijcdxPFCRAKKqh4oCgvhm>
+
+## TOOL RESULT:
+
+ID: toolu_01DijcdxPFCRAKKqh4oCgvhm
+
+<tool.toolu_01DijcdxPFCRAKKqh4oCgvhm>
+(defun greger-stdlib--shell-command (command callback &optional working-directory metadata)
+  "Execute COMMAND in WORKING-DIRECTORY and call CALLBACK with (result error).
+Prompts for permission before running the command for security.
+If METADATA contains safe-shell-commands and COMMAND is in that list, skips permission prompt."
+  (let ((work-dir (or working-directory ".")))
+    (cond
+     ((not (stringp command))
+      (funcall callback nil "Command must be a string"))
+
+     ((string-empty-p (string-trim command))
+      (funcall callback nil "Command cannot be empty"))
+
+     ((not (stringp work-dir))
+      (funcall callback nil "Working directory must be a string"))
+
+     (t
+      (let ((expanded-work-dir (expand-file-name work-dir)))
+</tool.toolu_01DijcdxPFCRAKKqh4oCgvhm>
+
+## ASSISTANT:
+
+The function exists and looks correct. Let me check if there's a different issue by looking at the call signature and comparing. Let me check if the function is being properly exported or if there's an issue with autoloading. Let me check if all required modules are loaded in the test:
+
+## TOOL USE:
+
+Name: read-file
+ID: toolu_01YJ2XShAxtySBG6GQiDXcNa
+
+### path
+
+<tool.toolu_01YJ2XShAxtySBG6GQiDXcNa>
+test-greger-stdlib.el
+</tool.toolu_01YJ2XShAxtySBG6GQiDXcNa>
+
+### start_line
+
+<tool.toolu_01YJ2XShAxtySBG6GQiDXcNa>
+1
+</tool.toolu_01YJ2XShAxtySBG6GQiDXcNa>
+
+### end_line
+
+<tool.toolu_01YJ2XShAxtySBG6GQiDXcNa>
+10
+</tool.toolu_01YJ2XShAxtySBG6GQiDXcNa>
+
+## TOOL RESULT:
+
+ID: toolu_01YJ2XShAxtySBG6GQiDXcNa
+
+<tool.toolu_01YJ2XShAxtySBG6GQiDXcNa>
+;;; greger-test-stdlib.el --- Tests for greger stdlib tools -*- lexical-binding: t -*-
+
+;;; Commentary:
+;; Tests for the tools defined in greger-stdlib.el
+
+;;; Code:
+
+(require 'ert)
+(require 'cl-lib)
+(require 'greger-stdlib)
+</tool.toolu_01YJ2XShAxtySBG6GQiDXcNa>
+
+## ASSISTANT:
+
+The require looks fine. Let me check if there's an autoload issue by running a simple test to see if I can call the function from greger-stdlib directly:
+
+## TOOL USE:
+
+Name: shell-command
+ID: toolu_016FBxUvvqDW9WXc9H62pkxa
+
+### command
+
+<tool.toolu_016FBxUvvqDW9WXc9H62pkxa>
+emacs --batch --eval "(progn (add-to-list 'load-path \".\") (require 'greger-stdlib) (print (fboundp 'greger-stdlib--shell-command)))"
+</tool.toolu_016FBxUvvqDW9WXc9H62pkxa>
+
+## TOOL RESULT:
+
+ID: toolu_016FBxUvvqDW9WXc9H62pkxa
+
+<tool.toolu_016FBxUvvqDW9WXc9H62pkxa>
+Command executed successfully:
+Source file ‘/opt/homebrew/Cellar/emacs-plus@29/29.0.90/share/emacs/29.0.91/lisp/net/eww.el’ newer than byte-compiled file; using older file
+
+nil
+
+</tool.toolu_016FBxUvvqDW9WXc9H62pkxa>
+
+## ASSISTANT:
+
+The function is not bound! This suggests the function definition might have an issue. Let me check what's around the function definition:
+
+## TOOL USE:
+
+Name: read-file
+ID: toolu_01F2Jn7W6nETPCc6jzTVMHs6
+
+### path
+
+<tool.toolu_01F2Jn7W6nETPCc6jzTVMHs6>
+greger-stdlib.el
+</tool.toolu_01F2Jn7W6nETPCc6jzTVMHs6>
+
+### start_line
+
+<tool.toolu_01F2Jn7W6nETPCc6jzTVMHs6>
+980
+</tool.toolu_01F2Jn7W6nETPCc6jzTVMHs6>
+
+### end_line
+
+<tool.toolu_01F2Jn7W6nETPCc6jzTVMHs6>
+990
+</tool.toolu_01F2Jn7W6nETPCc6jzTVMHs6>
+
+## TOOL RESULT:
+
+ID: toolu_01F2Jn7W6nETPCc6jzTVMHs6
+
+<tool.toolu_01F2Jn7W6nETPCc6jzTVMHs6>
+                      (length function-names) test-file-path result-text)))))
+
+    (error (format "Failed to execute ERT tests: %s" (error-message-string err)))))
+
+(defun greger-stdlib--shell-command (command callback &optional working-directory metadata)
+  "Execute COMMAND in WORKING-DIRECTORY and call CALLBACK with (result error).
+Prompts for permission before running the command for security.
+If METADATA contains safe-shell-commands and COMMAND is in that list, skips permission prompt."
+  (let ((work-dir (or working-directory ".")))
+    (cond
+     ((not (stringp command))
+</tool.toolu_01F2Jn7W6nETPCc6jzTVMHs6>
+
+## ASSISTANT:
+
+Let me check the end of the function to see if there's a syntax issue:
+
+## TOOL USE:
+
+Name: read-file
+ID: toolu_01CdN7YuRyxavMRCmDGmXuTZ
+
+### path
+
+<tool.toolu_01CdN7YuRyxavMRCmDGmXuTZ>
+greger-stdlib.el
+</tool.toolu_01CdN7YuRyxavMRCmDGmXuTZ>
+
+### start_line
+
+<tool.toolu_01CdN7YuRyxavMRCmDGmXuTZ>
+1030
+</tool.toolu_01CdN7YuRyxavMRCmDGmXuTZ>
+
+### end_line
+
+<tool.toolu_01CdN7YuRyxavMRCmDGmXuTZ>
+1050
+</tool.toolu_01CdN7YuRyxavMRCmDGmXuTZ>
+
+## TOOL RESULT:
+
+ID: toolu_01CdN7YuRyxavMRCmDGmXuTZ
+
+<tool.toolu_01CdN7YuRyxavMRCmDGmXuTZ>
+
+              ;; Execute the command asynchronously
+              (greger-stdlib--run-async-subprocess
+               program args expanded-work-dir
+               (lambda (output error)
+                 (if error
+                     (funcall callback nil error)
+                   (funcall callback
+                           (format "Command executed successfully:\n%s" output)
+                           nil))))))))))))))
+
+(defun greger-stdlib--read-webpage (url &optional extract-text use-highest-readability)
+  "Read webpage content from URL.
+If EXTRACT-TEXT is non-nil (default t), extract and return text content.
+If EXTRACT-TEXT is nil, return raw HTML.
+If USE-HIGHEST-READABILITY is non-nil, use eww's aggressive readability setting."
+  (unless (stringp url)
+    (error "URL must be a string"))
+
+  (when (string-empty-p (string-trim url))
+    (error "URL cannot be empty"))
+</tool.toolu_01CdN7YuRyxavMRCmDGmXuTZ>
+
+## ASSISTANT:
+
+There appears to be too many closing parentheses! Let me check exactly what the structure should be by finding where it starts:
+
+## TOOL USE:
+
+Name: read-file
+ID: toolu_019ih1j6xqdHUpEr6gNZSggb
+
+### path
+
+<tool.toolu_019ih1j6xqdHUpEr6gNZSggb>
+greger-stdlib.el
+</tool.toolu_019ih1j6xqdHUpEr6gNZSggb>
+
+### start_line
+
+<tool.toolu_019ih1j6xqdHUpEr6gNZSggb>
+984
+</tool.toolu_019ih1j6xqdHUpEr6gNZSggb>
+
+### end_line
+
+<tool.toolu_019ih1j6xqdHUpEr6gNZSggb>
+1040
+</tool.toolu_019ih1j6xqdHUpEr6gNZSggb>
+
+### include_line_numbers
+
+<tool.toolu_019ih1j6xqdHUpEr6gNZSggb>
+true
+</tool.toolu_019ih1j6xqdHUpEr6gNZSggb>
+
+## TOOL RESULT:
+
+ID: toolu_019ih1j6xqdHUpEr6gNZSggb
+
+<tool.toolu_019ih1j6xqdHUpEr6gNZSggb>
+ 984: (defun greger-stdlib--shell-command (command callback &optional working-directory metadata)
+ 985:   "Execute COMMAND in WORKING-DIRECTORY and call CALLBACK with (result error).
+ 986: Prompts for permission before running the command for security.
+ 987: If METADATA contains safe-shell-commands and COMMAND is in that list, skips permission prompt."
+ 988:   (let ((work-dir (or working-directory ".")))
+ 989:     (cond
+ 990:      ((not (stringp command))
+ 991:       (funcall callback nil "Command must be a string"))
+ 992:
+ 993:      ((string-empty-p (string-trim command))
+ 994:       (funcall callback nil "Command cannot be empty"))
+ 995:
+ 996:      ((not (stringp work-dir))
+ 997:       (funcall callback nil "Working directory must be a string"))
+ 998:
+ 999:      (t
+1000:       (let ((expanded-work-dir (expand-file-name work-dir)))
+1001:         (cond
+1002:          ((not (file-exists-p expanded-work-dir))
+1003:           (funcall callback nil (format "Working directory does not exist: %s" expanded-work-dir)))
+1004:
+1005:          ((not (file-directory-p expanded-work-dir))
+1006:           (funcall callback nil (format "Working directory path is not a directory: %s" expanded-work-dir)))
+1007:
+1008:          ((let ((safe-commands (plist-get metadata :safe-shell-commands)))
+1009:             (and (not (member command safe-commands))
+1010:                  (not (y-or-n-p (format "Execute shell command: '%s' in directory '%s'? "
+1011:                                        command expanded-work-dir)))))
+1012:           (funcall callback nil "Shell command execution cancelled by user"))
+1013:
+1014:          (t
+1015:           ;; Check if command contains shell operators (pipes, redirections, etc.)
+1016:           (if (string-match-p "[|><&;]" command)
+1017:               ;; Use shell to execute commands with shell operators
+1018:               (greger-stdlib--run-async-subprocess
+1019:                "sh" (list "-c" command) expanded-work-dir
+1020:                (lambda (output error)
+1021:                  (if error
+1022:                      (funcall callback nil error)
+1023:                    (funcall callback
+1024:                            (format "Command executed successfully:\n%s" output)
+1025:                            nil))))
+1026:             ;; For simple commands, parse into program and arguments
+1027:             (let* ((command-parts (split-string-and-unquote command))
+1028:                    (program (car command-parts))
+1029:                    (args (cdr command-parts)))
+1030:
+1031:               ;; Execute the command asynchronously
+1032:               (greger-stdlib--run-async-subprocess
+1033:                program args expanded-work-dir
+1034:                (lambda (output error)
+1035:                  (if error
+1036:                      (funcall callback nil error)
+1037:                    (funcall callback
+1038:                            (format "Command executed successfully:\n%s" output)
+1039:                            nil))))))))))))))
+1040:
+</tool.toolu_019ih1j6xqdHUpEr6gNZSggb>
+
+## ASSISTANT:
+
+I can see the problem! There are too many closing parentheses at line 1039. Let me count the opening and closing parentheses to figure out the right structure. The function should have:
+
+1. Main `defun` - 1 opening
+2. `let` for work-dir - 1 opening
+3. `cond` - 1 opening
+4. Final case `t` - 1 opening
+5. Inner `let` for expanded-work-dir - 1 opening
+6. Inner `cond` - 1 opening
+7. Final inner case `t` - 1 opening
+8. `if` for shell operators - 1 opening
+
+So there should be 8 levels deep. Let me fix the parentheses:
+
+## TOOL USE:
+
+Name: str-replace
+ID: toolu_018dhBkJYQgESkbvf55b4wRu
+
+### file_path
+
+<tool.toolu_018dhBkJYQgESkbvf55b4wRu>
+greger-stdlib.el
+</tool.toolu_018dhBkJYQgESkbvf55b4wRu>
+
+### original_content
+
+<tool.toolu_018dhBkJYQgESkbvf55b4wRu>
+              ;; Execute the command asynchronously
+              (greger-stdlib--run-async-subprocess
+               program args expanded-work-dir
+               (lambda (output error)
+                 (if error
+                     (funcall callback nil error)
+                   (funcall callback
+                           (format "Command executed successfully:\n%s" output)
+                           nil)))))))))))))))
+</tool.toolu_018dhBkJYQgESkbvf55b4wRu>
+
+### new_content
+
+<tool.toolu_018dhBkJYQgESkbvf55b4wRu>
+              ;; Execute the command asynchronously
+              (greger-stdlib--run-async-subprocess
+               program args expanded-work-dir
+               (lambda (output error)
+                 (if error
+                     (funcall callback nil error)
+                   (funcall callback
+                           (format "Command executed successfully:\n%s" output)
+                           nil))))))))))))
+</tool.toolu_018dhBkJYQgESkbvf55b4wRu>
+
+### git_commit_message
+
+<tool.toolu_018dhBkJYQgESkbvf55b4wRu>
+Fix excessive closing parentheses in greger-stdlib--shell-command function
+</tool.toolu_018dhBkJYQgESkbvf55b4wRu>
+
+## TOOL RESULT:
+
+ID: toolu_018dhBkJYQgESkbvf55b4wRu
+
+<tool.toolu_018dhBkJYQgESkbvf55b4wRu>
+Error executing tool: Original content not found in file: /Users/andreas/projects/greger.el/greger-stdlib.el -- Try again!
+</tool.toolu_018dhBkJYQgESkbvf55b4wRu>
+
+## ASSISTANT:
+
+Let me check the exact formatting:
+
+## TOOL USE:
+
+Name: read-file
+ID: toolu_01NjAucoLwWKU8F38QtyYXLg
+
+### path
+
+<tool.toolu_01NjAucoLwWKU8F38QtyYXLg>
+greger-stdlib.el
+</tool.toolu_01NjAucoLwWKU8F38QtyYXLg>
+
+### start_line
+
+<tool.toolu_01NjAucoLwWKU8F38QtyYXLg>
+1031
+</tool.toolu_01NjAucoLwWKU8F38QtyYXLg>
+
+### end_line
+
+<tool.toolu_01NjAucoLwWKU8F38QtyYXLg>
+1041
+</tool.toolu_01NjAucoLwWKU8F38QtyYXLg>
+
+## TOOL RESULT:
+
+ID: toolu_01NjAucoLwWKU8F38QtyYXLg
+
+<tool.toolu_01NjAucoLwWKU8F38QtyYXLg>
+              ;; Execute the command asynchronously
+              (greger-stdlib--run-async-subprocess
+               program args expanded-work-dir
+               (lambda (output error)
+                 (if error
+                     (funcall callback nil error)
+                   (funcall callback
+                           (format "Command executed successfully:\n%s" output)
+                           nil))))))))))))))
+
+(defun greger-stdlib--read-webpage (url &optional extract-text use-highest-readability)
+</tool.toolu_01NjAucoLwWKU8F38QtyYXLg>
+
+## TOOL USE:
+
+Name: str-replace
+ID: toolu_013W6cN1XDCWN28fCJ4Ff7kr
+
+### file_path
+
+<tool.toolu_013W6cN1XDCWN28fCJ4Ff7kr>
+greger-stdlib.el
+</tool.toolu_013W6cN1XDCWN28fCJ4Ff7kr>
+
+### original_content
+
+<tool.toolu_013W6cN1XDCWN28fCJ4Ff7kr>
+              ;; Execute the command asynchronously
+              (greger-stdlib--run-async-subprocess
+               program args expanded-work-dir
+               (lambda (output error)
+                 (if error
+                     (funcall callback nil error)
+                   (funcall callback
+                           (format "Command executed successfully:\n%s" output)
+                           nil)))))))))))))))
+</tool.toolu_013W6cN1XDCWN28fCJ4Ff7kr>
+
+### new_content
+
+<tool.toolu_013W6cN1XDCWN28fCJ4Ff7kr>
+              ;; Execute the command asynchronously
+              (greger-stdlib--run-async-subprocess
+               program args expanded-work-dir
+               (lambda (output error)
+                 (if error
+                     (funcall callback nil error)
+                   (funcall callback
+                           (format "Command executed successfully:\n%s" output)
+                           nil))))))))))))
+</tool.toolu_013W6cN1XDCWN28fCJ4Ff7kr>
+
+### git_commit_message
+
+<tool.toolu_013W6cN1XDCWN28fCJ4Ff7kr>
+Fix excessive closing parentheses in greger-stdlib--shell-command function
+</tool.toolu_013W6cN1XDCWN28fCJ4Ff7kr>
+
+## TOOL RESULT:
+
+ID: toolu_013W6cN1XDCWN28fCJ4Ff7kr
+
+<tool.toolu_013W6cN1XDCWN28fCJ4Ff7kr>
+Error executing tool: Original content not found in file: /Users/andreas/projects/greger.el/greger-stdlib.el -- Try again!
+</tool.toolu_013W6cN1XDCWN28fCJ4Ff7kr>
+
+## ASSISTANT:
+
+Let me see exactly how many closing parentheses there are at the end:
+
+## TOOL USE:
+
+Name: read-file
+ID: toolu_015hN6tLLjrMVBq6M2ad3aQy
+
+### path
+
+<tool.toolu_015hN6tLLjrMVBq6M2ad3aQy>
+greger-stdlib.el
+</tool.toolu_015hN6tLLjrMVBq6M2ad3aQy>
+
+### start_line
+
+<tool.toolu_015hN6tLLjrMVBq6M2ad3aQy>
+1037
+</tool.toolu_015hN6tLLjrMVBq6M2ad3aQy>
+
+### end_line
+
+<tool.toolu_015hN6tLLjrMVBq6M2ad3aQy>
+1042
+</tool.toolu_015hN6tLLjrMVBq6M2ad3aQy>
+
+## TOOL RESULT:
+
+ID: toolu_015hN6tLLjrMVBq6M2ad3aQy
+
+<tool.toolu_015hN6tLLjrMVBq6M2ad3aQy>
+                   (funcall callback
+                           (format "Command executed successfully:\n%s" output)
+                           nil))))))))))))))
+
+(defun greger-stdlib--read-webpage (url &optional extract-text use-highest-readability)
+  "Read webpage content from URL.
+</tool.toolu_015hN6tLLjrMVBq6M2ad3aQy>
+
+## ASSISTANT:
+
+I can see there are 14 closing parentheses at the end of line 1039! Let me count what's needed carefully by looking at the structure:
+
+## TOOL USE:
+
+Name: read-file
+ID: toolu_01P6iL9vUDfGsQhLaBJnJW7M
+
+### path
+
+<tool.toolu_01P6iL9vUDfGsQhLaBJnJW7M>
+greger-stdlib.el
+</tool.toolu_01P6iL9vUDfGsQhLaBJnJW7M>
+
+### start_line
+
+<tool.toolu_01P6iL9vUDfGsQhLaBJnJW7M>
+1014
+</tool.toolu_01P6iL9vUDfGsQhLaBJnJW7M>
+
+### end_line
+
+<tool.toolu_01P6iL9vUDfGsQhLaBJnJW7M>
+1040
+</tool.toolu_01P6iL9vUDfGsQhLaBJnJW7M>
+
+### include_line_numbers
+
+<tool.toolu_01P6iL9vUDfGsQhLaBJnJW7M>
+true
+</tool.toolu_01P6iL9vUDfGsQhLaBJnJW7M>
+
+## TOOL RESULT:
+
+ID: toolu_01P6iL9vUDfGsQhLaBJnJW7M
+
+<tool.toolu_01P6iL9vUDfGsQhLaBJnJW7M>
+1014:          (t
+1015:           ;; Check if command contains shell operators (pipes, redirections, etc.)
+1016:           (if (string-match-p "[|><&;]" command)
+1017:               ;; Use shell to execute commands with shell operators
+1018:               (greger-stdlib--run-async-subprocess
+1019:                "sh" (list "-c" command) expanded-work-dir
+1020:                (lambda (output error)
+1021:                  (if error
+1022:                      (funcall callback nil error)
+1023:                    (funcall callback
+1024:                            (format "Command executed successfully:\n%s" output)
+1025:                            nil))))
+1026:             ;; For simple commands, parse into program and arguments
+1027:             (let* ((command-parts (split-string-and-unquote command))
+1028:                    (program (car command-parts))
+1029:                    (args (cdr command-parts)))
+1030:
+1031:               ;; Execute the command asynchronously
+1032:               (greger-stdlib--run-async-subprocess
+1033:                program args expanded-work-dir
+1034:                (lambda (output error)
+1035:                  (if error
+1036:                      (funcall callback nil error)
+1037:                    (funcall callback
+1038:                            (format "Command executed successfully:\n%s" output)
+1039:                            nil))))))))))))))
+1040:
+</tool.toolu_01P6iL9vUDfGsQhLaBJnJW7M>
+
+## ASSISTANT:
+
+Now I can count the levels that need to be closed at the end:
+
+1. `(funcall callback ...` - needs 1 closing
+2. `(if error ...` - needs 1 closing
+3. `(lambda (output error) ...` - needs 1 closing
+4. `(greger-stdlib--run-async-subprocess ...` - needs 1 closing
+5. `(let* ...` - needs 1 closing
+6. `(if (string-match-p ...` (from line 1016) - needs 1 closing
+7. `(t` from the inner cond (line 1014) - needs 1 closing
+8. Inner `cond` - needs 1 closing
+9. Inner `let` for expanded-work-dir - needs 1 closing
+10. `(t` from outer cond - needs 1 closing
+11. Outer `cond` - needs 1 closing
+12. Main `let` - needs 1 closing
+13. Main `defun` - needs 1 closing
+
+So I need exactly 13 closing parentheses, but there are 14. Let me fix this:
+
+## TOOL USE:
+
+Name: str-replace
+ID: toolu_01GXqTnvrJQnEqUzeeM1aK49
+
+### file_path
+
+<tool.toolu_01GXqTnvrJQnEqUzeeM1aK49>
+greger-stdlib.el
+</tool.toolu_01GXqTnvrJQnEqUzeeM1aK49>
+
+### original_content
+
+<tool.toolu_01GXqTnvrJQnEqUzeeM1aK49>
+                    (funcall callback
+                            (format "Command executed successfully:\n%s" output)
+                            nil)))))))))))))))
+</tool.toolu_01GXqTnvrJQnEqUzeeM1aK49>
+
+### new_content
+
+<tool.toolu_01GXqTnvrJQnEqUzeeM1aK49>
+                    (funcall callback
+                            (format "Command executed successfully:\n%s" output)
+                            nil))))))))))))
+</tool.toolu_01GXqTnvrJQnEqUzeeM1aK49>
+
+### git_commit_message
+
+<tool.toolu_01GXqTnvrJQnEqUzeeM1aK49>
+Fix excessive closing parentheses in greger-stdlib--shell-command function
+</tool.toolu_01GXqTnvrJQnEqUzeeM1aK49>
+
+## TOOL RESULT:
+
+ID: toolu_01GXqTnvrJQnEqUzeeM1aK49
+
+<tool.toolu_01GXqTnvrJQnEqUzeeM1aK49>
+Error executing tool: Original content not found in file: /Users/andreas/projects/greger.el/greger-stdlib.el -- Try again!
+</tool.toolu_01GXqTnvrJQnEqUzeeM1aK49>
+
+## ASSISTANT:
+
+Let me use a different approach and read the exact text:
+
+## TOOL USE:
+
+Name: shell-command
+ID: toolu_0187tzsvqaUfGy32sEHxZvRK
+
+### command
+
+<tool.toolu_0187tzsvqaUfGy32sEHxZvRK>
+tail -5 greger-stdlib.el | head -2
+</tool.toolu_0187tzsvqaUfGy32sEHxZvRK>
+
+## TOOL RESULT:
+
+ID: toolu_0187tzsvqaUfGy32sEHxZvRK
+
+<tool.toolu_0187tzsvqaUfGy32sEHxZvRK>
+Command executed successfully:
+;;; greger-stdlib.el ends here
+
+
+</tool.toolu_0187tzsvqaUfGy32sEHxZvRK>
+
+## TOOL USE:
+
+Name: read-file
+ID: toolu_01MGGsE3vDCsni3YQodrTsK3
+
+### path
+
+<tool.toolu_01MGGsE3vDCsni3YQodrTsK3>
+greger-stdlib.el
+</tool.toolu_01MGGsE3vDCsni3YQodrTsK3>
+
+### start_line
+
+<tool.toolu_01MGGsE3vDCsni3YQodrTsK3>
+1039
+</tool.toolu_01MGGsE3vDCsni3YQodrTsK3>
+
+### end_line
+
+<tool.toolu_01MGGsE3vDCsni3YQodrTsK3>
+1039
+</tool.toolu_01MGGsE3vDCsni3YQodrTsK3>
+
+## TOOL RESULT:
+
+ID: toolu_01MGGsE3vDCsni3YQodrTsK3
+
+<tool.toolu_01MGGsE3vDCsni3YQodrTsK3>
+                           nil))))))))))))))
+</tool.toolu_01MGGsE3vDCsni3YQodrTsK3>
+
+## TOOL USE:
+
+Name: str-replace
+ID: toolu_013haPJMJ7BRjQCBwMdbienZ
+
+### file_path
+
+<tool.toolu_013haPJMJ7BRjQCBwMdbienZ>
+greger-stdlib.el
+</tool.toolu_013haPJMJ7BRjQCBwMdbienZ>
+
+### original_content
+
+<tool.toolu_013haPJMJ7BRjQCBwMdbienZ>
+nil))))))))))))))
+</tool.toolu_013haPJMJ7BRjQCBwMdbienZ>
+
+### new_content
+
+<tool.toolu_013haPJMJ7BRjQCBwMdbienZ>
+nil))))))))))))
+</tool.toolu_013haPJMJ7BRjQCBwMdbienZ>
+
+### git_commit_message
+
+<tool.toolu_013haPJMJ7BRjQCBwMdbienZ>
+Fix excessive closing parentheses in greger-stdlib--shell-command function
+</tool.toolu_013haPJMJ7BRjQCBwMdbienZ>
+
+<!-- TOOL_RESULT_PLACEHOLDER_toolu_013haPJMJ7BRjQCBwMdbienZ -->
