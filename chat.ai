@@ -3652,4 +3652,119 @@ test/test-greger-stdlib.el
 Rewrite line number formatting test to use string= with multi-line expected results
 </tool.toolu_01RFUbdK6Wii38ikfxmcc5HW>
 
-<!-- TOOL_RESULT_PLACEHOLDER_toolu_01RFUbdK6Wii38ikfxmcc5HW -->
+## TOOL RESULT:
+
+ID: toolu_01RFUbdK6Wii38ikfxmcc5HW
+
+<tool.toolu_01RFUbdK6Wii38ikfxmcc5HW>
+Successfully replaced content in /Users/andreas/projects/greger.el/test/test-greger-stdlib.el. Successfully staged 2 file(s) and committed with message: Rewrite line number formatting test to use string= with multi-line expected results
+</tool.toolu_01RFUbdK6Wii38ikfxmcc5HW>
+
+
+## ASSISTANT:
+
+Now let me also improve the basic read-file test to use multi-line strings for better readability:
+
+## TOOL USE:
+
+Name: str-replace
+ID: toolu_01LXMwJAtgSRFU4dTghxpAMv
+
+### file_path
+
+<tool.toolu_01LXMwJAtgSRFU4dTghxpAMv>
+test/test-greger-stdlib.el
+</tool.toolu_01LXMwJAtgSRFU4dTghxpAMv>
+
+### original_content
+
+<tool.toolu_01LXMwJAtgSRFU4dTghxpAMv>
+(ert-deftest greger-test-read-file-basic ()
+  "Test basic file reading functionality."
+  (let ((test-file (make-temp-file "greger-test-read-file")))
+    (unwind-protect
+        (progn
+          ;; Write test content to file
+          (with-temp-buffer
+            (insert "Line 1\nLine 2\nLine 3\n")
+            (write-file test-file))
+
+          ;; Test basic reading without line numbers
+          (let ((result (greger-stdlib--read-file test-file)))
+            (should (stringp result))
+            (should (string= result "Line 1\nLine 2\nLine 3")))
+
+          ;; Test reading with line numbers
+          (let ((result (greger-stdlib--read-file test-file t)))
+            (should (stringp result))
+            (should (string= result "1: Line 1\n2: Line 2\n3: Line 3")))
+
+          ;; Test reading with start and end lines
+          (let ((result (greger-stdlib--read-file test-file nil 2 2)))
+            (should (stringp result))
+            (should (string= result "Line 2")))
+
+          ;; Test reading with line numbers and range
+          (let ((result (greger-stdlib--read-file test-file t 1 2)))
+            (should (stringp result))
+            (should (string= result "1: Line 1\n2: Line 2"))))
+
+      ;; Clean up
+      (when (file-exists-p test-file)
+        (delete-file test-file)))))
+</tool.toolu_01LXMwJAtgSRFU4dTghxpAMv>
+
+### new_content
+
+<tool.toolu_01LXMwJAtgSRFU4dTghxpAMv>
+(ert-deftest greger-test-read-file-basic ()
+  "Test basic file reading functionality."
+  (let ((test-file (make-temp-file "greger-test-read-file")))
+    (unwind-protect
+        (progn
+          ;; Write test content to file
+          (with-temp-buffer
+            (insert "Line 1\nLine 2\nLine 3\n")
+            (write-file test-file))
+
+          ;; Test basic reading without line numbers
+          (let ((result (greger-stdlib--read-file test-file))
+                (expected "Line 1
+Line 2
+Line 3"))
+            (should (stringp result))
+            (should (string= result expected)))
+
+          ;; Test reading with line numbers
+          (let ((result (greger-stdlib--read-file test-file t))
+                (expected "1: Line 1
+2: Line 2
+3: Line 3"))
+            (should (stringp result))
+            (should (string= result expected)))
+
+          ;; Test reading with start and end lines
+          (let ((result (greger-stdlib--read-file test-file nil 2 2))
+                (expected "Line 2"))
+            (should (stringp result))
+            (should (string= result expected)))
+
+          ;; Test reading with line numbers and range
+          (let ((result (greger-stdlib--read-file test-file t 1 2))
+                (expected "1: Line 1
+2: Line 2"))
+            (should (stringp result))
+            (should (string= result expected))))
+
+      ;; Clean up
+      (when (file-exists-p test-file)
+        (delete-file test-file)))))
+</tool.toolu_01LXMwJAtgSRFU4dTghxpAMv>
+
+### git_commit_message
+
+<tool.toolu_01LXMwJAtgSRFU4dTghxpAMv>
+Rewrite basic read-file test to use string= with multi-line expected results for better readability
+</tool.toolu_01LXMwJAtgSRFU4dTghxpAMv>
+
+<!-- TOOL_RESULT_PLACEHOLDER_toolu_01LXMwJAtgSRFU4dTghxpAMv -->

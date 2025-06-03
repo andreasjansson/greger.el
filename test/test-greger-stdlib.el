@@ -616,24 +616,33 @@
             (write-file test-file))
 
           ;; Test basic reading without line numbers
-          (let ((result (greger-stdlib--read-file test-file)))
+          (let ((result (greger-stdlib--read-file test-file))
+                (expected "Line 1
+Line 2
+Line 3"))
             (should (stringp result))
-            (should (string= result "Line 1\nLine 2\nLine 3")))
+            (should (string= result expected)))
 
           ;; Test reading with line numbers
-          (let ((result (greger-stdlib--read-file test-file t)))
+          (let ((result (greger-stdlib--read-file test-file t))
+                (expected "1: Line 1
+2: Line 2
+3: Line 3"))
             (should (stringp result))
-            (should (string= result "1: Line 1\n2: Line 2\n3: Line 3")))
+            (should (string= result expected)))
 
           ;; Test reading with start and end lines
-          (let ((result (greger-stdlib--read-file test-file nil 2 2)))
+          (let ((result (greger-stdlib--read-file test-file nil 2 2))
+                (expected "Line 2"))
             (should (stringp result))
-            (should (string= result "Line 2")))
+            (should (string= result expected)))
 
           ;; Test reading with line numbers and range
-          (let ((result (greger-stdlib--read-file test-file t 1 2)))
+          (let ((result (greger-stdlib--read-file test-file t 1 2))
+                (expected "1: Line 1
+2: Line 2"))
             (should (stringp result))
-            (should (string= result "1: Line 1\n2: Line 2"))))
+            (should (string= result expected))))
 
       ;; Clean up
       (when (file-exists-p test-file)
