@@ -3222,4 +3222,128 @@ greger-stdlib.el
 Fix handling of trailing newlines in file reading by removing empty final line
 </tool.toolu_015kzadd157CzjzsJRmjBmXn>
 
-<!-- TOOL_RESULT_PLACEHOLDER_toolu_015kzadd157CzjzsJRmjBmXn -->
+## TOOL RESULT:
+
+ID: toolu_015kzadd157CzjzsJRmjBmXn
+
+<tool.toolu_015kzadd157CzjzsJRmjBmXn>
+Successfully replaced content in /Users/andreas/projects/greger.el/greger-stdlib.el. Successfully staged 2 file(s) and committed with message: Fix handling of trailing newlines in file reading by removing empty final line
+</tool.toolu_015kzadd157CzjzsJRmjBmXn>
+
+
+## ASSISTANT:
+
+Now let's test this:
+
+## TOOL USE:
+
+Name: read-file
+ID: toolu_01BH6PiYsFqkTY19MhmL1MWr
+
+### path
+
+<tool.toolu_01BH6PiYsFqkTY19MhmL1MWr>
+test-read-file.txt
+</tool.toolu_01BH6PiYsFqkTY19MhmL1MWr>
+
+### include_line_numbers
+
+<tool.toolu_01BH6PiYsFqkTY19MhmL1MWr>
+true
+</tool.toolu_01BH6PiYsFqkTY19MhmL1MWr>
+
+## TOOL RESULT:
+
+ID: toolu_01BH6PiYsFqkTY19MhmL1MWr
+
+<tool.toolu_01BH6PiYsFqkTY19MhmL1MWr>
+1: Line 1
+2: Line 2
+3: Line 3
+4:
+</tool.toolu_01BH6PiYsFqkTY19MhmL1MWr>
+
+## ASSISTANT:
+
+Still getting an empty line. Let me check if the issue is in the line numbering function instead. The problem might be in the `greger-stdlib--add-line-numbers-with-offset` function where it's still processing the split result that includes empty strings.
+
+Let me check this:
+
+## TOOL USE:
+
+Name: read-file
+ID: toolu_014gHRxwr5QoAGGAWAWa8rEG
+
+### path
+
+<tool.toolu_014gHRxwr5QoAGGAWAWa8rEG>
+test-read-file.txt
+</tool.toolu_014gHRxwr5QoAGGAWAWa8rEG>
+
+## TOOL RESULT:
+
+ID: toolu_014gHRxwr5QoAGGAWAWa8rEG
+
+<tool.toolu_014gHRxwr5QoAGGAWAWa8rEG>
+Line 1
+Line 2
+Line 3
+
+</tool.toolu_014gHRxwr5QoAGGAWAWa8rEG>
+
+## USER:
+
+I think the issue is that when we save the file in emacs it automatically inserts a newline. So I think that's fine.
+
+## ASSISTANT:
+
+You're absolutely right! Emacs automatically adds a trailing newline when saving files (unless you explicitly disable it), so the behavior is correct. The issue is with my test expectations, not the implementation.
+
+Let me fix the tests to match the actual correct behavior:
+
+## TOOL USE:
+
+Name: str-replace
+ID: toolu_01EjyjxAWGrqJcFNWKZoBnLo
+
+### file_path
+
+<tool.toolu_01EjyjxAWGrqJcFNWKZoBnLo>
+test/test-greger-stdlib.el
+</tool.toolu_01EjyjxAWGrqJcFNWKZoBnLo>
+
+### original_content
+
+<tool.toolu_01EjyjxAWGrqJcFNWKZoBnLo>
+          ;; Test basic reading without line numbers
+          (let ((result (greger-stdlib--read-file test-file)))
+            (should (stringp result))
+            (should (string= result "Line 1\nLine 2\nLine 3\n")))
+
+          ;; Test reading with line numbers
+          (let ((result (greger-stdlib--read-file test-file t)))
+            (should (stringp result))
+            (should (string= result "1: Line 1\n2: Line 2\n3: Line 3\n")))
+</tool.toolu_01EjyjxAWGrqJcFNWKZoBnLo>
+
+### new_content
+
+<tool.toolu_01EjyjxAWGrqJcFNWKZoBnLo>
+          ;; Test basic reading without line numbers
+          (let ((result (greger-stdlib--read-file test-file)))
+            (should (stringp result))
+            (should (string= result "Line 1\nLine 2\nLine 3")))
+
+          ;; Test reading with line numbers
+          (let ((result (greger-stdlib--read-file test-file t)))
+            (should (stringp result))
+            (should (string= result "1: Line 1\n2: Line 2\n3: Line 3")))
+</tool.toolu_01EjyjxAWGrqJcFNWKZoBnLo>
+
+### git_commit_message
+
+<tool.toolu_01EjyjxAWGrqJcFNWKZoBnLo>
+Fix test expectations to account for Emacs automatic trailing newline handling
+</tool.toolu_01EjyjxAWGrqJcFNWKZoBnLo>
+
+<!-- TOOL_RESULT_PLACEHOLDER_toolu_01EjyjxAWGrqJcFNWKZoBnLo -->

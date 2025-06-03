@@ -618,12 +618,12 @@
           ;; Test basic reading without line numbers
           (let ((result (greger-stdlib--read-file test-file)))
             (should (stringp result))
-            (should (string= result "Line 1\nLine 2\nLine 3\n")))
+            (should (string= result "Line 1\nLine 2\nLine 3")))
 
           ;; Test reading with line numbers
           (let ((result (greger-stdlib--read-file test-file t)))
             (should (stringp result))
-            (should (string= result "1: Line 1\n2: Line 2\n3: Line 3\n")))
+            (should (string= result "1: Line 1\n2: Line 2\n3: Line 3")))
 
           ;; Test reading with start and end lines
           (let ((result (greger-stdlib--read-file test-file nil 2 2)))
