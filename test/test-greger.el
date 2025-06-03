@@ -77,7 +77,7 @@ ID: test_001
 Tool executed: Hello World
 </tool.test_001>"))
 
-        ;; Mock greger-agent--run-agent-loop to capture completion
+        ;; Mock greger--run-agent-loop to capture completion
         (cl-letf (((symbol-function 'greger-agent--run-agent-loop)
                    (lambda (state)
                      (setq test-completed t))))
