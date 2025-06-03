@@ -213,10 +213,9 @@
     (message "Model set to %s" model)))
 
 (defun greger-debug-request ()
-  "Debug the request data by parsing the buffer and saving the greger-provider-claude--build-data output."
+  "Debug the request data by parsing the buffer and saving the request data output."
   (interactive)
   (require 'greger-parser)
-  (require 'greger-provider-claude)
   (require 'greger-tools)
   (require 'json)
   (let* ((filename (read-string "Save to filename (default: request.json): " nil nil "request.json"))
@@ -225,18 +224,14 @@
          (dialog (plist-get parse-result :messages))
          (tools (when greger-agent-tools
                   (greger-tools-get-schemas greger-agent-tools)))
-         (model-name (symbol-name greger-model))
+         (model greger-model)
          (request-data nil))
 
     (unless dialog
       (error "Failed to parse dialog. Check your buffer format"))
 
-    ;; Extract just the model name part (e.g., "claude-sonnet-4-20250514" from "claude/claude-sonnet-4-20250514")
-    (when (string-match "^[^/]+/\\(.+\\)$" model-name)
-      (setq model-name (match-string 1 model-name)))
-
-    ;; Get the JSON request data
-    (setq request-data (greger-provider-claude--build-data model-name dialog tools))
+    ;; Get the JSON request data using the new client
+    (setq request-data (greger-client--build-data model dialog tools))
 
     ;; Parse the JSON and re-encode with proper formatting
     (condition-case err
