@@ -45,6 +45,39 @@
   :type 'float
   :group 'greger)
 
+;; Tool configuration and agent functionality
+
+(defun greger--default-tools ()
+  "Return default tools list, including LSP tools if available."
+  (let ((base-tools '("read-file" "list-directory" "str-replace" "insert" "write-new-file" "replace-file" "replace-function" "make-directory" "rename-file" "ripgrep" "git-log" "git-show-commit" "shell-command" "read-webpage"))
+        (lsp-tools '("lsp-rename" "lsp-find-definition" "lsp-find-references" "lsp-format" "lsp-document-symbols")))
+    (if (and (boundp 'greger-lib-lsp-available) greger-lib-lsp-available)
+        (append base-tools lsp-tools)
+      base-tools)))
+
+(defcustom greger-tools (greger--default-tools)
+  "List of tools available to the agent."
+  :type '(repeat symbol)
+  :group 'greger)
+
+(defcustom greger-max-iterations 100
+  "Maximum number of agent iterations before stopping."
+  :type 'integer
+  :group 'greger)
+
+(defcustom greger-debug nil
+  "Whether to show debug information."
+  :type 'boolean
+  :group 'greger)
+
+;;; Agent state structure
+
+(cl-defstruct greger-state
+  current-iteration
+  chat-buffer
+  directory
+  metadata)
+
 (defvar greger-user-tag "## USER:")
 (defvar greger-assistant-tag "## ASSISTANT:")
 (defvar greger-system-tag "## SYSTEM:")
