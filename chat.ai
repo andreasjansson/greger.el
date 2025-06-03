@@ -4417,4 +4417,148 @@ test/test-greger-parser.el
 Update safe-shell-commands-basic test to use string= with multiline string
 </tool.toolu_015dnbErtJHVJzdtqcynEmXc>
 
-<!-- TOOL_RESULT_PLACEHOLDER_toolu_015dnbErtJHVJzdtqcynEmXc -->
+## TOOL RESULT:
+
+ID: toolu_015dnbErtJHVJzdtqcynEmXc
+
+<tool.toolu_015dnbErtJHVJzdtqcynEmXc>
+Successfully replaced content in /Users/andreas/projects/greger.el/test/test-greger-parser.el. Successfully staged 2 file(s) and committed with message: Update safe-shell-commands-basic test to use string= with multiline string
+</tool.toolu_015dnbErtJHVJzdtqcynEmXc>
+
+
+## ASSISTANT:
+
+Now let me find and update the `safe-shell-commands-with-system-content` test:
+
+## TOOL USE:
+
+Name: read-file
+ID: toolu_016ZfnmYm6dtxL1qAD8LWB2r
+
+### path
+
+<tool.toolu_016ZfnmYm6dtxL1qAD8LWB2r>
+test/test-greger-parser.el
+</tool.toolu_016ZfnmYm6dtxL1qAD8LWB2r>
+
+### start_line
+
+<tool.toolu_016ZfnmYm6dtxL1qAD8LWB2r>
+1373
+</tool.toolu_016ZfnmYm6dtxL1qAD8LWB2r>
+
+### end_line
+
+<tool.toolu_016ZfnmYm6dtxL1qAD8LWB2r>
+1410
+</tool.toolu_016ZfnmYm6dtxL1qAD8LWB2r>
+
+### include_line_numbers
+
+<tool.toolu_016ZfnmYm6dtxL1qAD8LWB2r>
+true
+</tool.toolu_016ZfnmYm6dtxL1qAD8LWB2r>
+
+## TOOL RESULT:
+
+ID: toolu_016ZfnmYm6dtxL1qAD8LWB2r
+
+<tool.toolu_016ZfnmYm6dtxL1qAD8LWB2r>
+1373:
+1374: (ert-deftest greger-parser-test-safe-shell-commands-with-system-content ()
+1375:   "Test safe-shell-commands with other system content."
+1376:   (let ((markdown "## SYSTEM:
+1377:
+1378: You are a helpful assistant.
+1379:
+1380: <safe-shell-commands>
+1381: ls
+1382: pwd
+1383: </safe-shell-commands>
+1384:
+1385: Please be careful."))
+1386:     (let ((result (greger-parser-parse-dialog markdown)))
+1387:       ;; Should have a system message since there's other content
+1388:       (should (= 1 (length (plist-get result :messages))))
+1389:       (should (string= "system" (alist-get 'role (car (plist-get result :messages)))))
+1390:       ;; Should also have metadata since safe-shell-commands can coexist with content
+1391:       (should (equal '(:safe-shell-commands ("ls" "pwd")) (plist-get result :metadata)))
+1392:       ;; System message should contain the text content but not the safe-shell-commands
+1393:       (let ((system-content (alist-get 'content (car (plist-get result :messages)))))
+1394:         (should (string-match-p "You are a helpful assistant" system-content))
+1395:         (should (string-match-p "Please be careful" system-content))
+1396:         (should-not (string-match-p "safe-shell-commands" system-content))))))
+1397:
+1398: (ert-deftest greger-parser-test-safe-shell-commands-only-once ()
+1399:   "Test that only one safe-shell-commands block is allowed."
+1400:   (let ((markdown "## SYSTEM:
+1401:
+1402: <safe-shell-commands>
+1403: ls
+1404: pwd
+1405: </safe-shell-commands>
+1406:
+1407: <safe-shell-commands>
+1408: echo hello
+1409: </safe-shell-commands>"))
+1410:     (let ((result (greger-parser-parse-dialog markdown)))
+</tool.toolu_016ZfnmYm6dtxL1qAD8LWB2r>
+
+## ASSISTANT:
+
+I need to update this test to reflect the new behavior where the safe shell commands text is included in the system message:
+
+## TOOL USE:
+
+Name: str-replace
+ID: toolu_01Trnx1kMy5m5hKBNL5PAkD3
+
+### file_path
+
+<tool.toolu_01Trnx1kMy5m5hKBNL5PAkD3>
+test/test-greger-parser.el
+</tool.toolu_01Trnx1kMy5m5hKBNL5PAkD3>
+
+### original_content
+
+<tool.toolu_01Trnx1kMy5m5hKBNL5PAkD3>
+;; Should have a system message since there's other content
+      (should (= 1 (length (plist-get result :messages))))
+      (should (string= "system" (alist-get 'role (car (plist-get result :messages)))))
+      ;; Should also have metadata since safe-shell-commands can coexist with content
+      (should (equal '(:safe-shell-commands ("ls" "pwd")) (plist-get result :metadata)))
+      ;; System message should contain the text content but not the safe-shell-commands
+      (let ((system-content (alist-get 'content (car (plist-get result :messages)))))
+        (should (string-match-p "You are a helpful assistant" system-content))
+        (should (string-match-p "Please be careful" system-content))
+        (should-not (string-match-p "safe-shell-commands" system-content)))
+</tool.toolu_01Trnx1kMy5m5hKBNL5PAkD3>
+
+### new_content
+
+<tool.toolu_01Trnx1kMy5m5hKBNL5PAkD3>
+;; Should have a system message with combined content
+      (should (= 1 (length (plist-get result :messages))))
+      (should (string= "system" (alist-get 'role (car (plist-get result :messages)))))
+      ;; Should also have metadata since safe-shell-commands can coexist with content
+      (should (equal '(:safe-shell-commands ("ls" "pwd")) (plist-get result :metadata)))
+      ;; System message should contain the original content and the auto-generated safe commands text
+      (let ((system-content (alist-get 'content (car (plist-get result :messages)))))
+        (should (string= "You are a helpful assistant.
+
+Please be careful.
+
+You can run arbitrary shell commands with the shell-command tool, but the following are safe shell commands that will run without requiring user confirmation:
+
+* `ls`
+* `pwd`"
+                         system-content)))
+</tool.toolu_01Trnx1kMy5m5hKBNL5PAkD3>
+
+### git_commit_message
+
+<tool.toolu_01Trnx1kMy5m5hKBNL5PAkD3>
+Update safe-shell-commands-with-system-content test to use string= with expected combined content
+</tool.toolu_01Trnx1kMy5m5hKBNL5PAkD3>
+
+<!-- TOOL_RESULT_PLACEHOLDER_toolu_01Trnx1kMy5m5hKBNL5PAkD3 -->

@@ -1384,16 +1384,22 @@ pwd
 
 Please be careful."))
     (let ((result (greger-parser-parse-dialog markdown)))
-      ;; Should have a system message since there's other content
+      ;; Should have a system message with combined content
       (should (= 1 (length (plist-get result :messages))))
       (should (string= "system" (alist-get 'role (car (plist-get result :messages)))))
       ;; Should also have metadata since safe-shell-commands can coexist with content
       (should (equal '(:safe-shell-commands ("ls" "pwd")) (plist-get result :metadata)))
-      ;; System message should contain the text content but not the safe-shell-commands
+      ;; System message should contain the original content and the auto-generated safe commands text
       (let ((system-content (alist-get 'content (car (plist-get result :messages)))))
-        (should (string-match-p "You are a helpful assistant" system-content))
-        (should (string-match-p "Please be careful" system-content))
-        (should-not (string-match-p "safe-shell-commands" system-content))))))
+        (should (string= "You are a helpful assistant.
+
+Please be careful.
+
+You can run arbitrary shell commands with the shell-command tool, but the following are safe shell commands that will run without requiring user confirmation:
+
+* `ls`
+* `pwd`"
+                         system-content))))))
 
 (ert-deftest greger-parser-test-safe-shell-commands-only-once ()
   "Test that only one safe-shell-commands block is allowed."
