@@ -580,10 +580,10 @@ If BUFFER is provided, it will be staged and committed along with the directory.
 GIT-COMMIT-MESSAGE will be used for the git commit.
 If BUFFER is provided, it will be staged and committed along with the renamed file."
   (unless (stringp old-path)
-    (error "old_path must be a string"))
+    (error "Old_path must be a string"))
 
   (unless (stringp new-path)
-    (error "new_path must be a string"))
+    (error "New_path must be a string"))
 
   (let ((expanded-old-path (expand-file-name old-path))
         (expanded-new-path (expand-file-name new-path)))
