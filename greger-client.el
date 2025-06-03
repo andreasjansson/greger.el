@@ -395,7 +395,3 @@ Example of incoming data json (one data-json per line):
 (provide 'greger-client)
 
 ;;; greger-client.el ends here
-
-;; Local Variables:
-;; package-lint-main-file: "greger.el"
-;; End:
