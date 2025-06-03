@@ -527,7 +527,8 @@ COMPLETION-CALLBACK is called when complete."
           (greger--setup-collapsible-content content-start content-end tool-id))))))
 
 (defun greger--extract-tool-id (tag-string)
-  "Extract tool ID from a tool tag string like '<tool.abc123>'."
+  "Extract tool ID from a tool tag string like '<tool.abc123>'.
+TAG-STRING is the tag string to extract from."
   (when (string-match "<tool\\.\\([^>]+\\)>" tag-string)
     (match-string 1 tag-string)))
 
