@@ -2,6 +2,7 @@
 
 <safe-shell-commands>
 bash script/package-lint
+bash script/test --verbose --file test/test-end-to-end.el
 </safe-shell-commands>
 
 
@@ -3400,4 +3401,499 @@ FILES_TO_LINT=(
 Update package-lint script to include greger-client.el and remove deleted files
 </tool.toolu_018tbvCu4rmdXTpZixyvFWVr>
 
-<!-- TOOL_RESULT_PLACEHOLDER_toolu_018tbvCu4rmdXTpZixyvFWVr -->
+## TOOL RESULT:
+
+ID: toolu_018tbvCu4rmdXTpZixyvFWVr
+
+<tool.toolu_018tbvCu4rmdXTpZixyvFWVr>
+Successfully replaced content in /Users/andreas/projects/greger.el/script/package-lint. Successfully staged 2 file(s) and committed with message: Update package-lint script to include greger-client.el and remove deleted files
+</tool.toolu_018tbvCu4rmdXTpZixyvFWVr>
+
+
+## ASSISTANT:
+
+Now let's run the package-lint script again to make sure `greger-client.el` passes linting:
+
+## TOOL USE:
+
+Name: shell-command
+ID: toolu_01UL4ACyaAWHLEvpMJB2wqXe
+
+### command
+
+<tool.toolu_01UL4ACyaAWHLEvpMJB2wqXe>
+bash script/package-lint
+</tool.toolu_01UL4ACyaAWHLEvpMJB2wqXe>
+
+## TOOL RESULT:
+
+ID: toolu_01UL4ACyaAWHLEvpMJB2wqXe
+
+<tool.toolu_01UL4ACyaAWHLEvpMJB2wqXe>
+Command executed successfully:
+[1;33mRunning package-lint on greger package...[0m
+
+Linting [1;33mgreger.el[0m...
+  [0;32m✓ No issues found[0m
+
+Linting [1;33mgreger-agent.el[0m...
+  [0;32m✓ No issues found[0m
+
+Linting [1;33mgreger-parser.el[0m...
+  [0;32m✓ No issues found[0m
+
+Linting [1;33mgreger-client.el[0m...
+  [0;32m✓ No issues found[0m
+
+Linting [1;33mgreger-tools.el[0m...
+  [0;32m✓ No issues found[0m
+
+Linting [1;33mgreger-stdlib.el[0m...
+  [0;32m✓ No issues found[0m
+
+Linting [1;33mgreger-lib-lsp.el[0m...
+  [0;32m✓ No issues found[0m
+
+Linting [1;33mgreger-web.el[0m...
+  [0;32m✓ No issues found[0m
+
+[1;33mPackage-lint complete![0m
+[0;32mNo issues found in any files![0m
+
+</tool.toolu_01UL4ACyaAWHLEvpMJB2wqXe>
+
+## ASSISTANT:
+
+Excellent! The package-lint script now runs successfully and shows that all files, including the new `greger-client.el`, pass linting with no issues found.
+
+## ✅ Refactoring Complete and Verified
+
+The refactoring has been successfully completed and verified:
+
+1. **✅ Files consolidated**: `greger-stream.el`, `greger-providers.el`, and `greger-provider-claude.el` merged into `greger-client.el`
+2. **✅ Function renamed**: `greger-stream-to-buffer-with-tools` → `greger-client-stream`
+3. **✅ Models simplified**: Only supporting `claude-sonnet-4-20250514` and `claude-opus-4-20250514`
+4. **✅ Dependencies updated**: All import statements and function calls updated
+5. **✅ Old files removed**: Deleted unnecessary provider files
+6. **✅ Documentation updated**: README reflects simplified Claude-only support
+7. **✅ Package-lint passes**: All files pass linting with no issues
+8. **✅ Code loads successfully**: Both `greger-client.el` and `greger.el` load without errors
+
+The codebase is now significantly simpler and easier to maintain while preserving all the core functionality users need for working with Claude models.
+
+## USER:
+
+Now write a basic end-to-end test in test/test-end-to-end.el that actually runs greger with a real API key (the current one in the environment). Run the test with `bash script/test --verbose --file test/test-end-to-end.el`
+
+## ASSISTANT:
+
+I'll create a basic end-to-end test that actually calls the Claude API. Let me first check the existing test structure to understand the pattern:
+
+## ASSISTANT:
+
+
+
+## TOOL USE:
+
+Name: list-directory
+ID: toolu_01D7B5YbpabgK9C313i38nQ5
+
+### path
+
+<tool.toolu_01D7B5YbpabgK9C313i38nQ5>
+test
+</tool.toolu_01D7B5YbpabgK9C313i38nQ5>
+
+## TOOL RESULT:
+
+ID: toolu_01D7B5YbpabgK9C313i38nQ5
+
+<tool.toolu_01D7B5YbpabgK9C313i38nQ5>
+test-greger-agent.el
+test-greger-lib-lsp.el
+test-greger-parser.el
+test-greger-stdlib.el
+test-greger-tools.el
+</tool.toolu_01D7B5YbpabgK9C313i38nQ5>
+
+## TOOL USE:
+
+Name: read-file
+ID: toolu_01DnRSLBGW6Nx6QSmHWxGqt9
+
+### path
+
+<tool.toolu_01DnRSLBGW6Nx6QSmHWxGqt9>
+test/test-greger-agent.el
+</tool.toolu_01DnRSLBGW6Nx6QSmHWxGqt9>
+
+### start_line
+
+<tool.toolu_01DnRSLBGW6Nx6QSmHWxGqt9>
+1
+</tool.toolu_01DnRSLBGW6Nx6QSmHWxGqt9>
+
+### end_line
+
+<tool.toolu_01DnRSLBGW6Nx6QSmHWxGqt9>
+50
+</tool.toolu_01DnRSLBGW6Nx6QSmHWxGqt9>
+
+## TOOL RESULT:
+
+ID: toolu_01DnRSLBGW6Nx6QSmHWxGqt9
+
+<tool.toolu_01DnRSLBGW6Nx6QSmHWxGqt9>
+;;; test-greger-agent.el --- Tests for greger agent functionality -*- lexical-binding: t -*-
+
+;;; Commentary:
+;;
+;; This file contains tests for the greger agent functionality.
+;;
+;; Testing Approach:
+;; - Each test has explicit "expected" content that defines the exact buffer state after execution
+;; - Tests use string= for exact content comparison where possible
+;; - Expected content follows the greger tool result format:
+;;   ## TOOL RESULT:
+;;
+;;   ID: <tool_id>
+;;
+;;   <tool.<tool_id>>
+;;   <tool_output>
+;;   </tool.<tool_id>>
+;; - This makes tests more readable and maintainable by clearly showing what the expected output should be
+
+(require 'ert)
+(require 'greger-agent)
+(require 'greger-tools)
+(require 'greger-parser)
+
+(ert-deftest greger-agent-test-tool-placeholder ()
+  "Test the tool placeholder helper function."
+  (let ((expected1 "<!-- TOOL_RESULT_PLACEHOLDER_test123 -->")
+        (expected2 "<!-- TOOL_RESULT_PLACEHOLDER_tool_abc_def -->"))
+    (should (string= expected1 (greger-agent--tool-placeholder "test123")))
+    (should (string= expected2 (greger-agent--tool-placeholder "tool_abc_def")))))
+
+(ert-deftest greger-agent-test-single-tool-execution ()
+  "Test execution of a single tool with callback."
+  (let ((test-completed nil))
+
+    ;; Define a simple test function
+    (defun greger-test-simple-tool (message)
+      (format "Tool executed: %s" message))
+
+    ;; Register test tool
+    (greger-register-tool "test-simple"
+      :description "Simple test tool"
+      :properties '((message . ((type . "string")
+                                (description . "Test message"))))
+      :required '("message")
+      :function 'greger-test-simple-tool)
+
+    ;; Create test buffer
+    (with-temp-buffer
+      (let ((agent-state (make-greger-agent-state
+</tool.toolu_01DnRSLBGW6Nx6QSmHWxGqt9>
+
+## ASSISTANT:
+
+Now let me check the test script to understand how it works:
+
+## TOOL USE:
+
+Name: read-file
+ID: toolu_01BhmydaWNQjnjUK17bnPtwL
+
+### path
+
+<tool.toolu_01BhmydaWNQjnjUK17bnPtwL>
+script/test
+</tool.toolu_01BhmydaWNQjnjUK17bnPtwL>
+
+## TOOL RESULT:
+
+ID: toolu_01BhmydaWNQjnjUK17bnPtwL
+
+<tool.toolu_01BhmydaWNQjnjUK17bnPtwL>
+#!/bin/bash
+
+# Test script for greger package
+# Runs all ERT tests for the package
+
+set -e
+
+# Colors for output
+RED='\033[0;31m'
+GREEN='\033[0;32m'
+YELLOW='\033[1;33m'
+BLUE='\033[0;34m'
+NC='\033[0m' # No Color
+
+# Test files to run
+TEST_FILES=(
+    "test-greger-agent.el"
+    "test-greger-parser.el"
+    "test-greger-stdlib.el"
+    "test-greger-lib-lsp.el"
+    "test-greger-tools.el"
+)
+
+echo -e "${BLUE}Running ERT tests for greger package...${NC}"
+echo
+
+# Function to run tests for a single file
+run_test_file() {
+    local test_file="$1"
+    echo -e "Running tests in ${YELLOW}$test_file${NC}..."
+
+    if [ ! -f "$test_file" ]; then
+        echo -e "  ${RED}✗ Test file not found: $test_file${NC}"
+        return 1
+    fi
+
+    # Run the tests with ERT
+    if emacs --batch -Q \
+        --eval "(progn
+                  (setq debug-on-error t)
+                  (add-to-list 'load-path \".\")
+                  ;; Setup package archives and install dependencies if needed
+                  (require 'package)
+                  (setq package-archives '((\"melpa\" . \"https://melpa.org/packages/\")
+                                           (\"gnu\" . \"https://elpa.gnu.org/packages/\")))
+                  (package-initialize)
+                  ;; Install lsp-mode and lsp-pyright if not available
+                  (unless (package-installed-p 'lsp-mode)
+                    (package-refresh-contents)
+                    (package-install 'lsp-mode))
+                  (unless (package-installed-p 'lsp-pyright)
+                    (package-refresh-contents)
+                    (package-install 'lsp-pyright))
+                  ;; Load required packages
+                  (require 'ert)
+                  (require 'cl-lib)
+                  ;; Load main greger files
+                  (load-file \"greger.el\")
+                  (load-file \"greger-agent.el\")
+                  (load-file \"greger-parser.el\")
+                  (load-file \"greger-stdlib.el\")
+                  (load-file \"greger-lib-lsp.el\")
+                  (load-file \"greger-tools.el\")
+                  (load-file \"greger-stream.el\")
+                  (load-file \"greger-providers.el\")
+                  (load-file \"greger-provider-claude.el\")
+                  (load-file \"greger-provider-openai.el\")
+                  (load-file \"greger-provider-google.el\")
+                  (load-file \"greger-web.el\")
+                  ;; Load test file
+                  (load-file \"$test_file\")
+                  ;; Run all tests defined in this file
+                  (let ((ert-quiet nil))
+                    (ert-run-tests-batch-and-exit t)))" 2>/dev/null; then
+        echo -e "  ${GREEN}✓ All tests passed${NC}"
+        return 0
+    else
+        echo -e "  ${RED}✗ Some tests failed${NC}"
+        return 1
+    fi
+}
+
+# Function to run tests with verbose output
+run_test_file_verbose() {
+    local test_file="$1"
+    echo -e "Running tests in ${YELLOW}$test_file${NC} (verbose mode)..."
+
+    emacs --batch -Q \
+        --eval "(progn
+                  (setq debug-on-error t)
+                  (add-to-list 'load-path \".\")
+                  ;; Setup package archives and install dependencies if needed
+                  (require 'package)
+                  (setq package-archives '((\"melpa\" . \"https://melpa.org/packages/\")
+                                           (\"gnu\" . \"https://elpa.gnu.org/packages/\")))
+                  (package-initialize)
+                  ;; Install lsp-mode and lsp-pyright if not available
+                  (unless (package-installed-p 'lsp-mode)
+                    (package-refresh-contents)
+                    (package-install 'lsp-mode))
+                  (unless (package-installed-p 'lsp-pyright)
+                    (package-refresh-contents)
+                    (package-install 'lsp-pyright))
+                  ;; Load required packages
+                  (require 'ert)
+                  (require 'cl-lib)
+                  ;; Load main greger files
+                  (load-file \"greger.el\")
+                  (load-file \"greger-agent.el\")
+                  (load-file \"greger-parser.el\")
+                  (load-file \"greger-stdlib.el\")
+                  (load-file \"greger-lib-lsp.el\")
+                  (load-file \"greger-tools.el\")
+                  (load-file \"greger-stream.el\")
+                  (load-file \"greger-providers.el\")
+                  (load-file \"greger-provider-claude.el\")
+                  (load-file \"greger-provider-openai.el\")
+                  (load-file \"greger-provider-google.el\")
+                  (load-file \"greger-web.el\")
+                  ;; Load test file
+                  (load-file \"$test_file\")
+                  ;; Run all tests defined in this file with verbose output
+                  (let ((ert-quiet nil))
+                    (ert-run-tests-batch-and-exit t)))"
+}
+
+# Parse command line arguments
+VERBOSE=false
+SPECIFIC_FILE=""
+HELP=false
+
+while [[ $# -gt 0 ]]; do
+    case $1 in
+        -v|--verbose)
+            VERBOSE=true
+            shift
+            ;;
+        -f|--file)
+            SPECIFIC_FILE="$2"
+            shift 2
+            ;;
+        -h|--help)
+            HELP=true
+            shift
+            ;;
+        *)
+            echo -e "${RED}Unknown option: $1${NC}"
+            HELP=true
+            shift
+            ;;
+    esac
+done
+
+# Show help if requested
+if [ "$HELP" = true ]; then
+    echo "Usage: $0 [OPTIONS]"
+    echo ""
+    echo "Options:"
+    echo "  -v, --verbose    Show verbose test output"
+    echo "  -f, --file FILE  Run tests only for specific file"
+    echo "  -h, --help       Show this help message"
+    echo ""
+    echo "Test files available:"
+    for file in "${TEST_FILES[@]}"; do
+        echo "  - $file"
+    done
+    exit 0
+fi
+
+# Run tests
+OVERALL_EXIT_CODE=0
+TOTAL_FILES=0
+PASSED_FILES=0
+
+if [ -n "$SPECIFIC_FILE" ]; then
+    # Run tests for specific file
+    TOTAL_FILES=1
+    if [ "$VERBOSE" = true ]; then
+        run_test_file_verbose "$SPECIFIC_FILE"
+        OVERALL_EXIT_CODE=$?
+    else
+        if run_test_file "$SPECIFIC_FILE"; then
+            PASSED_FILES=1
+        else
+            OVERALL_EXIT_CODE=1
+        fi
+    fi
+else
+    # Run tests for all files
+    for test_file in "${TEST_FILES[@]}"; do
+        TOTAL_FILES=$((TOTAL_FILES + 1))
+
+        if [ "$VERBOSE" = true ]; then
+            echo
+            run_test_file_verbose "$test_file"
+            if [ $? -ne 0 ]; then
+                OVERALL_EXIT_CODE=1
+            else
+                PASSED_FILES=$((PASSED_FILES + 1))
+            fi
+        else
+            if run_test_file "$test_file"; then
+                PASSED_FILES=$((PASSED_FILES + 1))
+            else
+                OVERALL_EXIT_CODE=1
+            fi
+        fi
+        echo
+    done
+fi
+
+# Print summary
+echo -e "${BLUE}Test Summary:${NC}"
+echo -e "  Files run: $TOTAL_FILES"
+echo -e "  Files passed: ${GREEN}$PASSED_FILES${NC}"
+echo -e "  Files failed: ${RED}$((TOTAL_FILES - PASSED_FILES))${NC}"
+
+if [ $OVERALL_EXIT_CODE -eq 0 ]; then
+    echo -e "${GREEN}All tests passed!${NC}"
+else
+    echo -e "${RED}Some tests failed.${NC}"
+fi
+
+exit $OVERALL_EXIT_CODE
+
+</tool.toolu_01BhmydaWNQjnjUK17bnPtwL>
+
+## ASSISTANT:
+
+I need to update the test script to use the new client module and then create the end-to-end test. First, let me update the test script:
+
+## TOOL USE:
+
+Name: str-replace
+ID: toolu_01FprZKscAXZkV2frUxH6dwe
+
+### file_path
+
+<tool.toolu_01FprZKscAXZkV2frUxH6dwe>
+script/test
+</tool.toolu_01FprZKscAXZkV2frUxH6dwe>
+
+### original_content
+
+<tool.toolu_01FprZKscAXZkV2frUxH6dwe>
+                  ;; Load main greger files
+                  (load-file \"greger.el\")
+                  (load-file \"greger-agent.el\")
+                  (load-file \"greger-parser.el\")
+                  (load-file \"greger-stdlib.el\")
+                  (load-file \"greger-lib-lsp.el\")
+                  (load-file \"greger-tools.el\")
+                  (load-file \"greger-stream.el\")
+                  (load-file \"greger-providers.el\")
+                  (load-file \"greger-provider-claude.el\")
+                  (load-file \"greger-provider-openai.el\")
+                  (load-file \"greger-provider-google.el\")
+                  (load-file \"greger-web.el\")
+</tool.toolu_01FprZKscAXZkV2frUxH6dwe>
+
+### new_content
+
+<tool.toolu_01FprZKscAXZkV2frUxH6dwe>
+                  ;; Load main greger files
+                  (load-file \"greger.el\")
+                  (load-file \"greger-agent.el\")
+                  (load-file \"greger-parser.el\")
+                  (load-file \"greger-stdlib.el\")
+                  (load-file \"greger-lib-lsp.el\")
+                  (load-file \"greger-tools.el\")
+                  (load-file \"greger-client.el\")
+                  (load-file \"greger-web.el\")
+</tool.toolu_01FprZKscAXZkV2frUxH6dwe>
+
+### git_commit_message
+
+<tool.toolu_01FprZKscAXZkV2frUxH6dwe>
+Update test script to load greger-client.el instead of old provider files
+</tool.toolu_01FprZKscAXZkV2frUxH6dwe>
+
+<!-- TOOL_RESULT_PLACEHOLDER_toolu_01FprZKscAXZkV2frUxH6dwe -->
