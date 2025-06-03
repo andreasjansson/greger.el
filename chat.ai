@@ -3047,4 +3047,699 @@ greger-stdlib.el
 Fix excessive closing parentheses in greger-stdlib--ert-test function
 </tool.toolu_01Gs9F9eijxKwRpR9aqp6WPH>
 
-<!-- TOOL_RESULT_PLACEHOLDER_toolu_01Gs9F9eijxKwRpR9aqp6WPH -->
+## TOOL RESULT:
+
+ID: toolu_01Gs9F9eijxKwRpR9aqp6WPH
+
+<tool.toolu_01Gs9F9eijxKwRpR9aqp6WPH>
+Successfully replaced content in /Users/andreas/projects/greger.el/greger-stdlib.el. Successfully staged 2 file(s) and committed with message: Fix excessive closing parentheses in greger-stdlib--ert-test function
+</tool.toolu_01Gs9F9eijxKwRpR9aqp6WPH>
+
+
+## ASSISTANT:
+
+Now let me test the syntax again:
+
+## TOOL USE:
+
+Name: shell-command
+ID: toolu_01KSuco9Rx6xk5D45T76eywk
+
+### command
+
+<tool.toolu_01KSuco9Rx6xk5D45T76eywk>
+emacs --batch --eval "(progn (add-to-list 'load-path \".\") (require 'greger-stdlib) (print (fboundp 'greger-stdlib--shell-command)))"
+</tool.toolu_01KSuco9Rx6xk5D45T76eywk>
+
+## TOOL RESULT:
+
+ID: toolu_01KSuco9Rx6xk5D45T76eywk
+
+<tool.toolu_01KSuco9Rx6xk5D45T76eywk>
+Command failed with exit code 255: Source file ‘/opt/homebrew/Cellar/emacs-plus@29/29.0.90/share/emacs/29.0.91/lisp/net/eww.el’ newer than byte-compiled file; using older file
+
+Error: end-of-file ("/Users/andreas/projects/greger.el/greger-stdlib.el")
+  mapbacktrace(#f(compiled-function (evald func args flags) #<bytecode -0xce2dc589a512f81>))
+  debug-early-backtrace()
+  debug-early(error (end-of-file "/Users/andreas/projects/greger.el/greger-stdlib.el"))
+  read(#<buffer  *load*>)
+  eval-buffer(#<buffer  *load*> nil "/Users/andreas/projects/greger.el/greger-stdlib.el" nil t)
+  load-with-code-conversion("/Users/andreas/projects/greger.el/greger-stdlib.el" "/Users/andreas/projects/greger.el/greger-stdlib.el" nil t)
+  require(greger-stdlib)
+  (progn (add-to-list 'load-path ".") (require 'greger-stdlib) (print (fboundp 'greger-stdlib--shell-command)))
+  eval((progn (add-to-list 'load-path ".") (require 'greger-stdlib) (print (fboundp 'greger-stdlib--shell-command))) t)
+  command-line-1(("--eval" "(progn (add-to-list 'load-path \".\") (require 'greger-stdlib) (print (fboundp 'greger-stdlib--shell-command)))"))
+  command-line()
+  normal-top-level()
+End of file during parsing: /Users/andreas/projects/greger.el/greger-stdlib.el
+
+</tool.toolu_01KSuco9Rx6xk5D45T76eywk>
+
+## ASSISTANT:
+
+There are still syntax issues. Let me try a different approach and find where the actual error is by checking each function one by one using a more precise tool:
+
+## TOOL USE:
+
+Name: shell-command
+ID: toolu_01K9rdJ2J4LWdK88QQQLY41M
+
+### command
+
+<tool.toolu_01K9rdJ2J4LWdK88QQQLY41M>
+emacs --batch --eval "(progn (with-temp-buffer (insert-file-contents \"greger-stdlib.el\") (goto-char (point-min)) (search-forward \"(defun greger-stdlib--ert-test\") (beginning-of-line) (let ((start (point))) (forward-sexp 1) (message \"ert-test function is syntactically correct\"))))"
+</tool.toolu_01K9rdJ2J4LWdK88QQQLY41M>
+
+## TOOL RESULT:
+
+ID: toolu_01K9rdJ2J4LWdK88QQQLY41M
+
+<tool.toolu_01K9rdJ2J4LWdK88QQQLY41M>
+Command failed with exit code 255:
+Error: scan-error ("Unbalanced parentheses" 41694 49466)
+  mapbacktrace(#f(compiled-function (evald func args flags) #<bytecode -0xce2dc589a512f81>))
+  debug-early-backtrace()
+  debug-early(error (scan-error "Unbalanced parentheses" 41694 49466))
+  scan-sexps(41694 1)
+  forward-sexp(1)
+  (let ((start (point))) (forward-sexp 1) (message "ert-test function is syntactically correct"))
+  (progn (insert-file-contents "greger-stdlib.el") (goto-char (point-min)) (search-forward "(defun greger-stdlib--ert-test") (beginning-of-line) (let ((start (point))) (forward-sexp 1) (message "ert-test function is syntactically correct")))
+  (unwind-protect (progn (insert-file-contents "greger-stdlib.el") (goto-char (point-min)) (search-forward "(defun greger-stdlib--ert-test") (beginning-of-line) (let ((start (point))) (forward-sexp 1) (message "ert-test function is syntactically correct"))) (and (buffer-name temp-buffer) (kill-buffer temp-buffer)))
+  (save-current-buffer (set-buffer temp-buffer) (unwind-protect (progn (insert-file-contents "greger-stdlib.el") (goto-char (point-min)) (search-forward "(defun greger-stdlib--ert-test") (beginning-of-line) (let ((start (point))) (forward-sexp 1) (message "ert-test function is syntactically correct"))) (and (buffer-name temp-buffer) (kill-buffer temp-buffer))))
+  (with-current-buffer temp-buffer (unwind-protect (progn (insert-file-contents "greger-stdlib.el") (goto-char (point-min)) (search-forward "(defun greger-stdlib--ert-test") (beginning-of-line) (let ((start (point))) (forward-sexp 1) (message "ert-test function is syntactically correct"))) (and (buffer-name temp-buffer) (kill-buffer temp-buffer))))
+  (let ((temp-buffer (generate-new-buffer " *temp*" t))) (with-current-buffer temp-buffer (unwind-protect (progn (insert-file-contents "greger-stdlib.el") (goto-char (point-min)) (search-forward "(defun greger-stdlib--ert-test") (beginning-of-line) (let ((start (point))) (forward-sexp 1) (message "ert-test function is syntactically correct"))) (and (buffer-name temp-buffer) (kill-buffer temp-buffer)))))
+  (with-temp-buffer (insert-file-contents "greger-stdlib.el") (goto-char (point-min)) (search-forward "(defun greger-stdlib--ert-test") (beginning-of-line) (let ((start (point))) (forward-sexp 1) (message "ert-test function is syntactically correct")))
+  (progn (with-temp-buffer (insert-file-contents "greger-stdlib.el") (goto-char (point-min)) (search-forward "(defun greger-stdlib--ert-test") (beginning-of-line) (let ((start (point))) (forward-sexp 1) (message "ert-test function is syntactically correct"))))
+  eval((progn (with-temp-buffer (insert-file-contents "greger-stdlib.el") (goto-char (point-min)) (search-forward "(defun greger-stdlib--ert-test") (beginning-of-line) (let ((start (point))) (forward-sexp 1) (message "ert-test function is syntactically correct")))) t)
+  command-line-1(("--eval" "(progn (with-temp-buffer (insert-file-contents \"greger-stdlib.el\") (goto-char (point-min)) (search-forward \"(defun greger-stdlib--ert-test\") (beginning-of-line) (let ((start (point))) (forward-sexp 1) (message \"ert-test function is syntactically correct\"))))"))
+  command-line()
+  normal-top-level()
+Scan error: "Unbalanced parentheses", 41694, 49466
+
+</tool.toolu_01K9rdJ2J4LWdK88QQQLY41M>
+
+## ASSISTANT:
+
+The ert-test function still has parentheses issues. Let me use a different approach and just recreate the entire ert-test function cleanly. First, let me see exactly what the structure should be:
+
+## TOOL USE:
+
+Name: read-file
+ID: toolu_01TtRZJH1jKVuLbMiJRmjvdh
+
+### path
+
+<tool.toolu_01TtRZJH1jKVuLbMiJRmjvdh>
+greger-stdlib.el
+</tool.toolu_01TtRZJH1jKVuLbMiJRmjvdh>
+
+### start_line
+
+<tool.toolu_01TtRZJH1jKVuLbMiJRmjvdh>
+911
+</tool.toolu_01TtRZJH1jKVuLbMiJRmjvdh>
+
+### end_line
+
+<tool.toolu_01TtRZJH1jKVuLbMiJRmjvdh>
+920
+</tool.toolu_01TtRZJH1jKVuLbMiJRmjvdh>
+
+## TOOL RESULT:
+
+ID: toolu_01TtRZJH1jKVuLbMiJRmjvdh
+
+<tool.toolu_01TtRZJH1jKVuLbMiJRmjvdh>
+(defun greger-stdlib--ert-test (test-file-path function-names)
+  "Execute ERT tests by evaluating test functions and running them with ert.
+TEST-FILE-PATH is the path to the test file.
+FUNCTION-NAMES is a vector of test function names to evaluate and run."
+
+  ;; First eval the test function names
+  (greger-stdlib--eval-elisp-defuns test-file-path function-names)
+
+  (condition-case err
+      (progn
+</tool.toolu_01TtRZJH1jKVuLbMiJRmjvdh>
+
+## USER:
+
+I've fixed those parens for you, continue.
+
+## ASSISTANT:
+
+Thank you! Now let me test if the syntax is correct and the function is properly defined:
+
+## TOOL USE:
+
+Name: shell-command
+ID: toolu_01F3TAYnXFgfWm9vyRB15ptc
+
+### command
+
+<tool.toolu_01F3TAYnXFgfWm9vyRB15ptc>
+emacs --batch --eval "(progn (add-to-list 'load-path \".\") (require 'greger-stdlib) (print (fboundp 'greger-stdlib--shell-command)))"
+</tool.toolu_01F3TAYnXFgfWm9vyRB15ptc>
+
+## TOOL RESULT:
+
+ID: toolu_01F3TAYnXFgfWm9vyRB15ptc
+
+<tool.toolu_01F3TAYnXFgfWm9vyRB15ptc>
+Command executed successfully:
+Source file ‘/opt/homebrew/Cellar/emacs-plus@29/29.0.90/share/emacs/29.0.91/lisp/net/eww.el’ newer than byte-compiled file; using older file
+
+t
+
+</tool.toolu_01F3TAYnXFgfWm9vyRB15ptc>
+
+## ASSISTANT:
+
+Excellent! Now the function is properly defined. Let me run the stdlib tests to see if they pass:
+
+## TOOL USE:
+
+Name: shell-command
+ID: toolu_017PiNNiuLUXWJRLYTjw7MVe
+
+### command
+
+<tool.toolu_017PiNNiuLUXWJRLYTjw7MVe>
+bash script/test --verbose --file test-greger-stdlib.el
+</tool.toolu_017PiNNiuLUXWJRLYTjw7MVe>
+
+## TOOL RESULT:
+
+ID: toolu_017PiNNiuLUXWJRLYTjw7MVe
+
+<tool.toolu_017PiNNiuLUXWJRLYTjw7MVe>
+Command executed successfully:
+[0;34mRunning ERT tests for greger package...[0m
+
+Running tests in [1;33mtest-greger-stdlib.el[0m (verbose mode)...
+Loading /Users/andreas/projects/greger.el/greger.el (source)...
+Source file ‘/opt/homebrew/Cellar/emacs-plus@29/29.0.90/share/emacs/29.0.91/lisp/net/eww.el’ newer than byte-compiled file; using older file
+Loading /Users/andreas/projects/greger.el/greger-agent.el (source)...
+Source file ‘/Users/andreas/projects/greger.el/greger-lib-lsp.el’ newer than byte-compiled file; using older file
+Loading /Users/andreas/projects/greger.el/greger-parser.el (source)...
+Loading /Users/andreas/projects/greger.el/greger-stdlib.el (source)...
+Loading /Users/andreas/projects/greger.el/greger-lib-lsp.el (source)...
+Loading /Users/andreas/projects/greger.el/greger-tools.el (source)...
+Loading /Users/andreas/projects/greger.el/greger-stream.el (source)...
+Loading /Users/andreas/projects/greger.el/greger-providers.el (source)...
+Loading /Users/andreas/projects/greger.el/greger-provider-claude.el (source)...
+Loading /Users/andreas/projects/greger.el/greger-provider-openai.el (source)...
+Loading /Users/andreas/projects/greger.el/greger-provider-google.el (source)...
+Loading /Users/andreas/projects/greger.el/greger-web.el (source)...
+Loading /Users/andreas/projects/greger.el/test-greger-stdlib.el (source)...
+Running 11 tests (2025-06-03 14:10:03+0200, selector ‘t’)
+   passed   1/11  greger-test-read-webpage-invalid-url (0.000081 sec)
+   passed   2/11  greger-test-read-webpage-network-error (0.000026 sec)
+   passed   3/11  greger-test-read-webpage-valid-url (0.379214 sec)
+   passed   4/11  greger-test-shell-command-command-failure (0.113373 sec)
+   passed   5/11  greger-test-shell-command-no-metadata-still-prompts (0.114501 sec)
+   passed   6/11  greger-test-shell-command-permission-denied (0.000681 sec)
+   passed   7/11  greger-test-shell-command-safe-commands (0.113329 sec)
+   passed   8/11  greger-test-shell-command-simple (0.116710 sec)
+   passed   9/11  greger-test-shell-command-unsafe-commands-with-metadata (0.112972 sec)
+   passed  10/11  greger-test-shell-command-with-pipe (0.112047 sec)
+   passed  11/11  greger-test-web-url-validation (0.000288 sec)
+
+Ran 11 tests, 11 results as expected, 0 unexpected (2025-06-03 14:10:05+0200, 1.065791 sec)
+
+[0;34mTest Summary:[0m
+  Files run: 1
+  Files passed: [0;32m0[0m
+  Files failed: [0;31m1[0m
+[0;32mAll tests passed![0m
+
+</tool.toolu_017PiNNiuLUXWJRLYTjw7MVe>
+
+## ASSISTANT:
+
+Perfect! The stdlib tests are now passing. Now let me check if there are any other test files that might have similar issues:
+
+## TOOL USE:
+
+Name: shell-command
+ID: toolu_01HtXS7aFXU7pb72D6v5KodY
+
+### command
+
+<tool.toolu_01HtXS7aFXU7pb72D6v5KodY>
+bash script/test --verbose --file test-greger-lib-lsp.el
+</tool.toolu_01HtXS7aFXU7pb72D6v5KodY>
+
+## TOOL RESULT:
+
+ID: toolu_01HtXS7aFXU7pb72D6v5KodY
+
+<tool.toolu_01HtXS7aFXU7pb72D6v5KodY>
+Command failed with exit code 255: [0;34mRunning ERT tests for greger package...[0m
+
+Running tests in [1;33mtest-greger-lib-lsp.el[0m (verbose mode)...
+Loading /Users/andreas/projects/greger.el/greger.el (source)...
+Source file ‘/opt/homebrew/Cellar/emacs-plus@29/29.0.90/share/emacs/29.0.91/lisp/net/eww.el’ newer than byte-compiled file; using older file
+Loading /Users/andreas/projects/greger.el/greger-agent.el (source)...
+Source file ‘/Users/andreas/projects/greger.el/greger-lib-lsp.el’ newer than byte-compiled file; using older file
+Loading /Users/andreas/projects/greger.el/greger-parser.el (source)...
+Loading /Users/andreas/projects/greger.el/greger-stdlib.el (source)...
+Loading /Users/andreas/projects/greger.el/greger-lib-lsp.el (source)...
+Loading /Users/andreas/projects/greger.el/greger-tools.el (source)...
+Loading /Users/andreas/projects/greger.el/greger-stream.el (source)...
+Loading /Users/andreas/projects/greger.el/greger-providers.el (source)...
+Loading /Users/andreas/projects/greger.el/greger-provider-claude.el (source)...
+Loading /Users/andreas/projects/greger.el/greger-provider-openai.el (source)...
+Loading /Users/andreas/projects/greger.el/greger-provider-google.el (source)...
+Loading /Users/andreas/projects/greger.el/greger-web.el (source)...
+Loading /Users/andreas/projects/greger.el/test-greger-lib-lsp.el (source)...
+Debugger entered--Lisp error: (file-missing "Cannot open load file" "No such file or directory" "lsp-mode")
+  require(lsp-mode)
+  eval-buffer(#<buffer  *load*> nil "/Users/andreas/projects/greger.el/test-greger-lib-..." nil t)  ; Reading at buffer position 257
+  load-with-code-conversion("/Users/andreas/projects/greger.el/test-greger-lib-..." "/Users/andreas/projects/greger.el/test-greger-lib-..." nil nil)
+  load("/Users/andreas/projects/greger.el/test-greger-lib-..." nil nil t)
+  load-file("test-greger-lib-lsp.el")
+  (progn (setq debug-on-error t) (add-to-list 'load-path ".") (require 'ert) (require 'cl-lib) (load-file "greger.el") (load-file "greger-agent.el") (load-file "greger-parser.el") (load-file "greger-stdlib.el") (load-file "greger-lib-lsp.el") (load-file "greger-tools.el") (load-file "greger-stream.el") (load-file "greger-providers.el") (load-file "greger-provider-claude.el") (load-file "greger-provider-openai.el") (load-file "greger-provider-google.el") (load-file "greger-web.el") (load-file "test-greger-lib-lsp.el") (let ((ert-quiet nil)) (ert-run-tests-batch-and-exit t)))
+  eval((progn (setq debug-on-error t) (add-to-list 'load-path ".") (require 'ert) (require 'cl-lib) (load-file "greger.el") (load-file "greger-agent.el") (load-file "greger-parser.el") (load-file "greger-stdlib.el") (load-file "greger-lib-lsp.el") (load-file "greger-tools.el") (load-file "greger-stream.el") (load-file "greger-providers.el") (load-file "greger-provider-claude.el") (load-file "greger-provider-openai.el") (load-file "greger-provider-google.el") (load-file "greger-web.el") (load-file "test-greger-lib-lsp.el") (let ((ert-quiet nil)) (ert-run-tests-batch-and-exit t))) t)
+  command-line-1(("--eval" "(progn\n                  (setq debug-on-error t)\n ..."))
+  command-line()
+  normal-top-level()
+
+
+</tool.toolu_01HtXS7aFXU7pb72D6v5KodY>
+
+## ASSISTANT:
+
+The LSP test file requires `lsp-mode` which isn't available. Let me check the other test file:
+
+## TOOL USE:
+
+Name: shell-command
+ID: toolu_01CgMD3y1Fv1RqKE3TvjehU5
+
+### command
+
+<tool.toolu_01CgMD3y1Fv1RqKE3TvjehU5>
+bash script/test --verbose --file test-greger-tools.el
+</tool.toolu_01CgMD3y1Fv1RqKE3TvjehU5>
+
+## TOOL RESULT:
+
+ID: toolu_01CgMD3y1Fv1RqKE3TvjehU5
+
+<tool.toolu_01CgMD3y1Fv1RqKE3TvjehU5>
+Command failed with exit code 1: [0;34mRunning ERT tests for greger package...[0m
+
+Running tests in [1;33mtest-greger-tools.el[0m (verbose mode)...
+Loading /Users/andreas/projects/greger.el/greger.el (source)...
+Source file ‘/opt/homebrew/Cellar/emacs-plus@29/29.0.90/share/emacs/29.0.91/lisp/net/eww.el’ newer than byte-compiled file; using older file
+Loading /Users/andreas/projects/greger.el/greger-agent.el (source)...
+Source file ‘/Users/andreas/projects/greger.el/greger-lib-lsp.el’ newer than byte-compiled file; using older file
+Loading /Users/andreas/projects/greger.el/greger-parser.el (source)...
+Loading /Users/andreas/projects/greger.el/greger-stdlib.el (source)...
+Loading /Users/andreas/projects/greger.el/greger-lib-lsp.el (source)...
+Loading /Users/andreas/projects/greger.el/greger-tools.el (source)...
+Loading /Users/andreas/projects/greger.el/greger-stream.el (source)...
+Loading /Users/andreas/projects/greger.el/greger-providers.el (source)...
+Loading /Users/andreas/projects/greger.el/greger-provider-claude.el (source)...
+Loading /Users/andreas/projects/greger.el/greger-provider-openai.el (source)...
+Loading /Users/andreas/projects/greger.el/greger-provider-google.el (source)...
+Loading /Users/andreas/projects/greger.el/greger-web.el (source)...
+Loading /Users/andreas/projects/greger.el/test-greger-tools.el (source)...
+Running 9 tests (2025-06-03 14:10:14+0200, selector ‘t’)
+Test greger-tools-test-async-subprocess-utility backtrace:
+  (greger-tools--run-async-subprocess "echo" '("hello world") nil #'(l
+  (let ((result nil) (error nil) (callback-called nil)) (greger-tools-
+  (closure (t) nil (let ((result nil) (error nil) (callback-called nil
+  ert--run-test-internal(#s(ert--test-execution-info :test #s(ert-test
+  ert-run-test(#s(ert-test :name greger-tools-test-async-subprocess-ut
+  ert-run-or-rerun-test(#s(ert--stats :selector t :tests [... ... ...
+  ert-run-tests(t #f(compiled-function (event-type &rest event-args) #
+  ert-run-tests-batch(t)
+  ert-run-tests-batch-and-exit(t)
+  (let ((ert-quiet nil)) (ert-run-tests-batch-and-exit t))
+  (progn (setq debug-on-error t) (add-to-list 'load-path ".") (require
+  eval((progn (setq debug-on-error t) (add-to-list 'load-path ".") (re
+  command-line-1(("--eval" "(progn\n                  (setq debug-on-e
+  command-line()
+  normal-top-level()
+Test greger-tools-test-async-subprocess-utility condition:
+    (void-function greger-tools--run-async-subprocess)
+   FAILED  1/9  greger-tools-test-async-subprocess-utility (0.000101 sec) at test-greger-tools.el:428
+count: 5
+prefix: nil
+count: 2
+prefix: nil
+count: 2
+prefix: ***
+   passed  2/9  greger-tools-test-default-parameter-values (0.000216 sec)
+   passed  3/9  greger-tools-test-missing-required-parameter-error (0.000119 sec)
+   passed  4/9  greger-tools-test-optional-parameters (0.000094 sec)
+   passed  5/9  greger-tools-test-parameter-mapping (0.000048 sec)
+   passed  6/9  greger-tools-test-pass-buffer-functionality (0.000063 sec)
+   passed  7/9  greger-tools-test-pass-callback-functionality (0.000084 sec)
+   passed  8/9  greger-tools-test-tool-registration-and-execution (0.000070 sec)
+   passed  9/9  greger-tools-test-unknown-tool-error (0.000036 sec)
+
+Ran 9 tests, 8 results as expected, 1 unexpected (2025-06-03 14:10:14+0200, 0.154519 sec)
+
+1 unexpected results:
+   FAILED  greger-tools-test-async-subprocess-utility
+
+
+</tool.toolu_01CgMD3y1Fv1RqKE3TvjehU5>
+
+## USER:
+
+In the test script, make sure lsp-mode is imported
+
+## ASSISTANT:
+
+I need to check the test script and make sure lsp-mode is imported. Let me first look at the test script:
+
+## TOOL USE:
+
+Name: read-file
+ID: toolu_017RNPMFpFZL4WGUyZPEbrfh
+
+### path
+
+<tool.toolu_017RNPMFpFZL4WGUyZPEbrfh>
+script/test
+</tool.toolu_017RNPMFpFZL4WGUyZPEbrfh>
+
+## TOOL RESULT:
+
+ID: toolu_017RNPMFpFZL4WGUyZPEbrfh
+
+<tool.toolu_017RNPMFpFZL4WGUyZPEbrfh>
+#!/bin/bash
+
+# Test script for greger package
+# Runs all ERT tests for the package
+
+set -e
+
+# Colors for output
+RED='\033[0;31m'
+GREEN='\033[0;32m'
+YELLOW='\033[1;33m'
+BLUE='\033[0;34m'
+NC='\033[0m' # No Color
+
+# Test files to run
+TEST_FILES=(
+    "test-greger-agent.el"
+    "test-greger-parser.el"
+    "test-greger-stdlib.el"
+    "test-greger-lib-lsp.el"
+    "test-greger-tools.el"
+)
+
+echo -e "${BLUE}Running ERT tests for greger package...${NC}"
+echo
+
+# Function to run tests for a single file
+run_test_file() {
+    local test_file="$1"
+    echo -e "Running tests in ${YELLOW}$test_file${NC}..."
+
+    if [ ! -f "$test_file" ]; then
+        echo -e "  ${RED}✗ Test file not found: $test_file${NC}"
+        return 1
+    fi
+
+    # Run the tests with ERT
+    if emacs --batch -Q \
+        --eval "(progn
+                  (setq debug-on-error t)
+                  (add-to-list 'load-path \".\")
+                  ;; Load required packages
+                  (require 'ert)
+                  (require 'cl-lib)
+                  ;; Load main greger files
+                  (load-file \"greger.el\")
+                  (load-file \"greger-agent.el\")
+                  (load-file \"greger-parser.el\")
+                  (load-file \"greger-stdlib.el\")
+                  (load-file \"greger-lib-lsp.el\")
+                  (load-file \"greger-tools.el\")
+                  (load-file \"greger-stream.el\")
+                  (load-file \"greger-providers.el\")
+                  (load-file \"greger-provider-claude.el\")
+                  (load-file \"greger-provider-openai.el\")
+                  (load-file \"greger-provider-google.el\")
+                  (load-file \"greger-web.el\")
+                  ;; Load test file
+                  (load-file \"$test_file\")
+                  ;; Run all tests defined in this file
+                  (let ((ert-quiet nil))
+                    (ert-run-tests-batch-and-exit t)))" 2>/dev/null; then
+        echo -e "  ${GREEN}✓ All tests passed${NC}"
+        return 0
+    else
+        echo -e "  ${RED}✗ Some tests failed${NC}"
+        return 1
+    fi
+}
+
+# Function to run tests with verbose output
+run_test_file_verbose() {
+    local test_file="$1"
+    echo -e "Running tests in ${YELLOW}$test_file${NC} (verbose mode)..."
+
+    emacs --batch -Q \
+        --eval "(progn
+                  (setq debug-on-error t)
+                  (add-to-list 'load-path \".\")
+                  ;; Load required packages
+                  (require 'ert)
+                  (require 'cl-lib)
+                  ;; Load main greger files
+                  (load-file \"greger.el\")
+                  (load-file \"greger-agent.el\")
+                  (load-file \"greger-parser.el\")
+                  (load-file \"greger-stdlib.el\")
+                  (load-file \"greger-lib-lsp.el\")
+                  (load-file \"greger-tools.el\")
+                  (load-file \"greger-stream.el\")
+                  (load-file \"greger-providers.el\")
+                  (load-file \"greger-provider-claude.el\")
+                  (load-file \"greger-provider-openai.el\")
+                  (load-file \"greger-provider-google.el\")
+                  (load-file \"greger-web.el\")
+                  ;; Load test file
+                  (load-file \"$test_file\")
+                  ;; Run all tests defined in this file with verbose output
+                  (let ((ert-quiet nil))
+                    (ert-run-tests-batch-and-exit t)))"
+}
+
+# Parse command line arguments
+VERBOSE=false
+SPECIFIC_FILE=""
+HELP=false
+
+while [[ $# -gt 0 ]]; do
+    case $1 in
+        -v|--verbose)
+            VERBOSE=true
+            shift
+            ;;
+        -f|--file)
+            SPECIFIC_FILE="$2"
+            shift 2
+            ;;
+        -h|--help)
+            HELP=true
+            shift
+            ;;
+        *)
+            echo -e "${RED}Unknown option: $1${NC}"
+            HELP=true
+            shift
+            ;;
+    esac
+done
+
+# Show help if requested
+if [ "$HELP" = true ]; then
+    echo "Usage: $0 [OPTIONS]"
+    echo ""
+    echo "Options:"
+    echo "  -v, --verbose    Show verbose test output"
+    echo "  -f, --file FILE  Run tests only for specific file"
+    echo "  -h, --help       Show this help message"
+    echo ""
+    echo "Test files available:"
+    for file in "${TEST_FILES[@]}"; do
+        echo "  - $file"
+    done
+    exit 0
+fi
+
+# Run tests
+OVERALL_EXIT_CODE=0
+TOTAL_FILES=0
+PASSED_FILES=0
+
+if [ -n "$SPECIFIC_FILE" ]; then
+    # Run tests for specific file
+    TOTAL_FILES=1
+    if [ "$VERBOSE" = true ]; then
+        run_test_file_verbose "$SPECIFIC_FILE"
+        OVERALL_EXIT_CODE=$?
+    else
+        if run_test_file "$SPECIFIC_FILE"; then
+            PASSED_FILES=1
+        else
+            OVERALL_EXIT_CODE=1
+        fi
+    fi
+else
+    # Run tests for all files
+    for test_file in "${TEST_FILES[@]}"; do
+        TOTAL_FILES=$((TOTAL_FILES + 1))
+
+        if [ "$VERBOSE" = true ]; then
+            echo
+            run_test_file_verbose "$test_file"
+            if [ $? -ne 0 ]; then
+                OVERALL_EXIT_CODE=1
+            else
+                PASSED_FILES=$((PASSED_FILES + 1))
+            fi
+        else
+            if run_test_file "$test_file"; then
+                PASSED_FILES=$((PASSED_FILES + 1))
+            else
+                OVERALL_EXIT_CODE=1
+            fi
+        fi
+        echo
+    done
+fi
+
+# Print summary
+echo -e "${BLUE}Test Summary:${NC}"
+echo -e "  Files run: $TOTAL_FILES"
+echo -e "  Files passed: ${GREEN}$PASSED_FILES${NC}"
+echo -e "  Files failed: ${RED}$((TOTAL_FILES - PASSED_FILES))${NC}"
+
+if [ $OVERALL_EXIT_CODE -eq 0 ]; then
+    echo -e "${GREEN}All tests passed!${NC}"
+else
+    echo -e "${RED}Some tests failed.${NC}"
+fi
+
+exit $OVERALL_EXIT_CODE
+
+</tool.toolu_017RNPMFpFZL4WGUyZPEbrfh>
+
+## ASSISTANT:
+
+I need to add lsp-mode to the required packages in the test script. Let me check what the test file is trying to require:
+
+## TOOL USE:
+
+Name: read-file
+ID: toolu_01FeGP941Zk6kvCAhMpWBEjC
+
+### path
+
+<tool.toolu_01FeGP941Zk6kvCAhMpWBEjC>
+test-greger-lib-lsp.el
+</tool.toolu_01FeGP941Zk6kvCAhMpWBEjC>
+
+### start_line
+
+<tool.toolu_01FeGP941Zk6kvCAhMpWBEjC>
+1
+</tool.toolu_01FeGP941Zk6kvCAhMpWBEjC>
+
+### end_line
+
+<tool.toolu_01FeGP941Zk6kvCAhMpWBEjC>
+15
+</tool.toolu_01FeGP941Zk6kvCAhMpWBEjC>
+
+## TOOL RESULT:
+
+ID: toolu_01FeGP941Zk6kvCAhMpWBEjC
+
+<tool.toolu_01FeGP941Zk6kvCAhMpWBEjC>
+;;; test-greger-lib-lsp.el --- Tests for greger LSP tools -*- lexical-binding: t -*-
+
+;;; Commentary:
+;; Tests for the LSP-powered tools defined in greger-lib-lsp.el
+
+;;; Code:
+
+(require 'ert)
+(require 'cl-lib)
+(require 'greger-lib-lsp)
+(require 'lsp-mode)
+(require 'lsp-pyright)  ; Python LSP server
+
+;;; Test utilities
+
+</tool.toolu_01FeGP941Zk6kvCAhMpWBEjC>
+
+## ASSISTANT:
+
+The test file requires both `lsp-mode` and `lsp-pyright`. I need to modify the test script to install and load these packages. Let me update the script:
+
+## TOOL USE:
+
+Name: str-replace
+ID: toolu_01GqNvyukZB9qDbVkQreHncg
+
+### file_path
+
+<tool.toolu_01GqNvyukZB9qDbVkQreHncg>
+script/test
+</tool.toolu_01GqNvyukZB9qDbVkQreHncg>
+
+### original_content
+
+<tool.toolu_01GqNvyukZB9qDbVkQreHncg>
+    emacs --batch -Q \
+        --eval "(progn
+                  (setq debug-on-error t)
+                  (add-to-list 'load-path \".\")
+                  ;; Load required packages
+                  (require 'ert)
+                  (require 'cl-lib)
+</tool.toolu_01GqNvyukZB9qDbVkQreHncg>
+
+### new_content
+
+<tool.toolu_01GqNvyukZB9qDbVkQreHncg>
+    emacs --batch -Q \
+        --eval "(progn
+                  (setq debug-on-error t)
+                  (add-to-list 'load-path \".\")
+                  ;; Setup package archives and install dependencies if needed
+                  (require 'package)
+                  (setq package-archives '((\"melpa\" . \"https://melpa.org/packages/\")
+                                           (\"gnu\" . \"https://elpa.gnu.org/packages/\")))
+                  (package-initialize)
+                  ;; Install lsp-mode and lsp-pyright if not available
+                  (unless (package-installed-p 'lsp-mode)
+                    (package-refresh-contents)
+                    (package-install 'lsp-mode))
+                  (unless (package-installed-p 'lsp-pyright)
+                    (package-refresh-contents)
+                    (package-install 'lsp-pyright))
+                  ;; Load required packages
+                  (require 'ert)
+                  (require 'cl-lib)
+</tool.toolu_01GqNvyukZB9qDbVkQreHncg>
+
+### git_commit_message
+
+<tool.toolu_01GqNvyukZB9qDbVkQreHncg>
+Add lsp-mode and lsp-pyright installation to test script
+</tool.toolu_01GqNvyukZB9qDbVkQreHncg>
+
+<!-- TOOL_RESULT_PLACEHOLDER_toolu_01GqNvyukZB9qDbVkQreHncg -->

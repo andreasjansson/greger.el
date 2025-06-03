@@ -77,6 +77,18 @@ run_test_file_verbose() {
         --eval "(progn
                   (setq debug-on-error t)
                   (add-to-list 'load-path \".\")
+                  ;; Setup package archives and install dependencies if needed
+                  (require 'package)
+                  (setq package-archives '((\"melpa\" . \"https://melpa.org/packages/\")
+                                           (\"gnu\" . \"https://elpa.gnu.org/packages/\")))
+                  (package-initialize)
+                  ;; Install lsp-mode and lsp-pyright if not available
+                  (unless (package-installed-p 'lsp-mode)
+                    (package-refresh-contents)
+                    (package-install 'lsp-mode))
+                  (unless (package-installed-p 'lsp-pyright)
+                    (package-refresh-contents)
+                    (package-install 'lsp-pyright))
                   ;; Load required packages
                   (require 'ert)
                   (require 'cl-lib)
