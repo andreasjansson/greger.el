@@ -4,369 +4,2008 @@ You can run arbitrary shell commands with the shell-command tool, but the follow
 
 * `bash script/package-lint`
 * `bash script/test --verbose`
+* `bash script/test --verbose --file test/test-greger.el`
+* `bash script/test --verbose --file test/test-greger-lib-lsp.el`
 
 
 <safe-shell-commands>
 bash script/package-lint
 bash script/test --verbose
+bash script/test --verbose --file test/test-greger.el
+bash script/test --verbose --file test/test-greger-lib-lsp.el
 </safe-shell-commands>
 
 
 ## USER:
 
 
-Update ./script/test now that I've moved the tests to the test folder.
+test-greger.el and test-greger-lib-lsp.el have errors
 
 ## ASSISTANT:
 
-You're absolutely right! The test script is currently trying to load files from the current directory, but the test files are in the `test/` folder. Let me update the script to properly reference the test files:
+I'll help you check the errors in those test files. Let me first look at the current state of both test files and then run the tests to see what errors are occurring.
 
 ## TOOL USE:
 
 Name: read-file
-ID: toolu_01MDsAkPKRNM5Bv1U8dBunYp
+ID: toolu_01VDuMfpp4o2Xa9xtVPPSowi
 
 ### path
 
-<tool.toolu_01MDsAkPKRNM5Bv1U8dBunYp>
-script/test
-</tool.toolu_01MDsAkPKRNM5Bv1U8dBunYp>
+<tool.toolu_01VDuMfpp4o2Xa9xtVPPSowi>
+test/test-greger.el
+</tool.toolu_01VDuMfpp4o2Xa9xtVPPSowi>
+
+## TOOL RESULT:
+
+ID: toolu_01VDuMfpp4o2Xa9xtVPPSowi
+
+<tool.toolu_01VDuMfpp4o2Xa9xtVPPSowi>
+;;; test-greger.el --- Tests for greger functionality -*- lexical-binding: t -*-
+
+;;; Commentary:
+;;
+;; This file contains tests for the greger functionality (including agent capabilities).
+;;
+;; Testing Approach:
+;; - Each test has explicit "expected" content that defines the exact buffer state after execution
+;; - Tests use string= for exact content comparison where possible
+;; - Expected content follows the greger tool result format:
+;;   ## TOOL RESULT:
+;;
+;;   ID: <tool_id>
+;;
+;;   <tool.<tool_id>>
+;;   <tool_output>
+;;   </tool.<tool_id>>
+;; - This makes tests more readable and maintainable by clearly showing what the expected output should be
+
+(require 'ert)
+(require 'greger)
+(require 'greger-tools)
+(require 'greger-parser)
+
+(ert-deftest greger-test-tool-placeholder ()
+  "Test the tool placeholder helper function."
+  (let ((expected1 "<!-- TOOL_RESULT_PLACEHOLDER_test123 -->")
+        (expected2 "<!-- TOOL_RESULT_PLACEHOLDER_tool_abc_def -->"))
+    (should (string= expected1 (greger--tool-placeholder "test123")))
+    (should (string= expected2 (greger--tool-placeholder "tool_abc_def")))))
+
+(ert-deftest greger-test-single-tool-execution ()
+  "Test execution of a single tool with callback."
+  (let ((test-completed nil))
+
+    ;; Define a simple test function
+    (defun greger-test-simple-tool (message)
+      (format "Tool executed: %s" message))
+
+    ;; Register test tool
+    (greger-register-tool "test-simple"
+      :description "Simple test tool"
+      :properties '((message . ((type . "string")
+                                (description . "Test message"))))
+      :required '("message")
+      :function 'greger-test-simple-tool)
+
+    ;; Create test buffer
+    (with-temp-buffer
+      (let ((agent-state (make-greger-state
+                          :current-iteration 0
+                          :chat-buffer (current-buffer)
+                          :directory default-directory
+                          :metadata nil))
+            (tool-calls `(((type . "tool_use")
+                          (id . "test_001")
+                          (name . "test-simple")
+                          (input . ((message . "Hello World"))))))
+            (expected-content "
+
+## TOOL USE:
+
+Name: test-simple
+ID: test_001
+
+### message
+
+<tool.test_001>
+Hello World
+</tool.test_001>
+
+## TOOL RESULT:
+
+ID: test_001
+
+<tool.test_001>
+Tool executed: Hello World
+</tool.test_001>"))
+
+        ;; Mock greger--run-agent-loop to capture completion
+        (cl-letf (((symbol-function 'greger--run-agent-loop)
+                   (lambda (state)
+                     (setq test-completed t))))
+
+          ;; Execute tools
+          (greger--execute-tools tool-calls agent-state)
+
+          ;; Check that the function completed
+          (should test-completed)
+
+          ;; Check buffer contents match expected output exactly
+          (let ((actual-content (buffer-substring-no-properties (point-min) (point-max))))
+            (should (string= expected-content actual-content))))))
+
+    ;; Clean up
+    (remhash "test-simple" greger-tools-registry)))
+
+(ert-deftest greger-test-multiple-tools-parallel ()
+  "Test execution of multiple tools in parallel."
+  (let ((tools-completed nil))
+
+    ;; Define test functions with deterministic output
+    (defun greger-test-tool-a (value)
+      (format "Tool A result: %s" value))
+
+    (defun greger-test-tool-b (value)
+      (format "Tool B result: %s" value))
+
+    ;; Register test tools
+    (greger-register-tool "test-tool-a"
+      :description "Test tool A"
+      :properties '((value . ((type . "string")
+                              (description . "Input value"))))
+      :required '("value")
+      :function 'greger-test-tool-a)
+
+    (greger-register-tool "test-tool-b"
+      :description "Test tool B"
+      :properties '((value . ((type . "string")
+                              (description . "Input value"))))
+      :required '("value")
+      :function 'greger-test-tool-b)
+
+    ;; Create test buffer
+    (with-temp-buffer
+      (let ((agent-state (make-greger-state
+                          :current-iteration 0
+                          :chat-buffer (current-buffer)
+                          :directory default-directory :metadata nil))
+            (tool-calls `(((type . "tool_use")
+                          (id . "test_a")
+                          (name . "test-tool-a")
+                          (input . ((value . "input-a"))))
+                         ((type . "tool_use")
+                          (id . "test_b")
+                          (name . "test-tool-b")
+                          (input . ((value . "input-b"))))))
+            ;; Expected content has each tool use followed by its result
+            (expected-content "
+
+## TOOL USE:
+
+Name: test-tool-a
+ID: test_a
+
+### value
+
+<tool.test_a>
+input-a
+</tool.test_a>
+
+## TOOL RESULT:
+
+ID: test_a
+
+<tool.test_a>
+Tool A result: input-a
+</tool.test_a>
+
+## TOOL USE:
+
+Name: test-tool-b
+ID: test_b
+
+### value
+
+<tool.test_b>
+input-b
+</tool.test_b>
+
+## TOOL RESULT:
+
+ID: test_b
+
+<tool.test_b>
+Tool B result: input-b
+</tool.test_b>"))
+
+        ;; Mock greger--run-agent-loop to capture completion
+        (cl-letf (((symbol-function 'greger-agent--run-agent-loop)
+                   (lambda (state)
+                     (setq tools-completed t))))
+
+          ;; Execute tools
+          (greger--execute-tools tool-calls agent-state)
+
+          ;; Check that all tools completed
+          (should tools-completed)
+
+          ;; Check buffer contains both expected tool results
+          (let ((actual-content (buffer-substring-no-properties (point-min) (point-max))))
+            (should (string= expected-content actual-content))))))
+
+    ;; Clean up
+    (remhash "test-tool-a" greger-tools-registry)
+    (remhash "test-tool-b" greger-tools-registry)))
+
+(ert-deftest greger-test-tool-error-handling ()
+  "Test that tool errors are properly handled and displayed."
+  (let ((test-completed nil))
+
+    ;; Define a tool function that throws an error
+    (defun greger-test-error-tool (input)
+      (error "Simulated tool error: %s" input))
+
+    ;; Register test tool
+    (greger-register-tool "test-error"
+      :description "Tool that throws an error"
+      :properties '((input . ((type . "string")
+                              (description . "Input that will cause error"))))
+      :required '("input")
+      :function 'greger-test-error-tool)
+
+    ;; Create test buffer
+    (with-temp-buffer
+      (let ((agent-state (make-greger-state
+                          :current-iteration 0
+                          :chat-buffer (current-buffer)
+                          :directory default-directory :metadata nil))
+            (tool-calls `(((type . "tool_use")
+                          (id . "error_test")
+                          (name . "test-error")
+                          (input . ((input . "bad-input"))))))
+            (expected-error-content "
+
+## TOOL USE:
+
+Name: test-error
+ID: error_test
+
+### input
+
+<tool.error_test>
+bad-input
+</tool.error_test>
+
+## TOOL RESULT:
+
+ID: error_test
+
+<tool.error_test>
+Error executing tool: Simulated tool error: bad-input
+</tool.error_test>"))
+
+        ;; Mock greger-agent--run-agent-loop to capture completion
+        (cl-letf (((symbol-function 'greger-agent--run-agent-loop)
+                   (lambda (state)
+                     (setq test-completed t))))
+
+          ;; Execute tools
+          (greger-agent--execute-tools tool-calls agent-state)
+
+          ;; Check that execution completed despite error
+          (should test-completed)
+
+          ;; Check buffer contents match expected error format
+          (let ((actual-content (buffer-substring-no-properties (point-min) (point-max))))
+            (should (string= expected-error-content actual-content))))))
+
+    ;; Clean up
+    (remhash "test-error" greger-tools-registry)))
+
+(ert-deftest greger-test-tool-execution-with-existing-content ()
+  "Test tool execution when buffer already has content."
+  (let ((test-completed nil))
+
+    ;; Define a simple test function
+    (defun greger-test-content-tool (data)
+      (format "Processed: %s" data))
+
+    ;; Register test tool
+    (greger-register-tool "test-content"
+      :description "Test tool with existing content"
+      :properties '((data . ((type . "string")
+                             (description . "Data to process"))))
+      :required '("data")
+      :function 'greger-test-content-tool)
+
+    ;; Create test buffer with existing content
+    (with-temp-buffer
+      (insert "Existing content in buffer")
+
+      (let ((agent-state (make-greger-agent-state
+                          :current-iteration 0
+                          :chat-buffer (current-buffer)
+                          :directory default-directory :metadata nil))
+            (tool-calls `(((type . "tool_use")
+                          (id . "content_test")
+                          (name . "test-content")
+                          (input . ((data . "test-data"))))))
+            (expected-content "Existing content in buffer
+
+## TOOL USE:
+
+Name: test-content
+ID: content_test
+
+### data
+
+<tool.content_test>
+test-data
+</tool.content_test>
+
+## TOOL RESULT:
+
+ID: content_test
+
+<tool.content_test>
+Processed: test-data
+</tool.content_test>"))
+
+        ;; Mock greger-agent--run-agent-loop to capture completion
+        (cl-letf (((symbol-function 'greger-agent--run-agent-loop)
+                   (lambda (state)
+                     (setq test-completed t))))
+
+          ;; Execute tools
+          (greger-agent--execute-tools tool-calls agent-state)
+
+          ;; Check that execution completed
+          (should test-completed)
+
+          ;; Check that content was appended correctly
+          (let ((actual-content (buffer-substring-no-properties (point-min) (point-max))))
+            (should (string= expected-content actual-content))))))
+
+    ;; Clean up
+    (remhash "test-content" greger-tools-registry)))
+
+(ert-deftest greger-test-unknown-tool-error ()
+  "Test handling of unknown tool execution."
+  (let ((test-completed nil))
+
+    ;; Create test buffer
+    (with-temp-buffer
+      (let ((agent-state (make-greger-agent-state
+                          :current-iteration 0
+                          :chat-buffer (current-buffer)
+                          :directory default-directory :metadata nil))
+            (tool-calls `(((type . "tool_use")
+                          (id . "unknown_test")
+                          (name . "nonexistent-tool")
+                          (input . ((param . "value"))))))
+            (expected-error-content "
+
+## TOOL USE:
+
+Name: nonexistent-tool
+ID: unknown_test
+
+### param
+
+<tool.unknown_test>
+value
+</tool.unknown_test>
+
+## TOOL RESULT:
+
+ID: unknown_test
+
+<tool.unknown_test>
+Unknown tool: nonexistent-tool
+</tool.unknown_test>"))
+
+        ;; Mock greger-agent--run-agent-loop to capture completion
+        (cl-letf (((symbol-function 'greger-agent--run-agent-loop)
+                   (lambda (state)
+                     (setq test-completed t))))
+
+          ;; Execute tools
+          (greger-agent--execute-tools tool-calls agent-state)
+
+          ;; Check that execution completed despite unknown tool
+          (should test-completed)
+
+          ;; Check buffer contents match expected error message exactly
+          (let ((actual-content (buffer-substring-no-properties (point-min) (point-max))))
+            (should (string= expected-error-content actual-content))))))))
+
+(ert-deftest greger-test-exact-tool-output-formatting ()
+  "Test exact tool output formatting with multiple scenarios."
+  (let ((test-completed nil))
+
+    ;; Define a tool that returns multi-line content
+    (defun greger-test-multiline-tool (content)
+      (format "Line 1: %s\nLine 2: More content\nLine 3: End" content))
+
+    ;; Register test tool
+    (greger-register-tool "test-multiline"
+      :description "Tool with multi-line output"
+      :properties '((content . ((type . "string")
+                                (description . "Content for first line"))))
+      :required '("content")
+      :function 'greger-test-multiline-tool)
+
+    ;; Create test buffer
+    (with-temp-buffer
+      (let ((agent-state (make-greger-agent-state
+                          :current-iteration 0
+                          :chat-buffer (current-buffer)
+                          :directory default-directory :metadata nil))
+            (tool-calls `(((type . "tool_use")
+                          (id . "multiline_test")
+                          (name . "test-multiline")
+                          (input . ((content . "Start"))))))
+            (expected-content "
+
+## TOOL USE:
+
+Name: test-multiline
+ID: multiline_test
+
+### content
+
+<tool.multiline_test>
+Start
+</tool.multiline_test>
+
+## TOOL RESULT:
+
+ID: multiline_test
+
+<tool.multiline_test>
+Line 1: Start
+Line 2: More content
+Line 3: End
+</tool.multiline_test>"))
+
+        ;; Mock greger-agent--run-agent-loop to capture completion
+        (cl-letf (((symbol-function 'greger-agent--run-agent-loop)
+                   (lambda (state)
+                     (setq test-completed t))))
+
+          ;; Execute tools
+          (greger-agent--execute-tools tool-calls agent-state)
+
+          ;; Check that execution completed
+          (should test-completed)
+
+          ;; Check exact multi-line formatting
+          (let ((actual-content (buffer-substring-no-properties (point-min) (point-max))))
+            (should (string= expected-content actual-content))))))
+
+    ;; Clean up
+    (remhash "test-multiline" greger-tools-registry)))
+
+(ert-deftest greger-test-simple-string-comparison ()
+  "Test simple tool execution with clear before/after string comparison."
+  (let ((test-completed nil))
+
+    ;; Define a predictable tool function
+    (defun greger-test-simple-echo (input)
+      (format "Echo: %s" input))
+
+    ;; Register test tool
+    (greger-register-tool "test-echo"
+      :description "Simple echo tool"
+      :properties '((input . ((type . "string")
+                              (description . "Input to echo"))))
+      :required '("input")
+      :function 'greger-test-simple-echo)
+
+    ;; Create test buffer
+    (with-temp-buffer
+      ;; Initial buffer state (empty)
+      (let ((initial-content "")
+            (agent-state (make-greger-agent-state
+                          :current-iteration 0
+                          :chat-buffer (current-buffer)
+                          :directory default-directory :metadata nil))
+            (tool-calls `(((type . "tool_use")
+                          (id . "echo_001")
+                          (name . "test-echo")
+                          (input . ((input . "hello world"))))))
+            ;; Expected content after tool execution
+            (expected-final-content "
+
+## TOOL USE:
+
+Name: test-echo
+ID: echo_001
+
+### input
+
+<tool.echo_001>
+hello world
+</tool.echo_001>
+
+## TOOL RESULT:
+
+ID: echo_001
+
+<tool.echo_001>
+Echo: hello world
+</tool.echo_001>"))
+
+        ;; Verify initial state
+        (should (string= initial-content (buffer-substring-no-properties (point-min) (point-max))))
+
+        ;; Mock greger-agent--run-agent-loop to capture completion
+        (cl-letf (((symbol-function 'greger-agent--run-agent-loop)
+                   (lambda (state)
+                     (setq test-completed t))))
+
+          ;; Execute tools
+          (greger-agent--execute-tools tool-calls agent-state)
+
+          ;; Verify completion
+          (should test-completed)
+
+          ;; Verify exact final content using string= comparison
+          (let ((actual-final-content (buffer-substring-no-properties (point-min) (point-max))))
+            (should (string= expected-final-content actual-final-content))))))
+
+    ;; Clean up
+    (remhash "test-echo" greger-tools-registry)))
+
+(provide 'test-greger)
+
+;;; test-greger.el ends here
+
+</tool.toolu_01VDuMfpp4o2Xa9xtVPPSowi>
+
+## TOOL USE:
+
+Name: read-file
+ID: toolu_01QVbtgABJz2niN3rhechtmR
+
+### path
+
+<tool.toolu_01QVbtgABJz2niN3rhechtmR>
+test/test-greger-lib-lsp.el
+</tool.toolu_01QVbtgABJz2niN3rhechtmR>
+
+## TOOL RESULT:
+
+ID: toolu_01QVbtgABJz2niN3rhechtmR
+
+<tool.toolu_01QVbtgABJz2niN3rhechtmR>
+;;; test-greger-lib-lsp.el --- Tests for greger LSP tools -*- lexical-binding: t -*-
+
+;;; Commentary:
+;; Tests for the LSP-powered tools defined in greger-lib-lsp.el
+
+;;; Code:
+
+(require 'ert)
+(require 'cl-lib)
+(require 'greger-lib-lsp)
+(require 'lsp-mode)
+(require 'lsp-pyright)  ; Python LSP server
+
+;;; Test utilities
+
+(defvar greger-lsp-test-temp-dir nil
+  "Temporary directory for LSP tests.")
+
+(defvar greger-lsp-test-python-file nil
+  "Path to test Python file.")
+
+(defvar greger-lsp-test-project-root nil
+  "Root directory of test project.")
+
+(defun greger-lsp-test-setup ()
+  "Set up test environment with temporary Python project."
+  ;; Create unique temp directory
+  (setq greger-lsp-test-temp-dir (make-temp-file "greger-lsp-test-" t))
+  (setq greger-lsp-test-project-root greger-lsp-test-temp-dir)
+
+  ;; Clean up any old test folders from LSP session (but don't touch user folders)
+  (when (bound-and-true-p lsp--session)
+    (setf (lsp-session-folders lsp--session)
+          (cl-remove-if (lambda (folder)
+                         (string-prefix-p "/tmp" folder))
+                        (lsp-session-folders lsp--session))))
+
+  ;; Create a simple Python project structure
+  (let ((src-dir (file-name-as-directory (expand-file-name "src" greger-lsp-test-temp-dir))))
+    (make-directory src-dir)
+
+    ;; Create main.py with some example code
+    (setq greger-lsp-test-python-file (expand-file-name "main.py" src-dir))
+    (with-temp-file greger-lsp-test-python-file
+      (insert "#!/usr/bin/env python3
+\"\"\"Example Python module for testing LSP tools.\"\"\"
+
+import os
+import sys
+from typing import List, Optional
+
+
+class Calculator:
+    \"\"\"A simple calculator class.\"\"\"
+
+    def __init__(self, precision: int = 2):
+        self.precision = precision
+        self.history: List[str] = []
+
+    def add_numbers(self, a: float, b: float) -> float:
+        \"\"\"Add two numbers together.\"\"\"
+        result = a + b
+        self.history.append(f\"{a} + {b} = {result}\")
+        return round(result, self.precision)
+
+    def multiply_numbers(self, a: float, b: float) -> float:
+        \"\"\"Multiply two numbers.\"\"\"
+        result = a * b
+        self.history.append(f\"{a} * {b} = {result}\")
+        return round(result, self.precision)
+
+    def get_history(self) -> List[str]:
+        \"\"\"Get calculation history.\"\"\"
+        return self.history.copy()
+
+
+def create_calculator(precision: Optional[int] = None) -> Calculator:
+    \"\"\"Factory function to create a calculator.\"\"\"
+    if precision is None:
+        precision = 2
+    return Calculator(precision)
+
+
+def main():
+    \"\"\"Main function for testing.\"\"\"
+    calc = create_calculator(3)
+    result1 = calc.add_numbers(10.5, 20.3)
+    result2 = calc.multiply_numbers(result1, 2.0)
+
+    print(f\"Final result: {result2}\")
+    print(\"History:\")
+    for entry in calc.get_history():
+        print(f\"  {entry}\")
+
+
+if __name__ == \"__main__\":
+    main()
+"))
+
+    ;; Create utils.py for reference testing
+    (let ((utils-file (expand-file-name "utils.py" src-dir)))
+      (with-temp-file utils-file
+        (insert "#!/usr/bin/env python3
+\"\"\"Utility functions.\"\"\"
+
+from main import Calculator, create_calculator
+
+
+def advanced_calculation(x: float, y: float) -> float:
+    \"\"\"Perform advanced calculation using Calculator.\"\"\"
+    calc = create_calculator(4)
+    intermediate = calc.add_numbers(x, y)
+    return calc.multiply_numbers(intermediate, 1.5)
+
+
+def format_result(value: float) -> str:
+    \"\"\"Format a calculation result.\"\"\"
+    return f\"Result: {value:.2f}\"
+")))
+
+    ;; Create a simple pyproject.toml for LSP to recognize the project
+    (with-temp-file (expand-file-name "pyproject.toml" greger-lsp-test-temp-dir)
+      (insert "[project]
+name = \"greger-lsp-test\"
+version = \"0.1.0\"
+description = \"Test project for greger LSP tools\"
+"))))
+
+(defun greger-lsp-test-teardown ()
+  "Clean up test environment."
+  (when greger-lsp-test-temp-dir
+    ;; Kill any buffers visiting test files
+    (when greger-lsp-test-python-file
+      (let ((buffer (get-file-buffer greger-lsp-test-python-file)))
+        (when buffer
+          (with-current-buffer buffer
+            (when (bound-and-true-p lsp-mode)
+              (condition-case nil (lsp-disconnect) (error nil))))
+          (kill-buffer buffer))))
+
+    ;; Also check for utils.py buffer
+    (let ((utils-file (expand-file-name "src/utils.py" greger-lsp-test-temp-dir)))
+      (let ((buffer (get-file-buffer utils-file)))
+        (when buffer
+          (with-current-buffer buffer
+            (when (bound-and-true-p lsp-mode)
+              (condition-case nil (lsp-disconnect) (error nil))))
+          (kill-buffer buffer))))
+
+    ;; Clean up LSP session folders (but don't be too aggressive)
+    (when (and (bound-and-true-p lsp--session) greger-lsp-test-project-root)
+      (condition-case nil
+          (lsp-workspace-folders-remove greger-lsp-test-project-root)
+        (error nil))
+
+      ;; Remove from session folders
+      (setf (lsp-session-folders lsp--session)
+            (cl-remove-if (lambda (folder)
+                           (string-prefix-p "/tmp" folder))
+                         (lsp-session-folders lsp--session))))
+
+    ;; Remove temp directory
+    (condition-case nil
+        (delete-directory greger-lsp-test-temp-dir t)
+      (error nil))
+
+    ;; Reset test variables
+    (setq greger-lsp-test-temp-dir nil
+          greger-lsp-test-python-file nil
+          greger-lsp-test-project-root nil)))
+
+(defun greger-lsp-test-ensure-lsp-started ()
+  "Ensure LSP is started for the test Python file."
+  (let ((buffer (find-file-noselect greger-lsp-test-python-file)))
+    (with-current-buffer buffer
+      (python-mode)
+
+      ;; Use lsp-workspace-folders-add to properly register our test directory
+      (lsp-workspace-folders-add greger-lsp-test-project-root)
+
+      ;; Start LSP with our configured workspace
+      (condition-case err
+          (progn
+            ;; Bind LSP variables to ensure proper root detection
+            (let ((lsp-auto-guess-root nil)
+                  (lsp-guess-root-without-session nil))
+              (lsp))
+            ;; Wait for LSP to initialize with reasonable timeout
+            (let ((timeout 0))
+              (while (and (not lsp--buffer-workspaces) (< timeout 100))
+                (sit-for 0.1)
+                (setq timeout (1+ timeout))))
+            (unless lsp--buffer-workspaces
+              (error "Failed to start LSP server for test"))
+
+            ;; Verify we got the right workspace root
+            (let ((workspace-root (lsp-workspace-root)))
+              (unless (string= (file-truename workspace-root)
+                              (file-truename greger-lsp-test-project-root))
+                (error "LSP workspace root mismatch: expected %s, got %s"
+                       greger-lsp-test-project-root workspace-root))))
+        (error
+         (message "LSP startup error: %s" (error-message-string err))
+         (error "Failed to start LSP server for test: %s" (error-message-string err)))))
+
+    ;; TODO: better way to detect that buffer is ready
+    (sleep-for 1.0)
+
+    buffer))
+
+;;; Helper functions for test requirements
+
+(defun greger-lsp-test-requirements-met-p ()
+  "Check if requirements for LSP tests are met."
+  (and (fboundp 'lsp)
+       (fboundp 'python-mode)
+       (or (executable-find "pyright")
+           (executable-find "pylsp")
+           (executable-find "python-lsp-server"))))
+
+(defun greger-lsp-test-skip-if-requirements-not-met ()
+  "Skip test if LSP requirements are not met."
+  (unless (greger-lsp-test-requirements-met-p)
+    (ert-skip "LSP mode or Python LSP server not available")))
+
+
+
+;;; Helper macros
+
+(defmacro greger-lsp-test-with-setup (&rest body)
+  "Execute BODY with LSP test setup and teardown."
+  `(progn
+     (greger-lsp-test-skip-if-requirements-not-met)
+     (unwind-protect
+         (progn
+           (greger-lsp-test-setup)
+           (greger-lsp-test-ensure-lsp-started)
+           ,@body)
+       (greger-lsp-test-teardown))))
+
+;;; Tests for helper functions
+
+(ert-deftest greger-lsp-test-ensure-server ()
+  "Test LSP server initialization helper."
+  (greger-lsp-test-with-setup
+   (let ((buffer (greger-lsp--ensure-server greger-lsp-test-python-file)))
+     (should (bufferp buffer))
+     (with-current-buffer buffer
+       (should (bound-and-true-p lsp-mode))
+       (should lsp--buffer-workspaces)))))
+
+(ert-deftest greger-lsp-test-with-buffer-at-position ()
+  "Test executing code at specific buffer position."
+  (greger-lsp-test-with-setup
+   (let ((result nil))
+     (greger-lsp--with-buffer-at-position
+      greger-lsp-test-python-file 9 0  ; Line 9: class definition
+      (lambda ()
+        (setq result (thing-at-point 'word))))
+     (should (equal result "class")))))
+
+;;; Tests for lsp-rename tool
+
+(ert-deftest greger-lsp-test-rename-success ()
+  "Test successful symbol rename."
+  (greger-lsp-test-with-setup
+   ;; Rename the Calculator class to MathCalculator
+   (let ((result (greger-lib-lsp--rename
+                  "MathCalculator"
+                  greger-lsp-test-python-file
+                  9 6)))  ; Line 9: "class Calculator:", column at "Calculator"
+     (should (stringp result))
+     (should (string= "Successfully renamed 'Calculator' to 'MathCalculator' in 4 location(s)" result))
+
+     ;; Verify the file was actually changed
+     (with-temp-buffer
+       (insert-file-contents greger-lsp-test-python-file)
+       (goto-char (point-min))
+       (should (search-forward "class MathCalculator:" nil t))))))
+
+(ert-deftest greger-lsp-test-rename-invalid-symbol ()
+  "Test rename on invalid symbol position."
+  (greger-lsp-test-with-setup
+   ;; Try to rename at a comment line
+   (let ((result (greger-lib-lsp--rename
+                  "NewName"
+                  greger-lsp-test-python-file
+                  2 0)))  ; Line 2: comment line
+     (should (stringp result))
+     (should (or (string-match-p "No changes made" result)
+             (string-match-p "failed" result))))))
+
+;;; Tests for lsp-format tool
+
+(ert-deftest greger-lsp-test-format-file ()
+  "Test formatting entire file."
+  (greger-lsp-test-with-setup
+   ;; First, mess up the formatting
+   (with-current-buffer (find-file-noselect greger-lsp-test-python-file)
+     (goto-char (point-min))
+     (search-forward "def add_numbers")
+     (beginning-of-line)
+     (insert "   ")  ; Add extra indentation
+     (save-buffer))
+
+   ;; Now format the file
+   (let ((result (greger-lib-lsp--format greger-lsp-test-python-file)))
+     (should (stringp result))
+     (should (or (string-match-p "Successfully formatted" result)
+             (string-match-p "No formatting changes needed" result))))))
+
+(ert-deftest greger-lsp-test-format-range ()
+  "Test formatting a specific range."
+  (greger-lsp-test-with-setup
+   (let ((result (greger-lib-lsp--format
+                  greger-lsp-test-python-file
+                  10 20)))  ; Format lines 10-20 (around Calculator class)
+     (should (stringp result))
+     (should (or (string-match-p "Successfully formatted" result)
+             (string-match-p "No formatting changes needed" result)
+             (string-match-p "does not support range formatting" result))))))
+
+;;; Tests for lsp-find-definition tool
+
+(ert-deftest greger-lsp-test-find-definition ()
+  "Test finding symbol definition."
+  (greger-lsp-test-with-setup
+   ;; Find definition of create_calculator usage
+   (let ((result (greger-lib-lsp--find-definition
+                  greger-lsp-test-python-file
+                  42 11)))  ; Line 42: "calc = create_calculator(3)", position at "create_calculator"
+
+     (should (stringp result))
+     (should (string-match-p "Definition.*create_calculator" result))
+     (should (string-match-p "main.py:" result)))))
+
+(ert-deftest greger-lsp-test-find-definition-with-declaration ()
+  "Test finding definition with declarations."
+  (greger-lsp-test-with-setup
+   (let ((result (greger-lib-lsp--find-definition
+                  greger-lsp-test-python-file
+                  42 11  ; Line 43: "calc = create_calculator(3)", position at "create_calculator"
+                  t)))   ; Include declarations
+     (should (stringp result))
+     (should (string-match-p "Definition.*create_calculator" result)))))
+
+;;; Tests for lsp-find-references tool
+
+(ert-deftest greger-lsp-test-find-references ()
+  "Test finding symbol references."
+  (greger-lsp-test-with-setup
+   ;; Find references to Calculator class
+   (let ((result (greger-lib-lsp--find-references
+                  greger-lsp-test-python-file
+                  9 6)))  ; Line 9: "class Calculator:", column at "Calculator"
+     (should (stringp result))
+     (should (string-match-p "References.*Calculator" result))
+     (should (string-match-p "main.py:" result)))))
+
+(ert-deftest greger-lsp-test-find-references-limited ()
+  "Test finding references with result limit."
+  (greger-lsp-test-with-setup
+   (let ((result (greger-lib-lsp--find-references
+                  greger-lsp-test-python-file
+                  9 6      ; Line 9: "class Calculator:", column at "Calculator"
+                  t        ; Include declaration
+                  5)))     ; Max 5 results
+     (should (stringp result))
+     (should (string-match-p "References.*Calculator" result)))))
+
+;;; Integration tests
+
+(ert-deftest greger-lsp-test-rename-and-find-references ()
+  "Integration test: rename a symbol and verify references are updated."
+  (greger-lsp-test-with-setup
+   ;; First, find references to the original name
+   (let ((original-refs (greger-lib-lsp--find-references
+                         greger-lsp-test-python-file 9 6))) ; Line 9: Calculator class
+     (should (string-match-p "Calculator" original-refs))
+
+     ;; Perform rename in a way that avoids minibuffer issues
+     (let ((inhibit-message t)
+           (use-dialog-box nil)
+           (executing-kbd-macro t)) ; Simulate running in macro to avoid interactive prompts
+       (let ((result (greger-lib-lsp--rename "MathEngine" greger-lsp-test-python-file 9 6)))
+         (should (stringp result))
+
+         ;; Find references to the new name (after a brief delay for LSP to update)
+         (sit-for 0.5)
+         (let ((new-refs (greger-lib-lsp--find-references
+                          greger-lsp-test-python-file 9 6)))
+           (should (stringp new-refs))))))))
+
+(ert-deftest greger-lsp-test-cross-file-references ()
+  "Test finding references across multiple files."
+  (greger-lsp-test-with-setup
+   ;; Wait a moment for LSP to fully initialize
+   (sit-for 1)
+
+   ;; Find references to Calculator class (line 9, position at "Calculator")
+   (let ((result (greger-lib-lsp--find-references
+                  greger-lsp-test-python-file
+                  9 6))
+         (expected "References for 'Calculator' (3 found):
+main.py:33:58
+main.py:37:11
+utils.py:4:17"))
+
+     (should (stringp result))
+     (should (string= expected result)))))
+
+;;; Tests for lsp-document-symbols tool
+
+(ert-deftest greger-lsp-test-document-symbols-single-file-non-detailed ()
+  "Test getting document symbols for a single file without detailed symbols."
+  (greger-lsp-test-with-setup
+   (let ((result (greger-lib-lsp--document-symbols
+                  (list greger-lsp-test-python-file)
+                  nil)) ; detailed = false (default)
+         (expected "Symbols in src/main.py:
+Calculator [Class] (line 9, col 0)
+  __init__ [Method] (line 12, col 4)
+  add_numbers [Method] (line 16, col 4)
+  multiply_numbers [Method] (line 22, col 4)
+  get_history [Method] (line 28, col 4)
+create_calculator [Function] (line 33, col 0)
+main [Function] (line 40, col 0)"))
+     (should (stringp result))
+     (should (string= expected result)))))
+
+(ert-deftest greger-lsp-test-document-symbols-single-file-detailed ()
+  "Test getting document symbols for a single file with detailed symbols."
+  (greger-lsp-test-with-setup
+   (let ((result (greger-lib-lsp--document-symbols
+                  (list greger-lsp-test-python-file)
+                  t)) ; detailed = true
+         (expected "Symbols in src/main.py:
+Calculator [Class] (line 9, col 0)
+  __init__ [Method] (line 12, col 4)
+    precision [Variable] (line 12, col 23)
+  add_numbers [Method] (line 16, col 4)
+    a [Variable] (line 16, col 26)
+    b [Variable] (line 16, col 36)
+    result [Variable] (line 18, col 8)
+  multiply_numbers [Method] (line 22, col 4)
+    a [Variable] (line 22, col 31)
+    b [Variable] (line 22, col 41)
+    result [Variable] (line 24, col 8)
+  get_history [Method] (line 28, col 4)
+  precision [Variable] (line 13, col 13)
+  history [Variable] (line 14, col 13)
+create_calculator [Function] (line 33, col 0)
+  precision [Variable] (line 33, col 22)
+main [Function] (line 40, col 0)
+  calc [Variable] (line 42, col 4)
+  result1 [Variable] (line 43, col 4)
+  result2 [Variable] (line 44, col 4)
+  entry [Variable] (line 48, col 8)"))
+     (should (stringp result))
+     (should (string= expected result)))))
+
+(ert-deftest greger-lsp-test-document-symbols-multiple-files-non-detailed ()
+  "Test getting document symbols for multiple files without detailed symbols."
+  (greger-lsp-test-with-setup
+   (let* ((utils-file (expand-file-name "src/utils.py" greger-lsp-test-temp-dir))
+          (result (greger-lib-lsp--document-symbols
+                   (list greger-lsp-test-python-file utils-file)
+                   nil)) ; detailed = false
+          (expected "Symbols in src/main.py:
+Calculator [Class] (line 9, col 0)
+  __init__ [Method] (line 12, col 4)
+  add_numbers [Method] (line 16, col 4)
+  multiply_numbers [Method] (line 22, col 4)
+  get_history [Method] (line 28, col 4)
+create_calculator [Function] (line 33, col 0)
+main [Function] (line 40, col 0)
+
+Symbols in src/utils.py:
+advanced_calculation [Function] (line 7, col 0)
+format_result [Function] (line 14, col 0)"))
+     (should (stringp result))
+     (should (string= expected result)))))
+
+(ert-deftest greger-lsp-test-document-symbols-empty-file ()
+  "Test getting document symbols for file with no symbols."
+  (greger-lsp-test-with-setup
+   ;; Create an empty Python file
+   (let* ((empty-file (expand-file-name "empty.py" greger-lsp-test-temp-dir))
+          (expected "No symbols found in empty.py"))
+     (with-temp-file empty-file
+       (insert "# Just a comment\n"))
+
+     (let ((result (greger-lib-lsp--document-symbols (list empty-file))))
+       (should (stringp result))
+       (should (string= expected result))))))
+
+(provide 'test-greger-lib-lsp)
+
+;;; test-greger-lib-lsp.el ends here
+
+</tool.toolu_01QVbtgABJz2niN3rhechtmR>
+
+## ASSISTANT:
+
+Now let me run the tests to see what specific errors are occurring:
+
+## TOOL USE:
+
+Name: shell-command
+ID: toolu_014enLKp6XxByCLccL8eHCkz
+
+### command
+
+<tool.toolu_014enLKp6XxByCLccL8eHCkz>
+bash script/test --verbose --file test/test-greger.el
+</tool.toolu_014enLKp6XxByCLccL8eHCkz>
+
+## TOOL RESULT:
+
+ID: toolu_014enLKp6XxByCLccL8eHCkz
+
+<tool.toolu_014enLKp6XxByCLccL8eHCkz>
+Command failed with exit code 1: [0;34mRunning ERT tests for greger package...[0m
+
+Running tests in [1;33mtest/test-greger.el[0m (verbose mode)...
+Loading /Users/andreas/projects/greger.el/greger.el (source)...
+Source file ‘/opt/homebrew/Cellar/emacs-plus@29/29.0.90/share/emacs/29.0.91/lisp/net/eww.el’ newer than byte-compiled file; using older file
+Loading /Users/andreas/projects/greger.el/greger-parser.el (source)...
+Loading /Users/andreas/projects/greger.el/greger-stdlib.el (source)...
+Loading /Users/andreas/projects/greger.el/greger-lib-lsp.el (source)...
+Loading /Users/andreas/projects/greger.el/greger-tools.el (source)...
+Loading /Users/andreas/projects/greger.el/greger-client.el (source)...
+Loading /Users/andreas/projects/greger.el/greger-web.el (source)...
+Loading /Users/andreas/projects/greger.el/test/test-greger.el (source)...
+Running 8 tests (2025-06-03 15:23:04+0200, selector ‘t’)
+Test greger-test-exact-tool-output-formatting backtrace:
+  (make-greger-agent-state :current-iteration 0 :chat-buffer (current-
+  (let ((agent-state (make-greger-agent-state :current-iteration 0 :ch
+  (progn (let ((agent-state (make-greger-agent-state :current-iteratio
+  (unwind-protect (progn (let ((agent-state (make-greger-agent-state :
+  (save-current-buffer (set-buffer temp-buffer) (unwind-protect (progn
+  (let ((temp-buffer (generate-new-buffer " *temp*" t))) (save-current
+  (let ((test-completed nil)) (defalias 'greger-test-multiline-tool #'
+  (closure (t) nil (let ((test-completed nil)) (defalias 'greger-test-
+  ert--run-test-internal(#s(ert--test-execution-info :test #s(ert-test
+  ert-run-test(#s(ert-test :name greger-test-exact-tool-output-formatt
+  ert-run-or-rerun-test(#s(ert--stats :selector t :tests [#s(ert-test
+  ert-run-tests(t #f(compiled-function (event-type &rest event-args) #
+  ert-run-tests-batch(t)
+  ert-run-tests-batch-and-exit(t)
+  (let ((ert-quiet nil)) (ert-run-tests-batch-and-exit t))
+  (progn (setq debug-on-error t) (add-to-list 'load-path ".") (require
+  eval((progn (setq debug-on-error t) (add-to-list 'load-path ".") (re
+  command-line-1(("--eval" "(progn\n                  (setq debug-on-e
+  command-line()
+  normal-top-level()
+Test greger-test-exact-tool-output-formatting condition:
+    (void-function make-greger-agent-state)
+   FAILED  1/8  greger-test-exact-tool-output-formatting (0.000095 sec) at test/test-greger.el:380
+Test greger-test-multiple-tools-parallel backtrace:
+  signal(ert-test-failed (((should tools-completed) :form tools-comple
+  ert-fail(((should tools-completed) :form tools-completed :value nil)
+  (if (unwind-protect (setq value-20 tools-completed) (setq form-descr
+  (let (form-description-21) (if (unwind-protect (setq value-20 tools-
+  (let ((value-20 (gensym "ert-form-evaluation-aborted-"))) (let (form
+  (progn (fset 'greger-agent--run-agent-loop vnew) (greger--execute-to
+  (unwind-protect (progn (fset 'greger-agent--run-agent-loop vnew) (gr
+  (let* ((vnew #'(lambda (state) (setq tools-completed t))) (old (symb
+  (let ((agent-state (record 'greger-state 0 (current-buffer) default-
+  (progn (let ((agent-state (record 'greger-state 0 (current-buffer) d
+  (unwind-protect (progn (let ((agent-state (record 'greger-state 0 (c
+  (save-current-buffer (set-buffer temp-buffer) (unwind-protect (progn
+  (let ((temp-buffer (generate-new-buffer " *temp*" t))) (save-current
+  (let ((tools-completed nil)) (defalias 'greger-test-tool-a #'(lambda
+  (closure (t) nil (let ((tools-completed nil)) (defalias 'greger-test
+  ert--run-test-internal(#s(ert--test-execution-info :test #s(ert-test
+  ert-run-test(#s(ert-test :name greger-test-multiple-tools-parallel :
+  ert-run-or-rerun-test(#s(ert--stats :selector t :tests ... :test-map
+  ert-run-tests(t #f(compiled-function (event-type &rest event-args) #
+  ert-run-tests-batch(t)
+  ert-run-tests-batch-and-exit(t)
+  (let ((ert-quiet nil)) (ert-run-tests-batch-and-exit t))
+  (progn (setq debug-on-error t) (add-to-list 'load-path ".") (require
+  eval((progn (setq debug-on-error t) (add-to-list 'load-path ".") (re
+  command-line-1(("--eval" "(progn\n                  (setq debug-on-e
+  command-line()
+  normal-top-level()
+Test greger-test-multiple-tools-parallel condition:
+    (ert-test-failed
+     ((should tools-completed)
+      :form tools-completed :value nil))
+   FAILED  2/8  greger-test-multiple-tools-parallel (0.007283 sec) at test/test-greger.el:98
+Test greger-test-simple-string-comparison backtrace:
+  (make-greger-agent-state :current-iteration 0 :chat-buffer (current-
+  (let ((initial-content "") (agent-state (make-greger-agent-state :cu
+  (progn (let ((initial-content "") (agent-state (make-greger-agent-st
+  (unwind-protect (progn (let ((initial-content "") (agent-state (make
+  (save-current-buffer (set-buffer temp-buffer) (unwind-protect (progn
+  (let ((temp-buffer (generate-new-buffer " *temp*" t))) (save-current
+  (let ((test-completed nil)) (defalias 'greger-test-simple-echo #'(la
+  (closure (t) nil (let ((test-completed nil)) (defalias 'greger-test-
+  ert--run-test-internal(#s(ert--test-execution-info :test #s(ert-test
+  ert-run-test(#s(ert-test :name greger-test-simple-string-comparison
+  ert-run-or-rerun-test(#s(ert--stats :selector t :tests ... :test-map
+  ert-run-tests(t #f(compiled-function (event-type &rest event-args) #
+  ert-run-tests-batch(t)
+  ert-run-tests-batch-and-exit(t)
+  (let ((ert-quiet nil)) (ert-run-tests-batch-and-exit t))
+  (progn (setq debug-on-error t) (add-to-list 'load-path ".") (require
+  eval((progn (setq debug-on-error t) (add-to-list 'load-path ".") (re
+  command-line-1(("--eval" "(progn\n                  (setq debug-on-e
+  command-line()
+  normal-top-level()
+Test greger-test-simple-string-comparison condition:
+    (void-function make-greger-agent-state)
+   FAILED  3/8  greger-test-simple-string-comparison (0.000102 sec) at test/test-greger.el:447
+   passed  4/8  greger-test-single-tool-execution (0.000143 sec)
+Test greger-test-tool-error-handling backtrace:
+  (greger-agent--execute-tools tool-calls agent-state)
+  (progn (fset 'greger-agent--run-agent-loop vnew) (greger-agent--exec
+  (unwind-protect (progn (fset 'greger-agent--run-agent-loop vnew) (gr
+  (let* ((vnew #'(lambda (state) (setq test-completed t))) (old (symbo
+  (let ((agent-state (record 'greger-state 0 (current-buffer) default-
+  (progn (let ((agent-state (record 'greger-state 0 (current-buffer) d
+  (unwind-protect (progn (let ((agent-state (record 'greger-state 0 (c
+  (save-current-buffer (set-buffer temp-buffer) (unwind-protect (progn
+  (let ((temp-buffer (generate-new-buffer " *temp*" t))) (save-current
+  (let ((test-completed nil)) (defalias 'greger-test-error-tool #'(lam
+  (closure (t) nil (let ((test-completed nil)) (defalias 'greger-test-
+  ert--run-test-internal(#s(ert--test-execution-info :test #s(ert-test
+  ert-run-test(#s(ert-test :name greger-test-tool-error-handling :docu
+  ert-run-or-rerun-test(#s(ert--stats :selector t :tests ... :test-map
+  ert-run-tests(t #f(compiled-function (event-type &rest event-args) #
+  ert-run-tests-batch(t)
+  ert-run-tests-batch-and-exit(t)
+  (let ((ert-quiet nil)) (ert-run-tests-batch-and-exit t))
+  (progn (setq debug-on-error t) (add-to-list 'load-path ".") (require
+  eval((progn (setq debug-on-error t) (add-to-list 'load-path ".") (re
+  command-line-1(("--eval" "(progn\n                  (setq debug-on-e
+  command-line()
+  normal-top-level()
+Test greger-test-tool-error-handling condition:
+    (void-function greger-agent--execute-tools)
+   FAILED  5/8  greger-test-tool-error-handling (0.000071 sec) at test/test-greger.el:198
+Test greger-test-tool-execution-with-existing-content backtrace:
+  (make-greger-agent-state :current-iteration 0 :chat-buffer (current-
+  (let ((agent-state (make-greger-agent-state :current-iteration 0 :ch
+  (progn (insert "Existing content in buffer") (let ((agent-state (mak
+  (unwind-protect (progn (insert "Existing content in buffer") (let ((
+  (save-current-buffer (set-buffer temp-buffer) (unwind-protect (progn
+  (let ((temp-buffer (generate-new-buffer " *temp*" t))) (save-current
+  (let ((test-completed nil)) (defalias 'greger-test-content-tool #'(l
+  (closure (t) nil (let ((test-completed nil)) (defalias 'greger-test-
+  ert--run-test-internal(#s(ert--test-execution-info :test #s(ert-test
+  ert-run-test(#s(ert-test :name greger-test-tool-execution-with-exist
+  ert-run-or-rerun-test(#s(ert--stats :selector t :tests ... :test-map
+  ert-run-tests(t #f(compiled-function (event-type &rest event-args) #
+  ert-run-tests-batch(t)
+  ert-run-tests-batch-and-exit(t)
+  (let ((ert-quiet nil)) (ert-run-tests-batch-and-exit t))
+  (progn (setq debug-on-error t) (add-to-list 'load-path ".") (require
+  eval((progn (setq debug-on-error t) (add-to-list 'load-path ".") (re
+  command-line-1(("--eval" "(progn\n                  (setq debug-on-e
+  command-line()
+  normal-top-level()
+Test greger-test-tool-execution-with-existing-content condition:
+    (void-function make-greger-agent-state)
+   FAILED  6/8  greger-test-tool-execution-with-existing-content (0.000181 sec) at test/test-greger.el:263
+   passed  7/8  greger-test-tool-placeholder (0.000054 sec)
+Test greger-test-unknown-tool-error backtrace:
+  (make-greger-agent-state :current-iteration 0 :chat-buffer (current-
+  (let ((agent-state (make-greger-agent-state :current-iteration 0 :ch
+  (progn (let ((agent-state (make-greger-agent-state :current-iteratio
+  (unwind-protect (progn (let ((agent-state (make-greger-agent-state :
+  (save-current-buffer (set-buffer temp-buffer) (unwind-protect (progn
+  (let ((temp-buffer (generate-new-buffer " *temp*" t))) (save-current
+  (let ((test-completed nil)) (let ((temp-buffer (generate-new-buffer
+  (closure (t) nil (let ((test-completed nil)) (let ((temp-buffer (gen
+  ert--run-test-internal(#s(ert--test-execution-info :test #s(ert-test
+  ert-run-test(#s(ert-test :name greger-test-unknown-tool-error :docum
+  ert-run-or-rerun-test(#s(ert--stats :selector t :tests ... :test-map
+  ert-run-tests(t #f(compiled-function (event-type &rest event-args) #
+  ert-run-tests-batch(t)
+  ert-run-tests-batch-and-exit(t)
+  (let ((ert-quiet nil)) (ert-run-tests-batch-and-exit t))
+  (progn (setq debug-on-error t) (add-to-list 'load-path ".") (require
+  eval((progn (setq debug-on-error t) (add-to-list 'load-path ".") (re
+  command-line-1(("--eval" "(progn\n                  (setq debug-on-e
+  command-line()
+  normal-top-level()
+Test greger-test-unknown-tool-error condition:
+    (void-function make-greger-agent-state)
+   FAILED  8/8  greger-test-unknown-tool-error (0.000065 sec) at test/test-greger.el:330
+
+Ran 8 tests, 2 results as expected, 6 unexpected (2025-06-03 15:23:04+0200, 0.580407 sec)
+
+6 unexpected results:
+   FAILED  greger-test-exact-tool-output-formatting
+   FAILED  greger-test-multiple-tools-parallel
+   FAILED  greger-test-simple-string-comparison
+   FAILED  greger-test-tool-error-handling
+   FAILED  greger-test-tool-execution-with-existing-content
+   FAILED  greger-test-unknown-tool-error
+
+
+</tool.toolu_014enLKp6XxByCLccL8eHCkz>
+
+## TOOL USE:
+
+Name: shell-command
+ID: toolu_01KLaDnmo9dTJuNP1Q95pt7d
+
+### command
+
+<tool.toolu_01KLaDnmo9dTJuNP1Q95pt7d>
+bash script/test --verbose --file test/test-greger-lib-lsp.el
+</tool.toolu_01KLaDnmo9dTJuNP1Q95pt7d>
+
+## TOOL RESULT:
+
+ID: toolu_01KLaDnmo9dTJuNP1Q95pt7d
+
+<tool.toolu_01KLaDnmo9dTJuNP1Q95pt7d>
+Command failed with exit code 1: [0;34mRunning ERT tests for greger package...[0m
+
+Running tests in [1;33mtest/test-greger-lib-lsp.el[0m (verbose mode)...
+Loading /Users/andreas/projects/greger.el/greger.el (source)...
+Source file ‘/opt/homebrew/Cellar/emacs-plus@29/29.0.90/share/emacs/29.0.91/lisp/net/eww.el’ newer than byte-compiled file; using older file
+Loading /Users/andreas/projects/greger.el/greger-parser.el (source)...
+Loading /Users/andreas/projects/greger.el/greger-stdlib.el (source)...
+Loading /Users/andreas/projects/greger.el/greger-lib-lsp.el (source)...
+Loading /Users/andreas/projects/greger.el/greger-tools.el (source)...
+Loading /Users/andreas/projects/greger.el/greger-client.el (source)...
+Loading /Users/andreas/projects/greger.el/greger-web.el (source)...
+Loading /Users/andreas/projects/greger.el/test/test-greger-lib-lsp.el (source)...
+Running 16 tests (2025-06-03 15:23:08+0200, selector ‘t’)
+Source file ‘/opt/homebrew/Cellar/emacs-plus@29/29.0.90/share/emacs/29.0.91/lisp/net/tramp-sh.el’ newer than byte-compiled file; using older file
+LSP :: Connected to [pyright:71596/starting /var/folders/pt/0j3p9zzj49x5vkv1mmkpvs0c0000gn/T/greger-lsp-test-RnZ3VI][ruff:71597/starting /var/folders/pt/0j3p9zzj49x5vkv1mmkpvs0c0000gn/T/greger-lsp-test-RnZ3VI][ty-ls:71598/starting /var/folders/pt/0j3p9zzj49x5vkv1mmkpvs0c0000gn/T/greger-lsp-test-RnZ3VI].
+LSP :: ty-ls:71598 initialized successfully in folders: (/var/folders/pt/0j3p9zzj49x5vkv1mmkpvs0c0000gn/T/greger-lsp-test-RnZ3VI)
+LSP :: ruff:71597 initialized successfully in folders: (/var/folders/pt/0j3p9zzj49x5vkv1mmkpvs0c0000gn/T/greger-lsp-test-RnZ3VI)
+LSP :: pyright:71596 initialized successfully in folders: (/var/folders/pt/0j3p9zzj49x5vkv1mmkpvs0c0000gn/T/greger-lsp-test-RnZ3VI)
+LSP :: Disconnected
+LSP :: Shutdown ty-ls:71598 since folder /var/folders/pt/0j3p9zzj49x5vkv1mmkpvs0c0000gn/T/greger-lsp-test-RnZ3VI is removed...
+LSP :: Shutdown ruff:71597 since folder /var/folders/pt/0j3p9zzj49x5vkv1mmkpvs0c0000gn/T/greger-lsp-test-RnZ3VI is removed...
+LSP :: Shutdown pyright:71596 since folder /var/folders/pt/0j3p9zzj49x5vkv1mmkpvs0c0000gn/T/greger-lsp-test-RnZ3VI is removed...
+   passed   1/16  greger-lsp-test-cross-file-references (2.546354 sec)
+LSP :: Connected to [pyright:71953/starting /var/folders/pt/0j3p9zzj49x5vkv1mmkpvs0c0000gn/T/greger-lsp-test-whJSbX][ruff:71954/starting /var/folders/pt/0j3p9zzj49x5vkv1mmkpvs0c0000gn/T/greger-lsp-test-whJSbX][ty-ls:71955/starting /var/folders/pt/0j3p9zzj49x5vkv1mmkpvs0c0000gn/T/greger-lsp-test-whJSbX].
+LSP :: ty-ls:71955 initialized successfully in folders: (/var/folders/pt/0j3p9zzj49x5vkv1mmkpvs0c0000gn/T/greger-lsp-test-whJSbX)
+LSP :: ruff:71954 initialized successfully in folders: (/var/folders/pt/0j3p9zzj49x5vkv1mmkpvs0c0000gn/T/greger-lsp-test-whJSbX)
+LSP :: pyright:71953 initialized successfully in folders: (/var/folders/pt/0j3p9zzj49x5vkv1mmkpvs0c0000gn/T/greger-lsp-test-whJSbX)
+LSP :: ty-ls has exited (killed: 9)
+LSP :: Workspace ty-ls:71598 shutdown.
+LSP :: ruff has exited (killed: 9)
+LSP :: Workspace ruff:71597 shutdown.
+LSP :: pyright has exited (killed: 9)
+LSP :: Workspace pyright:71596 shutdown.
+Can’t guess python-indent-offset, using defaults: 4
+LSP :: Connected to [pyright:71953 /var/folders/pt/0j3p9zzj49x5vkv1mmkpvs0c0000gn/T/greger-lsp-test-whJSbX][ruff:71954 /var/folders/pt/0j3p9zzj49x5vkv1mmkpvs0c0000gn/T/greger-lsp-test-whJSbX][ty-ls:71955 /var/folders/pt/0j3p9zzj49x5vkv1mmkpvs0c0000gn/T/greger-lsp-test-whJSbX].
+LSP :: Disconnected
+LSP :: Shutdown ty-ls:71955 since folder /var/folders/pt/0j3p9zzj49x5vkv1mmkpvs0c0000gn/T/greger-lsp-test-whJSbX is removed...
+LSP :: Shutdown ruff:71954 since folder /var/folders/pt/0j3p9zzj49x5vkv1mmkpvs0c0000gn/T/greger-lsp-test-whJSbX is removed...
+LSP :: Shutdown pyright:71953 since folder /var/folders/pt/0j3p9zzj49x5vkv1mmkpvs0c0000gn/T/greger-lsp-test-whJSbX is removed...
+   passed   2/16  greger-lsp-test-document-symbols-empty-file (1.114443 sec)
+LSP :: Connected to [pyright:72312/starting /var/folders/pt/0j3p9zzj49x5vkv1mmkpvs0c0000gn/T/greger-lsp-test-3nVe8q][ruff:72313/starting /var/folders/pt/0j3p9zzj49x5vkv1mmkpvs0c0000gn/T/greger-lsp-test-3nVe8q][ty-ls:72314/starting /var/folders/pt/0j3p9zzj49x5vkv1mmkpvs0c0000gn/T/greger-lsp-test-3nVe8q].
+LSP :: ty-ls:72314 initialized successfully in folders: (/var/folders/pt/0j3p9zzj49x5vkv1mmkpvs0c0000gn/T/greger-lsp-test-3nVe8q)
+LSP :: ruff:72313 initialized successfully in folders: (/var/folders/pt/0j3p9zzj49x5vkv1mmkpvs0c0000gn/T/greger-lsp-test-3nVe8q)
+LSP :: pyright:72312 initialized successfully in folders: (/var/folders/pt/0j3p9zzj49x5vkv1mmkpvs0c0000gn/T/greger-lsp-test-3nVe8q)
+LSP :: ty-ls<1> has exited (killed: 9)
+LSP :: Workspace ty-ls:71955 shutdown.
+LSP :: ruff<1> has exited (killed: 9)
+LSP :: Workspace ruff:71954 shutdown.
+LSP :: pyright<1> has exited (killed: 9)
+LSP :: Workspace pyright:71953 shutdown.
+LSP :: Connected to [pyright:72312 /var/folders/pt/0j3p9zzj49x5vkv1mmkpvs0c0000gn/T/greger-lsp-test-3nVe8q][ruff:72313 /var/folders/pt/0j3p9zzj49x5vkv1mmkpvs0c0000gn/T/greger-lsp-test-3nVe8q][ty-ls:72314 /var/folders/pt/0j3p9zzj49x5vkv1mmkpvs0c0000gn/T/greger-lsp-test-3nVe8q].
+LSP :: Disconnected
+LSP :: Disconnected
+LSP :: Shutdown ty-ls:72314 since folder /var/folders/pt/0j3p9zzj49x5vkv1mmkpvs0c0000gn/T/greger-lsp-test-3nVe8q is removed...
+LSP :: Shutdown ruff:72313 since folder /var/folders/pt/0j3p9zzj49x5vkv1mmkpvs0c0000gn/T/greger-lsp-test-3nVe8q is removed...
+LSP :: Shutdown pyright:72312 since folder /var/folders/pt/0j3p9zzj49x5vkv1mmkpvs0c0000gn/T/greger-lsp-test-3nVe8q is removed...
+   passed   3/16  greger-lsp-test-document-symbols-multiple-files-non-detailed (1.122978 sec)
+LSP :: Connected to [pyright:72667/starting /var/folders/pt/0j3p9zzj49x5vkv1mmkpvs0c0000gn/T/greger-lsp-test-BWSCRi][ruff:72668/starting /var/folders/pt/0j3p9zzj49x5vkv1mmkpvs0c0000gn/T/greger-lsp-test-BWSCRi][ty-ls:72669/starting /var/folders/pt/0j3p9zzj49x5vkv1mmkpvs0c0000gn/T/greger-lsp-test-BWSCRi].
+LSP :: ty-ls:72669 initialized successfully in folders: (/var/folders/pt/0j3p9zzj49x5vkv1mmkpvs0c0000gn/T/greger-lsp-test-BWSCRi)
+LSP :: ruff:72668 initialized successfully in folders: (/var/folders/pt/0j3p9zzj49x5vkv1mmkpvs0c0000gn/T/greger-lsp-test-BWSCRi)
+LSP :: pyright:72667 initialized successfully in folders: (/var/folders/pt/0j3p9zzj49x5vkv1mmkpvs0c0000gn/T/greger-lsp-test-BWSCRi)
+LSP :: ty-ls has exited (killed: 9)
+LSP :: Workspace ty-ls:72314 shutdown.
+LSP :: ruff has exited (killed: 9)
+LSP :: Workspace ruff:72313 shutdown.
+LSP :: pyright has exited (killed: 9)
+LSP :: Workspace pyright:72312 shutdown.
+LSP :: Disconnected
+LSP :: Shutdown ty-ls:72669 since folder /var/folders/pt/0j3p9zzj49x5vkv1mmkpvs0c0000gn/T/greger-lsp-test-BWSCRi is removed...
+LSP :: Shutdown ruff:72668 since folder /var/folders/pt/0j3p9zzj49x5vkv1mmkpvs0c0000gn/T/greger-lsp-test-BWSCRi is removed...
+LSP :: Shutdown pyright:72667 since folder /var/folders/pt/0j3p9zzj49x5vkv1mmkpvs0c0000gn/T/greger-lsp-test-BWSCRi is removed...
+   passed   4/16  greger-lsp-test-document-symbols-single-file-detailed (1.064615 sec)
+LSP :: Connected to [pyright:73022/starting /var/folders/pt/0j3p9zzj49x5vkv1mmkpvs0c0000gn/T/greger-lsp-test-0QkynR][ruff:73023/starting /var/folders/pt/0j3p9zzj49x5vkv1mmkpvs0c0000gn/T/greger-lsp-test-0QkynR][ty-ls:73024/starting /var/folders/pt/0j3p9zzj49x5vkv1mmkpvs0c0000gn/T/greger-lsp-test-0QkynR].
+LSP :: ruff:73023 initialized successfully in folders: (/var/folders/pt/0j3p9zzj49x5vkv1mmkpvs0c0000gn/T/greger-lsp-test-0QkynR)
+LSP :: ty-ls:73024 initialized successfully in folders: (/var/folders/pt/0j3p9zzj49x5vkv1mmkpvs0c0000gn/T/greger-lsp-test-0QkynR)
+LSP :: pyright:73022 initialized successfully in folders: (/var/folders/pt/0j3p9zzj49x5vkv1mmkpvs0c0000gn/T/greger-lsp-test-0QkynR)
+LSP :: ty-ls<1> has exited (killed: 9)
+LSP :: Workspace ty-ls:72669 shutdown.
+LSP :: ruff<1> has exited (killed: 9)
+LSP :: Workspace ruff:72668 shutdown.
+LSP :: pyright<1> has exited (killed: 9)
+LSP :: Workspace pyright:72667 shutdown.
+LSP :: Disconnected
+LSP :: Shutdown ty-ls:73024 since folder /var/folders/pt/0j3p9zzj49x5vkv1mmkpvs0c0000gn/T/greger-lsp-test-0QkynR is removed...
+LSP :: Shutdown ruff:73023 since folder /var/folders/pt/0j3p9zzj49x5vkv1mmkpvs0c0000gn/T/greger-lsp-test-0QkynR is removed...
+LSP :: Shutdown pyright:73022 since folder /var/folders/pt/0j3p9zzj49x5vkv1mmkpvs0c0000gn/T/greger-lsp-test-0QkynR is removed...
+   passed   5/16  greger-lsp-test-document-symbols-single-file-non-detailed (1.066743 sec)
+LSP :: Connected to [pyright:73378/starting /var/folders/pt/0j3p9zzj49x5vkv1mmkpvs0c0000gn/T/greger-lsp-test-OTis18][ruff:73379/starting /var/folders/pt/0j3p9zzj49x5vkv1mmkpvs0c0000gn/T/greger-lsp-test-OTis18][ty-ls:73380/starting /var/folders/pt/0j3p9zzj49x5vkv1mmkpvs0c0000gn/T/greger-lsp-test-OTis18].
+LSP :: ty-ls:73380 initialized successfully in folders: (/var/folders/pt/0j3p9zzj49x5vkv1mmkpvs0c0000gn/T/greger-lsp-test-OTis18)
+LSP :: ruff:73379 initialized successfully in folders: (/var/folders/pt/0j3p9zzj49x5vkv1mmkpvs0c0000gn/T/greger-lsp-test-OTis18)
+LSP :: pyright:73378 initialized successfully in folders: (/var/folders/pt/0j3p9zzj49x5vkv1mmkpvs0c0000gn/T/greger-lsp-test-OTis18)
+LSP :: ty-ls has exited (killed: 9)
+LSP :: Workspace ty-ls:73024 shutdown.
+LSP :: ruff has exited (killed: 9)
+LSP :: Workspace ruff:73023 shutdown.
+LSP :: pyright has exited (killed: 9)
+LSP :: Workspace pyright:73022 shutdown.
+LSP :: Disconnected
+LSP :: Shutdown ty-ls:73380 since folder /var/folders/pt/0j3p9zzj49x5vkv1mmkpvs0c0000gn/T/greger-lsp-test-OTis18 is removed...
+LSP :: Shutdown ruff:73379 since folder /var/folders/pt/0j3p9zzj49x5vkv1mmkpvs0c0000gn/T/greger-lsp-test-OTis18 is removed...
+LSP :: Shutdown pyright:73378 since folder /var/folders/pt/0j3p9zzj49x5vkv1mmkpvs0c0000gn/T/greger-lsp-test-OTis18 is removed...
+LSP :: ty-ls<1> has exited (killed: 9)
+LSP :: Workspace ty-ls:73380 shutdown.
+Test greger-lsp-test-ensure-server backtrace:
+  (greger-lsp--ensure-server greger-lsp-test-python-file)
+  (let ((buffer (greger-lsp--ensure-server greger-lsp-test-python-file
+  (progn (greger-lsp-test-setup) (greger-lsp-test-ensure-lsp-started)
+  (unwind-protect (progn (greger-lsp-test-setup) (greger-lsp-test-ensu
+  (progn (greger-lsp-test-skip-if-requirements-not-met) (unwind-protec
+  (closure (t) nil (progn (greger-lsp-test-skip-if-requirements-not-me
+  ert--run-test-internal(#s(ert--test-execution-info :test #s(ert-test
+  ert-run-test(#s(ert-test :name greger-lsp-test-ensure-server :docume
+  ert-run-or-rerun-test(#s(ert--stats :selector t :tests [... ... ...
+  ert-run-tests(t #f(compiled-function (event-type &rest event-args) #
+  ert-run-tests-batch(t)
+  ert-run-tests-batch-and-exit(t)
+  (let ((ert-quiet nil)) (ert-run-tests-batch-and-exit t))
+  (progn (setq debug-on-error t) (add-to-list 'load-path ".") (require
+  eval((progn (setq debug-on-error t) (add-to-list 'load-path ".") (re
+  command-line-1(("--eval" "(progn\n                  (setq debug-on-e
+  command-line()
+  normal-top-level()
+Test greger-lsp-test-ensure-server condition:
+    (void-function greger-lsp--ensure-server)
+   FAILED   6/16  greger-lsp-test-ensure-server (1.094200 sec) at test/test-greger-lib-lsp.el:243
+LSP :: Connected to [pyright:73739/starting /var/folders/pt/0j3p9zzj49x5vkv1mmkpvs0c0000gn/T/greger-lsp-test-f2vJut][ruff:73740/starting /var/folders/pt/0j3p9zzj49x5vkv1mmkpvs0c0000gn/T/greger-lsp-test-f2vJut][ty-ls:73741/starting /var/folders/pt/0j3p9zzj49x5vkv1mmkpvs0c0000gn/T/greger-lsp-test-f2vJut].
+LSP :: ruff<1> has exited (killed: 9)
+LSP :: Workspace ruff:73379 shutdown.
+LSP :: Sending to process failed with the following error: Process pyright<1> not running: killed: 9
+
+LSP :: pyright<1> has exited (killed: 9)
+LSP :: Workspace pyright:73378 shutdown.
+LSP :: ty-ls:73741 initialized successfully in folders: (/var/folders/pt/0j3p9zzj49x5vkv1mmkpvs0c0000gn/T/greger-lsp-test-f2vJut)
+LSP :: ruff:73740 initialized successfully in folders: (/var/folders/pt/0j3p9zzj49x5vkv1mmkpvs0c0000gn/T/greger-lsp-test-f2vJut)
+LSP :: pyright:73739 initialized successfully in folders: (/var/folders/pt/0j3p9zzj49x5vkv1mmkpvs0c0000gn/T/greger-lsp-test-f2vJut)
+LSP :: Disconnected
+LSP :: Shutdown ty-ls:73741 since folder /var/folders/pt/0j3p9zzj49x5vkv1mmkpvs0c0000gn/T/greger-lsp-test-f2vJut is removed...
+LSP :: Shutdown ruff:73740 since folder /var/folders/pt/0j3p9zzj49x5vkv1mmkpvs0c0000gn/T/greger-lsp-test-f2vJut is removed...
+LSP :: Shutdown pyright:73739 since folder /var/folders/pt/0j3p9zzj49x5vkv1mmkpvs0c0000gn/T/greger-lsp-test-f2vJut is removed...
+   passed   7/16  greger-lsp-test-find-definition (1.045097 sec)
+LSP :: Connected to [pyright:74094/starting /var/folders/pt/0j3p9zzj49x5vkv1mmkpvs0c0000gn/T/greger-lsp-test-rv1liI][ruff:74095/starting /var/folders/pt/0j3p9zzj49x5vkv1mmkpvs0c0000gn/T/greger-lsp-test-rv1liI][ty-ls:74096/starting /var/folders/pt/0j3p9zzj49x5vkv1mmkpvs0c0000gn/T/greger-lsp-test-rv1liI].
+LSP :: ty-ls:74096 initialized successfully in folders: (/var/folders/pt/0j3p9zzj49x5vkv1mmkpvs0c0000gn/T/greger-lsp-test-rv1liI)
+LSP :: ruff:74095 initialized successfully in folders: (/var/folders/pt/0j3p9zzj49x5vkv1mmkpvs0c0000gn/T/greger-lsp-test-rv1liI)
+LSP :: pyright:74094 initialized successfully in folders: (/var/folders/pt/0j3p9zzj49x5vkv1mmkpvs0c0000gn/T/greger-lsp-test-rv1liI)
+LSP :: ty-ls has exited (killed: 9)
+LSP :: Workspace ty-ls:73741 shutdown.
+LSP :: ruff has exited (killed: 9)
+LSP :: Workspace ruff:73740 shutdown.
+LSP :: pyright has exited (killed: 9)
+LSP :: Workspace pyright:73739 shutdown.
+LSP :: Disconnected
+LSP :: Shutdown ty-ls:74096 since folder /var/folders/pt/0j3p9zzj49x5vkv1mmkpvs0c0000gn/T/greger-lsp-test-rv1liI is removed...
+LSP :: Shutdown ruff:74095 since folder /var/folders/pt/0j3p9zzj49x5vkv1mmkpvs0c0000gn/T/greger-lsp-test-rv1liI is removed...
+LSP :: Shutdown pyright:74094 since folder /var/folders/pt/0j3p9zzj49x5vkv1mmkpvs0c0000gn/T/greger-lsp-test-rv1liI is removed...
+   passed   8/16  greger-lsp-test-find-definition-with-declaration (1.076678 sec)
+LSP :: Connected to [pyright:74450/starting /var/folders/pt/0j3p9zzj49x5vkv1mmkpvs0c0000gn/T/greger-lsp-test-24Vcg1][ruff:74451/starting /var/folders/pt/0j3p9zzj49x5vkv1mmkpvs0c0000gn/T/greger-lsp-test-24Vcg1][ty-ls:74452/starting /var/folders/pt/0j3p9zzj49x5vkv1mmkpvs0c0000gn/T/greger-lsp-test-24Vcg1].
+LSP :: ty-ls:74452 initialized successfully in folders: (/var/folders/pt/0j3p9zzj49x5vkv1mmkpvs0c0000gn/T/greger-lsp-test-24Vcg1)
+LSP :: ruff:74451 initialized successfully in folders: (/var/folders/pt/0j3p9zzj49x5vkv1mmkpvs0c0000gn/T/greger-lsp-test-24Vcg1)
+LSP :: pyright:74450 initialized successfully in folders: (/var/folders/pt/0j3p9zzj49x5vkv1mmkpvs0c0000gn/T/greger-lsp-test-24Vcg1)
+LSP :: ty-ls<1> has exited (killed: 9)
+LSP :: Workspace ty-ls:74096 shutdown.
+LSP :: ruff<1> has exited (killed: 9)
+LSP :: Workspace ruff:74095 shutdown.
+LSP :: pyright<1> has exited (killed: 9)
+LSP :: Workspace pyright:74094 shutdown.
+LSP :: Disconnected
+LSP :: Shutdown ty-ls:74452 since folder /var/folders/pt/0j3p9zzj49x5vkv1mmkpvs0c0000gn/T/greger-lsp-test-24Vcg1 is removed...
+LSP :: Shutdown ruff:74451 since folder /var/folders/pt/0j3p9zzj49x5vkv1mmkpvs0c0000gn/T/greger-lsp-test-24Vcg1 is removed...
+LSP :: Shutdown pyright:74450 since folder /var/folders/pt/0j3p9zzj49x5vkv1mmkpvs0c0000gn/T/greger-lsp-test-24Vcg1 is removed...
+   passed   9/16  greger-lsp-test-find-references (1.089784 sec)
+LSP :: Connected to [pyright:74808/starting /var/folders/pt/0j3p9zzj49x5vkv1mmkpvs0c0000gn/T/greger-lsp-test-K6kCm8][ruff:74809/starting /var/folders/pt/0j3p9zzj49x5vkv1mmkpvs0c0000gn/T/greger-lsp-test-K6kCm8][ty-ls:74810/starting /var/folders/pt/0j3p9zzj49x5vkv1mmkpvs0c0000gn/T/greger-lsp-test-K6kCm8].
+LSP :: ty-ls:74810 initialized successfully in folders: (/var/folders/pt/0j3p9zzj49x5vkv1mmkpvs0c0000gn/T/greger-lsp-test-K6kCm8)
+LSP :: ruff:74809 initialized successfully in folders: (/var/folders/pt/0j3p9zzj49x5vkv1mmkpvs0c0000gn/T/greger-lsp-test-K6kCm8)
+LSP :: pyright:74808 initialized successfully in folders: (/var/folders/pt/0j3p9zzj49x5vkv1mmkpvs0c0000gn/T/greger-lsp-test-K6kCm8)
+LSP :: ty-ls has exited (killed: 9)
+LSP :: Workspace ty-ls:74452 shutdown.
+LSP :: ruff has exited (killed: 9)
+LSP :: Workspace ruff:74451 shutdown.
+LSP :: pyright has exited (killed: 9)
+LSP :: Workspace pyright:74450 shutdown.
+LSP :: Disconnected
+LSP :: Shutdown ty-ls:74810 since folder /var/folders/pt/0j3p9zzj49x5vkv1mmkpvs0c0000gn/T/greger-lsp-test-K6kCm8 is removed...
+LSP :: Shutdown ruff:74809 since folder /var/folders/pt/0j3p9zzj49x5vkv1mmkpvs0c0000gn/T/greger-lsp-test-K6kCm8 is removed...
+LSP :: Shutdown pyright:74808 since folder /var/folders/pt/0j3p9zzj49x5vkv1mmkpvs0c0000gn/T/greger-lsp-test-K6kCm8 is removed...
+   passed  10/16  greger-lsp-test-find-references-limited (1.083462 sec)
+LSP :: Connected to [pyright:75167/starting /var/folders/pt/0j3p9zzj49x5vkv1mmkpvs0c0000gn/T/greger-lsp-test-UrBLMQ][ruff:75168/starting /var/folders/pt/0j3p9zzj49x5vkv1mmkpvs0c0000gn/T/greger-lsp-test-UrBLMQ][ty-ls:75169/starting /var/folders/pt/0j3p9zzj49x5vkv1mmkpvs0c0000gn/T/greger-lsp-test-UrBLMQ].
+LSP :: ty-ls:75169 initialized successfully in folders: (/var/folders/pt/0j3p9zzj49x5vkv1mmkpvs0c0000gn/T/greger-lsp-test-UrBLMQ)
+LSP :: ruff:75168 initialized successfully in folders: (/var/folders/pt/0j3p9zzj49x5vkv1mmkpvs0c0000gn/T/greger-lsp-test-UrBLMQ)
+LSP :: pyright:75167 initialized successfully in folders: (/var/folders/pt/0j3p9zzj49x5vkv1mmkpvs0c0000gn/T/greger-lsp-test-UrBLMQ)
+LSP :: ty-ls<1> has exited (killed: 9)
+LSP :: Workspace ty-ls:74810 shutdown.
+LSP :: ruff<1> has exited (killed: 9)
+LSP :: Workspace ruff:74809 shutdown.
+LSP :: pyright<1> has exited (killed: 9)
+LSP :: Workspace pyright:74808 shutdown.
+LSP :: Disconnected
+LSP :: Shutdown ty-ls:75169 since folder /var/folders/pt/0j3p9zzj49x5vkv1mmkpvs0c0000gn/T/greger-lsp-test-UrBLMQ is removed...
+LSP :: Shutdown ruff:75168 since folder /var/folders/pt/0j3p9zzj49x5vkv1mmkpvs0c0000gn/T/greger-lsp-test-UrBLMQ is removed...
+LSP :: Shutdown pyright:75167 since folder /var/folders/pt/0j3p9zzj49x5vkv1mmkpvs0c0000gn/T/greger-lsp-test-UrBLMQ is removed...
+   passed  11/16  greger-lsp-test-format-file (1.031048 sec)
+LSP :: Connected to [pyright:75523/starting /var/folders/pt/0j3p9zzj49x5vkv1mmkpvs0c0000gn/T/greger-lsp-test-AoKw8U][ruff:75524/starting /var/folders/pt/0j3p9zzj49x5vkv1mmkpvs0c0000gn/T/greger-lsp-test-AoKw8U][ty-ls:75525/starting /var/folders/pt/0j3p9zzj49x5vkv1mmkpvs0c0000gn/T/greger-lsp-test-AoKw8U].
+LSP :: ty-ls has exited (killed: 9)
+LSP :: Workspace ty-ls:75169 shutdown.
+LSP :: ruff has exited (killed: 9)
+LSP :: Workspace ruff:75168 shutdown.
+LSP :: pyright has exited (killed: 9)
+LSP :: Workspace pyright:75167 shutdown.
+LSP :: ty-ls:75525 initialized successfully in folders: (/var/folders/pt/0j3p9zzj49x5vkv1mmkpvs0c0000gn/T/greger-lsp-test-AoKw8U)
+LSP :: ruff:75524 initialized successfully in folders: (/var/folders/pt/0j3p9zzj49x5vkv1mmkpvs0c0000gn/T/greger-lsp-test-AoKw8U)
+LSP :: pyright:75523 initialized successfully in folders: (/var/folders/pt/0j3p9zzj49x5vkv1mmkpvs0c0000gn/T/greger-lsp-test-AoKw8U)
+LSP :: Applying 1 edits to `main.py' ...
+Applying 1 edits to `main.py' ...
+Applying 1 edits to `main.py' ...done
+LSP :: Disconnected
+LSP :: Shutdown ty-ls:75525 since folder /var/folders/pt/0j3p9zzj49x5vkv1mmkpvs0c0000gn/T/greger-lsp-test-AoKw8U is removed...
+LSP :: Shutdown ruff:75524 since folder /var/folders/pt/0j3p9zzj49x5vkv1mmkpvs0c0000gn/T/greger-lsp-test-AoKw8U is removed...
+LSP :: Shutdown pyright:75523 since folder /var/folders/pt/0j3p9zzj49x5vkv1mmkpvs0c0000gn/T/greger-lsp-test-AoKw8U is removed...
+LSP :: ty-ls<1> has exited (killed: 9)
+LSP :: Workspace ty-ls:75525 shutdown.
+LSP :: ruff<1> has exited (killed: 9)
+LSP :: Workspace ruff:75524 shutdown.
+   passed  12/16  greger-lsp-test-format-range (1.089700 sec)
+LSP :: Connected to [pyright:75880/starting /var/folders/pt/0j3p9zzj49x5vkv1mmkpvs0c0000gn/T/greger-lsp-test-iWq7w5][ruff:75881/starting /var/folders/pt/0j3p9zzj49x5vkv1mmkpvs0c0000gn/T/greger-lsp-test-iWq7w5][ty-ls:75882/starting /var/folders/pt/0j3p9zzj49x5vkv1mmkpvs0c0000gn/T/greger-lsp-test-iWq7w5].
+LSP :: pyright<1> has exited (killed: 9)
+LSP :: Workspace pyright:75523 shutdown.
+LSP :: ty-ls:75882 initialized successfully in folders: (/var/folders/pt/0j3p9zzj49x5vkv1mmkpvs0c0000gn/T/greger-lsp-test-iWq7w5)
+LSP :: ruff:75881 initialized successfully in folders: (/var/folders/pt/0j3p9zzj49x5vkv1mmkpvs0c0000gn/T/greger-lsp-test-iWq7w5)
+LSP :: pyright:75880 initialized successfully in folders: (/var/folders/pt/0j3p9zzj49x5vkv1mmkpvs0c0000gn/T/greger-lsp-test-iWq7w5)
+LSP :: Disconnected
+LSP :: Shutdown ty-ls:75882 since folder /var/folders/pt/0j3p9zzj49x5vkv1mmkpvs0c0000gn/T/greger-lsp-test-iWq7w5 is removed...
+LSP :: Shutdown ruff:75881 since folder /var/folders/pt/0j3p9zzj49x5vkv1mmkpvs0c0000gn/T/greger-lsp-test-iWq7w5 is removed...
+LSP :: Shutdown pyright:75880 since folder /var/folders/pt/0j3p9zzj49x5vkv1mmkpvs0c0000gn/T/greger-lsp-test-iWq7w5 is removed...
+   passed  13/16  greger-lsp-test-rename-and-find-references (1.646448 sec)
+LSP :: Connected to [pyright:76239/starting /var/folders/pt/0j3p9zzj49x5vkv1mmkpvs0c0000gn/T/greger-lsp-test-as033T][ruff:76240/starting /var/folders/pt/0j3p9zzj49x5vkv1mmkpvs0c0000gn/T/greger-lsp-test-as033T][ty-ls:76241/starting /var/folders/pt/0j3p9zzj49x5vkv1mmkpvs0c0000gn/T/greger-lsp-test-as033T].
+LSP :: ty-ls:76241 initialized successfully in folders: (/var/folders/pt/0j3p9zzj49x5vkv1mmkpvs0c0000gn/T/greger-lsp-test-as033T)
+LSP :: ruff:76240 initialized successfully in folders: (/var/folders/pt/0j3p9zzj49x5vkv1mmkpvs0c0000gn/T/greger-lsp-test-as033T)
+LSP :: pyright:76239 initialized successfully in folders: (/var/folders/pt/0j3p9zzj49x5vkv1mmkpvs0c0000gn/T/greger-lsp-test-as033T)
+LSP :: ty-ls has exited (killed: 9)
+LSP :: Workspace ty-ls:75882 shutdown.
+LSP :: ruff has exited (killed: 9)
+LSP :: Workspace ruff:75881 shutdown.
+LSP :: pyright has exited (killed: 9)
+LSP :: Workspace pyright:75880 shutdown.
+LSP :: Disconnected
+LSP :: Shutdown ty-ls:76241 since folder /var/folders/pt/0j3p9zzj49x5vkv1mmkpvs0c0000gn/T/greger-lsp-test-as033T is removed...
+LSP :: Shutdown ruff:76240 since folder /var/folders/pt/0j3p9zzj49x5vkv1mmkpvs0c0000gn/T/greger-lsp-test-as033T is removed...
+LSP :: Shutdown pyright:76239 since folder /var/folders/pt/0j3p9zzj49x5vkv1mmkpvs0c0000gn/T/greger-lsp-test-as033T is removed...
+   passed  14/16  greger-lsp-test-rename-invalid-symbol (1.058348 sec)
+LSP :: Connected to [pyright:76595/starting /var/folders/pt/0j3p9zzj49x5vkv1mmkpvs0c0000gn/T/greger-lsp-test-4csEAu][ruff:76596/starting /var/folders/pt/0j3p9zzj49x5vkv1mmkpvs0c0000gn/T/greger-lsp-test-4csEAu][ty-ls:76597/starting /var/folders/pt/0j3p9zzj49x5vkv1mmkpvs0c0000gn/T/greger-lsp-test-4csEAu].
+LSP :: ty-ls:76597 initialized successfully in folders: (/var/folders/pt/0j3p9zzj49x5vkv1mmkpvs0c0000gn/T/greger-lsp-test-4csEAu)
+LSP :: ruff:76596 initialized successfully in folders: (/var/folders/pt/0j3p9zzj49x5vkv1mmkpvs0c0000gn/T/greger-lsp-test-4csEAu)
+LSP :: pyright:76595 initialized successfully in folders: (/var/folders/pt/0j3p9zzj49x5vkv1mmkpvs0c0000gn/T/greger-lsp-test-4csEAu)
+LSP :: ty-ls<1> has exited (killed: 9)
+LSP :: Workspace ty-ls:76241 shutdown.
+LSP :: ruff<1> has exited (killed: 9)
+LSP :: Workspace ruff:76240 shutdown.
+LSP :: pyright<1> has exited (killed: 9)
+LSP :: Workspace pyright:76239 shutdown.
+LSP :: Applying 1 edits to `utils.py' ...
+Applying 1 edits to `utils.py' ...
+Applying 1 edits to `utils.py' ...done
+LSP :: Applying 3 edits to `main.py' ...
+Applying 3 edits to `main.py' ...
+Applying 3 edits to `main.py' ...done
+LSP :: Disconnected
+LSP :: Shutdown ty-ls:76597 since folder /var/folders/pt/0j3p9zzj49x5vkv1mmkpvs0c0000gn/T/greger-lsp-test-4csEAu is removed...
+LSP :: Shutdown ruff:76596 since folder /var/folders/pt/0j3p9zzj49x5vkv1mmkpvs0c0000gn/T/greger-lsp-test-4csEAu is removed...
+LSP :: Shutdown pyright:76595 since folder /var/folders/pt/0j3p9zzj49x5vkv1mmkpvs0c0000gn/T/greger-lsp-test-4csEAu is removed...
+   passed  15/16  greger-lsp-test-rename-success (1.068339 sec)
+LSP :: Connected to [pyright:76956/starting /var/folders/pt/0j3p9zzj49x5vkv1mmkpvs0c0000gn/T/greger-lsp-test-C5DAtb][ruff:76957/starting /var/folders/pt/0j3p9zzj49x5vkv1mmkpvs0c0000gn/T/greger-lsp-test-C5DAtb][ty-ls:76958/starting /var/folders/pt/0j3p9zzj49x5vkv1mmkpvs0c0000gn/T/greger-lsp-test-C5DAtb].
+LSP :: ty-ls:76958 initialized successfully in folders: (/var/folders/pt/0j3p9zzj49x5vkv1mmkpvs0c0000gn/T/greger-lsp-test-C5DAtb)
+LSP :: ruff:76957 initialized successfully in folders: (/var/folders/pt/0j3p9zzj49x5vkv1mmkpvs0c0000gn/T/greger-lsp-test-C5DAtb)
+LSP :: pyright:76956 initialized successfully in folders: (/var/folders/pt/0j3p9zzj49x5vkv1mmkpvs0c0000gn/T/greger-lsp-test-C5DAtb)
+LSP :: ty-ls has exited (killed: 9)
+LSP :: Workspace ty-ls:76597 shutdown.
+LSP :: ruff has exited (killed: 9)
+LSP :: Workspace ruff:76596 shutdown.
+LSP :: Sending to process failed with the following error: Process pyright not running: killed: 9
+
+LSP :: pyright has exited (killed: 9)
+LSP :: Workspace pyright:76595 shutdown.
+LSP :: Disconnected
+LSP :: Shutdown ty-ls:76958 since folder /var/folders/pt/0j3p9zzj49x5vkv1mmkpvs0c0000gn/T/greger-lsp-test-C5DAtb is removed...
+LSP :: Shutdown ruff:76957 since folder /var/folders/pt/0j3p9zzj49x5vkv1mmkpvs0c0000gn/T/greger-lsp-test-C5DAtb is removed...
+LSP :: Shutdown pyright:76956 since folder /var/folders/pt/0j3p9zzj49x5vkv1mmkpvs0c0000gn/T/greger-lsp-test-C5DAtb is removed...
+Test greger-lsp-test-with-buffer-at-position backtrace:
+  (greger-lsp--with-buffer-at-position greger-lsp-test-python-file 9 0
+  (let ((result nil)) (greger-lsp--with-buffer-at-position greger-lsp-
+  (progn (greger-lsp-test-setup) (greger-lsp-test-ensure-lsp-started)
+  (unwind-protect (progn (greger-lsp-test-setup) (greger-lsp-test-ensu
+  (progn (greger-lsp-test-skip-if-requirements-not-met) (unwind-protec
+  (closure (t) nil (progn (greger-lsp-test-skip-if-requirements-not-me
+  ert--run-test-internal(#s(ert--test-execution-info :test #s(ert-test
+  ert-run-test(#s(ert-test :name greger-lsp-test-with-buffer-at-positi
+  ert-run-or-rerun-test(#s(ert--stats :selector t :tests ... :test-map
+  ert-run-tests(t #f(compiled-function (event-type &rest event-args) #
+  ert-run-tests-batch(t)
+  ert-run-tests-batch-and-exit(t)
+  (let ((ert-quiet nil)) (ert-run-tests-batch-and-exit t))
+  (progn (setq debug-on-error t) (add-to-list 'load-path ".") (require
+  eval((progn (setq debug-on-error t) (add-to-list 'load-path ".") (re
+  command-line-1(("--eval" "(progn\n                  (setq debug-on-e
+  command-line()
+  normal-top-level()
+Test greger-lsp-test-with-buffer-at-position condition:
+    (void-function greger-lsp--with-buffer-at-position)
+   FAILED  16/16  greger-lsp-test-with-buffer-at-position (1.082080 sec) at test/test-greger-lib-lsp.el:252
+
+Ran 16 tests, 14 results as expected, 2 unexpected (2025-06-03 15:23:28+0200, 19.454887 sec)
+
+2 unexpected results:
+   FAILED  greger-lsp-test-ensure-server
+   FAILED  greger-lsp-test-with-buffer-at-position
+
+
+</tool.toolu_01KLaDnmo9dTJuNP1Q95pt7d>
+
+## ASSISTANT:
+
+Now I can see the specific errors. Let me check the actual code to understand what functions exist:
+
+## TOOL USE:
+
+Name: ripgrep
+ID: toolu_013dpkeb7hoUMiDyYEqJtvph
+
+### pattern
+
+<tool.toolu_013dpkeb7hoUMiDyYEqJtvph>
+make-greger.*state
+</tool.toolu_013dpkeb7hoUMiDyYEqJtvph>
+
+### file-type
+
+<tool.toolu_013dpkeb7hoUMiDyYEqJtvph>
+el
+</tool.toolu_013dpkeb7hoUMiDyYEqJtvph>
+
+## TOOL RESULT:
+
+ID: toolu_013dpkeb7hoUMiDyYEqJtvph
+
+<tool.toolu_013dpkeb7hoUMiDyYEqJtvph>
+/Users/andreas/projects/greger.el/greger-parser.el:36:  (make-greger-parser-state
+/Users/andreas/projects/greger.el/greger.el:302:    (let ((agent-state (make-greger-state
+/Users/andreas/projects/greger.el/greger-client.el:69:         (state (make-greger-client-state
+/Users/andreas/projects/greger.el/test/test-greger.el:50:      (let ((agent-state (make-greger-state
+/Users/andreas/projects/greger.el/test/test-greger.el:126:      (let ((agent-state (make-greger-state
+/Users/andreas/projects/greger.el/test/test-greger.el:216:      (let ((agent-state (make-greger-state
+/Users/andreas/projects/greger.el/test/test-greger.el:283:      (let ((agent-state (make-greger-agent-state
+/Users/andreas/projects/greger.el/test/test-greger.el:336:      (let ((agent-state (make-greger-agent-state
+/Users/andreas/projects/greger.el/test/test-greger.el:398:      (let ((agent-state (make-greger-agent-state
+/Users/andreas/projects/greger.el/test/test-greger.el:467:            (agent-state (make-greger-agent-state
+
+</tool.toolu_013dpkeb7hoUMiDyYEqJtvph>
+
+## TOOL USE:
+
+Name: ripgrep
+ID: toolu_01C5H5Jezxg1GGwQ6t3RB8Gb
+
+### pattern
+
+<tool.toolu_01C5H5Jezxg1GGwQ6t3RB8Gb>
+greger-agent--execute-tools
+</tool.toolu_01C5H5Jezxg1GGwQ6t3RB8Gb>
+
+### file-type
+
+<tool.toolu_01C5H5Jezxg1GGwQ6t3RB8Gb>
+el
+</tool.toolu_01C5H5Jezxg1GGwQ6t3RB8Gb>
+
+## TOOL RESULT:
+
+ID: toolu_01C5H5Jezxg1GGwQ6t3RB8Gb
+
+<tool.toolu_01C5H5Jezxg1GGwQ6t3RB8Gb>
+/Users/andreas/projects/greger.el/test/test-greger.el:251:          (greger-agent--execute-tools tool-calls agent-state)
+/Users/andreas/projects/greger.el/test/test-greger.el:318:          (greger-agent--execute-tools tool-calls agent-state)
+/Users/andreas/projects/greger.el/test/test-greger.el:371:          (greger-agent--execute-tools tool-calls agent-state)
+/Users/andreas/projects/greger.el/test/test-greger.el:435:          (greger-agent--execute-tools tool-calls agent-state)
+/Users/andreas/projects/greger.el/test/test-greger.el:506:          (greger-agent--execute-tools tool-calls agent-state)
+
+</tool.toolu_01C5H5Jezxg1GGwQ6t3RB8Gb>
+
+## TOOL USE:
+
+Name: ripgrep
+ID: toolu_019Qtif7UWKcrHRoh1UDT57N
+
+### pattern
+
+<tool.toolu_019Qtif7UWKcrHRoh1UDT57N>
+greger--execute-tools
+</tool.toolu_019Qtif7UWKcrHRoh1UDT57N>
+
+### file-type
+
+<tool.toolu_019Qtif7UWKcrHRoh1UDT57N>
+el
+</tool.toolu_019Qtif7UWKcrHRoh1UDT57N>
+
+## TOOL RESULT:
+
+ID: toolu_019Qtif7UWKcrHRoh1UDT57N
+
+<tool.toolu_019Qtif7UWKcrHRoh1UDT57N>
+/Users/andreas/projects/greger.el/greger.el:366:          (greger--execute-tools tool-calls agent-state))
+/Users/andreas/projects/greger.el/greger.el:386:(defun greger--execute-tools (tool-calls agent-state)
+/Users/andreas/projects/greger.el/test/test-greger.el:86:          (greger--execute-tools tool-calls agent-state)
+/Users/andreas/projects/greger.el/test/test-greger.el:185:          (greger--execute-tools tool-calls agent-state)
+
+</tool.toolu_019Qtif7UWKcrHRoh1UDT57N>
+
+## TOOL USE:
+
+Name: ripgrep
+ID: toolu_019FMm7WRHdc149jRaSNtAd8
+
+### pattern
+
+<tool.toolu_019FMm7WRHdc149jRaSNtAd8>
+greger-lsp--ensure-server|greger-lsp--with-buffer-at-position
+</tool.toolu_019FMm7WRHdc149jRaSNtAd8>
+
+### file-type
+
+<tool.toolu_019FMm7WRHdc149jRaSNtAd8>
+el
+</tool.toolu_019FMm7WRHdc149jRaSNtAd8>
+
+## TOOL RESULT:
+
+ID: toolu_019FMm7WRHdc149jRaSNtAd8
+
+<tool.toolu_019FMm7WRHdc149jRaSNtAd8>
+/Users/andreas/projects/greger.el/test/test-greger-lib-lsp.el:246:   (let ((buffer (greger-lsp--ensure-server greger-lsp-test-python-file)))
+/Users/andreas/projects/greger.el/test/test-greger-lib-lsp.el:256:     (greger-lsp--with-buffer-at-position
+
+</tool.toolu_019FMm7WRHdc149jRaSNtAd8>
+
+## ASSISTANT:
+
+Let me check what LSP functions actually exist:
+
+## TOOL USE:
+
+Name: ripgrep
+ID: toolu_0134wTYe6rb2Y9CqiBm3JbSj
+
+### pattern
+
+<tool.toolu_0134wTYe6rb2Y9CqiBm3JbSj>
+^\\(defun greger-lsp-
+</tool.toolu_0134wTYe6rb2Y9CqiBm3JbSj>
+
+### file-type
+
+<tool.toolu_0134wTYe6rb2Y9CqiBm3JbSj>
+el
+</tool.toolu_0134wTYe6rb2Y9CqiBm3JbSj>
+
+## TOOL RESULT:
+
+ID: toolu_0134wTYe6rb2Y9CqiBm3JbSj
+
+<tool.toolu_0134wTYe6rb2Y9CqiBm3JbSj>
+Failed to execute ripgrep search: Command failed with exit code 2: regex parse error:
+    ^\\(defun greger-lsp-
+       ^
+error: unclosed group
+
+</tool.toolu_0134wTYe6rb2Y9CqiBm3JbSj>
+
+## TOOL USE:
+
+Name: ripgrep
+ID: toolu_018zpWPgPmRdZ2zFGUZgJHMf
+
+### pattern
+
+<tool.toolu_018zpWPgPmRdZ2zFGUZgJHMf>
+^\\(defun greger-lsp
+</tool.toolu_018zpWPgPmRdZ2zFGUZgJHMf>
+
+### file-type
+
+<tool.toolu_018zpWPgPmRdZ2zFGUZgJHMf>
+el
+</tool.toolu_018zpWPgPmRdZ2zFGUZgJHMf>
+
+## TOOL RESULT:
+
+ID: toolu_018zpWPgPmRdZ2zFGUZgJHMf
+
+<tool.toolu_018zpWPgPmRdZ2zFGUZgJHMf>
+Failed to execute ripgrep search: Command failed with exit code 2: regex parse error:
+    ^\\(defun greger-lsp
+       ^
+error: unclosed group
+
+</tool.toolu_018zpWPgPmRdZ2zFGUZgJHMf>
+
+## TOOL USE:
+
+Name: ripgrep
+ID: toolu_01GXgDR3Fawhu9rCAkxWMxFP
+
+### pattern
+
+<tool.toolu_01GXgDR3Fawhu9rCAkxWMxFP>
+defun greger-lsp
+</tool.toolu_01GXgDR3Fawhu9rCAkxWMxFP>
+
+### file-type
+
+<tool.toolu_01GXgDR3Fawhu9rCAkxWMxFP>
+el
+</tool.toolu_01GXgDR3Fawhu9rCAkxWMxFP>
+
+## TOOL RESULT:
+
+ID: toolu_01GXgDR3Fawhu9rCAkxWMxFP
+
+<tool.toolu_01GXgDR3Fawhu9rCAkxWMxFP>
+/Users/andreas/projects/greger.el/test/test-greger-lib-lsp.el:25:(defun greger-lsp-test-setup ()
+/Users/andreas/projects/greger.el/test/test-greger-lib-lsp.el:129:(defun greger-lsp-test-teardown ()
+/Users/andreas/projects/greger.el/test/test-greger-lib-lsp.el:172:(defun greger-lsp-test-ensure-lsp-started ()
+/Users/andreas/projects/greger.el/test/test-greger-lib-lsp.el:213:(defun greger-lsp-test-requirements-met-p ()
+/Users/andreas/projects/greger.el/test/test-greger-lib-lsp.el:221:(defun greger-lsp-test-skip-if-requirements-not-met ()
+
+</tool.toolu_01GXgDR3Fawhu9rCAkxWMxFP>
+
+## TOOL USE:
+
+Name: read-file
+ID: toolu_01PKXNnLE7bpunNAX5MjgfEB
+
+### path
+
+<tool.toolu_01PKXNnLE7bpunNAX5MjgfEB>
+greger-lib-lsp.el
+</tool.toolu_01PKXNnLE7bpunNAX5MjgfEB>
 
 ### start_line
 
-<tool.toolu_01MDsAkPKRNM5Bv1U8dBunYp>
-60
-</tool.toolu_01MDsAkPKRNM5Bv1U8dBunYp>
+<tool.toolu_01PKXNnLE7bpunNAX5MjgfEB>
+1
+</tool.toolu_01PKXNnLE7bpunNAX5MjgfEB>
 
 ### end_line
 
-<tool.toolu_01MDsAkPKRNM5Bv1U8dBunYp>
-80
-</tool.toolu_01MDsAkPKRNM5Bv1U8dBunYp>
+<tool.toolu_01PKXNnLE7bpunNAX5MjgfEB>
+50
+</tool.toolu_01PKXNnLE7bpunNAX5MjgfEB>
 
 ## TOOL RESULT:
 
-ID: toolu_01MDsAkPKRNM5Bv1U8dBunYp
+ID: toolu_01PKXNnLE7bpunNAX5MjgfEB
 
-<tool.toolu_01MDsAkPKRNM5Bv1U8dBunYp>
-                  (load-file \"greger.el\")
-                  (load-file \"greger-parser.el\")
-                  (load-file \"greger-stdlib.el\")
-                  (load-file \"greger-lib-lsp.el\")
-                  (load-file \"greger-tools.el\")
-                  (load-file \"greger-client.el\")
-                  (load-file \"greger-web.el\")
-                  ;; Load test file
-                  (load-file \"$test_file\")
-                  ;; Run all tests defined in this file
-                  (let ((ert-quiet nil))
-                    (ert-run-tests-batch-and-exit t)))" 2>/dev/null; then
-        echo -e "  ${GREEN}✓ All tests passed${NC}"
-        return 0
-    else
-        echo -e "  ${RED}✗ Some tests failed${NC}"
-        return 1
-    fi
-}
+<tool.toolu_01PKXNnLE7bpunNAX5MjgfEB>
+;;; greger-lib-lsp.el --- LSP-based tools for greger agent -*- lexical-binding: t -*-
 
-# Function to run tests with verbose output
-</tool.toolu_01MDsAkPKRNM5Bv1U8dBunYp>
+;; Author: Andreas Jansson <andreas@jansson.me.uk>
+;; Version: 0.1.0
+;; URL: https://github.com/andreasjansson/greger.el
 
+;;; Commentary:
+;; Provides LSP-powered refactoring and code analysis tools for greger
 
+;;; Code:
 
-## ASSISTANT:
+(require 'greger-tools)
+(require 'cl-lib)
 
-I need to see more of the script to understand the full context. Let me check the entire file:
+;; Optional dependency - only load if available
+(defvar greger-lib-lsp-available
+  (condition-case nil
+      (progn (require 'lsp-mode) t)
+    (error nil))
+  "Whether lsp-mode is available.")
+
+;;; Tool registrations
+
+(when greger-lib-lsp-available
+  (greger-register-tool "lsp-rename"
+                        :description "Rename a symbol across the entire codebase using LSP"
+                        :properties '((new_name . ((type . "string")
+                                                   (description . "New name for the symbol")))
+                                      (file_path . ((type . "string")
+                                                    (description . "Path to file containing the symbol")))
+                                      (line . ((type . "integer")
+                                               (description . "Line number (1-based) where symbol is located")))
+                                      (column . ((type . "integer")
+                                                 (description . "Column number (0-based) where symbol starts"))))
+                        :required '("new_name" "file_path" "line" "column")
+                        :function 'greger-lib-lsp--rename)
+
+  (greger-register-tool "lsp-format"
+                        :description "Format code according to language standards using LSP"
+                        :properties '((file_path . ((type . "string")
+                                                    (description . "Path to the file to format")))
+                                      (start_line . ((type . "integer")
+                                                     (description . "Start line for range formatting (1-based). If not provided, formats entire file")
+                                                     (default . nil)))
+                                      (end_line . ((type . "integer")
+                                                   (description . "End line for range formatting (1-based). If not provided, formats entire file")
+                                                   (default . nil))))
+                        :required '("file_path")
+                        :function 'greger-lib-lsp--format)
+
+</tool.toolu_01PKXNnLE7bpunNAX5MjgfEB>
 
 ## TOOL USE:
 
-Name: read-file
-ID: toolu_01ULW2xVTD5fTcC65HcpqG3j
+Name: ripgrep
+ID: toolu_0193ZvJiaoRbuMFCczHL2APc
 
-### path
+### pattern
 
-<tool.toolu_01ULW2xVTD5fTcC65HcpqG3j>
-script/test
-</tool.toolu_01ULW2xVTD5fTcC65HcpqG3j>
+<tool.toolu_0193ZvJiaoRbuMFCczHL2APc>
+defun greger-lib-lsp
+</tool.toolu_0193ZvJiaoRbuMFCczHL2APc>
+
+### file-type
+
+<tool.toolu_0193ZvJiaoRbuMFCczHL2APc>
+el
+</tool.toolu_0193ZvJiaoRbuMFCczHL2APc>
 
 ## TOOL RESULT:
 
-ID: toolu_01ULW2xVTD5fTcC65HcpqG3j
+ID: toolu_0193ZvJiaoRbuMFCczHL2APc
 
-<tool.toolu_01ULW2xVTD5fTcC65HcpqG3j>
-#!/bin/bash
+<tool.toolu_0193ZvJiaoRbuMFCczHL2APc>
+/Users/andreas/projects/greger.el/greger-lib-lsp.el:95:(defun greger-lib-lsp--ensure-server (file-path)
+/Users/andreas/projects/greger.el/greger-lib-lsp.el:110:(defun greger-lib-lsp--with-buffer-at-position (file-path line column func)
+/Users/andreas/projects/greger.el/greger-lib-lsp.el:136:(defun greger-lib-lsp--feature-supported-p (method)
+/Users/andreas/projects/greger.el/greger-lib-lsp.el:140:(defun greger-lib-lsp--position-params (file-path line column)
+/Users/andreas/projects/greger.el/greger-lib-lsp.el:146:(defun greger-lib-lsp--format-location (location)
+/Users/andreas/projects/greger.el/greger-lib-lsp.el:156:(defun greger-lib-lsp--format-locations (locations)
+/Users/andreas/projects/greger.el/greger-lib-lsp.el:162:(defun greger-lib-lsp--format-symbol (symbol)
+/Users/andreas/projects/greger.el/greger-lib-lsp.el:176:(defun greger-lib-lsp--detailed-symbol-kind-p (kind)
+/Users/andreas/projects/greger.el/greger-lib-lsp.el:194:(defun greger-lib-lsp--filter-detailed-symbols (symbols detailed)
+/Users/andreas/projects/greger.el/greger-lib-lsp.el:203:(defun greger-lib-lsp--format-document-symbol (symbol &optional indent-level detailed)
+/Users/andreas/projects/greger.el/greger-lib-lsp.el:227:(defun greger-lib-lsp--format-document-symbols (symbols file-path &optional detailed)
+/Users/andreas/projects/greger.el/greger-lib-lsp.el:243:(defun greger-lib-lsp--rename (new-name file-path line column)
+/Users/andreas/projects/greger.el/greger-lib-lsp.el:310:(defun greger-lib-lsp--format (file-path &optional start-line end-line)
+/Users/andreas/projects/greger.el/greger-lib-lsp.el:348:(defun greger-lib-lsp--find-definition (file-path line column &optional include-declaration)
+/Users/andreas/projects/greger.el/greger-lib-lsp.el:379:(defun greger-lib-lsp--find-references (file-path line column &optional include-declaration max-results)
+/Users/andreas/projects/greger.el/greger-lib-lsp.el:409:(defun greger-lib-lsp--document-symbols (file-paths &optional detailed)
 
-# Test script for greger package
-# Runs all ERT tests for the package
-
-set -e
-
-# Colors for output
-RED='\033[0;31m'
-GREEN='\033[0;32m'
-YELLOW='\033[1;33m'
-BLUE='\033[0;34m'
-NC='\033[0m' # No Color
-
-# Test files to run
-TEST_FILES=(
-    "test-greger.el"
-    "test-greger-parser.el"
-    "test-greger-stdlib.el"
-    "test-greger-lib-lsp.el"
-    "test-greger-tools.el"
-    "test-greger-client.el"
-    "test-end-to-end.el"
-)
-
-echo -e "${BLUE}Running ERT tests for greger package...${NC}"
-echo
-
-# Function to run tests for a single file
-run_test_file() {
-    local test_file="$1"
-    echo -e "Running tests in ${YELLOW}$test_file${NC}..."
-
-    if [ ! -f "$test_file" ]; then
-        echo -e "  ${RED}✗ Test file not found: $test_file${NC}"
-        return 1
-    fi
-
-    # Run the tests with ERT
-    if emacs --batch -Q \
-        --eval "(progn
-                  (setq debug-on-error t)
-                  (add-to-list 'load-path \".\")
-                  ;; Setup package archives and install dependencies if needed
-                  (require 'package)
-                  (setq package-archives '((\"melpa\" . \"https://melpa.org/packages/\")
-                                           (\"gnu\" . \"https://elpa.gnu.org/packages/\")))
-                  (package-initialize)
-                  ;; Install lsp-mode and lsp-pyright if not available
-                  (unless (package-installed-p 'lsp-mode)
-                    (package-refresh-contents)
-                    (package-install 'lsp-mode))
-                  (unless (package-installed-p 'lsp-pyright)
-                    (package-refresh-contents)
-                    (package-install 'lsp-pyright))
-                  ;; Load required packages
-                  (require 'ert)
-                  (require 'cl-lib)
-                  ;; Load main greger files
-                  (load-file \"greger.el\")
-                  (load-file \"greger-parser.el\")
-                  (load-file \"greger-stdlib.el\")
-                  (load-file \"greger-lib-lsp.el\")
-                  (load-file \"greger-tools.el\")
-                  (load-file \"greger-client.el\")
-                  (load-file \"greger-web.el\")
-                  ;; Load test file
-                  (load-file \"$test_file\")
-                  ;; Run all tests defined in this file
-                  (let ((ert-quiet nil))
-                    (ert-run-tests-batch-and-exit t)))" 2>/dev/null; then
-        echo -e "  ${GREEN}✓ All tests passed${NC}"
-        return 0
-    else
-        echo -e "  ${RED}✗ Some tests failed${NC}"
-        return 1
-    fi
-}
-
-# Function to run tests with verbose output
-run_test_file_verbose() {
-    local test_file="$1"
-    echo -e "Running tests in ${YELLOW}$test_file${NC} (verbose mode)..."
-
-    emacs --batch -Q \
-        --eval "(progn
-                  (setq debug-on-error t)
-                  (add-to-list 'load-path \".\")
-                  ;; Setup package archives and install dependencies if needed
-                  (require 'package)
-                  (setq package-archives '((\"melpa\" . \"https://melpa.org/packages/\")
-                                           (\"gnu\" . \"https://elpa.gnu.org/packages/\")))
-                  (package-initialize)
-                  ;; Install lsp-mode and lsp-pyright if not available
-                  (unless (package-installed-p 'lsp-mode)
-                    (package-refresh-contents)
-                    (package-install 'lsp-mode))
-                  (unless (package-installed-p 'lsp-pyright)
-                    (package-refresh-contents)
-                    (package-install 'lsp-pyright))
-                  ;; Load required packages
-                  (require 'ert)
-                  (require 'cl-lib)
-                  ;; Load main greger files
-                  (load-file \"greger.el\")
-                  (load-file \"greger-parser.el\")
-                  (load-file \"greger-stdlib.el\")
-                  (load-file \"greger-lib-lsp.el\")
-                  (load-file \"greger-tools.el\")
-                  (load-file \"greger-client.el\")
-                  (load-file \"greger-web.el\")
-                  ;; Load test file
-                  (load-file \"$test_file\")
-                  ;; Run all tests defined in this file with verbose output
-                  (let ((ert-quiet nil))
-                    (ert-run-tests-batch-and-exit t)))"
-}
-
-# Parse command line arguments
-VERBOSE=false
-SPECIFIC_FILE=""
-HELP=false
-
-while [[ $# -gt 0 ]]; do
-    case $1 in
-        -v|--verbose)
-            VERBOSE=true
-            shift
-            ;;
-        -f|--file)
-            SPECIFIC_FILE="$2"
-            shift 2
-            ;;
-        -h|--help)
-            HELP=true
-            shift
-            ;;
-        *)
-            echo -e "${RED}Unknown option: $1${NC}"
-            HELP=true
-            shift
-            ;;
-    esac
-done
-
-# Show help if requested
-if [ "$HELP" = true ]; then
-    echo "Usage: $0 [OPTIONS]"
-    echo ""
-    echo "Options:"
-    echo "  -v, --verbose    Show verbose test output"
-    echo "  -f, --file FILE  Run tests only for specific file"
-    echo "  -h, --help       Show this help message"
-    echo ""
-    echo "Test files available:"
-    for file in "${TEST_FILES[@]}"; do
-        echo "  - $file"
-    done
-    exit 0
-fi
-
-# Run tests
-OVERALL_EXIT_CODE=0
-TOTAL_FILES=0
-PASSED_FILES=0
-
-if [ -n "$SPECIFIC_FILE" ]; then
-    # Run tests for specific file
-    TOTAL_FILES=1
-    if [ "$VERBOSE" = true ]; then
-        run_test_file_verbose "$SPECIFIC_FILE"
-        OVERALL_EXIT_CODE=$?
-    else
-        if run_test_file "$SPECIFIC_FILE"; then
-            PASSED_FILES=1
-        else
-            OVERALL_EXIT_CODE=1
-        fi
-    fi
-else
-    # Run tests for all files
-    for test_file in "${TEST_FILES[@]}"; do
-        TOTAL_FILES=$((TOTAL_FILES + 1))
-
-        if [ "$VERBOSE" = true ]; then
-            echo
-            run_test_file_verbose "$test_file"
-            if [ $? -ne 0 ]; then
-                OVERALL_EXIT_CODE=1
-            else
-                PASSED_FILES=$((PASSED_FILES + 1))
-            fi
-        else
-            if run_test_file "$test_file"; then
-                PASSED_FILES=$((PASSED_FILES + 1))
-            else
-                OVERALL_EXIT_CODE=1
-            fi
-        fi
-        echo
-    done
-fi
-
-# Print summary
-echo -e "${BLUE}Test Summary:${NC}"
-echo -e "  Files run: $TOTAL_FILES"
-echo -e "  Files passed: ${GREEN}$PASSED_FILES${NC}"
-echo -e "  Files failed: ${RED}$((TOTAL_FILES - PASSED_FILES))${NC}"
-
-if [ $OVERALL_EXIT_CODE -eq 0 ]; then
-    echo -e "${GREEN}All tests passed!${NC}"
-else
-    echo -e "${RED}Some tests failed.${NC}"
-fi
-
-exit $OVERALL_EXIT_CODE
-
-</tool.toolu_01ULW2xVTD5fTcC65HcpqG3j>
+</tool.toolu_0193ZvJiaoRbuMFCczHL2APc>
 
 ## ASSISTANT:
 
-Now I can see the issue. The script is trying to load test files from the current directory, but they're now in the `test/` folder. I need to update the paths in two places:
+Now I can see the issues. Let me fix the test files. The main problems are:
 
-1. The TEST_FILES array should reference files in the `test/` directory
-2. The `load-file` commands should use the correct paths
+1. In `test-greger.el`: Some tests use `make-greger-agent-state` but it should be `make-greger-state`, and some use the wrong function name for executing tools.
+2. In `test-greger-lib-lsp.el`: The tests are calling functions like `greger-lsp--ensure-server` but they should be calling `greger-lib-lsp--ensure-server`.
 
-Let me update the script:
+Let me fix the test files:
 
 ## TOOL USE:
 
 Name: str-replace
-ID: toolu_017x1oiuW4aj71A5yzQTcQsD
+ID: toolu_01MrjaPdTFsxag61FMfNSoQ6
 
 ### file_path
 
-<tool.toolu_017x1oiuW4aj71A5yzQTcQsD>
-script/test
-</tool.toolu_017x1oiuW4aj71A5yzQTcQsD>
+<tool.toolu_01MrjaPdTFsxag61FMfNSoQ6>
+test/test-greger.el
+</tool.toolu_01MrjaPdTFsxag61FMfNSoQ6>
 
 ### original_content
 
-<tool.toolu_017x1oiuW4aj71A5yzQTcQsD>
-# Test files to run
-TEST_FILES=(
-    "test-greger.el"
-    "test-greger-parser.el"
-    "test-greger-stdlib.el"
-    "test-greger-lib-lsp.el"
-    "test-greger-tools.el"
-    "test-greger-client.el"
-    "test-end-to-end.el"
-)
-</tool.toolu_017x1oiuW4aj71A5yzQTcQsD>
+<tool.toolu_01MrjaPdTFsxag61FMfNSoQ6>
+        ;; Mock greger--run-agent-loop to capture completion
+        (cl-letf (((symbol-function 'greger-agent--run-agent-loop)
+                   (lambda (state)
+                     (setq tools-completed t))))
+
+          ;; Execute tools
+          (greger--execute-tools tool-calls agent-state)
+</tool.toolu_01MrjaPdTFsxag61FMfNSoQ6>
 
 ### new_content
 
-<tool.toolu_017x1oiuW4aj71A5yzQTcQsD>
-# Test files to run
-TEST_FILES=(
-    "test/test-greger.el"
-    "test/test-greger-parser.el"
-    "test/test-greger-stdlib.el"
-    "test/test-greger-lib-lsp.el"
-    "test/test-greger-tools.el"
-    "test/test-greger-client.el"
-    "test/test-end-to-end.el"
-)
-</tool.toolu_017x1oiuW4aj71A5yzQTcQsD>
+<tool.toolu_01MrjaPdTFsxag61FMfNSoQ6>
+        ;; Mock greger--run-agent-loop to capture completion
+        (cl-letf (((symbol-function 'greger--run-agent-loop)
+                   (lambda (state)
+                     (setq tools-completed t))))
+
+          ;; Execute tools
+          (greger--execute-tools tool-calls agent-state)
+</tool.toolu_01MrjaPdTFsxag61FMfNSoQ6>
 
 ### git_commit_message
 
-<tool.toolu_017x1oiuW4aj71A5yzQTcQsD>
-Update test file paths to reference test/ directory
-</tool.toolu_017x1oiuW4aj71A5yzQTcQsD>
+<tool.toolu_01MrjaPdTFsxag61FMfNSoQ6>
+Fix mock function name in multiple tools test
+</tool.toolu_01MrjaPdTFsxag61FMfNSoQ6>
 
-<!-- TOOL_RESULT_PLACEHOLDER_toolu_017x1oiuW4aj71A5yzQTcQsD -->
+<!-- TOOL_RESULT_PLACEHOLDER_toolu_01MrjaPdTFsxag61FMfNSoQ6 -->
