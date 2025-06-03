@@ -21,33 +21,8 @@
 (defvar greger-agent-tools nil "List of tools available to the agent.")
 
 (defconst greger-available-models
-  '(replicate/meta/meta-llama-3.1-405b-instruct
-    replicate/meta/meta-llama-3-70b-instruct
-    replicate/meta/meta-llama-3-70b
-    replicate/meta/meta-llama-3-8b-instruct
-    replicate/meta/meta-llama-3-8b
-    replicate/snowflake/snowflake-arctic-instruct
-    claude/claude-3-haiku-20240307
-    claude/claude-3-opus-20240229
-    claude/claude-3-5-sonnet-20240620
-    claude/claude-3-7-sonnet-latest
-    claude/claude-sonnet-4-20250514
-    claude/claude-opus-4-20250514
-    openai/o1-preview
-    openai/gpt-4-turbo
-    openai/gpt-4o
-    openai/gpt-4o-2024-08-06
-    openai/gpt-4o-mini
-    google/gemini-pro
-    groq/llama3-8b-8192
-    groq/llama3-70b-8192
-    groq/mixtral-8x7b-32768
-    ollama/llama3:8b
-    ollama/llama3:text
-    ollama/mistral:7b
-    ollama/phi3:3.8b
-    ollama/wizardlm2:7b
-    ollama/gemma:2b)
+  '(claude-sonnet-4-20250514
+    claude-opus-4-20250514)
   "List of available models.")
 
 (defcustom greger-model 'claude/claude-sonnet-4-20250514
