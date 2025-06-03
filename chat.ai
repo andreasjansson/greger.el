@@ -4120,4 +4120,126 @@ greger-lib-lsp.el
 Close conditional block for LSP tool registrations
 </tool.toolu_01LFWyXdJqRUoU85sShdAFjM>
 
-<!-- TOOL_RESULT_PLACEHOLDER_toolu_01LFWyXdJqRUoU85sShdAFjM -->
+## TOOL RESULT:
+
+ID: toolu_01LFWyXdJqRUoU85sShdAFjM
+
+<tool.toolu_01LFWyXdJqRUoU85sShdAFjM>
+Successfully replaced content in /Users/andreas/projects/greger.el/greger-lib-lsp.el. Successfully staged 2 file(s) and committed with message: Close conditional block for LSP tool registrations
+</tool.toolu_01LFWyXdJqRUoU85sShdAFjM>
+
+
+## ASSISTANT:
+
+Now I should also make the helper functions and implementations conditional, as they won't work without lsp-mode. Let me wrap the rest of the file:
+
+## TOOL USE:
+
+Name: read-file
+ID: toolu_01GjRwRY7x5RhNMdv4sTBKSz
+
+### path
+
+<tool.toolu_01GjRwRY7x5RhNMdv4sTBKSz>
+greger-lib-lsp.el
+</tool.toolu_01GjRwRY7x5RhNMdv4sTBKSz>
+
+### start_line
+
+<tool.toolu_01GjRwRY7x5RhNMdv4sTBKSz>
+90
+</tool.toolu_01GjRwRY7x5RhNMdv4sTBKSz>
+
+### end_line
+
+<tool.toolu_01GjRwRY7x5RhNMdv4sTBKSz>
+95
+</tool.toolu_01GjRwRY7x5RhNMdv4sTBKSz>
+
+## TOOL RESULT:
+
+ID: toolu_01GjRwRY7x5RhNMdv4sTBKSz
+
+<tool.toolu_01GjRwRY7x5RhNMdv4sTBKSz>
+
+(defun greger-lsp--ensure-server (file-path)
+  "Ensure LSP server is running for FILE-PATH.
+Returns the buffer visiting the file, or signals an error if LSP is not available."
+  (let ((buffer (or (find-buffer-visiting file-path)
+                    (find-file-noselect file-path))))
+</tool.toolu_01GjRwRY7x5RhNMdv4sTBKSz>
+
+## ASSISTANT:
+
+I need to wrap all the implementation functions too. Let me find where they end:
+
+## TOOL USE:
+
+Name: read-file
+ID: toolu_01TgW9ZvYLW53XqeXnZeDeGo
+
+### path
+
+<tool.toolu_01TgW9ZvYLW53XqeXnZeDeGo>
+greger-lib-lsp.el
+</tool.toolu_01TgW9ZvYLW53XqeXnZeDeGo>
+
+### start_line
+
+<tool.toolu_01TgW9ZvYLW53XqeXnZeDeGo>
+427
+</tool.toolu_01TgW9ZvYLW53XqeXnZeDeGo>
+
+### end_line
+
+<tool.toolu_01TgW9ZvYLW53XqeXnZeDeGo>
+431
+</tool.toolu_01TgW9ZvYLW53XqeXnZeDeGo>
+
+## TOOL RESULT:
+
+ID: toolu_01TgW9ZvYLW53XqeXnZeDeGo
+
+<tool.toolu_01TgW9ZvYLW53XqeXnZeDeGo>
+
+(provide 'greger-lib-lsp)
+
+;;; greger-lib-lsp.el ends here
+
+</tool.toolu_01TgW9ZvYLW53XqeXnZeDeGo>
+
+## TOOL USE:
+
+Name: str-replace
+ID: toolu_012Fb7DdibSAsZEArEcrdqAX
+
+### file_path
+
+<tool.toolu_012Fb7DdibSAsZEArEcrdqAX>
+greger-lib-lsp.el
+</tool.toolu_012Fb7DdibSAsZEArEcrdqAX>
+
+### original_content
+
+<tool.toolu_012Fb7DdibSAsZEArEcrdqAX>
+;;; Helper functions
+
+(defun greger-lsp--ensure-server (file-path)
+</tool.toolu_012Fb7DdibSAsZEArEcrdqAX>
+
+### new_content
+
+<tool.toolu_012Fb7DdibSAsZEArEcrdqAX>
+;;; Helper functions
+
+(when greger-lib-lsp-available
+  (defun greger-lsp--ensure-server (file-path)
+</tool.toolu_012Fb7DdibSAsZEArEcrdqAX>
+
+### git_commit_message
+
+<tool.toolu_012Fb7DdibSAsZEArEcrdqAX>
+Start conditional block for LSP helper functions and implementations
+</tool.toolu_012Fb7DdibSAsZEArEcrdqAX>
+
+<!-- TOOL_RESULT_PLACEHOLDER_toolu_012Fb7DdibSAsZEArEcrdqAX -->

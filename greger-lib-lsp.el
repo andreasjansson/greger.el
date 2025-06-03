@@ -88,7 +88,8 @@
 
 ;;; Helper functions
 
-(defun greger-lsp--ensure-server (file-path)
+(when greger-lib-lsp-available
+  (defun greger-lsp--ensure-server (file-path)
   "Ensure LSP server is running for FILE-PATH.
 Returns the buffer visiting the file, or signals an error if LSP is not available."
   (let ((buffer (or (find-buffer-visiting file-path)
