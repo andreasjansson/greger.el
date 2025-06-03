@@ -330,8 +330,7 @@ If CHAT-BUFFER is provided, also stage and commit the chat buffer file."
 
           (format "Successfully staged %d file(s) and committed with message: %s"
                   (length all-files) commit-message)))
-    (error
-     (format "Git operation failed: %s" (error-message-string err)))))
+    (error "Git operation failed: %s" (error-message-string err))))
 
 (defun greger-stdlib--read-file (path &optional include-line-numbers start-line end-line)
   "Read file at PATH. If INCLUDE-LINE-NUMBERS is non-nil, prepend line numbers.
