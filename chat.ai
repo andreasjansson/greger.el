@@ -6858,4 +6858,52 @@ TEST_FILES=(
 Remove greger-lib-lsp test from test script
 </tool.toolu_01D6BPc3duPmPzsoKdV8npMU>
 
-<!-- TOOL_RESULT_PLACEHOLDER_toolu_01D6BPc3duPmPzsoKdV8npMU -->
+## TOOL RESULT:
+
+ID: toolu_01D6BPc3duPmPzsoKdV8npMU
+
+<tool.toolu_01D6BPc3duPmPzsoKdV8npMU>
+Successfully replaced content in /Users/andreas/projects/greger.el/script/test. Successfully staged 2 file(s) and committed with message: Remove greger-lib-lsp test from test script
+</tool.toolu_01D6BPc3duPmPzsoKdV8npMU>
+
+
+## ASSISTANT:
+
+Now I need to remove the references to loading `greger-lib-lsp.el` from the test script:
+
+## TOOL USE:
+
+Name: str-replace
+ID: toolu_01ThpaBqxhMcDjwUZxsMe7ew
+
+### file_path
+
+<tool.toolu_01ThpaBqxhMcDjwUZxsMe7ew>
+script/test
+</tool.toolu_01ThpaBqxhMcDjwUZxsMe7ew>
+
+### original_content
+
+<tool.toolu_01ThpaBqxhMcDjwUZxsMe7ew>
+                  ;; Install lsp-mode and lsp-pyright if not available
+                  (unless (package-installed-p 'lsp-mode)
+                    (package-refresh-contents)
+                    (package-install 'lsp-mode))
+                  (unless (package-installed-p 'lsp-pyright)
+                    (package-refresh-contents)
+                    (package-install 'lsp-pyright))
+</tool.toolu_01ThpaBqxhMcDjwUZxsMe7ew>
+
+### new_content
+
+<tool.toolu_01ThpaBqxhMcDjwUZxsMe7ew>
+
+</tool.toolu_01ThpaBqxhMcDjwUZxsMe7ew>
+
+### git_commit_message
+
+<tool.toolu_01ThpaBqxhMcDjwUZxsMe7ew>
+Remove lsp-mode installation from test script
+</tool.toolu_01ThpaBqxhMcDjwUZxsMe7ew>
+
+<!-- TOOL_RESULT_PLACEHOLDER_toolu_01ThpaBqxhMcDjwUZxsMe7ew -->

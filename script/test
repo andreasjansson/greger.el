@@ -48,13 +48,7 @@ run_test_file() {
                   (setq package-archives '((\"melpa\" . \"https://melpa.org/packages/\")
                                            (\"gnu\" . \"https://elpa.gnu.org/packages/\")))
                   (package-initialize)
-                  ;; Install lsp-mode and lsp-pyright if not available
-                  (unless (package-installed-p 'lsp-mode)
-                    (package-refresh-contents)
-                    (package-install 'lsp-mode))
-                  (unless (package-installed-p 'lsp-pyright)
-                    (package-refresh-contents)
-                    (package-install 'lsp-pyright))
+
                   ;; Load required packages
                   (require 'ert)
                   (require 'cl-lib)
