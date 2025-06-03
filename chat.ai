@@ -5058,4 +5058,168 @@ You can run arbitrary shell commands with the shell-command tool, but the follow
 Fix safe-shell-commands-with-system-content test to match actual whitespace formatting
 </tool.toolu_01NtStHKi4AJqUw9MNshBhAW>
 
-<!-- TOOL_RESULT_PLACEHOLDER_toolu_01NtStHKi4AJqUw9MNshBhAW -->
+## TOOL RESULT:
+
+ID: toolu_01NtStHKi4AJqUw9MNshBhAW
+
+<tool.toolu_01NtStHKi4AJqUw9MNshBhAW>
+Successfully replaced content in /Users/andreas/projects/greger.el/test/test-greger-parser.el. Successfully staged 2 file(s) and committed with message: Fix safe-shell-commands-with-system-content test to match actual whitespace formatting
+</tool.toolu_01NtStHKi4AJqUw9MNshBhAW>
+
+
+## TOOL USE:
+
+Name: shell-command
+ID: toolu_01SXAYQ3nECxxjC5unHTNU14
+
+### command
+
+<tool.toolu_01SXAYQ3nECxxjC5unHTNU14>
+rm debug_test.el
+</tool.toolu_01SXAYQ3nECxxjC5unHTNU14>
+
+## TOOL RESULT:
+
+ID: toolu_01SXAYQ3nECxxjC5unHTNU14
+
+<tool.toolu_01SXAYQ3nECxxjC5unHTNU14>
+Command executed successfully:
+(no output)
+</tool.toolu_01SXAYQ3nECxxjC5unHTNU14>
+
+## ASSISTANT:
+
+Now let's run the tests again to make sure they all pass:
+
+## TOOL USE:
+
+Name: shell-command
+ID: toolu_01F8gEFu8xhhsb8mzoZbLJkw
+
+### command
+
+<tool.toolu_01F8gEFu8xhhsb8mzoZbLJkw>
+bash script/test --verbose --file test/test-greger-parser.el
+</tool.toolu_01F8gEFu8xhhsb8mzoZbLJkw>
+
+## TOOL RESULT:
+
+ID: toolu_01F8gEFu8xhhsb8mzoZbLJkw
+
+<tool.toolu_01F8gEFu8xhhsb8mzoZbLJkw>
+Command executed successfully:
+[0;34mRunning ERT tests for greger package...[0m
+
+Running tests in [1;33mtest/test-greger-parser.el[0m (verbose mode)...
+Loading /Users/andreas/projects/greger.el/greger.el (source)...
+Source file ‘/opt/homebrew/Cellar/emacs-plus@29/29.0.90/share/emacs/29.0.91/lisp/net/eww.el’ newer than byte-compiled file; using older file
+Loading /Users/andreas/projects/greger.el/greger-parser.el (source)...
+Loading /Users/andreas/projects/greger.el/greger-stdlib.el (source)...
+Loading /Users/andreas/projects/greger.el/greger-lib-lsp.el (source)...
+Loading /Users/andreas/projects/greger.el/greger-tools.el (source)...
+Loading /Users/andreas/projects/greger.el/greger-client.el (source)...
+Loading /Users/andreas/projects/greger.el/greger-web.el (source)...
+Loading /Users/andreas/projects/greger.el/test/test-greger-parser.el (source)...
+Running 35 tests (2025-06-03 17:35:39+0200, selector ‘t’)
+   passed   1/35  greger-parser-test-code-block-parsing (0.001742 sec)
+   passed   2/35  greger-parser-test-code-blocks-in-tool-params (0.000865 sec)
+   passed   3/35  greger-parser-test-complex-mixed-content (0.002461 sec)
+   passed   4/35  greger-parser-test-edge-cases (0.000475 sec)
+   passed   5/35  greger-parser-test-error-handling (0.000277 sec)
+   passed   6/35  greger-parser-test-include-tag-basic (0.002044 sec)
+   passed   7/35  greger-parser-test-include-tag-in-assistant-section (0.002223 sec)
+   passed   8/35  greger-parser-test-include-tag-invalid-url (0.046921 sec)
+   passed   9/35  greger-parser-test-include-tag-multiline-content (0.002068 sec)
+   passed  10/35  greger-parser-test-include-tag-nonexistent-file (0.001188 sec)
+   passed  11/35  greger-parser-test-include-tag-not-processed-in-code-blocks (0.002062 sec)
+   passed  12/35  greger-parser-test-include-tag-not-processed-in-inline-code (0.001863 sec)
+   passed  13/35  greger-parser-test-include-tag-not-processed-in-tool-params (0.001266 sec)
+   passed  14/35  greger-parser-test-include-tag-recursive (0.002912 sec)
+   passed  15/35  greger-parser-test-include-tag-web-url (0.193139 sec)
+   passed  16/35  greger-parser-test-include-tag-web-url-with-code (0.089556 sec)
+   passed  17/35  greger-parser-test-include-tag-with-code (0.004594 sec)
+   passed  18/35  greger-parser-test-include-tag-with-code-in-code-block (0.002175 sec)
+   passed  19/35  greger-parser-test-inline-code-blocks (0.001111 sec)
+   passed  20/35  greger-parser-test-markdown-generation (0.000130 sec)
+Testing markdown-to-dialog for: simple-user-message
+Testing markdown-to-dialog for: system-and-user
+Testing markdown-to-dialog for: simple-conversation
+Testing markdown-to-dialog for: thinking-section
+Testing markdown-to-dialog for: tool-use-single-param
+Testing markdown-to-dialog for: tool-use-multiple-params
+Testing markdown-to-dialog for: complex-workflow
+Testing markdown-to-dialog for: multiple-tool-uses
+Testing markdown-to-dialog for: tool-use-multiline-params
+Testing markdown-to-dialog for: thinking-only
+Testing markdown-to-dialog for: tool-use-only
+Testing markdown-to-dialog for: tool-use-with-tags
+Testing markdown-to-dialog for: code-block-triple-backticks
+Testing markdown-to-dialog for: code-block-double-backticks
+Testing markdown-to-dialog for: mixed-code-blocks-and-sections
+Testing markdown-to-dialog for: tool-use-with-code-in-params
+Testing markdown-to-dialog for: nested-code-blocks
+Testing markdown-to-dialog for: tool-use-complex-params
+Testing markdown-to-dialog for: tool-result-empty-lines
+Testing markdown-to-dialog for: html-comments
+   passed  21/35  greger-parser-test-markdown-to-dialog (0.063115 sec)
+   passed  22/35  greger-parser-test-performance (0.052161 sec)
+Testing roundtrip for: simple-user-message
+Testing roundtrip for: system-and-user
+Testing roundtrip for: simple-conversation
+Testing roundtrip for: thinking-section
+Testing roundtrip for: tool-use-single-param
+Testing roundtrip for: tool-use-multiple-params
+Testing roundtrip for: complex-workflow
+Testing roundtrip for: multiple-tool-uses
+Testing roundtrip for: tool-use-multiline-params
+Testing roundtrip for: thinking-only
+Testing roundtrip for: tool-use-only
+Testing roundtrip for: tool-use-with-tags
+Testing roundtrip for: code-block-triple-backticks
+Testing roundtrip for: code-block-double-backticks
+Testing roundtrip for: mixed-code-blocks-and-sections
+Testing roundtrip for: tool-use-with-code-in-params
+Testing roundtrip for: nested-code-blocks
+Testing roundtrip for: tool-use-complex-params
+Testing roundtrip for: tool-result-empty-lines
+Testing roundtrip for: html-comments
+   passed  23/35  greger-parser-test-roundtrip (0.109045 sec)
+   passed  24/35  greger-parser-test-safe-shell-commands-basic (0.000320 sec)
+   passed  25/35  greger-parser-test-safe-shell-commands-empty-lines (0.000322 sec)
+   passed  26/35  greger-parser-test-safe-shell-commands-in-code-block (0.001010 sec)
+   passed  27/35  greger-parser-test-safe-shell-commands-not-in-system (0.001181 sec)
+   passed  28/35  greger-parser-test-safe-shell-commands-only-once (0.000399 sec)
+   passed  29/35  greger-parser-test-safe-shell-commands-with-system-content (0.001020 sec)
+   passed  30/35  greger-parser-test-system-content-with-safe-commands-example (0.000931 sec)
+   passed  31/35  greger-parser-test-thinking-parsing (0.000972 sec)
+   passed  32/35  greger-parser-test-tool-result-parsing (0.000420 sec)
+   passed  33/35  greger-parser-test-tool-use-parsing (0.000632 sec)
+   passed  34/35  greger-parser-test-tool-use-whitespace (0.000869 sec)
+   passed  35/35  greger-parser-test-untagged-content (0.001233 sec)
+
+Ran 35 tests, 35 results as expected, 0 unexpected (2025-06-03 17:35:40+0200, 0.636297 sec)
+
+[0;34mTest Summary:[0m
+  Files run: 1
+  Files passed: [0;32m0[0m
+  Files failed: [0;31m1[0m
+[0;32mAll tests passed![0m
+
+</tool.toolu_01F8gEFu8xhhsb8mzoZbLJkw>
+
+## ASSISTANT:
+
+Perfect! All tests are now passing. Let's run the full test suite to make sure everything is working correctly:
+
+## TOOL USE:
+
+Name: shell-command
+ID: toolu_01PiJdZnryFLvocgvR7F77cK
+
+### command
+
+<tool.toolu_01PiJdZnryFLvocgvR7F77cK>
+bash script/test
+</tool.toolu_01PiJdZnryFLvocgvR7F77cK>
+
+<!-- TOOL_RESULT_PLACEHOLDER_toolu_01PiJdZnryFLvocgvR7F77cK -->
