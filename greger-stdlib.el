@@ -240,8 +240,7 @@ CALLBACK will be called with (output nil) on success or (nil error-message) on
 failure."
   (let* ((process-name (format "greger-subprocess-%s" (make-temp-name "")))
          (process-buffer (generate-new-buffer (format " *%s*" process-name)))
-         (default-directory (expand-file-name (or working-directory ".")))
-         (full-command (cons command args)))
+         (default-directory (expand-file-name (or working-directory "."))))
 
     (condition-case err
         (let ((process (apply #'start-process process-name process-buffer command args)))
