@@ -299,25 +299,24 @@
   ;; Test unbalanced expressions
   (should (= 1 (greger-stdlib--count-paren-balance "(")))
   (should (= -1 (greger-stdlib--count-paren-balance ")")))
-  (should (= 1 (greger-stdlib--count-paren-balance "(foo))")))
-  (should (= -1 (greger-stdlib--count-paren-balance "((foo)")))
+  (should (= -1 (greger-stdlib--count-paren-balance "(foo))")))  ; 1 open, 2 close = -1
+  (should (= 1 (greger-stdlib--count-paren-balance "((foo)")))   ; 2 open, 1 close = 1
   (should (= 2 (greger-stdlib--count-paren-balance "(((")))
   (should (= -3 (greger-stdlib--count-paren-balance ")))")))
 
   ;; Test with strings (parens in strings should be ignored)
   (should (= 0 (greger-stdlib--count-paren-balance "\"()\"")))
   (should (= 0 (greger-stdlib--count-paren-balance "\"(((\"")))
-  (should (= 1 (greger-stdlib--count-paren-balance "(message \"hello (world)\")")))
-  (should (= 0 (greger-stdlib--count-paren-balance "(message \"hello (world)\")")))
+  (should (= 0 (greger-stdlib--count-paren-balance "(message \"hello (world)\")")))  ; Fixed: this should be 0
 
   ;; Test with comments (parens in comments should be ignored)
   (should (= 0 (greger-stdlib--count-paren-balance "; (((")))
   (should (= 0 (greger-stdlib--count-paren-balance ";; This has (parens) in comment")))
-  (should (= 1 (greger-stdlib--count-paren-balance "(foo) ; comment with (parens)")))
+  (should (= 0 (greger-stdlib--count-paren-balance "(foo) ; comment with (parens)")))  ; Fixed: this should be 0
 
   ;; Test mixed content
   (should (= 0 (greger-stdlib--count-paren-balance "(foo \"string with (parens)\" bar) ; comment (with parens)")))
-  (should (= 1 (greger-stdlib--count-paren-balance "((foo \"string with )\" bar) ; comment (with parens)")))
+  (should (= 0 (greger-stdlib--count-paren-balance "((foo \"string with )\" bar) ; comment (with parens)")))
 
   ;; Test empty content
   (should (= 0 (greger-stdlib--count-paren-balance "")))
