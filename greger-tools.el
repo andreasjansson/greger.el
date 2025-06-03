@@ -76,12 +76,6 @@ If the tool has :pass-buffer set, BUFFER will be passed to the tool function.
 If the tool has :pass-callback set, CALLBACK will be passed to the tool function
 instead of greger-tools-execute calling the callback with the result.
 If the tool has :pass-metadata set, METADATA will be passed to the tool function."
-  ;; Debug: return early for delete-files to show what we receive
-  (when (string= tool-name "delete-files")
-    (let ((debug-info (format "DEBUG greger-tools-execute:\n  tool-name: %s\n  args type: %s\n  args value: %S\n"
-                              tool-name (type-of args) args)))
-      (funcall callback debug-info nil)
-      (return-from greger-tools-execute)))
 
   (let ((tool-def (gethash tool-name greger-tools-registry)))
     (if tool-def
