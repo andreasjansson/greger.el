@@ -2826,4 +2826,261 @@ Line 3
 Remove trailing newline from test file
 </tool.toolu_01RfokSRBeFJRrK8rCx4NHnv>
 
-<!-- TOOL_RESULT_PLACEHOLDER_toolu_01RfokSRBeFJRrK8rCx4NHnv -->
+## TOOL RESULT:
+
+ID: toolu_01RfokSRBeFJRrK8rCx4NHnv
+
+<tool.toolu_01RfokSRBeFJRrK8rCx4NHnv>
+Successfully replaced content in /Users/andreas/projects/greger.el/test-read-file.txt. Successfully staged 2 file(s) and committed with message: Remove trailing newline from test file
+</tool.toolu_01RfokSRBeFJRrK8rCx4NHnv>
+
+
+## TOOL USE:
+
+Name: read-file
+ID: toolu_014R1Wx8DNDN6YV71sECaXV4
+
+### path
+
+<tool.toolu_014R1Wx8DNDN6YV71sECaXV4>
+test-read-file.txt
+</tool.toolu_014R1Wx8DNDN6YV71sECaXV4>
+
+### include_line_numbers
+
+<tool.toolu_014R1Wx8DNDN6YV71sECaXV4>
+true
+</tool.toolu_014R1Wx8DNDN6YV71sECaXV4>
+
+## TOOL RESULT:
+
+ID: toolu_014R1Wx8DNDN6YV71sECaXV4
+
+<tool.toolu_014R1Wx8DNDN6YV71sECaXV4>
+1: Line 1
+2: Line 2
+3: Line 3
+4:
+</tool.toolu_014R1Wx8DNDN6YV71sECaXV4>
+
+## ASSISTANT:
+
+Still getting an extra line. Let me look at the main branch implementation more carefully:
+
+## TOOL USE:
+
+Name: shell-command
+ID: toolu_01LugiQA9ctaV4xruTXaEwCu
+
+### command
+
+<tool.toolu_01LugiQA9ctaV4xruTXaEwCu>
+git show main:greger-stdlib.el | grep -A 25 "extract-line-range"
+</tool.toolu_01LugiQA9ctaV4xruTXaEwCu>
+
+## TOOL RESULT:
+
+ID: toolu_01LugiQA9ctaV4xruTXaEwCu
+
+<tool.toolu_01LugiQA9ctaV4xruTXaEwCu>
+Command executed successfully:
+                 (selected-lines (greger-stdlib--extract-line-range all-lines actual-start actual-end))
+                 (contents (mapconcat 'identity selected-lines "\n")))
+            (if include-line-numbers
+                (greger-stdlib--add-line-numbers-with-offset contents actual-start)
+              contents)))
+      (error (format "Failed to read file: %s" (error-message-string err))))))
+
+(defun greger-stdlib--extract-line-range (lines start-line end-line)
+  "Extract lines from LINES between START-LINE and END-LINE (1-based, inclusive)."
+  (let ((start-index (1- start-line))  ; Convert to 0-based index
+        (end-index (1- end-line)))     ; Convert to 0-based index
+    ;; Ensure indices are within bounds
+    (setq start-index (max 0 start-index))
+    (setq end-index (min (1- (length lines)) end-index))
+    ;; Extract the range
+    (cl-subseq lines start-index (1+ end-index))))
+
+(defun greger-stdlib--add-line-numbers-with-offset (content start-line-num)
+  "Add line numbers to CONTENT string starting from START-LINE-NUM."
+  (let ((lines (split-string content "\n"))
+        (line-num start-line-num)
+        (max-width 0)
+        result)
+
+    ;; Calculate the width needed for line numbers (based on the highest line number)
+    (setq max-width (length (number-to-string (+ start-line-num (length lines) -1))))
+
+    ;; Add line numbers to each line
+    (dolist (line lines)
+      (push (format (concat "%" (number-to-string max-width) "d: %s") line-num line) result)
+      (setq line-num (1+ line-num)))
+
+    ;; Join back with newlines
+
+</tool.toolu_01LugiQA9ctaV4xruTXaEwCu>
+
+## ASSISTANT:
+
+The issue is that when we read a file, split it by newlines, and then rejoin it, we're including empty lines that come from trailing newlines. I think the issue might be that we need to handle the splitting differently. Let me check if this is how it works in the main branch by testing it:
+
+## TOOL USE:
+
+Name: shell-command
+ID: toolu_014AaHgrVDnKM6gLStWriAYy
+
+### command
+
+<tool.toolu_014AaHgrVDnKM6gLStWriAYy>
+git stash
+</tool.toolu_014AaHgrVDnKM6gLStWriAYy>
+
+## TOOL RESULT:
+
+ID: toolu_014AaHgrVDnKM6gLStWriAYy
+
+<tool.toolu_014AaHgrVDnKM6gLStWriAYy>
+Command executed successfully:
+No local changes to save
+
+</tool.toolu_014AaHgrVDnKM6gLStWriAYy>
+
+## TOOL USE:
+
+Name: shell-command
+ID: toolu_01K32LHmMwbZw5pwho1mcocK
+
+### command
+
+<tool.toolu_01K32LHmMwbZw5pwho1mcocK>
+git checkout main
+</tool.toolu_01K32LHmMwbZw5pwho1mcocK>
+
+## TOOL RESULT:
+
+ID: toolu_01K32LHmMwbZw5pwho1mcocK
+
+<tool.toolu_01K32LHmMwbZw5pwho1mcocK>
+Command executed successfully:
+Switched to branch 'main'
+
+</tool.toolu_01K32LHmMwbZw5pwho1mcocK>
+
+## TOOL USE:
+
+Name: read-file
+ID: toolu_017ceG8cHCiWxb1VY6AW4qBb
+
+### path
+
+<tool.toolu_017ceG8cHCiWxb1VY6AW4qBb>
+test-read-file.txt
+</tool.toolu_017ceG8cHCiWxb1VY6AW4qBb>
+
+### include_line_numbers
+
+<tool.toolu_017ceG8cHCiWxb1VY6AW4qBb>
+true
+</tool.toolu_017ceG8cHCiWxb1VY6AW4qBb>
+
+## TOOL RESULT:
+
+ID: toolu_017ceG8cHCiWxb1VY6AW4qBb
+
+<tool.toolu_017ceG8cHCiWxb1VY6AW4qBb>
+Error executing tool: File does not exist: /Users/andreas/projects/greger.el/test-read-file.txt
+</tool.toolu_017ceG8cHCiWxb1VY6AW4qBb>
+
+## ASSISTANT:
+
+Let me go back to my branch:
+
+## TOOL USE:
+
+Name: shell-command
+ID: toolu_01MK4k3fBVzhvnURnXg5rg1P
+
+### command
+
+<tool.toolu_01MK4k3fBVzhvnURnXg5rg1P>
+git checkout melpazoid
+</tool.toolu_01MK4k3fBVzhvnURnXg5rg1P>
+
+## TOOL RESULT:
+
+ID: toolu_01MK4k3fBVzhvnURnXg5rg1P
+
+<tool.toolu_01MK4k3fBVzhvnURnXg5rg1P>
+Command executed successfully:
+Switched to branch 'melpazoid'
+
+</tool.toolu_01MK4k3fBVzhvnURnXg5rg1P>
+
+## TOOL USE:
+
+Name: read-file
+ID: toolu_01LGJdgAxNKjwPHS5WVgQK8X
+
+### path
+
+<tool.toolu_01LGJdgAxNKjwPHS5WVgQK8X>
+test-read-file.txt
+</tool.toolu_01LGJdgAxNKjwPHS5WVgQK8X>
+
+### include_line_numbers
+
+<tool.toolu_01LGJdgAxNKjwPHS5WVgQK8X>
+true
+</tool.toolu_01LGJdgAxNKjwPHS5WVgQK8X>
+
+## TOOL RESULT:
+
+ID: toolu_01LGJdgAxNKjwPHS5WVgQK8X
+
+<tool.toolu_01LGJdgAxNKjwPHS5WVgQK8X>
+1: Line 1
+2: Line 2
+3: Line 3
+4:
+</tool.toolu_01LGJdgAxNKjwPHS5WVgQK8X>
+
+## ASSISTANT:
+
+The issue is that files without a trailing newline still get an empty line at the end when split. Let me check if this is in the original main branch. I need to understand if this is a regression or if the test expectations are wrong.
+
+Let me create a test file with a proper trailing newline and test both cases:
+
+## TOOL USE:
+
+Name: str-replace
+ID: toolu_01Vh4j59y3pSLxDzrDcVHSZv
+
+### file_path
+
+<tool.toolu_01Vh4j59y3pSLxDzrDcVHSZv>
+test-read-file.txt
+</tool.toolu_01Vh4j59y3pSLxDzrDcVHSZv>
+
+### original_content
+
+<tool.toolu_01Vh4j59y3pSLxDzrDcVHSZv>
+Line 1
+Line 2
+Line 3
+</tool.toolu_01Vh4j59y3pSLxDzrDcVHSZv>
+
+### new_content
+
+<tool.toolu_01Vh4j59y3pSLxDzrDcVHSZv>
+Line 1
+Line 2
+Line 3
+</tool.toolu_01Vh4j59y3pSLxDzrDcVHSZv>
+
+### git_commit_message
+
+<tool.toolu_01Vh4j59y3pSLxDzrDcVHSZv>
+Add trailing newline back to test file
+</tool.toolu_01Vh4j59y3pSLxDzrDcVHSZv>
+
+<!-- TOOL_RESULT_PLACEHOLDER_toolu_01Vh4j59y3pSLxDzrDcVHSZv -->
