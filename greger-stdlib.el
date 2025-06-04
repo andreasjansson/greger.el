@@ -530,7 +530,7 @@ EXCLUDE-DIRECTORIES-RECURSIVE is a regex pattern that is matched as a full match
 If EXCLUDE-DIRECTORIES-RECURSIVE is empty or nil, include all directories."
   (if (or (null exclude-directories-recursive) (string= exclude-directories-recursive ""))
       t
-    (let ((full-match-pattern (format "^(%s)$" exclude-directories-recursive)))
+    (let ((full-match-pattern (format "^%s$" exclude-directories-recursive)))
       (not (string-match-p full-match-pattern directory-name)))))
 
 (defun greger-stdlib--ripgrep (pattern path callback &optional case-sensitive file-type context-lines max-results)

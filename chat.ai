@@ -3395,4 +3395,191 @@ test/test-greger-stdlib.el
 Fix exclude pattern to properly match directories starting with dot
 </tool.toolu_014zcSvXDBSvzPLkoA45qnmX>
 
-<!-- TOOL_RESULT_PLACEHOLDER_toolu_014zcSvXDBSvzPLkoA45qnmX -->
+## TOOL RESULT:
+
+ID: toolu_014zcSvXDBSvzPLkoA45qnmX
+
+<tool.toolu_014zcSvXDBSvzPLkoA45qnmX>
+Successfully replaced content in /Users/andreas/projects/greger.el/test/test-greger-stdlib.el. Successfully staged 2 file(s) and committed with message: Fix exclude pattern to properly match directories starting with dot
+</tool.toolu_014zcSvXDBSvzPLkoA45qnmX>
+
+
+## ASSISTANT:
+
+Now I need to fix the first test as well. The issue there is that my pattern `"\\.git|__pycache__"` should match the exact directory names. Let me debug what's happening:
+
+## TOOL USE:
+
+Name: shell-command
+ID: toolu_01CwVbkZRaJry4hP7acLgRnN
+
+### command
+
+<tool.toolu_01CwVbkZRaJry4hP7acLgRnN>
+emacs --batch --eval "(progn (add-to-list 'load-path \".\") (require 'greger-stdlib) (let ((pattern \"\\.git|__pycache__\") (test-name \".git\")) (print (format \"Testing %s against %s\" test-name pattern)) (print (format \"Full pattern: ^(%s)$\" pattern)) (print (string-match-p (format \"^(%s)$\" pattern) test-name))))"
+</tool.toolu_01CwVbkZRaJry4hP7acLgRnN>
+
+## TOOL RESULT:
+
+ID: toolu_01CwVbkZRaJry4hP7acLgRnN
+
+<tool.toolu_01CwVbkZRaJry4hP7acLgRnN>
+Command executed successfully:
+Source file ‘/opt/homebrew/Cellar/emacs-plus@29/29.0.90/share/emacs/29.0.91/lisp/net/eww.el’ newer than byte-compiled file; using older file
+
+"Testing .git against .git|__pycache__"
+
+"Full pattern: ^(.git|__pycache__)$"
+
+nil
+
+</tool.toolu_01CwVbkZRaJry4hP7acLgRnN>
+
+## ASSISTANT:
+
+Ah, I see the issue! The pattern `\\.git` means "any character followed by git", but I want to match literally `.git`. In the pattern, I need to escape the dot properly. Let me test the correct pattern:
+
+## TOOL USE:
+
+Name: shell-command
+ID: toolu_01SsZXJfY2wJDXSn6MVb6NJS
+
+### command
+
+<tool.toolu_01SsZXJfY2wJDXSn6MVb6NJS>
+emacs --batch --eval "(progn (add-to-list 'load-path \".\") (require 'greger-stdlib) (let ((pattern \"\\\\.git|__pycache__\") (test-name \".git\")) (print (format \"Testing %s against %s\" test-name pattern)) (print (format \"Full pattern: ^(%s)$\" pattern)) (print (string-match-p (format \"^(%s)$\" pattern) test-name))))"
+</tool.toolu_01SsZXJfY2wJDXSn6MVb6NJS>
+
+## TOOL RESULT:
+
+ID: toolu_01SsZXJfY2wJDXSn6MVb6NJS
+
+<tool.toolu_01SsZXJfY2wJDXSn6MVb6NJS>
+Command executed successfully:
+Source file ‘/opt/homebrew/Cellar/emacs-plus@29/29.0.90/share/emacs/29.0.91/lisp/net/eww.el’ newer than byte-compiled file; using older file
+
+"Testing .git against \\.git|__pycache__"
+
+"Full pattern: ^(\\.git|__pycache__)$"
+
+nil
+
+</tool.toolu_01SsZXJfY2wJDXSn6MVb6NJS>
+
+## ASSISTANT:
+
+Still not working. Let me check what's actually in the default pattern:
+
+## TOOL USE:
+
+Name: read-file
+ID: toolu_015Nh7yVUzpJQ7h9cN6rJLA3
+
+### path
+
+<tool.toolu_015Nh7yVUzpJQ7h9cN6rJLA3>
+greger-stdlib.el
+</tool.toolu_015Nh7yVUzpJQ7h9cN6rJLA3>
+
+### start-line
+
+<tool.toolu_015Nh7yVUzpJQ7h9cN6rJLA3>
+58
+</tool.toolu_015Nh7yVUzpJQ7h9cN6rJLA3>
+
+### end-line
+
+<tool.toolu_015Nh7yVUzpJQ7h9cN6rJLA3>
+60
+</tool.toolu_015Nh7yVUzpJQ7h9cN6rJLA3>
+
+## TOOL RESULT:
+
+ID: toolu_015Nh7yVUzpJQ7h9cN6rJLA3
+
+<tool.toolu_015Nh7yVUzpJQ7h9cN6rJLA3>
+                (exclude-directories-recursive . ((type . "string")
+                                                   (description . "Regex pattern of directories to exclude when recursively listing files")
+                                                   (default . "\\.git|__pycache__")))
+</tool.toolu_015Nh7yVUzpJQ7h9cN6rJLA3>
+
+## ASSISTANT:
+
+I see! The default is `"\\.git|__pycache__"` which means "any character followed by git, OR __pycache__". But actually, I think you wanted it to match literal `.git`, so it should be `"\\\\.git|__pycache__"` or perhaps just `.git|__pycache__` depending on the intent.
+
+Let me test with the pattern `.git`:
+
+## USER:
+
+`"\\.git"` should match .git, not any character and git, because I do escape that dot
+
+## ASSISTANT:
+
+You're absolutely right! `"\\.git"` should match `.git` because the dot is escaped. Let me test this more carefully:
+
+## TOOL USE:
+
+Name: shell-command
+ID: toolu_01TNzhiR6aF3eVzSy9hgEW7a
+
+### command
+
+<tool.toolu_01TNzhiR6aF3eVzSy9hgEW7a>
+emacs --batch --eval "(progn (let ((pattern \"\\.git\") (test-name \".git\")) (print (format \"Testing %s against %s\" test-name pattern)) (print (format \"Full pattern: ^(%s)$\" pattern)) (print (string-match-p (format \"^(%s)$\" pattern) test-name)) (print (string-match-p pattern test-name))))"
+</tool.toolu_01TNzhiR6aF3eVzSy9hgEW7a>
+
+## TOOL RESULT:
+
+ID: toolu_01TNzhiR6aF3eVzSy9hgEW7a
+
+<tool.toolu_01TNzhiR6aF3eVzSy9hgEW7a>
+Command executed successfully:
+
+"Testing .git against .git"
+
+"Full pattern: ^(.git)$"
+
+nil
+
+0
+
+</tool.toolu_01TNzhiR6aF3eVzSy9hgEW7a>
+
+## ASSISTANT:
+
+Interesting! The pattern `\\.git` does match `.git` when used directly (returns position 0), but when wrapped in `^(%s)$` it becomes `^(.git)$` which doesn't match. The issue is in my function - I'm adding extra parentheses that are creating a capturing group but not actually helping with the match.
+
+Let me fix the function:
+
+## TOOL USE:
+
+Name: str-replace
+ID: toolu_019ufY1fB6r15yRpWCtbSkjF
+
+### file-path
+
+<tool.toolu_019ufY1fB6r15yRpWCtbSkjF>
+greger-stdlib.el
+</tool.toolu_019ufY1fB6r15yRpWCtbSkjF>
+
+### original-content
+
+<tool.toolu_019ufY1fB6r15yRpWCtbSkjF>
+(let ((full-match-pattern (format "^(%s)$" exclude-directories-recursive)))
+      (not (string-match-p full-match-pattern directory-name)))
+</tool.toolu_019ufY1fB6r15yRpWCtbSkjF>
+
+### new-content
+
+<tool.toolu_019ufY1fB6r15yRpWCtbSkjF>
+(let ((full-match-pattern (format "^%s$" exclude-directories-recursive)))
+      (not (string-match-p full-match-pattern directory-name)))
+</tool.toolu_019ufY1fB6r15yRpWCtbSkjF>
+
+### git-commit-message
+
+<tool.toolu_019ufY1fB6r15yRpWCtbSkjF>
+Fix regex pattern wrapping to not add unnecessary parentheses
+</tool.toolu_019ufY1fB6r15yRpWCtbSkjF>
+
+<!-- TOOL_RESULT_PLACEHOLDER_toolu_019ufY1fB6r15yRpWCtbSkjF -->
