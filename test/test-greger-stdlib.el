@@ -752,15 +752,15 @@ Line 3"))
             (let ((result (greger-stdlib--list-directory test-dir "\\.log$")))
               (should (stringp result))
               ;; Should contain the .txt file but not the .log file
-              (should (string-match-p "keep\\.txt" result))
-              (should-not (string-match-p "remove\\.log" result)))
+              (should (string-match "keep\\.txt" result))
+              (should-not (string-match "remove\\.log" result)))
 
             ;; Test with empty exclude pattern - should include all files
             (let ((result (greger-stdlib--list-directory test-dir "")))
               (should (stringp result))
               ;; Should contain both files
-              (should (string-match-p "keep\\.txt" result))
-              (should (string-match-p "remove\\.log" result)))))
+              (should (string-match "keep\\.txt" result))
+              (should (string-match "remove\\.log" result)))))
 
       ;; Clean up
       (when (file-exists-p test-dir)

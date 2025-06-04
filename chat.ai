@@ -3450,4 +3450,102 @@ test/test-greger-stdlib.el
 Replace string-match-p with string-match in basic test
 </tool.toolu_01XFXzat12mEfKPSyLfoiwSK>
 
-<!-- TOOL_RESULT_PLACEHOLDER_toolu_01XFXzat12mEfKPSyLfoiwSK -->
+## TOOL RESULT:
+
+ID: toolu_01XFXzat12mEfKPSyLfoiwSK
+
+<tool.toolu_01XFXzat12mEfKPSyLfoiwSK>
+Successfully replaced content in /Users/andreas/projects/greger.el/test/test-greger-stdlib.el. Successfully staged 2 file(s) and committed with message: Replace string-match-p with string-match in basic test
+</tool.toolu_01XFXzat12mEfKPSyLfoiwSK>
+
+
+## TOOL USE:
+
+Name: str-replace
+ID: toolu_01R8fyafyUepDyErA2m8EquF
+
+### file-path
+
+<tool.toolu_01R8fyafyUepDyErA2m8EquF>
+test/test-greger-stdlib.el
+</tool.toolu_01R8fyafyUepDyErA2m8EquF>
+
+### original-content
+
+<tool.toolu_01R8fyafyUepDyErA2m8EquF>
+(ert-deftest greger-test-list-directory-exclude-pattern ()
+  "Test list-directory exclude pattern functionality."
+  (let ((test-dir (make-temp-file "greger-test-dir" t)))
+    (unwind-protect
+        (progn
+          ;; Create test files
+          (let ((include-file (expand-file-name "keep.txt" test-dir))
+                (exclude-file (expand-file-name "remove.log" test-dir)))
+
+            (with-temp-file include-file
+              (insert "keep this"))
+            (with-temp-file exclude-file
+              (insert "exclude this"))
+
+            ;; Test that exclude pattern works - .log files should be excluded
+            (let ((result (greger-stdlib--list-directory test-dir "\\.log$")))
+              (should (stringp result))
+              ;; Should contain the .txt file but not the .log file
+              (should (string-match-p "keep\\.txt" result))
+              (should-not (string-match-p "remove\\.log" result)))
+
+            ;; Test with empty exclude pattern - should include all files
+            (let ((result (greger-stdlib--list-directory test-dir "")))
+              (should (stringp result))
+              ;; Should contain both files
+              (should (string-match-p "keep\\.txt" result))
+              (should (string-match-p "remove\\.log" result)))))
+
+      ;; Clean up
+      (when (file-exists-p test-dir)
+        (delete-directory test-dir t)))))
+</tool.toolu_01R8fyafyUepDyErA2m8EquF>
+
+### new-content
+
+<tool.toolu_01R8fyafyUepDyErA2m8EquF>
+(ert-deftest greger-test-list-directory-exclude-pattern ()
+  "Test list-directory exclude pattern functionality."
+  (let ((test-dir (make-temp-file "greger-test-dir" t)))
+    (unwind-protect
+        (progn
+          ;; Create test files
+          (let ((include-file (expand-file-name "keep.txt" test-dir))
+                (exclude-file (expand-file-name "remove.log" test-dir)))
+
+            (with-temp-file include-file
+              (insert "keep this"))
+            (with-temp-file exclude-file
+              (insert "exclude this"))
+
+            ;; Test that exclude pattern works - .log files should be excluded
+            (let ((result (greger-stdlib--list-directory test-dir "\\.log$")))
+              (should (stringp result))
+              ;; Should contain the .txt file but not the .log file
+              (should (string-match "keep\\.txt" result))
+              (should-not (string-match "remove\\.log" result)))
+
+            ;; Test with empty exclude pattern - should include all files
+            (let ((result (greger-stdlib--list-directory test-dir "")))
+              (should (stringp result))
+              ;; Should contain both files
+              (should (string-match "keep\\.txt" result))
+              (should (string-match "remove\\.log" result)))))
+
+      ;; Clean up
+      (when (file-exists-p test-dir)
+        (delete-directory test-dir t)))))
+</tool.toolu_01R8fyafyUepDyErA2m8EquF>
+
+### git-commit-message
+
+<tool.toolu_01R8fyafyUepDyErA2m8EquF>
+Replace string-match-p with string-match in exclude pattern test
+</tool.toolu_01R8fyafyUepDyErA2m8EquF>
+
+<!-- TOOL_RESULT_PLACEHOLDER_toolu_01R8fyafyUepDyErA2m8EquF -->
