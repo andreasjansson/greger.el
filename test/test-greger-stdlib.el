@@ -476,7 +476,7 @@
 
       ;; Should error when trying to delete non-existent file
       (should-error (greger-stdlib--delete-files
-                    (list nonexistent-file)
+                    (vector nonexistent-file)
                     "Test commit message")
                    :type 'error))))
 
