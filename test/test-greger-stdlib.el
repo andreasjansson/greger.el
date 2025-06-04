@@ -786,13 +786,19 @@ drwxrwxrwt     2368  ..
             (with-temp-file file2 (insert "Nested content"))
 
             ;; Test recursive listing
-            (let ((result (greger-stdlib--list-directory test-dir nil t)))
+            (let ((result (greger-stdlib--list-directory test-dir nil t))
+                  (expected "/tmp/greger-test-dirXXXXXX/:
+drwxr-xr-x      128  .
+drwxrwxrwt     2368  ..
+-rw-r--r--       12  root.txt
+drwxr-xr-x       96  testdir
+
+testdir:
+drwxr-xr-x       96  .
+drwxr-xr-x      128  ..
+-rw-r--r--       14  nested.txt"))
               (should (stringp result))
-              ;; Should contain files from both levels
-              (should (string= "root\\.txt" result))
-              (should (string= "nested\\.txt" result))
-              ;; Should contain directory structure indicators
-              (should (string= "testdir" result)))))
+              (should (string= expected result)))))
 
       ;; Clean up
       (when (file-exists-p test-dir)
