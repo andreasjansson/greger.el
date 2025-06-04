@@ -3984,4 +3984,58 @@ It looks like it's sunny and warm today!"
 Add server tool test cases
 </tool.toolu_017TzxdqcVMEbdsDz6DQ495L>
 
-<!-- TOOL_RESULT_PLACEHOLDER_toolu_017TzxdqcVMEbdsDz6DQ495L -->
+## TOOL RESULT:
+
+ID: toolu_017TzxdqcVMEbdsDz6DQ495L
+
+<tool.toolu_017TzxdqcVMEbdsDz6DQ495L>
+Successfully replaced content in /Users/andreas/projects/greger.el/test/test-greger-parser.el. Successfully staged 2 file(s) and committed with message: Add server tool test cases
+</tool.toolu_017TzxdqcVMEbdsDz6DQ495L>
+
+## ASSISTANT:
+
+Now I need to update the content comparison functions to handle server tool types. Let me add support for server tool content blocks:
+
+## TOOL USE:
+
+Name: str-replace
+ID: toolu_019mBya3Q7sNx24di8i5FxAf
+
+### file-path
+
+<tool.toolu_019mBya3Q7sNx24di8i5FxAf>
+test/test-greger-parser.el
+</tool.toolu_019mBya3Q7sNx24di8i5FxAf>
+
+### original-content
+
+<tool.toolu_019mBya3Q7sNx24di8i5FxAf>
+((string= type "tool_result")
+           (and (string= (alist-get 'tool_use_id expected) (alist-get 'tool_use_id actual))
+                (string= (alist-get 'content expected) (alist-get 'content actual))))
+          (t t))))
+</tool.toolu_019mBya3Q7sNx24di8i5FxAf>
+
+### new-content
+
+<tool.toolu_019mBya3Q7sNx24di8i5FxAf>
+((string= type "tool_result")
+           (and (string= (alist-get 'tool_use_id expected) (alist-get 'tool_use_id actual))
+                (string= (alist-get 'content expected) (alist-get 'content actual))))
+          ((string= type "server_tool_use")
+           (and (string= (alist-get 'id expected) (alist-get 'id actual))
+                (string= (alist-get 'name expected) (alist-get 'name actual))
+                (greger-parser-test--input-equal (alist-get 'input expected) (alist-get 'input actual))))
+          ((string= type "server_tool_result")
+           (and (string= (alist-get 'tool_use_id expected) (alist-get 'tool_use_id actual))
+                (equal (alist-get 'content expected) (alist-get 'content actual))))
+          (t t))))
+</tool.toolu_019mBya3Q7sNx24di8i5FxAf>
+
+### git-commit-message
+
+<tool.toolu_019mBya3Q7sNx24di8i5FxAf>
+Add server tool content block comparison support
+</tool.toolu_019mBya3Q7sNx24di8i5FxAf>
+
+<!-- TOOL_RESULT_PLACEHOLDER_toolu_019mBya3Q7sNx24di8i5FxAf -->

@@ -687,6 +687,13 @@ It looks like it's sunny and warm today!"
           ((string= type "tool_result")
            (and (string= (alist-get 'tool_use_id expected) (alist-get 'tool_use_id actual))
                 (string= (alist-get 'content expected) (alist-get 'content actual))))
+          ((string= type "server_tool_use")
+           (and (string= (alist-get 'id expected) (alist-get 'id actual))
+                (string= (alist-get 'name expected) (alist-get 'name actual))
+                (greger-parser-test--input-equal (alist-get 'input expected) (alist-get 'input actual))))
+          ((string= type "server_tool_result")
+           (and (string= (alist-get 'tool_use_id expected) (alist-get 'tool_use_id actual))
+                (equal (alist-get 'content expected) (alist-get 'content actual))))
           (t t)))))
 
 (defun greger-parser-test--input-equal (expected actual)
