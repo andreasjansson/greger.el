@@ -716,8 +716,6 @@ If BUFFER is provided, it will be staged and committed with deleted files."
 
     ;; Validate all files exist first
     (seq-doseq (file-path file-paths)
-      (unless (stringp file-path)
-        (error "Each file path must be a string"))
       (let ((expanded-path (expand-file-name file-path)))
         (unless (file-exists-p expanded-path)
           (error "File does not exist: %s" expanded-path))
