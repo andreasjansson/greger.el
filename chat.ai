@@ -688,7 +688,7 @@ ID: toolu_014i97qtUpApfvrS521ABhMs
 Now I'll create the fix. I need to modify the list-directory tests to use a controlled directory structure. The solution is to:
 
 1. Create a parent directory with controlled permissions
-2. Create the test directory inside it 
+2. Create the test directory inside it
 3. Set the parent directory permissions to 0700 so the `..` entry has the expected permissions
 
 Let me first create a helper function and then update all the failing tests:
@@ -1488,4 +1488,237 @@ drwx------  (dir)  ..
 Fix greger-test-list-directory-hidden-directories cleanup to use controlled temp directory (part 2)
 </tool.toolu_01SrGZy446RyGA6JocX5F2qo>
 
-<!-- TOOL_RESULT_PLACEHOLDER_toolu_01SrGZy446RyGA6JocX5F2qo -->
+## TOOL RESULT:
+
+ID: toolu_01SrGZy446RyGA6JocX5F2qo
+
+<tool.toolu_01SrGZy446RyGA6JocX5F2qo>
+Successfully replaced content in /Users/andreas/projects/greger.el/test/test-greger-stdlib.el. Successfully staged 2 file(s) and committed with message: Fix greger-test-list-directory-hidden-directories cleanup to use controlled temp directory (part 2)
+</tool.toolu_01SrGZy446RyGA6JocX5F2qo>
+
+## ASSISTANT:
+
+Now let's run the specific failing tests to see if our fix works:
+
+## TOOL USE:
+
+Name: shell-command
+ID: toolu_01A3VXWov8PcwDgTLmy8k7UJ
+
+### command
+
+<tool.toolu_01A3VXWov8PcwDgTLmy8k7UJ>
+bash script/test --verbose --file test/test-greger-stdlib.el
+</tool.toolu_01A3VXWov8PcwDgTLmy8k7UJ>
+
+## TOOL RESULT:
+
+ID: toolu_01A3VXWov8PcwDgTLmy8k7UJ
+
+<tool.toolu_01A3VXWov8PcwDgTLmy8k7UJ>
+Command executed successfully:
+[0;34mRunning ERT tests for greger package...[0m
+
+Running tests in [1;33mtest/test-greger-stdlib.el[0m (verbose mode)...
+Loading /Users/andreas/projects/greger.el/greger.el (source)...
+Source file ‘/opt/homebrew/Cellar/emacs-plus@29/29.0.90/share/emacs/29.0.91/lisp/net/eww.el’ newer than byte-compiled file; using older file
+Loading /Users/andreas/projects/greger.el/greger-parser.el (source)...
+Loading /Users/andreas/projects/greger.el/greger-stdlib.el (source)...
+Loading /Users/andreas/projects/greger.el/greger-tools.el (source)...
+Loading /Users/andreas/projects/greger.el/greger-client.el (source)...
+Loading /Users/andreas/projects/greger.el/greger-web.el (source)...
+Loading /Users/andreas/projects/greger.el/test/test-greger-stdlib.el (source)...
+Running 31 tests (2025-06-04 15:59:04+0200, selector ‘t’)
+   passed   1/31  greger-test-count-paren-balance (0.000278 sec)
+   passed   2/31  greger-test-delete-files-basic (0.002771 sec)
+   passed   3/31  greger-test-delete-files-directory (0.000499 sec)
+   passed   4/31  greger-test-delete-files-git-tracking (0.000878 sec)
+   passed   5/31  greger-test-delete-files-invalid-input (0.000048 sec)
+   passed   6/31  greger-test-delete-files-list-input (0.001102 sec)
+   passed   7/31  greger-test-delete-files-nonexistent-file (0.000081 sec)
+   passed   8/31  greger-test-delete-files-not-git-tracked (0.000797 sec)
+   passed   9/31  greger-test-list-directory-basic (0.000946 sec)
+   passed  10/31  greger-test-list-directory-empty-dir (0.000670 sec)
+   passed  11/31  greger-test-list-directory-error-cases (0.000735 sec)
+   passed  12/31  greger-test-list-directory-exclude-directories-recursive (0.001895 sec)
+   passed  13/31  greger-test-list-directory-file-mode-string (0.000662 sec)
+   passed  14/31  greger-test-list-directory-hidden-directories (0.001807 sec)
+   passed  15/31  greger-test-list-directory-recursive (0.001238 sec)
+   passed  16/31  greger-test-read-file-basic (0.165111 sec)
+   passed  17/31  greger-test-read-file-error-cases (0.000083 sec)
+   passed  18/31  greger-test-read-file-line-number-formatting (0.003840 sec)
+   passed  19/31  greger-test-read-webpage-invalid-url (0.000076 sec)
+   passed  20/31  greger-test-read-webpage-network-error (0.000024 sec)
+   passed  21/31  greger-test-read-webpage-valid-url (0.398940 sec)
+   passed  22/31  greger-test-shell-command-command-failure (0.115661 sec)
+   passed  23/31  greger-test-shell-command-no-metadata-still-prompts (0.118360 sec)
+   passed  24/31  greger-test-shell-command-permission-denied (0.001089 sec)
+   passed  25/31  greger-test-shell-command-safe-commands (0.116416 sec)
+   passed  26/31  greger-test-shell-command-simple (0.114728 sec)
+   passed  27/31  greger-test-shell-command-unsafe-commands-with-metadata (0.114118 sec)
+   passed  28/31  greger-test-shell-command-with-pipe (0.110769 sec)
+   passed  29/31  greger-test-str-replace-non-el-files-skip-paren-check (0.011154 sec)
+   passed  30/31  greger-test-str-replace-paren-balance-check (0.011959 sec)
+   passed  31/31  greger-test-web-url-validation (0.000205 sec)
+
+Ran 31 tests, 31 results as expected, 0 unexpected (2025-06-04 15:59:05+0200, 1.300434 sec)
+
+[0;34mTest Summary:[0m
+  Files run: 1
+  Files passed: [0;32m0[0m
+  Files failed: [0;31m1[0m
+[0;32mAll tests passed![0m
+
+</tool.toolu_01A3VXWov8PcwDgTLmy8k7UJ>
+
+## ASSISTANT:
+
+Great! All the tests are now passing. Let me run the tests one more time to make sure they're consistently passing, and also run just the specific tests that were failing:
+
+## TOOL USE:
+
+Name: shell-command
+ID: toolu_01EnQbDJ7goW26UEBQyy5RT5
+
+### command
+
+<tool.toolu_01EnQbDJ7goW26UEBQyy5RT5>
+emacs --batch --no-site-file --no-splash -L . -l ert -l test/test-greger-stdlib.el -f ert-run-tests-batch-and-exit -eval "(ert t \"greger-test-list-directory\")"
+</tool.toolu_01EnQbDJ7goW26UEBQyy5RT5>
+
+## TOOL RESULT:
+
+ID: toolu_01EnQbDJ7goW26UEBQyy5RT5
+
+<tool.toolu_01EnQbDJ7goW26UEBQyy5RT5>
+Command executed successfully:
+Source file ‘/opt/homebrew/Cellar/emacs-plus@29/29.0.90/share/emacs/29.0.91/lisp/net/eww.el’ newer than byte-compiled file; using older file
+Running 31 tests (2025-06-04 15:59:31+0200, selector ‘t’)
+   passed   1/31  greger-test-count-paren-balance (0.000387 sec)
+   passed   2/31  greger-test-delete-files-basic (0.002194 sec)
+   passed   3/31  greger-test-delete-files-directory (0.000176 sec)
+   passed   4/31  greger-test-delete-files-git-tracking (0.001064 sec)
+   passed   5/31  greger-test-delete-files-invalid-input (0.000056 sec)
+   passed   6/31  greger-test-delete-files-list-input (0.000910 sec)
+   passed   7/31  greger-test-delete-files-nonexistent-file (0.000091 sec)
+   passed   8/31  greger-test-delete-files-not-git-tracked (0.000726 sec)
+   passed   9/31  greger-test-list-directory-basic (0.000654 sec)
+   passed  10/31  greger-test-list-directory-empty-dir (0.000621 sec)
+   passed  11/31  greger-test-list-directory-error-cases (0.000779 sec)
+   passed  12/31  greger-test-list-directory-exclude-directories-recursive (0.002028 sec)
+   passed  13/31  greger-test-list-directory-file-mode-string (0.000753 sec)
+   passed  14/31  greger-test-list-directory-hidden-directories (0.001826 sec)
+   passed  15/31  greger-test-list-directory-recursive (0.001235 sec)
+   passed  16/31  greger-test-read-file-basic (0.004255 sec)
+   passed  17/31  greger-test-read-file-error-cases (0.000098 sec)
+   passed  18/31  greger-test-read-file-line-number-formatting (0.003409 sec)
+   passed  19/31  greger-test-read-webpage-invalid-url (0.000088 sec)
+   passed  20/31  greger-test-read-webpage-network-error (0.000033 sec)
+   passed  21/31  greger-test-read-webpage-valid-url (0.363874 sec)
+   passed  22/31  greger-test-shell-command-command-failure (0.112519 sec)
+   passed  23/31  greger-test-shell-command-no-metadata-still-prompts (0.112488 sec)
+   passed  24/31  greger-test-shell-command-permission-denied (0.000316 sec)
+   passed  25/31  greger-test-shell-command-safe-commands (0.109431 sec)
+   passed  26/31  greger-test-shell-command-simple (0.113325 sec)
+   passed  27/31  greger-test-shell-command-unsafe-commands-with-metadata (0.113244 sec)
+   passed  28/31  greger-test-shell-command-with-pipe (0.112268 sec)
+   passed  29/31  greger-test-str-replace-non-el-files-skip-paren-check (0.009307 sec)
+   passed  30/31  greger-test-str-replace-paren-balance-check (0.007057 sec)
+   passed  31/31  greger-test-web-url-validation (0.000089 sec)
+
+Ran 31 tests, 31 results as expected, 0 unexpected (2025-06-04 15:59:33+0200, 1.114869 sec)
+
+
+</tool.toolu_01EnQbDJ7goW26UEBQyy5RT5>
+
+## ASSISTANT:
+
+Perfect! Let me also run all tests to make sure I didn't break anything else:
+
+## TOOL USE:
+
+Name: shell-command
+ID: toolu_018W837YBxu9cLBtUyBB9wSE
+
+### command
+
+<tool.toolu_018W837YBxu9cLBtUyBB9wSE>
+bash script/test
+</tool.toolu_018W837YBxu9cLBtUyBB9wSE>
+
+## TOOL RESULT:
+
+ID: toolu_018W837YBxu9cLBtUyBB9wSE
+
+<tool.toolu_018W837YBxu9cLBtUyBB9wSE>
+Command executed successfully:
+[0;34mRunning ERT tests for greger package...[0m
+
+Running tests in [1;33mtest/test-greger.el[0m...
+  [0;32m✓ All tests passed[0m
+
+Running tests in [1;33mtest/test-greger-parser.el[0m...
+  [0;32m✓ All tests passed[0m
+
+Running tests in [1;33mtest/test-greger-stdlib.el[0m...
+  [0;32m✓ All tests passed[0m
+
+Running tests in [1;33mtest/test-greger-tools.el[0m...
+  [0;32m✓ All tests passed[0m
+
+Running tests in [1;33mtest/test-greger-client.el[0m...
+  [0;32m✓ All tests passed[0m
+
+Running tests in [1;33mtest/test-end-to-end.el[0m...
+  [0;32m✓ All tests passed[0m
+
+[0;34mTest Summary:[0m
+  Files run: 6
+  Files passed: [0;32m6[0m
+  Files failed: [0;31m0[0m
+[0;32mAll tests passed![0m
+
+</tool.toolu_018W837YBxu9cLBtUyBB9wSE>
+
+## ASSISTANT:
+
+Excellent! All tests are now passing. Let me summarize what I did to fix the issue:
+
+## Summary
+
+I successfully fixed the CI test failures in the list-directory tests by implementing a solution that creates controlled temporary directories with predictable parent directory permissions.
+
+### The Problem
+The tests were failing because `make-temp-file` creates temporary directories whose parent directory permissions differ between local development environments and CI environments:
+
+- **Local**: Parent directory (`..`) had `drwx------` permissions
+- **CI**: Parent directory (`..`) had `drwxr-xr-x` permissions
+
+### The Solution
+I created a helper function `greger-test--make-controlled-temp-dir` that:
+
+1. **Creates a parent directory** using `make-temp-file`
+2. **Sets parent directory permissions** to `0700` (`drwx------`)
+3. **Creates the actual test directory** inside the controlled parent
+4. **Sets test directory permissions** to `0700` as well
+
+This ensures both the test directory (`.`) and its parent (`..`) have consistent `drwx------` permissions across all environments.
+
+### Files Modified
+I updated the following failing tests in `test/test-greger-stdlib.el`:
+
+- `greger-test-list-directory-basic`
+- `greger-test-list-directory-empty-dir`
+- `greger-test-list-directory-exclude-directories-recursive`
+- `greger-test-list-directory-recursive`
+- `greger-test-list-directory-hidden-directories`
+
+Each test now:
+- Uses the new helper function to create controlled directories
+- Properly tracks the parent directory for cleanup
+- Cleans up the entire parent directory tree in the `unwind-protect` clause
+
+### Verification
+All tests now pass consistently, and the CI failures should be resolved since the directory permissions are now controlled and predictable across environments.
+
+## USER:

@@ -43,11 +43,6 @@
 
 
 
-;; Optional LSP integration
-(condition-case nil
-    (require 'greger-lib-lsp)
-  (error nil))
-
 (defconst greger-available-models
   '(claude-sonnet-4-20250514
     claude-opus-4-20250514)
@@ -316,9 +311,6 @@
 (defun greger-debug-request ()
   "Debug the request data by parsing the buffer and saving the request data output."
   (interactive)
-  (require 'greger-parser)
-  (require 'greger-tools)
-  (require 'json)
   (let* ((filename (read-string "Save to filename (default: request.json): " nil nil "request.json"))
          (buffer-content (buffer-substring-no-properties (point-min) (point-max)))
          (parse-result (greger-parser-parse-dialog buffer-content))
