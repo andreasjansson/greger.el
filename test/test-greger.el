@@ -570,9 +570,9 @@ Echo: hello world
   ;; Test that greger-interrupt calls cancel functions but doesn't clear the map
   (with-temp-buffer
     (greger-mode)
-    ;; Use a global variable that the closure can access
-    (setq greger-test-cancel-called nil)
-    (setq greger-test-callback-called nil)
+    ;; Use defvar to create dynamically scoped variables for the closure
+    (defvar greger-test-cancel-called nil)
+    (defvar greger-test-callback-called nil)
 
     (let ((keyboard-quit-called nil)
           ;; Create a mock greger-tool with cancel function
@@ -603,12 +603,6 @@ Echo: hello world
 
           ;; Call greger-interrupt
           (greger-interrupt)
-
-          ;; Debug: check the state before assertions
-          (message "Hash table count: %d" (hash-table-count executing-tools-map))
-          (message "Agent state executing tools: %s" (greger-state-executing-tools agent-state))
-          (message "Cancel called: %s" greger-test-cancel-called)
-          (message "Hash table contains key: %s" (gethash "test-tool-id" executing-tools-map))
 
           ;; Should have called cancel function
           (should greger-test-cancel-called)
