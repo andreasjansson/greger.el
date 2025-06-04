@@ -5302,4 +5302,68 @@ test/test-greger-stdlib.el
 Update file mode test with correct directory permissions
 </tool.toolu_01QoDHUboZNPd92NBGVogcRu>
 
-<!-- TOOL_RESULT_PLACEHOLDER_toolu_01QoDHUboZNPd92NBGVogcRu -->
+## TOOL RESULT:
+
+ID: toolu_01QoDHUboZNPd92NBGVogcRu
+
+<tool.toolu_01QoDHUboZNPd92NBGVogcRu>
+Successfully replaced content in /Users/andreas/projects/greger.el/test/test-greger-stdlib.el. Successfully staged 2 file(s) and committed with message: Update file mode test with correct directory permissions
+</tool.toolu_01QoDHUboZNPd92NBGVogcRu>
+
+
+## TOOL USE:
+
+Name: str-replace
+ID: toolu_011FQpiRx1ZuY87WVNb5N3Hz
+
+### file-path
+
+<tool.toolu_011FQpiRx1ZuY87WVNb5N3Hz>
+test/test-greger-stdlib.el
+</tool.toolu_011FQpiRx1ZuY87WVNb5N3Hz>
+
+### original-content
+
+<tool.toolu_011FQpiRx1ZuY87WVNb5N3Hz>
+;; Test with no exclude pattern (should show all files including hidden)
+            (let ((result (greger-stdlib--list-directory test-dir ""))
+                  (expected "drwxr-xr-x      128  .
+drwxrwxrwt     2368  ..
+-rw-r--r--       14  .hiddenfile
+-rw-r--r--       14  normalfile.txt"))
+              (should (stringp result))
+              (should (string= expected result)))
+
+            ;; Test with pattern excluding hidden files (starting with .)
+            (let ((result (greger-stdlib--list-directory test-dir "^\\.")))
+              (should (stringp result))
+              (let ((expected "drwxr-xr-x      128  .
+drwxrwxrwt     2368  ..
+-rw-r--r--       14  normalfile.txt"))
+                (should (string= expected result))))
+</tool.toolu_011FQpiRx1ZuY87WVNb5N3Hz>
+
+### new-content
+
+<tool.toolu_011FQpiRx1ZuY87WVNb5N3Hz>
+;; Test with no exclude pattern (should show all files including hidden)
+            (let ((result (greger-stdlib--list-directory test-dir ""))
+                  (expected "-rw-r--r--       14  .hiddenfile
+-rw-r--r--       14  normalfile.txt"))
+              (should (stringp result))
+              (should (string= expected result)))
+
+            ;; Test with pattern excluding hidden files (starting with .)
+            (let ((result (greger-stdlib--list-directory test-dir "^\\.")))
+              (should (stringp result))
+              (let ((expected "-rw-r--r--       14  normalfile.txt"))
+                (should (string= expected result))))
+</tool.toolu_011FQpiRx1ZuY87WVNb5N3Hz>
+
+### git-commit-message
+
+<tool.toolu_011FQpiRx1ZuY87WVNb5N3Hz>
+Update hidden files test to reflect removal of . and .. entries
+</tool.toolu_011FQpiRx1ZuY87WVNb5N3Hz>
+
+<!-- TOOL_RESULT_PLACEHOLDER_toolu_011FQpiRx1ZuY87WVNb5N3Hz -->
