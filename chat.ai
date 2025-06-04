@@ -4080,4 +4080,820 @@ Returns a cancel function that can be called to interrupt the process."
 Update greger-stdlib--run-async-subprocess to return cancel function
 </tool.toolu_01DjHjMiP97a1LrPMiLWrpXj>
 
-<!-- TOOL_RESULT_PLACEHOLDER_toolu_01DjHjMiP97a1LrPMiLWrpXj -->
+## TOOL RESULT:
+
+ID: toolu_01DjHjMiP97a1LrPMiLWrpXj
+
+<tool.toolu_01DjHjMiP97a1LrPMiLWrpXj>
+Successfully replaced content in /Users/andreas/projects/greger.el/greger-stdlib.el. Successfully staged 2 file(s) and committed with message: Update greger-stdlib--run-async-subprocess to return cancel function
+</tool.toolu_01DjHjMiP97a1LrPMiLWrpXj>
+
+
+## ASSISTANT:
+
+Now I need to update the shell-command tool to return the cancel function. Let me find the shell-command tool implementation:
+
+## TOOL USE:
+
+Name: ripgrep
+ID: toolu_01NnKFWTFk8mpGqLXuke4KVq
+
+### pattern
+
+<tool.toolu_01NnKFWTFk8mpGqLXuke4KVq>
+defun greger-stdlib-shell-command
+</tool.toolu_01NnKFWTFk8mpGqLXuke4KVq>
+
+### path
+
+<tool.toolu_01NnKFWTFk8mpGqLXuke4KVq>
+greger-stdlib.el
+</tool.toolu_01NnKFWTFk8mpGqLXuke4KVq>
+
+## TOOL RESULT:
+
+ID: toolu_01NnKFWTFk8mpGqLXuke4KVq
+
+<tool.toolu_01NnKFWTFk8mpGqLXuke4KVq>
+Failed to execute ripgrep search: Command failed with exit code 1: (no output)
+</tool.toolu_01NnKFWTFk8mpGqLXuke4KVq>
+
+## TOOL USE:
+
+Name: ripgrep
+ID: toolu_01RT9qhN5mdzhQPiJSqnrTsW
+
+### pattern
+
+<tool.toolu_01RT9qhN5mdzhQPiJSqnrTsW>
+shell-command
+</tool.toolu_01RT9qhN5mdzhQPiJSqnrTsW>
+
+### path
+
+<tool.toolu_01RT9qhN5mdzhQPiJSqnrTsW>
+greger-stdlib.el
+</tool.toolu_01RT9qhN5mdzhQPiJSqnrTsW>
+
+## TOOL RESULT:
+
+ID: toolu_01RT9qhN5mdzhQPiJSqnrTsW
+
+<tool.toolu_01RT9qhN5mdzhQPiJSqnrTsW>
+206:(greger-register-tool "shell-command"
+214:  :function 'greger-stdlib--shell-command
+1021:(defun greger-stdlib--shell-command (command callback &optional working-directory metadata)
+1024:If METADATA contains safe-shell-commands and COMMAND is in that list, skips
+1046:         ((let ((safe-commands (plist-get metadata :safe-shell-commands)))
+
+</tool.toolu_01RT9qhN5mdzhQPiJSqnrTsW>
+
+## TOOL USE:
+
+Name: read-file
+ID: toolu_018dWQepyrkKex3cLoa1S3Bw
+
+### path
+
+<tool.toolu_018dWQepyrkKex3cLoa1S3Bw>
+greger-stdlib.el
+</tool.toolu_018dWQepyrkKex3cLoa1S3Bw>
+
+### start-line
+
+<tool.toolu_018dWQepyrkKex3cLoa1S3Bw>
+1021
+</tool.toolu_018dWQepyrkKex3cLoa1S3Bw>
+
+### end-line
+
+<tool.toolu_018dWQepyrkKex3cLoa1S3Bw>
+1065
+</tool.toolu_018dWQepyrkKex3cLoa1S3Bw>
+
+## TOOL RESULT:
+
+ID: toolu_018dWQepyrkKex3cLoa1S3Bw
+
+<tool.toolu_018dWQepyrkKex3cLoa1S3Bw>
+(defun greger-stdlib--shell-command (command callback &optional working-directory metadata)
+  "Execute COMMAND in WORKING-DIRECTORY and call CALLBACK with (result error).
+Prompts for permission before running the command for security.
+If METADATA contains safe-shell-commands and COMMAND is in that list, skips
+permission prompt."
+  (let ((work-dir (or working-directory ".")))
+    (cond
+     ((not (stringp command))
+      (funcall callback nil "Command must be a string"))
+
+     ((string-empty-p (string-trim command))
+      (funcall callback nil "Command cannot be empty"))
+
+     ((not (stringp work-dir))
+      (funcall callback nil "Working directory must be a string"))
+
+     (t
+      (let ((expanded-work-dir (expand-file-name work-dir)))
+        (cond
+         ((not (file-exists-p expanded-work-dir))
+          (funcall callback nil (format "Working directory does not exist: %s" expanded-work-dir)))
+
+         ((not (file-directory-p expanded-work-dir))
+          (funcall callback nil (format "Working directory path is not a directory: %s" expanded-work-dir)))
+
+         ((let ((safe-commands (plist-get metadata :safe-shell-commands)))
+            (and (not (member command safe-commands))
+                 (not (y-or-n-p (format "Execute shell command: '%s' in directory '%s'? "
+                                       command expanded-work-dir)))))
+          (funcall callback nil "Shell command execution cancelled by user"))
+
+         (t
+          ;; Check if command contains shell operators (pipes, redirections, etc.)
+          (if (string-match-p "[|><&;]" command)
+              ;; Use shell to execute commands with shell operators
+              (greger-stdlib--run-async-subprocess
+               "sh" (list "-c" command) expanded-work-dir
+               (lambda (output error)
+                 (if error
+                     (funcall callback nil error)
+                   (funcall callback
+                           (format "Command executed successfully:\n%s" output)
+                           nil))))
+            ;; For simple commands, parse into program and arguments
+            (let* ((command-parts (split-string-and-unquote command))
+</tool.toolu_018dWQepyrkKex3cLoa1S3Bw>
+
+## TOOL USE:
+
+Name: read-file
+ID: toolu_01QAGtW6wpXbo8b5kVqY6Qu7
+
+### path
+
+<tool.toolu_01QAGtW6wpXbo8b5kVqY6Qu7>
+greger-stdlib.el
+</tool.toolu_01QAGtW6wpXbo8b5kVqY6Qu7>
+
+### start-line
+
+<tool.toolu_01QAGtW6wpXbo8b5kVqY6Qu7>
+1060
+</tool.toolu_01QAGtW6wpXbo8b5kVqY6Qu7>
+
+### end-line
+
+<tool.toolu_01QAGtW6wpXbo8b5kVqY6Qu7>
+1080
+</tool.toolu_01QAGtW6wpXbo8b5kVqY6Qu7>
+
+## TOOL RESULT:
+
+ID: toolu_01QAGtW6wpXbo8b5kVqY6Qu7
+
+<tool.toolu_01QAGtW6wpXbo8b5kVqY6Qu7>
+                     (funcall callback nil error)
+                   (funcall callback
+                           (format "Command executed successfully:\n%s" output)
+                           nil))))
+            ;; For simple commands, parse into program and arguments
+            (let* ((command-parts (split-string-and-unquote command))
+                   (program (car command-parts))
+                   (args (cdr command-parts)))
+
+              ;; Execute the command asynchronously
+              (greger-stdlib--run-async-subprocess
+               program args expanded-work-dir
+               (lambda (output error)
+                 (if error
+                     (funcall callback nil error)
+                   (funcall callback
+                           (format "Command executed successfully:\n%s" output)
+                           nil)))))))))))))
+
+(defun greger-stdlib--read-webpage (url &optional extract-text use-highest-readability)
+  "Read webpage content from URL.
+</tool.toolu_01QAGtW6wpXbo8b5kVqY6Qu7>
+
+## ASSISTANT:
+
+I can see that the shell-command tool calls greger-stdlib--run-async-subprocess but doesn't capture the return value. I need to update this function to return the cancel function. Let me update it:
+
+## TOOL USE:
+
+Name: str-replace
+ID: toolu_01KLaZ98rRhbKLhDXfoJf3EC
+
+### file-path
+
+<tool.toolu_01KLaZ98rRhbKLhDXfoJf3EC>
+greger-stdlib.el
+</tool.toolu_01KLaZ98rRhbKLhDXfoJf3EC>
+
+### original-content
+
+<tool.toolu_01KLaZ98rRhbKLhDXfoJf3EC>
+         (t
+          ;; Check if command contains shell operators (pipes, redirections, etc.)
+          (if (string-match-p "[|><&;]" command)
+              ;; Use shell to execute commands with shell operators
+              (greger-stdlib--run-async-subprocess
+               "sh" (list "-c" command) expanded-work-dir
+               (lambda (output error)
+                 (if error
+                     (funcall callback nil error)
+                   (funcall callback
+                           (format "Command executed successfully:\n%s" output)
+                           nil))))
+            ;; For simple commands, parse into program and arguments
+            (let* ((command-parts (split-string-and-unquote command))
+                   (program (car command-parts))
+                   (args (cdr command-parts)))
+
+              ;; Execute the command asynchronously
+              (greger-stdlib--run-async-subprocess
+               program args expanded-work-dir
+               (lambda (output error)
+                 (if error
+                     (funcall callback nil error)
+                   (funcall callback
+                           (format "Command executed successfully:\n%s" output)
+                           nil)))))))))))
+</tool.toolu_01KLaZ98rRhbKLhDXfoJf3EC>
+
+### new-content
+
+<tool.toolu_01KLaZ98rRhbKLhDXfoJf3EC>
+         (t
+          ;; Check if command contains shell operators (pipes, redirections, etc.)
+          (if (string-match-p "[|><&;]" command)
+              ;; Use shell to execute commands with shell operators
+              (greger-stdlib--run-async-subprocess
+               "sh" (list "-c" command) expanded-work-dir
+               (lambda (output error)
+                 (if error
+                     (funcall callback nil error)
+                   (funcall callback
+                           (format "Command executed successfully:\n%s" output)
+                           nil))))
+            ;; For simple commands, parse into program and arguments
+            (let* ((command-parts (split-string-and-unquote command))
+                   (program (car command-parts))
+                   (args (cdr command-parts)))
+
+              ;; Execute the command asynchronously
+              (greger-stdlib--run-async-subprocess
+               program args expanded-work-dir
+               (lambda (output error)
+                 (if error
+                     (funcall callback nil error)
+                   (funcall callback
+                           (format "Command executed successfully:\n%s" output)
+                           nil))))))))))
+</tool.toolu_01KLaZ98rRhbKLhDXfoJf3EC>
+
+### git-commit-message
+
+<tool.toolu_01KLaZ98rRhbKLhDXfoJf3EC>
+Return cancel function from shell-command tool
+</tool.toolu_01KLaZ98rRhbKLhDXfoJf3EC>
+
+## TOOL RESULT:
+
+ID: toolu_01KLaZ98rRhbKLhDXfoJf3EC
+
+<tool.toolu_01KLaZ98rRhbKLhDXfoJf3EC>
+Error executing tool: Parentheses balance mismatch in Emacs Lisp file: original has balance -4, new has balance -3. They must be equal
+</tool.toolu_01KLaZ98rRhbKLhDXfoJf3EC>
+
+## ASSISTANT:
+
+Let me check the function structure around this area more carefully:
+
+## TOOL USE:
+
+Name: read-file
+ID: toolu_01ThapfG3oDFUKpSskF3eTXE
+
+### path
+
+<tool.toolu_01ThapfG3oDFUKpSskF3eTXE>
+greger-stdlib.el
+</tool.toolu_01ThapfG3oDFUKpSskF3eTXE>
+
+### start-line
+
+<tool.toolu_01ThapfG3oDFUKpSskF3eTXE>
+1045
+</tool.toolu_01ThapfG3oDFUKpSskF3eTXE>
+
+### end-line
+
+<tool.toolu_01ThapfG3oDFUKpSskF3eTXE>
+1085
+</tool.toolu_01ThapfG3oDFUKpSskF3eTXE>
+
+## TOOL RESULT:
+
+ID: toolu_01ThapfG3oDFUKpSskF3eTXE
+
+<tool.toolu_01ThapfG3oDFUKpSskF3eTXE>
+
+         ((let ((safe-commands (plist-get metadata :safe-shell-commands)))
+            (and (not (member command safe-commands))
+                 (not (y-or-n-p (format "Execute shell command: '%s' in directory '%s'? "
+                                       command expanded-work-dir)))))
+          (funcall callback nil "Shell command execution cancelled by user"))
+
+         (t
+          ;; Check if command contains shell operators (pipes, redirections, etc.)
+          (if (string-match-p "[|><&;]" command)
+              ;; Use shell to execute commands with shell operators
+              (greger-stdlib--run-async-subprocess
+               "sh" (list "-c" command) expanded-work-dir
+               (lambda (output error)
+                 (if error
+                     (funcall callback nil error)
+                   (funcall callback
+                           (format "Command executed successfully:\n%s" output)
+                           nil))))
+            ;; For simple commands, parse into program and arguments
+            (let* ((command-parts (split-string-and-unquote command))
+                   (program (car command-parts))
+                   (args (cdr command-parts)))
+
+              ;; Execute the command asynchronously
+              (greger-stdlib--run-async-subprocess
+               program args expanded-work-dir
+               (lambda (output error)
+                 (if error
+                     (funcall callback nil error)
+                   (funcall callback
+                           (format "Command executed successfully:\n%s" output)
+                           nil)))))))))))))
+
+(defun greger-stdlib--read-webpage (url &optional extract-text use-highest-readability)
+  "Read webpage content from URL.
+If EXTRACT-TEXT is non-nil (default t), extract and return text content.
+If EXTRACT-TEXT is nil, return raw HTML.
+If USE-HIGHEST-READABILITY is non-nil, use eww's aggressive readability setting."
+  (greger-stdlib--assert-arg-string-web-url "url" url)
+
+</tool.toolu_01ThapfG3oDFUKpSskF3eTXE>
+
+## ASSISTANT:
+
+I need to replace the entire function. Let me first understand the complete function:
+
+## TOOL USE:
+
+Name: read-file
+ID: toolu_01JHmALsWqH4JRmDVGUGwtFp
+
+### path
+
+<tool.toolu_01JHmALsWqH4JRmDVGUGwtFp>
+greger-stdlib.el
+</tool.toolu_01JHmALsWqH4JRmDVGUGwtFp>
+
+### start-line
+
+<tool.toolu_01JHmALsWqH4JRmDVGUGwtFp>
+1021
+</tool.toolu_01JHmALsWqH4JRmDVGUGwtFp>
+
+### end-line
+
+<tool.toolu_01JHmALsWqH4JRmDVGUGwtFp>
+1080
+</tool.toolu_01JHmALsWqH4JRmDVGUGwtFp>
+
+## TOOL RESULT:
+
+ID: toolu_01JHmALsWqH4JRmDVGUGwtFp
+
+<tool.toolu_01JHmALsWqH4JRmDVGUGwtFp>
+(defun greger-stdlib--shell-command (command callback &optional working-directory metadata)
+  "Execute COMMAND in WORKING-DIRECTORY and call CALLBACK with (result error).
+Prompts for permission before running the command for security.
+If METADATA contains safe-shell-commands and COMMAND is in that list, skips
+permission prompt."
+  (let ((work-dir (or working-directory ".")))
+    (cond
+     ((not (stringp command))
+      (funcall callback nil "Command must be a string"))
+
+     ((string-empty-p (string-trim command))
+      (funcall callback nil "Command cannot be empty"))
+
+     ((not (stringp work-dir))
+      (funcall callback nil "Working directory must be a string"))
+
+     (t
+      (let ((expanded-work-dir (expand-file-name work-dir)))
+        (cond
+         ((not (file-exists-p expanded-work-dir))
+          (funcall callback nil (format "Working directory does not exist: %s" expanded-work-dir)))
+
+         ((not (file-directory-p expanded-work-dir))
+          (funcall callback nil (format "Working directory path is not a directory: %s" expanded-work-dir)))
+
+         ((let ((safe-commands (plist-get metadata :safe-shell-commands)))
+            (and (not (member command safe-commands))
+                 (not (y-or-n-p (format "Execute shell command: '%s' in directory '%s'? "
+                                       command expanded-work-dir)))))
+          (funcall callback nil "Shell command execution cancelled by user"))
+
+         (t
+          ;; Check if command contains shell operators (pipes, redirections, etc.)
+          (if (string-match-p "[|><&;]" command)
+              ;; Use shell to execute commands with shell operators
+              (greger-stdlib--run-async-subprocess
+               "sh" (list "-c" command) expanded-work-dir
+               (lambda (output error)
+                 (if error
+                     (funcall callback nil error)
+                   (funcall callback
+                           (format "Command executed successfully:\n%s" output)
+                           nil))))
+            ;; For simple commands, parse into program and arguments
+            (let* ((command-parts (split-string-and-unquote command))
+                   (program (car command-parts))
+                   (args (cdr command-parts)))
+
+              ;; Execute the command asynchronously
+              (greger-stdlib--run-async-subprocess
+               program args expanded-work-dir
+               (lambda (output error)
+                 (if error
+                     (funcall callback nil error)
+                   (funcall callback
+                           (format "Command executed successfully:\n%s" output)
+                           nil)))))))))))))
+
+(defun greger-stdlib--read-webpage (url &optional extract-text use-highest-readability)
+  "Read webpage content from URL.
+</tool.toolu_01JHmALsWqH4JRmDVGUGwtFp>
+
+## ASSISTANT:
+
+Now I'll replace the entire function to return the cancel function:
+
+## TOOL USE:
+
+Name: str-replace
+ID: toolu_01KsGCTVFPKXHrCEofvpyNs9
+
+### file-path
+
+<tool.toolu_01KsGCTVFPKXHrCEofvpyNs9>
+greger-stdlib.el
+</tool.toolu_01KsGCTVFPKXHrCEofvpyNs9>
+
+### original-content
+
+<tool.toolu_01KsGCTVFPKXHrCEofvpyNs9>
+(defun greger-stdlib--shell-command (command callback &optional working-directory metadata)
+  "Execute COMMAND in WORKING-DIRECTORY and call CALLBACK with (result error).
+Prompts for permission before running the command for security.
+If METADATA contains safe-shell-commands and COMMAND is in that list, skips
+permission prompt."
+  (let ((work-dir (or working-directory ".")))
+    (cond
+     ((not (stringp command))
+      (funcall callback nil "Command must be a string"))
+
+     ((string-empty-p (string-trim command))
+      (funcall callback nil "Command cannot be empty"))
+
+     ((not (stringp work-dir))
+      (funcall callback nil "Working directory must be a string"))
+
+     (t
+      (let ((expanded-work-dir (expand-file-name work-dir)))
+        (cond
+         ((not (file-exists-p expanded-work-dir))
+          (funcall callback nil (format "Working directory does not exist: %s" expanded-work-dir)))
+
+         ((not (file-directory-p expanded-work-dir))
+          (funcall callback nil (format "Working directory path is not a directory: %s" expanded-work-dir)))
+
+         ((let ((safe-commands (plist-get metadata :safe-shell-commands)))
+            (and (not (member command safe-commands))
+                 (not (y-or-n-p (format "Execute shell command: '%s' in directory '%s'? "
+                                       command expanded-work-dir)))))
+          (funcall callback nil "Shell command execution cancelled by user"))
+
+         (t
+          ;; Check if command contains shell operators (pipes, redirections, etc.)
+          (if (string-match-p "[|><&;]" command)
+              ;; Use shell to execute commands with shell operators
+              (greger-stdlib--run-async-subprocess
+               "sh" (list "-c" command) expanded-work-dir
+               (lambda (output error)
+                 (if error
+                     (funcall callback nil error)
+                   (funcall callback
+                           (format "Command executed successfully:\n%s" output)
+                           nil))))
+            ;; For simple commands, parse into program and arguments
+            (let* ((command-parts (split-string-and-unquote command))
+                   (program (car command-parts))
+                   (args (cdr command-parts)))
+
+              ;; Execute the command asynchronously
+              (greger-stdlib--run-async-subprocess
+               program args expanded-work-dir
+               (lambda (output error)
+                 (if error
+                     (funcall callback nil error)
+                   (funcall callback
+                           (format "Command executed successfully:\n%s" output)
+                           nil))))))))))))))
+</tool.toolu_01KsGCTVFPKXHrCEofvpyNs9>
+
+### new-content
+
+<tool.toolu_01KsGCTVFPKXHrCEofvpyNs9>
+(defun greger-stdlib--shell-command (command callback &optional working-directory metadata)
+  "Execute COMMAND in WORKING-DIRECTORY and call CALLBACK with (result error).
+Prompts for permission before running the command for security.
+If METADATA contains safe-shell-commands and COMMAND is in that list, skips
+permission prompt.
+Returns a cancel function that can interrupt the command execution."
+  (let ((work-dir (or working-directory ".")))
+    (cond
+     ((not (stringp command))
+      (funcall callback nil "Command must be a string")
+      (lambda () nil))
+
+     ((string-empty-p (string-trim command))
+      (funcall callback nil "Command cannot be empty")
+      (lambda () nil))
+
+     ((not (stringp work-dir))
+      (funcall callback nil "Working directory must be a string")
+      (lambda () nil))
+
+     (t
+      (let ((expanded-work-dir (expand-file-name work-dir)))
+        (cond
+         ((not (file-exists-p expanded-work-dir))
+          (funcall callback nil (format "Working directory does not exist: %s" expanded-work-dir))
+          (lambda () nil))
+
+         ((not (file-directory-p expanded-work-dir))
+          (funcall callback nil (format "Working directory path is not a directory: %s" expanded-work-dir))
+          (lambda () nil))
+
+         ((let ((safe-commands (plist-get metadata :safe-shell-commands)))
+            (and (not (member command safe-commands))
+                 (not (y-or-n-p (format "Execute shell command: '%s' in directory '%s'? "
+                                       command expanded-work-dir)))))
+          (funcall callback nil "Shell command execution cancelled by user")
+          (lambda () nil))
+
+         (t
+          ;; Check if command contains shell operators (pipes, redirections, etc.)
+          (if (string-match-p "[|><&;]" command)
+              ;; Use shell to execute commands with shell operators
+              (greger-stdlib--run-async-subprocess
+               "sh" (list "-c" command) expanded-work-dir
+               (lambda (output error)
+                 (if error
+                     (funcall callback nil error)
+                   (funcall callback
+                           (format "Command executed successfully:\n%s" output)
+                           nil))))
+            ;; For simple commands, parse into program and arguments
+            (let* ((command-parts (split-string-and-unquote command))
+                   (program (car command-parts))
+                   (args (cdr command-parts)))
+
+              ;; Execute the command asynchronously
+              (greger-stdlib--run-async-subprocess
+               program args expanded-work-dir
+               (lambda (output error)
+                 (if error
+                     (funcall callback nil error)
+                   (funcall callback
+                           (format "Command executed successfully:\n%s" output)
+                           nil))))))))))))
+</tool.toolu_01KsGCTVFPKXHrCEofvpyNs9>
+
+### git-commit-message
+
+<tool.toolu_01KsGCTVFPKXHrCEofvpyNs9>
+Update shell-command tool to return cancel function
+</tool.toolu_01KsGCTVFPKXHrCEofvpyNs9>
+
+## TOOL RESULT:
+
+ID: toolu_01KsGCTVFPKXHrCEofvpyNs9
+
+<tool.toolu_01KsGCTVFPKXHrCEofvpyNs9>
+Error executing tool: Parentheses balance mismatch in Emacs Lisp file: original has balance -1, new has balance 1. They must be equal
+</tool.toolu_01KsGCTVFPKXHrCEofvpyNs9>
+
+## ASSISTANT:
+
+Let me check the balance more carefully by looking at the function and what comes after it:
+
+## TOOL USE:
+
+Name: read-file
+ID: toolu_018HYe2F9nG49VktTGkz6qQ8
+
+### path
+
+<tool.toolu_018HYe2F9nG49VktTGkz6qQ8>
+greger-stdlib.el
+</tool.toolu_018HYe2F9nG49VktTGkz6qQ8>
+
+### start-line
+
+<tool.toolu_018HYe2F9nG49VktTGkz6qQ8>
+1075
+</tool.toolu_018HYe2F9nG49VktTGkz6qQ8>
+
+### end-line
+
+<tool.toolu_018HYe2F9nG49VktTGkz6qQ8>
+1090
+</tool.toolu_018HYe2F9nG49VktTGkz6qQ8>
+
+## TOOL RESULT:
+
+ID: toolu_018HYe2F9nG49VktTGkz6qQ8
+
+<tool.toolu_018HYe2F9nG49VktTGkz6qQ8>
+                   (funcall callback
+                           (format "Command executed successfully:\n%s" output)
+                           nil)))))))))))))
+
+(defun greger-stdlib--read-webpage (url &optional extract-text use-highest-readability)
+  "Read webpage content from URL.
+If EXTRACT-TEXT is non-nil (default t), extract and return text content.
+If EXTRACT-TEXT is nil, return raw HTML.
+If USE-HIGHEST-READABILITY is non-nil, use eww's aggressive readability setting."
+  (greger-stdlib--assert-arg-string-web-url "url" url)
+
+  (condition-case err
+      (greger-web-download-page url extract-text use-highest-readability)
+    (error "Failed to read webpage: %s" (error-message-string err))))
+
+(provide 'greger-stdlib)
+</tool.toolu_018HYe2F9nG49VktTGkz6qQ8>
+
+## ASSISTANT:
+
+I see the issue - I need to count the parentheses carefully. Let me replace with the exact matching structure:
+
+## TOOL USE:
+
+Name: str-replace
+ID: toolu_01HhEVMmD9Ka16zk2tsGymj3
+
+### file-path
+
+<tool.toolu_01HhEVMmD9Ka16zk2tsGymj3>
+greger-stdlib.el
+</tool.toolu_01HhEVMmD9Ka16zk2tsGymj3>
+
+### original-content
+
+<tool.toolu_01HhEVMmD9Ka16zk2tsGymj3>
+(defun greger-stdlib--shell-command (command callback &optional working-directory metadata)
+  "Execute COMMAND in WORKING-DIRECTORY and call CALLBACK with (result error).
+Prompts for permission before running the command for security.
+If METADATA contains safe-shell-commands and COMMAND is in that list, skips
+permission prompt."
+  (let ((work-dir (or working-directory ".")))
+    (cond
+     ((not (stringp command))
+      (funcall callback nil "Command must be a string"))
+
+     ((string-empty-p (string-trim command))
+      (funcall callback nil "Command cannot be empty"))
+
+     ((not (stringp work-dir))
+      (funcall callback nil "Working directory must be a string"))
+
+     (t
+      (let ((expanded-work-dir (expand-file-name work-dir)))
+        (cond
+         ((not (file-exists-p expanded-work-dir))
+          (funcall callback nil (format "Working directory does not exist: %s" expanded-work-dir)))
+
+         ((not (file-directory-p expanded-work-dir))
+          (funcall callback nil (format "Working directory path is not a directory: %s" expanded-work-dir)))
+
+         ((let ((safe-commands (plist-get metadata :safe-shell-commands)))
+            (and (not (member command safe-commands))
+                 (not (y-or-n-p (format "Execute shell command: '%s' in directory '%s'? "
+                                       command expanded-work-dir)))))
+          (funcall callback nil "Shell command execution cancelled by user"))
+
+         (t
+          ;; Check if command contains shell operators (pipes, redirections, etc.)
+          (if (string-match-p "[|><&;]" command)
+              ;; Use shell to execute commands with shell operators
+              (greger-stdlib--run-async-subprocess
+               "sh" (list "-c" command) expanded-work-dir
+               (lambda (output error)
+                 (if error
+                     (funcall callback nil error)
+                   (funcall callback
+                           (format "Command executed successfully:\n%s" output)
+                           nil))))
+            ;; For simple commands, parse into program and arguments
+            (let* ((command-parts (split-string-and-unquote command))
+                   (program (car command-parts))
+                   (args (cdr command-parts)))
+
+              ;; Execute the command asynchronously
+              (greger-stdlib--run-async-subprocess
+               program args expanded-work-dir
+               (lambda (output error)
+                 (if error
+                     (funcall callback nil error)
+                   (funcall callback
+                           (format "Command executed successfully:\n%s" output)
+                           nil)))))))))))))
+</tool.toolu_01HhEVMmD9Ka16zk2tsGymj3>
+
+### new-content
+
+<tool.toolu_01HhEVMmD9Ka16zk2tsGymj3>
+(defun greger-stdlib--shell-command (command callback &optional working-directory metadata)
+  "Execute COMMAND in WORKING-DIRECTORY and call CALLBACK with (result error).
+Prompts for permission before running the command for security.
+If METADATA contains safe-shell-commands and COMMAND is in that list, skips
+permission prompt.
+Returns a cancel function that can interrupt the command execution."
+  (let ((work-dir (or working-directory ".")))
+    (cond
+     ((not (stringp command))
+      (funcall callback nil "Command must be a string")
+      (lambda () nil))
+
+     ((string-empty-p (string-trim command))
+      (funcall callback nil "Command cannot be empty")
+      (lambda () nil))
+
+     ((not (stringp work-dir))
+      (funcall callback nil "Working directory must be a string")
+      (lambda () nil))
+
+     (t
+      (let ((expanded-work-dir (expand-file-name work-dir)))
+        (cond
+         ((not (file-exists-p expanded-work-dir))
+          (funcall callback nil (format "Working directory does not exist: %s" expanded-work-dir))
+          (lambda () nil))
+
+         ((not (file-directory-p expanded-work-dir))
+          (funcall callback nil (format "Working directory path is not a directory: %s" expanded-work-dir))
+          (lambda () nil))
+
+         ((let ((safe-commands (plist-get metadata :safe-shell-commands)))
+            (and (not (member command safe-commands))
+                 (not (y-or-n-p (format "Execute shell command: '%s' in directory '%s'? "
+                                       command expanded-work-dir)))))
+          (funcall callback nil "Shell command execution cancelled by user")
+          (lambda () nil))
+
+         (t
+          ;; Check if command contains shell operators (pipes, redirections, etc.)
+          (if (string-match-p "[|><&;]" command)
+              ;; Use shell to execute commands with shell operators
+              (greger-stdlib--run-async-subprocess
+               "sh" (list "-c" command) expanded-work-dir
+               (lambda (output error)
+                 (if error
+                     (funcall callback nil error)
+                   (funcall callback
+                           (format "Command executed successfully:\n%s" output)
+                           nil))))
+            ;; For simple commands, parse into program and arguments
+            (let* ((command-parts (split-string-and-unquote command))
+                   (program (car command-parts))
+                   (args (cdr command-parts)))
+
+              ;; Execute the command asynchronously
+              (greger-stdlib--run-async-subprocess
+               program args expanded-work-dir
+               (lambda (output error)
+                 (if error
+                     (funcall callback nil error)
+                   (funcall callback
+                           (format "Command executed successfully:\n%s" output)
+                           nil)))))))))))))
+</tool.toolu_01HhEVMmD9Ka16zk2tsGymj3>
+
+### git-commit-message
+
+<tool.toolu_01HhEVMmD9Ka16zk2tsGymj3>
+Update shell-command tool to return cancel function
+</tool.toolu_01HhEVMmD9Ka16zk2tsGymj3>
+
+<!-- TOOL_RESULT_PLACEHOLDER_toolu_01HhEVMmD9Ka16zk2tsGymj3 -->

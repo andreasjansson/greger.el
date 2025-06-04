@@ -1022,32 +1022,39 @@ FUNCTION-NAMES specifies which functions to evaluate."
   "Execute COMMAND in WORKING-DIRECTORY and call CALLBACK with (result error).
 Prompts for permission before running the command for security.
 If METADATA contains safe-shell-commands and COMMAND is in that list, skips
-permission prompt."
+permission prompt.
+Returns a cancel function that can interrupt the command execution."
   (let ((work-dir (or working-directory ".")))
     (cond
      ((not (stringp command))
-      (funcall callback nil "Command must be a string"))
+      (funcall callback nil "Command must be a string")
+      (lambda () nil))
 
      ((string-empty-p (string-trim command))
-      (funcall callback nil "Command cannot be empty"))
+      (funcall callback nil "Command cannot be empty")
+      (lambda () nil))
 
      ((not (stringp work-dir))
-      (funcall callback nil "Working directory must be a string"))
+      (funcall callback nil "Working directory must be a string")
+      (lambda () nil))
 
      (t
       (let ((expanded-work-dir (expand-file-name work-dir)))
         (cond
          ((not (file-exists-p expanded-work-dir))
-          (funcall callback nil (format "Working directory does not exist: %s" expanded-work-dir)))
+          (funcall callback nil (format "Working directory does not exist: %s" expanded-work-dir))
+          (lambda () nil))
 
          ((not (file-directory-p expanded-work-dir))
-          (funcall callback nil (format "Working directory path is not a directory: %s" expanded-work-dir)))
+          (funcall callback nil (format "Working directory path is not a directory: %s" expanded-work-dir))
+          (lambda () nil))
 
          ((let ((safe-commands (plist-get metadata :safe-shell-commands)))
             (and (not (member command safe-commands))
                  (not (y-or-n-p (format "Execute shell command: '%s' in directory '%s'? "
                                        command expanded-work-dir)))))
-          (funcall callback nil "Shell command execution cancelled by user"))
+          (funcall callback nil "Shell command execution cancelled by user")
+          (lambda () nil))
 
          (t
           ;; Check if command contains shell operators (pipes, redirections, etc.)
