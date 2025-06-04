@@ -264,41 +264,63 @@ Error with NAME if not. Either bound can be nil to skip that check."
 (defun greger-stdlib--run-async-subprocess (command args working-directory callback)
   "Run COMMAND with ARGS in WORKING-DIRECTORY and call CALLBACK.
 CALLBACK will be called with (output nil) on success or (nil error-message) on
-failure."
+failure.
+Returns a cancel function that can be called to interrupt the process."
   (let* ((process-name (format "greger-subprocess-%s" (make-temp-name "")))
          (process-buffer (generate-new-buffer (format " *%s*" process-name)))
-         (default-directory (expand-file-name (or working-directory "."))))
+         (default-directory (expand-file-name (or working-directory ".")))
+         (process nil)
+         (callback-called nil))
 
     (condition-case err
-        (let ((process (apply #'start-process process-name process-buffer command args)))
+        (progn
+          (setq process (apply #'start-process process-name process-buffer command args))
           (set-process-query-on-exit-flag process nil)
 
           (set-process-sentinel
            process
            (lambda (proc _event)
-             (let ((exit-status (process-exit-status proc))
-                   (output (with-current-buffer process-buffer
-                            (buffer-string))))
-               (kill-buffer process-buffer)
-               (cond
-                ((= exit-status 0)
-                 (funcall callback
-                         (if (string-empty-p (string-trim output))
-                             "(no output)"
-                           output)
-                         nil))
-                (t
-                 (funcall callback nil
-                         (format "Command failed with exit code %d: %s"
-                                exit-status
-                                (if (string-empty-p (string-trim output))
-                                    "(no output)"
-                                  output))))))))
-          process)
+             (unless callback-called
+               (setq callback-called t)
+               (let ((exit-status (process-exit-status proc))
+                     (output (with-current-buffer process-buffer
+                              (buffer-string))))
+                 (when (buffer-live-p process-buffer)
+                   (kill-buffer process-buffer))
+                 (cond
+                  ((= exit-status 0)
+                   (funcall callback
+                           (if (string-empty-p (string-trim output))
+                               "(no output)"
+                             output)
+                           nil))
+                  (t
+                   (funcall callback nil
+                           (format "Command failed with exit code %d: %s"
+                                  exit-status
+                                  (if (string-empty-p (string-trim output))
+                                      "(no output)"
+                                    output)))))))))
+
+          ;; Return cancel function
+          (lambda ()
+            (when (and process (process-live-p process))
+              (interrupt-process process)
+              (sit-for 0.1)
+              (when (process-live-p process)
+                (delete-process process)))
+            (unless callback-called
+              (setq callback-called t)
+              (when (buffer-live-p process-buffer)
+                (kill-buffer process-buffer))
+              ;; Call callback with cancellation error
+              (funcall callback nil "Command execution was cancelled"))))
       (error
        (when (buffer-live-p process-buffer)
          (kill-buffer process-buffer))
-       (funcall callback nil (format "Failed to start process: %s" (error-message-string err)))))))
+       (funcall callback nil (format "Failed to start process: %s" (error-message-string err)))
+       ;; Return no-op cancel function if process failed to start
+       (lambda () nil)))))
 
 (defun greger-stdlib--find-git-repo-root (start-dir)
   "Find the git repository root starting from START-DIR."
@@ -1007,32 +1029,39 @@ FUNCTION-NAMES specifies which functions to evaluate."
   "Execute COMMAND in WORKING-DIRECTORY and call CALLBACK with (result error).
 Prompts for permission before running the command for security.
 If METADATA contains safe-shell-commands and COMMAND is in that list, skips
-permission prompt."
+permission prompt.
+Returns a cancel function that can interrupt the command execution."
   (let ((work-dir (or working-directory ".")))
     (cond
      ((not (stringp command))
-      (funcall callback nil "Command must be a string"))
+      (funcall callback nil "Command must be a string")
+      (lambda () nil))
 
      ((string-empty-p (string-trim command))
-      (funcall callback nil "Command cannot be empty"))
+      (funcall callback nil "Command cannot be empty")
+      (lambda () nil))
 
      ((not (stringp work-dir))
-      (funcall callback nil "Working directory must be a string"))
+      (funcall callback nil "Working directory must be a string")
+      (lambda () nil))
 
      (t
       (let ((expanded-work-dir (expand-file-name work-dir)))
         (cond
          ((not (file-exists-p expanded-work-dir))
-          (funcall callback nil (format "Working directory does not exist: %s" expanded-work-dir)))
+          (funcall callback nil (format "Working directory does not exist: %s" expanded-work-dir))
+          (lambda () nil))
 
          ((not (file-directory-p expanded-work-dir))
-          (funcall callback nil (format "Working directory path is not a directory: %s" expanded-work-dir)))
+          (funcall callback nil (format "Working directory path is not a directory: %s" expanded-work-dir))
+          (lambda () nil))
 
          ((let ((safe-commands (plist-get metadata :safe-shell-commands)))
             (and (not (member command safe-commands))
                  (not (y-or-n-p (format "Execute shell command: '%s' in directory '%s'? "
                                        command expanded-work-dir)))))
-          (funcall callback nil "Shell command execution cancelled by user"))
+          (funcall callback nil "Shell command execution cancelled by user")
+          (lambda () nil))
 
          (t
           ;; Check if command contains shell operators (pipes, redirections, etc.)

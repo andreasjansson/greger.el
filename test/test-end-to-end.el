@@ -260,6 +260,79 @@
       (when (and greger-buffer (buffer-live-p greger-buffer))
         (kill-buffer greger-buffer)))))
 
+(ert-deftest greger-end-to-end-test-sleep-and-interrupt ()
+  "Test sleep command with interruption and state transitions."
+  :tags '(end-to-end public-api interruption)
+
+  (let ((greger-buffer nil))
+    (unwind-protect
+        (progn
+          ;; Create a greger buffer
+          (greger)
+          (setq greger-buffer (current-buffer))
+
+          ;; Add system message with safe-shell-commands including sleep 5
+          (goto-char (point-max))
+          (re-search-backward "## SYSTEM:")
+          (forward-line 1)
+          (insert "\n<safe-shell-commands>\nsleep 5\n</safe-shell-commands>\n")
+
+          ;; Add user message requesting sleep
+          (goto-char (point-max))
+          (insert "Please run the shell command 'sleep 5' using the shell-command tool.")
+
+          ;; Call greger-buffer to send the message
+          (greger-buffer)
+
+          ;; Wait until state becomes 'executing (should happen after AI decides to use shell tool)
+          (let ((max-wait 20.0)  ; Give more time for AI to process and decide to use tool
+                (start-time (current-time))
+                (state-found nil))
+            (while (and (not state-found)
+                       (< (float-time (time-subtract (current-time) start-time)) max-wait))
+              (sit-for 0.1)
+              (when (eq (greger--get-current-state) 'executing)
+                (setq state-found t)))
+            (should state-found))
+
+          ;; Wait 1 second while in executing state
+          (sit-for 1.0)
+
+          ;; Interrupt generation
+          (should (eq 'executing (greger-interrupt)))
+
+          ;; Wait until state becomes 'idle (after interruption and any brief generation)
+          (let ((max-wait 20.0)
+                (start-time (current-time))
+                (state-found nil))
+            (while (and (not state-found)
+                       (< (float-time (time-subtract (current-time) start-time)) max-wait))
+              (sit-for 0.1)
+              (when (eq (greger--get-current-state) 'generating)
+                (setq state-found t)))
+            (should state-found))
+
+          (should (eq 'generating (greger-interrupt)))
+
+          (let ((max-wait 10.0)
+                (start-time (current-time))
+                (state-found nil))
+            (while (and (not state-found)
+                       (< (float-time (time-subtract (current-time) start-time)) max-wait))
+              (sit-for 0.1)
+              (when (eq (greger--get-current-state) 'idle)
+                (setq state-found t)))
+            (should state-found))
+
+          ;; Verify the output contains some indication that the command failed
+          ;; (the exact exit code and message may vary depending on platform and signal)
+          (let ((content (buffer-string)))
+            (should (string-match-p "Command failed with exit code 2: (no output)" content))))
+
+      ;; Cleanup
+      (when (and greger-buffer (buffer-live-p greger-buffer))
+        (kill-buffer greger-buffer)))))
+
 (provide 'test-end-to-end)
 
 ;;; test-end-to-end.el ends here

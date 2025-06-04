@@ -515,6 +515,103 @@ Echo: hello world
     ;; Clean up
     (remhash "test-echo" greger-tools-registry)))
 
+(ert-deftest greger-test-interrupt-without-active-generation ()
+  "Test greger-interrupt behavior when no generation is active."
+  ;; Test that greger-interrupt calls keyboard-quit when no active generation
+  (with-temp-buffer
+    (greger-mode)
+    (let ((keyboard-quit-called nil))
+      ;; Mock keyboard-quit to track if it's called
+      (cl-letf (((symbol-function 'keyboard-quit)
+                 (lambda () (setq keyboard-quit-called t))))
+        ;; Call greger-interrupt when no active generation
+        (greger-interrupt)
+        ;; Should have called keyboard-quit
+        (should keyboard-quit-called)))))
+
+(ert-deftest greger-test-interrupt-with-active-generation ()
+  "Test greger-interrupt behavior when generation is active."
+  ;; Test that greger-interrupt cancels active generation
+  (with-temp-buffer
+    (greger-mode)
+    (let ((cancel-called nil)
+          (keyboard-quit-called nil)
+          ;; Create a mock client state
+          (mock-client-state '(mock-state)))
+
+      ;; Create agent state with active client state
+      (let ((agent-state (make-greger-state
+                          :current-iteration 1
+                          :chat-buffer (current-buffer)
+                          :directory default-directory
+                          :metadata nil
+                          :client-state mock-client-state)))
+
+        ;; Set buffer-local agent state
+        (setq greger--current-agent-state agent-state)
+
+        ;; Mock functions
+        (cl-letf (((symbol-function 'greger-client--cancel-request)
+                   (lambda (state) (setq cancel-called t)))
+                  ((symbol-function 'keyboard-quit)
+                   (lambda () (setq keyboard-quit-called t))))
+
+          ;; Call greger-interrupt
+          (greger-interrupt)
+
+          ;; Should have called cancel but not keyboard-quit
+          (should cancel-called)
+          (should-not keyboard-quit-called)
+          ;; Client state should be nil after cancellation
+          (should (null (greger-state-client-state agent-state))))))))
+
+(ert-deftest greger-test-interrupt-with-executing-tools ()
+  "Test greger-interrupt behavior with executing tools."
+  ;; Test that greger-interrupt calls cancel functions but doesn't clear the map
+  (with-temp-buffer
+    (greger-mode)
+    ;; Use defvar to create dynamically scoped variables for the closure
+    (defvar greger-test-cancel-called nil)
+    (defvar greger-test-callback-called nil)
+
+    (let ((keyboard-quit-called nil)
+          ;; Create a mock greger-tool with cancel function
+          (mock-greger-tool (make-greger-tool
+                             :cancel-fn (lambda ()
+                                          (setq greger-test-cancel-called t)
+                                          (setq greger-test-callback-called t))))
+          (executing-tools-map (make-hash-table :test 'equal)))
+
+      ;; Set up executing tools map with one tool
+      (puthash "test-tool-id" mock-greger-tool executing-tools-map)
+
+      ;; Create agent state with executing tools
+      (let ((agent-state (make-greger-state
+                          :current-iteration 1
+                          :chat-buffer (current-buffer)
+                          :directory default-directory
+                          :metadata nil
+                          :client-state nil
+                          :executing-tools executing-tools-map)))
+
+        ;; Set buffer-local agent state
+        (setq greger--current-agent-state agent-state)
+
+        ;; Mock keyboard-quit
+        (cl-letf (((symbol-function 'keyboard-quit)
+                   (lambda () (setq keyboard-quit-called t))))
+
+          ;; Call greger-interrupt
+          (greger-interrupt)
+
+          ;; Should have called cancel function
+          (should greger-test-cancel-called)
+          ;; Should not have called keyboard-quit
+          (should-not keyboard-quit-called)
+          ;; The executing-tools map should still contain the tool
+          ;; (it should only be removed when callback is actually called)
+          (should (gethash "test-tool-id" executing-tools-map)))))))
+
 (provide 'test-greger)
 
 ;;; test-greger.el ends here

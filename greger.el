@@ -99,7 +99,9 @@
   current-iteration
   chat-buffer
   directory
-  metadata)
+  metadata
+  client-state
+  executing-tools)
 
 (defvar greger-user-tag "## USER:")
 (defvar greger-assistant-tag "## ASSISTANT:")
@@ -109,8 +111,15 @@
 (defvar greger-tool-section-max-lines 4
   "Maximum number of lines to show in collapsed tool sections.")
 
+;; TODO: make defvar-local
 (defvar greger-tool-overlays nil
   "List of overlays used for collapsible tool sections.")
+
+(defvar-local greger--current-agent-state nil
+  "Buffer-local variable to track the current agent state.")
+
+(defvar-local greger--buffer-read-only-by-greger nil
+  "Buffer-local variable to track if buffer is read-only due to greger activity.")
 
 ;; Face definitions for tool tags
 (defface greger-tool-tag-face
@@ -162,6 +171,7 @@
   (let ((map (make-sparse-keymap)))
     (define-key map (kbd "M-<return>") #'greger-buffer)
     (define-key map (kbd "C-M-<return>") #'greger-buffer-no-tools)
+    (define-key map (kbd "C-g") #'greger-interrupt)
     (define-key map (kbd "C-; a") #'greger-insert-assistant-tag)
     (define-key map (kbd "C-; u") #'greger-insert-user-tag)
     (define-key map (kbd "C-; s") #'greger-insert-system-tag)
@@ -177,11 +187,11 @@
     map)
   "Keymap for `greger-mode'.")
 
-(define-derived-mode greger-mode gfm-mode "AI"
+(define-derived-mode greger-mode gfm-mode "Greger"
   "Major mode for interacting with AI."
   (use-local-map greger-mode-map)
   (setq-local markdown-fontify-code-blocks-natively t)
-  (setq-local mode-line-misc-info '(:eval (symbol-name greger-model)))
+  (setq-local mode-line-misc-info '(:eval (greger--mode-line-info)))
   ;; Set up invisible text for tool sections
   (add-to-invisibility-spec 'greger-tool-section)
   ;; Set up tool section highlighting and collapsing
@@ -218,6 +228,37 @@
   "Insert the system tag into the buffer."
   (interactive)
   (insert greger-system-tag "\n\n"))
+
+(defun greger-interrupt ()
+  "Interrupt ongoing generation if active, otherwise call `keyboard-quit'."
+  (interactive)
+
+  (let* ((buffer (current-buffer))
+         (agent-state (buffer-local-value 'greger--current-agent-state buffer)))
+    (cond
+     ;; If there's an active client state, cancel the streaming request
+     ((and agent-state (greger-state-client-state agent-state))
+      (greger-client--cancel-request (greger-state-client-state agent-state))
+      (setf (greger-state-client-state agent-state) nil)
+      (greger--update-buffer-state)
+      'generating)
+     ;; If there are executing tools, cancel them
+     ((and agent-state
+           (greger-state-executing-tools agent-state)
+           (> (hash-table-count (greger-state-executing-tools agent-state)) 0))
+      (let ((executing-tools (greger-state-executing-tools agent-state)))
+        ;; TODO: remove debug
+        (maphash (lambda (_tool-id greger-tool)
+                   (let ((cancel-fn (greger-tool-cancel-fn greger-tool)))
+                     (when (functionp cancel-fn)
+                       (funcall cancel-fn))))
+                 executing-tools)
+        (greger--update-buffer-state))
+      'executing)
+     ;; Default case: call keyboard-quit
+     (t
+      (keyboard-quit)
+      'idle))))
 
 (defun greger-buffer-no-tools ()
   "Send the buffer content to AI as a dialog without tool use."
@@ -266,9 +307,9 @@
       (error "Point is not inside a code block"))))
 
 (defun greger-set-model ()
-  "Set the current AI model."
+  "Set the current model."
   (interactive)
-  (let ((model (completing-read "Choose AI model: " greger-available-models nil t)))
+  (let ((model (completing-read "Choose model: " greger-available-models nil t)))
     (customize-set-variable 'greger-model (intern model))
     (message "Model set to %s" model)))
 
@@ -340,6 +381,49 @@ ARGS are arguments to format."
   (when greger-debug
     (message "[GREGER DEBUG] %s" (apply #'format format-string args))))
 
+(defun greger--get-current-state ()
+  "Get the current greger state: \='idle, \='generating, or \='executing."
+  (let ((agent-state (buffer-local-value 'greger--current-agent-state (current-buffer))))
+    (cond
+     ;; Check if we're generating (client-state is active)
+     ((and agent-state (greger-state-client-state agent-state))
+      'generating)
+     ;; Check if we're executing tools
+     ((and agent-state
+           (greger-state-executing-tools agent-state)
+           (> (hash-table-count (greger-state-executing-tools agent-state)) 0))
+      'executing)
+     ;; Otherwise we're idle
+     (t 'idle))))
+
+(defun greger--mode-line-info ()
+  "Generate mode line information showing model and current state."
+  (let ((state (greger--get-current-state))
+        (model-name (symbol-name greger-model)))
+    (concat model-name
+            (pcase state
+              ('generating " [Generating]")
+              ('executing " [Executing]")
+              ('idle "")))))
+
+(defun greger--set-buffer-read-only (read-only)
+  "Set buffer read-only state for greger operations.
+READ-ONLY is t to make read-only, nil to make writable."
+  (if read-only
+      (unless greger--buffer-read-only-by-greger
+        (setq greger--buffer-read-only-by-greger t)
+        (setq buffer-read-only t))
+    (when greger--buffer-read-only-by-greger
+      (setq greger--buffer-read-only-by-greger nil)
+      (setq buffer-read-only nil))))
+
+(defun greger--update-buffer-state ()
+  "Update buffer read-only state based on current greger state."
+  (let ((state (greger--get-current-state)))
+    (greger--set-buffer-read-only (not (eq state 'idle)))
+    ;; Force mode line update
+    (force-mode-line-update)))
+
 (defun greger--run-agent-loop (agent-state)
   "Run the main agent loop with AGENT-STATE."
   (let* ((tools (greger-tools-get-schemas greger-tools))
@@ -364,22 +448,33 @@ ARGS are arguments to format."
 
       ;; Get Claude's response
       (greger--debug "CALLING greger-client-stream...")
-      (greger-client-stream
-       :model greger-model
-       :dialog current-dialog
-       :tools tools
-       :buffer chat-buffer
-       :text-start-callback (lambda ()
-                              (greger--append-text (concat "\n\n" greger-assistant-tag "\n\n") agent-state))
-       :text-callback (lambda (text)
-                        (greger--append-text text agent-state))
-       :complete-callback (lambda (content-blocks)
-                            (greger--debug "RECEIVED PARSED CONTENT BLOCKS")
-                            (greger--handle-parsed-response content-blocks agent-state))))))
+      (let ((client-state (greger-client-stream
+                           :model greger-model
+                           :dialog current-dialog
+                           :tools tools
+                           :buffer chat-buffer
+                           :text-start-callback (lambda ()
+                                                  (greger--append-text (concat "\n\n" greger-assistant-tag "\n\n") agent-state))
+                           :text-callback (lambda (text)
+                                            (greger--append-text text agent-state))
+                           :complete-callback (lambda (content-blocks)
+                                                (greger--debug "RECEIVED PARSED CONTENT BLOCKS")
+                                                (setf (greger-state-client-state agent-state) nil)
+                                                (greger--handle-parsed-response content-blocks agent-state)))))
+        ;; Store the client state for potential cancellation
+        (setf (greger-state-client-state agent-state) client-state)
+        ;; Set buffer-local variable for greger-interrupt to access
+        (with-current-buffer chat-buffer
+          (setq greger--current-agent-state agent-state)
+          (greger--update-buffer-state))))))
 
 (defun greger--handle-parsed-response (content-blocks agent-state)
   "Handle the parsed CONTENT-BLOCKS from Claude using AGENT-STATE."
   (greger--debug "CONTENT BLOCKS: %s" content-blocks)
+
+  ;; Update buffer state after client completes
+  (with-current-buffer (greger-state-chat-buffer agent-state)
+    (greger--update-buffer-state))
 
   ;; Check if we have tool calls
   (let ((tool-calls (greger--extract-tool-calls content-blocks)))
@@ -412,48 +507,75 @@ ARGS are arguments to format."
   "Execute TOOL-CALLS using AGENT-STATE in parallel with callbacks."
   (let* ((total-tools (length tool-calls))
          (completed-tools 0)
-         (search-start-pos nil))
+         (search-start-pos nil)
+         (executing-tools-map (make-hash-table :test 'equal)))
+
+    ;; Initialize executing-tools in agent-state if not already set
+    (unless (greger-state-executing-tools agent-state)
+      (setf (greger-state-executing-tools agent-state) executing-tools-map))
+
+    ;; Update buffer state to show we're executing tools
+    (with-current-buffer (greger-state-chat-buffer agent-state)
+      (greger--update-buffer-state))
 
     ;; First, display the tool calls and reserve space for each tool's output
     (with-current-buffer (greger-state-chat-buffer agent-state)
-      (goto-char (point-max))
+      (let ((inhibit-read-only t))
+        (goto-char (point-max))
 
-      ;; Remember where to start searching for placeholders
-      (setq search-start-pos (point))
+        ;; Remember where to start searching for placeholders
+        (setq search-start-pos (point))
 
-      ;; Display each tool call followed by its placeholder
-      (dolist (tool-call tool-calls)
-        (let ((tool-id (alist-get 'id tool-call))
-              (tool-block-markdown (greger-parser--content-blocks-to-markdown (list tool-call))))
-          (unless (string-empty-p tool-block-markdown)
-            (insert "\n\n" tool-block-markdown))
-          (insert "\n\n" (greger--tool-placeholder tool-id)))))
+        ;; Display each tool call followed by its placeholder
+        (dolist (tool-call tool-calls)
+          (let ((tool-id (alist-get 'id tool-call))
+                (tool-block-markdown (greger-parser--content-blocks-to-markdown (list tool-call))))
+            (unless (string-empty-p tool-block-markdown)
+              (insert "\n\n" tool-block-markdown))
+            (insert "\n\n" (greger--tool-placeholder tool-id))))))
 
     ;; Execute all tools in parallel
     (dolist (tool-call tool-calls)
       (let* ((tool-name (alist-get 'name tool-call))
              (tool-input (alist-get 'input tool-call))
-             (tool-id (alist-get 'id tool-call)))
+             (tool-id (alist-get 'id tool-call))
+             (default-directory (greger-state-directory agent-state)))
 
-        (let ((default-directory (greger-state-directory agent-state)))
-          (greger-tools-execute
-           tool-name
-           tool-input
-           (lambda (result error)
-             (greger--handle-tool-completion
-              tool-id result error agent-state search-start-pos
-              (lambda ()
-                (setq completed-tools (1+ completed-tools))
-                (when (= completed-tools total-tools)
-                  (greger--run-agent-loop agent-state)))))
-           (greger-state-chat-buffer agent-state)
-           (greger-state-metadata agent-state)))))))
+        ;; TODO: This is ugly, we really should be separating the creation and execution of tools
+        ;; We're only doing this because for synchronous tools we can't set the tool in the
+        ;; hashmap after execution, because sync tools have already removed the key then.
+        (let ((placeholder-tool (make-greger-tool :cancel-fn nil)))
+          (puthash tool-id placeholder-tool (greger-state-executing-tools agent-state))
+
+          (greger--update-buffer-state)
+          (sit-for 0.001) ; update the buffer state
+
+          (let ((greger-tool (greger-tools-execute
+                              tool-name
+                              tool-input
+                              (lambda (result error)
+                                ;; Remove tool from executing-tools when complete
+                                (remhash tool-id (greger-state-executing-tools agent-state))
+
+                                (greger--handle-tool-completion
+                                 tool-id result error agent-state search-start-pos
+                                 (lambda ()
+                                   (setq completed-tools (1+ completed-tools))
+                                   (when (= completed-tools total-tools)
+                                     (greger--run-agent-loop agent-state)))))
+                              (greger-state-chat-buffer agent-state)
+                              (greger-state-metadata agent-state))))
+
+            ;; TODO: here again, it's ugly
+            (when (greger-tool-cancel-fn greger-tool)
+              (puthash tool-id greger-tool (greger-state-executing-tools agent-state)))))))))
 
 (defun greger--append-text (text agent-state)
   "Append TEXT to the chat buffer in AGENT-STATE."
   (with-current-buffer (greger-state-chat-buffer agent-state)
-    (goto-char (point-max))
-    (insert text)))
+    (let ((inhibit-read-only t))
+      (goto-char (point-max))
+      (insert text))))
 
 (defun greger--handle-tool-completion (tool-id result error agent-state search-start-pos completion-callback)
   "Handle completion of a tool execution by updating buffer and calling callback.
@@ -476,14 +598,19 @@ COMPLETION-CALLBACK is called when complete."
 
     ;; Update the buffer at the correct position
     (with-current-buffer (greger-state-chat-buffer agent-state)
-      (save-excursion
-        (goto-char search-start-pos)
-        ;; Find and replace the placeholder
-        (when (search-forward (greger--tool-placeholder tool-id) nil t)
-          (replace-match "")
-          (let ((result-markdown (greger-parser--content-blocks-to-markdown (list tool-result))))
-            (unless (string-empty-p result-markdown)
-              (insert result-markdown))))))
+      (let ((inhibit-read-only t))
+        (save-excursion
+          (goto-char search-start-pos)
+          ;; Find and replace the placeholder
+          (when (search-forward (greger--tool-placeholder tool-id) nil t)
+            (replace-match "")
+            (let ((result-markdown (greger-parser--content-blocks-to-markdown (list tool-result))))
+              (unless (string-empty-p result-markdown)
+                (insert result-markdown)))))))
+
+    ;; Update buffer state after tool completion
+    (with-current-buffer (greger-state-chat-buffer agent-state)
+      (greger--update-buffer-state))
 
     ;; Call completion callback
     (funcall completion-callback)))
@@ -492,11 +619,17 @@ COMPLETION-CALLBACK is called when complete."
   "Finish the agent response using AGENT-STATE."
   (greger--debug "=== FINISHING RESPONSE - CONVERSATION COMPLETE ===")
   (with-current-buffer (greger-state-chat-buffer agent-state)
-    (goto-char (point-max))
-    (unless (looking-back (concat greger-user-tag "\n\n") nil)
-      (insert "\n\n" greger-user-tag "\n\n")))
+    (let ((inhibit-read-only t))
+      (goto-char (point-max))
+      (unless (looking-back (concat greger-user-tag "\n\n") nil)
+        (insert "\n\n" greger-user-tag "\n\n")))
+    ;; Clear the buffer-local agent state
+    (setq greger--current-agent-state nil)
+    ;; Update buffer state to idle
+    (greger--update-buffer-state))
   ;; Reset the state
-  (setf (greger-state-current-iteration agent-state) 0))
+  (setf (greger-state-current-iteration agent-state) 0)
+  (setf (greger-state-client-state agent-state) nil))
 
 (defun greger-toggle-debug ()
   "Toggle debug output."

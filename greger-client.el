@@ -51,7 +51,6 @@
   process
   output-buffer
   undo-handle
-  original-quit-binding
   text-start-callback
   text-callback
   complete-callback
@@ -77,12 +76,9 @@ claude-sonnet-4-20250514 or claude-opus-4-20250514."
 
   (let* ((output-buffer (or buffer (current-buffer)))
          (undo-handle (prepare-change-group output-buffer))
-         (original-quit-binding (local-key-binding (kbd "C-g")))
          (request-spec (greger-client--build-request model dialog tools))
          (restore-callback (lambda (state)
                              (with-current-buffer (greger-client-state-output-buffer state)
-                               (local-set-key (kbd "C-g")
-                                              (greger-client-state-original-quit-binding state))
                                (undo-amalgamate-change-group (greger-client-state-undo-handle state))
                                (accept-change-group (greger-client-state-undo-handle state)))))
          (wrapped-complete-callback (lambda (parsed-blocks _state)
@@ -100,8 +96,7 @@ claude-sonnet-4-20250514 or claude-opus-4-20250514."
                  :cancel-callback cancel-callback
                  :restore-callback restore-callback
                  :output-buffer output-buffer
-                 :undo-handle undo-handle
-                 :original-quit-binding original-quit-binding)))
+                 :undo-handle undo-handle)))
 
     (activate-change-group undo-handle)
 
@@ -114,8 +109,6 @@ claude-sonnet-4-20250514 or claude-opus-4-20250514."
                            (greger-client--handle-completion proc state)))
 
     (set-process-query-on-exit-flag process nil)
-
-    (greger-client--setup-cancel-binding state)
 
     state))
 
@@ -201,15 +194,6 @@ claude-sonnet-4-20250514 or claude-opus-4-20250514."
     (json-encode request-data)))
 
 ;;; Stream processing
-
-(defun greger-client--setup-cancel-binding (state)
-  "Setup \\[keyboard-quit] binding for cancellation in the output buffer.
-STATE contains the client state information."
-  (with-current-buffer (greger-client-state-output-buffer state)
-    (local-set-key (kbd "C-g")
-                   (lambda ()
-                     (interactive)
-                     (greger-client--cancel-request state)))))
 
 (defun greger-client--check-for-error (output)
   "Check OUTPUT for error responses and raise an error if found.
