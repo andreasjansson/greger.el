@@ -436,7 +436,12 @@ ARGS are arguments to format."
   "Execute TOOL-CALLS using AGENT-STATE in parallel with callbacks."
   (let* ((total-tools (length tool-calls))
          (completed-tools 0)
-         (search-start-pos nil))
+         (search-start-pos nil)
+         (executing-tools-map (make-hash-table :test 'equal)))
+
+    ;; Initialize executing-tools in agent-state if not already set
+    (unless (greger-state-executing-tools agent-state)
+      (setf (greger-state-executing-tools agent-state) executing-tools-map))
 
     ;; First, display the tool calls and reserve space for each tool's output
     (with-current-buffer (greger-state-chat-buffer agent-state)

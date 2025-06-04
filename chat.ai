@@ -4953,4 +4953,1011 @@ greger.el
 Add executing-tools field to greger-state struct
 </tool.toolu_01FTHoEJMLRCNqhDY537qQgB>
 
-<!-- TOOL_RESULT_PLACEHOLDER_toolu_01FTHoEJMLRCNqhDY537qQgB -->
+## TOOL RESULT:
+
+ID: toolu_01FTHoEJMLRCNqhDY537qQgB
+
+<tool.toolu_01FTHoEJMLRCNqhDY537qQgB>
+Successfully replaced content in /Users/andreas/projects/greger.el/greger.el. Successfully staged 2 file(s) and committed with message: Add executing-tools field to greger-state struct
+</tool.toolu_01FTHoEJMLRCNqhDY537qQgB>
+
+
+## ASSISTANT:
+
+Now I need to update greger--execute-tools to capture the greger-tool structs and manage the executing-tools list:
+
+## TOOL USE:
+
+Name: read-file
+ID: toolu_01NQEPVHKC9ofZkCqiEfrA3b
+
+### path
+
+<tool.toolu_01NQEPVHKC9ofZkCqiEfrA3b>
+greger.el
+</tool.toolu_01NQEPVHKC9ofZkCqiEfrA3b>
+
+### start-line
+
+<tool.toolu_01NQEPVHKC9ofZkCqiEfrA3b>
+440
+</tool.toolu_01NQEPVHKC9ofZkCqiEfrA3b>
+
+### end-line
+
+<tool.toolu_01NQEPVHKC9ofZkCqiEfrA3b>
+480
+</tool.toolu_01NQEPVHKC9ofZkCqiEfrA3b>
+
+## TOOL RESULT:
+
+ID: toolu_01NQEPVHKC9ofZkCqiEfrA3b
+
+<tool.toolu_01NQEPVHKC9ofZkCqiEfrA3b>
+
+    ;; First, display the tool calls and reserve space for each tool's output
+    (with-current-buffer (greger-state-chat-buffer agent-state)
+      (goto-char (point-max))
+
+      ;; Remember where to start searching for placeholders
+      (setq search-start-pos (point))
+
+      ;; Display each tool call followed by its placeholder
+      (dolist (tool-call tool-calls)
+        (let ((tool-id (alist-get 'id tool-call))
+              (tool-block-markdown (greger-parser--content-blocks-to-markdown (list tool-call))))
+          (unless (string-empty-p tool-block-markdown)
+            (insert "\n\n" tool-block-markdown))
+          (insert "\n\n" (greger--tool-placeholder tool-id)))))
+
+    ;; Execute all tools in parallel
+    (dolist (tool-call tool-calls)
+      (let* ((tool-name (alist-get 'name tool-call))
+             (tool-input (alist-get 'input tool-call))
+             (tool-id (alist-get 'id tool-call)))
+
+        (let ((default-directory (greger-state-directory agent-state)))
+          (greger-tools-execute
+           tool-name
+           tool-input
+           (lambda (result error)
+             (greger--handle-tool-completion
+              tool-id result error agent-state search-start-pos
+              (lambda ()
+                (setq completed-tools (1+ completed-tools))
+                (when (= completed-tools total-tools)
+                  (greger--run-agent-loop agent-state)))))
+           (greger-state-chat-buffer agent-state)
+           (greger-state-metadata agent-state)))))))
+
+(defun greger--append-text (text agent-state)
+  "Append TEXT to the chat buffer in AGENT-STATE."
+  (with-current-buffer (greger-state-chat-buffer agent-state)
+    (goto-char (point-max))
+    (insert text)))
+</tool.toolu_01NQEPVHKC9ofZkCqiEfrA3b>
+
+## ASSISTANT:
+
+Let me find the complete greger--execute-tools function:
+
+## TOOL USE:
+
+Name: ripgrep
+ID: toolu_01Ln3S1pxvzV9Nrp3ZKeeg7n
+
+### pattern
+
+<tool.toolu_01Ln3S1pxvzV9Nrp3ZKeeg7n>
+defun greger--execute-tools
+</tool.toolu_01Ln3S1pxvzV9Nrp3ZKeeg7n>
+
+### path
+
+<tool.toolu_01Ln3S1pxvzV9Nrp3ZKeeg7n>
+greger.el
+</tool.toolu_01Ln3S1pxvzV9Nrp3ZKeeg7n>
+
+## TOOL RESULT:
+
+ID: toolu_01Ln3S1pxvzV9Nrp3ZKeeg7n
+
+<tool.toolu_01Ln3S1pxvzV9Nrp3ZKeeg7n>
+435:(defun greger--execute-tools (tool-calls agent-state)
+
+</tool.toolu_01Ln3S1pxvzV9Nrp3ZKeeg7n>
+
+## TOOL USE:
+
+Name: read-file
+ID: toolu_01FDnr8Lr5zuHey7uPbiPrp9
+
+### path
+
+<tool.toolu_01FDnr8Lr5zuHey7uPbiPrp9>
+greger.el
+</tool.toolu_01FDnr8Lr5zuHey7uPbiPrp9>
+
+### start-line
+
+<tool.toolu_01FDnr8Lr5zuHey7uPbiPrp9>
+435
+</tool.toolu_01FDnr8Lr5zuHey7uPbiPrp9>
+
+### end-line
+
+<tool.toolu_01FDnr8Lr5zuHey7uPbiPrp9>
+475
+</tool.toolu_01FDnr8Lr5zuHey7uPbiPrp9>
+
+## TOOL RESULT:
+
+ID: toolu_01FDnr8Lr5zuHey7uPbiPrp9
+
+<tool.toolu_01FDnr8Lr5zuHey7uPbiPrp9>
+(defun greger--execute-tools (tool-calls agent-state)
+  "Execute TOOL-CALLS using AGENT-STATE in parallel with callbacks."
+  (let* ((total-tools (length tool-calls))
+         (completed-tools 0)
+         (search-start-pos nil))
+
+    ;; First, display the tool calls and reserve space for each tool's output
+    (with-current-buffer (greger-state-chat-buffer agent-state)
+      (goto-char (point-max))
+
+      ;; Remember where to start searching for placeholders
+      (setq search-start-pos (point))
+
+      ;; Display each tool call followed by its placeholder
+      (dolist (tool-call tool-calls)
+        (let ((tool-id (alist-get 'id tool-call))
+              (tool-block-markdown (greger-parser--content-blocks-to-markdown (list tool-call))))
+          (unless (string-empty-p tool-block-markdown)
+            (insert "\n\n" tool-block-markdown))
+          (insert "\n\n" (greger--tool-placeholder tool-id)))))
+
+    ;; Execute all tools in parallel
+    (dolist (tool-call tool-calls)
+      (let* ((tool-name (alist-get 'name tool-call))
+             (tool-input (alist-get 'input tool-call))
+             (tool-id (alist-get 'id tool-call)))
+
+        (let ((default-directory (greger-state-directory agent-state)))
+          (greger-tools-execute
+           tool-name
+           tool-input
+           (lambda (result error)
+             (greger--handle-tool-completion
+              tool-id result error agent-state search-start-pos
+              (lambda ()
+                (setq completed-tools (1+ completed-tools))
+                (when (= completed-tools total-tools)
+                  (greger--run-agent-loop agent-state)))))
+           (greger-state-chat-buffer agent-state)
+           (greger-state-metadata agent-state)))))))
+
+</tool.toolu_01FDnr8Lr5zuHey7uPbiPrp9>
+
+## ASSISTANT:
+
+Now I need to update this function to capture and track the greger-tool structs:
+
+## TOOL USE:
+
+Name: str-replace
+ID: toolu_0148Trs58zgAVh3vfy5wif3n
+
+### file-path
+
+<tool.toolu_0148Trs58zgAVh3vfy5wif3n>
+greger.el
+</tool.toolu_0148Trs58zgAVh3vfy5wif3n>
+
+### original-content
+
+<tool.toolu_0148Trs58zgAVh3vfy5wif3n>
+(defun greger--execute-tools (tool-calls agent-state)
+  "Execute TOOL-CALLS using AGENT-STATE in parallel with callbacks."
+  (let* ((total-tools (length tool-calls))
+         (completed-tools 0)
+         (search-start-pos nil))
+
+    ;; First, display the tool calls and reserve space for each tool's output
+    (with-current-buffer (greger-state-chat-buffer agent-state)
+      (goto-char (point-max))
+
+      ;; Remember where to start searching for placeholders
+      (setq search-start-pos (point))
+
+      ;; Display each tool call followed by its placeholder
+      (dolist (tool-call tool-calls)
+        (let ((tool-id (alist-get 'id tool-call))
+              (tool-block-markdown (greger-parser--content-blocks-to-markdown (list tool-call))))
+          (unless (string-empty-p tool-block-markdown)
+            (insert "\n\n" tool-block-markdown))
+          (insert "\n\n" (greger--tool-placeholder tool-id)))))
+
+    ;; Execute all tools in parallel
+    (dolist (tool-call tool-calls)
+      (let* ((tool-name (alist-get 'name tool-call))
+             (tool-input (alist-get 'input tool-call))
+             (tool-id (alist-get 'id tool-call)))
+
+        (let ((default-directory (greger-state-directory agent-state)))
+          (greger-tools-execute
+           tool-name
+           tool-input
+           (lambda (result error)
+             (greger--handle-tool-completion
+              tool-id result error agent-state search-start-pos
+              (lambda ()
+                (setq completed-tools (1+ completed-tools))
+                (when (= completed-tools total-tools)
+                  (greger--run-agent-loop agent-state)))))
+           (greger-state-chat-buffer agent-state)
+           (greger-state-metadata agent-state))))))
+</tool.toolu_0148Trs58zgAVh3vfy5wif3n>
+
+### new-content
+
+<tool.toolu_0148Trs58zgAVh3vfy5wif3n>
+(defun greger--execute-tools (tool-calls agent-state)
+  "Execute TOOL-CALLS using AGENT-STATE in parallel with callbacks."
+  (let* ((total-tools (length tool-calls))
+         (completed-tools 0)
+         (search-start-pos nil)
+         (executing-tools-map (make-hash-table :test 'equal)))
+
+    ;; Initialize executing-tools in agent-state if not already set
+    (unless (greger-state-executing-tools agent-state)
+      (setf (greger-state-executing-tools agent-state) executing-tools-map))
+
+    ;; First, display the tool calls and reserve space for each tool's output
+    (with-current-buffer (greger-state-chat-buffer agent-state)
+      (goto-char (point-max))
+
+      ;; Remember where to start searching for placeholders
+      (setq search-start-pos (point))
+
+      ;; Display each tool call followed by its placeholder
+      (dolist (tool-call tool-calls)
+        (let ((tool-id (alist-get 'id tool-call))
+              (tool-block-markdown (greger-parser--content-blocks-to-markdown (list tool-call))))
+          (unless (string-empty-p tool-block-markdown)
+            (insert "\n\n" tool-block-markdown))
+          (insert "\n\n" (greger--tool-placeholder tool-id)))))
+
+    ;; Execute all tools in parallel
+    (dolist (tool-call tool-calls)
+      (let* ((tool-name (alist-get 'name tool-call))
+             (tool-input (alist-get 'input tool-call))
+             (tool-id (alist-get 'id tool-call)))
+
+        (let ((default-directory (greger-state-directory agent-state)))
+          (let ((greger-tool (greger-tools-execute
+                              tool-name
+                              tool-input
+                              (lambda (result error)
+                                ;; Remove tool from executing-tools when complete
+                                (remhash tool-id (greger-state-executing-tools agent-state))
+                                (greger--handle-tool-completion
+                                 tool-id result error agent-state search-start-pos
+                                 (lambda ()
+                                   (setq completed-tools (1+ completed-tools))
+                                   (when (= completed-tools total-tools)
+                                     (greger--run-agent-loop agent-state)))))
+                              (greger-state-chat-buffer agent-state)
+                              (greger-state-metadata agent-state))))
+            ;; Store the greger-tool in executing-tools map
+            (puthash tool-id greger-tool (greger-state-executing-tools agent-state))))))
+</tool.toolu_0148Trs58zgAVh3vfy5wif3n>
+
+### git-commit-message
+
+<tool.toolu_0148Trs58zgAVh3vfy5wif3n>
+Update greger--execute-tools to track executing tools for cancellation
+</tool.toolu_0148Trs58zgAVh3vfy5wif3n>
+
+## TOOL RESULT:
+
+ID: toolu_0148Trs58zgAVh3vfy5wif3n
+
+<tool.toolu_0148Trs58zgAVh3vfy5wif3n>
+Error executing tool: Parentheses balance mismatch in Emacs Lisp file: original has balance 1, new has balance 2. They must be equal
+</tool.toolu_0148Trs58zgAVh3vfy5wif3n>
+
+## ASSISTANT:
+
+Let me fix the parentheses:
+
+## TOOL USE:
+
+Name: str-replace
+ID: toolu_01Fk1Zw664ZXAcpQBwLUxzfL
+
+### file-path
+
+<tool.toolu_01Fk1Zw664ZXAcpQBwLUxzfL>
+greger.el
+</tool.toolu_01Fk1Zw664ZXAcpQBwLUxzfL>
+
+### original-content
+
+<tool.toolu_01Fk1Zw664ZXAcpQBwLUxzfL>
+(defun greger--execute-tools (tool-calls agent-state)
+  "Execute TOOL-CALLS using AGENT-STATE in parallel with callbacks."
+  (let* ((total-tools (length tool-calls))
+         (completed-tools 0)
+         (search-start-pos nil))
+
+    ;; First, display the tool calls and reserve space for each tool's output
+    (with-current-buffer (greger-state-chat-buffer agent-state)
+      (goto-char (point-max))
+
+      ;; Remember where to start searching for placeholders
+      (setq search-start-pos (point))
+
+      ;; Display each tool call followed by its placeholder
+      (dolist (tool-call tool-calls)
+        (let ((tool-id (alist-get 'id tool-call))
+              (tool-block-markdown (greger-parser--content-blocks-to-markdown (list tool-call))))
+          (unless (string-empty-p tool-block-markdown)
+            (insert "\n\n" tool-block-markdown))
+          (insert "\n\n" (greger--tool-placeholder tool-id)))))
+
+    ;; Execute all tools in parallel
+    (dolist (tool-call tool-calls)
+      (let* ((tool-name (alist-get 'name tool-call))
+             (tool-input (alist-get 'input tool-call))
+             (tool-id (alist-get 'id tool-call)))
+
+        (let ((default-directory (greger-state-directory agent-state)))
+          (greger-tools-execute
+           tool-name
+           tool-input
+           (lambda (result error)
+             (greger--handle-tool-completion
+              tool-id result error agent-state search-start-pos
+              (lambda ()
+                (setq completed-tools (1+ completed-tools))
+                (when (= completed-tools total-tools)
+                  (greger--run-agent-loop agent-state)))))
+           (greger-state-chat-buffer agent-state)
+           (greger-state-metadata agent-state))))))
+</tool.toolu_01Fk1Zw664ZXAcpQBwLUxzfL>
+
+### new-content
+
+<tool.toolu_01Fk1Zw664ZXAcpQBwLUxzfL>
+(defun greger--execute-tools (tool-calls agent-state)
+  "Execute TOOL-CALLS using AGENT-STATE in parallel with callbacks."
+  (let* ((total-tools (length tool-calls))
+         (completed-tools 0)
+         (search-start-pos nil)
+         (executing-tools-map (make-hash-table :test 'equal)))
+
+    ;; Initialize executing-tools in agent-state if not already set
+    (unless (greger-state-executing-tools agent-state)
+      (setf (greger-state-executing-tools agent-state) executing-tools-map))
+
+    ;; First, display the tool calls and reserve space for each tool's output
+    (with-current-buffer (greger-state-chat-buffer agent-state)
+      (goto-char (point-max))
+
+      ;; Remember where to start searching for placeholders
+      (setq search-start-pos (point))
+
+      ;; Display each tool call followed by its placeholder
+      (dolist (tool-call tool-calls)
+        (let ((tool-id (alist-get 'id tool-call))
+              (tool-block-markdown (greger-parser--content-blocks-to-markdown (list tool-call))))
+          (unless (string-empty-p tool-block-markdown)
+            (insert "\n\n" tool-block-markdown))
+          (insert "\n\n" (greger--tool-placeholder tool-id)))))
+
+    ;; Execute all tools in parallel
+    (dolist (tool-call tool-calls)
+      (let* ((tool-name (alist-get 'name tool-call))
+             (tool-input (alist-get 'input tool-call))
+             (tool-id (alist-get 'id tool-call)))
+
+        (let ((default-directory (greger-state-directory agent-state)))
+          (let ((greger-tool (greger-tools-execute
+                              tool-name
+                              tool-input
+                              (lambda (result error)
+                                ;; Remove tool from executing-tools when complete
+                                (remhash tool-id (greger-state-executing-tools agent-state))
+                                (greger--handle-tool-completion
+                                 tool-id result error agent-state search-start-pos
+                                 (lambda ()
+                                   (setq completed-tools (1+ completed-tools))
+                                   (when (= completed-tools total-tools)
+                                     (greger--run-agent-loop agent-state)))))
+                              (greger-state-chat-buffer agent-state)
+                              (greger-state-metadata agent-state))))
+            ;; Store the greger-tool in executing-tools map
+            (puthash tool-id greger-tool (greger-state-executing-tools agent-state)))))
+</tool.toolu_01Fk1Zw664ZXAcpQBwLUxzfL>
+
+### git-commit-message
+
+<tool.toolu_01Fk1Zw664ZXAcpQBwLUxzfL>
+Update greger--execute-tools to track executing tools for cancellation
+</tool.toolu_01Fk1Zw664ZXAcpQBwLUxzfL>
+
+## TOOL RESULT:
+
+ID: toolu_01Fk1Zw664ZXAcpQBwLUxzfL
+
+<tool.toolu_01Fk1Zw664ZXAcpQBwLUxzfL>
+Error executing tool: Parentheses balance mismatch in Emacs Lisp file: original has balance 1, new has balance 3. They must be equal
+</tool.toolu_01Fk1Zw664ZXAcpQBwLUxzfL>
+
+## ASSISTANT:
+
+Let me check what's after this function to understand the parentheses balance:
+
+## TOOL USE:
+
+Name: read-file
+ID: toolu_016WxB2gVjT9LTfd6gw2hJX7
+
+### path
+
+<tool.toolu_016WxB2gVjT9LTfd6gw2hJX7>
+greger.el
+</tool.toolu_016WxB2gVjT9LTfd6gw2hJX7>
+
+### start-line
+
+<tool.toolu_016WxB2gVjT9LTfd6gw2hJX7>
+470
+</tool.toolu_016WxB2gVjT9LTfd6gw2hJX7>
+
+### end-line
+
+<tool.toolu_016WxB2gVjT9LTfd6gw2hJX7>
+485
+</tool.toolu_016WxB2gVjT9LTfd6gw2hJX7>
+
+## TOOL RESULT:
+
+ID: toolu_016WxB2gVjT9LTfd6gw2hJX7
+
+<tool.toolu_016WxB2gVjT9LTfd6gw2hJX7>
+                (setq completed-tools (1+ completed-tools))
+                (when (= completed-tools total-tools)
+                  (greger--run-agent-loop agent-state)))))
+           (greger-state-chat-buffer agent-state)
+           (greger-state-metadata agent-state)))))))
+
+(defun greger--append-text (text agent-state)
+  "Append TEXT to the chat buffer in AGENT-STATE."
+  (with-current-buffer (greger-state-chat-buffer agent-state)
+    (goto-char (point-max))
+    (insert text)))
+
+(defun greger--handle-tool-completion (tool-id result error agent-state search-start-pos completion-callback)
+  "Handle completion of a tool execution by updating buffer and calling callback.
+TOOL-ID is the tool identifier.
+RESULT is the tool execution result.
+</tool.toolu_016WxB2gVjT9LTfd6gw2hJX7>
+
+## ASSISTANT:
+
+I see there are extra closing parentheses. Let me fix this:
+
+## TOOL USE:
+
+Name: str-replace
+ID: toolu_01USjoeYH7TtcFctxjJcg6EG
+
+### file-path
+
+<tool.toolu_01USjoeYH7TtcFctxjJcg6EG>
+greger.el
+</tool.toolu_01USjoeYH7TtcFctxjJcg6EG>
+
+### original-content
+
+<tool.toolu_01USjoeYH7TtcFctxjJcg6EG>
+        (let ((default-directory (greger-state-directory agent-state)))
+          (greger-tools-execute
+           tool-name
+           tool-input
+           (lambda (result error)
+             (greger--handle-tool-completion
+              tool-id result error agent-state search-start-pos
+              (lambda ()
+                (setq completed-tools (1+ completed-tools))
+                (when (= completed-tools total-tools)
+                  (greger--run-agent-loop agent-state)))))
+           (greger-state-chat-buffer agent-state)
+           (greger-state-metadata agent-state))))))
+</tool.toolu_01USjoeYH7TtcFctxjJcg6EG>
+
+### new-content
+
+<tool.toolu_01USjoeYH7TtcFctxjJcg6EG>
+        (let ((default-directory (greger-state-directory agent-state)))
+          (let ((greger-tool (greger-tools-execute
+                              tool-name
+                              tool-input
+                              (lambda (result error)
+                                ;; Remove tool from executing-tools when complete
+                                (remhash tool-id (greger-state-executing-tools agent-state))
+                                (greger--handle-tool-completion
+                                 tool-id result error agent-state search-start-pos
+                                 (lambda ()
+                                   (setq completed-tools (1+ completed-tools))
+                                   (when (= completed-tools total-tools)
+                                     (greger--run-agent-loop agent-state)))))
+                              (greger-state-chat-buffer agent-state)
+                              (greger-state-metadata agent-state))))
+            ;; Store the greger-tool in executing-tools map
+            (puthash tool-id greger-tool (greger-state-executing-tools agent-state))))))
+</tool.toolu_01USjoeYH7TtcFctxjJcg6EG>
+
+### git-commit-message
+
+<tool.toolu_01USjoeYH7TtcFctxjJcg6EG>
+Fix greger--execute-tools parentheses and add tool tracking
+</tool.toolu_01USjoeYH7TtcFctxjJcg6EG>
+
+## TOOL RESULT:
+
+ID: toolu_01USjoeYH7TtcFctxjJcg6EG
+
+<tool.toolu_01USjoeYH7TtcFctxjJcg6EG>
+Error executing tool: Parentheses balance mismatch in Emacs Lisp file: original has balance -3, new has balance -2. They must be equal
+</tool.toolu_01USjoeYH7TtcFctxjJcg6EG>
+
+## ASSISTANT:
+
+Let me check the full function end more carefully:
+
+## TOOL USE:
+
+Name: read-file
+ID: toolu_01CaLzbJnqXEFSkQpURsoeCW
+
+### path
+
+<tool.toolu_01CaLzbJnqXEFSkQpURsoeCW>
+greger.el
+</tool.toolu_01CaLzbJnqXEFSkQpURsoeCW>
+
+### start-line
+
+<tool.toolu_01CaLzbJnqXEFSkQpURsoeCW>
+460
+</tool.toolu_01CaLzbJnqXEFSkQpURsoeCW>
+
+### end-line
+
+<tool.toolu_01CaLzbJnqXEFSkQpURsoeCW>
+480
+</tool.toolu_01CaLzbJnqXEFSkQpURsoeCW>
+
+## TOOL RESULT:
+
+ID: toolu_01CaLzbJnqXEFSkQpURsoeCW
+
+<tool.toolu_01CaLzbJnqXEFSkQpURsoeCW>
+             (tool-id (alist-get 'id tool-call)))
+
+        (let ((default-directory (greger-state-directory agent-state)))
+          (greger-tools-execute
+           tool-name
+           tool-input
+           (lambda (result error)
+             (greger--handle-tool-completion
+              tool-id result error agent-state search-start-pos
+              (lambda ()
+                (setq completed-tools (1+ completed-tools))
+                (when (= completed-tools total-tools)
+                  (greger--run-agent-loop agent-state)))))
+           (greger-state-chat-buffer agent-state)
+           (greger-state-metadata agent-state)))))))
+
+(defun greger--append-text (text agent-state)
+  "Append TEXT to the chat buffer in AGENT-STATE."
+  (with-current-buffer (greger-state-chat-buffer agent-state)
+    (goto-char (point-max))
+    (insert text)))
+</tool.toolu_01CaLzbJnqXEFSkQpURsoeCW>
+
+## ASSISTANT:
+
+I see the problem. Let me replace the exact section to avoid the unmatched parentheses:
+
+## TOOL USE:
+
+Name: str-replace
+ID: toolu_01AuS17ygh6PRfLrSLP6UMBs
+
+### file-path
+
+<tool.toolu_01AuS17ygh6PRfLrSLP6UMBs>
+greger.el
+</tool.toolu_01AuS17ygh6PRfLrSLP6UMBs>
+
+### original-content
+
+<tool.toolu_01AuS17ygh6PRfLrSLP6UMBs>
+        (let ((default-directory (greger-state-directory agent-state)))
+          (greger-tools-execute
+           tool-name
+           tool-input
+           (lambda (result error)
+             (greger--handle-tool-completion
+              tool-id result error agent-state search-start-pos
+              (lambda ()
+                (setq completed-tools (1+ completed-tools))
+                (when (= completed-tools total-tools)
+                  (greger--run-agent-loop agent-state)))))
+           (greger-state-chat-buffer agent-state)
+           (greger-state-metadata agent-state))))))
+</tool.toolu_01AuS17ygh6PRfLrSLP6UMBs>
+
+### new-content
+
+<tool.toolu_01AuS17ygh6PRfLrSLP6UMBs>
+        (let ((default-directory (greger-state-directory agent-state)))
+          (let ((greger-tool (greger-tools-execute
+                              tool-name
+                              tool-input
+                              (lambda (result error)
+                                ;; Remove tool from executing-tools when complete
+                                (remhash tool-id (greger-state-executing-tools agent-state))
+                                (greger--handle-tool-completion
+                                 tool-id result error agent-state search-start-pos
+                                 (lambda ()
+                                   (setq completed-tools (1+ completed-tools))
+                                   (when (= completed-tools total-tools)
+                                     (greger--run-agent-loop agent-state)))))
+                              (greger-state-chat-buffer agent-state)
+                              (greger-state-metadata agent-state))))
+            ;; Store the greger-tool in executing-tools map
+            (puthash tool-id greger-tool (greger-state-executing-tools agent-state))))))
+</tool.toolu_01AuS17ygh6PRfLrSLP6UMBs>
+
+### git-commit-message
+
+<tool.toolu_01AuS17ygh6PRfLrSLP6UMBs>
+Fix greger--execute-tools to properly track executing tools
+</tool.toolu_01AuS17ygh6PRfLrSLP6UMBs>
+
+## TOOL RESULT:
+
+ID: toolu_01AuS17ygh6PRfLrSLP6UMBs
+
+<tool.toolu_01AuS17ygh6PRfLrSLP6UMBs>
+Error executing tool: Parentheses balance mismatch in Emacs Lisp file: original has balance -3, new has balance -2. They must be equal
+</tool.toolu_01AuS17ygh6PRfLrSLP6UMBs>
+
+## ASSISTANT:
+
+Let me check the larger context to fix this properly. Let me use the replace-function approach:
+
+## TOOL USE:
+
+Name: replace-function
+ID: toolu_01FUhwS8YgP4qU2mMqiTe51i
+
+### file_path
+
+<tool.toolu_01FUhwS8YgP4qU2mMqiTe51i>
+greger.el
+</tool.toolu_01FUhwS8YgP4qU2mMqiTe51i>
+
+### function_name
+
+<tool.toolu_01FUhwS8YgP4qU2mMqiTe51i>
+greger--execute-tools
+</tool.toolu_01FUhwS8YgP4qU2mMqiTe51i>
+
+### line_number
+
+<tool.toolu_01FUhwS8YgP4qU2mMqiTe51i>
+435
+</tool.toolu_01FUhwS8YgP4qU2mMqiTe51i>
+
+### contents
+
+<tool.toolu_01FUhwS8YgP4qU2mMqiTe51i>
+(defun greger--execute-tools (tool-calls agent-state)
+  "Execute TOOL-CALLS using AGENT-STATE in parallel with callbacks."
+  (let* ((total-tools (length tool-calls))
+         (completed-tools 0)
+         (search-start-pos nil)
+         (executing-tools-map (make-hash-table :test 'equal)))
+
+    ;; Initialize executing-tools in agent-state if not already set
+    (unless (greger-state-executing-tools agent-state)
+      (setf (greger-state-executing-tools agent-state) executing-tools-map))
+
+    ;; First, display the tool calls and reserve space for each tool's output
+    (with-current-buffer (greger-state-chat-buffer agent-state)
+      (goto-char (point-max))
+
+      ;; Remember where to start searching for placeholders
+      (setq search-start-pos (point))
+
+      ;; Display each tool call followed by its placeholder
+      (dolist (tool-call tool-calls)
+        (let ((tool-id (alist-get 'id tool-call))
+              (tool-block-markdown (greger-parser--content-blocks-to-markdown (list tool-call))))
+          (unless (string-empty-p tool-block-markdown)
+            (insert "\n\n" tool-block-markdown))
+          (insert "\n\n" (greger--tool-placeholder tool-id)))))
+
+    ;; Execute all tools in parallel
+    (dolist (tool-call tool-calls)
+      (let* ((tool-name (alist-get 'name tool-call))
+             (tool-input (alist-get 'input tool-call))
+             (tool-id (alist-get 'id tool-call)))
+
+        (let ((default-directory (greger-state-directory agent-state)))
+          (let ((greger-tool (greger-tools-execute
+                              tool-name
+                              tool-input
+                              (lambda (result error)
+                                ;; Remove tool from executing-tools when complete
+                                (remhash tool-id (greger-state-executing-tools agent-state))
+                                (greger--handle-tool-completion
+                                 tool-id result error agent-state search-start-pos
+                                 (lambda ()
+                                   (setq completed-tools (1+ completed-tools))
+                                   (when (= completed-tools total-tools)
+                                     (greger--run-agent-loop agent-state)))))
+                              (greger-state-chat-buffer agent-state)
+                              (greger-state-metadata agent-state))))
+            ;; Store the greger-tool in executing-tools map
+            (puthash tool-id greger-tool (greger-state-executing-tools agent-state)))))))
+</tool.toolu_01FUhwS8YgP4qU2mMqiTe51i>
+
+### commit_message
+
+<tool.toolu_01FUhwS8YgP4qU2mMqiTe51i>
+Update greger--execute-tools to track executing tools for cancellation
+</tool.toolu_01FUhwS8YgP4qU2mMqiTe51i>
+
+## TOOL RESULT:
+
+ID: toolu_01FUhwS8YgP4qU2mMqiTe51i
+
+<tool.toolu_01FUhwS8YgP4qU2mMqiTe51i>
+Error executing tool: Invalid type: file_path must be a string
+</tool.toolu_01FUhwS8YgP4qU2mMqiTe51i>
+
+## TOOL USE:
+
+Name: replace-function
+ID: toolu_018ddgLNGt2XvNi941XfU19L
+
+### file_path
+
+<tool.toolu_018ddgLNGt2XvNi941XfU19L>
+greger.el
+</tool.toolu_018ddgLNGt2XvNi941XfU19L>
+
+### function_name
+
+<tool.toolu_018ddgLNGt2XvNi941XfU19L>
+greger--execute-tools
+</tool.toolu_018ddgLNGt2XvNi941XfU19L>
+
+### line_number
+
+<tool.toolu_018ddgLNGt2XvNi941XfU19L>
+435
+</tool.toolu_018ddgLNGt2XvNi941XfU19L>
+
+### contents
+
+<tool.toolu_018ddgLNGt2XvNi941XfU19L>
+(defun greger--execute-tools (tool-calls agent-state)
+  "Execute TOOL-CALLS using AGENT-STATE in parallel with callbacks."
+  (let* ((total-tools (length tool-calls))
+         (completed-tools 0)
+         (search-start-pos nil)
+         (executing-tools-map (make-hash-table :test 'equal)))
+
+    ;; Initialize executing-tools in agent-state if not already set
+    (unless (greger-state-executing-tools agent-state)
+      (setf (greger-state-executing-tools agent-state) executing-tools-map))
+
+    ;; First, display the tool calls and reserve space for each tool's output
+    (with-current-buffer (greger-state-chat-buffer agent-state)
+      (goto-char (point-max))
+
+      ;; Remember where to start searching for placeholders
+      (setq search-start-pos (point))
+
+      ;; Display each tool call followed by its placeholder
+      (dolist (tool-call tool-calls)
+        (let ((tool-id (alist-get 'id tool-call))
+              (tool-block-markdown (greger-parser--content-blocks-to-markdown (list tool-call))))
+          (unless (string-empty-p tool-block-markdown)
+            (insert "\n\n" tool-block-markdown))
+          (insert "\n\n" (greger--tool-placeholder tool-id)))))
+
+    ;; Execute all tools in parallel
+    (dolist (tool-call tool-calls)
+      (let* ((tool-name (alist-get 'name tool-call))
+             (tool-input (alist-get 'input tool-call))
+             (tool-id (alist-get 'id tool-call)))
+
+        (let ((default-directory (greger-state-directory agent-state)))
+          (let ((greger-tool (greger-tools-execute
+                              tool-name
+                              tool-input
+                              (lambda (result error)
+                                ;; Remove tool from executing-tools when complete
+                                (remhash tool-id (greger-state-executing-tools agent-state))
+                                (greger--handle-tool-completion
+                                 tool-id result error agent-state search-start-pos
+                                 (lambda ()
+                                   (setq completed-tools (1+ completed-tools))
+                                   (when (= completed-tools total-tools)
+                                     (greger--run-agent-loop agent-state)))))
+                              (greger-state-chat-buffer agent-state)
+                              (greger-state-metadata agent-state))))
+            ;; Store the greger-tool in executing-tools map
+            (puthash tool-id greger-tool (greger-state-executing-tools agent-state)))))))
+</tool.toolu_018ddgLNGt2XvNi941XfU19L>
+
+### commit_message
+
+<tool.toolu_018ddgLNGt2XvNi941XfU19L>
+Update greger--execute-tools to track executing tools for cancellation
+</tool.toolu_018ddgLNGt2XvNi941XfU19L>
+
+## TOOL RESULT:
+
+ID: toolu_018ddgLNGt2XvNi941XfU19L
+
+<tool.toolu_018ddgLNGt2XvNi941XfU19L>
+Error executing tool: Invalid type: file_path must be a string
+</tool.toolu_018ddgLNGt2XvNi941XfU19L>
+
+## TOOL USE:
+
+Name: replace-function
+ID: toolu_01GmvULH9oj1hDSAV7tPFdn8
+
+### file_path
+
+<tool.toolu_01GmvULH9oj1hDSAV7tPFdn8>
+/greger.el
+</tool.toolu_01GmvULH9oj1hDSAV7tPFdn8>
+
+### function_name
+
+<tool.toolu_01GmvULH9oj1hDSAV7tPFdn8>
+greger--execute-tools
+</tool.toolu_01GmvULH9oj1hDSAV7tPFdn8>
+
+### line_number
+
+<tool.toolu_01GmvULH9oj1hDSAV7tPFdn8>
+435
+</tool.toolu_01GmvULH9oj1hDSAV7tPFdn8>
+
+### contents
+
+<tool.toolu_01GmvULH9oj1hDSAV7tPFdn8>
+(defun greger--execute-tools (tool-calls agent-state)
+  "Execute TOOL-CALLS using AGENT-STATE in parallel with callbacks."
+  (let* ((total-tools (length tool-calls))
+         (completed-tools 0)
+         (search-start-pos nil)
+         (executing-tools-map (make-hash-table :test 'equal)))
+
+    ;; Initialize executing-tools in agent-state if not already set
+    (unless (greger-state-executing-tools agent-state)
+      (setf (greger-state-executing-tools agent-state) executing-tools-map))
+
+    ;; First, display the tool calls and reserve space for each tool's output
+    (with-current-buffer (greger-state-chat-buffer agent-state)
+      (goto-char (point-max))
+
+      ;; Remember where to start searching for placeholders
+      (setq search-start-pos (point))
+
+      ;; Display each tool call followed by its placeholder
+      (dolist (tool-call tool-calls)
+        (let ((tool-id (alist-get 'id tool-call))
+              (tool-block-markdown (greger-parser--content-blocks-to-markdown (list tool-call))))
+          (unless (string-empty-p tool-block-markdown)
+            (insert "\n\n" tool-block-markdown))
+          (insert "\n\n" (greger--tool-placeholder tool-id)))))
+
+    ;; Execute all tools in parallel
+    (dolist (tool-call tool-calls)
+      (let* ((tool-name (alist-get 'name tool-call))
+             (tool-input (alist-get 'input tool-call))
+             (tool-id (alist-get 'id tool-call)))
+
+        (let ((default-directory (greger-state-directory agent-state)))
+          (let ((greger-tool (greger-tools-execute
+                              tool-name
+                              tool-input
+                              (lambda (result error)
+                                ;; Remove tool from executing-tools when complete
+                                (remhash tool-id (greger-state-executing-tools agent-state))
+                                (greger--handle-tool-completion
+                                 tool-id result error agent-state search-start-pos
+                                 (lambda ()
+                                   (setq completed-tools (1+ completed-tools))
+                                   (when (= completed-tools total-tools)
+                                     (greger--run-agent-loop agent-state)))))
+                              (greger-state-chat-buffer agent-state)
+                              (greger-state-metadata agent-state))))
+            ;; Store the greger-tool in executing-tools map
+            (puthash tool-id greger-tool (greger-state-executing-tools agent-state)))))))
+</tool.toolu_01GmvULH9oj1hDSAV7tPFdn8>
+
+### commit_message
+
+<tool.toolu_01GmvULH9oj1hDSAV7tPFdn8>
+Update greger--execute-tools to track executing tools for cancellation
+</tool.toolu_01GmvULH9oj1hDSAV7tPFdn8>
+
+## TOOL RESULT:
+
+ID: toolu_01GmvULH9oj1hDSAV7tPFdn8
+
+<tool.toolu_01GmvULH9oj1hDSAV7tPFdn8>
+Error executing tool: Invalid type: file_path must be a string
+</tool.toolu_01GmvULH9oj1hDSAV7tPFdn8>
+
+## ASSISTANT:
+
+Let me just use str-replace with a smaller piece to fix this correctly:
+
+## TOOL USE:
+
+Name: str-replace
+ID: toolu_01YDFfWQShUTMw7gUChWncE8
+
+### file-path
+
+<tool.toolu_01YDFfWQShUTMw7gUChWncE8>
+greger.el
+</tool.toolu_01YDFfWQShUTMw7gUChWncE8>
+
+### original-content
+
+<tool.toolu_01YDFfWQShUTMw7gUChWncE8>
+(defun greger--execute-tools (tool-calls agent-state)
+  "Execute TOOL-CALLS using AGENT-STATE in parallel with callbacks."
+  (let* ((total-tools (length tool-calls))
+         (completed-tools 0)
+         (search-start-pos nil))
+</tool.toolu_01YDFfWQShUTMw7gUChWncE8>
+
+### new-content
+
+<tool.toolu_01YDFfWQShUTMw7gUChWncE8>
+(defun greger--execute-tools (tool-calls agent-state)
+  "Execute TOOL-CALLS using AGENT-STATE in parallel with callbacks."
+  (let* ((total-tools (length tool-calls))
+         (completed-tools 0)
+         (search-start-pos nil)
+         (executing-tools-map (make-hash-table :test 'equal)))
+
+    ;; Initialize executing-tools in agent-state if not already set
+    (unless (greger-state-executing-tools agent-state)
+      (setf (greger-state-executing-tools agent-state) executing-tools-map))
+</tool.toolu_01YDFfWQShUTMw7gUChWncE8>
+
+### git-commit-message
+
+<tool.toolu_01YDFfWQShUTMw7gUChWncE8>
+Add executing-tools map initialization to greger--execute-tools
+</tool.toolu_01YDFfWQShUTMw7gUChWncE8>
+
+<!-- TOOL_RESULT_PLACEHOLDER_toolu_01YDFfWQShUTMw7gUChWncE8 -->
