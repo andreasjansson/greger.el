@@ -3417,4 +3417,674 @@ greger-client.el
 Disable debug message that causes format string errors
 </tool.toolu_01FLEtD9seWMfBMjXEXYBLcq>
 
-<!-- TOOL_RESULT_PLACEHOLDER_toolu_01FLEtD9seWMfBMjXEXYBLcq -->
+## TOOL RESULT:
+
+ID: toolu_01FLEtD9seWMfBMjXEXYBLcq
+
+<tool.toolu_01FLEtD9seWMfBMjXEXYBLcq>
+Successfully replaced content in /Users/andreas/projects/greger.el/greger-client.el. Successfully staged 2 file(s) and committed with message: Disable debug message that causes format string errors
+</tool.toolu_01FLEtD9seWMfBMjXEXYBLcq>
+
+## ASSISTANT:
+
+Now let me add a web_search server tool registration. First, let me check if there's any existing registration or if I need to create it:
+
+## TOOL USE:
+
+Name: ripgrep
+ID: toolu_011r6sGmu4BxDHHy9piN1gLi
+
+### pattern
+
+<tool.toolu_011r6sGmu4BxDHHy9piN1gLi>
+web_search"
+</tool.toolu_011r6sGmu4BxDHHy9piN1gLi>
+
+### context-lines
+
+<tool.toolu_011r6sGmu4BxDHHy9piN1gLi>
+3
+</tool.toolu_011r6sGmu4BxDHHy9piN1gLi>
+
+## TOOL RESULT:
+
+ID: toolu_011r6sGmu4BxDHHy9piN1gLi
+
+<tool.toolu_011r6sGmu4BxDHHy9piN1gLi>
+/Users/andreas/projects/greger.el/greger-stdlib.el-34-(require 'greger-web)
+/Users/andreas/projects/greger.el/greger-stdlib.el-35-
+/Users/andreas/projects/greger.el/greger-stdlib.el-36-;; Register all tools using the macro
+/Users/andreas/projects/greger.el/greger-stdlib.el:37:(greger-register-server-tool "web_search"
+/Users/andreas/projects/greger.el/greger-stdlib.el-38-    :type "web_search_20250305"
+/Users/andreas/projects/greger.el/greger-stdlib.el:39:    :name "web_search"
+/Users/andreas/projects/greger.el/greger-stdlib.el-40-    :max_uses 20)
+/Users/andreas/projects/greger.el/greger-stdlib.el-41-
+/Users/andreas/projects/greger.el/greger-stdlib.el-42-(greger-register-tool "read-file"
+--
+/Users/andreas/projects/greger.el/chat.ai-23-data: {"type":"message_start","message":{"id":"msg_016vsE9dDoMcebk8WJt6UjHK","type":"message","role":"assistant","model":"claude-sonnet-4-20250514","content":[],"stop_reason":null,"stop_sequence":null,"usage":{"input_tokens":4254,"cache_creation_input_tokens":0,"cache_read_input_tokens":0,"output_tokens":1,"service_tier":"standard"}}         }
+/Users/andreas/projects/greger.el/chat.ai-24- [2 times]
+/Users/andreas/projects/greger.el/chat.ai-25-output: event: content_block_start
+/Users/andreas/projects/greger.el/chat.ai:26:data: {"type":"content_block_start","index":0,"content_block":{"type":"server_tool_use","id":"srvtoolu_01BakVdmVAziJk2xxRtxCUBN","name":"web_search","input":{}}    }
+/Users/andreas/projects/greger.el/chat.ai-27-
+/Users/andreas/projects/greger.el/chat.ai-28-event: content_block_delta
+/Users/andreas/projects/greger.el/chat.ai-29-data: {"type":"content_block_delta","index":0,"delta":{"type":"input_json_delta","partial_json":""}  }
+--
+/Users/andreas/projects/greger.el/chat.ai-959-/Users/andreas/projects/greger.el/test/test-greger-parser.el-609-
+/Users/andreas/projects/greger.el/chat.ai-960-/Users/andreas/projects/greger.el/test/test-greger-parser.el-610-The current weather in San Francisco is sunny and 72°F."
+/Users/andreas/projects/greger.el/chat.ai-961-/Users/andreas/projects/greger.el/test/test-greger-parser.el-611-           :dialog (((role . "user") (content . "Search for current weather in San Francisco"))
+/Users/andreas/projects/greger.el/chat.ai:962:/Users/andreas/projects/greger.el/test/test-greger-parser.el:612:                    ((role . "assistant") (content . (((type . "server_tool_use") (id . "srvtoolu_123") (name . "web_search") (input . ((query . "current weather San Francisco"))))
+/Users/andreas/projects/greger.el/chat.ai-963-/Users/andreas/projects/greger.el/test/test-greger-parser.el:613:                                                      ((type . "server_tool_result") (tool_use_id . "srvtoolu_123") (content . "[{\"title\": \"Weather in San Francisco\", \"url\": \"https://weather.com/sf\", \"content\": \"Sunny, 72°F\"}]"))
+/Users/andreas/projects/greger.el/chat.ai-964-/Users/andreas/projects/greger.el/test/test-greger-parser.el-614-                                                      ((type . "text") (text . "The current weather in San Francisco is sunny and 72°F.")))))))
+/Users/andreas/projects/greger.el/chat.ai-965-/Users/andreas/projects/greger.el/test/test-greger-parser.el-615-
+--
+/Users/andreas/projects/greger.el/chat.ai-972-/Users/andreas/projects/greger.el/test/test-greger-parser.el-641-
+/Users/andreas/projects/greger.el/chat.ai-973-/Users/andreas/projects/greger.el/test/test-greger-parser.el-642-It looks like it's sunny and warm today!"
+/Users/andreas/projects/greger.el/chat.ai-974-/Users/andreas/projects/greger.el/test/test-greger-parser.el-643-           :dialog (((role . "user") (content . "What's the weather like?"))
+/Users/andreas/projects/greger.el/chat.ai:975:/Users/andreas/projects/greger.el/test/test-greger-parser.el:644:                    ((role . "assistant") (content . (((type . "server_tool_use") (id . "srvtoolu_456") (name . "web_search") (input . ((query . "weather"))))
+/Users/andreas/projects/greger.el/chat.ai-976-/Users/andreas/projects/greger.el/test/test-greger-parser.el:645:                                                      ((type . "server_tool_result") (tool_use_id . "srvtoolu_456") (content . "Sunny and warm today"))
+/Users/andreas/projects/greger.el/chat.ai-977-/Users/andreas/projects/greger.el/test/test-greger-parser.el-646-                                                      ((type . "text") (text . "It looks like it's sunny and warm today!")))))))))
+/Users/andreas/projects/greger.el/chat.ai-978-/Users/andreas/projects/greger.el/test/test-greger-parser.el-647-
+--
+/Users/andreas/projects/greger.el/chat.ai-1003-/Users/andreas/projects/greger.el/chat.ai-293-    {
+/Users/andreas/projects/greger.el/chat.ai-1004-/Users/andreas/projects/greger.el/chat.ai:294:      "type": "server_tool_use",
+/Users/andreas/projects/greger.el/chat.ai-1005-/Users/andreas/projects/greger.el/chat.ai-295-      "id": "srvtoolu_01WYG3ziw53XMcoyKL4XcZmE",
+/Users/andreas/projects/greger.el/chat.ai:1006:/Users/andreas/projects/greger.el/chat.ai-296-      "name": "web_search",
+/Users/andreas/projects/greger.el/chat.ai-1007-/Users/andreas/projects/greger.el/chat.ai-297-      "input": {
+/Users/andreas/projects/greger.el/chat.ai-1008-/Users/andreas/projects/greger.el/chat.ai-298-        "query": "claude shannon birth date"
+/Users/andreas/projects/greger.el/chat.ai-1009-/Users/andreas/projects/greger.el/chat.ai-299-      }
+--
+/Users/andreas/projects/greger.el/chat.ai-1025-/Users/andreas/projects/greger.el/chat.ai-482-// Claude's decision to search
+/Users/andreas/projects/greger.el/chat.ai-1026-/Users/andreas/projects/greger.el/chat.ai-483-
+/Users/andreas/projects/greger.el/chat.ai-1027-/Users/andreas/projects/greger.el/chat.ai-484-event: content_block_start
+/Users/andreas/projects/greger.el/chat.ai:1028:/Users/andreas/projects/greger.el/chat.ai:485:data: {"type": "content_block_start", "index": 1, "content_block": {"type": "server_tool_use", "id": "srvtoolu_xyz789", "name": "web_search"}}
+/Users/andreas/projects/greger.el/chat.ai-1029-/Users/andreas/projects/greger.el/chat.ai-486-
+/Users/andreas/projects/greger.el/chat.ai-1030-/Users/andreas/projects/greger.el/chat.ai-487-// Search query streamed
+/Users/andreas/projects/greger.el/chat.ai-1031-/Users/andreas/projects/greger.el/chat.ai-488-event: content_block_delta
+--
+/Users/andreas/projects/greger.el/chat.ai-1095-/Users/andreas/projects/greger.el/chat.ai-3946-
+/Users/andreas/projects/greger.el/chat.ai-1096-/Users/andreas/projects/greger.el/chat.ai-3947-The current weather in San Francisco is sunny and 72°F."
+/Users/andreas/projects/greger.el/chat.ai-1097-/Users/andreas/projects/greger.el/chat.ai-3948-           :dialog (((role . "user") (content . "Search for current weather in San Francisco"))
+/Users/andreas/projects/greger.el/chat.ai:1098:/Users/andreas/projects/greger.el/chat.ai:3949:                    ((role . "assistant") (content . (((type . "server_tool_use") (id . "srvtoolu_123") (name . "web_search") (input . ((query . "current weather San Francisco")))))))
+/Users/andreas/projects/greger.el/chat.ai-1099-/Users/andreas/projects/greger.el/chat.ai:3950:                    ((role . "assistant") (content . (((type . "server_tool_result") (tool_use_id . "srvtoolu_123") (content . ((results . [((title . "Weather in San Francisco") (url . "https://weather.com/sf") (content . "Sunny, 72°F"))])))))))
+/Users/andreas/projects/greger.el/chat.ai-1100-/Users/andreas/projects/greger.el/chat.ai-3951-                    ((role . "assistant") (content . "The current weather in San Francisco is sunny and 72°F."))))
+/Users/andreas/projects/greger.el/chat.ai-1101-/Users/andreas/projects/greger.el/chat.ai-3952-
+--
+/Users/andreas/projects/greger.el/chat.ai-1108-/Users/andreas/projects/greger.el/chat.ai-3972-
+/Users/andreas/projects/greger.el/chat.ai-1109-/Users/andreas/projects/greger.el/chat.ai-3973-It looks like it's sunny and warm today!"
+/Users/andreas/projects/greger.el/chat.ai-1110-/Users/andreas/projects/greger.el/chat.ai-3974-           :dialog (((role . "user") (content . "What's the weather like?"))
+/Users/andreas/projects/greger.el/chat.ai:1111:/Users/andreas/projects/greger.el/chat.ai:3975:                    ((role . "assistant") (content . (((type . "server_tool_use") (id . "srvtoolu_456") (name . "web_search") (input . ((query . "weather")))))))
+/Users/andreas/projects/greger.el/chat.ai-1112-/Users/andreas/projects/greger.el/chat.ai:3976:                    ((role . "assistant") (content . (((type . "server_tool_result") (tool_use_id . "srvtoolu_456") (content . "Sunny and warm today")))))
+/Users/andreas/projects/greger.el/chat.ai-1113-/Users/andreas/projects/greger.el/chat.ai-3977-                    ((role . "assistant") (content . "It looks like it's sunny and warm today!"))))
+/Users/andreas/projects/greger.el/chat.ai-1114-/Users/andreas/projects/greger.el/chat.ai-3978-    ))
+--
+/Users/andreas/projects/greger.el/chat.ai-1137-/Users/andreas/projects/greger.el/chat.ai-4344-[PARSER DEBUG] Advanced from 148 to 149
+/Users/andreas/projects/greger.el/chat.ai-1138-/Users/andreas/projects/greger.el/chat.ai-4345-[PARSER DEBUG] Advanced from 149 to 150
+/Users/andreas/projects/greger.el/chat.ai-1139-/Users/andreas/projects/greger.el/chat.ai-4346-[PARSER DEBUG] Advanced from 150 to 151
+/Users/andreas/projects/greger.el/chat.ai:1140:/Users/andreas/projects/greger.el/chat.ai:4347:(((role . "user") (content . "Test")) ((role . "assistant") (content ((type . "server_tool_use") (id . "srvtoolu_123") (name . "web_search") (input (query . "test"))) ((type . "server_tool_result") (tool_use_id . "srvtoolu_123") (content (result . "data"))))))
+/Users/andreas/projects/greger.el/chat.ai-1141-/Users/andreas/projects/greger.el/chat.ai-4348-</tool.toolu_01YQ3UgzUg3KnKxonB5QUiyv>
+/Users/andreas/projects/greger.el/chat.ai-1142-/Users/andreas/projects/greger.el/chat.ai-4349-
+/Users/andreas/projects/greger.el/chat.ai-1143-/Users/andreas/projects/greger.el/chat.ai-4350-## ASSISTANT:
+--
+/Users/andreas/projects/greger.el/chat.ai-1160-/Users/andreas/projects/greger.el/chat.ai-4375-
+/Users/andreas/projects/greger.el/chat.ai-1161-/Users/andreas/projects/greger.el/chat.ai-4376-<tool.toolu_01WNzpc3cNpvYYjPqo37CUfP>
+/Users/andreas/projects/greger.el/chat.ai-1162-/Users/andreas/projects/greger.el/chat.ai-4377-           :dialog (((role . "user") (content . "Search for current weather in San Francisco"))
+/Users/andreas/projects/greger.el/chat.ai:1163:/Users/andreas/projects/greger.el/chat.ai:4378:                    ((role . "assistant") (content . (((type . "server_tool_use") (id . "srvtoolu_123") (name . "web_search") (input . ((query . "current weather San Francisco")))))))
+/Users/andreas/projects/greger.el/chat.ai-1164-/Users/andreas/projects/greger.el/chat.ai:4379:                    ((role . "assistant") (content . (((type . "server_tool_result") (tool_use_id . "srvtoolu_123") (content . ((results . [((title . "Weather in San Francisco") (url . "https://weather.com/sf") (content . "Sunny, 72°F"))])))))))
+/Users/andreas/projects/greger.el/chat.ai-1165-/Users/andreas/projects/greger.el/chat.ai-4380-                    ((role . "assistant") (content . "The current weather in San Francisco is sunny and 72°F."))))
+/Users/andreas/projects/greger.el/chat.ai-1166-/Users/andreas/projects/greger.el/chat.ai-4381-</tool.toolu_01WNzpc3cNpvYYjPqo37CUfP>
+--
+/Users/andreas/projects/greger.el/chat.ai-1169-/Users/andreas/projects/greger.el/chat.ai-4384-
+/Users/andreas/projects/greger.el/chat.ai-1170-/Users/andreas/projects/greger.el/chat.ai-4385-<tool.toolu_01WNzpc3cNpvYYjPqo37CUfP>
+/Users/andreas/projects/greger.el/chat.ai-1171-/Users/andreas/projects/greger.el/chat.ai-4386-           :dialog (((role . "user") (content . "Search for current weather in San Francisco"))
+/Users/andreas/projects/greger.el/chat.ai:1172:/Users/andreas/projects/greger.el/chat.ai:4387:                    ((role . "assistant") (content . (((type . "server_tool_use") (id . "srvtoolu_123") (name . "web_search") (input . ((query . "current weather San Francisco"))))
+/Users/andreas/projects/greger.el/chat.ai-1173-/Users/andreas/projects/greger.el/chat.ai:4388:                                                      ((type . "server_tool_result") (tool_use_id . "srvtoolu_123") (content . ((results . [((title . "Weather in San Francisco") (url . "https://weather.com/sf") (content . "Sunny, 72°F"))]))))
+/Users/andreas/projects/greger.el/chat.ai-1174-/Users/andreas/projects/greger.el/chat.ai-4389-                                                      ((type . "text") (text . "The current weather in San Francisco is sunny and 72°F."))))))
+/Users/andreas/projects/greger.el/chat.ai-1175-/Users/andreas/projects/greger.el/chat.ai-4390-</tool.toolu_01WNzpc3cNpvYYjPqo37CUfP>
+--
+/Users/andreas/projects/greger.el/chat.ai-1182-/Users/andreas/projects/greger.el/chat.ai-4422-
+/Users/andreas/projects/greger.el/chat.ai-1183-/Users/andreas/projects/greger.el/chat.ai-4423-<tool.toolu_018AqYULa4gBcGt4Ngku2A9i>
+/Users/andreas/projects/greger.el/chat.ai-1184-/Users/andreas/projects/greger.el/chat.ai-4424-           :dialog (((role . "user") (content . "Search for current weather in San Francisco"))
+/Users/andreas/projects/greger.el/chat.ai:1185:/Users/andreas/projects/greger.el/chat.ai:4425:                    ((role . "assistant") (content . (((type . "server_tool_use") (id . "srvtoolu_123") (name . "web_search") (input . ((query . "current weather San Francisco")))))))
+/Users/andreas/projects/greger.el/chat.ai-1186-/Users/andreas/projects/greger.el/chat.ai:4426:                    ((role . "assistant") (content . (((type . "server_tool_result") (tool_use_id . "srvtoolu_123") (content . ((results . [((title . "Weather in San Francisco") (url . "https://weather.com/sf") (content . "Sunny, 72°F"))])))))))
+/Users/andreas/projects/greger.el/chat.ai-1187-/Users/andreas/projects/greger.el/chat.ai-4427-                    ((role . "assistant") (content . "The current weather in San Francisco is sunny and 72°F."))))
+/Users/andreas/projects/greger.el/chat.ai-1188-/Users/andreas/projects/greger.el/chat.ai-4428-</tool.toolu_018AqYULa4gBcGt4Ngku2A9i>
+--
+/Users/andreas/projects/greger.el/chat.ai-1191-/Users/andreas/projects/greger.el/chat.ai-4431-
+/Users/andreas/projects/greger.el/chat.ai-1192-/Users/andreas/projects/greger.el/chat.ai-4432-<tool.toolu_018AqYULa4gBcGt4Ngku2A9i>
+/Users/andreas/projects/greger.el/chat.ai-1193-/Users/andreas/projects/greger.el/chat.ai-4433-           :dialog (((role . "user") (content . "Search for current weather in San Francisco"))
+/Users/andreas/projects/greger.el/chat.ai:1194:/Users/andreas/projects/greger.el/chat.ai:4434:                    ((role . "assistant") (content . (((type . "server_tool_use") (id . "srvtoolu_123") (name . "web_search") (input . ((query . "current weather San Francisco"))))
+/Users/andreas/projects/greger.el/chat.ai-1195-/Users/andreas/projects/greger.el/chat.ai:4435:                                                      ((type . "server_tool_result") (tool_use_id . "srvtoolu_123") (content . ((results . [((title . "Weather in San Francisco") (url . "https://weather.com/sf") (content . "Sunny, 72°F"))]))))
+/Users/andreas/projects/greger.el/chat.ai-1196-/Users/andreas/projects/greger.el/chat.ai-4436-                                                      ((type . "text") (text . "The current weather in San Francisco is sunny and 72°F."))))))
+/Users/andreas/projects/greger.el/chat.ai-1197-/Users/andreas/projects/greger.el/chat.ai-4437-</tool.toolu_018AqYULa4gBcGt4Ngku2A9i>
+--
+/Users/andreas/projects/greger.el/chat.ai-1204-/Users/andreas/projects/greger.el/chat.ai-4493-
+/Users/andreas/projects/greger.el/chat.ai-1205-/Users/andreas/projects/greger.el/chat.ai-4494-The current weather in San Francisco is sunny and 72°F."
+/Users/andreas/projects/greger.el/chat.ai-1206-/Users/andreas/projects/greger.el/chat.ai-4495-           :dialog (((role . "user") (content . "Search for current weather in San Francisco"))
+/Users/andreas/projects/greger.el/chat.ai:1207:/Users/andreas/projects/greger.el/chat.ai:4496:                    ((role . "assistant") (content . (((type . "server_tool_use") (id . "srvtoolu_123") (name . "web_search") (input . ((query . "current weather San Francisco")))))))
+/Users/andreas/projects/greger.el/chat.ai-1208-/Users/andreas/projects/greger.el/chat.ai:4497:                    ((role . "assistant") (content . (((type . "server_tool_result") (tool_use_id . "srvtoolu_123") (content . ((results . [((title . "Weather in San Francisco") (url . "https://weather.com/sf") (content . "Sunny, 72°F"))])))))))
+/Users/andreas/projects/greger.el/chat.ai-1209-/Users/andreas/projects/greger.el/chat.ai-4498-                    ((role . "assistant") (content . "The current weather in San Francisco is sunny and 72°F."))))
+/Users/andreas/projects/greger.el/chat.ai-1210-/Users/andreas/projects/greger.el/chat.ai-4499-
+--
+/Users/andreas/projects/greger.el/chat.ai-1217-/Users/andreas/projects/greger.el/chat.ai-4524-
+/Users/andreas/projects/greger.el/chat.ai-1218-/Users/andreas/projects/greger.el/chat.ai-4525-<tool.toolu_011VHrHwQAKH6n4hV8XEoCJm>
+/Users/andreas/projects/greger.el/chat.ai-1219-/Users/andreas/projects/greger.el/chat.ai-4526-           :dialog (((role . "user") (content . "Search for current weather in San Francisco"))
+/Users/andreas/projects/greger.el/chat.ai:1220:/Users/andreas/projects/greger.el/chat.ai:4527:                    ((role . "assistant") (content . (((type . "server_tool_use") (id . "srvtoolu_123") (name . "web_search") (input . ((query . "current weather San Francisco")))))))
+/Users/andreas/projects/greger.el/chat.ai-1221-/Users/andreas/projects/greger.el/chat.ai:4528:                    ((role . "assistant") (content . (((type . "server_tool_result") (tool_use_id . "srvtoolu_123") (content . ((results . [((title . "Weather in San Francisco") (url . "https://weather.com/sf") (content . "Sunny, 72°F"))])))))))
+/Users/andreas/projects/greger.el/chat.ai-1222-/Users/andreas/projects/greger.el/chat.ai-4529-                    ((role . "assistant") (content . "The current weather in San Francisco is sunny and 72°F."))))
+/Users/andreas/projects/greger.el/chat.ai-1223-/Users/andreas/projects/greger.el/chat.ai-4530-</tool.toolu_011VHrHwQAKH6n4hV8XEoCJm>
+--
+/Users/andreas/projects/greger.el/chat.ai-1226-/Users/andreas/projects/greger.el/chat.ai-4533-
+/Users/andreas/projects/greger.el/chat.ai-1227-/Users/andreas/projects/greger.el/chat.ai-4534-<tool.toolu_011VHrHwQAKH6n4hV8XEoCJm>
+/Users/andreas/projects/greger.el/chat.ai-1228-/Users/andreas/projects/greger.el/chat.ai-4535-           :dialog (((role . "user") (content . "Search for current weather in San Francisco"))
+/Users/andreas/projects/greger.el/chat.ai:1229:/Users/andreas/projects/greger.el/chat.ai:4536:                    ((role . "assistant") (content . (((type . "server_tool_use") (id . "srvtoolu_123") (name . "web_search") (input . ((query . "current weather San Francisco"))))
+/Users/andreas/projects/greger.el/chat.ai-1230-/Users/andreas/projects/greger.el/chat.ai:4537:                                                      ((type . "server_tool_result") (tool_use_id . "srvtoolu_123") (content . ((results . [((title . "Weather in San Francisco") (url . "https://weather.com/sf") (content . "Sunny, 72°F"))]))))
+/Users/andreas/projects/greger.el/chat.ai-1231-/Users/andreas/projects/greger.el/chat.ai-4538-                                                      ((type . "text") (text . "The current weather in San Francisco is sunny and 72°F."))))))
+/Users/andreas/projects/greger.el/chat.ai-1232-/Users/andreas/projects/greger.el/chat.ai-4539-</tool.toolu_011VHrHwQAKH6n4hV8XEoCJm>
+--
+/Users/andreas/projects/greger.el/chat.ai-1239-/Users/andreas/projects/greger.el/chat.ai-4590-
+/Users/andreas/projects/greger.el/chat.ai-1240-/Users/andreas/projects/greger.el/chat.ai-4591-The current weather in San Francisco is sunny and 72°F."
+/Users/andreas/projects/greger.el/chat.ai-1241-/Users/andreas/projects/greger.el/chat.ai-4592-           :dialog (((role . "user") (content . "Search for current weather in San Francisco"))
+/Users/andreas/projects/greger.el/chat.ai:1242:/Users/andreas/projects/greger.el/chat.ai:4593:                    ((role . "assistant") (content . (((type . "server_tool_use") (id . "srvtoolu_123") (name . "web_search") (input . ((query . "current weather San Francisco")))))))
+/Users/andreas/projects/greger.el/chat.ai-1243-/Users/andreas/projects/greger.el/chat.ai:4594:                    ((role . "assistant") (content . (((type . "server_tool_result") (tool_use_id . "srvtoolu_123") (content . ((results . [((title . "Weather in San Francisco") (url . "https://weather.com/sf") (content . "Sunny, 72°F"))])))))))
+/Users/andreas/projects/greger.el/chat.ai-1244-/Users/andreas/projects/greger.el/chat.ai-4595-                    ((role . "assistant") (content . "The current weather in San Francisco is sunny and 72°F."))))
+/Users/andreas/projects/greger.el/chat.ai-1245-/Users/andreas/projects/greger.el/chat.ai-4596-
+--
+/Users/andreas/projects/greger.el/chat.ai-1252-/Users/andreas/projects/greger.el/chat.ai-4657-
+/Users/andreas/projects/greger.el/chat.ai-1253-/Users/andreas/projects/greger.el/chat.ai-4658-The current weather in San Francisco is sunny and 72°F."
+/Users/andreas/projects/greger.el/chat.ai-1254-/Users/andreas/projects/greger.el/chat.ai-4659-           :dialog (((role . "user") (content . "Search for current weather in San Francisco"))
+/Users/andreas/projects/greger.el/chat.ai:1255:/Users/andreas/projects/greger.el/chat.ai:4660:                    ((role . "assistant") (content . (((type . "server_tool_use") (id . "srvtoolu_123") (name . "web_search") (input . ((query . "current weather San Francisco")))))))
+/Users/andreas/projects/greger.el/chat.ai-1256-/Users/andreas/projects/greger.el/chat.ai:4661:                    ((role . "assistant") (content . (((type . "server_tool_result") (tool_use_id . "srvtoolu_123") (content . ((results . [((title . "Weather in San Francisco") (url . "https://weather.com/sf") (content . "Sunny, 72°F"))])))))))
+/Users/andreas/projects/greger.el/chat.ai-1257-/Users/andreas/projects/greger.el/chat.ai-4662-                    ((role . "assistant") (content . "The current weather in San Francisco is sunny and 72°F."))))
+/Users/andreas/projects/greger.el/chat.ai-1258-/Users/andreas/projects/greger.el/chat.ai-4663-</tool.toolu_01GgiR11AZ5MqCoXkmpiDgWJ>
+--
+/Users/andreas/projects/greger.el/chat.ai-1265-/Users/andreas/projects/greger.el/chat.ai-4687-
+/Users/andreas/projects/greger.el/chat.ai-1266-/Users/andreas/projects/greger.el/chat.ai-4688-The current weather in San Francisco is sunny and 72°F."
+/Users/andreas/projects/greger.el/chat.ai-1267-/Users/andreas/projects/greger.el/chat.ai-4689-           :dialog (((role . "user") (content . "Search for current weather in San Francisco"))
+/Users/andreas/projects/greger.el/chat.ai:1268:/Users/andreas/projects/greger.el/chat.ai:4690:                    ((role . "assistant") (content . (((type . "server_tool_use") (id . "srvtoolu_123") (name . "web_search") (input . ((query . "current weather San Francisco"))))
+/Users/andreas/projects/greger.el/chat.ai-1269-/Users/andreas/projects/greger.el/chat.ai:4691:                                                      ((type . "server_tool_result") (tool_use_id . "srvtoolu_123") (content . ((results . [((title . "Weather in San Francisco") (url . "https://weather.com/sf") (content . "Sunny, 72°F"))]))))
+/Users/andreas/projects/greger.el/chat.ai-1270-/Users/andreas/projects/greger.el/chat.ai-4692-                                                      ((type . "text") (text . "The current weather in San Francisco is sunny and 72°F."))))))))
+/Users/andreas/projects/greger.el/chat.ai-1271-/Users/andreas/projects/greger.el/chat.ai-4693-</tool.toolu_01GgiR11AZ5MqCoXkmpiDgWJ>
+--
+/Users/andreas/projects/greger.el/chat.ai-1278-/Users/andreas/projects/greger.el/chat.ai-4725-
+/Users/andreas/projects/greger.el/chat.ai-1279-/Users/andreas/projects/greger.el/chat.ai-4726-<tool.toolu_01RjEfxcxJX9VCHHHXBFeiGd>
+/Users/andreas/projects/greger.el/chat.ai-1280-/Users/andreas/projects/greger.el/chat.ai-4727-           :dialog (((role . "user") (content . "Search for current weather in San Francisco"))
+/Users/andreas/projects/greger.el/chat.ai:1281:/Users/andreas/projects/greger.el/chat.ai:4728:                    ((role . "assistant") (content . (((type . "server_tool_use") (id . "srvtoolu_123") (name . "web_search") (input . ((query . "current weather San Francisco")))))))
+/Users/andreas/projects/greger.el/chat.ai-1282-/Users/andreas/projects/greger.el/chat.ai:4729:                    ((role . "assistant") (content . (((type . "server_tool_result") (tool_use_id . "srvtoolu_123") (content . ((results . [((title . "Weather in San Francisco") (url . "https://weather.com/sf") (content . "Sunny, 72°F"))])))))))
+/Users/andreas/projects/greger.el/chat.ai-1283-/Users/andreas/projects/greger.el/chat.ai-4730-                    ((role . "assistant") (content . "The current weather in San Francisco is sunny and 72°F."))))
+/Users/andreas/projects/greger.el/chat.ai-1284-/Users/andreas/projects/greger.el/chat.ai-4731-</tool.toolu_01RjEfxcxJX9VCHHHXBFeiGd>
+--
+/Users/andreas/projects/greger.el/chat.ai-1287-/Users/andreas/projects/greger.el/chat.ai-4734-
+/Users/andreas/projects/greger.el/chat.ai-1288-/Users/andreas/projects/greger.el/chat.ai-4735-<tool.toolu_01RjEfxcxJX9VCHHHXBFeiGd>
+/Users/andreas/projects/greger.el/chat.ai-1289-/Users/andreas/projects/greger.el/chat.ai-4736-           :dialog (((role . "user") (content . "Search for current weather in San Francisco"))
+/Users/andreas/projects/greger.el/chat.ai:1290:/Users/andreas/projects/greger.el/chat.ai:4737:                    ((role . "assistant") (content . (((type . "server_tool_use") (id . "srvtoolu_123") (name . "web_search") (input . ((query . "current weather San Francisco"))))
+/Users/andreas/projects/greger.el/chat.ai-1291-/Users/andreas/projects/greger.el/chat.ai:4738:                                                      ((type . "server_tool_result") (tool_use_id . "srvtoolu_123") (content . ((results . [((title . "Weather in San Francisco") (url . "https://weather.com/sf") (content . "Sunny, 72°F"))]))))
+/Users/andreas/projects/greger.el/chat.ai-1292-/Users/andreas/projects/greger.el/chat.ai-4739-                                                      ((type . "text") (text . "The current weather in San Francisco is sunny and 72°F."))))))))
+/Users/andreas/projects/greger.el/chat.ai-1293-/Users/andreas/projects/greger.el/chat.ai-4740-</tool.toolu_01RjEfxcxJX9VCHHHXBFeiGd>
+--
+/Users/andreas/projects/greger.el/chat.ai-1300-/Users/andreas/projects/greger.el/chat.ai-4810-### original-content
+/Users/andreas/projects/greger.el/chat.ai-1301-/Users/andreas/projects/greger.el/chat.ai-4811-
+/Users/andreas/projects/greger.el/chat.ai-1302-/Users/andreas/projects/greger.el/chat.ai-4812-<tool.toolu_01CXJ89B5PRFXbWFyTBX2GNi>
+/Users/andreas/projects/greger.el/chat.ai:1303:/Users/andreas/projects/greger.el/chat.ai:4813:((role . "assistant") (content . (((type . "server_tool_use") (id . "srvtoolu_123") (name . "web_search") (input . ((query . "current weather San Francisco")))))))
+/Users/andreas/projects/greger.el/chat.ai-1304-/Users/andreas/projects/greger.el/chat.ai:4814:                    ((role . "assistant") (content . (((type . "server_tool_result") (tool_use_id . "srvtoolu_123") (content . ((results . [((title . "Weather in San Francisco") (url . "https://weather.com/sf") (content . "Sunny, 72°F"))])))))))
+/Users/andreas/projects/greger.el/chat.ai-1305-/Users/andreas/projects/greger.el/chat.ai-4815-                    ((role . "assistant") (content . "The current weather in San Francisco is sunny and 72°F."))))
+/Users/andreas/projects/greger.el/chat.ai-1306-/Users/andreas/projects/greger.el/chat.ai-4816-</tool.toolu_01CXJ89B5PRFXbWFyTBX2GNi>
+--
+/Users/andreas/projects/greger.el/chat.ai-1308-/Users/andreas/projects/greger.el/chat.ai-4818-### new-content
+/Users/andreas/projects/greger.el/chat.ai-1309-/Users/andreas/projects/greger.el/chat.ai-4819-
+/Users/andreas/projects/greger.el/chat.ai-1310-/Users/andreas/projects/greger.el/chat.ai-4820-<tool.toolu_01CXJ89B5PRFXbWFyTBX2GNi>
+/Users/andreas/projects/greger.el/chat.ai:1311:/Users/andreas/projects/greger.el/chat.ai:4821:((role . "assistant") (content . (((type . "server_tool_use") (id . "srvtoolu_123") (name . "web_search") (input . ((query . "current weather San Francisco"))))
+/Users/andreas/projects/greger.el/chat.ai-1312-/Users/andreas/projects/greger.el/chat.ai:4822:                                                      ((type . "server_tool_result") (tool_use_id . "srvtoolu_123") (content . ((results . [((title . "Weather in San Francisco") (url . "https://weather.com/sf") (content . "Sunny, 72°F"))]))))
+/Users/andreas/projects/greger.el/chat.ai-1313-/Users/andreas/projects/greger.el/chat.ai-4823-                                                      ((type . "text") (text . "The current weather in San Francisco is sunny and 72°F."))))))
+/Users/andreas/projects/greger.el/chat.ai-1314-/Users/andreas/projects/greger.el/chat.ai-4824-</tool.toolu_01CXJ89B5PRFXbWFyTBX2GNi>
+--
+/Users/andreas/projects/greger.el/chat.ai-1321-/Users/andreas/projects/greger.el/chat.ai-4860-### original-content
+/Users/andreas/projects/greger.el/chat.ai-1322-/Users/andreas/projects/greger.el/chat.ai-4861-
+/Users/andreas/projects/greger.el/chat.ai-1323-/Users/andreas/projects/greger.el/chat.ai-4862-<tool.toolu_01YBcmt2hLmxifiNxegQo2AL>
+/Users/andreas/projects/greger.el/chat.ai:1324:/Users/andreas/projects/greger.el/chat.ai:4863:((role . "assistant") (content . (((type . "server_tool_use") (id . "srvtoolu_123") (name . "web_search") (input . ((query . "current weather San Francisco")))))))
+/Users/andreas/projects/greger.el/chat.ai-1325-/Users/andreas/projects/greger.el/chat.ai:4864:                    ((role . "assistant") (content . (((type . "server_tool_result") (tool_use_id . "srvtoolu_123") (content . ((results . [((title . "Weather in San Francisco") (url . "https://weather.com/sf") (content . "Sunny, 72°F"))])))))))
+/Users/andreas/projects/greger.el/chat.ai-1326-/Users/andreas/projects/greger.el/chat.ai-4865-                    ((role . "assistant") (content . "The current weather in San Francisco is sunny and 72°F."))))
+/Users/andreas/projects/greger.el/chat.ai-1327-/Users/andreas/projects/greger.el/chat.ai-4866-</tool.toolu_01YBcmt2hLmxifiNxegQo2AL>
+--
+/Users/andreas/projects/greger.el/chat.ai-1329-/Users/andreas/projects/greger.el/chat.ai-4868-### new-content
+/Users/andreas/projects/greger.el/chat.ai-1330-/Users/andreas/projects/greger.el/chat.ai-4869-
+/Users/andreas/projects/greger.el/chat.ai-1331-/Users/andreas/projects/greger.el/chat.ai-4870-<tool.toolu_01YBcmt2hLmxifiNxegQo2AL>
+/Users/andreas/projects/greger.el/chat.ai:1332:/Users/andreas/projects/greger.el/chat.ai:4871:((role . "assistant") (content . (((type . "server_tool_use") (id . "srvtoolu_123") (name . "web_search") (input . ((query . "current weather San Francisco"))))
+/Users/andreas/projects/greger.el/chat.ai-1333-/Users/andreas/projects/greger.el/chat.ai:4872:                                                      ((type . "server_tool_result") (tool_use_id . "srvtoolu_123") (content . ((results . [((title . "Weather in San Francisco") (url . "https://weather.com/sf") (content . "Sunny, 72°F"))]))))
+/Users/andreas/projects/greger.el/chat.ai-1334-/Users/andreas/projects/greger.el/chat.ai-4873-                                                      ((type . "text") (text . "The current weather in San Francisco is sunny and 72°F."))))))
+/Users/andreas/projects/greger.el/chat.ai-1335-/Users/andreas/projects/greger.el/chat.ai-4874-</tool.toolu_01YBcmt2hLmxifiNxegQo2AL>
+--
+/Users/andreas/projects/greger.el/chat.ai-1389-/Users/andreas/projects/greger.el/chat.ai-293-    {
+/Users/andreas/projects/greger.el/chat.ai-1390-/Users/andreas/projects/greger.el/chat.ai-294-      "type": "server_tool_use",
+/Users/andreas/projects/greger.el/chat.ai-1391-/Users/andreas/projects/greger.el/chat.ai-295-      "id": "srvtoolu_01WYG3ziw53XMcoyKL4XcZmE",
+/Users/andreas/projects/greger.el/chat.ai:1392:/Users/andreas/projects/greger.el/chat.ai-296-      "name": "web_search",
+/Users/andreas/projects/greger.el/chat.ai-1393-/Users/andreas/projects/greger.el/chat.ai-297-      "input": {
+/Users/andreas/projects/greger.el/chat.ai-1394-/Users/andreas/projects/greger.el/chat.ai-298-        "query": "claude shannon birth date"
+/Users/andreas/projects/greger.el/chat.ai-1395-/Users/andreas/projects/greger.el/chat.ai-299-      }
+--
+/Users/andreas/projects/greger.el/chat.ai-1455-/Users/andreas/projects/greger.el/chat.ai-410-
+/Users/andreas/projects/greger.el/chat.ai-1456-/Users/andreas/projects/greger.el/chat.ai-411-  # First request with web search and cache breakpoint
+/Users/andreas/projects/greger.el/chat.ai-1457---
+/Users/andreas/projects/greger.el/chat.ai:1458:/Users/andreas/projects/greger.el/chat.ai-485-data: {"type": "content_block_start", "index": 1, "content_block": {"type": "server_tool_use", "id": "srvtoolu_xyz789", "name": "web_search"}}
+/Users/andreas/projects/greger.el/chat.ai-1459-/Users/andreas/projects/greger.el/chat.ai-486-
+/Users/andreas/projects/greger.el/chat.ai-1460-/Users/andreas/projects/greger.el/chat.ai-487-// Search query streamed
+/Users/andreas/projects/greger.el/chat.ai-1461-/Users/andreas/projects/greger.el/chat.ai-488-event: content_block_delta
+--
+/Users/andreas/projects/greger.el/chat.ai-2745-   passed  3/7  greger-end-to-end-test-no-tools-mode (5.409511 sec)
+/Users/andreas/projects/greger.el/chat.ai-2746-Using model claude-sonnet-4-20250514
+/Users/andreas/projects/greger.el/chat.ai-2747-Test greger-end-to-end-test-server-tool-web-search backtrace:
+/Users/andreas/projects/greger.el/chat.ai:2748:  signal(error ("Unknown server tool: web_search"))
+/Users/andreas/projects/greger.el/chat.ai-2749-  error("Unknown server tool: %s" web_search)
+/Users/andreas/projects/greger.el/chat.ai-2750-  (if tool-def (json-encode tool-def) (error "Unknown server tool: %s"
+/Users/andreas/projects/greger.el/chat.ai-2751-  (let ((tool-def (gethash tool-name greger-server-tools-registry))) (
+--
+/Users/andreas/projects/greger.el/chat.ai-2777-  command-line()
+/Users/andreas/projects/greger.el/chat.ai-2778-  normal-top-level()
+/Users/andreas/projects/greger.el/chat.ai-2779-Test greger-end-to-end-test-server-tool-web-search condition:
+/Users/andreas/projects/greger.el/chat.ai:2780:    (error "Unknown server tool: web_search")
+/Users/andreas/projects/greger.el/chat.ai-2781-   FAILED  4/7  greger-end-to-end-test-server-tool-web-search (0.005548 sec) at test/test-end-to-end.el:336
+/Users/andreas/projects/greger.el/chat.ai-2782-Using model claude-sonnet-4-20250514
+/Users/andreas/projects/greger.el/chat.ai-2783-output: event: message_start
+--
+/Users/andreas/projects/greger.el/chat.ai-3006-
+/Users/andreas/projects/greger.el/chat.ai-3007-## ASSISTANT:
+/Users/andreas/projects/greger.el/chat.ai-3008-
+/Users/andreas/projects/greger.el/chat.ai:3009:I can see the issue! The test is failing because the `web_search` server tool is not registered. Looking at the error: `"Unknown server tool: web_search"`. This suggests that the web search tool registry is not set up.
+/Users/andreas/projects/greger.el/chat.ai-3010-
+/Users/andreas/projects/greger.el/chat.ai-3011-Let me check the web tools file:
+/Users/andreas/projects/greger.el/chat.ai-3012-
+--
+/Users/andreas/projects/greger.el/greger.el-78-  :type '(repeat symbol)
+/Users/andreas/projects/greger.el/greger.el-79-  :group 'greger)
+/Users/andreas/projects/greger.el/greger.el-80-
+/Users/andreas/projects/greger.el/greger.el:81:(defcustom greger-server-tools '("web_search")
+/Users/andreas/projects/greger.el/greger.el-82-  "List of server tools available to the agent (e.g., web_search)."
+/Users/andreas/projects/greger.el/greger.el-83-  :type '(repeat symbol)
+/Users/andreas/projects/greger.el/greger.el-84-  :group 'greger)
+--
+/Users/andreas/projects/greger.el/test/test-end-to-end.el-365-              (should (string-match-p "## ASSISTANT:" content))
+/Users/andreas/projects/greger.el/test/test-end-to-end.el-366-              ;; Should contain server tool use section
+/Users/andreas/projects/greger.el/test/test-end-to-end.el-367-              (should (string-match-p "## SERVER TOOL USE:" content))
+/Users/andreas/projects/greger.el/test/test-end-to-end.el:368:              (should (string-match-p "Name: web_search" content))
+/Users/andreas/projects/greger.el/test/test-end-to-end.el-369-              ;; Should contain server tool result section
+/Users/andreas/projects/greger.el/test/test-end-to-end.el-370-              (should (string-match-p "## SERVER TOOL RESULT:" content))
+/Users/andreas/projects/greger.el/test/test-end-to-end.el-371-              ;; Should contain some weather-related information
+--
+/Users/andreas/projects/greger.el/test/test-greger-parser.el-609-
+/Users/andreas/projects/greger.el/test/test-greger-parser.el-610-The current weather in San Francisco is sunny and 72°F."
+/Users/andreas/projects/greger.el/test/test-greger-parser.el-611-           :dialog (((role . "user") (content . "Search for current weather in San Francisco"))
+/Users/andreas/projects/greger.el/test/test-greger-parser.el:612:                    ((role . "assistant") (content . (((type . "server_tool_use") (id . "srvtoolu_123") (name . "web_search") (input . ((query . "current weather San Francisco"))))
+/Users/andreas/projects/greger.el/test/test-greger-parser.el-613-                                                      ((type . "server_tool_result") (tool_use_id . "srvtoolu_123") (content . "[{\"title\": \"Weather in San Francisco\", \"url\": \"https://weather.com/sf\", \"content\": \"Sunny, 72°F\"}]"))
+/Users/andreas/projects/greger.el/test/test-greger-parser.el-614-                                                      ((type . "text") (text . "The current weather in San Francisco is sunny and 72°F.")))))))
+/Users/andreas/projects/greger.el/test/test-greger-parser.el-615-
+--
+/Users/andreas/projects/greger.el/test/test-greger-parser.el-641-
+/Users/andreas/projects/greger.el/test/test-greger-parser.el-642-It looks like it's sunny and warm today!"
+/Users/andreas/projects/greger.el/test/test-greger-parser.el-643-           :dialog (((role . "user") (content . "What's the weather like?"))
+/Users/andreas/projects/greger.el/test/test-greger-parser.el:644:                    ((role . "assistant") (content . (((type . "server_tool_use") (id . "srvtoolu_456") (name . "web_search") (input . ((query . "weather"))))
+/Users/andreas/projects/greger.el/test/test-greger-parser.el-645-                                                      ((type . "server_tool_result") (tool_use_id . "srvtoolu_456") (content . "Sunny and warm today"))
+/Users/andreas/projects/greger.el/test/test-greger-parser.el-646-                                                      ((type . "text") (text . "It looks like it's sunny and warm today!")))))))))
+/Users/andreas/projects/greger.el/test/test-greger-parser.el-647-
+--
+/Users/andreas/projects/greger.el/test/test-greger-tools.el-843-  ;; Register a test server tool
+/Users/andreas/projects/greger.el/test/test-greger-tools.el-844-  (greger-register-server-tool 'test-web-search
+/Users/andreas/projects/greger.el/test/test-greger-tools.el-845-    :type "web_search_20250305"
+/Users/andreas/projects/greger.el/test/test-greger-tools.el:846:    :name "web_search"
+/Users/andreas/projects/greger.el/test/test-greger-tools.el-847-    :max_uses 5
+/Users/andreas/projects/greger.el/test/test-greger-tools.el-848-    :allowed_domains ["example.com" "trusteddomain.org"]
+/Users/andreas/projects/greger.el/test/test-greger-tools.el-849-    :user_location ((type . "approximate")
+--
+/Users/andreas/projects/greger.el/test/test-greger-tools.el-863-      ;; Verify it's valid JSON by parsing it
+/Users/andreas/projects/greger.el/test/test-greger-tools.el-864-      (let ((parsed (json-parse-string json-string :object-type 'alist)))
+/Users/andreas/projects/greger.el/test/test-greger-tools.el-865-        (should (string= "web_search_20250305" (alist-get 'type parsed)))
+/Users/andreas/projects/greger.el/test/test-greger-tools.el:866:        (should (string= "web_search" (alist-get 'name parsed)))
+/Users/andreas/projects/greger.el/test/test-greger-tools.el-867-        (should (= 5 (alist-get 'max_uses parsed)))
+/Users/andreas/projects/greger.el/test/test-greger-tools.el-868-        (should (equal ["example.com" "trusteddomain.org"] (alist-get 'allowed_domains parsed))))))
+/Users/andreas/projects/greger.el/test/test-greger-tools.el-869-
+--
+/Users/andreas/projects/greger.el/test/request.json-379-      }
+/Users/andreas/projects/greger.el/test/request.json-380-    },
+/Users/andreas/projects/greger.el/test/request.json-381-    {
+/Users/andreas/projects/greger.el/test/request.json:382:      "name": "web_search",
+/Users/andreas/projects/greger.el/test/request.json-383-      "type": "web_search_20250305",
+/Users/andreas/projects/greger.el/test/request.json-384-      "max_uses": 20
+/Users/andreas/projects/greger.el/test/request.json-385-    }
+
+</tool.toolu_011r6sGmu4BxDHHy9piN1gLi>
+
+## ASSISTANT:
+
+Great! I can see the issue. There's already a `web_search` server tool registration in `greger-stdlib.el` at line 37-40, but there seems to be an issue with symbol vs string names. Let me check that registration:
+
+## TOOL USE:
+
+Name: read-file
+ID: toolu_017awDeenpkfcmtfoKG1RKk5
+
+### path
+
+<tool.toolu_017awDeenpkfcmtfoKG1RKk5>
+greger-stdlib.el
+</tool.toolu_017awDeenpkfcmtfoKG1RKk5>
+
+### start-line
+
+<tool.toolu_017awDeenpkfcmtfoKG1RKk5>
+35
+</tool.toolu_017awDeenpkfcmtfoKG1RKk5>
+
+### end-line
+
+<tool.toolu_017awDeenpkfcmtfoKG1RKk5>
+45
+</tool.toolu_017awDeenpkfcmtfoKG1RKk5>
+
+## TOOL RESULT:
+
+ID: toolu_017awDeenpkfcmtfoKG1RKk5
+
+<tool.toolu_017awDeenpkfcmtfoKG1RKk5>
+
+;; Register all tools using the macro
+(greger-register-server-tool "web_search"
+    :type "web_search_20250305"
+    :name "web_search"
+    :max_uses 20)
+
+(greger-register-tool "read-file"
+  :description "Read the contents of a file from the filesystem"
+  :properties '((path . ((type . "string")
+                         (description . "Path to the file to read")))
+</tool.toolu_017awDeenpkfcmtfoKG1RKk5>
+
+## ASSISTANT:
+
+The issue is that the server tool is registered with the string key `"web_search"`, but the code is probably looking for a symbol key. Let me check how `greger-server-tools-get-schemas` is called and what key it expects:
+
+## TOOL USE:
+
+Name: read-file
+ID: toolu_01HHb981BQvtehopY8dgRnKC
+
+### path
+
+<tool.toolu_01HHb981BQvtehopY8dgRnKC>
+test/test-end-to-end.el
+</tool.toolu_01HHb981BQvtehopY8dgRnKC>
+
+### start-line
+
+<tool.toolu_01HHb981BQvtehopY8dgRnKC>
+330
+</tool.toolu_01HHb981BQvtehopY8dgRnKC>
+
+### end-line
+
+<tool.toolu_01HHb981BQvtehopY8dgRnKC>
+340
+</tool.toolu_01HHb981BQvtehopY8dgRnKC>
+
+## TOOL RESULT:
+
+ID: toolu_01HHb981BQvtehopY8dgRnKC
+
+<tool.toolu_01HHb981BQvtehopY8dgRnKC>
+            (should (string-match-p "Command failed with exit code 2: (no output)" content))))
+
+      ;; Cleanup
+      (when (and greger-buffer (buffer-live-p greger-buffer))
+        (kill-buffer greger-buffer)))))
+
+(ert-deftest greger-end-to-end-test-server-tool-web-search ()
+  "Test server tool functionality with web search."
+  :tags '(end-to-end server-tools)
+  (skip-unless (getenv "ANTHROPIC_API_KEY"))
+
+</tool.toolu_01HHb981BQvtehopY8dgRnKC>
+
+## ASSISTANT:
+
+Let me look at the failing test:
+
+## TOOL USE:
+
+Name: read-file
+ID: toolu_013r5zwymw2zUaztgX1tFfYL
+
+### path
+
+<tool.toolu_013r5zwymw2zUaztgX1tFfYL>
+test/test-end-to-end.el
+</tool.toolu_013r5zwymw2zUaztgX1tFfYL>
+
+### start-line
+
+<tool.toolu_013r5zwymw2zUaztgX1tFfYL>
+335
+</tool.toolu_013r5zwymw2zUaztgX1tFfYL>
+
+### end-line
+
+<tool.toolu_013r5zwymw2zUaztgX1tFfYL>
+380
+</tool.toolu_013r5zwymw2zUaztgX1tFfYL>
+
+## TOOL RESULT:
+
+ID: toolu_013r5zwymw2zUaztgX1tFfYL
+
+<tool.toolu_013r5zwymw2zUaztgX1tFfYL>
+
+(ert-deftest greger-end-to-end-test-server-tool-web-search ()
+  "Test server tool functionality with web search."
+  :tags '(end-to-end server-tools)
+  (skip-unless (getenv "ANTHROPIC_API_KEY"))
+
+  (let ((greger-buffer nil))
+    (unwind-protect
+        (progn
+          ;; Create a greger buffer
+          (greger)
+          (setq greger-buffer (current-buffer))
+
+          ;; Enable web search server tool for this test
+          (let ((greger-server-tools '(web_search)))
+            ;; Add a user message that should trigger web search
+            (goto-char (point-max))
+            (insert "What is the current weather in San Francisco? Please search for this information.")
+
+            ;; Call greger-buffer to send the message
+            (greger-buffer)
+
+            ;; Wait for response (longer timeout for web search)
+            (should (greger-test-wait-for-response greger-buffer (* greger-test-timeout 2)))
+
+            ;; Wait for streaming to complete
+            (greger-test-wait-for-streaming-complete)
+
+            ;; Verify response was added to buffer
+            (let ((content (buffer-string)))
+              (should (string-match-p "## ASSISTANT:" content))
+              ;; Should contain server tool use section
+              (should (string-match-p "## SERVER TOOL USE:" content))
+              (should (string-match-p "Name: web_search" content))
+              ;; Should contain server tool result section
+              (should (string-match-p "## SERVER TOOL RESULT:" content))
+              ;; Should contain some weather-related information
+              (should (string-match-p "\\(weather\\|temperature\\|San Francisco\\)" content)))))
+
+      ;; Cleanup
+      (when (and greger-buffer (buffer-live-p greger-buffer))
+        (kill-buffer greger-buffer)))))
+
+(provide 'test-end-to-end)
+
+;;; test-end-to-end.el ends here
+</tool.toolu_013r5zwymw2zUaztgX1tFfYL>
+
+## ASSISTANT:
+
+I see the issue! The test is setting `greger-server-tools` to `'(web_search)` (a symbol), but the server tool is registered with the string key `"web_search"`. Let me check how `greger-server-tools` is used in the main code:
+
+## TOOL USE:
+
+Name: ripgrep
+ID: toolu_01VEsLu6wp98HuRpyeVi84fg
+
+### pattern
+
+<tool.toolu_01VEsLu6wp98HuRpyeVi84fg>
+greger-server-tools
+</tool.toolu_01VEsLu6wp98HuRpyeVi84fg>
+
+### path
+
+<tool.toolu_01VEsLu6wp98HuRpyeVi84fg>
+greger.el
+</tool.toolu_01VEsLu6wp98HuRpyeVi84fg>
+
+### context-lines
+
+<tool.toolu_01VEsLu6wp98HuRpyeVi84fg>
+5
+</tool.toolu_01VEsLu6wp98HuRpyeVi84fg>
+
+## TOOL RESULT:
+
+ID: toolu_01VEsLu6wp98HuRpyeVi84fg
+
+<tool.toolu_01VEsLu6wp98HuRpyeVi84fg>
+76-(defcustom greger-tools (greger--default-tools)
+77-  "List of tools available to the agent."
+78-  :type '(repeat symbol)
+79-  :group 'greger)
+80-
+81:(defcustom greger-server-tools '("web_search")
+82-  "List of server tools available to the agent (e.g., web_search)."
+83-  :type '(repeat symbol)
+84-  :group 'greger)
+85-
+86-(defcustom greger-max-iterations 100
+--
+331-
+332-    (unless dialog
+333-      (error "Failed to parse dialog. Check your buffer format"))
+334-
+335-    ;; Get server tools
+336:    (let ((server-tools (when greger-server-tools
+337:                          (greger-server-tools-get-schemas greger-server-tools))))
+338-      ;; Get the JSON request data using the new client
+339-      (setq request-data (greger-client--build-data model dialog tools server-tools)))
+340-
+341-    ;; Parse the JSON and re-encode with proper formatting
+342-    (condition-case err
+--
+429-    (force-mode-line-update)))
+430-
+431-(defun greger--run-agent-loop (agent-state)
+432-  "Run the main agent loop with AGENT-STATE."
+433-  (let* ((tools (greger-tools-get-schemas greger-tools))
+434:         (server-tools (when greger-server-tools
+435:                         (greger-server-tools-get-schemas greger-server-tools)))
+436-         (chat-buffer (greger-state-chat-buffer agent-state))
+437-         (buffer-content (with-current-buffer chat-buffer
+438-                           (buffer-substring-no-properties (point-min) (point-max))))
+439-         (parse-result (greger-parser-parse-dialog buffer-content))
+440-         (current-dialog (plist-get parse-result :messages))
+
+</tool.toolu_01VEsLu6wp98HuRpyeVi84fg>
+
+## ASSISTANT:
+
+I can see the issue! The `greger-server-tools` variable is defined as a list of strings by default (`'("web_search")`), but the test is setting it to a list of symbols (`'(web_search)`). However, the real issue is that the server tool is registered with the string key `"web_search"`, but `greger-server-tools-get-schemas` is being called with symbols from the test.
+
+Let me check how the server tool registry lookup works:
+
+## TOOL USE:
+
+Name: read-file
+ID: toolu_0197uvwo8c3pbkFqaz9tJPm6
+
+### path
+
+<tool.toolu_0197uvwo8c3pbkFqaz9tJPm6>
+greger-tools.el
+</tool.toolu_0197uvwo8c3pbkFqaz9tJPm6>
+
+### start-line
+
+<tool.toolu_0197uvwo8c3pbkFqaz9tJPm6>
+147
+</tool.toolu_0197uvwo8c3pbkFqaz9tJPm6>
+
+### end-line
+
+<tool.toolu_0197uvwo8c3pbkFqaz9tJPm6>
+155
+</tool.toolu_0197uvwo8c3pbkFqaz9tJPm6>
+
+## TOOL RESULT:
+
+ID: toolu_0197uvwo8c3pbkFqaz9tJPm6
+
+<tool.toolu_0197uvwo8c3pbkFqaz9tJPm6>
+(defun greger-server-tools-get-schemas (tool-names)
+  "Get server tool schemas for TOOL-NAMES as JSON strings."
+  (mapcar (lambda (tool-name)
+            (let ((tool-def (gethash tool-name greger-server-tools-registry)))
+              (if tool-def
+                  (json-encode tool-def)
+                (error "Unknown server tool: %s" tool-name))))
+          tool-names))
+
+</tool.toolu_0197uvwo8c3pbkFqaz9tJPm6>
+
+## ASSISTANT:
+
+The problem is that `gethash` is looking up `tool-name` directly in the registry, but there's a mismatch between symbol and string keys. Let me check the actual registry to see what's stored:
+
+## TOOL USE:
+
+Name: str-replace
+ID: toolu_01PFgMkEbF8q8Den9DzmXD5W
+
+### file-path
+
+<tool.toolu_01PFgMkEbF8q8Den9DzmXD5W>
+greger-tools.el
+</tool.toolu_01PFgMkEbF8q8Den9DzmXD5W>
+
+### original-content
+
+<tool.toolu_01PFgMkEbF8q8Den9DzmXD5W>
+(defun greger-server-tools-get-schemas (tool-names)
+  "Get server tool schemas for TOOL-NAMES as JSON strings."
+  (mapcar (lambda (tool-name)
+            (let ((tool-def (gethash tool-name greger-server-tools-registry)))
+              (if tool-def
+                  (json-encode tool-def)
+                (error "Unknown server tool: %s" tool-name))))
+          tool-names))
+</tool.toolu_01PFgMkEbF8q8Den9DzmXD5W>
+
+### new-content
+
+<tool.toolu_01PFgMkEbF8q8Den9DzmXD5W>
+(defun greger-server-tools-get-schemas (tool-names)
+  "Get server tool schemas for TOOL-NAMES as JSON strings."
+  (mapcar (lambda (tool-name)
+            ;; Convert symbol to string if needed for lookup
+            (let* ((lookup-key (if (symbolp tool-name) (symbol-name tool-name) tool-name))
+                   (tool-def (gethash lookup-key greger-server-tools-registry)))
+              (if tool-def
+                  (json-encode tool-def)
+                (error "Unknown server tool: %s (looked up as %s)" tool-name lookup-key))))
+          tool-names))
+</tool.toolu_01PFgMkEbF8q8Den9DzmXD5W>
+
+### git-commit-message
+
+<tool.toolu_01PFgMkEbF8q8Den9DzmXD5W>
+Fix server tool registry lookup to handle both symbols and strings
+</tool.toolu_01PFgMkEbF8q8Den9DzmXD5W>
+
+<!-- TOOL_RESULT_PLACEHOLDER_toolu_01PFgMkEbF8q8Den9DzmXD5W -->

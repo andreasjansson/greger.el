@@ -147,10 +147,12 @@ The raw JSON string will be displayed for the server tool definition."
 (defun greger-server-tools-get-schemas (tool-names)
   "Get server tool schemas for TOOL-NAMES as JSON strings."
   (mapcar (lambda (tool-name)
-            (let ((tool-def (gethash tool-name greger-server-tools-registry)))
+            ;; Convert symbol to string if needed for lookup
+            (let* ((lookup-key (if (symbolp tool-name) (symbol-name tool-name) tool-name))
+                   (tool-def (gethash lookup-key greger-server-tools-registry)))
               (if tool-def
                   (json-encode tool-def)
-                (error "Unknown server tool: %s" tool-name))))
+                (error "Unknown server tool: %s (looked up as %s)" tool-name lookup-key))))
           tool-names))
 
 (defun greger-server-tools-get-all-schemas ()
