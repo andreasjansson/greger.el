@@ -333,6 +333,48 @@
       (when (and greger-buffer (buffer-live-p greger-buffer))
         (kill-buffer greger-buffer)))))
 
+(ert-deftest greger-end-to-end-test-server-tool-web-search ()
+  "Test server tool functionality with web search."
+  :tags '(end-to-end server-tools)
+  (skip-unless (getenv "ANTHROPIC_API_KEY"))
+
+  (let ((greger-buffer nil))
+    (unwind-protect
+        (progn
+          ;; Create a greger buffer
+          (greger)
+          (setq greger-buffer (current-buffer))
+
+          ;; Enable web search server tool for this test
+          (let ((greger-server-tools '(web_search)))
+            ;; Add a user message that should trigger web search
+            (goto-char (point-max))
+            (insert "What is the current weather in San Francisco? Please search for this information.")
+
+            ;; Call greger-buffer to send the message
+            (greger-buffer)
+
+            ;; Wait for response (longer timeout for web search)
+            (should (greger-test-wait-for-response greger-buffer (* greger-test-timeout 2)))
+
+            ;; Wait for streaming to complete
+            (greger-test-wait-for-streaming-complete)
+
+            ;; Verify response was added to buffer
+            (let ((content (buffer-string)))
+              (should (string-match-p "## ASSISTANT:" content))
+              ;; Should contain server tool use section
+              (should (string-match-p "## SERVER TOOL USE:" content))
+              (should (string-match-p "Name: web_search" content))
+              ;; Should contain server tool result section
+              (should (string-match-p "## SERVER TOOL RESULT:" content))
+              ;; Should contain some weather-related information
+              (should (string-match-p "\\(weather\\|temperature\\|San Francisco\\)" content)))))
+
+      ;; Cleanup
+      (when (and greger-buffer (buffer-live-p greger-buffer))
+        (kill-buffer greger-buffer)))))
+
 (provide 'test-end-to-end)
 
 ;;; test-end-to-end.el ends here

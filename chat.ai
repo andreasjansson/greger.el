@@ -8878,4 +8878,686 @@ let ((client-state (greger-client-stream
 Pass server tools to greger-client-stream in agent loop
 </tool.toolu_01HhzMi9BUqUY2yzXeP5BYN4>
 
-<!-- TOOL_RESULT_PLACEHOLDER_toolu_01HhzMi9BUqUY2yzXeP5BYN4 -->
+## TOOL RESULT:
+
+ID: toolu_01HhzMi9BUqUY2yzXeP5BYN4
+
+<tool.toolu_01HhzMi9BUqUY2yzXeP5BYN4>
+Successfully replaced content in /Users/andreas/projects/greger.el/greger.el. Successfully staged 2 file(s) and committed with message: Pass server tools to greger-client-stream in agent loop
+</tool.toolu_01HhzMi9BUqUY2yzXeP5BYN4>
+
+## ASSISTANT:
+
+Now I need to handle server tool responses. Server tools are handled by the server, so they don't need execution like regular tools. However, I need to make sure the parser can handle `server_tool_use` and `server_tool_result` content blocks properly.
+
+Let me check how tool detection works in the response handling:
+
+## TOOL USE:
+
+Name: ripgrep
+ID: toolu_01UUXUXhV77RaP7WDpKjN4xD
+
+### pattern
+
+<tool.toolu_01UUXUXhV77RaP7WDpKjN4xD>
+tool_use.*content-blocks"
+</tool.toolu_01UUXUXhV77RaP7WDpKjN4xD>
+
+### path
+
+<tool.toolu_01UUXUXhV77RaP7WDpKjN4xD>
+greger.el
+</tool.toolu_01UUXUXhV77RaP7WDpKjN4xD>
+
+### context-lines
+
+<tool.toolu_01UUXUXhV77RaP7WDpKjN4xD>
+5
+</tool.toolu_01UUXUXhV77RaP7WDpKjN4xD>
+
+## TOOL RESULT:
+
+ID: toolu_01UUXUXhV77RaP7WDpKjN4xD
+
+<tool.toolu_01UUXUXhV77RaP7WDpKjN4xD>
+Failed to execute ripgrep search: Command failed with exit code 1: (no output)
+</tool.toolu_01UUXUXhV77RaP7WDpKjN4xD>
+
+## TOOL USE:
+
+Name: ripgrep
+ID: toolu_016uyBX4atYjA57wneWn3tzd
+
+### pattern
+
+<tool.toolu_016uyBX4atYjA57wneWn3tzd>
+tool_use
+</tool.toolu_016uyBX4atYjA57wneWn3tzd>
+
+### path
+
+<tool.toolu_016uyBX4atYjA57wneWn3tzd>
+greger.el
+</tool.toolu_016uyBX4atYjA57wneWn3tzd>
+
+### context-lines
+
+<tool.toolu_016uyBX4atYjA57wneWn3tzd>
+5
+</tool.toolu_016uyBX4atYjA57wneWn3tzd>
+
+## TOOL RESULT:
+
+ID: toolu_016uyBX4atYjA57wneWn3tzd
+
+<tool.toolu_016uyBX4atYjA57wneWn3tzd>
+498-
+499-(defun greger--extract-tool-calls (content-blocks)
+500-  "Extract tool calls from CONTENT-BLOCKS."
+501-  (let ((tool-calls '()))
+502-    (dolist (block content-blocks)
+503:      (when (string= (alist-get 'type block) "tool_use")
+504-        (greger--debug "EXTRACTING TOOL CALL: %s with input: %s"
+505-                      (alist-get 'name block)
+506-                      (json-encode (alist-get 'input block)))
+507-        (push block tool-calls)))
+508-    (reverse tool-calls)))
+--
+593-AGENT-STATE contains the current agent state.
+594-SEARCH-START-POS is where to start searching for placeholders.
+595-COMPLETION-CALLBACK is called when complete."
+596-  (let ((tool-result (if error
+597-                        `((type . "tool_result")
+598:                          (tool_use_id . ,tool-id)
+599-                          (content . ,(if (stringp error)
+600-                                         error
+601-                                       (format "Error executing tool: %s" (error-message-string error))))
+602-                          (is_error . t))
+603-                      `((type . "tool_result")
+604:                        (tool_use_id . ,tool-id)
+605-                        (content . ,result)))))
+606-
+607-    ;; Update the buffer at the correct position
+608-    (with-current-buffer (greger-state-chat-buffer agent-state)
+609-      (let ((inhibit-read-only t))
+
+</tool.toolu_016uyBX4atYjA57wneWn3tzd>
+
+## ASSISTANT:
+
+Perfect! I can see that tool execution is handled by `greger--extract-tool-calls`, which only looks for `tool_use` type blocks. Server tools with type `server_tool_use` won't trigger execution, which is exactly what we want since server tools are handled by the server.
+
+Now let me create an end-to-end test to verify the complete integration. First, let me check the existing end-to-end test structure:
+
+## TOOL USE:
+
+Name: read-file
+ID: toolu_018NfpuvfGP4bqgGx2t1SuVC
+
+### path
+
+<tool.toolu_018NfpuvfGP4bqgGx2t1SuVC>
+test/test-end-to-end.el
+</tool.toolu_018NfpuvfGP4bqgGx2t1SuVC>
+
+### start-line
+
+<tool.toolu_018NfpuvfGP4bqgGx2t1SuVC>
+1
+</tool.toolu_018NfpuvfGP4bqgGx2t1SuVC>
+
+### end-line
+
+<tool.toolu_018NfpuvfGP4bqgGx2t1SuVC>
+50
+</tool.toolu_018NfpuvfGP4bqgGx2t1SuVC>
+
+## TOOL RESULT:
+
+ID: toolu_018NfpuvfGP4bqgGx2t1SuVC
+
+<tool.toolu_018NfpuvfGP4bqgGx2t1SuVC>
+;;; test-end-to-end.el --- True end-to-end tests for greger -*- lexical-binding: t -*-
+
+;;; Commentary:
+;;
+;; This file contains true end-to-end tests that use greger as an end user would,
+;; calling only the public API functions `greger` and `greger-buffer`.
+;; These tests require a valid ANTHROPIC_API_KEY environment variable.
+;;
+;; WARNING: These tests make real API calls and may incur costs.
+;;
+
+(require 'ert)
+(require 'greger)
+
+(defvar greger-test-timeout 30
+  "Timeout in seconds for API calls in tests.")
+
+
+
+(defun greger-test-wait-for-response (buffer timeout)
+  "Wait for a response to appear in BUFFER within TIMEOUT seconds."
+  (let ((start-time (current-time))
+        (completed nil)
+        (response-started nil)
+        (initial-content (with-current-buffer buffer (buffer-string))))
+
+    (while (and (not completed)
+                (< (float-time (time-subtract (current-time) start-time)) timeout)
+                (buffer-live-p buffer))
+      (sit-for 0.2)
+      ;; Check if buffer content has changed (response received)
+      (when (buffer-live-p buffer)
+        (with-current-buffer buffer
+          (let ((current-content (buffer-string)))
+            ;; Check if response started
+            (when (and (not response-started)
+                      (not (string= initial-content current-content))
+                      (string-match-p "## ASSISTANT:" current-content))
+              (setq response-started t))
+
+            ;; If response started, wait for it to finish
+            (when response-started
+              ;; Check if conversation is complete (has USER prompt at end)
+              (if (string-match-p "## USER:\n\n$" current-content)
+                  (setq completed t)
+                ;; Or if it's been a while since response started, consider it done
+                (let ((response-time (- (float-time (current-time))
+                                       (float-time start-time))))
+                  (when (> response-time 5.0) ; If response has been going for 5+ seconds
+                    (setq completed t)))))))))
+</tool.toolu_018NfpuvfGP4bqgGx2t1SuVC>
+
+## ASSISTANT:
+
+Let me add a server tool end-to-end test. But first, I need to see if there's already a web search tool registered by default:
+
+## TOOL USE:
+
+Name: read-file
+ID: toolu_01CYkpkXuJ8qPAozjuyojKRo
+
+### path
+
+<tool.toolu_01CYkpkXuJ8qPAozjuyojKRo>
+greger-stdlib.el
+</tool.toolu_01CYkpkXuJ8qPAozjuyojKRo>
+
+### start-line
+
+<tool.toolu_01CYkpkXuJ8qPAozjuyojKRo>
+1
+</tool.toolu_01CYkpkXuJ8qPAozjuyojKRo>
+
+### end-line
+
+<tool.toolu_01CYkpkXuJ8qPAozjuyojKRo>
+50
+</tool.toolu_01CYkpkXuJ8qPAozjuyojKRo>
+
+## TOOL RESULT:
+
+ID: toolu_01CYkpkXuJ8qPAozjuyojKRo
+
+<tool.toolu_01CYkpkXuJ8qPAozjuyojKRo>
+;;; greger-stdlib.el --- Tool definitions for greger agent -*- lexical-binding: t -*-
+
+;; Copyright (C) 2023 Andreas Jansson
+
+;; Author: Andreas Jansson <andreas@jansson.me.uk>
+;; Version: 0.1.0
+;; URL: https://github.com/andreasjansson/greger.el
+;; SPDX-License-Identifier: MIT
+
+;; Permission is hereby granted, free of charge, to any person obtaining a copy
+;; of this software and associated documentation files (the "Software"), to deal
+;; in the Software without restriction, including without limitation the rights
+;; to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+;; copies of the Software, and to permit persons to whom the Software is
+;; furnished to do so, subject to the following conditions:
+
+;; The above copyright notice and this permission notice shall be included in all
+;; copies or substantial portions of the Software.
+
+;; THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+;; IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+;; FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+;; AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+;; LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+;; OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+;; SOFTWARE.
+
+;;; Commentary:
+;; Defines tools available to the greger agent
+
+;;; Code:
+
+(require 'greger-tools)
+(require 'greger-web)
+
+;; Register all tools using the macro
+(greger-register-server-tool "web_search"
+    :type "web_search_20250305"
+    :name "web_search"
+    :max_uses 20)
+
+(greger-register-tool "read-file"
+  :description "Read the contents of a file from the filesystem"
+  :properties '((path . ((type . "string")
+                         (description . "Path to the file to read")))
+                (include-line-numbers . ((type . "boolean")
+                                         (description . "Whether to include line numbers in the output. If you plan to modify the file, you should include line numbers here so you know which lines to edit.")
+                                         (default . nil)))
+                (start-line . ((type . "integer")
+                               (description . "Starting line number (1-based) to begin reading from. If not specified, reads from the beginning of the file.")
+</tool.toolu_01CYkpkXuJ8qPAozjuyojKRo>
+
+## ASSISTANT:
+
+Great! I can see that there's already a web search server tool registered. Now let me add an end-to-end test for server tools:
+
+## TOOL USE:
+
+Name: str-replace
+ID: toolu_01DnxGz7oNuMznKdpbRLiN3Y
+
+### file-path
+
+<tool.toolu_01DnxGz7oNuMznKdpbRLiN3Y>
+test/test-end-to-end.el
+</tool.toolu_01DnxGz7oNuMznKdpbRLiN3Y>
+
+### original-content
+
+<tool.toolu_01DnxGz7oNuMznKdpbRLiN3Y>
+(ert-deftest greger-end-to-end-test-basic-chat ()
+  "Test basic chat functionality with a simple question."
+  :tags '(end-to-end)
+  (skip-unless (getenv "ANTHROPIC_API_KEY"))
+  
+  (with-temp-buffer
+    (greger-mode)
+    (insert "## USER:\n\nWhat's 2+2? Please answer with just the number.\n\n")
+    
+    ;; Save initial content
+    (let ((initial-content (buffer-string)))
+      ;; Call greger-buffer
+      (greger-buffer)
+      
+      ;; Wait for response
+      (greger-test-wait-for-response (current-buffer) greger-test-timeout)
+      
+      ;; Verify response was received
+      (let ((final-content (buffer-string)))
+        (should (not (string= initial-content final-content)))
+        (should (string-match-p "## ASSISTANT:" final-content))
+        (should (string-match-p "4" final-content))))))
+</tool.toolu_01DnxGz7oNuMznKdpbRLiN3Y>
+
+### new-content
+
+<tool.toolu_01DnxGz7oNuMznKdpbRLiN3Y>
+(ert-deftest greger-end-to-end-test-basic-chat ()
+  "Test basic chat functionality with a simple question."
+  :tags '(end-to-end)
+  (skip-unless (getenv "ANTHROPIC_API_KEY"))
+  
+  (with-temp-buffer
+    (greger-mode)
+    (insert "## USER:\n\nWhat's 2+2? Please answer with just the number.\n\n")
+    
+    ;; Save initial content
+    (let ((initial-content (buffer-string)))
+      ;; Call greger-buffer
+      (greger-buffer)
+      
+      ;; Wait for response
+      (greger-test-wait-for-response (current-buffer) greger-test-timeout)
+      
+      ;; Verify response was received
+      (let ((final-content (buffer-string)))
+        (should (not (string= initial-content final-content)))
+        (should (string-match-p "## ASSISTANT:" final-content))
+        (should (string-match-p "4" final-content))))))
+
+(ert-deftest greger-end-to-end-test-server-tool-web-search ()
+  "Test server tool functionality with web search."
+  :tags '(end-to-end server-tools)
+  (skip-unless (getenv "ANTHROPIC_API_KEY"))
+  
+  (with-temp-buffer
+    (greger-mode)
+    ;; Enable web search server tool for this test
+    (let ((greger-server-tools '(web_search)))
+      (insert "## USER:\n\nWhat is the current stock price of Apple (AAPL)? Please search for this information.\n\n")
+      
+      ;; Save initial content
+      (let ((initial-content (buffer-string)))
+        ;; Call greger-buffer
+        (greger-buffer)
+        
+        ;; Wait for response (longer timeout for web search)
+        (greger-test-wait-for-response (current-buffer) (* greger-test-timeout 2))
+        
+        ;; Verify response was received
+        (let ((final-content (buffer-string)))
+          (should (not (string= initial-content final-content)))
+          (should (string-match-p "## ASSISTANT:" final-content))
+          ;; Should contain server tool use section
+          (should (string-match-p "## SERVER TOOL USE:" final-content))
+          (should (string-match-p "Name: web_search" final-content))
+          ;; Should contain server tool result section
+          (should (string-match-p "## SERVER TOOL RESULT:" final-content))
+          ;; Should contain some reference to Apple or AAPL in the response
+          (should (string-match-p "\\(Apple\\|AAPL\\)" final-content)))))))
+</tool.toolu_01DnxGz7oNuMznKdpbRLiN3Y>
+
+### git-commit-message
+
+<tool.toolu_01DnxGz7oNuMznKdpbRLiN3Y>
+Add end-to-end test for server tool web search functionality
+</tool.toolu_01DnxGz7oNuMznKdpbRLiN3Y>
+
+## TOOL RESULT:
+
+ID: toolu_01DnxGz7oNuMznKdpbRLiN3Y
+
+<tool.toolu_01DnxGz7oNuMznKdpbRLiN3Y>
+Error executing tool: Original content not found in file: /Users/andreas/projects/greger.el/test/test-end-to-end.el -- Try again!
+</tool.toolu_01DnxGz7oNuMznKdpbRLiN3Y>
+
+## ASSISTANT:
+
+Let me find where to add the test:
+
+## TOOL USE:
+
+Name: read-file
+ID: toolu_0153CxMpWr2zUJbHhcppqMU1
+
+### path
+
+<tool.toolu_0153CxMpWr2zUJbHhcppqMU1>
+test/test-end-to-end.el
+</tool.toolu_0153CxMpWr2zUJbHhcppqMU1>
+
+### start-line
+
+<tool.toolu_0153CxMpWr2zUJbHhcppqMU1>
+80
+</tool.toolu_0153CxMpWr2zUJbHhcppqMU1>
+
+### end-line
+
+<tool.toolu_0153CxMpWr2zUJbHhcppqMU1>
+120
+</tool.toolu_0153CxMpWr2zUJbHhcppqMU1>
+
+## TOOL RESULT:
+
+ID: toolu_0153CxMpWr2zUJbHhcppqMU1
+
+<tool.toolu_0153CxMpWr2zUJbHhcppqMU1>
+              (should (string-match-p "\\*greger\\*" (buffer-name greger-buffer)))
+
+              ;; Verify buffer is in greger-mode
+              (with-current-buffer greger-buffer
+                (should (eq major-mode 'greger-mode))
+
+                ;; Verify initial content is set up correctly
+                (let ((content (buffer-string)))
+                  (should (string-match-p "## SYSTEM:" content))
+                  (should (string-match-p "## USER:" content))
+                  (should (string-match-p greger-default-system-prompt content)))
+
+                ;; Verify we're at the end of the buffer (ready for user input)
+                (should (= (point) (point-max)))))))
+
+      ;; Cleanup: kill any greger buffers we created
+      (dolist (buffer (buffer-list))
+        (when (and (string-match-p "\\*greger\\*" (buffer-name buffer))
+                   (not (memq buffer original-buffers)))
+          (kill-buffer buffer))))))
+
+(ert-deftest greger-end-to-end-test-simple-conversation ()
+  "Test a simple conversation using the public API."
+  :tags '(end-to-end public-api)
+
+
+  (let ((greger-buffer nil))
+    (unwind-protect
+        (progn
+          ;; Create a greger buffer
+          (greger)
+          (setq greger-buffer (current-buffer))
+
+          ;; Add a simple user message
+          (goto-char (point-max))
+          (insert "Hello! Please respond with exactly 'Hello from greger test!' and nothing else.")
+
+          ;; Call greger-buffer to send the message
+          (greger-buffer)
+
+          ;; Wait for response
+</tool.toolu_0153CxMpWr2zUJbHhcppqMU1>
+
+## ASSISTANT:
+
+Let me find the end of the file to add the new test:
+
+## TOOL USE:
+
+Name: read-file
+ID: toolu_01Bfvjt3WhokxG9PnbphZWn1
+
+### path
+
+<tool.toolu_01Bfvjt3WhokxG9PnbphZWn1>
+test/test-end-to-end.el
+</tool.toolu_01Bfvjt3WhokxG9PnbphZWn1>
+
+### start-line
+
+<tool.toolu_01Bfvjt3WhokxG9PnbphZWn1>
+140
+</tool.toolu_01Bfvjt3WhokxG9PnbphZWn1>
+
+### end-line
+
+<tool.toolu_01Bfvjt3WhokxG9PnbphZWn1>
+200
+</tool.toolu_01Bfvjt3WhokxG9PnbphZWn1>
+
+## TOOL RESULT:
+
+ID: toolu_01Bfvjt3WhokxG9PnbphZWn1
+
+<tool.toolu_01Bfvjt3WhokxG9PnbphZWn1>
+  :tags '(end-to-end public-api tools)
+
+
+  (let ((greger-buffer nil)
+        (test-file nil))
+    (unwind-protect
+        (progn
+          ;; Create a temporary test file
+          (setq test-file (make-temp-file "greger-test-" nil ".txt"))
+          (with-temp-file test-file
+            (insert "This is a test file for greger end-to-end testing."))
+
+          ;; Create a greger buffer
+          (greger)
+          (setq greger-buffer (current-buffer))
+
+          ;; Add a user message that should trigger tool use
+          (goto-char (point-max))
+          (insert (format "Please read the file %s and tell me what it contains." test-file))
+
+          ;; Call greger-buffer to send the message
+          (greger-buffer)
+
+          ;; Wait for response (tool use might take longer)
+          (should (greger-test-wait-for-response greger-buffer (* greger-test-timeout 2)))
+
+          ;; Wait for streaming to complete
+          (greger-test-wait-for-streaming-complete)
+
+          ;; Verify response was added to buffer
+          (let ((content (buffer-string)))
+            (should (string-match-p "## ASSISTANT:" content))
+            ;; Should have tool use section or content from the file
+            (should (or (string-match-p "## TOOL USE:" content)
+                       (string-match-p "read-file" content)
+                       (string-match-p "test file for greger" content)))
+            ;; Should have a new USER section at the end (or at least assistant response)
+            (should (or (string-match-p "## USER:\n\n$" content)
+                       (string-match-p "## ASSISTANT:" content)))))
+
+      ;; Cleanup
+      (when (and test-file (file-exists-p test-file))
+        (delete-file test-file))
+      (when (and greger-buffer (buffer-live-p greger-buffer))
+        (kill-buffer greger-buffer)))))
+
+(ert-deftest greger-end-to-end-test-no-tools-mode ()
+  "Test the no-tools mode using C-M-return."
+  :tags '(end-to-end public-api no-tools)
+
+
+  (let ((greger-buffer nil)
+        (test-file nil))
+    (unwind-protect
+        (progn
+          ;; Create a temporary test file
+          (setq test-file (make-temp-file "greger-test-" nil ".txt"))
+          (with-temp-file test-file
+            (insert "This file should not be read in no-tools mode."))
+
+          ;; Create a greger buffer
+</tool.toolu_01Bfvjt3WhokxG9PnbphZWn1>
+
+## ASSISTANT:
+
+Let me see the very end of the file:
+
+## TOOL USE:
+
+Name: shell-command
+ID: toolu_01GszhBybvqFtdDV4oL8EaLj
+
+### command
+
+<tool.toolu_01GszhBybvqFtdDV4oL8EaLj>
+tail -20 test/test-end-to-end.el
+</tool.toolu_01GszhBybvqFtdDV4oL8EaLj>
+
+## TOOL RESULT:
+
+ID: toolu_01GszhBybvqFtdDV4oL8EaLj
+
+<tool.toolu_01GszhBybvqFtdDV4oL8EaLj>
+Command executed successfully:
+                (state-found nil))
+            (while (and (not state-found)
+                       (< (float-time (time-subtract (current-time) start-time)) max-wait))
+              (sit-for 0.1)
+              (when (eq (greger--get-current-state) 'idle)
+                (setq state-found t)))
+            (should state-found))
+
+          ;; Verify the output contains some indication that the command failed
+          ;; (the exact exit code and message may vary depending on platform and signal)
+          (let ((content (buffer-string)))
+            (should (string-match-p "Command failed with exit code 2: (no output)" content))))
+
+      ;; Cleanup
+      (when (and greger-buffer (buffer-live-p greger-buffer))
+        (kill-buffer greger-buffer)))))
+
+(provide 'test-end-to-end)
+
+;;; test-end-to-end.el ends here
+
+</tool.toolu_01GszhBybvqFtdDV4oL8EaLj>
+
+## ASSISTANT:
+
+Now I'll add the server tool test before the provide statement:
+
+## TOOL USE:
+
+Name: str-replace
+ID: toolu_01Pmgspy8yGYenbeV5BvhSx1
+
+### file-path
+
+<tool.toolu_01Pmgspy8yGYenbeV5BvhSx1>
+test/test-end-to-end.el
+</tool.toolu_01Pmgspy8yGYenbeV5BvhSx1>
+
+### original-content
+
+<tool.toolu_01Pmgspy8yGYenbeV5BvhSx1>
+(provide 'test-end-to-end)
+
+;;; test-end-to-end.el ends here
+</tool.toolu_01Pmgspy8yGYenbeV5BvhSx1>
+
+### new-content
+
+<tool.toolu_01Pmgspy8yGYenbeV5BvhSx1>
+(ert-deftest greger-end-to-end-test-server-tool-web-search ()
+  "Test server tool functionality with web search."
+  :tags '(end-to-end server-tools)
+  (skip-unless (getenv "ANTHROPIC_API_KEY"))
+
+  (let ((greger-buffer nil))
+    (unwind-protect
+        (progn
+          ;; Create a greger buffer
+          (greger)
+          (setq greger-buffer (current-buffer))
+
+          ;; Enable web search server tool for this test
+          (let ((greger-server-tools '(web_search)))
+            ;; Add a user message that should trigger web search
+            (goto-char (point-max))
+            (insert "What is the current weather in San Francisco? Please search for this information.")
+
+            ;; Call greger-buffer to send the message
+            (greger-buffer)
+
+            ;; Wait for response (longer timeout for web search)
+            (should (greger-test-wait-for-response greger-buffer (* greger-test-timeout 2)))
+
+            ;; Wait for streaming to complete
+            (greger-test-wait-for-streaming-complete)
+
+            ;; Verify response was added to buffer
+            (let ((content (buffer-string)))
+              (should (string-match-p "## ASSISTANT:" content))
+              ;; Should contain server tool use section
+              (should (string-match-p "## SERVER TOOL USE:" content))
+              (should (string-match-p "Name: web_search" content))
+              ;; Should contain server tool result section
+              (should (string-match-p "## SERVER TOOL RESULT:" content))
+              ;; Should contain some weather-related information
+              (should (string-match-p "\\(weather\\|temperature\\|San Francisco\\)" content)))))
+
+      ;; Cleanup
+      (when (and greger-buffer (buffer-live-p greger-buffer))
+        (kill-buffer greger-buffer)))))
+
+(provide 'test-end-to-end)
+
+;;; test-end-to-end.el ends here
+</tool.toolu_01Pmgspy8yGYenbeV5BvhSx1>
+
+### git-commit-message
+
+<tool.toolu_01Pmgspy8yGYenbeV5BvhSx1>
+Add end-to-end test for server tool web search functionality
+</tool.toolu_01Pmgspy8yGYenbeV5BvhSx1>
+
+<!-- TOOL_RESULT_PLACEHOLDER_toolu_01Pmgspy8yGYenbeV5BvhSx1 -->
