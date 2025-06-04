@@ -886,35 +886,57 @@ drwx------  (dir)  .." (file-name-as-directory test-dir))))
       (when (file-exists-p temp-file)
         (delete-file temp-file)))))
 
-(ert-deftest greger-test-list-directory-hidden-files ()
-  "Test list-directory handling of hidden files with exclude patterns."
+(ert-deftest greger-test-list-directory-hidden-directories ()
+  "Test list-directory handling of hidden directories with exclude-directories-recursive."
   (let ((test-dir (make-temp-file "greger-test-hidden" t)))
     (unwind-protect
         (progn
-          ;; Create hidden and normal files
-          (let ((hidden-file (expand-file-name ".hiddenfile" test-dir))
+          ;; Create hidden and normal directories and files
+          (let ((hidden-dir (expand-file-name ".hiddendir" test-dir))
+                (normal-dir (expand-file-name "normaldir" test-dir))
                 (normal-file (expand-file-name "normalfile.txt" test-dir)))
 
-            (with-temp-file hidden-file (insert "Hidden content"))
+            (make-directory hidden-dir)
+            (make-directory normal-dir)
             (with-temp-file normal-file (insert "Normal content"))
+            (with-temp-file (expand-file-name "hidden.txt" hidden-dir) (insert "Hidden content"))
+            (with-temp-file (expand-file-name "normal.txt" normal-dir) (insert "Normal content"))
 
-            ;; Test with no exclude pattern (should show all files including hidden)
-            (let ((result (greger-stdlib--list-directory test-dir ""))
+            ;; Test with no exclude pattern (should show all files and directories, and recurse into all)
+            (let ((result (greger-stdlib--list-directory test-dir "" t))
                   (expected (format "%s:
 drwx------  (dir)  .
 drwx------  (dir)  ..
--rw-r--r--        14  .hiddenfile
--rw-r--r--        14  normalfile.txt" (file-name-as-directory test-dir))))
+drwxr-xr-x  (dir)  .hiddendir
+-rw-r--r--        14  normalfile.txt
+drwxr-xr-x  (dir)  normaldir
+
+%s.hiddendir/:
+drwxr-xr-x  (dir)  .
+drwx------  (dir)  ..
+-rw-r--r--        14  hidden.txt
+
+%snormaldir/:
+drwxr-xr-x  (dir)  .
+drwx------  (dir)  ..
+-rw-r--r--        14  normal.txt" (file-name-as-directory test-dir) (file-name-as-directory test-dir) (file-name-as-directory test-dir))))
               (should (stringp result))
               (should (string= expected result)))
 
-            ;; Test with pattern excluding hidden files (starting with .)
-            (let ((result (greger-stdlib--list-directory test-dir "^\\.")))
+            ;; Test with pattern excluding hidden directories (starting with .) from recursion
+            (let ((result (greger-stdlib--list-directory test-dir "^\\." t)))
               (should (stringp result))
               (let ((expected (format "%s:
 drwx------  (dir)  .
 drwx------  (dir)  ..
--rw-r--r--        14  normalfile.txt" (file-name-as-directory test-dir))))
+drwxr-xr-x  (dir)  .hiddendir
+-rw-r--r--        14  normalfile.txt
+drwxr-xr-x  (dir)  normaldir
+
+%snormaldir/:
+drwxr-xr-x  (dir)  .
+drwx------  (dir)  ..
+-rw-r--r--        14  normal.txt" (file-name-as-directory test-dir) (file-name-as-directory test-dir))))
                 (should (string= expected result))))))
 
       ;; Clean up

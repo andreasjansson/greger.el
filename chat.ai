@@ -2360,4 +2360,288 @@ drwx------  (dir)  ..
 Update exclude pattern test to test directory exclusion from recursive listing
 </tool.toolu_01UFVK22XhUvnsotKBvQsM5e>
 
-<!-- TOOL_RESULT_PLACEHOLDER_toolu_01UFVK22XhUvnsotKBvQsM5e -->
+## TOOL RESULT:
+
+ID: toolu_01UFVK22XhUvnsotKBvQsM5e
+
+<tool.toolu_01UFVK22XhUvnsotKBvQsM5e>
+Successfully replaced content in /Users/andreas/projects/greger.el/test/test-greger-stdlib.el. Successfully staged 2 file(s) and committed with message: Update exclude pattern test to test directory exclusion from recursive listing
+</tool.toolu_01UFVK22XhUvnsotKBvQsM5e>
+
+
+## ASSISTANT:
+
+Now let me update the hidden files test. The issue there seems to be that it's testing file exclusion, but the new logic doesn't exclude files, only directories from recursive processing:
+
+## TOOL USE:
+
+Name: read-file
+ID: toolu_018cKAxA97SkSfo89TKvF7K1
+
+### path
+
+<tool.toolu_018cKAxA97SkSfo89TKvF7K1>
+test/test-greger-stdlib.el
+</tool.toolu_018cKAxA97SkSfo89TKvF7K1>
+
+### start-line
+
+<tool.toolu_018cKAxA97SkSfo89TKvF7K1>
+869
+</tool.toolu_018cKAxA97SkSfo89TKvF7K1>
+
+### end-line
+
+<tool.toolu_018cKAxA97SkSfo89TKvF7K1>
+900
+</tool.toolu_018cKAxA97SkSfo89TKvF7K1>
+
+## TOOL RESULT:
+
+ID: toolu_018cKAxA97SkSfo89TKvF7K1
+
+<tool.toolu_018cKAxA97SkSfo89TKvF7K1>
+    (unwind-protect
+        (progn
+          ;; Test directory formatting
+          (let ((dir-info (greger-stdlib--format-file-info temp-dir "testdir" "nomatch"))
+                (expected "drwx------  (dir)  testdir"))
+            (should (stringp dir-info))
+            (should (string= expected dir-info)))
+
+          ;; Test file formatting
+          (let ((file-info (greger-stdlib--format-file-info temp-file "testfile" "nomatch"))
+                (expected "-rw-------         0  testfile"))
+            (should (stringp file-info))
+            (should (string= expected file-info))))
+
+      ;; Clean up
+      (when (file-exists-p temp-dir)
+        (delete-directory temp-dir))
+      (when (file-exists-p temp-file)
+        (delete-file temp-file)))))
+
+(ert-deftest greger-test-list-directory-hidden-files ()
+  "Test list-directory handling of hidden files with exclude patterns."
+  (let ((test-dir (make-temp-file "greger-test-hidden" t)))
+    (unwind-protect
+        (progn
+          ;; Create hidden and normal files
+          (let ((hidden-file (expand-file-name ".hiddenfile" test-dir))
+                (normal-file (expand-file-name "normalfile.txt" test-dir)))
+
+            (with-temp-file hidden-file (insert "Hidden content"))
+            (with-temp-file normal-file (insert "Normal content"))
+
+</tool.toolu_018cKAxA97SkSfo89TKvF7K1>
+
+## ASSISTANT:
+
+Let me see the rest of this test:
+
+## TOOL USE:
+
+Name: read-file
+ID: toolu_01R6m79chqeTRBixgQ2Xhi6M
+
+### path
+
+<tool.toolu_01R6m79chqeTRBixgQ2Xhi6M>
+test/test-greger-stdlib.el
+</tool.toolu_01R6m79chqeTRBixgQ2Xhi6M>
+
+### start-line
+
+<tool.toolu_01R6m79chqeTRBixgQ2Xhi6M>
+869
+</tool.toolu_01R6m79chqeTRBixgQ2Xhi6M>
+
+### end-line
+
+<tool.toolu_01R6m79chqeTRBixgQ2Xhi6M>
+920
+</tool.toolu_01R6m79chqeTRBixgQ2Xhi6M>
+
+## TOOL RESULT:
+
+ID: toolu_01R6m79chqeTRBixgQ2Xhi6M
+
+<tool.toolu_01R6m79chqeTRBixgQ2Xhi6M>
+    (unwind-protect
+        (progn
+          ;; Test directory formatting
+          (let ((dir-info (greger-stdlib--format-file-info temp-dir "testdir" "nomatch"))
+                (expected "drwx------  (dir)  testdir"))
+            (should (stringp dir-info))
+            (should (string= expected dir-info)))
+
+          ;; Test file formatting
+          (let ((file-info (greger-stdlib--format-file-info temp-file "testfile" "nomatch"))
+                (expected "-rw-------         0  testfile"))
+            (should (stringp file-info))
+            (should (string= expected file-info))))
+
+      ;; Clean up
+      (when (file-exists-p temp-dir)
+        (delete-directory temp-dir))
+      (when (file-exists-p temp-file)
+        (delete-file temp-file)))))
+
+(ert-deftest greger-test-list-directory-hidden-files ()
+  "Test list-directory handling of hidden files with exclude patterns."
+  (let ((test-dir (make-temp-file "greger-test-hidden" t)))
+    (unwind-protect
+        (progn
+          ;; Create hidden and normal files
+          (let ((hidden-file (expand-file-name ".hiddenfile" test-dir))
+                (normal-file (expand-file-name "normalfile.txt" test-dir)))
+
+            (with-temp-file hidden-file (insert "Hidden content"))
+            (with-temp-file normal-file (insert "Normal content"))
+
+            ;; Test with no exclude pattern (should show all files including hidden)
+            (let ((result (greger-stdlib--list-directory test-dir ""))
+                  (expected (format "%s:
+drwx------  (dir)  .
+drwx------  (dir)  ..
+-rw-r--r--        14  .hiddenfile
+-rw-r--r--        14  normalfile.txt" (file-name-as-directory test-dir))))
+              (should (stringp result))
+              (should (string= expected result)))
+
+            ;; Test with pattern excluding hidden files (starting with .)
+            (let ((result (greger-stdlib--list-directory test-dir "^\\.")))
+              (should (stringp result))
+              (let ((expected (format "%s:
+drwx------  (dir)  .
+drwx------  (dir)  ..
+-rw-r--r--        14  normalfile.txt" (file-name-as-directory test-dir))))
+                (should (string= expected result))))))
+
+      ;; Clean up
+</tool.toolu_01R6m79chqeTRBixgQ2Xhi6M>
+
+## ASSISTANT:
+
+I see. This test is testing the old behavior where hidden files could be excluded. Since the new parameter is `exclude-directories-recursive` and only affects directory recursion, this test doesn't make sense anymore. The new implementation always shows all files in the current directory and only excludes directories from recursive processing.
+
+Let me update this test to reflect the new behavior:
+
+## TOOL USE:
+
+Name: str-replace
+ID: toolu_01KyLc582jqb23iSZqxvS5Ya
+
+### file-path
+
+<tool.toolu_01KyLc582jqb23iSZqxvS5Ya>
+test/test-greger-stdlib.el
+</tool.toolu_01KyLc582jqb23iSZqxvS5Ya>
+
+### original-content
+
+<tool.toolu_01KyLc582jqb23iSZqxvS5Ya>
+(ert-deftest greger-test-list-directory-hidden-files ()
+  "Test list-directory handling of hidden files with exclude patterns."
+  (let ((test-dir (make-temp-file "greger-test-hidden" t)))
+    (unwind-protect
+        (progn
+          ;; Create hidden and normal files
+          (let ((hidden-file (expand-file-name ".hiddenfile" test-dir))
+                (normal-file (expand-file-name "normalfile.txt" test-dir)))
+
+            (with-temp-file hidden-file (insert "Hidden content"))
+            (with-temp-file normal-file (insert "Normal content"))
+
+            ;; Test with no exclude pattern (should show all files including hidden)
+            (let ((result (greger-stdlib--list-directory test-dir ""))
+                  (expected (format "%s:
+drwx------  (dir)  .
+drwx------  (dir)  ..
+-rw-r--r--        14  .hiddenfile
+-rw-r--r--        14  normalfile.txt" (file-name-as-directory test-dir))))
+              (should (stringp result))
+              (should (string= expected result)))
+
+            ;; Test with pattern excluding hidden files (starting with .)
+            (let ((result (greger-stdlib--list-directory test-dir "^\\.")))
+              (should (stringp result))
+              (let ((expected (format "%s:
+drwx------  (dir)  .
+drwx------  (dir)  ..
+-rw-r--r--        14  normalfile.txt" (file-name-as-directory test-dir))))
+                (should (string= expected result))))))
+
+      ;; Clean up
+      (when (file-exists-p test-dir)
+        (delete-directory test-dir t))))
+</tool.toolu_01KyLc582jqb23iSZqxvS5Ya>
+
+### new-content
+
+<tool.toolu_01KyLc582jqb23iSZqxvS5Ya>
+(ert-deftest greger-test-list-directory-hidden-directories ()
+  "Test list-directory handling of hidden directories with exclude-directories-recursive."
+  (let ((test-dir (make-temp-file "greger-test-hidden" t)))
+    (unwind-protect
+        (progn
+          ;; Create hidden and normal directories and files
+          (let ((hidden-dir (expand-file-name ".hiddendir" test-dir))
+                (normal-dir (expand-file-name "normaldir" test-dir))
+                (normal-file (expand-file-name "normalfile.txt" test-dir)))
+
+            (make-directory hidden-dir)
+            (make-directory normal-dir)
+            (with-temp-file normal-file (insert "Normal content"))
+            (with-temp-file (expand-file-name "hidden.txt" hidden-dir) (insert "Hidden content"))
+            (with-temp-file (expand-file-name "normal.txt" normal-dir) (insert "Normal content"))
+
+            ;; Test with no exclude pattern (should show all files and directories, and recurse into all)
+            (let ((result (greger-stdlib--list-directory test-dir "" t))
+                  (expected (format "%s:
+drwx------  (dir)  .
+drwx------  (dir)  ..
+drwxr-xr-x  (dir)  .hiddendir
+-rw-r--r--        14  normalfile.txt
+drwxr-xr-x  (dir)  normaldir
+
+%s.hiddendir/:
+drwxr-xr-x  (dir)  .
+drwx------  (dir)  ..
+-rw-r--r--        14  hidden.txt
+
+%snormaldir/:
+drwxr-xr-x  (dir)  .
+drwx------  (dir)  ..
+-rw-r--r--        14  normal.txt" (file-name-as-directory test-dir) (file-name-as-directory test-dir) (file-name-as-directory test-dir))))
+              (should (stringp result))
+              (should (string= expected result)))
+
+            ;; Test with pattern excluding hidden directories (starting with .) from recursion
+            (let ((result (greger-stdlib--list-directory test-dir "^\\." t)))
+              (should (stringp result))
+              (let ((expected (format "%s:
+drwx------  (dir)  .
+drwx------  (dir)  ..
+drwxr-xr-x  (dir)  .hiddendir
+-rw-r--r--        14  normalfile.txt
+drwxr-xr-x  (dir)  normaldir
+
+%snormaldir/:
+drwxr-xr-x  (dir)  .
+drwx------  (dir)  ..
+-rw-r--r--        14  normal.txt" (file-name-as-directory test-dir) (file-name-as-directory test-dir))))
+                (should (string= expected result))))))
+
+      ;; Clean up
+      (when (file-exists-p test-dir)
+        (delete-directory test-dir t))))
+</tool.toolu_01KyLc582jqb23iSZqxvS5Ya>
+
+### git-commit-message
+
+<tool.toolu_01KyLc582jqb23iSZqxvS5Ya>
+Update hidden files test to test hidden directory exclusion from recursive listing
+</tool.toolu_01KyLc582jqb23iSZqxvS5Ya>
+
+<!-- TOOL_RESULT_PLACEHOLDER_toolu_01KyLc582jqb23iSZqxvS5Ya -->
