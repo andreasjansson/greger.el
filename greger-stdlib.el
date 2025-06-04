@@ -455,7 +455,7 @@ Excludes files/directories matching EXCLUDE-PATTERN."
               (push formatted results))))))
 
     (if (> (length results) 1) ; More than just the header
-        (mapconcat #'identity (reverse results) "\n")
+        (mapconcat #'identity results "\n")
       (format "%s:\nDirectory is empty" display-path))))
 
 (defun greger-stdlib--list-directory-recursive-detailed (path exclude-pattern &optional prefix)
