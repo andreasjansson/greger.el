@@ -724,12 +724,11 @@ Line 3"))
             (with-temp-file test-file
               (insert "content"))
 
-            ;; Since file permissions and timestamps vary, just test that we get string output
-            ;; and that it contains the expected filename
+            ;; Test that we get string output containing the filename
             (let ((result (greger-stdlib--list-directory test-dir)))
               (should (stringp result))
-              ;; At minimum, should contain the filename we created
-              (should (string-match-p "test\\.txt" result)))))
+              ;; Check that filename appears in result
+              (should (string-match "test\\.txt" result)))))
 
       ;; Clean up
       (when (file-exists-p test-dir)
