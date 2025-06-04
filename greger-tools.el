@@ -144,6 +144,23 @@ The raw JSON string will be displayed for the server tool definition."
                 (error "Unknown tool: %s" tool-name))))
           tool-names))
 
+(defun greger-server-tools-get-schemas (tool-names)
+  "Get server tool schemas for TOOL-NAMES as JSON strings."
+  (mapcar (lambda (tool-name)
+            (let ((tool-def (gethash tool-name greger-server-tools-registry)))
+              (if tool-def
+                  (json-encode tool-def)
+                (error "Unknown server tool: %s" tool-name))))
+          tool-names))
+
+(defun greger-server-tools-get-all-schemas ()
+  "Get all registered server tool schemas as JSON strings."
+  (let ((tools '()))
+    (maphash (lambda (name def)
+               (push (json-encode def) tools))
+             greger-server-tools-registry)
+    tools))
+
 (defun greger-tools-execute (tool-name args callback buffer &optional metadata)
   "Execute TOOL-NAME with ARGS and call CALLBACK with (result error).
 Returns a greger-tool struct for tracking execution and cancellation.

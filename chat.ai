@@ -3392,4 +3392,121 @@ The raw JSON string will be displayed for the server tool definition."
 Add greger-register-server-tool macro
 </tool.toolu_01NEwLkbUBrMWG9dkpYsXMXb>
 
-<!-- TOOL_RESULT_PLACEHOLDER_toolu_01NEwLkbUBrMWG9dkpYsXMXb -->
+## TOOL RESULT:
+
+ID: toolu_01NEwLkbUBrMWG9dkpYsXMXb
+
+<tool.toolu_01NEwLkbUBrMWG9dkpYsXMXb>
+Successfully replaced content in /Users/andreas/projects/greger.el/greger-tools.el. Successfully staged 2 file(s) and committed with message: Add greger-register-server-tool macro
+</tool.toolu_01NEwLkbUBrMWG9dkpYsXMXb>
+
+## ASSISTANT:
+
+Now I need to add functions to get server tool schemas and display them as JSON. Let me add these after the existing tool functions:
+
+## TOOL USE:
+
+Name: read-file
+ID: toolu_019b2HNUuzx4UJHYDf8REWX5
+
+### path
+
+<tool.toolu_019b2HNUuzx4UJHYDf8REWX5>
+greger-tools.el
+</tool.toolu_019b2HNUuzx4UJHYDf8REWX5>
+
+### start-line
+
+<tool.toolu_019b2HNUuzx4UJHYDf8REWX5>
+130
+</tool.toolu_019b2HNUuzx4UJHYDf8REWX5>
+
+### end-line
+
+<tool.toolu_019b2HNUuzx4UJHYDf8REWX5>
+150
+</tool.toolu_019b2HNUuzx4UJHYDf8REWX5>
+
+## TOOL RESULT:
+
+ID: toolu_019b2HNUuzx4UJHYDf8REWX5
+
+<tool.toolu_019b2HNUuzx4UJHYDf8REWX5>
+      (while remaining-args
+        (let ((key (pop remaining-args))
+              (value (pop remaining-args)))
+          (when key
+            (push (cons (intern (substring (symbol-name key) 1)) value) tool-def))))
+
+      `(puthash ,name (nreverse ',tool-def) greger-server-tools-registry))))
+
+(defun greger-tools-get-schemas (tool-names)
+  "Get tool schemas for TOOL-NAMES."
+  (mapcar (lambda (tool-name)
+            (let ((tool-def (gethash tool-name greger-tools-registry)))
+              (if tool-def
+                  (plist-get tool-def :schema)
+                (error "Unknown tool: %s" tool-name))))
+          tool-names))
+
+(defun greger-tools-execute (tool-name args callback buffer &optional metadata)
+  "Execute TOOL-NAME with ARGS and call CALLBACK with (result error).
+Returns a greger-tool struct for tracking execution and cancellation.
+If the tool has :pass-buffer set, BUFFER will be passed to the tool function.
+</tool.toolu_019b2HNUuzx4UJHYDf8REWX5>
+
+## ASSISTANT:
+
+Let me add the server tool functions after the existing `greger-tools-get-schemas` function:
+
+## TOOL USE:
+
+Name: str-replace
+ID: toolu_01ShrorbnvddMKysoeCEmJwP
+
+### file-path
+
+<tool.toolu_01ShrorbnvddMKysoeCEmJwP>
+greger-tools.el
+</tool.toolu_01ShrorbnvddMKysoeCEmJwP>
+
+### original-content
+
+<tool.toolu_01ShrorbnvddMKysoeCEmJwP>
+          tool-names))
+
+(defun greger-tools-execute (tool-name args callback buffer &optional metadata)
+</tool.toolu_01ShrorbnvddMKysoeCEmJwP>
+
+### new-content
+
+<tool.toolu_01ShrorbnvddMKysoeCEmJwP>
+          tool-names))
+
+(defun greger-server-tools-get-schemas (tool-names)
+  "Get server tool schemas for TOOL-NAMES as JSON strings."
+  (mapcar (lambda (tool-name)
+            (let ((tool-def (gethash tool-name greger-server-tools-registry)))
+              (if tool-def
+                  (json-encode tool-def)
+                (error "Unknown server tool: %s" tool-name))))
+          tool-names))
+
+(defun greger-server-tools-get-all-schemas ()
+  "Get all registered server tool schemas as JSON strings."
+  (let ((tools '()))
+    (maphash (lambda (name def)
+               (push (json-encode def) tools))
+             greger-server-tools-registry)
+    tools))
+
+(defun greger-tools-execute (tool-name args callback buffer &optional metadata)
+</tool.toolu_01ShrorbnvddMKysoeCEmJwP>
+
+### git-commit-message
+
+<tool.toolu_01ShrorbnvddMKysoeCEmJwP>
+Add server tool schema retrieval functions
+</tool.toolu_01ShrorbnvddMKysoeCEmJwP>
+
+<!-- TOOL_RESULT_PLACEHOLDER_toolu_01ShrorbnvddMKysoeCEmJwP -->
