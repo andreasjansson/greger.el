@@ -465,7 +465,7 @@ PREFIX is used internally for nested directory structure."
   (let ((all-results '())
         (subdirs '())
         (display-path (if (string= prefix "")
-                          (if (string= path ".") "./" (file-name-as-directory (file-relative-name path)))
+                          (if (string= path ".") "./" (file-name-as-directory path))
                         (concat "./" prefix))))
 
     ;; Build current directory listing
