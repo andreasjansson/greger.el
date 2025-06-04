@@ -513,8 +513,8 @@ _EXCLUDE-DIRECTORIES-RECURSIVE is unused in this function."
               displayname))))
 
 (defun greger-stdlib--file-mode-string (attrs)
-  "Convert file attributes to mode string like 'drwxr-xr-x'.
-ATTRS should be the result of file-attributes."
+  "Convert file attributes to mode string like \\='drwxr-xr-x\\='.
+ATTRS should be the result of `file-attributes'."
   (let* ((file-type (nth 0 attrs))
          (mode (nth 8 attrs))
          (type-char (cond
