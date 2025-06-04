@@ -3582,4 +3582,78 @@ greger-stdlib.el
 Fix regex pattern wrapping to not add unnecessary parentheses
 </tool.toolu_019ufY1fB6r15yRpWCtbSkjF>
 
-<!-- TOOL_RESULT_PLACEHOLDER_toolu_019ufY1fB6r15yRpWCtbSkjF -->
+## TOOL RESULT:
+
+ID: toolu_019ufY1fB6r15yRpWCtbSkjF
+
+<tool.toolu_019ufY1fB6r15yRpWCtbSkjF>
+Successfully replaced content in /Users/andreas/projects/greger.el/greger-stdlib.el. Successfully staged 2 file(s) and committed with message: Fix regex pattern wrapping to not add unnecessary parentheses
+</tool.toolu_019ufY1fB6r15yRpWCtbSkjF>
+
+
+## ASSISTANT:
+
+Now let me test this:
+
+## TOOL USE:
+
+Name: shell-command
+ID: toolu_014pCfoDczUmEKVDfZAiEkiE
+
+### command
+
+<tool.toolu_014pCfoDczUmEKVDfZAiEkiE>
+emacs --batch --eval "(progn (let ((pattern \"\\.git|__pycache__\") (test-name \".git\")) (print (format \"Testing %s against %s\" test-name pattern)) (print (format \"Full pattern: ^%s$\" pattern)) (print (string-match-p (format \"^%s$\" pattern) test-name))))"
+</tool.toolu_014pCfoDczUmEKVDfZAiEkiE>
+
+## TOOL RESULT:
+
+ID: toolu_014pCfoDczUmEKVDfZAiEkiE
+
+<tool.toolu_014pCfoDczUmEKVDfZAiEkiE>
+Command executed successfully:
+
+"Testing .git against .git|__pycache__"
+
+"Full pattern: ^.git|__pycache__$"
+
+nil
+
+</tool.toolu_014pCfoDczUmEKVDfZAiEkiE>
+
+## ASSISTANT:
+
+Still not working! The issue is that `^.git|__pycache__$` means "starts with any character followed by 'git' OR ends with '__pycache__'". I need to properly group the alternation:
+
+## TOOL USE:
+
+Name: str-replace
+ID: toolu_01TpSJbETGpHYB6s2W5rn55Q
+
+### file-path
+
+<tool.toolu_01TpSJbETGpHYB6s2W5rn55Q>
+greger-stdlib.el
+</tool.toolu_01TpSJbETGpHYB6s2W5rn55Q>
+
+### original-content
+
+<tool.toolu_01TpSJbETGpHYB6s2W5rn55Q>
+(let ((full-match-pattern (format "^%s$" exclude-directories-recursive)))
+      (not (string-match-p full-match-pattern directory-name)))
+</tool.toolu_01TpSJbETGpHYB6s2W5rn55Q>
+
+### new-content
+
+<tool.toolu_01TpSJbETGpHYB6s2W5rn55Q>
+(let ((full-match-pattern (format "^\\(%s\\)$" exclude-directories-recursive)))
+      (not (string-match-p full-match-pattern directory-name)))
+</tool.toolu_01TpSJbETGpHYB6s2W5rn55Q>
+
+### git-commit-message
+
+<tool.toolu_01TpSJbETGpHYB6s2W5rn55Q>
+Fix regex pattern to properly group alternation with anchors
+</tool.toolu_01TpSJbETGpHYB6s2W5rn55Q>
+
+<!-- TOOL_RESULT_PLACEHOLDER_toolu_01TpSJbETGpHYB6s2W5rn55Q -->
