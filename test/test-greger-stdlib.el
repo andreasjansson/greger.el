@@ -876,15 +876,21 @@ drwx------  (dir)  .." (file-name-as-directory test-dir))))
 
             ;; Test with no exclude pattern (should show all files including hidden)
             (let ((result (greger-stdlib--list-directory test-dir ""))
-                  (expected "-rw-r--r--       14  .hiddenfile
--rw-r--r--       14  normalfile.txt"))
+                  (expected (format "%s:
+drwx------  (dir)  .
+drwx------  (dir)  ..
+-rw-r--r--        14  .hiddenfile
+-rw-r--r--        14  normalfile.txt" (file-name-as-directory test-dir))))
               (should (stringp result))
               (should (string= expected result)))
 
             ;; Test with pattern excluding hidden files (starting with .)
             (let ((result (greger-stdlib--list-directory test-dir "^\\.")))
               (should (stringp result))
-              (let ((expected "-rw-r--r--       14  normalfile.txt"))
+              (let ((expected (format "%s:
+drwx------  (dir)  .
+drwx------  (dir)  ..
+-rw-r--r--        14  normalfile.txt" (file-name-as-directory test-dir))))
                 (should (string= expected result))))))
 
       ;; Clean up
