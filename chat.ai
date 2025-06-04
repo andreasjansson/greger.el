@@ -1855,4 +1855,62 @@ greger-stdlib.el
 Refactor greger-stdlib--str-replace to use assertion helpers
 </tool.toolu_01WxxMKJpVRqET2bJNKBDwf1>
 
-<!-- TOOL_RESULT_PLACEHOLDER_toolu_01WxxMKJpVRqET2bJNKBDwf1 -->
+## TOOL RESULT:
+
+ID: toolu_01WxxMKJpVRqET2bJNKBDwf1
+
+<tool.toolu_01WxxMKJpVRqET2bJNKBDwf1>
+Successfully replaced content in /Users/andreas/projects/greger.el/greger-stdlib.el. Successfully staged 2 file(s) and committed with message: Refactor greger-stdlib--str-replace to use assertion helpers
+</tool.toolu_01WxxMKJpVRqET2bJNKBDwf1>
+
+
+## ASSISTANT:
+
+Now let's replace the validation in `greger-stdlib--insert`. This function has both string and integer validation:
+
+## TOOL USE:
+
+Name: str-replace
+ID: toolu_01CVXo6gxb9qccw37CQ91Tvr
+
+### file-path
+
+<tool.toolu_01CVXo6gxb9qccw37CQ91Tvr>
+greger-stdlib.el
+</tool.toolu_01CVXo6gxb9qccw37CQ91Tvr>
+
+### original-content
+
+<tool.toolu_01CVXo6gxb9qccw37CQ91Tvr>
+(unless (stringp file-path)
+    (error "Invalid type: file-path must be a string"))
+
+  (unless (integerp line-number)
+    (error "Invalid type: line-number must be an integer"))
+
+  (unless (>= line-number 0)
+    (error "Invalid type: line-number must be >= 0"))
+
+  (unless (stringp content)
+    (error "Invalid type: content must be a string"))
+
+  (unless (stringp git-commit-message)
+    (error "Invalid type: git-commit-message must be a string"))
+</tool.toolu_01CVXo6gxb9qccw37CQ91Tvr>
+
+### new-content
+
+<tool.toolu_01CVXo6gxb9qccw37CQ91Tvr>
+(greger-stdlib--assert-arg-string "file-path" file-path)
+  (greger-stdlib--assert-arg-int-between "line-number" line-number 0 nil)
+  (greger-stdlib--assert-arg-string "content" content)
+  (greger-stdlib--assert-arg-string "git-commit-message" git-commit-message)
+</tool.toolu_01CVXo6gxb9qccw37CQ91Tvr>
+
+### git-commit-message
+
+<tool.toolu_01CVXo6gxb9qccw37CQ91Tvr>
+Refactor greger-stdlib--insert to use assertion helpers
+</tool.toolu_01CVXo6gxb9qccw37CQ91Tvr>
+
+<!-- TOOL_RESULT_PLACEHOLDER_toolu_01CVXo6gxb9qccw37CQ91Tvr -->

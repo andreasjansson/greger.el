@@ -856,20 +856,10 @@ For Emacs Lisp files (.el), checks that parentheses balance is maintained."
   "Insert CONTENT at LINE-NUMBER in FILE-PATH.
 GIT-COMMIT-MESSAGE will be used for the git commit.
 If BUFFER is provided, it will be staged and committed along with the file."
-  (unless (stringp file-path)
-    (error "Invalid type: file-path must be a string"))
-
-  (unless (integerp line-number)
-    (error "Invalid type: line-number must be an integer"))
-
-  (unless (>= line-number 0)
-    (error "Invalid type: line-number must be >= 0"))
-
-  (unless (stringp content)
-    (error "Invalid type: content must be a string"))
-
-  (unless (stringp git-commit-message)
-    (error "Invalid type: git-commit-message must be a string"))
+  (greger-stdlib--assert-arg-string "file-path" file-path)
+  (greger-stdlib--assert-arg-int-between "line-number" line-number 0 nil)
+  (greger-stdlib--assert-arg-string "content" content)
+  (greger-stdlib--assert-arg-string "git-commit-message" git-commit-message)
 
   (let ((expanded-path (expand-file-name file-path)))
 
