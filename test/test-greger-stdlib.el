@@ -845,20 +845,16 @@ drwxrwxrwt     2368  .."))
     (unwind-protect
         (progn
           ;; Test directory formatting
-          (let ((dir-info (greger-stdlib--format-file-info temp-dir "testdir" "nomatch")))
+          (let ((dir-info (greger-stdlib--format-file-info temp-dir "testdir" "nomatch"))
+                (expected "drwxr-xr-x       96  testdir"))
             (should (stringp dir-info))
-            ;; Should start with 'd' for directory
-            (should (string-match-p "^d" dir-info))
-            ;; Should end with the display name
-            (should (string-match-p "testdir$" dir-info)))
+            (should (string= expected dir-info)))
 
           ;; Test file formatting
-          (let ((file-info (greger-stdlib--format-file-info temp-file "testfile" "nomatch")))
+          (let ((file-info (greger-stdlib--format-file-info temp-file "testfile" "nomatch"))
+                (expected "-rw-r--r--        0  testfile"))
             (should (stringp file-info))
-            ;; Should start with '-' for regular file
-            (should (string-match-p "^-" file-info))
-            ;; Should end with the display name
-            (should (string-match-p "testfile$" file-info))))
+            (should (string= expected file-info))))
 
       ;; Clean up
       (when (file-exists-p temp-dir)
