@@ -57,7 +57,7 @@
                          (default . ".")))
                 (exclude-directories-recursive . ((type . "string")
                                                    (description . "Regex pattern of directories to exclude when recursively listing files")
-                                                   (default . "\\.git/|__pycache__/")))
+                                                   (default . "\\.git|__pycache__")))
                 (recursive . ((type . "boolean")
                               (description . "Whether to list files recursively")
                               (default . nil))))
@@ -412,7 +412,7 @@ If RECURSIVE is non-nil, list files recursively."
     (error "Invalid type: path must be a string"))
 
   (let ((expanded-path (expand-file-name path))
-        (exclude-regex (or exclude-directories-recursive "\\.git/|__pycache__/"))
+        (exclude-regex (or exclude-directories-recursive "\\.git|__pycache__"))
         (original-path path))
     (unless (file-exists-p expanded-path)
       (error "Directory does not exist: %s" expanded-path))

@@ -949,4 +949,151 @@ PREFIX is used internally for nested directory structure."
 Update recursive function signature and documentation
 </tool.toolu_01LjZKkN8HCARe49BSba37zE>
 
-<!-- TOOL_RESULT_PLACEHOLDER_toolu_01LjZKkN8HCARe49BSba37zE -->
+## TOOL RESULT:
+
+ID: toolu_01LjZKkN8HCARe49BSba37zE
+
+<tool.toolu_01LjZKkN8HCARe49BSba37zE>
+Successfully replaced content in /Users/andreas/projects/greger.el/greger-stdlib.el. Successfully staged 2 file(s) and committed with message: Update recursive function signature and documentation
+</tool.toolu_01LjZKkN8HCARe49BSba37zE>
+
+## USER:
+
+I changed the default pattern from `"\\.git/|__pycache__/"` to `"\\.git|__pycache__"` (got rid of the slashes). Note that it needs to be a full match internally, i.e. `^(\\.git|__pycache__)$`.
+
+## ASSISTANT:
+
+I understand. You've changed the default pattern from `"\\.git/|__pycache__/"` to `"\\.git|__pycache__"` and it needs to be anchored as a full match with `^(\\.git|__pycache__)$` internally. Let me update the code to reflect this change.
+
+First, let me update the tool definition with the new default:
+
+## ASSISTANT:
+
+
+
+## TOOL USE:
+
+Name: str-replace
+ID: toolu_01UGTc74qBMSrDhhXmBXk9Rb
+
+### file-path
+
+<tool.toolu_01UGTc74qBMSrDhhXmBXk9Rb>
+greger-stdlib.el
+</tool.toolu_01UGTc74qBMSrDhhXmBXk9Rb>
+
+### original-content
+
+<tool.toolu_01UGTc74qBMSrDhhXmBXk9Rb>
+                (exclude-directories-recursive . ((type . "string")
+                                                   (description . "Regex pattern of directories to exclude when recursively listing files")
+                                                   (default . "\\.git/|__pycache__/")))
+</tool.toolu_01UGTc74qBMSrDhhXmBXk9Rb>
+
+### new-content
+
+<tool.toolu_01UGTc74qBMSrDhhXmBXk9Rb>
+                (exclude-directories-recursive . ((type . "string")
+                                                   (description . "Regex pattern of directories to exclude when recursively listing files")
+                                                   (default . "\\.git|__pycache__")))
+</tool.toolu_01UGTc74qBMSrDhhXmBXk9Rb>
+
+### git-commit-message
+
+<tool.toolu_01UGTc74qBMSrDhhXmBXk9Rb>
+Update default exclude pattern to remove trailing slashes
+</tool.toolu_01UGTc74qBMSrDhhXmBXk9Rb>
+
+## TOOL RESULT:
+
+ID: toolu_01UGTc74qBMSrDhhXmBXk9Rb
+
+<tool.toolu_01UGTc74qBMSrDhhXmBXk9Rb>
+Error executing tool: Original content not found in file: /Users/andreas/projects/greger.el/greger-stdlib.el -- Try again!
+</tool.toolu_01UGTc74qBMSrDhhXmBXk9Rb>
+
+## ASSISTANT:
+
+Let me check the current content first:
+
+## TOOL USE:
+
+Name: read-file
+ID: toolu_01YBSeXUYHQRAP32Af9NBvho
+
+### path
+
+<tool.toolu_01YBSeXUYHQRAP32Af9NBvho>
+greger-stdlib.el
+</tool.toolu_01YBSeXUYHQRAP32Af9NBvho>
+
+### start-line
+
+<tool.toolu_01YBSeXUYHQRAP32Af9NBvho>
+53
+</tool.toolu_01YBSeXUYHQRAP32Af9NBvho>
+
+### end-line
+
+<tool.toolu_01YBSeXUYHQRAP32Af9NBvho>
+65
+</tool.toolu_01YBSeXUYHQRAP32Af9NBvho>
+
+## TOOL RESULT:
+
+ID: toolu_01YBSeXUYHQRAP32Af9NBvho
+
+<tool.toolu_01YBSeXUYHQRAP32Af9NBvho>
+(greger-register-tool "list-directory"
+  :description "List files and directories in a given directory"
+  :properties '((path . ((type . "string")
+                         (description . "Path to the directory to list. Defaults to current directory.")
+                         (default . ".")))
+                (exclude-directories-recursive . ((type . "string")
+                                                   (description . "Regex pattern of directories to exclude when recursively listing files")
+                                                   (default . "\\.git|__pycache__")))
+                (recursive . ((type . "boolean")
+                              (description . "Whether to list files recursively")
+                              (default . nil))))
+  :required '()
+  :function 'greger-stdlib--list-directory)
+</tool.toolu_01YBSeXUYHQRAP32Af9NBvho>
+
+## ASSISTANT:
+
+I see the default has already been updated. Now I need to update the function implementation to use the new default and implement the full match logic with anchors:
+
+## TOOL USE:
+
+Name: str-replace
+ID: toolu_01J6Kgh6ysMFNG7L4UqARce2
+
+### file-path
+
+<tool.toolu_01J6Kgh6ysMFNG7L4UqARce2>
+greger-stdlib.el
+</tool.toolu_01J6Kgh6ysMFNG7L4UqARce2>
+
+### original-content
+
+<tool.toolu_01J6Kgh6ysMFNG7L4UqARce2>
+  (let ((expanded-path (expand-file-name path))
+        (exclude-regex (or exclude-directories-recursive "\\.git/|__pycache__/"))
+        (original-path path))
+</tool.toolu_01J6Kgh6ysMFNG7L4UqARce2>
+
+### new-content
+
+<tool.toolu_01J6Kgh6ysMFNG7L4UqARce2>
+  (let ((expanded-path (expand-file-name path))
+        (exclude-regex (or exclude-directories-recursive "\\.git|__pycache__"))
+        (original-path path))
+</tool.toolu_01J6Kgh6ysMFNG7L4UqARce2>
+
+### git-commit-message
+
+<tool.toolu_01J6Kgh6ysMFNG7L4UqARce2>
+Update default exclude pattern in function implementation
+</tool.toolu_01J6Kgh6ysMFNG7L4UqARce2>
+
+<!-- TOOL_RESULT_PLACEHOLDER_toolu_01J6Kgh6ysMFNG7L4UqARce2 -->
