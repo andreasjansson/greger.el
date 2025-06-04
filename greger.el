@@ -225,7 +225,7 @@
   (insert greger-system-tag "\n\n"))
 
 (defun greger-interrupt ()
-  "Interrupt ongoing generation if active, otherwise call keyboard-quit."
+  "Interrupt ongoing generation if active, otherwise call `keyboard-quit'."
   (interactive)
   (let* ((buffer (current-buffer))
          (agent-state (buffer-local-value 'greger--current-agent-state buffer)))
