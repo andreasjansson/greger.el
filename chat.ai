@@ -5073,4 +5073,68 @@ drwx------  3032384  ..
 Update basic test to reflect removal of . and .. entries
 </tool.toolu_01WeN65YCpdTitLSG6amzC8V>
 
-<!-- TOOL_RESULT_PLACEHOLDER_toolu_01WeN65YCpdTitLSG6amzC8V -->
+## TOOL RESULT:
+
+ID: toolu_01WeN65YCpdTitLSG6amzC8V
+
+<tool.toolu_01WeN65YCpdTitLSG6amzC8V>
+Successfully replaced content in /Users/andreas/projects/greger.el/test/test-greger-stdlib.el. Successfully staged 2 file(s) and committed with message: Update basic test to reflect removal of . and .. entries
+</tool.toolu_01WeN65YCpdTitLSG6amzC8V>
+
+
+## TOOL USE:
+
+Name: str-replace
+ID: toolu_01Nd8zqonj5EefpCQpSRAaCP
+
+### file-path
+
+<tool.toolu_01Nd8zqonj5EefpCQpSRAaCP>
+test/test-greger-stdlib.el
+</tool.toolu_01Nd8zqonj5EefpCQpSRAaCP>
+
+### original-content
+
+<tool.toolu_01Nd8zqonj5EefpCQpSRAaCP>
+;; Test with exclude pattern for .log files
+            (let ((result (greger-stdlib--list-directory test-dir "\\.log$"))
+                  (expected "drwxr-xr-x       96  .
+drwxrwxrwt     2368  ..
+-rw-r--r--        9  keep.txt"))
+              (should (stringp result))
+              (should (string= expected result)))
+
+            ;; Test with empty exclude pattern - should include all files
+            (let ((result (greger-stdlib--list-directory test-dir ""))
+                  (expected "drwxr-xr-x       96  .
+drwxrwxrwt     2368  ..
+-rw-r--r--        9  keep.txt
+-rw-r--r--       12  remove.log"))
+              (should (stringp result))
+              (should (string= expected result)))
+</tool.toolu_01Nd8zqonj5EefpCQpSRAaCP>
+
+### new-content
+
+<tool.toolu_01Nd8zqonj5EefpCQpSRAaCP>
+;; Test with exclude pattern for .log files
+            (let ((result (greger-stdlib--list-directory test-dir "\\.log$"))
+                  (expected "-rw-r--r--        9  keep.txt"))
+              (should (stringp result))
+              (should (string= expected result)))
+
+            ;; Test with empty exclude pattern - should include all files
+            (let ((result (greger-stdlib--list-directory test-dir ""))
+                  (expected "-rw-r--r--        9  keep.txt
+-rw-r--r--       12  remove.log"))
+              (should (stringp result))
+              (should (string= expected result)))
+</tool.toolu_01Nd8zqonj5EefpCQpSRAaCP>
+
+### git-commit-message
+
+<tool.toolu_01Nd8zqonj5EefpCQpSRAaCP>
+Update exclude pattern test to reflect removal of . and .. entries
+</tool.toolu_01Nd8zqonj5EefpCQpSRAaCP>
+
+<!-- TOOL_RESULT_PLACEHOLDER_toolu_01Nd8zqonj5EefpCQpSRAaCP -->
