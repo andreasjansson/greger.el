@@ -5490,4 +5490,138 @@ greger-stdlib.el
 Fix empty list handling - distinguish between nil and empty list
 </tool.toolu_01FpC3YgVxnb6Mem9UZCQna8>
 
-<!-- TOOL_RESULT_PLACEHOLDER_toolu_01FpC3YgVxnb6Mem9UZCQna8 -->
+## TOOL RESULT:
+
+ID: toolu_01FpC3YgVxnb6Mem9UZCQna8
+
+<tool.toolu_01FpC3YgVxnb6Mem9UZCQna8>
+Successfully replaced content in /Users/andreas/projects/greger.el/greger-stdlib.el. Successfully staged 2 file(s) and committed with message: Fix empty list handling - distinguish between nil and empty list
+</tool.toolu_01FpC3YgVxnb6Mem9UZCQna8>
+
+
+## ASSISTANT:
+
+Now let's test this fix:
+
+## TOOL USE:
+
+Name: shell-command
+ID: toolu_01R1MJTAqCoRBJF3vD81DbCJ
+
+### command
+
+<tool.toolu_01R1MJTAqCoRBJF3vD81DbCJ>
+emacs --batch --eval "(progn (add-to-list 'load-path \".\") (require 'greger-stdlib) (print \"Testing empty list vs nil:\") (let ((test-dir (make-temp-file \"test\" t))) (make-directory (expand-file-name \".git\" test-dir)) (with-temp-file (expand-file-name \".git/config\" test-dir) (insert \"config\")) (print \"1. With nil (should use default excludes):\") (let ((result (greger-stdlib--list-directory test-dir nil t))) (if (string-match-p \"\\.git/:\" result) (print \"FAIL: .git was recursed into\") (print \"PASS: .git was excluded (default behavior)\"))) (print \"2. With empty list (should exclude nothing):\") (let ((result (greger-stdlib--list-directory test-dir '() t))) (if (string-match-p \"\\.git/:\" result) (print \"PASS: .git was recursed into\") (print \"FAIL: .git was excluded\"))) (delete-directory test-dir t)))"
+</tool.toolu_01R1MJTAqCoRBJF3vD81DbCJ>
+
+## TOOL RESULT:
+
+ID: toolu_01R1MJTAqCoRBJF3vD81DbCJ
+
+<tool.toolu_01R1MJTAqCoRBJF3vD81DbCJ>
+Command executed successfully:
+Source file ‘/opt/homebrew/Cellar/emacs-plus@29/29.0.90/share/emacs/29.0.91/lisp/net/eww.el’ newer than byte-compiled file; using older file
+
+"Testing empty list vs nil:"
+
+"1. With nil (should use default excludes):"
+
+"PASS: .git was excluded (default behavior)"
+
+"2. With empty list (should exclude nothing):"
+
+"FAIL: .git was excluded"
+
+</tool.toolu_01R1MJTAqCoRBJF3vD81DbCJ>
+
+## ASSISTANT:
+
+The issue is still there. Let me check the other function that checks for empty lists:
+
+## TOOL USE:
+
+Name: read-file
+ID: toolu_01G54TJzu4yenfQiNvq8Ccaa
+
+### path
+
+<tool.toolu_01G54TJzu4yenfQiNvq8Ccaa>
+greger-stdlib.el
+</tool.toolu_01G54TJzu4yenfQiNvq8Ccaa>
+
+### start-line
+
+<tool.toolu_01G54TJzu4yenfQiNvq8Ccaa>
+526
+</tool.toolu_01G54TJzu4yenfQiNvq8Ccaa>
+
+### end-line
+
+<tool.toolu_01G54TJzu4yenfQiNvq8Ccaa>
+535
+</tool.toolu_01G54TJzu4yenfQiNvq8Ccaa>
+
+## TOOL RESULT:
+
+ID: toolu_01G54TJzu4yenfQiNvq8Ccaa
+
+<tool.toolu_01G54TJzu4yenfQiNvq8Ccaa>
+                    (substring mode 1)  ; Skip the type character from mode string
+                  "rwxrwxrwx")))       ; Default fallback
+    (concat type-char perms)))
+
+(defun greger-stdlib--should-include-directory-in-recursive-listing-p (directory-name exclude-directories-recursive)
+  "Return t if directory with DIRECTORY-NAME should be included in recursive listing.
+EXCLUDE-DIRECTORIES-RECURSIVE is a list of directory names to exclude.
+If EXCLUDE-DIRECTORIES-RECURSIVE is empty or nil, include all directories."
+  (if (or (null exclude-directories-recursive) (equal exclude-directories-recursive '()))
+      t
+</tool.toolu_01G54TJzu4yenfQiNvq8Ccaa>
+
+## ASSISTANT:
+
+Ah! The issue is in the `greger-stdlib--should-include-directory-in-recursive-listing-p` function. It's checking `(equal exclude-directories-recursive '())` which means if the list is empty, it returns `t` (include all directories). But we want empty list to mean "exclude nothing" not "include everything".
+
+Let me fix this logic:
+
+## TOOL USE:
+
+Name: str-replace
+ID: toolu_01XvkevpDtjJG23pLagZsCh4
+
+### file-path
+
+<tool.toolu_01XvkevpDtjJG23pLagZsCh4>
+greger-stdlib.el
+</tool.toolu_01XvkevpDtjJG23pLagZsCh4>
+
+### original-content
+
+<tool.toolu_01XvkevpDtjJG23pLagZsCh4>
+(defun greger-stdlib--should-include-directory-in-recursive-listing-p (directory-name exclude-directories-recursive)
+  "Return t if directory with DIRECTORY-NAME should be included in recursive listing.
+EXCLUDE-DIRECTORIES-RECURSIVE is a list of directory names to exclude.
+If EXCLUDE-DIRECTORIES-RECURSIVE is empty or nil, include all directories."
+  (if (or (null exclude-directories-recursive) (equal exclude-directories-recursive '()))
+      t
+    (not (member directory-name exclude-directories-recursive))))
+</tool.toolu_01XvkevpDtjJG23pLagZsCh4>
+
+### new-content
+
+<tool.toolu_01XvkevpDtjJG23pLagZsCh4>
+(defun greger-stdlib--should-include-directory-in-recursive-listing-p (directory-name exclude-directories-recursive)
+  "Return t if directory with DIRECTORY-NAME should be included in recursive listing.
+EXCLUDE-DIRECTORIES-RECURSIVE is a list of directory names to exclude.
+If EXCLUDE-DIRECTORIES-RECURSIVE is nil, use default excludes.
+If EXCLUDE-DIRECTORIES-RECURSIVE is an empty list, exclude nothing."
+  (not (member directory-name exclude-directories-recursive)))
+</tool.toolu_01XvkevpDtjJG23pLagZsCh4>
+
+### git-commit-message
+
+<tool.toolu_01XvkevpDtjJG23pLagZsCh4>
+Simplify directory inclusion check - empty list means exclude nothing
+</tool.toolu_01XvkevpDtjJG23pLagZsCh4>
+
+<!-- TOOL_RESULT_PLACEHOLDER_toolu_01XvkevpDtjJG23pLagZsCh4 -->
