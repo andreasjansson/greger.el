@@ -831,11 +831,13 @@ Line 3"))
   (let ((test-dir (make-temp-file "greger-test-empty-dir" t)))
     (unwind-protect
         (progn
-          ;; Test empty directory
+          ;; Test empty directory - should still show . and .. entries
           (let ((result (greger-stdlib--list-directory test-dir)))
             (should (stringp result))
-            ;; Should contain . and .. entries
-            (should (string-match-p "\\." result))))
+            ;; Should contain current directory entry
+            (should (string-match-p "\\.$" result))
+            ;; Should contain parent directory entry (unless at root)
+            (should (string-match-p "\\.\\.$" result))))
 
       ;; Clean up
       (when (file-exists-p test-dir)

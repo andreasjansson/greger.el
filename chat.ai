@@ -2623,4 +2623,70 @@ test/test-greger-stdlib.el
 Simplify recursive directory test
 </tool.toolu_019r9cd9Tfh6F5oMog7RJq5n>
 
-<!-- TOOL_RESULT_PLACEHOLDER_toolu_019r9cd9Tfh6F5oMog7RJq5n -->
+## TOOL RESULT:
+
+ID: toolu_019r9cd9Tfh6F5oMog7RJq5n
+
+<tool.toolu_019r9cd9Tfh6F5oMog7RJq5n>
+Successfully replaced content in /Users/andreas/projects/greger.el/test/test-greger-stdlib.el. Successfully staged 2 file(s) and committed with message: Simplify recursive directory test
+</tool.toolu_019r9cd9Tfh6F5oMog7RJq5n>
+
+
+## TOOL USE:
+
+Name: str-replace
+ID: toolu_01GSHN1qGo1uFcaiUacPTE2a
+
+### file-path
+
+<tool.toolu_01GSHN1qGo1uFcaiUacPTE2a>
+test/test-greger-stdlib.el
+</tool.toolu_01GSHN1qGo1uFcaiUacPTE2a>
+
+### original-content
+
+<tool.toolu_01GSHN1qGo1uFcaiUacPTE2a>
+(ert-deftest greger-test-list-directory-empty-dir ()
+  "Test list-directory with empty directory."
+  (let ((test-dir (make-temp-file "greger-test-empty-dir" t)))
+    (unwind-protect
+        (progn
+          ;; Test empty directory
+          (let ((result (greger-stdlib--list-directory test-dir)))
+            (should (stringp result))
+            ;; Should contain . and .. entries
+            (should (string-match-p "\\." result))))
+
+      ;; Clean up
+      (when (file-exists-p test-dir)
+        (delete-directory test-dir)))))
+</tool.toolu_01GSHN1qGo1uFcaiUacPTE2a>
+
+### new-content
+
+<tool.toolu_01GSHN1qGo1uFcaiUacPTE2a>
+(ert-deftest greger-test-list-directory-empty-dir ()
+  "Test list-directory with empty directory."
+  (let ((test-dir (make-temp-file "greger-test-empty-dir" t)))
+    (unwind-protect
+        (progn
+          ;; Test empty directory - should still show . and .. entries
+          (let ((result (greger-stdlib--list-directory test-dir)))
+            (should (stringp result))
+            ;; Should contain current directory entry
+            (should (string-match-p "\\.$" result))
+            ;; Should contain parent directory entry (unless at root)
+            (should (string-match-p "\\.\\.$" result))))
+
+      ;; Clean up
+      (when (file-exists-p test-dir)
+        (delete-directory test-dir)))))
+</tool.toolu_01GSHN1qGo1uFcaiUacPTE2a>
+
+### git-commit-message
+
+<tool.toolu_01GSHN1qGo1uFcaiUacPTE2a>
+Improve empty directory test clarity
+</tool.toolu_01GSHN1qGo1uFcaiUacPTE2a>
+
+<!-- TOOL_RESULT_PLACEHOLDER_toolu_01GSHN1qGo1uFcaiUacPTE2a -->
