@@ -284,8 +284,8 @@
           ;; Call greger-buffer to send the message
           (greger-buffer)
 
-          ;; Wait until state becomes 'executing (should happen quickly as tools are processed)
-          (let ((max-wait 10.0)
+          ;; Wait until state becomes 'executing (should happen after AI decides to use shell tool)
+          (let ((max-wait 20.0)  ; Give more time for AI to process and decide to use tool
                 (start-time (current-time))
                 (state-found nil))
             (while (and (not state-found)

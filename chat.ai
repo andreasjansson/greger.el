@@ -1257,4 +1257,70 @@ so we accept either generating or idle state as valid
 after interruption.
 </tool.toolu_01DCjAftQVaemrYGjwUsnf3h>
 
-<!-- TOOL_RESULT_PLACEHOLDER_toolu_01DCjAftQVaemrYGjwUsnf3h -->
+## TOOL RESULT:
+
+ID: toolu_01DCjAftQVaemrYGjwUsnf3h
+
+<tool.toolu_01DCjAftQVaemrYGjwUsnf3h>
+Successfully replaced content in /Users/andreas/projects/greger.el/test/test-end-to-end.el. Successfully staged 2 file(s) and committed with message: Make state transition test more robust
+
+The generating state might be very brief after interruption,
+so we accept either generating or idle state as valid
+after interruption.
+</tool.toolu_01DCjAftQVaemrYGjwUsnf3h>
+
+## ASSISTANT:
+
+Now let me also make the test more robust by increasing the wait time for the executing state, since the AI might take a moment to process the request:
+
+## TOOL USE:
+
+Name: str-replace
+ID: toolu_01LbvMEzXs8vrQneHyntc8C6
+
+### file-path
+
+<tool.toolu_01LbvMEzXs8vrQneHyntc8C6>
+test/test-end-to-end.el
+</tool.toolu_01LbvMEzXs8vrQneHyntc8C6>
+
+### original-content
+
+<tool.toolu_01LbvMEzXs8vrQneHyntc8C6>
+;; Wait until state becomes 'executing (should happen quickly as tools are processed)
+          (let ((max-wait 10.0)
+                (start-time (current-time))
+                (state-found nil))
+            (while (and (not state-found)
+                       (< (float-time (time-subtract (current-time) start-time)) max-wait))
+              (sit-for 0.1)
+              (when (eq (greger--get-current-state) 'executing)
+                (setq state-found t)))
+            (should state-found))
+</tool.toolu_01LbvMEzXs8vrQneHyntc8C6>
+
+### new-content
+
+<tool.toolu_01LbvMEzXs8vrQneHyntc8C6>
+;; Wait until state becomes 'executing (should happen after AI decides to use shell tool)
+          (let ((max-wait 20.0)  ; Give more time for AI to process and decide to use tool
+                (start-time (current-time))
+                (state-found nil))
+            (while (and (not state-found)
+                       (< (float-time (time-subtract (current-time) start-time)) max-wait))
+              (sit-for 0.1)
+              (when (eq (greger--get-current-state) 'executing)
+                (setq state-found t)))
+            (should state-found))
+</tool.toolu_01LbvMEzXs8vrQneHyntc8C6>
+
+### git-commit-message
+
+<tool.toolu_01LbvMEzXs8vrQneHyntc8C6>
+Increase wait time for executing state
+
+The AI needs time to process the request and decide to use
+the shell command tool before state becomes 'executing.
+</tool.toolu_01LbvMEzXs8vrQneHyntc8C6>
+
+<!-- TOOL_RESULT_PLACEHOLDER_toolu_01LbvMEzXs8vrQneHyntc8C6 -->
