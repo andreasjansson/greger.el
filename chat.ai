@@ -3882,4 +3882,106 @@ test/test-greger-stdlib.el
 Replace string-match-p with string= in empty dir test
 </tool.toolu_011pxQ2gZQ9kzMBwvVG7ks3C>
 
-<!-- TOOL_RESULT_PLACEHOLDER_toolu_011pxQ2gZQ9kzMBwvVG7ks3C -->
+## TOOL RESULT:
+
+ID: toolu_011pxQ2gZQ9kzMBwvVG7ks3C
+
+<tool.toolu_011pxQ2gZQ9kzMBwvVG7ks3C>
+Successfully replaced content in /Users/andreas/projects/greger.el/test/test-greger-stdlib.el. Successfully staged 2 file(s) and committed with message: Replace string-match-p with string= in empty dir test
+</tool.toolu_011pxQ2gZQ9kzMBwvVG7ks3C>
+
+## USER:
+
+No, check the entire result from greger-stdlib--list-directory, which should be a multi-line string.
+
+E.g.
+
+```
+(let ((result (greger-stdlib--list-directory test-dir nil t))
+      (expected "drwxr-xr-x    928  .
+drwxr-xr-x   8032  ..
+-rw-r--r--@  6148  .DS_Store"
+      )
+              (should (stringp result))
+              ;; Should contain files from both levels
+              (should (string= expected result))))
+```
+
+etc.
+
+Note that I got rid of the modified date and owner since that's basically untestable. Get rid of modified dates and owner from the list-directory tool too.
+
+## ASSISTANT:
+
+Ah, now I understand! You want me to:
+
+1. Modify the `list-directory` tool to remove the modified date and owner fields to make output predictable
+2. Then use `string=` to compare the entire multi-line result with exact expected output
+
+Let me first modify the tool to remove the variable fields:
+
+## TOOL USE:
+
+Name: str-replace
+ID: toolu_01GJutaQEGs4AM4JCjV7v9ma
+
+### file-path
+
+<tool.toolu_01GJutaQEGs4AM4JCjV7v9ma>
+greger-stdlib.el
+</tool.toolu_01GJutaQEGs4AM4JCjV7v9ma>
+
+### original-content
+
+<tool.toolu_01GJutaQEGs4AM4JCjV7v9ma>
+(defun greger-stdlib--format-file-info (filepath displayname exclude-pattern)
+  "Format file information similar to 'ls -la' output.
+FILEPATH is the full path to the file.
+DISPLAYNAME is the name to display in the output.
+EXCLUDE-PATTERN is used to check if file should be excluded."
+  (when (file-exists-p filepath)
+    (let* ((attrs (file-attributes filepath))
+           (file-type (nth 0 attrs))
+           (links (nth 1 attrs))
+           (uid (nth 2 attrs))
+           (gid (nth 3 attrs))
+           (size (nth 7 attrs))
+           (modtime (nth 5 attrs))
+           (mode-string (greger-stdlib--file-mode-string attrs)))
+
+      (format "%s %3d %s %s %8d %s %s"
+              mode-string
+              links
+              (if (stringp uid) uid (format "%d" uid))
+              (if (stringp gid) gid (format "%d" gid))
+              size
+              (format-time-string "%b %d %H:%M" modtime)
+              displayname))))
+</tool.toolu_01GJutaQEGs4AM4JCjV7v9ma>
+
+### new-content
+
+<tool.toolu_01GJutaQEGs4AM4JCjV7v9ma>
+(defun greger-stdlib--format-file-info (filepath displayname exclude-pattern)
+  "Format file information similar to 'ls -la' output.
+FILEPATH is the full path to the file.
+DISPLAYNAME is the name to display in the output.
+EXCLUDE-PATTERN is used to check if file should be excluded."
+  (when (file-exists-p filepath)
+    (let* ((attrs (file-attributes filepath))
+           (size (nth 7 attrs))
+           (mode-string (greger-stdlib--file-mode-string attrs)))
+
+      (format "%s %8d  %s"
+              mode-string
+              size
+              displayname))))
+</tool.toolu_01GJutaQEGs4AM4JCjV7v9ma>
+
+### git-commit-message
+
+<tool.toolu_01GJutaQEGs4AM4JCjV7v9ma>
+Remove owner, group, and timestamp from list-directory output for predictable testing
+</tool.toolu_01GJutaQEGs4AM4JCjV7v9ma>
+
+<!-- TOOL_RESULT_PLACEHOLDER_toolu_01GJutaQEGs4AM4JCjV7v9ma -->
