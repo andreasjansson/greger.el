@@ -2422,4 +2422,111 @@ test/test-greger-stdlib.el
 Simplify list-directory basic test and focus on core functionality
 </tool.toolu_01GJ3YSdV324vFmqMTkNain7>
 
-<!-- TOOL_RESULT_PLACEHOLDER_toolu_01GJ3YSdV324vFmqMTkNain7 -->
+## TOOL RESULT:
+
+ID: toolu_01GJ3YSdV324vFmqMTkNain7
+
+<tool.toolu_01GJ3YSdV324vFmqMTkNain7>
+Successfully replaced content in /Users/andreas/projects/greger.el/test/test-greger-stdlib.el. Successfully staged 2 file(s) and committed with message: Simplify list-directory basic test and focus on core functionality
+</tool.toolu_01GJ3YSdV324vFmqMTkNain7>
+
+
+## TOOL USE:
+
+Name: str-replace
+ID: toolu_01HrafCSyvHYTLxBmSA8wyfV
+
+### file-path
+
+<tool.toolu_01HrafCSyvHYTLxBmSA8wyfV>
+test/test-greger-stdlib.el
+</tool.toolu_01HrafCSyvHYTLxBmSA8wyfV>
+
+### original-content
+
+<tool.toolu_01HrafCSyvHYTLxBmSA8wyfV>
+(ert-deftest greger-test-list-directory-exclude-pattern ()
+  "Test list-directory exclude pattern functionality."
+  (let ((test-dir (make-temp-file "greger-test-dir" t)))
+    (unwind-protect
+        (progn
+          ;; Create test files including ones that should be excluded
+          (let ((test-file1 (expand-file-name "test1.txt" test-dir))
+                (git-dir (expand-file-name ".git" test-dir))
+                (pycache-dir (expand-file-name "__pycache__" test-dir))
+                (normal-file (expand-file-name "normal.el" test-dir)))
+
+            (with-temp-file test-file1
+              (insert "Test content 1"))
+            (with-temp-file normal-file
+              (insert "Normal file"))
+            (make-directory git-dir)
+            (make-directory pycache-dir)
+
+            ;; Test with default exclude pattern
+            (let ((result (greger-stdlib--list-directory test-dir)))
+              (should (stringp result))
+              ;; Should contain normal files
+              (should (string-match-p "test1\\.txt" result))
+              (should (string-match-p "normal\\.el" result))
+              ;; Should NOT contain excluded directories
+              (should-not (string-match-p "\\.git" result))
+              (should-not (string-match-p "__pycache__" result)))
+
+            ;; Test with custom exclude pattern
+            (let ((result (greger-stdlib--list-directory test-dir "\\.txt$")))
+              (should (stringp result))
+              ;; Should NOT contain .txt files
+              (should-not (string-match-p "test1\\.txt" result))
+              ;; Should contain other files
+              (should (string-match-p "normal\\.el" result)))))
+
+      ;; Clean up
+      (when (file-exists-p test-dir)
+        (delete-directory test-dir t)))))
+</tool.toolu_01HrafCSyvHYTLxBmSA8wyfV>
+
+### new-content
+
+<tool.toolu_01HrafCSyvHYTLxBmSA8wyfV>
+(ert-deftest greger-test-list-directory-exclude-pattern ()
+  "Test list-directory exclude pattern functionality."
+  (let ((test-dir (make-temp-file "greger-test-dir" t)))
+    (unwind-protect
+        (progn
+          ;; Create a simple test file and check exclude patterns work
+          (let ((test-file (expand-file-name "include-me.txt" test-dir))
+                (exclude-file (expand-file-name "exclude-me.log" test-dir)))
+
+            (with-temp-file test-file
+              (insert "Content to include"))
+            (with-temp-file exclude-file
+              (insert "Content to exclude"))
+
+            ;; Test with exclude pattern for .log files
+            (let ((result (greger-stdlib--list-directory test-dir "\\.log$")))
+              (should (stringp result))
+              ;; Should contain the .txt file
+              (should (string-match-p "include-me\\.txt" result))
+              ;; Should NOT contain the .log file
+              (should-not (string-match-p "exclude-me\\.log" result)))
+
+            ;; Test with no exclude pattern (empty string)
+            (let ((result (greger-stdlib--list-directory test-dir "")))
+              (should (stringp result))
+              ;; Should contain both files when no exclusion
+              (should (string-match-p "include-me\\.txt" result))
+              (should (string-match-p "exclude-me\\.log" result)))))
+
+      ;; Clean up
+      (when (file-exists-p test-dir)
+        (delete-directory test-dir t)))))
+</tool.toolu_01HrafCSyvHYTLxBmSA8wyfV>
+
+### git-commit-message
+
+<tool.toolu_01HrafCSyvHYTLxBmSA8wyfV>
+Simplify exclude pattern test with clearer test case
+</tool.toolu_01HrafCSyvHYTLxBmSA8wyfV>
+
+<!-- TOOL_RESULT_PLACEHOLDER_toolu_01HrafCSyvHYTLxBmSA8wyfV -->
