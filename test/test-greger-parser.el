@@ -623,13 +623,19 @@ What's the weather like?
 Name: web_search
 ID: srvtoolu_456
 
-{\"query\": \"weather\"}
+### query
+
+<tool.srvtoolu_456>
+weather
+</tool.srvtoolu_456>
 
 ## SERVER TOOL RESULT:
 
 ID: srvtoolu_456
 
+<tool.srvtoolu_456>
 Sunny and warm today
+</tool.srvtoolu_456>
 
 ## ASSISTANT:
 
