@@ -6218,4 +6218,76 @@ greger.el
 Update tool execution to capture and track greger-tool structs
 </tool.toolu_01YG7keStQk8NJMgBNYCcR6M>
 
-<!-- TOOL_RESULT_PLACEHOLDER_toolu_01YG7keStQk8NJMgBNYCcR6M -->
+## TOOL RESULT:
+
+ID: toolu_01YG7keStQk8NJMgBNYCcR6M
+
+<tool.toolu_01YG7keStQk8NJMgBNYCcR6M>
+Successfully replaced content in /Users/andreas/projects/greger.el/greger.el. Successfully staged 2 file(s) and committed with message: Update tool execution to capture and track greger-tool structs
+</tool.toolu_01YG7keStQk8NJMgBNYCcR6M>
+
+
+## ASSISTANT:
+
+Now I need to update the greger-interrupt function to cancel executing tools:
+
+## TOOL USE:
+
+Name: str-replace
+ID: toolu_01GRHJw4YWDW8JmAEpZfqbAW
+
+### file-path
+
+<tool.toolu_01GRHJw4YWDW8JmAEpZfqbAW>
+greger.el
+</tool.toolu_01GRHJw4YWDW8JmAEpZfqbAW>
+
+### original-content
+
+<tool.toolu_01GRHJw4YWDW8JmAEpZfqbAW>
+(defun greger-interrupt ()
+  "Interrupt ongoing generation if active, otherwise call `keyboard-quit'."
+  (interactive)
+  (let* ((buffer (current-buffer))
+         (agent-state (buffer-local-value 'greger--current-agent-state buffer)))
+    (if (and agent-state (greger-state-client-state agent-state))
+        (progn
+          (greger-client--cancel-request (greger-state-client-state agent-state))
+          (setf (greger-state-client-state agent-state) nil))
+      (keyboard-quit))))
+</tool.toolu_01GRHJw4YWDW8JmAEpZfqbAW>
+
+### new-content
+
+<tool.toolu_01GRHJw4YWDW8JmAEpZfqbAW>
+(defun greger-interrupt ()
+  "Interrupt ongoing generation if active, otherwise call `keyboard-quit'."
+  (interactive)
+  (let* ((buffer (current-buffer))
+         (agent-state (buffer-local-value 'greger--current-agent-state buffer)))
+    (cond
+     ;; If there's an active client state, cancel the streaming request
+     ((and agent-state (greger-state-client-state agent-state))
+      (greger-client--cancel-request (greger-state-client-state agent-state))
+      (setf (greger-state-client-state agent-state) nil))
+     ;; If there are executing tools, cancel them
+     ((and agent-state (greger-state-executing-tools agent-state))
+      (let ((executing-tools (greger-state-executing-tools agent-state)))
+        (maphash (lambda (_tool-id greger-tool)
+                   (let ((cancel-fn (greger-tool-cancel-fn greger-tool)))
+                     (when (functionp cancel-fn)
+                       (funcall cancel-fn))))
+                 executing-tools)
+        ;; Clear the executing tools map
+        (clrhash executing-tools)))
+     ;; Default case: call keyboard-quit
+     (t (keyboard-quit)))))
+</tool.toolu_01GRHJw4YWDW8JmAEpZfqbAW>
+
+### git-commit-message
+
+<tool.toolu_01GRHJw4YWDW8JmAEpZfqbAW>
+Update greger-interrupt to cancel executing tools
+</tool.toolu_01GRHJw4YWDW8JmAEpZfqbAW>
+
+<!-- TOOL_RESULT_PLACEHOLDER_toolu_01GRHJw4YWDW8JmAEpZfqbAW -->

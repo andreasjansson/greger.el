@@ -231,11 +231,23 @@
   (interactive)
   (let* ((buffer (current-buffer))
          (agent-state (buffer-local-value 'greger--current-agent-state buffer)))
-    (if (and agent-state (greger-state-client-state agent-state))
-        (progn
-          (greger-client--cancel-request (greger-state-client-state agent-state))
-          (setf (greger-state-client-state agent-state) nil))
-      (keyboard-quit))))
+    (cond
+     ;; If there's an active client state, cancel the streaming request
+     ((and agent-state (greger-state-client-state agent-state))
+      (greger-client--cancel-request (greger-state-client-state agent-state))
+      (setf (greger-state-client-state agent-state) nil))
+     ;; If there are executing tools, cancel them
+     ((and agent-state (greger-state-executing-tools agent-state))
+      (let ((executing-tools (greger-state-executing-tools agent-state)))
+        (maphash (lambda (_tool-id greger-tool)
+                   (let ((cancel-fn (greger-tool-cancel-fn greger-tool)))
+                     (when (functionp cancel-fn)
+                       (funcall cancel-fn))))
+                 executing-tools)
+        ;; Clear the executing tools map
+        (clrhash executing-tools)))
+     ;; Default case: call keyboard-quit
+     (t (keyboard-quit)))))
 
 (defun greger-buffer-no-tools ()
   "Send the buffer content to AI as a dialog without tool use."
