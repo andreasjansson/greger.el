@@ -1069,4 +1069,109 @@ drwx------  (dir)  ..
 Fix greger-test-list-directory-exclude-directories-recursive to use controlled temp directory
 </tool.toolu_01SESZkwfKPAzxJx7Lf5XJSK>
 
-<!-- TOOL_RESULT_PLACEHOLDER_toolu_01SESZkwfKPAzxJx7Lf5XJSK -->
+## TOOL RESULT:
+
+ID: toolu_01SESZkwfKPAzxJx7Lf5XJSK
+
+<tool.toolu_01SESZkwfKPAzxJx7Lf5XJSK>
+Successfully replaced content in /Users/andreas/projects/greger.el/test/test-greger-stdlib.el. Successfully staged 2 file(s) and committed with message: Fix greger-test-list-directory-exclude-directories-recursive to use controlled temp directory
+</tool.toolu_01SESZkwfKPAzxJx7Lf5XJSK>
+
+## ASSISTANT:
+
+Now let me update the recursive test:
+
+## TOOL USE:
+
+Name: str-replace
+ID: toolu_01Y8Mg6W7BobER9D1gPde77H
+
+### file-path
+
+<tool.toolu_01Y8Mg6W7BobER9D1gPde77H>
+test/test-greger-stdlib.el
+</tool.toolu_01Y8Mg6W7BobER9D1gPde77H>
+
+### original-content
+
+<tool.toolu_01Y8Mg6W7BobER9D1gPde77H>
+(ert-deftest greger-test-list-directory-recursive ()
+  "Test list-directory recursive functionality."
+  (let ((test-dir (make-temp-file "greger-test-dir" t)))
+    (unwind-protect
+        (progn
+          ;; Create simple nested directory structure
+          (let ((subdir (expand-file-name "testdir" test-dir))
+                (file1 (expand-file-name "root.txt" test-dir))
+                (file2 (expand-file-name "testdir/nested.txt" test-dir)))
+
+            (make-directory subdir)
+            (with-temp-file file1 (insert "Root content"))
+            (with-temp-file file2 (insert "Nested content"))
+
+            ;; Test recursive listing
+            (let ((result (greger-stdlib--list-directory test-dir nil t))
+                  (expected (format "%s:
+drwx------  (dir)  .
+drwx------  (dir)  ..
+-rw-r--r--        12  root.txt
+drwxr-xr-x  (dir)  testdir
+
+%stestdir/:
+drwxr-xr-x  (dir)  .
+drwx------  (dir)  ..
+-rw-r--r--        14  nested.txt" (file-name-as-directory test-dir) (file-name-as-directory test-dir))))
+              (should (stringp result))
+              (should (string= expected result)))))
+
+      ;; Clean up
+      (when (file-exists-p test-dir)
+        (delete-directory test-dir t)))))
+</tool.toolu_01Y8Mg6W7BobER9D1gPde77H>
+
+### new-content
+
+<tool.toolu_01Y8Mg6W7BobER9D1gPde77H>
+(ert-deftest greger-test-list-directory-recursive ()
+  "Test list-directory recursive functionality."
+  (let ((test-dir (greger-test--make-controlled-temp-dir "greger-test-dir"))
+        (parent-dir nil))
+    (unwind-protect
+        (progn
+          (setq parent-dir (file-name-directory (directory-file-name test-dir)))
+          ;; Create simple nested directory structure
+          (let ((subdir (expand-file-name "testdir" test-dir))
+                (file1 (expand-file-name "root.txt" test-dir))
+                (file2 (expand-file-name "testdir/nested.txt" test-dir)))
+
+            (make-directory subdir)
+            (with-temp-file file1 (insert "Root content"))
+            (with-temp-file file2 (insert "Nested content"))
+
+            ;; Test recursive listing
+            (let ((result (greger-stdlib--list-directory test-dir nil t))
+                  (expected (format "%s:
+drwx------  (dir)  .
+drwx------  (dir)  ..
+-rw-r--r--        12  root.txt
+drwxr-xr-x  (dir)  testdir
+
+%stestdir/:
+drwxr-xr-x  (dir)  .
+drwx------  (dir)  ..
+-rw-r--r--        14  nested.txt" (file-name-as-directory test-dir) (file-name-as-directory test-dir))))
+              (should (stringp result))
+              (should (string= expected result)))))
+
+      ;; Clean up
+      (when (and parent-dir (file-exists-p parent-dir))
+        (delete-directory parent-dir t)))))
+</tool.toolu_01Y8Mg6W7BobER9D1gPde77H>
+
+### git-commit-message
+
+<tool.toolu_01Y8Mg6W7BobER9D1gPde77H>
+Fix greger-test-list-directory-recursive to use controlled temp directory
+</tool.toolu_01Y8Mg6W7BobER9D1gPde77H>
+
+<!-- TOOL_RESULT_PLACEHOLDER_toolu_01Y8Mg6W7BobER9D1gPde77H -->
