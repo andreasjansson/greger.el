@@ -813,17 +813,10 @@ Uses `parse-partial-sexp' to properly handle strings and comments."
 GIT-COMMIT-MESSAGE will be used for the git commit.
 If BUFFER is provided, it will be staged and committed along with the file.
 For Emacs Lisp files (.el), checks that parentheses balance is maintained."
-  (unless (stringp file-path)
-    (error "Invalid type: file-path must be a string"))
-
-  (unless (stringp original-content)
-    (error "Invalid type: original-content must be a string"))
-
-  (unless (stringp new-content)
-    (error "Invalid type: new-content must be a string"))
-
-  (unless (stringp git-commit-message)
-    (error "Invalid type: git-commit-message must be a string"))
+  (greger-stdlib--assert-arg-string "file-path" file-path)
+  (greger-stdlib--assert-arg-string "original-content" original-content)
+  (greger-stdlib--assert-arg-string "new-content" new-content)
+  (greger-stdlib--assert-arg-string "git-commit-message" git-commit-message)
 
   (let ((expanded-path (expand-file-name file-path)))
 
