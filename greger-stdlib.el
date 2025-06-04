@@ -990,13 +990,10 @@ FUNCTION-NAMES specifies which functions to evaluate."
   (unless (stringp file-path)
     (error "Invalid type: file-path must be a string"))
 
-  (unless (or (vectorp function-names) (listp function-names))
-    (error "Invalid type: function-names must be a vector or list"))
+  (unless (vectorp function-names)
+    (error "Invalid type: function-names must be a vector"))
 
-  (let ((expanded-path (expand-file-name file-path))
-        (names-list (if (vectorp function-names)
-                        (append function-names nil)  ; Convert vector to list
-                      function-names)))              ; Already a list
+  (let ((expanded-path (expand-file-name file-path)))
     ;; Check if file exists
     (unless (file-exists-p expanded-path)
       (error "File does not exist: %s" expanded-path))
