@@ -504,7 +504,7 @@ PREFIX is used internally for nested directory structure."
     (dolist (subdir (reverse subdirs)) ; Reverse to maintain alphabetical order
       (let* ((basename (file-name-nondirectory subdir))
              (subdir-results (greger-stdlib--list-directory-recursive-detailed
-                             subdir exclude-pattern (concat prefix basename "/"))))
+                             subdir exclude-pattern nil (concat (or prefix "") basename "/"))))
         (setq all-results (append all-results (list "" subdir-results)))))
 
     (mapconcat #'identity all-results "\n")))
