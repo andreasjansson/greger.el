@@ -264,13 +264,16 @@ Error with NAME if not. Either bound can be nil to skip that check."
 (defun greger-stdlib--run-async-subprocess (command args working-directory callback)
   "Run COMMAND with ARGS in WORKING-DIRECTORY and call CALLBACK.
 CALLBACK will be called with (output nil) on success or (nil error-message) on
-failure."
+failure.
+Returns a cancel function that can be called to interrupt the process."
   (let* ((process-name (format "greger-subprocess-%s" (make-temp-name "")))
          (process-buffer (generate-new-buffer (format " *%s*" process-name)))
-         (default-directory (expand-file-name (or working-directory "."))))
+         (default-directory (expand-file-name (or working-directory ".")))
+         (process nil))
 
     (condition-case err
-        (let ((process (apply #'start-process process-name process-buffer command args)))
+        (progn
+          (setq process (apply #'start-process process-name process-buffer command args))
           (set-process-query-on-exit-flag process nil)
 
           (set-process-sentinel
@@ -279,7 +282,8 @@ failure."
              (let ((exit-status (process-exit-status proc))
                    (output (with-current-buffer process-buffer
                             (buffer-string))))
-               (kill-buffer process-buffer)
+               (when (buffer-live-p process-buffer)
+                 (kill-buffer process-buffer))
                (cond
                 ((= exit-status 0)
                  (funcall callback
@@ -294,11 +298,22 @@ failure."
                                 (if (string-empty-p (string-trim output))
                                     "(no output)"
                                   output))))))))
-          process)
+
+          ;; Return cancel function
+          (lambda ()
+            (when (and process (process-live-p process))
+              (interrupt-process process)
+              (sit-for 0.1)
+              (when (process-live-p process)
+                (delete-process process))
+              (when (buffer-live-p process-buffer)
+                (kill-buffer process-buffer)))))
       (error
        (when (buffer-live-p process-buffer)
          (kill-buffer process-buffer))
-       (funcall callback nil (format "Failed to start process: %s" (error-message-string err)))))))
+       (funcall callback nil (format "Failed to start process: %s" (error-message-string err)))
+       ;; Return no-op cancel function if process failed to start
+       (lambda () nil)))))
 
 (defun greger-stdlib--find-git-repo-root (start-dir)
   "Find the git repository root starting from START-DIR."
