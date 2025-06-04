@@ -945,11 +945,8 @@ MAX-ROWS limits the number of log entries returned (default 100)."
 (defun greger-stdlib--git-show-commit (commit-hash path)
   "View git commit using git command line for PATH.
 COMMIT-HASH specifies which commit to show."
-  (unless (stringp commit-hash)
-    (error "Invalid type: commit-hash must be a string"))
-
-  (unless (stringp path)
-    (error "Invalid type: path must be a string"))
+  (greger-stdlib--assert-arg-string "commit-hash" commit-hash)
+  (greger-stdlib--assert-arg-string "path" path)
 
   (let ((expanded-path (expand-file-name path)))
 
