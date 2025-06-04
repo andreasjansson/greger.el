@@ -820,9 +820,11 @@ drwxr-xr-x       96  testdir" (file-name-as-directory test-dir))))
   (let ((test-dir (make-temp-file "greger-test-empty-dir" t)))
     (unwind-protect
         (progn
-          ;; Test empty directory - should return empty directory message
+          ;; Test empty directory - should show directory header and . .. entries
           (let ((result (greger-stdlib--list-directory test-dir))
-                (expected "Directory is empty"))
+                (expected (format "%s:
+drwx------  (dir)  .
+drwx------  (dir)  .." (file-name-as-directory test-dir))))
             (should (stringp result))
             (should (string= expected result))))
 

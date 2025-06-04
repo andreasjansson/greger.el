@@ -8348,4 +8348,52 @@ test/test-greger-stdlib.el
 Fix spacing in basic test
 </tool.toolu_01HNPui6GXRywuBQVCvCj36V>
 
-<!-- TOOL_RESULT_PLACEHOLDER_toolu_01HNPui6GXRywuBQVCvCj36V -->
+## TOOL RESULT:
+
+ID: toolu_01HNPui6GXRywuBQVCvCj36V
+
+<tool.toolu_01HNPui6GXRywuBQVCvCj36V>
+Successfully replaced content in /Users/andreas/projects/greger.el/test/test-greger-stdlib.el. Successfully staged 2 file(s) and committed with message: Fix spacing in basic test
+</tool.toolu_01HNPui6GXRywuBQVCvCj36V>
+
+
+## TOOL USE:
+
+Name: str-replace
+ID: toolu_01E27teonrxCAk5JL5DNoYoM
+
+### file-path
+
+<tool.toolu_01E27teonrxCAk5JL5DNoYoM>
+test/test-greger-stdlib.el
+</tool.toolu_01E27teonrxCAk5JL5DNoYoM>
+
+### original-content
+
+<tool.toolu_01E27teonrxCAk5JL5DNoYoM>
+;; Test empty directory - should return empty directory message
+          (let ((result (greger-stdlib--list-directory test-dir))
+                (expected "Directory is empty"))
+            (should (stringp result))
+            (should (string= expected result)))
+</tool.toolu_01E27teonrxCAk5JL5DNoYoM>
+
+### new-content
+
+<tool.toolu_01E27teonrxCAk5JL5DNoYoM>
+;; Test empty directory - should show directory header and . .. entries
+          (let ((result (greger-stdlib--list-directory test-dir))
+                (expected (format "%s:
+drwx------  (dir)  .
+drwx------  (dir)  .." (file-name-as-directory test-dir))))
+            (should (stringp result))
+            (should (string= expected result)))
+</tool.toolu_01E27teonrxCAk5JL5DNoYoM>
+
+### git-commit-message
+
+<tool.toolu_01E27teonrxCAk5JL5DNoYoM>
+Fix empty directory test to use new format
+</tool.toolu_01E27teonrxCAk5JL5DNoYoM>
+
+<!-- TOOL_RESULT_PLACEHOLDER_toolu_01E27teonrxCAk5JL5DNoYoM -->
