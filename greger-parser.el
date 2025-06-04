@@ -861,21 +861,9 @@ Returns either a system message, metadata, or both."
   (or (greger-parser--parse-tool-value state) ""))
 
 (defun greger-parser--parse-server-tool-input (state)
-  "Parse server tool input JSON using STATE."
-  (greger-parser--skip-whitespace state)
-  (let ((json-start (greger-parser--current-pos state))
-        (content ""))
-    ;; Read until next section or end
-    (while (and (not (greger-parser--at-end-p state))
-                (not (and (greger-parser--at-line-start-p state)
-                          (greger-parser--find-section-tag state))))
-      (greger-parser--advance state))
-    (setq content (string-trim (greger-parser--substring state json-start)))
-    ;; Parse JSON if not empty
-    (when (and content (not (string-empty-p content)))
-      (condition-case nil
-          (json-parse-string content :object-type 'alist)
-        (error nil)))))
+  "Parse server tool input parameters using STATE."
+  ;; Server tools use the same parameter format as regular tools
+  (greger-parser--parse-tool-input state))
 
 (defun greger-parser--parse-server-tool-result-content (state)
   "Parse server tool result content using STATE."
