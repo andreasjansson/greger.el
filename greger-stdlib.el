@@ -467,7 +467,7 @@ PREFIX is used internally for nested directory structure."
                  (relative-path (file-relative-name file (expand-file-name path))))
             (when (and (not (string= basename "."))
                        (not (string= basename ".."))
-                       (greger-stdlib--should-include-file-p relative-path exclude-pattern))
+                       (greger-stdlib--should-include-directory-in-recursive-listing-p basename exclude-directories-recursive))
               (let ((formatted (greger-stdlib--format-file-info file basename exclude-pattern)))
                 (when formatted
                   (push formatted current-listing)))

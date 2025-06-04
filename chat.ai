@@ -1296,4 +1296,46 @@ If EXCLUDE-DIRECTORIES-RECURSIVE is empty or nil, include all directories."
 Rename function to reflect its purpose and implement full match logic
 </tool.toolu_01JmJ7F7W5aw2g5d2j75oSxs>
 
-<!-- TOOL_RESULT_PLACEHOLDER_toolu_01JmJ7F7W5aw2g5d2j75oSxs -->
+## TOOL RESULT:
+
+ID: toolu_01JmJ7F7W5aw2g5d2j75oSxs
+
+<tool.toolu_01JmJ7F7W5aw2g5d2j75oSxs>
+Successfully replaced content in /Users/andreas/projects/greger.el/greger-stdlib.el. Successfully staged 2 file(s) and committed with message: Rename function to reflect its purpose and implement full match logic
+</tool.toolu_01JmJ7F7W5aw2g5d2j75oSxs>
+
+
+## ASSISTANT:
+
+Now I need to update the call site to use the new function name:
+
+## TOOL USE:
+
+Name: str-replace
+ID: toolu_016CthutXWWRRC4Gxj69dmQg
+
+### file-path
+
+<tool.toolu_016CthutXWWRRC4Gxj69dmQg>
+greger-stdlib.el
+</tool.toolu_016CthutXWWRRC4Gxj69dmQg>
+
+### original-content
+
+<tool.toolu_016CthutXWWRRC4Gxj69dmQg>
+                       (greger-stdlib--should-include-file-p relative-path exclude-pattern))
+</tool.toolu_016CthutXWWRRC4Gxj69dmQg>
+
+### new-content
+
+<tool.toolu_016CthutXWWRRC4Gxj69dmQg>
+                       (greger-stdlib--should-include-directory-in-recursive-listing-p basename exclude-directories-recursive))
+</tool.toolu_016CthutXWWRRC4Gxj69dmQg>
+
+### git-commit-message
+
+<tool.toolu_016CthutXWWRRC4Gxj69dmQg>
+Update function call to use new function name and correct parameters
+</tool.toolu_016CthutXWWRRC4Gxj69dmQg>
+
+<!-- TOOL_RESULT_PLACEHOLDER_toolu_016CthutXWWRRC4Gxj69dmQg -->
