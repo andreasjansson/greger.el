@@ -1358,4 +1358,63 @@ greger.el
 Add C-g binding to greger-mode keymap for greger-interrupt
 </tool.toolu_01Uzp1aUtTa2743WiEjx9niL>
 
-<!-- TOOL_RESULT_PLACEHOLDER_toolu_01Uzp1aUtTa2743WiEjx9niL -->
+## TOOL RESULT:
+
+ID: toolu_01Uzp1aUtTa2743WiEjx9niL
+
+<tool.toolu_01Uzp1aUtTa2743WiEjx9niL>
+Successfully replaced content in /Users/andreas/projects/greger.el/greger.el. Successfully staged 2 file(s) and committed with message: Add C-g binding to greger-mode keymap for greger-interrupt
+</tool.toolu_01Uzp1aUtTa2743WiEjx9niL>
+
+
+## ASSISTANT:
+
+Now let's add the `greger-interrupt` function. I'll add it near other interactive functions:
+
+## TOOL USE:
+
+Name: str-replace
+ID: toolu_01M87tStYecpuE5ArGLzoxdd
+
+### file-path
+
+<tool.toolu_01M87tStYecpuE5ArGLzoxdd>
+greger.el
+</tool.toolu_01M87tStYecpuE5ArGLzoxdd>
+
+### original-content
+
+<tool.toolu_01M87tStYecpuE5ArGLzoxdd>
+(defun greger-insert-system-tag ()
+  "Insert the system tag into the buffer."
+  (interactive)
+  (insert greger-system-tag "\n\n"))
+</tool.toolu_01M87tStYecpuE5ArGLzoxdd>
+
+### new-content
+
+<tool.toolu_01M87tStYecpuE5ArGLzoxdd>
+(defun greger-insert-system-tag ()
+  "Insert the system tag into the buffer."
+  (interactive)
+  (insert greger-system-tag "\n\n"))
+
+(defun greger-interrupt ()
+  "Interrupt ongoing generation if active, otherwise call keyboard-quit."
+  (interactive)
+  (let* ((buffer (current-buffer))
+         (agent-state (buffer-local-value 'greger--current-agent-state buffer)))
+    (if (and agent-state (greger-state-client-state agent-state))
+        (progn
+          (greger-client--cancel-request (greger-state-client-state agent-state))
+          (setf (greger-state-client-state agent-state) nil))
+      (keyboard-quit))))
+</tool.toolu_01M87tStYecpuE5ArGLzoxdd>
+
+### git-commit-message
+
+<tool.toolu_01M87tStYecpuE5ArGLzoxdd>
+Add greger-interrupt function to handle C-g during generation
+</tool.toolu_01M87tStYecpuE5ArGLzoxdd>
+
+<!-- TOOL_RESULT_PLACEHOLDER_toolu_01M87tStYecpuE5ArGLzoxdd -->

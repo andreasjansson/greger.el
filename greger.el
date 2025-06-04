@@ -221,6 +221,17 @@
   (interactive)
   (insert greger-system-tag "\n\n"))
 
+(defun greger-interrupt ()
+  "Interrupt ongoing generation if active, otherwise call keyboard-quit."
+  (interactive)
+  (let* ((buffer (current-buffer))
+         (agent-state (buffer-local-value 'greger--current-agent-state buffer)))
+    (if (and agent-state (greger-state-client-state agent-state))
+        (progn
+          (greger-client--cancel-request (greger-state-client-state agent-state))
+          (setf (greger-state-client-state agent-state) nil))
+      (keyboard-quit))))
+
 (defun greger-buffer-no-tools ()
   "Send the buffer content to AI as a dialog without tool use."
   (interactive)
