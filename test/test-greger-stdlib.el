@@ -903,7 +903,7 @@ drwx------  (dir)  .." (file-name-as-directory test-dir))))
             (with-temp-file (expand-file-name "normal.txt" normal-dir) (insert "Normal content"))
 
             ;; Test with no exclude pattern (should show all files and directories, and recurse into all)
-            (let ((result (greger-stdlib--list-directory test-dir "" t))
+            (let ((result (greger-stdlib--list-directory test-dir '() t))
                   (expected (format "%s:
 drwx------  (dir)  .
 drwx------  (dir)  ..
