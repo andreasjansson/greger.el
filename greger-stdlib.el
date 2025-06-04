@@ -492,11 +492,11 @@ PREFIX is used internally for nested directory structure."
         (mapconcat #'identity all-results "\n")
       (format "%s:\nDirectory is empty" display-path))))
 
-(defun greger-stdlib--format-file-info (filepath displayname exclude-pattern)
+(defun greger-stdlib--format-file-info (filepath displayname exclude-directories-recursive)
   "Format file information similar to 'ls -la' output.
 FILEPATH is the full path to the file.
 DISPLAYNAME is the name to display in the output.
-EXCLUDE-PATTERN is used to check if file should be excluded."
+EXCLUDE-DIRECTORIES-RECURSIVE is used to check if directories should be excluded (currently unused in this function)."
   (when (file-exists-p filepath)
     (let* ((attrs (file-attributes filepath))
            (file-type (nth 0 attrs))
