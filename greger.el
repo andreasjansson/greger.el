@@ -240,7 +240,8 @@
      ((and agent-state (greger-state-client-state agent-state))
       (greger-client--cancel-request (greger-state-client-state agent-state))
       (setf (greger-state-client-state agent-state) nil)
-      (greger--update-buffer-state))
+      (greger--update-buffer-state)
+      'generating)
      ;; If there are executing tools, cancel them
      ((and agent-state
            (greger-state-executing-tools agent-state)
@@ -252,9 +253,12 @@
                      (when (functionp cancel-fn)
                        (funcall cancel-fn))))
                  executing-tools)
-        (greger--update-buffer-state)))
+        (greger--update-buffer-state))
+      'executing)
      ;; Default case: call keyboard-quit
-     (t (keyboard-quit)))))
+     (t
+      (keyboard-quit)
+      'idle))))
 
 (defun greger-buffer-no-tools ()
   "Send the buffer content to AI as a dialog without tool use."

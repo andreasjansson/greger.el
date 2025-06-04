@@ -299,9 +299,21 @@
           (sit-for 1.0)
 
           ;; Interrupt generation
-          (greger-interrupt)
+          (should (eq 'executing (greger-interrupt)))
 
           ;; Wait until state becomes 'idle (after interruption and any brief generation)
+          (let ((max-wait 20.0)
+                (start-time (current-time))
+                (state-found nil))
+            (while (and (not state-found)
+                       (< (float-time (time-subtract (current-time) start-time)) max-wait))
+              (sit-for 0.1)
+              (when (eq (greger--get-current-state) 'generating)
+                (setq state-found t)))
+            (should state-found))
+
+          (should (eq 'generating (greger-interrupt)))
+
           (let ((max-wait 10.0)
                 (start-time (current-time))
                 (state-found nil))
@@ -315,10 +327,7 @@
           ;; Verify the output contains some indication that the command failed
           ;; (the exact exit code and message may vary depending on platform and signal)
           (let ((content (buffer-string)))
-            (should (or (string-match-p "Command failed with exit code" content)
-                       (string-match-p "interrupted" content)
-                       (string-match-p "terminated" content)
-                       (string-match-p "cancelled" content)))))
+            (should (string-match-p "Command failed with exit code 2: (no output)" content))))
 
       ;; Cleanup
       (when (and greger-buffer (buffer-live-p greger-buffer))
