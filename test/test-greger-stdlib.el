@@ -448,9 +448,9 @@
           (cl-letf (((symbol-function 'greger-stdlib--git-stage-and-commit)
                      (lambda (files commit-message buffer) "Mocked git result")))
 
-            ;; Test successful deletion with list input
+            ;; Test successful deletion with vector input
             (let ((result (greger-stdlib--delete-files
-                          (list test-file)
+                          (vector test-file)
                           "Test commit message")))
               (should (stringp result))
               (should (string-match "Successfully deleted 1 file" result))

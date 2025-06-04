@@ -1780,4 +1780,208 @@ greger-stdlib.el
 Update greger-stdlib--eval-elisp-defuns to iterate over vector
 </tool.toolu_01RLiBrEWaGtQJuyjNwzaVt2>
 
-<!-- TOOL_RESULT_PLACEHOLDER_toolu_01RLiBrEWaGtQJuyjNwzaVt2 -->
+## TOOL RESULT:
+
+ID: toolu_01RLiBrEWaGtQJuyjNwzaVt2
+
+<tool.toolu_01RLiBrEWaGtQJuyjNwzaVt2>
+Successfully replaced content in /Users/andreas/projects/greger.el/greger-stdlib.el. Successfully staged 2 file(s) and committed with message: Update greger-stdlib--eval-elisp-defuns to iterate over vector
+</tool.toolu_01RLiBrEWaGtQJuyjNwzaVt2>
+
+
+## ASSISTANT:
+
+Now let me update the `greger-stdlib--list-directory` function and its helper functions. Let me first examine how the `exclude-directories-recursive` parameter is handled:
+
+## TOOL USE:
+
+Name: read-file
+ID: toolu_01BkVdv3UZCgwM7AQdgjZ3RV
+
+### path
+
+<tool.toolu_01BkVdv3UZCgwM7AQdgjZ3RV>
+greger-stdlib.el
+</tool.toolu_01BkVdv3UZCgwM7AQdgjZ3RV>
+
+### start-line
+
+<tool.toolu_01BkVdv3UZCgwM7AQdgjZ3RV>
+408
+</tool.toolu_01BkVdv3UZCgwM7AQdgjZ3RV>
+
+### end-line
+
+<tool.toolu_01BkVdv3UZCgwM7AQdgjZ3RV>
+430
+</tool.toolu_01BkVdv3UZCgwM7AQdgjZ3RV>
+
+## TOOL RESULT:
+
+ID: toolu_01BkVdv3UZCgwM7AQdgjZ3RV
+
+<tool.toolu_01BkVdv3UZCgwM7AQdgjZ3RV>
+(defun greger-stdlib--list-directory (path &optional exclude-directories-recursive recursive)
+  "List directory contents at PATH with detailed file information.
+Similar to \\='ls -Rla\\='.
+EXCLUDE-DIRECTORIES-RECURSIVE is a vector of directory names to exclude when
+recursively listing (defaults to [\".git\" \"__pycache__\"]).
+If RECURSIVE is non-nil, list files recursively."
+  (unless (stringp path)
+    (error "Invalid type: path must be a string"))
+
+  (let ((expanded-path (expand-file-name path))
+        (original-path path))
+    (unless (file-exists-p expanded-path)
+      (error "Directory does not exist: %s" expanded-path))
+
+    (unless (file-directory-p expanded-path)
+      (error "Path is not a directory: %s" expanded-path))
+
+    (unless (file-readable-p expanded-path)
+      (error "Directory is not readable: %s" expanded-path))
+
+    (condition-case err
+        (greger-stdlib--list-directory-recursive expanded-path exclude-directories-recursive original-path recursive)
+      (error "Failed to list directory: %s" (error-message-string err)))))
+</tool.toolu_01BkVdv3UZCgwM7AQdgjZ3RV>
+
+## ASSISTANT:
+
+This function looks good already - it doesn't do explicit type checking on `exclude-directories-recursive` and just passes it through. Let me check the helper function:
+
+## TOOL USE:
+
+Name: read-file
+ID: toolu_014CpcasEArHB78igujeFErt
+
+### path
+
+<tool.toolu_014CpcasEArHB78igujeFErt>
+greger-stdlib.el
+</tool.toolu_014CpcasEArHB78igujeFErt>
+
+### start-line
+
+<tool.toolu_014CpcasEArHB78igujeFErt>
+529
+</tool.toolu_014CpcasEArHB78igujeFErt>
+
+### end-line
+
+<tool.toolu_014CpcasEArHB78igujeFErt>
+540
+</tool.toolu_014CpcasEArHB78igujeFErt>
+
+## TOOL RESULT:
+
+ID: toolu_014CpcasEArHB78igujeFErt
+
+<tool.toolu_014CpcasEArHB78igujeFErt>
+(defun greger-stdlib--should-include-directory-in-recursive-listing-p (directory-name exclude-directories-recursive)
+  "Return t if directory with DIRECTORY-NAME should be included in listing.
+EXCLUDE-DIRECTORIES-RECURSIVE is a vector of directory names to exclude.
+If EXCLUDE-DIRECTORIES-RECURSIVE is nil, use default excludes.
+If EXCLUDE-DIRECTORIES-RECURSIVE is an empty vector, exclude nothing."
+  (let ((actual-exclude-list (if (null exclude-directories-recursive)
+                                 [".git" "__pycache__"]
+                               exclude-directories-recursive)))
+    (not (seq-contains-p actual-exclude-list directory-name))))
+
+(defun greger-stdlib--ripgrep (pattern path callback &optional case-sensitive file-type context-lines max-results)
+  "Search for PATTERN in PATH using the rg command line tool directly.
+</tool.toolu_014CpcasEArHB78igujeFErt>
+
+## ASSISTANT:
+
+This function already assumes vectors and uses `seq-contains-p` which works with both vectors and lists. The comment says it expects a vector, so it's already correctly designed.
+
+Now I need to update all the tests in `test-greger-stdlib.el` to use vectors instead of lists where appropriate. Let me start with the `delete-files` tests:
+
+## TOOL USE:
+
+Name: read-file
+ID: toolu_01NUcsbAbEQDEpUdvo2gHGgo
+
+### path
+
+<tool.toolu_01NUcsbAbEQDEpUdvo2gHGgo>
+test/test-greger-stdlib.el
+</tool.toolu_01NUcsbAbEQDEpUdvo2gHGgo>
+
+### start-line
+
+<tool.toolu_01NUcsbAbEQDEpUdvo2gHGgo>
+415
+</tool.toolu_01NUcsbAbEQDEpUdvo2gHGgo>
+
+### end-line
+
+<tool.toolu_01NUcsbAbEQDEpUdvo2gHGgo>
+425
+</tool.toolu_01NUcsbAbEQDEpUdvo2gHGgo>
+
+## TOOL RESULT:
+
+ID: toolu_01NUcsbAbEQDEpUdvo2gHGgo
+
+<tool.toolu_01NUcsbAbEQDEpUdvo2gHGgo>
+            (let ((result (greger-stdlib--delete-files
+                          (vector test-file1 test-file2)
+                          "Test commit message")))
+              (should (stringp result))
+              (should (string-match "Successfully deleted 2 file" result))
+              (should (string-match (file-name-nondirectory test-file1) result))
+              (should (string-match (file-name-nondirectory test-file2) result)))
+
+            ;; Verify files are deleted
+            (should-not (file-exists-p test-file1))
+            (should-not (file-exists-p test-file2))))
+</tool.toolu_01NUcsbAbEQDEpUdvo2gHGgo>
+
+## ASSISTANT:
+
+Good, that test already uses vector. Let me check the other delete-files tests that use lists:
+
+## TOOL USE:
+
+Name: str-replace
+ID: toolu_0147KqWLpk1FXkrQx7stxVhA
+
+### file-path
+
+<tool.toolu_0147KqWLpk1FXkrQx7stxVhA>
+test/test-greger-stdlib.el
+</tool.toolu_0147KqWLpk1FXkrQx7stxVhA>
+
+### original-content
+
+<tool.toolu_0147KqWLpk1FXkrQx7stxVhA>
+            ;; Test successful deletion with list input
+            (let ((result (greger-stdlib--delete-files
+                          (list test-file)
+                          "Test commit message")))
+              (should (stringp result))
+              (should (string-match "Successfully deleted 1 file" result))
+              (should (string-match (file-name-nondirectory test-file) result)))
+</tool.toolu_0147KqWLpk1FXkrQx7stxVhA>
+
+### new-content
+
+<tool.toolu_0147KqWLpk1FXkrQx7stxVhA>
+            ;; Test successful deletion with vector input
+            (let ((result (greger-stdlib--delete-files
+                          (vector test-file)
+                          "Test commit message")))
+              (should (stringp result))
+              (should (string-match "Successfully deleted 1 file" result))
+              (should (string-match (file-name-nondirectory test-file) result)))
+</tool.toolu_0147KqWLpk1FXkrQx7stxVhA>
+
+### git-commit-message
+
+<tool.toolu_0147KqWLpk1FXkrQx7stxVhA>
+Update delete-files test to use vector instead of list
+</tool.toolu_0147KqWLpk1FXkrQx7stxVhA>
+
+<!-- TOOL_RESULT_PLACEHOLDER_toolu_0147KqWLpk1FXkrQx7stxVhA -->
