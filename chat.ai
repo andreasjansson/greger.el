@@ -4051,4 +4051,48 @@ If EXCLUDE-DIRECTORIES-RECURSIVE is empty or nil, include all directories."
 Update directory inclusion check to use simple list membership instead of regex
 </tool.toolu_015XtzBUVHeYCZz4QwvtaHNo>
 
-<!-- TOOL_RESULT_PLACEHOLDER_toolu_015XtzBUVHeYCZz4QwvtaHNo -->
+## TOOL RESULT:
+
+ID: toolu_015XtzBUVHeYCZz4QwvtaHNo
+
+<tool.toolu_015XtzBUVHeYCZz4QwvtaHNo>
+Successfully replaced content in /Users/andreas/projects/greger.el/greger-stdlib.el. Successfully staged 2 file(s) and committed with message: Update directory inclusion check to use simple list membership instead of regex
+</tool.toolu_015XtzBUVHeYCZz4QwvtaHNo>
+
+
+## ASSISTANT:
+
+Now I need to update the tests to use lists instead of regex patterns:
+
+## TOOL USE:
+
+Name: str-replace
+ID: toolu_01BfckaKwYPKmP8dgxXwG7tp
+
+### file-path
+
+<tool.toolu_01BfckaKwYPKmP8dgxXwG7tp>
+test/test-greger-stdlib.el
+</tool.toolu_01BfckaKwYPKmP8dgxXwG7tp>
+
+### original-content
+
+<tool.toolu_01BfckaKwYPKmP8dgxXwG7tp>
+;; Test with default exclude pattern - should exclude .git directory from recursion
+            (let ((result (greger-stdlib--list-directory test-dir "\\.git|__pycache__" t))
+</tool.toolu_01BfckaKwYPKmP8dgxXwG7tp>
+
+### new-content
+
+<tool.toolu_01BfckaKwYPKmP8dgxXwG7tp>
+;; Test with default exclude pattern - should exclude .git directory from recursion
+            (let ((result (greger-stdlib--list-directory test-dir '(".git" "__pycache__") t))
+</tool.toolu_01BfckaKwYPKmP8dgxXwG7tp>
+
+### git-commit-message
+
+<tool.toolu_01BfckaKwYPKmP8dgxXwG7tp>
+Update test to use list of strings instead of regex pattern
+</tool.toolu_01BfckaKwYPKmP8dgxXwG7tp>
+
+<!-- TOOL_RESULT_PLACEHOLDER_toolu_01BfckaKwYPKmP8dgxXwG7tp -->
