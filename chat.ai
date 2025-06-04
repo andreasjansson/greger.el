@@ -5353,4 +5353,59 @@ greger.el
 Add server tool block rendering after response completion
 </tool.toolu_01AMRXMWyPuUbwKb1jLAnSCo>
 
-<!-- TOOL_RESULT_PLACEHOLDER_toolu_01AMRXMWyPuUbwKb1jLAnSCo -->
+## TOOL RESULT:
+
+ID: toolu_01AMRXMWyPuUbwKb1jLAnSCo
+
+<tool.toolu_01AMRXMWyPuUbwKb1jLAnSCo>
+Successfully replaced content in /Users/andreas/projects/greger.el/greger.el. Successfully staged 2 file(s) and committed with message: Add server tool block rendering after response completion
+</tool.toolu_01AMRXMWyPuUbwKb1jLAnSCo>
+
+## ASSISTANT:
+
+Now I need to implement the `greger--render-server-tool-blocks` function:
+
+## TOOL USE:
+
+Name: str-replace
+ID: toolu_01D1dRQWQJktPzpLMoAnidpJ
+
+### file-path
+
+<tool.toolu_01D1dRQWQJktPzpLMoAnidpJ>
+greger.el
+</tool.toolu_01D1dRQWQJktPzpLMoAnidpJ>
+
+### original-content
+
+<tool.toolu_01D1dRQWQJktPzpLMoAnidpJ>
+(defun greger--extract-tool-calls (content-blocks)
+  "Extract tool calls from CONTENT-BLOCKS."
+  (let ((tool-calls '()))
+</tool.toolu_01D1dRQWQJktPzpLMoAnidpJ>
+
+### new-content
+
+<tool.toolu_01D1dRQWQJktPzpLMoAnidpJ>
+(defun greger--render-server-tool-blocks (content-blocks agent-state)
+  "Render server tool blocks from CONTENT-BLOCKS to buffer using AGENT-STATE."
+  (dolist (block content-blocks)
+    (let ((type (alist-get 'type block)))
+      (when (or (string= type "server_tool_use") 
+                (string= type "web_search_tool_result"))
+        (let ((markdown (greger-parser--content-block-to-markdown block)))
+          (when (and markdown (not (string-empty-p markdown)))
+            (greger--append-text (concat "\n\n" markdown "\n\n") agent-state)))))))
+
+(defun greger--extract-tool-calls (content-blocks)
+  "Extract tool calls from CONTENT-BLOCKS."
+  (let ((tool-calls '()))
+</tool.toolu_01D1dRQWQJktPzpLMoAnidpJ>
+
+### git-commit-message
+
+<tool.toolu_01D1dRQWQJktPzpLMoAnidpJ>
+Implement server tool block rendering function
+</tool.toolu_01D1dRQWQJktPzpLMoAnidpJ>
+
+<!-- TOOL_RESULT_PLACEHOLDER_toolu_01D1dRQWQJktPzpLMoAnidpJ -->
