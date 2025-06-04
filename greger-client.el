@@ -216,6 +216,10 @@ Returns nil if no error found or if OUTPUT is not valid JSON."
 
 (defun greger-client--process-output-chunk (output state)
   "Process a chunk of OUTPUT using STATE."
+
+  ;; TODO: remove debug
+  ;(message (format "output: %s" output))
+
   ;; Check for error responses and raise an error if found
   (greger-client--check-for-error output)
 
@@ -265,8 +269,14 @@ Returns nil if no error found or if OUTPUT is not valid JSON."
         (cond
          ((string= (alist-get 'type content-block) "tool_use")
           (setf (alist-get 'input content-block) ""))
+         ((string= (alist-get 'type content-block) "server_tool_use")
+          (setf (alist-get 'input content-block) ""))
          ((string= (alist-get 'type content-block) "text")
-          (setf (alist-get 'text content-block) "")))
+          (setf (alist-get 'text content-block) ""))
+         ;; web_search_tool_result blocks come with content already populated
+         ((string= (alist-get 'type content-block) "web_search_tool_result")
+          ;; No initialization needed - content is already present
+          nil))
 
         (when (and (string= (alist-get 'type content-block) "text")
                    (greger-client-state-text-start-callback state))
