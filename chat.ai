@@ -1625,4 +1625,48 @@ greger.el
 Update buffer state when tools start executing
 </tool.toolu_01GazWkygEYN6y2WRb49JXUy>
 
-<!-- TOOL_RESULT_PLACEHOLDER_toolu_01GazWkygEYN6y2WRb49JXUy -->
+## TOOL RESULT:
+
+ID: toolu_01GazWkygEYN6y2WRb49JXUy
+
+<tool.toolu_01GazWkygEYN6y2WRb49JXUy>
+Successfully replaced content in /Users/andreas/projects/greger.el/greger.el. Successfully staged 2 file(s) and committed with message: Update buffer state when tools start executing
+</tool.toolu_01GazWkygEYN6y2WRb49JXUy>
+
+
+## TOOL USE:
+
+Name: str-replace
+ID: toolu_01QArMqe7E9rRQXMcfbMDEgn
+
+### file-path
+
+<tool.toolu_01QArMqe7E9rRQXMcfbMDEgn>
+greger.el
+</tool.toolu_01QArMqe7E9rRQXMcfbMDEgn>
+
+### original-content
+
+<tool.toolu_01QArMqe7E9rRQXMcfbMDEgn>
+    ;; Call completion callback
+    (funcall completion-callback)))
+</tool.toolu_01QArMqe7E9rRQXMcfbMDEgn>
+
+### new-content
+
+<tool.toolu_01QArMqe7E9rRQXMcfbMDEgn>
+    ;; Update buffer state after tool completion
+    (with-current-buffer (greger-state-chat-buffer agent-state)
+      (greger--update-buffer-state))
+
+    ;; Call completion callback
+    (funcall completion-callback)))
+</tool.toolu_01QArMqe7E9rRQXMcfbMDEgn>
+
+### git-commit-message
+
+<tool.toolu_01QArMqe7E9rRQXMcfbMDEgn>
+Update buffer state after tool completion
+</tool.toolu_01QArMqe7E9rRQXMcfbMDEgn>
+
+<!-- TOOL_RESULT_PLACEHOLDER_toolu_01QArMqe7E9rRQXMcfbMDEgn -->

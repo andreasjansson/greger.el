@@ -585,6 +585,10 @@ COMPLETION-CALLBACK is called when complete."
             (unless (string-empty-p result-markdown)
               (insert result-markdown))))))
 
+    ;; Update buffer state after tool completion
+    (with-current-buffer (greger-state-chat-buffer agent-state)
+      (greger--update-buffer-state))
+
     ;; Call completion callback
     (funcall completion-callback)))
 
