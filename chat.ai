@@ -7076,4 +7076,64 @@ greger.el
 Remove premature clearing of executing-tools map from greger-interrupt
 </tool.toolu_01YX5d176UFkfRzQ4qLAyLAN>
 
-<!-- TOOL_RESULT_PLACEHOLDER_toolu_01YX5d176UFkfRzQ4qLAyLAN -->
+## TOOL RESULT:
+
+ID: toolu_01YX5d176UFkfRzQ4qLAyLAN
+
+<tool.toolu_01YX5d176UFkfRzQ4qLAyLAN>
+Successfully replaced content in /Users/andreas/projects/greger.el/greger.el. Successfully staged 2 file(s) and committed with message: Remove premature clearing of executing-tools map from greger-interrupt
+</tool.toolu_01YX5d176UFkfRzQ4qLAyLAN>
+
+
+## ASSISTANT:
+
+2. Now I need to update the greger-stdlib--run-async-subprocess to ensure the callback is called when the process is interrupted:
+
+## TOOL USE:
+
+Name: str-replace
+ID: toolu_01N1yKy1Hno8zZ3pnLzZo2Xv
+
+### file-path
+
+<tool.toolu_01N1yKy1Hno8zZ3pnLzZo2Xv>
+greger-stdlib.el
+</tool.toolu_01N1yKy1Hno8zZ3pnLzZo2Xv>
+
+### original-content
+
+<tool.toolu_01N1yKy1Hno8zZ3pnLzZo2Xv>
+;; Return cancel function
+          (lambda ()
+            (when (and process (process-live-p process))
+              (interrupt-process process)
+              (sit-for 0.1)
+              (when (process-live-p process)
+                (delete-process process))
+              (when (buffer-live-p process-buffer)
+                (kill-buffer process-buffer))))
+</tool.toolu_01N1yKy1Hno8zZ3pnLzZo2Xv>
+
+### new-content
+
+<tool.toolu_01N1yKy1Hno8zZ3pnLzZo2Xv>
+;; Return cancel function
+          (lambda ()
+            (when (and process (process-live-p process))
+              (interrupt-process process)
+              (sit-for 0.1)
+              (when (process-live-p process)
+                (delete-process process))
+              (when (buffer-live-p process-buffer)
+                (kill-buffer process-buffer))
+              ;; Call callback with cancellation error
+              (funcall callback nil "Command execution was cancelled")))
+</tool.toolu_01N1yKy1Hno8zZ3pnLzZo2Xv>
+
+### git-commit-message
+
+<tool.toolu_01N1yKy1Hno8zZ3pnLzZo2Xv>
+Ensure callback is called when subprocess is cancelled
+</tool.toolu_01N1yKy1Hno8zZ3pnLzZo2Xv>
+
+<!-- TOOL_RESULT_PLACEHOLDER_toolu_01N1yKy1Hno8zZ3pnLzZo2Xv -->

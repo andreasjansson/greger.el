@@ -307,7 +307,9 @@ Returns a cancel function that can be called to interrupt the process."
               (when (process-live-p process)
                 (delete-process process))
               (when (buffer-live-p process-buffer)
-                (kill-buffer process-buffer)))))
+                (kill-buffer process-buffer))
+              ;; Call callback with cancellation error
+              (funcall callback nil "Command execution was cancelled"))))
       (error
        (when (buffer-live-p process-buffer)
          (kill-buffer process-buffer))
