@@ -2193,4 +2193,172 @@ greger-parser.el
 Add server tool section parsing dispatch
 </tool.toolu_01ERDLGZvhdGkNtRuGcp9CAn>
 
-<!-- TOOL_RESULT_PLACEHOLDER_toolu_01ERDLGZvhdGkNtRuGcp9CAn -->
+## TOOL RESULT:
+
+ID: toolu_01ERDLGZvhdGkNtRuGcp9CAn
+
+<tool.toolu_01ERDLGZvhdGkNtRuGcp9CAn>
+Successfully replaced content in /Users/andreas/projects/greger.el/greger-parser.el. Successfully staged 2 file(s) and committed with message: Add server tool section parsing dispatch
+</tool.toolu_01ERDLGZvhdGkNtRuGcp9CAn>
+
+## ASSISTANT:
+
+Now I need to implement the server tool parsing functions. Let me add them after the existing tool parsing functions:
+
+## TOOL USE:
+
+Name: read-file
+ID: toolu_01X5YfrShJEXfkb8siptPZfr
+
+### path
+
+<tool.toolu_01X5YfrShJEXfkb8siptPZfr>
+greger-parser.el
+</tool.toolu_01X5YfrShJEXfkb8siptPZfr>
+
+### start-line
+
+<tool.toolu_01X5YfrShJEXfkb8siptPZfr>
+714
+</tool.toolu_01X5YfrShJEXfkb8siptPZfr>
+
+### end-line
+
+<tool.toolu_01X5YfrShJEXfkb8siptPZfr>
+725
+</tool.toolu_01X5YfrShJEXfkb8siptPZfr>
+
+## TOOL RESULT:
+
+ID: toolu_01X5YfrShJEXfkb8siptPZfr
+
+<tool.toolu_01X5YfrShJEXfkb8siptPZfr>
+  "Parse TOOL USE section using STATE."
+  (greger-parser--skip-whitespace state)
+  (let ((name (greger-parser--parse-name-line state))
+        (id (greger-parser--parse-id-line state))
+        (input (greger-parser--parse-tool-input state)))
+    (when (and name id)
+      (greger-parser--create-tool-use-message name id input))))
+
+(defun greger-parser--parse-tool-result-section (state)
+  "Parse TOOL RESULT section using STATE."
+  (greger-parser--skip-whitespace state)
+  (let ((id (greger-parser--parse-id-line state))
+</tool.toolu_01X5YfrShJEXfkb8siptPZfr>
+
+## ASSISTANT:
+
+Let me see the end of the tool result section and insert the server tool functions after it:
+
+## TOOL USE:
+
+Name: read-file
+ID: toolu_01L1ewLdU6nZihgERQQoY5bc
+
+### path
+
+<tool.toolu_01L1ewLdU6nZihgERQQoY5bc>
+greger-parser.el
+</tool.toolu_01L1ewLdU6nZihgERQQoY5bc>
+
+### start-line
+
+<tool.toolu_01L1ewLdU6nZihgERQQoY5bc>
+718
+</tool.toolu_01L1ewLdU6nZihgERQQoY5bc>
+
+### end-line
+
+<tool.toolu_01L1ewLdU6nZihgERQQoY5bc>
+735
+</tool.toolu_01L1ewLdU6nZihgERQQoY5bc>
+
+## TOOL RESULT:
+
+ID: toolu_01L1ewLdU6nZihgERQQoY5bc
+
+<tool.toolu_01L1ewLdU6nZihgERQQoY5bc>
+        (input (greger-parser--parse-tool-input state)))
+    (when (and name id)
+      (greger-parser--create-tool-use-message name id input))))
+
+(defun greger-parser--parse-tool-result-section (state)
+  "Parse TOOL RESULT section using STATE."
+  (greger-parser--skip-whitespace state)
+  (let ((id (greger-parser--parse-id-line state))
+        (content (greger-parser--parse-tool-result-content state)))
+    (when id
+      (greger-parser--create-tool-result-message id content))))
+
+;; Tool parsing helpers
+
+(defun greger-parser--parse-name-line (state)
+  "Parse \='Name: value\=' line using STATE."
+  (when (greger-parser--looking-at state "Name:")
+    (greger-parser--advance state 5)
+</tool.toolu_01L1ewLdU6nZihgERQQoY5bc>
+
+## TOOL USE:
+
+Name: str-replace
+ID: toolu_0165g6dNTSvtxoc5tMwnG4H4
+
+### file-path
+
+<tool.toolu_0165g6dNTSvtxoc5tMwnG4H4>
+greger-parser.el
+</tool.toolu_0165g6dNTSvtxoc5tMwnG4H4>
+
+### original-content
+
+<tool.toolu_0165g6dNTSvtxoc5tMwnG4H4>
+(defun greger-parser--parse-tool-result-section (state)
+  "Parse TOOL RESULT section using STATE."
+  (greger-parser--skip-whitespace state)
+  (let ((id (greger-parser--parse-id-line state))
+        (content (greger-parser--parse-tool-result-content state)))
+    (when id
+      (greger-parser--create-tool-result-message id content))))
+
+;; Tool parsing helpers
+</tool.toolu_0165g6dNTSvtxoc5tMwnG4H4>
+
+### new-content
+
+<tool.toolu_0165g6dNTSvtxoc5tMwnG4H4>
+(defun greger-parser--parse-tool-result-section (state)
+  "Parse TOOL RESULT section using STATE."
+  (greger-parser--skip-whitespace state)
+  (let ((id (greger-parser--parse-id-line state))
+        (content (greger-parser--parse-tool-result-content state)))
+    (when id
+      (greger-parser--create-tool-result-message id content))))
+
+(defun greger-parser--parse-server-tool-use-section (state)
+  "Parse SERVER TOOL USE section using STATE."
+  (greger-parser--skip-whitespace state)
+  (let ((name (greger-parser--parse-name-line state))
+        (id (greger-parser--parse-id-line state))
+        (input (greger-parser--parse-server-tool-input state)))
+    (when (and name id)
+      (greger-parser--create-server-tool-use-message name id input))))
+
+(defun greger-parser--parse-server-tool-result-section (state)
+  "Parse SERVER TOOL RESULT section using STATE."
+  (greger-parser--skip-whitespace state)
+  (let ((id (greger-parser--parse-id-line state))
+        (content (greger-parser--parse-server-tool-result-content state)))
+    (when id
+      (greger-parser--create-server-tool-result-message id content))))
+
+;; Tool parsing helpers
+</tool.toolu_0165g6dNTSvtxoc5tMwnG4H4>
+
+### git-commit-message
+
+<tool.toolu_0165g6dNTSvtxoc5tMwnG4H4>
+Add server tool section parsing functions
+</tool.toolu_0165g6dNTSvtxoc5tMwnG4H4>
+
+<!-- TOOL_RESULT_PLACEHOLDER_toolu_0165g6dNTSvtxoc5tMwnG4H4 -->

@@ -727,6 +727,23 @@ Returns either a system message, metadata, or both."
     (when id
       (greger-parser--create-tool-result-message id content))))
 
+(defun greger-parser--parse-server-tool-use-section (state)
+  "Parse SERVER TOOL USE section using STATE."
+  (greger-parser--skip-whitespace state)
+  (let ((name (greger-parser--parse-name-line state))
+        (id (greger-parser--parse-id-line state))
+        (input (greger-parser--parse-server-tool-input state)))
+    (when (and name id)
+      (greger-parser--create-server-tool-use-message name id input))))
+
+(defun greger-parser--parse-server-tool-result-section (state)
+  "Parse SERVER TOOL RESULT section using STATE."
+  (greger-parser--skip-whitespace state)
+  (let ((id (greger-parser--parse-id-line state))
+        (content (greger-parser--parse-server-tool-result-content state)))
+    (when id
+      (greger-parser--create-server-tool-result-message id content))))
+
 ;; Tool parsing helpers
 
 (defun greger-parser--parse-name-line (state)
