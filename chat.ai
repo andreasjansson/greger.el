@@ -758,4 +758,89 @@ This ensures the '..' entry has predictable permissions in tests."
 Add helper function for controlled temp directories in tests
 </tool.toolu_01FujaDmUJbSWssmg23286HF>
 
-<!-- TOOL_RESULT_PLACEHOLDER_toolu_01FujaDmUJbSWssmg23286HF -->
+## TOOL RESULT:
+
+ID: toolu_01FujaDmUJbSWssmg23286HF
+
+<tool.toolu_01FujaDmUJbSWssmg23286HF>
+Successfully replaced content in /Users/andreas/projects/greger.el/test/test-greger-stdlib.el. Successfully staged 2 file(s) and committed with message: Add helper function for controlled temp directories in tests
+</tool.toolu_01FujaDmUJbSWssmg23286HF>
+
+## ASSISTANT:
+
+Now I need to update the failing tests to use this helper function. Let me start with the basic test:
+
+## TOOL USE:
+
+Name: str-replace
+ID: toolu_01JoPr5zdzSvREYsMq8nPnR8
+
+### file-path
+
+<tool.toolu_01JoPr5zdzSvREYsMq8nPnR8>
+test/test-greger-stdlib.el
+</tool.toolu_01JoPr5zdzSvREYsMq8nPnR8>
+
+### original-content
+
+<tool.toolu_01JoPr5zdzSvREYsMq8nPnR8>
+(ert-deftest greger-test-list-directory-basic ()
+  "Test basic list-directory functionality with detailed output."
+  (let ((test-dir (make-temp-file "greger-test-dir" t)))
+    (unwind-protect
+        (progn
+          ;; Create a test file
+          (let ((test-file (expand-file-name "test.txt" test-dir)))
+            (with-temp-file test-file
+              (insert "content"))
+
+            ;; Test basic listing
+            (let ((result (greger-stdlib--list-directory test-dir))
+                  (expected (format "%s:
+drwx------  (dir)  .
+drwx------  (dir)  ..
+-rw-r--r--         7  test.txt" (file-name-as-directory test-dir))))
+              (should (stringp result))
+              (should (string= expected result)))))
+
+      ;; Clean up
+      (when (file-exists-p test-dir)
+        (delete-directory test-dir t)))))
+</tool.toolu_01JoPr5zdzSvREYsMq8nPnR8>
+
+### new-content
+
+<tool.toolu_01JoPr5zdzSvREYsMq8nPnR8>
+(ert-deftest greger-test-list-directory-basic ()
+  "Test basic list-directory functionality with detailed output."
+  (let ((test-dir (greger-test--make-controlled-temp-dir "greger-test-dir"))
+        (parent-dir nil))
+    (unwind-protect
+        (progn
+          (setq parent-dir (file-name-directory (directory-file-name test-dir)))
+          ;; Create a test file
+          (let ((test-file (expand-file-name "test.txt" test-dir)))
+            (with-temp-file test-file
+              (insert "content"))
+
+            ;; Test basic listing
+            (let ((result (greger-stdlib--list-directory test-dir))
+                  (expected (format "%s:
+drwx------  (dir)  .
+drwx------  (dir)  ..
+-rw-r--r--         7  test.txt" (file-name-as-directory test-dir))))
+              (should (stringp result))
+              (should (string= expected result)))))
+
+      ;; Clean up
+      (when (and parent-dir (file-exists-p parent-dir))
+        (delete-directory parent-dir t)))))
+</tool.toolu_01JoPr5zdzSvREYsMq8nPnR8>
+
+### git-commit-message
+
+<tool.toolu_01JoPr5zdzSvREYsMq8nPnR8>
+Fix greger-test-list-directory-basic to use controlled temp directory
+</tool.toolu_01JoPr5zdzSvREYsMq8nPnR8>
+
+<!-- TOOL_RESULT_PLACEHOLDER_toolu_01JoPr5zdzSvREYsMq8nPnR8 -->
