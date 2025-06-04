@@ -2990,4 +2990,150 @@ greger-parser.el
 Add server tool types to block-to-markdown conversion
 </tool.toolu_018NoC1PiJNA9XQfVMvNhBoZ>
 
-<!-- TOOL_RESULT_PLACEHOLDER_toolu_018NoC1PiJNA9XQfVMvNhBoZ -->
+## TOOL RESULT:
+
+ID: toolu_018NoC1PiJNA9XQfVMvNhBoZ
+
+<tool.toolu_018NoC1PiJNA9XQfVMvNhBoZ>
+Successfully replaced content in /Users/andreas/projects/greger.el/greger-parser.el. Successfully staged 2 file(s) and committed with message: Add server tool types to block-to-markdown conversion
+</tool.toolu_018NoC1PiJNA9XQfVMvNhBoZ>
+
+## ASSISTANT:
+
+Now I need to implement the server tool markdown conversion functions. Let me find where the existing tool markdown functions are and add the server tool ones after them:
+
+## TOOL USE:
+
+Name: read-file
+ID: toolu_013Tv1hdLyVwLwkVqquKUDLF
+
+### path
+
+<tool.toolu_013Tv1hdLyVwLwkVqquKUDLF>
+greger-parser.el
+</tool.toolu_013Tv1hdLyVwLwkVqquKUDLF>
+
+### start-line
+
+<tool.toolu_013Tv1hdLyVwLwkVqquKUDLF>
+1108
+</tool.toolu_013Tv1hdLyVwLwkVqquKUDLF>
+
+### end-line
+
+<tool.toolu_013Tv1hdLyVwLwkVqquKUDLF>
+1140
+</tool.toolu_013Tv1hdLyVwLwkVqquKUDLF>
+
+## TOOL RESULT:
+
+ID: toolu_013Tv1hdLyVwLwkVqquKUDLF
+
+<tool.toolu_013Tv1hdLyVwLwkVqquKUDLF>
+            "Name: " name "\n"
+            "ID: " id "\n\n"
+            (greger-parser--tool-params-to-markdown id input))))
+
+(defun greger-parser--tool-result-to-markdown (tool-result)
+  "Convert TOOL-RESULT to markdown."
+  (let ((id (alist-get 'tool_use_id tool-result))
+        (content (alist-get 'content tool-result)))
+    (concat greger-parser-tool-result-tag "\n\n"
+            "ID: " id "\n\n"
+            "<tool." id ">\n"
+            content "\n"
+            "</tool." id ">")))
+
+(defun greger-parser--tool-params-to-markdown (id input)
+  "Convert tool parameters with ID and INPUT to markdown."
+  (if (null input)
+      ""
+    (mapconcat (lambda (param)
+                 (let ((name (symbol-name (car param)))
+                       (value (cdr param)))
+                   (concat "### " name "\n\n"
+                           "<tool." id ">\n"
+                           (greger-parser--value-to-string value) "\n"
+                           "</tool." id ">")))
+               input "\n\n")))
+
+(defun greger-parser--value-to-string (value)
+  "Convert VALUE to string representation."
+  (cond
+   ((stringp value) value)
+   ((numberp value) (number-to-string value))
+   ((eq value t) "true")
+</tool.toolu_013Tv1hdLyVwLwkVqquKUDLF>
+
+## ASSISTANT:
+
+Let me add the server tool markdown functions after the existing tool functions:
+
+## TOOL USE:
+
+Name: str-replace
+ID: toolu_01Qny5voyhnqYPYKXi5HZdqF
+
+### file-path
+
+<tool.toolu_01Qny5voyhnqYPYKXi5HZdqF>
+greger-parser.el
+</tool.toolu_01Qny5voyhnqYPYKXi5HZdqF>
+
+### original-content
+
+<tool.toolu_01Qny5voyhnqYPYKXi5HZdqF>
+(defun greger-parser--tool-result-to-markdown (tool-result)
+  "Convert TOOL-RESULT to markdown."
+  (let ((id (alist-get 'tool_use_id tool-result))
+        (content (alist-get 'content tool-result)))
+    (concat greger-parser-tool-result-tag "\n\n"
+            "ID: " id "\n\n"
+            "<tool." id ">\n"
+            content "\n"
+            "</tool." id ">")))
+</tool.toolu_01Qny5voyhnqYPYKXi5HZdqF>
+
+### new-content
+
+<tool.toolu_01Qny5voyhnqYPYKXi5HZdqF>
+(defun greger-parser--tool-result-to-markdown (tool-result)
+  "Convert TOOL-RESULT to markdown."
+  (let ((id (alist-get 'tool_use_id tool-result))
+        (content (alist-get 'content tool-result)))
+    (concat greger-parser-tool-result-tag "\n\n"
+            "ID: " id "\n\n"
+            "<tool." id ">\n"
+            content "\n"
+            "</tool." id ">")))
+
+(defun greger-parser--server-tool-use-to-markdown (server-tool-use)
+  "Convert SERVER-TOOL-USE to markdown."
+  (let ((name (alist-get 'name server-tool-use))
+        (id (alist-get 'id server-tool-use))
+        (input (alist-get 'input server-tool-use)))
+    (concat greger-parser-server-tool-use-tag "\n\n"
+            "Name: " name "\n"
+            "ID: " id "\n\n"
+            (if input
+                (json-encode input)
+              ""))))
+
+(defun greger-parser--server-tool-result-to-markdown (server-tool-result)
+  "Convert SERVER-TOOL-RESULT to markdown."
+  (let ((id (alist-get 'tool_use_id server-tool-result))
+        (content (alist-get 'content server-tool-result)))
+    (concat greger-parser-server-tool-result-tag "\n\n"
+            "ID: " id "\n\n"
+            (if (stringp content)
+                content
+              (json-encode content)))))
+</tool.toolu_01Qny5voyhnqYPYKXi5HZdqF>
+
+### git-commit-message
+
+<tool.toolu_01Qny5voyhnqYPYKXi5HZdqF>
+Add server tool markdown conversion functions
+</tool.toolu_01Qny5voyhnqYPYKXi5HZdqF>
+
+<!-- TOOL_RESULT_PLACEHOLDER_toolu_01Qny5voyhnqYPYKXi5HZdqF -->

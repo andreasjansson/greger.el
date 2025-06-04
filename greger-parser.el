@@ -1119,6 +1119,28 @@ Returns either a system message, metadata, or both."
             content "\n"
             "</tool." id ">")))
 
+(defun greger-parser--server-tool-use-to-markdown (server-tool-use)
+  "Convert SERVER-TOOL-USE to markdown."
+  (let ((name (alist-get 'name server-tool-use))
+        (id (alist-get 'id server-tool-use))
+        (input (alist-get 'input server-tool-use)))
+    (concat greger-parser-server-tool-use-tag "\n\n"
+            "Name: " name "\n"
+            "ID: " id "\n\n"
+            (if input
+                (json-encode input)
+              ""))))
+
+(defun greger-parser--server-tool-result-to-markdown (server-tool-result)
+  "Convert SERVER-TOOL-RESULT to markdown."
+  (let ((id (alist-get 'tool_use_id server-tool-result))
+        (content (alist-get 'content server-tool-result)))
+    (concat greger-parser-server-tool-result-tag "\n\n"
+            "ID: " id "\n\n"
+            (if (stringp content)
+                content
+              (json-encode content)))))
+
 (defun greger-parser--tool-params-to-markdown (id input)
   "Convert tool parameters with ID and INPUT to markdown."
   (if (null input)
