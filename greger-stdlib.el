@@ -466,13 +466,14 @@ PREFIX is used internally for nested directory structure."
           (let* ((basename (file-name-nondirectory file))
                  (relative-path (file-relative-name file (expand-file-name path))))
             (when (and (not (string= basename "."))
-                       (not (string= basename ".."))
-                       (greger-stdlib--should-include-directory-in-recursive-listing-p basename exclude-directories-recursive))
+                       (not (string= basename "..")))
               (let ((formatted (greger-stdlib--format-file-info file basename exclude-directories-recursive)))
                 (when formatted
                   (push formatted current-listing)))
-              ;; Collect subdirectories for recursive processing
-              (when (and recursive (file-directory-p file))
+              ;; Collect subdirectories for recursive processing, excluding based on pattern
+              (when (and recursive
+                         (file-directory-p file)
+                         (greger-stdlib--should-include-directory-in-recursive-listing-p basename exclude-directories-recursive))
                 (push file subdirs))))))
 
       ;; Add current directory to results (reverse to get correct order)

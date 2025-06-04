@@ -1589,4 +1589,128 @@ EXCLUDE-DIRECTORIES-RECURSIVE is used to check if directories should be excluded
 Update format-file-info function signature and documentation
 </tool.toolu_01HQX83CgQsZnsx8vpCD6QF7>
 
-<!-- TOOL_RESULT_PLACEHOLDER_toolu_01HQX83CgQsZnsx8vpCD6QF7 -->
+## TOOL RESULT:
+
+ID: toolu_01HQX83CgQsZnsx8vpCD6QF7
+
+<tool.toolu_01HQX83CgQsZnsx8vpCD6QF7>
+Successfully replaced content in /Users/andreas/projects/greger.el/greger-stdlib.el. Successfully staged 2 file(s) and committed with message: Update format-file-info function signature and documentation
+</tool.toolu_01HQX83CgQsZnsx8vpCD6QF7>
+
+
+## ASSISTANT:
+
+Now I need to update all the tests to use the new parameter name. Let me check the tests that call the function:
+
+## TOOL USE:
+
+Name: read-file
+ID: toolu_012VJYfNvCoNqjkEBLVuvmKr
+
+### path
+
+<tool.toolu_012VJYfNvCoNqjkEBLVuvmKr>
+test/test-greger-stdlib.el
+</tool.toolu_012VJYfNvCoNqjkEBLVuvmKr>
+
+### start-line
+
+<tool.toolu_012VJYfNvCoNqjkEBLVuvmKr>
+750
+</tool.toolu_012VJYfNvCoNqjkEBLVuvmKr>
+
+### end-line
+
+<tool.toolu_012VJYfNvCoNqjkEBLVuvmKr>
+770
+</tool.toolu_012VJYfNvCoNqjkEBLVuvmKr>
+
+## TOOL RESULT:
+
+ID: toolu_012VJYfNvCoNqjkEBLVuvmKr
+
+<tool.toolu_012VJYfNvCoNqjkEBLVuvmKr>
+              (insert "keep this"))
+            (with-temp-file exclude-file
+              (insert "exclude this"))
+
+            ;; Test with exclude pattern for .log files
+            (let ((result (greger-stdlib--list-directory test-dir "\\.log$"))
+                  (expected (format "%s:
+drwx------  (dir)  .
+drwx------  (dir)  ..
+-rw-r--r--         9  keep.txt" (file-name-as-directory test-dir))))
+              (should (stringp result))
+              (should (string= expected result)))
+
+            ;; Test with empty exclude pattern - should include all files
+            (let ((result (greger-stdlib--list-directory test-dir ""))
+                  (expected (format "%s:
+drwx------  (dir)  .
+drwx------  (dir)  ..
+-rw-r--r--         9  keep.txt
+-rw-r--r--        12  remove.log" (file-name-as-directory test-dir))))
+              (should (stringp result))
+</tool.toolu_012VJYfNvCoNqjkEBLVuvmKr>
+
+## ASSISTANT:
+
+I see the tests are calling the function directly with positional arguments. Since I changed the parameter name but it's still in the same position, the tests should still work. However, I realize I need to think about this more carefully. The current logic is filtering ALL files and directories based on the exclude pattern, but based on your request, it should only exclude directories when doing recursive listing.
+
+Let me re-examine the logic. Looking at the function call:
+
+```elisp
+(when (and (not (string= basename "."))
+           (not (string= basename ".."))
+           (greger-stdlib--should-include-directory-in-recursive-listing-p basename exclude-directories-recursive))
+```
+
+This is checking every file and directory, but the new function name suggests it should only check directories. Let me fix this logic:
+
+## TOOL USE:
+
+Name: str-replace
+ID: toolu_01HSAEk2h8mvRJ5tBKsqowj4
+
+### file-path
+
+<tool.toolu_01HSAEk2h8mvRJ5tBKsqowj4>
+greger-stdlib.el
+</tool.toolu_01HSAEk2h8mvRJ5tBKsqowj4>
+
+### original-content
+
+<tool.toolu_01HSAEk2h8mvRJ5tBKsqowj4>
+            (when (and (not (string= basename "."))
+                       (not (string= basename ".."))
+                       (greger-stdlib--should-include-directory-in-recursive-listing-p basename exclude-directories-recursive))
+              (let ((formatted (greger-stdlib--format-file-info file basename exclude-directories-recursive)))
+                (when formatted
+                  (push formatted current-listing)))
+              ;; Collect subdirectories for recursive processing
+              (when (and recursive (file-directory-p file))
+                (push file subdirs)))
+</tool.toolu_01HSAEk2h8mvRJ5tBKsqowj4>
+
+### new-content
+
+<tool.toolu_01HSAEk2h8mvRJ5tBKsqowj4>
+            (when (and (not (string= basename "."))
+                       (not (string= basename "..")))
+              (let ((formatted (greger-stdlib--format-file-info file basename exclude-directories-recursive)))
+                (when formatted
+                  (push formatted current-listing)))
+              ;; Collect subdirectories for recursive processing, excluding based on pattern
+              (when (and recursive
+                         (file-directory-p file)
+                         (greger-stdlib--should-include-directory-in-recursive-listing-p basename exclude-directories-recursive))
+                (push file subdirs)))
+</tool.toolu_01HSAEk2h8mvRJ5tBKsqowj4>
+
+### git-commit-message
+
+<tool.toolu_01HSAEk2h8mvRJ5tBKsqowj4>
+Fix logic to only exclude directories from recursive listing, not from main listing
+</tool.toolu_01HSAEk2h8mvRJ5tBKsqowj4>
+
+<!-- TOOL_RESULT_PLACEHOLDER_toolu_01HSAEk2h8mvRJ5tBKsqowj4 -->
