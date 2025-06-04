@@ -1959,4 +1959,115 @@ greger-parser.el
 Add SERVER TOOL USE and SERVER TOOL RESULT tag constants
 </tool.toolu_01GRB4DbLWM52aEHgDYj2bHb>
 
-<!-- TOOL_RESULT_PLACEHOLDER_toolu_01GRB4DbLWM52aEHgDYj2bHb -->
+## TOOL RESULT:
+
+ID: toolu_01GRB4DbLWM52aEHgDYj2bHb
+
+<tool.toolu_01GRB4DbLWM52aEHgDYj2bHb>
+Successfully replaced content in /Users/andreas/projects/greger.el/greger-parser.el. Successfully staged 2 file(s) and committed with message: Add SERVER TOOL USE and SERVER TOOL RESULT tag constants
+</tool.toolu_01GRB4DbLWM52aEHgDYj2bHb>
+
+## ASSISTANT:
+
+Now I need to add these to the section tags list:
+
+## TOOL USE:
+
+Name: ripgrep
+ID: toolu_014HQdpoLZpZgyx2qzrTfsJi
+
+### pattern
+
+<tool.toolu_014HQdpoLZpZgyx2qzrTfsJi>
+section-tags
+</tool.toolu_014HQdpoLZpZgyx2qzrTfsJi>
+
+### path
+
+<tool.toolu_014HQdpoLZpZgyx2qzrTfsJi>
+greger-parser.el
+</tool.toolu_014HQdpoLZpZgyx2qzrTfsJi>
+
+### context-lines
+
+<tool.toolu_014HQdpoLZpZgyx2qzrTfsJi>
+5
+</tool.toolu_014HQdpoLZpZgyx2qzrTfsJi>
+
+## TOOL RESULT:
+
+ID: toolu_014HQdpoLZpZgyx2qzrTfsJi
+
+<tool.toolu_014HQdpoLZpZgyx2qzrTfsJi>
+204-    (greger-parser--skip-to-line-end state)
+205-    (string-trim (greger-parser--substring state start))))
+206-
+207-;; Section tag handling
+208-
+209:(defun greger-parser--section-tags ()
+210-  "List of all section tags."
+211-  (list greger-parser-user-tag
+212-        greger-parser-assistant-tag
+213-        greger-parser-system-tag
+214-        greger-parser-tool-use-tag
+--
+216-        greger-parser-thinking-tag))
+217-
+218-(defun greger-parser--find-section-tag (state)
+219-  "Find section tag at current position if at line start in STATE."
+220-  (when (greger-parser--at-line-start-p state)
+221:    (let ((tag (cl-find-if (lambda (tag) (greger-parser--looking-at state tag)) (greger-parser--section-tags))))
+222-      (greger-parser--debug state "Found section tag: %s at pos %d" tag (greger-parser-state-pos state))
+223-      tag)))
+224-
+225-(defun greger-parser--consume-section-tag (state tag)
+226-  "Consume TAG and return it in STATE."
+
+</tool.toolu_014HQdpoLZpZgyx2qzrTfsJi>
+
+## TOOL USE:
+
+Name: str-replace
+ID: toolu_01Mcnpmmf5ZyQm27B9vGQNeV
+
+### file-path
+
+<tool.toolu_01Mcnpmmf5ZyQm27B9vGQNeV>
+greger-parser.el
+</tool.toolu_01Mcnpmmf5ZyQm27B9vGQNeV>
+
+### original-content
+
+<tool.toolu_01Mcnpmmf5ZyQm27B9vGQNeV>
+(defun greger-parser--section-tags ()
+  "List of all section tags."
+  (list greger-parser-user-tag
+        greger-parser-assistant-tag
+        greger-parser-system-tag
+        greger-parser-tool-use-tag
+        greger-parser-tool-result-tag
+        greger-parser-thinking-tag))
+</tool.toolu_01Mcnpmmf5ZyQm27B9vGQNeV>
+
+### new-content
+
+<tool.toolu_01Mcnpmmf5ZyQm27B9vGQNeV>
+(defun greger-parser--section-tags ()
+  "List of all section tags."
+  (list greger-parser-user-tag
+        greger-parser-assistant-tag
+        greger-parser-system-tag
+        greger-parser-tool-use-tag
+        greger-parser-tool-result-tag
+        greger-parser-server-tool-use-tag
+        greger-parser-server-tool-result-tag
+        greger-parser-thinking-tag))
+</tool.toolu_01Mcnpmmf5ZyQm27B9vGQNeV>
+
+### git-commit-message
+
+<tool.toolu_01Mcnpmmf5ZyQm27B9vGQNeV>
+Add server tool tags to section tags list
+</tool.toolu_01Mcnpmmf5ZyQm27B9vGQNeV>
+
+<!-- TOOL_RESULT_PLACEHOLDER_toolu_01Mcnpmmf5ZyQm27B9vGQNeV -->

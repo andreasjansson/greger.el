@@ -213,6 +213,8 @@ DEBUG enables debug logging."
         greger-parser-system-tag
         greger-parser-tool-use-tag
         greger-parser-tool-result-tag
+        greger-parser-server-tool-use-tag
+        greger-parser-server-tool-result-tag
         greger-parser-thinking-tag))
 
 (defun greger-parser--find-section-tag (state)
