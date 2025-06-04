@@ -726,7 +726,10 @@ Line 3"))
 
             ;; Test basic listing
             (let ((result (greger-stdlib--list-directory test-dir))
-                  (expected "-rw-r--r--        7  test.txt"))
+                  (expected (format "%s:
+drwx------  (dir)  .
+drwx------  (dir)  ..
+-rw-r--r--        7  test.txt" (file-name-as-directory test-dir))))
               (should (stringp result))
               (should (string= expected result)))))
 
