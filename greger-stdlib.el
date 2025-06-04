@@ -505,7 +505,7 @@ PREFIX is used internally for nested directory structure."
                                    file exclude-pattern (concat prefix basename "/"))))
               (setq results (append results (list "" subdir-results))))))))
 
-    (mapconcat #'identity (reverse results) "\n")))
+    (mapconcat #'identity results "\n")))
 
 (defun greger-stdlib--format-file-info (filepath displayname exclude-pattern)
   "Format file information similar to 'ls -la' output.

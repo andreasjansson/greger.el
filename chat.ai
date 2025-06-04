@@ -6276,4 +6276,670 @@ greger-stdlib.el
 Remove reverse from recursive results to maintain correct order
 </tool.toolu_01HTptcZqGe6qcf1gFwhyweA>
 
-<!-- TOOL_RESULT_PLACEHOLDER_toolu_01HTptcZqGe6qcf1gFwhyweA -->
+## TOOL RESULT:
+
+ID: toolu_01HTptcZqGe6qcf1gFwhyweA
+
+<tool.toolu_01HTptcZqGe6qcf1gFwhyweA>
+Successfully replaced content in /Users/andreas/projects/greger.el/greger-stdlib.el. Successfully staged 2 file(s) and committed with message: Remove reverse from recursive results to maintain correct order
+</tool.toolu_01HTptcZqGe6qcf1gFwhyweA>
+
+
+## ASSISTANT:
+
+Let me test the recursive again:
+
+## TOOL USE:
+
+Name: shell-command
+ID: toolu_01YQAknjUFC2zU1WR5E9EgvL
+
+### command
+
+<tool.toolu_01YQAknjUFC2zU1WR5E9EgvL>
+emacs --batch --eval "(progn (add-to-list 'load-path \".\") (require 'greger-stdlib) (let ((test-dir \"/tmp/rec-test2\")) (ignore-errors (delete-directory test-dir t)) (make-directory test-dir t) (make-directory (expand-file-name \"subdir\" test-dir) t) (with-temp-file (expand-file-name \"file1.txt\" test-dir) (insert \"content1\")) (with-temp-file (expand-file-name \"subdir/file2.txt\" test-dir) (insert \"content2\")) (princ (greger-stdlib--list-directory test-dir nil t))))"
+</tool.toolu_01YQAknjUFC2zU1WR5E9EgvL>
+
+## TOOL RESULT:
+
+ID: toolu_01YQAknjUFC2zU1WR5E9EgvL
+
+<tool.toolu_01YQAknjUFC2zU1WR5E9EgvL>
+Command executed successfully:
+Source file ‘/opt/homebrew/Cellar/emacs-plus@29/29.0.90/share/emacs/29.0.91/lisp/net/eww.el’ nnewer than byte-compiled file; using older file
+-rw-r--r--         8  file2.txt
+./subdir/:
+drwxr-xr-x  (dir)  .
+drwxr-xr-x  (dir)  ..
+
+drwxr-xr-x  (dir)  subdir
+-rw-r--r--         8  file1.txt
+./:
+drwxr-xr-x  (dir)  .
+drwxrwxrwt  (dir)  ..
+</tool.toolu_01YQAknjUFC2zU1WR5E9EgvL>
+
+## USER:
+
+No that's still wrong, it should be
+
+```
+./:
+drwxr-xr-x  (dir)  .
+drwxrwxrwt  (dir)  ..
+-rw-r--r--      8  file2.txt
+drwxr-xr-x  (dir)  subdir
+
+./subdir/:
+drwxr-xr-x  (dir)  .
+drwxr-xr-x  (dir)  ..
+```
+
+## ASSISTANT:
+
+You're right! The format should list the current directory first, then subdirectories. Let me fix the recursive function to output in the correct order:
+
+## TOOL USE:
+
+Name: str-replace
+ID: toolu_015NwKWVyFHo6ELKaEFGP4FQ
+
+### file-path
+
+<tool.toolu_015NwKWVyFHo6ELKaEFGP4FQ>
+greger-stdlib.el
+</tool.toolu_015NwKWVyFHo6ELKaEFGP4FQ>
+
+### original-content
+
+<tool.toolu_015NwKWVyFHo6ELKaEFGP4FQ>
+(defun greger-stdlib--list-directory-recursive-detailed (path exclude-pattern &optional prefix)
+  "Recursively list directory contents at PATH with detailed information.
+Excludes files/directories matching EXCLUDE-PATTERN.
+PREFIX is used internally for nested directory structure."
+  (let ((results '())
+        (display-path (if (string= prefix "")
+                          (if (string= path ".") "./" (file-name-as-directory (file-relative-name path)))
+                        (concat "./" prefix))))
+
+    ;; Add directory header
+    (push (format "%s:" display-path) results)
+
+    ;; Add current and parent directory entries
+    (push (greger-stdlib--format-file-info path "." exclude-pattern) results)
+    (unless (string= (expand-file-name path) (expand-file-name "/"))
+      (push (greger-stdlib--format-file-info (file-name-directory (directory-file-name path)) ".." exclude-pattern) results))
+
+    (let ((files (directory-files path t))
+          (current-results '()))
+
+      ;; Process regular files and directories
+      (dolist (file (sort files #'string<))
+        (let* ((basename (file-name-nondirectory file))
+               (relative-path (file-relative-name file (expand-file-name path))))
+          (when (and (not (string= basename "."))
+                     (not (string= basename ".."))
+                     (greger-stdlib--should-include-file-p relative-path exclude-pattern))
+            (let ((formatted (greger-stdlib--format-file-info file basename exclude-pattern)))
+              (when formatted
+                (push formatted current-results))))))
+
+      ;; Add current directory results
+      (when current-results
+        (setq results (append results (reverse current-results))))
+
+      ;; Recursively process subdirectories
+      (dolist (file (sort files #'string<))
+        (let* ((basename (file-name-nondirectory file))
+               (relative-path (file-relative-name file (expand-file-name path))))
+          (when (and (file-directory-p file)
+                     (not (string= basename "."))
+                     (not (string= basename ".."))
+                     (greger-stdlib--should-include-file-p relative-path exclude-pattern))
+            (let ((subdir-results (greger-stdlib--list-directory-recursive-detailed
+                                   file exclude-pattern (concat prefix basename "/"))))
+              (setq results (append results (list "" subdir-results)))))))
+
+    (mapconcat #'identity results "\n")))
+</tool.toolu_015NwKWVyFHo6ELKaEFGP4FQ>
+
+### new-content
+
+<tool.toolu_015NwKWVyFHo6ELKaEFGP4FQ>
+(defun greger-stdlib--list-directory-recursive-detailed (path exclude-pattern &optional prefix)
+  "Recursively list directory contents at PATH with detailed information.
+Excludes files/directories matching EXCLUDE-PATTERN.
+PREFIX is used internally for nested directory structure."
+  (let ((results '())
+        (subdirs '())
+        (display-path (if (string= prefix "")
+                          (if (string= path ".") "./" (file-name-as-directory (file-relative-name path)))
+                        (concat "./" prefix))))
+
+    ;; Add directory header
+    (push (format "%s:" display-path) results)
+
+    ;; Add current and parent directory entries
+    (push (greger-stdlib--format-file-info path "." exclude-pattern) results)
+    (unless (string= (expand-file-name path) (expand-file-name "/"))
+      (push (greger-stdlib--format-file-info (file-name-directory (directory-file-name path)) ".." exclude-pattern) results))
+
+    (let ((files (directory-files path t)))
+
+      ;; Process all files and directories, collecting subdirectories for later
+      (dolist (file (sort files #'string<))
+        (let* ((basename (file-name-nondirectory file))
+               (relative-path (file-relative-name file (expand-file-name path))))
+          (when (and (not (string= basename "."))
+                     (not (string= basename ".."))
+                     (greger-stdlib--should-include-file-p relative-path exclude-pattern))
+            (let ((formatted (greger-stdlib--format-file-info file basename exclude-pattern)))
+              (when formatted
+                (push formatted results)))
+            ;; If it's a directory, save it for recursive processing
+            (when (file-directory-p file)
+              (push file subdirs)))))
+
+      ;; Reverse results to get correct order (since we pushed)
+      (setq results (reverse results))
+
+      ;; Process subdirectories recursively
+      (dolist (subdir (reverse subdirs)) ; Reverse to maintain alphabetical order
+        (let* ((basename (file-name-nondirectory subdir))
+               (subdir-results (greger-stdlib--list-directory-recursive-detailed
+                               subdir exclude-pattern (concat prefix basename "/"))))
+          (setq results (append results (list "" subdir-results)))))
+
+    (mapconcat #'identity results "\n")))
+</tool.toolu_015NwKWVyFHo6ELKaEFGP4FQ>
+
+### git-commit-message
+
+<tool.toolu_015NwKWVyFHo6ELKaEFGP4FQ>
+Fix recursive listing to show current directory first, then subdirectories
+</tool.toolu_015NwKWVyFHo6ELKaEFGP4FQ>
+
+## TOOL RESULT:
+
+ID: toolu_015NwKWVyFHo6ELKaEFGP4FQ
+
+<tool.toolu_015NwKWVyFHo6ELKaEFGP4FQ>
+Error executing tool: Original content not found in file: /Users/andreas/projects/greger.el/greger-stdlib.el -- Try again!
+</tool.toolu_015NwKWVyFHo6ELKaEFGP4FQ>
+
+## ASSISTANT:
+
+Let me check the current state of the file:
+
+## TOOL USE:
+
+Name: read-file
+ID: toolu_018DKhcu57XTALJMu9Q2WECn
+
+### path
+
+<tool.toolu_018DKhcu57XTALJMu9Q2WECn>
+greger-stdlib.el
+</tool.toolu_018DKhcu57XTALJMu9Q2WECn>
+
+### start-line
+
+<tool.toolu_018DKhcu57XTALJMu9Q2WECn>
+450
+</tool.toolu_018DKhcu57XTALJMu9Q2WECn>
+
+### end-line
+
+<tool.toolu_018DKhcu57XTALJMu9Q2WECn>
+490
+</tool.toolu_018DKhcu57XTALJMu9Q2WECn>
+
+## TOOL RESULT:
+
+ID: toolu_018DKhcu57XTALJMu9Q2WECn
+
+<tool.toolu_018DKhcu57XTALJMu9Q2WECn>
+        (when (and (not (string= basename "."))
+                   (not (string= basename ".."))
+                   (greger-stdlib--should-include-file-p relative-path exclude-pattern))
+          (let ((formatted (greger-stdlib--format-file-info file basename exclude-pattern)))
+            (when formatted
+              (push formatted results))))))
+
+    (if (> (length results) 1) ; More than just the header
+        (mapconcat #'identity results "\n")
+      (format "%s:\nDirectory is empty" display-path))))
+
+(defun greger-stdlib--list-directory-recursive-detailed (path exclude-pattern &optional prefix)
+  "Recursively list directory contents at PATH with detailed information.
+Excludes files/directories matching EXCLUDE-PATTERN.
+PREFIX is used internally for nested directory structure."
+  (let ((results '())
+        (display-path (if (string= prefix "")
+                          (if (string= path ".") "./" (file-name-as-directory (file-relative-name path)))
+                        (concat "./" prefix))))
+
+    ;; Add directory header
+    (push (format "%s:" display-path) results)
+
+    ;; Add current and parent directory entries
+    (push (greger-stdlib--format-file-info path "." exclude-pattern) results)
+    (unless (string= (expand-file-name path) (expand-file-name "/"))
+      (push (greger-stdlib--format-file-info (file-name-directory (directory-file-name path)) ".." exclude-pattern) results))
+
+    (let ((files (directory-files path t))
+          (current-results '()))
+
+      ;; Process regular files and directories
+      (dolist (file (sort files #'string<))
+        (let* ((basename (file-name-nondirectory file))
+               (relative-path (file-relative-name file (expand-file-name path))))
+          (when (and (not (string= basename "."))
+                     (not (string= basename ".."))
+                     (greger-stdlib--should-include-file-p relative-path exclude-pattern))
+            (let ((formatted (greger-stdlib--format-file-info file basename exclude-pattern)))
+              (when formatted
+                (push formatted current-results))))))
+</tool.toolu_018DKhcu57XTALJMu9Q2WECn>
+
+## TOOL USE:
+
+Name: read-file
+ID: toolu_015Gj5FpiEHRyon6DS4A78YY
+
+### path
+
+<tool.toolu_015Gj5FpiEHRyon6DS4A78YY>
+greger-stdlib.el
+</tool.toolu_015Gj5FpiEHRyon6DS4A78YY>
+
+### start-line
+
+<tool.toolu_015Gj5FpiEHRyon6DS4A78YY>
+490
+</tool.toolu_015Gj5FpiEHRyon6DS4A78YY>
+
+### end-line
+
+<tool.toolu_015Gj5FpiEHRyon6DS4A78YY>
+520
+</tool.toolu_015Gj5FpiEHRyon6DS4A78YY>
+
+## TOOL RESULT:
+
+ID: toolu_015Gj5FpiEHRyon6DS4A78YY
+
+<tool.toolu_015Gj5FpiEHRyon6DS4A78YY>
+                (push formatted current-results))))))
+
+      ;; Add current directory results
+      (when current-results
+        (setq results (append results (reverse current-results))))
+
+      ;; Recursively process subdirectories
+      (dolist (file (sort files #'string<))
+        (let* ((basename (file-name-nondirectory file))
+               (relative-path (file-relative-name file (expand-file-name path))))
+          (when (and (file-directory-p file)
+                     (not (string= basename "."))
+                     (not (string= basename ".."))
+                     (greger-stdlib--should-include-file-p relative-path exclude-pattern))
+            (let ((subdir-results (greger-stdlib--list-directory-recursive-detailed
+                                   file exclude-pattern (concat prefix basename "/"))))
+              (setq results (append results (list "" subdir-results))))))))
+
+    (mapconcat #'identity (reverse results) "\n")))
+
+(defun greger-stdlib--format-file-info (filepath displayname exclude-pattern)
+  "Format file information similar to 'ls -la' output.
+FILEPATH is the full path to the file.
+DISPLAYNAME is the name to display in the output.
+EXCLUDE-PATTERN is used to check if file should be excluded."
+  (when (file-exists-p filepath)
+    (let* ((attrs (file-attributes filepath))
+           (file-type (nth 0 attrs))
+           (size (nth 7 attrs))
+           (mode-string (greger-stdlib--file-mode-string attrs))
+           (size-or-dir (if (eq file-type t) "(dir)" (format "%8d" size))))
+</tool.toolu_015Gj5FpiEHRyon6DS4A78YY>
+
+## ASSISTANT:
+
+I see the issue. There's a `(reverse results)` at the end. Let me fix the recursive function properly:
+
+## TOOL USE:
+
+Name: replace-function
+ID: toolu_01VGJx9Yg9ds3FJxnqKVnsMd
+
+### file_path
+
+<tool.toolu_01VGJx9Yg9ds3FJxnqKVnsMd>
+greger-stdlib.el
+</tool.toolu_01VGJx9Yg9ds3FJxnqKVnsMd>
+
+### function_name
+
+<tool.toolu_01VGJx9Yg9ds3FJxnqKVnsMd>
+greger-stdlib--list-directory-recursive-detailed
+</tool.toolu_01VGJx9Yg9ds3FJxnqKVnsMd>
+
+### line_number
+
+<tool.toolu_01VGJx9Yg9ds3FJxnqKVnsMd>
+461
+</tool.toolu_01VGJx9Yg9ds3FJxnqKVnsMd>
+
+### contents
+
+<tool.toolu_01VGJx9Yg9ds3FJxnqKVnsMd>
+(defun greger-stdlib--list-directory-recursive-detailed (path exclude-pattern &optional prefix)
+  "Recursively list directory contents at PATH with detailed information.
+Excludes files/directories matching EXCLUDE-PATTERN.
+PREFIX is used internally for nested directory structure."
+  (let ((results '())
+        (subdirs '())
+        (display-path (if (string= prefix "")
+                          (if (string= path ".") "./" (file-name-as-directory (file-relative-name path)))
+                        (concat "./" prefix))))
+
+    ;; Add directory header
+    (push (format "%s:" display-path) results)
+
+    ;; Add current and parent directory entries
+    (push (greger-stdlib--format-file-info path "." exclude-pattern) results)
+    (unless (string= (expand-file-name path) (expand-file-name "/"))
+      (push (greger-stdlib--format-file-info (file-name-directory (directory-file-name path)) ".." exclude-pattern) results))
+
+    (let ((files (directory-files path t)))
+
+      ;; Process all files and directories, collecting subdirectories for later
+      (dolist (file (sort files #'string<))
+        (let* ((basename (file-name-nondirectory file))
+               (relative-path (file-relative-name file (expand-file-name path))))
+          (when (and (not (string= basename "."))
+                     (not (string= basename ".."))
+                     (greger-stdlib--should-include-file-p relative-path exclude-pattern))
+            (let ((formatted (greger-stdlib--format-file-info file basename exclude-pattern)))
+              (when formatted
+                (push formatted results)))
+            ;; If it's a directory, save it for recursive processing
+            (when (file-directory-p file)
+              (push file subdirs)))))
+
+      ;; Reverse results to get correct order (since we pushed)
+      (setq results (reverse results))
+
+      ;; Process subdirectories recursively
+      (dolist (subdir (reverse subdirs)) ; Reverse to maintain alphabetical order
+        (let* ((basename (file-name-nondirectory subdir))
+               (subdir-results (greger-stdlib--list-directory-recursive-detailed
+                               subdir exclude-pattern (concat prefix basename "/"))))
+          (setq results (append results (list "" subdir-results)))))
+
+    (mapconcat #'identity results "\n")))
+</tool.toolu_01VGJx9Yg9ds3FJxnqKVnsMd>
+
+### commit_message
+
+<tool.toolu_01VGJx9Yg9ds3FJxnqKVnsMd>
+Rewrite recursive function to show current directory first, then subdirectories
+</tool.toolu_01VGJx9Yg9ds3FJxnqKVnsMd>
+
+## TOOL RESULT:
+
+ID: toolu_01VGJx9Yg9ds3FJxnqKVnsMd
+
+<tool.toolu_01VGJx9Yg9ds3FJxnqKVnsMd>
+Error executing tool: Invalid type: file_path must be a string
+</tool.toolu_01VGJx9Yg9ds3FJxnqKVnsMd>
+
+## TOOL USE:
+
+Name: replace-function
+ID: toolu_01LU4yQx5WXmoFKdY9NsT6Kg
+
+### file_path
+
+<tool.toolu_01LU4yQx5WXmoFKdY9NsT6Kg>
+greger-stdlib.el
+</tool.toolu_01LU4yQx5WXmoFKdY9NsT6Kg>
+
+### function_name
+
+<tool.toolu_01LU4yQx5WXmoFKdY9NsT6Kg>
+greger-stdlib--list-directory-recursive-detailed
+</tool.toolu_01LU4yQx5WXmoFKdY9NsT6Kg>
+
+### line_number
+
+<tool.toolu_01LU4yQx5WXmoFKdY9NsT6Kg>
+461
+</tool.toolu_01LU4yQx5WXmoFKdY9NsT6Kg>
+
+### contents
+
+<tool.toolu_01LU4yQx5WXmoFKdY9NsT6Kg>
+(defun greger-stdlib--list-directory-recursive-detailed (path exclude-pattern &optional prefix)
+  "Recursively list directory contents at PATH with detailed information.
+Excludes files/directories matching EXCLUDE-PATTERN.
+PREFIX is used internally for nested directory structure."
+  (let ((results '())
+        (subdirs '())
+        (display-path (if (string= prefix "")
+                          (if (string= path ".") "./" (file-name-as-directory (file-relative-name path)))
+                        (concat "./" prefix))))
+
+    ;; Add directory header
+    (push (format "%s:" display-path) results)
+
+    ;; Add current and parent directory entries
+    (push (greger-stdlib--format-file-info path "." exclude-pattern) results)
+    (unless (string= (expand-file-name path) (expand-file-name "/"))
+      (push (greger-stdlib--format-file-info (file-name-directory (directory-file-name path)) ".." exclude-pattern) results))
+
+    (let ((files (directory-files path t)))
+
+      ;; Process all files and directories, collecting subdirectories for later
+      (dolist (file (sort files #'string<))
+        (let* ((basename (file-name-nondirectory file))
+               (relative-path (file-relative-name file (expand-file-name path))))
+          (when (and (not (string= basename "."))
+                     (not (string= basename ".."))
+                     (greger-stdlib--should-include-file-p relative-path exclude-pattern))
+            (let ((formatted (greger-stdlib--format-file-info file basename exclude-pattern)))
+              (when formatted
+                (push formatted results)))
+            ;; If it's a directory, save it for recursive processing
+            (when (file-directory-p file)
+              (push file subdirs)))))
+
+      ;; Reverse results to get correct order (since we pushed)
+      (setq results (reverse results))
+
+      ;; Process subdirectories recursively
+      (dolist (subdir (reverse subdirs)) ; Reverse to maintain alphabetical order
+        (let* ((basename (file-name-nondirectory subdir))
+               (subdir-results (greger-stdlib--list-directory-recursive-detailed
+                               subdir exclude-pattern (concat prefix basename "/"))))
+          (setq results (append results (list "" subdir-results)))))
+
+    (mapconcat #'identity results "\n")))
+</tool.toolu_01LU4yQx5WXmoFKdY9NsT6Kg>
+
+### commit_message
+
+<tool.toolu_01LU4yQx5WXmoFKdY9NsT6Kg>
+Rewrite recursive function to show current directory first, then subdirectories
+</tool.toolu_01LU4yQx5WXmoFKdY9NsT6Kg>
+
+## TOOL RESULT:
+
+ID: toolu_01LU4yQx5WXmoFKdY9NsT6Kg
+
+<tool.toolu_01LU4yQx5WXmoFKdY9NsT6Kg>
+Error executing tool: Invalid type: file_path must be a string
+</tool.toolu_01LU4yQx5WXmoFKdY9NsT6Kg>
+
+## TOOL USE:
+
+Name: str-replace
+ID: toolu_01LM938v7EEpwiHtHoEgrX6e
+
+### file-path
+
+<tool.toolu_01LM938v7EEpwiHtHoEgrX6e>
+greger-stdlib.el
+</tool.toolu_01LM938v7EEpwiHtHoEgrX6e>
+
+### original-content
+
+<tool.toolu_01LM938v7EEpwiHtHoEgrX6e>
+(defun greger-stdlib--list-directory-recursive-detailed (path exclude-pattern &optional prefix)
+  "Recursively list directory contents at PATH with detailed information.
+Excludes files/directories matching EXCLUDE-PATTERN.
+PREFIX is used internally for nested directory structure."
+  (let ((results '())
+        (display-path (if (string= prefix "")
+                          (if (string= path ".") "./" (file-name-as-directory (file-relative-name path)))
+                        (concat "./" prefix))))
+
+    ;; Add directory header
+    (push (format "%s:" display-path) results)
+
+    ;; Add current and parent directory entries
+    (push (greger-stdlib--format-file-info path "." exclude-pattern) results)
+    (unless (string= (expand-file-name path) (expand-file-name "/"))
+      (push (greger-stdlib--format-file-info (file-name-directory (directory-file-name path)) ".." exclude-pattern) results))
+
+    (let ((files (directory-files path t))
+          (current-results '()))
+
+      ;; Process regular files and directories
+      (dolist (file (sort files #'string<))
+        (let* ((basename (file-name-nondirectory file))
+               (relative-path (file-relative-name file (expand-file-name path))))
+          (when (and (not (string= basename "."))
+                     (not (string= basename ".."))
+                     (greger-stdlib--should-include-file-p relative-path exclude-pattern))
+            (let ((formatted (greger-stdlib--format-file-info file basename exclude-pattern)))
+              (when formatted
+                (push formatted current-results))))))
+
+      ;; Add current directory results
+      (when current-results
+        (setq results (append results (reverse current-results))))
+
+      ;; Recursively process subdirectories
+      (dolist (file (sort files #'string<))
+        (let* ((basename (file-name-nondirectory file))
+               (relative-path (file-relative-name file (expand-file-name path))))
+          (when (and (file-directory-p file)
+                     (not (string= basename "."))
+                     (not (string= basename ".."))
+                     (greger-stdlib--should-include-file-p relative-path exclude-pattern))
+            (let ((subdir-results (greger-stdlib--list-directory-recursive-detailed
+                                   file exclude-pattern (concat prefix basename "/"))))
+              (setq results (append results (list "" subdir-results))))))))
+
+    (mapconcat #'identity (reverse results) "\n")))
+</tool.toolu_01LM938v7EEpwiHtHoEgrX6e>
+
+### new-content
+
+<tool.toolu_01LM938v7EEpwiHtHoEgrX6e>
+(defun greger-stdlib--list-directory-recursive-detailed (path exclude-pattern &optional prefix)
+  "Recursively list directory contents at PATH with detailed information.
+Excludes files/directories matching EXCLUDE-PATTERN.
+PREFIX is used internally for nested directory structure."
+  (let ((results '())
+        (subdirs '())
+        (display-path (if (string= prefix "")
+                          (if (string= path ".") "./" (file-name-as-directory (file-relative-name path)))
+                        (concat "./" prefix))))
+
+    ;; Add directory header
+    (setq results (list (format "%s:" display-path)))
+
+    ;; Add current and parent directory entries
+    (push (greger-stdlib--format-file-info path "." exclude-pattern) results)
+    (unless (string= (expand-file-name path) (expand-file-name "/"))
+      (push (greger-stdlib--format-file-info (file-name-directory (directory-file-name path)) ".." exclude-pattern) results))
+
+    (let ((files (directory-files path t)))
+
+      ;; Process all files and directories, collecting subdirectories for later
+      (dolist (file (sort files #'string<))
+        (let* ((basename (file-name-nondirectory file))
+               (relative-path (file-relative-name file (expand-file-name path))))
+          (when (and (not (string= basename "."))
+                     (not (string= basename ".."))
+                     (greger-stdlib--should-include-file-p relative-path exclude-pattern))
+            (let ((formatted (greger-stdlib--format-file-info file basename exclude-pattern)))
+              (when formatted
+                (push formatted results)))
+            ;; If it's a directory, save it for recursive processing
+            (when (file-directory-p file)
+              (push file subdirs)))))
+
+      ;; Reverse results to get correct order (since we pushed)
+      (setq results (reverse results))
+
+      ;; Process subdirectories recursively
+      (dolist (subdir (reverse subdirs)) ; Reverse to maintain alphabetical order
+        (let* ((basename (file-name-nondirectory subdir))
+               (subdir-results (greger-stdlib--list-directory-recursive-detailed
+                               subdir exclude-pattern (concat prefix basename "/"))))
+          (setq results (append results (list "" subdir-results)))))
+
+    (mapconcat #'identity results "\n")))
+</tool.toolu_01LM938v7EEpwiHtHoEgrX6e>
+
+### git-commit-message
+
+<tool.toolu_01LM938v7EEpwiHtHoEgrX6e>
+Rewrite recursive function to show current directory first, then subdirectories
+</tool.toolu_01LM938v7EEpwiHtHoEgrX6e>
+
+## TOOL RESULT:
+
+ID: toolu_01LM938v7EEpwiHtHoEgrX6e
+
+<tool.toolu_01LM938v7EEpwiHtHoEgrX6e>
+Error executing tool: Parentheses balance mismatch in Emacs Lisp file: original has balance 0, new has balance 1. They must be equal
+</tool.toolu_01LM938v7EEpwiHtHoEgrX6e>
+
+## ASSISTANT:
+
+Let me check the balance carefully:
+
+## TOOL USE:
+
+Name: str-replace
+ID: toolu_01RJ5oifSiAVDmHRd3WETMA5
+
+### file-path
+
+<tool.toolu_01RJ5oifSiAVDmHRd3WETMA5>
+greger-stdlib.el
+</tool.toolu_01RJ5oifSiAVDmHRd3WETMA5>
+
+### original-content
+
+<tool.toolu_01RJ5oifSiAVDmHRd3WETMA5>
+    (mapconcat #'identity (reverse results) "\n")))
+</tool.toolu_01RJ5oifSiAVDmHRd3WETMA5>
+
+### new-content
+
+<tool.toolu_01RJ5oifSiAVDmHRd3WETMA5>
+    (mapconcat #'identity results "\n")))
+</tool.toolu_01RJ5oifSiAVDmHRd3WETMA5>
+
+### git-commit-message
+
+<tool.toolu_01RJ5oifSiAVDmHRd3WETMA5>
+Remove reverse from results since we're building them in correct order now
+</tool.toolu_01RJ5oifSiAVDmHRd3WETMA5>
+
+<!-- TOOL_RESULT_PLACEHOLDER_toolu_01RJ5oifSiAVDmHRd3WETMA5 -->
