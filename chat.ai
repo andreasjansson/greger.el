@@ -2268,4 +2268,53 @@ greger-stdlib.el
 Refactor greger-stdlib--eval-elisp-defuns to use assertion helpers
 </tool.toolu_01JtwzykyP5fEYrrnwFJpMcW>
 
-<!-- TOOL_RESULT_PLACEHOLDER_toolu_01JtwzykyP5fEYrrnwFJpMcW -->
+## TOOL RESULT:
+
+ID: toolu_01JtwzykyP5fEYrrnwFJpMcW
+
+<tool.toolu_01JtwzykyP5fEYrrnwFJpMcW>
+Successfully replaced content in /Users/andreas/projects/greger.el/greger-stdlib.el. Successfully staged 2 file(s) and committed with message: Refactor greger-stdlib--eval-elisp-defuns to use assertion helpers
+</tool.toolu_01JtwzykyP5fEYrrnwFJpMcW>
+
+
+## ASSISTANT:
+
+Finally, let's replace the validation in `greger-stdlib--read-webpage`:
+
+## TOOL USE:
+
+Name: str-replace
+ID: toolu_011pZ8G3kg5zyZn88ZEdGbST
+
+### file-path
+
+<tool.toolu_011pZ8G3kg5zyZn88ZEdGbST>
+greger-stdlib.el
+</tool.toolu_011pZ8G3kg5zyZn88ZEdGbST>
+
+### original-content
+
+<tool.toolu_011pZ8G3kg5zyZn88ZEdGbST>
+(unless (stringp url)
+    (error "Invalid type: url must be a string"))
+
+  (when (string-empty-p (string-trim url))
+    (error "Invalid type: url cannot be empty"))
+
+  (unless (greger-web-is-web-url-p url)
+    (error "Invalid URL format: %s (must start with http:// or https://)" url))
+</tool.toolu_011pZ8G3kg5zyZn88ZEdGbST>
+
+### new-content
+
+<tool.toolu_011pZ8G3kg5zyZn88ZEdGbST>
+(greger-stdlib--assert-arg-string-web-url "url" url)
+</tool.toolu_011pZ8G3kg5zyZn88ZEdGbST>
+
+### git-commit-message
+
+<tool.toolu_011pZ8G3kg5zyZn88ZEdGbST>
+Refactor greger-stdlib--read-webpage to use assertion helpers
+</tool.toolu_011pZ8G3kg5zyZn88ZEdGbST>
+
+<!-- TOOL_RESULT_PLACEHOLDER_toolu_011pZ8G3kg5zyZn88ZEdGbST -->

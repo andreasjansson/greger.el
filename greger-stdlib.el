@@ -1067,14 +1067,7 @@ permission prompt."
 If EXTRACT-TEXT is non-nil (default t), extract and return text content.
 If EXTRACT-TEXT is nil, return raw HTML.
 If USE-HIGHEST-READABILITY is non-nil, use eww's aggressive readability setting."
-  (unless (stringp url)
-    (error "Invalid type: url must be a string"))
-
-  (when (string-empty-p (string-trim url))
-    (error "Invalid type: url cannot be empty"))
-
-  (unless (greger-web-is-web-url-p url)
-    (error "Invalid URL format: %s (must start with http:// or https://)" url))
+  (greger-stdlib--assert-arg-string-web-url "url" url)
 
   (condition-case err
       (greger-web-download-page url extract-text use-highest-readability)
