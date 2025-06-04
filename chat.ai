@@ -1868,4 +1868,73 @@ greger.el
 Allow greger to write to buffer even when read-only
 </tool.toolu_01AuNZzKsgDpAGaAkJeF8Mss>
 
-<!-- TOOL_RESULT_PLACEHOLDER_toolu_01AuNZzKsgDpAGaAkJeF8Mss -->
+## TOOL RESULT:
+
+ID: toolu_01AuNZzKsgDpAGaAkJeF8Mss
+
+<tool.toolu_01AuNZzKsgDpAGaAkJeF8Mss>
+Successfully replaced content in /Users/andreas/projects/greger.el/greger.el. Successfully staged 2 file(s) and committed with message: Allow greger to write to buffer even when read-only
+</tool.toolu_01AuNZzKsgDpAGaAkJeF8Mss>
+
+
+## ASSISTANT:
+
+I also need to protect other buffer modifications in greger functions:
+
+## TOOL USE:
+
+Name: str-replace
+ID: toolu_01WCHtJtd6eXGVe7jZFFMw2T
+
+### file-path
+
+<tool.toolu_01WCHtJtd6eXGVe7jZFFMw2T>
+greger.el
+</tool.toolu_01WCHtJtd6eXGVe7jZFFMw2T>
+
+### original-content
+
+<tool.toolu_01WCHtJtd6eXGVe7jZFFMw2T>
+    ;; First, display the tool calls and reserve space for each tool's output
+    (with-current-buffer (greger-state-chat-buffer agent-state)
+      (goto-char (point-max))
+
+      ;; Remember where to start searching for placeholders
+      (setq search-start-pos (point))
+
+      ;; Display each tool call followed by its placeholder
+      (dolist (tool-call tool-calls)
+        (let ((tool-id (alist-get 'id tool-call))
+              (tool-block-markdown (greger-parser--content-blocks-to-markdown (list tool-call))))
+          (unless (string-empty-p tool-block-markdown)
+            (insert "\n\n" tool-block-markdown))
+          (insert "\n\n" (greger--tool-placeholder tool-id)))))
+</tool.toolu_01WCHtJtd6eXGVe7jZFFMw2T>
+
+### new-content
+
+<tool.toolu_01WCHtJtd6eXGVe7jZFFMw2T>
+    ;; First, display the tool calls and reserve space for each tool's output
+    (with-current-buffer (greger-state-chat-buffer agent-state)
+      (let ((inhibit-read-only t))
+        (goto-char (point-max))
+
+        ;; Remember where to start searching for placeholders
+        (setq search-start-pos (point))
+
+        ;; Display each tool call followed by its placeholder
+        (dolist (tool-call tool-calls)
+          (let ((tool-id (alist-get 'id tool-call))
+                (tool-block-markdown (greger-parser--content-blocks-to-markdown (list tool-call))))
+            (unless (string-empty-p tool-block-markdown)
+              (insert "\n\n" tool-block-markdown))
+            (insert "\n\n" (greger--tool-placeholder tool-id))))))
+</tool.toolu_01WCHtJtd6eXGVe7jZFFMw2T>
+
+### git-commit-message
+
+<tool.toolu_01WCHtJtd6eXGVe7jZFFMw2T>
+Allow tool display even when buffer is read-only
+</tool.toolu_01WCHtJtd6eXGVe7jZFFMw2T>
+
+<!-- TOOL_RESULT_PLACEHOLDER_toolu_01WCHtJtd6eXGVe7jZFFMw2T -->

@@ -514,18 +514,19 @@ READ-ONLY is t to make read-only, nil to make writable."
 
     ;; First, display the tool calls and reserve space for each tool's output
     (with-current-buffer (greger-state-chat-buffer agent-state)
-      (goto-char (point-max))
+      (let ((inhibit-read-only t))
+        (goto-char (point-max))
 
-      ;; Remember where to start searching for placeholders
-      (setq search-start-pos (point))
+        ;; Remember where to start searching for placeholders
+        (setq search-start-pos (point))
 
-      ;; Display each tool call followed by its placeholder
-      (dolist (tool-call tool-calls)
-        (let ((tool-id (alist-get 'id tool-call))
-              (tool-block-markdown (greger-parser--content-blocks-to-markdown (list tool-call))))
-          (unless (string-empty-p tool-block-markdown)
-            (insert "\n\n" tool-block-markdown))
-          (insert "\n\n" (greger--tool-placeholder tool-id)))))
+        ;; Display each tool call followed by its placeholder
+        (dolist (tool-call tool-calls)
+          (let ((tool-id (alist-get 'id tool-call))
+                (tool-block-markdown (greger-parser--content-blocks-to-markdown (list tool-call))))
+            (unless (string-empty-p tool-block-markdown)
+              (insert "\n\n" tool-block-markdown))
+            (insert "\n\n" (greger--tool-placeholder tool-id))))))
 
     ;; Execute all tools in parallel
     (dolist (tool-call tool-calls)
