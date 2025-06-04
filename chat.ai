@@ -5021,4 +5021,56 @@ greger-stdlib.el
 Remove . and .. entries from recursive listing as well
 </tool.toolu_016RFFsEep8UWpWyyFFHGj6F>
 
-<!-- TOOL_RESULT_PLACEHOLDER_toolu_016RFFsEep8UWpWyyFFHGj6F -->
+## TOOL RESULT:
+
+ID: toolu_016RFFsEep8UWpWyyFFHGj6F
+
+<tool.toolu_016RFFsEep8UWpWyyFFHGj6F>
+Successfully replaced content in /Users/andreas/projects/greger.el/greger-stdlib.el. Successfully staged 2 file(s) and committed with message: Remove . and .. entries from recursive listing as well
+</tool.toolu_016RFFsEep8UWpWyyFFHGj6F>
+
+
+## ASSISTANT:
+
+Now let me update all the tests to reflect the new output format without `.` and `..` entries:
+
+## TOOL USE:
+
+Name: str-replace
+ID: toolu_01WeN65YCpdTitLSG6amzC8V
+
+### file-path
+
+<tool.toolu_01WeN65YCpdTitLSG6amzC8V>
+test/test-greger-stdlib.el
+</tool.toolu_01WeN65YCpdTitLSG6amzC8V>
+
+### original-content
+
+<tool.toolu_01WeN65YCpdTitLSG6amzC8V>
+            ;; Test basic listing
+            (let ((result (greger-stdlib--list-directory test-dir))
+                  (expected "drwx------       96  .
+drwx------  3032384  ..
+-rw-r--r--        7  test.txt"))
+              (should (stringp result))
+              (should (string= expected result)))
+</tool.toolu_01WeN65YCpdTitLSG6amzC8V>
+
+### new-content
+
+<tool.toolu_01WeN65YCpdTitLSG6amzC8V>
+            ;; Test basic listing
+            (let ((result (greger-stdlib--list-directory test-dir))
+                  (expected "-rw-r--r--        7  test.txt"))
+              (should (stringp result))
+              (should (string= expected result)))
+</tool.toolu_01WeN65YCpdTitLSG6amzC8V>
+
+### git-commit-message
+
+<tool.toolu_01WeN65YCpdTitLSG6amzC8V>
+Update basic test to reflect removal of . and .. entries
+</tool.toolu_01WeN65YCpdTitLSG6amzC8V>
+
+<!-- TOOL_RESULT_PLACEHOLDER_toolu_01WeN65YCpdTitLSG6amzC8V -->
