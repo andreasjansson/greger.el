@@ -48,13 +48,13 @@ ARGS should be a plist containing :description, :properties, :required,
 Example:
   (greger-register-tool \\='rename-file\\='
     :description \\='Rename or move a file from one path to another\\='
-    :properties \\='((old_path . ((type . \\='string\\=')
+    :properties \\='((old-path . ((type . \\='string\\=')
                               (description . \\='Current path of the file\\=')))
-                  (new_path . ((type . \\='string\\=')
+                  (new-path . ((type . \\='string\\=')
                               (description . \\='New path for the file\\=')))
-                  (git_commit_message . ((type . \\='string\\=')
+                  (git-commit-message . ((type . \\='string\\=')
                                         (description . \\='Git commit message\\='))))
-    :required \\='(\\='old_path\\=' \\='new_path\\=' \\='git_commit_message\\=')
+    :required \\='(\\='old-path\\=' \\='new-path\\=' \\='git-commit-message\\=')
     :function \\='greger-tools--rename-file
     :pass-buffer t
     :pass-callback t

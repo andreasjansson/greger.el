@@ -68,19 +68,19 @@
   ;; Register tool with underscore parameter names (as they come from JSON)
   (greger-register-tool "test-hyphens"
     :description "Test hyphenated parameter mapping"
-    :properties '((file_path . ((type . "string")
+    :properties '((file-path . ((type . "string")
                                 (description . "File path")))
-                  (commit_message . ((type . "string")
+                  (commit-message . ((type . "string")
                                      (description . "Commit message"))))
-    :required '("file_path" "commit_message")
+    :required '("file-path" "commit-message")
     :function 'greger-test-hyphenated-params)
 
   ;; Test execution with underscore parameters
   (let ((result nil)
         (error nil))
     (greger-tools-execute "test-hyphens"
-                          '((file_path . "/path/to/file")
-                            (commit_message . "test commit"))
+                          '((file-path . "/path/to/file")
+                            (commit-message . "test commit"))
                           (lambda (r e) (setq result r error e)) nil)
     (should (string= "file: /path/to/file, message: test commit" result))
     (should (null error)))
@@ -103,20 +103,20 @@
   ;; Register tool with some optional parameters
   (greger-register-tool "test-optional"
     :description "Test optional parameter handling"
-    :properties '((required_param . ((type . "string")
+    :properties '((required-param . ((type . "string")
                                      (description . "Required parameter")))
-                  (optional_param1 . ((type . "string")
+                  (optional-param1 . ((type . "string")
                                       (description . "First optional parameter")))
-                  (optional_param2 . ((type . "string")
+                  (optional-param2 . ((type . "string")
                                       (description . "Second optional parameter"))))
-    :required '("required_param")
+    :required '("required-param")
     :function 'greger-test-optional-params)
 
   ;; Test with only required parameter
   (let ((result nil)
         (error nil))
     (greger-tools-execute "test-optional"
-                          '((required_param . "test"))
+                          '((required-param . "test"))
                           (lambda (r e) (setq result r error e)) nil)
     (should (string= "required: test, opt1: default1, opt2: default2" result))
     (should (null error)))
@@ -125,8 +125,8 @@
   (let ((result nil)
         (error nil))
     (greger-tools-execute "test-optional"
-                          '((required_param . "test")
-                            (optional_param1 . "provided1"))
+                          '((required-param . "test")
+                            (optional-param1 . "provided1"))
                           (lambda (r e) (setq result r error e)) nil)
     (should (string= "required: test, opt1: provided1, opt2: default2" result))
     (should (null error)))
@@ -135,9 +135,9 @@
   (let ((result nil)
         (error nil))
     (greger-tools-execute "test-optional"
-                          '((required_param . "test")
-                            (optional_param1 . "provided1")
-                            (optional_param2 . "provided2"))
+                          '((required-param . "test")
+                            (optional-param1 . "provided1")
+                            (optional-param2 . "provided2"))
                           (lambda (r e) (setq result r error e)) nil)
     (should (string= "required: test, opt1: provided1, opt2: provided2" result))
     (should (null error)))
@@ -215,21 +215,21 @@
   ;; Register tool with multiple required parameters
   (greger-register-tool "test-required"
     :description "Test required parameter validation"
-    :properties '((required_param1 . ((type . "string")
+    :properties '((required-param1 . ((type . "string")
                                       (description . "First required parameter")))
-                  (required_param2 . ((type . "string")
+                  (required-param2 . ((type . "string")
                                       (description . "Second required parameter")))
-                  (optional_param . ((type . "string")
+                  (optional-param . ((type . "string")
                                      (description . "Optional parameter"))))
-    :required '("required_param1" "required_param2")
+    :required '("required-param1" "required-param2")
     :function 'greger-test-required-params)
 
   ;; Test that missing first required parameter calls callback with error
   (let ((result nil)
         (error nil))
     (greger-tools-execute "test-required"
-                          '((required_param2 . "value2")
-                            (optional_param . "optional"))
+                          '((required-param2 . "value2")
+                            (optional-param . "optional"))
                           (lambda (r e) (setq result r error e)) nil)
     (should (null result))
     (should error))
@@ -238,8 +238,8 @@
   (let ((result nil)
         (error nil))
     (greger-tools-execute "test-required"
-                          '((required_param1 . "value1")
-                            (optional_param . "optional"))
+                          '((required-param1 . "value1")
+                            (optional-param . "optional"))
                           (lambda (r e) (setq result r error e)) nil)
     (should (null result))
     (should error))
@@ -248,7 +248,7 @@
   (let ((result nil)
         (error nil))
     (greger-tools-execute "test-required"
-                          '((optional_param . "optional"))
+                          '((optional-param . "optional"))
                           (lambda (r e) (setq result r error e)) nil)
     (should (null result))
     (should error))
@@ -257,8 +257,8 @@
   (let ((result nil)
         (error nil))
     (greger-tools-execute "test-required"
-                          '((required_param1 . "value1")
-                            (required_param2 . "value2"))
+                          '((required-param1 . "value1")
+                            (required-param2 . "value2"))
                           (lambda (r e) (setq result r error e)) nil)
     (should (string= "req1: value1, req2: value2, opt: default" result))
     (should (null error)))
@@ -267,9 +267,9 @@
   (let ((result nil)
         (error nil))
     (greger-tools-execute "test-required"
-                          '((required_param1 . "value1")
-                            (required_param2 . "value2")
-                            (optional_param . "provided"))
+                          '((required-param1 . "value1")
+                            (required-param2 . "value2")
+                            (optional-param . "provided"))
                           (lambda (r e) (setq result r error e)) nil)
     (should (string= "req1: value1, req2: value2, opt: provided" result))
     (should (null error)))
@@ -628,20 +628,20 @@
   ;; Register tool
   (greger-register-tool "test-edge-cases"
     :description "Test edge cases in argument extraction"
-    :properties '((required_param . ((type . "string")
+    :properties '((required-param . ((type . "string")
                                      (description . "Required parameter")))
-                  (optional_param1 . ((type . "boolean")
+                  (optional-param1 . ((type . "boolean")
                                       (description . "Optional boolean")))
-                  (optional_param2 . ((type . "integer")
+                  (optional-param2 . ((type . "integer")
                                       (description . "Optional integer"))))
-    :required '("required_param")
+    :required '("required-param")
     :function 'greger-test-edge-cases)
 
   ;; Test with only required parameter
   (let ((result nil)
         (error nil))
     (greger-tools-execute "test-edge-cases"
-                          '((required_param . "test"))
+                          '((required-param . "test"))
                           (lambda (r e) (setq result r error e)) nil)
     (should (string= "required: test, opt1: nil, opt2: nil" result))
     (should (null error)))
@@ -650,9 +650,9 @@
   (let ((result nil)
         (error nil))
     (greger-tools-execute "test-edge-cases"
-                          '((required_param . "test")
-                            (optional_param1 . "not-a-boolean")
-                            (optional_param2 . "not-a-number"))
+                          '((required-param . "test")
+                            (optional-param1 . "not-a-boolean")
+                            (optional-param2 . "not-a-number"))
                           (lambda (r e) (setq result r error e)) nil)
     (should (string= "required: test, opt1: not-a-boolean, opt2: not-a-number" result))
     (should (null error)))

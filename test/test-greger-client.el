@@ -176,7 +176,7 @@
          (test-dialog '(((role . "user") (content . "Hello"))
                         ((role . "assistant") (content . "Hi there!"))
                         ((role . "user") (content . "How are you?"))))
-         (test-tools '(((name . "test_tool")
+         (test-tools '(((name . "test-tool")
                         (description . "A test tool")
                         (input_schema . ((type . "object")
                                         (properties . ())

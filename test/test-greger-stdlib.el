@@ -516,7 +516,7 @@
                   "Test commit message")
                  :type 'error)
 
-    ;; Test with non-string/non-list file_paths
+    ;; Test with non-string/non-list file-paths
     (should-error (greger-stdlib--delete-files
                   "not-a-list"
                   "Test commit message")
