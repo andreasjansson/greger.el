@@ -980,6 +980,21 @@ Returns either a system message, metadata, or both."
                  (tool_use_id . ,id)
                  (content . ,content))))))
 
+(defun greger-parser--create-server-tool-use-message (name id input)
+  "Create server tool use message with NAME, ID and INPUT."
+  `((role . "assistant")
+    (content . (((type . "server_tool_use")
+                 (id . ,id)
+                 (name . ,name)
+                 (input . ,input))))))
+
+(defun greger-parser--create-server-tool-result-message (id content)
+  "Create server tool result message with ID and CONTENT."
+  `((role . "assistant")
+    (content . (((type . "server_tool_result")
+                 (tool_use_id . ,id)
+                 (content . ,content))))))
+
 ;; Message merging
 
 (defun greger-parser--merge-consecutive-messages (messages)

@@ -2567,4 +2567,186 @@ greger-parser.el
 Add server tool input and result content parsing functions
 </tool.toolu_01DhFJxRdqcNNh6npuwir2w7>
 
-<!-- TOOL_RESULT_PLACEHOLDER_toolu_01DhFJxRdqcNNh6npuwir2w7 -->
+## TOOL RESULT:
+
+ID: toolu_01DhFJxRdqcNNh6npuwir2w7
+
+<tool.toolu_01DhFJxRdqcNNh6npuwir2w7>
+Successfully replaced content in /Users/andreas/projects/greger.el/greger-parser.el. Successfully staged 2 file(s) and committed with message: Add server tool input and result content parsing functions
+</tool.toolu_01DhFJxRdqcNNh6npuwir2w7>
+
+## ASSISTANT:
+
+Now I need to add the message creation functions for server tools. Let me find where the current tool message creation functions are:
+
+## TOOL USE:
+
+Name: read-file
+ID: toolu_013QZXFLFoeoiMoKxuUbDohi
+
+### path
+
+<tool.toolu_013QZXFLFoeoiMoKxuUbDohi>
+greger-parser.el
+</tool.toolu_013QZXFLFoeoiMoKxuUbDohi>
+
+### start-line
+
+<tool.toolu_013QZXFLFoeoiMoKxuUbDohi>
+940
+</tool.toolu_013QZXFLFoeoiMoKxuUbDohi>
+
+### end-line
+
+<tool.toolu_013QZXFLFoeoiMoKxuUbDohi>
+970
+</tool.toolu_013QZXFLFoeoiMoKxuUbDohi>
+
+## TOOL RESULT:
+
+ID: toolu_013QZXFLFoeoiMoKxuUbDohi
+
+<tool.toolu_013QZXFLFoeoiMoKxuUbDohi>
+                parsed))
+    (error str)))
+
+;; Message creation
+
+(defun greger-parser--create-user-message (content)
+  "Create user message with CONTENT."
+  `((role . "user") (content . ,content)))
+
+(defun greger-parser--create-assistant-message (content)
+  "Create assistant message with CONTENT."
+  `((role . "assistant") (content . ,content)))
+
+(defun greger-parser--create-system-message (content)
+  "Create system message with CONTENT."
+  `((role . "system") (content . ,content)))
+
+(defun greger-parser--generate-safe-shell-commands-text (commands)
+  "Generate descriptive text for safe shell COMMANDS list."
+  (when commands
+    (concat "You can run arbitrary shell commands with the shell-command tool, but the following are safe shell commands that will run without requiring user confirmation:\n\n"
+            (mapconcat (lambda (cmd) (format "* `%s`" cmd)) commands "\n"))))
+
+(defun greger-parser--create-thinking-message (content)
+  "Create thinking message with CONTENT."
+  `((role . "assistant")
+    (content . (((type . "thinking") (thinking . ,content))))))
+
+(defun greger-parser--create-tool-use-message (name id input)
+  "Create tool use message with NAME, ID and INPUT."
+  `((role . "assistant")
+</tool.toolu_013QZXFLFoeoiMoKxuUbDohi>
+
+## TOOL USE:
+
+Name: read-file
+ID: toolu_012kZhWMrbXPL5veQNpp9pN2
+
+### path
+
+<tool.toolu_012kZhWMrbXPL5veQNpp9pN2>
+greger-parser.el
+</tool.toolu_012kZhWMrbXPL5veQNpp9pN2>
+
+### start-line
+
+<tool.toolu_012kZhWMrbXPL5veQNpp9pN2>
+970
+</tool.toolu_012kZhWMrbXPL5veQNpp9pN2>
+
+### end-line
+
+<tool.toolu_012kZhWMrbXPL5veQNpp9pN2>
+990
+</tool.toolu_012kZhWMrbXPL5veQNpp9pN2>
+
+## TOOL RESULT:
+
+ID: toolu_012kZhWMrbXPL5veQNpp9pN2
+
+<tool.toolu_012kZhWMrbXPL5veQNpp9pN2>
+  `((role . "assistant")
+    (content . (((type . "tool_use")
+                 (id . ,id)
+                 (name . ,name)
+                 (input . ,input))))))
+
+(defun greger-parser--create-tool-result-message (id content)
+  "Create tool result message with ID and CONTENT."
+  `((role . "user")
+    (content . (((type . "tool_result")
+                 (tool_use_id . ,id)
+                 (content . ,content))))))
+
+;; Message merging
+
+(defun greger-parser--merge-consecutive-messages (messages)
+  "Merge consecutive MESSAGES with same role."
+  (if (null messages)
+      '()
+    (let ((result (list (car messages))))
+      (dolist (msg (cdr messages))
+</tool.toolu_012kZhWMrbXPL5veQNpp9pN2>
+
+## ASSISTANT:
+
+Let me add the server tool message creation functions after the existing tool message functions:
+
+## TOOL USE:
+
+Name: str-replace
+ID: toolu_01GpEJTRHyc36vJykqYWHttK
+
+### file-path
+
+<tool.toolu_01GpEJTRHyc36vJykqYWHttK>
+greger-parser.el
+</tool.toolu_01GpEJTRHyc36vJykqYWHttK>
+
+### original-content
+
+<tool.toolu_01GpEJTRHyc36vJykqYWHttK>
+(defun greger-parser--create-tool-result-message (id content)
+  "Create tool result message with ID and CONTENT."
+  `((role . "user")
+    (content . (((type . "tool_result")
+                 (tool_use_id . ,id)
+                 (content . ,content))))))
+</tool.toolu_01GpEJTRHyc36vJykqYWHttK>
+
+### new-content
+
+<tool.toolu_01GpEJTRHyc36vJykqYWHttK>
+(defun greger-parser--create-tool-result-message (id content)
+  "Create tool result message with ID and CONTENT."
+  `((role . "user")
+    (content . (((type . "tool_result")
+                 (tool_use_id . ,id)
+                 (content . ,content))))))
+
+(defun greger-parser--create-server-tool-use-message (name id input)
+  "Create server tool use message with NAME, ID and INPUT."
+  `((role . "assistant")
+    (content . (((type . "server_tool_use")
+                 (id . ,id)
+                 (name . ,name)
+                 (input . ,input))))))
+
+(defun greger-parser--create-server-tool-result-message (id content)
+  "Create server tool result message with ID and CONTENT."
+  `((role . "assistant")
+    (content . (((type . "server_tool_result")
+                 (tool_use_id . ,id)
+                 (content . ,content))))))
+</tool.toolu_01GpEJTRHyc36vJykqYWHttK>
+
+### git-commit-message
+
+<tool.toolu_01GpEJTRHyc36vJykqYWHttK>
+Add server tool message creation functions
+</tool.toolu_01GpEJTRHyc36vJykqYWHttK>
+
+<!-- TOOL_RESULT_PLACEHOLDER_toolu_01GpEJTRHyc36vJykqYWHttK -->
