@@ -5408,4 +5408,101 @@ greger.el
 Implement server tool block rendering function
 </tool.toolu_01D1dRQWQJktPzpLMoAnidpJ>
 
-<!-- TOOL_RESULT_PLACEHOLDER_toolu_01D1dRQWQJktPzpLMoAnidpJ -->
+## TOOL RESULT:
+
+ID: toolu_01D1dRQWQJktPzpLMoAnidpJ
+
+<tool.toolu_01D1dRQWQJktPzpLMoAnidpJ>
+Successfully replaced content in /Users/andreas/projects/greger.el/greger.el. Successfully staged 2 file(s) and committed with message: Implement server tool block rendering function
+</tool.toolu_01D1dRQWQJktPzpLMoAnidpJ>
+
+## ASSISTANT:
+
+I need to check if `greger-parser--content-block-to-markdown` handles `web_search_tool_result` blocks. Let me check:
+
+## TOOL USE:
+
+Name: read-file
+ID: toolu_01Egjav7aJEkWtAepcshVWaC
+
+### path
+
+<tool.toolu_01Egjav7aJEkWtAepcshVWaC>
+greger-parser.el
+</tool.toolu_01Egjav7aJEkWtAepcshVWaC>
+
+### start-line
+
+<tool.toolu_01Egjav7aJEkWtAepcshVWaC>
+1065
+</tool.toolu_01Egjav7aJEkWtAepcshVWaC>
+
+### end-line
+
+<tool.toolu_01Egjav7aJEkWtAepcshVWaC>
+1080
+</tool.toolu_01Egjav7aJEkWtAepcshVWaC>
+
+## TOOL RESULT:
+
+ID: toolu_01Egjav7aJEkWtAepcshVWaC
+
+<tool.toolu_01Egjav7aJEkWtAepcshVWaC>
+     ((string= type "thinking")
+      (concat greger-parser-thinking-tag "\n\n"
+              (alist-get 'thinking block)))
+     ((string= type "tool_use")
+      (greger-parser--tool-use-to-markdown block))
+     ((string= type "tool_result")
+      (greger-parser--tool-result-to-markdown block))
+     ((string= type "server_tool_use")
+      (greger-parser--server-tool-use-to-markdown block))
+     ((string= type "server_tool_result")
+      (greger-parser--server-tool-result-to-markdown block))
+     (t ""))))
+
+(defun greger-parser--tool-use-to-markdown (tool-use)
+  "Convert TOOL-USE to markdown."
+  (let ((name (alist-get 'name tool-use))
+</tool.toolu_01Egjav7aJEkWtAepcshVWaC>
+
+## ASSISTANT:
+
+I don't see `web_search_tool_result` handled. Let me check what the API is actually sending for the web search result content block. Based on the Anthropic docs, it should be `web_search_tool_result`, but the parser only handles `server_tool_result`. Let me add support for `web_search_tool_result`:
+
+## TOOL USE:
+
+Name: str-replace
+ID: toolu_01W9UMpB37YSe5VdT92xEW1q
+
+### file-path
+
+<tool.toolu_01W9UMpB37YSe5VdT92xEW1q>
+greger-parser.el
+</tool.toolu_01W9UMpB37YSe5VdT92xEW1q>
+
+### original-content
+
+<tool.toolu_01W9UMpB37YSe5VdT92xEW1q>
+     ((string= type "server_tool_result")
+      (greger-parser--server-tool-result-to-markdown block))
+     (t ""))
+</tool.toolu_01W9UMpB37YSe5VdT92xEW1q>
+
+### new-content
+
+<tool.toolu_01W9UMpB37YSe5VdT92xEW1q>
+     ((string= type "server_tool_result")
+      (greger-parser--server-tool-result-to-markdown block))
+     ((string= type "web_search_tool_result")
+      (greger-parser--web-search-tool-result-to-markdown block))
+     (t ""))
+</tool.toolu_01W9UMpB37YSe5VdT92xEW1q>
+
+### git-commit-message
+
+<tool.toolu_01W9UMpB37YSe5VdT92xEW1q>
+Add support for web_search_tool_result content blocks
+</tool.toolu_01W9UMpB37YSe5VdT92xEW1q>
+
+<!-- TOOL_RESULT_PLACEHOLDER_toolu_01W9UMpB37YSe5VdT92xEW1q -->

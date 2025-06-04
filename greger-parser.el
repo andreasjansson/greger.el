@@ -1073,6 +1073,8 @@ Returns either a system message, metadata, or both."
       (greger-parser--server-tool-use-to-markdown block))
      ((string= type "server_tool_result")
       (greger-parser--server-tool-result-to-markdown block))
+     ((string= type "web_search_tool_result")
+      (greger-parser--web-search-tool-result-to-markdown block))
      (t ""))))
 
 (defun greger-parser--tool-use-to-markdown (tool-use)
