@@ -610,7 +610,7 @@ ID: srvtoolu_123
 The current weather in San Francisco is sunny and 72°F."
            :dialog (((role . "user") (content . "Search for current weather in San Francisco"))
                     ((role . "assistant") (content . (((type . "server_tool_use") (id . "srvtoolu_123") (name . "web_search") (input . ((query . "current weather San Francisco"))))
-                                                      ((type . "server_tool_result") (tool_use_id . "srvtoolu_123") (content . ((results . [((title . "Weather in San Francisco") (url . "https://weather.com/sf") (content . "Sunny, 72°F"))]))))
+                                                      ((type . "server_tool_result") (tool_use_id . "srvtoolu_123") (content . "[{\"title\": \"Weather in San Francisco\", \"url\": \"https://weather.com/sf\", \"content\": \"Sunny, 72°F\"}]"))
                                                       ((type . "text") (text . "The current weather in San Francisco is sunny and 72°F.")))))))
 
     (:name "server-tool-use-string-result"

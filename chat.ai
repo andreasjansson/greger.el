@@ -6169,4 +6169,95 @@ It looks like it's sunny and warm today!"
 Fix second server tool test case markdown format
 </tool.toolu_01Dh57zTyrtnaG5kwG3JxCjM>
 
-<!-- TOOL_RESULT_PLACEHOLDER_toolu_01Dh57zTyrtnaG5kwG3JxCjM -->
+## TOOL RESULT:
+
+ID: toolu_01Dh57zTyrtnaG5kwG3JxCjM
+
+<tool.toolu_01Dh57zTyrtnaG5kwG3JxCjM>
+Successfully replaced content in /Users/andreas/projects/greger.el/test/test-greger-parser.el. Successfully staged 2 file(s) and committed with message: Fix second server tool test case markdown format
+</tool.toolu_01Dh57zTyrtnaG5kwG3JxCjM>
+
+## ASSISTANT:
+
+Now I need to update the expected dialog results to match what will actually be parsed. Let me also update the dialog expectations to remove the "results" wrapper:
+
+## TOOL USE:
+
+Name: read-file
+ID: toolu_01VzAZG2Lof25mw1o741dt8n
+
+### path
+
+<tool.toolu_01VzAZG2Lof25mw1o741dt8n>
+test/test-greger-parser.el
+</tool.toolu_01VzAZG2Lof25mw1o741dt8n>
+
+### start-line
+
+<tool.toolu_01VzAZG2Lof25mw1o741dt8n>
+605
+</tool.toolu_01VzAZG2Lof25mw1o741dt8n>
+
+### end-line
+
+<tool.toolu_01VzAZG2Lof25mw1o741dt8n>
+620
+</tool.toolu_01VzAZG2Lof25mw1o741dt8n>
+
+## TOOL RESULT:
+
+ID: toolu_01VzAZG2Lof25mw1o741dt8n
+
+<tool.toolu_01VzAZG2Lof25mw1o741dt8n>
+[{\"title\": \"Weather in San Francisco\", \"url\": \"https://weather.com/sf\", \"content\": \"Sunny, 72°F\"}]
+</tool.srvtoolu_123>
+
+## ASSISTANT:
+
+The current weather in San Francisco is sunny and 72°F."
+           :dialog (((role . "user") (content . "Search for current weather in San Francisco"))
+                    ((role . "assistant") (content . (((type . "server_tool_use") (id . "srvtoolu_123") (name . "web_search") (input . ((query . "current weather San Francisco"))))
+                                                      ((type . "server_tool_result") (tool_use_id . "srvtoolu_123") (content . ((results . [((title . "Weather in San Francisco") (url . "https://weather.com/sf") (content . "Sunny, 72°F"))]))))
+                                                      ((type . "text") (text . "The current weather in San Francisco is sunny and 72°F.")))))))
+
+    (:name "server-tool-use-string-result"
+           :markdown "## USER:
+
+What's the weather like?
+
+</tool.toolu_01VzAZG2Lof25mw1o741dt8n>
+
+## ASSISTANT:
+
+I need to update the expected content to match the JSON array format without the "results" wrapper:
+
+## TOOL USE:
+
+Name: str-replace
+ID: toolu_015n3UDf5XMSG5Tzhej4zbQF
+
+### file-path
+
+<tool.toolu_015n3UDf5XMSG5Tzhej4zbQF>
+test/test-greger-parser.el
+</tool.toolu_015n3UDf5XMSG5Tzhej4zbQF>
+
+### original-content
+
+<tool.toolu_015n3UDf5XMSG5Tzhej4zbQF>
+((type . "server_tool_result") (tool_use_id . "srvtoolu_123") (content . ((results . [((title . "Weather in San Francisco") (url . "https://weather.com/sf") (content . "Sunny, 72°F"))]))))
+</tool.toolu_015n3UDf5XMSG5Tzhej4zbQF>
+
+### new-content
+
+<tool.toolu_015n3UDf5XMSG5Tzhej4zbQF>
+((type . "server_tool_result") (tool_use_id . "srvtoolu_123") (content . "[{\"title\": \"Weather in San Francisco\", \"url\": \"https://weather.com/sf\", \"content\": \"Sunny, 72°F\"}]"))
+</tool.toolu_015n3UDf5XMSG5Tzhej4zbQF>
+
+### git-commit-message
+
+<tool.toolu_015n3UDf5XMSG5Tzhej4zbQF>
+Fix server tool result content in test case
+</tool.toolu_015n3UDf5XMSG5Tzhej4zbQF>
+
+<!-- TOOL_RESULT_PLACEHOLDER_toolu_015n3UDf5XMSG5Tzhej4zbQF -->
