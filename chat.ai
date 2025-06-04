@@ -8586,4 +8586,64 @@ drwx------  (dir)  ..
 Fix hidden files test to use new format
 </tool.toolu_01XYqST84JyAeAxHaeiafPGt>
 
-<!-- TOOL_RESULT_PLACEHOLDER_toolu_01XYqST84JyAeAxHaeiafPGt -->
+## TOOL RESULT:
+
+ID: toolu_01XYqST84JyAeAxHaeiafPGt
+
+<tool.toolu_01XYqST84JyAeAxHaeiafPGt>
+Successfully replaced content in /Users/andreas/projects/greger.el/test/test-greger-stdlib.el. Successfully staged 2 file(s) and committed with message: Fix hidden files test to use new format
+</tool.toolu_01XYqST84JyAeAxHaeiafPGt>
+
+
+## TOOL USE:
+
+Name: str-replace
+ID: toolu_01DccDqERDvEnXRVMM3vKLfg
+
+### file-path
+
+<tool.toolu_01DccDqERDvEnXRVMM3vKLfg>
+test/test-greger-stdlib.el
+</tool.toolu_01DccDqERDvEnXRVMM3vKLfg>
+
+### original-content
+
+<tool.toolu_01DccDqERDvEnXRVMM3vKLfg>
+;; Test recursive listing
+            (let ((result (greger-stdlib--list-directory test-dir nil t))
+                  (expected (format "
+testdir/testdir:
+-rw-r--r--       14  nested.txt
+%s:
+-rw-r--r--       12  root.txt
+drwxr-xr-x       96  testdir" (file-name-as-directory test-dir))))
+              (should (stringp result))
+              (should (string= expected result)))
+</tool.toolu_01DccDqERDvEnXRVMM3vKLfg>
+
+### new-content
+
+<tool.toolu_01DccDqERDvEnXRVMM3vKLfg>
+;; Test recursive listing
+            (let ((result (greger-stdlib--list-directory test-dir nil t))
+                  (expected (format "%s:
+drwx------  (dir)  .
+drwx------  (dir)  ..
+-rw-r--r--        12  root.txt
+drwxr-xr-x  (dir)  testdir
+
+./testdir/:
+drwxr-xr-x  (dir)  .
+drwx------  (dir)  ..
+-rw-r--r--        14  nested.txt" (file-name-as-directory test-dir))))
+              (should (stringp result))
+              (should (string= expected result)))
+</tool.toolu_01DccDqERDvEnXRVMM3vKLfg>
+
+### git-commit-message
+
+<tool.toolu_01DccDqERDvEnXRVMM3vKLfg>
+Fix recursive test to use new format
+</tool.toolu_01DccDqERDvEnXRVMM3vKLfg>
+
+<!-- TOOL_RESULT_PLACEHOLDER_toolu_01DccDqERDvEnXRVMM3vKLfg -->

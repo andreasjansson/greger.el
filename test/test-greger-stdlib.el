@@ -790,12 +790,16 @@ drwx------  (dir)  ..
 
             ;; Test recursive listing
             (let ((result (greger-stdlib--list-directory test-dir nil t))
-                  (expected (format "
-testdir/testdir:
--rw-r--r--       14  nested.txt
-%s:
--rw-r--r--       12  root.txt
-drwxr-xr-x       96  testdir" (file-name-as-directory test-dir))))
+                  (expected (format "%s:
+drwx------  (dir)  .
+drwx------  (dir)  ..
+-rw-r--r--        12  root.txt
+drwxr-xr-x  (dir)  testdir
+
+./testdir/:
+drwxr-xr-x  (dir)  .
+drwx------  (dir)  ..
+-rw-r--r--        14  nested.txt" (file-name-as-directory test-dir))))
               (should (stringp result))
               (should (string= expected result)))))
 
