@@ -537,6 +537,9 @@ READ-ONLY is t to make read-only, nil to make writable."
              (tool-id (alist-get 'id tool-call)))
 
         (let ((default-directory (greger-state-directory agent-state)))
+          ;; First create a placeholder entry in the executing-tools map
+          (puthash tool-id nil (greger-state-executing-tools agent-state))
+
           (let ((greger-tool (greger-tools-execute
                               tool-name
                               tool-input
@@ -552,9 +555,7 @@ READ-ONLY is t to make read-only, nil to make writable."
                                      (greger--run-agent-loop agent-state)))))
                               (greger-state-chat-buffer agent-state)
                               (greger-state-metadata agent-state))))
-            ;; Store the greger-tool in executing-tools map
-            ;; This must happen after greger-tools-execute returns but before
-            ;; the completion callback runs (which is fine for async tools)
+            ;; Update the executing-tools map with the actual greger-tool object
             (puthash tool-id greger-tool (greger-state-executing-tools agent-state))))))))
 
 (defun greger--append-text (text agent-state)

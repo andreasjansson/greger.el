@@ -1101,4 +1101,93 @@ The puthash call was happening after remhash for synchronous tools,
 meaning they were never properly tracked as executing.
 </tool.toolu_016cDvYPZD6NqHwd6PCQVoe2>
 
-<!-- TOOL_RESULT_PLACEHOLDER_toolu_016cDvYPZD6NqHwd6PCQVoe2 -->
+## TOOL RESULT:
+
+ID: toolu_016cDvYPZD6NqHwd6PCQVoe2
+
+<tool.toolu_016cDvYPZD6NqHwd6PCQVoe2>
+Successfully replaced content in /Users/andreas/projects/greger.el/greger.el. Successfully staged 2 file(s) and committed with message: Fix tool execution tracking for synchronous tools
+
+The puthash call was happening after remhash for synchronous tools,
+meaning they were never properly tracked as executing.
+</tool.toolu_016cDvYPZD6NqHwd6PCQVoe2>
+
+## ASSISTANT:
+
+Wait, I think I misunderstood the issue. Let me re-examine this more carefully. For synchronous tools, the callback is executed immediately, so the `remhash` happens before the `puthash` that comes after the `greger-tools-execute` call returns.
+
+Actually, let me move the `puthash` to happen **before** calling `greger-tools-execute`:
+
+## TOOL USE:
+
+Name: str-replace
+ID: toolu_019E8tqxTDNx679Ts2Z4e5Uj
+
+### file-path
+
+<tool.toolu_019E8tqxTDNx679Ts2Z4e5Uj>
+greger.el
+</tool.toolu_019E8tqxTDNx679Ts2Z4e5Uj>
+
+### original-content
+
+<tool.toolu_019E8tqxTDNx679Ts2Z4e5Uj>
+        (let ((default-directory (greger-state-directory agent-state)))
+          (let ((greger-tool (greger-tools-execute
+                              tool-name
+                              tool-input
+                              (lambda (result error)
+                                ;; Remove tool from executing-tools when complete
+                                (remhash tool-id (greger-state-executing-tools agent-state))
+
+                                (greger--handle-tool-completion
+                                 tool-id result error agent-state search-start-pos
+                                 (lambda ()
+                                   (setq completed-tools (1+ completed-tools))
+                                   (when (= completed-tools total-tools)
+                                     (greger--run-agent-loop agent-state)))))
+                              (greger-state-chat-buffer agent-state)
+                              (greger-state-metadata agent-state))))
+            ;; Store the greger-tool in executing-tools map
+            ;; This must happen after greger-tools-execute returns but before
+            ;; the completion callback runs (which is fine for async tools)
+            (puthash tool-id greger-tool (greger-state-executing-tools agent-state))))
+</tool.toolu_019E8tqxTDNx679Ts2Z4e5Uj>
+
+### new-content
+
+<tool.toolu_019E8tqxTDNx679Ts2Z4e5Uj>
+        (let ((default-directory (greger-state-directory agent-state)))
+          ;; First create a placeholder entry in the executing-tools map
+          (puthash tool-id nil (greger-state-executing-tools agent-state))
+          
+          (let ((greger-tool (greger-tools-execute
+                              tool-name
+                              tool-input
+                              (lambda (result error)
+                                ;; Remove tool from executing-tools when complete
+                                (remhash tool-id (greger-state-executing-tools agent-state))
+
+                                (greger--handle-tool-completion
+                                 tool-id result error agent-state search-start-pos
+                                 (lambda ()
+                                   (setq completed-tools (1+ completed-tools))
+                                   (when (= completed-tools total-tools)
+                                     (greger--run-agent-loop agent-state)))))
+                              (greger-state-chat-buffer agent-state)
+                              (greger-state-metadata agent-state))))
+            ;; Update the executing-tools map with the actual greger-tool object
+            (puthash tool-id greger-tool (greger-state-executing-tools agent-state))))
+</tool.toolu_019E8tqxTDNx679Ts2Z4e5Uj>
+
+### git-commit-message
+
+<tool.toolu_019E8tqxTDNx679Ts2Z4e5Uj>
+Fix synchronous tool tracking by adding placeholder before execution
+
+Create a placeholder entry in executing-tools before calling greger-tools-execute
+to ensure tools are tracked even for synchronous execution where the completion
+callback runs immediately.
+</tool.toolu_019E8tqxTDNx679Ts2Z4e5Uj>
+
+<!-- TOOL_RESULT_PLACEHOLDER_toolu_019E8tqxTDNx679Ts2Z4e5Uj -->
