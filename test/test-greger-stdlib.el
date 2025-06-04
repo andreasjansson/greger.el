@@ -711,4 +711,192 @@ Line 3"))
   ;; Test start-line > end-line
   (should-error (greger-stdlib--read-file "test-file" nil 5 3)))
 
+(ert-deftest greger-test-list-directory-basic ()
+  "Test basic list-directory functionality with detailed output."
+  (let ((test-dir (make-temp-file "greger-test-dir" t)))
+    (unwind-protect
+        (progn
+          ;; Create test files
+          (let ((test-file1 (expand-file-name "test1.txt" test-dir))
+                (test-file2 (expand-file-name "test2.el" test-dir))
+                (test-subdir (expand-file-name "subdir" test-dir)))
+
+            (with-temp-file test-file1
+              (insert "Test content 1"))
+            (with-temp-file test-file2
+              (insert "Test content 2"))
+            (make-directory test-subdir)
+
+            ;; Test basic listing
+            (let ((result (greger-stdlib--list-directory test-dir)))
+              (should (stringp result))
+              ;; Should contain detailed file information
+              (should (string-match-p "test1\\.txt" result))
+              (should (string-match-p "test2\\.el" result))
+              (should (string-match-p "subdir" result))
+              ;; Should contain permissions, size, etc.
+              (should (string-match-p "^[d-]" result)) ; File type character
+              (should (string-match-p "[0-9]+ [A-Za-z]+ [0-9]+ [0-9:]+" result)) ; Size and date
+              )
+
+            ;; Test with default exclude pattern (should not exclude anything in this case)
+            (let ((result (greger-stdlib--list-directory test-dir "\\.git/|__pycache__/")))
+              (should (stringp result))
+              (should (string-match-p "test1\\.txt" result))
+              (should (string-match-p "test2\\.el" result))
+              (should (string-match-p "subdir" result)))))
+
+      ;; Clean up
+      (when (file-exists-p test-dir)
+        (delete-directory test-dir t)))))
+
+(ert-deftest greger-test-list-directory-exclude-pattern ()
+  "Test list-directory exclude pattern functionality."
+  (let ((test-dir (make-temp-file "greger-test-dir" t)))
+    (unwind-protect
+        (progn
+          ;; Create test files including ones that should be excluded
+          (let ((test-file1 (expand-file-name "test1.txt" test-dir))
+                (git-dir (expand-file-name ".git" test-dir))
+                (pycache-dir (expand-file-name "__pycache__" test-dir))
+                (normal-file (expand-file-name "normal.el" test-dir)))
+
+            (with-temp-file test-file1
+              (insert "Test content 1"))
+            (with-temp-file normal-file
+              (insert "Normal file"))
+            (make-directory git-dir)
+            (make-directory pycache-dir)
+
+            ;; Test with default exclude pattern
+            (let ((result (greger-stdlib--list-directory test-dir)))
+              (should (stringp result))
+              ;; Should contain normal files
+              (should (string-match-p "test1\\.txt" result))
+              (should (string-match-p "normal\\.el" result))
+              ;; Should NOT contain excluded directories
+              (should-not (string-match-p "\\.git" result))
+              (should-not (string-match-p "__pycache__" result)))
+
+            ;; Test with custom exclude pattern
+            (let ((result (greger-stdlib--list-directory test-dir "\\.txt$")))
+              (should (stringp result))
+              ;; Should NOT contain .txt files
+              (should-not (string-match-p "test1\\.txt" result))
+              ;; Should contain other files
+              (should (string-match-p "normal\\.el" result)))))
+
+      ;; Clean up
+      (when (file-exists-p test-dir)
+        (delete-directory test-dir t)))))
+
+(ert-deftest greger-test-list-directory-recursive ()
+  "Test list-directory recursive functionality."
+  (let ((test-dir (make-temp-file "greger-test-dir" t)))
+    (unwind-protect
+        (progn
+          ;; Create nested directory structure
+          (let ((subdir (expand-file-name "subdir" test-dir))
+                (subsubdir (expand-file-name "subdir/subsubdir" test-dir))
+                (file1 (expand-file-name "file1.txt" test-dir))
+                (file2 (expand-file-name "subdir/file2.txt" test-dir))
+                (file3 (expand-file-name "subdir/subsubdir/file3.txt" test-dir)))
+
+            (make-directory subdir)
+            (make-directory subsubdir t)
+            (with-temp-file file1 (insert "Content 1"))
+            (with-temp-file file2 (insert "Content 2"))
+            (with-temp-file file3 (insert "Content 3"))
+
+            ;; Test recursive listing
+            (let ((result (greger-stdlib--list-directory test-dir nil t)))
+              (should (stringp result))
+              ;; Should contain all files from all levels
+              (should (string-match-p "file1\\.txt" result))
+              (should (string-match-p "file2\\.txt" result))
+              (should (string-match-p "file3\\.txt" result))
+              ;; Should contain directory headers
+              (should (string-match-p "subdir:" result))
+              (should (string-match-p "subsubdir:" result)))))
+
+      ;; Clean up
+      (when (file-exists-p test-dir)
+        (delete-directory test-dir t)))))
+
+(ert-deftest greger-test-list-directory-error-cases ()
+  "Test error handling in list-directory function."
+  ;; Test non-existent directory
+  (should-error (greger-stdlib--list-directory "/path/that/does/not/exist"))
+
+  ;; Test invalid path type
+  (should-error (greger-stdlib--list-directory 123))
+
+  ;; Test file instead of directory
+  (let ((test-file (make-temp-file "greger-test-file")))
+    (unwind-protect
+        (progn
+          (with-temp-file test-file
+            (insert "test content"))
+          (should-error (greger-stdlib--list-directory test-file)))
+      (when (file-exists-p test-file)
+        (delete-file test-file)))))
+
+(ert-deftest greger-test-list-directory-empty-dir ()
+  "Test list-directory with empty directory."
+  (let ((test-dir (make-temp-file "greger-test-empty-dir" t)))
+    (unwind-protect
+        (progn
+          ;; Test empty directory
+          (let ((result (greger-stdlib--list-directory test-dir)))
+            (should (stringp result))
+            ;; Should contain . and .. entries
+            (should (string-match-p "\\." result))))
+
+      ;; Clean up
+      (when (file-exists-p test-dir)
+        (delete-directory test-dir)))))
+
+(ert-deftest greger-test-list-directory-file-mode-string ()
+  "Test the file mode string formatting function."
+  ;; Test directory attributes (this is somewhat implementation-dependent)
+  (let ((temp-dir (make-temp-file "greger-test-mode" t)))
+    (unwind-protect
+        (let* ((attrs (file-attributes temp-dir))
+               (mode-string (greger-stdlib--format-file-info temp-dir "testdir" "nomatch")))
+          (should (stringp mode-string))
+          ;; Should start with 'd' for directory
+          (should (string-match-p "^d" mode-string))
+          ;; Should contain permissions, size, date, and name
+          (should (string-match-p "testdir$" mode-string)))
+      (when (file-exists-p temp-dir)
+        (delete-directory temp-dir)))))
+
+(ert-deftest greger-test-list-directory-hidden-files ()
+  "Test list-directory handling of hidden files with exclude patterns."
+  (let ((test-dir (make-temp-file "greger-test-hidden" t)))
+    (unwind-protect
+        (progn
+          ;; Create hidden and normal files
+          (let ((hidden-file (expand-file-name ".hidden" test-dir))
+                (normal-file (expand-file-name "normal.txt" test-dir)))
+
+            (with-temp-file hidden-file (insert "Hidden content"))
+            (with-temp-file normal-file (insert "Normal content"))
+
+            ;; Test with no exclude pattern (should show hidden files)
+            (let ((result (greger-stdlib--list-directory test-dir "")))
+              (should (stringp result))
+              (should (string-match-p "\\.hidden" result))
+              (should (string-match-p "normal\\.txt" result)))
+
+            ;; Test with pattern excluding hidden files
+            (let ((result (greger-stdlib--list-directory test-dir "^\\.")))
+              (should (stringp result))
+              (should-not (string-match-p "\\.hidden" result))
+              (should (string-match-p "normal\\.txt" result)))))
+
+      ;; Clean up
+      (when (file-exists-p test-dir)
+        (delete-directory test-dir t)))))
+
 ;;; greger-test-stdlib.el ends here
