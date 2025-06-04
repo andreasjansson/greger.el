@@ -382,7 +382,7 @@ ARGS are arguments to format."
     (message "[GREGER DEBUG] %s" (apply #'format format-string args))))
 
 (defun greger--get-current-state ()
-  "Get the current greger state: 'idle, 'generating, or 'executing."
+  "Get the current greger state: \='idle, \='generating, or \='executing."
   (let ((agent-state (buffer-local-value 'greger--current-agent-state (current-buffer))))
     (cond
      ;; Check if we're generating (client-state is active)
