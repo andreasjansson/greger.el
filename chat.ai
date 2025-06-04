@@ -1513,4 +1513,70 @@ greger.el
 Update buffer state when client state is set
 </tool.toolu_011yHc1kjUGPB17b1hH6qbXe>
 
-<!-- TOOL_RESULT_PLACEHOLDER_toolu_011yHc1kjUGPB17b1hH6qbXe -->
+## TOOL RESULT:
+
+ID: toolu_011yHc1kjUGPB17b1hH6qbXe
+
+<tool.toolu_011yHc1kjUGPB17b1hH6qbXe>
+Successfully replaced content in /Users/andreas/projects/greger.el/greger.el. Successfully staged 2 file(s) and committed with message: Update buffer state when client state is set
+</tool.toolu_011yHc1kjUGPB17b1hH6qbXe>
+
+
+## TOOL USE:
+
+Name: str-replace
+ID: toolu_01XWz5VaL7EhVd8SN7jR1JFP
+
+### file-path
+
+<tool.toolu_01XWz5VaL7EhVd8SN7jR1JFP>
+greger.el
+</tool.toolu_01XWz5VaL7EhVd8SN7jR1JFP>
+
+### original-content
+
+<tool.toolu_01XWz5VaL7EhVd8SN7jR1JFP>
+  (greger--debug "CONTENT BLOCKS: %s" content-blocks)
+
+  ;; Check if we have tool calls
+  (let ((tool-calls (greger--extract-tool-calls content-blocks)))
+    (if tool-calls
+        (progn
+          (greger--debug "TOOL USE DETECTED! Found %d tool calls" (length tool-calls))
+          (setf (greger-state-current-iteration agent-state)
+                (1+ (greger-state-current-iteration agent-state)))
+          (greger--execute-tools tool-calls agent-state))
+      (progn
+        (greger--debug "NO TOOL USE - CONVERSATION COMPLETE")
+        (greger--finish-response agent-state)))))
+</tool.toolu_01XWz5VaL7EhVd8SN7jR1JFP>
+
+### new-content
+
+<tool.toolu_01XWz5VaL7EhVd8SN7jR1JFP>
+  (greger--debug "CONTENT BLOCKS: %s" content-blocks)
+
+  ;; Update buffer state after client completes
+  (with-current-buffer (greger-state-chat-buffer agent-state)
+    (greger--update-buffer-state))
+
+  ;; Check if we have tool calls
+  (let ((tool-calls (greger--extract-tool-calls content-blocks)))
+    (if tool-calls
+        (progn
+          (greger--debug "TOOL USE DETECTED! Found %d tool calls" (length tool-calls))
+          (setf (greger-state-current-iteration agent-state)
+                (1+ (greger-state-current-iteration agent-state)))
+          (greger--execute-tools tool-calls agent-state))
+      (progn
+        (greger--debug "NO TOOL USE - CONVERSATION COMPLETE")
+        (greger--finish-response agent-state)))))
+</tool.toolu_01XWz5VaL7EhVd8SN7jR1JFP>
+
+### git-commit-message
+
+<tool.toolu_01XWz5VaL7EhVd8SN7jR1JFP>
+Update buffer state when client response is handled
+</tool.toolu_01XWz5VaL7EhVd8SN7jR1JFP>
+
+<!-- TOOL_RESULT_PLACEHOLDER_toolu_01XWz5VaL7EhVd8SN7jR1JFP -->

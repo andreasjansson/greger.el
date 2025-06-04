@@ -464,6 +464,10 @@ READ-ONLY is t to make read-only, nil to make writable."
   "Handle the parsed CONTENT-BLOCKS from Claude using AGENT-STATE."
   (greger--debug "CONTENT BLOCKS: %s" content-blocks)
 
+  ;; Update buffer state after client completes
+  (with-current-buffer (greger-state-chat-buffer agent-state)
+    (greger--update-buffer-state))
+
   ;; Check if we have tool calls
   (let ((tool-calls (greger--extract-tool-calls content-blocks)))
     (if tool-calls
