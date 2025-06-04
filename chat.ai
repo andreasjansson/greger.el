@@ -3784,4 +3784,118 @@ greger-tools.el
 Add greger-tool struct for tracking executing tools
 </tool.toolu_01VeCKBVWB9vHCCmWmLU7Yec>
 
-<!-- TOOL_RESULT_PLACEHOLDER_toolu_01VeCKBVWB9vHCCmWmLU7Yec -->
+## TOOL RESULT:
+
+ID: toolu_01VeCKBVWB9vHCCmWmLU7Yec
+
+<tool.toolu_01VeCKBVWB9vHCCmWmLU7Yec>
+Successfully replaced content in /Users/andreas/projects/greger.el/greger-tools.el. Successfully staged 2 file(s) and committed with message: Add greger-tool struct for tracking executing tools
+</tool.toolu_01VeCKBVWB9vHCCmWmLU7Yec>
+
+
+## ASSISTANT:
+
+Now I need to update greger-tools-execute to return a greger-tool struct. Let me modify this function:
+
+## TOOL USE:
+
+Name: str-replace
+ID: toolu_0186cKjef6bF8mw8Udi75F14
+
+### file-path
+
+<tool.toolu_0186cKjef6bF8mw8Udi75F14>
+greger-tools.el
+</tool.toolu_0186cKjef6bF8mw8Udi75F14>
+
+### original-content
+
+<tool.toolu_0186cKjef6bF8mw8Udi75F14>
+(defun greger-tools-execute (tool-name args callback buffer &optional metadata)
+  "Execute TOOL-NAME with ARGS and call CALLBACK with (result error).
+If the tool has :pass-buffer set, BUFFER will be passed to the tool function.
+If the tool has :pass-callback set, CALLBACK will be passed to the tool
+function instead of `greger-tools-execute' calling the callback with result.
+If the tool has :pass-metadata set, METADATA will be passed to the tool
+function."
+
+  (let ((tool-def (gethash tool-name greger-tools-registry)))
+    (if tool-def
+        (let ((func (plist-get tool-def :function))
+              (pass-buffer (plist-get tool-def :pass-buffer))
+              (pass-callback (plist-get tool-def :pass-callback))
+              (pass-metadata (plist-get tool-def :pass-metadata)))
+          ;; Add buffer parameter if pass-buffer is set and buffer is provided
+          (when (and pass-buffer buffer)
+            (setq args (cons (cons 'buffer buffer) args)))
+          ;; Add callback parameter if pass-callback is set
+          (when pass-callback
+            (setq args (cons (cons 'callback callback) args)))
+          ;; Add metadata parameter if pass-metadata is set and metadata is provided
+          (when (and pass-metadata metadata)
+            (setq args (cons (cons 'metadata metadata) args)))
+          (condition-case err
+              (if pass-callback
+                  ;; When pass-callback is set, the function handles calling the callback
+                  (greger-tools--call-function-with-args func args tool-def)
+                ;; Normal case: call callback with result
+                (let ((result (greger-tools--call-function-with-args func args tool-def)))
+                  (funcall callback result nil)))
+            (error
+             (funcall callback nil err))))
+      (funcall callback nil (format "Unknown tool: %s" tool-name)))))
+</tool.toolu_0186cKjef6bF8mw8Udi75F14>
+
+### new-content
+
+<tool.toolu_0186cKjef6bF8mw8Udi75F14>
+(defun greger-tools-execute (tool-name args callback buffer &optional metadata)
+  "Execute TOOL-NAME with ARGS and call CALLBACK with (result error).
+Returns a greger-tool struct for tracking execution and cancellation.
+If the tool has :pass-buffer set, BUFFER will be passed to the tool function.
+If the tool has :pass-callback set, CALLBACK will be passed to the tool
+function instead of `greger-tools-execute' calling the callback with result.
+If the tool has :pass-metadata set, METADATA will be passed to the tool
+function."
+
+  (let ((tool-def (gethash tool-name greger-tools-registry))
+        (cancel-fn nil))
+    (if tool-def
+        (let ((func (plist-get tool-def :function))
+              (pass-buffer (plist-get tool-def :pass-buffer))
+              (pass-callback (plist-get tool-def :pass-callback))
+              (pass-metadata (plist-get tool-def :pass-metadata)))
+          ;; Add buffer parameter if pass-buffer is set and buffer is provided
+          (when (and pass-buffer buffer)
+            (setq args (cons (cons 'buffer buffer) args)))
+          ;; Add callback parameter if pass-callback is set
+          (when pass-callback
+            (setq args (cons (cons 'callback callback) args)))
+          ;; Add metadata parameter if pass-metadata is set and metadata is provided
+          (when (and pass-metadata metadata)
+            (setq args (cons (cons 'metadata metadata) args)))
+          (condition-case err
+              (if pass-callback
+                  ;; When pass-callback is set, the function handles calling the callback
+                  (let ((result (greger-tools--call-function-with-args func args tool-def)))
+                    (when (functionp result)
+                      (setq cancel-fn result)))
+                ;; Normal case: call callback with result
+                (let ((result (greger-tools--call-function-with-args func args tool-def)))
+                  (when (functionp result)
+                    (setq cancel-fn result))
+                  (funcall callback result nil)))
+            (error
+             (funcall callback nil err))))
+      (funcall callback nil (format "Unknown tool: %s" tool-name)))
+    ;; Return greger-tool struct
+    (make-greger-tool :cancel-fn cancel-fn)))
+</tool.toolu_0186cKjef6bF8mw8Udi75F14>
+
+### git-commit-message
+
+<tool.toolu_0186cKjef6bF8mw8Udi75F14>
+Update greger-tools-execute to return greger-tool struct and capture cancel functions
+</tool.toolu_0186cKjef6bF8mw8Udi75F14>
+
+<!-- TOOL_RESULT_PLACEHOLDER_toolu_0186cKjef6bF8mw8Udi75F14 -->

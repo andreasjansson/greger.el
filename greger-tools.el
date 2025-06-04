@@ -100,13 +100,15 @@ Example:
 
 (defun greger-tools-execute (tool-name args callback buffer &optional metadata)
   "Execute TOOL-NAME with ARGS and call CALLBACK with (result error).
+Returns a greger-tool struct for tracking execution and cancellation.
 If the tool has :pass-buffer set, BUFFER will be passed to the tool function.
 If the tool has :pass-callback set, CALLBACK will be passed to the tool
 function instead of `greger-tools-execute' calling the callback with result.
 If the tool has :pass-metadata set, METADATA will be passed to the tool
 function."
 
-  (let ((tool-def (gethash tool-name greger-tools-registry)))
+  (let ((tool-def (gethash tool-name greger-tools-registry))
+        (cancel-fn nil))
     (if tool-def
         (let ((func (plist-get tool-def :function))
               (pass-buffer (plist-get tool-def :pass-buffer))
@@ -124,13 +126,19 @@ function."
           (condition-case err
               (if pass-callback
                   ;; When pass-callback is set, the function handles calling the callback
-                  (greger-tools--call-function-with-args func args tool-def)
+                  (let ((result (greger-tools--call-function-with-args func args tool-def)))
+                    (when (functionp result)
+                      (setq cancel-fn result)))
                 ;; Normal case: call callback with result
                 (let ((result (greger-tools--call-function-with-args func args tool-def)))
+                  (when (functionp result)
+                    (setq cancel-fn result))
                   (funcall callback result nil)))
             (error
              (funcall callback nil err))))
-      (funcall callback nil (format "Unknown tool: %s" tool-name)))))
+      (funcall callback nil (format "Unknown tool: %s" tool-name)))
+    ;; Return greger-tool struct
+    (make-greger-tool :cancel-fn cancel-fn)))
 
 (defun greger-tools--call-function-with-args (func args tool-def)
   "Call FUNC with arguments extracted from ARGS alist based on function signature.
