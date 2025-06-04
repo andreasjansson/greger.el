@@ -265,6 +265,9 @@ Returns nil if no error found or if OUTPUT is not valid JSON."
              (content-block (copy-alist (alist-get 'content_block data)))
              (blocks (greger-client-state-parsed-content-blocks state)))
 
+        (message "DEBUG: content_block_start - type: %s, index: %d"
+                 (alist-get 'type content-block) index)
+
         ;; Initialize content for accumulation
         (cond
          ((string= (alist-get 'type content-block) "tool_use")

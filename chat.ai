@@ -4087,4 +4087,96 @@ greger-tools.el
 Fix server tool registry lookup to handle both symbols and strings
 </tool.toolu_01PFgMkEbF8q8Den9DzmXD5W>
 
-<!-- TOOL_RESULT_PLACEHOLDER_toolu_01PFgMkEbF8q8Den9DzmXD5W -->
+## TOOL RESULT:
+
+ID: toolu_01PFgMkEbF8q8Den9DzmXD5W
+
+<tool.toolu_01PFgMkEbF8q8Den9DzmXD5W>
+Successfully replaced content in /Users/andreas/projects/greger.el/greger-tools.el. Successfully staged 2 file(s) and committed with message: Fix server tool registry lookup to handle both symbols and strings
+</tool.toolu_01PFgMkEbF8q8Den9DzmXD5W>
+
+## ASSISTANT:
+
+Now let me also add debugging to the client to better understand what's happening during the streaming:
+
+## TOOL USE:
+
+Name: str-replace
+ID: toolu_01X9UVTbsiPMHBw7kGCVCKET
+
+### file-path
+
+<tool.toolu_01X9UVTbsiPMHBw7kGCVCKET>
+greger-client.el
+</tool.toolu_01X9UVTbsiPMHBw7kGCVCKET>
+
+### original-content
+
+<tool.toolu_01X9UVTbsiPMHBw7kGCVCKET>
+;; Content block start - create new content block
+     ((string= type "content_block_start")
+      (let* ((index (alist-get 'index data))
+             (content-block (copy-alist (alist-get 'content_block data)))
+             (blocks (greger-client-state-parsed-content-blocks state)))
+
+        ;; Initialize content for accumulation
+        (cond
+         ((string= (alist-get 'type content-block) "tool_use")
+          (setf (alist-get 'input content-block) ""))
+         ((string= (alist-get 'type content-block) "server_tool_use")
+          (setf (alist-get 'input content-block) ""))
+         ((string= (alist-get 'type content-block) "text")
+          (setf (alist-get 'text content-block) ""))
+         ;; web_search_tool_result blocks come with content already populated
+         ((string= (alist-get 'type content-block) "web_search_tool_result")
+          ;; No initialization needed - content is already present
+          nil))
+
+        (when (and (string= (alist-get 'type content-block) "text")
+                   (greger-client-state-text-start-callback state))
+          (funcall (greger-client-state-text-start-callback state)))
+
+        ;; Add block at the right index
+        (greger-client--ensure-block-at-index blocks index content-block state)))
+</tool.toolu_01X9UVTbsiPMHBw7kGCVCKET>
+
+### new-content
+
+<tool.toolu_01X9UVTbsiPMHBw7kGCVCKET>
+;; Content block start - create new content block
+     ((string= type "content_block_start")
+      (let* ((index (alist-get 'index data))
+             (content-block (copy-alist (alist-get 'content_block data)))
+             (blocks (greger-client-state-parsed-content-blocks state)))
+
+        (message "DEBUG: content_block_start - type: %s, index: %d" 
+                 (alist-get 'type content-block) index)
+
+        ;; Initialize content for accumulation
+        (cond
+         ((string= (alist-get 'type content-block) "tool_use")
+          (setf (alist-get 'input content-block) ""))
+         ((string= (alist-get 'type content-block) "server_tool_use")
+          (setf (alist-get 'input content-block) ""))
+         ((string= (alist-get 'type content-block) "text")
+          (setf (alist-get 'text content-block) ""))
+         ;; web_search_tool_result blocks come with content already populated
+         ((string= (alist-get 'type content-block) "web_search_tool_result")
+          ;; No initialization needed - content is already present
+          nil))
+
+        (when (and (string= (alist-get 'type content-block) "text")
+                   (greger-client-state-text-start-callback state))
+          (funcall (greger-client-state-text-start-callback state)))
+
+        ;; Add block at the right index
+        (greger-client--ensure-block-at-index blocks index content-block state)))
+</tool.toolu_01X9UVTbsiPMHBw7kGCVCKET>
+
+### git-commit-message
+
+<tool.toolu_01X9UVTbsiPMHBw7kGCVCKET>
+Add debugging for content block start events
+</tool.toolu_01X9UVTbsiPMHBw7kGCVCKET>
+
+<!-- TOOL_RESULT_PLACEHOLDER_toolu_01X9UVTbsiPMHBw7kGCVCKET -->
