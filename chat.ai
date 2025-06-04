@@ -1323,4 +1323,75 @@ The AI needs time to process the request and decide to use
 the shell command tool before state becomes 'executing.
 </tool.toolu_01LbvMEzXs8vrQneHyntc8C6>
 
-<!-- TOOL_RESULT_PLACEHOLDER_toolu_01LbvMEzXs8vrQneHyntc8C6 -->
+## TOOL RESULT:
+
+ID: toolu_01LbvMEzXs8vrQneHyntc8C6
+
+<tool.toolu_01LbvMEzXs8vrQneHyntc8C6>
+Successfully replaced content in /Users/andreas/projects/greger.el/test/test-end-to-end.el. Successfully staged 2 file(s) and committed with message: Increase wait time for executing state
+
+The AI needs time to process the request and decide to use
+the shell command tool before state becomes 'executing.
+</tool.toolu_01LbvMEzXs8vrQneHyntc8C6>
+
+## ASSISTANT:
+
+Let me also check whether we need to make sure the shell command is actually being executed by looking at the buffer content:
+
+## TOOL USE:
+
+Name: str-replace
+ID: toolu_01QzvLS1wyudLxFQpgK1Kb2T
+
+### file-path
+
+<tool.toolu_01QzvLS1wyudLxFQpgK1Kb2T>
+test/test-end-to-end.el
+</tool.toolu_01QzvLS1wyudLxFQpgK1Kb2T>
+
+### original-content
+
+<tool.toolu_01QzvLS1wyudLxFQpgK1Kb2T>
+;; Wait until state becomes 'executing (should happen after AI decides to use shell tool)
+          (let ((max-wait 20.0)  ; Give more time for AI to process and decide to use tool
+                (start-time (current-time))
+                (state-found nil))
+            (while (and (not state-found)
+                       (< (float-time (time-subtract (current-time) start-time)) max-wait))
+              (sit-for 0.1)
+              (when (eq (greger--get-current-state) 'executing)
+                (setq state-found t)))
+            (should state-found))
+</tool.toolu_01QzvLS1wyudLxFQpgK1Kb2T>
+
+### new-content
+
+<tool.toolu_01QzvLS1wyudLxFQpgK1Kb2T>
+;; Wait until state becomes 'executing (should happen after AI decides to use shell tool)
+          (let ((max-wait 20.0)  ; Give more time for AI to process and decide to use tool
+                (start-time (current-time))
+                (state-found nil))
+            (while (and (not state-found)
+                       (< (float-time (time-subtract (current-time) start-time)) max-wait))
+              (sit-for 0.1)
+              (let ((current-state (greger--get-current-state)))
+                (when (eq current-state 'executing)
+                  (setq state-found t))
+                ;; Debug: print current state if we're taking too long
+                (when (> (float-time (time-subtract (current-time) start-time)) 15.0)
+                  (message "Current state: %s, buffer content contains shell-command: %s" 
+                          current-state
+                          (string-match-p "shell-command" (buffer-string))))))
+            (should state-found))
+</tool.toolu_01QzvLS1wyudLxFQpgK1Kb2T>
+
+### git-commit-message
+
+<tool.toolu_01QzvLS1wyudLxFQpgK1Kb2T>
+Add debug info to state transition test
+
+Add debugging to understand why the test might fail
+to reach executing state.
+</tool.toolu_01QzvLS1wyudLxFQpgK1Kb2T>
+
+<!-- TOOL_RESULT_PLACEHOLDER_toolu_01QzvLS1wyudLxFQpgK1Kb2T -->
