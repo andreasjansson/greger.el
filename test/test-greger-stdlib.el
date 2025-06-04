@@ -757,9 +757,11 @@ drwx------  (dir)  ..
 
 (ert-deftest greger-test-list-directory-exclude-directories-recursive ()
   "Test list-directory exclude-directories-recursive functionality."
-  (let ((test-dir (make-temp-file "greger-test-dir" t)))
+  (let ((test-dir (greger-test--make-controlled-temp-dir "greger-test-dir"))
+        (parent-dir nil))
     (unwind-protect
         (progn
+          (setq parent-dir (file-name-directory (directory-file-name test-dir)))
           ;; Create test structure with directories and files
           (let ((keep-dir (expand-file-name "keepdir" test-dir))
                 (exclude-dir (expand-file-name ".git" test-dir))
@@ -809,8 +811,8 @@ drwx------  (dir)  ..
               (should (string= expected result)))))
 
       ;; Clean up
-      (when (file-exists-p test-dir)
-        (delete-directory test-dir t)))))
+      (when (and parent-dir (file-exists-p parent-dir))
+        (delete-directory parent-dir t)))))
 
 (ert-deftest greger-test-list-directory-recursive ()
   "Test list-directory recursive functionality."

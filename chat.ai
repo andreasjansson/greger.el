@@ -916,4 +916,157 @@ drwx------  (dir)  .." (file-name-as-directory test-dir))))
 Fix greger-test-list-directory-empty-dir to use controlled temp directory
 </tool.toolu_016QsKGNJeq9ZGPnXDHQHPxM>
 
-<!-- TOOL_RESULT_PLACEHOLDER_toolu_016QsKGNJeq9ZGPnXDHQHPxM -->
+## TOOL RESULT:
+
+ID: toolu_016QsKGNJeq9ZGPnXDHQHPxM
+
+<tool.toolu_016QsKGNJeq9ZGPnXDHQHPxM>
+Successfully replaced content in /Users/andreas/projects/greger.el/test/test-greger-stdlib.el. Successfully staged 2 file(s) and committed with message: Fix greger-test-list-directory-empty-dir to use controlled temp directory
+</tool.toolu_016QsKGNJeq9ZGPnXDHQHPxM>
+
+## ASSISTANT:
+
+Now let me update the exclude-directories-recursive test:
+
+## TOOL USE:
+
+Name: str-replace
+ID: toolu_01SESZkwfKPAzxJx7Lf5XJSK
+
+### file-path
+
+<tool.toolu_01SESZkwfKPAzxJx7Lf5XJSK>
+test/test-greger-stdlib.el
+</tool.toolu_01SESZkwfKPAzxJx7Lf5XJSK>
+
+### original-content
+
+<tool.toolu_01SESZkwfKPAzxJx7Lf5XJSK>
+(ert-deftest greger-test-list-directory-exclude-directories-recursive ()
+  "Test list-directory exclude-directories-recursive functionality."
+  (let ((test-dir (make-temp-file "greger-test-dir" t)))
+    (unwind-protect
+        (progn
+          ;; Create test structure with directories and files
+          (let ((keep-dir (expand-file-name "keepdir" test-dir))
+                (exclude-dir (expand-file-name ".git" test-dir))
+                (file1 (expand-file-name "file1.txt" test-dir)))
+
+            (make-directory keep-dir)
+            (make-directory exclude-dir)
+            (with-temp-file file1 (insert "content"))
+            (with-temp-file (expand-file-name "kept.txt" keep-dir) (insert "kept"))
+            (with-temp-file (expand-file-name "excluded.txt" exclude-dir) (insert "excluded"))
+
+            ;; Test with default exclude pattern - should exclude .git directory from recursion
+            (let ((result (greger-stdlib--list-directory test-dir [".git" "__pycache__"] t))
+                  (expected (format "%s:
+drwx------  (dir)  .
+drwx------  (dir)  ..
+drwxr-xr-x  (dir)  .git
+-rw-r--r--         7  file1.txt
+drwxr-xr-x  (dir)  keepdir
+
+%skeepdir/:
+drwxr-xr-x  (dir)  .
+drwx------  (dir)  ..
+-rw-r--r--         4  kept.txt" (file-name-as-directory test-dir) (file-name-as-directory test-dir))))
+              (should (stringp result))
+              (should (string= expected result)))
+
+            ;; Test with empty exclude pattern - should recurse into all directories including .git
+            (let ((result (greger-stdlib--list-directory test-dir [] t))
+                  (expected (format "%s:
+drwx------  (dir)  .
+drwx------  (dir)  ..
+drwxr-xr-x  (dir)  .git
+-rw-r--r--         7  file1.txt
+drwxr-xr-x  (dir)  keepdir
+
+%s.git/:
+drwxr-xr-x  (dir)  .
+drwx------  (dir)  ..
+-rw-r--r--         8  excluded.txt
+
+%skeepdir/:
+drwxr-xr-x  (dir)  .
+drwx------  (dir)  ..
+-rw-r--r--         4  kept.txt" (file-name-as-directory test-dir) (file-name-as-directory test-dir) (file-name-as-directory test-dir))))
+              (should (stringp result))
+              (should (string= expected result)))))
+
+      ;; Clean up
+      (when (file-exists-p test-dir)
+        (delete-directory test-dir t)))))
+</tool.toolu_01SESZkwfKPAzxJx7Lf5XJSK>
+
+### new-content
+
+<tool.toolu_01SESZkwfKPAzxJx7Lf5XJSK>
+(ert-deftest greger-test-list-directory-exclude-directories-recursive ()
+  "Test list-directory exclude-directories-recursive functionality."
+  (let ((test-dir (greger-test--make-controlled-temp-dir "greger-test-dir"))
+        (parent-dir nil))
+    (unwind-protect
+        (progn
+          (setq parent-dir (file-name-directory (directory-file-name test-dir)))
+          ;; Create test structure with directories and files
+          (let ((keep-dir (expand-file-name "keepdir" test-dir))
+                (exclude-dir (expand-file-name ".git" test-dir))
+                (file1 (expand-file-name "file1.txt" test-dir)))
+
+            (make-directory keep-dir)
+            (make-directory exclude-dir)
+            (with-temp-file file1 (insert "content"))
+            (with-temp-file (expand-file-name "kept.txt" keep-dir) (insert "kept"))
+            (with-temp-file (expand-file-name "excluded.txt" exclude-dir) (insert "excluded"))
+
+            ;; Test with default exclude pattern - should exclude .git directory from recursion
+            (let ((result (greger-stdlib--list-directory test-dir [".git" "__pycache__"] t))
+                  (expected (format "%s:
+drwx------  (dir)  .
+drwx------  (dir)  ..
+drwxr-xr-x  (dir)  .git
+-rw-r--r--         7  file1.txt
+drwxr-xr-x  (dir)  keepdir
+
+%skeepdir/:
+drwxr-xr-x  (dir)  .
+drwx------  (dir)  ..
+-rw-r--r--         4  kept.txt" (file-name-as-directory test-dir) (file-name-as-directory test-dir))))
+              (should (stringp result))
+              (should (string= expected result)))
+
+            ;; Test with empty exclude pattern - should recurse into all directories including .git
+            (let ((result (greger-stdlib--list-directory test-dir [] t))
+                  (expected (format "%s:
+drwx------  (dir)  .
+drwx------  (dir)  ..
+drwxr-xr-x  (dir)  .git
+-rw-r--r--         7  file1.txt
+drwxr-xr-x  (dir)  keepdir
+
+%s.git/:
+drwxr-xr-x  (dir)  .
+drwx------  (dir)  ..
+-rw-r--r--         8  excluded.txt
+
+%skeepdir/:
+drwxr-xr-x  (dir)  .
+drwx------  (dir)  ..
+-rw-r--r--         4  kept.txt" (file-name-as-directory test-dir) (file-name-as-directory test-dir) (file-name-as-directory test-dir))))
+              (should (stringp result))
+              (should (string= expected result)))))
+
+      ;; Clean up
+      (when (and parent-dir (file-exists-p parent-dir))
+        (delete-directory parent-dir t)))))
+</tool.toolu_01SESZkwfKPAzxJx7Lf5XJSK>
+
+### git-commit-message
+
+<tool.toolu_01SESZkwfKPAzxJx7Lf5XJSK>
+Fix greger-test-list-directory-exclude-directories-recursive to use controlled temp directory
+</tool.toolu_01SESZkwfKPAzxJx7Lf5XJSK>
+
+<!-- TOOL_RESULT_PLACEHOLDER_toolu_01SESZkwfKPAzxJx7Lf5XJSK -->
