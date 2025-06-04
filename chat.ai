@@ -5197,4 +5197,51 @@ testdir:
 Update recursive test to reflect removal of . and .. entries and use dynamic path
 </tool.toolu_01J3gbbgBgNWuytjhaf2nN6q>
 
-<!-- TOOL_RESULT_PLACEHOLDER_toolu_01J3gbbgBgNWuytjhaf2nN6q -->
+## TOOL RESULT:
+
+ID: toolu_01J3gbbgBgNWuytjhaf2nN6q
+
+<tool.toolu_01J3gbbgBgNWuytjhaf2nN6q>
+Successfully replaced content in /Users/andreas/projects/greger.el/test/test-greger-stdlib.el. Successfully staged 2 file(s) and committed with message: Update recursive test to reflect removal of . and .. entries and use dynamic path
+</tool.toolu_01J3gbbgBgNWuytjhaf2nN6q>
+
+
+## TOOL USE:
+
+Name: str-replace
+ID: toolu_0118FaRzSZpQsAQNiS8Boyrn
+
+### file-path
+
+<tool.toolu_0118FaRzSZpQsAQNiS8Boyrn>
+test/test-greger-stdlib.el
+</tool.toolu_0118FaRzSZpQsAQNiS8Boyrn>
+
+### original-content
+
+<tool.toolu_0118FaRzSZpQsAQNiS8Boyrn>
+;; Test empty directory - should still show . and .. entries
+          (let ((result (greger-stdlib--list-directory test-dir))
+                (expected "drwxr-xr-x       96  .
+drwxrwxrwt     2368  .."))
+            (should (stringp result))
+            (should (string= expected result)))
+</tool.toolu_0118FaRzSZpQsAQNiS8Boyrn>
+
+### new-content
+
+<tool.toolu_0118FaRzSZpQsAQNiS8Boyrn>
+;; Test empty directory - should return empty directory message
+          (let ((result (greger-stdlib--list-directory test-dir))
+                (expected "Directory is empty"))
+            (should (stringp result))
+            (should (string= expected result)))
+</tool.toolu_0118FaRzSZpQsAQNiS8Boyrn>
+
+### git-commit-message
+
+<tool.toolu_0118FaRzSZpQsAQNiS8Boyrn>
+Update empty dir test to reflect removal of . and .. entries
+</tool.toolu_0118FaRzSZpQsAQNiS8Boyrn>
+
+<!-- TOOL_RESULT_PLACEHOLDER_toolu_0118FaRzSZpQsAQNiS8Boyrn -->

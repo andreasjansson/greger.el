@@ -817,10 +817,9 @@ testdir:
   (let ((test-dir (make-temp-file "greger-test-empty-dir" t)))
     (unwind-protect
         (progn
-          ;; Test empty directory - should still show . and .. entries
+          ;; Test empty directory - should return empty directory message
           (let ((result (greger-stdlib--list-directory test-dir))
-                (expected "drwxr-xr-x       96  .
-drwxrwxrwt     2368  .."))
+                (expected "Directory is empty"))
             (should (stringp result))
             (should (string= expected result))))
 
