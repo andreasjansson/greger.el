@@ -770,7 +770,7 @@ drwx------  (dir)  ..
               (should (string= expected result)))
 
             ;; Test with empty exclude pattern - should recurse into all directories including .git
-            (let ((result (greger-stdlib--list-directory test-dir "" t))
+            (let ((result (greger-stdlib--list-directory test-dir '() t))
                   (expected (format "%s:
 drwx------  (dir)  .
 drwx------  (dir)  ..
