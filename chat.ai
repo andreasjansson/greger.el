@@ -6346,4 +6346,428 @@ greger.el
 Ensure greger-tools is required for greger-tool struct access
 </tool.toolu_01WwQ2aVW5FBiDBoY43D77QP>
 
-<!-- TOOL_RESULT_PLACEHOLDER_toolu_01WwQ2aVW5FBiDBoY43D77QP -->
+## TOOL RESULT:
+
+ID: toolu_01WwQ2aVW5FBiDBoY43D77QP
+
+<tool.toolu_01WwQ2aVW5FBiDBoY43D77QP>
+Successfully replaced content in /Users/andreas/projects/greger.el/greger.el. Successfully staged 2 file(s) and committed with message: Ensure greger-tools is required for greger-tool struct access
+</tool.toolu_01WwQ2aVW5FBiDBoY43D77QP>
+
+
+## ASSISTANT:
+
+Now let me create some tests for the new functionality. Let me add tests to test-greger-tools.el:
+
+## TOOL USE:
+
+Name: read-file
+ID: toolu_01U6dA9uPWhXVPZ3QVjTxGS2
+
+### path
+
+<tool.toolu_01U6dA9uPWhXVPZ3QVjTxGS2>
+test/test-greger-tools.el
+</tool.toolu_01U6dA9uPWhXVPZ3QVjTxGS2>
+
+### start-line
+
+<tool.toolu_01U6dA9uPWhXVPZ3QVjTxGS2>
+1
+</tool.toolu_01U6dA9uPWhXVPZ3QVjTxGS2>
+
+### end-line
+
+<tool.toolu_01U6dA9uPWhXVPZ3QVjTxGS2>
+30
+</tool.toolu_01U6dA9uPWhXVPZ3QVjTxGS2>
+
+## TOOL RESULT:
+
+ID: toolu_01U6dA9uPWhXVPZ3QVjTxGS2
+
+<tool.toolu_01U6dA9uPWhXVPZ3QVjTxGS2>
+;;; test-greger-tools.el --- Tests for greger tools -*- lexical-binding: t -*-
+
+(require 'ert)
+(require 'greger-tools)
+
+(ert-deftest greger-tools-test-tool-registration-and-execution ()
+  "Test that tools can be registered and executed correctly."
+  ;; Define a simple test function
+  (defun greger-test-subtract-numbers (a b)
+    (- a b))
+
+  ;; Register a test tool
+  (greger-register-tool "test-subtract"
+    :description "Subtract second number from first number"
+    :properties '((a . ((type . "integer")
+                        (description . "First number")))
+                  (b . ((type . "integer")
+                        (description . "Second number"))))
+    :required '("a" "b")
+    :function 'greger-test-subtract-numbers)
+
+  ;; Test that the tool was registered
+  (should (gethash "test-subtract" greger-tools-registry))
+
+  ;; Test getting tool schema
+  (let ((schemas (greger-tools-get-schemas '("test-subtract"))))
+    (should (= 1 (length schemas)))
+    (let ((schema (car schemas)))
+      (should (string= "test-subtract" (alist-get 'name schema)))
+      (should (string= "Subtract second number from first number" (alist-get 'description schema)))))
+</tool.toolu_01U6dA9uPWhXVPZ3QVjTxGS2>
+
+## ASSISTANT:
+
+Let me find the end of this file to add new tests:
+
+## TOOL USE:
+
+Name: read-file
+ID: toolu_01UVjCVTJeaKu1hdycXMhZNV
+
+### path
+
+<tool.toolu_01UVjCVTJeaKu1hdycXMhZNV>
+test/test-greger-tools.el
+</tool.toolu_01UVjCVTJeaKu1hdycXMhZNV>
+
+### start-line
+
+<tool.toolu_01UVjCVTJeaKu1hdycXMhZNV>
+750
+</tool.toolu_01UVjCVTJeaKu1hdycXMhZNV>
+
+### end-line
+
+<tool.toolu_01UVjCVTJeaKu1hdycXMhZNV>
+-1
+</tool.toolu_01UVjCVTJeaKu1hdycXMhZNV>
+
+## TOOL RESULT:
+
+ID: toolu_01UVjCVTJeaKu1hdycXMhZNV
+
+<tool.toolu_01UVjCVTJeaKu1hdycXMhZNV>
+Error executing tool: Invalid value: end-line must be >= 1
+</tool.toolu_01UVjCVTJeaKu1hdycXMhZNV>
+
+## TOOL USE:
+
+Name: ripgrep
+ID: toolu_018rgDpUA8bxrU9MYr839Wmq
+
+### pattern
+
+<tool.toolu_018rgDpUA8bxrU9MYr839Wmq>
+provide
+</tool.toolu_018rgDpUA8bxrU9MYr839Wmq>
+
+### path
+
+<tool.toolu_018rgDpUA8bxrU9MYr839Wmq>
+test/test-greger-tools.el
+</tool.toolu_018rgDpUA8bxrU9MYr839Wmq>
+
+## TOOL RESULT:
+
+ID: toolu_018rgDpUA8bxrU9MYr839Wmq
+
+<tool.toolu_018rgDpUA8bxrU9MYr839Wmq>
+91:(provide 'test-greger-tools)
+129:                            (optional-param1 . "provided1"))
+131:    (should (string= "required: test, opt1: provided1, opt2: default2" result))
+134:  ;; Test with all parameters provided
+139:                            (optional-param1 . "provided1")
+140:                            (optional-param2 . "provided2"))
+142:    (should (string= "required: test, opt1: provided1, opt2: provided2" result))
+272:                            (optional-param . "provided"))
+274:    (should (string= "req1: value1, req2: value2, opt: provided" result))
+
+</tool.toolu_018rgDpUA8bxrU9MYr839Wmq>
+
+## TOOL USE:
+
+Name: read-file
+ID: toolu_01XKC93rK1nTSgCrssZywJa9
+
+### path
+
+<tool.toolu_01XKC93rK1nTSgCrssZywJa9>
+test/test-greger-tools.el
+</tool.toolu_01XKC93rK1nTSgCrssZywJa9>
+
+### start-line
+
+<tool.toolu_01XKC93rK1nTSgCrssZywJa9>
+85
+</tool.toolu_01XKC93rK1nTSgCrssZywJa9>
+
+### end-line
+
+<tool.toolu_01XKC93rK1nTSgCrssZywJa9>
+95
+</tool.toolu_01XKC93rK1nTSgCrssZywJa9>
+
+## TOOL RESULT:
+
+ID: toolu_01XKC93rK1nTSgCrssZywJa9
+
+<tool.toolu_01XKC93rK1nTSgCrssZywJa9>
+    (should (string= "file: /path/to/file, message: test commit" result))
+    (should (null error)))
+
+  ;; Clean up
+  (remhash "test-hyphens" greger-tools-registry))
+
+(provide 'test-greger-tools)
+
+(ert-deftest greger-tools-test-optional-parameters ()
+  "Test that tools work correctly with optional parameters."
+  ;; Define a test function with optional parameters
+</tool.toolu_01XKC93rK1nTSgCrssZywJa9>
+
+## ASSISTANT:
+
+I can see the file structure is a bit messy. Let me find a better location to add the tests:
+
+## TOOL USE:
+
+Name: read-file
+ID: toolu_0171awsuQ8itBUBAuYcRapdb
+
+### path
+
+<tool.toolu_0171awsuQ8itBUBAuYcRapdb>
+test/test-greger-tools.el
+</tool.toolu_0171awsuQ8itBUBAuYcRapdb>
+
+### start-line
+
+<tool.toolu_0171awsuQ8itBUBAuYcRapdb>
+700
+</tool.toolu_0171awsuQ8itBUBAuYcRapdb>
+
+### end-line
+
+<tool.toolu_0171awsuQ8itBUBAuYcRapdb>
+750
+</tool.toolu_0171awsuQ8itBUBAuYcRapdb>
+
+## TOOL RESULT:
+
+ID: toolu_0171awsuQ8itBUBAuYcRapdb
+
+<tool.toolu_0171awsuQ8itBUBAuYcRapdb>
+Start index out of bounds: 699
+</tool.toolu_0171awsuQ8itBUBAuYcRapdb>
+
+## TOOL USE:
+
+Name: shell-command
+ID: toolu_014nUrKHzi3tr5qZSxUWNsig
+
+### command
+
+<tool.toolu_014nUrKHzi3tr5qZSxUWNsig>
+wc -l test/test-greger-tools.el
+</tool.toolu_014nUrKHzi3tr5qZSxUWNsig>
+
+## TOOL RESULT:
+
+ID: toolu_014nUrKHzi3tr5qZSxUWNsig
+
+<tool.toolu_014nUrKHzi3tr5qZSxUWNsig>
+Command executed successfully:
+     690 test/test-greger-tools.el
+
+</tool.toolu_014nUrKHzi3tr5qZSxUWNsig>
+
+## TOOL USE:
+
+Name: read-file
+ID: toolu_01RYCXx4owbzFc6PYFS6mRxq
+
+### path
+
+<tool.toolu_01RYCXx4owbzFc6PYFS6mRxq>
+test/test-greger-tools.el
+</tool.toolu_01RYCXx4owbzFc6PYFS6mRxq>
+
+### start-line
+
+<tool.toolu_01RYCXx4owbzFc6PYFS6mRxq>
+680
+</tool.toolu_01RYCXx4owbzFc6PYFS6mRxq>
+
+### end-line
+
+<tool.toolu_01RYCXx4owbzFc6PYFS6mRxq>
+690
+</tool.toolu_01RYCXx4owbzFc6PYFS6mRxq>
+
+## TOOL RESULT:
+
+ID: toolu_01RYCXx4owbzFc6PYFS6mRxq
+
+<tool.toolu_01RYCXx4owbzFc6PYFS6mRxq>
+        (error nil))
+    (greger-tools-execute "test-fallback"
+                          '((items . "[invalid json"))
+                          (lambda (r e) (setq result r error e)) nil)
+    (should (string= "received: [invalid json (type: string)" result))
+    (should (null error)))
+
+  ;; Clean up
+  (remhash "test-fallback" greger-tools-registry))
+
+;;; test-greger-tools.el ends here
+</tool.toolu_01RYCXx4owbzFc6PYFS6mRxq>
+
+## ASSISTANT:
+
+Now I'll add tests for the greger-tool functionality:
+
+## TOOL USE:
+
+Name: str-replace
+ID: toolu_0184egDYxhdYU5nCTiEjmjVu
+
+### file-path
+
+<tool.toolu_0184egDYxhdYU5nCTiEjmjVu>
+test/test-greger-tools.el
+</tool.toolu_0184egDYxhdYU5nCTiEjmjVu>
+
+### original-content
+
+<tool.toolu_0184egDYxhdYU5nCTiEjmjVu>
+;; Clean up
+  (remhash "test-fallback" greger-tools-registry))
+
+;;; test-greger-tools.el ends here
+</tool.toolu_0184egDYxhdYU5nCTiEjmjVu>
+
+### new-content
+
+<tool.toolu_0184egDYxhdYU5nCTiEjmjVu>
+;; Clean up
+  (remhash "test-fallback" greger-tools-registry))
+
+(ert-deftest greger-tools-test-greger-tool-struct-creation ()
+  "Test that greger-tools-execute returns a greger-tool struct."
+  ;; Define a simple test function
+  (defun greger-test-simple-return ()
+    "Just return a string")
+
+  ;; Register a test tool
+  (greger-register-tool "test-simple-struct"
+    :description "Simple tool for testing greger-tool struct"
+    :properties '()
+    :required '()
+    :function 'greger-test-simple-return)
+
+  (let ((result nil)
+        (error nil)
+        (greger-tool nil))
+
+    ;; Execute the tool and capture the greger-tool struct
+    (setq greger-tool (greger-tools-execute "test-simple-struct"
+                                            '()
+                                            (lambda (r e) (setq result r error e)) nil))
+
+    ;; Should get a greger-tool struct
+    (should (greger-tool-p greger-tool))
+    (should (null (greger-tool-cancel-fn greger-tool)))
+    (should (string= "Just return a string" result))
+    (should (null error)))
+
+  ;; Clean up
+  (remhash "test-simple-struct" greger-tools-registry))
+
+(ert-deftest greger-tools-test-greger-tool-with-cancel-function ()
+  "Test that greger-tools-execute captures cancel functions."
+  ;; Define a test function that returns a cancel function
+  (defun greger-test-with-cancel ()
+    (lambda () "cancelled"))
+
+  ;; Register a test tool
+  (greger-register-tool "test-with-cancel"
+    :description "Tool that returns a cancel function"
+    :properties '()
+    :required '()
+    :function 'greger-test-with-cancel)
+
+  (let ((result nil)
+        (error nil)
+        (greger-tool nil))
+
+    ;; Execute the tool and capture the greger-tool struct
+    (setq greger-tool (greger-tools-execute "test-with-cancel"
+                                            '()
+                                            (lambda (r e) (setq result r error e)) nil))
+
+    ;; Should get a greger-tool struct with a cancel function
+    (should (greger-tool-p greger-tool))
+    (should (functionp (greger-tool-cancel-fn greger-tool)))
+    ;; The result should be the cancel function
+    (should (functionp result))
+    (should (null error))
+
+    ;; Test that the cancel function works
+    (let ((cancel-result (funcall (greger-tool-cancel-fn greger-tool))))
+      (should (string= "cancelled" cancel-result))))
+
+  ;; Clean up
+  (remhash "test-with-cancel" greger-tools-registry))
+
+(ert-deftest greger-tools-test-greger-tool-with-pass-callback ()
+  "Test that greger-tools-execute works with pass-callback tools."
+  ;; Define a test function that takes a callback and returns a cancel function
+  (defun greger-test-with-callback-and-cancel (callback)
+    (funcall callback "callback result" nil)
+    (lambda () "callback-cancelled"))
+
+  ;; Register a test tool with pass-callback
+  (greger-register-tool "test-callback-cancel"
+    :description "Tool with callback that returns cancel function"
+    :properties '()
+    :required '()
+    :pass-callback t
+    :function 'greger-test-with-callback-and-cancel)
+
+  (let ((result nil)
+        (error nil)
+        (greger-tool nil))
+
+    ;; Execute the tool and capture the greger-tool struct
+    (setq greger-tool (greger-tools-execute "test-callback-cancel"
+                                            '()
+                                            (lambda (r e) (setq result r error e)) nil))
+
+    ;; Should get a greger-tool struct with a cancel function
+    (should (greger-tool-p greger-tool))
+    (should (functionp (greger-tool-cancel-fn greger-tool)))
+    ;; The callback should have been called
+    (should (string= "callback result" result))
+    (should (null error))
+
+    ;; Test that the cancel function works
+    (let ((cancel-result (funcall (greger-tool-cancel-fn greger-tool))))
+      (should (string= "callback-cancelled" cancel-result))))
+
+  ;; Clean up
+  (remhash "test-callback-cancel" greger-tools-registry))
+
+;;; test-greger-tools.el ends here
+</tool.toolu_0184egDYxhdYU5nCTiEjmjVu>
+
+### git-commit-message
+
+<tool.toolu_0184egDYxhdYU5nCTiEjmjVu>
+Add tests for greger-tool struct functionality
+</tool.toolu_0184egDYxhdYU5nCTiEjmjVu>
+
+<!-- TOOL_RESULT_PLACEHOLDER_toolu_0184egDYxhdYU5nCTiEjmjVu -->
