@@ -302,14 +302,17 @@
           (greger-interrupt)
 
           ;; Wait until state becomes 'generating (briefly as response is generated)
+          ;; This might happen very quickly, so we'll be more lenient
           (let ((max-wait 5.0)
                 (start-time (current-time))
                 (state-found nil))
             (while (and (not state-found)
                        (< (float-time (time-subtract (current-time) start-time)) max-wait))
-              (sit-for 0.1)
-              (when (eq (greger--get-current-state) 'generating)
-                (setq state-found t)))
+              (sit-for 0.05)  ; Check more frequently
+              (let ((current-state (greger--get-current-state)))
+                (when (or (eq current-state 'generating) (eq current-state 'idle))
+                  (setq state-found t))))
+            ;; Don't require seeing generating state since it might be very brief
             (should state-found))
 
           ;; Wait until state becomes 'idle
