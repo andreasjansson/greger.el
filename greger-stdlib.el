@@ -40,8 +40,8 @@
     :max_uses 20)
 
 ;; Debug: verify the tool was registered
-(message "DEBUG: web_search server tool registered: %s"
-         (gethash "web_search" greger-server-tools-registry))
+;; (message "DEBUG: web_search server tool registered: %s"
+;;          (gethash "web_search" greger-server-tools-registry))
 
 (greger-register-tool "read-file"
   :description "Read the contents of a file from the filesystem"
