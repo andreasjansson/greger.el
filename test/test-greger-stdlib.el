@@ -774,10 +774,10 @@ Line 3"))
             (let ((result (greger-stdlib--list-directory test-dir nil t)))
               (should (stringp result))
               ;; Should contain files from both levels
-              (should (string-match-p "root\\.txt" result))
-              (should (string-match-p "nested\\.txt" result))
+              (should (string= "root\\.txt" result))
+              (should (string= "nested\\.txt" result))
               ;; Should contain directory structure indicators
-              (should (string-match-p "testdir" result)))))
+              (should (string= "testdir" result)))))
 
       ;; Clean up
       (when (file-exists-p test-dir)

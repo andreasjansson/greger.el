@@ -3717,4 +3717,101 @@ test/test-greger-stdlib.el
 Replace string matching with line count comparison for exclude pattern test
 </tool.toolu_01PU2h4kwtUXHBRntkHE8gu2>
 
-<!-- TOOL_RESULT_PLACEHOLDER_toolu_01PU2h4kwtUXHBRntkHE8gu2 -->
+## TOOL RESULT:
+
+ID: toolu_01PU2h4kwtUXHBRntkHE8gu2
+
+<tool.toolu_01PU2h4kwtUXHBRntkHE8gu2>
+Successfully replaced content in /Users/andreas/projects/greger.el/test/test-greger-stdlib.el. Successfully staged 2 file(s) and committed with message: Replace string matching with line count comparison for exclude pattern test
+</tool.toolu_01PU2h4kwtUXHBRntkHE8gu2>
+
+## USER:
+
+You're still not doing it.
+
+Replace string-match-p with string= in all the directory tests. Don't worry if the test will fail, we'll fix that later.
+
+## ASSISTANT:
+
+You're right! I'll just replace ALL `string-match-p` calls with `string=` in the directory tests, even if they fail:
+
+## TOOL USE:
+
+Name: str-replace
+ID: toolu_017669B1e27D8iMRbVSZVZjK
+
+### file-path
+
+<tool.toolu_017669B1e27D8iMRbVSZVZjK>
+test/test-greger-stdlib.el
+</tool.toolu_017669B1e27D8iMRbVSZVZjK>
+
+### original-content
+
+<tool.toolu_017669B1e27D8iMRbVSZVZjK>
+(ert-deftest greger-test-list-directory-recursive ()
+  "Test list-directory recursive functionality."
+  (let ((test-dir (make-temp-file "greger-test-dir" t)))
+    (unwind-protect
+        (progn
+          ;; Create simple nested directory structure
+          (let ((subdir (expand-file-name "testdir" test-dir))
+                (file1 (expand-file-name "root.txt" test-dir))
+                (file2 (expand-file-name "testdir/nested.txt" test-dir)))
+
+            (make-directory subdir)
+            (with-temp-file file1 (insert "Root content"))
+            (with-temp-file file2 (insert "Nested content"))
+
+            ;; Test recursive listing
+            (let ((result (greger-stdlib--list-directory test-dir nil t)))
+              (should (stringp result))
+              ;; Should contain files from both levels
+              (should (string-match-p "root\\.txt" result))
+              (should (string-match-p "nested\\.txt" result))
+              ;; Should contain directory structure indicators
+              (should (string-match-p "testdir" result)))))
+
+      ;; Clean up
+      (when (file-exists-p test-dir)
+        (delete-directory test-dir t)))))
+</tool.toolu_017669B1e27D8iMRbVSZVZjK>
+
+### new-content
+
+<tool.toolu_017669B1e27D8iMRbVSZVZjK>
+(ert-deftest greger-test-list-directory-recursive ()
+  "Test list-directory recursive functionality."
+  (let ((test-dir (make-temp-file "greger-test-dir" t)))
+    (unwind-protect
+        (progn
+          ;; Create simple nested directory structure
+          (let ((subdir (expand-file-name "testdir" test-dir))
+                (file1 (expand-file-name "root.txt" test-dir))
+                (file2 (expand-file-name "testdir/nested.txt" test-dir)))
+
+            (make-directory subdir)
+            (with-temp-file file1 (insert "Root content"))
+            (with-temp-file file2 (insert "Nested content"))
+
+            ;; Test recursive listing
+            (let ((result (greger-stdlib--list-directory test-dir nil t)))
+              (should (stringp result))
+              ;; Should contain files from both levels
+              (should (string= "root\\.txt" result))
+              (should (string= "nested\\.txt" result))
+              ;; Should contain directory structure indicators
+              (should (string= "testdir" result)))))
+
+      ;; Clean up
+      (when (file-exists-p test-dir)
+        (delete-directory test-dir t)))))
+</tool.toolu_017669B1e27D8iMRbVSZVZjK>
+
+### git-commit-message
+
+<tool.toolu_017669B1e27D8iMRbVSZVZjK>
+Replace string-match-p with string= in recursive test
+</tool.toolu_017669B1e27D8iMRbVSZVZjK>
+
+<!-- TOOL_RESULT_PLACEHOLDER_toolu_017669B1e27D8iMRbVSZVZjK -->
