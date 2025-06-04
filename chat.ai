@@ -5976,4 +5976,504 @@ greger-stdlib.el
 Disable server tool registration debugging
 </tool.toolu_01Jci92g9VhYPKXQcCCDFBX6>
 
-<!-- TOOL_RESULT_PLACEHOLDER_toolu_01Jci92g9VhYPKXQcCCDFBX6 -->
+## TOOL RESULT:
+
+ID: toolu_01Jci92g9VhYPKXQcCCDFBX6
+
+<tool.toolu_01Jci92g9VhYPKXQcCCDFBX6>
+Successfully replaced content in /Users/andreas/projects/greger.el/greger-stdlib.el. Successfully staged 2 file(s) and committed with message: Disable server tool registration debugging
+</tool.toolu_01Jci92g9VhYPKXQcCCDFBX6>
+
+## ASSISTANT:
+
+Now let's test the web search functionality:
+
+## TOOL USE:
+
+Name: shell-command
+ID: toolu_01M1c6RXuhaD7YECNHhC2AQL
+
+### command
+
+<tool.toolu_01M1c6RXuhaD7YECNHhC2AQL>
+bash script/test --verbose --file test/test-end-to-end.el
+</tool.toolu_01M1c6RXuhaD7YECNHhC2AQL>
+
+## TOOL RESULT:
+
+ID: toolu_01M1c6RXuhaD7YECNHhC2AQL
+
+<tool.toolu_01M1c6RXuhaD7YECNHhC2AQL>
+Command failed with exit code 1: [0;34mRunning ERT tests for greger package...[0m
+
+Running tests in [1;33mtest/test-end-to-end.el[0m (verbose mode)...
+Loading /Users/andreas/projects/greger.el/greger.el (source)...
+Source file ‘/opt/homebrew/Cellar/emacs-plus@29/29.0.90/share/emacs/29.0.91/lisp/net/eww.el’ newer than byte-compiled file; using older file
+Loading /Users/andreas/projects/greger.el/greger-parser.el (source)...
+Loading /Users/andreas/projects/greger.el/greger-stdlib.el (source)...
+Loading /Users/andreas/projects/greger.el/greger-tools.el (source)...
+Loading /Users/andreas/projects/greger.el/greger-client.el (source)...
+Loading /Users/andreas/projects/greger.el/greger-web.el (source)...
+Loading /Users/andreas/projects/greger.el/test/test-end-to-end.el (source)...
+Running 7 tests (2025-06-04 18:57:26+0200, selector ‘t’)
+Using model claude-sonnet-4-20250514
+   passed  1/7  greger-end-to-end-test-greger-function (0.003417 sec)
+Using model claude-sonnet-4-20250514
+   passed  2/7  greger-end-to-end-test-model-configuration (0.000190 sec)
+Using model claude-sonnet-4-20250514
+   passed  3/7  greger-end-to-end-test-no-tools-mode (4.490007 sec)
+Using model claude-sonnet-4-20250514
+Test greger-end-to-end-test-server-tool-web-search backtrace:
+  signal(ert-test-failed (((should (string-match-p "## SERVER TOOL USE
+  ert-fail(((should (string-match-p "## SERVER TOOL USE:" content)) :f
+  (if (unwind-protect (setq value-149 (apply fn-147 args-148)) (setq f
+  (let (form-description-151) (if (unwind-protect (setq value-149 (app
+  (let ((value-149 'ert-form-evaluation-aborted-150)) (let (form-descr
+  (let* ((fn-147 #'string-match-p) (args-148 (condition-case err (let 
+  (let ((content (buffer-string))) (let* ((fn-142 #'string-match-p) (a
+  (let ((greger-server-tools '(web_search))) (goto-char (point-max)) (
+  (progn (greger) (setq greger-buffer (current-buffer)) (let ((greger-
+  (unwind-protect (progn (greger) (setq greger-buffer (current-buffer)
+  (let ((greger-buffer nil)) (unwind-protect (progn (greger) (setq gre
+  (closure (t) nil (let* ((fn-132 #'getenv) (args-133 (condition-case 
+  ert--run-test-internal(#s(ert--test-execution-info :test #s(ert-test
+  ert-run-test(#s(ert-test :name greger-end-to-end-test-server-tool-we
+  ert-run-or-rerun-test(#s(ert--stats :selector t :tests ... :test-map
+  ert-run-tests(t #f(compiled-function (event-type &rest event-args) #
+  ert-run-tests-batch(t)
+  ert-run-tests-batch-and-exit(t)
+  (let ((ert-quiet nil)) (ert-run-tests-batch-and-exit t))
+  (progn (setq debug-on-error t) (add-to-list 'load-path ".") (require
+  eval((progn (setq debug-on-error t) (add-to-list 'load-path ".") (re
+  command-line-1(("--eval" "(progn\n                  (setq debug-on-e
+  command-line()
+  normal-top-level()
+Test greger-end-to-end-test-server-tool-web-search condition:
+    (ert-test-failed
+     ((should
+       (string-match-p "## SERVER TOOL USE:" content))
+      :form
+      (string-match-p "## SERVER TOOL USE:" "## SYSTEM:\n\nYou are a helpful assistant.\n\n## USER:\n\nWhat is the current weather in San Francisco? Please search for this information.\n\n## ASSISTANT:\n\nI'll search for the current weather in San Francisco for you.")
+      :value nil))
+   FAILED  4/7  greger-end-to-end-test-server-tool-web-search (8.133394 sec) at test/test-end-to-end.el:336
+Using model claude-sonnet-4-20250514
+Test greger-end-to-end-test-simple-conversation backtrace:
+  set-buffer(#<killed buffer>)
+  (save-current-buffer (set-buffer (progn (or (progn (and (memq (type-
+  greger--append-text("\n\n## ASSISTANT:\n\n" #s(greger-state :current
+  (closure ((agent-state . #s(greger-state :current-iteration 0 :chat-
+  funcall((closure ((agent-state . #s(greger-state :current-iteration 
+  (progn (funcall (progn (or (progn (and (memq (type-of state) cl-stru
+  (if (and (string= (alist-get 'type content-block) "text") (progn (or
+  (let* ((index (alist-get 'index data)) (content-block (copy-alist (a
+  (cond ((string= type "content_block_start") (let* ((index (alist-get
+  (let* ((data (json-read-from-string data-json)) (type (alist-get 'ty
+  greger-client--handle-claude-event("{\"type\":\"content_block_start\
+  (if (string= data-json "[DONE]") nil (greger-client--handle-claude-e
+  (let ((data-json (substring line 6))) (if (string= data-json "[DONE]
+  (progn (let ((data-json (substring line 6))) (if (string= data-json 
+  (if (string-prefix-p "data: " line) (progn (let ((data-json (substri
+  (let* ((line-end (match-end 0)) (line (substring accumulated 0 (1- l
+  (while (string-match "\n" accumulated) (let* ((line-end (match-end 0
+  (let ((accumulated (progn (or (progn (and (memq ... cl-struct-greger
+  greger-client--process-claude-events(#s(greger-client-state :accumul
+  greger-client--process-output-chunk("ZXSQ5q8NqJC8ptzm40YAw==\",\"pag
+  (closure ((state . #s(greger-client-state :accumulated-output "data:
+  sleep-for(0.2)
+  sit-for(0.2)
+  (while (and (not completed) (< (float-time (time-subtract (current-t
+  (let ((start-time (current-time)) (completed nil) (response-started 
+  greger-test-wait-for-response(#<killed buffer> 30)
+  apply(greger-test-wait-for-response (#<killed buffer> 30))
+  (setq value-40 (apply fn-38 args-39))
+  (unwind-protect (setq value-40 (apply fn-38 args-39)) (setq form-des
+  (if (unwind-protect (setq value-40 (apply fn-38 args-39)) (setq form
+  (let (form-description-42) (if (unwind-protect (setq value-40 (apply
+  (let ((value-40 'ert-form-evaluation-aborted-41)) (let (form-descrip
+  (let* ((fn-38 #'greger-test-wait-for-response) (args-39 (condition-c
+  (progn (greger) (setq greger-buffer (current-buffer)) (goto-char (po
+  (unwind-protect (progn (greger) (setq greger-buffer (current-buffer)
+  (let ((greger-buffer nil)) (unwind-protect (progn (greger) (setq gre
+  (closure (t) nil (let ((greger-buffer nil)) (unwind-protect (progn (
+  ert--run-test-internal(#s(ert--test-execution-info :test ... :result
+  ert-run-test(#s(ert-test :name greger-end-to-end-test-simple-convers
+  ert-run-or-rerun-test(#s(ert--stats :selector t :tests ... :test-map
+  ert-run-tests(t #f(compiled-function (event-type &rest event-args) #
+  ert-run-tests-batch(t)
+  ert-run-tests-batch-and-exit(t)
+  (let ((ert-quiet nil)) (ert-run-tests-batch-and-exit t))
+  (progn (setq debug-on-error t) (add-to-list 'load-path ".") (require
+  eval((progn (setq debug-on-error t) (add-to-list 'load-path ".") (re
+  command-line-1(("--eval" "(progn\n                  (setq debug-on-e
+  command-line()
+  normal-top-level()
+Test greger-end-to-end-test-simple-conversation condition:
+    (error "Selecting deleted buffer")
+   FAILED  5/7  greger-end-to-end-test-simple-conversation (0.875805 sec) at test/test-end-to-end.el:101
+Using model claude-sonnet-4-20250514
+Test greger-end-to-end-test-sleep-and-interrupt backtrace:
+  set-buffer(#<killed buffer>)
+  (save-current-buffer (set-buffer (progn (or (progn (and (memq (type-
+  greger--append-text("\n\n## ASSISTANT:\n\n" #s(greger-state :current
+  (closure ((agent-state . #s(greger-state :current-iteration 0 :chat-
+  funcall((closure ((agent-state . #s(greger-state :current-iteration 
+  (progn (funcall (progn (or (progn (and (memq (type-of state) cl-stru
+  (if (and (string= (alist-get 'type content-block) "text") (progn (or
+  (let* ((index (alist-get 'index data)) (content-block (copy-alist (a
+  (cond ((string= type "content_block_start") (let* ((index (alist-get
+  (let* ((data (json-read-from-string data-json)) (type (alist-get 'ty
+  greger-client--handle-claude-event("{\"type\":\"content_block_start\
+  (if (string= data-json "[DONE]") nil (greger-client--handle-claude-e
+  (let ((data-json (substring line 6))) (if (string= data-json "[DONE]
+  (progn (let ((data-json (substring line 6))) (if (string= data-json 
+  (if (string-prefix-p "data: " line) (progn (let ((data-json (substri
+  (let* ((line-end (match-end 0)) (line (substring accumulated 0 (1- l
+  (while (string-match "\n" accumulated) (let* ((line-end (match-end 0
+  (let ((accumulated (progn (or (progn (and (memq ... cl-struct-greger
+  greger-client--process-claude-events(#s(greger-client-state :accumul
+  greger-client--process-output-chunk("event: content_block_delta\ndat
+  (closure ((state . #s(greger-client-state :accumulated-output "data:
+  sleep-for(0.1)
+  sit-for(0.1)
+  (while (and (not state-found) (< (float-time (time-subtract (current
+  (let ((max-wait 20.0) (start-time (current-time)) (state-found nil))
+  (progn (greger) (setq greger-buffer (current-buffer)) (goto-char (po
+  (unwind-protect (progn (greger) (setq greger-buffer (current-buffer)
+  (let ((greger-buffer nil)) (unwind-protect (progn (greger) (setq gre
+  (closure (t) nil (let ((greger-buffer nil)) (unwind-protect (progn (
+  ert--run-test-internal(#s(ert--test-execution-info :test ... :result
+  ert-run-test(#s(ert-test :name greger-end-to-end-test-sleep-and-inte
+  ert-run-or-rerun-test(#s(ert--stats :selector t :tests ... :test-map
+  ert-run-tests(t #f(compiled-function (event-type &rest event-args) #
+  ert-run-tests-batch(t)
+  ert-run-tests-batch-and-exit(t)
+  (let ((ert-quiet nil)) (ert-run-tests-batch-and-exit t))
+  (progn (setq debug-on-error t) (add-to-list 'load-path ".") (require
+  eval((progn (setq debug-on-error t) (add-to-list 'load-path ".") (re
+  command-line-1(("--eval" "(progn\n                  (setq debug-on-e
+  command-line()
+  normal-top-level()
+Test greger-end-to-end-test-sleep-and-interrupt condition:
+    (error "Selecting deleted buffer")
+   FAILED  6/7  greger-end-to-end-test-sleep-and-interrupt (0.067494 sec) at test/test-end-to-end.el:263
+Using model claude-sonnet-4-20250514
+Test greger-end-to-end-test-tool-use-conversation backtrace:
+  set-buffer(#<killed buffer>)
+  (save-current-buffer (set-buffer (progn (or (progn (and (memq (type-
+  greger--append-text("\n\n## ASSISTANT:\n\n" #s(greger-state :current
+  (closure ((agent-state . #s(greger-state :current-iteration 0 :chat-
+  funcall((closure ((agent-state . #s(greger-state :current-iteration 
+  (progn (funcall (progn (or (progn (and (memq (type-of state) cl-stru
+  (if (and (string= (alist-get 'type content-block) "text") (progn (or
+  (let* ((index (alist-get 'index data)) (content-block (copy-alist (a
+  (cond ((string= type "content_block_start") (let* ((index (alist-get
+  (let* ((data (json-read-from-string data-json)) (type (alist-get 'ty
+  greger-client--handle-claude-event("{\"type\":\"content_block_start\
+  (if (string= data-json "[DONE]") nil (greger-client--handle-claude-e
+  (let ((data-json (substring line 6))) (if (string= data-json "[DONE]
+  (progn (let ((data-json (substring line 6))) (if (string= data-json 
+  (if (string-prefix-p "data: " line) (progn (let ((data-json (substri
+  (let* ((line-end (match-end 0)) (line (substring accumulated 0 (1- l
+  (while (string-match "\n" accumulated) (let* ((line-end (match-end 0
+  (let ((accumulated (progn (or (progn (and (memq ... cl-struct-greger
+  greger-client--process-claude-events(#s(greger-client-state :accumul
+  greger-client--process-output-chunk("/2xGAQ=\"}}             }\n\nev
+  (closure ((state . #s(greger-client-state :accumulated-output "data:
+  sleep-for(0.2)
+  sit-for(0.2)
+  (while (and (not completed) (< (float-time (time-subtract (current-t
+  (let ((start-time (current-time)) (completed nil) (response-started 
+  greger-test-wait-for-response(#<killed buffer> 60)
+  apply(greger-test-wait-for-response (#<killed buffer> 60))
+  (setq value-57 (apply fn-55 args-56))
+  (unwind-protect (setq value-57 (apply fn-55 args-56)) (setq form-des
+  (if (unwind-protect (setq value-57 (apply fn-55 args-56)) (setq form
+  (let (form-description-59) (if (unwind-protect (setq value-57 (apply
+  (let ((value-57 'ert-form-evaluation-aborted-58)) (let (form-descrip
+  (let* ((fn-55 #'greger-test-wait-for-response) (args-56 (condition-c
+  (progn (setq test-file (make-temp-file "greger-test-" nil ".txt")) (
+  (unwind-protect (progn (setq test-file (make-temp-file "greger-test-
+  (let ((greger-buffer nil) (test-file nil)) (unwind-protect (progn (s
+  (closure (t) nil (let ((greger-buffer nil) (test-file nil)) (unwind-
+  ert--run-test-internal(#s(ert--test-execution-info :test ... :result
+  ert-run-test(#s(ert-test :name greger-end-to-end-test-tool-use-conve
+  ert-run-or-rerun-test(#s(ert--stats :selector t :tests ... :test-map
+  ert-run-tests(t #f(compiled-function (event-type &rest event-args) #
+  ert-run-tests-batch(t)
+  ert-run-tests-batch-and-exit(t)
+  (let ((ert-quiet nil)) (ert-run-tests-batch-and-exit t))
+  (progn (setq debug-on-error t) (add-to-list 'load-path ".") (require
+  eval((progn (setq debug-on-error t) (add-to-list 'load-path ".") (re
+  command-line-1(("--eval" "(progn\n                  (setq debug-on-e
+  command-line()
+  normal-top-level()
+Test greger-end-to-end-test-tool-use-conversation condition:
+    (error "Selecting deleted buffer")
+   FAILED  7/7  greger-end-to-end-test-tool-use-conversation (0.071156 sec) at test/test-end-to-end.el:138
+
+Ran 7 tests, 3 results as expected, 4 unexpected (2025-06-04 18:57:41+0200, 14.589329 sec)
+
+4 unexpected results:
+   FAILED  greger-end-to-end-test-server-tool-web-search
+   FAILED  greger-end-to-end-test-simple-conversation
+   FAILED  greger-end-to-end-test-sleep-and-interrupt
+   FAILED  greger-end-to-end-test-tool-use-conversation
+
+
+</tool.toolu_01M1c6RXuhaD7YECNHhC2AQL>
+
+## ASSISTANT:
+
+I can see the issue now! Looking at the web search test failure, it shows the buffer content ends at:
+
+```
+"I'll search for the current weather in San Francisco for you."
+```
+
+This suggests that the response is not completing - it's stopping after the first text block. The server tool use and web search tool result blocks are probably being received but the streaming is ending prematurely.
+
+Looking at the other test failures, they all have the same issue with "Selecting deleted buffer" which suggests there's a buffer management problem.
+
+Let me add debug logging to see what's happening with the content blocks:
+
+## TOOL USE:
+
+Name: str-replace
+ID: toolu_01N1WGi9QKfXNt2K5dmANFwd
+
+### file-path
+
+<tool.toolu_01N1WGi9QKfXNt2K5dmANFwd>
+greger.el
+</tool.toolu_01N1WGi9QKfXNt2K5dmANFwd>
+
+### original-content
+
+<tool.toolu_01N1WGi9QKfXNt2K5dmANFwd>
+(defun greger--render-server-tool-blocks (content-blocks agent-state)
+  "Render server tool blocks from CONTENT-BLOCKS to buffer using AGENT-STATE."
+  (dolist (block content-blocks)
+    (let ((type (alist-get 'type block)))
+      (when (or (string= type "server_tool_use") 
+                (string= type "web_search_tool_result"))
+        (let ((markdown (greger-parser--content-block-to-markdown block)))
+          (when (and markdown (not (string-empty-p markdown)))
+            (greger--append-text (concat "\n\n" markdown "\n\n") agent-state)))))))
+</tool.toolu_01N1WGi9QKfXNt2K5dmANFwd>
+
+### new-content
+
+<tool.toolu_01N1WGi9QKfXNt2K5dmANFwd>
+(defun greger--render-server-tool-blocks (content-blocks agent-state)
+  "Render server tool blocks from CONTENT-BLOCKS to buffer using AGENT-STATE."
+  (greger--debug "RENDERING SERVER TOOL BLOCKS: %d blocks" (length content-blocks))
+  (dolist (block content-blocks)
+    (let ((type (alist-get 'type block)))
+      (greger--debug "Block type: %s" type)
+      (when (or (string= type "server_tool_use") 
+                (string= type "web_search_tool_result"))
+        (greger--debug "Rendering server tool block: %s" type)
+        (let ((markdown (greger-parser--content-block-to-markdown block)))
+          (greger--debug "Generated markdown: %s" (if markdown (substring markdown 0 (min 100 (length markdown))) "nil"))
+          (when (and markdown (not (string-empty-p markdown)))
+            (greger--append-text (concat "\n\n" markdown "\n\n") agent-state)))))))
+</tool.toolu_01N1WGi9QKfXNt2K5dmANFwd>
+
+### git-commit-message
+
+<tool.toolu_01N1WGi9QKfXNt2K5dmANFwd>
+Add debugging for server tool block rendering
+</tool.toolu_01N1WGi9QKfXNt2K5dmANFwd>
+
+## TOOL RESULT:
+
+ID: toolu_01N1WGi9QKfXNt2K5dmANFwd
+
+<tool.toolu_01N1WGi9QKfXNt2K5dmANFwd>
+Error executing tool: Original content not found in file: /Users/andreas/projects/greger.el/greger.el -- Try again!
+</tool.toolu_01N1WGi9QKfXNt2K5dmANFwd>
+
+## ASSISTANT:
+
+Let me check the actual function:
+
+## TOOL USE:
+
+Name: ripgrep
+ID: toolu_01QXys2UYwy6cffpS8ZKgmam
+
+### pattern
+
+<tool.toolu_01QXys2UYwy6cffpS8ZKgmam>
+render-server-tool-blocks"
+</tool.toolu_01QXys2UYwy6cffpS8ZKgmam>
+
+### path
+
+<tool.toolu_01QXys2UYwy6cffpS8ZKgmam>
+greger.el
+</tool.toolu_01QXys2UYwy6cffpS8ZKgmam>
+
+### context-lines
+
+<tool.toolu_01QXys2UYwy6cffpS8ZKgmam>
+10
+</tool.toolu_01QXys2UYwy6cffpS8ZKgmam>
+
+## TOOL RESULT:
+
+ID: toolu_01QXys2UYwy6cffpS8ZKgmam
+
+<tool.toolu_01QXys2UYwy6cffpS8ZKgmam>
+Failed to execute ripgrep search: Command failed with exit code 1: (no output)
+</tool.toolu_01QXys2UYwy6cffpS8ZKgmam>
+
+## TOOL USE:
+
+Name: ripgrep
+ID: toolu_018be8zta9XAnZWNtsEkFpkQ
+
+### pattern
+
+<tool.toolu_018be8zta9XAnZWNtsEkFpkQ>
+render-server-tool-blocks
+</tool.toolu_018be8zta9XAnZWNtsEkFpkQ>
+
+### path
+
+<tool.toolu_018be8zta9XAnZWNtsEkFpkQ>
+greger.el
+</tool.toolu_018be8zta9XAnZWNtsEkFpkQ>
+
+### context-lines
+
+<tool.toolu_018be8zta9XAnZWNtsEkFpkQ>
+5
+</tool.toolu_018be8zta9XAnZWNtsEkFpkQ>
+
+## TOOL RESULT:
+
+ID: toolu_018be8zta9XAnZWNtsEkFpkQ
+
+<tool.toolu_018be8zta9XAnZWNtsEkFpkQ>
+478-(defun greger--handle-parsed-response (content-blocks agent-state)
+479-  "Handle the parsed CONTENT-BLOCKS from Claude using AGENT-STATE."
+480-  (greger--debug "CONTENT BLOCKS: %s" content-blocks)
+481-
+482-  ;; Render any server tool blocks that weren't streamed
+483:  (greger--render-server-tool-blocks content-blocks agent-state)
+484-
+485-  ;; Update buffer state after client completes
+486-  (with-current-buffer (greger-state-chat-buffer agent-state)
+487-    (greger--update-buffer-state))
+488-
+--
+496-          (greger--execute-tools tool-calls agent-state))
+497-      (progn
+498-        (greger--debug "NO TOOL USE - CONVERSATION COMPLETE")
+499-        (greger--finish-response agent-state)))))
+500-
+501:(defun greger--render-server-tool-blocks (content-blocks agent-state)
+502-  "Render server tool blocks from CONTENT-BLOCKS to buffer using AGENT-STATE."
+503-  (dolist (block content-blocks)
+504-    (let ((type (alist-get 'type block)))
+505-      (when (or (string= type "server_tool_use")
+506-                (string= type "web_search_tool_result"))
+
+</tool.toolu_018be8zta9XAnZWNtsEkFpkQ>
+
+## TOOL USE:
+
+Name: read-file
+ID: toolu_01TAMtZGqc1pKn5Q84Q5r9gM
+
+### path
+
+<tool.toolu_01TAMtZGqc1pKn5Q84Q5r9gM>
+greger.el
+</tool.toolu_01TAMtZGqc1pKn5Q84Q5r9gM>
+
+### start-line
+
+<tool.toolu_01TAMtZGqc1pKn5Q84Q5r9gM>
+501
+</tool.toolu_01TAMtZGqc1pKn5Q84Q5r9gM>
+
+### end-line
+
+<tool.toolu_01TAMtZGqc1pKn5Q84Q5r9gM>
+515
+</tool.toolu_01TAMtZGqc1pKn5Q84Q5r9gM>
+
+## TOOL RESULT:
+
+ID: toolu_01TAMtZGqc1pKn5Q84Q5r9gM
+
+<tool.toolu_01TAMtZGqc1pKn5Q84Q5r9gM>
+(defun greger--render-server-tool-blocks (content-blocks agent-state)
+  "Render server tool blocks from CONTENT-BLOCKS to buffer using AGENT-STATE."
+  (dolist (block content-blocks)
+    (let ((type (alist-get 'type block)))
+      (when (or (string= type "server_tool_use")
+                (string= type "web_search_tool_result"))
+        (let ((markdown (greger-parser--content-block-to-markdown block)))
+          (when (and markdown (not (string-empty-p markdown)))
+            (greger--append-text (concat "\n\n" markdown "\n\n") agent-state)))))))
+
+(defun greger--extract-tool-calls (content-blocks)
+  "Extract tool calls from CONTENT-BLOCKS."
+  (let ((tool-calls '()))
+    (dolist (block content-blocks)
+      (when (string= (alist-get 'type block) "tool_use")
+</tool.toolu_01TAMtZGqc1pKn5Q84Q5r9gM>
+
+## TOOL USE:
+
+Name: str-replace
+ID: toolu_0136Mjxjbzfvq6SiLFBEhJWW
+
+### file-path
+
+<tool.toolu_0136Mjxjbzfvq6SiLFBEhJWW>
+greger.el
+</tool.toolu_0136Mjxjbzfvq6SiLFBEhJWW>
+
+### original-content
+
+<tool.toolu_0136Mjxjbzfvq6SiLFBEhJWW>
+(defun greger--render-server-tool-blocks (content-blocks agent-state)
+  "Render server tool blocks from CONTENT-BLOCKS to buffer using AGENT-STATE."
+  (dolist (block content-blocks)
+    (let ((type (alist-get 'type block)))
+      (when (or (string= type "server_tool_use")
+                (string= type "web_search_tool_result"))
+        (let ((markdown (greger-parser--content-block-to-markdown block)))
+          (when (and markdown (not (string-empty-p markdown)))
+            (greger--append-text (concat "\n\n" markdown "\n\n") agent-state)))))))
+</tool.toolu_0136Mjxjbzfvq6SiLFBEhJWW>
+
+### new-content
+
+<tool.toolu_0136Mjxjbzfvq6SiLFBEhJWW>
+(defun greger--render-server-tool-blocks (content-blocks agent-state)
+  "Render server tool blocks from CONTENT-BLOCKS to buffer using AGENT-STATE."
+  (greger--debug "RENDERING SERVER TOOL BLOCKS: %d blocks" (length content-blocks))
+  (dolist (block content-blocks)
+    (let ((type (alist-get 'type block)))
+      (greger--debug "Block type: %s" type)
+      (when (or (string= type "server_tool_use")
+                (string= type "web_search_tool_result"))
+        (greger--debug "Rendering server tool block: %s" type)
+        (let ((markdown (greger-parser--content-block-to-markdown block)))
+          (greger--debug "Generated markdown: %s" (if markdown (substring markdown 0 (min 100 (length markdown))) "nil"))
+          (when (and markdown (not (string-empty-p markdown)))
+            (greger--append-text (concat "\n\n" markdown "\n\n") agent-state)))))))
+</tool.toolu_0136Mjxjbzfvq6SiLFBEhJWW>
+
+### git-commit-message
+
+<tool.toolu_0136Mjxjbzfvq6SiLFBEhJWW>
+Add debugging for server tool block rendering
+</tool.toolu_0136Mjxjbzfvq6SiLFBEhJWW>
+
+<!-- TOOL_RESULT_PLACEHOLDER_toolu_0136Mjxjbzfvq6SiLFBEhJWW -->

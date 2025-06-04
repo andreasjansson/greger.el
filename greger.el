@@ -500,11 +500,15 @@ READ-ONLY is t to make read-only, nil to make writable."
 
 (defun greger--render-server-tool-blocks (content-blocks agent-state)
   "Render server tool blocks from CONTENT-BLOCKS to buffer using AGENT-STATE."
+  (greger--debug "RENDERING SERVER TOOL BLOCKS: %d blocks" (length content-blocks))
   (dolist (block content-blocks)
     (let ((type (alist-get 'type block)))
+      (greger--debug "Block type: %s" type)
       (when (or (string= type "server_tool_use")
                 (string= type "web_search_tool_result"))
+        (greger--debug "Rendering server tool block: %s" type)
         (let ((markdown (greger-parser--content-block-to-markdown block)))
+          (greger--debug "Generated markdown: %s" (if markdown (substring markdown 0 (min 100 (length markdown))) "nil"))
           (when (and markdown (not (string-empty-p markdown)))
             (greger--append-text (concat "\n\n" markdown "\n\n") agent-state)))))))
 
