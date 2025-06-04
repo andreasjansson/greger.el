@@ -2030,4 +2030,50 @@ test/test-greger-stdlib.el
 Update delete-files error test to use vector
 </tool.toolu_01MAKc6S3bdNXLKpAyNmNtc7>
 
-<!-- TOOL_RESULT_PLACEHOLDER_toolu_01MAKc6S3bdNXLKpAyNmNtc7 -->
+## TOOL RESULT:
+
+ID: toolu_01MAKc6S3bdNXLKpAyNmNtc7
+
+<tool.toolu_01MAKc6S3bdNXLKpAyNmNtc7>
+Successfully replaced content in /Users/andreas/projects/greger.el/test/test-greger-stdlib.el. Successfully staged 2 file(s) and committed with message: Update delete-files error test to use vector
+</tool.toolu_01MAKc6S3bdNXLKpAyNmNtc7>
+
+
+## TOOL USE:
+
+Name: str-replace
+ID: toolu_01XHFuHjA5Wit4G546Gz7zdX
+
+### file-path
+
+<tool.toolu_01XHFuHjA5Wit4G546Gz7zdX>
+test/test-greger-stdlib.el
+</tool.toolu_01XHFuHjA5Wit4G546Gz7zdX>
+
+### original-content
+
+<tool.toolu_01XHFuHjA5Wit4G546Gz7zdX>
+;; Should error when trying to delete directory
+            (should-error (greger-stdlib--delete-files
+                          (list test-dir)
+                          "Test commit message")
+                         :type 'error)))
+</tool.toolu_01XHFuHjA5Wit4G546Gz7zdX>
+
+### new-content
+
+<tool.toolu_01XHFuHjA5Wit4G546Gz7zdX>
+;; Should error when trying to delete directory
+            (should-error (greger-stdlib--delete-files
+                          (vector test-dir)
+                          "Test commit message")
+                         :type 'error)))
+</tool.toolu_01XHFuHjA5Wit4G546Gz7zdX>
+
+### git-commit-message
+
+<tool.toolu_01XHFuHjA5Wit4G546Gz7zdX>
+Update delete-files directory error test to use vector
+</tool.toolu_01XHFuHjA5Wit4G546Gz7zdX>
+
+<!-- TOOL_RESULT_PLACEHOLDER_toolu_01XHFuHjA5Wit4G546Gz7zdX -->

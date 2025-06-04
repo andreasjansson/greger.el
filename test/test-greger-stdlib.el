@@ -496,7 +496,7 @@
 
             ;; Should error when trying to delete directory
             (should-error (greger-stdlib--delete-files
-                          (list test-dir)
+                          (vector test-dir)
                           "Test commit message")
                          :type 'error)))
 
