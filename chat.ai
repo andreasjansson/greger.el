@@ -1419,4 +1419,63 @@ Error with NAME if not. Either bound can be nil to skip that check."
 Add assertion helper functions for common type validation
 </tool.toolu_01Cw3vc7C9JmySG7cEDggNfL>
 
-<!-- TOOL_RESULT_PLACEHOLDER_toolu_01Cw3vc7C9JmySG7cEDggNfL -->
+## TOOL RESULT:
+
+ID: toolu_01Cw3vc7C9JmySG7cEDggNfL
+
+<tool.toolu_01Cw3vc7C9JmySG7cEDggNfL>
+Successfully replaced content in /Users/andreas/projects/greger.el/greger-stdlib.el. Successfully staged 2 file(s) and committed with message: Add assertion helper functions for common type validation
+</tool.toolu_01Cw3vc7C9JmySG7cEDggNfL>
+
+
+## ASSISTANT:
+
+Now let's replace all the string validation patterns. I'll start with the `greger-stdlib--read-file` function:
+
+## TOOL USE:
+
+Name: str-replace
+ID: toolu_01TjjvDyv2dt7sHdT6tBJFby
+
+### file-path
+
+<tool.toolu_01TjjvDyv2dt7sHdT6tBJFby>
+greger-stdlib.el
+</tool.toolu_01TjjvDyv2dt7sHdT6tBJFby>
+
+### original-content
+
+<tool.toolu_01TjjvDyv2dt7sHdT6tBJFby>
+  (unless (stringp path)
+    (error "Invalid type: path must be a string"))
+
+  (when (and start-line (not (integerp start-line)))
+    (error "Invalid type: start-line must be an integer"))
+
+  (when (and end-line (not (integerp end-line)))
+    (error "Invalid type: end-line must be an integer"))
+
+  (when (and start-line (< start-line 1))
+    (error "Invalid value: start-line must be >= 1"))
+
+  (when (and end-line (< end-line 1))
+    (error "Invalid value: end-line must be >= 1"))
+</tool.toolu_01TjjvDyv2dt7sHdT6tBJFby>
+
+### new-content
+
+<tool.toolu_01TjjvDyv2dt7sHdT6tBJFby>
+  (greger-stdlib--assert-arg-string "path" path)
+  (when start-line
+    (greger-stdlib--assert-arg-int-between "start-line" start-line 1 nil))
+  (when end-line
+    (greger-stdlib--assert-arg-int-between "end-line" end-line 1 nil))
+</tool.toolu_01TjjvDyv2dt7sHdT6tBJFby>
+
+### git-commit-message
+
+<tool.toolu_01TjjvDyv2dt7sHdT6tBJFby>
+Refactor greger-stdlib--read-file to use assertion helpers
+</tool.toolu_01TjjvDyv2dt7sHdT6tBJFby>
+
+<!-- TOOL_RESULT_PLACEHOLDER_toolu_01TjjvDyv2dt7sHdT6tBJFby -->

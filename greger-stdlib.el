@@ -364,20 +364,11 @@ If CHAT-BUFFER is provided, also stage and commit the chat buffer file."
   "Read file at PATH. If INCLUDE-LINE-NUMBERS is non-nil, prepend line numbers.
 If START-LINE is specified, start reading from that line (1-based).
 If END-LINE is specified, stop reading at that line (inclusive, 1-based)."
-  (unless (stringp path)
-    (error "Invalid type: path must be a string"))
-
-  (when (and start-line (not (integerp start-line)))
-    (error "Invalid type: start-line must be an integer"))
-
-  (when (and end-line (not (integerp end-line)))
-    (error "Invalid type: end-line must be an integer"))
-
-  (when (and start-line (< start-line 1))
-    (error "Invalid value: start-line must be >= 1"))
-
-  (when (and end-line (< end-line 1))
-    (error "Invalid value: end-line must be >= 1"))
+  (greger-stdlib--assert-arg-string "path" path)
+  (when start-line
+    (greger-stdlib--assert-arg-int-between "start-line" start-line 1 nil))
+  (when end-line
+    (greger-stdlib--assert-arg-int-between "end-line" end-line 1 nil))
 
   (when (and start-line end-line (> start-line end-line))
     (error "Invalid value: start-line must be <= end-line"))
