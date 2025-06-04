@@ -6860,4 +6860,186 @@ test/test-greger-tools.el
 Add server tool registration test
 </tool.toolu_01QFuXQ4Wp9Tk5KetEsqfijE>
 
-<!-- TOOL_RESULT_PLACEHOLDER_toolu_01QFuXQ4Wp9Tk5KetEsqfijE -->
+## TOOL RESULT:
+
+ID: toolu_01QFuXQ4Wp9Tk5KetEsqfijE
+
+<tool.toolu_01QFuXQ4Wp9Tk5KetEsqfijE>
+Successfully replaced content in /Users/andreas/projects/greger.el/test/test-greger-tools.el. Successfully staged 2 file(s) and committed with message: Add server tool registration test
+</tool.toolu_01QFuXQ4Wp9Tk5KetEsqfijE>
+
+## ASSISTANT:
+
+Now let's run the tools tests to make sure everything is working:
+
+## TOOL USE:
+
+Name: shell-command
+ID: toolu_01EoMWUNKaNDHhUNyt8hhVG2
+
+### command
+
+<tool.toolu_01EoMWUNKaNDHhUNyt8hhVG2>
+bash script/test --verbose --file test/test-greger-tools.el
+</tool.toolu_01EoMWUNKaNDHhUNyt8hhVG2>
+
+## TOOL RESULT:
+
+ID: toolu_01EoMWUNKaNDHhUNyt8hhVG2
+
+<tool.toolu_01EoMWUNKaNDHhUNyt8hhVG2>
+Command executed successfully:
+[0;34mRunning ERT tests for greger package...[0m
+
+Running tests in [1;33mtest/test-greger-tools.el[0m (verbose mode)...
+Loading /Users/andreas/projects/greger.el/greger.el (source)...
+Source file ‘/opt/homebrew/Cellar/emacs-plus@29/29.0.90/share/emacs/29.0.91/lisp/net/eww.el’ newer than byte-compiled file; using older file
+Loading /Users/andreas/projects/greger.el/greger-parser.el (source)...
+Loading /Users/andreas/projects/greger.el/greger-stdlib.el (source)...
+Loading /Users/andreas/projects/greger.el/greger-tools.el (source)...
+Loading /Users/andreas/projects/greger.el/greger-client.el (source)...
+Loading /Users/andreas/projects/greger.el/greger-web.el (source)...
+Loading /Users/andreas/projects/greger.el/test/test-greger-tools.el (source)...
+Running 20 tests (2025-06-04 18:03:41+0200, selector ‘t’)
+   passed   1/20  greger-tools-test-argument-extraction-edge-cases (0.000104 sec)
+   passed   2/20  greger-tools-test-async-subprocess-utility (0.505376 sec)
+   passed   3/20  greger-tools-test-cancellation-calls-callback (0.000326 sec)
+count: 5
+prefix: nil
+count: 2
+prefix: nil
+count: 2
+prefix: ***
+   passed   4/20  greger-tools-test-default-parameter-values (0.000491 sec)
+   passed   5/20  greger-tools-test-greger-tool-struct-creation (0.000169 sec)
+   passed   6/20  greger-tools-test-greger-tool-with-cancel-function (0.000182 sec)
+   passed   7/20  greger-tools-test-greger-tool-with-pass-callback (0.000161 sec)
+   passed   8/20  greger-tools-test-json-parsing-arrays (0.002704 sec)
+   passed   9/20  greger-tools-test-json-parsing-booleans (0.000897 sec)
+   passed  10/20  greger-tools-test-json-parsing-fallback (0.000483 sec)
+   passed  11/20  greger-tools-test-json-parsing-mixed-types (0.000395 sec)
+   passed  12/20  greger-tools-test-json-parsing-numbers (0.000586 sec)
+   passed  13/20  greger-tools-test-missing-required-parameter-error (0.001189 sec)
+   passed  14/20  greger-tools-test-optional-parameters (0.000545 sec)
+   passed  15/20  greger-tools-test-parameter-mapping (0.000265 sec)
+   passed  16/20  greger-tools-test-pass-buffer-functionality (0.000454 sec)
+   passed  17/20  greger-tools-test-pass-callback-functionality (0.000653 sec)
+   passed  18/20  greger-tools-test-server-tool-registration (0.003911 sec)
+   passed  19/20  greger-tools-test-tool-registration-and-execution (0.000597 sec)
+   passed  20/20  greger-tools-test-unknown-tool-error (0.000155 sec)
+
+Ran 20 tests, 20 results as expected, 0 unexpected (2025-06-04 18:03:41+0200, 0.583909 sec)
+
+[0;34mTest Summary:[0m
+  Files run: 1
+  Files passed: [0;32m0[0m
+  Files failed: [0;31m1[0m
+[0;32mAll tests passed![0m
+
+</tool.toolu_01EoMWUNKaNDHhUNyt8hhVG2>
+
+## ASSISTANT:
+
+Excellent! All the tools tests are passing, including the new server tool registration test.
+
+Let me also run a quick test to make sure the overall integration is working by creating a small example that demonstrates the complete functionality:
+
+## TOOL USE:
+
+Name: write-new-file
+ID: toolu_017oqB7cLen2DyF3cKRjQbve
+
+### file-path
+
+<tool.toolu_017oqB7cLen2DyF3cKRjQbve>
+server-tool-example.el
+</tool.toolu_017oqB7cLen2DyF3cKRjQbve>
+
+### contents
+
+<tool.toolu_017oqB7cLen2DyF3cKRjQbve>
+#!/usr/bin/env emacs --script
+;;; server-tool-example.el --- Example of web search server tool integration
+
+;; Add current directory to load path
+(add-to-list 'load-path ".")
+
+;; Load greger
+(require 'greger-tools)
+(require 'greger-parser)
+
+;; Register a web search server tool
+(greger-register-server-tool 'web_search
+  :type "web_search_20250305"
+  :name "web_search"
+  :max_uses 5
+  :allowed_domains ["anthropic.com" "example.com"]
+  :user_location ((type . "approximate")
+                  (city . "San Francisco")
+                  (region . "California")
+                  (country . "US")
+                  (timezone . "America/Los_Angeles")))
+
+;; Display the server tool definition as JSON
+(princ "=== Server Tool Definition (JSON) ===\n")
+(let ((schemas (greger-server-tools-get-schemas '(web_search))))
+  (princ (car schemas))
+  (princ "\n\n"))
+
+;; Test parsing a conversation with server tool use
+(princ "=== Testing Server Tool Parsing ===\n")
+(let* ((markdown "## USER:
+
+What's the weather in San Francisco?
+
+## SERVER TOOL USE:
+
+Name: web_search
+ID: srvtoolu_123
+
+### query
+
+<tool.srvtoolu_123>
+current weather San Francisco
+</tool.srvtoolu_123>
+
+## SERVER TOOL RESULT:
+
+ID: srvtoolu_123
+
+<tool.srvtoolu_123>
+[{\"title\": \"Weather in San Francisco\", \"url\": \"https://weather.com/sf\", \"content\": \"Sunny, 72°F\"}]
+</tool.srvtoolu_123>
+
+## ASSISTANT:
+
+The current weather in San Francisco is sunny and 72°F.")
+       (parsed (greger-parser-parse-dialog markdown))
+       (messages (plist-get parsed :messages)))
+  
+  (princ (format "Parsed %d messages:\n" (length messages)))
+  (dolist (msg messages)
+    (let ((role (alist-get 'role msg))
+          (content (alist-get 'content msg)))
+      (princ (format "- %s: " role))
+      (if (stringp content)
+          (princ (format "\"%s\"\n" content))
+        (princ (format "%d content blocks\n" (length content))))))
+  
+  ;; Test roundtrip conversion
+  (princ "\n=== Testing Roundtrip Conversion ===\n")
+  (let ((regenerated-markdown (greger-parser-dialog-to-markdown messages)))
+    (princ "Successfully converted back to markdown\n")
+    (princ (format "Original length: %d characters\n" (length markdown)))
+    (princ (format "Regenerated length: %d characters\n" (length regenerated-markdown)))))
+
+(princ "\n=== Integration Complete! ===\n")
+</tool.toolu_017oqB7cLen2DyF3cKRjQbve>
+
+### git-commit-message
+
+<tool.toolu_017oqB7cLen2DyF3cKRjQbve>
+Add server tool integration example
+</tool.toolu_017oqB7cLen2DyF3cKRjQbve>
+
+<!-- TOOL_RESULT_PLACEHOLDER_toolu_017oqB7cLen2DyF3cKRjQbve -->
