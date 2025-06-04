@@ -406,8 +406,10 @@ If END-LINE is specified, stop reading at that line (inclusive, 1-based)."
     (mapconcat #'identity (reverse result) "\n")))
 
 (defun greger-stdlib--list-directory (path &optional exclude-directories-recursive recursive)
-  "List directory contents at PATH with detailed file information similar to 'ls -Rla'.
-EXCLUDE-DIRECTORIES-RECURSIVE is a vector of directory names to exclude when recursively listing (defaults to [\".git\" \"__pycache__\"]).
+  "List directory contents at PATH with detailed file information.
+Similar to \\='ls -Rla\\='.
+EXCLUDE-DIRECTORIES-RECURSIVE is a vector of directory names to exclude when
+recursively listing (defaults to [\".git\" \"__pycache__\"]).
 If RECURSIVE is non-nil, list files recursively."
   (unless (stringp path)
     (error "Invalid type: path must be a string"))
