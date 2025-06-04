@@ -188,11 +188,11 @@ claude-sonnet-4-20250514 or claude-opus-4-20250514."
 
     ;; Add tools if present
     (when (or tools server-tools)
-      (let ((parsed-server-tools (when server-tools
-                                   (mapcar (lambda (json-string)
-                                             (json-parse-string json-string :object-type 'alist))
-                                           server-tools)))
-            (all-tools (append (or tools '()) (or parsed-server-tools '()))))
+      (let* ((parsed-server-tools (when server-tools
+                                    (mapcar (lambda (json-string)
+                                              (json-parse-string json-string :object-type 'alist))
+                                            server-tools)))
+             (all-tools (append (or tools '()) (or parsed-server-tools '()))))
         (push `("tools" . ,all-tools) request-data)
         (push `("tool_choice" . (("type" . "auto"))) request-data)))
 
