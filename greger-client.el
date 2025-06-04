@@ -51,7 +51,6 @@
   process
   output-buffer
   undo-handle
-  original-quit-binding
   text-start-callback
   text-callback
   complete-callback
