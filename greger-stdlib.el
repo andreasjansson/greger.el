@@ -38,13 +38,13 @@
   :description "Read the contents of a file from the filesystem"
   :properties '((path . ((type . "string")
                          (description . "Path to the file to read")))
-                (include_line_numbers . ((type . "boolean")
+                (include-line-numbers . ((type . "boolean")
                                          (description . "Whether to include line numbers in the output. If you plan to modify the file, you should include line numbers here so you know which lines to edit.")
                                          (default . nil)))
-                (start_line . ((type . "integer")
+                (start-line . ((type . "integer")
                                (description . "Starting line number (1-based) to begin reading from. If not specified, reads from the beginning of the file.")
                                (default . nil)))
-                (end_line . ((type . "integer")
+                (end-line . ((type . "integer")
                              (description . "Ending line number (1-based) to stop reading at (inclusive). If not specified, reads to the end of the file.")
                              (default . nil))))
   :required '("path")
@@ -88,13 +88,13 @@
 
 (greger-register-tool "write-new-file"
   :description "Write a new file with the given contents. Fails if the file already exists."
-  :properties '((file_path . ((type . "string")
+  :properties '((file-path . ((type . "string")
                               (description . "Absolute path to the new file")))
                 (contents . ((type . "string")
                              (description . "Contents to write to the new file")))
-                (git_commit_message . ((type . "string")
+                (git-commit-message . ((type . "string")
                                        (description . "Git commit message for this change"))))
-  :required '("file_path" "contents" "git_commit_message")
+  :required '("file-path" "contents" "git-commit-message")
   :function 'greger-stdlib--write-new-file
   :pass-buffer t)
 
@@ -102,88 +102,72 @@
   :description "Recursively create a directory and all parent directories if they don't exist"
   :properties '((path . ((type . "string")
                          (description . "Path to the directory to create")))
-                (git_commit_message . ((type . "string")
+                (git-commit-message . ((type . "string")
                                        (description . "Git commit message for this change"))))
-  :required '("path" "git_commit_message")
+  :required '("path" "git-commit-message")
   :function 'greger-stdlib--make-directory
   :pass-buffer t)
 
 (greger-register-tool "rename-file"
   :description "Rename or move a file from one path to another"
-  :properties '((old_path . ((type . "string")
+  :properties '((old-path . ((type . "string")
                              (description . "Current path of the file")))
-                (new_path . ((type . "string")
+                (new-path . ((type . "string")
                              (description . "New path for the file")))
-                (git_commit_message . ((type . "string")
+                (git-commit-message . ((type . "string")
                                        (description . "Git commit message for this change"))))
-  :required '("old_path" "new_path" "git_commit_message")
+  :required '("old-path" "new-path" "git-commit-message")
   :function 'greger-stdlib--rename-file
   :pass-buffer t)
 
 (greger-register-tool "delete-files"
   :description "Delete the files and if they're tracked in git it should stage the deletion and commit"
-  :properties '((file_paths . ((type . "array")
+  :properties '((file-paths . ((type . "array")
                                (items . ((type . "string")))
                                (description . "List of file paths to delete")))
-                (git_commit_message . ((type . "string")
+                (git-commit-message . ((type . "string")
                                        (description . "Git commit message for this change"))))
-  :required '("file_paths" "git_commit_message")
+  :required '("file-paths" "git-commit-message")
   :function 'greger-stdlib--delete-files
   :pass-buffer t)
 
-(greger-register-tool "replace-function"
-  :description "Replace a function in a Python or Elisp file with new contents. Fast and reliable - only supports 'def function_name' and '(defun function_name ())' forms. Use replace-file for complete file replacement or str-replace for other specific changes."
-  :properties '((file_path . ((type . "string")
-                              (description . "Path to the file containing the function")))
-                (function_name . ((type . "string")
-                                  (description . "Name of the function to replace")))
-                (contents . ((type . "string")
-                             (description . "New function contents to replace the existing function")))
-                (line_number . ((type . "integer")
-                                (description . "Line number where the function is defined")))
-                (commit_message . ((type . "string")
-                                   (description . "Git commit message for this change"))))
-  :required '("file_path" "function_name" "contents" "line_number" "commit_message")
-  :function 'greger-stdlib--replace-function
-  :pass-buffer t)
-
 (greger-register-tool "replace-file"
-  :description "Replace the entire contents of an existing file. Slow but reliable - replaces the complete file contents. Use str-replace for specific changes in large files, or replace-function for Python/Elisp functions."
-  :properties '((file_path . ((type . "string")
+  :description "Replace the entire contents of an existing file. Slow but reliable - replaces the complete file contents. Use str-replace for targeted changes in larger files."
+  :properties '((file-path . ((type . "string")
                               (description . "Path to the file to replace")))
                 (contents . ((type . "string")
                              (description . "New contents to replace the entire file")))
-                (git_commit_message . ((type . "string")
+                (git-commit-message . ((type . "string")
                                        (description . "Git commit message for this change"))))
-  :required '("file_path" "contents" "git_commit_message")
+  :required '("file-path" "contents" "git-commit-message")
   :function 'greger-stdlib--replace-file
   :pass-buffer t)
 
 (greger-register-tool "str-replace"
-  :description "Replace a specific string or content block in a file with new content. Finds the exact original content and replaces it with new content. Be extra careful to format the original_content exactly correctly, taking extra care with whitespace and newlines. If you're making large swaths of changes, consider using replace-file instead"
-  :properties '((file_path . ((type . "string")
+  :description "Replace a specific string or content block in a file with new content. Finds the exact original content and replaces it with new content. Be extra careful to format the original-content exactly correctly, taking extra care with whitespace and newlines. If you're making large swaths of changes, consider using replace-file instead"
+  :properties '((file-path . ((type . "string")
                               (description . "Path to the file to modify")))
-                (original_content . ((type . "string")
+                (original-content . ((type . "string")
                                      (description . "The exact content to find and replace")))
-                (new_content . ((type . "string")
+                (new-content . ((type . "string")
                                 (description . "The new content to replace the original content with")))
-                (git_commit_message . ((type . "string")
+                (git-commit-message . ((type . "string")
                                        (description . "Git commit message for this change"))))
-  :required '("file_path" "original_content" "new_content" "git_commit_message")
+  :required '("file-path" "original-content" "new-content" "git-commit-message")
   :function 'greger-stdlib--str-replace
   :pass-buffer t)
 
 (greger-register-tool "insert"
   :description "Insert text at a specific line number in a file. The text will be inserted before the specified line number (use 0 to insert at the beginning of the file, 1 to insert before the first line, etc.). Useful for adding new content, comments, or code blocks at precise locations without replacing existing content."
-  :properties '((file_path . ((type . "string")
+  :properties '((file-path . ((type . "string")
                               (description . "Path to the file to modify")))
-                (line_number . ((type . "integer")
+                (line-number . ((type . "integer")
                                 (description . "Line number before which to insert the content (0 for beginning of file, 1 to insert before first line, etc.)")))
                 (content . ((type . "string")
                             (description . "Content to insert at the specified location")))
-                (git_commit_message . ((type . "string")
+                (git-commit-message . ((type . "string")
                                        (description . "Git commit message for this change"))))
-  :required '("file_path" "line_number" "content" "git_commit_message")
+  :required '("file-path" "line-number" "content" "git-commit-message")
   :function 'greger-stdlib--insert
   :pass-buffer t)
 
@@ -192,7 +176,7 @@
   :properties '((path . ((type . "string")
                          (description . "Path to the git repository or any file in the repository view logs for")
                          (default . ".")))
-                (max_rows . ((type . "integer")
+                (max-rows . ((type . "integer")
                             (description . "Maximum number of log entries to return")
                             (default . 100))))
   :required '()
@@ -200,29 +184,29 @@
 
 (greger-register-tool "git-show-commit"
   :description "View a specific git commit."
-  :properties '((commit_hash . ((type . "string")
+  :properties '((commit-hash . ((type . "string")
                                 (description . "The commit hash to view")))
                 (path . ((type . "string")
                          (description . "Path to the git repository or any file in the repository")
                          (default . "."))))
-  :required '("commit_hash")
+  :required '("commit-hash")
   :function 'greger-stdlib--git-show-commit)
 
 (greger-register-tool "eval-elisp-defuns"
   :description "Evaluate Emacs lisp defuns in a specific file. Useful when the code has changed and you want to use the updated code."
-  :properties '((file_path . ((type . "string")
+  :properties '((file-path . ((type . "string")
                               (description . "Path to the file containing functions/defuns to evaluate")))
-                (function_names . ((type . "array")
+                (function-names . ((type . "array")
                                    (items . ((type . "string")))
                                    (description . "List of function names to evaluate and run"))))
-  :required '("file_path" "function_names")
+  :required '("file-path" "function-names")
   :function 'greger-stdlib--eval-elisp-defuns)
 
 (greger-register-tool "shell-command"
   :description "Execute an arbitrary shell command and return the output. Prompts for permission before running the command for security."
   :properties '((command . ((type . "string")
                             (description . "The shell command to execute")))
-                (working_directory . ((type . "string")
+                (working-directory . ((type . "string")
                                       (description . "Directory to run the command in")
                                       (default . "."))))
   :required '("command")
@@ -234,10 +218,10 @@
   :description "Read webpage content from a URL. Can return either extracted text or raw HTML."
   :properties '((url . ((type . "string")
                         (description . "The URL to read content from")))
-                (extract_text . ((type . "boolean")
+                (extract-text . ((type . "boolean")
                                  (description . "Whether to extract text content or return raw HTML")
                                  (default . t)))
-                (use_highest_readability . ((type . "boolean")
+                (use-highest-readability . ((type . "boolean")
                                             (description . "Whether to use eww's aggressive highest readability setting for better text extraction")
                                             (default . nil))))
   :required '("url")
@@ -259,7 +243,7 @@ failure."
 
           (set-process-sentinel
            process
-           (lambda (proc _event)
+           (lambda (proc -event)
              (let ((exit-status (process-exit-status proc))
                    (output (with-current-buffer process-buffer
                             (buffer-string))))
@@ -351,19 +335,19 @@ If END-LINE is specified, stop reading at that line (inclusive, 1-based)."
     (error "Invalid type: path must be a string"))
 
   (when (and start-line (not (integerp start-line)))
-    (error "Invalid type: start_line must be an integer"))
+    (error "Invalid type: start-line must be an integer"))
 
   (when (and end-line (not (integerp end-line)))
-    (error "Invalid type: end_line must be an integer"))
+    (error "Invalid type: end-line must be an integer"))
 
   (when (and start-line (< start-line 1))
-    (error "Invalid value: start_line must be >= 1"))
+    (error "Invalid value: start-line must be >= 1"))
 
   (when (and end-line (< end-line 1))
-    (error "Invalid value: end_line must be >= 1"))
+    (error "Invalid value: end-line must be >= 1"))
 
   (when (and start-line end-line (> start-line end-line))
-    (error "Invalid value: start_line must be <= end-line"))
+    (error "Invalid value: start-line must be <= end-line"))
 
   (let ((expanded-path (expand-file-name path)))
     (unless (file-exists-p expanded-path)
@@ -536,7 +520,7 @@ CASE-SENSITIVE, FILE-TYPE, CONTEXT-LINES and MAX-RESULTS are optional."
 GIT-COMMIT-MESSAGE will be used for the git commit.
 If BUFFER is provided, it will be staged and committed along with the new file."
   (unless (stringp file-path)
-    (error "Invalid type: file_path must be a string"))
+    (error "Invalid type: file-path must be a string"))
 
   (unless (stringp contents)
     (error "Invalid type: contents must be a string"))
@@ -594,10 +578,10 @@ If BUFFER is provided, it will be staged and committed along with the directory.
 GIT-COMMIT-MESSAGE will be used for the git commit.
 If BUFFER is provided, it will be staged and committed with the renamed file."
   (unless (stringp old-path)
-    (error "Invalid type: old_path must be a string"))
+    (error "Invalid type: old-path must be a string"))
 
   (unless (stringp new-path)
-    (error "Invalid type: new_path must be a string"))
+    (error "Invalid type: new-path must be a string"))
 
   (let ((expanded-old-path (expand-file-name old-path))
         (expanded-new-path (expand-file-name new-path)))
@@ -631,10 +615,10 @@ If BUFFER is provided, it will be staged and committed with the renamed file."
 GIT-COMMIT-MESSAGE will be used for the git commit.
 If BUFFER is provided, it will be staged and committed with deleted files."
   (unless (or (vectorp file-paths) (listp file-paths))
-    (error "Invalid type: file_paths must be a vector or list"))
+    (error "Invalid type: file-paths must be a vector or list"))
 
   (unless (stringp git-commit-message)
-    (error "Invalid type: git_commit_message must be a string"))
+    (error "Invalid type: git-commit-message must be a string"))
 
   (let ((paths-list (if (vectorp file-paths)
                         (append file-paths nil)  ; Convert vector to list
@@ -683,99 +667,18 @@ If BUFFER is provided, it will be staged and committed with deleted files."
               (mapconcat #'identity (reverse deleted-files) ", ")
               git-result))))
 
-(defun greger-stdlib--replace-function (file-path function-name contents line-number commit-message &optional buffer)
-  "Replace FUNCTION-NAME in FILE-PATH with new CONTENTS at LINE-NUMBER.
-If BUFFER is provided, it will be staged and committed with the modified file."
-  (unless (stringp file-path)
-    (error "Invalid type: file_path must be a string"))
-
-  (unless (stringp function-name)
-    (error "Invalid type: function_name must be a string"))
-
-  (unless (stringp contents)
-    (error "Invalid type: contents must be a string"))
-
-  (unless (integerp line-number)
-    (error "Invalid type: line_number must be an integer"))
-
-  (unless (stringp commit-message)
-    (error "Invalid type: commit_message must be a string"))
-
-  (let ((expanded-path (expand-file-name file-path)))
-
-    ;; Check if file exists
-    (unless (file-exists-p expanded-path)
-      (error "File does not exist: %s" expanded-path))
-
-    ;; Check file extension for supported languages
-    (unless (or (string-suffix-p ".py" expanded-path)
-                (string-suffix-p ".el" expanded-path))
-      (error "Only Python (.py) and Elisp (.el) files are supported"))
-
-    (with-current-buffer (find-file-noselect expanded-path)
-     ;; Go to the specified line number
-     (goto-char (point-min))
-     (forward-line (1- line-number))
-
-     ;; Verify function name is at this line
-     (beginning-of-line)
-     (let ((line-content (buffer-substring-no-properties
-                          (line-beginning-position)
-                          (line-end-position))))
-
-       ;; Check if function is defined on this line based on file type
-       (let ((function-pattern
-              (cond
-               ((string-suffix-p ".py" expanded-path)
-                (format "^\\s-*def\\s-+%s\\s-*(" (regexp-quote function-name)))
-               ((string-suffix-p ".el" expanded-path)
-                (format "^\\s-*(defun\\s-+%s\\s-*(" (regexp-quote function-name)))
-               (t (error "Unsupported file type")))))
-
-         (unless (string-match-p function-pattern line-content)
-           (error "Function '%s' not found at line %d in %s. Line content: %s"
-                  function-name line-number expanded-path line-content))))
-
-     ;; Delete the existing function using end-of-defun then beginning-of-defun
-     (let (start-pos end-pos)
-       ;; First go to end of defun to get the end position
-       (end-of-defun)
-       (setq end-pos (point))
-
-       ;; Then go to beginning of defun to get start position
-       (beginning-of-defun)
-       (setq start-pos (point))
-
-       ;; Delete the function
-       (delete-region start-pos end-pos)
-
-       ;; Insert new contents
-       (insert contents)
-
-       ;; Ensure there's a newline at the end if not present
-       (unless (string-suffix-p "\n" contents)
-         (insert "\n")))
-
-     ;; Save the file
-     (save-buffer))
-
-    ;; Stage and commit the file
-    (let ((git-result (greger-stdlib--git-stage-and-commit (list expanded-path) commit-message buffer)))
-      (format "Successfully replaced function '%s' in %s. %s"
-              function-name expanded-path git-result))))
-
 (defun greger-stdlib--replace-file (file-path contents git-commit-message &optional buffer)
   "Replace the entire contents of FILE-PATH with CONTENTS.
 GIT-COMMIT-MESSAGE will be used for the git commit.
 If BUFFER is provided, it will be staged and committed along with the file."
   (unless (stringp file-path)
-    (error "Invalid type: file_path must be a string"))
+    (error "Invalid type: file-path must be a string"))
 
   (unless (stringp contents)
     (error "Invalid type: contents must be a string"))
 
   (unless (stringp git-commit-message)
-    (error "Invalid type: git_commit_message must be a string"))
+    (error "Invalid type: git-commit-message must be a string"))
 
   (let ((expanded-path (expand-file-name file-path)))
 
@@ -831,16 +734,16 @@ GIT-COMMIT-MESSAGE will be used for the git commit.
 If BUFFER is provided, it will be staged and committed along with the file.
 For Emacs Lisp files (.el), checks that parentheses balance is maintained."
   (unless (stringp file-path)
-    (error "Invalid type: file_path must be a string"))
+    (error "Invalid type: file-path must be a string"))
 
   (unless (stringp original-content)
-    (error "Invalid type: original_content must be a string"))
+    (error "Invalid type: original-content must be a string"))
 
   (unless (stringp new-content)
-    (error "Invalid type: new_content must be a string"))
+    (error "Invalid type: new-content must be a string"))
 
   (unless (stringp git-commit-message)
-    (error "Invalid type: git_commit_message must be a string"))
+    (error "Invalid type: git-commit-message must be a string"))
 
   (let ((expanded-path (expand-file-name file-path)))
 
@@ -881,19 +784,19 @@ For Emacs Lisp files (.el), checks that parentheses balance is maintained."
 GIT-COMMIT-MESSAGE will be used for the git commit.
 If BUFFER is provided, it will be staged and committed along with the file."
   (unless (stringp file-path)
-    (error "Invalid type: file_path must be a string"))
+    (error "Invalid type: file-path must be a string"))
 
   (unless (integerp line-number)
-    (error "Invalid type: line_number must be an integer"))
+    (error "Invalid type: line-number must be an integer"))
 
   (unless (>= line-number 0)
-    (error "Invalid type: line_number must be >= 0"))
+    (error "Invalid type: line-number must be >= 0"))
 
   (unless (stringp content)
     (error "Invalid type: content must be a string"))
 
   (unless (stringp git-commit-message)
-    (error "Invalid type: git_commit_message must be a string"))
+    (error "Invalid type: git-commit-message must be a string"))
 
   (let ((expanded-path (expand-file-name file-path)))
 
@@ -976,7 +879,7 @@ MAX-ROWS limits the number of log entries returned (default 100)."
   "View git commit using git command line for PATH.
 COMMIT-HASH specifies which commit to show."
   (unless (stringp commit-hash)
-    (error "Invalid type: commit_hash must be a string"))
+    (error "Invalid type: commit-hash must be a string"))
 
   (unless (stringp path)
     (error "Invalid type: path must be a string"))
@@ -1010,10 +913,10 @@ COMMIT-HASH specifies which commit to show."
   "Evaluate Emacs Lisp function definitions from FILE-PATH.
 FUNCTION-NAMES specifies which functions to evaluate."
   (unless (stringp file-path)
-    (error "Invalid type: file_path must be a string"))
+    (error "Invalid type: file-path must be a string"))
 
   (unless (or (vectorp function-names) (listp function-names))
-    (error "Invalid type: function_names must be a vector or list"))
+    (error "Invalid type: function-names must be a vector or list"))
 
   (let ((expanded-path (expand-file-name file-path))
         (names-list (if (vectorp function-names)

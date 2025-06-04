@@ -156,7 +156,7 @@ parameters.  Returns a list of arguments in the correct order for the function."
        ;; Handle regular arguments
        (t
         (let* ((arg-symbol (if (symbolp arg-name) arg-name (intern (symbol-name arg-name))))
-               (arg-key (intern (replace-regexp-in-string "-" "_" (symbol-name arg-symbol))))
+               (arg-key (intern (symbol-name arg-symbol)))
                (arg-provided-p (assoc arg-key args))
                (is-required (member (symbol-name arg-key) required-params)))
 
@@ -184,13 +184,13 @@ parameters.  Returns a list of arguments in the correct order for the function."
 (defun greger-tools--arg-provided-p (arg-name args)
   "Check if ARG-NAME was provided in ARGS."
   (let* ((arg-symbol (if (symbolp arg-name) arg-name (intern (symbol-name arg-name))))
-         (arg-key (intern (replace-regexp-in-string "-" "_" (symbol-name arg-symbol)))))
+         (arg-key (intern (symbol-name arg-symbol))))
     (assoc arg-key args)))
 
 (defun greger-tools--get-arg-value (arg-name args tool-def)
   "Get value for ARG-NAME from ARGS alist, handling defaults from TOOL-DEF schema."
   (let* ((arg-symbol (if (symbolp arg-name) arg-name (intern (symbol-name arg-name))))
-         (arg-key (intern (replace-regexp-in-string "-" "_" (symbol-name arg-symbol))))
+         (arg-key (intern (symbol-name arg-symbol)))
          (value (alist-get arg-key args)))
     ;; If value is provided, use it
     (if value
