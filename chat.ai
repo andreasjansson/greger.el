@@ -1279,4 +1279,213 @@ drwxr-xr-x  (dir)  .
 Fix greger-test-list-directory-hidden-directories to use controlled temp directory (part 1)
 </tool.toolu_017iTvEeFQEMnBCvb6raqUH2>
 
-<!-- TOOL_RESULT_PLACEHOLDER_toolu_017iTvEeFQEMnBCvb6raqUH2 -->
+## TOOL RESULT:
+
+ID: toolu_017iTvEeFQEMnBCvb6raqUH2
+
+<tool.toolu_017iTvEeFQEMnBCvb6raqUH2>
+Successfully replaced content in /Users/andreas/projects/greger.el/test/test-greger-stdlib.el. Successfully staged 2 file(s) and committed with message: Fix greger-test-list-directory-hidden-directories to use controlled temp directory (part 1)
+</tool.toolu_017iTvEeFQEMnBCvb6raqUH2>
+
+## ASSISTANT:
+
+Now I need to find the rest of this test and fix the cleanup part. Let me read the rest of the hidden directories test:
+
+## TOOL USE:
+
+Name: read-file
+ID: toolu_01WB6tBd8nCUVLS31JERCXUx
+
+### path
+
+<tool.toolu_01WB6tBd8nCUVLS31JERCXUx>
+test/test-greger-stdlib.el
+</tool.toolu_01WB6tBd8nCUVLS31JERCXUx>
+
+### start-line
+
+<tool.toolu_01WB6tBd8nCUVLS31JERCXUx>
+920
+</tool.toolu_01WB6tBd8nCUVLS31JERCXUx>
+
+### end-line
+
+<tool.toolu_01WB6tBd8nCUVLS31JERCXUx>
+950
+</tool.toolu_01WB6tBd8nCUVLS31JERCXUx>
+
+## TOOL RESULT:
+
+ID: toolu_01WB6tBd8nCUVLS31JERCXUx
+
+<tool.toolu_01WB6tBd8nCUVLS31JERCXUx>
+          ;; Create hidden and normal directories and files
+          (let ((hidden-dir (expand-file-name ".hiddendir" test-dir))
+                (normal-dir (expand-file-name "normaldir" test-dir))
+                (normal-file (expand-file-name "normalfile.txt" test-dir)))
+
+            (make-directory hidden-dir)
+            (make-directory normal-dir)
+            (with-temp-file normal-file (insert "Normal content"))
+            (with-temp-file (expand-file-name "hidden.txt" hidden-dir) (insert "Hidden content"))
+            (with-temp-file (expand-file-name "normal.txt" normal-dir) (insert "Normal content"))
+
+            ;; Test with no exclude pattern (should show all files and directories, and recurse into all)
+            (let ((result (greger-stdlib--list-directory test-dir [] t))
+                  (expected (format "%s:
+drwx------  (dir)  .
+drwx------  (dir)  ..
+drwxr-xr-x  (dir)  .hiddendir
+drwxr-xr-x  (dir)  normaldir
+-rw-r--r--        14  normalfile.txt
+
+%s.hiddendir/:
+drwxr-xr-x  (dir)  .
+drwx------  (dir)  ..
+-rw-r--r--        14  hidden.txt
+
+%snormaldir/:
+drwxr-xr-x  (dir)  .
+drwx------  (dir)  ..
+-rw-r--r--        14  normal.txt" (file-name-as-directory test-dir) (file-name-as-directory test-dir) (file-name-as-directory test-dir))))
+              (should (stringp result))
+              (should (string= expected result)))
+</tool.toolu_01WB6tBd8nCUVLS31JERCXUx>
+
+## ASSISTANT:
+
+Let me read a bit more to find the end of this test:
+
+## TOOL USE:
+
+Name: read-file
+ID: toolu_01XXW2UWH6R8KUM8WXxAeK5b
+
+### path
+
+<tool.toolu_01XXW2UWH6R8KUM8WXxAeK5b>
+test/test-greger-stdlib.el
+</tool.toolu_01XXW2UWH6R8KUM8WXxAeK5b>
+
+### start-line
+
+<tool.toolu_01XXW2UWH6R8KUM8WXxAeK5b>
+940
+</tool.toolu_01XXW2UWH6R8KUM8WXxAeK5b>
+
+### end-line
+
+<tool.toolu_01XXW2UWH6R8KUM8WXxAeK5b>
+980
+</tool.toolu_01XXW2UWH6R8KUM8WXxAeK5b>
+
+## TOOL RESULT:
+
+ID: toolu_01XXW2UWH6R8KUM8WXxAeK5b
+
+<tool.toolu_01XXW2UWH6R8KUM8WXxAeK5b>
+%s.hiddendir/:
+drwxr-xr-x  (dir)  .
+drwx------  (dir)  ..
+-rw-r--r--        14  hidden.txt
+
+%snormaldir/:
+drwxr-xr-x  (dir)  .
+drwx------  (dir)  ..
+-rw-r--r--        14  normal.txt" (file-name-as-directory test-dir) (file-name-as-directory test-dir) (file-name-as-directory test-dir))))
+              (should (stringp result))
+              (should (string= expected result)))
+
+            ;; Test with pattern excluding hidden directories (starting with .) from recursion
+            (let ((result (greger-stdlib--list-directory test-dir [".hiddendir"] t)))
+              (should (stringp result))
+              (let ((expected (format "%s:
+drwx------  (dir)  .
+drwx------  (dir)  ..
+drwxr-xr-x  (dir)  .hiddendir
+drwxr-xr-x  (dir)  normaldir
+-rw-r--r--        14  normalfile.txt
+
+%snormaldir/:
+drwxr-xr-x  (dir)  .
+drwx------  (dir)  ..
+-rw-r--r--        14  normal.txt" (file-name-as-directory test-dir) (file-name-as-directory test-dir))))
+                (should (string= expected result))))))
+
+      ;; Clean up
+      (when (file-exists-p test-dir)
+        (delete-directory test-dir t)))))
+
+;;; greger-test-stdlib.el ends here
+</tool.toolu_01XXW2UWH6R8KUM8WXxAeK5b>
+
+## ASSISTANT:
+
+Now I need to update the cleanup section to use the parent directory:
+
+## TOOL USE:
+
+Name: str-replace
+ID: toolu_01SrGZy446RyGA6JocX5F2qo
+
+### file-path
+
+<tool.toolu_01SrGZy446RyGA6JocX5F2qo>
+test/test-greger-stdlib.el
+</tool.toolu_01SrGZy446RyGA6JocX5F2qo>
+
+### original-content
+
+<tool.toolu_01SrGZy446RyGA6JocX5F2qo>
+            ;; Test with pattern excluding hidden directories (starting with .) from recursion
+            (let ((result (greger-stdlib--list-directory test-dir [".hiddendir"] t)))
+              (should (stringp result))
+              (let ((expected (format "%s:
+drwx------  (dir)  .
+drwx------  (dir)  ..
+drwxr-xr-x  (dir)  .hiddendir
+drwxr-xr-x  (dir)  normaldir
+-rw-r--r--        14  normalfile.txt
+
+%snormaldir/:
+drwxr-xr-x  (dir)  .
+drwx------  (dir)  ..
+-rw-r--r--        14  normal.txt" (file-name-as-directory test-dir) (file-name-as-directory test-dir))))
+                (should (string= expected result))))))
+
+      ;; Clean up
+      (when (file-exists-p test-dir)
+        (delete-directory test-dir t)))))
+</tool.toolu_01SrGZy446RyGA6JocX5F2qo>
+
+### new-content
+
+<tool.toolu_01SrGZy446RyGA6JocX5F2qo>
+            ;; Test with pattern excluding hidden directories (starting with .) from recursion
+            (let ((result (greger-stdlib--list-directory test-dir [".hiddendir"] t)))
+              (should (stringp result))
+              (let ((expected (format "%s:
+drwx------  (dir)  .
+drwx------  (dir)  ..
+drwxr-xr-x  (dir)  .hiddendir
+drwxr-xr-x  (dir)  normaldir
+-rw-r--r--        14  normalfile.txt
+
+%snormaldir/:
+drwxr-xr-x  (dir)  .
+drwx------  (dir)  ..
+-rw-r--r--        14  normal.txt" (file-name-as-directory test-dir) (file-name-as-directory test-dir))))
+                (should (string= expected result))))))
+
+      ;; Clean up
+      (when (and parent-dir (file-exists-p parent-dir))
+        (delete-directory parent-dir t)))))
+</tool.toolu_01SrGZy446RyGA6JocX5F2qo>
+
+### git-commit-message
+
+<tool.toolu_01SrGZy446RyGA6JocX5F2qo>
+Fix greger-test-list-directory-hidden-directories cleanup to use controlled temp directory (part 2)
+</tool.toolu_01SrGZy446RyGA6JocX5F2qo>
+
+<!-- TOOL_RESULT_PLACEHOLDER_toolu_01SrGZy446RyGA6JocX5F2qo -->

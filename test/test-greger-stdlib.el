@@ -966,7 +966,7 @@ drwx------  (dir)  ..
                 (should (string= expected result))))))
 
       ;; Clean up
-      (when (file-exists-p test-dir)
-        (delete-directory test-dir t)))))
+      (when (and parent-dir (file-exists-p parent-dir))
+        (delete-directory parent-dir t)))))
 
 ;;; greger-test-stdlib.el ends here
