@@ -8396,4 +8396,70 @@ drwx------  (dir)  .." (file-name-as-directory test-dir))))
 Fix empty directory test to use new format
 </tool.toolu_01E27teonrxCAk5JL5DNoYoM>
 
-<!-- TOOL_RESULT_PLACEHOLDER_toolu_01E27teonrxCAk5JL5DNoYoM -->
+## TOOL RESULT:
+
+ID: toolu_01E27teonrxCAk5JL5DNoYoM
+
+<tool.toolu_01E27teonrxCAk5JL5DNoYoM>
+Successfully replaced content in /Users/andreas/projects/greger.el/test/test-greger-stdlib.el. Successfully staged 2 file(s) and committed with message: Fix empty directory test to use new format
+</tool.toolu_01E27teonrxCAk5JL5DNoYoM>
+
+
+## TOOL USE:
+
+Name: str-replace
+ID: toolu_01QQUjbUTvk4rqyaFmTXqCcR
+
+### file-path
+
+<tool.toolu_01QQUjbUTvk4rqyaFmTXqCcR>
+test/test-greger-stdlib.el
+</tool.toolu_01QQUjbUTvk4rqyaFmTXqCcR>
+
+### original-content
+
+<tool.toolu_01QQUjbUTvk4rqyaFmTXqCcR>
+;; Test with exclude pattern for .log files
+            (let ((result (greger-stdlib--list-directory test-dir "\\.log$"))
+                  (expected "-rw-r--r--        9  keep.txt"))
+              (should (stringp result))
+              (should (string= expected result)))
+
+            ;; Test with empty exclude pattern - should include all files
+            (let ((result (greger-stdlib--list-directory test-dir ""))
+                  (expected "-rw-r--r--        9  keep.txt
+-rw-r--r--       12  remove.log"))
+              (should (stringp result))
+              (should (string= expected result)))
+</tool.toolu_01QQUjbUTvk4rqyaFmTXqCcR>
+
+### new-content
+
+<tool.toolu_01QQUjbUTvk4rqyaFmTXqCcR>
+;; Test with exclude pattern for .log files
+            (let ((result (greger-stdlib--list-directory test-dir "\\.log$"))
+                  (expected (format "%s:
+drwx------  (dir)  .
+drwx------  (dir)  ..
+-rw-r--r--         9  keep.txt" (file-name-as-directory test-dir))))
+              (should (stringp result))
+              (should (string= expected result)))
+
+            ;; Test with empty exclude pattern - should include all files
+            (let ((result (greger-stdlib--list-directory test-dir ""))
+                  (expected (format "%s:
+drwx------  (dir)  .
+drwx------  (dir)  ..
+-rw-r--r--         9  keep.txt
+-rw-r--r--        12  remove.log" (file-name-as-directory test-dir))))
+              (should (stringp result))
+              (should (string= expected result)))
+</tool.toolu_01QQUjbUTvk4rqyaFmTXqCcR>
+
+### git-commit-message
+
+<tool.toolu_01QQUjbUTvk4rqyaFmTXqCcR>
+Fix exclude pattern test to use new format
+</tool.toolu_01QQUjbUTvk4rqyaFmTXqCcR>
+
+<!-- TOOL_RESULT_PLACEHOLDER_toolu_01QQUjbUTvk4rqyaFmTXqCcR -->

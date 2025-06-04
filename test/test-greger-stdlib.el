@@ -753,14 +753,20 @@ drwx------  (dir)  ..
 
             ;; Test with exclude pattern for .log files
             (let ((result (greger-stdlib--list-directory test-dir "\\.log$"))
-                  (expected "-rw-r--r--        9  keep.txt"))
+                  (expected (format "%s:
+drwx------  (dir)  .
+drwx------  (dir)  ..
+-rw-r--r--         9  keep.txt" (file-name-as-directory test-dir))))
               (should (stringp result))
               (should (string= expected result)))
 
             ;; Test with empty exclude pattern - should include all files
             (let ((result (greger-stdlib--list-directory test-dir ""))
-                  (expected "-rw-r--r--        9  keep.txt
--rw-r--r--       12  remove.log"))
+                  (expected (format "%s:
+drwx------  (dir)  .
+drwx------  (dir)  ..
+-rw-r--r--         9  keep.txt
+-rw-r--r--        12  remove.log" (file-name-as-directory test-dir))))
               (should (stringp result))
               (should (string= expected result)))))
 
