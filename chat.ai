@@ -1367,4 +1367,99 @@ greger.el
 Update mode line to use greger state info
 </tool.toolu_016HGMPW1otj3WJ7kF6o4UNk>
 
-<!-- TOOL_RESULT_PLACEHOLDER_toolu_016HGMPW1otj3WJ7kF6o4UNk -->
+## TOOL RESULT:
+
+ID: toolu_016HGMPW1otj3WJ7kF6o4UNk
+
+<tool.toolu_016HGMPW1otj3WJ7kF6o4UNk>
+Successfully replaced content in /Users/andreas/projects/greger.el/greger.el. Successfully staged 2 file(s) and committed with message: Update mode line to use greger state info
+</tool.toolu_016HGMPW1otj3WJ7kF6o4UNk>
+
+
+## ASSISTANT:
+
+Now I'll add the functions to handle state detection, mode line display, and buffer read-only management:
+
+## TOOL USE:
+
+Name: str-replace
+ID: toolu_01UjSKV29LhKMTqVo75y2vKF
+
+### file-path
+
+<tool.toolu_01UjSKV29LhKMTqVo75y2vKF>
+greger.el
+</tool.toolu_01UjSKV29LhKMTqVo75y2vKF>
+
+### original-content
+
+<tool.toolu_01UjSKV29LhKMTqVo75y2vKF>
+(defun greger--debug (format-string &rest args)
+  "Debug logging function.
+FORMAT-STRING is the format string.
+ARGS are arguments to format."
+  (when greger-debug
+    (message "[GREGER DEBUG] %s" (apply #'format format-string args))))
+</tool.toolu_01UjSKV29LhKMTqVo75y2vKF>
+
+### new-content
+
+<tool.toolu_01UjSKV29LhKMTqVo75y2vKF>
+(defun greger--debug (format-string &rest args)
+  "Debug logging function.
+FORMAT-STRING is the format string.
+ARGS are arguments to format."
+  (when greger-debug
+    (message "[GREGER DEBUG] %s" (apply #'format format-string args))))
+
+(defun greger--get-current-state ()
+  "Get the current greger state: 'idle, 'generating, or 'executing."
+  (let ((agent-state greger--current-agent-state))
+    (cond
+     ;; Check if we're generating (client-state is active)
+     ((and agent-state (greger-state-client-state agent-state))
+      'generating)
+     ;; Check if we're executing tools
+     ((and agent-state
+           (greger-state-executing-tools agent-state)
+           (> (hash-table-count (greger-state-executing-tools agent-state)) 0))
+      'executing)
+     ;; Otherwise we're idle
+     (t 'idle))))
+
+(defun greger--mode-line-info ()
+  "Generate mode line information showing model and current state."
+  (let ((state (greger--get-current-state))
+        (model-name (symbol-name greger-model)))
+    (concat model-name
+            (pcase state
+              ('generating " [Generating]")
+              ('executing " [Executing]")
+              ('idle "")))))
+
+(defun greger--set-buffer-read-only (read-only)
+  "Set buffer read-only state for greger operations.
+READ-ONLY is t to make read-only, nil to make writable."
+  (if read-only
+      (unless greger--buffer-read-only-by-greger
+        (setq greger--buffer-read-only-by-greger t)
+        (setq buffer-read-only t))
+    (when greger--buffer-read-only-by-greger
+      (setq greger--buffer-read-only-by-greger nil)
+      (setq buffer-read-only nil))))
+
+(defun greger--update-buffer-state ()
+  "Update buffer read-only state based on current greger state."
+  (let ((state (greger--get-current-state)))
+    (greger--set-buffer-read-only (not (eq state 'idle)))
+    ;; Force mode line update
+    (force-mode-line-update)))
+</tool.toolu_01UjSKV29LhKMTqVo75y2vKF>
+
+### git-commit-message
+
+<tool.toolu_01UjSKV29LhKMTqVo75y2vKF>
+Add state detection and buffer management functions
+</tool.toolu_01UjSKV29LhKMTqVo75y2vKF>
+
+<!-- TOOL_RESULT_PLACEHOLDER_toolu_01UjSKV29LhKMTqVo75y2vKF -->

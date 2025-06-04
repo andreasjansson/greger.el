@@ -373,6 +373,49 @@ ARGS are arguments to format."
   (when greger-debug
     (message "[GREGER DEBUG] %s" (apply #'format format-string args))))
 
+(defun greger--get-current-state ()
+  "Get the current greger state: 'idle, 'generating, or 'executing."
+  (let ((agent-state greger--current-agent-state))
+    (cond
+     ;; Check if we're generating (client-state is active)
+     ((and agent-state (greger-state-client-state agent-state))
+      'generating)
+     ;; Check if we're executing tools
+     ((and agent-state
+           (greger-state-executing-tools agent-state)
+           (> (hash-table-count (greger-state-executing-tools agent-state)) 0))
+      'executing)
+     ;; Otherwise we're idle
+     (t 'idle))))
+
+(defun greger--mode-line-info ()
+  "Generate mode line information showing model and current state."
+  (let ((state (greger--get-current-state))
+        (model-name (symbol-name greger-model)))
+    (concat model-name
+            (pcase state
+              ('generating " [Generating]")
+              ('executing " [Executing]")
+              ('idle "")))))
+
+(defun greger--set-buffer-read-only (read-only)
+  "Set buffer read-only state for greger operations.
+READ-ONLY is t to make read-only, nil to make writable."
+  (if read-only
+      (unless greger--buffer-read-only-by-greger
+        (setq greger--buffer-read-only-by-greger t)
+        (setq buffer-read-only t))
+    (when greger--buffer-read-only-by-greger
+      (setq greger--buffer-read-only-by-greger nil)
+      (setq buffer-read-only nil))))
+
+(defun greger--update-buffer-state ()
+  "Update buffer read-only state based on current greger state."
+  (let ((state (greger--get-current-state)))
+    (greger--set-buffer-read-only (not (eq state 'idle)))
+    ;; Force mode line update
+    (force-mode-line-update)))
+
 (defun greger--run-agent-loop (agent-state)
   "Run the main agent loop with AGENT-STATE."
   (let* ((tools (greger-tools-get-schemas greger-tools))
