@@ -874,6 +874,11 @@ TOOL-ID is the tool identifier."
   ;(face-remap-add-relative 'markdown-header-face-3 'greger-tool-param-heading-face)
   (font-lock-flush))
 
+(defun greger--extend-font-lock-region ()
+  "Extend font-lock region for greger mode.
+Returns nil to indicate no region extension is needed."
+  nil)
+
 (defun greger--after-change-function (beg end _len)
   "Update tool sections after buffer changes.
 BEG is the beginning of the changed region.
@@ -907,6 +912,8 @@ _LEN is the length of the pre-change text (unused)."
     (if (<= len max-width)
         str
       (concat (substring str 0 (- max-width 3)) "..."))))
+
+
 
 (provide 'greger)
 
