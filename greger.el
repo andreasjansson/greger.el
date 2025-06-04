@@ -110,7 +110,7 @@
 (defvar greger-tool-section-max-lines 4
   "Maximum number of lines to show in collapsed tool sections.")
 
-;; TODO: make d
+;; TODO: make defvar-local
 (defvar greger-tool-overlays nil
   "List of overlays used for collapsible tool sections.")
 
