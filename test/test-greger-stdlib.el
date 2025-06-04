@@ -810,9 +810,9 @@ Line 3"))
           (let ((result (greger-stdlib--list-directory test-dir)))
             (should (stringp result))
             ;; Should contain current directory entry
-            (should (string-match-p "\\.$" result))
+            (should (string= "\\.$" result))
             ;; Should contain parent directory entry (unless at root)
-            (should (string-match-p "\\.\\.$" result))))
+            (should (string= "\\.\\.$" result))))
 
       ;; Clean up
       (when (file-exists-p test-dir)

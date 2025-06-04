@@ -3814,4 +3814,72 @@ test/test-greger-stdlib.el
 Replace string-match-p with string= in recursive test
 </tool.toolu_017669B1e27D8iMRbVSZVZjK>
 
-<!-- TOOL_RESULT_PLACEHOLDER_toolu_017669B1e27D8iMRbVSZVZjK -->
+## TOOL RESULT:
+
+ID: toolu_017669B1e27D8iMRbVSZVZjK
+
+<tool.toolu_017669B1e27D8iMRbVSZVZjK>
+Successfully replaced content in /Users/andreas/projects/greger.el/test/test-greger-stdlib.el. Successfully staged 2 file(s) and committed with message: Replace string-match-p with string= in recursive test
+</tool.toolu_017669B1e27D8iMRbVSZVZjK>
+
+
+## TOOL USE:
+
+Name: str-replace
+ID: toolu_011pxQ2gZQ9kzMBwvVG7ks3C
+
+### file-path
+
+<tool.toolu_011pxQ2gZQ9kzMBwvVG7ks3C>
+test/test-greger-stdlib.el
+</tool.toolu_011pxQ2gZQ9kzMBwvVG7ks3C>
+
+### original-content
+
+<tool.toolu_011pxQ2gZQ9kzMBwvVG7ks3C>
+(ert-deftest greger-test-list-directory-empty-dir ()
+  "Test list-directory with empty directory."
+  (let ((test-dir (make-temp-file "greger-test-empty-dir" t)))
+    (unwind-protect
+        (progn
+          ;; Test empty directory - should still show . and .. entries
+          (let ((result (greger-stdlib--list-directory test-dir)))
+            (should (stringp result))
+            ;; Should contain current directory entry
+            (should (string-match-p "\\.$" result))
+            ;; Should contain parent directory entry (unless at root)
+            (should (string-match-p "\\.\\.$" result))))
+
+      ;; Clean up
+      (when (file-exists-p test-dir)
+        (delete-directory test-dir)))))
+</tool.toolu_011pxQ2gZQ9kzMBwvVG7ks3C>
+
+### new-content
+
+<tool.toolu_011pxQ2gZQ9kzMBwvVG7ks3C>
+(ert-deftest greger-test-list-directory-empty-dir ()
+  "Test list-directory with empty directory."
+  (let ((test-dir (make-temp-file "greger-test-empty-dir" t)))
+    (unwind-protect
+        (progn
+          ;; Test empty directory - should still show . and .. entries
+          (let ((result (greger-stdlib--list-directory test-dir)))
+            (should (stringp result))
+            ;; Should contain current directory entry
+            (should (string= "\\.$" result))
+            ;; Should contain parent directory entry (unless at root)
+            (should (string= "\\.\\.$" result))))
+
+      ;; Clean up
+      (when (file-exists-p test-dir)
+        (delete-directory test-dir)))))
+</tool.toolu_011pxQ2gZQ9kzMBwvVG7ks3C>
+
+### git-commit-message
+
+<tool.toolu_011pxQ2gZQ9kzMBwvVG7ks3C>
+Replace string-match-p with string= in empty dir test
+</tool.toolu_011pxQ2gZQ9kzMBwvVG7ks3C>
+
+<!-- TOOL_RESULT_PLACEHOLDER_toolu_011pxQ2gZQ9kzMBwvVG7ks3C -->
