@@ -534,32 +534,37 @@ READ-ONLY is t to make read-only, nil to make writable."
     (dolist (tool-call tool-calls)
       (let* ((tool-name (alist-get 'name tool-call))
              (tool-input (alist-get 'input tool-call))
-             (tool-id (alist-get 'id tool-call)))
+             (tool-id (alist-get 'id tool-call))
+             (default-directory (greger-state-directory agent-state)))
 
-        (let ((default-directory (greger-state-directory agent-state)))
-          ;; Create a placeholder greger-tool first to reserve the slot
-          (let ((placeholder-tool (make-greger-tool :cancel-fn nil)))
-            (puthash tool-id placeholder-tool (greger-state-executing-tools agent-state))
+        ;; TODO: This is ugly, we really should be separating the creation and execution of tools
+        ;; We're only doing this because for synchronous tools we can't set the tool in the
+        ;; hashmap after execution, because sync tools have already removed the key then.
+        (let ((placeholder-tool (make-greger-tool :cancel-fn nil)))
+          (puthash tool-id placeholder-tool (greger-state-executing-tools agent-state))
 
-            (let ((greger-tool (greger-tools-execute
-                                tool-name
-                                tool-input
-                                (lambda (result error)
-                                  ;; Remove tool from executing-tools when complete
-                                  (remhash tool-id (greger-state-executing-tools agent-state))
+          (greger--update-buffer-state)
+          (sit-for 0.001) ; update the buffer state
 
-                                  (greger--handle-tool-completion
-                                   tool-id result error agent-state search-start-pos
-                                   (lambda ()
-                                     (setq completed-tools (1+ completed-tools))
-                                     (when (= completed-tools total-tools)
-                                       (greger--run-agent-loop agent-state)))))
-                                (greger-state-chat-buffer agent-state)
-                                (greger-state-metadata agent-state))))
-              ;; Update the placeholder with the actual greger-tool
-              ;; (this may be redundant if the tool was synchronous and already removed)
-              (when (gethash tool-id (greger-state-executing-tools agent-state))
-                (puthash tool-id greger-tool (greger-state-executing-tools agent-state))))))))))
+          (let ((greger-tool (greger-tools-execute
+                              tool-name
+                              tool-input
+                              (lambda (result error)
+                                ;; Remove tool from executing-tools when complete
+                                (remhash tool-id (greger-state-executing-tools agent-state))
+
+                                (greger--handle-tool-completion
+                                 tool-id result error agent-state search-start-pos
+                                 (lambda ()
+                                   (setq completed-tools (1+ completed-tools))
+                                   (when (= completed-tools total-tools)
+                                     (greger--run-agent-loop agent-state)))))
+                              (greger-state-chat-buffer agent-state)
+                              (greger-state-metadata agent-state))))
+
+            ;; TODO: here again, it's ugly
+            (when (greger-tool-cancel-fn greger-tool)
+              (puthash tool-id greger-tool (greger-state-executing-tools agent-state)))))))))
 
 (defun greger--append-text (text agent-state)
   "Append TEXT to the chat buffer in AGENT-STATE."
