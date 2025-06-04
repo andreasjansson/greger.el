@@ -465,18 +465,22 @@ ARGS are arguments to format."
              (tool-id (alist-get 'id tool-call)))
 
         (let ((default-directory (greger-state-directory agent-state)))
-          (greger-tools-execute
-           tool-name
-           tool-input
-           (lambda (result error)
-             (greger--handle-tool-completion
-              tool-id result error agent-state search-start-pos
-              (lambda ()
-                (setq completed-tools (1+ completed-tools))
-                (when (= completed-tools total-tools)
-                  (greger--run-agent-loop agent-state)))))
-           (greger-state-chat-buffer agent-state)
-           (greger-state-metadata agent-state)))))))
+          (let ((greger-tool (greger-tools-execute
+                              tool-name
+                              tool-input
+                              (lambda (result error)
+                                ;; Remove tool from executing-tools when complete
+                                (remhash tool-id (greger-state-executing-tools agent-state))
+                                (greger--handle-tool-completion
+                                 tool-id result error agent-state search-start-pos
+                                 (lambda ()
+                                   (setq completed-tools (1+ completed-tools))
+                                   (when (= completed-tools total-tools)
+                                     (greger--run-agent-loop agent-state)))))
+                              (greger-state-chat-buffer agent-state)
+                              (greger-state-metadata agent-state))))
+            ;; Store the greger-tool in executing-tools map
+            (puthash tool-id greger-tool (greger-state-executing-tools agent-state))))))))
 
 (defun greger--append-text (text agent-state)
   "Append TEXT to the chat buffer in AGENT-STATE."
