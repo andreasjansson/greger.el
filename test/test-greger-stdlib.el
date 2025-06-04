@@ -516,9 +516,9 @@
                   "Test commit message")
                  :type 'error)
 
-    ;; Test with non-string/non-list file-paths
+    ;; Test with non-vector file-paths
     (should-error (greger-stdlib--delete-files
-                  "not-a-list"
+                  "not-a-vector"
                   "Test commit message")
                  :type 'error)
 
