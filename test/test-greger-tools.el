@@ -792,4 +792,50 @@
   ;; Clean up
   (remhash "test-callback-cancel" greger-tools-registry))
 
+(ert-deftest greger-tools-test-cancellation-calls-callback ()
+  "Test that cancelling a tool properly calls the callback with an error."
+  ;; Define a test function that simulates a long-running process
+  (defun greger-test-long-running-with-cancel (callback)
+    (let ((cancelled nil))
+      ;; Return cancel function that sets cancelled flag and calls callback
+      (lambda ()
+        (unless cancelled
+          (setq cancelled t)
+          (funcall callback nil "Operation was cancelled")))))
+
+  ;; Register a test tool with pass-callback
+  (greger-register-tool "test-cancellable"
+    :description "Tool that can be cancelled"
+    :properties '()
+    :required '()
+    :pass-callback t
+    :function 'greger-test-long-running-with-cancel)
+
+  (let ((result nil)
+        (error nil)
+        (greger-tool nil))
+
+    ;; Execute the tool and capture the greger-tool struct
+    (setq greger-tool (greger-tools-execute "test-cancellable"
+                                            '()
+                                            (lambda (r e) (setq result r error e)) nil))
+
+    ;; Should get a greger-tool struct with a cancel function
+    (should (greger-tool-p greger-tool))
+    (should (functionp (greger-tool-cancel-fn greger-tool)))
+
+    ;; Initially, no callback should have been called
+    (should (null result))
+    (should (null error))
+
+    ;; Cancel the operation
+    (funcall (greger-tool-cancel-fn greger-tool))
+
+    ;; Now the callback should have been called with an error
+    (should (null result))
+    (should (string= "Operation was cancelled" error)))
+
+  ;; Clean up
+  (remhash "test-cancellable" greger-tools-registry))
+
 ;;; test-greger-tools.el ends here
