@@ -118,6 +118,9 @@
 (defvar-local greger--current-agent-state nil
   "Buffer-local variable to track the current agent state.")
 
+(defvar-local greger--buffer-read-only-by-greger nil
+  "Buffer-local variable to track if buffer is read-only due to greger activity.")
+
 ;; Face definitions for tool tags
 (defface greger-tool-tag-face
   '((t :height 0.6 :foreground "gray70"))
