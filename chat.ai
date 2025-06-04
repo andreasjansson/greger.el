@@ -7426,4 +7426,285 @@ greger-stdlib.el
 Fix recursive display path to show absolute paths when given
 </tool.toolu_01H2PwUHP4X1VJeaQPUms2bT>
 
-<!-- TOOL_RESULT_PLACEHOLDER_toolu_01H2PwUHP4X1VJeaQPUms2bT -->
+## TOOL RESULT:
+
+ID: toolu_01H2PwUHP4X1VJeaQPUms2bT
+
+<tool.toolu_01H2PwUHP4X1VJeaQPUms2bT>
+Successfully replaced content in /Users/andreas/projects/greger.el/greger-stdlib.el. Successfully staged 2 file(s) and committed with message: Fix recursive display path to show absolute paths when given
+</tool.toolu_01H2PwUHP4X1VJeaQPUms2bT>
+
+
+## ASSISTANT:
+
+Now let me test both versions:
+
+## TOOL USE:
+
+Name: shell-command
+ID: toolu_01PTxxBi5UCnMR4GgvPfQvM3
+
+### command
+
+<tool.toolu_01PTxxBi5UCnMR4GgvPfQvM3>
+emacs --batch --eval "(progn (add-to-list 'load-path \".\") (require 'greger-stdlib) (let ((test-dir \"/tmp/abs-path-test\")) (ignore-errors (delete-directory test-dir t)) (make-directory test-dir t) (with-temp-file (expand-file-name \"file1.txt\" test-dir) (insert \"content1\")) (princ (greger-stdlib--list-directory test-dir))))"
+</tool.toolu_01PTxxBi5UCnMR4GgvPfQvM3>
+
+## TOOL RESULT:
+
+ID: toolu_01PTxxBi5UCnMR4GgvPfQvM3
+
+<tool.toolu_01PTxxBi5UCnMR4GgvPfQvM3>
+Command executed successfully:
+Source file ‘/opt/homebrew/Cellar/emacs-plus@29/29.0.90/share/emacs/29.0.91/lisp/net/eww.el’ newer than byte-compiled file; using older file
+/tmp/abs-path-test/:
+drwxr-xr-x  (dir)  .
+drwxrwxrwt  (dir)  ..
+-rw-r--r--         8  file1.txt
+</tool.toolu_01PTxxBi5UCnMR4GgvPfQvM3>
+
+## TOOL USE:
+
+Name: shell-command
+ID: toolu_0197wxfABomePbhPGQbSk17G
+
+### command
+
+<tool.toolu_0197wxfABomePbhPGQbSk17G>
+emacs --batch --eval "(progn (add-to-list 'load-path \".\") (require 'greger-stdlib) (let ((test-dir \"/tmp/abs-rec-test\")) (ignore-errors (delete-directory test-dir t)) (make-directory test-dir t) (make-directory (expand-file-name \"subdir\" test-dir) t) (with-temp-file (expand-file-name \"file1.txt\" test-dir) (insert \"content1\")) (with-temp-file (expand-file-name \"subdir/file2.txt\" test-dir) (insert \"content2\")) (princ (greger-stdlib--list-directory test-dir nil t))))"
+</tool.toolu_0197wxfABomePbhPGQbSk17G>
+
+## TOOL RESULT:
+
+ID: toolu_0197wxfABomePbhPGQbSk17G
+
+<tool.toolu_0197wxfABomePbhPGQbSk17G>
+Command executed successfully:
+Source file ‘/opt/homebrew/Cellar/emacs-plus@29/29.0.90/share/emacs/29.0.91/lisp/net/eww.el’ newer than byte-compiled file; using older file
+./:
+drwxr-xr-x  (dir)  .
+drwxrwxrwt  (dir)  ..
+-rw-r--r--         8  file1.txt
+drwxr-xr-x  (dir)  subdir
+
+./subdir/:
+drwxr-xr-x  (dir)  .
+drwxr-xr-x  (dir)  ..
+-rw-r--r--         8  file2.txt
+</tool.toolu_0197wxfABomePbhPGQbSk17G>
+
+## ASSISTANT:
+
+There's still an issue with the recursive version - it's showing `./` instead of the absolute path for the root directory. Let me fix that:
+
+## USER:
+
+Hang on, isn't that right though? If the user passes ".", that's a relative path and we should show `./:`
+
+## ASSISTANT:
+
+You're absolutely right! Let me test that to make sure the logic is correct:
+
+## TOOL USE:
+
+Name: shell-command
+ID: toolu_01TSH9H6cSitSFTxRbeUbjJa
+
+### command
+
+<tool.toolu_01TSH9H6cSitSFTxRbeUbjJa>
+cd /tmp && emacs --batch --eval "(progn (add-to-list 'load-path \"/Users/andreas/projects/greger.el\") (require 'greger-stdlib) (princ (greger-stdlib--list-directory \".\")))"
+</tool.toolu_01TSH9H6cSitSFTxRbeUbjJa>
+
+## TOOL RESULT:
+
+ID: toolu_01TSH9H6cSitSFTxRbeUbjJa
+
+<tool.toolu_01TSH9H6cSitSFTxRbeUbjJa>
+Command executed successfully:
+Source file ‘/opt/homebrew/Cellar/emacs-plus@29/29.0.90/share/emacs/29.0.91/lisp/net/eww.el’ newer than byte-compiled file; using older file
+/tmp/:
+lrwxr-xr-x        11  .
+drwxr-xr-x  (dir)  ..
+drwxr-xr-x  (dir)  abs-path-test
+drwxr-xr-x  (dir)  abs-rec-test
+drwx------  (dir)  com.apple.launchd.H0NEAltVEE
+-rw-r--r--         4  foo
+drwxr-xr-x  (dir)  format-test
+drwxr-xr-x  (dir)  greger-test
+-rwxr-xr-x         0  loom_ipc_49587
+drwxr-xr-x  (dir)  melpazoid
+drwxr-xr-x  (dir)  melpazoid-10878
+drwxr-xr-x  (dir)  melpazoid-11142
+drwxr-xr-x  (dir)  melpazoid-23040
+drwxr-xr-x  (dir)  melpazoid-23317
+drwxr-xr-x  (dir)  melpazoid-2437
+drwxr-xr-x  (dir)  melpazoid-46417
+drwxr-xr-x  (dir)  melpazoid-52682
+drwxr-xr-x  (dir)  melpazoid-52945
+drwxr-xr-x  (dir)  melpazoid-53300
+drwxr-xr-x  (dir)  melpazoid-53409
+drwxr-xr-x  (dir)  melpazoid-53415
+drwxr-xr-x  (dir)  melpazoid-53600
+drwxr-xr-x  (dir)  melpazoid-54475
+drwxr-xr-x  (dir)  melpazoid-54862
+drwxr-xr-x  (dir)  melpazoid-55058
+drwxr-xr-x  (dir)  melpazoid-61213
+drwxr-xr-x  (dir)  melpazoid-61490
+drwxr-xr-x  (dir)  melpazoid-63437
+drwxr-xr-x  (dir)  melpazoid-67469
+drwxr-xr-x  (dir)  melpazoid-67728
+drwxr-xr-x  (dir)  melpazoid-67853
+drwxr-xr-x  (dir)  melpazoid-68089
+drwxr-xr-x  (dir)  melpazoid-68173
+drwxr-xr-x  (dir)  melpazoid-68596
+drwxr-xr-x  (dir)  melpazoid-70574
+drwxr-xr-x  (dir)  melpazoid-70841
+drwxr-xr-x  (dir)  melpazoid-71118
+drwxr-xr-x  (dir)  melpazoid-71227
+drwxr-xr-x  (dir)  melpazoid-71652
+drwxr-xr-x  (dir)  melpazoid-71862
+drwxr-xr-x  (dir)  melpazoid-72072
+drwxr-xr-x  (dir)  melpazoid-78030
+drwxr-xr-x  (dir)  melpazoid-78172
+drwxr-xr-x  (dir)  melpazoid-78302
+drwxr-xr-x  (dir)  melpazoid-78515
+drwxr-xr-x  (dir)  melpazoid-79421
+drwxr-xr-x  (dir)  melpazoid-82336
+drwxr-xr-x  (dir)  melpazoid-84642
+drwxr-xr-x  (dir)  melpazoid-84754
+drwxr-xr-x  (dir)  melpazoid-84990
+drwxr-xr-x  (dir)  melpazoid-85568
+drwxr-xr-x  (dir)  melpazoid-85573
+drwxr-xr-x  (dir)  melpazoid-85869
+drwxr-xr-x  (dir)  melpazoid-85907
+drwxr-xr-x  (dir)  melpazoid-86686
+drwxr-xr-x  (dir)  melpazoid-92092
+drwxr-xr-x  (dir)  melpazoid-98214
+drwx------  (dir)  msu-target-L9EaMIwG
+drwx------  (dir)  msu-target-WxCQjAXW
+drwx------  (dir)  msu-target-Z1MlifJ9
+drwxr-xr-x  (dir)  msu-target-hBHbl7GA
+drwx------  (dir)  msu-target-jiQUCcC4
+drwx------  (dir)  msu-target-qkKnlmi1
+drwxr-xr-x  (dir)  non-rec-test
+drwxr-xr-x  (dir)  non-rec-test2
+drwxr-xr-x  (dir)  powerlog
+drwxr-xr-x  (dir)  rec-test
+drwxr-xr-x  (dir)  rec-test2
+drwxr-xr-x  (dir)  rec-test3
+drwxr-xr-x  (dir)  rec-test4
+drwxr-xr-x  (dir)  test-delete
+drwx------  (dir)  tmp-mount-2Gc4od
+drwx------  (dir)  tmp-mount-AN0gU6
+drwx------  (dir)  tmp-mount-AtIau7
+drwx------  (dir)  tmp-mount-CaQGZX
+drwx------  (dir)  tmp-mount-CeBJ1I
+drwx------  (dir)  tmp-mount-GQy8WH
+drwx------  (dir)  tmp-mount-GufOud
+drwx------  (dir)  tmp-mount-PKeGlK
+drwx------  (dir)  tmp-mount-Zy1TfC
+drwx------  (dir)  tmp-mount-fHtM64
+drwx------  (dir)  tmp-mount-i6jtki
+drwx------  (dir)  tmp-mount-v5KQbL
+</tool.toolu_01TSH9H6cSitSFTxRbeUbjJa>
+
+## ASSISTANT:
+
+Hmm, it's showing `/tmp/:` instead of `./:`! The logic is wrong. Let me check what's happening - it seems like the `path` parameter is being expanded somewhere. Let me trace this:
+
+## TOOL USE:
+
+Name: read-file
+ID: toolu_01GMhxhATyxTWu3MUNwxV5Zo
+
+### path
+
+<tool.toolu_01GMhxhATyxTWu3MUNwxV5Zo>
+greger-stdlib.el
+</tool.toolu_01GMhxhATyxTWu3MUNwxV5Zo>
+
+### start-line
+
+<tool.toolu_01GMhxhATyxTWu3MUNwxV5Zo>
+407
+</tool.toolu_01GMhxhATyxTWu3MUNwxV5Zo>
+
+### end-line
+
+<tool.toolu_01GMhxhATyxTWu3MUNwxV5Zo>
+425
+</tool.toolu_01GMhxhATyxTWu3MUNwxV5Zo>
+
+
+
+
+
+## TOOL RESULT:
+
+ID: toolu_01GMhxhATyxTWu3MUNwxV5Zo
+
+<tool.toolu_01GMhxhATyxTWu3MUNwxV5Zo>
+(defun greger-stdlib--list-directory (path &optional exclude-pattern recursive)
+  "List directory contents at PATH with detailed file information similar to 'ls -Rla'.
+EXCLUDE-PATTERN is a regex pattern of paths to exclude (defaults to \"\\.git/|__pycache__/\").
+If RECURSIVE is non-nil, list files recursively."
+  (unless (stringp path)
+    (error "Invalid type: path must be a string"))
+
+  (let ((expanded-path (expand-file-name path))
+        (exclude-regex (or exclude-pattern "\\.git/|__pycache__/")))
+    (unless (file-exists-p expanded-path)
+      (error "Directory does not exist: %s" expanded-path))
+
+    (unless (file-directory-p expanded-path)
+      (error "Path is not a directory: %s" expanded-path))
+
+    (unless (file-readable-p expanded-path)
+      (error "Directory is not readable: %s" expanded-path))
+
+    (condition-case err
+</tool.toolu_01GMhxhATyxTWu3MUNwxV5Zo>
+
+
+
+## ASSISTANT:
+
+Ah! The issue is that we're passing `expanded-path` to the detailed functions, but we should pass the original `path` for display purposes while using `expanded-path` for file operations. Let me fix this:
+
+## TOOL USE:
+
+Name: str-replace
+ID: toolu_01A2DnYXKMGwmcRgrpAwv7Zh
+
+### file-path
+
+<tool.toolu_01A2DnYXKMGwmcRgrpAwv7Zh>
+greger-stdlib.el
+</tool.toolu_01A2DnYXKMGwmcRgrpAwv7Zh>
+
+### original-content
+
+<tool.toolu_01A2DnYXKMGwmcRgrpAwv7Zh>
+    (condition-case err
+        (if recursive
+            (greger-stdlib--list-directory-recursive-detailed expanded-path exclude-regex)
+          (greger-stdlib--list-directory-detailed expanded-path exclude-regex))
+</tool.toolu_01A2DnYXKMGwmcRgrpAwv7Zh>
+
+### new-content
+
+<tool.toolu_01A2DnYXKMGwmcRgrpAwv7Zh>
+    (condition-case err
+        (if recursive
+            (greger-stdlib--list-directory-recursive-detailed expanded-path exclude-regex path)
+          (greger-stdlib--list-directory-detailed expanded-path exclude-regex path))
+</tool.toolu_01A2DnYXKMGwmcRgrpAwv7Zh>
+
+### git-commit-message
+
+<tool.toolu_01A2DnYXKMGwmcRgrpAwv7Zh>
+Pass original path for display purposes while using expanded path for operations
+</tool.toolu_01A2DnYXKMGwmcRgrpAwv7Zh>
+
+<!-- TOOL_RESULT_PLACEHOLDER_toolu_01A2DnYXKMGwmcRgrpAwv7Zh -->

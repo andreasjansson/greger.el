@@ -424,8 +424,8 @@ If RECURSIVE is non-nil, list files recursively."
 
     (condition-case err
         (if recursive
-            (greger-stdlib--list-directory-recursive-detailed expanded-path exclude-regex)
-          (greger-stdlib--list-directory-detailed expanded-path exclude-regex))
+            (greger-stdlib--list-directory-recursive-detailed expanded-path exclude-regex path)
+          (greger-stdlib--list-directory-detailed expanded-path exclude-regex path))
       (error "Failed to list directory: %s" (error-message-string err)))))
 
 (defun greger-stdlib--list-directory-detailed (path exclude-pattern)
