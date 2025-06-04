@@ -744,29 +744,28 @@ Line 3"))
   (let ((test-dir (make-temp-file "greger-test-dir" t)))
     (unwind-protect
         (progn
-          ;; Create a simple test file and check exclude patterns work
-          (let ((test-file (expand-file-name "include-me.txt" test-dir))
-                (exclude-file (expand-file-name "exclude-me.log" test-dir)))
+          ;; Create test files
+          (let ((include-file (expand-file-name "keep.txt" test-dir))
+                (exclude-file (expand-file-name "remove.log" test-dir)))
 
-            (with-temp-file test-file
-              (insert "Content to include"))
+            (with-temp-file include-file
+              (insert "keep this"))
             (with-temp-file exclude-file
-              (insert "Content to exclude"))
+              (insert "exclude this"))
 
-            ;; Test with exclude pattern for .log files
+            ;; Test that exclude pattern works - .log files should be excluded
             (let ((result (greger-stdlib--list-directory test-dir "\\.log$")))
               (should (stringp result))
-              ;; Should contain the .txt file
-              (should (string-match-p "include-me\\.txt" result))
-              ;; Should NOT contain the .log file
-              (should-not (string-match-p "exclude-me\\.log" result)))
+              ;; Should contain the .txt file but not the .log file
+              (should (string-match-p "keep\\.txt" result))
+              (should-not (string-match-p "remove\\.log" result)))
 
-            ;; Test with no exclude pattern (empty string)
+            ;; Test with empty exclude pattern - should include all files
             (let ((result (greger-stdlib--list-directory test-dir "")))
               (should (stringp result))
-              ;; Should contain both files when no exclusion
-              (should (string-match-p "include-me\\.txt" result))
-              (should (string-match-p "exclude-me\\.log" result)))))
+              ;; Should contain both files
+              (should (string-match-p "keep\\.txt" result))
+              (should (string-match-p "remove\\.log" result)))))
 
       ;; Clean up
       (when (file-exists-p test-dir)
