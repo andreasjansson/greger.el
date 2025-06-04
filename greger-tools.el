@@ -41,6 +41,10 @@
 (defvar greger-tools-registry (make-hash-table :test 'equal)
   "Hash table mapping tool names to their definitions.")
 
+;; Registry to hold server tool definitions
+(defvar greger-server-tools-registry (make-hash-table :test 'equal)
+  "Hash table mapping server tool names to their definitions.")
+
 ;; greger-register-tool is the main public API of this package, so it uses the package prefix "greger-"
 ;; rather than the file prefix "greger-tools-"
 ;; package-lint: disable=wrong-prefix
