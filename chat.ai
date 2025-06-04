@@ -2885,4 +2885,97 @@ test/test-greger-stdlib.el
 Fix test to use explicit default exclude pattern instead of nil
 </tool.toolu_01YKyYXsanMWmxxdG4Q1fUtg>
 
-<!-- TOOL_RESULT_PLACEHOLDER_toolu_01YKyYXsanMWmxxdG4Q1fUtg -->
+## TOOL RESULT:
+
+ID: toolu_01YKyYXsanMWmxxdG4Q1fUtg
+
+<tool.toolu_01YKyYXsanMWmxxdG4Q1fUtg>
+Successfully replaced content in /Users/andreas/projects/greger.el/test/test-greger-stdlib.el. Successfully staged 2 file(s) and committed with message: Fix test to use explicit default exclude pattern instead of nil
+</tool.toolu_01YKyYXsanMWmxxdG4Q1fUtg>
+
+
+## ASSISTANT:
+
+Now let me also fix the ordering issue. Let me check what the actual output order is in the first test failure. Looking at the test failure, I see that the actual output has files sorted alphabetically with directories, but my expected output groups them separately. Let me create a small test to see the exact output:
+
+## TOOL USE:
+
+Name: shell-command
+ID: toolu_01Xm3TJftWg8E33QTFhY3aPe
+
+### command
+
+<tool.toolu_01Xm3TJftWg8E33QTFhY3aPe>
+emacs --batch --eval "(progn (add-to-list 'load-path \".\") (require 'greger-stdlib) (let ((test-dir (make-temp-file \"debug\" t))) (make-directory (expand-file-name \"adir\" test-dir)) (with-temp-file (expand-file-name \"bfile.txt\" test-dir) (insert \"test\")) (print (greger-stdlib--list-directory test-dir \"\" nil)) (delete-directory test-dir t)))"
+</tool.toolu_01Xm3TJftWg8E33QTFhY3aPe>
+
+## TOOL RESULT:
+
+ID: toolu_01Xm3TJftWg8E33QTFhY3aPe
+
+<tool.toolu_01Xm3TJftWg8E33QTFhY3aPe>
+Command executed successfully:
+Source file ‘/opt/homebrew/Cellar/emacs-plus@29/29.0.90/share/emacs/29.0.91/lisp/net/eww.el’ newer than byte-compiled file; using older file
+
+"/var/folders/pt/0j3p9zzj49x5vkv1mmkpvs0c0000gn/T/debugJjZVQo/:
+drwx------  (dir)  .
+drwx------  (dir)  ..
+drwxr-xr-x  (dir)  adir
+-rw-r--r--         4  bfile.txt"
+
+</tool.toolu_01Xm3TJftWg8E33QTFhY3aPe>
+
+## ASSISTANT:
+
+Perfect! So the output is sorted alphabetically with directories and files mixed together. Let me update my test expectations:
+
+## TOOL USE:
+
+Name: str-replace
+ID: toolu_01Limc657JfUammMcfCPaecC
+
+### file-path
+
+<tool.toolu_01Limc657JfUammMcfCPaecC>
+test/test-greger-stdlib.el
+</tool.toolu_01Limc657JfUammMcfCPaecC>
+
+### original-content
+
+<tool.toolu_01Limc657JfUammMcfCPaecC>
+(expected (format "%s:
+drwx------  (dir)  .
+drwx------  (dir)  ..
+-rw-r--r--         7  file1.txt
+drwxr-xr-x  (dir)  .git
+drwxr-xr-x  (dir)  keepdir
+
+%skeepdir/:
+drwxr-xr-x  (dir)  .
+drwx------  (dir)  ..
+-rw-r--r--         4  kept.txt" (file-name-as-directory test-dir) (file-name-as-directory test-dir))))
+</tool.toolu_01Limc657JfUammMcfCPaecC>
+
+### new-content
+
+<tool.toolu_01Limc657JfUammMcfCPaecC>
+(expected (format "%s:
+drwx------  (dir)  .
+drwx------  (dir)  ..
+drwxr-xr-x  (dir)  .git
+-rw-r--r--         7  file1.txt
+drwxr-xr-x  (dir)  keepdir
+
+%skeepdir/:
+drwxr-xr-x  (dir)  .
+drwx------  (dir)  ..
+-rw-r--r--         4  kept.txt" (file-name-as-directory test-dir) (file-name-as-directory test-dir))))
+</tool.toolu_01Limc657JfUammMcfCPaecC>
+
+### git-commit-message
+
+<tool.toolu_01Limc657JfUammMcfCPaecC>
+Fix test expectation to match alphabetical sorting order
+</tool.toolu_01Limc657JfUammMcfCPaecC>
+
+<!-- TOOL_RESULT_PLACEHOLDER_toolu_01Limc657JfUammMcfCPaecC -->
