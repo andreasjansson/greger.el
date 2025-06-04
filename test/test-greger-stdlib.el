@@ -512,7 +512,7 @@
 
     ;; Test with non-string file paths
     (should-error (greger-stdlib--delete-files
-                  (list 123)
+                  (vector 123)
                   "Test commit message")
                  :type 'error)
 
