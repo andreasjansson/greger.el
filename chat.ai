@@ -2614,4 +2614,424 @@ greger.el
 Clear buffer-local agent state when finishing response
 </tool.toolu_01LjHf2ZvTomx1hzML5d4jKP>
 
-<!-- TOOL_RESULT_PLACEHOLDER_toolu_01LjHf2ZvTomx1hzML5d4jKP -->
+## TOOL RESULT:
+
+ID: toolu_01LjHf2ZvTomx1hzML5d4jKP
+
+<tool.toolu_01LjHf2ZvTomx1hzML5d4jKP>
+Successfully replaced content in /Users/andreas/projects/greger.el/greger.el. Successfully staged 2 file(s) and committed with message: Clear buffer-local agent state when finishing response
+</tool.toolu_01LjHf2ZvTomx1hzML5d4jKP>
+
+
+## ASSISTANT:
+
+Now let me run the tests to make sure everything is working properly:
+
+## TOOL USE:
+
+Name: shell-command
+ID: toolu_01J7bst5Y72Q48NZCLbWTrZS
+
+### command
+
+<tool.toolu_01J7bst5Y72Q48NZCLbWTrZS>
+bash script/test
+</tool.toolu_01J7bst5Y72Q48NZCLbWTrZS>
+
+## TOOL RESULT:
+
+ID: toolu_01J7bst5Y72Q48NZCLbWTrZS
+
+<tool.toolu_01J7bst5Y72Q48NZCLbWTrZS>
+Command executed successfully:
+[0;34mRunning ERT tests for greger package...[0m
+
+Running tests in [1;33mtest/test-greger.el[0m...
+  [0;32m✓ All tests passed[0m
+
+Running tests in [1;33mtest/test-greger-parser.el[0m...
+  [0;32m✓ All tests passed[0m
+
+Running tests in [1;33mtest/test-greger-stdlib.el[0m...
+  [0;32m✓ All tests passed[0m
+
+Running tests in [1;33mtest/test-greger-tools.el[0m...
+  [0;32m✓ All tests passed[0m
+
+Running tests in [1;33mtest/test-greger-client.el[0m...
+  [0;32m✓ All tests passed[0m
+
+Running tests in [1;33mtest/test-end-to-end.el[0m...
+  [0;32m✓ All tests passed[0m
+
+[0;34mTest Summary:[0m
+  Files run: 6
+  Files passed: [0;32m6[0m
+  Files failed: [0;31m0[0m
+[0;32mAll tests passed![0m
+
+</tool.toolu_01J7bst5Y72Q48NZCLbWTrZS>
+
+## ASSISTANT:
+
+Perfect! All tests are passing. Let me now create a quick test to verify the implementation. Let me check if there's a specific test file where I should add tests for this functionality:
+
+## TOOL USE:
+
+Name: list-directory
+ID: toolu_01HRhJtt6WVxVuf34toJCkRz
+
+### path
+
+<tool.toolu_01HRhJtt6WVxVuf34toJCkRz>
+test
+</tool.toolu_01HRhJtt6WVxVuf34toJCkRz>
+
+## TOOL RESULT:
+
+ID: toolu_01HRhJtt6WVxVuf34toJCkRz
+
+<tool.toolu_01HRhJtt6WVxVuf34toJCkRz>
+test/:
+drwxr-xr-x  (dir)  .
+drwxr-xr-x  (dir)  ..
+-rw-r--r--     10563  test-end-to-end.el
+-rw-r--r--      8035  test-greger-client.el
+-rw-r--r--     49019  test-greger-parser.el
+-rw-r--r--     36102  test-greger-stdlib.el
+-rw-r--r--     28684  test-greger-tools.el
+-rw-r--r--     15604  test-greger.el
+</tool.toolu_01HRhJtt6WVxVuf34toJCkRz>
+
+## ASSISTANT:
+
+Let me check the test-greger.el file to see if I should add tests there:
+
+## TOOL USE:
+
+Name: read-file
+ID: toolu_01Ffs3Zh9Pqvq2q5YQFH89Br
+
+### path
+
+<tool.toolu_01Ffs3Zh9Pqvq2q5YQFH89Br>
+test/test-greger.el
+</tool.toolu_01Ffs3Zh9Pqvq2q5YQFH89Br>
+
+### start-line
+
+<tool.toolu_01Ffs3Zh9Pqvq2q5YQFH89Br>
+1
+</tool.toolu_01Ffs3Zh9Pqvq2q5YQFH89Br>
+
+### end-line
+
+<tool.toolu_01Ffs3Zh9Pqvq2q5YQFH89Br>
+30
+</tool.toolu_01Ffs3Zh9Pqvq2q5YQFH89Br>
+
+## TOOL RESULT:
+
+ID: toolu_01Ffs3Zh9Pqvq2q5YQFH89Br
+
+<tool.toolu_01Ffs3Zh9Pqvq2q5YQFH89Br>
+;;; test-greger.el --- Tests for greger functionality -*- lexical-binding: t -*-
+
+;;; Commentary:
+;;
+;; This file contains tests for the greger functionality (including agent capabilities).
+;;
+;; Testing Approach:
+;; - Each test has explicit "expected" content that defines the exact buffer state after execution
+;; - Tests use string= for exact content comparison where possible
+;; - Expected content follows the greger tool result format:
+;;   ## TOOL RESULT:
+;;
+;;   ID: <tool_id>
+;;
+;;   <tool.<tool_id>>
+;;   <tool_output>
+;;   </tool.<tool_id>>
+;; - This makes tests more readable and maintainable by clearly showing what the expected output should be
+
+(require 'ert)
+(require 'greger)
+(require 'greger-tools)
+(require 'greger-parser)
+
+(ert-deftest greger-test-tool-placeholder ()
+  "Test the tool placeholder helper function."
+  (let ((expected1 "<!-- TOOL_RESULT_PLACEHOLDER_test123 -->")
+        (expected2 "<!-- TOOL_RESULT_PLACEHOLDER_tool_abc_def -->"))
+    (should (string= expected1 (greger--tool-placeholder "test123")))
+    (should (string= expected2 (greger--tool-placeholder "tool_abc_def")))))
+</tool.toolu_01Ffs3Zh9Pqvq2q5YQFH89Br>
+
+## ASSISTANT:
+
+Let me add a simple test for the greger-interrupt function. I'll add it at the end of the file:
+
+## TOOL USE:
+
+Name: read-file
+ID: toolu_01Jw6VqxEfciHU3im3G9sPqg
+
+### path
+
+<tool.toolu_01Jw6VqxEfciHU3im3G9sPqg>
+test/test-greger.el
+</tool.toolu_01Jw6VqxEfciHU3im3G9sPqg>
+
+### start-line
+
+<tool.toolu_01Jw6VqxEfciHU3im3G9sPqg>
+400
+</tool.toolu_01Jw6VqxEfciHU3im3G9sPqg>
+
+### end-line
+
+<tool.toolu_01Jw6VqxEfciHU3im3G9sPqg>
+-1
+</tool.toolu_01Jw6VqxEfciHU3im3G9sPqg>
+
+## TOOL RESULT:
+
+ID: toolu_01Jw6VqxEfciHU3im3G9sPqg
+
+<tool.toolu_01Jw6VqxEfciHU3im3G9sPqg>
+Error executing tool: Invalid value: end-line must be >= 1
+</tool.toolu_01Jw6VqxEfciHU3im3G9sPqg>
+
+## TOOL USE:
+
+Name: read-file
+ID: toolu_01S6NPWEXxrnaHs38cdc7aqr
+
+### path
+
+<tool.toolu_01S6NPWEXxrnaHs38cdc7aqr>
+test/test-greger.el
+</tool.toolu_01S6NPWEXxrnaHs38cdc7aqr>
+
+### start-line
+
+<tool.toolu_01S6NPWEXxrnaHs38cdc7aqr>
+400
+</tool.toolu_01S6NPWEXxrnaHs38cdc7aqr>
+
+## TOOL RESULT:
+
+ID: toolu_01S6NPWEXxrnaHs38cdc7aqr
+
+<tool.toolu_01S6NPWEXxrnaHs38cdc7aqr>
+                          :chat-buffer (current-buffer)
+                          :directory default-directory :metadata nil))
+            (tool-calls `(((type . "tool_use")
+                          (id . "multiline_test")
+                          (name . "test-multiline")
+                          (input . ((content . "Start"))))))
+            (expected-content "
+
+## TOOL USE:
+
+Name: test-multiline
+ID: multiline_test
+
+### content
+
+<tool.multiline_test>
+Start
+</tool.multiline_test>
+
+## TOOL RESULT:
+
+ID: multiline_test
+
+<tool.multiline_test>
+Line 1: Start
+Line 2: More content
+Line 3: End
+</tool.multiline_test>"))
+
+        ;; Mock greger--run-agent-loop to capture completion
+        (cl-letf (((symbol-function 'greger--run-agent-loop)
+                   (lambda (state)
+                     (setq test-completed t))))
+
+          ;; Execute tools
+          (greger--execute-tools tool-calls agent-state)
+
+          ;; Check that execution completed
+          (should test-completed)
+
+          ;; Check exact multi-line formatting
+          (let ((actual-content (buffer-substring-no-properties (point-min) (point-max))))
+            (should (string= expected-content actual-content))))))
+
+    ;; Clean up
+    (remhash "test-multiline" greger-tools-registry)))
+
+(ert-deftest greger-test-simple-string-comparison ()
+  "Test simple tool execution with clear before/after string comparison."
+  (let ((test-completed nil))
+
+    ;; Define a predictable tool function
+    (defun greger-test-simple-echo (input)
+      (format "Echo: %s" input))
+
+    ;; Register test tool
+    (greger-register-tool "test-echo"
+      :description "Simple echo tool"
+      :properties '((input . ((type . "string")
+                              (description . "Input to echo"))))
+      :required '("input")
+      :function 'greger-test-simple-echo)
+
+    ;; Create test buffer
+    (with-temp-buffer
+      ;; Initial buffer state (empty)
+      (let ((initial-content "")
+            (agent-state (make-greger-state
+                          :current-iteration 0
+                          :chat-buffer (current-buffer)
+                          :directory default-directory :metadata nil))
+            (tool-calls `(((type . "tool_use")
+                          (id . "echo_001")
+                          (name . "test-echo")
+                          (input . ((input . "hello world"))))))
+            ;; Expected content after tool execution
+            (expected-final-content "
+
+## TOOL USE:
+
+Name: test-echo
+ID: echo_001
+
+### input
+
+<tool.echo_001>
+hello world
+</tool.echo_001>
+
+## TOOL RESULT:
+
+ID: echo_001
+
+<tool.echo_001>
+Echo: hello world
+</tool.echo_001>"))
+
+        ;; Verify initial state
+        (should (string= initial-content (buffer-substring-no-properties (point-min) (point-max))))
+
+        ;; Mock greger--run-agent-loop to capture completion
+        (cl-letf (((symbol-function 'greger--run-agent-loop)
+                   (lambda (state)
+                     (setq test-completed t))))
+
+          ;; Execute tools
+          (greger--execute-tools tool-calls agent-state)
+
+          ;; Verify completion
+          (should test-completed)
+
+          ;; Verify exact final content using string= comparison
+          (let ((actual-final-content (buffer-substring-no-properties (point-min) (point-max))))
+            (should (string= expected-final-content actual-final-content))))))
+
+    ;; Clean up
+    (remhash "test-echo" greger-tools-registry)))
+
+(provide 'test-greger)
+
+;;; test-greger.el ends here
+</tool.toolu_01S6NPWEXxrnaHs38cdc7aqr>
+
+## ASSISTANT:
+
+Now let me add a test for the greger-interrupt function:
+
+## TOOL USE:
+
+Name: str-replace
+ID: toolu_01ATuXaC2Nx4sNxoubzFTyL1
+
+### file-path
+
+<tool.toolu_01ATuXaC2Nx4sNxoubzFTyL1>
+test/test-greger.el
+</tool.toolu_01ATuXaC2Nx4sNxoubzFTyL1>
+
+### original-content
+
+<tool.toolu_01ATuXaC2Nx4sNxoubzFTyL1>
+(provide 'test-greger)
+
+;;; test-greger.el ends here
+</tool.toolu_01ATuXaC2Nx4sNxoubzFTyL1>
+
+### new-content
+
+<tool.toolu_01ATuXaC2Nx4sNxoubzFTyL1>
+(ert-deftest greger-test-interrupt-without-active-generation ()
+  "Test greger-interrupt behavior when no generation is active."
+  ;; Test that greger-interrupt calls keyboard-quit when no active generation
+  (with-temp-buffer
+    (greger-mode)
+    (let ((keyboard-quit-called nil))
+      ;; Mock keyboard-quit to track if it's called
+      (cl-letf (((symbol-function 'keyboard-quit)
+                 (lambda () (setq keyboard-quit-called t))))
+        ;; Call greger-interrupt when no active generation
+        (greger-interrupt)
+        ;; Should have called keyboard-quit
+        (should keyboard-quit-called)))))
+
+(ert-deftest greger-test-interrupt-with-active-generation ()
+  "Test greger-interrupt behavior when generation is active."
+  ;; Test that greger-interrupt cancels active generation
+  (with-temp-buffer
+    (greger-mode)
+    (let ((cancel-called nil)
+          (keyboard-quit-called nil)
+          ;; Create a mock client state
+          (mock-client-state '(mock-state)))
+
+      ;; Create agent state with active client state
+      (let ((agent-state (make-greger-state
+                          :current-iteration 1
+                          :chat-buffer (current-buffer)
+                          :directory default-directory
+                          :metadata nil
+                          :client-state mock-client-state)))
+
+        ;; Set buffer-local agent state
+        (setq greger--current-agent-state agent-state)
+
+        ;; Mock functions
+        (cl-letf (((symbol-function 'greger-client--cancel-request)
+                   (lambda (state) (setq cancel-called t)))
+                  ((symbol-function 'keyboard-quit)
+                   (lambda () (setq keyboard-quit-called t))))
+
+          ;; Call greger-interrupt
+          (greger-interrupt)
+
+          ;; Should have called cancel but not keyboard-quit
+          (should cancel-called)
+          (should-not keyboard-quit-called)
+          ;; Client state should be nil after cancellation
+          (should (null (greger-state-client-state agent-state))))))))
+
+(provide 'test-greger)
+
+;;; test-greger.el ends here
+</tool.toolu_01ATuXaC2Nx4sNxoubzFTyL1>
+
+### git-commit-message
+
+<tool.toolu_01ATuXaC2Nx4sNxoubzFTyL1>
+Add tests for greger-interrupt function
+</tool.toolu_01ATuXaC2Nx4sNxoubzFTyL1>
+
+<!-- TOOL_RESULT_PLACEHOLDER_toolu_01ATuXaC2Nx4sNxoubzFTyL1 -->

@@ -515,6 +515,56 @@ Echo: hello world
     ;; Clean up
     (remhash "test-echo" greger-tools-registry)))
 
+(ert-deftest greger-test-interrupt-without-active-generation ()
+  "Test greger-interrupt behavior when no generation is active."
+  ;; Test that greger-interrupt calls keyboard-quit when no active generation
+  (with-temp-buffer
+    (greger-mode)
+    (let ((keyboard-quit-called nil))
+      ;; Mock keyboard-quit to track if it's called
+      (cl-letf (((symbol-function 'keyboard-quit)
+                 (lambda () (setq keyboard-quit-called t))))
+        ;; Call greger-interrupt when no active generation
+        (greger-interrupt)
+        ;; Should have called keyboard-quit
+        (should keyboard-quit-called)))))
+
+(ert-deftest greger-test-interrupt-with-active-generation ()
+  "Test greger-interrupt behavior when generation is active."
+  ;; Test that greger-interrupt cancels active generation
+  (with-temp-buffer
+    (greger-mode)
+    (let ((cancel-called nil)
+          (keyboard-quit-called nil)
+          ;; Create a mock client state
+          (mock-client-state '(mock-state)))
+
+      ;; Create agent state with active client state
+      (let ((agent-state (make-greger-state
+                          :current-iteration 1
+                          :chat-buffer (current-buffer)
+                          :directory default-directory
+                          :metadata nil
+                          :client-state mock-client-state)))
+
+        ;; Set buffer-local agent state
+        (setq greger--current-agent-state agent-state)
+
+        ;; Mock functions
+        (cl-letf (((symbol-function 'greger-client--cancel-request)
+                   (lambda (state) (setq cancel-called t)))
+                  ((symbol-function 'keyboard-quit)
+                   (lambda () (setq keyboard-quit-called t))))
+
+          ;; Call greger-interrupt
+          (greger-interrupt)
+
+          ;; Should have called cancel but not keyboard-quit
+          (should cancel-called)
+          (should-not keyboard-quit-called)
+          ;; Client state should be nil after cancellation
+          (should (null (greger-state-client-state agent-state))))))))
+
 (provide 'test-greger)
 
 ;;; test-greger.el ends here
