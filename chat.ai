@@ -2090,4 +2090,522 @@ greger-client.el
 Fix JSON parsing for server_tool_use blocks in content_block_stop
 </tool.toolu_01NUcfutEzju3Q2gsT8d4mZa>
 
-<!-- TOOL_RESULT_PLACEHOLDER_toolu_01NUcfutEzju3Q2gsT8d4mZa -->
+## TOOL RESULT:
+
+ID: toolu_01NUcfutEzju3Q2gsT8d4mZa
+
+<tool.toolu_01NUcfutEzju3Q2gsT8d4mZa>
+Successfully replaced content in /Users/andreas/projects/greger.el/greger-client.el. Successfully staged 2 file(s) and committed with message: Fix JSON parsing for server_tool_use blocks in content_block_stop
+</tool.toolu_01NUcfutEzju3Q2gsT8d4mZa>
+
+## ASSISTANT:
+
+Now let's fix the format string issue:
+
+## TOOL USE:
+
+Name: str-replace
+ID: toolu_01W4mFfXX368tnq2r6NufdAs
+
+### file-path
+
+<tool.toolu_01W4mFfXX368tnq2r6NufdAs>
+greger-client.el
+</tool.toolu_01W4mFfXX368tnq2r6NufdAs>
+
+### original-content
+
+<tool.toolu_01W4mFfXX368tnq2r6NufdAs>
+  ;; TODO: remove debug
+  (message (format "output: %s" output))
+</tool.toolu_01W4mFfXX368tnq2r6NufdAs>
+
+### new-content
+
+<tool.toolu_01W4mFfXX368tnq2r6NufdAs>
+  ;; TODO: remove debug
+  (message "output: %s" output)
+</tool.toolu_01W4mFfXX368tnq2r6NufdAs>
+
+### git-commit-message
+
+<tool.toolu_01W4mFfXX368tnq2r6NufdAs>
+Fix format string error in debug message
+</tool.toolu_01W4mFfXX368tnq2r6NufdAs>
+
+## TOOL RESULT:
+
+ID: toolu_01W4mFfXX368tnq2r6NufdAs
+
+<tool.toolu_01W4mFfXX368tnq2r6NufdAs>
+Error executing tool: Original content not found in file: /Users/andreas/projects/greger.el/greger-client.el -- Try again!
+</tool.toolu_01W4mFfXX368tnq2r6NufdAs>
+
+## ASSISTANT:
+
+Let me find the exact debug message:
+
+## TOOL USE:
+
+Name: ripgrep
+ID: toolu_01HS87DzSAvThUN6yF45wyzz
+
+### pattern
+
+<tool.toolu_01HS87DzSAvThUN6yF45wyzz>
+TODO: remove debug
+</tool.toolu_01HS87DzSAvThUN6yF45wyzz>
+
+### path
+
+<tool.toolu_01HS87DzSAvThUN6yF45wyzz>
+greger-client.el
+</tool.toolu_01HS87DzSAvThUN6yF45wyzz>
+
+### context-lines
+
+<tool.toolu_01HS87DzSAvThUN6yF45wyzz>
+3
+</tool.toolu_01HS87DzSAvThUN6yF45wyzz>
+
+## TOOL RESULT:
+
+ID: toolu_01HS87DzSAvThUN6yF45wyzz
+
+<tool.toolu_01HS87DzSAvThUN6yF45wyzz>
+217-(defun greger-client--process-output-chunk (output state)
+218-  "Process a chunk of OUTPUT using STATE."
+219-
+220:  ;; TODO: remove debug
+221-  ;(message (format "output: %s" output))
+222-
+223-  ;; Check for error responses and raise an error if found
+
+</tool.toolu_01HS87DzSAvThUN6yF45wyzz>
+
+## ASSISTANT:
+
+I see the debug line is commented out. Let me check if there are any other format-related issues. The problem might be elsewhere. Let me check the main greger.el file:
+
+## TOOL USE:
+
+Name: ripgrep
+ID: toolu_01D8y4jBP6dSeyv71zZRvBxi
+
+### pattern
+
+<tool.toolu_01D8y4jBP6dSeyv71zZRvBxi>
+format.*%s"
+</tool.toolu_01D8y4jBP6dSeyv71zZRvBxi>
+
+### context-lines
+
+<tool.toolu_01D8y4jBP6dSeyv71zZRvBxi>
+2
+</tool.toolu_01D8y4jBP6dSeyv71zZRvBxi>
+
+## TOOL RESULT:
+
+ID: toolu_01D8y4jBP6dSeyv71zZRvBxi
+
+<tool.toolu_01D8y4jBP6dSeyv71zZRvBxi>
+/Users/andreas/projects/greger.el/test/test-end-to-end.el-254-          ;; The model should be shown in the mode line
+/Users/andreas/projects/greger.el/test/test-end-to-end.el-255-          (should (string-match-p "claude-sonnet-4-20250514"
+/Users/andreas/projects/greger.el/test/test-end-to-end.el:256:                                 (format "%s" (symbol-name greger-model)))))
+/Users/andreas/projects/greger.el/test/test-end-to-end.el-257-
+/Users/andreas/projects/greger.el/test/test-end-to-end.el-258-      ;; Cleanup
+--
+/Users/andreas/projects/greger.el/test/test-greger-tools.el-64-  (defun greger-test-hyphenated-params (file-path commit-message)
+/Users/andreas/projects/greger.el/test/test-greger-tools.el-65-    "Test function with hyphenated parameters."
+/Users/andreas/projects/greger.el/test/test-greger-tools.el:66:    (format "file: %s, message: %s" file-path commit-message))
+/Users/andreas/projects/greger.el/test/test-greger-tools.el-67-
+/Users/andreas/projects/greger.el/test/test-greger-tools.el-68-  ;; Register tool with underscore parameter names (as they come from JSON)
+--
+/Users/andreas/projects/greger.el/test/test-greger-tools.el-96-  (defun greger-test-optional-params (required-param &optional optional-param1 optional-param2)
+/Users/andreas/projects/greger.el/test/test-greger-tools.el-97-    "Test function with optional parameters."
+/Users/andreas/projects/greger.el/test/test-greger-tools.el:98:    (format "required: %s, opt1: %s, opt2: %s"
+/Users/andreas/projects/greger.el/test/test-greger-tools.el-99-            required-param
+/Users/andreas/projects/greger.el/test/test-greger-tools.el-100-            (or optional-param1 "default1")
+--
+/Users/andreas/projects/greger.el/test/test-greger-tools.el-152-    "Test function with default parameters."
+/Users/andreas/projects/greger.el/test/test-greger-tools.el-153-    ;; TODO: remove debug
+/Users/andreas/projects/greger.el/test/test-greger-tools.el:154:    (message (format "count: %s" count))
+/Users/andreas/projects/greger.el/test/test-greger-tools.el-155-    ;; TODO: remove debug
+/Users/andreas/projects/greger.el/test/test-greger-tools.el:156:    (message (format "prefix: %s" prefix))
+/Users/andreas/projects/greger.el/test/test-greger-tools.el-157-    (let ((actual-prefix (or prefix ">>>")))
+/Users/andreas/projects/greger.el/test/test-greger-tools.el-158-      (format "%s %s (repeated %d times)"
+--
+/Users/andreas/projects/greger.el/test/test-greger-tools.el-210-  (defun greger-test-required-params (required-param1 required-param2 &optional optional-param)
+/Users/andreas/projects/greger.el/test/test-greger-tools.el-211-    "Test function with required parameters."
+/Users/andreas/projects/greger.el/test/test-greger-tools.el:212:    (format "req1: %s, req2: %s, opt: %s"
+/Users/andreas/projects/greger.el/test/test-greger-tools.el-213-            required-param1 required-param2 (or optional-param "default")))
+/Users/andreas/projects/greger.el/test/test-greger-tools.el-214-
+--
+/Users/andreas/projects/greger.el/test/test-greger-tools.el-284-    "Test function that accepts a buffer parameter."
+/Users/andreas/projects/greger.el/test/test-greger-tools.el-285-    (if buffer
+/Users/andreas/projects/greger.el/test/test-greger-tools.el:286:        (format "message: %s, buffer: %s" message (buffer-name buffer))
+/Users/andreas/projects/greger.el/test/test-greger-tools.el-287-      (format "message: %s, buffer: none" message)))
+/Users/andreas/projects/greger.el/test/test-greger-tools.el-288-
+--
+/Users/andreas/projects/greger.el/test/test-greger-tools.el-338-    "Test function that accepts and uses a callback parameter."
+/Users/andreas/projects/greger.el/test/test-greger-tools.el-339-    ;; Simulate some processing, then call the callback
+/Users/andreas/projects/greger.el/test/test-greger-tools.el:340:    (let ((result (format "processed: %s" message)))
+/Users/andreas/projects/greger.el/test/test-greger-tools.el-341-      (funcall callback result nil)))
+/Users/andreas/projects/greger.el/test/test-greger-tools.el-342-
+--
+/Users/andreas/projects/greger.el/test/test-greger-tools.el-344-  (defun greger-test-no-callback-param (message)
+/Users/andreas/projects/greger.el/test/test-greger-tools.el-345-    "Test function that returns a result normally."
+/Users/andreas/projects/greger.el/test/test-greger-tools.el:346:    (format "result: %s" message))
+/Users/andreas/projects/greger.el/test/test-greger-tools.el-347-
+/Users/andreas/projects/greger.el/test/test-greger-tools.el-348-  ;; Register tool without :pass-callback (normal behavior)
+--
+/Users/andreas/projects/greger.el/test/test-greger-tools.el-392-    "Test function that accepts both callback and buffer parameters."
+/Users/andreas/projects/greger.el/test/test-greger-tools.el-393-    (let* ((buffer-name (if buffer (buffer-name buffer) "no-buffer"))
+/Users/andreas/projects/greger.el/test/test-greger-tools.el:394:           (result (format "message: %s, buffer: %s" message buffer-name)))
+/Users/andreas/projects/greger.el/test/test-greger-tools.el-395-      (funcall callback result nil)))
+/Users/andreas/projects/greger.el/test/test-greger-tools.el-396-
+--
+/Users/andreas/projects/greger.el/test/test-greger-tools.el-450-  (defun greger-test-array-param (items)
+/Users/andreas/projects/greger.el/test/test-greger-tools.el-451-    "Test function that expects an array parameter."
+/Users/andreas/projects/greger.el/test/test-greger-tools.el:452:    (format "received %d items: %s" (length items) (mapconcat 'identity items ", ")))
+/Users/andreas/projects/greger.el/test/test-greger-tools.el-453-
+/Users/andreas/projects/greger.el/test/test-greger-tools.el-454-  ;; Register tool with array parameter
+--
+/Users/andreas/projects/greger.el/test/test-greger-tools.el-487-  (defun greger-test-boolean-params (flag1 &optional flag2)
+/Users/andreas/projects/greger.el/test/test-greger-tools.el-488-    "Test function that expects boolean parameters."
+/Users/andreas/projects/greger.el/test/test-greger-tools.el:489:    (format "flag1: %s, flag2: %s" flag1 flag2))
+/Users/andreas/projects/greger.el/test/test-greger-tools.el-490-
+/Users/andreas/projects/greger.el/test/test-greger-tools.el-491-  ;; Register tool with boolean parameters
+--
+/Users/andreas/projects/greger.el/test/test-greger-tools.el-582-  (defun greger-test-mixed-params (name items count enabled &optional rate)
+/Users/andreas/projects/greger.el/test/test-greger-tools.el-583-    "Test function with mixed parameter types."
+/Users/andreas/projects/greger.el/test/test-greger-tools.el:584:    (format "name: %s, items: %d, count: %s, enabled: %s, rate: %s"
+/Users/andreas/projects/greger.el/test/test-greger-tools.el-585-            name (length items) count enabled rate))
+/Users/andreas/projects/greger.el/test/test-greger-tools.el-586-
+--
+/Users/andreas/projects/greger.el/test/test-greger-tools.el-623-  (defun greger-test-edge-cases (required-param &optional optional-param1 optional-param2)
+/Users/andreas/projects/greger.el/test/test-greger-tools.el-624-    "Test function with edge case parameter patterns."
+/Users/andreas/projects/greger.el/test/test-greger-tools.el:625:    (format "required: %s, opt1: %s, opt2: %s"
+/Users/andreas/projects/greger.el/test/test-greger-tools.el-626-            required-param optional-param1 optional-param2))
+/Users/andreas/projects/greger.el/test/test-greger-tools.el-627-
+--
+/Users/andreas/projects/greger.el/greger.el-599-                          (content . ,(if (stringp error)
+/Users/andreas/projects/greger.el/greger.el-600-                                         error
+/Users/andreas/projects/greger.el/greger.el:601:                                       (format "Error executing tool: %s" (error-message-string error))))
+/Users/andreas/projects/greger.el/greger.el-602-                          (is_error . t))
+/Users/andreas/projects/greger.el/greger.el-603-                      `((type . "tool_result")
+--
+/Users/andreas/projects/greger.el/greger.el-864-                      (or (string-match-p "^\\^##" (car rule))
+/Users/andreas/projects/greger.el/greger.el-865-                          (string-match-p "^\\^###" (car rule))
+/Users/andreas/projects/greger.el/greger.el:866:                          (string-match-p "markdown-header-face-[23]" (format "%s" rule)))))
+/Users/andreas/projects/greger.el/greger.el-867-               font-lock-keywords))
+/Users/andreas/projects/greger.el/greger.el-868-
+--
+/Users/andreas/projects/greger.el/greger-client.el-219-
+/Users/andreas/projects/greger.el/greger-client.el-220-  ;; TODO: remove debug
+/Users/andreas/projects/greger.el/greger-client.el:221:  ;(message (format "output: %s" output))
+/Users/andreas/projects/greger.el/greger-client.el-222-
+/Users/andreas/projects/greger.el/greger-client.el-223-  ;; Check for error responses and raise an error if found
+--
+/Users/andreas/projects/greger.el/greger-client.el-386-        (headers (plist-get request-spec :headers))
+/Users/andreas/projects/greger.el/greger-client.el-387-        (data (plist-get request-spec :data)))
+/Users/andreas/projects/greger.el/greger-client.el:388:    (format "curl -s -X %s %s %s %s"
+/Users/andreas/projects/greger.el/greger-client.el-389-            method
+/Users/andreas/projects/greger.el/greger-client.el-390-            (mapconcat (lambda (header)
+--
+/Users/andreas/projects/greger.el/greger-client.el-392-                       headers " ")
+/Users/andreas/projects/greger.el/greger-client.el-393-            (if data
+/Users/andreas/projects/greger.el/greger-client.el:394:                (format "--data-raw %s" (shell-quote-argument data))
+/Users/andreas/projects/greger.el/greger-client.el-395-              "")
+/Users/andreas/projects/greger.el/greger-client.el-396-            url)))
+--
+/Users/andreas/projects/greger.el/greger-stdlib.el-272-failure.
+/Users/andreas/projects/greger.el/greger-stdlib.el-273-Returns a cancel function that can be called to interrupt the process."
+/Users/andreas/projects/greger.el/greger-stdlib.el:274:  (let* ((process-name (format "greger-subprocess-%s" (make-temp-name "")))
+/Users/andreas/projects/greger.el/greger-stdlib.el-275-         (process-buffer (generate-new-buffer (format " *%s*" process-name)))
+/Users/andreas/projects/greger.el/greger-stdlib.el-276-         (default-directory (expand-file-name (or working-directory ".")))
+--
+/Users/andreas/projects/greger.el/greger-stdlib.el-302-                  (t
+/Users/andreas/projects/greger.el/greger-stdlib.el-303-                   (funcall callback nil
+/Users/andreas/projects/greger.el/greger-stdlib.el:304:                           (format "Command failed with exit code %d: %s"
+/Users/andreas/projects/greger.el/greger-stdlib.el-305-                                  exit-status
+/Users/andreas/projects/greger.el/greger-stdlib.el-306-                                  (if (string-empty-p (string-trim output))
+--
+/Users/andreas/projects/greger.el/greger-stdlib.el-324-       (when (buffer-live-p process-buffer)
+/Users/andreas/projects/greger.el/greger-stdlib.el-325-         (kill-buffer process-buffer))
+/Users/andreas/projects/greger.el/greger-stdlib.el:326:       (funcall callback nil (format "Failed to start process: %s" (error-message-string err)))
+/Users/andreas/projects/greger.el/greger-stdlib.el-327-       ;; Return no-op cancel function if process failed to start
+/Users/andreas/projects/greger.el/greger-stdlib.el-328-       (lambda () nil)))))
+--
+/Users/andreas/projects/greger.el/greger-stdlib.el-383-            (error "Failed to create commit"))
+/Users/andreas/projects/greger.el/greger-stdlib.el-384-
+/Users/andreas/projects/greger.el/greger-stdlib.el:385:          (format "Successfully staged %d file(s) and committed with message: %s"
+/Users/andreas/projects/greger.el/greger-stdlib.el-386-                  (length all-files) commit-message)))
+/Users/andreas/projects/greger.el/greger-stdlib.el-387-    (error "Git operation failed: %s" (error-message-string err))))
+--
+/Users/andreas/projects/greger.el/greger-stdlib.el-444-         (line-num start-line-num)
+/Users/andreas/projects/greger.el/greger-stdlib.el-445-         (max-width (length (number-to-string (+ start-line-num (length lines) -1))))
+/Users/andreas/projects/greger.el/greger-stdlib.el:446:         (number-format (concat "%" (number-to-string max-width) "d: %s"))
+/Users/andreas/projects/greger.el/greger-stdlib.el-447-         result)
+/Users/andreas/projects/greger.el/greger-stdlib.el-448-
+--
+/Users/andreas/projects/greger.el/greger-stdlib.el-556-           (size-or-dir (if (eq file-type t) "(dir)" (format "%8d" size))))
+/Users/andreas/projects/greger.el/greger-stdlib.el-557-
+/Users/andreas/projects/greger.el/greger-stdlib.el:558:      (format "%s  %s  %s"
+/Users/andreas/projects/greger.el/greger-stdlib.el-559-              mode-string
+/Users/andreas/projects/greger.el/greger-stdlib.el-560-              size-or-dir
+--
+/Users/andreas/projects/greger.el/greger-stdlib.el-602-    (let ((expanded-path (expand-file-name path)))
+/Users/andreas/projects/greger.el/greger-stdlib.el-603-      (if (not (file-exists-p expanded-path))
+/Users/andreas/projects/greger.el/greger-stdlib.el:604:          (funcall callback nil (format "Path does not exist: %s" expanded-path))
+/Users/andreas/projects/greger.el/greger-stdlib.el-605-
+/Users/andreas/projects/greger.el/greger-stdlib.el-606-        ;; Build the rg command arguments
+--
+/Users/andreas/projects/greger.el/greger-stdlib.el-635-           (lambda (output error)
+/Users/andreas/projects/greger.el/greger-stdlib.el-636-             (if error
+/Users/andreas/projects/greger.el/greger-stdlib.el:637:                 (funcall callback nil (format "Failed to execute ripgrep search: %s" error))
+/Users/andreas/projects/greger.el/greger-stdlib.el-638-               (funcall callback
+/Users/andreas/projects/greger.el/greger-stdlib.el-639-                       (if (string-empty-p (string-trim output))
+--
+/Users/andreas/projects/greger.el/greger-stdlib.el-669-    ;; Stage and commit changes - infer the file to stage
+/Users/andreas/projects/greger.el/greger-stdlib.el-670-    (let ((git-result (greger-stdlib--git-stage-and-commit (list expanded-path) git-commit-message buffer)))
+/Users/andreas/projects/greger.el/greger-stdlib.el:671:      (format "Successfully wrote new file %s with %d characters. %s"
+/Users/andreas/projects/greger.el/greger-stdlib.el-672-              expanded-path (length contents) git-result))))
+/Users/andreas/projects/greger.el/greger-stdlib.el-673-
+--
+/Users/andreas/projects/greger.el/greger-stdlib.el-683-    (if (file-exists-p expanded-path)
+/Users/andreas/projects/greger.el/greger-stdlib.el-684-        (if (file-directory-p expanded-path)
+/Users/andreas/projects/greger.el/greger-stdlib.el:685:            (format "Directory already exists: %s" expanded-path)
+/Users/andreas/projects/greger.el/greger-stdlib.el-686-          (error "Path exists but is not a directory: %s" expanded-path))
+/Users/andreas/projects/greger.el/greger-stdlib.el-687-
+--
+/Users/andreas/projects/greger.el/greger-stdlib.el-693-            ;; For now, we'll stage the directory path itself (though git doesn't track empty dirs)
+/Users/andreas/projects/greger.el/greger-stdlib.el-694-            (let ((git-result (greger-stdlib--git-stage-and-commit (list expanded-path) git-commit-message buffer)))
+/Users/andreas/projects/greger.el/greger-stdlib.el:695:              (format "Successfully created directory: %s. %s" expanded-path git-result)))
+/Users/andreas/projects/greger.el/greger-stdlib.el-696-        (error "Failed to create directory: %s" (error-message-string err))))))
+/Users/andreas/projects/greger.el/greger-stdlib.el-697-
+--
+/Users/andreas/projects/greger.el/greger-stdlib.el-727-                             (list expanded-old-path expanded-new-path)
+/Users/andreas/projects/greger.el/greger-stdlib.el-728-                             git-commit-message buffer)))
+/Users/andreas/projects/greger.el/greger-stdlib.el:729:            (format "Successfully renamed %s to %s. %s" expanded-old-path expanded-new-path git-result)))
+/Users/andreas/projects/greger.el/greger-stdlib.el-730-      (error "Failed to rename file: %s" (error-message-string err)))))
+/Users/andreas/projects/greger.el/greger-stdlib.el-731-
+--
+/Users/andreas/projects/greger.el/greger-stdlib.el-774-             "No files were tracked by git")))
+/Users/andreas/projects/greger.el/greger-stdlib.el-775-
+/Users/andreas/projects/greger.el/greger-stdlib.el:776:      (format "Successfully deleted %d file(s): %s. Git status: %s"
+/Users/andreas/projects/greger.el/greger-stdlib.el-777-              (length deleted-files)
+/Users/andreas/projects/greger.el/greger-stdlib.el-778-              (mapconcat #'identity (reverse deleted-files) ", ")
+--
+/Users/andreas/projects/greger.el/greger-stdlib.el-807-    ;; Stage and commit the file
+/Users/andreas/projects/greger.el/greger-stdlib.el-808-    (let ((git-result (greger-stdlib--git-stage-and-commit (list expanded-path) git-commit-message buffer)))
+/Users/andreas/projects/greger.el/greger-stdlib.el:809:      (format "Successfully replaced contents of %s with %d characters. %s"
+/Users/andreas/projects/greger.el/greger-stdlib.el-810-              expanded-path (length contents) git-result))))
+/Users/andreas/projects/greger.el/greger-stdlib.el-811-
+--
+/Users/andreas/projects/greger.el/greger-stdlib.el-877-    ;; Stage and commit the file
+/Users/andreas/projects/greger.el/greger-stdlib.el-878-    (let ((git-result (greger-stdlib--git-stage-and-commit (list expanded-path) git-commit-message buffer)))
+/Users/andreas/projects/greger.el/greger-stdlib.el:879:      (format "Successfully replaced content in %s. %s" expanded-path git-result))))
+/Users/andreas/projects/greger.el/greger-stdlib.el-880-
+/Users/andreas/projects/greger.el/greger-stdlib.el-881-(defun greger-stdlib--insert (file-path line-number content git-commit-message &optional buffer)
+--
+/Users/andreas/projects/greger.el/greger-stdlib.el-933-    ;; Stage and commit the file
+/Users/andreas/projects/greger.el/greger-stdlib.el-934-    (let ((git-result (greger-stdlib--git-stage-and-commit (list expanded-path) git-commit-message buffer)))
+/Users/andreas/projects/greger.el/greger-stdlib.el:935:      (format "Successfully inserted %d characters at line %d in %s. %s"
+/Users/andreas/projects/greger.el/greger-stdlib.el-936-              (length content) line-number expanded-path git-result))))
+/Users/andreas/projects/greger.el/greger-stdlib.el-937-
+--
+/Users/andreas/projects/greger.el/greger-stdlib.el-1055-        (cond
+/Users/andreas/projects/greger.el/greger-stdlib.el-1056-         ((not (file-exists-p expanded-work-dir))
+/Users/andreas/projects/greger.el/greger-stdlib.el:1057:          (funcall callback nil (format "Working directory does not exist: %s" expanded-work-dir))
+/Users/andreas/projects/greger.el/greger-stdlib.el-1058-          (lambda () nil))
+/Users/andreas/projects/greger.el/greger-stdlib.el-1059-
+/Users/andreas/projects/greger.el/greger-stdlib.el-1060-         ((not (file-directory-p expanded-work-dir))
+/Users/andreas/projects/greger.el/greger-stdlib.el:1061:          (funcall callback nil (format "Working directory path is not a directory: %s" expanded-work-dir))
+/Users/andreas/projects/greger.el/greger-stdlib.el-1062-          (lambda () nil))
+/Users/andreas/projects/greger.el/greger-stdlib.el-1063-
+--
+/Users/andreas/projects/greger.el/greger-stdlib.el-1079-                     (funcall callback nil error)
+/Users/andreas/projects/greger.el/greger-stdlib.el-1080-                   (funcall callback
+/Users/andreas/projects/greger.el/greger-stdlib.el:1081:                           (format "Command executed successfully:\n%s" output)
+/Users/andreas/projects/greger.el/greger-stdlib.el-1082-                           nil))))
+/Users/andreas/projects/greger.el/greger-stdlib.el-1083-            ;; For simple commands, parse into program and arguments
+--
+/Users/andreas/projects/greger.el/greger-stdlib.el-1093-                     (funcall callback nil error)
+/Users/andreas/projects/greger.el/greger-stdlib.el-1094-                   (funcall callback
+/Users/andreas/projects/greger.el/greger-stdlib.el:1095:                           (format "Command executed successfully:\n%s" output)
+/Users/andreas/projects/greger.el/greger-stdlib.el-1096-                           nil)))))))))))))
+/Users/andreas/projects/greger.el/greger-stdlib.el-1097-
+--
+/Users/andreas/projects/greger.el/test/test-greger-parser.el-673-
+/Users/andreas/projects/greger.el/test/test-greger-parser.el-674-   ;; Fallback to string comparison
+/Users/andreas/projects/greger.el/test/test-greger-parser.el:675:   (t (string= (format "%s" expected) (format "%s" actual)))))
+/Users/andreas/projects/greger.el/test/test-greger-parser.el-676-
+/Users/andreas/projects/greger.el/test/test-greger-parser.el-677-(defun greger-parser-test--content-blocks-equal (expected actual)
+--
+/Users/andreas/projects/greger.el/test/test-greger.el-36-    ;; Define a simple test function
+/Users/andreas/projects/greger.el/test/test-greger.el-37-    (defun greger-test-simple-tool (message)
+/Users/andreas/projects/greger.el/test/test-greger.el:38:      (format "Tool executed: %s" message))
+/Users/andreas/projects/greger.el/test/test-greger.el-39-
+/Users/andreas/projects/greger.el/test/test-greger.el-40-    ;; Register test tool
+--
+/Users/andreas/projects/greger.el/test/test-greger.el-102-    ;; Define test functions with deterministic output
+/Users/andreas/projects/greger.el/test/test-greger.el-103-    (defun greger-test-tool-a (value)
+/Users/andreas/projects/greger.el/test/test-greger.el:104:      (format "Tool A result: %s" value))
+/Users/andreas/projects/greger.el/test/test-greger.el-105-
+/Users/andreas/projects/greger.el/test/test-greger.el-106-    (defun greger-test-tool-b (value)
+/Users/andreas/projects/greger.el/test/test-greger.el:107:      (format "Tool B result: %s" value))
+/Users/andreas/projects/greger.el/test/test-greger.el-108-
+/Users/andreas/projects/greger.el/test/test-greger.el-109-    ;; Register test tools
+--
+/Users/andreas/projects/greger.el/test/test-greger.el-267-    ;; Define a simple test function
+/Users/andreas/projects/greger.el/test/test-greger.el-268-    (defun greger-test-content-tool (data)
+/Users/andreas/projects/greger.el/test/test-greger.el:269:      (format "Processed: %s" data))
+/Users/andreas/projects/greger.el/test/test-greger.el-270-
+/Users/andreas/projects/greger.el/test/test-greger.el-271-    ;; Register test tool
+--
+/Users/andreas/projects/greger.el/test/test-greger.el-451-    ;; Define a predictable tool function
+/Users/andreas/projects/greger.el/test/test-greger.el-452-    (defun greger-test-simple-echo (input)
+/Users/andreas/projects/greger.el/test/test-greger.el:453:      (format "Echo: %s" input))
+/Users/andreas/projects/greger.el/test/test-greger.el-454-
+/Users/andreas/projects/greger.el/test/test-greger.el-455-    ;; Register test tool
+--
+/Users/andreas/projects/greger.el/chat.ai-694-
+/Users/andreas/projects/greger.el/chat.ai-695-  ;; TODO: remove debug
+/Users/andreas/projects/greger.el/chat.ai:696:  (message (format "output: %s" output))
+/Users/andreas/projects/greger.el/chat.ai-697-
+/Users/andreas/projects/greger.el/chat.ai-698-  ;; Check for error responses and raise an error if found
+--
+/Users/andreas/projects/greger.el/chat.ai-849-        (headers (plist-get request-spec :headers))
+/Users/andreas/projects/greger.el/chat.ai-850-        (data (plist-get request-spec :data)))
+/Users/andreas/projects/greger.el/chat.ai:851:    (format "curl -s -X %s %s %s %s"
+/Users/andreas/projects/greger.el/chat.ai-852-            method
+/Users/andreas/projects/greger.el/chat.ai-853-            (mapconcat (lambda (header)
+--
+/Users/andreas/projects/greger.el/chat.ai-855-                       headers " ")
+/Users/andreas/projects/greger.el/chat.ai-856-            (if data
+/Users/andreas/projects/greger.el/chat.ai:857:                (format "--data-raw %s" (shell-quote-argument data))
+/Users/andreas/projects/greger.el/chat.ai-858-              "")
+/Users/andreas/projects/greger.el/chat.ai-859-            url)))
+--
+/Users/andreas/projects/greger.el/chat.ai-1741-219-
+/Users/andreas/projects/greger.el/chat.ai-1742-220-  ;; TODO: remove debug
+/Users/andreas/projects/greger.el/chat.ai:1743:221:  (message (format "output: %s" output))
+/Users/andreas/projects/greger.el/chat.ai-1744-222-
+/Users/andreas/projects/greger.el/chat.ai-1745-223-  ;; Check for error responses and raise an error if found
+--
+/Users/andreas/projects/greger.el/chat.ai-1749-374-        (headers (plist-get request-spec :headers))
+/Users/andreas/projects/greger.el/chat.ai-1750-375-        (data (plist-get request-spec :data)))
+/Users/andreas/projects/greger.el/chat.ai:1751:376:    (format "curl -s -X %s %s %s %s"
+/Users/andreas/projects/greger.el/chat.ai-1752-377-            method
+/Users/andreas/projects/greger.el/chat.ai-1753-378-            (mapconcat (lambda (header)
+--
+/Users/andreas/projects/greger.el/chat.ai-1755-380-                       headers " ")
+/Users/andreas/projects/greger.el/chat.ai-1756-381-            (if data
+/Users/andreas/projects/greger.el/chat.ai:1757:382:                (format "--data-raw %s" (shell-quote-argument data))
+/Users/andreas/projects/greger.el/chat.ai-1758-383-              "")
+/Users/andreas/projects/greger.el/chat.ai-1759-384-            url)))
+--
+/Users/andreas/projects/greger.el/greger-parser.el-1017-                  content)
+/Users/andreas/projects/greger.el/greger-parser.el-1018-                 (t
+/Users/andreas/projects/greger.el/greger-parser.el:1019:                  `(((type . "text") (text . ,(format "%s" content))))))))
+/Users/andreas/projects/greger.el/greger-parser.el-1020-    result))
+/Users/andreas/projects/greger.el/greger-parser.el-1021-
+--
+/Users/andreas/projects/greger.el/greger-parser.el-1140-   ((vectorp value) (json-encode value))
+/Users/andreas/projects/greger.el/greger-parser.el-1141-   ((listp value) (json-encode value))
+/Users/andreas/projects/greger.el/greger-parser.el:1142:   (t (format "%s" value))))
+/Users/andreas/projects/greger.el/greger-parser.el-1143-
+/Users/andreas/projects/greger.el/greger-parser.el-1144-;; Global debug flag for interactive debugging
+--
+/Users/andreas/projects/greger.el/greger-tools.el-200-            (error
+/Users/andreas/projects/greger.el/greger-tools.el-201-             (funcall callback nil err))))
+/Users/andreas/projects/greger.el/greger-tools.el:202:      (funcall callback nil (format "Unknown tool: %s" tool-name)))
+/Users/andreas/projects/greger.el/greger-tools.el-203-    ;; Return greger-tool struct
+/Users/andreas/projects/greger.el/greger-tools.el-204-    (make-greger-tool :cancel-fn cancel-fn)))
+
+</tool.toolu_01D8y4jBP6dSeyv71zZRvBxi>
+
+## ASSISTANT:
+
+Now let me look at the actual debug message in the client that might still be active:
+
+## TOOL USE:
+
+Name: read-file
+ID: toolu_0186whNBL37HqoKx6HbGdsnq
+
+### path
+
+<tool.toolu_0186whNBL37HqoKx6HbGdsnq>
+greger-client.el
+</tool.toolu_0186whNBL37HqoKx6HbGdsnq>
+
+### start-line
+
+<tool.toolu_0186whNBL37HqoKx6HbGdsnq>
+215
+</tool.toolu_0186whNBL37HqoKx6HbGdsnq>
+
+### end-line
+
+<tool.toolu_0186whNBL37HqoKx6HbGdsnq>
+225
+</tool.toolu_0186whNBL37HqoKx6HbGdsnq>
+
+## TOOL RESULT:
+
+ID: toolu_0186whNBL37HqoKx6HbGdsnq
+
+<tool.toolu_0186whNBL37HqoKx6HbGdsnq>
+    (json-readtable-error nil)))
+
+(defun greger-client--process-output-chunk (output state)
+  "Process a chunk of OUTPUT using STATE."
+
+  ;; TODO: remove debug
+  ;(message (format "output: %s" output))
+
+  ;; Check for error responses and raise an error if found
+  (greger-client--check-for-error output)
+
+</tool.toolu_0186whNBL37HqoKx6HbGdsnq>
+
+## ASSISTANT:
+
+The debug message is commented out, so the format string error must be coming from elsewhere. Let me check if there's another version of the debug message that's active. Looking at the output more carefully, I see it says `greger-client--process-output-chunk: Not enough arguments for format string`. This suggests the error is happening inside that function.
+
+Actually, looking at the line from chat.ai, it seems there may be another debug message. Let me enable the debug message temporarily to see if it reveals the issue, but fix the format string problem first:
+
+## TOOL USE:
+
+Name: str-replace
+ID: toolu_015AchRGodTHecD1jzS2uFtS
+
+### file-path
+
+<tool.toolu_015AchRGodTHecD1jzS2uFtS>
+greger-client.el
+</tool.toolu_015AchRGodTHecD1jzS2uFtS>
+
+### original-content
+
+<tool.toolu_015AchRGodTHecD1jzS2uFtS>
+;; TODO: remove debug
+  ;(message (format "output: %s" output))
+</tool.toolu_015AchRGodTHecD1jzS2uFtS>
+
+### new-content
+
+<tool.toolu_015AchRGodTHecD1jzS2uFtS>
+;; TODO: remove debug
+  (message "output: %s" output)
+</tool.toolu_015AchRGodTHecD1jzS2uFtS>
+
+### git-commit-message
+
+<tool.toolu_015AchRGodTHecD1jzS2uFtS>
+Enable debug message with proper format string usage
+</tool.toolu_015AchRGodTHecD1jzS2uFtS>
+
+<!-- TOOL_RESULT_PLACEHOLDER_toolu_015AchRGodTHecD1jzS2uFtS -->

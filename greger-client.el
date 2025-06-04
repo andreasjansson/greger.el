@@ -218,7 +218,7 @@ Returns nil if no error found or if OUTPUT is not valid JSON."
   "Process a chunk of OUTPUT using STATE."
 
   ;; TODO: remove debug
-  ;(message (format "output: %s" output))
+  (message "output: %s" output)
 
   ;; Check for error responses and raise an error if found
   (greger-client--check-for-error output)
