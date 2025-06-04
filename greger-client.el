@@ -76,7 +76,7 @@ claude-sonnet-4-20250514 or claude-opus-4-20250514."
 
   (let* ((output-buffer (or buffer (current-buffer)))
          (undo-handle (prepare-change-group output-buffer))
-         (request-spec (greger-client--build-request model dialog tools))
+         (request-spec (greger-client--build-request model dialog tools server-tools))
          (restore-callback (lambda (state)
                              (with-current-buffer (greger-client-state-output-buffer state)
                                (undo-amalgamate-change-group (greger-client-state-undo-handle state))
