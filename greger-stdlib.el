@@ -976,11 +976,8 @@ COMMIT-HASH specifies which commit to show."
 (defun greger-stdlib--eval-elisp-defuns (file-path function-names)
   "Evaluate Emacs Lisp function definitions from FILE-PATH.
 FUNCTION-NAMES specifies which functions to evaluate."
-  (unless (stringp file-path)
-    (error "Invalid type: file-path must be a string"))
-
-  (unless (vectorp function-names)
-    (error "Invalid type: function-names must be a vector"))
+  (greger-stdlib--assert-arg-string "file-path" file-path)
+  (greger-stdlib--assert-arg-string-vector "function-names" function-names)
 
   (let ((expanded-path (expand-file-name file-path)))
     ;; Check if file exists
