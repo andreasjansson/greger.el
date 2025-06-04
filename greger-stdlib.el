@@ -412,7 +412,8 @@ If RECURSIVE is non-nil, list files recursively."
     (error "Invalid type: path must be a string"))
 
   (let ((expanded-path (expand-file-name path))
-        (exclude-regex (or exclude-pattern "\\.git/|__pycache__/")))
+        (exclude-regex (or exclude-pattern "\\.git/|__pycache__/"))
+        (original-path path))
     (unless (file-exists-p expanded-path)
       (error "Directory does not exist: %s" expanded-path))
 
@@ -423,7 +424,7 @@ If RECURSIVE is non-nil, list files recursively."
       (error "Directory is not readable: %s" expanded-path))
 
     (condition-case err
-        (greger-stdlib--list-directory-internal expanded-path exclude-regex path recursive)
+        (greger-stdlib--list-directory-recursive expanded-path exclude-regex original-path recursive)
       (error "Failed to list directory: %s" (error-message-string err)))))
 
 (defun greger-stdlib--list-directory-internal (path exclude-pattern original-path recursive &optional prefix)
