@@ -434,8 +434,7 @@ Similar to \\='ls -Rla\\='.
 EXCLUDE-DIRECTORIES-RECURSIVE is a vector of directory names to exclude when
 recursively listing (defaults to [\".git\" \"__pycache__\"]).
 If RECURSIVE is non-nil, list files recursively."
-  (unless (stringp path)
-    (error "Invalid type: path must be a string"))
+  (greger-stdlib--assert-arg-string "path" path)
 
   (let ((expanded-path (expand-file-name path))
         (original-path path))
