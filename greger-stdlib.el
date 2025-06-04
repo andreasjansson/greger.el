@@ -426,49 +426,28 @@ If RECURSIVE is non-nil, list files recursively."
         (greger-stdlib--list-directory-internal expanded-path exclude-regex path recursive)
       (error "Failed to list directory: %s" (error-message-string err)))))
 
-(defun greger-stdlib--list-directory-detailed (path exclude-pattern &optional original-path)
-  "List directory contents at PATH with detailed information like 'ls -la'.
-Excludes files/directories matching EXCLUDE-PATTERN.
-ORIGINAL-PATH is used for display purposes."
-  (let ((files (directory-files path t))
-        (results '())
-        (display-path (let ((display-path-base (or original-path path)))
-                        (if (string= display-path-base ".") "./" (file-name-as-directory display-path-base)))))
-
-    ;; Add directory header
-    (push (format "%s:" display-path) results)
-
-    ;; Add current and parent directory entries
-    (push (greger-stdlib--format-file-info path "." exclude-pattern) results)
-    (unless (string= (expand-file-name path) (expand-file-name "/"))
-      (push (greger-stdlib--format-file-info (file-name-directory (directory-file-name path)) ".." exclude-pattern) results))
-
-    ;; Process regular files and directories (skip . and ..)
-    (dolist (file (sort files #'string<))
-      (let* ((basename (file-name-nondirectory file))
-             (relative-path (file-relative-name file (expand-file-name path))))
-        (when (and (not (string= basename "."))
-                   (not (string= basename ".."))
-                   (greger-stdlib--should-include-file-p relative-path exclude-pattern))
-          (let ((formatted (greger-stdlib--format-file-info file basename exclude-pattern)))
-            (when formatted
-              (push formatted results))))))
-
-    (if (> (length results) 1) ; More than just the header
-        (mapconcat #'identity (reverse results) "\n")
-      (format "%s:\nDirectory is empty" display-path))))
-
-(defun greger-stdlib--list-directory-recursive-detailed (path exclude-pattern &optional original-path prefix)
-  "Recursively list directory contents at PATH with detailed information.
-Excludes files/directories matching EXCLUDE-PATTERN.
+(defun greger-stdlib--list-directory-internal (path exclude-pattern original-path recursive &optional prefix)
+  "Internal function to list directory contents with detailed information.
+PATH is the actual directory path to list.
+EXCLUDE-PATTERN is regex pattern of paths to exclude.
 ORIGINAL-PATH is used for display purposes at the root level.
+RECURSIVE determines if we should recurse into subdirectories.
 PREFIX is used internally for nested directory structure."
   (let ((all-results '())
         (subdirs '())
-        (display-path (if (string= (or prefix "") "")
-                          (let ((display-path-base (or original-path path)))
-                            (if (string= display-path-base ".") "./" (file-name-as-directory display-path-base)))
-                        (concat "./" prefix))))
+        (display-path (cond
+                       ;; Root level: use original path or relative notation
+                       ((string= (or prefix "") "")
+                        (let ((display-path-base (or original-path path)))
+                          (if (string= display-path-base ".")
+                              "./"
+                            (file-name-as-directory display-path-base))))
+                       ;; Nested level with absolute original path: build absolute path
+                       ((and original-path (file-name-absolute-p original-path))
+                        (file-name-as-directory
+                         (expand-file-name prefix (directory-file-name original-path))))
+                       ;; Nested level with relative path: use relative notation
+                       (t (concat "./" prefix)))))
 
     ;; Build current directory listing
     (let ((current-listing '()))
@@ -491,21 +470,26 @@ PREFIX is used internally for nested directory structure."
               (let ((formatted (greger-stdlib--format-file-info file basename exclude-pattern)))
                 (when formatted
                   (push formatted current-listing)))
-              ;; Collect subdirectories for later processing
-              (when (file-directory-p file)
+              ;; Collect subdirectories for recursive processing
+              (when (and recursive (file-directory-p file))
                 (push file subdirs))))))
 
       ;; Add current directory to results (reverse to get correct order)
       (setq all-results (reverse current-listing)))
 
-    ;; Process subdirectories recursively
-    (dolist (subdir (reverse subdirs)) ; Reverse to maintain alphabetical order
-      (let* ((basename (file-name-nondirectory subdir))
-             (subdir-results (greger-stdlib--list-directory-recursive-detailed
-                             subdir exclude-pattern nil (concat (or prefix "") basename "/"))))
-        (setq all-results (append all-results (list "" subdir-results)))))
+    ;; Process subdirectories recursively if requested
+    (when recursive
+      (dolist (subdir (reverse subdirs)) ; Reverse to maintain alphabetical order
+        (let* ((basename (file-name-nondirectory subdir))
+               (subdir-results (greger-stdlib--list-directory-internal
+                               subdir exclude-pattern original-path recursive
+                               (concat (or prefix "") basename "/"))))
+          (setq all-results (append all-results (list "" subdir-results))))))
 
-    (mapconcat #'identity all-results "\n")))
+    ;; Return results
+    (if (> (length all-results) 1) ; More than just the header
+        (mapconcat #'identity all-results "\n")
+      (format "%s:\nDirectory is empty" display-path))))
 
 (defun greger-stdlib--format-file-info (filepath displayname exclude-pattern)
   "Format file information similar to 'ls -la' output.
