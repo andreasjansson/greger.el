@@ -5793,4 +5793,195 @@ If EXCLUDE-DIRECTORIES-RECURSIVE is an empty list, exclude nothing."
 Handle default exclude logic in the check function
 </tool.toolu_01SytBJfg8WTyoHQUBcZtbS1>
 
-<!-- TOOL_RESULT_PLACEHOLDER_toolu_01SytBJfg8WTyoHQUBcZtbS1 -->
+## TOOL RESULT:
+
+ID: toolu_01SytBJfg8WTyoHQUBcZtbS1
+
+<tool.toolu_01SytBJfg8WTyoHQUBcZtbS1>
+Successfully replaced content in /Users/andreas/projects/greger.el/greger-stdlib.el. Successfully staged 2 file(s) and committed with message: Handle default exclude logic in the check function
+</tool.toolu_01SytBJfg8WTyoHQUBcZtbS1>
+
+
+## ASSISTANT:
+
+Now let's test this fix:
+
+## TOOL USE:
+
+Name: shell-command
+ID: toolu_01AsAw1RZKCQQwQcWpTxjvVj
+
+### command
+
+<tool.toolu_01AsAw1RZKCQQwQcWpTxjvVj>
+emacs --batch --eval "(progn (add-to-list 'load-path \".\") (require 'greger-stdlib) (print \"Testing empty list vs nil:\") (let ((test-dir (make-temp-file \"test\" t))) (make-directory (expand-file-name \".git\" test-dir)) (with-temp-file (expand-file-name \".git/config\" test-dir) (insert \"config\")) (print \"1. With nil (should use default excludes):\") (let ((result (greger-stdlib--list-directory test-dir nil t))) (if (string-match-p \"\\.git/:\" result) (print \"FAIL: .git was recursed into\") (print \"PASS: .git was excluded (default behavior)\"))) (print \"2. With empty list (should exclude nothing):\") (let ((result (greger-stdlib--list-directory test-dir '() t))) (if (string-match-p \"\\.git/:\" result) (print \"PASS: .git was recursed into\") (print \"FAIL: .git was excluded\"))) (delete-directory test-dir t)))"
+</tool.toolu_01AsAw1RZKCQQwQcWpTxjvVj>
+
+## TOOL RESULT:
+
+ID: toolu_01AsAw1RZKCQQwQcWpTxjvVj
+
+<tool.toolu_01AsAw1RZKCQQwQcWpTxjvVj>
+Command executed successfully:
+Source file ‘/opt/homebrew/Cellar/emacs-plus@29/29.0.90/share/emacs/29.0.91/lisp/net/eww.el’ newer than byte-compiled file; using older file
+
+"Testing empty list vs nil:"
+
+"1. With nil (should use default excludes):"
+
+"PASS: .git was excluded (default behavior)"
+
+"2. With empty list (should exclude nothing):"
+
+"FAIL: .git was excluded"
+
+</tool.toolu_01AsAw1RZKCQQwQcWpTxjvVj>
+
+## ASSISTANT:
+
+Still not working. Let me debug the function directly:
+
+## TOOL USE:
+
+Name: shell-command
+ID: toolu_01Y1KB9RAu4pQWA5BuFPpk4K
+
+### command
+
+<tool.toolu_01Y1KB9RAu4pQWA5BuFPpk4K>
+emacs --batch --eval "(progn (add-to-list 'load-path \".\") (require 'greger-stdlib) (print \"Function tests:\") (print (format \"nil -> %s\" (greger-stdlib--should-include-directory-in-recursive-listing-p \".git\" nil))) (print (format \"empty list -> %s\" (greger-stdlib--should-include-directory-in-recursive-listing-p \".git\" '()))) (print (format \"with .git -> %s\" (greger-stdlib--should-include-directory-in-recursive-listing-p \".git\" '(\".git\")))))"
+</tool.toolu_01Y1KB9RAu4pQWA5BuFPpk4K>
+
+## TOOL RESULT:
+
+ID: toolu_01Y1KB9RAu4pQWA5BuFPpk4K
+
+<tool.toolu_01Y1KB9RAu4pQWA5BuFPpk4K>
+Command executed successfully:
+Source file ‘/opt/homebrew/Cellar/emacs-plus@29/29.0.90/share/emacs/29.0.91/lisp/net/eww.el’ newer than byte-compiled file; using older file
+
+"Function tests:"
+
+"nil -> nil"
+
+"empty list -> nil"
+
+"with .git -> nil"
+
+</tool.toolu_01Y1KB9RAu4pQWA5BuFPpk4K>
+
+## ASSISTANT:
+
+That's very strange! All three cases are returning `nil` (exclude .git), but they should be different. Let me look at my function again - I think there's a logic error.
+
+Looking at the function:
+
+```elisp
+(let ((actual-exclude-list (if (null exclude-directories-recursive)
+                               '(".git" "__pycache__")
+                             exclude-directories-recursive)))
+  (not (member directory-name actual-exclude-list)))
+```
+
+- When `exclude-directories-recursive` is `nil`: `actual-exclude-list` becomes `'(".git" "__pycache__")`, so `(member ".git" '(".git" "__pycache__"))` returns `(".git" ...)` (truthy), so `(not ...)` returns `nil` (exclude) ✓
+- When `exclude-directories-recursive` is `'()`: `actual-exclude-list` becomes `'()`, so `(member ".git" '())` returns `nil`, so `(not nil)` returns `t` (include) ✓
+- When `exclude-directories-recursive` is `'(".git")`: `actual-exclude-list` becomes `'(".git")`, so `(member ".git" '(".git"))` returns `(".git")` (truthy), so `(not ...)` returns `nil` (exclude) ✓
+
+The function logic looks correct, but my test is showing all `nil`. Let me check if there's an issue with how I'm passing `'()`:
+
+## TOOL USE:
+
+Name: shell-command
+ID: toolu_012TEihFvPWLQo1kVZopu7sF
+
+### command
+
+<tool.toolu_012TEihFvPWLQo1kVZopu7sF>
+emacs --batch --eval "(progn (print (equal '() nil)) (print (null '())) (print (null nil)))"
+</tool.toolu_012TEihFvPWLQo1kVZopu7sF>
+
+## TOOL RESULT:
+
+ID: toolu_012TEihFvPWLQo1kVZopu7sF
+
+<tool.toolu_012TEihFvPWLQo1kVZopu7sF>
+Command executed successfully:
+
+t
+
+t
+
+t
+
+</tool.toolu_012TEihFvPWLQo1kVZopu7sF>
+
+## ASSISTANT:
+
+Ah! That's the issue! In Emacs Lisp, `'()` is equivalent to `nil`. So my `(null exclude-directories-recursive)` check returns `t` for both `nil` and `'()`.
+
+I need a different way to distinguish between "not provided" (nil) and "empty list provided" ('()). One approach is to use a special sentinel value or change the function signature.
+
+Let me change the approach. Instead of using `nil` as "use defaults", let me make the default explicit in the tool definition and always pass a list:
+
+## USER:
+
+The issue is that we're passing lists, but when we call the tool it's actually passed a vector. Update the tests to pass vectors for exclude-directories-recursive, and update the tool code to handle vectors instead of lists
+
+## ASSISTANT:
+
+You're absolutely right! The tool API converts arrays to vectors, so we need to handle vectors instead of lists. Let me update the code and tests.
+
+First, let me update the function to handle vectors:
+
+## TOOL USE:
+
+Name: str-replace
+ID: toolu_01YNmCB3QL4WJHj7rAGFdSUv
+
+### file-path
+
+<tool.toolu_01YNmCB3QL4WJHj7rAGFdSUv>
+greger-stdlib.el
+</tool.toolu_01YNmCB3QL4WJHj7rAGFdSUv>
+
+### original-content
+
+<tool.toolu_01YNmCB3QL4WJHj7rAGFdSUv>
+(defun greger-stdlib--list-directory (path &optional exclude-directories-recursive recursive)
+  "List directory contents at PATH with detailed file information similar to 'ls -Rla'.
+EXCLUDE-DIRECTORIES-RECURSIVE is a list of directory names to exclude when recursively listing (defaults to '(\".git\" \"__pycache__\")).
+If RECURSIVE is non-nil, list files recursively."
+  (unless (stringp path)
+    (error "Invalid type: path must be a string"))
+
+  (let ((expanded-path (expand-file-name path))
+        (exclude-list (if (null exclude-directories-recursive)
+                          '(".git" "__pycache__")
+                        exclude-directories-recursive))
+        (original-path path))
+</tool.toolu_01YNmCB3QL4WJHj7rAGFdSUv>
+
+### new-content
+
+<tool.toolu_01YNmCB3QL4WJHj7rAGFdSUv>
+(defun greger-stdlib--list-directory (path &optional exclude-directories-recursive recursive)
+  "List directory contents at PATH with detailed file information similar to 'ls -Rla'.
+EXCLUDE-DIRECTORIES-RECURSIVE is a vector of directory names to exclude when recursively listing (defaults to [\".git\" \"__pycache__\"]).
+If RECURSIVE is non-nil, list files recursively."
+  (unless (stringp path)
+    (error "Invalid type: path must be a string"))
+
+  (let ((expanded-path (expand-file-name path))
+        (exclude-list (if (null exclude-directories-recursive)
+                          [".git" "__pycache__"]
+                        exclude-directories-recursive))
+        (original-path path))
+</tool.toolu_01YNmCB3QL4WJHj7rAGFdSUv>
+
+### git-commit-message
+
+<tool.toolu_01YNmCB3QL4WJHj7rAGFdSUv>
+Update function to handle vectors instead of lists for exclude-directories-recursive
+</tool.toolu_01YNmCB3QL4WJHj7rAGFdSUv>
+
+<!-- TOOL_RESULT_PLACEHOLDER_toolu_01YNmCB3QL4WJHj7rAGFdSUv -->

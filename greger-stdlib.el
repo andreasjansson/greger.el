@@ -57,7 +57,7 @@
                          (default . ".")))
                 (exclude-directories-recursive . ((type . "array")
                                                    (items . ((type . "string")))
-                                                   (description . "List of directory names to exclude when recursively listing files")
+                                                   (description . "List of directory names to exclude when recursively listing files. If you wish to exclude no files, pass in a list with an empty string, e.g. [\"\"].")
                                                    (default . (".git" "__pycache__"))))
                 (recursive . ((type . "boolean")
                               (description . "Whether to list files recursively")
@@ -407,14 +407,14 @@ If END-LINE is specified, stop reading at that line (inclusive, 1-based)."
 
 (defun greger-stdlib--list-directory (path &optional exclude-directories-recursive recursive)
   "List directory contents at PATH with detailed file information similar to 'ls -Rla'.
-EXCLUDE-DIRECTORIES-RECURSIVE is a list of directory names to exclude when recursively listing (defaults to '(\".git\" \"__pycache__\")).
+EXCLUDE-DIRECTORIES-RECURSIVE is a vector of directory names to exclude when recursively listing (defaults to [\".git\" \"__pycache__\"]).
 If RECURSIVE is non-nil, list files recursively."
   (unless (stringp path)
     (error "Invalid type: path must be a string"))
 
   (let ((expanded-path (expand-file-name path))
         (exclude-list (if (null exclude-directories-recursive)
-                          '(".git" "__pycache__")
+                          [".git" "__pycache__"]
                         exclude-directories-recursive))
         (original-path path))
     (unless (file-exists-p expanded-path)
