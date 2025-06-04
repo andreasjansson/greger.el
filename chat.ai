@@ -7136,4 +7136,137 @@ greger-stdlib.el
 Ensure callback is called when subprocess is cancelled
 </tool.toolu_01N1yKy1Hno8zZ3pnLzZo2Xv>
 
-<!-- TOOL_RESULT_PLACEHOLDER_toolu_01N1yKy1Hno8zZ3pnLzZo2Xv -->
+## TOOL RESULT:
+
+ID: toolu_01N1yKy1Hno8zZ3pnLzZo2Xv
+
+<tool.toolu_01N1yKy1Hno8zZ3pnLzZo2Xv>
+Successfully replaced content in /Users/andreas/projects/greger.el/greger-stdlib.el. Successfully staged 2 file(s) and committed with message: Ensure callback is called when subprocess is cancelled
+</tool.toolu_01N1yKy1Hno8zZ3pnLzZo2Xv>
+
+
+## ASSISTANT:
+
+3. I also need to handle the case where the process might have already ended or might end naturally after being interrupted. Let me improve the cancel function to be more robust:
+
+## TOOL USE:
+
+Name: str-replace
+ID: toolu_01GcMxH5bL9PD29DCQ4AC6mC
+
+### file-path
+
+<tool.toolu_01GcMxH5bL9PD29DCQ4AC6mC>
+greger-stdlib.el
+</tool.toolu_01GcMxH5bL9PD29DCQ4AC6mC>
+
+### original-content
+
+<tool.toolu_01GcMxH5bL9PD29DCQ4AC6mC>
+(let* ((process-name (format "greger-subprocess-%s" (make-temp-name "")))
+         (process-buffer (generate-new-buffer (format " *%s*" process-name)))
+         (default-directory (expand-file-name (or working-directory ".")))
+         (process nil))
+
+    (condition-case err
+        (progn
+          (setq process (apply #'start-process process-name process-buffer command args))
+          (set-process-query-on-exit-flag process nil)
+
+          (set-process-sentinel
+           process
+           (lambda (proc _event)
+             (let ((exit-status (process-exit-status proc))
+                   (output (with-current-buffer process-buffer
+                            (buffer-string))))
+               (when (buffer-live-p process-buffer)
+                 (kill-buffer process-buffer))
+               (cond
+                ((= exit-status 0)
+                 (funcall callback
+                         (if (string-empty-p (string-trim output))
+                             "(no output)"
+                           output)
+                         nil))
+                (t
+                 (funcall callback nil
+                         (format "Command failed with exit code %d: %s"
+                                exit-status
+                                (if (string-empty-p (string-trim output))
+                                    "(no output)"
+                                  output))))))))
+
+          ;; Return cancel function
+          (lambda ()
+            (when (and process (process-live-p process))
+              (interrupt-process process)
+              (sit-for 0.1)
+              (when (process-live-p process)
+                (delete-process process))
+              (when (buffer-live-p process-buffer)
+                (kill-buffer process-buffer))
+              ;; Call callback with cancellation error
+              (funcall callback nil "Command execution was cancelled"))))
+</tool.toolu_01GcMxH5bL9PD29DCQ4AC6mC>
+
+### new-content
+
+<tool.toolu_01GcMxH5bL9PD29DCQ4AC6mC>
+(let* ((process-name (format "greger-subprocess-%s" (make-temp-name "")))
+         (process-buffer (generate-new-buffer (format " *%s*" process-name)))
+         (default-directory (expand-file-name (or working-directory ".")))
+         (process nil)
+         (callback-called nil))
+
+    (condition-case err
+        (progn
+          (setq process (apply #'start-process process-name process-buffer command args))
+          (set-process-query-on-exit-flag process nil)
+
+          (set-process-sentinel
+           process
+           (lambda (proc _event)
+             (unless callback-called
+               (setq callback-called t)
+               (let ((exit-status (process-exit-status proc))
+                     (output (with-current-buffer process-buffer
+                              (buffer-string))))
+                 (when (buffer-live-p process-buffer)
+                   (kill-buffer process-buffer))
+                 (cond
+                  ((= exit-status 0)
+                   (funcall callback
+                           (if (string-empty-p (string-trim output))
+                               "(no output)"
+                             output)
+                           nil))
+                  (t
+                   (funcall callback nil
+                           (format "Command failed with exit code %d: %s"
+                                  exit-status
+                                  (if (string-empty-p (string-trim output))
+                                      "(no output)"
+                                    output)))))))))
+
+          ;; Return cancel function
+          (lambda ()
+            (when (and process (process-live-p process))
+              (interrupt-process process)
+              (sit-for 0.1)
+              (when (process-live-p process)
+                (delete-process process)))
+            (unless callback-called
+              (setq callback-called t)
+              (when (buffer-live-p process-buffer)
+                (kill-buffer process-buffer))
+              ;; Call callback with cancellation error
+              (funcall callback nil "Command execution was cancelled"))))
+</tool.toolu_01GcMxH5bL9PD29DCQ4AC6mC>
+
+### git-commit-message
+
+<tool.toolu_01GcMxH5bL9PD29DCQ4AC6mC>
+Prevent duplicate callback calls and ensure proper cleanup on cancellation
+</tool.toolu_01GcMxH5bL9PD29DCQ4AC6mC>
+
+<!-- TOOL_RESULT_PLACEHOLDER_toolu_01GcMxH5bL9PD29DCQ4AC6mC -->

@@ -269,7 +269,8 @@ Returns a cancel function that can be called to interrupt the process."
   (let* ((process-name (format "greger-subprocess-%s" (make-temp-name "")))
          (process-buffer (generate-new-buffer (format " *%s*" process-name)))
          (default-directory (expand-file-name (or working-directory ".")))
-         (process nil))
+         (process nil)
+         (callback-called nil))
 
     (condition-case err
         (progn
@@ -279,25 +280,27 @@ Returns a cancel function that can be called to interrupt the process."
           (set-process-sentinel
            process
            (lambda (proc _event)
-             (let ((exit-status (process-exit-status proc))
-                   (output (with-current-buffer process-buffer
-                            (buffer-string))))
-               (when (buffer-live-p process-buffer)
-                 (kill-buffer process-buffer))
-               (cond
-                ((= exit-status 0)
-                 (funcall callback
-                         (if (string-empty-p (string-trim output))
-                             "(no output)"
-                           output)
-                         nil))
-                (t
-                 (funcall callback nil
-                         (format "Command failed with exit code %d: %s"
-                                exit-status
-                                (if (string-empty-p (string-trim output))
-                                    "(no output)"
-                                  output))))))))
+             (unless callback-called
+               (setq callback-called t)
+               (let ((exit-status (process-exit-status proc))
+                     (output (with-current-buffer process-buffer
+                              (buffer-string))))
+                 (when (buffer-live-p process-buffer)
+                   (kill-buffer process-buffer))
+                 (cond
+                  ((= exit-status 0)
+                   (funcall callback
+                           (if (string-empty-p (string-trim output))
+                               "(no output)"
+                             output)
+                           nil))
+                  (t
+                   (funcall callback nil
+                           (format "Command failed with exit code %d: %s"
+                                  exit-status
+                                  (if (string-empty-p (string-trim output))
+                                      "(no output)"
+                                    output)))))))))
 
           ;; Return cancel function
           (lambda ()
@@ -305,7 +308,9 @@ Returns a cancel function that can be called to interrupt the process."
               (interrupt-process process)
               (sit-for 0.1)
               (when (process-live-p process)
-                (delete-process process))
+                (delete-process process)))
+            (unless callback-called
+              (setq callback-called t)
               (when (buffer-live-p process-buffer)
                 (kill-buffer process-buffer))
               ;; Call callback with cancellation error
