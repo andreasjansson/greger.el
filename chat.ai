@@ -895,4 +895,58 @@ If RECURSIVE is non-nil, list files recursively."
 Update function signature to use exclude-directories-recursive parameter
 </tool.toolu_01GHY9aK9EtQjbgMNy7wwzvZ>
 
-<!-- TOOL_RESULT_PLACEHOLDER_toolu_01GHY9aK9EtQjbgMNy7wwzvZ -->
+## TOOL RESULT:
+
+ID: toolu_01GHY9aK9EtQjbgMNy7wwzvZ
+
+<tool.toolu_01GHY9aK9EtQjbgMNy7wwzvZ>
+Successfully replaced content in /Users/andreas/projects/greger.el/greger-stdlib.el. Successfully staged 2 file(s) and committed with message: Update function signature to use exclude-directories-recursive parameter
+</tool.toolu_01GHY9aK9EtQjbgMNy7wwzvZ>
+
+
+## ASSISTANT:
+
+Now I need to update the recursive function signature and documentation:
+
+## TOOL USE:
+
+Name: str-replace
+ID: toolu_01LjZKkN8HCARe49BSba37zE
+
+### file-path
+
+<tool.toolu_01LjZKkN8HCARe49BSba37zE>
+greger-stdlib.el
+</tool.toolu_01LjZKkN8HCARe49BSba37zE>
+
+### original-content
+
+<tool.toolu_01LjZKkN8HCARe49BSba37zE>
+(defun greger-stdlib--list-directory-recursive (path exclude-pattern original-path recursive &optional prefix)
+  "Recursively list directory contents with detailed information.
+PATH is the actual directory path to list.
+EXCLUDE-PATTERN is regex pattern of paths to exclude.
+ORIGINAL-PATH is used for display purposes at the root level.
+RECURSIVE determines if we should recurse into subdirectories.
+PREFIX is used internally for nested directory structure."
+</tool.toolu_01LjZKkN8HCARe49BSba37zE>
+
+### new-content
+
+<tool.toolu_01LjZKkN8HCARe49BSba37zE>
+(defun greger-stdlib--list-directory-recursive (path exclude-directories-recursive original-path recursive &optional prefix)
+  "Recursively list directory contents with detailed information.
+PATH is the actual directory path to list.
+EXCLUDE-DIRECTORIES-RECURSIVE is regex pattern of directories to exclude when recursively listing.
+ORIGINAL-PATH is used for display purposes at the root level.
+RECURSIVE determines if we should recurse into subdirectories.
+PREFIX is used internally for nested directory structure."
+</tool.toolu_01LjZKkN8HCARe49BSba37zE>
+
+### git-commit-message
+
+<tool.toolu_01LjZKkN8HCARe49BSba37zE>
+Update recursive function signature and documentation
+</tool.toolu_01LjZKkN8HCARe49BSba37zE>
+
+<!-- TOOL_RESULT_PLACEHOLDER_toolu_01LjZKkN8HCARe49BSba37zE -->

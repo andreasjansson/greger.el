@@ -427,10 +427,10 @@ If RECURSIVE is non-nil, list files recursively."
         (greger-stdlib--list-directory-recursive expanded-path exclude-regex original-path recursive)
       (error "Failed to list directory: %s" (error-message-string err)))))
 
-(defun greger-stdlib--list-directory-recursive (path exclude-pattern original-path recursive &optional prefix)
+(defun greger-stdlib--list-directory-recursive (path exclude-directories-recursive original-path recursive &optional prefix)
   "Recursively list directory contents with detailed information.
 PATH is the actual directory path to list.
-EXCLUDE-PATTERN is regex pattern of paths to exclude.
+EXCLUDE-DIRECTORIES-RECURSIVE is regex pattern of directories to exclude when recursively listing.
 ORIGINAL-PATH is used for display purposes at the root level.
 RECURSIVE determines if we should recurse into subdirectories.
 PREFIX is used internally for nested directory structure."
