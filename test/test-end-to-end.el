@@ -291,14 +291,8 @@
             (while (and (not state-found)
                        (< (float-time (time-subtract (current-time) start-time)) max-wait))
               (sit-for 0.1)
-              (let ((current-state (greger--get-current-state)))
-                (when (eq current-state 'executing)
-                  (setq state-found t))
-                ;; Debug: print current state if we're taking too long
-                (when (> (float-time (time-subtract (current-time) start-time)) 15.0)
-                  (message "Current state: %s, buffer content contains shell-command: %s"
-                          current-state
-                          (string-match-p "shell-command" (buffer-string))))))
+              (when (eq (greger--get-current-state) 'executing)
+                (setq state-found t)))
             (should state-found))
 
           ;; Wait 1 second while in executing state

@@ -1141,7 +1141,7 @@ Test greger-end-to-end-test-tool-use-conversation backtrace:
   (save-current-buffer (set-buffer (progn (or (progn (and (memq (type-
   greger--append-text("\n\n## ASSISTANT:\n\n" #s(greger-state :current
   (closure ((agent-state . #s(greger-state :current-iteration 1 :chat-
-  funcall((closure ((agent-state . #s(greger-state :current-iteration 
+  funcall((closure ((agent-state . #s(greger-state :current-iteration
   (progn (funcall (progn (or (progn (and (memq (type-of state) cl-stru
   (if (and (string= (alist-get 'type content-block) "text") (progn (or
   (let* ((index (alist-get 'index data)) (content-block (copy-alist (a
@@ -1150,7 +1150,7 @@ Test greger-end-to-end-test-tool-use-conversation backtrace:
   greger-client--handle-claude-event("{\"type\":\"content_block_start\
   (if (string= data-json "[DONE]") nil (greger-client--handle-claude-e
   (let ((data-json (substring line 6))) (if (string= data-json "[DONE]
-  (progn (let ((data-json (substring line 6))) (if (string= data-json 
+  (progn (let ((data-json (substring line 6))) (if (string= data-json
   (if (string-prefix-p "data: " line) (progn (let ((data-json (substri
   (let* ((line-end (match-end 0)) (line (substring accumulated 0 (1- l
   (while (string-match "\n" accumulated) (let* ((line-end (match-end 0
@@ -1161,7 +1161,7 @@ Test greger-end-to-end-test-tool-use-conversation backtrace:
   sleep-for(0.2)
   sit-for(0.2)
   (while (and (not completed) (< (float-time (time-subtract (current-t
-  (let ((start-time (current-time)) (completed nil) (response-started 
+  (let ((start-time (current-time)) (completed nil) (response-started
   greger-test-wait-for-response(#<killed buffer> 60)
   apply(greger-test-wait-for-response (#<killed buffer> 60))
   (setq value-57 (apply fn-55 args-56))
@@ -1379,7 +1379,7 @@ test/test-end-to-end.el
                   (setq state-found t))
                 ;; Debug: print current state if we're taking too long
                 (when (> (float-time (time-subtract (current-time) start-time)) 15.0)
-                  (message "Current state: %s, buffer content contains shell-command: %s" 
+                  (message "Current state: %s, buffer content contains shell-command: %s"
                           current-state
                           (string-match-p "shell-command" (buffer-string))))))
             (should state-found))
@@ -1630,7 +1630,7 @@ test/test-end-to-end.el
                   (setq state-found t))
                 ;; Debug: print current state if we're taking too long
                 (when (> (float-time (time-subtract (current-time) start-time)) 15.0)
-                  (message "Current state: %s, buffer content contains shell-command: %s" 
+                  (message "Current state: %s, buffer content contains shell-command: %s"
                           current-state
                           (string-match-p "shell-command" (buffer-string))))))
             (should state-found))
@@ -1951,4 +1951,79 @@ Instead, just verify that:
 This makes the test more robust across different platforms and timing conditions.
 </tool.toolu_01YDXikFy2dSTnggrnRt3Baf>
 
-<!-- TOOL_RESULT_PLACEHOLDER_toolu_01YDXikFy2dSTnggrnRt3Baf -->
+## TOOL RESULT:
+
+ID: toolu_01YDXikFy2dSTnggrnRt3Baf
+
+<tool.toolu_01YDXikFy2dSTnggrnRt3Baf>
+Successfully replaced content in /Users/andreas/projects/greger.el/test/test-end-to-end.el. Successfully staged 2 file(s) and committed with message: Simplify interrupt test expectations
+
+Remove overly specific expectations about state transitions and error messages.
+Instead, just verify that:
+1. State reaches 'executing when sleep command runs
+2. After interruption, state returns to 'idle
+3. Buffer contains some indication of command failure
+
+This makes the test more robust across different platforms and timing conditions.
+</tool.toolu_01YDXikFy2dSTnggrnRt3Baf>
+
+## ASSISTANT:
+
+Let me also remove the debug info and clean up the test:
+
+## TOOL USE:
+
+Name: str-replace
+ID: toolu_01PqCFaFk5TvhSywK6bhZ52G
+
+### file-path
+
+<tool.toolu_01PqCFaFk5TvhSywK6bhZ52G>
+test/test-end-to-end.el
+</tool.toolu_01PqCFaFk5TvhSywK6bhZ52G>
+
+### original-content
+
+<tool.toolu_01PqCFaFk5TvhSywK6bhZ52G>
+;; Wait until state becomes 'executing (should happen after AI decides to use shell tool)
+          (let ((max-wait 20.0)  ; Give more time for AI to process and decide to use tool
+                (start-time (current-time))
+                (state-found nil))
+            (while (and (not state-found)
+                       (< (float-time (time-subtract (current-time) start-time)) max-wait))
+              (sit-for 0.1)
+              (let ((current-state (greger--get-current-state)))
+                (when (eq current-state 'executing)
+                  (setq state-found t))
+                ;; Debug: print current state if we're taking too long
+                (when (> (float-time (time-subtract (current-time) start-time)) 15.0)
+                  (message "Current state: %s, buffer content contains shell-command: %s"
+                          current-state
+                          (string-match-p "shell-command" (buffer-string))))))
+            (should state-found))
+</tool.toolu_01PqCFaFk5TvhSywK6bhZ52G>
+
+### new-content
+
+<tool.toolu_01PqCFaFk5TvhSywK6bhZ52G>
+;; Wait until state becomes 'executing (should happen after AI decides to use shell tool)
+          (let ((max-wait 20.0)  ; Give more time for AI to process and decide to use tool
+                (start-time (current-time))
+                (state-found nil))
+            (while (and (not state-found)
+                       (< (float-time (time-subtract (current-time) start-time)) max-wait))
+              (sit-for 0.1)
+              (when (eq (greger--get-current-state) 'executing)
+                (setq state-found t)))
+            (should state-found))
+</tool.toolu_01PqCFaFk5TvhSywK6bhZ52G>
+
+### git-commit-message
+
+<tool.toolu_01PqCFaFk5TvhSywK6bhZ52G>
+Remove debug info from interrupt test
+
+Clean up the test by removing debug messages.
+</tool.toolu_01PqCFaFk5TvhSywK6bhZ52G>
+
+<!-- TOOL_RESULT_PLACEHOLDER_toolu_01PqCFaFk5TvhSywK6bhZ52G -->
