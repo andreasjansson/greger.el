@@ -774,8 +774,8 @@ drwx------  (dir)  ..
                   (expected (format "%s:
 drwx------  (dir)  .
 drwx------  (dir)  ..
--rw-r--r--         7  file1.txt
 drwxr-xr-x  (dir)  .git
+-rw-r--r--         7  file1.txt
 drwxr-xr-x  (dir)  keepdir
 
 %s.git/:

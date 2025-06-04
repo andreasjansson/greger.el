@@ -2978,4 +2978,76 @@ drwx------  (dir)  ..
 Fix test expectation to match alphabetical sorting order
 </tool.toolu_01Limc657JfUammMcfCPaecC>
 
-<!-- TOOL_RESULT_PLACEHOLDER_toolu_01Limc657JfUammMcfCPaecC -->
+## TOOL RESULT:
+
+ID: toolu_01Limc657JfUammMcfCPaecC
+
+<tool.toolu_01Limc657JfUammMcfCPaecC>
+Successfully replaced content in /Users/andreas/projects/greger.el/test/test-greger-stdlib.el. Successfully staged 2 file(s) and committed with message: Fix test expectation to match alphabetical sorting order
+</tool.toolu_01Limc657JfUammMcfCPaecC>
+
+
+## ASSISTANT:
+
+Now let me also fix the second part of the first test:
+
+## TOOL USE:
+
+Name: str-replace
+ID: toolu_01WnLyYrodHVLLdPiJvmB8zz
+
+### file-path
+
+<tool.toolu_01WnLyYrodHVLLdPiJvmB8zz>
+test/test-greger-stdlib.el
+</tool.toolu_01WnLyYrodHVLLdPiJvmB8zz>
+
+### original-content
+
+<tool.toolu_01WnLyYrodHVLLdPiJvmB8zz>
+(expected (format "%s:
+drwx------  (dir)  .
+drwx------  (dir)  ..
+-rw-r--r--         7  file1.txt
+drwxr-xr-x  (dir)  .git
+drwxr-xr-x  (dir)  keepdir
+
+%s.git/:
+drwxr-xr-x  (dir)  .
+drwx------  (dir)  ..
+-rw-r--r--         8  excluded.txt
+
+%skeepdir/:
+drwxr-xr-x  (dir)  .
+drwx------  (dir)  ..
+-rw-r--r--         4  kept.txt" (file-name-as-directory test-dir) (file-name-as-directory test-dir) (file-name-as-directory test-dir))))
+</tool.toolu_01WnLyYrodHVLLdPiJvmB8zz>
+
+### new-content
+
+<tool.toolu_01WnLyYrodHVLLdPiJvmB8zz>
+(expected (format "%s:
+drwx------  (dir)  .
+drwx------  (dir)  ..
+drwxr-xr-x  (dir)  .git
+-rw-r--r--         7  file1.txt
+drwxr-xr-x  (dir)  keepdir
+
+%s.git/:
+drwxr-xr-x  (dir)  .
+drwx------  (dir)  ..
+-rw-r--r--         8  excluded.txt
+
+%skeepdir/:
+drwxr-xr-x  (dir)  .
+drwx------  (dir)  ..
+-rw-r--r--         4  kept.txt" (file-name-as-directory test-dir) (file-name-as-directory test-dir) (file-name-as-directory test-dir))))
+</tool.toolu_01WnLyYrodHVLLdPiJvmB8zz>
+
+### git-commit-message
+
+<tool.toolu_01WnLyYrodHVLLdPiJvmB8zz>
+Fix second test expectation to match alphabetical sorting order
+</tool.toolu_01WnLyYrodHVLLdPiJvmB8zz>
+
+<!-- TOOL_RESULT_PLACEHOLDER_toolu_01WnLyYrodHVLLdPiJvmB8zz -->
