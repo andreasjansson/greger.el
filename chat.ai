@@ -9,4 +9,1206 @@ bash script/test --verbose --file test/test-greger-stdlib.el
 
 ## USER:
 
-Update all tools in greger-stdlib to use dashes instead of underscores in
+Make the list-directory tool output not just the filename but the full output, similar to `ls -Rla` (fields: file mode e.g. `drwxr-xr-x`, owner user, owner group, size in bytes, last modified, filename). Remove the show-hidden argument and instead add an exclude-pattern argument that takes a regex of paths to exclude (can be files or folders), with a default of `"\.git/|__pycache__/"`.
+
+Also write a test in test-greger-stdlib.el
+
+
+## ASSISTANT:
+
+I'll help you modify the `list-directory` tool to provide more detailed output similar to `ls -Rla` and add the exclude-pattern functionality. Let me first examine the current codebase structure and then make the necessary changes.
+
+## TOOL USE:
+
+Name: list-directory
+ID: toolu_01W22vLnGLMyojaHmdkwa7Zp
+
+### path
+
+<tool.toolu_01W22vLnGLMyojaHmdkwa7Zp>
+.
+</tool.toolu_01W22vLnGLMyojaHmdkwa7Zp>
+
+## TOOL RESULT:
+
+ID: toolu_01W22vLnGLMyojaHmdkwa7Zp
+
+<tool.toolu_01W22vLnGLMyojaHmdkwa7Zp>
+LICENSE
+README.md
+chat.ai
+fix-tests.grgr
+greger-client.el
+greger-parser.el
+greger-stdlib.el
+greger-tools.el
+greger-web.el
+greger.el
+recipes/
+script/
+test/
+</tool.toolu_01W22vLnGLMyojaHmdkwa7Zp>
+
+## TOOL USE:
+
+Name: ripgrep
+ID: toolu_012FdcCdmQqyreAjTsk4hYmJ
+
+### pattern
+
+<tool.toolu_012FdcCdmQqyreAjTsk4hYmJ>
+list-directory
+</tool.toolu_012FdcCdmQqyreAjTsk4hYmJ>
+
+### file-type
+
+<tool.toolu_012FdcCdmQqyreAjTsk4hYmJ>
+el
+</tool.toolu_012FdcCdmQqyreAjTsk4hYmJ>
+
+## TOOL RESULT:
+
+ID: toolu_012FdcCdmQqyreAjTsk4hYmJ
+
+<tool.toolu_012FdcCdmQqyreAjTsk4hYmJ>
+Failed to execute ripgrep search: Command failed with exit code 2: unrecognized file type: el
+
+</tool.toolu_012FdcCdmQqyreAjTsk4hYmJ>
+
+## TOOL USE:
+
+Name: ripgrep
+ID: toolu_01HiN7DtQuf1H4PJyhjZisri
+
+### pattern
+
+<tool.toolu_01HiN7DtQuf1H4PJyhjZisri>
+list-directory
+</tool.toolu_01HiN7DtQuf1H4PJyhjZisri>
+
+## TOOL RESULT:
+
+ID: toolu_01HiN7DtQuf1H4PJyhjZisri
+
+<tool.toolu_01HiN7DtQuf1H4PJyhjZisri>
+/Users/andreas/projects/greger.el/greger.el:75:  (let ((base-tools '("read-file" "list-directory" "str-replace" "insert" "write-new-file" "replace-file" "make-directory" "rename-file" "ripgrep" "git-log" "git-show-commit" "shell-command" "read-webpage" "delete-files"))
+/Users/andreas/projects/greger.el/greger-stdlib.el:53:(greger-register-tool "list-directory"
+/Users/andreas/projects/greger.el/greger-stdlib.el:65:  :function 'greger-stdlib--list-directory)
+/Users/andreas/projects/greger.el/greger-stdlib.el:407:(defun greger-stdlib--list-directory (path &optional show-hidden recursive)
+/Users/andreas/projects/greger.el/greger-stdlib.el:426:                         (greger-stdlib--list-directory-recursive expanded-path show-hidden)
+/Users/andreas/projects/greger.el/greger-stdlib.el:439:(defun greger-stdlib--list-directory-recursive (path show-hidden &optional prefix)
+/Users/andreas/projects/greger.el/greger-stdlib.el:455:                                  (greger-stdlib--list-directory-recursive
+/Users/andreas/projects/greger.el/test/test-greger-parser.el:193:Name: list-directory
+/Users/andreas/projects/greger.el/test/test-greger-parser.el:235:              ((role . "assistant") (content . (((type . "tool_use") (id . "toolu_111") (name . "list-directory") (input . ((path . ".")))))))
+/Users/andreas/projects/greger.el/test/test-greger-parser.el:804:Name: list-directory
+
+</tool.toolu_01HiN7DtQuf1H4PJyhjZisri>
+
+## ASSISTANT:
+
+Let me examine the current implementation of the list-directory tool:
+
+## TOOL USE:
+
+Name: read-file
+ID: toolu_01LGGtS6ULKPmWFECAn1Jc1q
+
+### path
+
+<tool.toolu_01LGGtS6ULKPmWFECAn1Jc1q>
+greger-stdlib.el
+</tool.toolu_01LGGtS6ULKPmWFECAn1Jc1q>
+
+### start-line
+
+<tool.toolu_01LGGtS6ULKPmWFECAn1Jc1q>
+53
+</tool.toolu_01LGGtS6ULKPmWFECAn1Jc1q>
+
+### end-line
+
+<tool.toolu_01LGGtS6ULKPmWFECAn1Jc1q>
+80
+</tool.toolu_01LGGtS6ULKPmWFECAn1Jc1q>
+
+## TOOL RESULT:
+
+ID: toolu_01LGGtS6ULKPmWFECAn1Jc1q
+
+<tool.toolu_01LGGtS6ULKPmWFECAn1Jc1q>
+(greger-register-tool "list-directory"
+  :description "List files and directories in a given directory"
+  :properties '((path . ((type . "string")
+                         (description . "Path to the directory to list. Defaults to current directory.")
+                         (default . ".")))
+                (show-hidden . ((type . "boolean")
+                                (description . "Whether to show hidden files starting with .")
+                                (default . nil)))
+                (recursive . ((type . "boolean")
+                              (description . "Whether to list files recursively")
+                              (default . nil))))
+  :required '()
+  :function 'greger-stdlib--list-directory)
+
+(greger-register-tool "ripgrep"
+  :description "Search for patterns in files using ripgrep (rg) command line tool. Note that ripgrep only matches on single lines, so you can't search across multiple lines."
+  :properties '((pattern . ((type . "string")
+                            (description . "The search pattern (regex or literal string)")))
+                (path . ((type . "string")
+                         (description . "Directory or file path to search in")
+                         (default . ".")))
+                (case-sensitive . ((type . "boolean")
+                                   (description . "Whether the search should be case-sensitive")
+                                   (default . nil)))
+                (file-type . ((type . "string")
+                              (description . "Restrict search to specific file types (e.g., 'py', 'js', 'md')")))
+                (context-lines . ((type . "integer")
+                                  (description . "Number of context lines to show around matches")
+</tool.toolu_01LGGtS6ULKPmWFECAn1Jc1q>
+
+## TOOL USE:
+
+Name: read-file
+ID: toolu_01H3xg7LDAeybPQeaj3SQKnM
+
+### path
+
+<tool.toolu_01H3xg7LDAeybPQeaj3SQKnM>
+greger-stdlib.el
+</tool.toolu_01H3xg7LDAeybPQeaj3SQKnM>
+
+### start-line
+
+<tool.toolu_01H3xg7LDAeybPQeaj3SQKnM>
+407
+</tool.toolu_01H3xg7LDAeybPQeaj3SQKnM>
+
+### end-line
+
+<tool.toolu_01H3xg7LDAeybPQeaj3SQKnM>
+470
+</tool.toolu_01H3xg7LDAeybPQeaj3SQKnM>
+
+## TOOL RESULT:
+
+ID: toolu_01H3xg7LDAeybPQeaj3SQKnM
+
+<tool.toolu_01H3xg7LDAeybPQeaj3SQKnM>
+(defun greger-stdlib--list-directory (path &optional show-hidden recursive)
+  "List directory contents at PATH.
+If SHOW-HIDDEN is non-nil, include hidden files.
+If RECURSIVE is non-nil, list files recursively."
+  (unless (stringp path)
+    (error "Invalid type: path must be a string"))
+
+  (let ((expanded-path (expand-file-name path)))
+    (unless (file-exists-p expanded-path)
+      (error "Directory does not exist: %s" expanded-path))
+
+    (unless (file-directory-p expanded-path)
+      (error "Path is not a directory: %s" expanded-path))
+
+    (unless (file-readable-p expanded-path)
+      (error "Directory is not readable: %s" expanded-path))
+
+    (condition-case err
+        (let ((files (if recursive
+                         (greger-stdlib--list-directory-recursive expanded-path show-hidden)
+                       (directory-files expanded-path nil
+                                        (if show-hidden "^[^.]\\|^\\.[^.]" "^[^.]")))))
+          (if files
+              (mapconcat (lambda (file)
+                           (let ((full-path (expand-file-name file expanded-path)))
+                             (format "%s%s"
+                                     file
+                                     (if (file-directory-p full-path) "/" ""))))
+                         files "\n")
+            "Directory is empty"))
+      (error "Failed to list directory: %s" (error-message-string err)))))
+
+(defun greger-stdlib--list-directory-recursive (path show-hidden &optional prefix)
+  "Recursively list directory contents at PATH.
+If SHOW-HIDDEN is non-nil, include hidden files.
+PREFIX is used internally for nested directory structure."
+  (let ((files '())
+        (prefix (or prefix "")))
+
+    (dolist (file (directory-files path nil
+                                   (if show-hidden "^[^.]\\|^\\.[^.]" "^[^.]")))
+      (let ((full-path (expand-file-name file path))
+            (display-name (concat prefix file)))
+
+        (if (file-directory-p full-path)
+            (progn
+              (push (concat display-name "/") files)
+              (setq files (append files
+                                  (greger-stdlib--list-directory-recursive
+                                   full-path show-hidden (concat prefix file "/")))))
+          (push display-name files))))
+
+    (reverse files)))
+
+(defun greger-stdlib--ripgrep (pattern path callback &optional case-sensitive file-type context-lines max-results)
+  "Search for PATTERN in PATH using the rg command line tool directly.
+CALLBACK is called with (result error) when search completes.
+CASE-SENSITIVE, FILE-TYPE, CONTEXT-LINES and MAX-RESULTS are optional."
+  (cond
+   ((not (stringp pattern))
+    (funcall callback nil "Pattern must be a string"))
+
+   ((not (stringp path))
+    (funcall callback nil "Path must be a string"))
+</tool.toolu_01H3xg7LDAeybPQeaj3SQKnM>
+
+## ASSISTANT:
+
+Now let me examine the test file to understand the testing pattern:
+
+## TOOL USE:
+
+Name: read-file
+ID: toolu_012g2h8qRqDWkGHAfGtQxvuc
+
+### path
+
+<tool.toolu_012g2h8qRqDWkGHAfGtQxvuc>
+test/test-greger-stdlib.el
+</tool.toolu_012g2h8qRqDWkGHAfGtQxvuc>
+
+### start-line
+
+<tool.toolu_012g2h8qRqDWkGHAfGtQxvuc>
+1
+</tool.toolu_012g2h8qRqDWkGHAfGtQxvuc>
+
+### end-line
+
+<tool.toolu_012g2h8qRqDWkGHAfGtQxvuc>
+50
+</tool.toolu_012g2h8qRqDWkGHAfGtQxvuc>
+
+## TOOL RESULT:
+
+ID: toolu_012g2h8qRqDWkGHAfGtQxvuc
+
+<tool.toolu_012g2h8qRqDWkGHAfGtQxvuc>
+;;; greger-test-stdlib.el --- Tests for greger stdlib tools -*- lexical-binding: t -*-
+
+;;; Commentary:
+;; Tests for the tools defined in greger-stdlib.el
+
+;;; Code:
+
+(require 'ert)
+(require 'cl-lib)
+(require 'greger-stdlib)
+(require 'greger-web)
+
+(ert-deftest greger-test-read-webpage-valid-url ()
+  "Test reading a webpage with a valid URL."
+  (let ((test-url "https://pub-b88c9764a4fc46baa90b9e8e1544f59e.r2.dev/hello.html"))
+
+    ;; Test with text extraction (default)
+    (let ((result (greger-stdlib--read-webpage test-url t)))
+      (should (stringp result))
+      (should (string= "Hello world!\n" result)))
+
+    ;; Test with raw HTML
+    (let ((result (greger-stdlib--read-webpage test-url nil)))
+      (should (stringp result))
+      (should (string= "<h1>Hello world!</h1>\n" result)))
+
+    ;; Test with readability enhancement
+    (let ((result (greger-stdlib--read-webpage test-url t t)))
+      (should (stringp result))
+      (should (string= "Hello world!\n" result)))))
+
+(ert-deftest greger-test-read-webpage-invalid-url ()
+  "Test reading a webpage with invalid URLs."
+  ;; Test empty URL
+  (should-error (greger-stdlib--read-webpage ""))
+  (should-error (greger-stdlib--read-webpage "   "))
+
+  ;; Test non-string URL
+  (should-error (greger-stdlib--read-webpage nil))
+  (should-error (greger-stdlib--read-webpage 123))
+
+  ;; Test invalid URL format
+  (should-error (greger-stdlib--read-webpage "ftp://example.com"))
+  (should-error (greger-stdlib--read-webpage "not-a-url"))
+  (should-error (greger-stdlib--read-webpage "file:///path/to/file")))
+
+(ert-deftest greger-test-read-webpage-network-error ()
+  "Test reading a webpage when network error occurs."
+  ;; Mock the web download function to simulate network error
+  (cl-letf (((symbol-function 'greger-web-download-page)
+</tool.toolu_012g2h8qRqDWkGHAfGtQxvuc>
+
+## ASSISTANT:
+
+Let me see more of the test file to understand the patterns:
+
+## TOOL USE:
+
+Name: ripgrep
+ID: toolu_01AENvkW3kJFYqpz98cWg6uB
+
+### pattern
+
+<tool.toolu_01AENvkW3kJFYqpz98cWg6uB>
+ert-deftest.*list-directory
+</tool.toolu_01AENvkW3kJFYqpz98cWg6uB>
+
+### path
+
+<tool.toolu_01AENvkW3kJFYqpz98cWg6uB>
+test/
+</tool.toolu_01AENvkW3kJFYqpz98cWg6uB>
+
+## TOOL RESULT:
+
+ID: toolu_01AENvkW3kJFYqpz98cWg6uB
+
+<tool.toolu_01AENvkW3kJFYqpz98cWg6uB>
+Failed to execute ripgrep search: Command failed with exit code 1: (no output)
+</tool.toolu_01AENvkW3kJFYqpz98cWg6uB>
+
+## TOOL USE:
+
+Name: ripgrep
+ID: toolu_01HrdzUSm26ZfDkRQiHutYDq
+
+### pattern
+
+<tool.toolu_01HrdzUSm26ZfDkRQiHutYDq>
+list-directory
+</tool.toolu_01HrdzUSm26ZfDkRQiHutYDq>
+
+### path
+
+<tool.toolu_01HrdzUSm26ZfDkRQiHutYDq>
+test/
+</tool.toolu_01HrdzUSm26ZfDkRQiHutYDq>
+
+## TOOL RESULT:
+
+ID: toolu_01HrdzUSm26ZfDkRQiHutYDq
+
+<tool.toolu_01HrdzUSm26ZfDkRQiHutYDq>
+/Users/andreas/projects/greger.el/test/test-greger-parser.el:193:Name: list-directory
+/Users/andreas/projects/greger.el/test/test-greger-parser.el:235:              ((role . "assistant") (content . (((type . "tool_use") (id . "toolu_111") (name . "list-directory") (input . ((path . ".")))))))
+/Users/andreas/projects/greger.el/test/test-greger-parser.el:804:Name: list-directory
+
+</tool.toolu_01HrdzUSm26ZfDkRQiHutYDq>
+
+## ASSISTANT:
+
+Let me see if there are any existing list-directory tests:
+
+## TOOL USE:
+
+Name: read-file
+ID: toolu_01CMQpEtKSdusXrF3TcBGeik
+
+### path
+
+<tool.toolu_01CMQpEtKSdusXrF3TcBGeik>
+test/test-greger-stdlib.el
+</tool.toolu_01CMQpEtKSdusXrF3TcBGeik>
+
+### include-line-numbers
+
+<tool.toolu_01CMQpEtKSdusXrF3TcBGeik>
+true
+</tool.toolu_01CMQpEtKSdusXrF3TcBGeik>
+
+## TOOL RESULT:
+
+ID: toolu_01CMQpEtKSdusXrF3TcBGeik
+
+<tool.toolu_01CMQpEtKSdusXrF3TcBGeik>
+  1: ;;; greger-test-stdlib.el --- Tests for greger stdlib tools -*- lexical-binding: t -*-
+  2:
+  3: ;;; Commentary:
+  4: ;; Tests for the tools defined in greger-stdlib.el
+  5:
+  6: ;;; Code:
+  7:
+  8: (require 'ert)
+  9: (require 'cl-lib)
+ 10: (require 'greger-stdlib)
+ 11: (require 'greger-web)
+ 12:
+ 13: (ert-deftest greger-test-read-webpage-valid-url ()
+ 14:   "Test reading a webpage with a valid URL."
+ 15:   (let ((test-url "https://pub-b88c9764a4fc46baa90b9e8e1544f59e.r2.dev/hello.html"))
+ 16:
+ 17:     ;; Test with text extraction (default)
+ 18:     (let ((result (greger-stdlib--read-webpage test-url t)))
+ 19:       (should (stringp result))
+ 20:       (should (string= "Hello world!\n" result)))
+ 21:
+ 22:     ;; Test with raw HTML
+ 23:     (let ((result (greger-stdlib--read-webpage test-url nil)))
+ 24:       (should (stringp result))
+ 25:       (should (string= "<h1>Hello world!</h1>\n" result)))
+ 26:
+ 27:     ;; Test with readability enhancement
+ 28:     (let ((result (greger-stdlib--read-webpage test-url t t)))
+ 29:       (should (stringp result))
+ 30:       (should (string= "Hello world!\n" result)))))
+ 31:
+ 32: (ert-deftest greger-test-read-webpage-invalid-url ()
+ 33:   "Test reading a webpage with invalid URLs."
+ 34:   ;; Test empty URL
+ 35:   (should-error (greger-stdlib--read-webpage ""))
+ 36:   (should-error (greger-stdlib--read-webpage "   "))
+ 37:
+ 38:   ;; Test non-string URL
+ 39:   (should-error (greger-stdlib--read-webpage nil))
+ 40:   (should-error (greger-stdlib--read-webpage 123))
+ 41:
+ 42:   ;; Test invalid URL format
+ 43:   (should-error (greger-stdlib--read-webpage "ftp://example.com"))
+ 44:   (should-error (greger-stdlib--read-webpage "not-a-url"))
+ 45:   (should-error (greger-stdlib--read-webpage "file:///path/to/file")))
+ 46:
+ 47: (ert-deftest greger-test-read-webpage-network-error ()
+ 48:   "Test reading a webpage when network error occurs."
+ 49:   ;; Mock the web download function to simulate network error
+ 50:   (cl-letf (((symbol-function 'greger-web-download-page)
+ 51:              (lambda (url extract-text use-highest-readability)
+ 52:                (error "Network timeout"))))
+ 53:
+ 54:     (let ((result (greger-stdlib--read-webpage "https://pub-b88c9764a4fc46baa90b9e8e1544f59e.r2.dev/hello.html")))
+ 55:       (should (stringp result))
+ 56:       (should (string-match-p "Network timeout" result)))))
+ 57:
+ 58: (ert-deftest greger-test-web-url-validation ()
+ 59:   "Test the web URL validation function."
+ 60:   ;; Valid URLs
+ 61:   (should (greger-web-is-web-url-p "http://example.com"))
+ 62:   (should (greger-web-is-web-url-p "https://example.com"))
+ 63:   (should (greger-web-is-web-url-p "https://subdomain.example.com/path"))
+ 64:
+ 65:   ;; Invalid URLs
+ 66:   (should-not (greger-web-is-web-url-p "ftp://example.com"))
+ 67:   (should-not (greger-web-is-web-url-p "file:///path/to/file"))
+ 68:   (should-not (greger-web-is-web-url-p "/local/path"))
+ 69:   (should-not (greger-web-is-web-url-p "example.com"))
+ 70:   (should-not (greger-web-is-web-url-p "")))
+ 71:
+ 72: (ert-deftest greger-test-shell-command-simple ()
+ 73:   "Test shell-command tool with a simple command."
+ 74:   (let ((result nil)
+ 75:         (error nil)
+ 76:         (callback-called nil))
+ 77:
+ 78:     ;; Mock the permission prompt to always return yes
+ 79:     (cl-letf (((symbol-function 'y-or-n-p) (lambda (prompt) t)))
+ 80:
+ 81:       ;; Execute a simple echo command
+ 82:       (greger-stdlib--shell-command
+ 83:        "echo hello world"
+ 84:        (lambda (output err)
+ 85:          (setq result output error err callback-called t)))
+ 86:
+ 87:       ;; Wait for async operation to complete
+ 88:       (let ((timeout 0))
+ 89:         (while (and (not callback-called) (< timeout 50))  ; 5 second timeout
+ 90:           (sit-for 0.1)
+ 91:           (setq timeout (1+ timeout))))
+ 92:
+ 93:       ;; Verify the results
+ 94:       (should callback-called)
+ 95:       (should (null error))
+ 96:       (should (stringp result))
+ 97:       (should (string-match "Command executed successfully" result))
+ 98:       (should (string-match "hello world" result)))))
+ 99:
+100: (ert-deftest greger-test-shell-command-with-pipe ()
+101:   "Test shell-command tool with a command containing a pipe."
+102:   (let ((result nil)
+103:         (error nil)
+104:         (callback-called nil))
+105:
+106:     ;; Mock the permission prompt to always return yes
+107:     (cl-letf (((symbol-function 'y-or-n-p) (lambda (prompt) t)))
+108:
+109:       ;; Execute a command with a pipe
+110:       (greger-stdlib--shell-command
+111:        "echo 'apple\nbanana\ncherry' | grep 'an'"
+112:        (lambda (output err)
+113:          (setq result output error err callback-called t)))
+114:
+115:       ;; Wait for async operation to complete
+116:       (let ((timeout 0))
+117:         (while (and (not callback-called) (< timeout 50))  ; 5 second timeout
+118:           (sit-for 0.1)
+119:           (setq timeout (1+ timeout))))
+120:
+121:       ;; Verify the results
+122:       (should callback-called)
+123:       (should (null error))
+124:       (should (stringp result))
+125:       (should (string-match "Command executed successfully" result))
+126:       (should (string-match "banana" result)))))
+127:
+128: (ert-deftest greger-test-shell-command-permission-denied ()
+129:   "Test shell-command tool when user denies permission."
+130:   (let ((result nil)
+131:         (error nil)
+132:         (callback-called nil))
+133:
+134:     ;; Mock the permission prompt to always return no
+135:     (cl-letf (((symbol-function 'y-or-n-p) (lambda (prompt) nil)))
+136:
+137:       ;; Try to execute a command
+138:       (greger-stdlib--shell-command
+139:        "echo test"
+140:        (lambda (output err)
+141:          (setq result output error err callback-called t)))
+142:
+143:       ;; Should call callback immediately with error
+144:       (should callback-called)
+145:       (should (null result))
+146:       (should (stringp error))
+147:       (should (string-match "cancelled by user" error)))))
+148:
+149: (ert-deftest greger-test-shell-command-command-failure ()
+150:   "Test shell-command tool when command fails."
+151:   (let ((result nil)
+152:         (error nil)
+153:         (callback-called nil))
+154:
+155:     ;; Mock the permission prompt to always return yes
+156:     (cl-letf (((symbol-function 'y-or-n-p) (lambda (prompt) t)))
+157:
+158:       ;; Execute a command that should fail
+159:       (greger-stdlib--shell-command
+160:        "false"  ; Command that always exits with code 1
+161:        (lambda (output err)
+162:          (setq result output error err callback-called t)))
+163:
+164:       ;; Wait for async operation to complete
+165:       (let ((timeout 0))
+166:         (while (and (not callback-called) (< timeout 50))  ; 5 second timeout
+167:           (sit-for 0.1)
+168:           (setq timeout (1+ timeout))))
+169:
+170:       ;; Verify the results
+171:       (should callback-called)
+172:       (should (null result))
+173:       (should (stringp error))
+174:       (should (string-match "failed with exit code" error)))))
+175:
+176: (ert-deftest greger-test-shell-command-safe-commands ()
+177:   "Test shell-command tool with safe-shell-commands metadata to skip permission prompt."
+178:   (let ((result nil)
+179:         (error nil)
+180:         (callback-called nil)
+181:         (prompt-called nil))
+182:
+183:     ;; Mock the permission prompt to track if it's called
+184:     (cl-letf (((symbol-function 'y-or-n-p)
+185:                (lambda (prompt)
+186:                  (setq prompt-called t)
+187:                  t)))
+188:
+189:       ;; Create metadata with safe shell commands
+190:       (let ((metadata '(:safe-shell-commands ("echo safe command" "pwd" "ls -la"))))
+191:
+192:         ;; Execute a command that's in the safe list
+193:         (greger-stdlib--shell-command
+194:          "echo safe command"
+195:          (lambda (output err)
+196:            (setq result output error err callback-called t))
+197:          "."  ; working directory
+198:          metadata)
+199:
+200:         ;; Wait for async operation to complete
+201:         (let ((timeout 0))
+202:           (while (and (not callback-called) (< timeout 50))  ; 5 second timeout
+203:             (sit-for 0.1)
+204:             (setq timeout (1+ timeout))))
+205:
+206:         ;; Verify the results
+207:         (should callback-called)
+208:         (should (null error))
+209:         (should (stringp result))
+210:         (should (string-match "Command executed successfully" result))
+211:         (should (string-match "safe command" result))
+212:         ;; Most importantly: permission prompt should NOT have been called
+213:         (should (null prompt-called))))))
+214:
+215: (ert-deftest greger-test-shell-command-unsafe-commands-with-metadata ()
+216:   "Test shell-command tool with metadata but command not in safe list still prompts."
+217:   (let ((result nil)
+218:         (error nil)
+219:         (callback-called nil)
+220:         (prompt-called nil))
+221:
+222:     ;; Mock the permission prompt to track if it's called and return yes
+223:     (cl-letf (((symbol-function 'y-or-n-p)
+224:                (lambda (prompt)
+225:                  (setq prompt-called t)
+226:                  t)))
+227:
+228:       ;; Create metadata with safe shell commands
+229:       (let ((metadata '(:safe-shell-commands ("echo safe command" "pwd"))))
+230:
+231:         ;; Execute a command that's NOT in the safe list
+232:         (greger-stdlib--shell-command
+233:          "echo unsafe command"
+234:          (lambda (output err)
+235:            (setq result output error err callback-called t))
+236:          "."  ; working directory
+237:          metadata)
+238:
+239:         ;; Wait for async operation to complete
+240:         (let ((timeout 0))
+241:           (while (and (not callback-called) (< timeout 50))  ; 5 second timeout
+242:             (sit-for 0.1)
+243:             (setq timeout (1+ timeout))))
+244:
+245:         ;; Verify the results
+246:         (should callback-called)
+247:         (should (null error))
+248:         (should (stringp result))
+249:         (should (string-match "Command executed successfully" result))
+250:         (should (string-match "unsafe command" result))
+251:         ;; Permission prompt SHOULD have been called since command not in safe list
+252:         (should prompt-called)))))
+253:
+254: (ert-deftest greger-test-shell-command-no-metadata-still-prompts ()
+255:   "Test shell-command tool without metadata still prompts for permission."
+256:   (let ((result nil)
+257:         (error nil)
+258:         (callback-called nil)
+259:         (prompt-called nil))
+260:
+261:     ;; Mock the permission prompt to track if it's called and return yes
+262:     (cl-letf (((symbol-function 'y-or-n-p)
+263:                (lambda (prompt)
+264:                  (setq prompt-called t)
+265:                  t)))
+266:
+267:         ;; Execute a command without any metadata
+268:         (greger-stdlib--shell-command
+269:          "echo no metadata"
+270:          (lambda (output err)
+271:            (setq result output error err callback-called t))
+272:          "."  ; working directory
+273:          nil)  ; no metadata
+274:
+275:         ;; Wait for async operation to complete
+276:         (let ((timeout 0))
+277:           (while (and (not callback-called) (< timeout 50))  ; 5 second timeout
+278:             (sit-for 0.1)
+279:             (setq timeout (1+ timeout))))
+280:
+281:         ;; Verify the results
+282:         (should callback-called)
+283:         (should (null error))
+284:         (should (stringp result))
+285:         (should (string-match "Command executed successfully" result))
+286:         (should (string-match "no metadata" result))
+287:         ;; Permission prompt SHOULD have been called since no metadata provided
+288:         (should prompt-called))))
+289:
+290: (ert-deftest greger-test-count-paren-balance ()
+291:   "Test the paren balance counting function."
+292:   ;; Test balanced expressions
+293:   (should (= 0 (greger-stdlib--count-paren-balance "()")))
+294:   (should (= 0 (greger-stdlib--count-paren-balance "(foo)")))
+295:   (should (= 0 (greger-stdlib--count-paren-balance "(foo (bar) baz)")))
+296:   (should (= 0 (greger-stdlib--count-paren-balance "(let ((x 1) (y 2)) (+ x y))")))
+297:
+298:   ;; Test unbalanced expressions
+299:   (should (= 1 (greger-stdlib--count-paren-balance "(")))
+300:   (should (= -1 (greger-stdlib--count-paren-balance ")")))
+301:   (should (= -1 (greger-stdlib--count-paren-balance "(foo))")))  ; 1 open, 2 close = -1
+302:   (should (= 1 (greger-stdlib--count-paren-balance "((foo)")))   ; 2 open, 1 close = 1
+303:   (should (= 3 (greger-stdlib--count-paren-balance "(((")))
+304:   (should (= -3 (greger-stdlib--count-paren-balance ")))")))
+305:
+306:   ;; Test with strings (parens in strings should be ignored)
+307:   (should (= 0 (greger-stdlib--count-paren-balance "\"()\"")))
+308:   (should (= 0 (greger-stdlib--count-paren-balance "\"(((\"")))
+309:   (should (= 0 (greger-stdlib--count-paren-balance "(message \"hello (world)\")")))  ; Fixed: this should be 0
+310:
+311:   ;; Test with comments (parens in comments should be ignored)
+312:   (should (= 0 (greger-stdlib--count-paren-balance "; (((")))
+313:   (should (= 0 (greger-stdlib--count-paren-balance ";; This has (parens) in comment")))
+314:   (should (= 0 (greger-stdlib--count-paren-balance "(foo) ; comment with (parens)")))  ; Fixed: this should be 0
+315:
+316:   ;; Test mixed content
+317:   (should (= 0 (greger-stdlib--count-paren-balance "(foo \"string with (parens)\" bar) ; comment (with parens)")))
+318:   (should (= 1 (greger-stdlib--count-paren-balance "((foo \"string with )\" bar) ; comment (with parens)")))
+319:
+320:   ;; Test empty content
+321:   (should (= 0 (greger-stdlib--count-paren-balance "")))
+322:   (should (= 0 (greger-stdlib--count-paren-balance "   ")))
+323:   (should (= 0 (greger-stdlib--count-paren-balance "foo bar baz"))))
+324:
+325: (ert-deftest greger-test-str-replace-paren-balance-check ()
+326:   "Test str-replace paren balance checking for .el files."
+327:   (let ((test-file (make-temp-file "test" nil ".el"))
+328:         (original-content "(defun foo () (+ 1 2))")
+329:         (new-content-balanced "(defun bar () (+ 3 4))")
+330:         (new-content-unbalanced "(defun bar () (+ 3 4"))
+331:
+332:     (unwind-protect
+333:         (progn
+334:           ;; Write test content to file
+335:           (with-temp-file test-file
+336:             (insert original-content))
+337:
+338:           ;; Mock git operations to avoid actual git commits
+339:           (cl-letf (((symbol-function 'greger-stdlib--git-stage-and-commit)
+340:                      (lambda (files commit-message buffer) "Mocked git result")))
+341:
+342:             ;; Test successful replacement with balanced parens
+343:             (should (stringp (greger-stdlib--str-replace
+344:                              test-file
+345:                              original-content
+346:                              new-content-balanced
+347:                              "Test commit")))
+348:
+349:             ;; Reset file content
+350:             (with-temp-file test-file
+351:               (insert original-content))
+352:
+353:             ;; Test failed replacement with unbalanced parens
+354:             (should-error (greger-stdlib--str-replace
+355:                           test-file
+356:                           original-content
+357:                           new-content-unbalanced
+358:                           "Test commit")
+359:                          :type 'error)))
+360:
+361:       ;; Clean up
+362:       (when (file-exists-p test-file)
+363:         (delete-file test-file)))))
+364:
+365: (ert-deftest greger-test-str-replace-non-el-files-skip-paren-check ()
+366:   "Test that str-replace skips paren checking for non-.el files."
+367:   (let ((test-file (make-temp-file "test" nil ".txt"))
+368:         (original-content "Some text with (unbalanced parens")
+369:         (new-content "Some other text with (((more unbalanced"))
+370:
+371:     (unwind-protect
+372:         (progn
+373:           ;; Write test content to file
+374:           (with-temp-file test-file
+375:             (insert original-content))
+376:
+377:           ;; Mock git operations to avoid actual git commits
+378:           (cl-letf (((symbol-function 'greger-stdlib--git-stage-and-commit)
+379:                      (lambda (files commit-message buffer) "Mocked git result")))
+380:
+381:             ;; Should succeed even with unbalanced parens since it's not a .el file
+382:             (should (stringp (greger-stdlib--str-replace
+383:                              test-file
+384:                              original-content
+385:                              new-content
+386:                              "Test commit")))))
+387:
+388:       ;; Clean up
+389:       (when (file-exists-p test-file)
+390:         (delete-file test-file)))))
+391:
+392: (ert-deftest greger-test-delete-files-basic ()
+393:   "Test basic delete-files functionality."
+394:   (let ((test-file1 (make-temp-file "test1" nil ".txt"))
+395:         (test-file2 (make-temp-file "test2" nil ".txt"))
+396:         (test-content "Test content"))
+397:
+398:     (unwind-protect
+399:         (progn
+400:           ;; Write test content to files
+401:           (with-temp-file test-file1
+402:             (insert test-content))
+403:           (with-temp-file test-file2
+404:             (insert test-content))
+405:
+406:           ;; Verify files exist
+407:           (should (file-exists-p test-file1))
+408:           (should (file-exists-p test-file2))
+409:
+410:           ;; Mock git operations to avoid actual git commits
+411:           (cl-letf (((symbol-function 'greger-stdlib--git-stage-and-commit)
+412:                      (lambda (files commit-message buffer) "Mocked git result")))
+413:
+414:             ;; Test successful deletion with array input
+415:             (let ((result (greger-stdlib--delete-files
+416:                           (vector test-file1 test-file2)
+417:                           "Test commit message")))
+418:               (should (stringp result))
+419:               (should (string-match "Successfully deleted 2 file" result))
+420:               (should (string-match (file-name-nondirectory test-file1) result))
+421:               (should (string-match (file-name-nondirectory test-file2) result)))
+422:
+423:             ;; Verify files are deleted
+424:             (should-not (file-exists-p test-file1))
+425:             (should-not (file-exists-p test-file2))))
+426:
+427:       ;; Clean up any remaining files
+428:       (when (file-exists-p test-file1)
+429:         (delete-file test-file1))
+430:       (when (file-exists-p test-file2)
+431:         (delete-file test-file2)))))
+432:
+433: (ert-deftest greger-test-delete-files-list-input ()
+434:   "Test delete-files with list input instead of vector."
+435:   (let ((test-file (make-temp-file "test" nil ".txt"))
+436:         (test-content "Test content"))
+437:
+438:     (unwind-protect
+439:         (progn
+440:           ;; Write test content to file
+441:           (with-temp-file test-file
+442:             (insert test-content))
+443:
+444:           ;; Verify file exists
+445:           (should (file-exists-p test-file))
+446:
+447:           ;; Mock git operations to avoid actual git commits
+448:           (cl-letf (((symbol-function 'greger-stdlib--git-stage-and-commit)
+449:                      (lambda (files commit-message buffer) "Mocked git result")))
+450:
+451:             ;; Test successful deletion with list input
+452:             (let ((result (greger-stdlib--delete-files
+453:                           (list test-file)
+454:                           "Test commit message")))
+455:               (should (stringp result))
+456:               (should (string-match "Successfully deleted 1 file" result))
+457:               (should (string-match (file-name-nondirectory test-file) result)))
+458:
+459:             ;; Verify file is deleted
+460:             (should-not (file-exists-p test-file))))
+461:
+462:       ;; Clean up any remaining files
+463:       (when (file-exists-p test-file)
+464:         (delete-file test-file)))))
+465:
+466: (ert-deftest greger-test-delete-files-nonexistent-file ()
+467:   "Test delete-files with non-existent file."
+468:   (let ((nonexistent-file "/tmp/does-not-exist.txt"))
+469:
+470:     ;; Ensure file doesn't exist
+471:     (should-not (file-exists-p nonexistent-file))
+472:
+473:     ;; Mock git operations to avoid actual git commits
+474:     (cl-letf (((symbol-function 'greger-stdlib--git-stage-and-commit)
+475:                (lambda (files commit-message buffer) "Mocked git result")))
+476:
+477:       ;; Should error when trying to delete non-existent file
+478:       (should-error (greger-stdlib--delete-files
+479:                     (list nonexistent-file)
+480:                     "Test commit message")
+481:                    :type 'error))))
+482:
+483: (ert-deftest greger-test-delete-files-directory ()
+484:   "Test delete-files with directory path (should fail)."
+485:   (let ((test-dir (make-temp-file "test-dir" t)))
+486:
+487:     (unwind-protect
+488:         (progn
+489:           ;; Verify directory exists
+490:           (should (file-exists-p test-dir))
+491:           (should (file-directory-p test-dir))
+492:
+493:           ;; Mock git operations to avoid actual git commits
+494:           (cl-letf (((symbol-function 'greger-stdlib--git-stage-and-commit)
+495:                      (lambda (files commit-message buffer) "Mocked git result")))
+496:
+497:             ;; Should error when trying to delete directory
+498:             (should-error (greger-stdlib--delete-files
+499:                           (list test-dir)
+500:                           "Test commit message")
+501:                          :type 'error)))
+502:
+503:       ;; Clean up
+504:       (when (file-exists-p test-dir)
+505:         (delete-directory test-dir)))))
+506:
+507: (ert-deftest greger-test-delete-files-invalid-input ()
+508:   "Test delete-files with invalid input types."
+509:   ;; Mock git operations to avoid actual git commits
+510:   (cl-letf (((symbol-function 'greger-stdlib--git-stage-and-commit)
+511:              (lambda (files commit-message buffer) "Mocked git result")))
+512:
+513:     ;; Test with non-string file paths
+514:     (should-error (greger-stdlib--delete-files
+515:                   (list 123)
+516:                   "Test commit message")
+517:                  :type 'error)
+518:
+519:     ;; Test with non-string/non-list file-paths
+520:     (should-error (greger-stdlib--delete-files
+521:                   "not-a-list"
+522:                   "Test commit message")
+523:                  :type 'error)
+524:
+525:     ;; Test with non-string commit message
+526:     (should-error (greger-stdlib--delete-files
+527:                   (list "/tmp/test.txt")
+528:                   123)
+529:                  :type 'error)))
+530:
+531: (ert-deftest greger-test-delete-files-git-tracking ()
+532:   "Test delete-files git tracking behavior."
+533:   (let ((test-file (make-temp-file "test" nil ".txt"))
+534:         (test-content "Test content")
+535:         (git-tracked-called nil)
+536:         (git-stage-called nil)
+537:         (staged-files nil))
+538:
+539:     (unwind-protect
+540:         (progn
+541:           ;; Write test content to file
+542:           (with-temp-file test-file
+543:             (insert test-content))
+544:
+545:           ;; Mock git functions
+546:           (cl-letf (((symbol-function 'greger-stdlib--find-git-repo-root)
+547:                      (lambda (dir) "/fake/repo/root"))
+548:                     ((symbol-function 'greger-stdlib--is-file-tracked-by-git)
+549:                      (lambda (file repo-root)
+550:                        (setq git-tracked-called t)
+551:                        t))  ; Simulate file is tracked
+552:                     ((symbol-function 'greger-stdlib--git-stage-and-commit)
+553:                      (lambda (files commit-message buffer)
+554:                        (setq git-stage-called t)
+555:                        (setq staged-files files)
+556:                        "Mocked git result")))
+557:
+558:             ;; Test deletion of git-tracked file
+559:             (let ((result (greger-stdlib--delete-files
+560:                           (list test-file)
+561:                           "Delete test file")))
+562:               (should (stringp result))
+563:               (should (string-match "Successfully deleted 1 file" result))
+564:               (should git-tracked-called)
+565:               (should git-stage-called)
+566:               (should (member test-file staged-files))
+567:               (should-not (file-exists-p test-file)))))
+568:
+569:       ;; Clean up any remaining files
+570:       (when (file-exists-p test-file)
+571:         (delete-file test-file)))))
+572:
+573: (ert-deftest greger-test-delete-files-not-git-tracked ()
+574:   "Test delete-files with files not tracked by git."
+575:   (let ((test-file (make-temp-file "test" nil ".txt"))
+576:         (test-content "Test content")
+577:         (git-stage-called nil))
+578:
+579:     (unwind-protect
+580:         (progn
+581:           ;; Write test content to file
+582:           (with-temp-file test-file
+583:             (insert test-content))
+584:
+585:           ;; Mock git functions
+586:           (cl-letf (((symbol-function 'greger-stdlib--find-git-repo-root)
+587:                      (lambda (dir) nil))  ; No git repo found
+588:                     ((symbol-function 'greger-stdlib--git-stage-and-commit)
+589:                      (lambda (files commit-message buffer)
+590:                        (setq git-stage-called t)
+591:                        "Should not be called")))
+592:
+593:             ;; Test deletion of non-git-tracked file
+594:             (let ((result (greger-stdlib--delete-files
+595:                           (list test-file)
+596:                           "Delete test file")))
+597:               (should (stringp result))
+598:               (should (string-match "Successfully deleted 1 file" result))
+599:               (should (string-match "No files were tracked by git" result))
+600:               (should-not git-stage-called)
+601:               (should-not (file-exists-p test-file)))))
+602:
+603:       ;; Clean up any remaining files
+604:       (when (file-exists-p test-file)
+605:         (delete-file test-file)))))
+606:
+607: (ert-deftest greger-test-read-file-basic ()
+608:   "Test basic file reading functionality."
+609:   (let ((test-file (make-temp-file "greger-test-read-file")))
+610:     (unwind-protect
+611:         (progn
+612:           ;; Write test content to file
+613:           (with-temp-buffer
+614:             (insert "Line 1\nLine 2\nLine 3\n")
+615:             (write-file test-file))
+616:
+617:           ;; Test basic reading without line numbers
+618:           (let ((result (greger-stdlib--read-file test-file))
+619:                 (expected "Line 1
+620: Line 2
+621: Line 3"))
+622:             (should (stringp result))
+623:             (should (string= result expected)))
+624:
+625:           ;; Test reading with line numbers
+626:           (let ((result (greger-stdlib--read-file test-file t))
+627:                 (expected "1: Line 1
+628: 2: Line 2
+629: 3: Line 3"))
+630:             (should (stringp result))
+631:             (should (string= result expected)))
+632:
+633:           ;; Test reading with start and end lines
+634:           (let ((result (greger-stdlib--read-file test-file nil 2 2))
+635:                 (expected "Line 2"))
+636:             (should (stringp result))
+637:             (should (string= result expected)))
+638:
+639:           ;; Test reading with line numbers and range
+640:           (let ((result (greger-stdlib--read-file test-file t 1 2))
+641:                 (expected "1: Line 1
+642: 2: Line 2"))
+643:             (should (stringp result))
+644:             (should (string= result expected))))
+645:
+646:       ;; Clean up
+647:       (when (file-exists-p test-file)
+648:         (delete-file test-file)))))
+649:
+650: (ert-deftest greger-test-read-file-line-number-formatting ()
+651:   "Test that line numbers are properly formatted with padding."
+652:   (let ((test-file (make-temp-file "greger-test-read-file-padding")))
+653:     (unwind-protect
+654:         (progn
+655:           ;; Write test content with 12 lines to test padding
+656:           (with-temp-buffer
+657:             (dotimes (i 12)
+658:               (insert (format "Line %d\n" (1+ i))))
+659:             (write-file test-file))
+660:
+661:           ;; Test reading lines 8-12 with line numbers - should have 2-digit padding
+662:           (let ((result (greger-stdlib--read-file test-file t 8 12))
+663:                 (expected " 8: Line 8
+664:  9: Line 9
+665: 10: Line 10
+666: 11: Line 11
+667: 12: Line 12"))
+668:             (should (stringp result))
+669:             (should (string= result expected)))
+670:
+671:           ;; Test reading lines 1-3 with line numbers - padding based on range max (3)
+672:           (let ((result (greger-stdlib--read-file test-file t 1 3))
+673:                 (expected "1: Line 1
+674: 2: Line 2
+675: 3: Line 3"))
+676:             (should (stringp result))
+677:             (should (string= result expected)))
+678:
+679:           ;; Test reading lines 10-12 with line numbers - should have 2-digit padding
+680:           (let ((result (greger-stdlib--read-file test-file t 10 12))
+681:                 (expected "10: Line 10
+682: 11: Line 11
+683: 12: Line 12"))
+684:             (should (stringp result))
+685:             (should (string= result expected))))
+686:
+687:       ;; Clean up
+688:       (when (file-exists-p test-file)
+689:         (delete-file test-file)))))
+690:
+691: (ert-deftest greger-test-read-file-error-cases ()
+692:   "Test error handling in read-file function."
+693:   ;; Test non-existent file
+694:   (should-error (greger-stdlib--read-file "/path/that/does/not/exist"))
+695:
+696:   ;; Test invalid path type
+697:   (should-error (greger-stdlib--read-file 123))
+698:
+699:   ;; Test invalid start-line type
+700:   (should-error (greger-stdlib--read-file "test-file" nil "not-a-number"))
+701:
+702:   ;; Test invalid end-line type
+703:   (should-error (greger-stdlib--read-file "test-file" nil 1 "not-a-number"))
+704:
+705:   ;; Test invalid start-line value
+706:   (should-error (greger-stdlib--read-file "test-file" nil 0))
+707:
+708:   ;; Test invalid end-line value
+709:   (should-error (greger-stdlib--read-file "test-file" nil 1 0))
+710:
+711:   ;; Test start-line > end-line
+712:   (should-error (greger-stdlib--read-file "test-file" nil 5 3)))
+713:
+714: ;;; greger-test-stdlib.el ends here
+</tool.toolu_01CMQpEtKSdusXrF3TcBGeik>
+
+## ASSISTANT:
+
+Now I understand the structure. I need to:
+
+1. Modify the `list-directory` tool definition in `greger-stdlib.el` to replace `show-hidden` with `exclude-pattern`
+2. Update the implementation to provide detailed output like `ls -Rla`
+3. Add tests for the new functionality
+
+Let me start by modifying the tool definition:
+
+
+## ASSISTANT:
+
+
+
+## TOOL USE:
+
+Name: str-replace
+ID: toolu_019keNT61pKH6ffjhggcWPVX
+
+### file-path
+
+<tool.toolu_019keNT61pKH6ffjhggcWPVX>
+greger-stdlib.el
+</tool.toolu_019keNT61pKH6ffjhggcWPVX>
+
+### original-content
+
+<tool.toolu_019keNT61pKH6ffjhggcWPVX>
+(greger-register-tool "list-directory"
+  :description "List files and directories in a given directory"
+  :properties '((path . ((type . "string")
+                         (description . "Path to the directory to list. Defaults to current directory.")
+                         (default . ".")))
+                (show-hidden . ((type . "boolean")
+                                (description . "Whether to show hidden files starting with .")
+                                (default . nil)))
+                (recursive . ((type . "boolean")
+                              (description . "Whether to list files recursively")
+                              (default . nil))))
+  :required '()
+  :function 'greger-stdlib--list-directory)
+</tool.toolu_019keNT61pKH6ffjhggcWPVX>
+
+### new-content
+
+<tool.toolu_019keNT61pKH6ffjhggcWPVX>
+(greger-register-tool "list-directory"
+  :description "List files and directories in a given directory"
+  :properties '((path . ((type . "string")
+                         (description . "Path to the directory to list. Defaults to current directory.")
+                         (default . ".")))
+                (exclude-pattern . ((type . "string")
+                                    (description . "Regex pattern of paths to exclude (files or folders)")
+                                    (default . "\\.git/|__pycache__/")))
+                (recursive . ((type . "boolean")
+                              (description . "Whether to list files recursively")
+                              (default . nil))))
+  :required '()
+  :function 'greger-stdlib--list-directory)
+</tool.toolu_019keNT61pKH6ffjhggcWPVX>
+
+### git-commit-message
+
+<tool.toolu_019keNT61pKH6ffjhggcWPVX>
+Update list-directory tool definition to use exclude-pattern instead of show-hidden
+</tool.toolu_019keNT61pKH6ffjhggcWPVX>
+
+<!-- TOOL_RESULT_PLACEHOLDER_toolu_019keNT61pKH6ffjhggcWPVX -->
