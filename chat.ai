@@ -8837,4 +8837,101 @@ test/test-greger.el
 Fix test closure scoping issue by using global variables
 </tool.toolu_01DqAEh5PE2HRXHHWEzAyeJu>
 
-<!-- TOOL_RESULT_PLACEHOLDER_toolu_01DqAEh5PE2HRXHHWEzAyeJu -->
+## TOOL RESULT:
+
+ID: toolu_01DqAEh5PE2HRXHHWEzAyeJu
+
+<tool.toolu_01DqAEh5PE2HRXHHWEzAyeJu>
+Successfully replaced content in /Users/andreas/projects/greger.el/test/test-greger.el. Successfully staged 2 file(s) and committed with message: Fix test closure scoping issue by using global variables
+</tool.toolu_01DqAEh5PE2HRXHHWEzAyeJu>
+
+
+## ASSISTANT:
+
+Now let me run the test again:
+
+## TOOL USE:
+
+Name: shell-command
+ID: toolu_01EAXuw1CjEHUEwqvbZFNH8y
+
+### command
+
+<tool.toolu_01EAXuw1CjEHUEwqvbZFNH8y>
+bash script/test --verbose --file test/test-greger.el 2>&1 | grep -A 10 -B 5 "greger-test-interrupt-with-executing-tools"
+</tool.toolu_01EAXuw1CjEHUEwqvbZFNH8y>
+
+## TOOL RESULT:
+
+ID: toolu_01EAXuw1CjEHUEwqvbZFNH8y
+
+<tool.toolu_01EAXuw1CjEHUEwqvbZFNH8y>
+Command executed successfully:
+DEBUG: Calling cancel function
+Hash table count: 1
+Agent state executing tools: #s(hash-table size 65 test equal rehash-size 1.5 rehash-threshold 0.8125 data (test-tool-id #s(greger-tool (closure (t) nil (setq greger-test-cancel-called t) (setq greger-test-callback-called t)))))
+Cancel called: t
+Hash table contains key: #s(greger-tool (closure (t) nil (setq greger-test-cancel-called t) (setq greger-test-callback-called t)))
+   passed   3/11  greger-test-interrupt-with-executing-tools (0.003643 sec)
+   passed   4/11  greger-test-interrupt-without-active-generation (0.000148 sec)
+   passed   5/11  greger-test-multiple-tools-parallel (0.000245 sec)
+   passed   6/11  greger-test-simple-string-comparison (0.000103 sec)
+   passed   7/11  greger-test-single-tool-execution (0.000091 sec)
+   passed   8/11  greger-test-tool-error-handling (0.000134 sec)
+   passed   9/11  greger-test-tool-execution-with-existing-content (0.000094 sec)
+   passed  10/11  greger-test-tool-placeholder (0.000018 sec)
+   passed  11/11  greger-test-unknown-tool-error (0.000086 sec)
+
+Ran 11 tests, 11 results as expected, 0 unexpected (2025-06-04 14:06:58+0200, 0.008298 sec)
+
+</tool.toolu_01EAXuw1CjEHUEwqvbZFNH8y>
+
+## ASSISTANT:
+
+Excellent! The test is now passing. I can see that "Cancel called: t" which means the cancellation is working correctly.
+
+Now let me clean up the debug logging and the global variables. Let me first remove the debug logging:
+
+## TOOL USE:
+
+Name: str-replace
+ID: toolu_016xsSZcNiem5KsdEwRgLMQp
+
+### file-path
+
+<tool.toolu_016xsSZcNiem5KsdEwRgLMQp>
+greger.el
+</tool.toolu_016xsSZcNiem5KsdEwRgLMQp>
+
+### original-content
+
+<tool.toolu_016xsSZcNiem5KsdEwRgLMQp>
+(let ((executing-tools (greger-state-executing-tools agent-state)))
+        (message "DEBUG: Found %d executing tools" (hash-table-count executing-tools))
+        (maphash (lambda (_tool-id greger-tool)
+                   (let ((cancel-fn (greger-tool-cancel-fn greger-tool)))
+                     (message "DEBUG: Tool %s, cancel-fn: %s" _tool-id cancel-fn)
+                     (when (functionp cancel-fn)
+                       (message "DEBUG: Calling cancel function")
+                       (funcall cancel-fn))))
+                 executing-tools))
+</tool.toolu_016xsSZcNiem5KsdEwRgLMQp>
+
+### new-content
+
+<tool.toolu_016xsSZcNiem5KsdEwRgLMQp>
+(let ((executing-tools (greger-state-executing-tools agent-state)))
+        (maphash (lambda (_tool-id greger-tool)
+                   (let ((cancel-fn (greger-tool-cancel-fn greger-tool)))
+                     (when (functionp cancel-fn)
+                       (funcall cancel-fn))))
+                 executing-tools))
+</tool.toolu_016xsSZcNiem5KsdEwRgLMQp>
+
+### git-commit-message
+
+<tool.toolu_016xsSZcNiem5KsdEwRgLMQp>
+Remove debug logging from greger-interrupt
+</tool.toolu_016xsSZcNiem5KsdEwRgLMQp>
+
+<!-- TOOL_RESULT_PLACEHOLDER_toolu_016xsSZcNiem5KsdEwRgLMQp -->
