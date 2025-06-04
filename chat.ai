@@ -7114,4 +7114,112 @@ PREFIX is used internally for nested directory structure."
 Completely rewrite recursive function to build results in correct order
 </tool.toolu_01JoN5e3L2Uu69Lbi1mah2Jr>
 
-<!-- TOOL_RESULT_PLACEHOLDER_toolu_01JoN5e3L2Uu69Lbi1mah2Jr -->
+## TOOL RESULT:
+
+ID: toolu_01JoN5e3L2Uu69Lbi1mah2Jr
+
+<tool.toolu_01JoN5e3L2Uu69Lbi1mah2Jr>
+Successfully replaced content in /Users/andreas/projects/greger.el/greger-stdlib.el. Successfully staged 2 file(s) and committed with message: Completely rewrite recursive function to build results in correct order
+</tool.toolu_01JoN5e3L2Uu69Lbi1mah2Jr>
+
+
+## ASSISTANT:
+
+Now let me test it:
+
+## TOOL USE:
+
+Name: shell-command
+ID: toolu_011PyyFXsnnkMEKs7iHLZjF7
+
+### command
+
+<tool.toolu_011PyyFXsnnkMEKs7iHLZjF7>
+emacs --batch --eval "(progn (add-to-list 'load-path \".\") (require 'greger-stdlib) (let ((test-dir \"/tmp/rec-test4\")) (ignore-errors (delete-directory test-dir t)) (make-directory test-dir t) (make-directory (expand-file-name \"subdir\" test-dir) t) (with-temp-file (expand-file-name \"file1.txt\" test-dir) (insert \"content1\")) (with-temp-file (expand-file-name \"subdir/file2.txt\" test-dir) (insert \"content2\")) (princ (greger-stdlib--list-directory test-dir nil t))))"
+</tool.toolu_011PyyFXsnnkMEKs7iHLZjF7>
+
+## TOOL RESULT:
+
+ID: toolu_011PyyFXsnnkMEKs7iHLZjF7
+
+<tool.toolu_011PyyFXsnnkMEKs7iHLZjF7>
+Command executed successfully:
+Source file ‘/opt/homebrew/Cellar/emacs-plus@29/29.0.90/share/emacs/29.0.91/lisp/net/eww.el’ newer than byte-compiled file; using older file
+./:
+drwxr-xr-x  (dir)  .
+drwxrwxrwt  (dir)  ..
+-rw-r--r--         8  file1.txt
+drwxr-xr-x  (dir)  subdir
+
+./subdir/:
+drwxr-xr-x  (dir)  .
+drwxr-xr-x  (dir)  ..
+-rw-r--r--         8  file2.txt
+</tool.toolu_011PyyFXsnnkMEKs7iHLZjF7>
+
+## ASSISTANT:
+
+Perfect! Now the format is correct. Let me also test the non-recursive version:
+
+## TOOL USE:
+
+Name: shell-command
+ID: toolu_01BHoVibuxEjBWFfnBNuPTSZ
+
+### command
+
+<tool.toolu_01BHoVibuxEjBWFfnBNuPTSZ>
+emacs --batch --eval "(progn (add-to-list 'load-path \".\") (require 'greger-stdlib) (let ((test-dir \"/tmp/non-rec-test\")) (ignore-errors (delete-directory test-dir t)) (make-directory test-dir t) (with-temp-file (expand-file-name \"file1.txt\" test-dir) (insert \"content1\")) (princ (greger-stdlib--list-directory test-dir))))"
+</tool.toolu_01BHoVibuxEjBWFfnBNuPTSZ>
+
+## TOOL RESULT:
+
+ID: toolu_01BHoVibuxEjBWFfnBNuPTSZ
+
+<tool.toolu_01BHoVibuxEjBWFfnBNuPTSZ>
+Command executed successfully:
+Source file ‘/opt/homebrew/Cellar/emacs-plus@29/29.0.90/share/emacs/29.0.91/lisp/net/eww.el’ newer than byte-compiled file; using older file
+-rw-r--r--         8  file1.txt
+drwxrwxrwt  (dir)  ..
+drwxr-xr-x  (dir)  .
+../../../../tmp/non-rec-test/:
+</tool.toolu_01BHoVibuxEjBWFfnBNuPTSZ>
+
+## ASSISTANT:
+
+I see the non-recursive version has the same ordering issue. Let me fix that too:
+
+## TOOL USE:
+
+Name: str-replace
+ID: toolu_01WanvJ1M7KccwYWkGoRTZHW
+
+### file-path
+
+<tool.toolu_01WanvJ1M7KccwYWkGoRTZHW>
+greger-stdlib.el
+</tool.toolu_01WanvJ1M7KccwYWkGoRTZHW>
+
+### original-content
+
+<tool.toolu_01WanvJ1M7KccwYWkGoRTZHW>
+    (if (> (length results) 1) ; More than just the header
+        (mapconcat #'identity results "\n")
+      (format "%s:\nDirectory is empty" display-path))
+</tool.toolu_01WanvJ1M7KccwYWkGoRTZHW>
+
+### new-content
+
+<tool.toolu_01WanvJ1M7KccwYWkGoRTZHW>
+    (if (> (length results) 1) ; More than just the header
+        (mapconcat #'identity (reverse results) "\n")
+      (format "%s:\nDirectory is empty" display-path))
+</tool.toolu_01WanvJ1M7KccwYWkGoRTZHW>
+
+### git-commit-message
+
+<tool.toolu_01WanvJ1M7KccwYWkGoRTZHW>
+Fix non-recursive listing order
+</tool.toolu_01WanvJ1M7KccwYWkGoRTZHW>
+
+<!-- TOOL_RESULT_PLACEHOLDER_toolu_01WanvJ1M7KccwYWkGoRTZHW -->
