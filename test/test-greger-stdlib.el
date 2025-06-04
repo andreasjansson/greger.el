@@ -10,6 +10,22 @@
 (require 'greger-stdlib)
 (require 'greger-web)
 
+;; Helper function for creating controlled test directories
+(defun greger-test--make-controlled-temp-dir (prefix)
+  "Create a temporary directory with controlled parent permissions.
+Creates a parent directory, sets its permissions to 0700, then creates
+the actual test directory inside it. Returns the test directory path.
+This ensures the '..' entry has predictable permissions in tests."
+  (let* ((parent-dir (make-temp-file (concat prefix "-parent") t))
+         (test-dir (expand-file-name "testdir" parent-dir)))
+    ;; Set parent directory permissions to 0700
+    (set-file-modes parent-dir #o700)
+    ;; Create the actual test directory
+    (make-directory test-dir)
+    ;; Set test directory permissions to 0700
+    (set-file-modes test-dir #o700)
+    test-dir))
+
 (ert-deftest greger-test-read-webpage-valid-url ()
   "Test reading a webpage with a valid URL."
   (let ((test-url "https://pub-b88c9764a4fc46baa90b9e8e1544f59e.r2.dev/hello.html"))
