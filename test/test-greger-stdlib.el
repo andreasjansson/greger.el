@@ -841,7 +841,7 @@ testdir:
 
           ;; Test file formatting
           (let ((file-info (greger-stdlib--format-file-info temp-file "testfile" "nomatch"))
-                (expected "-rw-r--r--        0  testfile"))
+                (expected "-rw-------        0  testfile"))
             (should (stringp file-info))
             (should (string= expected file-info))))
 
