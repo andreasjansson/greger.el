@@ -7707,4 +7707,58 @@ greger-stdlib.el
 Pass original path for display purposes while using expanded path for operations
 </tool.toolu_01A2DnYXKMGwmcRgrpAwv7Zh>
 
-<!-- TOOL_RESULT_PLACEHOLDER_toolu_01A2DnYXKMGwmcRgrpAwv7Zh -->
+## TOOL RESULT:
+
+ID: toolu_01A2DnYXKMGwmcRgrpAwv7Zh
+
+<tool.toolu_01A2DnYXKMGwmcRgrpAwv7Zh>
+Successfully replaced content in /Users/andreas/projects/greger.el/greger-stdlib.el. Successfully staged 2 file(s) and committed with message: Pass original path for display purposes while using expanded path for operations
+</tool.toolu_01A2DnYXKMGwmcRgrpAwv7Zh>
+
+
+## ASSISTANT:
+
+Now I need to update the function signatures to accept the original path:
+
+## TOOL USE:
+
+Name: str-replace
+ID: toolu_01RLCuneaewSBHsbMs36nwXb
+
+### file-path
+
+<tool.toolu_01RLCuneaewSBHsbMs36nwXb>
+greger-stdlib.el
+</tool.toolu_01RLCuneaewSBHsbMs36nwXb>
+
+### original-content
+
+<tool.toolu_01RLCuneaewSBHsbMs36nwXb>
+(defun greger-stdlib--list-directory-detailed (path exclude-pattern)
+  "List directory contents at PATH with detailed information like 'ls -la'.
+Excludes files/directories matching EXCLUDE-PATTERN."
+  (let ((files (directory-files path t))
+        (results '())
+        (display-path (if (string= path ".") "./" (file-name-as-directory path))))
+</tool.toolu_01RLCuneaewSBHsbMs36nwXb>
+
+### new-content
+
+<tool.toolu_01RLCuneaewSBHsbMs36nwXb>
+(defun greger-stdlib--list-directory-detailed (path exclude-pattern &optional original-path)
+  "List directory contents at PATH with detailed information like 'ls -la'.
+Excludes files/directories matching EXCLUDE-PATTERN.
+ORIGINAL-PATH is used for display purposes."
+  (let ((files (directory-files path t))
+        (results '())
+        (display-path (let ((display-path-base (or original-path path)))
+                        (if (string= display-path-base ".") "./" (file-name-as-directory display-path-base)))))
+</tool.toolu_01RLCuneaewSBHsbMs36nwXb>
+
+### git-commit-message
+
+<tool.toolu_01RLCuneaewSBHsbMs36nwXb>
+Update list-directory-detailed to accept original path for display
+</tool.toolu_01RLCuneaewSBHsbMs36nwXb>
+
+<!-- TOOL_RESULT_PLACEHOLDER_toolu_01RLCuneaewSBHsbMs36nwXb -->

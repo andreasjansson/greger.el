@@ -428,12 +428,14 @@ If RECURSIVE is non-nil, list files recursively."
           (greger-stdlib--list-directory-detailed expanded-path exclude-regex path))
       (error "Failed to list directory: %s" (error-message-string err)))))
 
-(defun greger-stdlib--list-directory-detailed (path exclude-pattern)
+(defun greger-stdlib--list-directory-detailed (path exclude-pattern &optional original-path)
   "List directory contents at PATH with detailed information like 'ls -la'.
-Excludes files/directories matching EXCLUDE-PATTERN."
+Excludes files/directories matching EXCLUDE-PATTERN.
+ORIGINAL-PATH is used for display purposes."
   (let ((files (directory-files path t))
         (results '())
-        (display-path (if (string= path ".") "./" (file-name-as-directory path))))
+        (display-path (let ((display-path-base (or original-path path)))
+                        (if (string= display-path-base ".") "./" (file-name-as-directory display-path-base)))))
 
     ;; Add directory header
     (push (format "%s:" display-path) results)
