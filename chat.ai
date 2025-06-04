@@ -2070,4 +2070,127 @@ greger-parser.el
 Add server tool tags to section tags list
 </tool.toolu_01Mcnpmmf5ZyQm27B9vGQNeV>
 
-<!-- TOOL_RESULT_PLACEHOLDER_toolu_01Mcnpmmf5ZyQm27B9vGQNeV -->
+## TOOL RESULT:
+
+ID: toolu_01Mcnpmmf5ZyQm27B9vGQNeV
+
+<tool.toolu_01Mcnpmmf5ZyQm27B9vGQNeV>
+Successfully replaced content in /Users/andreas/projects/greger.el/greger-parser.el. Successfully staged 2 file(s) and committed with message: Add server tool tags to section tags list
+</tool.toolu_01Mcnpmmf5ZyQm27B9vGQNeV>
+
+## ASSISTANT:
+
+Now I need to add the parsing logic for the new server tool sections. Let me find where the section parsing dispatch is handled:
+
+## TOOL USE:
+
+Name: read-file
+ID: toolu_01SD1G761kpw4NA4eYmJnRHc
+
+### path
+
+<tool.toolu_01SD1G761kpw4NA4eYmJnRHc>
+greger-parser.el
+</tool.toolu_01SD1G761kpw4NA4eYmJnRHc>
+
+### start-line
+
+<tool.toolu_01SD1G761kpw4NA4eYmJnRHc>
+627
+</tool.toolu_01SD1G761kpw4NA4eYmJnRHc>
+
+### end-line
+
+<tool.toolu_01SD1G761kpw4NA4eYmJnRHc>
+650
+</tool.toolu_01SD1G761kpw4NA4eYmJnRHc>
+
+## TOOL RESULT:
+
+ID: toolu_01SD1G761kpw4NA4eYmJnRHc
+
+<tool.toolu_01SD1G761kpw4NA4eYmJnRHc>
+  (let ((content (greger-parser--parse-section-content state)))
+    (when content
+      (greger-parser--create-user-message content))))
+
+(defun greger-parser--parse-section (state)
+  "Parse a section starting with a tag using STATE."
+  (let ((tag (greger-parser--find-section-tag state)))
+    (when tag
+      (greger-parser--consume-section-tag state tag)
+      (cond
+       ((string= tag greger-parser-user-tag)
+        (greger-parser--parse-user-section state))
+       ((string= tag greger-parser-assistant-tag)
+        (greger-parser--parse-assistant-section state))
+       ((string= tag greger-parser-system-tag)
+        (greger-parser--parse-system-section state))
+       ((string= tag greger-parser-thinking-tag)
+        (greger-parser--parse-thinking-section state))
+       ((string= tag greger-parser-tool-use-tag)
+        (greger-parser--parse-tool-use-section state))
+       ((string= tag greger-parser-tool-result-tag)
+        (greger-parser--parse-tool-result-section state))))))
+
+;; Section parsers
+</tool.toolu_01SD1G761kpw4NA4eYmJnRHc>
+
+## TOOL USE:
+
+Name: str-replace
+ID: toolu_01ERDLGZvhdGkNtRuGcp9CAn
+
+### file-path
+
+<tool.toolu_01ERDLGZvhdGkNtRuGcp9CAn>
+greger-parser.el
+</tool.toolu_01ERDLGZvhdGkNtRuGcp9CAn>
+
+### original-content
+
+<tool.toolu_01ERDLGZvhdGkNtRuGcp9CAn>
+      (cond
+       ((string= tag greger-parser-user-tag)
+        (greger-parser--parse-user-section state))
+       ((string= tag greger-parser-assistant-tag)
+        (greger-parser--parse-assistant-section state))
+       ((string= tag greger-parser-system-tag)
+        (greger-parser--parse-system-section state))
+       ((string= tag greger-parser-thinking-tag)
+        (greger-parser--parse-thinking-section state))
+       ((string= tag greger-parser-tool-use-tag)
+        (greger-parser--parse-tool-use-section state))
+       ((string= tag greger-parser-tool-result-tag)
+        (greger-parser--parse-tool-result-section state)))
+</tool.toolu_01ERDLGZvhdGkNtRuGcp9CAn>
+
+### new-content
+
+<tool.toolu_01ERDLGZvhdGkNtRuGcp9CAn>
+      (cond
+       ((string= tag greger-parser-user-tag)
+        (greger-parser--parse-user-section state))
+       ((string= tag greger-parser-assistant-tag)
+        (greger-parser--parse-assistant-section state))
+       ((string= tag greger-parser-system-tag)
+        (greger-parser--parse-system-section state))
+       ((string= tag greger-parser-thinking-tag)
+        (greger-parser--parse-thinking-section state))
+       ((string= tag greger-parser-tool-use-tag)
+        (greger-parser--parse-tool-use-section state))
+       ((string= tag greger-parser-tool-result-tag)
+        (greger-parser--parse-tool-result-section state))
+       ((string= tag greger-parser-server-tool-use-tag)
+        (greger-parser--parse-server-tool-use-section state))
+       ((string= tag greger-parser-server-tool-result-tag)
+        (greger-parser--parse-server-tool-result-section state)))
+</tool.toolu_01ERDLGZvhdGkNtRuGcp9CAn>
+
+### git-commit-message
+
+<tool.toolu_01ERDLGZvhdGkNtRuGcp9CAn>
+Add server tool section parsing dispatch
+</tool.toolu_01ERDLGZvhdGkNtRuGcp9CAn>
+
+<!-- TOOL_RESULT_PLACEHOLDER_toolu_01ERDLGZvhdGkNtRuGcp9CAn -->

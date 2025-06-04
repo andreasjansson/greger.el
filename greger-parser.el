@@ -645,7 +645,11 @@ Returns a plist with :messages and :metadata keys."
        ((string= tag greger-parser-tool-use-tag)
         (greger-parser--parse-tool-use-section state))
        ((string= tag greger-parser-tool-result-tag)
-        (greger-parser--parse-tool-result-section state))))))
+        (greger-parser--parse-tool-result-section state))
+       ((string= tag greger-parser-server-tool-use-tag)
+        (greger-parser--parse-server-tool-use-section state))
+       ((string= tag greger-parser-server-tool-result-tag)
+        (greger-parser--parse-server-tool-result-section state))))))
 
 ;; Section parsers
 
