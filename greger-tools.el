@@ -142,6 +142,7 @@ function."
 
 (defun greger-tools--call-function-with-args (func args tool-def)
   "Call FUNC with arguments extracted from ARGS alist based on function signature.
+Returns the result of calling the function.
 TOOL-DEF provides the tool definition for accessing defaults."
   (let ((func-args (greger-tools--extract-function-args func args tool-def)))
     (apply func func-args)))

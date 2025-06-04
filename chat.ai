@@ -3898,4 +3898,55 @@ function."
 Update greger-tools-execute to return greger-tool struct and capture cancel functions
 </tool.toolu_0186cKjef6bF8mw8Udi75F14>
 
-<!-- TOOL_RESULT_PLACEHOLDER_toolu_0186cKjef6bF8mw8Udi75F14 -->
+## TOOL RESULT:
+
+ID: toolu_0186cKjef6bF8mw8Udi75F14
+
+<tool.toolu_0186cKjef6bF8mw8Udi75F14>
+Successfully replaced content in /Users/andreas/projects/greger.el/greger-tools.el. Successfully staged 2 file(s) and committed with message: Update greger-tools-execute to return greger-tool struct and capture cancel functions
+</tool.toolu_0186cKjef6bF8mw8Udi75F14>
+
+
+## ASSISTANT:
+
+Now I need to update greger-tools--call-function-with-args to return the result instead of applying and discarding it:
+
+## TOOL USE:
+
+Name: str-replace
+ID: toolu_01Rx51Mzkdevpc7kYHfFULm5
+
+### file-path
+
+<tool.toolu_01Rx51Mzkdevpc7kYHfFULm5>
+greger-tools.el
+</tool.toolu_01Rx51Mzkdevpc7kYHfFULm5>
+
+### original-content
+
+<tool.toolu_01Rx51Mzkdevpc7kYHfFULm5>
+(defun greger-tools--call-function-with-args (func args tool-def)
+  "Call FUNC with arguments extracted from ARGS alist based on function signature.
+TOOL-DEF provides the tool definition for accessing defaults."
+  (let ((func-args (greger-tools--extract-function-args func args tool-def)))
+    (apply func func-args)))
+</tool.toolu_01Rx51Mzkdevpc7kYHfFULm5>
+
+### new-content
+
+<tool.toolu_01Rx51Mzkdevpc7kYHfFULm5>
+(defun greger-tools--call-function-with-args (func args tool-def)
+  "Call FUNC with arguments extracted from ARGS alist based on function signature.
+Returns the result of calling the function.
+TOOL-DEF provides the tool definition for accessing defaults."
+  (let ((func-args (greger-tools--extract-function-args func args tool-def)))
+    (apply func func-args)))
+</tool.toolu_01Rx51Mzkdevpc7kYHfFULm5>
+
+### git-commit-message
+
+<tool.toolu_01Rx51Mzkdevpc7kYHfFULm5>
+Update greger-tools--call-function-with-args docstring to clarify return value
+</tool.toolu_01Rx51Mzkdevpc7kYHfFULm5>
+
+<!-- TOOL_RESULT_PLACEHOLDER_toolu_01Rx51Mzkdevpc7kYHfFULm5 -->
