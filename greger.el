@@ -601,9 +601,10 @@ COMPLETION-CALLBACK is called when complete."
   "Finish the agent response using AGENT-STATE."
   (greger--debug "=== FINISHING RESPONSE - CONVERSATION COMPLETE ===")
   (with-current-buffer (greger-state-chat-buffer agent-state)
-    (goto-char (point-max))
-    (unless (looking-back (concat greger-user-tag "\n\n") nil)
-      (insert "\n\n" greger-user-tag "\n\n"))
+    (let ((inhibit-read-only t))
+      (goto-char (point-max))
+      (unless (looking-back (concat greger-user-tag "\n\n") nil)
+        (insert "\n\n" greger-user-tag "\n\n")))
     ;; Clear the buffer-local agent state
     (setq greger--current-agent-state nil)
     ;; Update buffer state to idle

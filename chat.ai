@@ -1994,4 +1994,69 @@ greger.el
 Allow tool result insertion even when buffer is read-only
 </tool.toolu_01SHQyhWNafPYAz1yKdpeLiQ>
 
-<!-- TOOL_RESULT_PLACEHOLDER_toolu_01SHQyhWNafPYAz1yKdpeLiQ -->
+## TOOL RESULT:
+
+ID: toolu_01SHQyhWNafPYAz1yKdpeLiQ
+
+<tool.toolu_01SHQyhWNafPYAz1yKdpeLiQ>
+Successfully replaced content in /Users/andreas/projects/greger.el/greger.el. Successfully staged 2 file(s) and committed with message: Allow tool result insertion even when buffer is read-only
+</tool.toolu_01SHQyhWNafPYAz1yKdpeLiQ>
+
+
+## TOOL USE:
+
+Name: str-replace
+ID: toolu_01Vii8FSoKksWqAA73X2SQzS
+
+### file-path
+
+<tool.toolu_01Vii8FSoKksWqAA73X2SQzS>
+greger.el
+</tool.toolu_01Vii8FSoKksWqAA73X2SQzS>
+
+### original-content
+
+<tool.toolu_01Vii8FSoKksWqAA73X2SQzS>
+(defun greger--finish-response (agent-state)
+  "Finish the agent response using AGENT-STATE."
+  (greger--debug "=== FINISHING RESPONSE - CONVERSATION COMPLETE ===")
+  (with-current-buffer (greger-state-chat-buffer agent-state)
+    (goto-char (point-max))
+    (unless (looking-back (concat greger-user-tag "\n\n") nil)
+      (insert "\n\n" greger-user-tag "\n\n"))
+    ;; Clear the buffer-local agent state
+    (setq greger--current-agent-state nil)
+    ;; Update buffer state to idle
+    (greger--update-buffer-state))
+  ;; Reset the state
+  (setf (greger-state-current-iteration agent-state) 0)
+  (setf (greger-state-client-state agent-state) nil))
+</tool.toolu_01Vii8FSoKksWqAA73X2SQzS>
+
+### new-content
+
+<tool.toolu_01Vii8FSoKksWqAA73X2SQzS>
+(defun greger--finish-response (agent-state)
+  "Finish the agent response using AGENT-STATE."
+  (greger--debug "=== FINISHING RESPONSE - CONVERSATION COMPLETE ===")
+  (with-current-buffer (greger-state-chat-buffer agent-state)
+    (let ((inhibit-read-only t))
+      (goto-char (point-max))
+      (unless (looking-back (concat greger-user-tag "\n\n") nil)
+        (insert "\n\n" greger-user-tag "\n\n")))
+    ;; Clear the buffer-local agent state
+    (setq greger--current-agent-state nil)
+    ;; Update buffer state to idle
+    (greger--update-buffer-state))
+  ;; Reset the state
+  (setf (greger-state-current-iteration agent-state) 0)
+  (setf (greger-state-client-state agent-state) nil))
+</tool.toolu_01Vii8FSoKksWqAA73X2SQzS>
+
+### git-commit-message
+
+<tool.toolu_01Vii8FSoKksWqAA73X2SQzS>
+Allow finishing response insertion even when buffer is read-only
+</tool.toolu_01Vii8FSoKksWqAA73X2SQzS>
+
+<!-- TOOL_RESULT_PLACEHOLDER_toolu_01Vii8FSoKksWqAA73X2SQzS -->
