@@ -499,7 +499,7 @@ PREFIX is used internally for nested directory structure."
           (when (and (file-directory-p file)
                      (not (string= basename "."))
                      (not (string= basename ".."))
-                     (not (string-match-p exclude-pattern relative-path)))
+                     (greger-stdlib--should-include-file-p relative-path exclude-pattern))
             (let ((subdir-results (greger-stdlib--list-directory-recursive-detailed
                                    file exclude-pattern (concat prefix basename "/"))))
               (push subdir-results results))))))

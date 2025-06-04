@@ -2086,4 +2086,48 @@ greger-stdlib.el
 Fix recursive list-directory to use proper file filtering
 </tool.toolu_01MCodN6uE9AZfu2o3nVx6SZ>
 
-<!-- TOOL_RESULT_PLACEHOLDER_toolu_01MCodN6uE9AZfu2o3nVx6SZ -->
+## TOOL RESULT:
+
+ID: toolu_01MCodN6uE9AZfu2o3nVx6SZ
+
+<tool.toolu_01MCodN6uE9AZfu2o3nVx6SZ>
+Successfully replaced content in /Users/andreas/projects/greger.el/greger-stdlib.el. Successfully staged 2 file(s) and committed with message: Fix recursive list-directory to use proper file filtering
+</tool.toolu_01MCodN6uE9AZfu2o3nVx6SZ>
+
+
+## TOOL USE:
+
+Name: str-replace
+ID: toolu_01SmZx3Gc2T4Bo1sMdT8X7oz
+
+### file-path
+
+<tool.toolu_01SmZx3Gc2T4Bo1sMdT8X7oz>
+greger-stdlib.el
+</tool.toolu_01SmZx3Gc2T4Bo1sMdT8X7oz>
+
+### original-content
+
+<tool.toolu_01SmZx3Gc2T4Bo1sMdT8X7oz>
+(when (and (file-directory-p file)
+                     (not (string= basename "."))
+                     (not (string= basename ".."))
+                     (not (string-match-p exclude-pattern relative-path)))
+</tool.toolu_01SmZx3Gc2T4Bo1sMdT8X7oz>
+
+### new-content
+
+<tool.toolu_01SmZx3Gc2T4Bo1sMdT8X7oz>
+(when (and (file-directory-p file)
+                     (not (string= basename "."))
+                     (not (string= basename ".."))
+                     (greger-stdlib--should-include-file-p relative-path exclude-pattern))
+</tool.toolu_01SmZx3Gc2T4Bo1sMdT8X7oz>
+
+### git-commit-message
+
+<tool.toolu_01SmZx3Gc2T4Bo1sMdT8X7oz>
+Fix recursive directory processing to use proper file filtering
+</tool.toolu_01SmZx3Gc2T4Bo1sMdT8X7oz>
+
+<!-- TOOL_RESULT_PLACEHOLDER_toolu_01SmZx3Gc2T4Bo1sMdT8X7oz -->
