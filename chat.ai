@@ -6063,4 +6063,70 @@ PREFIX is used internally for nested directory structure."
 Update recursive listing to include directory headers and . .. entries
 </tool.toolu_01DgA5Cn4Mkmk6Y2EwoZ7XxA>
 
-<!-- TOOL_RESULT_PLACEHOLDER_toolu_01DgA5Cn4Mkmk6Y2EwoZ7XxA -->
+## TOOL RESULT:
+
+ID: toolu_01DgA5Cn4Mkmk6Y2EwoZ7XxA
+
+<tool.toolu_01DgA5Cn4Mkmk6Y2EwoZ7XxA>
+Successfully replaced content in /Users/andreas/projects/greger.el/greger-stdlib.el. Successfully staged 2 file(s) and committed with message: Update recursive listing to include directory headers and . .. entries
+</tool.toolu_01DgA5Cn4Mkmk6Y2EwoZ7XxA>
+
+
+## TOOL USE:
+
+Name: str-replace
+ID: toolu_019hAMjuz7mopXoJLedLEZpZ
+
+### file-path
+
+<tool.toolu_019hAMjuz7mopXoJLedLEZpZ>
+greger-stdlib.el
+</tool.toolu_019hAMjuz7mopXoJLedLEZpZ>
+
+### original-content
+
+<tool.toolu_019hAMjuz7mopXoJLedLEZpZ>
+(defun greger-stdlib--format-file-info (filepath displayname exclude-pattern)
+  "Format file information similar to 'ls -la' output.
+FILEPATH is the full path to the file.
+DISPLAYNAME is the name to display in the output.
+EXCLUDE-PATTERN is used to check if file should be excluded."
+  (when (file-exists-p filepath)
+    (let* ((attrs (file-attributes filepath))
+           (size (nth 7 attrs))
+           (mode-string (greger-stdlib--file-mode-string attrs)))
+
+      (format "%s %8d  %s"
+              mode-string
+              size
+              displayname))))
+</tool.toolu_019hAMjuz7mopXoJLedLEZpZ>
+
+### new-content
+
+<tool.toolu_019hAMjuz7mopXoJLedLEZpZ>
+(defun greger-stdlib--format-file-info (filepath displayname exclude-pattern)
+  "Format file information similar to 'ls -la' output.
+FILEPATH is the full path to the file.
+DISPLAYNAME is the name to display in the output.
+EXCLUDE-PATTERN is used to check if file should be excluded."
+  (when (file-exists-p filepath)
+    (let* ((attrs (file-attributes filepath))
+           (file-type (nth 0 attrs))
+           (size (nth 7 attrs))
+           (mode-string (greger-stdlib--file-mode-string attrs))
+           (size-or-dir (if (eq file-type t) "(dir)" (format "%8d" size))))
+
+      (format "%s  %s  %s"
+              mode-string
+              size-or-dir
+              displayname))))
+</tool.toolu_019hAMjuz7mopXoJLedLEZpZ>
+
+### git-commit-message
+
+<tool.toolu_019hAMjuz7mopXoJLedLEZpZ>
+Update format-file-info to show (dir) for directories instead of size
+</tool.toolu_019hAMjuz7mopXoJLedLEZpZ>
+
+<!-- TOOL_RESULT_PLACEHOLDER_toolu_019hAMjuz7mopXoJLedLEZpZ -->

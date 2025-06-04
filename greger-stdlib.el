@@ -514,12 +514,14 @@ DISPLAYNAME is the name to display in the output.
 EXCLUDE-PATTERN is used to check if file should be excluded."
   (when (file-exists-p filepath)
     (let* ((attrs (file-attributes filepath))
+           (file-type (nth 0 attrs))
            (size (nth 7 attrs))
-           (mode-string (greger-stdlib--file-mode-string attrs)))
+           (mode-string (greger-stdlib--file-mode-string attrs))
+           (size-or-dir (if (eq file-type t) "(dir)" (format "%8d" size))))
 
-      (format "%s %8d  %s"
+      (format "%s  %s  %s"
               mode-string
-              size
+              size-or-dir
               displayname))))
 
 (defun greger-stdlib--file-mode-string (attrs)
