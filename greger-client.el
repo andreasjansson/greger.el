@@ -59,8 +59,8 @@
 
 ;;; Public API
 
-(cl-defun greger-client-stream (&key model dialog tools buffer text-start-callback text-callback complete-callback cancel-callback)
-  "Send streaming request for MODEL with DIALOG and TOOLS.
+(cl-defun greger-client-stream (&key model dialog tools server-tools buffer text-start-callback text-callback complete-callback cancel-callback)
+  "Send streaming request for MODEL with DIALOG, TOOLS, and SERVER-TOOLS.
 Text is inserted into BUFFER.
 TEXT-START-CALLBACK is called when text streaming starts.
 TEXT-CALLBACK is called for each text chunk with (text).
