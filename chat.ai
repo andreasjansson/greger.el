@@ -5578,4 +5578,165 @@ greger-parser.el
 Implement web_search_tool_result to markdown conversion
 </tool.toolu_01L8c5wQnmyw2oSmi2mLHhbf>
 
-<!-- TOOL_RESULT_PLACEHOLDER_toolu_01L8c5wQnmyw2oSmi2mLHhbf -->
+## TOOL RESULT:
+
+ID: toolu_01L8c5wQnmyw2oSmi2mLHhbf
+
+<tool.toolu_01L8c5wQnmyw2oSmi2mLHhbf>
+Successfully replaced content in /Users/andreas/projects/greger.el/greger-parser.el. Successfully staged 2 file(s) and committed with message: Implement web_search_tool_result to markdown conversion
+</tool.toolu_01L8c5wQnmyw2oSmi2mLHhbf>
+
+## ASSISTANT:
+
+Now let's remove the debug messages and test the web search again:
+
+## TOOL USE:
+
+Name: str-replace
+ID: toolu_01ExGz4JPnY3RwAH9uK2VBRd
+
+### file-path
+
+<tool.toolu_01ExGz4JPnY3RwAH9uK2VBRd>
+greger-client.el
+</tool.toolu_01ExGz4JPnY3RwAH9uK2VBRd>
+
+### original-content
+
+<tool.toolu_01ExGz4JPnY3RwAH9uK2VBRd>
+        (message "DEBUG: content_block_start - type: %s, index: %d" 
+                 (alist-get 'type content-block) index)
+</tool.toolu_01ExGz4JPnY3RwAH9uK2VBRd>
+
+### new-content
+
+<tool.toolu_01ExGz4JPnY3RwAH9uK2VBRd>
+;; Debug: (message "DEBUG: content_block_start - type: %s, index: %d" 
+        ;;          (alist-get 'type content-block) index)
+</tool.toolu_01ExGz4JPnY3RwAH9uK2VBRd>
+
+### git-commit-message
+
+<tool.toolu_01ExGz4JPnY3RwAH9uK2VBRd>
+Disable content block debugging
+</tool.toolu_01ExGz4JPnY3RwAH9uK2VBRd>
+
+## TOOL RESULT:
+
+ID: toolu_01ExGz4JPnY3RwAH9uK2VBRd
+
+<tool.toolu_01ExGz4JPnY3RwAH9uK2VBRd>
+Error executing tool: Original content not found in file: /Users/andreas/projects/greger.el/greger-client.el -- Try again!
+</tool.toolu_01ExGz4JPnY3RwAH9uK2VBRd>
+
+## TOOL USE:
+
+Name: str-replace
+ID: toolu_01RFGpVe8tU54vNagtCkstp6
+
+### file-path
+
+<tool.toolu_01RFGpVe8tU54vNagtCkstp6>
+greger-client.el
+</tool.toolu_01RFGpVe8tU54vNagtCkstp6>
+
+### original-content
+
+<tool.toolu_01RFGpVe8tU54vNagtCkstp6>
+        (message "DEBUG: content_block_start - type: %s, index: %d" 
+                 (alist-get 'type content-block) index)
+</tool.toolu_01RFGpVe8tU54vNagtCkstp6>
+
+### new-content
+
+<tool.toolu_01RFGpVe8tU54vNagtCkstp6>
+        ;; Debug: (message "DEBUG: content_block_start - type: %s, index: %d" 
+        ;;          (alist-get 'type content-block) index)
+</tool.toolu_01RFGpVe8tU54vNagtCkstp6>
+
+### git-commit-message
+
+<tool.toolu_01RFGpVe8tU54vNagtCkstp6>
+Disable content block debugging
+</tool.toolu_01RFGpVe8tU54vNagtCkstp6>
+
+## TOOL RESULT:
+
+ID: toolu_01RFGpVe8tU54vNagtCkstp6
+
+<tool.toolu_01RFGpVe8tU54vNagtCkstp6>
+Error executing tool: Original content not found in file: /Users/andreas/projects/greger.el/greger-client.el -- Try again!
+</tool.toolu_01RFGpVe8tU54vNagtCkstp6>
+
+## ASSISTANT:
+
+Let me check the exact content:
+
+## TOOL USE:
+
+Name: ripgrep
+ID: toolu_01LTj4w7xg9NnpAaRPTGx4Lx
+
+### pattern
+
+<tool.toolu_01LTj4w7xg9NnpAaRPTGx4Lx>
+DEBUG: content_block_start
+</tool.toolu_01LTj4w7xg9NnpAaRPTGx4Lx>
+
+### path
+
+<tool.toolu_01LTj4w7xg9NnpAaRPTGx4Lx>
+greger-client.el
+</tool.toolu_01LTj4w7xg9NnpAaRPTGx4Lx>
+
+### context-lines
+
+<tool.toolu_01LTj4w7xg9NnpAaRPTGx4Lx>
+2
+</tool.toolu_01LTj4w7xg9NnpAaRPTGx4Lx>
+
+## TOOL RESULT:
+
+ID: toolu_01LTj4w7xg9NnpAaRPTGx4Lx
+
+<tool.toolu_01LTj4w7xg9NnpAaRPTGx4Lx>
+266-             (blocks (greger-client-state-parsed-content-blocks state)))
+267-
+268:        (message "DEBUG: content_block_start - type: %s, index: %d"
+269-                 (alist-get 'type content-block) index)
+270-
+
+</tool.toolu_01LTj4w7xg9NnpAaRPTGx4Lx>
+
+## TOOL USE:
+
+Name: str-replace
+ID: toolu_01LxoqiL3vwwdrp63NDoHysE
+
+### file-path
+
+<tool.toolu_01LxoqiL3vwwdrp63NDoHysE>
+greger-client.el
+</tool.toolu_01LxoqiL3vwwdrp63NDoHysE>
+
+### original-content
+
+<tool.toolu_01LxoqiL3vwwdrp63NDoHysE>
+        (message "DEBUG: content_block_start - type: %s, index: %d"
+                 (alist-get 'type content-block) index)
+</tool.toolu_01LxoqiL3vwwdrp63NDoHysE>
+
+### new-content
+
+<tool.toolu_01LxoqiL3vwwdrp63NDoHysE>
+        ;; Debug: (message "DEBUG: content_block_start - type: %s, index: %d"
+        ;;          (alist-get 'type content-block) index)
+</tool.toolu_01LxoqiL3vwwdrp63NDoHysE>
+
+### git-commit-message
+
+<tool.toolu_01LxoqiL3vwwdrp63NDoHysE>
+Disable content block debugging
+</tool.toolu_01LxoqiL3vwwdrp63NDoHysE>
+
+<!-- TOOL_RESULT_PLACEHOLDER_toolu_01LxoqiL3vwwdrp63NDoHysE -->
