@@ -954,4 +954,54 @@ ATTRS should be the result of `file-attributes'."
 Fix unescaped quotes and add backticks around function name in greger-stdlib--file-mode-string
 </tool.toolu_01VNSR6C1yWPrdWyfZvA2tN5>
 
-<!-- TOOL_RESULT_PLACEHOLDER_toolu_01VNSR6C1yWPrdWyfZvA2tN5 -->
+## TOOL RESULT:
+
+ID: toolu_01VNSR6C1yWPrdWyfZvA2tN5
+
+<tool.toolu_01VNSR6C1yWPrdWyfZvA2tN5>
+Successfully replaced content in /Users/andreas/projects/greger.el/greger-stdlib.el. Successfully staged 2 file(s) and committed with message: Fix unescaped quotes and add backticks around function name in greger-stdlib--file-mode-string
+</tool.toolu_01VNSR6C1yWPrdWyfZvA2tN5>
+
+
+## ASSISTANT:
+
+7. Fix the long docstring in the should-include-directory function:
+
+## TOOL USE:
+
+Name: str-replace
+ID: toolu_0114yBKyZxKCA5SUMPmevpqk
+
+### file-path
+
+<tool.toolu_0114yBKyZxKCA5SUMPmevpqk>
+greger-stdlib.el
+</tool.toolu_0114yBKyZxKCA5SUMPmevpqk>
+
+### original-content
+
+<tool.toolu_0114yBKyZxKCA5SUMPmevpqk>
+(defun greger-stdlib--should-include-directory-in-recursive-listing-p (directory-name exclude-directories-recursive)
+  "Return t if directory with DIRECTORY-NAME should be included in recursive listing.
+EXCLUDE-DIRECTORIES-RECURSIVE is a vector of directory names to exclude.
+If EXCLUDE-DIRECTORIES-RECURSIVE is nil, use default excludes.
+If EXCLUDE-DIRECTORIES-RECURSIVE is an empty vector, exclude nothing."
+</tool.toolu_0114yBKyZxKCA5SUMPmevpqk>
+
+### new-content
+
+<tool.toolu_0114yBKyZxKCA5SUMPmevpqk>
+(defun greger-stdlib--should-include-directory-in-recursive-listing-p (directory-name exclude-directories-recursive)
+  "Return t if directory with DIRECTORY-NAME should be included in listing.
+EXCLUDE-DIRECTORIES-RECURSIVE is a vector of directory names to exclude.
+If EXCLUDE-DIRECTORIES-RECURSIVE is nil, use default excludes.
+If EXCLUDE-DIRECTORIES-RECURSIVE is an empty vector, exclude nothing."
+</tool.toolu_0114yBKyZxKCA5SUMPmevpqk>
+
+### git-commit-message
+
+<tool.toolu_0114yBKyZxKCA5SUMPmevpqk>
+Fix docstring width in greger-stdlib--should-include-directory-in-recursive-listing-p
+</tool.toolu_0114yBKyZxKCA5SUMPmevpqk>
+
+<!-- TOOL_RESULT_PLACEHOLDER_toolu_0114yBKyZxKCA5SUMPmevpqk -->

@@ -527,7 +527,7 @@ ATTRS should be the result of `file-attributes'."
     (concat type-char perms)))
 
 (defun greger-stdlib--should-include-directory-in-recursive-listing-p (directory-name exclude-directories-recursive)
-  "Return t if directory with DIRECTORY-NAME should be included in recursive listing.
+  "Return t if directory with DIRECTORY-NAME should be included in listing.
 EXCLUDE-DIRECTORIES-RECURSIVE is a vector of directory names to exclude.
 If EXCLUDE-DIRECTORIES-RECURSIVE is nil, use default excludes.
 If EXCLUDE-DIRECTORIES-RECURSIVE is an empty vector, exclude nothing."
