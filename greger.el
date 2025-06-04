@@ -537,26 +537,29 @@ READ-ONLY is t to make read-only, nil to make writable."
              (tool-id (alist-get 'id tool-call)))
 
         (let ((default-directory (greger-state-directory agent-state)))
-          ;; First create a placeholder entry in the executing-tools map
-          (puthash tool-id nil (greger-state-executing-tools agent-state))
+          ;; Create a placeholder greger-tool first to reserve the slot
+          (let ((placeholder-tool (make-greger-tool :cancel-fn nil)))
+            (puthash tool-id placeholder-tool (greger-state-executing-tools agent-state))
 
-          (let ((greger-tool (greger-tools-execute
-                              tool-name
-                              tool-input
-                              (lambda (result error)
-                                ;; Remove tool from executing-tools when complete
-                                (remhash tool-id (greger-state-executing-tools agent-state))
+            (let ((greger-tool (greger-tools-execute
+                                tool-name
+                                tool-input
+                                (lambda (result error)
+                                  ;; Remove tool from executing-tools when complete
+                                  (remhash tool-id (greger-state-executing-tools agent-state))
 
-                                (greger--handle-tool-completion
-                                 tool-id result error agent-state search-start-pos
-                                 (lambda ()
-                                   (setq completed-tools (1+ completed-tools))
-                                   (when (= completed-tools total-tools)
-                                     (greger--run-agent-loop agent-state)))))
-                              (greger-state-chat-buffer agent-state)
-                              (greger-state-metadata agent-state))))
-            ;; Update the executing-tools map with the actual greger-tool object
-            (puthash tool-id greger-tool (greger-state-executing-tools agent-state))))))))
+                                  (greger--handle-tool-completion
+                                   tool-id result error agent-state search-start-pos
+                                   (lambda ()
+                                     (setq completed-tools (1+ completed-tools))
+                                     (when (= completed-tools total-tools)
+                                       (greger--run-agent-loop agent-state)))))
+                                (greger-state-chat-buffer agent-state)
+                                (greger-state-metadata agent-state))))
+              ;; Update the placeholder with the actual greger-tool
+              ;; (this may be redundant if the tool was synchronous and already removed)
+              (when (gethash tool-id (greger-state-executing-tools agent-state))
+                (puthash tool-id greger-tool (greger-state-executing-tools agent-state))))))))))
 
 (defun greger--append-text (text agent-state)
   "Append TEXT to the chat buffer in AGENT-STATE."

@@ -1118,20 +1118,336 @@ Wait, I think I misunderstood the issue. Let me re-examine this more carefully. 
 
 Actually, let me move the `puthash` to happen **before** calling `greger-tools-execute`:
 
+## USER:
+
+No that won't work because we don't have the greger-tool yet then. You'll need to look at greger-tools.el and maybe do some refactoring
+
+## ASSISTANT:
+
+You're absolutely right! I need to look at how `greger-tools-execute` works to understand the issue better. Let me examine the greger-tools.el file:
+
+## TOOL USE:
+
+Name: read-file
+ID: toolu_015njezkEmv8v2j2zuMWL7o6
+
+### path
+
+<tool.toolu_015njezkEmv8v2j2zuMWL7o6>
+greger-tools.el
+</tool.toolu_015njezkEmv8v2j2zuMWL7o6>
+
+### include-line-numbers
+
+<tool.toolu_015njezkEmv8v2j2zuMWL7o6>
+true
+</tool.toolu_015njezkEmv8v2j2zuMWL7o6>
+
+## TOOL RESULT:
+
+ID: toolu_015njezkEmv8v2j2zuMWL7o6
+
+<tool.toolu_015njezkEmv8v2j2zuMWL7o6>
+  1: ;;; greger-tools.el --- Tool registry for greger agent -*- lexical-binding: t -*-
+  2: 
+  3: ;; Copyright (C) 2023 Andreas Jansson
+  4: 
+  5: ;; Author: Andreas Jansson <andreas@jansson.me.uk>
+  6: ;; Version: 0.1.0
+  7: ;; URL: https://github.com/andreasjansson/greger.el
+  8: ;; SPDX-License-Identifier: MIT
+  9: 
+ 10: ;; Permission is hereby granted, free of charge, to any person obtaining a copy
+ 11: ;; of this software and associated documentation files (the "Software"), to deal
+ 12: ;; in the Software without restriction, including without limitation the rights
+ 13: ;; to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+ 14: ;; copies of the Software, and to permit persons to whom the Software is
+ 15: ;; furnished to do so, subject to the following conditions:
+ 16: 
+ 17: ;; The above copyright notice and this permission notice shall be included in all
+ 18: ;; copies or substantial portions of the Software.
+ 19: 
+ 20: ;; THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+ 21: ;; IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+ 22: ;; FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+ 23: ;; AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+ 24: ;; LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+ 25: ;; OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+ 26: ;; SOFTWARE.
+ 27: 
+ 28: ;;; Commentary:
+ 29: ;; Defines tools registration functions
+ 30: 
+ 31: ;;; Code:
+ 32: 
+ 33: (require 'json)
+ 34: (require 'cl-lib)
+ 35: 
+ 36: ;; Tool structure for tracking executing tools
+ 37: (cl-defstruct greger-tool
+ 38:   cancel-fn)
+ 39: 
+ 40: ;; Registry to hold tool definitions
+ 41: (defvar greger-tools-registry (make-hash-table :test 'equal)
+ 42:   "Hash table mapping tool names to their definitions.")
+ 43: 
+ 44: ;; greger-register-tool is the main public API of this package, so it uses the package prefix "greger-"
+ 45: ;; rather than the file prefix "greger-tools-"
+ 46: ;; package-lint: disable=wrong-prefix
+ 47: (defmacro greger-register-tool (name &rest args)
+ 48:   "Register a tool with NAME and properties specified in ARGS.
+ 49: ARGS should be a plist containing :description, :properties, :required,
+ 50: :function, and optionally :pass-buffer, :pass-callback, and :pass-metadata.
+ 51: 
+ 52: Example:
+ 53:   (greger-register-tool \\='rename-file\\='
+ 54:     :description \\='Rename or move a file from one path to another\\='
+ 55:     :properties \\='((old-path . ((type . \\='string\\=')
+ 56:                               (description . \\='Current path of the file\\=')))
+ 57:                   (new-path . ((type . \\='string\\=')
+ 58:                               (description . \\='New path for the file\\=')))
+ 59:                   (git-commit-message . ((type . \\='string\\=')
+ 60:                                         (description . \\='Git commit message\\='))))
+ 61:     :required \\='(\\='old-path\\=' \\='new-path\\=' \\='git-commit-message\\=')
+ 62:     :function \\='greger-tools--rename-file
+ 63:     :pass-buffer t
+ 64:     :pass-callback t
+ 65:     :pass-metadata t)
+ 66: 
+ 67:   When :pass-callback is set to t, the callback function will be passed to the
+ 68:   tool function as a \\='callback\\=' parameter instead of `greger-tools-execute\\='
+ 69:   calling the callback with the result.
+ 70:   When :pass-metadata is set to t, the metadata from the parser will be passed
+ 71:   as a \\='metadata\\=' parameter."
+ 72:   (let ((description (plist-get args :description))
+ 73:         (properties (plist-get args :properties))
+ 74:         (required (plist-get args :required))
+ 75:         (function (plist-get args :function))
+ 76:         (pass-buffer (plist-get args :pass-buffer))
+ 77:         (pass-callback (plist-get args :pass-callback))
+ 78:         (pass-metadata (plist-get args :pass-metadata)))
+ 79:     `(puthash ,name
+ 80:               (list :schema (list (cons 'name ,name)
+ 81:                                   (cons 'description ,description)
+ 82:                                   (cons 'input_schema
+ 83:                                         (list (cons 'type "object")
+ 84:                                               (cons 'properties ,properties)
+ 85:                                               (cons 'required ,required))))
+ 86:                     :function ,function
+ 87:                     :pass-buffer ,pass-buffer
+ 88:                     :pass-callback ,pass-callback
+ 89:                     :pass-metadata ,pass-metadata)
+ 90:               greger-tools-registry)))
+ 91: 
+ 92: (defun greger-tools-get-schemas (tool-names)
+ 93:   "Get tool schemas for TOOL-NAMES."
+ 94:   (mapcar (lambda (tool-name)
+ 95:             (let ((tool-def (gethash tool-name greger-tools-registry)))
+ 96:               (if tool-def
+ 97:                   (plist-get tool-def :schema)
+ 98:                 (error "Unknown tool: %s" tool-name))))
+ 99:           tool-names))
+100: 
+101: (defun greger-tools-execute (tool-name args callback buffer &optional metadata)
+102:   "Execute TOOL-NAME with ARGS and call CALLBACK with (result error).
+103: Returns a greger-tool struct for tracking execution and cancellation.
+104: If the tool has :pass-buffer set, BUFFER will be passed to the tool function.
+105: If the tool has :pass-callback set, CALLBACK will be passed to the tool
+106: function instead of `greger-tools-execute' calling the callback with result.
+107: If the tool has :pass-metadata set, METADATA will be passed to the tool
+108: function."
+109: 
+110:   (let ((tool-def (gethash tool-name greger-tools-registry))
+111:         (cancel-fn nil))
+112:     (if tool-def
+113:         (let ((func (plist-get tool-def :function))
+114:               (pass-buffer (plist-get tool-def :pass-buffer))
+115:               (pass-callback (plist-get tool-def :pass-callback))
+116:               (pass-metadata (plist-get tool-def :pass-metadata)))
+117:           ;; Add buffer parameter if pass-buffer is set and buffer is provided
+118:           (when (and pass-buffer buffer)
+119:             (setq args (cons (cons 'buffer buffer) args)))
+120:           ;; Add callback parameter if pass-callback is set
+121:           (when pass-callback
+122:             (setq args (cons (cons 'callback callback) args)))
+123:           ;; Add metadata parameter if pass-metadata is set and metadata is provided
+124:           (when (and pass-metadata metadata)
+125:             (setq args (cons (cons 'metadata metadata) args)))
+126:           (condition-case err
+127:               (if pass-callback
+128:                   ;; When pass-callback is set, the function handles calling the callback
+129:                   (let ((result (greger-tools--call-function-with-args func args tool-def)))
+130:                     (when (functionp result)
+131:                       (setq cancel-fn result)))
+132:                 ;; Normal case: call callback with result
+133:                 (let ((result (greger-tools--call-function-with-args func args tool-def)))
+134:                   (when (functionp result)
+135:                     (setq cancel-fn result))
+136:                   (funcall callback result nil)))
+137:             (error
+138:              (funcall callback nil err))))
+139:       (funcall callback nil (format "Unknown tool: %s" tool-name)))
+140:     ;; Return greger-tool struct
+141:     (make-greger-tool :cancel-fn cancel-fn)))
+142: 
+143: (defun greger-tools--call-function-with-args (func args tool-def)
+144:   "Call FUNC with arguments extracted from ARGS alist based on function signature.
+145: Returns the result of calling the function.
+146: TOOL-DEF provides the tool definition for accessing defaults."
+147:   (let ((func-args (greger-tools--extract-function-args func args tool-def)))
+148:     (apply func func-args)))
+149: 
+150: (defun greger-tools--extract-function-args (func args tool-def)
+151:   "Extract arguments for FUNC from ARGS alist based on function signature.
+152: TOOL-DEF provides the tool definition for accessing defaults and required
+153: parameters.  Returns a list of arguments in the correct order for the function."
+154: 
+155:   (let ((arg-list (help-function-arglist func))
+156:         (result '())
+157:         (required-params (when tool-def
+158:                           (let* ((schema (plist-get tool-def :schema))
+159:                                  (input-schema (alist-get 'input_schema schema)))
+160:                             (alist-get 'required input-schema)))))
+161:     (dolist (arg-name arg-list)
+162:       (cond
+163:        ;; Handle &optional marker
+164:        ((eq arg-name '&optional)
+165:         t)
+166:        ;; Handle &rest marker (stop processing)
+167:        ((eq arg-name '&rest)
+168:         (cl-return))
+169:        ;; Handle regular arguments
+170:        (t
+171:         (let* ((arg-symbol (if (symbolp arg-name) arg-name (intern (symbol-name arg-name))))
+172:                (arg-key (intern (symbol-name arg-symbol)))
+173:                (arg-provided-p (assoc arg-key args))
+174:                (is-required (member (symbol-name arg-key) required-params)))
+175: 
+176:           (cond
+177:            ;; Required parameter not provided
+178:            ((and is-required (not arg-provided-p))
+179:             (error "Required parameter missing: %s" arg-key))
+180: 
+181:            ;; Parameter provided (required or optional)
+182:            (arg-provided-p
+183:             (let ((raw-value (alist-get arg-key args)))
+184:               ;; Check if this parameter should be parsed as JSON array
+185:               (push (greger-tools--maybe-parse-json-value raw-value arg-key tool-def) result)))
+186: 
+187:            ;; Optional parameter not provided - use default or nil
+188:            ((not is-required)
+189:             (let ((default-value (greger-tools--get-default-from-schema arg-key tool-def)))
+190:               (push default-value result)))
+191: 
+192:            ;; Optional parameter not provided and no more optional args
+193:            (t
+194:             (cl-return)))))))
+195:     (nreverse result)))
+196: 
+197: (defun greger-tools--arg-provided-p (arg-name args)
+198:   "Check if ARG-NAME was provided in ARGS."
+199:   (let* ((arg-symbol (if (symbolp arg-name) arg-name (intern (symbol-name arg-name))))
+200:          (arg-key (intern (symbol-name arg-symbol))))
+201:     (assoc arg-key args)))
+202: 
+203: (defun greger-tools--get-arg-value (arg-name args tool-def)
+204:   "Get value for ARG-NAME from ARGS alist, handling defaults from TOOL-DEF schema."
+205:   (let* ((arg-symbol (if (symbolp arg-name) arg-name (intern (symbol-name arg-name))))
+206:          (arg-key (intern (symbol-name arg-symbol)))
+207:          (value (alist-get arg-key args)))
+208:     ;; If value is provided, use it
+209:     (if value
+210:         value
+211:       ;; Otherwise, check for default in tool schema, then hardcoded defaults
+212:       (or (greger-tools--get-default-from-schema arg-key tool-def)
+213:           ;; Keep existing hardcoded defaults for backward compatibility
+214:           (cond
+215:            ((eq arg-key 'path) ".")
+216:            ((eq arg-key 'context-lines) 0)
+217:            ((eq arg-key 'max-results) 50)
+218:            (t nil))))))
+219: 
+220: (defun greger-tools--get-default-from-schema (arg-key tool-def)
+221:   "Get default value for ARG-KEY from TOOL-DEF schema."
+222:   (when tool-def
+223:     (let* ((schema (plist-get tool-def :schema))
+224:            (input-schema (alist-get 'input_schema schema))
+225:            (properties (alist-get 'properties input-schema))
+226:            (arg-property (alist-get arg-key properties))
+227:            (default-value (alist-get 'default arg-property)))
+228:       default-value)))
+229: 
+230: (defun greger-tools--maybe-parse-json-value (value arg-key tool-def)
+231:   "Parse VALUE as JSON if ARG-KEY requires JSON parsing based on TOOL-DEF schema.
+232: Handles arrays, booleans, and numbers."
+233:   (if (and (stringp value) tool-def)
+234:       (let* ((schema (plist-get tool-def :schema))
+235:              (input-schema (alist-get 'input_schema schema))
+236:              (properties (alist-get 'properties input-schema))
+237:              (arg-property (alist-get arg-key properties))
+238:              (param-type (alist-get 'type arg-property)))
+239:         (cond
+240:          ;; Parse JSON array string
+241:          ((string= param-type "array")
+242:           (condition-case nil
+243:               (json-parse-string value :array-type 'list)
+244:             (error value))) ; Return original value if parsing fails
+245: 
+246:          ;; Parse boolean strings
+247:          ((string= param-type "boolean")
+248:           (cond
+249:            ((string= value "true") t)
+250:            ((string= value "false") nil)
+251:            ((string= value ":json-true") t)
+252:            ((string= value ":json-false") nil)
+253:            (t value))) ; Return original if not a recognized boolean
+254: 
+255:          ;; Parse number strings
+256:          ((or (string= param-type "integer") (string= param-type "number"))
+257:           (condition-case nil
+258:               (if (string-match-p "^-?[0-9]+$" value)
+259:                   (string-to-number value)
+260:                 (if (string-match-p "^-?[0-9]*\\.[0-9]+$" value)
+261:                     (string-to-number value)
+262:                   value)) ; Return original if not a number
+263:             (error value)))
+264: 
+265:          ;; For other types (string, object), return as-is
+266:          (t value)))
+267:     ;; Not a string or no tool-def, return as-is
+268:     value))
+269: 
+270: (provide 'greger-tools)
+271: 
+272: ;;; greger-tools.el ends here
+</tool.toolu_015njezkEmv8v2j2zuMWL7o6>
+
+## ASSISTANT:
+
+Now I can see the issue clearly! Looking at the `greger-tools-execute` function:
+
+1. Lines 126-138: The function executes the tool and if `pass-callback` is **not** set (which is the case for synchronous tools), it immediately calls `(funcall callback result nil)` on line 136.
+2. This means for synchronous tools, the callback is executed **before** `greger-tools-execute` returns.
+3. Back in `greger--execute-tools`, the callback calls `remhash` to remove the tool from the executing-tools map.
+4. Then `greger-tools-execute` returns the `greger-tool` struct.
+5. Finally, `puthash` tries to add the tool to the executing-tools map, but the callback has already removed it.
+
+The issue is that for synchronous tools, we need to add the tool to the executing-tools map **before** calling `greger-tools-execute`, not after. Let me refactor this:
+
 ## TOOL USE:
 
 Name: str-replace
-ID: toolu_019E8tqxTDNx679Ts2Z4e5Uj
+ID: toolu_01Y3q2XKtq68BGAnzs5xGZG2
 
 ### file-path
 
-<tool.toolu_019E8tqxTDNx679Ts2Z4e5Uj>
+<tool.toolu_01Y3q2XKtq68BGAnzs5xGZG2>
 greger.el
-</tool.toolu_019E8tqxTDNx679Ts2Z4e5Uj>
+</tool.toolu_01Y3q2XKtq68BGAnzs5xGZG2>
 
 ### original-content
 
-<tool.toolu_019E8tqxTDNx679Ts2Z4e5Uj>
+<tool.toolu_01Y3q2XKtq68BGAnzs5xGZG2>
         (let ((default-directory (greger-state-directory agent-state)))
           (let ((greger-tool (greger-tools-execute
                               tool-name
@@ -1152,42 +1468,45 @@ greger.el
             ;; This must happen after greger-tools-execute returns but before
             ;; the completion callback runs (which is fine for async tools)
             (puthash tool-id greger-tool (greger-state-executing-tools agent-state))))
-</tool.toolu_019E8tqxTDNx679Ts2Z4e5Uj>
+</tool.toolu_01Y3q2XKtq68BGAnzs5xGZG2>
 
 ### new-content
 
-<tool.toolu_019E8tqxTDNx679Ts2Z4e5Uj>
+<tool.toolu_01Y3q2XKtq68BGAnzs5xGZG2>
         (let ((default-directory (greger-state-directory agent-state)))
-          ;; First create a placeholder entry in the executing-tools map
-          (puthash tool-id nil (greger-state-executing-tools agent-state))
-          
-          (let ((greger-tool (greger-tools-execute
-                              tool-name
-                              tool-input
-                              (lambda (result error)
-                                ;; Remove tool from executing-tools when complete
-                                (remhash tool-id (greger-state-executing-tools agent-state))
+          ;; Create a placeholder greger-tool first to reserve the slot
+          (let ((placeholder-tool (make-greger-tool :cancel-fn nil)))
+            (puthash tool-id placeholder-tool (greger-state-executing-tools agent-state))
+            
+            (let ((greger-tool (greger-tools-execute
+                                tool-name
+                                tool-input
+                                (lambda (result error)
+                                  ;; Remove tool from executing-tools when complete
+                                  (remhash tool-id (greger-state-executing-tools agent-state))
 
-                                (greger--handle-tool-completion
-                                 tool-id result error agent-state search-start-pos
-                                 (lambda ()
-                                   (setq completed-tools (1+ completed-tools))
-                                   (when (= completed-tools total-tools)
-                                     (greger--run-agent-loop agent-state)))))
-                              (greger-state-chat-buffer agent-state)
-                              (greger-state-metadata agent-state))))
-            ;; Update the executing-tools map with the actual greger-tool object
-            (puthash tool-id greger-tool (greger-state-executing-tools agent-state))))
-</tool.toolu_019E8tqxTDNx679Ts2Z4e5Uj>
+                                  (greger--handle-tool-completion
+                                   tool-id result error agent-state search-start-pos
+                                   (lambda ()
+                                     (setq completed-tools (1+ completed-tools))
+                                     (when (= completed-tools total-tools)
+                                       (greger--run-agent-loop agent-state)))))
+                                (greger-state-chat-buffer agent-state)
+                                (greger-state-metadata agent-state))))
+              ;; Update the placeholder with the actual greger-tool
+              ;; (this may be redundant if the tool was synchronous and already removed)
+              (when (gethash tool-id (greger-state-executing-tools agent-state))
+                (puthash tool-id greger-tool (greger-state-executing-tools agent-state))))))
+</tool.toolu_01Y3q2XKtq68BGAnzs5xGZG2>
 
 ### git-commit-message
 
-<tool.toolu_019E8tqxTDNx679Ts2Z4e5Uj>
-Fix synchronous tool tracking by adding placeholder before execution
+<tool.toolu_01Y3q2XKtq68BGAnzs5xGZG2>
+Fix tool execution tracking by adding placeholder before execution
 
-Create a placeholder entry in executing-tools before calling greger-tools-execute
-to ensure tools are tracked even for synchronous execution where the completion
-callback runs immediately.
-</tool.toolu_019E8tqxTDNx679Ts2Z4e5Uj>
+For synchronous tools, the callback runs before greger-tools-execute returns,
+so we need to add a placeholder to the executing-tools map first, then update
+it with the actual greger-tool (if the tool is still executing after the call).
+</tool.toolu_01Y3q2XKtq68BGAnzs5xGZG2>
 
-<!-- TOOL_RESULT_PLACEHOLDER_toolu_019E8tqxTDNx679Ts2Z4e5Uj -->
+<!-- TOOL_RESULT_PLACEHOLDER_toolu_01Y3q2XKtq68BGAnzs5xGZG2 -->
