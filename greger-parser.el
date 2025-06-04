@@ -41,6 +41,8 @@
 (defconst greger-parser-system-tag "## SYSTEM:")
 (defconst greger-parser-tool-use-tag "## TOOL USE:")
 (defconst greger-parser-tool-result-tag "## TOOL RESULT:")
+(defconst greger-parser-server-tool-use-tag "## SERVER TOOL USE:")
+(defconst greger-parser-server-tool-result-tag "## SERVER TOOL RESULT:")
 (defconst greger-parser-thinking-tag "## THINKING:")
 
 ;;; Parser state structure
