@@ -570,14 +570,16 @@ Echo: hello world
   ;; Test that greger-interrupt calls cancel functions but doesn't clear the map
   (with-temp-buffer
     (greger-mode)
-    (let ((cancel-called nil)
-          (callback-called nil)
-          (keyboard-quit-called nil)
+    ;; Use a global variable that the closure can access
+    (setq greger-test-cancel-called nil)
+    (setq greger-test-callback-called nil)
+
+    (let ((keyboard-quit-called nil)
           ;; Create a mock greger-tool with cancel function
           (mock-greger-tool (make-greger-tool
                              :cancel-fn (lambda ()
-                                          (setq cancel-called t)
-                                          (setq callback-called t))))
+                                          (setq greger-test-cancel-called t)
+                                          (setq greger-test-callback-called t))))
           (executing-tools-map (make-hash-table :test 'equal)))
 
       ;; Set up executing tools map with one tool
@@ -605,11 +607,11 @@ Echo: hello world
           ;; Debug: check the state before assertions
           (message "Hash table count: %d" (hash-table-count executing-tools-map))
           (message "Agent state executing tools: %s" (greger-state-executing-tools agent-state))
-          (message "Cancel called: %s" cancel-called)
+          (message "Cancel called: %s" greger-test-cancel-called)
           (message "Hash table contains key: %s" (gethash "test-tool-id" executing-tools-map))
 
           ;; Should have called cancel function
-          (should cancel-called)
+          (should greger-test-cancel-called)
           ;; Should not have called keyboard-quit
           (should-not keyboard-quit-called)
           ;; The executing-tools map should still contain the tool
