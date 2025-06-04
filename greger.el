@@ -106,8 +106,7 @@
 (defvar greger-tool-section-max-lines 4
   "Maximum number of lines to show in collapsed tool sections.")
 
-;; TODO: make defvar-local
-(defvar greger-tool-overlays nil
+(defvar-local greger-tool-overlays nil
   "List of overlays used for collapsible tool sections.")
 
 (defvar-local greger--current-agent-state nil
@@ -115,6 +114,10 @@
 
 (defvar-local greger--buffer-read-only-by-greger nil
   "Buffer-local variable to track if buffer is read-only due to greger activity.")
+
+(defvar-local greger--unfolded-tool-ids nil
+  "List of tool IDs that have been manually unfolded.
+These tool IDs should not be auto-folded again.")
 
 ;; Face definitions for tool tags
 (defface greger-tool-tag-face
@@ -194,7 +197,9 @@
   ;; Set up custom heading font-lock
   (greger--setup-heading-font-lock)
   ;; Add hook to update tool sections when buffer changes
-  (add-hook 'after-change-functions #'greger--after-change-function nil t))
+  (add-hook 'after-change-functions #'greger--after-change-function nil t)
+  ;; Add font-lock hook for immediate tool tag styling
+  (add-hook 'font-lock-extend-region-functions #'greger--extend-font-lock-region nil t))
 
 ;;;###autoload
 (defun greger ()
@@ -699,7 +704,9 @@ TOOL-ID is the tool identifier."
          (lines (split-string content "\n"))
          (line-count (length lines)))
 
-    (when (> line-count greger-tool-section-max-lines)
+    (when (and (> line-count greger-tool-section-max-lines)
+               ;; Only create collapsed overlay if not manually unfolded
+               (not (member tool-id greger--unfolded-tool-ids)))
       ;; Create the collapsible overlay
       (greger--create-collapsible-overlay content-start content-end tool-id lines))))
 
@@ -736,12 +743,16 @@ TOOL-ID identifies the tool, and LINES contain the content."
     (push hidden-overlay greger-tool-overlays)))
 
 (defun greger-toggle-tool-section ()
-  "Toggle the tool section at point between collapsed and expanded state."
+  "Toggle the tool section at point between collapsed and expanded state.
+If not inside a tool section, fall back to `markdown-cycle'."
   (interactive)
   (let ((tool-id (greger--get-tool-id-at-point)))
     (if tool-id
         (greger--toggle-tool-section-by-id tool-id)
-      (message "Not inside a tool section"))))
+      ;; Fall back to markdown-cycle if available
+      (if (fboundp 'markdown-cycle)
+          (call-interactively #'markdown-cycle)
+        (message "Not inside a tool section")))))
 
 (defun greger--get-tool-id-at-point ()
   "Get the tool ID for the tool section at point, if any."
@@ -793,6 +804,10 @@ OVERLAY is the overlay to expand, TOOL-ID identifies the tool."
   (overlay-put overlay 'invisible nil)
   (overlay-put overlay 'greger-collapsed nil)
 
+  ;; Mark this tool as manually unfolded so it doesn't get auto-folded again
+  (unless (member tool-id greger--unfolded-tool-ids)
+    (push tool-id greger--unfolded-tool-ids))
+
   ;; Remove the expansion indicator
   (cl-loop for indicator-overlay in greger-tool-overlays
            when (and (overlay-get indicator-overlay 'greger-tool-indicator)
@@ -808,6 +823,10 @@ OVERLAY is the overlay to hide.
 TOOL-ID is the tool identifier."
   (overlay-put overlay 'invisible 'greger-tool-section)
   (overlay-put overlay 'greger-collapsed t)
+
+  ;; Remove from unfolded list since it's now manually collapsed
+  (setq greger--unfolded-tool-ids
+        (delete tool-id greger--unfolded-tool-ids))
 
   ;; Calculate the number of hidden lines for the indicator
   (let* ((content (buffer-substring-no-properties (overlay-start overlay) (overlay-end overlay)))
@@ -860,10 +879,15 @@ TOOL-ID is the tool identifier."
 BEG is the beginning of the changed region.
 END is the end of the changed region.
 _LEN is the length of the pre-change text (unused)."
-  ;; Simple approach: refresh all tool sections
-  ;; This could be optimized to only refresh affected sections
-  (when (> (- end beg) 0)  ; Only if there was an actual change
+  ;; Only run timer-based cleanup for complex changes or when not actively streaming
+  (when (and (> (- end beg) 0)  ; Only if there was an actual change
+             (not (greger--is-actively-streaming)))
     (run-with-idle-timer 0.1 nil #'greger--setup-tool-sections)))
+
+(defun greger--is-actively-streaming ()
+  "Check if we're currently streaming content from the AI."
+  (and greger--current-agent-state
+       (greger-state-client-state greger--current-agent-state)))
 
 ;; Private helper functions
 
