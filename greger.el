@@ -459,6 +459,7 @@ READ-ONLY is t to make read-only, nil to make writable."
                            :model greger-model
                            :dialog current-dialog
                            :tools tools
+                           :server-tools server-tools
                            :buffer chat-buffer
                            :text-start-callback (lambda ()
                                                   (greger--append-text (concat "\n\n" greger-assistant-tag "\n\n") agent-state))
