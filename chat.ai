@@ -7967,4 +7967,154 @@ greger.el
 Fix greger-interrupt to check for non-empty executing-tools map
 </tool.toolu_01UMqUk4ZnTUfyroS2MuFPxc>
 
-<!-- TOOL_RESULT_PLACEHOLDER_toolu_01UMqUk4ZnTUfyroS2MuFPxc -->
+## TOOL RESULT:
+
+ID: toolu_01UMqUk4ZnTUfyroS2MuFPxc
+
+<tool.toolu_01UMqUk4ZnTUfyroS2MuFPxc>
+Successfully replaced content in /Users/andreas/projects/greger.el/greger.el. Successfully staged 2 file(s) and committed with message: Fix greger-interrupt to check for non-empty executing-tools map
+</tool.toolu_01UMqUk4ZnTUfyroS2MuFPxc>
+
+
+## ASSISTANT:
+
+Now let me run the test again:
+
+## TOOL USE:
+
+Name: shell-command
+ID: toolu_01Fq7Qvk8xLW8hLrKn2s9SK6
+
+### command
+
+<tool.toolu_01Fq7Qvk8xLW8hLrKn2s9SK6>
+bash script/test --verbose --file test/test-greger.el
+</tool.toolu_01Fq7Qvk8xLW8hLrKn2s9SK6>
+
+## TOOL RESULT:
+
+ID: toolu_01Fq7Qvk8xLW8hLrKn2s9SK6
+
+<tool.toolu_01Fq7Qvk8xLW8hLrKn2s9SK6>
+Command failed with exit code 1: [0;34mRunning ERT tests for greger package...[0m
+
+Running tests in [1;33mtest/test-greger.el[0m (verbose mode)...
+Loading /Users/andreas/projects/greger.el/greger.el (source)...
+Source file ‘/opt/homebrew/Cellar/emacs-plus@29/29.0.90/share/emacs/29.0.91/lisp/net/eww.el’ newer than byte-compiled file; using older file
+Loading /Users/andreas/projects/greger.el/greger-parser.el (source)...
+Loading /Users/andreas/projects/greger.el/greger-stdlib.el (source)...
+Loading /Users/andreas/projects/greger.el/greger-tools.el (source)...
+Loading /Users/andreas/projects/greger.el/greger-client.el (source)...
+Loading /Users/andreas/projects/greger.el/greger-web.el (source)...
+Loading /Users/andreas/projects/greger.el/test/test-greger.el (source)...
+Running 11 tests (2025-06-04 14:03:51+0200, selector ‘t’)
+   passed   1/11  greger-test-exact-tool-output-formatting (0.000261 sec)
+   passed   2/11  greger-test-interrupt-with-active-generation (0.002730 sec)
+Test greger-test-interrupt-with-executing-tools backtrace:
+  signal(ert-test-failed (((should cancel-called) :form cancel-called
+  ert-fail(((should cancel-called) :form cancel-called :value nil))
+  (if (unwind-protect (setq value-78 cancel-called) (setq form-descrip
+  (let (form-description-79) (if (unwind-protect (setq value-78 cancel
+  (let ((value-78 (gensym "ert-form-evaluation-aborted-"))) (let (form
+  (progn (fset 'keyboard-quit vnew) (greger-interrupt) (let ((value-78
+  (unwind-protect (progn (fset 'keyboard-quit vnew) (greger-interrupt)
+  (let* ((vnew #'(lambda nil (setq keyboard-quit-called t))) (old (sym
+  (let ((agent-state (record 'greger-state 1 (current-buffer) default-
+  (let ((cancel-called nil) (callback-called nil) (keyboard-quit-calle
+  (progn (greger-mode) (let ((cancel-called nil) (callback-called nil)
+  (unwind-protect (progn (greger-mode) (let ((cancel-called nil) (call
+  (save-current-buffer (set-buffer temp-buffer) (unwind-protect (progn
+  (let ((temp-buffer (generate-new-buffer " *temp*" t))) (save-current
+  (closure (t) nil (let ((temp-buffer (generate-new-buffer " *temp*" t
+  ert--run-test-internal(#s(ert--test-execution-info :test #s(ert-test
+  ert-run-test(#s(ert-test :name greger-test-interrupt-with-executing-
+  ert-run-or-rerun-test(#s(ert--stats :selector t :tests ... :test-map
+  ert-run-tests(t #f(compiled-function (event-type &rest event-args) #
+  ert-run-tests-batch(t)
+  ert-run-tests-batch-and-exit(t)
+  (let ((ert-quiet nil)) (ert-run-tests-batch-and-exit t))
+  (progn (setq debug-on-error t) (add-to-list 'load-path ".") (require
+  eval((progn (setq debug-on-error t) (add-to-list 'load-path ".") (re
+  command-line-1(("--eval" "(progn\n                  (setq debug-on-e
+  command-line()
+  normal-top-level()
+Test greger-test-interrupt-with-executing-tools condition:
+    (ert-test-failed
+     ((should cancel-called)
+      :form cancel-called :value nil))
+   FAILED   3/11  greger-test-interrupt-with-executing-tools (0.000258 sec) at test/test-greger.el:568
+   passed   4/11  greger-test-interrupt-without-active-generation (0.000218 sec)
+   passed   5/11  greger-test-multiple-tools-parallel (0.000203 sec)
+   passed   6/11  greger-test-simple-string-comparison (0.000111 sec)
+   passed   7/11  greger-test-single-tool-execution (0.000099 sec)
+   passed   8/11  greger-test-tool-error-handling (0.000099 sec)
+   passed   9/11  greger-test-tool-execution-with-existing-content (0.000096 sec)
+   passed  10/11  greger-test-tool-placeholder (0.000022 sec)
+   passed  11/11  greger-test-unknown-tool-error (0.000089 sec)
+
+Ran 11 tests, 10 results as expected, 1 unexpected (2025-06-04 14:03:51+0200, 0.219103 sec)
+
+1 unexpected results:
+   FAILED  greger-test-interrupt-with-executing-tools
+
+
+</tool.toolu_01Fq7Qvk8xLW8hLrKn2s9SK6>
+
+## ASSISTANT:
+
+Let me debug this further. I think the issue is with how I'm setting up the test. Let me check if the hash table count is working correctly. Let me add some debug prints to understand what's happening:
+
+## TOOL USE:
+
+Name: str-replace
+ID: toolu_01Nh3FHyMoXy182LnvQxfwXD
+
+### file-path
+
+<tool.toolu_01Nh3FHyMoXy182LnvQxfwXD>
+test/test-greger.el
+</tool.toolu_01Nh3FHyMoXy182LnvQxfwXD>
+
+### original-content
+
+<tool.toolu_01Nh3FHyMoXy182LnvQxfwXD>
+;; Call greger-interrupt
+          (greger-interrupt)
+
+          ;; Should have called cancel function
+          (should cancel-called)
+          ;; Should not have called keyboard-quit
+          (should-not keyboard-quit-called)
+          ;; The executing-tools map should still contain the tool
+          ;; (it should only be removed when callback is actually called)
+          (should (gethash "test-tool-id" executing-tools-map)))
+</tool.toolu_01Nh3FHyMoXy182LnvQxfwXD>
+
+### new-content
+
+<tool.toolu_01Nh3FHyMoXy182LnvQxfwXD>
+;; Call greger-interrupt
+          (greger-interrupt)
+
+          ;; Debug: check the state before assertions
+          (message "Hash table count: %d" (hash-table-count executing-tools-map))
+          (message "Agent state executing tools: %s" (greger-state-executing-tools agent-state))
+          (message "Cancel called: %s" cancel-called)
+          (message "Hash table contains key: %s" (gethash "test-tool-id" executing-tools-map))
+
+          ;; Should have called cancel function
+          (should cancel-called)
+          ;; Should not have called keyboard-quit
+          (should-not keyboard-quit-called)
+          ;; The executing-tools map should still contain the tool
+          ;; (it should only be removed when callback is actually called)
+          (should (gethash "test-tool-id" executing-tools-map)))
+</tool.toolu_01Nh3FHyMoXy182LnvQxfwXD>
+
+### git-commit-message
+
+<tool.toolu_01Nh3FHyMoXy182LnvQxfwXD>
+Add debug messages to test to understand what's happening
+</tool.toolu_01Nh3FHyMoXy182LnvQxfwXD>
+
+<!-- TOOL_RESULT_PLACEHOLDER_toolu_01Nh3FHyMoXy182LnvQxfwXD -->

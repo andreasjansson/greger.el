@@ -602,6 +602,12 @@ Echo: hello world
           ;; Call greger-interrupt
           (greger-interrupt)
 
+          ;; Debug: check the state before assertions
+          (message "Hash table count: %d" (hash-table-count executing-tools-map))
+          (message "Agent state executing tools: %s" (greger-state-executing-tools agent-state))
+          (message "Cancel called: %s" cancel-called)
+          (message "Hash table contains key: %s" (gethash "test-tool-id" executing-tools-map))
+
           ;; Should have called cancel function
           (should cancel-called)
           ;; Should not have called keyboard-quit
