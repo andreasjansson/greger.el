@@ -33,6 +33,10 @@
 (require 'json)
 (require 'cl-lib)
 
+;; Tool structure for tracking executing tools
+(cl-defstruct greger-tool
+  cancel-fn)
+
 ;; Registry to hold tool definitions
 (defvar greger-tools-registry (make-hash-table :test 'equal)
   "Hash table mapping tool names to their definitions.")
