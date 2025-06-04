@@ -1119,6 +1119,18 @@ Returns either a system message, metadata, or both."
               (greger-parser--value-to-string content)) "\n"
             "</tool." id ">")))
 
+(defun greger-parser--web-search-tool-result-to-markdown (web-search-result)
+  "Convert WEB-SEARCH-RESULT to markdown."
+  (let ((id (alist-get 'tool_use_id web-search-result))
+        (content (alist-get 'content web-search-result)))
+    (concat greger-parser-server-tool-result-tag "\n\n"
+            "ID: " id "\n\n"
+            "<tool." id ">\n"
+            (if (stringp content)
+                content
+              (greger-parser--value-to-string content)) "\n"
+            "</tool." id ">")))
+
 (defun greger-parser--tool-params-to-markdown (id input)
   "Convert tool parameters with ID and INPUT to markdown."
   (if (null input)
