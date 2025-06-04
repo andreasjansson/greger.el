@@ -3509,4 +3509,479 @@ greger-tools.el
 Add server tool schema retrieval functions
 </tool.toolu_01ShrorbnvddMKysoeCEmJwP>
 
-<!-- TOOL_RESULT_PLACEHOLDER_toolu_01ShrorbnvddMKysoeCEmJwP -->
+## TOOL RESULT:
+
+ID: toolu_01ShrorbnvddMKysoeCEmJwP
+
+<tool.toolu_01ShrorbnvddMKysoeCEmJwP>
+Successfully replaced content in /Users/andreas/projects/greger.el/greger-tools.el. Successfully staged 2 file(s) and committed with message: Add server tool schema retrieval functions
+</tool.toolu_01ShrorbnvddMKysoeCEmJwP>
+
+## ASSISTANT:
+
+Now let me create some tests to verify that the server tool parsing works correctly. First, let me run the existing tests to make sure I haven't broken anything:
+
+## TOOL USE:
+
+Name: shell-command
+ID: toolu_01PFmdz2rJS3LCcjZR5t8XaT
+
+### command
+
+<tool.toolu_01PFmdz2rJS3LCcjZR5t8XaT>
+bash script/test --verbose --file test/test-greger-parser.el
+</tool.toolu_01PFmdz2rJS3LCcjZR5t8XaT>
+
+## TOOL RESULT:
+
+ID: toolu_01PFmdz2rJS3LCcjZR5t8XaT
+
+<tool.toolu_01PFmdz2rJS3LCcjZR5t8XaT>
+Command executed successfully:
+[0;34mRunning ERT tests for greger package...[0m
+
+Running tests in [1;33mtest/test-greger-parser.el[0m (verbose mode)...
+Loading /Users/andreas/projects/greger.el/greger.el (source)...
+Source file ‘/opt/homebrew/Cellar/emacs-plus@29/29.0.90/share/emacs/29.0.91/lisp/net/eww.el’ newer than byte-compiled file; using older file
+Loading /Users/andreas/projects/greger.el/greger-parser.el (source)...
+Loading /Users/andreas/projects/greger.el/greger-stdlib.el (source)...
+Loading /Users/andreas/projects/greger.el/greger-tools.el (source)...
+Loading /Users/andreas/projects/greger.el/greger-client.el (source)...
+Loading /Users/andreas/projects/greger.el/greger-web.el (source)...
+Loading /Users/andreas/projects/greger.el/test/test-greger-parser.el (source)...
+Running 35 tests (2025-06-04 17:49:22+0200, selector ‘t’)
+   passed   1/35  greger-parser-test-code-block-parsing (0.001128 sec)
+   passed   2/35  greger-parser-test-code-blocks-in-tool-params (0.000555 sec)
+   passed   3/35  greger-parser-test-complex-mixed-content (0.001693 sec)
+   passed   4/35  greger-parser-test-edge-cases (0.000335 sec)
+   passed   5/35  greger-parser-test-error-handling (0.000177 sec)
+   passed   6/35  greger-parser-test-include-tag-basic (0.002010 sec)
+   passed   7/35  greger-parser-test-include-tag-in-assistant-section (0.002180 sec)
+   passed   8/35  greger-parser-test-include-tag-invalid-url (0.062795 sec)
+   passed   9/35  greger-parser-test-include-tag-multiline-content (0.002193 sec)
+   passed  10/35  greger-parser-test-include-tag-nonexistent-file (0.000803 sec)
+   passed  11/35  greger-parser-test-include-tag-not-processed-in-code-blocks (0.001790 sec)
+   passed  12/35  greger-parser-test-include-tag-not-processed-in-inline-code (0.001637 sec)
+   passed  13/35  greger-parser-test-include-tag-not-processed-in-tool-params (0.001220 sec)
+   passed  14/35  greger-parser-test-include-tag-recursive (0.002459 sec)
+   passed  15/35  greger-parser-test-include-tag-web-url (0.178077 sec)
+   passed  16/35  greger-parser-test-include-tag-web-url-with-code (0.108858 sec)
+   passed  17/35  greger-parser-test-include-tag-with-code (0.008595 sec)
+   passed  18/35  greger-parser-test-include-tag-with-code-in-code-block (0.007178 sec)
+   passed  19/35  greger-parser-test-inline-code-blocks (0.002366 sec)
+   passed  20/35  greger-parser-test-markdown-generation (0.000510 sec)
+Testing markdown-to-dialog for: simple-user-message
+Testing markdown-to-dialog for: system-and-user
+Testing markdown-to-dialog for: simple-conversation
+Testing markdown-to-dialog for: thinking-section
+Testing markdown-to-dialog for: tool-use-single-param
+Testing markdown-to-dialog for: tool-use-multiple-params
+Testing markdown-to-dialog for: complex-workflow
+Testing markdown-to-dialog for: multiple-tool-uses
+Testing markdown-to-dialog for: tool-use-multiline-params
+Testing markdown-to-dialog for: thinking-only
+Testing markdown-to-dialog for: tool-use-only
+Testing markdown-to-dialog for: tool-use-with-tags
+Testing markdown-to-dialog for: code-block-triple-backticks
+Testing markdown-to-dialog for: code-block-double-backticks
+Testing markdown-to-dialog for: mixed-code-blocks-and-sections
+Testing markdown-to-dialog for: tool-use-with-code-in-params
+Testing markdown-to-dialog for: nested-code-blocks
+Testing markdown-to-dialog for: tool-use-complex-params
+Testing markdown-to-dialog for: tool-result-empty-lines
+Testing markdown-to-dialog for: html-comments
+   passed  21/35  greger-parser-test-markdown-to-dialog (0.071664 sec)
+   passed  22/35  greger-parser-test-performance (0.044748 sec)
+Testing roundtrip for: simple-user-message
+Testing roundtrip for: system-and-user
+Testing roundtrip for: simple-conversation
+Testing roundtrip for: thinking-section
+Testing roundtrip for: tool-use-single-param
+Testing roundtrip for: tool-use-multiple-params
+Testing roundtrip for: complex-workflow
+Testing roundtrip for: multiple-tool-uses
+Testing roundtrip for: tool-use-multiline-params
+Testing roundtrip for: thinking-only
+Testing roundtrip for: tool-use-only
+Testing roundtrip for: tool-use-with-tags
+Testing roundtrip for: code-block-triple-backticks
+Testing roundtrip for: code-block-double-backticks
+Testing roundtrip for: mixed-code-blocks-and-sections
+Testing roundtrip for: tool-use-with-code-in-params
+Testing roundtrip for: nested-code-blocks
+Testing roundtrip for: tool-use-complex-params
+Testing roundtrip for: tool-result-empty-lines
+Testing roundtrip for: html-comments
+   passed  23/35  greger-parser-test-roundtrip (0.055942 sec)
+   passed  24/35  greger-parser-test-safe-shell-commands-basic (0.000252 sec)
+   passed  25/35  greger-parser-test-safe-shell-commands-empty-lines (0.000244 sec)
+   passed  26/35  greger-parser-test-safe-shell-commands-in-code-block (0.028526 sec)
+   passed  27/35  greger-parser-test-safe-shell-commands-not-in-system (0.000966 sec)
+   passed  28/35  greger-parser-test-safe-shell-commands-only-once (0.000286 sec)
+   passed  29/35  greger-parser-test-safe-shell-commands-with-system-content (0.000710 sec)
+   passed  30/35  greger-parser-test-system-content-with-safe-commands-example (0.000671 sec)
+   passed  31/35  greger-parser-test-thinking-parsing (0.000679 sec)
+   passed  32/35  greger-parser-test-tool-result-parsing (0.000291 sec)
+   passed  33/35  greger-parser-test-tool-use-parsing (0.000448 sec)
+   passed  34/35  greger-parser-test-tool-use-whitespace (0.000616 sec)
+   passed  35/35  greger-parser-test-untagged-content (0.000766 sec)
+
+Ran 35 tests, 35 results as expected, 0 unexpected (2025-06-04 17:49:22+0200, 0.594759 sec)
+
+[0;34mTest Summary:[0m
+  Files run: 1
+  Files passed: [0;32m0[0m
+  Files failed: [0;31m1[0m
+[0;32mAll tests passed![0m
+
+</tool.toolu_01PFmdz2rJS3LCcjZR5t8XaT>
+
+## ASSISTANT:
+
+Great! The existing parser tests are still passing. Now let me create tests for the server tool functionality. Let me add test cases to the existing test file:
+
+## TOOL USE:
+
+Name: read-file
+ID: toolu_01TqgHtvB3nf1GFjAxxaHYxq
+
+### path
+
+<tool.toolu_01TqgHtvB3nf1GFjAxxaHYxq>
+test/test-greger-parser.el
+</tool.toolu_01TqgHtvB3nf1GFjAxxaHYxq>
+
+### start-line
+
+<tool.toolu_01TqgHtvB3nf1GFjAxxaHYxq>
+800
+</tool.toolu_01TqgHtvB3nf1GFjAxxaHYxq>
+
+### end-line
+
+<tool.toolu_01TqgHtvB3nf1GFjAxxaHYxq>
+850
+</tool.toolu_01TqgHtvB3nf1GFjAxxaHYxq>
+
+## TOOL RESULT:
+
+ID: toolu_01TqgHtvB3nf1GFjAxxaHYxq
+
+<tool.toolu_01TqgHtvB3nf1GFjAxxaHYxq>
+What kind of help do you need with the file?
+
+## TOOL USE:
+
+Name: list-directory
+ID: toolu_abc
+
+### path
+
+<tool.toolu_abc>
+.
+</tool.toolu_abc>"))
+    (let ((parsed (greger-parser-parse-dialog-messages-only complex-markdown)))
+      (should (= 2 (length parsed)))
+      ;; First message should be user
+      (should (string= "user" (alist-get 'role (car parsed))))
+      ;; Second message should be assistant with mixed content
+      (let ((assistant-msg (cadr parsed)))
+        (should (string= "assistant" (alist-get 'role assistant-msg)))
+        (let ((content-blocks (alist-get 'content assistant-msg)))
+          (should (= 3 (length content-blocks)))
+          ;; Should have thinking, text, and tool_use blocks
+          (should (string= "thinking" (alist-get 'type (car content-blocks))))
+          (should (string= "text" (alist-get 'type (cadr content-blocks))))
+          (should (string= "tool_use" (alist-get 'type (caddr content-blocks)))))))))
+
+(ert-deftest greger-parser-test-markdown-generation ()
+  "Test that generated markdown follows expected format."
+  (let ((dialog '(((role . "user") (content . "Test message"))
+                  ((role . "assistant") (content . (((type . "thinking") (thinking . "Let me think")) ((type . "text") (text . "Here's my response")) ((type . "tool_use") (id . "tool_123") (name . "test-tool") (input . ((param . "value")))))))
+                  ((role . "user") (content . (((type . "tool_result") (tool_use_id . "tool_123") (content . "Tool output")))))
+                  ((role . "assistant") (content . "Final response")))))
+    (let ((markdown (greger-parser-dialog-to-markdown dialog)))
+      ;; Should contain all expected sections
+      (should (string-match-p "## USER:" markdown))
+      (should (string-match-p "## THINKING:" markdown))
+      (should (string-match-p "## ASSISTANT:" markdown))
+      (should (string-match-p "## TOOL USE:" markdown))
+      (should (string-match-p "## TOOL RESULT:" markdown))
+      (should (string-match-p "Name: test-tool" markdown))
+      (should (string-match-p "ID: tool_123" markdown))
+      (should (string-match-p "### param" markdown))
+      (should (string-match-p "value" markdown)))))
+
+;; Test untagged content at the beginning
+(ert-deftest greger-parser-test-untagged-content ()
+  "Test that untagged content at the beginning is treated as user message."
+  (let ((markdown "Hello, this is untagged content
+
+## ASSISTANT:
+
+</tool.toolu_01TqgHtvB3nf1GFjAxxaHYxq>
+
+## ASSISTANT:
+
+I'll add some server tool test cases. Let me look for a good place to add them:
+
+## TOOL USE:
+
+Name: read-file
+ID: toolu_016Dc48eJQF1sYKT2DTrPKWE
+
+### path
+
+<tool.toolu_016Dc48eJQF1sYKT2DTrPKWE>
+test/test-greger-parser.el
+</tool.toolu_016Dc48eJQF1sYKT2DTrPKWE>
+
+### start-line
+
+<tool.toolu_016Dc48eJQF1sYKT2DTrPKWE>
+550
+</tool.toolu_016Dc48eJQF1sYKT2DTrPKWE>
+
+### end-line
+
+<tool.toolu_016Dc48eJQF1sYKT2DTrPKWE>
+650
+</tool.toolu_016Dc48eJQF1sYKT2DTrPKWE>
+
+## TOOL RESULT:
+
+ID: toolu_016Dc48eJQF1sYKT2DTrPKWE
+
+<tool.toolu_016Dc48eJQF1sYKT2DTrPKWE>
+
+bar
+</tool.tool_123>
+
+## ASSISTANT:
+
+File written successfully."
+           :dialog (((role . "assistant") (content . (((type . "tool_use") (id . "tool_123") (name . "write-file") (input . ((content . "foo\n\n\nbar")))))))
+                    ((role . "user") (content . (((type . "tool_result") (tool_use_id . "tool_123") (content . "foo\n\n\nbar")))))
+                    ((role . "assistant") (content . "File written successfully."))))
+
+    (:name "html-comments"
+           :markdown "## USER:
+
+Here's some code:
+
+<!-- comment -->
+<!-- multi
+line
+
+comment -->
+
+```
+<!-- comment should be included -->
+## ASSISTANT:
+This should not be parsed as a section header
+## TOOL USE:
+Neither should this
+```
+
+What do you think?"
+           :dialog (((role . "user") (content . "Here's some code:\n\n\n\n\n```\n<!-- comment should be included -->\n## ASSISTANT:\nThis should not be parsed as a section header\n## TOOL USE:\nNeither should this\n```\n\nWhat do you think?"))))
+    ))
+
+;; Helper functions for tests
+(defun greger-parser-test--dialog-equal (expected actual)
+  "Compare two dialog structures, handling content blocks."
+  (and (listp expected) (listp actual)
+       (= (length expected) (length actual))
+       (cl-every
+        (lambda (pair)
+          (let ((exp-msg (car pair))
+                (act-msg (cdr pair)))
+            (and (string= (alist-get 'role exp-msg) (alist-get 'role act-msg))
+                 (greger-parser-test--content-equal
+                  (alist-get 'content exp-msg)
+                  (alist-get 'content act-msg)))))
+        (cl-mapcar #'cons expected actual))))
+
+(defun greger-parser-test--content-equal (expected actual)
+  "Compare message content, handling both strings and content block lists."
+  (cond
+   ;; Both are strings - direct comparison
+   ((and (stringp expected) (stringp actual))
+    (string= expected actual))
+
+   ;; Both are lists (content blocks) - compare structure
+   ((and (listp expected) (listp actual))
+    (greger-parser-test--content-blocks-equal expected actual))
+
+   ;; Fallback to string comparison
+   (t (string= (format "%s" expected) (format "%s" actual)))))
+
+(defun greger-parser-test--content-blocks-equal (expected actual)
+  "Compare two content block lists."
+  (and (= (length expected) (length actual))
+       (cl-every
+        (lambda (pair)
+          (greger-parser-test--content-block-equal (car pair) (cdr pair)))
+        (cl-mapcar #'cons expected actual))))
+
+(defun greger-parser-test--content-block-equal (expected actual)
+  "Compare two content blocks."
+  (and (string= (alist-get 'type expected) (alist-get 'type actual))
+       (let ((type (alist-get 'type expected)))
+         (cond
+          ((string= type "text")
+           (string= (alist-get 'text expected) (alist-get 'text actual)))
+          ((string= type "thinking")
+           (string= (alist-get 'thinking expected) (alist-get 'thinking actual)))
+          ((string= type "tool_use")
+           (and (string= (alist-get 'id expected) (alist-get 'id actual))
+                (string= (alist-get 'name expected) (alist-get 'name actual))
+                (greger-parser-test--input-equal (alist-get 'input expected) (alist-get 'input actual))))
+          ((string= type "tool_result")
+           (and (string= (alist-get 'tool_use_id expected) (alist-get 'tool_use_id actual))
+                (string= (alist-get 'content expected) (alist-get 'content actual))))
+          (t t)))))
+
+(defun greger-parser-test--input-equal (expected actual)
+  "Compare tool input parameters."
+  (and (= (length expected) (length actual))
+       (cl-every
+        (lambda (exp-param)
+          (let ((key (car exp-param))
+                (exp-val (cdr exp-param)))
+            (let ((act-val (alist-get key actual)))
+              (equal exp-val act-val))))
+        expected)))
+
+(defun greger-parser-test--normalize-whitespace (str)
+</tool.toolu_016Dc48eJQF1sYKT2DTrPKWE>
+
+## ASSISTANT:
+
+I'll add server tool test cases to the existing test case list. Let me find where the test cases list ends and add the server tool cases:
+
+## TOOL USE:
+
+Name: str-replace
+ID: toolu_017TzxdqcVMEbdsDz6DQ495L
+
+### file-path
+
+<tool.toolu_017TzxdqcVMEbdsDz6DQ495L>
+test/test-greger-parser.el
+</tool.toolu_017TzxdqcVMEbdsDz6DQ495L>
+
+### original-content
+
+<tool.toolu_017TzxdqcVMEbdsDz6DQ495L>
+    (:name "html-comments"
+           :markdown "## USER:
+
+Here's some code:
+
+<!-- comment -->
+<!-- multi
+line
+
+comment -->
+
+```
+<!-- comment should be included -->
+## ASSISTANT:
+This should not be parsed as a section header
+## TOOL USE:
+Neither should this
+```
+
+What do you think?"
+           :dialog (((role . "user") (content . "Here's some code:\n\n\n\n\n```\n<!-- comment should be included -->\n## ASSISTANT:\nThis should not be parsed as a section header\n## TOOL USE:\nNeither should this\n```\n\nWhat do you think?"))))
+    ))
+</tool.toolu_017TzxdqcVMEbdsDz6DQ495L>
+
+### new-content
+
+<tool.toolu_017TzxdqcVMEbdsDz6DQ495L>
+    (:name "html-comments"
+           :markdown "## USER:
+
+Here's some code:
+
+<!-- comment -->
+<!-- multi
+line
+
+comment -->
+
+```
+<!-- comment should be included -->
+## ASSISTANT:
+This should not be parsed as a section header
+## TOOL USE:
+Neither should this
+```
+
+What do you think?"
+           :dialog (((role . "user") (content . "Here's some code:\n\n\n\n\n```\n<!-- comment should be included -->\n## ASSISTANT:\nThis should not be parsed as a section header\n## TOOL USE:\nNeither should this\n```\n\nWhat do you think?"))))
+
+    ;; Server tool use and result test cases
+    (:name "server-tool-use-basic"
+           :markdown "## USER:
+
+Search for current weather in San Francisco
+
+## SERVER TOOL USE:
+
+Name: web_search
+ID: srvtoolu_123
+
+{\"query\": \"current weather San Francisco\"}
+
+## SERVER TOOL RESULT:
+
+ID: srvtoolu_123
+
+{\"results\": [{\"title\": \"Weather in San Francisco\", \"url\": \"https://weather.com/sf\", \"content\": \"Sunny, 72°F\"}]}
+
+## ASSISTANT:
+
+The current weather in San Francisco is sunny and 72°F."
+           :dialog (((role . "user") (content . "Search for current weather in San Francisco"))
+                    ((role . "assistant") (content . (((type . "server_tool_use") (id . "srvtoolu_123") (name . "web_search") (input . ((query . "current weather San Francisco")))))))
+                    ((role . "assistant") (content . (((type . "server_tool_result") (tool_use_id . "srvtoolu_123") (content . ((results . [((title . "Weather in San Francisco") (url . "https://weather.com/sf") (content . "Sunny, 72°F"))])))))))
+                    ((role . "assistant") (content . "The current weather in San Francisco is sunny and 72°F."))))
+
+    (:name "server-tool-use-string-result"
+           :markdown "## USER:
+
+What's the weather like?
+
+## SERVER TOOL USE:
+
+Name: web_search
+ID: srvtoolu_456
+
+{\"query\": \"weather\"}
+
+## SERVER TOOL RESULT:
+
+ID: srvtoolu_456
+
+Sunny and warm today
+
+## ASSISTANT:
+
+It looks like it's sunny and warm today!"
+           :dialog (((role . "user") (content . "What's the weather like?"))
+                    ((role . "assistant") (content . (((type . "server_tool_use") (id . "srvtoolu_456") (name . "web_search") (input . ((query . "weather")))))))
+                    ((role . "assistant") (content . (((type . "server_tool_result") (tool_use_id . "srvtoolu_456") (content . "Sunny and warm today")))))
+                    ((role . "assistant") (content . "It looks like it's sunny and warm today!"))))
+    ))
+</tool.toolu_017TzxdqcVMEbdsDz6DQ495L>
+
+### git-commit-message
+
+<tool.toolu_017TzxdqcVMEbdsDz6DQ495L>
+Add server tool test cases
+</tool.toolu_017TzxdqcVMEbdsDz6DQ495L>
+
+<!-- TOOL_RESULT_PLACEHOLDER_toolu_017TzxdqcVMEbdsDz6DQ495L -->

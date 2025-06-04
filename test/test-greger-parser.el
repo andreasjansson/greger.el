@@ -579,6 +579,59 @@ Neither should this
 
 What do you think?"
            :dialog (((role . "user") (content . "Here's some code:\n\n\n\n\n```\n<!-- comment should be included -->\n## ASSISTANT:\nThis should not be parsed as a section header\n## TOOL USE:\nNeither should this\n```\n\nWhat do you think?"))))
+
+    ;; Server tool use and result test cases
+    (:name "server-tool-use-basic"
+           :markdown "## USER:
+
+Search for current weather in San Francisco
+
+## SERVER TOOL USE:
+
+Name: web_search
+ID: srvtoolu_123
+
+{\"query\": \"current weather San Francisco\"}
+
+## SERVER TOOL RESULT:
+
+ID: srvtoolu_123
+
+{\"results\": [{\"title\": \"Weather in San Francisco\", \"url\": \"https://weather.com/sf\", \"content\": \"Sunny, 72°F\"}]}
+
+## ASSISTANT:
+
+The current weather in San Francisco is sunny and 72°F."
+           :dialog (((role . "user") (content . "Search for current weather in San Francisco"))
+                    ((role . "assistant") (content . (((type . "server_tool_use") (id . "srvtoolu_123") (name . "web_search") (input . ((query . "current weather San Francisco")))))))
+                    ((role . "assistant") (content . (((type . "server_tool_result") (tool_use_id . "srvtoolu_123") (content . ((results . [((title . "Weather in San Francisco") (url . "https://weather.com/sf") (content . "Sunny, 72°F"))])))))))
+                    ((role . "assistant") (content . "The current weather in San Francisco is sunny and 72°F."))))
+
+    (:name "server-tool-use-string-result"
+           :markdown "## USER:
+
+What's the weather like?
+
+## SERVER TOOL USE:
+
+Name: web_search
+ID: srvtoolu_456
+
+{\"query\": \"weather\"}
+
+## SERVER TOOL RESULT:
+
+ID: srvtoolu_456
+
+Sunny and warm today
+
+## ASSISTANT:
+
+It looks like it's sunny and warm today!"
+           :dialog (((role . "user") (content . "What's the weather like?"))
+                    ((role . "assistant") (content . (((type . "server_tool_use") (id . "srvtoolu_456") (name . "web_search") (input . ((query . "weather")))))))
+                    ((role . "assistant") (content . (((type . "server_tool_result") (tool_use_id . "srvtoolu_456") (content . "Sunny and warm today")))))
+                    ((role . "assistant") (content . "It looks like it's sunny and warm today!"))))
     ))
 
 ;; Helper functions for tests
