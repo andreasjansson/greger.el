@@ -446,7 +446,7 @@ Excludes files/directories matching EXCLUDE-PATTERN."
              (relative-path (file-relative-name file (expand-file-name path))))
         (when (and (not (string= basename "."))
                    (not (string= basename ".."))
-                   (not (string-match-p exclude-pattern relative-path)))
+                   (greger-stdlib--should-include-file-p relative-path exclude-pattern))
           (let ((formatted (greger-stdlib--format-file-info file basename exclude-pattern)))
             (when formatted
               (push formatted results))))))

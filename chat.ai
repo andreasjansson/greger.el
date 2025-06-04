@@ -1757,4 +1757,291 @@ test/test-greger-stdlib.el
 Add comprehensive tests for updated list-directory functionality
 </tool.toolu_014ZzXvQmKm9g31gPeZupbrA>
 
-<!-- TOOL_RESULT_PLACEHOLDER_toolu_014ZzXvQmKm9g31gPeZupbrA -->
+## TOOL RESULT:
+
+ID: toolu_014ZzXvQmKm9g31gPeZupbrA
+
+<tool.toolu_014ZzXvQmKm9g31gPeZupbrA>
+Successfully replaced content in /Users/andreas/projects/greger.el/test/test-greger-stdlib.el. Successfully staged 2 file(s) and committed with message: Add comprehensive tests for updated list-directory functionality
+</tool.toolu_014ZzXvQmKm9g31gPeZupbrA>
+
+
+## ASSISTANT:
+
+Now let me run the tests to make sure everything works correctly:
+
+## TOOL USE:
+
+Name: shell-command
+ID: toolu_016oiQcTUjTqkcmJYQFynQHp
+
+### command
+
+<tool.toolu_016oiQcTUjTqkcmJYQFynQHp>
+bash script/test --verbose --file test/test-greger-stdlib.el
+</tool.toolu_016oiQcTUjTqkcmJYQFynQHp>
+
+## TOOL RESULT:
+
+ID: toolu_016oiQcTUjTqkcmJYQFynQHp
+
+<tool.toolu_016oiQcTUjTqkcmJYQFynQHp>
+Command failed with exit code 1: [0;34mRunning ERT tests for greger package...[0m
+
+Running tests in [1;33mtest/test-greger-stdlib.el[0m (verbose mode)...
+Loading /Users/andreas/projects/greger.el/greger.el (source)...
+Source file ‘/opt/homebrew/Cellar/emacs-plus@29/29.0.90/share/emacs/29.0.91/lisp/net/eww.el’ newer than byte-compiled file; using older file
+Loading /Users/andreas/projects/greger.el/greger-parser.el (source)...
+Loading /Users/andreas/projects/greger.el/greger-stdlib.el (source)...
+Loading /Users/andreas/projects/greger.el/greger-tools.el (source)...
+Loading /Users/andreas/projects/greger.el/greger-client.el (source)...
+Loading /Users/andreas/projects/greger.el/greger-web.el (source)...
+Loading /Users/andreas/projects/greger.el/test/test-greger-stdlib.el (source)...
+Running 31 tests (2025-06-04 11:12:39+0200, selector ‘t’)
+   passed   1/31  greger-test-count-paren-balance (0.000509 sec)
+   passed   2/31  greger-test-delete-files-basic (0.004257 sec)
+   passed   3/31  greger-test-delete-files-directory (0.000715 sec)
+   passed   4/31  greger-test-delete-files-git-tracking (0.001354 sec)
+   passed   5/31  greger-test-delete-files-invalid-input (0.000051 sec)
+   passed   6/31  greger-test-delete-files-list-input (0.001221 sec)
+   passed   7/31  greger-test-delete-files-nonexistent-file (0.000237 sec)
+   passed   8/31  greger-test-delete-files-not-git-tracked (0.001017 sec)
+   passed   9/31  greger-test-list-directory-basic (0.001937 sec)
+   passed  10/31  greger-test-list-directory-empty-dir (0.000934 sec)
+   passed  11/31  greger-test-list-directory-error-cases (0.000919 sec)
+Test greger-test-list-directory-exclude-pattern backtrace:
+  signal(ert-test-failed (((should-not (string-match-p "\\.git" result
+  ert-fail(((should-not (string-match-p "\\.git" result)) :form (strin
+  (if (not (unwind-protect (setq value-754 (apply fn-752 args-753)) (s
+  (let (form-description-756) (if (not (unwind-protect (setq value-754
+  (let ((value-754 'ert-form-evaluation-aborted-755)) (let (form-descr
+  (let* ((fn-752 #'string-match-p) (args-753 (condition-case err (let
+  (let ((result (greger-stdlib--list-directory test-dir))) (let* ((fn-
+  (let ((test-file1 (expand-file-name "test1.txt" test-dir)) (git-dir
+  (progn (let ((test-file1 (expand-file-name "test1.txt" test-dir)) (g
+  (unwind-protect (progn (let ((test-file1 (expand-file-name "test1.tx
+  (let ((test-dir (make-temp-file "greger-test-dir" t))) (unwind-prote
+  (closure (t) nil (let ((test-dir (make-temp-file "greger-test-dir" t
+  ert--run-test-internal(#s(ert--test-execution-info :test #s(ert-test
+  ert-run-test(#s(ert-test :name greger-test-list-directory-exclude-pa
+  ert-run-or-rerun-test(#s(ert--stats :selector t :tests ... :test-map
+  ert-run-tests(t #f(compiled-function (event-type &rest event-args) #
+  ert-run-tests-batch(t)
+  ert-run-tests-batch-and-exit(t)
+  (let ((ert-quiet nil)) (ert-run-tests-batch-and-exit t))
+  (progn (setq debug-on-error t) (add-to-list 'load-path ".") (require
+  eval((progn (setq debug-on-error t) (add-to-list 'load-path ".") (re
+  command-line-1(("--eval" "(progn\n                  (setq debug-on-e
+  command-line()
+  normal-top-level()
+Test greger-test-list-directory-exclude-pattern condition:
+    (ert-test-failed
+     ((should-not
+       (string-match-p "\\.git" result))
+      :form
+      (string-match-p "\\.git" "drwx------   6 501 20      192 Jun 04 11:12 .\ndrwx------ 65535 501 20  3032384 Jun 04 11:12 ..\ndrwxr-xr-x   2 501 20       64 Jun 04 11:12 .git\ndrwxr-xr-x   2 501 20       64 Jun 04 11:12 __pycache__\n-rw-r--r--   1 501 20       11 Jun 04 11:12 normal.el\n-rw-r--r--   1 501 20       14 Jun 04 11:12 test1.txt")
+      :value 139))
+   FAILED  12/31  greger-test-list-directory-exclude-pattern (0.002004 sec) at test/test-greger-stdlib.el:753
+   passed  13/31  greger-test-list-directory-file-mode-string (0.000657 sec)
+Test greger-test-list-directory-hidden-files backtrace:
+  signal(ert-test-failed (((should (string-match-p "\\.hidden" result)
+  ert-fail(((should (string-match-p "\\.hidden" result)) :form (string
+  (if (unwind-protect (setq value-860 (apply fn-858 args-859)) (setq f
+  (let (form-description-862) (if (unwind-protect (setq value-860 (app
+  (let ((value-860 'ert-form-evaluation-aborted-861)) (let (form-descr
+  (let* ((fn-858 #'string-match-p) (args-859 (condition-case err (let
+  (let ((result (greger-stdlib--list-directory test-dir ""))) (let* ((
+  (let ((hidden-file (expand-file-name ".hidden" test-dir)) (normal-fi
+  (progn (let ((hidden-file (expand-file-name ".hidden" test-dir)) (no
+  (unwind-protect (progn (let ((hidden-file (expand-file-name ".hidden
+  (let ((test-dir (make-temp-file "greger-test-hidden" t))) (unwind-pr
+  (closure (t) nil (let ((test-dir (make-temp-file "greger-test-hidden
+  ert--run-test-internal(#s(ert--test-execution-info :test #s(ert-test
+  ert-run-test(#s(ert-test :name greger-test-list-directory-hidden-fil
+  ert-run-or-rerun-test(#s(ert--stats :selector t :tests ... :test-map
+  ert-run-tests(t #f(compiled-function (event-type &rest event-args) #
+  ert-run-tests-batch(t)
+  ert-run-tests-batch-and-exit(t)
+  (let ((ert-quiet nil)) (ert-run-tests-batch-and-exit t))
+  (progn (setq debug-on-error t) (add-to-list 'load-path ".") (require
+  eval((progn (setq debug-on-error t) (add-to-list 'load-path ".") (re
+  command-line-1(("--eval" "(progn\n                  (setq debug-on-e
+  command-line()
+  normal-top-level()
+Test greger-test-list-directory-hidden-files condition:
+    (ert-test-failed
+     ((should
+       (string-match-p "\\.hidden" result))
+      :form
+      (string-match-p "\\.hidden" "drwx------   4 501 20      128 Jun 04 11:12 .\ndrwx------ 65535 501 20  3032384 Jun 04 11:12 ..")
+      :value nil))
+   FAILED  14/31  greger-test-list-directory-hidden-files (0.001546 sec) at test/test-greger-stdlib.el:874
+   passed  15/31  greger-test-list-directory-recursive (0.003105 sec)
+   passed  16/31  greger-test-read-file-basic (0.007296 sec)
+   passed  17/31  greger-test-read-file-error-cases (0.000120 sec)
+   passed  18/31  greger-test-read-file-line-number-formatting (0.005212 sec)
+   passed  19/31  greger-test-read-webpage-invalid-url (0.000117 sec)
+   passed  20/31  greger-test-read-webpage-network-error (0.000044 sec)
+   passed  21/31  greger-test-read-webpage-valid-url (0.441880 sec)
+   passed  22/31  greger-test-shell-command-command-failure (0.118517 sec)
+   passed  23/31  greger-test-shell-command-no-metadata-still-prompts (0.116165 sec)
+   passed  24/31  greger-test-shell-command-permission-denied (0.000942 sec)
+   passed  25/31  greger-test-shell-command-safe-commands (0.113789 sec)
+   passed  26/31  greger-test-shell-command-simple (0.115545 sec)
+   passed  27/31  greger-test-shell-command-unsafe-commands-with-metadata (0.109454 sec)
+   passed  28/31  greger-test-shell-command-with-pipe (0.114598 sec)
+   passed  29/31  greger-test-str-replace-non-el-files-skip-paren-check (0.010037 sec)
+   passed  30/31  greger-test-str-replace-paren-balance-check (0.004580 sec)
+   passed  31/31  greger-test-web-url-validation (0.000058 sec)
+
+Ran 31 tests, 29 results as expected, 2 unexpected (2025-06-04 11:12:40+0200, 1.706404 sec)
+
+2 unexpected results:
+   FAILED  greger-test-list-directory-exclude-pattern
+   FAILED  greger-test-list-directory-hidden-files
+
+
+</tool.toolu_016oiQcTUjTqkcmJYQFynQHp>
+
+## ASSISTANT:
+
+I see the issues with my implementation. Let me examine what's happening and fix the problems:
+
+1. The exclude pattern is not being applied correctly
+2. The handling of hidden files when exclude pattern is empty needs to be fixed
+
+Let me check my implementation more carefully:
+
+## TOOL USE:
+
+Name: read-file
+ID: toolu_01MwEkp6LetF1LcmrqaGZ6ZT
+
+### path
+
+<tool.toolu_01MwEkp6LetF1LcmrqaGZ6ZT>
+greger-stdlib.el
+</tool.toolu_01MwEkp6LetF1LcmrqaGZ6ZT>
+
+### start-line
+
+<tool.toolu_01MwEkp6LetF1LcmrqaGZ6ZT>
+432
+</tool.toolu_01MwEkp6LetF1LcmrqaGZ6ZT>
+
+### end-line
+
+<tool.toolu_01MwEkp6LetF1LcmrqaGZ6ZT>
+450
+</tool.toolu_01MwEkp6LetF1LcmrqaGZ6ZT>
+
+## TOOL RESULT:
+
+ID: toolu_01MwEkp6LetF1LcmrqaGZ6ZT
+
+<tool.toolu_01MwEkp6LetF1LcmrqaGZ6ZT>
+  "List directory contents at PATH with detailed information like 'ls -la'.
+Excludes files/directories matching EXCLUDE-PATTERN."
+  (let ((files (directory-files path t))
+        (results '()))
+
+    ;; Add current and parent directory entries
+    (let ((current-dir (file-name-as-directory path)))
+      (push (greger-stdlib--format-file-info current-dir "." exclude-pattern) results)
+      (unless (string= (expand-file-name path) (expand-file-name "/"))
+        (push (greger-stdlib--format-file-info (file-name-directory (directory-file-name path)) ".." exclude-pattern) results)))
+
+    ;; Process regular files and directories
+    (dolist (file (sort files #'string<))
+      (let* ((basename (file-name-nondirectory file))
+             (relative-path (file-relative-name file (expand-file-name path))))
+        (when (and (not (string= basename "."))
+                   (not (string= basename ".."))
+                   (not (string-match-p exclude-pattern relative-path)))
+          (let ((formatted (greger-stdlib--format-file-info file basename exclude-pattern)))
+</tool.toolu_01MwEkp6LetF1LcmrqaGZ6ZT>
+
+## ASSISTANT:
+
+I see the problem. The issue is that the exclude pattern is being applied to relative-path which includes the full path, but I also need to handle empty exclude patterns and apply the pattern correctly. Let me fix this:
+
+## TOOL USE:
+
+Name: str-replace
+ID: toolu_01TCi1ewngMHmgLhdnXgsomY
+
+### file-path
+
+<tool.toolu_01TCi1ewngMHmgLhdnXgsomY>
+greger-stdlib.el
+</tool.toolu_01TCi1ewngMHmgLhdnXgsomY>
+
+### original-content
+
+<tool.toolu_01TCi1ewngMHmgLhdnXgsomY>
+(defun greger-stdlib--list-directory-detailed (path exclude-pattern)
+  "List directory contents at PATH with detailed information like 'ls -la'.
+Excludes files/directories matching EXCLUDE-PATTERN."
+  (let ((files (directory-files path t))
+        (results '()))
+
+    ;; Add current and parent directory entries
+    (let ((current-dir (file-name-as-directory path)))
+      (push (greger-stdlib--format-file-info current-dir "." exclude-pattern) results)
+      (unless (string= (expand-file-name path) (expand-file-name "/"))
+        (push (greger-stdlib--format-file-info (file-name-directory (directory-file-name path)) ".." exclude-pattern) results)))
+
+    ;; Process regular files and directories
+    (dolist (file (sort files #'string<))
+      (let* ((basename (file-name-nondirectory file))
+             (relative-path (file-relative-name file (expand-file-name path))))
+        (when (and (not (string= basename "."))
+                   (not (string= basename ".."))
+                   (not (string-match-p exclude-pattern relative-path)))
+          (let ((formatted (greger-stdlib--format-file-info file basename exclude-pattern)))
+            (when formatted
+              (push formatted results))))))
+
+    (if results
+        (mapconcat #'identity (reverse results) "\n")
+      "Directory is empty")))
+</tool.toolu_01TCi1ewngMHmgLhdnXgsomY>
+
+### new-content
+
+<tool.toolu_01TCi1ewngMHmgLhdnXgsomY>
+(defun greger-stdlib--list-directory-detailed (path exclude-pattern)
+  "List directory contents at PATH with detailed information like 'ls -la'.
+Excludes files/directories matching EXCLUDE-PATTERN."
+  (let ((files (directory-files path t))
+        (results '()))
+
+    ;; Add current and parent directory entries
+    (let ((current-dir (file-name-as-directory path)))
+      (push (greger-stdlib--format-file-info current-dir "." exclude-pattern) results)
+      (unless (string= (expand-file-name path) (expand-file-name "/"))
+        (push (greger-stdlib--format-file-info (file-name-directory (directory-file-name path)) ".." exclude-pattern) results)))
+
+    ;; Process regular files and directories
+    (dolist (file (sort files #'string<))
+      (let* ((basename (file-name-nondirectory file))
+             (relative-path (file-relative-name file (expand-file-name path))))
+        (when (and (not (string= basename "."))
+                   (not (string= basename ".."))
+                   (greger-stdlib--should-include-file-p relative-path exclude-pattern))
+          (let ((formatted (greger-stdlib--format-file-info file basename exclude-pattern)))
+            (when formatted
+              (push formatted results))))))
+
+    (if results
+        (mapconcat #'identity (reverse results) "\n")
+      "Directory is empty")))
+</tool.toolu_01TCi1ewngMHmgLhdnXgsomY>
+
+### git-commit-message
+
+<tool.toolu_01TCi1ewngMHmgLhdnXgsomY>
+Fix list-directory-detailed to use proper file filtering function
+</tool.toolu_01TCi1ewngMHmgLhdnXgsomY>
+
+<!-- TOOL_RESULT_PLACEHOLDER_toolu_01TCi1ewngMHmgLhdnXgsomY -->
