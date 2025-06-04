@@ -4215,4 +4215,155 @@ test/test-greger-stdlib.el
 Update hidden directories exclusion test to use specific directory name
 </tool.toolu_01TASxNfyJVV8ZpgGr5khZyn>
 
-<!-- TOOL_RESULT_PLACEHOLDER_toolu_01TASxNfyJVV8ZpgGr5khZyn -->
+## TOOL RESULT:
+
+ID: toolu_01TASxNfyJVV8ZpgGr5khZyn
+
+<tool.toolu_01TASxNfyJVV8ZpgGr5khZyn>
+Successfully replaced content in /Users/andreas/projects/greger.el/test/test-greger-stdlib.el. Successfully staged 2 file(s) and committed with message: Update hidden directories exclusion test to use specific directory name
+</tool.toolu_01TASxNfyJVV8ZpgGr5khZyn>
+
+
+## ASSISTANT:
+
+Now let me run the tests to see if they pass:
+
+## TOOL USE:
+
+Name: shell-command
+ID: toolu_01WcbbcCRpQ8JTtQH2mGBcjJ
+
+### command
+
+<tool.toolu_01WcbbcCRpQ8JTtQH2mGBcjJ>
+bash script/test --verbose --file test/test-greger-stdlib.el
+</tool.toolu_01WcbbcCRpQ8JTtQH2mGBcjJ>
+
+## TOOL RESULT:
+
+ID: toolu_01WcbbcCRpQ8JTtQH2mGBcjJ
+
+<tool.toolu_01WcbbcCRpQ8JTtQH2mGBcjJ>
+Command failed with exit code 1: [0;34mRunning ERT tests for greger package...[0m
+
+Running tests in [1;33mtest/test-greger-stdlib.el[0m (verbose mode)...
+Loading /Users/andreas/projects/greger.el/greger.el (source)...
+Source file ‘/opt/homebrew/Cellar/emacs-plus@29/29.0.90/share/emacs/29.0.91/lisp/net/eww.el’ newer than byte-compiled file; using older file
+Loading /Users/andreas/projects/greger.el/greger-parser.el (source)...
+Loading /Users/andreas/projects/greger.el/greger-stdlib.el (source)...
+Loading /Users/andreas/projects/greger.el/greger-tools.el (source)...
+Loading /Users/andreas/projects/greger.el/greger-client.el (source)...
+Loading /Users/andreas/projects/greger.el/greger-web.el (source)...
+Loading /Users/andreas/projects/greger.el/test/test-greger-stdlib.el (source)...
+Running 31 tests (2025-06-04 12:21:37+0200, selector ‘t’)
+   passed   1/31  greger-test-count-paren-balance (0.000399 sec)
+   passed   2/31  greger-test-delete-files-basic (0.002703 sec)
+   passed   3/31  greger-test-delete-files-directory (0.000489 sec)
+   passed   4/31  greger-test-delete-files-git-tracking (0.001099 sec)
+   passed   5/31  greger-test-delete-files-invalid-input (0.000056 sec)
+   passed   6/31  greger-test-delete-files-list-input (0.000895 sec)
+   passed   7/31  greger-test-delete-files-nonexistent-file (0.000098 sec)
+   passed   8/31  greger-test-delete-files-not-git-tracked (0.001073 sec)
+   passed   9/31  greger-test-list-directory-basic (0.000883 sec)
+   passed  10/31  greger-test-list-directory-empty-dir (0.000433 sec)
+   passed  11/31  greger-test-list-directory-error-cases (0.000735 sec)
+Test greger-test-list-directory-exclude-directories-recursive backtrace:
+  signal(ert-test-failed (((should (string= expected result)) :form (s
+  ert-fail(((should (string= expected result)) :form (string= "/var/fo
+  (if (unwind-protect (setq value-714 (apply fn-712 args-713)) (setq f
+  (let (form-description-716) (if (unwind-protect (setq value-714 (app
+  (let ((value-714 'ert-form-evaluation-aborted-715)) (let (form-descr
+  (let* ((fn-712 #'string=) (args-713 (condition-case err (let ((signa
+  (let ((result (greger-stdlib--list-directory test-dir 'nil t)) (expe
+  (let ((keep-dir (expand-file-name "keepdir" test-dir)) (exclude-dir
+  (progn (let ((keep-dir (expand-file-name "keepdir" test-dir)) (exclu
+  (unwind-protect (progn (let ((keep-dir (expand-file-name "keepdir" t
+  (let ((test-dir (make-temp-file "greger-test-dir" t))) (unwind-prote
+  (closure (t) nil (let ((test-dir (make-temp-file "greger-test-dir" t
+  ert--run-test-internal(#s(ert--test-execution-info :test #s(ert-test
+  ert-run-test(#s(ert-test :name greger-test-list-directory-exclude-di
+  ert-run-or-rerun-test(#s(ert--stats :selector t :tests ... :test-map
+  ert-run-tests(t #f(compiled-function (event-type &rest event-args) #
+  ert-run-tests-batch(t)
+  ert-run-tests-batch-and-exit(t)
+  (let ((ert-quiet nil)) (ert-run-tests-batch-and-exit t))
+  (progn (setq debug-on-error t) (add-to-list 'load-path ".") (require
+  eval((progn (setq debug-on-error t) (add-to-list 'load-path ".") (re
+  command-line-1(("--eval" "(progn\n                  (setq debug-on-e
+  command-line()
+  normal-top-level()
+Test greger-test-list-directory-exclude-directories-recursive condition:
+    (ert-test-failed
+     ((should
+       (string= expected result))
+      :form
+      (string= "/var/folders/pt/0j3p9zzj49x5vkv1mmkpvs0c0000gn/T/greger-test-dirwNlACz/:\ndrwx------  (dir)  .\ndrwx------  (dir)  ..\ndrwxr-xr-x  (dir)  .git\n-rw-r--r--         7  file1.txt\ndrwxr-xr-x  (dir)  keepdir\n\n/var/folders/pt/0j3p9zzj49x5vkv1mmkpvs0c0000gn/T/greger-test-dirwNlACz/.git/:\ndrwxr-xr-x  (dir)  .\ndrwx------  (dir)  ..\n-rw-r--r--         8  excluded.txt\n\n/var/folders/pt/0j3p9zzj49x5vkv1mmkpvs0c0000gn/T/greger-test-dirwNlACz/keepdir/:\ndrwxr-xr-x  (dir)  .\ndrwx------  (dir)  ..\n-rw-r--r--         4  kept.txt" "/var/folders/pt/0j3p9zzj49x5vkv1mmkpvs0c0000gn/T/greger-test-dirwNlACz/:\ndrwx------  (dir)  .\ndrwx------  (dir)  ..\ndrwxr-xr-x  (dir)  .git\n-rw-r--r--         7  file1.txt\ndrwxr-xr-x  (dir)  keepdir\n\n/var/folders/pt/0j3p9zzj49x5vkv1mmkpvs0c0000gn/T/greger-test-dirwNlACz/keepdir/:\ndrwxr-xr-x  (dir)  .\ndrwx------  (dir)  ..\n-rw-r--r--         4  kept.txt")
+      :value nil :explanation
+      (arrays-of-different-length 511 354 "/var/folders/pt/0j3p9zzj49x5vkv1mmkpvs0c0000gn/T/greger-test-dirwNlACz/:\ndrwx------  (dir)  .\ndrwx------  (dir)  ..\ndrwxr-xr-x  (dir)  .git\n-rw-r--r--         7  file1.txt\ndrwxr-xr-x  (dir)  keepdir\n\n/var/folders/pt/0j3p9zzj49x5vkv1mmkpvs0c0000gn/T/greger-test-dirwNlACz/.git/:\ndrwxr-xr-x  (dir)  .\ndrwx------  (dir)  ..\n-rw-r--r--         8  excluded.txt\n\n/var/folders/pt/0j3p9zzj49x5vkv1mmkpvs0c0000gn/T/greger-test-dirwNlACz/keepdir/:\ndrwxr-xr-x  (dir)  .\ndrwx------  (dir)  ..\n-rw-r--r--         4  kept.txt" "/var/folders/pt/0j3p9zzj49x5vkv1mmkpvs0c0000gn/T/greger-test-dirwNlACz/:\ndrwx------  (dir)  .\ndrwx------  (dir)  ..\ndrwxr-xr-x  (dir)  .git\n-rw-r--r--         7  file1.txt\ndrwxr-xr-x  (dir)  keepdir\n\n/var/folders/pt/0j3p9zzj49x5vkv1mmkpvs0c0000gn/T/greger-test-dirwNlACz/keepdir/:\ndrwxr-xr-x  (dir)  .\ndrwx------  (dir)  ..\n-rw-r--r--         4  kept.txt" first-mismatch-at 271)))
+   FAILED  12/31  greger-test-list-directory-exclude-directories-recursive (0.003001 sec) at test/test-greger-stdlib.el:740
+   passed  13/31  greger-test-list-directory-file-mode-string (0.000703 sec)
+   passed  14/31  greger-test-list-directory-hidden-directories (0.004076 sec)
+   passed  15/31  greger-test-list-directory-recursive (0.002028 sec)
+   passed  16/31  greger-test-read-file-basic (0.005056 sec)
+   passed  17/31  greger-test-read-file-error-cases (0.000119 sec)
+   passed  18/31  greger-test-read-file-line-number-formatting (0.004499 sec)
+   passed  19/31  greger-test-read-webpage-invalid-url (0.000125 sec)
+   passed  20/31  greger-test-read-webpage-network-error (0.000038 sec)
+   passed  21/31  greger-test-read-webpage-valid-url (0.408541 sec)
+   passed  22/31  greger-test-shell-command-command-failure (0.116022 sec)
+   passed  23/31  greger-test-shell-command-no-metadata-still-prompts (0.113946 sec)
+   passed  24/31  greger-test-shell-command-permission-denied (0.000245 sec)
+   passed  25/31  greger-test-shell-command-safe-commands (0.107995 sec)
+   passed  26/31  greger-test-shell-command-simple (0.113650 sec)
+   passed  27/31  greger-test-shell-command-unsafe-commands-with-metadata (0.114382 sec)
+   passed  28/31  greger-test-shell-command-with-pipe (0.117555 sec)
+   passed  29/31  greger-test-str-replace-non-el-files-skip-paren-check (0.011719 sec)
+   passed  30/31  greger-test-str-replace-paren-balance-check (0.006083 sec)
+   passed  31/31  greger-test-web-url-validation (0.000072 sec)
+
+Ran 31 tests, 30 results as expected, 1 unexpected (2025-06-04 12:21:38+0200, 1.605649 sec)
+
+1 unexpected results:
+   FAILED  greger-test-list-directory-exclude-directories-recursive
+
+
+</tool.toolu_01WcbbcCRpQ8JTtQH2mGBcjJ>
+
+## ASSISTANT:
+
+Great! Almost there - only one test failing now and the hidden directories test is passing. The failure shows that the actual result includes the `.git` directory content, but the expected result doesn't. This means the exclusion is not working. Looking at the test failure message, I see it says `'nil` in the result, which suggests the list is being passed as the symbol `nil` instead of a proper list.
+
+The issue is in my test - I wrote `'(".git" "__pycache__")` but Emacs is interpreting this as the quoted list. Let me fix the test:
+
+## TOOL USE:
+
+Name: str-replace
+ID: toolu_01NvmZh1QPG5kfesHDrByXTk
+
+### file-path
+
+<tool.toolu_01NvmZh1QPG5kfesHDrByXTk>
+test/test-greger-stdlib.el
+</tool.toolu_01NvmZh1QPG5kfesHDrByXTk>
+
+### original-content
+
+<tool.toolu_01NvmZh1QPG5kfesHDrByXTk>
+;; Test with default exclude pattern - should exclude .git directory from recursion
+            (let ((result (greger-stdlib--list-directory test-dir '(".git" "__pycache__") t))
+</tool.toolu_01NvmZh1QPG5kfesHDrByXTk>
+
+### new-content
+
+<tool.toolu_01NvmZh1QPG5kfesHDrByXTk>
+;; Test with default exclude pattern - should exclude .git directory from recursion
+            (let ((result (greger-stdlib--list-directory test-dir (list ".git" "__pycache__") t))
+</tool.toolu_01NvmZh1QPG5kfesHDrByXTk>
+
+### git-commit-message
+
+<tool.toolu_01NvmZh1QPG5kfesHDrByXTk>
+Fix test to properly construct list instead of using quoted list
+</tool.toolu_01NvmZh1QPG5kfesHDrByXTk>
+
+<!-- TOOL_RESULT_PLACEHOLDER_toolu_01NvmZh1QPG5kfesHDrByXTk -->

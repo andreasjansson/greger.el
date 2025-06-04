@@ -754,7 +754,7 @@ drwx------  (dir)  ..
             (with-temp-file (expand-file-name "excluded.txt" exclude-dir) (insert "excluded"))
 
             ;; Test with default exclude pattern - should exclude .git directory from recursion
-            (let ((result (greger-stdlib--list-directory test-dir '(".git" "__pycache__") t))
+            (let ((result (greger-stdlib--list-directory test-dir (list ".git" "__pycache__") t))
                   (expected (format "%s:
 drwx------  (dir)  .
 drwx------  (dir)  ..
