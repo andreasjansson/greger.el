@@ -8671,4 +8671,165 @@ greger.el
 Add server tools to greger-buffer request data building
 </tool.toolu_01CMVPpkS6t6HsWWuSnpyBZf>
 
-<!-- TOOL_RESULT_PLACEHOLDER_toolu_01CMVPpkS6t6HsWWuSnpyBZf -->
+## TOOL RESULT:
+
+ID: toolu_01CMVPpkS6t6HsWWuSnpyBZf
+
+<tool.toolu_01CMVPpkS6t6HsWWuSnpyBZf>
+Successfully replaced content in /Users/andreas/projects/greger.el/greger.el. Successfully staged 2 file(s) and committed with message: Add server tools to greger-buffer request data building
+</tool.toolu_01CMVPpkS6t6HsWWuSnpyBZf>
+
+## ASSISTANT:
+
+Wait, I need to look at this more carefully. Let me see the full context of this function:
+
+## TOOL USE:
+
+Name: read-file
+ID: toolu_01Rgxe1hg4Y4aMKC9pyijMsE
+
+### path
+
+<tool.toolu_01Rgxe1hg4Y4aMKC9pyijMsE>
+greger.el
+</tool.toolu_01Rgxe1hg4Y4aMKC9pyijMsE>
+
+### start-line
+
+<tool.toolu_01Rgxe1hg4Y4aMKC9pyijMsE>
+315
+</tool.toolu_01Rgxe1hg4Y4aMKC9pyijMsE>
+
+### end-line
+
+<tool.toolu_01Rgxe1hg4Y4aMKC9pyijMsE>
+345
+</tool.toolu_01Rgxe1hg4Y4aMKC9pyijMsE>
+
+## TOOL RESULT:
+
+ID: toolu_01Rgxe1hg4Y4aMKC9pyijMsE
+
+<tool.toolu_01Rgxe1hg4Y4aMKC9pyijMsE>
+  "Set the current model."
+  (interactive)
+  (let ((model (completing-read "Choose model: " greger-available-models nil t)))
+    (customize-set-variable 'greger-model (intern model))
+    (message "Model set to %s" model)))
+
+(defun greger-debug-request ()
+  "Debug the request data by parsing the buffer and saving the request data output."
+  (interactive)
+  (let* ((filename (read-string "Save to filename (default: request.json): " nil nil "request.json"))
+         (buffer-content (buffer-substring-no-properties (point-min) (point-max)))
+         (parse-result (greger-parser-parse-dialog buffer-content))
+         (dialog (plist-get parse-result :messages))
+         (tools (when greger-tools
+                  (greger-tools-get-schemas greger-tools)))
+         (model greger-model)
+         (request-data nil))
+
+    (unless dialog
+      (error "Failed to parse dialog. Check your buffer format"))
+
+    ;; Get server tools
+    (let ((server-tools (when greger-server-tools
+                          (greger-server-tools-get-schemas greger-server-tools))))
+      ;; Get the JSON request data using the new client
+      (setq request-data (greger-client--build-data model dialog tools server-tools)))
+
+    ;; Parse the JSON and re-encode with proper formatting
+    (condition-case err
+        (let* ((parsed-json (json-read-from-string request-data)))
+          ;; Write to file with proper indentation
+</tool.toolu_01Rgxe1hg4Y4aMKC9pyijMsE>
+
+## ASSISTANT:
+
+Good, that's the debug function. I also need to update the main agent loop. Let me find where `greger-client-stream` is called:
+
+## TOOL USE:
+
+Name: read-file
+ID: toolu_0184SBLivMsE9PpgsJxeLKHx
+
+### path
+
+<tool.toolu_0184SBLivMsE9PpgsJxeLKHx>
+greger.el
+</tool.toolu_0184SBLivMsE9PpgsJxeLKHx>
+
+### start-line
+
+<tool.toolu_0184SBLivMsE9PpgsJxeLKHx>
+445
+</tool.toolu_0184SBLivMsE9PpgsJxeLKHx>
+
+### end-line
+
+<tool.toolu_0184SBLivMsE9PpgsJxeLKHx>
+465
+</tool.toolu_0184SBLivMsE9PpgsJxeLKHx>
+
+## TOOL RESULT:
+
+ID: toolu_0184SBLivMsE9PpgsJxeLKHx
+
+<tool.toolu_0184SBLivMsE9PpgsJxeLKHx>
+    ;; Check max iterations
+    (if (>= current-iteration greger-max-iterations)
+        (progn
+          (greger--debug "MAX ITERATIONS REACHED - STOPPING")
+          (greger--append-text (format "\n\nMaximum iterations (%d) reached. Stopping agent execution.\n\n"
+                                       greger-max-iterations)
+                               agent-state)
+          (greger--finish-response agent-state))
+
+      ;; Get Claude's response
+      (greger--debug "CALLING greger-client-stream...")
+      (let ((client-state (greger-client-stream
+                           :model greger-model
+                           :dialog current-dialog
+                           :tools tools
+                           :buffer chat-buffer
+                           :text-start-callback (lambda ()
+                                                  (greger--append-text (concat "\n\n" greger-assistant-tag "\n\n") agent-state))
+                           :text-callback (lambda (text)
+                                            (greger--append-text text agent-state))
+                           :complete-callback (lambda (content-blocks)
+</tool.toolu_0184SBLivMsE9PpgsJxeLKHx>
+
+## TOOL USE:
+
+Name: str-replace
+ID: toolu_01NhoLrLviqvS3Xh9ha6xKSi
+
+### file-path
+
+<tool.toolu_01NhoLrLviqvS3Xh9ha6xKSi>
+greger.el
+</tool.toolu_01NhoLrLviqvS3Xh9ha6xKSi>
+
+### original-content
+
+<tool.toolu_01NhoLrLviqvS3Xh9ha6xKSi>
+(let* ((tools (greger-tools-get-schemas greger-tools))
+         (chat-buffer (greger-state-chat-buffer agent-state))
+</tool.toolu_01NhoLrLviqvS3Xh9ha6xKSi>
+
+### new-content
+
+<tool.toolu_01NhoLrLviqvS3Xh9ha6xKSi>
+(let* ((tools (greger-tools-get-schemas greger-tools))
+         (server-tools (when greger-server-tools
+                         (greger-server-tools-get-schemas greger-server-tools)))
+         (chat-buffer (greger-state-chat-buffer agent-state))
+</tool.toolu_01NhoLrLviqvS3Xh9ha6xKSi>
+
+### git-commit-message
+
+<tool.toolu_01NhoLrLviqvS3Xh9ha6xKSi>
+Add server tools to agent loop
+</tool.toolu_01NhoLrLviqvS3Xh9ha6xKSi>
+
+<!-- TOOL_RESULT_PLACEHOLDER_toolu_01NhoLrLviqvS3Xh9ha6xKSi -->

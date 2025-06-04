@@ -432,6 +432,8 @@ READ-ONLY is t to make read-only, nil to make writable."
 (defun greger--run-agent-loop (agent-state)
   "Run the main agent loop with AGENT-STATE."
   (let* ((tools (greger-tools-get-schemas greger-tools))
+         (server-tools (when greger-server-tools
+                         (greger-server-tools-get-schemas greger-server-tools)))
          (chat-buffer (greger-state-chat-buffer agent-state))
          (buffer-content (with-current-buffer chat-buffer
                            (buffer-substring-no-properties (point-min) (point-max))))
