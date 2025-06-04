@@ -1937,4 +1937,61 @@ greger.el
 Allow tool display even when buffer is read-only
 </tool.toolu_01WCHtJtd6eXGVe7jZFFMw2T>
 
-<!-- TOOL_RESULT_PLACEHOLDER_toolu_01WCHtJtd6eXGVe7jZFFMw2T -->
+## TOOL RESULT:
+
+ID: toolu_01WCHtJtd6eXGVe7jZFFMw2T
+
+<tool.toolu_01WCHtJtd6eXGVe7jZFFMw2T>
+Successfully replaced content in /Users/andreas/projects/greger.el/greger.el. Successfully staged 2 file(s) and committed with message: Allow tool display even when buffer is read-only
+</tool.toolu_01WCHtJtd6eXGVe7jZFFMw2T>
+
+
+## TOOL USE:
+
+Name: str-replace
+ID: toolu_01SHQyhWNafPYAz1yKdpeLiQ
+
+### file-path
+
+<tool.toolu_01SHQyhWNafPYAz1yKdpeLiQ>
+greger.el
+</tool.toolu_01SHQyhWNafPYAz1yKdpeLiQ>
+
+### original-content
+
+<tool.toolu_01SHQyhWNafPYAz1yKdpeLiQ>
+;; Update the buffer at the correct position
+    (with-current-buffer (greger-state-chat-buffer agent-state)
+      (save-excursion
+        (goto-char search-start-pos)
+        ;; Find and replace the placeholder
+        (when (search-forward (greger--tool-placeholder tool-id) nil t)
+          (replace-match "")
+          (let ((result-markdown (greger-parser--content-blocks-to-markdown (list tool-result))))
+            (unless (string-empty-p result-markdown)
+              (insert result-markdown))))))
+</tool.toolu_01SHQyhWNafPYAz1yKdpeLiQ>
+
+### new-content
+
+<tool.toolu_01SHQyhWNafPYAz1yKdpeLiQ>
+;; Update the buffer at the correct position
+    (with-current-buffer (greger-state-chat-buffer agent-state)
+      (let ((inhibit-read-only t))
+        (save-excursion
+          (goto-char search-start-pos)
+          ;; Find and replace the placeholder
+          (when (search-forward (greger--tool-placeholder tool-id) nil t)
+            (replace-match "")
+            (let ((result-markdown (greger-parser--content-blocks-to-markdown (list tool-result))))
+              (unless (string-empty-p result-markdown)
+                (insert result-markdown)))))))
+</tool.toolu_01SHQyhWNafPYAz1yKdpeLiQ>
+
+### git-commit-message
+
+<tool.toolu_01SHQyhWNafPYAz1yKdpeLiQ>
+Allow tool result insertion even when buffer is read-only
+</tool.toolu_01SHQyhWNafPYAz1yKdpeLiQ>
+
+<!-- TOOL_RESULT_PLACEHOLDER_toolu_01SHQyhWNafPYAz1yKdpeLiQ -->

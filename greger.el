@@ -580,14 +580,15 @@ COMPLETION-CALLBACK is called when complete."
 
     ;; Update the buffer at the correct position
     (with-current-buffer (greger-state-chat-buffer agent-state)
-      (save-excursion
-        (goto-char search-start-pos)
-        ;; Find and replace the placeholder
-        (when (search-forward (greger--tool-placeholder tool-id) nil t)
-          (replace-match "")
-          (let ((result-markdown (greger-parser--content-blocks-to-markdown (list tool-result))))
-            (unless (string-empty-p result-markdown)
-              (insert result-markdown))))))
+      (let ((inhibit-read-only t))
+        (save-excursion
+          (goto-char search-start-pos)
+          ;; Find and replace the placeholder
+          (when (search-forward (greger--tool-placeholder tool-id) nil t)
+            (replace-match "")
+            (let ((result-markdown (greger-parser--content-blocks-to-markdown (list tool-result))))
+              (unless (string-empty-p result-markdown)
+                (insert result-markdown)))))))
 
     ;; Update buffer state after tool completion
     (with-current-buffer (greger-state-chat-buffer agent-state)
