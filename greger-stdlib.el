@@ -527,12 +527,11 @@ ATTRS should be the result of file-attributes."
 
 (defun greger-stdlib--should-include-directory-in-recursive-listing-p (directory-name exclude-directories-recursive)
   "Return t if directory with DIRECTORY-NAME should be included in recursive listing.
-EXCLUDE-DIRECTORIES-RECURSIVE is a regex pattern that is matched as a full match against directory names.
+EXCLUDE-DIRECTORIES-RECURSIVE is a list of directory names to exclude.
 If EXCLUDE-DIRECTORIES-RECURSIVE is empty or nil, include all directories."
-  (if (or (null exclude-directories-recursive) (string= exclude-directories-recursive ""))
+  (if (or (null exclude-directories-recursive) (equal exclude-directories-recursive '()))
       t
-    (let ((full-match-pattern (format "^\\(%s\\)$" exclude-directories-recursive)))
-      (not (string-match-p full-match-pattern directory-name)))))
+    (not (member directory-name exclude-directories-recursive))))
 
 (defun greger-stdlib--ripgrep (pattern path callback &optional case-sensitive file-type context-lines max-results)
   "Search for PATTERN in PATH using the rg command line tool directly.
