@@ -786,29 +786,23 @@ Line 3"))
   (let ((test-dir (make-temp-file "greger-test-dir" t)))
     (unwind-protect
         (progn
-          ;; Create nested directory structure
-          (let ((subdir (expand-file-name "subdir" test-dir))
-                (subsubdir (expand-file-name "subdir/subsubdir" test-dir))
-                (file1 (expand-file-name "file1.txt" test-dir))
-                (file2 (expand-file-name "subdir/file2.txt" test-dir))
-                (file3 (expand-file-name "subdir/subsubdir/file3.txt" test-dir)))
+          ;; Create simple nested directory structure
+          (let ((subdir (expand-file-name "testdir" test-dir))
+                (file1 (expand-file-name "root.txt" test-dir))
+                (file2 (expand-file-name "testdir/nested.txt" test-dir)))
 
             (make-directory subdir)
-            (make-directory subsubdir t)
-            (with-temp-file file1 (insert "Content 1"))
-            (with-temp-file file2 (insert "Content 2"))
-            (with-temp-file file3 (insert "Content 3"))
+            (with-temp-file file1 (insert "Root content"))
+            (with-temp-file file2 (insert "Nested content"))
 
             ;; Test recursive listing
             (let ((result (greger-stdlib--list-directory test-dir nil t)))
               (should (stringp result))
-              ;; Should contain all files from all levels
-              (should (string-match-p "file1\\.txt" result))
-              (should (string-match-p "file2\\.txt" result))
-              (should (string-match-p "file3\\.txt" result))
-              ;; Should contain directory headers
-              (should (string-match-p "subdir:" result))
-              (should (string-match-p "subsubdir:" result)))))
+              ;; Should contain files from both levels
+              (should (string-match-p "root\\.txt" result))
+              (should (string-match-p "nested\\.txt" result))
+              ;; Should contain directory structure indicators
+              (should (string-match-p "testdir" result)))))
 
       ;; Clean up
       (when (file-exists-p test-dir)

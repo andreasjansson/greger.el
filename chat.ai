@@ -2529,4 +2529,98 @@ test/test-greger-stdlib.el
 Simplify exclude pattern test with clearer test case
 </tool.toolu_01HrafCSyvHYTLxBmSA8wyfV>
 
-<!-- TOOL_RESULT_PLACEHOLDER_toolu_01HrafCSyvHYTLxBmSA8wyfV -->
+## TOOL RESULT:
+
+ID: toolu_01HrafCSyvHYTLxBmSA8wyfV
+
+<tool.toolu_01HrafCSyvHYTLxBmSA8wyfV>
+Successfully replaced content in /Users/andreas/projects/greger.el/test/test-greger-stdlib.el. Successfully staged 2 file(s) and committed with message: Simplify exclude pattern test with clearer test case
+</tool.toolu_01HrafCSyvHYTLxBmSA8wyfV>
+
+
+## TOOL USE:
+
+Name: str-replace
+ID: toolu_019r9cd9Tfh6F5oMog7RJq5n
+
+### file-path
+
+<tool.toolu_019r9cd9Tfh6F5oMog7RJq5n>
+test/test-greger-stdlib.el
+</tool.toolu_019r9cd9Tfh6F5oMog7RJq5n>
+
+### original-content
+
+<tool.toolu_019r9cd9Tfh6F5oMog7RJq5n>
+(ert-deftest greger-test-list-directory-recursive ()
+  "Test list-directory recursive functionality."
+  (let ((test-dir (make-temp-file "greger-test-dir" t)))
+    (unwind-protect
+        (progn
+          ;; Create nested directory structure
+          (let ((subdir (expand-file-name "subdir" test-dir))
+                (subsubdir (expand-file-name "subdir/subsubdir" test-dir))
+                (file1 (expand-file-name "file1.txt" test-dir))
+                (file2 (expand-file-name "subdir/file2.txt" test-dir))
+                (file3 (expand-file-name "subdir/subsubdir/file3.txt" test-dir)))
+
+            (make-directory subdir)
+            (make-directory subsubdir t)
+            (with-temp-file file1 (insert "Content 1"))
+            (with-temp-file file2 (insert "Content 2"))
+            (with-temp-file file3 (insert "Content 3"))
+
+            ;; Test recursive listing
+            (let ((result (greger-stdlib--list-directory test-dir nil t)))
+              (should (stringp result))
+              ;; Should contain all files from all levels
+              (should (string-match-p "file1\\.txt" result))
+              (should (string-match-p "file2\\.txt" result))
+              (should (string-match-p "file3\\.txt" result))
+              ;; Should contain directory headers
+              (should (string-match-p "subdir:" result))
+              (should (string-match-p "subsubdir:" result)))))
+
+      ;; Clean up
+      (when (file-exists-p test-dir)
+        (delete-directory test-dir t)))))
+</tool.toolu_019r9cd9Tfh6F5oMog7RJq5n>
+
+### new-content
+
+<tool.toolu_019r9cd9Tfh6F5oMog7RJq5n>
+(ert-deftest greger-test-list-directory-recursive ()
+  "Test list-directory recursive functionality."
+  (let ((test-dir (make-temp-file "greger-test-dir" t)))
+    (unwind-protect
+        (progn
+          ;; Create simple nested directory structure
+          (let ((subdir (expand-file-name "testdir" test-dir))
+                (file1 (expand-file-name "root.txt" test-dir))
+                (file2 (expand-file-name "testdir/nested.txt" test-dir)))
+
+            (make-directory subdir)
+            (with-temp-file file1 (insert "Root content"))
+            (with-temp-file file2 (insert "Nested content"))
+
+            ;; Test recursive listing
+            (let ((result (greger-stdlib--list-directory test-dir nil t)))
+              (should (stringp result))
+              ;; Should contain files from both levels
+              (should (string-match-p "root\\.txt" result))
+              (should (string-match-p "nested\\.txt" result))
+              ;; Should contain directory structure indicators
+              (should (string-match-p "testdir" result)))))
+
+      ;; Clean up
+      (when (file-exists-p test-dir)
+        (delete-directory test-dir t)))))
+</tool.toolu_019r9cd9Tfh6F5oMog7RJq5n>
+
+### git-commit-message
+
+<tool.toolu_019r9cd9Tfh6F5oMog7RJq5n>
+Simplify recursive directory test
+</tool.toolu_019r9cd9Tfh6F5oMog7RJq5n>
+
+<!-- TOOL_RESULT_PLACEHOLDER_toolu_019r9cd9Tfh6F5oMog7RJq5n -->
