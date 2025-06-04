@@ -1174,4 +1174,109 @@ drwx------  (dir)  ..
 Fix greger-test-list-directory-recursive to use controlled temp directory
 </tool.toolu_01Y8Mg6W7BobER9D1gPde77H>
 
-<!-- TOOL_RESULT_PLACEHOLDER_toolu_01Y8Mg6W7BobER9D1gPde77H -->
+## TOOL RESULT:
+
+ID: toolu_01Y8Mg6W7BobER9D1gPde77H
+
+<tool.toolu_01Y8Mg6W7BobER9D1gPde77H>
+Successfully replaced content in /Users/andreas/projects/greger.el/test/test-greger-stdlib.el. Successfully staged 2 file(s) and committed with message: Fix greger-test-list-directory-recursive to use controlled temp directory
+</tool.toolu_01Y8Mg6W7BobER9D1gPde77H>
+
+## ASSISTANT:
+
+Finally, let me update the hidden directories test:
+
+## TOOL USE:
+
+Name: str-replace
+ID: toolu_017iTvEeFQEMnBCvb6raqUH2
+
+### file-path
+
+<tool.toolu_017iTvEeFQEMnBCvb6raqUH2>
+test/test-greger-stdlib.el
+</tool.toolu_017iTvEeFQEMnBCvb6raqUH2>
+
+### original-content
+
+<tool.toolu_017iTvEeFQEMnBCvb6raqUH2>
+(ert-deftest greger-test-list-directory-hidden-directories ()
+  "Test list-directory handling of hidden directories with exclude-directories-recursive."
+  (let ((test-dir (make-temp-file "greger-test-hidden" t)))
+    (unwind-protect
+        (progn
+          ;; Create hidden and normal directories and files
+          (let ((hidden-dir (expand-file-name ".hiddendir" test-dir))
+                (normal-dir (expand-file-name "normaldir" test-dir))
+                (normal-file (expand-file-name "normalfile.txt" test-dir)))
+
+            (make-directory hidden-dir)
+            (make-directory normal-dir)
+            (with-temp-file normal-file (insert "Normal content"))
+            (with-temp-file (expand-file-name "hidden.txt" hidden-dir) (insert "Hidden content"))
+            (with-temp-file (expand-file-name "normal.txt" normal-dir) (insert "Normal content"))
+
+            ;; Test with no exclude pattern (should show all files and directories, and recurse into all)
+            (let ((result (greger-stdlib--list-directory test-dir [] t))
+                  (expected (format "%s:
+drwx------  (dir)  .
+drwx------  (dir)  ..
+drwxr-xr-x  (dir)  .hiddendir
+drwxr-xr-x  (dir)  normaldir
+-rw-r--r--        14  normalfile.txt
+
+%s.hiddendir/:
+drwxr-xr-x  (dir)  .
+drwx------  (dir)  ..
+-rw-r--r--        14  hidden.txt
+
+%snormaldir/:
+drwxr-xr-x  (dir)  .
+</tool.toolu_017iTvEeFQEMnBCvb6raqUH2>
+
+### new-content
+
+<tool.toolu_017iTvEeFQEMnBCvb6raqUH2>
+(ert-deftest greger-test-list-directory-hidden-directories ()
+  "Test list-directory handling of hidden directories with exclude-directories-recursive."
+  (let ((test-dir (greger-test--make-controlled-temp-dir "greger-test-hidden"))
+        (parent-dir nil))
+    (unwind-protect
+        (progn
+          (setq parent-dir (file-name-directory (directory-file-name test-dir)))
+          ;; Create hidden and normal directories and files
+          (let ((hidden-dir (expand-file-name ".hiddendir" test-dir))
+                (normal-dir (expand-file-name "normaldir" test-dir))
+                (normal-file (expand-file-name "normalfile.txt" test-dir)))
+
+            (make-directory hidden-dir)
+            (make-directory normal-dir)
+            (with-temp-file normal-file (insert "Normal content"))
+            (with-temp-file (expand-file-name "hidden.txt" hidden-dir) (insert "Hidden content"))
+            (with-temp-file (expand-file-name "normal.txt" normal-dir) (insert "Normal content"))
+
+            ;; Test with no exclude pattern (should show all files and directories, and recurse into all)
+            (let ((result (greger-stdlib--list-directory test-dir [] t))
+                  (expected (format "%s:
+drwx------  (dir)  .
+drwx------  (dir)  ..
+drwxr-xr-x  (dir)  .hiddendir
+drwxr-xr-x  (dir)  normaldir
+-rw-r--r--        14  normalfile.txt
+
+%s.hiddendir/:
+drwxr-xr-x  (dir)  .
+drwx------  (dir)  ..
+-rw-r--r--        14  hidden.txt
+
+%snormaldir/:
+drwxr-xr-x  (dir)  .
+</tool.toolu_017iTvEeFQEMnBCvb6raqUH2>
+
+### git-commit-message
+
+<tool.toolu_017iTvEeFQEMnBCvb6raqUH2>
+Fix greger-test-list-directory-hidden-directories to use controlled temp directory (part 1)
+</tool.toolu_017iTvEeFQEMnBCvb6raqUH2>
+
+<!-- TOOL_RESULT_PLACEHOLDER_toolu_017iTvEeFQEMnBCvb6raqUH2 -->

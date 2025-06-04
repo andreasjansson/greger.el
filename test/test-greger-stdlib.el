@@ -912,9 +912,11 @@ drwx------  (dir)  .." (file-name-as-directory test-dir))))
 
 (ert-deftest greger-test-list-directory-hidden-directories ()
   "Test list-directory handling of hidden directories with exclude-directories-recursive."
-  (let ((test-dir (make-temp-file "greger-test-hidden" t)))
+  (let ((test-dir (greger-test--make-controlled-temp-dir "greger-test-hidden"))
+        (parent-dir nil))
     (unwind-protect
         (progn
+          (setq parent-dir (file-name-directory (directory-file-name test-dir)))
           ;; Create hidden and normal directories and files
           (let ((hidden-dir (expand-file-name ".hiddendir" test-dir))
                 (normal-dir (expand-file-name "normaldir" test-dir))
