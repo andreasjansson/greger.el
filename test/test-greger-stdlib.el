@@ -737,36 +737,56 @@ drwx------  (dir)  ..
       (when (file-exists-p test-dir)
         (delete-directory test-dir t)))))
 
-(ert-deftest greger-test-list-directory-exclude-pattern ()
-  "Test list-directory exclude pattern functionality."
+(ert-deftest greger-test-list-directory-exclude-directories-recursive ()
+  "Test list-directory exclude-directories-recursive functionality."
   (let ((test-dir (make-temp-file "greger-test-dir" t)))
     (unwind-protect
         (progn
-          ;; Create test files
-          (let ((include-file (expand-file-name "keep.txt" test-dir))
-                (exclude-file (expand-file-name "remove.log" test-dir)))
+          ;; Create test structure with directories and files
+          (let ((keep-dir (expand-file-name "keepdir" test-dir))
+                (exclude-dir (expand-file-name ".git" test-dir))
+                (file1 (expand-file-name "file1.txt" test-dir)))
 
-            (with-temp-file include-file
-              (insert "keep this"))
-            (with-temp-file exclude-file
-              (insert "exclude this"))
+            (make-directory keep-dir)
+            (make-directory exclude-dir)
+            (with-temp-file file1 (insert "content"))
+            (with-temp-file (expand-file-name "kept.txt" keep-dir) (insert "kept"))
+            (with-temp-file (expand-file-name "excluded.txt" exclude-dir) (insert "excluded"))
 
-            ;; Test with exclude pattern for .log files
-            (let ((result (greger-stdlib--list-directory test-dir "\\.log$"))
+            ;; Test with default exclude pattern - should exclude .git directory from recursion
+            (let ((result (greger-stdlib--list-directory test-dir nil t))
                   (expected (format "%s:
 drwx------  (dir)  .
 drwx------  (dir)  ..
--rw-r--r--         9  keep.txt" (file-name-as-directory test-dir))))
+-rw-r--r--         7  file1.txt
+drwxr-xr-x  (dir)  .git
+drwxr-xr-x  (dir)  keepdir
+
+%skeepdir/:
+drwxr-xr-x  (dir)  .
+drwx------  (dir)  ..
+-rw-r--r--         4  kept.txt" (file-name-as-directory test-dir) (file-name-as-directory test-dir))))
               (should (stringp result))
               (should (string= expected result)))
 
-            ;; Test with empty exclude pattern - should include all files
-            (let ((result (greger-stdlib--list-directory test-dir ""))
+            ;; Test with empty exclude pattern - should recurse into all directories including .git
+            (let ((result (greger-stdlib--list-directory test-dir "" t))
                   (expected (format "%s:
 drwx------  (dir)  .
 drwx------  (dir)  ..
--rw-r--r--         9  keep.txt
--rw-r--r--        12  remove.log" (file-name-as-directory test-dir))))
+-rw-r--r--         7  file1.txt
+drwxr-xr-x  (dir)  .git
+drwxr-xr-x  (dir)  keepdir
+
+%s.git/:
+drwxr-xr-x  (dir)  .
+drwx------  (dir)  ..
+-rw-r--r--         8  excluded.txt
+
+%skeepdir/:
+drwxr-xr-x  (dir)  .
+drwx------  (dir)  ..
+-rw-r--r--         4  kept.txt" (file-name-as-directory test-dir) (file-name-as-directory test-dir) (file-name-as-directory test-dir))))
               (should (stringp result))
               (should (string= expected result)))))
 
