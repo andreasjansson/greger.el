@@ -243,9 +243,7 @@
                    (let ((cancel-fn (greger-tool-cancel-fn greger-tool)))
                      (when (functionp cancel-fn)
                        (funcall cancel-fn))))
-                 executing-tools)
-        ;; Clear the executing tools map
-        (clrhash executing-tools)))
+                 executing-tools)))
      ;; Default case: call keyboard-quit
      (t (keyboard-quit)))))
 
