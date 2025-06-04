@@ -238,7 +238,8 @@
      ;; If there's an active client state, cancel the streaming request
      ((and agent-state (greger-state-client-state agent-state))
       (greger-client--cancel-request (greger-state-client-state agent-state))
-      (setf (greger-state-client-state agent-state) nil))
+      (setf (greger-state-client-state agent-state) nil)
+      (greger--update-buffer-state))
      ;; If there are executing tools, cancel them
      ((and agent-state
            (greger-state-executing-tools agent-state)
@@ -248,7 +249,8 @@
                    (let ((cancel-fn (greger-tool-cancel-fn greger-tool)))
                      (when (functionp cancel-fn)
                        (funcall cancel-fn))))
-                 executing-tools)))
+                 executing-tools)
+        (greger--update-buffer-state)))
      ;; Default case: call keyboard-quit
      (t (keyboard-quit)))))
 
