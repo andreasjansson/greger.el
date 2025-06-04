@@ -930,8 +930,8 @@ drwx------  (dir)  ..
 drwx------  (dir)  .
 drwx------  (dir)  ..
 drwxr-xr-x  (dir)  .hiddendir
--rw-r--r--        14  normalfile.txt
 drwxr-xr-x  (dir)  normaldir
+-rw-r--r--        14  normalfile.txt
 
 %snormaldir/:
 drwxr-xr-x  (dir)  .
