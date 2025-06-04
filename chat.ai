@@ -5137,4 +5137,64 @@ drwxrwxrwt     2368  ..
 Update exclude pattern test to reflect removal of . and .. entries
 </tool.toolu_01Nd8zqonj5EefpCQpSRAaCP>
 
-<!-- TOOL_RESULT_PLACEHOLDER_toolu_01Nd8zqonj5EefpCQpSRAaCP -->
+## TOOL RESULT:
+
+ID: toolu_01Nd8zqonj5EefpCQpSRAaCP
+
+<tool.toolu_01Nd8zqonj5EefpCQpSRAaCP>
+Successfully replaced content in /Users/andreas/projects/greger.el/test/test-greger-stdlib.el. Successfully staged 2 file(s) and committed with message: Update exclude pattern test to reflect removal of . and .. entries
+</tool.toolu_01Nd8zqonj5EefpCQpSRAaCP>
+
+
+## TOOL USE:
+
+Name: str-replace
+ID: toolu_01J3gbbgBgNWuytjhaf2nN6q
+
+### file-path
+
+<tool.toolu_01J3gbbgBgNWuytjhaf2nN6q>
+test/test-greger-stdlib.el
+</tool.toolu_01J3gbbgBgNWuytjhaf2nN6q>
+
+### original-content
+
+<tool.toolu_01J3gbbgBgNWuytjhaf2nN6q>
+;; Test recursive listing
+            (let ((result (greger-stdlib--list-directory test-dir nil t))
+                  (expected "/tmp/greger-test-dirXXXXXX/:
+drwxr-xr-x      128  .
+drwxrwxrwt     2368  ..
+-rw-r--r--       12  root.txt
+drwxr-xr-x       96  testdir
+
+testdir:
+drwxr-xr-x       96  .
+drwxr-xr-x      128  ..
+-rw-r--r--       14  nested.txt"))
+              (should (stringp result))
+              (should (string= expected result)))
+</tool.toolu_01J3gbbgBgNWuytjhaf2nN6q>
+
+### new-content
+
+<tool.toolu_01J3gbbgBgNWuytjhaf2nN6q>
+;; Test recursive listing
+            (let ((result (greger-stdlib--list-directory test-dir nil t))
+                  (expected (format "%s:
+-rw-r--r--       12  root.txt
+drwxr-xr-x       96  testdir
+
+testdir:
+-rw-r--r--       14  nested.txt" (file-name-as-directory test-dir))))
+              (should (stringp result))
+              (should (string= expected result)))
+</tool.toolu_01J3gbbgBgNWuytjhaf2nN6q>
+
+### git-commit-message
+
+<tool.toolu_01J3gbbgBgNWuytjhaf2nN6q>
+Update recursive test to reflect removal of . and .. entries and use dynamic path
+</tool.toolu_01J3gbbgBgNWuytjhaf2nN6q>
+
+<!-- TOOL_RESULT_PLACEHOLDER_toolu_01J3gbbgBgNWuytjhaf2nN6q -->
