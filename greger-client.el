@@ -110,8 +110,6 @@ claude-sonnet-4-20250514 or claude-opus-4-20250514."
 
     (set-process-query-on-exit-flag process nil)
 
-    (greger-client--setup-cancel-binding state)
-
     state))
 
 ;;; Request building
