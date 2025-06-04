@@ -828,12 +828,11 @@ drwxr-xr-x      128  ..
     (unwind-protect
         (progn
           ;; Test empty directory - should still show . and .. entries
-          (let ((result (greger-stdlib--list-directory test-dir)))
+          (let ((result (greger-stdlib--list-directory test-dir))
+                (expected "drwxr-xr-x       96  .
+drwxrwxrwt     2368  .."))
             (should (stringp result))
-            ;; Should contain current directory entry
-            (should (string= "\\.$" result))
-            ;; Should contain parent directory entry (unless at root)
-            (should (string= "\\.\\.$" result))))
+            (should (string= expected result))))
 
       ;; Clean up
       (when (file-exists-p test-dir)
