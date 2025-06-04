@@ -322,7 +322,8 @@ Returns nil if no error found or if OUTPUT is not valid JSON."
 
         (when (< index (length blocks))
           (let ((block (nth index blocks)))
-            (when (and (string= (alist-get 'type block) "tool_use")
+            (when (and (or (string= (alist-get 'type block) "tool_use")
+                           (string= (alist-get 'type block) "server_tool_use"))
                        (stringp (alist-get 'input block)))
               ;; Parse accumulated JSON input
               (let ((input-str (alist-get 'input block)))

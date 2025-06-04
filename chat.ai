@@ -1863,4 +1863,231 @@ greger-client.el
 Add support for citations_delta in content block deltas
 </tool.toolu_01NB2T9DePg39Wi9zFPGisFw>
 
-<!-- TOOL_RESULT_PLACEHOLDER_toolu_01NB2T9DePg39Wi9zFPGisFw -->
+## TOOL RESULT:
+
+ID: toolu_01NB2T9DePg39Wi9zFPGisFw
+
+<tool.toolu_01NB2T9DePg39Wi9zFPGisFw>
+Successfully replaced content in /Users/andreas/projects/greger.el/greger-client.el. Successfully staged 2 file(s) and committed with message: Add support for citations_delta in content block deltas
+</tool.toolu_01NB2T9DePg39Wi9zFPGisFw>
+
+## TOOL USE:
+
+Name: str-replace
+ID: toolu_01P2cMPf8fkP6hAwdnhB3NXw
+
+### file-path
+
+<tool.toolu_01P2cMPf8fkP6hAwdnhB3NXw>
+greger-client.el
+</tool.toolu_01P2cMPf8fkP6hAwdnhB3NXw>
+
+### original-content
+
+<tool.toolu_01P2cMPf8fkP6hAwdnhB3NXw>
+((string= (alist-get 'type block) "tool_use")
+                       (stringp (alist-get 'input block)))
+              ;; Parse accumulated JSON input
+              (let ((input-str (alist-get 'input block)))
+                (condition-case nil
+                    (if (string-empty-p input-str)
+                        (setf (alist-get 'input block) '())
+                      (setf (alist-get 'input block)
+                            (json-read-from-string input-str)))
+                  (error
+                   (setf (alist-get 'input block) '())))))
+</tool.toolu_01P2cMPf8fkP6hAwdnhB3NXw>
+
+### new-content
+
+<tool.toolu_01P2cMPf8fkP6hAwdnhB3NXw>
+((or (string= (alist-get 'type block) "tool_use")
+                       (string= (alist-get 'type block) "server_tool_use"))
+                       (stringp (alist-get 'input block)))
+              ;; Parse accumulated JSON input
+              (let ((input-str (alist-get 'input block)))
+                (condition-case nil
+                    (if (string-empty-p input-str)
+                        (setf (alist-get 'input block) '())
+                      (setf (alist-get 'input block)
+                            (json-read-from-string input-str)))
+                  (error
+                   (setf (alist-get 'input block) '())))))
+</tool.toolu_01P2cMPf8fkP6hAwdnhB3NXw>
+
+### git-commit-message
+
+<tool.toolu_01P2cMPf8fkP6hAwdnhB3NXw>
+Fix JSON parsing for server_tool_use blocks in content_block_stop
+</tool.toolu_01P2cMPf8fkP6hAwdnhB3NXw>
+
+## TOOL RESULT:
+
+ID: toolu_01P2cMPf8fkP6hAwdnhB3NXw
+
+<tool.toolu_01P2cMPf8fkP6hAwdnhB3NXw>
+Error executing tool: Original content not found in file: /Users/andreas/projects/greger.el/greger-client.el -- Try again!
+</tool.toolu_01P2cMPf8fkP6hAwdnhB3NXw>
+
+## ASSISTANT:
+
+Let me see the exact code around the content_block_stop handling:
+
+## TOOL USE:
+
+Name: read-file
+ID: toolu_01RMFBg7nyTK9r74FAjhrVMw
+
+### path
+
+<tool.toolu_01RMFBg7nyTK9r74FAjhrVMw>
+greger-client.el
+</tool.toolu_01RMFBg7nyTK9r74FAjhrVMw>
+
+### start-line
+
+<tool.toolu_01RMFBg7nyTK9r74FAjhrVMw>
+300
+</tool.toolu_01RMFBg7nyTK9r74FAjhrVMw>
+
+### end-line
+
+<tool.toolu_01RMFBg7nyTK9r74FAjhrVMw>
+330
+</tool.toolu_01RMFBg7nyTK9r74FAjhrVMw>
+
+## TOOL RESULT:
+
+ID: toolu_01RMFBg7nyTK9r74FAjhrVMw
+
+<tool.toolu_01RMFBg7nyTK9r74FAjhrVMw>
+              (let ((text (alist-get 'text delta)))
+                (setf (alist-get 'text block)
+                      (concat (alist-get 'text block) text))
+                ;; Call text callback for live display
+                (when (greger-client-state-text-callback state)
+                  (funcall (greger-client-state-text-callback state) text))))
+
+             ;; Tool input delta
+             ((string= delta-type "input_json_delta")
+              (let ((partial-json (alist-get 'partial_json delta)))
+                (setf (alist-get 'input block)
+                      (concat (alist-get 'input block) partial-json))))
+
+             ;; Citations delta (for web search results)
+             ((string= delta-type "citations_delta")
+              ;; Handle citations delta if needed - for now just ignore
+              nil))))))
+
+     ;; Content block stop - finalize tool input if needed
+     ((string= type "content_block_stop")
+      (let* ((index (alist-get 'index data))
+             (blocks (greger-client-state-parsed-content-blocks state)))
+
+        (when (< index (length blocks))
+          (let ((block (nth index blocks)))
+            (when (and (string= (alist-get 'type block) "tool_use")
+                       (stringp (alist-get 'input block)))
+              ;; Parse accumulated JSON input
+              (let ((input-str (alist-get 'input block)))
+                (condition-case nil
+                    (if (string-empty-p input-str)
+</tool.toolu_01RMFBg7nyTK9r74FAjhrVMw>
+
+## TOOL USE:
+
+Name: read-file
+ID: toolu_016oQt8MYhK68z123ZVw2J3X
+
+### path
+
+<tool.toolu_016oQt8MYhK68z123ZVw2J3X>
+greger-client.el
+</tool.toolu_016oQt8MYhK68z123ZVw2J3X>
+
+### start-line
+
+<tool.toolu_016oQt8MYhK68z123ZVw2J3X>
+325
+</tool.toolu_016oQt8MYhK68z123ZVw2J3X>
+
+### end-line
+
+<tool.toolu_016oQt8MYhK68z123ZVw2J3X>
+340
+</tool.toolu_016oQt8MYhK68z123ZVw2J3X>
+
+## TOOL RESULT:
+
+ID: toolu_016oQt8MYhK68z123ZVw2J3X
+
+<tool.toolu_016oQt8MYhK68z123ZVw2J3X>
+            (when (and (string= (alist-get 'type block) "tool_use")
+                       (stringp (alist-get 'input block)))
+              ;; Parse accumulated JSON input
+              (let ((input-str (alist-get 'input block)))
+                (condition-case nil
+                    (if (string-empty-p input-str)
+                        (setf (alist-get 'input block) '())
+                      (setf (alist-get 'input block)
+                            (json-read-from-string input-str)))
+                  (error
+                   (setf (alist-get 'input block) '()))))))))))))
+
+(defun greger-client--ensure-block-at-index (_blocks index new-block state)
+  "Ensure BLOCKS list has NEW-BLOCK at INDEX, extending if necessary.
+STATE is used to update the parsed content blocks."
+  (let ((current-blocks (greger-client-state-parsed-content-blocks state)))
+</tool.toolu_016oQt8MYhK68z123ZVw2J3X>
+
+## TOOL USE:
+
+Name: str-replace
+ID: toolu_01NUcfutEzju3Q2gsT8d4mZa
+
+### file-path
+
+<tool.toolu_01NUcfutEzju3Q2gsT8d4mZa>
+greger-client.el
+</tool.toolu_01NUcfutEzju3Q2gsT8d4mZa>
+
+### original-content
+
+<tool.toolu_01NUcfutEzju3Q2gsT8d4mZa>
+            (when (and (string= (alist-get 'type block) "tool_use")
+                       (stringp (alist-get 'input block)))
+              ;; Parse accumulated JSON input
+              (let ((input-str (alist-get 'input block)))
+                (condition-case nil
+                    (if (string-empty-p input-str)
+                        (setf (alist-get 'input block) '())
+                      (setf (alist-get 'input block)
+                            (json-read-from-string input-str)))
+                  (error
+                   (setf (alist-get 'input block) '())))))
+</tool.toolu_01NUcfutEzju3Q2gsT8d4mZa>
+
+### new-content
+
+<tool.toolu_01NUcfutEzju3Q2gsT8d4mZa>
+            (when (and (or (string= (alist-get 'type block) "tool_use")
+                           (string= (alist-get 'type block) "server_tool_use"))
+                       (stringp (alist-get 'input block)))
+              ;; Parse accumulated JSON input
+              (let ((input-str (alist-get 'input block)))
+                (condition-case nil
+                    (if (string-empty-p input-str)
+                        (setf (alist-get 'input block) '())
+                      (setf (alist-get 'input block)
+                            (json-read-from-string input-str)))
+                  (error
+                   (setf (alist-get 'input block) '())))))
+</tool.toolu_01NUcfutEzju3Q2gsT8d4mZa>
+
+### git-commit-message
+
+<tool.toolu_01NUcfutEzju3Q2gsT8d4mZa>
+Fix JSON parsing for server_tool_use blocks in content_block_stop
+</tool.toolu_01NUcfutEzju3Q2gsT8d4mZa>
+
+<!-- TOOL_RESULT_PLACEHOLDER_toolu_01NUcfutEzju3Q2gsT8d4mZa -->
