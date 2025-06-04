@@ -641,10 +641,9 @@ Sunny and warm today
 
 It looks like it's sunny and warm today!"
            :dialog (((role . "user") (content . "What's the weather like?"))
-                    ((role . "assistant") (content . (((type . "server_tool_use") (id . "srvtoolu_456") (name . "web_search") (input . ((query . "weather")))))))
-                    ((role . "assistant") (content . (((type . "server_tool_result") (tool_use_id . "srvtoolu_456") (content . "Sunny and warm today")))))
-                    ((role . "assistant") (content . "It looks like it's sunny and warm today!"))))
-    ))
+                    ((role . "assistant") (content . (((type . "server_tool_use") (id . "srvtoolu_456") (name . "web_search") (input . ((query . "weather"))))
+                                                      ((type . "server_tool_result") (tool_use_id . "srvtoolu_456") (content . "Sunny and warm today"))
+                                                      ((type . "text") (text . "It looks like it's sunny and warm today!")))))))))
 
 ;; Helper functions for tests
 (defun greger-parser-test--dialog-equal (expected actual)

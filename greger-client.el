@@ -261,82 +261,97 @@ Returns nil if no error found or if OUTPUT is not valid JSON."
     (cond
      ;; Content block start - create new content block
      ((string= type "content_block_start")
-      (let* ((index (alist-get 'index data))
-             (content-block (copy-alist (alist-get 'content_block data)))
-             (blocks (greger-client-state-parsed-content-blocks state)))
-
-        ;; Debug: (message "DEBUG: content_block_start - type: %s, index: %d"
-        ;;          (alist-get 'type content-block) index)
-
-        ;; Initialize content for accumulation
-        (cond
-         ((string= (alist-get 'type content-block) "tool_use")
-          (setf (alist-get 'input content-block) ""))
-         ((string= (alist-get 'type content-block) "server_tool_use")
-          (setf (alist-get 'input content-block) ""))
-         ((string= (alist-get 'type content-block) "text")
-          (setf (alist-get 'text content-block) ""))
-         ;; web_search_tool_result blocks come with content already populated
-         ((string= (alist-get 'type content-block) "web_search_tool_result")
-          ;; No initialization needed - content is already present
-          nil))
-
-        (when (and (string= (alist-get 'type content-block) "text")
-                   (greger-client-state-text-start-callback state))
-          (funcall (greger-client-state-text-start-callback state)))
-
-        ;; Add block at the right index
-        (greger-client--ensure-block-at-index blocks index content-block state)))
+      (greger-client--handle-content-block-start data state))
 
      ;; Content block delta - update existing content block
      ((string= type "content_block_delta")
-      (let* ((index (alist-get 'index data))
-             (delta (alist-get 'delta data))
-             (delta-type (alist-get 'type delta))
-             (blocks (greger-client-state-parsed-content-blocks state)))
-
-        (when (< index (length blocks))
-          (let ((block (nth index blocks)))
-            (cond
-             ;; Text delta
-             ((string= delta-type "text_delta")
-              (let ((text (alist-get 'text delta)))
-                (setf (alist-get 'text block)
-                      (concat (alist-get 'text block) text))
-                ;; Call text callback for live display
-                (when (greger-client-state-text-callback state)
-                  (funcall (greger-client-state-text-callback state) text))))
-
-             ;; Tool input delta
-             ((string= delta-type "input_json_delta")
-              (let ((partial-json (alist-get 'partial_json delta)))
-                (setf (alist-get 'input block)
-                      (concat (alist-get 'input block) partial-json))))
-
-             ;; Citations delta (for web search results)
-             ((string= delta-type "citations_delta")
-              ;; Handle citations delta if needed - for now just ignore
-              nil))))))
+      (greger-client--handle-content-block-delta data state))
 
      ;; Content block stop - finalize tool input if needed
      ((string= type "content_block_stop")
-      (let* ((index (alist-get 'index data))
-             (blocks (greger-client-state-parsed-content-blocks state)))
+      (greger-client--handle-content-block-stop data state)))))
 
-        (when (< index (length blocks))
-          (let ((block (nth index blocks)))
-            (when (and (or (string= (alist-get 'type block) "tool_use")
-                           (string= (alist-get 'type block) "server_tool_use"))
-                       (stringp (alist-get 'input block)))
-              ;; Parse accumulated JSON input
-              (let ((input-str (alist-get 'input block)))
-                (condition-case nil
-                    (if (string-empty-p input-str)
-                        (setf (alist-get 'input block) '())
-                      (setf (alist-get 'input block)
-                            (json-read-from-string input-str)))
-                  (error
-                   (setf (alist-get 'input block) '()))))))))))))
+(defun greger-client--handle-content-block-start (data state)
+  (let* ((index (alist-get 'index data))
+         (content-block (copy-alist (alist-get 'content_block data)))
+         (blocks (greger-client-state-parsed-content-blocks state)))
+
+    ;; Debug: (message "DEBUG: content_block_start - type: %s, index: %d"
+    ;;          (alist-get 'type content-block) index)
+
+    ;; Initialize content for accumulation
+    (cond
+     ((string= (alist-get 'type content-block) "tool_use")
+      (setf (alist-get 'input content-block) ""))
+     ((string= (alist-get 'type content-block) "server_tool_use")
+      (setf (alist-get 'input content-block) ""))
+     ((string= (alist-get 'type content-block) "text")
+      (setf (alist-get 'text content-block) ""))
+     ;; web_search_tool_result blocks come with content already populated
+     ((string= (alist-get 'type content-block) "web_search_tool_result")
+      ;; No initialization needed - content is already present
+      nil))
+
+    (when (and (string= (alist-get 'type content-block) "text")
+               (greger-client-state-text-start-callback state))
+      (funcall (greger-client-state-text-start-callback state)))
+
+    ;; Add block at the right index
+    (greger-client--ensure-block-at-index blocks index content-block state)))
+
+(defun greger-client--handle-content-block-delta (data state)
+  (let* ((index (alist-get 'index data))
+         (delta (alist-get 'delta data))
+         (delta-type (alist-get 'type delta))
+         (blocks (greger-client-state-parsed-content-blocks state)))
+
+    (when (< index (length blocks))
+      (let ((block (nth index blocks)))
+        (cond
+         ;; Text delta
+         ((string= delta-type "text_delta")
+          (let ((text (alist-get 'text delta)))
+            (setf (alist-get 'text block)
+                  (concat (alist-get 'text block) text))
+            ;; Call text callback for live display
+            (when (greger-client-state-text-callback state)
+              (funcall (greger-client-state-text-callback state) text))))
+
+         ;; Tool input delta
+         ((string= delta-type "input_json_delta")
+          (let ((partial-json (alist-get 'partial_json delta)))
+            (setf (alist-get 'input block)
+                  (concat (alist-get 'input block) partial-json))))
+
+         ;; Citations delta (for web search results)
+         ((string= delta-type "citations_delta")
+          ;; Handle citations delta if needed - for now just ignore
+          nil))))))
+
+(defun greger-client--handle-content-block-stop (data state)
+  (let* ((index (alist-get 'index data))
+         (blocks (greger-client-state-parsed-content-blocks state)))
+
+    (when (< index (length blocks))
+
+      (let ((block (nth index blocks)))
+        (when (and (or (string= (alist-get 'type block) "tool_use")
+                       (string= (alist-get 'type block) "server_tool_use"))
+                   (stringp (alist-get 'input block)))
+
+          ;; TODO: input-str: {"query": "Sweden population 2024 2025"}
+
+
+          ;; Parse accumulated JSON input
+          (let ((input-str (alist-get 'input block)))
+            ;; TODO: remove debug
+            (condition-case nil
+                (if (string-empty-p input-str)
+                    (setf (alist-get 'input block) '())
+                  (setf (alist-get 'input block)
+                        (json-read-from-string input-str)))
+              (error
+               (setf (alist-get 'input block) '())))))))))
 
 (defun greger-client--ensure-block-at-index (_blocks index new-block state)
   "Ensure BLOCKS list has NEW-BLOCK at INDEX, extending if necessary.
