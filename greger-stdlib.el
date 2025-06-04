@@ -33,38 +33,6 @@
 (require 'greger-tools)
 (require 'greger-web)
 
-;; Assertion helper functions
-(defun greger-stdlib--assert-arg-string (name value)
-  "Assert that VALUE is a string, error with NAME if not."
-  (unless (stringp value)
-    (error "Invalid argument: %s must be a string" name)))
-
-(defun greger-stdlib--assert-arg-string-vector (name value)
-  "Assert that VALUE is a vector of strings, error with NAME if not."
-  (unless (vectorp value)
-    (error "Invalid argument: %s must be a vector" name))
-  (seq-doseq (item value)
-    (unless (stringp item)
-      (error "Invalid argument: each element in %s must be a string" name))))
-
-(defun greger-stdlib--assert-arg-int-between (name value greater-or-equal less-or-equal)
-  "Assert that VALUE is an integer between GREATER-OR-EQUAL and LESS-OR-EQUAL.
-Error with NAME if not. Either bound can be nil to skip that check."
-  (unless (integerp value)
-    (error "Invalid argument: %s must be an integer" name))
-  (when (and greater-or-equal (< value greater-or-equal))
-    (error "Invalid argument: %s must be >= %d" name greater-or-equal))
-  (when (and less-or-equal (> value less-or-equal))
-    (error "Invalid argument: %s must be <= %d" name less-or-equal)))
-
-(defun greger-stdlib--assert-arg-string-web-url (name value)
-  "Assert that VALUE is a valid web URL string, error with NAME if not."
-  (greger-stdlib--assert-arg-string name value)
-  (when (string-empty-p (string-trim value))
-    (error "Invalid argument: %s cannot be empty" name))
-  (unless (greger-web-is-web-url-p value)
-    (error "Invalid argument: %s must be a valid URL (starting with http:// or https://)" name)))
-
 ;; Register all tools using the macro
 (greger-register-tool "read-file"
   :description "Read the contents of a file from the filesystem"
@@ -261,6 +229,37 @@ Error with NAME if not. Either bound can be nil to skip that check."
   :function 'greger-stdlib--read-webpage)
 
 ;; Helper functions
+
+(defun greger-stdlib--assert-arg-string (name value)
+  "Assert that VALUE is a string, error with NAME if not."
+  (unless (stringp value)
+    (error "Invalid argument: %s must be a string" name)))
+
+(defun greger-stdlib--assert-arg-string-vector (name value)
+  "Assert that VALUE is a vector of strings, error with NAME if not."
+  (unless (vectorp value)
+    (error "Invalid argument: %s must be a vector" name))
+  (seq-doseq (item value)
+    (unless (stringp item)
+      (error "Invalid argument: each element in %s must be a string" name))))
+
+(defun greger-stdlib--assert-arg-int-between (name value greater-or-equal less-or-equal)
+  "Assert that VALUE is an integer between GREATER-OR-EQUAL and LESS-OR-EQUAL.
+Error with NAME if not. Either bound can be nil to skip that check."
+  (unless (integerp value)
+    (error "Invalid argument: %s must be an integer" name))
+  (when (and greater-or-equal (< value greater-or-equal))
+    (error "Invalid argument: %s must be >= %d" name greater-or-equal))
+  (when (and less-or-equal (> value less-or-equal))
+    (error "Invalid argument: %s must be <= %d" name less-or-equal)))
+
+(defun greger-stdlib--assert-arg-string-web-url (name value)
+  "Assert that VALUE is a valid web URL string, error with NAME if not."
+  (greger-stdlib--assert-arg-string name value)
+  (when (string-empty-p (string-trim value))
+    (error "Invalid argument: %s cannot be empty" name))
+  (unless (greger-web-is-web-url-p value)
+    (error "Invalid argument: %s must be a valid URL (starting with http:// or https://)" name)))
 
 (defun greger-stdlib--run-async-subprocess (command args working-directory callback)
   "Run COMMAND with ARGS in WORKING-DIRECTORY and call CALLBACK.
