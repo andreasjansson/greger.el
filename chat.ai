@@ -6038,4 +6038,62 @@ PREFIX is used internally for nested directory structure."
 Update recursive function documentation to mention vectors
 </tool.toolu_01AnYz71bDgmannnjtnLxFDx>
 
-<!-- TOOL_RESULT_PLACEHOLDER_toolu_01AnYz71bDgmannnjtnLxFDx -->
+## TOOL RESULT:
+
+ID: toolu_01AnYz71bDgmannnjtnLxFDx
+
+<tool.toolu_01AnYz71bDgmannnjtnLxFDx>
+Successfully replaced content in /Users/andreas/projects/greger.el/greger-stdlib.el. Successfully staged 2 file(s) and committed with message: Update recursive function documentation to mention vectors
+</tool.toolu_01AnYz71bDgmannnjtnLxFDx>
+
+
+## ASSISTANT:
+
+Now update the check function to handle vectors:
+
+## TOOL USE:
+
+Name: str-replace
+ID: toolu_017x4g4ekpCCw6HckjGtEbia
+
+### file-path
+
+<tool.toolu_017x4g4ekpCCw6HckjGtEbia>
+greger-stdlib.el
+</tool.toolu_017x4g4ekpCCw6HckjGtEbia>
+
+### original-content
+
+<tool.toolu_017x4g4ekpCCw6HckjGtEbia>
+(defun greger-stdlib--should-include-directory-in-recursive-listing-p (directory-name exclude-directories-recursive)
+  "Return t if directory with DIRECTORY-NAME should be included in recursive listing.
+EXCLUDE-DIRECTORIES-RECURSIVE is a list of directory names to exclude.
+If EXCLUDE-DIRECTORIES-RECURSIVE is nil, use default excludes.
+If EXCLUDE-DIRECTORIES-RECURSIVE is an empty list, exclude nothing."
+  (let ((actual-exclude-list (if (null exclude-directories-recursive)
+                                 '(".git" "__pycache__")
+                               exclude-directories-recursive)))
+    (not (member directory-name actual-exclude-list))))
+</tool.toolu_017x4g4ekpCCw6HckjGtEbia>
+
+### new-content
+
+<tool.toolu_017x4g4ekpCCw6HckjGtEbia>
+(defun greger-stdlib--should-include-directory-in-recursive-listing-p (directory-name exclude-directories-recursive)
+  "Return t if directory with DIRECTORY-NAME should be included in recursive listing.
+EXCLUDE-DIRECTORIES-RECURSIVE is a vector of directory names to exclude.
+If EXCLUDE-DIRECTORIES-RECURSIVE is nil, use default excludes.
+If EXCLUDE-DIRECTORIES-RECURSIVE is an empty vector, exclude nothing."
+  (let ((actual-exclude-list (if (null exclude-directories-recursive)
+                                 [".git" "__pycache__"]
+                               exclude-directories-recursive)))
+    (not (seq-contains-p actual-exclude-list directory-name))))
+</tool.toolu_017x4g4ekpCCw6HckjGtEbia>
+
+### git-commit-message
+
+<tool.toolu_017x4g4ekpCCw6HckjGtEbia>
+Update check function to handle vectors and use seq-contains-p instead of member
+</tool.toolu_017x4g4ekpCCw6HckjGtEbia>
+
+<!-- TOOL_RESULT_PLACEHOLDER_toolu_017x4g4ekpCCw6HckjGtEbia -->

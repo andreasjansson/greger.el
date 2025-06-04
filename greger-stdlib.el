@@ -529,13 +529,13 @@ ATTRS should be the result of file-attributes."
 
 (defun greger-stdlib--should-include-directory-in-recursive-listing-p (directory-name exclude-directories-recursive)
   "Return t if directory with DIRECTORY-NAME should be included in recursive listing.
-EXCLUDE-DIRECTORIES-RECURSIVE is a list of directory names to exclude.
+EXCLUDE-DIRECTORIES-RECURSIVE is a vector of directory names to exclude.
 If EXCLUDE-DIRECTORIES-RECURSIVE is nil, use default excludes.
-If EXCLUDE-DIRECTORIES-RECURSIVE is an empty list, exclude nothing."
+If EXCLUDE-DIRECTORIES-RECURSIVE is an empty vector, exclude nothing."
   (let ((actual-exclude-list (if (null exclude-directories-recursive)
-                                 '(".git" "__pycache__")
+                                 [".git" "__pycache__"]
                                exclude-directories-recursive)))
-    (not (member directory-name actual-exclude-list))))
+    (not (seq-contains-p actual-exclude-list directory-name))))
 
 (defun greger-stdlib--ripgrep (pattern path callback &optional case-sensitive file-type context-lines max-results)
   "Search for PATTERN in PATH using the rg command line tool directly.
