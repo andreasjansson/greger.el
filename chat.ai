@@ -5783,4 +5783,59 @@ greger-parser.el
 Fix server tool input parsing to use same format as regular tools
 </tool.toolu_01L4b3fVsgmB8gYwVcRjcDsa>
 
-<!-- TOOL_RESULT_PLACEHOLDER_toolu_01L4b3fVsgmB8gYwVcRjcDsa -->
+## TOOL RESULT:
+
+ID: toolu_01L4b3fVsgmB8gYwVcRjcDsa
+
+<tool.toolu_01L4b3fVsgmB8gYwVcRjcDsa>
+Successfully replaced content in /Users/andreas/projects/greger.el/greger-parser.el. Successfully staged 2 file(s) and committed with message: Fix server tool input parsing to use same format as regular tools
+</tool.toolu_01L4b3fVsgmB8gYwVcRjcDsa>
+
+## TOOL USE:
+
+Name: str-replace
+ID: toolu_01VJrsWT6LFA2P3zB96Jn1Ff
+
+### file-path
+
+<tool.toolu_01VJrsWT6LFA2P3zB96Jn1Ff>
+greger-parser.el
+</tool.toolu_01VJrsWT6LFA2P3zB96Jn1Ff>
+
+### original-content
+
+<tool.toolu_01VJrsWT6LFA2P3zB96Jn1Ff>
+(defun greger-parser--parse-server-tool-result-content (state)
+  "Parse server tool result content using STATE."
+  (greger-parser--skip-whitespace state)
+  (let ((content-start (greger-parser--current-pos state))
+        (content ""))
+    ;; Read until next section or end
+    (while (and (not (greger-parser--at-end-p state))
+                (not (and (greger-parser--at-line-start-p state)
+                          (greger-parser--find-section-tag state))))
+      (greger-parser--advance state))
+    (setq content (string-trim (greger-parser--substring state content-start)))
+    ;; Parse JSON if not empty
+    (when (and content (not (string-empty-p content)))
+      (condition-case nil
+          (json-parse-string content :object-type 'alist)
+        (error content)))))
+</tool.toolu_01VJrsWT6LFA2P3zB96Jn1Ff>
+
+### new-content
+
+<tool.toolu_01VJrsWT6LFA2P3zB96Jn1Ff>
+(defun greger-parser--parse-server-tool-result-content (state)
+  "Parse server tool result content using STATE."
+  ;; Server tool results use the same format as regular tool results
+  (greger-parser--parse-tool-result-content state))
+</tool.toolu_01VJrsWT6LFA2P3zB96Jn1Ff>
+
+### git-commit-message
+
+<tool.toolu_01VJrsWT6LFA2P3zB96Jn1Ff>
+Fix server tool result parsing to use same format as regular tools
+</tool.toolu_01VJrsWT6LFA2P3zB96Jn1Ff>
+
+<!-- TOOL_RESULT_PLACEHOLDER_toolu_01VJrsWT6LFA2P3zB96Jn1Ff -->
