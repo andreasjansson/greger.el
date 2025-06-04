@@ -448,9 +448,9 @@
           (cl-letf (((symbol-function 'greger-stdlib--git-stage-and-commit)
                      (lambda (files commit-message buffer) "Mocked git result")))
 
-            ;; Test successful deletion with list input
+            ;; Test successful deletion with vector input
             (let ((result (greger-stdlib--delete-files
-                          (list test-file)
+                          (vector test-file)
                           "Test commit message")))
               (should (stringp result))
               (should (string-match "Successfully deleted 1 file" result))
@@ -476,7 +476,7 @@
 
       ;; Should error when trying to delete non-existent file
       (should-error (greger-stdlib--delete-files
-                    (list nonexistent-file)
+                    (vector nonexistent-file)
                     "Test commit message")
                    :type 'error))))
 
@@ -496,7 +496,7 @@
 
             ;; Should error when trying to delete directory
             (should-error (greger-stdlib--delete-files
-                          (list test-dir)
+                          (vector test-dir)
                           "Test commit message")
                          :type 'error)))
 
@@ -512,19 +512,19 @@
 
     ;; Test with non-string file paths
     (should-error (greger-stdlib--delete-files
-                  (list 123)
+                  (vector 123)
                   "Test commit message")
                  :type 'error)
 
-    ;; Test with non-string/non-list file-paths
+    ;; Test with non-vector file-paths
     (should-error (greger-stdlib--delete-files
-                  "not-a-list"
+                  "not-a-vector"
                   "Test commit message")
                  :type 'error)
 
     ;; Test with non-string commit message
     (should-error (greger-stdlib--delete-files
-                  (list "/tmp/test.txt")
+                  (vector "/tmp/test.txt")
                   123)
                  :type 'error)))
 
@@ -557,7 +557,7 @@
 
             ;; Test deletion of git-tracked file
             (let ((result (greger-stdlib--delete-files
-                          (list test-file)
+                          (vector test-file)
                           "Delete test file")))
               (should (stringp result))
               (should (string-match "Successfully deleted 1 file" result))
@@ -592,7 +592,7 @@
 
             ;; Test deletion of non-git-tracked file
             (let ((result (greger-stdlib--delete-files
-                          (list test-file)
+                          (vector test-file)
                           "Delete test file")))
               (should (stringp result))
               (should (string-match "Successfully deleted 1 file" result))

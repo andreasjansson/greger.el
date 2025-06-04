@@ -692,21 +692,18 @@ If BUFFER is provided, it will be staged and committed with the renamed file."
   "Delete files at FILE-PATHS and stage the deletion in git if tracked.
 GIT-COMMIT-MESSAGE will be used for the git commit.
 If BUFFER is provided, it will be staged and committed with deleted files."
-  (unless (or (vectorp file-paths) (listp file-paths))
-    (error "Invalid type: file-paths must be a vector or list"))
+  (unless (vectorp file-paths)
+    (error "Invalid type: file-paths must be a vector"))
 
   (unless (stringp git-commit-message)
     (error "Invalid type: git-commit-message must be a string"))
 
-  (let ((paths-list (if (vectorp file-paths)
-                        (append file-paths nil)  ; Convert vector to list
-                      file-paths))              ; Already a list
-        (expanded-paths '())
+  (let ((expanded-paths '())
         (deleted-files '())
         (git-tracked-files '()))
 
     ;; Validate all files exist first
-    (dolist (file-path paths-list)
+    (seq-doseq (file-path file-paths)
       (unless (stringp file-path)
         (error "Each file path must be a string"))
       (let ((expanded-path (expand-file-name file-path)))
@@ -993,13 +990,10 @@ FUNCTION-NAMES specifies which functions to evaluate."
   (unless (stringp file-path)
     (error "Invalid type: file-path must be a string"))
 
-  (unless (or (vectorp function-names) (listp function-names))
-    (error "Invalid type: function-names must be a vector or list"))
+  (unless (vectorp function-names)
+    (error "Invalid type: function-names must be a vector"))
 
-  (let ((expanded-path (expand-file-name file-path))
-        (names-list (if (vectorp function-names)
-                        (append function-names nil)  ; Convert vector to list
-                      function-names)))              ; Already a list
+  (let ((expanded-path (expand-file-name file-path)))
     ;; Check if file exists
     (unless (file-exists-p expanded-path)
       (error "File does not exist: %s" expanded-path))
@@ -1010,7 +1004,7 @@ FUNCTION-NAMES specifies which functions to evaluate."
 
     (with-current-buffer (find-file-noselect expanded-path)
      ;; Navigate to and evaluate each function
-     (dolist (function-name names-list)
+     (seq-doseq (function-name function-names)
        (goto-char (point-min))
 
        ;; Search for the function definition
