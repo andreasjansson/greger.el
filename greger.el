@@ -600,7 +600,9 @@ COMPLETION-CALLBACK is called when complete."
     (unless (looking-back (concat greger-user-tag "\n\n") nil)
       (insert "\n\n" greger-user-tag "\n\n"))
     ;; Clear the buffer-local agent state
-    (setq greger--current-agent-state nil))
+    (setq greger--current-agent-state nil)
+    ;; Update buffer state to idle
+    (greger--update-buffer-state))
   ;; Reset the state
   (setf (greger-state-current-iteration agent-state) 0)
   (setf (greger-state-client-state agent-state) nil))
