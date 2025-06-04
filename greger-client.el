@@ -195,15 +195,6 @@ claude-sonnet-4-20250514 or claude-opus-4-20250514."
 
 ;;; Stream processing
 
-(defun greger-client--setup-cancel-binding (state)
-  "Setup \\[keyboard-quit] binding for cancellation in the output buffer.
-STATE contains the client state information."
-  (with-current-buffer (greger-client-state-output-buffer state)
-    (local-set-key (kbd "C-g")
-                   (lambda ()
-                     (interactive)
-                     (greger-client--cancel-request state)))))
-
 (defun greger-client--check-for-error (output)
   "Check OUTPUT for error responses and raise an error if found.
 Returns nil if no error found or if OUTPUT is not valid JSON."
