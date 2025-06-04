@@ -413,7 +413,9 @@ If RECURSIVE is non-nil, list files recursively."
     (error "Invalid type: path must be a string"))
 
   (let ((expanded-path (expand-file-name path))
-        (exclude-list (or exclude-directories-recursive '(".git" "__pycache__")))
+        (exclude-list (if (null exclude-directories-recursive)
+                          '(".git" "__pycache__")
+                        exclude-directories-recursive))
         (original-path path))
     (unless (file-exists-p expanded-path)
       (error "Directory does not exist: %s" expanded-path))
