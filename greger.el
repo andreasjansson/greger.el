@@ -110,7 +110,7 @@
 (defvar greger-tool-section-max-lines 4
   "Maximum number of lines to show in collapsed tool sections.")
 
-(defvar greger-tool-overlays nil
+(defvar-local greger-tool-overlays nil
   "List of overlays used for collapsible tool sections.")
 
 (defvar-local greger--current-agent-state nil
@@ -380,18 +380,24 @@ ARGS are arguments to format."
 
       ;; Get Claude's response
       (greger--debug "CALLING greger-client-stream...")
-      (greger-client-stream
-       :model greger-model
-       :dialog current-dialog
-       :tools tools
-       :buffer chat-buffer
-       :text-start-callback (lambda ()
-                              (greger--append-text (concat "\n\n" greger-assistant-tag "\n\n") agent-state))
-       :text-callback (lambda (text)
-                        (greger--append-text text agent-state))
-       :complete-callback (lambda (content-blocks)
-                            (greger--debug "RECEIVED PARSED CONTENT BLOCKS")
-                            (greger--handle-parsed-response content-blocks agent-state))))))
+      (let ((client-state (greger-client-stream
+                           :model greger-model
+                           :dialog current-dialog
+                           :tools tools
+                           :buffer chat-buffer
+                           :text-start-callback (lambda ()
+                                                  (greger--append-text (concat "\n\n" greger-assistant-tag "\n\n") agent-state))
+                           :text-callback (lambda (text)
+                                            (greger--append-text text agent-state))
+                           :complete-callback (lambda (content-blocks)
+                                                (greger--debug "RECEIVED PARSED CONTENT BLOCKS")
+                                                (setf (greger-state-client-state agent-state) nil)
+                                                (greger--handle-parsed-response content-blocks agent-state)))))
+        ;; Store the client state for potential cancellation
+        (setf (greger-state-client-state agent-state) client-state)
+        ;; Set buffer-local variable for greger-interrupt to access
+        (with-current-buffer chat-buffer
+          (setq greger--current-agent-state agent-state))))))
 
 (defun greger--handle-parsed-response (content-blocks agent-state)
   "Handle the parsed CONTENT-BLOCKS from Claude using AGENT-STATE."

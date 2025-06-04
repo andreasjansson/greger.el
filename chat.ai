@@ -1464,4 +1464,358 @@ greger.el
 Add buffer-local variable to track current agent state
 </tool.toolu_01KaYJwdZ2b66yy63tkF8z1s>
 
-<!-- TOOL_RESULT_PLACEHOLDER_toolu_01KaYJwdZ2b66yy63tkF8z1s -->
+## TOOL RESULT:
+
+ID: toolu_01KaYJwdZ2b66yy63tkF8z1s
+
+<tool.toolu_01KaYJwdZ2b66yy63tkF8z1s>
+Successfully replaced content in /Users/andreas/projects/greger.el/greger.el. Successfully staged 2 file(s) and committed with message: Add buffer-local variable to track current agent state
+</tool.toolu_01KaYJwdZ2b66yy63tkF8z1s>
+
+
+
+
+## ASSISTANT:
+
+Now I need to update the agent loop to set and track the client state. Let me find where `greger-client-stream` is called:
+
+## TOOL USE:
+
+Name: str-replace
+ID: toolu_01Bpgkg5VC5Tty4thuoR2UBu
+
+### file-path
+
+<tool.toolu_01Bpgkg5VC5Tty4thuoR2UBu>
+greger.el
+</tool.toolu_01Bpgkg5VC5Tty4thuoR2UBu>
+
+### original-content
+
+<tool.toolu_01Bpgkg5VC5Tty4thuoR2UBu>
+      ;; Get Claude's response
+      (greger--debug "CALLING greger-client-stream...")
+      (greger-client-stream
+       :model greger-model
+       :dialog current-dialog
+       :tools tools
+       :buffer chat-buffer
+       :text-start-callback (lambda ()
+                              (greger--append-text (concat "\n\n" greger-assistant-tag "\n\n") agent-state))
+       :text-callback (lambda (text)
+                        (greger--append-text text agent-state))
+       :complete-callback (lambda (content-blocks)
+                            (greger--debug "RECEIVED PARSED CONTENT BLOCKS")
+                            (greger--handle-parsed-response content-blocks agent-state)))))))
+</tool.toolu_01Bpgkg5VC5Tty4thuoR2UBu>
+
+### new-content
+
+<tool.toolu_01Bpgkg5VC5Tty4thuoR2UBu>
+      ;; Get Claude's response
+      (greger--debug "CALLING greger-client-stream...")
+      (let ((client-state (greger-client-stream
+                           :model greger-model
+                           :dialog current-dialog
+                           :tools tools
+                           :buffer chat-buffer
+                           :text-start-callback (lambda ()
+                                                  (greger--append-text (concat "\n\n" greger-assistant-tag "\n\n") agent-state))
+                           :text-callback (lambda (text)
+                                            (greger--append-text text agent-state))
+                           :complete-callback (lambda (content-blocks)
+                                                (greger--debug "RECEIVED PARSED CONTENT BLOCKS")
+                                                (setf (greger-state-client-state agent-state) nil)
+                                                (greger--handle-parsed-response content-blocks agent-state)))))
+        ;; Store the client state for potential cancellation
+        (setf (greger-state-client-state agent-state) client-state)
+        ;; Set buffer-local variable for greger-interrupt to access
+        (with-current-buffer chat-buffer
+          (setq greger--current-agent-state agent-state)))))))
+</tool.toolu_01Bpgkg5VC5Tty4thuoR2UBu>
+
+### git-commit-message
+
+<tool.toolu_01Bpgkg5VC5Tty4thuoR2UBu>
+Update agent loop to track client state for cancellation
+</tool.toolu_01Bpgkg5VC5Tty4thuoR2UBu>
+
+## TOOL RESULT:
+
+ID: toolu_01Bpgkg5VC5Tty4thuoR2UBu
+
+<tool.toolu_01Bpgkg5VC5Tty4thuoR2UBu>
+Error executing tool: Original content not found in file: /Users/andreas/projects/greger.el/greger.el -- Try again!
+</tool.toolu_01Bpgkg5VC5Tty4thuoR2UBu>
+
+## ASSISTANT:
+
+Let me search for the correct location of this code:
+
+## TOOL USE:
+
+Name: ripgrep
+ID: toolu_01KjLtPDWNySw91uygcUZ4qa
+
+### pattern
+
+<tool.toolu_01KjLtPDWNySw91uygcUZ4qa>
+CALLING greger-client-stream
+</tool.toolu_01KjLtPDWNySw91uygcUZ4qa>
+
+### path
+
+<tool.toolu_01KjLtPDWNySw91uygcUZ4qa>
+greger.el
+</tool.toolu_01KjLtPDWNySw91uygcUZ4qa>
+
+## TOOL RESULT:
+
+ID: toolu_01KjLtPDWNySw91uygcUZ4qa
+
+<tool.toolu_01KjLtPDWNySw91uygcUZ4qa>
+382:      (greger--debug "CALLING greger-client-stream...")
+
+</tool.toolu_01KjLtPDWNySw91uygcUZ4qa>
+
+## TOOL USE:
+
+Name: read-file
+ID: toolu_01G6YGKEmQaZ9LR33w5EfRB2
+
+### path
+
+<tool.toolu_01G6YGKEmQaZ9LR33w5EfRB2>
+greger.el
+</tool.toolu_01G6YGKEmQaZ9LR33w5EfRB2>
+
+### start-line
+
+<tool.toolu_01G6YGKEmQaZ9LR33w5EfRB2>
+380
+</tool.toolu_01G6YGKEmQaZ9LR33w5EfRB2>
+
+### end-line
+
+<tool.toolu_01G6YGKEmQaZ9LR33w5EfRB2>
+395
+</tool.toolu_01G6YGKEmQaZ9LR33w5EfRB2>
+
+## TOOL RESULT:
+
+ID: toolu_01G6YGKEmQaZ9LR33w5EfRB2
+
+<tool.toolu_01G6YGKEmQaZ9LR33w5EfRB2>
+
+      ;; Get Claude's response
+      (greger--debug "CALLING greger-client-stream...")
+      (greger-client-stream
+       :model greger-model
+       :dialog current-dialog
+       :tools tools
+       :buffer chat-buffer
+       :text-start-callback (lambda ()
+                              (greger--append-text (concat "\n\n" greger-assistant-tag "\n\n") agent-state))
+       :text-callback (lambda (text)
+                        (greger--append-text text agent-state))
+       :complete-callback (lambda (content-blocks)
+                            (greger--debug "RECEIVED PARSED CONTENT BLOCKS")
+                            (greger--handle-parsed-response content-blocks agent-state))))))
+
+</tool.toolu_01G6YGKEmQaZ9LR33w5EfRB2>
+
+## TOOL USE:
+
+Name: str-replace
+ID: toolu_01RkTY9uGKkX5ZcyGPBfvnm2
+
+### file-path
+
+<tool.toolu_01RkTY9uGKkX5ZcyGPBfvnm2>
+greger.el
+</tool.toolu_01RkTY9uGKkX5ZcyGPBfvnm2>
+
+### original-content
+
+<tool.toolu_01RkTY9uGKkX5ZcyGPBfvnm2>
+      ;; Get Claude's response
+      (greger--debug "CALLING greger-client-stream...")
+      (greger-client-stream
+       :model greger-model
+       :dialog current-dialog
+       :tools tools
+       :buffer chat-buffer
+       :text-start-callback (lambda ()
+                              (greger--append-text (concat "\n\n" greger-assistant-tag "\n\n") agent-state))
+       :text-callback (lambda (text)
+                        (greger--append-text text agent-state))
+       :complete-callback (lambda (content-blocks)
+                            (greger--debug "RECEIVED PARSED CONTENT BLOCKS")
+                            (greger--handle-parsed-response content-blocks agent-state)))))))
+</tool.toolu_01RkTY9uGKkX5ZcyGPBfvnm2>
+
+### new-content
+
+<tool.toolu_01RkTY9uGKkX5ZcyGPBfvnm2>
+      ;; Get Claude's response
+      (greger--debug "CALLING greger-client-stream...")
+      (let ((client-state (greger-client-stream
+                           :model greger-model
+                           :dialog current-dialog
+                           :tools tools
+                           :buffer chat-buffer
+                           :text-start-callback (lambda ()
+                                                  (greger--append-text (concat "\n\n" greger-assistant-tag "\n\n") agent-state))
+                           :text-callback (lambda (text)
+                                            (greger--append-text text agent-state))
+                           :complete-callback (lambda (content-blocks)
+                                                (greger--debug "RECEIVED PARSED CONTENT BLOCKS")
+                                                (setf (greger-state-client-state agent-state) nil)
+                                                (greger--handle-parsed-response content-blocks agent-state)))))
+        ;; Store the client state for potential cancellation
+        (setf (greger-state-client-state agent-state) client-state)
+        ;; Set buffer-local variable for greger-interrupt to access
+        (with-current-buffer chat-buffer
+          (setq greger--current-agent-state agent-state)))))))
+</tool.toolu_01RkTY9uGKkX5ZcyGPBfvnm2>
+
+### git-commit-message
+
+<tool.toolu_01RkTY9uGKkX5ZcyGPBfvnm2>
+Update agent loop to track client state for cancellation
+</tool.toolu_01RkTY9uGKkX5ZcyGPBfvnm2>
+
+## TOOL RESULT:
+
+ID: toolu_01RkTY9uGKkX5ZcyGPBfvnm2
+
+<tool.toolu_01RkTY9uGKkX5ZcyGPBfvnm2>
+Error executing tool: Original content not found in file: /Users/andreas/projects/greger.el/greger.el -- Try again!
+</tool.toolu_01RkTY9uGKkX5ZcyGPBfvnm2>
+
+## ASSISTANT:
+
+Let me get more context around that area:
+
+## TOOL USE:
+
+Name: read-file
+ID: toolu_01SDXJPe1qmhsqasvHfNrmXF
+
+### path
+
+<tool.toolu_01SDXJPe1qmhsqasvHfNrmXF>
+greger.el
+</tool.toolu_01SDXJPe1qmhsqasvHfNrmXF>
+
+### start-line
+
+<tool.toolu_01SDXJPe1qmhsqasvHfNrmXF>
+375
+</tool.toolu_01SDXJPe1qmhsqasvHfNrmXF>
+
+### end-line
+
+<tool.toolu_01SDXJPe1qmhsqasvHfNrmXF>
+400
+</tool.toolu_01SDXJPe1qmhsqasvHfNrmXF>
+
+## TOOL RESULT:
+
+ID: toolu_01SDXJPe1qmhsqasvHfNrmXF
+
+<tool.toolu_01SDXJPe1qmhsqasvHfNrmXF>
+          (greger--debug "MAX ITERATIONS REACHED - STOPPING")
+          (greger--append-text (format "\n\nMaximum iterations (%d) reached. Stopping agent execution.\n\n"
+                                       greger-max-iterations)
+                               agent-state)
+          (greger--finish-response agent-state))
+
+      ;; Get Claude's response
+      (greger--debug "CALLING greger-client-stream...")
+      (greger-client-stream
+       :model greger-model
+       :dialog current-dialog
+       :tools tools
+       :buffer chat-buffer
+       :text-start-callback (lambda ()
+                              (greger--append-text (concat "\n\n" greger-assistant-tag "\n\n") agent-state))
+       :text-callback (lambda (text)
+                        (greger--append-text text agent-state))
+       :complete-callback (lambda (content-blocks)
+                            (greger--debug "RECEIVED PARSED CONTENT BLOCKS")
+                            (greger--handle-parsed-response content-blocks agent-state))))))
+
+(defun greger--handle-parsed-response (content-blocks agent-state)
+  "Handle the parsed CONTENT-BLOCKS from Claude using AGENT-STATE."
+  (greger--debug "CONTENT BLOCKS: %s" content-blocks)
+
+  ;; Check if we have tool calls
+</tool.toolu_01SDXJPe1qmhsqasvHfNrmXF>
+
+## ASSISTANT:
+
+I can see the issue - there are extra parentheses at the end. Let me fix this:
+
+## TOOL USE:
+
+Name: str-replace
+ID: toolu_01KzUv4M4VUS83yfC2aYjm3p
+
+### file-path
+
+<tool.toolu_01KzUv4M4VUS83yfC2aYjm3p>
+greger.el
+</tool.toolu_01KzUv4M4VUS83yfC2aYjm3p>
+
+### original-content
+
+<tool.toolu_01KzUv4M4VUS83yfC2aYjm3p>
+      ;; Get Claude's response
+      (greger--debug "CALLING greger-client-stream...")
+      (greger-client-stream
+       :model greger-model
+       :dialog current-dialog
+       :tools tools
+       :buffer chat-buffer
+       :text-start-callback (lambda ()
+                              (greger--append-text (concat "\n\n" greger-assistant-tag "\n\n") agent-state))
+       :text-callback (lambda (text)
+                        (greger--append-text text agent-state))
+       :complete-callback (lambda (content-blocks)
+                            (greger--debug "RECEIVED PARSED CONTENT BLOCKS")
+                            (greger--handle-parsed-response content-blocks agent-state))))))
+</tool.toolu_01KzUv4M4VUS83yfC2aYjm3p>
+
+### new-content
+
+<tool.toolu_01KzUv4M4VUS83yfC2aYjm3p>
+      ;; Get Claude's response
+      (greger--debug "CALLING greger-client-stream...")
+      (let ((client-state (greger-client-stream
+                           :model greger-model
+                           :dialog current-dialog
+                           :tools tools
+                           :buffer chat-buffer
+                           :text-start-callback (lambda ()
+                                                  (greger--append-text (concat "\n\n" greger-assistant-tag "\n\n") agent-state))
+                           :text-callback (lambda (text)
+                                            (greger--append-text text agent-state))
+                           :complete-callback (lambda (content-blocks)
+                                                (greger--debug "RECEIVED PARSED CONTENT BLOCKS")
+                                                (setf (greger-state-client-state agent-state) nil)
+                                                (greger--handle-parsed-response content-blocks agent-state)))))
+        ;; Store the client state for potential cancellation
+        (setf (greger-state-client-state agent-state) client-state)
+        ;; Set buffer-local variable for greger-interrupt to access
+        (with-current-buffer chat-buffer
+          (setq greger--current-agent-state agent-state))))))
+</tool.toolu_01KzUv4M4VUS83yfC2aYjm3p>
+
+### git-commit-message
+
+<tool.toolu_01KzUv4M4VUS83yfC2aYjm3p>
+Update agent loop to track client state for cancellation
+</tool.toolu_01KzUv4M4VUS83yfC2aYjm3p>
+
+<!-- TOOL_RESULT_PLACEHOLDER_toolu_01KzUv4M4VUS83yfC2aYjm3p -->
