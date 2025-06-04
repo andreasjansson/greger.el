@@ -1913,4 +1913,222 @@ greger-stdlib.el
 Refactor greger-stdlib--insert to use assertion helpers
 </tool.toolu_01CVXo6gxb9qccw37CQ91Tvr>
 
-<!-- TOOL_RESULT_PLACEHOLDER_toolu_01CVXo6gxb9qccw37CQ91Tvr -->
+## TOOL RESULT:
+
+ID: toolu_01CVXo6gxb9qccw37CQ91Tvr
+
+<tool.toolu_01CVXo6gxb9qccw37CQ91Tvr>
+Successfully replaced content in /Users/andreas/projects/greger.el/greger-stdlib.el. Successfully staged 2 file(s) and committed with message: Refactor greger-stdlib--insert to use assertion helpers
+</tool.toolu_01CVXo6gxb9qccw37CQ91Tvr>
+
+
+## ASSISTANT:
+
+However, I need to update the insert function to check the line number against the total number of lines in the file. Let me examine that function to understand how to implement this:
+
+## TOOL USE:
+
+Name: read-file
+ID: toolu_01DMvj6pSrfh9968oNFMcwFV
+
+### path
+
+<tool.toolu_01DMvj6pSrfh9968oNFMcwFV>
+greger-stdlib.el
+</tool.toolu_01DMvj6pSrfh9968oNFMcwFV>
+
+### start-line
+
+<tool.toolu_01DMvj6pSrfh9968oNFMcwFV>
+878
+</tool.toolu_01DMvj6pSrfh9968oNFMcwFV>
+
+### end-line
+
+<tool.toolu_01DMvj6pSrfh9968oNFMcwFV>
+920
+</tool.toolu_01DMvj6pSrfh9968oNFMcwFV>
+
+## TOOL RESULT:
+
+ID: toolu_01DMvj6pSrfh9968oNFMcwFV
+
+<tool.toolu_01DMvj6pSrfh9968oNFMcwFV>
+         ;; Insert at beginning of file
+         (goto-char (point-min))
+       ;; Go to the specified line - this is where the fix is needed
+       (goto-char (point-min))
+        (forward-line (1- line-number))
+       ;; Move to beginning of line to insert before it, not after it
+       (beginning-of-line))
+
+     ;; Insert the content
+     (if (= line-number 0)
+         ;; At beginning of file, insert content and newline
+         (progn
+           (insert content)
+           (unless (string-suffix-p "\n" content)
+             (insert "\n")))
+       ;; Before a line, insert content then newline
+       (progn
+         (insert content)
+         (unless (string-suffix-p "\n" content)
+           (insert "\n"))))
+
+     ;; Save the file
+     (save-buffer))
+
+    ;; Stage and commit the file
+    (let ((git-result (greger-stdlib--git-stage-and-commit (list expanded-path) git-commit-message buffer)))
+      (format "Successfully inserted %d characters at line %d in %s. %s"
+              (length content) line-number expanded-path git-result))))
+
+(defun greger-stdlib--git-log (path &optional max-rows)
+  "View git commit logs using git command line for PATH.
+MAX-ROWS limits the number of log entries returned (default 100)."
+  (unless (stringp path)
+    (error "Path must be a string"))
+
+  (let ((expanded-path (expand-file-name path))
+        (max-count (or max-rows 100)))
+
+    (unless (file-exists-p expanded-path)
+      (error "Path does not exist: %s" expanded-path))
+
+    ;; Get the directory to search for git repo (if path is a file, use its directory)
+    (let* ((search-dir (if (file-directory-p expanded-path)
+</tool.toolu_01DMvj6pSrfh9968oNFMcwFV>
+
+## ASSISTANT:
+
+Let me look at the complete insert function:
+
+## TOOL USE:
+
+Name: read-file
+ID: toolu_01FgSn2ReFTdc4EwLXRBTZQk
+
+### path
+
+<tool.toolu_01FgSn2ReFTdc4EwLXRBTZQk>
+greger-stdlib.el
+</tool.toolu_01FgSn2ReFTdc4EwLXRBTZQk>
+
+### start-line
+
+<tool.toolu_01FgSn2ReFTdc4EwLXRBTZQk>
+843
+</tool.toolu_01FgSn2ReFTdc4EwLXRBTZQk>
+
+### end-line
+
+<tool.toolu_01FgSn2ReFTdc4EwLXRBTZQk>
+900
+</tool.toolu_01FgSn2ReFTdc4EwLXRBTZQk>
+
+## TOOL RESULT:
+
+ID: toolu_01FgSn2ReFTdc4EwLXRBTZQk
+
+<tool.toolu_01FgSn2ReFTdc4EwLXRBTZQk>
+       (if (search-forward original-content nil t)
+           (progn
+             ;; Replace the found content
+             (replace-match new-content nil t)
+             ;; Save the file
+             (save-buffer))
+         (error "Original content not found in file: %s -- Try again!" expanded-path))))
+
+    ;; Stage and commit the file
+    (let ((git-result (greger-stdlib--git-stage-and-commit (list expanded-path) git-commit-message buffer)))
+      (format "Successfully replaced content in %s. %s" expanded-path git-result))))
+
+(defun greger-stdlib--insert (file-path line-number content git-commit-message &optional buffer)
+  "Insert CONTENT at LINE-NUMBER in FILE-PATH.
+GIT-COMMIT-MESSAGE will be used for the git commit.
+If BUFFER is provided, it will be staged and committed along with the file."
+  (greger-stdlib--assert-arg-string "file-path" file-path)
+  (greger-stdlib--assert-arg-int-between "line-number" line-number 0 nil)
+  (greger-stdlib--assert-arg-string "content" content)
+  (greger-stdlib--assert-arg-string "git-commit-message" git-commit-message)
+
+  (let ((expanded-path (expand-file-name file-path)))
+
+    ;; Check if file exists
+    (unless (file-exists-p expanded-path)
+      (error "File does not exist: %s" expanded-path))
+
+    ;; Check if it's actually a file and not a directory
+    (when (file-directory-p expanded-path)
+      (error "Path is a directory, not a file: %s" expanded-path))
+
+    (with-current-buffer (find-file-noselect expanded-path)
+     ;; Navigate to the insertion point
+     (goto-char (point-min))
+     (if (= line-number 0)
+         ;; Insert at beginning of file
+         (goto-char (point-min))
+       ;; Go to the specified line - this is where the fix is needed
+       (goto-char (point-min))
+        (forward-line (1- line-number))
+       ;; Move to beginning of line to insert before it, not after it
+       (beginning-of-line))
+
+     ;; Insert the content
+     (if (= line-number 0)
+         ;; At beginning of file, insert content and newline
+         (progn
+           (insert content)
+           (unless (string-suffix-p "\n" content)
+             (insert "\n")))
+       ;; Before a line, insert content then newline
+       (progn
+         (insert content)
+         (unless (string-suffix-p "\n" content)
+           (insert "\n"))))
+
+     ;; Save the file
+     (save-buffer))
+</tool.toolu_01FgSn2ReFTdc4EwLXRBTZQk>
+
+## ASSISTANT:
+
+Now I need to update the insert function to check the line number against the total number of lines. I'll modify the validation to count the lines in the file and check that the line number is not greater than the total number of lines + 1 (since you can insert after the last line):
+
+## TOOL USE:
+
+Name: str-replace
+ID: toolu_01Jgu5LpSvqTDTUzsuu93kFZ
+
+### file-path
+
+<tool.toolu_01Jgu5LpSvqTDTUzsuu93kFZ>
+greger-stdlib.el
+</tool.toolu_01Jgu5LpSvqTDTUzsuu93kFZ>
+
+### original-content
+
+<tool.toolu_01Jgu5LpSvqTDTUzsuu93kFZ>
+    (with-current-buffer (find-file-noselect expanded-path)
+     ;; Navigate to the insertion point
+</tool.toolu_01Jgu5LpSvqTDTUzsuu93kFZ>
+
+### new-content
+
+<tool.toolu_01Jgu5LpSvqTDTUzsuu93kFZ>
+    (with-current-buffer (find-file-noselect expanded-path)
+     ;; Count lines and validate line-number
+     (let ((total-lines (count-lines (point-min) (point-max))))
+       (when (> line-number (1+ total-lines))
+         (error "Invalid line number: %d is greater than total lines + 1 (%d)" line-number (1+ total-lines))))
+
+     ;; Navigate to the insertion point
+</tool.toolu_01Jgu5LpSvqTDTUzsuu93kFZ>
+
+### git-commit-message
+
+<tool.toolu_01Jgu5LpSvqTDTUzsuu93kFZ>
+Add line number validation against file length in greger-stdlib--insert
+</tool.toolu_01Jgu5LpSvqTDTUzsuu93kFZ>
+
+<!-- TOOL_RESULT_PLACEHOLDER_toolu_01Jgu5LpSvqTDTUzsuu93kFZ -->

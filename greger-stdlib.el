@@ -872,6 +872,11 @@ If BUFFER is provided, it will be staged and committed along with the file."
       (error "Path is a directory, not a file: %s" expanded-path))
 
     (with-current-buffer (find-file-noselect expanded-path)
+     ;; Count lines and validate line-number
+     (let ((total-lines (count-lines (point-min) (point-max))))
+       (when (> line-number (1+ total-lines))
+         (error "Invalid line number: %d is greater than total lines + 1 (%d)" line-number (1+ total-lines))))
+
      ;; Navigate to the insertion point
      (goto-char (point-min))
      (if (= line-number 0)
