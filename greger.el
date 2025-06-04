@@ -113,6 +113,9 @@
 (defvar greger-tool-overlays nil
   "List of overlays used for collapsible tool sections.")
 
+(defvar-local greger--current-agent-state nil
+  "Buffer-local variable to track the current agent state.")
+
 ;; Face definitions for tool tags
 (defface greger-tool-tag-face
   '((t :height 0.6 :foreground "gray70"))
