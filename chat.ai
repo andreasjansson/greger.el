@@ -843,4 +843,77 @@ drwx------  (dir)  ..
 Fix greger-test-list-directory-basic to use controlled temp directory
 </tool.toolu_01JoPr5zdzSvREYsMq8nPnR8>
 
-<!-- TOOL_RESULT_PLACEHOLDER_toolu_01JoPr5zdzSvREYsMq8nPnR8 -->
+## TOOL RESULT:
+
+ID: toolu_01JoPr5zdzSvREYsMq8nPnR8
+
+<tool.toolu_01JoPr5zdzSvREYsMq8nPnR8>
+Successfully replaced content in /Users/andreas/projects/greger.el/test/test-greger-stdlib.el. Successfully staged 2 file(s) and committed with message: Fix greger-test-list-directory-basic to use controlled temp directory
+</tool.toolu_01JoPr5zdzSvREYsMq8nPnR8>
+
+## ASSISTANT:
+
+Now let me update the empty directory test:
+
+## TOOL USE:
+
+Name: str-replace
+ID: toolu_016QsKGNJeq9ZGPnXDHQHPxM
+
+### file-path
+
+<tool.toolu_016QsKGNJeq9ZGPnXDHQHPxM>
+test/test-greger-stdlib.el
+</tool.toolu_016QsKGNJeq9ZGPnXDHQHPxM>
+
+### original-content
+
+<tool.toolu_016QsKGNJeq9ZGPnXDHQHPxM>
+(ert-deftest greger-test-list-directory-empty-dir ()
+  "Test list-directory with empty directory."
+  (let ((test-dir (make-temp-file "greger-test-empty-dir" t)))
+    (unwind-protect
+        (progn
+          ;; Test empty directory - should show directory header and . .. entries
+          (let ((result (greger-stdlib--list-directory test-dir))
+                (expected (format "%s:
+drwx------  (dir)  .
+drwx------  (dir)  .." (file-name-as-directory test-dir))))
+            (should (stringp result))
+            (should (string= expected result))))
+
+      ;; Clean up
+      (when (file-exists-p test-dir)
+        (delete-directory test-dir)))))
+</tool.toolu_016QsKGNJeq9ZGPnXDHQHPxM>
+
+### new-content
+
+<tool.toolu_016QsKGNJeq9ZGPnXDHQHPxM>
+(ert-deftest greger-test-list-directory-empty-dir ()
+  "Test list-directory with empty directory."
+  (let ((test-dir (greger-test--make-controlled-temp-dir "greger-test-empty-dir"))
+        (parent-dir nil))
+    (unwind-protect
+        (progn
+          (setq parent-dir (file-name-directory (directory-file-name test-dir)))
+          ;; Test empty directory - should show directory header and . .. entries
+          (let ((result (greger-stdlib--list-directory test-dir))
+                (expected (format "%s:
+drwx------  (dir)  .
+drwx------  (dir)  .." (file-name-as-directory test-dir))))
+            (should (stringp result))
+            (should (string= expected result))))
+
+      ;; Clean up
+      (when (and parent-dir (file-exists-p parent-dir))
+        (delete-directory parent-dir t)))))
+</tool.toolu_016QsKGNJeq9ZGPnXDHQHPxM>
+
+### git-commit-message
+
+<tool.toolu_016QsKGNJeq9ZGPnXDHQHPxM>
+Fix greger-test-list-directory-empty-dir to use controlled temp directory
+</tool.toolu_016QsKGNJeq9ZGPnXDHQHPxM>
+
+<!-- TOOL_RESULT_PLACEHOLDER_toolu_016QsKGNJeq9ZGPnXDHQHPxM -->
