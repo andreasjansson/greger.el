@@ -592,7 +592,7 @@
 
             ;; Test deletion of non-git-tracked file
             (let ((result (greger-stdlib--delete-files
-                          (list test-file)
+                          (vector test-file)
                           "Delete test file")))
               (should (stringp result))
               (should (string-match "Successfully deleted 1 file" result))
