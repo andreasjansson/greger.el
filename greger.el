@@ -78,6 +78,11 @@
   :type '(repeat symbol)
   :group 'greger)
 
+(defcustom greger-server-tools '()
+  "List of server tools available to the agent (e.g., web_search)."
+  :type '(repeat symbol)
+  :group 'greger)
+
 (defcustom greger-max-iterations 100
   "Maximum number of agent iterations before stopping."
   :type 'integer
