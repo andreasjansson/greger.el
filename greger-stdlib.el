@@ -523,12 +523,14 @@ ATTRS should be the result of file-attributes."
                   "rwxrwxrwx")))       ; Default fallback
     (concat type-char perms)))
 
-(defun greger-stdlib--should-include-file-p (relative-path exclude-pattern)
-  "Return t if file at RELATIVE-PATH should be included given EXCLUDE-PATTERN.
-If EXCLUDE-PATTERN is empty or nil, include all files."
-  (if (or (null exclude-pattern) (string= exclude-pattern ""))
+(defun greger-stdlib--should-include-directory-in-recursive-listing-p (directory-name exclude-directories-recursive)
+  "Return t if directory with DIRECTORY-NAME should be included in recursive listing.
+EXCLUDE-DIRECTORIES-RECURSIVE is a regex pattern that is matched as a full match against directory names.
+If EXCLUDE-DIRECTORIES-RECURSIVE is empty or nil, include all directories."
+  (if (or (null exclude-directories-recursive) (string= exclude-directories-recursive ""))
       t
-    (not (string-match-p exclude-pattern relative-path))))
+    (let ((full-match-pattern (format "^(%s)$" exclude-directories-recursive)))
+      (not (string-match-p full-match-pattern directory-name)))))
 
 (defun greger-stdlib--ripgrep (pattern path callback &optional case-sensitive file-type context-lines max-results)
   "Search for PATTERN in PATH using the rg command line tool directly.

@@ -1096,4 +1096,204 @@ greger-stdlib.el
 Update default exclude pattern in function implementation
 </tool.toolu_01J6Kgh6ysMFNG7L4UqARce2>
 
-<!-- TOOL_RESULT_PLACEHOLDER_toolu_01J6Kgh6ysMFNG7L4UqARce2 -->
+## TOOL RESULT:
+
+ID: toolu_01J6Kgh6ysMFNG7L4UqARce2
+
+<tool.toolu_01J6Kgh6ysMFNG7L4UqARce2>
+Successfully replaced content in /Users/andreas/projects/greger.el/greger-stdlib.el. Successfully staged 2 file(s) and committed with message: Update default exclude pattern in function implementation
+</tool.toolu_01J6Kgh6ysMFNG7L4UqARce2>
+
+
+## ASSISTANT:
+
+Now I need to find and update the function that handles the pattern matching to implement the full match logic. Let me look at the `greger-stdlib--should-include-file-p` function:
+
+## TOOL USE:
+
+Name: read-file
+ID: toolu_01BbwZNFbuVMJ8n3N696pQQF
+
+### path
+
+<tool.toolu_01BbwZNFbuVMJ8n3N696pQQF>
+greger-stdlib.el
+</tool.toolu_01BbwZNFbuVMJ8n3N696pQQF>
+
+### start-line
+
+<tool.toolu_01BbwZNFbuVMJ8n3N696pQQF>
+520
+</tool.toolu_01BbwZNFbuVMJ8n3N696pQQF>
+
+### end-line
+
+<tool.toolu_01BbwZNFbuVMJ8n3N696pQQF>
+540
+</tool.toolu_01BbwZNFbuVMJ8n3N696pQQF>
+
+## TOOL RESULT:
+
+ID: toolu_01BbwZNFbuVMJ8n3N696pQQF
+
+<tool.toolu_01BbwZNFbuVMJ8n3N696pQQF>
+                     (t "-")))                       ; regular file
+         (perms (if (stringp mode)
+                    (substring mode 1)  ; Skip the type character from mode string
+                  "rwxrwxrwx")))       ; Default fallback
+    (concat type-char perms)))
+
+(defun greger-stdlib--should-include-file-p (relative-path exclude-pattern)
+  "Return t if file at RELATIVE-PATH should be included given EXCLUDE-PATTERN.
+If EXCLUDE-PATTERN is empty or nil, include all files."
+  (if (or (null exclude-pattern) (string= exclude-pattern ""))
+      t
+    (not (string-match-p exclude-pattern relative-path))))
+
+(defun greger-stdlib--ripgrep (pattern path callback &optional case-sensitive file-type context-lines max-results)
+  "Search for PATTERN in PATH using the rg command line tool directly.
+CALLBACK is called with (result error) when search completes.
+CASE-SENSITIVE, FILE-TYPE, CONTEXT-LINES and MAX-RESULTS are optional."
+  (cond
+   ((not (stringp pattern))
+    (funcall callback nil "Pattern must be a string"))
+
+</tool.toolu_01BbwZNFbuVMJ8n3N696pQQF>
+
+## ASSISTANT:
+
+I found the function. However, looking at the current implementation, I need to understand how it's being used. Let me check where `greger-stdlib--should-include-file-p` is called:
+
+## TOOL USE:
+
+Name: ripgrep
+ID: toolu_01LWfBzCfX9gfDKjHhCa7i3y
+
+### pattern
+
+<tool.toolu_01LWfBzCfX9gfDKjHhCa7i3y>
+greger-stdlib--should-include-file-p
+</tool.toolu_01LWfBzCfX9gfDKjHhCa7i3y>
+
+## TOOL RESULT:
+
+ID: toolu_01LWfBzCfX9gfDKjHhCa7i3y
+
+<tool.toolu_01LWfBzCfX9gfDKjHhCa7i3y>
+/Users/andreas/projects/greger.el/greger-stdlib.el:470:                       (greger-stdlib--should-include-file-p relative-path exclude-pattern))
+/Users/andreas/projects/greger.el/greger-stdlib.el:526:(defun greger-stdlib--should-include-file-p (relative-path exclude-pattern)
+/Users/andreas/projects/greger.el/chat.ai:442:                       (greger-stdlib--should-include-file-p relative-path exclude-pattern))
+/Users/andreas/projects/greger.el/chat.ai:533:(defun greger-stdlib--should-include-file-p (relative-path exclude-pattern)
+
+</tool.toolu_01LWfBzCfX9gfDKjHhCa7i3y>
+
+## ASSISTANT:
+
+Let me check how it's being called in the recursive function:
+
+## TOOL USE:
+
+Name: read-file
+ID: toolu_014zMkjRsN6hiSqa5GCco7s9
+
+### path
+
+<tool.toolu_014zMkjRsN6hiSqa5GCco7s9>
+greger-stdlib.el
+</tool.toolu_014zMkjRsN6hiSqa5GCco7s9>
+
+### start-line
+
+<tool.toolu_014zMkjRsN6hiSqa5GCco7s9>
+460
+</tool.toolu_014zMkjRsN6hiSqa5GCco7s9>
+
+### end-line
+
+<tool.toolu_014zMkjRsN6hiSqa5GCco7s9>
+485
+</tool.toolu_014zMkjRsN6hiSqa5GCco7s9>
+
+## TOOL RESULT:
+
+ID: toolu_014zMkjRsN6hiSqa5GCco7s9
+
+<tool.toolu_014zMkjRsN6hiSqa5GCco7s9>
+      (unless (string= (expand-file-name path) (expand-file-name "/"))
+        (push (greger-stdlib--format-file-info (file-name-directory (directory-file-name path)) ".." exclude-pattern) current-listing))
+
+      ;; Process files and directories
+      (let ((files (directory-files path t)))
+        (dolist (file (sort files #'string<))
+          (let* ((basename (file-name-nondirectory file))
+                 (relative-path (file-relative-name file (expand-file-name path))))
+            (when (and (not (string= basename "."))
+                       (not (string= basename ".."))
+                       (greger-stdlib--should-include-file-p relative-path exclude-pattern))
+              (let ((formatted (greger-stdlib--format-file-info file basename exclude-pattern)))
+                (when formatted
+                  (push formatted current-listing)))
+              ;; Collect subdirectories for recursive processing
+              (when (and recursive (file-directory-p file))
+                (push file subdirs))))))
+
+      ;; Add current directory to results (reverse to get correct order)
+      (setq all-results (reverse current-listing)))
+
+    ;; Process subdirectories recursively if requested
+    (when recursive
+      (dolist (subdir (reverse subdirs)) ; Reverse to maintain alphabetical order
+        (let* ((basename (file-name-nondirectory subdir))
+               (subdir-results (greger-stdlib--list-directory-recursive
+</tool.toolu_014zMkjRsN6hiSqa5GCco7s9>
+
+## USER:
+
+You should probably rename greger-stdlib--should-include-file-p to greger-stdlib--should-include-directory-in-recursive-listing-p
+
+## ASSISTANT:
+
+You're absolutely right! Since this function is now specifically about excluding directories when doing recursive listing, the name should reflect that. Let me rename the function and update its implementation to use the full match logic.
+
+## TOOL USE:
+
+Name: str-replace
+ID: toolu_01JmJ7F7W5aw2g5d2j75oSxs
+
+### file-path
+
+<tool.toolu_01JmJ7F7W5aw2g5d2j75oSxs>
+greger-stdlib.el
+</tool.toolu_01JmJ7F7W5aw2g5d2j75oSxs>
+
+### original-content
+
+<tool.toolu_01JmJ7F7W5aw2g5d2j75oSxs>
+(defun greger-stdlib--should-include-file-p (relative-path exclude-pattern)
+  "Return t if file at RELATIVE-PATH should be included given EXCLUDE-PATTERN.
+If EXCLUDE-PATTERN is empty or nil, include all files."
+  (if (or (null exclude-pattern) (string= exclude-pattern ""))
+      t
+    (not (string-match-p exclude-pattern relative-path))))
+</tool.toolu_01JmJ7F7W5aw2g5d2j75oSxs>
+
+### new-content
+
+<tool.toolu_01JmJ7F7W5aw2g5d2j75oSxs>
+(defun greger-stdlib--should-include-directory-in-recursive-listing-p (directory-name exclude-directories-recursive)
+  "Return t if directory with DIRECTORY-NAME should be included in recursive listing.
+EXCLUDE-DIRECTORIES-RECURSIVE is a regex pattern that is matched as a full match against directory names.
+If EXCLUDE-DIRECTORIES-RECURSIVE is empty or nil, include all directories."
+  (if (or (null exclude-directories-recursive) (string= exclude-directories-recursive ""))
+      t
+    (let ((full-match-pattern (format "^(%s)$" exclude-directories-recursive)))
+      (not (string-match-p full-match-pattern directory-name)))))
+</tool.toolu_01JmJ7F7W5aw2g5d2j75oSxs>
+
+### git-commit-message
+
+<tool.toolu_01JmJ7F7W5aw2g5d2j75oSxs>
+Rename function to reflect its purpose and implement full match logic
+</tool.toolu_01JmJ7F7W5aw2g5d2j75oSxs>
+
+<!-- TOOL_RESULT_PLACEHOLDER_toolu_01JmJ7F7W5aw2g5d2j75oSxs -->
