@@ -432,7 +432,8 @@ If RECURSIVE is non-nil, list files recursively."
 (defun greger-stdlib--list-directory-recursive (path exclude-directories-recursive original-path recursive &optional prefix)
   "Recursively list directory contents with detailed information.
 PATH is the actual directory path to list.
-EXCLUDE-DIRECTORIES-RECURSIVE is vector of directory names to exclude when recursively listing.
+EXCLUDE-DIRECTORIES-RECURSIVE is vector of directory names to exclude when
+recursively listing.
 ORIGINAL-PATH is used for display purposes at the root level.
 RECURSIVE determines if we should recurse into subdirectories.
 PREFIX is used internally for nested directory structure."
