@@ -428,27 +428,121 @@ If RECURSIVE is non-nil, list files recursively."
           (greger-stdlib--list-directory-detailed expanded-path exclude-regex))
       (error "Failed to list directory: %s" (error-message-string err)))))
 
-(defun greger-stdlib--list-directory-recursive (path show-hidden &optional prefix)
-  "Recursively list directory contents at PATH.
-If SHOW-HIDDEN is non-nil, include hidden files.
+(defun greger-stdlib--list-directory-detailed (path exclude-pattern)
+  "List directory contents at PATH with detailed information like 'ls -la'.
+Excludes files/directories matching EXCLUDE-PATTERN."
+  (let ((files (directory-files path t))
+        (results '()))
+
+    ;; Add current and parent directory entries
+    (let ((current-dir (file-name-as-directory path)))
+      (push (greger-stdlib--format-file-info current-dir "." exclude-pattern) results)
+      (unless (string= (expand-file-name path) (expand-file-name "/"))
+        (push (greger-stdlib--format-file-info (file-name-directory (directory-file-name path)) ".." exclude-pattern) results)))
+
+    ;; Process regular files and directories
+    (dolist (file (sort files #'string<))
+      (let* ((basename (file-name-nondirectory file))
+             (relative-path (file-relative-name file (expand-file-name path))))
+        (when (and (not (string= basename "."))
+                   (not (string= basename ".."))
+                   (not (string-match-p exclude-pattern relative-path)))
+          (let ((formatted (greger-stdlib--format-file-info file basename exclude-pattern)))
+            (when formatted
+              (push formatted results))))))
+
+    (if results
+        (mapconcat #'identity (reverse results) "\n")
+      "Directory is empty")))
+
+(defun greger-stdlib--list-directory-recursive-detailed (path exclude-pattern &optional prefix)
+  "Recursively list directory contents at PATH with detailed information.
+Excludes files/directories matching EXCLUDE-PATTERN.
 PREFIX is used internally for nested directory structure."
-  (let ((files '())
+  (let ((results '())
         (prefix (or prefix "")))
 
-    (dolist (file (directory-files path nil
-                                   (if show-hidden "^[^.]\\|^\\.[^.]" "^[^.]")))
-      (let ((full-path (expand-file-name file path))
-            (display-name (concat prefix file)))
+    ;; First, list current directory
+    (let ((dir-header (if (string= prefix "")
+                          (format "%s:" (file-name-as-directory path))
+                        (format "\n%s%s:" prefix (file-name-nondirectory path)))))
+      (push dir-header results))
 
-        (if (file-directory-p full-path)
-            (progn
-              (push (concat display-name "/") files)
-              (setq files (append files
-                                  (greger-stdlib--list-directory-recursive
-                                   full-path show-hidden (concat prefix file "/")))))
-          (push display-name files))))
+    (let ((files (directory-files path t))
+          (current-results '()))
 
-    (reverse files)))
+      ;; Add current and parent directory entries for each directory
+      (let ((current-dir (file-name-as-directory path)))
+        (push (greger-stdlib--format-file-info current-dir "." exclude-pattern) current-results)
+        (unless (string= (expand-file-name path) (expand-file-name "/"))
+          (push (greger-stdlib--format-file-info (file-name-directory (directory-file-name path)) ".." exclude-pattern) current-results)))
+
+      ;; Process regular files and directories
+      (dolist (file (sort files #'string<))
+        (let* ((basename (file-name-nondirectory file))
+               (relative-path (file-relative-name file (expand-file-name path))))
+          (when (and (not (string= basename "."))
+                     (not (string= basename ".."))
+                     (not (string-match-p exclude-pattern relative-path)))
+            (let ((formatted (greger-stdlib--format-file-info file basename exclude-pattern)))
+              (when formatted
+                (push formatted current-results))))))
+
+      ;; Add current directory results
+      (when current-results
+        (setq results (append results (reverse current-results))))
+
+      ;; Recursively process subdirectories
+      (dolist (file (sort files #'string<))
+        (let* ((basename (file-name-nondirectory file))
+               (relative-path (file-relative-name file (expand-file-name path))))
+          (when (and (file-directory-p file)
+                     (not (string= basename "."))
+                     (not (string= basename ".."))
+                     (not (string-match-p exclude-pattern relative-path)))
+            (let ((subdir-results (greger-stdlib--list-directory-recursive-detailed
+                                   file exclude-pattern (concat prefix basename "/"))))
+              (push subdir-results results))))))
+
+    (mapconcat #'identity results "\n")))
+
+(defun greger-stdlib--format-file-info (filepath displayname exclude-pattern)
+  "Format file information similar to 'ls -la' output.
+FILEPATH is the full path to the file.
+DISPLAYNAME is the name to display in the output.
+EXCLUDE-PATTERN is used to check if file should be excluded."
+  (when (file-exists-p filepath)
+    (let* ((attrs (file-attributes filepath))
+           (file-type (nth 0 attrs))
+           (links (nth 1 attrs))
+           (uid (nth 2 attrs))
+           (gid (nth 3 attrs))
+           (size (nth 7 attrs))
+           (modtime (nth 5 attrs))
+           (mode-string (greger-stdlib--file-mode-string attrs)))
+
+      (format "%s %3d %s %s %8d %s %s"
+              mode-string
+              links
+              (if (stringp uid) uid (format "%d" uid))
+              (if (stringp gid) gid (format "%d" gid))
+              size
+              (format-time-string "%b %d %H:%M" modtime)
+              displayname))))
+
+(defun greger-stdlib--file-mode-string (attrs)
+  "Convert file attributes to mode string like 'drwxr-xr-x'.
+ATTRS should be the result of file-attributes."
+  (let* ((file-type (nth 0 attrs))
+         (mode (nth 8 attrs))
+         (type-char (cond
+                     ((eq file-type t) "d")          ; directory
+                     ((stringp file-type) "l")       ; symbolic link
+                     (t "-")))                       ; regular file
+         (perms (if (stringp mode)
+                    (substring mode 1)  ; Skip the type character from mode string
+                  "rwxrwxrwx")))       ; Default fallback
+    (concat type-char perms)))
 
 (defun greger-stdlib--ripgrep (pattern path callback &optional case-sensitive file-type context-lines max-results)
   "Search for PATTERN in PATH using the rg command line tool directly.
