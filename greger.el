@@ -100,7 +100,8 @@
   chat-buffer
   directory
   metadata
-  client-state)
+  client-state
+  executing-tools)
 
 (defvar greger-user-tag "## USER:")
 (defvar greger-assistant-tag "## ASSISTANT:")
