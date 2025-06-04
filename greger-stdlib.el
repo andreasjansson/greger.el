@@ -649,8 +649,7 @@ If BUFFER is provided, it will be staged and committed along with the new file."
   "Recursively create directory at PATH.
 GIT-COMMIT-MESSAGE will be used for the git commit.
 If BUFFER is provided, it will be staged and committed along with the directory."
-  (unless (stringp path)
-    (error "Invalid type: path must be a string"))
+  (greger-stdlib--assert-arg-string "path" path)
 
   (let ((expanded-path (expand-file-name path)))
 
