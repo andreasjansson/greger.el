@@ -7222,4 +7222,166 @@ greger-stdlib.el
 Fix non-recursive listing order
 </tool.toolu_01WanvJ1M7KccwYWkGoRTZHW>
 
-<!-- TOOL_RESULT_PLACEHOLDER_toolu_01WanvJ1M7KccwYWkGoRTZHW -->
+## TOOL RESULT:
+
+ID: toolu_01WanvJ1M7KccwYWkGoRTZHW
+
+<tool.toolu_01WanvJ1M7KccwYWkGoRTZHW>
+Successfully replaced content in /Users/andreas/projects/greger.el/greger-stdlib.el. Successfully staged 2 file(s) and committed with message: Fix non-recursive listing order
+</tool.toolu_01WanvJ1M7KccwYWkGoRTZHW>
+
+
+## ASSISTANT:
+
+Now let me test the non-recursive version again:
+
+## TOOL USE:
+
+Name: shell-command
+ID: toolu_01RpJZaqrBcihfMajPJwA9J2
+
+### command
+
+<tool.toolu_01RpJZaqrBcihfMajPJwA9J2>
+emacs --batch --eval "(progn (add-to-list 'load-path \".\") (require 'greger-stdlib) (let ((test-dir \"/tmp/non-rec-test2\")) (ignore-errors (delete-directory test-dir t)) (make-directory test-dir t) (with-temp-file (expand-file-name \"file1.txt\" test-dir) (insert \"content1\")) (princ (greger-stdlib--list-directory test-dir))))"
+</tool.toolu_01RpJZaqrBcihfMajPJwA9J2>
+
+## TOOL RESULT:
+
+ID: toolu_01RpJZaqrBcihfMajPJwA9J2
+
+<tool.toolu_01RpJZaqrBcihfMajPJwA9J2>
+Command executed successfully:
+Source file ‘/opt/homebrew/Cellar/emacs-plus@29/29.0.90/share/emacs/29.0.91/lisp/net/eww.el’ newer than byte-compiled file; using older file
+../../../../tmp/non-rec-test2/:
+drwxr-xr-x  (dir)  .
+drwxrwxrwt  (dir)  ..
+-rw-r--r--         8  file1.txt
+</tool.toolu_01RpJZaqrBcihfMajPJwA9J2>
+
+## ASSISTANT:
+
+Great! Now both formats are working correctly.
+
+## USER:
+
+No they're not, why is `../../../../tmp/non-rec-test2/:` not just `/tmp/non-rec-test2/:`? If the user passes an absolute path we shouldn't display the relative path
+
+## ASSISTANT:
+
+You're absolutely right! If the user passes an absolute path, we should display the absolute path, not convert it to a relative one. Let me fix the display path logic:
+
+## TOOL USE:
+
+Name: str-replace
+ID: toolu_015PfBd9T7CrpSTiLeY5kAig
+
+### file-path
+
+<tool.toolu_015PfBd9T7CrpSTiLeY5kAig>
+greger-stdlib.el
+</tool.toolu_015PfBd9T7CrpSTiLeY5kAig>
+
+### original-content
+
+<tool.toolu_015PfBd9T7CrpSTiLeY5kAig>
+        (display-path (if (string= path ".") "./" (file-name-as-directory (file-relative-name path))))
+</tool.toolu_015PfBd9T7CrpSTiLeY5kAig>
+
+### new-content
+
+<tool.toolu_015PfBd9T7CrpSTiLeY5kAig>
+        (display-path (if (string= path ".") "./" (file-name-as-directory path))))
+</tool.toolu_015PfBd9T7CrpSTiLeY5kAig>
+
+### git-commit-message
+
+<tool.toolu_015PfBd9T7CrpSTiLeY5kAig>
+Fix non-recursive display path to show absolute paths when given
+</tool.toolu_015PfBd9T7CrpSTiLeY5kAig>
+
+## TOOL RESULT:
+
+ID: toolu_015PfBd9T7CrpSTiLeY5kAig
+
+<tool.toolu_015PfBd9T7CrpSTiLeY5kAig>
+Error executing tool: Parentheses balance mismatch in Emacs Lisp file: original has balance 0, new has balance -1. They must be equal
+</tool.toolu_015PfBd9T7CrpSTiLeY5kAig>
+
+## ASSISTANT:
+
+Let me check the exact line:
+
+## TOOL USE:
+
+Name: read-file
+ID: toolu_01WrKKtYJ6MkHdsgQuAoEpd3
+
+### path
+
+<tool.toolu_01WrKKtYJ6MkHdsgQuAoEpd3>
+greger-stdlib.el
+</tool.toolu_01WrKKtYJ6MkHdsgQuAoEpd3>
+
+### start-line
+
+<tool.toolu_01WrKKtYJ6MkHdsgQuAoEpd3>
+428
+</tool.toolu_01WrKKtYJ6MkHdsgQuAoEpd3>
+
+### end-line
+
+<tool.toolu_01WrKKtYJ6MkHdsgQuAoEpd3>
+440
+</tool.toolu_01WrKKtYJ6MkHdsgQuAoEpd3>
+
+## TOOL RESULT:
+
+ID: toolu_01WrKKtYJ6MkHdsgQuAoEpd3
+
+<tool.toolu_01WrKKtYJ6MkHdsgQuAoEpd3>
+          (greger-stdlib--list-directory-detailed expanded-path exclude-regex))
+      (error "Failed to list directory: %s" (error-message-string err)))))
+
+(defun greger-stdlib--list-directory-detailed (path exclude-pattern)
+  "List directory contents at PATH with detailed information like 'ls -la'.
+Excludes files/directories matching EXCLUDE-PATTERN."
+  (let ((files (directory-files path t))
+        (results '())
+        (display-path (if (string= path ".") "./" (file-name-as-directory (file-relative-name path)))))
+
+    ;; Add directory header
+    (push (format "%s:" display-path) results)
+
+</tool.toolu_01WrKKtYJ6MkHdsgQuAoEpd3>
+
+## TOOL USE:
+
+Name: str-replace
+ID: toolu_01RuGPmA5ewsSwa6Gfc1sjmR
+
+### file-path
+
+<tool.toolu_01RuGPmA5ewsSwa6Gfc1sjmR>
+greger-stdlib.el
+</tool.toolu_01RuGPmA5ewsSwa6Gfc1sjmR>
+
+### original-content
+
+<tool.toolu_01RuGPmA5ewsSwa6Gfc1sjmR>
+(display-path (if (string= path ".") "./" (file-name-as-directory (file-relative-name path)))))
+</tool.toolu_01RuGPmA5ewsSwa6Gfc1sjmR>
+
+### new-content
+
+<tool.toolu_01RuGPmA5ewsSwa6Gfc1sjmR>
+(display-path (if (string= path ".") "./" (file-name-as-directory path))))
+</tool.toolu_01RuGPmA5ewsSwa6Gfc1sjmR>
+
+### git-commit-message
+
+<tool.toolu_01RuGPmA5ewsSwa6Gfc1sjmR>
+Fix non-recursive display path to show absolute paths when given
+</tool.toolu_01RuGPmA5ewsSwa6Gfc1sjmR>
+
+<!-- TOOL_RESULT_PLACEHOLDER_toolu_01RuGPmA5ewsSwa6Gfc1sjmR -->

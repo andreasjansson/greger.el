@@ -433,7 +433,7 @@ If RECURSIVE is non-nil, list files recursively."
 Excludes files/directories matching EXCLUDE-PATTERN."
   (let ((files (directory-files path t))
         (results '())
-        (display-path (if (string= path ".") "./" (file-name-as-directory (file-relative-name path)))))
+        (display-path (if (string= path ".") "./" (file-name-as-directory path))))
 
     ;; Add directory header
     (push (format "%s:" display-path) results)
