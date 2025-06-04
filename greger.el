@@ -237,7 +237,9 @@
       (greger-client--cancel-request (greger-state-client-state agent-state))
       (setf (greger-state-client-state agent-state) nil))
      ;; If there are executing tools, cancel them
-     ((and agent-state (greger-state-executing-tools agent-state))
+     ((and agent-state
+           (greger-state-executing-tools agent-state)
+           (> (hash-table-count (greger-state-executing-tools agent-state)) 0))
       (let ((executing-tools (greger-state-executing-tools agent-state)))
         (maphash (lambda (_tool-id greger-tool)
                    (let ((cancel-fn (greger-tool-cancel-fn greger-tool)))
