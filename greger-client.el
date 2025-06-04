@@ -138,8 +138,8 @@ claude-sonnet-4-20250514 or claude-opus-4-20250514."
     ("anthropic-version" . "2023-06-01")
     ("anthropic-beta" . "token-efficient-tools-2025-02-19")))
 
-(defun greger-client--build-data (model dialog &optional tools)
-  "Build request data for Claude MODEL with DIALOG and optional TOOLS."
+(defun greger-client--build-data (model dialog &optional tools server-tools)
+  "Build request data for Claude MODEL with DIALOG and optional TOOLS and SERVER-TOOLS."
   (let ((system-message nil)
         (user-messages ())
         (request-data nil))
