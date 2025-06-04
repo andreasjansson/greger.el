@@ -4979,4 +4979,46 @@ Excludes files/directories matching EXCLUDE-PATTERN."
 Remove . and .. entries from list-directory output for predictable testing
 </tool.toolu_01PJ7Ssf2JYethqHUJ17KbBn>
 
-<!-- TOOL_RESULT_PLACEHOLDER_toolu_01PJ7Ssf2JYethqHUJ17KbBn -->
+## TOOL RESULT:
+
+ID: toolu_01PJ7Ssf2JYethqHUJ17KbBn
+
+<tool.toolu_01PJ7Ssf2JYethqHUJ17KbBn>
+Successfully replaced content in /Users/andreas/projects/greger.el/greger-stdlib.el. Successfully staged 2 file(s) and committed with message: Remove . and .. entries from list-directory output for predictable testing
+</tool.toolu_01PJ7Ssf2JYethqHUJ17KbBn>
+
+
+## TOOL USE:
+
+Name: str-replace
+ID: toolu_016RFFsEep8UWpWyyFFHGj6F
+
+### file-path
+
+<tool.toolu_016RFFsEep8UWpWyyFFHGj6F>
+greger-stdlib.el
+</tool.toolu_016RFFsEep8UWpWyyFFHGj6F>
+
+### original-content
+
+<tool.toolu_016RFFsEep8UWpWyyFFHGj6F>
+      ;; Add current and parent directory entries for each directory
+      (let ((current-dir (file-name-as-directory path)))
+        (push (greger-stdlib--format-file-info current-dir "." exclude-pattern) current-results)
+        (unless (string= (expand-file-name path) (expand-file-name "/"))
+          (push (greger-stdlib--format-file-info (file-name-directory (directory-file-name path)) ".." exclude-pattern) current-results)))
+</tool.toolu_016RFFsEep8UWpWyyFFHGj6F>
+
+### new-content
+
+<tool.toolu_016RFFsEep8UWpWyyFFHGj6F>
+      ;; Skip . and .. entries for cleaner, more testable output
+</tool.toolu_016RFFsEep8UWpWyyFFHGj6F>
+
+### git-commit-message
+
+<tool.toolu_016RFFsEep8UWpWyyFFHGj6F>
+Remove . and .. entries from recursive listing as well
+</tool.toolu_016RFFsEep8UWpWyyFFHGj6F>
+
+<!-- TOOL_RESULT_PLACEHOLDER_toolu_016RFFsEep8UWpWyyFFHGj6F -->

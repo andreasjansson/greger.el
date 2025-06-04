@@ -465,11 +465,7 @@ PREFIX is used internally for nested directory structure."
     (let ((files (directory-files path t))
           (current-results '()))
 
-      ;; Add current and parent directory entries for each directory
-      (let ((current-dir (file-name-as-directory path)))
-        (push (greger-stdlib--format-file-info current-dir "." exclude-pattern) current-results)
-        (unless (string= (expand-file-name path) (expand-file-name "/"))
-          (push (greger-stdlib--format-file-info (file-name-directory (directory-file-name path)) ".." exclude-pattern) current-results)))
+      ;; Skip . and .. entries for cleaner, more testable output
 
       ;; Process regular files and directories
       (dolist (file (sort files #'string<))
