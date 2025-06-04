@@ -7761,4 +7761,60 @@ ORIGINAL-PATH is used for display purposes."
 Update list-directory-detailed to accept original path for display
 </tool.toolu_01RLCuneaewSBHsbMs36nwXb>
 
-<!-- TOOL_RESULT_PLACEHOLDER_toolu_01RLCuneaewSBHsbMs36nwXb -->
+## TOOL RESULT:
+
+ID: toolu_01RLCuneaewSBHsbMs36nwXb
+
+<tool.toolu_01RLCuneaewSBHsbMs36nwXb>
+Successfully replaced content in /Users/andreas/projects/greger.el/greger-stdlib.el. Successfully staged 2 file(s) and committed with message: Update list-directory-detailed to accept original path for display
+</tool.toolu_01RLCuneaewSBHsbMs36nwXb>
+
+
+## TOOL USE:
+
+Name: str-replace
+ID: toolu_018goneCPoxLUcPJ8TnpBGMB
+
+### file-path
+
+<tool.toolu_018goneCPoxLUcPJ8TnpBGMB>
+greger-stdlib.el
+</tool.toolu_018goneCPoxLUcPJ8TnpBGMB>
+
+### original-content
+
+<tool.toolu_018goneCPoxLUcPJ8TnpBGMB>
+(defun greger-stdlib--list-directory-recursive-detailed (path exclude-pattern &optional prefix)
+  "Recursively list directory contents at PATH with detailed information.
+Excludes files/directories matching EXCLUDE-PATTERN.
+PREFIX is used internally for nested directory structure."
+  (let ((all-results '())
+        (subdirs '())
+        (display-path (if (string= prefix "")
+                          (if (string= path ".") "./" (file-name-as-directory path))
+                        (concat "./" prefix))))
+</tool.toolu_018goneCPoxLUcPJ8TnpBGMB>
+
+### new-content
+
+<tool.toolu_018goneCPoxLUcPJ8TnpBGMB>
+(defun greger-stdlib--list-directory-recursive-detailed (path exclude-pattern &optional original-path prefix)
+  "Recursively list directory contents at PATH with detailed information.
+Excludes files/directories matching EXCLUDE-PATTERN.
+ORIGINAL-PATH is used for display purposes at the root level.
+PREFIX is used internally for nested directory structure."
+  (let ((all-results '())
+        (subdirs '())
+        (display-path (if (string= (or prefix "") "")
+                          (let ((display-path-base (or original-path path)))
+                            (if (string= display-path-base ".") "./" (file-name-as-directory display-path-base)))
+                        (concat "./" prefix))))
+</tool.toolu_018goneCPoxLUcPJ8TnpBGMB>
+
+### git-commit-message
+
+<tool.toolu_018goneCPoxLUcPJ8TnpBGMB>
+Update recursive function to accept original path for display
+</tool.toolu_018goneCPoxLUcPJ8TnpBGMB>
+
+<!-- TOOL_RESULT_PLACEHOLDER_toolu_018goneCPoxLUcPJ8TnpBGMB -->

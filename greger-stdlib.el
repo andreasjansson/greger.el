@@ -460,14 +460,16 @@ ORIGINAL-PATH is used for display purposes."
         (mapconcat #'identity (reverse results) "\n")
       (format "%s:\nDirectory is empty" display-path))))
 
-(defun greger-stdlib--list-directory-recursive-detailed (path exclude-pattern &optional prefix)
+(defun greger-stdlib--list-directory-recursive-detailed (path exclude-pattern &optional original-path prefix)
   "Recursively list directory contents at PATH with detailed information.
 Excludes files/directories matching EXCLUDE-PATTERN.
+ORIGINAL-PATH is used for display purposes at the root level.
 PREFIX is used internally for nested directory structure."
   (let ((all-results '())
         (subdirs '())
-        (display-path (if (string= prefix "")
-                          (if (string= path ".") "./" (file-name-as-directory path))
+        (display-path (if (string= (or prefix "") "")
+                          (let ((display-path-base (or original-path path)))
+                            (if (string= display-path-base ".") "./" (file-name-as-directory display-path-base)))
                         (concat "./" prefix))))
 
     ;; Build current directory listing
