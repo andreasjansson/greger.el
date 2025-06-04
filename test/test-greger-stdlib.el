@@ -729,7 +729,7 @@ Line 3"))
                   (expected (format "%s:
 drwx------  (dir)  .
 drwx------  (dir)  ..
--rw-r--r--        7  test.txt" (file-name-as-directory test-dir))))
+-rw-r--r--         7  test.txt" (file-name-as-directory test-dir))))
               (should (stringp result))
               (should (string= expected result)))))
 
