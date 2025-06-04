@@ -1111,9 +1111,11 @@ Returns either a system message, metadata, or both."
         (content (alist-get 'content server-tool-result)))
     (concat greger-parser-server-tool-result-tag "\n\n"
             "ID: " id "\n\n"
+            "<tool." id ">\n"
             (if (stringp content)
                 content
-              (json-encode content)))))
+              (greger-parser--value-to-string content)) "\n"
+            "</tool." id ">")))
 
 (defun greger-parser--tool-params-to-markdown (id input)
   "Convert tool parameters with ID and INPUT to markdown."

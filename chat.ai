@@ -5893,4 +5893,59 @@ greger-parser.el
 Fix server tool use markdown generation to use parameter format
 </tool.toolu_01R3nE4AVx6TEZ4kTC46PFZo>
 
-<!-- TOOL_RESULT_PLACEHOLDER_toolu_01R3nE4AVx6TEZ4kTC46PFZo -->
+## TOOL RESULT:
+
+ID: toolu_01R3nE4AVx6TEZ4kTC46PFZo
+
+<tool.toolu_01R3nE4AVx6TEZ4kTC46PFZo>
+Successfully replaced content in /Users/andreas/projects/greger.el/greger-parser.el. Successfully staged 2 file(s) and committed with message: Fix server tool use markdown generation to use parameter format
+</tool.toolu_01R3nE4AVx6TEZ4kTC46PFZo>
+
+## TOOL USE:
+
+Name: str-replace
+ID: toolu_01UhNq6wBRJf5hWKZqxZ5fCd
+
+### file-path
+
+<tool.toolu_01UhNq6wBRJf5hWKZqxZ5fCd>
+greger-parser.el
+</tool.toolu_01UhNq6wBRJf5hWKZqxZ5fCd>
+
+### original-content
+
+<tool.toolu_01UhNq6wBRJf5hWKZqxZ5fCd>
+(defun greger-parser--server-tool-result-to-markdown (server-tool-result)
+  "Convert SERVER-TOOL-RESULT to markdown."
+  (let ((id (alist-get 'tool_use_id server-tool-result))
+        (content (alist-get 'content server-tool-result)))
+    (concat greger-parser-server-tool-result-tag "\n\n"
+            "ID: " id "\n\n"
+            (if (stringp content)
+                content
+              (json-encode content)))))
+</tool.toolu_01UhNq6wBRJf5hWKZqxZ5fCd>
+
+### new-content
+
+<tool.toolu_01UhNq6wBRJf5hWKZqxZ5fCd>
+(defun greger-parser--server-tool-result-to-markdown (server-tool-result)
+  "Convert SERVER-TOOL-RESULT to markdown."
+  (let ((id (alist-get 'tool_use_id server-tool-result))
+        (content (alist-get 'content server-tool-result)))
+    (concat greger-parser-server-tool-result-tag "\n\n"
+            "ID: " id "\n\n"
+            "<tool." id ">\n"
+            (if (stringp content)
+                content
+              (greger-parser--value-to-string content)) "\n"
+            "</tool." id ">")))
+</tool.toolu_01UhNq6wBRJf5hWKZqxZ5fCd>
+
+### git-commit-message
+
+<tool.toolu_01UhNq6wBRJf5hWKZqxZ5fCd>
+Fix server tool result markdown generation to use XML tag format
+</tool.toolu_01UhNq6wBRJf5hWKZqxZ5fCd>
+
+<!-- TOOL_RESULT_PLACEHOLDER_toolu_01UhNq6wBRJf5hWKZqxZ5fCd -->
