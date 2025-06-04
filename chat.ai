@@ -4232,4 +4232,1125 @@ greger-stdlib.el
 Add debugging to verify web_search server tool registration
 </tool.toolu_01X8jPx8QxguH6Axv99qzdzP>
 
-<!-- TOOL_RESULT_PLACEHOLDER_toolu_01X8jPx8QxguH6Axv99qzdzP -->
+## TOOL RESULT:
+
+ID: toolu_01X8jPx8QxguH6Axv99qzdzP
+
+<tool.toolu_01X8jPx8QxguH6Axv99qzdzP>
+Successfully replaced content in /Users/andreas/projects/greger.el/greger-stdlib.el. Successfully staged 2 file(s) and committed with message: Add debugging to verify web_search server tool registration
+</tool.toolu_01X8jPx8QxguH6Axv99qzdzP>
+
+## ASSISTANT:
+
+Now let's test the web search again to see the debugging output:
+
+## TOOL USE:
+
+Name: shell-command
+ID: toolu_015ySt4UpSgrj4Zm9ZpdebZy
+
+### command
+
+<tool.toolu_015ySt4UpSgrj4Zm9ZpdebZy>
+bash script/test --verbose --file test/test-end-to-end.el | head -50
+</tool.toolu_015ySt4UpSgrj4Zm9ZpdebZy>
+
+## TOOL RESULT:
+
+ID: toolu_015ySt4UpSgrj4Zm9ZpdebZy
+
+<tool.toolu_015ySt4UpSgrj4Zm9ZpdebZy>
+Command executed successfully:
+[0;34mRunning ERT tests for greger package...[0m
+
+Running tests in [1;33mtest/test-end-to-end.el[0m (verbose mode)...
+Loading /Users/andreas/projects/greger.el/greger.el (source)...
+Source file ‘/opt/homebrew/Cellar/emacs-plus@29/29.0.90/share/emacs/29.0.91/lisp/net/eww.el’ newer than byte-compiled file; using older file
+DEBUG: web_search server tool registered: ((name . web_search) (type . web_search_20250305) (max_uses . 20))
+Loading /Users/andreas/projects/greger.el/greger-parser.el (source)...
+Loading /Users/andreas/projects/greger.el/greger-stdlib.el (source)...
+DEBUG: web_search server tool registered: ((name . web_search) (type . web_search_20250305) (max_uses . 20))
+Loading /Users/andreas/projects/greger.el/greger-tools.el (source)...
+Loading /Users/andreas/projects/greger.el/greger-client.el (source)...
+Loading /Users/andreas/projects/greger.el/greger-web.el (source)...
+Loading /Users/andreas/projects/greger.el/test/test-end-to-end.el (source)...
+Running 7 tests (2025-06-04 18:52:57+0200, selector ‘t’)
+Using model claude-sonnet-4-20250514
+   passed  1/7  greger-end-to-end-test-greger-function (0.003330 sec)
+Using model claude-sonnet-4-20250514
+   passed  2/7  greger-end-to-end-test-model-configuration (0.000192 sec)
+Using model claude-sonnet-4-20250514
+DEBUG: content_block_start - type: text, index: 0
+   passed  3/7  greger-end-to-end-test-no-tools-mode (4.687006 sec)
+Using model claude-sonnet-4-20250514
+DEBUG: content_block_start - type: text, index: 0
+DEBUG: content_block_start - type: server_tool_use, index: 1
+DEBUG: content_block_start - type: web_search_tool_result, index: 2
+DEBUG: content_block_start - type: text, index: 3
+DEBUG: content_block_start - type: text, index: 4
+DEBUG: content_block_start - type: text, index: 5
+DEBUG: content_block_start - type: text, index: 6
+DEBUG: content_block_start - type: text, index: 7
+DEBUG: content_block_start - type: text, index: 8
+Test greger-end-to-end-test-server-tool-web-search backtrace:
+  signal(ert-test-failed (((should (string-match-p "## SERVER TOOL USE
+  ert-fail(((should (string-match-p "## SERVER TOOL USE:" content)) :f
+  (if (unwind-protect (setq value-149 (apply fn-147 args-148)) (setq f
+  (let (form-description-151) (if (unwind-protect (setq value-149 (app
+  (let ((value-149 'ert-form-evaluation-aborted-150)) (let (form-descr
+  (let* ((fn-147 #'string-match-p) (args-148 (condition-case err (let 
+  (let ((content (buffer-string))) (let* ((fn-142 #'string-match-p) (a
+  (let ((greger-server-tools '(web_search))) (goto-char (point-max)) (
+  (progn (greger) (setq greger-buffer (current-buffer)) (let ((greger-
+  (unwind-protect (progn (greger) (setq greger-buffer (current-buffer)
+  (let ((greger-buffer nil)) (unwind-protect (progn (greger) (setq gre
+  (closure (t) nil (let* ((fn-132 #'getenv) (args-133 (condition-case 
+  ert--run-test-internal(#s(ert--test-execution-info :test #s(ert-test
+  ert-run-test(#s(ert-test :name greger-end-to-end-test-server-tool-we
+  ert-run-or-rerun-test(#s(ert--stats :selector t :tests ... :test-map
+  ert-run-tests(t #f(compiled-function (event-type &rest event-args) #
+  ert-run-tests-batch(t)
+  ert-run-tests-batch-and-exit(t)
+  (let ((ert-quiet nil)) (ert-run-tests-batch-and-exit t))
+  (progn (setq debug-on-error t) (add-to-list 'load-path ".") (require
+  eval((progn (setq debug-on-error t) (add-to-list 'load-path ".") (re
+  command-line-1(("--eval" "(progn\n                  (setq debug-on-e
+  command-line()
+  normal-top-level()
+Test greger-end-to-end-test-server-tool-web-search condition:
+    (ert-test-failed
+     ((should
+       (string-match-p "## SERVER TOOL USE:" content))
+      :form
+      (string-match-p "## SERVER TOOL USE:" "## SYSTEM:\n\nYou are a helpful assistant.\n\n## USER:\n\nWhat is the current weather in San Francisco? Please search for this information.\n\n## ASSISTANT:\n\nI'll search for the current weather in San Francisco for you.\n\n## ASSISTANT:\n\nBased on the current weather information for San Francisco, here's what I found:\n\n\n\n## ASSISTANT:\n\nToday (Tuesday 06/03) in San Francisco is mostly sunny with a high of 66°F and winds from the WSW at 10 to 20 mph\n\n## ASSISTANT:\n\n. \n\n## ASSISTANT:\n\nTonight will be partly cloudy with fog developing late, with a low of 53°F and SW winds at 10 to 15 mph\n\n## ASSISTANT:\n\n.\n\nFrom the National Weather Service, \n\n## ASSISTANT:\n\nthe forecast shows mostly cloudy conditions through mid morning, then gradual clearing,")
+      :value nil))
+   FAILED  4/7  greger-end-to-end-test-server-tool-web-search (8.111435 sec) at test/test-end-to-end.el:336
+Using model claude-sonnet-4-20250514
+Test greger-end-to-end-test-simple-conversation backtrace:
+  set-buffer(#<killed buffer>)
+  (save-current-buffer (set-buffer (progn (or (progn (and (memq (type-
+  greger--append-text(" with a high near 69°F." #s(greger-state :curre
+  (closure ((agent-state . #s(greger-state :current-iteration 0 :chat-
+  funcall((closure ((agent-state . #s(greger-state :current-iteration 
+  (progn (funcall (progn (or (progn (and (memq (type-of state) cl-stru
+  (if (progn (or (progn (and (memq (type-of state) cl-struct-greger-cl
+  (let ((text (alist-get 'text delta))) (let* ((p (if (and nil (not (e
+  (cond ((string= delta-type "text_delta") (let ((text (alist-get 'tex
+  (let ((block (nth index blocks))) (cond ((string= delta-type "text_d
+  (progn (let ((block (nth index blocks))) (cond ((string= delta-type 
+  (if (< index (length blocks)) (progn (let ((block (nth index blocks)
+  (let* ((index (alist-get 'index data)) (delta (alist-get 'delta data
+  (cond ((string= type "content_block_start") (let* ((index (alist-get
+  (let* ((data (json-read-from-string data-json)) (type (alist-get 'ty
+  greger-client--handle-claude-event("{\"type\":\"content_block_delta\
+  (if (string= data-json "[DONE]") nil (greger-client--handle-claude-e
+  (let ((data-json (substring line 6))) (if (string= data-json "[DONE]
+  (progn (let ((data-json (substring line 6))) (if (string= data-json 
+  (if (string-prefix-p "data: " line) (progn (let ((data-json (substri
+  (let* ((line-end (match-end 0)) (line (substring accumulated 0 (1- l
+  (while (string-match "\n" accumulated) (let* ((line-end (match-end 0
+  (let ((accumulated (progn (or (progn (and (memq ... cl-struct-greger
+  greger-client--process-claude-events(#s(greger-client-state :accumul
+  greger-client--process-output-chunk("event: content_block_delta\ndat
+  (closure ((state . #s(greger-client-state :accumulated-output "event
+  sleep-for(0.2)
+  sit-for(0.2)
+  (while (and (not completed) (< (float-time (time-subtract (current-t
+  (let ((start-time (current-time)) (completed nil) (response-started 
+  greger-test-wait-for-response(#<killed buffer> 30)
+  apply(greger-test-wait-for-response (#<killed buffer> 30))
+  (setq value-40 (apply fn-38 args-39))
+  (unwind-protect (setq value-40 (apply fn-38 args-39)) (setq form-des
+  (if (unwind-protect (setq value-40 (apply fn-38 args-39)) (setq form
+  (let (form-description-42) (if (unwind-protect (setq value-40 (apply
+  (let ((value-40 'ert-form-evaluation-aborted-41)) (let (form-descrip
+  (let* ((fn-38 #'greger-test-wait-for-response) (args-39 (condition-c
+  (progn (greger) (setq greger-buffer (current-buffer)) (goto-char (po
+  (unwind-protect (progn (greger) (setq greger-buffer (current-buffer)
+  (let ((greger-buffer nil)) (unwind-protect (progn (greger) (setq gre
+  (closure (t) nil (let ((greger-buffer nil)) (unwind-protect (progn (
+  ert--run-test-internal(#s(ert--test-execution-info :test ... :result
+  ert-run-test(#s(ert-test :name greger-end-to-end-test-simple-convers
+  ert-run-or-rerun-test(#s(ert--stats :selector t :tests ... :test-map
+  ert-run-tests(t #f(compiled-function (event-type &rest event-args) #
+  ert-run-tests-batch(t)
+  ert-run-tests-batch-and-exit(t)
+  (let ((ert-quiet nil)) (ert-run-tests-batch-and-exit t))
+  (progn (setq debug-on-error t) (add-to-list 'load-path ".") (require
+  eval((progn (setq debug-on-error t) (add-to-list 'load-path ".") (re
+  command-line-1(("--eval" "(progn\n                  (setq debug-on-e
+  command-line()
+  normal-top-level()
+Test greger-end-to-end-test-simple-conversation condition:
+    (error "Selecting deleted buffer")
+   FAILED  5/7  greger-end-to-end-test-simple-conversation (0.030499 sec) at test/test-end-to-end.el:101
+Using model claude-sonnet-4-20250514
+Test greger-end-to-end-test-sleep-and-interrupt backtrace:
+  set-buffer(#<killed buffer>)
+  (save-current-buffer (set-buffer (progn (or (progn (and (memq (type-
+  greger--append-text(" with a high near 69°F." #s(greger-state :curre
+  (closure ((agent-state . #s(greger-state :current-iteration 0 :chat-
+  funcall((closure ((agent-state . #s(greger-state :current-iteration 
+  (progn (funcall (progn (or (progn (and (memq (type-of state) cl-stru
+  (if (progn (or (progn (and (memq (type-of state) cl-struct-greger-cl
+  (let ((text (alist-get 'text delta))) (let* ((p (if (and nil (not (e
+  (cond ((string= delta-type "text_delta") (let ((text (alist-get 'tex
+  (let ((block (nth index blocks))) (cond ((string= delta-type "text_d
+  (progn (let ((block (nth index blocks))) (cond ((string= delta-type 
+  (if (< index (length blocks)) (progn (let ((block (nth index blocks)
+  (let* ((index (alist-get 'index data)) (delta (alist-get 'delta data
+  (cond ((string= type "content_block_start") (let* ((index (alist-get
+  (let* ((data (json-read-from-string data-json)) (type (alist-get 'ty
+  greger-client--handle-claude-event("{\"type\":\"content_block_delta\
+  (if (string= data-json "[DONE]") nil (greger-client--handle-claude-e
+  (let ((data-json (substring line 6))) (if (string= data-json "[DONE]
+  (progn (let ((data-json (substring line 6))) (if (string= data-json 
+  (if (string-prefix-p "data: " line) (progn (let ((data-json (substri
+  (let* ((line-end (match-end 0)) (line (substring accumulated 0 (1- l
+  (while (string-match "\n" accumulated) (let* ((line-end (match-end 0
+  (let ((accumulated (progn (or (progn (and (memq ... cl-struct-greger
+  greger-client--process-claude-events(#s(greger-client-state :accumul
+  greger-client--process-output-chunk("event: content_block_delta\ndat
+  (closure ((state . #s(greger-client-state :accumulated-output "event
+  sleep-for(0.1)
+  sit-for(0.1)
+  (while (and (not state-found) (< (float-time (time-subtract (current
+  (let ((max-wait 20.0) (start-time (current-time)) (state-found nil))
+  (progn (greger) (setq greger-buffer (current-buffer)) (goto-char (po
+  (unwind-protect (progn (greger) (setq greger-buffer (current-buffer)
+  (let ((greger-buffer nil)) (unwind-protect (progn (greger) (setq gre
+  (closure (t) nil (let ((greger-buffer nil)) (unwind-protect (progn (
+  ert--run-test-internal(#s(ert--test-execution-info :test ... :result
+  ert-run-test(#s(ert-test :name greger-end-to-end-test-sleep-and-inte
+  ert-run-or-rerun-test(#s(ert--stats :selector t :tests ... :test-map
+  ert-run-tests(t #f(compiled-function (event-type &rest event-args) #
+  ert-run-tests-batch(t)
+  ert-run-tests-batch-and-exit(t)
+  (let ((ert-quiet nil)) (ert-run-tests-batch-and-exit t))
+  (progn (setq debug-on-error t) (add-to-list 'load-path ".") (require
+  eval((progn (setq debug-on-error t) (add-to-list 'load-path ".") (re
+  command-line-1(("--eval" "(progn\n                  (setq debug-on-e
+  command-line()
+  normal-top-level()
+Test greger-end-to-end-test-sleep-and-interrupt condition:
+    (error "Selecting deleted buffer")
+   FAILED  6/7  greger-end-to-end-test-sleep-and-interrupt (0.066952 sec) at test/test-end-to-end.el:263
+Using model claude-sonnet-4-20250514
+Test greger-end-to-end-test-tool-use-conversation backtrace:
+  set-buffer(#<killed buffer>)
+  (save-current-buffer (set-buffer (progn (or (progn (and (memq (type-
+  greger--append-text(" with a high near 69°F." #s(greger-state :curre
+  (closure ((agent-state . #s(greger-state :current-iteration 0 :chat-
+  funcall((closure ((agent-state . #s(greger-state :current-iteration 
+  (progn (funcall (progn (or (progn (and (memq (type-of state) cl-stru
+  (if (progn (or (progn (and (memq (type-of state) cl-struct-greger-cl
+  (let ((text (alist-get 'text delta))) (let* ((p (if (and nil (not (e
+  (cond ((string= delta-type "text_delta") (let ((text (alist-get 'tex
+  (let ((block (nth index blocks))) (cond ((string= delta-type "text_d
+  (progn (let ((block (nth index blocks))) (cond ((string= delta-type 
+  (if (< index (length blocks)) (progn (let ((block (nth index blocks)
+  (let* ((index (alist-get 'index data)) (delta (alist-get 'delta data
+  (cond ((string= type "content_block_start") (let* ((index (alist-get
+  (let* ((data (json-read-from-string data-json)) (type (alist-get 'ty
+  greger-client--handle-claude-event("{\"type\":\"content_block_delta\
+  (if (string= data-json "[DONE]") nil (greger-client--handle-claude-e
+  (let ((data-json (substring line 6))) (if (string= data-json "[DONE]
+  (progn (let ((data-json (substring line 6))) (if (string= data-json 
+  (if (string-prefix-p "data: " line) (progn (let ((data-json (substri
+  (let* ((line-end (match-end 0)) (line (substring accumulated 0 (1- l
+  (while (string-match "\n" accumulated) (let* ((line-end (match-end 0
+  (let ((accumulated (progn (or (progn (and (memq ... cl-struct-greger
+  greger-client--process-claude-events(#s(greger-client-state :accumul
+  greger-client--process-output-chunk(":{\"type\":\"text\",\"text\":\"
+  (closure ((state . #s(greger-client-state :accumulated-output "event
+  sleep-for(0.2)
+  sit-for(0.2)
+  (while (and (not completed) (< (float-time (time-subtract (current-t
+  (let ((start-time (current-time)) (completed nil) (response-started 
+  greger-test-wait-for-response(#<killed buffer> 60)
+  apply(greger-test-wait-for-response (#<killed buffer> 60))
+  (setq value-57 (apply fn-55 args-56))
+  (unwind-protect (setq value-57 (apply fn-55 args-56)) (setq form-des
+  (if (unwind-protect (setq value-57 (apply fn-55 args-56)) (setq form
+  (let (form-description-59) (if (unwind-protect (setq value-57 (apply
+  (let ((value-57 'ert-form-evaluation-aborted-58)) (let (form-descrip
+  (let* ((fn-55 #'greger-test-wait-for-response) (args-56 (condition-c
+  (progn (setq test-file (make-temp-file "greger-test-" nil ".txt")) (
+  (unwind-protect (progn (setq test-file (make-temp-file "greger-test-
+  (let ((greger-buffer nil) (test-file nil)) (unwind-protect (progn (s
+  (closure (t) nil (let ((greger-buffer nil) (test-file nil)) (unwind-
+  ert--run-test-internal(#s(ert--test-execution-info :test ... :result
+  ert-run-test(#s(ert-test :name greger-end-to-end-test-tool-use-conve
+  ert-run-or-rerun-test(#s(ert--stats :selector t :tests ... :test-map
+  ert-run-tests(t #f(compiled-function (event-type &rest event-args) #
+  ert-run-tests-batch(t)
+  ert-run-tests-batch-and-exit(t)
+  (let ((ert-quiet nil)) (ert-run-tests-batch-and-exit t))
+  (progn (setq debug-on-error t) (add-to-list 'load-path ".") (require
+  eval((progn (setq debug-on-error t) (add-to-list 'load-path ".") (re
+  command-line-1(("--eval" "(progn\n                  (setq debug-on-e
+  command-line()
+  normal-top-level()
+Test greger-end-to-end-test-tool-use-conversation condition:
+    (error "Selecting deleted buffer")
+   FAILED  7/7  greger-end-to-end-test-tool-use-conversation (0.074309 sec) at test/test-end-to-end.el:138
+
+Ran 7 tests, 3 results as expected, 4 unexpected (2025-06-04 18:53:11+0200, 14.123814 sec)
+
+4 unexpected results:
+   FAILED  greger-end-to-end-test-server-tool-web-search
+   FAILED  greger-end-to-end-test-simple-conversation
+   FAILED  greger-end-to-end-test-sleep-and-interrupt
+   FAILED  greger-end-to-end-test-tool-use-conversation
+
+
+</tool.toolu_015ySt4UpSgrj4Zm9ZpdebZy>
+
+## ASSISTANT:
+
+Excellent! Now I can see what's happening. Looking at the debug output, I can see:
+
+1. The `web_search` server tool IS registered correctly: `DEBUG: web_search server tool registered: ((name . web_search) (type . web_search_20250305) (max_uses . 20))`
+
+2. The API is working and sending the right content blocks:
+   ```
+   DEBUG: content_block_start - type: text, index: 0
+   DEBUG: content_block_start - type: server_tool_use, index: 1
+   DEBUG: content_block_start - type: web_search_tool_result, index: 2
+   DEBUG: content_block_start - type: text, index: 3
+   DEBUG: content_block_start - type: text, index: 4
+   DEBUG: content_block_start - type: text, index: 5
+   DEBUG: content_block_start - type: text, index: 6
+   DEBUG: content_block_start - type: text, index: 7
+   DEBUG: content_block_start - type: text, index: 8
+   ```
+
+3. The test is failing because it's not finding `"## SERVER TOOL USE:"` in the output, but the response contains lots of fragmented `"## ASSISTANT:"` sections
+
+This suggests that the web search is working, but there are two problems:
+
+1. **The response is being fragmented into multiple assistant sections** instead of being properly combined
+2. **The server tool use and result blocks are not being rendered as markdown** with the expected `"## SERVER TOOL USE:"` and `"## SERVER TOOL RESULT:"` headers
+
+Let me check how server tools are supposed to be rendered in the parser:
+
+## TOOL USE:
+
+Name: ripgrep
+ID: toolu_01G6pRrQ5bWpPnfZxY4iEafi
+
+### pattern
+
+<tool.toolu_01G6pRrQ5bWpPnfZxY4iEafi>
+SERVER TOOL
+</tool.toolu_01G6pRrQ5bWpPnfZxY4iEafi>
+
+### context-lines
+
+<tool.toolu_01G6pRrQ5bWpPnfZxY4iEafi>
+5
+</tool.toolu_01G6pRrQ5bWpPnfZxY4iEafi>
+
+## TOOL RESULT:
+
+ID: toolu_01G6pRrQ5bWpPnfZxY4iEafi
+
+<tool.toolu_01G6pRrQ5bWpPnfZxY4iEafi>
+/Users/andreas/projects/greger.el/test/test-greger-parser.el-584-    (:name "server-tool-use-basic"
+/Users/andreas/projects/greger.el/test/test-greger-parser.el-585-           :markdown "## USER:
+/Users/andreas/projects/greger.el/test/test-greger-parser.el-586-
+/Users/andreas/projects/greger.el/test/test-greger-parser.el-587-Search for current weather in San Francisco
+/Users/andreas/projects/greger.el/test/test-greger-parser.el-588-
+/Users/andreas/projects/greger.el/test/test-greger-parser.el:589:## SERVER TOOL USE:
+/Users/andreas/projects/greger.el/test/test-greger-parser.el-590-
+/Users/andreas/projects/greger.el/test/test-greger-parser.el-591-Name: web_search
+/Users/andreas/projects/greger.el/test/test-greger-parser.el-592-ID: srvtoolu_123
+/Users/andreas/projects/greger.el/test/test-greger-parser.el-593-
+/Users/andreas/projects/greger.el/test/test-greger-parser.el-594-### query
+/Users/andreas/projects/greger.el/test/test-greger-parser.el-595-
+/Users/andreas/projects/greger.el/test/test-greger-parser.el-596-<tool.srvtoolu_123>
+/Users/andreas/projects/greger.el/test/test-greger-parser.el-597-current weather San Francisco
+/Users/andreas/projects/greger.el/test/test-greger-parser.el-598-</tool.srvtoolu_123>
+/Users/andreas/projects/greger.el/test/test-greger-parser.el-599-
+/Users/andreas/projects/greger.el/test/test-greger-parser.el:600:## SERVER TOOL RESULT:
+/Users/andreas/projects/greger.el/test/test-greger-parser.el-601-
+/Users/andreas/projects/greger.el/test/test-greger-parser.el-602-ID: srvtoolu_123
+/Users/andreas/projects/greger.el/test/test-greger-parser.el-603-
+/Users/andreas/projects/greger.el/test/test-greger-parser.el-604-<tool.srvtoolu_123>
+/Users/andreas/projects/greger.el/test/test-greger-parser.el-605-[{\"title\": \"Weather in San Francisco\", \"url\": \"https://weather.com/sf\", \"content\": \"Sunny, 72°F\"}]
+--
+/Users/andreas/projects/greger.el/test/test-greger-parser.el-616-    (:name "server-tool-use-string-result"
+/Users/andreas/projects/greger.el/test/test-greger-parser.el-617-           :markdown "## USER:
+/Users/andreas/projects/greger.el/test/test-greger-parser.el-618-
+/Users/andreas/projects/greger.el/test/test-greger-parser.el-619-What's the weather like?
+/Users/andreas/projects/greger.el/test/test-greger-parser.el-620-
+/Users/andreas/projects/greger.el/test/test-greger-parser.el:621:## SERVER TOOL USE:
+/Users/andreas/projects/greger.el/test/test-greger-parser.el-622-
+/Users/andreas/projects/greger.el/test/test-greger-parser.el-623-Name: web_search
+/Users/andreas/projects/greger.el/test/test-greger-parser.el-624-ID: srvtoolu_456
+/Users/andreas/projects/greger.el/test/test-greger-parser.el-625-
+/Users/andreas/projects/greger.el/test/test-greger-parser.el-626-### query
+/Users/andreas/projects/greger.el/test/test-greger-parser.el-627-
+/Users/andreas/projects/greger.el/test/test-greger-parser.el-628-<tool.srvtoolu_456>
+/Users/andreas/projects/greger.el/test/test-greger-parser.el-629-weather
+/Users/andreas/projects/greger.el/test/test-greger-parser.el-630-</tool.srvtoolu_456>
+/Users/andreas/projects/greger.el/test/test-greger-parser.el-631-
+/Users/andreas/projects/greger.el/test/test-greger-parser.el:632:## SERVER TOOL RESULT:
+/Users/andreas/projects/greger.el/test/test-greger-parser.el-633-
+/Users/andreas/projects/greger.el/test/test-greger-parser.el-634-ID: srvtoolu_456
+/Users/andreas/projects/greger.el/test/test-greger-parser.el-635-
+/Users/andreas/projects/greger.el/test/test-greger-parser.el-636-<tool.srvtoolu_456>
+/Users/andreas/projects/greger.el/test/test-greger-parser.el-637-Sunny and warm today
+--
+/Users/andreas/projects/greger.el/test/test-end-to-end.el-362-
+/Users/andreas/projects/greger.el/test/test-end-to-end.el-363-            ;; Verify response was added to buffer
+/Users/andreas/projects/greger.el/test/test-end-to-end.el-364-            (let ((content (buffer-string)))
+/Users/andreas/projects/greger.el/test/test-end-to-end.el-365-              (should (string-match-p "## ASSISTANT:" content))
+/Users/andreas/projects/greger.el/test/test-end-to-end.el-366-              ;; Should contain server tool use section
+/Users/andreas/projects/greger.el/test/test-end-to-end.el:367:              (should (string-match-p "## SERVER TOOL USE:" content))
+/Users/andreas/projects/greger.el/test/test-end-to-end.el-368-              (should (string-match-p "Name: web_search" content))
+/Users/andreas/projects/greger.el/test/test-end-to-end.el-369-              ;; Should contain server tool result section
+/Users/andreas/projects/greger.el/test/test-end-to-end.el:370:              (should (string-match-p "## SERVER TOOL RESULT:" content))
+/Users/andreas/projects/greger.el/test/test-end-to-end.el-371-              ;; Should contain some weather-related information
+/Users/andreas/projects/greger.el/test/test-end-to-end.el-372-              (should (string-match-p "\\(weather\\|temperature\\|San Francisco\\)" content)))))
+/Users/andreas/projects/greger.el/test/test-end-to-end.el-373-
+/Users/andreas/projects/greger.el/test/test-end-to-end.el-374-      ;; Cleanup
+/Users/andreas/projects/greger.el/test/test-end-to-end.el-375-      (when (and greger-buffer (buffer-live-p greger-buffer))
+--
+/Users/andreas/projects/greger.el/greger-parser.el-39-(defconst greger-parser-user-tag "## USER:")
+/Users/andreas/projects/greger.el/greger-parser.el-40-(defconst greger-parser-assistant-tag "## ASSISTANT:")
+/Users/andreas/projects/greger.el/greger-parser.el-41-(defconst greger-parser-system-tag "## SYSTEM:")
+/Users/andreas/projects/greger.el/greger-parser.el-42-(defconst greger-parser-tool-use-tag "## TOOL USE:")
+/Users/andreas/projects/greger.el/greger-parser.el-43-(defconst greger-parser-tool-result-tag "## TOOL RESULT:")
+/Users/andreas/projects/greger.el/greger-parser.el:44:(defconst greger-parser-server-tool-use-tag "## SERVER TOOL USE:")
+/Users/andreas/projects/greger.el/greger-parser.el:45:(defconst greger-parser-server-tool-result-tag "## SERVER TOOL RESULT:")
+/Users/andreas/projects/greger.el/greger-parser.el-46-(defconst greger-parser-thinking-tag "## THINKING:")
+/Users/andreas/projects/greger.el/greger-parser.el-47-
+/Users/andreas/projects/greger.el/greger-parser.el-48-;;; Parser state structure
+/Users/andreas/projects/greger.el/greger-parser.el-49-
+/Users/andreas/projects/greger.el/greger-parser.el-50-(cl-defstruct greger-parser-state
+--
+/Users/andreas/projects/greger.el/greger-parser.el-726-        (content (greger-parser--parse-tool-result-content state)))
+/Users/andreas/projects/greger.el/greger-parser.el-727-    (when id
+/Users/andreas/projects/greger.el/greger-parser.el-728-      (greger-parser--create-tool-result-message id content))))
+/Users/andreas/projects/greger.el/greger-parser.el-729-
+/Users/andreas/projects/greger.el/greger-parser.el-730-(defun greger-parser--parse-server-tool-use-section (state)
+/Users/andreas/projects/greger.el/greger-parser.el:731:  "Parse SERVER TOOL USE section using STATE."
+/Users/andreas/projects/greger.el/greger-parser.el-732-  (greger-parser--skip-whitespace state)
+/Users/andreas/projects/greger.el/greger-parser.el-733-  (let ((name (greger-parser--parse-name-line state))
+/Users/andreas/projects/greger.el/greger-parser.el-734-        (id (greger-parser--parse-id-line state))
+/Users/andreas/projects/greger.el/greger-parser.el-735-        (input (greger-parser--parse-server-tool-input state)))
+/Users/andreas/projects/greger.el/greger-parser.el-736-    (when (and name id)
+/Users/andreas/projects/greger.el/greger-parser.el-737-      (greger-parser--create-server-tool-use-message name id input))))
+/Users/andreas/projects/greger.el/greger-parser.el-738-
+/Users/andreas/projects/greger.el/greger-parser.el-739-(defun greger-parser--parse-server-tool-result-section (state)
+/Users/andreas/projects/greger.el/greger-parser.el:740:  "Parse SERVER TOOL RESULT section using STATE."
+/Users/andreas/projects/greger.el/greger-parser.el-741-  (greger-parser--skip-whitespace state)
+/Users/andreas/projects/greger.el/greger-parser.el-742-  (let ((id (greger-parser--parse-id-line state))
+/Users/andreas/projects/greger.el/greger-parser.el-743-        (content (greger-parser--parse-server-tool-result-content state)))
+/Users/andreas/projects/greger.el/greger-parser.el-744-    (when id
+/Users/andreas/projects/greger.el/greger-parser.el-745-      (greger-parser--create-server-tool-result-message id content))))
+--
+/Users/andreas/projects/greger.el/chat.ai-1047-/Users/andreas/projects/greger.el/chat.ai-1017-ID: toolu_01Wf4VHxbudsVgpgGsB4Yzia
+/Users/andreas/projects/greger.el/chat.ai-1048-/Users/andreas/projects/greger.el/chat.ai-1018-
+/Users/andreas/projects/greger.el/chat.ai-1049-/Users/andreas/projects/greger.el/chat.ai-1019-### pattern
+/Users/andreas/projects/greger.el/chat.ai-1050-/Users/andreas/projects/greger.el/chat.ai-1020-
+/Users/andreas/projects/greger.el/chat.ai-1051-/Users/andreas/projects/greger.el/chat.ai-1021-<tool.toolu_01Wf4VHxbudsVgpgGsB4Yzia>
+/Users/andreas/projects/greger.el/chat.ai:1052:/Users/andreas/projects/greger.el/chat.ai:1022:server_tool_use|SERVER TOOL
+/Users/andreas/projects/greger.el/chat.ai-1053-/Users/andreas/projects/greger.el/chat.ai-1023-</tool.toolu_01Wf4VHxbudsVgpgGsB4Yzia>
+/Users/andreas/projects/greger.el/chat.ai-1054-/Users/andreas/projects/greger.el/chat.ai-1024-
+/Users/andreas/projects/greger.el/chat.ai-1055-/Users/andreas/projects/greger.el/chat.ai-1025-### path
+/Users/andreas/projects/greger.el/chat.ai-1056-/Users/andreas/projects/greger.el/chat.ai-1026-
+/Users/andreas/projects/greger.el/chat.ai-1057-/Users/andreas/projects/greger.el/chat.ai-1027-<tool.toolu_01Wf4VHxbudsVgpgGsB4Yzia>
+--
+/Users/andreas/projects/greger.el/chat.ai-3701-/Users/andreas/projects/greger.el/greger.el-83-  :type '(repeat symbol)
+/Users/andreas/projects/greger.el/chat.ai-3702-/Users/andreas/projects/greger.el/greger.el-84-  :group 'greger)
+/Users/andreas/projects/greger.el/chat.ai-3703---
+/Users/andreas/projects/greger.el/chat.ai-3704-/Users/andreas/projects/greger.el/test/test-end-to-end.el-365-              (should (string-match-p "## ASSISTANT:" content))
+/Users/andreas/projects/greger.el/chat.ai-3705-/Users/andreas/projects/greger.el/test/test-end-to-end.el-366-              ;; Should contain server tool use section
+/Users/andreas/projects/greger.el/chat.ai:3706:/Users/andreas/projects/greger.el/test/test-end-to-end.el-367-              (should (string-match-p "## SERVER TOOL USE:" content))
+/Users/andreas/projects/greger.el/chat.ai-3707-/Users/andreas/projects/greger.el/test/test-end-to-end.el:368:              (should (string-match-p "Name: web_search" content))
+/Users/andreas/projects/greger.el/chat.ai-3708-/Users/andreas/projects/greger.el/test/test-end-to-end.el-369-              ;; Should contain server tool result section
+/Users/andreas/projects/greger.el/chat.ai:3709:/Users/andreas/projects/greger.el/test/test-end-to-end.el-370-              (should (string-match-p "## SERVER TOOL RESULT:" content))
+/Users/andreas/projects/greger.el/chat.ai-3710-/Users/andreas/projects/greger.el/test/test-end-to-end.el-371-              ;; Should contain some weather-related information
+/Users/andreas/projects/greger.el/chat.ai-3711---
+/Users/andreas/projects/greger.el/chat.ai-3712-/Users/andreas/projects/greger.el/test/test-greger-parser.el-609-
+/Users/andreas/projects/greger.el/chat.ai-3713-/Users/andreas/projects/greger.el/test/test-greger-parser.el-610-The current weather in San Francisco is sunny and 72°F."
+/Users/andreas/projects/greger.el/chat.ai-3714-/Users/andreas/projects/greger.el/test/test-greger-parser.el-611-           :dialog (((role . "user") (content . "Search for current weather in San Francisco"))
+--
+/Users/andreas/projects/greger.el/chat.ai-3903-
+/Users/andreas/projects/greger.el/chat.ai-3904-            ;; Verify response was added to buffer
+/Users/andreas/projects/greger.el/chat.ai-3905-            (let ((content (buffer-string)))
+/Users/andreas/projects/greger.el/chat.ai-3906-              (should (string-match-p "## ASSISTANT:" content))
+/Users/andreas/projects/greger.el/chat.ai-3907-              ;; Should contain server tool use section
+/Users/andreas/projects/greger.el/chat.ai:3908:              (should (string-match-p "## SERVER TOOL USE:" content))
+/Users/andreas/projects/greger.el/chat.ai-3909-              (should (string-match-p "Name: web_search" content))
+/Users/andreas/projects/greger.el/chat.ai-3910-              ;; Should contain server tool result section
+/Users/andreas/projects/greger.el/chat.ai:3911:              (should (string-match-p "## SERVER TOOL RESULT:" content))
+/Users/andreas/projects/greger.el/chat.ai-3912-              ;; Should contain some weather-related information
+/Users/andreas/projects/greger.el/chat.ai-3913-              (should (string-match-p "\\(weather\\|temperature\\|San Francisco\\)" content)))))
+/Users/andreas/projects/greger.el/chat.ai-3914-
+/Users/andreas/projects/greger.el/chat.ai-3915-      ;; Cleanup
+/Users/andreas/projects/greger.el/chat.ai-3916-      (when (and greger-buffer (buffer-live-p greger-buffer))
+
+</tool.toolu_01G6pRrQ5bWpPnfZxY4iEafi>
+
+## ASSISTANT:
+
+Now I understand! The issue is that the `server_tool_use` and `web_search_tool_result` content blocks are being received by the client, but they're not being converted to the markdown format that the parser expects. 
+
+Looking at the pattern, the parser expects:
+- `## SERVER TOOL USE:` sections with `Name:` and `ID:` 
+- `## SERVER TOOL RESULT:` sections with `ID:`
+
+But the client is just parsing the raw content blocks and not converting them to this markdown format. Let me check how the parser converts content blocks to markdown:
+
+## TOOL USE:
+
+Name: ripgrep
+ID: toolu_01MLARXuE1Q62Leeopisj91p
+
+### pattern
+
+<tool.toolu_01MLARXuE1Q62Leeopisj91p>
+server-tool-use-to-markdown
+</tool.toolu_01MLARXuE1Q62Leeopisj91p>
+
+### context-lines
+
+<tool.toolu_01MLARXuE1Q62Leeopisj91p>
+5
+</tool.toolu_01MLARXuE1Q62Leeopisj91p>
+
+## TOOL RESULT:
+
+ID: toolu_01MLARXuE1Q62Leeopisj91p
+
+<tool.toolu_01MLARXuE1Q62Leeopisj91p>
+/Users/andreas/projects/greger.el/greger-parser.el-1068-     ((string= type "tool_use")
+/Users/andreas/projects/greger.el/greger-parser.el-1069-      (greger-parser--tool-use-to-markdown block))
+/Users/andreas/projects/greger.el/greger-parser.el-1070-     ((string= type "tool_result")
+/Users/andreas/projects/greger.el/greger-parser.el-1071-      (greger-parser--tool-result-to-markdown block))
+/Users/andreas/projects/greger.el/greger-parser.el-1072-     ((string= type "server_tool_use")
+/Users/andreas/projects/greger.el/greger-parser.el:1073:      (greger-parser--server-tool-use-to-markdown block))
+/Users/andreas/projects/greger.el/greger-parser.el-1074-     ((string= type "server_tool_result")
+/Users/andreas/projects/greger.el/greger-parser.el-1075-      (greger-parser--server-tool-result-to-markdown block))
+/Users/andreas/projects/greger.el/greger-parser.el-1076-     (t ""))))
+/Users/andreas/projects/greger.el/greger-parser.el-1077-
+/Users/andreas/projects/greger.el/greger-parser.el-1078-(defun greger-parser--tool-use-to-markdown (tool-use)
+--
+/Users/andreas/projects/greger.el/greger-parser.el-1093-            "ID: " id "\n\n"
+/Users/andreas/projects/greger.el/greger-parser.el-1094-            "<tool." id ">\n"
+/Users/andreas/projects/greger.el/greger-parser.el-1095-            content "\n"
+/Users/andreas/projects/greger.el/greger-parser.el-1096-            "</tool." id ">")))
+/Users/andreas/projects/greger.el/greger-parser.el-1097-
+/Users/andreas/projects/greger.el/greger-parser.el:1098:(defun greger-parser--server-tool-use-to-markdown (server-tool-use)
+/Users/andreas/projects/greger.el/greger-parser.el-1099-  "Convert SERVER-TOOL-USE to markdown."
+/Users/andreas/projects/greger.el/greger-parser.el-1100-  (let ((name (alist-get 'name server-tool-use))
+/Users/andreas/projects/greger.el/greger-parser.el-1101-        (id (alist-get 'id server-tool-use))
+/Users/andreas/projects/greger.el/greger-parser.el-1102-        (input (alist-get 'input server-tool-use)))
+/Users/andreas/projects/greger.el/greger-parser.el-1103-    (concat greger-parser-server-tool-use-tag "\n\n"
+--
+/Users/andreas/projects/greger.el/chat.ai-944-/Users/andreas/projects/greger.el/greger-parser.el-1068-     ((string= type "tool_use")
+/Users/andreas/projects/greger.el/chat.ai-945-/Users/andreas/projects/greger.el/greger-parser.el-1069-      (greger-parser--tool-use-to-markdown block))
+/Users/andreas/projects/greger.el/chat.ai-946-/Users/andreas/projects/greger.el/greger-parser.el-1070-     ((string= type "tool_result")
+/Users/andreas/projects/greger.el/chat.ai-947-/Users/andreas/projects/greger.el/greger-parser.el-1071-      (greger-parser--tool-result-to-markdown block))
+/Users/andreas/projects/greger.el/chat.ai-948-/Users/andreas/projects/greger.el/greger-parser.el:1072:     ((string= type "server_tool_use")
+/Users/andreas/projects/greger.el/chat.ai:949:/Users/andreas/projects/greger.el/greger-parser.el-1073-      (greger-parser--server-tool-use-to-markdown block))
+/Users/andreas/projects/greger.el/chat.ai-950-/Users/andreas/projects/greger.el/greger-parser.el:1074:     ((string= type "server_tool_result")
+/Users/andreas/projects/greger.el/chat.ai-951-/Users/andreas/projects/greger.el/greger-parser.el-1075-      (greger-parser--server-tool-result-to-markdown block))
+/Users/andreas/projects/greger.el/chat.ai-952-/Users/andreas/projects/greger.el/greger-parser.el-1076-     (t ""))))
+/Users/andreas/projects/greger.el/chat.ai-953-/Users/andreas/projects/greger.el/greger-parser.el-1077-
+/Users/andreas/projects/greger.el/chat.ai-954-/Users/andreas/projects/greger.el/greger-parser.el-1078-(defun greger-parser--tool-use-to-markdown (tool-use)
+--
+/Users/andreas/projects/greger.el/chat.ai-1080-/Users/andreas/projects/greger.el/chat.ai-2976-     ((string= type "tool_use")
+/Users/andreas/projects/greger.el/chat.ai-1081-/Users/andreas/projects/greger.el/chat.ai-2977-      (greger-parser--tool-use-to-markdown block))
+/Users/andreas/projects/greger.el/chat.ai-1082-/Users/andreas/projects/greger.el/chat.ai-2978-     ((string= type "tool_result")
+/Users/andreas/projects/greger.el/chat.ai-1083-/Users/andreas/projects/greger.el/chat.ai-2979-      (greger-parser--tool-result-to-markdown block))
+/Users/andreas/projects/greger.el/chat.ai-1084-/Users/andreas/projects/greger.el/chat.ai:2980:     ((string= type "server_tool_use")
+/Users/andreas/projects/greger.el/chat.ai:1085:/Users/andreas/projects/greger.el/chat.ai-2981-      (greger-parser--server-tool-use-to-markdown block))
+/Users/andreas/projects/greger.el/chat.ai-1086-/Users/andreas/projects/greger.el/chat.ai:2982:     ((string= type "server_tool_result")
+/Users/andreas/projects/greger.el/chat.ai-1087-/Users/andreas/projects/greger.el/chat.ai-2983-      (greger-parser--server-tool-result-to-markdown block))
+/Users/andreas/projects/greger.el/chat.ai-1088-/Users/andreas/projects/greger.el/chat.ai-2984-     (t ""))))
+/Users/andreas/projects/greger.el/chat.ai-1089-/Users/andreas/projects/greger.el/chat.ai-2985-</tool.toolu_018NoC1PiJNA9XQfVMvNhBoZ>
+/Users/andreas/projects/greger.el/chat.ai-1090-/Users/andreas/projects/greger.el/chat.ai-2986-
+
+</tool.toolu_01MLARXuE1Q62Leeopisj91p>
+
+## ASSISTANT:
+
+Now I need to see how `greger-parser--server-tool-use-to-markdown` works but also check the actual problem: The response shows multiple `## ASSISTANT:` sections, which suggests that the content blocks are being rendered separately instead of being combined into one assistant message.
+
+The issue is that the response is coming in as multiple content blocks:
+- text block (index 0)
+- server_tool_use block (index 1) 
+- web_search_tool_result block (index 2)
+- text blocks (indices 3-8)
+
+But they should all be part of one assistant message. However, it seems like they're being rendered as separate assistant sections.
+
+Let me check how content blocks are processed and converted to markdown in the greger main flow. The issue might be in how multiple content blocks in one message are handled.
+
+## TOOL USE:
+
+Name: read-file
+ID: toolu_01Sfh5SfBWBroXVzkhrqiZcp
+
+### path
+
+<tool.toolu_01Sfh5SfBWBroXVzkhrqiZcp>
+greger-parser.el
+</tool.toolu_01Sfh5SfBWBroXVzkhrqiZcp>
+
+### start-line
+
+<tool.toolu_01Sfh5SfBWBroXVzkhrqiZcp>
+1098
+</tool.toolu_01Sfh5SfBWBroXVzkhrqiZcp>
+
+### end-line
+
+<tool.toolu_01Sfh5SfBWBroXVzkhrqiZcp>
+1130
+</tool.toolu_01Sfh5SfBWBroXVzkhrqiZcp>
+
+## TOOL RESULT:
+
+ID: toolu_01Sfh5SfBWBroXVzkhrqiZcp
+
+<tool.toolu_01Sfh5SfBWBroXVzkhrqiZcp>
+(defun greger-parser--server-tool-use-to-markdown (server-tool-use)
+  "Convert SERVER-TOOL-USE to markdown."
+  (let ((name (alist-get 'name server-tool-use))
+        (id (alist-get 'id server-tool-use))
+        (input (alist-get 'input server-tool-use)))
+    (concat greger-parser-server-tool-use-tag "\n\n"
+            "Name: " name "\n"
+            "ID: " id "\n\n"
+            (greger-parser--tool-params-to-markdown id input))))
+
+(defun greger-parser--server-tool-result-to-markdown (server-tool-result)
+  "Convert SERVER-TOOL-RESULT to markdown."
+  (let ((id (alist-get 'tool_use_id server-tool-result))
+        (content (alist-get 'content server-tool-result)))
+    (concat greger-parser-server-tool-result-tag "\n\n"
+            "ID: " id "\n\n"
+            "<tool." id ">\n"
+            (if (stringp content)
+                content
+              (greger-parser--value-to-string content)) "\n"
+            "</tool." id ">")))
+
+(defun greger-parser--tool-params-to-markdown (id input)
+  "Convert tool parameters with ID and INPUT to markdown."
+  (if (null input)
+      ""
+    (mapconcat (lambda (param)
+                 (let ((name (symbol-name (car param)))
+                       (value (cdr param)))
+                   (concat "### " name "\n\n"
+                           "<tool." id ">\n"
+                           (greger-parser--value-to-string value) "\n"
+                           "</tool." id ">")))
+</tool.toolu_01Sfh5SfBWBroXVzkhrqiZcp>
+
+## ASSISTANT:
+
+The functions look correct. But the real issue is that the content blocks are not being combined into a single assistant message during streaming. Let me look at how the client sends content blocks to the text callback and how greger handles them.
+
+Let me check what happens when the complete callback is called with parsed content blocks:
+
+## TOOL USE:
+
+Name: ripgrep
+ID: toolu_01FyjrofgHiNVVd4fQDmX455
+
+### pattern
+
+<tool.toolu_01FyjrofgHiNVVd4fQDmX455>
+complete-callback"
+</tool.toolu_01FyjrofgHiNVVd4fQDmX455>
+
+### path
+
+<tool.toolu_01FyjrofgHiNVVd4fQDmX455>
+greger.el
+</tool.toolu_01FyjrofgHiNVVd4fQDmX455>
+
+### context-lines
+
+<tool.toolu_01FyjrofgHiNVVd4fQDmX455>
+5
+</tool.toolu_01FyjrofgHiNVVd4fQDmX455>
+
+## TOOL RESULT:
+
+ID: toolu_01FyjrofgHiNVVd4fQDmX455
+
+<tool.toolu_01FyjrofgHiNVVd4fQDmX455>
+Failed to execute ripgrep search: Command failed with exit code 1: (no output)
+</tool.toolu_01FyjrofgHiNVVd4fQDmX455>
+
+## TOOL USE:
+
+Name: ripgrep
+ID: toolu_01HenfViczdN3DpAMaxyKmzP
+
+### pattern
+
+<tool.toolu_01HenfViczdN3DpAMaxyKmzP>
+complete.*callback"
+</tool.toolu_01HenfViczdN3DpAMaxyKmzP>
+
+### path
+
+<tool.toolu_01HenfViczdN3DpAMaxyKmzP>
+greger.el
+</tool.toolu_01HenfViczdN3DpAMaxyKmzP>
+
+### context-lines
+
+<tool.toolu_01HenfViczdN3DpAMaxyKmzP>
+5
+</tool.toolu_01HenfViczdN3DpAMaxyKmzP>
+
+## TOOL RESULT:
+
+ID: toolu_01HenfViczdN3DpAMaxyKmzP
+
+<tool.toolu_01HenfViczdN3DpAMaxyKmzP>
+Failed to execute ripgrep search: Command failed with exit code 1: (no output)
+</tool.toolu_01HenfViczdN3DpAMaxyKmzP>
+
+## TOOL USE:
+
+Name: ripgrep
+ID: toolu_01NC9cShxTcQRZ4xC76EHfya
+
+### pattern
+
+<tool.toolu_01NC9cShxTcQRZ4xC76EHfya>
+complete"
+</tool.toolu_01NC9cShxTcQRZ4xC76EHfya>
+
+### path
+
+<tool.toolu_01NC9cShxTcQRZ4xC76EHfya>
+greger.el
+</tool.toolu_01NC9cShxTcQRZ4xC76EHfya>
+
+### context-lines
+
+<tool.toolu_01NC9cShxTcQRZ4xC76EHfya>
+3
+</tool.toolu_01NC9cShxTcQRZ4xC76EHfya>
+
+## TOOL RESULT:
+
+ID: toolu_01NC9cShxTcQRZ4xC76EHfya
+
+<tool.toolu_01NC9cShxTcQRZ4xC76EHfya>
+492-                (1+ (greger-state-current-iteration agent-state)))
+493-          (greger--execute-tools tool-calls agent-state))
+494-      (progn
+495:        (greger--debug "NO TOOL USE - CONVERSATION COMPLETE")
+496-        (greger--finish-response agent-state)))))
+497-
+498-(defun greger--extract-tool-calls (content-blocks)
+
+</tool.toolu_01NC9cShxTcQRZ4xC76EHfya>
+
+## ASSISTANT:
+
+Let me check how greger handles content blocks by looking at the complete callback:
+
+## TOOL USE:
+
+Name: read-file
+ID: toolu_01Abup6iGSrhrx2ekBwrfSEa
+
+### path
+
+<tool.toolu_01Abup6iGSrhrx2ekBwrfSEa>
+greger.el
+</tool.toolu_01Abup6iGSrhrx2ekBwrfSEa>
+
+### start-line
+
+<tool.toolu_01Abup6iGSrhrx2ekBwrfSEa>
+380
+</tool.toolu_01Abup6iGSrhrx2ekBwrfSEa>
+
+### end-line
+
+<tool.toolu_01Abup6iGSrhrx2ekBwrfSEa>
+420
+</tool.toolu_01Abup6iGSrhrx2ekBwrfSEa>
+
+## TOOL RESULT:
+
+ID: toolu_01Abup6iGSrhrx2ekBwrfSEa
+
+<tool.toolu_01Abup6iGSrhrx2ekBwrfSEa>
+
+(defun greger--debug (format-string &rest args)
+  "Debug logging function.
+FORMAT-STRING is the format string.
+ARGS are arguments to format."
+  (when greger-debug
+    (message "[GREGER DEBUG] %s" (apply #'format format-string args))))
+
+(defun greger--get-current-state ()
+  "Get the current greger state: \='idle, \='generating, or \='executing."
+  (let ((agent-state (buffer-local-value 'greger--current-agent-state (current-buffer))))
+    (cond
+     ;; Check if we're generating (client-state is active)
+     ((and agent-state (greger-state-client-state agent-state))
+      'generating)
+     ;; Check if we're executing tools
+     ((and agent-state
+           (greger-state-executing-tools agent-state)
+           (> (hash-table-count (greger-state-executing-tools agent-state)) 0))
+      'executing)
+     ;; Otherwise we're idle
+     (t 'idle))))
+
+(defun greger--mode-line-info ()
+  "Generate mode line information showing model and current state."
+  (let ((state (greger--get-current-state))
+        (model-name (symbol-name greger-model)))
+    (concat model-name
+            (pcase state
+              ('generating " [Generating]")
+              ('executing " [Executing]")
+              ('idle "")))))
+
+(defun greger--set-buffer-read-only (read-only)
+  "Set buffer read-only state for greger operations.
+READ-ONLY is t to make read-only, nil to make writable."
+  (if read-only
+      (unless greger--buffer-read-only-by-greger
+        (setq greger--buffer-read-only-by-greger t)
+        (setq buffer-read-only t))
+    (when greger--buffer-read-only-by-greger
+</tool.toolu_01Abup6iGSrhrx2ekBwrfSEa>
+
+## ASSISTANT:
+
+Let me find where the client is called and what happens when it completes:
+
+## TOOL USE:
+
+Name: ripgrep
+ID: toolu_01GoHy5PijkkmsGqLMNoyaUv
+
+### pattern
+
+<tool.toolu_01GoHy5PijkkmsGqLMNoyaUv>
+greger-client-stream"
+</tool.toolu_01GoHy5PijkkmsGqLMNoyaUv>
+
+### path
+
+<tool.toolu_01GoHy5PijkkmsGqLMNoyaUv>
+greger.el
+</tool.toolu_01GoHy5PijkkmsGqLMNoyaUv>
+
+### context-lines
+
+<tool.toolu_01GoHy5PijkkmsGqLMNoyaUv>
+10
+</tool.toolu_01GoHy5PijkkmsGqLMNoyaUv>
+
+## TOOL RESULT:
+
+ID: toolu_01GoHy5PijkkmsGqLMNoyaUv
+
+<tool.toolu_01GoHy5PijkkmsGqLMNoyaUv>
+Failed to execute ripgrep search: Command failed with exit code 1: (no output)
+</tool.toolu_01GoHy5PijkkmsGqLMNoyaUv>
+
+## TOOL USE:
+
+Name: ripgrep
+ID: toolu_011F9mjwFpuLjmJtuN6nfitD
+
+### pattern
+
+<tool.toolu_011F9mjwFpuLjmJtuN6nfitD>
+client-stream"
+</tool.toolu_011F9mjwFpuLjmJtuN6nfitD>
+
+### path
+
+<tool.toolu_011F9mjwFpuLjmJtuN6nfitD>
+greger.el
+</tool.toolu_011F9mjwFpuLjmJtuN6nfitD>
+
+### context-lines
+
+<tool.toolu_011F9mjwFpuLjmJtuN6nfitD>
+10
+</tool.toolu_011F9mjwFpuLjmJtuN6nfitD>
+
+## TOOL RESULT:
+
+ID: toolu_011F9mjwFpuLjmJtuN6nfitD
+
+<tool.toolu_011F9mjwFpuLjmJtuN6nfitD>
+Failed to execute ripgrep search: Command failed with exit code 1: (no output)
+</tool.toolu_011F9mjwFpuLjmJtuN6nfitD>
+
+## ASSISTANT:
+
+Let me search for how the client response is handled:
+
+## TOOL USE:
+
+Name: ripgrep
+ID: toolu_0171QYWAm6KDcxFTCqN4NqvT
+
+### pattern
+
+<tool.toolu_0171QYWAm6KDcxFTCqN4NqvT>
+text-callback"
+</tool.toolu_0171QYWAm6KDcxFTCqN4NqvT>
+
+### path
+
+<tool.toolu_0171QYWAm6KDcxFTCqN4NqvT>
+greger.el
+</tool.toolu_0171QYWAm6KDcxFTCqN4NqvT>
+
+### context-lines
+
+<tool.toolu_0171QYWAm6KDcxFTCqN4NqvT>
+5
+</tool.toolu_0171QYWAm6KDcxFTCqN4NqvT>
+
+## TOOL RESULT:
+
+ID: toolu_0171QYWAm6KDcxFTCqN4NqvT
+
+<tool.toolu_0171QYWAm6KDcxFTCqN4NqvT>
+Failed to execute ripgrep search: Command failed with exit code 1: (no output)
+</tool.toolu_0171QYWAm6KDcxFTCqN4NqvT>
+
+## TOOL USE:
+
+Name: ripgrep
+ID: toolu_014aQbFYhGaSRpQ2QoLywsNE
+
+### pattern
+
+<tool.toolu_014aQbFYhGaSRpQ2QoLywsNE>
+callback"
+</tool.toolu_014aQbFYhGaSRpQ2QoLywsNE>
+
+### path
+
+<tool.toolu_014aQbFYhGaSRpQ2QoLywsNE>
+greger.el
+</tool.toolu_014aQbFYhGaSRpQ2QoLywsNE>
+
+### context-lines
+
+<tool.toolu_014aQbFYhGaSRpQ2QoLywsNE>
+5
+</tool.toolu_014aQbFYhGaSRpQ2QoLywsNE>
+
+## TOOL RESULT:
+
+ID: toolu_014aQbFYhGaSRpQ2QoLywsNE
+
+<tool.toolu_014aQbFYhGaSRpQ2QoLywsNE>
+Failed to execute ripgrep search: Command failed with exit code 1: (no output)
+</tool.toolu_014aQbFYhGaSRpQ2QoLywsNE>
+
+## ASSISTANT:
+
+Let me search differently:
+
+## TOOL USE:
+
+Name: read-file
+ID: toolu_01UzC3hMr99wqrt9kF2fNkXX
+
+### path
+
+<tool.toolu_01UzC3hMr99wqrt9kF2fNkXX>
+greger.el
+</tool.toolu_01UzC3hMr99wqrt9kF2fNkXX>
+
+### start-line
+
+<tool.toolu_01UzC3hMr99wqrt9kF2fNkXX>
+440
+</tool.toolu_01UzC3hMr99wqrt9kF2fNkXX>
+
+### end-line
+
+<tool.toolu_01UzC3hMr99wqrt9kF2fNkXX>
+500
+</tool.toolu_01UzC3hMr99wqrt9kF2fNkXX>
+
+## TOOL RESULT:
+
+ID: toolu_01UzC3hMr99wqrt9kF2fNkXX
+
+<tool.toolu_01UzC3hMr99wqrt9kF2fNkXX>
+         (current-dialog (plist-get parse-result :messages))
+         (current-iteration (greger-state-current-iteration agent-state)))
+
+    (greger--debug "=== ITERATION %d ===" current-iteration)
+    (greger--debug "Dialog length: %d messages" (length current-dialog))
+
+    ;; Check max iterations
+    (if (>= current-iteration greger-max-iterations)
+        (progn
+          (greger--debug "MAX ITERATIONS REACHED - STOPPING")
+          (greger--append-text (format "\n\nMaximum iterations (%d) reached. Stopping agent execution.\n\n"
+                                       greger-max-iterations)
+                               agent-state)
+          (greger--finish-response agent-state))
+
+      ;; Get Claude's response
+      (greger--debug "CALLING greger-client-stream...")
+      (let ((client-state (greger-client-stream
+                           :model greger-model
+                           :dialog current-dialog
+                           :tools tools
+                           :server-tools server-tools
+                           :buffer chat-buffer
+                           :text-start-callback (lambda ()
+                                                  (greger--append-text (concat "\n\n" greger-assistant-tag "\n\n") agent-state))
+                           :text-callback (lambda (text)
+                                            (greger--append-text text agent-state))
+                           :complete-callback (lambda (content-blocks)
+                                                (greger--debug "RECEIVED PARSED CONTENT BLOCKS")
+                                                (setf (greger-state-client-state agent-state) nil)
+                                                (greger--handle-parsed-response content-blocks agent-state)))))
+        ;; Store the client state for potential cancellation
+        (setf (greger-state-client-state agent-state) client-state)
+        ;; Set buffer-local variable for greger-interrupt to access
+        (with-current-buffer chat-buffer
+          (setq greger--current-agent-state agent-state)
+          (greger--update-buffer-state))))))
+
+(defun greger--handle-parsed-response (content-blocks agent-state)
+  "Handle the parsed CONTENT-BLOCKS from Claude using AGENT-STATE."
+  (greger--debug "CONTENT BLOCKS: %s" content-blocks)
+
+  ;; Update buffer state after client completes
+  (with-current-buffer (greger-state-chat-buffer agent-state)
+    (greger--update-buffer-state))
+
+  ;; Check if we have tool calls
+  (let ((tool-calls (greger--extract-tool-calls content-blocks)))
+    (if tool-calls
+        (progn
+          (greger--debug "TOOL USE DETECTED! Found %d tool calls" (length tool-calls))
+          (setf (greger-state-current-iteration agent-state)
+                (1+ (greger-state-current-iteration agent-state)))
+          (greger--execute-tools tool-calls agent-state))
+      (progn
+        (greger--debug "NO TOOL USE - CONVERSATION COMPLETE")
+        (greger--finish-response agent-state)))))
+
+(defun greger--extract-tool-calls (content-blocks)
+  "Extract tool calls from CONTENT-BLOCKS."
+  (let ((tool-calls '()))
+</tool.toolu_01UzC3hMr99wqrt9kF2fNkXX>
+
+## ASSISTANT:
+
+Perfect! Now I can see the issue. The problem is that the content blocks are being streamed individually through the `text-callback`, but there's no mechanism to handle `server_tool_use` and `web_search_tool_result` blocks in the text callback. 
+
+The `text-callback` only handles text content:
+```elisp
+:text-callback (lambda (text)
+                 (greger--append-text text agent-state))
+```
+
+But `server_tool_use` and `web_search_tool_result` blocks don't generate text callbacks - they only show up in the final `content-blocks` when the `complete-callback` is called.
+
+So the flow is:
+1. Text blocks stream and get rendered as `## ASSISTANT:` sections through `text-callback`
+2. `server_tool_use` and `web_search_tool_result` blocks are collected but not rendered during streaming
+3. When complete, the `complete-callback` gets all blocks but doesn't render the server tool blocks to the buffer
+
+I need to modify the system to either:
+1. Handle server tool blocks during streaming, or 
+2. Append server tool block markdown to the buffer after completion
+
+Since the server tool blocks come fully formed (no streaming), I think option 2 is better. Let me modify `greger--handle-parsed-response` to render server tool blocks:
+
+## TOOL USE:
+
+Name: str-replace
+ID: toolu_01AMRXMWyPuUbwKb1jLAnSCo
+
+### file-path
+
+<tool.toolu_01AMRXMWyPuUbwKb1jLAnSCo>
+greger.el
+</tool.toolu_01AMRXMWyPuUbwKb1jLAnSCo>
+
+### original-content
+
+<tool.toolu_01AMRXMWyPuUbwKb1jLAnSCo>
+(defun greger--handle-parsed-response (content-blocks agent-state)
+  "Handle the parsed CONTENT-BLOCKS from Claude using AGENT-STATE."
+  (greger--debug "CONTENT BLOCKS: %s" content-blocks)
+
+  ;; Update buffer state after client completes
+  (with-current-buffer (greger-state-chat-buffer agent-state)
+    (greger--update-buffer-state))
+
+  ;; Check if we have tool calls
+  (let ((tool-calls (greger--extract-tool-calls content-blocks)))
+    (if tool-calls
+        (progn
+          (greger--debug "TOOL USE DETECTED! Found %d tool calls" (length tool-calls))
+          (setf (greger-state-current-iteration agent-state)
+                (1+ (greger-state-current-iteration agent-state)))
+          (greger--execute-tools tool-calls agent-state))
+      (progn
+        (greger--debug "NO TOOL USE - CONVERSATION COMPLETE")
+        (greger--finish-response agent-state)))))
+</tool.toolu_01AMRXMWyPuUbwKb1jLAnSCo>
+
+### new-content
+
+<tool.toolu_01AMRXMWyPuUbwKb1jLAnSCo>
+(defun greger--handle-parsed-response (content-blocks agent-state)
+  "Handle the parsed CONTENT-BLOCKS from Claude using AGENT-STATE."
+  (greger--debug "CONTENT BLOCKS: %s" content-blocks)
+
+  ;; Render any server tool blocks that weren't streamed
+  (greger--render-server-tool-blocks content-blocks agent-state)
+
+  ;; Update buffer state after client completes
+  (with-current-buffer (greger-state-chat-buffer agent-state)
+    (greger--update-buffer-state))
+
+  ;; Check if we have tool calls
+  (let ((tool-calls (greger--extract-tool-calls content-blocks)))
+    (if tool-calls
+        (progn
+          (greger--debug "TOOL USE DETECTED! Found %d tool calls" (length tool-calls))
+          (setf (greger-state-current-iteration agent-state)
+                (1+ (greger-state-current-iteration agent-state)))
+          (greger--execute-tools tool-calls agent-state))
+      (progn
+        (greger--debug "NO TOOL USE - CONVERSATION COMPLETE")
+        (greger--finish-response agent-state)))))
+</tool.toolu_01AMRXMWyPuUbwKb1jLAnSCo>
+
+### git-commit-message
+
+<tool.toolu_01AMRXMWyPuUbwKb1jLAnSCo>
+Add server tool block rendering after response completion
+</tool.toolu_01AMRXMWyPuUbwKb1jLAnSCo>
+
+<!-- TOOL_RESULT_PLACEHOLDER_toolu_01AMRXMWyPuUbwKb1jLAnSCo -->

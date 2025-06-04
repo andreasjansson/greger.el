@@ -78,7 +78,7 @@
   :type '(repeat symbol)
   :group 'greger)
 
-(defcustom greger-server-tools '()
+(defcustom greger-server-tools '("web_search")
   "List of server tools available to the agent (e.g., web_search)."
   :type '(repeat symbol)
   :group 'greger)
@@ -252,7 +252,6 @@ These tool IDs should not be auto-folded again.")
            (greger-state-executing-tools agent-state)
            (> (hash-table-count (greger-state-executing-tools agent-state)) 0))
       (let ((executing-tools (greger-state-executing-tools agent-state)))
-        ;; TODO: remove debug
         (maphash (lambda (_tool-id greger-tool)
                    (let ((cancel-fn (greger-tool-cancel-fn greger-tool)))
                      (when (functionp cancel-fn)
@@ -479,6 +478,9 @@ READ-ONLY is t to make read-only, nil to make writable."
 (defun greger--handle-parsed-response (content-blocks agent-state)
   "Handle the parsed CONTENT-BLOCKS from Claude using AGENT-STATE."
   (greger--debug "CONTENT BLOCKS: %s" content-blocks)
+
+  ;; Render any server tool blocks that weren't streamed
+  (greger--render-server-tool-blocks content-blocks agent-state)
 
   ;; Update buffer state after client completes
   (with-current-buffer (greger-state-chat-buffer agent-state)
