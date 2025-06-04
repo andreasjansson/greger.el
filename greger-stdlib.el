@@ -703,7 +703,7 @@ If BUFFER is provided, it will be staged and committed with deleted files."
         (git-tracked-files '()))
 
     ;; Validate all files exist first
-    (dolist (file-path paths-list)
+    (seq-doseq (file-path file-paths)
       (unless (stringp file-path)
         (error "Each file path must be a string"))
       (let ((expanded-path (expand-file-name file-path)))
