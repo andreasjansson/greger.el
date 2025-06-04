@@ -750,14 +750,22 @@ drwxrwxrwt     2368  ..
             (with-temp-file exclude-file
               (insert "exclude this"))
 
-            ;; Test that exclude pattern works - count lines to verify exclusion
-            (let ((result-excluded (greger-stdlib--list-directory test-dir "\\.log$"))
-                  (result-included (greger-stdlib--list-directory test-dir "")))
-              (should (stringp result-excluded))
-              (should (stringp result-included))
-              ;; Result with exclusion should have fewer lines than result without
-              (should (< (length (split-string result-excluded "\n"))
-                        (length (split-string result-included "\n")))))))
+            ;; Test with exclude pattern for .log files
+            (let ((result (greger-stdlib--list-directory test-dir "\\.log$"))
+                  (expected "drwxr-xr-x       96  .
+drwxrwxrwt     2368  ..
+-rw-r--r--        9  keep.txt"))
+              (should (stringp result))
+              (should (string= expected result)))
+
+            ;; Test with empty exclude pattern - should include all files
+            (let ((result (greger-stdlib--list-directory test-dir ""))
+                  (expected "drwxr-xr-x       96  .
+drwxrwxrwt     2368  ..
+-rw-r--r--        9  keep.txt
+-rw-r--r--       12  remove.log"))
+              (should (stringp result))
+              (should (string= expected result)))))
 
       ;; Clean up
       (when (file-exists-p test-dir)

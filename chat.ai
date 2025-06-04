@@ -4109,4 +4109,100 @@ drwxrwxrwt     2368  ..
 Update basic test to use exact string comparison
 </tool.toolu_01XgBwcnggoQ31XCU5hXZXns>
 
-<!-- TOOL_RESULT_PLACEHOLDER_toolu_01XgBwcnggoQ31XCU5hXZXns -->
+## TOOL RESULT:
+
+ID: toolu_01XgBwcnggoQ31XCU5hXZXns
+
+<tool.toolu_01XgBwcnggoQ31XCU5hXZXns>
+Successfully replaced content in /Users/andreas/projects/greger.el/test/test-greger-stdlib.el. Successfully staged 2 file(s) and committed with message: Update basic test to use exact string comparison
+</tool.toolu_01XgBwcnggoQ31XCU5hXZXns>
+
+
+## TOOL USE:
+
+Name: str-replace
+ID: toolu_018AYXH7rq1WZBcJmKPegHko
+
+### file-path
+
+<tool.toolu_018AYXH7rq1WZBcJmKPegHko>
+test/test-greger-stdlib.el
+</tool.toolu_018AYXH7rq1WZBcJmKPegHko>
+
+### original-content
+
+<tool.toolu_018AYXH7rq1WZBcJmKPegHko>
+(ert-deftest greger-test-list-directory-exclude-pattern ()
+  "Test list-directory exclude pattern functionality."
+  (let ((test-dir (make-temp-file "greger-test-dir" t)))
+    (unwind-protect
+        (progn
+          ;; Create test files
+          (let ((include-file (expand-file-name "keep.txt" test-dir))
+                (exclude-file (expand-file-name "remove.log" test-dir)))
+
+            (with-temp-file include-file
+              (insert "keep this"))
+            (with-temp-file exclude-file
+              (insert "exclude this"))
+
+            ;; Test that exclude pattern works - count lines to verify exclusion
+            (let ((result-excluded (greger-stdlib--list-directory test-dir "\\.log$"))
+                  (result-included (greger-stdlib--list-directory test-dir "")))
+              (should (stringp result-excluded))
+              (should (stringp result-included))
+              ;; Result with exclusion should have fewer lines than result without
+              (should (< (length (split-string result-excluded "\n"))
+                        (length (split-string result-included "\n")))))))
+
+      ;; Clean up
+      (when (file-exists-p test-dir)
+        (delete-directory test-dir t)))))
+</tool.toolu_018AYXH7rq1WZBcJmKPegHko>
+
+### new-content
+
+<tool.toolu_018AYXH7rq1WZBcJmKPegHko>
+(ert-deftest greger-test-list-directory-exclude-pattern ()
+  "Test list-directory exclude pattern functionality."
+  (let ((test-dir (make-temp-file "greger-test-dir" t)))
+    (unwind-protect
+        (progn
+          ;; Create test files
+          (let ((include-file (expand-file-name "keep.txt" test-dir))
+                (exclude-file (expand-file-name "remove.log" test-dir)))
+
+            (with-temp-file include-file
+              (insert "keep this"))
+            (with-temp-file exclude-file
+              (insert "exclude this"))
+
+            ;; Test with exclude pattern for .log files
+            (let ((result (greger-stdlib--list-directory test-dir "\\.log$"))
+                  (expected "drwxr-xr-x       96  .
+drwxrwxrwt     2368  ..
+-rw-r--r--        9  keep.txt"))
+              (should (stringp result))
+              (should (string= expected result)))
+
+            ;; Test with empty exclude pattern - should include all files
+            (let ((result (greger-stdlib--list-directory test-dir ""))
+                  (expected "drwxr-xr-x       96  .
+drwxrwxrwt     2368  ..
+-rw-r--r--        9  keep.txt
+-rw-r--r--       12  remove.log"))
+              (should (stringp result))
+              (should (string= expected result)))))
+
+      ;; Clean up
+      (when (file-exists-p test-dir)
+        (delete-directory test-dir t)))))
+</tool.toolu_018AYXH7rq1WZBcJmKPegHko>
+
+### git-commit-message
+
+<tool.toolu_018AYXH7rq1WZBcJmKPegHko>
+Update exclude pattern test to use exact string comparison
+</tool.toolu_018AYXH7rq1WZBcJmKPegHko>
+
+<!-- TOOL_RESULT_PLACEHOLDER_toolu_018AYXH7rq1WZBcJmKPegHko -->
