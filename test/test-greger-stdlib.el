@@ -846,7 +846,7 @@ drwx------  (dir)  .." (file-name-as-directory test-dir))))
         (progn
           ;; Test directory formatting
           (let ((dir-info (greger-stdlib--format-file-info temp-dir "testdir" "nomatch"))
-                (expected "drwx------       64  testdir"))
+                (expected "drwx------  (dir)  testdir"))
             (should (stringp dir-info))
             (should (string= expected dir-info)))
 

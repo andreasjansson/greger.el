@@ -8462,4 +8462,62 @@ drwx------  (dir)  ..
 Fix exclude pattern test to use new format
 </tool.toolu_01QQUjbUTvk4rqyaFmTXqCcR>
 
-<!-- TOOL_RESULT_PLACEHOLDER_toolu_01QQUjbUTvk4rqyaFmTXqCcR -->
+## TOOL RESULT:
+
+ID: toolu_01QQUjbUTvk4rqyaFmTXqCcR
+
+<tool.toolu_01QQUjbUTvk4rqyaFmTXqCcR>
+Successfully replaced content in /Users/andreas/projects/greger.el/test/test-greger-stdlib.el. Successfully staged 2 file(s) and committed with message: Fix exclude pattern test to use new format
+</tool.toolu_01QQUjbUTvk4rqyaFmTXqCcR>
+
+
+## TOOL USE:
+
+Name: str-replace
+ID: toolu_01WcSdV447MNKMXEqywtoRkz
+
+### file-path
+
+<tool.toolu_01WcSdV447MNKMXEqywtoRkz>
+test/test-greger-stdlib.el
+</tool.toolu_01WcSdV447MNKMXEqywtoRkz>
+
+### original-content
+
+<tool.toolu_01WcSdV447MNKMXEqywtoRkz>
+;; Test directory formatting
+          (let ((dir-info (greger-stdlib--format-file-info temp-dir "testdir" "nomatch"))
+                (expected "drwx------       64  testdir"))
+            (should (stringp dir-info))
+            (should (string= expected dir-info)))
+
+          ;; Test file formatting
+          (let ((file-info (greger-stdlib--format-file-info temp-file "testfile" "nomatch"))
+                (expected "-rw-------        0  testfile"))
+            (should (stringp file-info))
+            (should (string= expected file-info)))
+</tool.toolu_01WcSdV447MNKMXEqywtoRkz>
+
+### new-content
+
+<tool.toolu_01WcSdV447MNKMXEqywtoRkz>
+;; Test directory formatting
+          (let ((dir-info (greger-stdlib--format-file-info temp-dir "testdir" "nomatch"))
+                (expected "drwx------  (dir)  testdir"))
+            (should (stringp dir-info))
+            (should (string= expected dir-info)))
+
+          ;; Test file formatting
+          (let ((file-info (greger-stdlib--format-file-info temp-file "testfile" "nomatch"))
+                (expected "-rw-------        0  testfile"))
+            (should (stringp file-info))
+            (should (string= expected file-info)))
+</tool.toolu_01WcSdV447MNKMXEqywtoRkz>
+
+### git-commit-message
+
+<tool.toolu_01WcSdV447MNKMXEqywtoRkz>
+Fix file mode test to use new format with (dir) for directories
+</tool.toolu_01WcSdV447MNKMXEqywtoRkz>
+
+<!-- TOOL_RESULT_PLACEHOLDER_toolu_01WcSdV447MNKMXEqywtoRkz -->
