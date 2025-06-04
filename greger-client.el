@@ -187,9 +187,10 @@ claude-sonnet-4-20250514 or claude-opus-4-20250514."
       (push `("system" . ,system-message) request-data))
 
     ;; Add tools if present
-    (when tools
-      (push `("tools" . ,tools) request-data)
-      (push `("tool_choice" . (("type" . "auto"))) request-data))
+    (when (or tools server-tools)
+      (let ((all-tools (append (or tools '()) (or server-tools '()))))
+        (push `("tools" . ,all-tools) request-data)
+        (push `("tool_choice" . (("type" . "auto"))) request-data)))
 
     (json-encode request-data)))
 
