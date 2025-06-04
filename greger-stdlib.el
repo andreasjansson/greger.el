@@ -427,8 +427,8 @@ If RECURSIVE is non-nil, list files recursively."
         (greger-stdlib--list-directory-recursive expanded-path exclude-regex original-path recursive)
       (error "Failed to list directory: %s" (error-message-string err)))))
 
-(defun greger-stdlib--list-directory-internal (path exclude-pattern original-path recursive &optional prefix)
-  "Internal function to list directory contents with detailed information.
+(defun greger-stdlib--list-directory-recursive (path exclude-pattern original-path recursive &optional prefix)
+  "Recursively list directory contents with detailed information.
 PATH is the actual directory path to list.
 EXCLUDE-PATTERN is regex pattern of paths to exclude.
 ORIGINAL-PATH is used for display purposes at the root level.
@@ -482,7 +482,7 @@ PREFIX is used internally for nested directory structure."
     (when recursive
       (dolist (subdir (reverse subdirs)) ; Reverse to maintain alphabetical order
         (let* ((basename (file-name-nondirectory subdir))
-               (subdir-results (greger-stdlib--list-directory-internal
+               (subdir-results (greger-stdlib--list-directory-recursive
                                subdir exclude-pattern original-path recursive
                                (concat (or prefix "") basename "/"))))
           (setq all-results (append all-results (list "" subdir-results))))))

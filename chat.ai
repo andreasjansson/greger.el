@@ -9377,4 +9377,168 @@ If RECURSIVE is non-nil, list files recursively."
 Simplify main function to call recursive helper with all logic
 </tool.toolu_011J6r7jQeJZZZcaVH4zC43n>
 
-<!-- TOOL_RESULT_PLACEHOLDER_toolu_011J6r7jQeJZZZcaVH4zC43n -->
+## TOOL RESULT:
+
+ID: toolu_011J6r7jQeJZZZcaVH4zC43n
+
+<tool.toolu_011J6r7jQeJZZZcaVH4zC43n>
+Successfully replaced content in /Users/andreas/projects/greger.el/greger-stdlib.el. Successfully staged 2 file(s) and committed with message: Simplify main function to call recursive helper with all logic
+</tool.toolu_011J6r7jQeJZZZcaVH4zC43n>
+
+
+## TOOL USE:
+
+Name: str-replace
+ID: toolu_01BUx2ogN5SapXWXZwU6P3gA
+
+### file-path
+
+<tool.toolu_01BUx2ogN5SapXWXZwU6P3gA>
+greger-stdlib.el
+</tool.toolu_01BUx2ogN5SapXWXZwU6P3gA>
+
+### original-content
+
+<tool.toolu_01BUx2ogN5SapXWXZwU6P3gA>
+(defun greger-stdlib--list-directory-internal (path exclude-pattern original-path recursive &optional prefix)
+  "Internal function to list directory contents with detailed information.
+PATH is the actual directory path to list.
+EXCLUDE-PATTERN is regex pattern of paths to exclude.
+ORIGINAL-PATH is used for display purposes at the root level.
+RECURSIVE determines if we should recurse into subdirectories.
+PREFIX is used internally for nested directory structure."
+  (let ((all-results '())
+        (subdirs '())
+        (display-path (cond
+                       ;; Root level: use original path or relative notation
+                       ((string= (or prefix "") "")
+                        (let ((display-path-base (or original-path path)))
+                          (if (string= display-path-base ".")
+                              "./"
+                            (file-name-as-directory display-path-base))))
+                       ;; Nested level with absolute original path: build absolute path
+                       ((and original-path (file-name-absolute-p original-path))
+                        (file-name-as-directory
+                         (expand-file-name prefix (directory-file-name original-path))))
+                       ;; Nested level with relative path: use relative notation
+                       (t (concat "./" prefix)))))
+
+    ;; Build current directory listing
+    (let ((current-listing '()))
+      ;; Add directory header
+      (push (format "%s:" display-path) current-listing)
+
+      ;; Add current and parent directory entries
+      (push (greger-stdlib--format-file-info path "." exclude-pattern) current-listing)
+      (unless (string= (expand-file-name path) (expand-file-name "/"))
+        (push (greger-stdlib--format-file-info (file-name-directory (directory-file-name path)) ".." exclude-pattern) current-listing))
+
+      ;; Process files and directories
+      (let ((files (directory-files path t)))
+        (dolist (file (sort files #'string<))
+          (let* ((basename (file-name-nondirectory file))
+                 (relative-path (file-relative-name file (expand-file-name path))))
+            (when (and (not (string= basename "."))
+                       (not (string= basename ".."))
+                       (greger-stdlib--should-include-file-p relative-path exclude-pattern))
+              (let ((formatted (greger-stdlib--format-file-info file basename exclude-pattern)))
+                (when formatted
+                  (push formatted current-listing)))
+              ;; Collect subdirectories for recursive processing
+              (when (and recursive (file-directory-p file))
+                (push file subdirs))))))
+
+      ;; Add current directory to results (reverse to get correct order)
+      (setq all-results (reverse current-listing)))
+
+    ;; Process subdirectories recursively if requested
+    (when recursive
+      (dolist (subdir (reverse subdirs)) ; Reverse to maintain alphabetical order
+        (let* ((basename (file-name-nondirectory subdir))
+               (subdir-results (greger-stdlib--list-directory-internal
+                               subdir exclude-pattern original-path recursive
+                               (concat (or prefix "") basename "/"))))
+          (setq all-results (append all-results (list "" subdir-results))))))
+
+    ;; Return results
+    (if (> (length all-results) 1) ; More than just the header
+        (mapconcat #'identity all-results "\n")
+      (format "%s:\nDirectory is empty" display-path))))
+</tool.toolu_01BUx2ogN5SapXWXZwU6P3gA>
+
+### new-content
+
+<tool.toolu_01BUx2ogN5SapXWXZwU6P3gA>
+(defun greger-stdlib--list-directory-recursive (path exclude-pattern original-path recursive &optional prefix)
+  "Recursively list directory contents with detailed information.
+PATH is the actual directory path to list.
+EXCLUDE-PATTERN is regex pattern of paths to exclude.
+ORIGINAL-PATH is used for display purposes at the root level.
+RECURSIVE determines if we should recurse into subdirectories.
+PREFIX is used internally for nested directory structure."
+  (let ((all-results '())
+        (subdirs '())
+        (display-path (cond
+                       ;; Root level: use original path or relative notation
+                       ((string= (or prefix "") "")
+                        (let ((display-path-base (or original-path path)))
+                          (if (string= display-path-base ".")
+                              "./"
+                            (file-name-as-directory display-path-base))))
+                       ;; Nested level with absolute original path: build absolute path
+                       ((and original-path (file-name-absolute-p original-path))
+                        (file-name-as-directory
+                         (expand-file-name prefix (directory-file-name original-path))))
+                       ;; Nested level with relative path: use relative notation
+                       (t (concat "./" prefix)))))
+
+    ;; Build current directory listing
+    (let ((current-listing '()))
+      ;; Add directory header
+      (push (format "%s:" display-path) current-listing)
+
+      ;; Add current and parent directory entries
+      (push (greger-stdlib--format-file-info path "." exclude-pattern) current-listing)
+      (unless (string= (expand-file-name path) (expand-file-name "/"))
+        (push (greger-stdlib--format-file-info (file-name-directory (directory-file-name path)) ".." exclude-pattern) current-listing))
+
+      ;; Process files and directories
+      (let ((files (directory-files path t)))
+        (dolist (file (sort files #'string<))
+          (let* ((basename (file-name-nondirectory file))
+                 (relative-path (file-relative-name file (expand-file-name path))))
+            (when (and (not (string= basename "."))
+                       (not (string= basename ".."))
+                       (greger-stdlib--should-include-file-p relative-path exclude-pattern))
+              (let ((formatted (greger-stdlib--format-file-info file basename exclude-pattern)))
+                (when formatted
+                  (push formatted current-listing)))
+              ;; Collect subdirectories for recursive processing
+              (when (and recursive (file-directory-p file))
+                (push file subdirs))))))
+
+      ;; Add current directory to results (reverse to get correct order)
+      (setq all-results (reverse current-listing)))
+
+    ;; Process subdirectories recursively if requested
+    (when recursive
+      (dolist (subdir (reverse subdirs)) ; Reverse to maintain alphabetical order
+        (let* ((basename (file-name-nondirectory subdir))
+               (subdir-results (greger-stdlib--list-directory-recursive
+                               subdir exclude-pattern original-path recursive
+                               (concat (or prefix "") basename "/"))))
+          (setq all-results (append all-results (list "" subdir-results))))))
+
+    ;; Return results
+    (if (> (length all-results) 1) ; More than just the header
+        (mapconcat #'identity all-results "\n")
+      (format "%s:\nDirectory is empty" display-path))))
+</tool.toolu_01BUx2ogN5SapXWXZwU6P3gA>
+
+### git-commit-message
+
+<tool.toolu_01BUx2ogN5SapXWXZwU6P3gA>
+Rename internal function to be more descriptive
+</tool.toolu_01BUx2ogN5SapXWXZwU6P3gA>
+
+<!-- TOOL_RESULT_PLACEHOLDER_toolu_01BUx2ogN5SapXWXZwU6P3gA -->
