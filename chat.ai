@@ -5948,4 +5948,142 @@ greger-parser.el
 Fix server tool result markdown generation to use XML tag format
 </tool.toolu_01UhNq6wBRJf5hWKZqxZ5fCd>
 
-<!-- TOOL_RESULT_PLACEHOLDER_toolu_01UhNq6wBRJf5hWKZqxZ5fCd -->
+## TOOL RESULT:
+
+ID: toolu_01UhNq6wBRJf5hWKZqxZ5fCd
+
+<tool.toolu_01UhNq6wBRJf5hWKZqxZ5fCd>
+Successfully replaced content in /Users/andreas/projects/greger.el/greger-parser.el. Successfully staged 2 file(s) and committed with message: Fix server tool result markdown generation to use XML tag format
+</tool.toolu_01UhNq6wBRJf5hWKZqxZ5fCd>
+
+## ASSISTANT:
+
+Now let me update the test cases to use the correct format:
+
+## TOOL USE:
+
+Name: read-file
+ID: toolu_017oj1rJyWRfaKy5itDko6Yb
+
+### path
+
+<tool.toolu_017oj1rJyWRfaKy5itDko6Yb>
+test/test-greger-parser.el
+</tool.toolu_017oj1rJyWRfaKy5itDko6Yb>
+
+### start-line
+
+<tool.toolu_017oj1rJyWRfaKy5itDko6Yb>
+575
+</tool.toolu_017oj1rJyWRfaKy5itDko6Yb>
+
+### end-line
+
+<tool.toolu_017oj1rJyWRfaKy5itDko6Yb>
+595
+</tool.toolu_017oj1rJyWRfaKy5itDko6Yb>
+
+## TOOL RESULT:
+
+ID: toolu_017oj1rJyWRfaKy5itDko6Yb
+
+<tool.toolu_017oj1rJyWRfaKy5itDko6Yb>
+This should not be parsed as a section header
+## TOOL USE:
+Neither should this
+```
+
+What do you think?"
+           :dialog (((role . "user") (content . "Here's some code:\n\n\n\n\n```\n<!-- comment should be included -->\n## ASSISTANT:\nThis should not be parsed as a section header\n## TOOL USE:\nNeither should this\n```\n\nWhat do you think?"))))
+
+    ;; Server tool use and result test cases
+    (:name "server-tool-use-basic"
+           :markdown "## USER:
+
+Search for current weather in San Francisco
+
+## SERVER TOOL USE:
+
+Name: web_search
+ID: srvtoolu_123
+
+{\"query\": \"current weather San Francisco\"}
+
+</tool.toolu_017oj1rJyWRfaKy5itDko6Yb>
+
+## TOOL USE:
+
+Name: str-replace
+ID: toolu_01VELbzvCDHmC8AjHhNew1tE
+
+### file-path
+
+<tool.toolu_01VELbzvCDHmC8AjHhNew1tE>
+test/test-greger-parser.el
+</tool.toolu_01VELbzvCDHmC8AjHhNew1tE>
+
+### original-content
+
+<tool.toolu_01VELbzvCDHmC8AjHhNew1tE>
+(:name "server-tool-use-basic"
+           :markdown "## USER:
+
+Search for current weather in San Francisco
+
+## SERVER TOOL USE:
+
+Name: web_search
+ID: srvtoolu_123
+
+{\"query\": \"current weather San Francisco\"}
+
+## SERVER TOOL RESULT:
+
+ID: srvtoolu_123
+
+{\"results\": [{\"title\": \"Weather in San Francisco\", \"url\": \"https://weather.com/sf\", \"content\": \"Sunny, 72°F\"}]}
+
+## ASSISTANT:
+
+The current weather in San Francisco is sunny and 72°F."
+</tool.toolu_01VELbzvCDHmC8AjHhNew1tE>
+
+### new-content
+
+<tool.toolu_01VELbzvCDHmC8AjHhNew1tE>
+(:name "server-tool-use-basic"
+           :markdown "## USER:
+
+Search for current weather in San Francisco
+
+## SERVER TOOL USE:
+
+Name: web_search
+ID: srvtoolu_123
+
+### query
+
+<tool.srvtoolu_123>
+current weather San Francisco
+</tool.srvtoolu_123>
+
+## SERVER TOOL RESULT:
+
+ID: srvtoolu_123
+
+<tool.srvtoolu_123>
+[{\"title\": \"Weather in San Francisco\", \"url\": \"https://weather.com/sf\", \"content\": \"Sunny, 72°F\"}]
+</tool.srvtoolu_123>
+
+## ASSISTANT:
+
+The current weather in San Francisco is sunny and 72°F."
+</tool.toolu_01VELbzvCDHmC8AjHhNew1tE>
+
+### git-commit-message
+
+<tool.toolu_01VELbzvCDHmC8AjHhNew1tE>
+Fix server tool test case markdown format
+</tool.toolu_01VELbzvCDHmC8AjHhNew1tE>
+
+<!-- TOOL_RESULT_PLACEHOLDER_toolu_01VELbzvCDHmC8AjHhNew1tE -->

@@ -591,21 +591,27 @@ Search for current weather in San Francisco
 Name: web_search
 ID: srvtoolu_123
 
-{\"query\": \"current weather San Francisco\"}
+### query
+
+<tool.srvtoolu_123>
+current weather San Francisco
+</tool.srvtoolu_123>
 
 ## SERVER TOOL RESULT:
 
 ID: srvtoolu_123
 
-{\"results\": [{\"title\": \"Weather in San Francisco\", \"url\": \"https://weather.com/sf\", \"content\": \"Sunny, 72°F\"}]}
+<tool.srvtoolu_123>
+[{\"title\": \"Weather in San Francisco\", \"url\": \"https://weather.com/sf\", \"content\": \"Sunny, 72°F\"}]
+</tool.srvtoolu_123>
 
 ## ASSISTANT:
 
 The current weather in San Francisco is sunny and 72°F."
            :dialog (((role . "user") (content . "Search for current weather in San Francisco"))
-                    ((role . "assistant") (content . (((type . "server_tool_use") (id . "srvtoolu_123") (name . "web_search") (input . ((query . "current weather San Francisco")))))))
-                    ((role . "assistant") (content . (((type . "server_tool_result") (tool_use_id . "srvtoolu_123") (content . ((results . [((title . "Weather in San Francisco") (url . "https://weather.com/sf") (content . "Sunny, 72°F"))])))))))
-                    ((role . "assistant") (content . "The current weather in San Francisco is sunny and 72°F."))))
+                    ((role . "assistant") (content . (((type . "server_tool_use") (id . "srvtoolu_123") (name . "web_search") (input . ((query . "current weather San Francisco"))))
+                                                      ((type . "server_tool_result") (tool_use_id . "srvtoolu_123") (content . ((results . [((title . "Weather in San Francisco") (url . "https://weather.com/sf") (content . "Sunny, 72°F"))]))))
+                                                      ((type . "text") (text . "The current weather in San Francisco is sunny and 72°F.")))))))
 
     (:name "server-tool-use-string-result"
            :markdown "## USER:
