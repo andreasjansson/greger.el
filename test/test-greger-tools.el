@@ -838,4 +838,41 @@
   ;; Clean up
   (remhash "test-cancellable" greger-tools-registry))
 
+(ert-deftest greger-tools-test-server-tool-registration ()
+  "Test that server tools can be registered and schemas retrieved as JSON."
+  ;; Register a test server tool
+  (greger-register-server-tool 'test-web-search
+    :type "web_search_20250305"
+    :name "web_search"
+    :max_uses 5
+    :allowed_domains ["example.com" "trusteddomain.org"]
+    :user_location ((type . "approximate")
+                    (city . "San Francisco")
+                    (region . "California")
+                    (country . "US")
+                    (timezone . "America/Los_Angeles")))
+
+  ;; Test that the server tool was registered
+  (should (gethash 'test-web-search greger-server-tools-registry))
+
+  ;; Test getting server tool schemas as JSON
+  (let ((schemas (greger-server-tools-get-schemas '(test-web-search))))
+    (should (= 1 (length schemas)))
+    (let ((json-string (car schemas)))
+      (should (stringp json-string))
+      ;; Verify it's valid JSON by parsing it
+      (let ((parsed (json-parse-string json-string :object-type 'alist)))
+        (should (string= "web_search_20250305" (alist-get 'type parsed)))
+        (should (string= "web_search" (alist-get 'name parsed)))
+        (should (= 5 (alist-get 'max_uses parsed)))
+        (should (equal ["example.com" "trusteddomain.org"] (alist-get 'allowed_domains parsed))))))
+
+  ;; Test getting all server tool schemas
+  (let ((all-schemas (greger-server-tools-get-all-schemas)))
+    (should (>= (length all-schemas) 1))
+    (should (cl-every #'stringp all-schemas)))
+
+  ;; Clean up - remove test server tool from registry
+  (remhash 'test-web-search greger-server-tools-registry))
+
 ;;; test-greger-tools.el ends here
