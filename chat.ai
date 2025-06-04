@@ -1462,4 +1462,55 @@ READ-ONLY is t to make read-only, nil to make writable."
 Add state detection and buffer management functions
 </tool.toolu_01UjSKV29LhKMTqVo75y2vKF>
 
-<!-- TOOL_RESULT_PLACEHOLDER_toolu_01UjSKV29LhKMTqVo75y2vKF -->
+## TOOL RESULT:
+
+ID: toolu_01UjSKV29LhKMTqVo75y2vKF
+
+<tool.toolu_01UjSKV29LhKMTqVo75y2vKF>
+Successfully replaced content in /Users/andreas/projects/greger.el/greger.el. Successfully staged 2 file(s) and committed with message: Add state detection and buffer management functions
+</tool.toolu_01UjSKV29LhKMTqVo75y2vKF>
+
+
+## ASSISTANT:
+
+Now I need to update the functions that change state to call the buffer state update function. Let me update the key functions:
+
+## TOOL USE:
+
+Name: str-replace
+ID: toolu_011yHc1kjUGPB17b1hH6qbXe
+
+### file-path
+
+<tool.toolu_011yHc1kjUGPB17b1hH6qbXe>
+greger.el
+</tool.toolu_011yHc1kjUGPB17b1hH6qbXe>
+
+### original-content
+
+<tool.toolu_011yHc1kjUGPB17b1hH6qbXe>
+        ;; Store the client state for potential cancellation
+        (setf (greger-state-client-state agent-state) client-state)
+        ;; Set buffer-local variable for greger-interrupt to access
+        (with-current-buffer chat-buffer
+          (setq greger--current-agent-state agent-state))))
+</tool.toolu_011yHc1kjUGPB17b1hH6qbXe>
+
+### new-content
+
+<tool.toolu_011yHc1kjUGPB17b1hH6qbXe>
+        ;; Store the client state for potential cancellation
+        (setf (greger-state-client-state agent-state) client-state)
+        ;; Set buffer-local variable for greger-interrupt to access
+        (with-current-buffer chat-buffer
+          (setq greger--current-agent-state agent-state)
+          (greger--update-buffer-state))))
+</tool.toolu_011yHc1kjUGPB17b1hH6qbXe>
+
+### git-commit-message
+
+<tool.toolu_011yHc1kjUGPB17b1hH6qbXe>
+Update buffer state when client state is set
+</tool.toolu_011yHc1kjUGPB17b1hH6qbXe>
+
+<!-- TOOL_RESULT_PLACEHOLDER_toolu_011yHc1kjUGPB17b1hH6qbXe -->

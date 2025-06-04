@@ -457,7 +457,8 @@ READ-ONLY is t to make read-only, nil to make writable."
         (setf (greger-state-client-state agent-state) client-state)
         ;; Set buffer-local variable for greger-interrupt to access
         (with-current-buffer chat-buffer
-          (setq greger--current-agent-state agent-state))))))
+          (setq greger--current-agent-state agent-state)
+          (greger--update-buffer-state))))))
 
 (defun greger--handle-parsed-response (content-blocks agent-state)
   "Handle the parsed CONTENT-BLOCKS from Claude using AGENT-STATE."
