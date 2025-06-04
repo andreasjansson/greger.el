@@ -924,7 +924,7 @@ drwx------  (dir)  ..
               (should (string= expected result)))
 
             ;; Test with pattern excluding hidden directories (starting with .) from recursion
-            (let ((result (greger-stdlib--list-directory test-dir "^\\." t)))
+            (let ((result (greger-stdlib--list-directory test-dir "\\..*" t)))
               (should (stringp result))
               (let ((expected (format "%s:
 drwx------  (dir)  .
