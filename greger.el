@@ -232,6 +232,7 @@
 (defun greger-interrupt ()
   "Interrupt ongoing generation if active, otherwise call `keyboard-quit'."
   (interactive)
+
   (let* ((buffer (current-buffer))
          (agent-state (buffer-local-value 'greger--current-agent-state buffer)))
     (cond
@@ -245,6 +246,7 @@
            (greger-state-executing-tools agent-state)
            (> (hash-table-count (greger-state-executing-tools agent-state)) 0))
       (let ((executing-tools (greger-state-executing-tools agent-state)))
+        ;; TODO: remove debug
         (maphash (lambda (_tool-id greger-tool)
                    (let ((cancel-fn (greger-tool-cancel-fn greger-tool)))
                      (when (functionp cancel-fn)
@@ -377,7 +379,7 @@ ARGS are arguments to format."
 
 (defun greger--get-current-state ()
   "Get the current greger state: 'idle, 'generating, or 'executing."
-  (let ((agent-state greger--current-agent-state))
+  (let ((agent-state (buffer-local-value 'greger--current-agent-state (current-buffer))))
     (cond
      ;; Check if we're generating (client-state is active)
      ((and agent-state (greger-state-client-state agent-state))
@@ -541,6 +543,7 @@ READ-ONLY is t to make read-only, nil to make writable."
                               (lambda (result error)
                                 ;; Remove tool from executing-tools when complete
                                 (remhash tool-id (greger-state-executing-tools agent-state))
+
                                 (greger--handle-tool-completion
                                  tool-id result error agent-state search-start-pos
                                  (lambda ()
@@ -550,6 +553,8 @@ READ-ONLY is t to make read-only, nil to make writable."
                               (greger-state-chat-buffer agent-state)
                               (greger-state-metadata agent-state))))
             ;; Store the greger-tool in executing-tools map
+            ;; This must happen after greger-tools-execute returns but before
+            ;; the completion callback runs (which is fine for async tools)
             (puthash tool-id greger-tool (greger-state-executing-tools agent-state))))))))
 
 (defun greger--append-text (text agent-state)
