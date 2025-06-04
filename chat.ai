@@ -2131,4 +2131,47 @@ greger-stdlib.el
 Add line number validation against file length in greger-stdlib--insert
 </tool.toolu_01Jgu5LpSvqTDTUzsuu93kFZ>
 
-<!-- TOOL_RESULT_PLACEHOLDER_toolu_01Jgu5LpSvqTDTUzsuu93kFZ -->
+## TOOL RESULT:
+
+ID: toolu_01Jgu5LpSvqTDTUzsuu93kFZ
+
+<tool.toolu_01Jgu5LpSvqTDTUzsuu93kFZ>
+Successfully replaced content in /Users/andreas/projects/greger.el/greger-stdlib.el. Successfully staged 2 file(s) and committed with message: Add line number validation against file length in greger-stdlib--insert
+</tool.toolu_01Jgu5LpSvqTDTUzsuu93kFZ>
+
+
+## ASSISTANT:
+
+Now let's replace the validation in `greger-stdlib--git-log`:
+
+## TOOL USE:
+
+Name: str-replace
+ID: toolu_01PytJQzmXYNVMdSi8GXoB29
+
+### file-path
+
+<tool.toolu_01PytJQzmXYNVMdSi8GXoB29>
+greger-stdlib.el
+</tool.toolu_01PytJQzmXYNVMdSi8GXoB29>
+
+### original-content
+
+<tool.toolu_01PytJQzmXYNVMdSi8GXoB29>
+(unless (stringp path)
+    (error "Path must be a string"))
+</tool.toolu_01PytJQzmXYNVMdSi8GXoB29>
+
+### new-content
+
+<tool.toolu_01PytJQzmXYNVMdSi8GXoB29>
+(greger-stdlib--assert-arg-string "path" path)
+</tool.toolu_01PytJQzmXYNVMdSi8GXoB29>
+
+### git-commit-message
+
+<tool.toolu_01PytJQzmXYNVMdSi8GXoB29>
+Refactor greger-stdlib--git-log to use assertion helpers
+</tool.toolu_01PytJQzmXYNVMdSi8GXoB29>
+
+<!-- TOOL_RESULT_PLACEHOLDER_toolu_01PytJQzmXYNVMdSi8GXoB29 -->

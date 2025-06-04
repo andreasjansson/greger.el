@@ -912,8 +912,7 @@ If BUFFER is provided, it will be staged and committed along with the file."
 (defun greger-stdlib--git-log (path &optional max-rows)
   "View git commit logs using git command line for PATH.
 MAX-ROWS limits the number of log entries returned (default 100)."
-  (unless (stringp path)
-    (error "Path must be a string"))
+  (greger-stdlib--assert-arg-string "path" path)
 
   (let ((expanded-path (expand-file-name path))
         (max-count (or max-rows 100)))
