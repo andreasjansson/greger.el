@@ -619,11 +619,8 @@ CASE-SENSITIVE, FILE-TYPE, CONTEXT-LINES and MAX-RESULTS are optional."
   "Write CONTENTS to a new file at FILE-PATH. Fails if file already exists.
 GIT-COMMIT-MESSAGE will be used for the git commit.
 If BUFFER is provided, it will be staged and committed along with the new file."
-  (unless (stringp file-path)
-    (error "Invalid type: file-path must be a string"))
-
-  (unless (stringp contents)
-    (error "Invalid type: contents must be a string"))
+  (greger-stdlib--assert-arg-string "file-path" file-path)
+  (greger-stdlib--assert-arg-string "contents" contents)
 
   (let ((expanded-path (expand-file-name file-path)))
 
