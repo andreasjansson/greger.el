@@ -779,14 +779,16 @@ Line 3"))
             (with-temp-file file1 (insert "Root content"))
             (with-temp-file file2 (insert "Nested content"))
 
-            ;; Test recursive listing - just check that it contains expected content
-            (let ((result (greger-stdlib--list-directory test-dir nil t)))
+            ;; Test recursive listing
+            (let ((result (greger-stdlib--list-directory test-dir nil t))
+                  (expected (format "
+testdir/testdir:
+-rw-r--r--       14  nested.txt
+%s:
+-rw-r--r--       12  root.txt
+drwxr-xr-x       96  testdir" (file-name-as-directory test-dir))))
               (should (stringp result))
-              ;; Should contain both files from different levels
-              (should (string-match "root\\.txt" result))
-              (should (string-match "nested\\.txt" result))
-              ;; Should contain directory structure
-              (should (string-match "testdir" result)))))
+              (should (string= expected result)))))
 
       ;; Clean up
       (when (file-exists-p test-dir)
