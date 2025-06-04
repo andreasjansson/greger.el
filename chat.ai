@@ -5737,4 +5737,200 @@ drwxr-xr-x       96  testdir" (file-name-as-directory test-dir))))
 Fix recursive test with exact expected output format
 </tool.toolu_01Rr3i6KPEdYWNinjHT86W7W>
 
-<!-- TOOL_RESULT_PLACEHOLDER_toolu_01Rr3i6KPEdYWNinjHT86W7W -->
+## TOOL RESULT:
+
+ID: toolu_01Rr3i6KPEdYWNinjHT86W7W
+
+<tool.toolu_01Rr3i6KPEdYWNinjHT86W7W>
+Successfully replaced content in /Users/andreas/projects/greger.el/test/test-greger-stdlib.el. Successfully staged 2 file(s) and committed with message: Fix recursive test with exact expected output format
+</tool.toolu_01Rr3i6KPEdYWNinjHT86W7W>
+
+
+## ASSISTANT:
+
+Now let's run the tests again:
+
+## TOOL USE:
+
+Name: shell-command
+ID: toolu_019DNxV9uHcFK9tjtdW5Ni7i
+
+### command
+
+<tool.toolu_019DNxV9uHcFK9tjtdW5Ni7i>
+bash script/test --verbose --file test/test-greger-stdlib.el
+</tool.toolu_019DNxV9uHcFK9tjtdW5Ni7i>
+
+## TOOL RESULT:
+
+ID: toolu_019DNxV9uHcFK9tjtdW5Ni7i
+
+<tool.toolu_019DNxV9uHcFK9tjtdW5Ni7i>
+Command executed successfully:
+[0;34mRunning ERT tests for greger package...[0m
+
+Running tests in [1;33mtest/test-greger-stdlib.el[0m (verbose mode)...
+Loading /Users/andreas/projects/greger.el/greger.el (source)...
+Source file ‘/opt/homebrew/Cellar/emacs-plus@29/29.0.90/share/emacs/29.0.91/lisp/net/eww.el’ newer than byte-compiled file; using older file
+Loading /Users/andreas/projects/greger.el/greger-parser.el (source)...
+Loading /Users/andreas/projects/greger.el/greger-stdlib.el (source)...
+Loading /Users/andreas/projects/greger.el/greger-tools.el (source)...
+Loading /Users/andreas/projects/greger.el/greger-client.el (source)...
+Loading /Users/andreas/projects/greger.el/greger-web.el (source)...
+Loading /Users/andreas/projects/greger.el/test/test-greger-stdlib.el (source)...
+Running 31 tests (2025-06-04 11:36:38+0200, selector ‘t’)
+   passed   1/31  greger-test-count-paren-balance (0.000450 sec)
+   passed   2/31  greger-test-delete-files-basic (0.002918 sec)
+   passed   3/31  greger-test-delete-files-directory (0.000952 sec)
+   passed   4/31  greger-test-delete-files-git-tracking (0.001024 sec)
+   passed   5/31  greger-test-delete-files-invalid-input (0.000055 sec)
+   passed   6/31  greger-test-delete-files-list-input (0.001078 sec)
+   passed   7/31  greger-test-delete-files-nonexistent-file (0.000091 sec)
+   passed   8/31  greger-test-delete-files-not-git-tracked (0.001326 sec)
+   passed   9/31  greger-test-list-directory-basic (0.000799 sec)
+   passed  10/31  greger-test-list-directory-empty-dir (0.000523 sec)
+   passed  11/31  greger-test-list-directory-error-cases (0.000801 sec)
+   passed  12/31  greger-test-list-directory-exclude-pattern (0.001512 sec)
+   passed  13/31  greger-test-list-directory-file-mode-string (0.000787 sec)
+   passed  14/31  greger-test-list-directory-hidden-files (0.001531 sec)
+   passed  15/31  greger-test-list-directory-recursive (0.001901 sec)
+   passed  16/31  greger-test-read-file-basic (0.221323 sec)
+   passed  17/31  greger-test-read-file-error-cases (0.000124 sec)
+   passed  18/31  greger-test-read-file-line-number-formatting (0.004167 sec)
+   passed  19/31  greger-test-read-webpage-invalid-url (0.000118 sec)
+   passed  20/31  greger-test-read-webpage-network-error (0.000035 sec)
+   passed  21/31  greger-test-read-webpage-valid-url (0.512776 sec)
+   passed  22/31  greger-test-shell-command-command-failure (0.112190 sec)
+   passed  23/31  greger-test-shell-command-no-metadata-still-prompts (0.111356 sec)
+   passed  24/31  greger-test-shell-command-permission-denied (0.000684 sec)
+   passed  25/31  greger-test-shell-command-safe-commands (0.108839 sec)
+   passed  26/31  greger-test-shell-command-simple (0.113634 sec)
+   passed  27/31  greger-test-shell-command-unsafe-commands-with-metadata (0.111925 sec)
+   passed  28/31  greger-test-shell-command-with-pipe (0.114204 sec)
+   passed  29/31  greger-test-str-replace-non-el-files-skip-paren-check (0.010607 sec)
+   passed  30/31  greger-test-str-replace-paren-balance-check (0.006180 sec)
+   passed  31/31  greger-test-web-url-validation (0.000068 sec)
+
+Ran 31 tests, 31 results as expected, 0 unexpected (2025-06-04 11:36:40+0200, 1.470776 sec)
+
+[0;34mTest Summary:[0m
+  Files run: 1
+  Files passed: [0;32m0[0m
+  Files failed: [0;31m1[0m
+[0;32mAll tests passed![0m
+
+</tool.toolu_019DNxV9uHcFK9tjtdW5Ni7i>
+
+## USER:
+
+Actually let's update what the tool outputs. Non-recursive:
+
+```
+./:
+drwxr-xr-x  (dir)  .
+drwxr-xr-x  (dir)  ..
+drwxr--r--   6148  .DS_Store
+drwxr--r--  (dir)  nested
+```
+
+
+Recursive:
+
+```
+./:
+drwxr-xr-x  (dir)  .
+drwxr-xr-x  (dir)  ..
+drwxr--r--   6148  .DS_Store
+drwxr--r--  (dir)  nested
+
+./nested:
+drwxr--r--    100  test.text
+```
+
+Where path = `.`
+
+Note that I've gotten rid of file sizes on directories and replaced them with `(dir)`, I also add the directories above the listings.
+
+Update both the tool code and the tests
+
+## ASSISTANT:
+
+Perfect! Let me update the tool to use this new format and then update all the tests accordingly.
+
+## TOOL USE:
+
+Name: str-replace
+ID: toolu_01YNLRfW6nGzLEo14LyTDSuh
+
+### file-path
+
+<tool.toolu_01YNLRfW6nGzLEo14LyTDSuh>
+greger-stdlib.el
+</tool.toolu_01YNLRfW6nGzLEo14LyTDSuh>
+
+### original-content
+
+<tool.toolu_01YNLRfW6nGzLEo14LyTDSuh>
+(defun greger-stdlib--list-directory-detailed (path exclude-pattern)
+  "List directory contents at PATH with detailed information like 'ls -la'.
+Excludes files/directories matching EXCLUDE-PATTERN."
+  (let ((files (directory-files path t))
+        (results '()))
+
+    ;; Process regular files and directories (skip . and ..)
+    (dolist (file (sort files #'string<))
+      (let* ((basename (file-name-nondirectory file))
+             (relative-path (file-relative-name file (expand-file-name path))))
+        (when (and (not (string= basename "."))
+                   (not (string= basename ".."))
+                   (greger-stdlib--should-include-file-p relative-path exclude-pattern))
+          (let ((formatted (greger-stdlib--format-file-info file basename exclude-pattern)))
+            (when formatted
+              (push formatted results))))))
+
+    (if results
+        (mapconcat #'identity (reverse results) "\n")
+      "Directory is empty")))
+</tool.toolu_01YNLRfW6nGzLEo14LyTDSuh>
+
+### new-content
+
+<tool.toolu_01YNLRfW6nGzLEo14LyTDSuh>
+(defun greger-stdlib--list-directory-detailed (path exclude-pattern)
+  "List directory contents at PATH with detailed information like 'ls -la'.
+Excludes files/directories matching EXCLUDE-PATTERN."
+  (let ((files (directory-files path t))
+        (results '())
+        (display-path (if (string= path ".") "./" (file-name-as-directory (file-relative-name path)))))
+
+    ;; Add directory header
+    (push (format "%s:" display-path) results)
+
+    ;; Add current and parent directory entries
+    (push (greger-stdlib--format-file-info path "." exclude-pattern) results)
+    (unless (string= (expand-file-name path) (expand-file-name "/"))
+      (push (greger-stdlib--format-file-info (file-name-directory (directory-file-name path)) ".." exclude-pattern) results))
+
+    ;; Process regular files and directories (skip . and ..)
+    (dolist (file (sort files #'string<))
+      (let* ((basename (file-name-nondirectory file))
+             (relative-path (file-relative-name file (expand-file-name path))))
+        (when (and (not (string= basename "."))
+                   (not (string= basename ".."))
+                   (greger-stdlib--should-include-file-p relative-path exclude-pattern))
+          (let ((formatted (greger-stdlib--format-file-info file basename exclude-pattern)))
+            (when formatted
+              (push formatted results))))))
+
+    (if (> (length results) 1) ; More than just the header
+        (mapconcat #'identity (reverse results) "\n")
+      (format "%s:\nDirectory is empty" display-path))))
+</tool.toolu_01YNLRfW6nGzLEo14LyTDSuh>
+
+### git-commit-message
+
+<tool.toolu_01YNLRfW6nGzLEo14LyTDSuh>
+Update list-directory-detailed to include directory header and . .. entries
+</tool.toolu_01YNLRfW6nGzLEo14LyTDSuh>
+
+<!-- TOOL_RESULT_PLACEHOLDER_toolu_01YNLRfW6nGzLEo14LyTDSuh -->

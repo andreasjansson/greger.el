@@ -432,7 +432,16 @@ If RECURSIVE is non-nil, list files recursively."
   "List directory contents at PATH with detailed information like 'ls -la'.
 Excludes files/directories matching EXCLUDE-PATTERN."
   (let ((files (directory-files path t))
-        (results '()))
+        (results '())
+        (display-path (if (string= path ".") "./" (file-name-as-directory (file-relative-name path)))))
+
+    ;; Add directory header
+    (push (format "%s:" display-path) results)
+
+    ;; Add current and parent directory entries
+    (push (greger-stdlib--format-file-info path "." exclude-pattern) results)
+    (unless (string= (expand-file-name path) (expand-file-name "/"))
+      (push (greger-stdlib--format-file-info (file-name-directory (directory-file-name path)) ".." exclude-pattern) results))
 
     ;; Process regular files and directories (skip . and ..)
     (dolist (file (sort files #'string<))
@@ -445,9 +454,9 @@ Excludes files/directories matching EXCLUDE-PATTERN."
             (when formatted
               (push formatted results))))))
 
-    (if results
+    (if (> (length results) 1) ; More than just the header
         (mapconcat #'identity (reverse results) "\n")
-      "Directory is empty")))
+      (format "%s:\nDirectory is empty" display-path))))
 
 (defun greger-stdlib--list-directory-recursive-detailed (path exclude-pattern &optional prefix)
   "Recursively list directory contents at PATH with detailed information.
