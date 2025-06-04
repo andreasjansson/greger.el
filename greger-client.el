@@ -114,11 +114,11 @@ claude-sonnet-4-20250514 or claude-opus-4-20250514."
 
 ;;; Request building
 
-(defun greger-client--build-request (model dialog &optional tools)
-  "Build Claude request for MODEL with DIALOG and optional TOOLS."
+(defun greger-client--build-request (model dialog &optional tools server-tools)
+  "Build Claude request for MODEL with DIALOG and optional TOOLS and SERVER-TOOLS."
   (let* ((api-key (greger-client--get-api-key))
          (headers (greger-client--build-headers api-key))
-         (data (greger-client--build-data model dialog tools)))
+         (data (greger-client--build-data model dialog tools server-tools)))
     (list :url greger-client-api-url
           :method "POST"
           :headers headers
