@@ -503,7 +503,7 @@ PREFIX is used internally for nested directory structure."
                      (greger-stdlib--should-include-file-p relative-path exclude-pattern))
             (let ((subdir-results (greger-stdlib--list-directory-recursive-detailed
                                    file exclude-pattern (concat prefix basename "/"))))
-              (push (concat "\n\n" subdir-results) results))))))
+              (setq results (append results (list "" subdir-results))))))))
 
     (mapconcat #'identity (reverse results) "\n")))
 

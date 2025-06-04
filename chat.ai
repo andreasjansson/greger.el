@@ -6129,4 +6129,113 @@ EXCLUDE-PATTERN is used to check if file should be excluded."
 Update format-file-info to show (dir) for directories instead of size
 </tool.toolu_019hAMjuz7mopXoJLedLEZpZ>
 
-<!-- TOOL_RESULT_PLACEHOLDER_toolu_019hAMjuz7mopXoJLedLEZpZ -->
+## TOOL RESULT:
+
+ID: toolu_019hAMjuz7mopXoJLedLEZpZ
+
+<tool.toolu_019hAMjuz7mopXoJLedLEZpZ>
+Successfully replaced content in /Users/andreas/projects/greger.el/greger-stdlib.el. Successfully staged 2 file(s) and committed with message: Update format-file-info to show (dir) for directories instead of size
+</tool.toolu_019hAMjuz7mopXoJLedLEZpZ>
+
+
+## ASSISTANT:
+
+Now let me test the new format to see what it looks like:
+
+## TOOL USE:
+
+Name: shell-command
+ID: toolu_01Khx2E2dLTbtbWHhcRPQrAD
+
+### command
+
+<tool.toolu_01Khx2E2dLTbtbWHhcRPQrAD>
+emacs --batch --eval "(progn (add-to-list 'load-path \".\") (require 'greger-stdlib) (let ((test-dir \"/tmp/format-test\")) (ignore-errors (delete-directory test-dir t)) (make-directory test-dir t) (with-temp-file (expand-file-name \"test.txt\" test-dir) (insert \"content\")) (princ (greger-stdlib--list-directory test-dir))))"
+</tool.toolu_01Khx2E2dLTbtbWHhcRPQrAD>
+
+## TOOL RESULT:
+
+ID: toolu_01Khx2E2dLTbtbWHhcRPQrAD
+
+<tool.toolu_01Khx2E2dLTbtbWHhcRPQrAD>
+Command executed successfully:
+Source file ‘/opt/homebrew/Cellar/emacs-plus@29/29.0.90/share/emacs/29.0.91/lisp/net/eww.el’ newer than byte-compiled file; using older file
+../../../../tmp/format-test/:
+drwxr-xr-x  (dir)  .
+drwxrwxrwt  (dir)  ..
+-rw-r--r--         7  test.txt
+</tool.toolu_01Khx2E2dLTbtbWHhcRPQrAD>
+
+## ASSISTANT:
+
+Good! Now let me test recursive:
+
+## TOOL USE:
+
+Name: shell-command
+ID: toolu_01VEvGx3E8ox1dXZqnVMyyqR
+
+### command
+
+<tool.toolu_01VEvGx3E8ox1dXZqnVMyyqR>
+emacs --batch --eval "(progn (add-to-list 'load-path \".\") (require 'greger-stdlib) (let ((test-dir \"/tmp/rec-test\")) (ignore-errors (delete-directory test-dir t)) (make-directory test-dir t) (make-directory (expand-file-name \"subdir\" test-dir) t) (with-temp-file (expand-file-name \"file1.txt\" test-dir) (insert \"content1\")) (with-temp-file (expand-file-name \"subdir/file2.txt\" test-dir) (insert \"content2\")) (princ (greger-stdlib--list-directory test-dir nil t))))"
+</tool.toolu_01VEvGx3E8ox1dXZqnVMyyqR>
+
+## TOOL RESULT:
+
+ID: toolu_01VEvGx3E8ox1dXZqnVMyyqR
+
+<tool.toolu_01VEvGx3E8ox1dXZqnVMyyqR>
+Command executed successfully:
+Source file ‘/opt/homebrew/Cellar/emacs-plus@29/29.0.90/share/emacs/29.0.91/lisp/net/eww.el’ newer than byte-compiled file; using older file
+drwxr-xr-x  (dir)  subdir
+-rw-r--r--         8  file1.txt
+./:
+drwxr-xr-x  (dir)  .
+drwxrwxrwt  (dir)  ..
+
+
+-rw-r--r--         8  file2.txt
+./subdir/:
+drwxr-xr-x  (dir)  .
+drwxr-xr-x  (dir)  ..
+</tool.toolu_01VEvGx3E8ox1dXZqnVMyyqR>
+
+## ASSISTANT:
+
+The format needs some adjustments. Let me fix the recursive listing order and format:
+
+## TOOL USE:
+
+Name: str-replace
+ID: toolu_01SDqwospWqQAVJjXfjcteE8
+
+### file-path
+
+<tool.toolu_01SDqwospWqQAVJjXfjcteE8>
+greger-stdlib.el
+</tool.toolu_01SDqwospWqQAVJjXfjcteE8>
+
+### original-content
+
+<tool.toolu_01SDqwospWqQAVJjXfjcteE8>
+            (let ((subdir-results (greger-stdlib--list-directory-recursive-detailed
+                                   file exclude-pattern (concat prefix basename "/"))))
+              (push (concat "\n\n" subdir-results) results))
+</tool.toolu_01SDqwospWqQAVJjXfjcteE8>
+
+### new-content
+
+<tool.toolu_01SDqwospWqQAVJjXfjcteE8>
+            (let ((subdir-results (greger-stdlib--list-directory-recursive-detailed
+                                   file exclude-pattern (concat prefix basename "/"))))
+              (setq results (append results (list "" subdir-results))))
+</tool.toolu_01SDqwospWqQAVJjXfjcteE8>
+
+### git-commit-message
+
+<tool.toolu_01SDqwospWqQAVJjXfjcteE8>
+Fix recursive listing to append subdirectories in correct order
+</tool.toolu_01SDqwospWqQAVJjXfjcteE8>
+
+<!-- TOOL_RESULT_PLACEHOLDER_toolu_01SDqwospWqQAVJjXfjcteE8 -->
