@@ -554,8 +554,9 @@ READ-ONLY is t to make read-only, nil to make writable."
 (defun greger--append-text (text agent-state)
   "Append TEXT to the chat buffer in AGENT-STATE."
   (with-current-buffer (greger-state-chat-buffer agent-state)
-    (goto-char (point-max))
-    (insert text)))
+    (let ((inhibit-read-only t))
+      (goto-char (point-max))
+      (insert text))))
 
 (defun greger--handle-tool-completion (tool-id result error agent-state search-start-pos completion-callback)
   "Handle completion of a tool execution by updating buffer and calling callback.
