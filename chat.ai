@@ -1813,4 +1813,54 @@ greger-client.el
 Fix handling of server_tool_use and web_search_tool_result content blocks
 </tool.toolu_015z8Qm4B3uFS5YnDPshpzFq>
 
-<!-- TOOL_RESULT_PLACEHOLDER_toolu_015z8Qm4B3uFS5YnDPshpzFq -->
+## TOOL RESULT:
+
+ID: toolu_015z8Qm4B3uFS5YnDPshpzFq
+
+<tool.toolu_015z8Qm4B3uFS5YnDPshpzFq>
+Successfully replaced content in /Users/andreas/projects/greger.el/greger-client.el. Successfully staged 2 file(s) and committed with message: Fix handling of server_tool_use and web_search_tool_result content blocks
+</tool.toolu_015z8Qm4B3uFS5YnDPshpzFq>
+
+## TOOL USE:
+
+Name: str-replace
+ID: toolu_01NB2T9DePg39Wi9zFPGisFw
+
+### file-path
+
+<tool.toolu_01NB2T9DePg39Wi9zFPGisFw>
+greger-client.el
+</tool.toolu_01NB2T9DePg39Wi9zFPGisFw>
+
+### original-content
+
+<tool.toolu_01NB2T9DePg39Wi9zFPGisFw>
+             ;; Tool input delta
+             ((string= delta-type "input_json_delta")
+              (let ((partial-json (alist-get 'partial_json delta)))
+                (setf (alist-get 'input block)
+                      (concat (alist-get 'input block) partial-json))))
+</tool.toolu_01NB2T9DePg39Wi9zFPGisFw>
+
+### new-content
+
+<tool.toolu_01NB2T9DePg39Wi9zFPGisFw>
+             ;; Tool input delta
+             ((string= delta-type "input_json_delta")
+              (let ((partial-json (alist-get 'partial_json delta)))
+                (setf (alist-get 'input block)
+                      (concat (alist-get 'input block) partial-json))))
+
+             ;; Citations delta (for web search results)
+             ((string= delta-type "citations_delta")
+              ;; Handle citations delta if needed - for now just ignore
+              nil)
+</tool.toolu_01NB2T9DePg39Wi9zFPGisFw>
+
+### git-commit-message
+
+<tool.toolu_01NB2T9DePg39Wi9zFPGisFw>
+Add support for citations_delta in content block deltas
+</tool.toolu_01NB2T9DePg39Wi9zFPGisFw>
+
+<!-- TOOL_RESULT_PLACEHOLDER_toolu_01NB2T9DePg39Wi9zFPGisFw -->

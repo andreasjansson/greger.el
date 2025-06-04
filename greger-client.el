@@ -308,7 +308,12 @@ Returns nil if no error found or if OUTPUT is not valid JSON."
              ((string= delta-type "input_json_delta")
               (let ((partial-json (alist-get 'partial_json delta)))
                 (setf (alist-get 'input block)
-                      (concat (alist-get 'input block) partial-json)))))))))
+                      (concat (alist-get 'input block) partial-json))))
+
+             ;; Citations delta (for web search results)
+             ((string= delta-type "citations_delta")
+              ;; Handle citations delta if needed - for now just ignore
+              nil))))))
 
      ;; Content block stop - finalize tool input if needed
      ((string= type "content_block_stop")
