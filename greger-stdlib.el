@@ -243,7 +243,7 @@ failure."
 
           (set-process-sentinel
            process
-           (lambda (proc -event)
+           (lambda (proc _event)
              (let ((exit-status (process-exit-status proc))
                    (output (with-current-buffer process-buffer
                             (buffer-string))))
