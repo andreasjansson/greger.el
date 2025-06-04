@@ -1338,4 +1338,167 @@ greger-stdlib.el
 Update function call to use new function name and correct parameters
 </tool.toolu_016CthutXWWRRC4Gxj69dmQg>
 
-<!-- TOOL_RESULT_PLACEHOLDER_toolu_016CthutXWWRRC4Gxj69dmQg -->
+## TOOL RESULT:
+
+ID: toolu_016CthutXWWRRC4Gxj69dmQg
+
+<tool.toolu_016CthutXWWRRC4Gxj69dmQg>
+Successfully replaced content in /Users/andreas/projects/greger.el/greger-stdlib.el. Successfully staged 2 file(s) and committed with message: Update function call to use new function name and correct parameters
+</tool.toolu_016CthutXWWRRC4Gxj69dmQg>
+
+
+## ASSISTANT:
+
+Wait, I need to check the context more carefully. Let me look at the full context of where this function is called to make sure I'm updating it correctly:
+
+## TOOL USE:
+
+Name: read-file
+ID: toolu_01Lvypo6G9FcmLgtjG4YXcZZ
+
+### path
+
+<tool.toolu_01Lvypo6G9FcmLgtjG4YXcZZ>
+greger-stdlib.el
+</tool.toolu_01Lvypo6G9FcmLgtjG4YXcZZ>
+
+### start-line
+
+<tool.toolu_01Lvypo6G9FcmLgtjG4YXcZZ>
+460
+</tool.toolu_01Lvypo6G9FcmLgtjG4YXcZZ>
+
+### end-line
+
+<tool.toolu_01Lvypo6G9FcmLgtjG4YXcZZ>
+485
+</tool.toolu_01Lvypo6G9FcmLgtjG4YXcZZ>
+
+## TOOL RESULT:
+
+ID: toolu_01Lvypo6G9FcmLgtjG4YXcZZ
+
+<tool.toolu_01Lvypo6G9FcmLgtjG4YXcZZ>
+      (unless (string= (expand-file-name path) (expand-file-name "/"))
+        (push (greger-stdlib--format-file-info (file-name-directory (directory-file-name path)) ".." exclude-pattern) current-listing))
+
+      ;; Process files and directories
+      (let ((files (directory-files path t)))
+        (dolist (file (sort files #'string<))
+          (let* ((basename (file-name-nondirectory file))
+                 (relative-path (file-relative-name file (expand-file-name path))))
+            (when (and (not (string= basename "."))
+                       (not (string= basename ".."))
+                       (greger-stdlib--should-include-directory-in-recursive-listing-p basename exclude-directories-recursive))
+              (let ((formatted (greger-stdlib--format-file-info file basename exclude-pattern)))
+                (when formatted
+                  (push formatted current-listing)))
+              ;; Collect subdirectories for recursive processing
+              (when (and recursive (file-directory-p file))
+                (push file subdirs))))))
+
+      ;; Add current directory to results (reverse to get correct order)
+      (setq all-results (reverse current-listing)))
+
+    ;; Process subdirectories recursively if requested
+    (when recursive
+      (dolist (subdir (reverse subdirs)) ; Reverse to maintain alphabetical order
+        (let* ((basename (file-name-nondirectory subdir))
+               (subdir-results (greger-stdlib--list-directory-recursive
+</tool.toolu_01Lvypo6G9FcmLgtjG4YXcZZ>
+
+## ASSISTANT:
+
+I see there's still a reference to `exclude-pattern` in the `greger-stdlib--format-file-info` call. Let me check that function and update all parameter names consistently:
+
+## TOOL USE:
+
+Name: read-file
+ID: toolu_01UeXurYJZurAUshx2hbm55i
+
+### path
+
+<tool.toolu_01UeXurYJZurAUshx2hbm55i>
+greger-stdlib.el
+</tool.toolu_01UeXurYJZurAUshx2hbm55i>
+
+### start-line
+
+<tool.toolu_01UeXurYJZurAUshx2hbm55i>
+490
+</tool.toolu_01UeXurYJZurAUshx2hbm55i>
+
+### end-line
+
+<tool.toolu_01UeXurYJZurAUshx2hbm55i>
+510
+</tool.toolu_01UeXurYJZurAUshx2hbm55i>
+
+## TOOL RESULT:
+
+ID: toolu_01UeXurYJZurAUshx2hbm55i
+
+<tool.toolu_01UeXurYJZurAUshx2hbm55i>
+    ;; Return results
+    (if (> (length all-results) 1) ; More than just the header
+        (mapconcat #'identity all-results "\n")
+      (format "%s:\nDirectory is empty" display-path))))
+
+(defun greger-stdlib--format-file-info (filepath displayname exclude-pattern)
+  "Format file information similar to 'ls -la' output.
+FILEPATH is the full path to the file.
+DISPLAYNAME is the name to display in the output.
+EXCLUDE-PATTERN is used to check if file should be excluded."
+  (when (file-exists-p filepath)
+    (let* ((attrs (file-attributes filepath))
+           (file-type (nth 0 attrs))
+           (size (nth 7 attrs))
+           (mode-string (greger-stdlib--file-mode-string attrs))
+           (size-or-dir (if (eq file-type t) "(dir)" (format "%8d" size))))
+
+      (format "%s  %s  %s"
+              mode-string
+              size-or-dir
+              displayname))))
+</tool.toolu_01UeXurYJZurAUshx2hbm55i>
+
+## ASSISTANT:
+
+I see that the `greger-stdlib--format-file-info` function takes an `exclude-pattern` parameter but doesn't actually use it in the function body. Let me update all the references in the recursive function to use the correct parameter name:
+
+## TOOL USE:
+
+Name: str-replace
+ID: toolu_013D7n5KYnJbY6XX1ytfUnDr
+
+### file-path
+
+<tool.toolu_013D7n5KYnJbY6XX1ytfUnDr>
+greger-stdlib.el
+</tool.toolu_013D7n5KYnJbY6XX1ytfUnDr>
+
+### original-content
+
+<tool.toolu_013D7n5KYnJbY6XX1ytfUnDr>
+      ;; Add current and parent directory entries
+      (push (greger-stdlib--format-file-info path "." exclude-pattern) current-listing)
+      (unless (string= (expand-file-name path) (expand-file-name "/"))
+        (push (greger-stdlib--format-file-info (file-name-directory (directory-file-name path)) ".." exclude-pattern) current-listing))
+</tool.toolu_013D7n5KYnJbY6XX1ytfUnDr>
+
+### new-content
+
+<tool.toolu_013D7n5KYnJbY6XX1ytfUnDr>
+      ;; Add current and parent directory entries
+      (push (greger-stdlib--format-file-info path "." exclude-directories-recursive) current-listing)
+      (unless (string= (expand-file-name path) (expand-file-name "/"))
+        (push (greger-stdlib--format-file-info (file-name-directory (directory-file-name path)) ".." exclude-directories-recursive) current-listing))
+</tool.toolu_013D7n5KYnJbY6XX1ytfUnDr>
+
+### git-commit-message
+
+<tool.toolu_013D7n5KYnJbY6XX1ytfUnDr>
+Update format-file-info calls to use correct parameter name
+</tool.toolu_013D7n5KYnJbY6XX1ytfUnDr>
+
+<!-- TOOL_RESULT_PLACEHOLDER_toolu_013D7n5KYnJbY6XX1ytfUnDr -->

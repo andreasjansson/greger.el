@@ -456,9 +456,9 @@ PREFIX is used internally for nested directory structure."
       (push (format "%s:" display-path) current-listing)
 
       ;; Add current and parent directory entries
-      (push (greger-stdlib--format-file-info path "." exclude-pattern) current-listing)
+      (push (greger-stdlib--format-file-info path "." exclude-directories-recursive) current-listing)
       (unless (string= (expand-file-name path) (expand-file-name "/"))
-        (push (greger-stdlib--format-file-info (file-name-directory (directory-file-name path)) ".." exclude-pattern) current-listing))
+        (push (greger-stdlib--format-file-info (file-name-directory (directory-file-name path)) ".." exclude-directories-recursive) current-listing))
 
       ;; Process files and directories
       (let ((files (directory-files path t)))
