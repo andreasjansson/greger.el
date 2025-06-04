@@ -875,16 +875,21 @@ drwxrwxrwt     2368  .."))
             (with-temp-file normal-file (insert "Normal content"))
 
             ;; Test with no exclude pattern (should show all files including hidden)
-            (let ((result (greger-stdlib--list-directory test-dir "")))
+            (let ((result (greger-stdlib--list-directory test-dir ""))
+                  (expected "drwxr-xr-x      128  .
+drwxrwxrwt     2368  ..
+-rw-r--r--       14  .hiddenfile
+-rw-r--r--       14  normalfile.txt"))
               (should (stringp result))
-              (should (string-match-p "\\.hiddenfile" result))
-              (should (string-match-p "normalfile\\.txt" result)))
+              (should (string= expected result)))
 
             ;; Test with pattern excluding hidden files (starting with .)
             (let ((result (greger-stdlib--list-directory test-dir "^\\.")))
               (should (stringp result))
-              (should-not (string-match-p "\\.hiddenfile" result))
-              (should (string-match-p "normalfile\\.txt" result)))))
+              (let ((expected "drwxr-xr-x      128  .
+drwxrwxrwt     2368  ..
+-rw-r--r--       14  normalfile.txt"))
+                (should (string= expected result))))))
 
       ;; Clean up
       (when (file-exists-p test-dir)

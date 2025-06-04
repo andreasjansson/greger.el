@@ -4452,4 +4452,99 @@ test/test-greger-stdlib.el
 Update file mode string test to use exact string comparison
 </tool.toolu_01Ms19xqCXKKK4wFU7MiRtvA>
 
-<!-- TOOL_RESULT_PLACEHOLDER_toolu_01Ms19xqCXKKK4wFU7MiRtvA -->
+## TOOL RESULT:
+
+ID: toolu_01Ms19xqCXKKK4wFU7MiRtvA
+
+<tool.toolu_01Ms19xqCXKKK4wFU7MiRtvA>
+Successfully replaced content in /Users/andreas/projects/greger.el/test/test-greger-stdlib.el. Successfully staged 2 file(s) and committed with message: Update file mode string test to use exact string comparison
+</tool.toolu_01Ms19xqCXKKK4wFU7MiRtvA>
+
+
+## TOOL USE:
+
+Name: str-replace
+ID: toolu_01441ysBAZ6Gfh6quhgLsG8V
+
+### file-path
+
+<tool.toolu_01441ysBAZ6Gfh6quhgLsG8V>
+test/test-greger-stdlib.el
+</tool.toolu_01441ysBAZ6Gfh6quhgLsG8V>
+
+### original-content
+
+<tool.toolu_01441ysBAZ6Gfh6quhgLsG8V>
+(ert-deftest greger-test-list-directory-hidden-files ()
+  "Test list-directory handling of hidden files with exclude patterns."
+  (let ((test-dir (make-temp-file "greger-test-hidden" t)))
+    (unwind-protect
+        (progn
+          ;; Create hidden and normal files
+          (let ((hidden-file (expand-file-name ".hiddenfile" test-dir))
+                (normal-file (expand-file-name "normalfile.txt" test-dir)))
+
+            (with-temp-file hidden-file (insert "Hidden content"))
+            (with-temp-file normal-file (insert "Normal content"))
+
+            ;; Test with no exclude pattern (should show all files including hidden)
+            (let ((result (greger-stdlib--list-directory test-dir "")))
+              (should (stringp result))
+              (should (string-match-p "\\.hiddenfile" result))
+              (should (string-match-p "normalfile\\.txt" result)))
+
+            ;; Test with pattern excluding hidden files (starting with .)
+            (let ((result (greger-stdlib--list-directory test-dir "^\\.")))
+              (should (stringp result))
+              (should-not (string-match-p "\\.hiddenfile" result))
+              (should (string-match-p "normalfile\\.txt" result)))))
+
+      ;; Clean up
+      (when (file-exists-p test-dir)
+        (delete-directory test-dir t)))))
+</tool.toolu_01441ysBAZ6Gfh6quhgLsG8V>
+
+### new-content
+
+<tool.toolu_01441ysBAZ6Gfh6quhgLsG8V>
+(ert-deftest greger-test-list-directory-hidden-files ()
+  "Test list-directory handling of hidden files with exclude patterns."
+  (let ((test-dir (make-temp-file "greger-test-hidden" t)))
+    (unwind-protect
+        (progn
+          ;; Create hidden and normal files
+          (let ((hidden-file (expand-file-name ".hiddenfile" test-dir))
+                (normal-file (expand-file-name "normalfile.txt" test-dir)))
+
+            (with-temp-file hidden-file (insert "Hidden content"))
+            (with-temp-file normal-file (insert "Normal content"))
+
+            ;; Test with no exclude pattern (should show all files including hidden)
+            (let ((result (greger-stdlib--list-directory test-dir ""))
+                  (expected "drwxr-xr-x      128  .
+drwxrwxrwt     2368  ..
+-rw-r--r--       14  .hiddenfile
+-rw-r--r--       14  normalfile.txt"))
+              (should (stringp result))
+              (should (string= expected result)))
+
+            ;; Test with pattern excluding hidden files (starting with .)
+            (let ((result (greger-stdlib--list-directory test-dir "^\\.")))
+              (should (stringp result))
+              (let ((expected "drwxr-xr-x      128  .
+drwxrwxrwt     2368  ..
+-rw-r--r--       14  normalfile.txt"))
+                (should (string= expected result))))))
+
+      ;; Clean up
+      (when (file-exists-p test-dir)
+        (delete-directory test-dir t)))))
+</tool.toolu_01441ysBAZ6Gfh6quhgLsG8V>
+
+### git-commit-message
+
+<tool.toolu_01441ysBAZ6Gfh6quhgLsG8V>
+Update hidden files test to use exact string comparison
+</tool.toolu_01441ysBAZ6Gfh6quhgLsG8V>
+
+<!-- TOOL_RESULT_PLACEHOLDER_toolu_01441ysBAZ6Gfh6quhgLsG8V -->
