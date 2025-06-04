@@ -2689,4 +2689,81 @@ test/test-greger-stdlib.el
 Improve empty directory test clarity
 </tool.toolu_01GSHN1qGo1uFcaiUacPTE2a>
 
-<!-- TOOL_RESULT_PLACEHOLDER_toolu_01GSHN1qGo1uFcaiUacPTE2a -->
+## TOOL RESULT:
+
+ID: toolu_01GSHN1qGo1uFcaiUacPTE2a
+
+<tool.toolu_01GSHN1qGo1uFcaiUacPTE2a>
+Successfully replaced content in /Users/andreas/projects/greger.el/test/test-greger-stdlib.el. Successfully staged 2 file(s) and committed with message: Improve empty directory test clarity
+</tool.toolu_01GSHN1qGo1uFcaiUacPTE2a>
+
+
+## TOOL USE:
+
+Name: str-replace
+ID: toolu_01Y3ssVKnKDeN9ftkQX4Atts
+
+### file-path
+
+<tool.toolu_01Y3ssVKnKDeN9ftkQX4Atts>
+test/test-greger-stdlib.el
+</tool.toolu_01Y3ssVKnKDeN9ftkQX4Atts>
+
+### original-content
+
+<tool.toolu_01Y3ssVKnKDeN9ftkQX4Atts>
+(ert-deftest greger-test-list-directory-file-mode-string ()
+  "Test the file mode string formatting function."
+  ;; Test directory attributes (this is somewhat implementation-dependent)
+  (let ((temp-dir (make-temp-file "greger-test-mode" t)))
+    (unwind-protect
+        (let* ((attrs (file-attributes temp-dir))
+               (mode-string (greger-stdlib--format-file-info temp-dir "testdir" "nomatch")))
+          (should (stringp mode-string))
+          ;; Should start with 'd' for directory
+          (should (string-match-p "^d" mode-string))
+          ;; Should contain permissions, size, date, and name
+          (should (string-match-p "testdir$" mode-string)))
+      (when (file-exists-p temp-dir)
+        (delete-directory temp-dir)))))
+</tool.toolu_01Y3ssVKnKDeN9ftkQX4Atts>
+
+### new-content
+
+<tool.toolu_01Y3ssVKnKDeN9ftkQX4Atts>
+(ert-deftest greger-test-list-directory-file-mode-string ()
+  "Test the file mode string formatting function."
+  (let ((temp-dir (make-temp-file "greger-test-mode" t))
+        (temp-file (make-temp-file "greger-test-file")))
+    (unwind-protect
+        (progn
+          ;; Test directory formatting
+          (let ((dir-info (greger-stdlib--format-file-info temp-dir "testdir" "nomatch")))
+            (should (stringp dir-info))
+            ;; Should start with 'd' for directory
+            (should (string-match-p "^d" dir-info))
+            ;; Should end with the display name
+            (should (string-match-p "testdir$" dir-info)))
+
+          ;; Test file formatting
+          (let ((file-info (greger-stdlib--format-file-info temp-file "testfile" "nomatch")))
+            (should (stringp file-info))
+            ;; Should start with '-' for regular file
+            (should (string-match-p "^-" file-info))
+            ;; Should end with the display name
+            (should (string-match-p "testfile$" file-info))))
+
+      ;; Clean up
+      (when (file-exists-p temp-dir)
+        (delete-directory temp-dir))
+      (when (file-exists-p temp-file)
+        (delete-file temp-file)))))
+</tool.toolu_01Y3ssVKnKDeN9ftkQX4Atts>
+
+### git-commit-message
+
+<tool.toolu_01Y3ssVKnKDeN9ftkQX4Atts>
+Improve file mode string test to cover both files and directories
+</tool.toolu_01Y3ssVKnKDeN9ftkQX4Atts>
+
+<!-- TOOL_RESULT_PLACEHOLDER_toolu_01Y3ssVKnKDeN9ftkQX4Atts -->

@@ -845,18 +845,31 @@ Line 3"))
 
 (ert-deftest greger-test-list-directory-file-mode-string ()
   "Test the file mode string formatting function."
-  ;; Test directory attributes (this is somewhat implementation-dependent)
-  (let ((temp-dir (make-temp-file "greger-test-mode" t)))
+  (let ((temp-dir (make-temp-file "greger-test-mode" t))
+        (temp-file (make-temp-file "greger-test-file")))
     (unwind-protect
-        (let* ((attrs (file-attributes temp-dir))
-               (mode-string (greger-stdlib--format-file-info temp-dir "testdir" "nomatch")))
-          (should (stringp mode-string))
-          ;; Should start with 'd' for directory
-          (should (string-match-p "^d" mode-string))
-          ;; Should contain permissions, size, date, and name
-          (should (string-match-p "testdir$" mode-string)))
+        (progn
+          ;; Test directory formatting
+          (let ((dir-info (greger-stdlib--format-file-info temp-dir "testdir" "nomatch")))
+            (should (stringp dir-info))
+            ;; Should start with 'd' for directory
+            (should (string-match-p "^d" dir-info))
+            ;; Should end with the display name
+            (should (string-match-p "testdir$" dir-info)))
+
+          ;; Test file formatting
+          (let ((file-info (greger-stdlib--format-file-info temp-file "testfile" "nomatch")))
+            (should (stringp file-info))
+            ;; Should start with '-' for regular file
+            (should (string-match-p "^-" file-info))
+            ;; Should end with the display name
+            (should (string-match-p "testfile$" file-info))))
+
+      ;; Clean up
       (when (file-exists-p temp-dir)
-        (delete-directory temp-dir)))))
+        (delete-directory temp-dir))
+      (when (file-exists-p temp-file)
+        (delete-file temp-file)))))
 
 (ert-deftest greger-test-list-directory-hidden-files ()
   "Test list-directory handling of hidden files with exclude patterns."
