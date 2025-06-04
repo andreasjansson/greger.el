@@ -877,23 +877,23 @@ Line 3"))
     (unwind-protect
         (progn
           ;; Create hidden and normal files
-          (let ((hidden-file (expand-file-name ".hidden" test-dir))
-                (normal-file (expand-file-name "normal.txt" test-dir)))
+          (let ((hidden-file (expand-file-name ".hiddenfile" test-dir))
+                (normal-file (expand-file-name "normalfile.txt" test-dir)))
 
             (with-temp-file hidden-file (insert "Hidden content"))
             (with-temp-file normal-file (insert "Normal content"))
 
-            ;; Test with no exclude pattern (should show hidden files)
+            ;; Test with no exclude pattern (should show all files including hidden)
             (let ((result (greger-stdlib--list-directory test-dir "")))
               (should (stringp result))
-              (should (string-match-p "\\.hidden" result))
-              (should (string-match-p "normal\\.txt" result)))
+              (should (string-match-p "\\.hiddenfile" result))
+              (should (string-match-p "normalfile\\.txt" result)))
 
-            ;; Test with pattern excluding hidden files
+            ;; Test with pattern excluding hidden files (starting with .)
             (let ((result (greger-stdlib--list-directory test-dir "^\\.")))
               (should (stringp result))
-              (should-not (string-match-p "\\.hidden" result))
-              (should (string-match-p "normal\\.txt" result)))))
+              (should-not (string-match-p "\\.hiddenfile" result))
+              (should (string-match-p "normalfile\\.txt" result)))))
 
       ;; Clean up
       (when (file-exists-p test-dir)
