@@ -434,13 +434,7 @@ Excludes files/directories matching EXCLUDE-PATTERN."
   (let ((files (directory-files path t))
         (results '()))
 
-    ;; Add current and parent directory entries
-    (let ((current-dir (file-name-as-directory path)))
-      (push (greger-stdlib--format-file-info current-dir "." exclude-pattern) results)
-      (unless (string= (expand-file-name path) (expand-file-name "/"))
-        (push (greger-stdlib--format-file-info (file-name-directory (directory-file-name path)) ".." exclude-pattern) results)))
-
-    ;; Process regular files and directories
+    ;; Process regular files and directories (skip . and ..)
     (dolist (file (sort files #'string<))
       (let* ((basename (file-name-nondirectory file))
              (relative-path (file-relative-name file (expand-file-name path))))

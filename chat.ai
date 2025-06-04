@@ -4889,4 +4889,94 @@ drwx------  3032384  ..
 Fix expected output in basic test based on actual permissions
 </tool.toolu_01BYHZsB6peWoxGCF6sC9xhZ>
 
-<!-- TOOL_RESULT_PLACEHOLDER_toolu_01BYHZsB6peWoxGCF6sC9xhZ -->
+## TOOL RESULT:
+
+ID: toolu_01BYHZsB6peWoxGCF6sC9xhZ
+
+<tool.toolu_01BYHZsB6peWoxGCF6sC9xhZ>
+Successfully replaced content in /Users/andreas/projects/greger.el/test/test-greger-stdlib.el. Successfully staged 2 file(s) and committed with message: Fix expected output in basic test based on actual permissions
+</tool.toolu_01BYHZsB6peWoxGCF6sC9xhZ>
+
+
+## USER:
+
+Actually remove the `.` and `..` from the output in the tool and tests, since the sizes of those are also untestable
+
+## ASSISTANT:
+
+Good idea! Let me remove the `.` and `..` entries from the tool output to make it more predictable and testable.
+
+## TOOL USE:
+
+Name: str-replace
+ID: toolu_01PJ7Ssf2JYethqHUJ17KbBn
+
+### file-path
+
+<tool.toolu_01PJ7Ssf2JYethqHUJ17KbBn>
+greger-stdlib.el
+</tool.toolu_01PJ7Ssf2JYethqHUJ17KbBn>
+
+### original-content
+
+<tool.toolu_01PJ7Ssf2JYethqHUJ17KbBn>
+(defun greger-stdlib--list-directory-detailed (path exclude-pattern)
+  "List directory contents at PATH with detailed information like 'ls -la'.
+Excludes files/directories matching EXCLUDE-PATTERN."
+  (let ((files (directory-files path t))
+        (results '()))
+
+    ;; Add current and parent directory entries
+    (let ((current-dir (file-name-as-directory path)))
+      (push (greger-stdlib--format-file-info current-dir "." exclude-pattern) results)
+      (unless (string= (expand-file-name path) (expand-file-name "/"))
+        (push (greger-stdlib--format-file-info (file-name-directory (directory-file-name path)) ".." exclude-pattern) results)))
+
+    ;; Process regular files and directories
+    (dolist (file (sort files #'string<))
+      (let* ((basename (file-name-nondirectory file))
+             (relative-path (file-relative-name file (expand-file-name path))))
+        (when (and (not (string= basename "."))
+                   (not (string= basename ".."))
+                   (greger-stdlib--should-include-file-p relative-path exclude-pattern))
+          (let ((formatted (greger-stdlib--format-file-info file basename exclude-pattern)))
+            (when formatted
+              (push formatted results))))))
+
+    (if results
+        (mapconcat #'identity (reverse results) "\n")
+      "Directory is empty")))
+</tool.toolu_01PJ7Ssf2JYethqHUJ17KbBn>
+
+### new-content
+
+<tool.toolu_01PJ7Ssf2JYethqHUJ17KbBn>
+(defun greger-stdlib--list-directory-detailed (path exclude-pattern)
+  "List directory contents at PATH with detailed information like 'ls -la'.
+Excludes files/directories matching EXCLUDE-PATTERN."
+  (let ((files (directory-files path t))
+        (results '()))
+
+    ;; Process regular files and directories (skip . and ..)
+    (dolist (file (sort files #'string<))
+      (let* ((basename (file-name-nondirectory file))
+             (relative-path (file-relative-name file (expand-file-name path))))
+        (when (and (not (string= basename "."))
+                   (not (string= basename ".."))
+                   (greger-stdlib--should-include-file-p relative-path exclude-pattern))
+          (let ((formatted (greger-stdlib--format-file-info file basename exclude-pattern)))
+            (when formatted
+              (push formatted results))))))
+
+    (if results
+        (mapconcat #'identity (reverse results) "\n")
+      "Directory is empty")))
+</tool.toolu_01PJ7Ssf2JYethqHUJ17KbBn>
+
+### git-commit-message
+
+<tool.toolu_01PJ7Ssf2JYethqHUJ17KbBn>
+Remove . and .. entries from list-directory output for predictable testing
+</tool.toolu_01PJ7Ssf2JYethqHUJ17KbBn>
+
+<!-- TOOL_RESULT_PLACEHOLDER_toolu_01PJ7Ssf2JYethqHUJ17KbBn -->
