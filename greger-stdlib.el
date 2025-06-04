@@ -466,8 +466,7 @@ PREFIX is used internally for nested directory structure."
       ;; Process files and directories
       (let ((files (directory-files path t)))
         (dolist (file (sort files #'string<))
-          (let* ((basename (file-name-nondirectory file))
-                 (relative-path (file-relative-name file (expand-file-name path))))
+          (let* ((basename (file-name-nondirectory file)))
             (when (and (not (string= basename "."))
                        (not (string= basename "..")))
               (let ((formatted (greger-stdlib--format-file-info file basename exclude-directories-recursive)))
