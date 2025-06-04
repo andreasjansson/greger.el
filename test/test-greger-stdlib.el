@@ -796,10 +796,10 @@ drwx------  (dir)  ..
 -rw-r--r--        12  root.txt
 drwxr-xr-x  (dir)  testdir
 
-./testdir/:
+%stestdir/:
 drwxr-xr-x  (dir)  .
 drwx------  (dir)  ..
--rw-r--r--        14  nested.txt" (file-name-as-directory test-dir))))
+-rw-r--r--        14  nested.txt" (file-name-as-directory test-dir) (file-name-as-directory test-dir))))
               (should (stringp result))
               (should (string= expected result)))))
 
