@@ -2749,4 +2749,245 @@ greger-parser.el
 Add server tool message creation functions
 </tool.toolu_01GpEJTRHyc36vJykqYWHttK>
 
-<!-- TOOL_RESULT_PLACEHOLDER_toolu_01GpEJTRHyc36vJykqYWHttK -->
+## TOOL RESULT:
+
+ID: toolu_01GpEJTRHyc36vJykqYWHttK
+
+<tool.toolu_01GpEJTRHyc36vJykqYWHttK>
+Successfully replaced content in /Users/andreas/projects/greger.el/greger-parser.el. Successfully staged 2 file(s) and committed with message: Add server tool message creation functions
+</tool.toolu_01GpEJTRHyc36vJykqYWHttK>
+
+## ASSISTANT:
+
+Now I need to handle the markdown generation for server tools. Let me find the `greger-parser--block-to-markdown` function and add support for the new content types:
+
+## TOOL USE:
+
+Name: read-file
+ID: toolu_01ESxBorYqcwkqahWrF6UaEF
+
+### path
+
+<tool.toolu_01ESxBorYqcwkqahWrF6UaEF>
+greger-parser.el
+</tool.toolu_01ESxBorYqcwkqahWrF6UaEF>
+
+### start-line
+
+<tool.toolu_01ESxBorYqcwkqahWrF6UaEF>
+1010
+</tool.toolu_01ESxBorYqcwkqahWrF6UaEF>
+
+### end-line
+
+<tool.toolu_01ESxBorYqcwkqahWrF6UaEF>
+1035
+</tool.toolu_01ESxBorYqcwkqahWrF6UaEF>
+
+## TOOL RESULT:
+
+ID: toolu_01ESxBorYqcwkqahWrF6UaEF
+
+<tool.toolu_01ESxBorYqcwkqahWrF6UaEF>
+              ;; Merge with previous
+              (progn
+                (let ((merged (greger-parser--merge-message-contents last msg)))
+                  (setcar result merged)))
+            ;; Add as new message
+            (progn
+              (push msg result)))))
+      (reverse result))))
+
+(defun greger-parser--merge-message-contents (msg1 msg2)
+  "Merge contents of MSG1 and MSG2."
+  (let ((role (alist-get 'role msg1))
+        (content1 (alist-get 'content msg1))
+        (content2 (alist-get 'content msg2)))
+    (let ((merged-content (greger-parser--merge-contents content1 content2)))
+      `((role . ,role)
+        (content . ,merged-content)))))
+
+(defun greger-parser--merge-contents (content1 content2)
+  "Merge CONTENT1 and CONTENT2 values."
+  (let ((blocks1 (greger-parser--content-to-blocks content1))
+        (blocks2 (greger-parser--content-to-blocks content2)))
+    (let ((result (append blocks1 blocks2)))
+      result)))
+
+(defun greger-parser--content-to-blocks (content)
+</tool.toolu_01ESxBorYqcwkqahWrF6UaEF>
+
+## ASSISTANT:
+
+Let me find the `greger-parser--block-to-markdown` function:
+
+## TOOL USE:
+
+Name: ripgrep
+ID: toolu_01UDeaxFkvTAjQ4J4KS2zh3s
+
+### pattern
+
+<tool.toolu_01UDeaxFkvTAjQ4J4KS2zh3s>
+block-to-markdown
+</tool.toolu_01UDeaxFkvTAjQ4J4KS2zh3s>
+
+### path
+
+<tool.toolu_01UDeaxFkvTAjQ4J4KS2zh3s>
+greger-parser.el
+</tool.toolu_01UDeaxFkvTAjQ4J4KS2zh3s>
+
+### context-lines
+
+<tool.toolu_01UDeaxFkvTAjQ4J4KS2zh3s>
+10
+</tool.toolu_01UDeaxFkvTAjQ4J4KS2zh3s>
+
+## TOOL RESULT:
+
+ID: toolu_01UDeaxFkvTAjQ4J4KS2zh3s
+
+<tool.toolu_01UDeaxFkvTAjQ4J4KS2zh3s>
+1070-  (if (stringp content)
+1071-      (concat greger-parser-assistant-tag "\n\n" content)
+1072-    (greger-parser--content-blocks-to-markdown content)))
+1073-
+1074-(defun greger-parser--system-to-markdown (content)
+1075-  "Convert system CONTENT to markdown."
+1076-  (concat greger-parser-system-tag "\n\n" content))
+1077-
+1078-(defun greger-parser--content-blocks-to-markdown (blocks)
+1079-  "Convert content BLOCKS to markdown."
+1080:  (mapconcat #'greger-parser--block-to-markdown blocks "\n\n"))
+1081-
+1082:(defun greger-parser--block-to-markdown (block)
+1083-  "Convert single BLOCK to markdown."
+1084-  (let ((type (alist-get 'type block)))
+1085-    (cond
+1086-     ((string= type "text")
+1087-      (concat greger-parser-assistant-tag "\n\n"
+1088-              (alist-get 'text block)))
+1089-     ((string= type "thinking")
+1090-      (concat greger-parser-thinking-tag "\n\n"
+1091-              (alist-get 'thinking block)))
+1092-     ((string= type "tool_use")
+
+</tool.toolu_01UDeaxFkvTAjQ4J4KS2zh3s>
+
+## TOOL USE:
+
+Name: read-file
+ID: toolu_01UyjCE1RMDTBhMkoWYJZQT8
+
+### path
+
+<tool.toolu_01UyjCE1RMDTBhMkoWYJZQT8>
+greger-parser.el
+</tool.toolu_01UyjCE1RMDTBhMkoWYJZQT8>
+
+### start-line
+
+<tool.toolu_01UyjCE1RMDTBhMkoWYJZQT8>
+1082
+</tool.toolu_01UyjCE1RMDTBhMkoWYJZQT8>
+
+### end-line
+
+<tool.toolu_01UyjCE1RMDTBhMkoWYJZQT8>
+1105
+</tool.toolu_01UyjCE1RMDTBhMkoWYJZQT8>
+
+## TOOL RESULT:
+
+ID: toolu_01UyjCE1RMDTBhMkoWYJZQT8
+
+<tool.toolu_01UyjCE1RMDTBhMkoWYJZQT8>
+(defun greger-parser--block-to-markdown (block)
+  "Convert single BLOCK to markdown."
+  (let ((type (alist-get 'type block)))
+    (cond
+     ((string= type "text")
+      (concat greger-parser-assistant-tag "\n\n"
+              (alist-get 'text block)))
+     ((string= type "thinking")
+      (concat greger-parser-thinking-tag "\n\n"
+              (alist-get 'thinking block)))
+     ((string= type "tool_use")
+      (greger-parser--tool-use-to-markdown block))
+     ((string= type "tool_result")
+      (greger-parser--tool-result-to-markdown block))
+     (t ""))))
+
+(defun greger-parser--tool-use-to-markdown (tool-use)
+  "Convert TOOL-USE to markdown."
+  (let ((name (alist-get 'name tool-use))
+        (id (alist-get 'id tool-use))
+        (input (alist-get 'input tool-use)))
+    (concat greger-parser-tool-use-tag "\n\n"
+            "Name: " name "\n"
+            "ID: " id "\n\n"
+</tool.toolu_01UyjCE1RMDTBhMkoWYJZQT8>
+
+## TOOL USE:
+
+Name: str-replace
+ID: toolu_018NoC1PiJNA9XQfVMvNhBoZ
+
+### file-path
+
+<tool.toolu_018NoC1PiJNA9XQfVMvNhBoZ>
+greger-parser.el
+</tool.toolu_018NoC1PiJNA9XQfVMvNhBoZ>
+
+### original-content
+
+<tool.toolu_018NoC1PiJNA9XQfVMvNhBoZ>
+(defun greger-parser--block-to-markdown (block)
+  "Convert single BLOCK to markdown."
+  (let ((type (alist-get 'type block)))
+    (cond
+     ((string= type "text")
+      (concat greger-parser-assistant-tag "\n\n"
+              (alist-get 'text block)))
+     ((string= type "thinking")
+      (concat greger-parser-thinking-tag "\n\n"
+              (alist-get 'thinking block)))
+     ((string= type "tool_use")
+      (greger-parser--tool-use-to-markdown block))
+     ((string= type "tool_result")
+      (greger-parser--tool-result-to-markdown block))
+     (t ""))))
+</tool.toolu_018NoC1PiJNA9XQfVMvNhBoZ>
+
+### new-content
+
+<tool.toolu_018NoC1PiJNA9XQfVMvNhBoZ>
+(defun greger-parser--block-to-markdown (block)
+  "Convert single BLOCK to markdown."
+  (let ((type (alist-get 'type block)))
+    (cond
+     ((string= type "text")
+      (concat greger-parser-assistant-tag "\n\n"
+              (alist-get 'text block)))
+     ((string= type "thinking")
+      (concat greger-parser-thinking-tag "\n\n"
+              (alist-get 'thinking block)))
+     ((string= type "tool_use")
+      (greger-parser--tool-use-to-markdown block))
+     ((string= type "tool_result")
+      (greger-parser--tool-result-to-markdown block))
+     ((string= type "server_tool_use")
+      (greger-parser--server-tool-use-to-markdown block))
+     ((string= type "server_tool_result")
+      (greger-parser--server-tool-result-to-markdown block))
+     (t ""))))
+</tool.toolu_018NoC1PiJNA9XQfVMvNhBoZ>
+
+### git-commit-message
+
+<tool.toolu_018NoC1PiJNA9XQfVMvNhBoZ>
+Add server tool types to block-to-markdown conversion
+</tool.toolu_018NoC1PiJNA9XQfVMvNhBoZ>
+
+<!-- TOOL_RESULT_PLACEHOLDER_toolu_018NoC1PiJNA9XQfVMvNhBoZ -->
