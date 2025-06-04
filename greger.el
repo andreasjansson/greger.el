@@ -333,8 +333,11 @@ These tool IDs should not be auto-folded again.")
     (unless dialog
       (error "Failed to parse dialog. Check your buffer format"))
 
-    ;; Get the JSON request data using the new client
-    (setq request-data (greger-client--build-data model dialog tools))
+    ;; Get server tools
+    (let ((server-tools (when greger-server-tools
+                          (greger-server-tools-get-schemas greger-server-tools))))
+      ;; Get the JSON request data using the new client
+      (setq request-data (greger-client--build-data model dialog tools server-tools)))
 
     ;; Parse the JSON and re-encode with proper formatting
     (condition-case err
