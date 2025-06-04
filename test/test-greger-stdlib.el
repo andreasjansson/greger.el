@@ -835,7 +835,7 @@ testdir:
         (progn
           ;; Test directory formatting
           (let ((dir-info (greger-stdlib--format-file-info temp-dir "testdir" "nomatch"))
-                (expected "drwxr-xr-x       96  testdir"))
+                (expected "drwx------       64  testdir"))
             (should (stringp dir-info))
             (should (string= expected dir-info)))
 

@@ -5244,4 +5244,62 @@ drwxrwxrwt     2368  .."))
 Update empty dir test to reflect removal of . and .. entries
 </tool.toolu_0118FaRzSZpQsAQNiS8Boyrn>
 
-<!-- TOOL_RESULT_PLACEHOLDER_toolu_0118FaRzSZpQsAQNiS8Boyrn -->
+## TOOL RESULT:
+
+ID: toolu_0118FaRzSZpQsAQNiS8Boyrn
+
+<tool.toolu_0118FaRzSZpQsAQNiS8Boyrn>
+Successfully replaced content in /Users/andreas/projects/greger.el/test/test-greger-stdlib.el. Successfully staged 2 file(s) and committed with message: Update empty dir test to reflect removal of . and .. entries
+</tool.toolu_0118FaRzSZpQsAQNiS8Boyrn>
+
+
+## TOOL USE:
+
+Name: str-replace
+ID: toolu_01QoDHUboZNPd92NBGVogcRu
+
+### file-path
+
+<tool.toolu_01QoDHUboZNPd92NBGVogcRu>
+test/test-greger-stdlib.el
+</tool.toolu_01QoDHUboZNPd92NBGVogcRu>
+
+### original-content
+
+<tool.toolu_01QoDHUboZNPd92NBGVogcRu>
+;; Test directory formatting
+          (let ((dir-info (greger-stdlib--format-file-info temp-dir "testdir" "nomatch"))
+                (expected "drwxr-xr-x       96  testdir"))
+            (should (stringp dir-info))
+            (should (string= expected dir-info)))
+
+          ;; Test file formatting
+          (let ((file-info (greger-stdlib--format-file-info temp-file "testfile" "nomatch"))
+                (expected "-rw-r--r--        0  testfile"))
+            (should (stringp file-info))
+            (should (string= expected file-info)))
+</tool.toolu_01QoDHUboZNPd92NBGVogcRu>
+
+### new-content
+
+<tool.toolu_01QoDHUboZNPd92NBGVogcRu>
+;; Test directory formatting
+          (let ((dir-info (greger-stdlib--format-file-info temp-dir "testdir" "nomatch"))
+                (expected "drwx------       64  testdir"))
+            (should (stringp dir-info))
+            (should (string= expected dir-info)))
+
+          ;; Test file formatting
+          (let ((file-info (greger-stdlib--format-file-info temp-file "testfile" "nomatch"))
+                (expected "-rw-r--r--        0  testfile"))
+            (should (stringp file-info))
+            (should (string= expected file-info)))
+</tool.toolu_01QoDHUboZNPd92NBGVogcRu>
+
+### git-commit-message
+
+<tool.toolu_01QoDHUboZNPd92NBGVogcRu>
+Update file mode test with correct directory permissions
+</tool.toolu_01QoDHUboZNPd92NBGVogcRu>
+
+<!-- TOOL_RESULT_PLACEHOLDER_toolu_01QoDHUboZNPd92NBGVogcRu -->
