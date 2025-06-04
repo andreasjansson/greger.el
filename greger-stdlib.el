@@ -34,6 +34,15 @@
 (require 'greger-web)
 
 ;; Register all tools using the macro
+(greger-register-server-tool "web_search"
+    :type "web_search_20250305"
+    :name "web_search"
+    :max_uses 20)
+
+;; Debug: verify the tool was registered
+(message "DEBUG: web_search server tool registered: %s"
+         (gethash "web_search" greger-server-tools-registry))
+
 (greger-register-tool "read-file"
   :description "Read the contents of a file from the filesystem"
   :properties '((path . ((type . "string")

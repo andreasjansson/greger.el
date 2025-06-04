@@ -4179,4 +4179,57 @@ greger-client.el
 Add debugging for content block start events
 </tool.toolu_01X9UVTbsiPMHBw7kGCVCKET>
 
-<!-- TOOL_RESULT_PLACEHOLDER_toolu_01X9UVTbsiPMHBw7kGCVCKET -->
+## TOOL RESULT:
+
+ID: toolu_01X9UVTbsiPMHBw7kGCVCKET
+
+<tool.toolu_01X9UVTbsiPMHBw7kGCVCKET>
+Successfully replaced content in /Users/andreas/projects/greger.el/greger-client.el. Successfully staged 2 file(s) and committed with message: Add debugging for content block start events
+</tool.toolu_01X9UVTbsiPMHBw7kGCVCKET>
+
+## ASSISTANT:
+
+Let me also add debugging for the server tool registration to make sure it's actually getting registered:
+
+## TOOL USE:
+
+Name: str-replace
+ID: toolu_01X8jPx8QxguH6Axv99qzdzP
+
+### file-path
+
+<tool.toolu_01X8jPx8QxguH6Axv99qzdzP>
+greger-stdlib.el
+</tool.toolu_01X8jPx8QxguH6Axv99qzdzP>
+
+### original-content
+
+<tool.toolu_01X8jPx8QxguH6Axv99qzdzP>
+;; Register all tools using the macro
+(greger-register-server-tool "web_search"
+    :type "web_search_20250305"
+    :name "web_search"
+    :max_uses 20)
+</tool.toolu_01X8jPx8QxguH6Axv99qzdzP>
+
+### new-content
+
+<tool.toolu_01X8jPx8QxguH6Axv99qzdzP>
+;; Register all tools using the macro
+(greger-register-server-tool "web_search"
+    :type "web_search_20250305"
+    :name "web_search"
+    :max_uses 20)
+
+;; Debug: verify the tool was registered
+(message "DEBUG: web_search server tool registered: %s" 
+         (gethash "web_search" greger-server-tools-registry))
+</tool.toolu_01X8jPx8QxguH6Axv99qzdzP>
+
+### git-commit-message
+
+<tool.toolu_01X8jPx8QxguH6Axv99qzdzP>
+Add debugging to verify web_search server tool registration
+</tool.toolu_01X8jPx8QxguH6Axv99qzdzP>
+
+<!-- TOOL_RESULT_PLACEHOLDER_toolu_01X8jPx8QxguH6Axv99qzdzP -->
