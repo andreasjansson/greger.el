@@ -5933,4 +5933,134 @@ Excludes files/directories matching EXCLUDE-PATTERN."
 Update list-directory-detailed to include directory header and . .. entries
 </tool.toolu_01YNLRfW6nGzLEo14LyTDSuh>
 
-<!-- TOOL_RESULT_PLACEHOLDER_toolu_01YNLRfW6nGzLEo14LyTDSuh -->
+## TOOL RESULT:
+
+ID: toolu_01YNLRfW6nGzLEo14LyTDSuh
+
+<tool.toolu_01YNLRfW6nGzLEo14LyTDSuh>
+Successfully replaced content in /Users/andreas/projects/greger.el/greger-stdlib.el. Successfully staged 2 file(s) and committed with message: Update list-directory-detailed to include directory header and . .. entries
+</tool.toolu_01YNLRfW6nGzLEo14LyTDSuh>
+
+
+## TOOL USE:
+
+Name: str-replace
+ID: toolu_01DgA5Cn4Mkmk6Y2EwoZ7XxA
+
+### file-path
+
+<tool.toolu_01DgA5Cn4Mkmk6Y2EwoZ7XxA>
+greger-stdlib.el
+</tool.toolu_01DgA5Cn4Mkmk6Y2EwoZ7XxA>
+
+### original-content
+
+<tool.toolu_01DgA5Cn4Mkmk6Y2EwoZ7XxA>
+(defun greger-stdlib--list-directory-recursive-detailed (path exclude-pattern &optional prefix)
+  "Recursively list directory contents at PATH with detailed information.
+Excludes files/directories matching EXCLUDE-PATTERN.
+PREFIX is used internally for nested directory structure."
+  (let ((results '())
+        (prefix (or prefix "")))
+
+    ;; First, list current directory
+    (let ((dir-header (if (string= prefix "")
+                          (format "%s:" (file-name-as-directory path))
+                        (format "\n%s%s:" prefix (file-name-nondirectory path)))))
+      (push dir-header results))
+
+    (let ((files (directory-files path t))
+          (current-results '()))
+
+      ;; Skip . and .. entries for cleaner, more testable output
+
+      ;; Process regular files and directories
+      (dolist (file (sort files #'string<))
+        (let* ((basename (file-name-nondirectory file))
+               (relative-path (file-relative-name file (expand-file-name path))))
+          (when (and (not (string= basename "."))
+                     (not (string= basename ".."))
+                     (greger-stdlib--should-include-file-p relative-path exclude-pattern))
+            (let ((formatted (greger-stdlib--format-file-info file basename exclude-pattern)))
+              (when formatted
+                (push formatted current-results))))))
+
+      ;; Add current directory results
+      (when current-results
+        (setq results (append results (reverse current-results))))
+
+      ;; Recursively process subdirectories
+      (dolist (file (sort files #'string<))
+        (let* ((basename (file-name-nondirectory file))
+               (relative-path (file-relative-name file (expand-file-name path))))
+          (when (and (file-directory-p file)
+                     (not (string= basename "."))
+                     (not (string= basename ".."))
+                     (greger-stdlib--should-include-file-p relative-path exclude-pattern))
+            (let ((subdir-results (greger-stdlib--list-directory-recursive-detailed
+                                   file exclude-pattern (concat prefix basename "/"))))
+              (push subdir-results results))))))
+
+    (mapconcat #'identity results "\n")))
+</tool.toolu_01DgA5Cn4Mkmk6Y2EwoZ7XxA>
+
+### new-content
+
+<tool.toolu_01DgA5Cn4Mkmk6Y2EwoZ7XxA>
+(defun greger-stdlib--list-directory-recursive-detailed (path exclude-pattern &optional prefix)
+  "Recursively list directory contents at PATH with detailed information.
+Excludes files/directories matching EXCLUDE-PATTERN.
+PREFIX is used internally for nested directory structure."
+  (let ((results '())
+        (display-path (if (string= prefix "")
+                          (if (string= path ".") "./" (file-name-as-directory (file-relative-name path)))
+                        (concat "./" prefix))))
+
+    ;; Add directory header
+    (push (format "%s:" display-path) results)
+
+    ;; Add current and parent directory entries
+    (push (greger-stdlib--format-file-info path "." exclude-pattern) results)
+    (unless (string= (expand-file-name path) (expand-file-name "/"))
+      (push (greger-stdlib--format-file-info (file-name-directory (directory-file-name path)) ".." exclude-pattern) results))
+
+    (let ((files (directory-files path t))
+          (current-results '()))
+
+      ;; Process regular files and directories
+      (dolist (file (sort files #'string<))
+        (let* ((basename (file-name-nondirectory file))
+               (relative-path (file-relative-name file (expand-file-name path))))
+          (when (and (not (string= basename "."))
+                     (not (string= basename ".."))
+                     (greger-stdlib--should-include-file-p relative-path exclude-pattern))
+            (let ((formatted (greger-stdlib--format-file-info file basename exclude-pattern)))
+              (when formatted
+                (push formatted current-results))))))
+
+      ;; Add current directory results
+      (when current-results
+        (setq results (append results (reverse current-results))))
+
+      ;; Recursively process subdirectories
+      (dolist (file (sort files #'string<))
+        (let* ((basename (file-name-nondirectory file))
+               (relative-path (file-relative-name file (expand-file-name path))))
+          (when (and (file-directory-p file)
+                     (not (string= basename "."))
+                     (not (string= basename ".."))
+                     (greger-stdlib--should-include-file-p relative-path exclude-pattern))
+            (let ((subdir-results (greger-stdlib--list-directory-recursive-detailed
+                                   file exclude-pattern (concat prefix basename "/"))))
+              (push (concat "\n\n" subdir-results) results))))))
+
+    (mapconcat #'identity (reverse results) "\n")))
+</tool.toolu_01DgA5Cn4Mkmk6Y2EwoZ7XxA>
+
+### git-commit-message
+
+<tool.toolu_01DgA5Cn4Mkmk6Y2EwoZ7XxA>
+Update recursive listing to include directory headers and . .. entries
+</tool.toolu_01DgA5Cn4Mkmk6Y2EwoZ7XxA>
+
+<!-- TOOL_RESULT_PLACEHOLDER_toolu_01DgA5Cn4Mkmk6Y2EwoZ7XxA -->

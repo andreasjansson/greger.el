@@ -463,18 +463,20 @@ Excludes files/directories matching EXCLUDE-PATTERN."
 Excludes files/directories matching EXCLUDE-PATTERN.
 PREFIX is used internally for nested directory structure."
   (let ((results '())
-        (prefix (or prefix "")))
+        (display-path (if (string= prefix "")
+                          (if (string= path ".") "./" (file-name-as-directory (file-relative-name path)))
+                        (concat "./" prefix))))
 
-    ;; First, list current directory
-    (let ((dir-header (if (string= prefix "")
-                          (format "%s:" (file-name-as-directory path))
-                        (format "\n%s%s:" prefix (file-name-nondirectory path)))))
-      (push dir-header results))
+    ;; Add directory header
+    (push (format "%s:" display-path) results)
+
+    ;; Add current and parent directory entries
+    (push (greger-stdlib--format-file-info path "." exclude-pattern) results)
+    (unless (string= (expand-file-name path) (expand-file-name "/"))
+      (push (greger-stdlib--format-file-info (file-name-directory (directory-file-name path)) ".." exclude-pattern) results))
 
     (let ((files (directory-files path t))
           (current-results '()))
-
-      ;; Skip . and .. entries for cleaner, more testable output
 
       ;; Process regular files and directories
       (dolist (file (sort files #'string<))
@@ -501,9 +503,9 @@ PREFIX is used internally for nested directory structure."
                      (greger-stdlib--should-include-file-p relative-path exclude-pattern))
             (let ((subdir-results (greger-stdlib--list-directory-recursive-detailed
                                    file exclude-pattern (concat prefix basename "/"))))
-              (push subdir-results results))))))
+              (push (concat "\n\n" subdir-results) results))))))
 
-    (mapconcat #'identity results "\n")))
+    (mapconcat #'identity (reverse results) "\n")))
 
 (defun greger-stdlib--format-file-info (filepath displayname exclude-pattern)
   "Format file information similar to 'ls -la' output.
