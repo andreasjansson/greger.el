@@ -76,12 +76,9 @@ claude-sonnet-4-20250514 or claude-opus-4-20250514."
 
   (let* ((output-buffer (or buffer (current-buffer)))
          (undo-handle (prepare-change-group output-buffer))
-         (original-quit-binding (local-key-binding (kbd "C-g")))
          (request-spec (greger-client--build-request model dialog tools))
          (restore-callback (lambda (state)
                              (with-current-buffer (greger-client-state-output-buffer state)
-                               (local-set-key (kbd "C-g")
-                                              (greger-client-state-original-quit-binding state))
                                (undo-amalgamate-change-group (greger-client-state-undo-handle state))
                                (accept-change-group (greger-client-state-undo-handle state)))))
          (wrapped-complete-callback (lambda (parsed-blocks _state)
@@ -99,8 +96,7 @@ claude-sonnet-4-20250514 or claude-opus-4-20250514."
                  :cancel-callback cancel-callback
                  :restore-callback restore-callback
                  :output-buffer output-buffer
-                 :undo-handle undo-handle
-                 :original-quit-binding original-quit-binding)))
+                 :undo-handle undo-handle)))
 
     (activate-change-group undo-handle)
 
