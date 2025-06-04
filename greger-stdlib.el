@@ -230,6 +230,37 @@
 
 ;; Helper functions
 
+(defun greger-stdlib--assert-arg-string (name value)
+  "Assert that VALUE is a string, error with NAME if not."
+  (unless (stringp value)
+    (error "Invalid argument: %s must be a string" name)))
+
+(defun greger-stdlib--assert-arg-string-vector (name value)
+  "Assert that VALUE is a vector of strings, error with NAME if not."
+  (unless (vectorp value)
+    (error "Invalid argument: %s must be a vector" name))
+  (seq-doseq (item value)
+    (unless (stringp item)
+      (error "Invalid argument: each element in %s must be a string" name))))
+
+(defun greger-stdlib--assert-arg-int-between (name value greater-or-equal less-or-equal)
+  "Assert that VALUE is an integer between GREATER-OR-EQUAL and LESS-OR-EQUAL.
+Error with NAME if not. Either bound can be nil to skip that check."
+  (unless (integerp value)
+    (error "Invalid argument: %s must be an integer" name))
+  (when (and greater-or-equal (< value greater-or-equal))
+    (error "Invalid argument: %s must be >= %d" name greater-or-equal))
+  (when (and less-or-equal (> value less-or-equal))
+    (error "Invalid argument: %s must be <= %d" name less-or-equal)))
+
+(defun greger-stdlib--assert-arg-string-web-url (name value)
+  "Assert that VALUE is a valid web URL string, error with NAME if not."
+  (greger-stdlib--assert-arg-string name value)
+  (when (string-empty-p (string-trim value))
+    (error "Invalid argument: %s cannot be empty" name))
+  (unless (greger-web-is-web-url-p value)
+    (error "Invalid argument: %s must be a valid URL (starting with http:// or https://)" name)))
+
 (defun greger-stdlib--run-async-subprocess (command args working-directory callback)
   "Run COMMAND with ARGS in WORKING-DIRECTORY and call CALLBACK.
 CALLBACK will be called with (output nil) on success or (nil error-message) on
@@ -332,20 +363,11 @@ If CHAT-BUFFER is provided, also stage and commit the chat buffer file."
   "Read file at PATH. If INCLUDE-LINE-NUMBERS is non-nil, prepend line numbers.
 If START-LINE is specified, start reading from that line (1-based).
 If END-LINE is specified, stop reading at that line (inclusive, 1-based)."
-  (unless (stringp path)
-    (error "Invalid type: path must be a string"))
-
-  (when (and start-line (not (integerp start-line)))
-    (error "Invalid type: start-line must be an integer"))
-
-  (when (and end-line (not (integerp end-line)))
-    (error "Invalid type: end-line must be an integer"))
-
-  (when (and start-line (< start-line 1))
-    (error "Invalid value: start-line must be >= 1"))
-
-  (when (and end-line (< end-line 1))
-    (error "Invalid value: end-line must be >= 1"))
+  (greger-stdlib--assert-arg-string "path" path)
+  (when start-line
+    (greger-stdlib--assert-arg-int-between "start-line" start-line 1 nil))
+  (when end-line
+    (greger-stdlib--assert-arg-int-between "end-line" end-line 1 nil))
 
   (when (and start-line end-line (> start-line end-line))
     (error "Invalid value: start-line must be <= end-line"))
@@ -411,8 +433,7 @@ Similar to \\='ls -Rla\\='.
 EXCLUDE-DIRECTORIES-RECURSIVE is a vector of directory names to exclude when
 recursively listing (defaults to [\".git\" \"__pycache__\"]).
 If RECURSIVE is non-nil, list files recursively."
-  (unless (stringp path)
-    (error "Invalid type: path must be a string"))
+  (greger-stdlib--assert-arg-string "path" path)
 
   (let ((expanded-path (expand-file-name path))
         (original-path path))
@@ -597,11 +618,8 @@ CASE-SENSITIVE, FILE-TYPE, CONTEXT-LINES and MAX-RESULTS are optional."
   "Write CONTENTS to a new file at FILE-PATH. Fails if file already exists.
 GIT-COMMIT-MESSAGE will be used for the git commit.
 If BUFFER is provided, it will be staged and committed along with the new file."
-  (unless (stringp file-path)
-    (error "Invalid type: file-path must be a string"))
-
-  (unless (stringp contents)
-    (error "Invalid type: contents must be a string"))
+  (greger-stdlib--assert-arg-string "file-path" file-path)
+  (greger-stdlib--assert-arg-string "contents" contents)
 
   (let ((expanded-path (expand-file-name file-path)))
 
@@ -630,8 +648,7 @@ If BUFFER is provided, it will be staged and committed along with the new file."
   "Recursively create directory at PATH.
 GIT-COMMIT-MESSAGE will be used for the git commit.
 If BUFFER is provided, it will be staged and committed along with the directory."
-  (unless (stringp path)
-    (error "Invalid type: path must be a string"))
+  (greger-stdlib--assert-arg-string "path" path)
 
   (let ((expanded-path (expand-file-name path)))
 
@@ -655,11 +672,8 @@ If BUFFER is provided, it will be staged and committed along with the directory.
   "Rename file from OLD-PATH to NEW-PATH.
 GIT-COMMIT-MESSAGE will be used for the git commit.
 If BUFFER is provided, it will be staged and committed with the renamed file."
-  (unless (stringp old-path)
-    (error "Invalid type: old-path must be a string"))
-
-  (unless (stringp new-path)
-    (error "Invalid type: new-path must be a string"))
+  (greger-stdlib--assert-arg-string "old-path" old-path)
+  (greger-stdlib--assert-arg-string "new-path" new-path)
 
   (let ((expanded-old-path (expand-file-name old-path))
         (expanded-new-path (expand-file-name new-path)))
@@ -692,11 +706,8 @@ If BUFFER is provided, it will be staged and committed with the renamed file."
   "Delete files at FILE-PATHS and stage the deletion in git if tracked.
 GIT-COMMIT-MESSAGE will be used for the git commit.
 If BUFFER is provided, it will be staged and committed with deleted files."
-  (unless (vectorp file-paths)
-    (error "Invalid type: file-paths must be a vector"))
-
-  (unless (stringp git-commit-message)
-    (error "Invalid type: git-commit-message must be a string"))
+  (greger-stdlib--assert-arg-string-vector "file-paths" file-paths)
+  (greger-stdlib--assert-arg-string "git-commit-message" git-commit-message)
 
   (let ((expanded-paths '())
         (deleted-files '())
@@ -704,8 +715,6 @@ If BUFFER is provided, it will be staged and committed with deleted files."
 
     ;; Validate all files exist first
     (seq-doseq (file-path file-paths)
-      (unless (stringp file-path)
-        (error "Each file path must be a string"))
       (let ((expanded-path (expand-file-name file-path)))
         (unless (file-exists-p expanded-path)
           (error "File does not exist: %s" expanded-path))
@@ -746,14 +755,9 @@ If BUFFER is provided, it will be staged and committed with deleted files."
   "Replace the entire contents of FILE-PATH with CONTENTS.
 GIT-COMMIT-MESSAGE will be used for the git commit.
 If BUFFER is provided, it will be staged and committed along with the file."
-  (unless (stringp file-path)
-    (error "Invalid type: file-path must be a string"))
-
-  (unless (stringp contents)
-    (error "Invalid type: contents must be a string"))
-
-  (unless (stringp git-commit-message)
-    (error "Invalid type: git-commit-message must be a string"))
+  (greger-stdlib--assert-arg-string "file-path" file-path)
+  (greger-stdlib--assert-arg-string "contents" contents)
+  (greger-stdlib--assert-arg-string "git-commit-message" git-commit-message)
 
   (let ((expanded-path (expand-file-name file-path)))
 
@@ -808,17 +812,10 @@ Uses `parse-partial-sexp' to properly handle strings and comments."
 GIT-COMMIT-MESSAGE will be used for the git commit.
 If BUFFER is provided, it will be staged and committed along with the file.
 For Emacs Lisp files (.el), checks that parentheses balance is maintained."
-  (unless (stringp file-path)
-    (error "Invalid type: file-path must be a string"))
-
-  (unless (stringp original-content)
-    (error "Invalid type: original-content must be a string"))
-
-  (unless (stringp new-content)
-    (error "Invalid type: new-content must be a string"))
-
-  (unless (stringp git-commit-message)
-    (error "Invalid type: git-commit-message must be a string"))
+  (greger-stdlib--assert-arg-string "file-path" file-path)
+  (greger-stdlib--assert-arg-string "original-content" original-content)
+  (greger-stdlib--assert-arg-string "new-content" new-content)
+  (greger-stdlib--assert-arg-string "git-commit-message" git-commit-message)
 
   (let ((expanded-path (expand-file-name file-path)))
 
@@ -858,20 +855,10 @@ For Emacs Lisp files (.el), checks that parentheses balance is maintained."
   "Insert CONTENT at LINE-NUMBER in FILE-PATH.
 GIT-COMMIT-MESSAGE will be used for the git commit.
 If BUFFER is provided, it will be staged and committed along with the file."
-  (unless (stringp file-path)
-    (error "Invalid type: file-path must be a string"))
-
-  (unless (integerp line-number)
-    (error "Invalid type: line-number must be an integer"))
-
-  (unless (>= line-number 0)
-    (error "Invalid type: line-number must be >= 0"))
-
-  (unless (stringp content)
-    (error "Invalid type: content must be a string"))
-
-  (unless (stringp git-commit-message)
-    (error "Invalid type: git-commit-message must be a string"))
+  (greger-stdlib--assert-arg-string "file-path" file-path)
+  (greger-stdlib--assert-arg-int-between "line-number" line-number 0 nil)
+  (greger-stdlib--assert-arg-string "content" content)
+  (greger-stdlib--assert-arg-string "git-commit-message" git-commit-message)
 
   (let ((expanded-path (expand-file-name file-path)))
 
@@ -884,6 +871,11 @@ If BUFFER is provided, it will be staged and committed along with the file."
       (error "Path is a directory, not a file: %s" expanded-path))
 
     (with-current-buffer (find-file-noselect expanded-path)
+     ;; Count lines and validate line-number
+     (let ((total-lines (count-lines (point-min) (point-max))))
+       (when (> line-number (1+ total-lines))
+         (error "Invalid line number: %d is greater than total lines + 1 (%d)" line-number (1+ total-lines))))
+
      ;; Navigate to the insertion point
      (goto-char (point-min))
      (if (= line-number 0)
@@ -919,8 +911,7 @@ If BUFFER is provided, it will be staged and committed along with the file."
 (defun greger-stdlib--git-log (path &optional max-rows)
   "View git commit logs using git command line for PATH.
 MAX-ROWS limits the number of log entries returned (default 100)."
-  (unless (stringp path)
-    (error "Path must be a string"))
+  (greger-stdlib--assert-arg-string "path" path)
 
   (let ((expanded-path (expand-file-name path))
         (max-count (or max-rows 100)))
@@ -953,11 +944,8 @@ MAX-ROWS limits the number of log entries returned (default 100)."
 (defun greger-stdlib--git-show-commit (commit-hash path)
   "View git commit using git command line for PATH.
 COMMIT-HASH specifies which commit to show."
-  (unless (stringp commit-hash)
-    (error "Invalid type: commit-hash must be a string"))
-
-  (unless (stringp path)
-    (error "Invalid type: path must be a string"))
+  (greger-stdlib--assert-arg-string "commit-hash" commit-hash)
+  (greger-stdlib--assert-arg-string "path" path)
 
   (let ((expanded-path (expand-file-name path)))
 
@@ -987,11 +975,8 @@ COMMIT-HASH specifies which commit to show."
 (defun greger-stdlib--eval-elisp-defuns (file-path function-names)
   "Evaluate Emacs Lisp function definitions from FILE-PATH.
 FUNCTION-NAMES specifies which functions to evaluate."
-  (unless (stringp file-path)
-    (error "Invalid type: file-path must be a string"))
-
-  (unless (vectorp function-names)
-    (error "Invalid type: function-names must be a vector"))
+  (greger-stdlib--assert-arg-string "file-path" file-path)
+  (greger-stdlib--assert-arg-string-vector "function-names" function-names)
 
   (let ((expanded-path (expand-file-name file-path)))
     ;; Check if file exists
@@ -1081,14 +1066,7 @@ permission prompt."
 If EXTRACT-TEXT is non-nil (default t), extract and return text content.
 If EXTRACT-TEXT is nil, return raw HTML.
 If USE-HIGHEST-READABILITY is non-nil, use eww's aggressive readability setting."
-  (unless (stringp url)
-    (error "Invalid type: url must be a string"))
-
-  (when (string-empty-p (string-trim url))
-    (error "Invalid type: url cannot be empty"))
-
-  (unless (greger-web-is-web-url-p url)
-    (error "Invalid URL format: %s (must start with http:// or https://)" url))
+  (greger-stdlib--assert-arg-string-web-url "url" url)
 
   (condition-case err
       (greger-web-download-page url extract-text use-highest-readability)
