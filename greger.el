@@ -506,6 +506,10 @@ READ-ONLY is t to make read-only, nil to make writable."
     (unless (greger-state-executing-tools agent-state)
       (setf (greger-state-executing-tools agent-state) executing-tools-map))
 
+    ;; Update buffer state to show we're executing tools
+    (with-current-buffer (greger-state-chat-buffer agent-state)
+      (greger--update-buffer-state))
+
     ;; First, display the tool calls and reserve space for each tool's output
     (with-current-buffer (greger-state-chat-buffer agent-state)
       (goto-char (point-max))

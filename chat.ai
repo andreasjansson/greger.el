@@ -1579,4 +1579,50 @@ greger.el
 Update buffer state when client response is handled
 </tool.toolu_01XWz5VaL7EhVd8SN7jR1JFP>
 
-<!-- TOOL_RESULT_PLACEHOLDER_toolu_01XWz5VaL7EhVd8SN7jR1JFP -->
+## TOOL RESULT:
+
+ID: toolu_01XWz5VaL7EhVd8SN7jR1JFP
+
+<tool.toolu_01XWz5VaL7EhVd8SN7jR1JFP>
+Successfully replaced content in /Users/andreas/projects/greger.el/greger.el. Successfully staged 2 file(s) and committed with message: Update buffer state when client response is handled
+</tool.toolu_01XWz5VaL7EhVd8SN7jR1JFP>
+
+
+## TOOL USE:
+
+Name: str-replace
+ID: toolu_01GazWkygEYN6y2WRb49JXUy
+
+### file-path
+
+<tool.toolu_01GazWkygEYN6y2WRb49JXUy>
+greger.el
+</tool.toolu_01GazWkygEYN6y2WRb49JXUy>
+
+### original-content
+
+<tool.toolu_01GazWkygEYN6y2WRb49JXUy>
+;; Initialize executing-tools in agent-state if not already set
+    (unless (greger-state-executing-tools agent-state)
+      (setf (greger-state-executing-tools agent-state) executing-tools-map))
+</tool.toolu_01GazWkygEYN6y2WRb49JXUy>
+
+### new-content
+
+<tool.toolu_01GazWkygEYN6y2WRb49JXUy>
+;; Initialize executing-tools in agent-state if not already set
+    (unless (greger-state-executing-tools agent-state)
+      (setf (greger-state-executing-tools agent-state) executing-tools-map))
+
+    ;; Update buffer state to show we're executing tools
+    (with-current-buffer (greger-state-chat-buffer agent-state)
+      (greger--update-buffer-state))
+</tool.toolu_01GazWkygEYN6y2WRb49JXUy>
+
+### git-commit-message
+
+<tool.toolu_01GazWkygEYN6y2WRb49JXUy>
+Update buffer state when tools start executing
+</tool.toolu_01GazWkygEYN6y2WRb49JXUy>
+
+<!-- TOOL_RESULT_PLACEHOLDER_toolu_01GazWkygEYN6y2WRb49JXUy -->
