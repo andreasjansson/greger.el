@@ -8117,4 +8117,533 @@ test/test-greger.el
 Add debug messages to test to understand what's happening
 </tool.toolu_01Nh3FHyMoXy182LnvQxfwXD>
 
-<!-- TOOL_RESULT_PLACEHOLDER_toolu_01Nh3FHyMoXy182LnvQxfwXD -->
+## TOOL RESULT:
+
+ID: toolu_01Nh3FHyMoXy182LnvQxfwXD
+
+<tool.toolu_01Nh3FHyMoXy182LnvQxfwXD>
+Successfully replaced content in /Users/andreas/projects/greger.el/test/test-greger.el. Successfully staged 2 file(s) and committed with message: Add debug messages to test to understand what's happening
+</tool.toolu_01Nh3FHyMoXy182LnvQxfwXD>
+
+
+## TOOL USE:
+
+Name: shell-command
+ID: toolu_019MUWsDoyoVgU8yPtdGTnqa
+
+### command
+
+<tool.toolu_019MUWsDoyoVgU8yPtdGTnqa>
+bash script/test --verbose --file test/test-greger.el 2>&1 | grep -A 10 -B 5 "greger-test-interrupt-with-executing-tools"
+</tool.toolu_019MUWsDoyoVgU8yPtdGTnqa>
+
+## TOOL RESULT:
+
+ID: toolu_019MUWsDoyoVgU8yPtdGTnqa
+
+<tool.toolu_019MUWsDoyoVgU8yPtdGTnqa>
+Command executed successfully:
+   passed   2/11  greger-test-interrupt-with-active-generation (0.002617 sec)
+Hash table count: 1
+Agent state executing tools: #s(hash-table size 65 test equal rehash-size 1.5 rehash-threshold 0.8125 data (test-tool-id #s(greger-tool (closure (t) nil (setq cancel-called t) (setq callback-called t)))))
+Cancel called: nil
+Hash table contains key: #s(greger-tool (closure (t) nil (setq cancel-called t) (setq callback-called t)))
+Test greger-test-interrupt-with-executing-tools backtrace:
+  signal(ert-test-failed (((should cancel-called) :form cancel-called
+  ert-fail(((should cancel-called) :form cancel-called :value nil))
+  (if (unwind-protect (setq value-78 cancel-called) (setq form-descrip
+  (let (form-description-79) (if (unwind-protect (setq value-78 cancel
+  (let ((value-78 (gensym "ert-form-evaluation-aborted-"))) (let (form
+  (progn (fset 'keyboard-quit vnew) (greger-interrupt) (message "Hash
+  (unwind-protect (progn (fset 'keyboard-quit vnew) (greger-interrupt)
+  (let* ((vnew #'(lambda nil (setq keyboard-quit-called t))) (old (sym
+  (let ((agent-state (record 'greger-state 1 (current-buffer) default-
+  (let ((cancel-called nil) (callback-called nil) (keyboard-quit-calle
+--
+  (progn (setq debug-on-error t) (add-to-list 'load-path ".") (require
+  eval((progn (setq debug-on-error t) (add-to-list 'load-path ".") (re
+  command-line-1(("--eval" "(progn\n                  (setq debug-on-e
+  command-line()
+  normal-top-level()
+Test greger-test-interrupt-with-executing-tools condition:
+    (ert-test-failed
+     ((should cancel-called)
+      :form cancel-called :value nil))
+   FAILED   3/11  greger-test-interrupt-with-executing-tools (0.000343 sec) at test/test-greger.el:568
+   passed   4/11  greger-test-interrupt-without-active-generation (0.000234 sec)
+   passed   5/11  greger-test-multiple-tools-parallel (0.000210 sec)
+   passed   6/11  greger-test-simple-string-comparison (0.000115 sec)
+   passed   7/11  greger-test-single-tool-execution (0.000107 sec)
+   passed   8/11  greger-test-tool-error-handling (0.000108 sec)
+   passed   9/11  greger-test-tool-execution-with-existing-content (0.000106 sec)
+   passed  10/11  greger-test-tool-placeholder (0.000029 sec)
+   passed  11/11  greger-test-unknown-tool-error (0.000097 sec)
+
+Ran 11 tests, 10 results as expected, 1 unexpected (2025-06-04 14:04:21+0200, 0.178570 sec)
+
+1 unexpected results:
+   FAILED  greger-test-interrupt-with-executing-tools
+
+
+</tool.toolu_019MUWsDoyoVgU8yPtdGTnqa>
+
+## ASSISTANT:
+
+I can see from the debug output that:
+1. Hash table count is 1 (correct)
+2. The agent state has the correct executing tools
+3. The hash table contains the key
+4. But `cancel-called` is still nil
+
+This suggests that the greger-interrupt function is not finding the right condition branch. Looking at the debug output, I can see there's a greger-tool struct being created correctly. Let me check if my test's cancel function lambda is capturing the right variables.
+
+The issue might be with variable capture in closures. Let me fix the test:
+
+## TOOL USE:
+
+Name: str-replace
+ID: toolu_012qrtaKdy5XH5ixDL8GpUzK
+
+### file-path
+
+<tool.toolu_012qrtaKdy5XH5ixDL8GpUzK>
+test/test-greger.el
+</tool.toolu_012qrtaKdy5XH5ixDL8GpUzK>
+
+### original-content
+
+<tool.toolu_012qrtaKdy5XH5ixDL8GpUzK>
+(let ((cancel-called nil)
+          (callback-called nil)
+          (keyboard-quit-called nil)
+          ;; Create a mock greger-tool with cancel function
+          (mock-greger-tool (make-greger-tool
+                             :cancel-fn (lambda ()
+                                          (setq cancel-called t)
+                                          (setq callback-called t))))
+          (executing-tools-map (make-hash-table :test 'equal)))
+</tool.toolu_012qrtaKdy5XH5ixDL8GpUzK>
+
+### new-content
+
+<tool.toolu_012qrtaKdy5XH5ixDL8GpUzK>
+(let ((cancel-called nil)
+          (callback-called nil)
+          (keyboard-quit-called nil)
+          (executing-tools-map (make-hash-table :test 'equal)))
+
+      ;; Create a mock greger-tool with cancel function that modifies the outer variables
+      (let ((mock-greger-tool (make-greger-tool
+                               :cancel-fn (lambda ()
+                                            (setq cancel-called t)
+                                            (setq callback-called t)))))
+</tool.toolu_012qrtaKdy5XH5ixDL8GpUzK>
+
+### git-commit-message
+
+<tool.toolu_012qrtaKdy5XH5ixDL8GpUzK>
+Fix variable capture in test closure
+</tool.toolu_012qrtaKdy5XH5ixDL8GpUzK>
+
+## TOOL RESULT:
+
+ID: toolu_012qrtaKdy5XH5ixDL8GpUzK
+
+<tool.toolu_012qrtaKdy5XH5ixDL8GpUzK>
+Error executing tool: Parentheses balance mismatch in Emacs Lisp file: original has balance 1, new has balance 2. They must be equal
+</tool.toolu_012qrtaKdy5XH5ixDL8GpUzK>
+
+## ASSISTANT:
+
+Let me take a different approach. The issue might be that the lambda is not being called correctly. Let me add some debug to the greger-interrupt function itself to see what's happening:
+
+## TOOL USE:
+
+Name: str-replace
+ID: toolu_01QHZGxhMUGv2L7aC4niBd4j
+
+### file-path
+
+<tool.toolu_01QHZGxhMUGv2L7aC4niBd4j>
+greger.el
+</tool.toolu_01QHZGxhMUGv2L7aC4niBd4j>
+
+### original-content
+
+<tool.toolu_01QHZGxhMUGv2L7aC4niBd4j>
+;; If there are executing tools, cancel them
+     ((and agent-state
+           (greger-state-executing-tools agent-state)
+           (> (hash-table-count (greger-state-executing-tools agent-state)) 0))
+      (let ((executing-tools (greger-state-executing-tools agent-state)))
+        (maphash (lambda (_tool-id greger-tool)
+                   (let ((cancel-fn (greger-tool-cancel-fn greger-tool)))
+                     (when (functionp cancel-fn)
+                       (funcall cancel-fn))))
+                 executing-tools)))
+</tool.toolu_01QHZGxhMUGv2L7aC4niBd4j>
+
+### new-content
+
+<tool.toolu_01QHZGxhMUGv2L7aC4niBd4j>
+;; If there are executing tools, cancel them
+     ((and agent-state
+           (greger-state-executing-tools agent-state)
+           (> (hash-table-count (greger-state-executing-tools agent-state)) 0))
+      (let ((executing-tools (greger-state-executing-tools agent-state)))
+        (message "DEBUG: Found %d executing tools" (hash-table-count executing-tools))
+        (maphash (lambda (_tool-id greger-tool)
+                   (let ((cancel-fn (greger-tool-cancel-fn greger-tool)))
+                     (message "DEBUG: Tool %s, cancel-fn: %s" _tool-id cancel-fn)
+                     (when (functionp cancel-fn)
+                       (message "DEBUG: Calling cancel function")
+                       (funcall cancel-fn))))
+                 executing-tools)))
+</tool.toolu_01QHZGxhMUGv2L7aC4niBd4j>
+
+### git-commit-message
+
+<tool.toolu_01QHZGxhMUGv2L7aC4niBd4j>
+Add debug logging to greger-interrupt
+</tool.toolu_01QHZGxhMUGv2L7aC4niBd4j>
+
+## TOOL RESULT:
+
+ID: toolu_01QHZGxhMUGv2L7aC4niBd4j
+
+<tool.toolu_01QHZGxhMUGv2L7aC4niBd4j>
+Error executing tool: Original content not found in file: /Users/andreas/projects/greger.el/greger.el -- Try again!
+</tool.toolu_01QHZGxhMUGv2L7aC4niBd4j>
+
+## ASSISTANT:
+
+Let me check the exact content in greger.el:
+
+## TOOL USE:
+
+Name: read-file
+ID: toolu_01CJyNofEnmnKqWTLkfBaGCC
+
+### path
+
+<tool.toolu_01CJyNofEnmnKqWTLkfBaGCC>
+greger.el
+</tool.toolu_01CJyNofEnmnKqWTLkfBaGCC>
+
+### start-line
+
+<tool.toolu_01CJyNofEnmnKqWTLkfBaGCC>
+235
+</tool.toolu_01CJyNofEnmnKqWTLkfBaGCC>
+
+### end-line
+
+<tool.toolu_01CJyNofEnmnKqWTLkfBaGCC>
+250
+</tool.toolu_01CJyNofEnmnKqWTLkfBaGCC>
+
+## TOOL RESULT:
+
+ID: toolu_01CJyNofEnmnKqWTLkfBaGCC
+
+<tool.toolu_01CJyNofEnmnKqWTLkfBaGCC>
+     ;; If there's an active client state, cancel the streaming request
+     ((and agent-state (greger-state-client-state agent-state))
+      (greger-client--cancel-request (greger-state-client-state agent-state))
+      (setf (greger-state-client-state agent-state) nil))
+     ;; If there are executing tools, cancel them
+     ((and agent-state
+           (greger-state-executing-tools agent-state)
+           (> (hash-table-count (greger-state-executing-tools agent-state)) 0))
+      (let ((executing-tools (greger-state-executing-tools agent-state)))
+        (maphash (lambda (_tool-id greger-tool)
+                   (let ((cancel-fn (greger-tool-cancel-fn greger-tool)))
+                     (when (functionp cancel-fn)
+                       (funcall cancel-fn))))
+                 executing-tools)))
+     ;; Default case: call keyboard-quit
+     (t (keyboard-quit)))))
+</tool.toolu_01CJyNofEnmnKqWTLkfBaGCC>
+
+## TOOL USE:
+
+Name: str-replace
+ID: toolu_011BykGeyanPeLejJiBpBFwh
+
+### file-path
+
+<tool.toolu_011BykGeyanPeLejJiBpBFwh>
+greger.el
+</tool.toolu_011BykGeyanPeLejJiBpBFwh>
+
+### original-content
+
+<tool.toolu_011BykGeyanPeLejJiBpBFwh>
+     ;; If there are executing tools, cancel them
+     ((and agent-state
+           (greger-state-executing-tools agent-state)
+           (> (hash-table-count (greger-state-executing-tools agent-state)) 0))
+      (let ((executing-tools (greger-state-executing-tools agent-state)))
+        (maphash (lambda (_tool-id greger-tool)
+                   (let ((cancel-fn (greger-tool-cancel-fn greger-tool)))
+                     (when (functionp cancel-fn)
+                       (funcall cancel-fn))))
+                 executing-tools)))
+</tool.toolu_011BykGeyanPeLejJiBpBFwh>
+
+### new-content
+
+<tool.toolu_011BykGeyanPeLejJiBpBFwh>
+     ;; If there are executing tools, cancel them
+     ((and agent-state
+           (greger-state-executing-tools agent-state)
+           (> (hash-table-count (greger-state-executing-tools agent-state)) 0))
+      (let ((executing-tools (greger-state-executing-tools agent-state)))
+        (message "DEBUG: Found %d executing tools" (hash-table-count executing-tools))
+        (maphash (lambda (_tool-id greger-tool)
+                   (let ((cancel-fn (greger-tool-cancel-fn greger-tool)))
+                     (message "DEBUG: Tool %s, cancel-fn: %s" _tool-id cancel-fn)
+                     (when (functionp cancel-fn)
+                       (message "DEBUG: Calling cancel function")
+                       (funcall cancel-fn))))
+                 executing-tools)))
+</tool.toolu_011BykGeyanPeLejJiBpBFwh>
+
+### git-commit-message
+
+<tool.toolu_011BykGeyanPeLejJiBpBFwh>
+Add debug logging to greger-interrupt
+</tool.toolu_011BykGeyanPeLejJiBpBFwh>
+
+## TOOL RESULT:
+
+ID: toolu_011BykGeyanPeLejJiBpBFwh
+
+<tool.toolu_011BykGeyanPeLejJiBpBFwh>
+Error executing tool: Original content not found in file: /Users/andreas/projects/greger.el/greger.el -- Try again!
+</tool.toolu_011BykGeyanPeLejJiBpBFwh>
+
+## ASSISTANT:
+
+Let me check the exact function:
+
+## TOOL USE:
+
+Name: ripgrep
+ID: toolu_01FzUYMvTTij4wC1Pbggtx7K
+
+### pattern
+
+<tool.toolu_01FzUYMvTTij4wC1Pbggtx7K>
+If there are executing tools
+</tool.toolu_01FzUYMvTTij4wC1Pbggtx7K>
+
+### path
+
+<tool.toolu_01FzUYMvTTij4wC1Pbggtx7K>
+greger.el
+</tool.toolu_01FzUYMvTTij4wC1Pbggtx7K>
+
+### context-lines
+
+<tool.toolu_01FzUYMvTTij4wC1Pbggtx7K>
+5
+</tool.toolu_01FzUYMvTTij4wC1Pbggtx7K>
+
+## TOOL RESULT:
+
+ID: toolu_01FzUYMvTTij4wC1Pbggtx7K
+
+<tool.toolu_01FzUYMvTTij4wC1Pbggtx7K>
+234-    (cond
+235-     ;; If there's an active client state, cancel the streaming request
+236-     ((and agent-state (greger-state-client-state agent-state))
+237-      (greger-client--cancel-request (greger-state-client-state agent-state))
+238-      (setf (greger-state-client-state agent-state) nil))
+239:     ;; If there are executing tools, cancel them
+240-     ((and agent-state
+241-           (greger-state-executing-tools agent-state)
+242-           (> (hash-table-count (greger-state-executing-tools agent-state)) 0))
+243-      (let ((executing-tools (greger-state-executing-tools agent-state)))
+244-        (maphash (lambda (_tool-id greger-tool)
+
+</tool.toolu_01FzUYMvTTij4wC1Pbggtx7K>
+
+## TOOL USE:
+
+Name: read-file
+ID: toolu_01Wiybzfg1r1dFHnGddp3GAD
+
+### path
+
+<tool.toolu_01Wiybzfg1r1dFHnGddp3GAD>
+greger.el
+</tool.toolu_01Wiybzfg1r1dFHnGddp3GAD>
+
+### start-line
+
+<tool.toolu_01Wiybzfg1r1dFHnGddp3GAD>
+239
+</tool.toolu_01Wiybzfg1r1dFHnGddp3GAD>
+
+### end-line
+
+<tool.toolu_01Wiybzfg1r1dFHnGddp3GAD>
+252
+</tool.toolu_01Wiybzfg1r1dFHnGddp3GAD>
+
+## TOOL RESULT:
+
+ID: toolu_01Wiybzfg1r1dFHnGddp3GAD
+
+<tool.toolu_01Wiybzfg1r1dFHnGddp3GAD>
+     ;; If there are executing tools, cancel them
+     ((and agent-state
+           (greger-state-executing-tools agent-state)
+           (> (hash-table-count (greger-state-executing-tools agent-state)) 0))
+      (let ((executing-tools (greger-state-executing-tools agent-state)))
+        (maphash (lambda (_tool-id greger-tool)
+                   (let ((cancel-fn (greger-tool-cancel-fn greger-tool)))
+                     (when (functionp cancel-fn)
+                       (funcall cancel-fn))))
+                 executing-tools)))
+     ;; Default case: call keyboard-quit
+     (t (keyboard-quit)))))
+
+(defun greger-buffer-no-tools ()
+</tool.toolu_01Wiybzfg1r1dFHnGddp3GAD>
+
+## TOOL USE:
+
+Name: str-replace
+ID: toolu_01BFPgKJNJbYR2H4ZEJfXNnX
+
+### file-path
+
+<tool.toolu_01BFPgKJNJbYR2H4ZEJfXNnX>
+greger.el
+</tool.toolu_01BFPgKJNJbYR2H4ZEJfXNnX>
+
+### original-content
+
+<tool.toolu_01BFPgKJNJbYR2H4ZEJfXNnX>
+(let ((executing-tools (greger-state-executing-tools agent-state)))
+        (maphash (lambda (_tool-id greger-tool)
+                   (let ((cancel-fn (greger-tool-cancel-fn greger-tool)))
+                     (when (functionp cancel-fn)
+                       (funcall cancel-fn))))
+                 executing-tools))
+</tool.toolu_01BFPgKJNJbYR2H4ZEJfXNnX>
+
+### new-content
+
+<tool.toolu_01BFPgKJNJbYR2H4ZEJfXNnX>
+(let ((executing-tools (greger-state-executing-tools agent-state)))
+        (message "DEBUG: Found %d executing tools" (hash-table-count executing-tools))
+        (maphash (lambda (_tool-id greger-tool)
+                   (let ((cancel-fn (greger-tool-cancel-fn greger-tool)))
+                     (message "DEBUG: Tool %s, cancel-fn: %s" _tool-id cancel-fn)
+                     (when (functionp cancel-fn)
+                       (message "DEBUG: Calling cancel function")
+                       (funcall cancel-fn))))
+                 executing-tools))
+</tool.toolu_01BFPgKJNJbYR2H4ZEJfXNnX>
+
+### git-commit-message
+
+<tool.toolu_01BFPgKJNJbYR2H4ZEJfXNnX>
+Add debug logging to greger-interrupt
+</tool.toolu_01BFPgKJNJbYR2H4ZEJfXNnX>
+
+## TOOL RESULT:
+
+ID: toolu_01BFPgKJNJbYR2H4ZEJfXNnX
+
+<tool.toolu_01BFPgKJNJbYR2H4ZEJfXNnX>
+Error executing tool: Original content not found in file: /Users/andreas/projects/greger.el/greger.el -- Try again!
+</tool.toolu_01BFPgKJNJbYR2H4ZEJfXNnX>
+
+## ASSISTANT:
+
+Let me try a different approach. Let me check if there's an indentation issue by looking at more context:
+
+## TOOL USE:
+
+Name: read-file
+ID: toolu_017f2CnP3bmpx7GUQakb3PkH
+
+### path
+
+<tool.toolu_017f2CnP3bmpx7GUQakb3PkH>
+greger.el
+</tool.toolu_017f2CnP3bmpx7GUQakb3PkH>
+
+### start-line
+
+<tool.toolu_017f2CnP3bmpx7GUQakb3PkH>
+243
+</tool.toolu_017f2CnP3bmpx7GUQakb3PkH>
+
+### end-line
+
+<tool.toolu_017f2CnP3bmpx7GUQakb3PkH>
+249
+</tool.toolu_017f2CnP3bmpx7GUQakb3PkH>
+
+## TOOL RESULT:
+
+ID: toolu_017f2CnP3bmpx7GUQakb3PkH
+
+<tool.toolu_017f2CnP3bmpx7GUQakb3PkH>
+      (let ((executing-tools (greger-state-executing-tools agent-state)))
+        (maphash (lambda (_tool-id greger-tool)
+                   (let ((cancel-fn (greger-tool-cancel-fn greger-tool)))
+                     (when (functionp cancel-fn)
+                       (funcall cancel-fn))))
+                 executing-tools)))
+     ;; Default case: call keyboard-quit
+</tool.toolu_017f2CnP3bmpx7GUQakb3PkH>
+
+## TOOL USE:
+
+Name: str-replace
+ID: toolu_01YbRpEAjixruczmcvk7zT33
+
+### file-path
+
+<tool.toolu_01YbRpEAjixruczmcvk7zT33>
+greger.el
+</tool.toolu_01YbRpEAjixruczmcvk7zT33>
+
+### original-content
+
+<tool.toolu_01YbRpEAjixruczmcvk7zT33>
+      (let ((executing-tools (greger-state-executing-tools agent-state)))
+        (maphash (lambda (_tool-id greger-tool)
+                   (let ((cancel-fn (greger-tool-cancel-fn greger-tool)))
+                     (when (functionp cancel-fn)
+                       (funcall cancel-fn))))
+                 executing-tools))
+</tool.toolu_01YbRpEAjixruczmcvk7zT33>
+
+### new-content
+
+<tool.toolu_01YbRpEAjixruczmcvk7zT33>
+      (let ((executing-tools (greger-state-executing-tools agent-state)))
+        (message "DEBUG: Found %d executing tools" (hash-table-count executing-tools))
+        (maphash (lambda (_tool-id greger-tool)
+                   (let ((cancel-fn (greger-tool-cancel-fn greger-tool)))
+                     (message "DEBUG: Tool %s, cancel-fn: %s" _tool-id cancel-fn)
+                     (when (functionp cancel-fn)
+                       (message "DEBUG: Calling cancel function")
+                       (funcall cancel-fn))))
+                 executing-tools))
+</tool.toolu_01YbRpEAjixruczmcvk7zT33>
+
+### git-commit-message
+
+<tool.toolu_01YbRpEAjixruczmcvk7zT33>
+Add debug logging to greger-interrupt
+</tool.toolu_01YbRpEAjixruczmcvk7zT33>
+
+<!-- TOOL_RESULT_PLACEHOLDER_toolu_01YbRpEAjixruczmcvk7zT33 -->

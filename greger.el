@@ -241,9 +241,12 @@
            (greger-state-executing-tools agent-state)
            (> (hash-table-count (greger-state-executing-tools agent-state)) 0))
       (let ((executing-tools (greger-state-executing-tools agent-state)))
+        (message "DEBUG: Found %d executing tools" (hash-table-count executing-tools))
         (maphash (lambda (_tool-id greger-tool)
                    (let ((cancel-fn (greger-tool-cancel-fn greger-tool)))
+                     (message "DEBUG: Tool %s, cancel-fn: %s" _tool-id cancel-fn)
                      (when (functionp cancel-fn)
+                       (message "DEBUG: Calling cancel function")
                        (funcall cancel-fn))))
                  executing-tools)))
      ;; Default case: call keyboard-quit
