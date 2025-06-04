@@ -427,7 +427,7 @@ If RECURSIVE is non-nil, list files recursively."
       (error "Directory is not readable: %s" expanded-path))
 
     (condition-case err
-        (greger-stdlib--list-directory-recursive expanded-path exclude-list original-path recursive)
+        (greger-stdlib--list-directory-recursive expanded-path exclude-directories-recursive original-path recursive)
       (error "Failed to list directory: %s" (error-message-string err)))))
 
 (defun greger-stdlib--list-directory-recursive (path exclude-directories-recursive original-path recursive &optional prefix)

@@ -5624,4 +5624,118 @@ If EXCLUDE-DIRECTORIES-RECURSIVE is an empty list, exclude nothing."
 Simplify directory inclusion check - empty list means exclude nothing
 </tool.toolu_01XvkevpDtjJG23pLagZsCh4>
 
-<!-- TOOL_RESULT_PLACEHOLDER_toolu_01XvkevpDtjJG23pLagZsCh4 -->
+## TOOL RESULT:
+
+ID: toolu_01XvkevpDtjJG23pLagZsCh4
+
+<tool.toolu_01XvkevpDtjJG23pLagZsCh4>
+Successfully replaced content in /Users/andreas/projects/greger.el/greger-stdlib.el. Successfully staged 2 file(s) and committed with message: Simplify directory inclusion check - empty list means exclude nothing
+</tool.toolu_01XvkevpDtjJG23pLagZsCh4>
+
+
+## ASSISTANT:
+
+Now let's test this fix:
+
+## TOOL USE:
+
+Name: shell-command
+ID: toolu_01EvvLG9vgZbmxD25D5s5rba
+
+### command
+
+<tool.toolu_01EvvLG9vgZbmxD25D5s5rba>
+emacs --batch --eval "(progn (add-to-list 'load-path \".\") (require 'greger-stdlib) (print \"Testing empty list vs nil:\") (let ((test-dir (make-temp-file \"test\" t))) (make-directory (expand-file-name \".git\" test-dir)) (with-temp-file (expand-file-name \".git/config\" test-dir) (insert \"config\")) (print \"1. With nil (should use default excludes):\") (let ((result (greger-stdlib--list-directory test-dir nil t))) (if (string-match-p \"\\.git/:\" result) (print \"FAIL: .git was recursed into\") (print \"PASS: .git was excluded (default behavior)\"))) (print \"2. With empty list (should exclude nothing):\") (let ((result (greger-stdlib--list-directory test-dir '() t))) (if (string-match-p \"\\.git/:\" result) (print \"PASS: .git was recursed into\") (print \"FAIL: .git was excluded\"))) (delete-directory test-dir t)))"
+</tool.toolu_01EvvLG9vgZbmxD25D5s5rba>
+
+## TOOL RESULT:
+
+ID: toolu_01EvvLG9vgZbmxD25D5s5rba
+
+<tool.toolu_01EvvLG9vgZbmxD25D5s5rba>
+Command executed successfully:
+Source file ‘/opt/homebrew/Cellar/emacs-plus@29/29.0.90/share/emacs/29.0.91/lisp/net/eww.el’ newer than byte-compiled file; using older file
+
+"Testing empty list vs nil:"
+
+"1. With nil (should use default excludes):"
+
+"PASS: .git was excluded (default behavior)"
+
+"2. With empty list (should exclude nothing):"
+
+"FAIL: .git was excluded"
+
+</tool.toolu_01EvvLG9vgZbmxD25D5s5rba>
+
+## ASSISTANT:
+
+The issue is still there. Let me debug this step by step. The problem might be that I'm still passing the processed exclude list (which converts empty list to default) to the check function. Let me trace through the logic:
+
+## TOOL USE:
+
+Name: shell-command
+ID: toolu_01PVeFZ27rK6V7V3yLwu88q3
+
+### command
+
+<tool.toolu_01PVeFZ27rK6V7V3yLwu88q3>
+emacs --batch --eval "(progn (add-to-list 'load-path \".\") (require 'greger-stdlib) (print \"Direct function test:\") (print (greger-stdlib--should-include-directory-in-recursive-listing-p \".git\" '())) (print (greger-stdlib--should-include-directory-in-recursive-listing-p \".git\" '(\".git\"))))"
+</tool.toolu_01PVeFZ27rK6V7V3yLwu88q3>
+
+## TOOL RESULT:
+
+ID: toolu_01PVeFZ27rK6V7V3yLwu88q3
+
+<tool.toolu_01PVeFZ27rK6V7V3yLwu88q3>
+Command executed successfully:
+Source file ‘/opt/homebrew/Cellar/emacs-plus@29/29.0.90/share/emacs/29.0.91/lisp/net/eww.el’ newer than byte-compiled file; using older file
+
+"Direct function test:"
+
+t
+
+nil
+
+</tool.toolu_01PVeFZ27rK6V7V3yLwu88q3>
+
+## ASSISTANT:
+
+Good! The function correctly returns `t` (include) for empty list and `nil` (exclude) when `.git` is in the list. So the issue is that the empty list `'()` is being converted to the default list before it reaches the check function.
+
+The problem is in how I handle the default value. I need to pass the original parameter to the check function, not the processed one. Let me fix this:
+
+## TOOL USE:
+
+Name: str-replace
+ID: toolu_01MXjHsn4YDvMwU5Pmxd7Knp
+
+### file-path
+
+<tool.toolu_01MXjHsn4YDvMwU5Pmxd7Knp>
+greger-stdlib.el
+</tool.toolu_01MXjHsn4YDvMwU5Pmxd7Knp>
+
+### original-content
+
+<tool.toolu_01MXjHsn4YDvMwU5Pmxd7Knp>
+    (condition-case err
+        (greger-stdlib--list-directory-recursive expanded-path exclude-list original-path recursive)
+      (error "Failed to list directory: %s" (error-message-string err))))
+</tool.toolu_01MXjHsn4YDvMwU5Pmxd7Knp>
+
+### new-content
+
+<tool.toolu_01MXjHsn4YDvMwU5Pmxd7Knp>
+    (condition-case err
+        (greger-stdlib--list-directory-recursive expanded-path exclude-directories-recursive original-path recursive)
+      (error "Failed to list directory: %s" (error-message-string err))))
+</tool.toolu_01MXjHsn4YDvMwU5Pmxd7Knp>
+
+### git-commit-message
+
+<tool.toolu_01MXjHsn4YDvMwU5Pmxd7Knp>
+Pass original exclude parameter to recursive function instead of processed one
+</tool.toolu_01MXjHsn4YDvMwU5Pmxd7Knp>
+
+<!-- TOOL_RESULT_PLACEHOLDER_toolu_01MXjHsn4YDvMwU5Pmxd7Knp -->
