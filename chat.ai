@@ -1281,4 +1281,81 @@ greger.el
 Add client-state field to greger-state struct
 </tool.toolu_01TbGJcDNtMnFAPA9ZF4yxXW>
 
-<!-- TOOL_RESULT_PLACEHOLDER_toolu_01TbGJcDNtMnFAPA9ZF4yxXW -->
+## TOOL RESULT:
+
+ID: toolu_01TbGJcDNtMnFAPA9ZF4yxXW
+
+<tool.toolu_01TbGJcDNtMnFAPA9ZF4yxXW>
+Successfully replaced content in /Users/andreas/projects/greger.el/greger.el. Successfully staged 2 file(s) and committed with message: Add client-state field to greger-state struct
+</tool.toolu_01TbGJcDNtMnFAPA9ZF4yxXW>
+
+
+## ASSISTANT:
+
+Now let's add the `greger-interrupt` function and add the C-g binding to the greger-mode keymap:
+
+## TOOL USE:
+
+Name: str-replace
+ID: toolu_01Uzp1aUtTa2743WiEjx9niL
+
+### file-path
+
+<tool.toolu_01Uzp1aUtTa2743WiEjx9niL>
+greger.el
+</tool.toolu_01Uzp1aUtTa2743WiEjx9niL>
+
+### original-content
+
+<tool.toolu_01Uzp1aUtTa2743WiEjx9niL>
+(defvar greger-mode-map
+  (let ((map (make-sparse-keymap)))
+    (define-key map (kbd "M-<return>") #'greger-buffer)
+    (define-key map (kbd "C-M-<return>") #'greger-buffer-no-tools)
+    (define-key map (kbd "C-; a") #'greger-insert-assistant-tag)
+    (define-key map (kbd "C-; u") #'greger-insert-user-tag)
+    (define-key map (kbd "C-; s") #'greger-insert-system-tag)
+    (define-key map (kbd "C-; i") #'greger-insert-include)
+    (define-key map (kbd "C-; I") #'greger-insert-include-code)
+    (define-key map (kbd "C-; f") #'greger-insert-include-file)
+    (define-key map (kbd "C-; b") #'greger-insert-include-buffer-code)
+    (define-key map (kbd "C-; m") #'greger-set-model)
+    (define-key map (kbd "C-; c") #'greger-copy-code)
+    (define-key map (kbd "C-; d") #'greger-debug-request)
+    (define-key map (kbd "TAB") #'greger-toggle-tool-section)
+    (define-key map (kbd "<tab>") #'greger-toggle-tool-section)
+    map)
+  "Keymap for `greger-mode'.")
+</tool.toolu_01Uzp1aUtTa2743WiEjx9niL>
+
+### new-content
+
+<tool.toolu_01Uzp1aUtTa2743WiEjx9niL>
+(defvar greger-mode-map
+  (let ((map (make-sparse-keymap)))
+    (define-key map (kbd "M-<return>") #'greger-buffer)
+    (define-key map (kbd "C-M-<return>") #'greger-buffer-no-tools)
+    (define-key map (kbd "C-g") #'greger-interrupt)
+    (define-key map (kbd "C-; a") #'greger-insert-assistant-tag)
+    (define-key map (kbd "C-; u") #'greger-insert-user-tag)
+    (define-key map (kbd "C-; s") #'greger-insert-system-tag)
+    (define-key map (kbd "C-; i") #'greger-insert-include)
+    (define-key map (kbd "C-; I") #'greger-insert-include-code)
+    (define-key map (kbd "C-; f") #'greger-insert-include-file)
+    (define-key map (kbd "C-; b") #'greger-insert-include-buffer-code)
+    (define-key map (kbd "C-; m") #'greger-set-model)
+    (define-key map (kbd "C-; c") #'greger-copy-code)
+    (define-key map (kbd "C-; d") #'greger-debug-request)
+    (define-key map (kbd "TAB") #'greger-toggle-tool-section)
+    (define-key map (kbd "<tab>") #'greger-toggle-tool-section)
+    map)
+  "Keymap for `greger-mode'.")
+</tool.toolu_01Uzp1aUtTa2743WiEjx9niL>
+
+### git-commit-message
+
+<tool.toolu_01Uzp1aUtTa2743WiEjx9niL>
+Add C-g binding to greger-mode keymap for greger-interrupt
+</tool.toolu_01Uzp1aUtTa2743WiEjx9niL>
+
+<!-- TOOL_RESULT_PLACEHOLDER_toolu_01Uzp1aUtTa2743WiEjx9niL -->
