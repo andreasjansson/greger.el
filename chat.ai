@@ -2520,4 +2520,98 @@ greger.el
 Fix checkdoc issue: quote keyboard-quit symbol
 </tool.toolu_01833zr1ARhRewSovtLeLy5y>
 
-<!-- TOOL_RESULT_PLACEHOLDER_toolu_01833zr1ARhRewSovtLeLy5y -->
+## TOOL RESULT:
+
+ID: toolu_01833zr1ARhRewSovtLeLy5y
+
+<tool.toolu_01833zr1ARhRewSovtLeLy5y>
+Successfully replaced content in /Users/andreas/projects/greger.el/greger.el. Successfully staged 2 file(s) and committed with message: Fix checkdoc issue: quote keyboard-quit symbol
+</tool.toolu_01833zr1ARhRewSovtLeLy5y>
+
+
+## ASSISTANT:
+
+Now let me also ensure that the buffer-local variable is reset when the generation is complete in other places. Let me check if there are other completion paths where I should reset this:
+
+## TOOL USE:
+
+Name: ripgrep
+ID: toolu_01DXNmvAWzMbhh1U9r2Ln1tz
+
+### pattern
+
+<tool.toolu_01DXNmvAWzMbhh1U9r2Ln1tz>
+greger--finish-response
+</tool.toolu_01DXNmvAWzMbhh1U9r2Ln1tz>
+
+### path
+
+<tool.toolu_01DXNmvAWzMbhh1U9r2Ln1tz>
+greger.el
+</tool.toolu_01DXNmvAWzMbhh1U9r2Ln1tz>
+
+## TOOL RESULT:
+
+ID: toolu_01DXNmvAWzMbhh1U9r2Ln1tz
+
+<tool.toolu_01DXNmvAWzMbhh1U9r2Ln1tz>
+379:          (greger--finish-response agent-state))
+416:        (greger--finish-response agent-state)))))
+513:(defun greger--finish-response (agent-state)
+
+</tool.toolu_01DXNmvAWzMbhh1U9r2Ln1tz>
+
+## ASSISTANT:
+
+Let me also add some logic to clear the buffer-local variable when finishing:
+
+## TOOL USE:
+
+Name: str-replace
+ID: toolu_01LjHf2ZvTomx1hzML5d4jKP
+
+### file-path
+
+<tool.toolu_01LjHf2ZvTomx1hzML5d4jKP>
+greger.el
+</tool.toolu_01LjHf2ZvTomx1hzML5d4jKP>
+
+### original-content
+
+<tool.toolu_01LjHf2ZvTomx1hzML5d4jKP>
+(defun greger--finish-response (agent-state)
+  "Finish the agent response using AGENT-STATE."
+  (greger--debug "=== FINISHING RESPONSE - CONVERSATION COMPLETE ===")
+  (with-current-buffer (greger-state-chat-buffer agent-state)
+    (goto-char (point-max))
+    (unless (looking-back (concat greger-user-tag "\n\n") nil)
+      (insert "\n\n" greger-user-tag "\n\n")))
+  ;; Reset the state
+  (setf (greger-state-current-iteration agent-state) 0)
+  (setf (greger-state-client-state agent-state) nil))
+</tool.toolu_01LjHf2ZvTomx1hzML5d4jKP>
+
+### new-content
+
+<tool.toolu_01LjHf2ZvTomx1hzML5d4jKP>
+(defun greger--finish-response (agent-state)
+  "Finish the agent response using AGENT-STATE."
+  (greger--debug "=== FINISHING RESPONSE - CONVERSATION COMPLETE ===")
+  (with-current-buffer (greger-state-chat-buffer agent-state)
+    (goto-char (point-max))
+    (unless (looking-back (concat greger-user-tag "\n\n") nil)
+      (insert "\n\n" greger-user-tag "\n\n"))
+    ;; Clear the buffer-local agent state
+    (setq greger--current-agent-state nil))
+  ;; Reset the state
+  (setf (greger-state-current-iteration agent-state) 0)
+  (setf (greger-state-client-state agent-state) nil))
+</tool.toolu_01LjHf2ZvTomx1hzML5d4jKP>
+
+### git-commit-message
+
+<tool.toolu_01LjHf2ZvTomx1hzML5d4jKP>
+Clear buffer-local agent state when finishing response
+</tool.toolu_01LjHf2ZvTomx1hzML5d4jKP>
+
+<!-- TOOL_RESULT_PLACEHOLDER_toolu_01LjHf2ZvTomx1hzML5d4jKP -->

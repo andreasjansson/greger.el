@@ -110,7 +110,8 @@
 (defvar greger-tool-section-max-lines 4
   "Maximum number of lines to show in collapsed tool sections.")
 
-(defvar-local greger-tool-overlays nil
+;; TODO: make d
+(defvar greger-tool-overlays nil
   "List of overlays used for collapsible tool sections.")
 
 (defvar-local greger--current-agent-state nil
@@ -516,7 +517,9 @@ COMPLETION-CALLBACK is called when complete."
   (with-current-buffer (greger-state-chat-buffer agent-state)
     (goto-char (point-max))
     (unless (looking-back (concat greger-user-tag "\n\n") nil)
-      (insert "\n\n" greger-user-tag "\n\n")))
+      (insert "\n\n" greger-user-tag "\n\n"))
+    ;; Clear the buffer-local agent state
+    (setq greger--current-agent-state nil))
   ;; Reset the state
   (setf (greger-state-current-iteration agent-state) 0)
   (setf (greger-state-client-state agent-state) nil))
