@@ -611,7 +611,10 @@
         (progn
           ;; Write test content to file
           (with-temp-buffer
-            (insert "Line 1\nLine 2\nLine 3\n")
+            (insert "Line 1
+Line 2
+Line 3
+")
             (write-file test-file))
 
           ;; Test basic reading without line numbers
@@ -710,5 +713,234 @@ Line 3"))
 
   ;; Test start-line > end-line
   (should-error (greger-stdlib--read-file "test-file" nil 5 3)))
+
+(ert-deftest greger-test-list-directory-basic ()
+  "Test basic list-directory functionality with detailed output."
+  (let ((test-dir (make-temp-file "greger-test-dir" t)))
+    (unwind-protect
+        (progn
+          ;; Create a test file
+          (let ((test-file (expand-file-name "test.txt" test-dir)))
+            (with-temp-file test-file
+              (insert "content"))
+
+            ;; Test basic listing
+            (let ((result (greger-stdlib--list-directory test-dir))
+                  (expected (format "%s:
+drwx------  (dir)  .
+drwx------  (dir)  ..
+-rw-r--r--         7  test.txt" (file-name-as-directory test-dir))))
+              (should (stringp result))
+              (should (string= expected result)))))
+
+      ;; Clean up
+      (when (file-exists-p test-dir)
+        (delete-directory test-dir t)))))
+
+(ert-deftest greger-test-list-directory-exclude-directories-recursive ()
+  "Test list-directory exclude-directories-recursive functionality."
+  (let ((test-dir (make-temp-file "greger-test-dir" t)))
+    (unwind-protect
+        (progn
+          ;; Create test structure with directories and files
+          (let ((keep-dir (expand-file-name "keepdir" test-dir))
+                (exclude-dir (expand-file-name ".git" test-dir))
+                (file1 (expand-file-name "file1.txt" test-dir)))
+
+            (make-directory keep-dir)
+            (make-directory exclude-dir)
+            (with-temp-file file1 (insert "content"))
+            (with-temp-file (expand-file-name "kept.txt" keep-dir) (insert "kept"))
+            (with-temp-file (expand-file-name "excluded.txt" exclude-dir) (insert "excluded"))
+
+            ;; Test with default exclude pattern - should exclude .git directory from recursion
+            (let ((result (greger-stdlib--list-directory test-dir [".git" "__pycache__"] t))
+                  (expected (format "%s:
+drwx------  (dir)  .
+drwx------  (dir)  ..
+drwxr-xr-x  (dir)  .git
+-rw-r--r--         7  file1.txt
+drwxr-xr-x  (dir)  keepdir
+
+%skeepdir/:
+drwxr-xr-x  (dir)  .
+drwx------  (dir)  ..
+-rw-r--r--         4  kept.txt" (file-name-as-directory test-dir) (file-name-as-directory test-dir))))
+              (should (stringp result))
+              (should (string= expected result)))
+
+            ;; Test with empty exclude pattern - should recurse into all directories including .git
+            (let ((result (greger-stdlib--list-directory test-dir [] t))
+                  (expected (format "%s:
+drwx------  (dir)  .
+drwx------  (dir)  ..
+drwxr-xr-x  (dir)  .git
+-rw-r--r--         7  file1.txt
+drwxr-xr-x  (dir)  keepdir
+
+%s.git/:
+drwxr-xr-x  (dir)  .
+drwx------  (dir)  ..
+-rw-r--r--         8  excluded.txt
+
+%skeepdir/:
+drwxr-xr-x  (dir)  .
+drwx------  (dir)  ..
+-rw-r--r--         4  kept.txt" (file-name-as-directory test-dir) (file-name-as-directory test-dir) (file-name-as-directory test-dir))))
+              (should (stringp result))
+              (should (string= expected result)))))
+
+      ;; Clean up
+      (when (file-exists-p test-dir)
+        (delete-directory test-dir t)))))
+
+(ert-deftest greger-test-list-directory-recursive ()
+  "Test list-directory recursive functionality."
+  (let ((test-dir (make-temp-file "greger-test-dir" t)))
+    (unwind-protect
+        (progn
+          ;; Create simple nested directory structure
+          (let ((subdir (expand-file-name "testdir" test-dir))
+                (file1 (expand-file-name "root.txt" test-dir))
+                (file2 (expand-file-name "testdir/nested.txt" test-dir)))
+
+            (make-directory subdir)
+            (with-temp-file file1 (insert "Root content"))
+            (with-temp-file file2 (insert "Nested content"))
+
+            ;; Test recursive listing
+            (let ((result (greger-stdlib--list-directory test-dir nil t))
+                  (expected (format "%s:
+drwx------  (dir)  .
+drwx------  (dir)  ..
+-rw-r--r--        12  root.txt
+drwxr-xr-x  (dir)  testdir
+
+%stestdir/:
+drwxr-xr-x  (dir)  .
+drwx------  (dir)  ..
+-rw-r--r--        14  nested.txt" (file-name-as-directory test-dir) (file-name-as-directory test-dir))))
+              (should (stringp result))
+              (should (string= expected result)))))
+
+      ;; Clean up
+      (when (file-exists-p test-dir)
+        (delete-directory test-dir t)))))
+
+(ert-deftest greger-test-list-directory-error-cases ()
+  "Test error handling in list-directory function."
+  ;; Test non-existent directory
+  (should-error (greger-stdlib--list-directory "/path/that/does/not/exist"))
+
+  ;; Test invalid path type
+  (should-error (greger-stdlib--list-directory 123))
+
+  ;; Test file instead of directory
+  (let ((test-file (make-temp-file "greger-test-file")))
+    (unwind-protect
+        (progn
+          (with-temp-file test-file
+            (insert "test content"))
+          (should-error (greger-stdlib--list-directory test-file)))
+      (when (file-exists-p test-file)
+        (delete-file test-file)))))
+
+(ert-deftest greger-test-list-directory-empty-dir ()
+  "Test list-directory with empty directory."
+  (let ((test-dir (make-temp-file "greger-test-empty-dir" t)))
+    (unwind-protect
+        (progn
+          ;; Test empty directory - should show directory header and . .. entries
+          (let ((result (greger-stdlib--list-directory test-dir))
+                (expected (format "%s:
+drwx------  (dir)  .
+drwx------  (dir)  .." (file-name-as-directory test-dir))))
+            (should (stringp result))
+            (should (string= expected result))))
+
+      ;; Clean up
+      (when (file-exists-p test-dir)
+        (delete-directory test-dir)))))
+
+(ert-deftest greger-test-list-directory-file-mode-string ()
+  "Test the file mode string formatting function."
+  (let ((temp-dir (make-temp-file "greger-test-mode" t))
+        (temp-file (make-temp-file "greger-test-file")))
+    (unwind-protect
+        (progn
+          ;; Test directory formatting
+          (let ((dir-info (greger-stdlib--format-file-info temp-dir "testdir" "nomatch"))
+                (expected "drwx------  (dir)  testdir"))
+            (should (stringp dir-info))
+            (should (string= expected dir-info)))
+
+          ;; Test file formatting
+          (let ((file-info (greger-stdlib--format-file-info temp-file "testfile" "nomatch"))
+                (expected "-rw-------         0  testfile"))
+            (should (stringp file-info))
+            (should (string= expected file-info))))
+
+      ;; Clean up
+      (when (file-exists-p temp-dir)
+        (delete-directory temp-dir))
+      (when (file-exists-p temp-file)
+        (delete-file temp-file)))))
+
+(ert-deftest greger-test-list-directory-hidden-directories ()
+  "Test list-directory handling of hidden directories with exclude-directories-recursive."
+  (let ((test-dir (make-temp-file "greger-test-hidden" t)))
+    (unwind-protect
+        (progn
+          ;; Create hidden and normal directories and files
+          (let ((hidden-dir (expand-file-name ".hiddendir" test-dir))
+                (normal-dir (expand-file-name "normaldir" test-dir))
+                (normal-file (expand-file-name "normalfile.txt" test-dir)))
+
+            (make-directory hidden-dir)
+            (make-directory normal-dir)
+            (with-temp-file normal-file (insert "Normal content"))
+            (with-temp-file (expand-file-name "hidden.txt" hidden-dir) (insert "Hidden content"))
+            (with-temp-file (expand-file-name "normal.txt" normal-dir) (insert "Normal content"))
+
+            ;; Test with no exclude pattern (should show all files and directories, and recurse into all)
+            (let ((result (greger-stdlib--list-directory test-dir [] t))
+                  (expected (format "%s:
+drwx------  (dir)  .
+drwx------  (dir)  ..
+drwxr-xr-x  (dir)  .hiddendir
+drwxr-xr-x  (dir)  normaldir
+-rw-r--r--        14  normalfile.txt
+
+%s.hiddendir/:
+drwxr-xr-x  (dir)  .
+drwx------  (dir)  ..
+-rw-r--r--        14  hidden.txt
+
+%snormaldir/:
+drwxr-xr-x  (dir)  .
+drwx------  (dir)  ..
+-rw-r--r--        14  normal.txt" (file-name-as-directory test-dir) (file-name-as-directory test-dir) (file-name-as-directory test-dir))))
+              (should (stringp result))
+              (should (string= expected result)))
+
+            ;; Test with pattern excluding hidden directories (starting with .) from recursion
+            (let ((result (greger-stdlib--list-directory test-dir [".hiddendir"] t)))
+              (should (stringp result))
+              (let ((expected (format "%s:
+drwx------  (dir)  .
+drwx------  (dir)  ..
+drwxr-xr-x  (dir)  .hiddendir
+drwxr-xr-x  (dir)  normaldir
+-rw-r--r--        14  normalfile.txt
+
+%snormaldir/:
+drwxr-xr-x  (dir)  .
+drwx------  (dir)  ..
+-rw-r--r--        14  normal.txt" (file-name-as-directory test-dir) (file-name-as-directory test-dir))))
+                (should (string= expected result))))))
+
+      ;; Clean up
+      (when (file-exists-p test-dir)
+        (delete-directory test-dir t)))))
 
 ;;; greger-test-stdlib.el ends here

@@ -55,9 +55,10 @@
   :properties '((path . ((type . "string")
                          (description . "Path to the directory to list. Defaults to current directory.")
                          (default . ".")))
-                (show-hidden . ((type . "boolean")
-                                (description . "Whether to show hidden files starting with .")
-                                (default . nil)))
+                (exclude-directories-recursive . ((type . "array")
+                                                   (items . ((type . "string")))
+                                                   (description . "List of directory names to exclude when recursively listing files. If you wish to exclude no files, pass in a list with an empty string, e.g. [\"\"].")
+                                                   (default . (".git" "__pycache__"))))
                 (recursive . ((type . "boolean")
                               (description . "Whether to list files recursively")
                               (default . nil))))
@@ -404,14 +405,17 @@ If END-LINE is specified, stop reading at that line (inclusive, 1-based)."
     ;; Join back with newlines
     (mapconcat #'identity (reverse result) "\n")))
 
-(defun greger-stdlib--list-directory (path &optional show-hidden recursive)
-  "List directory contents at PATH.
-If SHOW-HIDDEN is non-nil, include hidden files.
+(defun greger-stdlib--list-directory (path &optional exclude-directories-recursive recursive)
+  "List directory contents at PATH with detailed file information.
+Similar to \\='ls -Rla\\='.
+EXCLUDE-DIRECTORIES-RECURSIVE is a vector of directory names to exclude when
+recursively listing (defaults to [\".git\" \"__pycache__\"]).
 If RECURSIVE is non-nil, list files recursively."
   (unless (stringp path)
     (error "Invalid type: path must be a string"))
 
-  (let ((expanded-path (expand-file-name path)))
+  (let ((expanded-path (expand-file-name path))
+        (original-path path))
     (unless (file-exists-p expanded-path)
       (error "Directory does not exist: %s" expanded-path))
 
@@ -422,41 +426,115 @@ If RECURSIVE is non-nil, list files recursively."
       (error "Directory is not readable: %s" expanded-path))
 
     (condition-case err
-        (let ((files (if recursive
-                         (greger-stdlib--list-directory-recursive expanded-path show-hidden)
-                       (directory-files expanded-path nil
-                                        (if show-hidden "^[^.]\\|^\\.[^.]" "^[^.]")))))
-          (if files
-              (mapconcat (lambda (file)
-                           (let ((full-path (expand-file-name file expanded-path)))
-                             (format "%s%s"
-                                     file
-                                     (if (file-directory-p full-path) "/" ""))))
-                         files "\n")
-            "Directory is empty"))
+        (greger-stdlib--list-directory-recursive expanded-path exclude-directories-recursive original-path recursive)
       (error "Failed to list directory: %s" (error-message-string err)))))
 
-(defun greger-stdlib--list-directory-recursive (path show-hidden &optional prefix)
-  "Recursively list directory contents at PATH.
-If SHOW-HIDDEN is non-nil, include hidden files.
+(defun greger-stdlib--list-directory-recursive (path exclude-directories-recursive original-path recursive &optional prefix)
+  "Recursively list directory contents with detailed information.
+PATH is the actual directory path to list.
+EXCLUDE-DIRECTORIES-RECURSIVE is vector of directory names to exclude when
+recursively listing.
+ORIGINAL-PATH is used for display purposes at the root level.
+RECURSIVE determines if we should recurse into subdirectories.
 PREFIX is used internally for nested directory structure."
-  (let ((files '())
-        (prefix (or prefix "")))
+  (let ((all-results '())
+        (subdirs '())
+        (display-path (cond
+                       ;; Root level: use original path or relative notation
+                       ((string= (or prefix "") "")
+                        (let ((display-path-base (or original-path path)))
+                          (if (string= display-path-base ".")
+                              "./"
+                            (file-name-as-directory display-path-base))))
+                       ;; Nested level with absolute original path: build absolute path
+                       ((and original-path (file-name-absolute-p original-path))
+                        (file-name-as-directory
+                         (expand-file-name prefix (directory-file-name original-path))))
+                       ;; Nested level with relative path: use relative notation
+                       (t (concat "./" prefix)))))
 
-    (dolist (file (directory-files path nil
-                                   (if show-hidden "^[^.]\\|^\\.[^.]" "^[^.]")))
-      (let ((full-path (expand-file-name file path))
-            (display-name (concat prefix file)))
+    ;; Build current directory listing
+    (let ((current-listing '()))
+      ;; Add directory header
+      (push (format "%s:" display-path) current-listing)
 
-        (if (file-directory-p full-path)
-            (progn
-              (push (concat display-name "/") files)
-              (setq files (append files
-                                  (greger-stdlib--list-directory-recursive
-                                   full-path show-hidden (concat prefix file "/")))))
-          (push display-name files))))
+      ;; Add current and parent directory entries
+      (push (greger-stdlib--format-file-info path "." exclude-directories-recursive) current-listing)
+      (unless (string= (expand-file-name path) (expand-file-name "/"))
+        (push (greger-stdlib--format-file-info (file-name-directory (directory-file-name path)) ".." exclude-directories-recursive) current-listing))
 
-    (reverse files)))
+      ;; Process files and directories
+      (let ((files (directory-files path t)))
+        (dolist (file (sort files #'string<))
+          (let* ((basename (file-name-nondirectory file)))
+            (when (and (not (string= basename "."))
+                       (not (string= basename "..")))
+              (let ((formatted (greger-stdlib--format-file-info file basename exclude-directories-recursive)))
+                (when formatted
+                  (push formatted current-listing)))
+              ;; Collect subdirectories for recursive processing, excluding based on pattern
+              (when (and recursive
+                         (file-directory-p file)
+                         (greger-stdlib--should-include-directory-in-recursive-listing-p basename exclude-directories-recursive))
+                (push file subdirs))))))
+
+      ;; Add current directory to results (reverse to get correct order)
+      (setq all-results (reverse current-listing)))
+
+    ;; Process subdirectories recursively if requested
+    (when recursive
+      (dolist (subdir (reverse subdirs)) ; Reverse to maintain alphabetical order
+        (let* ((basename (file-name-nondirectory subdir))
+               (subdir-results (greger-stdlib--list-directory-recursive
+                               subdir exclude-directories-recursive original-path recursive
+                               (concat (or prefix "") basename "/"))))
+          (setq all-results (append all-results (list "" subdir-results))))))
+
+    ;; Return results
+    (if (> (length all-results) 1) ; More than just the header
+        (mapconcat #'identity all-results "\n")
+      (format "%s:\nDirectory is empty" display-path))))
+
+(defun greger-stdlib--format-file-info (filepath displayname _exclude-directories-recursive)
+  "Format file information similar to \\='ls -la\\=' output.
+FILEPATH is the full path to the file.
+DISPLAYNAME is the name to display in the output.
+_EXCLUDE-DIRECTORIES-RECURSIVE is unused in this function."
+  (when (file-exists-p filepath)
+    (let* ((attrs (file-attributes filepath))
+           (file-type (nth 0 attrs))
+           (size (nth 7 attrs))
+           (mode-string (greger-stdlib--file-mode-string attrs))
+           (size-or-dir (if (eq file-type t) "(dir)" (format "%8d" size))))
+
+      (format "%s  %s  %s"
+              mode-string
+              size-or-dir
+              displayname))))
+
+(defun greger-stdlib--file-mode-string (attrs)
+  "Convert file attributes to mode string like \\='drwxr-xr-x\\='.
+ATTRS should be the result of `file-attributes'."
+  (let* ((file-type (nth 0 attrs))
+         (mode (nth 8 attrs))
+         (type-char (cond
+                     ((eq file-type t) "d")          ; directory
+                     ((stringp file-type) "l")       ; symbolic link
+                     (t "-")))                       ; regular file
+         (perms (if (stringp mode)
+                    (substring mode 1)  ; Skip the type character from mode string
+                  "rwxrwxrwx")))       ; Default fallback
+    (concat type-char perms)))
+
+(defun greger-stdlib--should-include-directory-in-recursive-listing-p (directory-name exclude-directories-recursive)
+  "Return t if directory with DIRECTORY-NAME should be included in listing.
+EXCLUDE-DIRECTORIES-RECURSIVE is a vector of directory names to exclude.
+If EXCLUDE-DIRECTORIES-RECURSIVE is nil, use default excludes.
+If EXCLUDE-DIRECTORIES-RECURSIVE is an empty vector, exclude nothing."
+  (let ((actual-exclude-list (if (null exclude-directories-recursive)
+                                 [".git" "__pycache__"]
+                               exclude-directories-recursive)))
+    (not (seq-contains-p actual-exclude-list directory-name))))
 
 (defun greger-stdlib--ripgrep (pattern path callback &optional case-sensitive file-type context-lines max-results)
   "Search for PATTERN in PATH using the rg command line tool directly.
