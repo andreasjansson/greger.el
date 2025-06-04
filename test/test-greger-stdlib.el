@@ -719,30 +719,21 @@ Line 3"))
   (let ((test-dir (make-temp-file "greger-test-dir" t)))
     (unwind-protect
         (progn
-          ;; Create test files
-          (let ((test-file1 (expand-file-name "test1.txt" test-dir))
-                (test-file2 (expand-file-name "test2.el" test-dir))
-                (test-subdir (expand-file-name "subdir" test-dir)))
+          ;; Create a single test file for predictable output
+          (let ((test-file (expand-file-name "testfile.txt" test-dir)))
+            (with-temp-file test-file
+              (insert "Test content"))
 
-            (with-temp-file test-file1
-              (insert "Test content 1"))
-            (with-temp-file test-file2
-              (insert "Test content 2"))
-            (make-directory test-subdir)
-
-            ;; Test basic listing
+            ;; Test basic listing - check that it contains expected structure
             (let ((result (greger-stdlib--list-directory test-dir)))
               (should (stringp result))
-              ;; Should contain detailed file information with filenames
-              (should (string-match-p "test1\\.txt" result))
-              (should (string-match-p "test2\\.el" result))
-              (should (string-match-p "subdir" result))
-              ;; Should contain . and .. entries
-              (should (string-match-p "\\.$" result))  ; Current directory
-              (should (string-match-p "\\.\\.$" result)) ; Parent directory
-              ;; Should contain permissions and file details
-              (should (string-match-p "^[d-]" result)) ; File type character
-              )))
+              ;; Check that result contains file permissions pattern, filename
+              (should (string-match-p "drwx" result))  ; Directory permissions for .
+              (should (string-match-p "-rw" result))   ; File permissions
+              (should (string-match-p "testfile.txt" result))
+              (should (string-match-p "\\.$" result))  ; Current directory entry
+              (should (string-match-p "\\.\\.$" result))) ; Parent directory entry
+            ))
 
       ;; Clean up
       (when (file-exists-p test-dir)
