@@ -3984,4 +3984,129 @@ EXCLUDE-PATTERN is used to check if file should be excluded."
 Remove owner, group, and timestamp from list-directory output for predictable testing
 </tool.toolu_01GJutaQEGs4AM4JCjV7v9ma>
 
-<!-- TOOL_RESULT_PLACEHOLDER_toolu_01GJutaQEGs4AM4JCjV7v9ma -->
+## TOOL RESULT:
+
+ID: toolu_01GJutaQEGs4AM4JCjV7v9ma
+
+<tool.toolu_01GJutaQEGs4AM4JCjV7v9ma>
+Successfully replaced content in /Users/andreas/projects/greger.el/greger-stdlib.el. Successfully staged 2 file(s) and committed with message: Remove owner, group, and timestamp from list-directory output for predictable testing
+</tool.toolu_01GJutaQEGs4AM4JCjV7v9ma>
+
+
+## ASSISTANT:
+
+Now let me test what the actual output looks like so I can write the tests correctly:
+
+## TOOL USE:
+
+Name: shell-command
+ID: toolu_01SBum1ifQktucdeNTZzHUfJ
+
+### command
+
+<tool.toolu_01SBum1ifQktucdeNTZzHUfJ>
+cd /tmp && mkdir -p test-dir && cd test-dir && echo "content" > test.txt
+</tool.toolu_01SBum1ifQktucdeNTZzHUfJ>
+
+## TOOL RESULT:
+
+ID: toolu_01SBum1ifQktucdeNTZzHUfJ
+
+<tool.toolu_01SBum1ifQktucdeNTZzHUfJ>
+Shell command execution cancelled by user
+</tool.toolu_01SBum1ifQktucdeNTZzHUfJ>
+
+## ASSISTANT:
+
+Let me run a quick test to see what the output format looks like:
+
+## TOOL USE:
+
+Name: shell-command
+ID: toolu_01NLUpmjzXRjhAADCkUshCoQ
+
+### command
+
+<tool.toolu_01NLUpmjzXRjhAADCkUshCoQ>
+emacs --batch --eval "(progn (add-to-list 'load-path \".\") (require 'greger-stdlib) (let ((test-dir \"/tmp/greger-test\")) (make-directory test-dir t) (with-temp-file (expand-file-name \"test.txt\" test-dir) (insert \"content\")) (princ (greger-stdlib--list-directory test-dir))))"
+</tool.toolu_01NLUpmjzXRjhAADCkUshCoQ>
+
+## TOOL RESULT:
+
+ID: toolu_01NLUpmjzXRjhAADCkUshCoQ
+
+<tool.toolu_01NLUpmjzXRjhAADCkUshCoQ>
+Command executed successfully:
+Source file ‘/opt/homebrew/Cellar/emacs-plus@29/29.0.90/share/emacs/29.0.91/lisp/net/eww.el’ newer than byte-compiled file; using older file
+drwxr-xr-x       96  .
+drwxrwxrwt     2368  ..
+-rw-r--r--        7  test.txt
+</tool.toolu_01NLUpmjzXRjhAADCkUshCoQ>
+
+## ASSISTANT:
+
+Perfect! Now I can write the tests with exact expected output. Let me update all the tests:
+
+## TOOL USE:
+
+Name: str-replace
+ID: toolu_01XgBwcnggoQ31XCU5hXZXns
+
+### file-path
+
+<tool.toolu_01XgBwcnggoQ31XCU5hXZXns>
+test/test-greger-stdlib.el
+</tool.toolu_01XgBwcnggoQ31XCU5hXZXns>
+
+### original-content
+
+<tool.toolu_01XgBwcnggoQ31XCU5hXZXns>
+(ert-deftest greger-test-list-directory-basic ()
+  "Test basic list-directory functionality with detailed output."
+  (let ((test-dir (make-temp-file "greger-test-dir" t)))
+    (unwind-protect
+        (progn
+          ;; Test that we get string output (detailed output varies by system)
+          (let ((result (greger-stdlib--list-directory test-dir)))
+            (should (stringp result))
+            ;; Should contain current directory listing
+            (should (> (length result) 0))))
+
+      ;; Clean up
+      (when (file-exists-p test-dir)
+        (delete-directory test-dir t)))))
+</tool.toolu_01XgBwcnggoQ31XCU5hXZXns>
+
+### new-content
+
+<tool.toolu_01XgBwcnggoQ31XCU5hXZXns>
+(ert-deftest greger-test-list-directory-basic ()
+  "Test basic list-directory functionality with detailed output."
+  (let ((test-dir (make-temp-file "greger-test-dir" t)))
+    (unwind-protect
+        (progn
+          ;; Create a test file
+          (let ((test-file (expand-file-name "test.txt" test-dir)))
+            (with-temp-file test-file
+              (insert "content"))
+
+            ;; Test basic listing
+            (let ((result (greger-stdlib--list-directory test-dir))
+                  (expected "drwxr-xr-x       96  .
+drwxrwxrwt     2368  ..
+-rw-r--r--        7  test.txt"))
+              (should (stringp result))
+              (should (string= expected result)))))
+
+      ;; Clean up
+      (when (file-exists-p test-dir)
+        (delete-directory test-dir t)))))
+</tool.toolu_01XgBwcnggoQ31XCU5hXZXns>
+
+### git-commit-message
+
+<tool.toolu_01XgBwcnggoQ31XCU5hXZXns>
+Update basic test to use exact string comparison
+</tool.toolu_01XgBwcnggoQ31XCU5hXZXns>
+
+<!-- TOOL_RESULT_PLACEHOLDER_toolu_01XgBwcnggoQ31XCU5hXZXns -->

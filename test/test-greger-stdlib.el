@@ -719,11 +719,18 @@ Line 3"))
   (let ((test-dir (make-temp-file "greger-test-dir" t)))
     (unwind-protect
         (progn
-          ;; Test that we get string output (detailed output varies by system)
-          (let ((result (greger-stdlib--list-directory test-dir)))
-            (should (stringp result))
-            ;; Should contain current directory listing
-            (should (> (length result) 0))))
+          ;; Create a test file
+          (let ((test-file (expand-file-name "test.txt" test-dir)))
+            (with-temp-file test-file
+              (insert "content"))
+
+            ;; Test basic listing
+            (let ((result (greger-stdlib--list-directory test-dir))
+                  (expected "drwxr-xr-x       96  .
+drwxrwxrwt     2368  ..
+-rw-r--r--        7  test.txt"))
+              (should (stringp result))
+              (should (string= expected result)))))
 
       ;; Clean up
       (when (file-exists-p test-dir)
