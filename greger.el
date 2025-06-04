@@ -518,7 +518,8 @@ COMPLETION-CALLBACK is called when complete."
     (unless (looking-back (concat greger-user-tag "\n\n") nil)
       (insert "\n\n" greger-user-tag "\n\n")))
   ;; Reset the state
-  (setf (greger-state-current-iteration agent-state) 0))
+  (setf (greger-state-current-iteration agent-state) 0)
+  (setf (greger-state-client-state agent-state) nil))
 
 (defun greger-toggle-debug ()
   "Toggle debug output."
