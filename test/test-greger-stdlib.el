@@ -524,7 +524,7 @@
 
     ;; Test with non-string commit message
     (should-error (greger-stdlib--delete-files
-                  (list "/tmp/test.txt")
+                  (vector "/tmp/test.txt")
                   123)
                  :type 'error)))
 
