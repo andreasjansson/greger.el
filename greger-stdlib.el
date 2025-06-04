@@ -673,11 +673,8 @@ If BUFFER is provided, it will be staged and committed along with the directory.
   "Rename file from OLD-PATH to NEW-PATH.
 GIT-COMMIT-MESSAGE will be used for the git commit.
 If BUFFER is provided, it will be staged and committed with the renamed file."
-  (unless (stringp old-path)
-    (error "Invalid type: old-path must be a string"))
-
-  (unless (stringp new-path)
-    (error "Invalid type: new-path must be a string"))
+  (greger-stdlib--assert-arg-string "old-path" old-path)
+  (greger-stdlib--assert-arg-string "new-path" new-path)
 
   (let ((expanded-old-path (expand-file-name old-path))
         (expanded-new-path (expand-file-name new-path)))
