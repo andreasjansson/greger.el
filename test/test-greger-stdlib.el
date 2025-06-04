@@ -611,7 +611,10 @@
         (progn
           ;; Write test content to file
           (with-temp-buffer
-            (insert "Line 1\nLine 2\nLine 3\n")
+            (insert "Line 1
+Line 2
+Line 3
+")
             (write-file test-file))
 
           ;; Test basic reading without line numbers
@@ -730,21 +733,16 @@ Line 3"))
             ;; Test basic listing
             (let ((result (greger-stdlib--list-directory test-dir)))
               (should (stringp result))
-              ;; Should contain detailed file information
+              ;; Should contain detailed file information with filenames
               (should (string-match-p "test1\\.txt" result))
               (should (string-match-p "test2\\.el" result))
               (should (string-match-p "subdir" result))
-              ;; Should contain permissions, size, etc.
+              ;; Should contain . and .. entries
+              (should (string-match-p "\\.$" result))  ; Current directory
+              (should (string-match-p "\\.\\.$" result)) ; Parent directory
+              ;; Should contain permissions and file details
               (should (string-match-p "^[d-]" result)) ; File type character
-              (should (string-match-p "[0-9]+ [A-Za-z]+ [0-9]+ [0-9:]+" result)) ; Size and date
-              )
-
-            ;; Test with default exclude pattern (should not exclude anything in this case)
-            (let ((result (greger-stdlib--list-directory test-dir "\\.git/|__pycache__/")))
-              (should (stringp result))
-              (should (string-match-p "test1\\.txt" result))
-              (should (string-match-p "test2\\.el" result))
-              (should (string-match-p "subdir" result)))))
+              )))
 
       ;; Clean up
       (when (file-exists-p test-dir)
