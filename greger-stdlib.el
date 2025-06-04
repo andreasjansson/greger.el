@@ -1004,7 +1004,7 @@ FUNCTION-NAMES specifies which functions to evaluate."
 
     (with-current-buffer (find-file-noselect expanded-path)
      ;; Navigate to and evaluate each function
-     (dolist (function-name names-list)
+     (seq-doseq (function-name function-names)
        (goto-char (point-min))
 
        ;; Search for the function definition
