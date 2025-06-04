@@ -707,11 +707,8 @@ If BUFFER is provided, it will be staged and committed with the renamed file."
   "Delete files at FILE-PATHS and stage the deletion in git if tracked.
 GIT-COMMIT-MESSAGE will be used for the git commit.
 If BUFFER is provided, it will be staged and committed with deleted files."
-  (unless (vectorp file-paths)
-    (error "Invalid type: file-paths must be a vector"))
-
-  (unless (stringp git-commit-message)
-    (error "Invalid type: git-commit-message must be a string"))
+  (greger-stdlib--assert-arg-string-vector "file-paths" file-paths)
+  (greger-stdlib--assert-arg-string "git-commit-message" git-commit-message)
 
   (let ((expanded-paths '())
         (deleted-files '())
