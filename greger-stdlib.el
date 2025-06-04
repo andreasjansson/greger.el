@@ -544,6 +544,13 @@ ATTRS should be the result of file-attributes."
                   "rwxrwxrwx")))       ; Default fallback
     (concat type-char perms)))
 
+(defun greger-stdlib--should-include-file-p (relative-path exclude-pattern)
+  "Return t if file at RELATIVE-PATH should be included given EXCLUDE-PATTERN.
+If EXCLUDE-PATTERN is empty or nil, include all files."
+  (if (or (null exclude-pattern) (string= exclude-pattern ""))
+      t
+    (not (string-match-p exclude-pattern relative-path))))
+
 (defun greger-stdlib--ripgrep (pattern path callback &optional case-sensitive file-type context-lines max-results)
   "Search for PATTERN in PATH using the rg command line tool directly.
 CALLBACK is called with (result error) when search completes.

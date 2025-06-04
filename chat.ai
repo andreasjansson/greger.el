@@ -2130,4 +2130,77 @@ greger-stdlib.el
 Fix recursive directory processing to use proper file filtering
 </tool.toolu_01SmZx3Gc2T4Bo1sMdT8X7oz>
 
-<!-- TOOL_RESULT_PLACEHOLDER_toolu_01SmZx3Gc2T4Bo1sMdT8X7oz -->
+## TOOL RESULT:
+
+ID: toolu_01SmZx3Gc2T4Bo1sMdT8X7oz
+
+<tool.toolu_01SmZx3Gc2T4Bo1sMdT8X7oz>
+Successfully replaced content in /Users/andreas/projects/greger.el/greger-stdlib.el. Successfully staged 2 file(s) and committed with message: Fix recursive directory processing to use proper file filtering
+</tool.toolu_01SmZx3Gc2T4Bo1sMdT8X7oz>
+
+
+## ASSISTANT:
+
+Now I need to add the helper function that properly handles the exclude pattern:
+
+## TOOL USE:
+
+Name: str-replace
+ID: toolu_01KYX9GjNLaCoK3Tp1aQ1dWG
+
+### file-path
+
+<tool.toolu_01KYX9GjNLaCoK3Tp1aQ1dWG>
+greger-stdlib.el
+</tool.toolu_01KYX9GjNLaCoK3Tp1aQ1dWG>
+
+### original-content
+
+<tool.toolu_01KYX9GjNLaCoK3Tp1aQ1dWG>
+(defun greger-stdlib--file-mode-string (attrs)
+  "Convert file attributes to mode string like 'drwxr-xr-x'.
+ATTRS should be the result of file-attributes."
+  (let* ((file-type (nth 0 attrs))
+         (mode (nth 8 attrs))
+         (type-char (cond
+                     ((eq file-type t) "d")          ; directory
+                     ((stringp file-type) "l")       ; symbolic link
+                     (t "-")))                       ; regular file
+         (perms (if (stringp mode)
+                    (substring mode 1)  ; Skip the type character from mode string
+                  "rwxrwxrwx")))       ; Default fallback
+    (concat type-char perms)))
+</tool.toolu_01KYX9GjNLaCoK3Tp1aQ1dWG>
+
+### new-content
+
+<tool.toolu_01KYX9GjNLaCoK3Tp1aQ1dWG>
+(defun greger-stdlib--file-mode-string (attrs)
+  "Convert file attributes to mode string like 'drwxr-xr-x'.
+ATTRS should be the result of file-attributes."
+  (let* ((file-type (nth 0 attrs))
+         (mode (nth 8 attrs))
+         (type-char (cond
+                     ((eq file-type t) "d")          ; directory
+                     ((stringp file-type) "l")       ; symbolic link
+                     (t "-")))                       ; regular file
+         (perms (if (stringp mode)
+                    (substring mode 1)  ; Skip the type character from mode string
+                  "rwxrwxrwx")))       ; Default fallback
+    (concat type-char perms)))
+
+(defun greger-stdlib--should-include-file-p (relative-path exclude-pattern)
+  "Return t if file at RELATIVE-PATH should be included given EXCLUDE-PATTERN.
+If EXCLUDE-PATTERN is empty or nil, include all files."
+  (if (or (null exclude-pattern) (string= exclude-pattern ""))
+      t
+    (not (string-match-p exclude-pattern relative-path))))
+</tool.toolu_01KYX9GjNLaCoK3Tp1aQ1dWG>
+
+### git-commit-message
+
+<tool.toolu_01KYX9GjNLaCoK3Tp1aQ1dWG>
+Add helper function for file filtering logic
+</tool.toolu_01KYX9GjNLaCoK3Tp1aQ1dWG>
+
+<!-- TOOL_RESULT_PLACEHOLDER_toolu_01KYX9GjNLaCoK3Tp1aQ1dWG -->
