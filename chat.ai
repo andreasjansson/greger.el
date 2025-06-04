@@ -5738,4 +5738,59 @@ greger-stdlib.el
 Pass original exclude parameter to recursive function instead of processed one
 </tool.toolu_01MXjHsn4YDvMwU5Pmxd7Knp>
 
-<!-- TOOL_RESULT_PLACEHOLDER_toolu_01MXjHsn4YDvMwU5Pmxd7Knp -->
+## TOOL RESULT:
+
+ID: toolu_01MXjHsn4YDvMwU5Pmxd7Knp
+
+<tool.toolu_01MXjHsn4YDvMwU5Pmxd7Knp>
+Successfully replaced content in /Users/andreas/projects/greger.el/greger-stdlib.el. Successfully staged 2 file(s) and committed with message: Pass original exclude parameter to recursive function instead of processed one
+</tool.toolu_01MXjHsn4YDvMwU5Pmxd7Knp>
+
+
+## ASSISTANT:
+
+But wait, now I need to handle the default logic in the recursive function. Let me update the recursive function to handle the nil case:
+
+## TOOL USE:
+
+Name: str-replace
+ID: toolu_01SytBJfg8WTyoHQUBcZtbS1
+
+### file-path
+
+<tool.toolu_01SytBJfg8WTyoHQUBcZtbS1>
+greger-stdlib.el
+</tool.toolu_01SytBJfg8WTyoHQUBcZtbS1>
+
+### original-content
+
+<tool.toolu_01SytBJfg8WTyoHQUBcZtbS1>
+(defun greger-stdlib--should-include-directory-in-recursive-listing-p (directory-name exclude-directories-recursive)
+  "Return t if directory with DIRECTORY-NAME should be included in recursive listing.
+EXCLUDE-DIRECTORIES-RECURSIVE is a list of directory names to exclude.
+If EXCLUDE-DIRECTORIES-RECURSIVE is nil, use default excludes.
+If EXCLUDE-DIRECTORIES-RECURSIVE is an empty list, exclude nothing."
+  (not (member directory-name exclude-directories-recursive)))
+</tool.toolu_01SytBJfg8WTyoHQUBcZtbS1>
+
+### new-content
+
+<tool.toolu_01SytBJfg8WTyoHQUBcZtbS1>
+(defun greger-stdlib--should-include-directory-in-recursive-listing-p (directory-name exclude-directories-recursive)
+  "Return t if directory with DIRECTORY-NAME should be included in recursive listing.
+EXCLUDE-DIRECTORIES-RECURSIVE is a list of directory names to exclude.
+If EXCLUDE-DIRECTORIES-RECURSIVE is nil, use default excludes.
+If EXCLUDE-DIRECTORIES-RECURSIVE is an empty list, exclude nothing."
+  (let ((actual-exclude-list (if (null exclude-directories-recursive)
+                                 '(".git" "__pycache__")
+                               exclude-directories-recursive)))
+    (not (member directory-name actual-exclude-list))))
+</tool.toolu_01SytBJfg8WTyoHQUBcZtbS1>
+
+### git-commit-message
+
+<tool.toolu_01SytBJfg8WTyoHQUBcZtbS1>
+Handle default exclude logic in the check function
+</tool.toolu_01SytBJfg8WTyoHQUBcZtbS1>
+
+<!-- TOOL_RESULT_PLACEHOLDER_toolu_01SytBJfg8WTyoHQUBcZtbS1 -->
