@@ -99,7 +99,8 @@
   current-iteration
   chat-buffer
   directory
-  metadata)
+  metadata
+  client-state)
 
 (defvar greger-user-tag "## USER:")
 (defvar greger-assistant-tag "## ASSISTANT:")
@@ -177,7 +178,7 @@
     map)
   "Keymap for `greger-mode'.")
 
-(define-derived-mode greger-mode gfm-mode "AI"
+(define-derived-mode greger-mode gfm-mode "Greger"
   "Major mode for interacting with AI."
   (use-local-map greger-mode-map)
   (setq-local markdown-fontify-code-blocks-natively t)
@@ -266,9 +267,9 @@
       (error "Point is not inside a code block"))))
 
 (defun greger-set-model ()
-  "Set the current AI model."
+  "Set the current model."
   (interactive)
-  (let ((model (completing-read "Choose AI model: " greger-available-models nil t)))
+  (let ((model (completing-read "Choose model: " greger-available-models nil t)))
     (customize-set-variable 'greger-model (intern model))
     (message "Model set to %s" model)))
 
