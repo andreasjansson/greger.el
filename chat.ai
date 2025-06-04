@@ -2361,4 +2361,210 @@ greger-parser.el
 Add server tool section parsing functions
 </tool.toolu_0165g6dNTSvtxoc5tMwnG4H4>
 
-<!-- TOOL_RESULT_PLACEHOLDER_toolu_0165g6dNTSvtxoc5tMwnG4H4 -->
+## TOOL RESULT:
+
+ID: toolu_0165g6dNTSvtxoc5tMwnG4H4
+
+<tool.toolu_0165g6dNTSvtxoc5tMwnG4H4>
+Successfully replaced content in /Users/andreas/projects/greger.el/greger-parser.el. Successfully staged 2 file(s) and committed with message: Add server tool section parsing functions
+</tool.toolu_0165g6dNTSvtxoc5tMwnG4H4>
+
+## ASSISTANT:
+
+Now I need to implement the server tool input and result content parsing. Let me find where the tool result content parsing is and add the server equivalents after:
+
+## TOOL USE:
+
+Name: ripgrep
+ID: toolu_01DUXKPLq45APhGNfYvfLcL6
+
+### pattern
+
+<tool.toolu_01DUXKPLq45APhGNfYvfLcL6>
+parse-tool-result-content|parse-tool-input"
+</tool.toolu_01DUXKPLq45APhGNfYvfLcL6>
+
+### path
+
+<tool.toolu_01DUXKPLq45APhGNfYvfLcL6>
+greger-parser.el
+</tool.toolu_01DUXKPLq45APhGNfYvfLcL6>
+
+### context-lines
+
+<tool.toolu_01DUXKPLq45APhGNfYvfLcL6>
+5
+</tool.toolu_01DUXKPLq45APhGNfYvfLcL6>
+
+## TOOL RESULT:
+
+ID: toolu_01DUXKPLq45APhGNfYvfLcL6
+
+<tool.toolu_01DUXKPLq45APhGNfYvfLcL6>
+721-
+722-(defun greger-parser--parse-tool-result-section (state)
+723-  "Parse TOOL RESULT section using STATE."
+724-  (greger-parser--skip-whitespace state)
+725-  (let ((id (greger-parser--parse-id-line state))
+726:        (content (greger-parser--parse-tool-result-content state)))
+727-    (when id
+728-      (greger-parser--create-tool-result-message id content))))
+729-
+730-(defun greger-parser--parse-server-tool-use-section (state)
+731-  "Parse SERVER TOOL USE section using STATE."
+--
+778-        ;; Safety check: ensure we're making progress
+779-        (when (= old-pos (greger-parser-state-pos state))
+780-          (greger-parser--debug state "No progress in tool input parsing at pos %d, forcing end" (greger-parser-state-pos state))
+781-          (setf (greger-parser-state-pos state) (greger-parser-state-length state)))))
+782-    (when (>= iterations max-iterations)
+783:      (greger-parser--debug state "Hit max iterations in parse-tool-input"))
+784-    (reverse params)))
+785-
+786-(defun greger-parser--can-parse-parameter-p (state)
+787-  "Check if we can parse a parameter using STATE."
+788-  (and (not (greger-parser--at-end-p state))
+--
+853-        (greger-parser--advance state)))
+854-    (when (>= iterations max-iterations)
+855-      (greger-parser--debug state "Hit max iterations in find-closing-tag"))
+856-    found))
+857-
+858:(defun greger-parser--parse-tool-result-content (state)
+859-  "Parse tool result content using STATE."
+860-  (greger-parser--skip-whitespace state)
+861-  (or (greger-parser--parse-tool-value state) ""))
+862-
+863-(defun greger-parser--normalize-tool-content (content)
+
+</tool.toolu_01DUXKPLq45APhGNfYvfLcL6>
+
+## ASSISTANT:
+
+Let me look at the `greger-parser--parse-tool-input` function to understand its structure and implement the server tool equivalents:
+
+## TOOL USE:
+
+Name: read-file
+ID: toolu_015mcaWdYbTAXtTmzDdm6Pts
+
+### path
+
+<tool.toolu_015mcaWdYbTAXtTmzDdm6Pts>
+greger-parser.el
+</tool.toolu_015mcaWdYbTAXtTmzDdm6Pts>
+
+### start-line
+
+<tool.toolu_015mcaWdYbTAXtTmzDdm6Pts>
+765
+</tool.toolu_015mcaWdYbTAXtTmzDdm6Pts>
+
+### end-line
+
+<tool.toolu_015mcaWdYbTAXtTmzDdm6Pts>
+785
+</tool.toolu_015mcaWdYbTAXtTmzDdm6Pts>
+
+## TOOL RESULT:
+
+ID: toolu_015mcaWdYbTAXtTmzDdm6Pts
+
+<tool.toolu_015mcaWdYbTAXtTmzDdm6Pts>
+  "Parse tool input parameters using STATE."
+  (let ((params '())
+        (iterations 0)
+        (max-iterations 100)) ; Safety limit
+    (greger-parser--skip-whitespace state)
+    (while (and (greger-parser--can-parse-parameter-p state)
+                (< iterations max-iterations))
+      (setq iterations (1+ iterations))
+      (let ((old-pos (greger-parser-state-pos state))
+            (param (greger-parser--parse-tool-parameter state)))
+        (when param
+          (push param params))
+        (greger-parser--skip-whitespace state)
+        ;; Safety check: ensure we're making progress
+        (when (= old-pos (greger-parser-state-pos state))
+          (greger-parser--debug state "No progress in tool input parsing at pos %d, forcing end" (greger-parser-state-pos state))
+          (setf (greger-parser-state-pos state) (greger-parser-state-length state)))))
+    (when (>= iterations max-iterations)
+      (greger-parser--debug state "Hit max iterations in parse-tool-input"))
+    (reverse params)))
+
+</tool.toolu_015mcaWdYbTAXtTmzDdm6Pts>
+
+## ASSISTANT:
+
+Based on the Anthropic documentation, server tools have a different format. For server tool use, the input is JSON rather than key-value pairs. Let me implement the server tool parsing functions after the existing tool result content function:
+
+## TOOL USE:
+
+Name: str-replace
+ID: toolu_01DhFJxRdqcNNh6npuwir2w7
+
+### file-path
+
+<tool.toolu_01DhFJxRdqcNNh6npuwir2w7>
+greger-parser.el
+</tool.toolu_01DhFJxRdqcNNh6npuwir2w7>
+
+### original-content
+
+<tool.toolu_01DhFJxRdqcNNh6npuwir2w7>
+(defun greger-parser--parse-tool-result-content (state)
+  "Parse tool result content using STATE."
+  (greger-parser--skip-whitespace state)
+  (or (greger-parser--parse-tool-value state) ""))
+</tool.toolu_01DhFJxRdqcNNh6npuwir2w7>
+
+### new-content
+
+<tool.toolu_01DhFJxRdqcNNh6npuwir2w7>
+(defun greger-parser--parse-tool-result-content (state)
+  "Parse tool result content using STATE."
+  (greger-parser--skip-whitespace state)
+  (or (greger-parser--parse-tool-value state) ""))
+
+(defun greger-parser--parse-server-tool-input (state)
+  "Parse server tool input JSON using STATE."
+  (greger-parser--skip-whitespace state)
+  (let ((json-start (greger-parser--current-pos state))
+        (content ""))
+    ;; Read until next section or end
+    (while (and (not (greger-parser--at-end-p state))
+                (not (and (greger-parser--at-line-start-p state)
+                          (greger-parser--find-section-tag state))))
+      (greger-parser--advance state))
+    (setq content (string-trim (greger-parser--substring state json-start)))
+    ;; Parse JSON if not empty
+    (when (and content (not (string-empty-p content)))
+      (condition-case nil
+          (json-parse-string content :object-type 'alist)
+        (error nil)))))
+
+(defun greger-parser--parse-server-tool-result-content (state)
+  "Parse server tool result content using STATE."
+  (greger-parser--skip-whitespace state)
+  (let ((content-start (greger-parser--current-pos state))
+        (content ""))
+    ;; Read until next section or end
+    (while (and (not (greger-parser--at-end-p state))
+                (not (and (greger-parser--at-line-start-p state)
+                          (greger-parser--find-section-tag state))))
+      (greger-parser--advance state))
+    (setq content (string-trim (greger-parser--substring state content-start)))
+    ;; Parse JSON if not empty
+    (when (and content (not (string-empty-p content)))
+      (condition-case nil
+          (json-parse-string content :object-type 'alist)
+        (error content)))))
+</tool.toolu_01DhFJxRdqcNNh6npuwir2w7>
+
+### git-commit-message
+
+<tool.toolu_01DhFJxRdqcNNh6npuwir2w7>
+Add server tool input and result content parsing functions
+</tool.toolu_01DhFJxRdqcNNh6npuwir2w7>
+
+<!-- TOOL_RESULT_PLACEHOLDER_toolu_01DhFJxRdqcNNh6npuwir2w7 -->
