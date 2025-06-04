@@ -7363,4 +7363,289 @@ test/test-greger-tools.el
 Add test for proper callback handling during cancellation
 </tool.toolu_01CXVgDFBUrYqmewMae2eEAz>
 
-<!-- TOOL_RESULT_PLACEHOLDER_toolu_01CXVgDFBUrYqmewMae2eEAz -->
+## TOOL RESULT:
+
+ID: toolu_01CXVgDFBUrYqmewMae2eEAz
+
+<tool.toolu_01CXVgDFBUrYqmewMae2eEAz>
+Successfully replaced content in /Users/andreas/projects/greger.el/test/test-greger-tools.el. Successfully staged 2 file(s) and committed with message: Add test for proper callback handling during cancellation
+</tool.toolu_01CXVgDFBUrYqmewMae2eEAz>
+
+
+## ASSISTANT:
+
+Let me also add a test to verify that the greger-interrupt function works correctly with the agent state and doesn't prematurely clear the executing-tools map:
+
+## TOOL USE:
+
+Name: str-replace
+ID: toolu_01KVfvMJXk6w47Da6h7CBi3R
+
+### file-path
+
+<tool.toolu_01KVfvMJXk6w47Da6h7CBi3R>
+test/test-greger.el
+</tool.toolu_01KVfvMJXk6w47Da6h7CBi3R>
+
+### original-content
+
+<tool.toolu_01KVfvMJXk6w47Da6h7CBi3R>
+;; Clean up
+  (remhash "test-callback-cancel" greger-tools-registry))
+
+(provide 'test-greger)
+</tool.toolu_01KVfvMJXk6w47Da6h7CBi3R>
+
+### new-content
+
+<tool.toolu_01KVfvMJXk6w47Da6h7CBi3R>
+;; Clean up
+  (remhash "test-callback-cancel" greger-tools-registry))
+
+(ert-deftest greger-test-interrupt-with-executing-tools ()
+  "Test greger-interrupt behavior with executing tools."
+  ;; Test that greger-interrupt calls cancel functions but doesn't clear the map
+  (with-temp-buffer
+    (greger-mode)
+    (let ((cancel-called nil)
+          (callback-called nil)
+          (keyboard-quit-called nil)
+          ;; Create a mock greger-tool with cancel function
+          (mock-greger-tool (make-greger-tool
+                             :cancel-fn (lambda ()
+                                          (setq cancel-called t)
+                                          (setq callback-called t))))
+          (executing-tools-map (make-hash-table :test 'equal)))
+
+      ;; Set up executing tools map with one tool
+      (puthash "test-tool-id" mock-greger-tool executing-tools-map)
+
+      ;; Create agent state with executing tools
+      (let ((agent-state (make-greger-state
+                          :current-iteration 1
+                          :chat-buffer (current-buffer)
+                          :directory default-directory
+                          :metadata nil
+                          :client-state nil
+                          :executing-tools executing-tools-map)))
+
+        ;; Set buffer-local agent state
+        (setq greger--current-agent-state agent-state)
+
+        ;; Mock keyboard-quit
+        (cl-letf (((symbol-function 'keyboard-quit)
+                   (lambda () (setq keyboard-quit-called t))))
+
+          ;; Call greger-interrupt
+          (greger-interrupt)
+
+          ;; Should have called cancel function
+          (should cancel-called)
+          ;; Should not have called keyboard-quit
+          (should-not keyboard-quit-called)
+          ;; The executing-tools map should still contain the tool
+          ;; (it should only be removed when callback is actually called)
+          (should (gethash "test-tool-id" executing-tools-map)))))))
+
+(provide 'test-greger)
+</tool.toolu_01KVfvMJXk6w47Da6h7CBi3R>
+
+### git-commit-message
+
+<tool.toolu_01KVfvMJXk6w47Da6h7CBi3R>
+Add test for greger-interrupt with executing tools behavior
+</tool.toolu_01KVfvMJXk6w47Da6h7CBi3R>
+
+## TOOL RESULT:
+
+ID: toolu_01KVfvMJXk6w47Da6h7CBi3R
+
+<tool.toolu_01KVfvMJXk6w47Da6h7CBi3R>
+Error executing tool: Original content not found in file: /Users/andreas/projects/greger.el/test/test-greger.el -- Try again!
+</tool.toolu_01KVfvMJXk6w47Da6h7CBi3R>
+
+## ASSISTANT:
+
+Let me check what the actual content looks like at the end of the file:
+
+## TOOL USE:
+
+Name: read-file
+ID: toolu_014tfyETuzGQpzThYEei2HFh
+
+### path
+
+<tool.toolu_014tfyETuzGQpzThYEei2HFh>
+test/test-greger.el
+</tool.toolu_014tfyETuzGQpzThYEei2HFh>
+
+### start-line
+
+<tool.toolu_014tfyETuzGQpzThYEei2HFh>
+520
+</tool.toolu_014tfyETuzGQpzThYEei2HFh>
+
+### end-line
+
+<tool.toolu_014tfyETuzGQpzThYEei2HFh>
+540
+</tool.toolu_014tfyETuzGQpzThYEei2HFh>
+
+## TOOL RESULT:
+
+ID: toolu_014tfyETuzGQpzThYEei2HFh
+
+<tool.toolu_014tfyETuzGQpzThYEei2HFh>
+  ;; Test that greger-interrupt calls keyboard-quit when no active generation
+  (with-temp-buffer
+    (greger-mode)
+    (let ((keyboard-quit-called nil))
+      ;; Mock keyboard-quit to track if it's called
+      (cl-letf (((symbol-function 'keyboard-quit)
+                 (lambda () (setq keyboard-quit-called t))))
+        ;; Call greger-interrupt when no active generation
+        (greger-interrupt)
+        ;; Should have called keyboard-quit
+        (should keyboard-quit-called)))))
+
+(ert-deftest greger-test-interrupt-with-active-generation ()
+  "Test greger-interrupt behavior when generation is active."
+  ;; Test that greger-interrupt cancels active generation
+  (with-temp-buffer
+    (greger-mode)
+    (let ((cancel-called nil)
+          (keyboard-quit-called nil)
+          ;; Create a mock client state
+          (mock-client-state '(mock-state)))
+</tool.toolu_014tfyETuzGQpzThYEei2HFh>
+
+## TOOL USE:
+
+Name: read-file
+ID: toolu_01ECEJUqu5n2zWQFaCnBwGA8
+
+### path
+
+<tool.toolu_01ECEJUqu5n2zWQFaCnBwGA8>
+test/test-greger.el
+</tool.toolu_01ECEJUqu5n2zWQFaCnBwGA8>
+
+### start-line
+
+<tool.toolu_01ECEJUqu5n2zWQFaCnBwGA8>
+560
+</tool.toolu_01ECEJUqu5n2zWQFaCnBwGA8>
+
+### end-line
+
+<tool.toolu_01ECEJUqu5n2zWQFaCnBwGA8>
+580
+</tool.toolu_01ECEJUqu5n2zWQFaCnBwGA8>
+
+## TOOL RESULT:
+
+ID: toolu_01ECEJUqu5n2zWQFaCnBwGA8
+
+<tool.toolu_01ECEJUqu5n2zWQFaCnBwGA8>
+          (greger-interrupt)
+
+          ;; Should have called cancel but not keyboard-quit
+          (should cancel-called)
+          (should-not keyboard-quit-called)
+          ;; Client state should be nil after cancellation
+          (should (null (greger-state-client-state agent-state))))))))
+
+(provide 'test-greger)
+
+;;; test-greger.el ends here
+</tool.toolu_01ECEJUqu5n2zWQFaCnBwGA8>
+
+## ASSISTANT:
+
+Now I can add the test correctly:
+
+## TOOL USE:
+
+Name: str-replace
+ID: toolu_01R7vJiHfAY5mZx2AvcVgfrH
+
+### file-path
+
+<tool.toolu_01R7vJiHfAY5mZx2AvcVgfrH>
+test/test-greger.el
+</tool.toolu_01R7vJiHfAY5mZx2AvcVgfrH>
+
+### original-content
+
+<tool.toolu_01R7vJiHfAY5mZx2AvcVgfrH>
+;; Client state should be nil after cancellation
+          (should (null (greger-state-client-state agent-state))))))))
+
+(provide 'test-greger)
+
+;;; test-greger.el ends here
+</tool.toolu_01R7vJiHfAY5mZx2AvcVgfrH>
+
+### new-content
+
+<tool.toolu_01R7vJiHfAY5mZx2AvcVgfrH>
+;; Client state should be nil after cancellation
+          (should (null (greger-state-client-state agent-state))))))))
+
+(ert-deftest greger-test-interrupt-with-executing-tools ()
+  "Test greger-interrupt behavior with executing tools."
+  ;; Test that greger-interrupt calls cancel functions but doesn't clear the map
+  (with-temp-buffer
+    (greger-mode)
+    (let ((cancel-called nil)
+          (callback-called nil)
+          (keyboard-quit-called nil)
+          ;; Create a mock greger-tool with cancel function
+          (mock-greger-tool (make-greger-tool
+                             :cancel-fn (lambda ()
+                                          (setq cancel-called t)
+                                          (setq callback-called t))))
+          (executing-tools-map (make-hash-table :test 'equal)))
+
+      ;; Set up executing tools map with one tool
+      (puthash "test-tool-id" mock-greger-tool executing-tools-map)
+
+      ;; Create agent state with executing tools
+      (let ((agent-state (make-greger-state
+                          :current-iteration 1
+                          :chat-buffer (current-buffer)
+                          :directory default-directory
+                          :metadata nil
+                          :client-state nil
+                          :executing-tools executing-tools-map)))
+
+        ;; Set buffer-local agent state
+        (setq greger--current-agent-state agent-state)
+
+        ;; Mock keyboard-quit
+        (cl-letf (((symbol-function 'keyboard-quit)
+                   (lambda () (setq keyboard-quit-called t))))
+
+          ;; Call greger-interrupt
+          (greger-interrupt)
+
+          ;; Should have called cancel function
+          (should cancel-called)
+          ;; Should not have called keyboard-quit
+          (should-not keyboard-quit-called)
+          ;; The executing-tools map should still contain the tool
+          ;; (it should only be removed when callback is actually called)
+          (should (gethash "test-tool-id" executing-tools-map)))))))
+
+(provide 'test-greger)
+
+;;; test-greger.el ends here
+</tool.toolu_01R7vJiHfAY5mZx2AvcVgfrH>
+
+### git-commit-message
+
+<tool.toolu_01R7vJiHfAY5mZx2AvcVgfrH>
+Add test for greger-interrupt with executing tools behavior
+</tool.toolu_01R7vJiHfAY5mZx2AvcVgfrH>
+
+<!-- TOOL_RESULT_PLACEHOLDER_toolu_01R7vJiHfAY5mZx2AvcVgfrH -->

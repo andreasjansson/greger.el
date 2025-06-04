@@ -565,6 +565,51 @@ Echo: hello world
           ;; Client state should be nil after cancellation
           (should (null (greger-state-client-state agent-state))))))))
 
+(ert-deftest greger-test-interrupt-with-executing-tools ()
+  "Test greger-interrupt behavior with executing tools."
+  ;; Test that greger-interrupt calls cancel functions but doesn't clear the map
+  (with-temp-buffer
+    (greger-mode)
+    (let ((cancel-called nil)
+          (callback-called nil)
+          (keyboard-quit-called nil)
+          ;; Create a mock greger-tool with cancel function
+          (mock-greger-tool (make-greger-tool
+                             :cancel-fn (lambda ()
+                                          (setq cancel-called t)
+                                          (setq callback-called t))))
+          (executing-tools-map (make-hash-table :test 'equal)))
+
+      ;; Set up executing tools map with one tool
+      (puthash "test-tool-id" mock-greger-tool executing-tools-map)
+
+      ;; Create agent state with executing tools
+      (let ((agent-state (make-greger-state
+                          :current-iteration 1
+                          :chat-buffer (current-buffer)
+                          :directory default-directory
+                          :metadata nil
+                          :client-state nil
+                          :executing-tools executing-tools-map)))
+
+        ;; Set buffer-local agent state
+        (setq greger--current-agent-state agent-state)
+
+        ;; Mock keyboard-quit
+        (cl-letf (((symbol-function 'keyboard-quit)
+                   (lambda () (setq keyboard-quit-called t))))
+
+          ;; Call greger-interrupt
+          (greger-interrupt)
+
+          ;; Should have called cancel function
+          (should cancel-called)
+          ;; Should not have called keyboard-quit
+          (should-not keyboard-quit-called)
+          ;; The executing-tools map should still contain the tool
+          ;; (it should only be removed when callback is actually called)
+          (should (gethash "test-tool-id" executing-tools-map)))))))
+
 (provide 'test-greger)
 
 ;;; test-greger.el ends here
