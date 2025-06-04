@@ -1103,9 +1103,7 @@ Returns either a system message, metadata, or both."
     (concat greger-parser-server-tool-use-tag "\n\n"
             "Name: " name "\n"
             "ID: " id "\n\n"
-            (if input
-                (json-encode input)
-              ""))))
+            (greger-parser--tool-params-to-markdown id input))))
 
 (defun greger-parser--server-tool-result-to-markdown (server-tool-result)
   "Convert SERVER-TOOL-RESULT to markdown."

@@ -5838,4 +5838,59 @@ greger-parser.el
 Fix server tool result parsing to use same format as regular tools
 </tool.toolu_01VJrsWT6LFA2P3zB96Jn1Ff>
 
-<!-- TOOL_RESULT_PLACEHOLDER_toolu_01VJrsWT6LFA2P3zB96Jn1Ff -->
+## TOOL RESULT:
+
+ID: toolu_01VJrsWT6LFA2P3zB96Jn1Ff
+
+<tool.toolu_01VJrsWT6LFA2P3zB96Jn1Ff>
+Successfully replaced content in /Users/andreas/projects/greger.el/greger-parser.el. Successfully staged 2 file(s) and committed with message: Fix server tool result parsing to use same format as regular tools
+</tool.toolu_01VJrsWT6LFA2P3zB96Jn1Ff>
+
+## TOOL USE:
+
+Name: str-replace
+ID: toolu_01R3nE4AVx6TEZ4kTC46PFZo
+
+### file-path
+
+<tool.toolu_01R3nE4AVx6TEZ4kTC46PFZo>
+greger-parser.el
+</tool.toolu_01R3nE4AVx6TEZ4kTC46PFZo>
+
+### original-content
+
+<tool.toolu_01R3nE4AVx6TEZ4kTC46PFZo>
+(defun greger-parser--server-tool-use-to-markdown (server-tool-use)
+  "Convert SERVER-TOOL-USE to markdown."
+  (let ((name (alist-get 'name server-tool-use))
+        (id (alist-get 'id server-tool-use))
+        (input (alist-get 'input server-tool-use)))
+    (concat greger-parser-server-tool-use-tag "\n\n"
+            "Name: " name "\n"
+            "ID: " id "\n\n"
+            (if input
+                (json-encode input)
+              ""))))
+</tool.toolu_01R3nE4AVx6TEZ4kTC46PFZo>
+
+### new-content
+
+<tool.toolu_01R3nE4AVx6TEZ4kTC46PFZo>
+(defun greger-parser--server-tool-use-to-markdown (server-tool-use)
+  "Convert SERVER-TOOL-USE to markdown."
+  (let ((name (alist-get 'name server-tool-use))
+        (id (alist-get 'id server-tool-use))
+        (input (alist-get 'input server-tool-use)))
+    (concat greger-parser-server-tool-use-tag "\n\n"
+            "Name: " name "\n"
+            "ID: " id "\n\n"
+            (greger-parser--tool-params-to-markdown id input))))
+</tool.toolu_01R3nE4AVx6TEZ4kTC46PFZo>
+
+### git-commit-message
+
+<tool.toolu_01R3nE4AVx6TEZ4kTC46PFZo>
+Fix server tool use markdown generation to use parameter format
+</tool.toolu_01R3nE4AVx6TEZ4kTC46PFZo>
+
+<!-- TOOL_RESULT_PLACEHOLDER_toolu_01R3nE4AVx6TEZ4kTC46PFZo -->
