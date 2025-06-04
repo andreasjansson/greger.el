@@ -404,15 +404,15 @@ If END-LINE is specified, stop reading at that line (inclusive, 1-based)."
     ;; Join back with newlines
     (mapconcat #'identity (reverse result) "\n")))
 
-(defun greger-stdlib--list-directory (path &optional exclude-pattern recursive)
+(defun greger-stdlib--list-directory (path &optional exclude-directories-recursive recursive)
   "List directory contents at PATH with detailed file information similar to 'ls -Rla'.
-EXCLUDE-PATTERN is a regex pattern of paths to exclude (defaults to \"\\.git/|__pycache__/\").
+EXCLUDE-DIRECTORIES-RECURSIVE is a regex pattern of directories to exclude when recursively listing (defaults to \"\\.git/|__pycache__/\").
 If RECURSIVE is non-nil, list files recursively."
   (unless (stringp path)
     (error "Invalid type: path must be a string"))
 
   (let ((expanded-path (expand-file-name path))
-        (exclude-regex (or exclude-pattern "\\.git/|__pycache__/"))
+        (exclude-regex (or exclude-directories-recursive "\\.git/|__pycache__/"))
         (original-path path))
     (unless (file-exists-p expanded-path)
       (error "Directory does not exist: %s" expanded-path))

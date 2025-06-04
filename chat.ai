@@ -811,4 +811,88 @@ greger-stdlib.el
 Rename exclude-pattern to exclude-directories-recursive in list-directory tool definition
 </tool.toolu_01M5i5d3RrnDRdsGsuCHG5uZ>
 
-<!-- TOOL_RESULT_PLACEHOLDER_toolu_01M5i5d3RrnDRdsGsuCHG5uZ -->
+## TOOL RESULT:
+
+ID: toolu_01M5i5d3RrnDRdsGsuCHG5uZ
+
+<tool.toolu_01M5i5d3RrnDRdsGsuCHG5uZ>
+Successfully replaced content in /Users/andreas/projects/greger.el/greger-stdlib.el. Successfully staged 2 file(s) and committed with message: Rename exclude-pattern to exclude-directories-recursive in list-directory tool definition
+</tool.toolu_01M5i5d3RrnDRdsGsuCHG5uZ>
+
+
+## ASSISTANT:
+
+Now I need to update the function signature and all references to the parameter:
+
+## TOOL USE:
+
+Name: str-replace
+ID: toolu_01GHY9aK9EtQjbgMNy7wwzvZ
+
+### file-path
+
+<tool.toolu_01GHY9aK9EtQjbgMNy7wwzvZ>
+greger-stdlib.el
+</tool.toolu_01GHY9aK9EtQjbgMNy7wwzvZ>
+
+### original-content
+
+<tool.toolu_01GHY9aK9EtQjbgMNy7wwzvZ>
+(defun greger-stdlib--list-directory (path &optional exclude-pattern recursive)
+  "List directory contents at PATH with detailed file information similar to 'ls -Rla'.
+EXCLUDE-PATTERN is a regex pattern of paths to exclude (defaults to \"\\.git/|__pycache__/\").
+If RECURSIVE is non-nil, list files recursively."
+  (unless (stringp path)
+    (error "Invalid type: path must be a string"))
+
+  (let ((expanded-path (expand-file-name path))
+        (exclude-regex (or exclude-pattern "\\.git/|__pycache__/"))
+        (original-path path))
+    (unless (file-exists-p expanded-path)
+      (error "Directory does not exist: %s" expanded-path))
+
+    (unless (file-directory-p expanded-path)
+      (error "Path is not a directory: %s" expanded-path))
+
+    (unless (file-readable-p expanded-path)
+      (error "Directory is not readable: %s" expanded-path))
+
+    (condition-case err
+        (greger-stdlib--list-directory-recursive expanded-path exclude-regex original-path recursive)
+      (error "Failed to list directory: %s" (error-message-string err)))))
+</tool.toolu_01GHY9aK9EtQjbgMNy7wwzvZ>
+
+### new-content
+
+<tool.toolu_01GHY9aK9EtQjbgMNy7wwzvZ>
+(defun greger-stdlib--list-directory (path &optional exclude-directories-recursive recursive)
+  "List directory contents at PATH with detailed file information similar to 'ls -Rla'.
+EXCLUDE-DIRECTORIES-RECURSIVE is a regex pattern of directories to exclude when recursively listing (defaults to \"\\.git/|__pycache__/\").
+If RECURSIVE is non-nil, list files recursively."
+  (unless (stringp path)
+    (error "Invalid type: path must be a string"))
+
+  (let ((expanded-path (expand-file-name path))
+        (exclude-regex (or exclude-directories-recursive "\\.git/|__pycache__/"))
+        (original-path path))
+    (unless (file-exists-p expanded-path)
+      (error "Directory does not exist: %s" expanded-path))
+
+    (unless (file-directory-p expanded-path)
+      (error "Path is not a directory: %s" expanded-path))
+
+    (unless (file-readable-p expanded-path)
+      (error "Directory is not readable: %s" expanded-path))
+
+    (condition-case err
+        (greger-stdlib--list-directory-recursive expanded-path exclude-regex original-path recursive)
+      (error "Failed to list directory: %s" (error-message-string err)))))
+</tool.toolu_01GHY9aK9EtQjbgMNy7wwzvZ>
+
+### git-commit-message
+
+<tool.toolu_01GHY9aK9EtQjbgMNy7wwzvZ>
+Update function signature to use exclude-directories-recursive parameter
+</tool.toolu_01GHY9aK9EtQjbgMNy7wwzvZ>
+
+<!-- TOOL_RESULT_PLACEHOLDER_toolu_01GHY9aK9EtQjbgMNy7wwzvZ -->
