@@ -4175,4 +4175,44 @@ test/test-greger-stdlib.el
 Update hidden directories test to use empty list
 </tool.toolu_01Vx9ViEV8vd1A7YFXZFcupU>
 
-<!-- TOOL_RESULT_PLACEHOLDER_toolu_01Vx9ViEV8vd1A7YFXZFcupU -->
+## TOOL RESULT:
+
+ID: toolu_01Vx9ViEV8vd1A7YFXZFcupU
+
+<tool.toolu_01Vx9ViEV8vd1A7YFXZFcupU>
+Successfully replaced content in /Users/andreas/projects/greger.el/test/test-greger-stdlib.el. Successfully staged 2 file(s) and committed with message: Update hidden directories test to use empty list
+</tool.toolu_01Vx9ViEV8vd1A7YFXZFcupU>
+
+
+## TOOL USE:
+
+Name: str-replace
+ID: toolu_01TASxNfyJVV8ZpgGr5khZyn
+
+### file-path
+
+<tool.toolu_01TASxNfyJVV8ZpgGr5khZyn>
+test/test-greger-stdlib.el
+</tool.toolu_01TASxNfyJVV8ZpgGr5khZyn>
+
+### original-content
+
+<tool.toolu_01TASxNfyJVV8ZpgGr5khZyn>
+;; Test with pattern excluding hidden directories (starting with .) from recursion
+            (let ((result (greger-stdlib--list-directory test-dir "\\..*" t)))
+</tool.toolu_01TASxNfyJVV8ZpgGr5khZyn>
+
+### new-content
+
+<tool.toolu_01TASxNfyJVV8ZpgGr5khZyn>
+;; Test with pattern excluding hidden directories (starting with .) from recursion
+            (let ((result (greger-stdlib--list-directory test-dir '(".hiddendir") t)))
+</tool.toolu_01TASxNfyJVV8ZpgGr5khZyn>
+
+### git-commit-message
+
+<tool.toolu_01TASxNfyJVV8ZpgGr5khZyn>
+Update hidden directories exclusion test to use specific directory name
+</tool.toolu_01TASxNfyJVV8ZpgGr5khZyn>
+
+<!-- TOOL_RESULT_PLACEHOLDER_toolu_01TASxNfyJVV8ZpgGr5khZyn -->
