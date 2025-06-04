@@ -1211,4 +1211,98 @@ greger-stdlib.el
 Update list-directory tool definition to use exclude-pattern instead of show-hidden
 </tool.toolu_019keNT61pKH6ffjhggcWPVX>
 
-<!-- TOOL_RESULT_PLACEHOLDER_toolu_019keNT61pKH6ffjhggcWPVX -->
+## TOOL RESULT:
+
+ID: toolu_019keNT61pKH6ffjhggcWPVX
+
+<tool.toolu_019keNT61pKH6ffjhggcWPVX>
+Successfully replaced content in /Users/andreas/projects/greger.el/greger-stdlib.el. Successfully staged 2 file(s) and committed with message: Update list-directory tool definition to use exclude-pattern instead of show-hidden
+</tool.toolu_019keNT61pKH6ffjhggcWPVX>
+
+
+## ASSISTANT:
+
+Now I need to update the function signature and implementation:
+
+## TOOL USE:
+
+Name: str-replace
+ID: toolu_01Apej6KGsm9PGMucPZV2Le8
+
+### file-path
+
+<tool.toolu_01Apej6KGsm9PGMucPZV2Le8>
+greger-stdlib.el
+</tool.toolu_01Apej6KGsm9PGMucPZV2Le8>
+
+### original-content
+
+<tool.toolu_01Apej6KGsm9PGMucPZV2Le8>
+(defun greger-stdlib--list-directory (path &optional show-hidden recursive)
+  "List directory contents at PATH.
+If SHOW-HIDDEN is non-nil, include hidden files.
+If RECURSIVE is non-nil, list files recursively."
+  (unless (stringp path)
+    (error "Invalid type: path must be a string"))
+
+  (let ((expanded-path (expand-file-name path)))
+    (unless (file-exists-p expanded-path)
+      (error "Directory does not exist: %s" expanded-path))
+
+    (unless (file-directory-p expanded-path)
+      (error "Path is not a directory: %s" expanded-path))
+
+    (unless (file-readable-p expanded-path)
+      (error "Directory is not readable: %s" expanded-path))
+
+    (condition-case err
+        (let ((files (if recursive
+                         (greger-stdlib--list-directory-recursive expanded-path show-hidden)
+                       (directory-files expanded-path nil
+                                        (if show-hidden "^[^.]\\|^\\.[^.]" "^[^.]")))))
+          (if files
+              (mapconcat (lambda (file)
+                           (let ((full-path (expand-file-name file expanded-path)))
+                             (format "%s%s"
+                                     file
+                                     (if (file-directory-p full-path) "/" ""))))
+                         files "\n")
+            "Directory is empty"))
+      (error "Failed to list directory: %s" (error-message-string err)))))
+</tool.toolu_01Apej6KGsm9PGMucPZV2Le8>
+
+### new-content
+
+<tool.toolu_01Apej6KGsm9PGMucPZV2Le8>
+(defun greger-stdlib--list-directory (path &optional exclude-pattern recursive)
+  "List directory contents at PATH with detailed file information similar to 'ls -Rla'.
+EXCLUDE-PATTERN is a regex pattern of paths to exclude (defaults to \"\\.git/|__pycache__/\").
+If RECURSIVE is non-nil, list files recursively."
+  (unless (stringp path)
+    (error "Invalid type: path must be a string"))
+
+  (let ((expanded-path (expand-file-name path))
+        (exclude-regex (or exclude-pattern "\\.git/|__pycache__/")))
+    (unless (file-exists-p expanded-path)
+      (error "Directory does not exist: %s" expanded-path))
+
+    (unless (file-directory-p expanded-path)
+      (error "Path is not a directory: %s" expanded-path))
+
+    (unless (file-readable-p expanded-path)
+      (error "Directory is not readable: %s" expanded-path))
+
+    (condition-case err
+        (if recursive
+            (greger-stdlib--list-directory-recursive-detailed expanded-path exclude-regex)
+          (greger-stdlib--list-directory-detailed expanded-path exclude-regex))
+      (error "Failed to list directory: %s" (error-message-string err)))))
+</tool.toolu_01Apej6KGsm9PGMucPZV2Le8>
+
+### git-commit-message
+
+<tool.toolu_01Apej6KGsm9PGMucPZV2Le8>
+Update list-directory function signature and add detailed output support
+</tool.toolu_01Apej6KGsm9PGMucPZV2Le8>
+
+<!-- TOOL_RESULT_PLACEHOLDER_toolu_01Apej6KGsm9PGMucPZV2Le8 -->

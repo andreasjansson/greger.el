@@ -404,14 +404,15 @@ If END-LINE is specified, stop reading at that line (inclusive, 1-based)."
     ;; Join back with newlines
     (mapconcat #'identity (reverse result) "\n")))
 
-(defun greger-stdlib--list-directory (path &optional show-hidden recursive)
-  "List directory contents at PATH.
-If SHOW-HIDDEN is non-nil, include hidden files.
+(defun greger-stdlib--list-directory (path &optional exclude-pattern recursive)
+  "List directory contents at PATH with detailed file information similar to 'ls -Rla'.
+EXCLUDE-PATTERN is a regex pattern of paths to exclude (defaults to \"\\.git/|__pycache__/\").
 If RECURSIVE is non-nil, list files recursively."
   (unless (stringp path)
     (error "Invalid type: path must be a string"))
 
-  (let ((expanded-path (expand-file-name path)))
+  (let ((expanded-path (expand-file-name path))
+        (exclude-regex (or exclude-pattern "\\.git/|__pycache__/")))
     (unless (file-exists-p expanded-path)
       (error "Directory does not exist: %s" expanded-path))
 
@@ -422,18 +423,9 @@ If RECURSIVE is non-nil, list files recursively."
       (error "Directory is not readable: %s" expanded-path))
 
     (condition-case err
-        (let ((files (if recursive
-                         (greger-stdlib--list-directory-recursive expanded-path show-hidden)
-                       (directory-files expanded-path nil
-                                        (if show-hidden "^[^.]\\|^\\.[^.]" "^[^.]")))))
-          (if files
-              (mapconcat (lambda (file)
-                           (let ((full-path (expand-file-name file expanded-path)))
-                             (format "%s%s"
-                                     file
-                                     (if (file-directory-p full-path) "/" ""))))
-                         files "\n")
-            "Directory is empty"))
+        (if recursive
+            (greger-stdlib--list-directory-recursive-detailed expanded-path exclude-regex)
+          (greger-stdlib--list-directory-detailed expanded-path exclude-regex))
       (error "Failed to list directory: %s" (error-message-string err)))))
 
 (defun greger-stdlib--list-directory-recursive (path show-hidden &optional prefix)
