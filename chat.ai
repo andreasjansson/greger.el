@@ -10827,4 +10827,102 @@ greger-parser.el
 Detect web search results and create appropriate content type
 </tool.toolu_014JQPrAk8LwPEHg8Mr7isyN>
 
-<!-- TOOL_RESULT_PLACEHOLDER_toolu_014JQPrAk8LwPEHg8Mr7isyN -->
+## TOOL RESULT:
+
+ID: toolu_014JQPrAk8LwPEHg8Mr7isyN
+
+<tool.toolu_014JQPrAk8LwPEHg8Mr7isyN>
+Successfully replaced content in /Users/andreas/projects/greger.el/greger-parser.el. Successfully staged 2 file(s) and committed with message: Detect web search results and create appropriate content type
+</tool.toolu_014JQPrAk8LwPEHg8Mr7isyN>
+
+## ASSISTANT:
+
+Now I need to handle the text splitting for cite tags. Looking at the test expectation, it seems like the parsing should split the assistant text into separate blocks when it encounters `<cite>` tags. But this doesn't happen during parsing - it happens during citation processing.
+
+Looking more closely at the expected test result, I think the issue is different. The test expects:
+
+```
+((type . "text") (text . "Based on the search results, "))
+((type . "text") (text . "Claude Shannon was born on April 30, 1916, in Petoskey, Michigan")
+ (citations . ((...))))
+```
+
+But looking at my debug output, I see that I'm processing the entire text as one block:
+
+```
+Text block: Based on the search results, <cite>Claude Shannon was born on April 30, 1916, in Petoskey, Michigan</cite>
+```
+
+The issue is that I need to **split the text at the `<cite>` boundaries** during citation processing, creating separate text blocks for the content outside and inside the `<cite>` tags.
+
+Let me implement this text splitting logic:
+
+## TOOL USE:
+
+Name: str-replace
+ID: toolu_01QCEwy5s4LhQ2dXq27iTkYS
+
+### file-path
+
+<tool.toolu_01QCEwy5s4LhQ2dXq27iTkYS>
+greger-parser.el
+</tool.toolu_01QCEwy5s4LhQ2dXq27iTkYS>
+
+### original-content
+
+<tool.toolu_01QCEwy5s4LhQ2dXq27iTkYS>
+(defun greger-parser--add-citations-to-content-blocks (content-blocks citations)
+  "Add CITATIONS to appropriate text blocks in CONTENT-BLOCKS.
+Modifies the content blocks in-place to process <cite> tags."
+  (message "DEBUG: Processing %d content blocks" (length content-blocks))
+  (dolist (block content-blocks)
+    (message "DEBUG: Block type: %s" (alist-get 'type block))
+    (when (and (listp block) (string= "text" (alist-get 'type block)))
+      (let ((text (alist-get 'text block)))
+        (message "DEBUG: Text block: %s" text)
+        ;; Check if text contains <cite> tags - if so, process them and add citations
+        (when (and text (string-match-p "<cite>" text))
+          (message "DEBUG: Found cite tags, adding citations")
+          ;; Remove <cite> tags from text and add citations to block
+          (let ((clean-text (greger-parser--remove-cite-tags text)))
+            (setcdr (assq 'text block) clean-text)
+            (push (cons 'citations citations) block)
+            (message "DEBUG: Updated block: %S" block)))))))
+</tool.toolu_01QCEwy5s4LhQ2dXq27iTkYS>
+
+### new-content
+
+<tool.toolu_01QCEwy5s4LhQ2dXq27iTkYS>
+(defun greger-parser--add-citations-to-content-blocks (content-blocks citations)
+  "Add CITATIONS to appropriate text blocks in CONTENT-BLOCKS.
+Splits text blocks at <cite> boundaries and adds citations to cited portions."
+  (message "DEBUG: Processing %d content blocks" (length content-blocks))
+  (let ((i 0))
+    (while (< i (length content-blocks))
+      (let ((block (nth i content-blocks)))
+        (message "DEBUG: Block type: %s" (alist-get 'type block))
+        (when (and (listp block) (string= "text" (alist-get 'type block)))
+          (let ((text (alist-get 'text block)))
+            (message "DEBUG: Text block: %s" text)
+            ;; Check if text contains <cite> tags - if so, split and process
+            (when (and text (string-match-p "<cite>" text))
+              (message "DEBUG: Found cite tags, splitting text")
+              (let ((split-blocks (greger-parser--split-text-with-citations text citations)))
+                (message "DEBUG: Split into %d blocks" (length split-blocks))
+                ;; Replace the current block with the split blocks
+                (setcdr (nthcdr (1- i) content-blocks) 
+                        (append split-blocks (nthcdr (1+ i) content-blocks)))
+                ;; Skip over the newly inserted blocks
+                (setq i (+ i (length split-blocks)))
+                ;; Continue without incrementing i again
+                (setq i (1- i)))))))
+      (setq i (1+ i)))))
+</tool.toolu_01QCEwy5s4LhQ2dXq27iTkYS>
+
+### git-commit-message
+
+<tool.toolu_01QCEwy5s4LhQ2dXq27iTkYS>
+Implement text splitting at cite boundaries
+</tool.toolu_01QCEwy5s4LhQ2dXq27iTkYS>
+
+<!-- TOOL_RESULT_PLACEHOLDER_toolu_01QCEwy5s4LhQ2dXq27iTkYS -->
