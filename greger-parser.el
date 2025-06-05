@@ -1149,10 +1149,14 @@ Returns a list of text blocks, with citations attached to cited portions."
                               (string-match-p "\"type\":\\s*\"web_search_result\"" content))
                          "web_search_tool_result"
                        "server_tool_result")))
-    `((role . "assistant")
-      (content . (((type . ,result-type)
-                   (tool_use_id . ,id)
-                   (content . ,content)))))))
+    (let ((parsed-content
+           (if (string= result-type "web_search_tool_result")
+               (greger-parser--parse-web-search-content content)
+             content)))
+      `((role . "assistant")
+        (content . (((type . ,result-type)
+                     (tool_use_id . ,id)
+                     (content . ,parsed-content))))))))
 
 (defun greger-parser--create-citations-message (content)
   "Create citations message with CONTENT."
