@@ -787,15 +787,20 @@ Modifies the sections list in-place."
 (defun greger-parser--add-citations-to-content-blocks (content-blocks citations)
   "Add CITATIONS to appropriate text blocks in CONTENT-BLOCKS.
 Modifies the content blocks in-place to process <cite> tags."
+  (message "DEBUG: Processing %d content blocks" (length content-blocks))
   (dolist (block content-blocks)
+    (message "DEBUG: Block type: %s" (alist-get 'type block))
     (when (and (listp block) (string= "text" (alist-get 'type block)))
       (let ((text (alist-get 'text block)))
+        (message "DEBUG: Text block: %s" text)
         ;; Check if text contains <cite> tags - if so, process them and add citations
         (when (and text (string-match-p "<cite>" text))
+          (message "DEBUG: Found cite tags, adding citations")
           ;; Remove <cite> tags from text and add citations to block
           (let ((clean-text (greger-parser--remove-cite-tags text)))
             (setcdr (assq 'text block) clean-text)
-            (push (cons 'citations citations) block)))))))
+            (push (cons 'citations citations) block)
+            (message "DEBUG: Updated block: %S" block)))))))
 
 (defun greger-parser--apply-citations-to-messages (messages citations)
   "Apply CITATIONS to the last assistant message in MESSAGES that contains <cite> tags."

@@ -9739,4 +9739,68 @@ greger-parser.el
 Add debug output to citations application function
 </tool.toolu_017ny9bCqYDpS3aiRajhyhAr>
 
-<!-- TOOL_RESULT_PLACEHOLDER_toolu_017ny9bCqYDpS3aiRajhyhAr -->
+## TOOL RESULT:
+
+ID: toolu_017ny9bCqYDpS3aiRajhyhAr
+
+<tool.toolu_017ny9bCqYDpS3aiRajhyhAr>
+Successfully replaced content in /Users/andreas/projects/greger.el/greger-parser.el. Successfully staged 2 file(s) and committed with message: Add debug output to citations application function
+</tool.toolu_017ny9bCqYDpS3aiRajhyhAr>
+
+## TOOL USE:
+
+Name: str-replace
+ID: toolu_01SvGfM8W1ZrAmjxhBy38Yef
+
+### file-path
+
+<tool.toolu_01SvGfM8W1ZrAmjxhBy38Yef>
+greger-parser.el
+</tool.toolu_01SvGfM8W1ZrAmjxhBy38Yef>
+
+### original-content
+
+<tool.toolu_01SvGfM8W1ZrAmjxhBy38Yef>
+(defun greger-parser--add-citations-to-content-blocks (content-blocks citations)
+  "Add CITATIONS to appropriate text blocks in CONTENT-BLOCKS.
+Modifies the content blocks in-place to process <cite> tags."
+  (dolist (block content-blocks)
+    (when (and (listp block) (string= "text" (alist-get 'type block)))
+      (let ((text (alist-get 'text block)))
+        ;; Check if text contains <cite> tags - if so, process them and add citations
+        (when (and text (string-match-p "<cite>" text))
+          ;; Remove <cite> tags from text and add citations to block
+          (let ((clean-text (greger-parser--remove-cite-tags text)))
+            (setcdr (assq 'text block) clean-text)
+            (push (cons 'citations citations) block)))))))
+</tool.toolu_01SvGfM8W1ZrAmjxhBy38Yef>
+
+### new-content
+
+<tool.toolu_01SvGfM8W1ZrAmjxhBy38Yef>
+(defun greger-parser--add-citations-to-content-blocks (content-blocks citations)
+  "Add CITATIONS to appropriate text blocks in CONTENT-BLOCKS.
+Modifies the content blocks in-place to process <cite> tags."
+  (message "DEBUG: Processing %d content blocks" (length content-blocks))
+  (dolist (block content-blocks)
+    (message "DEBUG: Block type: %s" (alist-get 'type block))
+    (when (and (listp block) (string= "text" (alist-get 'type block)))
+      (let ((text (alist-get 'text block)))
+        (message "DEBUG: Text block: %s" text)
+        ;; Check if text contains <cite> tags - if so, process them and add citations
+        (when (and text (string-match-p "<cite>" text))
+          (message "DEBUG: Found cite tags, adding citations")
+          ;; Remove <cite> tags from text and add citations to block
+          (let ((clean-text (greger-parser--remove-cite-tags text)))
+            (setcdr (assq 'text block) clean-text)
+            (push (cons 'citations citations) block)
+            (message "DEBUG: Updated block: %S" block)))))))
+</tool.toolu_01SvGfM8W1ZrAmjxhBy38Yef>
+
+### git-commit-message
+
+<tool.toolu_01SvGfM8W1ZrAmjxhBy38Yef>
+Add debug output to content blocks processing
+</tool.toolu_01SvGfM8W1ZrAmjxhBy38Yef>
+
+<!-- TOOL_RESULT_PLACEHOLDER_toolu_01SvGfM8W1ZrAmjxhBy38Yef -->
