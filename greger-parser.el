@@ -822,8 +822,9 @@ Splits text blocks at <cite> boundaries and adds citations to cited portions."
          ((stringp content)
           (message "DEBUG: String content: %s" content)
           (when (string-match-p "<cite>" content)
-            (let ((clean-content (greger-parser--remove-cite-tags content)))
-              (setcdr (assq 'content message) clean-content))))
+            ;; Convert string with cite tags to text blocks
+            (let ((text-blocks (greger-parser--split-text-with-citations content citations)))
+              (setcdr (assq 'content message) text-blocks))))
          ;; List content - process each content block
          ((listp content)
           (message "DEBUG: List content with %d blocks" (length content))
