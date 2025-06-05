@@ -5988,4 +5988,485 @@ Splits text blocks at <cite> boundaries and adds citations to cited portions."
 Remove debug messages from content blocks processing
 </tool.toolu_01CktzoDifSitSAF3vUkicLS>
 
-<!-- TOOL_RESULT_PLACEHOLDER_toolu_01CktzoDifSitSAF3vUkicLS -->
+## TOOL RESULT:
+
+ID: toolu_01CktzoDifSitSAF3vUkicLS
+
+<tool.toolu_01CktzoDifSitSAF3vUkicLS>
+Successfully replaced content in /Users/andreas/projects/greger.el/greger-parser.el. Successfully staged 2 file(s) and committed with message: Remove debug messages from content blocks processing
+</tool.toolu_01CktzoDifSitSAF3vUkicLS>
+
+## ASSISTANT:
+
+Now let me address the whitespace issue. The problem seems to be in the markdown generation for content blocks with citations. When the markdown is generated, it's adding extra whitespace that gets preserved during parsing. Let me look at the `greger-parser--block-to-markdown-with-citations` function for text blocks:
+
+## TOOL USE:
+
+Name: read-file
+ID: toolu_01BVGC5hWKRdMftCTLhECwBz
+
+### path
+
+<tool.toolu_01BVGC5hWKRdMftCTLhECwBz>
+greger-parser.el
+</tool.toolu_01BVGC5hWKRdMftCTLhECwBz>
+
+### start-line
+
+<tool.toolu_01BVGC5hWKRdMftCTLhECwBz>
+1331
+</tool.toolu_01BVGC5hWKRdMftCTLhECwBz>
+
+### end-line
+
+<tool.toolu_01BVGC5hWKRdMftCTLhECwBz>
+1357
+</tool.toolu_01BVGC5hWKRdMftCTLhECwBz>
+
+## TOOL RESULT:
+
+ID: toolu_01BVGC5hWKRdMftCTLhECwBz
+
+<tool.toolu_01BVGC5hWKRdMftCTLhECwBz>
+                             (alist-get 'thinking block))))
+     ((string= type "tool_use")
+      (list :markdown (greger-parser--tool-use-to-markdown block)))
+     ((string= type "tool_result")
+      (list :markdown (greger-parser--tool-result-to-markdown block)))
+     ((string= type "server_tool_use")
+      (list :markdown (greger-parser--server-tool-use-to-markdown block)))
+     ((string= type "server_tool_result")
+      (list :markdown (greger-parser--server-tool-result-to-markdown block)))
+     ((string= type "web_search_tool_result")
+      (list :markdown (greger-parser--web-search-tool-result-to-markdown block)))
+     (t (list :markdown "")))))
+
+(defun greger-parser--tool-use-to-markdown (tool-use)
+  "Convert TOOL-USE to markdown."
+  (let ((name (alist-get 'name tool-use))
+        (id (alist-get 'id tool-use))
+        (input (alist-get 'input tool-use)))
+    (concat greger-parser-tool-use-tag "\n\n"
+            "Name: " name "\n"
+            "ID: " id "\n\n"
+            (greger-parser--tool-params-to-markdown id input))))
+
+(defun greger-parser--tool-result-to-markdown (tool-result)
+  "Convert TOOL-RESULT to markdown."
+  (let ((id (alist-get 'tool_use_id tool-result))
+        (content (alist-get 'content tool-result)))
+</tool.toolu_01BVGC5hWKRdMftCTLhECwBz>
+
+## ASSISTANT:
+
+Let me find the full function:
+
+## TOOL USE:
+
+Name: read-file
+ID: toolu_01Up4EfBx8tkwjC5VmPsj5La
+
+### path
+
+<tool.toolu_01Up4EfBx8tkwjC5VmPsj5La>
+greger-parser.el
+</tool.toolu_01Up4EfBx8tkwjC5VmPsj5La>
+
+### start-line
+
+<tool.toolu_01Up4EfBx8tkwjC5VmPsj5La>
+1330
+</tool.toolu_01Up4EfBx8tkwjC5VmPsj5La>
+
+### end-line
+
+<tool.toolu_01Up4EfBx8tkwjC5VmPsj5La>
+1350
+</tool.toolu_01Up4EfBx8tkwjC5VmPsj5La>
+
+## TOOL RESULT:
+
+ID: toolu_01Up4EfBx8tkwjC5VmPsj5La
+
+<tool.toolu_01Up4EfBx8tkwjC5VmPsj5La>
+      (list :markdown (concat greger-parser-thinking-tag "\n\n"
+                             (alist-get 'thinking block))))
+     ((string= type "tool_use")
+      (list :markdown (greger-parser--tool-use-to-markdown block)))
+     ((string= type "tool_result")
+      (list :markdown (greger-parser--tool-result-to-markdown block)))
+     ((string= type "server_tool_use")
+      (list :markdown (greger-parser--server-tool-use-to-markdown block)))
+     ((string= type "server_tool_result")
+      (list :markdown (greger-parser--server-tool-result-to-markdown block)))
+     ((string= type "web_search_tool_result")
+      (list :markdown (greger-parser--web-search-tool-result-to-markdown block)))
+     (t (list :markdown "")))))
+
+(defun greger-parser--tool-use-to-markdown (tool-use)
+  "Convert TOOL-USE to markdown."
+  (let ((name (alist-get 'name tool-use))
+        (id (alist-get 'id tool-use))
+        (input (alist-get 'input tool-use)))
+    (concat greger-parser-tool-use-tag "\n\n"
+            "Name: " name "\n"
+</tool.toolu_01Up4EfBx8tkwjC5VmPsj5La>
+
+## ASSISTANT:
+
+Let me find the text block part specifically:
+
+## TOOL USE:
+
+Name: ripgrep
+ID: toolu_01E87zLPfxkMwvXtUaseme1e
+
+### pattern
+
+<tool.toolu_01E87zLPfxkMwvXtUaseme1e>
+defun greger-parser--block-to-markdown-with-citations
+</tool.toolu_01E87zLPfxkMwvXtUaseme1e>
+
+### context-lines
+
+<tool.toolu_01E87zLPfxkMwvXtUaseme1e>
+20
+</tool.toolu_01E87zLPfxkMwvXtUaseme1e>
+
+## TOOL RESULT:
+
+ID: toolu_01E87zLPfxkMwvXtUaseme1e
+
+<tool.toolu_01E87zLPfxkMwvXtUaseme1e>
+/Users/andreas/projects/greger.el/greger-parser.el-1296-  (when citations
+/Users/andreas/projects/greger.el/greger-parser.el-1297-    (concat greger-parser-citations-tag "\n\n"
+/Users/andreas/projects/greger.el/greger-parser.el-1298-            (mapconcat #'greger-parser--citation-to-markdown citations "\n\n"))))
+/Users/andreas/projects/greger.el/greger-parser.el-1299-
+/Users/andreas/projects/greger.el/greger-parser.el-1300-(defun greger-parser--citation-to-markdown (citation)
+/Users/andreas/projects/greger.el/greger-parser.el-1301-  "Convert single CITATION to markdown format."
+/Users/andreas/projects/greger.el/greger-parser.el-1302-  (let ((url (alist-get 'url citation))
+/Users/andreas/projects/greger.el/greger-parser.el-1303-        (title (alist-get 'title citation))
+/Users/andreas/projects/greger.el/greger-parser.el-1304-        (cited-text (alist-get 'cited_text citation))
+/Users/andreas/projects/greger.el/greger-parser.el-1305-        (encrypted-index (alist-get 'encrypted_index citation)))
+/Users/andreas/projects/greger.el/greger-parser.el-1306-    (concat "### " url "\n\n"
+/Users/andreas/projects/greger.el/greger-parser.el-1307-            "Title: " title "\n"
+/Users/andreas/projects/greger.el/greger-parser.el-1308-            "Cited text: " cited-text "\n"
+/Users/andreas/projects/greger.el/greger-parser.el-1309-            "Encrypted index: " encrypted-index)))
+/Users/andreas/projects/greger.el/greger-parser.el-1310-
+/Users/andreas/projects/greger.el/greger-parser.el-1311-(defun greger-parser--block-to-markdown (block)
+/Users/andreas/projects/greger.el/greger-parser.el-1312-  "Convert single BLOCK to markdown."
+/Users/andreas/projects/greger.el/greger-parser.el-1313-  (let ((result (greger-parser--block-to-markdown-with-citations block)))
+/Users/andreas/projects/greger.el/greger-parser.el-1314-    (plist-get result :markdown)))
+/Users/andreas/projects/greger.el/greger-parser.el-1315-
+/Users/andreas/projects/greger.el/greger-parser.el:1316:(defun greger-parser--block-to-markdown-with-citations (block)
+/Users/andreas/projects/greger.el/greger-parser.el-1317-  "Convert single BLOCK to markdown, extracting citations if present.
+/Users/andreas/projects/greger.el/greger-parser.el-1318-Returns a plist with :markdown and optionally :citations."
+/Users/andreas/projects/greger.el/greger-parser.el-1319-  (let ((type (alist-get 'type block)))
+/Users/andreas/projects/greger.el/greger-parser.el-1320-    (cond
+/Users/andreas/projects/greger.el/greger-parser.el-1321-     ((string= type "text")
+/Users/andreas/projects/greger.el/greger-parser.el-1322-      (let ((text (alist-get 'text block))
+/Users/andreas/projects/greger.el/greger-parser.el-1323-            (citations (alist-get 'citations block)))
+/Users/andreas/projects/greger.el/greger-parser.el-1324-        (let ((formatted-text (if citations
+/Users/andreas/projects/greger.el/greger-parser.el-1325-                                  (concat "<cite>" text "</cite>")
+/Users/andreas/projects/greger.el/greger-parser.el-1326-                                text)))
+/Users/andreas/projects/greger.el/greger-parser.el-1327-          (list :markdown formatted-text
+/Users/andreas/projects/greger.el/greger-parser.el-1328-                :citations citations))))
+/Users/andreas/projects/greger.el/greger-parser.el-1329-     ((string= type "thinking")
+/Users/andreas/projects/greger.el/greger-parser.el-1330-      (list :markdown (concat greger-parser-thinking-tag "\n\n"
+/Users/andreas/projects/greger.el/greger-parser.el-1331-                             (alist-get 'thinking block))))
+/Users/andreas/projects/greger.el/greger-parser.el-1332-     ((string= type "tool_use")
+/Users/andreas/projects/greger.el/greger-parser.el-1333-      (list :markdown (greger-parser--tool-use-to-markdown block)))
+/Users/andreas/projects/greger.el/greger-parser.el-1334-     ((string= type "tool_result")
+/Users/andreas/projects/greger.el/greger-parser.el-1335-      (list :markdown (greger-parser--tool-result-to-markdown block)))
+/Users/andreas/projects/greger.el/greger-parser.el-1336-     ((string= type "server_tool_use")
+--
+/Users/andreas/projects/greger.el/chat.ai-1426-1311:   (when citations
+/Users/andreas/projects/greger.el/chat.ai-1427-1312:     (concat greger-parser-citations-tag "\n\n"
+/Users/andreas/projects/greger.el/chat.ai-1428-1313:             (mapconcat #'greger-parser--citation-to-markdown citations "\n\n"))))
+/Users/andreas/projects/greger.el/chat.ai-1429-1314: 
+/Users/andreas/projects/greger.el/chat.ai-1430-1315: (defun greger-parser--citation-to-markdown (citation)
+/Users/andreas/projects/greger.el/chat.ai-1431-1316:   "Convert single CITATION to markdown format."
+/Users/andreas/projects/greger.el/chat.ai-1432-1317:   (let ((url (alist-get 'url citation))
+/Users/andreas/projects/greger.el/chat.ai-1433-1318:         (title (alist-get 'title citation))
+/Users/andreas/projects/greger.el/chat.ai-1434-1319:         (cited-text (alist-get 'cited_text citation))
+/Users/andreas/projects/greger.el/chat.ai-1435-1320:         (encrypted-index (alist-get 'encrypted_index citation)))
+/Users/andreas/projects/greger.el/chat.ai-1436-1321:     (concat "### " url "\n\n"
+/Users/andreas/projects/greger.el/chat.ai-1437-1322:             "Title: " title "\n"
+/Users/andreas/projects/greger.el/chat.ai-1438-1323:             "Cited text: " cited-text "\n"
+/Users/andreas/projects/greger.el/chat.ai-1439-1324:             "Encrypted index: " encrypted-index)))
+/Users/andreas/projects/greger.el/chat.ai-1440-1325: 
+/Users/andreas/projects/greger.el/chat.ai-1441-1326: (defun greger-parser--block-to-markdown (block)
+/Users/andreas/projects/greger.el/chat.ai-1442-1327:   "Convert single BLOCK to markdown."
+/Users/andreas/projects/greger.el/chat.ai-1443-1328:   (let ((result (greger-parser--block-to-markdown-with-citations block)))
+/Users/andreas/projects/greger.el/chat.ai-1444-1329:     (plist-get result :markdown)))
+/Users/andreas/projects/greger.el/chat.ai-1445-1330: 
+/Users/andreas/projects/greger.el/chat.ai:1446:1331: (defun greger-parser--block-to-markdown-with-citations (block)
+/Users/andreas/projects/greger.el/chat.ai-1447-1332:   "Convert single BLOCK to markdown, extracting citations if present.
+/Users/andreas/projects/greger.el/chat.ai-1448-1333: Returns a plist with :markdown and optionally :citations."
+/Users/andreas/projects/greger.el/chat.ai-1449-1334:   (let ((type (alist-get 'type block)))
+/Users/andreas/projects/greger.el/chat.ai-1450-1335:     (cond
+/Users/andreas/projects/greger.el/chat.ai-1451-1336:      ((string= type "text")
+/Users/andreas/projects/greger.el/chat.ai-1452-1337:       (let ((text (alist-get 'text block))
+/Users/andreas/projects/greger.el/chat.ai-1453-1338:             (citations (alist-get 'citations block)))
+/Users/andreas/projects/greger.el/chat.ai-1454-1339:         (let ((formatted-text (if citations
+/Users/andreas/projects/greger.el/chat.ai-1455-1340:                                   (concat "<cite>" text "</cite>")
+/Users/andreas/projects/greger.el/chat.ai-1456-1341:                                 text)))
+/Users/andreas/projects/greger.el/chat.ai-1457-1342:           (list :markdown formatted-text
+/Users/andreas/projects/greger.el/chat.ai-1458-1343:                 :citations citations))))
+/Users/andreas/projects/greger.el/chat.ai-1459-1344:      ((string= type "thinking")
+/Users/andreas/projects/greger.el/chat.ai-1460-1345:       (list :markdown (concat greger-parser-thinking-tag "\n\n"
+/Users/andreas/projects/greger.el/chat.ai-1461-1346:                              (alist-get 'thinking block))))
+/Users/andreas/projects/greger.el/chat.ai-1462-1347:      ((string= type "tool_use")
+/Users/andreas/projects/greger.el/chat.ai-1463-1348:       (list :markdown (greger-parser--tool-use-to-markdown block)))
+/Users/andreas/projects/greger.el/chat.ai-1464-1349:      ((string= type "tool_result")
+/Users/andreas/projects/greger.el/chat.ai-1465-1350:       (list :markdown (greger-parser--tool-result-to-markdown block)))
+/Users/andreas/projects/greger.el/chat.ai-1466-1351:      ((string= type "server_tool_use")
+
+</tool.toolu_01E87zLPfxkMwvXtUaseme1e>
+
+## ASSISTANT:
+
+Now let me look at the `greger-parser--content-blocks-to-markdown-with-citations` function to see how text blocks are being combined:
+
+## TOOL USE:
+
+Name: read-file
+ID: toolu_01D78GY2cnD2tVHFMXZqUXVk
+
+### path
+
+<tool.toolu_01D78GY2cnD2tVHFMXZqUXVk>
+greger-parser.el
+</tool.toolu_01D78GY2cnD2tVHFMXZqUXVk>
+
+### start-line
+
+<tool.toolu_01D78GY2cnD2tVHFMXZqUXVk>
+1261
+</tool.toolu_01D78GY2cnD2tVHFMXZqUXVk>
+
+### end-line
+
+<tool.toolu_01D78GY2cnD2tVHFMXZqUXVk>
+1295
+</tool.toolu_01D78GY2cnD2tVHFMXZqUXVk>
+
+## TOOL RESULT:
+
+ID: toolu_01D78GY2cnD2tVHFMXZqUXVk
+
+<tool.toolu_01D78GY2cnD2tVHFMXZqUXVk>
+  "Convert system CONTENT to markdown."
+  (concat greger-parser-system-tag "\n\n" content))
+
+(defun greger-parser--content-blocks-to-markdown (blocks)
+  "Convert content BLOCKS to markdown."
+  (mapconcat #'greger-parser--block-to-markdown blocks "\n\n"))
+
+(defun greger-parser--content-blocks-to-markdown-with-citations (blocks)
+  "Convert content BLOCKS to markdown, collecting citations into a separate section."
+  (let ((block-markdown "")
+        (collected-citations '())
+        (first-text-block t))
+    ;; Process each block and collect citations
+    (dolist (block blocks)
+      (let ((block-result (greger-parser--block-to-markdown-with-citations block)))
+        (let ((markdown (plist-get block-result :markdown)))
+          ;; Add section headers for text blocks that need them
+          (when (and (not (string-empty-p markdown))
+                     (string= "text" (alist-get 'type block))
+                     first-text-block)
+            (setq first-text-block nil)
+            (setq markdown (concat greger-parser-assistant-tag "\n\n" markdown)))
+          (setq block-markdown (concat block-markdown
+                                     (if (string-empty-p block-markdown) "" "\n\n")
+                                     markdown)))
+        ;; Collect citations if any
+        (when (plist-get block-result :citations)
+          (setq collected-citations (append collected-citations (plist-get block-result :citations))))))
+    ;; Combine block markdown with citations section if any citations were found
+    (if collected-citations
+        (concat block-markdown "\n\n" (greger-parser--citations-to-markdown collected-citations))
+      block-markdown)))
+
+(defun greger-parser--citations-to-markdown (citations)
+  "Convert CITATIONS list to markdown citations section."
+</tool.toolu_01D78GY2cnD2tVHFMXZqUXVk>
+
+## ASSISTANT:
+
+I found the issue! In the `greger-parser--content-blocks-to-markdown-with-citations` function, when blocks are concatenated, there's a `\n\n` added between them:
+
+```lisp
+(setq block-markdown (concat block-markdown
+                           (if (string-empty-p block-markdown) "" "\n\n")
+                           markdown))
+```
+
+This means that when we have multiple text blocks (like `"Based on the search results, "` and the cited text), they get joined with `\n\n`, which when parsed again becomes part of the content.
+
+The issue is that this is appropriate for blocks of different types (like thinking and text), but not for adjacent text blocks that were originally part of the same content.
+
+However, looking at the test expectation again, this might actually be the intended behavior. The original text was:
+
+```
+Based on the search results, <cite>Claude Shannon was born on April 30, 1916, in Petoskey, Michigan</cite>
+```
+
+When converted to markdown, it becomes:
+
+```
+Based on the search results, 
+
+<cite>Claude Shannon was born on April 30, 1916, in Petoskey, Michigan</cite>
+```
+
+When parsed back, the newlines get preserved. Looking at the expected test result again:
+
+## TOOL USE:
+
+Name: read-file
+ID: toolu_01QA4pBRkHUjY3xXRCL4HqnX
+
+### path
+
+<tool.toolu_01QA4pBRkHUjY3xXRCL4HqnX>
+test/test-greger-parser.el
+</tool.toolu_01QA4pBRkHUjY3xXRCL4HqnX>
+
+### start-line
+
+<tool.toolu_01QA4pBRkHUjY3xXRCL4HqnX>
+723
+</tool.toolu_01QA4pBRkHUjY3xXRCL4HqnX>
+
+### end-line
+
+<tool.toolu_01QA4pBRkHUjY3xXRCL4HqnX>
+724
+</tool.toolu_01QA4pBRkHUjY3xXRCL4HqnX>
+
+## TOOL RESULT:
+
+ID: toolu_01QA4pBRkHUjY3xXRCL4HqnX
+
+<tool.toolu_01QA4pBRkHUjY3xXRCL4HqnX>
+                                                      ((type . "text") (text . "Based on the search results, "))
+                                                      ((type . "text") (text . "Claude Shannon was born on April 30, 1916, in Petoskey, Michigan")
+</tool.toolu_01QA4pBRkHUjY3xXRCL4HqnX>
+
+## ASSISTANT:
+
+The expected result shows `"Based on the search results, "` with just a space at the end, not `"Based on the search results, \n\n"`.
+
+The problem is that the text blocks are being separated by `\n\n` in the markdown, but this is getting parsed as part of the content. We need a different approach for text blocks that should be adjacent.
+
+Looking at the desired markdown format from the requirements, it should be:
+
+```markdown
+## ASSISTANT:
+
+Based on the search results, <cite>Claude Shannon was born on April 30, 1916, in Petoskey, Michigan</cite>
+```
+
+Not:
+
+```markdown
+## ASSISTANT:
+
+Based on the search results, 
+
+<cite>Claude Shannon was born on April 30, 1916, in Petoskey, Michigan</cite>
+```
+
+So the issue is in the markdown generation - text blocks should be concatenated without intervening newlines when they're meant to be part of the same paragraph.
+
+Let me fix this by modifying the markdown generation to treat consecutive text blocks specially:
+
+## TOOL USE:
+
+Name: str-replace
+ID: toolu_019SkzDcNcNQ1vmZZ6pEYidJ
+
+### file-path
+
+<tool.toolu_019SkzDcNcNQ1vmZZ6pEYidJ>
+greger-parser.el
+</tool.toolu_019SkzDcNcNQ1vmZZ6pEYidJ>
+
+### original-content
+
+<tool.toolu_019SkzDcNcNQ1vmZZ6pEYidJ>
+(defun greger-parser--content-blocks-to-markdown-with-citations (blocks)
+  "Convert content BLOCKS to markdown, collecting citations into a separate section."
+  (let ((block-markdown "")
+        (collected-citations '())
+        (first-text-block t))
+    ;; Process each block and collect citations
+    (dolist (block blocks)
+      (let ((block-result (greger-parser--block-to-markdown-with-citations block)))
+        (let ((markdown (plist-get block-result :markdown)))
+          ;; Add section headers for text blocks that need them
+          (when (and (not (string-empty-p markdown))
+                     (string= "text" (alist-get 'type block))
+                     first-text-block)
+            (setq first-text-block nil)
+            (setq markdown (concat greger-parser-assistant-tag "\n\n" markdown)))
+          (setq block-markdown (concat block-markdown
+                                     (if (string-empty-p block-markdown) "" "\n\n")
+                                     markdown)))
+        ;; Collect citations if any
+        (when (plist-get block-result :citations)
+          (setq collected-citations (append collected-citations (plist-get block-result :citations))))))
+    ;; Combine block markdown with citations section if any citations were found
+    (if collected-citations
+        (concat block-markdown "\n\n" (greger-parser--citations-to-markdown collected-citations))
+      block-markdown)))
+</tool.toolu_019SkzDcNcNQ1vmZZ6pEYidJ>
+
+### new-content
+
+<tool.toolu_019SkzDcNcNQ1vmZZ6pEYidJ>
+(defun greger-parser--content-blocks-to-markdown-with-citations (blocks)
+  "Convert content BLOCKS to markdown, collecting citations into a separate section."
+  (let ((block-markdown "")
+        (collected-citations '())
+        (first-text-block t)
+        (prev-block-type nil))
+    ;; Process each block and collect citations
+    (dolist (block blocks)
+      (let ((block-result (greger-parser--block-to-markdown-with-citations block))
+            (current-block-type (alist-get 'type block)))
+        (let ((markdown (plist-get block-result :markdown)))
+          ;; Add section headers for text blocks that need them
+          (when (and (not (string-empty-p markdown))
+                     (string= "text" current-block-type)
+                     first-text-block)
+            (setq first-text-block nil)
+            (setq markdown (concat greger-parser-assistant-tag "\n\n" markdown)))
+          ;; Determine separator - no separator for consecutive text blocks
+          (let ((separator (cond
+                           ((string-empty-p block-markdown) "")
+                           ((and (string= "text" current-block-type)
+                                 (string= "text" prev-block-type)) "")
+                           (t "\n\n"))))
+            (setq block-markdown (concat block-markdown separator markdown)))
+          (setq prev-block-type current-block-type))
+        ;; Collect citations if any
+        (when (plist-get block-result :citations)
+          (setq collected-citations (append collected-citations (plist-get block-result :citations))))))
+    ;; Combine block markdown with citations section if any citations were found
+    (if collected-citations
+        (concat block-markdown "\n\n" (greger-parser--citations-to-markdown collected-citations))
+      block-markdown)))
+</tool.toolu_019SkzDcNcNQ1vmZZ6pEYidJ>
+
+### git-commit-message
+
+<tool.toolu_019SkzDcNcNQ1vmZZ6pEYidJ>
+Fix whitespace handling for consecutive text blocks
+
+Consecutive text blocks should be concatenated without intervening newlines to preserve the original text flow when citations split a paragraph.
+</tool.toolu_019SkzDcNcNQ1vmZZ6pEYidJ>
+
+<!-- TOOL_RESULT_PLACEHOLDER_toolu_019SkzDcNcNQ1vmZZ6pEYidJ -->

@@ -1269,20 +1269,27 @@ Falls back to original content if parsing fails."
   "Convert content BLOCKS to markdown, collecting citations into a separate section."
   (let ((block-markdown "")
         (collected-citations '())
-        (first-text-block t))
+        (first-text-block t)
+        (prev-block-type nil))
     ;; Process each block and collect citations
     (dolist (block blocks)
-      (let ((block-result (greger-parser--block-to-markdown-with-citations block)))
+      (let ((block-result (greger-parser--block-to-markdown-with-citations block))
+            (current-block-type (alist-get 'type block)))
         (let ((markdown (plist-get block-result :markdown)))
           ;; Add section headers for text blocks that need them
           (when (and (not (string-empty-p markdown))
-                     (string= "text" (alist-get 'type block))
+                     (string= "text" current-block-type)
                      first-text-block)
             (setq first-text-block nil)
             (setq markdown (concat greger-parser-assistant-tag "\n\n" markdown)))
-          (setq block-markdown (concat block-markdown
-                                     (if (string-empty-p block-markdown) "" "\n\n")
-                                     markdown)))
+          ;; Determine separator - no separator for consecutive text blocks
+          (let ((separator (cond
+                           ((string-empty-p block-markdown) "")
+                           ((and (string= "text" current-block-type)
+                                 (string= "text" prev-block-type)) "")
+                           (t "\n\n"))))
+            (setq block-markdown (concat block-markdown separator markdown)))
+          (setq prev-block-type current-block-type))
         ;; Collect citations if any
         (when (plist-get block-result :citations)
           (setq collected-citations (append collected-citations (plist-get block-result :citations))))))
