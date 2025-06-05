@@ -51,3 +51,7 @@ Encrypted index: Eo8BCioIAhgBIiQyYjQ0OWJmZi1lNm..")
   (princ "=== FINAL PARSED STRUCTURE ===\n")
   (princ (format "%S" parsed))
   (princ "\n"))
+
+  (princ "=== FINAL PARSED STRUCTURE ===\n")
+  (princ (format "%S" parsed))
+  (princ "\n"))
