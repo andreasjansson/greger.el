@@ -1653,4 +1653,100 @@ Extend greger-toggle-tool-section to handle citation folding
 - Update docstring to reflect new functionality
 </tool.toolu_01Mz7bFhxMA77zuFnScAzffu>
 
-<!-- TOOL_RESULT_PLACEHOLDER_toolu_01Mz7bFhxMA77zuFnScAzffu -->
+## TOOL RESULT:
+
+ID: toolu_01Mz7bFhxMA77zuFnScAzffu
+
+<tool.toolu_01Mz7bFhxMA77zuFnScAzffu>
+Successfully replaced content in /Users/andreas/projects/greger.el/greger.el. Successfully staged 2 file(s) and committed with message: Extend greger-toggle-tool-section to handle citation folding
+
+- Modify greger-toggle-tool-section to check for citations after tool sections
+- Add support for toggling cite tags and bibliography sections with TAB
+- Update docstring to reflect new functionality
+</tool.toolu_01Mz7bFhxMA77zuFnScAzffu>
+
+## ASSISTANT:
+
+Now I need to set up the citation folding in the greger mode. Let me find where `greger--setup-tool-sections` is called and add the citation setup there:
+
+## TOOL USE:
+
+Name: read-file
+ID: toolu_01GhLUJwwyJqH1kLnR9iPx17
+
+### path
+
+<tool.toolu_01GhLUJwwyJqH1kLnR9iPx17>
+greger.el
+</tool.toolu_01GhLUJwwyJqH1kLnR9iPx17>
+
+### start-line
+
+<tool.toolu_01GhLUJwwyJqH1kLnR9iPx17>
+202
+</tool.toolu_01GhLUJwwyJqH1kLnR9iPx17>
+
+### end-line
+
+<tool.toolu_01GhLUJwwyJqH1kLnR9iPx17>
+215
+</tool.toolu_01GhLUJwwyJqH1kLnR9iPx17>
+
+## TOOL RESULT:
+
+ID: toolu_01GhLUJwwyJqH1kLnR9iPx17
+
+<tool.toolu_01GhLUJwwyJqH1kLnR9iPx17>
+(define-derived-mode greger-mode gfm-mode "Greger"
+  "Major mode for interacting with AI."
+  (use-local-map greger-mode-map)
+  (setq-local markdown-fontify-code-blocks-natively t)
+  (setq-local mode-line-misc-info '(:eval (greger--mode-line-info)))
+  ;; Set up invisible text for tool sections
+  (add-to-invisibility-spec 'greger-tool-section)
+  ;; Set up tool section highlighting and collapsing
+  (greger--setup-tool-sections)
+  ;; Set up custom heading font-lock
+  (greger--setup-heading-font-lock)
+  ;; Add hook to update tool sections when buffer changes
+  (add-hook 'after-change-functions #'greger--after-change-function nil t)
+  ;; Add font-lock hook for immediate tool tag styling
+</tool.toolu_01GhLUJwwyJqH1kLnR9iPx17>
+
+## TOOL USE:
+
+Name: str-replace
+ID: toolu_011CnZtYPSJwiNMeTuCKSagf
+
+### file-path
+
+<tool.toolu_011CnZtYPSJwiNMeTuCKSagf>
+greger.el
+</tool.toolu_011CnZtYPSJwiNMeTuCKSagf>
+
+### original-content
+
+<tool.toolu_011CnZtYPSJwiNMeTuCKSagf>
+  ;; Set up tool section highlighting and collapsing
+  (greger--setup-tool-sections)
+</tool.toolu_011CnZtYPSJwiNMeTuCKSagf>
+
+### new-content
+
+<tool.toolu_011CnZtYPSJwiNMeTuCKSagf>
+  ;; Set up tool section highlighting and collapsing
+  (greger--setup-tool-sections)
+  ;; Set up citation folding
+  (greger-ui-setup-citation-folding)
+</tool.toolu_011CnZtYPSJwiNMeTuCKSagf>
+
+### git-commit-message
+
+<tool.toolu_011CnZtYPSJwiNMeTuCKSagf>
+Add citation folding setup to greger-mode
+
+- Initialize citation folding when greger-mode is activated
+- Call greger-ui-setup-citation-folding after tool section setup
+</tool.toolu_011CnZtYPSJwiNMeTuCKSagf>
+
+<!-- TOOL_RESULT_PLACEHOLDER_toolu_011CnZtYPSJwiNMeTuCKSagf -->

@@ -208,6 +208,8 @@ These tool IDs should not be auto-folded again.")
   (add-to-invisibility-spec 'greger-tool-section)
   ;; Set up tool section highlighting and collapsing
   (greger--setup-tool-sections)
+  ;; Set up citation folding
+  (greger-ui-setup-citation-folding)
   ;; Set up custom heading font-lock
   (greger--setup-heading-font-lock)
   ;; Add hook to update tool sections when buffer changes
