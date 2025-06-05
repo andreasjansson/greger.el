@@ -773,6 +773,17 @@ Modifies the sections list in-place."
             ;; Look for text blocks and add citations
             (greger-parser--add-citations-to-content-blocks content citations)))))))
 
+(defun greger-parser--add-citations-to-content-blocks (content-blocks citations)
+  "Add CITATIONS to appropriate text blocks in CONTENT-BLOCKS.
+Modifies the content blocks in-place."
+  (dolist (block content-blocks)
+    (when (and (listp block) (string= "text" (alist-get 'type block)))
+      (let ((text (alist-get 'text block)))
+        ;; Check if text contains <cite> tags - if so, add citations
+        (when (and text (string-match-p "<cite>" text))
+          ;; Add citations to this text block
+          (push (cons 'citations citations) block))))))
+
 (defun greger-parser--parse-tool-use-section (state)
   "Parse TOOL USE section using STATE."
   (greger-parser--skip-whitespace state)

@@ -4572,4 +4572,108 @@ Modifies the sections list in-place."
 Add function to merge citations with last assistant message
 </tool.toolu_013wThKtLa9irwbCaM1abt3A>
 
-<!-- TOOL_RESULT_PLACEHOLDER_toolu_013wThKtLa9irwbCaM1abt3A -->
+## TOOL RESULT:
+
+ID: toolu_013wThKtLa9irwbCaM1abt3A
+
+<tool.toolu_013wThKtLa9irwbCaM1abt3A>
+Successfully replaced content in /Users/andreas/projects/greger.el/greger-parser.el. Successfully staged 2 file(s) and committed with message: Add function to merge citations with last assistant message
+</tool.toolu_013wThKtLa9irwbCaM1abt3A>
+
+## ASSISTANT:
+
+Now I need to implement `greger-parser--add-citations-to-content-blocks`:
+
+## TOOL USE:
+
+Name: str-replace
+ID: toolu_015GpqEDQbtvisKzXdYFst2W
+
+### file-path
+
+<tool.toolu_015GpqEDQbtvisKzXdYFst2W>
+greger-parser.el
+</tool.toolu_015GpqEDQbtvisKzXdYFst2W>
+
+### original-content
+
+<tool.toolu_015GpqEDQbtvisKzXdYFst2W>
+(greger-parser--add-citations-to-content-blocks content citations)))))))
+</tool.toolu_015GpqEDQbtvisKzXdYFst2W>
+
+### new-content
+
+<tool.toolu_015GpqEDQbtvisKzXdYFst2W>
+(greger-parser--add-citations-to-content-blocks content citations)))))
+
+(defun greger-parser--add-citations-to-content-blocks (content-blocks citations)
+  "Add CITATIONS to appropriate text blocks in CONTENT-BLOCKS.
+Modifies the content blocks in-place."
+  (dolist (block content-blocks)
+    (when (and (listp block) (string= "text" (alist-get 'type block)))
+      (let ((text (alist-get 'text block)))
+        ;; Check if text contains <cite> tags - if so, add citations
+        (when (and text (string-match-p "<cite>" text))
+          ;; Add citations to this text block
+          (push (cons 'citations citations) block))))))
+</tool.toolu_015GpqEDQbtvisKzXdYFst2W>
+
+### git-commit-message
+
+<tool.toolu_015GpqEDQbtvisKzXdYFst2W>
+Add function to add citations to content blocks
+</tool.toolu_015GpqEDQbtvisKzXdYFst2W>
+
+## TOOL RESULT:
+
+ID: toolu_015GpqEDQbtvisKzXdYFst2W
+
+<tool.toolu_015GpqEDQbtvisKzXdYFst2W>
+Error executing tool: Parentheses balance mismatch in Emacs Lisp file: original has balance -6, new has balance -4. They must be equal
+</tool.toolu_015GpqEDQbtvisKzXdYFst2W>
+
+## ASSISTANT:
+
+I have a parentheses issue. Let me fix it:
+
+## TOOL USE:
+
+Name: str-replace
+ID: toolu_014Sg4B3DKeyE92xYP7mzywD
+
+### file-path
+
+<tool.toolu_014Sg4B3DKeyE92xYP7mzywD>
+greger-parser.el
+</tool.toolu_014Sg4B3DKeyE92xYP7mzywD>
+
+### original-content
+
+<tool.toolu_014Sg4B3DKeyE92xYP7mzywD>
+            (greger-parser--add-citations-to-content-blocks content citations)))))))
+</tool.toolu_014Sg4B3DKeyE92xYP7mzywD>
+
+### new-content
+
+<tool.toolu_014Sg4B3DKeyE92xYP7mzywD>
+            (greger-parser--add-citations-to-content-blocks content citations)))))))
+
+(defun greger-parser--add-citations-to-content-blocks (content-blocks citations)
+  "Add CITATIONS to appropriate text blocks in CONTENT-BLOCKS.
+Modifies the content blocks in-place."
+  (dolist (block content-blocks)
+    (when (and (listp block) (string= "text" (alist-get 'type block)))
+      (let ((text (alist-get 'text block)))
+        ;; Check if text contains <cite> tags - if so, add citations
+        (when (and text (string-match-p "<cite>" text))
+          ;; Add citations to this text block
+          (push (cons 'citations citations) block))))))
+</tool.toolu_014Sg4B3DKeyE92xYP7mzywD>
+
+### git-commit-message
+
+<tool.toolu_014Sg4B3DKeyE92xYP7mzywD>
+Add function to add citations to content blocks with fixed parentheses
+</tool.toolu_014Sg4B3DKeyE92xYP7mzywD>
+
+<!-- TOOL_RESULT_PLACEHOLDER_toolu_014Sg4B3DKeyE92xYP7mzywD -->
