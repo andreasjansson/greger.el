@@ -345,13 +345,20 @@ Returns nil if no error found or if OUTPUT is not valid JSON."
     ;; TODO: do we need to handle content block stop out-of-order,
     ;; before content-block start has created the block in the state's content-blocks?
 
-    (when (or (string= type "tool_use") (string= type "server_tool_use"))
-
-      ;; Turn accumulated JSON string back into an object
+    (cond
+     ;; Handle tool use blocks - turn accumulated JSON string back into an object
+     ((or (string= type "tool_use") (string= type "server_tool_use"))
       (let ((input-str (alist-get 'input block)))
         (if (string-empty-p input-str)
             (setf (alist-get 'input block) '())
           (setf (alist-get 'input block) (json-read-from-string input-str)))))
+
+     ;; Handle text blocks with citations - these need special processing
+     ((and (string= type "text") (alist-get 'citations block))
+      ;; For citation blocks, we didn't stream the text, so handle it now
+      (let ((text (alist-get 'text block)))
+        (when (and text (not (string-empty-p text)))
+          (funcall (greger-client-state-text-delta-callback state) text)))))
 
     (funcall (greger-client-state-block-stop-callback state) type block)))
 

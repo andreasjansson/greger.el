@@ -4297,4 +4297,86 @@ greger-client.el
 Handle citations_delta events and suppress text streaming for citation blocks
 </tool.toolu_0124m7NuNRLiQfgb2QxviBCh>
 
-<!-- TOOL_RESULT_PLACEHOLDER_toolu_0124m7NuNRLiQfgb2QxviBCh -->
+## TOOL RESULT:
+
+ID: toolu_0124m7NuNRLiQfgb2QxviBCh
+
+<tool.toolu_0124m7NuNRLiQfgb2QxviBCh>
+Successfully replaced content in /Users/andreas/projects/greger.el/greger-client.el. Successfully staged 2 file(s) and committed with message: Handle citations_delta events and suppress text streaming for citation blocks
+</tool.toolu_0124m7NuNRLiQfgb2QxviBCh>
+
+## ASSISTANT:
+
+Now I need to update the block stop handler to handle citation text blocks properly:
+
+## TOOL USE:
+
+Name: str-replace
+ID: toolu_012B41kidhWQLKGmtQ2ReAXx
+
+### file-path
+
+<tool.toolu_012B41kidhWQLKGmtQ2ReAXx>
+greger-client.el
+</tool.toolu_012B41kidhWQLKGmtQ2ReAXx>
+
+### original-content
+
+<tool.toolu_012B41kidhWQLKGmtQ2ReAXx>
+(defun greger-client--handle-content-block-stop (data state)
+  (let* ((index (alist-get 'index data))
+         (blocks (greger-client-state-content-blocks state))
+         (block (nth index blocks))
+         (type (alist-get 'type block)))
+
+    ;; TODO: do we need to handle content block stop out-of-order,
+    ;; before content-block start has created the block in the state's content-blocks?
+
+    (when (or (string= type "tool_use") (string= type "server_tool_use"))
+
+      ;; Turn accumulated JSON string back into an object
+      (let ((input-str (alist-get 'input block)))
+        (if (string-empty-p input-str)
+            (setf (alist-get 'input block) '())
+          (setf (alist-get 'input block) (json-read-from-string input-str)))))
+
+    (funcall (greger-client-state-block-stop-callback state) type block)))
+</tool.toolu_012B41kidhWQLKGmtQ2ReAXx>
+
+### new-content
+
+<tool.toolu_012B41kidhWQLKGmtQ2ReAXx>
+(defun greger-client--handle-content-block-stop (data state)
+  (let* ((index (alist-get 'index data))
+         (blocks (greger-client-state-content-blocks state))
+         (block (nth index blocks))
+         (type (alist-get 'type block)))
+
+    ;; TODO: do we need to handle content block stop out-of-order,
+    ;; before content-block start has created the block in the state's content-blocks?
+
+    (cond
+     ;; Handle tool use blocks - turn accumulated JSON string back into an object
+     ((or (string= type "tool_use") (string= type "server_tool_use"))
+      (let ((input-str (alist-get 'input block)))
+        (if (string-empty-p input-str)
+            (setf (alist-get 'input block) '())
+          (setf (alist-get 'input block) (json-read-from-string input-str)))))
+
+     ;; Handle text blocks with citations - these need special processing
+     ((and (string= type "text") (alist-get 'citations block))
+      ;; For citation blocks, we didn't stream the text, so handle it now
+      (let ((text (alist-get 'text block)))
+        (when (and text (not (string-empty-p text)))
+          (funcall (greger-client-state-text-delta-callback state) text)))))
+
+    (funcall (greger-client-state-block-stop-callback state) type block)))
+</tool.toolu_012B41kidhWQLKGmtQ2ReAXx>
+
+### git-commit-message
+
+<tool.toolu_012B41kidhWQLKGmtQ2ReAXx>
+Handle citation text blocks in content_block_stop by streaming accumulated text
+</tool.toolu_012B41kidhWQLKGmtQ2ReAXx>
+
+<!-- TOOL_RESULT_PLACEHOLDER_toolu_012B41kidhWQLKGmtQ2ReAXx -->
