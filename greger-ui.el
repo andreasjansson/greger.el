@@ -243,15 +243,17 @@ Returns (START . END) or nil if not found."
 
 (defun greger-ui-show-final-bibliography (start end)
   "Show the final bibliography section."
-  (let ((content-start (save-excursion (goto-char start) (forward-line 1) (point))))
+  (let ((header-end (save-excursion (goto-char start) (line-end-position)))
+        (content-start (save-excursion (goto-char start) (forward-line 1) (point))))
+    ;; Remove both content and summary overlays
     (remove-overlays content-start end 'greger-bibliography t)
-    (remove-overlays content-start end 'greger-bibliography-summary t)
+    (remove-overlays header-end content-start 'greger-bibliography-summary t)
     (setq greger-ui-bibliography-overlays
           (cl-remove-if (lambda (ov)
                           (or (not (overlay-buffer ov))
                               (and (overlay-start ov)
                                    (overlay-end ov)
-                                   (>= (overlay-start ov) content-start)
+                                   (>= (overlay-start ov) header-end)
                                    (<= (overlay-end ov) end))))
                         greger-ui-bibliography-overlays))))
 

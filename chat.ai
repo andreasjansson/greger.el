@@ -2612,4 +2612,125 @@ Fix citation folding indicator placement
 - Update variable names for clarity (header-end vs content-start)
 </tool.toolu_01Aee7fShxcJJJA6vpU3iKT7>
 
-<!-- TOOL_RESULT_PLACEHOLDER_toolu_01Aee7fShxcJJJA6vpU3iKT7 -->
+## TOOL RESULT:
+
+ID: toolu_01Aee7fShxcJJJA6vpU3iKT7
+
+<tool.toolu_01Aee7fShxcJJJA6vpU3iKT7>
+Successfully replaced content in /Users/andreas/projects/greger.el/greger-ui.el. Successfully staged 2 file(s) and committed with message: Fix citation folding indicator placement
+
+- Place summary overlay at end of "## CITATIONS:" header line instead of after it
+- This ensures the indicator appears immediately after the header
+- Update variable names for clarity (header-end vs content-start)
+</tool.toolu_01Aee7fShxcJJJA6vpU3iKT7>
+
+## ASSISTANT:
+
+Let me also update the corresponding show function to use the same positioning:
+
+## TOOL USE:
+
+Name: read-file
+ID: toolu_01KWhyUAgtpNL6ZggMHrABrS
+
+### path
+
+<tool.toolu_01KWhyUAgtpNL6ZggMHrABrS>
+greger-ui.el
+</tool.toolu_01KWhyUAgtpNL6ZggMHrABrS>
+
+### start-line
+
+<tool.toolu_01KWhyUAgtpNL6ZggMHrABrS>
+245
+</tool.toolu_01KWhyUAgtpNL6ZggMHrABrS>
+
+### end-line
+
+<tool.toolu_01KWhyUAgtpNL6ZggMHrABrS>
+260
+</tool.toolu_01KWhyUAgtpNL6ZggMHrABrS>
+
+## TOOL RESULT:
+
+ID: toolu_01KWhyUAgtpNL6ZggMHrABrS
+
+<tool.toolu_01KWhyUAgtpNL6ZggMHrABrS>
+  "Show the final bibliography section."
+  (let ((content-start (save-excursion (goto-char start) (forward-line 1) (point))))
+    (remove-overlays content-start end 'greger-bibliography t)
+    (remove-overlays content-start end 'greger-bibliography-summary t)
+    (setq greger-ui-bibliography-overlays
+          (cl-remove-if (lambda (ov)
+                          (or (not (overlay-buffer ov))
+                              (and (overlay-start ov)
+                                   (overlay-end ov)
+                                   (>= (overlay-start ov) content-start)
+                                   (<= (overlay-end ov) end))))
+                        greger-ui-bibliography-overlays))))
+
+(defun greger-ui-bibliography-hidden-p (start end)
+  "Return t if the bibliography section is hidden."
+  (let ((content-start (save-excursion (goto-char start) (forward-line 1) (point))))
+</tool.toolu_01KWhyUAgtpNL6ZggMHrABrS>
+
+## TOOL USE:
+
+Name: str-replace
+ID: toolu_01TzFX99aasES5WAMEcY8NUW
+
+### file-path
+
+<tool.toolu_01TzFX99aasES5WAMEcY8NUW>
+greger-ui.el
+</tool.toolu_01TzFX99aasES5WAMEcY8NUW>
+
+### original-content
+
+<tool.toolu_01TzFX99aasES5WAMEcY8NUW>
+(defun greger-ui-show-final-bibliography (start end)
+  "Show the final bibliography section."
+  (let ((content-start (save-excursion (goto-char start) (forward-line 1) (point))))
+    (remove-overlays content-start end 'greger-bibliography t)
+    (remove-overlays content-start end 'greger-bibliography-summary t)
+    (setq greger-ui-bibliography-overlays
+          (cl-remove-if (lambda (ov)
+                          (or (not (overlay-buffer ov))
+                              (and (overlay-start ov)
+                                   (overlay-end ov)
+                                   (>= (overlay-start ov) content-start)
+                                   (<= (overlay-end ov) end))))
+                        greger-ui-bibliography-overlays))))
+</tool.toolu_01TzFX99aasES5WAMEcY8NUW>
+
+### new-content
+
+<tool.toolu_01TzFX99aasES5WAMEcY8NUW>
+(defun greger-ui-show-final-bibliography (start end)
+  "Show the final bibliography section."
+  (let ((header-end (save-excursion (goto-char start) (line-end-position)))
+        (content-start (save-excursion (goto-char start) (forward-line 1) (point))))
+    ;; Remove both content and summary overlays
+    (remove-overlays content-start end 'greger-bibliography t)
+    (remove-overlays header-end content-start 'greger-bibliography-summary t)
+    (setq greger-ui-bibliography-overlays
+          (cl-remove-if (lambda (ov)
+                          (or (not (overlay-buffer ov))
+                              (and (overlay-start ov)
+                                   (overlay-end ov)
+                                   (>= (overlay-start ov) header-end)
+                                   (<= (overlay-end ov) end))))
+                        greger-ui-bibliography-overlays))))
+</tool.toolu_01TzFX99aasES5WAMEcY8NUW>
+
+### git-commit-message
+
+<tool.toolu_01TzFX99aasES5WAMEcY8NUW>
+Fix bibliography show function to remove summary overlays correctly
+
+- Update greger-ui-show-final-bibliography to remove summary overlays from correct position
+- Remove overlays from header-end to content-start for summary
+- Ensure proper cleanup of both content and summary overlays
+</tool.toolu_01TzFX99aasES5WAMEcY8NUW>
+
+<!-- TOOL_RESULT_PLACEHOLDER_toolu_01TzFX99aasES5WAMEcY8NUW -->
