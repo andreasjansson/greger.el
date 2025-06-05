@@ -4517,4 +4517,65 @@ Update after-change function to use greger-ui
 - Simplify the after-change logic to use unified UI refresh function
 </tool.toolu_01DfTqdbVNG7zE11wWi4rRwC>
 
-<!-- TOOL_RESULT_PLACEHOLDER_toolu_01DfTqdbVNG7zE11wWi4rRwC -->
+## TOOL RESULT:
+
+ID: toolu_01DfTqdbVNG7zE11wWi4rRwC
+
+<tool.toolu_01DfTqdbVNG7zE11wWi4rRwC>
+Successfully replaced content in /Users/andreas/projects/greger.el/greger.el. Successfully staged 2 file(s) and committed with message: Update after-change function to use greger-ui
+
+- Replace separate tool and citation refresh calls with greger-ui-refresh-folding
+- Simplify the after-change logic to use unified UI refresh function
+</tool.toolu_01DfTqdbVNG7zE11wWi4rRwC>
+
+## ASSISTANT:
+
+Now let me remove all the old tool folding code from greger.el. Let me first find and remove the old variables:
+
+## TOOL USE:
+
+Name: str-replace
+ID: toolu_01SrDuXPSLtBJS4MA91ZLDQw
+
+### file-path
+
+<tool.toolu_01SrDuXPSLtBJS4MA91ZLDQw>
+greger.el
+</tool.toolu_01SrDuXPSLtBJS4MA91ZLDQw>
+
+### original-content
+
+<tool.toolu_01SrDuXPSLtBJS4MA91ZLDQw>
+;; Tool section collapsing variables
+(defvar greger-tool-section-max-lines 4
+  "Maximum number of lines to show in collapsed tool sections.")
+
+(defvar-local greger-tool-overlays nil
+  "List of overlays used for collapsible tool sections.")
+
+;; Citation section collapsing variables
+(defvar-local greger-citation-overlays nil
+  "List of overlays used for collapsible citation sections.")
+
+(defvar-local greger--unfolded-citation-ids nil
+  "List of citation section IDs that have been manually unfolded.
+These citation IDs should not be auto-folded again.")
+</tool.toolu_01SrDuXPSLtBJS4MA91ZLDQw>
+
+### new-content
+
+<tool.toolu_01SrDuXPSLtBJS4MA91ZLDQw>
+
+</tool.toolu_01SrDuXPSLtBJS4MA91ZLDQw>
+
+### git-commit-message
+
+<tool.toolu_01SrDuXPSLtBJS4MA91ZLDQw>
+Remove old tool and citation folding variables from greger.el
+
+- Remove greger-tool-section-max-lines, greger-tool-overlays
+- Remove greger-citation-overlays, greger--unfolded-citation-ids
+- These are now handled in greger-ui.el
+</tool.toolu_01SrDuXPSLtBJS4MA91ZLDQw>
+
+<!-- TOOL_RESULT_PLACEHOLDER_toolu_01SrDuXPSLtBJS4MA91ZLDQw -->
