@@ -4148,4 +4148,51 @@ Returns a plist with :markdown and optionally :citations."
 Refactor block markdown generation to extract citations
 </tool.toolu_0182vm8SRK89wBSmUnUm4pGx>
 
-<!-- TOOL_RESULT_PLACEHOLDER_toolu_0182vm8SRK89wBSmUnUm4pGx -->
+## TOOL RESULT:
+
+ID: toolu_0182vm8SRK89wBSmUnUm4pGx
+
+<tool.toolu_0182vm8SRK89wBSmUnUm4pGx>
+Successfully replaced content in /Users/andreas/projects/greger.el/greger-parser.el. Successfully staged 2 file(s) and committed with message: Refactor block markdown generation to extract citations
+</tool.toolu_0182vm8SRK89wBSmUnUm4pGx>
+
+## ASSISTANT:
+
+Now I need to implement the `greger-parser--citations-to-markdown` function:
+
+## TOOL USE:
+
+Name: str-replace
+ID: toolu_01Cp2njfaPUXtm8aVvarFjMi
+
+### file-path
+
+<tool.toolu_01Cp2njfaPUXtm8aVvarFjMi>
+greger-parser.el
+</tool.toolu_01Cp2njfaPUXtm8aVvarFjMi>
+
+### original-content
+
+<tool.toolu_01Cp2njfaPUXtm8aVvarFjMi>
+      block-markdown)))
+</tool.toolu_01Cp2njfaPUXtm8aVvarFjMi>
+
+### new-content
+
+<tool.toolu_01Cp2njfaPUXtm8aVvarFjMi>
+      block-markdown)))
+
+(defun greger-parser--citations-to-markdown (citations)
+  "Convert CITATIONS list to markdown citations section."
+  (when citations
+    (concat greger-parser-citations-tag "\n\n"
+            (mapconcat #'greger-parser--citation-to-markdown citations "\n\n"))))
+</tool.toolu_01Cp2njfaPUXtm8aVvarFjMi>
+
+### git-commit-message
+
+<tool.toolu_01Cp2njfaPUXtm8aVvarFjMi>
+Add citations to markdown conversion function
+</tool.toolu_01Cp2njfaPUXtm8aVvarFjMi>
+
+<!-- TOOL_RESULT_PLACEHOLDER_toolu_01Cp2njfaPUXtm8aVvarFjMi -->

@@ -1088,6 +1088,12 @@ Returns either a system message, metadata, or both."
         (concat block-markdown "\n\n" (greger-parser--citations-to-markdown collected-citations))
       block-markdown)))
 
+(defun greger-parser--citations-to-markdown (citations)
+  "Convert CITATIONS list to markdown citations section."
+  (when citations
+    (concat greger-parser-citations-tag "\n\n"
+            (mapconcat #'greger-parser--citation-to-markdown citations "\n\n"))))
+
 (defun greger-parser--block-to-markdown (block)
   "Convert single BLOCK to markdown."
   (let ((result (greger-parser--block-to-markdown-with-citations block)))
