@@ -4386,4 +4386,137 @@ greger-parser.el
 Add citations content parsing function
 </tool.toolu_01JZQUFRRbAig5LTCV4Qs8dc>
 
-<!-- TOOL_RESULT_PLACEHOLDER_toolu_01JZQUFRRbAig5LTCV4Qs8dc -->
+## TOOL RESULT:
+
+ID: toolu_01JZQUFRRbAig5LTCV4Qs8dc
+
+<tool.toolu_01JZQUFRRbAig5LTCV4Qs8dc>
+Successfully replaced content in /Users/andreas/projects/greger.el/greger-parser.el. Successfully staged 2 file(s) and committed with message: Add citations content parsing function
+</tool.toolu_01JZQUFRRbAig5LTCV4Qs8dc>
+
+## ASSISTANT:
+
+Now I need to modify the document parsing to handle the special citations data and merge it with the previous assistant message. I need to update the main document parsing logic:
+
+## TOOL USE:
+
+Name: read-file
+ID: toolu_01RaMABwovZgkeHshYVB34Bk
+
+### path
+
+<tool.toolu_01RaMABwovZgkeHshYVB34Bk>
+greger-parser.el
+</tool.toolu_01RaMABwovZgkeHshYVB34Bk>
+
+### start-line
+
+<tool.toolu_01RaMABwovZgkeHshYVB34Bk>
+600
+</tool.toolu_01RaMABwovZgkeHshYVB34Bk>
+
+### end-line
+
+<tool.toolu_01RaMABwovZgkeHshYVB34Bk>
+640
+</tool.toolu_01RaMABwovZgkeHshYVB34Bk>
+
+## TOOL RESULT:
+
+ID: toolu_01RaMABwovZgkeHshYVB34Bk
+
+<tool.toolu_01RaMABwovZgkeHshYVB34Bk>
+      ;; Parse tagged sections
+      (while (and (not (greger-parser--at-end-p state))
+                  (< iterations max-iterations))
+        (setq iterations (1+ iterations))
+        (let ((old-pos (greger-parser-state-pos state)))
+          (greger-parser--skip-whitespace state)
+          (when (not (greger-parser--at-end-p state))
+            (let ((section-result (greger-parser--parse-section state)))
+              (when section-result
+                (if (and (listp section-result) (eq (car section-result) :metadata))
+                    ;; This is metadata, not a message - merge the metadata plist
+                    (setq metadata (append metadata (cdr section-result)))
+                  ;; This is a regular message
+                  (push section-result sections)))))
+          ;; Safety check: ensure we're making progress
+          (when (= old-pos (greger-parser-state-pos state))
+            (greger-parser--debug state "No progress in document parsing at pos %d, forcing end" (greger-parser-state-pos state))
+            (setf (greger-parser-state-pos state) (greger-parser-state-length state)))))
+
+      (when (>= iterations max-iterations)
+        (greger-parser--debug state "Hit max iterations in parse-document"))
+
+      ;; Combine metadata from section returns and parser state
+      (let ((combined-metadata (append metadata (greger-parser-state-metadata state))))
+        (list :messages (greger-parser--merge-consecutive-messages (reverse sections))
+              :metadata combined-metadata)))))
+
+(defun greger-parser--parse-untagged-content (state)
+  "Parse content before first section tag using STATE."
+  (let ((content (greger-parser--parse-section-content state)))
+    (when content
+      (greger-parser--create-user-message content))))
+
+(defun greger-parser--parse-section (state)
+  "Parse a section starting with a tag using STATE."
+  (let ((tag (greger-parser--find-section-tag state)))
+    (when tag
+      (greger-parser--consume-section-tag state tag)
+      (cond
+       ((string= tag greger-parser-system-tag)
+        (greger-parser--parse-system-section state))
+</tool.toolu_01RaMABwovZgkeHshYVB34Bk>
+
+## ASSISTANT:
+
+I need to modify the section parsing to handle citations data specially. Let me update the section processing logic:
+
+## TOOL USE:
+
+Name: str-replace
+ID: toolu_01NhqVtbiMGivjv9hgrBsFwu
+
+### file-path
+
+<tool.toolu_01NhqVtbiMGivjv9hgrBsFwu>
+greger-parser.el
+</tool.toolu_01NhqVtbiMGivjv9hgrBsFwu>
+
+### original-content
+
+<tool.toolu_01NhqVtbiMGivjv9hgrBsFwu>
+            (let ((section-result (greger-parser--parse-section state)))
+              (when section-result
+                (if (and (listp section-result) (eq (car section-result) :metadata))
+                    ;; This is metadata, not a message - merge the metadata plist
+                    (setq metadata (append metadata (cdr section-result)))
+                  ;; This is a regular message
+                  (push section-result sections))))
+</tool.toolu_01NhqVtbiMGivjv9hgrBsFwu>
+
+### new-content
+
+<tool.toolu_01NhqVtbiMGivjv9hgrBsFwu>
+            (let ((section-result (greger-parser--parse-section state)))
+              (when section-result
+                (cond
+                 ;; Handle metadata 
+                 ((and (listp section-result) (eq (car section-result) :metadata))
+                  (setq metadata (append metadata (cdr section-result))))
+                 ;; Handle citations data - merge with previous assistant message
+                 ((and (listp section-result) (eq (plist-get section-result :type) :citations-data))
+                  (greger-parser--merge-citations-with-last-assistant sections (plist-get section-result :citations)))
+                 ;; Regular message
+                 (t
+                  (push section-result sections)))))
+</tool.toolu_01NhqVtbiMGivjv9hgrBsFwu>
+
+### git-commit-message
+
+<tool.toolu_01NhqVtbiMGivjv9hgrBsFwu>
+Update document parsing to handle citations data specially
+</tool.toolu_01NhqVtbiMGivjv9hgrBsFwu>
+
+<!-- TOOL_RESULT_PLACEHOLDER_toolu_01NhqVtbiMGivjv9hgrBsFwu -->

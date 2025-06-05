@@ -606,11 +606,16 @@ Returns a plist with :messages and :metadata keys."
           (when (not (greger-parser--at-end-p state))
             (let ((section-result (greger-parser--parse-section state)))
               (when section-result
-                (if (and (listp section-result) (eq (car section-result) :metadata))
-                    ;; This is metadata, not a message - merge the metadata plist
-                    (setq metadata (append metadata (cdr section-result)))
-                  ;; This is a regular message
-                  (push section-result sections)))))
+                (cond
+                 ;; Handle metadata
+                 ((and (listp section-result) (eq (car section-result) :metadata))
+                  (setq metadata (append metadata (cdr section-result))))
+                 ;; Handle citations data - merge with previous assistant message
+                 ((and (listp section-result) (eq (plist-get section-result :type) :citations-data))
+                  (greger-parser--merge-citations-with-last-assistant sections (plist-get section-result :citations)))
+                 ;; Regular message
+                 (t
+                  (push section-result sections))))))
           ;; Safety check: ensure we're making progress
           (when (= old-pos (greger-parser-state-pos state))
             (greger-parser--debug state "No progress in document parsing at pos %d, forcing end" (greger-parser-state-pos state))
