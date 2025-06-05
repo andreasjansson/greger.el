@@ -5264,4 +5264,56 @@ Modifies the content blocks in-place."
 Add cite tag removal function after content blocks function
 </tool.toolu_017DkwoZ6nh4eyJ7VcBLBwZ6>
 
-<!-- TOOL_RESULT_PLACEHOLDER_toolu_017DkwoZ6nh4eyJ7VcBLBwZ6 -->
+## TOOL RESULT:
+
+ID: toolu_017DkwoZ6nh4eyJ7VcBLBwZ6
+
+<tool.toolu_017DkwoZ6nh4eyJ7VcBLBwZ6>
+Successfully replaced content in /Users/andreas/projects/greger.el/greger-parser.el. Successfully staged 2 file(s) and committed with message: Add cite tag removal function after content blocks function
+</tool.toolu_017DkwoZ6nh4eyJ7VcBLBwZ6>
+
+## ASSISTANT:
+
+Great! Now I need to update the text generation to wrap cited text in `<cite>` tags. Let me modify the text block markdown generation:
+
+## TOOL USE:
+
+Name: str-replace
+ID: toolu_0115SNKWjx4enh5CaCUsUTyZ
+
+### file-path
+
+<tool.toolu_0115SNKWjx4enh5CaCUsUTyZ>
+greger-parser.el
+</tool.toolu_0115SNKWjx4enh5CaCUsUTyZ>
+
+### original-content
+
+<tool.toolu_0115SNKWjx4enh5CaCUsUTyZ>
+     ((string= type "text")
+      (let ((text (alist-get 'text block))
+            (citations (alist-get 'citations block)))
+        (list :markdown (concat greger-parser-assistant-tag "\n\n" text)
+              :citations citations)))
+</tool.toolu_0115SNKWjx4enh5CaCUsUTyZ>
+
+### new-content
+
+<tool.toolu_0115SNKWjx4enh5CaCUsUTyZ>
+     ((string= type "text")
+      (let ((text (alist-get 'text block))
+            (citations (alist-get 'citations block)))
+        (let ((formatted-text (if citations
+                                  (concat "<cite>" text "</cite>")
+                                text)))
+          (list :markdown (concat greger-parser-assistant-tag "\n\n" formatted-text)
+                :citations citations))))
+</tool.toolu_0115SNKWjx4enh5CaCUsUTyZ>
+
+### git-commit-message
+
+<tool.toolu_0115SNKWjx4enh5CaCUsUTyZ>
+Wrap cited text in cite tags when generating markdown
+</tool.toolu_0115SNKWjx4enh5CaCUsUTyZ>
+
+<!-- TOOL_RESULT_PLACEHOLDER_toolu_0115SNKWjx4enh5CaCUsUTyZ -->

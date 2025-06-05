@@ -1195,8 +1195,11 @@ Returns a plist with :markdown and optionally :citations."
      ((string= type "text")
       (let ((text (alist-get 'text block))
             (citations (alist-get 'citations block)))
-        (list :markdown (concat greger-parser-assistant-tag "\n\n" text)
-              :citations citations)))
+        (let ((formatted-text (if citations
+                                  (concat "<cite>" text "</cite>")
+                                text)))
+          (list :markdown (concat greger-parser-assistant-tag "\n\n" formatted-text)
+                :citations citations))))
      ((string= type "thinking")
       (list :markdown (concat greger-parser-thinking-tag "\n\n"
                              (alist-get 'thinking block))))
