@@ -5310,4 +5310,97 @@ greger-ui.el
 Add function to cleanup stale cite positions
 </tool.toolu_01G1pccpxMjw9X1YKoKsNxdb>
 
-<!-- TOOL_RESULT_PLACEHOLDER_toolu_01G1pccpxMjw9X1YKoKsNxdb -->
+## TOOL RESULT:
+
+ID: toolu_01G1pccpxMjw9X1YKoKsNxdb
+
+<tool.toolu_01G1pccpxMjw9X1YKoKsNxdb>
+Successfully replaced content in /Users/andreas/projects/greger.el/greger-ui.el. Successfully staged 2 file(s) and committed with message: Add function to cleanup stale cite positions
+</tool.toolu_01G1pccpxMjw9X1YKoKsNxdb>
+
+## ASSISTANT:
+
+Now I need to update the `greger-ui-refresh-folding` function to clean up stale positions:
+
+## TOOL USE:
+
+Name: read-file
+ID: toolu_01CT1mKdJCRq7tuSerNnHX2M
+
+### path
+
+<tool.toolu_01CT1mKdJCRq7tuSerNnHX2M>
+greger-ui.el
+</tool.toolu_01CT1mKdJCRq7tuSerNnHX2M>
+
+### start-line
+
+<tool.toolu_01CT1mKdJCRq7tuSerNnHX2M>
+680
+</tool.toolu_01CT1mKdJCRq7tuSerNnHX2M>
+
+### end-line
+
+<tool.toolu_01CT1mKdJCRq7tuSerNnHX2M>
+690
+</tool.toolu_01CT1mKdJCRq7tuSerNnHX2M>
+
+## TOOL RESULT:
+
+ID: toolu_01CT1mKdJCRq7tuSerNnHX2M
+
+<tool.toolu_01CT1mKdJCRq7tuSerNnHX2M>
+  (greger-ui-clear-tool-overlays)
+  (remove-hook 'kill-buffer-hook #'greger-ui-show-all-citations t)
+  (remove-hook 'kill-buffer-hook #'greger-ui-clear-tool-overlays t))
+
+(defun greger-ui-refresh-folding ()
+  "Refresh tool sections and citations after buffer changes."
+  (when (> (point-max) 1)  ; Only if there's actual content
+    (greger-ui-setup-tool-sections)
+    (greger-ui-hide-all-citations)))
+
+(defun greger-ui-setup-citation-folding ()
+</tool.toolu_01CT1mKdJCRq7tuSerNnHX2M>
+
+## TOOL USE:
+
+Name: str-replace
+ID: toolu_01PyPSZLGj13eEh5KpS3jKCP
+
+### file-path
+
+<tool.toolu_01PyPSZLGj13eEh5KpS3jKCP>
+greger-ui.el
+</tool.toolu_01PyPSZLGj13eEh5KpS3jKCP>
+
+### original-content
+
+<tool.toolu_01PyPSZLGj13eEh5KpS3jKCP>
+(defun greger-ui-refresh-folding ()
+  "Refresh tool sections and citations after buffer changes."
+  (when (> (point-max) 1)  ; Only if there's actual content
+    (greger-ui-setup-tool-sections)
+    (greger-ui-hide-all-citations)))
+</tool.toolu_01PyPSZLGj13eEh5KpS3jKCP>
+
+### new-content
+
+<tool.toolu_01PyPSZLGj13eEh5KpS3jKCP>
+(defun greger-ui-refresh-folding ()
+  "Refresh tool sections and citations after buffer changes."
+  (when (> (point-max) 1)  ; Only if there's actual content
+    ;; Clean up stale positions first
+    (greger-ui-cleanup-stale-cite-positions)
+    ;; Then refresh the UI
+    (greger-ui-setup-tool-sections)
+    (greger-ui-hide-all-citations)))
+</tool.toolu_01PyPSZLGj13eEh5KpS3jKCP>
+
+### git-commit-message
+
+<tool.toolu_01PyPSZLGj13eEh5KpS3jKCP>
+Update refresh-folding to cleanup stale cite positions
+</tool.toolu_01PyPSZLGj13eEh5KpS3jKCP>
+
+<!-- TOOL_RESULT_PLACEHOLDER_toolu_01PyPSZLGj13eEh5KpS3jKCP -->

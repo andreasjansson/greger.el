@@ -684,6 +684,9 @@ If not inside a tool section or citation, fall back to `markdown-cycle'."
 (defun greger-ui-refresh-folding ()
   "Refresh tool sections and citations after buffer changes."
   (when (> (point-max) 1)  ; Only if there's actual content
+    ;; Clean up stale positions first
+    (greger-ui-cleanup-stale-cite-positions)
+    ;; Then refresh the UI
     (greger-ui-setup-tool-sections)
     (greger-ui-hide-all-citations)))
 
