@@ -4951,4 +4951,67 @@ and applying them at the end. This fixes the issue where all citations
 were being applied to all cite blocks.
 </tool.toolu_01QWNmKuReQVNaJ6iJpsBPUC>
 
-<!-- TOOL_RESULT_PLACEHOLDER_toolu_01QWNmKuReQVNaJ6iJpsBPUC -->
+## TOOL RESULT:
+
+ID: toolu_01QWNmKuReQVNaJ6iJpsBPUC
+
+<tool.toolu_01QWNmKuReQVNaJ6iJpsBPUC>
+Successfully replaced content in /Users/andreas/projects/greger.el/greger-parser.el. Successfully staged 2 file(s) and committed with message: Apply citations immediately instead of collecting them
+
+Fix citation bug by applying each CITATIONS section immediately to
+the most recent assistant message, rather than collecting all citations
+and applying them at the end. This fixes the issue where all citations
+were being applied to all cite blocks.
+</tool.toolu_01QWNmKuReQVNaJ6iJpsBPUC>
+
+## ASSISTANT:
+
+Now I need to create the `greger-parser--apply-citations-to-last-assistant-message` function and remove the old citation application logic:
+
+## TOOL USE:
+
+Name: str-replace
+ID: toolu_01CL3XTeBtCLJ3AAEu7TCyA6
+
+### file-path
+
+<tool.toolu_01CL3XTeBtCLJ3AAEu7TCyA6>
+greger-parser.el
+</tool.toolu_01CL3XTeBtCLJ3AAEu7TCyA6>
+
+### original-content
+
+<tool.toolu_01CL3XTeBtCLJ3AAEu7TCyA6>
+      ;; Combine metadata from section returns and parser state
+      (let* ((combined-metadata (append metadata (greger-parser-state-metadata state)))
+             (merged-messages (greger-parser--merge-consecutive-messages (reverse sections)))
+             (pending-citations (plist-get combined-metadata :pending-citations)))
+        ;; Apply pending citations if any
+        (when pending-citations
+          (greger-parser--apply-citations-to-messages merged-messages pending-citations)
+          ;; Remove pending citations from metadata since they've been applied
+          (setq combined-metadata (greger-parser--remove-from-plist combined-metadata :pending-citations)))
+        (list :messages merged-messages
+              :metadata combined-metadata))))
+</tool.toolu_01CL3XTeBtCLJ3AAEu7TCyA6>
+
+### new-content
+
+<tool.toolu_01CL3XTeBtCLJ3AAEu7TCyA6>
+      ;; Combine metadata from section returns and parser state
+      (let* ((combined-metadata (append metadata (greger-parser-state-metadata state)))
+             (merged-messages (greger-parser--merge-consecutive-messages (reverse sections))))
+        (list :messages merged-messages
+              :metadata combined-metadata))))
+</tool.toolu_01CL3XTeBtCLJ3AAEu7TCyA6>
+
+### git-commit-message
+
+<tool.toolu_01CL3XTeBtCLJ3AAEu7TCyA6>
+Remove old citation application logic
+
+Since citations are now applied immediately, remove the old code
+that collected and applied them at the end.
+</tool.toolu_01CL3XTeBtCLJ3AAEu7TCyA6>
+
+<!-- TOOL_RESULT_PLACEHOLDER_toolu_01CL3XTeBtCLJ3AAEu7TCyA6 -->
