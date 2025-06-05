@@ -1150,14 +1150,23 @@ Returns either a system message, metadata, or both."
 
 (defun greger-parser--value-to-string (value)
   "Convert VALUE to string representation."
-  (cond
-   ((stringp value) value)
-   ((numberp value) (number-to-string value))
-   ((eq value t) "true")
-   ((null value) "false")
-   ((vectorp value) (json-encode value))
-   ((listp value) (json-encode value))
-   (t (format "%s" value))))
+  (let ((json-encoding-pretty-print t))
+    (cond
+    ((stringp value)
+     ;; Try to parse as JSON and pretty print if valid
+     (condition-case nil
+         (let ((parsed (json-read-from-string value)))
+           ;; If parsing succeeded, encode back with pretty print
+           (json-encode parsed))
+       (error
+        ;; If parsing failed, return original string
+        value)))
+    ((numberp value) (number-to-string value))
+    ((eq value t) "true")
+    ((null value) "false")
+    ((vectorp value) (json-encode value))
+    ((listp value) (json-encode value))
+    (t (format "%s" value)))))
 
 ;; Global debug flag for interactive debugging
 (defvar greger-parser--global-debug nil
