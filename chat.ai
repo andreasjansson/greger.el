@@ -4676,4 +4676,53 @@ Modifies the content blocks in-place."
 Add function to add citations to content blocks with fixed parentheses
 </tool.toolu_014Sg4B3DKeyE92xYP7mzywD>
 
-<!-- TOOL_RESULT_PLACEHOLDER_toolu_014Sg4B3DKeyE92xYP7mzywD -->
+## TOOL RESULT:
+
+ID: toolu_014Sg4B3DKeyE92xYP7mzywD
+
+<tool.toolu_014Sg4B3DKeyE92xYP7mzywD>
+Successfully replaced content in /Users/andreas/projects/greger.el/greger-parser.el. Successfully staged 2 file(s) and committed with message: Add function to add citations to content blocks with fixed parentheses
+</tool.toolu_014Sg4B3DKeyE92xYP7mzywD>
+
+## ASSISTANT:
+
+Now I need to handle the parsing of `<cite>` tags in the text content. Let me modify the text parsing to handle cite tags properly. First, I need to update the text content parsing to convert `<cite>` tags:
+
+## TOOL USE:
+
+Name: str-replace
+ID: toolu_016KwCvKoSjZZGmyhzqjuT3V
+
+### file-path
+
+<tool.toolu_016KwCvKoSjZZGmyhzqjuT3V>
+greger-parser.el
+</tool.toolu_016KwCvKoSjZZGmyhzqjuT3V>
+
+### original-content
+
+<tool.toolu_016KwCvKoSjZZGmyhzqjuT3V>
+        ;; Check if text contains <cite> tags - if so, add citations
+        (when (and text (string-match-p "<cite>" text))
+          ;; Add citations to this text block
+          (push (cons 'citations citations) block))))))
+</tool.toolu_016KwCvKoSjZZGmyhzqjuT3V>
+
+### new-content
+
+<tool.toolu_016KwCvKoSjZZGmyhzqjuT3V>
+        ;; Check if text contains <cite> tags - if so, process them and add citations
+        (when (and text (string-match-p "<cite>" text))
+          ;; Remove <cite> tags from text and add citations to block
+          (let ((clean-text (greger-parser--remove-cite-tags text)))
+            (setcdr (assq 'text block) clean-text)
+            (push (cons 'citations citations) block)))))))
+</tool.toolu_016KwCvKoSjZZGmyhzqjuT3V>
+
+### git-commit-message
+
+<tool.toolu_016KwCvKoSjZZGmyhzqjuT3V>
+Process cite tags in text blocks and clean text content
+</tool.toolu_016KwCvKoSjZZGmyhzqjuT3V>
+
+<!-- TOOL_RESULT_PLACEHOLDER_toolu_016KwCvKoSjZZGmyhzqjuT3V -->

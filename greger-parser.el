@@ -779,10 +779,12 @@ Modifies the content blocks in-place."
   (dolist (block content-blocks)
     (when (and (listp block) (string= "text" (alist-get 'type block)))
       (let ((text (alist-get 'text block)))
-        ;; Check if text contains <cite> tags - if so, add citations
+        ;; Check if text contains <cite> tags - if so, process them and add citations
         (when (and text (string-match-p "<cite>" text))
-          ;; Add citations to this text block
-          (push (cons 'citations citations) block))))))
+          ;; Remove <cite> tags from text and add citations to block
+          (let ((clean-text (greger-parser--remove-cite-tags text)))
+            (setcdr (assq 'text block) clean-text)
+            (push (cons 'citations citations) block)))))))
 
 (defun greger-parser--parse-tool-use-section (state)
   "Parse TOOL USE section using STATE."
