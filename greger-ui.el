@@ -60,6 +60,17 @@
 (defvar-local greger-ui-bibliography-overlays nil
   "List of overlays used to hide/show the final bibliography section.")
 
+;; Tool section variables
+(defvar greger-ui-tool-section-max-lines 4
+  "Maximum number of lines to show in collapsed tool sections.")
+
+(defvar-local greger-ui-tool-overlays nil
+  "List of overlays used for collapsible tool sections.")
+
+(defvar-local greger-ui-unfolded-tool-ids nil
+  "List of tool IDs that have been manually unfolded.
+These tool IDs should not be auto-folded again.")
+
 ;;; Core Functions
 
 (defun greger-ui-point-in-cite-tag-p ()
