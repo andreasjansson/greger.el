@@ -2192,4 +2192,446 @@ greger.el
 Remove duplicated tool tag faces (now in greger-ui.el)
 </tool.toolu_014Y4rwa4v9mfSfT2pxSPdQq>
 
-<!-- TOOL_RESULT_PLACEHOLDER_toolu_014Y4rwa4v9mfSfT2pxSPdQq -->
+## TOOL RESULT:
+
+ID: toolu_014Y4rwa4v9mfSfT2pxSPdQq
+
+<tool.toolu_014Y4rwa4v9mfSfT2pxSPdQq>
+Successfully replaced content in /Users/andreas/projects/greger.el/greger.el. Successfully staged 2 file(s) and committed with message: Remove duplicated tool tag faces (now in greger-ui.el)
+</tool.toolu_014Y4rwa4v9mfSfT2pxSPdQq>
+
+## ASSISTANT:
+
+Now let me remove the tool folding variables:
+
+## TOOL USE:
+
+Name: ripgrep
+ID: toolu_01AgFqbXH6JYNi6hREw6GD2B
+
+### pattern
+
+<tool.toolu_01AgFqbXH6JYNi6hREw6GD2B>
+greger-tool-section-max-lines|greger-tool-overlays|greger--unfolded-tool-ids"
+</tool.toolu_01AgFqbXH6JYNi6hREw6GD2B>
+
+### path
+
+<tool.toolu_01AgFqbXH6JYNi6hREw6GD2B>
+greger.el
+</tool.toolu_01AgFqbXH6JYNi6hREw6GD2B>
+
+### context-lines
+
+<tool.toolu_01AgFqbXH6JYNi6hREw6GD2B>
+2
+</tool.toolu_01AgFqbXH6JYNi6hREw6GD2B>
+
+## TOOL RESULT:
+
+ID: toolu_01AgFqbXH6JYNi6hREw6GD2B
+
+<tool.toolu_01AgFqbXH6JYNi6hREw6GD2B>
+703-(defun greger--clear-tool-overlays ()
+704-  "Clear all tool section overlays in the current buffer."
+705:  (cl-loop for overlay in greger-tool-overlays
+706-           do (delete-overlay overlay))
+707:  (setq greger-tool-overlays nil))
+708-
+709-(defun greger--find-and-setup-tool-sections ()
+--
+752-    (overlay-put overlay 'face 'greger-tool-tag-face)
+753-    (overlay-put overlay 'greger-tool-tag t)
+754:    (push overlay greger-tool-overlays)
+755-    overlay))
+756-
+--
+764-         (line-count (length lines)))
+765-
+766:    (when (and (> line-count greger-tool-section-max-lines)
+767-               ;; Only create collapsed overlay if not manually unfolded
+768-               (not (member tool-id greger--unfolded-tool-ids)))
+--
+774-CONTENT-START and CONTENT-END define the overlay bounds.
+775-TOOL-ID identifies the tool, and LINES contain the content."
+776:  (let* ((visible-lines (cl-subseq lines 0 greger-tool-section-max-lines))
+777:         (hidden-lines (cl-subseq lines greger-tool-section-max-lines))
+778-         (hidden-line-count (length hidden-lines))
+779-         (visible-text (mapconcat #'identity visible-lines "\n"))
+--
+798-      (overlay-put indicator-overlay 'greger-tool-indicator t)
+799-      (overlay-put indicator-overlay 'greger-tool-id tool-id)
+800:      (push indicator-overlay greger-tool-overlays))
+801-
+802:    (push hidden-overlay greger-tool-overlays)))
+803-
+804-(defun greger-toggle-tool-section ()
+--
+853-  "Toggle the tool section with the given TOOL-ID.
+854-TOOL-ID is the identifier of the tool section to toggle."
+855:  (cl-loop for overlay in greger-tool-overlays
+856-           when (and (overlay-get overlay 'greger-tool-section)
+857-                     (string= (overlay-get overlay 'greger-tool-id) tool-id))
+--
+876-
+877-  ;; Remove the expansion indicator
+878:  (cl-loop for indicator-overlay in greger-tool-overlays
+879-           when (and (overlay-get indicator-overlay 'greger-tool-indicator)
+880-                     (string= (overlay-get indicator-overlay 'greger-tool-id) tool-id))
+881-           do (progn
+882-                (delete-overlay indicator-overlay)
+883:                (setq greger-tool-overlays
+884:                      (remove indicator-overlay greger-tool-overlays)))))
+885-
+886-(defun greger--collapse-tool-section (overlay tool-id)
+--
+907-    (overlay-put indicator-overlay 'greger-tool-indicator t)
+908-    (overlay-put indicator-overlay 'greger-tool-id tool-id)
+909:    (push indicator-overlay greger-tool-overlays)))
+910-
+911-(defun greger--setup-heading-font-lock ()
+
+</tool.toolu_01AgFqbXH6JYNi6hREw6GD2B>
+
+## ASSISTANT:
+
+I need to find the variable declarations. Let me search more broadly:
+
+## TOOL USE:
+
+Name: ripgrep
+ID: toolu_01Vd8DWRg47C1D4QpFE479Vr
+
+### pattern
+
+<tool.toolu_01Vd8DWRg47C1D4QpFE479Vr>
+defvar.*greger.*tool"
+</tool.toolu_01Vd8DWRg47C1D4QpFE479Vr>
+
+### path
+
+<tool.toolu_01Vd8DWRg47C1D4QpFE479Vr>
+greger.el
+</tool.toolu_01Vd8DWRg47C1D4QpFE479Vr>
+
+### context-lines
+
+<tool.toolu_01Vd8DWRg47C1D4QpFE479Vr>
+3
+</tool.toolu_01Vd8DWRg47C1D4QpFE479Vr>
+
+## TOOL RESULT:
+
+ID: toolu_01Vd8DWRg47C1D4QpFE479Vr
+
+<tool.toolu_01Vd8DWRg47C1D4QpFE479Vr>
+Failed to execute ripgrep search: Command failed with exit code 1: (no output)
+</tool.toolu_01Vd8DWRg47C1D4QpFE479Vr>
+
+## ASSISTANT:
+
+Let me search for the variable definitions more systematically:
+
+## TOOL USE:
+
+Name: read-file
+ID: toolu_015QS6mYqS4pPSdVuxKh6KnU
+
+### path
+
+<tool.toolu_015QS6mYqS4pPSdVuxKh6KnU>
+greger.el
+</tool.toolu_015QS6mYqS4pPSdVuxKh6KnU>
+
+### start-line
+
+<tool.toolu_015QS6mYqS4pPSdVuxKh6KnU>
+160
+</tool.toolu_015QS6mYqS4pPSdVuxKh6KnU>
+
+### end-line
+
+<tool.toolu_015QS6mYqS4pPSdVuxKh6KnU>
+170
+</tool.toolu_015QS6mYqS4pPSdVuxKh6KnU>
+
+## TOOL RESULT:
+
+ID: toolu_015QS6mYqS4pPSdVuxKh6KnU
+
+<tool.toolu_015QS6mYqS4pPSdVuxKh6KnU>
+    (define-key map (kbd "M-<return>") #'greger-buffer)
+    (define-key map (kbd "C-M-<return>") #'greger-buffer-no-tools)
+    (define-key map (kbd "C-g") #'greger-interrupt)
+    (define-key map (kbd "C-; a") #'greger-insert-assistant-tag)
+    (define-key map (kbd "C-; u") #'greger-insert-user-tag)
+    (define-key map (kbd "C-; s") #'greger-insert-system-tag)
+    (define-key map (kbd "C-; i") #'greger-insert-include)
+    (define-key map (kbd "C-; I") #'greger-insert-include-code)
+    (define-key map (kbd "C-; f") #'greger-insert-include-file)
+    (define-key map (kbd "C-; b") #'greger-insert-include-buffer-code)
+    (define-key map (kbd "C-; m") #'greger-set-model)
+</tool.toolu_015QS6mYqS4pPSdVuxKh6KnU>
+
+## ASSISTANT:
+
+I need to look for where the variables are defined. Let me search more broadly:
+
+## TOOL USE:
+
+Name: ripgrep
+ID: toolu_01Scfzc7Dd154APtsJjCR9gh
+
+### pattern
+
+<tool.toolu_01Scfzc7Dd154APtsJjCR9gh>
+greger-tool-section-max-lines
+</tool.toolu_01Scfzc7Dd154APtsJjCR9gh>
+
+### path
+
+<tool.toolu_01Scfzc7Dd154APtsJjCR9gh>
+greger.el
+</tool.toolu_01Scfzc7Dd154APtsJjCR9gh>
+
+### context-lines
+
+<tool.toolu_01Scfzc7Dd154APtsJjCR9gh>
+5
+</tool.toolu_01Scfzc7Dd154APtsJjCR9gh>
+
+## TOOL RESULT:
+
+ID: toolu_01Scfzc7Dd154APtsJjCR9gh
+
+<tool.toolu_01Scfzc7Dd154APtsJjCR9gh>
+761-TOOL-ID is the tool identifier."
+762-  (let* ((content (buffer-substring-no-properties content-start content-end))
+763-         (lines (split-string content "\n"))
+764-         (line-count (length lines)))
+765-
+766:    (when (and (> line-count greger-tool-section-max-lines)
+767-               ;; Only create collapsed overlay if not manually unfolded
+768-               (not (member tool-id greger--unfolded-tool-ids)))
+769-      ;; Create the collapsible overlay
+770-      (greger--create-collapsible-overlay content-start content-end tool-id lines))))
+771-
+772-(defun greger--create-collapsible-overlay (content-start content-end tool-id lines)
+773-  "Create a collapsible overlay for tool content.
+774-CONTENT-START and CONTENT-END define the overlay bounds.
+775-TOOL-ID identifies the tool, and LINES contain the content."
+776:  (let* ((visible-lines (cl-subseq lines 0 greger-tool-section-max-lines))
+777:         (hidden-lines (cl-subseq lines greger-tool-section-max-lines))
+778-         (hidden-line-count (length hidden-lines))
+779-         (visible-text (mapconcat #'identity visible-lines "\n"))
+780-
+781-         ;; Calculate positions for visible and hidden parts
+782-         (visible-end (+ content-start (length visible-text)))
+
+</tool.toolu_01Scfzc7Dd154APtsJjCR9gh>
+
+## ASSISTANT:
+
+The variables must be defined elsewhere. Let me search for where they might be defined at the top of the file:
+
+## TOOL USE:
+
+Name: read-file
+ID: toolu_01UHNA596ZFsT16EzbJGdXQ4
+
+### path
+
+<tool.toolu_01UHNA596ZFsT16EzbJGdXQ4>
+greger.el
+</tool.toolu_01UHNA596ZFsT16EzbJGdXQ4>
+
+### start-line
+
+<tool.toolu_01UHNA596ZFsT16EzbJGdXQ4>
+100
+</tool.toolu_01UHNA596ZFsT16EzbJGdXQ4>
+
+### end-line
+
+<tool.toolu_01UHNA596ZFsT16EzbJGdXQ4>
+130
+</tool.toolu_01UHNA596ZFsT16EzbJGdXQ4>
+
+## TOOL RESULT:
+
+ID: toolu_01UHNA596ZFsT16EzbJGdXQ4
+
+<tool.toolu_01UHNA596ZFsT16EzbJGdXQ4>
+  current-iteration
+  chat-buffer
+  directory
+  metadata
+  client-state
+  executing-tools)
+
+(defvar greger-user-tag "## USER:")
+(defvar greger-assistant-tag "## ASSISTANT:")
+(defvar greger-system-tag "## SYSTEM:")
+
+
+
+(defvar-local greger--current-state nil
+  "Buffer-local variable to track the current state.")
+
+(defvar-local greger--buffer-read-only-by-greger nil
+  "Buffer-local variable to track if buffer is read-only due to greger activity.")
+
+
+
+
+
+(defface greger-tool-param-heading-face
+  '((t :foreground "#6699CC" :weight bold :height 1.0))
+  "Face for ### tool parameter headings in greger mode."
+  :group 'greger)
+
+(defface greger-user-heading-face
+  '((t :foreground "#66DD66" :weight bold :height 1.2))
+  "Face for ## USER: headings in greger mode."
+</tool.toolu_01UHNA596ZFsT16EzbJGdXQ4>
+
+## ASSISTANT:
+
+It seems like these variables might not be defined in greger.el, which means they're already correctly moved to greger-ui.el. Let me now remove the tool folding functions from greger.el. Let me start with the first batch:
+
+## TOOL USE:
+
+Name: str-replace
+ID: toolu_017dp2mWJzLQdGJctVrZBoqE
+
+### file-path
+
+<tool.toolu_017dp2mWJzLQdGJctVrZBoqE>
+greger.el
+</tool.toolu_017dp2mWJzLQdGJctVrZBoqE>
+
+### original-content
+
+<tool.toolu_017dp2mWJzLQdGJctVrZBoqE>
+;; Tool section collapsing functions
+
+(defun greger--setup-tool-sections ()
+  "Set up tool section highlighting and collapsing in the current buffer."
+  (greger--clear-tool-overlays)
+  (greger--find-and-setup-tool-sections))
+
+(defun greger--clear-tool-overlays ()
+  "Clear all tool section overlays in the current buffer."
+  (cl-loop for overlay in greger-tool-overlays
+           do (delete-overlay overlay))
+  (setq greger-tool-overlays nil))
+
+(defun greger--find-and-setup-tool-sections ()
+  "Find all tool sections and set them up with appropriate faces and collapsing."
+  (save-excursion
+    (goto-char (point-min))
+    (cl-loop while (re-search-forward "<tool\\.[^>]+>" nil t)
+             do (greger--setup-single-tool-section))))
+
+(defun greger--setup-single-tool-section ()
+  "Set up a single tool section starting from the current match."
+  (let ((start-tag-start (match-beginning 0))
+        (start-tag-end (match-end 0))
+        (tool-id (greger--extract-tool-id (match-string 0))))
+    (when tool-id
+      (let ((end-tag-pattern (concat "</tool\\." (regexp-quote tool-id) ">"))
+            (content-start start-tag-end)
+            content-end
+            end-tag-start
+            end-tag-end)
+
+        ;; Find the corresponding closing tag
+        (when (re-search-forward end-tag-pattern nil t)
+          (setq end-tag-start (match-beginning 0)
+                end-tag-end (match-end 0)
+                content-end end-tag-start)
+
+          ;; Create overlays for styling
+          (greger--create-tag-overlay start-tag-start start-tag-end)
+          (greger--create-tag-overlay end-tag-start end-tag-end)
+
+          ;; Set up collapsible content
+          (greger--setup-collapsible-content content-start content-end tool-id))))))
+
+(defun greger--extract-tool-id (tag-string)
+  "Extract tool ID from a tool tag string like '<tool.abc123>'.
+TAG-STRING is the tag string to extract from."
+  (when (string-match "<tool\\.\\([^>]+\\)>" tag-string)
+    (match-string 1 tag-string)))
+
+(defun greger--create-tag-overlay (start end)
+  "Create an overlay for a tool tag to make it small and less visible.
+START is the beginning position.
+END is the ending position."
+  (let ((overlay (make-overlay start end)))
+    (overlay-put overlay 'face 'greger-tool-tag-face)
+    (overlay-put overlay 'greger-tool-tag t)
+    (push overlay greger-tool-overlays)
+    overlay))
+
+(defun greger--setup-collapsible-content (content-start content-end tool-id)
+  "Set up collapsible content between CONTENT-START and CONTENT-END for TOOL-ID.
+CONTENT-START is the start position of the content.
+CONTENT-END is the end position of the content.
+TOOL-ID is the tool identifier."
+  (let* ((content (buffer-substring-no-properties content-start content-end))
+         (lines (split-string content "\n"))
+         (line-count (length lines)))
+
+    (when (and (> line-count greger-tool-section-max-lines)
+               ;; Only create collapsed overlay if not manually unfolded
+               (not (member tool-id greger--unfolded-tool-ids)))
+      ;; Create the collapsible overlay
+      (greger--create-collapsible-overlay content-start content-end tool-id lines))))
+
+(defun greger--create-collapsible-overlay (content-start content-end tool-id lines)
+  "Create a collapsible overlay for tool content.
+CONTENT-START and CONTENT-END define the overlay bounds.
+TOOL-ID identifies the tool, and LINES contain the content."
+  (let* ((visible-lines (cl-subseq lines 0 greger-tool-section-max-lines))
+         (hidden-lines (cl-subseq lines greger-tool-section-max-lines))
+         (hidden-line-count (length hidden-lines))
+         (visible-text (mapconcat #'identity visible-lines "\n"))
+
+         ;; Calculate positions for visible and hidden parts
+         (visible-end (+ content-start (length visible-text)))
+         (hidden-start (+ visible-end 1)) ; +1 for the newline
+
+         ;; Create overlay for the hidden part
+         (hidden-overlay (make-overlay hidden-start content-end)))
+
+    (overlay-put hidden-overlay 'invisible 'greger-tool-section)
+    (overlay-put hidden-overlay 'greger-tool-section t)
+    (overlay-put hidden-overlay 'greger-tool-id tool-id)
+    (overlay-put hidden-overlay 'greger-collapsed t)
+
+    ;; Add expansion indicator with line count
+    (let ((indicator-overlay (make-overlay visible-end visible-end)))
+      (overlay-put indicator-overlay 'after-string
+                   (propertize (format "... [+%d lines, TAB to expand]" hidden-line-count)
+                              'face 'greger-tool-tag-face))
+      (overlay-put indicator-overlay 'greger-tool-indicator t)
+      (overlay-put indicator-overlay 'greger-tool-id tool-id)
+      (push indicator-overlay greger-tool-overlays))
+
+    (push hidden-overlay greger-tool-overlays)))
+</tool.toolu_017dp2mWJzLQdGJctVrZBoqE>
+
+### new-content
+
+<tool.toolu_017dp2mWJzLQdGJctVrZBoqE>
+
+</tool.toolu_017dp2mWJzLQdGJctVrZBoqE>
+
+### git-commit-message
+
+<tool.toolu_017dp2mWJzLQdGJctVrZBoqE>
+Remove tool folding setup functions (moved to greger-ui.el)
+</tool.toolu_017dp2mWJzLQdGJctVrZBoqE>
+
+<!-- TOOL_RESULT_PLACEHOLDER_toolu_017dp2mWJzLQdGJctVrZBoqE -->
