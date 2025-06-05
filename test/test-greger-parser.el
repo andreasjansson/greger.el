@@ -9,38 +9,38 @@
   '(
     ;; Simple user message
     (:name "simple-user-message"
-     :markdown "## USER:
+           :markdown "## USER:
 
 Hello, how are you?"
-     :dialog (((role . "user") (content . "Hello, how are you?"))))
+           :dialog (((role . "user") (content . "Hello, how are you?"))))
 
     ;; System and user message
     (:name "system-and-user"
-     :markdown "## SYSTEM:
+           :markdown "## SYSTEM:
 
 You are a helpful assistant.
 
 ## USER:
 
 What's the weather like?"
-     :dialog (((role . "system") (content . "You are a helpful assistant."))
-              ((role . "user") (content . "What's the weather like?"))))
+           :dialog (((role . "system") (content . "You are a helpful assistant."))
+                    ((role . "user") (content . "What's the weather like?"))))
 
     ;; Simple conversation
     (:name "simple-conversation"
-     :markdown "## USER:
+           :markdown "## USER:
 
 Hello
 
 ## ASSISTANT:
 
 Hi there! How can I help you today?"
-     :dialog (((role . "user") (content . "Hello"))
-              ((role . "assistant") (content . "Hi there! How can I help you today?"))))
+           :dialog (((role . "user") (content . "Hello"))
+                    ((role . "assistant") (content . "Hi there! How can I help you today?"))))
 
     ;; Thinking section (becomes part of assistant message)
     (:name "thinking-section"
-     :markdown "## USER:
+           :markdown "## USER:
 
 What's 2+2?
 
@@ -51,12 +51,12 @@ This is a simple arithmetic question. I can answer this directly without needing
 ## ASSISTANT:
 
 2 + 2 = 4"
-     :dialog (((role . "user") (content . "What's 2+2?"))
-              ((role . "assistant") (content . (((type . "thinking") (thinking . "This is a simple arithmetic question. I can answer this directly without needing any tools.")) ((type . "text") (text . "2 + 2 = 4")))))))
+           :dialog (((role . "user") (content . "What's 2+2?"))
+                    ((role . "assistant") (content . (((type . "thinking") (thinking . "This is a simple arithmetic question. I can answer this directly without needing any tools.")) ((type . "text") (text . "2 + 2 = 4")))))))
 
     ;; Tool use with single parameter
     (:name "tool-use-single-param"
-     :markdown "## USER:
+           :markdown "## USER:
 
 Read the file hello.txt
 
@@ -82,14 +82,14 @@ Hello, world!
 ## ASSISTANT:
 
 The file contains: Hello, world!"
-     :dialog (((role . "user") (content . "Read the file hello.txt"))
-              ((role . "assistant") (content . (((type . "tool_use") (id . "toolu_123") (name . "read-file") (input . ((path . "hello.txt")))))))
-              ((role . "user") (content . (((type . "tool_result") (tool_use_id . "toolu_123") (content . "Hello, world!")))))
-              ((role . "assistant") (content . "The file contains: Hello, world!"))))
+           :dialog (((role . "user") (content . "Read the file hello.txt"))
+                    ((role . "assistant") (content . (((type . "tool_use") (id . "toolu_123") (name . "read-file") (input . ((path . "hello.txt")))))))
+                    ((role . "user") (content . (((type . "tool_result") (tool_use_id . "toolu_123") (content . "Hello, world!")))))
+                    ((role . "assistant") (content . "The file contains: Hello, world!"))))
 
     ;; Tool use with multiple parameters
     (:name "tool-use-multiple-params"
-     :markdown "## USER:
+           :markdown "## USER:
 
 Search for python files containing 'def main'
 
@@ -128,14 +128,14 @@ src/utils.py:25:def main_helper():
 ## ASSISTANT:
 
 I found 2 matches for 'def main' in Python files."
-     :dialog (((role . "user") (content . "Search for python files containing 'def main'"))
-              ((role . "assistant") (content . (((type . "tool_use") (id . "toolu_456") (name . "ripgrep") (input . ((pattern . "def main") (file-type . "py") (context-lines . 2)))))))
-              ((role . "user") (content . (((type . "tool_result") (tool_use_id . "toolu_456") (content . "src/main.py:10:def main():\nsrc/utils.py:25:def main_helper():")))))
-              ((role . "assistant") (content . "I found 2 matches for 'def main' in Python files."))))
+           :dialog (((role . "user") (content . "Search for python files containing 'def main'"))
+                    ((role . "assistant") (content . (((type . "tool_use") (id . "toolu_456") (name . "ripgrep") (input . ((pattern . "def main") (file-type . "py") (context-lines . 2)))))))
+                    ((role . "user") (content . (((type . "tool_result") (tool_use_id . "toolu_456") (content . "src/main.py:10:def main():\nsrc/utils.py:25:def main_helper():")))))
+                    ((role . "assistant") (content . "I found 2 matches for 'def main' in Python files."))))
 
     ;; Complex workflow with thinking, tool use, and multiple responses
     (:name "complex-workflow"
-     :markdown "## USER:
+           :markdown "## USER:
 
 who's the current king of sweden?
 
@@ -177,14 +177,14 @@ ID: toolu_01Kf8avk1cBqH5ZHoXL92Duc
 ## ASSISTANT:
 
 The current King of Sweden is **Carl XVI Gustaf**. He has been reigning since 1973 and is the longest-reigning monarch in Swedish history."
-     :dialog (((role . "user") (content . "who's the current king of sweden?"))
-              ((role . "assistant") (content . (((type . "thinking") (thinking . "The user is asking about the current king of Sweden. This is a factual question that I can search for to get the most up-to-date information. I'll use the search function to find this information.")) ((type . "tool_use") (id . "toolu_01Kf8avk1cBqH5ZHoXL92Duc") (name . "search-286d2fd3") (input . ((query . "current king of Sweden 2024") (include_answer . "basic") (max_results . 3)))))))
-              ((role . "user") (content . (((type . "tool_result") (tool_use_id . "toolu_01Kf8avk1cBqH5ZHoXL92Duc") (content . "{\"query\": \"current king of Sweden 2024\", \"answer\": \"Carl XVI Gustaf\", \"response_time\": 2.38}")))))
-              ((role . "assistant") (content . "The current King of Sweden is **Carl XVI Gustaf**. He has been reigning since 1973 and is the longest-reigning monarch in Swedish history."))))
+           :dialog (((role . "user") (content . "who's the current king of sweden?"))
+                    ((role . "assistant") (content . (((type . "thinking") (thinking . "The user is asking about the current king of Sweden. This is a factual question that I can search for to get the most up-to-date information. I'll use the search function to find this information.")) ((type . "tool_use") (id . "toolu_01Kf8avk1cBqH5ZHoXL92Duc") (name . "search-286d2fd3") (input . ((query . "current king of Sweden 2024") (include_answer . "basic") (max_results . 3)))))))
+                    ((role . "user") (content . (((type . "tool_result") (tool_use_id . "toolu_01Kf8avk1cBqH5ZHoXL92Duc") (content . "{\"query\": \"current king of Sweden 2024\", \"answer\": \"Carl XVI Gustaf\", \"response_time\": 2.38}")))))
+                    ((role . "assistant") (content . "The current King of Sweden is **Carl XVI Gustaf**. He has been reigning since 1973 and is the longest-reigning monarch in Swedish history."))))
 
     ;; Multiple tool uses in sequence
     (:name "multiple-tool-uses"
-     :markdown "## USER:
+           :markdown "## USER:
 
 List files and read the first one
 
@@ -231,16 +231,16 @@ This is the content of file1.
 ## ASSISTANT:
 
 I found 3 files in the directory. The first file (file1.txt) contains: \"This is the content of file1.\""
-     :dialog (((role . "user") (content . "List files and read the first one"))
-              ((role . "assistant") (content . (((type . "tool_use") (id . "toolu_111") (name . "list-directory") (input . ((path . ".")))))))
-              ((role . "user") (content . (((type . "tool_result") (tool_use_id . "toolu_111") (content . "file1.txt\nfile2.txt\nREADME.md")))))
-              ((role . "assistant") (content . (((type . "tool_use") (id . "toolu_222") (name . "read-file") (input . ((path . "file1.txt")))))))
-              ((role . "user") (content . (((type . "tool_result") (tool_use_id . "toolu_222") (content . "This is the content of file1.")))))
-              ((role . "assistant") (content . "I found 3 files in the directory. The first file (file1.txt) contains: \"This is the content of file1.\""))))
+           :dialog (((role . "user") (content . "List files and read the first one"))
+                    ((role . "assistant") (content . (((type . "tool_use") (id . "toolu_111") (name . "list-directory") (input . ((path . ".")))))))
+                    ((role . "user") (content . (((type . "tool_result") (tool_use_id . "toolu_111") (content . "file1.txt\nfile2.txt\nREADME.md")))))
+                    ((role . "assistant") (content . (((type . "tool_use") (id . "toolu_222") (name . "read-file") (input . ((path . "file1.txt")))))))
+                    ((role . "user") (content . (((type . "tool_result") (tool_use_id . "toolu_222") (content . "This is the content of file1.")))))
+                    ((role . "assistant") (content . "I found 3 files in the directory. The first file (file1.txt) contains: \"This is the content of file1.\""))))
 
     ;; Tool use with multiline parameter values
     (:name "tool-use-multiline-params"
-     :markdown "## USER:
+           :markdown "## USER:
 
 Write a new Python file
 
@@ -284,26 +284,26 @@ Successfully wrote new file script.py with 85 characters.
 ## ASSISTANT:
 
 I've created a new Python script file with a basic Hello World program."
-     :dialog (((role . "user") (content . "Write a new Python file"))
-              ((role . "assistant") (content . (((type . "tool_use") (id . "toolu_789") (name . "write-new-file") (input . ((file_path . "script.py") (contents . "#!/usr/bin/env python3\n\ndef main():\n    print(\"Hello, world!\")\n\nif __name__ == \"__main__\":\n    main()") (git_commit_message . "Add new Python script")))))))
-              ((role . "user") (content . (((type . "tool_result") (tool_use_id . "toolu_789") (content . "Successfully wrote new file script.py with 85 characters.")))))
-              ((role . "assistant") (content . "I've created a new Python script file with a basic Hello World program."))))
+           :dialog (((role . "user") (content . "Write a new Python file"))
+                    ((role . "assistant") (content . (((type . "tool_use") (id . "toolu_789") (name . "write-new-file") (input . ((file_path . "script.py") (contents . "#!/usr/bin/env python3\n\ndef main():\n    print(\"Hello, world!\")\n\nif __name__ == \"__main__\":\n    main()") (git_commit_message . "Add new Python script")))))))
+                    ((role . "user") (content . (((type . "tool_result") (tool_use_id . "toolu_789") (content . "Successfully wrote new file script.py with 85 characters.")))))
+                    ((role . "assistant") (content . "I've created a new Python script file with a basic Hello World program."))))
 
     ;; Just thinking without any other content
     (:name "thinking-only"
-     :markdown "## USER:
+           :markdown "## USER:
 
 Let me think about this
 
 ## THINKING:
 
 I need to consider all the options carefully before responding."
-     :dialog (((role . "user") (content . "Let me think about this"))
-              ((role . "assistant") (content . (((type . "thinking") (thinking . "I need to consider all the options carefully before responding.")))))))
+           :dialog (((role . "user") (content . "Let me think about this"))
+                    ((role . "assistant") (content . (((type . "thinking") (thinking . "I need to consider all the options carefully before responding.")))))))
 
     ;; Tool use without any following content
     (:name "tool-use-only"
-     :markdown "## USER:
+           :markdown "## USER:
 
 Read a file
 
@@ -318,11 +318,11 @@ ID: toolu_999
 test.txt
 </tool.toolu_999>
 "
-     :dialog (((role . "user") (content . "Read a file"))
-              ((role . "assistant") (content . (((type . "tool_use") (id . "toolu_999") (name . "read-file") (input . ((path . "test.txt")))))))))
+           :dialog (((role . "user") (content . "Read a file"))
+                    ((role . "assistant") (content . (((type . "tool_use") (id . "toolu_999") (name . "read-file") (input . ((path . "test.txt")))))))))
 
     (:name "tool-use-with-tags"
-     :markdown "## USER:
+           :markdown "## USER:
 
 Read a file
 
@@ -341,8 +341,8 @@ test.txt
 foo
 </tool.toolu_999>
 "
-     :dialog (((role . "user") (content . "Read a file"))
-              ((role . "assistant") (content . (((type . "tool_use") (id . "toolu_999") (name . "read-file") (input . ((path . "test.txt\n\n## USER:\n\nfoo")))))))))
+           :dialog (((role . "user") (content . "Read a file"))
+                    ((role . "assistant") (content . (((type . "tool_use") (id . "toolu_999") (name . "read-file") (input . ((path . "test.txt\n\n## USER:\n\nfoo")))))))))
 
     ;; Tool result with empty lines preserved
     (:name "code-block-triple-backticks"
@@ -609,8 +609,15 @@ ID: srvtoolu_123
 
 The current weather in San Francisco is sunny and 72°F."
            :dialog (((role . "user") (content . "Search for current weather in San Francisco"))
-                    ((role . "assistant") (content . (((type . "server_tool_use") (id . "srvtoolu_123") (name . "web_search") (input . ((query . "current weather San Francisco"))))
-                                                      ((type . "server_tool_result") (tool_use_id . "srvtoolu_123") (content . "[{\"title\": \"Weather in San Francisco\", \"url\": \"https://weather.com/sf\", \"content\": \"Sunny, 72°F\"}]"))
+                    ((role . "assistant") (content . (((type . "server_tool_use")
+                                                       (id . "srvtoolu_123")
+                                                       (name . "web_search")
+                                                       (input . ((query . "current weather San Francisco"))))
+                                                      ((type . "server_tool_result")
+                                                       (tool_use_id . "srvtoolu_123")
+                                                       (content . (((title . "Weather in San Francisco")
+                                                                    (url . "https://weather.com/sf")
+                                                                    (content . "Sunny, 72°F")))))
                                                       ((type . "text") (text . "The current weather in San Francisco is sunny and 72°F.")))))))
 
     (:name "server-tool-use-string-result"
@@ -641,11 +648,17 @@ Sunny and warm today
 
 It looks like it's sunny and warm today!"
            :dialog (((role . "user") (content . "What's the weather like?"))
-                    ((role . "assistant") (content . (((type . "server_tool_use") (id . "srvtoolu_456") (name . "web_search") (input . ((query . "weather"))))
-                                                      ((type . "server_tool_result") (tool_use_id . "srvtoolu_456") (content . "Sunny and warm today"))
-                                                      ((type . "text") (text . "It looks like it's sunny and warm today!")))))))
+                    ((role . "assistant") (content . (((type . "server_tool_use")
+                                                       (id . "srvtoolu_456")
+                                                       (name . "web_search")
+                                                       (input . ((query . "weather"))))
+                                                      ((type . "server_tool_result")
+                                                       (tool_use_id . "srvtoolu_456")
+                                                       (content . "Sunny and warm today"))
+                                                      ((type . "text")
+                                                       (text . "It looks like it's sunny and warm today!")))))))
 
-    ;; Citation parsing test case
+    ;; Citation parsing test cases
     (:name "citations-basic"
            :markdown "## USER:
 
@@ -690,11 +703,24 @@ Title: Claude Shannon - Wikipedia
 Cited text: Claude Elwood Shannon (April 30, 1916 – February 24, 2001) was an American mathematician, electrical engineer, computer scientist, cryptographer and i...
 Encrypted index: Eo8BCioIAhgBIiQyYjQ0OWJmZi1lNm.."
            :dialog (((role . "user") (content . "When was Claude Shannon born?"))
-                    ((role . "assistant") (content . (((type . "server_tool_use") (id . "srvtoolu_01WYG3ziw53XMcoyKL4XcZmE") (name . "web_search") (input . ((query . "claude shannon birth date"))))
-                                                      ((type . "web_search_tool_result") (tool_use_id . "srvtoolu_01WYG3ziw53XMcoyKL4XcZmE") (content . "[\n  {\n    \"type\": \"web_search_result\",\n    \"url\": \"https://en.wikipedia.org/wiki/Claude_Shannon\",\n    \"title\": \"Claude Shannon - Wikipedia\",\n    \"encrypted_content\": \"EqgfCioIARgBIiQ3YTAwMjY1Mi1mZjM5LTQ1NGUtODgxNC1kNjNjNTk1ZWI3Y...\",\n    \"page_age\": \"April 30, 2025\"\n  }\n]"))
+                    ((role . "assistant") (content . (((type . "server_tool_use")
+                                                       (id . "srvtoolu_01WYG3ziw53XMcoyKL4XcZmE")
+                                                       (name . "web_search")
+                                                       (input . ((query . "claude shannon birth date"))))
+                                                      ((type . "web_search_tool_result")
+                                                       (tool_use_id . "srvtoolu_01WYG3ziw53XMcoyKL4XcZmE")
+                                                       (content . (((type . "web_search_result")
+                                                                    (url . "https://en.wikipedia.org/wiki/Claude_Shannon")
+                                                                    (title . "Claude Shannon - Wikipedia")
+                                                                    (encrypted_content . "EqgfCioIARgBIiQ3YTAwMjY1Mi1mZjM5LTQ1NGUtODgxNC1kNjNjNTk1ZWI3Y...")
+                                                                    (page_age . "April 30, 2025")))))
                                                       ((type . "text") (text . "Based on the search results, "))
                                                       ((type . "text") (text . "Claude Shannon was born on April 30, 1916, in Petoskey, Michigan")
-                                                       (citations . (((type . "web_search_result_location") (url . "https://en.wikipedia.org/wiki/Claude_Shannon") (title . "Claude Shannon - Wikipedia") (cited_text . "Claude Elwood Shannon (April 30, 1916 – February 24, 2001) was an American mathematician, electrical engineer, computer scientist, cryptographer and i...") (encrypted_index . "Eo8BCioIAhgBIiQyYjQ0OWJmZi1lNm.."))))))))))
+                                                       (citations . (((type . "web_search_result_location")
+                                                                      (url . "https://en.wikipedia.org/wiki/Claude_Shannon")
+                                                                      (title . "Claude Shannon - Wikipedia")
+                                                                      (cited_text . "Claude Elwood Shannon (April 30, 1916 – February 24, 2001) was an American mathematician, electrical engineer, computer scientist, cryptographer and i...")
+                                                                      (encrypted_index . "Eo8BCioIAhgBIiQyYjQ0OWJmZi1lNm.."))))))))))
     ))
 
 ;; Helper functions for tests
