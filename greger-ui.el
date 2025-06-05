@@ -312,13 +312,20 @@ Works when point is in a <cite> tag or in the final bibliography section."
   (cond
    ;; Point is in a cite tag
    ((greger-ui-point-in-cite-tag-p)
-    (let ((citation-bounds (greger-ui-find-citation-for-cite-tag)))
+    (let ((cite-tag (greger-ui-get-cite-tag-at-point))
+          (citation-bounds (greger-ui-find-citation-for-cite-tag)))
       (if citation-bounds
           (let ((start (car citation-bounds))
                 (end (cdr citation-bounds)))
             (if (greger-ui-citation-block-hidden-p start end)
-                (greger-ui-show-citation-block start end)
-              (greger-ui-hide-citation-block start end)))
+                (progn
+                  (greger-ui-show-citation-block start end)
+                  ;; Mark this cite tag as manually unfolded
+                  (greger-ui-mark-cite-unfolded cite-tag))
+              (progn
+                (greger-ui-hide-citation-block start end)
+                ;; Remove from manually unfolded list
+                (greger-ui-unmark-cite-unfolded cite-tag))))
         (message "No citation block found for this cite tag"))))
 
    ;; Point is in the final bibliography section
@@ -328,8 +335,14 @@ Works when point is in a <cite> tag or in the final bibliography section."
         (let ((start (car bib-bounds))
               (end (cdr bib-bounds)))
           (if (greger-ui-bibliography-hidden-p start end)
-              (greger-ui-show-final-bibliography start end)
-            (greger-ui-hide-final-bibliography start end))))))
+              (progn
+                (greger-ui-show-final-bibliography start end)
+                ;; Mark bibliography as manually shown
+                (setq greger-ui-bibliography-manually-shown t))
+            (progn
+              (greger-ui-hide-final-bibliography start end)
+              ;; Mark bibliography as manually hidden
+              (setq greger-ui-bibliography-manually-shown nil)))))))
 
    ;; Not in a cite tag or bibliography
    (t

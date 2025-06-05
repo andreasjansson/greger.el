@@ -4716,4 +4716,264 @@ Each element is (CITE-START . CITE-END) for cite tags that should remain expande
 Add variables to track manually unfolded citations
 </tool.toolu_01Ne7vzmqFWE4i4fYXTxXjdo>
 
-<!-- TOOL_RESULT_PLACEHOLDER_toolu_01Ne7vzmqFWE4i4fYXTxXjdo -->
+## TOOL RESULT:
+
+ID: toolu_01Ne7vzmqFWE4i4fYXTxXjdo
+
+<tool.toolu_01Ne7vzmqFWE4i4fYXTxXjdo>
+Successfully replaced content in /Users/andreas/projects/greger.el/greger-ui.el. Successfully staged 2 file(s) and committed with message: Add variables to track manually unfolded citations
+</tool.toolu_01Ne7vzmqFWE4i4fYXTxXjdo>
+
+## ASSISTANT:
+
+Now I need to modify the citation folding functions to track when sections are manually expanded. Let me first look at the current toggle function:
+
+## TOOL USE:
+
+Name: read-file
+ID: toolu_01189ni91QZYe3Bj9qew9pwy
+
+### path
+
+<tool.toolu_01189ni91QZYe3Bj9qew9pwy>
+greger-ui.el
+</tool.toolu_01189ni91QZYe3Bj9qew9pwy>
+
+### start-line
+
+<tool.toolu_01189ni91QZYe3Bj9qew9pwy>
+250
+</tool.toolu_01189ni91QZYe3Bj9qew9pwy>
+
+### end-line
+
+<tool.toolu_01189ni91QZYe3Bj9qew9pwy>
+290
+</tool.toolu_01189ni91QZYe3Bj9qew9pwy>
+
+## TOOL RESULT:
+
+ID: toolu_01189ni91QZYe3Bj9qew9pwy
+
+<tool.toolu_01189ni91QZYe3Bj9qew9pwy>
+  "Hide the final bibliography section with a summary."
+  (let* ((count (greger-ui-count-citations-in-section start end))
+         (header-end (save-excursion (goto-char start) (line-end-position)))
+         (content-start (save-excursion (goto-char start) (forward-line 1) (point)))
+         (overlay (make-overlay content-start end))
+         (summary-overlay (make-overlay header-end content-start)))
+
+    ;; Hide the bibliography content (but not the header)
+    (overlay-put overlay 'invisible t)
+    (overlay-put overlay 'greger-bibliography t)
+    (overlay-put overlay 'evaporate t)
+    (push overlay greger-ui-bibliography-overlays)
+
+    ;; Replace the newline after the header with our summary
+    (overlay-put summary-overlay 'display
+                 (propertize (format "\n[+%d citations, TAB to expand]\n"
+                                   count)
+                           'face 'greger-folded-citations-face))
+    (overlay-put summary-overlay 'greger-bibliography-summary t)
+    (overlay-put summary-overlay 'evaporate t)
+    (push summary-overlay greger-ui-bibliography-overlays)))
+
+(defun greger-ui-show-final-bibliography (start end)
+  "Show the final bibliography section."
+  (let ((header-end (save-excursion (goto-char start) (line-end-position)))
+        (content-start (save-excursion (goto-char start) (forward-line 1) (point))))
+    ;; Remove both content and summary overlays
+    (remove-overlays content-start end 'greger-bibliography t)
+    (remove-overlays header-end content-start 'greger-bibliography-summary t)
+    (setq greger-ui-bibliography-overlays
+          (cl-remove-if (lambda (ov)
+                          (or (not (overlay-buffer ov))
+                              (and (overlay-start ov)
+                                   (overlay-end ov)
+                                   (>= (overlay-start ov) header-end)
+                                   (<= (overlay-end ov) end))))
+                        greger-ui-bibliography-overlays))))
+
+(defun greger-ui-bibliography-hidden-p (start end)
+  "Return t if the bibliography section is hidden."
+  (let ((content-start (save-excursion (goto-char start) (forward-line 1) (point))))
+</tool.toolu_01189ni91QZYe3Bj9qew9pwy>
+
+## ASSISTANT:
+
+Let me find the toggle citation fold function:
+
+## TOOL USE:
+
+Name: read-file
+ID: toolu_013bpEcaEZ4ZmQZnFpXYyems
+
+### path
+
+<tool.toolu_013bpEcaEZ4ZmQZnFpXYyems>
+greger-ui.el
+</tool.toolu_013bpEcaEZ4ZmQZnFpXYyems>
+
+### start-line
+
+<tool.toolu_013bpEcaEZ4ZmQZnFpXYyems>
+300
+</tool.toolu_013bpEcaEZ4ZmQZnFpXYyems>
+
+### end-line
+
+<tool.toolu_013bpEcaEZ4ZmQZnFpXYyems>
+340
+</tool.toolu_013bpEcaEZ4ZmQZnFpXYyems>
+
+## TOOL RESULT:
+
+ID: toolu_013bpEcaEZ4ZmQZnFpXYyems
+
+<tool.toolu_013bpEcaEZ4ZmQZnFpXYyems>
+  "Return t if point is in the final bibliography section."
+  (let ((bib-bounds (greger-ui-find-final-bibliography)))
+    (when bib-bounds
+      (and (>= (point) (car bib-bounds))
+           (<= (point) (cdr bib-bounds))))))
+
+;;; Interactive Functions
+
+(defun greger-ui-toggle-citation-fold ()
+  "Toggle folding of citation blocks or bibliography.
+Works when point is in a <cite> tag or in the final bibliography section."
+  (interactive)
+  (cond
+   ;; Point is in a cite tag
+   ((greger-ui-point-in-cite-tag-p)
+    (let ((citation-bounds (greger-ui-find-citation-for-cite-tag)))
+      (if citation-bounds
+          (let ((start (car citation-bounds))
+                (end (cdr citation-bounds)))
+            (if (greger-ui-citation-block-hidden-p start end)
+                (greger-ui-show-citation-block start end)
+              (greger-ui-hide-citation-block start end)))
+        (message "No citation block found for this cite tag"))))
+
+   ;; Point is in the final bibliography section
+   ((greger-ui-point-in-bibliography-p)
+    (let ((bib-bounds (greger-ui-find-final-bibliography)))
+      (when bib-bounds
+        (let ((start (car bib-bounds))
+              (end (cdr bib-bounds)))
+          (if (greger-ui-bibliography-hidden-p start end)
+              (greger-ui-show-final-bibliography start end)
+            (greger-ui-hide-final-bibliography start end))))))
+
+   ;; Not in a cite tag or bibliography
+   (t
+    (message "TAB only works inside <cite> tags or in the bibliography section"))))
+
+(defun greger-ui-hide-all-citations ()
+  "Hide all citation blocks that should be folded."
+  (interactive)
+</tool.toolu_013bpEcaEZ4ZmQZnFpXYyems>
+
+## ASSISTANT:
+
+Now I need to modify the toggle function to track manual changes. Let me update it:
+
+## TOOL USE:
+
+Name: str-replace
+ID: toolu_01BRjSFR1wP9Ki6KnGCpa1nB
+
+### file-path
+
+<tool.toolu_01BRjSFR1wP9Ki6KnGCpa1nB>
+greger-ui.el
+</tool.toolu_01BRjSFR1wP9Ki6KnGCpa1nB>
+
+### original-content
+
+<tool.toolu_01BRjSFR1wP9Ki6KnGCpa1nB>
+(defun greger-ui-toggle-citation-fold ()
+  "Toggle folding of citation blocks or bibliography.
+Works when point is in a <cite> tag or in the final bibliography section."
+  (interactive)
+  (cond
+   ;; Point is in a cite tag
+   ((greger-ui-point-in-cite-tag-p)
+    (let ((citation-bounds (greger-ui-find-citation-for-cite-tag)))
+      (if citation-bounds
+          (let ((start (car citation-bounds))
+                (end (cdr citation-bounds)))
+            (if (greger-ui-citation-block-hidden-p start end)
+                (greger-ui-show-citation-block start end)
+              (greger-ui-hide-citation-block start end)))
+        (message "No citation block found for this cite tag"))))
+
+   ;; Point is in the final bibliography section
+   ((greger-ui-point-in-bibliography-p)
+    (let ((bib-bounds (greger-ui-find-final-bibliography)))
+      (when bib-bounds
+        (let ((start (car bib-bounds))
+              (end (cdr bib-bounds)))
+          (if (greger-ui-bibliography-hidden-p start end)
+              (greger-ui-show-final-bibliography start end)
+            (greger-ui-hide-final-bibliography start end))))))
+
+   ;; Not in a cite tag or bibliography
+   (t
+    (message "TAB only works inside <cite> tags or in the bibliography section"))))
+</tool.toolu_01BRjSFR1wP9Ki6KnGCpa1nB>
+
+### new-content
+
+<tool.toolu_01BRjSFR1wP9Ki6KnGCpa1nB>
+(defun greger-ui-toggle-citation-fold ()
+  "Toggle folding of citation blocks or bibliography.
+Works when point is in a <cite> tag or in the final bibliography section."
+  (interactive)
+  (cond
+   ;; Point is in a cite tag
+   ((greger-ui-point-in-cite-tag-p)
+    (let ((cite-tag (greger-ui-get-cite-tag-at-point))
+          (citation-bounds (greger-ui-find-citation-for-cite-tag)))
+      (if citation-bounds
+          (let ((start (car citation-bounds))
+                (end (cdr citation-bounds)))
+            (if (greger-ui-citation-block-hidden-p start end)
+                (progn
+                  (greger-ui-show-citation-block start end)
+                  ;; Mark this cite tag as manually unfolded
+                  (greger-ui-mark-cite-unfolded cite-tag))
+              (progn
+                (greger-ui-hide-citation-block start end)
+                ;; Remove from manually unfolded list
+                (greger-ui-unmark-cite-unfolded cite-tag))))
+        (message "No citation block found for this cite tag"))))
+
+   ;; Point is in the final bibliography section
+   ((greger-ui-point-in-bibliography-p)
+    (let ((bib-bounds (greger-ui-find-final-bibliography)))
+      (when bib-bounds
+        (let ((start (car bib-bounds))
+              (end (cdr bib-bounds)))
+          (if (greger-ui-bibliography-hidden-p start end)
+              (progn
+                (greger-ui-show-final-bibliography start end)
+                ;; Mark bibliography as manually shown
+                (setq greger-ui-bibliography-manually-shown t))
+            (progn
+              (greger-ui-hide-final-bibliography start end)
+              ;; Mark bibliography as manually hidden
+              (setq greger-ui-bibliography-manually-shown nil)))))))
+
+   ;; Not in a cite tag or bibliography
+   (t
+    (message "TAB only works inside <cite> tags or in the bibliography section"))))
+</tool.toolu_01BRjSFR1wP9Ki6KnGCpa1nB>
+
+### git-commit-message
+
+<tool.toolu_01BRjSFR1wP9Ki6KnGCpa1nB>
+Update toggle function to track manual folding state
+</tool.toolu_01BRjSFR1wP9Ki6KnGCpa1nB>
+
+<!-- TOOL_RESULT_PLACEHOLDER_toolu_01BRjSFR1wP9Ki6KnGCpa1nB -->
