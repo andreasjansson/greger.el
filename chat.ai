@@ -172,32 +172,449 @@ As <cite>the current king of Sweden is Carl XVI Gustaf, while his heir is Crown 
 
 ```
 
+I have implemented this in isolation in ~/scratch/fold-mode/assistant-cite-mode.el and it's working. Move the folding logic over to greger, and put it in a new greger-ui.el file to avoid cluttering greger.el
+
 ## ASSISTANT:
 
-I'll help you implement citation folding in your Emacs mode. Let me first explore the current codebase to understand how the existing tool content folding works.
+I'll help you implement citation folding in greger by moving the logic from your scratch folder and integrating it into a new `greger-ui.el` file. Let me first examine your existing implementation and the current greger codebase.
+
+## TOOL USE:
+
+Name: read-file
+ID: toolu_015sT1GQhD9oCZYupP7bTMVD
+
+### path
+
+<tool.toolu_015sT1GQhD9oCZYupP7bTMVD>
+~/scratch/fold-mode/assistant-cite-mode.el
+</tool.toolu_015sT1GQhD9oCZYupP7bTMVD>
+
+## TOOL RESULT:
+
+ID: toolu_015sT1GQhD9oCZYupP7bTMVD
+
+<tool.toolu_015sT1GQhD9oCZYupP7bTMVD>
+;;; assistant-cite-mode-v2.el --- A mode for handling assistant citations with folding -*- lexical-binding: t; -*-
+
+;; Copyright (C) 2024
+
+;; Author: AI Assistant
+;; Version: 2.0
+;; Package-Requires: ((emacs "25.1"))
+;; Keywords: text, citations, folding, assistant
+
+;;; Commentary:
+
+;; This mode provides automatic folding of citation blocks in assistant conversations.
+;; It folds content between <cite> tags and the final CITATIONS section.
+
+;;; Code:
+
+(require 'outline)
+(require 'cl-lib)
+
+(defgroup assistant-cite-mode nil
+  "Mode for handling assistant citations with folding."
+  :group 'text)
+
+(defface assistant-cite-tag-face
+  '((t (:foreground "#00FFFF" :weight bold)))  ; bright cyan
+  "Face for <cite> tags."
+  :group 'assistant-cite-mode)
+
+(defface assistant-header-face
+  '((t (:foreground "#FF00FF" :weight bold)))  ; bright magenta
+  "Face for ## ASSISTANT: headers."
+  :group 'assistant-cite-mode)
+
+(defface assistant-citation-header-face
+  '((t (:foreground "#FFA500" :weight bold)))  ; bright orange
+  "Face for ## CITATIONS: headers."
+  :group 'assistant-cite-mode)
+
+(defface assistant-citation-content-face
+  '((t (:foreground "#00FF00")))  ; bright green
+  "Face for citation content."
+  :group 'assistant-cite-mode)
+
+(defface assistant-folded-citations-face
+  '((t (:foreground "#FFFF00" :slant italic)))  ; bright yellow
+  "Face for folded citation summary."
+  :group 'assistant-cite-mode)
+
+(defvar assistant-cite-mode-map
+  (let ((map (make-sparse-keymap)))
+    (define-key map (kbd "TAB") 'assistant-cite-toggle-fold)
+    map)
+  "Keymap for assistant-cite-mode.")
+
+;; Font-lock keywords
+(defvar assistant-cite-mode-font-lock-keywords
+  `((,"<cite>\\([^<]*\\)</cite>"
+     (0 'assistant-cite-tag-face))
+    (,"^## ASSISTANT:$"
+     (0 'assistant-header-face))
+    (,"^## CITATIONS:$"
+     (0 'assistant-citation-header-face))
+    (assistant-cite-fontify-citation-blocks))
+  "Font-lock keywords for assistant-cite-mode.")
+
+;; Regex patterns
+(defconst assistant-cite-tag-regex "<cite>\\([^<]*\\)</cite>"
+  "Regular expression to match cite tags.")
+
+(defconst assistant-header-regex "^## ASSISTANT:$"
+  "Regular expression to match assistant headers.")
+
+(defconst assistant-citation-header-regex "^## CITATIONS:$"
+  "Regular expression to match citation headers.")
+
+;; State tracking
+(defvar-local assistant-cite-citation-overlays nil
+  "List of overlays used to hide citation blocks.")
+
+(defvar-local assistant-cite-bibliography-overlays nil
+  "List of overlays used to hide/show the final bibliography section.")
+
+(defun assistant-cite-fontify-citation-blocks (limit)
+  "Fontify citation blocks up to LIMIT."
+  (while (re-search-forward assistant-citation-header-regex limit t)
+    (let ((start (line-beginning-position))
+          (end (save-excursion
+                 (forward-line 1)
+                 (if (re-search-forward "^## " limit t)
+                     (line-beginning-position)
+                   limit))))
+      (when (< start end)
+        (put-text-property start end 'face 'assistant-citation-content-face)
+        (goto-char end))))
+  nil)
+
+(defun assistant-cite-point-in-cite-tag-p ()
+  "Return t if point is inside a <cite> tag."
+  (save-excursion
+    (let ((orig-point (point)))
+      ;; Look for cite tags on the current line
+      (beginning-of-line)
+      (catch 'found
+        (while (re-search-forward assistant-cite-tag-regex (line-end-position) t)
+          (when (and (>= orig-point (match-beginning 0))
+                     (<= orig-point (match-end 0)))
+            (throw 'found t)))
+        nil))))
+
+(defun assistant-cite-get-cite-tag-at-point ()
+  "Get the cite tag at point. Returns (START . END) or nil."
+  (save-excursion
+    (let ((orig-point (point)))
+      (beginning-of-line)
+      (catch 'found
+        (while (re-search-forward assistant-cite-tag-regex (line-end-position) t)
+          (when (and (>= orig-point (match-beginning 0))
+                     (<= orig-point (match-end 0)))
+            (throw 'found (cons (match-beginning 0) (match-end 0)))))
+        nil))))
+
+(defun assistant-cite-find-all-cite-citation-pairs ()
+  "Find all cite tag and citation block pairs in the buffer.
+Returns a list of ((CITE-START . CITE-END) . (CITATION-START . CITATION-END))."
+  (save-excursion
+    (goto-char (point-min))
+    (let (pairs)
+
+      ;; Find cite tags and their associated citation blocks
+      (while (re-search-forward assistant-cite-tag-regex nil t)
+        (let ((cite-start (match-beginning 0))
+              (cite-end (match-end 0))
+              citation-start citation-end)
+
+          ;; Citation block starts right after the cite tag (including newlines)
+          (setq citation-start cite-end)
+
+          ;; Look for the next ## CITATIONS: section after this cite tag
+          (when (re-search-forward assistant-citation-header-regex nil t)
+
+            ;; Find the end of this citation section
+            (forward-line 1)
+            (if (re-search-forward "^## " nil t)
+                (progn
+                  ;; Include the next section header and empty lines in the fold
+                  (beginning-of-line)
+                  (if (looking-at assistant-header-regex)
+                      (progn
+                        ;; Skip the ASSISTANT header
+                        (forward-line 1)
+                        ;; Skip empty lines after ASSISTANT header
+                        (while (and (not (eobp)) (looking-at "^\\s-*$"))
+                          (forward-line 1))
+                        (setq citation-end (point)))
+                    (setq citation-end (line-beginning-position))))
+              (setq citation-end (point-max)))
+
+            ;; Add this pair (include all cite-citation pairs, even if followed by final bibliography)
+            (push (cons (cons cite-start cite-end)
+                        (cons citation-start citation-end))
+                  pairs)
+
+            ;; Go back to continue searching from after the cite tag
+            (goto-char cite-end))))
+
+      (nreverse pairs))))
+
+(defun assistant-cite-find-citation-for-cite-tag ()
+  "Find the citation block associated with the cite tag at point.
+Returns (START . END) or nil."
+  (let ((cite-tag (assistant-cite-get-cite-tag-at-point)))
+    (when cite-tag
+      (let ((cite-start (car cite-tag))
+            (cite-end (cdr cite-tag))
+            (pairs (assistant-cite-find-all-cite-citation-pairs)))
+        ;; Find the pair that matches our cite tag
+        (catch 'found
+          (dolist (pair pairs)
+            (let ((pair-cite-start (car (car pair)))
+                  (pair-cite-end (cdr (car pair)))
+                  (citation-bounds (cdr pair)))
+              (when (and (= cite-start pair-cite-start)
+                         (= cite-end pair-cite-end))
+                (throw 'found citation-bounds))))
+          nil)))))
+
+(defun assistant-cite-hide-citation-block (start end)
+  "Hide citation block from START to END."
+  (let ((overlay (make-overlay start end)))
+    (overlay-put overlay 'invisible t)
+    (overlay-put overlay 'assistant-citation t)
+    (overlay-put overlay 'evaporate t)
+    (push overlay assistant-cite-citation-overlays)))
+
+(defun assistant-cite-show-citation-block (start end)
+  "Show citation block from START to END."
+  (remove-overlays start end 'assistant-citation t)
+  (setq assistant-cite-citation-overlays
+        (cl-remove-if (lambda (ov)
+                        (or (not (overlay-buffer ov))  ; Remove dead overlays
+                            (and (overlay-start ov)     ; Check overlay is valid
+                                 (overlay-end ov)
+                                 (>= (overlay-start ov) start)
+                                 (<= (overlay-end ov) end))))
+                      assistant-cite-citation-overlays)))
+
+(defun assistant-cite-citation-block-hidden-p (start end)
+  "Return t if citation block from START to END is hidden."
+  ;; First clean up dead overlays
+  (setq assistant-cite-citation-overlays
+        (cl-remove-if-not (lambda (ov)
+                            (and (overlay-buffer ov)
+                                 (overlay-start ov)
+                                 (overlay-end ov)))
+                          assistant-cite-citation-overlays))
+  ;; Then check if any overlay covers this region
+  (cl-some (lambda (ov)
+             (and (overlay-get ov 'assistant-citation)
+                  (overlay-start ov)  ; Double-check overlay is valid
+                  (overlay-end ov)
+                  (>= (overlay-start ov) start)
+                  (<= (overlay-end ov) end)))
+           assistant-cite-citation-overlays))
+
+(defun assistant-cite-toggle-fold ()
+  "Toggle folding of citation blocks or bibliography.
+Works when point is in a <cite> tag or in the final bibliography section."
+  (interactive)
+  (cond
+   ;; Point is in a cite tag
+   ((assistant-cite-point-in-cite-tag-p)
+    (let ((citation-bounds (assistant-cite-find-citation-for-cite-tag)))
+      (if citation-bounds
+          (let ((start (car citation-bounds))
+                (end (cdr citation-bounds)))
+            (if (assistant-cite-citation-block-hidden-p start end)
+                (assistant-cite-show-citation-block start end)
+              (assistant-cite-hide-citation-block start end)))
+        (message "No citation block found for this cite tag"))))
+
+   ;; Point is in the final bibliography section
+   ((assistant-cite-point-in-bibliography-p)
+    (let ((bib-bounds (assistant-cite-find-final-bibliography)))
+      (when bib-bounds
+        (let ((start (car bib-bounds))
+              (end (cdr bib-bounds)))
+          (if (assistant-cite-bibliography-hidden-p start end)
+              (assistant-cite-show-final-bibliography start end)
+            (assistant-cite-hide-final-bibliography start end))))))
+
+   ;; Not in a cite tag or bibliography
+   (t
+    (message "TAB only works inside <cite> tags or in the bibliography section"))))
+
+(defun assistant-cite-hide-all-citations ()
+  "Hide all citation blocks that should be folded."
+  (interactive)
+  (let ((pairs (assistant-cite-find-all-cite-citation-pairs)))
+    (dolist (pair pairs)
+      (let ((citation-bounds (cdr pair)))
+        (assistant-cite-hide-citation-block (car citation-bounds) (cdr citation-bounds)))))
+
+  ;; Also hide the final bibliography section
+  (let ((bib-bounds (assistant-cite-find-final-bibliography)))
+    (when bib-bounds
+      (assistant-cite-hide-final-bibliography (car bib-bounds) (cdr bib-bounds)))))
+
+(defun assistant-cite-show-all-citations ()
+  "Show all citation blocks."
+  (interactive)
+  (remove-overlays (point-min) (point-max) 'assistant-citation t)
+  (remove-overlays (point-min) (point-max) 'assistant-bibliography t)
+  (remove-overlays (point-min) (point-max) 'assistant-bibliography-summary t)
+  (setq assistant-cite-citation-overlays nil)
+  (setq assistant-cite-bibliography-overlays nil))
+
+(defun assistant-cite-find-final-bibliography ()
+  "Find the final CITATIONS section that acts as a bibliography.
+Returns (START . END) or nil if not found."
+  (save-excursion
+    (goto-char (point-max))
+    ;; Look backwards for the last CITATIONS section
+    (when (re-search-backward assistant-citation-header-regex nil t)
+      (let ((start (line-beginning-position))
+            end)
+        ;; Check if this is truly the final section (no more cite tags after it)
+        (save-excursion
+          (goto-char start)
+          (unless (re-search-forward assistant-cite-tag-regex nil t)
+            ;; This is the final bibliography
+            (goto-char start)
+            (forward-line 1)  ; Skip the header
+            (setq end (point-max))
+            (cons start end)))))))
+
+(defun assistant-cite-count-citations-in-section (start end)
+  "Count the number of citation entries in a CITATIONS section from START to END."
+  (save-excursion
+    (goto-char start)
+    (let ((count 0))
+      (while (re-search-forward "^### " end t)
+        (setq count (1+ count)))
+      count)))
+
+(defun assistant-cite-hide-final-bibliography (start end)
+  "Hide the final bibliography section with a summary."
+  (let* ((count (assistant-cite-count-citations-in-section start end))
+         (content-start (save-excursion (goto-char start) (forward-line 1) (point)))
+         (overlay (make-overlay content-start end))
+         (summary-overlay (make-overlay content-start content-start)))
+
+    ;; Hide the bibliography content (but not the header)
+    (overlay-put overlay 'invisible t)
+    (overlay-put overlay 'assistant-bibliography t)
+    (overlay-put overlay 'evaporate t)
+    (push overlay assistant-cite-bibliography-overlays)
+
+    ;; Show the summary
+    (overlay-put summary-overlay 'after-string
+                 (propertize (format "[+%d citations, TAB to expand]\n"
+                                   count)
+                           'face 'assistant-folded-citations-face))
+    (overlay-put summary-overlay 'assistant-bibliography-summary t)
+    (overlay-put summary-overlay 'evaporate t)
+    (push summary-overlay assistant-cite-bibliography-overlays)))
+
+(defun assistant-cite-show-final-bibliography (start end)
+  "Show the final bibliography section."
+  (let ((content-start (save-excursion (goto-char start) (forward-line 1) (point))))
+    (remove-overlays content-start end 'assistant-bibliography t)
+    (remove-overlays content-start end 'assistant-bibliography-summary t)
+    (setq assistant-cite-bibliography-overlays
+          (cl-remove-if (lambda (ov)
+                          (or (not (overlay-buffer ov))
+                              (and (overlay-start ov)
+                                   (overlay-end ov)
+                                   (>= (overlay-start ov) content-start)
+                                   (<= (overlay-end ov) end))))
+                        assistant-cite-bibliography-overlays))))
+
+(defun assistant-cite-bibliography-hidden-p (start end)
+  "Return t if the bibliography section is hidden."
+  (let ((content-start (save-excursion (goto-char start) (forward-line 1) (point))))
+    (cl-some (lambda (ov)
+               (and (overlay-get ov 'assistant-bibliography)
+                    (overlay-start ov)
+                    (overlay-end ov)
+                    (>= (overlay-start ov) content-start)
+                    (<= (overlay-end ov) end)))
+             assistant-cite-bibliography-overlays)))
+
+(defun assistant-cite-point-in-bibliography-p ()
+  "Return t if point is in the final bibliography section."
+  (let ((bib-bounds (assistant-cite-find-final-bibliography)))
+    (when bib-bounds
+      (and (>= (point) (car bib-bounds))
+           (<= (point) (cdr bib-bounds))))))
+
+(defun assistant-cite-cleanup-dead-overlays ()
+  "Remove dead overlays from citation overlays list."
+  (setq assistant-cite-citation-overlays
+        (cl-remove-if-not (lambda (ov)
+                            (and (overlay-buffer ov)
+                                 (overlay-start ov)
+                                 (overlay-end ov)))
+                          assistant-cite-citation-overlays))
+  (setq assistant-cite-bibliography-overlays
+        (cl-remove-if-not (lambda (ov)
+                            (and (overlay-buffer ov)
+                                 (overlay-start ov)
+                                 (overlay-end ov)))
+                          assistant-cite-bibliography-overlays)))
+
+;;;###autoload
+(define-derived-mode assistant-cite-mode text-mode "AssistCite"
+  "Major mode for editing assistant conversations with citation folding.
+
+\\{assistant-cite-mode-map}"
+  :group 'assistant-cite-mode
+
+  ;; Set up font-lock
+  (setq font-lock-defaults '(assistant-cite-mode-font-lock-keywords t))
+
+  ;; Clean up any existing overlays first
+  (assistant-cite-cleanup-dead-overlays)
+
+  ;; Initially hide appropriate citation blocks
+  (assistant-cite-hide-all-citations)
+
+  ;; Add hook to clean up overlays when buffer is killed
+  (add-hook 'kill-buffer-hook #'assistant-cite-show-all-citations nil t))
+
+;; Auto-mode setup
+;;;###autoload
+(add-to-list 'auto-mode-alist '("\\.acite\\'" . assistant-cite-mode))
+
+(provide 'assistant-cite-mode)
+
+;;; assistant-cite-mode-v2.el ends here
+</tool.toolu_015sT1GQhD9oCZYupP7bTMVD>
+
+## ASSISTANT:
+
+Now let me examine the current greger codebase to understand its structure:
 
 ## TOOL USE:
 
 Name: list-directory
-ID: toolu_01NKN1v8Y5tEpp2xK66cszmj
+ID: toolu_018h66JsLMV4w2DJPUUHLoRW
 
 ### path
 
-<tool.toolu_01NKN1v8Y5tEpp2xK66cszmj>
+<tool.toolu_018h66JsLMV4w2DJPUUHLoRW>
 .
-</tool.toolu_01NKN1v8Y5tEpp2xK66cszmj>
-
-### recursive
-
-<tool.toolu_01NKN1v8Y5tEpp2xK66cszmj>
-true
-</tool.toolu_01NKN1v8Y5tEpp2xK66cszmj>
+</tool.toolu_018h66JsLMV4w2DJPUUHLoRW>
 
 ## TOOL RESULT:
 
-ID: toolu_01NKN1v8Y5tEpp2xK66cszmj
+ID: toolu_018h66JsLMV4w2DJPUUHLoRW
 
-<tool.toolu_01NKN1v8Y5tEpp2xK66cszmj>
+<tool.toolu_018h66JsLMV4w2DJPUUHLoRW>
 ./:
 drwxr-xr-x  (dir)  .
 drwxr-xr-x  (dir)  ..
@@ -208,7 +625,7 @@ drwxr-xr-x  (dir)  .github
 -rw-r--r--         5  .gitignore
 -rw-r--r--      1071  LICENSE
 -rw-r--r--      3218  README.md
--rw-r--r--    236404  chat.ai
+-rw-r--r--     91288  chat.ai
 -rw-r--r--      2242  debug-citations-immediate.el
 -rw-r--r--      1837  debug-citations-verbose.el
 -rw-r--r--     37877  fix-tests.grgr
@@ -217,65 +634,41 @@ drwxr-xr-x  (dir)  .github
 -rw-r--r--     53804  greger-stdlib.el
 -rw-r--r--     15226  greger-tools.el
 -rw-r--r--      4171  greger-web.el
--rw-r--r--     41324  greger.el
+-rw-r--r--     41640  greger.el
 drwxr-xr-x  (dir)  recipes
 drwxr-xr-x  (dir)  script
 drwxr-xr-x  (dir)  test
 -rw-r--r--      1736  test-citations-output.el
-
-./.github/:
-drwxr-xr-x  (dir)  .
-drwxr-xr-x  (dir)  ..
-drwxr-xr-x  (dir)  workflows
-
-./.github/workflows/:
-drwxr-xr-x  (dir)  .
-drwxr-xr-x  (dir)  ..
--rw-r--r--      1376  ci.yml
-
-./recipes/:
-drwxr-xr-x  (dir)  .
-drwxr-xr-x  (dir)  ..
--rw-r--r--        88  greger
-
-./script/:
-drwxr-xr-x  (dir)  .
-drwxr-xr-x  (dir)  ..
--rwxr-xr-x      1175  lint
--rwxr-xr-x      7486  test
-
-./test/:
-drwxr-xr-x  (dir)  .
-drwxr-xr-x  (dir)  ..
--rw-r--r--     12348  request.json
--rw-r--r--     15332  test-end-to-end.el
--rw-r--r--      8035  test-greger-client.el
--rw-r--r--     63494  test-greger-parser.el
--rw-r--r--     37616  test-greger-stdlib.el
--rw-r--r--     35810  test-greger-tools.el
--rw-r--r--     19693  test-greger.el
-</tool.toolu_01NKN1v8Y5tEpp2xK66cszmj>
-
-## ASSISTANT:
-
-Let me look at the main greger.el file to understand how tool content folding is currently implemented:
+</tool.toolu_018h66JsLMV4w2DJPUUHLoRW>
 
 ## TOOL USE:
 
 Name: read-file
-ID: toolu_01F2xhYZP8D3yuWjyjL55TeA
+ID: toolu_01PEyPdnzBqoeLnbu69xTXMz
 
 ### path
 
-<tool.toolu_01F2xhYZP8D3yuWjyjL55TeA>
+<tool.toolu_01PEyPdnzBqoeLnbu69xTXMz>
 greger.el
-</tool.toolu_01F2xhYZP8D3yuWjyjL55TeA>
+</tool.toolu_01PEyPdnzBqoeLnbu69xTXMz>
+
+### start-line
+
+<tool.toolu_01PEyPdnzBqoeLnbu69xTXMz>
+1
+</tool.toolu_01PEyPdnzBqoeLnbu69xTXMz>
+
+### end-line
+
+<tool.toolu_01PEyPdnzBqoeLnbu69xTXMz>
+50
+</tool.toolu_01PEyPdnzBqoeLnbu69xTXMz>
 
 ## TOOL RESULT:
 
-ID: toolu_01F2xhYZP8D3yuWjyjL55TeA
+ID: toolu_01PEyPdnzBqoeLnbu69xTXMz
 
-<tool.toolu_01F2xhYZP8D3yuWjyjL55TeA>
+<tool.toolu_01PEyPdnzBqoeLnbu69xTXMz>
 ;;; greger.el --- Chat with language models -*- lexical-binding: t -*-
 
 ;; Copyright (C) 2023 Andreas Jansson
@@ -326,1620 +719,599 @@ ID: toolu_01F2xhYZP8D3yuWjyjL55TeA
     claude-opus-4-20250514)
   "List of available models.")
 
-(defcustom greger-model 'claude-sonnet-4-20250514
-  "The currently used model."
-  :type `(choice ,@(mapcar (lambda (model) `(const ,model)) greger-available-models))
-  :group 'greger)
-
-(defcustom greger-default-system-prompt "You are a helpful assistant."
-  "Default system prompt used for AI interactions."
-  :type 'string
-  :group 'greger)
-
-(defcustom greger-temperature 0.8
-  "Sampling temperature between 0 and 1."
-  :type 'float
-  :group 'greger)
-
-;; Tool configuration and agent functionality
-
-(defun greger--default-tools ()
-  "Return default tools list, including LSP tools if available."
-  (let ((base-tools '("read-file" "list-directory" "str-replace" "insert" "write-new-file" "replace-file" "make-directory" "rename-file" "ripgrep" "git-log" "git-show-commit" "shell-command" "read-webpage" "delete-files"))
-        (lsp-tools '("lsp-rename" "lsp-find-definition" "lsp-find-references" "lsp-format" "lsp-document-symbols")))
-    (if (and (boundp 'greger--lsp-available) greger--lsp-available)
-        (append base-tools lsp-tools)
-      base-tools)))
-
-(defcustom greger-tools (greger--default-tools)
-  "List of tools available to the agent."
-  :type '(repeat symbol)
-  :group 'greger)
-
-(defcustom greger-server-tools '("web_search")
-  "List of server tools available to the agent (e.g., web_search)."
-  :type '(repeat symbol)
-  :group 'greger)
-
-(defcustom greger-max-iterations 100
-  "Maximum number of agent iterations before stopping."
-  :type 'integer
-  :group 'greger)
-
-(defcustom greger-debug nil
-  "Whether to show debug information."
-  :type 'boolean
-  :group 'greger)
-
-;;; Agent state structure
-
-(cl-defstruct greger-state
-  current-iteration
-  chat-buffer
-  directory
-  metadata
-  client-state
-  executing-tools)
-
-(defvar greger-user-tag "## USER:")
-(defvar greger-assistant-tag "## ASSISTANT:")
-(defvar greger-system-tag "## SYSTEM:")
-
-;; Tool section collapsing variables
-(defvar greger-tool-section-max-lines 4
-  "Maximum number of lines to show in collapsed tool sections.")
-
-(defvar-local greger-tool-overlays nil
-  "List of overlays used for collapsible tool sections.")
-
-(defvar-local greger--current-state nil
-  "Buffer-local variable to track the current state.")
-
-(defvar-local greger--buffer-read-only-by-greger nil
-  "Buffer-local variable to track if buffer is read-only due to greger activity.")
-
-(defvar-local greger--unfolded-tool-ids nil
-  "List of tool IDs that have been manually unfolded.
-These tool IDs should not be auto-folded again.")
-
-;; Face definitions for tool tags
-(defface greger-tool-tag-face
-  '((t :height 0.6 :foreground "gray70"))
-  "Face for tool opening and closing tags."
-  :group 'greger)
-
-(defface greger-tool-content-face
-  '((t :inherit default))
-  "Face for tool content."
-  :group 'greger)
-
-(defface greger-tool-param-heading-face
-  '((t :foreground "#6699CC" :weight bold :height 1.0))
-  "Face for ### tool parameter headings in greger mode."
-  :group 'greger)
-
-(defface greger-user-heading-face
-  '((t :foreground "#66DD66" :weight bold :height 1.2))
-  "Face for ## USER: headings in greger mode."
-  :group 'greger)
-
-(defface greger-tool-result-heading-face
-  '((t :foreground "#66AA88" :weight bold :height 1.2))
-  "Face for ## TOOL RESULT: headings in greger mode."
-  :group 'greger)
-
-(defface greger-assistant-heading-face
-  '((t :foreground "#AA9922" :weight bold :height 1.2))
-  "Face for ## ASSISTANT: headings in greger mode."
-  :group 'greger)
-
-(defface greger-thinking-heading-face
-  '((t :foreground "#9966CC" :weight bold :height 1.2))
-  "Face for ## THINKING: headings in greger mode."
-  :group 'greger)
-
-(defface greger-tool-use-heading-face
-  '((t :foreground "#8866BB" :weight bold :height 1.2))
-  "Face for ## TOOL USE: headings in greger mode."
-  :group 'greger)
-
-(defface greger-system-heading-face
-  '((t :foreground "#CC6666" :weight bold :height 1.2))
-  "Face for ## SYSTEM: headings in greger mode."
-  :group 'greger)
-
-(defvar greger-mode-map
-  (let ((map (make-sparse-keymap)))
-    (define-key map (kbd "M-<return>") #'greger-buffer)
-    (define-key map (kbd "C-M-<return>") #'greger-buffer-no-tools)
-    (define-key map (kbd "C-g") #'greger-interrupt)
-    (define-key map (kbd "C-; a") #'greger-insert-assistant-tag)
-    (define-key map (kbd "C-; u") #'greger-insert-user-tag)
-    (define-key map (kbd "C-; s") #'greger-insert-system-tag)
-    (define-key map (kbd "C-; i") #'greger-insert-include)
-    (define-key map (kbd "C-; I") #'greger-insert-include-code)
-    (define-key map (kbd "C-; f") #'greger-insert-include-file)
-    (define-key map (kbd "C-; b") #'greger-insert-include-buffer-code)
-    (define-key map (kbd "C-; m") #'greger-set-model)
-    (define-key map (kbd "C-; c") #'greger-copy-code)
-    (define-key map (kbd "C-; d") #'greger-debug-request)
-    (define-key map (kbd "TAB") #'greger-toggle-tool-section)
-    (define-key map (kbd "<tab>") #'greger-toggle-tool-section)
-    map)
-  "Keymap for `greger-mode'.")
-
-(define-derived-mode greger-mode gfm-mode "Greger"
-  "Major mode for interacting with AI."
-  (use-local-map greger-mode-map)
-  (setq-local markdown-fontify-code-blocks-natively t)
-  (setq-local mode-line-misc-info '(:eval (greger--mode-line-info)))
-  ;; Set up invisible text for tool sections
-  (add-to-invisibility-spec 'greger-tool-section)
-  ;; Set up tool section highlighting and collapsing
-  (greger--setup-tool-sections)
-  ;; Set up custom heading font-lock
-  (greger--setup-heading-font-lock)
-  ;; Add hook to update tool sections when buffer changes
-  (add-hook 'after-change-functions #'greger--after-change-function nil t)
-  ;; Add font-lock hook for immediate tool tag styling
-  (add-hook 'font-lock-extend-region-functions #'greger--extend-font-lock-region nil t))
-
-;;;###autoload
-(defun greger ()
-  "Create a new buffer and switch to `greger-mode`."
-  (interactive)
-  (let ((buffer (generate-new-buffer "*greger*")))
-    (switch-to-buffer buffer)
-    (greger-mode)
-    (insert greger-system-tag
-            "\n\n" greger-default-system-prompt "\n\n"
-            greger-user-tag
-            "\n\n")
-    (message "Using model %s" greger-model)))
-
-(defun greger-insert-assistant-tag ()
-  "Insert the assistant tag into the buffer."
-  (interactive)
-  (insert greger-assistant-tag "\n\n"))
-
-(defun greger-insert-user-tag ()
-  "Insert the user tag into the buffer."
-  (interactive)
-  (insert greger-user-tag "\n\n"))
-
-(defun greger-insert-system-tag ()
-  "Insert the system tag into the buffer."
-  (interactive)
-  (insert greger-system-tag "\n\n"))
-
-(defun greger-interrupt ()
-  "Interrupt ongoing generation if active, otherwise call `keyboard-quit'."
-  (interactive)
-
-  (let* ((buffer (current-buffer))
-         (state (buffer-local-value 'greger--current-state buffer)))
-    (cond
-     ;; If there's an active client state, cancel the streaming request
-     ((and state (greger-state-client-state state))
-      (greger-client--cancel-request (greger-state-client-state state))
-      (setf (greger-state-client-state state) nil)
-      (greger--update-buffer-state)
-      'generating)
-     ;; If there are executing tools, cancel them
-     ((and state
-           (greger-state-executing-tools state)
-           (> (hash-table-count (greger-state-executing-tools state)) 0))
-      (let ((executing-tools (greger-state-executing-tools state)))
-        (maphash (lambda (_tool-id greger-tool)
-                   (let ((cancel-fn (greger-tool-cancel-fn greger-tool)))
-                     (when (functionp cancel-fn)
-                       (funcall cancel-fn))))
-                 executing-tools)
-        (greger--update-buffer-state))
-      'executing)
-     ;; Default case: call keyboard-quit
-     (t
-      (keyboard-quit)
-      'idle))))
-
-(defun greger-buffer-no-tools ()
-  "Send the buffer content to AI as a dialog without tool use."
-  (interactive)
-  (let ((greger-tools '()))
-    (greger-buffer)))
-
-(defun greger-insert-include ()
-  "Prompt the user to select a file and insert an <include> at point."
-  (interactive)
-  (let ((file (read-string "Filename or URL: ")))
-    (insert (format "<include>%s</include>\n\n" file))))
-
-(defun greger-insert-include-file ()
-  "Prompt the user to select a file and insert an <include> at point."
-  (interactive)
-  (let ((file (expand-file-name (read-file-name "Select file: " nil nil t))))
-    (if (file-exists-p file)
-        (insert (format "<include>%s</include>\n\n" file))
-      (message "File does not exist!"))))
-
-(defun greger-insert-include-code ()
-  "Prompt the user to select a file and insert an <include> at point."
-  (interactive)
-  (let ((file (read-string "Filename or URL: ")))
-    (insert (format "<include code>%s</include>\n\n" file))))
-
-(defun greger-insert-include-buffer-code ()
-  "Prompt the user to select a buffer and insert an <include code> at point."
-  (interactive)
-  (let ((buffer-name (read-buffer "Select buffer: " nil t)))
-    (when buffer-name
-      (let ((buffer (get-buffer buffer-name)))
-        (when buffer
-          (let ((path (buffer-file-name buffer)))
-            (insert (format "<include code>%s</include>\n\n" path))))))))
-
-(defun greger-copy-code ()
-  "Copy the current code block under point."
-  (interactive)
-  (let ((code-block (greger--get-current-code-block)))
-    (if code-block
-        (progn
-          (kill-new code-block)
-          (message "Copied code: %s" (greger--truncate-with-ellipsis code-block 40)))
-      (error "Point is not inside a code block"))))
-
-(defun greger-set-model ()
-  "Set the current model."
-  (interactive)
-  (let ((model (completing-read "Choose model: " greger-available-models nil t)))
-    (customize-set-variable 'greger-model (intern model))
-    (message "Model set to %s" model)))
-
-(defun greger-debug-request ()
-  "Debug the request data by parsing the buffer and saving the request data output."
-  (interactive)
-  (let* ((filename (read-string "Save to filename (default: request.json): " nil nil "request.json"))
-         (buffer-content (buffer-substring-no-properties (point-min) (point-max)))
-         (parse-result (greger-parser-parse-dialog buffer-content))
-         (dialog (plist-get parse-result :messages))
-         (tools (when greger-tools
-                  (greger-tools-get-schemas greger-tools)))
-         (model greger-model)
-         (request-data nil))
-
-    (unless dialog
-      (error "Failed to parse dialog. Check your buffer format"))
-
-    ;; Get server tools
-    (let ((server-tools (when greger-server-tools
-                          (greger-server-tools-get-schemas greger-server-tools))))
-      ;; Get the JSON request data using the new client
-      (setq request-data (greger-client--build-data model dialog tools server-tools)))
-
-    ;; Parse the JSON and re-encode with proper formatting
-    (condition-case err
-        (let* ((parsed-json (json-read-from-string request-data)))
-          ;; Write to file with proper indentation
-          (with-temp-file filename
-            (let ((json-encoding-pretty-print t))
-              (insert (json-encode parsed-json))))
-          (message "Request data saved to %s" filename))
-      (error
-       ;; Fallback: just save the raw JSON string if parsing fails
-       (with-temp-file filename
-         (insert request-data))
-       (message "Request data saved to %s (raw format due to parsing error: %s)"
-                filename (error-message-string err))))))
-
-;; Main buffer function with agent functionality
-
-(defun greger-buffer ()
-  "Send buffer content to AI as an agent dialog with tool support."
-  (interactive)
-  (let* ((buffer-content (buffer-substring-no-properties (point-min) (point-max)))
-         (parse-result (greger-parser-parse-dialog buffer-content))
-         (dialog (plist-get parse-result :messages))
-         (metadata (plist-get parse-result :metadata)))
-    (unless dialog
-      (error "Failed to parse dialog. Did you forget to close a html tag?"))
-
-    (goto-char (point-max))
-
-    (let ((state (make-greger-state
-                        :current-iteration 0
-                        :chat-buffer (current-buffer)
-                        :directory default-directory
-                        :metadata metadata)))
-
-      (greger--debug "--- DIALOG --- %s" dialog)
-      (greger--debug "=== STARTING AGENT SESSION ===")
-
-      (greger--run-agent-loop state))))
-
-(defun greger--debug (format-string &rest args)
-  "Debug logging function.
-FORMAT-STRING is the format string.
-ARGS are arguments to format."
-  (when greger-debug
-    (message "[GREGER DEBUG] %s" (apply #'format format-string args))))
-
-(defun greger--get-current-state ()
-  "Get the current greger state: \='idle, \='generating, or \='executing."
-  (let ((state (buffer-local-value 'greger--current-state (current-buffer))))
-    (cond
-     ;; Check if we're generating (client-state is active)
-     ((and state (greger-state-client-state state))
-      'generating)
-     ;; Check if we're executing tools
-     ((and state
-           (greger-state-executing-tools state)
-           (> (hash-table-count (greger-state-executing-tools state)) 0))
-      'executing)
-     ;; Otherwise we're idle
-     (t 'idle))))
-
-(defun greger--mode-line-info ()
-  "Generate mode line information showing model and current state."
-  (let ((state (greger--get-current-state))
-        (model-name (symbol-name greger-model)))
-    (concat model-name
-            (pcase state
-              ('generating " [Generating]")
-              ('executing " [Executing]")
-              ('idle "")))))
-
-(defun greger--set-buffer-read-only (read-only)
-  "Set buffer read-only state for greger operations.
-READ-ONLY is t to make read-only, nil to make writable."
-  (if read-only
-      (unless greger--buffer-read-only-by-greger
-        (setq greger--buffer-read-only-by-greger t)
-        (setq buffer-read-only t))
-    (when greger--buffer-read-only-by-greger
-      (setq greger--buffer-read-only-by-greger nil)
-      (setq buffer-read-only nil))))
-
-(defun greger--update-buffer-state ()
-  "Update buffer read-only state based on current greger state."
-  (let ((state (greger--get-current-state)))
-    (greger--set-buffer-read-only (not (eq state 'idle)))
-    ;; Force mode line update
-    (force-mode-line-update)))
-
-(defun greger--run-agent-loop (state)
-  "Run the main agent loop with AGENT-STATE."
-  (let* ((tools (greger-tools-get-schemas greger-tools))
-         (server-tools (when greger-server-tools
-                         (greger-server-tools-get-schemas greger-server-tools)))
-         (chat-buffer (greger-state-chat-buffer state))
-         (buffer-content (with-current-buffer chat-buffer
-                           (buffer-substring-no-properties (point-min) (point-max))))
-         (parse-result (greger-parser-parse-dialog buffer-content))
-         (current-dialog (plist-get parse-result :messages))
-         (current-iteration (greger-state-current-iteration state)))
-
-    (greger--debug "=== ITERATION %d ===" current-iteration)
-    (greger--debug "Dialog length: %d messages" (length current-dialog))
-
-    ;; Check max iterations
-    (when (>= current-iteration greger-max-iterations)
-      (error "Maximum iterations (%d) reached, stopping agent execution" greger-max-iterations))
-
-    ;; Get Claude's response
-    (greger--debug "CALLING greger-client-stream...")
-    (let ((client-state (greger-client-stream
-                         :model greger-model
-                         :dialog current-dialog
-                         :tools tools
-                         :server-tools server-tools
-                         :buffer chat-buffer
-                         :block-start-callback (lambda (content-block) (greger--append-streaming-content-header state content-block))
-                         :text-delta-callback (lambda (text) (greger--append-text state text))
-                         :block-stop-callback (lambda (type content-block) (greger--append-nonstreaming-content-block state type content-block))
-                         :complete-callback (lambda (content-blocks) (greger--handle-stream-completion state content-blocks)))))
-      ;; Store the client state for potential cancellation
-      (setf (greger-state-client-state state) client-state)
-      ;; Set buffer-local variable for greger-interrupt to access
-      (with-current-buffer chat-buffer
-        (setq greger--current-state state) ;; TODO: why do we set that _here_? Or should it be greger--current-client-state instead?
-        (greger--update-buffer-state)))))
-
-(defun greger--append-streaming-content-header (state content-block)
-  ;; TODO: remove debug
-  (let ((type (alist-get 'type content-block))
-        (has-citations (greger-parser--content-block-has-citations content-block)))
-   (cond
-    ((and (string= type "text") (not has-citations))
-     ;; TODO: remove debug
-
-     (greger--append-text state (concat "\n\n" greger-parser-assistant-tag "\n\n")))
-    ((string= type "thinking")
-     (greger--append-text state (concat "\n\n" greger-parser-thinking-tag "\n\n")))
-    (t nil))))
-
-(defun greger--handle-stream-completion (state content-blocks)
-  (let ((tool-calls (greger--extract-tool-calls content-blocks))
-        (citations (greger--extract-citations content-blocks)))
-
-    ;; Process citations if any
-    (when citations
-      (greger--debug "CITATIONS DETECTED! Found %d citation blocks" (length citations))
-      (greger--append-citations-markdown state citations))
-
-    ;; TODO: remove debug
-    (if tool-calls
-        (progn
-          (greger--debug "TOOL USE DETECTED! Found %d tool calls" (length tool-calls))
-          (setf (greger-state-current-iteration state)
-                (1+ (greger-state-current-iteration state)))
-          ;; TODO: execute tool calls in greger--append-content-block instead
-          (greger--execute-tools tool-calls state))
-      (progn
-        (greger--debug "NO TOOL USE - CONVERSATION COMPLETE")
-        (greger--finish-response state))))
-
-  (with-current-buffer (greger-state-chat-buffer state)
-    (greger--update-buffer-state)))
-
-(defun greger--content-block-supports-streaming (content-block)
-  (let ((type (alist-get 'type content-block))
-        (has-citations (alist-get 'citations content-block)))
-    (and (or (string= type "text") (string= type "thinking"))
-         (not has-citations))))
-
-(defun greger--append-nonstreaming-content-block (state type content-block)
-  (greger--debug "CONTENT BLOCK: %s" content-block)
-
-  (unless (greger--content-block-supports-streaming content-block)
-
-   (let ((markdown (greger-parser--block-to-markdown content-block)))
-     (greger--append-text
-      state (concat (unless (greger-parser--content-block-has-citations content-block) "\n\n")
-                    markdown)))
-
-   (when (string= type "tool_use")
-     (let ((tool-id (alist-get 'id content-block)))
-       (greger--append-text state (concat "\n\n" (greger--tool-placeholder tool-id)))))
-
-   ;; Update buffer state after client completes
-   (with-current-buffer (greger-state-chat-buffer state)
-     (greger--update-buffer-state))))
-
-(defun greger--extract-tool-calls (content-blocks)
-  "Extract tool calls from CONTENT-BLOCKS."
-  (let ((tool-calls '()))
-    (dolist (block content-blocks)
-      (when (string= (alist-get 'type block) "tool_use")
-        (greger--debug "EXTRACTING TOOL CALL: %s with input: %s"
-                      (alist-get 'name block)
-                      (json-encode (alist-get 'input block)))
-        (push block tool-calls)))
-    (reverse tool-calls)))
-
-(defun greger--extract-citations (content-blocks)
-  "Extract all citations from CONTENT-BLOCKS."
-  (let ((all-citations '()))
-    (dolist (block content-blocks)
-      (let ((citations (alist-get 'citations block)))
-        (when citations
-          (setq all-citations (append all-citations citations)))))
-    all-citations))
-
-(defun greger--append-citations-markdown (state citations)
-  "Append citations as markdown to the buffer using STATE and CITATIONS list."
-  (when citations
-    (let ((citations-markdown (greger--format-citations-as-markdown citations)))
-      (greger--append-text state (concat "\n\n" citations-markdown)))))
-
-(defun greger--format-citations-as-markdown (citations)
-  "Format CITATIONS list as markdown according to the greger citation format."
-  (when citations
-    (concat greger-parser-citations-tag "\n\n"
-            (mapconcat #'greger--format-single-citation-as-markdown citations "\n\n"))))
-
-(defun greger--format-single-citation-as-markdown (citation)
-  "Format a single CITATION as markdown."
-  (let ((url (alist-get 'url citation))
-        (title (alist-get 'title citation))
-        (cited-text (alist-get 'cited_text citation))
-        (encrypted-index (alist-get 'encrypted_index citation)))
-    (concat "### " url "\n\n"
-            "Title: " title "\n"
-            "Cited text: " cited-text "\n"
-            "Encrypted index: " encrypted-index)))
-
-(defun greger--tool-placeholder (tool-id)
-  "Generate placeholder string for TOOL-ID."
-  (format "<!-- TOOL_RESULT_PLACEHOLDER_%s -->" tool-id))
-
-(defun greger--execute-tools (tool-calls state)
-  "Execute TOOL-CALLS using AGENT-STATE in parallel with callbacks."
-  (let* ((total-tools (length tool-calls))
-         (completed-tools 0)
-         (executing-tools-map (make-hash-table :test 'equal)))
-
-    ;; Initialize executing-tools in state if not already set
-    (unless (greger-state-executing-tools state)
-      (setf (greger-state-executing-tools state) executing-tools-map))
-
-    ;; Update buffer state to show we're executing tools
-    (with-current-buffer (greger-state-chat-buffer state)
-      (greger--update-buffer-state))
-
-    ;; First, display the tool calls and reserve space for each tool's output
-    (with-current-buffer (greger-state-chat-buffer state)
-      (let ((inhibit-read-only t))
-        (goto-char (point-max))
-
-        ;; Display each tool call followed by its placeholder
-        ;; (dolist (tool-call tool-calls)
-        ;;   (let ((tool-id (alist-get 'id tool-call))
-        ;;         (tool-block-markdown (greger-parser--content-blocks-to-markdown (list tool-call))))
-        ;;     (unless (string-empty-p tool-block-markdown)
-        ;;       (insert "\n\n" tool-block-markdown))
-        ;;     (insert "\n\n" (greger--tool-placeholder tool-id))))
-        ))
-
-    ;; Execute all tools in parallel
-    (dolist (tool-call tool-calls)
-      (let* ((tool-name (alist-get 'name tool-call))
-             (tool-input (alist-get 'input tool-call))
-             (tool-id (alist-get 'id tool-call))
-             (default-directory (greger-state-directory state))
-
-             ;; TODO: This is ugly, we really should be separating the creation and execution of tools
-             ;; We're only doing this because for synchronous tools we can't set the tool in the
-             ;; hashmap after execution, because sync tools have already removed the key then.
-             (placeholder-tool (make-greger-tool :cancel-fn nil)))
-
-        (puthash tool-id placeholder-tool (greger-state-executing-tools state))
-
-        (greger--update-buffer-state)
-        (sit-for 0.001) ;; update the buffer state
-
-        (let ((greger-tool (greger-tools-execute
-                            :tool-name tool-name
-                            :args tool-input
-                            :callback (lambda (result error)
-                                        ;; Remove tool from executing-tools when complete
-                                        (remhash tool-id (greger-state-executing-tools state))
-
-                                        (greger--handle-tool-completion
-                                         :tool-id tool-id
-                                         :result result
-                                         :error error
-                                         :state state
-                                         :completion-callback (lambda ()
-                                                                (setq completed-tools (1+ completed-tools))
-                                                                (when (= completed-tools total-tools)
-                                                                  (greger--run-agent-loop state)))))
-                            :buffer (greger-state-chat-buffer state)
-                            :metadata (greger-state-metadata state))))
-
-          ;; TODO: here again, it's ugly
-          (when (greger-tool-cancel-fn greger-tool)
-            (puthash tool-id greger-tool (greger-state-executing-tools state))))))))
-
-(defun greger--append-text (state text)
-  "Append TEXT to the chat buffer in AGENT-STATE."
-  (with-current-buffer (greger-state-chat-buffer state)
-    (let ((inhibit-read-only t))
-      (goto-char (point-max))
-      (insert text))))
-
-(cl-defun greger--handle-tool-completion (&key tool-id result error state completion-callback)
-  "Handle completion of a tool execution by updating buffer and calling callback.
-TOOL-ID is the tool identifier.
-RESULT is the tool execution result.
-ERROR is any error that occurred.
-AGENT-STATE contains the current agent state.
-COMPLETION-CALLBACK is called when complete."
-  (let ((tool-result (if error
-                        `((type . "tool_result")
-                          (tool_use_id . ,tool-id)
-                          (content . ,(if (stringp error)
-                                         error
-                                       (format "Error executing tool: %s" (error-message-string error))))
-                          (is_error . t))
-                      `((type . "tool_result")
-                        (tool_use_id . ,tool-id)
-                        (content . ,result)))))
-
-    ;; Update the buffer at the correct position
-    (with-current-buffer (greger-state-chat-buffer state)
-      (let ((inhibit-read-only t))
-        (save-excursion
-          (goto-char (point-max))
-          ;; Find and replace the placeholder
-          (when (search-backward (greger--tool-placeholder tool-id) nil t)
-            (replace-match "")
-            (let ((result-markdown (greger-parser--content-blocks-to-markdown (list tool-result))))
-              (unless (string-empty-p result-markdown)
-                (insert result-markdown)))))))
-
-    ;; Update buffer state after tool completion
-    (with-current-buffer (greger-state-chat-buffer state)
-      (greger--update-buffer-state))
-
-    ;; Call completion callback
-    (funcall completion-callback)))
-
-(defun greger--finish-response (state)
-  "Finish the agent response using AGENT-STATE."
-  (greger--debug "=== FINISHING RESPONSE - CONVERSATION COMPLETE ===")
-  (with-current-buffer (greger-state-chat-buffer state)
-    (let ((inhibit-read-only t))
-      (goto-char (point-max))
-      (unless (looking-back (concat greger-user-tag "\n\n") nil)
-        (insert "\n\n" greger-user-tag "\n\n")))
-    ;; Clear the buffer-local agent state
-    (setq greger--current-state nil)
-    ;; Update buffer state to idle
-    (greger--update-buffer-state))
-  ;; Reset the state
-  (setf (greger-state-current-iteration state) 0)
-  (setf (greger-state-client-state state) nil))
-
-(defun greger-toggle-debug ()
-  "Toggle debug output."
-  (interactive)
-  (setq greger-debug (not greger-debug))
-  (message "Greger debug %s" (if greger-debug "enabled" "disabled")))
-
-;; Tool section collapsing functions
-
-(defun greger--setup-tool-sections ()
-  "Set up tool section highlighting and collapsing in the current buffer."
-  (greger--clear-tool-overlays)
-  (greger--find-and-setup-tool-sections))
-
-(defun greger--clear-tool-overlays ()
-  "Clear all tool section overlays in the current buffer."
-  (cl-loop for overlay in greger-tool-overlays
-           do (delete-overlay overlay))
-  (setq greger-tool-overlays nil))
-
-(defun greger--find-and-setup-tool-sections ()
-  "Find all tool sections and set them up with appropriate faces and collapsing."
-  (save-excursion
-    (goto-char (point-min))
-    (cl-loop while (re-search-forward "<tool\\.[^>]+>" nil t)
-             do (greger--setup-single-tool-section))))
-
-(defun greger--setup-single-tool-section ()
-  "Set up a single tool section starting from the current match."
-  (let ((start-tag-start (match-beginning 0))
-        (start-tag-end (match-end 0))
-        (tool-id (greger--extract-tool-id (match-string 0))))
-    (when tool-id
-      (let ((end-tag-pattern (concat "</tool\\." (regexp-quote tool-id) ">"))
-            (content-start start-tag-end)
-            content-end
-            end-tag-start
-            end-tag-end)
-
-        ;; Find the corresponding closing tag
-        (when (re-search-forward end-tag-pattern nil t)
-          (setq end-tag-start (match-beginning 0)
-                end-tag-end (match-end 0)
-                content-end end-tag-start)
-
-          ;; Create overlays for styling
-          (greger--create-tag-overlay start-tag-start start-tag-end)
-          (greger--create-tag-overlay end-tag-start end-tag-end)
-
-          ;; Set up collapsible content
-          (greger--setup-collapsible-content content-start content-end tool-id))))))
-
-(defun greger--extract-tool-id (tag-string)
-  "Extract tool ID from a tool tag string like '<tool.abc123>'.
-TAG-STRING is the tag string to extract from."
-  (when (string-match "<tool\\.\\([^>]+\\)>" tag-string)
-    (match-string 1 tag-string)))
-
-(defun greger--create-tag-overlay (start end)
-  "Create an overlay for a tool tag to make it small and less visible.
-START is the beginning position.
-END is the ending position."
-  (let ((overlay (make-overlay start end)))
-    (overlay-put overlay 'face 'greger-tool-tag-face)
-    (overlay-put overlay 'greger-tool-tag t)
-    (push overlay greger-tool-overlays)
-    overlay))
-
-(defun greger--setup-collapsible-content (content-start content-end tool-id)
-  "Set up collapsible content between CONTENT-START and CONTENT-END for TOOL-ID.
-CONTENT-START is the start position of the content.
-CONTENT-END is the end position of the content.
-TOOL-ID is the tool identifier."
-  (let* ((content (buffer-substring-no-properties content-start content-end))
-         (lines (split-string content "\n"))
-         (line-count (length lines)))
-
-    (when (and (> line-count greger-tool-section-max-lines)
-               ;; Only create collapsed overlay if not manually unfolded
-               (not (member tool-id greger--unfolded-tool-ids)))
-      ;; Create the collapsible overlay
-      (greger--create-collapsible-overlay content-start content-end tool-id lines))))
-
-(defun greger--create-collapsible-overlay (content-start content-end tool-id lines)
-  "Create a collapsible overlay for tool content.
-CONTENT-START and CONTENT-END define the overlay bounds.
-TOOL-ID identifies the tool, and LINES contain the content."
-  (let* ((visible-lines (cl-subseq lines 0 greger-tool-section-max-lines))
-         (hidden-lines (cl-subseq lines greger-tool-section-max-lines))
-         (hidden-line-count (length hidden-lines))
-         (visible-text (mapconcat #'identity visible-lines "\n"))
-
-         ;; Calculate positions for visible and hidden parts
-         (visible-end (+ content-start (length visible-text)))
-         (hidden-start (+ visible-end 1)) ; +1 for the newline
-
-         ;; Create overlay for the hidden part
-         (hidden-overlay (make-overlay hidden-start content-end)))
-
-    (overlay-put hidden-overlay 'invisible 'greger-tool-section)
-    (overlay-put hidden-overlay 'greger-tool-section t)
-    (overlay-put hidden-overlay 'greger-tool-id tool-id)
-    (overlay-put hidden-overlay 'greger-collapsed t)
-
-    ;; Add expansion indicator with line count
-    (let ((indicator-overlay (make-overlay visible-end visible-end)))
-      (overlay-put indicator-overlay 'after-string
-                   (propertize (format "... [+%d lines, TAB to expand]" hidden-line-count)
-                              'face 'greger-tool-tag-face))
-      (overlay-put indicator-overlay 'greger-tool-indicator t)
-      (overlay-put indicator-overlay 'greger-tool-id tool-id)
-      (push indicator-overlay greger-tool-overlays))
-
-    (push hidden-overlay greger-tool-overlays)))
-
-(defun greger-toggle-tool-section ()
-  "Toggle the tool section at point between collapsed and expanded state.
-If not inside a tool section, fall back to `markdown-cycle'."
-  (interactive)
-  (let ((tool-id (greger--get-tool-id-at-point)))
-    (if tool-id
-        (greger--toggle-tool-section-by-id tool-id)
-      ;; Fall back to markdown-cycle if available
-      (if (fboundp 'markdown-cycle)
-          (call-interactively #'markdown-cycle)
-        (message "Not inside a tool section")))))
-
-(defun greger--get-tool-id-at-point ()
-  "Get the tool ID for the tool section at point, if any."
-  ;; First check overlays at point
-  (or (cl-loop for overlay in (overlays-at (point))
-               for tool-id = (overlay-get overlay 'greger-tool-id)
-               when tool-id return tool-id)
-      ;; If not found, search backwards and forwards for tool tags
-      (greger--find-tool-id-near-point)))
-
-(defun greger--find-tool-id-near-point ()
-  "Find tool ID near point by searching for tool tags."
-  (save-excursion
-    (let ((start-pos (point))
-          tool-id)
-      ;; Search backwards for opening tag
-      (when (re-search-backward "<tool\\.[^>]+>" nil t)
-        (let ((open-tag-start (match-beginning 0))
-              (tag-tool-id (greger--extract-tool-id (match-string 0))))
-          ;; Check if we're within this tool section
-          (when tag-tool-id
-            (let ((close-pattern (concat "</tool\\." (regexp-quote tag-tool-id) ">")))
-              (when (re-search-forward close-pattern nil t)
-                (let ((close-tag-end (match-end 0)))
-                  ;; If original point is between open and close tags
-                  (when (and (>= start-pos open-tag-start)
-                             (<= start-pos close-tag-end))
-                    (setq tool-id tag-tool-id))))))))
-      tool-id)))
-
-(defun greger--toggle-tool-section-by-id (tool-id)
-  "Toggle the tool section with the given TOOL-ID.
-TOOL-ID is the identifier of the tool section to toggle."
-  (cl-loop for overlay in greger-tool-overlays
-           when (and (overlay-get overlay 'greger-tool-section)
-                     (string= (overlay-get overlay 'greger-tool-id) tool-id))
-           do (greger--toggle-overlay-visibility overlay tool-id)))
-
-(defun greger--toggle-overlay-visibility (overlay tool-id)
-  "Toggle the visibility of OVERLAY for TOOL-ID."
-  (let ((is-collapsed (overlay-get overlay 'greger-collapsed)))
-    (if is-collapsed
-        (greger--expand-tool-section overlay tool-id)
-      (greger--collapse-tool-section overlay tool-id))))
-
-(defun greger--expand-tool-section (overlay tool-id)
-  "Expand the tool section by making OVERLAY visible.
-OVERLAY is the overlay to expand, TOOL-ID identifies the tool."
-  (overlay-put overlay 'invisible nil)
-  (overlay-put overlay 'greger-collapsed nil)
-
-  ;; Mark this tool as manually unfolded so it doesn't get auto-folded again
-  (unless (member tool-id greger--unfolded-tool-ids)
-    (push tool-id greger--unfolded-tool-ids))
-
-  ;; Remove the expansion indicator
-  (cl-loop for indicator-overlay in greger-tool-overlays
-           when (and (overlay-get indicator-overlay 'greger-tool-indicator)
-                     (string= (overlay-get indicator-overlay 'greger-tool-id) tool-id))
-           do (progn
-                (delete-overlay indicator-overlay)
-                (setq greger-tool-overlays
-                      (remove indicator-overlay greger-tool-overlays)))))
-
-(defun greger--collapse-tool-section (overlay tool-id)
-  "Collapse the tool section by making OVERLAY invisible.
-OVERLAY is the overlay to hide.
-TOOL-ID is the tool identifier."
-  (overlay-put overlay 'invisible 'greger-tool-section)
-  (overlay-put overlay 'greger-collapsed t)
-
-  ;; Remove from unfolded list since it's now manually collapsed
-  (setq greger--unfolded-tool-ids
-        (delete tool-id greger--unfolded-tool-ids))
-
-  ;; Calculate the number of hidden lines for the indicator
-  (let* ((content (buffer-substring-no-properties (overlay-start overlay) (overlay-end overlay)))
-         (lines (split-string content "\n"))
-         (hidden-line-count (length lines))
-         (overlay-start (overlay-start overlay))
-         (indicator-pos (max (point-min) (1- overlay-start)))
-         (indicator-overlay (make-overlay indicator-pos indicator-pos)))
-    (overlay-put indicator-overlay 'after-string
-                 (propertize (format "... [+%d lines, TAB to expand]" hidden-line-count)
-                            'face 'greger-tool-tag-face))
-    (overlay-put indicator-overlay 'greger-tool-indicator t)
-    (overlay-put indicator-overlay 'greger-tool-id tool-id)
-    (push indicator-overlay greger-tool-overlays)))
-
-(defun greger--setup-heading-font-lock ()
-  "Set up font-lock for headings to override markdown's larger font sizes."
-  ;; Remove existing markdown heading font-lock rules for level 2 and 3 headings
-  (setq-local font-lock-keywords
-              (cl-remove-if
-               (lambda (rule)
-                 (and (listp rule)
-                      (stringp (car rule))
-                      (or (string-match-p "^\\^##" (car rule))
-                          (string-match-p "^\\^###" (car rule))
-                          (string-match-p "markdown-header-face-[23]" (format "%s" rule)))))
-               font-lock-keywords))
-
-  ;; Add our custom font-lock rules with highest priority
-  (font-lock-add-keywords
-   nil
-   '(;; Level 2 headings (conversation roles)
-     ("^## USER:.*$" 0 'greger-user-heading-face t)
-     ("^## ASSISTANT:.*$" 0 'greger-assistant-heading-face t)
-     ("^## SYSTEM:.*$" 0 'greger-system-heading-face t)
-     ("^## THINKING:.*$" 0 'greger-thinking-heading-face t)
-     ("^## TOOL USE:.*$" 0 'greger-tool-use-heading-face t)
-     ("^## TOOL RESULT:.*$" 0 'greger-tool-result-heading-face t)
-     ;; Level 3 headings (tool parameters)
-     ("^###\\s-+.*$" 0 'greger-tool-param-heading-face t))
-   'prepend)
-
-  ;; Also remap the markdown faces
-  ;(face-remap-add-relative 'markdown-header-face-2 'greger-assistant-heading-face)
-  ;(face-remap-add-relative 'markdown-header-face-3 'greger-tool-param-heading-face)
-  (font-lock-flush))
-
-(defun greger--extend-font-lock-region ()
-  "Extend font-lock region for greger mode.
-Returns nil to indicate no region extension is needed."
-  nil)
-
-(defun greger--after-change-function (beg end _len)
-  "Update tool sections after buffer changes.
-BEG is the beginning of the changed region.
-END is the end of the changed region.
-_LEN is the length of the pre-change text (unused)."
-  ;; Only run timer-based cleanup for complex changes or when not actively streaming
-  (when (and (> (- end beg) 0)  ; Only if there was an actual change
-             (not (greger--is-actively-streaming)))
-    (run-with-idle-timer 0.1 nil #'greger--setup-tool-sections)))
-
-(defun greger--is-actively-streaming ()
-  "Check if we're currently streaming content from the AI."
-  (and greger--current-state
-       (greger-state-client-state greger--current-state)))
-
-;; Private helper functions
-
-(defun greger--get-current-code-block ()
-  "Return the current code block under point, or nil if not found."
-  (save-excursion
-    (when (re-search-backward "^```" nil t)
-      (forward-line)
-      (let ((start (point)))
-        (when (re-search-forward "^```" nil t)
-          (backward-char 4)
-          (buffer-substring-no-properties start (point)))))))
-
-(defun greger--truncate-with-ellipsis (str max-width)
-  "Truncate STR to MAX-WIDTH characters, adding an ellipsis if necessary."
-  (let ((len (length str)))
-    (if (<= len max-width)
-        str
-      (concat (substring str 0 (- max-width 3)) "..."))))
-
-
-
-(provide 'greger)
-
-;;; greger.el ends here
-</tool.toolu_01F2xhYZP8D3yuWjyjL55TeA>
+</tool.toolu_01PEyPdnzBqoeLnbu69xTXMz>
 
 ## ASSISTANT:
 
-Now let me search for citation-related code to understand the current implementation:
+Let me check how greger currently handles citations and UI elements:
 
 ## TOOL USE:
 
 Name: ripgrep
-ID: toolu_018p2R5KPevTUJGHwwWAjWor
+ID: toolu_01BdRfFgWaudBg8XEJwFQHdt
 
 ### pattern
 
-<tool.toolu_018p2R5KPevTUJGHwwWAjWor>
+<tool.toolu_01BdRfFgWaudBg8XEJwFQHdt>
 cite|citation
-</tool.toolu_018p2R5KPevTUJGHwwWAjWor>
+</tool.toolu_01BdRfFgWaudBg8XEJwFQHdt>
+
+### path
+
+<tool.toolu_01BdRfFgWaudBg8XEJwFQHdt>
+greger.el
+</tool.toolu_01BdRfFgWaudBg8XEJwFQHdt>
 
 ### case-sensitive
 
-<tool.toolu_018p2R5KPevTUJGHwwWAjWor>
+<tool.toolu_01BdRfFgWaudBg8XEJwFQHdt>
 :json-false
-</tool.toolu_018p2R5KPevTUJGHwwWAjWor>
+</tool.toolu_01BdRfFgWaudBg8XEJwFQHdt>
 
 ## TOOL RESULT:
 
-ID: toolu_018p2R5KPevTUJGHwwWAjWor
+ID: toolu_01BdRfFgWaudBg8XEJwFQHdt
 
-<tool.toolu_018p2R5KPevTUJGHwwWAjWor>
-/Users/andreas/projects/greger.el/greger.el:472:        (has-citations (greger-parser--content-block-has-citations content-block)))
-/Users/andreas/projects/greger.el/greger.el:474:    ((and (string= type "text") (not has-citations))
-/Users/andreas/projects/greger.el/greger.el:484:        (citations (greger--extract-citations content-blocks)))
-/Users/andreas/projects/greger.el/greger.el:486:    ;; Process citations if any
-/Users/andreas/projects/greger.el/greger.el:487:    (when citations
-/Users/andreas/projects/greger.el/greger.el:488:      (greger--debug "CITATIONS DETECTED! Found %d citation blocks" (length citations))
-/Users/andreas/projects/greger.el/greger.el:489:      (greger--append-citations-markdown state citations))
-/Users/andreas/projects/greger.el/greger.el:508:        (has-citations (alist-get 'citations content-block)))
-/Users/andreas/projects/greger.el/greger.el:510:         (not has-citations))))
-/Users/andreas/projects/greger.el/greger.el:519:      state (concat (unless (greger-parser--content-block-has-citations content-block) "\n\n")
-/Users/andreas/projects/greger.el/greger.el:541:(defun greger--extract-citations (content-blocks)
-/Users/andreas/projects/greger.el/greger.el:542:  "Extract all citations from CONTENT-BLOCKS."
-/Users/andreas/projects/greger.el/greger.el:543:  (let ((all-citations '()))
-/Users/andreas/projects/greger.el/greger.el:545:      (let ((citations (alist-get 'citations block)))
-/Users/andreas/projects/greger.el/greger.el:546:        (when citations
-/Users/andreas/projects/greger.el/greger.el:547:          (setq all-citations (append all-citations citations)))))
-/Users/andreas/projects/greger.el/greger.el:548:    all-citations))
-/Users/andreas/projects/greger.el/greger.el:550:(defun greger--append-citations-markdown (state citations)
-/Users/andreas/projects/greger.el/greger.el:551:  "Append citations as markdown to the buffer using STATE and CITATIONS list."
-/Users/andreas/projects/greger.el/greger.el:552:  (when citations
-/Users/andreas/projects/greger.el/greger.el:553:    (let ((citations-markdown (greger--format-citations-as-markdown citations)))
-/Users/andreas/projects/greger.el/greger.el:554:      (greger--append-text state (concat "\n\n" citations-markdown)))))
-/Users/andreas/projects/greger.el/greger.el:556:(defun greger--format-citations-as-markdown (citations)
-/Users/andreas/projects/greger.el/greger.el:557:  "Format CITATIONS list as markdown according to the greger citation format."
-/Users/andreas/projects/greger.el/greger.el:558:  (when citations
-/Users/andreas/projects/greger.el/greger.el:559:    (concat greger-parser-citations-tag "\n\n"
-/Users/andreas/projects/greger.el/greger.el:560:            (mapconcat #'greger--format-single-citation-as-markdown citations "\n\n"))))
-/Users/andreas/projects/greger.el/greger.el:562:(defun greger--format-single-citation-as-markdown (citation)
-/Users/andreas/projects/greger.el/greger.el:564:  (let ((url (alist-get 'url citation))
-/Users/andreas/projects/greger.el/greger.el:565:        (title (alist-get 'title citation))
-/Users/andreas/projects/greger.el/greger.el:566:        (cited-text (alist-get 'cited_text citation))
-/Users/andreas/projects/greger.el/greger.el:567:        (encrypted-index (alist-get 'encrypted_index citation)))
-/Users/andreas/projects/greger.el/greger.el:570:            "Cited text: " cited-text "\n"
-/Users/andreas/projects/greger.el/greger-parser.el:43:(defconst greger-parser-citations-tag "## CITATIONS:")
-/Users/andreas/projects/greger.el/greger-parser.el:208:        greger-parser-citations-tag
-/Users/andreas/projects/greger.el/greger-parser.el:649:                 ;; Handle citations data - apply immediately to the last assistant message
-/Users/andreas/projects/greger.el/greger-parser.el:650:                 ((and (listp section-result) (eq (plist-get section-result :type) :citations-data))
-/Users/andreas/projects/greger.el/greger-parser.el:651:                  (greger-parser--debug state "Found citations data, applying to last assistant message")
-/Users/andreas/projects/greger.el/greger-parser.el:652:                  (let ((citations (plist-get section-result :citations)))
-/Users/andreas/projects/greger.el/greger-parser.el:653:                    (when citations
-/Users/andreas/projects/greger.el/greger-parser.el:654:                      ;; Apply citations to the most recent assistant message
-/Users/andreas/projects/greger.el/greger-parser.el:655:                      (greger-parser--apply-citations-to-last-assistant-message sections citations))))
-/Users/andreas/projects/greger.el/greger-parser.el:694:       ((string= tag greger-parser-citations-tag)
-/Users/andreas/projects/greger.el/greger-parser.el:695:        (greger-parser--parse-citations-section state))
-/Users/andreas/projects/greger.el/greger-parser.el:764:(defun greger-parser--parse-citations-section (state)
-/Users/andreas/projects/greger.el/greger-parser.el:766:Returns parsed citation data that should be merged with the previous assistant message."
-/Users/andreas/projects/greger.el/greger-parser.el:769:      ;; Parse the citations from the markdown content
-/Users/andreas/projects/greger.el/greger-parser.el:770:      (let ((parsed-citations (greger-parser--parse-citations-content content)))
-/Users/andreas/projects/greger.el/greger-parser.el:771:        ;; Return a special marker indicating this contains citation data
-/Users/andreas/projects/greger.el/greger-parser.el:773:        (list :type :citations-data :citations parsed-citations)))))
-/Users/andreas/projects/greger.el/greger-parser.el:775:(defun greger-parser--parse-citations-content (content)
-/Users/andreas/projects/greger.el/greger-parser.el:776:  "Parse citations from markdown CONTENT and return list of citation objects."
-/Users/andreas/projects/greger.el/greger-parser.el:777:  (let ((citations '())
-/Users/andreas/projects/greger.el/greger-parser.el:779:        (current-citation nil)
-/Users/andreas/projects/greger.el/greger-parser.el:785:        ;; Save previous citation if any
-/Users/andreas/projects/greger.el/greger-parser.el:786:        (when current-citation
-/Users/andreas/projects/greger.el/greger-parser.el:787:          (push current-citation citations))
-/Users/andreas/projects/greger.el/greger-parser.el:788:        ;; Start new citation
-/Users/andreas/projects/greger.el/greger-parser.el:790:        (setq current-citation (list (cons 'type "web_search_result_location")
-/Users/andreas/projects/greger.el/greger-parser.el:793:       ((and current-citation (string-match "^Title: \\(.*\\)" line))
-/Users/andreas/projects/greger.el/greger-parser.el:794:        (push (cons 'title (match-string 1 line)) current-citation))
-/Users/andreas/projects/greger.el/greger-parser.el:796:       ((and current-citation (string-match "^Cited text: \\(.*\\)" line))
-/Users/andreas/projects/greger.el/greger-parser.el:797:        (push (cons 'cited_text (match-string 1 line)) current-citation))
-/Users/andreas/projects/greger.el/greger-parser.el:799:       ((and current-citation (string-match "^Encrypted index: \\(.*\\)" line))
-/Users/andreas/projects/greger.el/greger-parser.el:800:        (push (cons 'encrypted_index (match-string 1 line)) current-citation))))
-/Users/andreas/projects/greger.el/greger-parser.el:801:    ;; Add the last citation
-/Users/andreas/projects/greger.el/greger-parser.el:802:    (when current-citation
-/Users/andreas/projects/greger.el/greger-parser.el:803:      (push current-citation citations))
-/Users/andreas/projects/greger.el/greger-parser.el:804:    (reverse citations)))
-/Users/andreas/projects/greger.el/greger-parser.el:806:(defun greger-parser--merge-citations-with-last-assistant (sections citations)
-/Users/andreas/projects/greger.el/greger-parser.el:809:  (when (and sections citations)
-/Users/andreas/projects/greger.el/greger-parser.el:812:        ;; Find text blocks in the content and add citations to them
-/Users/andreas/projects/greger.el/greger-parser.el:815:            ;; Look for text blocks and add citations
-/Users/andreas/projects/greger.el/greger-parser.el:816:            (greger-parser--add-citations-to-content-blocks content citations)))))))
-/Users/andreas/projects/greger.el/greger-parser.el:818:(defun greger-parser--add-citations-to-content-blocks (content-blocks citations)
-/Users/andreas/projects/greger.el/greger-parser.el:820:Splits text blocks at <cite> boundaries and adds citations to cited portions.
-/Users/andreas/projects/greger.el/greger-parser.el:821:Only processes cite blocks that don't already have citations."
-/Users/andreas/projects/greger.el/greger-parser.el:827:                   (not (alist-get 'citations block))) ; Only process blocks without citations
-/Users/andreas/projects/greger.el/greger-parser.el:829:            ;; Check if text contains <cite> tags - if so, split and process
-/Users/andreas/projects/greger.el/greger-parser.el:830:            (when (and text (string-match-p "<cite>" text))
-/Users/andreas/projects/greger.el/greger-parser.el:831:              (let ((split-blocks (greger-parser--split-text-with-citations text citations)))
-/Users/andreas/projects/greger.el/greger-parser.el:841:(defun greger-parser--apply-citations-to-last-assistant-message (sections citations)
-/Users/andreas/projects/greger.el/greger-parser.el:842:  "Apply CITATIONS to the most recent assistant message in SECTIONS that contains <cite> tags."
-/Users/andreas/projects/greger.el/test-citations-output.el:9:;; Test markdown with citations
-/Users/andreas/projects/greger.el/test-citations-output.el:43:Based on the search results, <cite>Claude Shannon was born on April 30, 1916, in Petoskey, Michigan</cite>
-/Users/andreas/projects/greger.el/debug-citations-immediate.el:10:(defun greger-parser--apply-citations-to-messages (messages citations)
-/Users/andreas/projects/greger.el/debug-citations-immediate.el:11:  "Apply CITATIONS to the last assistant message in MESSAGES that contains <cite> tags."
-/Users/andreas/projects/greger.el/debug-citations-immediate.el:12:  (message "DEBUG: Apply citations called with %d citations" (length citations))
-/Users/andreas/projects/greger.el/debug-citations-immediate.el:13:  ;; Find the last assistant message and apply citations to it
-/Users/andreas/projects/greger.el/debug-citations-immediate.el:19:         ;; String content - check for <cite> tags and process
-/Users/andreas/projects/greger.el/debug-citations-immediate.el:22:          (when (string-match-p "<cite>" content)
-/Users/andreas/projects/greger.el/debug-citations-immediate.el:23:            (let ((clean-content (greger-parser--remove-cite-tags content)))
-/Users/andreas/projects/greger.el/debug-citations-immediate.el:28:          (greger-parser--add-citations-to-content-blocks content citations)
-/Users/andreas/projects/greger.el/debug-citations-immediate.el:30:          (message "DEBUG: Message after citation processing: %S" message))))))
-/Users/andreas/projects/greger.el/debug-citations-immediate.el:32:;; Test markdown with citations
-/Users/andreas/projects/greger.el/debug-citations-immediate.el:39:Based on the search results, <cite>Claude Shannon was born on April 30, 1916, in Petoskey, Michigan</cite>
-/Users/andreas/projects/greger.el/debug-citations-verbose.el:9:;; Test markdown with citations
-/Users/andreas/projects/greger.el/debug-citations-verbose.el:43:Based on the search results, <cite>Claude Shannon was born on April 30, 1916, in Petoskey, Michigan</cite>
-/Users/andreas/projects/greger.el/greger-client.el:267:         (citations (alist-get 'citations content-block)))
-/Users/andreas/projects/greger.el/greger-client.el:282:     ;; {"type":"content_block_start","index":3,"content_block":{"citations":[],"type":"text","text":""}}
-/Users/andreas/projects/greger.el/greger-client.el:285:      ;; For text blocks with citations, initialize citations as empty list
-/Users/andreas/projects/greger.el/greger-client.el:286:      (when citations
-/Users/andreas/projects/greger.el/greger-client.el:287:        (setf (alist-get 'citations content-block) '())))
-/Users/andreas/projects/greger.el/greger-client.el:315:            (has-citations (not (null (assq 'citations block)))))
-/Users/andreas/projects/greger.el/greger-client.el:318:        ;; Only call text callback for live display if this block doesn't have citations
-/Users/andreas/projects/greger.el/greger-client.el:320:        (unless has-citations
-/Users/andreas/projects/greger.el/greger-client.el:331:     ;; {"type":"content_block_delta","index":3,"delta":{"type":"citations_delta","citation":{"type":"web_search_result_location",...}}}
-/Users/andreas/projects/greger.el/greger-client.el:332:     ((string= delta-type "citations_delta")
-/Users/andreas/projects/greger.el/greger-client.el:333:      (let ((citation (alist-get 'citation delta))
-/Users/andreas/projects/greger.el/greger-client.el:334:            (current-citations (alist-get 'citations block)))
-/Users/andreas/projects/greger.el/greger-client.el:335:        ;; Add the new citation to the list
-/Users/andreas/projects/greger.el/greger-client.el:336:        (setf (alist-get 'citations block)
-/Users/andreas/projects/greger.el/greger-client.el:337:              (append current-citations (list citation))))))))
-/Users/andreas/projects/greger.el/test/test-greger-parser.el:668:    (:name "citations-basic"
-/Users/andreas/projects/greger.el/test/test-greger-parser.el:702:Based on the search results, <cite>Claude Shannon was born on April 30, 1916, in Petoskey, Michigan</cite>
-/Users/andreas/projects/greger.el/test/test-greger-parser.el:725:                                                       (citations . (((type . "web_search_result_location")
-/Users/andreas/projects/greger.el/test/test-greger-parser.el:728:                                                                      (cited_text . "Claude Elwood Shannon (April 30, 1916 – February 24, 2001) was an American mathematician, electrical engineer, computer scientist, cryptographer and i...")
-/Users/andreas/projects/greger.el/test/test-greger-parser.el:732:    (:name "citations-after-tool-result"
-/Users/andreas/projects/greger.el/test/test-greger-parser.el:766:<cite>It's currently sunny and 75°F</cite>
-/Users/andreas/projects/greger.el/test/test-greger-parser.el:789:                                                       (citations . (((type . "web_search_result_location")
-/Users/andreas/projects/greger.el/test/test-greger-parser.el:792:                                                                      (cited_text . "Currently sunny with a temperature of 75 degrees Fahrenheit...")
-/Users/andreas/projects/greger.el/test/test-greger-parser.el:795:    ;; Multiple citations in same text
-/Users/andreas/projects/greger.el/test/test-greger-parser.el:796:    (:name "citations-multiple"
-/Users/andreas/projects/greger.el/test/test-greger-parser.el:837:<cite>Einstein developed the theory of relativity</cite>
-/Users/andreas/projects/greger.el/test/test-greger-parser.el:849:while <cite>Newton formulated the laws of motion</cite>.
-/Users/andreas/projects/greger.el/test/test-greger-parser.el:877:                                                       (citations . ((
-/Users/andreas/projects/greger.el/test/test-greger-parser.el:879:                                                                      (cited_text . "Albert Einstein developed the theory of relativity in the early 20th century...")
-/Users/andreas/projects/greger.el/test/test-greger-parser.el:887:                                                       (citations . ((
-/Users/andreas/projects/greger.el/test/test-greger-parser.el:889:                                                                      (cited_text . "Isaac Newton formulated the three laws of motion...")
-/Users/andreas/projects/greger.el/chat.ai:44:          (citations
-/Users/andreas/projects/greger.el/chat.ai:48:            (cited_text . "Albert Einstein developed the theory of relativity in the early 20th century...")
-/Users/andreas/projects/greger.el/chat.ai:54:          (citations
-/Users/andreas/projects/greger.el/chat.ai:58:            (cited_text . "Isaac Newton formulated the three laws of motion...")
-/Users/andreas/projects/greger.el/chat.ai:88:          (citations
-/Users/andreas/projects/greger.el/chat.ai:90:            (cited_text . "Albert Einstein developed the theory of relativity in the early 20th century...")
-/Users/andreas/projects/greger.el/chat.ai:98:          (citations
-/Users/andreas/projects/greger.el/chat.ai:100:            (cited_text . "Albert Einstein developed the theory of relativity in the early 20th century...")
-/Users/andreas/projects/greger.el/chat.ai:107:The greger-parser--parse-document function is really complicated with pending-citations and so on. I've included the old version (priot to supporting citations) as greger-parser--parse-document-old. Maybe you can figure out how to fix that test?
-/Users/andreas/projects/greger.el/chat.ai:796:    (:name "citations-basic"
-/Users/andreas/projects/greger.el/chat.ai:830:Based on the search results, <cite>Claude Shannon was born on April 30, 1916, in Petoskey, Michigan</cite>
-/Users/andreas/projects/greger.el/chat.ai:853:                                                       (citations . (((type . "web_search_result_location")
-/Users/andreas/projects/greger.el/chat.ai:856:                                                                      (cited_text . "Claude Elwood Shannon (April 30, 1916 – February 24, 2001) was an American mathematician, electrical engineer, computer scientist, cryptographer and i...")
-/Users/andreas/projects/greger.el/chat.ai:860:    (:name "citations-after-tool-result"
-/Users/andreas/projects/greger.el/chat.ai:894:<cite>It's currently sunny and 75°F</cite>
-/Users/andreas/projects/greger.el/chat.ai:917:                                                       (citations . (((type . "web_search_result_location")
-/Users/andreas/projects/greger.el/chat.ai:920:                                                                      (cited_text . "Currently sunny with a temperature of 75 degrees Fahrenheit...")
-/Users/andreas/projects/greger.el/chat.ai:923:    ;; Multiple citations in same text
-/Users/andreas/projects/greger.el/chat.ai:924:    (:name "citations-multiple"
-/Users/andreas/projects/greger.el/chat.ai:965:<cite>Einstein developed the theory of relativity</cite>
-/Users/andreas/projects/greger.el/chat.ai:977: while <cite>Newton formulated the laws of motion</cite>.
-/Users/andreas/projects/greger.el/chat.ai:1005:                                                       (citations . (((type . "web_search_result_location")
-/Users/andreas/projects/greger.el/chat.ai:1008:                                                                      (cited_text . "Albert Einstein developed the theory of relativity in the early 20th century...")
-/Users/andreas/projects/greger.el/chat.ai:1013:                                                       (citations . (((type . "web_search_result_location")
-/Users/andreas/projects/greger.el/chat.ai:1016:                                                                      (cited_text . "Isaac Newton formulated the three laws of motion...")
-/Users/andreas/projects/greger.el/chat.ai:1977:Now let me look at the specific failing test. From the output you provided, it seems like the issue is with the "citations-multiple" test case. The expected output has the citations in a certain order, but the actual output has the wrong citations attached to the wrong text. Let me examine the parser code to understand the citation handling:
-/Users/andreas/projects/greger.el/chat.ai:2043:  43: (defconst greger-parser-citations-tag "## CITATIONS:")
-/Users/andreas/projects/greger.el/chat.ai:2208: 208:         greger-parser-citations-tag
-/Users/andreas/projects/greger.el/chat.ai:2649: 649:                  ;; Handle citations data - store for later processing
-/Users/andreas/projects/greger.el/chat.ai:2650: 650:                  ((and (listp section-result) (eq (plist-get section-result :type) :citations-data))
-/Users/andreas/projects/greger.el/chat.ai:2651: 651:                   (greger-parser--debug state "Found citations data, storing for later processing")
-/Users/andreas/projects/greger.el/chat.ai:2652: 652:                   (setq metadata (append metadata (list :pending-citations (plist-get section-result :citations)))))
-/Users/andreas/projects/greger.el/chat.ai:2668: 668:              (pending-citations (plist-get combined-metadata :pending-citations)))
-/Users/andreas/projects/greger.el/chat.ai:2669: 669:         ;; Apply pending citations if any
-/Users/andreas/projects/greger.el/chat.ai:2670: 670:         (when pending-citations
-/Users/andreas/projects/greger.el/chat.ai:2671: 671:           (greger-parser--apply-citations-to-messages merged-messages pending-citations)
-/Users/andreas/projects/greger.el/chat.ai:2672: 672:           ;; Remove pending citations from metadata since they've been applied
-/Users/andreas/projects/greger.el/chat.ai:2673: 673:           (setq combined-metadata (greger-parser--remove-from-plist combined-metadata :pending-citations)))
-/Users/andreas/projects/greger.el/chat.ai:2697: 697:        ((string= tag greger-parser-citations-tag)
-/Users/andreas/projects/greger.el/chat.ai:2698: 698:         (greger-parser--parse-citations-section state))
-/Users/andreas/projects/greger.el/chat.ai:2767: 767: (defun greger-parser--parse-citations-section (state)
-/Users/andreas/projects/greger.el/chat.ai:2769: 769: Returns parsed citation data that should be merged with the previous assistant message."
-/Users/andreas/projects/greger.el/chat.ai:2772: 772:       ;; Parse the citations from the markdown content
-/Users/andreas/projects/greger.el/chat.ai:2773: 773:       (let ((parsed-citations (greger-parser--parse-citations-content content)))
-/Users/andreas/projects/greger.el/chat.ai:2774: 774:         ;; Return a special marker indicating this contains citation data
-/Users/andreas/projects/greger.el/chat.ai:2776: 776:         (list :type :citations-data :citations parsed-citations)))))
-/Users/andreas/projects/greger.el/chat.ai:2778: 778: (defun greger-parser--parse-citations-content (content)
-/Users/andreas/projects/greger.el/chat.ai:2779: 779:   "Parse citations from markdown CONTENT and return list of citation objects."
-/Users/andreas/projects/greger.el/chat.ai:2780: 780:   (let ((citations '())
-/Users/andreas/projects/greger.el/chat.ai:2782: 782:         (current-citation nil)
+<tool.toolu_01BdRfFgWaudBg8XEJwFQHdt>
+118:(defvar-local greger-citation-overlays nil
+119:  "List of overlays used for collapsible citation sections.")
+121:(defvar-local greger--unfolded-citation-ids nil
+122:  "List of citation section IDs that have been manually unfolded.
+123:These citation IDs should not be auto-folded again.")
+480:        (has-citations (greger-parser--content-block-has-citations content-block)))
+482:    ((and (string= type "text") (not has-citations))
+492:        (citations (greger--extract-citations content-blocks)))
+494:    ;; Process citations if any
+495:    (when citations
+496:      (greger--debug "CITATIONS DETECTED! Found %d citation blocks" (length citations))
+497:      (greger--append-citations-markdown state citations))
+516:        (has-citations (alist-get 'citations content-block)))
+518:         (not has-citations))))
+527:      state (concat (unless (greger-parser--content-block-has-citations content-block) "\n\n")
+549:(defun greger--extract-citations (content-blocks)
+550:  "Extract all citations from CONTENT-BLOCKS."
+551:  (let ((all-citations '()))
+553:      (let ((citations (alist-get 'citations block)))
+554:        (when citations
+555:          (setq all-citations (append all-citations citations)))))
+556:    all-citations))
+558:(defun greger--append-citations-markdown (state citations)
+559:  "Append citations as markdown to the buffer using STATE and CITATIONS list."
+560:  (when citations
+561:    (let ((citations-markdown (greger--format-citations-as-markdown citations)))
+562:      (greger--append-text state (concat "\n\n" citations-markdown)))))
+564:(defun greger--format-citations-as-markdown (citations)
+565:  "Format CITATIONS list as markdown according to the greger citation format."
+566:  (when citations
+567:    (concat greger-parser-citations-tag "\n\n"
+568:            (mapconcat #'greger--format-single-citation-as-markdown citations "\n\n"))))
+570:(defun greger--format-single-citation-as-markdown (citation)
+572:  (let ((url (alist-get 'url citation))
+573:        (title (alist-get 'title citation))
+574:        (cited-text (alist-get 'cited_text citation))
+575:        (encrypted-index (alist-get 'encrypted_index citation)))
+578:            "Cited text: " cited-text "\n"
 
-</tool.toolu_018p2R5KPevTUJGHwwWAjWor>
-
-## ASSISTANT:
-
-Now let me look at the parser file to understand how citations are parsed:
+</tool.toolu_01BdRfFgWaudBg8XEJwFQHdt>
 
 ## TOOL USE:
 
-Name: read-file
-ID: toolu_01G1rQkLN8VaAfJrqaP6Yqav
+Name: ripgrep
+ID: toolu_01246Z2C9HrLxETME7A8fXpz
+
+### pattern
+
+<tool.toolu_01246Z2C9HrLxETME7A8fXpz>
+fold|overlay|citation.*overlay
+</tool.toolu_01246Z2C9HrLxETME7A8fXpz>
 
 ### path
 
-<tool.toolu_01G1rQkLN8VaAfJrqaP6Yqav>
+<tool.toolu_01246Z2C9HrLxETME7A8fXpz>
+greger.el
+</tool.toolu_01246Z2C9HrLxETME7A8fXpz>
+
+### case-sensitive
+
+<tool.toolu_01246Z2C9HrLxETME7A8fXpz>
+:json-false
+</tool.toolu_01246Z2C9HrLxETME7A8fXpz>
+
+## TOOL RESULT:
+
+ID: toolu_01246Z2C9HrLxETME7A8fXpz
+
+<tool.toolu_01246Z2C9HrLxETME7A8fXpz>
+114:(defvar-local greger-tool-overlays nil
+115:  "List of overlays used for collapsible tool sections.")
+118:(defvar-local greger-citation-overlays nil
+119:  "List of overlays used for collapsible citation sections.")
+121:(defvar-local greger--unfolded-citation-ids nil
+122:  "List of citation section IDs that have been manually unfolded.
+123:These citation IDs should not be auto-folded again.")
+131:(defvar-local greger--unfolded-tool-ids nil
+132:  "List of tool IDs that have been manually unfolded.
+133:These tool IDs should not be auto-folded again.")
+723:  (greger--clear-tool-overlays)
+726:(defun greger--clear-tool-overlays ()
+727:  "Clear all tool section overlays in the current buffer."
+728:  (cl-loop for overlay in greger-tool-overlays
+729:           do (delete-overlay overlay))
+730:  (setq greger-tool-overlays nil))
+757:          ;; Create overlays for styling
+758:          (greger--create-tag-overlay start-tag-start start-tag-end)
+759:          (greger--create-tag-overlay end-tag-start end-tag-end)
+770:(defun greger--create-tag-overlay (start end)
+771:  "Create an overlay for a tool tag to make it small and less visible.
+774:  (let ((overlay (make-overlay start end)))
+775:    (overlay-put overlay 'face 'greger-tool-tag-face)
+776:    (overlay-put overlay 'greger-tool-tag t)
+777:    (push overlay greger-tool-overlays)
+778:    overlay))
+790:               ;; Only create collapsed overlay if not manually unfolded
+791:               (not (member tool-id greger--unfolded-tool-ids)))
+792:      ;; Create the collapsible overlay
+793:      (greger--create-collapsible-overlay content-start content-end tool-id lines))))
+795:(defun greger--create-collapsible-overlay (content-start content-end tool-id lines)
+796:  "Create a collapsible overlay for tool content.
+797:CONTENT-START and CONTENT-END define the overlay bounds.
+808:         ;; Create overlay for the hidden part
+809:         (hidden-overlay (make-overlay hidden-start content-end)))
+811:    (overlay-put hidden-overlay 'invisible 'greger-tool-section)
+812:    (overlay-put hidden-overlay 'greger-tool-section t)
+813:    (overlay-put hidden-overlay 'greger-tool-id tool-id)
+814:    (overlay-put hidden-overlay 'greger-collapsed t)
+817:    (let ((indicator-overlay (make-overlay visible-end visible-end)))
+818:      (overlay-put indicator-overlay 'after-string
+821:      (overlay-put indicator-overlay 'greger-tool-indicator t)
+822:      (overlay-put indicator-overlay 'greger-tool-id tool-id)
+823:      (push indicator-overlay greger-tool-overlays))
+825:    (push hidden-overlay greger-tool-overlays)))
+841:  ;; First check overlays at point
+842:  (or (cl-loop for overlay in (overlays-at (point))
+843:               for tool-id = (overlay-get overlay 'greger-tool-id)
+871:  (cl-loop for overlay in greger-tool-overlays
+872:           when (and (overlay-get overlay 'greger-tool-section)
+
+</tool.toolu_01246Z2C9HrLxETME7A8fXpz>
+
+## ASSISTANT:
+
+Now let me examine the greger parser to understand how citations are structured:
+
+## TOOL USE:
+
+Name: ripgrep
+ID: toolu_018ujLwoNqvU7mxA7MEQvg2U
+
+### pattern
+
+<tool.toolu_018ujLwoNqvU7mxA7MEQvg2U>
+citations.*tag|## CITATIONS
+</tool.toolu_018ujLwoNqvU7mxA7MEQvg2U>
+
+### path
+
+<tool.toolu_018ujLwoNqvU7mxA7MEQvg2U>
 greger-parser.el
-</tool.toolu_01G1rQkLN8VaAfJrqaP6Yqav>
-
-### start-line
-
-<tool.toolu_01G1rQkLN8VaAfJrqaP6Yqav>
-40
-</tool.toolu_01G1rQkLN8VaAfJrqaP6Yqav>
-
-### end-line
-
-<tool.toolu_01G1rQkLN8VaAfJrqaP6Yqav>
-50
-</tool.toolu_01G1rQkLN8VaAfJrqaP6Yqav>
+</tool.toolu_018ujLwoNqvU7mxA7MEQvg2U>
 
 ## TOOL RESULT:
 
-ID: toolu_01G1rQkLN8VaAfJrqaP6Yqav
+ID: toolu_018ujLwoNqvU7mxA7MEQvg2U
 
-<tool.toolu_01G1rQkLN8VaAfJrqaP6Yqav>
-(defconst greger-parser-user-tag "## USER:")
-(defconst greger-parser-assistant-tag "## ASSISTANT:")
-(defconst greger-parser-thinking-tag "## THINKING:")
-(defconst greger-parser-citations-tag "## CITATIONS:")
-(defconst greger-parser-tool-use-tag "## TOOL USE:")
-(defconst greger-parser-tool-result-tag "## TOOL RESULT:")
-(defconst greger-parser-server-tool-use-tag "## SERVER TOOL USE:")
-(defconst greger-parser-server-tool-result-tag "## SERVER TOOL RESULT:")
+<tool.toolu_018ujLwoNqvU7mxA7MEQvg2U>
+43:(defconst greger-parser-citations-tag "## CITATIONS:")
+208:        greger-parser-citations-tag
+694:       ((string= tag greger-parser-citations-tag)
+1352:    (concat greger-parser-citations-tag "\n\n"
 
-;;; Parser state structure
-
-</tool.toolu_01G1rQkLN8VaAfJrqaP6Yqav>
+</tool.toolu_018ujLwoNqvU7mxA7MEQvg2U>
 
 ## ASSISTANT:
 
-Now I need to understand how the existing tool section folding works. Let me look at the parts of the code that implement the tool folding:
+Now I understand the current structure. Let me create the new `greger-ui.el` file with the citation folding functionality integrated into the greger ecosystem:
 
 ## TOOL USE:
 
-Name: read-file
-ID: toolu_01Ude57CEqgkr8JMPU7ipspL
-
-### path
-
-<tool.toolu_01Ude57CEqgkr8JMPU7ipspL>
-greger.el
-</tool.toolu_01Ude57CEqgkr8JMPU7ipspL>
-
-### start-line
-
-<tool.toolu_01Ude57CEqgkr8JMPU7ipspL>
-970
-</tool.toolu_01Ude57CEqgkr8JMPU7ipspL>
-
-### end-line
-
-<tool.toolu_01Ude57CEqgkr8JMPU7ipspL>
-1050
-</tool.toolu_01Ude57CEqgkr8JMPU7ipspL>
-
-## TOOL RESULT:
-
-ID: toolu_01Ude57CEqgkr8JMPU7ipspL
-
-<tool.toolu_01Ude57CEqgkr8JMPU7ipspL>
-
-;; Private helper functions
-
-(defun greger--get-current-code-block ()
-  "Return the current code block under point, or nil if not found."
-  (save-excursion
-    (when (re-search-backward "^```" nil t)
-      (forward-line)
-      (let ((start (point)))
-        (when (re-search-forward "^```" nil t)
-          (backward-char 4)
-          (buffer-substring-no-properties start (point)))))))
-
-(defun greger--truncate-with-ellipsis (str max-width)
-  "Truncate STR to MAX-WIDTH characters, adding an ellipsis if necessary."
-  (let ((len (length str)))
-    (if (<= len max-width)
-        str
-      (concat (substring str 0 (- max-width 3)) "..."))))
-
-
-
-(provide 'greger)
-
-;;; greger.el ends here
-</tool.toolu_01Ude57CEqgkr8JMPU7ipspL>
-
-## ASSISTANT:
-
-Let me look at the tool folding implementation more closely:
-
-## TOOL USE:
-
-Name: read-file
-ID: toolu_01VmbGdTMsXasHuZzJxv6c9n
-
-### path
-
-<tool.toolu_01VmbGdTMsXasHuZzJxv6c9n>
-greger.el
-</tool.toolu_01VmbGdTMsXasHuZzJxv6c9n>
-
-### start-line
-
-<tool.toolu_01VmbGdTMsXasHuZzJxv6c9n>
-740
-</tool.toolu_01VmbGdTMsXasHuZzJxv6c9n>
-
-### end-line
-
-<tool.toolu_01VmbGdTMsXasHuZzJxv6c9n>
-850
-</tool.toolu_01VmbGdTMsXasHuZzJxv6c9n>
-
-## TOOL RESULT:
-
-ID: toolu_01VmbGdTMsXasHuZzJxv6c9n
-
-<tool.toolu_01VmbGdTMsXasHuZzJxv6c9n>
-            end-tag-start
-            end-tag-end)
-
-        ;; Find the corresponding closing tag
-        (when (re-search-forward end-tag-pattern nil t)
-          (setq end-tag-start (match-beginning 0)
-                end-tag-end (match-end 0)
-                content-end end-tag-start)
-
-          ;; Create overlays for styling
-          (greger--create-tag-overlay start-tag-start start-tag-end)
-          (greger--create-tag-overlay end-tag-start end-tag-end)
-
-          ;; Set up collapsible content
-          (greger--setup-collapsible-content content-start content-end tool-id))))))
-
-(defun greger--extract-tool-id (tag-string)
-  "Extract tool ID from a tool tag string like '<tool.abc123>'.
-TAG-STRING is the tag string to extract from."
-  (when (string-match "<tool\\.\\([^>]+\\)>" tag-string)
-    (match-string 1 tag-string)))
-
-(defun greger--create-tag-overlay (start end)
-  "Create an overlay for a tool tag to make it small and less visible.
-START is the beginning position.
-END is the ending position."
-  (let ((overlay (make-overlay start end)))
-    (overlay-put overlay 'face 'greger-tool-tag-face)
-    (overlay-put overlay 'greger-tool-tag t)
-    (push overlay greger-tool-overlays)
-    overlay))
-
-(defun greger--setup-collapsible-content (content-start content-end tool-id)
-  "Set up collapsible content between CONTENT-START and CONTENT-END for TOOL-ID.
-CONTENT-START is the start position of the content.
-CONTENT-END is the end position of the content.
-TOOL-ID is the tool identifier."
-  (let* ((content (buffer-substring-no-properties content-start content-end))
-         (lines (split-string content "\n"))
-         (line-count (length lines)))
-
-    (when (and (> line-count greger-tool-section-max-lines)
-               ;; Only create collapsed overlay if not manually unfolded
-               (not (member tool-id greger--unfolded-tool-ids)))
-      ;; Create the collapsible overlay
-      (greger--create-collapsible-overlay content-start content-end tool-id lines))))
-
-(defun greger--create-collapsible-overlay (content-start content-end tool-id lines)
-  "Create a collapsible overlay for tool content.
-CONTENT-START and CONTENT-END define the overlay bounds.
-TOOL-ID identifies the tool, and LINES contain the content."
-  (let* ((visible-lines (cl-subseq lines 0 greger-tool-section-max-lines))
-         (hidden-lines (cl-subseq lines greger-tool-section-max-lines))
-         (hidden-line-count (length hidden-lines))
-         (visible-text (mapconcat #'identity visible-lines "\n"))
-
-         ;; Calculate positions for visible and hidden parts
-         (visible-end (+ content-start (length visible-text)))
-         (hidden-start (+ visible-end 1)) ; +1 for the newline
-
-         ;; Create overlay for the hidden part
-         (hidden-overlay (make-overlay hidden-start content-end)))
-
-    (overlay-put hidden-overlay 'invisible 'greger-tool-section)
-    (overlay-put hidden-overlay 'greger-tool-section t)
-    (overlay-put hidden-overlay 'greger-tool-id tool-id)
-    (overlay-put hidden-overlay 'greger-collapsed t)
-
-    ;; Add expansion indicator with line count
-    (let ((indicator-overlay (make-overlay visible-end visible-end)))
-      (overlay-put indicator-overlay 'after-string
-                   (propertize (format "... [+%d lines, TAB to expand]" hidden-line-count)
-                              'face 'greger-tool-tag-face))
-      (overlay-put indicator-overlay 'greger-tool-indicator t)
-      (overlay-put indicator-overlay 'greger-tool-id tool-id)
-      (push indicator-overlay greger-tool-overlays))
-
-    (push hidden-overlay greger-tool-overlays)))
-
-(defun greger-toggle-tool-section ()
-  "Toggle the tool section at point between collapsed and expanded state.
-If not inside a tool section, fall back to `markdown-cycle'."
-  (interactive)
-  (let ((tool-id (greger--get-tool-id-at-point)))
-    (if tool-id
-        (greger--toggle-tool-section-by-id tool-id)
-      ;; Fall back to markdown-cycle if available
-      (if (fboundp 'markdown-cycle)
-          (call-interactively #'markdown-cycle)
-        (message "Not inside a tool section")))))
-
-(defun greger--get-tool-id-at-point ()
-  "Get the tool ID for the tool section at point, if any."
-  ;; First check overlays at point
-  (or (cl-loop for overlay in (overlays-at (point))
-               for tool-id = (overlay-get overlay 'greger-tool-id)
-               when tool-id return tool-id)
-      ;; If not found, search backwards and forwards for tool tags
-      (greger--find-tool-id-near-point)))
-
-(defun greger--find-tool-id-near-point ()
-  "Find tool ID near point by searching for tool tags."
-  (save-excursion
-    (let ((start-pos (point))
-          tool-id)
-      ;; Search backwards for opening tag
-      (when (re-search-backward "<tool\\.[^>]+>" nil t)
-        (let ((open-tag-start (match-beginning 0))
-              (tag-tool-id (greger--extract-tool-id (match-string 0))))
-          ;; Check if we're within this tool section
-          (when tag-tool-id
-</tool.toolu_01VmbGdTMsXasHuZzJxv6c9n>
-
-## ASSISTANT:
-
-Let me see the rest of the tool folding code and understand how it works:
-
-## TOOL USE:
-
-Name: read-file
-ID: toolu_01SEuyDH81tx82jtRV14vZbg
-
-### path
-
-<tool.toolu_01SEuyDH81tx82jtRV14vZbg>
-greger.el
-</tool.toolu_01SEuyDH81tx82jtRV14vZbg>
-
-### start-line
-
-<tool.toolu_01SEuyDH81tx82jtRV14vZbg>
-850
-</tool.toolu_01SEuyDH81tx82jtRV14vZbg>
-
-### end-line
-
-<tool.toolu_01SEuyDH81tx82jtRV14vZbg>
-950
-</tool.toolu_01SEuyDH81tx82jtRV14vZbg>
-
-## TOOL RESULT:
-
-ID: toolu_01SEuyDH81tx82jtRV14vZbg
-
-<tool.toolu_01SEuyDH81tx82jtRV14vZbg>
-          (when tag-tool-id
-            (let ((close-pattern (concat "</tool\\." (regexp-quote tag-tool-id) ">")))
-              (when (re-search-forward close-pattern nil t)
-                (let ((close-tag-end (match-end 0)))
-                  ;; If original point is between open and close tags
-                  (when (and (>= start-pos open-tag-start)
-                             (<= start-pos close-tag-end))
-                    (setq tool-id tag-tool-id))))))))
-      tool-id)))
-
-(defun greger--toggle-tool-section-by-id (tool-id)
-  "Toggle the tool section with the given TOOL-ID.
-TOOL-ID is the identifier of the tool section to toggle."
-  (cl-loop for overlay in greger-tool-overlays
-           when (and (overlay-get overlay 'greger-tool-section)
-                     (string= (overlay-get overlay 'greger-tool-id) tool-id))
-           do (greger--toggle-overlay-visibility overlay tool-id)))
-
-(defun greger--toggle-overlay-visibility (overlay tool-id)
-  "Toggle the visibility of OVERLAY for TOOL-ID."
-  (let ((is-collapsed (overlay-get overlay 'greger-collapsed)))
-    (if is-collapsed
-        (greger--expand-tool-section overlay tool-id)
-      (greger--collapse-tool-section overlay tool-id))))
-
-(defun greger--expand-tool-section (overlay tool-id)
-  "Expand the tool section by making OVERLAY visible.
-OVERLAY is the overlay to expand, TOOL-ID identifies the tool."
-  (overlay-put overlay 'invisible nil)
-  (overlay-put overlay 'greger-collapsed nil)
-
-  ;; Mark this tool as manually unfolded so it doesn't get auto-folded again
-  (unless (member tool-id greger--unfolded-tool-ids)
-    (push tool-id greger--unfolded-tool-ids))
-
-  ;; Remove the expansion indicator
-  (cl-loop for indicator-overlay in greger-tool-overlays
-           when (and (overlay-get indicator-overlay 'greger-tool-indicator)
-                     (string= (overlay-get indicator-overlay 'greger-tool-id) tool-id))
-           do (progn
-                (delete-overlay indicator-overlay)
-                (setq greger-tool-overlays
-                      (remove indicator-overlay greger-tool-overlays)))))
-
-(defun greger--collapse-tool-section (overlay tool-id)
-  "Collapse the tool section by making OVERLAY invisible.
-OVERLAY is the overlay to hide.
-TOOL-ID is the tool identifier."
-  (overlay-put overlay 'invisible 'greger-tool-section)
-  (overlay-put overlay 'greger-collapsed t)
-
-  ;; Remove from unfolded list since it's now manually collapsed
-  (setq greger--unfolded-tool-ids
-        (delete tool-id greger--unfolded-tool-ids))
-
-  ;; Calculate the number of hidden lines for the indicator
-  (let* ((content (buffer-substring-no-properties (overlay-start overlay) (overlay-end overlay)))
-         (lines (split-string content "\n"))
-         (hidden-line-count (length lines))
-         (overlay-start (overlay-start overlay))
-         (indicator-pos (max (point-min) (1- overlay-start)))
-         (indicator-overlay (make-overlay indicator-pos indicator-pos)))
-    (overlay-put indicator-overlay 'after-string
-                 (propertize (format "... [+%d lines, TAB to expand]" hidden-line-count)
-                            'face 'greger-tool-tag-face))
-    (overlay-put indicator-overlay 'greger-tool-indicator t)
-    (overlay-put indicator-overlay 'greger-tool-id tool-id)
-    (push indicator-overlay greger-tool-overlays)))
-
-(defun greger--setup-heading-font-lock ()
-  "Set up font-lock for headings to override markdown's larger font sizes."
-  ;; Remove existing markdown heading font-lock rules for level 2 and 3 headings
-  (setq-local font-lock-keywords
-              (cl-remove-if
-               (lambda (rule)
-                 (and (listp rule)
-                      (stringp (car rule))
-                      (or (string-match-p "^\\^##" (car rule))
-                          (string-match-p "^\\^###" (car rule))
-                          (string-match-p "markdown-header-face-[23]" (format "%s" rule)))))
-               font-lock-keywords))
-
-  ;; Add our custom font-lock rules with highest priority
-  (font-lock-add-keywords
-   nil
-   '(;; Level 2 headings (conversation roles)
-     ("^## USER:.*$" 0 'greger-user-heading-face t)
-     ("^## ASSISTANT:.*$" 0 'greger-assistant-heading-face t)
-     ("^## SYSTEM:.*$" 0 'greger-system-heading-face t)
-     ("^## THINKING:.*$" 0 'greger-thinking-heading-face t)
-     ("^## TOOL USE:.*$" 0 'greger-tool-use-heading-face t)
-     ("^## TOOL RESULT:.*$" 0 'greger-tool-result-heading-face t)
-     ;; Level 3 headings (tool parameters)
-     ("^###\\s-+.*$" 0 'greger-tool-param-heading-face t))
-   'prepend)
-
-  ;; Also remap the markdown faces
-  ;(face-remap-add-relative 'markdown-header-face-2 'greger-assistant-heading-face)
-  ;(face-remap-add-relative 'markdown-header-face-3 'greger-tool-param-heading-face)
-  (font-lock-flush))
-
-</tool.toolu_01SEuyDH81tx82jtRV14vZbg>
-
-## ASSISTANT:
-
-Now I understand how the tool folding works. I need to implement similar citation folding. Let me create the implementation. Based on your example, I need to:
-
-1. Find `<cite>` tags and their associated `## CITATIONS:` sections
-2. Fold citation sections that immediately follow cite tags
-3. Fold orphaned citation sections (without preceding cite tags)
-4. Add appropriate faces and indicators
-
-Let me implement this:
-
-## TOOL USE:
-
-Name: str-replace
-ID: toolu_01VCgkoH7udhrahY9ySC2YkE
+Name: write-new-file
+ID: toolu_015PWqWZWgFRgkb5zDLXr9pk
 
 ### file-path
 
-<tool.toolu_01VCgkoH7udhrahY9ySC2YkE>
-greger.el
-</tool.toolu_01VCgkoH7udhrahY9ySC2YkE>
+<tool.toolu_015PWqWZWgFRgkb5zDLXr9pk>
+greger-ui.el
+</tool.toolu_015PWqWZWgFRgkb5zDLXr9pk>
 
-### original-content
+### contents
 
-<tool.toolu_01VCgkoH7udhrahY9ySC2YkE>
-;; Tool section collapsing variables
-(defvar greger-tool-section-max-lines 4
-  "Maximum number of lines to show in collapsed tool sections.")
+<tool.toolu_015PWqWZWgFRgkb5zDLXr9pk>
+;;; greger-ui.el --- UI utilities for greger -*- lexical-binding: t -*-
 
-(defvar-local greger-tool-overlays nil
-  "List of overlays used for collapsible tool sections.")
+;; Copyright (C) 2024
 
-(defvar-local greger--current-state nil
-  "Buffer-local variable to track the current state.")
+;; This file is part of greger.
 
-(defvar-local greger--buffer-read-only-by-greger nil
-  "Buffer-local variable to track if buffer is read-only due to greger activity.")
+;; greger is free software: you can redistribute it and/or modify
+;; it under the terms of the GNU General Public License as published by
+;; the Free Software Foundation, either version 3 of the License, or
+;; (at your option) any later version.
 
-(defvar-local greger--unfolded-tool-ids nil
-  "List of tool IDs that have been manually unfolded.
-These tool IDs should not be auto-folded again.")
-</tool.toolu_01VCgkoH7udhrahY9ySC2YkE>
+;; greger is distributed in the hope that it will be useful,
+;; but WITHOUT ANY WARRANTY; without even the implied warranty of
+;; MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+;; GNU General Public License for more details.
 
-### new-content
+;; You should have received a copy of the GNU General Public License
+;; along with greger.  If not, see <https://www.gnu.org/licenses/>.
 
-<tool.toolu_01VCgkoH7udhrahY9ySC2YkE>
-;; Tool section collapsing variables
-(defvar greger-tool-section-max-lines 4
-  "Maximum number of lines to show in collapsed tool sections.")
+;;; Commentary:
 
-(defvar-local greger-tool-overlays nil
-  "List of overlays used for collapsible tool sections.")
+;; This file provides UI utilities for greger, including citation folding
+;; functionality that makes assistant responses with citations more readable.
 
-;; Citation section collapsing variables
-(defvar-local greger-citation-overlays nil
-  "List of overlays used for collapsible citation sections.")
+;;; Code:
 
-(defvar-local greger--unfolded-citation-ids nil
-  "List of citation section IDs that have been manually unfolded.
-These citation IDs should not be auto-folded again.")
+(require 'cl-lib)
+(require 'greger-parser)
 
-(defvar-local greger--current-state nil
-  "Buffer-local variable to track the current state.")
+(defgroup greger-ui nil
+  "UI customization for greger."
+  :group 'greger)
 
-(defvar-local greger--buffer-read-only-by-greger nil
-  "Buffer-local variable to track if buffer is read-only due to greger activity.")
+(defface greger-cite-tag-face
+  '((t (:foreground "#00FFFF" :weight bold)))
+  "Face for <cite> tags."
+  :group 'greger-ui)
 
-(defvar-local greger--unfolded-tool-ids nil
-  "List of tool IDs that have been manually unfolded.
-These tool IDs should not be auto-folded again.")
-</tool.toolu_01VCgkoH7udhrahY9ySC2YkE>
+(defface greger-folded-citations-face
+  '((t (:foreground "#FFFF00" :slant italic)))
+  "Face for folded citation summary text."
+  :group 'greger-ui)
+
+;; Constants
+(defconst greger-ui-cite-tag-regex "<cite>\\([^<]*\\)</cite>"
+  "Regular expression to match cite tags.")
+
+(defconst greger-ui-assistant-header-regex "^## ASSISTANT:$"
+  "Regular expression to match assistant headers.")
+
+;; Variables
+(defvar-local greger-ui-cite-citation-overlays nil
+  "List of overlays used to hide citation blocks.")
+
+(defvar-local greger-ui-bibliography-overlays nil
+  "List of overlays used to hide/show the final bibliography section.")
+
+;;; Core Functions
+
+(defun greger-ui-point-in-cite-tag-p ()
+  "Return t if point is inside a <cite> tag."
+  (save-excursion
+    (let ((orig-point (point)))
+      ;; Look for cite tags on the current line
+      (beginning-of-line)
+      (catch 'found
+        (while (re-search-forward greger-ui-cite-tag-regex (line-end-position) t)
+          (when (and (>= orig-point (match-beginning 0))
+                     (<= orig-point (match-end 0)))
+            (throw 'found t)))
+        nil))))
+
+(defun greger-ui-get-cite-tag-at-point ()
+  "Get the cite tag at point. Returns (START . END) or nil."
+  (save-excursion
+    (let ((orig-point (point)))
+      (beginning-of-line)
+      (catch 'found
+        (while (re-search-forward greger-ui-cite-tag-regex (line-end-position) t)
+          (when (and (>= orig-point (match-beginning 0))
+                     (<= orig-point (match-end 0)))
+            (throw 'found (cons (match-beginning 0) (match-end 0)))))
+        nil))))
+
+(defun greger-ui-find-all-cite-citation-pairs ()
+  "Find all cite tag and citation block pairs in the buffer.
+Returns a list of ((CITE-START . CITE-END) . (CITATION-START . CITATION-END))."
+  (save-excursion
+    (goto-char (point-min))
+    (let (pairs)
+
+      ;; Find cite tags and their associated citation blocks
+      (while (re-search-forward greger-ui-cite-tag-regex nil t)
+        (let ((cite-start (match-beginning 0))
+              (cite-end (match-end 0))
+              citation-start citation-end)
+
+          ;; Citation block starts right after the cite tag (including newlines)
+          (setq citation-start cite-end)
+
+          ;; Look for the next ## CITATIONS: section after this cite tag
+          (when (re-search-forward (concat "^" (regexp-quote greger-parser-citations-tag) "$") nil t)
+
+            ;; Find the end of this citation section
+            (forward-line 1)
+            (if (re-search-forward "^## " nil t)
+                (progn
+                  ;; Include the next section header and empty lines in the fold
+                  (beginning-of-line)
+                  (if (looking-at greger-ui-assistant-header-regex)
+                      (progn
+                        ;; Skip the ASSISTANT header
+                        (forward-line 1)
+                        ;; Skip empty lines after ASSISTANT header
+                        (while (and (not (eobp)) (looking-at "^\\s-*$"))
+                          (forward-line 1))
+                        (setq citation-end (point)))
+                    (setq citation-end (line-beginning-position))))
+              (setq citation-end (point-max)))
+
+            ;; Add this pair (include all cite-citation pairs, even if followed by final bibliography)
+            (push (cons (cons cite-start cite-end)
+                        (cons citation-start citation-end))
+                  pairs)
+
+            ;; Go back to continue searching from after the cite tag
+            (goto-char cite-end))))
+
+      (nreverse pairs))))
+
+(defun greger-ui-find-citation-for-cite-tag ()
+  "Find the citation block associated with the cite tag at point.
+Returns (START . END) or nil."
+  (let ((cite-tag (greger-ui-get-cite-tag-at-point)))
+    (when cite-tag
+      (let ((cite-start (car cite-tag))
+            (cite-end (cdr cite-tag))
+            (pairs (greger-ui-find-all-cite-citation-pairs)))
+        ;; Find the pair that matches our cite tag
+        (catch 'found
+          (dolist (pair pairs)
+            (let ((pair-cite-start (car (car pair)))
+                  (pair-cite-end (cdr (car pair)))
+                  (citation-bounds (cdr pair)))
+              (when (and (= cite-start pair-cite-start)
+                         (= cite-end pair-cite-end))
+                (throw 'found citation-bounds))))
+          nil)))))
+
+(defun greger-ui-hide-citation-block (start end)
+  "Hide citation block from START to END."
+  (let ((overlay (make-overlay start end)))
+    (overlay-put overlay 'invisible t)
+    (overlay-put overlay 'greger-citation t)
+    (overlay-put overlay 'evaporate t)
+    (push overlay greger-ui-cite-citation-overlays)))
+
+(defun greger-ui-show-citation-block (start end)
+  "Show citation block from START to END."
+  (remove-overlays start end 'greger-citation t)
+  (setq greger-ui-cite-citation-overlays
+        (cl-remove-if (lambda (ov)
+                        (or (not (overlay-buffer ov))  ; Remove dead overlays
+                            (and (overlay-start ov)     ; Check overlay is valid
+                                 (overlay-end ov)
+                                 (>= (overlay-start ov) start)
+                                 (<= (overlay-end ov) end))))
+                      greger-ui-cite-citation-overlays)))
+
+(defun greger-ui-citation-block-hidden-p (start end)
+  "Return t if citation block from START to END is hidden."
+  ;; First clean up dead overlays
+  (setq greger-ui-cite-citation-overlays
+        (cl-remove-if-not (lambda (ov)
+                            (and (overlay-buffer ov)
+                                 (overlay-start ov)
+                                 (overlay-end ov)))
+                          greger-ui-cite-citation-overlays))
+  ;; Then check if any overlay covers this region
+  (cl-some (lambda (ov)
+             (and (overlay-get ov 'greger-citation)
+                  (overlay-start ov)  ; Double-check overlay is valid
+                  (overlay-end ov)
+                  (>= (overlay-start ov) start)
+                  (<= (overlay-end ov) end)))
+           greger-ui-cite-citation-overlays))
+
+;;; Final Bibliography Functions
+
+(defun greger-ui-find-final-bibliography ()
+  "Find the final CITATIONS section that acts as a bibliography.
+Returns (START . END) or nil if not found."
+  (save-excursion
+    (goto-char (point-max))
+    ;; Look backwards for the last CITATIONS section
+    (when (re-search-backward (concat "^" (regexp-quote greger-parser-citations-tag) "$") nil t)
+      (let ((start (line-beginning-position))
+            end)
+        ;; Check if this is truly the final section (no more cite tags after it)
+        (save-excursion
+          (goto-char start)
+          (unless (re-search-forward greger-ui-cite-tag-regex nil t)
+            ;; This is the final bibliography
+            (goto-char start)
+            (forward-line 1)  ; Skip the header
+            (setq end (point-max))
+            (cons start end)))))))
+
+(defun greger-ui-count-citations-in-section (start end)
+  "Count the number of citation entries in a CITATIONS section from START to END."
+  (save-excursion
+    (goto-char start)
+    (let ((count 0))
+      (while (re-search-forward "^### " end t)
+        (setq count (1+ count)))
+      count)))
+
+(defun greger-ui-hide-final-bibliography (start end)
+  "Hide the final bibliography section with a summary."
+  (let* ((count (greger-ui-count-citations-in-section start end))
+         (content-start (save-excursion (goto-char start) (forward-line 1) (point)))
+         (overlay (make-overlay content-start end))
+         (summary-overlay (make-overlay content-start content-start)))
+
+    ;; Hide the bibliography content (but not the header)
+    (overlay-put overlay 'invisible t)
+    (overlay-put overlay 'greger-bibliography t)
+    (overlay-put overlay 'evaporate t)
+    (push overlay greger-ui-bibliography-overlays)
+
+    ;; Show the summary
+    (overlay-put summary-overlay 'after-string
+                 (propertize (format "\n[+%d citations, TAB to expand]\n"
+                                   count)
+                           'face 'greger-folded-citations-face))
+    (overlay-put summary-overlay 'greger-bibliography-summary t)
+    (overlay-put summary-overlay 'evaporate t)
+    (push summary-overlay greger-ui-bibliography-overlays)))
+
+(defun greger-ui-show-final-bibliography (start end)
+  "Show the final bibliography section."
+  (let ((content-start (save-excursion (goto-char start) (forward-line 1) (point))))
+    (remove-overlays content-start end 'greger-bibliography t)
+    (remove-overlays content-start end 'greger-bibliography-summary t)
+    (setq greger-ui-bibliography-overlays
+          (cl-remove-if (lambda (ov)
+                          (or (not (overlay-buffer ov))
+                              (and (overlay-start ov)
+                                   (overlay-end ov)
+                                   (>= (overlay-start ov) content-start)
+                                   (<= (overlay-end ov) end))))
+                        greger-ui-bibliography-overlays))))
+
+(defun greger-ui-bibliography-hidden-p (start end)
+  "Return t if the bibliography section is hidden."
+  (let ((content-start (save-excursion (goto-char start) (forward-line 1) (point))))
+    (cl-some (lambda (ov)
+               (and (overlay-get ov 'greger-bibliography)
+                    (overlay-start ov)
+                    (overlay-end ov)
+                    (>= (overlay-start ov) content-start)
+                    (<= (overlay-end ov) end)))
+             greger-ui-bibliography-overlays)))
+
+(defun greger-ui-point-in-bibliography-p ()
+  "Return t if point is in the final bibliography section."
+  (let ((bib-bounds (greger-ui-find-final-bibliography)))
+    (when bib-bounds
+      (and (>= (point) (car bib-bounds))
+           (<= (point) (cdr bib-bounds))))))
+
+;;; Interactive Functions
+
+(defun greger-ui-toggle-citation-fold ()
+  "Toggle folding of citation blocks or bibliography.
+Works when point is in a <cite> tag or in the final bibliography section."
+  (interactive)
+  (cond
+   ;; Point is in a cite tag
+   ((greger-ui-point-in-cite-tag-p)
+    (let ((citation-bounds (greger-ui-find-citation-for-cite-tag)))
+      (if citation-bounds
+          (let ((start (car citation-bounds))
+                (end (cdr citation-bounds)))
+            (if (greger-ui-citation-block-hidden-p start end)
+                (greger-ui-show-citation-block start end)
+              (greger-ui-hide-citation-block start end)))
+        (message "No citation block found for this cite tag"))))
+
+   ;; Point is in the final bibliography section
+   ((greger-ui-point-in-bibliography-p)
+    (let ((bib-bounds (greger-ui-find-final-bibliography)))
+      (when bib-bounds
+        (let ((start (car bib-bounds))
+              (end (cdr bib-bounds)))
+          (if (greger-ui-bibliography-hidden-p start end)
+              (greger-ui-show-final-bibliography start end)
+            (greger-ui-hide-final-bibliography start end))))))
+
+   ;; Not in a cite tag or bibliography
+   (t
+    (message "TAB only works inside <cite> tags or in the bibliography section"))))
+
+(defun greger-ui-hide-all-citations ()
+  "Hide all citation blocks that should be folded."
+  (interactive)
+  (let ((pairs (greger-ui-find-all-cite-citation-pairs)))
+    (dolist (pair pairs)
+      (let ((citation-bounds (cdr pair)))
+        (greger-ui-hide-citation-block (car citation-bounds) (cdr citation-bounds)))))
+
+  ;; Also hide the final bibliography section
+  (let ((bib-bounds (greger-ui-find-final-bibliography)))
+    (when bib-bounds
+      (greger-ui-hide-final-bibliography (car bib-bounds) (cdr bib-bounds)))))
+
+(defun greger-ui-show-all-citations ()
+  "Show all citation blocks."
+  (interactive)
+  (remove-overlays (point-min) (point-max) 'greger-citation t)
+  (remove-overlays (point-min) (point-max) 'greger-bibliography t)
+  (remove-overlays (point-min) (point-max) 'greger-bibliography-summary t)
+  (setq greger-ui-cite-citation-overlays nil)
+  (setq greger-ui-bibliography-overlays nil))
+
+(defun greger-ui-cleanup-dead-overlays ()
+  "Remove dead overlays from citation overlays lists."
+  (setq greger-ui-cite-citation-overlays
+        (cl-remove-if-not (lambda (ov)
+                            (and (overlay-buffer ov)
+                                 (overlay-start ov)
+                                 (overlay-end ov)))
+                          greger-ui-cite-citation-overlays))
+  (setq greger-ui-bibliography-overlays
+        (cl-remove-if-not (lambda (ov)
+                            (and (overlay-buffer ov)
+                                 (overlay-start ov)
+                                 (overlay-end ov)))
+                          greger-ui-bibliography-overlays)))
+
+;;; Font Lock Support
+
+(defun greger-ui-setup-cite-fontification ()
+  "Set up font-lock for cite tags."
+  (font-lock-add-keywords
+   nil
+   `((,greger-ui-cite-tag-regex
+      (0 'greger-cite-tag-face)))
+   'append))
+
+;;; Integration Functions
+
+(defun greger-ui-setup-citation-folding ()
+  "Set up citation folding for the current buffer."
+  ;; Clean up any existing overlays first
+  (greger-ui-cleanup-dead-overlays)
+  
+  ;; Set up fontification
+  (greger-ui-setup-cite-fontification)
+  
+  ;; Initially hide appropriate citation blocks
+  (greger-ui-hide-all-citations)
+  
+  ;; Add hook to clean up overlays when buffer is killed
+  (add-hook 'kill-buffer-hook #'greger-ui-show-all-citations nil t))
+
+(defun greger-ui-teardown-citation-folding ()
+  "Tear down citation folding for the current buffer."
+  (greger-ui-show-all-citations)
+  (remove-hook 'kill-buffer-hook #'greger-ui-show-all-citations t))
+
+(provide 'greger-ui)
+
+;;; greger-ui.el ends here
+</tool.toolu_015PWqWZWgFRgkb5zDLXr9pk>
 
 ### git-commit-message
 
-<tool.toolu_01VCgkoH7udhrahY9ySC2YkE>
-Add citation folding variables
-</tool.toolu_01VCgkoH7udhrahY9ySC2YkE>
+<tool.toolu_015PWqWZWgFRgkb5zDLXr9pk>
+Add greger-ui.el with citation folding functionality
 
-<!-- TOOL_RESULT_PLACEHOLDER_toolu_01VCgkoH7udhrahY9ySC2YkE -->
+- Create new greger-ui.el file for UI utilities
+- Implement citation folding for <cite> tags and CITATIONS sections
+- Add functions to hide/show individual citation blocks and final bibliography
+- Include font-lock support for cite tags
+- Provide setup/teardown functions for integration with greger.el
+</tool.toolu_015PWqWZWgFRgkb5zDLXr9pk>
+
+<!-- TOOL_RESULT_PLACEHOLDER_toolu_015PWqWZWgFRgkb5zDLXr9pk -->
