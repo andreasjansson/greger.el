@@ -972,14 +972,15 @@ Returns nil to indicate no region extension is needed."
   nil)
 
 (defun greger--after-change-function (beg end _len)
-  "Update tool sections after buffer changes.
+  "Update tool sections and citations after buffer changes.
 BEG is the beginning of the changed region.
 END is the end of the changed region.
 _LEN is the length of the pre-change text (unused)."
   ;; Only run timer-based cleanup for complex changes or when not actively streaming
   (when (and (> (- end beg) 0)  ; Only if there was an actual change
              (not (greger--is-actively-streaming)))
-    (run-with-idle-timer 0.1 nil #'greger--setup-tool-sections)))
+    (run-with-idle-timer 0.1 nil #'greger--setup-tool-sections)
+    (run-with-idle-timer 0.1 nil #'greger-ui-hide-all-citations)))
 
 (defun greger--is-actively-streaming ()
   "Check if we're currently streaming content from the AI."

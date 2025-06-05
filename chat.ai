@@ -1749,4 +1749,179 @@ Add citation folding setup to greger-mode
 - Call greger-ui-setup-citation-folding after tool section setup
 </tool.toolu_011CnZtYPSJwiNMeTuCKSagf>
 
-<!-- TOOL_RESULT_PLACEHOLDER_toolu_011CnZtYPSJwiNMeTuCKSagf -->
+## TOOL RESULT:
+
+ID: toolu_011CnZtYPSJwiNMeTuCKSagf
+
+<tool.toolu_011CnZtYPSJwiNMeTuCKSagf>
+Successfully replaced content in /Users/andreas/projects/greger.el/greger.el. Successfully staged 2 file(s) and committed with message: Add citation folding setup to greger-mode
+
+- Initialize citation folding when greger-mode is activated
+- Call greger-ui-setup-citation-folding after tool section setup
+</tool.toolu_011CnZtYPSJwiNMeTuCKSagf>
+
+## ASSISTANT:
+
+Now I need to make sure that when new content is added to the buffer (especially when new citations are added), the folding is updated. Let me check how the current tool section updating works:
+
+## TOOL USE:
+
+Name: ripgrep
+ID: toolu_019FKyrYSu94rhZrDVLoWxtR
+
+### pattern
+
+<tool.toolu_019FKyrYSu94rhZrDVLoWxtR>
+after-change-function|greger--after-change
+</tool.toolu_019FKyrYSu94rhZrDVLoWxtR>
+
+### path
+
+<tool.toolu_019FKyrYSu94rhZrDVLoWxtR>
+greger.el
+</tool.toolu_019FKyrYSu94rhZrDVLoWxtR>
+
+### context-lines
+
+<tool.toolu_019FKyrYSu94rhZrDVLoWxtR>
+5
+</tool.toolu_019FKyrYSu94rhZrDVLoWxtR>
+
+## TOOL RESULT:
+
+ID: toolu_019FKyrYSu94rhZrDVLoWxtR
+
+<tool.toolu_019FKyrYSu94rhZrDVLoWxtR>
+211-  ;; Set up citation folding
+212-  (greger-ui-setup-citation-folding)
+213-  ;; Set up custom heading font-lock
+214-  (greger--setup-heading-font-lock)
+215-  ;; Add hook to update tool sections when buffer changes
+216:  (add-hook 'after-change-functions #'greger--after-change-function nil t)
+217-  ;; Add font-lock hook for immediate tool tag styling
+218-  (add-hook 'font-lock-extend-region-functions #'greger--extend-font-lock-region nil t))
+219-
+220-;;;###autoload
+221-(defun greger ()
+--
+969-(defun greger--extend-font-lock-region ()
+970-  "Extend font-lock region for greger mode.
+971-Returns nil to indicate no region extension is needed."
+972-  nil)
+973-
+974:(defun greger--after-change-function (beg end _len)
+975-  "Update tool sections after buffer changes.
+976-BEG is the beginning of the changed region.
+977-END is the end of the changed region.
+978-_LEN is the length of the pre-change text (unused)."
+979-  ;; Only run timer-based cleanup for complex changes or when not actively streaming
+
+</tool.toolu_019FKyrYSu94rhZrDVLoWxtR>
+
+## TOOL USE:
+
+Name: read-file
+ID: toolu_01UTCXFgRETynL7Rdpmw6fRT
+
+### path
+
+<tool.toolu_01UTCXFgRETynL7Rdpmw6fRT>
+greger.el
+</tool.toolu_01UTCXFgRETynL7Rdpmw6fRT>
+
+### start-line
+
+<tool.toolu_01UTCXFgRETynL7Rdpmw6fRT>
+974
+</tool.toolu_01UTCXFgRETynL7Rdpmw6fRT>
+
+### end-line
+
+<tool.toolu_01UTCXFgRETynL7Rdpmw6fRT>
+995
+</tool.toolu_01UTCXFgRETynL7Rdpmw6fRT>
+
+## TOOL RESULT:
+
+ID: toolu_01UTCXFgRETynL7Rdpmw6fRT
+
+<tool.toolu_01UTCXFgRETynL7Rdpmw6fRT>
+(defun greger--after-change-function (beg end _len)
+  "Update tool sections after buffer changes.
+BEG is the beginning of the changed region.
+END is the end of the changed region.
+_LEN is the length of the pre-change text (unused)."
+  ;; Only run timer-based cleanup for complex changes or when not actively streaming
+  (when (and (> (- end beg) 0)  ; Only if there was an actual change
+             (not (greger--is-actively-streaming)))
+    (run-with-idle-timer 0.1 nil #'greger--setup-tool-sections)))
+
+(defun greger--is-actively-streaming ()
+  "Check if we're currently streaming content from the AI."
+  (and greger--current-state
+       (greger-state-client-state greger--current-state)))
+
+;; Private helper functions
+
+(defun greger--get-current-code-block ()
+  "Return the current code block under point, or nil if not found."
+  (save-excursion
+    (when (re-search-backward "^```" nil t)
+      (forward-line)
+</tool.toolu_01UTCXFgRETynL7Rdpmw6fRT>
+
+## ASSISTANT:
+
+I should modify the `greger--after-change-function` to also update citation folding. Let me update it:
+
+## TOOL USE:
+
+Name: str-replace
+ID: toolu_01GcEvnKz62R2vG327f9wrB1
+
+### file-path
+
+<tool.toolu_01GcEvnKz62R2vG327f9wrB1>
+greger.el
+</tool.toolu_01GcEvnKz62R2vG327f9wrB1>
+
+### original-content
+
+<tool.toolu_01GcEvnKz62R2vG327f9wrB1>
+(defun greger--after-change-function (beg end _len)
+  "Update tool sections after buffer changes.
+BEG is the beginning of the changed region.
+END is the end of the changed region.
+_LEN is the length of the pre-change text (unused)."
+  ;; Only run timer-based cleanup for complex changes or when not actively streaming
+  (when (and (> (- end beg) 0)  ; Only if there was an actual change
+             (not (greger--is-actively-streaming)))
+    (run-with-idle-timer 0.1 nil #'greger--setup-tool-sections)))
+</tool.toolu_01GcEvnKz62R2vG327f9wrB1>
+
+### new-content
+
+<tool.toolu_01GcEvnKz62R2vG327f9wrB1>
+(defun greger--after-change-function (beg end _len)
+  "Update tool sections and citations after buffer changes.
+BEG is the beginning of the changed region.
+END is the end of the changed region.
+_LEN is the length of the pre-change text (unused)."
+  ;; Only run timer-based cleanup for complex changes or when not actively streaming
+  (when (and (> (- end beg) 0)  ; Only if there was an actual change
+             (not (greger--is-actively-streaming)))
+    (run-with-idle-timer 0.1 nil #'greger--setup-tool-sections)
+    (run-with-idle-timer 0.1 nil #'greger-ui-hide-all-citations)))
+</tool.toolu_01GcEvnKz62R2vG327f9wrB1>
+
+### git-commit-message
+
+<tool.toolu_01GcEvnKz62R2vG327f9wrB1>
+Update after-change function to handle citation folding
+
+- Modify greger--after-change-function to also update citation folding
+- Add timer-based call to greger-ui-hide-all-citations after buffer changes
+- Update docstring to reflect new functionality
+</tool.toolu_01GcEvnKz62R2vG327f9wrB1>
+
+<!-- TOOL_RESULT_PLACEHOLDER_toolu_01GcEvnKz62R2vG327f9wrB1 -->
