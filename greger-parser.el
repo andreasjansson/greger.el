@@ -775,7 +775,7 @@ Modifies the sections list in-place."
 
 (defun greger-parser--add-citations-to-content-blocks (content-blocks citations)
   "Add CITATIONS to appropriate text blocks in CONTENT-BLOCKS.
-Modifies the content blocks in-place."
+Modifies the content blocks in-place to process <cite> tags."
   (dolist (block content-blocks)
     (when (and (listp block) (string= "text" (alist-get 'type block)))
       (let ((text (alist-get 'text block)))

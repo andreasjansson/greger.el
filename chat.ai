@@ -5586,4 +5586,77 @@ test/test-greger-parser.el
 Fix citations test case structure - separate text blocks
 </tool.toolu_01Gzb71WRaHCjmBA1FQ8Sxqm>
 
-<!-- TOOL_RESULT_PLACEHOLDER_toolu_01Gzb71WRaHCjmBA1FQ8Sxqm -->
+## TOOL RESULT:
+
+ID: toolu_01Gzb71WRaHCjmBA1FQ8Sxqm
+
+<tool.toolu_01Gzb71WRaHCjmBA1FQ8Sxqm>
+Successfully replaced content in /Users/andreas/projects/greger.el/test/test-greger-parser.el. Successfully staged 2 file(s) and committed with message: Fix citations test case structure - separate text blocks
+</tool.toolu_01Gzb71WRaHCjmBA1FQ8Sxqm>
+
+## ASSISTANT:
+
+Now I need to completely rethink the parsing approach. The issue is that citations in the markdown are folded into a separate section, but in the dialog structure they need to be attached to the specific text blocks that contain the cited content. 
+
+Let me modify the parsing logic. The key insight is that when I encounter a `## CITATIONS:` section, I need to:
+
+1. Parse the citation data
+2. Go back to the previous assistant message 
+3. Find text blocks that have `<cite>` tags
+4. Attach the appropriate citations to those text blocks
+5. Remove the `<cite>` tags from the text
+
+Let me update the citation processing logic:
+
+## TOOL USE:
+
+Name: str-replace
+ID: toolu_01WAkYr2cUpXvZGmnuXc3AeU
+
+### file-path
+
+<tool.toolu_01WAkYr2cUpXvZGmnuXc3AeU>
+greger-parser.el
+</tool.toolu_01WAkYr2cUpXvZGmnuXc3AeU>
+
+### original-content
+
+<tool.toolu_01WAkYr2cUpXvZGmnuXc3AeU>
+(defun greger-parser--add-citations-to-content-blocks (content-blocks citations)
+  "Add CITATIONS to appropriate text blocks in CONTENT-BLOCKS.
+Modifies the content blocks in-place."
+  (dolist (block content-blocks)
+    (when (and (listp block) (string= "text" (alist-get 'type block)))
+      (let ((text (alist-get 'text block)))
+        ;; Check if text contains <cite> tags - if so, process them and add citations
+        (when (and text (string-match-p "<cite>" text))
+          ;; Remove <cite> tags from text and add citations to block
+          (let ((clean-text (greger-parser--remove-cite-tags text)))
+            (setcdr (assq 'text block) clean-text)
+            (push (cons 'citations citations) block)))))))
+</tool.toolu_01WAkYr2cUpXvZGmnuXc3AeU>
+
+### new-content
+
+<tool.toolu_01WAkYr2cUpXvZGmnuXc3AeU>
+(defun greger-parser--add-citations-to-content-blocks (content-blocks citations)
+  "Add CITATIONS to appropriate text blocks in CONTENT-BLOCKS.
+Modifies the content blocks in-place to process <cite> tags."
+  (dolist (block content-blocks)
+    (when (and (listp block) (string= "text" (alist-get 'type block)))
+      (let ((text (alist-get 'text block)))
+        ;; Check if text contains <cite> tags - if so, process them and add citations
+        (when (and text (string-match-p "<cite>" text))
+          ;; Remove <cite> tags from text and add citations to block
+          (let ((clean-text (greger-parser--remove-cite-tags text)))
+            (setcdr (assq 'text block) clean-text)
+            (push (cons 'citations citations) block)))))))
+</tool.toolu_01WAkYr2cUpXvZGmnuXc3AeU>
+
+### git-commit-message
+
+<tool.toolu_01WAkYr2cUpXvZGmnuXc3AeU>
+Update citations processing function documentation
+</tool.toolu_01WAkYr2cUpXvZGmnuXc3AeU>
+
+<!-- TOOL_RESULT_PLACEHOLDER_toolu_01WAkYr2cUpXvZGmnuXc3AeU -->
