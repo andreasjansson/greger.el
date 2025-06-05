@@ -5,15 +5,36 @@
 
 (let ((markdown "## USER:
 
-What's 2+2?
+Search for current weather in San Francisco
 
-## THINKING:
+## SERVER TOOL USE:
 
-This is a simple arithmetic question. I can answer this directly without needing any tools.
+Name: web_search
+ID: srvtoolu_123
+
+### query
+
+<tool.srvtoolu_123>
+current weather San Francisco
+</tool.srvtoolu_123>
+
+## SERVER TOOL RESULT:
+
+ID: srvtoolu_123
+
+<tool.srvtoolu_123>
+[
+  {
+    \"title\": \"Weather in San Francisco\",
+    \"url\": \"https://weather.com/sf\",
+    \"content\": \"Sunny, 72°F\"
+  }
+]
+</tool.srvtoolu_123>
 
 ## ASSISTANT:
 
-2 + 2 = 4"))
+The current weather in San Francisco is sunny and 72°F."))
   (let ((dialog (greger-parser-parse-dialog-messages-only markdown)))
     (message "ORIGINAL DIALOG:")
     (pp dialog)

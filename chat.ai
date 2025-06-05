@@ -4714,4 +4714,146 @@ Fix markdown generation for mixed content blocks
 Ensure that the first text block in assistant content gets the proper ## ASSISTANT: header even when preceded by thinking blocks or other non-text blocks.
 </tool.toolu_01SxAQuLtkSm7EToygVrhppo>
 
-<!-- TOOL_RESULT_PLACEHOLDER_toolu_01SxAQuLtkSm7EToygVrhppo -->
+## TOOL RESULT:
+
+ID: toolu_01SxAQuLtkSm7EToygVrhppo
+
+<tool.toolu_01SxAQuLtkSm7EToygVrhppo>
+Successfully replaced content in /Users/andreas/projects/greger.el/greger-parser.el. Successfully staged 2 file(s) and committed with message: Fix markdown generation for mixed content blocks
+
+Ensure that the first text block in assistant content gets the proper ## ASSISTANT: header even when preceded by thinking blocks or other non-text blocks.
+</tool.toolu_01SxAQuLtkSm7EToygVrhppo>
+
+## ASSISTANT:
+
+Now let me test the thinking section roundtrip again:
+
+## TOOL USE:
+
+Name: shell-command
+ID: toolu_01XG2kigTDZEpsz74mbrhtzX
+
+### command
+
+<tool.toolu_01XG2kigTDZEpsz74mbrhtzX>
+cd /Users/andreas/projects/greger.el && emacs --script debug-roundtrip.el
+</tool.toolu_01XG2kigTDZEpsz74mbrhtzX>
+
+## TOOL RESULT:
+
+ID: toolu_01XG2kigTDZEpsz74mbrhtzX
+
+<tool.toolu_01XG2kigTDZEpsz74mbrhtzX>
+Command executed successfully:
+Source file ‘/opt/homebrew/Cellar/emacs-plus@29/29.0.90/share/emacs/29.0.91/lisp/net/eww.el’ newer than byte-compiled file; using older file
+ORIGINAL DIALOG:
+(((role . "user")
+  (content . "What's 2+2?"))
+ ((role . "assistant")
+  (content
+   ((type . "thinking")
+    (thinking . "This is a simple arithmetic question. I can answer this directly without needing any tools."))
+   ((type . "text")
+    (text . "2 + 2 = 4")))))
+
+
+ROUNDTRIP MARKDOWN:
+## USER:
+
+What's 2+2?
+
+## THINKING:
+
+This is a simple arithmetic question. I can answer this directly without needing any tools.
+
+## ASSISTANT:
+
+2 + 2 = 4
+
+ROUNDTRIP DIALOG:
+(((role . "user")
+  (content . "What's 2+2?"))
+ ((role . "assistant")
+  (content
+   ((type . "thinking")
+    (thinking . "This is a simple arithmetic question. I can answer this directly without needing any tools."))
+   ((type . "text")
+    (text . "2 + 2 = 4")))))
+
+</tool.toolu_01XG2kigTDZEpsz74mbrhtzX>
+
+## ASSISTANT:
+
+Excellent! The thinking section roundtrip is now working correctly. Let me check the server tool use issues next. Let me modify the debug script to test the server tool use case:
+
+## TOOL USE:
+
+Name: str-replace
+ID: toolu_01ShKHM7Md5yaueDzMfTDgbC
+
+### file-path
+
+<tool.toolu_01ShKHM7Md5yaueDzMfTDgbC>
+debug-roundtrip.el
+</tool.toolu_01ShKHM7Md5yaueDzMfTDgbC>
+
+### original-content
+
+<tool.toolu_01ShKHM7Md5yaueDzMfTDgbC>
+(let ((markdown "## USER:
+
+What's 2+2?
+
+## THINKING:
+
+This is a simple arithmetic question. I can answer this directly without needing any tools.
+
+## ASSISTANT:
+
+2 + 2 = 4"))
+</tool.toolu_01ShKHM7Md5yaueDzMfTDgbC>
+
+### new-content
+
+<tool.toolu_01ShKHM7Md5yaueDzMfTDgbC>
+(let ((markdown "## USER:
+
+Search for current weather in San Francisco
+
+## SERVER TOOL USE:
+
+Name: web_search
+ID: srvtoolu_123
+
+### query
+
+<tool.srvtoolu_123>
+current weather San Francisco
+</tool.srvtoolu_123>
+
+## SERVER TOOL RESULT:
+
+ID: srvtoolu_123
+
+<tool.srvtoolu_123>
+[
+  {
+    \"title\": \"Weather in San Francisco\",
+    \"url\": \"https://weather.com/sf\",
+    \"content\": \"Sunny, 72°F\"
+  }
+]
+</tool.srvtoolu_123>
+
+## ASSISTANT:
+
+The current weather in San Francisco is sunny and 72°F."))
+</tool.toolu_01ShKHM7Md5yaueDzMfTDgbC>
+
+### git-commit-message
+
+<tool.toolu_01ShKHM7Md5yaueDzMfTDgbC>
+Update debug script to test server tool use roundtrip
+</tool.toolu_01ShKHM7Md5yaueDzMfTDgbC>
+
+<!-- TOOL_RESULT_PLACEHOLDER_toolu_01ShKHM7Md5yaueDzMfTDgbC -->
