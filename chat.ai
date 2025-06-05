@@ -3931,4 +3931,336 @@ Add tool folding variables to greger-ui
 - Add greger-ui-unfolded-tool-ids to track manually expanded tools
 </tool.toolu_01Jfe5cftZsWavNpWeCpknbR>
 
-<!-- TOOL_RESULT_PLACEHOLDER_toolu_01Jfe5cftZsWavNpWeCpknbR -->
+## TOOL RESULT:
+
+ID: toolu_01Jfe5cftZsWavNpWeCpknbR
+
+<tool.toolu_01Jfe5cftZsWavNpWeCpknbR>
+Successfully replaced content in /Users/andreas/projects/greger.el/greger-ui.el. Successfully staged 2 file(s) and committed with message: Add tool folding variables to greger-ui
+
+- Add greger-ui-tool-section-max-lines for configuring collapsed tool size
+- Add greger-ui-tool-overlays to track tool section overlays
+- Add greger-ui-unfolded-tool-ids to track manually expanded tools
+</tool.toolu_01Jfe5cftZsWavNpWeCpknbR>
+
+## ASSISTANT:
+
+Now let me add all the tool folding functions to greger-ui.el:
+
+## TOOL USE:
+
+Name: str-replace
+ID: toolu_01Ujb1nU3zqtSPPK95hRMccg
+
+### file-path
+
+<tool.toolu_01Ujb1nU3zqtSPPK95hRMccg>
+greger-ui.el
+</tool.toolu_01Ujb1nU3zqtSPPK95hRMccg>
+
+### original-content
+
+<tool.toolu_01Ujb1nU3zqtSPPK95hRMccg>
+;;; Integration Functions
+
+(defun greger-ui-setup-citation-folding ()
+  "Set up citation folding for the current buffer."
+  ;; Clean up any existing overlays first
+  (greger-ui-cleanup-dead-overlays)
+
+  ;; Set up fontification
+  (greger-ui-setup-cite-fontification)
+
+  ;; Initially hide appropriate citation blocks
+  (greger-ui-hide-all-citations)
+
+  ;; Add hook to clean up overlays when buffer is killed
+  (add-hook 'kill-buffer-hook #'greger-ui-show-all-citations nil t))
+
+(defun greger-ui-teardown-citation-folding ()
+  "Tear down citation folding for the current buffer."
+  (greger-ui-show-all-citations)
+  (remove-hook 'kill-buffer-hook #'greger-ui-show-all-citations t))
+</tool.toolu_01Ujb1nU3zqtSPPK95hRMccg>
+
+### new-content
+
+<tool.toolu_01Ujb1nU3zqtSPPK95hRMccg>
+;;; Tool Section Functions
+
+(defun greger-ui-setup-tool-sections ()
+  "Set up tool section highlighting and collapsing in the current buffer."
+  (greger-ui-clear-tool-overlays)
+  (greger-ui-find-and-setup-tool-sections))
+
+(defun greger-ui-clear-tool-overlays ()
+  "Clear all tool section overlays in the current buffer."
+  (cl-loop for overlay in greger-ui-tool-overlays
+           do (delete-overlay overlay))
+  (setq greger-ui-tool-overlays nil))
+
+(defun greger-ui-find-and-setup-tool-sections ()
+  "Find all tool sections and set them up with appropriate faces and collapsing."
+  (save-excursion
+    (goto-char (point-min))
+    (cl-loop while (re-search-forward "<tool\\.[^>]+>" nil t)
+             do (greger-ui-setup-single-tool-section))))
+
+(defun greger-ui-setup-single-tool-section ()
+  "Set up a single tool section starting from the current match."
+  (let ((start-tag-start (match-beginning 0))
+        (start-tag-end (match-end 0))
+        (tool-id (greger-ui-extract-tool-id (match-string 0))))
+    (when tool-id
+      (let ((end-tag-pattern (concat "</tool\\." (regexp-quote tool-id) ">"))
+            (content-start start-tag-end)
+            end-tag-start end-tag-end content-end)
+        
+        ;; Find the closing tag
+        (when (re-search-forward end-tag-pattern nil t)
+          (setq end-tag-start (match-beginning 0)
+                end-tag-end (match-end 0)
+                content-end end-tag-start)
+          
+          ;; Create overlays for styling
+          (greger-ui-create-tag-overlay start-tag-start start-tag-end)
+          (greger-ui-create-tag-overlay end-tag-start end-tag-end)
+
+          ;; Set up collapsible content
+          (greger-ui-setup-collapsible-content content-start content-end tool-id))))))
+
+(defun greger-ui-extract-tool-id (tag-string)
+  "Extract tool ID from a tool tag string like '<tool.abc123>'.
+TAG-STRING is the tag string to extract from."
+  (when (string-match "<tool\\.\\([^>]+\\)>" tag-string)
+    (match-string 1 tag-string)))
+
+(defun greger-ui-create-tag-overlay (start end)
+  "Create an overlay for a tool tag to make it small and less visible.
+START and END define the overlay bounds."
+  (let ((overlay (make-overlay start end)))
+    (overlay-put overlay 'face 'greger-tool-tag-face)
+    (overlay-put overlay 'greger-tool-tag t)
+    (push overlay greger-ui-tool-overlays)
+    overlay))
+
+(defun greger-ui-setup-collapsible-content (content-start content-end tool-id)
+  "Set up collapsible content between CONTENT-START and CONTENT-END for TOOL-ID.
+CONTENT-START is the start position of the content.
+CONTENT-END is the end position of the content.
+TOOL-ID identifies the tool."
+  (let* ((content (buffer-substring-no-properties content-start content-end))
+         (lines (split-string content "\n"))
+         (line-count (length lines)))
+
+    (when (and (> line-count greger-ui-tool-section-max-lines)
+               ;; Only create collapsed overlay if not manually unfolded
+               (not (member tool-id greger-ui-unfolded-tool-ids)))
+      ;; Create the collapsible overlay
+      (greger-ui-create-collapsible-overlay content-start content-end tool-id lines))))
+
+(defun greger-ui-create-collapsible-overlay (content-start content-end tool-id lines)
+  "Create a collapsible overlay for tool content.
+CONTENT-START and CONTENT-END define the overlay bounds.
+TOOL-ID identifies the tool, and LINES contain the content."
+  (let* ((visible-lines (cl-subseq lines 0 greger-ui-tool-section-max-lines))
+         (hidden-lines (cl-subseq lines greger-ui-tool-section-max-lines))
+         (hidden-line-count (length hidden-lines))
+         (visible-text (mapconcat #'identity visible-lines "\n"))
+
+         ;; Calculate positions for visible and hidden parts
+         (visible-end (+ content-start (length visible-text)))
+         (hidden-start (+ visible-end 1)) ; +1 for the newline
+
+         ;; Create overlay for the hidden part
+         (hidden-overlay (make-overlay hidden-start content-end)))
+
+    (overlay-put hidden-overlay 'invisible 'greger-tool-section)
+    (overlay-put hidden-overlay 'greger-tool-section t)
+    (overlay-put hidden-overlay 'greger-tool-id tool-id)
+    (overlay-put hidden-overlay 'greger-collapsed t)
+
+    ;; Add expansion indicator with line count
+    (let ((indicator-overlay (make-overlay visible-end visible-end)))
+      (overlay-put indicator-overlay 'after-string
+                   (propertize (format "... [+%d lines, TAB to expand]" hidden-line-count)
+                              'face 'greger-tool-tag-face))
+      (overlay-put indicator-overlay 'greger-tool-indicator t)
+      (overlay-put indicator-overlay 'greger-tool-id tool-id)
+      (push indicator-overlay greger-ui-tool-overlays))
+
+    (push hidden-overlay greger-ui-tool-overlays)))
+
+(defun greger-ui-get-tool-id-at-point ()
+  "Get the tool ID for the tool section at point, if any."
+  ;; First check overlays at point
+  (or (cl-loop for overlay in (overlays-at (point))
+               for tool-id = (overlay-get overlay 'greger-tool-id)
+               when tool-id return tool-id)
+      ;; If not found, search backwards and forwards for tool tags
+      (greger-ui-find-tool-id-near-point)))
+
+(defun greger-ui-find-tool-id-near-point ()
+  "Find tool ID near point by searching for tool tags."
+  (save-excursion
+    (let ((start-pos (point))
+          tool-id)
+      ;; Search backwards for opening tag
+      (when (re-search-backward "<tool\\.[^>]+>" nil t)
+        (let ((open-tag-start (match-beginning 0))
+              (tag-tool-id (greger-ui-extract-tool-id (match-string 0))))
+          ;; Check if we're within this tool section
+          (when tag-tool-id
+            (let ((close-pattern (concat "</tool\\." (regexp-quote tag-tool-id) ">")))
+              (when (re-search-forward close-pattern nil t)
+                (let ((close-tag-end (match-end 0)))
+                  ;; If original point is between open and close tags
+                  (when (and (>= start-pos open-tag-start)
+                             (<= start-pos close-tag-end))
+                    (setq tool-id tag-tool-id))))))))
+      tool-id)))
+
+(defun greger-ui-toggle-tool-section-by-id (tool-id)
+  "Toggle the tool section with the given TOOL-ID.
+TOOL-ID is the identifier of the tool section to toggle."
+  (cl-loop for overlay in greger-ui-tool-overlays
+           when (and (overlay-get overlay 'greger-tool-section)
+                     (string= (overlay-get overlay 'greger-tool-id) tool-id))
+           do (greger-ui-toggle-overlay-visibility overlay tool-id)))
+
+(defun greger-ui-toggle-overlay-visibility (overlay tool-id)
+  "Toggle the visibility of OVERLAY for TOOL-ID."
+  (let ((is-collapsed (overlay-get overlay 'greger-collapsed)))
+    (if is-collapsed
+        (greger-ui-expand-tool-section overlay tool-id)
+      (greger-ui-collapse-tool-section overlay tool-id))))
+
+(defun greger-ui-expand-tool-section (overlay tool-id)
+  "Expand the tool section by making OVERLAY visible.
+OVERLAY is the overlay to expand, TOOL-ID identifies the tool."
+  (overlay-put overlay 'invisible nil)
+  (overlay-put overlay 'greger-collapsed nil)
+
+  ;; Mark this tool as manually unfolded so it doesn't get auto-folded again
+  (unless (member tool-id greger-ui-unfolded-tool-ids)
+    (push tool-id greger-ui-unfolded-tool-ids))
+
+  ;; Remove the expansion indicator
+  (cl-loop for indicator-overlay in greger-ui-tool-overlays
+           when (and (overlay-get indicator-overlay 'greger-tool-indicator)
+                     (string= (overlay-get indicator-overlay 'greger-tool-id) tool-id))
+           do (progn
+                (delete-overlay indicator-overlay)
+                (setq greger-ui-tool-overlays
+                      (remove indicator-overlay greger-ui-tool-overlays)))))
+
+(defun greger-ui-collapse-tool-section (overlay tool-id)
+  "Collapse the tool section by making OVERLAY invisible.
+OVERLAY is the overlay to hide.
+TOOL-ID is the tool identifier."
+  (overlay-put overlay 'invisible 'greger-tool-section)
+  (overlay-put overlay 'greger-collapsed t)
+
+  ;; Remove from unfolded list since it's now manually collapsed
+  (setq greger-ui-unfolded-tool-ids
+        (delete tool-id greger-ui-unfolded-tool-ids))
+
+  ;; Calculate the number of hidden lines for the indicator
+  (let* ((content (buffer-substring-no-properties (overlay-start overlay) (overlay-end overlay)))
+         (lines (split-string content "\n"))
+         (hidden-line-count (length lines))
+         (overlay-start (overlay-start overlay))
+         (indicator-pos (max (point-min) (1- overlay-start)))
+         (indicator-overlay (make-overlay indicator-pos indicator-pos)))
+    (overlay-put indicator-overlay 'after-string
+                 (propertize (format "... [+%d lines, TAB to expand]" hidden-line-count)
+                            'face 'greger-tool-tag-face))
+    (overlay-put indicator-overlay 'greger-tool-indicator t)
+    (overlay-put indicator-overlay 'greger-tool-id tool-id)
+    (push indicator-overlay greger-ui-tool-overlays)))
+
+;;; Integration Functions
+
+(defun greger-ui-toggle-section ()
+  "Toggle the tool section or citation at point between collapsed and expanded state.
+If not inside a tool section or citation, fall back to `markdown-cycle'."
+  (interactive)
+  (let ((tool-id (greger-ui-get-tool-id-at-point)))
+    (cond
+     ;; First try tool sections
+     (tool-id
+      (greger-ui-toggle-tool-section-by-id tool-id))
+     ;; Then try citation folding
+     ((or (greger-ui-point-in-cite-tag-p) (greger-ui-point-in-bibliography-p))
+      (greger-ui-toggle-citation-fold))
+     ;; Fall back to markdown-cycle if available
+     ((fboundp 'markdown-cycle)
+      (call-interactively #'markdown-cycle))
+     ;; Final fallback
+     (t
+      (message "Not inside a tool section or citation area")))))
+
+(defun greger-ui-setup-folding ()
+  "Set up both citation and tool folding for the current buffer."
+  ;; Clean up any existing overlays first
+  (greger-ui-cleanup-dead-overlays)
+
+  ;; Set up fontification
+  (greger-ui-setup-cite-fontification)
+
+  ;; Set up tool sections
+  (greger-ui-setup-tool-sections)
+
+  ;; Initially hide appropriate citation blocks and tool sections
+  (greger-ui-hide-all-citations)
+
+  ;; Add hook to clean up overlays when buffer is killed
+  (add-hook 'kill-buffer-hook #'greger-ui-show-all-citations nil t)
+  (add-hook 'kill-buffer-hook #'greger-ui-clear-tool-overlays nil t))
+
+(defun greger-ui-teardown-folding ()
+  "Tear down both citation and tool folding for the current buffer."
+  (greger-ui-show-all-citations)
+  (greger-ui-clear-tool-overlays)
+  (remove-hook 'kill-buffer-hook #'greger-ui-show-all-citations t)
+  (remove-hook 'kill-buffer-hook #'greger-ui-clear-tool-overlays t))
+
+(defun greger-ui-refresh-folding ()
+  "Refresh tool sections and citations after buffer changes."
+  (when (> (point-max) 1)  ; Only if there's actual content
+    (greger-ui-setup-tool-sections)
+    (greger-ui-hide-all-citations)))
+
+(defun greger-ui-setup-citation-folding ()
+  "Set up citation folding for the current buffer."
+  ;; Clean up any existing overlays first
+  (greger-ui-cleanup-dead-overlays)
+
+  ;; Set up fontification
+  (greger-ui-setup-cite-fontification)
+
+  ;; Initially hide appropriate citation blocks
+  (greger-ui-hide-all-citations)
+
+  ;; Add hook to clean up overlays when buffer is killed
+  (add-hook 'kill-buffer-hook #'greger-ui-show-all-citations nil t))
+
+(defun greger-ui-teardown-citation-folding ()
+  "Tear down citation folding for the current buffer."
+  (greger-ui-show-all-citations)
+  (remove-hook 'kill-buffer-hook #'greger-ui-show-all-citations t))
+</tool.toolu_01Ujb1nU3zqtSPPK95hRMccg>
+
+### git-commit-message
+
+<tool.toolu_01Ujb1nU3zqtSPPK95hRMccg>
+Add complete tool folding functionality to greger-ui
+
+- Move all tool section folding functions from greger.el to greger-ui.el
+- Add greger-ui-toggle-section as unified interface for both tool and citation folding
+- Create greger-ui-setup-folding to handle both citation and tool setup
+- Add greger-ui-refresh-folding for updating after buffer changes
+- Maintain backward compatibility with existing citation functions
+</tool.toolu_01Ujb1nU3zqtSPPK95hRMccg>
+
+<!-- TOOL_RESULT_PLACEHOLDER_toolu_01Ujb1nU3zqtSPPK95hRMccg -->
