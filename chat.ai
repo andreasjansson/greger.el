@@ -4533,4 +4533,78 @@ greger.el
 Extract and process citations in stream completion handler
 </tool.toolu_01FvaNrgjNcKcMyCSRcVo1Zi>
 
-<!-- TOOL_RESULT_PLACEHOLDER_toolu_01FvaNrgjNcKcMyCSRcVo1Zi -->
+## TOOL RESULT:
+
+ID: toolu_01FvaNrgjNcKcMyCSRcVo1Zi
+
+<tool.toolu_01FvaNrgjNcKcMyCSRcVo1Zi>
+Successfully replaced content in /Users/andreas/projects/greger.el/greger.el. Successfully staged 2 file(s) and committed with message: Extract and process citations in stream completion handler
+</tool.toolu_01FvaNrgjNcKcMyCSRcVo1Zi>
+
+## ASSISTANT:
+
+Now I need to implement the helper functions to extract citations and format them:
+
+## TOOL USE:
+
+Name: str-replace
+ID: toolu_01MMh5NEpM8dy8MeugaZ61AH
+
+### file-path
+
+<tool.toolu_01MMh5NEpM8dy8MeugaZ61AH>
+greger.el
+</tool.toolu_01MMh5NEpM8dy8MeugaZ61AH>
+
+### original-content
+
+<tool.toolu_01MMh5NEpM8dy8MeugaZ61AH>
+(defun greger--extract-tool-calls (content-blocks)
+  "Extract tool calls from CONTENT-BLOCKS."
+  (let ((tool-calls '()))
+    (dolist (block content-blocks)
+      (when (string= (alist-get 'type block) "tool_use")
+        (greger--debug "EXTRACTING TOOL CALL: %s with input: %s"
+                      (alist-get 'name block)
+                      (json-encode (alist-get 'input block)))
+        (push block tool-calls)))
+    (reverse tool-calls)))
+</tool.toolu_01MMh5NEpM8dy8MeugaZ61AH>
+
+### new-content
+
+<tool.toolu_01MMh5NEpM8dy8MeugaZ61AH>
+(defun greger--extract-tool-calls (content-blocks)
+  "Extract tool calls from CONTENT-BLOCKS."
+  (let ((tool-calls '()))
+    (dolist (block content-blocks)
+      (when (string= (alist-get 'type block) "tool_use")
+        (greger--debug "EXTRACTING TOOL CALL: %s with input: %s"
+                      (alist-get 'name block)
+                      (json-encode (alist-get 'input block)))
+        (push block tool-calls)))
+    (reverse tool-calls)))
+
+(defun greger--extract-citations (content-blocks)
+  "Extract all citations from CONTENT-BLOCKS."
+  (let ((all-citations '()))
+    (dolist (block content-blocks)
+      (let ((citations (alist-get 'citations block)))
+        (when citations
+          (setq all-citations (append all-citations citations)))))
+    all-citations))
+
+(defun greger--append-citations-markdown (state citations)
+  "Append citations as markdown to the buffer using STATE and CITATIONS list."
+  (when citations
+    (let ((citations-markdown (greger--format-citations-as-markdown citations)))
+      (greger--append-text state (concat "\n\n" citations-markdown)))))
+</tool.toolu_01MMh5NEpM8dy8MeugaZ61AH>
+
+### git-commit-message
+
+<tool.toolu_01MMh5NEpM8dy8MeugaZ61AH>
+Add helper functions to extract and format citations
+</tool.toolu_01MMh5NEpM8dy8MeugaZ61AH>
+
+<!-- TOOL_RESULT_PLACEHOLDER_toolu_01MMh5NEpM8dy8MeugaZ61AH -->

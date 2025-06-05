@@ -525,6 +525,21 @@ READ-ONLY is t to make read-only, nil to make writable."
         (push block tool-calls)))
     (reverse tool-calls)))
 
+(defun greger--extract-citations (content-blocks)
+  "Extract all citations from CONTENT-BLOCKS."
+  (let ((all-citations '()))
+    (dolist (block content-blocks)
+      (let ((citations (alist-get 'citations block)))
+        (when citations
+          (setq all-citations (append all-citations citations)))))
+    all-citations))
+
+(defun greger--append-citations-markdown (state citations)
+  "Append citations as markdown to the buffer using STATE and CITATIONS list."
+  (when citations
+    (let ((citations-markdown (greger--format-citations-as-markdown citations)))
+      (greger--append-text state (concat "\n\n" citations-markdown)))))
+
 (defun greger--tool-placeholder (tool-id)
   "Generate placeholder string for TOOL-ID."
   (format "<!-- TOOL_RESULT_PLACEHOLDER_%s -->" tool-id))
