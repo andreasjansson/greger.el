@@ -1146,7 +1146,7 @@ Returns a list of text blocks, with citations attached to cited portions."
 (defun greger-parser--create-server-tool-result-message (id content)
   "Create server tool result message with ID and CONTENT."
   (let ((result-type (if (and (stringp content)
-                              (string-match-p "\"type\":\\s*\"web_search_result\"" content))
+                              (string-match-p "\"type\"[[:space:]]*:[[:space:]]*\"web_search_result\"" content))
                          "web_search_tool_result"
                        "server_tool_result")))
     (let ((parsed-content
