@@ -849,6 +849,46 @@ Splits text blocks at <cite> boundaries and adds citations to cited portions."
     (setq result (replace-regexp-in-string "</cite>" "" result))
     result))
 
+(defun greger-parser--split-text-with-citations (text citations)
+  "Split TEXT at <cite> boundaries, creating separate text blocks.
+Returns a list of text blocks, with citations attached to cited portions."
+  (let ((result '())
+        (pos 0)
+        (len (length text)))
+    (while (< pos len)
+      (let ((cite-start (string-match "<cite>" text pos)))
+        (if cite-start
+            (progn
+              ;; Add text before the cite tag (if any)
+              (when (> cite-start pos)
+                (push `((type . "text")
+                        (text . ,(substring text pos cite-start)))
+                      result))
+              ;; Find the end of the cite tag
+              (let ((cite-end (string-match "</cite>" text cite-start)))
+                (if cite-end
+                    (progn
+                      ;; Extract the cited text (without the tags)
+                      (let ((cited-text (substring text (+ cite-start 6) cite-end)))
+                        (push `((type . "text")
+                                (text . ,cited-text)
+                                (citations . ,citations))
+                              result))
+                      ;; Move past the closing tag
+                      (setq pos (+ cite-end 7)))
+                  ;; No closing tag found, treat rest as regular text
+                  (push `((type . "text")
+                          (text . ,(substring text pos)))
+                        result)
+                  (setq pos len))))
+          ;; No more cite tags, add remaining text
+          (when (< pos len)
+            (push `((type . "text")
+                    (text . ,(substring text pos)))
+                  result))
+          (setq pos len))))
+    (reverse result)))
+
 (defun greger-parser--parse-tool-use-section (state)
   "Parse TOOL USE section using STATE."
   (greger-parser--skip-whitespace state)

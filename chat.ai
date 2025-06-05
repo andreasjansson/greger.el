@@ -10925,4 +10925,243 @@ Splits text blocks at <cite> boundaries and adds citations to cited portions."
 Implement text splitting at cite boundaries
 </tool.toolu_01QCEwy5s4LhQ2dXq27iTkYS>
 
-<!-- TOOL_RESULT_PLACEHOLDER_toolu_01QCEwy5s4LhQ2dXq27iTkYS -->
+## TOOL RESULT:
+
+ID: toolu_01QCEwy5s4LhQ2dXq27iTkYS
+
+<tool.toolu_01QCEwy5s4LhQ2dXq27iTkYS>
+Successfully replaced content in /Users/andreas/projects/greger.el/greger-parser.el. Successfully staged 2 file(s) and committed with message: Implement text splitting at cite boundaries
+</tool.toolu_01QCEwy5s4LhQ2dXq27iTkYS>
+
+## ASSISTANT:
+
+Now I need to implement the `greger-parser--split-text-with-citations` function:
+
+## TOOL USE:
+
+Name: str-replace
+ID: toolu_01C2NQkuRUY11Zp1o64KyHdK
+
+### file-path
+
+<tool.toolu_01C2NQkuRUY11Zp1o64KyHdK>
+greger-parser.el
+</tool.toolu_01C2NQkuRUY11Zp1o64KyHdK>
+
+### original-content
+
+<tool.toolu_01C2NQkuRUY11Zp1o64KyHdK>
+(defun greger-parser--remove-cite-tags (text)
+  "Remove <cite> and </cite> tags from TEXT."
+  (replace-regexp-in-string "</cite>" "" (replace-regexp-in-string "<cite>" "" text)))
+</tool.toolu_01C2NQkuRUY11Zp1o64KyHdK>
+
+### new-content
+
+<tool.toolu_01C2NQkuRUY11Zp1o64KyHdK>
+(defun greger-parser--remove-cite-tags (text)
+  "Remove <cite> and </cite> tags from TEXT."
+  (replace-regexp-in-string "</cite>" "" (replace-regexp-in-string "<cite>" "" text)))
+
+(defun greger-parser--split-text-with-citations (text citations)
+  "Split TEXT at <cite> boundaries, creating separate text blocks.
+Returns a list of text blocks, with citations attached to cited portions."
+  (let ((result '())
+        (pos 0)
+        (len (length text)))
+    (while (< pos len)
+      (let ((cite-start (string-match "<cite>" text pos)))
+        (if cite-start
+            (progn
+              ;; Add text before the cite tag (if any)
+              (when (> cite-start pos)
+                (push `((type . "text")
+                        (text . ,(substring text pos cite-start)))
+                      result))
+              ;; Find the end of the cite tag
+              (let ((cite-end (string-match "</cite>" text cite-start)))
+                (if cite-end
+                    (progn
+                      ;; Extract the cited text (without the tags)
+                      (let ((cited-text (substring text (+ cite-start 6) cite-end)))
+                        (push `((type . "text")
+                                (text . ,cited-text)
+                                (citations . ,citations))
+                              result))
+                      ;; Move past the closing tag
+                      (setq pos (+ cite-end 7)))
+                  ;; No closing tag found, treat rest as regular text
+                  (push `((type . "text")
+                          (text . ,(substring text pos)))
+                        result)
+                  (setq pos len))))
+          ;; No more cite tags, add remaining text
+          (when (< pos len)
+            (push `((type . "text")
+                    (text . ,(substring text pos)))
+                  result))
+          (setq pos len))))
+    (reverse result)))
+</tool.toolu_01C2NQkuRUY11Zp1o64KyHdK>
+
+### git-commit-message
+
+<tool.toolu_01C2NQkuRUY11Zp1o64KyHdK>
+Add function to split text at cite boundaries
+</tool.toolu_01C2NQkuRUY11Zp1o64KyHdK>
+
+## TOOL RESULT:
+
+ID: toolu_01C2NQkuRUY11Zp1o64KyHdK
+
+<tool.toolu_01C2NQkuRUY11Zp1o64KyHdK>
+Error executing tool: Original content not found in file: /Users/andreas/projects/greger.el/greger-parser.el -- Try again!
+</tool.toolu_01C2NQkuRUY11Zp1o64KyHdK>
+
+## ASSISTANT:
+
+Let me search for the function:
+
+## TOOL USE:
+
+Name: ripgrep
+ID: toolu_01PFGSPVM63LBGzvwo5S1ZRG
+
+### pattern
+
+<tool.toolu_01PFGSPVM63LBGzvwo5S1ZRG>
+greger-parser--remove-cite-tags
+</tool.toolu_01PFGSPVM63LBGzvwo5S1ZRG>
+
+### path
+
+<tool.toolu_01PFGSPVM63LBGzvwo5S1ZRG>
+greger-parser.el
+</tool.toolu_01PFGSPVM63LBGzvwo5S1ZRG>
+
+## TOOL RESULT:
+
+ID: toolu_01PFGSPVM63LBGzvwo5S1ZRG
+
+<tool.toolu_01PFGSPVM63LBGzvwo5S1ZRG>
+825:            (let ((clean-content (greger-parser--remove-cite-tags content)))
+845:(defun greger-parser--remove-cite-tags (text)
+
+</tool.toolu_01PFGSPVM63LBGzvwo5S1ZRG>
+
+## TOOL USE:
+
+Name: read-file
+ID: toolu_013ZRQt5sLoTh7UctBN6knht
+
+### path
+
+<tool.toolu_013ZRQt5sLoTh7UctBN6knht>
+greger-parser.el
+</tool.toolu_013ZRQt5sLoTh7UctBN6knht>
+
+### start-line
+
+<tool.toolu_013ZRQt5sLoTh7UctBN6knht>
+845
+</tool.toolu_013ZRQt5sLoTh7UctBN6knht>
+
+### end-line
+
+<tool.toolu_013ZRQt5sLoTh7UctBN6knht>
+850
+</tool.toolu_013ZRQt5sLoTh7UctBN6knht>
+
+## TOOL RESULT:
+
+ID: toolu_013ZRQt5sLoTh7UctBN6knht
+
+<tool.toolu_013ZRQt5sLoTh7UctBN6knht>
+(defun greger-parser--remove-cite-tags (text)
+  "Remove <cite> and </cite> tags from TEXT."
+  (let ((result text))
+    (setq result (replace-regexp-in-string "<cite>" "" result))
+    (setq result (replace-regexp-in-string "</cite>" "" result))
+    result))
+</tool.toolu_013ZRQt5sLoTh7UctBN6knht>
+
+## TOOL USE:
+
+Name: str-replace
+ID: toolu_01Fpuhnix3nabBo1V8TzLU9r
+
+### file-path
+
+<tool.toolu_01Fpuhnix3nabBo1V8TzLU9r>
+greger-parser.el
+</tool.toolu_01Fpuhnix3nabBo1V8TzLU9r>
+
+### original-content
+
+<tool.toolu_01Fpuhnix3nabBo1V8TzLU9r>
+(defun greger-parser--remove-cite-tags (text)
+  "Remove <cite> and </cite> tags from TEXT."
+  (let ((result text))
+    (setq result (replace-regexp-in-string "<cite>" "" result))
+    (setq result (replace-regexp-in-string "</cite>" "" result))
+    result))
+</tool.toolu_01Fpuhnix3nabBo1V8TzLU9r>
+
+### new-content
+
+<tool.toolu_01Fpuhnix3nabBo1V8TzLU9r>
+(defun greger-parser--remove-cite-tags (text)
+  "Remove <cite> and </cite> tags from TEXT."
+  (let ((result text))
+    (setq result (replace-regexp-in-string "<cite>" "" result))
+    (setq result (replace-regexp-in-string "</cite>" "" result))
+    result))
+
+(defun greger-parser--split-text-with-citations (text citations)
+  "Split TEXT at <cite> boundaries, creating separate text blocks.
+Returns a list of text blocks, with citations attached to cited portions."
+  (let ((result '())
+        (pos 0)
+        (len (length text)))
+    (while (< pos len)
+      (let ((cite-start (string-match "<cite>" text pos)))
+        (if cite-start
+            (progn
+              ;; Add text before the cite tag (if any)
+              (when (> cite-start pos)
+                (push `((type . "text")
+                        (text . ,(substring text pos cite-start)))
+                      result))
+              ;; Find the end of the cite tag
+              (let ((cite-end (string-match "</cite>" text cite-start)))
+                (if cite-end
+                    (progn
+                      ;; Extract the cited text (without the tags)
+                      (let ((cited-text (substring text (+ cite-start 6) cite-end)))
+                        (push `((type . "text")
+                                (text . ,cited-text)
+                                (citations . ,citations))
+                              result))
+                      ;; Move past the closing tag
+                      (setq pos (+ cite-end 7)))
+                  ;; No closing tag found, treat rest as regular text
+                  (push `((type . "text")
+                          (text . ,(substring text pos)))
+                        result)
+                  (setq pos len))))
+          ;; No more cite tags, add remaining text
+          (when (< pos len)
+            (push `((type . "text")
+                    (text . ,(substring text pos)))
+                  result))
+          (setq pos len))))
+    (reverse result)))
+</tool.toolu_01Fpuhnix3nabBo1V8TzLU9r>
+
+### git-commit-message
+
+<tool.toolu_01Fpuhnix3nabBo1V8TzLU9r>
+Add function to split text at cite boundaries
+</tool.toolu_01Fpuhnix3nabBo1V8TzLU9r>
+
+<!-- TOOL_RESULT_PLACEHOLDER_toolu_01Fpuhnix3nabBo1V8TzLU9r -->
