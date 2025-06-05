@@ -9400,4 +9400,221 @@ Encrypted index: Eo8BCioIAhgBIiQyYjQ0OWJmZi1lNm..")
 Add test file for citations output
 </tool.toolu_01L6Ake8ABGS2FkgFXrV7tdZ>
 
-<!-- TOOL_RESULT_PLACEHOLDER_toolu_01L6Ake8ABGS2FkgFXrV7tdZ -->
+## TOOL RESULT:
+
+ID: toolu_01L6Ake8ABGS2FkgFXrV7tdZ
+
+<tool.toolu_01L6Ake8ABGS2FkgFXrV7tdZ>
+Successfully wrote new file /Users/andreas/projects/greger.el/test-citations-output.el with 1735 characters. Successfully staged 2 file(s) and committed with message: Add test file for citations output
+</tool.toolu_01L6Ake8ABGS2FkgFXrV7tdZ>
+
+## TOOL USE:
+
+Name: shell-command
+ID: toolu_01JdbdCJacZBuoSQm8EN6W4n
+
+### command
+
+<tool.toolu_01JdbdCJacZBuoSQm8EN6W4n>
+cd /Users/andreas/projects/greger.el && emacs --script test-citations-output.el
+</tool.toolu_01JdbdCJacZBuoSQm8EN6W4n>
+
+## TOOL RESULT:
+
+ID: toolu_01JdbdCJacZBuoSQm8EN6W4n
+
+<tool.toolu_01JdbdCJacZBuoSQm8EN6W4n>
+Command executed successfully:
+Source file ‘/opt/homebrew/Cellar/emacs-plus@29/29.0.90/share/emacs/29.0.91/lisp/net/eww.el’ newer than byte-compiled file; using older file
+=== ORIGINAL MARKDOWN ===
+## USER:
+
+When was Claude Shannon born?
+
+## SERVER TOOL USE:
+
+Name: web_search
+ID: srvtoolu_01WYG3ziw53XMcoyKL4XcZmE
+
+### query
+
+<tool.srvtoolu_01WYG3ziw53XMcoyKL4XcZmE>
+claude shannon birth date
+</tool.srvtoolu_01WYG3ziw53XMcoyKL4XcZmE>
+
+## SERVER TOOL RESULT:
+
+ID: srvtoolu_01WYG3ziw53XMcoyKL4XcZmE
+
+<tool.srvtoolu_01WYG3ziw53XMcoyKL4XcZmE>
+[
+  {
+    "type": "web_search_result",
+    "url": "https://en.wikipedia.org/wiki/Claude_Shannon",
+    "title": "Claude Shannon - Wikipedia",
+    "encrypted_content": "EqgfCioIARgBIiQ3YTAwMjY1Mi1mZjM5LTQ1NGUtODgxNC1kNjNjNTk1ZWI3Y...",
+    "page_age": "April 30, 2025"
+  }
+]
+</tool.srvtoolu_01WYG3ziw53XMcoyKL4XcZmE>
+
+## ASSISTANT:
+
+Based on the search results, <cite>Claude Shannon was born on April 30, 1916, in Petoskey, Michigan</cite>
+
+## CITATIONS:
+
+### https://en.wikipedia.org/wiki/Claude_Shannon
+
+Title: Claude Shannon - Wikipedia
+Cited text: Claude Elwood Shannon (April 30, 1916 – February 24, 2001) was an American mathematician, electrical engineer, computer scientist, cryptographer and i...
+Encrypted index: Eo8BCioIAhgBIiQyYjQ0OWJmZi1lNm..
+
+=== PARSED STRUCTURE ===
+(:messages (((role . "user") (content . "When was Claude Shannon born?")) ((role . "assistant") (content ((type . "server_tool_use") (id . "srvtoolu_01WYG3ziw53XMcoyKL4XcZmE") (name . "web_search") (input (query . "claude shannon birth date"))) ((type . "server_tool_result") (tool_use_id . "srvtoolu_01WYG3ziw53XMcoyKL4XcZmE") (content . "[
+  {
+    \"type\": \"web_search_result\",
+    \"url\": \"https://en.wikipedia.org/wiki/Claude_Shannon\",
+    \"title\": \"Claude Shannon - Wikipedia\",
+    \"encrypted_content\": \"EqgfCioIARgBIiQ3YTAwMjY1Mi1mZjM5LTQ1NGUtODgxNC1kNjNjNTk1ZWI3Y...\",
+    \"page_age\": \"April 30, 2025\"
+  }
+]")) ((type . "text") (text . "Based on the search results, Claude Shannon was born on April 30, 1916, in Petoskey, Michigan"))))) :metadata nil)
+
+=== ROUNDTRIP MARKDOWN ===
+## USER:
+
+When was Claude Shannon born?
+
+## SERVER TOOL USE:
+
+Name: web_search
+ID: srvtoolu_01WYG3ziw53XMcoyKL4XcZmE
+
+### query
+
+<tool.srvtoolu_01WYG3ziw53XMcoyKL4XcZmE>
+claude shannon birth date
+</tool.srvtoolu_01WYG3ziw53XMcoyKL4XcZmE>
+
+## SERVER TOOL RESULT:
+
+ID: srvtoolu_01WYG3ziw53XMcoyKL4XcZmE
+
+<tool.srvtoolu_01WYG3ziw53XMcoyKL4XcZmE>
+[
+  {
+    "type": "web_search_result",
+    "url": "https://en.wikipedia.org/wiki/Claude_Shannon",
+    "title": "Claude Shannon - Wikipedia",
+    "encrypted_content": "EqgfCioIARgBIiQ3YTAwMjY1Mi1mZjM5LTQ1NGUtODgxNC1kNjNjNTk1ZWI3Y...",
+    "page_age": "April 30, 2025"
+  }
+]
+</tool.srvtoolu_01WYG3ziw53XMcoyKL4XcZmE>
+
+Based on the search results, Claude Shannon was born on April 30, 1916, in Petoskey, Michigan
+
+</tool.toolu_01JdbdCJacZBuoSQm8EN6W4n>
+
+## ASSISTANT:
+
+Perfect! I can see that the parsing and citations processing is working correctly. Looking at the parsed structure, I can see that:
+
+1. The citations were successfully parsed and applied
+2. The `<cite>` tags were removed from the text content  
+3. The citations data was attached to the text block
+
+However, I notice that in the generated markdown, the citations section is missing. This suggests that the citations weren't properly attached to the content block during the roundtrip. Let me check why.
+
+From the parsed structure, I can see that the citations aren't visible in the final parsed content. This means the citations are being removed during the `greger-parser--remove-from-plist` operation, but they should still be attached to the content blocks.
+
+Let me inspect the actual content structure more carefully. I suspect the issue is that after message merging, the citations are lost. Let me add some debug output to see what's happening:
+
+## TOOL USE:
+
+Name: write-new-file
+ID: toolu_01RpiQfdT9mf46d9hkB6Q8fK
+
+### file-path
+
+<tool.toolu_01RpiQfdT9mf46d9hkB6Q8fK>
+debug-citations-verbose.el
+</tool.toolu_01RpiQfdT9mf46d9hkB6Q8fK>
+
+### contents
+
+<tool.toolu_01RpiQfdT9mf46d9hkB6Q8fK>
+#!/usr/bin/env emacs --script
+
+;; Add current directory to load path
+(add-to-list 'load-path ".")
+
+;; Load required modules
+(require 'greger-parser)
+
+;; Test markdown with citations
+(let* ((markdown "## USER:
+
+When was Claude Shannon born?
+
+## SERVER TOOL USE:
+
+Name: web_search
+ID: srvtoolu_01WYG3ziw53XMcoyKL4XcZmE
+
+### query
+
+<tool.srvtoolu_01WYG3ziw53XMcoyKL4XcZmE>
+claude shannon birth date
+</tool.srvtoolu_01WYG3ziw53XMcoyKL4XcZmE>
+
+## SERVER TOOL RESULT:
+
+ID: srvtoolu_01WYG3ziw53XMcoyKL4XcZmE
+
+<tool.srvtoolu_01WYG3ziw53XMcoyKL4XcZmE>
+[
+  {
+    \"type\": \"web_search_result\",
+    \"url\": \"https://en.wikipedia.org/wiki/Claude_Shannon\",
+    \"title\": \"Claude Shannon - Wikipedia\",
+    \"encrypted_content\": \"EqgfCioIARgBIiQ3YTAwMjY1Mi1mZjM5LTQ1NGUtODgxNC1kNjNjNTk1ZWI3Y...\",
+    \"page_age\": \"April 30, 2025\"
+  }
+]
+</tool.srvtoolu_01WYG3ziw53XMcoyKL4XcZmE>
+
+## ASSISTANT:
+
+Based on the search results, <cite>Claude Shannon was born on April 30, 1916, in Petoskey, Michigan</cite>
+
+## CITATIONS:
+
+### https://en.wikipedia.org/wiki/Claude_Shannon
+
+Title: Claude Shannon - Wikipedia
+Cited text: Claude Elwood Shannon (April 30, 1916 – February 24, 2001) was an American mathematician, electrical engineer, computer scientist, cryptographer and i...
+Encrypted index: Eo8BCioIAhgBIiQyYjQ0OWJmZi1lNm..")
+       ;; Parse the dialog
+       (parsed (greger-parser-parse-dialog markdown))
+       ;; Get just the assistant message
+       (assistant-msg (cadr (plist-get parsed :messages))))
+  
+  (princ "=== ASSISTANT MESSAGE STRUCTURE ===\n")
+  (princ (format "%S" assistant-msg))
+  (princ "\n\n=== ASSISTANT CONTENT BLOCKS ===\n")
+  (let ((content (alist-get 'content assistant-msg)))
+    (dotimes (i (length content))
+      (let ((block (nth i content)))
+        (princ (format "Block %d: %S\n" i block)))))
+  (princ "\n"))
+</tool.toolu_01RpiQfdT9mf46d9hkB6Q8fK>
+
+### git-commit-message
+
+<tool.toolu_01RpiQfdT9mf46d9hkB6Q8fK>
+Add verbose debug script for citations structure inspection
+</tool.toolu_01RpiQfdT9mf46d9hkB6Q8fK>
+
+<!-- TOOL_RESULT_PLACEHOLDER_toolu_01RpiQfdT9mf46d9hkB6Q8fK -->
