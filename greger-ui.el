@@ -221,9 +221,10 @@ Returns (START . END) or nil if not found."
 (defun greger-ui-hide-final-bibliography (start end)
   "Hide the final bibliography section with a summary."
   (let* ((count (greger-ui-count-citations-in-section start end))
+         (header-end (save-excursion (goto-char start) (line-end-position)))
          (content-start (save-excursion (goto-char start) (forward-line 1) (point)))
          (overlay (make-overlay content-start end))
-         (summary-overlay (make-overlay content-start content-start)))
+         (summary-overlay (make-overlay header-end header-end)))
 
     ;; Hide the bibliography content (but not the header)
     (overlay-put overlay 'invisible t)
@@ -231,7 +232,7 @@ Returns (START . END) or nil if not found."
     (overlay-put overlay 'evaporate t)
     (push overlay greger-ui-bibliography-overlays)
 
-    ;; Show the summary
+    ;; Show the summary right after the header
     (overlay-put summary-overlay 'after-string
                  (propertize (format "\n[+%d citations, TAB to expand]\n"
                                    count)

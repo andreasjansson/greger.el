@@ -2522,4 +2522,94 @@ Improve folded citations face appearance
 - Keep italic styling for visual distinction
 </tool.toolu_01SadUV8PY2JUqPTJsQiejSZ>
 
-<!-- TOOL_RESULT_PLACEHOLDER_toolu_01SadUV8PY2JUqPTJsQiejSZ -->
+## TOOL RESULT:
+
+ID: toolu_01SadUV8PY2JUqPTJsQiejSZ
+
+<tool.toolu_01SadUV8PY2JUqPTJsQiejSZ>
+Successfully replaced content in /Users/andreas/projects/greger.el/greger-ui.el. Successfully staged 2 file(s) and committed with message: Improve folded citations face appearance
+
+- Change color to subtle gray (#888888) instead of bright yellow
+- Add smaller height (0.8) to make indicator less prominent
+- Keep italic styling for visual distinction
+</tool.toolu_01SadUV8PY2JUqPTJsQiejSZ>
+
+## ASSISTANT:
+
+Now let me fix the overlay positioning:
+
+## TOOL USE:
+
+Name: str-replace
+ID: toolu_01Aee7fShxcJJJA6vpU3iKT7
+
+### file-path
+
+<tool.toolu_01Aee7fShxcJJJA6vpU3iKT7>
+greger-ui.el
+</tool.toolu_01Aee7fShxcJJJA6vpU3iKT7>
+
+### original-content
+
+<tool.toolu_01Aee7fShxcJJJA6vpU3iKT7>
+(defun greger-ui-hide-final-bibliography (start end)
+  "Hide the final bibliography section with a summary."
+  (let* ((count (greger-ui-count-citations-in-section start end))
+         (content-start (save-excursion (goto-char start) (forward-line 1) (point)))
+         (overlay (make-overlay content-start end))
+         (summary-overlay (make-overlay content-start content-start)))
+
+    ;; Hide the bibliography content (but not the header)
+    (overlay-put overlay 'invisible t)
+    (overlay-put overlay 'greger-bibliography t)
+    (overlay-put overlay 'evaporate t)
+    (push overlay greger-ui-bibliography-overlays)
+
+    ;; Show the summary
+    (overlay-put summary-overlay 'after-string
+                 (propertize (format "\n[+%d citations, TAB to expand]\n"
+                                   count)
+                           'face 'greger-folded-citations-face))
+    (overlay-put summary-overlay 'greger-bibliography-summary t)
+    (overlay-put summary-overlay 'evaporate t)
+    (push summary-overlay greger-ui-bibliography-overlays)))
+</tool.toolu_01Aee7fShxcJJJA6vpU3iKT7>
+
+### new-content
+
+<tool.toolu_01Aee7fShxcJJJA6vpU3iKT7>
+(defun greger-ui-hide-final-bibliography (start end)
+  "Hide the final bibliography section with a summary."
+  (let* ((count (greger-ui-count-citations-in-section start end))
+         (header-end (save-excursion (goto-char start) (line-end-position)))
+         (content-start (save-excursion (goto-char start) (forward-line 1) (point)))
+         (overlay (make-overlay content-start end))
+         (summary-overlay (make-overlay header-end header-end)))
+
+    ;; Hide the bibliography content (but not the header)
+    (overlay-put overlay 'invisible t)
+    (overlay-put overlay 'greger-bibliography t)
+    (overlay-put overlay 'evaporate t)
+    (push overlay greger-ui-bibliography-overlays)
+
+    ;; Show the summary right after the header
+    (overlay-put summary-overlay 'after-string
+                 (propertize (format "\n[+%d citations, TAB to expand]\n"
+                                   count)
+                           'face 'greger-folded-citations-face))
+    (overlay-put summary-overlay 'greger-bibliography-summary t)
+    (overlay-put summary-overlay 'evaporate t)
+    (push summary-overlay greger-ui-bibliography-overlays)))
+</tool.toolu_01Aee7fShxcJJJA6vpU3iKT7>
+
+### git-commit-message
+
+<tool.toolu_01Aee7fShxcJJJA6vpU3iKT7>
+Fix citation folding indicator placement
+
+- Place summary overlay at end of "## CITATIONS:" header line instead of after it
+- This ensures the indicator appears immediately after the header
+- Update variable names for clarity (header-end vs content-start)
+</tool.toolu_01Aee7fShxcJJJA6vpU3iKT7>
+
+<!-- TOOL_RESULT_PLACEHOLDER_toolu_01Aee7fShxcJJJA6vpU3iKT7 -->
