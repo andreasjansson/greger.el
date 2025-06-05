@@ -811,23 +811,19 @@ Splits text blocks at <cite> boundaries and adds citations to cited portions."
 
 (defun greger-parser--apply-citations-to-messages (messages citations)
   "Apply CITATIONS to the last assistant message in MESSAGES that contains <cite> tags."
-  (message "DEBUG: Apply citations called with %d citations" (length citations))
   ;; Find the last assistant message and apply citations to it
   (dolist (message messages)
     (when (string= "assistant" (alist-get 'role message))
-      (message "DEBUG: Processing assistant message")
       (let ((content (alist-get 'content message)))
         (cond
          ;; String content - check for <cite> tags and process
          ((stringp content)
-          (message "DEBUG: String content: %s" content)
           (when (string-match-p "<cite>" content)
             ;; Convert string with cite tags to text blocks
             (let ((text-blocks (greger-parser--split-text-with-citations content citations)))
               (setcdr (assq 'content message) text-blocks))))
          ;; List content - process each content block
          ((listp content)
-          (message "DEBUG: List content with %d blocks" (length content))
           (greger-parser--add-citations-to-content-blocks content citations)))))))
 
 (defun greger-parser--remove-from-plist (plist key)
