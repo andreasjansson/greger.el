@@ -4725,4 +4725,543 @@ greger-parser.el
 Process cite tags in text blocks and clean text content
 </tool.toolu_016KwCvKoSjZZGmyhzqjuT3V>
 
-<!-- TOOL_RESULT_PLACEHOLDER_toolu_016KwCvKoSjZZGmyhzqjuT3V -->
+## TOOL RESULT:
+
+ID: toolu_016KwCvKoSjZZGmyhzqjuT3V
+
+<tool.toolu_016KwCvKoSjZZGmyhzqjuT3V>
+Successfully replaced content in /Users/andreas/projects/greger.el/greger-parser.el. Successfully staged 2 file(s) and committed with message: Process cite tags in text blocks and clean text content
+</tool.toolu_016KwCvKoSjZZGmyhzqjuT3V>
+
+## ASSISTANT:
+
+Now I need to implement `greger-parser--remove-cite-tags`:
+
+## TOOL USE:
+
+Name: str-replace
+ID: toolu_01BXhoo9PtZSZPgY6jPZZmJM
+
+### file-path
+
+<tool.toolu_01BXhoo9PtZSZPgY6jPZZmJM>
+greger-parser.el
+</tool.toolu_01BXhoo9PtZSZPgY6jPZZmJM>
+
+### original-content
+
+<tool.toolu_01BXhoo9PtZSZPgY6jPZZmJM>
+(push (cons 'citations citations) block)))))))
+</tool.toolu_01BXhoo9PtZSZPgY6jPZZmJM>
+
+### new-content
+
+<tool.toolu_01BXhoo9PtZSZPgY6jPZZmJM>
+(push (cons 'citations citations) block)))))
+
+(defun greger-parser--remove-cite-tags (text)
+  "Remove <cite> and </cite> tags from TEXT."
+  (let ((result text))
+    (setq result (replace-regexp-in-string "<cite>" "" result))
+    (setq result (replace-regexp-in-string "</cite>" "" result))
+    result))
+</tool.toolu_01BXhoo9PtZSZPgY6jPZZmJM>
+
+### git-commit-message
+
+<tool.toolu_01BXhoo9PtZSZPgY6jPZZmJM>
+Add function to remove cite tags from text
+</tool.toolu_01BXhoo9PtZSZPgY6jPZZmJM>
+
+## TOOL RESULT:
+
+ID: toolu_01BXhoo9PtZSZPgY6jPZZmJM
+
+<tool.toolu_01BXhoo9PtZSZPgY6jPZZmJM>
+Error executing tool: Parentheses balance mismatch in Emacs Lisp file: original has balance -6, new has balance -4. They must be equal
+</tool.toolu_01BXhoo9PtZSZPgY6jPZZmJM>
+
+## ASSISTANT:
+
+I have another parentheses issue. Let me find the right place to add the function:
+
+## TOOL USE:
+
+Name: read-file
+ID: toolu_01GWNU24eizu6ANE6TdR3CX2
+
+### path
+
+<tool.toolu_01GWNU24eizu6ANE6TdR3CX2>
+greger-parser.el
+</tool.toolu_01GWNU24eizu6ANE6TdR3CX2>
+
+### start-line
+
+<tool.toolu_01GWNU24eizu6ANE6TdR3CX2>
+1000
+</tool.toolu_01GWNU24eizu6ANE6TdR3CX2>
+
+### end-line
+
+<tool.toolu_01GWNU24eizu6ANE6TdR3CX2>
+1020
+</tool.toolu_01GWNU24eizu6ANE6TdR3CX2>
+
+## TOOL RESULT:
+
+ID: toolu_01GWNU24eizu6ANE6TdR3CX2
+
+<tool.toolu_01GWNU24eizu6ANE6TdR3CX2>
+
+(defun greger-parser--create-assistant-message (content)
+  "Create assistant message with CONTENT."
+  `((role . "assistant") (content . ,content)))
+
+(defun greger-parser--create-system-message (content)
+  "Create system message with CONTENT."
+  `((role . "system") (content . ,content)))
+
+(defun greger-parser--generate-safe-shell-commands-text (commands)
+  "Generate descriptive text for safe shell COMMANDS list."
+  (when commands
+    (concat "You can run arbitrary shell commands with the shell-command tool, but the following are safe shell commands that will run without requiring user confirmation:\n\n"
+            (mapconcat (lambda (cmd) (format "* `%s`" cmd)) commands "\n"))))
+
+(defun greger-parser--create-thinking-message (content)
+  "Create thinking message with CONTENT."
+  `((role . "assistant")
+    (content . (((type . "thinking") (thinking . ,content))))))
+
+(defun greger-parser--create-tool-use-message (name id input)
+</tool.toolu_01GWNU24eizu6ANE6TdR3CX2>
+
+## ASSISTANT:
+
+Let me search for the end of the current function that has the parentheses issue:
+
+## TOOL USE:
+
+Name: ripgrep
+ID: toolu_011GBBN35rWqf3B5yCghoQtg
+
+### pattern
+
+<tool.toolu_011GBBN35rWqf3B5yCghoQtg>
+citations citations
+</tool.toolu_011GBBN35rWqf3B5yCghoQtg>
+
+### path
+
+<tool.toolu_011GBBN35rWqf3B5yCghoQtg>
+greger-parser.el
+</tool.toolu_011GBBN35rWqf3B5yCghoQtg>
+
+### context-lines
+
+<tool.toolu_011GBBN35rWqf3B5yCghoQtg>
+5
+</tool.toolu_011GBBN35rWqf3B5yCghoQtg>
+
+## TOOL RESULT:
+
+ID: toolu_011GBBN35rWqf3B5yCghoQtg
+
+<tool.toolu_011GBBN35rWqf3B5yCghoQtg>
+782-        ;; Check if text contains <cite> tags - if so, process them and add citations
+783-        (when (and text (string-match-p "<cite>" text))
+784-          ;; Remove <cite> tags from text and add citations to block
+785-          (let ((clean-text (greger-parser--remove-cite-tags text)))
+786-            (setcdr (assq 'text block) clean-text)
+787:            (push (cons 'citations citations) block)))))))
+788-
+789-(defun greger-parser--parse-tool-use-section (state)
+790-  "Parse TOOL USE section using STATE."
+791-  (greger-parser--skip-whitespace state)
+792-  (let ((name (greger-parser--parse-name-line state))
+--
+1187-    (cond
+1188-     ((string= type "text")
+1189-      (let ((text (alist-get 'text block))
+1190-            (citations (alist-get 'citations block)))
+1191-        (list :markdown (concat greger-parser-assistant-tag "\n\n" text)
+1192:              :citations citations)))
+1193-     ((string= type "thinking")
+1194-      (list :markdown (concat greger-parser-thinking-tag "\n\n"
+1195-                             (alist-get 'thinking block))))
+1196-     ((string= type "tool_use")
+1197-      (list :markdown (greger-parser--tool-use-to-markdown block)))
+
+</tool.toolu_011GBBN35rWqf3B5yCghoQtg>
+
+## ASSISTANT:
+
+I see the issue. I need to add the function after the current function block. Let me add it in the right place:
+
+## TOOL USE:
+
+Name: str-replace
+ID: toolu_01T4NVZFoaH6CA5SSUaonEEt
+
+### file-path
+
+<tool.toolu_01T4NVZFoaH6CA5SSUaonEEt>
+greger-parser.el
+</tool.toolu_01T4NVZFoaH6CA5SSUaonEEt>
+
+### original-content
+
+<tool.toolu_01T4NVZFoaH6CA5SSUaonEEt>
+            (push (cons 'citations citations) block)))))))
+</tool.toolu_01T4NVZFoaH6CA5SSUaonEEt>
+
+### new-content
+
+<tool.toolu_01T4NVZFoaH6CA5SSUaonEEt>
+            (push (cons 'citations citations) block)))))
+
+(defun greger-parser--remove-cite-tags (text)
+  "Remove <cite> and </cite> tags from TEXT."
+  (let ((result text))
+    (setq result (replace-regexp-in-string "<cite>" "" result))
+    (setq result (replace-regexp-in-string "</cite>" "" result))
+    result))
+</tool.toolu_01T4NVZFoaH6CA5SSUaonEEt>
+
+### git-commit-message
+
+<tool.toolu_01T4NVZFoaH6CA5SSUaonEEt>
+Add cite tag removal function in correct location
+</tool.toolu_01T4NVZFoaH6CA5SSUaonEEt>
+
+## TOOL RESULT:
+
+ID: toolu_01T4NVZFoaH6CA5SSUaonEEt
+
+<tool.toolu_01T4NVZFoaH6CA5SSUaonEEt>
+Error executing tool: Parentheses balance mismatch in Emacs Lisp file: original has balance -6, new has balance -4. They must be equal
+</tool.toolu_01T4NVZFoaH6CA5SSUaonEEt>
+
+## ASSISTANT:
+
+Let me find the exact location and see the context:
+
+## TOOL USE:
+
+Name: read-file
+ID: toolu_01XsvJSHideyyRnhvaQ8BZGz
+
+### path
+
+<tool.toolu_01XsvJSHideyyRnhvaQ8BZGz>
+greger-parser.el
+</tool.toolu_01XsvJSHideyyRnhvaQ8BZGz>
+
+### start-line
+
+<tool.toolu_01XsvJSHideyyRnhvaQ8BZGz>
+785
+</tool.toolu_01XsvJSHideyyRnhvaQ8BZGz>
+
+### end-line
+
+<tool.toolu_01XsvJSHideyyRnhvaQ8BZGz>
+795
+</tool.toolu_01XsvJSHideyyRnhvaQ8BZGz>
+
+## TOOL RESULT:
+
+ID: toolu_01XsvJSHideyyRnhvaQ8BZGz
+
+<tool.toolu_01XsvJSHideyyRnhvaQ8BZGz>
+          (let ((clean-text (greger-parser--remove-cite-tags text)))
+            (setcdr (assq 'text block) clean-text)
+            (push (cons 'citations citations) block)))))))
+
+(defun greger-parser--parse-tool-use-section (state)
+  "Parse TOOL USE section using STATE."
+  (greger-parser--skip-whitespace state)
+  (let ((name (greger-parser--parse-name-line state))
+        (id (greger-parser--parse-id-line state))
+        (input (greger-parser--parse-tool-input state)))
+    (when (and name id)
+</tool.toolu_01XsvJSHideyyRnhvaQ8BZGz>
+
+## ASSISTANT:
+
+I see the issue. I have 6 closing parentheses but I need to add the function with proper indentation. Let me fix this:
+
+## TOOL USE:
+
+Name: str-replace
+ID: toolu_01G9wJDs23KdJj9YyMwkmAsd
+
+### file-path
+
+<tool.toolu_01G9wJDs23KdJj9YyMwkmAsd>
+greger-parser.el
+</tool.toolu_01G9wJDs23KdJj9YyMwkmAsd>
+
+### original-content
+
+<tool.toolu_01G9wJDs23KdJj9YyMwkmAsd>
+(let ((clean-text (greger-parser--remove-cite-tags text)))
+            (setcdr (assq 'text block) clean-text)
+            (push (cons 'citations citations) block)))))))
+
+(defun greger-parser--parse-tool-use-section (state)
+</tool.toolu_01G9wJDs23KdJj9YyMwkmAsd>
+
+### new-content
+
+<tool.toolu_01G9wJDs23KdJj9YyMwkmAsd>
+(let ((clean-text (greger-parser--remove-cite-tags text)))
+            (setcdr (assq 'text block) clean-text)
+            (push (cons 'citations citations) block))))))
+
+(defun greger-parser--remove-cite-tags (text)
+  "Remove <cite> and </cite> tags from TEXT."
+  (let ((result text))
+    (setq result (replace-regexp-in-string "<cite>" "" result))
+    (setq result (replace-regexp-in-string "</cite>" "" result))
+    result))
+
+(defun greger-parser--parse-tool-use-section (state)
+</tool.toolu_01G9wJDs23KdJj9YyMwkmAsd>
+
+### git-commit-message
+
+<tool.toolu_01G9wJDs23KdJj9YyMwkmAsd>
+Fix parentheses balance and add cite tag removal function
+</tool.toolu_01G9wJDs23KdJj9YyMwkmAsd>
+
+## TOOL RESULT:
+
+ID: toolu_01G9wJDs23KdJj9YyMwkmAsd
+
+<tool.toolu_01G9wJDs23KdJj9YyMwkmAsd>
+Error executing tool: Parentheses balance mismatch in Emacs Lisp file: original has balance -4, new has balance -3. They must be equal
+</tool.toolu_01G9wJDs23KdJj9YyMwkmAsd>
+
+## ASSISTANT:
+
+Let me check what the parentheses situation is. Let me read a larger context:
+
+## TOOL USE:
+
+Name: read-file
+ID: toolu_01F1A2CGudqmMZmDm2n9YpCa
+
+### path
+
+<tool.toolu_01F1A2CGudqmMZmDm2n9YpCa>
+greger-parser.el
+</tool.toolu_01F1A2CGudqmMZmDm2n9YpCa>
+
+### start-line
+
+<tool.toolu_01F1A2CGudqmMZmDm2n9YpCa>
+770
+</tool.toolu_01F1A2CGudqmMZmDm2n9YpCa>
+
+### end-line
+
+<tool.toolu_01F1A2CGudqmMZmDm2n9YpCa>
+790
+</tool.toolu_01F1A2CGudqmMZmDm2n9YpCa>
+
+## TOOL RESULT:
+
+ID: toolu_01F1A2CGudqmMZmDm2n9YpCa
+
+<tool.toolu_01F1A2CGudqmMZmDm2n9YpCa>
+        ;; Find text blocks in the content and add citations to them
+        (let ((content (alist-get 'content last-msg)))
+          (when (listp content)
+            ;; Look for text blocks and add citations
+            (greger-parser--add-citations-to-content-blocks content citations)))))))
+
+(defun greger-parser--add-citations-to-content-blocks (content-blocks citations)
+  "Add CITATIONS to appropriate text blocks in CONTENT-BLOCKS.
+Modifies the content blocks in-place."
+  (dolist (block content-blocks)
+    (when (and (listp block) (string= "text" (alist-get 'type block)))
+      (let ((text (alist-get 'text block)))
+        ;; Check if text contains <cite> tags - if so, process them and add citations
+        (when (and text (string-match-p "<cite>" text))
+          ;; Remove <cite> tags from text and add citations to block
+          (let ((clean-text (greger-parser--remove-cite-tags text)))
+            (setcdr (assq 'text block) clean-text)
+            (push (cons 'citations citations) block)))))))
+
+(defun greger-parser--parse-tool-use-section (state)
+  "Parse TOOL USE section using STATE."
+</tool.toolu_01F1A2CGudqmMZmDm2n9YpCa>
+
+## ASSISTANT:
+
+I see the issue. The function is currently missing one closing parenthesis. Let me fix it by adding the missing function and balancing properly:
+
+## TOOL USE:
+
+Name: str-replace
+ID: toolu_01Xga5hnGKTMw6WkeCv4AWcW
+
+### file-path
+
+<tool.toolu_01Xga5hnGKTMw6WkeCv4AWcW>
+greger-parser.el
+</tool.toolu_01Xga5hnGKTMw6WkeCv4AWcW>
+
+### original-content
+
+<tool.toolu_01Xga5hnGKTMw6WkeCv4AWcW>
+(let ((clean-text (greger-parser--remove-cite-tags text)))
+            (setcdr (assq 'text block) clean-text)
+            (push (cons 'citations citations) block)))))))
+</tool.toolu_01Xga5hnGKTMw6WkeCv4AWcW>
+
+### new-content
+
+<tool.toolu_01Xga5hnGKTMw6WkeCv4AWcW>
+(let ((clean-text (greger-parser--remove-cite-tags text)))
+            (setcdr (assq 'text block) clean-text)
+            (push (cons 'citations citations) block))))))
+
+(defun greger-parser--remove-cite-tags (text)
+  "Remove <cite> and </cite> tags from TEXT."
+  (let ((result text))
+    (setq result (replace-regexp-in-string "<cite>" "" result))
+    (setq result (replace-regexp-in-string "</cite>" "" result))
+    result))
+</tool.toolu_01Xga5hnGKTMw6WkeCv4AWcW>
+
+### git-commit-message
+
+<tool.toolu_01Xga5hnGKTMw6WkeCv4AWcW>
+Add missing cite tag removal function
+</tool.toolu_01Xga5hnGKTMw6WkeCv4AWcW>
+
+## TOOL RESULT:
+
+ID: toolu_01Xga5hnGKTMw6WkeCv4AWcW
+
+<tool.toolu_01Xga5hnGKTMw6WkeCv4AWcW>
+Error executing tool: Parentheses balance mismatch in Emacs Lisp file: original has balance -5, new has balance -4. They must be equal
+</tool.toolu_01Xga5hnGKTMw6WkeCv4AWcW>
+
+## ASSISTANT:
+
+Let me check the function more carefully. I think I'm missing a parenthesis in the function definition. Let me trace through the balance:
+
+## TOOL USE:
+
+Name: read-file
+ID: toolu_01BrcFXi78CewQ7vkvKShMcN
+
+### path
+
+<tool.toolu_01BrcFXi78CewQ7vkvKShMcN>
+greger-parser.el
+</tool.toolu_01BrcFXi78CewQ7vkvKShMcN>
+
+### start-line
+
+<tool.toolu_01BrcFXi78CewQ7vkvKShMcN>
+775
+</tool.toolu_01BrcFXi78CewQ7vkvKShMcN>
+
+### end-line
+
+<tool.toolu_01BrcFXi78CewQ7vkvKShMcN>
+788
+</tool.toolu_01BrcFXi78CewQ7vkvKShMcN>
+
+## TOOL RESULT:
+
+ID: toolu_01BrcFXi78CewQ7vkvKShMcN
+
+<tool.toolu_01BrcFXi78CewQ7vkvKShMcN>
+
+(defun greger-parser--add-citations-to-content-blocks (content-blocks citations)
+  "Add CITATIONS to appropriate text blocks in CONTENT-BLOCKS.
+Modifies the content blocks in-place."
+  (dolist (block content-blocks)
+    (when (and (listp block) (string= "text" (alist-get 'type block)))
+      (let ((text (alist-get 'text block)))
+        ;; Check if text contains <cite> tags - if so, process them and add citations
+        (when (and text (string-match-p "<cite>" text))
+          ;; Remove <cite> tags from text and add citations to block
+          (let ((clean-text (greger-parser--remove-cite-tags text)))
+            (setcdr (assq 'text block) clean-text)
+            (push (cons 'citations citations) block)))))))
+
+</tool.toolu_01BrcFXi78CewQ7vkvKShMcN>
+
+## USER:
+
+THe code is right, you're just counting parens wrong. Replace the whole function instead if you're struggling with parens on subsections
+
+## ASSISTANT:
+
+You're right! Let me replace the whole function instead of trying to modify subsections:
+
+## TOOL USE:
+
+Name: str-replace
+ID: toolu_017DkwoZ6nh4eyJ7VcBLBwZ6
+
+### file-path
+
+<tool.toolu_017DkwoZ6nh4eyJ7VcBLBwZ6>
+greger-parser.el
+</tool.toolu_017DkwoZ6nh4eyJ7VcBLBwZ6>
+
+### original-content
+
+<tool.toolu_017DkwoZ6nh4eyJ7VcBLBwZ6>
+(defun greger-parser--add-citations-to-content-blocks (content-blocks citations)
+  "Add CITATIONS to appropriate text blocks in CONTENT-BLOCKS.
+Modifies the content blocks in-place."
+  (dolist (block content-blocks)
+    (when (and (listp block) (string= "text" (alist-get 'type block)))
+      (let ((text (alist-get 'text block)))
+        ;; Check if text contains <cite> tags - if so, process them and add citations
+        (when (and text (string-match-p "<cite>" text))
+          ;; Remove <cite> tags from text and add citations to block
+          (let ((clean-text (greger-parser--remove-cite-tags text)))
+            (setcdr (assq 'text block) clean-text)
+            (push (cons 'citations citations) block)))))))
+</tool.toolu_017DkwoZ6nh4eyJ7VcBLBwZ6>
+
+### new-content
+
+<tool.toolu_017DkwoZ6nh4eyJ7VcBLBwZ6>
+(defun greger-parser--add-citations-to-content-blocks (content-blocks citations)
+  "Add CITATIONS to appropriate text blocks in CONTENT-BLOCKS.
+Modifies the content blocks in-place."
+  (dolist (block content-blocks)
+    (when (and (listp block) (string= "text" (alist-get 'type block)))
+      (let ((text (alist-get 'text block)))
+        ;; Check if text contains <cite> tags - if so, process them and add citations
+        (when (and text (string-match-p "<cite>" text))
+          ;; Remove <cite> tags from text and add citations to block
+          (let ((clean-text (greger-parser--remove-cite-tags text)))
+            (setcdr (assq 'text block) clean-text)
+            (push (cons 'citations citations) block)))))))
+
+(defun greger-parser--remove-cite-tags (text)
+  "Remove <cite> and </cite> tags from TEXT."
+  (let ((result text))
+    (setq result (replace-regexp-in-string "<cite>" "" result))
+    (setq result (replace-regexp-in-string "</cite>" "" result))
+    result))
+</tool.toolu_017DkwoZ6nh4eyJ7VcBLBwZ6>
+
+### git-commit-message
+
+<tool.toolu_017DkwoZ6nh4eyJ7VcBLBwZ6>
+Add cite tag removal function after content blocks function
+</tool.toolu_017DkwoZ6nh4eyJ7VcBLBwZ6>
+
+<!-- TOOL_RESULT_PLACEHOLDER_toolu_017DkwoZ6nh4eyJ7VcBLBwZ6 -->

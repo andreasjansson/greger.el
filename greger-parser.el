@@ -786,6 +786,13 @@ Modifies the content blocks in-place."
             (setcdr (assq 'text block) clean-text)
             (push (cons 'citations citations) block)))))))
 
+(defun greger-parser--remove-cite-tags (text)
+  "Remove <cite> and </cite> tags from TEXT."
+  (let ((result text))
+    (setq result (replace-regexp-in-string "<cite>" "" result))
+    (setq result (replace-regexp-in-string "</cite>" "" result))
+    result))
+
 (defun greger-parser--parse-tool-use-section (state)
   "Parse TOOL USE section using STATE."
   (greger-parser--skip-whitespace state)
