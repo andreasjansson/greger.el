@@ -374,12 +374,15 @@ CITE-TAG is a cons (START . END) for the cite tag position."
   (interactive)
   (let ((pairs (greger-ui-find-all-cite-citation-pairs)))
     (dolist (pair pairs)
-      (let ((citation-bounds (cdr pair)))
-        (greger-ui-hide-citation-block (car citation-bounds) (cdr citation-bounds)))))
+      (let ((cite-bounds (car pair))
+            (citation-bounds (cdr pair)))
+        ;; Only hide if this cite tag hasn't been manually unfolded
+        (unless (greger-ui-cite-manually-unfolded-p cite-bounds)
+          (greger-ui-hide-citation-block (car citation-bounds) (cdr citation-bounds))))))
 
-  ;; Also hide the final bibliography section
+  ;; Also hide the final bibliography section unless manually shown
   (let ((bib-bounds (greger-ui-find-final-bibliography)))
-    (when bib-bounds
+    (when (and bib-bounds (not greger-ui-bibliography-manually-shown))
       (greger-ui-hide-final-bibliography (car bib-bounds) (cdr bib-bounds)))))
 
 (defun greger-ui-show-all-citations ()

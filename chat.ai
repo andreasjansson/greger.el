@@ -5046,4 +5046,175 @@ CITE-TAG is a cons (START . END) for the cite tag position."
 Add helper functions to track manually unfolded cite tags
 </tool.toolu_01GLzmVNbTH4WDvKnjdJHzuN>
 
-<!-- TOOL_RESULT_PLACEHOLDER_toolu_01GLzmVNbTH4WDvKnjdJHzuN -->
+## TOOL RESULT:
+
+ID: toolu_01GLzmVNbTH4WDvKnjdJHzuN
+
+<tool.toolu_01GLzmVNbTH4WDvKnjdJHzuN>
+Successfully replaced content in /Users/andreas/projects/greger.el/greger-ui.el. Successfully staged 2 file(s) and committed with message: Add helper functions to track manually unfolded cite tags
+</tool.toolu_01GLzmVNbTH4WDvKnjdJHzuN>
+
+## ASSISTANT:
+
+Now I need to update the `greger-ui-hide-all-citations` function to respect the manually unfolded state:
+
+## TOOL USE:
+
+Name: read-file
+ID: toolu_01KLW71FNJSBxcJmM6g2Ksyd
+
+### path
+
+<tool.toolu_01KLW71FNJSBxcJmM6g2Ksyd>
+greger-ui.el
+</tool.toolu_01KLW71FNJSBxcJmM6g2Ksyd>
+
+### start-line
+
+<tool.toolu_01KLW71FNJSBxcJmM6g2Ksyd>
+380
+</tool.toolu_01KLW71FNJSBxcJmM6g2Ksyd>
+
+### end-line
+
+<tool.toolu_01KLW71FNJSBxcJmM6g2Ksyd>
+400
+</tool.toolu_01KLW71FNJSBxcJmM6g2Ksyd>
+
+## TOOL RESULT:
+
+ID: toolu_01KLW71FNJSBxcJmM6g2Ksyd
+
+<tool.toolu_01KLW71FNJSBxcJmM6g2Ksyd>
+  ;; Also hide the final bibliography section
+  (let ((bib-bounds (greger-ui-find-final-bibliography)))
+    (when bib-bounds
+      (greger-ui-hide-final-bibliography (car bib-bounds) (cdr bib-bounds)))))
+
+(defun greger-ui-show-all-citations ()
+  "Show all citation blocks."
+  (interactive)
+  (remove-overlays (point-min) (point-max) 'greger-citation t)
+  (remove-overlays (point-min) (point-max) 'greger-bibliography t)
+  (remove-overlays (point-min) (point-max) 'greger-bibliography-summary t)
+  (setq greger-ui-cite-citation-overlays nil)
+  (setq greger-ui-bibliography-overlays nil))
+
+(defun greger-ui-cleanup-dead-overlays ()
+  "Remove dead overlays from citation and tool overlays lists."
+  (setq greger-ui-cite-citation-overlays
+        (cl-remove-if-not (lambda (ov)
+                            (and (overlay-buffer ov)
+                                 (overlay-start ov)
+                                 (overlay-end ov)))
+</tool.toolu_01KLW71FNJSBxcJmM6g2Ksyd>
+
+## ASSISTANT:
+
+Let me find the current `greger-ui-hide-all-citations` function:
+
+## TOOL USE:
+
+Name: read-file
+ID: toolu_01UriGc5RNaUg79qWumZxoXu
+
+### path
+
+<tool.toolu_01UriGc5RNaUg79qWumZxoXu>
+greger-ui.el
+</tool.toolu_01UriGc5RNaUg79qWumZxoXu>
+
+### start-line
+
+<tool.toolu_01UriGc5RNaUg79qWumZxoXu>
+370
+</tool.toolu_01UriGc5RNaUg79qWumZxoXu>
+
+### end-line
+
+<tool.toolu_01UriGc5RNaUg79qWumZxoXu>
+385
+</tool.toolu_01UriGc5RNaUg79qWumZxoXu>
+
+## TOOL RESULT:
+
+ID: toolu_01UriGc5RNaUg79qWumZxoXu
+
+<tool.toolu_01UriGc5RNaUg79qWumZxoXu>
+    (member cite-tag greger-ui-unfolded-cite-positions :test #'equal)))
+
+(defun greger-ui-hide-all-citations ()
+  "Hide all citation blocks that should be folded."
+  (interactive)
+  (let ((pairs (greger-ui-find-all-cite-citation-pairs)))
+    (dolist (pair pairs)
+      (let ((citation-bounds (cdr pair)))
+        (greger-ui-hide-citation-block (car citation-bounds) (cdr citation-bounds)))))
+
+  ;; Also hide the final bibliography section
+  (let ((bib-bounds (greger-ui-find-final-bibliography)))
+    (when bib-bounds
+      (greger-ui-hide-final-bibliography (car bib-bounds) (cdr bib-bounds)))))
+
+(defun greger-ui-show-all-citations ()
+</tool.toolu_01UriGc5RNaUg79qWumZxoXu>
+
+## ASSISTANT:
+
+Now I need to update this function to respect manually unfolded sections:
+
+## TOOL USE:
+
+Name: str-replace
+ID: toolu_01NdpmLS66SQsSaiKMPfx116
+
+### file-path
+
+<tool.toolu_01NdpmLS66SQsSaiKMPfx116>
+greger-ui.el
+</tool.toolu_01NdpmLS66SQsSaiKMPfx116>
+
+### original-content
+
+<tool.toolu_01NdpmLS66SQsSaiKMPfx116>
+(defun greger-ui-hide-all-citations ()
+  "Hide all citation blocks that should be folded."
+  (interactive)
+  (let ((pairs (greger-ui-find-all-cite-citation-pairs)))
+    (dolist (pair pairs)
+      (let ((citation-bounds (cdr pair)))
+        (greger-ui-hide-citation-block (car citation-bounds) (cdr citation-bounds)))))
+
+  ;; Also hide the final bibliography section
+  (let ((bib-bounds (greger-ui-find-final-bibliography)))
+    (when bib-bounds
+      (greger-ui-hide-final-bibliography (car bib-bounds) (cdr bib-bounds)))))
+</tool.toolu_01NdpmLS66SQsSaiKMPfx116>
+
+### new-content
+
+<tool.toolu_01NdpmLS66SQsSaiKMPfx116>
+(defun greger-ui-hide-all-citations ()
+  "Hide all citation blocks that should be folded."
+  (interactive)
+  (let ((pairs (greger-ui-find-all-cite-citation-pairs)))
+    (dolist (pair pairs)
+      (let ((cite-bounds (car pair))
+            (citation-bounds (cdr pair)))
+        ;; Only hide if this cite tag hasn't been manually unfolded
+        (unless (greger-ui-cite-manually-unfolded-p cite-bounds)
+          (greger-ui-hide-citation-block (car citation-bounds) (cdr citation-bounds))))))
+
+  ;; Also hide the final bibliography section unless manually shown
+  (let ((bib-bounds (greger-ui-find-final-bibliography)))
+    (when (and bib-bounds (not greger-ui-bibliography-manually-shown))
+      (greger-ui-hide-final-bibliography (car bib-bounds) (cdr bib-bounds)))))
+</tool.toolu_01NdpmLS66SQsSaiKMPfx116>
+
+### git-commit-message
+
+<tool.toolu_01NdpmLS66SQsSaiKMPfx116>
+Update hide-all-citations to respect manually unfolded state
+</tool.toolu_01NdpmLS66SQsSaiKMPfx116>
+
+<!-- TOOL_RESULT_PLACEHOLDER_toolu_01NdpmLS66SQsSaiKMPfx116 -->
