@@ -263,7 +263,8 @@ Returns nil if no error found or if OUTPUT is not valid JSON."
   (let* ((index (alist-get 'index data))
          (content-block (copy-alist (alist-get 'content_block data)))
          (blocks (greger-client-state-content-blocks state))
-         (type (alist-get 'type content-block)))
+         (type (alist-get 'type content-block))
+         (citations (alist-get 'citations content-block)))
 
     ;; Initialize content for accumulation.
     ;; For tool_use and server_tool_use we make the input object a
@@ -278,8 +279,12 @@ Returns nil if no error found or if OUTPUT is not valid JSON."
       (setf (alist-get 'input content-block) ""))
 
      ;; {"type":"content_block_start","index":0,"content_block":{"type":"text","text":""}}
+     ;; {"type":"content_block_start","index":3,"content_block":{"citations":[],"type":"text","text":""}}
      ((string= type "text")
-      (setf (alist-get 'text content-block) ""))
+      (setf (alist-get 'text content-block) "")
+      ;; For text blocks with citations, initialize citations as empty list
+      (when citations
+        (setf (alist-get 'citations content-block) '())))
 
      ;; {"type":"content_block_start","index":2,"content_block":{"type":"web_search_tool_result","tool_use_id":"srvtoolu_01AZ1324bmQ29XW4fSECQJWH","content":[{"type":"web_search_result","title":"Sweden Population (2025) - Worldometer","url":"https://www.worldometers.info/world-population/sweden-population/","encrypted_content":"Ev0P...YMYAw==","page_age":null}, [...] ]}}
      ((string= type "web_search_tool_result")
