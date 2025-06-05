@@ -2314,4 +2314,87 @@ Add test file for citation folding functionality
 - Includes CITATIONS section followed by USER section to test boundary detection
 </tool.toolu_01JMVze7ma5gZvnTdHdV6whg>
 
-<!-- TOOL_RESULT_PLACEHOLDER_toolu_01JMVze7ma5gZvnTdHdV6whg -->
+## TOOL RESULT:
+
+ID: toolu_01JMVze7ma5gZvnTdHdV6whg
+
+<tool.toolu_01JMVze7ma5gZvnTdHdV6whg>
+Successfully wrote new file /Users/andreas/projects/greger.el/test-citations.md with 1064 characters. Successfully staged 2 file(s) and committed with message: Add test file for citation folding functionality
+
+- Create test-citations.md with sample citation content
+- Includes CITATIONS section followed by USER section to test boundary detection
+</tool.toolu_01JMVze7ma5gZvnTdHdV6whg>
+
+## ASSISTANT:
+
+Now let's test the functionality by running a simple test to verify it works correctly. Let me create a small test script:
+
+## TOOL USE:
+
+Name: write-new-file
+ID: toolu_01LxXAhcMB4RQicZJsUFx1pS
+
+### file-path
+
+<tool.toolu_01LxXAhcMB4RQicZJsUFx1pS>
+test-citation-folding.el
+</tool.toolu_01LxXAhcMB4RQicZJsUFx1pS>
+
+### contents
+
+<tool.toolu_01LxXAhcMB4RQicZJsUFx1pS>
+;;; test-citation-folding.el --- Test citation folding functionality
+
+(require 'greger)
+(require 'greger-ui)
+
+(defun test-citation-folding ()
+  "Test the citation folding functionality."
+  (interactive)
+  (with-temp-buffer
+    (insert-file-contents "test-citations.md")
+    (greger-mode)
+
+    ;; Test final bibliography detection
+    (let ((bib-bounds (greger-ui-find-final-bibliography)))
+      (if bib-bounds
+          (let ((start (car bib-bounds))
+                (end (cdr bib-bounds)))
+            (message "Bibliography found from %d to %d" start end)
+            (message "Content after CITATIONS header: %S"
+                     (buffer-substring-no-properties start end))
+            ;; Check that it doesn't include the USER section
+            (goto-char end)
+            (if (looking-at "## USER:")
+                (message "✓ Bibliography correctly stops before USER section")
+              (message "✗ Bibliography does not stop at USER section"))
+            ;; Test counting citations
+            (let ((count (greger-ui-count-citations-in-section start end)))
+              (message "Found %d citations in bibliography" count)))
+        (message "✗ No bibliography found")))
+
+    ;; Test cite-citation pairs
+    (let ((pairs (greger-ui-find-all-cite-citation-pairs)))
+      (message "Found %d cite-citation pairs" (length pairs))
+      (dolist (pair pairs)
+        (let ((cite-bounds (car pair))
+              (citation-bounds (cdr pair)))
+          (message "Cite: %S -> Citation: %d-%d"
+                   (buffer-substring-no-properties (car cite-bounds) (cdr cite-bounds))
+                   (car citation-bounds) (cdr citation-bounds)))))))
+
+;; Run the test
+(test-citation-folding)
+</tool.toolu_01LxXAhcMB4RQicZJsUFx1pS>
+
+### git-commit-message
+
+<tool.toolu_01LxXAhcMB4RQicZJsUFx1pS>
+Add test script for citation folding functionality
+
+- Create test-citation-folding.el to verify citation detection and folding
+- Test final bibliography detection and boundary handling
+- Test cite-citation pair detection
+</tool.toolu_01LxXAhcMB4RQicZJsUFx1pS>
+
+<!-- TOOL_RESULT_PLACEHOLDER_toolu_01LxXAhcMB4RQicZJsUFx1pS -->
