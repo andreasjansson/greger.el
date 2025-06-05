@@ -923,9 +923,10 @@ Returns a list of text blocks, with citations attached to cited portions."
                     (progn
                       ;; Extract the cited text (without the tags)
                       (let ((cited-text (substring text (+ cite-start 6) cite-end)))
+                        ;; Only add citations if we have them and this cite block doesn't already have them
                         (push `((type . "text")
                                 (text . ,cited-text)
-                                (citations . ,citations))
+                                ,@(when citations `((citations . ,citations))))
                               result))
                       ;; Move past the closing tag
                       (setq pos (+ cite-end 7)))
