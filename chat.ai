@@ -5508,4 +5508,76 @@ greger-ui.el
 Teardown function already clears state via show-all-citations
 </tool.toolu_01RD1nsJLatFGcStSFGZ7cK9>
 
-<!-- TOOL_RESULT_PLACEHOLDER_toolu_01RD1nsJLatFGcStSFGZ7cK9 -->
+## TOOL RESULT:
+
+ID: toolu_01RD1nsJLatFGcStSFGZ7cK9
+
+<tool.toolu_01RD1nsJLatFGcStSFGZ7cK9>
+Successfully replaced content in /Users/andreas/projects/greger.el/greger-ui.el. Successfully staged 2 file(s) and committed with message: Teardown function already clears state via show-all-citations
+</tool.toolu_01RD1nsJLatFGcStSFGZ7cK9>
+
+## USER:
+
+Debugger entered--Lisp error: (wrong-number-of-arguments member 4)
+  (member cite-tag greger-ui-unfolded-cite-positions :test #'equal)
+  (progn (member cite-tag greger-ui-unfolded-cite-positions :test #'equal))
+  (if cite-tag (progn (member cite-tag greger-ui-unfolded-cite-positions :test #'equal)))
+  greger-ui-cite-manually-unfolded-p((48778 . 48806))
+
+
+## ASSISTANT:
+
+I see the issue! The `member` function in Emacs Lisp doesn't accept keyword arguments like `:test`. I need to use `cl-member` instead, or use a different approach. Let me fix this:
+
+## TOOL USE:
+
+Name: str-replace
+ID: toolu_0128oX56pXDLfKFLpooqFKq6
+
+### file-path
+
+<tool.toolu_0128oX56pXDLfKFLpooqFKq6>
+greger-ui.el
+</tool.toolu_0128oX56pXDLfKFLpooqFKq6>
+
+### original-content
+
+<tool.toolu_0128oX56pXDLfKFLpooqFKq6>
+(defun greger-ui-unmark-cite-unfolded (cite-tag)
+  "Remove a cite tag from the manually unfolded list.
+CITE-TAG is a cons (START . END) for the cite tag position."
+  (when cite-tag
+    (setq greger-ui-unfolded-cite-positions
+          (cl-remove cite-tag greger-ui-unfolded-cite-positions :test #'equal))))
+
+(defun greger-ui-cite-manually-unfolded-p (cite-tag)
+  "Return t if the cite tag has been manually unfolded.
+CITE-TAG is a cons (START . END) for the cite tag position."
+  (when cite-tag
+    (member cite-tag greger-ui-unfolded-cite-positions :test #'equal)))
+</tool.toolu_0128oX56pXDLfKFLpooqFKq6>
+
+### new-content
+
+<tool.toolu_0128oX56pXDLfKFLpooqFKq6>
+(defun greger-ui-unmark-cite-unfolded (cite-tag)
+  "Remove a cite tag from the manually unfolded list.
+CITE-TAG is a cons (START . END) for the cite tag position."
+  (when cite-tag
+    (setq greger-ui-unfolded-cite-positions
+          (cl-remove cite-tag greger-ui-unfolded-cite-positions :test #'equal))))
+
+(defun greger-ui-cite-manually-unfolded-p (cite-tag)
+  "Return t if the cite tag has been manually unfolded.
+CITE-TAG is a cons (START . END) for the cite tag position."
+  (when cite-tag
+    (cl-member cite-tag greger-ui-unfolded-cite-positions :test #'equal)))
+</tool.toolu_0128oX56pXDLfKFLpooqFKq6>
+
+### git-commit-message
+
+<tool.toolu_0128oX56pXDLfKFLpooqFKq6>
+Fix wrong-number-of-arguments error: use cl-member instead of member
+</tool.toolu_0128oX56pXDLfKFLpooqFKq6>
+
+<!-- TOOL_RESULT_PLACEHOLDER_toolu_0128oX56pXDLfKFLpooqFKq6 -->

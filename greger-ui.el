@@ -367,7 +367,7 @@ CITE-TAG is a cons (START . END) for the cite tag position."
   "Return t if the cite tag has been manually unfolded.
 CITE-TAG is a cons (START . END) for the cite tag position."
   (when cite-tag
-    (member cite-tag greger-ui-unfolded-cite-positions :test #'equal)))
+    (cl-member cite-tag greger-ui-unfolded-cite-positions :test #'equal)))
 
 (defun greger-ui-hide-all-citations ()
   "Hide all citation blocks that should be folded."
