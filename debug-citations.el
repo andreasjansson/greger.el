@@ -3,7 +3,7 @@
 (add-to-list 'load-path ".")
 (require 'greger-parser)
 
-(let ((markdown "## USER:
+(let* ((markdown "## USER:
 
 When was Claude Shannon born?
 
@@ -44,8 +44,8 @@ Based on the search results, <cite>Claude Shannon was born on April 30, 1916, in
 
 Title: Claude Shannon - Wikipedia
 Cited text: Claude Elwood Shannon (April 30, 1916 – February 24, 2001) was an American mathematician, electrical engineer, computer scientist, cryptographer and i...
-Encrypted index: Eo8BCioIAhgBIiQyYjQ0OWJmZi1lNm.."))
-      (parsed (greger-parser-parse-dialog-messages-only markdown)))
+Encrypted index: Eo8BCioIAhgBIiQyYjQ0OWJmZi1lNm..")
+       (parsed (greger-parser-parse-dialog-messages-only markdown)))
   (message "Parsed result:")
   (pp parsed)
   (message "\n\nRoundtrip:")
