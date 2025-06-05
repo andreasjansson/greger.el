@@ -5659,4 +5659,320 @@ Modifies the content blocks in-place to process <cite> tags."
 Update citations processing function documentation
 </tool.toolu_01WAkYr2cUpXvZGmnuXc3AeU>
 
-<!-- TOOL_RESULT_PLACEHOLDER_toolu_01WAkYr2cUpXvZGmnuXc3AeU -->
+## TOOL RESULT:
+
+ID: toolu_01WAkYr2cUpXvZGmnuXc3AeU
+
+<tool.toolu_01WAkYr2cUpXvZGmnuXc3AeU>
+Successfully replaced content in /Users/andreas/projects/greger.el/greger-parser.el. Successfully staged 2 file(s) and committed with message: Update citations processing function documentation
+</tool.toolu_01WAkYr2cUpXvZGmnuXc3AeU>
+
+## ASSISTANT:
+
+Actually, the current approach has a problem. I'm adding all citations to any text block that has `<cite>` tags, but I should be more intelligent about which citations go with which text blocks. However, for now, let me implement a simpler approach and test it.
+
+Let me run the tests to see what's currently working:
+
+## TOOL USE:
+
+Name: shell-command
+ID: toolu_01AeccD6Y8MRv4jFVNsSgRtd
+
+### command
+
+<tool.toolu_01AeccD6Y8MRv4jFVNsSgRtd>
+bash script/test --verbose --file test/test-greger-parser.el
+</tool.toolu_01AeccD6Y8MRv4jFVNsSgRtd>
+
+## TOOL RESULT:
+
+ID: toolu_01AeccD6Y8MRv4jFVNsSgRtd
+
+<tool.toolu_01AeccD6Y8MRv4jFVNsSgRtd>
+Command failed with exit code 1: [0;34mRunning ERT tests for greger package...[0m
+
+Running tests in [1;33mtest/test-greger-parser.el[0m (verbose mode)...
+Loading /Users/andreas/projects/greger.el/greger.el (source)...
+Source file ‘/opt/homebrew/Cellar/emacs-plus@29/29.0.90/share/emacs/29.0.91/lisp/net/eww.el’ newer than byte-compiled file; using older file
+Loading /Users/andreas/projects/greger.el/greger-parser.el (source)...
+Loading /Users/andreas/projects/greger.el/greger-stdlib.el (source)...
+Loading /Users/andreas/projects/greger.el/greger-tools.el (source)...
+Loading /Users/andreas/projects/greger.el/greger-client.el (source)...
+Loading /Users/andreas/projects/greger.el/greger-web.el (source)...
+Loading /Users/andreas/projects/greger.el/test/test-greger-parser.el (source)...
+Running 35 tests (2025-06-05 14:37:56+0200, selector ‘t’)
+   passed   1/35  greger-parser-test-code-block-parsing (0.001146 sec)
+   passed   2/35  greger-parser-test-code-blocks-in-tool-params (0.000603 sec)
+   passed   3/35  greger-parser-test-complex-mixed-content (0.001640 sec)
+   passed   4/35  greger-parser-test-edge-cases (0.000344 sec)
+   passed   5/35  greger-parser-test-error-handling (0.000190 sec)
+   passed   6/35  greger-parser-test-include-tag-basic (0.002555 sec)
+   passed   7/35  greger-parser-test-include-tag-in-assistant-section (0.002427 sec)
+   passed   8/35  greger-parser-test-include-tag-invalid-url (0.065652 sec)
+   passed   9/35  greger-parser-test-include-tag-multiline-content (0.002724 sec)
+   passed  10/35  greger-parser-test-include-tag-nonexistent-file (0.000880 sec)
+   passed  11/35  greger-parser-test-include-tag-not-processed-in-code-blocks (0.001936 sec)
+   passed  12/35  greger-parser-test-include-tag-not-processed-in-inline-code (0.002021 sec)
+type: tool_use
+   passed  13/35  greger-parser-test-include-tag-not-processed-in-tool-params (0.001524 sec)
+   passed  14/35  greger-parser-test-include-tag-recursive (0.002735 sec)
+   passed  15/35  greger-parser-test-include-tag-web-url (0.185292 sec)
+   passed  16/35  greger-parser-test-include-tag-web-url-with-code (0.079471 sec)
+   passed  17/35  greger-parser-test-include-tag-with-code (0.002230 sec)
+   passed  18/35  greger-parser-test-include-tag-with-code-in-code-block (0.001586 sec)
+   passed  19/35  greger-parser-test-inline-code-blocks (0.000974 sec)
+type: thinking
+type: text
+type: tool_use
+type: tool_result
+   passed  20/35  greger-parser-test-markdown-generation (0.000141 sec)
+Testing markdown-to-dialog for: simple-user-message
+Testing markdown-to-dialog for: system-and-user
+Testing markdown-to-dialog for: simple-conversation
+Testing markdown-to-dialog for: thinking-section
+Testing markdown-to-dialog for: tool-use-single-param
+Testing markdown-to-dialog for: tool-use-multiple-params
+Testing markdown-to-dialog for: complex-workflow
+Testing markdown-to-dialog for: multiple-tool-uses
+Testing markdown-to-dialog for: tool-use-multiline-params
+Testing markdown-to-dialog for: thinking-only
+Testing markdown-to-dialog for: tool-use-only
+Testing markdown-to-dialog for: tool-use-with-tags
+Testing markdown-to-dialog for: code-block-triple-backticks
+Testing markdown-to-dialog for: code-block-double-backticks
+Testing markdown-to-dialog for: mixed-code-blocks-and-sections
+Testing markdown-to-dialog for: tool-use-with-code-in-params
+Testing markdown-to-dialog for: nested-code-blocks
+Testing markdown-to-dialog for: tool-use-complex-params
+Testing markdown-to-dialog for: tool-result-empty-lines
+Testing markdown-to-dialog for: html-comments
+Testing markdown-to-dialog for: server-tool-use-basic
+Testing markdown-to-dialog for: server-tool-use-string-result
+Testing markdown-to-dialog for: citations-basic
+Test greger-parser-test-markdown-to-dialog backtrace:
+  signal(ert-test-failed (((should (greger-parser-test--dialog-equal e
+  ert-fail(((should (greger-parser-test--dialog-equal expected-dialog 
+  (if (unwind-protect (setq value-5 (apply fn-3 args-4)) (setq form-de
+  (let (form-description-7) (if (unwind-protect (setq value-5 (apply f
+  (let ((value-5 'ert-form-evaluation-aborted-6)) (let (form-descripti
+  (let* ((fn-3 #'greger-parser-test--dialog-equal) (args-4 (condition-
+  (let ((actual-dialog (greger-parser-parse-dialog-messages-only markd
+  (let ((name (plist-get test-case :name)) (markdown (plist-get test-c
+  (let ((test-case (car tail))) (let ((name (plist-get test-case :name
+  (while tail (let ((test-case (car tail))) (let ((name (plist-get tes
+  (let ((tail greger-parser-test-cases)) (while tail (let ((test-case 
+  (closure (t) nil (let ((tail greger-parser-test-cases)) (while tail 
+  ert--run-test-internal(#s(ert--test-execution-info :test #s(ert-test
+  ert-run-test(#s(ert-test :name greger-parser-test-markdown-to-dialog
+  ert-run-or-rerun-test(#s(ert--stats :selector t :tests ... :test-map
+  ert-run-tests(t #f(compiled-function (event-type &rest event-args) #
+  ert-run-tests-batch(t)
+  ert-run-tests-batch-and-exit(t)
+  (let ((ert-quiet nil)) (ert-run-tests-batch-and-exit t))
+  (progn (setq debug-on-error t) (add-to-list 'load-path ".") (require
+  eval((progn (setq debug-on-error t) (add-to-list 'load-path ".") (re
+  command-line-1(("--eval" "(progn\n                  (setq debug-on-e
+  command-line()
+  normal-top-level()
+Test greger-parser-test-markdown-to-dialog condition:
+    (ert-test-failed
+     ((should
+       (greger-parser-test--dialog-equal expected-dialog actual-dialog))
+      :form
+      (greger-parser-test--dialog-equal
+       ((... ...)
+	(... ...))
+       ((... ...)
+	(... ...)))
+      :value nil))
+   FAILED  21/35  greger-parser-test-markdown-to-dialog (0.082354 sec) at test/test-greger-parser.el:778
+   passed  22/35  greger-parser-test-performance (0.063207 sec)
+Testing roundtrip for: simple-user-message
+Testing roundtrip for: system-and-user
+Testing roundtrip for: simple-conversation
+Testing roundtrip for: thinking-section
+type: thinking
+type: text
+Testing roundtrip for: tool-use-single-param
+type: tool_use
+type: tool_result
+Testing roundtrip for: tool-use-multiple-params
+type: tool_use
+type: tool_result
+Testing roundtrip for: complex-workflow
+type: thinking
+type: tool_use
+type: tool_result
+Testing roundtrip for: multiple-tool-uses
+type: tool_use
+type: tool_result
+type: tool_use
+type: tool_result
+Testing roundtrip for: tool-use-multiline-params
+type: tool_use
+type: tool_result
+Testing roundtrip for: thinking-only
+type: thinking
+Testing roundtrip for: tool-use-only
+type: tool_use
+Testing roundtrip for: tool-use-with-tags
+type: tool_use
+Testing roundtrip for: code-block-triple-backticks
+Testing roundtrip for: code-block-double-backticks
+Testing roundtrip for: mixed-code-blocks-and-sections
+Testing roundtrip for: tool-use-with-code-in-params
+type: tool_use
+type: tool_result
+Testing roundtrip for: nested-code-blocks
+Testing roundtrip for: tool-use-complex-params
+type: tool_use
+type: tool_result
+Testing roundtrip for: tool-result-empty-lines
+type: tool_use
+type: tool_result
+Testing roundtrip for: html-comments
+Testing roundtrip for: server-tool-use-basic
+type: server_tool_use
+type: server_tool_result
+type: text
+Testing roundtrip for: server-tool-use-string-result
+type: server_tool_use
+type: server_tool_result
+type: text
+Testing roundtrip for: citations-basic
+type: server_tool_use
+type: server_tool_result
+type: text
+   passed  23/35  greger-parser-test-roundtrip (0.089183 sec)
+   passed  24/35  greger-parser-test-safe-shell-commands-basic (0.000225 sec)
+   passed  25/35  greger-parser-test-safe-shell-commands-empty-lines (0.000228 sec)
+   passed  26/35  greger-parser-test-safe-shell-commands-in-code-block (0.000752 sec)
+   passed  27/35  greger-parser-test-safe-shell-commands-not-in-system (0.000827 sec)
+   passed  28/35  greger-parser-test-safe-shell-commands-only-once (0.000276 sec)
+   passed  29/35  greger-parser-test-safe-shell-commands-with-system-content (0.000732 sec)
+   passed  30/35  greger-parser-test-system-content-with-safe-commands-example (0.000808 sec)
+   passed  31/35  greger-parser-test-thinking-parsing (0.000806 sec)
+   passed  32/35  greger-parser-test-tool-result-parsing (0.000353 sec)
+   passed  33/35  greger-parser-test-tool-use-parsing (0.000541 sec)
+   passed  34/35  greger-parser-test-tool-use-whitespace (0.000735 sec)
+   passed  35/35  greger-parser-test-untagged-content (0.000884 sec)
+
+Ran 35 tests, 34 results as expected, 1 unexpected (2025-06-05 14:37:57+0200, 0.966112 sec)
+
+1 unexpected results:
+   FAILED  greger-parser-test-markdown-to-dialog
+
+
+</tool.toolu_01AeccD6Y8MRv4jFVNsSgRtd>
+
+## ASSISTANT:
+
+The test is failing on the citations case. Let me check what the actual parsed result looks like by adding some debug output. But first, let me fix a logical issue - the citations parsing isn't working correctly because I'm not properly handling the case where the citations section appears after the assistant message that contains `<cite>` tags.
+
+The issue is that I need to process the citations section differently. Let me fix the logic:
+
+1. When I encounter a citations section, I should find the previous assistant message
+2. Look for text blocks in that message that contain `<cite>` tags  
+3. Associate the parsed citations with those blocks
+4. Don't create a separate citations message
+
+Let me revise the approach. First, let me check what's currently being parsed:
+
+## TOOL USE:
+
+Name: shell-command
+ID: toolu_01DVvqCLKtQPpZQnMBobr1Tp
+
+### command
+
+<tool.toolu_01DVvqCLKtQPpZQnMBobr1Tp>
+cd /Users/andreas/projects/greger.el && emacs --batch -l ert -l test/test-greger-parser.el -f ert-run-tests-batch-and-exit --eval "(setq ert-quiet nil)" 2>/dev/null | grep -A 20 -B 5 "citations-basic"
+</tool.toolu_01DVvqCLKtQPpZQnMBobr1Tp>
+
+## TOOL RESULT:
+
+ID: toolu_01DVvqCLKtQPpZQnMBobr1Tp
+
+<tool.toolu_01DVvqCLKtQPpZQnMBobr1Tp>
+Command failed with exit code 1: (no output)
+</tool.toolu_01DVvqCLKtQPpZQnMBobr1Tp>
+
+## ASSISTANT:
+
+Let me create a simple test script to debug what's happening:
+
+## TOOL USE:
+
+Name: write-new-file
+ID: toolu_01GPyyMpE8bLsHQhqrrHHieL
+
+### file-path
+
+<tool.toolu_01GPyyMpE8bLsHQhqrrHHieL>
+debug-citations.el
+</tool.toolu_01GPyyMpE8bLsHQhqrrHHieL>
+
+### contents
+
+<tool.toolu_01GPyyMpE8bLsHQhqrrHHieL>
+#!/usr/bin/env emacs --script
+
+(add-to-list 'load-path ".")
+(require 'greger-parser)
+
+(let ((markdown "## USER:
+
+When was Claude Shannon born?
+
+## SERVER TOOL USE:
+
+Name: web_search
+ID: srvtoolu_01WYG3ziw53XMcoyKL4XcZmE
+
+### query
+
+<tool.srvtoolu_01WYG3ziw53XMcoyKL4XcZmE>
+claude shannon birth date
+</tool.srvtoolu_01WYG3ziw53XMcoyKL4XcZmE>
+
+## SERVER TOOL RESULT:
+
+ID: srvtoolu_01WYG3ziw53XMcoyKL4XcZmE
+
+<tool.srvtoolu_01WYG3ziw53XMcoyKL4XcZmE>
+[
+  {
+    \"type\": \"web_search_result\",
+    \"url\": \"https://en.wikipedia.org/wiki/Claude_Shannon\",
+    \"title\": \"Claude Shannon - Wikipedia\",
+    \"encrypted_content\": \"EqgfCioIARgBIiQ3YTAwMjY1Mi1mZjM5LTQ1NGUtODgxNC1kNjNjNTk1ZWI3Y...\",
+    \"page_age\": \"April 30, 2025\"
+  }
+]
+</tool.srvtoolu_01WYG3ziw53XMcoyKL4XcZmE>
+
+## ASSISTANT:
+
+Based on the search results, <cite>Claude Shannon was born on April 30, 1916, in Petoskey, Michigan</cite>
+
+## CITATIONS:
+
+### https://en.wikipedia.org/wiki/Claude_Shannon
+
+Title: Claude Shannon - Wikipedia
+Cited text: Claude Elwood Shannon (April 30, 1916 – February 24, 2001) was an American mathematician, electrical engineer, computer scientist, cryptographer and i...
+Encrypted index: Eo8BCioIAhgBIiQyYjQ0OWJmZi1lNm.."))
+  (parsed (greger-parser-parse-dialog-messages-only markdown)))
+  (message "Parsed result:")
+  (pp parsed)
+  (message "\n\nRoundtrip:")
+  (pp (greger-parser-dialog-to-markdown parsed)))
+</tool.toolu_01GPyyMpE8bLsHQhqrrHHieL>
+
+### git-commit-message
+
+<tool.toolu_01GPyyMpE8bLsHQhqrrHHieL>
+Add debug script for citations parsing
+</tool.toolu_01GPyyMpE8bLsHQhqrrHHieL>
+
+<!-- TOOL_RESULT_PLACEHOLDER_toolu_01GPyyMpE8bLsHQhqrrHHieL -->
