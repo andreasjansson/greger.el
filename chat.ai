@@ -10162,4 +10162,582 @@ Encrypted index: Eo8BCioIAhgBIiQyYjQ0OWJmZi1lNm..")
 Fix syntax error and complete debug script
 </tool.toolu_01HKwCAdot3i96bNA7GCRAub>
 
-<!-- TOOL_RESULT_PLACEHOLDER_toolu_01HKwCAdot3i96bNA7GCRAub -->
+## TOOL RESULT:
+
+ID: toolu_01HKwCAdot3i96bNA7GCRAub
+
+<tool.toolu_01HKwCAdot3i96bNA7GCRAub>
+Successfully replaced content in /Users/andreas/projects/greger.el/debug-citations-immediate.el. Successfully staged 2 file(s) and committed with message: Fix syntax error and complete debug script
+</tool.toolu_01HKwCAdot3i96bNA7GCRAub>
+
+## TOOL USE:
+
+Name: shell-command
+ID: toolu_01FbHuSgPzsx938W7qpt2rw2
+
+### command
+
+<tool.toolu_01FbHuSgPzsx938W7qpt2rw2>
+cd /Users/andreas/projects/greger.el && emacs --script debug-citations-immediate.el
+</tool.toolu_01FbHuSgPzsx938W7qpt2rw2>
+
+## TOOL RESULT:
+
+ID: toolu_01FbHuSgPzsx938W7qpt2rw2
+
+<tool.toolu_01FbHuSgPzsx938W7qpt2rw2>
+Command executed successfully:
+Source file ‘/opt/homebrew/Cellar/emacs-plus@29/29.0.90/share/emacs/29.0.91/lisp/net/eww.el’ newer than byte-compiled file; using older file
+
+</tool.toolu_01FbHuSgPzsx938W7qpt2rw2>
+
+## ASSISTANT:
+
+The script ran without output, which means the test case didn't trigger the citations processing. This suggests that the issue may be that the simple assistant text message doesn't go through the same path as the complex content blocks.
+
+Let me create a cleaner test to understand the issue. Looking back at the original problem, I think the issue might be that the citations processing isn't working correctly with the new content structure. Let me now run the tests to see what's happening with the implementation:
+
+## TOOL USE:
+
+Name: shell-command
+ID: toolu_01VqhVTichnUx4ws6JX934Xz
+
+### command
+
+<tool.toolu_01VqhVTichnUx4ws6JX934Xz>
+cd /Users/andreas/projects/greger.el && bash script/test --verbose --file test/test-greger-parser.el
+</tool.toolu_01VqhVTichnUx4ws6JX934Xz>
+
+## TOOL RESULT:
+
+ID: toolu_01VqhVTichnUx4ws6JX934Xz
+
+<tool.toolu_01VqhVTichnUx4ws6JX934Xz>
+Command failed with exit code 1: [0;34mRunning ERT tests for greger package...[0m
+
+Running tests in [1;33mtest/test-greger-parser.el[0m (verbose mode)...
+Loading /Users/andreas/projects/greger.el/greger.el (source)...
+Source file ‘/opt/homebrew/Cellar/emacs-plus@29/29.0.90/share/emacs/29.0.91/lisp/net/eww.el’ newer than byte-compiled file; using older file
+Loading /Users/andreas/projects/greger.el/greger-parser.el (source)...
+Loading /Users/andreas/projects/greger.el/greger-stdlib.el (source)...
+Loading /Users/andreas/projects/greger.el/greger-tools.el (source)...
+Loading /Users/andreas/projects/greger.el/greger-client.el (source)...
+Loading /Users/andreas/projects/greger.el/greger-web.el (source)...
+Loading /Users/andreas/projects/greger.el/test/test-greger-parser.el (source)...
+Running 35 tests (2025-06-05 14:59:56+0200, selector ‘t’)
+   passed   1/35  greger-parser-test-code-block-parsing (0.001155 sec)
+   passed   2/35  greger-parser-test-code-blocks-in-tool-params (0.000582 sec)
+   passed   3/35  greger-parser-test-complex-mixed-content (0.001670 sec)
+   passed   4/35  greger-parser-test-edge-cases (0.000375 sec)
+   passed   5/35  greger-parser-test-error-handling (0.000182 sec)
+   passed   6/35  greger-parser-test-include-tag-basic (0.002380 sec)
+   passed   7/35  greger-parser-test-include-tag-in-assistant-section (0.002135 sec)
+   passed   8/35  greger-parser-test-include-tag-invalid-url (0.064478 sec)
+   passed   9/35  greger-parser-test-include-tag-multiline-content (0.002354 sec)
+   passed  10/35  greger-parser-test-include-tag-nonexistent-file (0.000820 sec)
+   passed  11/35  greger-parser-test-include-tag-not-processed-in-code-blocks (0.002211 sec)
+   passed  12/35  greger-parser-test-include-tag-not-processed-in-inline-code (0.001886 sec)
+   passed  13/35  greger-parser-test-include-tag-not-processed-in-tool-params (0.001266 sec)
+   passed  14/35  greger-parser-test-include-tag-recursive (0.002942 sec)
+   passed  15/35  greger-parser-test-include-tag-web-url (0.180808 sec)
+   passed  16/35  greger-parser-test-include-tag-web-url-with-code (0.092736 sec)
+   passed  17/35  greger-parser-test-include-tag-with-code (0.005034 sec)
+   passed  18/35  greger-parser-test-include-tag-with-code-in-code-block (0.003029 sec)
+   passed  19/35  greger-parser-test-inline-code-blocks (0.001208 sec)
+   passed  20/35  greger-parser-test-markdown-generation (0.000187 sec)
+Testing markdown-to-dialog for: simple-user-message
+Testing markdown-to-dialog for: system-and-user
+Testing markdown-to-dialog for: simple-conversation
+Testing markdown-to-dialog for: thinking-section
+Testing markdown-to-dialog for: tool-use-single-param
+Testing markdown-to-dialog for: tool-use-multiple-params
+Testing markdown-to-dialog for: complex-workflow
+Testing markdown-to-dialog for: multiple-tool-uses
+Testing markdown-to-dialog for: tool-use-multiline-params
+Testing markdown-to-dialog for: thinking-only
+Testing markdown-to-dialog for: tool-use-only
+Testing markdown-to-dialog for: tool-use-with-tags
+Testing markdown-to-dialog for: code-block-triple-backticks
+Testing markdown-to-dialog for: code-block-double-backticks
+Testing markdown-to-dialog for: mixed-code-blocks-and-sections
+Testing markdown-to-dialog for: tool-use-with-code-in-params
+Testing markdown-to-dialog for: nested-code-blocks
+Testing markdown-to-dialog for: tool-use-complex-params
+Testing markdown-to-dialog for: tool-result-empty-lines
+Testing markdown-to-dialog for: html-comments
+Testing markdown-to-dialog for: server-tool-use-basic
+Testing markdown-to-dialog for: server-tool-use-string-result
+Testing markdown-to-dialog for: citations-basic
+DEBUG: Apply citations called with 1 citations
+DEBUG: Processing assistant message
+DEBUG: List content with 3 blocks
+DEBUG: Processing 3 content blocks
+DEBUG: Block type: server_tool_use
+DEBUG: Block type: server_tool_result
+DEBUG: Block type: text
+DEBUG: Text block: Based on the search results, <cite>Claude Shannon was born on April 30, 1916, in Petoskey, Michigan</cite>
+DEBUG: Found cite tags, adding citations
+DEBUG: Updated block: ((citations ((encrypted_index . "Eo8BCioIAhgBIiQyYjQ0OWJmZi1lNm..") (cited_text . "Claude Elwood Shannon (April 30, 1916 – February 24, 2001) was an American mathematician, electrical engineer, computer scientist, cryptographer and i...") (title . "Claude Shannon - Wikipedia") (type . "web_search_result_location") (url . "https://en.wikipedia.org/wiki/Claude_Shannon"))) (type . "text") (text . "Based on the search results, Claude Shannon was born on April 30, 1916, in Petoskey, Michigan"))
+Test greger-parser-test-markdown-to-dialog backtrace:
+  signal(ert-test-failed (((should (greger-parser-test--dialog-equal e
+  ert-fail(((should (greger-parser-test--dialog-equal expected-dialog 
+  (if (unwind-protect (setq value-5 (apply fn-3 args-4)) (setq form-de
+  (let (form-description-7) (if (unwind-protect (setq value-5 (apply f
+  (let ((value-5 'ert-form-evaluation-aborted-6)) (let (form-descripti
+  (let* ((fn-3 #'greger-parser-test--dialog-equal) (args-4 (condition-
+  (let ((actual-dialog (greger-parser-parse-dialog-messages-only markd
+  (let ((name (plist-get test-case :name)) (markdown (plist-get test-c
+  (let ((test-case (car tail))) (let ((name (plist-get test-case :name
+  (while tail (let ((test-case (car tail))) (let ((name (plist-get tes
+  (let ((tail greger-parser-test-cases)) (while tail (let ((test-case 
+  (closure (t) nil (let ((tail greger-parser-test-cases)) (while tail 
+  ert--run-test-internal(#s(ert--test-execution-info :test #s(ert-test
+  ert-run-test(#s(ert-test :name greger-parser-test-markdown-to-dialog
+  ert-run-or-rerun-test(#s(ert--stats :selector t :tests ... :test-map
+  ert-run-tests(t #f(compiled-function (event-type &rest event-args) #
+  ert-run-tests-batch(t)
+  ert-run-tests-batch-and-exit(t)
+  (let ((ert-quiet nil)) (ert-run-tests-batch-and-exit t))
+  (progn (setq debug-on-error t) (add-to-list 'load-path ".") (require
+  eval((progn (setq debug-on-error t) (add-to-list 'load-path ".") (re
+  command-line-1(("--eval" "(progn\n                  (setq debug-on-e
+  command-line()
+  normal-top-level()
+Test greger-parser-test-markdown-to-dialog condition:
+    (ert-test-failed
+     ((should
+       (greger-parser-test--dialog-equal expected-dialog actual-dialog))
+      :form
+      (greger-parser-test--dialog-equal
+       ((... ...)
+	(... ...))
+       ((... ...)
+	(... ...)))
+      :value nil))
+   FAILED  21/35  greger-parser-test-markdown-to-dialog (0.111292 sec) at test/test-greger-parser.el:782
+   passed  22/35  greger-parser-test-performance (0.062251 sec)
+Testing roundtrip for: simple-user-message
+Testing roundtrip for: system-and-user
+Testing roundtrip for: simple-conversation
+Testing roundtrip for: thinking-section
+Test greger-parser-test-roundtrip backtrace:
+  signal(ert-test-failed (((should (greger-parser-test--dialog-equal d
+  ert-fail(((should (greger-parser-test--dialog-equal dialog roundtrip
+  (if (unwind-protect (setq value-15 (apply fn-13 args-14)) (setq form
+  (let (form-description-17) (if (unwind-protect (setq value-15 (apply
+  (let ((value-15 'ert-form-evaluation-aborted-16)) (let (form-descrip
+  (let* ((fn-13 #'greger-parser-test--dialog-equal) (args-14 (conditio
+  (let* ((dialog (greger-parser-parse-dialog-messages-only original-ma
+  (let ((name (plist-get test-case :name)) (original-markdown (plist-g
+  (let ((test-case (car tail))) (let ((name (plist-get test-case :name
+  (while tail (let ((test-case (car tail))) (let ((name (plist-get tes
+  (let ((tail greger-parser-test-cases)) (while tail (let ((test-case 
+  (closure (t) nil (let ((tail greger-parser-test-cases)) (while tail 
+  ert--run-test-internal(#s(ert--test-execution-info :test ... :result
+  ert-run-test(#s(ert-test :name greger-parser-test-roundtrip :documen
+  ert-run-or-rerun-test(#s(ert--stats :selector t :tests ... :test-map
+  ert-run-tests(t #f(compiled-function (event-type &rest event-args) #
+  ert-run-tests-batch(t)
+  ert-run-tests-batch-and-exit(t)
+  (let ((ert-quiet nil)) (ert-run-tests-batch-and-exit t))
+  (progn (setq debug-on-error t) (add-to-list 'load-path ".") (require
+  eval((progn (setq debug-on-error t) (add-to-list 'load-path ".") (re
+  command-line-1(("--eval" "(progn\n                  (setq debug-on-e
+  command-line()
+  normal-top-level()
+Test greger-parser-test-roundtrip condition:
+    (ert-test-failed
+     ((should
+       (greger-parser-test--dialog-equal dialog roundtrip-dialog))
+      :form
+      (greger-parser-test--dialog-equal
+       ((... ...)
+	(... ...))
+       ((... ...)
+	(... ...)))
+      :value nil))
+   FAILED  23/35  greger-parser-test-roundtrip (0.005465 sec) at test/test-greger-parser.el:792
+   passed  24/35  greger-parser-test-safe-shell-commands-basic (0.000255 sec)
+   passed  25/35  greger-parser-test-safe-shell-commands-empty-lines (0.000339 sec)
+   passed  26/35  greger-parser-test-safe-shell-commands-in-code-block (0.001014 sec)
+   passed  27/35  greger-parser-test-safe-shell-commands-not-in-system (0.001132 sec)
+   passed  28/35  greger-parser-test-safe-shell-commands-only-once (0.000382 sec)
+   passed  29/35  greger-parser-test-safe-shell-commands-with-system-content (0.001016 sec)
+   passed  30/35  greger-parser-test-system-content-with-safe-commands-example (0.001028 sec)
+   passed  31/35  greger-parser-test-thinking-parsing (0.000979 sec)
+   passed  32/35  greger-parser-test-tool-result-parsing (0.000443 sec)
+   passed  33/35  greger-parser-test-tool-use-parsing (0.000659 sec)
+   passed  34/35  greger-parser-test-tool-use-whitespace (0.000854 sec)
+   passed  35/35  greger-parser-test-untagged-content (0.001050 sec)
+
+Ran 35 tests, 33 results as expected, 2 unexpected (2025-06-05 14:59:57+0200, 1.015847 sec)
+
+2 unexpected results:
+   FAILED  greger-parser-test-markdown-to-dialog
+   FAILED  greger-parser-test-roundtrip
+
+
+</tool.toolu_01VqhVTichnUx4ws6JX934Xz>
+
+## ASSISTANT:
+
+Great! I can see the debug output is working and showing that the citations are being processed correctly. The test failures are indicating that there are issues with the citations test cases. Let me check what the citations test case looks like:
+
+## TOOL USE:
+
+Name: ripgrep
+ID: toolu_014s7MfW7rUJiG99eVvmjfaA
+
+### pattern
+
+<tool.toolu_014s7MfW7rUJiG99eVvmjfaA>
+citations-basic
+</tool.toolu_014s7MfW7rUJiG99eVvmjfaA>
+
+### path
+
+<tool.toolu_014s7MfW7rUJiG99eVvmjfaA>
+test/test-greger-parser.el
+</tool.toolu_014s7MfW7rUJiG99eVvmjfaA>
+
+### context-lines
+
+<tool.toolu_014s7MfW7rUJiG99eVvmjfaA>
+10
+</tool.toolu_014s7MfW7rUJiG99eVvmjfaA>
+
+## TOOL RESULT:
+
+ID: toolu_014s7MfW7rUJiG99eVvmjfaA
+
+<tool.toolu_014s7MfW7rUJiG99eVvmjfaA>
+639-
+640-## ASSISTANT:
+641-
+642-It looks like it's sunny and warm today!"
+643-           :dialog (((role . "user") (content . "What's the weather like?"))
+644-                    ((role . "assistant") (content . (((type . "server_tool_use") (id . "srvtoolu_456") (name . "web_search") (input . ((query . "weather"))))
+645-                                                      ((type . "server_tool_result") (tool_use_id . "srvtoolu_456") (content . "Sunny and warm today"))
+646-                                                      ((type . "text") (text . "It looks like it's sunny and warm today!")))))))
+647-
+648-    ;; Citation parsing test case
+649:    (:name "citations-basic"
+650-           :markdown "## USER:
+651-
+652-When was Claude Shannon born?
+653-
+654-## SERVER TOOL USE:
+655-
+656-Name: web_search
+657-ID: srvtoolu_01WYG3ziw53XMcoyKL4XcZmE
+658-
+659-### query
+
+</tool.toolu_014s7MfW7rUJiG99eVvmjfaA>
+
+## ASSISTANT:
+
+Now let me see the full citations test case:
+
+## TOOL USE:
+
+Name: ripgrep
+ID: toolu_01PW53XNyJ1qUe8QyRoGpdmD
+
+### pattern
+
+<tool.toolu_01PW53XNyJ1qUe8QyRoGpdmD>
+citations-basic
+</tool.toolu_01PW53XNyJ1qUe8QyRoGpdmD>
+
+### path
+
+<tool.toolu_01PW53XNyJ1qUe8QyRoGpdmD>
+test/test-greger-parser.el
+</tool.toolu_01PW53XNyJ1qUe8QyRoGpdmD>
+
+### context-lines
+
+<tool.toolu_01PW53XNyJ1qUe8QyRoGpdmD>
+100
+</tool.toolu_01PW53XNyJ1qUe8QyRoGpdmD>
+
+## TOOL RESULT:
+
+ID: toolu_01PW53XNyJ1qUe8QyRoGpdmD
+
+<tool.toolu_01PW53XNyJ1qUe8QyRoGpdmD>
+549-
+550-
+551-bar
+552-</tool.tool_123>
+553-
+554-## ASSISTANT:
+555-
+556-File written successfully."
+557-           :dialog (((role . "assistant") (content . (((type . "tool_use") (id . "tool_123") (name . "write-file") (input . ((content . "foo\n\n\nbar")))))))
+558-                    ((role . "user") (content . (((type . "tool_result") (tool_use_id . "tool_123") (content . "foo\n\n\nbar")))))
+559-                    ((role . "assistant") (content . "File written successfully."))))
+560-
+561-    (:name "html-comments"
+562-           :markdown "## USER:
+563-
+564-Here's some code:
+565-
+566-<!-- comment -->
+567-<!-- multi
+568-line
+569-
+570-comment -->
+571-
+572-```
+573-<!-- comment should be included -->
+574-## ASSISTANT:
+575-This should not be parsed as a section header
+576-## TOOL USE:
+577-Neither should this
+578-```
+579-
+580-What do you think?"
+581-           :dialog (((role . "user") (content . "Here's some code:\n\n\n\n\n```\n<!-- comment should be included -->\n## ASSISTANT:\nThis should not be parsed as a section header\n## TOOL USE:\nNeither should this\n```\n\nWhat do you think?"))))
+582-
+583-    ;; Server tool use and result test cases
+584-    (:name "server-tool-use-basic"
+585-           :markdown "## USER:
+586-
+587-Search for current weather in San Francisco
+588-
+589-## SERVER TOOL USE:
+590-
+591-Name: web_search
+592-ID: srvtoolu_123
+593-
+594-### query
+595-
+596-<tool.srvtoolu_123>
+597-current weather San Francisco
+598-</tool.srvtoolu_123>
+599-
+600-## SERVER TOOL RESULT:
+601-
+602-ID: srvtoolu_123
+603-
+604-<tool.srvtoolu_123>
+605-[{\"title\": \"Weather in San Francisco\", \"url\": \"https://weather.com/sf\", \"content\": \"Sunny, 72°F\"}]
+606-</tool.srvtoolu_123>
+607-
+608-## ASSISTANT:
+609-
+610-The current weather in San Francisco is sunny and 72°F."
+611-           :dialog (((role . "user") (content . "Search for current weather in San Francisco"))
+612-                    ((role . "assistant") (content . (((type . "server_tool_use") (id . "srvtoolu_123") (name . "web_search") (input . ((query . "current weather San Francisco"))))
+613-                                                      ((type . "server_tool_result") (tool_use_id . "srvtoolu_123") (content . "[{\"title\": \"Weather in San Francisco\", \"url\": \"https://weather.com/sf\", \"content\": \"Sunny, 72°F\"}]"))
+614-                                                      ((type . "text") (text . "The current weather in San Francisco is sunny and 72°F.")))))))
+615-
+616-    (:name "server-tool-use-string-result"
+617-           :markdown "## USER:
+618-
+619-What's the weather like?
+620-
+621-## SERVER TOOL USE:
+622-
+623-Name: web_search
+624-ID: srvtoolu_456
+625-
+626-### query
+627-
+628-<tool.srvtoolu_456>
+629-weather
+630-</tool.srvtoolu_456>
+631-
+632-## SERVER TOOL RESULT:
+633-
+634-ID: srvtoolu_456
+635-
+636-<tool.srvtoolu_456>
+637-Sunny and warm today
+638-</tool.srvtoolu_456>
+639-
+640-## ASSISTANT:
+641-
+642-It looks like it's sunny and warm today!"
+643-           :dialog (((role . "user") (content . "What's the weather like?"))
+644-                    ((role . "assistant") (content . (((type . "server_tool_use") (id . "srvtoolu_456") (name . "web_search") (input . ((query . "weather"))))
+645-                                                      ((type . "server_tool_result") (tool_use_id . "srvtoolu_456") (content . "Sunny and warm today"))
+646-                                                      ((type . "text") (text . "It looks like it's sunny and warm today!")))))))
+647-
+648-    ;; Citation parsing test case
+649:    (:name "citations-basic"
+650-           :markdown "## USER:
+651-
+652-When was Claude Shannon born?
+653-
+654-## SERVER TOOL USE:
+655-
+656-Name: web_search
+657-ID: srvtoolu_01WYG3ziw53XMcoyKL4XcZmE
+658-
+659-### query
+660-
+661-<tool.srvtoolu_01WYG3ziw53XMcoyKL4XcZmE>
+662-claude shannon birth date
+663-</tool.srvtoolu_01WYG3ziw53XMcoyKL4XcZmE>
+664-
+665-## SERVER TOOL RESULT:
+666-
+667-ID: srvtoolu_01WYG3ziw53XMcoyKL4XcZmE
+668-
+669-<tool.srvtoolu_01WYG3ziw53XMcoyKL4XcZmE>
+670-[
+671-  {
+672-    \"type\": \"web_search_result\",
+673-    \"url\": \"https://en.wikipedia.org/wiki/Claude_Shannon\",
+674-    \"title\": \"Claude Shannon - Wikipedia\",
+675-    \"encrypted_content\": \"EqgfCioIARgBIiQ3YTAwMjY1Mi1mZjM5LTQ1NGUtODgxNC1kNjNjNTk1ZWI3Y...\",
+676-    \"page_age\": \"April 30, 2025\"
+677-  }
+678-]
+679-</tool.srvtoolu_01WYG3ziw53XMcoyKL4XcZmE>
+680-
+681-## ASSISTANT:
+682-
+683-Based on the search results, <cite>Claude Shannon was born on April 30, 1916, in Petoskey, Michigan</cite>
+684-
+685-## CITATIONS:
+686-
+687-### https://en.wikipedia.org/wiki/Claude_Shannon
+688-
+689-Title: Claude Shannon - Wikipedia
+690-Cited text: Claude Elwood Shannon (April 30, 1916 – February 24, 2001) was an American mathematician, electrical engineer, computer scientist, cryptographer and i...
+691-Encrypted index: Eo8BCioIAhgBIiQyYjQ0OWJmZi1lNm.."
+692-           :dialog (((role . "user") (content . "When was Claude Shannon born?"))
+693-                    ((role . "assistant") (content . (((type . "server_tool_use") (id . "srvtoolu_01WYG3ziw53XMcoyKL4XcZmE") (name . "web_search") (input . ((query . "claude shannon birth date"))))
+694-                                                      ((type . "web_search_tool_result") (tool_use_id . "srvtoolu_01WYG3ziw53XMcoyKL4XcZmE") (content . "[\n  {\n    \"type\": \"web_search_result\",\n    \"url\": \"https://en.wikipedia.org/wiki/Claude_Shannon\",\n    \"title\": \"Claude Shannon - Wikipedia\",\n    \"encrypted_content\": \"EqgfCioIARgBIiQ3YTAwMjY1Mi1mZjM5LTQ1NGUtODgxNC1kNjNjNTk1ZWI3Y...\",\n    \"page_age\": \"April 30, 2025\"\n  }\n]"))
+695-                                                      ((type . "text") (text . "Based on the search results, "))
+696-                                                      ((type . "text") (text . "Claude Shannon was born on April 30, 1916, in Petoskey, Michigan")
+697-                                                       (citations . (((type . "web_search_result_location")
+698-                                                                      (url . "https://en.wikipedia.org/wiki/Claude_Shannon")
+699-                                                                      (title . "Claude Shannon - Wikipedia")
+700-                                                                      (cited_text . "Claude Elwood Shannon (April 30, 1916 – February 24, 2001) was an American mathematician, electrical engineer, computer scientist, cryptographer and i...")
+701-                                                                      (encrypted_index . "Eo8BCioIAhgBIiQyYjQ0OWJmZi1lNm.."))))))))))
+702-    ))
+703-
+704-;; Helper functions for tests
+705-(defun greger-parser-test--dialog-equal (expected actual)
+706-  "Compare two dialog structures, handling content blocks."
+707-  (and (listp expected) (listp actual)
+708-       (= (length expected) (length actual))
+709-       (cl-every
+710-        (lambda (pair)
+711-          (let ((exp-msg (car pair))
+712-                (act-msg (cdr pair)))
+713-            (and (string= (alist-get 'role exp-msg) (alist-get 'role act-msg))
+714-                 (greger-parser-test--content-equal
+715-                  (alist-get 'content exp-msg)
+716-                  (alist-get 'content act-msg)))))
+717-        (cl-mapcar #'cons expected actual))))
+718-
+719-(defun greger-parser-test--content-equal (expected actual)
+720-  "Compare message content, handling both strings and content block lists."
+721-  (cond
+722-   ;; Both are strings - direct comparison
+723-   ((and (stringp expected) (stringp actual))
+724-    (string= expected actual))
+725-
+726-   ;; Both are lists (content blocks) - compare structure
+727-   ((and (listp expected) (listp actual))
+728-    (greger-parser-test--content-blocks-equal expected actual))
+729-
+730-   ;; Fallback to string comparison
+731-   (t (string= (format "%s" expected) (format "%s" actual)))))
+732-
+733-(defun greger-parser-test--content-blocks-equal (expected actual)
+734-  "Compare two content block lists."
+735-  (and (= (length expected) (length actual))
+736-       (cl-every
+737-        (lambda (pair)
+738-          (greger-parser-test--content-block-equal (car pair) (cdr pair)))
+739-        (cl-mapcar #'cons expected actual))))
+740-
+741-(defun greger-parser-test--content-block-equal (expected actual)
+742-  "Compare two content blocks."
+743-  (and (string= (alist-get 'type expected) (alist-get 'type actual))
+744-       (let ((type (alist-get 'type expected)))
+745-         (cond
+746-          ((string= type "text")
+747-           (string= (alist-get 'text expected) (alist-get 'text actual)))
+748-          ((string= type "thinking")
+749-           (string= (alist-get 'thinking expected) (alist-get 'thinking actual)))
+
+</tool.toolu_01PW53XNyJ1qUe8QyRoGpdmD>
+
+## ASSISTANT:
+
+Perfect! Now I can see the issue. Looking at the expected test result, I can see several problems:
+
+1. **The expected result has `type . "web_search_tool_result"` but my implementation creates `type . "server_tool_result"`**
+2. **The expected result has TWO separate text blocks** - one with `"Based on the search results, "` and another with the actual cited text
+3. **The citations are expected to be attached to the second text block**
+
+Looking at the debug output from the test, I can see that my implementation is correctly finding and processing the cited text, but the test expectations don't match what I'm implementing.
+
+Let me look more closely at what the test expects vs what my implementation produces. From the test case, I see that the expected dialog structure has:
+
+1. A `server_tool_use` block ✓ (this matches)
+2. A `web_search_tool_result` block ❌ (I'm producing `server_tool_result`)  
+3. A text block with `"Based on the search results, "` ❌ (I'm merging this)
+4. A second text block with the cited text and citations ❌ (I have a single text block)
+
+The issue is that the test case expectations assume that the text `"Based on the search results, <cite>Claude Shannon was born on April 30, 1916, in Petoskey, Michigan</cite>"` should be split into two separate text blocks:
+1. `"Based on the search results, "`
+2. `"Claude Shannon was born on April 30, 1916, in Petoskey, Michigan"` (with citations)
+
+But my implementation is treating the entire text as a single block. Let me also check the issue with `web_search_tool_result` vs `server_tool_result`.
+
+Now I understand what I need to implement! I need to:
+
+1. Create a `web_search_tool_result` type for web search results
+2. Split text that contains `<cite>` tags into separate text blocks
+
+Let me implement these fixes. First, let me add the missing `web_search_tool_result` type by updating the markdown conversion functions:
+
+## TOOL USE:
+
+Name: str-replace
+ID: toolu_01MkKyt8gHHPuPM235iyG3Fx
+
+### file-path
+
+<tool.toolu_01MkKyt8gHHPuPM235iyG3Fx>
+greger-parser.el
+</tool.toolu_01MkKyt8gHHPuPM235iyG3Fx>
+
+### original-content
+
+<tool.toolu_01MkKyt8gHHPuPM235iyG3Fx>
+(defun greger-parser--create-server-tool-result-message (id content)
+  "Create server tool result message with ID and CONTENT."
+  `((role . "assistant")
+    (content . (((type . "server_tool_result")
+                 (tool_use_id . ,id)
+                 (content . ,content))))))
+</tool.toolu_01MkKyt8gHHPuPM235iyG3Fx>
+
+### new-content
+
+<tool.toolu_01MkKyt8gHHPuPM235iyG3Fx>
+(defun greger-parser--create-server-tool-result-message (id content)
+  "Create server tool result message with ID and CONTENT."
+  `((role . "assistant")
+    (content . (((type . "server_tool_result")
+                 (tool_use_id . ,id)
+                 (content . ,content))))))
+</tool.toolu_01MkKyt8gHHPuPM235iyG3Fx>
+
+### git-commit-message
+
+<tool.toolu_01MkKyt8gHHPuPM235iyG3Fx>
+Keep server tool result creation unchanged for now
+</tool.toolu_01MkKyt8gHHPuPM235iyG3Fx>
+
+<!-- TOOL_RESULT_PLACEHOLDER_toolu_01MkKyt8gHHPuPM235iyG3Fx -->
