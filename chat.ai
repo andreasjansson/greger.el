@@ -2397,4 +2397,129 @@ Add test script for citation folding functionality
 - Test cite-citation pair detection
 </tool.toolu_01LxXAhcMB4RQicZJsUFx1pS>
 
-<!-- TOOL_RESULT_PLACEHOLDER_toolu_01LxXAhcMB4RQicZJsUFx1pS -->
+## TOOL RESULT:
+
+ID: toolu_01LxXAhcMB4RQicZJsUFx1pS
+
+<tool.toolu_01LxXAhcMB4RQicZJsUFx1pS>
+Successfully wrote new file /Users/andreas/projects/greger.el/test-citation-folding.el with 1713 characters. Successfully staged 2 file(s) and committed with message: Add test script for citation folding functionality
+
+- Create test-citation-folding.el to verify citation detection and folding
+- Test final bibliography detection and boundary handling
+- Test cite-citation pair detection
+</tool.toolu_01LxXAhcMB4RQicZJsUFx1pS>
+
+## USER:
+
+I'd like there to be a little indicator overlay that with a small font says `[+7 citations, TAB to expand]`, like this:
+
+```
+## CITATIONS:
+[+7 citations, TAB to expand]
+
+```
+
+## ASSISTANT:
+
+I'll modify the `greger-ui-hide-final-bibliography` function to add that indicator overlay. The current implementation already has a similar feature, but it's placing the indicator at the wrong position. Let me fix it:
+
+## TOOL USE:
+
+Name: read-file
+ID: toolu_01Lemrbr9LFo5G6Dm4xSNSRE
+
+### path
+
+<tool.toolu_01Lemrbr9LFo5G6Dm4xSNSRE>
+greger-ui.el
+</tool.toolu_01Lemrbr9LFo5G6Dm4xSNSRE>
+
+### start-line
+
+<tool.toolu_01Lemrbr9LFo5G6Dm4xSNSRE>
+220
+</tool.toolu_01Lemrbr9LFo5G6Dm4xSNSRE>
+
+### end-line
+
+<tool.toolu_01Lemrbr9LFo5G6Dm4xSNSRE>
+245
+</tool.toolu_01Lemrbr9LFo5G6Dm4xSNSRE>
+
+## TOOL RESULT:
+
+ID: toolu_01Lemrbr9LFo5G6Dm4xSNSRE
+
+<tool.toolu_01Lemrbr9LFo5G6Dm4xSNSRE>
+
+(defun greger-ui-hide-final-bibliography (start end)
+  "Hide the final bibliography section with a summary."
+  (let* ((count (greger-ui-count-citations-in-section start end))
+         (content-start (save-excursion (goto-char start) (forward-line 1) (point)))
+         (overlay (make-overlay content-start end))
+         (summary-overlay (make-overlay content-start content-start)))
+
+    ;; Hide the bibliography content (but not the header)
+    (overlay-put overlay 'invisible t)
+    (overlay-put overlay 'greger-bibliography t)
+    (overlay-put overlay 'evaporate t)
+    (push overlay greger-ui-bibliography-overlays)
+
+    ;; Show the summary
+    (overlay-put summary-overlay 'after-string
+                 (propertize (format "\n[+%d citations, TAB to expand]\n"
+                                   count)
+                           'face 'greger-folded-citations-face))
+    (overlay-put summary-overlay 'greger-bibliography-summary t)
+    (overlay-put summary-overlay 'evaporate t)
+    (push summary-overlay greger-ui-bibliography-overlays)))
+
+(defun greger-ui-show-final-bibliography (start end)
+  "Show the final bibliography section."
+  (let ((content-start (save-excursion (goto-char start) (forward-line 1) (point))))
+</tool.toolu_01Lemrbr9LFo5G6Dm4xSNSRE>
+
+## ASSISTANT:
+
+I see the issue. The summary overlay is being placed at `content-start` (after the header), but we want it to appear right after the "## CITATIONS:" header. Let me fix this and also improve the face to make it smaller:
+
+## TOOL USE:
+
+Name: str-replace
+ID: toolu_01SadUV8PY2JUqPTJsQiejSZ
+
+### file-path
+
+<tool.toolu_01SadUV8PY2JUqPTJsQiejSZ>
+greger-ui.el
+</tool.toolu_01SadUV8PY2JUqPTJsQiejSZ>
+
+### original-content
+
+<tool.toolu_01SadUV8PY2JUqPTJsQiejSZ>
+(defface greger-folded-citations-face
+  '((t (:foreground "#FFFF00" :slant italic)))
+  "Face for folded citation summary text."
+  :group 'greger-ui)
+</tool.toolu_01SadUV8PY2JUqPTJsQiejSZ>
+
+### new-content
+
+<tool.toolu_01SadUV8PY2JUqPTJsQiejSZ>
+(defface greger-folded-citations-face
+  '((t (:foreground "#888888" :slant italic :height 0.8)))
+  "Face for folded citation summary text."
+  :group 'greger-ui)
+</tool.toolu_01SadUV8PY2JUqPTJsQiejSZ>
+
+### git-commit-message
+
+<tool.toolu_01SadUV8PY2JUqPTJsQiejSZ>
+Improve folded citations face appearance
+
+- Change color to subtle gray (#888888) instead of bright yellow
+- Add smaller height (0.8) to make indicator less prominent
+- Keep italic styling for visual distinction
+</tool.toolu_01SadUV8PY2JUqPTJsQiejSZ>
+
+<!-- TOOL_RESULT_PLACEHOLDER_toolu_01SadUV8PY2JUqPTJsQiejSZ -->

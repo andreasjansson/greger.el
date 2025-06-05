@@ -37,7 +37,7 @@
   :group 'greger-ui)
 
 (defface greger-folded-citations-face
-  '((t (:foreground "#FFFF00" :slant italic)))
+  '((t (:foreground "#888888" :slant italic :height 0.8)))
   "Face for folded citation summary text."
   :group 'greger-ui)
 
