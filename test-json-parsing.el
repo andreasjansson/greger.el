@@ -13,7 +13,8 @@
   }
 ]"))
   (message "Content to test: %s" content)
-  (message "Regex match: %s" (string-match-p "\"type\":\\s*\"web_search_result\"" content))
+  (message "Regex match old: %s" (string-match-p "\"type\":\\s*\"web_search_result\"" content))
+  (message "Regex match new: %s" (string-match-p "\"type\"[[:space:]]*:[[:space:]]*\"web_search_result\"" content))
   (message "Parsed content: %s" (greger-parser--parse-web-search-content content))
   (let ((result (greger-parser--create-server-tool-result-message "test_id" content)))
     (message "Result: %s" result)))
