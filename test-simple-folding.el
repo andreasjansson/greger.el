@@ -17,6 +17,7 @@ The current king of Sweden is <cite>Carl XVI Gustaf</cite>.
 Title: Carl XVI Gustaf - Wikipedia
 Cited text: Carl XVI Gustaf is King of Sweden.
 
+
 ## USER:
 
 hello"))
