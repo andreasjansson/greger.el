@@ -40,6 +40,7 @@
 (require 'greger-parser)
 (require 'greger-tools)
 (require 'greger-stdlib)
+(require 'greger-ui)
 
 
 
