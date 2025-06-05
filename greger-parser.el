@@ -835,6 +835,36 @@ Splits text blocks at <cite> boundaries and adds citations to cited portions."
                 (setq i (1- i)))))))
       (setq i (1+ i)))))
 
+(defun greger-parser--apply-citations-to-last-assistant-message (sections citations)
+  "Apply CITATIONS to the most recent assistant message in SECTIONS that contains <cite> tags."
+  ;; Find the most recent assistant message (searching from end backwards)
+  (let ((found nil))
+    (dolist (message (reverse sections))
+      (when (and (not found) (string= "assistant" (alist-get 'role message)))
+        (let ((content (alist-get 'content message)))
+          (cond
+           ;; String content - check for <cite> tags and process
+           ((stringp content)
+            (when (string-match-p "<cite>" content)
+              ;; Convert string with cite tags to text blocks
+              (let ((text-blocks (greger-parser--split-text-with-citations content citations)))
+                (setcdr (assq 'content message) text-blocks)
+                (setq found t))))
+           ;; List content - process each content block
+           ((listp content)
+            (when (greger-parser--content-has-cite-tags content)
+              (greger-parser--add-citations-to-content-blocks content citations)
+              (setq found t)))))))))
+
+(defun greger-parser--content-has-cite-tags (content-blocks)
+  "Check if any of the CONTENT-BLOCKS contain <cite> tags."
+  (cl-some (lambda (block)
+             (and (listp block)
+                  (string= "text" (alist-get 'type block))
+                  (let ((text (alist-get 'text block)))
+                    (and text (string-match-p "<cite>" text)))))
+           content-blocks))
+
 (defun greger-parser--apply-citations-to-messages (messages citations)
   "Apply CITATIONS to the last assistant message in MESSAGES that contains <cite> tags."
   ;; Find the last assistant message and apply citations to it

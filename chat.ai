@@ -5014,4 +5014,112 @@ Since citations are now applied immediately, remove the old code
 that collected and applied them at the end.
 </tool.toolu_01CL3XTeBtCLJ3AAEu7TCyA6>
 
-<!-- TOOL_RESULT_PLACEHOLDER_toolu_01CL3XTeBtCLJ3AAEu7TCyA6 -->
+## TOOL RESULT:
+
+ID: toolu_01CL3XTeBtCLJ3AAEu7TCyA6
+
+<tool.toolu_01CL3XTeBtCLJ3AAEu7TCyA6>
+Successfully replaced content in /Users/andreas/projects/greger.el/greger-parser.el. Successfully staged 2 file(s) and committed with message: Remove old citation application logic
+
+Since citations are now applied immediately, remove the old code
+that collected and applied them at the end.
+</tool.toolu_01CL3XTeBtCLJ3AAEu7TCyA6>
+
+## ASSISTANT:
+
+Now I need to implement the `greger-parser--apply-citations-to-last-assistant-message` function:
+
+## TOOL USE:
+
+Name: str-replace
+ID: toolu_0172sJU6LCH8F4jVMNmWH1qD
+
+### file-path
+
+<tool.toolu_0172sJU6LCH8F4jVMNmWH1qD>
+greger-parser.el
+</tool.toolu_0172sJU6LCH8F4jVMNmWH1qD>
+
+### original-content
+
+<tool.toolu_0172sJU6LCH8F4jVMNmWH1qD>
+(defun greger-parser--apply-citations-to-messages (messages citations)
+  "Apply CITATIONS to the last assistant message in MESSAGES that contains <cite> tags."
+  ;; Find the last assistant message and apply citations to it
+  (dolist (message messages)
+    (when (string= "assistant" (alist-get 'role message))
+      (let ((content (alist-get 'content message)))
+        (cond
+         ;; String content - check for <cite> tags and process
+         ((stringp content)
+          (when (string-match-p "<cite>" content)
+            ;; Convert string with cite tags to text blocks
+            (let ((text-blocks (greger-parser--split-text-with-citations content citations)))
+              (setcdr (assq 'content message) text-blocks))))
+         ;; List content - process each content block
+         ((listp content)
+          (greger-parser--add-citations-to-content-blocks content citations)))))))
+</tool.toolu_0172sJU6LCH8F4jVMNmWH1qD>
+
+### new-content
+
+<tool.toolu_0172sJU6LCH8F4jVMNmWH1qD>
+(defun greger-parser--apply-citations-to-last-assistant-message (sections citations)
+  "Apply CITATIONS to the most recent assistant message in SECTIONS that contains <cite> tags."
+  ;; Find the most recent assistant message (searching from end backwards)
+  (let ((found nil))
+    (dolist (message (reverse sections))
+      (when (and (not found) (string= "assistant" (alist-get 'role message)))
+        (let ((content (alist-get 'content message)))
+          (cond
+           ;; String content - check for <cite> tags and process
+           ((stringp content)
+            (when (string-match-p "<cite>" content)
+              ;; Convert string with cite tags to text blocks
+              (let ((text-blocks (greger-parser--split-text-with-citations content citations)))
+                (setcdr (assq 'content message) text-blocks)
+                (setq found t))))
+           ;; List content - process each content block
+           ((listp content)
+            (when (greger-parser--content-has-cite-tags content)
+              (greger-parser--add-citations-to-content-blocks content citations)
+              (setq found t)))))))))
+
+(defun greger-parser--content-has-cite-tags (content-blocks)
+  "Check if any of the CONTENT-BLOCKS contain <cite> tags."
+  (cl-some (lambda (block)
+             (and (listp block)
+                  (string= "text" (alist-get 'type block))
+                  (let ((text (alist-get 'text block)))
+                    (and text (string-match-p "<cite>" text)))))
+           content-blocks))
+
+(defun greger-parser--apply-citations-to-messages (messages citations)
+  "Apply CITATIONS to the last assistant message in MESSAGES that contains <cite> tags."
+  ;; Find the last assistant message and apply citations to it
+  (dolist (message messages)
+    (when (string= "assistant" (alist-get 'role message))
+      (let ((content (alist-get 'content message)))
+        (cond
+         ;; String content - check for <cite> tags and process
+         ((stringp content)
+          (when (string-match-p "<cite>" content)
+            ;; Convert string with cite tags to text blocks
+            (let ((text-blocks (greger-parser--split-text-with-citations content citations)))
+              (setcdr (assq 'content message) text-blocks))))
+         ;; List content - process each content block
+         ((listp content)
+          (greger-parser--add-citations-to-content-blocks content citations)))))))
+</tool.toolu_0172sJU6LCH8F4jVMNmWH1qD>
+
+### git-commit-message
+
+<tool.toolu_0172sJU6LCH8F4jVMNmWH1qD>
+Add function to apply citations to last assistant message
+
+Implement greger-parser--apply-citations-to-last-assistant-message
+to apply citations immediately to the most recent assistant message
+that contains cite tags.
+</tool.toolu_0172sJU6LCH8F4jVMNmWH1qD>
+
+<!-- TOOL_RESULT_PLACEHOLDER_toolu_0172sJU6LCH8F4jVMNmWH1qD -->
