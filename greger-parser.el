@@ -780,15 +780,21 @@ Modifies the sections list in-place."
 (defun greger-parser--add-citations-to-content-blocks (content-blocks citations)
   "Add CITATIONS to appropriate text blocks in CONTENT-BLOCKS.
 Modifies the content blocks in-place to process <cite> tags."
+  (message "DEBUG: Processing %d content blocks with %d citations" (length content-blocks) (length citations))
   (dolist (block content-blocks)
+    (message "DEBUG: Block type: %s" (alist-get 'type block))
     (when (and (listp block) (string= "text" (alist-get 'type block)))
       (let ((text (alist-get 'text block)))
+        (message "DEBUG: Text block found: %s" text)
         ;; Check if text contains <cite> tags - if so, process them and add citations
         (when (and text (string-match-p "<cite>" text))
+          (message "DEBUG: Found cite tags, processing...")
           ;; Remove <cite> tags from text and add citations to block
           (let ((clean-text (greger-parser--remove-cite-tags text)))
+            (message "DEBUG: Clean text: %s" clean-text)
             (setcdr (assq 'text block) clean-text)
-            (push (cons 'citations citations) block)))))))
+            (push (cons 'citations citations) block)
+            (message "DEBUG: Added citations to block, new block: %s" block)))))))
 
 (defun greger-parser--remove-cite-tags (text)
   "Remove <cite> and </cite> tags from TEXT."
