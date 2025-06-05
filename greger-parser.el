@@ -629,8 +629,15 @@ Returns a plist with :messages and :metadata keys."
         (greger-parser--debug state "Hit max iterations in parse-document"))
 
       ;; Combine metadata from section returns and parser state
-      (let ((combined-metadata (append metadata (greger-parser-state-metadata state))))
-        (list :messages (greger-parser--merge-consecutive-messages (reverse sections))
+      (let* ((combined-metadata (append metadata (greger-parser-state-metadata state)))
+             (merged-messages (greger-parser--merge-consecutive-messages (reverse sections)))
+             (pending-citations (plist-get combined-metadata :pending-citations)))
+        ;; Apply pending citations if any
+        (when pending-citations
+          (greger-parser--apply-citations-to-messages merged-messages pending-citations)
+          ;; Remove pending citations from metadata since they've been applied
+          (setq combined-metadata (greger-parser--remove-from-plist combined-metadata :pending-citations)))
+        (list :messages merged-messages
               :metadata combined-metadata)))))
 
 (defun greger-parser--parse-untagged-content (state)
