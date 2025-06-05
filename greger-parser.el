@@ -90,14 +90,6 @@ Returns a plist with :messages and :metadata keys."
       ""
     (mapconcat #'greger-parser--message-to-markdown dialog "\n\n")))
 
-;; Compatibility function for tests and existing code
-(defun greger-parser-parse-dialog-messages-only (markdown &optional debug)
-  "Parse MARKDOWN into dialog format, returning only the messages (old format).
-This is for backward compatibility with existing tests and code.
-DEBUG enables debug logging."
-  (let ((result (greger-parser-parse-dialog markdown debug)))
-    (plist-get result :messages)))
-
 ;; Parser infrastructure
 
 (defun greger-parser--at-end-p (state)
@@ -1255,7 +1247,7 @@ Falls back to original content if parsing fails."
   "Convert assistant CONTENT to markdown."
   (if (stringp content)
       (concat greger-parser-assistant-tag "\n\n" content)
-    (greger-parser--content-blocks-to-markdown-with-citations content)))
+    (greger-parser--content-blocks-to-markdown content)))
 
 (defun greger-parser--system-to-markdown (content)
   "Convert system CONTENT to markdown."
@@ -1265,40 +1257,7 @@ Falls back to original content if parsing fails."
   "Convert content BLOCKS to markdown."
   (mapconcat #'greger-parser--block-to-markdown blocks "\n\n"))
 
-(defun greger-parser--content-blocks-to-markdown-with-citations (blocks)
-  "Convert content BLOCKS to markdown, collecting citations into a separate section."
-  (let ((block-markdown "")
-        (collected-citations '())
-        (first-text-block t)
-        (prev-block-type nil))
-    ;; Process each block and collect citations
-    (dolist (block blocks)
-      (let ((block-result (greger-parser--block-to-markdown-with-citations block))
-            (current-block-type (alist-get 'type block)))
-        (let ((markdown (plist-get block-result :markdown)))
-          ;; Add section headers for text blocks that need them
-          (when (and (not (string-empty-p markdown))
-                     (string= "text" current-block-type)
-                     first-text-block)
-            (setq first-text-block nil)
-            (setq markdown (concat greger-parser-assistant-tag "\n\n" markdown)))
-          ;; Determine separator - no separator for consecutive text blocks
-          (let ((separator (cond
-                           ((string-empty-p block-markdown) "")
-                           ((and (string= "text" current-block-type)
-                                 (string= "text" prev-block-type)) "")
-                           (t "\n\n"))))
-            (setq block-markdown (concat block-markdown separator markdown)))
-          (setq prev-block-type current-block-type))
-        ;; Collect citations if any
-        (when (plist-get block-result :citations)
-          (setq collected-citations (append collected-citations (plist-get block-result :citations))))))
-    ;; Combine block markdown with citations section if any citations were found
-    (if collected-citations
-        (concat block-markdown "\n\n" (greger-parser--citations-to-markdown collected-citations))
-      block-markdown)))
-
-(defun greger-parser--citations-to-markdown (citations)
+(defun greger-parser--citations-list-to-markdown (citations)
   "Convert CITATIONS list to markdown citations section."
   (when citations
     (concat greger-parser-citations-tag "\n\n"
@@ -1316,37 +1275,32 @@ Falls back to original content if parsing fails."
             "Encrypted index: " encrypted-index)))
 
 (defun greger-parser--block-to-markdown (block)
-  "Convert single BLOCK to markdown."
-  (let ((result (greger-parser--block-to-markdown-with-citations block)))
-    (plist-get result :markdown)))
-
-(defun greger-parser--block-to-markdown-with-citations (block)
-  "Convert single BLOCK to markdown, extracting citations if present.
-Returns a plist with :markdown and optionally :citations."
   (let ((type (alist-get 'type block)))
     (cond
      ((string= type "text")
-      (let ((text (alist-get 'text block))
-            (citations (alist-get 'citations block)))
-        (let ((formatted-text (if citations
-                                  (concat "<cite>" text "</cite>")
-                                text)))
-          (list :markdown formatted-text
-                :citations citations))))
+      (if (alist-get 'citations block)
+          (greger-parser--citations-to-markdown block)
+        (concat greger-parser-assistant-tag "\n\n" (alist-get 'text block))))
      ((string= type "thinking")
-      (list :markdown (concat greger-parser-thinking-tag "\n\n"
-                             (alist-get 'thinking block))))
+      (concat greger-parser-thinking-tag "\n\n" (alist-get 'thinking block)))
      ((string= type "tool_use")
-      (list :markdown (greger-parser--tool-use-to-markdown block)))
+      (greger-parser--tool-use-to-markdown block))
      ((string= type "tool_result")
-      (list :markdown (greger-parser--tool-result-to-markdown block)))
+      (greger-parser--tool-result-to-markdown block))
      ((string= type "server_tool_use")
-      (list :markdown (greger-parser--server-tool-use-to-markdown block)))
+      (greger-parser--server-tool-use-to-markdown block))
      ((string= type "server_tool_result")
-      (list :markdown (greger-parser--server-tool-result-to-markdown block)))
+      (greger-parser--server-tool-result-to-markdown block))
      ((string= type "web_search_tool_result")
-      (list :markdown (greger-parser--web-search-tool-result-to-markdown block)))
-     (t (list :markdown "")))))
+      (greger-parser--web-search-tool-result-to-markdown block))
+     (t ""))))
+
+(defun greger-parser--citations-to-markdown (block)
+  (let* ((text (alist-get 'text block))
+         (citations (alist-get 'citations block)))
+    (concat "<cite>" text "</cite>"
+            "\n\n"
+            (greger-parser--citations-list-to-markdown citations))))
 
 (defun greger-parser--tool-use-to-markdown (tool-use)
   "Convert TOOL-USE to markdown."
@@ -1434,6 +1388,15 @@ Returns a plist with :markdown and optionally :citations."
     ((vectorp value) (json-encode value))
     ((listp value) (json-encode value))
     (t (format "%s" value)))))
+
+(defun greger-parser--content-block-has-citations (content-block)
+  (not (null (assq 'citations content-block))))
+
+(defun greger-parser--message-has-citations (message)
+  "Check if MESSAGE has any content blocks with citations."
+  (let ((content (alist-get 'content message)))
+    (and (listp content)
+         (cl-some #'greger-parser--content-block-has-citations content))))
 
 ;; Global debug flag for interactive debugging
 (defvar greger-parser--global-debug nil
