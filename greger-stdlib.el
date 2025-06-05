@@ -62,7 +62,7 @@
                          (default . ".")))
                 (exclude-directories-recursive . ((type . "array")
                                                    (items . ((type . "string")))
-                                                   (description . "List of directory names to exclude when recursively listing files. If you wish to exclude no files, pass in a list with an empty string, e.g. [\"\"].")
+                                                   (description . "List of directory names to exclude when recursively listing files.")
                                                    (default . (".git" "__pycache__"))))
                 (recursive . ((type . "boolean")
                               (description . "Whether to list files recursively")
@@ -589,6 +589,8 @@ If EXCLUDE-DIRECTORIES-RECURSIVE is an empty vector, exclude nothing."
 CALLBACK is called with (result error) when search completes.
 CASE-SENSITIVE, FILE-TYPE, CONTEXT-LINES and MAX-RESULTS are optional."
   (cond
+
+   ;; TODO: use utility functions for handling bad types like we do with sync methods
    ((not (stringp pattern))
     (funcall callback nil "Pattern must be a string"))
 
@@ -600,6 +602,10 @@ CASE-SENSITIVE, FILE-TYPE, CONTEXT-LINES and MAX-RESULTS are optional."
 
    (t
     (let ((expanded-path (expand-file-name path)))
+
+      ;; TODO: for some reason pattern always tends to end with ", no idea why!
+      (setq pattern (string-trim-right pattern "\""))
+
       (if (not (file-exists-p expanded-path))
           (funcall callback nil (format "Path does not exist: %s" expanded-path))
 
