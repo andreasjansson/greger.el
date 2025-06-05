@@ -224,7 +224,7 @@ Returns (START . END) or nil if not found."
          (header-end (save-excursion (goto-char start) (line-end-position)))
          (content-start (save-excursion (goto-char start) (forward-line 1) (point)))
          (overlay (make-overlay content-start end))
-         (summary-overlay (make-overlay header-end header-end)))
+         (summary-overlay (make-overlay header-end content-start)))
 
     ;; Hide the bibliography content (but not the header)
     (overlay-put overlay 'invisible t)
@@ -232,8 +232,8 @@ Returns (START . END) or nil if not found."
     (overlay-put overlay 'evaporate t)
     (push overlay greger-ui-bibliography-overlays)
 
-    ;; Show the summary right after the header
-    (overlay-put summary-overlay 'after-string
+    ;; Replace the newline after the header with our summary
+    (overlay-put summary-overlay 'display
                  (propertize (format "\n[+%d citations, TAB to expand]\n"
                                    count)
                            'face 'greger-folded-citations-face))

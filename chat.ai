@@ -2776,14 +2776,14 @@ test-citation-folding.el
   (with-temp-buffer
     (insert-file-contents "test-citations.md")
     (greger-mode)
-    
+
     ;; Test folding the bibliography
     (let ((bib-bounds (greger-ui-find-final-bibliography)))
       (when bib-bounds
         (message "Testing bibliography folding...")
         (greger-ui-hide-final-bibliography (car bib-bounds) (cdr bib-bounds))
         (message "Bibliography should now be folded with indicator")
-        
+
         ;; Test unfolding
         (sit-for 2)
         (greger-ui-show-final-bibliography (car bib-bounds) (cdr bib-bounds))
@@ -2804,4 +2804,170 @@ Add visual test for bibliography folding
 - Add delays to observe folding behavior
 </tool.toolu_01A82sd9x5xdabb5k9p7xHyH>
 
-<!-- TOOL_RESULT_PLACEHOLDER_toolu_01A82sd9x5xdabb5k9p7xHyH -->
+## TOOL RESULT:
+
+ID: toolu_01A82sd9x5xdabb5k9p7xHyH
+
+<tool.toolu_01A82sd9x5xdabb5k9p7xHyH>
+Successfully replaced content in /Users/andreas/projects/greger.el/test-citation-folding.el. Successfully staged 2 file(s) and committed with message: Add visual test for bibliography folding
+
+- Create test-bibliography-folding-visual function to test visual folding behavior
+- Test both hiding and showing of bibliography sections
+- Add delays to observe folding behavior
+</tool.toolu_01A82sd9x5xdabb5k9p7xHyH>
+
+## USER:
+
+No, there's no indicator visible. What I see when folded is this:
+
+``` markdown
+## CITATIONS:
+## USER:
+```## USER:
+```
+
+
+
+
+## ASSISTANT:
+
+I see the issue! The content is being hidden, but the indicator isn't showing up properly, and it looks like there might be a display issue. Let me debug this step by step.
+
+First, let me check what's happening with the overlay positioning:
+
+## TOOL USE:
+
+Name: read-file
+ID: toolu_01GXBo2dapUAJnubqnpT64Kr
+
+### path
+
+<tool.toolu_01GXBo2dapUAJnubqnpT64Kr>
+greger-ui.el
+</tool.toolu_01GXBo2dapUAJnubqnpT64Kr>
+
+### start-line
+
+<tool.toolu_01GXBo2dapUAJnubqnpT64Kr>
+220
+</tool.toolu_01GXBo2dapUAJnubqnpT64Kr>
+
+### end-line
+
+<tool.toolu_01GXBo2dapUAJnubqnpT64Kr>
+245
+</tool.toolu_01GXBo2dapUAJnubqnpT64Kr>
+
+## TOOL RESULT:
+
+ID: toolu_01GXBo2dapUAJnubqnpT64Kr
+
+<tool.toolu_01GXBo2dapUAJnubqnpT64Kr>
+
+(defun greger-ui-hide-final-bibliography (start end)
+  "Hide the final bibliography section with a summary."
+  (let* ((count (greger-ui-count-citations-in-section start end))
+         (header-end (save-excursion (goto-char start) (line-end-position)))
+         (content-start (save-excursion (goto-char start) (forward-line 1) (point)))
+         (overlay (make-overlay content-start end))
+         (summary-overlay (make-overlay header-end header-end)))
+
+    ;; Hide the bibliography content (but not the header)
+    (overlay-put overlay 'invisible t)
+    (overlay-put overlay 'greger-bibliography t)
+    (overlay-put overlay 'evaporate t)
+    (push overlay greger-ui-bibliography-overlays)
+
+    ;; Show the summary right after the header
+    (overlay-put summary-overlay 'after-string
+                 (propertize (format "\n[+%d citations, TAB to expand]\n"
+                                   count)
+                           'face 'greger-folded-citations-face))
+    (overlay-put summary-overlay 'greger-bibliography-summary t)
+    (overlay-put summary-overlay 'evaporate t)
+    (push summary-overlay greger-ui-bibliography-overlays)))
+
+(defun greger-ui-show-final-bibliography (start end)
+  "Show the final bibliography section."
+</tool.toolu_01GXBo2dapUAJnubqnpT64Kr>
+
+## ASSISTANT:
+
+I see the issue! The problem is that we're creating a zero-width overlay at `header-end` (which is the same position twice), and the `after-string` property might not be working correctly. Let me fix this by creating the summary overlay differently:
+
+## TOOL USE:
+
+Name: str-replace
+ID: toolu_01JJAY4veWhnaUr2uJgVEXfC
+
+### file-path
+
+<tool.toolu_01JJAY4veWhnaUr2uJgVEXfC>
+greger-ui.el
+</tool.toolu_01JJAY4veWhnaUr2uJgVEXfC>
+
+### original-content
+
+<tool.toolu_01JJAY4veWhnaUr2uJgVEXfC>
+(defun greger-ui-hide-final-bibliography (start end)
+  "Hide the final bibliography section with a summary."
+  (let* ((count (greger-ui-count-citations-in-section start end))
+         (header-end (save-excursion (goto-char start) (line-end-position)))
+         (content-start (save-excursion (goto-char start) (forward-line 1) (point)))
+         (overlay (make-overlay content-start end))
+         (summary-overlay (make-overlay header-end header-end)))
+
+    ;; Hide the bibliography content (but not the header)
+    (overlay-put overlay 'invisible t)
+    (overlay-put overlay 'greger-bibliography t)
+    (overlay-put overlay 'evaporate t)
+    (push overlay greger-ui-bibliography-overlays)
+
+    ;; Show the summary right after the header
+    (overlay-put summary-overlay 'after-string
+                 (propertize (format "\n[+%d citations, TAB to expand]\n"
+                                   count)
+                           'face 'greger-folded-citations-face))
+    (overlay-put summary-overlay 'greger-bibliography-summary t)
+    (overlay-put summary-overlay 'evaporate t)
+    (push summary-overlay greger-ui-bibliography-overlays)))
+</tool.toolu_01JJAY4veWhnaUr2uJgVEXfC>
+
+### new-content
+
+<tool.toolu_01JJAY4veWhnaUr2uJgVEXfC>
+(defun greger-ui-hide-final-bibliography (start end)
+  "Hide the final bibliography section with a summary."
+  (let* ((count (greger-ui-count-citations-in-section start end))
+         (header-end (save-excursion (goto-char start) (line-end-position)))
+         (content-start (save-excursion (goto-char start) (forward-line 1) (point)))
+         (overlay (make-overlay content-start end))
+         (summary-overlay (make-overlay header-end content-start)))
+
+    ;; Hide the bibliography content (but not the header)
+    (overlay-put overlay 'invisible t)
+    (overlay-put overlay 'greger-bibliography t)
+    (overlay-put overlay 'evaporate t)
+    (push overlay greger-ui-bibliography-overlays)
+
+    ;; Replace the newline after the header with our summary
+    (overlay-put summary-overlay 'display
+                 (propertize (format "\n[+%d citations, TAB to expand]\n"
+                                   count)
+                           'face 'greger-folded-citations-face))
+    (overlay-put summary-overlay 'greger-bibliography-summary t)
+    (overlay-put summary-overlay 'evaporate t)
+    (push summary-overlay greger-ui-bibliography-overlays)))
+</tool.toolu_01JJAY4veWhnaUr2uJgVEXfC>
+
+### git-commit-message
+
+<tool.toolu_01JJAY4veWhnaUr2uJgVEXfC>
+Fix bibliography summary overlay display
+
+- Change summary overlay to span from header-end to content-start (the newline)
+- Use 'display property instead of 'after-string for more reliable rendering
+- This should properly show the citation count indicator
+</tool.toolu_01JJAY4veWhnaUr2uJgVEXfC>
+
+<!-- TOOL_RESULT_PLACEHOLDER_toolu_01JJAY4veWhnaUr2uJgVEXfC -->
