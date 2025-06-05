@@ -180,8 +180,6 @@
   (use-local-map greger-mode-map)
   (setq-local markdown-fontify-code-blocks-natively t)
   (setq-local mode-line-misc-info '(:eval (greger--mode-line-info)))
-  ;; Set up invisible text for tool sections
-  (add-to-invisibility-spec 'greger-tool-section)
   ;; Set up UI folding (both tools and citations)
   (greger-ui-setup-folding)
   ;; Set up custom heading font-lock
