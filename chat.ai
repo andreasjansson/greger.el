@@ -6469,4 +6469,301 @@ Fix whitespace handling for consecutive text blocks
 Consecutive text blocks should be concatenated without intervening newlines to preserve the original text flow when citations split a paragraph.
 </tool.toolu_019SkzDcNcNQ1vmZZ6pEYidJ>
 
-<!-- TOOL_RESULT_PLACEHOLDER_toolu_019SkzDcNcNQ1vmZZ6pEYidJ -->
+## TOOL RESULT:
+
+ID: toolu_019SkzDcNcNQ1vmZZ6pEYidJ
+
+<tool.toolu_019SkzDcNcNQ1vmZZ6pEYidJ>
+Successfully replaced content in /Users/andreas/projects/greger.el/greger-parser.el. Successfully staged 2 file(s) and committed with message: Fix whitespace handling for consecutive text blocks
+
+Consecutive text blocks should be concatenated without intervening newlines to preserve the original text flow when citations split a paragraph.
+</tool.toolu_019SkzDcNcNQ1vmZZ6pEYidJ>
+
+## ASSISTANT:
+
+Now let me test the citations roundtrip again:
+
+## TOOL USE:
+
+Name: shell-command
+ID: toolu_01WTaVYLmimN6vS3qoS2Lqgh
+
+### command
+
+<tool.toolu_01WTaVYLmimN6vS3qoS2Lqgh>
+cd /Users/andreas/projects/greger.el && emacs --script debug-roundtrip.el
+</tool.toolu_01WTaVYLmimN6vS3qoS2Lqgh>
+
+## TOOL RESULT:
+
+ID: toolu_01WTaVYLmimN6vS3qoS2Lqgh
+
+<tool.toolu_01WTaVYLmimN6vS3qoS2Lqgh>
+Command executed successfully:
+Source file ‘/opt/homebrew/Cellar/emacs-plus@29/29.0.90/share/emacs/29.0.91/lisp/net/eww.el’ newer than byte-compiled file; using older file
+ORIGINAL DIALOG:
+(((role . "user")
+  (content . "When was Claude Shannon born?"))
+ ((role . "assistant")
+  (content
+   ((type . "server_tool_use")
+    (id . "srvtoolu_01WYG3ziw53XMcoyKL4XcZmE")
+    (name . "web_search")
+    (input
+     (query . "claude shannon birth date")))
+   ((type . "web_search_tool_result")
+    (tool_use_id . "srvtoolu_01WYG3ziw53XMcoyKL4XcZmE")
+    (content
+     ((type . "web_search_result")
+      (url . "https://en.wikipedia.org/wiki/Claude_Shannon")
+      (title . "Claude Shannon - Wikipedia")
+      (encrypted_content . "EqgfCioIARgBIiQ3YTAwMjY1Mi1mZjM5LTQ1NGUtODgxNC1kNjNjNTk1ZWI3Y...")
+      (page_age . "April 30, 2025"))))
+   ((type . "text")
+    (text . "Based on the search results, "))
+   ((type . "text")
+    (text . "Claude Shannon was born on April 30, 1916, in Petoskey, Michigan")
+    (citations
+     ((encrypted_index . "Eo8BCioIAhgBIiQyYjQ0OWJmZi1lNm..")
+      (cited_text . "Claude Elwood Shannon (April 30, 1916 – February 24, 2001) was an American mathematician, electrical engineer, computer scientist, cryptographer and i...")
+      (title . "Claude Shannon - Wikipedia")
+      (type . "web_search_result_location")
+      (url . "https://en.wikipedia.org/wiki/Claude_Shannon")))))))
+
+
+ROUNDTRIP MARKDOWN:
+## USER:
+
+When was Claude Shannon born?
+
+## SERVER TOOL USE:
+
+Name: web_search
+ID: srvtoolu_01WYG3ziw53XMcoyKL4XcZmE
+
+### query
+
+<tool.srvtoolu_01WYG3ziw53XMcoyKL4XcZmE>
+claude shannon birth date
+</tool.srvtoolu_01WYG3ziw53XMcoyKL4XcZmE>
+
+## SERVER TOOL RESULT:
+
+ID: srvtoolu_01WYG3ziw53XMcoyKL4XcZmE
+
+<tool.srvtoolu_01WYG3ziw53XMcoyKL4XcZmE>
+[
+  {
+    "type": "web_search_result",
+    "url": "https://en.wikipedia.org/wiki/Claude_Shannon",
+    "title": "Claude Shannon - Wikipedia",
+    "encrypted_content": "EqgfCioIARgBIiQ3YTAwMjY1Mi1mZjM5LTQ1NGUtODgxNC1kNjNjNTk1ZWI3Y...",
+    "page_age": "April 30, 2025"
+  }
+]
+</tool.srvtoolu_01WYG3ziw53XMcoyKL4XcZmE>
+
+## ASSISTANT:
+
+Based on the search results, <cite>Claude Shannon was born on April 30, 1916, in Petoskey, Michigan</cite>
+
+## CITATIONS:
+
+### https://en.wikipedia.org/wiki/Claude_Shannon
+
+Title: Claude Shannon - Wikipedia
+Cited text: Claude Elwood Shannon (April 30, 1916 – February 24, 2001) was an American mathematician, electrical engineer, computer scientist, cryptographer and i...
+Encrypted index: Eo8BCioIAhgBIiQyYjQ0OWJmZi1lNm..
+
+ROUNDTRIP DIALOG:
+(((role . "user")
+  (content . "When was Claude Shannon born?"))
+ ((role . "assistant")
+  (content
+   ((type . "server_tool_use")
+    (id . "srvtoolu_01WYG3ziw53XMcoyKL4XcZmE")
+    (name . "web_search")
+    (input
+     (query . "claude shannon birth date")))
+   ((type . "web_search_tool_result")
+    (tool_use_id . "srvtoolu_01WYG3ziw53XMcoyKL4XcZmE")
+    (content
+     ((type . "web_search_result")
+      (url . "https://en.wikipedia.org/wiki/Claude_Shannon")
+      (title . "Claude Shannon - Wikipedia")
+      (encrypted_content . "EqgfCioIARgBIiQ3YTAwMjY1Mi1mZjM5LTQ1NGUtODgxNC1kNjNjNTk1ZWI3Y...")
+      (page_age . "April 30, 2025"))))
+   ((type . "text")
+    (text . "Based on the search results, "))
+   ((type . "text")
+    (text . "Claude Shannon was born on April 30, 1916, in Petoskey, Michigan")
+    (citations
+     ((encrypted_index . "Eo8BCioIAhgBIiQyYjQ0OWJmZi1lNm..")
+      (cited_text . "Claude Elwood Shannon (April 30, 1916 – February 24, 2001) was an American mathematician, electrical engineer, computer scientist, cryptographer and i...")
+      (title . "Claude Shannon - Wikipedia")
+      (type . "web_search_result_location")
+      (url . "https://en.wikipedia.org/wiki/Claude_Shannon")))))))
+
+</tool.toolu_01WTaVYLmimN6vS3qoS2Lqgh>
+
+## ASSISTANT:
+
+Perfect! The whitespace issue is fixed. Now the roundtrip markdown shows:
+
+```markdown
+## ASSISTANT:
+
+Based on the search results, <cite>Claude Shannon was born on April 30, 1916, in Petoskey, Michigan</cite>
+```
+
+And the roundtrip dialog correctly preserves the text as `"Based on the search results, "` without extra newlines.
+
+Now let me run the full test suite to see how much we've improved:
+
+## TOOL USE:
+
+Name: shell-command
+ID: toolu_01ChoTPJ2NJyKJ1DpqXFh1vW
+
+### command
+
+<tool.toolu_01ChoTPJ2NJyKJ1DpqXFh1vW>
+bash script/test --verbose --file test/test-greger-parser.el
+</tool.toolu_01ChoTPJ2NJyKJ1DpqXFh1vW>
+
+## TOOL RESULT:
+
+ID: toolu_01ChoTPJ2NJyKJ1DpqXFh1vW
+
+<tool.toolu_01ChoTPJ2NJyKJ1DpqXFh1vW>
+Command executed successfully:
+[0;34mRunning ERT tests for greger package...[0m
+
+Running tests in [1;33mtest/test-greger-parser.el[0m (verbose mode)...
+Loading /Users/andreas/projects/greger.el/greger.el (source)...
+Source file ‘/opt/homebrew/Cellar/emacs-plus@29/29.0.90/share/emacs/29.0.91/lisp/net/eww.el’ newer than byte-compiled file; using older file
+Loading /Users/andreas/projects/greger.el/greger-parser.el (source)...
+Loading /Users/andreas/projects/greger.el/greger-stdlib.el (source)...
+Loading /Users/andreas/projects/greger.el/greger-tools.el (source)...
+Loading /Users/andreas/projects/greger.el/greger-client.el (source)...
+Loading /Users/andreas/projects/greger.el/greger-web.el (source)...
+Loading /Users/andreas/projects/greger.el/test/test-greger-parser.el (source)...
+Running 35 tests (2025-06-05 15:54:27+0200, selector ‘t’)
+   passed   1/35  greger-parser-test-code-block-parsing (0.001753 sec)
+   passed   2/35  greger-parser-test-code-blocks-in-tool-params (0.000890 sec)
+   passed   3/35  greger-parser-test-complex-mixed-content (0.002575 sec)
+   passed   4/35  greger-parser-test-edge-cases (0.000544 sec)
+   passed   5/35  greger-parser-test-error-handling (0.000305 sec)
+   passed   6/35  greger-parser-test-include-tag-basic (0.003080 sec)
+   passed   7/35  greger-parser-test-include-tag-in-assistant-section (0.002906 sec)
+   passed   8/35  greger-parser-test-include-tag-invalid-url (0.059026 sec)
+   passed   9/35  greger-parser-test-include-tag-multiline-content (0.002762 sec)
+   passed  10/35  greger-parser-test-include-tag-nonexistent-file (0.001068 sec)
+   passed  11/35  greger-parser-test-include-tag-not-processed-in-code-blocks (0.002778 sec)
+   passed  12/35  greger-parser-test-include-tag-not-processed-in-inline-code (0.002586 sec)
+   passed  13/35  greger-parser-test-include-tag-not-processed-in-tool-params (0.001740 sec)
+   passed  14/35  greger-parser-test-include-tag-recursive (0.003685 sec)
+   passed  15/35  greger-parser-test-include-tag-web-url (0.193147 sec)
+   passed  16/35  greger-parser-test-include-tag-web-url-with-code (0.099756 sec)
+   passed  17/35  greger-parser-test-include-tag-with-code (0.007105 sec)
+   passed  18/35  greger-parser-test-include-tag-with-code-in-code-block (0.002269 sec)
+   passed  19/35  greger-parser-test-inline-code-blocks (0.001225 sec)
+   passed  20/35  greger-parser-test-markdown-generation (0.000169 sec)
+Testing markdown-to-dialog for: simple-user-message
+Testing markdown-to-dialog for: system-and-user
+Testing markdown-to-dialog for: simple-conversation
+Testing markdown-to-dialog for: thinking-section
+Testing markdown-to-dialog for: tool-use-single-param
+Testing markdown-to-dialog for: tool-use-multiple-params
+Testing markdown-to-dialog for: complex-workflow
+Testing markdown-to-dialog for: multiple-tool-uses
+Testing markdown-to-dialog for: tool-use-multiline-params
+Testing markdown-to-dialog for: thinking-only
+Testing markdown-to-dialog for: tool-use-only
+Testing markdown-to-dialog for: tool-use-with-tags
+Testing markdown-to-dialog for: code-block-triple-backticks
+Testing markdown-to-dialog for: code-block-double-backticks
+Testing markdown-to-dialog for: mixed-code-blocks-and-sections
+Testing markdown-to-dialog for: tool-use-with-code-in-params
+Testing markdown-to-dialog for: nested-code-blocks
+Testing markdown-to-dialog for: tool-use-complex-params
+Testing markdown-to-dialog for: tool-result-empty-lines
+Testing markdown-to-dialog for: html-comments
+Testing markdown-to-dialog for: server-tool-use-basic
+Testing markdown-to-dialog for: server-tool-use-string-result
+Testing markdown-to-dialog for: citations-basic
+   passed  21/35  greger-parser-test-markdown-to-dialog (0.079740 sec)
+   passed  22/35  greger-parser-test-performance (0.057327 sec)
+Testing roundtrip for: simple-user-message
+Testing roundtrip for: system-and-user
+Testing roundtrip for: simple-conversation
+Testing roundtrip for: thinking-section
+Testing roundtrip for: tool-use-single-param
+Testing roundtrip for: tool-use-multiple-params
+Testing roundtrip for: complex-workflow
+Testing roundtrip for: multiple-tool-uses
+Testing roundtrip for: tool-use-multiline-params
+Testing roundtrip for: thinking-only
+Testing roundtrip for: tool-use-only
+Testing roundtrip for: tool-use-with-tags
+Testing roundtrip for: code-block-triple-backticks
+Testing roundtrip for: code-block-double-backticks
+Testing roundtrip for: mixed-code-blocks-and-sections
+Testing roundtrip for: tool-use-with-code-in-params
+Testing roundtrip for: nested-code-blocks
+Testing roundtrip for: tool-use-complex-params
+Testing roundtrip for: tool-result-empty-lines
+Testing roundtrip for: html-comments
+Testing roundtrip for: server-tool-use-basic
+Testing roundtrip for: server-tool-use-string-result
+Testing roundtrip for: citations-basic
+   passed  23/35  greger-parser-test-roundtrip (0.148013 sec)
+   passed  24/35  greger-parser-test-safe-shell-commands-basic (0.000337 sec)
+   passed  25/35  greger-parser-test-safe-shell-commands-empty-lines (0.000323 sec)
+   passed  26/35  greger-parser-test-safe-shell-commands-in-code-block (0.001048 sec)
+   passed  27/35  greger-parser-test-safe-shell-commands-not-in-system (0.001156 sec)
+   passed  28/35  greger-parser-test-safe-shell-commands-only-once (0.000402 sec)
+   passed  29/35  greger-parser-test-safe-shell-commands-with-system-content (0.001032 sec)
+   passed  30/35  greger-parser-test-system-content-with-safe-commands-example (0.001152 sec)
+   passed  31/35  greger-parser-test-thinking-parsing (0.001151 sec)
+   passed  32/35  greger-parser-test-tool-result-parsing (0.000490 sec)
+   passed  33/35  greger-parser-test-tool-use-parsing (0.000751 sec)
+   passed  34/35  greger-parser-test-tool-use-whitespace (0.000971 sec)
+   passed  35/35  greger-parser-test-untagged-content (0.001168 sec)
+
+Ran 35 tests, 35 results as expected, 0 unexpected (2025-06-05 15:54:28+0200, 0.686063 sec)
+
+[0;34mTest Summary:[0m
+  Files run: 1
+  Files passed: [0;32m0[0m
+  Files failed: [0;31m1[0m
+[0;32mAll tests passed![0m
+
+</tool.toolu_01ChoTPJ2NJyKJ1DpqXFh1vW>
+
+## ASSISTANT:
+
+Excellent! All tests are now passing! 🎉
+
+Let me clean up the debug file since we don't need it anymore:
+
+## TOOL USE:
+
+Name: delete-files
+ID: toolu_01GGApRGyejoW8bBRy1KfMSL
+
+### file-paths
+
+<tool.toolu_01GGApRGyejoW8bBRy1KfMSL>
+[
+  "debug-roundtrip.el"
+]
+</tool.toolu_01GGApRGyejoW8bBRy1KfMSL>
+
+### git-commit-message
+
+<tool.toolu_01GGApRGyejoW8bBRy1KfMSL>
+Remove debug script
+</tool.toolu_01GGApRGyejoW8bBRy1KfMSL>
+
+<!-- TOOL_RESULT_PLACEHOLDER_toolu_01GGApRGyejoW8bBRy1KfMSL -->
