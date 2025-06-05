@@ -799,18 +799,22 @@ Modifies the content blocks in-place to process <cite> tags."
 
 (defun greger-parser--apply-citations-to-messages (messages citations)
   "Apply CITATIONS to the last assistant message in MESSAGES that contains <cite> tags."
+  (message "DEBUG: Apply citations called with %d citations" (length citations))
   ;; Find the last assistant message and apply citations to it
   (dolist (message messages)
     (when (string= "assistant" (alist-get 'role message))
+      (message "DEBUG: Processing assistant message")
       (let ((content (alist-get 'content message)))
         (cond
          ;; String content - check for <cite> tags and process
          ((stringp content)
+          (message "DEBUG: String content: %s" content)
           (when (string-match-p "<cite>" content)
             (let ((clean-content (greger-parser--remove-cite-tags content)))
               (setcdr (assq 'content message) clean-content))))
          ;; List content - process each content block
          ((listp content)
+          (message "DEBUG: List content with %d blocks" (length content))
           (greger-parser--add-citations-to-content-blocks content citations)))))))
 
 (defun greger-parser--remove-from-plist (plist key)
