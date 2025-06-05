@@ -9803,4 +9803,156 @@ Modifies the content blocks in-place to process <cite> tags."
 Add debug output to content blocks processing
 </tool.toolu_01SvGfM8W1ZrAmjxhBy38Yef>
 
-<!-- TOOL_RESULT_PLACEHOLDER_toolu_01SvGfM8W1ZrAmjxhBy38Yef -->
+## TOOL RESULT:
+
+ID: toolu_01SvGfM8W1ZrAmjxhBy38Yef
+
+<tool.toolu_01SvGfM8W1ZrAmjxhBy38Yef>
+Successfully replaced content in /Users/andreas/projects/greger.el/greger-parser.el. Successfully staged 2 file(s) and committed with message: Add debug output to content blocks processing
+</tool.toolu_01SvGfM8W1ZrAmjxhBy38Yef>
+
+## TOOL USE:
+
+Name: shell-command
+ID: toolu_01CsjEiaRiegJTYHC3P1Lxop
+
+### command
+
+<tool.toolu_01CsjEiaRiegJTYHC3P1Lxop>
+cd /Users/andreas/projects/greger.el && emacs --script debug-citations-verbose.el
+</tool.toolu_01CsjEiaRiegJTYHC3P1Lxop>
+
+## TOOL RESULT:
+
+ID: toolu_01CsjEiaRiegJTYHC3P1Lxop
+
+<tool.toolu_01CsjEiaRiegJTYHC3P1Lxop>
+Command executed successfully:
+Source file ‘/opt/homebrew/Cellar/emacs-plus@29/29.0.90/share/emacs/29.0.91/lisp/net/eww.el’ newer than byte-compiled file; using older file
+DEBUG: Apply citations called with 1 citations
+DEBUG: Processing assistant message
+DEBUG: List content with 3 blocks
+DEBUG: Processing 3 content blocks
+DEBUG: Block type: server_tool_use
+DEBUG: Block type: server_tool_result
+DEBUG: Block type: text
+DEBUG: Text block: Based on the search results, <cite>Claude Shannon was born on April 30, 1916, in Petoskey, Michigan</cite>
+DEBUG: Found cite tags, adding citations
+DEBUG: Updated block: ((citations ((encrypted_index . "Eo8BCioIAhgBIiQyYjQ0OWJmZi1lNm..") (cited_text . "Claude Elwood Shannon (April 30, 1916 – February 24, 2001) was an American mathematician, electrical engineer, computer scientist, cryptographer and i...") (title . "Claude Shannon - Wikipedia") (type . "web_search_result_location") (url . "https://en.wikipedia.org/wiki/Claude_Shannon"))) (type . "text") (text . "Based on the search results, Claude Shannon was born on April 30, 1916, in Petoskey, Michigan"))
+=== ASSISTANT MESSAGE STRUCTURE ===
+((role . "assistant") (content ((type . "server_tool_use") (id . "srvtoolu_01WYG3ziw53XMcoyKL4XcZmE") (name . "web_search") (input (query . "claude shannon birth date"))) ((type . "server_tool_result") (tool_use_id . "srvtoolu_01WYG3ziw53XMcoyKL4XcZmE") (content . "[
+  {
+    \"type\": \"web_search_result\",
+    \"url\": \"https://en.wikipedia.org/wiki/Claude_Shannon\",
+    \"title\": \"Claude Shannon - Wikipedia\",
+    \"encrypted_content\": \"EqgfCioIARgBIiQ3YTAwMjY1Mi1mZjM5LTQ1NGUtODgxNC1kNjNjNTk1ZWI3Y...\",
+    \"page_age\": \"April 30, 2025\"
+  }
+]")) ((type . "text") (text . "Based on the search results, Claude Shannon was born on April 30, 1916, in Petoskey, Michigan"))))
+
+=== ASSISTANT CONTENT BLOCKS ===
+Block 0: ((type . "server_tool_use") (id . "srvtoolu_01WYG3ziw53XMcoyKL4XcZmE") (name . "web_search") (input (query . "claude shannon birth date")))
+Block 1: ((type . "server_tool_result") (tool_use_id . "srvtoolu_01WYG3ziw53XMcoyKL4XcZmE") (content . "[
+  {
+    \"type\": \"web_search_result\",
+    \"url\": \"https://en.wikipedia.org/wiki/Claude_Shannon\",
+    \"title\": \"Claude Shannon - Wikipedia\",
+    \"encrypted_content\": \"EqgfCioIARgBIiQ3YTAwMjY1Mi1mZjM5LTQ1NGUtODgxNC1kNjNjNTk1ZWI3Y...\",
+    \"page_age\": \"April 30, 2025\"
+  }
+]"))
+Block 2: ((type . "text") (text . "Based on the search results, Claude Shannon was born on April 30, 1916, in Petoskey, Michigan"))
+
+
+</tool.toolu_01CsjEiaRiegJTYHC3P1Lxop>
+
+## ASSISTANT:
+
+I can see the issue! The debug output shows that the citations are being added to the block correctly:
+
+```
+DEBUG: Updated block: ((citations ((encrypted_index . "Eo8BCioIAhgBIiQyYjQ0OWJmZi1lNm..") ...)) (type . "text") (text . "Based on the search results, Claude Shannon was born on April 30, 1916, in Petoskey, Michigan"))
+```
+
+But then when I inspect the final structure, the citations are missing from Block 2. This suggests that the content blocks are being copied or reconstructed somewhere after the citations are added, losing the modifications.
+
+Let me check if the issue is that the modifications to the content blocks aren't being preserved. The problem is likely that I'm modifying copies of the blocks rather than the actual blocks in the message structure.
+
+Let me verify this by checking the actual final state right after citation processing:
+
+## TOOL USE:
+
+Name: write-new-file
+ID: toolu_01FLAvth7gfnG6cTZvJgT5J7
+
+### file-path
+
+<tool.toolu_01FLAvth7gfnG6cTZvJgT5J7>
+debug-citations-immediate.el
+</tool.toolu_01FLAvth7gfnG6cTZvJgT5J7>
+
+### contents
+
+<tool.toolu_01FLAvth7gfnG6cTZvJgT5J7>
+#!/usr/bin/env emacs --script
+
+;; Add current directory to load path
+(add-to-list 'load-path ".")
+
+;; Load required modules
+(require 'greger-parser)
+
+;; Override the apply function to print results immediately
+(defun greger-parser--apply-citations-to-messages (messages citations)
+  "Apply CITATIONS to the last assistant message in MESSAGES that contains <cite> tags."
+  (message "DEBUG: Apply citations called with %d citations" (length citations))
+  ;; Find the last assistant message and apply citations to it
+  (dolist (message messages)
+    (when (string= "assistant" (alist-get 'role message))
+      (message "DEBUG: Processing assistant message")
+      (let ((content (alist-get 'content message)))
+        (cond
+         ;; String content - check for <cite> tags and process
+         ((stringp content)
+          (message "DEBUG: String content: %s" content)
+          (when (string-match-p "<cite>" content)
+            (let ((clean-content (greger-parser--remove-cite-tags content)))
+              (setcdr (assq 'content message) clean-content))))
+         ;; List content - process each content block
+         ((listp content)
+          (message "DEBUG: List content with %d blocks" (length content))
+          (greger-parser--add-citations-to-content-blocks content citations)
+          ;; Print the message structure immediately after processing
+          (message "DEBUG: Message after citation processing: %S" message))))))
+
+;; Test markdown with citations
+(let* ((markdown "## USER:
+
+When was Claude Shannon born?
+
+## ASSISTANT:
+
+Based on the search results, <cite>Claude Shannon was born on April 30, 1916, in Petoskey, Michigan</cite>
+
+## CITATIONS:
+
+### https://en.wikipedia.org/wiki/Claude_Shannon
+
+Title: Claude Shannon - Wikipedia
+Cited text: Claude Elwood Shannon (April 30, 1916 – February 24, 2001) was an American mathematician, electrical engineer, computer scientist, cryptographer and i...
+Encrypted index: Eo8BCioIAhgBIiQyYjQ0OWJmZi1lNm..")
+       ;; Parse the dialog
+       (parsed (greger-parser-parse-dialog markdown)))
+  
+  (princ "=== FINAL PARSED STRUCTURE ===\n")
+  (princ (format "%S" parsed))
+  (princ "\n"))
+</tool.toolu_01FLAvth7gfnG6cTZvJgT5J7>
+
+### git-commit-message
+
+<tool.toolu_01FLAvth7gfnG6cTZvJgT5J7>
+Add immediate debug script for citations processing
+</tool.toolu_01FLAvth7gfnG6cTZvJgT5J7>
+
+<!-- TOOL_RESULT_PLACEHOLDER_toolu_01FLAvth7gfnG6cTZvJgT5J7 -->
