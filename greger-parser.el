@@ -1094,6 +1094,17 @@ Returns either a system message, metadata, or both."
     (concat greger-parser-citations-tag "\n\n"
             (mapconcat #'greger-parser--citation-to-markdown citations "\n\n"))))
 
+(defun greger-parser--citation-to-markdown (citation)
+  "Convert single CITATION to markdown format."
+  (let ((url (alist-get 'url citation))
+        (title (alist-get 'title citation))
+        (cited-text (alist-get 'cited_text citation))
+        (encrypted-index (alist-get 'encrypted_index citation)))
+    (concat "### " url "\n\n"
+            "Title: " title "\n"
+            "Cited text: " cited-text "\n"
+            "Encrypted index: " encrypted-index)))
+
 (defun greger-parser--block-to-markdown (block)
   "Convert single BLOCK to markdown."
   (let ((result (greger-parser--block-to-markdown-with-citations block)))

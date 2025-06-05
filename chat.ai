@@ -4195,4 +4195,64 @@ greger-parser.el
 Add citations to markdown conversion function
 </tool.toolu_01Cp2njfaPUXtm8aVvarFjMi>
 
-<!-- TOOL_RESULT_PLACEHOLDER_toolu_01Cp2njfaPUXtm8aVvarFjMi -->
+## TOOL RESULT:
+
+ID: toolu_01Cp2njfaPUXtm8aVvarFjMi
+
+<tool.toolu_01Cp2njfaPUXtm8aVvarFjMi>
+Successfully replaced content in /Users/andreas/projects/greger.el/greger-parser.el. Successfully staged 2 file(s) and committed with message: Add citations to markdown conversion function
+</tool.toolu_01Cp2njfaPUXtm8aVvarFjMi>
+
+## ASSISTANT:
+
+Now I need to implement `greger-parser--citation-to-markdown`:
+
+## TOOL USE:
+
+Name: str-replace
+ID: toolu_013Td2zwRZp4H3ckJYHywqwM
+
+### file-path
+
+<tool.toolu_013Td2zwRZp4H3ckJYHywqwM>
+greger-parser.el
+</tool.toolu_013Td2zwRZp4H3ckJYHywqwM>
+
+### original-content
+
+<tool.toolu_013Td2zwRZp4H3ckJYHywqwM>
+(defun greger-parser--citations-to-markdown (citations)
+  "Convert CITATIONS list to markdown citations section."
+  (when citations
+    (concat greger-parser-citations-tag "\n\n"
+            (mapconcat #'greger-parser--citation-to-markdown citations "\n\n"))))
+</tool.toolu_013Td2zwRZp4H3ckJYHywqwM>
+
+### new-content
+
+<tool.toolu_013Td2zwRZp4H3ckJYHywqwM>
+(defun greger-parser--citations-to-markdown (citations)
+  "Convert CITATIONS list to markdown citations section."
+  (when citations
+    (concat greger-parser-citations-tag "\n\n"
+            (mapconcat #'greger-parser--citation-to-markdown citations "\n\n"))))
+
+(defun greger-parser--citation-to-markdown (citation)
+  "Convert single CITATION to markdown format."
+  (let ((url (alist-get 'url citation))
+        (title (alist-get 'title citation))
+        (cited-text (alist-get 'cited_text citation))
+        (encrypted-index (alist-get 'encrypted_index citation)))
+    (concat "### " url "\n\n"
+            "Title: " title "\n"
+            "Cited text: " cited-text "\n"
+            "Encrypted index: " encrypted-index)))
+</tool.toolu_013Td2zwRZp4H3ckJYHywqwM>
+
+### git-commit-message
+
+<tool.toolu_013Td2zwRZp4H3ckJYHywqwM>
+Add individual citation to markdown conversion
+</tool.toolu_013Td2zwRZp4H3ckJYHywqwM>
+
+<!-- TOOL_RESULT_PLACEHOLDER_toolu_013Td2zwRZp4H3ckJYHywqwM -->
