@@ -7664,4 +7664,91 @@ greger-parser.el
 Add debug output to check citations data handling
 </tool.toolu_01KUrhDTS1hrZE8VoWvWrWXF>
 
-<!-- TOOL_RESULT_PLACEHOLDER_toolu_01KUrhDTS1hrZE8VoWvWrWXF -->
+## TOOL RESULT:
+
+ID: toolu_01KUrhDTS1hrZE8VoWvWrWXF
+
+<tool.toolu_01KUrhDTS1hrZE8VoWvWrWXF>
+Successfully replaced content in /Users/andreas/projects/greger.el/greger-parser.el. Successfully staged 2 file(s) and committed with message: Add debug output to check citations data handling
+</tool.toolu_01KUrhDTS1hrZE8VoWvWrWXF>
+
+## TOOL USE:
+
+Name: shell-command
+ID: toolu_01NtFxCNfJL2KhXW9SPhZaSM
+
+### command
+
+<tool.toolu_01NtFxCNfJL2KhXW9SPhZaSM>
+cd /Users/andreas/projects/greger.el && emacs --script debug-citations.el 2>/dev/null | grep -A 2 -B 2 "Found citations data"
+</tool.toolu_01NtFxCNfJL2KhXW9SPhZaSM>
+
+## TOOL RESULT:
+
+ID: toolu_01NtFxCNfJL2KhXW9SPhZaSM
+
+<tool.toolu_01NtFxCNfJL2KhXW9SPhZaSM>
+Command failed with exit code 1: (no output)
+</tool.toolu_01NtFxCNfJL2KhXW9SPhZaSM>
+
+## ASSISTANT:
+
+The debug output isn't showing, which means the citations data isn't being detected as the special type. Let me check what the section parsing is actually returning for the citations section. Let me add debug output to the section parsing:
+
+## TOOL USE:
+
+Name: str-replace
+ID: toolu_0155hE6z5rMLhJFn1URGmkks
+
+### file-path
+
+<tool.toolu_0155hE6z5rMLhJFn1URGmkks>
+greger-parser.el
+</tool.toolu_0155hE6z5rMLhJFn1URGmkks>
+
+### original-content
+
+<tool.toolu_0155hE6z5rMLhJFn1URGmkks>
+(let ((section-result (greger-parser--parse-section state)))
+              (when section-result
+                (cond
+                 ;; Handle metadata
+                 ((and (listp section-result) (eq (car section-result) :metadata))
+                  (setq metadata (append metadata (cdr section-result))))
+                 ;; Handle citations data - merge with previous assistant message
+                 ((and (listp section-result) (eq (plist-get section-result :type) :citations-data))
+                  (greger-parser--debug state "Found citations data, merging with last assistant")
+                  (greger-parser--merge-citations-with-last-assistant sections (plist-get section-result :citations)))
+                 ;; Regular message
+                 (t
+                  (push section-result sections)))))
+</tool.toolu_0155hE6z5rMLhJFn1URGmkks>
+
+### new-content
+
+<tool.toolu_0155hE6z5rMLhJFn1URGmkks>
+(let ((section-result (greger-parser--parse-section state)))
+              (when section-result
+                (greger-parser--debug state "Section result: %s" section-result)
+                (cond
+                 ;; Handle metadata
+                 ((and (listp section-result) (eq (car section-result) :metadata))
+                  (greger-parser--debug state "Found metadata section")
+                  (setq metadata (append metadata (cdr section-result))))
+                 ;; Handle citations data - merge with previous assistant message
+                 ((and (listp section-result) (eq (plist-get section-result :type) :citations-data))
+                  (greger-parser--debug state "Found citations data, merging with last assistant")
+                  (greger-parser--merge-citations-with-last-assistant sections (plist-get section-result :citations)))
+                 ;; Regular message
+                 (t
+                  (greger-parser--debug state "Regular message section")
+                  (push section-result sections)))))
+</tool.toolu_0155hE6z5rMLhJFn1URGmkks>
+
+### git-commit-message
+
+<tool.toolu_0155hE6z5rMLhJFn1URGmkks>
+Add debug output to track section parsing results
+</tool.toolu_0155hE6z5rMLhJFn1URGmkks>
+
+<!-- TOOL_RESULT_PLACEHOLDER_toolu_0155hE6z5rMLhJFn1URGmkks -->
