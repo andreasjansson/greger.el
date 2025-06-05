@@ -4263,4 +4263,87 @@ Add complete tool folding functionality to greger-ui
 - Maintain backward compatibility with existing citation functions
 </tool.toolu_01Ujb1nU3zqtSPPK95hRMccg>
 
-<!-- TOOL_RESULT_PLACEHOLDER_toolu_01Ujb1nU3zqtSPPK95hRMccg -->
+## TOOL RESULT:
+
+ID: toolu_01Ujb1nU3zqtSPPK95hRMccg
+
+<tool.toolu_01Ujb1nU3zqtSPPK95hRMccg>
+Successfully replaced content in /Users/andreas/projects/greger.el/greger-ui.el. Successfully staged 2 file(s) and committed with message: Add complete tool folding functionality to greger-ui
+
+- Move all tool section folding functions from greger.el to greger-ui.el
+- Add greger-ui-toggle-section as unified interface for both tool and citation folding
+- Create greger-ui-setup-folding to handle both citation and tool setup
+- Add greger-ui-refresh-folding for updating after buffer changes
+- Maintain backward compatibility with existing citation functions
+</tool.toolu_01Ujb1nU3zqtSPPK95hRMccg>
+
+## ASSISTANT:
+
+Now I need to update the cleanup function to handle tool overlays as well:
+
+## TOOL USE:
+
+Name: str-replace
+ID: toolu_01EvLo3YHVmRCPoAKCstHWha
+
+### file-path
+
+<tool.toolu_01EvLo3YHVmRCPoAKCstHWha>
+greger-ui.el
+</tool.toolu_01EvLo3YHVmRCPoAKCstHWha>
+
+### original-content
+
+<tool.toolu_01EvLo3YHVmRCPoAKCstHWha>
+(defun greger-ui-cleanup-dead-overlays ()
+  "Remove dead overlays from citation overlays lists."
+  (setq greger-ui-cite-citation-overlays
+        (cl-remove-if-not (lambda (ov)
+                            (and (overlay-buffer ov)
+                                 (overlay-start ov)
+                                 (overlay-end ov)))
+                          greger-ui-cite-citation-overlays))
+  (setq greger-ui-bibliography-overlays
+        (cl-remove-if-not (lambda (ov)
+                            (and (overlay-buffer ov)
+                                 (overlay-start ov)
+                                 (overlay-end ov)))
+                          greger-ui-bibliography-overlays)))
+</tool.toolu_01EvLo3YHVmRCPoAKCstHWha>
+
+### new-content
+
+<tool.toolu_01EvLo3YHVmRCPoAKCstHWha>
+(defun greger-ui-cleanup-dead-overlays ()
+  "Remove dead overlays from citation and tool overlays lists."
+  (setq greger-ui-cite-citation-overlays
+        (cl-remove-if-not (lambda (ov)
+                            (and (overlay-buffer ov)
+                                 (overlay-start ov)
+                                 (overlay-end ov)))
+                          greger-ui-cite-citation-overlays))
+  (setq greger-ui-bibliography-overlays
+        (cl-remove-if-not (lambda (ov)
+                            (and (overlay-buffer ov)
+                                 (overlay-start ov)
+                                 (overlay-end ov)))
+                          greger-ui-bibliography-overlays))
+  (setq greger-ui-tool-overlays
+        (cl-remove-if-not (lambda (ov)
+                            (and (overlay-buffer ov)
+                                 (overlay-start ov)
+                                 (overlay-end ov)))
+                          greger-ui-tool-overlays)))
+</tool.toolu_01EvLo3YHVmRCPoAKCstHWha>
+
+### git-commit-message
+
+<tool.toolu_01EvLo3YHVmRCPoAKCstHWha>
+Update cleanup function to handle tool overlays
+
+- Extend greger-ui-cleanup-dead-overlays to also clean up tool overlays
+- Update docstring to reflect new functionality
+- Ensure all overlay lists are properly maintained
+</tool.toolu_01EvLo3YHVmRCPoAKCstHWha>
+
+<!-- TOOL_RESULT_PLACEHOLDER_toolu_01EvLo3YHVmRCPoAKCstHWha -->

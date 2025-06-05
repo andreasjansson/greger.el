@@ -351,7 +351,7 @@ Works when point is in a <cite> tag or in the final bibliography section."
   (setq greger-ui-bibliography-overlays nil))
 
 (defun greger-ui-cleanup-dead-overlays ()
-  "Remove dead overlays from citation overlays lists."
+  "Remove dead overlays from citation and tool overlays lists."
   (setq greger-ui-cite-citation-overlays
         (cl-remove-if-not (lambda (ov)
                             (and (overlay-buffer ov)
@@ -363,7 +363,13 @@ Works when point is in a <cite> tag or in the final bibliography section."
                             (and (overlay-buffer ov)
                                  (overlay-start ov)
                                  (overlay-end ov)))
-                          greger-ui-bibliography-overlays)))
+                          greger-ui-bibliography-overlays))
+  (setq greger-ui-tool-overlays
+        (cl-remove-if-not (lambda (ov)
+                            (and (overlay-buffer ov)
+                                 (overlay-start ov)
+                                 (overlay-end ov)))
+                          greger-ui-tool-overlays)))
 
 ;;; Font Lock Support
 
