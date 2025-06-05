@@ -5461,4 +5461,51 @@ greger-ui.el
 Clear manual folding state when showing all citations
 </tool.toolu_01W48D9ekunQQFMpGG7gLzf9>
 
-<!-- TOOL_RESULT_PLACEHOLDER_toolu_01W48D9ekunQQFMpGG7gLzf9 -->
+## TOOL RESULT:
+
+ID: toolu_01W48D9ekunQQFMpGG7gLzf9
+
+<tool.toolu_01W48D9ekunQQFMpGG7gLzf9>
+Successfully replaced content in /Users/andreas/projects/greger.el/greger-ui.el. Successfully staged 2 file(s) and committed with message: Clear manual folding state when showing all citations
+</tool.toolu_01W48D9ekunQQFMpGG7gLzf9>
+
+## TOOL USE:
+
+Name: str-replace
+ID: toolu_01RD1nsJLatFGcStSFGZ7cK9
+
+### file-path
+
+<tool.toolu_01RD1nsJLatFGcStSFGZ7cK9>
+greger-ui.el
+</tool.toolu_01RD1nsJLatFGcStSFGZ7cK9>
+
+### original-content
+
+<tool.toolu_01RD1nsJLatFGcStSFGZ7cK9>
+(defun greger-ui-teardown-folding ()
+  "Tear down both citation and tool folding for the current buffer."
+  (greger-ui-show-all-citations)
+  (greger-ui-clear-tool-overlays)
+  (remove-hook 'kill-buffer-hook #'greger-ui-show-all-citations t)
+  (remove-hook 'kill-buffer-hook #'greger-ui-clear-tool-overlays t))
+</tool.toolu_01RD1nsJLatFGcStSFGZ7cK9>
+
+### new-content
+
+<tool.toolu_01RD1nsJLatFGcStSFGZ7cK9>
+(defun greger-ui-teardown-folding ()
+  "Tear down both citation and tool folding for the current buffer."
+  (greger-ui-show-all-citations)
+  (greger-ui-clear-tool-overlays)
+  (remove-hook 'kill-buffer-hook #'greger-ui-show-all-citations t)
+  (remove-hook 'kill-buffer-hook #'greger-ui-clear-tool-overlays t))
+</tool.toolu_01RD1nsJLatFGcStSFGZ7cK9>
+
+### git-commit-message
+
+<tool.toolu_01RD1nsJLatFGcStSFGZ7cK9>
+Teardown function already clears state via show-all-citations
+</tool.toolu_01RD1nsJLatFGcStSFGZ7cK9>
+
+<!-- TOOL_RESULT_PLACEHOLDER_toolu_01RD1nsJLatFGcStSFGZ7cK9 -->
