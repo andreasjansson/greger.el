@@ -540,6 +540,23 @@ READ-ONLY is t to make read-only, nil to make writable."
     (let ((citations-markdown (greger--format-citations-as-markdown citations)))
       (greger--append-text state (concat "\n\n" citations-markdown)))))
 
+(defun greger--format-citations-as-markdown (citations)
+  "Format CITATIONS list as markdown according to the greger citation format."
+  (when citations
+    (concat greger-parser-citations-tag "\n\n"
+            (mapconcat #'greger--format-single-citation-as-markdown citations "\n\n"))))
+
+(defun greger--format-single-citation-as-markdown (citation)
+  "Format a single CITATION as markdown."
+  (let ((url (alist-get 'url citation))
+        (title (alist-get 'title citation))
+        (cited-text (alist-get 'cited_text citation))
+        (encrypted-index (alist-get 'encrypted_index citation)))
+    (concat "### " url "\n\n"
+            "Title: " title "\n"
+            "Cited text: " cited-text "\n"
+            "Encrypted index: " encrypted-index)))
+
 (defun greger--tool-placeholder (tool-id)
   "Generate placeholder string for TOOL-ID."
   (format "<!-- TOOL_RESULT_PLACEHOLDER_%s -->" tool-id))
