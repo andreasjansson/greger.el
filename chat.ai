@@ -7887,4 +7887,206 @@ greger-parser.el
 Always attempt to parse JSON content in server tool results
 </tool.toolu_01858PQrx1WUGPPuvnEBhbdm>
 
-<!-- TOOL_RESULT_PLACEHOLDER_toolu_01858PQrx1WUGPPuvnEBhbdm -->
+## TOOL RESULT:
+
+ID: toolu_01858PQrx1WUGPPuvnEBhbdm
+
+<tool.toolu_01858PQrx1WUGPPuvnEBhbdm>
+Successfully replaced content in /Users/andreas/projects/greger.el/greger-parser.el. Successfully staged 2 file(s) and committed with message: Always attempt to parse JSON content in server tool results
+</tool.toolu_01858PQrx1WUGPPuvnEBhbdm>
+
+## ASSISTANT:
+
+Now I need to create the `greger-parser--parse-json-content` function that attempts to parse JSON but falls back to the original content. I'll replace the existing `greger-parser--parse-web-search-content` function with a more general one:
+
+## TOOL USE:
+
+Name: str-replace
+ID: toolu_01Liw2kGUKksWW2anpRx5knd
+
+### file-path
+
+<tool.toolu_01Liw2kGUKksWW2anpRx5knd>
+greger-parser.el
+</tool.toolu_01Liw2kGUKksWW2anpRx5knd>
+
+### original-content
+
+<tool.toolu_01Liw2kGUKksWW2anpRx5knd>
+(defun greger-parser--parse-web-search-content (content)
+  "Parse web search CONTENT from JSON string to structured data."
+  (condition-case err
+      (let ((parsed (json-read-from-string content)))
+        ;; Convert parsed JSON to alist format expected by the parser
+        (mapcar (lambda (item)
+                  (mapcar (lambda (pair)
+                            (cons (intern (symbol-name (car pair))) (cdr pair)))
+                          item))
+                parsed))
+    (error 
+     ;; If parsing fails, return the content as-is
+     content)))
+</tool.toolu_01Liw2kGUKksWW2anpRx5knd>
+
+### new-content
+
+<tool.toolu_01Liw2kGUKksWW2anpRx5knd>
+(defun greger-parser--parse-json-content (content)
+  "Parse JSON CONTENT from string to structured data.
+Falls back to original content if parsing fails."
+  (condition-case err
+      (let ((parsed (json-read-from-string content)))
+        ;; Convert parsed JSON to alist format expected by the parser
+        (if (vectorp parsed)
+            ;; Handle arrays
+            (mapcar (lambda (item)
+                      (if (listp item)
+                          (mapcar (lambda (pair)
+                                    (cons (intern (symbol-name (car pair))) (cdr pair)))
+                                  item)
+                        item))
+                    parsed)
+          ;; Handle objects 
+          (if (listp parsed)
+              (mapcar (lambda (pair)
+                        (cons (intern (symbol-name (car pair))) (cdr pair)))
+                      parsed)
+            ;; Handle primitive values
+            parsed)))
+    (error 
+     ;; If parsing fails, return the content as-is
+     content)))
+</tool.toolu_01Liw2kGUKksWW2anpRx5knd>
+
+### git-commit-message
+
+<tool.toolu_01Liw2kGUKksWW2anpRx5knd>
+Replace web search specific parser with general JSON parser
+</tool.toolu_01Liw2kGUKksWW2anpRx5knd>
+
+## TOOL RESULT:
+
+ID: toolu_01Liw2kGUKksWW2anpRx5knd
+
+<tool.toolu_01Liw2kGUKksWW2anpRx5knd>
+Error executing tool: Original content not found in file: /Users/andreas/projects/greger.el/greger-parser.el -- Try again!
+</tool.toolu_01Liw2kGUKksWW2anpRx5knd>
+
+## ASSISTANT:
+
+Let me check the exact content around this function:
+
+## TOOL USE:
+
+Name: read-file
+ID: toolu_01T1KJNK1S4r2sikJry7inDN
+
+### path
+
+<tool.toolu_01T1KJNK1S4r2sikJry7inDN>
+greger-parser.el
+</tool.toolu_01T1KJNK1S4r2sikJry7inDN>
+
+### start-line
+
+<tool.toolu_01T1KJNK1S4r2sikJry7inDN>
+1158
+</tool.toolu_01T1KJNK1S4r2sikJry7inDN>
+
+### end-line
+
+<tool.toolu_01T1KJNK1S4r2sikJry7inDN>
+1175
+</tool.toolu_01T1KJNK1S4r2sikJry7inDN>
+
+## TOOL RESULT:
+
+ID: toolu_01T1KJNK1S4r2sikJry7inDN
+
+<tool.toolu_01T1KJNK1S4r2sikJry7inDN>
+                     (tool_use_id . ,id)
+                     (content . ,parsed-content))))))))
+
+(defun greger-parser--parse-web-search-content (content)
+  "Parse web search CONTENT from JSON string to structured data."
+  (condition-case err
+      (let ((parsed (json-read-from-string content)))
+        ;; Convert parsed JSON to alist format expected by the parser
+        (mapcar (lambda (item)
+                  (mapcar (lambda (pair)
+                            (cons (intern (symbol-name (car pair))) (cdr pair)))
+                          item))
+                parsed))
+    (error
+     ;; If parsing fails, return the content as-is
+     content)))
+
+(defun greger-parser--create-citations-message (content)
+</tool.toolu_01T1KJNK1S4r2sikJry7inDN>
+
+## TOOL USE:
+
+Name: str-replace
+ID: toolu_01Xs4D4vjabqGfT5QuQo5UF9
+
+### file-path
+
+<tool.toolu_01Xs4D4vjabqGfT5QuQo5UF9>
+greger-parser.el
+</tool.toolu_01Xs4D4vjabqGfT5QuQo5UF9>
+
+### original-content
+
+<tool.toolu_01Xs4D4vjabqGfT5QuQo5UF9>
+(defun greger-parser--parse-web-search-content (content)
+  "Parse web search CONTENT from JSON string to structured data."
+  (condition-case err
+      (let ((parsed (json-read-from-string content)))
+        ;; Convert parsed JSON to alist format expected by the parser
+        (mapcar (lambda (item)
+                  (mapcar (lambda (pair)
+                            (cons (intern (symbol-name (car pair))) (cdr pair)))
+                          item))
+                parsed))
+    (error
+     ;; If parsing fails, return the content as-is
+     content)))
+</tool.toolu_01Xs4D4vjabqGfT5QuQo5UF9>
+
+### new-content
+
+<tool.toolu_01Xs4D4vjabqGfT5QuQo5UF9>
+(defun greger-parser--parse-json-content (content)
+  "Parse JSON CONTENT from string to structured data.
+Falls back to original content if parsing fails."
+  (condition-case err
+      (let ((parsed (json-read-from-string content)))
+        ;; Convert parsed JSON to alist format expected by the parser
+        (if (vectorp parsed)
+            ;; Handle arrays
+            (mapcar (lambda (item)
+                      (if (listp item)
+                          (mapcar (lambda (pair)
+                                    (cons (intern (symbol-name (car pair))) (cdr pair)))
+                                  item)
+                        item))
+                    parsed)
+          ;; Handle objects 
+          (if (listp parsed)
+              (mapcar (lambda (pair)
+                        (cons (intern (symbol-name (car pair))) (cdr pair)))
+                      parsed)
+            ;; Handle primitive values
+            parsed)))
+    (error
+     ;; If parsing fails, return the content as-is
+     content)))
+</tool.toolu_01Xs4D4vjabqGfT5QuQo5UF9>
+
+### git-commit-message
+
+<tool.toolu_01Xs4D4vjabqGfT5QuQo5UF9>
+Replace web search specific parser with general JSON parser
+</tool.toolu_01Xs4D4vjabqGfT5QuQo5UF9>
+
+<!-- TOOL_RESULT_PLACEHOLDER_toolu_01Xs4D4vjabqGfT5QuQo5UF9 -->

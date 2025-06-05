@@ -1158,16 +1158,28 @@ Returns a list of text blocks, with citations attached to cited portions."
                      (tool_use_id . ,id)
                      (content . ,parsed-content))))))))
 
-(defun greger-parser--parse-web-search-content (content)
-  "Parse web search CONTENT from JSON string to structured data."
+(defun greger-parser--parse-json-content (content)
+  "Parse JSON CONTENT from string to structured data.
+Falls back to original content if parsing fails."
   (condition-case err
       (let ((parsed (json-read-from-string content)))
         ;; Convert parsed JSON to alist format expected by the parser
-        (mapcar (lambda (item)
-                  (mapcar (lambda (pair)
-                            (cons (intern (symbol-name (car pair))) (cdr pair)))
-                          item))
-                parsed))
+        (if (vectorp parsed)
+            ;; Handle arrays
+            (mapcar (lambda (item)
+                      (if (listp item)
+                          (mapcar (lambda (pair)
+                                    (cons (intern (symbol-name (car pair))) (cdr pair)))
+                                  item)
+                        item))
+                    parsed)
+          ;; Handle objects
+          (if (listp parsed)
+              (mapcar (lambda (pair)
+                        (cons (intern (symbol-name (car pair))) (cdr pair)))
+                      parsed)
+            ;; Handle primitive values
+            parsed)))
     (error
      ;; If parsing fails, return the content as-is
      content)))
