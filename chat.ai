@@ -10740,4 +10740,91 @@ greger-parser.el
 Keep server tool result creation unchanged for now
 </tool.toolu_01MkKyt8gHHPuPM235iyG3Fx>
 
-<!-- TOOL_RESULT_PLACEHOLDER_toolu_01MkKyt8gHHPuPM235iyG3Fx -->
+## TOOL RESULT:
+
+ID: toolu_01MkKyt8gHHPuPM235iyG3Fx
+
+<tool.toolu_01MkKyt8gHHPuPM235iyG3Fx>
+Successfully replaced content in /Users/andreas/projects/greger.el/greger-parser.el. Successfully staged 2 file(s) and committed with message: Keep server tool result creation unchanged for now
+</tool.toolu_01MkKyt8gHHPuPM235iyG3Fx>
+
+## ASSISTANT:
+
+Wait, I need to check how the content detection works. Let me look at the parsing of the server tool result to understand how it determines whether to create a `server_tool_result` vs `web_search_tool_result`:
+
+## TOOL USE:
+
+Name: ripgrep
+ID: toolu_016jVPVVq2hMpLaw6QjQ4fXy
+
+### pattern
+
+<tool.toolu_016jVPVVq2hMpLaw6QjQ4fXy>
+web_search_tool_result
+</tool.toolu_016jVPVVq2hMpLaw6QjQ4fXy>
+
+### path
+
+<tool.toolu_016jVPVVq2hMpLaw6QjQ4fXy>
+greger-parser.el
+</tool.toolu_016jVPVVq2hMpLaw6QjQ4fXy>
+
+## TOOL RESULT:
+
+ID: toolu_016jVPVVq2hMpLaw6QjQ4fXy
+
+<tool.toolu_016jVPVVq2hMpLaw6QjQ4fXy>
+1274:     ((string= type "web_search_tool_result")
+
+</tool.toolu_016jVPVVq2hMpLaw6QjQ4fXy>
+
+## ASSISTANT:
+
+I can see it's referenced in the block-to-markdown functions, but it's not being created in the parsing. The issue is that I need to detect when a server tool result contains web search results and create a `web_search_tool_result` type instead.
+
+Looking at the test case, the key difference is that the content contains JSON with `"type": "web_search_result"`. Let me modify the server tool result creation to detect this pattern:
+
+## TOOL USE:
+
+Name: str-replace
+ID: toolu_014JQPrAk8LwPEHg8Mr7isyN
+
+### file-path
+
+<tool.toolu_014JQPrAk8LwPEHg8Mr7isyN>
+greger-parser.el
+</tool.toolu_014JQPrAk8LwPEHg8Mr7isyN>
+
+### original-content
+
+<tool.toolu_014JQPrAk8LwPEHg8Mr7isyN>
+(defun greger-parser--create-server-tool-result-message (id content)
+  "Create server tool result message with ID and CONTENT."
+  `((role . "assistant")
+    (content . (((type . "server_tool_result")
+                 (tool_use_id . ,id)
+                 (content . ,content))))))
+</tool.toolu_014JQPrAk8LwPEHg8Mr7isyN>
+
+### new-content
+
+<tool.toolu_014JQPrAk8LwPEHg8Mr7isyN>
+(defun greger-parser--create-server-tool-result-message (id content)
+  "Create server tool result message with ID and CONTENT."
+  (let ((result-type (if (and (stringp content)
+                              (string-match-p "\"type\":\\s*\"web_search_result\"" content))
+                         "web_search_tool_result"
+                       "server_tool_result")))
+    `((role . "assistant")
+      (content . (((type . ,result-type)
+                   (tool_use_id . ,id)
+                   (content . ,content)))))))
+</tool.toolu_014JQPrAk8LwPEHg8Mr7isyN>
+
+### git-commit-message
+
+<tool.toolu_014JQPrAk8LwPEHg8Mr7isyN>
+Detect web search results and create appropriate content type
+</tool.toolu_014JQPrAk8LwPEHg8Mr7isyN>
+
+<!-- TOOL_RESULT_PLACEHOLDER_toolu_014JQPrAk8LwPEHg8Mr7isyN -->

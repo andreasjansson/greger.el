@@ -1098,10 +1098,14 @@ Modifies the content blocks in-place to process <cite> tags."
 
 (defun greger-parser--create-server-tool-result-message (id content)
   "Create server tool result message with ID and CONTENT."
-  `((role . "assistant")
-    (content . (((type . "server_tool_result")
-                 (tool_use_id . ,id)
-                 (content . ,content))))))
+  (let ((result-type (if (and (stringp content)
+                              (string-match-p "\"type\":\\s*\"web_search_result\"" content))
+                         "web_search_tool_result"
+                       "server_tool_result")))
+    `((role . "assistant")
+      (content . (((type . ,result-type)
+                   (tool_use_id . ,id)
+                   (content . ,content)))))))
 
 (defun greger-parser--create-citations-message (content)
   "Create citations message with CONTENT."
