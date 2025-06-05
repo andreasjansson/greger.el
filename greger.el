@@ -118,16 +118,7 @@
 
 
 
-;; Face definitions for tool tags
-(defface greger-tool-tag-face
-  '((t :height 0.6 :foreground "gray70"))
-  "Face for tool opening and closing tags."
-  :group 'greger)
 
-(defface greger-tool-content-face
-  '((t :inherit default))
-  "Face for tool content."
-  :group 'greger)
 
 (defface greger-tool-param-heading-face
   '((t :foreground "#6699CC" :weight bold :height 1.0))
