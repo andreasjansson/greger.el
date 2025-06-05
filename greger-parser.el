@@ -817,11 +817,14 @@ Modifies the sections list in-place."
 
 (defun greger-parser--add-citations-to-content-blocks (content-blocks citations)
   "Add CITATIONS to appropriate text blocks in CONTENT-BLOCKS.
-Splits text blocks at <cite> boundaries and adds citations to cited portions."
+Splits text blocks at <cite> boundaries and adds citations to cited portions.
+Only processes cite blocks that don't already have citations."
   (let ((i 0))
     (while (< i (length content-blocks))
       (let ((block (nth i content-blocks)))
-        (when (and (listp block) (string= "text" (alist-get 'type block)))
+        (when (and (listp block)
+                   (string= "text" (alist-get 'type block))
+                   (not (alist-get 'citations block))) ; Only process blocks without citations
           (let ((text (alist-get 'text block)))
             ;; Check if text contains <cite> tags - if so, split and process
             (when (and text (string-match-p "<cite>" text))

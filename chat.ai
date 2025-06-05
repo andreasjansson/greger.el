@@ -5326,4 +5326,179 @@ Modify citation splitting to avoid adding empty citations lists
 when no citations are provided.
 </tool.toolu_019qtqzd1UcRnbyc4oX5hAk7>
 
-<!-- TOOL_RESULT_PLACEHOLDER_toolu_019qtqzd1UcRnbyc4oX5hAk7 -->
+## TOOL RESULT:
+
+ID: toolu_019qtqzd1UcRnbyc4oX5hAk7
+
+<tool.toolu_019qtqzd1UcRnbyc4oX5hAk7>
+Successfully replaced content in /Users/andreas/projects/greger.el/greger-parser.el. Successfully staged 2 file(s) and committed with message: Only add citations to cite blocks that need them
+
+Modify citation splitting to avoid adding empty citations lists
+when no citations are provided.
+</tool.toolu_019qtqzd1UcRnbyc4oX5hAk7>
+
+## ASSISTANT:
+
+Actually, the real issue is more fundamental. The problem is that when we have multiple citation sections, each one should only apply to the specific cite block that precedes it, but the current system is applying all citations to all cite blocks.
+
+Let me look at the test structure once more and think about this differently. I think the issue is that the citation application function is too greedy - it finds cite blocks and adds citations to ALL of them, when it should only add citations to cite blocks that don't already have citations.
+
+Let me modify the `greger-parser--add-citations-to-content-blocks` function:
+
+## TOOL USE:
+
+Name: read-file
+ID: toolu_01Ls1KbjVnM8ULWGBii4cwxK
+
+### path
+
+<tool.toolu_01Ls1KbjVnM8ULWGBii4cwxK>
+greger-parser.el
+</tool.toolu_01Ls1KbjVnM8ULWGBii4cwxK>
+
+### start-line
+
+<tool.toolu_01Ls1KbjVnM8ULWGBii4cwxK>
+821
+</tool.toolu_01Ls1KbjVnM8ULWGBii4cwxK>
+
+### end-line
+
+<tool.toolu_01Ls1KbjVnM8ULWGBii4cwxK>
+840
+</tool.toolu_01Ls1KbjVnM8ULWGBii4cwxK>
+
+## TOOL RESULT:
+
+ID: toolu_01Ls1KbjVnM8ULWGBii4cwxK
+
+<tool.toolu_01Ls1KbjVnM8ULWGBii4cwxK>
+  (let ((i 0))
+    (while (< i (length content-blocks))
+      (let ((block (nth i content-blocks)))
+        (when (and (listp block) (string= "text" (alist-get 'type block)))
+          (let ((text (alist-get 'text block)))
+            ;; Check if text contains <cite> tags - if so, split and process
+            (when (and text (string-match-p "<cite>" text))
+              (let ((split-blocks (greger-parser--split-text-with-citations text citations)))
+                ;; Replace the current block with the split blocks
+                (setcdr (nthcdr (1- i) content-blocks)
+                        (append split-blocks (nthcdr (1+ i) content-blocks)))
+                ;; Skip over the newly inserted blocks
+                (setq i (+ i (length split-blocks)))
+                ;; Continue without incrementing i again
+                (setq i (1- i)))))))
+      (setq i (1+ i)))))
+
+(defun greger-parser--apply-citations-to-last-assistant-message (sections citations)
+  "Apply CITATIONS to the most recent assistant message in SECTIONS that contains <cite> tags."
+  ;; Find the most recent assistant message (searching from end backwards)
+</tool.toolu_01Ls1KbjVnM8ULWGBii4cwxK>
+
+## ASSISTANT:
+
+I think the real issue is that the citation processing is happening at the wrong time. Let me re-read the test case more carefully and understand what the intended behavior should be.
+
+Looking at the test more carefully, I see that the expected output has this structure for the Newton text block:
+
+```elisp
+((type . "text")
+ (text . "Newton formulated the laws of motion")
+ (citations . (((type . "web_search_result_location")
+                (url . "https://physics.com/newton")
+                (title . "Newton Biography")
+                (cited_text . "Isaac Newton formulated the three laws of motion...")
+                (encrypted_index . "ghi789")))))
+```
+
+But the actual output shows:
+
+```elisp
+((type . "text")
+ (text . "Newton formulated the laws of motion")
+ (citations . (((encrypted_index . "def456")  ; This is WRONG - should be "ghi789"
+                (cited_text . "Albert Einstein developed the theory of relativity in the early 20th century...")
+                (title . "Einstein Biography")
+                (type . "web_search_result_location")
+                (url . "https://physics.com/einstein")))))
+```
+
+So the Newton text is getting Einstein's citations! This means that when the first citation section is processed, it's applying Einstein's citations to ALL cite blocks, including the Newton one.
+
+The problem is that all citations are being collected into one big list and then applied to all cite blocks. I need to change the approach to apply citations immediately and only to cite blocks that haven't been processed yet.
+
+Let me try a different approach. Instead of collecting citations and applying them later, I'll modify the citation application to be more targeted:
+
+## TOOL USE:
+
+Name: str-replace
+ID: toolu_01ULp6uJ5fd8EokpKFyLDR2X
+
+### file-path
+
+<tool.toolu_01ULp6uJ5fd8EokpKFyLDR2X>
+greger-parser.el
+</tool.toolu_01ULp6uJ5fd8EokpKFyLDR2X>
+
+### original-content
+
+<tool.toolu_01ULp6uJ5fd8EokpKFyLDR2X>
+(defun greger-parser--add-citations-to-content-blocks (content-blocks citations)
+  "Add CITATIONS to appropriate text blocks in CONTENT-BLOCKS.
+Splits text blocks at <cite> boundaries and adds citations to cited portions."
+  (let ((i 0))
+    (while (< i (length content-blocks))
+      (let ((block (nth i content-blocks)))
+        (when (and (listp block) (string= "text" (alist-get 'type block)))
+          (let ((text (alist-get 'text block)))
+            ;; Check if text contains <cite> tags - if so, split and process
+            (when (and text (string-match-p "<cite>" text))
+              (let ((split-blocks (greger-parser--split-text-with-citations text citations)))
+                ;; Replace the current block with the split blocks
+                (setcdr (nthcdr (1- i) content-blocks)
+                        (append split-blocks (nthcdr (1+ i) content-blocks)))
+                ;; Skip over the newly inserted blocks
+                (setq i (+ i (length split-blocks)))
+                ;; Continue without incrementing i again
+                (setq i (1- i)))))))
+      (setq i (1+ i)))))
+</tool.toolu_01ULp6uJ5fd8EokpKFyLDR2X>
+
+### new-content
+
+<tool.toolu_01ULp6uJ5fd8EokpKFyLDR2X>
+(defun greger-parser--add-citations-to-content-blocks (content-blocks citations)
+  "Add CITATIONS to appropriate text blocks in CONTENT-BLOCKS.
+Splits text blocks at <cite> boundaries and adds citations to cited portions.
+Only processes cite blocks that don't already have citations."
+  (let ((i 0))
+    (while (< i (length content-blocks))
+      (let ((block (nth i content-blocks)))
+        (when (and (listp block) 
+                   (string= "text" (alist-get 'type block))
+                   (not (alist-get 'citations block))) ; Only process blocks without citations
+          (let ((text (alist-get 'text block)))
+            ;; Check if text contains <cite> tags - if so, split and process
+            (when (and text (string-match-p "<cite>" text))
+              (let ((split-blocks (greger-parser--split-text-with-citations text citations)))
+                ;; Replace the current block with the split blocks
+                (setcdr (nthcdr (1- i) content-blocks)
+                        (append split-blocks (nthcdr (1+ i) content-blocks)))
+                ;; Skip over the newly inserted blocks
+                (setq i (+ i (length split-blocks)))
+                ;; Continue without incrementing i again
+                (setq i (1- i)))))))
+      (setq i (1+ i)))))
+</tool.toolu_01ULp6uJ5fd8EokpKFyLDR2X>
+
+### git-commit-message
+
+<tool.toolu_01ULp6uJ5fd8EokpKFyLDR2X>
+Only apply citations to blocks that don't already have them
+
+Fix the citation bug by ensuring that citation application only
+happens to text blocks that don't already have citations. This
+prevents later citation sections from overwriting earlier ones.
+</tool.toolu_01ULp6uJ5fd8EokpKFyLDR2X>
+
+<!-- TOOL_RESULT_PLACEHOLDER_toolu_01ULp6uJ5fd8EokpKFyLDR2X -->
