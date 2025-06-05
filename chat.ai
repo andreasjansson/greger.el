@@ -1932,4 +1932,61 @@ greger-parser.el
 Add helper function to check if message has citations
 </tool.toolu_01YDmVp1jkhchvt5KjNTseWG>
 
-<!-- TOOL_RESULT_PLACEHOLDER_toolu_01YDmVp1jkhchvt5KjNTseWG -->
+## TOOL RESULT:
+
+ID: toolu_01YDmVp1jkhchvt5KjNTseWG
+
+<tool.toolu_01YDmVp1jkhchvt5KjNTseWG>
+Successfully replaced content in /Users/andreas/projects/greger.el/greger-parser.el. Successfully staged 2 file(s) and committed with message: Add helper function to check if message has citations
+</tool.toolu_01YDmVp1jkhchvt5KjNTseWG>
+
+## ASSISTANT:
+
+Now I need to modify the `greger-parser-dialog-to-markdown` function to conditionally add `\n\n` after messages that don't have citations:
+
+## TOOL USE:
+
+Name: str-replace
+ID: toolu_0116Qeb5enChKikbhoqermFA
+
+### file-path
+
+<tool.toolu_0116Qeb5enChKikbhoqermFA>
+greger-parser.el
+</tool.toolu_0116Qeb5enChKikbhoqermFA>
+
+### original-content
+
+<tool.toolu_0116Qeb5enChKikbhoqermFA>
+(defun greger-parser-dialog-to-markdown (dialog)
+  "Convert DIALOG to markdown format."
+  (if (null dialog)
+      ""
+    (mapconcat #'greger-parser--message-to-markdown dialog "\n\n")))
+</tool.toolu_0116Qeb5enChKikbhoqermFA>
+
+### new-content
+
+<tool.toolu_0116Qeb5enChKikbhoqermFA>
+(defun greger-parser-dialog-to-markdown (dialog)
+  "Convert DIALOG to markdown format."
+  (if (null dialog)
+      ""
+    (let ((result ""))
+      (dotimes (i (length dialog))
+        (let ((message (nth i dialog)))
+          (setq result (concat result (greger-parser--message-to-markdown message)))
+          ;; Add \n\n separator if not the last message and current message doesn't have citations
+          (when (and (< i (1- (length dialog)))
+                     (not (greger-parser--message-has-citations message)))
+            (setq result (concat result "\n\n")))))
+      result)))
+</tool.toolu_0116Qeb5enChKikbhoqermFA>
+
+### git-commit-message
+
+<tool.toolu_0116Qeb5enChKikbhoqermFA>
+Update greger-parser-dialog-to-markdown to not add \n\n after messages with citations
+</tool.toolu_0116Qeb5enChKikbhoqermFA>
+
+<!-- TOOL_RESULT_PLACEHOLDER_toolu_0116Qeb5enChKikbhoqermFA -->

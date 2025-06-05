@@ -88,7 +88,15 @@ Returns a plist with :messages and :metadata keys."
   "Convert DIALOG to markdown format."
   (if (null dialog)
       ""
-    (mapconcat #'greger-parser--message-to-markdown dialog "\n\n")))
+    (let ((result ""))
+      (dotimes (i (length dialog))
+        (let ((message (nth i dialog)))
+          (setq result (concat result (greger-parser--message-to-markdown message)))
+          ;; Add \n\n separator if not the last message and current message doesn't have citations
+          (when (and (< i (1- (length dialog)))
+                     (not (greger-parser--message-has-citations message)))
+            (setq result (concat result "\n\n")))))
+      result)))
 
 ;; Parser infrastructure
 
