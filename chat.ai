@@ -4635,4 +4635,65 @@ greger-parser.el
 Parse JSON content in web search tool results
 </tool.toolu_01WS5Dj8Gb1iBM7wEnQTmQ7u>
 
-<!-- TOOL_RESULT_PLACEHOLDER_toolu_01WS5Dj8Gb1iBM7wEnQTmQ7u -->
+## TOOL RESULT:
+
+ID: toolu_01WS5Dj8Gb1iBM7wEnQTmQ7u
+
+<tool.toolu_01WS5Dj8Gb1iBM7wEnQTmQ7u>
+Successfully replaced content in /Users/andreas/projects/greger.el/greger-parser.el. Successfully staged 2 file(s) and committed with message: Parse JSON content in web search tool results
+</tool.toolu_01WS5Dj8Gb1iBM7wEnQTmQ7u>
+
+## ASSISTANT:
+
+Now I need to implement the `greger-parser--parse-web-search-content` function:
+
+## TOOL USE:
+
+Name: str-replace
+ID: toolu_018sjTQCsLUMjw4iyCDohPDA
+
+### file-path
+
+<tool.toolu_018sjTQCsLUMjw4iyCDohPDA>
+greger-parser.el
+</tool.toolu_018sjTQCsLUMjw4iyCDohPDA>
+
+### original-content
+
+<tool.toolu_018sjTQCsLUMjw4iyCDohPDA>
+(defun greger-parser--create-citations-message (content)
+  "Create citations message with CONTENT."
+  `((role . "assistant")
+    (content . (((type . "citations") (citations . ,content))))))
+</tool.toolu_018sjTQCsLUMjw4iyCDohPDA>
+
+### new-content
+
+<tool.toolu_018sjTQCsLUMjw4iyCDohPDA>
+(defun greger-parser--parse-web-search-content (content)
+  "Parse web search CONTENT from JSON string to structured data."
+  (condition-case err
+      (let ((parsed (json-read-from-string content)))
+        ;; Convert parsed JSON to alist format expected by the parser
+        (mapcar (lambda (item)
+                  (mapcar (lambda (pair)
+                            (cons (intern (symbol-name (car pair))) (cdr pair)))
+                          item))
+                parsed))
+    (error 
+     ;; If parsing fails, return the content as-is
+     content)))
+
+(defun greger-parser--create-citations-message (content)
+  "Create citations message with CONTENT."
+  `((role . "assistant")
+    (content . (((type . "citations") (citations . ,content))))))
+</tool.toolu_018sjTQCsLUMjw4iyCDohPDA>
+
+### git-commit-message
+
+<tool.toolu_018sjTQCsLUMjw4iyCDohPDA>
+Add function to parse web search JSON content
+</tool.toolu_018sjTQCsLUMjw4iyCDohPDA>
+
+<!-- TOOL_RESULT_PLACEHOLDER_toolu_018sjTQCsLUMjw4iyCDohPDA -->
