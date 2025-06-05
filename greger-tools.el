@@ -163,7 +163,7 @@ The raw JSON string will be displayed for the server tool definition."
              greger-server-tools-registry)
     tools))
 
-(defun greger-tools-execute (tool-name args callback buffer &optional metadata)
+(cl-defun greger-tools-execute (&key tool-name args callback buffer metadata)
   "Execute TOOL-NAME with ARGS and call CALLBACK with (result error).
 Returns a greger-tool struct for tracking execution and cancellation.
 If the tool has :pass-buffer set, BUFFER will be passed to the tool function.

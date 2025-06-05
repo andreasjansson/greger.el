@@ -1058,6 +1058,10 @@ Returns either a system message, metadata, or both."
 (defun greger-parser--block-to-markdown (block)
   "Convert single BLOCK to markdown."
   (let ((type (alist-get 'type block)))
+
+    ;; TODO: remove debug
+    (message (format "type: %s" type))
+
     (cond
      ((string= type "text")
       (concat greger-parser-assistant-tag "\n\n"
