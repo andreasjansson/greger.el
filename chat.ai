@@ -56,11 +56,9 @@ ID: srvtoolu_01PTAPErPmrfeuS9wPASo4dL
 
 ## ASSISTANT:
 
-Based on the search results,
+Based on the search results, <cite>Claude Shannon was born on April 30, 1916, in Petoskey, Michigan</cite>
 
 ## CITATIONS:
-
-Claude Shannon was born on April 30, 1916, in Petoskey, Michigan
 
 ### https://en.wikipedia.org/wiki/Claude_Shannon
 
@@ -83,30 +81,33 @@ Note that:
 * `type` is always `web_search_result_location`
 * The URL is in the heading
 * I want it ordered like it is in my example, with title first and encrypted index last
+* The text in the list item with the citations object is wrapped in `<cite>`, but otherwise folded into the previous ASSISTANT: section.
 
 Implement this in greger-parser.el and add tests to test-greger-parser.el
+
+Add tests for the exact format in the anthropic docs linked above, but also variations, e.g. if the list item with citations isn't preceded by a type:text item but immediately follows the web_search_tool_result.
 
 
 ## ASSISTANT:
 
-I'll start by examining the current code to understand the existing citation implementation and then complete it.
+I'll help you finish the implementation of citations support in greger-parser.el. First, let me examine the current code to understand what's already implemented.
 
 ## TOOL USE:
 
 Name: read-file
-ID: toolu_01E4AgsoK9C7NDa1sbJL4DYt
+ID: toolu_01PcwuW7Ex7sjMdyen44bFYD
 
 ### path
 
-<tool.toolu_01E4AgsoK9C7NDa1sbJL4DYt>
+<tool.toolu_01PcwuW7Ex7sjMdyen44bFYD>
 greger-parser.el
-</tool.toolu_01E4AgsoK9C7NDa1sbJL4DYt>
+</tool.toolu_01PcwuW7Ex7sjMdyen44bFYD>
 
 ## TOOL RESULT:
 
-ID: toolu_01E4AgsoK9C7NDa1sbJL4DYt
+ID: toolu_01PcwuW7Ex7sjMdyen44bFYD
 
-<tool.toolu_01E4AgsoK9C7NDa1sbJL4DYt>
+<tool.toolu_01PcwuW7Ex7sjMdyen44bFYD>
 ;;; greger-parser.el --- Parser for greger dialog format -*- lexical-binding: t -*-
 
 ;; Copyright (C) 2023 Andreas Jansson
@@ -823,6 +824,12 @@ Returns either a system message, metadata, or both."
     (when content
       (greger-parser--create-thinking-message content))))
 
+(defun greger-parser--parse-citations-section (state)
+  "Parse CITATIONS section using STATE."
+  (let ((content (greger-parser--parse-section-content state)))
+    (when content
+      (greger-parser--create-citations-message content))))
+
 (defun greger-parser--parse-tool-use-section (state)
   "Parse TOOL USE section using STATE."
   (greger-parser--skip-whitespace state)
@@ -1305,28 +1312,28 @@ Returns either a system message, metadata, or both."
 (provide 'greger-parser)
 
 ;;; greger-parser.el ends here
-</tool.toolu_01E4AgsoK9C7NDa1sbJL4DYt>
+</tool.toolu_01PcwuW7Ex7sjMdyen44bFYD>
 
 ## ASSISTANT:
 
-Now let me examine the test file to understand the expected structure:
+Now let me examine the current test file to understand the existing test structure:
 
 ## TOOL USE:
 
 Name: read-file
-ID: toolu_01NvsatDsu82TtMX28SqBM5f
+ID: toolu_01EnwHbS8cuq2RKChzCpiGaP
 
 ### path
 
-<tool.toolu_01NvsatDsu82TtMX28SqBM5f>
+<tool.toolu_01EnwHbS8cuq2RKChzCpiGaP>
 test/test-greger-parser.el
-</tool.toolu_01NvsatDsu82TtMX28SqBM5f>
+</tool.toolu_01EnwHbS8cuq2RKChzCpiGaP>
 
 ## TOOL RESULT:
 
-ID: toolu_01NvsatDsu82TtMX28SqBM5f
+ID: toolu_01EnwHbS8cuq2RKChzCpiGaP
 
-<tool.toolu_01NvsatDsu82TtMX28SqBM5f>
+<tool.toolu_01EnwHbS8cuq2RKChzCpiGaP>
 ;;; test-greger-parser.el --- Tests for greger parser -*- lexical-binding: t -*-
 
 (require 'ert)
@@ -2926,120 +2933,28 @@ You can run arbitrary shell commands with the shell-command tool, but the follow
 (provide 'test-greger-parser)
 
 ;;; test-greger-parser.el ends here
-</tool.toolu_01NvsatDsu82TtMX28SqBM5f>
+</tool.toolu_01EnwHbS8cuq2RKChzCpiGaP>
 
 ## ASSISTANT:
 
-Now I need to look for any existing citations parsing code to understand what's already implemented:
-
-## TOOL USE:
-
-Name: ripgrep
-ID: toolu_019BS4TT5pqpfR59hQaSxJ8p
-
-### pattern
-
-<tool.toolu_019BS4TT5pqpfR59hQaSxJ8p>
-citations
-</tool.toolu_019BS4TT5pqpfR59hQaSxJ8p>
-
-### path
-
-<tool.toolu_019BS4TT5pqpfR59hQaSxJ8p>
-greger-parser.el
-</tool.toolu_019BS4TT5pqpfR59hQaSxJ8p>
-
-## TOOL RESULT:
-
-ID: toolu_019BS4TT5pqpfR59hQaSxJ8p
-
-<tool.toolu_019BS4TT5pqpfR59hQaSxJ8p>
-43:(defconst greger-parser-citations-tag "## CITATIONS:")
-216:        greger-parser-citations-tag
-647:       ((string= tag greger-parser-citations-tag)
-648:        (greger-parser--parse-citations-section state))
-
-</tool.toolu_019BS4TT5pqpfR59hQaSxJ8p>
-
-## ASSISTANT:
-
-Let me see what's implemented for the citations section:
-
-## TOOL USE:
-
-Name: ripgrep
-ID: toolu_011yVQQQNENBKJerHc9PJ6ug
-
-### pattern
-
-<tool.toolu_011yVQQQNENBKJerHc9PJ6ug>
-greger-parser--parse-citations-section
-</tool.toolu_011yVQQQNENBKJerHc9PJ6ug>
-
-### path
-
-<tool.toolu_011yVQQQNENBKJerHc9PJ6ug>
-greger-parser.el
-</tool.toolu_011yVQQQNENBKJerHc9PJ6ug>
-
-## TOOL RESULT:
-
-ID: toolu_011yVQQQNENBKJerHc9PJ6ug
-
-<tool.toolu_011yVQQQNENBKJerHc9PJ6ug>
-648:        (greger-parser--parse-citations-section state))
-
-</tool.toolu_011yVQQQNENBKJerHc9PJ6ug>
-
-## ASSISTANT:
-
-I need to find where `greger-parser--parse-citations-section` is defined:
-
-## TOOL USE:
-
-Name: ripgrep
-ID: toolu_01MskAVLyrHsqEcf2Nt3Y8HR
-
-### pattern
-
-<tool.toolu_01MskAVLyrHsqEcf2Nt3Y8HR>
-defun greger-parser--parse-citations-section
-</tool.toolu_01MskAVLyrHsqEcf2Nt3Y8HR>
-
-### path
-
-<tool.toolu_01MskAVLyrHsqEcf2Nt3Y8HR>
-greger-parser.el
-</tool.toolu_01MskAVLyrHsqEcf2Nt3Y8HR>
-
-## TOOL RESULT:
-
-ID: toolu_01MskAVLyrHsqEcf2Nt3Y8HR
-
-<tool.toolu_01MskAVLyrHsqEcf2Nt3Y8HR>
-Failed to execute ripgrep search: Command failed with exit code 1: (no output)
-</tool.toolu_01MskAVLyrHsqEcf2Nt3Y8HR>
-
-## ASSISTANT:
-
-It seems the function is not defined yet. Let me check the web search tool documentation to understand the citation format:
+Let me check the web search tool documentation to understand the citation format better:
 
 ## TOOL USE:
 
 Name: read-webpage
-ID: toolu_01TW62fMqn5m6Swop5dZ6uFN
+ID: toolu_018ZZcRoKB6eYhZDrRC2me3V
 
 ### url
 
-<tool.toolu_01TW62fMqn5m6Swop5dZ6uFN>
+<tool.toolu_018ZZcRoKB6eYhZDrRC2me3V>
 https://docs.anthropic.com/en/docs/agents-and-tools/tool-use/web-search-tool.md
-</tool.toolu_01TW62fMqn5m6Swop5dZ6uFN>
+</tool.toolu_018ZZcRoKB6eYhZDrRC2me3V>
 
 ## TOOL RESULT:
 
-ID: toolu_01TW62fMqn5m6Swop5dZ6uFN
+ID: toolu_018ZZcRoKB6eYhZDrRC2me3V
 
-<tool.toolu_01TW62fMqn5m6Swop5dZ6uFN>
+<tool.toolu_018ZZcRoKB6eYhZDrRC2me3V>
 # Web search tool
 
 The web search tool gives Claude direct access to real-time web content, allowing it to answer questions with up-to-date information beyond its knowledge cutoff. Claude automatically cites sources from search results as part of its answer.
@@ -3447,76 +3362,119 @@ Web search is available on the Anthropic API for \$10 per 1,000 searches, plus s
 Each web search counts as one use, regardless of the number of results returned. If an error occurs during web search, the web search will not be billed.
 
 
-</tool.toolu_01TW62fMqn5m6Swop5dZ6uFN>
+</tool.toolu_018ZZcRoKB6eYhZDrRC2me3V>
 
 ## ASSISTANT:
 
-Now I understand the structure. I need to implement citation parsing based on the format shown in the user's request. Let me look at what's missing in the parser:
+Now I understand the format better. Looking at the documentation and the example you provided, I need to implement parsing for citations that appear as a `citations` field within text content blocks. The format shows that:
 
-## TOOL USE:
+1. Text content can have a `citations` field containing an array of citation objects
+2. Each citation has `type: "web_search_result_location"`, `url`, `title`, `encrypted_index`, and `cited_text`
+3. The citations should be folded into a separate `## CITATIONS:` section in the markdown format
 
-Name: ripgrep
-ID: toolu_01NF9E36dCy4yayF64fofiD2
-
-### pattern
-
-<tool.toolu_01NF9E36dCy4yayF64fofiD2>
-def.*citations
-</tool.toolu_01NF9E36dCy4yayF64fofiD2>
-
-### path
-
-<tool.toolu_01NF9E36dCy4yayF64fofiD2>
-greger-parser.el
-</tool.toolu_01NF9E36dCy4yayF64fofiD2>
-
-## TOOL RESULT:
-
-ID: toolu_01NF9E36dCy4yayF64fofiD2
-
-<tool.toolu_01NF9E36dCy4yayF64fofiD2>
-43:(defconst greger-parser-citations-tag "## CITATIONS:")
-
-</tool.toolu_01NF9E36dCy4yayF64fofiD2>
-
-## ASSISTANT:
-
-I need to implement the missing citations parsing function and add support for the citation format. Based on the user's requirements and the example provided, I need to:
-
-1. Implement `greger-parser--parse-citations-section` function
-2. Add support for parsing the citation format with URLs, titles, cited text, and encrypted indices
-3. Add test cases for citations
-
-Let me implement this:
+Let me now implement the citations parsing functionality:
 
 ## TOOL USE:
 
 Name: str-replace
-ID: toolu_01AUpL9dyDE2FqHW71Eseiri
+ID: toolu_01DZwu7XuEemcPQVEvsJ9uyA
 
 ### file-path
 
-<tool.toolu_01AUpL9dyDE2FqHW71Eseiri>
+<tool.toolu_01DZwu7XuEemcPQVEvsJ9uyA>
 greger-parser.el
-</tool.toolu_01AUpL9dyDE2FqHW71Eseiri>
+</tool.toolu_01DZwu7XuEemcPQVEvsJ9uyA>
 
 ### original-content
 
-<tool.toolu_01AUpL9dyDE2FqHW71Eseiri>
-(defun greger-parser--parse-thinking-section (state)
-  "Parse THINKING section using STATE."
-  (let ((content (greger-parser--parse-section-content state)))
-    (when content
-      (greger-parser--create-thinking-message content))))
-</tool.toolu_01AUpL9dyDE2FqHW71Eseiri>
+<tool.toolu_01DZwu7XuEemcPQVEvsJ9uyA>
+(defun greger-parser--create-citations-message (content)
+  "Create citations message with CONTENT."
+  `((role . "assistant")
+    (content . (((type . "citations") (citations . ,content))))))
+</tool.toolu_01DZwu7XuEemcPQVEvsJ9uyA>
 
 ### new-content
 
-<tool.toolu_01AUpL9dyDE2FqHW71Eseiri>
-(defun greger-parser--parse-thinking-section (state)
-  "Parse THINKING section using STATE."
-  (let ((content (greger-parser--parse-section-content state)))
-    (when content
+<tool.toolu_01DZwu7XuEemcPQVEvsJ9uyA>
+(defun greger-parser--create-citations-message (content)
+  "Create citations message with CONTENT."
+  `((role . "assistant")
+    (content . (((type . "citations") (citations . ,content))))))
+</tool.toolu_01DZwu7XuEemcPQVEvsJ9uyA>
+
+### git-commit-message
+
+<tool.toolu_01DZwu7XuEemcPQVEvsJ9uyA>
+No changes to citations message creation
+</tool.toolu_01DZwu7XuEemcPQVEvsJ9uyA>
+
+## TOOL RESULT:
+
+ID: toolu_01DZwu7XuEemcPQVEvsJ9uyA
+
+<tool.toolu_01DZwu7XuEemcPQVEvsJ9uyA>
+Error executing tool: Original content not found in file: /Users/andreas/projects/greger.el/greger-parser.el -- Try again!
+</tool.toolu_01DZwu7XuEemcPQVEvsJ9uyA>
+
+## ASSISTANT:
+
+Let me first find where the citations message creation is defined:
+
+## TOOL USE:
+
+Name: ripgrep
+ID: toolu_01RVCK2dD1doEkmKZ9Cns1j2
+
+### pattern
+
+<tool.toolu_01RVCK2dD1doEkmKZ9Cns1j2>
+create-citations-message
+</tool.toolu_01RVCK2dD1doEkmKZ9Cns1j2>
+
+### path
+
+<tool.toolu_01RVCK2dD1doEkmKZ9Cns1j2>
+greger-parser.el
+</tool.toolu_01RVCK2dD1doEkmKZ9Cns1j2>
+
+## TOOL RESULT:
+
+ID: toolu_01RVCK2dD1doEkmKZ9Cns1j2
+
+<tool.toolu_01RVCK2dD1doEkmKZ9Cns1j2>
+721:      (greger-parser--create-citations-message content))))
+
+</tool.toolu_01RVCK2dD1doEkmKZ9Cns1j2>
+
+## TOOL USE:
+
+Name: read-file
+ID: toolu_01GY4xhftYAnXyJuxo6VcQZD
+
+### path
+
+<tool.toolu_01GY4xhftYAnXyJuxo6VcQZD>
+greger-parser.el
+</tool.toolu_01GY4xhftYAnXyJuxo6VcQZD>
+
+### start-line
+
+<tool.toolu_01GY4xhftYAnXyJuxo6VcQZD>
+715
+</tool.toolu_01GY4xhftYAnXyJuxo6VcQZD>
+
+### end-line
+
+<tool.toolu_01GY4xhftYAnXyJuxo6VcQZD>
+725
+</tool.toolu_01GY4xhftYAnXyJuxo6VcQZD>
+
+## TOOL RESULT:
+
+ID: toolu_01GY4xhftYAnXyJuxo6VcQZD
+
+<tool.toolu_01GY4xhftYAnXyJuxo6VcQZD>
       (greger-parser--create-thinking-message content))))
 
 (defun greger-parser--parse-citations-section (state)
@@ -3524,12 +3482,248 @@ greger-parser.el
   (let ((content (greger-parser--parse-section-content state)))
     (when content
       (greger-parser--create-citations-message content))))
-</tool.toolu_01AUpL9dyDE2FqHW71Eseiri>
+
+(defun greger-parser--parse-tool-use-section (state)
+  "Parse TOOL USE section using STATE."
+  (greger-parser--skip-whitespace state)
+</tool.toolu_01GY4xhftYAnXyJuxo6VcQZD>
+
+## ASSISTANT:
+
+I need to see the definition of `greger-parser--create-citations-message`:
+
+## TOOL USE:
+
+Name: ripgrep
+ID: toolu_01Bn4EJ44fnpCpuNrrQ9opfq
+
+### pattern
+
+<tool.toolu_01Bn4EJ44fnpCpuNrrQ9opfq>
+defun greger-parser--create-citations-message
+</tool.toolu_01Bn4EJ44fnpCpuNrrQ9opfq>
+
+### path
+
+<tool.toolu_01Bn4EJ44fnpCpuNrrQ9opfq>
+greger-parser.el
+</tool.toolu_01Bn4EJ44fnpCpuNrrQ9opfq>
+
+## TOOL RESULT:
+
+ID: toolu_01Bn4EJ44fnpCpuNrrQ9opfq
+
+<tool.toolu_01Bn4EJ44fnpCpuNrrQ9opfq>
+Failed to execute ripgrep search: Command failed with exit code 1: (no output)
+</tool.toolu_01Bn4EJ44fnpCpuNrrQ9opfq>
+
+## ASSISTANT:
+
+Let me search more broadly for the citations message function:
+
+## TOOL USE:
+
+Name: ripgrep
+ID: toolu_01S1mTmXSt9QXXsWgVZ8uNyc
+
+### pattern
+
+<tool.toolu_01S1mTmXSt9QXXsWgVZ8uNyc>
+citations-message
+</tool.toolu_01S1mTmXSt9QXXsWgVZ8uNyc>
+
+### path
+
+<tool.toolu_01S1mTmXSt9QXXsWgVZ8uNyc>
+greger-parser.el
+</tool.toolu_01S1mTmXSt9QXXsWgVZ8uNyc>
+
+## TOOL RESULT:
+
+ID: toolu_01S1mTmXSt9QXXsWgVZ8uNyc
+
+<tool.toolu_01S1mTmXSt9QXXsWgVZ8uNyc>
+721:      (greger-parser--create-citations-message content))))
+
+</tool.toolu_01S1mTmXSt9QXXsWgVZ8uNyc>
+
+## ASSISTANT:
+
+It seems the function isn't defined yet. Let me find where other message creation functions are defined:
+
+## TOOL USE:
+
+Name: ripgrep
+ID: toolu_018h1YY5pH6pMbneBv2TwKJL
+
+### pattern
+
+<tool.toolu_018h1YY5pH6pMbneBv2TwKJL>
+defun greger-parser--create.*message
+</tool.toolu_018h1YY5pH6pMbneBv2TwKJL>
+
+### path
+
+<tool.toolu_018h1YY5pH6pMbneBv2TwKJL>
+greger-parser.el
+</tool.toolu_018h1YY5pH6pMbneBv2TwKJL>
+
+## TOOL RESULT:
+
+ID: toolu_018h1YY5pH6pMbneBv2TwKJL
+
+<tool.toolu_018h1YY5pH6pMbneBv2TwKJL>
+931:(defun greger-parser--create-user-message (content)
+935:(defun greger-parser--create-assistant-message (content)
+939:(defun greger-parser--create-system-message (content)
+949:(defun greger-parser--create-thinking-message (content)
+954:(defun greger-parser--create-tool-use-message (name id input)
+962:(defun greger-parser--create-tool-result-message (id content)
+969:(defun greger-parser--create-server-tool-use-message (name id input)
+977:(defun greger-parser--create-server-tool-result-message (id content)
+
+</tool.toolu_018h1YY5pH6pMbneBv2TwKJL>
+
+## ASSISTANT:
+
+Let me see the message creation section:
+
+## TOOL USE:
+
+Name: read-file
+ID: toolu_0147aXiwPqXz5mtsJJJQZmA5
+
+### path
+
+<tool.toolu_0147aXiwPqXz5mtsJJJQZmA5>
+greger-parser.el
+</tool.toolu_0147aXiwPqXz5mtsJJJQZmA5>
+
+### start-line
+
+<tool.toolu_0147aXiwPqXz5mtsJJJQZmA5>
+930
+</tool.toolu_0147aXiwPqXz5mtsJJJQZmA5>
+
+### end-line
+
+<tool.toolu_0147aXiwPqXz5mtsJJJQZmA5>
+985
+</tool.toolu_0147aXiwPqXz5mtsJJJQZmA5>
+
+## TOOL RESULT:
+
+ID: toolu_0147aXiwPqXz5mtsJJJQZmA5
+
+<tool.toolu_0147aXiwPqXz5mtsJJJQZmA5>
+
+(defun greger-parser--create-user-message (content)
+  "Create user message with CONTENT."
+  `((role . "user") (content . ,content)))
+
+(defun greger-parser--create-assistant-message (content)
+  "Create assistant message with CONTENT."
+  `((role . "assistant") (content . ,content)))
+
+(defun greger-parser--create-system-message (content)
+  "Create system message with CONTENT."
+  `((role . "system") (content . ,content)))
+
+(defun greger-parser--generate-safe-shell-commands-text (commands)
+  "Generate descriptive text for safe shell COMMANDS list."
+  (when commands
+    (concat "You can run arbitrary shell commands with the shell-command tool, but the following are safe shell commands that will run without requiring user confirmation:\n\n"
+            (mapconcat (lambda (cmd) (format "* `%s`" cmd)) commands "\n"))))
+
+(defun greger-parser--create-thinking-message (content)
+  "Create thinking message with CONTENT."
+  `((role . "assistant")
+    (content . (((type . "thinking") (thinking . ,content))))))
+
+(defun greger-parser--create-tool-use-message (name id input)
+  "Create tool use message with NAME, ID and INPUT."
+  `((role . "assistant")
+    (content . (((type . "tool_use")
+                 (id . ,id)
+                 (name . ,name)
+                 (input . ,input))))))
+
+(defun greger-parser--create-tool-result-message (id content)
+  "Create tool result message with ID and CONTENT."
+  `((role . "user")
+    (content . (((type . "tool_result")
+                 (tool_use_id . ,id)
+                 (content . ,content))))))
+
+(defun greger-parser--create-server-tool-use-message (name id input)
+  "Create server tool use message with NAME, ID and INPUT."
+  `((role . "assistant")
+    (content . (((type . "server_tool_use")
+                 (id . ,id)
+                 (name . ,name)
+                 (input . ,input))))))
+
+(defun greger-parser--create-server-tool-result-message (id content)
+  "Create server tool result message with ID and CONTENT."
+  `((role . "assistant")
+    (content . (((type . "server_tool_result")
+                 (tool_use_id . ,id)
+                 (content . ,content))))))
+
+;; Message merging
+
+</tool.toolu_0147aXiwPqXz5mtsJJJQZmA5>
+
+## ASSISTANT:
+
+Now I need to add the missing `greger-parser--create-citations-message` function. Let me add it after the other message creation functions:
+
+## TOOL USE:
+
+Name: str-replace
+ID: toolu_01DqR6h41n5T8ScJwjZia5kT
+
+### file-path
+
+<tool.toolu_01DqR6h41n5T8ScJwjZia5kT>
+greger-parser.el
+</tool.toolu_01DqR6h41n5T8ScJwjZia5kT>
+
+### original-content
+
+<tool.toolu_01DqR6h41n5T8ScJwjZia5kT>
+(defun greger-parser--create-server-tool-result-message (id content)
+  "Create server tool result message with ID and CONTENT."
+  `((role . "assistant")
+    (content . (((type . "server_tool_result")
+                 (tool_use_id . ,id)
+                 (content . ,content))))))
+
+;; Message merging
+</tool.toolu_01DqR6h41n5T8ScJwjZia5kT>
+
+### new-content
+
+<tool.toolu_01DqR6h41n5T8ScJwjZia5kT>
+(defun greger-parser--create-server-tool-result-message (id content)
+  "Create server tool result message with ID and CONTENT."
+  `((role . "assistant")
+    (content . (((type . "server_tool_result")
+                 (tool_use_id . ,id)
+                 (content . ,content))))))
+
+(defun greger-parser--create-citations-message (content)
+  "Create citations message with CONTENT."
+  `((role . "assistant")
+    (content . (((type . "citations") (citations . ,content))))))
+
+;; Message merging
+</tool.toolu_01DqR6h41n5T8ScJwjZia5kT>
 
 ### git-commit-message
 
-<tool.toolu_01AUpL9dyDE2FqHW71Eseiri>
-Add basic citations section parsing
-</tool.toolu_01AUpL9dyDE2FqHW71Eseiri>
+<tool.toolu_01DqR6h41n5T8ScJwjZia5kT>
+Add citations message creation function
+</tool.toolu_01DqR6h41n5T8ScJwjZia5kT>
 
-<!-- TOOL_RESULT_PLACEHOLDER_toolu_01AUpL9dyDE2FqHW71Eseiri -->
+<!-- TOOL_RESULT_PLACEHOLDER_toolu_01DqR6h41n5T8ScJwjZia5kT -->

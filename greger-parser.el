@@ -981,6 +981,11 @@ Returns either a system message, metadata, or both."
                  (tool_use_id . ,id)
                  (content . ,content))))))
 
+(defun greger-parser--create-citations-message (content)
+  "Create citations message with CONTENT."
+  `((role . "assistant")
+    (content . (((type . "citations") (citations . ,content))))))
+
 ;; Message merging
 
 (defun greger-parser--merge-consecutive-messages (messages)
