@@ -4869,4 +4869,214 @@ greger-parser.el
 Apply citations after consecutive message merging
 </tool.toolu_01HNv2uDGKeLccNDKgFLd9Rh>
 
-<!-- TOOL_RESULT_PLACEHOLDER_toolu_01HNv2uDGKeLccNDKgFLd9Rh -->
+## TOOL RESULT:
+
+ID: toolu_01HNv2uDGKeLccNDKgFLd9Rh
+
+<tool.toolu_01HNv2uDGKeLccNDKgFLd9Rh>
+Successfully replaced content in /Users/andreas/projects/greger.el/greger-parser.el. Successfully staged 2 file(s) and committed with message: Apply citations after consecutive message merging
+</tool.toolu_01HNv2uDGKeLccNDKgFLd9Rh>
+
+## ASSISTANT:
+
+Now I need to implement the helper functions. First, let me add the function to apply citations to messages:
+
+## TOOL USE:
+
+Name: str-replace
+ID: toolu_01RSdDLFJYbJ7wxHQwrSgqAg
+
+### file-path
+
+<tool.toolu_01RSdDLFJYbJ7wxHQwrSgqAg>
+greger-parser.el
+</tool.toolu_01RSdDLFJYbJ7wxHQwrSgqAg>
+
+### original-content
+
+<tool.toolu_01RSdDLFJYbJ7wxHQwrSgqAg>
+(defun greger-parser--add-citations-to-content-blocks (content-blocks citations)
+  "Add CITATIONS to appropriate text blocks in CONTENT-BLOCKS.
+Modifies the content blocks in-place to process <cite> tags."
+  (message "DEBUG: Processing %d content blocks with %d citations" (length content-blocks) (length citations))
+  (dolist (block content-blocks)
+    (message "DEBUG: Block type: %s" (alist-get 'type block))
+    (when (and (listp block) (string= "text" (alist-get 'type block)))
+      (let ((text (alist-get 'text block)))
+        (message "DEBUG: Text block found: %s" text)
+        ;; Check if text contains <cite> tags - if so, process them and add citations
+        (when (and text (string-match-p "<cite>" text))
+          (message "DEBUG: Found cite tags, processing...")
+          ;; Remove <cite> tags from text and add citations to block
+          (let ((clean-text (greger-parser--remove-cite-tags text)))
+            (message "DEBUG: Clean text: %s" clean-text)
+            (setcdr (assq 'text block) clean-text)
+            (push (cons 'citations citations) block)
+            (message "DEBUG: Added citations to block, new block: %s" block)))))))
+</tool.toolu_01RSdDLFJYbJ7wxHQwrSgqAg>
+
+### new-content
+
+<tool.toolu_01RSdDLFJYbJ7wxHQwrSgqAg>
+(defun greger-parser--add-citations-to-content-blocks (content-blocks citations)
+  "Add CITATIONS to appropriate text blocks in CONTENT-BLOCKS.
+Modifies the content blocks in-place to process <cite> tags."
+  (message "DEBUG: Processing %d content blocks with %d citations" (length content-blocks) (length citations))
+  (dolist (block content-blocks)
+    (message "DEBUG: Block type: %s" (alist-get 'type block))
+    (when (and (listp block) (string= "text" (alist-get 'type block)))
+      (let ((text (alist-get 'text block)))
+        (message "DEBUG: Text block found: %s" text)
+        ;; Check if text contains <cite> tags - if so, process them and add citations
+        (when (and text (string-match-p "<cite>" text))
+          (message "DEBUG: Found cite tags, processing...")
+          ;; Remove <cite> tags from text and add citations to block
+          (let ((clean-text (greger-parser--remove-cite-tags text)))
+            (message "DEBUG: Clean text: %s" clean-text)
+            (setcdr (assq 'text block) clean-text)
+            (push (cons 'citations citations) block)
+            (message "DEBUG: Added citations to block, new block: %s" block))))))
+
+(defun greger-parser--apply-citations-to-messages (messages citations)
+  "Apply CITATIONS to the last assistant message in MESSAGES that contains <cite> tags."
+  (greger-parser--debug nil "Applying citations to %d messages" (length messages))
+  ;; Find the last assistant message and apply citations to it
+  (dolist (message messages)
+    (when (string= "assistant" (alist-get 'role message))
+      (let ((content (alist-get 'content message)))
+        (cond
+         ;; String content - check for <cite> tags and process
+         ((stringp content)
+          (when (string-match-p "<cite>" content)
+            (let ((clean-content (greger-parser--remove-cite-tags content)))
+              (setcdr (assq 'content message) clean-content))))
+         ;; List content - process each content block
+         ((listp content)
+          (greger-parser--add-citations-to-content-blocks content citations))))))
+
+(defun greger-parser--remove-from-plist (plist key)
+  "Remove KEY from PLIST and return the new plist."
+  (let ((result '())
+        (skip-next nil))
+    (while plist
+      (if skip-next
+          (setq skip-next nil)
+        (if (eq (car plist) key)
+            (setq skip-next t)
+          (push (car plist) result)))
+      (setq plist (cdr plist)))
+    (reverse result)))
+</tool.toolu_01RSdDLFJYbJ7wxHQwrSgqAg>
+
+### git-commit-message
+
+<tool.toolu_01RSdDLFJYbJ7wxHQwrSgqAg>
+Add functions to apply citations after message merging
+</tool.toolu_01RSdDLFJYbJ7wxHQwrSgqAg>
+
+## TOOL RESULT:
+
+ID: toolu_01RSdDLFJYbJ7wxHQwrSgqAg
+
+<tool.toolu_01RSdDLFJYbJ7wxHQwrSgqAg>
+Error executing tool: Parentheses balance mismatch in Emacs Lisp file: original has balance 0, new has balance 2. They must be equal
+</tool.toolu_01RSdDLFJYbJ7wxHQwrSgqAg>
+
+## ASSISTANT:
+
+Let me fix the parentheses:
+
+## TOOL USE:
+
+Name: str-replace
+ID: toolu_01LUozJp9rMcbTtwFhg6UE8U
+
+### file-path
+
+<tool.toolu_01LUozJp9rMcbTtwFhg6UE8U>
+greger-parser.el
+</tool.toolu_01LUozJp9rMcbTtwFhg6UE8U>
+
+### original-content
+
+<tool.toolu_01LUozJp9rMcbTtwFhg6UE8U>
+(defun greger-parser--add-citations-to-content-blocks (content-blocks citations)
+  "Add CITATIONS to appropriate text blocks in CONTENT-BLOCKS.
+Modifies the content blocks in-place to process <cite> tags."
+  (message "DEBUG: Processing %d content blocks with %d citations" (length content-blocks) (length citations))
+  (dolist (block content-blocks)
+    (message "DEBUG: Block type: %s" (alist-get 'type block))
+    (when (and (listp block) (string= "text" (alist-get 'type block)))
+      (let ((text (alist-get 'text block)))
+        (message "DEBUG: Text block found: %s" text)
+        ;; Check if text contains <cite> tags - if so, process them and add citations
+        (when (and text (string-match-p "<cite>" text))
+          (message "DEBUG: Found cite tags, processing...")
+          ;; Remove <cite> tags from text and add citations to block
+          (let ((clean-text (greger-parser--remove-cite-tags text)))
+            (message "DEBUG: Clean text: %s" clean-text)
+            (setcdr (assq 'text block) clean-text)
+            (push (cons 'citations citations) block)
+            (message "DEBUG: Added citations to block, new block: %s" block)))))))
+</tool.toolu_01LUozJp9rMcbTtwFhg6UE8U>
+
+### new-content
+
+<tool.toolu_01LUozJp9rMcbTtwFhg6UE8U>
+(defun greger-parser--add-citations-to-content-blocks (content-blocks citations)
+  "Add CITATIONS to appropriate text blocks in CONTENT-BLOCKS.
+Modifies the content blocks in-place to process <cite> tags."
+  (message "DEBUG: Processing %d content blocks with %d citations" (length content-blocks) (length citations))
+  (dolist (block content-blocks)
+    (message "DEBUG: Block type: %s" (alist-get 'type block))
+    (when (and (listp block) (string= "text" (alist-get 'type block)))
+      (let ((text (alist-get 'text block)))
+        (message "DEBUG: Text block found: %s" text)
+        ;; Check if text contains <cite> tags - if so, process them and add citations
+        (when (and text (string-match-p "<cite>" text))
+          (message "DEBUG: Found cite tags, processing...")
+          ;; Remove <cite> tags from text and add citations to block
+          (let ((clean-text (greger-parser--remove-cite-tags text)))
+            (message "DEBUG: Clean text: %s" clean-text)
+            (setcdr (assq 'text block) clean-text)
+            (push (cons 'citations citations) block)
+            (message "DEBUG: Added citations to block, new block: %s" block)))))))
+
+(defun greger-parser--apply-citations-to-messages (messages citations)
+  "Apply CITATIONS to the last assistant message in MESSAGES that contains <cite> tags."
+  (greger-parser--debug nil "Applying citations to %d messages" (length messages))
+  ;; Find the last assistant message and apply citations to it
+  (dolist (message messages)
+    (when (string= "assistant" (alist-get 'role message))
+      (let ((content (alist-get 'content message)))
+        (cond
+         ;; String content - check for <cite> tags and process
+         ((stringp content)
+          (when (string-match-p "<cite>" content)
+            (let ((clean-content (greger-parser--remove-cite-tags content)))
+              (setcdr (assq 'content message) clean-content))))
+         ;; List content - process each content block
+         ((listp content)
+          (greger-parser--add-citations-to-content-blocks content citations)))))))
+
+(defun greger-parser--remove-from-plist (plist key)
+  "Remove KEY from PLIST and return the new plist."
+  (let ((result '())
+        (skip-next nil))
+    (while plist
+      (if skip-next
+          (setq skip-next nil)
+        (if (eq (car plist) key)
+            (setq skip-next t)
+          (push (car plist) result)))
+      (setq plist (cdr plist)))
+    (reverse result)))
+</tool.toolu_01LUozJp9rMcbTtwFhg6UE8U>
+
+### git-commit-message
+
+<tool.toolu_01LUozJp9rMcbTtwFhg6UE8U>
+Add functions to apply citations after message merging
+</tool.toolu_01LUozJp9rMcbTtwFhg6UE8U>
+
+<!-- TOOL_RESULT_PLACEHOLDER_toolu_01LUozJp9rMcbTtwFhg6UE8U -->

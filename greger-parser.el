@@ -803,6 +803,36 @@ Modifies the content blocks in-place to process <cite> tags."
             (push (cons 'citations citations) block)
             (message "DEBUG: Added citations to block, new block: %s" block)))))))
 
+(defun greger-parser--apply-citations-to-messages (messages citations)
+  "Apply CITATIONS to the last assistant message in MESSAGES that contains <cite> tags."
+  (greger-parser--debug nil "Applying citations to %d messages" (length messages))
+  ;; Find the last assistant message and apply citations to it
+  (dolist (message messages)
+    (when (string= "assistant" (alist-get 'role message))
+      (let ((content (alist-get 'content message)))
+        (cond
+         ;; String content - check for <cite> tags and process
+         ((stringp content)
+          (when (string-match-p "<cite>" content)
+            (let ((clean-content (greger-parser--remove-cite-tags content)))
+              (setcdr (assq 'content message) clean-content))))
+         ;; List content - process each content block
+         ((listp content)
+          (greger-parser--add-citations-to-content-blocks content citations)))))))
+
+(defun greger-parser--remove-from-plist (plist key)
+  "Remove KEY from PLIST and return the new plist."
+  (let ((result '())
+        (skip-next nil))
+    (while plist
+      (if skip-next
+          (setq skip-next nil)
+        (if (eq (car plist) key)
+            (setq skip-next t)
+          (push (car plist) result)))
+      (setq plist (cdr plist)))
+    (reverse result)))
+
 (defun greger-parser--remove-cite-tags (text)
   "Remove <cite> and </cite> tags from TEXT."
   (let ((result text))
