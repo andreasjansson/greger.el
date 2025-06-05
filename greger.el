@@ -977,8 +977,7 @@ _LEN is the length of the pre-change text (unused)."
   ;; Only run timer-based cleanup for complex changes or when not actively streaming
   (when (and (> (- end beg) 0)  ; Only if there was an actual change
              (not (greger--is-actively-streaming)))
-    (run-with-idle-timer 0.1 nil #'greger--setup-tool-sections)
-    (run-with-idle-timer 0.1 nil #'greger-ui-hide-all-citations)))
+    (run-with-idle-timer 0.1 nil #'greger-ui-refresh-folding)))
 
 (defun greger--is-actively-streaming ()
   "Check if we're currently streaming content from the AI."

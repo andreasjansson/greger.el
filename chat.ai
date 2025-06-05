@@ -4453,4 +4453,68 @@ Update TAB key binding to use greger-ui function
 - This provides unified interface for both tool and citation folding
 </tool.toolu_012LXqwrsF1KdK5gtJtWc5Qn>
 
-<!-- TOOL_RESULT_PLACEHOLDER_toolu_012LXqwrsF1KdK5gtJtWc5Qn -->
+## TOOL RESULT:
+
+ID: toolu_012LXqwrsF1KdK5gtJtWc5Qn
+
+<tool.toolu_012LXqwrsF1KdK5gtJtWc5Qn>
+Successfully replaced content in /Users/andreas/projects/greger.el/greger.el. Successfully staged 2 file(s) and committed with message: Update TAB key binding to use greger-ui function
+
+- Change TAB binding from greger-toggle-tool-section to greger-ui-toggle-section
+- This provides unified interface for both tool and citation folding
+</tool.toolu_012LXqwrsF1KdK5gtJtWc5Qn>
+
+## ASSISTANT:
+
+Now let me update the after-change function:
+
+## TOOL USE:
+
+Name: str-replace
+ID: toolu_01DfTqdbVNG7zE11wWi4rRwC
+
+### file-path
+
+<tool.toolu_01DfTqdbVNG7zE11wWi4rRwC>
+greger.el
+</tool.toolu_01DfTqdbVNG7zE11wWi4rRwC>
+
+### original-content
+
+<tool.toolu_01DfTqdbVNG7zE11wWi4rRwC>
+(defun greger--after-change-function (beg end _len)
+  "Update tool sections and citations after buffer changes.
+BEG is the beginning of the changed region.
+END is the end of the changed region.
+_LEN is the length of the pre-change text (unused)."
+  ;; Only run timer-based cleanup for complex changes or when not actively streaming
+  (when (and (> (- end beg) 0)  ; Only if there was an actual change
+             (not (greger--is-actively-streaming)))
+    (run-with-idle-timer 0.1 nil #'greger--setup-tool-sections)
+    (run-with-idle-timer 0.1 nil #'greger-ui-hide-all-citations)))
+</tool.toolu_01DfTqdbVNG7zE11wWi4rRwC>
+
+### new-content
+
+<tool.toolu_01DfTqdbVNG7zE11wWi4rRwC>
+(defun greger--after-change-function (beg end _len)
+  "Update tool sections and citations after buffer changes.
+BEG is the beginning of the changed region.
+END is the end of the changed region.
+_LEN is the length of the pre-change text (unused)."
+  ;; Only run timer-based cleanup for complex changes or when not actively streaming
+  (when (and (> (- end beg) 0)  ; Only if there was an actual change
+             (not (greger--is-actively-streaming)))
+    (run-with-idle-timer 0.1 nil #'greger-ui-refresh-folding)))
+</tool.toolu_01DfTqdbVNG7zE11wWi4rRwC>
+
+### git-commit-message
+
+<tool.toolu_01DfTqdbVNG7zE11wWi4rRwC>
+Update after-change function to use greger-ui
+
+- Replace separate tool and citation refresh calls with greger-ui-refresh-folding
+- Simplify the after-change logic to use unified UI refresh function
+</tool.toolu_01DfTqdbVNG7zE11wWi4rRwC>
+
+<!-- TOOL_RESULT_PLACEHOLDER_toolu_01DfTqdbVNG7zE11wWi4rRwC -->
