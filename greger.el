@@ -114,6 +114,14 @@
 (defvar-local greger-tool-overlays nil
   "List of overlays used for collapsible tool sections.")
 
+;; Citation section collapsing variables
+(defvar-local greger-citation-overlays nil
+  "List of overlays used for collapsible citation sections.")
+
+(defvar-local greger--unfolded-citation-ids nil
+  "List of citation section IDs that have been manually unfolded.
+These citation IDs should not be auto-folded again.")
+
 (defvar-local greger--current-state nil
   "Buffer-local variable to track the current state.")
 
