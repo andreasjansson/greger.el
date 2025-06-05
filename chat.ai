@@ -4474,4 +4474,244 @@ This is a simple arithmetic question. I can answer this directly without needing
 Add debug script for roundtrip testing
 </tool.toolu_01EbNW2wxKHLuK9XfDa9zfFr>
 
-<!-- TOOL_RESULT_PLACEHOLDER_toolu_01EbNW2wxKHLuK9XfDa9zfFr -->
+## TOOL RESULT:
+
+ID: toolu_01EbNW2wxKHLuK9XfDa9zfFr
+
+<tool.toolu_01EbNW2wxKHLuK9XfDa9zfFr>
+Successfully wrote new file /Users/andreas/projects/greger.el/debug-roundtrip.el with 684 characters. Successfully staged 2 file(s) and committed with message: Add debug script for roundtrip testing
+</tool.toolu_01EbNW2wxKHLuK9XfDa9zfFr>
+
+## TOOL USE:
+
+Name: shell-command
+ID: toolu_01RD7co7VoFmuA3ZsQLrqMmL
+
+### command
+
+<tool.toolu_01RD7co7VoFmuA3ZsQLrqMmL>
+cd /Users/andreas/projects/greger.el && emacs --script debug-roundtrip.el
+</tool.toolu_01RD7co7VoFmuA3ZsQLrqMmL>
+
+## TOOL RESULT:
+
+ID: toolu_01RD7co7VoFmuA3ZsQLrqMmL
+
+<tool.toolu_01RD7co7VoFmuA3ZsQLrqMmL>
+Command executed successfully:
+Source file ‘/opt/homebrew/Cellar/emacs-plus@29/29.0.90/share/emacs/29.0.91/lisp/net/eww.el’ newer than byte-compiled file; using older file
+ORIGINAL DIALOG:
+(((role . "user")
+  (content . "What's 2+2?"))
+ ((role . "assistant")
+  (content
+   ((type . "thinking")
+    (thinking . "This is a simple arithmetic question. I can answer this directly without needing any tools."))
+   ((type . "text")
+    (text . "2 + 2 = 4")))))
+
+
+ROUNDTRIP MARKDOWN:
+## USER:
+
+What's 2+2?
+
+## THINKING:
+
+This is a simple arithmetic question. I can answer this directly without needing any tools.
+
+2 + 2 = 4
+
+ROUNDTRIP DIALOG:
+(((role . "user")
+  (content . "What's 2+2?"))
+ ((role . "assistant")
+  (content
+   ((type . "thinking")
+    (thinking . "This is a simple arithmetic question. I can answer this directly without needing any tools.\n\n2 + 2 = 4")))))
+
+</tool.toolu_01RD7co7VoFmuA3ZsQLrqMmL>
+
+## ASSISTANT:
+
+I can see the issue! The markdown generation for content blocks with both thinking and text is not generating the `## ASSISTANT:` section properly. The text content is being merged into the thinking section.
+
+Looking at the roundtrip markdown, I see that it should have:
+
+```markdown
+## THINKING:
+
+This is a simple arithmetic question. I can answer this directly without needing any tools.
+
+## ASSISTANT:
+
+2 + 2 = 4
+```
+
+But instead it has:
+
+```markdown
+## THINKING:
+
+This is a simple arithmetic question. I can answer this directly without needing any tools.
+
+2 + 2 = 4
+```
+
+The issue is in the markdown generation. Let me check the `greger-parser--content-blocks-to-markdown-with-citations` function:
+
+## TOOL USE:
+
+Name: read-file
+ID: toolu_01RfxrbweFb6BegMRXvMPtsV
+
+### path
+
+<tool.toolu_01RfxrbweFb6BegMRXvMPtsV>
+greger-parser.el
+</tool.toolu_01RfxrbweFb6BegMRXvMPtsV>
+
+### start-line
+
+<tool.toolu_01RfxrbweFb6BegMRXvMPtsV>
+1276
+</tool.toolu_01RfxrbweFb6BegMRXvMPtsV>
+
+### end-line
+
+<tool.toolu_01RfxrbweFb6BegMRXvMPtsV>
+1307
+</tool.toolu_01RfxrbweFb6BegMRXvMPtsV>
+
+## TOOL RESULT:
+
+ID: toolu_01RfxrbweFb6BegMRXvMPtsV
+
+<tool.toolu_01RfxrbweFb6BegMRXvMPtsV>
+
+(defun greger-parser--content-blocks-to-markdown-with-citations (blocks)
+  "Convert content BLOCKS to markdown, collecting citations into a separate section."
+  (let ((block-markdown "")
+        (collected-citations '())
+        (first-block t))
+    ;; Process each block and collect citations
+    (dolist (block blocks)
+      (let ((block-result (greger-parser--block-to-markdown-with-citations block)))
+        (let ((markdown (plist-get block-result :markdown)))
+          ;; Add section headers for non-text blocks or the first text block
+          (when (and (not (string-empty-p markdown))
+                     (or (not (string= "text" (alist-get 'type block)))
+                         first-block))
+            (setq first-block nil)
+            (cond
+             ((string= "text" (alist-get 'type block))
+              (setq markdown (concat greger-parser-assistant-tag "\n\n" markdown)))
+             ((string= "thinking" (alist-get 'type block))
+              ;; thinking blocks already have their header
+              nil)
+             ;; other block types already have their headers
+             ))
+          (setq block-markdown (concat block-markdown
+                                     (if (string-empty-p block-markdown) "" "\n\n")
+                                     markdown)))
+        ;; Collect citations if any
+        (when (plist-get block-result :citations)
+          (setq collected-citations (append collected-citations (plist-get block-result :citations))))))
+    ;; Combine block markdown with citations section if any citations were found
+    (if collected-citations
+        (concat block-markdown "\n\n" (greger-parser--citations-to-markdown collected-citations))
+</tool.toolu_01RfxrbweFb6BegMRXvMPtsV>
+
+## ASSISTANT:
+
+I see the issue. The logic for adding section headers is problematic. The first text block gets the `## ASSISTANT:` header, but subsequent text blocks don't. This means that if there's a thinking block first, the text block after it won't get the proper header.
+
+Let me fix this by modifying the logic:
+
+## TOOL USE:
+
+Name: str-replace
+ID: toolu_01SxAQuLtkSm7EToygVrhppo
+
+### file-path
+
+<tool.toolu_01SxAQuLtkSm7EToygVrhppo>
+greger-parser.el
+</tool.toolu_01SxAQuLtkSm7EToygVrhppo>
+
+### original-content
+
+<tool.toolu_01SxAQuLtkSm7EToygVrhppo>
+(defun greger-parser--content-blocks-to-markdown-with-citations (blocks)
+  "Convert content BLOCKS to markdown, collecting citations into a separate section."
+  (let ((block-markdown "")
+        (collected-citations '())
+        (first-block t))
+    ;; Process each block and collect citations
+    (dolist (block blocks)
+      (let ((block-result (greger-parser--block-to-markdown-with-citations block)))
+        (let ((markdown (plist-get block-result :markdown)))
+          ;; Add section headers for non-text blocks or the first text block
+          (when (and (not (string-empty-p markdown))
+                     (or (not (string= "text" (alist-get 'type block)))
+                         first-block))
+            (setq first-block nil)
+            (cond
+             ((string= "text" (alist-get 'type block))
+              (setq markdown (concat greger-parser-assistant-tag "\n\n" markdown)))
+             ((string= "thinking" (alist-get 'type block))
+              ;; thinking blocks already have their header
+              nil)
+             ;; other block types already have their headers
+             ))
+          (setq block-markdown (concat block-markdown
+                                     (if (string-empty-p block-markdown) "" "\n\n")
+                                     markdown)))
+        ;; Collect citations if any
+        (when (plist-get block-result :citations)
+          (setq collected-citations (append collected-citations (plist-get block-result :citations))))))
+    ;; Combine block markdown with citations section if any citations were found
+    (if collected-citations
+        (concat block-markdown "\n\n" (greger-parser--citations-to-markdown collected-citations))
+      block-markdown)))
+</tool.toolu_01SxAQuLtkSm7EToygVrhppo>
+
+### new-content
+
+<tool.toolu_01SxAQuLtkSm7EToygVrhppo>
+(defun greger-parser--content-blocks-to-markdown-with-citations (blocks)
+  "Convert content BLOCKS to markdown, collecting citations into a separate section."
+  (let ((block-markdown "")
+        (collected-citations '())
+        (first-text-block t))
+    ;; Process each block and collect citations
+    (dolist (block blocks)
+      (let ((block-result (greger-parser--block-to-markdown-with-citations block)))
+        (let ((markdown (plist-get block-result :markdown)))
+          ;; Add section headers for text blocks that need them
+          (when (and (not (string-empty-p markdown))
+                     (string= "text" (alist-get 'type block))
+                     first-text-block)
+            (setq first-text-block nil)
+            (setq markdown (concat greger-parser-assistant-tag "\n\n" markdown)))
+          (setq block-markdown (concat block-markdown
+                                     (if (string-empty-p block-markdown) "" "\n\n")
+                                     markdown)))
+        ;; Collect citations if any
+        (when (plist-get block-result :citations)
+          (setq collected-citations (append collected-citations (plist-get block-result :citations))))))
+    ;; Combine block markdown with citations section if any citations were found
+    (if collected-citations
+        (concat block-markdown "\n\n" (greger-parser--citations-to-markdown collected-citations))
+      block-markdown)))
+</tool.toolu_01SxAQuLtkSm7EToygVrhppo>
+
+### git-commit-message
+
+<tool.toolu_01SxAQuLtkSm7EToygVrhppo>
+Fix markdown generation for mixed content blocks
+
+Ensure that the first text block in assistant content gets the proper ## ASSISTANT: header even when preceded by thinking blocks or other non-text blocks.
+</tool.toolu_01SxAQuLtkSm7EToygVrhppo>
+
+<!-- TOOL_RESULT_PLACEHOLDER_toolu_01SxAQuLtkSm7EToygVrhppo -->
