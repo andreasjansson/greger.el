@@ -10,6 +10,7 @@ bash script/test --verbose --file test/test-greger-parser.el
 bash script/test --verbose --file test/test-greger-stdlib.el
 bash script/test --verbose --file test/test-greger-tools.el
 bash script/test --verbose --file test/test-greger.el
+cd /Users/andreas/projects/greger.el && emacs --script debug-citations.el 2>/dev/null
 </safe-shell-commands>
 
 ## USER:
@@ -2959,9 +2960,9 @@ ID: toolu_018ZZcRoKB6eYhZDrRC2me3V
 
 The web search tool gives Claude direct access to real-time web content, allowing it to answer questions with up-to-date information beyond its knowledge cutoff. Claude automatically cites sources from search results as part of its answer.
 
- 
+
   Please reach out through our [feedback form](https://forms.gle/sWjBtsrNEY2oKGuE8) to share your experience with the web search tool.
- 
+
 
 ## Supported models
 
@@ -2983,13 +2984,13 @@ When you add the web search tool to your API request:
 
 ## How to use web search
 
- 
+
   Your organization's administrator must enable web search in [Console](https://console.anthropic.com/settings/privacy).
- 
+
 
 Provide the web search tool in your API request:
 
- 
+
   ```bash Shell
   curl https://api.anthropic.com/v1/messages \
       --header "x-api-key: $ANTHROPIC_API_KEY" \
@@ -3062,7 +3063,7 @@ Provide the web search tool in your API request:
 
   main().catch(console.error);
   ```
- 
+
 
 ### Tool definition
 
@@ -3203,9 +3204,9 @@ Citations are always enabled for web search, and each `web_search_result_locatio
 
 The web search citation fields `cited_text`, `title`, and `url` do not count towards input or output token usage.
 
- 
+
   When displaying web results or information contained in web results to end users, inline citations must be made clearly visible and clickable in your user interface.
- 
+
 
 #### Errors
 
@@ -3242,7 +3243,7 @@ For multi-turn conversations, set a `cache_control` breakpoint on or after the l
 
 For example, to use prompt caching with web search for a multi-turn conversation:
 
- 
+
   ```python
   import anthropic
 
@@ -3306,7 +3307,7 @@ For example, to use prompt caching with web search for a multi-turn conversation
   # while still being able to perform new searches if needed
   print(f"Cache read tokens: {response2.usage.get('cache_read_input_tokens', 0)}")
   ```
- 
+
 
 ## Streaming
 
@@ -3739,7 +3740,7 @@ Successfully replaced content in /Users/andreas/projects/greger.el/greger-parser
 Now I need to implement the core citation parsing functionality. The key challenge is that citations are embedded within text content blocks, not separate sections. Based on the example, I need to:
 
 1. Parse web search tool results with citations
-2. Handle text blocks that have citations fields 
+2. Handle text blocks that have citations fields
 3. When generating markdown, fold citations into a separate CITATIONS section
 
 Let me first look at the markdown generation section to understand how the web search tool results are currently handled:
@@ -3944,7 +3945,7 @@ ID: toolu_01JaA7Nc7H2bPAoqWD7KTSqp
 I see the issue. I need to implement a system that can:
 
 1. Parse assistant messages containing citations
-2. Extract both the text content and the citations 
+2. Extract both the text content and the citations
 3. Generate markdown with citations folded into a separate section
 
 The key insight from your example is that citations should be collected across the entire assistant message and placed in a separate `## CITATIONS:` section.
@@ -4033,7 +4034,7 @@ greger-parser.el
     ;; Process each block and collect citations
     (dolist (block blocks)
       (let ((block-result (greger-parser--block-to-markdown-with-citations block)))
-        (setq block-markdown (concat block-markdown 
+        (setq block-markdown (concat block-markdown
                                    (if (string-empty-p block-markdown) "" "\n\n")
                                    (plist-get block-result :markdown)))
         ;; Collect citations if any
@@ -4267,7 +4268,7 @@ Successfully replaced content in /Users/andreas/projects/greger.el/greger-parser
 
 Now I need to implement the parsing side. Looking at your example, the format shows that:
 
-1. Text content with citations is wrapped in `<cite>` tags in the markdown 
+1. Text content with citations is wrapped in `<cite>` tags in the markdown
 2. This needs to be parsed back into text blocks with citations
 
 Let me implement the parsing of citations from the markdown format. First, I need to modify the citations section parsing to extract citation information:
@@ -4502,7 +4503,7 @@ greger-parser.el
             (let ((section-result (greger-parser--parse-section state)))
               (when section-result
                 (cond
-                 ;; Handle metadata 
+                 ;; Handle metadata
                  ((and (listp section-result) (eq (car section-result) :metadata))
                   (setq metadata (append metadata (cdr section-result))))
                  ;; Handle citations data - merge with previous assistant message
@@ -5329,7 +5330,7 @@ Successfully replaced content in /Users/andreas/projects/greger.el/greger-parser
 Now I need to implement proper handling for web search tool results that match the expected format. Based on the documentation and your example, I need to handle:
 
 1. `server_tool_use` with `web_search`
-2. `web_search_tool_result` content format 
+2. `web_search_tool_result` content format
 3. Text blocks that follow with citations
 
 Let me add tests for the citation functionality. First, let me create a comprehensive test case that matches your example:
@@ -5532,14 +5533,14 @@ You've done this test case wrong:
                                                       ((type . "text") (text . "Based on the search results, Claude Shannon was born on April 30, 1916, in Petoskey, Michigan") (citations . (((type . "web_search_result_location") (url . "https://en.wikipedia.org/wiki/Claude_Shannon") (title . "Claude Shannon - Wikipedia") (cited_text . "Claude Elwood Shannon (April 30, 1916 – February 24, 2001) was an American mathematician, electrical engineer, computer scientist, cryptographer and i...") (encrypted_index . "Eo8BCioIAhgBIiQyYjQ0OWJmZi1lNm..")))))))))
 ```
 
-It should be 
+It should be
 
 ```emacs-lisp
 :dialog (((role . "user") (content . "When was Claude Shannon born?"))
                     ((role . "assistant") (content . (((type . "server_tool_use") (id . "srvtoolu_01WYG3ziw53XMcoyKL4XcZmE") (name . "web_search") (input . ((query . "claude shannon birth date"))))
                                                       ((type . "web_search_tool_result") (tool_use_id . "srvtoolu_01WYG3ziw53XMcoyKL4XcZmE") (content . "[\n  {\n    \"type\": \"web_search_result\",\n    \"url\": \"https://en.wikipedia.org/wiki/Claude_Shannon\",\n    \"title\": \"Claude Shannon - Wikipedia\",\n    \"encrypted_content\": \"EqgfCioIARgBIiQ3YTAwMjY1Mi1mZjM5LTQ1NGUtODgxNC1kNjNjNTk1ZWI3Y...\",\n    \"page_age\": \"April 30, 2025\"\n  }\n]"))
                                                       ((type . "text") (text . "Based on the search results, "))
-                                                      ((type . "text") (text . "Claude Shannon was born on April 30, 1916, in Petoskey, Michigan") 
+                                                      ((type . "text") (text . "Claude Shannon was born on April 30, 1916, in Petoskey, Michigan")
                                                        (citations . (((type . "web_search_result_location") (url . "https://en.wikipedia.org/wiki/Claude_Shannon") (title . "Claude Shannon - Wikipedia") (cited_text . "Claude Elwood Shannon (April 30, 1916 – February 24, 2001) was an American mathematician, electrical engineer, computer scientist, cryptographer and i...") (encrypted_index . "Eo8BCioIAhgBIiQyYjQ0OWJmZi1lNm..")))))))))
 ```
 
@@ -5576,7 +5577,7 @@ test/test-greger-parser.el
                     ((role . "assistant") (content . (((type . "server_tool_use") (id . "srvtoolu_01WYG3ziw53XMcoyKL4XcZmE") (name . "web_search") (input . ((query . "claude shannon birth date"))))
                                                       ((type . "web_search_tool_result") (tool_use_id . "srvtoolu_01WYG3ziw53XMcoyKL4XcZmE") (content . "[\n  {\n    \"type\": \"web_search_result\",\n    \"url\": \"https://en.wikipedia.org/wiki/Claude_Shannon\",\n    \"title\": \"Claude Shannon - Wikipedia\",\n    \"encrypted_content\": \"EqgfCioIARgBIiQ3YTAwMjY1Mi1mZjM5LTQ1NGUtODgxNC1kNjNjNTk1ZWI3Y...\",\n    \"page_age\": \"April 30, 2025\"\n  }\n]"))
                                                       ((type . "text") (text . "Based on the search results, "))
-                                                      ((type . "text") (text . "Claude Shannon was born on April 30, 1916, in Petoskey, Michigan") 
+                                                      ((type . "text") (text . "Claude Shannon was born on April 30, 1916, in Petoskey, Michigan")
                                                        (citations . (((type . "web_search_result_location") (url . "https://en.wikipedia.org/wiki/Claude_Shannon") (title . "Claude Shannon - Wikipedia") (cited_text . "Claude Elwood Shannon (April 30, 1916 – February 24, 2001) was an American mathematician, electrical engineer, computer scientist, cryptographer and i...") (encrypted_index . "Eo8BCioIAhgBIiQyYjQ0OWJmZi1lNm.."))))))))))
 </tool.toolu_01Gzb71WRaHCjmBA1FQ8Sxqm>
 
@@ -5596,12 +5597,12 @@ Successfully replaced content in /Users/andreas/projects/greger.el/test/test-gre
 
 ## ASSISTANT:
 
-Now I need to completely rethink the parsing approach. The issue is that citations in the markdown are folded into a separate section, but in the dialog structure they need to be attached to the specific text blocks that contain the cited content. 
+Now I need to completely rethink the parsing approach. The issue is that citations in the markdown are folded into a separate section, but in the dialog structure they need to be attached to the specific text blocks that contain the cited content.
 
 Let me modify the parsing logic. The key insight is that when I encounter a `## CITATIONS:` section, I need to:
 
 1. Parse the citation data
-2. Go back to the previous assistant message 
+2. Go back to the previous assistant message
 3. Find text blocks that have `<cite>` tags
 4. Attach the appropriate citations to those text blocks
 5. Remove the `<cite>` tags from the text
@@ -5751,7 +5752,7 @@ Testing markdown-to-dialog for: server-tool-use-string-result
 Testing markdown-to-dialog for: citations-basic
 Test greger-parser-test-markdown-to-dialog backtrace:
   signal(ert-test-failed (((should (greger-parser-test--dialog-equal e
-  ert-fail(((should (greger-parser-test--dialog-equal expected-dialog 
+  ert-fail(((should (greger-parser-test--dialog-equal expected-dialog
   (if (unwind-protect (setq value-5 (apply fn-3 args-4)) (setq form-de
   (let (form-description-7) (if (unwind-protect (setq value-5 (apply f
   (let ((value-5 'ert-form-evaluation-aborted-6)) (let (form-descripti
@@ -5760,8 +5761,8 @@ Test greger-parser-test-markdown-to-dialog backtrace:
   (let ((name (plist-get test-case :name)) (markdown (plist-get test-c
   (let ((test-case (car tail))) (let ((name (plist-get test-case :name
   (while tail (let ((test-case (car tail))) (let ((name (plist-get tes
-  (let ((tail greger-parser-test-cases)) (while tail (let ((test-case 
-  (closure (t) nil (let ((tail greger-parser-test-cases)) (while tail 
+  (let ((tail greger-parser-test-cases)) (while tail (let ((test-case
+  (closure (t) nil (let ((tail greger-parser-test-cases)) (while tail
   ert--run-test-internal(#s(ert--test-execution-info :test #s(ert-test
   ert-run-test(#s(ert-test :name greger-parser-test-markdown-to-dialog
   ert-run-or-rerun-test(#s(ert--stats :selector t :tests ... :test-map
@@ -5781,9 +5782,9 @@ Test greger-parser-test-markdown-to-dialog condition:
       :form
       (greger-parser-test--dialog-equal
        ((... ...)
-	(... ...))
+(... ...))
        ((... ...)
-	(... ...)))
+(... ...)))
       :value nil))
    FAILED  21/35  greger-parser-test-markdown-to-dialog (0.082354 sec) at test/test-greger-parser.el:778
    passed  22/35  greger-parser-test-performance (0.063207 sec)
@@ -5872,7 +5873,7 @@ The test is failing on the citations case. Let me check what the actual parsed r
 The issue is that I need to process the citations section differently. Let me fix the logic:
 
 1. When I encounter a citations section, I should find the previous assistant message
-2. Look for text blocks in that message that contain `<cite>` tags  
+2. Look for text blocks in that message that contain `<cite>` tags
 3. Associate the parsed citations with those blocks
 4. Don't create a separate citations message
 
@@ -6237,7 +6238,7 @@ type: text
 
 I can see the issue! The citations section is not being parsed at all. The parsed result shows that:
 
-1. The `<cite>` tags are preserved in the text 
+1. The `<cite>` tags are preserved in the text
 2. The `## CITATIONS:` section is completely ignored/missing
 
 This means the citations section parsing isn't working correctly. The issue is that the citations section appears but isn't being processed to merge with the previous assistant message.
@@ -7535,7 +7536,7 @@ Command executed successfully:
 Perfect! Now I can see the issue clearly. The citations section is being parsed correctly, but:
 
 1. The `<cite>` tags are still in the text content
-2. The citations are not being attached to the text block 
+2. The citations are not being attached to the text block
 3. The `## CITATIONS:` section is missing from the roundtrip output
 
 This means the citations merging logic isn't working. Let me add some debug output to the merging function to see what's happening:
@@ -7592,4 +7593,75 @@ Modifies the sections list in-place."
 Add debug output to citations merging function
 </tool.toolu_01Bx9MsKWhrgoBug2afy8xQ5>
 
-<!-- TOOL_RESULT_PLACEHOLDER_toolu_01Bx9MsKWhrgoBug2afy8xQ5 -->
+## TOOL RESULT:
+
+ID: toolu_01Bx9MsKWhrgoBug2afy8xQ5
+
+<tool.toolu_01Bx9MsKWhrgoBug2afy8xQ5>
+Successfully replaced content in /Users/andreas/projects/greger.el/greger-parser.el. Successfully staged 2 file(s) and committed with message: Add debug output to citations merging function
+</tool.toolu_01Bx9MsKWhrgoBug2afy8xQ5>
+
+## USER:
+
+continue
+
+
+
+## TOOL USE:
+
+Name: shell-command
+ID: toolu_014C7MiHUGn19JLgfjHakr11
+
+### command
+
+<tool.toolu_014C7MiHUGn19JLgfjHakr11>
+cd /Users/andreas/projects/greger.el && emacs --script debug-citations.el 2>/dev/null | grep -A 5 -B 5 "Merging citations"
+</tool.toolu_014C7MiHUGn19JLgfjHakr11>
+
+## TOOL RESULT:
+
+ID: toolu_014C7MiHUGn19JLgfjHakr11
+
+<tool.toolu_014C7MiHUGn19JLgfjHakr11>
+Command failed with exit code 1: (no output)
+</tool.toolu_014C7MiHUGn19JLgfjHakr11>
+
+## ASSISTANT:
+
+No debug output for merging citations was shown, which means the merging function isn't being called at all. This suggests the citations data isn't being handled properly in the main parsing loop. Let me add debug output to see what's happening with the citations data:
+
+## TOOL USE:
+
+Name: str-replace
+ID: toolu_01KUrhDTS1hrZE8VoWvWrWXF
+
+### file-path
+
+<tool.toolu_01KUrhDTS1hrZE8VoWvWrWXF>
+greger-parser.el
+</tool.toolu_01KUrhDTS1hrZE8VoWvWrWXF>
+
+### original-content
+
+<tool.toolu_01KUrhDTS1hrZE8VoWvWrWXF>
+                 ;; Handle citations data - merge with previous assistant message
+                 ((and (listp section-result) (eq (plist-get section-result :type) :citations-data))
+                  (greger-parser--merge-citations-with-last-assistant sections (plist-get section-result :citations)))
+</tool.toolu_01KUrhDTS1hrZE8VoWvWrWXF>
+
+### new-content
+
+<tool.toolu_01KUrhDTS1hrZE8VoWvWrWXF>
+                 ;; Handle citations data - merge with previous assistant message
+                 ((and (listp section-result) (eq (plist-get section-result :type) :citations-data))
+                  (greger-parser--debug state "Found citations data, merging with last assistant")
+                  (greger-parser--merge-citations-with-last-assistant sections (plist-get section-result :citations)))
+</tool.toolu_01KUrhDTS1hrZE8VoWvWrWXF>
+
+### git-commit-message
+
+<tool.toolu_01KUrhDTS1hrZE8VoWvWrWXF>
+Add debug output to check citations data handling
+</tool.toolu_01KUrhDTS1hrZE8VoWvWrWXF>
+
+<!-- TOOL_RESULT_PLACEHOLDER_toolu_01KUrhDTS1hrZE8VoWvWrWXF -->

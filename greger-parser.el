@@ -612,6 +612,7 @@ Returns a plist with :messages and :metadata keys."
                   (setq metadata (append metadata (cdr section-result))))
                  ;; Handle citations data - merge with previous assistant message
                  ((and (listp section-result) (eq (plist-get section-result :type) :citations-data))
+                  (greger-parser--debug state "Found citations data, merging with last assistant")
                   (greger-parser--merge-citations-with-last-assistant sections (plist-get section-result :citations)))
                  ;; Regular message
                  (t
