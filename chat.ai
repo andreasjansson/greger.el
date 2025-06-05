@@ -2023,7 +2023,7 @@ You're right! Let me identify specifically the tool *folding* functions that sho
 
 1. **Tool folding setup functions:**
    - `greger--setup-tool-sections`
-   - `greger--clear-tool-overlays` 
+   - `greger--clear-tool-overlays`
    - `greger--find-and-setup-tool-sections`
    - `greger--setup-single-tool-section`
    - `greger--setup-collapsible-content`
@@ -3373,7 +3373,7 @@ Let me check if there's a `greger-tool-param-heading-face` defined:
 
 ## ASSISTANT:
 
- 
+
 
 ## TOOL USE:
 
@@ -3487,7 +3487,7 @@ Test greger-test-exact-tool-output-formatting condition:
       (arrays-of-different-length 250 0 "\n\n## TOOL USE:\n\nName: test-multiline\nID: multiline_test\n\n### content\n\n<tool.multiline_test>\nStart\n</tool.multiline_test>\n\n## TOOL RESULT:\n\nID: multiline_test\n\n<tool.multiline_test>\nLine 1: Start\nLine 2: More content\nLine 3: End\n</tool.multiline_test>" "" first-mismatch-at 0)))
    FAILED   1/11  greger-test-exact-tool-output-formatting (0.001460 sec) at test/test-greger.el:380
 Test greger-test-interrupt-with-active-generation backtrace:
-  signal(ert-test-failed (((should cancel-called) :form cancel-called 
+  signal(ert-test-failed (((should cancel-called) :form cancel-called
   ert-fail(((should cancel-called) :form cancel-called :value nil))
   (if (unwind-protect (setq value-69 cancel-called) (setq form-descrip
   (let (form-description-70) (if (unwind-protect (setq value-69 cancel
@@ -3522,7 +3522,7 @@ Test greger-test-interrupt-with-active-generation condition:
 Test greger-test-interrupt-with-executing-tools backtrace:
   signal(ert-test-failed (((should greger-test-cancel-called) :form gr
   ert-fail(((should greger-test-cancel-called) :form greger-test-cance
-  (if (unwind-protect (setq value-78 greger-test-cancel-called) (setq 
+  (if (unwind-protect (setq value-78 greger-test-cancel-called) (setq
   (let (form-description-79) (if (unwind-protect (setq value-78 greger
   (let ((value-78 (gensym "ert-form-evaluation-aborted-"))) (let (form
   (progn (fset 'keyboard-quit vnew) (greger-interrupt) (let ((value-78
@@ -3530,7 +3530,7 @@ Test greger-test-interrupt-with-executing-tools backtrace:
   (let* ((vnew #'(lambda nil (setq keyboard-quit-called t))) (old (sym
   (let ((agent-state (record 'greger-state 1 (current-buffer) default-
   (let ((keyboard-quit-called nil) (mock-greger-tool (record 'greger-t
-  (progn (greger-mode) (defvar greger-test-cancel-called nil) (defvar 
+  (progn (greger-mode) (defvar greger-test-cancel-called nil) (defvar
   (unwind-protect (progn (greger-mode) (defvar greger-test-cancel-call
   (save-current-buffer (set-buffer temp-buffer) (unwind-protect (progn
   (let ((temp-buffer (generate-new-buffer " *temp*" t))) (save-current
@@ -3611,7 +3611,7 @@ Test greger-test-simple-string-comparison backtrace:
   (let ((test-completed nil)) (defalias 'greger-test-simple-echo #'(la
   (closure (t) nil (let ((test-completed nil)) (defalias 'greger-test-
   ert--run-test-internal(#s(ert--test-execution-info :test #s(ert-test
-  ert-run-test(#s(ert-test :name greger-test-simple-string-comparison 
+  ert-run-test(#s(ert-test :name greger-test-simple-string-comparison
   ert-run-or-rerun-test(#s(ert--stats :selector t :tests ... :test-map
   ert-run-tests(t #f(compiled-function (event-type &rest event-args) #
   ert-run-tests-batch(t)
@@ -3765,7 +3765,7 @@ Test greger-test-unknown-tool-error backtrace:
   (unwind-protect (progn (let ((agent-state (record 'greger-state 0 (c
   (save-current-buffer (set-buffer temp-buffer) (unwind-protect (progn
   (let ((temp-buffer (generate-new-buffer " *temp*" t))) (save-current
-  (let ((test-completed nil)) (let ((temp-buffer (generate-new-buffer 
+  (let ((test-completed nil)) (let ((temp-buffer (generate-new-buffer
   (closure (t) nil (let ((test-completed nil)) (let ((temp-buffer (gen
   ert--run-test-internal(#s(ert--test-execution-info :test #s(ert-test
   ert-run-test(#s(ert-test :name greger-test-unknown-tool-error :docum
@@ -3873,7 +3873,7 @@ Let me check if there are any remaining references to the old tool folding funct
 
 ## ASSISTANT:
 
- 
+
 
 ## TOOL USE:
 
@@ -4054,7 +4054,7 @@ greger-ui.el
   "Set up both citation and tool folding for the current buffer."
   ;; Set up invisible text for tool sections
   (add-to-invisibility-spec 'greger-tool-section)
-  
+
   ;; Clean up any existing overlays first
   (greger-ui-cleanup-dead-overlays)
 
@@ -4121,4 +4121,599 @@ greger.el
 Remove redundant invisibility spec setup (now in greger-ui.el)
 </tool.toolu_01AwA8Gn3XbFKR4UVic6ZyHB>
 
-<!-- TOOL_RESULT_PLACEHOLDER_toolu_01AwA8Gn3XbFKR4UVic6ZyHB -->
+## TOOL RESULT:
+
+ID: toolu_01AwA8Gn3XbFKR4UVic6ZyHB
+
+<tool.toolu_01AwA8Gn3XbFKR4UVic6ZyHB>
+Successfully replaced content in /Users/andreas/projects/greger.el/greger.el. Successfully staged 2 file(s) and committed with message: Remove redundant invisibility spec setup (now in greger-ui.el)
+</tool.toolu_01AwA8Gn3XbFKR4UVic6ZyHB>
+
+## ASSISTANT:
+
+Now let me check if there are any other variables or references that need to be cleaned up. Let me search for any remaining references to variables that might need prefixing:
+
+## TOOL USE:
+
+Name: ripgrep
+ID: toolu_01WJ7mR7TerGeaX7RmF3VEfK
+
+### pattern
+
+<tool.toolu_01WJ7mR7TerGeaX7RmF3VEfK>
+greger-tool-.*="
+</tool.toolu_01WJ7mR7TerGeaX7RmF3VEfK>
+
+### path
+
+<tool.toolu_01WJ7mR7TerGeaX7RmF3VEfK>
+greger-ui.el
+</tool.toolu_01WJ7mR7TerGeaX7RmF3VEfK>
+
+## TOOL RESULT:
+
+ID: toolu_01WJ7mR7TerGeaX7RmF3VEfK
+
+<tool.toolu_01WJ7mR7TerGeaX7RmF3VEfK>
+Failed to execute ripgrep search: Command failed with exit code 1: (no output)
+</tool.toolu_01WJ7mR7TerGeaX7RmF3VEfK>
+
+## ASSISTANT:
+
+Let me check if there are any function names that need to be updated to use the proper greger-ui prefix in greger.el:
+
+## TOOL USE:
+
+Name: ripgrep
+ID: toolu_01RLiVTA6n76iKRFfgE7GqEi
+
+### pattern
+
+<tool.toolu_01RLiVTA6n76iKRFfgE7GqEi>
+greger-ui-"
+</tool.toolu_01RLiVTA6n76iKRFfgE7GqEi>
+
+### path
+
+<tool.toolu_01RLiVTA6n76iKRFfgE7GqEi>
+greger.el
+</tool.toolu_01RLiVTA6n76iKRFfgE7GqEi>
+
+### context-lines
+
+<tool.toolu_01RLiVTA6n76iKRFfgE7GqEi>
+2
+</tool.toolu_01RLiVTA6n76iKRFfgE7GqEi>
+
+## TOOL RESULT:
+
+ID: toolu_01RLiVTA6n76iKRFfgE7GqEi
+
+<tool.toolu_01RLiVTA6n76iKRFfgE7GqEi>
+171-    (define-key map (kbd "C-; c") #'greger-copy-code)
+172-    (define-key map (kbd "C-; d") #'greger-debug-request)
+173:    (define-key map (kbd "TAB") #'greger-ui-toggle-section)
+174:    (define-key map (kbd "<tab>") #'greger-ui-toggle-section)
+175-    map)
+176-  "Keymap for `greger-mode'.")
+--
+182-  (setq-local mode-line-misc-info '(:eval (greger--mode-line-info)))
+183-  ;; Set up UI folding (both tools and citations)
+184:  (greger-ui-setup-folding)
+185-  ;; Set up custom heading font-lock
+186-  (greger--setup-heading-font-lock)
+--
+741-  (when (and (> (- end beg) 0)  ; Only if there was an actual change
+742-             (not (greger--is-actively-streaming)))
+743:    (run-with-idle-timer 0.1 nil #'greger-ui-refresh-folding)))
+744-
+745-(defun greger--is-actively-streaming ()
+
+</tool.toolu_01RLiVTA6n76iKRFfgE7GqEi>
+
+## ASSISTANT:
+
+Good! The references in greger.el are already correctly using the `greger-ui-` prefix. Let me check if the variable naming in greger-ui.el is consistent by looking for any non-prefixed variables:
+
+## TOOL USE:
+
+Name: ripgrep
+ID: toolu_01EMGbaFuX1NMwwCTvznbH4L
+
+### pattern
+
+<tool.toolu_01EMGbaFuX1NMwwCTvznbH4L>
+defvar.*greger-[^u]"
+</tool.toolu_01EMGbaFuX1NMwwCTvznbH4L>
+
+### path
+
+<tool.toolu_01EMGbaFuX1NMwwCTvznbH4L>
+greger-ui.el
+</tool.toolu_01EMGbaFuX1NMwwCTvznbH4L>
+
+## TOOL RESULT:
+
+ID: toolu_01EMGbaFuX1NMwwCTvznbH4L
+
+<tool.toolu_01EMGbaFuX1NMwwCTvznbH4L>
+Failed to execute ripgrep search: Command failed with exit code 1: (no output)
+</tool.toolu_01EMGbaFuX1NMwwCTvznbH4L>
+
+## ASSISTANT:
+
+Let me check for face definitions that might need to be moved or renamed:
+
+## TOOL USE:
+
+Name: ripgrep
+ID: toolu_014vhvnHzCMC2jcNpBgn8JJT
+
+### pattern
+
+<tool.toolu_014vhvnHzCMC2jcNpBgn8JJT>
+defface.*greger-tool-tag"
+</tool.toolu_014vhvnHzCMC2jcNpBgn8JJT>
+
+### path
+
+<tool.toolu_014vhvnHzCMC2jcNpBgn8JJT>
+greger-ui.el
+</tool.toolu_014vhvnHzCMC2jcNpBgn8JJT>
+
+### context-lines
+
+<tool.toolu_014vhvnHzCMC2jcNpBgn8JJT>
+3
+</tool.toolu_014vhvnHzCMC2jcNpBgn8JJT>
+
+## TOOL RESULT:
+
+ID: toolu_014vhvnHzCMC2jcNpBgn8JJT
+
+<tool.toolu_014vhvnHzCMC2jcNpBgn8JJT>
+41-  "Face for folded citation summary text."
+42-  :group 'greger-ui)
+43-
+44:(defface greger-tool-tag-face
+45-  '((t (:foreground "#666666" :height 0.8)))
+46-  "Face for tool tags."
+47-  :group 'greger-ui)
+
+</tool.toolu_014vhvnHzCMC2jcNpBgn8JJT>
+
+## ASSISTANT:
+
+I see there's still a `greger-tool-tag-face` in greger-ui.el but I removed it from greger.el. Let me check if this face is being used anywhere:
+
+## TOOL USE:
+
+Name: ripgrep
+ID: toolu_01PFm11ZQp7hpkhZCXqUSThq
+
+### pattern
+
+<tool.toolu_01PFm11ZQp7hpkhZCXqUSThq>
+greger-tool-tag-face"
+</tool.toolu_01PFm11ZQp7hpkhZCXqUSThq>
+
+### path
+
+<tool.toolu_01PFm11ZQp7hpkhZCXqUSThq>
+greger-ui.el
+</tool.toolu_01PFm11ZQp7hpkhZCXqUSThq>
+
+### context-lines
+
+<tool.toolu_01PFm11ZQp7hpkhZCXqUSThq>
+2
+</tool.toolu_01PFm11ZQp7hpkhZCXqUSThq>
+
+## TOOL RESULT:
+
+ID: toolu_01PFm11ZQp7hpkhZCXqUSThq
+
+<tool.toolu_01PFm11ZQp7hpkhZCXqUSThq>
+42-  :group 'greger-ui)
+43-
+44:(defface greger-tool-tag-face
+45-  '((t (:foreground "#666666" :height 0.8)))
+46-  "Face for tool tags."
+--
+435-START and END define the overlay bounds."
+436-  (let ((overlay (make-overlay start end)))
+437:    (overlay-put overlay 'face 'greger-tool-tag-face)
+438-    (overlay-put overlay 'greger-tool-tag t)
+439-    (push overlay greger-ui-tool-overlays)
+--
+480-      (overlay-put indicator-overlay 'after-string
+481-                   (propertize (format "... [+%d lines, TAB to expand]" hidden-line-count)
+482:                              'face 'greger-tool-tag-face))
+483-      (overlay-put indicator-overlay 'greger-tool-indicator t)
+484-      (overlay-put indicator-overlay 'greger-tool-id tool-id)
+--
+570-    (overlay-put indicator-overlay 'after-string
+571-                 (propertize (format "... [+%d lines, TAB to expand]" hidden-line-count)
+572:                            'face 'greger-tool-tag-face))
+573-    (overlay-put indicator-overlay 'greger-tool-indicator t)
+574-    (overlay-put indicator-overlay 'greger-tool-id tool-id)
+
+</tool.toolu_01PFm11ZQp7hpkhZCXqUSThq>
+
+## ASSISTANT:
+
+Good, the face is being used within greger-ui.el, so it's correctly placed there. Now let me check if there are any other duplications or missing pieces by doing a final check of both files:
+
+## TOOL USE:
+
+Name: ripgrep
+ID: toolu_01GAopgYP6NfX5kU3XET8bim
+
+### pattern
+
+<tool.toolu_01GAopgYP6NfX5kU3XET8bim>
+TODO:|FIXME:|XXX:"
+</tool.toolu_01GAopgYP6NfX5kU3XET8bim>
+
+### path
+
+<tool.toolu_01GAopgYP6NfX5kU3XET8bim>
+greger.el
+</tool.toolu_01GAopgYP6NfX5kU3XET8bim>
+
+## TOOL RESULT:
+
+ID: toolu_01GAopgYP6NfX5kU3XET8bim
+
+<tool.toolu_01GAopgYP6NfX5kU3XET8bim>
+449:        (setq greger--current-state state) ;; TODO: why do we set that _here_? Or should it be greger--current-client-state instead?
+453:  ;; TODO: remove debug
+458:     ;; TODO: remove debug
+474:    ;; TODO: remove debug
+480:          ;; TODO: execute tool calls in greger--append-content-block instead
+595:             ;; TODO: This is ugly, we really should be separating the creation and execution of tools
+624:          ;; TODO: here again, it's ugly
+
+</tool.toolu_01GAopgYP6NfX5kU3XET8bim>
+
+## ASSISTANT:
+
+These TODOs are unrelated to the tool folding migration. Let me do a final check to see if there are any inconsistencies in naming between the files:
+
+## TOOL USE:
+
+Name: ripgrep
+ID: toolu_01KKU78tA51Riv8WwmqgX9tP
+
+### pattern
+
+<tool.toolu_01KKU78tA51Riv8WwmqgX9tP>
+greger.*tool.*section"
+</tool.toolu_01KKU78tA51Riv8WwmqgX9tP>
+
+### path
+
+<tool.toolu_01KKU78tA51Riv8WwmqgX9tP>
+greger-ui.el
+</tool.toolu_01KKU78tA51Riv8WwmqgX9tP>
+
+## TOOL RESULT:
+
+ID: toolu_01KKU78tA51Riv8WwmqgX9tP
+
+<tool.toolu_01KKU78tA51Riv8WwmqgX9tP>
+64:(defvar greger-ui-tool-section-max-lines 4
+386:(defun greger-ui-setup-tool-sections ()
+389:  (greger-ui-find-and-setup-tool-sections))
+397:(defun greger-ui-find-and-setup-tool-sections ()
+402:             do (greger-ui-setup-single-tool-section))))
+404:(defun greger-ui-setup-single-tool-section ()
+451:    (when (and (> line-count greger-ui-tool-section-max-lines)
+461:  (let* ((visible-lines (cl-subseq lines 0 greger-ui-tool-section-max-lines))
+462:         (hidden-lines (cl-subseq lines greger-ui-tool-section-max-lines))
+473:    (overlay-put hidden-overlay 'invisible 'greger-tool-section)
+474:    (overlay-put hidden-overlay 'greger-tool-section t)
+518:(defun greger-ui-toggle-tool-section-by-id (tool-id)
+522:           when (and (overlay-get overlay 'greger-tool-section)
+530:        (greger-ui-expand-tool-section overlay tool-id)
+531:      (greger-ui-collapse-tool-section overlay tool-id))))
+533:(defun greger-ui-expand-tool-section (overlay tool-id)
+552:(defun greger-ui-collapse-tool-section (overlay tool-id)
+556:  (overlay-put overlay 'invisible 'greger-tool-section)
+587:      (greger-ui-toggle-tool-section-by-id tool-id))
+601:  (add-to-invisibility-spec 'greger-tool-section)
+610:  (greger-ui-setup-tool-sections)
+629:    (greger-ui-setup-tool-sections)
+
+</tool.toolu_01KKU78tA51Riv8WwmqgX9tP>
+
+## ASSISTANT:
+
+Perfect! The naming is consistent with the `greger-ui-` prefix. Let me also check if all functions that were moved are properly defined:
+
+## TOOL USE:
+
+Name: ripgrep
+ID: toolu_01HLLeEYhoSjgWxuowF6TARU
+
+### pattern
+
+<tool.toolu_01HLLeEYhoSjgWxuowF6TARU>
+defun greger-ui.*tool"
+</tool.toolu_01HLLeEYhoSjgWxuowF6TARU>
+
+### path
+
+<tool.toolu_01HLLeEYhoSjgWxuowF6TARU>
+greger-ui.el
+</tool.toolu_01HLLeEYhoSjgWxuowF6TARU>
+
+## TOOL RESULT:
+
+ID: toolu_01HLLeEYhoSjgWxuowF6TARU
+
+<tool.toolu_01HLLeEYhoSjgWxuowF6TARU>
+386:(defun greger-ui-setup-tool-sections ()
+391:(defun greger-ui-clear-tool-overlays ()
+397:(defun greger-ui-find-and-setup-tool-sections ()
+404:(defun greger-ui-setup-single-tool-section ()
+427:(defun greger-ui-extract-tool-id (tag-string)
+442:(defun greger-ui-setup-collapsible-content (content-start content-end tool-id)
+457:(defun greger-ui-create-collapsible-overlay (content-start content-end tool-id lines)
+489:(defun greger-ui-get-tool-id-at-point ()
+498:(defun greger-ui-find-tool-id-near-point ()
+518:(defun greger-ui-toggle-tool-section-by-id (tool-id)
+526:(defun greger-ui-toggle-overlay-visibility (overlay tool-id)
+533:(defun greger-ui-expand-tool-section (overlay tool-id)
+552:(defun greger-ui-collapse-tool-section (overlay tool-id)
+
+</tool.toolu_01HLLeEYhoSjgWxuowF6TARU>
+
+## ASSISTANT:
+
+Excellent! All the tool folding functions have been properly moved and renamed with the `greger-ui-` prefix.
+
+Let me now do a summary check to make sure the migration is complete. Let me verify that greger.el no longer has any tool folding functions:
+
+## TOOL USE:
+
+Name: ripgrep
+ID: toolu_01SXauuiuwLBiwcPgDtWQn1L
+
+### pattern
+
+<tool.toolu_01SXauuiuwLBiwcPgDtWQn1L>
+defun.*tool.*section|defun.*tool.*overlay|defun.*tool.*id"
+</tool.toolu_01SXauuiuwLBiwcPgDtWQn1L>
+
+### path
+
+<tool.toolu_01SXauuiuwLBiwcPgDtWQn1L>
+greger.el
+</tool.toolu_01SXauuiuwLBiwcPgDtWQn1L>
+
+## TOOL RESULT:
+
+ID: toolu_01SXauuiuwLBiwcPgDtWQn1L
+
+<tool.toolu_01SXauuiuwLBiwcPgDtWQn1L>
+556:(defun greger--tool-placeholder (tool-id)
+635:(cl-defun greger--handle-tool-completion (&key tool-id result error state completion-callback)
+
+</tool.toolu_01SXauuiuwLBiwcPgDtWQn1L>
+
+## ASSISTANT:
+
+Perfect! The remaining functions in greger.el are core tool execution functions, not tool folding UI functions.
+
+Let me also verify that the greger-ui functions are being called correctly from greger.el:
+
+## TOOL USE:
+
+Name: ripgrep
+ID: toolu_01RYSySmUwvnh8A68JYXoafG
+
+### pattern
+
+<tool.toolu_01RYSySmUwvnh8A68JYXoafG>
+greger-ui-.*"
+</tool.toolu_01RYSySmUwvnh8A68JYXoafG>
+
+### path
+
+<tool.toolu_01RYSySmUwvnh8A68JYXoafG>
+greger.el
+</tool.toolu_01RYSySmUwvnh8A68JYXoafG>
+
+### context-lines
+
+<tool.toolu_01RYSySmUwvnh8A68JYXoafG>
+1
+</tool.toolu_01RYSySmUwvnh8A68JYXoafG>
+
+## TOOL RESULT:
+
+ID: toolu_01RYSySmUwvnh8A68JYXoafG
+
+<tool.toolu_01RYSySmUwvnh8A68JYXoafG>
+172-    (define-key map (kbd "C-; d") #'greger-debug-request)
+173:    (define-key map (kbd "TAB") #'greger-ui-toggle-section)
+174:    (define-key map (kbd "<tab>") #'greger-ui-toggle-section)
+175-    map)
+--
+183-  ;; Set up UI folding (both tools and citations)
+184:  (greger-ui-setup-folding)
+185-  ;; Set up custom heading font-lock
+--
+742-             (not (greger--is-actively-streaming)))
+743:    (run-with-idle-timer 0.1 nil #'greger-ui-refresh-folding)))
+744-
+
+</tool.toolu_01RYSySmUwvnh8A68JYXoafG>
+
+## ASSISTANT:
+
+Perfect! The migration is complete. Here's a summary of what was accomplished:
+
+## Tool Folding Migration Summary
+
+### ✅ Moved from greger.el to greger-ui.el:
+
+1. **Tool folding setup functions:**
+   - `greger--setup-tool-sections` → `greger-ui-setup-tool-sections`
+   - `greger--clear-tool-overlays` → `greger-ui-clear-tool-overlays`
+   - `greger--find-and-setup-tool-sections` → `greger-ui-find-and-setup-tool-sections`
+   - `greger--setup-single-tool-section` → `greger-ui-setup-single-tool-section`
+   - `greger--setup-collapsible-content` → `greger-ui-setup-collapsible-content`
+   - `greger--create-collapsible-overlay` → `greger-ui-create-collapsible-overlay`
+
+2. **Tool folding interaction functions:**
+   - `greger-toggle-tool-section` → integrated into `greger-ui-toggle-section`
+   - `greger--get-tool-id-at-point` → `greger-ui-get-tool-id-at-point`
+   - `greger--find-tool-id-near-point` → `greger-ui-find-tool-id-near-point`
+   - `greger--toggle-tool-section-by-id` → `greger-ui-toggle-tool-section-by-id`
+   - `greger--toggle-overlay-visibility` → `greger-ui-toggle-overlay-visibility`
+   - `greger--expand-tool-section` → `greger-ui-expand-tool-section`
+   - `greger--collapse-tool-section` → `greger-ui-collapse-tool-section`
+
+3. **Tool folding utility functions:**
+   - `greger--extract-tool-id` → `greger-ui-extract-tool-id`
+
+4. **Tool folding variables:**
+   - `greger-tool-section-max-lines` → `greger-ui-tool-section-max-lines`
+   - `greger-tool-overlays` → `greger-ui-tool-overlays`
+   - `greger--unfolded-tool-ids` → `greger-ui-unfolded-tool-ids`
+
+5. **Tool tag faces:**
+   - `greger-tool-tag-face` (duplicate removed from greger.el, kept in greger-ui.el)
+
+### ✅ Updated integrations:
+
+1. **Keymap:** Updated to use `greger-ui-toggle-section` instead of the old function
+2. **Mode setup:** `greger-ui-setup-folding` now handles invisibility spec setup
+3. **Buffer change hooks:** Already correctly using `greger-ui-refresh-folding`
+
+### ✅ Kept in greger.el (correctly):
+
+1. **Tool execution functions:** These are core functionality, not UI
+2. **Tool content styling faces:** `greger-tool-param-heading-face`, `greger-tool-result-heading-face`, `greger-tool-use-heading-face`
+3. **Tool configuration:** `greger-tools`, `greger-server-tools` etc.
+
+The tool folding functionality has been successfully migrated to greger-ui.el with proper naming conventions, and all the integration points have been updated correctly. The separation of concerns is now clean - greger.el handles core tool execution while greger-ui.el handles all the folding/UI behavior.
+
+## USER:
+
+Great!
+
+Now change the citation folding so that it remembers folded and unfolded sections when greger-ui-refresh-folding is called.
+
+## ASSISTANT:
+
+I'll modify the citation folding functionality to remember which sections are manually folded/unfolded when `greger-ui-refresh-folding` is called, similar to how the tool folding already works.
+
+First, let me examine the current citation folding implementation:
+
+## TOOL USE:
+
+Name: read-file
+ID: toolu_012wEhN5Ebom9C7BajDzRgWw
+
+### path
+
+<tool.toolu_012wEhN5Ebom9C7BajDzRgWw>
+greger-ui.el
+</tool.toolu_012wEhN5Ebom9C7BajDzRgWw>
+
+### start-line
+
+<tool.toolu_012wEhN5Ebom9C7BajDzRgWw>
+50
+</tool.toolu_012wEhN5Ebom9C7BajDzRgWw>
+
+### end-line
+
+<tool.toolu_012wEhN5Ebom9C7BajDzRgWw>
+80
+</tool.toolu_012wEhN5Ebom9C7BajDzRgWw>
+
+## TOOL RESULT:
+
+ID: toolu_012wEhN5Ebom9C7BajDzRgWw
+
+<tool.toolu_012wEhN5Ebom9C7BajDzRgWw>
+(defconst greger-ui-cite-tag-regex "<cite>\\([^<]*\\)</cite>"
+  "Regular expression to match cite tags.")
+
+(defconst greger-ui-assistant-header-regex "^## ASSISTANT:$"
+  "Regular expression to match assistant headers.")
+
+;; Variables
+(defvar-local greger-ui-cite-citation-overlays nil
+  "List of overlays used to hide citation blocks.")
+
+(defvar-local greger-ui-bibliography-overlays nil
+  "List of overlays used to hide/show the final bibliography section.")
+
+;; Tool section variables
+(defvar greger-ui-tool-section-max-lines 4
+  "Maximum number of lines to show in collapsed tool sections.")
+
+(defvar-local greger-ui-tool-overlays nil
+  "List of overlays used for collapsible tool sections.")
+
+(defvar-local greger-ui-unfolded-tool-ids nil
+  "List of tool IDs that have been manually unfolded.
+These tool IDs should not be auto-folded again.")
+
+;;; Core Functions
+
+(defun greger-ui-point-in-cite-tag-p ()
+  "Return t if point is inside a <cite> tag."
+  (save-excursion
+    (let ((orig-point (point)))
+      ;; Look for cite tags on the current line
+</tool.toolu_012wEhN5Ebom9C7BajDzRgWw>
+
+## ASSISTANT:
+
+I need to add variables to track manually unfolded citations. Let me add these variables first:
+
+## TOOL USE:
+
+Name: str-replace
+ID: toolu_01Ne7vzmqFWE4i4fYXTxXjdo
+
+### file-path
+
+<tool.toolu_01Ne7vzmqFWE4i4fYXTxXjdo>
+greger-ui.el
+</tool.toolu_01Ne7vzmqFWE4i4fYXTxXjdo>
+
+### original-content
+
+<tool.toolu_01Ne7vzmqFWE4i4fYXTxXjdo>
+(defvar-local greger-ui-bibliography-overlays nil
+  "List of overlays used to hide/show the final bibliography section.")
+</tool.toolu_01Ne7vzmqFWE4i4fYXTxXjdo>
+
+### new-content
+
+<tool.toolu_01Ne7vzmqFWE4i4fYXTxXjdo>
+(defvar-local greger-ui-bibliography-overlays nil
+  "List of overlays used to hide/show the final bibliography section.")
+
+(defvar-local greger-ui-unfolded-cite-positions nil
+  "List of cite tag positions that have been manually unfolded.
+Each element is (CITE-START . CITE-END) for cite tags that should remain expanded.")
+
+(defvar-local greger-ui-bibliography-manually-shown nil
+  "Whether the final bibliography section has been manually expanded.")
+</tool.toolu_01Ne7vzmqFWE4i4fYXTxXjdo>
+
+### git-commit-message
+
+<tool.toolu_01Ne7vzmqFWE4i4fYXTxXjdo>
+Add variables to track manually unfolded citations
+</tool.toolu_01Ne7vzmqFWE4i4fYXTxXjdo>
+
+<!-- TOOL_RESULT_PLACEHOLDER_toolu_01Ne7vzmqFWE4i4fYXTxXjdo -->

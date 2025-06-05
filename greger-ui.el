@@ -60,6 +60,13 @@
 (defvar-local greger-ui-bibliography-overlays nil
   "List of overlays used to hide/show the final bibliography section.")
 
+(defvar-local greger-ui-unfolded-cite-positions nil
+  "List of cite tag positions that have been manually unfolded.
+Each element is (CITE-START . CITE-END) for cite tags that should remain expanded.")
+
+(defvar-local greger-ui-bibliography-manually-shown nil
+  "Whether the final bibliography section has been manually expanded.")
+
 ;; Tool section variables
 (defvar greger-ui-tool-section-max-lines 4
   "Maximum number of lines to show in collapsed tool sections.")
