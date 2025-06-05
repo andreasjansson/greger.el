@@ -5403,4 +5403,62 @@ greger-ui.el
 Update refresh-folding to cleanup stale cite positions
 </tool.toolu_01PyPSZLGj13eEh5KpS3jKCP>
 
-<!-- TOOL_RESULT_PLACEHOLDER_toolu_01PyPSZLGj13eEh5KpS3jKCP -->
+## TOOL RESULT:
+
+ID: toolu_01PyPSZLGj13eEh5KpS3jKCP
+
+<tool.toolu_01PyPSZLGj13eEh5KpS3jKCP>
+Successfully replaced content in /Users/andreas/projects/greger.el/greger-ui.el. Successfully staged 2 file(s) and committed with message: Update refresh-folding to cleanup stale cite positions
+</tool.toolu_01PyPSZLGj13eEh5KpS3jKCP>
+
+## ASSISTANT:
+
+Now let me also add cleanup of these variables when the buffer is killed or folding is torn down:
+
+## TOOL USE:
+
+Name: str-replace
+ID: toolu_01W48D9ekunQQFMpGG7gLzf9
+
+### file-path
+
+<tool.toolu_01W48D9ekunQQFMpGG7gLzf9>
+greger-ui.el
+</tool.toolu_01W48D9ekunQQFMpGG7gLzf9>
+
+### original-content
+
+<tool.toolu_01W48D9ekunQQFMpGG7gLzf9>
+(defun greger-ui-show-all-citations ()
+  "Show all citation blocks."
+  (interactive)
+  (remove-overlays (point-min) (point-max) 'greger-citation t)
+  (remove-overlays (point-min) (point-max) 'greger-bibliography t)
+  (remove-overlays (point-min) (point-max) 'greger-bibliography-summary t)
+  (setq greger-ui-cite-citation-overlays nil)
+  (setq greger-ui-bibliography-overlays nil))
+</tool.toolu_01W48D9ekunQQFMpGG7gLzf9>
+
+### new-content
+
+<tool.toolu_01W48D9ekunQQFMpGG7gLzf9>
+(defun greger-ui-show-all-citations ()
+  "Show all citation blocks."
+  (interactive)
+  (remove-overlays (point-min) (point-max) 'greger-citation t)
+  (remove-overlays (point-min) (point-max) 'greger-bibliography t)
+  (remove-overlays (point-min) (point-max) 'greger-bibliography-summary t)
+  (setq greger-ui-cite-citation-overlays nil)
+  (setq greger-ui-bibliography-overlays nil)
+  ;; Clear manual folding state
+  (setq greger-ui-unfolded-cite-positions nil)
+  (setq greger-ui-bibliography-manually-shown nil))
+</tool.toolu_01W48D9ekunQQFMpGG7gLzf9>
+
+### git-commit-message
+
+<tool.toolu_01W48D9ekunQQFMpGG7gLzf9>
+Clear manual folding state when showing all citations
+</tool.toolu_01W48D9ekunQQFMpGG7gLzf9>
+
+<!-- TOOL_RESULT_PLACEHOLDER_toolu_01W48D9ekunQQFMpGG7gLzf9 -->

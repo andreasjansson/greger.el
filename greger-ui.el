@@ -392,7 +392,10 @@ CITE-TAG is a cons (START . END) for the cite tag position."
   (remove-overlays (point-min) (point-max) 'greger-bibliography t)
   (remove-overlays (point-min) (point-max) 'greger-bibliography-summary t)
   (setq greger-ui-cite-citation-overlays nil)
-  (setq greger-ui-bibliography-overlays nil))
+  (setq greger-ui-bibliography-overlays nil)
+  ;; Clear manual folding state
+  (setq greger-ui-unfolded-cite-positions nil)
+  (setq greger-ui-bibliography-manually-shown nil))
 
 (defun greger-ui-cleanup-dead-overlays ()
   "Remove dead overlays from citation and tool overlays lists."
