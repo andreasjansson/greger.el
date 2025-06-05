@@ -2970,4 +2970,80 @@ Fix bibliography summary overlay display
 - This should properly show the citation count indicator
 </tool.toolu_01JJAY4veWhnaUr2uJgVEXfC>
 
-<!-- TOOL_RESULT_PLACEHOLDER_toolu_01JJAY4veWhnaUr2uJgVEXfC -->
+## TOOL RESULT:
+
+ID: toolu_01JJAY4veWhnaUr2uJgVEXfC
+
+<tool.toolu_01JJAY4veWhnaUr2uJgVEXfC>
+Successfully replaced content in /Users/andreas/projects/greger.el/greger-ui.el. Successfully staged 2 file(s) and committed with message: Fix bibliography summary overlay display
+
+- Change summary overlay to span from header-end to content-start (the newline)
+- Use 'display property instead of 'after-string for more reliable rendering
+- This should properly show the citation count indicator
+</tool.toolu_01JJAY4veWhnaUr2uJgVEXfC>
+
+## ASSISTANT:
+
+Now I need to update the corresponding show function to handle the new overlay positioning:
+
+## TOOL USE:
+
+Name: str-replace
+ID: toolu_013M4HMZ5Y6FP1Eae5BG9NMB
+
+### file-path
+
+<tool.toolu_013M4HMZ5Y6FP1Eae5BG9NMB>
+greger-ui.el
+</tool.toolu_013M4HMZ5Y6FP1Eae5BG9NMB>
+
+### original-content
+
+<tool.toolu_013M4HMZ5Y6FP1Eae5BG9NMB>
+(defun greger-ui-show-final-bibliography (start end)
+  "Show the final bibliography section."
+  (let ((header-end (save-excursion (goto-char start) (line-end-position)))
+        (content-start (save-excursion (goto-char start) (forward-line 1) (point))))
+    ;; Remove both content and summary overlays
+    (remove-overlays content-start end 'greger-bibliography t)
+    (remove-overlays header-end content-start 'greger-bibliography-summary t)
+    (setq greger-ui-bibliography-overlays
+          (cl-remove-if (lambda (ov)
+                          (or (not (overlay-buffer ov))
+                              (and (overlay-start ov)
+                                   (overlay-end ov)
+                                   (>= (overlay-start ov) header-end)
+                                   (<= (overlay-end ov) end))))
+                        greger-ui-bibliography-overlays))))
+</tool.toolu_013M4HMZ5Y6FP1Eae5BG9NMB>
+
+### new-content
+
+<tool.toolu_013M4HMZ5Y6FP1Eae5BG9NMB>
+(defun greger-ui-show-final-bibliography (start end)
+  "Show the final bibliography section."
+  (let ((header-end (save-excursion (goto-char start) (line-end-position)))
+        (content-start (save-excursion (goto-char start) (forward-line 1) (point))))
+    ;; Remove both content and summary overlays
+    (remove-overlays content-start end 'greger-bibliography t)
+    (remove-overlays header-end content-start 'greger-bibliography-summary t)
+    (setq greger-ui-bibliography-overlays
+          (cl-remove-if (lambda (ov)
+                          (or (not (overlay-buffer ov))
+                              (and (overlay-start ov)
+                                   (overlay-end ov)
+                                   (>= (overlay-start ov) header-end)
+                                   (<= (overlay-end ov) end))))
+                        greger-ui-bibliography-overlays))))
+</tool.toolu_013M4HMZ5Y6FP1Eae5BG9NMB>
+
+### git-commit-message
+
+<tool.toolu_013M4HMZ5Y6FP1Eae5BG9NMB>
+Update show function to match new overlay positioning
+
+- Ensure greger-ui-show-final-bibliography correctly removes the new summary overlay
+- The overlay now spans from header-end to content-start instead of being zero-width
+</tool.toolu_013M4HMZ5Y6FP1Eae5BG9NMB>
+
+<!-- TOOL_RESULT_PLACEHOLDER_toolu_013M4HMZ5Y6FP1Eae5BG9NMB -->
