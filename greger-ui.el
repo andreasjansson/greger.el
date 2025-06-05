@@ -200,10 +200,13 @@ Returns (START . END) or nil if not found."
         (save-excursion
           (goto-char start)
           (unless (re-search-forward greger-ui-cite-tag-regex nil t)
-            ;; This is the final bibliography
+            ;; This is the final bibliography - find where it ends
             (goto-char start)
             (forward-line 1)  ; Skip the header
-            (setq end (point-max))
+            ;; Look for the next section header (## ) or end of buffer
+            (if (re-search-forward "^## " nil t)
+                (setq end (line-beginning-position))
+              (setq end (point-max)))
             (cons start end)))))))
 
 (defun greger-ui-count-citations-in-section (start end)
