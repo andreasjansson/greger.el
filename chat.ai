@@ -3132,4 +3132,90 @@ Add simple test for citation folding visualization
 - Switch to buffer to visually inspect folding behavior
 </tool.toolu_015oXRWKzJv9WxscVJPjTreL>
 
-<!-- TOOL_RESULT_PLACEHOLDER_toolu_015oXRWKzJv9WxscVJPjTreL -->
+## TOOL RESULT:
+
+ID: toolu_015oXRWKzJv9WxscVJPjTreL
+
+<tool.toolu_015oXRWKzJv9WxscVJPjTreL>
+Successfully wrote new file /Users/andreas/projects/greger.el/test-simple-folding.el with 1358 characters. Successfully staged 2 file(s) and committed with message: Add simple test for citation folding visualization
+
+- Create test-simple-folding.el with minimal test content
+- Test bibliography detection, counting, and folding
+- Switch to buffer to visually inspect folding behavior
+</tool.toolu_015oXRWKzJv9WxscVJPjTreL>
+
+## USER:
+
+There's just a minor issue left, the folded final citation (or bibliography) folds up the double newline before `## USER:`, so what I see is this:
+
+```markdown
+## CITATIONS:
+[+17 citations, TAB to expand]
+## USER:
+```
+
+but I want to see
+
+```markdown
+## CITATIONS:
+[+17 citations, TAB to expand]
+
+## USER:
+```
+
+
+## ASSISTANT:
+
+I see the issue! The bibliography folding is including too much whitespace. The problem is that the `end` position includes the empty lines before the next section. Let me fix this by adjusting how we determine the end boundary to preserve one newline:
+
+## TOOL USE:
+
+Name: str-replace
+ID: toolu_011qvaVpmG5m7TWTrU5UXnhk
+
+### file-path
+
+<tool.toolu_011qvaVpmG5m7TWTrU5UXnhk>
+greger-ui.el
+</tool.toolu_011qvaVpmG5m7TWTrU5UXnhk>
+
+### original-content
+
+<tool.toolu_011qvaVpmG5m7TWTrU5UXnhk>
+            ;; This is the final bibliography - find where it ends
+            (goto-char start)
+            (forward-line 1)  ; Skip the header
+            ;; Look for the next section header (## ) or end of buffer
+            (if (re-search-forward "^## " nil t)
+                (setq end (line-beginning-position))
+              (setq end (point-max)))
+</tool.toolu_011qvaVpmG5m7TWTrU5UXnhk>
+
+### new-content
+
+<tool.toolu_011qvaVpmG5m7TWTrU5UXnhk>
+            ;; This is the final bibliography - find where it ends
+            (goto-char start)
+            (forward-line 1)  ; Skip the header
+            ;; Look for the next section header (## ) or end of buffer
+            (if (re-search-forward "^## " nil t)
+                (progn
+                  ;; Go back to preserve one newline before the next section
+                  (beginning-of-line)
+                  (skip-chars-backward " \t\n")
+                  (forward-line 1)
+                  (setq end (point)))
+              (setq end (point-max)))
+</tool.toolu_011qvaVpmG5m7TWTrU5UXnhk>
+
+### git-commit-message
+
+<tool.toolu_011qvaVpmG5m7TWTrU5UXnhk>
+Fix bibliography folding to preserve spacing before next section
+
+- Modify end boundary detection to preserve one newline before next section
+- Skip backwards over whitespace and move forward one line to maintain proper spacing
+- This ensures "## USER:" appears on its own line with proper spacing
+</tool.toolu_011qvaVpmG5m7TWTrU5UXnhk>
+
+<!-- TOOL_RESULT_PLACEHOLDER_toolu_011qvaVpmG5m7TWTrU5UXnhk -->

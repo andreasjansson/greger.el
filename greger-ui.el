@@ -205,7 +205,12 @@ Returns (START . END) or nil if not found."
             (forward-line 1)  ; Skip the header
             ;; Look for the next section header (## ) or end of buffer
             (if (re-search-forward "^## " nil t)
-                (setq end (line-beginning-position))
+                (progn
+                  ;; Go back to preserve one newline before the next section
+                  (beginning-of-line)
+                  (skip-chars-backward " \t\n")
+                  (forward-line 1)
+                  (setq end (point)))
               (setq end (point-max)))
             (cons start end)))))))
 
