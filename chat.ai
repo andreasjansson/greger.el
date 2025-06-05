@@ -2733,4 +2733,75 @@ Fix bibliography show function to remove summary overlays correctly
 - Ensure proper cleanup of both content and summary overlays
 </tool.toolu_01TzFX99aasES5WAMEcY8NUW>
 
-<!-- TOOL_RESULT_PLACEHOLDER_toolu_01TzFX99aasES5WAMEcY8NUW -->
+## TOOL RESULT:
+
+ID: toolu_01TzFX99aasES5WAMEcY8NUW
+
+<tool.toolu_01TzFX99aasES5WAMEcY8NUW>
+Successfully replaced content in /Users/andreas/projects/greger.el/greger-ui.el. Successfully staged 2 file(s) and committed with message: Fix bibliography show function to remove summary overlays correctly
+
+- Update greger-ui-show-final-bibliography to remove summary overlays from correct position
+- Remove overlays from header-end to content-start for summary
+- Ensure proper cleanup of both content and summary overlays
+</tool.toolu_01TzFX99aasES5WAMEcY8NUW>
+
+## ASSISTANT:
+
+Now let's test the functionality. Let me update the test file to verify the behavior:
+
+## TOOL USE:
+
+Name: str-replace
+ID: toolu_01A82sd9x5xdabb5k9p7xHyH
+
+### file-path
+
+<tool.toolu_01A82sd9x5xdabb5k9p7xHyH>
+test-citation-folding.el
+</tool.toolu_01A82sd9x5xdabb5k9p7xHyH>
+
+### original-content
+
+<tool.toolu_01A82sd9x5xdabb5k9p7xHyH>
+;; Run the test
+(test-citation-folding)
+</tool.toolu_01A82sd9x5xdabb5k9p7xHyH>
+
+### new-content
+
+<tool.toolu_01A82sd9x5xdabb5k9p7xHyH>
+(defun test-bibliography-folding-visual ()
+  "Test the visual aspects of bibliography folding."
+  (interactive)
+  (with-temp-buffer
+    (insert-file-contents "test-citations.md")
+    (greger-mode)
+    
+    ;; Test folding the bibliography
+    (let ((bib-bounds (greger-ui-find-final-bibliography)))
+      (when bib-bounds
+        (message "Testing bibliography folding...")
+        (greger-ui-hide-final-bibliography (car bib-bounds) (cdr bib-bounds))
+        (message "Bibliography should now be folded with indicator")
+        
+        ;; Test unfolding
+        (sit-for 2)
+        (greger-ui-show-final-bibliography (car bib-bounds) (cdr bib-bounds))
+        (message "Bibliography should now be unfolded")))))
+
+;; Run both tests
+(test-citation-folding)
+(test-bibliography-folding-visual)
+</tool.toolu_01A82sd9x5xdabb5k9p7xHyH>
+
+### git-commit-message
+
+<tool.toolu_01A82sd9x5xdabb5k9p7xHyH>
+Add visual test for bibliography folding
+
+- Create test-bibliography-folding-visual function to test visual folding behavior
+- Test both hiding and showing of bibliography sections
+- Add delays to observe folding behavior
+</tool.toolu_01A82sd9x5xdabb5k9p7xHyH>
+
+<!-- TOOL_RESULT_PLACEHOLDER_toolu_01A82sd9x5xdabb5k9p7xHyH -->

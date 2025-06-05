@@ -38,5 +38,25 @@
                    (buffer-substring-no-properties (car cite-bounds) (cdr cite-bounds))
                    (car citation-bounds) (cdr citation-bounds)))))))
 
-;; Run the test
+(defun test-bibliography-folding-visual ()
+  "Test the visual aspects of bibliography folding."
+  (interactive)
+  (with-temp-buffer
+    (insert-file-contents "test-citations.md")
+    (greger-mode)
+
+    ;; Test folding the bibliography
+    (let ((bib-bounds (greger-ui-find-final-bibliography)))
+      (when bib-bounds
+        (message "Testing bibliography folding...")
+        (greger-ui-hide-final-bibliography (car bib-bounds) (cdr bib-bounds))
+        (message "Bibliography should now be folded with indicator")
+
+        ;; Test unfolding
+        (sit-for 2)
+        (greger-ui-show-final-bibliography (car bib-bounds) (cdr bib-bounds))
+        (message "Bibliography should now be unfolded")))))
+
+;; Run both tests
 (test-citation-folding)
+(test-bibliography-folding-visual)
