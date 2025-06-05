@@ -1150,8 +1150,8 @@ Returns a list of text blocks, with citations attached to cited portions."
                          "web_search_tool_result"
                        "server_tool_result")))
     (let ((parsed-content
-           (if (string= result-type "web_search_tool_result")
-               (greger-parser--parse-web-search-content content)
+           (if (stringp content)
+               (greger-parser--parse-json-content content)
              content)))
       `((role . "assistant")
         (content . (((type . ,result-type)
