@@ -3726,4 +3726,266 @@ greger-parser.el
 Add citations message creation function
 </tool.toolu_01DqR6h41n5T8ScJwjZia5kT>
 
-<!-- TOOL_RESULT_PLACEHOLDER_toolu_01DqR6h41n5T8ScJwjZia5kT -->
+## TOOL RESULT:
+
+ID: toolu_01DqR6h41n5T8ScJwjZia5kT
+
+<tool.toolu_01DqR6h41n5T8ScJwjZia5kT>
+Successfully replaced content in /Users/andreas/projects/greger.el/greger-parser.el. Successfully staged 2 file(s) and committed with message: Add citations message creation function
+</tool.toolu_01DqR6h41n5T8ScJwjZia5kT>
+
+## ASSISTANT:
+
+Now I need to implement the core citation parsing functionality. The key challenge is that citations are embedded within text content blocks, not separate sections. Based on the example, I need to:
+
+1. Parse web search tool results with citations
+2. Handle text blocks that have citations fields 
+3. When generating markdown, fold citations into a separate CITATIONS section
+
+Let me first look at the markdown generation section to understand how the web search tool results are currently handled:
+
+## TOOL USE:
+
+Name: ripgrep
+ID: toolu_01Hc5QMvufwjAUQ4Bb5yjC2p
+
+### pattern
+
+<tool.toolu_01Hc5QMvufwjAUQ4Bb5yjC2p>
+web_search_tool_result
+</tool.toolu_01Hc5QMvufwjAUQ4Bb5yjC2p>
+
+### path
+
+<tool.toolu_01Hc5QMvufwjAUQ4Bb5yjC2p>
+greger-parser.el
+</tool.toolu_01Hc5QMvufwjAUQ4Bb5yjC2p>
+
+## TOOL RESULT:
+
+ID: toolu_01Hc5QMvufwjAUQ4Bb5yjC2p
+
+<tool.toolu_01Hc5QMvufwjAUQ4Bb5yjC2p>
+1095:     ((string= type "web_search_tool_result")
+
+</tool.toolu_01Hc5QMvufwjAUQ4Bb5yjC2p>
+
+## TOOL USE:
+
+Name: read-file
+ID: toolu_01WJQgUv1DE82YHhcZoKgMi1
+
+### path
+
+<tool.toolu_01WJQgUv1DE82YHhcZoKgMi1>
+greger-parser.el
+</tool.toolu_01WJQgUv1DE82YHhcZoKgMi1>
+
+### start-line
+
+<tool.toolu_01WJQgUv1DE82YHhcZoKgMi1>
+1090
+</tool.toolu_01WJQgUv1DE82YHhcZoKgMi1>
+
+### end-line
+
+<tool.toolu_01WJQgUv1DE82YHhcZoKgMi1>
+1100
+</tool.toolu_01WJQgUv1DE82YHhcZoKgMi1>
+
+## TOOL RESULT:
+
+ID: toolu_01WJQgUv1DE82YHhcZoKgMi1
+
+<tool.toolu_01WJQgUv1DE82YHhcZoKgMi1>
+      (greger-parser--tool-result-to-markdown block))
+     ((string= type "server_tool_use")
+      (greger-parser--server-tool-use-to-markdown block))
+     ((string= type "server_tool_result")
+      (greger-parser--server-tool-result-to-markdown block))
+     ((string= type "web_search_tool_result")
+      (greger-parser--web-search-tool-result-to-markdown block))
+     (t ""))))
+
+(defun greger-parser--tool-use-to-markdown (tool-use)
+  "Convert TOOL-USE to markdown."
+</tool.toolu_01WJQgUv1DE82YHhcZoKgMi1>
+
+## ASSISTANT:
+
+Let me find the `greger-parser--web-search-tool-result-to-markdown` function:
+
+## TOOL USE:
+
+Name: ripgrep
+ID: toolu_01BLTQ5S7nwd6BcHRNXydhdS
+
+### pattern
+
+<tool.toolu_01BLTQ5S7nwd6BcHRNXydhdS>
+defun greger-parser--web-search-tool-result-to-markdown
+</tool.toolu_01BLTQ5S7nwd6BcHRNXydhdS>
+
+### path
+
+<tool.toolu_01BLTQ5S7nwd6BcHRNXydhdS>
+greger-parser.el
+</tool.toolu_01BLTQ5S7nwd6BcHRNXydhdS>
+
+## TOOL RESULT:
+
+ID: toolu_01BLTQ5S7nwd6BcHRNXydhdS
+
+<tool.toolu_01BLTQ5S7nwd6BcHRNXydhdS>
+1141:(defun greger-parser--web-search-tool-result-to-markdown (web-search-result)
+
+</tool.toolu_01BLTQ5S7nwd6BcHRNXydhdS>
+
+## TOOL USE:
+
+Name: read-file
+ID: toolu_01UAovEbZmtY5Gfc9tLr8Zm4
+
+### path
+
+<tool.toolu_01UAovEbZmtY5Gfc9tLr8Zm4>
+greger-parser.el
+</tool.toolu_01UAovEbZmtY5Gfc9tLr8Zm4>
+
+### start-line
+
+<tool.toolu_01UAovEbZmtY5Gfc9tLr8Zm4>
+1141
+</tool.toolu_01UAovEbZmtY5Gfc9tLr8Zm4>
+
+### end-line
+
+<tool.toolu_01UAovEbZmtY5Gfc9tLr8Zm4>
+1155
+</tool.toolu_01UAovEbZmtY5Gfc9tLr8Zm4>
+
+## TOOL RESULT:
+
+ID: toolu_01UAovEbZmtY5Gfc9tLr8Zm4
+
+<tool.toolu_01UAovEbZmtY5Gfc9tLr8Zm4>
+(defun greger-parser--web-search-tool-result-to-markdown (web-search-result)
+  "Convert WEB-SEARCH-RESULT to markdown."
+  (let ((id (alist-get 'tool_use_id web-search-result))
+        (content (alist-get 'content web-search-result)))
+    (concat greger-parser-server-tool-result-tag "\n\n"
+            "ID: " id "\n\n"
+            "<tool." id ">\n"
+            (if (stringp content)
+                content
+              (greger-parser--value-to-string content)) "\n"
+            "</tool." id ">")))
+
+(defun greger-parser--tool-params-to-markdown (id input)
+  "Convert tool parameters with ID and INPUT to markdown."
+  (if (null input)
+</tool.toolu_01UAovEbZmtY5Gfc9tLr8Zm4>
+
+## ASSISTANT:
+
+Now I need to understand how citations work. From the documentation and your example, it seems that:
+
+1. In the API response, text blocks can have a `citations` field
+2. When parsing, I should extract these citations and collect them
+3. When generating markdown, citations should be folded into a `## CITATIONS:` section
+
+Let me first implement the parsing logic to handle text blocks with citations. Looking at your example, the assistant message would need to be parsed differently to separate the text content from the citations.
+
+Let me examine the current text block handling in `greger-parser--block-to-markdown`:
+
+## TOOL USE:
+
+Name: read-file
+ID: toolu_01JaA7Nc7H2bPAoqWD7KTSqp
+
+### path
+
+<tool.toolu_01JaA7Nc7H2bPAoqWD7KTSqp>
+greger-parser.el
+</tool.toolu_01JaA7Nc7H2bPAoqWD7KTSqp>
+
+### start-line
+
+<tool.toolu_01JaA7Nc7H2bPAoqWD7KTSqp>
+1075
+</tool.toolu_01JaA7Nc7H2bPAoqWD7KTSqp>
+
+### end-line
+
+<tool.toolu_01JaA7Nc7H2bPAoqWD7KTSqp>
+1085
+</tool.toolu_01JaA7Nc7H2bPAoqWD7KTSqp>
+
+## TOOL RESULT:
+
+ID: toolu_01JaA7Nc7H2bPAoqWD7KTSqp
+
+<tool.toolu_01JaA7Nc7H2bPAoqWD7KTSqp>
+  (let ((type (alist-get 'type block)))
+
+    ;; TODO: remove debug
+    (message (format "type: %s" type))
+
+    (cond
+     ((string= type "text")
+      (concat greger-parser-assistant-tag "\n\n"
+              (alist-get 'text block)))
+     ((string= type "thinking")
+      (concat greger-parser-thinking-tag "\n\n"
+</tool.toolu_01JaA7Nc7H2bPAoqWD7KTSqp>
+
+## ASSISTANT:
+
+I see the issue. I need to implement a system that can:
+
+1. Parse assistant messages containing citations
+2. Extract both the text content and the citations 
+3. Generate markdown with citations folded into a separate section
+
+The key insight from your example is that citations should be collected across the entire assistant message and placed in a separate `## CITATIONS:` section.
+
+Let me implement a comprehensive solution. First, I'll modify the message-to-markdown conversion to handle citations properly:
+
+## TOOL USE:
+
+Name: str-replace
+ID: toolu_01TLMDanToi7HZfEVDTM6T5W
+
+### file-path
+
+<tool.toolu_01TLMDanToi7HZfEVDTM6T5W>
+greger-parser.el
+</tool.toolu_01TLMDanToi7HZfEVDTM6T5W>
+
+### original-content
+
+<tool.toolu_01TLMDanToi7HZfEVDTM6T5W>
+(defun greger-parser--assistant-to-markdown (content)
+  "Convert assistant CONTENT to markdown."
+  (if (stringp content)
+      (concat greger-parser-assistant-tag "\n\n" content)
+    (greger-parser--content-blocks-to-markdown content)))
+</tool.toolu_01TLMDanToi7HZfEVDTM6T5W>
+
+### new-content
+
+<tool.toolu_01TLMDanToi7HZfEVDTM6T5W>
+(defun greger-parser--assistant-to-markdown (content)
+  "Convert assistant CONTENT to markdown."
+  (if (stringp content)
+      (concat greger-parser-assistant-tag "\n\n" content)
+    (greger-parser--content-blocks-to-markdown-with-citations content)))
+</tool.toolu_01TLMDanToi7HZfEVDTM6T5W>
+
+### git-commit-message
+
+<tool.toolu_01TLMDanToi7HZfEVDTM6T5W>
+Modify assistant markdown generation to handle citations
+</tool.toolu_01TLMDanToi7HZfEVDTM6T5W>
+
+<!-- TOOL_RESULT_PLACEHOLDER_toolu_01TLMDanToi7HZfEVDTM6T5W -->
