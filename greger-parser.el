@@ -1090,6 +1090,12 @@ Returns either a system message, metadata, or both."
 
 (defun greger-parser--block-to-markdown (block)
   "Convert single BLOCK to markdown."
+  (let ((result (greger-parser--block-to-markdown-with-citations block)))
+    (plist-get result :markdown)))
+
+(defun greger-parser--block-to-markdown-with-citations (block)
+  "Convert single BLOCK to markdown, extracting citations if present.
+Returns a plist with :markdown and optionally :citations."
   (let ((type (alist-get 'type block)))
 
     ;; TODO: remove debug
@@ -1097,22 +1103,24 @@ Returns either a system message, metadata, or both."
 
     (cond
      ((string= type "text")
-      (concat greger-parser-assistant-tag "\n\n"
-              (alist-get 'text block)))
+      (let ((text (alist-get 'text block))
+            (citations (alist-get 'citations block)))
+        (list :markdown (concat greger-parser-assistant-tag "\n\n" text)
+              :citations citations)))
      ((string= type "thinking")
-      (concat greger-parser-thinking-tag "\n\n"
-              (alist-get 'thinking block)))
+      (list :markdown (concat greger-parser-thinking-tag "\n\n"
+                             (alist-get 'thinking block))))
      ((string= type "tool_use")
-      (greger-parser--tool-use-to-markdown block))
+      (list :markdown (greger-parser--tool-use-to-markdown block)))
      ((string= type "tool_result")
-      (greger-parser--tool-result-to-markdown block))
+      (list :markdown (greger-parser--tool-result-to-markdown block)))
      ((string= type "server_tool_use")
-      (greger-parser--server-tool-use-to-markdown block))
+      (list :markdown (greger-parser--server-tool-use-to-markdown block)))
      ((string= type "server_tool_result")
-      (greger-parser--server-tool-result-to-markdown block))
+      (list :markdown (greger-parser--server-tool-result-to-markdown block)))
      ((string= type "web_search_tool_result")
-      (greger-parser--web-search-tool-result-to-markdown block))
-     (t ""))))
+      (list :markdown (greger-parser--web-search-tool-result-to-markdown block)))
+     (t (list :markdown "")))))
 
 (defun greger-parser--tool-use-to-markdown (tool-use)
   "Convert TOOL-USE to markdown."

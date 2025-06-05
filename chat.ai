@@ -4051,4 +4051,101 @@ greger-parser.el
 Add function to handle content blocks with citations
 </tool.toolu_01HCJSunbJa2WZWeoLbvJits>
 
-<!-- TOOL_RESULT_PLACEHOLDER_toolu_01HCJSunbJa2WZWeoLbvJits -->
+## TOOL RESULT:
+
+ID: toolu_01HCJSunbJa2WZWeoLbvJits
+
+<tool.toolu_01HCJSunbJa2WZWeoLbvJits>
+Successfully replaced content in /Users/andreas/projects/greger.el/greger-parser.el. Successfully staged 2 file(s) and committed with message: Add function to handle content blocks with citations
+</tool.toolu_01HCJSunbJa2WZWeoLbvJits>
+
+## ASSISTANT:
+
+Now I need to implement `greger-parser--block-to-markdown-with-citations` and modify the existing `greger-parser--block-to-markdown` function to handle citations:
+
+## TOOL USE:
+
+Name: str-replace
+ID: toolu_0182vm8SRK89wBSmUnUm4pGx
+
+### file-path
+
+<tool.toolu_0182vm8SRK89wBSmUnUm4pGx>
+greger-parser.el
+</tool.toolu_0182vm8SRK89wBSmUnUm4pGx>
+
+### original-content
+
+<tool.toolu_0182vm8SRK89wBSmUnUm4pGx>
+(defun greger-parser--block-to-markdown (block)
+  "Convert single BLOCK to markdown."
+  (let ((type (alist-get 'type block)))
+
+    ;; TODO: remove debug
+    (message (format "type: %s" type))
+
+    (cond
+     ((string= type "text")
+      (concat greger-parser-assistant-tag "\n\n"
+              (alist-get 'text block)))
+     ((string= type "thinking")
+      (concat greger-parser-thinking-tag "\n\n"
+              (alist-get 'thinking block)))
+     ((string= type "tool_use")
+      (greger-parser--tool-use-to-markdown block))
+     ((string= type "tool_result")
+      (greger-parser--tool-result-to-markdown block))
+     ((string= type "server_tool_use")
+      (greger-parser--server-tool-use-to-markdown block))
+     ((string= type "server_tool_result")
+      (greger-parser--server-tool-result-to-markdown block))
+     ((string= type "web_search_tool_result")
+      (greger-parser--web-search-tool-result-to-markdown block))
+     (t ""))))
+</tool.toolu_0182vm8SRK89wBSmUnUm4pGx>
+
+### new-content
+
+<tool.toolu_0182vm8SRK89wBSmUnUm4pGx>
+(defun greger-parser--block-to-markdown (block)
+  "Convert single BLOCK to markdown."
+  (let ((result (greger-parser--block-to-markdown-with-citations block)))
+    (plist-get result :markdown)))
+
+(defun greger-parser--block-to-markdown-with-citations (block)
+  "Convert single BLOCK to markdown, extracting citations if present.
+Returns a plist with :markdown and optionally :citations."
+  (let ((type (alist-get 'type block)))
+
+    ;; TODO: remove debug
+    (message (format "type: %s" type))
+
+    (cond
+     ((string= type "text")
+      (let ((text (alist-get 'text block))
+            (citations (alist-get 'citations block)))
+        (list :markdown (concat greger-parser-assistant-tag "\n\n" text)
+              :citations citations)))
+     ((string= type "thinking")
+      (list :markdown (concat greger-parser-thinking-tag "\n\n"
+                             (alist-get 'thinking block))))
+     ((string= type "tool_use")
+      (list :markdown (greger-parser--tool-use-to-markdown block)))
+     ((string= type "tool_result")
+      (list :markdown (greger-parser--tool-result-to-markdown block)))
+     ((string= type "server_tool_use")
+      (list :markdown (greger-parser--server-tool-use-to-markdown block)))
+     ((string= type "server_tool_result")
+      (list :markdown (greger-parser--server-tool-result-to-markdown block)))
+     ((string= type "web_search_tool_result")
+      (list :markdown (greger-parser--web-search-tool-result-to-markdown block)))
+     (t (list :markdown "")))))
+</tool.toolu_0182vm8SRK89wBSmUnUm4pGx>
+
+### git-commit-message
+
+<tool.toolu_0182vm8SRK89wBSmUnUm4pGx>
+Refactor block markdown generation to extract citations
+</tool.toolu_0182vm8SRK89wBSmUnUm4pGx>
+
+<!-- TOOL_RESULT_PLACEHOLDER_toolu_0182vm8SRK89wBSmUnUm4pGx -->
