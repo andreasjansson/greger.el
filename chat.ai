@@ -4519,4 +4519,57 @@ greger-parser.el
 Update document parsing to handle citations data specially
 </tool.toolu_01NhqVtbiMGivjv9hgrBsFwu>
 
-<!-- TOOL_RESULT_PLACEHOLDER_toolu_01NhqVtbiMGivjv9hgrBsFwu -->
+## TOOL RESULT:
+
+ID: toolu_01NhqVtbiMGivjv9hgrBsFwu
+
+<tool.toolu_01NhqVtbiMGivjv9hgrBsFwu>
+Successfully replaced content in /Users/andreas/projects/greger.el/greger-parser.el. Successfully staged 2 file(s) and committed with message: Update document parsing to handle citations data specially
+</tool.toolu_01NhqVtbiMGivjv9hgrBsFwu>
+
+## ASSISTANT:
+
+Now I need to implement `greger-parser--merge-citations-with-last-assistant`:
+
+## TOOL USE:
+
+Name: str-replace
+ID: toolu_013wThKtLa9irwbCaM1abt3A
+
+### file-path
+
+<tool.toolu_013wThKtLa9irwbCaM1abt3A>
+greger-parser.el
+</tool.toolu_013wThKtLa9irwbCaM1abt3A>
+
+### original-content
+
+<tool.toolu_013wThKtLa9irwbCaM1abt3A>
+(reverse citations)))
+</tool.toolu_013wThKtLa9irwbCaM1abt3A>
+
+### new-content
+
+<tool.toolu_013wThKtLa9irwbCaM1abt3A>
+(reverse citations)))
+
+(defun greger-parser--merge-citations-with-last-assistant (sections citations)
+  "Merge CITATIONS with the last assistant message in SECTIONS list.
+Modifies the sections list in-place."
+  (when (and sections citations)
+    (let ((last-msg (car sections)))
+      (when (and last-msg (string= "assistant" (alist-get 'role last-msg)))
+        ;; Find text blocks in the content and add citations to them
+        (let ((content (alist-get 'content last-msg)))
+          (when (listp content)
+            ;; Look for text blocks and add citations
+            (greger-parser--add-citations-to-content-blocks content citations)))))))
+</tool.toolu_013wThKtLa9irwbCaM1abt3A>
+
+### git-commit-message
+
+<tool.toolu_013wThKtLa9irwbCaM1abt3A>
+Add function to merge citations with last assistant message
+</tool.toolu_013wThKtLa9irwbCaM1abt3A>
+
+<!-- TOOL_RESULT_PLACEHOLDER_toolu_013wThKtLa9irwbCaM1abt3A -->

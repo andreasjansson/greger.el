@@ -761,6 +761,18 @@ Returns parsed citation data that should be merged with the previous assistant m
       (push current-citation citations))
     (reverse citations)))
 
+(defun greger-parser--merge-citations-with-last-assistant (sections citations)
+  "Merge CITATIONS with the last assistant message in SECTIONS list.
+Modifies the sections list in-place."
+  (when (and sections citations)
+    (let ((last-msg (car sections)))
+      (when (and last-msg (string= "assistant" (alist-get 'role last-msg)))
+        ;; Find text blocks in the content and add citations to them
+        (let ((content (alist-get 'content last-msg)))
+          (when (listp content)
+            ;; Look for text blocks and add citations
+            (greger-parser--add-citations-to-content-blocks content citations)))))))
+
 (defun greger-parser--parse-tool-use-section (state)
   "Parse TOOL USE section using STATE."
   (greger-parser--skip-whitespace state)
