@@ -3046,4 +3046,90 @@ Update show function to match new overlay positioning
 - The overlay now spans from header-end to content-start instead of being zero-width
 </tool.toolu_013M4HMZ5Y6FP1Eae5BG9NMB>
 
-<!-- TOOL_RESULT_PLACEHOLDER_toolu_013M4HMZ5Y6FP1Eae5BG9NMB -->
+## TOOL RESULT:
+
+ID: toolu_013M4HMZ5Y6FP1Eae5BG9NMB
+
+<tool.toolu_013M4HMZ5Y6FP1Eae5BG9NMB>
+Successfully replaced content in /Users/andreas/projects/greger.el/greger-ui.el. Successfully staged 2 file(s) and committed with message: Update show function to match new overlay positioning
+
+- Ensure greger-ui-show-final-bibliography correctly removes the new summary overlay
+- The overlay now spans from header-end to content-start instead of being zero-width
+</tool.toolu_013M4HMZ5Y6FP1Eae5BG9NMB>
+
+## ASSISTANT:
+
+Now let me also create a simple test to verify the folding works correctly:
+
+## TOOL USE:
+
+Name: write-new-file
+ID: toolu_015oXRWKzJv9WxscVJPjTreL
+
+### file-path
+
+<tool.toolu_015oXRWKzJv9WxscVJPjTreL>
+test-simple-folding.el
+</tool.toolu_015oXRWKzJv9WxscVJPjTreL>
+
+### contents
+
+<tool.toolu_015oXRWKzJv9WxscVJPjTreL>
+;;; test-simple-folding.el --- Simple test for citation folding
+
+(require 'greger)
+(require 'greger-ui)
+
+(defun test-simple-folding ()
+  "Simple test to verify citation folding works."
+  (interactive)
+  (let ((test-content "## ASSISTANT:
+
+The current king of Sweden is <cite>Carl XVI Gustaf</cite>.
+
+## CITATIONS:
+
+### https://en.wikipedia.org/wiki/Carl_XVI_Gustaf
+
+Title: Carl XVI Gustaf - Wikipedia
+Cited text: Carl XVI Gustaf is King of Sweden.
+
+## USER:
+
+hello"))
+    
+    (with-temp-buffer
+      (insert test-content)
+      (greger-mode)
+      
+      ;; Test bibliography detection
+      (let ((bib-bounds (greger-ui-find-final-bibliography)))
+        (if bib-bounds
+            (progn
+              (message "Bibliography found: %d to %d" (car bib-bounds) (cdr bib-bounds))
+              ;; Test the count
+              (let ((count (greger-ui-count-citations-in-section (car bib-bounds) (cdr bib-bounds))))
+                (message "Citation count: %d" count))
+              ;; Test folding
+              (greger-ui-hide-final-bibliography (car bib-bounds) (cdr bib-bounds))
+              (message "Bibliography folded - check the buffer!")
+              
+              ;; Switch to this buffer to see the result
+              (switch-to-buffer (current-buffer)))
+          (message "No bibliography found"))))))
+
+;; Run the test
+(test-simple-folding)
+</tool.toolu_015oXRWKzJv9WxscVJPjTreL>
+
+### git-commit-message
+
+<tool.toolu_015oXRWKzJv9WxscVJPjTreL>
+Add simple test for citation folding visualization
+
+- Create test-simple-folding.el with minimal test content
+- Test bibliography detection, counting, and folding
+- Switch to buffer to visually inspect folding behavior
+</tool.toolu_015oXRWKzJv9WxscVJPjTreL>
+
+<!-- TOOL_RESULT_PLACEHOLDER_toolu_015oXRWKzJv9WxscVJPjTreL -->
