@@ -770,14 +770,11 @@ Returns parsed citation data that should be merged with the previous assistant m
 (defun greger-parser--merge-citations-with-last-assistant (sections citations)
   "Merge CITATIONS with the last assistant message in SECTIONS list.
 Modifies the sections list in-place."
-  (greger-parser--debug nil "Merging citations with last assistant: sections=%s citations=%s" (length sections) (length citations))
   (when (and sections citations)
     (let ((last-msg (car sections)))
-      (greger-parser--debug nil "Last message role: %s" (alist-get 'role last-msg))
       (when (and last-msg (string= "assistant" (alist-get 'role last-msg)))
         ;; Find text blocks in the content and add citations to them
         (let ((content (alist-get 'content last-msg)))
-          (greger-parser--debug nil "Content type: %s, content: %s" (type-of content) content)
           (when (listp content)
             ;; Look for text blocks and add citations
             (greger-parser--add-citations-to-content-blocks content citations)))))))
