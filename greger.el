@@ -116,9 +116,7 @@
 (defvar-local greger--buffer-read-only-by-greger nil
   "Buffer-local variable to track if buffer is read-only due to greger activity.")
 
-(defvar-local greger--unfolded-tool-ids nil
-  "List of tool IDs that have been manually unfolded.
-These tool IDs should not be auto-folded again.")
+
 
 ;; Face definitions for tool tags
 (defface greger-tool-tag-face
