@@ -7486,4 +7486,110 @@ debug-citations.el
 Fix debug script to handle new parser format
 </tool.toolu_012ccfrU7sEgZ7g4eXXVJdzv>
 
-<!-- TOOL_RESULT_PLACEHOLDER_toolu_012ccfrU7sEgZ7g4eXXVJdzv -->
+## TOOL RESULT:
+
+ID: toolu_012ccfrU7sEgZ7g4eXXVJdzv
+
+<tool.toolu_012ccfrU7sEgZ7g4eXXVJdzv>
+Successfully replaced content in /Users/andreas/projects/greger.el/debug-citations.el. Successfully staged 2 file(s) and committed with message: Fix debug script to handle new parser format
+</tool.toolu_012ccfrU7sEgZ7g4eXXVJdzv>
+
+## TOOL USE:
+
+Name: shell-command
+ID: toolu_01KTSjdke5kvCdHXdxw2m5Dy
+
+### command
+
+<tool.toolu_01KTSjdke5kvCdHXdxw2m5Dy>
+cd /Users/andreas/projects/greger.el && emacs --script debug-citations.el 2>/dev/null | tail -20
+</tool.toolu_01KTSjdke5kvCdHXdxw2m5Dy>
+
+## TOOL RESULT:
+
+ID: toolu_01KTSjdke5kvCdHXdxw2m5Dy
+
+<tool.toolu_01KTSjdke5kvCdHXdxw2m5Dy>
+Command executed successfully:
+(:messages
+ (((role . "user")
+   (content . "When was Claude Shannon born?"))
+  ((role . "assistant")
+   (content
+    ((type . "server_tool_use")
+     (id . "srvtoolu_01WYG3ziw53XMcoyKL4XcZmE")
+     (name . "web_search")
+     (input
+      (query . "claude shannon birth date")))
+    ((type . "server_tool_result")
+     (tool_use_id . "srvtoolu_01WYG3ziw53XMcoyKL4XcZmE")
+     (content . "[\n  {\n    \"type\": \"web_search_result\",\n    \"url\": \"https://en.wikipedia.org/wiki/Claude_Shannon\",\n    \"title\": \"Claude Shannon - Wikipedia\",\n    \"encrypted_content\": \"EqgfCioIARgBIiQ3YTAwMjY1Mi1mZjM5LTQ1NGUtODgxNC1kNjNjNTk1ZWI3Y...\",\n    \"page_age\": \"April 30, 2025\"\n  }\n]"))
+    ((type . "text")
+     (text . "Based on the search results, <cite>Claude Shannon was born on April 30, 1916, in Petoskey, Michigan</cite>")))))
+ :metadata nil)
+"## USER:\n\nWhen was Claude Shannon born?\n\n## SERVER TOOL USE:\n\nName: web_search\nID: srvtoolu_01WYG3ziw53XMcoyKL4XcZmE\n\n### query\n\n<tool.srvtoolu_01WYG3ziw53XMcoyKL4XcZmE>\nclaude shannon birth date\n</tool.srvtoolu_01WYG3ziw53XMcoyKL4XcZmE>\n\n## SERVER TOOL RESULT:\n\nID: srvtoolu_01WYG3ziw53XMcoyKL4XcZmE\n\n<tool.srvtoolu_01WYG3ziw53XMcoyKL4XcZmE>\n[\n  {\n    \"type\": \"web_search_result\",\n    \"url\": \"https://en.wikipedia.org/wiki/Claude_Shannon\",\n    \"title\": \"Claude Shannon - Wikipedia\",\n    \"encrypted_content\": \"EqgfCioIARgBIiQ3YTAwMjY1Mi1mZjM5LTQ1NGUtODgxNC1kNjNjNTk1ZWI3Y...\",\n    \"page_age\": \"April 30, 2025\"\n  }\n]\n</tool.srvtoolu_01WYG3ziw53XMcoyKL4XcZmE>\n\n## ASSISTANT:\n\nBased on the search results, <cite>Claude Shannon was born on April 30, 1916, in Petoskey, Michigan</cite>"
+</tool.toolu_01KTSjdke5kvCdHXdxw2m5Dy>
+
+## ASSISTANT:
+
+Perfect! Now I can see the issue clearly. The citations section is being parsed correctly, but:
+
+1. The `<cite>` tags are still in the text content
+2. The citations are not being attached to the text block 
+3. The `## CITATIONS:` section is missing from the roundtrip output
+
+This means the citations merging logic isn't working. Let me add some debug output to the merging function to see what's happening:
+
+## TOOL USE:
+
+Name: str-replace
+ID: toolu_01Bx9MsKWhrgoBug2afy8xQ5
+
+### file-path
+
+<tool.toolu_01Bx9MsKWhrgoBug2afy8xQ5>
+greger-parser.el
+</tool.toolu_01Bx9MsKWhrgoBug2afy8xQ5>
+
+### original-content
+
+<tool.toolu_01Bx9MsKWhrgoBug2afy8xQ5>
+(defun greger-parser--merge-citations-with-last-assistant (sections citations)
+  "Merge CITATIONS with the last assistant message in SECTIONS list.
+Modifies the sections list in-place."
+  (when (and sections citations)
+    (let ((last-msg (car sections)))
+      (when (and last-msg (string= "assistant" (alist-get 'role last-msg)))
+        ;; Find text blocks in the content and add citations to them
+        (let ((content (alist-get 'content last-msg)))
+          (when (listp content)
+            ;; Look for text blocks and add citations
+            (greger-parser--add-citations-to-content-blocks content citations)))))))
+</tool.toolu_01Bx9MsKWhrgoBug2afy8xQ5>
+
+### new-content
+
+<tool.toolu_01Bx9MsKWhrgoBug2afy8xQ5>
+(defun greger-parser--merge-citations-with-last-assistant (sections citations)
+  "Merge CITATIONS with the last assistant message in SECTIONS list.
+Modifies the sections list in-place."
+  (greger-parser--debug nil "Merging citations with last assistant: sections=%s citations=%s" (length sections) (length citations))
+  (when (and sections citations)
+    (let ((last-msg (car sections)))
+      (greger-parser--debug nil "Last message role: %s" (alist-get 'role last-msg))
+      (when (and last-msg (string= "assistant" (alist-get 'role last-msg)))
+        ;; Find text blocks in the content and add citations to them
+        (let ((content (alist-get 'content last-msg)))
+          (greger-parser--debug nil "Content type: %s, content: %s" (type-of content) content)
+          (when (listp content)
+            ;; Look for text blocks and add citations
+            (greger-parser--add-citations-to-content-blocks content citations)))))))
+</tool.toolu_01Bx9MsKWhrgoBug2afy8xQ5>
+
+### git-commit-message
+
+<tool.toolu_01Bx9MsKWhrgoBug2afy8xQ5>
+Add debug output to citations merging function
+</tool.toolu_01Bx9MsKWhrgoBug2afy8xQ5>
+
+<!-- TOOL_RESULT_PLACEHOLDER_toolu_01Bx9MsKWhrgoBug2afy8xQ5 -->
