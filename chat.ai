@@ -5217,4 +5217,97 @@ greger-ui.el
 Update hide-all-citations to respect manually unfolded state
 </tool.toolu_01NdpmLS66SQsSaiKMPfx116>
 
-<!-- TOOL_RESULT_PLACEHOLDER_toolu_01NdpmLS66SQsSaiKMPfx116 -->
+## TOOL RESULT:
+
+ID: toolu_01NdpmLS66SQsSaiKMPfx116
+
+<tool.toolu_01NdpmLS66SQsSaiKMPfx116>
+Successfully replaced content in /Users/andreas/projects/greger.el/greger-ui.el. Successfully staged 2 file(s) and committed with message: Update hide-all-citations to respect manually unfolded state
+</tool.toolu_01NdpmLS66SQsSaiKMPfx116>
+
+## ASSISTANT:
+
+Now I need to handle cleaning up stale cite positions when the buffer content changes. The cite positions might become invalid after text edits. Let me add a function to clean them up:
+
+## TOOL USE:
+
+Name: str-replace
+ID: toolu_01G1pccpxMjw9X1YKoKsNxdb
+
+### file-path
+
+<tool.toolu_01G1pccpxMjw9X1YKoKsNxdb>
+greger-ui.el
+</tool.toolu_01G1pccpxMjw9X1YKoKsNxdb>
+
+### original-content
+
+<tool.toolu_01G1pccpxMjw9X1YKoKsNxdb>
+(defun greger-ui-cleanup-dead-overlays ()
+  "Remove dead overlays from citation and tool overlays lists."
+  (setq greger-ui-cite-citation-overlays
+        (cl-remove-if-not (lambda (ov)
+                            (and (overlay-buffer ov)
+                                 (overlay-start ov)
+                                 (overlay-end ov)))
+                          greger-ui-cite-citation-overlays))
+  (setq greger-ui-bibliography-overlays
+        (cl-remove-if-not (lambda (ov)
+                            (and (overlay-buffer ov)
+                                 (overlay-start ov)
+                                 (overlay-end ov)))
+                          greger-ui-bibliography-overlays))
+  (setq greger-ui-tool-overlays
+        (cl-remove-if-not (lambda (ov)
+                            (and (overlay-buffer ov)
+                                 (overlay-start ov)
+                                 (overlay-end ov)))
+                          greger-ui-tool-overlays)))
+</tool.toolu_01G1pccpxMjw9X1YKoKsNxdb>
+
+### new-content
+
+<tool.toolu_01G1pccpxMjw9X1YKoKsNxdb>
+(defun greger-ui-cleanup-dead-overlays ()
+  "Remove dead overlays from citation and tool overlays lists."
+  (setq greger-ui-cite-citation-overlays
+        (cl-remove-if-not (lambda (ov)
+                            (and (overlay-buffer ov)
+                                 (overlay-start ov)
+                                 (overlay-end ov)))
+                          greger-ui-cite-citation-overlays))
+  (setq greger-ui-bibliography-overlays
+        (cl-remove-if-not (lambda (ov)
+                            (and (overlay-buffer ov)
+                                 (overlay-start ov)
+                                 (overlay-end ov)))
+                          greger-ui-bibliography-overlays))
+  (setq greger-ui-tool-overlays
+        (cl-remove-if-not (lambda (ov)
+                            (and (overlay-buffer ov)
+                                 (overlay-start ov)
+                                 (overlay-end ov)))
+                          greger-ui-tool-overlays)))
+
+(defun greger-ui-cleanup-stale-cite-positions ()
+  "Remove cite positions that no longer exist in the buffer."
+  (setq greger-ui-unfolded-cite-positions
+        (cl-remove-if (lambda (cite-pos)
+                        (let ((start (car cite-pos))
+                              (end (cdr cite-pos)))
+                          ;; Check if position is still valid and contains a cite tag
+                          (or (< start (point-min))
+                              (> end (point-max))
+                              (not (save-excursion
+                                     (goto-char start)
+                                     (looking-at greger-ui-cite-tag-regex))))))
+                      greger-ui-unfolded-cite-positions)))
+</tool.toolu_01G1pccpxMjw9X1YKoKsNxdb>
+
+### git-commit-message
+
+<tool.toolu_01G1pccpxMjw9X1YKoKsNxdb>
+Add function to cleanup stale cite positions
+</tool.toolu_01G1pccpxMjw9X1YKoKsNxdb>
+
+<!-- TOOL_RESULT_PLACEHOLDER_toolu_01G1pccpxMjw9X1YKoKsNxdb -->

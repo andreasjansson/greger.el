@@ -415,6 +415,20 @@ CITE-TAG is a cons (START . END) for the cite tag position."
                                  (overlay-end ov)))
                           greger-ui-tool-overlays)))
 
+(defun greger-ui-cleanup-stale-cite-positions ()
+  "Remove cite positions that no longer exist in the buffer."
+  (setq greger-ui-unfolded-cite-positions
+        (cl-remove-if (lambda (cite-pos)
+                        (let ((start (car cite-pos))
+                              (end (cdr cite-pos)))
+                          ;; Check if position is still valid and contains a cite tag
+                          (or (< start (point-min))
+                              (> end (point-max))
+                              (not (save-excursion
+                                     (goto-char start)
+                                     (looking-at greger-ui-cite-tag-regex))))))
+                      greger-ui-unfolded-cite-positions)))
+
 ;;; Font Lock Support
 
 (defun greger-ui-setup-cite-fontification ()
