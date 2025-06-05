@@ -5416,4 +5416,174 @@ Encrypted index: Eo8BCioIAhgBIiQyYjQ0OWJmZi1lNm.."
 Add basic citations test case
 </tool.toolu_01JT7VWzfEXSEUkNzSxRaH3W>
 
-<!-- TOOL_RESULT_PLACEHOLDER_toolu_01JT7VWzfEXSEUkNzSxRaH3W -->
+## TOOL RESULT:
+
+ID: toolu_01JT7VWzfEXSEUkNzSxRaH3W
+
+<tool.toolu_01JT7VWzfEXSEUkNzSxRaH3W>
+Successfully replaced content in /Users/andreas/projects/greger.el/test/test-greger-parser.el. Successfully staged 2 file(s) and committed with message: Add basic citations test case
+</tool.toolu_01JT7VWzfEXSEUkNzSxRaH3W>
+
+## ASSISTANT:
+
+I also need to add a test for parsing web search tool results directly. Looking at the documentation, I need to handle `web_search_tool_result` as its own type. Let me check if we have that implemented:
+
+## TOOL USE:
+
+Name: ripgrep
+ID: toolu_018G7CcJ8j2JRhfu9vpFeeKZ
+
+### pattern
+
+<tool.toolu_018G7CcJ8j2JRhfu9vpFeeKZ>
+web_search_tool_result
+</tool.toolu_018G7CcJ8j2JRhfu9vpFeeKZ>
+
+### path
+
+<tool.toolu_018G7CcJ8j2JRhfu9vpFeeKZ>
+greger-parser.el
+</tool.toolu_018G7CcJ8j2JRhfu9vpFeeKZ>
+
+## TOOL RESULT:
+
+ID: toolu_018G7CcJ8j2JRhfu9vpFeeKZ
+
+<tool.toolu_018G7CcJ8j2JRhfu9vpFeeKZ>
+1214:     ((string= type "web_search_tool_result")
+
+</tool.toolu_018G7CcJ8j2JRhfu9vpFeeKZ>
+
+## ASSISTANT:
+
+Good, it's already handled in the block parsing. Now let me add a test that shows citations should work when there are no citations in the content initially but then a citations section is added:
+
+## TOOL USE:
+
+Name: str-replace
+ID: toolu_011QwfeNzXbCZdfV7LA3YN8P
+
+### file-path
+
+<tool.toolu_011QwfeNzXbCZdfV7LA3YN8P>
+test/test-greger-parser.el
+</tool.toolu_011QwfeNzXbCZdfV7LA3YN8P>
+
+### original-content
+
+<tool.toolu_011QwfeNzXbCZdfV7LA3YN8P>
+((type . "text") (text . "Based on the search results, Claude Shannon was born on April 30, 1916, in Petoskey, Michigan") (citations . (((type . "web_search_result_location") (url . "https://en.wikipedia.org/wiki/Claude_Shannon") (title . "Claude Shannon - Wikipedia") (cited_text . "Claude Elwood Shannon (April 30, 1916 – February 24, 2001) was an American mathematician, electrical engineer, computer scientist, cryptographer and i...") (encrypted_index . "Eo8BCioIAhgBIiQyYjQ0OWJmZi1lNm..")))))))))
+</tool.toolu_011QwfeNzXbCZdfV7LA3YN8P>
+
+### new-content
+
+<tool.toolu_011QwfeNzXbCZdfV7LA3YN8P>
+((type . "text") (text . "Based on the search results, Claude Shannon was born on April 30, 1916, in Petoskey, Michigan") (citations . (((type . "web_search_result_location") (url . "https://en.wikipedia.org/wiki/Claude_Shannon") (title . "Claude Shannon - Wikipedia") (cited_text . "Claude Elwood Shannon (April 30, 1916 – February 24, 2001) was an American mathematician, electrical engineer, computer scientist, cryptographer and i...") (encrypted_index . "Eo8BCioIAhgBIiQyYjQ0OWJmZi1lNm..")))))))))
+
+    ;; Citation parsing with multiple citations
+    (:name "citations-multiple"
+           :markdown "## USER:
+
+Tell me about quantum computing
+
+## ASSISTANT:
+
+<cite>Quantum computing leverages quantum mechanical phenomena</cite> to process information. <cite>Recent advances have made quantum computers more practical</cite>.
+
+## CITATIONS:
+
+### https://example.com/quantum1
+
+Title: Introduction to Quantum Computing
+Cited text: Quantum computing leverages quantum mechanical phenomena like superposition and entanglement...
+Encrypted index: abc123
+
+### https://example.com/quantum2
+
+Title: Recent Quantum Advances
+Cited text: Recent advances in quantum error correction and qubit coherence have made quantum computers more practical...
+Encrypted index: def456"
+           :dialog (((role . "user") (content . "Tell me about quantum computing"))
+                    ((role . "assistant") (content . (((type . "text") (text . "Quantum computing leverages quantum mechanical phenomena to process information. Recent advances have made quantum computers more practical") (citations . (((type . "web_search_result_location") (url . "https://example.com/quantum1") (title . "Introduction to Quantum Computing") (cited_text . "Quantum computing leverages quantum mechanical phenomena like superposition and entanglement...") (encrypted_index . "abc123")) ((type . "web_search_result_location") (url . "https://example.com/quantum2") (title . "Recent Quantum Advances") (cited_text . "Recent advances in quantum error correction and qubit coherence have made quantum computers more practical...") (encrypted_index . "def456")))))))))))
+</tool.toolu_011QwfeNzXbCZdfV7LA3YN8P>
+
+### git-commit-message
+
+<tool.toolu_011QwfeNzXbCZdfV7LA3YN8P>
+Add test case for multiple citations
+</tool.toolu_011QwfeNzXbCZdfV7LA3YN8P>
+
+## TOOL RESULT:
+
+ID: toolu_011QwfeNzXbCZdfV7LA3YN8P
+
+<tool.toolu_011QwfeNzXbCZdfV7LA3YN8P>
+Error executing tool: Parentheses balance mismatch in Emacs Lisp file: original has balance -4, new has balance -5. They must be equal
+</tool.toolu_011QwfeNzXbCZdfV7LA3YN8P>
+
+## USER:
+
+You've done this test case wrong:
+
+```
+           :dialog (((role . "user") (content . "When was Claude Shannon born?"))
+                    ((role . "assistant") (content . (((type . "server_tool_use") (id . "srvtoolu_01WYG3ziw53XMcoyKL4XcZmE") (name . "web_search") (input . ((query . "claude shannon birth date"))))
+                                                      ((type . "web_search_tool_result") (tool_use_id . "srvtoolu_01WYG3ziw53XMcoyKL4XcZmE") (content . "[\n  {\n    \"type\": \"web_search_result\",\n    \"url\": \"https://en.wikipedia.org/wiki/Claude_Shannon\",\n    \"title\": \"Claude Shannon - Wikipedia\",\n    \"encrypted_content\": \"EqgfCioIARgBIiQ3YTAwMjY1Mi1mZjM5LTQ1NGUtODgxNC1kNjNjNTk1ZWI3Y...\",\n    \"page_age\": \"April 30, 2025\"\n  }\n]"))
+                                                      ((type . "text") (text . "Based on the search results, Claude Shannon was born on April 30, 1916, in Petoskey, Michigan") (citations . (((type . "web_search_result_location") (url . "https://en.wikipedia.org/wiki/Claude_Shannon") (title . "Claude Shannon - Wikipedia") (cited_text . "Claude Elwood Shannon (April 30, 1916 – February 24, 2001) was an American mathematician, electrical engineer, computer scientist, cryptographer and i...") (encrypted_index . "Eo8BCioIAhgBIiQyYjQ0OWJmZi1lNm..")))))))))
+```
+
+It should be 
+
+```emacs-lisp
+:dialog (((role . "user") (content . "When was Claude Shannon born?"))
+                    ((role . "assistant") (content . (((type . "server_tool_use") (id . "srvtoolu_01WYG3ziw53XMcoyKL4XcZmE") (name . "web_search") (input . ((query . "claude shannon birth date"))))
+                                                      ((type . "web_search_tool_result") (tool_use_id . "srvtoolu_01WYG3ziw53XMcoyKL4XcZmE") (content . "[\n  {\n    \"type\": \"web_search_result\",\n    \"url\": \"https://en.wikipedia.org/wiki/Claude_Shannon\",\n    \"title\": \"Claude Shannon - Wikipedia\",\n    \"encrypted_content\": \"EqgfCioIARgBIiQ3YTAwMjY1Mi1mZjM5LTQ1NGUtODgxNC1kNjNjNTk1ZWI3Y...\",\n    \"page_age\": \"April 30, 2025\"\n  }\n]"))
+                                                      ((type . "text") (text . "Based on the search results, "))
+                                                      ((type . "text") (text . "Claude Shannon was born on April 30, 1916, in Petoskey, Michigan") 
+                                                       (citations . (((type . "web_search_result_location") (url . "https://en.wikipedia.org/wiki/Claude_Shannon") (title . "Claude Shannon - Wikipedia") (cited_text . "Claude Elwood Shannon (April 30, 1916 – February 24, 2001) was an American mathematician, electrical engineer, computer scientist, cryptographer and i...") (encrypted_index . "Eo8BCioIAhgBIiQyYjQ0OWJmZi1lNm..")))))))))
+```
+
+So any text in a  content list item that has a `citations` key should be wrapped in <cite>. And going from markdown to dialog, anything in `<cite>` should be grouped with a subsequent type:text item that has `"citations": {...}`.
+
+## ASSISTANT:
+
+You're absolutely right! I misunderstood the structure. The citations should be attached to specific text blocks, and when parsing from markdown, text in `<cite>` tags should be associated with the citations that follow. Let me fix the test case first:
+
+## TOOL USE:
+
+Name: str-replace
+ID: toolu_01Gzb71WRaHCjmBA1FQ8Sxqm
+
+### file-path
+
+<tool.toolu_01Gzb71WRaHCjmBA1FQ8Sxqm>
+test/test-greger-parser.el
+</tool.toolu_01Gzb71WRaHCjmBA1FQ8Sxqm>
+
+### original-content
+
+<tool.toolu_01Gzb71WRaHCjmBA1FQ8Sxqm>
+           :dialog (((role . "user") (content . "When was Claude Shannon born?"))
+                    ((role . "assistant") (content . (((type . "server_tool_use") (id . "srvtoolu_01WYG3ziw53XMcoyKL4XcZmE") (name . "web_search") (input . ((query . "claude shannon birth date"))))
+                                                      ((type . "web_search_tool_result") (tool_use_id . "srvtoolu_01WYG3ziw53XMcoyKL4XcZmE") (content . "[\n  {\n    \"type\": \"web_search_result\",\n    \"url\": \"https://en.wikipedia.org/wiki/Claude_Shannon\",\n    \"title\": \"Claude Shannon - Wikipedia\",\n    \"encrypted_content\": \"EqgfCioIARgBIiQ3YTAwMjY1Mi1mZjM5LTQ1NGUtODgxNC1kNjNjNTk1ZWI3Y...\",\n    \"page_age\": \"April 30, 2025\"\n  }\n]"))
+                                                      ((type . "text") (text . "Based on the search results, Claude Shannon was born on April 30, 1916, in Petoskey, Michigan") (citations . (((type . "web_search_result_location") (url . "https://en.wikipedia.org/wiki/Claude_Shannon") (title . "Claude Shannon - Wikipedia") (cited_text . "Claude Elwood Shannon (April 30, 1916 – February 24, 2001) was an American mathematician, electrical engineer, computer scientist, cryptographer and i...") (encrypted_index . "Eo8BCioIAhgBIiQyYjQ0OWJmZi1lNm.."))))))))))
+</tool.toolu_01Gzb71WRaHCjmBA1FQ8Sxqm>
+
+### new-content
+
+<tool.toolu_01Gzb71WRaHCjmBA1FQ8Sxqm>
+           :dialog (((role . "user") (content . "When was Claude Shannon born?"))
+                    ((role . "assistant") (content . (((type . "server_tool_use") (id . "srvtoolu_01WYG3ziw53XMcoyKL4XcZmE") (name . "web_search") (input . ((query . "claude shannon birth date"))))
+                                                      ((type . "web_search_tool_result") (tool_use_id . "srvtoolu_01WYG3ziw53XMcoyKL4XcZmE") (content . "[\n  {\n    \"type\": \"web_search_result\",\n    \"url\": \"https://en.wikipedia.org/wiki/Claude_Shannon\",\n    \"title\": \"Claude Shannon - Wikipedia\",\n    \"encrypted_content\": \"EqgfCioIARgBIiQ3YTAwMjY1Mi1mZjM5LTQ1NGUtODgxNC1kNjNjNTk1ZWI3Y...\",\n    \"page_age\": \"April 30, 2025\"\n  }\n]"))
+                                                      ((type . "text") (text . "Based on the search results, "))
+                                                      ((type . "text") (text . "Claude Shannon was born on April 30, 1916, in Petoskey, Michigan") 
+                                                       (citations . (((type . "web_search_result_location") (url . "https://en.wikipedia.org/wiki/Claude_Shannon") (title . "Claude Shannon - Wikipedia") (cited_text . "Claude Elwood Shannon (April 30, 1916 – February 24, 2001) was an American mathematician, electrical engineer, computer scientist, cryptographer and i...") (encrypted_index . "Eo8BCioIAhgBIiQyYjQ0OWJmZi1lNm.."))))))))))
+</tool.toolu_01Gzb71WRaHCjmBA1FQ8Sxqm>
+
+### git-commit-message
+
+<tool.toolu_01Gzb71WRaHCjmBA1FQ8Sxqm>
+Fix citations test case structure - separate text blocks
+</tool.toolu_01Gzb71WRaHCjmBA1FQ8Sxqm>
+
+<!-- TOOL_RESULT_PLACEHOLDER_toolu_01Gzb71WRaHCjmBA1FQ8Sxqm -->
