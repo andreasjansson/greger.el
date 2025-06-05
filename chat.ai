@@ -7681,4 +7681,492 @@ greger-parser.el
 Remove debug output from citations apply function
 </tool.toolu_01PfLjipUCjHhyMr5VBYhCCw>
 
-<!-- TOOL_RESULT_PLACEHOLDER_toolu_01PfLjipUCjHhyMr5VBYhCCw -->
+## TOOL RESULT:
+
+ID: toolu_01PfLjipUCjHhyMr5VBYhCCw
+
+<tool.toolu_01PfLjipUCjHhyMr5VBYhCCw>
+Successfully replaced content in /Users/andreas/projects/greger.el/greger-parser.el. Successfully staged 2 file(s) and committed with message: Remove debug output from citations apply function
+</tool.toolu_01PfLjipUCjHhyMr5VBYhCCw>
+
+## ASSISTANT:
+
+Now I need to add support for generating the citations section in the markdown output. Looking at the example format I want:
+
+```markdown
+## CITATIONS:
+
+### https://en.wikipedia.org/wiki/Claude_Shannon
+
+Title: Claude Shannon - Wikipedia
+Cited text: Claude Elwood Shannon (April 30, 1916 – February 24, 2001) was an American mathematician, electrical engineer, computer scientist, cryptographer and i...
+Encrypted index: Eo8BCioIAhgBIiQyYjQ0OWJmZi1lNm..
+```
+
+I need to modify the markdown generation to:
+1. Check if any content blocks have citations
+2. If so, generate the CITATIONS section after the assistant content
+
+Let me add support for this in the block-to-markdown function:
+
+## TOOL USE:
+
+Name: read-file
+ID: toolu_01Hj4s5tQ3kGpqo1eAkLjfEd
+
+### path
+
+<tool.toolu_01Hj4s5tQ3kGpqo1eAkLjfEd>
+greger-parser.el
+</tool.toolu_01Hj4s5tQ3kGpqo1eAkLjfEd>
+
+### start-line
+
+<tool.toolu_01Hj4s5tQ3kGpqo1eAkLjfEd>
+950
+</tool.toolu_01Hj4s5tQ3kGpqo1eAkLjfEd>
+
+### end-line
+
+<tool.toolu_01Hj4s5tQ3kGpqo1eAkLjfEd>
+980
+</tool.toolu_01Hj4s5tQ3kGpqo1eAkLjfEd>
+
+## TOOL RESULT:
+
+ID: toolu_01Hj4s5tQ3kGpqo1eAkLjfEd
+
+<tool.toolu_01Hj4s5tQ3kGpqo1eAkLjfEd>
+  "Skip to closing angle bracket using STATE."
+  (let ((iterations 0)
+        (max-iterations 1000)) ; Safety limit
+    (while (and (not (greger-parser--at-end-p state))
+                (not (eq (greger-parser--peek state) ?>))
+                (< iterations max-iterations))
+      (setq iterations (1+ iterations))
+      (greger-parser--advance state))
+    (when (>= iterations max-iterations)
+      (greger-parser--debug state "Hit max iterations in skip-to-closing-angle"))))
+
+(defun greger-parser--make-closing-tag (opening-tag)
+  "Make closing tag from OPENING-TAG."
+  (concat "</" (substring opening-tag 1)))
+
+(defun greger-parser--find-closing-tag (state closing-tag)
+  "Find CLOSING-TAG, treating all content inside as raw text using STATE."
+  (let ((found nil)
+        (iterations 0)
+        (max-iterations (* (greger-parser-state-length state) 2))) ; Safety limit
+    (while (and (not found)
+                (not (greger-parser--at-end-p state))
+                (< iterations max-iterations))
+      (setq iterations (1+ iterations))
+      (if (greger-parser--looking-at state closing-tag)
+          (setq found t)
+        (greger-parser--advance state)))
+    (when (>= iterations max-iterations)
+      (greger-parser--debug state "Hit max iterations in find-closing-tag"))
+    found))
+
+</tool.toolu_01Hj4s5tQ3kGpqo1eAkLjfEd>
+
+## ASSISTANT:
+
+Let me find the content blocks to markdown function:
+
+## TOOL USE:
+
+Name: ripgrep
+ID: toolu_013Z4AW8qZAVd1oivgV7kP3s
+
+### pattern
+
+<tool.toolu_013Z4AW8qZAVd1oivgV7kP3s>
+content-blocks-to-markdown
+</tool.toolu_013Z4AW8qZAVd1oivgV7kP3s>
+
+### path
+
+<tool.toolu_013Z4AW8qZAVd1oivgV7kP3s>
+greger-parser.el
+</tool.toolu_013Z4AW8qZAVd1oivgV7kP3s>
+
+## TOOL RESULT:
+
+ID: toolu_013Z4AW8qZAVd1oivgV7kP3s
+
+<tool.toolu_013Z4AW8qZAVd1oivgV7kP3s>
+1170:            (greger-parser--content-blocks-to-markdown content))))
+1176:    (greger-parser--content-blocks-to-markdown-with-citations content)))
+1182:(defun greger-parser--content-blocks-to-markdown (blocks)
+1186:(defun greger-parser--content-blocks-to-markdown-with-citations (blocks)
+
+</tool.toolu_013Z4AW8qZAVd1oivgV7kP3s>
+
+## ASSISTANT:
+
+I see there are already functions for this. Let me check what they contain:
+
+## TOOL USE:
+
+Name: read-file
+ID: toolu_01R6Ah7WPyedGUJHgkDU3k2j
+
+### path
+
+<tool.toolu_01R6Ah7WPyedGUJHgkDU3k2j>
+greger-parser.el
+</tool.toolu_01R6Ah7WPyedGUJHgkDU3k2j>
+
+### start-line
+
+<tool.toolu_01R6Ah7WPyedGUJHgkDU3k2j>
+1182
+</tool.toolu_01R6Ah7WPyedGUJHgkDU3k2j>
+
+### end-line
+
+<tool.toolu_01R6Ah7WPyedGUJHgkDU3k2j>
+1200
+</tool.toolu_01R6Ah7WPyedGUJHgkDU3k2j>
+
+## TOOL RESULT:
+
+ID: toolu_01R6Ah7WPyedGUJHgkDU3k2j
+
+<tool.toolu_01R6Ah7WPyedGUJHgkDU3k2j>
+(defun greger-parser--content-blocks-to-markdown (blocks)
+  "Convert content BLOCKS to markdown."
+  (mapconcat #'greger-parser--block-to-markdown blocks "\n\n"))
+
+(defun greger-parser--content-blocks-to-markdown-with-citations (blocks)
+  "Convert content BLOCKS to markdown, collecting citations into a separate section."
+  (let ((block-markdown "")
+        (collected-citations '()))
+    ;; Process each block and collect citations
+    (dolist (block blocks)
+      (let ((block-result (greger-parser--block-to-markdown-with-citations block)))
+        (setq block-markdown (concat block-markdown
+                                   (if (string-empty-p block-markdown) "" "\n\n")
+                                   (plist-get block-result :markdown)))
+        ;; Collect citations if any
+        (when (plist-get block-result :citations)
+          (setq collected-citations (append collected-citations (plist-get block-result :citations))))))
+    ;; Combine block markdown with citations section if any citations were found
+    (if collected-citations
+</tool.toolu_01R6Ah7WPyedGUJHgkDU3k2j>
+
+## ASSISTANT:
+
+Great! It looks like there's already some infrastructure for handling citations. Let me see the rest of that function and the block-to-markdown-with-citations function:
+
+## TOOL USE:
+
+Name: read-file
+ID: toolu_01MQsiNEUFb5UiA7Kth5jm2W
+
+### path
+
+<tool.toolu_01MQsiNEUFb5UiA7Kth5jm2W>
+greger-parser.el
+</tool.toolu_01MQsiNEUFb5UiA7Kth5jm2W>
+
+### start-line
+
+<tool.toolu_01MQsiNEUFb5UiA7Kth5jm2W>
+1200
+</tool.toolu_01MQsiNEUFb5UiA7Kth5jm2W>
+
+### end-line
+
+<tool.toolu_01MQsiNEUFb5UiA7Kth5jm2W>
+1220
+</tool.toolu_01MQsiNEUFb5UiA7Kth5jm2W>
+
+## TOOL RESULT:
+
+ID: toolu_01MQsiNEUFb5UiA7Kth5jm2W
+
+<tool.toolu_01MQsiNEUFb5UiA7Kth5jm2W>
+    (if collected-citations
+        (concat block-markdown "\n\n" (greger-parser--citations-to-markdown collected-citations))
+      block-markdown)))
+
+(defun greger-parser--citations-to-markdown (citations)
+  "Convert CITATIONS list to markdown citations section."
+  (when citations
+    (concat greger-parser-citations-tag "\n\n"
+            (mapconcat #'greger-parser--citation-to-markdown citations "\n\n"))))
+
+(defun greger-parser--citation-to-markdown (citation)
+  "Convert single CITATION to markdown format."
+  (let ((url (alist-get 'url citation))
+        (title (alist-get 'title citation))
+        (cited-text (alist-get 'cited_text citation))
+        (encrypted-index (alist-get 'encrypted_index citation)))
+    (concat "### " url "\n\n"
+            "Title: " title "\n"
+            "Cited text: " cited-text "\n"
+            "Encrypted index: " encrypted-index)))
+
+</tool.toolu_01MQsiNEUFb5UiA7Kth5jm2W>
+
+## ASSISTANT:
+
+Perfect! The infrastructure is already there. Now I need to check if the `greger-parser--block-to-markdown-with-citations` function exists:
+
+## TOOL USE:
+
+Name: ripgrep
+ID: toolu_01KWSdvmBKCHWzehKpYFBtBP
+
+### pattern
+
+<tool.toolu_01KWSdvmBKCHWzehKpYFBtBP>
+block-to-markdown-with-citations
+</tool.toolu_01KWSdvmBKCHWzehKpYFBtBP>
+
+### path
+
+<tool.toolu_01KWSdvmBKCHWzehKpYFBtBP>
+greger-parser.el
+</tool.toolu_01KWSdvmBKCHWzehKpYFBtBP>
+
+## TOOL RESULT:
+
+ID: toolu_01KWSdvmBKCHWzehKpYFBtBP
+
+<tool.toolu_01KWSdvmBKCHWzehKpYFBtBP>
+1192:      (let ((block-result (greger-parser--block-to-markdown-with-citations block)))
+1223:  (let ((result (greger-parser--block-to-markdown-with-citations block)))
+1226:(defun greger-parser--block-to-markdown-with-citations (block)
+
+</tool.toolu_01KWSdvmBKCHWzehKpYFBtBP>
+
+## ASSISTANT:
+
+Let me check that function:
+
+## TOOL USE:
+
+Name: read-file
+ID: toolu_01UvUQfYdu25cp91X6KCyrT7
+
+### path
+
+<tool.toolu_01UvUQfYdu25cp91X6KCyrT7>
+greger-parser.el
+</tool.toolu_01UvUQfYdu25cp91X6KCyrT7>
+
+### start-line
+
+<tool.toolu_01UvUQfYdu25cp91X6KCyrT7>
+1226
+</tool.toolu_01UvUQfYdu25cp91X6KCyrT7>
+
+### end-line
+
+<tool.toolu_01UvUQfYdu25cp91X6KCyrT7>
+1250
+</tool.toolu_01UvUQfYdu25cp91X6KCyrT7>
+
+## TOOL RESULT:
+
+ID: toolu_01UvUQfYdu25cp91X6KCyrT7
+
+<tool.toolu_01UvUQfYdu25cp91X6KCyrT7>
+(defun greger-parser--block-to-markdown-with-citations (block)
+  "Convert single BLOCK to markdown, extracting citations if present.
+Returns a plist with :markdown and optionally :citations."
+  (let ((type (alist-get 'type block)))
+
+    ;; TODO: remove debug
+    (message (format "type: %s" type))
+
+    (cond
+     ((string= type "text")
+      (let ((text (alist-get 'text block))
+            (citations (alist-get 'citations block)))
+        (let ((formatted-text (if citations
+                                  (concat "<cite>" text "</cite>")
+                                text)))
+          (list :markdown (concat greger-parser-assistant-tag "\n\n" formatted-text)
+                :citations citations))))
+     ((string= type "thinking")
+      (list :markdown (concat greger-parser-thinking-tag "\n\n"
+                             (alist-get 'thinking block))))
+     ((string= type "tool_use")
+      (list :markdown (greger-parser--tool-use-to-markdown block)))
+     ((string= type "tool_result")
+      (list :markdown (greger-parser--tool-result-to-markdown block)))
+     ((string= type "server_tool_use")
+</tool.toolu_01UvUQfYdu25cp91X6KCyrT7>
+
+## ASSISTANT:
+
+There's still some debug code there and the logic doesn't look right. Let me see the full function and then fix it:
+
+## TOOL USE:
+
+Name: read-file
+ID: toolu_01XKeq6YkUaokbWtpRxTjLdW
+
+### path
+
+<tool.toolu_01XKeq6YkUaokbWtpRxTjLdW>
+greger-parser.el
+</tool.toolu_01XKeq6YkUaokbWtpRxTjLdW>
+
+### start-line
+
+<tool.toolu_01XKeq6YkUaokbWtpRxTjLdW>
+1240
+</tool.toolu_01XKeq6YkUaokbWtpRxTjLdW>
+
+### end-line
+
+<tool.toolu_01XKeq6YkUaokbWtpRxTjLdW>
+1260
+</tool.toolu_01XKeq6YkUaokbWtpRxTjLdW>
+
+## TOOL RESULT:
+
+ID: toolu_01XKeq6YkUaokbWtpRxTjLdW
+
+<tool.toolu_01XKeq6YkUaokbWtpRxTjLdW>
+                                text)))
+          (list :markdown (concat greger-parser-assistant-tag "\n\n" formatted-text)
+                :citations citations))))
+     ((string= type "thinking")
+      (list :markdown (concat greger-parser-thinking-tag "\n\n"
+                             (alist-get 'thinking block))))
+     ((string= type "tool_use")
+      (list :markdown (greger-parser--tool-use-to-markdown block)))
+     ((string= type "tool_result")
+      (list :markdown (greger-parser--tool-result-to-markdown block)))
+     ((string= type "server_tool_use")
+      (list :markdown (greger-parser--server-tool-use-to-markdown block)))
+     ((string= type "server_tool_result")
+      (list :markdown (greger-parser--server-tool-result-to-markdown block)))
+     ((string= type "web_search_tool_result")
+      (list :markdown (greger-parser--web-search-tool-result-to-markdown block)))
+     (t (list :markdown "")))))
+
+(defun greger-parser--tool-use-to-markdown (tool-use)
+  "Convert TOOL-USE to markdown."
+  (let ((name (alist-get 'name tool-use))
+</tool.toolu_01XKeq6YkUaokbWtpRxTjLdW>
+
+## ASSISTANT:
+
+Now let me check how the assistant-to-markdown function currently works to understand the issue:
+
+## TOOL USE:
+
+Name: read-file
+ID: toolu_01VgRqr73mSBkWxwnGSn9JcT
+
+### path
+
+<tool.toolu_01VgRqr73mSBkWxwnGSn9JcT>
+greger-parser.el
+</tool.toolu_01VgRqr73mSBkWxwnGSn9JcT>
+
+### start-line
+
+<tool.toolu_01VgRqr73mSBkWxwnGSn9JcT>
+1170
+</tool.toolu_01VgRqr73mSBkWxwnGSn9JcT>
+
+### end-line
+
+<tool.toolu_01VgRqr73mSBkWxwnGSn9JcT>
+1180
+</tool.toolu_01VgRqr73mSBkWxwnGSn9JcT>
+
+## TOOL RESULT:
+
+ID: toolu_01VgRqr73mSBkWxwnGSn9JcT
+
+<tool.toolu_01VgRqr73mSBkWxwnGSn9JcT>
+            (greger-parser--content-blocks-to-markdown content))))
+
+(defun greger-parser--assistant-to-markdown (content)
+  "Convert assistant CONTENT to markdown."
+  (if (stringp content)
+      (concat greger-parser-assistant-tag "\n\n" content)
+    (greger-parser--content-blocks-to-markdown-with-citations content)))
+
+(defun greger-parser--system-to-markdown (content)
+  "Convert system CONTENT to markdown."
+  (concat greger-parser-system-tag "\n\n" content))
+</tool.toolu_01VgRqr73mSBkWxwnGSn9JcT>
+
+## ASSISTANT:
+
+Good! The assistant-to-markdown function is already using `greger-parser--content-blocks-to-markdown-with-citations`. Now I need to:
+
+1. Remove the debug message
+2. Fix the logic so that text blocks don't add their own ASSISTANT header (since it's added at the message level)
+3. Make sure cite tags are preserved correctly
+
+Let me fix the function:
+
+## TOOL USE:
+
+Name: str-replace
+ID: toolu_01WbTojKhyXwGBKvPAnffscB
+
+### file-path
+
+<tool.toolu_01WbTojKhyXwGBKvPAnffscB>
+greger-parser.el
+</tool.toolu_01WbTojKhyXwGBKvPAnffscB>
+
+### original-content
+
+<tool.toolu_01WbTojKhyXwGBKvPAnffscB>
+(defun greger-parser--block-to-markdown-with-citations (block)
+  "Convert single BLOCK to markdown, extracting citations if present.
+Returns a plist with :markdown and optionally :citations."
+  (let ((type (alist-get 'type block)))
+
+    ;; TODO: remove debug
+    (message (format "type: %s" type))
+
+    (cond
+     ((string= type "text")
+      (let ((text (alist-get 'text block))
+            (citations (alist-get 'citations block)))
+        (let ((formatted-text (if citations
+                                  (concat "<cite>" text "</cite>")
+                                text)))
+          (list :markdown (concat greger-parser-assistant-tag "\n\n" formatted-text)
+                :citations citations))))
+</tool.toolu_01WbTojKhyXwGBKvPAnffscB>
+
+### new-content
+
+<tool.toolu_01WbTojKhyXwGBKvPAnffscB>
+(defun greger-parser--block-to-markdown-with-citations (block)
+  "Convert single BLOCK to markdown, extracting citations if present.
+Returns a plist with :markdown and optionally :citations."
+  (let ((type (alist-get 'type block)))
+    (cond
+     ((string= type "text")
+      (let ((text (alist-get 'text block))
+            (citations (alist-get 'citations block)))
+        (let ((formatted-text (if citations
+                                  (concat "<cite>" text "</cite>")
+                                text)))
+          (list :markdown formatted-text
+                :citations citations))))
+</tool.toolu_01WbTojKhyXwGBKvPAnffscB>
+
+### git-commit-message
+
+<tool.toolu_01WbTojKhyXwGBKvPAnffscB>
+Fix block-to-markdown-with-citations text handling and remove debug
+</tool.toolu_01WbTojKhyXwGBKvPAnffscB>
+
+<!-- TOOL_RESULT_PLACEHOLDER_toolu_01WbTojKhyXwGBKvPAnffscB -->

@@ -1227,10 +1227,6 @@ Modifies the content blocks in-place to process <cite> tags."
   "Convert single BLOCK to markdown, extracting citations if present.
 Returns a plist with :markdown and optionally :citations."
   (let ((type (alist-get 'type block)))
-
-    ;; TODO: remove debug
-    (message (format "type: %s" type))
-
     (cond
      ((string= type "text")
       (let ((text (alist-get 'text block))
@@ -1238,7 +1234,7 @@ Returns a plist with :markdown and optionally :citations."
         (let ((formatted-text (if citations
                                   (concat "<cite>" text "</cite>")
                                 text)))
-          (list :markdown (concat greger-parser-assistant-tag "\n\n" formatted-text)
+          (list :markdown formatted-text
                 :citations citations))))
      ((string= type "thinking")
       (list :markdown (concat greger-parser-thinking-tag "\n\n"
