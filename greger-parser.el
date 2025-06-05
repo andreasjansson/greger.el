@@ -36,14 +36,15 @@
 (require 'greger-web)
 
 ;; Section tag constants
+(defconst greger-parser-system-tag "## SYSTEM:")
 (defconst greger-parser-user-tag "## USER:")
 (defconst greger-parser-assistant-tag "## ASSISTANT:")
-(defconst greger-parser-system-tag "## SYSTEM:")
+(defconst greger-parser-thinking-tag "## THINKING:")
+(defconst greger-parser-citations-tag "## CITATIONS:")
 (defconst greger-parser-tool-use-tag "## TOOL USE:")
 (defconst greger-parser-tool-result-tag "## TOOL RESULT:")
 (defconst greger-parser-server-tool-use-tag "## SERVER TOOL USE:")
 (defconst greger-parser-server-tool-result-tag "## SERVER TOOL RESULT:")
-(defconst greger-parser-thinking-tag "## THINKING:")
 
 ;;; Parser state structure
 
@@ -208,14 +209,15 @@ DEBUG enables debug logging."
 
 (defun greger-parser--section-tags ()
   "List of all section tags."
-  (list greger-parser-user-tag
+  (list greger-parser-system-tag
+        greger-parser-user-tag
         greger-parser-assistant-tag
-        greger-parser-system-tag
+        greger-parser-thinking-tag
+        greger-parser-citations-tag
         greger-parser-tool-use-tag
         greger-parser-tool-result-tag
         greger-parser-server-tool-use-tag
-        greger-parser-server-tool-result-tag
-        greger-parser-thinking-tag))
+        greger-parser-server-tool-result-tag))
 
 (defun greger-parser--find-section-tag (state)
   "Find section tag at current position if at line start in STATE."
@@ -634,14 +636,16 @@ Returns a plist with :messages and :metadata keys."
     (when tag
       (greger-parser--consume-section-tag state tag)
       (cond
+       ((string= tag greger-parser-system-tag)
+        (greger-parser--parse-system-section state))
        ((string= tag greger-parser-user-tag)
         (greger-parser--parse-user-section state))
        ((string= tag greger-parser-assistant-tag)
         (greger-parser--parse-assistant-section state))
-       ((string= tag greger-parser-system-tag)
-        (greger-parser--parse-system-section state))
        ((string= tag greger-parser-thinking-tag)
         (greger-parser--parse-thinking-section state))
+       ((string= tag greger-parser-citations-tag)
+        (greger-parser--parse-citations-section state))
        ((string= tag greger-parser-tool-use-tag)
         (greger-parser--parse-tool-use-section state))
        ((string= tag greger-parser-tool-result-tag)
@@ -709,6 +713,12 @@ Returns either a system message, metadata, or both."
   (let ((content (greger-parser--parse-section-content state)))
     (when content
       (greger-parser--create-thinking-message content))))
+
+(defun greger-parser--parse-citations-section (state)
+  "Parse CITATIONS section using STATE."
+  (let ((content (greger-parser--parse-section-content state)))
+    (when content
+      (greger-parser--create-citations-message content))))
 
 (defun greger-parser--parse-tool-use-section (state)
   "Parse TOOL USE section using STATE."
