@@ -4314,4 +4314,76 @@ Returns parsed citation data that should be merged with the previous assistant m
 Modify citations section parsing to extract citation data
 </tool.toolu_015EfZ7gAq9EKm2URgebATHw>
 
-<!-- TOOL_RESULT_PLACEHOLDER_toolu_015EfZ7gAq9EKm2URgebATHw -->
+## TOOL RESULT:
+
+ID: toolu_015EfZ7gAq9EKm2URgebATHw
+
+<tool.toolu_015EfZ7gAq9EKm2URgebATHw>
+Successfully replaced content in /Users/andreas/projects/greger.el/greger-parser.el. Successfully staged 2 file(s) and committed with message: Modify citations section parsing to extract citation data
+</tool.toolu_015EfZ7gAq9EKm2URgebATHw>
+
+## ASSISTANT:
+
+Now I need to implement `greger-parser--parse-citations-content`:
+
+## TOOL USE:
+
+Name: str-replace
+ID: toolu_01JZQUFRRbAig5LTCV4Qs8dc
+
+### file-path
+
+<tool.toolu_01JZQUFRRbAig5LTCV4Qs8dc>
+greger-parser.el
+</tool.toolu_01JZQUFRRbAig5LTCV4Qs8dc>
+
+### original-content
+
+<tool.toolu_01JZQUFRRbAig5LTCV4Qs8dc>
+        (list :type :citations-data :citations parsed-citations)))))
+</tool.toolu_01JZQUFRRbAig5LTCV4Qs8dc>
+
+### new-content
+
+<tool.toolu_01JZQUFRRbAig5LTCV4Qs8dc>
+        (list :type :citations-data :citations parsed-citations)))))
+
+(defun greger-parser--parse-citations-content (content)
+  "Parse citations from markdown CONTENT and return list of citation objects."
+  (let ((citations '())
+        (lines (split-string content "\n"))
+        (current-citation nil)
+        (current-url nil))
+    (dolist (line lines)
+      (cond
+       ;; URL heading: ### https://example.com
+       ((string-match "^### \\(https?://[^\s]+\\)" line)
+        ;; Save previous citation if any
+        (when current-citation
+          (push current-citation citations))
+        ;; Start new citation
+        (setq current-url (match-string 1 line))
+        (setq current-citation (list (cons 'type "web_search_result_location")
+                                   (cons 'url current-url))))
+       ;; Title: ...
+       ((and current-citation (string-match "^Title: \\(.*\\)" line))
+        (push (cons 'title (match-string 1 line)) current-citation))
+       ;; Cited text: ...
+       ((and current-citation (string-match "^Cited text: \\(.*\\)" line))
+        (push (cons 'cited_text (match-string 1 line)) current-citation))
+       ;; Encrypted index: ...
+       ((and current-citation (string-match "^Encrypted index: \\(.*\\)" line))
+        (push (cons 'encrypted_index (match-string 1 line)) current-citation))))
+    ;; Add the last citation
+    (when current-citation
+      (push current-citation citations))
+    (reverse citations)))
+</tool.toolu_01JZQUFRRbAig5LTCV4Qs8dc>
+
+### git-commit-message
+
+<tool.toolu_01JZQUFRRbAig5LTCV4Qs8dc>
+Add citations content parsing function
+</tool.toolu_01JZQUFRRbAig5LTCV4Qs8dc>
+
+<!-- TOOL_RESULT_PLACEHOLDER_toolu_01JZQUFRRbAig5LTCV4Qs8dc -->

@@ -725,6 +725,37 @@ Returns parsed citation data that should be merged with the previous assistant m
         ;; This will be handled specially in the document parsing
         (list :type :citations-data :citations parsed-citations)))))
 
+(defun greger-parser--parse-citations-content (content)
+  "Parse citations from markdown CONTENT and return list of citation objects."
+  (let ((citations '())
+        (lines (split-string content "\n"))
+        (current-citation nil)
+        (current-url nil))
+    (dolist (line lines)
+      (cond
+       ;; URL heading: ### https://example.com
+       ((string-match "^### \\(https?://[^\s]+\\)" line)
+        ;; Save previous citation if any
+        (when current-citation
+          (push current-citation citations))
+        ;; Start new citation
+        (setq current-url (match-string 1 line))
+        (setq current-citation (list (cons 'type "web_search_result_location")
+                                   (cons 'url current-url))))
+       ;; Title: ...
+       ((and current-citation (string-match "^Title: \\(.*\\)" line))
+        (push (cons 'title (match-string 1 line)) current-citation))
+       ;; Cited text: ...
+       ((and current-citation (string-match "^Cited text: \\(.*\\)" line))
+        (push (cons 'cited_text (match-string 1 line)) current-citation))
+       ;; Encrypted index: ...
+       ((and current-citation (string-match "^Encrypted index: \\(.*\\)" line))
+        (push (cons 'encrypted_index (match-string 1 line)) current-citation))))
+    ;; Add the last citation
+    (when current-citation
+      (push current-citation citations))
+    (reverse citations)))
+
 (defun greger-parser--parse-tool-use-section (state)
   "Parse TOOL USE section using STATE."
   (greger-parser--skip-whitespace state)
