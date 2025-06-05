@@ -41,6 +41,11 @@
   "Face for folded citation summary text."
   :group 'greger-ui)
 
+(defface greger-tool-tag-face
+  '((t (:foreground "#666666" :height 0.8)))
+  "Face for tool tags."
+  :group 'greger-ui)
+
 ;; Constants
 (defconst greger-ui-cite-tag-regex "<cite>\\([^<]*\\)</cite>"
   "Regular expression to match cite tags.")

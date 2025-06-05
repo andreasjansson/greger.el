@@ -3097,11 +3097,11 @@ Cited text: Carl XVI Gustaf is King of Sweden.
 ## USER:
 
 hello"))
-    
+
     (with-temp-buffer
       (insert test-content)
       (greger-mode)
-      
+
       ;; Test bibliography detection
       (let ((bib-bounds (greger-ui-find-final-bibliography)))
         (if bib-bounds
@@ -3113,7 +3113,7 @@ hello"))
               ;; Test folding
               (greger-ui-hide-final-bibliography (car bib-bounds) (cdr bib-bounds))
               (message "Bibliography folded - check the buffer!")
-              
+
               ;; Switch to this buffer to see the result
               (switch-to-buffer (current-buffer)))
           (message "No bibliography found"))))))
@@ -3277,4 +3277,589 @@ Add extra newlines to test spacing preservation
 - This will verify that folding preserves proper spacing between sections
 </tool.toolu_01Jfs7Vavg9q2MNthMTjbgj1>
 
-<!-- TOOL_RESULT_PLACEHOLDER_toolu_01Jfs7Vavg9q2MNthMTjbgj1 -->
+## TOOL RESULT:
+
+ID: toolu_01Jfs7Vavg9q2MNthMTjbgj1
+
+<tool.toolu_01Jfs7Vavg9q2MNthMTjbgj1>
+Successfully replaced content in /Users/andreas/projects/greger.el/test-simple-folding.el. Successfully staged 2 file(s) and committed with message: Add extra newlines to test spacing preservation
+
+- Add double newlines before ## USER: section to test spacing preservation
+- This will verify that folding preserves proper spacing between sections
+</tool.toolu_01Jfs7Vavg9q2MNthMTjbgj1>
+
+## USER:
+
+Great,that worked!
+
+Now move the tool content folding logic over to greger-ui too
+
+
+## ASSISTANT:
+
+Perfect! Now let me move the tool content folding logic from greger.el to greger-ui.el to consolidate all the UI functionality in one place.
+
+First, let me examine the current tool folding implementation in greger.el:
+
+## TOOL USE:
+
+Name: ripgrep
+ID: toolu_01YKvPojzGzELBDdHHkdgsFB
+
+### pattern
+
+<tool.toolu_01YKvPojzGzELBDdHHkdgsFB>
+tool.*overlay|greger--.*tool|tool.*section
+</tool.toolu_01YKvPojzGzELBDdHHkdgsFB>
+
+### path
+
+<tool.toolu_01YKvPojzGzELBDdHHkdgsFB>
+greger.el
+</tool.toolu_01YKvPojzGzELBDdHHkdgsFB>
+
+### context-lines
+
+<tool.toolu_01YKvPojzGzELBDdHHkdgsFB>
+3
+</tool.toolu_01YKvPojzGzELBDdHHkdgsFB>
+
+## TOOL RESULT:
+
+ID: toolu_01YKvPojzGzELBDdHHkdgsFB
+
+<tool.toolu_01YKvPojzGzELBDdHHkdgsFB>
+66-
+67-;; Tool configuration and agent functionality
+68-
+69:(defun greger--default-tools ()
+70-  "Return default tools list, including LSP tools if available."
+71-  (let ((base-tools '("read-file" "list-directory" "str-replace" "insert" "write-new-file" "replace-file" "make-directory" "rename-file" "ripgrep" "git-log" "git-show-commit" "shell-command" "read-webpage" "delete-files"))
+72-        (lsp-tools '("lsp-rename" "lsp-find-definition" "lsp-find-references" "lsp-format" "lsp-document-symbols")))
+--
+74-        (append base-tools lsp-tools)
+75-      base-tools)))
+76-
+77:(defcustom greger-tools (greger--default-tools)
+78-  "List of tools available to the agent."
+79-  :type '(repeat symbol)
+80-  :group 'greger)
+--
+108-(defvar greger-assistant-tag "## ASSISTANT:")
+109-(defvar greger-system-tag "## SYSTEM:")
+110-
+111:;; Tool section collapsing variables
+112:(defvar greger-tool-section-max-lines 4
+113:  "Maximum number of lines to show in collapsed tool sections.")
+114-
+115:(defvar-local greger-tool-overlays nil
+116:  "List of overlays used for collapsible tool sections.")
+117-
+118-;; Citation section collapsing variables
+119-(defvar-local greger-citation-overlays nil
+--
+129-(defvar-local greger--buffer-read-only-by-greger nil
+130-  "Buffer-local variable to track if buffer is read-only due to greger activity.")
+131-
+132:(defvar-local greger--unfolded-tool-ids nil
+133-  "List of tool IDs that have been manually unfolded.
+134-These tool IDs should not be auto-folded again.")
+135-
+--
+194-    (define-key map (kbd "C-; m") #'greger-set-model)
+195-    (define-key map (kbd "C-; c") #'greger-copy-code)
+196-    (define-key map (kbd "C-; d") #'greger-debug-request)
+197:    (define-key map (kbd "TAB") #'greger-toggle-tool-section)
+198:    (define-key map (kbd "<tab>") #'greger-toggle-tool-section)
+199-    map)
+200-  "Keymap for `greger-mode'.")
+201-
+--
+204-  (use-local-map greger-mode-map)
+205-  (setq-local markdown-fontify-code-blocks-natively t)
+206-  (setq-local mode-line-misc-info '(:eval (greger--mode-line-info)))
+207:  ;; Set up invisible text for tool sections
+208:  (add-to-invisibility-spec 'greger-tool-section)
+209:  ;; Set up tool section highlighting and collapsing
+210:  (greger--setup-tool-sections)
+211-  ;; Set up citation folding
+212-  (greger-ui-setup-citation-folding)
+213-  ;; Set up custom heading font-lock
+214-  (greger--setup-heading-font-lock)
+215:  ;; Add hook to update tool sections when buffer changes
+216-  (add-hook 'after-change-functions #'greger--after-change-function nil t)
+217-  ;; Add font-lock hook for immediate tool tag styling
+218-  (add-hook 'font-lock-extend-region-functions #'greger--extend-font-lock-region nil t))
+--
+491-    (t nil))))
+492-
+493-(defun greger--handle-stream-completion (state content-blocks)
+494:  (let ((tool-calls (greger--extract-tool-calls content-blocks))
+495-        (citations (greger--extract-citations content-blocks)))
+496-
+497-    ;; Process citations if any
+--
+502-    ;; TODO: remove debug
+503-    (if tool-calls
+504-        (progn
+505:          (greger--debug "TOOL USE DETECTED! Found %d tool calls" (length tool-calls))
+506-          (setf (greger-state-current-iteration state)
+507-                (1+ (greger-state-current-iteration state)))
+508-          ;; TODO: execute tool calls in greger--append-content-block instead
+509:          (greger--execute-tools tool-calls state))
+510-      (progn
+511:        (greger--debug "NO TOOL USE - CONVERSATION COMPLETE")
+512-        (greger--finish-response state))))
+513-
+514-  (with-current-buffer (greger-state-chat-buffer state)
+--
+532-
+533-   (when (string= type "tool_use")
+534-     (let ((tool-id (alist-get 'id content-block)))
+535:       (greger--append-text state (concat "\n\n" (greger--tool-placeholder tool-id)))))
+536-
+537-   ;; Update buffer state after client completes
+538-   (with-current-buffer (greger-state-chat-buffer state)
+539-     (greger--update-buffer-state))))
+540-
+541:(defun greger--extract-tool-calls (content-blocks)
+542-  "Extract tool calls from CONTENT-BLOCKS."
+543-  (let ((tool-calls '()))
+544-    (dolist (block content-blocks)
+545-      (when (string= (alist-get 'type block) "tool_use")
+546:        (greger--debug "EXTRACTING TOOL CALL: %s with input: %s"
+547-                      (alist-get 'name block)
+548-                      (json-encode (alist-get 'input block)))
+549-        (push block tool-calls)))
+--
+581-            "Cited text: " cited-text "\n"
+582-            "Encrypted index: " encrypted-index)))
+583-
+584:(defun greger--tool-placeholder (tool-id)
+585-  "Generate placeholder string for TOOL-ID."
+586-  (format "<!-- TOOL_RESULT_PLACEHOLDER_%s -->" tool-id))
+587-
+588:(defun greger--execute-tools (tool-calls state)
+589-  "Execute TOOL-CALLS using AGENT-STATE in parallel with callbacks."
+590-  (let* ((total-tools (length tool-calls))
+591-         (completed-tools 0)
+--
+610-        ;;         (tool-block-markdown (greger-parser--content-blocks-to-markdown (list tool-call))))
+611-        ;;     (unless (string-empty-p tool-block-markdown)
+612-        ;;       (insert "\n\n" tool-block-markdown))
+613:        ;;     (insert "\n\n" (greger--tool-placeholder tool-id))))
+614-        ))
+615-
+616-    ;; Execute all tools in parallel
+--
+637-                                        ;; Remove tool from executing-tools when complete
+638-                                        (remhash tool-id (greger-state-executing-tools state))
+639-
+640:                                        (greger--handle-tool-completion
+641-                                         :tool-id tool-id
+642-                                         :result result
+643-                                         :error error
+--
+660-      (goto-char (point-max))
+661-      (insert text))))
+662-
+663:(cl-defun greger--handle-tool-completion (&key tool-id result error state completion-callback)
+664-  "Handle completion of a tool execution by updating buffer and calling callback.
+665-TOOL-ID is the tool identifier.
+666-RESULT is the tool execution result.
+--
+684-        (save-excursion
+685-          (goto-char (point-max))
+686-          ;; Find and replace the placeholder
+687:          (when (search-backward (greger--tool-placeholder tool-id) nil t)
+688-            (replace-match "")
+689-            (let ((result-markdown (greger-parser--content-blocks-to-markdown (list tool-result))))
+690-              (unless (string-empty-p result-markdown)
+--
+719-  (setq greger-debug (not greger-debug))
+720-  (message "Greger debug %s" (if greger-debug "enabled" "disabled")))
+721-
+722:;; Tool section collapsing functions
+723-
+724:(defun greger--setup-tool-sections ()
+725:  "Set up tool section highlighting and collapsing in the current buffer."
+726:  (greger--clear-tool-overlays)
+727:  (greger--find-and-setup-tool-sections))
+728-
+729:(defun greger--clear-tool-overlays ()
+730:  "Clear all tool section overlays in the current buffer."
+731:  (cl-loop for overlay in greger-tool-overlays
+732-           do (delete-overlay overlay))
+733:  (setq greger-tool-overlays nil))
+734-
+735:(defun greger--find-and-setup-tool-sections ()
+736:  "Find all tool sections and set them up with appropriate faces and collapsing."
+737-  (save-excursion
+738-    (goto-char (point-min))
+739-    (cl-loop while (re-search-forward "<tool\\.[^>]+>" nil t)
+740:             do (greger--setup-single-tool-section))))
+741-
+742:(defun greger--setup-single-tool-section ()
+743:  "Set up a single tool section starting from the current match."
+744-  (let ((start-tag-start (match-beginning 0))
+745-        (start-tag-end (match-end 0))
+746:        (tool-id (greger--extract-tool-id (match-string 0))))
+747-    (when tool-id
+748-      (let ((end-tag-pattern (concat "</tool\\." (regexp-quote tool-id) ">"))
+749-            (content-start start-tag-end)
+--
+762-          (greger--create-tag-overlay end-tag-start end-tag-end)
+763-
+764-          ;; Set up collapsible content
+765:          (greger--setup-collapsible-content content-start content-end tool-id))))))
+766-
+767:(defun greger--extract-tool-id (tag-string)
+768-  "Extract tool ID from a tool tag string like '<tool.abc123>'.
+769-TAG-STRING is the tag string to extract from."
+770-  (when (string-match "<tool\\.\\([^>]+\\)>" tag-string)
+--
+777-  (let ((overlay (make-overlay start end)))
+778-    (overlay-put overlay 'face 'greger-tool-tag-face)
+779-    (overlay-put overlay 'greger-tool-tag t)
+780:    (push overlay greger-tool-overlays)
+781-    overlay))
+782-
+783:(defun greger--setup-collapsible-content (content-start content-end tool-id)
+784-  "Set up collapsible content between CONTENT-START and CONTENT-END for TOOL-ID.
+785-CONTENT-START is the start position of the content.
+786-CONTENT-END is the end position of the content.
+--
+789-         (lines (split-string content "\n"))
+790-         (line-count (length lines)))
+791-
+792:    (when (and (> line-count greger-tool-section-max-lines)
+793-               ;; Only create collapsed overlay if not manually unfolded
+794:               (not (member tool-id greger--unfolded-tool-ids)))
+795-      ;; Create the collapsible overlay
+796:      (greger--create-collapsible-overlay content-start content-end tool-id lines))))
+797-
+798:(defun greger--create-collapsible-overlay (content-start content-end tool-id lines)
+799-  "Create a collapsible overlay for tool content.
+
+</tool.toolu_01YKvPojzGzELBDdHHkdgsFB>
+
+## ASSISTANT:
+
+Now let me get the rest of the tool folding functions:
+
+## TOOL USE:
+
+Name: read-file
+ID: toolu_01Mmi6M5y3wytvUP7czkkW3o
+
+### path
+
+<tool.toolu_01Mmi6M5y3wytvUP7czkkW3o>
+greger.el
+</tool.toolu_01Mmi6M5y3wytvUP7czkkW3o>
+
+### start-line
+
+<tool.toolu_01Mmi6M5y3wytvUP7czkkW3o>
+798
+</tool.toolu_01Mmi6M5y3wytvUP7czkkW3o>
+
+### end-line
+
+<tool.toolu_01Mmi6M5y3wytvUP7czkkW3o>
+900
+</tool.toolu_01Mmi6M5y3wytvUP7czkkW3o>
+
+## TOOL RESULT:
+
+ID: toolu_01Mmi6M5y3wytvUP7czkkW3o
+
+<tool.toolu_01Mmi6M5y3wytvUP7czkkW3o>
+(defun greger--create-collapsible-overlay (content-start content-end tool-id lines)
+  "Create a collapsible overlay for tool content.
+CONTENT-START and CONTENT-END define the overlay bounds.
+TOOL-ID identifies the tool, and LINES contain the content."
+  (let* ((visible-lines (cl-subseq lines 0 greger-tool-section-max-lines))
+         (hidden-lines (cl-subseq lines greger-tool-section-max-lines))
+         (hidden-line-count (length hidden-lines))
+         (visible-text (mapconcat #'identity visible-lines "\n"))
+
+         ;; Calculate positions for visible and hidden parts
+         (visible-end (+ content-start (length visible-text)))
+         (hidden-start (+ visible-end 1)) ; +1 for the newline
+
+         ;; Create overlay for the hidden part
+         (hidden-overlay (make-overlay hidden-start content-end)))
+
+    (overlay-put hidden-overlay 'invisible 'greger-tool-section)
+    (overlay-put hidden-overlay 'greger-tool-section t)
+    (overlay-put hidden-overlay 'greger-tool-id tool-id)
+    (overlay-put hidden-overlay 'greger-collapsed t)
+
+    ;; Add expansion indicator with line count
+    (let ((indicator-overlay (make-overlay visible-end visible-end)))
+      (overlay-put indicator-overlay 'after-string
+                   (propertize (format "... [+%d lines, TAB to expand]" hidden-line-count)
+                              'face 'greger-tool-tag-face))
+      (overlay-put indicator-overlay 'greger-tool-indicator t)
+      (overlay-put indicator-overlay 'greger-tool-id tool-id)
+      (push indicator-overlay greger-tool-overlays))
+
+    (push hidden-overlay greger-tool-overlays)))
+
+(defun greger-toggle-tool-section ()
+  "Toggle the tool section or citation at point between collapsed and expanded state.
+If not inside a tool section or citation, fall back to `markdown-cycle'."
+  (interactive)
+  (let ((tool-id (greger--get-tool-id-at-point)))
+    (cond
+     ;; First try tool sections
+     (tool-id
+      (greger--toggle-tool-section-by-id tool-id))
+     ;; Then try citation folding
+     ((or (greger-ui-point-in-cite-tag-p) (greger-ui-point-in-bibliography-p))
+      (greger-ui-toggle-citation-fold))
+     ;; Fall back to markdown-cycle if available
+     ((fboundp 'markdown-cycle)
+      (call-interactively #'markdown-cycle))
+     ;; Final fallback
+     (t
+      (message "Not inside a tool section or citation area")))))
+
+(defun greger--get-tool-id-at-point ()
+  "Get the tool ID for the tool section at point, if any."
+  ;; First check overlays at point
+  (or (cl-loop for overlay in (overlays-at (point))
+               for tool-id = (overlay-get overlay 'greger-tool-id)
+               when tool-id return tool-id)
+      ;; If not found, search backwards and forwards for tool tags
+      (greger--find-tool-id-near-point)))
+
+(defun greger--find-tool-id-near-point ()
+  "Find tool ID near point by searching for tool tags."
+  (save-excursion
+    (let ((start-pos (point))
+          tool-id)
+      ;; Search backwards for opening tag
+      (when (re-search-backward "<tool\\.[^>]+>" nil t)
+        (let ((open-tag-start (match-beginning 0))
+              (tag-tool-id (greger--extract-tool-id (match-string 0))))
+          ;; Check if we're within this tool section
+          (when tag-tool-id
+            (let ((close-pattern (concat "</tool\\." (regexp-quote tag-tool-id) ">")))
+              (when (re-search-forward close-pattern nil t)
+                (let ((close-tag-end (match-end 0)))
+                  ;; If original point is between open and close tags
+                  (when (and (>= start-pos open-tag-start)
+                             (<= start-pos close-tag-end))
+                    (setq tool-id tag-tool-id))))))))
+      tool-id)))
+
+(defun greger--toggle-tool-section-by-id (tool-id)
+  "Toggle the tool section with the given TOOL-ID.
+TOOL-ID is the identifier of the tool section to toggle."
+  (cl-loop for overlay in greger-tool-overlays
+           when (and (overlay-get overlay 'greger-tool-section)
+                     (string= (overlay-get overlay 'greger-tool-id) tool-id))
+           do (greger--toggle-overlay-visibility overlay tool-id)))
+
+(defun greger--toggle-overlay-visibility (overlay tool-id)
+  "Toggle the visibility of OVERLAY for TOOL-ID."
+  (let ((is-collapsed (overlay-get overlay 'greger-collapsed)))
+    (if is-collapsed
+        (greger--expand-tool-section overlay tool-id)
+      (greger--collapse-tool-section overlay tool-id))))
+
+(defun greger--expand-tool-section (overlay tool-id)
+  "Expand the tool section by making OVERLAY visible.
+OVERLAY is the overlay to expand, TOOL-ID identifies the tool."
+  (overlay-put overlay 'invisible nil)
+  (overlay-put overlay 'greger-collapsed nil)
+
+  ;; Mark this tool as manually unfolded so it doesn't get auto-folded again
+  (unless (member tool-id greger--unfolded-tool-ids)
+</tool.toolu_01Mmi6M5y3wytvUP7czkkW3o>
+
+## ASSISTANT:
+
+Let me get the rest of the tool folding functions:
+
+## TOOL USE:
+
+Name: read-file
+ID: toolu_01NfmSDAM1soqymGjyewqSME
+
+### path
+
+<tool.toolu_01NfmSDAM1soqymGjyewqSME>
+greger.el
+</tool.toolu_01NfmSDAM1soqymGjyewqSME>
+
+### start-line
+
+<tool.toolu_01NfmSDAM1soqymGjyewqSME>
+885
+</tool.toolu_01NfmSDAM1soqymGjyewqSME>
+
+### end-line
+
+<tool.toolu_01NfmSDAM1soqymGjyewqSME>
+985
+</tool.toolu_01NfmSDAM1soqymGjyewqSME>
+
+## TOOL RESULT:
+
+ID: toolu_01NfmSDAM1soqymGjyewqSME
+
+<tool.toolu_01NfmSDAM1soqymGjyewqSME>
+
+(defun greger--toggle-overlay-visibility (overlay tool-id)
+  "Toggle the visibility of OVERLAY for TOOL-ID."
+  (let ((is-collapsed (overlay-get overlay 'greger-collapsed)))
+    (if is-collapsed
+        (greger--expand-tool-section overlay tool-id)
+      (greger--collapse-tool-section overlay tool-id))))
+
+(defun greger--expand-tool-section (overlay tool-id)
+  "Expand the tool section by making OVERLAY visible.
+OVERLAY is the overlay to expand, TOOL-ID identifies the tool."
+  (overlay-put overlay 'invisible nil)
+  (overlay-put overlay 'greger-collapsed nil)
+
+  ;; Mark this tool as manually unfolded so it doesn't get auto-folded again
+  (unless (member tool-id greger--unfolded-tool-ids)
+    (push tool-id greger--unfolded-tool-ids))
+
+  ;; Remove the expansion indicator
+  (cl-loop for indicator-overlay in greger-tool-overlays
+           when (and (overlay-get indicator-overlay 'greger-tool-indicator)
+                     (string= (overlay-get indicator-overlay 'greger-tool-id) tool-id))
+           do (progn
+                (delete-overlay indicator-overlay)
+                (setq greger-tool-overlays
+                      (remove indicator-overlay greger-tool-overlays)))))
+
+(defun greger--collapse-tool-section (overlay tool-id)
+  "Collapse the tool section by making OVERLAY invisible.
+OVERLAY is the overlay to hide.
+TOOL-ID is the tool identifier."
+  (overlay-put overlay 'invisible 'greger-tool-section)
+  (overlay-put overlay 'greger-collapsed t)
+
+  ;; Remove from unfolded list since it's now manually collapsed
+  (setq greger--unfolded-tool-ids
+        (delete tool-id greger--unfolded-tool-ids))
+
+  ;; Calculate the number of hidden lines for the indicator
+  (let* ((content (buffer-substring-no-properties (overlay-start overlay) (overlay-end overlay)))
+         (lines (split-string content "\n"))
+         (hidden-line-count (length lines))
+         (overlay-start (overlay-start overlay))
+         (indicator-pos (max (point-min) (1- overlay-start)))
+         (indicator-overlay (make-overlay indicator-pos indicator-pos)))
+    (overlay-put indicator-overlay 'after-string
+                 (propertize (format "... [+%d lines, TAB to expand]" hidden-line-count)
+                            'face 'greger-tool-tag-face))
+    (overlay-put indicator-overlay 'greger-tool-indicator t)
+    (overlay-put indicator-overlay 'greger-tool-id tool-id)
+    (push indicator-overlay greger-tool-overlays)))
+
+(defun greger--setup-heading-font-lock ()
+  "Set up font-lock for headings to override markdown's larger font sizes."
+  ;; Remove existing markdown heading font-lock rules for level 2 and 3 headings
+  (setq-local font-lock-keywords
+              (cl-remove-if
+               (lambda (rule)
+                 (and (listp rule)
+                      (stringp (car rule))
+                      (or (string-match-p "^\\^##" (car rule))
+                          (string-match-p "^\\^###" (car rule))
+                          (string-match-p "markdown-header-face-[23]" (format "%s" rule)))))
+               font-lock-keywords))
+
+  ;; Add our custom font-lock rules with highest priority
+  (font-lock-add-keywords
+   nil
+   '(;; Level 2 headings (conversation roles)
+     ("^## USER:.*$" 0 'greger-user-heading-face t)
+     ("^## ASSISTANT:.*$" 0 'greger-assistant-heading-face t)
+     ("^## SYSTEM:.*$" 0 'greger-system-heading-face t)
+     ("^## THINKING:.*$" 0 'greger-thinking-heading-face t)
+     ("^## TOOL USE:.*$" 0 'greger-tool-use-heading-face t)
+     ("^## TOOL RESULT:.*$" 0 'greger-tool-result-heading-face t)
+     ;; Level 3 headings (tool parameters)
+     ("^###\\s-+.*$" 0 'greger-tool-param-heading-face t))
+   'prepend)
+
+  ;; Also remap the markdown faces
+  ;(face-remap-add-relative 'markdown-header-face-2 'greger-assistant-heading-face)
+  ;(face-remap-add-relative 'markdown-header-face-3 'greger-tool-param-heading-face)
+  (font-lock-flush))
+
+(defun greger--extend-font-lock-region ()
+  "Extend font-lock region for greger mode.
+Returns nil to indicate no region extension is needed."
+  nil)
+
+(defun greger--after-change-function (beg end _len)
+  "Update tool sections and citations after buffer changes.
+BEG is the beginning of the changed region.
+END is the end of the changed region.
+_LEN is the length of the pre-change text (unused)."
+  ;; Only run timer-based cleanup for complex changes or when not actively streaming
+  (when (and (> (- end beg) 0)  ; Only if there was an actual change
+             (not (greger--is-actively-streaming)))
+    (run-with-idle-timer 0.1 nil #'greger--setup-tool-sections)
+    (run-with-idle-timer 0.1 nil #'greger-ui-hide-all-citations)))
+
+(defun greger--is-actively-streaming ()
+</tool.toolu_01NfmSDAM1soqymGjyewqSME>
+
+## ASSISTANT:
+
+Now I have all the tool folding code. Let me move it to greger-ui.el. First, let me add the tool folding functionality to greger-ui.el:
+
+## TOOL USE:
+
+Name: str-replace
+ID: toolu_01GbGNX4Db6HE4jVEZcDHE9M
+
+### file-path
+
+<tool.toolu_01GbGNX4Db6HE4jVEZcDHE9M>
+greger-ui.el
+</tool.toolu_01GbGNX4Db6HE4jVEZcDHE9M>
+
+### original-content
+
+<tool.toolu_01GbGNX4Db6HE4jVEZcDHE9M>
+(defface greger-folded-citations-face
+  '((t (:foreground "#888888" :slant italic :height 0.8)))
+  "Face for folded citation summary text."
+  :group 'greger-ui)
+</tool.toolu_01GbGNX4Db6HE4jVEZcDHE9M>
+
+### new-content
+
+<tool.toolu_01GbGNX4Db6HE4jVEZcDHE9M>
+(defface greger-folded-citations-face
+  '((t (:foreground "#888888" :slant italic :height 0.8)))
+  "Face for folded citation summary text."
+  :group 'greger-ui)
+
+(defface greger-tool-tag-face
+  '((t (:foreground "#666666" :height 0.8)))
+  "Face for tool tags."
+  :group 'greger-ui)
+</tool.toolu_01GbGNX4Db6HE4jVEZcDHE9M>
+
+### git-commit-message
+
+<tool.toolu_01GbGNX4Db6HE4jVEZcDHE9M>
+Add tool tag face to greger-ui
+
+- Add greger-tool-tag-face for styling tool section indicators
+- Use subtle gray color and smaller height for unobtrusive appearance
+</tool.toolu_01GbGNX4Db6HE4jVEZcDHE9M>
+
+<!-- TOOL_RESULT_PLACEHOLDER_toolu_01GbGNX4Db6HE4jVEZcDHE9M -->
