@@ -4057,4 +4057,421 @@ Fix citations processing for string content
 Convert string content containing <cite> tags to proper text blocks with citation data attached, instead of just removing the tags.
 </tool.toolu_01VYyAafCkHghsnRNietUoii>
 
-<!-- TOOL_RESULT_PLACEHOLDER_toolu_01VYyAafCkHghsnRNietUoii -->
+## TOOL RESULT:
+
+ID: toolu_01VYyAafCkHghsnRNietUoii
+
+<tool.toolu_01VYyAafCkHghsnRNietUoii>
+Successfully replaced content in /Users/andreas/projects/greger.el/greger-parser.el. Successfully staged 2 file(s) and committed with message: Fix citations processing for string content
+
+Convert string content containing <cite> tags to proper text blocks with citation data attached, instead of just removing the tags.
+</tool.toolu_01VYyAafCkHghsnRNietUoii>
+
+## ASSISTANT:
+
+Now let me test the citations parsing again:
+
+## TOOL USE:
+
+Name: shell-command
+ID: toolu_01GVueDhEQ8oUAG8ATWF6w47
+
+### command
+
+<tool.toolu_01GVueDhEQ8oUAG8ATWF6w47>
+cd /Users/andreas/projects/greger.el && emacs --batch --eval "(progn (setq debug-on-error t) (add-to-list 'load-path \".\") (require 'greger-parser) (let ((markdown \"## ASSISTANT:\n\nBased on the search results, <cite>Claude Shannon was born on April 30, 1916, in Petoskey, Michigan</cite>\n\n## CITATIONS:\n\n### https://en.wikipedia.org/wiki/Claude_Shannon\n\nTitle: Claude Shannon - Wikipedia\nCited text: Claude Elwood Shannon (April 30, 1916 – February 24, 2001) was an American mathematician, electrical engineer, computer scientist, cryptographer and i...\nEncrypted index: Eo8BCioIAhgBIiQyYjQ0OWJmZi1lNm..\")) (let ((result (greger-parser-parse-dialog-messages-only markdown))) (pp result))))"
+</tool.toolu_01GVueDhEQ8oUAG8ATWF6w47>
+
+## TOOL RESULT:
+
+ID: toolu_01GVueDhEQ8oUAG8ATWF6w47
+
+<tool.toolu_01GVueDhEQ8oUAG8ATWF6w47>
+Command executed successfully:
+Source file ‘/opt/homebrew/Cellar/emacs-plus@29/29.0.90/share/emacs/29.0.91/lisp/net/eww.el’ newer than byte-compiled file; using older file
+DEBUG: Apply citations called with 1 citations
+DEBUG: Processing assistant message
+DEBUG: String content: Based on the search results, <cite>Claude Shannon was born on April 30, 1916, in Petoskey, Michigan</cite>
+(((role . "assistant")
+  (content
+   ((type . "text")
+    (text . "Based on the search results, "))
+   ((type . "text")
+    (text . "Claude Shannon was born on April 30, 1916, in Petoskey, Michigan")
+    (citations
+     ((encrypted_index . "Eo8BCioIAhgBIiQyYjQ0OWJmZi1lNm..")
+      (cited_text . "Claude Elwood Shannon (April 30, 1916 – February 24, 2001) was an American mathematician, electrical engineer, computer scientist, cryptographer and i...")
+      (title . "Claude Shannon - Wikipedia")
+      (type . "web_search_result_location")
+      (url . "https://en.wikipedia.org/wiki/Claude_Shannon")))))))
+
+</tool.toolu_01GVueDhEQ8oUAG8ATWF6w47>
+
+## ASSISTANT:
+
+Excellent! That looks much better. I can see that:
+
+1. The string content is now being split into text blocks
+2. The `<cite>` tags are being removed  
+3. The citation data is being attached to the cited text block
+4. The structure matches the expected format from the test
+
+Now let me run the full test suite to see if the citations parsing is working:
+
+## TOOL USE:
+
+Name: shell-command
+ID: toolu_01JUaUs1VmPQm7fLubjwJtV8
+
+### command
+
+<tool.toolu_01JUaUs1VmPQm7fLubjwJtV8>
+bash script/test --verbose --file test/test-greger-parser.el
+</tool.toolu_01JUaUs1VmPQm7fLubjwJtV8>
+
+## TOOL RESULT:
+
+ID: toolu_01JUaUs1VmPQm7fLubjwJtV8
+
+<tool.toolu_01JUaUs1VmPQm7fLubjwJtV8>
+Command failed with exit code 1: [0;34mRunning ERT tests for greger package...[0m
+
+Running tests in [1;33mtest/test-greger-parser.el[0m (verbose mode)...
+Loading /Users/andreas/projects/greger.el/greger.el (source)...
+Source file ‘/opt/homebrew/Cellar/emacs-plus@29/29.0.90/share/emacs/29.0.91/lisp/net/eww.el’ newer than byte-compiled file; using older file
+Loading /Users/andreas/projects/greger.el/greger-parser.el (source)...
+Loading /Users/andreas/projects/greger.el/greger-stdlib.el (source)...
+Loading /Users/andreas/projects/greger.el/greger-tools.el (source)...
+Loading /Users/andreas/projects/greger.el/greger-client.el (source)...
+Loading /Users/andreas/projects/greger.el/greger-web.el (source)...
+Loading /Users/andreas/projects/greger.el/test/test-greger-parser.el (source)...
+Running 35 tests (2025-06-05 15:36:44+0200, selector ‘t’)
+   passed   1/35  greger-parser-test-code-block-parsing (0.001771 sec)
+   passed   2/35  greger-parser-test-code-blocks-in-tool-params (0.000923 sec)
+   passed   3/35  greger-parser-test-complex-mixed-content (0.002408 sec)
+   passed   4/35  greger-parser-test-edge-cases (0.000516 sec)
+   passed   5/35  greger-parser-test-error-handling (0.000276 sec)
+   passed   6/35  greger-parser-test-include-tag-basic (0.002524 sec)
+   passed   7/35  greger-parser-test-include-tag-in-assistant-section (0.002784 sec)
+   passed   8/35  greger-parser-test-include-tag-invalid-url (0.054123 sec)
+   passed   9/35  greger-parser-test-include-tag-multiline-content (0.002549 sec)
+   passed  10/35  greger-parser-test-include-tag-nonexistent-file (0.001028 sec)
+   passed  11/35  greger-parser-test-include-tag-not-processed-in-code-blocks (0.002287 sec)
+   passed  12/35  greger-parser-test-include-tag-not-processed-in-inline-code (0.002414 sec)
+   passed  13/35  greger-parser-test-include-tag-not-processed-in-tool-params (0.001518 sec)
+   passed  14/35  greger-parser-test-include-tag-recursive (0.003206 sec)
+   passed  15/35  greger-parser-test-include-tag-web-url (0.167826 sec)
+   passed  16/35  greger-parser-test-include-tag-web-url-with-code (0.090701 sec)
+   passed  17/35  greger-parser-test-include-tag-with-code (0.005593 sec)
+   passed  18/35  greger-parser-test-include-tag-with-code-in-code-block (0.001952 sec)
+   passed  19/35  greger-parser-test-inline-code-blocks (0.001260 sec)
+   passed  20/35  greger-parser-test-markdown-generation (0.000233 sec)
+Testing markdown-to-dialog for: simple-user-message
+Testing markdown-to-dialog for: system-and-user
+Testing markdown-to-dialog for: simple-conversation
+Testing markdown-to-dialog for: thinking-section
+Testing markdown-to-dialog for: tool-use-single-param
+Testing markdown-to-dialog for: tool-use-multiple-params
+Testing markdown-to-dialog for: complex-workflow
+Testing markdown-to-dialog for: multiple-tool-uses
+Testing markdown-to-dialog for: tool-use-multiline-params
+Testing markdown-to-dialog for: thinking-only
+Testing markdown-to-dialog for: tool-use-only
+Testing markdown-to-dialog for: tool-use-with-tags
+Testing markdown-to-dialog for: code-block-triple-backticks
+Testing markdown-to-dialog for: code-block-double-backticks
+Testing markdown-to-dialog for: mixed-code-blocks-and-sections
+Testing markdown-to-dialog for: tool-use-with-code-in-params
+Testing markdown-to-dialog for: nested-code-blocks
+Testing markdown-to-dialog for: tool-use-complex-params
+Testing markdown-to-dialog for: tool-result-empty-lines
+Testing markdown-to-dialog for: html-comments
+Testing markdown-to-dialog for: server-tool-use-basic
+Testing markdown-to-dialog for: server-tool-use-string-result
+Testing markdown-to-dialog for: citations-basic
+DEBUG: Apply citations called with 1 citations
+DEBUG: Processing assistant message
+DEBUG: List content with 3 blocks
+DEBUG: Processing 3 content blocks
+DEBUG: Block type: server_tool_use
+DEBUG: Block type: web_search_tool_result
+DEBUG: Block type: text
+DEBUG: Text block: Based on the search results, <cite>Claude Shannon was born on April 30, 1916, in Petoskey, Michigan</cite>
+DEBUG: Found cite tags, splitting text
+DEBUG: Split into 2 blocks
+   passed  21/35  greger-parser-test-markdown-to-dialog (0.078188 sec)
+   passed  22/35  greger-parser-test-performance (0.057211 sec)
+Testing roundtrip for: simple-user-message
+Testing roundtrip for: system-and-user
+Testing roundtrip for: simple-conversation
+Testing roundtrip for: thinking-section
+Test greger-parser-test-roundtrip backtrace:
+  signal(ert-test-failed (((should (greger-parser-test--dialog-equal d
+  ert-fail(((should (greger-parser-test--dialog-equal dialog roundtrip
+  (if (unwind-protect (setq value-15 (apply fn-13 args-14)) (setq form
+  (let (form-description-17) (if (unwind-protect (setq value-15 (apply
+  (let ((value-15 'ert-form-evaluation-aborted-16)) (let (form-descrip
+  (let* ((fn-13 #'greger-parser-test--dialog-equal) (args-14 (conditio
+  (let* ((dialog (greger-parser-parse-dialog-messages-only original-ma
+  (let ((name (plist-get test-case :name)) (original-markdown (plist-g
+  (let ((test-case (car tail))) (let ((name (plist-get test-case :name
+  (while tail (let ((test-case (car tail))) (let ((name (plist-get tes
+  (let ((tail greger-parser-test-cases)) (while tail (let ((test-case 
+  (closure (t) nil (let ((tail greger-parser-test-cases)) (while tail 
+  ert--run-test-internal(#s(ert--test-execution-info :test ... :result
+  ert-run-test(#s(ert-test :name greger-parser-test-roundtrip :documen
+  ert-run-or-rerun-test(#s(ert--stats :selector t :tests ... :test-map
+  ert-run-tests(t #f(compiled-function (event-type &rest event-args) #
+  ert-run-tests-batch(t)
+  ert-run-tests-batch-and-exit(t)
+  (let ((ert-quiet nil)) (ert-run-tests-batch-and-exit t))
+  (progn (setq debug-on-error t) (add-to-list 'load-path ".") (require
+  eval((progn (setq debug-on-error t) (add-to-list 'load-path ".") (re
+  command-line-1(("--eval" "(progn\n                  (setq debug-on-e
+  command-line()
+  normal-top-level()
+Test greger-parser-test-roundtrip condition:
+    (ert-test-failed
+     ((should
+       (greger-parser-test--dialog-equal dialog roundtrip-dialog))
+      :form
+      (greger-parser-test--dialog-equal
+       ((... ...)
+	(... ...))
+       ((... ...)
+	(... ...)))
+      :value nil))
+   FAILED  23/35  greger-parser-test-roundtrip (0.007921 sec) at test/test-greger-parser.el:820
+   passed  24/35  greger-parser-test-safe-shell-commands-basic (0.000435 sec)
+   passed  25/35  greger-parser-test-safe-shell-commands-empty-lines (0.000334 sec)
+   passed  26/35  greger-parser-test-safe-shell-commands-in-code-block (0.001026 sec)
+   passed  27/35  greger-parser-test-safe-shell-commands-not-in-system (0.001147 sec)
+   passed  28/35  greger-parser-test-safe-shell-commands-only-once (0.000423 sec)
+   passed  29/35  greger-parser-test-safe-shell-commands-with-system-content (0.001079 sec)
+   passed  30/35  greger-parser-test-system-content-with-safe-commands-example (0.000988 sec)
+   passed  31/35  greger-parser-test-thinking-parsing (0.001007 sec)
+   passed  32/35  greger-parser-test-tool-result-parsing (0.000468 sec)
+   passed  33/35  greger-parser-test-tool-use-parsing (0.000785 sec)
+   passed  34/35  greger-parser-test-tool-use-whitespace (0.000900 sec)
+   passed  35/35  greger-parser-test-untagged-content (0.001103 sec)
+
+Ran 35 tests, 34 results as expected, 1 unexpected (2025-06-05 15:36:45+0200, 0.845196 sec)
+
+1 unexpected results:
+   FAILED  greger-parser-test-roundtrip
+
+
+</tool.toolu_01JUaUs1VmPQm7fLubjwJtV8>
+
+## ASSISTANT:
+
+Great! The citations test is now passing. The only remaining failure is the roundtrip test. This is likely because the citations processing changes the message structure when citations are present, so the roundtrip test may be failing on the `thinking-section` or one of the other test cases that now include citations.
+
+Let me check which specific test case is failing in the roundtrip test. The roundtrip test doesn't show which test case is failing. Let me run a simple test to see which cases have issues:
+
+## TOOL USE:
+
+Name: shell-command
+ID: toolu_013AxDmHcfGTkC9Ga5hwUhYy
+
+### command
+
+<tool.toolu_013AxDmHcfGTkC9Ga5hwUhYy>
+cd /Users/andreas/projects/greger.el && emacs --batch --eval "(progn (setq debug-on-error t) (add-to-list 'load-path \".\") (require 'greger-parser) (require 'test-greger-parser) (dolist (test-case greger-parser-test-cases) (let ((name (plist-get test-case :name)) (markdown (plist-get test-case :markdown))) (let ((dialog (greger-parser-parse-dialog-messages-only markdown))) (let ((roundtrip-markdown (greger-parser-dialog-to-markdown dialog))) (let ((roundtrip-dialog (greger-parser-parse-dialog-messages-only roundtrip-markdown))) (unless (greger-parser-test--dialog-equal dialog roundtrip-dialog) (message \"ROUNDTRIP FAILURE: %s\" name))))))))"
+</tool.toolu_013AxDmHcfGTkC9Ga5hwUhYy>
+
+## TOOL RESULT:
+
+ID: toolu_013AxDmHcfGTkC9Ga5hwUhYy
+
+<tool.toolu_013AxDmHcfGTkC9Ga5hwUhYy>
+Command failed with exit code 255: Source file ‘/opt/homebrew/Cellar/emacs-plus@29/29.0.90/share/emacs/29.0.91/lisp/net/eww.el’ newer than byte-compiled file; using older file
+Debugger entered--Lisp error: (file-missing "Cannot open load file" "No such file or directory" "test-greger-parser")
+  require(test-greger-parser)
+  (progn (setq debug-on-error t) (add-to-list 'load-path ".") (require 'greger-parser) (require 'test-greger-parser) (dolist (test-case greger-parser-test-cases) (let ((name (plist-get test-case :name)) (markdown (plist-get test-case :markdown))) (let ((dialog (greger-parser-parse-dialog-messages-only markdown))) (let ((roundtrip-markdown (greger-parser-dialog-to-markdown dialog))) (let ((roundtrip-dialog ...)) (unless (greger-parser-test--dialog-equal dialog roundtrip-dialog) (message "ROUNDTRIP FAILURE: %s" name))))))))
+  eval((progn (setq debug-on-error t) (add-to-list 'load-path ".") (require 'greger-parser) (require 'test-greger-parser) (dolist (test-case greger-parser-test-cases) (let ((name (plist-get test-case :name)) (markdown (plist-get test-case :markdown))) (let ((dialog (greger-parser-parse-dialog-messages-only markdown))) (let ((roundtrip-markdown ...)) (let (...) (unless ... ...))))))) t)
+  command-line-1(("--eval" "(progn (setq debug-on-error t) (add-to-list 'load-..."))
+  command-line()
+  normal-top-level()
+
+
+</tool.toolu_013AxDmHcfGTkC9Ga5hwUhYy>
+
+## ASSISTANT:
+
+Let me load the test file properly:
+
+## TOOL USE:
+
+Name: shell-command
+ID: toolu_018X3JPZmgByG8FbATQqEjRq
+
+### command
+
+<tool.toolu_018X3JPZmgByG8FbATQqEjRq>
+cd /Users/andreas/projects/greger.el && emacs --batch --eval "(progn (setq debug-on-error t) (add-to-list 'load-path \".\") (add-to-list 'load-path \"./test\") (require 'greger-parser) (load \"test/test-greger-parser.el\") (dolist (test-case greger-parser-test-cases) (let ((name (plist-get test-case :name)) (markdown (plist-get test-case :markdown))) (let ((dialog (greger-parser-parse-dialog-messages-only markdown))) (let ((roundtrip-markdown (greger-parser-dialog-to-markdown dialog))) (let ((roundtrip-dialog (greger-parser-parse-dialog-messages-only roundtrip-markdown))) (unless (greger-parser-test--dialog-equal dialog roundtrip-dialog) (message \"ROUNDTRIP FAILURE: %s\" name))))))))"
+</tool.toolu_018X3JPZmgByG8FbATQqEjRq>
+
+## TOOL RESULT:
+
+ID: toolu_018X3JPZmgByG8FbATQqEjRq
+
+<tool.toolu_018X3JPZmgByG8FbATQqEjRq>
+Command executed successfully:
+Source file ‘/opt/homebrew/Cellar/emacs-plus@29/29.0.90/share/emacs/29.0.91/lisp/net/eww.el’ newer than byte-compiled file; using older file
+Loading /Users/andreas/projects/greger.el/test/test-greger-parser.el (source)...
+ROUNDTRIP FAILURE: thinking-section
+ROUNDTRIP FAILURE: server-tool-use-basic
+ROUNDTRIP FAILURE: server-tool-use-string-result
+DEBUG: Apply citations called with 1 citations
+DEBUG: Processing assistant message
+DEBUG: List content with 3 blocks
+DEBUG: Processing 3 content blocks
+DEBUG: Block type: server_tool_use
+DEBUG: Block type: web_search_tool_result
+DEBUG: Block type: text
+DEBUG: Text block: Based on the search results, <cite>Claude Shannon was born on April 30, 1916, in Petoskey, Michigan</cite>
+DEBUG: Found cite tags, splitting text
+DEBUG: Split into 2 blocks
+ROUNDTRIP FAILURE: citations-basic
+
+</tool.toolu_018X3JPZmgByG8FbATQqEjRq>
+
+## ASSISTANT:
+
+So I have several roundtrip failures. Let me investigate them one by one. The `thinking-section` failure is probably not related to citations, so let me check that first:
+
+## TOOL USE:
+
+Name: shell-command
+ID: toolu_01GnaSsDcoATg3UuW8ZYunA3
+
+### command
+
+<tool.toolu_01GnaSsDcoATg3UuW8ZYunA3>
+cd /Users/andreas/projects/greger.el && emacs --batch --eval "(progn (setq debug-on-error t) (add-to-list 'load-path \".\") (require 'greger-parser) (let ((markdown \"## USER:\n\nWhat's 2+2?\n\n## THINKING:\n\nThis is a simple arithmetic question. I can answer this directly without needing any tools.\n\n## ASSISTANT:\n\n2 + 2 = 4\")) (let ((dialog (greger-parser-parse-dialog-messages-only markdown))) (pp dialog) (let ((roundtrip-markdown (greger-parser-dialog-to-markdown dialog))) (message \"\n\nROUNDTRIP MARKDOWN:\n%s\" roundtrip-markdown) (let ((roundtrip-dialog (greger-parser-parse-dialog-messages-only roundtrip-markdown))) (message \"\n\nROUNDTRIP DIALOG:\") (pp roundtrip-dialog)))))"
+</tool.toolu_01GnaSsDcoATg3UuW8ZYunA3>
+
+## TOOL RESULT:
+
+ID: toolu_01GnaSsDcoATg3UuW8ZYunA3
+
+<tool.toolu_01GnaSsDcoATg3UuW8ZYunA3>
+Command failed with exit code 255: 
+Error: end-of-file nil
+  mapbacktrace(#f(compiled-function (evald func args flags) #<bytecode -0xce2dc589a512f81>))
+  debug-early-backtrace()
+  debug-early(error (end-of-file))
+  read-from-string("(progn (setq debug-on-error t) (add-to-list 'load-path \".\") (require 'greger-parser) (let ((markdown \"## USER:\\n\\nWhat's 2+2?\\n\\n## THINKING:\\n\\nThis is a simple arithmetic question. I can answer this directly without needing any tools.\\n\\n## ASSISTANT:\\n\\n2 + 2 = 4\")) (let ((dialog (greger-parser-parse-dialog-messages-only markdown))) (pp dialog) (let ((roundtrip-markdown (greger-parser-dialog-to-markdown dialog))) (message \"\\n\\nROUNDTRIP MARKDOWN:\\n%s\" roundtrip-markdown) (let ((roundtrip-dialog (greger-parser-parse-dialog-messages-only roundtrip-markdown))) (message \"\\n\\nROUNDTRIP DIALOG:\") (pp roundtrip-dialog)))))")
+  command-line-1(("--eval" "(progn (setq debug-on-error t) (add-to-list 'load-path \".\") (require 'greger-parser) (let ((markdown \"## USER:\\n\\nWhat's 2+2?\\n\\n## THINKING:\\n\\nThis is a simple arithmetic question. I can answer this directly without needing any tools.\\n\\n## ASSISTANT:\\n\\n2 + 2 = 4\")) (let ((dialog (greger-parser-parse-dialog-messages-only markdown))) (pp dialog) (let ((roundtrip-markdown (greger-parser-dialog-to-markdown dialog))) (message \"\\n\\nROUNDTRIP MARKDOWN:\\n%s\" roundtrip-markdown) (let ((roundtrip-dialog (greger-parser-parse-dialog-messages-only roundtrip-markdown))) (message \"\\n\\nROUNDTRIP DIALOG:\") (pp roundtrip-dialog)))))"))
+  command-line()
+  normal-top-level()
+End of file during parsing
+
+</tool.toolu_01GnaSsDcoATg3UuW8ZYunA3>
+
+## ASSISTANT:
+
+The command is getting too complex. Let me create a simple test file:
+
+## TOOL USE:
+
+Name: write-new-file
+ID: toolu_01RJhU5F6yMkQVPs3Ug1ukaj
+
+### path
+
+<tool.toolu_01RJhU5F6yMkQVPs3Ug1ukaj>
+debug-roundtrip.el
+</tool.toolu_01RJhU5F6yMkQVPs3Ug1ukaj>
+
+### contents
+
+<tool.toolu_01RJhU5F6yMkQVPs3Ug1ukaj>
+#!/usr/bin/env emacs --script
+
+(add-to-list 'load-path ".")
+(require 'greger-parser)
+
+(let ((markdown "## USER:
+
+What's 2+2?
+
+## THINKING:
+
+This is a simple arithmetic question. I can answer this directly without needing any tools.
+
+## ASSISTANT:
+
+2 + 2 = 4"))
+  (let ((dialog (greger-parser-parse-dialog-messages-only markdown)))
+    (message "ORIGINAL DIALOG:")
+    (pp dialog)
+    (let ((roundtrip-markdown (greger-parser-dialog-to-markdown dialog)))
+      (message "\nROUNDTRIP MARKDOWN:\n%s" roundtrip-markdown)
+      (let ((roundtrip-dialog (greger-parser-parse-dialog-messages-only roundtrip-markdown)))
+        (message "\nROUNDTRIP DIALOG:")
+        (pp roundtrip-dialog)))))
+</tool.toolu_01RJhU5F6yMkQVPs3Ug1ukaj>
+
+### git-commit-message
+
+<tool.toolu_01RJhU5F6yMkQVPs3Ug1ukaj>
+Add debug script for roundtrip testing
+</tool.toolu_01RJhU5F6yMkQVPs3Ug1ukaj>
+
+## TOOL RESULT:
+
+ID: toolu_01RJhU5F6yMkQVPs3Ug1ukaj
+
+<tool.toolu_01RJhU5F6yMkQVPs3Ug1ukaj>
+Error executing tool: Required parameter missing: file-path
+</tool.toolu_01RJhU5F6yMkQVPs3Ug1ukaj>
+
+## TOOL USE:
+
+Name: write-new-file
+ID: toolu_01EbNW2wxKHLuK9XfDa9zfFr
+
+### file-path
+
+<tool.toolu_01EbNW2wxKHLuK9XfDa9zfFr>
+debug-roundtrip.el
+</tool.toolu_01EbNW2wxKHLuK9XfDa9zfFr>
+
+### contents
+
+<tool.toolu_01EbNW2wxKHLuK9XfDa9zfFr>
+#!/usr/bin/env emacs --script
+
+(add-to-list 'load-path ".")
+(require 'greger-parser)
+
+(let ((markdown "## USER:
+
+What's 2+2?
+
+## THINKING:
+
+This is a simple arithmetic question. I can answer this directly without needing any tools.
+
+## ASSISTANT:
+
+2 + 2 = 4"))
+  (let ((dialog (greger-parser-parse-dialog-messages-only markdown)))
+    (message "ORIGINAL DIALOG:")
+    (pp dialog)
+    (let ((roundtrip-markdown (greger-parser-dialog-to-markdown dialog)))
+      (message "\nROUNDTRIP MARKDOWN:\n%s" roundtrip-markdown)
+      (let ((roundtrip-dialog (greger-parser-parse-dialog-messages-only roundtrip-markdown)))
+        (message "\nROUNDTRIP DIALOG:")
+        (pp roundtrip-dialog)))))
+</tool.toolu_01EbNW2wxKHLuK9XfDa9zfFr>
+
+### git-commit-message
+
+<tool.toolu_01EbNW2wxKHLuK9XfDa9zfFr>
+Add debug script for roundtrip testing
+</tool.toolu_01EbNW2wxKHLuK9XfDa9zfFr>
+
+<!-- TOOL_RESULT_PLACEHOLDER_toolu_01EbNW2wxKHLuK9XfDa9zfFr -->
