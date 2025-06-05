@@ -4480,4 +4480,312 @@ This causes test failures. Temporarily revert to the old parser logic
 while keeping the citation parsing infrastructure for future fixes.
 </tool.toolu_017MzVuBwECDz8bmnPvnqMQe>
 
-<!-- TOOL_RESULT_PLACEHOLDER_toolu_017MzVuBwECDz8bmnPvnqMQe -->
+## TOOL RESULT:
+
+ID: toolu_017MzVuBwECDz8bmnPvnqMQe
+
+<tool.toolu_017MzVuBwECDz8bmnPvnqMQe>
+Successfully replaced content in /Users/andreas/projects/greger.el/greger-parser.el. Successfully staged 2 file(s) and committed with message: Fix failing citation test by temporarily using old parser
+
+The citation handling in the new parser has bugs where all citations
+are being applied to every cite block instead of the correct ones.
+This causes test failures. Temporarily revert to the old parser logic
+while keeping the citation parsing infrastructure for future fixes.
+</tool.toolu_017MzVuBwECDz8bmnPvnqMQe>
+
+## ASSISTANT:
+
+Now let's run the tests to see if this fixes the failing test:
+
+## TOOL USE:
+
+Name: shell-command
+ID: toolu_01EKWwWZo5RVkF6hpPJML3M7
+
+### command
+
+<tool.toolu_01EKWwWZo5RVkF6hpPJML3M7>
+bash script/test --verbose --file test/test-greger-parser.el
+</tool.toolu_01EKWwWZo5RVkF6hpPJML3M7>
+
+## TOOL RESULT:
+
+ID: toolu_01EKWwWZo5RVkF6hpPJML3M7
+
+<tool.toolu_01EKWwWZo5RVkF6hpPJML3M7>
+Command failed with exit code 1: [0;34mRunning ERT tests for greger package...[0m
+
+Running tests in [1;33mtest/test-greger-parser.el[0m (verbose mode)...
+Loading /Users/andreas/projects/greger.el/greger.el (source)...
+Source file ‘/opt/homebrew/Cellar/emacs-plus@29/29.0.90/share/emacs/29.0.91/lisp/net/eww.el’ newer than byte-compiled file; using older file
+Loading /Users/andreas/projects/greger.el/greger-parser.el (source)...
+Loading /Users/andreas/projects/greger.el/greger-stdlib.el (source)...
+Loading /Users/andreas/projects/greger.el/greger-tools.el (source)...
+Loading /Users/andreas/projects/greger.el/greger-client.el (source)...
+Loading /Users/andreas/projects/greger.el/greger-web.el (source)...
+Loading /Users/andreas/projects/greger.el/test/test-greger-parser.el (source)...
+Running 35 tests (2025-06-05 17:57:02+0200, selector ‘t’)
+   passed   1/35  greger-parser-test-code-block-parsing (0.001308 sec)
+   passed   2/35  greger-parser-test-code-blocks-in-tool-params (0.000573 sec)
+   passed   3/35  greger-parser-test-complex-mixed-content (0.001631 sec)
+   passed   4/35  greger-parser-test-edge-cases (0.000369 sec)
+   passed   5/35  greger-parser-test-error-handling (0.000185 sec)
+   passed   6/35  greger-parser-test-include-tag-basic (0.003408 sec)
+   passed   7/35  greger-parser-test-include-tag-in-assistant-section (0.002137 sec)
+   passed   8/35  greger-parser-test-include-tag-invalid-url (0.040339 sec)
+   passed   9/35  greger-parser-test-include-tag-multiline-content (0.002143 sec)
+   passed  10/35  greger-parser-test-include-tag-nonexistent-file (0.000727 sec)
+   passed  11/35  greger-parser-test-include-tag-not-processed-in-code-blocks (0.001972 sec)
+   passed  12/35  greger-parser-test-include-tag-not-processed-in-inline-code (0.001665 sec)
+   passed  13/35  greger-parser-test-include-tag-not-processed-in-tool-params (0.001205 sec)
+   passed  14/35  greger-parser-test-include-tag-recursive (0.002862 sec)
+   passed  15/35  greger-parser-test-include-tag-web-url (0.174963 sec)
+   passed  16/35  greger-parser-test-include-tag-web-url-with-code (0.090968 sec)
+   passed  17/35  greger-parser-test-include-tag-with-code (0.004771 sec)
+   passed  18/35  greger-parser-test-include-tag-with-code-in-code-block (0.002578 sec)
+   passed  19/35  greger-parser-test-inline-code-blocks (0.001287 sec)
+   passed  20/35  greger-parser-test-markdown-generation (0.000199 sec)
+Testing markdown-to-dialog for: simple-user-message
+Testing markdown-to-dialog for: system-and-user
+Testing markdown-to-dialog for: simple-conversation
+Testing markdown-to-dialog for: thinking-section
+Testing markdown-to-dialog for: tool-use-single-param
+Testing markdown-to-dialog for: tool-use-multiple-params
+Testing markdown-to-dialog for: complex-workflow
+Testing markdown-to-dialog for: multiple-tool-uses
+Testing markdown-to-dialog for: tool-use-multiline-params
+Testing markdown-to-dialog for: thinking-only
+Testing markdown-to-dialog for: tool-use-only
+Testing markdown-to-dialog for: tool-use-with-tags
+Testing markdown-to-dialog for: code-block-triple-backticks
+Testing markdown-to-dialog for: code-block-double-backticks
+Testing markdown-to-dialog for: mixed-code-blocks-and-sections
+Testing markdown-to-dialog for: tool-use-with-code-in-params
+Testing markdown-to-dialog for: nested-code-blocks
+Testing markdown-to-dialog for: tool-use-complex-params
+Testing markdown-to-dialog for: tool-result-empty-lines
+Testing markdown-to-dialog for: html-comments
+Testing markdown-to-dialog for: server-tool-use-basic
+Testing markdown-to-dialog for: server-tool-use-string-result
+Testing markdown-to-dialog for: citations-basic
+Test greger-parser-test-markdown-to-dialog backtrace:
+  signal(ert-test-failed (((should (greger-parser-test--dialog-equal e
+  ert-fail(((should (greger-parser-test--dialog-equal expected-dialog 
+  (if (unwind-protect (setq value-5 (apply fn-3 args-4)) (setq form-de
+  (let (form-description-7) (if (unwind-protect (setq value-5 (apply f
+  (let ((value-5 'ert-form-evaluation-aborted-6)) (let (form-descripti
+  (let* ((fn-3 #'greger-parser-test--dialog-equal) (args-4 (condition-
+  (let ((actual-dialog (greger-parser-parse-dialog-messages-only markd
+  (let ((name (plist-get test-case :name)) (markdown (plist-get test-c
+  (let ((test-case (car tail))) (let ((name (plist-get test-case :name
+  (while tail (let ((test-case (car tail))) (let ((name (plist-get tes
+  (let ((tail greger-parser-test-cases)) (while tail (let ((test-case 
+  (closure (t) nil (let ((tail greger-parser-test-cases)) (while tail 
+  ert--run-test-internal(#s(ert--test-execution-info :test #s(ert-test
+  ert-run-test(#s(ert-test :name greger-parser-test-markdown-to-dialog
+  ert-run-or-rerun-test(#s(ert--stats :selector t :tests ... :test-map
+  ert-run-tests(t #f(compiled-function (event-type &rest event-args) #
+  ert-run-tests-batch(t)
+  ert-run-tests-batch-and-exit(t)
+  (let ((ert-quiet nil)) (ert-run-tests-batch-and-exit t))
+  (progn (setq debug-on-error t) (add-to-list 'load-path ".") (require
+  eval((progn (setq debug-on-error t) (add-to-list 'load-path ".") (re
+  command-line-1(("--eval" "(progn\n                  (setq debug-on-e
+  command-line()
+  normal-top-level()
+Test greger-parser-test-markdown-to-dialog condition:
+    (ert-test-failed
+     ((should
+       (greger-parser-test--dialog-equal expected-dialog actual-dialog))
+      :form
+      (greger-parser-test--dialog-equal
+       ((... ...)
+	(... ...))
+       ((... ...)
+	(... ...)
+	(:type :citations-data :citations ...)))
+      :value nil))
+   FAILED  21/35  greger-parser-test-markdown-to-dialog (0.085998 sec) at test/test-greger-parser.el:971
+   passed  22/35  greger-parser-test-performance (0.066737 sec)
+Testing roundtrip for: simple-user-message
+Testing roundtrip for: system-and-user
+Testing roundtrip for: simple-conversation
+Testing roundtrip for: thinking-section
+Testing roundtrip for: tool-use-single-param
+Testing roundtrip for: tool-use-multiple-params
+Testing roundtrip for: complex-workflow
+Testing roundtrip for: multiple-tool-uses
+Testing roundtrip for: tool-use-multiline-params
+Testing roundtrip for: thinking-only
+Testing roundtrip for: tool-use-only
+Testing roundtrip for: tool-use-with-tags
+Testing roundtrip for: code-block-triple-backticks
+Testing roundtrip for: code-block-double-backticks
+Testing roundtrip for: mixed-code-blocks-and-sections
+Testing roundtrip for: tool-use-with-code-in-params
+Testing roundtrip for: nested-code-blocks
+Testing roundtrip for: tool-use-complex-params
+Testing roundtrip for: tool-result-empty-lines
+Testing roundtrip for: html-comments
+Testing roundtrip for: server-tool-use-basic
+Testing roundtrip for: server-tool-use-string-result
+Testing roundtrip for: citations-basic
+Test greger-parser-test-roundtrip backtrace:
+  signal(ert-test-failed (((should (= (length dialog) (length roundtri
+  ert-fail(((should (= (length dialog) (length roundtrip-dialog))) :fo
+  (if (unwind-protect (setq value-10 (apply fn-8 args-9)) (setq form-d
+  (let (form-description-12) (if (unwind-protect (setq value-10 (apply
+  (let ((value-10 'ert-form-evaluation-aborted-11)) (let (form-descrip
+  (let* ((fn-8 #'=) (args-9 (condition-case err (let ((signal-hook-fun
+  (let* ((dialog (greger-parser-parse-dialog-messages-only original-ma
+  (let ((name (plist-get test-case :name)) (original-markdown (plist-g
+  (let ((test-case (car tail))) (let ((name (plist-get test-case :name
+  (while tail (let ((test-case (car tail))) (let ((name (plist-get tes
+  (let ((tail greger-parser-test-cases)) (while tail (let ((test-case 
+  (closure (t) nil (let ((tail greger-parser-test-cases)) (while tail 
+  ert--run-test-internal(#s(ert--test-execution-info :test #s(ert-test
+  ert-run-test(#s(ert-test :name greger-parser-test-roundtrip :documen
+  ert-run-or-rerun-test(#s(ert--stats :selector t :tests ... :test-map
+  ert-run-tests(t #f(compiled-function (event-type &rest event-args) #
+  ert-run-tests-batch(t)
+  ert-run-tests-batch-and-exit(t)
+  (let ((ert-quiet nil)) (ert-run-tests-batch-and-exit t))
+  (progn (setq debug-on-error t) (add-to-list 'load-path ".") (require
+  eval((progn (setq debug-on-error t) (add-to-list 'load-path ".") (re
+  command-line-1(("--eval" "(progn\n                  (setq debug-on-e
+  command-line()
+  normal-top-level()
+Test greger-parser-test-roundtrip condition:
+    (ert-test-failed
+     ((should
+       (=
+	(length dialog)
+	(length roundtrip-dialog)))
+      :form
+      (= 3 2)
+      :value nil))
+   FAILED  23/35  greger-parser-test-roundtrip (0.073376 sec) at test/test-greger-parser.el:981
+   passed  24/35  greger-parser-test-safe-shell-commands-basic (0.000295 sec)
+   passed  25/35  greger-parser-test-safe-shell-commands-empty-lines (0.000240 sec)
+   passed  26/35  greger-parser-test-safe-shell-commands-in-code-block (0.001278 sec)
+   passed  27/35  greger-parser-test-safe-shell-commands-not-in-system (0.001163 sec)
+   passed  28/35  greger-parser-test-safe-shell-commands-only-once (0.000413 sec)
+   passed  29/35  greger-parser-test-safe-shell-commands-with-system-content (0.001001 sec)
+   passed  30/35  greger-parser-test-system-content-with-safe-commands-example (0.000920 sec)
+   passed  31/35  greger-parser-test-thinking-parsing (0.000968 sec)
+   passed  32/35  greger-parser-test-tool-result-parsing (0.000479 sec)
+   passed  33/35  greger-parser-test-tool-use-parsing (0.000770 sec)
+   passed  34/35  greger-parser-test-tool-use-whitespace (0.000994 sec)
+   passed  35/35  greger-parser-test-untagged-content (0.001077 sec)
+
+Ran 35 tests, 33 results as expected, 2 unexpected (2025-06-05 17:57:03+0200, 0.935868 sec)
+
+2 unexpected results:
+   FAILED  greger-parser-test-markdown-to-dialog
+   FAILED  greger-parser-test-roundtrip
+
+
+</tool.toolu_01EKWwWZo5RVkF6hpPJML3M7>
+
+## ASSISTANT:
+
+I see the issue now. The old parser doesn't know about citations at all, so it's treating the `## CITATIONS:` sections as unknown sections and creating special `:citations-data` objects that the test doesn't expect.
+
+The test expects the citation functionality to work, but the old parser doesn't have it. I need to fix the citation handling in the new parser instead of reverting to the old one.
+
+Let me revert my change and instead fix the specific bug in the citation handling:
+
+## TOOL USE:
+
+Name: str-replace
+ID: toolu_01W2nDz3C9dwiVfDGifLxQMF
+
+### file-path
+
+<tool.toolu_01W2nDz3C9dwiVfDGifLxQMF>
+greger-parser.el
+</tool.toolu_01W2nDz3C9dwiVfDGifLxQMF>
+
+### original-content
+
+<tool.toolu_01W2nDz3C9dwiVfDGifLxQMF>
+(defun greger-parser--parse-document (state)
+  "Parse entire document using STATE.
+Returns a plist with :messages and :metadata keys."
+  ;; For now, use the old parser to avoid citation bugs
+  ;; TODO: Fix the citation handling in the new parser
+  (greger-parser--parse-document-old state))
+</tool.toolu_01W2nDz3C9dwiVfDGifLxQMF>
+
+### new-content
+
+<tool.toolu_01W2nDz3C9dwiVfDGifLxQMF>
+(defun greger-parser--parse-document (state)
+  "Parse entire document using STATE.
+Returns a plist with :messages and :metadata keys."
+  (greger-parser--skip-whitespace state)
+  (if (greger-parser--at-end-p state)
+      '(:messages () :metadata ())
+    (let ((sections '())
+          (metadata '())
+          (iterations 0)
+          (max-iterations 1000)) ; Safety limit
+      ;; Handle untagged content at start
+      (let ((untagged (greger-parser--parse-untagged-content state)))
+        (when untagged
+          (push untagged sections)))
+
+      ;; Parse tagged sections
+      (while (and (not (greger-parser--at-end-p state))
+                  (< iterations max-iterations))
+        (setq iterations (1+ iterations))
+        (let ((old-pos (greger-parser-state-pos state)))
+          (greger-parser--skip-whitespace state)
+          (when (not (greger-parser--at-end-p state))
+            (let ((section-result (greger-parser--parse-section state)))
+              (when section-result
+                (greger-parser--debug state "Section result: %s" section-result)
+                (cond
+                 ;; Handle metadata
+                 ((and (listp section-result) (eq (car section-result) :metadata))
+                  (greger-parser--debug state "Found metadata section")
+                  (setq metadata (append metadata (cdr section-result))))
+                 ;; Handle citations data - store for later processing
+                 ((and (listp section-result) (eq (plist-get section-result :type) :citations-data))
+                  (greger-parser--debug state "Found citations data, storing for later processing")
+                  (setq metadata (append metadata (list :pending-citations (plist-get section-result :citations)))))
+                 ;; Regular message
+                 (t
+                  (greger-parser--debug state "Regular message section")
+                  (push section-result sections))))))
+          ;; Safety check: ensure we're making progress
+          (when (= old-pos (greger-parser-state-pos state))
+            (greger-parser--debug state "No progress in document parsing at pos %d, forcing end" (greger-parser-state-pos state))
+            (setf (greger-parser-state-pos state) (greger-parser-state-length state)))))
+
+      (when (>= iterations max-iterations)
+        (greger-parser--debug state "Hit max iterations in parse-document"))
+
+      ;; Combine metadata from section returns and parser state
+      (let* ((combined-metadata (append metadata (greger-parser-state-metadata state)))
+             (merged-messages (greger-parser--merge-consecutive-messages (reverse sections)))
+             (pending-citations (plist-get combined-metadata :pending-citations)))
+        ;; Apply pending citations if any
+        (when pending-citations
+          (greger-parser--apply-citations-to-messages merged-messages pending-citations)
+          ;; Remove pending citations from metadata since they've been applied
+          (setq combined-metadata (greger-parser--remove-from-plist combined-metadata :pending-citations)))
+        (list :messages merged-messages
+              :metadata combined-metadata)))))
+</tool.toolu_01W2nDz3C9dwiVfDGifLxQMF>
+
+### git-commit-message
+
+<tool.toolu_01W2nDz3C9dwiVfDGifLxQMF>
+Revert to original citation parsing logic
+
+The old parser doesn't support citations at all, so the tests fail.
+Need to fix the citation bug in the new parser instead.
+</tool.toolu_01W2nDz3C9dwiVfDGifLxQMF>
+
+<!-- TOOL_RESULT_PLACEHOLDER_toolu_01W2nDz3C9dwiVfDGifLxQMF -->

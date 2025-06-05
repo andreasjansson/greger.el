@@ -619,9 +619,60 @@ Returns a plist with :messages and :metadata keys."
 (defun greger-parser--parse-document (state)
   "Parse entire document using STATE.
 Returns a plist with :messages and :metadata keys."
-  ;; For now, use the old parser to avoid citation bugs
-  ;; TODO: Fix the citation handling in the new parser
-  (greger-parser--parse-document-old state))
+  (greger-parser--skip-whitespace state)
+  (if (greger-parser--at-end-p state)
+      '(:messages () :metadata ())
+    (let ((sections '())
+          (metadata '())
+          (iterations 0)
+          (max-iterations 1000)) ; Safety limit
+      ;; Handle untagged content at start
+      (let ((untagged (greger-parser--parse-untagged-content state)))
+        (when untagged
+          (push untagged sections)))
+
+      ;; Parse tagged sections
+      (while (and (not (greger-parser--at-end-p state))
+                  (< iterations max-iterations))
+        (setq iterations (1+ iterations))
+        (let ((old-pos (greger-parser-state-pos state)))
+          (greger-parser--skip-whitespace state)
+          (when (not (greger-parser--at-end-p state))
+            (let ((section-result (greger-parser--parse-section state)))
+              (when section-result
+                (greger-parser--debug state "Section result: %s" section-result)
+                (cond
+                 ;; Handle metadata
+                 ((and (listp section-result) (eq (car section-result) :metadata))
+                  (greger-parser--debug state "Found metadata section")
+                  (setq metadata (append metadata (cdr section-result))))
+                 ;; Handle citations data - store for later processing
+                 ((and (listp section-result) (eq (plist-get section-result :type) :citations-data))
+                  (greger-parser--debug state "Found citations data, storing for later processing")
+                  (setq metadata (append metadata (list :pending-citations (plist-get section-result :citations)))))
+                 ;; Regular message
+                 (t
+                  (greger-parser--debug state "Regular message section")
+                  (push section-result sections))))))
+          ;; Safety check: ensure we're making progress
+          (when (= old-pos (greger-parser-state-pos state))
+            (greger-parser--debug state "No progress in document parsing at pos %d, forcing end" (greger-parser-state-pos state))
+            (setf (greger-parser-state-pos state) (greger-parser-state-length state)))))
+
+      (when (>= iterations max-iterations)
+        (greger-parser--debug state "Hit max iterations in parse-document"))
+
+      ;; Combine metadata from section returns and parser state
+      (let* ((combined-metadata (append metadata (greger-parser-state-metadata state)))
+             (merged-messages (greger-parser--merge-consecutive-messages (reverse sections)))
+             (pending-citations (plist-get combined-metadata :pending-citations)))
+        ;; Apply pending citations if any
+        (when pending-citations
+          (greger-parser--apply-citations-to-messages merged-messages pending-citations)
+          ;; Remove pending citations from metadata since they've been applied
+          (setq combined-metadata (greger-parser--remove-from-plist combined-metadata :pending-citations)))
+        (list :messages merged-messages
+              :metadata combined-metadata)))))
 
 (defun greger-parser--parse-untagged-content (state)
   "Parse content before first section tag using STATE."
