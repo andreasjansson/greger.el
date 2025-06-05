@@ -4346,4 +4346,61 @@ Update cleanup function to handle tool overlays
 - Ensure all overlay lists are properly maintained
 </tool.toolu_01EvLo3YHVmRCPoAKCstHWha>
 
-<!-- TOOL_RESULT_PLACEHOLDER_toolu_01EvLo3YHVmRCPoAKCstHWha -->
+## TOOL RESULT:
+
+ID: toolu_01EvLo3YHVmRCPoAKCstHWha
+
+<tool.toolu_01EvLo3YHVmRCPoAKCstHWha>
+Successfully replaced content in /Users/andreas/projects/greger.el/greger-ui.el. Successfully staged 2 file(s) and committed with message: Update cleanup function to handle tool overlays
+
+- Extend greger-ui-cleanup-dead-overlays to also clean up tool overlays
+- Update docstring to reflect new functionality
+- Ensure all overlay lists are properly maintained
+</tool.toolu_01EvLo3YHVmRCPoAKCstHWha>
+
+## ASSISTANT:
+
+Now I need to update greger.el to use the new greger-ui functions and remove the old tool folding code. Let me start by updating the greger-mode setup:
+
+## TOOL USE:
+
+Name: str-replace
+ID: toolu_01N8qSEY8rCuksJYTFyWPC9H
+
+### file-path
+
+<tool.toolu_01N8qSEY8rCuksJYTFyWPC9H>
+greger.el
+</tool.toolu_01N8qSEY8rCuksJYTFyWPC9H>
+
+### original-content
+
+<tool.toolu_01N8qSEY8rCuksJYTFyWPC9H>
+  ;; Set up invisible text for tool sections
+  (add-to-invisibility-spec 'greger-tool-section)
+  ;; Set up tool section highlighting and collapsing
+  (greger--setup-tool-sections)
+  ;; Set up citation folding
+  (greger-ui-setup-citation-folding)
+</tool.toolu_01N8qSEY8rCuksJYTFyWPC9H>
+
+### new-content
+
+<tool.toolu_01N8qSEY8rCuksJYTFyWPC9H>
+  ;; Set up invisible text for tool sections
+  (add-to-invisibility-spec 'greger-tool-section)
+  ;; Set up UI folding (both tools and citations)
+  (greger-ui-setup-folding)
+</tool.toolu_01N8qSEY8rCuksJYTFyWPC9H>
+
+### git-commit-message
+
+<tool.toolu_01N8qSEY8rCuksJYTFyWPC9H>
+Update greger-mode to use unified UI setup
+
+- Replace separate tool and citation setup with greger-ui-setup-folding
+- Maintain invisibility spec for tool sections
+- Simplify mode initialization
+</tool.toolu_01N8qSEY8rCuksJYTFyWPC9H>
+
+<!-- TOOL_RESULT_PLACEHOLDER_toolu_01N8qSEY8rCuksJYTFyWPC9H -->

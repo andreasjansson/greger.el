@@ -206,10 +206,8 @@ These tool IDs should not be auto-folded again.")
   (setq-local mode-line-misc-info '(:eval (greger--mode-line-info)))
   ;; Set up invisible text for tool sections
   (add-to-invisibility-spec 'greger-tool-section)
-  ;; Set up tool section highlighting and collapsing
-  (greger--setup-tool-sections)
-  ;; Set up citation folding
-  (greger-ui-setup-citation-folding)
+  ;; Set up UI folding (both tools and citations)
+  (greger-ui-setup-folding)
   ;; Set up custom heading font-lock
   (greger--setup-heading-font-lock)
   ;; Add hook to update tool sections when buffer changes
