@@ -630,7 +630,8 @@ READ-ONLY is t to make read-only, nil to make writable."
   (with-current-buffer (greger-state-chat-buffer state)
     (let ((inhibit-read-only t))
       (goto-char (point-max))
-      (insert text))))
+      (insert text))
+    (greger-ui-refresh-folding)))
 
 (cl-defun greger--handle-tool-completion (&key tool-id result error state completion-callback)
   "Handle completion of a tool execution by updating buffer and calling callback.
@@ -690,10 +691,6 @@ COMPLETION-CALLBACK is called when complete."
   (interactive)
   (setq greger-debug (not greger-debug))
   (message "Greger debug %s" (if greger-debug "enabled" "disabled")))
-
-
-
-
 
 (defun greger--setup-heading-font-lock ()
   "Set up font-lock for headings to override markdown's larger font sizes."
