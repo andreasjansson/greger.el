@@ -727,11 +727,9 @@ Returns either a system message, metadata, or both."
   "Parse CITATIONS section using STATE.
 Returns parsed citation data that should be merged with the previous assistant message."
   (let ((content (greger-parser--parse-section-content state)))
-    (greger-parser--debug state "Citations section content: %s" content)
     (when content
       ;; Parse the citations from the markdown content
       (let ((parsed-citations (greger-parser--parse-citations-content content)))
-        (greger-parser--debug state "Parsed citations: %s" parsed-citations)
         ;; Return a special marker indicating this contains citation data
         ;; This will be handled specially in the document parsing
         (list :type :citations-data :citations parsed-citations)))))
