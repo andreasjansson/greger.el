@@ -348,6 +348,27 @@ Works when point is in a <cite> tag or in the final bibliography section."
    (t
     (message "TAB only works inside <cite> tags or in the bibliography section"))))
 
+(defun greger-ui-mark-cite-unfolded (cite-tag)
+  "Mark a cite tag as manually unfolded.
+CITE-TAG is a cons (START . END) for the cite tag position."
+  (when cite-tag
+    (let ((cite-pos cite-tag))
+      (unless (member cite-pos greger-ui-unfolded-cite-positions)
+        (push cite-pos greger-ui-unfolded-cite-positions)))))
+
+(defun greger-ui-unmark-cite-unfolded (cite-tag)
+  "Remove a cite tag from the manually unfolded list.
+CITE-TAG is a cons (START . END) for the cite tag position."
+  (when cite-tag
+    (setq greger-ui-unfolded-cite-positions
+          (cl-remove cite-tag greger-ui-unfolded-cite-positions :test #'equal))))
+
+(defun greger-ui-cite-manually-unfolded-p (cite-tag)
+  "Return t if the cite tag has been manually unfolded.
+CITE-TAG is a cons (START . END) for the cite tag position."
+  (when cite-tag
+    (member cite-tag greger-ui-unfolded-cite-positions :test #'equal)))
+
 (defun greger-ui-hide-all-citations ()
   "Hide all citation blocks that should be folded."
   (interactive)
