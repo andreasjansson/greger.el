@@ -6182,4 +6182,173 @@ Encrypted index: Eo8BCioIAhgBIiQyYjQ0OWJmZi1lNm..")
 Fix debug script with proper let* syntax
 </tool.toolu_014EFPH4kzyidpwi3uyCwVPP>
 
-<!-- TOOL_RESULT_PLACEHOLDER_toolu_014EFPH4kzyidpwi3uyCwVPP -->
+## TOOL RESULT:
+
+ID: toolu_014EFPH4kzyidpwi3uyCwVPP
+
+<tool.toolu_014EFPH4kzyidpwi3uyCwVPP>
+Successfully replaced contents of /Users/andreas/projects/greger.el/debug-citations.el with 1413 characters. Successfully staged 2 file(s) and committed with message: Fix debug script with proper let* syntax
+</tool.toolu_014EFPH4kzyidpwi3uyCwVPP>
+
+## TOOL USE:
+
+Name: shell-command
+ID: toolu_01DFajuGjPGQ2QSFb1D1YCm3
+
+### command
+
+<tool.toolu_01DFajuGjPGQ2QSFb1D1YCm3>
+cd /Users/andreas/projects/greger.el && emacs --script debug-citations.el
+</tool.toolu_01DFajuGjPGQ2QSFb1D1YCm3>
+
+## TOOL RESULT:
+
+ID: toolu_01DFajuGjPGQ2QSFb1D1YCm3
+
+<tool.toolu_01DFajuGjPGQ2QSFb1D1YCm3>
+Command executed successfully:
+Source file ‘/opt/homebrew/Cellar/emacs-plus@29/29.0.90/share/emacs/29.0.91/lisp/net/eww.el’ newer than byte-compiled file; using older file
+Parsed result:
+(((role . "user")
+  (content . "When was Claude Shannon born?"))
+ ((role . "assistant")
+  (content
+   ((type . "server_tool_use")
+    (id . "srvtoolu_01WYG3ziw53XMcoyKL4XcZmE")
+    (name . "web_search")
+    (input
+     (query . "claude shannon birth date")))
+   ((type . "server_tool_result")
+    (tool_use_id . "srvtoolu_01WYG3ziw53XMcoyKL4XcZmE")
+    (content . "[\n  {\n    \"type\": \"web_search_result\",\n    \"url\": \"https://en.wikipedia.org/wiki/Claude_Shannon\",\n    \"title\": \"Claude Shannon - Wikipedia\",\n    \"encrypted_content\": \"EqgfCioIARgBIiQ3YTAwMjY1Mi1mZjM5LTQ1NGUtODgxNC1kNjNjNTk1ZWI3Y...\",\n    \"page_age\": \"April 30, 2025\"\n  }\n]"))
+   ((type . "text")
+    (text . "Based on the search results, <cite>Claude Shannon was born on April 30, 1916, in Petoskey, Michigan</cite>")))))
+
+
+
+Roundtrip:
+type: server_tool_use
+type: server_tool_result
+type: text
+"## USER:\n\nWhen was Claude Shannon born?\n\n## SERVER TOOL USE:\n\nName: web_search\nID: srvtoolu_01WYG3ziw53XMcoyKL4XcZmE\n\n### query\n\n<tool.srvtoolu_01WYG3ziw53XMcoyKL4XcZmE>\nclaude shannon birth date\n</tool.srvtoolu_01WYG3ziw53XMcoyKL4XcZmE>\n\n## SERVER TOOL RESULT:\n\nID: srvtoolu_01WYG3ziw53XMcoyKL4XcZmE\n\n<tool.srvtoolu_01WYG3ziw53XMcoyKL4XcZmE>\n[\n  {\n    \"type\": \"web_search_result\",\n    \"url\": \"https://en.wikipedia.org/wiki/Claude_Shannon\",\n    \"title\": \"Claude Shannon - Wikipedia\",\n    \"encrypted_content\": \"EqgfCioIARgBIiQ3YTAwMjY1Mi1mZjM5LTQ1NGUtODgxNC1kNjNjNTk1ZWI3Y...\",\n    \"page_age\": \"April 30, 2025\"\n  }\n]\n</tool.srvtoolu_01WYG3ziw53XMcoyKL4XcZmE>\n\n## ASSISTANT:\n\nBased on the search results, <cite>Claude Shannon was born on April 30, 1916, in Petoskey, Michigan</cite>"
+</tool.toolu_01DFajuGjPGQ2QSFb1D1YCm3>
+
+## ASSISTANT:
+
+I can see the issue! The citations section is not being parsed at all. The parsed result shows that:
+
+1. The `<cite>` tags are preserved in the text 
+2. The `## CITATIONS:` section is completely ignored/missing
+
+This means the citations section parsing isn't working correctly. The issue is that the citations section appears but isn't being processed to merge with the previous assistant message.
+
+Looking at the roundtrip output, I can see that the citations section is completely missing. This tells me the citations parsing logic isn't working.
+
+Let me trace through what should happen:
+
+1. Parse `## ASSISTANT:` section - creates assistant message with text containing `<cite>` tags
+2. Parse `## CITATIONS:` section - should parse citations and merge them with the previous assistant message
+3. The text with `<cite>` tags should have the tags removed and citations added
+
+The problem is that the citations section returns special data but it's not being properly merged. Let me check if my special citation data handling is working:
+
+## TOOL USE:
+
+Name: read-file
+ID: toolu_013BFXp1f5aYX5J1LcvAY5Xm
+
+### path
+
+<tool.toolu_013BFXp1f5aYX5J1LcvAY5Xm>
+greger-parser.el
+</tool.toolu_013BFXp1f5aYX5J1LcvAY5Xm>
+
+### start-line
+
+<tool.toolu_013BFXp1f5aYX5J1LcvAY5Xm>
+610
+</tool.toolu_013BFXp1f5aYX5J1LcvAY5Xm>
+
+### end-line
+
+<tool.toolu_013BFXp1f5aYX5J1LcvAY5Xm>
+625
+</tool.toolu_013BFXp1f5aYX5J1LcvAY5Xm>
+
+## TOOL RESULT:
+
+ID: toolu_013BFXp1f5aYX5J1LcvAY5Xm
+
+<tool.toolu_013BFXp1f5aYX5J1LcvAY5Xm>
+                 ;; Handle metadata
+                 ((and (listp section-result) (eq (car section-result) :metadata))
+                  (setq metadata (append metadata (cdr section-result))))
+                 ;; Handle citations data - merge with previous assistant message
+                 ((and (listp section-result) (eq (plist-get section-result :type) :citations-data))
+                  (greger-parser--merge-citations-with-last-assistant sections (plist-get section-result :citations)))
+                 ;; Regular message
+                 (t
+                  (push section-result sections))))))
+          ;; Safety check: ensure we're making progress
+          (when (= old-pos (greger-parser-state-pos state))
+            (greger-parser--debug state "No progress in document parsing at pos %d, forcing end" (greger-parser-state-pos state))
+            (setf (greger-parser-state-pos state) (greger-parser-state-length state)))))
+
+      (when (>= iterations max-iterations)
+        (greger-parser--debug state "Hit max iterations in parse-document"))
+</tool.toolu_013BFXp1f5aYX5J1LcvAY5Xm>
+
+## ASSISTANT:
+
+The logic looks correct. Let me add some debug output to see what's happening with the citations section parsing. Let me check if the citations section is actually being detected:
+
+## TOOL USE:
+
+Name: str-replace
+ID: toolu_01QXWBknNhsa3F2UB7wADnAt
+
+### file-path
+
+<tool.toolu_01QXWBknNhsa3F2UB7wADnAt>
+greger-parser.el
+</tool.toolu_01QXWBknNhsa3F2UB7wADnAt>
+
+### original-content
+
+<tool.toolu_01QXWBknNhsa3F2UB7wADnAt>
+(defun greger-parser--parse-citations-section (state)
+  "Parse CITATIONS section using STATE.
+Returns parsed citation data that should be merged with the previous assistant message."
+  (let ((content (greger-parser--parse-section-content state)))
+    (when content
+      ;; Parse the citations from the markdown content
+      (let ((parsed-citations (greger-parser--parse-citations-content content)))
+        ;; Return a special marker indicating this contains citation data
+        ;; This will be handled specially in the document parsing
+        (list :type :citations-data :citations parsed-citations)))))
+</tool.toolu_01QXWBknNhsa3F2UB7wADnAt>
+
+### new-content
+
+<tool.toolu_01QXWBknNhsa3F2UB7wADnAt>
+(defun greger-parser--parse-citations-section (state)
+  "Parse CITATIONS section using STATE.
+Returns parsed citation data that should be merged with the previous assistant message."
+  (let ((content (greger-parser--parse-section-content state)))
+    (greger-parser--debug state "Citations section content: %s" content)
+    (when content
+      ;; Parse the citations from the markdown content
+      (let ((parsed-citations (greger-parser--parse-citations-content content)))
+        (greger-parser--debug state "Parsed citations: %s" parsed-citations)
+        ;; Return a special marker indicating this contains citation data
+        ;; This will be handled specially in the document parsing
+        (list :type :citations-data :citations parsed-citations)))))
+</tool.toolu_01QXWBknNhsa3F2UB7wADnAt>
+
+### git-commit-message
+
+<tool.toolu_01QXWBknNhsa3F2UB7wADnAt>
+Add debug output to citations section parsing
+</tool.toolu_01QXWBknNhsa3F2UB7wADnAt>
+
+<!-- TOOL_RESULT_PLACEHOLDER_toolu_01QXWBknNhsa3F2UB7wADnAt -->
