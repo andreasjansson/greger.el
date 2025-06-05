@@ -475,7 +475,14 @@ READ-ONLY is t to make read-only, nil to make writable."
    (t nil)))
 
 (defun greger--handle-stream-completion (state content-blocks)
-  (let ((tool-calls (greger--extract-tool-calls content-blocks)))
+  (let ((tool-calls (greger--extract-tool-calls content-blocks))
+        (citations (greger--extract-citations content-blocks)))
+
+    ;; Process citations if any
+    (when citations
+      (greger--debug "CITATIONS DETECTED! Found %d citation blocks" (length citations))
+      (greger--append-citations-markdown state citations))
+
     ;; TODO: remove debug
     (if tool-calls
         (progn

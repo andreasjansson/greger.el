@@ -4379,4 +4379,158 @@ greger-client.el
 Handle citation text blocks in content_block_stop by streaming accumulated text
 </tool.toolu_012B41kidhWQLKGmtQ2ReAXx>
 
-<!-- TOOL_RESULT_PLACEHOLDER_toolu_012B41kidhWQLKGmtQ2ReAXx -->
+## TOOL RESULT:
+
+ID: toolu_012B41kidhWQLKGmtQ2ReAXx
+
+<tool.toolu_012B41kidhWQLKGmtQ2ReAXx>
+Successfully replaced content in /Users/andreas/projects/greger.el/greger-client.el. Successfully staged 2 file(s) and committed with message: Handle citation text blocks in content_block_stop by streaming accumulated text
+</tool.toolu_012B41kidhWQLKGmtQ2ReAXx>
+
+## ASSISTANT:
+
+Now I need to update the greger.el file to handle citation blocks properly. Looking at the user's example, I need to handle both the text streaming and the final processing. Let me check how the streaming callbacks work:
+
+## TOOL USE:
+
+Name: read-file
+ID: toolu_01FgDLb9i37oHqHz9btiKmfE
+
+### path
+
+<tool.toolu_01FgDLb9i37oHqHz9btiKmfE>
+greger.el
+</tool.toolu_01FgDLb9i37oHqHz9btiKmfE>
+
+### start-line
+
+<tool.toolu_01FgDLb9i37oHqHz9btiKmfE>
+469
+</tool.toolu_01FgDLb9i37oHqHz9btiKmfE>
+
+### end-line
+
+<tool.toolu_01FgDLb9i37oHqHz9btiKmfE>
+510
+</tool.toolu_01FgDLb9i37oHqHz9btiKmfE>
+
+## TOOL RESULT:
+
+ID: toolu_01FgDLb9i37oHqHz9btiKmfE
+
+<tool.toolu_01FgDLb9i37oHqHz9btiKmfE>
+(defun greger--append-streaming-content-header (state type)
+  (cond
+   ((string= type "text")
+    (greger--append-text state (concat "\n\n" greger-parser-assistant-tag "\n\n")))
+   ((string= type "thinking")
+    (greger--append-text state (concat "\n\n" greger-parser-thinking-tag "\n\n")))
+   (t nil)))
+
+(defun greger--handle-stream-completion (state content-blocks)
+  (let ((tool-calls (greger--extract-tool-calls content-blocks)))
+    ;; TODO: remove debug
+    (if tool-calls
+        (progn
+          (greger--debug "TOOL USE DETECTED! Found %d tool calls" (length tool-calls))
+          (setf (greger-state-current-iteration state)
+                (1+ (greger-state-current-iteration state)))
+          ;; TODO: execute tool calls in greger--append-content-block instead
+          (greger--execute-tools tool-calls state))
+      (progn
+        (greger--debug "NO TOOL USE - CONVERSATION COMPLETE")
+        (greger--finish-response state))))
+
+  (with-current-buffer (greger-state-chat-buffer state)
+    (greger--update-buffer-state)))
+
+(defun greger--append-nonstreaming-content-block (state type content-block)
+  (greger--debug "CONTENT BLOCK: %s" content-block)
+
+  (unless (or (string= type "text") (string= type "thinking"))
+
+   (let ((markdown (greger-parser--block-to-markdown content-block)))
+     (greger--append-text state (concat "\n\n" markdown)))
+
+   (when (string= type "tool_use")
+     (let ((tool-id (alist-get 'id content-block)))
+       (greger--append-text state (concat "\n\n" (greger--tool-placeholder tool-id)))))
+
+   ;; Update buffer state after client completes
+   (with-current-buffer (greger-state-chat-buffer state)
+     (greger--update-buffer-state))))
+
+(defun greger--extract-tool-calls (content-blocks)
+</tool.toolu_01FgDLb9i37oHqHz9btiKmfE>
+
+## ASSISTANT:
+
+I need to update the stream completion handler to process citations. Let me first check how citations are processed at the end:
+
+## TOOL USE:
+
+Name: str-replace
+ID: toolu_01FvaNrgjNcKcMyCSRcVo1Zi
+
+### file-path
+
+<tool.toolu_01FvaNrgjNcKcMyCSRcVo1Zi>
+greger.el
+</tool.toolu_01FvaNrgjNcKcMyCSRcVo1Zi>
+
+### original-content
+
+<tool.toolu_01FvaNrgjNcKcMyCSRcVo1Zi>
+(defun greger--handle-stream-completion (state content-blocks)
+  (let ((tool-calls (greger--extract-tool-calls content-blocks)))
+    ;; TODO: remove debug
+    (if tool-calls
+        (progn
+          (greger--debug "TOOL USE DETECTED! Found %d tool calls" (length tool-calls))
+          (setf (greger-state-current-iteration state)
+                (1+ (greger-state-current-iteration state)))
+          ;; TODO: execute tool calls in greger--append-content-block instead
+          (greger--execute-tools tool-calls state))
+      (progn
+        (greger--debug "NO TOOL USE - CONVERSATION COMPLETE")
+        (greger--finish-response state))))
+
+  (with-current-buffer (greger-state-chat-buffer state)
+    (greger--update-buffer-state)))
+</tool.toolu_01FvaNrgjNcKcMyCSRcVo1Zi>
+
+### new-content
+
+<tool.toolu_01FvaNrgjNcKcMyCSRcVo1Zi>
+(defun greger--handle-stream-completion (state content-blocks)
+  (let ((tool-calls (greger--extract-tool-calls content-blocks))
+        (citations (greger--extract-citations content-blocks)))
+    
+    ;; Process citations if any
+    (when citations
+      (greger--debug "CITATIONS DETECTED! Found %d citation blocks" (length citations))
+      (greger--append-citations-markdown state citations))
+    
+    ;; TODO: remove debug
+    (if tool-calls
+        (progn
+          (greger--debug "TOOL USE DETECTED! Found %d tool calls" (length tool-calls))
+          (setf (greger-state-current-iteration state)
+                (1+ (greger-state-current-iteration state)))
+          ;; TODO: execute tool calls in greger--append-content-block instead
+          (greger--execute-tools tool-calls state))
+      (progn
+        (greger--debug "NO TOOL USE - CONVERSATION COMPLETE")
+        (greger--finish-response state))))
+
+  (with-current-buffer (greger-state-chat-buffer state)
+    (greger--update-buffer-state)))
+</tool.toolu_01FvaNrgjNcKcMyCSRcVo1Zi>
+
+### git-commit-message
+
+<tool.toolu_01FvaNrgjNcKcMyCSRcVo1Zi>
+Extract and process citations in stream completion handler
+</tool.toolu_01FvaNrgjNcKcMyCSRcVo1Zi>
+
+<!-- TOOL_RESULT_PLACEHOLDER_toolu_01FvaNrgjNcKcMyCSRcVo1Zi -->
