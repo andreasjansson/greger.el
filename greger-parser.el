@@ -799,7 +799,6 @@ Modifies the content blocks in-place to process <cite> tags."
 
 (defun greger-parser--apply-citations-to-messages (messages citations)
   "Apply CITATIONS to the last assistant message in MESSAGES that contains <cite> tags."
-  (message "DEBUG: Applying citations to %d messages" (length messages))
   ;; Find the last assistant message and apply citations to it
   (dolist (message messages)
     (when (string= "assistant" (alist-get 'role message))
