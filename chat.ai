@@ -4192,4 +4192,109 @@ greger-client.el
 Initialize citations list for text blocks in content_block_start
 </tool.toolu_01VHRA3Lrjp6UrTD8GBNGfn7>
 
-<!-- TOOL_RESULT_PLACEHOLDER_toolu_01VHRA3Lrjp6UrTD8GBNGfn7 -->
+## TOOL RESULT:
+
+ID: toolu_01VHRA3Lrjp6UrTD8GBNGfn7
+
+<tool.toolu_01VHRA3Lrjp6UrTD8GBNGfn7>
+Successfully replaced content in /Users/andreas/projects/greger.el/greger-client.el. Successfully staged 2 file(s) and committed with message: Initialize citations list for text blocks in content_block_start
+</tool.toolu_01VHRA3Lrjp6UrTD8GBNGfn7>
+
+## ASSISTANT:
+
+Now let me handle the `citations_delta` events in the content block delta function:
+
+## TOOL USE:
+
+Name: str-replace
+ID: toolu_0124m7NuNRLiQfgb2QxviBCh
+
+### file-path
+
+<tool.toolu_0124m7NuNRLiQfgb2QxviBCh>
+greger-client.el
+</tool.toolu_0124m7NuNRLiQfgb2QxviBCh>
+
+### original-content
+
+<tool.toolu_0124m7NuNRLiQfgb2QxviBCh>
+(defun greger-client--handle-content-block-delta (data state)
+  (let* ((index (alist-get 'index data))
+         (delta (alist-get 'delta data))
+         (delta-type (alist-get 'type delta))
+         (blocks (greger-client-state-content-blocks state))
+         (block (nth index blocks)))
+
+    ;; TODO: do we need to handle content block stop out-of-order,
+    ;; before content-block start has created the block in the state's content-blocks?
+
+    (cond
+
+     ;; assistant text and thinking
+     ;; {"type":"content_block_delta","index":0,"delta":{"type":"text_delta","text":"I'll search for the"}}
+     ((string= delta-type "text_delta")
+      (let ((text (alist-get 'text delta)))
+        (setf (alist-get 'text block)
+              (concat (alist-get 'text block) text))
+        ;; Call text callback for live display
+        (funcall (greger-client-state-text-delta-callback state) text)))
+
+     ;; tool_use and server_tool_use
+     ;; {"type":"content_block_delta","index":1,"delta":{"type":"input_json_delta","partial_json":""}}
+     ((string= delta-type "input_json_delta")
+      (let ((partial-json (alist-get 'partial_json delta)))
+        (setf (alist-get 'input block)
+              (concat (alist-get 'input block) partial-json)))))))
+</tool.toolu_0124m7NuNRLiQfgb2QxviBCh>
+
+### new-content
+
+<tool.toolu_0124m7NuNRLiQfgb2QxviBCh>
+(defun greger-client--handle-content-block-delta (data state)
+  (let* ((index (alist-get 'index data))
+         (delta (alist-get 'delta data))
+         (delta-type (alist-get 'type delta))
+         (blocks (greger-client-state-content-blocks state))
+         (block (nth index blocks)))
+
+    ;; TODO: do we need to handle content block stop out-of-order,
+    ;; before content-block start has created the block in the state's content-blocks?
+
+    (cond
+
+     ;; assistant text and thinking
+     ;; {"type":"content_block_delta","index":0,"delta":{"type":"text_delta","text":"I'll search for the"}}
+     ((string= delta-type "text_delta")
+      (let ((text (alist-get 'text delta))
+            (has-citations (alist-get 'citations block)))
+        (setf (alist-get 'text block)
+              (concat (alist-get 'text block) text))
+        ;; Only call text callback for live display if this block doesn't have citations
+        ;; Citation blocks should not stream text - they'll be handled in block-stop
+        (unless has-citations
+          (funcall (greger-client-state-text-delta-callback state) text))))
+
+     ;; tool_use and server_tool_use
+     ;; {"type":"content_block_delta","index":1,"delta":{"type":"input_json_delta","partial_json":""}}
+     ((string= delta-type "input_json_delta")
+      (let ((partial-json (alist-get 'partial_json delta)))
+        (setf (alist-get 'input block)
+              (concat (alist-get 'input block) partial-json))))
+
+     ;; Citations accumulation
+     ;; {"type":"content_block_delta","index":3,"delta":{"type":"citations_delta","citation":{"type":"web_search_result_location",...}}}
+     ((string= delta-type "citations_delta")
+      (let ((citation (alist-get 'citation delta))
+            (current-citations (alist-get 'citations block)))
+        ;; Add the new citation to the list
+        (setf (alist-get 'citations block)
+              (append current-citations (list citation))))))))
+</tool.toolu_0124m7NuNRLiQfgb2QxviBCh>
+
+### git-commit-message
+
+<tool.toolu_0124m7NuNRLiQfgb2QxviBCh>
+Handle citations_delta events and suppress text streaming for citation blocks
+</tool.toolu_0124m7NuNRLiQfgb2QxviBCh>
+
+<!-- TOOL_RESULT_PLACEHOLDER_toolu_0124m7NuNRLiQfgb2QxviBCh -->

@@ -311,18 +311,30 @@ Returns nil if no error found or if OUTPUT is not valid JSON."
      ;; assistant text and thinking
      ;; {"type":"content_block_delta","index":0,"delta":{"type":"text_delta","text":"I'll search for the"}}
      ((string= delta-type "text_delta")
-      (let ((text (alist-get 'text delta)))
+      (let ((text (alist-get 'text delta))
+            (has-citations (alist-get 'citations block)))
         (setf (alist-get 'text block)
               (concat (alist-get 'text block) text))
-        ;; Call text callback for live display
-        (funcall (greger-client-state-text-delta-callback state) text)))
+        ;; Only call text callback for live display if this block doesn't have citations
+        ;; Citation blocks should not stream text - they'll be handled in block-stop
+        (unless has-citations
+          (funcall (greger-client-state-text-delta-callback state) text))))
 
      ;; tool_use and server_tool_use
      ;; {"type":"content_block_delta","index":1,"delta":{"type":"input_json_delta","partial_json":""}}
      ((string= delta-type "input_json_delta")
       (let ((partial-json (alist-get 'partial_json delta)))
         (setf (alist-get 'input block)
-              (concat (alist-get 'input block) partial-json)))))))
+              (concat (alist-get 'input block) partial-json))))
+
+     ;; Citations accumulation
+     ;; {"type":"content_block_delta","index":3,"delta":{"type":"citations_delta","citation":{"type":"web_search_result_location",...}}}
+     ((string= delta-type "citations_delta")
+      (let ((citation (alist-get 'citation delta))
+            (current-citations (alist-get 'citations block)))
+        ;; Add the new citation to the list
+        (setf (alist-get 'citations block)
+              (append current-citations (list citation))))))))
 
 (defun greger-client--handle-content-block-stop (data state)
   (let* ((index (alist-get 'index data))
