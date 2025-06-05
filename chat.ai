@@ -2252,4 +2252,66 @@ Fix final bibliography folding to stop at next section header
 - Ensures content after bibliography sections is not folded
 </tool.toolu_011aWLxxg1c2GDw2LRdFi2PD>
 
-<!-- TOOL_RESULT_PLACEHOLDER_toolu_011aWLxxg1c2GDw2LRdFi2PD -->
+## TOOL RESULT:
+
+ID: toolu_011aWLxxg1c2GDw2LRdFi2PD
+
+<tool.toolu_011aWLxxg1c2GDw2LRdFi2PD>
+Successfully replaced content in /Users/andreas/projects/greger.el/greger-ui.el. Successfully staged 2 file(s) and committed with message: Fix final bibliography folding to stop at next section header
+
+- Modify greger-ui-find-final-bibliography to properly detect end of citation section
+- Stop folding at next "## " header instead of including entire buffer
+- Ensures content after bibliography sections is not folded
+</tool.toolu_011aWLxxg1c2GDw2LRdFi2PD>
+
+## ASSISTANT:
+
+Now let me test this by creating a simple test file to verify the behavior:
+
+## TOOL USE:
+
+Name: write-new-file
+ID: toolu_01JMVze7ma5gZvnTdHdV6whg
+
+### file-path
+
+<tool.toolu_01JMVze7ma5gZvnTdHdV6whg>
+test-citations.md
+</tool.toolu_01JMVze7ma5gZvnTdHdV6whg>
+
+### contents
+
+<tool.toolu_01JMVze7ma5gZvnTdHdV6whg>
+## ASSISTANT:
+
+The current king of Sweden is <cite>Carl XVI Gustaf (Carl Gustaf Folke Hubertus; born 30 April 1946)</cite>. <cite>Having reigned since 1973, he is the longest-reigning monarch in Swedish history</cite>.
+
+## CITATIONS:
+
+### https://en.wikipedia.org/wiki/Carl_XVI_Gustaf
+
+Title: Carl XVI Gustaf - Wikipedia
+Cited text: Carl XVI Gustaf (Carl Gustaf Folke Hubertus; born 30 April 1946) is King of Sweden.
+Encrypted index: EpABCioIBBgCIiQ1OTMxOGJiOC0zZjNhLTQ0Y2UtOWFkNS0wYzYxNWE4MGI0YWISDGySmzU7Ln+6J4UuDBoMcZ4K11tCTbIm7RlhIjAIylHcJxJaOSQ8Jza53dcwysj7HNWKeikjXHMojK11O4qvc0iBdXVSHXdDdiO9wTEqFHC/6pnUMMZT5BlzGW/dVQ/sGsWUGAQ=
+
+### https://en.wikipedia.org/wiki/Monarchy_of_Sweden
+
+Title: Monarchy of Sweden - Wikipedia
+Cited text: The current king of Sweden is Carl XVI Gustaf, while his heir is Crown Princess Victoria.
+Encrypted index: Eo8BCioIBBgCIiQ1OTMxOGJiOC0zZjNhLTQ0Y2UtOWFkNS0wYzYxNWE4MGI0YWISDKmqXgl2fNHQ4eDLUBoM6K+MKNWYm/S5kl7BIjDxSu5j9rwqJhVlk2PF9GAkbW/eV46Ai0EFov28Jw7ThC32WF3EuJeH1M2ZOKWER1AqE8yDgJWWcydXDQNEJqp9dYca+1AYBA==
+
+## USER:
+
+hello
+</tool.toolu_01JMVze7ma5gZvnTdHdV6whg>
+
+### git-commit-message
+
+<tool.toolu_01JMVze7ma5gZvnTdHdV6whg>
+Add test file for citation folding functionality
+
+- Create test-citations.md with sample citation content
+- Includes CITATIONS section followed by USER section to test boundary detection
+</tool.toolu_01JMVze7ma5gZvnTdHdV6whg>
+
+<!-- TOOL_RESULT_PLACEHOLDER_toolu_01JMVze7ma5gZvnTdHdV6whg -->
