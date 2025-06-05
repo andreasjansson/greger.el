@@ -5,36 +5,46 @@
 
 (let ((markdown "## USER:
 
-Search for current weather in San Francisco
+When was Claude Shannon born?
 
 ## SERVER TOOL USE:
 
 Name: web_search
-ID: srvtoolu_123
+ID: srvtoolu_01WYG3ziw53XMcoyKL4XcZmE
 
 ### query
 
-<tool.srvtoolu_123>
-current weather San Francisco
-</tool.srvtoolu_123>
+<tool.srvtoolu_01WYG3ziw53XMcoyKL4XcZmE>
+claude shannon birth date
+</tool.srvtoolu_01WYG3ziw53XMcoyKL4XcZmE>
 
 ## SERVER TOOL RESULT:
 
-ID: srvtoolu_123
+ID: srvtoolu_01WYG3ziw53XMcoyKL4XcZmE
 
-<tool.srvtoolu_123>
+<tool.srvtoolu_01WYG3ziw53XMcoyKL4XcZmE>
 [
   {
-    \"title\": \"Weather in San Francisco\",
-    \"url\": \"https://weather.com/sf\",
-    \"content\": \"Sunny, 72°F\"
+    \"type\": \"web_search_result\",
+    \"url\": \"https://en.wikipedia.org/wiki/Claude_Shannon\",
+    \"title\": \"Claude Shannon - Wikipedia\",
+    \"encrypted_content\": \"EqgfCioIARgBIiQ3YTAwMjY1Mi1mZjM5LTQ1NGUtODgxNC1kNjNjNTk1ZWI3Y...\",
+    \"page_age\": \"April 30, 2025\"
   }
 ]
-</tool.srvtoolu_123>
+</tool.srvtoolu_01WYG3ziw53XMcoyKL4XcZmE>
 
 ## ASSISTANT:
 
-The current weather in San Francisco is sunny and 72°F."))
+Based on the search results, <cite>Claude Shannon was born on April 30, 1916, in Petoskey, Michigan</cite>
+
+## CITATIONS:
+
+### https://en.wikipedia.org/wiki/Claude_Shannon
+
+Title: Claude Shannon - Wikipedia
+Cited text: Claude Elwood Shannon (April 30, 1916 – February 24, 2001) was an American mathematician, electrical engineer, computer scientist, cryptographer and i...
+Encrypted index: Eo8BCioIAhgBIiQyYjQ0OWJmZi1lNm.."))
   (let ((dialog (greger-parser-parse-dialog-messages-only markdown)))
     (message "ORIGINAL DIALOG:")
     (pp dialog)

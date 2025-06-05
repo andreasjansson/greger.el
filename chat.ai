@@ -4856,4 +4856,813 @@ The current weather in San Francisco is sunny and 72°F."))
 Update debug script to test server tool use roundtrip
 </tool.toolu_01ShKHM7Md5yaueDzMfTDgbC>
 
-<!-- TOOL_RESULT_PLACEHOLDER_toolu_01ShKHM7Md5yaueDzMfTDgbC -->
+## TOOL RESULT:
+
+ID: toolu_01ShKHM7Md5yaueDzMfTDgbC
+
+<tool.toolu_01ShKHM7Md5yaueDzMfTDgbC>
+Successfully replaced content in /Users/andreas/projects/greger.el/debug-roundtrip.el. Successfully staged 2 file(s) and committed with message: Update debug script to test server tool use roundtrip
+</tool.toolu_01ShKHM7Md5yaueDzMfTDgbC>
+
+## TOOL USE:
+
+Name: shell-command
+ID: toolu_01NFDRyGgvViSSB3UJeHBXTc
+
+### command
+
+<tool.toolu_01NFDRyGgvViSSB3UJeHBXTc>
+cd /Users/andreas/projects/greger.el && emacs --script debug-roundtrip.el
+</tool.toolu_01NFDRyGgvViSSB3UJeHBXTc>
+
+## TOOL RESULT:
+
+ID: toolu_01NFDRyGgvViSSB3UJeHBXTc
+
+<tool.toolu_01NFDRyGgvViSSB3UJeHBXTc>
+Command executed successfully:
+Source file ‘/opt/homebrew/Cellar/emacs-plus@29/29.0.90/share/emacs/29.0.91/lisp/net/eww.el’ newer than byte-compiled file; using older file
+ORIGINAL DIALOG:
+(((role . "user")
+  (content . "Search for current weather in San Francisco"))
+ ((role . "assistant")
+  (content
+   ((type . "server_tool_use")
+    (id . "srvtoolu_123")
+    (name . "web_search")
+    (input
+     (query . "current weather San Francisco")))
+   ((type . "server_tool_result")
+    (tool_use_id . "srvtoolu_123")
+    (content
+     ((title . "Weather in San Francisco")
+      (url . "https://weather.com/sf")
+      (content . "Sunny, 72°F"))))
+   ((type . "text")
+    (text . "The current weather in San Francisco is sunny and 72°F.")))))
+
+
+ROUNDTRIP MARKDOWN:
+## USER:
+
+Search for current weather in San Francisco
+
+## SERVER TOOL USE:
+
+Name: web_search
+ID: srvtoolu_123
+
+### query
+
+<tool.srvtoolu_123>
+current weather San Francisco
+</tool.srvtoolu_123>
+
+## SERVER TOOL RESULT:
+
+ID: srvtoolu_123
+
+<tool.srvtoolu_123>
+[
+  {
+    "title": "Weather in San Francisco",
+    "url": "https://weather.com/sf",
+    "content": "Sunny, 72°F"
+  }
+]
+</tool.srvtoolu_123>
+
+## ASSISTANT:
+
+The current weather in San Francisco is sunny and 72°F.
+
+ROUNDTRIP DIALOG:
+(((role . "user")
+  (content . "Search for current weather in San Francisco"))
+ ((role . "assistant")
+  (content
+   ((type . "server_tool_use")
+    (id . "srvtoolu_123")
+    (name . "web_search")
+    (input
+     (query . "current weather San Francisco")))
+   ((type . "server_tool_result")
+    (tool_use_id . "srvtoolu_123")
+    (content
+     ((title . "Weather in San Francisco")
+      (url . "https://weather.com/sf")
+      (content . "Sunny, 72°F"))))
+   ((type . "text")
+    (text . "The current weather in San Francisco is sunny and 72°F.")))))
+
+</tool.toolu_01NFDRyGgvViSSB3UJeHBXTc>
+
+## ASSISTANT:
+
+This looks structurally correct, but there are subtle differences. The issue might be in the JSON formatting differences. In the original, we have nested arrays with just one object, but in the roundtrip, the JSON is reformatted. 
+
+Looking at the original test case expectation again, the expected dialog for `server-tool-use-basic` shows:
+
+```lisp
+(content . (((title . "Weather in San Francisco")
+             (url . "https://weather.com/sf")
+             (content . "Sunny, 72°F"))))
+```
+
+But the actual parsed result returns:
+
+```lisp
+(content
+ ((title . "Weather in San Francisco")
+  (url . "https://weather.com/sf")
+  (content . "Sunny, 72°F")))
+```
+
+The difference is that the expected result has an extra level of nesting - it expects the content to be a list containing a list containing the object, but the current implementation returns a list containing the object directly.
+
+Let me check if this is a JSON parsing issue. In the JSON `[{"title": "...", ...}]`, this is an array with one object. The expected structure suggests that this should be parsed as `(((title . "...") ...))` but the current implementation returns `((title . "...") ...)`.
+
+Let me look at the test case again:
+
+## TOOL USE:
+
+Name: read-file
+ID: toolu_01AGXmWoQxb3Afypj7qAGZ3Y
+
+### path
+
+<tool.toolu_01AGXmWoQxb3Afypj7qAGZ3Y>
+test/test-greger-parser.el
+</tool.toolu_01AGXmWoQxb3Afypj7qAGZ3Y>
+
+### start-line
+
+<tool.toolu_01AGXmWoQxb3Afypj7qAGZ3Y>
+622
+</tool.toolu_01AGXmWoQxb3Afypj7qAGZ3Y>
+
+### end-line
+
+<tool.toolu_01AGXmWoQxb3Afypj7qAGZ3Y>
+626
+</tool.toolu_01AGXmWoQxb3Afypj7qAGZ3Y>
+
+## TOOL RESULT:
+
+ID: toolu_01AGXmWoQxb3Afypj7qAGZ3Y
+
+<tool.toolu_01AGXmWoQxb3Afypj7qAGZ3Y>
+                                                      ((type . "server_tool_result")
+                                                       (tool_use_id . "srvtoolu_123")
+                                                       (content . (((title . "Weather in San Francisco")
+                                                                    (url . "https://weather.com/sf")
+                                                                    (content . "Sunny, 72°F")))))
+</tool.toolu_01AGXmWoQxb3Afypj7qAGZ3Y>
+
+## ASSISTANT:
+
+The expected content is `(((title . "Weather in San Francisco") (url . "https://weather.com/sf") (content . "Sunny, 72°F")))` - a list containing one object.
+
+But the actual parsed result is `((title . "Weather in San Francisco") (url . "https://weather.com/sf") (content . "Sunny, 72°F"))` - just the object itself.
+
+This suggests that the JSON array parsing might be flattening the array. Let me check that:
+
+## TOOL USE:
+
+Name: shell-command
+ID: toolu_01L25x9mBcsf7SJmkKBHophJ
+
+### command
+
+<tool.toolu_01L25x9mBcsf7SJmkKBHophJ>
+cd /Users/andreas/projects/greger.el && emacs --batch --eval "(progn (add-to-list 'load-path \".\") (require 'greger-parser) (let ((json-str \"[{\\\"title\\\": \\\"Weather in San Francisco\\\", \\\"url\\\": \\\"https://weather.com/sf\\\", \\\"content\\\": \\\"Sunny, 72°F\\\"}]\")) (pp (greger-parser--parse-json-content json-str))))"
+</tool.toolu_01L25x9mBcsf7SJmkKBHophJ>
+
+## TOOL RESULT:
+
+ID: toolu_01L25x9mBcsf7SJmkKBHophJ
+
+<tool.toolu_01L25x9mBcsf7SJmkKBHophJ>
+Command executed successfully:
+Source file ‘/opt/homebrew/Cellar/emacs-plus@29/29.0.90/share/emacs/29.0.91/lisp/net/eww.el’ newer than byte-compiled file; using older file
+(((title . "Weather in San Francisco")
+  (url . "https://weather.com/sf")
+  (content . "Sunny, 72°F")))
+
+</tool.toolu_01L25x9mBcsf7SJmkKBHophJ>
+
+## ASSISTANT:
+
+The JSON parsing is correct - it returns `(((title . "Weather in San Francisco") ...))` which is a list containing one object. But somehow in the full parsing, this gets converted to just the object itself.
+
+Let me check where this might be happening. Let me trace through a SERVER TOOL RESULT parsing:
+
+## TOOL USE:
+
+Name: shell-command
+ID: toolu_01Vtb7A3qDrhh1fufSgqpTmw
+
+### command
+
+<tool.toolu_01Vtb7A3qDrhh1fufSgqpTmw>
+cd /Users/andreas/projects/greger.el && emacs --batch --eval "(progn (add-to-list 'load-path \".\") (require 'greger-parser) (let ((markdown \"## SERVER TOOL RESULT:\n\nID: srvtoolu_123\n\n<tool.srvtoolu_123>\n[\n  {\n    \\\"title\\\": \\\"Weather in San Francisco\\\",\n    \\\"url\\\": \\\"https://weather.com/sf\\\",\n    \\\"content\\\": \\\"Sunny, 72°F\\\"\n  }\n]\n</tool.srvtoolu_123>\")) (pp (greger-parser-parse-dialog-messages-only markdown))))"
+</tool.toolu_01Vtb7A3qDrhh1fufSgqpTmw>
+
+## TOOL RESULT:
+
+ID: toolu_01Vtb7A3qDrhh1fufSgqpTmw
+
+<tool.toolu_01Vtb7A3qDrhh1fufSgqpTmw>
+Command executed successfully:
+Source file ‘/opt/homebrew/Cellar/emacs-plus@29/29.0.90/share/emacs/29.0.91/lisp/net/eww.el’ newer than byte-compiled file; using older file
+(((role . "assistant")
+  (content
+   ((type . "server_tool_result")
+    (tool_use_id . "srvtoolu_123")
+    (content
+     ((title . "Weather in San Francisco")
+      (url . "https://weather.com/sf")
+      (content . "Sunny, 72°F")))))))
+
+</tool.toolu_01Vtb7A3qDrhh1fufSgqpTmw>
+
+## ASSISTANT:
+
+I see! The issue is that the JSON parsing is correct, but somewhere the array is being unpacked. Looking at the server tool result creation function:
+
+## TOOL USE:
+
+Name: read-file
+ID: toolu_01WuWUkcSRcYwgaUvPQaPrjc
+
+### path
+
+<tool.toolu_01WuWUkcSRcYwgaUvPQaPrjc>
+greger-parser.el
+</tool.toolu_01WuWUkcSRcYwgaUvPQaPrjc>
+
+### start-line
+
+<tool.toolu_01WuWUkcSRcYwgaUvPQaPrjc>
+1146
+</tool.toolu_01WuWUkcSRcYwgaUvPQaPrjc>
+
+### end-line
+
+<tool.toolu_01WuWUkcSRcYwgaUvPQaPrjc>
+1160
+</tool.toolu_01WuWUkcSRcYwgaUvPQaPrjc>
+
+## TOOL RESULT:
+
+ID: toolu_01WuWUkcSRcYwgaUvPQaPrjc
+
+<tool.toolu_01WuWUkcSRcYwgaUvPQaPrjc>
+
+(defun greger-parser--create-server-tool-result-message (id content)
+  "Create server tool result message with ID and CONTENT."
+  (let ((result-type (if (and (stringp content)
+                              (string-match-p "\"type\"[[:space:]]*:[[:space:]]*\"web_search_result\"" content))
+                         "web_search_tool_result"
+                       "server_tool_result")))
+    (let ((parsed-content
+           (if (stringp content)
+               (greger-parser--parse-json-content content)
+             content)))
+      `((role . "assistant")
+        (content . (((type . ,result-type)
+                     (tool_use_id . ,id)
+                     (content . ,parsed-content))))))))
+</tool.toolu_01WuWUkcSRcYwgaUvPQaPrjc>
+
+## ASSISTANT:
+
+The JSON parsing is happening correctly and `parsed-content` should be the list with one object. The issue must be in the test comparison. Let me look at the exact difference more carefully.
+
+Let me check if the issue might be in the test structure itself. The expected result might be wrong. Let me check if the test should expect a different structure:
+
+## TOOL USE:
+
+Name: read-file
+ID: toolu_01U8U4ZQb6qdiPpKjPqiUjkm
+
+### path
+
+<tool.toolu_01U8U4ZQb6qdiPpKjPqiUjkm>
+test/test-greger-parser.el
+</tool.toolu_01U8U4ZQb6qdiPpKjPqiUjkm>
+
+### start-line
+
+<tool.toolu_01U8U4ZQb6qdiPpKjPqiUjkm>
+617
+</tool.toolu_01U8U4ZQb6qdiPpKjPqiUjkm>
+
+### end-line
+
+<tool.toolu_01U8U4ZQb6qdiPpKjPqiUjkm>
+628
+</tool.toolu_01U8U4ZQb6qdiPpKjPqiUjkm>
+
+## TOOL RESULT:
+
+ID: toolu_01U8U4ZQb6qdiPpKjPqiUjkm
+
+<tool.toolu_01U8U4ZQb6qdiPpKjPqiUjkm>
+           :dialog (((role . "user") (content . "Search for current weather in San Francisco"))
+                    ((role . "assistant") (content . (((type . "server_tool_use")
+                                                       (id . "srvtoolu_123")
+                                                       (name . "web_search")
+                                                       (input . ((query . "current weather San Francisco"))))
+                                                      ((type . "server_tool_result")
+                                                       (tool_use_id . "srvtoolu_123")
+                                                       (content . (((title . "Weather in San Francisco")
+                                                                    (url . "https://weather.com/sf")
+                                                                    (content . "Sunny, 72°F")))))
+                                                      ((type . "text") (text . "The current weather in San Francisco is sunny and 72°F.")))))))
+
+</tool.toolu_01U8U4ZQb6qdiPpKjPqiUjkm>
+
+## ASSISTANT:
+
+Let me run the actual test case and see what the current parser produces:
+
+## TOOL USE:
+
+Name: shell-command
+ID: toolu_01LN89VUjMqyKZMwrZhuwhTZ
+
+### command
+
+<tool.toolu_01LN89VUjMqyKZMwrZhuwhTZ>
+cd /Users/andreas/projects/greger.el && emacs --batch --eval "(progn (add-to-list 'load-path \".\") (add-to-list 'load-path \"./test\") (require 'greger-parser) (load \"test/test-greger-parser.el\") (let ((test-case (cl-find \"server-tool-use-basic\" greger-parser-test-cases :key (lambda (tc) (plist-get tc :name)) :test #'string=))) (let ((markdown (plist-get test-case :markdown)) (expected (plist-get test-case :dialog))) (let ((actual (greger-parser-parse-dialog-messages-only markdown))) (message \"EXPECTED:\") (pp expected) (message \"\nACTUAL:\") (pp actual)))))"
+</tool.toolu_01LN89VUjMqyKZMwrZhuwhTZ>
+
+## TOOL RESULT:
+
+ID: toolu_01LN89VUjMqyKZMwrZhuwhTZ
+
+<tool.toolu_01LN89VUjMqyKZMwrZhuwhTZ>
+Command executed successfully:
+Source file ‘/opt/homebrew/Cellar/emacs-plus@29/29.0.90/share/emacs/29.0.91/lisp/net/eww.el’ newer than byte-compiled file; using older file
+Loading /Users/andreas/projects/greger.el/test/test-greger-parser.el (source)...
+EXPECTED:
+(((role . "user")
+  (content . "Search for current weather in San Francisco"))
+ ((role . "assistant")
+  (content
+   ((type . "server_tool_use")
+    (id . "srvtoolu_123")
+    (name . "web_search")
+    (input
+     (query . "current weather San Francisco")))
+   ((type . "server_tool_result")
+    (tool_use_id . "srvtoolu_123")
+    (content
+     ((title . "Weather in San Francisco")
+      (url . "https://weather.com/sf")
+      (content . "Sunny, 72°F"))))
+   ((type . "text")
+    (text . "The current weather in San Francisco is sunny and 72°F.")))))
+
+
+ACTUAL:
+(((role . "user")
+  (content . "Search for current weather in San Francisco"))
+ ((role . "assistant")
+  (content
+   ((type . "server_tool_use")
+    (id . "srvtoolu_123")
+    (name . "web_search")
+    (input
+     (query . "current weather San Francisco")))
+   ((type . "server_tool_result")
+    (tool_use_id . "srvtoolu_123")
+    (content
+     ((title . "Weather in San Francisco")
+      (url . "https://weather.com/sf")
+      (content . "Sunny, 72°F"))))
+   ((type . "text")
+    (text . "The current weather in San Francisco is sunny and 72°F.")))))
+
+</tool.toolu_01LN89VUjMqyKZMwrZhuwhTZ>
+
+## ASSISTANT:
+
+The EXPECTED and ACTUAL outputs look exactly the same to me! This suggests there might be a subtle difference that's not visible in the pretty-printed output, or there might be an issue with the comparison function.
+
+Looking more closely at the expected vs actual, the expected has this line:
+
+```lisp
+(content . (((title . "Weather in San Francisco")
+             (url . "https://weather.com/sf")
+             (content . "Sunny, 72°F"))))
+```
+
+But the actual has:
+
+```lisp
+(content
+ ((title . "Weather in San Francisco")
+  (url . "https://weather.com/sf")
+  (content . "Sunny, 72°F")))
+```
+
+So the difference is that the expected has `(content . ((...)))` while the actual has `(content\n ((...))`? That doesn't make sense - those should be structurally identical.
+
+Let me check the specific comparison that's failing. The issue might be in the order of keys or some subtle structural difference. Let me check the `greger-parser-test--content-block-equal` function for server tool results:
+
+## TOOL USE:
+
+Name: read-file
+ID: toolu_01M6vrpha4CuBmrdzyz7ymoa
+
+### path
+
+<tool.toolu_01M6vrpha4CuBmrdzyz7ymoa>
+test/test-greger-parser.el
+</tool.toolu_01M6vrpha4CuBmrdzyz7ymoa>
+
+### start-line
+
+<tool.toolu_01M6vrpha4CuBmrdzyz7ymoa>
+789
+</tool.toolu_01M6vrpha4CuBmrdzyz7ymoa>
+
+### end-line
+
+<tool.toolu_01M6vrpha4CuBmrdzyz7ymoa>
+792
+</tool.toolu_01M6vrpha4CuBmrdzyz7ymoa>
+
+## TOOL RESULT:
+
+ID: toolu_01M6vrpha4CuBmrdzyz7ymoa
+
+<tool.toolu_01M6vrpha4CuBmrdzyz7ymoa>
+          ((string= type "server_tool_result")
+           (and (string= (alist-get 'tool_use_id expected) (alist-get 'tool_use_id actual))
+                (equal (alist-get 'content expected) (alist-get 'content actual))))
+          (t t)))))
+</tool.toolu_01M6vrpha4CuBmrdzyz7ymoa>
+
+## ASSISTANT:
+
+The comparison uses `equal` for content, which should work correctly. Let me check if there are any issues with key ordering or types.
+
+Actually, looking back at the original expected result again, I think the problem is that the test case itself is wrong. Let me check the logic carefully.
+
+Looking at the JSON string in the test:
+
+```json
+[
+  {
+    "title": "Weather in San Francisco",
+    "url": "https://weather.com/sf",
+    "content": "Sunny, 72°F"
+  }
+]
+```
+
+This is an array containing one object. When parsed, this should become a list containing one alist: `(((title . "Weather in San Francisco") ...))`.
+
+But in the test expectation, the `content` field is:
+
+```lisp
+(content . (((title . "Weather in San Francisco")
+             (url . "https://weather.com/sf")
+             (content . "Sunny, 72°F"))))
+```
+
+This means the content is a list containing one object. But the current parser creates a list with one object, not a list containing a list with one object.
+
+Wait, let me check the actual parsed result again. The issue might be that the test case expectation is wrong. The JSON array `[{...}]` should be parsed as `(({...}))` - a list containing one alist.
+
+Let me trace through the exact result again:
+
+## TOOL USE:
+
+Name: shell-command
+ID: toolu_01Ue1FPxemCYS3iquQQmkbfm
+
+### command
+
+<tool.toolu_01Ue1FPxemCYS3iquQQmkbfm>
+cd /Users/andreas/projects/greger.el && emacs --batch --eval "(progn (add-to-list 'load-path \".\") (require 'greger-parser) (let ((content \"[\n  {\n    \\\"title\\\": \\\"Weather in San Francisco\\\",\n    \\\"url\\\": \\\"https://weather.com/sf\\\",\n    \\\"content\\\": \\\"Sunny, 72°F\\\"\n  }\n]\")) (let ((parsed (greger-parser--parse-json-content content))) (message \"Parsed JSON:\") (pp parsed) (message \"Type: %s\" (type-of parsed)) (message \"Length: %d\" (length parsed)) (message \"First element:\") (pp (car parsed)) (message \"First element type: %s\" (type-of (car parsed))))))"
+</tool.toolu_01Ue1FPxemCYS3iquQQmkbfm>
+
+## TOOL RESULT:
+
+ID: toolu_01Ue1FPxemCYS3iquQQmkbfm
+
+<tool.toolu_01Ue1FPxemCYS3iquQQmkbfm>
+Command executed successfully:
+Source file ‘/opt/homebrew/Cellar/emacs-plus@29/29.0.90/share/emacs/29.0.91/lisp/net/eww.el’ newer than byte-compiled file; using older file
+Parsed JSON:
+(((title . "Weather in San Francisco")
+  (url . "https://weather.com/sf")
+  (content . "Sunny, 72°F")))
+
+Type: cons
+Length: 1
+First element:
+((title . "Weather in San Francisco")
+ (url . "https://weather.com/sf")
+ (content . "Sunny, 72°F"))
+
+First element type: cons
+
+</tool.toolu_01Ue1FPxemCYS3iquQQmkbfm>
+
+## ASSISTANT:
+
+Perfect! The JSON parsing is working correctly. The parsed result is `(((title . "Weather in San Francisco") ...))` - a list containing one alist. This exactly matches what the test expects.
+
+So why is the test failing? Let me check if there's an issue with the tool result creation. Let me trace the flow from parsed JSON to the final message:
+
+## TOOL USE:
+
+Name: shell-command
+ID: toolu_01GHW3xcfKBjkp7Dyoy7c3s7
+
+### command
+
+<tool.toolu_01GHW3xcfKBjkp7Dyoy7c3s7>
+cd /Users/andreas/projects/greger.el && emacs --batch --eval "(progn (add-to-list 'load-path \".\") (require 'greger-parser) (let ((content \"[\n  {\n    \\\"title\\\": \\\"Weather in San Francisco\\\",\n    \\\"url\\\": \\\"https://weather.com/sf\\\",\n    \\\"content\\\": \\\"Sunny, 72°F\\\"\n  }\n]\")) (let ((parsed (greger-parser--parse-json-content content))) (let ((message (greger-parser--create-server-tool-result-message \"srvtoolu_123\" parsed))) (message \"Created message:\") (pp message) (let ((msg-content (alist-get 'content message))) (let ((first-block (car msg-content))) (let ((block-content (alist-get 'content first-block))) (message \"Block content type: %s\" (type-of block-content)) (message \"Block content:\") (pp block-content))))))))"
+</tool.toolu_01GHW3xcfKBjkp7Dyoy7c3s7>
+
+## TOOL RESULT:
+
+ID: toolu_01GHW3xcfKBjkp7Dyoy7c3s7
+
+<tool.toolu_01GHW3xcfKBjkp7Dyoy7c3s7>
+Command executed successfully:
+Source file ‘/opt/homebrew/Cellar/emacs-plus@29/29.0.90/share/emacs/29.0.91/lisp/net/eww.el’ newer than byte-compiled file; using older file
+Created message:
+((role . "assistant")
+ (content
+  ((type . "server_tool_result")
+   (tool_use_id . "srvtoolu_123")
+   (content
+    ((title . "Weather in San Francisco")
+     (url . "https://weather.com/sf")
+     (content . "Sunny, 72°F"))))))
+
+Block content type: cons
+Block content:
+(((title . "Weather in San Francisco")
+  (url . "https://weather.com/sf")
+  (content . "Sunny, 72°F")))
+
+</tool.toolu_01GHW3xcfKBjkp7Dyoy7c3s7>
+
+## ASSISTANT:
+
+Wait! There's a discrepancy here. The message creation shows the content as:
+
+```lisp
+(content
+ ((title . "Weather in San Francisco")
+  (url . "https://weather.com/sf")
+  (content . "Sunny, 72°F")))
+```
+
+But the block content is:
+
+```lisp
+(((title . "Weather in San Francisco")
+  (url . "https://weather.com/sf")
+  (content . "Sunny, 72°F")))
+```
+
+This suggests that somewhere the extra level of nesting is being removed. Let me check the `greger-parser--create-server-tool-result-message` function again:
+
+## TOOL USE:
+
+Name: read-file
+ID: toolu_016HWAQJSCsdVanzsptBmwxL
+
+### path
+
+<tool.toolu_016HWAQJSCsdVanzsptBmwxL>
+greger-parser.el
+</tool.toolu_016HWAQJSCsdVanzsptBmwxL>
+
+### start-line
+
+<tool.toolu_016HWAQJSCsdVanzsptBmwxL>
+1146
+</tool.toolu_016HWAQJSCsdVanzsptBmwxL>
+
+### end-line
+
+<tool.toolu_016HWAQJSCsdVanzsptBmwxL>
+1160
+</tool.toolu_016HWAQJSCsdVanzsptBmwxL>
+
+## TOOL RESULT:
+
+ID: toolu_016HWAQJSCsdVanzsptBmwxL
+
+<tool.toolu_016HWAQJSCsdVanzsptBmwxL>
+
+(defun greger-parser--create-server-tool-result-message (id content)
+  "Create server tool result message with ID and CONTENT."
+  (let ((result-type (if (and (stringp content)
+                              (string-match-p "\"type\"[[:space:]]*:[[:space:]]*\"web_search_result\"" content))
+                         "web_search_tool_result"
+                       "server_tool_result")))
+    (let ((parsed-content
+           (if (stringp content)
+               (greger-parser--parse-json-content content)
+             content)))
+      `((role . "assistant")
+        (content . (((type . ,result-type)
+                     (tool_use_id . ,id)
+                     (content . ,parsed-content))))))))
+</tool.toolu_016HWAQJSCsdVanzsptBmwxL>
+
+## ASSISTANT:
+
+The function looks correct. The `parsed-content` should be `(((title . "Weather in San Francisco") ...))` and it's being assigned directly to the `content` field of the message block.
+
+The issue might be that I'm testing with already-parsed content instead of the raw string. Let me test with the raw string:
+
+## TOOL USE:
+
+Name: shell-command
+ID: toolu_01GLveekFZea8rJ3En7QTsJ6
+
+### command
+
+<tool.toolu_01GLveekFZea8rJ3En7QTsJ6>
+cd /Users/andreas/projects/greger.el && emacs --batch --eval "(progn (add-to-list 'load-path \".\") (require 'greger-parser) (let ((content \"[\n  {\n    \\\"title\\\": \\\"Weather in San Francisco\\\",\n    \\\"url\\\": \\\"https://weather.com/sf\\\",\n    \\\"content\\\": \\\"Sunny, 72°F\\\"\n  }\n]\")) (let ((message (greger-parser--create-server-tool-result-message \"srvtoolu_123\" content))) (message \"Created message:\") (pp message) (let ((msg-content (alist-get 'content message))) (let ((first-block (car msg-content))) (let ((block-content (alist-get 'content first-block))) (message \"Block content type: %s\" (type-of block-content)) (message \"Block content:\") (pp block-content)))))))"
+</tool.toolu_01GLveekFZea8rJ3En7QTsJ6>
+
+## TOOL RESULT:
+
+ID: toolu_01GLveekFZea8rJ3En7QTsJ6
+
+<tool.toolu_01GLveekFZea8rJ3En7QTsJ6>
+Command executed successfully:
+Source file ‘/opt/homebrew/Cellar/emacs-plus@29/29.0.90/share/emacs/29.0.91/lisp/net/eww.el’ newer than byte-compiled file; using older file
+Created message:
+((role . "assistant")
+ (content
+  ((type . "server_tool_result")
+   (tool_use_id . "srvtoolu_123")
+   (content
+    ((title . "Weather in San Francisco")
+     (url . "https://weather.com/sf")
+     (content . "Sunny, 72°F"))))))
+
+Block content type: cons
+Block content:
+(((title . "Weather in San Francisco")
+  (url . "https://weather.com/sf")
+  (content . "Sunny, 72°F")))
+
+</tool.toolu_01GLveekFZea8rJ3En7QTsJ6>
+
+## ASSISTANT:
+
+This is very strange. The `block-content` shows the correct structure `(((title . ...)))` but the message shows `((title . ...))`. Let me double-check that the tool result creation is actually working as expected.
+
+Let me check whether this has something to do with the pretty printer showing the content incorrectly. Let me examine the content structure directly:
+
+## TOOL USE:
+
+Name: shell-command
+ID: toolu_01T8PzT9nSgMFedLPfitaoDJ
+
+### command
+
+<tool.toolu_01T8PzT9nSgMFedLPfitaoDJ>
+cd /Users/andreas/projects/greger.el && emacs --batch --eval "(progn (add-to-list 'load-path \".\") (require 'greger-parser) (let ((content \"[\n  {\n    \\\"title\\\": \\\"Weather in San Francisco\\\",\n    \\\"url\\\": \\\"https://weather.com/sf\\\",\n    \\\"content\\\": \\\"Sunny, 72°F\\\"\n  }\n]\")) (let ((message (greger-parser--create-server-tool-result-message \"srvtoolu_123\" content))) (let ((msg-content (alist-get 'content message))) (let ((first-block (car msg-content))) (let ((block-content (alist-get 'content first-block))) (message \"First element of content: %s\" (pp-to-string (car block-content))) (message \"Consp first element: %s\" (consp (car block-content)))))))))"
+</tool.toolu_01T8PzT9nSgMFedLPfitaoDJ>
+
+## TOOL RESULT:
+
+ID: toolu_01T8PzT9nSgMFedLPfitaoDJ
+
+<tool.toolu_01T8PzT9nSgMFedLPfitaoDJ>
+Command executed successfully:
+Source file ‘/opt/homebrew/Cellar/emacs-plus@29/29.0.90/share/emacs/29.0.91/lisp/net/eww.el’ newer than byte-compiled file; using older file
+First element of content: ((title . "Weather in San Francisco")
+ (url . "https://weather.com/sf")
+ (content . "Sunny, 72°F"))
+
+Consp first element: t
+
+</tool.toolu_01T8PzT9nSgMFedLPfitaoDJ>
+
+## ASSISTANT:
+
+The content is correct - it contains a list with the first element being an alist `((title . "Weather in San Francisco") ...)`.
+
+I think the issue might be something subtle in the test comparison function or the roundtrip process. Let me focus on getting the citations working first, since that's the main goal. The server tool use roundtrip issue might be a separate issue.
+
+Let me test the citations case now:
+
+## TOOL USE:
+
+Name: str-replace
+ID: toolu_01CoZeqiCGTFYe6zY5qY2QFV
+
+### file-path
+
+<tool.toolu_01CoZeqiCGTFYe6zY5qY2QFV>
+debug-roundtrip.el
+</tool.toolu_01CoZeqiCGTFYe6zY5qY2QFV>
+
+### original-content
+
+<tool.toolu_01CoZeqiCGTFYe6zY5qY2QFV>
+(let ((markdown "## USER:
+
+Search for current weather in San Francisco
+
+## SERVER TOOL USE:
+
+Name: web_search
+ID: srvtoolu_123
+
+### query
+
+<tool.srvtoolu_123>
+current weather San Francisco
+</tool.srvtoolu_123>
+
+## SERVER TOOL RESULT:
+
+ID: srvtoolu_123
+
+<tool.srvtoolu_123>
+[
+  {
+    \"title\": \"Weather in San Francisco\",
+    \"url\": \"https://weather.com/sf\",
+    \"content\": \"Sunny, 72°F\"
+  }
+]
+</tool.srvtoolu_123>
+
+## ASSISTANT:
+
+The current weather in San Francisco is sunny and 72°F."))
+</tool.toolu_01CoZeqiCGTFYe6zY5qY2QFV>
+
+### new-content
+
+<tool.toolu_01CoZeqiCGTFYe6zY5qY2QFV>
+(let ((markdown "## USER:
+
+When was Claude Shannon born?
+
+## SERVER TOOL USE:
+
+Name: web_search
+ID: srvtoolu_01WYG3ziw53XMcoyKL4XcZmE
+
+### query
+
+<tool.srvtoolu_01WYG3ziw53XMcoyKL4XcZmE>
+claude shannon birth date
+</tool.srvtoolu_01WYG3ziw53XMcoyKL4XcZmE>
+
+## SERVER TOOL RESULT:
+
+ID: srvtoolu_01WYG3ziw53XMcoyKL4XcZmE
+
+<tool.srvtoolu_01WYG3ziw53XMcoyKL4XcZmE>
+[
+  {
+    \"type\": \"web_search_result\",
+    \"url\": \"https://en.wikipedia.org/wiki/Claude_Shannon\",
+    \"title\": \"Claude Shannon - Wikipedia\",
+    \"encrypted_content\": \"EqgfCioIARgBIiQ3YTAwMjY1Mi1mZjM5LTQ1NGUtODgxNC1kNjNjNTk1ZWI3Y...\",
+    \"page_age\": \"April 30, 2025\"
+  }
+]
+</tool.srvtoolu_01WYG3ziw53XMcoyKL4XcZmE>
+
+## ASSISTANT:
+
+Based on the search results, <cite>Claude Shannon was born on April 30, 1916, in Petoskey, Michigan</cite>
+
+## CITATIONS:
+
+### https://en.wikipedia.org/wiki/Claude_Shannon
+
+Title: Claude Shannon - Wikipedia
+Cited text: Claude Elwood Shannon (April 30, 1916 – February 24, 2001) was an American mathematician, electrical engineer, computer scientist, cryptographer and i...
+Encrypted index: Eo8BCioIAhgBIiQyYjQ0OWJmZi1lNm.."))
+</tool.toolu_01CoZeqiCGTFYe6zY5qY2QFV>
+
+### git-commit-message
+
+<tool.toolu_01CoZeqiCGTFYe6zY5qY2QFV>
+Update debug script to test citations roundtrip
+</tool.toolu_01CoZeqiCGTFYe6zY5qY2QFV>
+
+<!-- TOOL_RESULT_PLACEHOLDER_toolu_01CoZeqiCGTFYe6zY5qY2QFV -->
