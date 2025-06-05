@@ -1070,6 +1070,24 @@ Returns either a system message, metadata, or both."
   "Convert content BLOCKS to markdown."
   (mapconcat #'greger-parser--block-to-markdown blocks "\n\n"))
 
+(defun greger-parser--content-blocks-to-markdown-with-citations (blocks)
+  "Convert content BLOCKS to markdown, collecting citations into a separate section."
+  (let ((block-markdown "")
+        (collected-citations '()))
+    ;; Process each block and collect citations
+    (dolist (block blocks)
+      (let ((block-result (greger-parser--block-to-markdown-with-citations block)))
+        (setq block-markdown (concat block-markdown
+                                   (if (string-empty-p block-markdown) "" "\n\n")
+                                   (plist-get block-result :markdown)))
+        ;; Collect citations if any
+        (when (plist-get block-result :citations)
+          (setq collected-citations (append collected-citations (plist-get block-result :citations))))))
+    ;; Combine block markdown with citations section if any citations were found
+    (if collected-citations
+        (concat block-markdown "\n\n" (greger-parser--citations-to-markdown collected-citations))
+      block-markdown)))
+
 (defun greger-parser--block-to-markdown (block)
   "Convert single BLOCK to markdown."
   (let ((type (alist-get 'type block)))

@@ -3988,4 +3988,67 @@ greger-parser.el
 Modify assistant markdown generation to handle citations
 </tool.toolu_01TLMDanToi7HZfEVDTM6T5W>
 
-<!-- TOOL_RESULT_PLACEHOLDER_toolu_01TLMDanToi7HZfEVDTM6T5W -->
+## TOOL RESULT:
+
+ID: toolu_01TLMDanToi7HZfEVDTM6T5W
+
+<tool.toolu_01TLMDanToi7HZfEVDTM6T5W>
+Successfully replaced content in /Users/andreas/projects/greger.el/greger-parser.el. Successfully staged 2 file(s) and committed with message: Modify assistant markdown generation to handle citations
+</tool.toolu_01TLMDanToi7HZfEVDTM6T5W>
+
+## ASSISTANT:
+
+Now I need to implement the `greger-parser--content-blocks-to-markdown-with-citations` function:
+
+## TOOL USE:
+
+Name: str-replace
+ID: toolu_01HCJSunbJa2WZWeoLbvJits
+
+### file-path
+
+<tool.toolu_01HCJSunbJa2WZWeoLbvJits>
+greger-parser.el
+</tool.toolu_01HCJSunbJa2WZWeoLbvJits>
+
+### original-content
+
+<tool.toolu_01HCJSunbJa2WZWeoLbvJits>
+(defun greger-parser--content-blocks-to-markdown (blocks)
+  "Convert content BLOCKS to markdown."
+  (mapconcat #'greger-parser--block-to-markdown blocks "\n\n"))
+</tool.toolu_01HCJSunbJa2WZWeoLbvJits>
+
+### new-content
+
+<tool.toolu_01HCJSunbJa2WZWeoLbvJits>
+(defun greger-parser--content-blocks-to-markdown (blocks)
+  "Convert content BLOCKS to markdown."
+  (mapconcat #'greger-parser--block-to-markdown blocks "\n\n"))
+
+(defun greger-parser--content-blocks-to-markdown-with-citations (blocks)
+  "Convert content BLOCKS to markdown, collecting citations into a separate section."
+  (let ((block-markdown "")
+        (collected-citations '()))
+    ;; Process each block and collect citations
+    (dolist (block blocks)
+      (let ((block-result (greger-parser--block-to-markdown-with-citations block)))
+        (setq block-markdown (concat block-markdown 
+                                   (if (string-empty-p block-markdown) "" "\n\n")
+                                   (plist-get block-result :markdown)))
+        ;; Collect citations if any
+        (when (plist-get block-result :citations)
+          (setq collected-citations (append collected-citations (plist-get block-result :citations))))))
+    ;; Combine block markdown with citations section if any citations were found
+    (if collected-citations
+        (concat block-markdown "\n\n" (greger-parser--citations-to-markdown collected-citations))
+      block-markdown)))
+</tool.toolu_01HCJSunbJa2WZWeoLbvJits>
+
+### git-commit-message
+
+<tool.toolu_01HCJSunbJa2WZWeoLbvJits>
+Add function to handle content blocks with citations
+</tool.toolu_01HCJSunbJa2WZWeoLbvJits>
+
+<!-- TOOL_RESULT_PLACEHOLDER_toolu_01HCJSunbJa2WZWeoLbvJits -->
