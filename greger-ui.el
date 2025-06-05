@@ -597,6 +597,9 @@ If not inside a tool section or citation, fall back to `markdown-cycle'."
 
 (defun greger-ui-setup-folding ()
   "Set up both citation and tool folding for the current buffer."
+  ;; Set up invisible text for tool sections
+  (add-to-invisibility-spec 'greger-tool-section)
+
   ;; Clean up any existing overlays first
   (greger-ui-cleanup-dead-overlays)
 

@@ -2780,4 +2780,1302 @@ TOOL-ID is the tool identifier."
 Remove tool folding interaction functions (moved to greger-ui.el)
 </tool.toolu_01Te3CzCFJd1ZbHSRrTyYvH3>
 
-<!-- TOOL_RESULT_PLACEHOLDER_toolu_01Te3CzCFJd1ZbHSRrTyYvH3 -->
+## TOOL RESULT:
+
+ID: toolu_01Te3CzCFJd1ZbHSRrTyYvH3
+
+<tool.toolu_01Te3CzCFJd1ZbHSRrTyYvH3>
+Successfully replaced content in /Users/andreas/projects/greger.el/greger.el. Successfully staged 2 file(s) and committed with message: Remove tool folding interaction functions (moved to greger-ui.el)
+</tool.toolu_01Te3CzCFJd1ZbHSRrTyYvH3>
+
+## ASSISTANT:
+
+Now I need to remove references to the old tool folding functions. Let me check where they're called:
+
+## TOOL USE:
+
+Name: ripgrep
+ID: toolu_01Kvhht9J729b98dKjPQ2pB8
+
+### pattern
+
+<tool.toolu_01Kvhht9J729b98dKjPQ2pB8>
+greger--setup-tool-sections|greger--clear-tool-overlays"
+</tool.toolu_01Kvhht9J729b98dKjPQ2pB8>
+
+### path
+
+<tool.toolu_01Kvhht9J729b98dKjPQ2pB8>
+greger.el
+</tool.toolu_01Kvhht9J729b98dKjPQ2pB8>
+
+### context-lines
+
+<tool.toolu_01Kvhht9J729b98dKjPQ2pB8>
+3
+</tool.toolu_01Kvhht9J729b98dKjPQ2pB8>
+
+## TOOL RESULT:
+
+ID: toolu_01Kvhht9J729b98dKjPQ2pB8
+
+<tool.toolu_01Kvhht9J729b98dKjPQ2pB8>
+Failed to execute ripgrep search: Command failed with exit code 1: (no output)
+</tool.toolu_01Kvhht9J729b98dKjPQ2pB8>
+
+## ASSISTANT:
+
+Good, they're not referenced anymore. Let me check if there are any other references to tool folding functionality that need to be updated:
+
+## TOOL USE:
+
+Name: ripgrep
+ID: toolu_01YZt5cyAVnk5THi1RhxoRmv
+
+### pattern
+
+<tool.toolu_01YZt5cyAVnk5THi1RhxoRmv>
+greger-tool-tag-face"
+</tool.toolu_01YZt5cyAVnk5THi1RhxoRmv>
+
+### path
+
+<tool.toolu_01YZt5cyAVnk5THi1RhxoRmv>
+greger.el
+</tool.toolu_01YZt5cyAVnk5THi1RhxoRmv>
+
+### context-lines
+
+<tool.toolu_01YZt5cyAVnk5THi1RhxoRmv>
+2
+</tool.toolu_01YZt5cyAVnk5THi1RhxoRmv>
+
+## TOOL RESULT:
+
+ID: toolu_01YZt5cyAVnk5THi1RhxoRmv
+
+<tool.toolu_01YZt5cyAVnk5THi1RhxoRmv>
+Failed to execute ripgrep search: Command failed with exit code 1: (no output)
+</tool.toolu_01YZt5cyAVnk5THi1RhxoRmv>
+
+## ASSISTANT:
+
+Let me check if there are any references to variables that no longer exist:
+
+## TOOL USE:
+
+Name: ripgrep
+ID: toolu_013WkdPbLzW56BQ6sh8BdLFp
+
+### pattern
+
+<tool.toolu_013WkdPbLzW56BQ6sh8BdLFp>
+greger-tool-overlays|greger--unfolded-tool-ids|greger-tool-section-max-lines"
+</tool.toolu_013WkdPbLzW56BQ6sh8BdLFp>
+
+### path
+
+<tool.toolu_013WkdPbLzW56BQ6sh8BdLFp>
+greger.el
+</tool.toolu_013WkdPbLzW56BQ6sh8BdLFp>
+
+### context-lines
+
+<tool.toolu_013WkdPbLzW56BQ6sh8BdLFp>
+2
+</tool.toolu_013WkdPbLzW56BQ6sh8BdLFp>
+
+## TOOL RESULT:
+
+ID: toolu_013WkdPbLzW56BQ6sh8BdLFp
+
+<tool.toolu_013WkdPbLzW56BQ6sh8BdLFp>
+Failed to execute ripgrep search: Command failed with exit code 1: (no output)
+</tool.toolu_013WkdPbLzW56BQ6sh8BdLFp>
+
+## ASSISTANT:
+
+Great! Now let me check where `greger-ui-setup-folding` should be called. Let me look at the current greger-mode setup:
+
+## TOOL USE:
+
+Name: read-file
+ID: toolu_018H5h2KYU6C7ZZLkmiqApq7
+
+### path
+
+<tool.toolu_018H5h2KYU6C7ZZLkmiqApq7>
+greger.el
+</tool.toolu_018H5h2KYU6C7ZZLkmiqApq7>
+
+### start-line
+
+<tool.toolu_018H5h2KYU6C7ZZLkmiqApq7>
+185
+</tool.toolu_018H5h2KYU6C7ZZLkmiqApq7>
+
+### end-line
+
+<tool.toolu_018H5h2KYU6C7ZZLkmiqApq7>
+205
+</tool.toolu_018H5h2KYU6C7ZZLkmiqApq7>
+
+## TOOL RESULT:
+
+ID: toolu_018H5h2KYU6C7ZZLkmiqApq7
+
+<tool.toolu_018H5h2KYU6C7ZZLkmiqApq7>
+  ;; Set up UI folding (both tools and citations)
+  (greger-ui-setup-folding)
+  ;; Set up custom heading font-lock
+  (greger--setup-heading-font-lock)
+  ;; Add hook to update tool sections when buffer changes
+  (add-hook 'after-change-functions #'greger--after-change-function nil t)
+  ;; Add font-lock hook for immediate tool tag styling
+  (add-hook 'font-lock-extend-region-functions #'greger--extend-font-lock-region nil t))
+
+;;;###autoload
+(defun greger ()
+  "Create a new buffer and switch to `greger-mode`."
+  (interactive)
+  (let ((buffer (generate-new-buffer "*greger*")))
+    (switch-to-buffer buffer)
+    (greger-mode)
+    (insert greger-system-tag
+            "\n\n" greger-default-system-prompt "\n\n"
+            greger-user-tag
+            "\n\n")
+    (message "Using model %s" greger-model)))
+</tool.toolu_018H5h2KYU6C7ZZLkmiqApq7>
+
+## ASSISTANT:
+
+Good, it's already calling `greger-ui-setup-folding`. Now let me check if there's an `after-change-function` that still references the old tool functions:
+
+## TOOL USE:
+
+Name: read-file
+ID: toolu_012KLqkHVgi8bX3eD88cQKmf
+
+### path
+
+<tool.toolu_012KLqkHVgi8bX3eD88cQKmf>
+greger.el
+</tool.toolu_012KLqkHVgi8bX3eD88cQKmf>
+
+### start-line
+
+<tool.toolu_012KLqkHVgi8bX3eD88cQKmf>
+950
+</tool.toolu_012KLqkHVgi8bX3eD88cQKmf>
+
+### end-line
+
+<tool.toolu_012KLqkHVgi8bX3eD88cQKmf>
+970
+</tool.toolu_012KLqkHVgi8bX3eD88cQKmf>
+
+## TOOL RESULT:
+
+ID: toolu_012KLqkHVgi8bX3eD88cQKmf
+
+<tool.toolu_012KLqkHVgi8bX3eD88cQKmf>
+Start index out of bounds: 949
+</tool.toolu_012KLqkHVgi8bX3eD88cQKmf>
+
+## TOOL USE:
+
+Name: ripgrep
+ID: toolu_01Lvk6dZycBawrgY8nAeNfbx
+
+### pattern
+
+<tool.toolu_01Lvk6dZycBawrgY8nAeNfbx>
+greger--after-change-function"
+</tool.toolu_01Lvk6dZycBawrgY8nAeNfbx>
+
+### path
+
+<tool.toolu_01Lvk6dZycBawrgY8nAeNfbx>
+greger.el
+</tool.toolu_01Lvk6dZycBawrgY8nAeNfbx>
+
+### context-lines
+
+<tool.toolu_01Lvk6dZycBawrgY8nAeNfbx>
+10
+</tool.toolu_01Lvk6dZycBawrgY8nAeNfbx>
+
+## TOOL RESULT:
+
+ID: toolu_01Lvk6dZycBawrgY8nAeNfbx
+
+<tool.toolu_01Lvk6dZycBawrgY8nAeNfbx>
+Failed to execute ripgrep search: Command failed with exit code 1: (no output)
+</tool.toolu_01Lvk6dZycBawrgY8nAeNfbx>
+
+## ASSISTANT:
+
+Let me search for this function:
+
+## TOOL USE:
+
+Name: ripgrep
+ID: toolu_01SRUszEzUZjVFYM9W4zX3UE
+
+### pattern
+
+<tool.toolu_01SRUszEzUZjVFYM9W4zX3UE>
+after-change-function"
+</tool.toolu_01SRUszEzUZjVFYM9W4zX3UE>
+
+### path
+
+<tool.toolu_01SRUszEzUZjVFYM9W4zX3UE>
+greger.el
+</tool.toolu_01SRUszEzUZjVFYM9W4zX3UE>
+
+### context-lines
+
+<tool.toolu_01SRUszEzUZjVFYM9W4zX3UE>
+5
+</tool.toolu_01SRUszEzUZjVFYM9W4zX3UE>
+
+## TOOL RESULT:
+
+ID: toolu_01SRUszEzUZjVFYM9W4zX3UE
+
+<tool.toolu_01SRUszEzUZjVFYM9W4zX3UE>
+Failed to execute ripgrep search: Command failed with exit code 1: (no output)
+</tool.toolu_01SRUszEzUZjVFYM9W4zX3UE>
+
+## ASSISTANT:
+
+Let me search more broadly:
+
+## TOOL USE:
+
+Name: ripgrep
+ID: toolu_01XXtnmYGbPYNaPYRboLpcQp
+
+### pattern
+
+<tool.toolu_01XXtnmYGbPYNaPYRboLpcQp>
+after-change"
+</tool.toolu_01XXtnmYGbPYNaPYRboLpcQp>
+
+### path
+
+<tool.toolu_01XXtnmYGbPYNaPYRboLpcQp>
+greger.el
+</tool.toolu_01XXtnmYGbPYNaPYRboLpcQp>
+
+### context-lines
+
+<tool.toolu_01XXtnmYGbPYNaPYRboLpcQp>
+5
+</tool.toolu_01XXtnmYGbPYNaPYRboLpcQp>
+
+## TOOL RESULT:
+
+ID: toolu_01XXtnmYGbPYNaPYRboLpcQp
+
+<tool.toolu_01XXtnmYGbPYNaPYRboLpcQp>
+Failed to execute ripgrep search: Command failed with exit code 1: (no output)
+</tool.toolu_01XXtnmYGbPYNaPYRboLpcQp>
+
+## ASSISTANT:
+
+It seems like the after-change function has already been cleaned up. Let me check if there are any remaining references to the old functions by checking the whole file:
+
+## TOOL USE:
+
+Name: read-file
+ID: toolu_012DJgdCda8azgz6HLzp2BC7
+
+### path
+
+<tool.toolu_012DJgdCda8azgz6HLzp2BC7>
+greger.el
+</tool.toolu_012DJgdCda8azgz6HLzp2BC7>
+
+### start-line
+
+<tool.toolu_012DJgdCda8azgz6HLzp2BC7>
+190
+</tool.toolu_012DJgdCda8azgz6HLzp2BC7>
+
+### end-line
+
+<tool.toolu_012DJgdCda8azgz6HLzp2BC7>
+210
+</tool.toolu_012DJgdCda8azgz6HLzp2BC7>
+
+## TOOL RESULT:
+
+ID: toolu_012DJgdCda8azgz6HLzp2BC7
+
+<tool.toolu_012DJgdCda8azgz6HLzp2BC7>
+  (add-hook 'after-change-functions #'greger--after-change-function nil t)
+  ;; Add font-lock hook for immediate tool tag styling
+  (add-hook 'font-lock-extend-region-functions #'greger--extend-font-lock-region nil t))
+
+;;;###autoload
+(defun greger ()
+  "Create a new buffer and switch to `greger-mode`."
+  (interactive)
+  (let ((buffer (generate-new-buffer "*greger*")))
+    (switch-to-buffer buffer)
+    (greger-mode)
+    (insert greger-system-tag
+            "\n\n" greger-default-system-prompt "\n\n"
+            greger-user-tag
+            "\n\n")
+    (message "Using model %s" greger-model)))
+
+(defun greger-insert-assistant-tag ()
+  "Insert the assistant tag into the buffer."
+  (interactive)
+  (insert greger-assistant-tag "\n\n"))
+</tool.toolu_012DJgdCda8azgz6HLzp2BC7>
+
+## ASSISTANT:
+
+I see there's still a reference to `greger--after-change-function`. Let me find this function:
+
+## TOOL USE:
+
+Name: ripgrep
+ID: toolu_01F4yE3rziAGerHXM8VQyqt6
+
+### pattern
+
+<tool.toolu_01F4yE3rziAGerHXM8VQyqt6>
+defun greger--after-change-function"
+</tool.toolu_01F4yE3rziAGerHXM8VQyqt6>
+
+### path
+
+<tool.toolu_01F4yE3rziAGerHXM8VQyqt6>
+greger.el
+</tool.toolu_01F4yE3rziAGerHXM8VQyqt6>
+
+### context-lines
+
+<tool.toolu_01F4yE3rziAGerHXM8VQyqt6>
+10
+</tool.toolu_01F4yE3rziAGerHXM8VQyqt6>
+
+## TOOL RESULT:
+
+ID: toolu_01F4yE3rziAGerHXM8VQyqt6
+
+<tool.toolu_01F4yE3rziAGerHXM8VQyqt6>
+Failed to execute ripgrep search: Command failed with exit code 1: (no output)
+</tool.toolu_01F4yE3rziAGerHXM8VQyqt6>
+
+## ASSISTANT:
+
+Let me search for it in the end of the file:
+
+## TOOL USE:
+
+Name: read-file
+ID: toolu_01CkpxhivEMTKCpBRNiBAXrz
+
+### path
+
+<tool.toolu_01CkpxhivEMTKCpBRNiBAXrz>
+greger.el
+</tool.toolu_01CkpxhivEMTKCpBRNiBAXrz>
+
+### start-line
+
+<tool.toolu_01CkpxhivEMTKCpBRNiBAXrz>
+690
+</tool.toolu_01CkpxhivEMTKCpBRNiBAXrz>
+
+### end-line
+
+<tool.toolu_01CkpxhivEMTKCpBRNiBAXrz>
+720
+</tool.toolu_01CkpxhivEMTKCpBRNiBAXrz>
+
+## TOOL RESULT:
+
+ID: toolu_01CkpxhivEMTKCpBRNiBAXrz
+
+<tool.toolu_01CkpxhivEMTKCpBRNiBAXrz>
+(defun greger-toggle-debug ()
+  "Toggle debug output."
+  (interactive)
+  (setq greger-debug (not greger-debug))
+  (message "Greger debug %s" (if greger-debug "enabled" "disabled")))
+
+
+
+
+
+(defun greger--setup-heading-font-lock ()
+  "Set up font-lock for headings to override markdown's larger font sizes."
+  ;; Remove existing markdown heading font-lock rules for level 2 and 3 headings
+  (setq-local font-lock-keywords
+              (cl-remove-if
+               (lambda (rule)
+                 (and (listp rule)
+                      (stringp (car rule))
+                      (or (string-match-p "^\\^##" (car rule))
+                          (string-match-p "^\\^###" (car rule))
+                          (string-match-p "markdown-header-face-[23]" (format "%s" rule)))))
+               font-lock-keywords))
+
+  ;; Add our custom font-lock rules with highest priority
+  (font-lock-add-keywords
+   nil
+   '(;; Level 2 headings (conversation roles)
+     ("^## USER:.*$" 0 'greger-user-heading-face t)
+     ("^## ASSISTANT:.*$" 0 'greger-assistant-heading-face t)
+     ("^## SYSTEM:.*$" 0 'greger-system-heading-face t)
+     ("^## THINKING:.*$" 0 'greger-thinking-heading-face t)
+</tool.toolu_01CkpxhivEMTKCpBRNiBAXrz>
+
+## ASSISTANT:
+
+Let me continue reading:
+
+## TOOL USE:
+
+Name: read-file
+ID: toolu_016PMXhgba7WFjsBK9seFuJU
+
+### path
+
+<tool.toolu_016PMXhgba7WFjsBK9seFuJU>
+greger.el
+</tool.toolu_016PMXhgba7WFjsBK9seFuJU>
+
+### start-line
+
+<tool.toolu_016PMXhgba7WFjsBK9seFuJU>
+720
+</tool.toolu_016PMXhgba7WFjsBK9seFuJU>
+
+### end-line
+
+<tool.toolu_016PMXhgba7WFjsBK9seFuJU>
+750
+</tool.toolu_016PMXhgba7WFjsBK9seFuJU>
+
+## TOOL RESULT:
+
+ID: toolu_016PMXhgba7WFjsBK9seFuJU
+
+<tool.toolu_016PMXhgba7WFjsBK9seFuJU>
+     ("^## THINKING:.*$" 0 'greger-thinking-heading-face t)
+     ("^## TOOL USE:.*$" 0 'greger-tool-use-heading-face t)
+     ("^## TOOL RESULT:.*$" 0 'greger-tool-result-heading-face t)
+     ;; Level 3 headings (tool parameters)
+     ("^###\\s-+.*$" 0 'greger-tool-param-heading-face t))
+   'prepend)
+
+  ;; Also remap the markdown faces
+  ;(face-remap-add-relative 'markdown-header-face-2 'greger-assistant-heading-face)
+  ;(face-remap-add-relative 'markdown-header-face-3 'greger-tool-param-heading-face)
+  (font-lock-flush))
+
+(defun greger--extend-font-lock-region ()
+  "Extend font-lock region for greger mode.
+Returns nil to indicate no region extension is needed."
+  nil)
+
+(defun greger--after-change-function (beg end _len)
+  "Update tool sections and citations after buffer changes.
+BEG is the beginning of the changed region.
+END is the end of the changed region.
+_LEN is the length of the pre-change text (unused)."
+  ;; Only run timer-based cleanup for complex changes or when not actively streaming
+  (when (and (> (- end beg) 0)  ; Only if there was an actual change
+             (not (greger--is-actively-streaming)))
+    (run-with-idle-timer 0.1 nil #'greger-ui-refresh-folding)))
+
+(defun greger--is-actively-streaming ()
+  "Check if we're currently streaming content from the AI."
+  (and greger--current-state
+       (greger-state-client-state greger--current-state)))
+</tool.toolu_016PMXhgba7WFjsBK9seFuJU>
+
+## ASSISTANT:
+
+Great! I can see that the `greger--after-change-function` is already correctly calling `greger-ui-refresh-folding`. Now let me check if there are any remaining references to faces that don't exist anymore. I noticed there are still references to tool-related faces in the font-lock setup. Let me check if they exist:
+
+## TOOL USE:
+
+Name: ripgrep
+ID: toolu_01GgAi1ZCYSfcaRMjNfG9Zi5
+
+### pattern
+
+<tool.toolu_01GgAi1ZCYSfcaRMjNfG9Zi5>
+greger-tool-use-heading-face|greger-tool-result-heading-face|greger-tool-param-heading-face"
+</tool.toolu_01GgAi1ZCYSfcaRMjNfG9Zi5>
+
+### path
+
+<tool.toolu_01GgAi1ZCYSfcaRMjNfG9Zi5>
+greger.el
+</tool.toolu_01GgAi1ZCYSfcaRMjNfG9Zi5>
+
+### context-lines
+
+<tool.toolu_01GgAi1ZCYSfcaRMjNfG9Zi5>
+3
+</tool.toolu_01GgAi1ZCYSfcaRMjNfG9Zi5>
+
+## TOOL RESULT:
+
+ID: toolu_01GgAi1ZCYSfcaRMjNfG9Zi5
+
+<tool.toolu_01GgAi1ZCYSfcaRMjNfG9Zi5>
+130-  "Face for ## USER: headings in greger mode."
+131-  :group 'greger)
+132-
+133:(defface greger-tool-result-heading-face
+134-  '((t :foreground "#66AA88" :weight bold :height 1.2))
+135-  "Face for ## TOOL RESULT: headings in greger mode."
+136-  :group 'greger)
+--
+145-  "Face for ## THINKING: headings in greger mode."
+146-  :group 'greger)
+147-
+148:(defface greger-tool-use-heading-face
+149-  '((t :foreground "#8866BB" :weight bold :height 1.2))
+150-  "Face for ## TOOL USE: headings in greger mode."
+151-  :group 'greger)
+--
+718-     ("^## ASSISTANT:.*$" 0 'greger-assistant-heading-face t)
+719-     ("^## SYSTEM:.*$" 0 'greger-system-heading-face t)
+720-     ("^## THINKING:.*$" 0 'greger-thinking-heading-face t)
+721:     ("^## TOOL USE:.*$" 0 'greger-tool-use-heading-face t)
+722:     ("^## TOOL RESULT:.*$" 0 'greger-tool-result-heading-face t)
+723-     ;; Level 3 headings (tool parameters)
+724-     ("^###\\s-+.*$" 0 'greger-tool-param-heading-face t))
+725-   'prepend)
+
+</tool.toolu_01GgAi1ZCYSfcaRMjNfG9Zi5>
+
+## ASSISTANT:
+
+I can see that these faces still exist in greger.el and they're being used in the font-lock setup. These are different from the tool *folding* faces - these are for styling the tool headings and parameters, which is appropriate to keep in greger.el since they're part of the main greger mode styling.
+
+Let me check if there's a `greger-tool-param-heading-face` defined:
+
+
+
+## ASSISTANT:
+
+ 
+
+## TOOL USE:
+
+Name: ripgrep
+ID: toolu_01ToRVbtjg1nomg621TjUfsY
+
+### pattern
+
+<tool.toolu_01ToRVbtjg1nomg621TjUfsY>
+defface greger-tool-param-heading-face"
+</tool.toolu_01ToRVbtjg1nomg621TjUfsY>
+
+### path
+
+<tool.toolu_01ToRVbtjg1nomg621TjUfsY>
+greger.el
+</tool.toolu_01ToRVbtjg1nomg621TjUfsY>
+
+### context-lines
+
+<tool.toolu_01ToRVbtjg1nomg621TjUfsY>
+3
+</tool.toolu_01ToRVbtjg1nomg621TjUfsY>
+
+## TOOL RESULT:
+
+ID: toolu_01ToRVbtjg1nomg621TjUfsY
+
+<tool.toolu_01ToRVbtjg1nomg621TjUfsY>
+120-
+121-
+122-
+123:(defface greger-tool-param-heading-face
+124-  '((t :foreground "#6699CC" :weight bold :height 1.0))
+125-  "Face for ### tool parameter headings in greger mode."
+126-  :group 'greger)
+
+</tool.toolu_01ToRVbtjg1nomg621TjUfsY>
+
+## ASSISTANT:
+
+Perfect! All the tool-related faces used in the font-lock are still defined in greger.el, which is correct since they're for styling content, not for the folding UI.
+
+Now let me run a test to make sure everything is working correctly:
+
+## TOOL USE:
+
+Name: shell-command
+ID: toolu_016wBXnDgjtfNtZ5PLDfaiM2
+
+### command
+
+<tool.toolu_016wBXnDgjtfNtZ5PLDfaiM2>
+bash script/test --verbose --file test/test-greger.el
+</tool.toolu_016wBXnDgjtfNtZ5PLDfaiM2>
+
+## TOOL RESULT:
+
+ID: toolu_016wBXnDgjtfNtZ5PLDfaiM2
+
+<tool.toolu_016wBXnDgjtfNtZ5PLDfaiM2>
+Command failed with exit code 1: [0;34mRunning ERT tests for greger package...[0m
+
+Running tests in [1;33mtest/test-greger.el[0m (verbose mode)...
+Loading /Users/andreas/projects/greger.el/greger.el (source)...
+Source file ‘/opt/homebrew/Cellar/emacs-plus@29/29.0.90/share/emacs/29.0.91/lisp/net/eww.el’ newer than byte-compiled file; using older file
+Loading /Users/andreas/projects/greger.el/greger-parser.el (source)...
+Loading /Users/andreas/projects/greger.el/greger-stdlib.el (source)...
+Loading /Users/andreas/projects/greger.el/greger-tools.el (source)...
+Loading /Users/andreas/projects/greger.el/greger-client.el (source)...
+Loading /Users/andreas/projects/greger.el/greger-web.el (source)...
+Loading /Users/andreas/projects/greger.el/test/test-greger.el (source)...
+Running 11 tests (2025-06-05 22:54:11+0200, selector ‘t’)
+Test greger-test-exact-tool-output-formatting backtrace:
+  signal(ert-test-failed (((should (string= expected-content actual-co
+  ert-fail(((should (string= expected-content actual-content)) :form (
+  (if (unwind-protect (setq value-52 (apply fn-50 args-51)) (setq form
+  (let (form-description-54) (if (unwind-protect (setq value-52 (apply
+  (let ((value-52 'ert-form-evaluation-aborted-53)) (let (form-descrip
+  (let* ((fn-50 #'string=) (args-51 (condition-case err (let ((signal-
+  (let ((actual-content (buffer-substring-no-properties (point-min) (p
+  (progn (fset 'greger--run-agent-loop vnew) (greger--execute-tools to
+  (unwind-protect (progn (fset 'greger--run-agent-loop vnew) (greger--
+  (let* ((vnew #'(lambda (state) (setq test-completed t))) (old (symbo
+  (let ((agent-state (record 'greger-state 0 (current-buffer) default-
+  (progn (let ((agent-state (record 'greger-state 0 (current-buffer) d
+  (unwind-protect (progn (let ((agent-state (record 'greger-state 0 (c
+  (save-current-buffer (set-buffer temp-buffer) (unwind-protect (progn
+  (let ((temp-buffer (generate-new-buffer " *temp*" t))) (save-current
+  (let ((test-completed nil)) (defalias 'greger-test-multiline-tool #'
+  (closure (t) nil (let ((test-completed nil)) (defalias 'greger-test-
+  ert--run-test-internal(#s(ert--test-execution-info :test #s(ert-test
+  ert-run-test(#s(ert-test :name greger-test-exact-tool-output-formatt
+  ert-run-or-rerun-test(#s(ert--stats :selector t :tests ... :test-map
+  ert-run-tests(t #f(compiled-function (event-type &rest event-args) #
+  ert-run-tests-batch(t)
+  ert-run-tests-batch-and-exit(t)
+  (let ((ert-quiet nil)) (ert-run-tests-batch-and-exit t))
+  (progn (setq debug-on-error t) (add-to-list 'load-path ".") (require
+  eval((progn (setq debug-on-error t) (add-to-list 'load-path ".") (re
+  command-line-1(("--eval" "(progn\n                  (setq debug-on-e
+  command-line()
+  normal-top-level()
+Test greger-test-exact-tool-output-formatting condition:
+    (ert-test-failed
+     ((should
+       (string= expected-content actual-content))
+      :form
+      (string= "\n\n## TOOL USE:\n\nName: test-multiline\nID: multiline_test\n\n### content\n\n<tool.multiline_test>\nStart\n</tool.multiline_test>\n\n## TOOL RESULT:\n\nID: multiline_test\n\n<tool.multiline_test>\nLine 1: Start\nLine 2: More content\nLine 3: End\n</tool.multiline_test>" "")
+      :value nil :explanation
+      (arrays-of-different-length 250 0 "\n\n## TOOL USE:\n\nName: test-multiline\nID: multiline_test\n\n### content\n\n<tool.multiline_test>\nStart\n</tool.multiline_test>\n\n## TOOL RESULT:\n\nID: multiline_test\n\n<tool.multiline_test>\nLine 1: Start\nLine 2: More content\nLine 3: End\n</tool.multiline_test>" "" first-mismatch-at 0)))
+   FAILED   1/11  greger-test-exact-tool-output-formatting (0.001460 sec) at test/test-greger.el:380
+Test greger-test-interrupt-with-active-generation backtrace:
+  signal(ert-test-failed (((should cancel-called) :form cancel-called 
+  ert-fail(((should cancel-called) :form cancel-called :value nil))
+  (if (unwind-protect (setq value-69 cancel-called) (setq form-descrip
+  (let (form-description-70) (if (unwind-protect (setq value-69 cancel
+  (let ((value-69 (gensym "ert-form-evaluation-aborted-"))) (let (form
+  (progn (fset 'keyboard-quit vnew) (fset 'greger-client--cancel-reque
+  (unwind-protect (progn (fset 'keyboard-quit vnew) (fset 'greger-clie
+  (let* ((vnew #'(lambda (state) (setq cancel-called t))) (vnew #'(lam
+  (let ((agent-state (record 'greger-state 1 (current-buffer) default-
+  (let ((cancel-called nil) (keyboard-quit-called nil) (mock-client-st
+  (progn (greger-mode) (let ((cancel-called nil) (keyboard-quit-called
+  (unwind-protect (progn (greger-mode) (let ((cancel-called nil) (keyb
+  (save-current-buffer (set-buffer temp-buffer) (unwind-protect (progn
+  (let ((temp-buffer (generate-new-buffer " *temp*" t))) (save-current
+  (closure (t) nil (let ((temp-buffer (generate-new-buffer " *temp*" t
+  ert--run-test-internal(#s(ert--test-execution-info :test #s(ert-test
+  ert-run-test(#s(ert-test :name greger-test-interrupt-with-active-gen
+  ert-run-or-rerun-test(#s(ert--stats :selector t :tests ... :test-map
+  ert-run-tests(t #f(compiled-function (event-type &rest event-args) #
+  ert-run-tests-batch(t)
+  ert-run-tests-batch-and-exit(t)
+  (let ((ert-quiet nil)) (ert-run-tests-batch-and-exit t))
+  (progn (setq debug-on-error t) (add-to-list 'load-path ".") (require
+  eval((progn (setq debug-on-error t) (add-to-list 'load-path ".") (re
+  command-line-1(("--eval" "(progn\n                  (setq debug-on-e
+  command-line()
+  normal-top-level()
+Test greger-test-interrupt-with-active-generation condition:
+    (ert-test-failed
+     ((should cancel-called)
+      :form cancel-called :value nil))
+   FAILED   2/11  greger-test-interrupt-with-active-generation (0.005137 sec) at test/test-greger.el:532
+Test greger-test-interrupt-with-executing-tools backtrace:
+  signal(ert-test-failed (((should greger-test-cancel-called) :form gr
+  ert-fail(((should greger-test-cancel-called) :form greger-test-cance
+  (if (unwind-protect (setq value-78 greger-test-cancel-called) (setq 
+  (let (form-description-79) (if (unwind-protect (setq value-78 greger
+  (let ((value-78 (gensym "ert-form-evaluation-aborted-"))) (let (form
+  (progn (fset 'keyboard-quit vnew) (greger-interrupt) (let ((value-78
+  (unwind-protect (progn (fset 'keyboard-quit vnew) (greger-interrupt)
+  (let* ((vnew #'(lambda nil (setq keyboard-quit-called t))) (old (sym
+  (let ((agent-state (record 'greger-state 1 (current-buffer) default-
+  (let ((keyboard-quit-called nil) (mock-greger-tool (record 'greger-t
+  (progn (greger-mode) (defvar greger-test-cancel-called nil) (defvar 
+  (unwind-protect (progn (greger-mode) (defvar greger-test-cancel-call
+  (save-current-buffer (set-buffer temp-buffer) (unwind-protect (progn
+  (let ((temp-buffer (generate-new-buffer " *temp*" t))) (save-current
+  (closure (t) nil (let ((temp-buffer (generate-new-buffer " *temp*" t
+  ert--run-test-internal(#s(ert--test-execution-info :test #s(ert-test
+  ert-run-test(#s(ert-test :name greger-test-interrupt-with-executing-
+  ert-run-or-rerun-test(#s(ert--stats :selector t :tests ... :test-map
+  ert-run-tests(t #f(compiled-function (event-type &rest event-args) #
+  ert-run-tests-batch(t)
+  ert-run-tests-batch-and-exit(t)
+  (let ((ert-quiet nil)) (ert-run-tests-batch-and-exit t))
+  (progn (setq debug-on-error t) (add-to-list 'load-path ".") (require
+  eval((progn (setq debug-on-error t) (add-to-list 'load-path ".") (re
+  command-line-1(("--eval" "(progn\n                  (setq debug-on-e
+  command-line()
+  normal-top-level()
+Test greger-test-interrupt-with-executing-tools condition:
+    (ert-test-failed
+     ((should greger-test-cancel-called)
+      :form greger-test-cancel-called :value nil))
+   FAILED   3/11  greger-test-interrupt-with-executing-tools (0.000415 sec) at test/test-greger.el:568
+   passed   4/11  greger-test-interrupt-without-active-generation (0.000339 sec)
+Test greger-test-multiple-tools-parallel backtrace:
+  signal(ert-test-failed (((should (string= expected-content actual-co
+  ert-fail(((should (string= expected-content actual-content)) :form (
+  (if (unwind-protect (setq value-24 (apply fn-22 args-23)) (setq form
+  (let (form-description-26) (if (unwind-protect (setq value-24 (apply
+  (let ((value-24 'ert-form-evaluation-aborted-25)) (let (form-descrip
+  (let* ((fn-22 #'string=) (args-23 (condition-case err (let ((signal-
+  (let ((actual-content (buffer-substring-no-properties (point-min) (p
+  (progn (fset 'greger--run-agent-loop vnew) (greger--execute-tools to
+  (unwind-protect (progn (fset 'greger--run-agent-loop vnew) (greger--
+  (let* ((vnew #'(lambda (state) (setq tools-completed t))) (old (symb
+  (let ((agent-state (record 'greger-state 0 (current-buffer) default-
+  (progn (let ((agent-state (record 'greger-state 0 (current-buffer) d
+  (unwind-protect (progn (let ((agent-state (record 'greger-state 0 (c
+  (save-current-buffer (set-buffer temp-buffer) (unwind-protect (progn
+  (let ((temp-buffer (generate-new-buffer " *temp*" t))) (save-current
+  (let ((tools-completed nil)) (defalias 'greger-test-tool-a #'(lambda
+  (closure (t) nil (let ((tools-completed nil)) (defalias 'greger-test
+  ert--run-test-internal(#s(ert--test-execution-info :test #s(ert-test
+  ert-run-test(#s(ert-test :name greger-test-multiple-tools-parallel :
+  ert-run-or-rerun-test(#s(ert--stats :selector t :tests ... :test-map
+  ert-run-tests(t #f(compiled-function (event-type &rest event-args) #
+  ert-run-tests-batch(t)
+  ert-run-tests-batch-and-exit(t)
+  (let ((ert-quiet nil)) (ert-run-tests-batch-and-exit t))
+  (progn (setq debug-on-error t) (add-to-list 'load-path ".") (require
+  eval((progn (setq debug-on-error t) (add-to-list 'load-path ".") (re
+  command-line-1(("--eval" "(progn\n                  (setq debug-on-e
+  command-line()
+  normal-top-level()
+Test greger-test-multiple-tools-parallel condition:
+    (ert-test-failed
+     ((should
+       (string= expected-content actual-content))
+      :form
+      (string= "\n\n## TOOL USE:\n\nName: test-tool-a\nID: test_a\n\n### value\n\n<tool.test_a>\ninput-a\n</tool.test_a>\n\n## TOOL RESULT:\n\nID: test_a\n\n<tool.test_a>\nTool A result: input-a\n</tool.test_a>\n\n## TOOL USE:\n\nName: test-tool-b\nID: test_b\n\n### value\n\n<tool.test_b>\ninput-b\n</tool.test_b>\n\n## TOOL RESULT:\n\nID: test_b\n\n<tool.test_b>\nTool B result: input-b\n</tool.test_b>" "")
+      :value nil :explanation
+      (arrays-of-different-length 350 0 "\n\n## TOOL USE:\n\nName: test-tool-a\nID: test_a\n\n### value\n\n<tool.test_a>\ninput-a\n</tool.test_a>\n\n## TOOL RESULT:\n\nID: test_a\n\n<tool.test_a>\nTool A result: input-a\n</tool.test_a>\n\n## TOOL USE:\n\nName: test-tool-b\nID: test_b\n\n### value\n\n<tool.test_b>\ninput-b\n</tool.test_b>\n\n## TOOL RESULT:\n\nID: test_b\n\n<tool.test_b>\nTool B result: input-b\n</tool.test_b>" "" first-mismatch-at 0)))
+   FAILED   5/11  greger-test-multiple-tools-parallel (0.002988 sec) at test/test-greger.el:98
+Test greger-test-simple-string-comparison backtrace:
+  signal(ert-test-failed (((should (string= expected-final-content act
+  ert-fail(((should (string= expected-final-content actual-final-conte
+  (if (unwind-protect (setq value-64 (apply fn-62 args-63)) (setq form
+  (let (form-description-66) (if (unwind-protect (setq value-64 (apply
+  (let ((value-64 'ert-form-evaluation-aborted-65)) (let (form-descrip
+  (let* ((fn-62 #'string=) (args-63 (condition-case err (let ((signal-
+  (let ((actual-final-content (buffer-substring-no-properties (point-m
+  (progn (fset 'greger--run-agent-loop vnew) (greger--execute-tools to
+  (unwind-protect (progn (fset 'greger--run-agent-loop vnew) (greger--
+  (let* ((vnew #'(lambda (state) (setq test-completed t))) (old (symbo
+  (let ((initial-content "") (agent-state (record 'greger-state 0 (cur
+  (progn (let ((initial-content "") (agent-state (record 'greger-state
+  (unwind-protect (progn (let ((initial-content "") (agent-state (reco
+  (save-current-buffer (set-buffer temp-buffer) (unwind-protect (progn
+  (let ((temp-buffer (generate-new-buffer " *temp*" t))) (save-current
+  (let ((test-completed nil)) (defalias 'greger-test-simple-echo #'(la
+  (closure (t) nil (let ((test-completed nil)) (defalias 'greger-test-
+  ert--run-test-internal(#s(ert--test-execution-info :test #s(ert-test
+  ert-run-test(#s(ert-test :name greger-test-simple-string-comparison 
+  ert-run-or-rerun-test(#s(ert--stats :selector t :tests ... :test-map
+  ert-run-tests(t #f(compiled-function (event-type &rest event-args) #
+  ert-run-tests-batch(t)
+  ert-run-tests-batch-and-exit(t)
+  (let ((ert-quiet nil)) (ert-run-tests-batch-and-exit t))
+  (progn (setq debug-on-error t) (add-to-list 'load-path ".") (require
+  eval((progn (setq debug-on-error t) (add-to-list 'load-path ".") (re
+  command-line-1(("--eval" "(progn\n                  (setq debug-on-e
+  command-line()
+  normal-top-level()
+Test greger-test-simple-string-comparison condition:
+    (ert-test-failed
+     ((should
+       (string= expected-final-content actual-final-content))
+      :form
+      (string= "\n\n## TOOL USE:\n\nName: test-echo\nID: echo_001\n\n### input\n\n<tool.echo_001>\nhello world\n</tool.echo_001>\n\n## TOOL RESULT:\n\nID: echo_001\n\n<tool.echo_001>\nEcho: hello world\n</tool.echo_001>" "")
+      :value nil :explanation
+      (arrays-of-different-length 184 0 "\n\n## TOOL USE:\n\nName: test-echo\nID: echo_001\n\n### input\n\n<tool.echo_001>\nhello world\n</tool.echo_001>\n\n## TOOL RESULT:\n\nID: echo_001\n\n<tool.echo_001>\nEcho: hello world\n</tool.echo_001>" "" first-mismatch-at 0)))
+   FAILED   6/11  greger-test-simple-string-comparison (0.001576 sec) at test/test-greger.el:447
+Test greger-test-single-tool-execution backtrace:
+  signal(ert-test-failed (((should (string= expected-content actual-co
+  ert-fail(((should (string= expected-content actual-content)) :form (
+  (if (unwind-protect (setq value-17 (apply fn-15 args-16)) (setq form
+  (let (form-description-19) (if (unwind-protect (setq value-17 (apply
+  (let ((value-17 'ert-form-evaluation-aborted-18)) (let (form-descrip
+  (let* ((fn-15 #'string=) (args-16 (condition-case err (let ((signal-
+  (let ((actual-content (buffer-substring-no-properties (point-min) (p
+  (progn (fset 'greger--run-agent-loop vnew) (greger--execute-tools to
+  (unwind-protect (progn (fset 'greger--run-agent-loop vnew) (greger--
+  (let* ((vnew #'(lambda (state) (setq test-completed t))) (old (symbo
+  (let ((agent-state (record 'greger-state 0 (current-buffer) default-
+  (progn (let ((agent-state (record 'greger-state 0 (current-buffer) d
+  (unwind-protect (progn (let ((agent-state (record 'greger-state 0 (c
+  (save-current-buffer (set-buffer temp-buffer) (unwind-protect (progn
+  (let ((temp-buffer (generate-new-buffer " *temp*" t))) (save-current
+  (let ((test-completed nil)) (defalias 'greger-test-simple-tool #'(la
+  (closure (t) nil (let ((test-completed nil)) (defalias 'greger-test-
+  ert--run-test-internal(#s(ert--test-execution-info :test #s(ert-test
+  ert-run-test(#s(ert-test :name greger-test-single-tool-execution :do
+  ert-run-or-rerun-test(#s(ert--stats :selector t :tests ... :test-map
+  ert-run-tests(t #f(compiled-function (event-type &rest event-args) #
+  ert-run-tests-batch(t)
+  ert-run-tests-batch-and-exit(t)
+  (let ((ert-quiet nil)) (ert-run-tests-batch-and-exit t))
+  (progn (setq debug-on-error t) (add-to-list 'load-path ".") (require
+  eval((progn (setq debug-on-error t) (add-to-list 'load-path ".") (re
+  command-line-1(("--eval" "(progn\n                  (setq debug-on-e
+  command-line()
+  normal-top-level()
+Test greger-test-single-tool-execution condition:
+    (ert-test-failed
+     ((should
+       (string= expected-content actual-content))
+      :form
+      (string= "\n\n## TOOL USE:\n\nName: test-simple\nID: test_001\n\n### message\n\n<tool.test_001>\nHello World\n</tool.test_001>\n\n## TOOL RESULT:\n\nID: test_001\n\n<tool.test_001>\nTool executed: Hello World\n</tool.test_001>" "")
+      :value nil :explanation
+      (arrays-of-different-length 197 0 "\n\n## TOOL USE:\n\nName: test-simple\nID: test_001\n\n### message\n\n<tool.test_001>\nHello World\n</tool.test_001>\n\n## TOOL RESULT:\n\nID: test_001\n\n<tool.test_001>\nTool executed: Hello World\n</tool.test_001>" "" first-mismatch-at 0)))
+   FAILED   7/11  greger-test-single-tool-execution (0.001634 sec) at test/test-greger.el:32
+Test greger-test-tool-error-handling backtrace:
+  signal(ert-test-failed (((should (string= expected-error-content act
+  ert-fail(((should (string= expected-error-content actual-content)) :
+  (if (unwind-protect (setq value-31 (apply fn-29 args-30)) (setq form
+  (let (form-description-33) (if (unwind-protect (setq value-31 (apply
+  (let ((value-31 'ert-form-evaluation-aborted-32)) (let (form-descrip
+  (let* ((fn-29 #'string=) (args-30 (condition-case err (let ((signal-
+  (let ((actual-content (buffer-substring-no-properties (point-min) (p
+  (progn (fset 'greger--run-agent-loop vnew) (greger--execute-tools to
+  (unwind-protect (progn (fset 'greger--run-agent-loop vnew) (greger--
+  (let* ((vnew #'(lambda (state) (setq test-completed t))) (old (symbo
+  (let ((agent-state (record 'greger-state 0 (current-buffer) default-
+  (progn (let ((agent-state (record 'greger-state 0 (current-buffer) d
+  (unwind-protect (progn (let ((agent-state (record 'greger-state 0 (c
+  (save-current-buffer (set-buffer temp-buffer) (unwind-protect (progn
+  (let ((temp-buffer (generate-new-buffer " *temp*" t))) (save-current
+  (let ((test-completed nil)) (defalias 'greger-test-error-tool #'(lam
+  (closure (t) nil (let ((test-completed nil)) (defalias 'greger-test-
+  ert--run-test-internal(#s(ert--test-execution-info :test #s(ert-test
+  ert-run-test(#s(ert-test :name greger-test-tool-error-handling :docu
+  ert-run-or-rerun-test(#s(ert--stats :selector t :tests ... :test-map
+  ert-run-tests(t #f(compiled-function (event-type &rest event-args) #
+  ert-run-tests-batch(t)
+  ert-run-tests-batch-and-exit(t)
+  (let ((ert-quiet nil)) (ert-run-tests-batch-and-exit t))
+  (progn (setq debug-on-error t) (add-to-list 'load-path ".") (require
+  eval((progn (setq debug-on-error t) (add-to-list 'load-path ".") (re
+  command-line-1(("--eval" "(progn\n                  (setq debug-on-e
+  command-line()
+  normal-top-level()
+Test greger-test-tool-error-handling condition:
+    (ert-test-failed
+     ((should
+       (string= expected-error-content actual-content))
+      :form
+      (string= "\n\n## TOOL USE:\n\nName: test-error\nID: error_test\n\n### input\n\n<tool.error_test>\nbad-input\n</tool.error_test>\n\n## TOOL RESULT:\n\nID: error_test\n\n<tool.error_test>\nError executing tool: Simulated tool error: bad-input\n</tool.error_test>" "")
+      :value nil :explanation
+      (arrays-of-different-length 231 0 "\n\n## TOOL USE:\n\nName: test-error\nID: error_test\n\n### input\n\n<tool.error_test>\nbad-input\n</tool.error_test>\n\n## TOOL RESULT:\n\nID: error_test\n\n<tool.error_test>\nError executing tool: Simulated tool error: bad-input\n</tool.error_test>" "" first-mismatch-at 0)))
+   FAILED   8/11  greger-test-tool-error-handling (0.001619 sec) at test/test-greger.el:198
+Test greger-test-tool-execution-with-existing-content backtrace:
+  signal(ert-test-failed (((should (string= expected-content actual-co
+  ert-fail(((should (string= expected-content actual-content)) :form (
+  (if (unwind-protect (setq value-38 (apply fn-36 args-37)) (setq form
+  (let (form-description-40) (if (unwind-protect (setq value-38 (apply
+  (let ((value-38 'ert-form-evaluation-aborted-39)) (let (form-descrip
+  (let* ((fn-36 #'string=) (args-37 (condition-case err (let ((signal-
+  (let ((actual-content (buffer-substring-no-properties (point-min) (p
+  (progn (fset 'greger--run-agent-loop vnew) (greger--execute-tools to
+  (unwind-protect (progn (fset 'greger--run-agent-loop vnew) (greger--
+  (let* ((vnew #'(lambda (state) (setq test-completed t))) (old (symbo
+  (let ((agent-state (record 'greger-state 0 (current-buffer) default-
+  (progn (insert "Existing content in buffer") (let ((agent-state (rec
+  (unwind-protect (progn (insert "Existing content in buffer") (let ((
+  (save-current-buffer (set-buffer temp-buffer) (unwind-protect (progn
+  (let ((temp-buffer (generate-new-buffer " *temp*" t))) (save-current
+  (let ((test-completed nil)) (defalias 'greger-test-content-tool #'(l
+  (closure (t) nil (let ((test-completed nil)) (defalias 'greger-test-
+  ert--run-test-internal(#s(ert--test-execution-info :test #s(ert-test
+  ert-run-test(#s(ert-test :name greger-test-tool-execution-with-exist
+  ert-run-or-rerun-test(#s(ert--stats :selector t :tests ... :test-map
+  ert-run-tests(t #f(compiled-function (event-type &rest event-args) #
+  ert-run-tests-batch(t)
+  ert-run-tests-batch-and-exit(t)
+  (let ((ert-quiet nil)) (ert-run-tests-batch-and-exit t))
+  (progn (setq debug-on-error t) (add-to-list 'load-path ".") (require
+  eval((progn (setq debug-on-error t) (add-to-list 'load-path ".") (re
+  command-line-1(("--eval" "(progn\n                  (setq debug-on-e
+  command-line()
+  normal-top-level()
+Test greger-test-tool-execution-with-existing-content condition:
+    (ert-test-failed
+     ((should
+       (string= expected-content actual-content))
+      :form
+      (string= "Existing content in buffer\n\n## TOOL USE:\n\nName: test-content\nID: content_test\n\n### data\n\n<tool.content_test>\ntest-data\n</tool.content_test>\n\n## TOOL RESULT:\n\nID: content_test\n\n<tool.content_test>\nProcessed: test-data\n</tool.content_test>" "Existing content in buffer")
+      :value nil :explanation
+      (arrays-of-different-length 237 26 "Existing content in buffer\n\n## TOOL USE:\n\nName: test-content\nID: content_test\n\n### data\n\n<tool.content_test>\ntest-data\n</tool.content_test>\n\n## TOOL RESULT:\n\nID: content_test\n\n<tool.content_test>\nProcessed: test-data\n</tool.content_test>" "Existing content in buffer" first-mismatch-at 26)))
+   FAILED   9/11  greger-test-tool-execution-with-existing-content (0.001636 sec) at test/test-greger.el:263
+   passed  10/11  greger-test-tool-placeholder (0.000095 sec)
+Test greger-test-unknown-tool-error backtrace:
+  signal(ert-test-failed (((should (string= expected-error-content act
+  ert-fail(((should (string= expected-error-content actual-content)) :
+  (if (unwind-protect (setq value-45 (apply fn-43 args-44)) (setq form
+  (let (form-description-47) (if (unwind-protect (setq value-45 (apply
+  (let ((value-45 'ert-form-evaluation-aborted-46)) (let (form-descrip
+  (let* ((fn-43 #'string=) (args-44 (condition-case err (let ((signal-
+  (let ((actual-content (buffer-substring-no-properties (point-min) (p
+  (progn (fset 'greger--run-agent-loop vnew) (greger--execute-tools to
+  (unwind-protect (progn (fset 'greger--run-agent-loop vnew) (greger--
+  (let* ((vnew #'(lambda (state) (setq test-completed t))) (old (symbo
+  (let ((agent-state (record 'greger-state 0 (current-buffer) default-
+  (progn (let ((agent-state (record 'greger-state 0 (current-buffer) d
+  (unwind-protect (progn (let ((agent-state (record 'greger-state 0 (c
+  (save-current-buffer (set-buffer temp-buffer) (unwind-protect (progn
+  (let ((temp-buffer (generate-new-buffer " *temp*" t))) (save-current
+  (let ((test-completed nil)) (let ((temp-buffer (generate-new-buffer 
+  (closure (t) nil (let ((test-completed nil)) (let ((temp-buffer (gen
+  ert--run-test-internal(#s(ert--test-execution-info :test #s(ert-test
+  ert-run-test(#s(ert-test :name greger-test-unknown-tool-error :docum
+  ert-run-or-rerun-test(#s(ert--stats :selector t :tests ... :test-map
+  ert-run-tests(t #f(compiled-function (event-type &rest event-args) #
+  ert-run-tests-batch(t)
+  ert-run-tests-batch-and-exit(t)
+  (let ((ert-quiet nil)) (ert-run-tests-batch-and-exit t))
+  (progn (setq debug-on-error t) (add-to-list 'load-path ".") (require
+  eval((progn (setq debug-on-error t) (add-to-list 'load-path ".") (re
+  command-line-1(("--eval" "(progn\n                  (setq debug-on-e
+  command-line()
+  normal-top-level()
+Test greger-test-unknown-tool-error condition:
+    (ert-test-failed
+     ((should
+       (string= expected-error-content actual-content))
+      :form
+      (string= "\n\n## TOOL USE:\n\nName: nonexistent-tool\nID: unknown_test\n\n### param\n\n<tool.unknown_test>\nvalue\n</tool.unknown_test>\n\n## TOOL RESULT:\n\nID: unknown_test\n\n<tool.unknown_test>\nUnknown tool: nonexistent-tool\n</tool.unknown_test>" "")
+      :value nil :explanation
+      (arrays-of-different-length 222 0 "\n\n## TOOL USE:\n\nName: nonexistent-tool\nID: unknown_test\n\n### param\n\n<tool.unknown_test>\nvalue\n</tool.unknown_test>\n\n## TOOL RESULT:\n\nID: unknown_test\n\n<tool.unknown_test>\nUnknown tool: nonexistent-tool\n</tool.unknown_test>" "" first-mismatch-at 0)))
+   FAILED  11/11  greger-test-unknown-tool-error (0.001591 sec) at test/test-greger.el:330
+
+Ran 11 tests, 2 results as expected, 9 unexpected (2025-06-05 22:54:13+0200, 1.714998 sec)
+
+9 unexpected results:
+   FAILED  greger-test-exact-tool-output-formatting
+   FAILED  greger-test-interrupt-with-active-generation
+   FAILED  greger-test-interrupt-with-executing-tools
+   FAILED  greger-test-multiple-tools-parallel
+   FAILED  greger-test-simple-string-comparison
+   FAILED  greger-test-single-tool-execution
+   FAILED  greger-test-tool-error-handling
+   FAILED  greger-test-tool-execution-with-existing-content
+   FAILED  greger-test-unknown-tool-error
+
+
+</tool.toolu_016wBXnDgjtfNtZ5PLDfaiM2>
+
+## ASSISTANT:
+
+The tests are failing because the tool execution functions aren't generating any output to the buffer. This suggests I may have broken the tool execution flow when removing the tool folding functions. Let me check what's missing in the `greger--execute-tools` function area:
+
+## TOOL USE:
+
+Name: read-file
+ID: toolu_01SuWSeaKTyAUC6QbKduG1of
+
+### path
+
+<tool.toolu_01SuWSeaKTyAUC6QbKduG1of>
+greger.el
+</tool.toolu_01SuWSeaKTyAUC6QbKduG1of>
+
+### start-line
+
+<tool.toolu_01SuWSeaKTyAUC6QbKduG1of>
+565
+</tool.toolu_01SuWSeaKTyAUC6QbKduG1of>
+
+### end-line
+
+<tool.toolu_01SuWSeaKTyAUC6QbKduG1of>
+585
+</tool.toolu_01SuWSeaKTyAUC6QbKduG1of>
+
+## TOOL RESULT:
+
+ID: toolu_01SuWSeaKTyAUC6QbKduG1of
+
+<tool.toolu_01SuWSeaKTyAUC6QbKduG1of>
+         (completed-tools 0)
+         (executing-tools-map (make-hash-table :test 'equal)))
+
+    ;; Initialize executing-tools in state if not already set
+    (unless (greger-state-executing-tools state)
+      (setf (greger-state-executing-tools state) executing-tools-map))
+
+    ;; Update buffer state to show we're executing tools
+    (with-current-buffer (greger-state-chat-buffer state)
+      (greger--update-buffer-state))
+
+    ;; First, display the tool calls and reserve space for each tool's output
+    (with-current-buffer (greger-state-chat-buffer state)
+      (let ((inhibit-read-only t))
+        (goto-char (point-max))
+
+        ;; Display each tool call followed by its placeholder
+        ;; (dolist (tool-call tool-calls)
+        ;;   (let ((tool-id (alist-get 'id tool-call))
+        ;;         (tool-block-markdown (greger-parser--content-blocks-to-markdown (list tool-call))))
+        ;;     (unless (string-empty-p tool-block-markdown)
+</tool.toolu_01SuWSeaKTyAUC6QbKduG1of>
+
+## USER:
+
+No that's definitely not it. Don't worry about the tests for now, continue the migration if there are remaining bits
+
+## ASSISTANT:
+
+You're right, let me continue with the migration cleanup. Looking back at the code, I can see there are still some references that need to be updated. Let me check if there are any other tool folding related items that need attention.
+
+Let me check if there are any remaining references to the old tool folding functions in the mode setup:
+
+
+## ASSISTANT:
+
+ 
+
+## TOOL USE:
+
+Name: read-file
+ID: toolu_01Vaxrr4SZSQ1mgD58ZXmyGz
+
+### path
+
+<tool.toolu_01Vaxrr4SZSQ1mgD58ZXmyGz>
+greger.el
+</tool.toolu_01Vaxrr4SZSQ1mgD58ZXmyGz>
+
+### start-line
+
+<tool.toolu_01Vaxrr4SZSQ1mgD58ZXmyGz>
+180
+</tool.toolu_01Vaxrr4SZSQ1mgD58ZXmyGz>
+
+### end-line
+
+<tool.toolu_01Vaxrr4SZSQ1mgD58ZXmyGz>
+200
+</tool.toolu_01Vaxrr4SZSQ1mgD58ZXmyGz>
+
+## TOOL RESULT:
+
+ID: toolu_01Vaxrr4SZSQ1mgD58ZXmyGz
+
+<tool.toolu_01Vaxrr4SZSQ1mgD58ZXmyGz>
+  (use-local-map greger-mode-map)
+  (setq-local markdown-fontify-code-blocks-natively t)
+  (setq-local mode-line-misc-info '(:eval (greger--mode-line-info)))
+  ;; Set up invisible text for tool sections
+  (add-to-invisibility-spec 'greger-tool-section)
+  ;; Set up UI folding (both tools and citations)
+  (greger-ui-setup-folding)
+  ;; Set up custom heading font-lock
+  (greger--setup-heading-font-lock)
+  ;; Add hook to update tool sections when buffer changes
+  (add-hook 'after-change-functions #'greger--after-change-function nil t)
+  ;; Add font-lock hook for immediate tool tag styling
+  (add-hook 'font-lock-extend-region-functions #'greger--extend-font-lock-region nil t))
+
+;;;###autoload
+(defun greger ()
+  "Create a new buffer and switch to `greger-mode`."
+  (interactive)
+  (let ((buffer (generate-new-buffer "*greger*")))
+    (switch-to-buffer buffer)
+    (greger-mode)
+</tool.toolu_01Vaxrr4SZSQ1mgD58ZXmyGz>
+
+## ASSISTANT:
+
+I can see that greger-mode is still calling `add-to-invisibility-spec 'greger-tool-section` - this should now be handled by greger-ui.el. Let me check if greger-ui.el is handling this:
+
+## TOOL USE:
+
+Name: ripgrep
+ID: toolu_01X4tTU1iCFswKkp44CrkUai
+
+### pattern
+
+<tool.toolu_01X4tTU1iCFswKkp44CrkUai>
+add-to-invisibility-spec.*greger-tool-section"
+</tool.toolu_01X4tTU1iCFswKkp44CrkUai>
+
+### path
+
+<tool.toolu_01X4tTU1iCFswKkp44CrkUai>
+greger-ui.el
+</tool.toolu_01X4tTU1iCFswKkp44CrkUai>
+
+## TOOL RESULT:
+
+ID: toolu_01X4tTU1iCFswKkp44CrkUai
+
+<tool.toolu_01X4tTU1iCFswKkp44CrkUai>
+Failed to execute ripgrep search: Command failed with exit code 1: (no output)
+</tool.toolu_01X4tTU1iCFswKkp44CrkUai>
+
+## ASSISTANT:
+
+Let me check what greger-ui-setup-folding does:
+
+## TOOL USE:
+
+Name: read-file
+ID: toolu_01ATzGUXkKSjYdVTUDfEhYfe
+
+### path
+
+<tool.toolu_01ATzGUXkKSjYdVTUDfEhYfe>
+greger-ui.el
+</tool.toolu_01ATzGUXkKSjYdVTUDfEhYfe>
+
+### start-line
+
+<tool.toolu_01ATzGUXkKSjYdVTUDfEhYfe>
+600
+</tool.toolu_01ATzGUXkKSjYdVTUDfEhYfe>
+
+### end-line
+
+<tool.toolu_01ATzGUXkKSjYdVTUDfEhYfe>
+620
+</tool.toolu_01ATzGUXkKSjYdVTUDfEhYfe>
+
+## TOOL RESULT:
+
+ID: toolu_01ATzGUXkKSjYdVTUDfEhYfe
+
+<tool.toolu_01ATzGUXkKSjYdVTUDfEhYfe>
+  ;; Clean up any existing overlays first
+  (greger-ui-cleanup-dead-overlays)
+
+  ;; Set up fontification
+  (greger-ui-setup-cite-fontification)
+
+  ;; Set up tool sections
+  (greger-ui-setup-tool-sections)
+
+  ;; Initially hide appropriate citation blocks and tool sections
+  (greger-ui-hide-all-citations)
+
+  ;; Add hook to clean up overlays when buffer is killed
+  (add-hook 'kill-buffer-hook #'greger-ui-show-all-citations nil t)
+  (add-hook 'kill-buffer-hook #'greger-ui-clear-tool-overlays nil t))
+
+(defun greger-ui-teardown-folding ()
+  "Tear down both citation and tool folding for the current buffer."
+  (greger-ui-show-all-citations)
+  (greger-ui-clear-tool-overlays)
+  (remove-hook 'kill-buffer-hook #'greger-ui-show-all-citations t)
+</tool.toolu_01ATzGUXkKSjYdVTUDfEhYfe>
+
+## ASSISTANT:
+
+The greger-ui.el doesn't seem to be adding the invisibility spec. I need to add that to the greger-ui setup. Let me update greger-ui.el:
+
+## TOOL USE:
+
+Name: str-replace
+ID: toolu_01NhmjUF26koVi14VNwCYPSC
+
+### file-path
+
+<tool.toolu_01NhmjUF26koVi14VNwCYPSC>
+greger-ui.el
+</tool.toolu_01NhmjUF26koVi14VNwCYPSC>
+
+### original-content
+
+<tool.toolu_01NhmjUF26koVi14VNwCYPSC>
+(defun greger-ui-setup-folding ()
+  "Set up both citation and tool folding for the current buffer."
+  ;; Clean up any existing overlays first
+  (greger-ui-cleanup-dead-overlays)
+
+  ;; Set up fontification
+  (greger-ui-setup-cite-fontification)
+
+  ;; Set up tool sections
+  (greger-ui-setup-tool-sections)
+
+  ;; Initially hide appropriate citation blocks and tool sections
+  (greger-ui-hide-all-citations)
+
+  ;; Add hook to clean up overlays when buffer is killed
+  (add-hook 'kill-buffer-hook #'greger-ui-show-all-citations nil t)
+  (add-hook 'kill-buffer-hook #'greger-ui-clear-tool-overlays nil t))
+</tool.toolu_01NhmjUF26koVi14VNwCYPSC>
+
+### new-content
+
+<tool.toolu_01NhmjUF26koVi14VNwCYPSC>
+(defun greger-ui-setup-folding ()
+  "Set up both citation and tool folding for the current buffer."
+  ;; Set up invisible text for tool sections
+  (add-to-invisibility-spec 'greger-tool-section)
+  
+  ;; Clean up any existing overlays first
+  (greger-ui-cleanup-dead-overlays)
+
+  ;; Set up fontification
+  (greger-ui-setup-cite-fontification)
+
+  ;; Set up tool sections
+  (greger-ui-setup-tool-sections)
+
+  ;; Initially hide appropriate citation blocks and tool sections
+  (greger-ui-hide-all-citations)
+
+  ;; Add hook to clean up overlays when buffer is killed
+  (add-hook 'kill-buffer-hook #'greger-ui-show-all-citations nil t)
+  (add-hook 'kill-buffer-hook #'greger-ui-clear-tool-overlays nil t))
+</tool.toolu_01NhmjUF26koVi14VNwCYPSC>
+
+### git-commit-message
+
+<tool.toolu_01NhmjUF26koVi14VNwCYPSC>
+Add invisibility spec setup to greger-ui-setup-folding
+</tool.toolu_01NhmjUF26koVi14VNwCYPSC>
+
+<!-- TOOL_RESULT_PLACEHOLDER_toolu_01NhmjUF26koVi14VNwCYPSC -->
