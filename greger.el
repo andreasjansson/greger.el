@@ -455,7 +455,7 @@ READ-ONLY is t to make read-only, nil to make writable."
                          :tools tools
                          :server-tools server-tools
                          :buffer chat-buffer
-                         :block-start-callback (lambda (type) (greger--append-streaming-content-header state type))
+                         :block-start-callback (lambda (content-block) (greger--append-streaming-content-header state content-block))
                          :text-delta-callback (lambda (text) (greger--append-text state text))
                          :block-stop-callback (lambda (type content-block) (greger--append-nonstreaming-content-block state type content-block))
                          :complete-callback (lambda (content-blocks) (greger--handle-stream-completion state content-blocks)))))
@@ -466,13 +466,18 @@ READ-ONLY is t to make read-only, nil to make writable."
         (setq greger--current-state state) ;; TODO: why do we set that _here_? Or should it be greger--current-client-state instead?
         (greger--update-buffer-state)))))
 
-(defun greger--append-streaming-content-header (state type)
-  (cond
-   ((string= type "text")
-    (greger--append-text state (concat "\n\n" greger-parser-assistant-tag "\n\n")))
-   ((string= type "thinking")
-    (greger--append-text state (concat "\n\n" greger-parser-thinking-tag "\n\n")))
-   (t nil)))
+(defun greger--append-streaming-content-header (state content-block)
+  ;; TODO: remove debug
+  (let ((type (alist-get 'type content-block))
+        (has-citations (greger-parser--content-block-has-citations content-block)))
+   (cond
+    ((and (string= type "text") (not has-citations))
+     ;; TODO: remove debug
+
+     (greger--append-text state (concat "\n\n" greger-parser-assistant-tag "\n\n")))
+    ((string= type "thinking")
+     (greger--append-text state (concat "\n\n" greger-parser-thinking-tag "\n\n")))
+    (t nil))))
 
 (defun greger--handle-stream-completion (state content-blocks)
   (let ((tool-calls (greger--extract-tool-calls content-blocks))
@@ -498,13 +503,21 @@ READ-ONLY is t to make read-only, nil to make writable."
   (with-current-buffer (greger-state-chat-buffer state)
     (greger--update-buffer-state)))
 
+(defun greger--content-block-supports-streaming (content-block)
+  (let ((type (alist-get 'type content-block))
+        (has-citations (alist-get 'citations content-block)))
+    (and (or (string= type "text") (string= type "thinking"))
+         (not has-citations))))
+
 (defun greger--append-nonstreaming-content-block (state type content-block)
   (greger--debug "CONTENT BLOCK: %s" content-block)
 
-  (unless (or (string= type "text") (string= type "thinking"))
+  (unless (greger--content-block-supports-streaming content-block)
 
    (let ((markdown (greger-parser--block-to-markdown content-block)))
-     (greger--append-text state (concat "\n\n" markdown)))
+     (greger--append-text
+      state (concat (unless (greger-parser--content-block-has-citations content-block) "\n\n")
+                    markdown)))
 
    (when (string= type "tool_use")
      (let ((tool-id (alist-get 'id content-block)))

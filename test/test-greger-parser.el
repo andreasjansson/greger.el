@@ -834,7 +834,7 @@ ID: srvtoolu_789
 
 ## ASSISTANT:
 
-<cite>Einstein developed the theory of relativity</cite> while <cite>Newton formulated the laws of motion</cite>.
+<cite>Einstein developed the theory of relativity</cite>
 
 ## CITATIONS:
 
@@ -843,6 +843,12 @@ ID: srvtoolu_789
 Title: Einstein Biography
 Cited text: Albert Einstein developed the theory of relativity in the early 20th century...
 Encrypted index: def456
+
+## ASSISTANT:
+
+while <cite>Newton formulated the laws of motion</cite>.
+
+## CITATIONS:
 
 ### https://physics.com/newton
 
@@ -868,19 +874,23 @@ Encrypted index: ghi789"
                                                                     (page_age . "Recent")))))
                                                       ((type . "text")
                                                        (text . "Einstein developed the theory of relativity")
-                                                       (citations . (((type . "web_search_result_location")
-                                                                      (url . "https://physics.com/einstein")
-                                                                      (title . "Einstein Biography")
+                                                       (citations . ((
+                                                                      (encrypted_index . "def456")
                                                                       (cited_text . "Albert Einstein developed the theory of relativity in the early 20th century...")
-                                                                      (encrypted_index . "def456")))))
-                                                      ((type . "text") (text . " while "))
+                                                                      (title . "Einstein Biography")
+                                                                      (type . "web_search_result_location")
+                                                                      (url . "https://physics.com/einstein")
+                                                                      ))))
+                                                      ((type . "text") (text . "while "))
                                                       ((type . "text")
                                                        (text . "Newton formulated the laws of motion")
-                                                       (citations . (((type . "web_search_result_location")
-                                                                      (url . "https://physics.com/newton")
-                                                                      (title . "Newton Biography")
+                                                       (citations . ((
+                                                                      (encrypted_index . "ghi789")
                                                                       (cited_text . "Isaac Newton formulated the three laws of motion...")
-                                                                      (encrypted_index . "ghi789")))))
+                                                                      (title . "Newton Biography")
+                                                                      (type . "web_search_result_location")
+                                                                      (url . "https://physics.com/newton")
+                                                                      ))))
                                                       ((type . "text") (text . ".")))))))
     ))
 

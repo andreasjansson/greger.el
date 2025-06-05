@@ -291,7 +291,7 @@ Returns nil if no error found or if OUTPUT is not valid JSON."
       ;; No initialization needed - content is already present. No content_block_delta for web_search_tool_result
       nil))
 
-    (funcall (greger-client-state-block-start-callback state) type)
+    (funcall (greger-client-state-block-start-callback state) content-block)
 
     ;; Add block at the right index
     (greger-client--ensure-block-at-index blocks index content-block state)))
@@ -312,7 +312,7 @@ Returns nil if no error found or if OUTPUT is not valid JSON."
      ;; {"type":"content_block_delta","index":0,"delta":{"type":"text_delta","text":"I'll search for the"}}
      ((string= delta-type "text_delta")
       (let ((text (alist-get 'text delta))
-            (has-citations (alist-get 'citations block)))
+            (has-citations (not (null (assq 'citations block)))))
         (setf (alist-get 'text block)
               (concat (alist-get 'text block) text))
         ;; Only call text callback for live display if this block doesn't have citations
@@ -351,14 +351,7 @@ Returns nil if no error found or if OUTPUT is not valid JSON."
       (let ((input-str (alist-get 'input block)))
         (if (string-empty-p input-str)
             (setf (alist-get 'input block) '())
-          (setf (alist-get 'input block) (json-read-from-string input-str)))))
-
-     ;; Handle text blocks with citations - these need special processing
-     ((and (string= type "text") (alist-get 'citations block))
-      ;; For citation blocks, we didn't stream the text, so handle it now
-      (let ((text (alist-get 'text block)))
-        (when (and text (not (string-empty-p text)))
-          (funcall (greger-client-state-text-delta-callback state) text)))))
+          (setf (alist-get 'input block) (json-read-from-string input-str))))))
 
     (funcall (greger-client-state-block-stop-callback state) type block)))
 
