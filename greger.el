@@ -826,16 +826,23 @@ TOOL-ID identifies the tool, and LINES contain the content."
     (push hidden-overlay greger-tool-overlays)))
 
 (defun greger-toggle-tool-section ()
-  "Toggle the tool section at point between collapsed and expanded state.
-If not inside a tool section, fall back to `markdown-cycle'."
+  "Toggle the tool section or citation at point between collapsed and expanded state.
+If not inside a tool section or citation, fall back to `markdown-cycle'."
   (interactive)
   (let ((tool-id (greger--get-tool-id-at-point)))
-    (if tool-id
-        (greger--toggle-tool-section-by-id tool-id)
-      ;; Fall back to markdown-cycle if available
-      (if (fboundp 'markdown-cycle)
-          (call-interactively #'markdown-cycle)
-        (message "Not inside a tool section")))))
+    (cond
+     ;; First try tool sections
+     (tool-id
+      (greger--toggle-tool-section-by-id tool-id))
+     ;; Then try citation folding
+     ((or (greger-ui-point-in-cite-tag-p) (greger-ui-point-in-bibliography-p))
+      (greger-ui-toggle-citation-fold))
+     ;; Fall back to markdown-cycle if available
+     ((fboundp 'markdown-cycle)
+      (call-interactively #'markdown-cycle))
+     ;; Final fallback
+     (t
+      (message "Not inside a tool section or citation area")))))
 
 (defun greger--get-tool-id-at-point ()
   "Get the tool ID for the tool section at point, if any."

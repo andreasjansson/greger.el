@@ -1409,4 +1409,248 @@ greger.el
 Add greger-ui requirement to greger.el
 </tool.toolu_01J31NHbDRDUyqK8bw5ipEPo>
 
-<!-- TOOL_RESULT_PLACEHOLDER_toolu_01J31NHbDRDUyqK8bw5ipEPo -->
+## TOOL RESULT:
+
+ID: toolu_01J31NHbDRDUyqK8bw5ipEPo
+
+<tool.toolu_01J31NHbDRDUyqK8bw5ipEPo>
+Successfully replaced content in /Users/andreas/projects/greger.el/greger.el. Successfully staged 2 file(s) and committed with message: Add greger-ui requirement to greger.el
+</tool.toolu_01J31NHbDRDUyqK8bw5ipEPo>
+
+## ASSISTANT:
+
+Now let me find the greger mode definition and keymap to add the TAB key binding:
+
+## TOOL USE:
+
+Name: ripgrep
+ID: toolu_0119KEEis6fuUKv3vVb8ghXJ
+
+### pattern
+
+<tool.toolu_0119KEEis6fuUKv3vVb8ghXJ>
+define-derived-mode|greger-mode-map
+</tool.toolu_0119KEEis6fuUKv3vVb8ghXJ>
+
+### path
+
+<tool.toolu_0119KEEis6fuUKv3vVb8ghXJ>
+greger.el
+</tool.toolu_0119KEEis6fuUKv3vVb8ghXJ>
+
+## TOOL RESULT:
+
+ID: toolu_0119KEEis6fuUKv3vVb8ghXJ
+
+<tool.toolu_0119KEEis6fuUKv3vVb8ghXJ>
+182:(defvar greger-mode-map
+202:(define-derived-mode greger-mode gfm-mode "Greger"
+204:  (use-local-map greger-mode-map)
+
+</tool.toolu_0119KEEis6fuUKv3vVb8ghXJ>
+
+## TOOL USE:
+
+Name: read-file
+ID: toolu_01VhpcGUfD2xLsgntrNX82zX
+
+### path
+
+<tool.toolu_01VhpcGUfD2xLsgntrNX82zX>
+greger.el
+</tool.toolu_01VhpcGUfD2xLsgntrNX82zX>
+
+### start-line
+
+<tool.toolu_01VhpcGUfD2xLsgntrNX82zX>
+180
+</tool.toolu_01VhpcGUfD2xLsgntrNX82zX>
+
+### end-line
+
+<tool.toolu_01VhpcGUfD2xLsgntrNX82zX>
+210
+</tool.toolu_01VhpcGUfD2xLsgntrNX82zX>
+
+## TOOL RESULT:
+
+ID: toolu_01VhpcGUfD2xLsgntrNX82zX
+
+<tool.toolu_01VhpcGUfD2xLsgntrNX82zX>
+  :group 'greger)
+
+(defvar greger-mode-map
+  (let ((map (make-sparse-keymap)))
+    (define-key map (kbd "M-<return>") #'greger-buffer)
+    (define-key map (kbd "C-M-<return>") #'greger-buffer-no-tools)
+    (define-key map (kbd "C-g") #'greger-interrupt)
+    (define-key map (kbd "C-; a") #'greger-insert-assistant-tag)
+    (define-key map (kbd "C-; u") #'greger-insert-user-tag)
+    (define-key map (kbd "C-; s") #'greger-insert-system-tag)
+    (define-key map (kbd "C-; i") #'greger-insert-include)
+    (define-key map (kbd "C-; I") #'greger-insert-include-code)
+    (define-key map (kbd "C-; f") #'greger-insert-include-file)
+    (define-key map (kbd "C-; b") #'greger-insert-include-buffer-code)
+    (define-key map (kbd "C-; m") #'greger-set-model)
+    (define-key map (kbd "C-; c") #'greger-copy-code)
+    (define-key map (kbd "C-; d") #'greger-debug-request)
+    (define-key map (kbd "TAB") #'greger-toggle-tool-section)
+    (define-key map (kbd "<tab>") #'greger-toggle-tool-section)
+    map)
+  "Keymap for `greger-mode'.")
+
+(define-derived-mode greger-mode gfm-mode "Greger"
+  "Major mode for interacting with AI."
+  (use-local-map greger-mode-map)
+  (setq-local markdown-fontify-code-blocks-natively t)
+  (setq-local mode-line-misc-info '(:eval (greger--mode-line-info)))
+  ;; Set up invisible text for tool sections
+  (add-to-invisibility-spec 'greger-tool-section)
+  ;; Set up tool section highlighting and collapsing
+  (greger--setup-tool-sections)
+</tool.toolu_01VhpcGUfD2xLsgntrNX82zX>
+
+## ASSISTANT:
+
+I can see that TAB is already mapped to `greger-toggle-tool-section`. I need to modify this function to handle both tool sections and citation folding. Let me find the current implementation:
+
+## TOOL USE:
+
+Name: ripgrep
+ID: toolu_01Sq6VHqM3o3s6RGXiUY9nkA
+
+### pattern
+
+<tool.toolu_01Sq6VHqM3o3s6RGXiUY9nkA>
+greger-toggle-tool-section
+</tool.toolu_01Sq6VHqM3o3s6RGXiUY9nkA>
+
+### path
+
+<tool.toolu_01Sq6VHqM3o3s6RGXiUY9nkA>
+greger.el
+</tool.toolu_01Sq6VHqM3o3s6RGXiUY9nkA>
+
+### context-lines
+
+<tool.toolu_01Sq6VHqM3o3s6RGXiUY9nkA>
+10
+</tool.toolu_01Sq6VHqM3o3s6RGXiUY9nkA>
+
+## TOOL RESULT:
+
+ID: toolu_01Sq6VHqM3o3s6RGXiUY9nkA
+
+<tool.toolu_01Sq6VHqM3o3s6RGXiUY9nkA>
+187-    (define-key map (kbd "C-; a") #'greger-insert-assistant-tag)
+188-    (define-key map (kbd "C-; u") #'greger-insert-user-tag)
+189-    (define-key map (kbd "C-; s") #'greger-insert-system-tag)
+190-    (define-key map (kbd "C-; i") #'greger-insert-include)
+191-    (define-key map (kbd "C-; I") #'greger-insert-include-code)
+192-    (define-key map (kbd "C-; f") #'greger-insert-include-file)
+193-    (define-key map (kbd "C-; b") #'greger-insert-include-buffer-code)
+194-    (define-key map (kbd "C-; m") #'greger-set-model)
+195-    (define-key map (kbd "C-; c") #'greger-copy-code)
+196-    (define-key map (kbd "C-; d") #'greger-debug-request)
+197:    (define-key map (kbd "TAB") #'greger-toggle-tool-section)
+198:    (define-key map (kbd "<tab>") #'greger-toggle-tool-section)
+199-    map)
+200-  "Keymap for `greger-mode'.")
+201-
+202-(define-derived-mode greger-mode gfm-mode "Greger"
+203-  "Major mode for interacting with AI."
+204-  (use-local-map greger-mode-map)
+205-  (setq-local markdown-fontify-code-blocks-natively t)
+206-  (setq-local mode-line-misc-info '(:eval (greger--mode-line-info)))
+207-  ;; Set up invisible text for tool sections
+208-  (add-to-invisibility-spec 'greger-tool-section)
+--
+818-    (let ((indicator-overlay (make-overlay visible-end visible-end)))
+819-      (overlay-put indicator-overlay 'after-string
+820-                   (propertize (format "... [+%d lines, TAB to expand]" hidden-line-count)
+821-                              'face 'greger-tool-tag-face))
+822-      (overlay-put indicator-overlay 'greger-tool-indicator t)
+823-      (overlay-put indicator-overlay 'greger-tool-id tool-id)
+824-      (push indicator-overlay greger-tool-overlays))
+825-
+826-    (push hidden-overlay greger-tool-overlays)))
+827-
+828:(defun greger-toggle-tool-section ()
+829-  "Toggle the tool section at point between collapsed and expanded state.
+830-If not inside a tool section, fall back to `markdown-cycle'."
+831-  (interactive)
+832-  (let ((tool-id (greger--get-tool-id-at-point)))
+833-    (if tool-id
+834-        (greger--toggle-tool-section-by-id tool-id)
+835-      ;; Fall back to markdown-cycle if available
+836-      (if (fboundp 'markdown-cycle)
+837-          (call-interactively #'markdown-cycle)
+838-        (message "Not inside a tool section")))))
+
+</tool.toolu_01Sq6VHqM3o3s6RGXiUY9nkA>
+
+## ASSISTANT:
+
+Now I'll modify the `greger-toggle-tool-section` function to also handle citation folding:
+
+## TOOL USE:
+
+Name: str-replace
+ID: toolu_01Mz7bFhxMA77zuFnScAzffu
+
+### file-path
+
+<tool.toolu_01Mz7bFhxMA77zuFnScAzffu>
+greger.el
+</tool.toolu_01Mz7bFhxMA77zuFnScAzffu>
+
+### original-content
+
+<tool.toolu_01Mz7bFhxMA77zuFnScAzffu>
+(defun greger-toggle-tool-section ()
+  "Toggle the tool section at point between collapsed and expanded state.
+If not inside a tool section, fall back to `markdown-cycle'."
+  (interactive)
+  (let ((tool-id (greger--get-tool-id-at-point)))
+    (if tool-id
+        (greger--toggle-tool-section-by-id tool-id)
+      ;; Fall back to markdown-cycle if available
+      (if (fboundp 'markdown-cycle)
+          (call-interactively #'markdown-cycle)
+        (message "Not inside a tool section")))))
+</tool.toolu_01Mz7bFhxMA77zuFnScAzffu>
+
+### new-content
+
+<tool.toolu_01Mz7bFhxMA77zuFnScAzffu>
+(defun greger-toggle-tool-section ()
+  "Toggle the tool section or citation at point between collapsed and expanded state.
+If not inside a tool section or citation, fall back to `markdown-cycle'."
+  (interactive)
+  (let ((tool-id (greger--get-tool-id-at-point)))
+    (cond
+     ;; First try tool sections
+     (tool-id
+      (greger--toggle-tool-section-by-id tool-id))
+     ;; Then try citation folding
+     ((or (greger-ui-point-in-cite-tag-p) (greger-ui-point-in-bibliography-p))
+      (greger-ui-toggle-citation-fold))
+     ;; Fall back to markdown-cycle if available
+     ((fboundp 'markdown-cycle)
+      (call-interactively #'markdown-cycle))
+     ;; Final fallback
+     (t
+      (message "Not inside a tool section or citation area")))))
+</tool.toolu_01Mz7bFhxMA77zuFnScAzffu>
+
+### git-commit-message
+
+<tool.toolu_01Mz7bFhxMA77zuFnScAzffu>
+Extend greger-toggle-tool-section to handle citation folding
+
+- Modify greger-toggle-tool-section to check for citations after tool sections
+- Add support for toggling cite tags and bibliography sections with TAB
+- Update docstring to reflect new functionality
+</tool.toolu_01Mz7bFhxMA77zuFnScAzffu>
+
+<!-- TOOL_RESULT_PLACEHOLDER_toolu_01Mz7bFhxMA77zuFnScAzffu -->
