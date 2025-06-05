@@ -715,10 +715,15 @@ Returns either a system message, metadata, or both."
       (greger-parser--create-thinking-message content))))
 
 (defun greger-parser--parse-citations-section (state)
-  "Parse CITATIONS section using STATE."
+  "Parse CITATIONS section using STATE.
+Returns parsed citation data that should be merged with the previous assistant message."
   (let ((content (greger-parser--parse-section-content state)))
     (when content
-      (greger-parser--create-citations-message content))))
+      ;; Parse the citations from the markdown content
+      (let ((parsed-citations (greger-parser--parse-citations-content content)))
+        ;; Return a special marker indicating this contains citation data
+        ;; This will be handled specially in the document parsing
+        (list :type :citations-data :citations parsed-citations)))))
 
 (defun greger-parser--parse-tool-use-section (state)
   "Parse TOOL USE section using STATE."
