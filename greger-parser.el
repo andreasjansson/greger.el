@@ -1186,13 +1186,28 @@ Modifies the content blocks in-place to process <cite> tags."
 (defun greger-parser--content-blocks-to-markdown-with-citations (blocks)
   "Convert content BLOCKS to markdown, collecting citations into a separate section."
   (let ((block-markdown "")
-        (collected-citations '()))
+        (collected-citations '())
+        (first-block t))
     ;; Process each block and collect citations
     (dolist (block blocks)
       (let ((block-result (greger-parser--block-to-markdown-with-citations block)))
-        (setq block-markdown (concat block-markdown
-                                   (if (string-empty-p block-markdown) "" "\n\n")
-                                   (plist-get block-result :markdown)))
+        (let ((markdown (plist-get block-result :markdown)))
+          ;; Add section headers for non-text blocks or the first text block
+          (when (and (not (string-empty-p markdown))
+                     (or (not (string= "text" (alist-get 'type block)))
+                         first-block))
+            (setq first-block nil)
+            (cond
+             ((string= "text" (alist-get 'type block))
+              (setq markdown (concat greger-parser-assistant-tag "\n\n" markdown)))
+             ((string= "thinking" (alist-get 'type block))
+              ;; thinking blocks already have their header
+              nil)
+             ;; other block types already have their headers
+             ))
+          (setq block-markdown (concat block-markdown
+                                     (if (string-empty-p block-markdown) "" "\n\n")
+                                     markdown)))
         ;; Collect citations if any
         (when (plist-get block-result :citations)
           (setq collected-citations (append collected-citations (plist-get block-result :citations))))))

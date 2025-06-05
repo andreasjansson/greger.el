@@ -8169,4 +8169,92 @@ Returns a plist with :markdown and optionally :citations."
 Fix block-to-markdown-with-citations text handling and remove debug
 </tool.toolu_01WbTojKhyXwGBKvPAnffscB>
 
-<!-- TOOL_RESULT_PLACEHOLDER_toolu_01WbTojKhyXwGBKvPAnffscB -->
+## TOOL RESULT:
+
+ID: toolu_01WbTojKhyXwGBKvPAnffscB
+
+<tool.toolu_01WbTojKhyXwGBKvPAnffscB>
+Successfully replaced content in /Users/andreas/projects/greger.el/greger-parser.el. Successfully staged 2 file(s) and committed with message: Fix block-to-markdown-with-citations text handling and remove debug
+</tool.toolu_01WbTojKhyXwGBKvPAnffscB>
+
+## ASSISTANT:
+
+Now I need to update the content-blocks-to-markdown-with-citations function to properly handle the ASSISTANT header at the message level:
+
+## TOOL USE:
+
+Name: str-replace
+ID: toolu_01VCuivyyDYJoaGppxPntHPi
+
+### file-path
+
+<tool.toolu_01VCuivyyDYJoaGppxPntHPi>
+greger-parser.el
+</tool.toolu_01VCuivyyDYJoaGppxPntHPi>
+
+### original-content
+
+<tool.toolu_01VCuivyyDYJoaGppxPntHPi>
+(defun greger-parser--content-blocks-to-markdown-with-citations (blocks)
+  "Convert content BLOCKS to markdown, collecting citations into a separate section."
+  (let ((block-markdown "")
+        (collected-citations '()))
+    ;; Process each block and collect citations
+    (dolist (block blocks)
+      (let ((block-result (greger-parser--block-to-markdown-with-citations block)))
+        (setq block-markdown (concat block-markdown
+                                   (if (string-empty-p block-markdown) "" "\n\n")
+                                   (plist-get block-result :markdown)))
+        ;; Collect citations if any
+        (when (plist-get block-result :citations)
+          (setq collected-citations (append collected-citations (plist-get block-result :citations))))))
+    ;; Combine block markdown with citations section if any citations were found
+    (if collected-citations
+        (concat block-markdown "\n\n" (greger-parser--citations-to-markdown collected-citations))
+      block-markdown)))
+</tool.toolu_01VCuivyyDYJoaGppxPntHPi>
+
+### new-content
+
+<tool.toolu_01VCuivyyDYJoaGppxPntHPi>
+(defun greger-parser--content-blocks-to-markdown-with-citations (blocks)
+  "Convert content BLOCKS to markdown, collecting citations into a separate section."
+  (let ((block-markdown "")
+        (collected-citations '())
+        (first-block t))
+    ;; Process each block and collect citations
+    (dolist (block blocks)
+      (let ((block-result (greger-parser--block-to-markdown-with-citations block)))
+        (let ((markdown (plist-get block-result :markdown)))
+          ;; Add section headers for non-text blocks or the first text block
+          (when (and (not (string-empty-p markdown))
+                     (or (not (string= "text" (alist-get 'type block)))
+                         first-block))
+            (setq first-block nil)
+            (cond
+             ((string= "text" (alist-get 'type block))
+              (setq markdown (concat greger-parser-assistant-tag "\n\n" markdown)))
+             ((string= "thinking" (alist-get 'type block))
+              ;; thinking blocks already have their header
+              nil)
+             ;; other block types already have their headers
+             ))
+          (setq block-markdown (concat block-markdown
+                                     (if (string-empty-p block-markdown) "" "\n\n")
+                                     markdown)))
+        ;; Collect citations if any
+        (when (plist-get block-result :citations)
+          (setq collected-citations (append collected-citations (plist-get block-result :citations))))))
+    ;; Combine block markdown with citations section if any citations were found
+    (if collected-citations
+        (concat block-markdown "\n\n" (greger-parser--citations-to-markdown collected-citations))
+      block-markdown)))
+</tool.toolu_01VCuivyyDYJoaGppxPntHPi>
+
+### git-commit-message
+
+<tool.toolu_01VCuivyyDYJoaGppxPntHPi>
+Fix content blocks to markdown with proper assistant header handling
+</tool.toolu_01VCuivyyDYJoaGppxPntHPi>
+
+<!-- TOOL_RESULT_PLACEHOLDER_toolu_01VCuivyyDYJoaGppxPntHPi -->
