@@ -4788,4 +4788,167 @@ The old parser doesn't support citations at all, so the tests fail.
 Need to fix the citation bug in the new parser instead.
 </tool.toolu_01W2nDz3C9dwiVfDGifLxQMF>
 
-<!-- TOOL_RESULT_PLACEHOLDER_toolu_01W2nDz3C9dwiVfDGifLxQMF -->
+## TOOL RESULT:
+
+ID: toolu_01W2nDz3C9dwiVfDGifLxQMF
+
+<tool.toolu_01W2nDz3C9dwiVfDGifLxQMF>
+Successfully replaced content in /Users/andreas/projects/greger.el/greger-parser.el. Successfully staged 2 file(s) and committed with message: Revert to original citation parsing logic
+
+The old parser doesn't support citations at all, so the tests fail.
+Need to fix the citation bug in the new parser instead.
+</tool.toolu_01W2nDz3C9dwiVfDGifLxQMF>
+
+## ASSISTANT:
+
+Now I need to identify the real issue with the citation handling. Looking at the test failure, the issue is that the citations are being applied incorrectly. Let me examine the citation application logic more carefully.
+
+The problem is in `greger-parser--split-text-with-citations`. Looking at this function again:
+
+```elisp
+(push `((type . "text")
+        (text . ,cited-text)
+        (citations . ,citations))
+      result)
+```
+
+This line assigns ALL citations to every cited text block. But the test expects that each text block gets only its relevant citations.
+
+The real issue is that the parser is collecting all citations into one big list, then applying that entire list to every `<cite>` tag. But what should happen is that each `## CITATIONS:` section should only apply to the `<cite>` tag that immediately precedes it.
+
+Let me look at how the citations are being parsed and stored:
+
+## TOOL USE:
+
+Name: read-file
+ID: toolu_01VNGF9nYdLtS1ezc9USZJqh
+
+### path
+
+<tool.toolu_01VNGF9nYdLtS1ezc9USZJqh>
+greger-parser.el
+</tool.toolu_01VNGF9nYdLtS1ezc9USZJqh>
+
+### start-line
+
+<tool.toolu_01VNGF9nYdLtS1ezc9USZJqh>
+840
+</tool.toolu_01VNGF9nYdLtS1ezc9USZJqh>
+
+### end-line
+
+<tool.toolu_01VNGF9nYdLtS1ezc9USZJqh>
+880
+</tool.toolu_01VNGF9nYdLtS1ezc9USZJqh>
+
+## TOOL RESULT:
+
+ID: toolu_01VNGF9nYdLtS1ezc9USZJqh
+
+<tool.toolu_01VNGF9nYdLtS1ezc9USZJqh>
+
+(defun greger-parser--apply-citations-to-messages (messages citations)
+  "Apply CITATIONS to the last assistant message in MESSAGES that contains <cite> tags."
+  ;; Find the last assistant message and apply citations to it
+  (dolist (message messages)
+    (when (string= "assistant" (alist-get 'role message))
+      (let ((content (alist-get 'content message)))
+        (cond
+         ;; String content - check for <cite> tags and process
+         ((stringp content)
+          (when (string-match-p "<cite>" content)
+            ;; Convert string with cite tags to text blocks
+            (let ((text-blocks (greger-parser--split-text-with-citations content citations)))
+              (setcdr (assq 'content message) text-blocks))))
+         ;; List content - process each content block
+         ((listp content)
+          (greger-parser--add-citations-to-content-blocks content citations)))))))
+
+(defun greger-parser--remove-from-plist (plist key)
+  "Remove KEY from PLIST and return the new plist."
+  (let ((result '())
+        (skip-next nil))
+    (while plist
+      (if skip-next
+          (setq skip-next nil)
+        (if (eq (car plist) key)
+            (setq skip-next t)
+          (push (car plist) result)))
+      (setq plist (cdr plist)))
+    (reverse result)))
+
+(defun greger-parser--remove-cite-tags (text)
+  "Remove <cite> and </cite> tags from TEXT."
+  (let ((result text))
+    (setq result (replace-regexp-in-string "<cite>" "" result))
+    (setq result (replace-regexp-in-string "</cite>" "" result))
+    result))
+
+(defun greger-parser--split-text-with-citations (text citations)
+  "Split TEXT at <cite> boundaries, creating separate text blocks.
+Returns a list of text blocks, with citations attached to cited portions."
+</tool.toolu_01VNGF9nYdLtS1ezc9USZJqh>
+
+## ASSISTANT:
+
+I see the problem! The `greger-parser--apply-citations-to-messages` function applies all citations to every assistant message. But looking at the test case structure, each `## CITATIONS:` section should only apply to the immediately preceding `<cite>` tag.
+
+The current approach of collecting all citations and then applying them at the end doesn't work for multiple citation sections. Instead, citations should be applied immediately when they're encountered.
+
+Let me trace through what happens in the "citations-multiple" test case:
+
+1. Parser encounters the first `<cite>Einstein developed the theory of relativity</cite>`
+2. Parser encounters `## CITATIONS:` section with Einstein citations
+3. Parser encounters the second `<cite>Newton formulated the laws of motion</cite>` 
+4. Parser encounters another `## CITATIONS:` section with Newton citations
+
+The current code collects all citations into one list and then applies them to all cite tags, which is wrong.
+
+The fix is to modify the citation handling so that each `## CITATIONS:` section is immediately applied to the most recent assistant message with cite tags, rather than collecting all citations and applying them at the end.
+
+Let me modify the citation handling approach:
+
+## TOOL USE:
+
+Name: str-replace
+ID: toolu_01QWNmKuReQVNaJ6iJpsBPUC
+
+### file-path
+
+<tool.toolu_01QWNmKuReQVNaJ6iJpsBPUC>
+greger-parser.el
+</tool.toolu_01QWNmKuReQVNaJ6iJpsBPUC>
+
+### original-content
+
+<tool.toolu_01QWNmKuReQVNaJ6iJpsBPUC>
+                 ;; Handle citations data - store for later processing
+                 ((and (listp section-result) (eq (plist-get section-result :type) :citations-data))
+                  (greger-parser--debug state "Found citations data, storing for later processing")
+                  (setq metadata (append metadata (list :pending-citations (plist-get section-result :citations)))))
+</tool.toolu_01QWNmKuReQVNaJ6iJpsBPUC>
+
+### new-content
+
+<tool.toolu_01QWNmKuReQVNaJ6iJpsBPUC>
+                 ;; Handle citations data - apply immediately to the last assistant message
+                 ((and (listp section-result) (eq (plist-get section-result :type) :citations-data))
+                  (greger-parser--debug state "Found citations data, applying to last assistant message")
+                  (let ((citations (plist-get section-result :citations)))
+                    (when citations
+                      ;; Apply citations to the most recent assistant message
+                      (greger-parser--apply-citations-to-last-assistant-message sections citations))))
+</tool.toolu_01QWNmKuReQVNaJ6iJpsBPUC>
+
+### git-commit-message
+
+<tool.toolu_01QWNmKuReQVNaJ6iJpsBPUC>
+Apply citations immediately instead of collecting them
+
+Fix citation bug by applying each CITATIONS section immediately to
+the most recent assistant message, rather than collecting all citations
+and applying them at the end. This fixes the issue where all citations
+were being applied to all cite blocks.
+</tool.toolu_01QWNmKuReQVNaJ6iJpsBPUC>
+
+<!-- TOOL_RESULT_PLACEHOLDER_toolu_01QWNmKuReQVNaJ6iJpsBPUC -->

@@ -646,10 +646,13 @@ Returns a plist with :messages and :metadata keys."
                  ((and (listp section-result) (eq (car section-result) :metadata))
                   (greger-parser--debug state "Found metadata section")
                   (setq metadata (append metadata (cdr section-result))))
-                 ;; Handle citations data - store for later processing
+                 ;; Handle citations data - apply immediately to the last assistant message
                  ((and (listp section-result) (eq (plist-get section-result :type) :citations-data))
-                  (greger-parser--debug state "Found citations data, storing for later processing")
-                  (setq metadata (append metadata (list :pending-citations (plist-get section-result :citations)))))
+                  (greger-parser--debug state "Found citations data, applying to last assistant message")
+                  (let ((citations (plist-get section-result :citations)))
+                    (when citations
+                      ;; Apply citations to the most recent assistant message
+                      (greger-parser--apply-citations-to-last-assistant-message sections citations))))
                  ;; Regular message
                  (t
                   (greger-parser--debug state "Regular message section")
