@@ -295,42 +295,45 @@ parameters.  Returns a list of arguments in the correct order for the function."
 (defun greger-tools--maybe-parse-json-value (value arg-key tool-def)
   "Parse VALUE as JSON if ARG-KEY requires JSON parsing based on TOOL-DEF schema.
 Handles arrays, booleans, and numbers."
-  (if (and (stringp value) tool-def)
-      (let* ((schema (plist-get tool-def :schema))
-             (input-schema (alist-get 'input_schema schema))
-             (properties (alist-get 'properties input-schema))
-             (arg-property (alist-get arg-key properties))
-             (param-type (alist-get 'type arg-property)))
-        (cond
-         ;; Parse JSON array string
-         ((string= param-type "array")
-          (condition-case nil
-              (json-parse-string value :array-type 'list)
-            (error value))) ; Return original value if parsing fails
+  (let* ((schema (plist-get tool-def :schema))
+         (input-schema (alist-get 'input_schema schema))
+         (properties (alist-get 'properties input-schema))
+         (arg-property (alist-get arg-key properties))
+         (param-type (alist-get 'type arg-property)))
+    (cond
+     ;; Parse JSON array string
+     ((and (stringp value) (string= param-type "array"))
+      (condition-case nil
+          (json-parse-string value :array-type 'list)
+        (error value))) ; Return original value if parsing fails
 
-         ;; Parse boolean strings
-         ((string= param-type "boolean")
-          (cond
-           ((string= value "true") t)
-           ((string= value "false") nil)
-           ((string= value ":json-true") t)
-           ((string= value ":json-false") nil)
-           (t value))) ; Return original if not a recognized boolean
+     ;; Parse boolean strings
+     ((and (stringp value) (string= param-type "boolean"))
+      (cond
+       ((string= value "true") t)
+       ((string= value "false") nil)
+       ((string= value ":json-true") t)
+       ((string= value ":json-false") nil)
+       (t nil))) ; Return nil if not a recognized boolean
 
-         ;; Parse number strings
-         ((or (string= param-type "integer") (string= param-type "number"))
-          (condition-case nil
-              (if (string-match-p "^-?[0-9]+$" value)
-                  (string-to-number value)
-                (if (string-match-p "^-?[0-9]*\\.[0-9]+$" value)
-                    (string-to-number value)
-                  value)) ; Return original if not a number
-            (error value)))
+     ((and (symbolp value) (string= param-type "boolean"))
+      (cond
+       ((eq value :json-true) t)
+       ((eq value :json-false) nil)
+       (t nil))) ; Return nil if not a recognized symbol
 
-         ;; For other types (string, object), return as-is
-         (t value)))
-    ;; Not a string or no tool-def, return as-is
-    value))
+     ;; Parse number strings
+     ((or (string= param-type "integer") (string= param-type "number"))
+      (condition-case nil
+          (if (string-match-p "^-?[0-9]+$" value)
+              (string-to-number value)
+            (if (string-match-p "^-?[0-9]*\\.[0-9]+$" value)
+                (string-to-number value)
+              value)) ; Return original if not a number
+        (error value)))
+
+     ;; For other types (string, object), return as-is
+     (t value))))
 
 (provide 'greger-tools)
 
