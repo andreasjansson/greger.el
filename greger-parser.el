@@ -439,23 +439,13 @@
   "Convert user content blocks to markdown format."
   (if (null content-blocks)
       ""
-    (let ((result "")
-          (needs-separator nil))
-      (dolist (block content-blocks)
-        (let* ((block-type (alist-get 'type block))
-               (block-markdown (cond
-                               ((string= block-type "text")
-                                (alist-get 'text block))
-                               ((string= block-type "tool_result")
-                                ;; Tool result doesn't get a USER header, it's part of the user message
-                                (substring (greger-parser--tool-result-to-markdown block)
-                                          (length greger-parser-tool-result-tag)))
-                               (t (greger-parser--block-to-markdown block t)))))
-          (when needs-separator
-            (setq result (concat result "\n\n")))
-          (setq result (concat result block-markdown))
-          (setq needs-separator t)))
-      result)))
+    (mapconcat (lambda (block)
+                 (let ((block-type (alist-get 'type block)))
+                   (cond
+                    ((string= block-type "text")
+                     (alist-get 'text block))
+                    (t (greger-parser--block-to-markdown block t)))))
+               content-blocks "\n\n")))
 
 (defun greger-parser--assistant-content-blocks-to-markdown (content-blocks)
   "Convert assistant content blocks to markdown format."
