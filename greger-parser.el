@@ -464,13 +464,17 @@
             "Cited text: " cited-text "\n"
             "Encrypted index: " encrypted-index)))
 
-(defun greger-parser--block-to-markdown (block)
+(defun greger-parser--block-to-markdown (block &optional skip-header)
+  "Convert a content block to markdown.
+If SKIP-HEADER is true, don't add section headers for text blocks."
   (let ((type (alist-get 'type block)))
     (cond
      ((string= type "text")
       (if (alist-get 'citations block)
           (greger-parser--citations-to-markdown block)
-        (concat greger-parser-assistant-tag "\n\n" (alist-get 'text block))))
+        (if skip-header
+            (alist-get 'text block)
+          (concat greger-parser-assistant-tag "\n\n" (alist-get 'text block)))))
      ((string= type "thinking")
       (concat greger-parser-thinking-tag "\n\n" (alist-get 'thinking block)))
      ((string= type "tool_use")
