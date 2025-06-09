@@ -416,8 +416,14 @@
   "Convert user CONTENT to markdown."
   (if (stringp content)
       (concat greger-parser-user-tag "\n\n" content)
-    (concat greger-parser-user-tag "\n\n"
-            (greger-parser--user-content-blocks-to-markdown content))))
+    ;; Check if this is a pure tool result message (only contains tool_result blocks)
+    (if (and (= (length content) 1)
+             (string= (alist-get 'type (car content)) "tool_result"))
+        ;; Pure tool result - just output it directly
+        (greger-parser--tool-result-to-markdown (car content))
+      ;; Mixed content - add USER header
+      (concat greger-parser-user-tag "\n\n"
+              (greger-parser--user-content-blocks-to-markdown content)))))
 
 (defun greger-parser--assistant-to-markdown (content)
   "Convert assistant CONTENT to markdown."
