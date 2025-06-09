@@ -56,11 +56,15 @@
   (unless (treesit-ready-p 'greger)
     (error "Tree-sitter greger parser not available"))
 
-  (with-temp-buffer
-    (insert text)
-    (let* ((parser (treesit-parser-create 'greger))
-           (root-node (treesit-parser-root-node parser)))
-      (greger-parser--extract-dialog-from-node root-node))))
+  ;; Handle empty or whitespace-only input
+  (let ((trimmed-text (string-trim text)))
+    (if (string= trimmed-text "")
+        '()
+      (with-temp-buffer
+        (insert text)
+        (let* ((parser (treesit-parser-create 'greger))
+               (root-node (treesit-parser-root-node parser)))
+          (greger-parser--extract-dialog-from-node root-node))))))
 
 (defun greger-parser-dialog-to-markdown (dialog)
   "Convert DIALOG to markdown format."
