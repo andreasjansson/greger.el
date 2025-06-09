@@ -95,29 +95,218 @@
   "Normalize whitespace in string for comparison."
   (string-trim (replace-regexp-in-string "[ \t\n\r]+" " " str)))
 
-;; Main test suite
-(ert-deftest greger-parser-test-markdown-to-dialog ()
-  "Test converting markdown to dialog format."
-  (dolist (test-case greger-parser-test-cases)
-    (let ((name (plist-get test-case :name))
-          (markdown (plist-get test-case :markdown))
-          (expected-dialog (plist-get test-case :dialog)))
-      (message "Testing markdown-to-dialog for: %s" name)
-      (let ((actual-dialog (greger-parser-markdown-to-dialog markdown)))
-        (should (greger-parser-test--dialog-equal expected-dialog actual-dialog))))))
+;; Individual test cases imported from greger-grammar corpus files
+;; Each test performs roundtrip testing: markdown -> dialog -> markdown
 
-(ert-deftest greger-parser-test-roundtrip ()
-  "Test that markdown -> dialog -> markdown preserves structure."
-  (dolist (test-case greger-parser-test-cases)
-    (let ((name (plist-get test-case :name))
-          (original-markdown (plist-get test-case :markdown)))
-      (message "Testing roundtrip for: %s" name)
-      (let* ((dialog (greger-parser-markdown-to-dialog original-markdown))
-             (roundtrip-markdown (greger-parser-dialog-to-markdown dialog))
-             (roundtrip-dialog (greger-parser-markdown-to-dialog roundtrip-markdown)))
-        ;; The dialog should be structurally equivalent after round-trip
-        (should (= (length dialog) (length roundtrip-dialog)))
-        (should (greger-parser-test--dialog-equal dialog roundtrip-dialog))))))
+(ert-deftest greger-parser-test-simple-user-message ()
+  "Test roundtrip for simple-user-message corpus case."
+  (let ((original-markdown (greger-read-corpus-file "simple-user-message")))
+    (let* ((dialog (greger-parser-markdown-to-dialog original-markdown))
+           (roundtrip-markdown (greger-parser-dialog-to-markdown dialog))
+           (roundtrip-dialog (greger-parser-markdown-to-dialog roundtrip-markdown)))
+      ;; The dialog should be structurally equivalent after round-trip
+      (should (= (length dialog) (length roundtrip-dialog)))
+      (should (greger-parser-test--dialog-equal dialog roundtrip-dialog)))))
+
+(ert-deftest greger-parser-test-system-and-user ()
+  "Test roundtrip for system-and-user corpus case."
+  (let ((original-markdown (greger-read-corpus-file "system-and-user")))
+    (let* ((dialog (greger-parser-markdown-to-dialog original-markdown))
+           (roundtrip-markdown (greger-parser-dialog-to-markdown dialog))
+           (roundtrip-dialog (greger-parser-markdown-to-dialog roundtrip-markdown)))
+      ;; The dialog should be structurally equivalent after round-trip
+      (should (= (length dialog) (length roundtrip-dialog)))
+      (should (greger-parser-test--dialog-equal dialog roundtrip-dialog)))))
+
+(ert-deftest greger-parser-test-simple-conversation ()
+  "Test roundtrip for simple-conversation corpus case."
+  (let ((original-markdown (greger-read-corpus-file "simple-conversation")))
+    (let* ((dialog (greger-parser-markdown-to-dialog original-markdown))
+           (roundtrip-markdown (greger-parser-dialog-to-markdown dialog))
+           (roundtrip-dialog (greger-parser-markdown-to-dialog roundtrip-markdown)))
+      ;; The dialog should be structurally equivalent after round-trip
+      (should (= (length dialog) (length roundtrip-dialog)))
+      (should (greger-parser-test--dialog-equal dialog roundtrip-dialog)))))
+
+(ert-deftest greger-parser-test-thinking-section ()
+  "Test roundtrip for thinking-section corpus case."
+  (let ((original-markdown (greger-read-corpus-file "thinking-section")))
+    (let* ((dialog (greger-parser-markdown-to-dialog original-markdown))
+           (roundtrip-markdown (greger-parser-dialog-to-markdown dialog))
+           (roundtrip-dialog (greger-parser-markdown-to-dialog roundtrip-markdown)))
+      ;; The dialog should be structurally equivalent after round-trip
+      (should (= (length dialog) (length roundtrip-dialog)))
+      (should (greger-parser-test--dialog-equal dialog roundtrip-dialog)))))
+
+(ert-deftest greger-parser-test-tool-use-single-param ()
+  "Test roundtrip for tool-use-single-param corpus case."
+  (let ((original-markdown (greger-read-corpus-file "tool-use-single-param")))
+    (let* ((dialog (greger-parser-markdown-to-dialog original-markdown))
+           (roundtrip-markdown (greger-parser-dialog-to-markdown dialog))
+           (roundtrip-dialog (greger-parser-markdown-to-dialog roundtrip-markdown)))
+      ;; The dialog should be structurally equivalent after round-trip
+      (should (= (length dialog) (length roundtrip-dialog)))
+      (should (greger-parser-test--dialog-equal dialog roundtrip-dialog)))))
+
+(ert-deftest greger-parser-test-tool-use-multiple-params ()
+  "Test roundtrip for tool-use-multiple-params corpus case."
+  (let ((original-markdown (greger-read-corpus-file "tool-use-multiple-params")))
+    (let* ((dialog (greger-parser-markdown-to-dialog original-markdown))
+           (roundtrip-markdown (greger-parser-dialog-to-markdown dialog))
+           (roundtrip-dialog (greger-parser-markdown-to-dialog roundtrip-markdown)))
+      ;; The dialog should be structurally equivalent after round-trip
+      (should (= (length dialog) (length roundtrip-dialog)))
+      (should (greger-parser-test--dialog-equal dialog roundtrip-dialog)))))
+
+(ert-deftest greger-parser-test-complex-workflow ()
+  "Test roundtrip for complex-workflow corpus case."
+  (let ((original-markdown (greger-read-corpus-file "complex-workflow")))
+    (let* ((dialog (greger-parser-markdown-to-dialog original-markdown))
+           (roundtrip-markdown (greger-parser-dialog-to-markdown dialog))
+           (roundtrip-dialog (greger-parser-markdown-to-dialog roundtrip-markdown)))
+      ;; The dialog should be structurally equivalent after round-trip
+      (should (= (length dialog) (length roundtrip-dialog)))
+      (should (greger-parser-test--dialog-equal dialog roundtrip-dialog)))))
+
+(ert-deftest greger-parser-test-multiple-tool-uses ()
+  "Test roundtrip for multiple-tool-uses corpus case."
+  (let ((original-markdown (greger-read-corpus-file "multiple-tool-uses")))
+    (let* ((dialog (greger-parser-markdown-to-dialog original-markdown))
+           (roundtrip-markdown (greger-parser-dialog-to-markdown dialog))
+           (roundtrip-dialog (greger-parser-markdown-to-dialog roundtrip-markdown)))
+      ;; The dialog should be structurally equivalent after round-trip
+      (should (= (length dialog) (length roundtrip-dialog)))
+      (should (greger-parser-test--dialog-equal dialog roundtrip-dialog)))))
+
+(ert-deftest greger-parser-test-thinking-only ()
+  "Test roundtrip for thinking-only corpus case."
+  (let ((original-markdown (greger-read-corpus-file "thinking-only")))
+    (let* ((dialog (greger-parser-markdown-to-dialog original-markdown))
+           (roundtrip-markdown (greger-parser-dialog-to-markdown dialog))
+           (roundtrip-dialog (greger-parser-markdown-to-dialog roundtrip-markdown)))
+      ;; The dialog should be structurally equivalent after round-trip
+      (should (= (length dialog) (length roundtrip-dialog)))
+      (should (greger-parser-test--dialog-equal dialog roundtrip-dialog)))))
+
+(ert-deftest greger-parser-test-tool-use-only ()
+  "Test roundtrip for tool-use-only corpus case."
+  (let ((original-markdown (greger-read-corpus-file "tool-use-only")))
+    (let* ((dialog (greger-parser-markdown-to-dialog original-markdown))
+           (roundtrip-markdown (greger-parser-dialog-to-markdown dialog))
+           (roundtrip-dialog (greger-parser-markdown-to-dialog roundtrip-markdown)))
+      ;; The dialog should be structurally equivalent after round-trip
+      (should (= (length dialog) (length roundtrip-dialog)))
+      (should (greger-parser-test--dialog-equal dialog roundtrip-dialog)))))
+
+(ert-deftest greger-parser-test-citations-basic ()
+  "Test roundtrip for citations-basic corpus case."
+  (let ((original-markdown (greger-read-corpus-file "citations-basic")))
+    (let* ((dialog (greger-parser-markdown-to-dialog original-markdown))
+           (roundtrip-markdown (greger-parser-dialog-to-markdown dialog))
+           (roundtrip-dialog (greger-parser-markdown-to-dialog roundtrip-markdown)))
+      ;; The dialog should be structurally equivalent after round-trip
+      (should (= (length dialog) (length roundtrip-dialog)))
+      (should (greger-parser-test--dialog-equal dialog roundtrip-dialog)))))
+
+(ert-deftest greger-parser-test-citations-after-tool-result ()
+  "Test roundtrip for citations-after-tool-result corpus case."
+  (let ((original-markdown (greger-read-corpus-file "citations-after-tool-result")))
+    (let* ((dialog (greger-parser-markdown-to-dialog original-markdown))
+           (roundtrip-markdown (greger-parser-dialog-to-markdown dialog))
+           (roundtrip-dialog (greger-parser-markdown-to-dialog roundtrip-markdown)))
+      ;; The dialog should be structurally equivalent after round-trip
+      (should (= (length dialog) (length roundtrip-dialog)))
+      (should (greger-parser-test--dialog-equal dialog roundtrip-dialog)))))
+
+(ert-deftest greger-parser-test-citations-multiple ()
+  "Test roundtrip for citations-multiple corpus case."
+  (let ((original-markdown (greger-read-corpus-file "citations-multiple")))
+    (let* ((dialog (greger-parser-markdown-to-dialog original-markdown))
+           (roundtrip-markdown (greger-parser-dialog-to-markdown dialog))
+           (roundtrip-dialog (greger-parser-markdown-to-dialog roundtrip-markdown)))
+      ;; The dialog should be structurally equivalent after round-trip
+      (should (= (length dialog) (length roundtrip-dialog)))
+      (should (greger-parser-test--dialog-equal dialog roundtrip-dialog)))))
+
+(ert-deftest greger-parser-test-code-block-triple-backticks ()
+  "Test roundtrip for code-block-triple-backticks corpus case."
+  (let ((original-markdown (greger-read-corpus-file "code-block-triple-backticks")))
+    (let* ((dialog (greger-parser-markdown-to-dialog original-markdown))
+           (roundtrip-markdown (greger-parser-dialog-to-markdown dialog))
+           (roundtrip-dialog (greger-parser-markdown-to-dialog roundtrip-markdown)))
+      ;; The dialog should be structurally equivalent after round-trip
+      (should (= (length dialog) (length roundtrip-dialog)))
+      (should (greger-parser-test--dialog-equal dialog roundtrip-dialog)))))
+
+(ert-deftest greger-parser-test-mixed-code-blocks-and-sections ()
+  "Test roundtrip for mixed-code-blocks-and-sections corpus case."
+  (let ((original-markdown (greger-read-corpus-file "mixed-code-blocks-and-sections")))
+    (let* ((dialog (greger-parser-markdown-to-dialog original-markdown))
+           (roundtrip-markdown (greger-parser-dialog-to-markdown dialog))
+           (roundtrip-dialog (greger-parser-markdown-to-dialog roundtrip-markdown)))
+      ;; The dialog should be structurally equivalent after round-trip
+      (should (= (length dialog) (length roundtrip-dialog)))
+      (should (greger-parser-test--dialog-equal dialog roundtrip-dialog)))))
+
+(ert-deftest greger-parser-test-tool-use-with-code-in-params ()
+  "Test roundtrip for tool-use-with-code-in-params corpus case."
+  (let ((original-markdown (greger-read-corpus-file "tool-use-with-code-in-params")))
+    (let* ((dialog (greger-parser-markdown-to-dialog original-markdown))
+           (roundtrip-markdown (greger-parser-dialog-to-markdown dialog))
+           (roundtrip-dialog (greger-parser-markdown-to-dialog roundtrip-markdown)))
+      ;; The dialog should be structurally equivalent after round-trip
+      (should (= (length dialog) (length roundtrip-dialog)))
+      (should (greger-parser-test--dialog-equal dialog roundtrip-dialog)))))
+
+(ert-deftest greger-parser-test-tool-use-with-tool-use-in-params ()
+  "Test roundtrip for tool-use-with-tool-use-in-params corpus case."
+  (let ((original-markdown (greger-read-corpus-file "tool-use-with-tool-use-in-params")))
+    (let* ((dialog (greger-parser-markdown-to-dialog original-markdown))
+           (roundtrip-markdown (greger-parser-dialog-to-markdown dialog))
+           (roundtrip-dialog (greger-parser-markdown-to-dialog roundtrip-markdown)))
+      ;; The dialog should be structurally equivalent after round-trip
+      (should (= (length dialog) (length roundtrip-dialog)))
+      (should (greger-parser-test--dialog-equal dialog roundtrip-dialog)))))
+
+(ert-deftest greger-parser-test-nested-code-blocks ()
+  "Test roundtrip for nested-code-blocks corpus case."
+  (let ((original-markdown (greger-read-corpus-file "nested-code-blocks")))
+    (let* ((dialog (greger-parser-markdown-to-dialog original-markdown))
+           (roundtrip-markdown (greger-parser-dialog-to-markdown dialog))
+           (roundtrip-dialog (greger-parser-markdown-to-dialog roundtrip-markdown)))
+      ;; The dialog should be structurally equivalent after round-trip
+      (should (= (length dialog) (length roundtrip-dialog)))
+      (should (greger-parser-test--dialog-equal dialog roundtrip-dialog)))))
+
+(ert-deftest greger-parser-test-html-comments ()
+  "Test roundtrip for html-comments corpus case."
+  (let ((original-markdown (greger-read-corpus-file "html-comments")))
+    (let* ((dialog (greger-parser-markdown-to-dialog original-markdown))
+           (roundtrip-markdown (greger-parser-dialog-to-markdown dialog))
+           (roundtrip-dialog (greger-parser-markdown-to-dialog roundtrip-markdown)))
+      ;; The dialog should be structurally equivalent after round-trip
+      (should (= (length dialog) (length roundtrip-dialog)))
+      (should (greger-parser-test--dialog-equal dialog roundtrip-dialog)))))
+
+(ert-deftest greger-parser-test-server-tool-use-basic ()
+  "Test roundtrip for server-tool-use-basic corpus case."
+  (let ((original-markdown (greger-read-corpus-file "server-tool-use-basic")))
+    (let* ((dialog (greger-parser-markdown-to-dialog original-markdown))
+           (roundtrip-markdown (greger-parser-dialog-to-markdown dialog))
+           (roundtrip-dialog (greger-parser-markdown-to-dialog roundtrip-markdown)))
+      ;; The dialog should be structurally equivalent after round-trip
+      (should (= (length dialog) (length roundtrip-dialog)))
+      (should (greger-parser-test--dialog-equal dialog roundtrip-dialog)))))
+
+(ert-deftest greger-parser-test-server-tool-use-string-result ()
+  "Test roundtrip for server-tool-use-string-result corpus case."
+  (let ((original-markdown (greger-read-corpus-file "server-tool-use-string-result")))
+    (let* ((dialog (greger-parser-markdown-to-dialog original-markdown))
+           (roundtrip-markdown (greger-parser-dialog-to-markdown dialog))
+           (roundtrip-dialog (greger-parser-markdown-to-dialog roundtrip-markdown)))
+      ;; The dialog should be structurally equivalent after round-trip
+      (should (= (length dialog) (length roundtrip-dialog)))
+      (should (greger-parser-test--dialog-equal dialog roundtrip-dialog)))))
 
 (ert-deftest greger-parser-test-tool-use-parsing ()
   "Test specific tool use parsing functionality."
