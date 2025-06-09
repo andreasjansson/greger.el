@@ -430,23 +430,21 @@
   (concat greger-parser-system-tag "\n\n" content))
 
 (defun greger-parser--content-blocks-to-markdown (content-blocks)
-  "Convert DIALOG to markdown format."
+  "Convert content blocks to markdown format."
   (if (null content-blocks)
       ""
-    (let ((result ""))
-      (dotimes (i (- (length content-blocks) 1))
-        (let* ((block (nth i content-blocks))
-               (next-block (nth (1+ i) content-blocks))
-               (current-block-is-text (string= (alist-get 'type block) "text"))
-               (next-block-has-citations (greger-parser--content-block-has-citations next-block))
-               (insert-double-newline (not (and current-block-is-text next-block-has-citations)))
-               (insert-assistant-tag (and (not current-block-is-text) next-block-has-citations)))
-          (setq result (concat result (greger-parser--block-to-markdown block)))
-          (when insert-double-newline
+    (let ((result "")
+          (previous-block-type nil))
+      (dolist (block content-blocks)
+        (let* ((block-type (alist-get 'type block))
+               (needs-separator (and previous-block-type
+                                     (not (string= result ""))
+                                     (greger-parser--needs-block-separator previous-block-type block-type)))
+               (block-markdown (greger-parser--block-to-markdown block)))
+          (when needs-separator
             (setq result (concat result "\n\n")))
-          (when insert-assistant-tag
-            (setq result (concat result greger-parser-assistant-tag "\n\n")))))
-      (setq result (concat result (greger-parser--block-to-markdown (car (last content-blocks)))))
+          (setq result (concat result block-markdown))
+          (setq previous-block-type block-type)))
       result)))
 
 (defun greger-parser--citations-list-to-markdown (citations)
