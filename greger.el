@@ -79,7 +79,7 @@
   :type '(repeat symbol)
   :group 'greger)
 
-(defcustom greger-server-tools '("web_search")
+(defcustom greger-server-tools '()       ; '("web_search")
   "List of server tools available to the agent (e.g., web_search)."
   :type '(repeat symbol)
   :group 'greger)
@@ -181,7 +181,7 @@
   (setq-local markdown-fontify-code-blocks-natively t)
   (setq-local mode-line-misc-info '(:eval (greger--mode-line-info)))
   ;; Set up UI folding (both tools and citations)
-  (greger-ui-setup-folding)
+  ;(greger-ui-setup-folding)
   ;; Set up custom heading font-lock
   (greger--setup-heading-font-lock)
   ;; Add hook to update tool sections when buffer changes
@@ -440,7 +440,10 @@ READ-ONLY is t to make read-only, nil to make writable."
                          :buffer chat-buffer
                          :block-start-callback (lambda (content-block) (greger--append-streaming-content-header state content-block))
                          :text-delta-callback (lambda (text) (greger--append-text state text))
-                         :block-stop-callback (lambda (type content-block) (greger--append-nonstreaming-content-block state type content-block))
+                         :block-stop-callback (lambda (type content-block)
+                                                (greger--append-nonstreaming-content-block state type content-block)
+                                                ;(greger-ui-refresh-folding)
+                                                )
                          :complete-callback (lambda (content-blocks) (greger--handle-stream-completion state content-blocks)))))
       ;; Store the client state for potential cancellation
       (setf (greger-state-client-state state) client-state)
@@ -631,7 +634,8 @@ READ-ONLY is t to make read-only, nil to make writable."
     (let ((inhibit-read-only t))
       (goto-char (point-max))
       (insert text))
-    (greger-ui-refresh-folding)))
+    ;(greger-ui-refresh-folding)
+    ))
 
 (cl-defun greger--handle-tool-completion (&key tool-id result error state completion-callback)
   "Handle completion of a tool execution by updating buffer and calling callback.
@@ -737,7 +741,9 @@ _LEN is the length of the pre-change text (unused)."
   ;; Only run timer-based cleanup for complex changes or when not actively streaming
   (when (and (> (- end beg) 0)  ; Only if there was an actual change
              (not (greger--is-actively-streaming)))
-    (run-with-idle-timer 0.1 nil #'greger-ui-refresh-folding)))
+                                        ;(run-with-idle-timer 0.1 nil #'greger-ui-refresh-folding)
+    nil
+    ))
 
 (defun greger--is-actively-streaming ()
   "Check if we're currently streaming content from the AI."

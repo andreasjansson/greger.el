@@ -31,6 +31,7 @@
 
 ;;; Code:
 
+(require 'treesit)
 (require 'json)
 (require 'cl-lib)
 (require 'greger-web)
@@ -46,43 +47,20 @@
 (defconst greger-parser-server-tool-use-tag "## SERVER TOOL USE:")
 (defconst greger-parser-server-tool-result-tag "## SERVER TOOL RESULT:")
 
-;;; Parser state structure
+(add-to-list 'treesit-extra-load-path "./greger-grammar")
 
-(cl-defstruct greger-parser-state
-  input
-  pos
-  length
-  debug
-  metadata)
+;; Entrypoints
 
-(defun greger-parser--create-state (input &optional debug)
-  "Create a parser state for INPUT with optional DEBUG flag."
-  (make-greger-parser-state
-   :input (or input "")
-   :pos 0
-   :length (length (or input ""))
-   :debug debug
-   :metadata '()))
+(defun greger-parser-markdown-to-dialog (text)
+  "Parse greger conversation TEXT using tree-sitter and return structured dialog."
+  (unless (treesit-ready-p 'greger)
+    (error "Tree-sitter greger parser not available"))
 
-(defun greger-parser--debug (state format-string &rest args)
-  "Debug logging function using STATE.
-FORMAT-STRING is the format template and ARGS are the format arguments."
-  (when (greger-parser-state-debug state)
-    (message "[PARSER DEBUG] %s" (apply #'format format-string args))))
-
-;; Main parsing entry points
-
-(defun greger-parser-parse-dialog (markdown &optional debug)
-  "Parse MARKDOWN into dialog format with optional DEBUG flag.
-Returns a plist with :messages and :metadata keys."
-  (if (or (null markdown) (string-empty-p (string-trim markdown)))
-      '(:messages () :metadata ())
-    (let ((state (greger-parser--create-state markdown debug)))
-      (condition-case err
-          (greger-parser--parse-document state)
-        (error
-         (greger-parser--debug state "Parse error: %s" (error-message-string err))
-         '(:messages () :metadata ()))))))
+  (with-temp-buffer
+    (insert text)
+    (let* ((parser (treesit-parser-create 'greger))
+           (root-node (treesit-parser-root-node parser)))
+      (greger-parser--extract-dialog-from-node root-node))))
 
 (defun greger-parser-dialog-to-markdown (dialog)
   "Convert DIALOG to markdown format."
@@ -90,1036 +68,174 @@ Returns a plist with :messages and :metadata keys."
       ""
     (mapconcat #'greger-parser--message-to-markdown dialog "\n\n")))
 
-;; Parser infrastructure
+;; Tree-sitter-based markdown-to-dialog parsing
 
-(defun greger-parser--at-end-p (state)
-  "True if at end of input in STATE."
-  (>= (greger-parser-state-pos state) (greger-parser-state-length state)))
+(defun greger-parser--extract-dialog-from-node (node)
+  "Extract dialog entries from a tree-sitter NODE."
+  (let ((raw-entries '()))
+    ;; First extract all entries
+    (dolist (child (treesit-node-children node))
+      (let ((entry (greger-parser--extract-entry-from-node child)))
+        (when entry
+          (push entry raw-entries))))
+    ;; Then merge assistant-related entries
+    (greger-parser--merge-assistant-entries (nreverse raw-entries))))
 
-(defun greger-parser--peek (state &optional offset)
-  "Peek at character at current position plus OFFSET in STATE."
-  (let ((pos (+ (greger-parser-state-pos state) (or offset 0))))
-    (if (and (>= pos 0) (< pos (greger-parser-state-length state)))
-        (aref (greger-parser-state-input state) pos)
-      nil)))
-
-(defun greger-parser--advance (state &optional n)
-  "Advance position by N characters (default 1) in STATE."
-  (let ((old-pos (greger-parser-state-pos state)))
-    (setf (greger-parser-state-pos state)
-          (min (greger-parser-state-length state)
-               (+ (greger-parser-state-pos state) (or n 1))))
-    (greger-parser--debug state "Advanced from %d to %d" old-pos (greger-parser-state-pos state))))
-
-(defun greger-parser--current-pos (state)
-  "Get current position from STATE."
-  (greger-parser-state-pos state))
-
-(defun greger-parser--insert-content-at-pos (state content)
-  "Insert CONTENT into STATE at the current position and update length."
-  (let* ((pos (greger-parser-state-pos state))
-         (input (greger-parser-state-input state))
-         (before (substring input 0 pos))
-         (after (substring input pos))
-         (new-input (concat before content after)))
-    (setf (greger-parser-state-input state) new-input)
-    (setf (greger-parser-state-length state) (length new-input))))
-
-(defun greger-parser--substring (state start &optional end)
-  "Get substring from START to END (or current position) in STATE."
-  (let ((input (greger-parser-state-input state))
-        (length (greger-parser-state-length state))
-        (current-pos (greger-parser-state-pos state)))
-    (if (and (>= start 0)
-             (<= start length)
-             (or (null end) (<= end length)))
-        (substring input start (or end current-pos))
-      "")))
-
-(defun greger-parser--looking-at (state string)
-  "True if current position matches STRING in STATE."
-  (and string
-       (<= (+ (greger-parser-state-pos state) (length string)) (greger-parser-state-length state))
-       (string= (greger-parser--substring state (greger-parser-state-pos state)
-                                         (+ (greger-parser-state-pos state) (length string)))
-                string)))
-
-(defun greger-parser--at-triple-backticks (state)
-  "True if current position matches ``` at beginning of line in STATE."
-  (and (greger-parser--at-line-start-p state)
-       (greger-parser--looking-at state "```")))
-
-;; Character tests
-
-(defun greger-parser--whitespace-p (char)
-  "True if CHAR is whitespace."
-  (and char (memq char '(?\s ?\t ?\n ?\r))))
-
-(defun greger-parser--horizontal-whitespace-p (char)
-  "True if CHAR is horizontal whitespace."
-  (and char (memq char '(?\s ?\t))))
-
-(defun greger-parser--newline-p (char)
-  "True if CHAR is newline."
-  (and char (eq char ?\n)))
-
-;; Navigation
-
-(defun greger-parser--skip-whitespace (state)
-  "Skip all whitespace in STATE."
-  (let ((start-pos (greger-parser-state-pos state)))
-    (while (and (not (greger-parser--at-end-p state))
-                (greger-parser--whitespace-p (greger-parser--peek state)))
-      (greger-parser--advance state))
-    (when (> (greger-parser-state-pos state) start-pos)
-      (greger-parser--debug state "Skipped whitespace from %d to %d" start-pos (greger-parser-state-pos state)))))
-
-(defun greger-parser--skip-horizontal-whitespace (state)
-  "Skip spaces and tabs in STATE."
-  (while (and (not (greger-parser--at-end-p state))
-              (greger-parser--horizontal-whitespace-p (greger-parser--peek state)))
-    (greger-parser--advance state)))
-
-(defun greger-parser--at-line-start-p (state)
-  "True if at start of line in STATE."
-  (or (= (greger-parser-state-pos state) 0)
-      (greger-parser--newline-p (greger-parser--peek state -1))))
-
-(defun greger-parser--skip-to-line-end (state)
-  "Skip to end of current line in STATE."
-  (while (and (not (greger-parser--at-end-p state))
-              (not (greger-parser--newline-p (greger-parser--peek state))))
-    (greger-parser--advance state)))
-
-(defun greger-parser--read-line (state)
-  "Read rest of current line in STATE."
-  (let ((start (greger-parser--current-pos state)))
-    (greger-parser--skip-to-line-end state)
-    (string-trim (greger-parser--substring state start))))
-
-;; Section tag handling
-
-(defun greger-parser--section-tags ()
-  "List of all section tags."
-  (list greger-parser-system-tag
-        greger-parser-user-tag
-        greger-parser-assistant-tag
-        greger-parser-thinking-tag
-        greger-parser-citations-tag
-        greger-parser-tool-use-tag
-        greger-parser-tool-result-tag
-        greger-parser-server-tool-use-tag
-        greger-parser-server-tool-result-tag))
-
-(defun greger-parser--find-section-tag (state)
-  "Find section tag at current position if at line start in STATE."
-  (when (greger-parser--at-line-start-p state)
-    (let ((tag (cl-find-if (lambda (tag) (greger-parser--looking-at state tag)) (greger-parser--section-tags))))
-      (greger-parser--debug state "Found section tag: %s at pos %d" tag (greger-parser-state-pos state))
-      tag)))
-
-(defun greger-parser--consume-section-tag (state tag)
-  "Consume TAG and return it in STATE."
-  (when (greger-parser--looking-at state tag)
-    (greger-parser--debug state "Consuming tag: %s" tag)
-    (greger-parser--advance state (length tag))
-    tag))
-
-;; Code block detection and skipping
-
-(defun greger-parser--skip-code-block (state)
-  "Skip triple-backtick code block in STATE."
-  (greger-parser--debug state "Skipping code block at pos %d" (greger-parser-state-pos state))
-  (greger-parser--advance state 3) ; Skip opening ```
-  (greger-parser--skip-to-line-end state) ; Skip language specifier
-  (when (greger-parser--newline-p (greger-parser--peek state))
-    (greger-parser--advance state))
-
-  ;; Find closing ```
-  (while (and (not (greger-parser--at-end-p state))
-              (not (greger-parser--at-triple-backticks state)))
-    (greger-parser--advance state))
-
-  ;; Skip closing ```
-  (when (greger-parser--at-triple-backticks state)
-    (greger-parser--advance state 3)))
-
-(defun greger-parser--skip-inline-code (state)
-  "Skip inline code with double backticks in STATE."
-  (greger-parser--debug state "Skipping inline code at pos %d" (greger-parser-state-pos state))
-  (greger-parser--advance state 1) ; Skip opening `
-  (while (and (not (greger-parser--at-end-p state))
-              (not (greger-parser--looking-at state "`")))
-    (greger-parser--advance state))
-  (when (greger-parser--looking-at state "`")
-    (greger-parser--advance state 1)))
-
-(defun greger-parser--skip-html-comment (state)
-  "Skip HTML comment in STATE."
-  (greger-parser--debug state "Skipping HTML comment at pos %d" (greger-parser-state-pos state))
-  (greger-parser--advance state 4) ; Skip <!--
-  (while (and (not (greger-parser--at-end-p state))
-              (not (greger-parser--looking-at state "-->")))
-    (greger-parser--advance state))
-  (when (greger-parser--looking-at state "-->")
-    (greger-parser--advance state 3)))
-
-;; Web URL text extraction (moved to greger-web.el)
-
-;; Include tag processing
-
-(defun greger-parser--process-include-tag (state)
-  "Process an include tag and return the included content in STATE."
-  (greger-parser--debug state "Processing include tag at pos %d" (greger-parser-state-pos state))
-  (progn
-    ;; Parse the opening tag
-    (when (greger-parser--looking-at state "<include")
-      (greger-parser--advance state 8) ; Skip "<include"
-      (let ((has-code-attr nil))
-        ;; Check for optional "code" attribute
-        (greger-parser--skip-horizontal-whitespace state)
-        (when (greger-parser--looking-at state "code")
-          (setq has-code-attr t)
-          (greger-parser--advance state 4)
-          (greger-parser--skip-horizontal-whitespace state))
-
-        ;; Skip to closing bracket of opening tag
-        (when (greger-parser--looking-at state ">")
-          (greger-parser--advance state 1)
-
-          ;; Extract the file path
-          (let ((path-start (greger-parser--current-pos state)))
-            (when (greger-parser--find-closing-tag state "</include>")
-              (let ((file-path (string-trim (greger-parser--substring state path-start))))
-                (greger-parser--advance state 10) ; Skip "</include>"
-
-                ;; Read and process the file
-                (greger-parser--include-file state file-path has-code-attr)))))))))
-
-(defun greger-parser--include-file (state file-path has-code-attr)
-  "Include a file's content, optionally formatting as code using STATE.
-Supports both local files and web URLs (http:// or https://).
-For local files without code attribute, inserts content into state for
-recursive parsing.  Returns nil when content is inserted, or the content
-string when it should be appended.
-FILE-PATH is the path to include and HAS-CODE-ATTR indicates code formatting."
-  (greger-parser--debug state "Including file: %s (code: %s)" file-path has-code-attr)
-  (condition-case err
-      (let ((content
-             (if (greger-web-is-web-url-p file-path)
-                 ;; Handle web URL
-                 (progn
-                   (greger-parser--debug state "Downloading content from URL: %s" file-path)
-                   (greger-web-text-from-url file-path t)) ; Use readability heuristics
-               ;; Handle local file
-               (with-temp-buffer
-                 (insert-file-contents file-path)
-                 (buffer-string)))))
-
-        ;; Remove trailing newline from content if present
-        (when (and (> (length content) 0)
-                   (eq (aref content (1- (length content))) ?\n))
-          (setq content (substring content 0 -1)))
-
+(defun greger-parser--merge-assistant-entries (entries)
+  "Merge consecutive assistant-related entries into single messages."
+  (let ((result '())
+        (current-assistant-content '())
+        )
+    (dolist (entry entries)
+      (let ((role (cdr (assoc 'role entry))))
         (cond
-         ;; For files with code attribute or web URLs, return formatted content
-         ((or has-code-attr (greger-web-is-web-url-p file-path))
-          (if has-code-attr
-              (format "%s:\n```\n%s\n```" file-path content)
-            content))
-         ;; For local files without code attribute, insert content into state for recursive parsing
+         ;; If this is an assistant-type message, accumulate content
+         ((string= role "assistant")
+          (let ((content (cdr (assoc 'content entry))))
+            (cond
+             ;; Content is already a list of content blocks
+             ((and (listp content) (listp (car content)) (assoc 'type (car content)))
+              (setq current-assistant-content
+                    (append current-assistant-content content)))
+             ;; Content is plain text, convert to text block
+             ((stringp content)
+              (setq current-assistant-content
+                    (append current-assistant-content
+                            `(((type . "text") (text . ,content))))))
+             ;; Content is some other list format
+             (t
+              (setq current-assistant-content
+                    (append current-assistant-content content))))))
+         ;; For non-assistant messages, flush any accumulated assistant content first
          (t
-          (greger-parser--insert-content-at-pos state content)
-          nil))) ; Return nil to indicate content was inserted
-    (error
-     (greger-parser--debug state "Error reading %s %s: %s"
-                          (if (greger-web-is-web-url-p file-path) "URL" "file")
-                          file-path
-                          (error-message-string err))
-     ;; Return error message as content instead of failing silently
-     (format "[Error reading %s: %s]"
-             (if (greger-web-is-web-url-p file-path) "URL" "file")
-             file-path))))
+          (when current-assistant-content
+            (setq result (greger-parser--flush-assistant-content current-assistant-content result))
+            (setq current-assistant-content '()))
+          (push entry result)))))
+    ;; Don't forget any remaining assistant content
+    (when current-assistant-content
+      (setq result (greger-parser--flush-assistant-content current-assistant-content result)))
+    ;; No need to fix types anymore since everything is web_search_tool_result
+    (nreverse result)))
 
-(defun greger-parser--skip-include-tag (state)
-  "Skip include tag without processing it in STATE."
-  (greger-parser--debug state "Skipping include tag at pos %d" (greger-parser-state-pos state))
-  (greger-parser--advance state 8) ; Skip "<include"
 
-  ;; Skip optional "code" attribute
-  (greger-parser--skip-horizontal-whitespace state)
-  (when (greger-parser--looking-at state "code")
-    (greger-parser--advance state 4)
-    (greger-parser--skip-horizontal-whitespace state))
 
-  ;; Skip to closing bracket of opening tag
-  (when (greger-parser--looking-at state ">")
-    (greger-parser--advance state 1)
+(defun greger-parser--flush-assistant-content (content result)
+  "Flush accumulated assistant CONTENT to RESULT list, returning updated result."
+  (if (and (= (length content) 1)
+           (string= (cdr (assoc 'type (car content))) "text")
+           (not (assoc 'citations (car content))))
+      ;; Single text block without citations - use plain text format
+      (cons `((role . "assistant")
+              (content . ,(cdr (assoc 'text (car content)))))
+            result)
+    ;; Multiple blocks or special blocks - use content blocks format
+    (cons `((role . "assistant")
+            (content . ,content))
+          result)))
 
-    ;; Skip to closing tag
-    (when (greger-parser--find-closing-tag state "</include>")
-      (greger-parser--advance state 10)))) ; Skip "</include>"
-
-(defun greger-parser--process-safe-shell-commands-tag (state)
-  "Process a safe-shell-commands tag and return the list of commands in STATE."
-  (greger-parser--debug state "Processing safe-shell-commands tag at pos %d" (greger-parser-state-pos state))
-  (when (greger-parser--looking-at state "<safe-shell-commands>")
-    (greger-parser--advance state (length "<safe-shell-commands>")) ; Skip "<safe-shell-commands>"
-
-    ;; Extract the commands content
-    (let ((content-start (greger-parser--current-pos state)))
-      (when (greger-parser--find-closing-tag state "</safe-shell-commands>")
-        (let ((commands-content (greger-parser--substring state content-start)))
-          (greger-parser--advance state (length "</safe-shell-commands>")) ; Skip "</safe-shell-commands>"
-
-          ;; Parse commands - split by lines and filter empty ones
-          (let ((commands (delq nil
-                               (mapcar (lambda (line)
-                                        (let ((trimmed (string-trim line)))
-                                          (when (not (string-empty-p trimmed))
-                                            trimmed)))
-                                      (split-string commands-content "\n")))))
-            (greger-parser--debug state "Extracted safe shell commands: %s" commands)
-            commands))))))
-
-;; Content reading
-
-(defun greger-parser--read-until-section-tag (state)
-  "Read characters until section tag, handling code blocks and include tags.
-STATE contains the parser state."
-  (let ((iterations 0)
-        (max-iterations (* (greger-parser-state-length state) 2))) ; Safety limit
-    (while (and (not (greger-parser--at-end-p state))
-                (not (and (greger-parser--at-line-start-p state)
-                          (greger-parser--find-section-tag state)))
-                (< iterations max-iterations))
-      (setq iterations (1+ iterations))
-      (let ((old-pos (greger-parser-state-pos state)))
-        (cond
-         ((greger-parser--at-triple-backticks state)
-          (greger-parser--skip-code-block state))
-         ((greger-parser--looking-at state "`")
-          (greger-parser--skip-inline-code state))
-         ((greger-parser--looking-at state "<!--")
-          (greger-parser--skip-html-comment state))
-         ((greger-parser--looking-at state "<include")
-          (greger-parser--skip-include-tag state))
-         (t
-          (greger-parser--advance state)))
-        ;; Safety check: ensure we're making progress
-        (when (= old-pos (greger-parser-state-pos state))
-          (greger-parser--debug state "No progress at pos %d, forcing advance" (greger-parser-state-pos state))
-          (greger-parser--advance state))))
-    (when (>= iterations max-iterations)
-      (greger-parser--debug state "Hit max iterations in read-until-section-tag")
-      (setf (greger-parser-state-pos state) (greger-parser-state-length state)))))
-
-(defun greger-parser--read-until-section (state)
-  "Read content until next section in STATE."
-  (let ((start (greger-parser--current-pos state)))
-    (greger-parser--read-until-section-tag state)
-    (greger-parser--substring state start)))
-
-(defun greger-parser--read-until-section-with-comment-removal (state)
-  "Read content until next section, removing HTML comments and processing tags.
-STATE contains the parser state."
-  (let ((result "")
-        (start (greger-parser--current-pos state))
-        (iterations 0)
-        (max-iterations (* (greger-parser-state-length state) 2))) ; Safety limit
-    (while (and (not (greger-parser--at-end-p state))
-                (not (and (greger-parser--at-line-start-p state)
-                          (greger-parser--find-section-tag state)))
-                (< iterations max-iterations))
-      (setq iterations (1+ iterations))
-      (let ((old-pos (greger-parser-state-pos state)))
-        (cond
-         ((greger-parser--at-triple-backticks state)
-          ;; Add content up to code block
-          (setq result (concat result (greger-parser--substring state start)))
-          (setq start (greger-parser--current-pos state))
-          (greger-parser--skip-code-block state)
-          ;; Add the code block
-          (setq result (concat result (greger-parser--substring state start)))
-          (setq start (greger-parser--current-pos state)))
-         ((greger-parser--looking-at state "`")
-          ;; Add content up to inline code
-          (setq result (concat result (greger-parser--substring state start)))
-          (setq start (greger-parser--current-pos state))
-          (greger-parser--skip-inline-code state)
-          ;; Add the inline code
-          (setq result (concat result (greger-parser--substring state start)))
-          (setq start (greger-parser--current-pos state)))
-         ((greger-parser--looking-at state "<!--")
-          ;; Add content up to comment, skip comment entirely
-          (setq result (concat result (greger-parser--substring state start)))
-          (greger-parser--skip-html-comment state)
-          (setq start (greger-parser--current-pos state)))
-         ((greger-parser--looking-at state "<include")
-          ;; Add content up to include tag
-          (setq result (concat result (greger-parser--substring state start)))
-          ;; Process the include tag
-          (let ((include-content (greger-parser--process-include-tag state)))
-            (if include-content
-                ;; Content was returned (web URL or code), append it
-                (setq result (concat result include-content))
-              ;; Content was inserted into state (local file), continue parsing from current position
-              nil))
-          (setq start (greger-parser--current-pos state)))
-         (t
-          (greger-parser--advance state)))
-        ;; Safety check: ensure we're making progress
-        (when (= old-pos (greger-parser-state-pos state))
-          (greger-parser--debug state "No progress at pos %d, forcing advance" (greger-parser-state-pos state))
-          (greger-parser--advance state))))
-    (when (>= iterations max-iterations)
-      (greger-parser--debug state "Hit max iterations in read-until-section-with-comment-removal")
-      (setf (greger-parser-state-pos state) (greger-parser-state-length state)))
-    ;; Add remaining content
-    (setq result (concat result (greger-parser--substring state start)))
-    result))
-
-(defun greger-parser--read-until-section-with-metadata-extraction (state)
-  "Read content until next section, extracting metadata like safe-shell-commands.
-Returns a plist with :content and metadata keys.
-STATE contains the parser state."
-  (let ((result "")
-        (safe-shell-commands nil)
-        (start (greger-parser--current-pos state))
-        (iterations 0)
-        (max-iterations (* (greger-parser-state-length state) 2))) ; Safety limit
-    (while (and (not (greger-parser--at-end-p state))
-                (not (and (greger-parser--at-line-start-p state)
-                          (greger-parser--find-section-tag state)))
-                (< iterations max-iterations))
-      (setq iterations (1+ iterations))
-      (let ((old-pos (greger-parser-state-pos state)))
-        (cond
-         ((greger-parser--at-triple-backticks state)
-          ;; Add content up to code block
-          (setq result (concat result (greger-parser--substring state start)))
-          (setq start (greger-parser--current-pos state))
-          (greger-parser--skip-code-block state)
-          ;; Add the code block
-          (setq result (concat result (greger-parser--substring state start)))
-          (setq start (greger-parser--current-pos state)))
-         ((greger-parser--looking-at state "`")
-          ;; Add content up to inline code
-          (setq result (concat result (greger-parser--substring state start)))
-          (setq start (greger-parser--current-pos state))
-          (greger-parser--skip-inline-code state)
-          ;; Add the inline code
-          (setq result (concat result (greger-parser--substring state start)))
-          (setq start (greger-parser--current-pos state)))
-         ((greger-parser--looking-at state "<!--")
-          ;; Add content up to comment, skip comment entirely
-          (setq result (concat result (greger-parser--substring state start)))
-          (greger-parser--skip-html-comment state)
-          (setq start (greger-parser--current-pos state)))
-         ((greger-parser--looking-at state "<include")
-          ;; Add content up to include tag
-          (setq result (concat result (greger-parser--substring state start)))
-          ;; Process the include tag
-          (let ((include-content (greger-parser--process-include-tag state)))
-            (if include-content
-                ;; Content was returned (web URL or code), append it
-                (setq result (concat result include-content))
-              ;; Content was inserted into state (local file), continue parsing from current position
-              nil))
-          (setq start (greger-parser--current-pos state)))
-         ((greger-parser--looking-at state "<safe-shell-commands>")
-          ;; Add content up to safe-shell-commands tag (but don't include the tag itself)
-          (setq result (concat result (greger-parser--substring state start)))
-          ;; Process the safe-shell-commands tag
-          (let ((commands (greger-parser--process-safe-shell-commands-tag state)))
-            (when commands
-              (if safe-shell-commands
-                  (greger-parser--debug state "Warning: multiple <safe-shell-commands> tags found")
-                (setq safe-shell-commands commands))))
-          ;; Reset start position for next content
-          (setq start (greger-parser--current-pos state)))
-         (t
-          (greger-parser--advance state)))
-        ;; Safety check: ensure we're making progress
-        (when (= old-pos (greger-parser-state-pos state))
-          (greger-parser--debug state "No progress at pos %d, forcing advance" (greger-parser-state-pos state))
-          (greger-parser--advance state))))
-    (when (>= iterations max-iterations)
-      (greger-parser--debug state "Hit max iterations in read-until-section-with-metadata-extraction")
-      (setf (greger-parser-state-pos state) (greger-parser-state-length state)))
-    ;; Add remaining content
-    (setq result (concat result (greger-parser--substring state start)))
-
-    ;; Return result with metadata
-    (let ((trimmed-content (when (and result (not (string-empty-p (string-trim result))))
-                            (string-trim result))))
-      (list :content trimmed-content
-            :safe-shell-commands safe-shell-commands))))
-
-(defun greger-parser--parse-section-content (state)
-  "Parse content until next section, skipping HTML comments.
-STATE contains the parser state."
-  (greger-parser--skip-whitespace state)
-  (let ((content (greger-parser--read-until-section-with-comment-removal state)))
-    (when (and content (not (string-empty-p (string-trim content))))
-      (string-trim content))))
-
-(defun greger-parser--parse-section-content-with-metadata (state)
-  "Parse content until next section, extracting metadata like safe-shell-commands.
-Returns a plist with :content and metadata keys like :safe-shell-commands.
-STATE contains the parser state."
-  (greger-parser--skip-whitespace state)
-  (let ((result (greger-parser--read-until-section-with-metadata-extraction state)))
-    result))
-
-;; High-level parsing
-
-(defun greger-parser--parse-document-old (state)
-  "Parse entire document using STATE.
-Returns a plist with :messages and :metadata keys."
-  (greger-parser--skip-whitespace state)
-  (if (greger-parser--at-end-p state)
-      '(:messages () :metadata ())
-    (let ((sections '())
-          (metadata '())
-          (iterations 0)
-          (max-iterations 1000)) ; Safety limit
-      ;; Handle untagged content at start
-      (let ((untagged (greger-parser--parse-untagged-content state)))
-        (when untagged
-          (push untagged sections)))
-
-      ;; Parse tagged sections
-      (while (and (not (greger-parser--at-end-p state))
-                  (< iterations max-iterations))
-        (setq iterations (1+ iterations))
-        (let ((old-pos (greger-parser-state-pos state)))
-          (greger-parser--skip-whitespace state)
-          (when (not (greger-parser--at-end-p state))
-            (let ((section-result (greger-parser--parse-section state)))
-              (when section-result
-                (if (and (listp section-result) (eq (car section-result) :metadata))
-                    ;; This is metadata, not a message - merge the metadata plist
-                    (setq metadata (append metadata (cdr section-result)))
-                  ;; This is a regular message
-                  (push section-result sections)))))
-          ;; Safety check: ensure we're making progress
-          (when (= old-pos (greger-parser-state-pos state))
-            (greger-parser--debug state "No progress in document parsing at pos %d, forcing end" (greger-parser-state-pos state))
-            (setf (greger-parser-state-pos state) (greger-parser-state-length state)))))
-
-      (when (>= iterations max-iterations)
-        (greger-parser--debug state "Hit max iterations in parse-document"))
-
-      ;; Combine metadata from section returns and parser state
-      (let ((combined-metadata (append metadata (greger-parser-state-metadata state))))
-        (list :messages (greger-parser--merge-consecutive-messages (reverse sections))
-              :metadata combined-metadata)))))
-
-(defun greger-parser--parse-document (state)
-  "Parse entire document using STATE.
-Returns a plist with :messages and :metadata keys."
-  (greger-parser--skip-whitespace state)
-  (if (greger-parser--at-end-p state)
-      '(:messages () :metadata ())
-    (let ((sections '())
-          (metadata '())
-          (iterations 0)
-          (max-iterations 1000)) ; Safety limit
-      ;; Handle untagged content at start
-      (let ((untagged (greger-parser--parse-untagged-content state)))
-        (when untagged
-          (push untagged sections)))
-
-      ;; Parse tagged sections
-      (while (and (not (greger-parser--at-end-p state))
-                  (< iterations max-iterations))
-        (setq iterations (1+ iterations))
-        (let ((old-pos (greger-parser-state-pos state)))
-          (greger-parser--skip-whitespace state)
-          (when (not (greger-parser--at-end-p state))
-            (let ((section-result (greger-parser--parse-section state)))
-              (when section-result
-                (greger-parser--debug state "Section result: %s" section-result)
-                (cond
-                 ;; Handle metadata
-                 ((and (listp section-result) (eq (car section-result) :metadata))
-                  (greger-parser--debug state "Found metadata section")
-                  (setq metadata (append metadata (cdr section-result))))
-                 ;; Handle citations data - apply immediately to the last assistant message
-                 ((and (listp section-result) (eq (plist-get section-result :type) :citations-data))
-                  (greger-parser--debug state "Found citations data, applying to last assistant message")
-                  (let ((citations (plist-get section-result :citations)))
-                    (when citations
-                      ;; Apply citations to the most recent assistant message
-                      (greger-parser--apply-citations-to-last-assistant-message sections citations))))
-                 ;; Regular message
-                 (t
-                  (greger-parser--debug state "Regular message section")
-                  (push section-result sections))))))
-          ;; Safety check: ensure we're making progress
-          (when (= old-pos (greger-parser-state-pos state))
-            (greger-parser--debug state "No progress in document parsing at pos %d, forcing end" (greger-parser-state-pos state))
-            (setf (greger-parser-state-pos state) (greger-parser-state-length state)))))
-
-      (when (>= iterations max-iterations)
-        (greger-parser--debug state "Hit max iterations in parse-document"))
-
-      ;; Combine metadata from section returns and parser state
-      (let* ((combined-metadata (append metadata (greger-parser-state-metadata state)))
-             (merged-messages (greger-parser--merge-consecutive-messages (reverse sections))))
-        (list :messages merged-messages
-              :metadata combined-metadata)))))
-
-(defun greger-parser--parse-untagged-content (state)
-  "Parse content before first section tag using STATE."
-  (let ((content (greger-parser--parse-section-content state)))
-    (when content
-      (greger-parser--create-user-message content))))
-
-(defun greger-parser--parse-section (state)
-  "Parse a section starting with a tag using STATE."
-  (let ((tag (greger-parser--find-section-tag state)))
-    (when tag
-      (greger-parser--consume-section-tag state tag)
-      (cond
-       ((string= tag greger-parser-system-tag)
-        (greger-parser--parse-system-section state))
-       ((string= tag greger-parser-user-tag)
-        (greger-parser--parse-user-section state))
-       ((string= tag greger-parser-assistant-tag)
-        (greger-parser--parse-assistant-section state))
-       ((string= tag greger-parser-thinking-tag)
-        (greger-parser--parse-thinking-section state))
-       ((string= tag greger-parser-citations-tag)
-        (greger-parser--parse-citations-section state))
-       ((string= tag greger-parser-tool-use-tag)
-        (greger-parser--parse-tool-use-section state))
-       ((string= tag greger-parser-tool-result-tag)
-        (greger-parser--parse-tool-result-section state))
-       ((string= tag greger-parser-server-tool-use-tag)
-        (greger-parser--parse-server-tool-use-section state))
-       ((string= tag greger-parser-server-tool-result-tag)
-        (greger-parser--parse-server-tool-result-section state))))))
-
-;; Section parsers
-
-(defun greger-parser--parse-user-section (state)
-  "Parse USER section using STATE."
-  (let ((content (greger-parser--parse-section-content state)))
-    (when content
-      (greger-parser--create-user-message content))))
-
-(defun greger-parser--parse-assistant-section (state)
-  "Parse ASSISTANT section using STATE."
-  (let ((content (greger-parser--parse-section-content state)))
-    (when content
-      (greger-parser--create-assistant-message content))))
-
-(defun greger-parser--parse-system-section (state)
-  "Parse SYSTEM section using STATE.
-Returns either a system message, metadata, or both."
-  (let ((content (greger-parser--parse-section-content-with-metadata state)))
+(defun greger-parser--extract-entry-from-node (node)
+  "Extract a single dialog entry from NODE."
+  (let ((node-type (treesit-node-type node)))
     (cond
-     ;; If we extracted safe-shell-commands and no meaningful content, generate system message with safe commands text
-     ((and (plist-get content :safe-shell-commands)
-           (not (plist-get content :content)))
-      (let ((safe-commands-text (greger-parser--generate-safe-shell-commands-text
-                                (plist-get content :safe-shell-commands))))
-        ;; Store metadata for later extraction and return system message with generated text
-        (setf (greger-parser-state-metadata state)
-              (append (or (greger-parser-state-metadata state) '())
-                      (list :safe-shell-commands (plist-get content :safe-shell-commands))))
-        (greger-parser--create-system-message safe-commands-text)))
-
-     ;; If we have both content and safe-shell-commands, combine them
-     ((and (plist-get content :safe-shell-commands)
-           (plist-get content :content))
-      (greger-parser--debug state "Found safe-shell-commands with system content - both will be processed")
-      ;; Store metadata for later extraction and return system message with combined content
-      (setf (greger-parser-state-metadata state)
-            (append (or (greger-parser-state-metadata state) '())
-                    (list :safe-shell-commands (plist-get content :safe-shell-commands))))
-      (let ((safe-commands-text (greger-parser--generate-safe-shell-commands-text
-                                (plist-get content :safe-shell-commands)))
-            (original-content (plist-get content :content)))
-        (greger-parser--create-system-message
-         (if safe-commands-text
-             (concat original-content "\n\n" safe-commands-text)
-           original-content))))
-
-     ;; Just regular content
-     ((plist-get content :content)
-      (greger-parser--create-system-message (plist-get content :content)))
-
-     ;; No content
+     ((string= node-type "user")
+      (greger-parser--extract-user-entry node))
+     ((string= node-type "assistant")
+      (greger-parser--extract-assistant-entry node))
+     ((string= node-type "system")
+      (greger-parser--extract-system-entry node))
+     ((string= node-type "thinking")
+      (greger-parser--extract-thinking-entry node))
+     ((string= node-type "tool_use")
+      (greger-parser--extract-tool-use-entry node))
+     ((string= node-type "tool_result")
+      (greger-parser--extract-tool-result-entry node))
+     ((string= node-type "server_tool_use")
+      (greger-parser--extract-server-tool-use-entry node))
+     ((string= node-type "web_search_tool_result")
+      (greger-parser--extract-web-search-tool-result-entry node))
+     ((string= node-type "citations")
+      (greger-parser--extract-citations-entry node))
      (t nil))))
 
-(defun greger-parser--parse-thinking-section (state)
-  "Parse THINKING section using STATE."
-  (let ((content (greger-parser--parse-section-content state)))
-    (when content
-      (greger-parser--create-thinking-message content))))
+(defun greger-parser--extract-user-entry (node)
+  "Extract user entry from NODE."
+  (let ((content (greger-parser--extract-text-content node)))
+    `((role . "user")
+      (content . ,content))))
 
-(defun greger-parser--parse-citations-section (state)
-  "Parse CITATIONS section using STATE.
-Returns parsed citation data that should be merged with the previous assistant message."
-  (let ((content (greger-parser--parse-section-content state)))
-    (when content
-      ;; Parse the citations from the markdown content
-      (let ((parsed-citations (greger-parser--parse-citations-content content)))
-        ;; Return a special marker indicating this contains citation data
-        ;; This will be handled specially in the document parsing
-        (list :type :citations-data :citations parsed-citations)))))
+(defun greger-parser--extract-system-entry (node)
+  "Extract system entry from NODE."
+  (let ((content (greger-parser--extract-text-content node)))
+    `((role . "system")
+      (content . ,content))))
 
-(defun greger-parser--parse-citations-content (content)
-  "Parse citations from markdown CONTENT and return list of citation objects."
-  (let ((citations '())
-        (lines (split-string content "\n"))
-        (current-citation nil)
-        (current-url nil))
-    (dolist (line lines)
-      (cond
-       ;; URL heading: ### https://example.com
-       ((string-match "^### \\(https?://[^\s]+\\)" line)
-        ;; Save previous citation if any
-        (when current-citation
-          (push current-citation citations))
-        ;; Start new citation
-        (setq current-url (match-string 1 line))
-        (setq current-citation (list (cons 'type "web_search_result_location")
-                                   (cons 'url current-url))))
-       ;; Title: ...
-       ((and current-citation (string-match "^Title: \\(.*\\)" line))
-        (push (cons 'title (match-string 1 line)) current-citation))
-       ;; Cited text: ...
-       ((and current-citation (string-match "^Cited text: \\(.*\\)" line))
-        (push (cons 'cited_text (match-string 1 line)) current-citation))
-       ;; Encrypted index: ...
-       ((and current-citation (string-match "^Encrypted index: \\(.*\\)" line))
-        (push (cons 'encrypted_index (match-string 1 line)) current-citation))))
-    ;; Add the last citation
-    (when current-citation
-      (push current-citation citations))
-    (reverse citations)))
+(defun greger-parser--extract-thinking-entry (node)
+  "Extract thinking entry from NODE."
+  (let ((content (greger-parser--extract-text-content node)))
+    `((role . "assistant")
+      (content . (((type . "thinking")
+                   (thinking . ,content)))))))
 
-(defun greger-parser--merge-citations-with-last-assistant (sections citations)
-  "Merge CITATIONS with the last assistant message in SECTIONS list.
-Modifies the sections list in-place."
-  (when (and sections citations)
-    (let ((last-msg (car sections)))
-      (when (and last-msg (string= "assistant" (alist-get 'role last-msg)))
-        ;; Find text blocks in the content and add citations to them
-        (let ((content (alist-get 'content last-msg)))
-          (when (listp content)
-            ;; Look for text blocks and add citations
-            (greger-parser--add-citations-to-content-blocks content citations)))))))
+(defun greger-parser--extract-assistant-entry (node)
+  "Extract assistant entry from NODE."
+  (let ((content (greger-parser--extract-text-content node)))
+    `((role . "assistant")
+      (content . ,content))))
 
-(defun greger-parser--add-citations-to-content-blocks (content-blocks citations)
-  "Add CITATIONS to appropriate text blocks in CONTENT-BLOCKS.
-Splits text blocks at <cite> boundaries and adds citations to cited portions.
-Only processes cite blocks that don't already have citations."
-  (let ((i 0))
-    (while (< i (length content-blocks))
-      (let ((block (nth i content-blocks)))
-        (when (and (listp block)
-                   (string= "text" (alist-get 'type block))
-                   (not (alist-get 'citations block))) ; Only process blocks without citations
-          (let ((text (alist-get 'text block)))
-            ;; Check if text contains <cite> tags - if so, split and process
-            (when (and text (string-match-p "<cite>" text))
-              (let ((split-blocks (greger-parser--split-text-with-citations text citations)))
-                ;; Replace the current block with the split blocks
-                (setcdr (nthcdr (1- i) content-blocks)
-                        (append split-blocks (nthcdr (1+ i) content-blocks)))
-                ;; Skip over the newly inserted blocks
-                (setq i (+ i (length split-blocks)))
-                ;; Continue without incrementing i again
-                (setq i (1- i)))))))
-      (setq i (1+ i)))))
-
-(defun greger-parser--apply-citations-to-last-assistant-message (sections citations)
-  "Apply CITATIONS to the most recent assistant message in SECTIONS that contains <cite> tags."
-  ;; Find the most recent assistant message (searching from end backwards)
-  (let ((found nil))
-    (dolist (message (reverse sections))
-      (when (and (not found) (string= "assistant" (alist-get 'role message)))
-        (let ((content (alist-get 'content message)))
-          (cond
-           ;; String content - check for <cite> tags and process
-           ((stringp content)
-            (when (string-match-p "<cite>" content)
-              ;; Convert string with cite tags to text blocks
-              (let ((text-blocks (greger-parser--split-text-with-citations content citations)))
-                (setcdr (assq 'content message) text-blocks)
-                (setq found t))))
-           ;; List content - process each content block
-           ((listp content)
-            (when (greger-parser--content-has-cite-tags content)
-              (greger-parser--add-citations-to-content-blocks content citations)
-              (setq found t)))))))))
-
-(defun greger-parser--content-has-cite-tags (content-blocks)
-  "Check if any of the CONTENT-BLOCKS contain <cite> tags."
-  (cl-some (lambda (block)
-             (and (listp block)
-                  (string= "text" (alist-get 'type block))
-                  (let ((text (alist-get 'text block)))
-                    (and text (string-match-p "<cite>" text)))))
-           content-blocks))
-
-(defun greger-parser--apply-citations-to-messages (messages citations)
-  "Apply CITATIONS to the last assistant message in MESSAGES that contains <cite> tags."
-  ;; Find the last assistant message and apply citations to it
-  (dolist (message messages)
-    (when (string= "assistant" (alist-get 'role message))
-      (let ((content (alist-get 'content message)))
+(defun greger-parser--extract-tool-use-entry (node)
+  "Extract tool use entry from NODE."
+  (let ((name nil)
+        (id nil)
+        (params '()))
+    (dolist (child (treesit-node-children node))
+      (let ((child-type (treesit-node-type child)))
         (cond
-         ;; String content - check for <cite> tags and process
-         ((stringp content)
-          (when (string-match-p "<cite>" content)
-            ;; Convert string with cite tags to text blocks
-            (let ((text-blocks (greger-parser--split-text-with-citations content citations)))
-              (setcdr (assq 'content message) text-blocks))))
-         ;; List content - process each content block
-         ((listp content)
-          (greger-parser--add-citations-to-content-blocks content citations)))))))
+         ((string= child-type "name")
+          (setq name (greger-parser--extract-value child)))
+         ((string= child-type "id")
+          (setq id (greger-parser--extract-value child)))
+         ((string= child-type "tool_param")
+          (push (greger-parser--extract-tool-param child) params)))))
+    (setq params (nreverse params))
+    `((role . "assistant")
+      (content . (((type . "tool_use")
+                   (id . ,id)
+                   (name . ,name)
+                   (input . ,params)))))))
 
-(defun greger-parser--remove-from-plist (plist key)
-  "Remove KEY from PLIST and return the new plist."
-  (let ((result '())
-        (skip-next nil))
-    (while plist
-      (if skip-next
-          (setq skip-next nil)
-        (if (eq (car plist) key)
-            (setq skip-next t)
-          (push (car plist) result)))
-      (setq plist (cdr plist)))
-    (reverse result)))
+(defun greger-parser--extract-value (node)
+  (let ((child (treesit-node-child-by-field-name node "value")))
+    (when child
+      (string-trim (treesit-node-text child t)))))
 
-(defun greger-parser--remove-cite-tags (text)
-  "Remove <cite> and </cite> tags from TEXT."
-  (let ((result text))
-    (setq result (replace-regexp-in-string "<cite>" "" result))
-    (setq result (replace-regexp-in-string "</cite>" "" result))
-    result))
+(defun greger-parser--extract-tool-param (node)
+  (let ((name nil)
+        (value nil))
+    (dolist (child (treesit-node-children node))
+      (let ((child-type (treesit-node-type child)))
+        (cond
+         ((string= child-type "name")
+          (setq name (intern (string-trim (treesit-node-text child t)))))
+         ((string= child-type "value")
+          (setq value (greger-parser--extract-tool-content child))))))
+    `(,name . ,value)))
 
-(defun greger-parser--split-text-with-citations (text citations)
-  "Split TEXT at <cite> boundaries, creating separate text blocks.
-Returns a list of text blocks, with citations attached to cited portions."
-  (let ((result '())
-        (pos 0)
-        (len (length text)))
-    (while (< pos len)
-      (let ((cite-start (string-match "<cite>" text pos)))
-        (if cite-start
-            (progn
-              ;; Add text before the cite tag (if any)
-              (when (> cite-start pos)
-                (push `((type . "text")
-                        (text . ,(substring text pos cite-start)))
-                      result))
-              ;; Find the end of the cite tag
-              (let ((cite-end (string-match "</cite>" text cite-start)))
-                (if cite-end
-                    (progn
-                      ;; Extract the cited text (without the tags)
-                      (let ((cited-text (substring text (+ cite-start 6) cite-end)))
-                        ;; Only add citations if we have them and this cite block doesn't already have them
-                        (push `((type . "text")
-                                (text . ,cited-text)
-                                ,@(when citations `((citations . ,citations))))
-                              result))
-                      ;; Move past the closing tag
-                      (setq pos (+ cite-end 7)))
-                  ;; No closing tag found, treat rest as regular text
-                  (push `((type . "text")
-                          (text . ,(substring text pos)))
-                        result)
-                  (setq pos len))))
-          ;; No more cite tags, add remaining text
-          (when (< pos len)
-            (push `((type . "text")
-                    (text . ,(substring text pos)))
-                  result))
-          (setq pos len))))
-    (reverse result)))
+(defun greger-parser--extract-tool-content (node)
+  (let* ((value-node (treesit-node-child-by-field-name node "value"))
+         (value (treesit-node-text value-node)))
+    (greger-parser--convert-value
+     (greger-parser--strip-single-newlines value))))
 
-(defun greger-parser--parse-tool-use-section (state)
-  "Parse TOOL USE section using STATE."
-  (greger-parser--skip-whitespace state)
-  (let ((name (greger-parser--parse-name-line state))
-        (id (greger-parser--parse-id-line state))
-        (input (greger-parser--parse-tool-input state)))
-    (when (and name id)
-      (greger-parser--create-tool-use-message name id input))))
+(defun greger-parser--strip-single-newlines (str)
+  "Strip a single newline from the front and back of STR."
+  (string-trim str "\\`\n?" "\n?\\'"))
 
-(defun greger-parser--parse-tool-result-section (state)
-  "Parse TOOL RESULT section using STATE."
-  (greger-parser--skip-whitespace state)
-  (let ((id (greger-parser--parse-id-line state))
-        (content (greger-parser--parse-tool-result-content state)))
-    (when id
-      (greger-parser--create-tool-result-message id content))))
-
-(defun greger-parser--parse-server-tool-use-section (state)
-  "Parse SERVER TOOL USE section using STATE."
-  (greger-parser--skip-whitespace state)
-  (let ((name (greger-parser--parse-name-line state))
-        (id (greger-parser--parse-id-line state))
-        (input (greger-parser--parse-server-tool-input state)))
-    (when (and name id)
-      (greger-parser--create-server-tool-use-message name id input))))
-
-(defun greger-parser--parse-server-tool-result-section (state)
-  "Parse SERVER TOOL RESULT section using STATE."
-  (greger-parser--skip-whitespace state)
-  (let ((id (greger-parser--parse-id-line state))
-        (content (greger-parser--parse-server-tool-result-content state)))
-    (when id
-      (greger-parser--create-server-tool-result-message id content))))
-
-;; Tool parsing helpers
-
-(defun greger-parser--parse-name-line (state)
-  "Parse \='Name: value\=' line using STATE."
-  (when (greger-parser--looking-at state "Name:")
-    (greger-parser--advance state 5)
-    (greger-parser--skip-horizontal-whitespace state)
-    (greger-parser--read-line state)))
-
-(defun greger-parser--parse-id-line (state)
-  "Parse \='ID: value\=' line using STATE."
-  (greger-parser--skip-whitespace state)
-  (when (greger-parser--looking-at state "ID:")
-    (greger-parser--advance state 3)
-    (greger-parser--skip-horizontal-whitespace state)
-    (greger-parser--read-line state)))
-
-(defun greger-parser--parse-tool-input (state)
-  "Parse tool input parameters using STATE."
-  (let ((params '())
-        (iterations 0)
-        (max-iterations 100)) ; Safety limit
-    (greger-parser--skip-whitespace state)
-    (while (and (greger-parser--can-parse-parameter-p state)
-                (< iterations max-iterations))
-      (setq iterations (1+ iterations))
-      (let ((old-pos (greger-parser-state-pos state))
-            (param (greger-parser--parse-tool-parameter state)))
-        (when param
-          (push param params))
-        (greger-parser--skip-whitespace state)
-        ;; Safety check: ensure we're making progress
-        (when (= old-pos (greger-parser-state-pos state))
-          (greger-parser--debug state "No progress in tool input parsing at pos %d, forcing end" (greger-parser-state-pos state))
-          (setf (greger-parser-state-pos state) (greger-parser-state-length state)))))
-    (when (>= iterations max-iterations)
-      (greger-parser--debug state "Hit max iterations in parse-tool-input"))
-    (reverse params)))
-
-(defun greger-parser--can-parse-parameter-p (state)
-  "Check if we can parse a parameter using STATE."
-  (and (not (greger-parser--at-end-p state))
-       (not (and (greger-parser--at-line-start-p state)
-                 (greger-parser--find-section-tag state)))
-       (greger-parser--at-line-start-p state)
-       (greger-parser--looking-at state "###")))
-
-(defun greger-parser--parse-tool-parameter (state)
-  "Parse single tool parameter using STATE."
-  (when (greger-parser--looking-at state "###")
-    (greger-parser--advance state 3)
-    (greger-parser--skip-horizontal-whitespace state)
-    (let ((name (greger-parser--read-line state)))
-      (greger-parser--skip-whitespace state)
-      (let ((value (greger-parser--parse-tool-value state)))
-        (when (and name (not (string-empty-p name)))
-          (cons (intern name) (greger-parser--convert-value (or value ""))))))))
-
-(defun greger-parser--parse-tool-value (state)
-  "Parse tool parameter value in XML-style tags using STATE."
-  (when (greger-parser--looking-at state "<tool.")
-    (let ((tag-start (greger-parser--current-pos state)))
-      ;; Find end of opening tag
-      (greger-parser--skip-to-closing-angle state)
-      (when (eq (greger-parser--peek state) ?>)
-        (let* ((opening-tag (greger-parser--substring state tag-start (+ (greger-parser--current-pos state) 1)))
-               (closing-tag (greger-parser--make-closing-tag opening-tag)))
-          (greger-parser--advance state) ; Skip >
-          (greger-parser--skip-whitespace state)
-
-          (let ((content-start (greger-parser--current-pos state)))
-            (if (greger-parser--find-closing-tag state closing-tag)
-                (let ((content (greger-parser--substring state content-start)))
-                  (greger-parser--advance state (length closing-tag))
-                  (greger-parser--normalize-tool-content content))
-              ;; If no closing tag found, consume to end of section
-              (let ((content (greger-parser--read-until-section state)))
-                (greger-parser--normalize-tool-content content)))))))))
-
-(defun greger-parser--skip-to-closing-angle (state)
-  "Skip to closing angle bracket using STATE."
-  (let ((iterations 0)
-        (max-iterations 1000)) ; Safety limit
-    (while (and (not (greger-parser--at-end-p state))
-                (not (eq (greger-parser--peek state) ?>))
-                (< iterations max-iterations))
-      (setq iterations (1+ iterations))
-      (greger-parser--advance state))
-    (when (>= iterations max-iterations)
-      (greger-parser--debug state "Hit max iterations in skip-to-closing-angle"))))
-
-(defun greger-parser--make-closing-tag (opening-tag)
-  "Make closing tag from OPENING-TAG."
-  (concat "</" (substring opening-tag 1)))
-
-(defun greger-parser--find-closing-tag (state closing-tag)
-  "Find CLOSING-TAG, treating all content inside as raw text using STATE."
-  (let ((found nil)
-        (iterations 0)
-        (max-iterations (* (greger-parser-state-length state) 2))) ; Safety limit
-    (while (and (not found)
-                (not (greger-parser--at-end-p state))
-                (< iterations max-iterations))
-      (setq iterations (1+ iterations))
-      (if (greger-parser--looking-at state closing-tag)
-          (setq found t)
-        (greger-parser--advance state)))
-    (when (>= iterations max-iterations)
-      (greger-parser--debug state "Hit max iterations in find-closing-tag"))
-    found))
-
-(defun greger-parser--parse-tool-result-content (state)
-  "Parse tool result content using STATE."
-  (greger-parser--skip-whitespace state)
-  (or (greger-parser--parse-tool-value state) ""))
-
-(defun greger-parser--parse-server-tool-input (state)
-  "Parse server tool input parameters using STATE."
-  ;; Server tools use the same parameter format as regular tools
-  (greger-parser--parse-tool-input state))
-
-(defun greger-parser--parse-server-tool-result-content (state)
-  "Parse server tool result content using STATE."
-  ;; Server tool results use the same format as regular tool results
-  (greger-parser--parse-tool-result-content state))
-
-(defun greger-parser--normalize-tool-content (content)
-  "Normalize tool CONTENT by trimming outer newlines."
-  (if (string-empty-p content)
-      ""
-    (let ((result content))
-      ;; Remove leading newline
-      (when (and (> (length result) 0)
-                 (eq (aref result 0) ?\n))
-        (setq result (substring result 1)))
-      ;; Remove trailing newline
-      (when (and (> (length result) 0)
-                 (eq (aref result (1- (length result))) ?\n))
-        (setq result (substring result 0 -1)))
-      result)))
+(defun greger-parser--convert-param-value (value)
+  "Convert VALUE to appropriate type (number if it looks like a number, otherwise string)."
+  (if (string-match "^[0-9]+$" value)
+      (string-to-number value)
+    value))
 
 (defun greger-parser--convert-value (str)
   "Convert STR to appropriate Elisp value."
@@ -1152,149 +268,136 @@ Returns a list of text blocks, with citations attached to cited portions."
                 parsed))
     (error str)))
 
-;; Message creation
+(defun greger-parser--extract-tool-result-entry (node)
+  "Extract tool result entry from NODE."
+  (let ((id nil)
+        (content nil))
+    (dolist (child (treesit-node-children node))
+      (let ((child-type (treesit-node-type child)))
+        (cond
+         ((string= child-type "id")
+          (setq id (greger-parser--extract-value child
+                    )))
+         ((string= child-type "content")
+          (setq content (greger-parser--extract-tool-content child))))))
+    `((role . "user")
+      (content . (((type . "tool_result")
+                   (tool_use_id . ,id)
+                   (content . ,content)))))))
 
-(defun greger-parser--create-user-message (content)
-  "Create user message with CONTENT."
-  `((role . "user") (content . ,content)))
+(defun greger-parser--extract-server-tool-use-entry (node)
+  "Extract server tool use entry from NODE."
+  (let ((name nil)
+        (id nil)
+        (params '()))
+    (dolist (child (treesit-node-children node))
+      (let ((child-type (treesit-node-type child)))
+        (cond
+         ((string= child-type "name")
+          (setq name (greger-parser--extract-value child
+                      )))
+         ((string= child-type "id")
+          (setq id (greger-parser--extract-value child
+                    )))
+         ((string= child-type "tool_param")
+          (push (greger-parser--extract-tool-param child) params)))))
+    (setq params (nreverse params))
+    `((role . "assistant")
+      (content . (((type . "server_tool_use")
+                   (id . ,id)
+                   (name . ,name)
+                   (input . ,params)))))))
 
-(defun greger-parser--create-assistant-message (content)
-  "Create assistant message with CONTENT."
-  `((role . "assistant") (content . ,content)))
+(defun greger-parser--extract-web-search-tool-result-entry (node)
+  "Extract server tool result entry from NODE."
+  (let ((id nil)
+        (content nil))
+    (dolist (child (treesit-node-children node))
+      (let ((child-type (treesit-node-type child)))
+        (cond
+         ((string= child-type "id")
+          (setq id (greger-parser--extract-value child)))
+         ((string= child-type "content")
+          (setq content (greger-parser--extract-tool-content child))))))
+    `((role . "assistant")
+      (content . (((type . "web_search_tool_result")
+                   (tool_use_id . ,id)
+                   (content . ,content)))))))
 
-(defun greger-parser--create-system-message (content)
-  "Create system message with CONTENT."
-  `((role . "system") (content . ,content)))
+(defun greger-parser--extract-citations-entry (node)
+  "Extract citations entry from NODE."
+  (let ((text-content nil)
+        (citation-entries '()))
+    (dolist (child (treesit-node-children node))
+      (let ((child-type (treesit-node-type child)))
+        (cond
+         ((string= child-type "text")
+          (setq text-content (greger-parser--extract-text-content child)))
+         ((string= child-type "citation_entry")
+          (push (greger-parser--extract-citation-entry child) citation-entries)))))
+    (setq citation-entries (nreverse citation-entries))
+    ;; Return a result that can be merged with other content
+    `((role . "assistant")
+      (content . (((type . "text")
+                   (text . ,text-content)
+                   (citations . ,citation-entries)))))))
 
-(defun greger-parser--generate-safe-shell-commands-text (commands)
-  "Generate descriptive text for safe shell COMMANDS list."
-  (when commands
-    (concat "You can run arbitrary shell commands with the shell-command tool, but the following are safe shell commands that will run without requiring user confirmation:\n\n"
-            (mapconcat (lambda (cmd) (format "* `%s`" cmd)) commands "\n"))))
+(defun greger-parser--extract-text-content (node)
+  "Extract text content from NODE, handling nested structures."
+  (let ((result (greger-parser--collect-text-blocks node "")))
+    (string-trim result)))
 
-(defun greger-parser--create-thinking-message (content)
-  "Create thinking message with CONTENT."
-  `((role . "assistant")
-    (content . (((type . "thinking") (thinking . ,content))))))
+(defun greger-parser--collect-text-blocks (node result)
+  "Recursively collect text from text nodes in NODE and append to RESULT."
+  (let ((node-type (treesit-node-type node)))
+    (cond
+     ((string= node-type "text")
+      (concat result (treesit-node-text node t)))
+     ((string= node-type "code_block")
+      ;; For code blocks, include the entire text content
+      (concat result (treesit-node-text node t)))
+     ((string= node-type "html_comment")
+      ;; Skip HTML comments outside of code blocks
+      result)
+     (t
+      (let ((text-result result))
+        (dolist (child (treesit-node-children node))
+          (setq text-result (greger-parser--collect-text-blocks child text-result)))
+        text-result)))))
 
-(defun greger-parser--create-tool-use-message (name id input)
-  "Create tool use message with NAME, ID and INPUT."
-  `((role . "assistant")
-    (content . (((type . "tool_use")
-                 (id . ,id)
-                 (name . ,name)
-                 (input . ,input))))))
+(defun greger-parser--parse-json-or-plain-content (content)
+  "Parse CONTENT as JSON if it looks like JSON, otherwise return as plain text."
+  (if (and (string-match-p "^\\s-*\\[\\|^\\s-*{" content)
+           (condition-case nil
+               (json-parse-string content :object-type 'alist :array-type 'list)
+             (json-parse-error nil)))
+      (json-parse-string content :object-type 'alist :array-type 'list)
+    content))
 
-(defun greger-parser--create-tool-result-message (id content)
-  "Create tool result message with ID and CONTENT."
-  `((role . "user")
-    (content . (((type . "tool_result")
-                 (tool_use_id . ,id)
-                 (content . ,content))))))
+(defun greger-parser--extract-citation-entry (node)
+  "Extract a citation entry from NODE."
+  (let ((url nil)
+        (title nil)
+        (cited-text nil)
+        (encrypted-index nil))
+    (dolist (child (treesit-node-children node))
+      (let ((child-type (treesit-node-type child)))
+        (cond
+         ((string= child-type "url")
+          (setq url (string-trim (treesit-node-text child t))))
+         ((string= child-type "title")
+          (setq title (greger-parser--extract-value child)))
+         ((string= child-type "cited_text")
+          (setq cited-text (greger-parser--extract-value child)))
+         ((string= child-type "encrypted_index")
+          (setq encrypted-index (greger-parser--extract-value child))))))
+    `((type . "web_search_result_location")
+      (url . ,url)
+      (title . ,title)
+      (cited_text . ,cited-text)
+      (encrypted_index . ,encrypted-index))))
 
-(defun greger-parser--create-server-tool-use-message (name id input)
-  "Create server tool use message with NAME, ID and INPUT."
-  `((role . "assistant")
-    (content . (((type . "server_tool_use")
-                 (id . ,id)
-                 (name . ,name)
-                 (input . ,input))))))
-
-(defun greger-parser--create-server-tool-result-message (id content)
-  "Create server tool result message with ID and CONTENT."
-  (let ((result-type (if (and (stringp content)
-                              (string-match-p "\"type\"[[:space:]]*:[[:space:]]*\"web_search_result\"" content))
-                         "web_search_tool_result"
-                       "server_tool_result")))
-    (let ((parsed-content
-           (if (stringp content)
-               (greger-parser--parse-json-content content)
-             content)))
-      `((role . "assistant")
-        (content . (((type . ,result-type)
-                     (tool_use_id . ,id)
-                     (content . ,parsed-content))))))))
-
-(defun greger-parser--parse-json-content (content)
-  "Parse JSON CONTENT from string to structured data.
-Falls back to original content if parsing fails."
-  (condition-case err
-      (let ((parsed (json-read-from-string content)))
-        ;; Convert parsed JSON to alist format expected by the parser
-        (if (vectorp parsed)
-            ;; Handle arrays
-            (mapcar (lambda (item)
-                      (if (listp item)
-                          (mapcar (lambda (pair)
-                                    (cons (intern (symbol-name (car pair))) (cdr pair)))
-                                  item)
-                        item))
-                    parsed)
-          ;; Handle objects
-          (if (listp parsed)
-              (mapcar (lambda (pair)
-                        (cons (intern (symbol-name (car pair))) (cdr pair)))
-                      parsed)
-            ;; Handle primitive values
-            parsed)))
-    (error
-     ;; If parsing fails, return the content as-is
-     content)))
-
-(defun greger-parser--create-citations-message (content)
-  "Create citations message with CONTENT."
-  `((role . "assistant")
-    (content . (((type . "citations") (citations . ,content))))))
-
-;; Message merging
-
-(defun greger-parser--merge-consecutive-messages (messages)
-  "Merge consecutive MESSAGES with same role."
-  (if (null messages)
-      '()
-    (let ((result (list (car messages))))
-      (dolist (msg (cdr messages))
-        (let* ((last (car result))
-               (last-role (alist-get 'role last))
-               (curr-role (alist-get 'role msg)))
-          (if (string= last-role curr-role)
-              ;; Merge with previous
-              (progn
-                (let ((merged (greger-parser--merge-message-contents last msg)))
-                  (setcar result merged)))
-            ;; Add as new message
-            (progn
-              (push msg result)))))
-      (reverse result))))
-
-(defun greger-parser--merge-message-contents (msg1 msg2)
-  "Merge contents of MSG1 and MSG2."
-  (let ((role (alist-get 'role msg1))
-        (content1 (alist-get 'content msg1))
-        (content2 (alist-get 'content msg2)))
-    (let ((merged-content (greger-parser--merge-contents content1 content2)))
-      `((role . ,role)
-        (content . ,merged-content)))))
-
-(defun greger-parser--merge-contents (content1 content2)
-  "Merge CONTENT1 and CONTENT2 values."
-  (let ((blocks1 (greger-parser--content-to-blocks content1))
-        (blocks2 (greger-parser--content-to-blocks content2)))
-    (let ((result (append blocks1 blocks2)))
-      result)))
-
-(defun greger-parser--content-to-blocks (content)
-  "Convert CONTENT to content blocks."
-  (let ((result (cond
-                 ((stringp content)
-                  `(((type . "text") (text . ,content))))
-                 ((listp content)
-                  content)
-                 (t
-                  `(((type . "text") (text . ,(format "%s" content))))))))
-    result))
-
-;; Markdown generation
+;; Dialog to markdown
 
 (defun greger-parser--message-to-markdown (message)
   "Convert MESSAGE to markdown."
@@ -1480,35 +583,6 @@ Falls back to original content if parsing fails."
 
 (defun greger-parser--content-block-has-citations (content-block)
   (not (null (assq 'citations content-block))))
-
-;; Global debug flag for interactive debugging
-(defvar greger-parser--global-debug nil
-  "Global debug flag for interactive debugging.")
-
-;; Compatibility function for tests and existing code
-(defun greger-parser-parse-dialog-messages-only (markdown &optional debug)
-  "Parse MARKDOWN into dialog format, returning only the messages (old format).
-This is for backward compatibility with existing tests and code.
-DEBUG enables debug logging."
-  (let ((result (greger-parser-parse-dialog markdown debug)))
-    (plist-get result :messages)))
-
-;; Debug helper functions
-(defun greger-parser-enable-debug ()
-  "Enable parser debug output."
-  (interactive)
-  (setq greger-parser--global-debug t)
-  (message "Parser debug enabled"))
-
-(defun greger-parser-disable-debug ()
-  "Disable parser debug output."
-  (interactive)
-  (setq greger-parser--global-debug nil)
-  (message "Parser debug disabled"))
-
-(defun greger-parser-parse-dialog-debug (markdown)
-  "Parse MARKDOWN into dialog format with debug enabled."
-  (greger-parser-parse-dialog markdown (or greger-parser--global-debug t)))
 
 (provide 'greger-parser)
 
