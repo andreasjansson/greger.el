@@ -47,7 +47,7 @@
 (defconst greger-parser-server-tool-use-tag "## SERVER TOOL USE:")
 (defconst greger-parser-server-tool-result-tag "## SERVER TOOL RESULT:")
 
-(add-to-list 'treesit-extra-load-path "./greger-grammar")
+(add-to-list 'treesit-extra-load-path "/Users/andreas/projects/greger.el/greger-grammar")
 
 ;; Entrypoints
 
@@ -553,7 +553,9 @@
   (if (null input)
       ""
     (mapconcat (lambda (param)
-                 (let ((name (symbol-name (car param)))
+                 (let ((name (if (symbolp (car param))
+                                 (symbol-name (car param))
+                               (format "%s" (car param))))
                        (value (cdr param)))
                    (concat "### " name "\n\n"
                            "<tool." id ">\n"
