@@ -429,22 +429,47 @@
   "Convert system CONTENT to markdown."
   (concat greger-parser-system-tag "\n\n" content))
 
-(defun greger-parser--content-blocks-to-markdown (content-blocks)
-  "Convert content blocks to markdown format."
+(defun greger-parser--user-content-blocks-to-markdown (content-blocks)
+  "Convert user content blocks to markdown format."
+  (if (null content-blocks)
+      ""
+    (let ((result ""))
+      (dolist (block content-blocks)
+        (let* ((block-type (alist-get 'type block))
+               (block-markdown (cond
+                               ((string= block-type "text")
+                                (alist-get 'text block))
+                               ((string= block-type "tool_result")
+                                (greger-parser--tool-result-to-markdown block))
+                               (t (greger-parser--block-to-markdown block t)))))
+          (when (not (string= result ""))
+            (setq result (concat result "\n\n")))
+          (setq result (concat result block-markdown))))
+      result)))
+
+(defun greger-parser--assistant-content-blocks-to-markdown (content-blocks)
+  "Convert assistant content blocks to markdown format."
   (if (null content-blocks)
       ""
     (let ((result "")
-          (previous-block-type nil))
+          (first-block t))
       (dolist (block content-blocks)
         (let* ((block-type (alist-get 'type block))
-               (needs-separator (and previous-block-type
-                                     (not (string= result ""))
-                                     (greger-parser--needs-block-separator previous-block-type block-type)))
-               (block-markdown (greger-parser--block-to-markdown block)))
-          (when needs-separator
+               (is-text-block (string= block-type "text"))
+               (block-markdown (cond
+                               ((and is-text-block first-block)
+                                ;; First text block gets assistant header
+                                (concat greger-parser-assistant-tag "\n\n" (alist-get 'text block)))
+                               (is-text-block
+                                ;; Subsequent text blocks need assistant header if previous wasn't text
+                                (concat greger-parser-assistant-tag "\n\n" (alist-get 'text block)))
+                               (t
+                                ;; Non-text blocks handle their own headers
+                                (greger-parser--block-to-markdown block t)))))
+          (when (not (string= result ""))
             (setq result (concat result "\n\n")))
           (setq result (concat result block-markdown))
-          (setq previous-block-type block-type)))
+          (setq first-block nil)))
       result)))
 
 (defun greger-parser--citations-list-to-markdown (citations)
