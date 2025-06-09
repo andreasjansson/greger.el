@@ -417,13 +417,13 @@
   (if (stringp content)
       (concat greger-parser-user-tag "\n\n" content)
     (concat greger-parser-user-tag "\n\n"
-            (greger-parser--content-blocks-to-markdown content))))
+            (greger-parser--user-content-blocks-to-markdown content))))
 
 (defun greger-parser--assistant-to-markdown (content)
   "Convert assistant CONTENT to markdown."
   (if (stringp content)
       (concat greger-parser-assistant-tag "\n\n" content)
-    (greger-parser--content-blocks-to-markdown content)))
+    (greger-parser--assistant-content-blocks-to-markdown content)))
 
 (defun greger-parser--system-to-markdown (content)
   "Convert system CONTENT to markdown."
