@@ -7,7 +7,7 @@
 ;; Helper function to read markdown content from corpus .txt files
 (defun greger-read-corpus-file (name)
   "Read markdown content from a .txt corpus file, extracting only the input portion."
-  (let* ((test-dir (file-name-directory (or load-file-name buffer-file-name)))
+  (let* ((test-dir (file-name-directory (or load-file-name buffer-file-name (concat default-directory "test/test-greger-parser.el"))))
          (file-path (expand-file-name (format "greger-grammar/test/corpus/%s.txt" name) test-dir)))
     (if (file-exists-p file-path)
         (with-temp-buffer
