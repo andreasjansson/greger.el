@@ -163,10 +163,6 @@
     (define-key map (kbd "C-; a") #'greger-insert-assistant-tag)
     (define-key map (kbd "C-; u") #'greger-insert-user-tag)
     (define-key map (kbd "C-; s") #'greger-insert-system-tag)
-    (define-key map (kbd "C-; i") #'greger-insert-include)
-    (define-key map (kbd "C-; I") #'greger-insert-include-code)
-    (define-key map (kbd "C-; f") #'greger-insert-include-file)
-    (define-key map (kbd "C-; b") #'greger-insert-include-buffer-code)
     (define-key map (kbd "C-; m") #'greger-set-model)
     (define-key map (kbd "C-; c") #'greger-copy-code)
     (define-key map (kbd "C-; d") #'greger-debug-request)
@@ -252,36 +248,6 @@
   (interactive)
   (let ((greger-tools '()))
     (greger-buffer)))
-
-(defun greger-insert-include ()
-  "Prompt the user to select a file and insert an <include> at point."
-  (interactive)
-  (let ((file (read-string "Filename or URL: ")))
-    (insert (format "<include>%s</include>\n\n" file))))
-
-(defun greger-insert-include-file ()
-  "Prompt the user to select a file and insert an <include> at point."
-  (interactive)
-  (let ((file (expand-file-name (read-file-name "Select file: " nil nil t))))
-    (if (file-exists-p file)
-        (insert (format "<include>%s</include>\n\n" file))
-      (message "File does not exist!"))))
-
-(defun greger-insert-include-code ()
-  "Prompt the user to select a file and insert an <include> at point."
-  (interactive)
-  (let ((file (read-string "Filename or URL: ")))
-    (insert (format "<include code>%s</include>\n\n" file))))
-
-(defun greger-insert-include-buffer-code ()
-  "Prompt the user to select a buffer and insert an <include code> at point."
-  (interactive)
-  (let ((buffer-name (read-buffer "Select buffer: " nil t)))
-    (when buffer-name
-      (let ((buffer (get-buffer buffer-name)))
-        (when buffer
-          (let ((path (buffer-file-name buffer)))
-            (insert (format "<include code>%s</include>\n\n" path))))))))
 
 (defun greger-copy-code ()
   "Copy the current code block under point."
