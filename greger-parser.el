@@ -44,7 +44,6 @@
 (defconst greger-parser-citations-tag "## CITATIONS:")
 (defconst greger-parser-tool-use-tag "## TOOL USE:")
 (defconst greger-parser-tool-result-tag "## TOOL RESULT:")
-(defconst greger-parser-server-tool-use-tag "## SERVER TOOL USE:")
 (defconst greger-parser-web-search-tool-result-tag "## WEB SEARCH TOOL RESULT:")
 
 (add-to-list 'treesit-extra-load-path "/Users/andreas/projects/greger.el/greger-grammar")
@@ -485,38 +484,29 @@ If SKIP-HEADER is true, don't add section headers for text blocks."
 (defun greger-parser--tool-result-to-markdown (tool-result)
   "Convert TOOL-RESULT to markdown."
   (let ((id (alist-get 'tool_use_id tool-result))
-        (content (alist-get 'content tool-result)))
-    (concat greger-parser-tool-result-tag "\n\n"
-            "ID: " id "\n\n"
-            "<tool." id ">\n"
-            (if (stringp content)
-                content
-              (greger-parser--value-to-string content))
-            "\n"
-            "</tool." id ">")))
+        (content (greger-parser--tool-content-to-markdown tool-result)))
+    (greger-parser--wrapped-tool-content greger-parser-tool-result-tag id content)))
 
-(defun greger-parser--server-tool-use-to-markdown (server-tool-use)
-  "Convert SERVER-TOOL-USE to markdown."
-  (let ((name (alist-get 'name server-tool-use))
-        (id (alist-get 'id server-tool-use))
-        (input (alist-get 'input server-tool-use)))
-    (concat greger-parser-server-tool-use-tag "\n\n"
-            "Name: " name "\n"
-            "ID: " id "\n\n"
-            (greger-parser--tool-params-to-markdown id input))))
+(defun greger-parser--wrapped-tool-content (tag id content)
+  (concat tag
+          "\n\n"
+          "ID: " id "\n\n"
+          "<tool." id ">\n"
+          content
+          "\n"
+          "</tool." id ">"))
 
-(defun greger-parser--web-search-tool-result-to-markdown (web-search-result)
-  "Convert WEB-SEARCH-RESULT to markdown."
-  (let ((id (alist-get 'tool_use_id web-search-result))
-        (content (alist-get 'content web-search-result)))
-    (concat greger-parser-web-search-tool-result-tag "\n\n"
-            "ID: " id "\n\n"
-            "<tool." id ">\n"
-            (if (stringp content)
-                content
-              (greger-parser--value-to-string content))
-            "\n"
-            "</tool." id ">")))
+(defun greger-parser--web-search-tool-result-to-markdown (tool-result)
+  "Convert TOOL-RESULT to markdown."
+  (let ((id (alist-get 'tool_use_id tool-result))
+        (content (greger-parser--tool-content-to-markdown tool-result)))
+    (greger-parser--wrapped-tool-content greger-parser-web-search-tool-result-tag id content)))
+
+(defun greger-parser--tool-content-to-markdown (block)
+  (let ((content (alist-get 'content block)))
+    (if (stringp content)
+        content
+      (greger-parser--value-to-string content))))
 
 (defun greger-parser--tool-params-to-markdown (id input)
   "Convert tool parameters with ID and INPUT to markdown."

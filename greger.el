@@ -528,7 +528,7 @@ READ-ONLY is t to make read-only, nil to make writable."
 
 (defun greger--tool-placeholder (tool-id)
   "Generate placeholder string for TOOL-ID."
-  (format "<!-- TOOL_RESULT_PLACEHOLDER_%s -->" tool-id))
+  (greger-parser--wrapped-tool-content greger-parser-tool-result-tag tool-id "Loading..."))
 
 (defun greger--execute-tools (tool-calls state)
   "Execute TOOL-CALLS using AGENT-STATE in parallel with callbacks."
