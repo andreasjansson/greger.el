@@ -633,7 +633,7 @@ COMPLETION-CALLBACK is called when complete."
           ;; Find and replace the placeholder
           (when (search-backward (greger--tool-placeholder tool-id) nil t)
             (replace-match "")
-            (let ((result-markdown (greger-parser--content-blocks-to-markdown (list tool-result))))
+            (let ((result-markdown (greger-parser--tool-result-to-markdown tool-result)))
               (unless (string-empty-p result-markdown)
                 (insert result-markdown)))))))
 

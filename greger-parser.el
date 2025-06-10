@@ -491,7 +491,8 @@ If SKIP-HEADER is true, don't add section headers for text blocks."
             "<tool." id ">\n"
             (if (stringp content)
                 content
-              (greger-parser--value-to-string content)) "\n"
+              (greger-parser--value-to-string content))
+            "\n"
             "</tool." id ">")))
 
 (defun greger-parser--server-tool-use-to-markdown (server-tool-use)
@@ -513,7 +514,8 @@ If SKIP-HEADER is true, don't add section headers for text blocks."
             "<tool." id ">\n"
             (if (stringp content)
                 content
-              (greger-parser--value-to-string content)) "\n"
+              (greger-parser--value-to-string content))
+            "\n"
             "</tool." id ">")))
 
 (defun greger-parser--tool-params-to-markdown (id input)
