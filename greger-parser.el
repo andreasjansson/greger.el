@@ -45,7 +45,7 @@
 (defconst greger-parser-tool-use-tag "## TOOL USE:")
 (defconst greger-parser-tool-result-tag "## TOOL RESULT:")
 (defconst greger-parser-server-tool-use-tag "## SERVER TOOL USE:")
-(defconst greger-parser-server-tool-result-tag "## SERVER TOOL RESULT:")
+(defconst greger-parser-web-search-tool-result-tag "## WEB SEARCH TOOL RESULT:")
 
 (add-to-list 'treesit-extra-load-path "/Users/andreas/projects/greger.el/greger-grammar")
 
@@ -82,112 +82,70 @@
       (let ((entry (greger-parser--extract-entry-from-node child)))
         (when entry
           (push entry raw-entries))))
-    ;; Then merge assistant-related entries
-    (greger-parser--merge-assistant-entries (nreverse raw-entries))))
 
-(defun greger-parser--merge-assistant-entries (entries)
-  "Merge consecutive assistant-related entries into single messages."
-  (let ((result '())
-        (current-assistant-content '())
-        )
-    (dolist (entry entries)
-      (let ((role (cdr (assoc 'role entry))))
-        (cond
-         ;; If this is an assistant-type message, accumulate content
-         ((string= role "assistant")
-          (let ((content (cdr (assoc 'content entry))))
-            (cond
-             ;; Content is already a list of content blocks
-             ((and (listp content) (listp (car content)) (assoc 'type (car content)))
-              (setq current-assistant-content
-                    (append current-assistant-content content)))
-             ;; Content is plain text, convert to text block
-             ((stringp content)
-              (setq current-assistant-content
-                    (append current-assistant-content
-                            `(((type . "text") (text . ,content))))))
-             ;; Content is some other list format
-             (t
-              (setq current-assistant-content
-                    (append current-assistant-content content))))))
-         ;; For non-assistant messages, flush any accumulated assistant content first
-         (t
-          (when current-assistant-content
-            (setq result (greger-parser--flush-assistant-content current-assistant-content result))
-            (setq current-assistant-content '()))
-          (push entry result)))))
-    ;; Don't forget any remaining assistant content
-    (when current-assistant-content
-      (setq result (greger-parser--flush-assistant-content current-assistant-content result)))
-    ;; No need to fix types anymore since everything is web_search_tool_result
-    (nreverse result)))
+    ;; Reverse after push
+    (setq raw-entries (nreverse raw-entries))
 
+    raw-entries))
 
 
 (defun greger-parser--flush-assistant-content (content result)
   "Flush accumulated assistant CONTENT to RESULT list, returning updated result."
-  (if (and (= (length content) 1)
-           (string= (cdr (assoc 'type (car content))) "text")
-           (not (assoc 'citations (car content))))
-      ;; Single text block without citations - use plain text format
-      (cons `((role . "assistant")
-              (content . ,(cdr (assoc 'text (car content)))))
-            result)
-    ;; Multiple blocks or special blocks - use content blocks format
-    (cons `((role . "assistant")
-            (content . ,content))
-          result)))
+  (cons `((role . "assistant")
+          (content . ,content))
+        result))
 
 (defun greger-parser--extract-entry-from-node (node)
   "Extract a single dialog entry from NODE."
   (let ((node-type (treesit-node-type node)))
     (cond
+     ((string= node-type "untagged_text")
+      (greger-parser--extract-user-from-untagged-text node))
      ((string= node-type "user")
-      (greger-parser--extract-user-entry node))
+      (greger-parser--extract-user node))
      ((string= node-type "assistant")
-      (greger-parser--extract-assistant-entry node))
+      (greger-parser--extract-assistant node))
      ((string= node-type "system")
-      (greger-parser--extract-system-entry node))
+      (greger-parser--extract-system node))
      ((string= node-type "thinking")
-      (greger-parser--extract-thinking-entry node))
+      (greger-parser--extract-thinking node))
      ((string= node-type "tool_use")
-      (greger-parser--extract-tool-use-entry node))
+      (greger-parser--extract-tool-use node))
      ((string= node-type "tool_result")
-      (greger-parser--extract-tool-result-entry node))
-     ((string= node-type "server_tool_use")
-      (greger-parser--extract-server-tool-use-entry node))
+      (greger-parser--extract-tool-result node))
      ((string= node-type "web_search_tool_result")
-      (greger-parser--extract-web-search-tool-result-entry node))
+      (greger-parser--extract-web-search-tool-result node))
+     ;; citations are assistants too, but they don't have text
      ((string= node-type "citations")
-      (greger-parser--extract-citations-entry node))
+      (greger-parser--extract-assistant node))
      (t nil))))
 
-(defun greger-parser--extract-user-entry (node)
+(defun greger-parser--extract-user-from-untagged-text (node)
+  "Extract user entry from NODE."
+  (let ((content (string-trim (treesit-node-text node t))))
+    `((role . "user")
+      (content . ,content))))
+
+(defun greger-parser--extract-user (node)
   "Extract user entry from NODE."
   (let ((content (greger-parser--extract-text-content node)))
     `((role . "user")
       (content . ,content))))
 
-(defun greger-parser--extract-system-entry (node)
+(defun greger-parser--extract-system (node)
   "Extract system entry from NODE."
   (let ((content (greger-parser--extract-text-content node)))
     `((role . "system")
       (content . ,content))))
 
-(defun greger-parser--extract-thinking-entry (node)
+(defun greger-parser--extract-thinking (node)
   "Extract thinking entry from NODE."
   (let ((content (greger-parser--extract-text-content node)))
     `((role . "assistant")
       (content . (((type . "thinking")
                    (thinking . ,content)))))))
 
-(defun greger-parser--extract-assistant-entry (node)
-  "Extract assistant entry from NODE."
-  (let ((content (greger-parser--extract-text-content node)))
-    `((role . "assistant")
-      (content . ,content))))
-
-(defun greger-parser--extract-tool-use-entry (node)
+(defun greger-parser--extract-tool-use (node)
   "Extract tool use entry from NODE."
   (let ((name nil)
         (id nil)
@@ -272,7 +230,7 @@
                 parsed))
     (error str)))
 
-(defun greger-parser--extract-tool-result-entry (node)
+(defun greger-parser--extract-tool-result (node)
   "Extract tool result entry from NODE."
   (let ((id nil)
         (content nil))
@@ -289,30 +247,7 @@
                    (tool_use_id . ,id)
                    (content . ,content)))))))
 
-(defun greger-parser--extract-server-tool-use-entry (node)
-  "Extract server tool use entry from NODE."
-  (let ((name nil)
-        (id nil)
-        (params '()))
-    (dolist (child (treesit-node-children node))
-      (let ((child-type (treesit-node-type child)))
-        (cond
-         ((string= child-type "name")
-          (setq name (greger-parser--extract-value child
-                      )))
-         ((string= child-type "id")
-          (setq id (greger-parser--extract-value child
-                    )))
-         ((string= child-type "tool_param")
-          (push (greger-parser--extract-tool-param child) params)))))
-    (setq params (nreverse params))
-    `((role . "assistant")
-      (content . (((type . "server_tool_use")
-                   (id . ,id)
-                   (name . ,name)
-                   (input . ,params)))))))
-
-(defun greger-parser--extract-web-search-tool-result-entry (node)
+(defun greger-parser--extract-web-search-tool-result (node)
   "Extract server tool result entry from NODE."
   (let ((id nil)
         (content nil))
@@ -328,10 +263,11 @@
                    (tool_use_id . ,id)
                    (content . ,content)))))))
 
-(defun greger-parser--extract-citations-entry (node)
+(defun greger-parser--extract-assistant (node)
   "Extract citations entry from NODE."
   (let ((text-content nil)
-        (citation-entries '()))
+        (citation-entries '())
+        (content '((type . "text"))))
     (dolist (child (treesit-node-children node))
       (let ((child-type (treesit-node-type child)))
         (cond
@@ -339,12 +275,17 @@
           (setq text-content (greger-parser--extract-text-content child)))
          ((string= child-type "citation_entry")
           (push (greger-parser--extract-citation-entry child) citation-entries)))))
-    (setq citation-entries (nreverse citation-entries))
-    ;; Return a result that can be merged with other content
+
+    (when citation-entries
+        (push `(citations . ,citation-entries) content))
+    (when text-content
+      (push `(text . ,text-content) content))
+
+    ;; TODO: remove debug
+    (message (format "citation-entries: %s" citation-entries))
+
     `((role . "assistant")
-      (content . (((type . "text")
-                   (text . ,text-content)
-                   (citations . ,citation-entries)))))))
+      (content . (,content)))))
 
 (defun greger-parser--extract-text-content (node)
   "Extract text content from NODE, handling nested structures."
@@ -357,8 +298,10 @@
     (cond
      ((string= node-type "text")
       (concat result (treesit-node-text node t)))
-     ((string= node-type "code_block")
       ;; For code blocks, include the entire text content
+     ((string= node-type "code_block")
+      (concat result (treesit-node-text node t)))
+     ((string= node-type "inline_code")
       (concat result (treesit-node-text node t)))
      ((string= node-type "html_comment")
       ;; Skip HTML comments outside of code blocks
@@ -459,7 +402,8 @@
           (first-block t))
       (dolist (block content-blocks)
         (let* ((block-type (alist-get 'type block))
-               (is-text-block (string= block-type "text"))
+               (has-citations (alist-get 'citations block))
+               (is-text-block (and (string= block-type "text") (not has-citations)))
                (block-markdown (cond
                                ((and is-text-block first-block)
                                 ;; First text block gets assistant header
@@ -478,9 +422,7 @@
 
 (defun greger-parser--citations-list-to-markdown (citations)
   "Convert CITATIONS list to markdown citations section."
-  (when citations
-    (concat greger-parser-citations-tag "\n\n"
-            (mapconcat #'greger-parser--citation-to-markdown citations "\n\n"))))
+  (mapconcat #'greger-parser--citation-to-markdown citations "\n\n"))
 
 (defun greger-parser--citation-to-markdown (citation)
   "Convert single CITATION to markdown format."
@@ -499,6 +441,8 @@ If SKIP-HEADER is true, don't add section headers for text blocks."
   (let ((type (alist-get 'type block)))
     (cond
      ((string= type "text")
+      ;; TODO: remove debug
+      (message (format "block: %s" block))
       (if (alist-get 'citations block)
           (greger-parser--citations-to-markdown block)
         (if skip-header
@@ -510,20 +454,23 @@ If SKIP-HEADER is true, don't add section headers for text blocks."
       (greger-parser--tool-use-to-markdown block))
      ((string= type "tool_result")
       (greger-parser--tool-result-to-markdown block))
-     ((string= type "server_tool_use")
-      (greger-parser--server-tool-use-to-markdown block))
-     ((string= type "server_tool_result")
-      (greger-parser--server-tool-result-to-markdown block))
      ((string= type "web_search_tool_result")
       (greger-parser--web-search-tool-result-to-markdown block))
      (t ""))))
 
 (defun greger-parser--citations-to-markdown (block)
   (let* ((text (alist-get 'text block))
-         (citations (alist-get 'citations block)))
-    (concat "<cite>" text "</cite>"
+         (citations (alist-get 'citations block))
+         (citations-markdown (greger-parser--citations-list-to-markdown citations)))
+    (if text
+        (concat greger-parser-assistant-tag
             "\n\n"
-            (greger-parser--citations-list-to-markdown citations))))
+            text
+            "\n\n"
+            citations-markdown)
+      (concat greger-parser-citations-tag
+              "\n\n"
+              citations-markdown))))
 
 (defun greger-parser--tool-use-to-markdown (tool-use)
   "Convert TOOL-USE to markdown."
@@ -557,23 +504,11 @@ If SKIP-HEADER is true, don't add section headers for text blocks."
             "ID: " id "\n\n"
             (greger-parser--tool-params-to-markdown id input))))
 
-(defun greger-parser--server-tool-result-to-markdown (server-tool-result)
-  "Convert SERVER-TOOL-RESULT to markdown."
-  (let ((id (alist-get 'tool_use_id server-tool-result))
-        (content (alist-get 'content server-tool-result)))
-    (concat greger-parser-server-tool-result-tag "\n\n"
-            "ID: " id "\n\n"
-            "<tool." id ">\n"
-            (if (stringp content)
-                content
-              (greger-parser--value-to-string content)) "\n"
-            "</tool." id ">")))
-
 (defun greger-parser--web-search-tool-result-to-markdown (web-search-result)
   "Convert WEB-SEARCH-RESULT to markdown."
   (let ((id (alist-get 'tool_use_id web-search-result))
         (content (alist-get 'content web-search-result)))
-    (concat greger-parser-server-tool-result-tag "\n\n"
+    (concat greger-parser-web-search-tool-result-tag "\n\n"
             "ID: " id "\n\n"
             "<tool." id ">\n"
             (if (stringp content)

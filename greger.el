@@ -342,9 +342,12 @@
   "Send buffer content to AI as an agent dialog with tool support."
   (interactive)
   (let* ((buffer-content (buffer-substring-no-properties (point-min) (point-max)))
-         (parse-result (greger-parser-parse-dialog buffer-content))
-         (dialog (plist-get parse-result :messages))
-         (metadata (plist-get parse-result :metadata)))
+         (parse-result (greger-parser-markdown-to-dialog buffer-content))
+         (dialog parse-result)
+         (metadata nil)
+         ;(dialog (plist-get parse-result :messages))
+         ;(metadata (plist-get parse-result :metadata))
+         )
     (unless dialog
       (error "Failed to parse dialog. Did you forget to close a html tag?"))
 
@@ -419,8 +422,9 @@ READ-ONLY is t to make read-only, nil to make writable."
          (chat-buffer (greger-state-chat-buffer state))
          (buffer-content (with-current-buffer chat-buffer
                            (buffer-substring-no-properties (point-min) (point-max))))
-         (parse-result (greger-parser-parse-dialog buffer-content))
-         (current-dialog (plist-get parse-result :messages))
+         (parse-result (greger-parser-markdown-to-dialog buffer-content))
+                                        ;(current-dialog (plist-get parse-result :messages))
+         (current-dialog parse-result)
          (current-iteration (greger-state-current-iteration state)))
 
     (greger--debug "=== ITERATION %d ===" current-iteration)
