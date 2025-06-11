@@ -121,7 +121,7 @@
 
 (defun greger-parser--extract-user-from-untagged-text (node)
   "Extract user entry from NODE."
-  (let ((content (string-trim (treesit-node-text node t))))
+  (let ((content (treesit-node-text node t)))
     `((role . "user")
       (content . ,content))))
 
@@ -177,7 +177,7 @@
       (let ((child-type (treesit-node-type child)))
         (cond
          ((string= child-type "name")
-          (setq name (intern (string-trim (treesit-node-text child t)))))
+          (setq name (intern (treesit-node-text child t))))
          ((string= child-type "value")
           (setq value (greger-parser--extract-tool-content child))))))
     `(,name . ,value)))
@@ -185,12 +185,8 @@
 (defun greger-parser--extract-tool-content (node)
   (let* ((value-node (treesit-node-child-by-field-name node "value"))
          (value (treesit-node-text value-node)))
-    (greger-parser--convert-value
-     (greger-parser--strip-single-newlines value))))
 
-(defun greger-parser--strip-single-newlines (str)
-  "Strip a single newline from the front and back of STR."
-  (string-trim str "\\`\n?" "\n?\\'"))
+    (greger-parser--convert-value value)))
 
 (defun greger-parser--convert-param-value (value)
   "Convert VALUE to appropriate type (number if it looks like a number, otherwise string)."
@@ -204,9 +200,9 @@
     (cond
      ((string= trimmed "true") t)
      ((string= trimmed "false") nil)
-     ((string-match-p "^-?[0-9]+$" trimmed)
+     ((string-match-p "\\`-?[0-9]+\\'" trimmed)
       (string-to-number trimmed))
-     ((string-match-p "^-?[0-9]*\\.[0-9]+$" trimmed)
+     ((string-match-p "\\`-?[0-9]*\\.[0-9]+\\'" trimmed)
       (string-to-number trimmed))
      ((and (string-prefix-p "[" trimmed) (string-suffix-p "]" trimmed))
       (greger-parser--parse-json-array trimmed))
@@ -237,8 +233,7 @@
       (let ((child-type (treesit-node-type child)))
         (cond
          ((string= child-type "id")
-          (setq id (greger-parser--extract-value child
-                    )))
+          (setq id (string-trim (greger-parser--extract-value child))))
          ((string= child-type "content")
           (setq content (greger-parser--extract-tool-content child))))))
     `((role . "user")
@@ -264,24 +259,18 @@
 
 (defun greger-parser--extract-assistant (node)
   "Extract citations entry from NODE."
-  (let ((text-content nil)
+  (let ((text-content (greger-parser--extract-text-content node))
         (citation-entries '())
         (content '((type . "text"))))
     (dolist (child (treesit-node-children node))
       (let ((child-type (treesit-node-type child)))
-        (cond
-         ((string= child-type "text")
-          (setq text-content (greger-parser--extract-text-content child)))
-         ((string= child-type "citation_entry")
-          (push (greger-parser--extract-citation-entry child) citation-entries)))))
+        (when (string= child-type "citation_entry")
+          (push (greger-parser--extract-citation-entry child) citation-entries))))
 
     (when citation-entries
         (push `(citations . ,citation-entries) content))
     (when text-content
       (push `(text . ,text-content) content))
-
-    ;; TODO: remove debug
-    (message (format "citation-entries: %s" citation-entries))
 
     `((role . "assistant")
       (content . (,content)))))
@@ -289,7 +278,7 @@
 (defun greger-parser--extract-text-content (node)
   "Extract text content from NODE, handling nested structures."
   (let ((result (greger-parser--collect-text-blocks node "")))
-    (string-trim result)))
+    result))
 
 (defun greger-parser--collect-text-blocks (node result)
   "Recursively collect text from text nodes in NODE and append to RESULT."
@@ -440,8 +429,6 @@ If SKIP-HEADER is true, don't add section headers for text blocks."
   (let ((type (alist-get 'type block)))
     (cond
      ((string= type "text")
-      ;; TODO: remove debug
-      (message (format "block: %s" block))
       (if (alist-get 'citations block)
           (greger-parser--citations-to-markdown block)
         (if skip-header

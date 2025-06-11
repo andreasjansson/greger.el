@@ -66,20 +66,12 @@
 
 ;; Tool configuration and agent functionality
 
-(defun greger--default-tools ()
-  "Return default tools list, including LSP tools if available."
-  (let ((base-tools '("read-file" "list-directory" "str-replace" "insert" "write-new-file" "replace-file" "make-directory" "rename-file" "ripgrep" "git-log" "git-show-commit" "shell-command" "read-webpage" "delete-files"))
-        (lsp-tools '("lsp-rename" "lsp-find-definition" "lsp-find-references" "lsp-format" "lsp-document-symbols")))
-    (if (and (boundp 'greger--lsp-available) greger--lsp-available)
-        (append base-tools lsp-tools)
-      base-tools)))
-
-(defcustom greger-tools (greger--default-tools)
+(defcustom greger-tools '("read-file" "list-directory" "str-replace" "insert" "write-new-file" "replace-file" "make-directory" "rename-file" "ripgrep" "git-log" "git-show-commit" "shell-command" "read-webpage" "delete-files")
   "List of tools available to the agent."
   :type '(repeat symbol)
   :group 'greger)
 
-(defcustom greger-server-tools '()       ; '("web_search")
+(defcustom greger-server-tools '("web_search")
   "List of server tools available to the agent (e.g., web_search)."
   :type '(repeat symbol)
   :group 'greger)
@@ -104,21 +96,11 @@
   client-state
   executing-tools)
 
-(defvar greger-user-tag "## USER:")
-(defvar greger-assistant-tag "## ASSISTANT:")
-(defvar greger-system-tag "## SYSTEM:")
-
-
-
 (defvar-local greger--current-state nil
   "Buffer-local variable to track the current state.")
 
 (defvar-local greger--buffer-read-only-by-greger nil
   "Buffer-local variable to track if buffer is read-only due to greger activity.")
-
-
-
-
 
 (defface greger-tool-param-heading-face
   '((t :foreground "#6699CC" :weight bold :height 1.0))
@@ -165,7 +147,7 @@
     (define-key map (kbd "C-; s") #'greger-insert-system-tag)
     (define-key map (kbd "C-; m") #'greger-set-model)
     (define-key map (kbd "C-; c") #'greger-copy-code)
-    (define-key map (kbd "C-; d") #'greger-debug-request)
+    (define-key map (kbd "C-; D") #'greger-debug-request)
     (define-key map (kbd "TAB") #'greger-ui-toggle-section)
     (define-key map (kbd "<tab>") #'greger-ui-toggle-section)
     map)
@@ -192,26 +174,26 @@
   (let ((buffer (generate-new-buffer "*greger*")))
     (switch-to-buffer buffer)
     (greger-mode)
-    (insert greger-system-tag
+    (insert greger-parser-system-tag
             "\n\n" greger-default-system-prompt "\n\n"
-            greger-user-tag
+            greger-parser-user-tag
             "\n\n")
     (message "Using model %s" greger-model)))
 
 (defun greger-insert-assistant-tag ()
   "Insert the assistant tag into the buffer."
   (interactive)
-  (insert greger-assistant-tag "\n\n"))
+  (insert greger-parser-assistant-tag "\n\n"))
 
 (defun greger-insert-user-tag ()
   "Insert the user tag into the buffer."
   (interactive)
-  (insert greger-user-tag "\n\n"))
+  (insert greger-parser-user-tag "\n\n"))
 
 (defun greger-insert-system-tag ()
   "Insert the system tag into the buffer."
   (interactive)
-  (insert greger-system-tag "\n\n"))
+  (insert greger-parser-system-tag "\n\n"))
 
 (defun greger-interrupt ()
   "Interrupt ongoing generation if active, otherwise call `keyboard-quit'."
@@ -241,7 +223,10 @@
      ;; Default case: call keyboard-quit
      (t
       (keyboard-quit)
-      'idle))))
+      'idle)))
+
+  ;; to not get stuck in read only
+  (greger--set-buffer-read-only nil))
 
 (defun greger-buffer-no-tools ()
   "Send the buffer content to AI as a dialog without tool use."
@@ -271,15 +256,11 @@
   (interactive)
   (let* ((filename (read-string "Save to filename (default: request.json): " nil nil "request.json"))
          (buffer-content (buffer-substring-no-properties (point-min) (point-max)))
-         (parse-result (greger-parser-parse-dialog buffer-content))
-         (dialog (plist-get parse-result :messages))
+         (dialog (greger-parser-markdown-to-dialog buffer-content))
          (tools (when greger-tools
                   (greger-tools-get-schemas greger-tools)))
          (model greger-model)
          (request-data nil))
-
-    (unless dialog
-      (error "Failed to parse dialog. Check your buffer format"))
 
     ;; Get server tools
     (let ((server-tools (when greger-server-tools
@@ -423,13 +404,10 @@ READ-ONLY is t to make read-only, nil to make writable."
         (greger--update-buffer-state)))))
 
 (defun greger--append-streaming-content-header (state content-block)
-  ;; TODO: remove debug
   (let ((type (alist-get 'type content-block))
         (has-citations (greger-parser--content-block-has-citations content-block)))
    (cond
     ((and (string= type "text") (not has-citations))
-     ;; TODO: remove debug
-
      (greger--append-text state (concat "\n\n" greger-parser-assistant-tag "\n\n")))
     ((string= type "thinking")
      (greger--append-text state (concat "\n\n" greger-parser-thinking-tag "\n\n")))
@@ -472,8 +450,7 @@ READ-ONLY is t to make read-only, nil to make writable."
 
    (let ((markdown (greger-parser--block-to-markdown content-block)))
      (greger--append-text
-      state (concat (unless (greger-parser--content-block-has-citations content-block) "\n\n")
-                    markdown)))
+      state (concat "\n\n" markdown)))
 
    (when (string= type "tool_use")
      (let ((tool-id (alist-get 'id content-block)))
@@ -650,8 +627,8 @@ COMPLETION-CALLBACK is called when complete."
   (with-current-buffer (greger-state-chat-buffer state)
     (let ((inhibit-read-only t))
       (goto-char (point-max))
-      (unless (looking-back (concat greger-user-tag "\n\n") nil)
-        (insert "\n\n" greger-user-tag "\n\n")))
+      (unless (looking-back (concat greger-parser-user-tag "\n\n") nil)
+        (insert "\n\n" greger-parser-user-tag "\n\n")))
     ;; Clear the buffer-local agent state
     (setq greger--current-state nil)
     ;; Update buffer state to idle

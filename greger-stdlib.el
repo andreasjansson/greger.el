@@ -660,6 +660,11 @@ If BUFFER is provided, it will be staged and committed along with the new file."
     (when (file-exists-p expanded-path)
       (error "File already exists: %s" expanded-path))
 
+    (when (string-suffix-p ".el" expanded-path)
+      (let ((balance (greger-stdlib--count-paren-balance contents)))
+        (unless (= balance 0)
+          (error "Unbalanced parentheses in Emacs Lisp content: contents has balance %d. Must be 0. Try again!" balance))))
+
     ;; Check if parent directory exists, if not create it
     (let ((parent-dir (file-name-directory expanded-path)))
       (unless (file-exists-p parent-dir)
@@ -865,7 +870,7 @@ For Emacs Lisp files (.el), checks that parentheses balance is maintained."
       (let ((orig-balance (greger-stdlib--count-paren-balance original-content))
             (new-balance (greger-stdlib--count-paren-balance new-content)))
         (unless (= orig-balance new-balance)
-          (error "Parentheses balance mismatch in Emacs Lisp file: original has balance %d, new has balance %d. They must be equal"
+          (error "Parentheses balance mismatch in Emacs Lisp content: original has balance %d, new has balance %d. They must be equal. Try again!"
                  orig-balance new-balance))))
 
     (with-current-buffer (find-file-noselect expanded-path)

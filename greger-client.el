@@ -166,8 +166,8 @@
     ;; Build base request
     (setq request-data `(("model" . ,(symbol-name model))
                         ("messages" . ,user-messages)
-                                        ("max_tokens" . 32000) ;; TODO: make this configurable
-                        ;("max_tokens" . 8000)
+                        ;("max_tokens" . 32000) ;; TODO: make this configurable
+                        ("max_tokens" . 8000)
                         ("stream" . t)))
 
     ;; Add system message if present
