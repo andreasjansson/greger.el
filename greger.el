@@ -405,7 +405,7 @@ READ-ONLY is t to make read-only, nil to make writable."
 
 (defun greger--append-streaming-content-header (state content-block)
   (let ((type (alist-get 'type content-block))
-        (has-citations (greger-parser--content-block-has-citations content-block)))
+        (has-citations (not (null (assq 'citations content-block)))))
    (cond
     ((and (string= type "text") (not has-citations))
      (greger--append-text state (concat "\n\n" greger-parser-assistant-tag "\n\n")))
@@ -414,15 +414,8 @@ READ-ONLY is t to make read-only, nil to make writable."
     (t nil))))
 
 (defun greger--handle-stream-completion (state content-blocks)
-  (let ((tool-calls (greger--extract-tool-calls content-blocks))
-        (citations (greger--extract-citations content-blocks)))
+  (let ((tool-calls (greger--extract-tool-calls content-blocks)))
 
-    ;; Process citations if any
-    (when citations
-      (greger--debug "CITATIONS DETECTED! Found %d citation blocks" (length citations))
-      (greger--append-citations-markdown state citations))
-
-    ;; TODO: remove debug
     (if tool-calls
         (progn
           (greger--debug "TOOL USE DETECTED! Found %d tool calls" (length tool-calls))
@@ -439,9 +432,9 @@ READ-ONLY is t to make read-only, nil to make writable."
 
 (defun greger--content-block-supports-streaming (content-block)
   (let ((type (alist-get 'type content-block))
-        (has-citations (alist-get 'citations content-block)))
+        (citations (alist-get 'citations content-block)))
     (and (or (string= type "text") (string= type "thinking"))
-         (not has-citations))))
+         (not citations))))
 
 (defun greger--append-nonstreaming-content-block (state type content-block)
   (greger--debug "CONTENT BLOCK: %s" content-block)
@@ -470,15 +463,6 @@ READ-ONLY is t to make read-only, nil to make writable."
                       (json-encode (alist-get 'input block)))
         (push block tool-calls)))
     (reverse tool-calls)))
-
-(defun greger--extract-citations (content-blocks)
-  "Extract all citations from CONTENT-BLOCKS."
-  (let ((all-citations '()))
-    (dolist (block content-blocks)
-      (let ((citations (alist-get 'citations block)))
-        (when citations
-          (setq all-citations (append all-citations citations)))))
-    all-citations))
 
 (defun greger--append-citations-markdown (state citations)
   "Append citations as markdown to the buffer using STATE and CITATIONS list."

@@ -530,15 +530,6 @@ If SKIP-HEADER is true, don't add section headers for text blocks."
     ((listp value) (json-encode value))
     (t (format "%s" value)))))
 
-(defun greger-parser--content-block-has-citations (content-block)
-  (not (null (assq 'citations content-block))))
-
-(defun greger-parser--needs-block-separator (previous-type current-type)
-  "Determine if a separator is needed between block types."
-  ;; Always need separator between different block types except specific cases
-  (not (or (and (string= previous-type "text") (string= current-type "text"))
-           (and (string= previous-type "text") (greger-parser--content-block-has-citations current-type)))))
-
 (provide 'greger-parser)
 
 ;;; greger-parser.el ends here

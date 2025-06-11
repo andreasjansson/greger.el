@@ -207,7 +207,7 @@ Returns nil if no error found or if OUTPUT is not valid JSON."
   "Process a chunk of OUTPUT using STATE."
 
   ;; TODO: remove debug
-  ;(message "output: %s" output)
+  (message "output: %s" output)
 
   ;; Check for error responses and raise an error if found
   (greger-client--check-for-error output)
@@ -313,7 +313,7 @@ Returns nil if no error found or if OUTPUT is not valid JSON."
      ;; {"type":"content_block_delta","index":0,"delta":{"type":"text_delta","text":"I'll search for the"}}
      ((string= delta-type "text_delta")
       (let ((text (alist-get 'text delta))
-            (has-citations (not (null (assq 'citations block)))))
+            (has-citations (alist-get 'citations block)))
         (setf (alist-get 'text block)
               (concat (alist-get 'text block) text))
         ;; Only call text callback for live display if this block doesn't have citations
