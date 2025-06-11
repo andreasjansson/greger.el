@@ -41,7 +41,6 @@
 (defconst greger-parser-user-tag "## USER:")
 (defconst greger-parser-assistant-tag "## ASSISTANT:")
 (defconst greger-parser-thinking-tag "## THINKING:")
-(defconst greger-parser-citations-tag "## CITATIONS:")
 (defconst greger-parser-tool-use-tag "## TOOL USE:")
 (defconst greger-parser-tool-result-tag "## TOOL RESULT:")
 (defconst greger-parser-web-search-tool-result-tag "## WEB SEARCH TOOL RESULT:")
@@ -448,15 +447,16 @@ If SKIP-HEADER is true, don't add section headers for text blocks."
   (let* ((text (alist-get 'text block))
          (citations (alist-get 'citations block))
          (citations-markdown (greger-parser--citations-list-to-markdown citations)))
-    (if text
-        (concat greger-parser-assistant-tag
+
+    ;; little hack for parsing to still work if there are citations without text
+    (when (not text)
+      (setq text " "))
+
+    (concat greger-parser-assistant-tag
             "\n\n"
             text
             "\n\n"
-            citations-markdown)
-      (concat greger-parser-citations-tag
-              "\n\n"
-              citations-markdown))))
+            citations-markdown)))
 
 (defun greger-parser--tool-use-to-markdown (tool-use)
   "Convert TOOL-USE to markdown."

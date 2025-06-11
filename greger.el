@@ -389,8 +389,10 @@ READ-ONLY is t to make read-only, nil to make writable."
                          :tools tools
                          :server-tools server-tools
                          :buffer chat-buffer
-                         :block-start-callback (lambda (content-block) (greger--append-streaming-content-header state content-block))
-                         :text-delta-callback (lambda (text) (greger--append-text state text))
+                         :block-start-callback (lambda (content-block)
+                                                 (greger--append-streaming-content-header state content-block))
+                         :text-delta-callback (lambda (text)
+                                                (greger--append-text state (greger--clean-excessive-newlines text)))
                          :block-stop-callback (lambda (type content-block)
                                                 (greger--append-nonstreaming-content-block state type content-block)
                                                 ;(greger-ui-refresh-folding)
@@ -402,6 +404,11 @@ READ-ONLY is t to make read-only, nil to make writable."
       (with-current-buffer chat-buffer
         (setq greger--current-state state) ;; TODO: why do we set that _here_? Or should it be greger--current-client-state instead?
         (greger--update-buffer-state)))))
+
+(defun greger--clean-excessive-newlines (text)
+  "Remove excessive newlines from the end of TEXT, keeping at most two.
+If TEXT ends with more than two consecutive newlines, remove all but the first two."
+  (replace-regexp-in-string "\n\n\n+\\'" "\n\n" text))
 
 (defun greger--append-streaming-content-header (state content-block)
   (let ((type (alist-get 'type content-block))
@@ -464,29 +471,6 @@ READ-ONLY is t to make read-only, nil to make writable."
         (push block tool-calls)))
     (reverse tool-calls)))
 
-(defun greger--append-citations-markdown (state citations)
-  "Append citations as markdown to the buffer using STATE and CITATIONS list."
-  (when citations
-    (let ((citations-markdown (greger--format-citations-as-markdown citations)))
-      (greger--append-text state (concat "\n\n" citations-markdown)))))
-
-(defun greger--format-citations-as-markdown (citations)
-  "Format CITATIONS list as markdown according to the greger citation format."
-  (when citations
-    (concat greger-parser-citations-tag "\n\n"
-            (mapconcat #'greger--format-single-citation-as-markdown citations "\n\n"))))
-
-(defun greger--format-single-citation-as-markdown (citation)
-  "Format a single CITATION as markdown."
-  (let ((url (alist-get 'url citation))
-        (title (alist-get 'title citation))
-        (cited-text (alist-get 'cited_text citation))
-        (encrypted-index (alist-get 'encrypted_index citation)))
-    (concat "### " url "\n\n"
-            "Title: " title "\n"
-            "Cited text: " cited-text "\n"
-            "Encrypted index: " encrypted-index)))
-
 (defun greger--tool-placeholder (tool-id)
   "Generate placeholder string for TOOL-ID."
   (greger-parser--wrapped-tool-content greger-parser-tool-result-tag tool-id "Loading..."))
@@ -508,16 +492,7 @@ READ-ONLY is t to make read-only, nil to make writable."
     ;; First, display the tool calls and reserve space for each tool's output
     (with-current-buffer (greger-state-chat-buffer state)
       (let ((inhibit-read-only t))
-        (goto-char (point-max))
-
-        ;; Display each tool call followed by its placeholder
-        ;; (dolist (tool-call tool-calls)
-        ;;   (let ((tool-id (alist-get 'id tool-call))
-        ;;         (tool-block-markdown (greger-parser--content-blocks-to-markdown (list tool-call))))
-        ;;     (unless (string-empty-p tool-block-markdown)
-        ;;       (insert "\n\n" tool-block-markdown))
-        ;;     (insert "\n\n" (greger--tool-placeholder tool-id))))
-        ))
+        (goto-char (point-max))))
 
     ;; Execute all tools in parallel
     (dolist (tool-call tool-calls)
