@@ -86,7 +86,7 @@
   current-iteration
   chat-buffer
   directory
-  metadata
+  tool-call-metadata
   client-state
   executing-tools)
 
@@ -331,13 +331,6 @@
   ;; to not get stuck in read only
   (greger--set-buffer-read-only nil))
 
-(defun greger-buffer-no-tools ()
-  "Send the buffer content to AI as a dialog without tool use."
-  (interactive)
-  (let ((greger-tools '())
-        (greger-server-tools '()))
-    (greger-buffer)))
-
 (defun greger-set-model ()
   "Set the current model."
   (interactive)
@@ -350,57 +343,36 @@
   (interactive)
   (let* ((filename (read-string "Save to filename (default: request.json): " nil nil "request.json"))
          (buffer-content (buffer-substring-no-properties (point-min) (point-max)))
-         (dialog (greger-parser-markdown-to-dialog buffer-content))
+         (dialog (greger-parser-markdown-buffer-to-dialog (current-buffer)))
          (tools (when greger-tools
                   (greger-tools-get-schemas greger-tools)))
+         (server-tools (when greger-server-tools
+                          (greger-server-tools-get-schemas greger-server-tools)))
          (model greger-model)
-         (request-data nil))
+         (greger-client--build-data model dialog tools server-tools))
 
-    ;; Get server tools
-    (let ((server-tools (when greger-server-tools
-                          (greger-server-tools-get-schemas greger-server-tools))))
-      ;; Get the JSON request data using the new client
-      (setq request-data (greger-client--build-data model dialog tools server-tools)))
-
-    ;; Parse the JSON and re-encode with proper formatting
-    (condition-case err
-        (let* ((parsed-json (json-read-from-string request-data)))
-          ;; Write to file with proper indentation
-          (with-temp-file filename
-            (let ((json-encoding-pretty-print t))
-              (insert (json-encode parsed-json))))
-          (message "Request data saved to %s" filename))
-      (error
-       ;; Fallback: just save the raw JSON string if parsing fails
-       (with-temp-file filename
-         (insert request-data))
-       (message "Request data saved to %s (raw format due to parsing error: %s)"
-                filename (error-message-string err))))))
-
-;; Main buffer function with agent functionality
+    (let* ((parsed-json (json-read-from-string request-data)))
+      (with-temp-file filename
+        (let ((json-encoding-pretty-print t))
+          (insert (json-encode parsed-json))))
+      (message "Request data saved to %s" filename))))
 
 (defun greger-buffer ()
   "Send buffer content to AI as an agent dialog with tool support."
   (interactive)
-  (let* ((buffer-content (buffer-substring-no-properties (point-min) (point-max)))
-         (parse-result (greger-parser-markdown-to-dialog buffer-content))
-         (dialog parse-result)
-         (metadata nil)
-         ;(dialog (plist-get parse-result :messages))
-         ;(metadata (plist-get parse-result :metadata))
-         )
-    (unless dialog
-      (error "Failed to parse dialog. Did you forget to close a html tag?"))
+  ;; (goto-char (point-max)) ; TODO: is this needed?
+  (greger--run-agent-loop (make-greger-state
+                           :current-iteration 0
+                           :chat-buffer (current-buffer)
+                           :directory default-directory
+                           :tool-call-metadata nil)))
 
-    (goto-char (point-max))
-
-    (let ((state (make-greger-state
-                        :current-iteration 0
-                        :chat-buffer (current-buffer)
-                        :directory default-directory
-                        :metadata metadata)))
-
-      (greger--run-agent-loop state))))
+(defun greger-buffer-no-tools ()
+  "Send the buffer content to AI as a dialog without tool use."
+  (interactive)
+  (let ((greger-tools '())
+        (greger-server-tools '()))
+    (greger-buffer)))
 
 (defun greger--get-current-state ()
   "Get the current greger state: \='idle, \='generating, or \='executing."
@@ -451,11 +423,8 @@ READ-ONLY is t to make read-only, nil to make writable."
          (server-tools (when greger-server-tools
                          (greger-server-tools-get-schemas greger-server-tools)))
          (chat-buffer (greger-state-chat-buffer state))
-         (buffer-content (with-current-buffer chat-buffer
-                           (buffer-substring-no-properties (point-min) (point-max))))
-         (parse-result (greger-parser-markdown-to-dialog buffer-content))
-                                        ;(current-dialog (plist-get parse-result :messages))
-         (current-dialog parse-result)
+         (dialog (greger-parser-markdown-buffer-to-dialog chat-buffer))
+         (safe-shell-commands (greger-parser-find-safe-shell-commands-in-buffer chat-buffer))
          (current-iteration (greger-state-current-iteration state)))
 
     ;; Check max iterations

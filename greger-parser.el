@@ -61,15 +61,25 @@
         '()
       (with-temp-buffer
         (insert text)
-        (let* ((parser (treesit-parser-create 'greger))
-               (root-node (treesit-parser-root-node parser)))
-          (greger-parser--extract-dialog-from-node root-node))))))
+        (greger-parser-markdown-to-dialog (current-buffer))))))
+
+(defun greger-parser-markdown-buffer-to-dialog (buffer)
+  (with-current-buffer buffer
+    (let* ((parser (treesit-parser-create 'greger))
+           (root-node (treesit-parser-root-node parser)))
+      (greger-parser--extract-dialog-from-node root-node))))
 
 (defun greger-parser-dialog-to-markdown (dialog)
   "Convert DIALOG to markdown format."
   (if (null dialog)
       ""
     (mapconcat #'greger-parser--message-to-markdown dialog "\n\n")))
+
+(defun greger-parser-find-safe-shell-commands-in-buffer (buffer)
+  (with-current-buffer buffer
+    (let* ((parser (treesit-parser-create 'greger))
+           (root-node (treesit-parser-root-node parser)))
+      (greger-parser--extract-safe-shell-commands root-node))))
 
 ;; Tree-sitter-based markdown-to-dialog parsing
 
@@ -135,9 +145,31 @@
 
 (defun greger-parser--extract-system (node)
   "Extract system entry from NODE."
-  (let ((content (greger-parser--extract-text-content node)))
+  (let* ((content (greger-parser--extract-text-content node))
+         (safe-shell-commands (greger-parser--extract-safe-shell-commands node))
+         (safe-shell-commands-text (greger-parser--safe-shell-commands-text safe-shell-commands)))
+
+    (when safe-shell-commands-text
+      (setq content (concat content "\n\n" safe-shell-commands-text)))
+
     `((role . "system")
       (content . ,content))))
+
+(defun greger-parser--extract-safe-shell-commands (node)
+  (let ((safe-shell-commands-node (treesit-search-subtree node "safe_shell_commands")))
+    (when safe-shell-commands-node
+      (let ((command-nodes (treesit-node-children safe-shell-commands-node t)))
+        (mapcar (lambda (n) (treesit-node-text n t)) command-nodes)))))
+
+(defun greger-parser--safe-shell-commands-text (commands)
+  "Generate descriptive text for safe shell COMMANDS list."
+  (when commands
+    (concat "# Safe shell commands
+
+You can run arbitrary shell commands with the shell-command tool, but the following are safe shell commands that will run without requiring user confirmation:
+
+"
+            (mapconcat (lambda (cmd) (format "* `%s`" cmd)) commands "\n"))))
 
 (defun greger-parser--extract-thinking (node)
   "Extract thinking entry from NODE."
@@ -194,7 +226,7 @@
 
 (defun greger-parser--extract-tool-content (node)
   (let* ((value-node (treesit-node-child-by-field-name node "value"))
-         (value (treesit-node-text value-node)))
+         (value (treesit-node-text value-node t)))
 
     (greger-parser--convert-value value)))
 
@@ -270,20 +302,22 @@
 (defun greger-parser--extract-assistant (node)
   "Extract citations entry from NODE."
   (let ((text-content (greger-parser--extract-text-content node))
-        (citation-entries '())
+        (citation-entries (greger-parser--extract-citation-entries node))
         (content '((type . "text"))))
-    (dolist (child (treesit-node-children node))
-      (let ((child-type (treesit-node-type child)))
-        (when (string= child-type "citation_entry")
-          (push (greger-parser--extract-citation-entry child) citation-entries))))
-
     (when citation-entries
-        (push `(citations . ,citation-entries) content))
+      (push `(citations . ,citation-entries) content))
     (when text-content
       (push `(text . ,text-content) content))
-
     `((role . "assistant")
       (content . (,content)))))
+
+(defun greger-parser--extract-citation-entries (node)
+  (let ((citation-entries '()))
+   (dolist (child (treesit-node-children node))
+     (let ((child-type (treesit-node-type child)))
+       (when (string= child-type "citation_entry")
+         (push (greger-parser--extract-citation-entry child) citation-entries))))
+   citation-entries))
 
 (defun greger-parser--extract-text-content (node)
   "Extract text content from NODE, handling nested structures."

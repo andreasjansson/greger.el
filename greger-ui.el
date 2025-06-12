@@ -150,7 +150,7 @@ START and END are the region bounds."
   (interactive)
   (let ((node (treesit-node-at (point))))
     (if (string= (treesit-node-type node) "code_block_content")
-        (let ((code (treesit-node-text node)))
+        (let ((code (treesit-node-text node t)))
               (kill-new code)
               (message "Copied code:\n%s" (greger-ui--truncate-with-ellipsis code 40)))
       (message "Not inside a code block"))))

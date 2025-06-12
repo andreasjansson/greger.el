@@ -11,7 +11,7 @@
          (project-root (if (string-match "/test/$" test-dir)
                            (substring test-dir 0 (match-beginning 0))
                          (file-name-directory (directory-file-name test-dir))))
-         (file-path (expand-file-name (format "greger-grammar/test/corpus/%s.txt" name) project-root)))
+         (file-path (expand-file-name (format "grammar/test/corpus/%s.txt" name) project-root)))
     (if (file-exists-p file-path)
         (with-temp-buffer
           (insert-file-contents file-path)
@@ -429,5 +429,55 @@ print(\"# ASSISTANT also preserved\")
         (should (string-match-p "# USER" content-param))
         (should (string-match-p "# ASSISTANT" content-param))
         (should (string-match-p "```python" content-param))))))
+
+;; Tests for safe-shell-commands
+(ert-deftest greger-parser-test-safe-shell-commands ()
+  "Test safe-shell-commands with other system content."
+  (let ((markdown "# SYSTEM
+
+You are a helpful assistant.
+
+<safe-shell-commands>
+ls
+
+pwd
+</safe-shell-commands>
+
+Please be careful."))
+    (let ((result (greger-parser-markdown-to-dialog markdown)))
+      ;; Should have a system message with combined content
+      (should (= 1 (length result)))
+      (should (string= "system" (alist-get 'role (car result))))
+      (let ((system-content (alist-get 'content (car result))))
+        (should (string= "You are a helpful assistant.
+
+
+
+Please be careful.
+
+# Safe shell commands
+
+You can run arbitrary shell commands with the shell-command tool, but the following are safe shell commands that will run without requiring user confirmation:
+
+* `ls`
+* `pwd`"
+                         system-content))))))
+
+(ert-deftest greger-parser-test-safe-shell-commands-not-in-system ()
+  "Test that safe-shell-commands outside SYSTEM section are ignored."
+  (let ((markdown "# USER
+
+<safe-shell-commands>
+ls -la
+</safe-shell-commands>
+
+What files are here?"))
+    (let ((result (greger-parser-markdown-to-dialog markdown)))
+      ;; Should have no metadata
+      ;; Should have user message with the tag as regular content
+      (should (= 1 (length result)))
+      (should (string-match-p "<safe-shell-commands>"
+                             (alist-get 'content (car result)))))))
+
 
 ;;; test-greger-parser.el ends here
