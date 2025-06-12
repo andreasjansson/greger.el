@@ -52,6 +52,8 @@
 
 (defun greger-parser-markdown-to-dialog (text)
   "Parse greger conversation TEXT using tree-sitter and return structured dialog."
+  (greger-parser-activate-tree-sitter)
+
   (unless (treesit-ready-p 'greger)
     (error "Tree-sitter greger parser not available"))
 
@@ -61,7 +63,7 @@
         '()
       (with-temp-buffer
         (insert text)
-        (greger-parser-markdown-to-dialog (current-buffer))))))
+        (greger-parser-markdown-buffer-to-dialog (current-buffer))))))
 
 (defun greger-parser-markdown-buffer-to-dialog (buffer)
   (with-current-buffer buffer
@@ -76,10 +78,18 @@
     (mapconcat #'greger-parser--message-to-markdown dialog "\n\n")))
 
 (defun greger-parser-find-safe-shell-commands-in-buffer (buffer)
+  (greger-parser-activate-tree-sitter)
+
   (with-current-buffer buffer
     (let* ((parser (treesit-parser-create 'greger))
            (root-node (treesit-parser-root-node parser)))
       (greger-parser--extract-safe-shell-commands root-node))))
+
+(defun greger-parser-activate-tree-sitter ()
+  (let ((grammar-dir (file-name-concat load-file-name "grammar")))
+    (add-to-list 'treesit-extra-load-path grammar-dir))
+  (unless (treesit-ready-p 'greger)
+    (error "Tree-sitter for Greger isn't available")))
 
 ;; Tree-sitter-based markdown-to-dialog parsing
 

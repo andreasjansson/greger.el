@@ -86,7 +86,7 @@
   current-iteration
   chat-buffer
   directory
-  tool-call-metadata
+  tool-use-metadata
   client-state
   executing-tools)
 
@@ -247,10 +247,7 @@
 (define-derived-mode greger-mode prog-mode "Greger"
   "Major mode for editing Greger files with tree-sitter support."
   ;; Load grammar
-  (let ((grammar-dir (file-name-concat load-file-name "grammar")))
-    (add-to-list 'treesit-extra-load-path default-directory))
-  (unless (treesit-ready-p 'greger)
-    (error "Tree-sitter for Greger isn't available"))
+  (greger-parser-activate-tree-sitter)
   (treesit-parser-create 'greger)
 
   (setq-local treesit-font-lock-settings greger--treesit-font-lock-settings)
@@ -367,7 +364,7 @@
                            :current-iteration 0
                            :chat-buffer (current-buffer)
                            :directory default-directory
-                           :tool-call-metadata '(:safe-shell-commands ()))))
+                           :tool-use-metadata '(:safe-shell-commands ()))))
 
 (defun greger-buffer-no-tools ()
   "Send the buffer content to AI as a dialog without tool use."
@@ -427,10 +424,10 @@ READ-ONLY is t to make read-only, nil to make writable."
          (chat-buffer (greger-state-chat-buffer state))
          (dialog (greger-parser-markdown-buffer-to-dialog chat-buffer))
          (safe-shell-commands (greger-parser-find-safe-shell-commands-in-buffer chat-buffer))
-         (tool-call-metadata (greger-state-tool-call-metadata state))
+         (tool-use-metadata (greger-state-tool-use-metadata state))
          (current-iteration (greger-state-current-iteration state)))
 
-    (setf (plist-get tool-call-metadata :safe-shell-commands) safe-shell-commands)
+    (setf (plist-get tool-use-metadata :safe-shell-commands) safe-shell-commands)
 
     (when (>= current-iteration greger-max-iterations)
       (error "Maximum iterations (%d) reached, stopping agent execution" greger-max-iterations))
@@ -571,7 +568,7 @@ If TEXT ends with more than two consecutive newlines, remove all but the first t
                                                                 (when (= completed-tools total-tools)
                                                                   (greger--run-agent-loop state)))))
                             :buffer (greger-state-chat-buffer state)
-                            :metadata (greger-state-tool-call-metadata state))))
+                            :metadata (greger-state-tool-use-metadata state))))
 
           ;; TODO: here again, it's ugly
           (when (greger-tool-cancel-fn greger-tool)
