@@ -147,8 +147,6 @@
     (define-key map (kbd "C-; m") #'greger-set-model)
     (define-key map (kbd "C-; c") #'greger-copy-code)
     (define-key map (kbd "C-; D") #'greger-debug-request)
-    (define-key map (kbd "TAB") #'greger-ui-toggle-section)
-    (define-key map (kbd "<tab>") #'greger-ui-toggle-section)
     map)
   "Keymap for `greger-mode'.")
 
@@ -172,7 +170,7 @@
   (interactive)
   (let ((buffer (generate-new-buffer "*greger*")))
     (switch-to-buffer buffer)
-    (greger-mode)
+    (grgfoo-mode) ;; TODO
     (insert greger-parser-system-tag
             "\n\n" greger-default-system-prompt "\n\n"
             greger-parser-user-tag
