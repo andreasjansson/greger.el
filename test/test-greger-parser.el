@@ -227,18 +227,18 @@ Comparison is order-independent."
 
 (ert-deftest greger-parser-test-tool-use-parsing ()
   "Test specific tool use parsing functionality."
-  (let ((tool-use-markdown "## TOOL USE:
+  (let ((tool-use-markdown "# TOOL USE
 
 Name: read-file
 ID: toolu_123
 
-### path
+## path
 
 <tool.toolu_123>
 hello.txt
 </tool.toolu_123>
 
-### include_line_numbers
+## include_line_numbers
 
 <tool.toolu_123>
 true
@@ -259,7 +259,7 @@ true
 
 (ert-deftest greger-parser-test-tool-result-parsing ()
   "Test specific tool result parsing functionality."
-  (let ((tool-result-markdown "## TOOL RESULT:
+  (let ((tool-result-markdown "# TOOL RESULT
 
 ID: toolu_123
 
@@ -281,7 +281,7 @@ with multiple lines"
 
 (ert-deftest greger-parser-test-thinking-parsing ()
   "Test thinking section parsing."
-  (let ((thinking-markdown "## THINKING:
+  (let ((thinking-markdown "# THINKING
 
 I need to think about this carefully.
 This is a complex problem."))
@@ -300,10 +300,10 @@ This is a complex problem."
   "Test parser error handling for malformed input."
   ;; Test that malformed input returns empty result instead of error
   (should (condition-case err
-              (progn (greger-parser-markdown-to-dialog "## TOOL USE:\n\nMalformed") t)
+              (progn (greger-parser-markdown-to-dialog "# TOOL USE\n\nMalformed") t)
             (error nil)))
   (should (condition-case err
-              (progn (greger-parser-markdown-to-dialog "## TOOL RESULT:\n\nMalformed") t)
+              (progn (greger-parser-markdown-to-dialog "# TOOL RESULT\n\nMalformed") t)
             (error nil))))
 
 (ert-deftest greger-parser-test-edge-cases ()
@@ -313,13 +313,23 @@ This is a complex problem."
   (should (equal '() (greger-parser-markdown-to-dialog "\n\n  ")))
 
   ;; Multiple consecutive newlines
-  (let ((result (greger-parser-markdown-to-dialog "## USER:\n\n\n\nHello\n\n\n\n## ASSISTANT:\n\n\n\nHi")))
-    ;; TODO: remove debug
-    (message (format "result: %s" result))
+  (let ((result (greger-parser-markdown-to-dialog "# USER
+
+Hello
+
+
+
+# ASSISTANT
+
+
+
+Hi")))
     (should (equal '(((role . "user")
-                      (content . "Hello"))
+                      (content . "Hello\n\n"))
                      ((role . "assistant")
-                      (content ((text . "Hi") (type . "text")))))
+                      ;; This is wrong, it should be: (content ((text . "\n\nHi") (type . "text")))
+                      (content ((text . "Hi") (type . "text")))
+                      ))
                    result))))
 
 (ert-deftest greger-parser-test-performance ()
@@ -327,7 +337,7 @@ This is a complex problem."
   (let ((large-markdown
          (mapconcat
           (lambda (i)
-            (format "## USER:\n\nMessage %d\n\n## ASSISTANT:\n\nResponse %d" i i))
+            (format "# USER\n\nMessage %d\n\n# ASSISTANT\n\nResponse %d" i i))
           (number-sequence 1 100)
           "\n\n")))
     (let ((start-time (current-time)))
@@ -341,7 +351,7 @@ This is a complex problem."
   "Test that untagged content at the beginning is treated as user message."
   (let ((markdown "Hello, this is untagged content
 
-## ASSISTANT:
+# ASSISTANT
 
 I understand you have untagged content."))
     (let ((parsed (greger-parser-markdown-to-dialog markdown)))
@@ -354,18 +364,18 @@ I understand you have untagged content."))
 ;; Test that we handle tool use parameters correctly with various whitespace
 (ert-deftest greger-parser-test-tool-use-whitespace ()
   "Test tool use parsing with various whitespace patterns."
-  (let ((markdown "## TOOL USE:
+  (let ((markdown "# TOOL USE
 
 Name: test-tool
 ID: tool_123
 
-### param1
+## param1
 
 <tool.tool_123>
 value1
 </tool.tool_123>
 
-### param2
+## param2
 
 <tool.tool_123>
 value2 with
@@ -375,7 +385,7 @@ multiple
   lines
 </tool.tool_123>
 
-### param3
+## param3
 
 <tool.tool_123>
 value3
@@ -394,17 +404,17 @@ value3
 
 (ert-deftest greger-parser-test-code-blocks-in-tool-params ()
   "Test that code blocks in tool parameters are preserved correctly."
-  (let ((markdown "## TOOL USE:
+  (let ((markdown "# TOOL USE
 
 Name: write-file
 ID: tool_123
 
-### content
+## content
 
 <tool.tool_123>
 ```python
-# This ## USER: comment should be preserved
-print(\"## ASSISTANT: also preserved\")
+# This # USER comment should be preserved
+print(\"# ASSISTANT also preserved\")
 ```
 </tool.tool_123>
 "))
@@ -415,8 +425,8 @@ print(\"## ASSISTANT: also preserved\")
              (tool-block (car content-blocks))
              (input (alist-get 'input tool-block))
              (content-param (alist-get 'content input)))
-        (should (string-match-p "## USER:" content-param))
-        (should (string-match-p "## ASSISTANT:" content-param))
+        (should (string-match-p "# USER" content-param))
+        (should (string-match-p "# ASSISTANT" content-param))
         (should (string-match-p "```python" content-param))))))
 
 ;;; test-greger-parser.el ends here

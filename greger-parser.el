@@ -42,6 +42,7 @@
 (defconst greger-parser-assistant-tag "# ASSISTANT")
 (defconst greger-parser-thinking-tag "# THINKING")
 (defconst greger-parser-tool-use-tag "# TOOL USE")
+(defconst greger-parser-server-tool-use-tag "# SERVER TOOL USE")
 (defconst greger-parser-tool-result-tag "# TOOL RESULT")
 (defconst greger-parser-web-search-tool-result-tag "# WEB SEARCH TOOL RESULT")
 
@@ -109,6 +110,8 @@
       (greger-parser--extract-thinking node))
      ((string= node-type "tool_use")
       (greger-parser--extract-tool-use node))
+     ((string= node-type "server_tool_use")
+      (greger-parser--extract-server-tool-use node))
      ((string= node-type "tool_result")
       (greger-parser--extract-tool-result node))
      ((string= node-type "web_search_tool_result")
@@ -120,7 +123,7 @@
 
 (defun greger-parser--extract-user-from-untagged-text (node)
   "Extract user entry from NODE."
-  (let ((content (treesit-node-text node t)))
+  (let ((content (greger-parser--remove-two-trailing-newlines (treesit-node-text node t))))
     `((role . "user")
       (content . ,content))))
 
@@ -145,21 +148,34 @@
 
 (defun greger-parser--extract-tool-use (node)
   "Extract tool use entry from NODE."
-  (let ((name nil)
-        (id nil)
-        (params '()))
-    (dolist (child (treesit-node-children node))
-      (let ((child-type (treesit-node-type child)))
-        (cond
-         ((string= child-type "name")
-          (setq name (greger-parser--extract-value child)))
-         ((string= child-type "id")
-          (setq id (greger-parser--extract-value child)))
-         ((string= child-type "tool_param")
-          (push (greger-parser--extract-tool-param child) params)))))
+  (let* ((name-node (treesit-search-subtree node "name"))
+         (name (greger-parser--extract-value name-node))
+         (id-node (treesit-search-subtree node "id"))
+         (id (greger-parser--extract-value id-node))
+         (tool-param-nodes (treesit-filter-child node (lambda (n) (string= (treesit-node-type n) "tool_param"))))
+         (params '()))
+    (dolist (tool-param-node tool-param-nodes)
+      (push (greger-parser--extract-tool-param tool-param-node) params))
     (setq params (nreverse params))
     `((role . "assistant")
       (content . (((type . "tool_use")
+                   (id . ,id)
+                   (name . ,name)
+                   (input . ,params)))))))
+
+(defun greger-parser--extract-server-tool-use (node)
+  "Extract tool use entry from NODE."
+  (let* ((name-node (treesit-search-subtree node "name"))
+         (name (greger-parser--extract-value name-node))
+         (id-node (treesit-search-subtree node "id"))
+         (id (greger-parser--extract-value id-node))
+         (tool-param-nodes (treesit-filter-child node (lambda (n) (string= (treesit-node-type n) "tool_param"))))
+         (params '()))
+    (dolist (tool-param-node tool-param-nodes)
+      (push (greger-parser--extract-tool-param tool-param-node) params))
+    (setq params (nreverse params))
+    `((role . "assistant")
+      (content . (((type . "server_tool_use")
                    (id . ,id)
                    (name . ,name)
                    (input . ,params)))))))
@@ -170,15 +186,10 @@
       (string-trim (treesit-node-text child t)))))
 
 (defun greger-parser--extract-tool-param (node)
-  (let ((name nil)
-        (value nil))
-    (dolist (child (treesit-node-children node))
-      (let ((child-type (treesit-node-type child)))
-        (cond
-         ((string= child-type "name")
-          (setq name (intern (treesit-node-text child t))))
-         ((string= child-type "value")
-          (setq value (greger-parser--extract-tool-content child))))))
+  (let* ((name-node (treesit-search-subtree node "name"))
+         (name (intern (treesit-node-text name-node t)))
+         (value-node (treesit-search-subtree node "value"))
+         (value (greger-parser--extract-tool-content value-node)))
     `(,name . ,value)))
 
 (defun greger-parser--extract-tool-content (node)
@@ -207,7 +218,7 @@
       (greger-parser--parse-json-array trimmed))
      ((and (string-prefix-p "{" trimmed) (string-suffix-p "}" trimmed))
       (greger-parser--parse-json-object trimmed))
-     (t str))))
+     (t (greger-parser--remove-single-leading-and-trailing-newline str)))))
 
 (defun greger-parser--parse-json-array (str)
   "Parse JSON array STR."
@@ -277,7 +288,14 @@
 (defun greger-parser--extract-text-content (node)
   "Extract text content from NODE, handling nested structures."
   (let ((result (greger-parser--collect-text-blocks node "")))
-    result))
+    (greger-parser--remove-two-trailing-newlines result)))
+
+(defun greger-parser--remove-two-trailing-newlines (str)
+  "Remove exactly two newlines from the end of STRING if they exist."
+  (replace-regexp-in-string "\n\n\\'" "" str))
+
+(defun greger-parser--remove-single-leading-and-trailing-newline (str)
+  (replace-regexp-in-string "\\`\n\\|\n\\'" "" str))
 
 (defun greger-parser--collect-text-blocks (node result)
   "Recursively collect text from text nodes in NODE and append to RESULT."
@@ -285,7 +303,7 @@
     (cond
      ((string= node-type "text")
       (concat result (treesit-node-text node t)))
-      ;; For code blocks, include the entire text content
+     ;; For code blocks, include the entire text content
      ((string= node-type "code_block")
       (concat result (treesit-node-text node t)))
      ((string= node-type "inline_code")
@@ -417,7 +435,8 @@
         (title (alist-get 'title citation))
         (cited-text (alist-get 'cited_text citation))
         (encrypted-index (alist-get 'encrypted_index citation)))
-    (concat "## " url "\n\n"
+    ;; url includes the leading `## `
+    (concat url "\n\n"
             "Title: " title "\n"
             "Cited text: " cited-text "\n"
             "Encrypted index: " encrypted-index)))
@@ -437,6 +456,8 @@ If SKIP-HEADER is true, don't add section headers for text blocks."
       (concat greger-parser-thinking-tag "\n\n" (alist-get 'thinking block)))
      ((string= type "tool_use")
       (greger-parser--tool-use-to-markdown block))
+     ((string= type "server_tool_use")
+      (greger-parser--server-tool-use-to-markdown block))
      ((string= type "tool_result")
       (greger-parser--tool-result-to-markdown block))
      ((string= type "web_search_tool_result")
@@ -463,7 +484,19 @@ If SKIP-HEADER is true, don't add section headers for text blocks."
   (let ((name (alist-get 'name tool-use))
         (id (alist-get 'id tool-use))
         (input (alist-get 'input tool-use)))
+
     (concat greger-parser-tool-use-tag "\n\n"
+            "Name: " name "\n"
+            "ID: " id "\n\n"
+            (greger-parser--tool-params-to-markdown id input))))
+
+(defun greger-parser--server-tool-use-to-markdown (tool-use)
+  "Convert TOOL-USE to markdown."
+  (let ((name (alist-get 'name tool-use))
+        (id (alist-get 'id tool-use))
+        (input (alist-get 'input tool-use)))
+
+    (concat greger-parser-server-tool-use-tag "\n\n"
             "Name: " name "\n"
             "ID: " id "\n\n"
             (greger-parser--tool-params-to-markdown id input))))
