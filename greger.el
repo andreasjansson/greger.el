@@ -104,37 +104,37 @@
 
 (defface greger-tool-param-heading-face
   '((t :foreground "#6699CC" :weight bold :height 1.0))
-  "Face for ### tool parameter headings in greger mode."
+  "Face for ## tool parameter headings in greger mode."
   :group 'greger)
 
 (defface greger-user-heading-face
   '((t :foreground "#66DD66" :weight bold :height 1.2))
-  "Face for ## USER: headings in greger mode."
+  "Face for ## USER headings in greger mode."
   :group 'greger)
 
 (defface greger-tool-result-heading-face
   '((t :foreground "#66AA88" :weight bold :height 1.2))
-  "Face for ## TOOL RESULT: headings in greger mode."
+  "Face for # TOOL RESULT headings in greger mode."
   :group 'greger)
 
 (defface greger-assistant-heading-face
   '((t :foreground "#AA9922" :weight bold :height 1.2))
-  "Face for ## ASSISTANT: headings in greger mode."
+  "Face for # ASSISTANT: headings in greger mode."
   :group 'greger)
 
 (defface greger-thinking-heading-face
   '((t :foreground "#9966CC" :weight bold :height 1.2))
-  "Face for ## THINKING: headings in greger mode."
+  "Face for ## THINKING headings in greger mode."
   :group 'greger)
 
 (defface greger-tool-use-heading-face
   '((t :foreground "#8866BB" :weight bold :height 1.2))
-  "Face for ## TOOL USE: headings in greger mode."
+  "Face for # TOOL USE headings in greger mode."
   :group 'greger)
 
 (defface greger-system-heading-face
   '((t :foreground "#CC6666" :weight bold :height 1.2))
-  "Face for ## SYSTEM: headings in greger mode."
+  "Face for # SYSTEM headings in greger mode."
   :group 'greger)
 
 (defvar greger-mode-map
@@ -601,38 +601,6 @@ COMPLETION-CALLBACK is called when complete."
   (interactive)
   (setq greger-debug (not greger-debug))
   (message "Greger debug %s" (if greger-debug "enabled" "disabled")))
-
-(defun greger--setup-heading-font-lock ()
-  "Set up font-lock for headings to override markdown's larger font sizes."
-  ;; Remove existing markdown heading font-lock rules for level 2 and 3 headings
-  (setq-local font-lock-keywords
-              (cl-remove-if
-               (lambda (rule)
-                 (and (listp rule)
-                      (stringp (car rule))
-                      (or (string-match-p "^\\^##" (car rule))
-                          (string-match-p "^\\^###" (car rule))
-                          (string-match-p "markdown-header-face-[23]" (format "%s" rule)))))
-               font-lock-keywords))
-
-  ;; Add our custom font-lock rules with highest priority
-  (font-lock-add-keywords
-   nil
-   '(;; Level 2 headings (conversation roles)
-     ("^## USER:.*$" 0 'greger-user-heading-face t)
-     ("^## ASSISTANT:.*$" 0 'greger-assistant-heading-face t)
-     ("^## SYSTEM:.*$" 0 'greger-system-heading-face t)
-     ("^## THINKING:.*$" 0 'greger-thinking-heading-face t)
-     ("^## TOOL USE:.*$" 0 'greger-tool-use-heading-face t)
-     ("^## TOOL RESULT:.*$" 0 'greger-tool-result-heading-face t)
-     ;; Level 3 headings (tool parameters)
-     ("^###\\s-+.*$" 0 'greger-tool-param-heading-face t))
-   'prepend)
-
-  ;; Also remap the markdown faces
-  ;(face-remap-add-relative 'markdown-header-face-2 'greger-assistant-heading-face)
-  ;(face-remap-add-relative 'markdown-header-face-3 'greger-tool-param-heading-face)
-  (font-lock-flush))
 
 (defun greger--extend-font-lock-region ()
   "Extend font-lock region for greger mode.

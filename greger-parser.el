@@ -26,7 +26,7 @@
 ;; SOFTWARE.
 
 ;;; Commentary:
-;; Parses markdown-style dialog format with sections like ## USER:, ## ASSISTANT:, etc.
+;; Parses markdown-style dialog format with sections like # USER, # ASSISTANT, etc.
 ;; Handles tool use, thinking blocks, and complex content structures.
 
 ;;; Code:
@@ -37,13 +37,13 @@
 (require 'greger-web)
 
 ;; Section tag constants
-(defconst greger-parser-system-tag "## SYSTEM:")
-(defconst greger-parser-user-tag "## USER:")
-(defconst greger-parser-assistant-tag "## ASSISTANT:")
-(defconst greger-parser-thinking-tag "## THINKING:")
-(defconst greger-parser-tool-use-tag "## TOOL USE:")
-(defconst greger-parser-tool-result-tag "## TOOL RESULT:")
-(defconst greger-parser-web-search-tool-result-tag "## WEB SEARCH TOOL RESULT:")
+(defconst greger-parser-system-tag "# SYSTEM")
+(defconst greger-parser-user-tag "# USER")
+(defconst greger-parser-assistant-tag "# ASSISTANT")
+(defconst greger-parser-thinking-tag "# THINKING")
+(defconst greger-parser-tool-use-tag "# TOOL USE")
+(defconst greger-parser-tool-result-tag "# TOOL RESULT")
+(defconst greger-parser-web-search-tool-result-tag "# WEB SEARCH TOOL RESULT")
 
 (add-to-list 'treesit-extra-load-path "/Users/andreas/projects/greger.el/greger-grammar")
 
@@ -417,7 +417,7 @@
         (title (alist-get 'title citation))
         (cited-text (alist-get 'cited_text citation))
         (encrypted-index (alist-get 'encrypted_index citation)))
-    (concat "### " url "\n\n"
+    (concat "## " url "\n\n"
             "Title: " title "\n"
             "Cited text: " cited-text "\n"
             "Encrypted index: " encrypted-index)))
@@ -504,7 +504,7 @@ If SKIP-HEADER is true, don't add section headers for text blocks."
                                  (symbol-name (car param))
                                (format "%s" (car param))))
                        (value (cdr param)))
-                   (concat "### " name "\n\n"
+                   (concat "## " name "\n\n"
                            "<tool." id ">\n"
                            (greger-parser--value-to-string value) "\n"
                            "</tool." id ">")))
