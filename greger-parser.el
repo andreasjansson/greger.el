@@ -336,7 +336,7 @@
       (let ((child-type (treesit-node-type child)))
         (cond
          ((string= child-type "url")
-          (setq url (string-trim (treesit-node-text child t))))
+          (setq url (string-trim (substring (treesit-node-text child t) 3))))
          ((string= child-type "title")
           (setq title (greger-parser--extract-value child)))
          ((string= child-type "cited_text")
@@ -436,7 +436,7 @@
         (cited-text (alist-get 'cited_text citation))
         (encrypted-index (alist-get 'encrypted_index citation)))
     ;; url includes the leading `## `
-    (concat url "\n\n"
+    (concat "## " url "\n\n"
             "Title: " title "\n"
             "Cited text: " cited-text "\n"
             "Encrypted index: " encrypted-index)))

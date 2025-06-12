@@ -34,7 +34,6 @@
 
 (require 'cl-lib)
 (require 'json)
-(require 'markdown-mode)
 
 (require 'greger-client)
 (require 'greger-parser)

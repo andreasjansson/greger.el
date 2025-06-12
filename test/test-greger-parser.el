@@ -338,12 +338,13 @@ Hi")))
          (mapconcat
           (lambda (i)
             (format "# USER\n\nMessage %d\n\n# ASSISTANT\n\nResponse %d" i i))
-          (number-sequence 1 100)
+          (number-sequence 1 10000)
           "\n\n")))
     (let ((start-time (current-time)))
       (greger-parser-markdown-to-dialog large-markdown)
       (let ((elapsed (float-time (time-subtract (current-time) start-time))))
-        ;; Should parse 100 message pairs in under 1 second
+        ;; Should parse 10000 message pairs in under 1 second
+        ;; TODO: remove debug
         (should (< elapsed 1.0))))))
 
 ;; Test untagged content at the beginning
