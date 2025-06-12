@@ -80,11 +80,6 @@
   :type 'integer
   :group 'greger)
 
-(defcustom greger-debug nil
-  "Whether to show debug information."
-  :type 'boolean
-  :group 'greger)
-
 ;;; Agent state structure
 
 (cl-defstruct greger-state
@@ -101,39 +96,74 @@
 (defvar-local greger--buffer-read-only-by-greger nil
   "Buffer-local variable to track if buffer is read-only due to greger activity.")
 
-(defface greger-tool-param-heading-face
-  '((t :foreground "#6699CC" :weight bold :height 1.0))
-  "Face for ## tool parameter headings in greger mode."
+(defcustom greger-citation-summary-face 'underline
+  "Face to use for citation text when folded."
+  :type 'face
   :group 'greger)
 
-(defface greger-user-heading-face
-  '((t :foreground "#66DD66" :weight bold :height 1.2))
-  "Face for ## USER headings in greger mode."
+(defface greger-user-header-face
+  '((t (:foreground "cyan" :weight bold :height 1.1)))
+  "Face for USER headers."
   :group 'greger)
 
-(defface greger-tool-result-heading-face
-  '((t :foreground "#66AA88" :weight bold :height 1.2))
-  "Face for # TOOL RESULT headings in greger mode."
+(defface greger-assistant-header-face
+  '((t (:foreground "green" :weight bold :height 1.1)))
+  "Face for ASSISTANT headers."
   :group 'greger)
 
-(defface greger-assistant-heading-face
-  '((t :foreground "#AA9922" :weight bold :height 1.2))
-  "Face for # ASSISTANT: headings in greger mode."
+(defface greger-system-header-face
+  '((t (:foreground "orange" :weight bold :height 1.1)))
+  "Face for SYSTEM headers."
   :group 'greger)
 
-(defface greger-thinking-heading-face
-  '((t :foreground "#9966CC" :weight bold :height 1.2))
-  "Face for ## THINKING headings in greger mode."
+(defface greger-thinking-header-face
+  '((t (:foreground "magenta" :weight bold :height 1.1)))
+  "Face for THINKING headers."
   :group 'greger)
 
-(defface greger-tool-use-heading-face
-  '((t :foreground "#8866BB" :weight bold :height 1.2))
-  "Face for # TOOL USE headings in greger mode."
+(defface greger-tool-header-face
+  '((t (:foreground "yellow" :weight bold :height 1.1)))
+  "Face for tool-related headers (TOOL USE, TOOL RESULT, etc.)."
   :group 'greger)
 
-(defface greger-system-heading-face
-  '((t :foreground "#CC6666" :weight bold :height 1.2))
-  "Face for # SYSTEM headings in greger mode."
+(defface greger-subheading-face
+  '((t (:foreground "coral" :weight semi-bold)))
+  "Face for subheadings like tool parameters and citation entries."
+  :group 'greger)
+
+(defface greger-field-name-face
+  '((t (:foreground "lightyellow")))
+  "Face for field names like 'Name:', 'ID:', etc."
+  :group 'greger)
+
+(defface greger-tool-param-name-face
+  '((t (:foreground "lightgreen")))
+  "Face for tool parameter names like 'path', 'content', etc."
+  :group 'greger)
+
+(defface greger-key-face
+  '((t (:foreground "lightblue")))
+  "Face for tool parameter names like 'path', 'content', etc."
+  :group 'greger)
+
+(defface greger-tool-tag-face
+  '((t (:foreground "gray" :height 0.6)))
+  "Face for tool start and end tags."
+  :group 'greger)
+
+(defface greger-citation-face
+  '((t (:underline "#555588")))
+  "Face for links."
+  :group 'greger)
+
+(defface greger-link-face
+  '((t (:foreground "aqua" :weight semi-bold)))
+  "Face for links."
+  :group 'greger)
+
+(defface greger-error-face
+  '((t (:background "red" :foreground "white")))
+  "Face for parse errors in greger-mode."
   :group 'greger)
 
 (defvar greger-mode-map
@@ -145,24 +175,101 @@
     (define-key map (kbd "C-; u") #'greger-insert-user-tag)
     (define-key map (kbd "C-; s") #'greger-insert-system-tag)
     (define-key map (kbd "C-; m") #'greger-set-model)
-    (define-key map (kbd "C-; c") #'greger-copy-code)
+    (define-key map (kbd "C-; c") #'greger-ui--copy-code)
     (define-key map (kbd "C-; D") #'greger-debug-request)
     map)
   "Keymap for `greger-mode'.")
 
-(define-derived-mode greger-mode gfm-mode "Greger"
-  "Major mode for interacting with AI."
+(defvar greger--treesit-font-lock-settings
+  (treesit-font-lock-rules
+   :language 'greger
+   :feature 'headers
+   :override t
+   '((user_header) @greger-user-header-face
+     (assistant_header) @greger-assistant-header-face
+     (system_header) @greger-system-header-face
+     (thinking_header) @greger-thinking-header-face
+     (tool_use_header) @greger-tool-header-face
+     (tool_result_header) @greger-tool-header-face
+     (server_tool_use_header) @greger-tool-header-face
+     (web_search_tool_result_header) @greger-tool-header-face)
+
+   :language 'greger
+   :feature 'folding
+   :override t
+   '((assistant (citation_entry) @greger-ui--citation-entry-folding-fn)
+     (tool_content_tail) @greger-ui--tool-content-tail-folding-fn
+     (tool_content_head) @greger-ui--tool-content-head-folding-fn)
+
+   :language 'greger
+   :feature 'subheadings
+   :override t
+   '((citation_entry) @greger-subheading-face)
+
+   :language 'greger
+   :feature 'fields
+   :override t
+   '((tool_param_header) @greger-tool-param-name-face
+     (key) @greger-key-face
+     (url) @greger-ui--url-link-fn
+     )
+
+   :language 'greger
+   :feature 'tool-tags
+   :override t
+   '((tool_start_tag) @greger-tool-tag-face
+     (tool_end_tag) @greger-tool-tag-face)
+
+   :language 'greger
+   :feature 'comments
+   :override t
+   '((html_comment) @font-lock-comment-face)
+
+   :language 'greger
+   :feature 'error
+   :override t
+   '((ERROR) @greger-error-face))
+  "Tree-sitter font-lock settings for `greger-mode'.")
+
+(defvar greger--treesit-indent-rules
+  `((greger
+     ((node-is "user") column-0 0)
+     ((node-is "assistant") column-0 0)
+     ((node-is "system") column-0 0)
+     ((node-is "thinking") column-0 0)
+     ((node-is "tool_use") column-0 0)
+     ((node-is "tool_result") column-0 0)
+     ((node-is "server_tool_use") column-0 0)
+     ((node-is "web_search_tool_result") column-0 0)))
+  "Tree-sitter indentation rules for `greger-mode'.")
+
+;;;###autoload
+(define-derived-mode greger-mode prog-mode "Greger"
+  "Major mode for editing Greger files with tree-sitter support."
+  ;; Load grammar
+  (let ((grammar-dir (file-name-concat load-file-name "grammar")))
+    (add-to-list 'treesit-extra-load-path default-directory))
+  (unless (treesit-ready-p 'greger)
+    (error "Tree-sitter for Greger isn't available"))
+  (treesit-parser-create 'greger)
+
+  (setq-local treesit-font-lock-settings greger--treesit-font-lock-settings)
+  (setq-local treesit-font-lock-feature-list
+              '((error)
+                (headers folding tool-folding fields)
+                (tool-tags comments)
+                (subheadings)))
+ (setq-local treesit-simple-indent-rules greger--treesit-indent-rules)
+
+  ;; Disabled because this crashes Emacs.
+  ;; Reproduce: At beginning of buffer, run (treesit-search-forward-goto (treesit-node-at (point)) "" t t t)
+  ;; (setq-local treesit-defun-type-regexp (rx line-start (or "user" "assistant") line-end))
+
   (use-local-map greger-mode-map)
-  (setq-local markdown-fontify-code-blocks-natively t)
-  (setq-local mode-line-misc-info '(:eval (greger--mode-line-info)))
-  ;; Set up UI folding (both tools and citations)
-  ;(greger-ui-setup-folding)
-  ;; Set up custom heading font-lock
-  (greger--setup-heading-font-lock)
-  ;; Add hook to update tool sections when buffer changes
-  (add-hook 'after-change-functions #'greger--after-change-function nil t)
-  ;; Add font-lock hook for immediate tool tag styling
-  (add-hook 'font-lock-extend-region-functions #'greger--extend-font-lock-region nil t))
+  (treesit-major-mode-setup))
+
+;;;###autoload
+(add-to-list 'auto-mode-alist '("\\.greger\\'" . greger-mode))
 
 ;;;###autoload
 (defun greger ()
@@ -170,12 +277,11 @@
   (interactive)
   (let ((buffer (generate-new-buffer "*greger*")))
     (switch-to-buffer buffer)
-    (grgfoo-mode) ;; TODO
+    (greger-mode)
     (insert greger-parser-system-tag
             "\n\n" greger-default-system-prompt "\n\n"
             greger-parser-user-tag
-            "\n\n")
-    (message "Using model %s" greger-model)))
+            "\n\n")))
 
 (defun greger-insert-assistant-tag ()
   "Insert the assistant tag into the buffer."
@@ -228,18 +334,9 @@
 (defun greger-buffer-no-tools ()
   "Send the buffer content to AI as a dialog without tool use."
   (interactive)
-  (let ((greger-tools '()))
+  (let ((greger-tools '())
+        (greger-server-tools '()))
     (greger-buffer)))
-
-(defun greger-copy-code ()
-  "Copy the current code block under point."
-  (interactive)
-  (let ((code-block (greger--get-current-code-block)))
-    (if code-block
-        (progn
-          (kill-new code-block)
-          (message "Copied code: %s" (greger--truncate-with-ellipsis code-block 40)))
-      (error "Point is not inside a code block"))))
 
 (defun greger-set-model ()
   "Set the current model."
@@ -303,17 +400,7 @@
                         :directory default-directory
                         :metadata metadata)))
 
-      (greger--debug "--- DIALOG --- %s" dialog)
-      (greger--debug "=== STARTING AGENT SESSION ===")
-
       (greger--run-agent-loop state))))
-
-(defun greger--debug (format-string &rest args)
-  "Debug logging function.
-FORMAT-STRING is the format string.
-ARGS are arguments to format."
-  (when greger-debug
-    (message "[GREGER DEBUG] %s" (apply #'format format-string args))))
 
 (defun greger--get-current-state ()
   "Get the current greger state: \='idle, \='generating, or \='executing."
@@ -359,7 +446,7 @@ READ-ONLY is t to make read-only, nil to make writable."
     (force-mode-line-update)))
 
 (defun greger--run-agent-loop (state)
-  "Run the main agent loop with AGENT-STATE."
+  "Run the main agent loop with STATE."
   (let* ((tools (greger-tools-get-schemas greger-tools))
          (server-tools (when greger-server-tools
                          (greger-server-tools-get-schemas greger-server-tools)))
@@ -371,15 +458,11 @@ READ-ONLY is t to make read-only, nil to make writable."
          (current-dialog parse-result)
          (current-iteration (greger-state-current-iteration state)))
 
-    (greger--debug "=== ITERATION %d ===" current-iteration)
-    (greger--debug "Dialog length: %d messages" (length current-dialog))
-
     ;; Check max iterations
     (when (>= current-iteration greger-max-iterations)
       (error "Maximum iterations (%d) reached, stopping agent execution" greger-max-iterations))
 
     ;; Get Claude's response
-    (greger--debug "CALLING greger-client-stream...")
     (let ((client-state (greger-client-stream
                          :model greger-model
                          :dialog current-dialog
@@ -391,9 +474,7 @@ READ-ONLY is t to make read-only, nil to make writable."
                          :text-delta-callback (lambda (text)
                                                 (greger--append-text state (greger--clean-excessive-newlines text)))
                          :block-stop-callback (lambda (type content-block)
-                                                (greger--append-nonstreaming-content-block state type content-block)
-                                                ;(greger-ui-refresh-folding)
-                                                )
+                                                (greger--append-nonstreaming-content-block state type content-block))
                          :complete-callback (lambda (content-blocks) (greger--handle-stream-completion state content-blocks)))))
       ;; Store the client state for potential cancellation
       (setf (greger-state-client-state state) client-state)
@@ -422,13 +503,11 @@ If TEXT ends with more than two consecutive newlines, remove all but the first t
 
     (if tool-calls
         (progn
-          (greger--debug "TOOL USE DETECTED! Found %d tool calls" (length tool-calls))
           (setf (greger-state-current-iteration state)
                 (1+ (greger-state-current-iteration state)))
           ;; TODO: execute tool calls in greger--append-content-block instead
           (greger--execute-tools tool-calls state))
       (progn
-        (greger--debug "NO TOOL USE - CONVERSATION COMPLETE")
         (greger--finish-response state))))
 
   (with-current-buffer (greger-state-chat-buffer state)
@@ -441,10 +520,7 @@ If TEXT ends with more than two consecutive newlines, remove all but the first t
          (not citations))))
 
 (defun greger--append-nonstreaming-content-block (state type content-block)
-  (greger--debug "CONTENT BLOCK: %s" content-block)
-
   (unless (greger--content-block-supports-streaming content-block)
-
    (let ((markdown (greger-parser--block-to-markdown content-block)))
      (greger--append-text
       state (concat "\n\n" markdown)))
@@ -462,9 +538,6 @@ If TEXT ends with more than two consecutive newlines, remove all but the first t
   (let ((tool-calls '()))
     (dolist (block content-blocks)
       (when (string= (alist-get 'type block) "tool_use")
-        (greger--debug "EXTRACTING TOOL CALL: %s with input: %s"
-                      (alist-get 'name block)
-                      (json-encode (alist-get 'input block)))
         (push block tool-calls)))
     (reverse tool-calls)))
 
@@ -473,7 +546,7 @@ If TEXT ends with more than two consecutive newlines, remove all but the first t
   (greger-parser--wrapped-tool-content greger-parser-tool-result-tag tool-id "Loading..."))
 
 (defun greger--execute-tools (tool-calls state)
-  "Execute TOOL-CALLS using AGENT-STATE in parallel with callbacks."
+  "Execute TOOL-CALLS using STATE in parallel with callbacks."
   (let* ((total-tools (length tool-calls))
          (completed-tools 0)
          (executing-tools-map (make-hash-table :test 'equal)))
@@ -532,20 +605,18 @@ If TEXT ends with more than two consecutive newlines, remove all but the first t
             (puthash tool-id greger-tool (greger-state-executing-tools state))))))))
 
 (defun greger--append-text (state text)
-  "Append TEXT to the chat buffer in AGENT-STATE."
+  "Append TEXT to the chat buffer in STATE."
   (with-current-buffer (greger-state-chat-buffer state)
     (let ((inhibit-read-only t))
       (goto-char (point-max))
-      (insert text))
-    ;(greger-ui-refresh-folding)
-    ))
+      (insert text))))
 
 (cl-defun greger--handle-tool-completion (&key tool-id result error state completion-callback)
   "Handle completion of a tool execution by updating buffer and calling callback.
 TOOL-ID is the tool identifier.
 RESULT is the tool execution result.
 ERROR is any error that occurred.
-AGENT-STATE contains the current agent state.
+STATE contains the current agent state.
 COMPLETION-CALLBACK is called when complete."
   (let ((tool-result (if error
                         `((type . "tool_result")
@@ -578,8 +649,7 @@ COMPLETION-CALLBACK is called when complete."
     (funcall completion-callback)))
 
 (defun greger--finish-response (state)
-  "Finish the agent response using AGENT-STATE."
-  (greger--debug "=== FINISHING RESPONSE - CONVERSATION COMPLETE ===")
+  "Finish the agent response using STATE."
   (with-current-buffer (greger-state-chat-buffer state)
     (let ((inhibit-read-only t))
       (goto-char (point-max))
@@ -592,55 +662,6 @@ COMPLETION-CALLBACK is called when complete."
   ;; Reset the state
   (setf (greger-state-current-iteration state) 0)
   (setf (greger-state-client-state state) nil))
-
-(defun greger-toggle-debug ()
-  "Toggle debug output."
-  (interactive)
-  (setq greger-debug (not greger-debug))
-  (message "Greger debug %s" (if greger-debug "enabled" "disabled")))
-
-(defun greger--extend-font-lock-region ()
-  "Extend font-lock region for greger mode.
-Returns nil to indicate no region extension is needed."
-  nil)
-
-(defun greger--after-change-function (beg end _len)
-  "Update tool sections and citations after buffer changes.
-BEG is the beginning of the changed region.
-END is the end of the changed region.
-_LEN is the length of the pre-change text (unused)."
-  ;; Only run timer-based cleanup for complex changes or when not actively streaming
-  (when (and (> (- end beg) 0)  ; Only if there was an actual change
-             (not (greger--is-actively-streaming)))
-                                        ;(run-with-idle-timer 0.1 nil #'greger-ui-refresh-folding)
-    nil
-    ))
-
-(defun greger--is-actively-streaming ()
-  "Check if we're currently streaming content from the AI."
-  (and greger--current-state
-       (greger-state-client-state greger--current-state)))
-
-;; Private helper functions
-
-(defun greger--get-current-code-block ()
-  "Return the current code block under point, or nil if not found."
-  (save-excursion
-    (when (re-search-backward "^```" nil t)
-      (forward-line)
-      (let ((start (point)))
-        (when (re-search-forward "^```" nil t)
-          (backward-char 4)
-          (buffer-substring-no-properties start (point)))))))
-
-(defun greger--truncate-with-ellipsis (str max-width)
-  "Truncate STR to MAX-WIDTH characters, adding an ellipsis if necessary."
-  (let ((len (length str)))
-    (if (<= len max-width)
-        str
-      (concat (substring str 0 (- max-width 3)) "..."))))
-
-
 
 (provide 'greger)
 

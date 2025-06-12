@@ -17,58 +17,34 @@
   (let ((map (make-sparse-keymap)))
     (define-key map [mouse-1] #'greger-ui--toggle-tool-content-head-fold)
     (define-key map (kbd "TAB") #'greger-ui--toggle-tool-content-head-fold)
-    map)
-  "Keymap for citation text to handle mouse clicks.")
+    map))
 
 (defvar greger-ui-tool-content-tail-keymap
   (let ((map (make-sparse-keymap)))
     (define-key map [mouse-1] #'greger-ui--toggle-tool-content-tail-fold)
     (define-key map (kbd "TAB") #'greger-ui--toggle-tool-content-tail-fold)
-    map)
-  "Keymap for citation text to handle mouse clicks.")
+    map))
 
-(defun greger-ui--node-end-no-whitespace (node)
-  (let* ((start (treesit-node-start node))
-         (end (treesit-node-end node))
-         (text (buffer-substring-no-properties start end))
-         (last-non-whitespace (1- (when (string-match "\\S-\\s-*\\'" text)
-                                 (match-beginning 0)))))
+;; Folding
 
-    (if last-non-whitespace
-        (+ start last-non-whitespace)
-      end)))
-
-(defun greger-ui--node-start-no-whitespace (node)
-  (let* ((start (treesit-node-start node))
-         (end (treesit-node-end node))
-         (text (buffer-substring-no-properties start end))
-         (first-non-whitespace (string-match "[^ \t\n\r\f]" text)))
-    (if first-non-whitespace
-        (+ start first-non-whitespace)
-      start)))
-
-;; Citation folding functions
 (defun greger-ui--citation-entry-folding-fn (node override start end)
   "Font-lock function to hide citation entries within assistant blocks.
 NODE is the matched tree-sitter node, OVERRIDE is the override setting,
 START and END are the region bounds."
   (let* ((node-start (treesit-node-start node))
-         (node-end (greger-ui--node-end-no-whitespace node))
+         (node-end (treesit-node-end node))
          (parent (treesit-node-parent node))
          (first-text (treesit-search-subtree parent "^text$" nil nil 1))
          (last-text (treesit-search-subtree parent "^text$" t nil 1))
          (text-start (treesit-node-start first-text))
-         (text-end (greger-ui--node-end-no-whitespace last-text))
+         (text-end (- (treesit-node-end last-text) 2))
          (uncle (treesit-node-prev-sibling parent))
          (aunt (treesit-node-next-sibling parent))
          (should-fold (not (get-text-property text-start 'greger-ui-citation-expanded)))
          (invisible-start text-end)
-         (invisible-end node-end))
+         (invisible-end (- node-end 2)))
 
-    ;; TODO: remove debug
-    (message (format "text-start: %s" text-start))
-
-    (put-text-property text-start text-end 'face 'grgfoo-citation-face)
+    (put-text-property text-start text-end 'face 'greger-citation-face)
     (put-text-property text-start text-end 'greger-ui-expandable-citation-entry t)
     (put-text-property text-start text-end 'mouse-face 'highlight)
     (put-text-property text-start text-end 'keymap greger-ui-citation-keymap)
@@ -83,8 +59,8 @@ START and END are the region bounds."
             (put-text-property (treesit-node-end uncle-last-citation-entry) node-start 'invisible should-fold)
 
           (let* ((uncle-last-child (treesit-node-child uncle -1))
-                 (uncle-last-child-end (greger-ui--node-end-no-whitespace uncle-last-child)))
-            (put-text-property (+ uncle-last-child-end 3) text-start 'invisible t)
+                 (uncle-last-child-end (treesit-node-end uncle-last-child)))
+            (put-text-property (- uncle-last-child-end 2) text-start 'invisible t)
             ))
 
         ))
@@ -94,11 +70,9 @@ START and END are the region bounds."
              (aunt-header-end (treesit-node-end aunt-header)))
         (setq invisible-end (+ aunt-header-end 2))))
 
-                                        ;(put-text-property invisible-start invisible-end 'invisible should-fold)
-    (put-text-property (+ invisible-start 2) invisible-end 'invisible should-fold)
+    (put-text-property (+ invisible-start 0) invisible-end 'invisible should-fold)
     ))
 
-;; Tool folding functions
 (defun greger-ui--tool-content-head-folding-fn (node override start end)
   "Font-lock function to make tool_content_head TAB-able for controlling tail visibility.
 NODE is the matched tree-sitter node, OVERRIDE is the override setting,
@@ -139,7 +113,6 @@ START and END are the region bounds."
                 ;; Store overlay reference for cleanup
                 (put-text-property node-start node-end 'greger-ui-fold-overlay overlay)))))))))
 
-
 (defun greger-ui--tool-content-tail-folding-fn (node override start end)
   "Font-lock function to make tool_content_tail invisible by default.
 NODE is the matched tree-sitter node, OVERRIDE is the override setting,
@@ -153,11 +126,12 @@ START and END are the region bounds."
     (put-text-property node-start node-end 'keymap greger-ui-tool-content-tail-keymap)))
 
 ;; Links
+
 (defun greger-ui--url-link-fn (node override start end)
   (let* ((node-start (treesit-node-start node))
          (node-end (treesit-node-end node))
          (url-start (+ node-start 3)))
-    (put-text-property url-start node-end 'face 'grgfoo-link-face)
+    (put-text-property url-start node-end 'face 'greger-link-face)
     (put-text-property url-start node-end 'mouse-face 'highlight)
     (put-text-property url-start node-end 'keymap greger-ui-url-link-keymap)))
 
@@ -170,7 +144,26 @@ START and END are the region bounds."
          (url (substring text 3)))
     (browse-url url)))
 
+;; Code blocks
+
+(defun greger-ui--copy-code ()
+  (interactive)
+  (let ((node (treesit-node-at (point))))
+    (if (string= (treesit-node-type node) "code_block_content")
+        (let ((code (treesit-node-text node)))
+              (kill-new code)
+              (message "Copied code:\n%s" (greger-ui--truncate-with-ellipsis code 40)))
+      (message "Not inside a code block"))))
+
+(defun greger-ui--truncate-with-ellipsis (str max-width)
+  "Truncate STR to MAX-WIDTH characters, adding an ellipsis if necessary."
+  (let ((len (length str)))
+    (if (<= len max-width)
+        str
+      (concat (substring str 0 (- max-width 3)) "..."))))
+
 ;; TAB toggles
+
 (defun greger-ui--toggle-citation-fold ()
   "Toggle folding of citation or tool content at point."
   (interactive)

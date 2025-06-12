@@ -74,7 +74,6 @@
          (process (greger-client--start-curl-process request-spec))
          (state (make-greger-client-state
                  :accumulated-output ""
-                 ;:complete-response ""
                  :content-blocks '()
                  :process process
                  :block-start-callback block-start-callback
@@ -211,10 +210,6 @@ Returns nil if no error found or if OUTPUT is not valid JSON."
 
   ;; Check for error responses and raise an error if found
   (greger-client--check-for-error output)
-
-  ;; Always accumulate for complete response
-  ;(setf (greger-client-state-complete-response state)
-  ;      (concat (greger-client-state-complete-response state) output))
 
   ;; Update working buffer for chunk processing
   (setf (greger-client-state-accumulated-output state)
@@ -376,7 +371,9 @@ STATE is used to update the parsed content blocks."
     (if (= (process-exit-status proc) 0)
         (when (greger-client-state-complete-callback state)
           (let ((content-blocks (greger-client-state-content-blocks state)))
-            (funcall (greger-client-state-complete-callback state) content-blocks))))))
+            (funcall (greger-client-state-complete-callback state) content-blocks)))
+      ;; TODO: Callback
+      (message "Process exited"))))
 
 (defun greger-client--cancel-request (state)
   "Cancel streaming request using STATE."
