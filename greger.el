@@ -265,6 +265,8 @@
   ;; Reproduce: At beginning of buffer, run (treesit-search-forward-goto (treesit-node-at (point)) "" t t t)
   ;; (setq-local treesit-defun-type-regexp (rx line-start (or "user" "assistant") line-end))
 
+  (setq-local mode-line-misc-info '(:eval (greger--mode-line-info)))
+
   (use-local-map greger-mode-map)
   (treesit-major-mode-setup))
 
@@ -365,7 +367,7 @@
                            :current-iteration 0
                            :chat-buffer (current-buffer)
                            :directory default-directory
-                           :tool-call-metadata nil)))
+                           :tool-call-metadata '(:safe-shell-commands ()))))
 
 (defun greger-buffer-no-tools ()
   "Send the buffer content to AI as a dialog without tool use."
@@ -378,14 +380,14 @@
   "Get the current greger state: \='idle, \='generating, or \='executing."
   (let ((state (buffer-local-value 'greger--current-state (current-buffer))))
     (cond
-     ;; Check if we're generating (client-state is active)
-     ((and state (greger-state-client-state state))
-      'generating)
      ;; Check if we're executing tools
      ((and state
            (greger-state-executing-tools state)
            (> (hash-table-count (greger-state-executing-tools state)) 0))
       'executing)
+     ;; Check if we're generating (client-state is active)
+     ((and state (greger-state-client-state state))
+      'generating)
      ;; Otherwise we're idle
      (t 'idle))))
 
@@ -425,16 +427,17 @@ READ-ONLY is t to make read-only, nil to make writable."
          (chat-buffer (greger-state-chat-buffer state))
          (dialog (greger-parser-markdown-buffer-to-dialog chat-buffer))
          (safe-shell-commands (greger-parser-find-safe-shell-commands-in-buffer chat-buffer))
+         (tool-call-metadata (greger-state-tool-call-metadata state))
          (current-iteration (greger-state-current-iteration state)))
 
-    ;; Check max iterations
+    (setf (plist-get tool-call-metadata :safe-shell-commands) safe-shell-commands)
+
     (when (>= current-iteration greger-max-iterations)
       (error "Maximum iterations (%d) reached, stopping agent execution" greger-max-iterations))
 
-    ;; Get Claude's response
     (let ((client-state (greger-client-stream
                          :model greger-model
-                         :dialog current-dialog
+                         :dialog dialog
                          :tools tools
                          :server-tools server-tools
                          :buffer chat-buffer
@@ -445,6 +448,7 @@ READ-ONLY is t to make read-only, nil to make writable."
                          :block-stop-callback (lambda (type content-block)
                                                 (greger--append-nonstreaming-content-block state type content-block))
                          :complete-callback (lambda (content-blocks) (greger--handle-stream-completion state content-blocks)))))
+
       ;; Store the client state for potential cancellation
       (setf (greger-state-client-state state) client-state)
       ;; Set buffer-local variable for greger-interrupt to access
@@ -567,7 +571,7 @@ If TEXT ends with more than two consecutive newlines, remove all but the first t
                                                                 (when (= completed-tools total-tools)
                                                                   (greger--run-agent-loop state)))))
                             :buffer (greger-state-chat-buffer state)
-                            :metadata (greger-state-metadata state))))
+                            :metadata (greger-state-tool-call-metadata state))))
 
           ;; TODO: here again, it's ugly
           (when (greger-tool-cancel-fn greger-tool)
