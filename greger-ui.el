@@ -59,7 +59,7 @@
 
 ;; Folding
 
-(defun greger-ui--citation-entry-folding-fn (node override start end)
+(defun greger-ui--citation-entry-folding-fn (node _override _start _end)
   "Font-lock function to hide citation entries within assistant blocks.
 NODE is the matched tree-sitter node, OVERRIDE is the override setting,
 START and END are the region bounds."
