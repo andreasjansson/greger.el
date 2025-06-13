@@ -181,6 +181,13 @@ Tool B result: input-b
                    (lambda (state)
                      (setq tools-completed t))))
 
+          ;; First insert the tool use markdown (simulating what greger--append-nonstreaming-content-block does)
+          (dolist (tool-call tool-calls)
+            (let ((tool-use-markdown (greger-parser--tool-use-to-markdown tool-call))
+                  (tool-id (alist-get 'id tool-call)))
+              (insert "\n\n" tool-use-markdown)
+              (insert "\n\n" (greger--tool-placeholder tool-id))))
+
           ;; Execute tools
           (greger--execute-tools tool-calls agent-state)
 
