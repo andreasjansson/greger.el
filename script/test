@@ -65,6 +65,10 @@ run_test_file() {
                   (load-file \"greger-tools.el\")
                   (load-file \"greger-client.el\")
                   (load-file \"greger-web.el\")
+
+                  ;; Install grammar
+                  (greger-install-grammar)
+
                   ;; Load test file
                   (load-file \"$test_file\")
                   ;; Run all tests defined in this file
