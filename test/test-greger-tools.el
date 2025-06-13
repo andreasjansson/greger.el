@@ -250,10 +250,11 @@
   ;; Test that missing second required parameter calls callback with error
   (let ((result nil)
         (error nil))
-    (greger-tools-execute "test-required"
-                          '((required-param1 . "value1")
+    (greger-tools-execute :tool-name "test-required"
+                          :args '((required-param1 . "value1")
                             (optional-param . "optional"))
-                          (lambda (r e) (setq result r error e)) nil)
+                          :callback (lambda (r e) (setq result r error e))
+                          :buffer nil)
     (should (null result))
     (should error))
 
