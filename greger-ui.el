@@ -99,8 +99,7 @@ START and END are the region bounds."
              (aunt-header-end (treesit-node-end aunt-header)))
         (setq invisible-end (+ aunt-header-end 2))))
 
-    (put-text-property (+ invisible-start 0) invisible-end 'invisible should-fold)
-    ))
+    (put-text-property (+ invisible-start 0) invisible-end 'invisible should-fold)))
 
 (defun greger-ui--tool-content-head-folding-fn (node _override _start _end)
   "Font-lock function to make tool_content_head TAB-able for tail visibility.
