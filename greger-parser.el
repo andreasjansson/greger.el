@@ -179,9 +179,9 @@ grammar is available for parsing conversations."
       (content . ,content))))
 
 (defun greger-parser--extract-safe-shell-commands (node)
-  ;; Use a safe approach to find safe_shell_commands nodes
-  ;; by walking the tree manually instead of using treesit-search-subtree
-  ;; because treesit-search subtree segfaults for some reason
+  "Extract safe shell commands from NODE.
+Use tree walking approach instead of treesit-search-subtree to avoid
+segfaults when searching for safe_shell_commands nodes."
   (let ((safe-commands '()))
     (greger-parser--walk-tree
      node
