@@ -350,14 +350,13 @@ May order 4,000 pounds of meat."
   "Debug the request data by parsing the buffer and saving the request data output."
   (interactive)
   (let* ((filename (read-string "Save to filename (default: request.json): " nil nil "request.json"))
-         (buffer-content (buffer-substring-no-properties (point-min) (point-max)))
          (dialog (greger-parser-markdown-buffer-to-dialog (current-buffer)))
          (tools (when greger-tools
                   (greger-tools-get-schemas greger-tools)))
          (server-tools (when greger-server-tools
                           (greger-server-tools-get-schemas greger-server-tools)))
          (model greger-model)
-         (greger-client--build-data model dialog tools server-tools))
+         (request-data (greger-client--build-data model dialog tools server-tools)))
 
     (let* ((parsed-json (json-read-from-string request-data)))
       (with-temp-file filename
