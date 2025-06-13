@@ -380,6 +380,7 @@ ensuring tool calls receive properly typed arguments."
   (replace-regexp-in-string "\n\n\\'" "" str))
 
 (defun greger-parser--remove-single-leading-and-trailing-newline (str)
+  "Remove one leading and trailing newline from STR."
   (replace-regexp-in-string "\\`\n\\|\n\\'" "" str))
 
 (defun greger-parser--collect-text-blocks (node result)
