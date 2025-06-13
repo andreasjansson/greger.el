@@ -504,4 +504,10 @@ What files are here?"))
                              (alist-get 'content (car result)))))))
 
 
+;; Cleanup test - should run last alphabetically
+(ert-deftest zz-greger-parser-test-cleanup ()
+  "Clean up test resources (runs last due to alphabetical ordering)."
+  (greger-test-cleanup-grammar-repo)
+  (should t)) ;; Always pass
+
 ;;; test-greger-parser.el ends here
