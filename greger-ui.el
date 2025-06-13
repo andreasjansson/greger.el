@@ -211,7 +211,7 @@ showing a truncated preview of what was copied."
          (is-expanded (get-text-property node-start 'greger-ui-citation-expanded)))
 
     ;; TODO: remove debug
-    (message (format "node: %s" node))
+    (message "node: %s" node)
 
     (put-text-property node-start (1+ node-start) 'greger-ui-citation-expanded (not is-expanded))
     (font-lock-flush invisible-start invisible-end)))
