@@ -476,7 +476,7 @@ preserving structure and whitespace."
   (concat greger-parser-system-tag "\n\n" content))
 
 (defun greger-parser--user-content-blocks-to-markdown (content-blocks)
-  "Convert user content blocks to markdown format."
+  "Convert user CONTENT-BLOCKS to markdown format."
   (if (null content-blocks)
       ""
     (mapconcat (lambda (block)
