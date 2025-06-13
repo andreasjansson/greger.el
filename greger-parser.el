@@ -488,7 +488,7 @@ preserving structure and whitespace."
                content-blocks "\n\n")))
 
 (defun greger-parser--assistant-content-blocks-to-markdown (content-blocks)
-  "Convert assistant content blocks to markdown format."
+  "Convert assistant CONTENT-BLOCKS to markdown format."
   (if (null content-blocks)
       ""
     (let ((result "")
