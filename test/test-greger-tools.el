@@ -42,8 +42,10 @@
   ;; Test execution with different parameters
   (let ((result nil)
         (error nil))
-    (greger-tools-execute "test-subtract" '((b . 1) (a . 4))
-                          (lambda (r e) (setq result r error e)) nil)
+    (greger-tools-execute :tool-name "test-subtract" 
+                          :args '((b . 1) (a . 4))
+                          :callback (lambda (r e) (setq result r error e)) 
+                          :buffer nil)
     (should (= 3 result))
     (should (null error)))
 
