@@ -130,7 +130,7 @@ START and END are the region bounds."
             ;; Add overlay with fold indicator when tail is hidden
             (unless is-tail-visible
               (let ((overlay (make-overlay (-  node-end 2) (1- node-end))))
-                (overlay-put overlay 'after-string 
+                (overlay-put overlay 'after-string
                              (propertize (format "\n[+%d lines, TAB to expand]" line-count)
                                          'face '(:foreground "gray" :height 0.8 :slant italic)))
                 (overlay-put overlay 'greger-ui-fold-overlay t)
