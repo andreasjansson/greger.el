@@ -480,9 +480,10 @@
   ;; Test with JSON array string
   (let ((result nil)
         (error nil))
-    (greger-tools-execute "test-array-parsing"
-                          '((items . "[\"apple\", \"banana\", \"cherry\"]"))
-                          (lambda (r e) (setq result r error e)) nil)
+    (greger-tools-execute :tool-name "test-array-parsing"
+                          :args '((items . "[\"apple\", \"banana\", \"cherry\"]"))
+                          :callback (lambda (r e) (setq result r error e))
+                          :buffer nil)
     (should (string= "received 3 items: apple, banana, cherry" result))
     (should (null error)))
 
