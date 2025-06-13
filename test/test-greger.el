@@ -588,7 +588,7 @@ Echo: hello world
                           :executing-tools executing-tools-map)))
 
         ;; Set buffer-local agent state
-        (setq greger--current-agent-state agent-state)
+        (setq greger--current-state agent-state)
 
         ;; Mock keyboard-quit
         (cl-letf (((symbol-function 'keyboard-quit)
