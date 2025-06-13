@@ -300,7 +300,7 @@ Returns nil if no error found or if OUTPUT is not valid JSON."
      ;; {"type":"content_block_start","index":2,"content_block":{"type":"web_search_tool_result","tool_use_id":"srvtoolu_01AZ1324bmQ29XW4fSECQJWH","content":[{"type":"web_search_result","title":"Sweden Population (2025) - Worldometer","url":"https://www.worldometers.info/world-population/sweden-population/","encrypted_content":"Ev0P...YMYAw==","page_age":null}, [...] ]}}
      ((string= type "web_search_tool_result")
       ;; No initialization needed - content is already present
-      ))
+      nil))
 
     (when-let ((callback (greger-client-state-block-start-callback state)))
       (funcall callback content-block))
