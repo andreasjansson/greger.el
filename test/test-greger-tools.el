@@ -520,9 +520,10 @@
   ;; Test with JSON boolean strings
   (let ((result nil)
         (error nil))
-    (greger-tools-execute "test-boolean-parsing"
-                          '((flag1 . "true") (flag2 . "false"))
-                          (lambda (r e) (setq result r error e)) nil)
+    (greger-tools-execute :tool-name "test-boolean-parsing"
+                          :args '((flag1 . "true") (flag2 . "false"))
+                          :callback (lambda (r e) (setq result r error e))
+                          :buffer nil)
     (should (string= "flag1: t, flag2: nil" result))
     (should (null error)))
 
