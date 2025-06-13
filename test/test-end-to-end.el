@@ -35,13 +35,13 @@
             ;; Check if response started
             (when (and (not response-started)
                       (not (string= initial-content current-content))
-                      (string-match-p "## ASSISTANT:" current-content))
+                      (string-match-p "# ASSISTANT" current-content))
               (setq response-started t))
 
             ;; If response started, wait for it to finish
             (when response-started
               ;; Check if conversation is complete (has USER prompt at end)
-              (if (string-match-p "## USER:\n\n$" current-content)
+              (if (string-match-p "# USER\n\n$" current-content)
                   (setq completed t)
                 ;; Or if it's been a while since response started, consider it done
                 (let ((response-time (- (float-time (current-time))
@@ -85,8 +85,8 @@
 
                 ;; Verify initial content is set up correctly
                 (let ((content (buffer-string)))
-                  (should (string-match-p "## SYSTEM:" content))
-                  (should (string-match-p "## USER:" content))
+                  (should (string-match-p "# SYSTEM" content))
+                  (should (string-match-p "# USER" content))
                   (should (string-match-p greger-default-system-prompt content)))
 
                 ;; Verify we're at the end of the buffer (ready for user input)
@@ -125,11 +125,11 @@
 
           ;; Verify response was added to buffer
           (let ((content (buffer-string)))
-            (should (string-match-p "## ASSISTANT:" content))
+            (should (string-match-p "# ASSISTANT" content))
             (should (string-match-p "Hello from greger test!" content))
             ;; Should have a new USER section at the end (or at least assistant response)
-            (should (or (string-match-p "## USER:\n\n$" content)
-                       (string-match-p "## ASSISTANT:" content)))))
+            (should (or (string-match-p "# USER\n\n$" content)
+                       (string-match-p "# ASSISTANT" content)))))
 
       ;; Cleanup
       (when (and greger-buffer (buffer-live-p greger-buffer))
@@ -168,14 +168,14 @@
 
           ;; Verify response was added to buffer
           (let ((content (buffer-string)))
-            (should (string-match-p "## ASSISTANT:" content))
+            (should (string-match-p "# ASSISTANT" content))
             ;; Should have tool use section or content from the file
-            (should (or (string-match-p "## TOOL USE:" content)
+            (should (or (string-match-p "# TOOL USE" content)
                        (string-match-p "read-file" content)
                        (string-match-p "test file for greger" content)))
             ;; Should have a new USER section at the end (or at least assistant response)
-            (should (or (string-match-p "## USER:\n\n$" content)
-                       (string-match-p "## ASSISTANT:" content)))))
+            (should (or (string-match-p "# USER\n\n$" content)
+                       (string-match-p "# ASSISTANT" content)))))
 
       ;; Cleanup
       (when (and test-file (file-exists-p test-file))
@@ -216,15 +216,15 @@
 
           ;; Verify response was added to buffer
           (let ((content (buffer-string)))
-            (should (string-match-p "## ASSISTANT:" content))
+            (should (string-match-p "# ASSISTANT" content))
             ;; Should NOT have tool use sections (no tools mode)
-            (should-not (string-match-p "## TOOL USE:" content))
-            (should-not (string-match-p "## TOOL RESULT:" content))
+            (should-not (string-match-p "# TOOL USE" content))
+            (should-not (string-match-p "# TOOL RESULT" content))
             ;; Should have responded without actually reading the file
             (should-not (string-match-p "This file should not be read" content))
             ;; Should have a new USER section at the end (or at least assistant response)
-            (should (or (string-match-p "## USER:\n\n$" content)
-                       (string-match-p "## ASSISTANT:" content)))))
+            (should (or (string-match-p "# USER\n\n$" content)
+                       (string-match-p "# ASSISTANT" content)))))
 
       ;; Cleanup
       (when (and test-file (file-exists-p test-file))
@@ -273,7 +273,7 @@
 
           ;; Add system message with safe-shell-commands including sleep 5
           (goto-char (point-max))
-          (re-search-backward "## SYSTEM:")
+          (re-search-backward "# SYSTEM")
           (forward-line 1)
           (insert "\n<safe-shell-commands>\nsleep 5\n</safe-shell-commands>\n")
 
@@ -362,12 +362,12 @@
 
             ;; Verify response was added to buffer
             (let ((content (buffer-string)))
-              (should (string-match-p "## ASSISTANT:" content))
+              (should (string-match-p "# ASSISTANT" content))
               ;; Should contain server tool use section
-              (should (string-match-p "## SERVER TOOL USE:" content))
+              (should (string-match-p "# SERVER TOOL USE" content))
               (should (string-match-p "Name: web_search" content))
               ;; Should contain server tool result section
-              (should (string-match-p "## SERVER TOOL RESULT:" content))
+              (should (string-match-p "# WEB SEARCH TOOL RESULT" content))
               ;; Should contain some weather-related information
               (should (string-match-p "\\(weather\\|temperature\\|San Francisco\\)" content)))))
 
