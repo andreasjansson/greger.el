@@ -150,7 +150,7 @@ May order 4,000 pounds of meat."
 
 (defface greger-key-face
   '((t (:foreground "lightblue")))
-  "Face for tool parameter names like 'path', 'content', etc."
+  "Face for tool parameter names like \='path\=', \='content\=', etc."
   :group 'greger)
 
 (defface greger-tool-tag-face
@@ -494,7 +494,13 @@ first two."
       (with-current-buffer buffer
         (greger--update-buffer-state)))))
 
-(defun greger--content-block-supports-streaming (content-block)
+"Add section headers like 'Assistant:' or 'Thinking:' before streaming CONTENT-BLOCK.
+Analyzes the block type and citation status to determine the appropriate
+header format for STATE buffer."
+  "Check if CONTENT-BLOCK can be streamed incrementally.
+Returns non-nil for text and thinking blocks without citations, which can
+be displayed as they arrive rather than waiting for completion."
+  (defun greger--content-block-supports-streaming (content-block)
   "Return non-nil if CONTENT-BLOCK supports streaming output."
   (let ((type (alist-get 'type content-block))
         (citations (alist-get 'citations content-block)))
@@ -525,7 +531,10 @@ first two."
         (push block tool-calls)))
     (reverse tool-calls)))
 
-(defun greger--tool-placeholder (tool-id)
+"Add complete CONTENT-BLOCK that cannot be streamed to STATE buffer.
+Used for tool calls, citations, and other structured content that must
+be displayed atomically rather than incrementally."
+  (defun greger--tool-placeholder (tool-id)
   "Generate placeholder string for TOOL-ID."
   (greger-parser--wrapped-tool-content greger-parser-tool-result-tag tool-id "Loading..."))
 
