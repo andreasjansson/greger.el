@@ -508,8 +508,10 @@ If TEXT ends with more than two consecutive newlines, remove all but the first t
        (greger--append-text state (concat "\n\n" (greger--tool-placeholder tool-id)))))
 
    ;; Update buffer state after client completes
-   (with-current-buffer (greger-state-chat-buffer state)
-     (greger--update-buffer-state))))
+   (let ((buffer (greger-state-chat-buffer state)))
+     (when (buffer-live-p buffer)
+       (with-current-buffer buffer
+         (greger--update-buffer-state))))))
 
 (defun greger--extract-tool-calls (content-blocks)
   "Extract tool calls from CONTENT-BLOCKS."
