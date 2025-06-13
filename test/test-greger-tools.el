@@ -143,11 +143,12 @@
   ;; Test with all parameters provided
   (let ((result nil)
         (error nil))
-    (greger-tools-execute "test-optional"
-                          '((required-param . "test")
+    (greger-tools-execute :tool-name "test-optional"
+                          :args '((required-param . "test")
                             (optional-param1 . "provided1")
                             (optional-param2 . "provided2"))
-                          (lambda (r e) (setq result r error e)) nil)
+                          :callback (lambda (r e) (setq result r error e))
+                          :buffer nil)
     (should (string= "required: test, opt1: provided1, opt2: provided2" result))
     (should (null error)))
 
