@@ -151,16 +151,29 @@ Comparison is order-independent."
   "Normalize whitespace in string for comparison."
   (string-trim (replace-regexp-in-string "[ \t\n\r]+" " " str)))
 
+;; Fixture function for tests that need the grammar repo
+(defun greger-parser-test--with-grammar-repo (test-body)
+  "Execute TEST-BODY with the grammar repository available, ensuring cleanup."
+  (unwind-protect
+      (progn
+        (greger-test-setup-grammar-repo)
+        (funcall test-body))
+    ;; Cleanup happens here only if this is the last test or if there's an error
+    ;; For normal operation, cleanup happens in the dedicated cleanup test
+    nil))
+
 ;; Helper function for roundtrip testing
 (defun greger-parser-test--roundtrip (corpus-name)
   "Test roundtrip conversion for a corpus file."
-  (let ((original-markdown (greger-read-corpus-file corpus-name)))
-    (let* ((dialog (greger-parser-markdown-to-dialog original-markdown))
-           (roundtrip-markdown (greger-parser-dialog-to-markdown dialog))
-           (roundtrip-dialog (greger-parser-markdown-to-dialog roundtrip-markdown)))
-      ;; The dialog should be structurally equivalent after round-trip
-      (should (= (length dialog) (length roundtrip-dialog)))
-      (should (greger-parser-test--dialog-equal dialog roundtrip-dialog)))))
+  (greger-parser-test--with-grammar-repo
+   (lambda ()
+     (let ((original-markdown (greger-read-corpus-file corpus-name)))
+       (let* ((dialog (greger-parser-markdown-to-dialog original-markdown))
+              (roundtrip-markdown (greger-parser-dialog-to-markdown dialog))
+              (roundtrip-dialog (greger-parser-markdown-to-dialog roundtrip-markdown)))
+         ;; The dialog should be structurally equivalent after round-trip
+         (should (= (length dialog) (length roundtrip-dialog)))
+         (should (greger-parser-test--dialog-equal dialog roundtrip-dialog)))))))
 
 ;; Individual test cases imported from greger-grammar corpus files
 ;; Each test performs roundtrip testing: markdown -> dialog -> markdown
