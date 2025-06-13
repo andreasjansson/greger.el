@@ -486,8 +486,10 @@ If TEXT ends with more than two consecutive newlines, remove all but the first t
       (progn
         (greger--finish-response state))))
 
-  (with-current-buffer (greger-state-chat-buffer state)
-    (greger--update-buffer-state)))
+  (let ((buffer (greger-state-chat-buffer state)))
+    (when (buffer-live-p buffer)
+      (with-current-buffer buffer
+        (greger--update-buffer-state)))))
 
 (defun greger--content-block-supports-streaming (content-block)
   (let ((type (alist-get 'type content-block))
