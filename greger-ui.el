@@ -244,3 +244,4 @@ showing a truncated preview of what was copied."
 
 
 (provide 'greger-ui)
+;;; greger-ui.el ends here
