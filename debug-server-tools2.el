@@ -10,7 +10,7 @@
 
 ;; Check what got registered
 (message "After registration: %S" greger-server-tools-registry)
-(let ((tool-def (gethash 'test-web-search greger-server-tools-registry)))
+(let ((tool-def (gethash "test-web-search" greger-server-tools-registry)))
   (message "Tool def: %S" tool-def)
   (message "Name field: %S" (alist-get 'name tool-def))
   (message "Type of name field: %S" (type-of (alist-get 'name tool-def))))
