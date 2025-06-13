@@ -218,8 +218,7 @@ May order 4,000 pounds of meat."
    :override t
    '((tool_param_header) @greger-tool-param-name-face
      (key) @greger-key-face
-     (url) @greger-ui--url-link-fn
-     )
+     (url) @greger-ui--url-link-fn)
 
    :language 'greger
    :feature 'tool-tags
