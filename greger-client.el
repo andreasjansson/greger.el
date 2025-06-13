@@ -59,6 +59,7 @@
 ;;; Public API
 
 (cl-defun greger-client-stream (&key model dialog tools server-tools buffer block-start-callback text-delta-callback block-stop-callback complete-callback)
+  "Stream AI responses from Claude API with callbacks for handling different content types and updates."
   (unless (memq model greger-client-supported-models)
     (error "Unsupported model: %s. Supported models: %s"
            model greger-client-supported-models))
@@ -336,7 +337,9 @@ Returns nil if no error found or if OUTPUT is not valid JSON."
         (setf (alist-get 'citations block)
               (append current-citations (list citation))))))))
 
-(defun greger-client--handle-content-block-stop (data state)
+"Initialize a new content block when the AI starts generating a response segment."
+  "Finalize a content block when the AI completes generating that segment."
+  (defun greger-client--handle-content-block-stop (data state)
   (let* ((index (alist-get 'index data))
          (blocks (greger-client-state-content-blocks state))
          (block (nth index blocks))
