@@ -4,14 +4,38 @@
 (require 'greger-parser)
 (require 'cl-lib)
 
+;; Global variable to store the grammar repo path
+(defvar greger-test-grammar-repo-path nil
+  "Path to the cloned greger-grammar repository.")
+
+;; Function to clone the grammar repo once
+(defun greger-test-setup-grammar-repo ()
+  "Clone the greger-grammar repository to a temporary directory if not already done."
+  (unless greger-test-grammar-repo-path
+    (let ((temp-dir (make-temp-file "greger-grammar-" t)))
+      (message "Cloning greger-grammar to %s..." temp-dir)
+      (let ((result (shell-command-to-string 
+                     (format "cd %s && git clone https://github.com/andreasjansson/greger-grammar.git" 
+                             (shell-quote-argument temp-dir)))))
+        (if (string-match-p "fatal:\\|error:" result)
+            (error "Failed to clone greger-grammar: %s" result)
+          (setq greger-test-grammar-repo-path (expand-file-name "greger-grammar" temp-dir))
+          (message "Successfully cloned greger-grammar to %s" greger-test-grammar-repo-path))))))
+
+;; Function to clean up the grammar repo
+(defun greger-test-cleanup-grammar-repo ()
+  "Clean up the cloned greger-grammar repository."
+  (when greger-test-grammar-repo-path
+    (let ((temp-dir (file-name-directory greger-test-grammar-repo-path)))
+      (message "Cleaning up greger-grammar repo at %s..." temp-dir)
+      (delete-directory temp-dir t)
+      (setq greger-test-grammar-repo-path nil))))
+
 ;; Helper function to read markdown content from corpus .txt files
 (defun greger-read-corpus-file (name)
   "Read markdown content from a .txt corpus file, extracting only the input portion."
-  (let* ((test-dir "/Users/andreas/projects/greger.el/test") ;; TODO: fix this make it relative!
-         (project-root (if (string-match "/test/$" test-dir)
-                           (substring test-dir 0 (match-beginning 0))
-                         (file-name-directory (directory-file-name test-dir))))
-         (file-path (expand-file-name (format "grammar/test/corpus/%s.txt" name) project-root)))
+  (greger-test-setup-grammar-repo)
+  (let ((file-path (expand-file-name (format "test/corpus/%s.txt" name) greger-test-grammar-repo-path)))
     (if (file-exists-p file-path)
         (with-temp-buffer
           (insert-file-contents file-path)
