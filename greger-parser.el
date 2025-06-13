@@ -170,8 +170,9 @@
       (content . ,content))))
 
 (defun greger-parser--extract-safe-shell-commands (node)
-  ;; Use a safer approach to find safe_shell_commands nodes
+  ;; Use a safe approach to find safe_shell_commands nodes
   ;; by walking the tree manually instead of using treesit-search-subtree
+  ;; because treesit-search subtree segfaults for some reason
   (let ((safe-commands '()))
     (greger-parser--walk-tree 
      node

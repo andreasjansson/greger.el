@@ -307,36 +307,35 @@
   "Interrupt ongoing generation if active, otherwise call `keyboard-quit'."
   (interactive)
 
-  (let* ((buffer (current-buffer))
-         (state (buffer-local-value 'greger--current-state buffer))
-         (result (cond
-                  ;; If there's an active client state, cancel the streaming request
-                  ((and state (greger-state-client-state state))
-                   (greger-client--cancel-request (greger-state-client-state state))
-                   (setf (greger-state-client-state state) nil)
-                   (greger--update-buffer-state)
-                   'generating)
-                  ;; If there are executing tools, cancel them
-                  ((and state
-                        (greger-state-executing-tools state)
-                        (> (hash-table-count (greger-state-executing-tools state)) 0))
-                   (let ((executing-tools (greger-state-executing-tools state)))
-                     (maphash (lambda (_tool-id greger-tool)
-                                (let ((cancel-fn (greger-tool-cancel-fn greger-tool)))
-                                  (when (functionp cancel-fn)
-                                    (funcall cancel-fn))))
-                              executing-tools)
-                     (greger--update-buffer-state))
-                   'executing)
-                  ;; Default case: call keyboard-quit
-                  (t
-                   (keyboard-quit)
-                   'idle))))
-
-    ;; to not get stuck in read only
-    (greger--set-buffer-read-only nil)
+  ;; to not get stuck in read only
+  (greger--set-buffer-read-only nil)
     
-    result))
+  (let* ((buffer (current-buffer))
+         (state (buffer-local-value 'greger--current-state buffer)))
+
+    (cond
+     ;; If there's an active client state, cancel the streaming request
+     ((and state (greger-state-client-state state))
+      (greger-client--cancel-request (greger-state-client-state state))
+      (setf (greger-state-client-state state) nil)
+      (greger--update-buffer-state)
+      'generating)
+     ;; If there are executing tools, cancel them
+     ((and state
+           (greger-state-executing-tools state)
+           (> (hash-table-count (greger-state-executing-tools state)) 0))
+      (let ((executing-tools (greger-state-executing-tools state)))
+        (maphash (lambda (_tool-id greger-tool)
+                   (let ((cancel-fn (greger-tool-cancel-fn greger-tool)))
+                     (when (functionp cancel-fn)
+                       (funcall cancel-fn))))
+                 executing-tools)
+        (greger--update-buffer-state))
+      'executing)
+     ;; Default case: call keyboard-quit
+     (t
+      (keyboard-quit)
+      'idle))))
 
 (defun greger-set-model ()
   "Set the current model."
@@ -511,9 +510,8 @@ If TEXT ends with more than two consecutive newlines, remove all but the first t
 
    ;; Update buffer state after client completes
    (let ((buffer (greger-state-chat-buffer state)))
-     (when (buffer-live-p buffer)
-       (with-current-buffer buffer
-         (greger--update-buffer-state))))))
+     (with-current-buffer buffer
+       (greger--update-buffer-state)))))
 
 (defun greger--extract-tool-calls (content-blocks)
   "Extract tool calls from CONTENT-BLOCKS."
@@ -539,14 +537,13 @@ If TEXT ends with more than two consecutive newlines, remove all but the first t
 
     ;; Update buffer state to show we're executing tools
     (let ((buffer (greger-state-chat-buffer state)))
-      (when (buffer-live-p buffer)
-        (with-current-buffer buffer
-          (greger--update-buffer-state))
+      (with-current-buffer buffer
+        (greger--update-buffer-state))
 
-        ;; First, display the tool calls and reserve space for each tool's output
-        (with-current-buffer buffer
-          (let ((inhibit-read-only t))
-            (goto-char (point-max))))))
+      ;; First, display the tool calls and reserve space for each tool's output
+      (with-current-buffer buffer
+        (let ((inhibit-read-only t))
+          (goto-char (point-max)))))
 
     ;; Execute all tools in parallel
     (dolist (tool-call tool-calls)
@@ -580,7 +577,7 @@ If TEXT ends with more than two consecutive newlines, remove all but the first t
                                          :completion-callback (lambda ()
                                                                 (setq completed-tools (1+ completed-tools))
                                                                 (when (and (= completed-tools total-tools)
-                                                                          (buffer-live-p (greger-state-chat-buffer state)))
+                                                                          (greger-state-chat-buffer state))
                                                                   (greger--run-agent-loop state)))))
                             :buffer (greger-state-chat-buffer state)
                             :metadata (greger-state-tool-use-metadata state))))
@@ -592,11 +589,10 @@ If TEXT ends with more than two consecutive newlines, remove all but the first t
 (defun greger--append-text (state text)
   "Append TEXT to the chat buffer in STATE."
   (let ((buffer (greger-state-chat-buffer state)))
-    (when (buffer-live-p buffer)
-      (with-current-buffer buffer
-        (let ((inhibit-read-only t))
-          (goto-char (point-max))
-          (insert text))))))
+    (with-current-buffer buffer
+      (let ((inhibit-read-only t))
+        (goto-char (point-max))
+        (insert text)))))
 
 (cl-defun greger--handle-tool-completion (&key tool-id result error state completion-callback)
   "Handle completion of a tool execution by updating buffer and calling callback.
