@@ -467,6 +467,7 @@ first two."
   (replace-regexp-in-string "\n\n\n+\\'" "\n\n" text))
 
 (defun greger--append-streaming-content-header (state content-block)
+  "Append appropriate header for streaming CONTENT-BLOCK to STATE."
   (let ((type (alist-get 'type content-block))
         (has-citations (assq 'citations content-block)))
    (cond
