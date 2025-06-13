@@ -145,7 +145,7 @@ START and END are the region bounds."
                 ;; Store overlay reference for cleanup
                 (put-text-property node-start node-end 'greger-ui-fold-overlay overlay)))))))))
 
-(defun greger-ui--tool-content-tail-folding-fn (node override start end)
+(defun greger-ui--tool-content-tail-folding-fn (node _override _start _end)
   "Font-lock function to make tool_content_tail invisible by default.
 NODE is the matched tree-sitter node, OVERRIDE is the override setting,
 START and END are the region bounds."
