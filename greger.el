@@ -5,7 +5,7 @@
 ;; Author: Andreas Jansson <andreas@jansson.me.uk>
 ;; Version: 0.1.0
 ;; URL: https://github.com/andreasjansson/greger.el
-;; Package-Requires: ((emacs "28.1") (markdown-mode "2.3"))
+;; Package-Requires: ((emacs "29.1") (markdown-mode "2.3"))
 ;; Keywords: ai, chat, language-models, tools
 ;; SPDX-License-Identifier: MIT
 
@@ -65,13 +65,14 @@
   :group 'greger)
 
 (defcustom greger-allow-all-shell-commands nil
-  "Allow all shell commands to run without asking for permission. May order 4,000 pounds of meat."
+  "Allow all shell commands to run without permission.
+May order 4,000 pounds of meat."
   :type 'boolean
   :group 'greger)
 
 ;; Tool configuration and agent functionality
 
-(defcustom greger-tools '("read-file" "list-directory" "str-replace" "insert" "write-new-file" "replace-file" "make-directory" "rename-file" "ripgrep" "git-log" "git-show-commit" "shell-command" "read-webpage" "delete-files")
+(defcustom greger-tools '("read-file" "list-directory" "str-replace" "insert" "write-new-file" "replace-file" "make-directory" "rename-file" "ripgrep" "git-log" "git-show-commit" "shell-command" "read-webpage" "delete-files" "batch-update-docstrings")
   "List of tools available to the agent."
   :type '(repeat symbol)
   :group 'greger)
