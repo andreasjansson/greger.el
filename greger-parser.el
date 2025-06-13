@@ -94,6 +94,7 @@ used by the shell command security system."
       (greger-parser--extract-safe-shell-commands root-node))))
 
 (defun greger-parser-activate-tree-sitter ()
+  "Set up tree-sitter for greger grammar parsing."
   (let (
         (grammar-dir "/Users/andreas/projects/greger.el/grammar")
         ;;(grammar-dir (file-name-concat load-file-name "grammar")) ;; TODO!
