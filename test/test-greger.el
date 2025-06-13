@@ -119,7 +119,7 @@ Tool executed: Hello World
       (let ((agent-state (make-greger-state
                           :current-iteration 0
                           :chat-buffer (current-buffer)
-                          :directory default-directory :tool-use-metadata nil))
+                          :directory default-directory :tool-use-metadata '(:safe-shell-commands () :allow-all-shell-commands nil)))
             (tool-calls `(((type . "tool_use")
                           (id . "test_a")
                           (name . "test-tool-a")
