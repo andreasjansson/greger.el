@@ -99,13 +99,12 @@ Example:
 (defmacro greger-register-server-tool (name &rest args)
   "Register a server tool with NAME and properties specified in ARGS.
 Server tools are processed by the server (e.g., Anthropic's web search tool).
-ARGS should be a plist containing at least :type and :name, and any other
+ARGS should be a plist containing at least :type and any other
 named parameters specific to the server tool.
 
 Example:
   (greger-register-server-tool \\='web_search\\='
     :type \\='web_search_20250305\\='
-    :name \\='web_search\\='
     :max_uses 5
     :allowed_domains \\='[\\='example.com\\=' \\='trusteddomain.org\\=']
     :user_location \\='((type . \\='approximate\\=')
@@ -116,16 +115,14 @@ Example:
 
 The raw JSON string will be displayed for the server tool definition."
   (let ((type (plist-get args :type))
-        (tool-name (plist-get args :name))
         (remaining-args (copy-sequence args)))
-    ;; Remove :type and :name from remaining-args
+    ;; Remove :type from remaining-args
     (setq remaining-args (cl-copy-list remaining-args))
     (cl-remf remaining-args :type)
-    (cl-remf remaining-args :name)
 
-    ;; Build the tool definition alist
+    ;; Build the tool definition alist - use the name parameter directly
     (let ((tool-def (list (cons 'type type)
-                          (cons 'name tool-name))))
+                          (cons 'name name))))
       ;; Add remaining parameters
       (while remaining-args
         (let ((key (pop remaining-args))
