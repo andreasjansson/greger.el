@@ -636,15 +636,17 @@ COMPLETION-CALLBACK is called when complete."
 
 (defun greger--finish-response (state)
   "Finish the agent response using STATE."
-  (with-current-buffer (greger-state-chat-buffer state)
-    (let ((inhibit-read-only t))
-      (goto-char (point-max))
-      (unless (looking-back (concat greger-parser-user-tag "\n\n") nil)
-        (insert "\n\n" greger-parser-user-tag "\n\n")))
-    ;; Clear the buffer-local agent state
-    (setq greger--current-state nil)
-    ;; Update buffer state to idle
-    (greger--update-buffer-state))
+  (let ((buffer (greger-state-chat-buffer state)))
+    (when (buffer-live-p buffer)
+      (with-current-buffer buffer
+        (let ((inhibit-read-only t))
+          (goto-char (point-max))
+          (unless (looking-back (concat greger-parser-user-tag "\n\n") nil)
+            (insert "\n\n" greger-parser-user-tag "\n\n")))
+        ;; Clear the buffer-local agent state
+        (setq greger--current-state nil)
+        ;; Update buffer state to idle
+        (greger--update-buffer-state))))
   ;; Reset the state
   (setf (greger-state-current-iteration state) 0)
   (setf (greger-state-client-state state) nil))
