@@ -120,9 +120,13 @@ The raw JSON string will be displayed for the server tool definition."
     (setq remaining-args (cl-copy-list remaining-args))
     (cl-remf remaining-args :type)
 
-    ;; Build the tool definition alist - use the name parameter directly
+    ;; Build the tool definition alist - extract symbol name from quoted form
     (let ((tool-def (list (cons 'type type)
-                          (cons 'name name))))
+                          (cons 'name (if (and (listp name) (eq (car name) 'quote))
+                                         (symbol-name (cadr name))
+                                       (if (symbolp name)
+                                           (symbol-name name)
+                                         name))))))
       ;; Add remaining parameters
       (while remaining-args
         (let ((key (pop remaining-args))
