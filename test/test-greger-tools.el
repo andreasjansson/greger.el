@@ -571,9 +571,10 @@
   ;; Test with JSON number strings
   (let ((result nil)
         (error nil))
-    (greger-tools-execute "test-number-parsing"
-                          '((count . "42") (rate . "3.14"))
-                          (lambda (r e) (setq result r error e)) nil)
+    (greger-tools-execute :tool-name "test-number-parsing"
+                          :args '((count . "42") (rate . "3.14"))
+                          :callback (lambda (r e) (setq result r error e))
+                          :buffer nil)
     (should (string= "count: 42 (type: integer), rate: 3.14 (type: float)" result))
     (should (null error)))
 
