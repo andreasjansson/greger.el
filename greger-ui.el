@@ -179,6 +179,7 @@ URL prefix before opening."
   ;; Code blocks
 
 (defun greger-ui--copy-code ()
+  "Copy code block content at point to kill ring."
   (interactive)
   (let ((node (treesit-node-at (point))))
     (if (string= (treesit-node-type node) "code_block_content")
