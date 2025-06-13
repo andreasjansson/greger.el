@@ -51,28 +51,34 @@
 
     completed))
 
+(defun greger-test-get-curl-process ()
+  (seq-find (lambda (proc)
+              (and (process-live-p proc)
+                   (string-match-p "greger-curl" (process-name proc))))
+            (process-list)))
+
+
 (defun greger-test-wait-for-streaming-complete ()
   "Wait for any active streaming processes to complete."
-  (let ((max-wait 10.0)  ; Increased timeout
+  (let ((max-wait 20.0)  ; Increased timeout
         (start-time (current-time)))
+
     ;; First wait for curl processes to finish
     (while (and (< (float-time (time-subtract (current-time) start-time)) max-wait)
-                (cl-some (lambda (proc)
-                          (and (process-live-p proc)
-                               (string-match-p "greger-curl" (process-name proc))))
-                        (process-list)))
+                (greger-test-get-curl-process))
       (sit-for 0.1))
     
     ;; Then wait a bit more for any remaining callbacks to finish
     (sit-for 1.0)
     
     ;; Force process any remaining events
-    (accept-process-output nil 0.5)))
+    (accept-process-output nil 0.5)
+
+    (when (greger-test-get-curl-process)
+      (error "greger curl process didn't exit within 20 seconds"))))
 
 (ert-deftest greger-end-to-end-test-greger-function ()
   "Test the main greger function creates a buffer and sets it up correctly."
-  :tags '(end-to-end public-api)
-
   (let ((original-buffers (buffer-list)))
     (unwind-protect
         (progn
@@ -107,9 +113,6 @@
 
 (ert-deftest greger-end-to-end-test-simple-conversation ()
   "Test a simple conversation using the public API."
-  :tags '(end-to-end public-api)
-
-
   (let ((greger-buffer nil))
     (unwind-protect
         (progn
@@ -131,14 +134,13 @@
           (greger-test-wait-for-streaming-complete)
 
           ;; Verify response was added to buffer (with safety check)
-          (when (buffer-live-p greger-buffer)
-            (with-current-buffer greger-buffer
-              (let ((content (buffer-string)))
-                (should (string-match-p "# ASSISTANT" content))
-                (should (string-match-p "Hello from greger test!" content))
-                ;; Should have a new USER section at the end (or at least assistant response)
-                (should (or (string-match-p "# USER\n\n$" content)
-                           (string-match-p "# ASSISTANT" content)))))))
+          (with-current-buffer greger-buffer
+            (let ((content (buffer-string)))
+              (should (string-match-p "# ASSISTANT" content))
+              (should (string-match-p "Hello from greger test!" content))
+              ;; Should have a new USER section at the end (or at least assistant response)
+              (should (or (string-match-p "# USER\n\n$" content)
+                          (string-match-p "# ASSISTANT" content))))))
 
       ;; Cleanup - wait a bit more before killing buffer
       (sit-for 0.5)
@@ -147,9 +149,6 @@
 
 (ert-deftest greger-end-to-end-test-tool-use-conversation ()
   "Test a conversation that involves tool use using the public API."
-  :tags '(end-to-end public-api tools)
-
-
   (let ((greger-buffer nil)
         (test-file nil))
     (unwind-protect
@@ -177,17 +176,16 @@
           (greger-test-wait-for-streaming-complete)
 
           ;; Verify response was added to buffer (with safety check)
-          (when (buffer-live-p greger-buffer)
-            (with-current-buffer greger-buffer
-              (let ((content (buffer-string)))
-                (should (string-match-p "# ASSISTANT" content))
-                ;; Should have tool use section or content from the file
-                (should (or (string-match-p "# TOOL USE" content)
-                           (string-match-p "read-file" content)
-                           (string-match-p "test file for greger" content)))
-                ;; Should have a new USER section at the end (or at least assistant response)
-                (should (or (string-match-p "# USER\n\n$" content)
-                           (string-match-p "# ASSISTANT" content)))))))
+          (with-current-buffer greger-buffer
+            (let ((content (buffer-string)))
+              (should (string-match-p "# ASSISTANT" content))
+              ;; Should have tool use section or content from the file
+              (should (or (string-match-p "# TOOL USE" content)
+                          (string-match-p "read-file" content)
+                          (string-match-p "test file for greger" content)))
+              ;; Should have a new USER section at the end (or at least assistant response)
+              (should (or (string-match-p "# USER\n\n$" content)
+                          (string-match-p "# ASSISTANT" content))))))
 
       ;; Cleanup - wait a bit more before killing buffer
       (sit-for 0.5)
@@ -198,9 +196,6 @@
 
 (ert-deftest greger-end-to-end-test-no-tools-mode ()
   "Test the no-tools mode using C-M-return."
-  :tags '(end-to-end public-api no-tools)
-
-
   (let ((greger-buffer nil)
         (test-file nil))
     (unwind-protect
@@ -247,8 +242,6 @@
 
 (ert-deftest greger-end-to-end-test-model-configuration ()
   "Test that model configuration works correctly."
-  :tags '(end-to-end public-api configuration)
-
   (let ((original-model greger-model)
         (greger-buffer nil))
     (unwind-protect
@@ -275,8 +268,6 @@
 
 (ert-deftest greger-end-to-end-test-sleep-and-interrupt ()
   "Test sleep command with interruption and state transitions."
-  :tags '(end-to-end public-api interruption)
-
   (let ((greger-buffer nil))
     (unwind-protect
         (progn
@@ -353,7 +344,6 @@
 
 (ert-deftest greger-end-to-end-test-server-tool-web-search ()
   "Test server tool functionality with web search."
-  :tags '(end-to-end server-tools)
   (skip-unless (getenv "ANTHROPIC_API_KEY"))
 
   (let ((greger-buffer nil))
@@ -367,7 +357,7 @@
           (let ((greger-server-tools '(web_search)))
             ;; Add a user message that should trigger web search
             (goto-char (point-max))
-            (insert "What is the current weather in San Francisco? Please search for this information.")
+            (insert "What is the current weather in San Francisco? Please search for this information and give me a short one-sentence summary..")
 
             ;; Call greger-buffer to send the message
             (greger-buffer)
