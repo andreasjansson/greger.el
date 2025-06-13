@@ -92,9 +92,7 @@ START and END are the region bounds."
 
           (let* ((uncle-last-child (treesit-node-child uncle -1))
                  (uncle-last-child-end (treesit-node-end uncle-last-child)))
-            (put-text-property (- uncle-last-child-end 2) text-start 'invisible t)))
-
-        ))
+            (put-text-property (- uncle-last-child-end 2) text-start 'invisible t)))))
 
     (when (and aunt (equal (treesit-node-type aunt) "assistant"))
       (let* ((aunt-header (treesit-search-subtree aunt "assistant_header"))
