@@ -478,6 +478,7 @@ first two."
     (t nil))))
 
 (defun greger--handle-stream-completion (state content-blocks)
+  "Handle completion of stream with STATE and CONTENT-BLOCKS."
   (let ((tool-calls (greger--extract-tool-calls content-blocks)))
 
     (if tool-calls
