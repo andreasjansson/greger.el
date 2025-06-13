@@ -261,9 +261,10 @@
   ;; Test that missing both required parameters calls callback with error
   (let ((result nil)
         (error nil))
-    (greger-tools-execute "test-required"
-                          '((optional-param . "optional"))
-                          (lambda (r e) (setq result r error e)) nil)
+    (greger-tools-execute :tool-name "test-required"
+                          :args '((optional-param . "optional"))
+                          :callback (lambda (r e) (setq result r error e))
+                          :buffer nil)
     (should (null result))
     (should error))
 
