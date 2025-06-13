@@ -537,7 +537,7 @@ Echo: hello world
                           :current-iteration 1
                           :chat-buffer (current-buffer)
                           :directory default-directory
-                          :tool-use-metadata nil
+                          :tool-use-metadata '(:safe-shell-commands () :allow-all-shell-commands nil)
                           :client-state mock-client-state)))
 
         ;; Set buffer-local agent state
