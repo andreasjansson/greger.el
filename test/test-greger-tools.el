@@ -393,11 +393,11 @@
   (let ((result nil)
         (error nil)
         (callback-called nil))
-    (greger-tools-execute "test-pass-callback"
-                          '((message . "world"))
-                          (lambda (r e)
+    (greger-tools-execute :tool-name "test-pass-callback"
+                          :args '((message . "world"))
+                          :callback (lambda (r e)
                             (setq result r error e callback-called t))
-                          nil)
+                          :buffer nil)
     ;; Since the callback is called synchronously in our test function,
     ;; we can check the results immediately
     (should callback-called)
