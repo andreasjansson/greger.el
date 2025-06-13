@@ -61,8 +61,10 @@
 (cl-defun greger-client-stream (&key model dialog tools server-tools buffer block-start-callback text-delta-callback block-stop-callback complete-callback)
   "Stream AI responses with callbacks for handling content types and updates.
 MODEL specifies which AI model to use, DIALOG contains the conversation,
-TOOLS and SERVER-TOOLS enable function calling, BUFFER is the output target,
-and the various callbacks handle different stages of the streaming response."
+TOOLS and SERVER-TOOLS enable function calling, BUFFER is the output target.
+BLOCK-START-CALLBACK is called when content blocks begin, TEXT-DELTA-CALLBACK
+for incremental text, BLOCK-STOP-CALLBACK when blocks complete, and
+COMPLETE-CALLBACK when the entire response finishes."
   (unless (memq model greger-client-supported-models)
     (error "Unsupported model: %s. Supported models: %s"
            model greger-client-supported-models))
