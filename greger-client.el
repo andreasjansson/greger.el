@@ -270,6 +270,7 @@ Returns nil if no error found or if OUTPUT is not valid JSON."
       (greger-client--handle-content-block-stop data state)))))
 
 (defun greger-client--handle-content-block-start (data state)
+  "Initialize new streaming content block from DATA in STATE."
   (let* ((index (alist-get 'index data))
          (content-block (copy-alist (alist-get 'content_block data)))
          (blocks (greger-client-state-content-blocks state))
