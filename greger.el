@@ -250,11 +250,21 @@ May order 4,000 pounds of meat."
   "Tree-sitter indentation rules for `greger-mode'.")
 
 ;;;###autoload
+(defun greger-install-grammar ()
+  "Install greger tree-sitter grammar."
+  (interactive)
+  (add-to-list 'treesit-language-source-alist '(greger "https://github.com/andreasjansson/greger-grammar" "main"))
+  (treesit-install-language-grammar 'greger))
+
+;;;###autoload
 (define-derived-mode greger-mode prog-mode "Greger"
   "Major mode for editing Greger files with tree-sitter support."
   ;; Try to use tree-sitter if available
-  (greger-parser-activate-tree-sitter)
-  (treesit-ready-p 'greger)
+  (unless (treesit-language-available-p 'greger)
+    (greger-install-grammar))
+  (unless (treesit-ready-p 'greger)
+    (error "Greger grammar is not installed"))
+
   (treesit-parser-create 'greger)
   (setq-local treesit-font-lock-settings greger--treesit-font-lock-settings)
   (setq-local treesit-font-lock-feature-list

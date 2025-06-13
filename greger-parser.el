@@ -52,8 +52,6 @@
 
 (defun greger-parser-markdown-to-dialog (text)
   "Parse greger conversation TEXT using tree-sitter and return structured dialog."
-  (greger-parser-activate-tree-sitter)
-
   (unless (treesit-ready-p 'greger)
     (error "Tree-sitter greger parser not available"))
 
@@ -67,7 +65,6 @@
 
 (defun greger-parser-markdown-buffer-to-dialog (buffer)
   "Parse greger conversation BUFFER into structured dialog data."
-  (greger-parser-activate-tree-sitter)
   (with-current-buffer buffer
     (let* ((parser (treesit-parser-create 'greger))
            (root-node (treesit-parser-root-node parser)))
@@ -83,22 +80,10 @@
   "Extract safe shell commands from BUFFER for validation.
 Finds commands marked as safe for execution without user confirmation,
 used by the shell command security system."
-  (greger-parser-activate-tree-sitter)
-
   (with-current-buffer buffer
     (let* ((parser (treesit-parser-create 'greger))
            (root-node (treesit-parser-root-node parser)))
       (greger-parser--extract-safe-shell-commands root-node))))
-
-(defun greger-parser-activate-tree-sitter ()
-  "Set up tree-sitter for greger grammar parsing."
-  (let (
-        (grammar-dir "/Users/andreas/projects/greger.el/grammar")
-        ;;(grammar-dir (file-name-concat load-file-name "grammar")) ;; TODO!
-        )
-    (add-to-list 'treesit-extra-load-path grammar-dir))
-  (unless (treesit-ready-p 'greger)
-    (error "Tree-sitter for Greger isn't available")))
 
 ;; Tree-sitter-based markdown-to-dialog parsing
 
