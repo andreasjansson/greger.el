@@ -896,7 +896,7 @@
       ;; Verify it's valid JSON by parsing it
       (let ((parsed (json-parse-string json-string :object-type 'alist)))
         (should (string= "web_search_20250305" (alist-get 'type parsed)))
-        (should (string= "web_search" (alist-get 'name parsed)))
+        (should (string= "test-web-search" (alist-get 'name parsed)))
         (should (= 5 (alist-get 'max_uses parsed)))
         (should (equal ["example.com" "trusteddomain.org"] (alist-get 'allowed_domains parsed))))))
 
