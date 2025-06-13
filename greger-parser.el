@@ -598,6 +598,7 @@ If SKIP-HEADER is true, don't add section headers for text blocks."
     (greger-parser--wrapped-tool-content greger-parser-tool-result-tag id content)))
 
 (defun greger-parser--wrapped-tool-content (tag id content)
+  "Wrap CONTENT with TAG and ID for tool display formatting."
   (concat tag
           "\n\n"
           "ID: " id "\n\n"
