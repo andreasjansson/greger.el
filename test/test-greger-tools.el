@@ -886,7 +886,7 @@
                     (timezone . "America/Los_Angeles")))
 
   ;; Test that the server tool was registered
-  (should (gethash 'test-web-search greger-server-tools-registry))
+  (should (gethash "test-web-search" greger-server-tools-registry))
 
   ;; Test getting server tool schemas as JSON
   (let ((schemas (greger-server-tools-get-schemas '(test-web-search))))
