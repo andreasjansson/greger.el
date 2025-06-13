@@ -309,6 +309,7 @@ Returns nil if no error found or if OUTPUT is not valid JSON."
     (greger-client--ensure-block-at-index blocks index content-block state)))
 
 (defun greger-client--handle-content-block-delta (data state)
+  "Process incremental content updates from streaming DATA in STATE."
   (let* ((index (alist-get 'index data))
          (delta (alist-get 'delta data))
          (delta-type (alist-get 'type delta))
