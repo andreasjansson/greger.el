@@ -184,9 +184,10 @@
   ;; Test with only required parameter - should use defaults
   (let ((result nil)
         (error nil))
-    (greger-tools-execute "test-defaults"
-                          '((message . "hello"))
-                          (lambda (r e) (setq result r error e)) nil)
+    (greger-tools-execute :tool-name "test-defaults"
+                          :args '((message . "hello"))
+                          :callback (lambda (r e) (setq result r error e))
+                          :buffer nil)
     (should (string= ">>> hello (repeated 5 times)" result))
     (should (null error)))
 
