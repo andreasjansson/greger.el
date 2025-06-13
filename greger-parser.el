@@ -170,10 +170,24 @@
       (content . ,content))))
 
 (defun greger-parser--extract-safe-shell-commands (node)
-  (let ((safe-shell-commands-node (treesit-search-subtree node "safe_shell_commands")))
-    (when safe-shell-commands-node
-      (let ((command-nodes (treesit-node-children safe-shell-commands-node t)))
-        (mapcar (lambda (n) (treesit-node-text n t)) command-nodes)))))
+  ;; Use a safer approach to find safe_shell_commands nodes
+  ;; by walking the tree manually instead of using treesit-search-subtree
+  (let ((safe-commands '()))
+    (greger-parser--walk-tree 
+     node
+     (lambda (n)
+       (when (string= (treesit-node-type n) "safe_shell_commands")
+         (let ((command-nodes (treesit-node-children n t)))
+           (dolist (cmd-node command-nodes)
+             (when (string= (treesit-node-type cmd-node) "shell_command")
+               (push (treesit-node-text cmd-node t) safe-commands)))))))
+    (nreverse safe-commands)))
+
+(defun greger-parser--walk-tree (node callback)
+  "Walk TREE calling CALLBACK on each node."
+  (funcall callback node)
+  (dolist (child (treesit-node-children node))
+    (greger-parser--walk-tree child callback)))
 
 (defun greger-parser--safe-shell-commands-text (commands)
   "Generate descriptive text for safe shell COMMANDS list."
