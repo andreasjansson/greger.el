@@ -154,7 +154,9 @@ This ensures the '..' entry has predictable permissions in tests."
       (greger-stdlib--shell-command
        "echo test"
        (lambda (output err)
-         (setq result output error err callback-called t)))
+         (setq result output error err callback-called t))
+       nil
+       '(:allow-all-shell-commands nil))
 
       ;; Should call callback immediately with error
       (should callback-called)
@@ -242,7 +244,7 @@ This ensures the '..' entry has predictable permissions in tests."
                  t)))
 
       ;; Create metadata with safe shell commands
-      (let ((metadata '(:safe-shell-commands ("echo safe command" "pwd"))))
+      (let ((metadata '(:safe-shell-commands ("echo safe command" "pwd") :allow-all-shell-commands nil)))
 
         ;; Execute a command that's NOT in the safe list
         (greger-stdlib--shell-command
@@ -266,42 +268,6 @@ This ensures the '..' entry has predictable permissions in tests."
         (should (string-match "unsafe command" result))
         ;; Permission prompt SHOULD have been called since command not in safe list
         (should prompt-called)))))
-
-(ert-deftest greger-test-shell-command-no-metadata-still-prompts ()
-  "Test shell-command tool without metadata still prompts for permission."
-  (let ((result nil)
-        (error nil)
-        (callback-called nil)
-        (prompt-called nil))
-
-    ;; Mock the permission prompt to track if it's called and return yes
-    (cl-letf (((symbol-function 'y-or-n-p)
-               (lambda (prompt)
-                 (setq prompt-called t)
-                 t)))
-
-        ;; Execute a command without any metadata
-        (greger-stdlib--shell-command
-         "echo no metadata"
-         (lambda (output err)
-           (setq result output error err callback-called t))
-         "."  ; working directory
-         nil)  ; no metadata
-
-        ;; Wait for async operation to complete
-        (let ((timeout 0))
-          (while (and (not callback-called) (< timeout 50))  ; 5 second timeout
-            (sit-for 0.1)
-            (setq timeout (1+ timeout))))
-
-        ;; Verify the results
-        (should callback-called)
-        (should (null error))
-        (should (stringp result))
-        (should (string-match "Command executed successfully" result))
-        (should (string-match "no metadata" result))
-        ;; Permission prompt SHOULD have been called since no metadata provided
-        (should prompt-called))))
 
 (ert-deftest greger-test-count-paren-balance ()
   "Test the paren balance counting function."

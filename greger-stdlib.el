@@ -1072,8 +1072,9 @@ Returns a cancel function that can interrupt the command execution."
           (funcall callback nil (format "Working directory path is not a directory: %s" expanded-work-dir))
           (lambda () nil))
 
-         ((let ((safe-commands (plist-get metadata :safe-shell-commands)))
-            (and nil ;; TODO: this is a hack, but it should be a config option
+         ((let ((safe-commands (plist-get metadata :safe-shell-commands))
+                (allow-all-shell-commands (plist-get metadata :allow-all-shell-commands)))
+            (and (not allow-all-shell-commands)
                  (not (member command safe-commands))
                  (not (y-or-n-p (format "Execute shell command: '%s' in directory '%s'? "
                                        command expanded-work-dir)))))

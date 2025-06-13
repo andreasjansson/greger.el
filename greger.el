@@ -63,6 +63,11 @@
   :type 'float
   :group 'greger)
 
+(defcustom greger-allow-all-shell-commands nil
+  "Allow all shell commands to run without asking for permission. May order 4,000 pounds of meat."
+  :type 'boolean
+  :group 'greger)
+
 ;; Tool configuration and agent functionality
 
 (defcustom greger-tools '("read-file" "list-directory" "str-replace" "insert" "write-new-file" "replace-file" "make-directory" "rename-file" "ripgrep" "git-log" "git-show-commit" "shell-command" "read-webpage" "delete-files")
@@ -364,7 +369,7 @@
                            :current-iteration 0
                            :chat-buffer (current-buffer)
                            :directory default-directory
-                           :tool-use-metadata '(:safe-shell-commands ()))))
+                           :tool-use-metadata `(:safe-shell-commands () :allow-all-shell-commands ,greger-allow-all-shell-commands))))
 
 (defun greger-buffer-no-tools ()
   "Send the buffer content to AI as a dialog without tool use."

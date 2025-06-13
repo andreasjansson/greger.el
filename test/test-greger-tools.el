@@ -627,33 +627,35 @@
 
   ;; Register tool
   (greger-register-tool "test-edge-cases"
-    :description "Test edge cases in argument extraction"
-    :properties '((required-param . ((type . "string")
-                                     (description . "Required parameter")))
-                  (optional-param1 . ((type . "boolean")
-                                      (description . "Optional boolean")))
-                  (optional-param2 . ((type . "integer")
-                                      (description . "Optional integer"))))
-    :required '("required-param")
-    :function 'greger-test-edge-cases)
+                        :description "Test edge cases in argument extraction"
+                        :properties '((required-param . ((type . "string")
+                                                         (description . "Required parameter")))
+                                      (optional-param1 . ((type . "boolean")
+                                                          (description . "Optional boolean")))
+                                      (optional-param2 . ((type . "integer")
+                                                          (description . "Optional integer"))))
+                        :required '("required-param")
+                        :function 'greger-test-edge-cases)
 
   ;; Test with only required parameter
   (let ((result nil)
         (error nil))
-    (greger-tools-execute "test-edge-cases"
-                          '((required-param . "test"))
-                          (lambda (r e) (setq result r error e)) nil)
+    (greger-tools-execute :tool-name "test-edge-cases"
+                          :args '((required-param . "test"))
+                          :callback (lambda (r e) (setq result r error e))
+                          :buffer nil)
     (should (string= "required: test, opt1: nil, opt2: nil" result))
     (should (null error)))
 
   ;; Test with invalid JSON that should be returned as-is
   (let ((result nil)
         (error nil))
-    (greger-tools-execute "test-edge-cases"
-                          '((required-param . "test")
-                            (optional-param1 . "not-a-boolean")
-                            (optional-param2 . "not-a-number"))
-                          (lambda (r e) (setq result r error e)) nil)
+    (greger-tools-execute :tool-name "test-edge-cases"
+                          :args'((required-param . "test")
+                                 (optional-param1 . "not-a-boolean")
+                                 (optional-param2 . "not-a-number"))
+                          :callback (lambda (r e) (setq result r error e))
+                          :buffer nil)
     (should (string= "required: test, opt1: not-a-boolean, opt2: not-a-number" result))
     (should (null error)))
 

@@ -287,7 +287,8 @@ Returns nil if no error found or if OUTPUT is not valid JSON."
       ;; No initialization needed - content is already present. No content_block_delta for web_search_tool_result
       nil))
 
-    (funcall (greger-client-state-block-start-callback state) content-block)
+    (when-let ((callback (greger-client-state-block-start-callback state)))
+      (funcall callback content-block))
 
     ;; Add block at the right index
     (greger-client--ensure-block-at-index blocks index content-block state)))
@@ -314,7 +315,8 @@ Returns nil if no error found or if OUTPUT is not valid JSON."
         ;; Only call text callback for live display if this block doesn't have citations
         ;; Citation blocks should not stream text - they'll be handled in block-stop
         (unless has-citations
-          (funcall (greger-client-state-text-delta-callback state) text))))
+          (when-let ((callback (greger-client-state-text-delta-callback state)))
+           (funcall callback text)))))
 
      ;; tool_use and server_tool_use
      ;; {"type":"content_block_delta","index":1,"delta":{"type":"input_json_delta","partial_json":""}}
@@ -349,7 +351,8 @@ Returns nil if no error found or if OUTPUT is not valid JSON."
             (setf (alist-get 'input block) '())
           (setf (alist-get 'input block) (json-read-from-string input-str))))))
 
-    (funcall (greger-client-state-block-stop-callback state) type block)))
+    (when-let ((callback (greger-client-state-block-stop-callback state)))
+      (funcall callback type block))))
 
 (defun greger-client--ensure-block-at-index (_blocks index new-block state)
   "Ensure BLOCKS list has NEW-BLOCK at INDEX, extending if necessary.
@@ -369,9 +372,8 @@ STATE is used to update the parsed content blocks."
     (funcall (greger-client-state-restore-callback state) state)
 
     (if (= (process-exit-status proc) 0)
-        (when (greger-client-state-complete-callback state)
-          (let ((content-blocks (greger-client-state-content-blocks state)))
-            (funcall (greger-client-state-complete-callback state) content-blocks)))
+        (when-let ((callback (greger-client-state-complete-callback state)))
+          (funcall callback (greger-client-state-content-blocks state)))
       ;; TODO: Callback
       (message "Process exited"))))
 
