@@ -59,7 +59,10 @@
 ;;; Public API
 
 (cl-defun greger-client-stream (&key model dialog tools server-tools buffer block-start-callback text-delta-callback block-stop-callback complete-callback)
-  "Stream AI responses from Claude API with callbacks for handling different content types and updates."
+  "Stream AI responses with callbacks for handling content types and updates.
+MODEL specifies which AI model to use, DIALOG contains the conversation,
+TOOLS and SERVER-TOOLS enable function calling, BUFFER is the output target,
+and the various callbacks handle different stages of the streaming response."
   (unless (memq model greger-client-supported-models)
     (error "Unsupported model: %s. Supported models: %s"
            model greger-client-supported-models))
@@ -113,7 +116,12 @@
           :headers headers
           :data data)))
 
-(defun greger-client--get-api-key ()
+"Stream AI responses with real-time callbacks for DIALOG using MODEL.
+Calls BLOCK-START-CALLBACK when new content blocks begin, TEXT-DELTA-CALLBACK
+for incremental text updates, BLOCK-STOP-CALLBACK when blocks complete, and
+COMPLETE-CALLBACK when the entire response finishes. TOOLS and SERVER-TOOLS
+enable function calling capabilities."
+  (defun greger-client--get-api-key ()
   "Get Claude API key from environment."
   (let ((api-key (getenv "ANTHROPIC_API_KEY")))
     (unless api-key
@@ -337,8 +345,12 @@ Returns nil if no error found or if OUTPUT is not valid JSON."
         (setf (alist-get 'citations block)
               (append current-citations (list citation))))))))
 
-"Initialize a new content block when the AI starts generating a response segment."
-  "Finalize a content block when the AI completes generating that segment."
+"Initialize a new streaming content block at INDEX from DATA.
+Sets up accumulation buffers for tool calls and converts structured input
+to strings for incremental building during streaming."
+  "Finalize content block at INDEX when streaming stops.
+Converts accumulated tool call strings back to structured objects and
+triggers completion callbacks for the finished block."
   (defun greger-client--handle-content-block-stop (data state)
   (let* ((index (alist-get 'index data))
          (blocks (greger-client-state-content-blocks state))
