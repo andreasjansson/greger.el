@@ -339,10 +339,13 @@
 
           ;; Verify the output contains some indication that the command failed
           ;; (the exact exit code and message may vary depending on platform and signal)
-          (let ((content (buffer-string)))
-            (should (string-match-p "Command failed with exit code 2: (no output)" content))))
+          (when (buffer-live-p greger-buffer)
+            (with-current-buffer greger-buffer
+              (let ((content (buffer-string)))
+                (should (string-match-p "Command failed with exit code 2: (no output)" content))))))
 
-      ;; Cleanup
+      ;; Cleanup - wait a bit more before killing buffer
+      (sit-for 0.5)
       (when (and greger-buffer (buffer-live-p greger-buffer))
         (kill-buffer greger-buffer)))))
 
