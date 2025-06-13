@@ -805,9 +805,10 @@
         (greger-tool nil))
 
     ;; Execute the tool and capture the greger-tool struct
-    (setq greger-tool (greger-tools-execute "test-callback-cancel"
-                                            '()
-                                            (lambda (r e) (setq result r error e)) nil))
+    (setq greger-tool (greger-tools-execute :tool-name "test-callback-cancel"
+                                            :args '()
+                                            :callback (lambda (r e) (setq result r error e))
+                                            :buffer nil))
 
     ;; Should get a greger-tool struct with a cancel function
     (should (greger-tool-p greger-tool))
