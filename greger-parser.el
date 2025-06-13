@@ -78,7 +78,13 @@
       ""
     (mapconcat #'greger-parser--message-to-markdown dialog "\n\n")))
 
-(defun greger-parser-find-safe-shell-commands-in-buffer (buffer)
+"Parse greger conversation BUFFER into structured dialog data.
+Uses tree-sitter to parse markdown conversations with special tags like
+'User:', 'Assistant:', tool calls, and citations."
+  "Extract safe shell commands from BUFFER for validation.
+Finds commands marked as safe for execution without user confirmation,
+used by the shell command security system."
+  (defun greger-parser-find-safe-shell-commands-in-buffer (buffer)
   (greger-parser-activate-tree-sitter)
 
   (with-current-buffer buffer
@@ -112,7 +118,10 @@
     raw-entries))
 
 
-(defun greger-parser--flush-assistant-content (content result)
+"Set up tree-sitter for greger grammar parsing.
+Adds grammar directory to load path and ensures the greger language
+grammar is available for parsing conversations."
+  (defun greger-parser--flush-assistant-content (content result)
   "Flush accumulated assistant CONTENT to RESULT list, returning updated result."
   (cons `((role . "assistant")
           (content . ,content))
@@ -253,14 +262,19 @@ You can run arbitrary shell commands with the shell-command tool, but the follow
          (value (greger-parser--extract-tool-content value-node)))
     `(,name . ,value)))
 
-(defun greger-parser--extract-tool-content (node)
+"Extract value field from tree-sitter NODE containing parameter data."
+  "Extract multiline content from tool NODE.
+Handles both simple string values and complex multiline content blocks
+used in tool function calls."
+  (defun greger-parser--extract-tool-content (node)
   (let* ((value-node (treesit-node-child-by-field-name node "value"))
          (value (treesit-node-text value-node t)))
 
     (greger-parser--convert-value value)))
 
 (defun greger-parser--convert-param-value (value)
-  "Convert VALUE to appropriate type (number if it looks like a number, otherwise string)."
+  "Convert VALUE to appropriate type for tool parameters.
+Recognizes numbers, booleans, JSON arrays/objects, and plain strings."
   (if (string-match "^[0-9]+$" value)
       (string-to-number value)
     value))
@@ -281,7 +295,10 @@ You can run arbitrary shell commands with the shell-command tool, but the follow
       (greger-parser--parse-json-object trimmed))
      (t (greger-parser--remove-single-leading-and-trailing-newline str)))))
 
-(defun greger-parser--parse-json-array (str)
+"Convert string VALUE to appropriate type for tool parameters.
+Recognizes numbers, booleans, JSON arrays/objects, and plain strings,
+ensuring tool calls receive properly typed arguments."
+  (defun greger-parser--parse-json-array (str)
   "Parse JSON array STR."
   (condition-case nil
       (json-read-from-string str)
@@ -353,7 +370,11 @@ You can run arbitrary shell commands with the shell-command tool, but the follow
   (let ((result (greger-parser--collect-text-blocks node "")))
     (greger-parser--remove-two-trailing-newlines result)))
 
-(defun greger-parser--remove-two-trailing-newlines (str)
+"Extract all citation entries from assistant message NODE.
+Parses structured citations that link AI responses to source materials
+for fact-checking and attribution."
+  "Remove exactly two trailing newlines from STR for markdown formatting."
+  (defun greger-parser--remove-two-trailing-newlines (str)
   "Remove exactly two newlines from the end of STRING if they exist."
   (replace-regexp-in-string "\n\n\\'" "" str))
 
@@ -380,7 +401,11 @@ You can run arbitrary shell commands with the shell-command tool, but the follow
           (setq text-result (greger-parser--collect-text-blocks child text-result)))
         text-result)))))
 
-(defun greger-parser--parse-json-or-plain-content (content)
+"Remove one leading and trailing newline from STR for clean formatting."
+  "Recursively collect text content from NODE into RESULT list.
+Traverses tree-sitter parse tree to extract all textual content while
+preserving structure and whitespace."
+  (defun greger-parser--parse-json-or-plain-content (content)
   "Parse CONTENT as JSON if it looks like JSON, otherwise return as plain text."
   (if (and (string-match-p "^\\s-*\\[\\|^\\s-*{" content)
            (condition-case nil
@@ -585,7 +610,10 @@ If SKIP-HEADER is true, don't add section headers for text blocks."
         (content (greger-parser--tool-content-to-markdown tool-result)))
     (greger-parser--wrapped-tool-content greger-parser-web-search-tool-result-tag id content)))
 
-(defun greger-parser--tool-content-to-markdown (block)
+"Wrap tool CONTENT with markdown TAG and ID for display.
+Formats tool results with proper headers and boundaries for visual
+separation in the conversation buffer."
+  (defun greger-parser--tool-content-to-markdown (block)
   (let ((content (alist-get 'content block)))
     (if (stringp content)
         content
