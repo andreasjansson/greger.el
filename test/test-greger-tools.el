@@ -581,9 +581,10 @@
   ;; Test with negative numbers
   (let ((result nil)
         (error nil))
-    (greger-tools-execute "test-number-parsing"
-                          '((count . "-5") (rate . "-2.5"))
-                          (lambda (r e) (setq result r error e)) nil)
+    (greger-tools-execute :tool-name "test-number-parsing"
+                          :args '((count . "-5") (rate . "-2.5"))
+                          :callback (lambda (r e) (setq result r error e))
+                          :buffer nil)
     (should (string= "count: -5 (type: integer), rate: -2.5 (type: float)" result))
     (should (null error)))
 
