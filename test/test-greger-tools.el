@@ -133,9 +133,10 @@
   (let ((result nil)
         (error nil))
     (greger-tools-execute :tool-name "test-optional"
-                          '((required-param . "test")
-                            (optional-param1 . "provided1"))
-                          (lambda (r e) (setq result r error e)) nil)
+                          :args '((required-param . "test")
+                                  (optional-param1 . "provided1"))
+                          :callback (lambda (r e) (setq result r error e)) 
+                          :buffer nil)
     (should (string= "required: test, opt1: provided1, opt2: default2" result))
     (should (null error)))
 
