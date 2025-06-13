@@ -495,6 +495,7 @@ first two."
         (greger--update-buffer-state)))))
 
 (defun greger--content-block-supports-streaming (content-block)
+  "Return non-nil if CONTENT-BLOCK supports streaming output."
   (let ((type (alist-get 'type content-block))
         (citations (alist-get 'citations content-block)))
     (and (or (string= type "text") (string= type "thinking"))
