@@ -33,8 +33,10 @@
 
 ;; Helper function to read markdown content from corpus .txt files
 (defun greger-read-corpus-file (name)
-  "Read markdown content from a .txt corpus file, extracting only the input portion."
-  (greger-test-setup-grammar-repo)
+  "Read markdown content from a .txt corpus file, extracting only the input portion.
+This function requires the grammar repository to be set up first."
+  (unless greger-test-grammar-repo-path
+    (error "Grammar repository not set up. Call greger-test-setup-grammar-repo first"))
   (let ((file-path (expand-file-name (format "test/corpus/%s.txt" name) greger-test-grammar-repo-path)))
     (if (file-exists-p file-path)
         (with-temp-buffer
