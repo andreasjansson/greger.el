@@ -67,9 +67,11 @@
          (undo-handle (prepare-change-group output-buffer))
          (request-spec (greger-client--build-request model dialog tools server-tools))
          (restore-callback (lambda (state)
-                             (with-current-buffer (greger-client-state-output-buffer state)
-                               (undo-amalgamate-change-group (greger-client-state-undo-handle state))
-                               (accept-change-group (greger-client-state-undo-handle state)))))
+                             (let ((buffer (greger-client-state-output-buffer state)))
+                               (when (buffer-live-p buffer)
+                                 (with-current-buffer buffer
+                                   (undo-amalgamate-change-group (greger-client-state-undo-handle state))
+                                   (accept-change-group (greger-client-state-undo-handle state)))))))
 
          (process (greger-client--start-curl-process request-spec))
          (state (make-greger-client-state
