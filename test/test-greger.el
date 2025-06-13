@@ -541,7 +541,7 @@ Echo: hello world
                           :client-state mock-client-state)))
 
         ;; Set buffer-local agent state
-        (setq greger--current-agent-state agent-state)
+        (setq greger--current-state agent-state)
 
         ;; Mock functions
         (cl-letf (((symbol-function 'greger-client--cancel-request)
