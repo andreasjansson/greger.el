@@ -165,7 +165,7 @@ The raw JSON string will be displayed for the server tool definition."
 (defun greger-server-tools-get-all-schemas ()
   "Get all registered server tool schemas as JSON strings."
   (let ((tools '()))
-    (maphash (lambda (name def)
+    (maphash (lambda (_name def)
                (push (json-encode def) tools))
              greger-server-tools-registry)
     tools))
