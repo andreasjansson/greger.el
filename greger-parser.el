@@ -348,7 +348,7 @@ Recognizes numbers, booleans, JSON arrays/objects, and plain strings."
     (greger-parser--remove-two-trailing-newlines result)))
 
 (defun greger-parser--remove-two-trailing-newlines (str)
-  "Remove exactly two newlines from the end of STRING if they exist."
+  "Remove exactly two newlines from the end of STR if they exist."
   (replace-regexp-in-string "\n\n\\'" "" str))
 
 (defun greger-parser--remove-single-leading-and-trailing-newline (str)

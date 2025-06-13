@@ -339,6 +339,8 @@ Returns nil if no error found or if OUTPUT is not valid JSON."
               (append current-citations (list citation))))))))
 
 (defun greger-client--handle-content-block-stop (data state)
+  "Finalize the current block and send callbacks from STATE.
+DATA is the streaming entry for the stop content block."
   (let* ((index (alist-get 'index data))
          (blocks (greger-client-state-content-blocks state))
          (block (nth index blocks))
