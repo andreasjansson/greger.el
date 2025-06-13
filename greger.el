@@ -536,13 +536,15 @@ If TEXT ends with more than two consecutive newlines, remove all but the first t
       (setf (greger-state-executing-tools state) executing-tools-map))
 
     ;; Update buffer state to show we're executing tools
-    (with-current-buffer (greger-state-chat-buffer state)
-      (greger--update-buffer-state))
+    (let ((buffer (greger-state-chat-buffer state)))
+      (when (buffer-live-p buffer)
+        (with-current-buffer buffer
+          (greger--update-buffer-state))
 
-    ;; First, display the tool calls and reserve space for each tool's output
-    (with-current-buffer (greger-state-chat-buffer state)
-      (let ((inhibit-read-only t))
-        (goto-char (point-max))))
+        ;; First, display the tool calls and reserve space for each tool's output
+        (with-current-buffer buffer
+          (let ((inhibit-read-only t))
+            (goto-char (point-max))))))
 
     ;; Execute all tools in parallel
     (dolist (tool-call tool-calls)
