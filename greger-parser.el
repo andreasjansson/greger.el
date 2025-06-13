@@ -180,7 +180,7 @@ grammar is available for parsing conversations."
 
 (defun greger-parser--extract-safe-shell-commands (node)
   "Extract safe shell commands from NODE.
-Use tree walking approach instead of treesit-search-subtree to avoid
+Use tree walking approach instead of `treesit-search-subtree' to avoid
 segfaults when searching for safe_shell_commands nodes."
   (let ((safe-commands '()))
     (greger-parser--walk-tree
@@ -262,10 +262,8 @@ You can run arbitrary shell commands with the shell-command tool, but the follow
          (value (greger-parser--extract-tool-content value-node)))
     `(,name . ,value)))
 
-"Extract value field from tree-sitter NODE containing parameter data."
-  "Extract multiline content from tool NODE.
-Handles both simple string values and complex multiline content blocks
-used in tool function calls."
+"Extract the value field from a tree-sitter NODE containing parameter data."
+  "Parse a tool parameter NODE to extract name-value pairs for function calls."
   (defun greger-parser--extract-tool-content (node)
   (let* ((value-node (treesit-node-child-by-field-name node "value"))
          (value (treesit-node-text value-node t)))
@@ -402,9 +400,7 @@ for fact-checking and attribution."
         text-result)))))
 
 "Remove one leading and trailing newline from STR for clean formatting."
-  "Recursively collect text content from NODE into RESULT list.
-Traverses tree-sitter parse tree to extract all textual content while
-preserving structure and whitespace."
+  "Recursively collect text content from NODE into RESULT list."
   (defun greger-parser--parse-json-or-plain-content (content)
   "Parse CONTENT as JSON if it looks like JSON, otherwise return as plain text."
   (if (and (string-match-p "^\\s-*\\[\\|^\\s-*{" content)
@@ -578,9 +574,7 @@ If SKIP-HEADER is true, don't add section headers for text blocks."
             "ID: " id "\n\n"
             (greger-parser--tool-params-to-markdown id input))))
 
-"Convert citation BLOCK with text and citation entries to markdown.
-Formats the text content with embedded citation references and appends
-a citations section listing all sources."
+"Convert citation BLOCK with text and citation entries to markdown."
   (defun greger-parser--server-tool-use-to-markdown (tool-use)
   "Convert TOOL-USE to markdown."
   (let ((name (alist-get 'name tool-use))
@@ -616,6 +610,7 @@ a citations section listing all sources."
 "Wrap tool CONTENT with markdown TAG and ID for display.
 Formats tool results with proper headers and boundaries for visual
 separation in the conversation buffer."
+  "Convert tool content BLOCK to markdown format."
   (defun greger-parser--tool-content-to-markdown (block)
   (let ((content (alist-get 'content block)))
     (if (stringp content)
