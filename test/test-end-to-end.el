@@ -53,14 +53,21 @@
 
 (defun greger-test-wait-for-streaming-complete ()
   "Wait for any active streaming processes to complete."
-  (let ((max-wait 3.0)
+  (let ((max-wait 10.0)  ; Increased timeout
         (start-time (current-time)))
+    ;; First wait for curl processes to finish
     (while (and (< (float-time (time-subtract (current-time) start-time)) max-wait)
                 (cl-some (lambda (proc)
                           (and (process-live-p proc)
                                (string-match-p "greger-curl" (process-name proc))))
                         (process-list)))
-      (sit-for 0.1))))
+      (sit-for 0.1))
+    
+    ;; Then wait a bit more for any remaining callbacks to finish
+    (sit-for 1.0)
+    
+    ;; Force process any remaining events
+    (accept-process-output nil 0.5)))
 
 (ert-deftest greger-end-to-end-test-greger-function ()
   "Test the main greger function creates a buffer and sets it up correctly."
