@@ -577,7 +577,8 @@ If TEXT ends with more than two consecutive newlines, remove all but the first t
                                          :state state
                                          :completion-callback (lambda ()
                                                                 (setq completed-tools (1+ completed-tools))
-                                                                (when (= completed-tools total-tools)
+                                                                (when (and (= completed-tools total-tools)
+                                                                          (buffer-live-p (greger-state-chat-buffer state)))
                                                                   (greger--run-agent-loop state)))))
                             :buffer (greger-state-chat-buffer state)
                             :metadata (greger-state-tool-use-metadata state))))
