@@ -140,7 +140,7 @@ May order 4,000 pounds of meat."
 
 (defface greger-field-name-face
   '((t (:foreground "lightyellow")))
-  "Face for field names like 'Name:', 'ID:', etc."
+  "Face for field names like \='Name:\=', \='ID:\=', etc."
   :group 'greger)
 
 (defface greger-tool-param-name-face
