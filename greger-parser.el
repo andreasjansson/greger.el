@@ -259,6 +259,7 @@ You can run arbitrary shell commands with the shell-command tool, but the follow
       (string-trim (treesit-node-text child t)))))
 
 (defun greger-parser--extract-tool-param (node)
+  "Parse tool parameter NODE to extract name-value pair."
   (let* ((name-node (treesit-search-subtree node "name"))
          (name (intern (treesit-node-text name-node t)))
          (value-node (treesit-search-subtree node "value"))
