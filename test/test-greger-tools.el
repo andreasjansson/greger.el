@@ -194,10 +194,11 @@
   ;; Test with one default overridden
   (let ((result nil)
         (error nil))
-    (greger-tools-execute "test-defaults"
-                          '((message . "hello")
+    (greger-tools-execute :tool-name "test-defaults"
+                          :args '((message . "hello")
                             (count . 2))
-                          (lambda (r e) (setq result r error e)) nil)
+                          :callback (lambda (r e) (setq result r error e))
+                          :buffer nil)
     (should (string= ">>> hello (repeated 2 times)" result))
     (should (null error)))
 
