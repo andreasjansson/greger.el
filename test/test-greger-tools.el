@@ -337,10 +337,10 @@
     ;; Test tool with :pass-buffer t - should receive buffer
     (let ((result nil)
           (error nil))
-      (greger-tools-execute "test-with-buffer"
-                            '((message . "hello"))
-                            (lambda (r e) (setq result r error e))
-                            (current-buffer))
+      (greger-tools-execute :tool-name "test-with-buffer"
+                            :args '((message . "hello"))
+                            :callback (lambda (r e) (setq result r error e))
+                            :buffer (current-buffer))
       (should (string= "message: hello, buffer: *test-buffer*" result))
       (should (null error))))
 
