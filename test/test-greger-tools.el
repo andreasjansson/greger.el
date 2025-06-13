@@ -540,9 +540,10 @@
   ;; Test with already parsed booleans (should work fine)
   (let ((result nil)
         (error nil))
-    (greger-tools-execute "test-boolean-parsing"
-                          '((flag1 . t) (flag2 . nil))
-                          (lambda (r e) (setq result r error e)) nil)
+    (greger-tools-execute :tool-name "test-boolean-parsing"
+                          :args '((flag1 . t) (flag2 . nil))
+                          :callback (lambda (r e) (setq result r error e))
+                          :buffer nil)
     (should (string= "flag1: t, flag2: nil" result))
     (should (null error)))
 
