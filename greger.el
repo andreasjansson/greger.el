@@ -582,10 +582,12 @@ If TEXT ends with more than two consecutive newlines, remove all but the first t
 
 (defun greger--append-text (state text)
   "Append TEXT to the chat buffer in STATE."
-  (with-current-buffer (greger-state-chat-buffer state)
-    (let ((inhibit-read-only t))
-      (goto-char (point-max))
-      (insert text))))
+  (let ((buffer (greger-state-chat-buffer state)))
+    (when (buffer-live-p buffer)
+      (with-current-buffer buffer
+        (let ((inhibit-read-only t))
+          (goto-char (point-max))
+          (insert text))))))
 
 (cl-defun greger--handle-tool-completion (&key tool-id result error state completion-callback)
   "Handle completion of a tool execution by updating buffer and calling callback.
