@@ -490,9 +490,10 @@
   ;; Test with already parsed list (should work fine)
   (let ((result nil)
         (error nil))
-    (greger-tools-execute "test-array-parsing"
-                          '((items . ("apple" "banana")))
-                          (lambda (r e) (setq result r error e)) nil)
+    (greger-tools-execute :tool-name "test-array-parsing"
+                          :args '((items . ("apple" "banana")))
+                          :callback (lambda (r e) (setq result r error e))
+                          :buffer nil)
     (should (string= "received 2 items: apple, banana" result))
     (should (null error)))
 
