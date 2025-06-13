@@ -614,20 +614,22 @@ COMPLETION-CALLBACK is called when complete."
                         (content . ,result)))))
 
     ;; Update the buffer at the correct position
-    (with-current-buffer (greger-state-chat-buffer state)
-      (let ((inhibit-read-only t))
-        (save-excursion
-          (goto-char (point-max))
-          ;; Find and replace the placeholder
-          (when (search-backward (greger--tool-placeholder tool-id) nil t)
-            (replace-match "")
-            (let ((result-markdown (greger-parser--tool-result-to-markdown tool-result)))
-              (unless (string-empty-p result-markdown)
-                (insert result-markdown)))))))
+    (let ((buffer (greger-state-chat-buffer state)))
+      (when (buffer-live-p buffer)
+        (with-current-buffer buffer
+          (let ((inhibit-read-only t))
+            (save-excursion
+              (goto-char (point-max))
+              ;; Find and replace the placeholder
+              (when (search-backward (greger--tool-placeholder tool-id) nil t)
+                (replace-match "")
+                (let ((result-markdown (greger-parser--tool-result-to-markdown tool-result)))
+                  (unless (string-empty-p result-markdown)
+                    (insert result-markdown)))))))
 
-    ;; Update buffer state after tool completion
-    (with-current-buffer (greger-state-chat-buffer state)
-      (greger--update-buffer-state))
+        ;; Update buffer state after tool completion
+        (with-current-buffer buffer
+          (greger--update-buffer-state))))
 
     ;; Call completion callback
     (funcall completion-callback)))
