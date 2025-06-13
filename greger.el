@@ -308,33 +308,35 @@
   (interactive)
 
   (let* ((buffer (current-buffer))
-         (state (buffer-local-value 'greger--current-state buffer)))
-    (cond
-     ;; If there's an active client state, cancel the streaming request
-     ((and state (greger-state-client-state state))
-      (greger-client--cancel-request (greger-state-client-state state))
-      (setf (greger-state-client-state state) nil)
-      (greger--update-buffer-state)
-      'generating)
-     ;; If there are executing tools, cancel them
-     ((and state
-           (greger-state-executing-tools state)
-           (> (hash-table-count (greger-state-executing-tools state)) 0))
-      (let ((executing-tools (greger-state-executing-tools state)))
-        (maphash (lambda (_tool-id greger-tool)
-                   (let ((cancel-fn (greger-tool-cancel-fn greger-tool)))
-                     (when (functionp cancel-fn)
-                       (funcall cancel-fn))))
-                 executing-tools)
-        (greger--update-buffer-state))
-      'executing)
-     ;; Default case: call keyboard-quit
-     (t
-      (keyboard-quit)
-      'idle)))
+         (state (buffer-local-value 'greger--current-state buffer))
+         (result (cond
+                  ;; If there's an active client state, cancel the streaming request
+                  ((and state (greger-state-client-state state))
+                   (greger-client--cancel-request (greger-state-client-state state))
+                   (setf (greger-state-client-state state) nil)
+                   (greger--update-buffer-state)
+                   'generating)
+                  ;; If there are executing tools, cancel them
+                  ((and state
+                        (greger-state-executing-tools state)
+                        (> (hash-table-count (greger-state-executing-tools state)) 0))
+                   (let ((executing-tools (greger-state-executing-tools state)))
+                     (maphash (lambda (_tool-id greger-tool)
+                                (let ((cancel-fn (greger-tool-cancel-fn greger-tool)))
+                                  (when (functionp cancel-fn)
+                                    (funcall cancel-fn))))
+                              executing-tools)
+                     (greger--update-buffer-state))
+                   'executing)
+                  ;; Default case: call keyboard-quit
+                  (t
+                   (keyboard-quit)
+                   'idle))))
 
-  ;; to not get stuck in read only
-  (greger--set-buffer-read-only nil))
+    ;; to not get stuck in read only
+    (greger--set-buffer-read-only nil)
+    
+    result))
 
 (defun greger-set-model ()
   "Set the current model."
