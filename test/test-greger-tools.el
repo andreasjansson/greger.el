@@ -84,10 +84,11 @@
   ;; Test execution with underscore parameters
   (let ((result nil)
         (error nil))
-    (greger-tools-execute "test-hyphens"
-                          '((file-path . "/path/to/file")
-                            (commit-message . "test commit"))
-                          (lambda (r e) (setq result r error e)) nil)
+    (greger-tools-execute :tool-name "test-hyphens"
+                          :args '((file-path . "/path/to/file")
+                                  (commit-message . "test commit"))
+                          :callback (lambda (r e) (setq result r error e)) 
+                          :buffer nil)
     (should (string= "file: /path/to/file, message: test commit" result))
     (should (null error)))
 
