@@ -382,10 +382,10 @@
   ;; Test normal tool - greger-tools-execute calls callback with result
   (let ((result nil)
         (error nil))
-    (greger-tools-execute "test-normal-callback"
-                          '((message . "hello"))
-                          (lambda (r e) (setq result r error e))
-                          nil)
+    (greger-tools-execute :tool-name "test-normal-callback"
+                          :args '((message . "hello"))
+                          :callback (lambda (r e) (setq result r error e))
+                          :buffer nil)
     (should (string= "result: hello" result))
     (should (null error)))
 
