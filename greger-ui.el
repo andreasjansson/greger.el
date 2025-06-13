@@ -159,7 +159,7 @@ START and END are the region bounds."
 
 ;; Links
 
-(defun greger-ui--url-link-fn (node override start end)
+(defun greger-ui--url-link-fn (node _override _start _end)
   (let* ((node-start (treesit-node-start node))
          (node-end (treesit-node-end node))
          (url-start (+ node-start 3)))
