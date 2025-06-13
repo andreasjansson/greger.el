@@ -34,6 +34,7 @@
 
 (require 'cl-lib)
 (require 'json)
+(require 'treesit)
 
 (require 'greger-client)
 (require 'greger-parser)
@@ -252,24 +253,22 @@
 (define-derived-mode greger-mode prog-mode "Greger"
   "Major mode for editing Greger files with tree-sitter support."
   ;; Try to use tree-sitter if available
-  (when (and (fboundp 'treesit-ready-p)
-             (ignore-errors 
-               (greger-parser-activate-tree-sitter)
-               (treesit-ready-p 'greger)))
-    (treesit-parser-create 'greger)
-    (setq-local treesit-font-lock-settings greger--treesit-font-lock-settings)
-    (setq-local treesit-font-lock-feature-list
-                '((error)
-                  (headers folding tool-folding fields)
-                  (tool-tags comments)
-                  (subheadings)))
-    (setq-local treesit-simple-indent-rules greger--treesit-indent-rules)
-    
-    ;; Disabled because this crashes Emacs.
-    ;; Reproduce: At beginning of buffer, run (treesit-search-forward-goto (treesit-node-at (point)) "" t t t)
-    ;; (setq-local treesit-defun-type-regexp (rx line-start (or "user" "assistant") line-end))
-    
-    (treesit-major-mode-setup))
+  (greger-parser-activate-tree-sitter)
+  (treesit-ready-p 'greger)
+  (treesit-parser-create 'greger)
+  (setq-local treesit-font-lock-settings greger--treesit-font-lock-settings)
+  (setq-local treesit-font-lock-feature-list
+              '((error)
+                (headers folding tool-folding fields)
+                (tool-tags comments)
+                (subheadings)))
+  (setq-local treesit-simple-indent-rules greger--treesit-indent-rules)
+  
+  ;; Disabled because this crashes Emacs.
+  ;; Reproduce: At beginning of buffer, run (treesit-search-forward-goto (treesit-node-at (point)) "" t t t)
+  ;; (setq-local treesit-defun-type-regexp (rx line-start (or "user" "assistant") line-end))
+  
+  (treesit-major-mode-setup)
 
   (setq-local mode-line-misc-info '(:eval (greger--mode-line-info)))
   (use-local-map greger-mode-map))

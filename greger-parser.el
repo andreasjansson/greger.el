@@ -78,15 +78,21 @@
     (mapconcat #'greger-parser--message-to-markdown dialog "\n\n")))
 
 (defun greger-parser-find-safe-shell-commands-in-buffer (buffer)
-  (greger-parser-activate-tree-sitter)
+  (when nil
+   (greger-parser-activate-tree-sitter)
 
-  (with-current-buffer buffer
-    (let* ((parser (treesit-parser-create 'greger))
-           (root-node (treesit-parser-root-node parser)))
-      (greger-parser--extract-safe-shell-commands root-node))))
+   (with-current-buffer buffer
+     (let* ((parser (treesit-parser-create 'greger))
+            (root-node (treesit-parser-root-node parser)))
+       (greger-parser--extract-safe-shell-commands root-node)))))
 
 (defun greger-parser-activate-tree-sitter ()
-  (let ((grammar-dir (file-name-concat load-file-name "grammar")))
+  (let (
+        (grammar-dir "/Users/andreas/projects/greger.el/grammar")
+        ;;(grammar-dir (file-name-concat load-file-name "grammar")) ;; TODO!
+        )
+    ;; TODO: remove debug
+    (message (format "grammar-dir: %s" grammar-dir))
     (add-to-list 'treesit-extra-load-path grammar-dir))
   (unless (treesit-ready-p 'greger)
     (error "Tree-sitter for Greger isn't available")))
