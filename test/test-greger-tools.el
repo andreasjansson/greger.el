@@ -629,13 +629,14 @@
   ;; Test with mixed JSON strings and parsed values
   (let ((result nil)
         (error nil))
-    (greger-tools-execute "test-mixed-parsing"
-                          '((name . "test")
+    (greger-tools-execute :tool-name "test-mixed-parsing"
+                          :args '((name . "test")
                             (items . "[\"a\", \"b\", \"c\"]")
                             (count . "5")
                             (enabled . "true")
                             (rate . "2.5"))
-                          (lambda (r e) (setq result r error e)) nil)
+                          :callback (lambda (r e) (setq result r error e))
+                          :buffer nil)
     (should (string= "name: test, items: 3, count: 5, enabled: t, rate: 2.5" result))
     (should (null error)))
 
