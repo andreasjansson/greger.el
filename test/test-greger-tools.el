@@ -706,9 +706,10 @@
   ;; Test with invalid JSON - should return original string
   (let ((result nil)
         (error nil))
-    (greger-tools-execute "test-fallback"
-                          '((items . "[invalid json"))
-                          (lambda (r e) (setq result r error e)) nil)
+    (greger-tools-execute :tool-name "test-fallback"
+                          :args '((items . "[invalid json"))
+                          :callback (lambda (r e) (setq result r error e))
+                          :buffer nil)
     (should (string= "received: [invalid json (type: string)" result))
     (should (null error)))
 
