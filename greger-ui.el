@@ -108,7 +108,6 @@ START and END are the region bounds."
   (let* ((node-start (treesit-node-start node))
          (node-end (treesit-node-end node))
          (parent (treesit-node-parent node)))
-    
     (when parent
       ;; Find the corresponding tail safely
       (let ((tail-node (treesit-search-subtree parent "^tool_content_tail$" nil nil 1)))
