@@ -538,15 +538,7 @@ If TEXT ends with more than two consecutive newlines, remove all but the first t
     ;; First, display the tool calls and reserve space for each tool's output
     (with-current-buffer (greger-state-chat-buffer state)
       (let ((inhibit-read-only t))
-        (goto-char (point-max))
-        
-        ;; Display each tool call followed by its placeholder
-        (dolist (tool-call tool-calls)
-          (let ((tool-id (alist-get 'id tool-call))
-                (tool-block-markdown (greger-parser--block-to-markdown tool-call)))
-            (unless (string-empty-p tool-block-markdown)
-              (greger--append-text state (concat "\n\n" tool-block-markdown)))
-            (greger--append-text state (concat "\n\n" (greger--tool-placeholder tool-id)))))))
+        (goto-char (point-max))))
 
     ;; Execute all tools in parallel
     (dolist (tool-call tool-calls)
