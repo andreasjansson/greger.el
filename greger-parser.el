@@ -194,7 +194,7 @@ grammar is available for parsing conversations."
     (nreverse safe-commands)))
 
 (defun greger-parser--walk-tree (node callback)
-  "Walk TREE calling CALLBACK on each node."
+  "Walk NODE tree calling CALLBACK on each node."
   (funcall callback node)
   (dolist (child (treesit-node-children node))
     (greger-parser--walk-tree child callback)))
@@ -578,7 +578,10 @@ If SKIP-HEADER is true, don't add section headers for text blocks."
             "ID: " id "\n\n"
             (greger-parser--tool-params-to-markdown id input))))
 
-(defun greger-parser--server-tool-use-to-markdown (tool-use)
+"Convert citation BLOCK with text and citation entries to markdown.
+Formats the text content with embedded citation references and appends
+a citations section listing all sources."
+  (defun greger-parser--server-tool-use-to-markdown (tool-use)
   "Convert TOOL-USE to markdown."
   (let ((name (alist-get 'name tool-use))
         (id (alist-get 'id tool-use))
