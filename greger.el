@@ -502,6 +502,7 @@ first two."
          (not citations))))
 
 (defun greger--append-nonstreaming-content-block (state type content-block)
+  "Append non-streaming CONTENT-BLOCK of TYPE to STATE."
   (unless (greger--content-block-supports-streaming content-block)
    (let ((markdown (greger-parser--block-to-markdown content-block)))
      (greger--append-text
