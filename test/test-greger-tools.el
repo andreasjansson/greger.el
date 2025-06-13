@@ -327,10 +327,10 @@
     ;; Test tool without :pass-buffer - should not receive buffer
     (let ((result nil)
           (error nil))
-      (greger-tools-execute "test-no-buffer"
-                            '((message . "hello"))
-                            (lambda (r e) (setq result r error e))
-                            (current-buffer))
+      (greger-tools-execute :tool-name "test-no-buffer"
+                            :args '((message . "hello"))
+                            :callback (lambda (r e) (setq result r error e))
+                            :buffer (current-buffer))
       (should (string= "message: hello, buffer: none" result))
       (should (null error)))
 
