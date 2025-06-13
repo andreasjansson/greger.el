@@ -36,7 +36,6 @@
 ;; Register all tools using the macro
 (greger-register-server-tool "web_search"
     :type "web_search_20250305"
-    :name "web_search"
     :max_uses 5)
 
 (greger-register-tool "read-file"
