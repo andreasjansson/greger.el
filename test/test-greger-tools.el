@@ -906,6 +906,6 @@
     (should (cl-every #'stringp all-schemas)))
 
   ;; Clean up - remove test server tool from registry
-  (remhash 'test-web-search greger-server-tools-registry))
+  (remhash "test-web-search" greger-server-tools-registry))
 
 ;;; test-greger-tools.el ends here
