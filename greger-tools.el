@@ -320,6 +320,8 @@ Handles arrays, booleans, and numbers."
       (cond
        ((eq value :json-true) t)
        ((eq value :json-false) nil)
+       ((eq value t) t)        ; Handle regular Emacs Lisp t
+       ((eq value nil) nil)    ; Handle regular Emacs Lisp nil
        (t nil))) ; Return nil if not a recognized symbol
 
      ;; Parse number strings
