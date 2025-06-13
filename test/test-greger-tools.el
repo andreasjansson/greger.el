@@ -56,8 +56,10 @@
   "Test that executing unknown tools calls callback with error."
   (let ((result nil)
         (error nil))
-    (greger-tools-execute "nonexistent-tool" '((param . "value"))
-                          (lambda (r e) (setq result r error e)) nil)
+    (greger-tools-execute :tool-name "nonexistent-tool" 
+                          :args '((param . "value"))
+                          :callback (lambda (r e) (setq result r error e)) 
+                          :buffer nil)
     (should (null result))
     (should (stringp error))
     (should (string-match "Unknown tool" error))))
