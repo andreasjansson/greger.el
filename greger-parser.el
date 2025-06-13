@@ -183,7 +183,7 @@ grammar is available for parsing conversations."
   ;; by walking the tree manually instead of using treesit-search-subtree
   ;; because treesit-search subtree segfaults for some reason
   (let ((safe-commands '()))
-    (greger-parser--walk-tree 
+    (greger-parser--walk-tree
      node
      (lambda (n)
        (when (string= (treesit-node-type n) "safe_shell_commands")
