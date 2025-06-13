@@ -253,6 +253,7 @@ You can run arbitrary shell commands with the shell-command tool, but the follow
                    (input . ,params)))))))
 
 (defun greger-parser--extract-value (node)
+  "Extract the value field from tree-sitter NODE."
   (let ((child (treesit-node-child-by-field-name node "value")))
     (when child
       (string-trim (treesit-node-text child t)))))
@@ -264,8 +265,8 @@ You can run arbitrary shell commands with the shell-command tool, but the follow
          (value (greger-parser--extract-tool-content value-node)))
     `(,name . ,value)))
 
-"Extract the value field from a tree-sitter NODE containing parameter data."
-  "Parse a tool parameter NODE to extract name-value pairs for function calls."
+"Extract the value field from tree-sitter NODE."
+  "Parse tool parameter NODE to extract name-value pair."
   (defun greger-parser--extract-tool-content (node)
   (let* ((value-node (treesit-node-child-by-field-name node "value"))
          (value (treesit-node-text value-node t)))
@@ -370,9 +371,7 @@ ensuring tool calls receive properly typed arguments."
   (let ((result (greger-parser--collect-text-blocks node "")))
     (greger-parser--remove-two-trailing-newlines result)))
 
-"Extract all citation entries from assistant message NODE.
-Parses structured citations that link AI responses to source materials
-for fact-checking and attribution."
+"Extract all citation entries from NODE."
   "Remove exactly two trailing newlines from STR for markdown formatting."
   (defun greger-parser--remove-two-trailing-newlines (str)
   "Remove exactly two newlines from the end of STRING if they exist."
@@ -401,7 +400,7 @@ for fact-checking and attribution."
           (setq text-result (greger-parser--collect-text-blocks child text-result)))
         text-result)))))
 
-"Remove one leading and trailing newline from STR for clean formatting."
+"Remove one leading and trailing newline from STR."
   "Recursively collect text content from NODE into RESULT list."
   (defun greger-parser--parse-json-or-plain-content (content)
   "Parse CONTENT as JSON if it looks like JSON, otherwise return as plain text."
@@ -576,7 +575,7 @@ If SKIP-HEADER is true, don't add section headers for text blocks."
             "ID: " id "\n\n"
             (greger-parser--tool-params-to-markdown id input))))
 
-"Convert citation BLOCK with text and citation entries to markdown."
+"Convert citation BLOCK to markdown with embedded citations."
   (defun greger-parser--server-tool-use-to-markdown (tool-use)
   "Convert TOOL-USE to markdown."
   (let ((name (alist-get 'name tool-use))
@@ -609,9 +608,7 @@ If SKIP-HEADER is true, don't add section headers for text blocks."
         (content (greger-parser--tool-content-to-markdown tool-result)))
     (greger-parser--wrapped-tool-content greger-parser-web-search-tool-result-tag id content)))
 
-"Wrap tool CONTENT with markdown TAG and ID for display.
-Formats tool results with proper headers and boundaries for visual
-separation in the conversation buffer."
+"Wrap CONTENT with TAG and ID for tool display formatting."
   "Convert tool content BLOCK to markdown format."
   (defun greger-parser--tool-content-to-markdown (block)
   (let ((content (alist-get 'content block)))
