@@ -44,7 +44,7 @@
                           :current-iteration 0
                           :chat-buffer (current-buffer)
                           :directory default-directory
-                          :tool-use-metadata nil))
+                          :tool-use-metadata '(:safe-shell-commands () :allow-all-shell-commands nil)))
             (tool-calls `(((type . "tool_use")
                           (id . "test_001")
                           (name . "test-simple")
