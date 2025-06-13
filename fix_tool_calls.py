@@ -2,20 +2,11 @@
 import re
 
 def fix_tool_calls(content):
-    # Pattern to match greger-tools-execute calls with old format
-    # greger-tools-execute "tool-name" args callback buffer
-    pattern = r'greger-tools-execute\s+"([^"]+)"\s+([^,\s]+)\s+(lambda[^)]+\)\s*[^,\s]*)\s+([^)]+)\)'
+    """Fix greger-tools-execute calls to use keyword arguments"""
     
-    def replace_func(match):
-        tool_name = match.group(1)
-        args = match.group(2)
-        callback = match.group(3)  
-        buffer = match.group(4)
-        
-        return f'greger-tools-execute :tool-name "{tool_name}" :args {args} :callback {callback} :buffer {buffer})'
-    
-    # Try simpler pattern first
-    simple_pattern = r'greger-tools-execute\s+"([^"]+)"\s+'
+    # Pattern to match the old format
+    # greger-tools-execute :tool-name "tool-name" <args> <callback> <buffer>
+    pattern = r'(\s*)\(greger-tools-execute\s+:tool-name\s+"([^"]+)"\s+'
     
     lines = content.split('\n')
     result_lines = []
@@ -24,47 +15,80 @@ def fix_tool_calls(content):
     while i < len(lines):
         line = lines[i]
         
-        # Look for lines that start greger-tools-execute calls
-        if 'greger-tools-execute "' in line and ':tool-name' not in line:
-            # This is a multi-line call, collect all lines until we find the closing paren
-            call_lines = [line]
-            paren_count = line.count('(') - line.count(')')
-            j = i + 1
+        # Look for lines that contain greger-tools-execute calls that need fixing
+        if 'greger-tools-execute :tool-name "' in line and ':args' not in line:
+            # This is a call that needs fixing
+            # Find the full call (may span multiple lines)
+            call_lines = []
+            paren_depth = 0
+            j = i
             
-            while j < len(lines) and paren_count > 0:
-                next_line = lines[j]
-                call_lines.append(next_line)
-                paren_count += next_line.count('(') - next_line.count(')')
+            # Collect all lines of the call
+            while j < len(lines):
+                current_line = lines[j]
+                call_lines.append(current_line)
+                
+                # Count parentheses to find the end of the call
+                paren_depth += current_line.count('(') - current_line.count(')')
+                
+                # If we've closed all parentheses, we're done
+                if paren_depth <= 0:
+                    break
                 j += 1
             
-            # Now we have the full call, parse it
+            # Now parse the full call
             full_call = '\n'.join(call_lines)
             
-            # Extract the tool name
-            tool_match = re.search(r'greger-tools-execute\s+"([^"]+)"', full_call)
-            if tool_match:
-                tool_name = tool_match.group(1)
+            # Extract components using regex
+            match = re.search(r'greger-tools-execute\s+:tool-name\s+"([^"]+)"\s+', full_call)
+            if match:
+                tool_name = match.group(1)
                 
-                # Replace the first line with the new format
-                new_first_line = re.sub(
-                    r'greger-tools-execute\s+"[^"]+"',
-                    f'greger-tools-execute :tool-name "{tool_name}"',
-                    call_lines[0]
-                )
+                # Find the parts after the tool name
+                after_tool_name = full_call[match.end():]
                 
-                # Add :args, :callback, :buffer keywords to appropriate lines
-                if len(call_lines) >= 2:
-                    call_lines[1] = re.sub(r'(\s*)([^)]+)(\s*)', r'\1:args \2\3', call_lines[1])
-                if len(call_lines) >= 3:
-                    call_lines[2] = re.sub(r'(\s*)(.+)', r'\1:callback \2', call_lines[2])
-                if len(call_lines) >= 4:
-                    call_lines[3] = re.sub(r'(\s*)([^)]+)(\s*)', r'\1:buffer \2\3', call_lines[3])
+                # Try to parse the arguments
+                # The pattern is: args callback buffer
+                # We need to be careful about nested structures
                 
-                result_lines.extend([new_first_line] + call_lines[1:])
-                i = j
+                # For now, let's do a simple approach:
+                # Replace the call with a template and fill in the parts
+                
+                # Get the indentation
+                indent_match = re.match(r'(\s*)', call_lines[0])
+                indent = indent_match.group(1) if indent_match else ''
+                
+                # Create the new call format
+                new_call = f'{indent}(greger-tools-execute :tool-name "{tool_name}"\n'
+                new_call += f'{indent}                      :args ARGS_PLACEHOLDER\n'
+                new_call += f'{indent}                      :callback CALLBACK_PLACEHOLDER\n'
+                new_call += f'{indent}                      :buffer BUFFER_PLACEHOLDER)'
+                
+                # Try to extract the actual arguments
+                # This is tricky because of nested structures
+                # For now, let's manually handle the most common patterns
+                
+                # Pattern 1: simple args on same line
+                simple_pattern = r'greger-tools-execute\s+:tool-name\s+"[^"]+"\s+([^)]+)\s+(\([^)]+\))\s+([^)]+)\)'
+                simple_match = re.search(simple_pattern, full_call)
+                
+                if simple_match:
+                    args = simple_match.group(1).strip()
+                    callback = simple_match.group(2).strip()
+                    buffer = simple_match.group(3).strip()
+                    
+                    new_call = f'{indent}(greger-tools-execute :tool-name "{tool_name}"\n'
+                    new_call += f'{indent}                      :args {args}\n'
+                    new_call += f'{indent}                      :callback {callback}\n'
+                    new_call += f'{indent}                      :buffer {buffer})'
+                
+                # Add the new call lines
+                result_lines.extend(new_call.split('\n'))
+                i = j + 1
             else:
-                result_lines.append(line)
-                i += 1
+                # Couldn't parse, keep original
+                result_lines.extend(call_lines)
+                i = j + 1
         else:
             result_lines.append(line)
             i += 1
