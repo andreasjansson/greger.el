@@ -140,7 +140,7 @@ The raw JSON string will be displayed for the server tool definition."
                   (if (symbolp name)
                       (symbol-name name)
                     name))
-                (nreverse ',tool-def) 
+                (reverse ',tool-def) 
                 greger-server-tools-registry))))
 
 (defun greger-tools-get-schemas (tool-names)
