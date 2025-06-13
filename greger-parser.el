@@ -530,7 +530,7 @@ preserving structure and whitespace."
             "Encrypted index: " encrypted-index)))
 
 (defun greger-parser--block-to-markdown (block &optional skip-header)
-  "Convert a content block to markdown.
+  "Convert a content BLOCK to markdown.
 If SKIP-HEADER is true, don't add section headers for text blocks."
   (let ((type (alist-get 'type block)))
     (cond
