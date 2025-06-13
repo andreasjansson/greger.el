@@ -121,7 +121,6 @@ START and END are the region bounds."
             (put-text-property node-start node-end 'greger-ui-tool-tail-start tail-start)
             (put-text-property node-start node-end 'greger-ui-tool-tail-end tail-end)
             (put-text-property node-start node-end 'keymap greger-ui-tool-content-head-keymap)
-            
             ;; Clean up old overlays first
             (let ((old-overlay (get-text-property node-start 'greger-ui-fold-overlay)))
               (when (and old-overlay (overlayp old-overlay))
