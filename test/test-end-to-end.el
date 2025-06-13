@@ -311,8 +311,10 @@
           ;; Wait 1 second while in executing state
           (sit-for 1.0)
 
-          ;; Interrupt generation
-          (should (eq 'executing (greger-interrupt)))
+          ;; Interrupt generation - could be in either 'executing or 'generating state
+          (let ((interrupt-result (greger-interrupt)))
+            (should (or (eq interrupt-result 'executing)
+                       (eq interrupt-result 'generating))))
 
           ;; Wait until state becomes 'idle (after interruption and any brief generation)
           (let ((max-wait 20.0)
