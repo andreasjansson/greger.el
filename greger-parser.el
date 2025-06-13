@@ -66,6 +66,7 @@
         (greger-parser-markdown-buffer-to-dialog (current-buffer))))))
 
 (defun greger-parser-markdown-buffer-to-dialog (buffer)
+  (greger-parser-activate-tree-sitter)
   (with-current-buffer buffer
     (let* ((parser (treesit-parser-create 'greger))
            (root-node (treesit-parser-root-node parser)))
