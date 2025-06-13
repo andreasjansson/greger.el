@@ -468,7 +468,7 @@ first two."
 
 (defun greger--append-streaming-content-header (state content-block)
   (let ((type (alist-get 'type content-block))
-        (has-citations (not (null (assq 'citations content-block)))))
+        (has-citations (assq 'citations content-block)))
    (cond
     ((and (string= type "text") (not has-citations))
      (greger--append-text state (concat "\n\n" greger-parser-assistant-tag "\n\n")))
