@@ -79,13 +79,10 @@
       ""
     (mapconcat #'greger-parser--message-to-markdown dialog "\n\n")))
 
-"Parse greger conversation BUFFER into structured dialog data.
-Uses tree-sitter to parse markdown conversations with special tags like
-'User:', 'Assistant:', tool calls, and citations."
+(defun greger-parser-find-safe-shell-commands-in-buffer (buffer)
   "Extract safe shell commands from BUFFER for validation.
 Finds commands marked as safe for execution without user confirmation,
 used by the shell command security system."
-  (defun greger-parser-find-safe-shell-commands-in-buffer (buffer)
   (greger-parser-activate-tree-sitter)
 
   (with-current-buffer buffer
@@ -119,11 +116,7 @@ used by the shell command security system."
 
     raw-entries))
 
-
-"Set up tree-sitter for greger grammar parsing.
-Adds grammar directory to load path and ensures the greger language
-grammar is available for parsing conversations."
-  (defun greger-parser--flush-assistant-content (content result)
+(defun greger-parser--flush-assistant-content (content result)
   "Flush accumulated assistant CONTENT to RESULT list, returning updated result."
   (cons `((role . "assistant")
           (content . ,content))
@@ -266,9 +259,8 @@ You can run arbitrary shell commands with the shell-command tool, but the follow
          (value (greger-parser--extract-tool-content value-node)))
     `(,name . ,value)))
 
-"Extract the value field from tree-sitter NODE."
-  "Parse tool parameter NODE to extract name-value pair."
-  (defun greger-parser--extract-tool-content (node)
+(defun greger-parser--extract-tool-content (node)
+  "Extract the value field from tree-sitter NODE."
   (let* ((value-node (treesit-node-child-by-field-name node "value"))
          (value (treesit-node-text value-node t)))
 
@@ -297,10 +289,7 @@ Recognizes numbers, booleans, JSON arrays/objects, and plain strings."
       (greger-parser--parse-json-object trimmed))
      (t (greger-parser--remove-single-leading-and-trailing-newline str)))))
 
-"Convert string VALUE to appropriate type for tool parameters.
-Recognizes numbers, booleans, JSON arrays/objects, and plain strings,
-ensuring tool calls receive properly typed arguments."
-  (defun greger-parser--parse-json-array (str)
+(defun greger-parser--parse-json-array (str)
   "Parse JSON array STR."
   (condition-case nil
       (json-read-from-string str)
@@ -373,9 +362,7 @@ ensuring tool calls receive properly typed arguments."
   (let ((result (greger-parser--collect-text-blocks node "")))
     (greger-parser--remove-two-trailing-newlines result)))
 
-"Extract all citation entries from NODE."
-  "Remove exactly two trailing newlines from STR for markdown formatting."
-  (defun greger-parser--remove-two-trailing-newlines (str)
+(defun greger-parser--remove-two-trailing-newlines (str)
   "Remove exactly two newlines from the end of STRING if they exist."
   (replace-regexp-in-string "\n\n\\'" "" str))
 
@@ -403,9 +390,7 @@ ensuring tool calls receive properly typed arguments."
           (setq text-result (greger-parser--collect-text-blocks child text-result)))
         text-result)))))
 
-"Remove one leading and trailing newline from STR."
-  "Recursively collect text content from NODE into RESULT list."
-  (defun greger-parser--parse-json-or-plain-content (content)
+(defun greger-parser--parse-json-or-plain-content (content)
   "Parse CONTENT as JSON if it looks like JSON, otherwise return as plain text."
   (if (and (string-match-p "^\\s-*\\[\\|^\\s-*{" content)
            (condition-case nil
@@ -426,9 +411,9 @@ ensuring tool calls receive properly typed arguments."
          ((string= child-type "url")
           (setq url (string-trim (substring (treesit-node-text child t) 3))))
          ((string= child-type "title")
-          (setq title (greger-parser--extract-value child)))
+          (setq title (or (greger-parser--extract-value child) "(no value)")))
          ((string= child-type "cited_text")
-          (setq cited-text (greger-parser--extract-value child)))
+          (setq cited-text (or (greger-parser--extract-value child) "(no value)")))
          ((string= child-type "encrypted_index")
           (setq encrypted-index (greger-parser--extract-value child))))))
     `((type . "web_search_result_location")
@@ -579,8 +564,7 @@ If SKIP-HEADER is true, don't add section headers for text blocks."
             "ID: " id "\n\n"
             (greger-parser--tool-params-to-markdown id input))))
 
-"Convert citation BLOCK to markdown with embedded citations."
-  (defun greger-parser--server-tool-use-to-markdown (tool-use)
+(defun greger-parser--server-tool-use-to-markdown (tool-use)
   "Convert TOOL-USE to markdown."
   (let ((name (alist-get 'name tool-use))
         (id (alist-get 'id tool-use))
@@ -613,9 +597,8 @@ If SKIP-HEADER is true, don't add section headers for text blocks."
         (content (greger-parser--tool-content-to-markdown tool-result)))
     (greger-parser--wrapped-tool-content greger-parser-web-search-tool-result-tag id content)))
 
-"Wrap CONTENT with TAG and ID for tool display formatting."
+(defun greger-parser--tool-content-to-markdown (block)
   "Convert tool content BLOCK to markdown format."
-  (defun greger-parser--tool-content-to-markdown (block)
   (let ((content (alist-get 'content block)))
     (if (stringp content)
         content

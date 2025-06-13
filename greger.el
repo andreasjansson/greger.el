@@ -72,7 +72,7 @@ May order 4,000 pounds of meat."
 
 ;; Tool configuration and agent functionality
 
-(defcustom greger-tools '("read-file" "list-directory" "str-replace" "insert" "write-new-file" "replace-file" "make-directory" "rename-file" "ripgrep" "git-log" "git-show-commit" "shell-command" "read-webpage" "delete-files" "batch-update-docstrings")
+(defcustom greger-tools '("read-file" "list-directory" "str-replace" "insert" "write-new-file" "replace-file" "make-directory" "rename-file" "ripgrep" "git-log" "git-show-commit" "shell-command" "read-webpage" "delete-files")
   "List of tools available to the agent."
   :type '(repeat symbol)
   :group 'greger)
@@ -355,13 +355,13 @@ May order 4,000 pounds of meat."
          (server-tools (when greger-server-tools
                           (greger-server-tools-get-schemas greger-server-tools)))
          (model greger-model)
-         (request-data (greger-client--build-data model dialog tools server-tools)))
+         (request-data (greger-client--build-data model dialog tools server-tools))
+         (parsed-json (json-read-from-string request-data)))
 
-    (let* ((parsed-json (json-read-from-string request-data)))
-      (with-temp-file filename
-        (let ((json-encoding-pretty-print t))
-          (insert (json-encode parsed-json))))
-      (message "Request data saved to %s" filename))))
+    (with-temp-file filename
+      (let ((json-encoding-pretty-print t))
+        (insert (json-encode parsed-json))))
+    (message "Request data saved to %s" filename)))
 
 (defun greger-buffer ()
   "Send buffer content to AI as an agent dialog with tool support."
@@ -494,14 +494,10 @@ first two."
       (with-current-buffer buffer
         (greger--update-buffer-state)))))
 
-"Add section headers like 'Assistant:' or 'Thinking:' before streaming CONTENT-BLOCK.
-Analyzes the block type and citation status to determine the appropriate
-header format for STATE buffer."
+(defun greger--content-block-supports-streaming (content-block)
   "Check if CONTENT-BLOCK can be streamed incrementally.
 Returns non-nil for text and thinking blocks without citations, which can
 be displayed as they arrive rather than waiting for completion."
-  (defun greger--content-block-supports-streaming (content-block)
-  "Return non-nil if CONTENT-BLOCK supports streaming output."
   (let ((type (alist-get 'type content-block))
         (citations (alist-get 'citations content-block)))
     (and (or (string= type "text") (string= type "thinking"))
@@ -531,10 +527,7 @@ be displayed as they arrive rather than waiting for completion."
         (push block tool-calls)))
     (reverse tool-calls)))
 
-"Add complete CONTENT-BLOCK that cannot be streamed to STATE buffer.
-Used for tool calls, citations, and other structured content that must
-be displayed atomically rather than incrementally."
-  (defun greger--tool-placeholder (tool-id)
+(defun greger--tool-placeholder (tool-id)
   "Generate placeholder string for TOOL-ID."
   (greger-parser--wrapped-tool-content greger-parser-tool-result-tag tool-id "Loading..."))
 
