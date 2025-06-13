@@ -147,8 +147,8 @@ The raw JSON string will be displayed for the server tool definition."
 (defun greger-server-tools-get-schemas (tool-names)
   "Get server tool schemas for TOOL-NAMES as JSON strings."
   (mapcar (lambda (tool-name)
-            ;; Convert symbol to string if needed for lookup
-            (let* ((lookup-key (if (symbolp tool-name) (symbol-name tool-name) tool-name))
+            ;; Convert string to symbol if needed for lookup (server tools are stored with symbol keys)
+            (let* ((lookup-key (if (stringp tool-name) (intern tool-name) tool-name))
                    (tool-def (gethash lookup-key greger-server-tools-registry)))
               (if tool-def
                   (json-encode tool-def)
