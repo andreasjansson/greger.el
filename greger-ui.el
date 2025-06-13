@@ -161,6 +161,7 @@ START and END are the region bounds."
     (put-text-property url-start node-end 'keymap greger-ui-url-link-keymap)))
 
 (defun greger-ui--open-url-at-point ()
+  "Open URL at point in default web browser."
   (interactive)
   (let* ((node (treesit-node-at (point)))
          (text (treesit-node-text node t))
