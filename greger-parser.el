@@ -360,6 +360,7 @@ ensuring tool calls receive properly typed arguments."
       (content . (,content)))))
 
 (defun greger-parser--extract-citation-entries (node)
+  "Extract all citation entries from NODE."
   (let ((citation-entries '()))
    (dolist (child (treesit-node-children node))
      (let ((child-type (treesit-node-type child)))
