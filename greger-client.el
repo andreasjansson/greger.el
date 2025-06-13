@@ -281,24 +281,19 @@ Returns nil if no error found or if OUTPUT is not valid JSON."
     ;; For tool_use and server_tool_use we make the input object a
     ;; string while we accumulate the output, and turn it back into
     ;; an object again in greger-client--handle-content-stop
+    ;; Initialize content fields based on content block type
     (cond
      ((string= type "tool_use")
       (setf (alist-get 'input content-block) ""))
-
-     ;; {"type":"content_block_start","index":1,"content_block":{"type":"server_tool_use","id":"srvtoolu_01AZ1324bmQ29XW4fSECQJWH","name":"web_search","input":{}}}
      ((string= type "server_tool_use")
       (setf (alist-get 'input content-block) ""))
-
-     ;; {"type":"content_block_start","index":0,"content_block":{"type":"text","text":""}}
-     ;; {"type":"content_block_start","index":3,"content_block":{"citations":[],"type":"text","text":""}}
      ((string= type "text")
       (setf (alist-get 'text content-block) "")
       ;; For text blocks with citations, initialize citations as empty list
       (when citations
         (setf (alist-get 'citations content-block) '())))
-
-     ;; web_search_tool_result blocks come pre-populated with content
-     ((string= type "web_search_tool_result")))
+     ;; web_search_tool_result blocks come pre-populated with content - no initialization needed
+     )
 
     (when-let ((callback (greger-client-state-block-start-callback state)))
       (funcall callback content-block))
