@@ -312,14 +312,8 @@
     
   (let* ((buffer (current-buffer))
          (state (buffer-local-value 'greger--current-state buffer)))
-
     (cond
-     ;; If there's an active client state, cancel the streaming request
-     ((and state (greger-state-client-state state))
-      (greger-client--cancel-request (greger-state-client-state state))
-      (setf (greger-state-client-state state) nil)
-      (greger--update-buffer-state)
-      'generating)
+
      ;; If there are executing tools, cancel them
      ((and state
            (greger-state-executing-tools state)
@@ -332,6 +326,13 @@
                  executing-tools)
         (greger--update-buffer-state))
       'executing)
+
+     ;; If there's an active client state, cancel the streaming request
+     ((and state (greger-state-client-state state))
+      (greger-client--cancel-request (greger-state-client-state state))
+      (greger--finish-response state)
+      'generating)
+
      ;; Default case: call keyboard-quit
      (t
       (keyboard-quit)
@@ -484,8 +485,7 @@ If TEXT ends with more than two consecutive newlines, remove all but the first t
                 (1+ (greger-state-current-iteration state)))
           ;; TODO: execute tool calls in greger--append-content-block instead
           (greger--execute-tools tool-calls state))
-      (progn
-        (greger--finish-response state))))
+      (greger--finish-response state)))
 
   (let ((buffer (greger-state-chat-buffer state)))
     (when (buffer-live-p buffer)
