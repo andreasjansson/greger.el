@@ -122,33 +122,30 @@
   ;; Test with only required parameter
   (let ((result nil)
         (error nil))
-    (greger-tools-execute :tool-name "test-optional"
-                          :args '((required-param . "test"))
-                          :callback (lambda (r e) (setq result r error e))
-                          :buffer nil)
+    (greger-tools-execute "test-optional"
+                          '((required-param . "test"))
+                          (lambda (r e) (setq result r error e)) nil)
     (should (string= "required: test, opt1: default1, opt2: default2" result))
     (should (null error)))
 
   ;; Test with required + one optional parameter
   (let ((result nil)
         (error nil))
-    (greger-tools-execute :tool-name "test-optional"
-                          :args '((required-param . "test")
-                                  (optional-param1 . "provided1"))
-                          :callback (lambda (r e) (setq result r error e))
-                          :buffer nil)
+    (greger-tools-execute "test-optional"
+                          '((required-param . "test")
+                            (optional-param1 . "provided1"))
+                          (lambda (r e) (setq result r error e)) nil)
     (should (string= "required: test, opt1: provided1, opt2: default2" result))
     (should (null error)))
 
   ;; Test with all parameters provided
   (let ((result nil)
         (error nil))
-    (greger-tools-execute :tool-name "test-optional"
-                          :args '((required-param . "test")
-                                  (optional-param1 . "provided1")
-                                  (optional-param2 . "provided2"))
-                          :callback (lambda (r e) (setq result r error e))
-                          :buffer nil)
+    (greger-tools-execute "test-optional"
+                          '((required-param . "test")
+                            (optional-param1 . "provided1")
+                            (optional-param2 . "provided2"))
+                          (lambda (r e) (setq result r error e)) nil)
     (should (string= "required: test, opt1: provided1, opt2: provided2" result))
     (should (null error)))
 
@@ -184,10 +181,9 @@
   ;; Test with only required parameter - should use defaults
   (let ((result nil)
         (error nil))
-    (greger-tools-execute :tool-name "test-defaults"
-                          :args '((message . "hello"))
-                          :callback (lambda (r e) (setq result r error e))
-                          :buffer nil)
+    (greger-tools-execute "test-defaults"
+                          '((message . "hello"))
+                          (lambda (r e) (setq result r error e)) nil)
     (should (string= ">>> hello (repeated 5 times)" result))
     (should (null error)))
 
