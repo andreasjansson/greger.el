@@ -134,7 +134,14 @@ The raw JSON string will be displayed for the server tool definition."
           (when key
             (push (cons (intern (substring (symbol-name key) 1)) value) tool-def))))
 
-      `(puthash ,name (nreverse ',tool-def) greger-server-tools-registry))))
+      ;; Store with string key like regular tools
+      `(puthash ,(if (and (listp name) (eq (car name) 'quote))
+                    (symbol-name (cadr name))
+                  (if (symbolp name)
+                      (symbol-name name)
+                    name))
+                (nreverse ',tool-def) 
+                greger-server-tools-registry))))
 
 (defun greger-tools-get-schemas (tool-names)
   "Get tool schemas for TOOL-NAMES."
@@ -148,12 +155,11 @@ The raw JSON string will be displayed for the server tool definition."
 (defun greger-server-tools-get-schemas (tool-names)
   "Get server tool schemas for TOOL-NAMES as JSON strings."
   (mapcar (lambda (tool-name)
-            ;; Convert string to symbol if needed for lookup (server tools are stored with symbol keys)
-            (let* ((lookup-key (if (stringp tool-name) (intern tool-name) tool-name))
+            (let* ((lookup-key (if (symbolp tool-name) (symbol-name tool-name) tool-name))
                    (tool-def (gethash lookup-key greger-server-tools-registry)))
               (if tool-def
                   (json-encode tool-def)
-                (error "Unknown server tool: %s (looked up as %s)" tool-name lookup-key))))
+                (error "Unknown server tool: %s" tool-name))))
           tool-names))
 
 (defun greger-server-tools-get-all-schemas ()
