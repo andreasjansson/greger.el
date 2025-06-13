@@ -145,7 +145,7 @@ May order 4,000 pounds of meat."
 
 (defface greger-tool-param-name-face
   '((t (:foreground "lightgreen")))
-  "Face for tool parameter names like 'path', 'content', etc."
+  "Face for tool parameter names like \='path\=', \='content\=', etc."
   :group 'greger)
 
 (defface greger-key-face
