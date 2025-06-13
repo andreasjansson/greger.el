@@ -553,6 +553,7 @@ If SKIP-HEADER is true, don't add section headers for text blocks."
      (t ""))))
 
 (defun greger-parser--citations-to-markdown (block)
+  "Convert citation BLOCK to markdown with embedded citations."
   (let* ((text (alist-get 'text block))
          (citations (alist-get 'citations block))
          (citations-markdown (greger-parser--citations-list-to-markdown citations)))
