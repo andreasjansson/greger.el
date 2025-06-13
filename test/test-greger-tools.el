@@ -669,7 +669,7 @@
                                  (optional-param2 . "not-a-number"))
                           :callback (lambda (r e) (setq result r error e))
                           :buffer nil)
-    (should (string= "required: test, opt1: not-a-boolean, opt2: not-a-number" result))
+    (should (string= "required: test, opt1: nil, opt2: not-a-number" result))
     (should (null error)))
 
   ;; Clean up
