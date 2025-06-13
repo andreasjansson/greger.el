@@ -463,7 +463,8 @@ READ-ONLY is t to make read-only, nil to make writable."
 
 (defun greger--clean-excessive-newlines (text)
   "Remove excessive newlines from the end of TEXT, keeping at most two.
-If TEXT ends with more than two consecutive newlines, remove all but the first two."
+If TEXT ends with more than two consecutive newlines, remove all but the
+first two."
   (replace-regexp-in-string "\n\n\n+\\'" "\n\n" text))
 
 (defun greger--append-streaming-content-header (state content-block)
