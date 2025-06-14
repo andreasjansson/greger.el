@@ -58,7 +58,7 @@
 
 ;;; Public API
 
-(cl-defun greger-client-stream (&key model dialog tools server-tools buffer block-start-callback text-delta-callback block-stop-callback complete-callback)
+(cl-defun greger-client-stream (&key model dialog tools server-tools buffer block-start-callback text-delta-callback block-stop-callback complete-callback thinking-budget)
   "Stream AI responses with callbacks for handling content types and updates.
 MODEL specifies which AI model to use, DIALOG contains the conversation,
 TOOLS and SERVER-TOOLS enable function calling, BUFFER is the output target.
