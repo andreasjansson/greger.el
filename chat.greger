@@ -3662,5 +3662,66 @@ Add function to toggle thinking on/off
 ID: toolu_017ugUakZhk91Fnj6bU3TtpE
 
 <tool.toolu_017ugUakZhk91Fnj6bU3TtpE>
-Loading...
+Successfully replaced content in /Users/andreas/projects/greger.el/greger.el. Successfully staged 2 file(s) and committed with message: Add function to toggle thinking on/off
 </tool.toolu_017ugUakZhk91Fnj6bU3TtpE>
+
+# ASSISTANT
+
+Now let me update the mode line to show thinking status:
+
+# TOOL USE
+
+Name: str-replace
+ID: toolu_01ATPDHsNtLYFqujoWVvbgXv
+
+## file-path
+
+<tool.toolu_01ATPDHsNtLYFqujoWVvbgXv>
+~/projects/greger.el/greger.el
+</tool.toolu_01ATPDHsNtLYFqujoWVvbgXv>
+
+## original-content
+
+<tool.toolu_01ATPDHsNtLYFqujoWVvbgXv>
+(defun greger--mode-line-info ()
+  "Generate mode line information showing model and current state."
+  (let ((state (greger--get-current-state))
+        (model-name (symbol-name greger-model)))
+    (concat model-name
+            (pcase state
+              ('generating " [Generating]")
+              ('executing " [Executing]")
+              ('idle "")))))
+</tool.toolu_01ATPDHsNtLYFqujoWVvbgXv>
+
+## new-content
+
+<tool.toolu_01ATPDHsNtLYFqujoWVvbgXv>
+(defun greger--mode-line-info ()
+  "Generate mode line information showing model and current state."
+  (let ((state (greger--get-current-state))
+        (model-name (symbol-name greger-model))
+        (thinking-status (if (> greger-thinking-budget 0) 
+                            (format " [T:%d]" greger-thinking-budget) 
+                            "")))
+    (concat model-name
+            thinking-status
+            (pcase state
+              ('generating " [Generating]")
+              ('executing " [Executing]")
+              ('idle "")))))
+</tool.toolu_01ATPDHsNtLYFqujoWVvbgXv>
+
+## git-commit-message
+
+<tool.toolu_01ATPDHsNtLYFqujoWVvbgXv>
+Add thinking status to mode line
+</tool.toolu_01ATPDHsNtLYFqujoWVvbgXv>
+
+# TOOL RESULT
+
+ID: toolu_01ATPDHsNtLYFqujoWVvbgXv
+
+<tool.toolu_01ATPDHsNtLYFqujoWVvbgXv>
+Loading...
+</tool.toolu_01ATPDHsNtLYFqujoWVvbgXv>

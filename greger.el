@@ -426,8 +426,12 @@ May order 4,000 pounds of meat."
 (defun greger--mode-line-info ()
   "Generate mode line information showing model and current state."
   (let ((state (greger--get-current-state))
-        (model-name (symbol-name greger-model)))
+        (model-name (symbol-name greger-model))
+        (thinking-status (if (> greger-thinking-budget 0) 
+                            (format " [T:%d]" greger-thinking-budget) 
+                            "")))
     (concat model-name
+            thinking-status
             (pcase state
               ('generating " [Generating]")
               ('executing " [Executing]")
