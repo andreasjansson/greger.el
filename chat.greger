@@ -3229,5 +3229,93 @@ Pass thinking-budget to greger-client-stream call
 ID: toolu_01JjKHTfZvFgVJNTamYaPfZL
 
 <tool.toolu_01JjKHTfZvFgVJNTamYaPfZL>
-Loading...
+Successfully replaced content in /Users/andreas/projects/greger.el/greger.el. Successfully staged 2 file(s) and committed with message: Pass thinking-budget to greger-client-stream call
 </tool.toolu_01JjKHTfZvFgVJNTamYaPfZL>
+
+# ASSISTANT
+
+Now let me test that everything compiles properly by checking the current status:
+
+# TOOL USE
+
+Name: shell-command
+ID: toolu_016gBFR3JzM4CA8ebBiXqb86
+
+## command
+
+<tool.toolu_016gBFR3JzM4CA8ebBiXqb86>
+cd ~/projects/greger.el && emacs --batch --eval "(progn (add-to-list 'load-path \".\") (load \"greger.el\") (message \"Loaded successfully\"))"
+</tool.toolu_016gBFR3JzM4CA8ebBiXqb86>
+
+# TOOL RESULT
+
+ID: toolu_016gBFR3JzM4CA8ebBiXqb86
+
+<tool.toolu_016gBFR3JzM4CA8ebBiXqb86>
+Command executed successfully:
+Loading /Users/andreas/projects/greger.el/greger.el (source)...
+Source file ‘/opt/homebrew/Cellar/emacs-plus@29/29.0.90/share/emacs/29.0.91/lisp/treesit.el’ newer than byte-compiled file; using older file
+Source file ‘/opt/homebrew/Cellar/emacs-plus@29/29.0.90/share/emacs/29.0.91/lisp/net/eww.el’ newer than byte-compiled file; using older file
+Loaded successfully
+
+</tool.toolu_016gBFR3JzM4CA8ebBiXqb86>
+
+# ASSISTANT
+
+Great! It loads successfully. Now let me create a simple test to verify that the thinking parameter is being included in the request. Let me create a simple test file:
+
+# TOOL USE
+
+Name: write-new-file
+ID: toolu_01GhaV4RdmXVD262TPYCfBRb
+
+## file-path
+
+<tool.toolu_01GhaV4RdmXVD262TPYCfBRb>
+~/projects/greger.el/test-thinking.el
+</tool.toolu_01GhaV4RdmXVD262TPYCfBRb>
+
+## contents
+
+<tool.toolu_01GhaV4RdmXVD262TPYCfBRb>
+;;; test-thinking.el --- Test thinking implementation
+
+(require 'greger)
+(require 'json)
+
+;; Test that thinking parameter is properly added to request
+(let ((greger-thinking-budget 2048)
+      (model 'claude-sonnet-4-20250514)
+      (dialog '(((role . "user") (content . "Hello"))))
+      (tools '())
+      (server-tools '()))
+  
+  (let ((request-data (greger-client--build-data model dialog tools server-tools greger-thinking-budget)))
+    (let ((parsed-json (json-read-from-string request-data)))
+      (message "Request has thinking: %s" (assq 'thinking parsed-json))
+      (when (assq 'thinking parsed-json)
+        (let ((thinking-config (alist-get 'thinking parsed-json)))
+          (message "Thinking config: %s" thinking-config)
+          (message "Thinking type: %s" (alist-get 'type thinking-config))
+          (message "Thinking budget: %s" (alist-get 'budget_tokens thinking-config))))
+      
+      ;; Test max_tokens includes thinking budget
+      (let ((max-tokens (alist-get 'max_tokens parsed-json)))
+        (message "Max tokens: %s (should be %s)" max-tokens (+ 8000 greger-thinking-budget))))))
+
+;;; test-thinking.el ends here
+</tool.toolu_01GhaV4RdmXVD262TPYCfBRb>
+
+## git-commit-message
+
+<tool.toolu_01GhaV4RdmXVD262TPYCfBRb>
+Add test file for thinking implementation
+</tool.toolu_01GhaV4RdmXVD262TPYCfBRb>
+
+# TOOL RESULT
+
+ID: toolu_01GhaV4RdmXVD262TPYCfBRb
+
+<tool.toolu_01GhaV4RdmXVD262TPYCfBRb>
+Loading...
+</tool.toolu_01GhaV4RdmXVD262TPYCfBRb>
