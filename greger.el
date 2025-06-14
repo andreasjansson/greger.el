@@ -64,6 +64,11 @@
   :type 'float
   :group 'greger)
 
+(defcustom greger-max-tokens 32000
+  "Maximum number of tokens to generate."
+  :type 'integer
+  :group 'greger)
+
 (defcustom greger-default-thinking-budget 4096
   "Default budget for thinking (internal reasoning) content, in tokens.
 Set to 0 to disable thinking entirely."
@@ -493,7 +498,8 @@ READ-ONLY is t to make read-only, nil to make writable."
                                                 (greger--append-text state (greger--clean-excessive-newlines text)))
                          :block-stop-callback (lambda (type content-block)
                                                 (greger--append-handle-content-block-stop state type content-block))
-                         :complete-callback (lambda (content-blocks) (greger--handle-stream-completion state content-blocks)))))
+                         :complete-callback (lambda (content-blocks) (greger--handle-stream-completion state content-blocks))
+                         :max-tokens greger-max-tokens)))
 
       ;; Store the client state for potential cancellation
       (setf (greger-state-client-state state) client-state)

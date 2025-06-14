@@ -58,7 +58,8 @@
                                                (insert text)))
                       :complete-callback (lambda (blocks)
                                            (setq final-blocks blocks
-                                                 response-received t)))))
+                                                 response-received t))
+                      :max-tokens 1024)))
 
           ;; Wait for completion
           (should (greger-test-wait-for-completion state greger-test-timeout))
@@ -110,7 +111,8 @@
                       :buffer test-buffer
                       :complete-callback (lambda (blocks)
                                            (setq final-blocks blocks
-                                                 response-received t)))))
+                                                 response-received t))
+                      :max-tokens 1024)))
 
           ;; Wait for completion
           (should (greger-test-wait-for-completion state greger-test-timeout))
@@ -149,7 +151,8 @@
     (condition-case err
         (greger-client-stream
          :model 'invalid-model
-         :dialog '(((role . "user") (content . "test"))))
+         :dialog '(((role . "user") (content . "test")))
+         :max-tokens 1024)
       (error
        (setq error-caught t)
        (should (string-match-p "Unsupported model" (error-message-string err)))))

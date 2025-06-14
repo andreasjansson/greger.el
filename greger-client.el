@@ -58,22 +58,26 @@
 
 ;;; Public API
 
-(cl-defun greger-client-stream (&key model dialog tools server-tools buffer block-start-callback text-delta-callback block-stop-callback complete-callback thinking-budget)
+(cl-defun greger-client-stream (&key model dialog tools server-tools buffer block-start-callback text-delta-callback block-stop-callback complete-callback thinking-budget max-tokens)
   "Send API request to the Claude streaming API.
 Streaming responses are handled using callbacks.
-MODEL specifies which AI model to use, DIALOG contains the conversation,
-TOOLS and SERVER-TOOLS enable function calling, BUFFER is the output target.
-BLOCK-START-CALLBACK is called when content blocks begin, TEXT-DELTA-CALLBACK
-for incremental text, BLOCK-STOP-CALLBACK when blocks complete,
-COMPLETE-CALLBACK when the entire response finishes, and THINKING-BUDGET
-is the number of thinking tokens."
+MODEL specifies which AI model to use.
+DIALOG contains the conversation,
+TOOLS and SERVER-TOOLS enable function calling.
+BUFFER is the output target.
+BLOCK-START-CALLBACK is called when content blocks begin.
+TEXT-DELTA-CALLBACK for incremental text.
+BLOCK-STOP-CALLBACK when blocks complete.
+COMPLETE-CALLBACK when the entire response finishes.
+THINKING-BUDGET is the number of thinking tokens.
+MAX-TOKENS is the maximum number of tokens to generate."
   (unless (memq model greger-client-supported-models)
     (error "Unsupported model: %s. Supported models: %s"
            model greger-client-supported-models))
 
   (let* ((output-buffer (or buffer (current-buffer)))
          (undo-handle (prepare-change-group output-buffer))
-         (request-spec (greger-client--build-request model dialog tools server-tools thinking-budget))
+         (request-spec (greger-client--build-request model dialog tools server-tools thinking-budget max-tokens))
          (restore-callback (lambda (state)
                              (let ((buffer (greger-client-state-output-buffer state)))
                                (when (buffer-live-p buffer)
@@ -110,16 +114,17 @@ is the number of thinking tokens."
 
 ;;; Request building
 
-(defun greger-client--build-request (model dialog &optional tools server-tools thinking-budget)
+(defun greger-client--build-request (model dialog tools server-tools thinking-budget max-tokens)
   "Build Claude request to be sent to the Claude API.
 MODEL is the Claude mode.
 DIALOG is the chat dialog.
 TOOLS are tool definitions.
 SERVER-TOOLS are server tool definitions.
-THINKING-BUDGET is the number of thinking tokens."
+THINKING-BUDGET is the number of thinking tokens.
+MAX-TOKENS is the maximum number of tokens to generate"
   (let* ((api-key (greger-client--get-api-key))
          (headers (greger-client--build-headers api-key))
-         (data (greger-client--build-data model dialog tools server-tools thinking-budget)))
+         (data (greger-client--build-data model dialog tools server-tools thinking-budget max-tokens)))
     (list :url greger-client-api-url
           :method "POST"
           :headers headers
@@ -139,10 +144,11 @@ THINKING-BUDGET is the number of thinking tokens."
     ("anthropic-version" . "2023-06-01")
     ("anthropic-beta" . "token-efficient-tools-2025-02-19")))
 
-(defun greger-client--build-data (model dialog &optional tools server-tools thinking-budget)
+(defun greger-client--build-data (model dialog tools server-tools thinking-budget max-tokens)
   "Build request data for Claude MODEL with DIALOG and optional tools.
 TOOLS and SERVER-TOOLS add function calling capabilities to the request.
-THINKING-BUDGET specifies the token budget for thinking content."
+THINKING-BUDGET specifies the token budget for thinking content.
+MAX-TOKENS is the maximum number of tokens to generate."
   (let ((system-message nil)
         (user-messages ())
         (request-data nil))
@@ -180,10 +186,9 @@ THINKING-BUDGET specifies the token budget for thinking content."
                               first-content-item))))))))
 
     ;; Build base request
-    (let ((max-tokens (+ 8000 (or thinking-budget 0))))
+    (let ((max-tokens (+ max-tokens (or thinking-budget 0))))
       (setq request-data `(("model" . ,(symbol-name model))
                           ("messages" . ,user-messages)
-                          ;("max_tokens" . 32000) ;; TODO: make this configurable
                           ("max_tokens" . ,max-tokens)
                           ("stream" . t))))
 
