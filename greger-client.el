@@ -33,6 +33,8 @@
 (require 'json)
 (require 'cl-lib)
 
+(declare-function greger-thinking-budget "greger")
+
 ;;; Constants and configuration
 
 (defconst greger-client-supported-models
