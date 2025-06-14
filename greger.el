@@ -461,6 +461,7 @@ READ-ONLY is t to make read-only, nil to make writable."
                          :tools tools
                          :server-tools server-tools
                          :buffer chat-buffer
+                         :thinking-budget greger-thinking-budget
                          :block-start-callback (lambda (content-block)
                                                  (greger--append-streaming-content-header state content-block))
                          :text-delta-callback (lambda (text)
