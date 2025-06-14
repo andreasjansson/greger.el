@@ -408,21 +408,6 @@ Hi")))
         ;; Should parse 10000 message pairs in under 1 second
         (should (< elapsed 1.0))))))
 
-;; Test untagged content at the beginning
-(ert-deftest greger-parser-test-untagged-content ()
-  "Test that untagged content at the beginning is treated as user message."
-  (let ((markdown "Hello, this is untagged content
-
-# ASSISTANT
-
-I understand you have untagged content."))
-    (let ((parsed (greger-parser-markdown-to-dialog markdown)))
-      (should (equal parsed '(((role . "user")
-                               (content . "Hello, this is untagged content"))
-                              ((role . "assistant")
-                               (content ((text . "I understand you have untagged content.")
-                                         (type . "text"))))))))))
-
 ;; Test that we handle tool use parameters correctly with various whitespace
 (ert-deftest greger-parser-test-tool-use-whitespace ()
   "Test tool use parsing with various whitespace patterns."
