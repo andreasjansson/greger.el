@@ -3317,5 +3317,117 @@ Add test file for thinking implementation
 ID: toolu_01GhaV4RdmXVD262TPYCfBRb
 
 <tool.toolu_01GhaV4RdmXVD262TPYCfBRb>
-Loading...
+Successfully wrote new file /Users/andreas/projects/greger.el/test-thinking.el with 1145 characters. Successfully staged 2 file(s) and committed with message: Add test file for thinking implementation
 </tool.toolu_01GhaV4RdmXVD262TPYCfBRb>
+
+# TOOL USE
+
+Name: shell-command
+ID: toolu_013DF3tDB3cMwrj2bfRneNBf
+
+## command
+
+<tool.toolu_013DF3tDB3cMwrj2bfRneNBf>
+cd ~/projects/greger.el && emacs --batch -l test-thinking.el
+</tool.toolu_013DF3tDB3cMwrj2bfRneNBf>
+
+# TOOL RESULT
+
+ID: toolu_013DF3tDB3cMwrj2bfRneNBf
+
+<tool.toolu_013DF3tDB3cMwrj2bfRneNBf>
+Command failed with exit code 255: 
+Error: file-missing ("Cannot open load file" "No such file or directory" "greger")
+  mapbacktrace(#f(compiled-function (evald func args flags) #<bytecode -0xce2dc589a512f81>))
+  debug-early-backtrace()
+  debug-early(error (file-missing "Cannot open load file" "No such file or directory" "greger"))
+  require(greger)
+  eval-buffer(#<buffer  *load*> nil "/Users/andreas/projects/greger.el/test-thinking.el" nil t)
+  load-with-code-conversion("/Users/andreas/projects/greger.el/test-thinking.el" "/Users/andreas/projects/greger.el/test-thinking.el" nil t)
+  load("/Users/andreas/projects/greger.el/test-thinking.el" nil t)
+  command-line-1(("-l" "test-thinking.el"))
+  command-line()
+  normal-top-level()
+Cannot open load file: No such file or directory, greger
+
+</tool.toolu_013DF3tDB3cMwrj2bfRneNBf>
+
+# ASSISTANT
+
+Let me fix the load path:
+
+# TOOL USE
+
+Name: shell-command
+ID: toolu_014re8ybdzrVLe8QBVRATAKn
+
+## command
+
+<tool.toolu_014re8ybdzrVLe8QBVRATAKn>
+cd ~/projects/greger.el && emacs --batch --eval "(add-to-list 'load-path \".\")" -l test-thinking.el
+</tool.toolu_014re8ybdzrVLe8QBVRATAKn>
+
+# TOOL RESULT
+
+ID: toolu_014re8ybdzrVLe8QBVRATAKn
+
+<tool.toolu_014re8ybdzrVLe8QBVRATAKn>
+Command executed successfully:
+Source file ‘/opt/homebrew/Cellar/emacs-plus@29/29.0.90/share/emacs/29.0.91/lisp/treesit.el’ newer than byte-compiled file; using older file
+Source file ‘/opt/homebrew/Cellar/emacs-plus@29/29.0.90/share/emacs/29.0.91/lisp/net/eww.el’ newer than byte-compiled file; using older file
+Request has thinking: (thinking (type . enabled) (budget_tokens . 2048))
+Thinking config: ((type . enabled) (budget_tokens . 2048))
+Thinking type: enabled
+Thinking budget: 2048
+Max tokens: 10048 (should be 10048)
+
+</tool.toolu_014re8ybdzrVLe8QBVRATAKn>
+
+# ASSISTANT
+
+Excellent! The test shows that:
+
+1. ✅ The thinking parameter is being added to the request
+2. ✅ The thinking configuration is correct with `type: enabled` and `budget_tokens: 2048`
+3. ✅ The max_tokens correctly includes the thinking budget (8000 + 2048 = 10048)
+
+Now let me test with thinking disabled (budget = 0):
+
+# TOOL USE
+
+Name: str-replace
+ID: toolu_01XGLNzsJTna2eqH2HAqw4ps
+
+## file-path
+
+<tool.toolu_01XGLNzsJTna2eqH2HAqw4ps>
+~/projects/greger.el/test-thinking.el
+</tool.toolu_01XGLNzsJTna2eqH2HAqw4ps>
+
+## original-content
+
+<tool.toolu_01XGLNzsJTna2eqH2HAqw4ps>
+;; Test that thinking parameter is properly added to request
+(let ((greger-thinking-budget 2048)
+</tool.toolu_01XGLNzsJTna2eqH2HAqw4ps>
+
+## new-content
+
+<tool.toolu_01XGLNzsJTna2eqH2HAqw4ps>
+;; Test that thinking parameter is properly added to request
+(let ((greger-thinking-budget 0)
+</tool.toolu_01XGLNzsJTna2eqH2HAqw4ps>
+
+## git-commit-message
+
+<tool.toolu_01XGLNzsJTna2eqH2HAqw4ps>
+Test thinking disabled case
+</tool.toolu_01XGLNzsJTna2eqH2HAqw4ps>
+
+# TOOL RESULT
+
+ID: toolu_01XGLNzsJTna2eqH2HAqw4ps
+
+<tool.toolu_01XGLNzsJTna2eqH2HAqw4ps>
+Loading...
+</tool.toolu_01XGLNzsJTna2eqH2HAqw4ps>

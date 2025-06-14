@@ -4,7 +4,7 @@
 (require 'json)
 
 ;; Test that thinking parameter is properly added to request
-(let ((greger-thinking-budget 2048)
+(let ((greger-thinking-budget 0)
       (model 'claude-sonnet-4-20250514)
       (dialog '(((role . "user") (content . "Hello"))))
       (tools '())
