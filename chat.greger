@@ -3556,5 +3556,49 @@ Remove test file after successful testing
 ID: toolu_01Ebt9YeX1rUEiEHb2ZaG6r9
 
 <tool.toolu_01Ebt9YeX1rUEiEHb2ZaG6r9>
-Loading...
+Successfully deleted 1 file(s): /Users/andreas/projects/greger.el/test-thinking.el. Git status: Successfully staged 2 file(s) and committed with message: Remove test file after successful testing
 </tool.toolu_01Ebt9YeX1rUEiEHb2ZaG6r9>
+
+# ASSISTANT
+
+Now let me add a configuration option for disabling thinking completely, similar to how the Python code allows setting thinking_budget to 0. I should also add a user-friendly interface to toggle thinking:
+
+# TOOL USE
+
+Name: str-replace
+ID: toolu_0156EDov4mXEap2ZrbAARgaj
+
+## file-path
+
+<tool.toolu_0156EDov4mXEap2ZrbAARgaj>
+~/projects/greger.el/greger.el
+</tool.toolu_0156EDov4mXEap2ZrbAARgaj>
+
+## original-content
+
+<tool.toolu_0156EDov4mXEap2ZrbAARgaj>
+    (define-key map (kbd "C-; c") #'greger-ui--copy-code)
+    (define-key map (kbd "C-; D") #'greger-debug-request)
+</tool.toolu_0156EDov4mXEap2ZrbAARgaj>
+
+## new-content
+
+<tool.toolu_0156EDov4mXEap2ZrbAARgaj>
+    (define-key map (kbd "C-; c") #'greger-ui--copy-code)
+    (define-key map (kbd "C-; D") #'greger-debug-request)
+    (define-key map (kbd "C-; t") #'greger-toggle-thinking)
+</tool.toolu_0156EDov4mXEap2ZrbAARgaj>
+
+## git-commit-message
+
+<tool.toolu_0156EDov4mXEap2ZrbAARgaj>
+Add keybinding for toggling thinking
+</tool.toolu_0156EDov4mXEap2ZrbAARgaj>
+
+# TOOL RESULT
+
+ID: toolu_0156EDov4mXEap2ZrbAARgaj
+
+<tool.toolu_0156EDov4mXEap2ZrbAARgaj>
+Loading...
+</tool.toolu_0156EDov4mXEap2ZrbAARgaj>

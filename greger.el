@@ -190,6 +190,7 @@ May order 4,000 pounds of meat."
     (define-key map (kbd "C-; m") #'greger-set-model)
     (define-key map (kbd "C-; c") #'greger-ui--copy-code)
     (define-key map (kbd "C-; D") #'greger-debug-request)
+    (define-key map (kbd "C-; t") #'greger-toggle-thinking)
     map)
   "Keymap for `greger-mode'.")
 
