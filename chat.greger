@@ -5693,5 +5693,210 @@ Add comprehensive end-to-end thinking tests
 ID: toolu_012amEP8AXSAdCspR4BX1agj
 
 <tool.toolu_012amEP8AXSAdCspR4BX1agj>
-Loading...
+Successfully replaced content in /Users/andreas/projects/greger.el/test/test-end-to-end.el. Successfully staged 2 file(s) and committed with message: Add comprehensive end-to-end thinking tests
 </tool.toolu_012amEP8AXSAdCspR4BX1agj>
+
+# ASSISTANT
+
+Now let me run a quick test to make sure the tests are syntactically correct:
+
+# TOOL USE
+
+Name: shell-command
+ID: toolu_01H91qqjEprqwcvFMyGVB6Zc
+
+## command
+
+<tool.toolu_01H91qqjEprqwcvFMyGVB6Zc>
+cd ~/projects/greger.el && emacs --batch --eval "(progn (add-to-list 'load-path \".\") (add-to-list 'load-path \"./test\") (load \"test/test-greger-client.el\") (message \"Client tests loaded successfully\"))"
+</tool.toolu_01H91qqjEprqwcvFMyGVB6Zc>
+
+# TOOL RESULT
+
+ID: toolu_01H91qqjEprqwcvFMyGVB6Zc
+
+<tool.toolu_01H91qqjEprqwcvFMyGVB6Zc>
+Command executed successfully:
+Loading /Users/andreas/projects/greger.el/test/test-greger-client.el (source)...
+Source file ‘/opt/homebrew/Cellar/emacs-plus@29/29.0.90/share/emacs/29.0.91/lisp/treesit.el’ newer than byte-compiled file; using older file
+Source file ‘/opt/homebrew/Cellar/emacs-plus@29/29.0.90/share/emacs/29.0.91/lisp/net/eww.el’ newer than byte-compiled file; using older file
+Client tests loaded successfully
+
+</tool.toolu_01H91qqjEprqwcvFMyGVB6Zc>
+
+# TOOL USE
+
+Name: shell-command
+ID: toolu_01TEeGWmE9P21TpV6RBboQ9y
+
+## command
+
+<tool.toolu_01TEeGWmE9P21TpV6RBboQ9y>
+cd ~/projects/greger.el && emacs --batch --eval "(progn (add-to-list 'load-path \".\") (add-to-list 'load-path \"./test\") (load \"test/test-end-to-end.el\") (message \"End-to-end tests loaded successfully\"))"
+</tool.toolu_01TEeGWmE9P21TpV6RBboQ9y>
+
+# TOOL RESULT
+
+ID: toolu_01TEeGWmE9P21TpV6RBboQ9y
+
+<tool.toolu_01TEeGWmE9P21TpV6RBboQ9y>
+Command executed successfully:
+Loading /Users/andreas/projects/greger.el/test/test-end-to-end.el (source)...
+Source file ‘/opt/homebrew/Cellar/emacs-plus@29/29.0.90/share/emacs/29.0.91/lisp/treesit.el’ newer than byte-compiled file; using older file
+Source file ‘/opt/homebrew/Cellar/emacs-plus@29/29.0.90/share/emacs/29.0.91/lisp/net/eww.el’ newer than byte-compiled file; using older file
+End-to-end tests loaded successfully
+
+</tool.toolu_01TEeGWmE9P21TpV6RBboQ9y>
+
+# ASSISTANT
+
+Excellent! Now let me run the unit test to verify it works:
+
+# TOOL USE
+
+Name: shell-command
+ID: toolu_01UNYomDrJDRuvAx8Ubbwazf
+
+## command
+
+<tool.toolu_01UNYomDrJDRuvAx8Ubbwazf>
+cd ~/projects/greger.el && emacs --batch --eval "(progn (add-to-list 'load-path \".\") (add-to-list 'load-path \"./test\") (require 'ert) (load \"test/test-greger-client.el\") (ert-run-tests-batch-and-exit '(tag thinking)))"
+</tool.toolu_01UNYomDrJDRuvAx8Ubbwazf>
+
+# TOOL RESULT
+
+ID: toolu_01UNYomDrJDRuvAx8Ubbwazf
+
+<tool.toolu_01UNYomDrJDRuvAx8Ubbwazf>
+Command executed successfully:
+Loading /Users/andreas/projects/greger.el/test/test-greger-client.el (source)...
+Source file ‘/opt/homebrew/Cellar/emacs-plus@29/29.0.90/share/emacs/29.0.91/lisp/treesit.el’ newer than byte-compiled file; using older file
+Source file ‘/opt/homebrew/Cellar/emacs-plus@29/29.0.90/share/emacs/29.0.91/lisp/net/eww.el’ newer than byte-compiled file; using older file
+Running 1 tests (2025-06-14 14:21:33+0200, selector ‘(tag thinking)’)
+   passed  1/1  greger-client-test-thinking-configuration (0.000313 sec)
+
+Ran 1 tests, 1 results as expected, 0 unexpected (2025-06-14 14:21:33+0200, 0.000446 sec)
+
+
+</tool.toolu_01UNYomDrJDRuvAx8Ubbwazf>
+
+# ASSISTANT
+
+Great! The unit test passes. Now let me test the end-to-end thinking tests (the non-API ones):
+
+# TOOL USE
+
+Name: shell-command
+ID: toolu_01AdBAHWeZtQeJLTcpxWcrXQ
+
+## command
+
+<tool.toolu_01AdBAHWeZtQeJLTcpxWcrXQ>
+cd ~/projects/greger.el && emacs --batch --eval "(progn (add-to-list 'load-path \".\") (add-to-list 'load-path \"./test\") (require 'ert) (load \"test/test-end-to-end.el\") (ert-run-tests-batch-and-exit 'greger-end-to-end-test-thinking-toggle))"
+</tool.toolu_01AdBAHWeZtQeJLTcpxWcrXQ>
+
+# TOOL RESULT
+
+ID: toolu_01AdBAHWeZtQeJLTcpxWcrXQ
+
+<tool.toolu_01AdBAHWeZtQeJLTcpxWcrXQ>
+Command executed successfully:
+Loading /Users/andreas/projects/greger.el/test/test-end-to-end.el (source)...
+Source file ‘/opt/homebrew/Cellar/emacs-plus@29/29.0.90/share/emacs/29.0.91/lisp/treesit.el’ newer than byte-compiled file; using older file
+Source file ‘/opt/homebrew/Cellar/emacs-plus@29/29.0.90/share/emacs/29.0.91/lisp/net/eww.el’ newer than byte-compiled file; using older file
+Running 1 tests (2025-06-14 14:21:40+0200, selector ‘greger-end-to-end-test-thinking-toggle’)
+Thinking enabled (budget: 4096 tokens)
+Thinking disabled
+   passed  1/1  greger-end-to-end-test-thinking-toggle (0.016556 sec)
+
+Ran 1 tests, 1 results as expected, 0 unexpected (2025-06-14 14:21:40+0200, 0.016631 sec)
+
+
+</tool.toolu_01AdBAHWeZtQeJLTcpxWcrXQ>
+
+# TOOL USE
+
+Name: shell-command
+ID: toolu_01NBKmTMipHWTteVZKLQREqL
+
+## command
+
+<tool.toolu_01NBKmTMipHWTteVZKLQREqL>
+cd ~/projects/greger.el && emacs --batch --eval "(progn (add-to-list 'load-path \".\") (add-to-list 'load-path \"./test\") (require 'ert) (load \"test/test-end-to-end.el\") (ert-run-tests-batch-and-exit 'greger-end-to-end-test-thinking-mode-line))"
+</tool.toolu_01NBKmTMipHWTteVZKLQREqL>
+
+# TOOL RESULT
+
+ID: toolu_01NBKmTMipHWTteVZKLQREqL
+
+<tool.toolu_01NBKmTMipHWTteVZKLQREqL>
+Command executed successfully:
+Loading /Users/andreas/projects/greger.el/test/test-end-to-end.el (source)...
+Source file ‘/opt/homebrew/Cellar/emacs-plus@29/29.0.90/share/emacs/29.0.91/lisp/treesit.el’ newer than byte-compiled file; using older file
+Source file ‘/opt/homebrew/Cellar/emacs-plus@29/29.0.90/share/emacs/29.0.91/lisp/net/eww.el’ newer than byte-compiled file; using older file
+Running 1 tests (2025-06-14 14:21:46+0200, selector ‘greger-end-to-end-test-thinking-mode-line’)
+   passed  1/1  greger-end-to-end-test-thinking-mode-line (0.012937 sec)
+
+Ran 1 tests, 1 results as expected, 0 unexpected (2025-06-14 14:21:46+0200, 0.013022 sec)
+
+
+</tool.toolu_01NBKmTMipHWTteVZKLQREqL>
+
+# ASSISTANT
+
+Perfect! All the tests are working. Let me create a test runner script to make it easy to run just the thinking tests:
+
+# TOOL USE
+
+Name: write-new-file
+ID: toolu_018K5Yr8n48bL6DBrFPcbeZr
+
+## file-path
+
+<tool.toolu_018K5Yr8n48bL6DBrFPcbeZr>
+~/projects/greger.el/test/run-thinking-tests.el
+</tool.toolu_018K5Yr8n48bL6DBrFPcbeZr>
+
+## contents
+
+<tool.toolu_018K5Yr8n48bL6DBrFPcbeZr>
+#!/usr/bin/env emacs --script
+;;; run-thinking-tests.el --- Run thinking-related tests for greger -*- lexical-binding: t -*-
+
+;;; Commentary:
+;; This script runs all thinking-related tests for greger.
+;; Usage: emacs --script run-thinking-tests.el
+
+;;; Code:
+
+(add-to-list 'load-path "..")
+(add-to-list 'load-path ".")
+(require 'ert)
+
+;; Load test files
+(load "test-greger-client.el")
+(load "test-end-to-end.el")
+
+(message "Running thinking-related tests...")
+(message "")
+
+;; Run unit tests
+(message "=== Unit Tests ===")
+(ert-run-tests-batch-and-exit '(tag thinking))
+
+;;; run-thinking-tests.el ends here
+</tool.toolu_018K5Yr8n48bL6DBrFPcbeZr>
+
+## git-commit-message
+
+<tool.toolu_018K5Yr8n48bL6DBrFPcbeZr>
+Add test runner script for thinking tests
+</tool.toolu_018K5Yr8n48bL6DBrFPcbeZr>
+
+# TOOL RESULT
+
+ID: toolu_018K5Yr8n48bL6DBrFPcbeZr
+
+<tool.toolu_018K5Yr8n48bL6DBrFPcbeZr>
+Loading...
+</tool.toolu_018K5Yr8n48bL6DBrFPcbeZr>
