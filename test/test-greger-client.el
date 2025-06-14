@@ -201,6 +201,61 @@
       (should (stringp data))
       (should (json-read-from-string data)))))
 
-(provide 'test-end-to-end)
+(ert-deftest greger-client-test-thinking-configuration ()
+  "Test that thinking configuration is properly added to requests."
+  :tags '(unit thinking)
 
-;;; test-end-to-end.el ends here
+  ;; Test thinking enabled
+  (let ((test-model 'claude-sonnet-4-20250514)
+        (test-dialog '(((role . "user") (content . "Hello"))))
+        (thinking-budget 2048))
+    
+    (let ((request-data (greger-client--build-data test-model test-dialog nil nil thinking-budget)))
+      (should (stringp request-data))
+      (let ((parsed (json-read-from-string request-data)))
+        ;; Should have thinking configuration
+        (should (assq 'thinking parsed))
+        (let ((thinking-config (alist-get 'thinking parsed)))
+          (should (string= (alist-get 'type thinking-config) "enabled"))
+          (should (= (alist-get 'budget_tokens thinking-config) 2048)))
+        
+        ;; Max tokens should include thinking budget
+        (let ((max-tokens (alist-get 'max_tokens parsed)))
+          (should (= max-tokens (+ 8000 2048)))))))
+
+  ;; Test thinking disabled
+  (let ((test-model 'claude-sonnet-4-20250514)
+        (test-dialog '(((role . "user") (content . "Hello"))))
+        (thinking-budget 0))
+    
+    (let ((request-data (greger-client--build-data test-model test-dialog nil nil thinking-budget)))
+      (should (stringp request-data))
+      (let ((parsed (json-read-from-string request-data)))
+        ;; Should have thinking configuration set to disabled
+        (should (assq 'thinking parsed))
+        (let ((thinking-config (alist-get 'thinking parsed)))
+          (should (string= (alist-get 'type thinking-config) "disabled"))
+          (should (not (alist-get 'budget_tokens thinking-config))))
+        
+        ;; Max tokens should be base amount only
+        (let ((max-tokens (alist-get 'max_tokens parsed)))
+          (should (= max-tokens 8000))))))
+
+  ;; Test no thinking parameter
+  (let ((test-model 'claude-sonnet-4-20250514)
+        (test-dialog '(((role . "user") (content . "Hello"))))
+        (thinking-budget nil))
+    
+    (let ((request-data (greger-client--build-data test-model test-dialog nil nil thinking-budget)))
+      (should (stringp request-data))
+      (let ((parsed (json-read-from-string request-data)))
+        ;; Should not have thinking configuration
+        (should (not (assq 'thinking parsed)))
+        
+        ;; Max tokens should be base amount only
+        (let ((max-tokens (alist-get 'max_tokens parsed)))
+          (should (= max-tokens 8000)))))))
+
+(provide 'test-greger-client)
+
+;;; test-greger-client.el ends here
