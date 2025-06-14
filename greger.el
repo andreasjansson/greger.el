@@ -371,7 +371,7 @@ May order 4,000 pounds of meat."
          (server-tools (when greger-server-tools
                           (greger-server-tools-get-schemas greger-server-tools)))
          (model greger-model)
-         (request-data (greger-client--build-data model dialog tools server-tools))
+         (request-data (greger-client--build-data model dialog tools server-tools greger-thinking-budget))
          (parsed-json (json-read-from-string request-data)))
 
     (with-temp-file filename
