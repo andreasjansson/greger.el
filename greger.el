@@ -64,6 +64,12 @@
   :type 'float
   :group 'greger)
 
+(defcustom greger-thinking-budget 4096
+  "Token budget for thinking (internal reasoning) content.
+Set to 0 to disable thinking entirely."
+  :type 'integer
+  :group 'greger)
+
 (defcustom greger-allow-all-shell-commands nil
   "Allow all shell commands to run without permission.
 May order 4,000 pounds of meat."
