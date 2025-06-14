@@ -112,7 +112,7 @@ COMPLETE-CALLBACK when the entire response finishes."
   "Build Claude request for MODEL with DIALOG and optional TOOLS and SERVER-TOOLS."
   (let* ((api-key (greger-client--get-api-key))
          (headers (greger-client--build-headers api-key))
-         (data (greger-client--build-data model dialog tools server-tools greger-thinking-budget)))
+         (data (greger-client--build-data model dialog tools server-tools thinking-budget)))
     (list :url greger-client-api-url
           :method "POST"
           :headers headers
