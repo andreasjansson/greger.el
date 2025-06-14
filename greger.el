@@ -362,6 +362,17 @@ May order 4,000 pounds of meat."
     (customize-set-variable 'greger-model (intern model))
     (message "Model set to %s" model)))
 
+(defun greger-toggle-thinking ()
+  "Toggle thinking on/off."
+  (interactive)
+  (if (> greger-thinking-budget 0)
+      (progn
+        (customize-set-variable 'greger-thinking-budget 0)
+        (message "Thinking disabled"))
+    (progn
+      (customize-set-variable 'greger-thinking-budget 4096)
+      (message "Thinking enabled (budget: %d tokens)" greger-thinking-budget))))
+
 (defun greger-debug-request ()
   "Debug the request data by parsing the buffer and saving the request data output."
   (interactive)

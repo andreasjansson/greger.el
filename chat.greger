@@ -3600,5 +3600,67 @@ Add keybinding for toggling thinking
 ID: toolu_0156EDov4mXEap2ZrbAARgaj
 
 <tool.toolu_0156EDov4mXEap2ZrbAARgaj>
-Loading...
+Successfully replaced content in /Users/andreas/projects/greger.el/greger.el. Successfully staged 2 file(s) and committed with message: Add keybinding for toggling thinking
 </tool.toolu_0156EDov4mXEap2ZrbAARgaj>
+
+# ASSISTANT
+
+Now let me add the toggle function:
+
+# TOOL USE
+
+Name: str-replace
+ID: toolu_017ugUakZhk91Fnj6bU3TtpE
+
+## file-path
+
+<tool.toolu_017ugUakZhk91Fnj6bU3TtpE>
+~/projects/greger.el/greger.el
+</tool.toolu_017ugUakZhk91Fnj6bU3TtpE>
+
+## original-content
+
+<tool.toolu_017ugUakZhk91Fnj6bU3TtpE>
+(defun greger-set-model ()
+  "Set the current model."
+  (interactive)
+  (let ((model (completing-read "Choose model: " greger-available-models nil t)))
+    (customize-set-variable 'greger-model (intern model))
+    (message "Model set to %s" model)))
+</tool.toolu_017ugUakZhk91Fnj6bU3TtpE>
+
+## new-content
+
+<tool.toolu_017ugUakZhk91Fnj6bU3TtpE>
+(defun greger-set-model ()
+  "Set the current model."
+  (interactive)
+  (let ((model (completing-read "Choose model: " greger-available-models nil t)))
+    (customize-set-variable 'greger-model (intern model))
+    (message "Model set to %s" model)))
+
+(defun greger-toggle-thinking ()
+  "Toggle thinking on/off."
+  (interactive)
+  (if (> greger-thinking-budget 0)
+      (progn
+        (customize-set-variable 'greger-thinking-budget 0)
+        (message "Thinking disabled"))
+    (progn
+      (customize-set-variable 'greger-thinking-budget 4096)
+      (message "Thinking enabled (budget: %d tokens)" greger-thinking-budget))))
+</tool.toolu_017ugUakZhk91Fnj6bU3TtpE>
+
+## git-commit-message
+
+<tool.toolu_017ugUakZhk91Fnj6bU3TtpE>
+Add function to toggle thinking on/off
+</tool.toolu_017ugUakZhk91Fnj6bU3TtpE>
+
+# TOOL RESULT
+
+ID: toolu_017ugUakZhk91Fnj6bU3TtpE
+
+<tool.toolu_017ugUakZhk91Fnj6bU3TtpE>
+Loading...
+</tool.toolu_017ugUakZhk91Fnj6bU3TtpE>
