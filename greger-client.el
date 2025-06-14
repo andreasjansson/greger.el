@@ -323,14 +323,23 @@ Returns nil if no error found or if OUTPUT is not valid JSON."
      ;; {"type":"content_block_delta","index":0,"delta":{"type":"text_delta","text":"I'll search for the"}}
      ((string= delta-type "text_delta")
       (let ((text (alist-get 'text delta))
+            (block-type (alist-get 'type block))
             (has-citations (alist-get 'citations block)))
-        (setf (alist-get 'text block)
-              (concat (alist-get 'text block) text))
-        ;; Only call text callback for live display if this block doesn't have citations
-        ;; Citation blocks should not stream text - they'll be handled in block-stop
-        (unless has-citations
-          (when-let ((callback (greger-client-state-text-delta-callback state)))
-           (funcall callback text)))))
+        (if (string= block-type "thinking")
+            ;; Handle thinking blocks
+            (progn
+              (setf (alist-get 'thinking block)
+                    (concat (alist-get 'thinking block) text))
+              (when-let ((callback (greger-client-state-text-delta-callback state)))
+                (funcall callback text)))
+          ;; Handle regular text blocks
+          (setf (alist-get 'text block)
+                (concat (alist-get 'text block) text))
+          ;; Only call text callback for live display if this block doesn't have citations
+          ;; Citation blocks should not stream text - they'll be handled in block-stop
+          (unless has-citations
+            (when-let ((callback (greger-client-state-text-delta-callback state)))
+             (funcall callback text))))))
 
      ;; tool_use and server_tool_use
      ;; {"type":"content_block_delta","index":1,"delta":{"type":"input_json_delta","partial_json":""}}
