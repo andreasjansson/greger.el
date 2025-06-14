@@ -194,6 +194,13 @@ THINKING-BUDGET specifies the token budget for thinking content."
         (push `("tools" . ,all-tools) request-data)
         (push `("tool_choice" . (("type" . "auto"))) request-data)))
 
+    ;; Add thinking configuration if present
+    (when thinking-budget
+      (if (> thinking-budget 0)
+          (push `("thinking" . (("type" . "enabled")
+                                ("budget_tokens" . ,thinking-budget))) request-data)
+        (push `("thinking" . (("type" . "disabled"))) request-data)))
+
     (json-encode request-data)))
 
 ;;; Stream processing
