@@ -264,13 +264,10 @@ May order 4,000 pounds of meat."
 (defun greger-install-grammar ()
   "Install greger tree-sitter grammar."
   (interactive)
-  ;; (add-to-list 'treesit-language-source-alist '(greger "https://github.com/andreasjansson/greger-grammar" "main"))
-  ;; (treesit-install-language-grammar 'greger)
-  (let ((grammar-dir "/Users/andreas/projects/greger.el/grammar"))
-    (add-to-list 'treesit-extra-load-path grammar-dir))
+  (add-to-list 'treesit-language-source-alist '(greger "https://github.com/andreasjansson/greger-grammar" "main"))
+  (treesit-install-language-grammar 'greger)
   (unless (treesit-ready-p 'greger)
-    (error "Tree-sitter for Greger isn't available"))
-  )
+    (error "Tree-sitter for Greger isn't available")))
 
 ;;;###autoload
 (define-derived-mode greger-mode prog-mode "Greger"
