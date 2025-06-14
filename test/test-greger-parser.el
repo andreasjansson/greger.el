@@ -476,8 +476,7 @@ print(\"# ASSISTANT also preserved\")
         (should (string-match-p "# ASSISTANT" content-param))
         (should (string-match-p "```python" content-param))))))
 
-;; Tests for safe-shell-commands
-(ert-deftest greger-parser-test-safe-shell-commands ()
+(ert-deftest greger-parser-test-safe-shell-commands-basic ()
   "Test safe-shell-commands with other system content."
   (let ((markdown "# SYSTEM
 
