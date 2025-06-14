@@ -10,7 +10,7 @@
       (tools '())
       (server-tools '()))
   
-  (let ((request-data (greger-client--build-data model dialog tools server-tools greger-thinking-budget)))
+  (let ((request-data (greger-client--build-data model dialog tools server-tools nil)))
     (let ((parsed-json (json-read-from-string request-data)))
       (message "Request has thinking: %s" (assq 'thinking parsed-json))
       (when (assq 'thinking parsed-json)

@@ -3429,5 +3429,75 @@ Test thinking disabled case
 ID: toolu_01XGLNzsJTna2eqH2HAqw4ps
 
 <tool.toolu_01XGLNzsJTna2eqH2HAqw4ps>
-Loading...
+Successfully replaced content in /Users/andreas/projects/greger.el/test-thinking.el. Successfully staged 2 file(s) and committed with message: Test thinking disabled case
 </tool.toolu_01XGLNzsJTna2eqH2HAqw4ps>
+
+# TOOL USE
+
+Name: shell-command
+ID: toolu_011HEbn4HttiMdMTYV2cgNSg
+
+## command
+
+<tool.toolu_011HEbn4HttiMdMTYV2cgNSg>
+cd ~/projects/greger.el && emacs --batch --eval "(add-to-list 'load-path \".\")" -l test-thinking.el
+</tool.toolu_011HEbn4HttiMdMTYV2cgNSg>
+
+# TOOL RESULT
+
+ID: toolu_011HEbn4HttiMdMTYV2cgNSg
+
+<tool.toolu_011HEbn4HttiMdMTYV2cgNSg>
+Command executed successfully:
+Source file ‘/opt/homebrew/Cellar/emacs-plus@29/29.0.90/share/emacs/29.0.91/lisp/treesit.el’ newer than byte-compiled file; using older file
+Source file ‘/opt/homebrew/Cellar/emacs-plus@29/29.0.90/share/emacs/29.0.91/lisp/net/eww.el’ newer than byte-compiled file; using older file
+Request has thinking: (thinking (type . disabled))
+Thinking config: ((type . disabled))
+Thinking type: disabled
+Thinking budget: nil
+Max tokens: 8000 (should be 8000)
+
+</tool.toolu_011HEbn4HttiMdMTYV2cgNSg>
+
+# ASSISTANT
+
+Perfect! When the thinking budget is 0, the thinking is properly disabled and the max tokens remains at the base value.
+
+Let me also test the case where thinking-budget is nil to make sure it doesn't break:
+
+# TOOL USE
+
+Name: str-replace
+ID: toolu_01XjHJcEBYvYXrQHduCcRgdi
+
+## file-path
+
+<tool.toolu_01XjHJcEBYvYXrQHduCcRgdi>
+~/projects/greger.el/test-thinking.el
+</tool.toolu_01XjHJcEBYvYXrQHduCcRgdi>
+
+## original-content
+
+<tool.toolu_01XjHJcEBYvYXrQHduCcRgdi>
+  (let ((request-data (greger-client--build-data model dialog tools server-tools greger-thinking-budget)))
+</tool.toolu_01XjHJcEBYvYXrQHduCcRgdi>
+
+## new-content
+
+<tool.toolu_01XjHJcEBYvYXrQHduCcRgdi>
+  (let ((request-data (greger-client--build-data model dialog tools server-tools nil)))
+</tool.toolu_01XjHJcEBYvYXrQHduCcRgdi>
+
+## git-commit-message
+
+<tool.toolu_01XjHJcEBYvYXrQHduCcRgdi>
+Test nil thinking budget case
+</tool.toolu_01XjHJcEBYvYXrQHduCcRgdi>
+
+# TOOL RESULT
+
+ID: toolu_01XjHJcEBYvYXrQHduCcRgdi
+
+<tool.toolu_01XjHJcEBYvYXrQHduCcRgdi>
+Loading...
+</tool.toolu_01XjHJcEBYvYXrQHduCcRgdi>
