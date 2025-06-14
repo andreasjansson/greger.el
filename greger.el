@@ -559,7 +559,6 @@ be displayed as they arrive rather than waiting for completion."
       (greger--append-text state (concat "\n\n" (greger--tool-placeholder tool-id)))))
    ((string= type "thinking")
     (let ((signature (alist-get 'signature content-block)))
-      ;; TODO: remove debug
       (greger--insert-thinking-signature state signature))))
 
   ;; Update buffer state after client completes
