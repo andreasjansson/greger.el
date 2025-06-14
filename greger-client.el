@@ -173,11 +173,12 @@ THINKING-BUDGET specifies the token budget for thinking content."
                               first-content-item))))))))
 
     ;; Build base request
-    (setq request-data `(("model" . ,(symbol-name model))
-                        ("messages" . ,user-messages)
-                        ;("max_tokens" . 32000) ;; TODO: make this configurable
-                        ("max_tokens" . 8000)
-                        ("stream" . t)))
+    (let ((max-tokens (+ 8000 (or thinking-budget 0))))
+      (setq request-data `(("model" . ,(symbol-name model))
+                          ("messages" . ,user-messages)
+                          ;("max_tokens" . 32000) ;; TODO: make this configurable
+                          ("max_tokens" . ,max-tokens)
+                          ("stream" . t))))
 
     ;; Add system message if present
     (when system-message
