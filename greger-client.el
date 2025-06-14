@@ -71,7 +71,7 @@ COMPLETE-CALLBACK when the entire response finishes."
 
   (let* ((output-buffer (or buffer (current-buffer)))
          (undo-handle (prepare-change-group output-buffer))
-         (request-spec (greger-client--build-request model dialog tools server-tools))
+         (request-spec (greger-client--build-request model dialog tools server-tools thinking-budget))
          (restore-callback (lambda (state)
                              (let ((buffer (greger-client-state-output-buffer state)))
                                (when (buffer-live-p buffer)
