@@ -132,9 +132,10 @@ COMPLETE-CALLBACK when the entire response finishes."
     ("anthropic-version" . "2023-06-01")
     ("anthropic-beta" . "token-efficient-tools-2025-02-19")))
 
-(defun greger-client--build-data (model dialog &optional tools server-tools)
+(defun greger-client--build-data (model dialog &optional tools server-tools thinking-budget)
   "Build request data for Claude MODEL with DIALOG and optional tools.
-TOOLS and SERVER-TOOLS add function calling capabilities to the request."
+TOOLS and SERVER-TOOLS add function calling capabilities to the request.
+THINKING-BUDGET specifies the token budget for thinking content."
   (let ((system-message nil)
         (user-messages ())
         (request-data nil))
