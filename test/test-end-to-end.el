@@ -383,6 +383,118 @@
       (when (and greger-buffer (buffer-live-p greger-buffer))
         (kill-buffer greger-buffer)))))
 
+(ert-deftest greger-end-to-end-test-thinking-functionality ()
+  "Test thinking functionality works end-to-end."
+  :tags '(end-to-end thinking api)
+
+  (let ((greger-buffer nil)
+        (original-thinking-budget greger-thinking-budget))
+    
+    (unwind-protect
+        (progn
+          ;; Enable thinking with a moderate budget
+          (setq greger-thinking-budget 1024)
+          
+          ;; Create a new greger buffer
+          (setq greger-buffer (generate-new-buffer "*greger-test-thinking*"))
+          (with-current-buffer greger-buffer
+            (greger-mode)
+            
+            ;; Insert a prompt that should trigger thinking
+            (insert "# SYSTEM\n\nYou are a helpful assistant.\n\n")
+            (insert "# USER\n\n")
+            (insert "Think step-by-step about why 2+2=4, then give me a brief explanation. ")
+            (insert "Use your thinking to work through the mathematical concepts first.\n\n")
+            
+            ;; Run greger-buffer to get response
+            (greger-buffer)
+            
+            ;; Wait for response to complete
+            (should (greger-test-wait-for-response greger-buffer greger-test-timeout))
+            
+            ;; Check buffer content
+            (let ((content (buffer-string)))
+              ;; Should have assistant response
+              (should (string-match-p "# ASSISTANT" content))
+              
+              ;; Should have thinking content if Claude used it
+              ;; Note: Claude may or may not use thinking, so we test both cases
+              (if (string-match-p "# THINKING" content)
+                  (progn
+                    ;; If thinking is present, verify it's structured correctly
+                    (should (string-match-p "# THINKING\n\n\\(.\\|\n\\)+# ASSISTANT" content))
+                    ;; Thinking should come before the assistant response
+                    (let ((thinking-pos (string-match "# THINKING" content))
+                          (assistant-pos (string-match "# ASSISTANT" content)))
+                      (should (< thinking-pos assistant-pos))))
+                ;; If no thinking, that's also valid - Claude doesn't always use it
+                (message "Claude chose not to use thinking for this prompt"))
+              
+              ;; Should have some kind of mathematical explanation
+              (should (string-match-p "\\(2\\+2\\|four\\|addition\\|math\\)" content))
+              
+              ;; Should end with user prompt for next interaction
+              (should (string-match-p "# USER\n\n$" content)))))
+      
+      ;; Cleanup
+      (progn
+        (setq greger-thinking-budget original-thinking-budget)
+        (when (and greger-buffer (buffer-live-p greger-buffer))
+          (kill-buffer greger-buffer))))))
+
+(ert-deftest greger-end-to-end-test-thinking-toggle ()
+  "Test thinking toggle functionality."
+  :tags '(end-to-end thinking)
+
+  (let ((original-thinking-budget greger-thinking-budget))
+    
+    (unwind-protect
+        (progn
+          ;; Start with thinking disabled
+          (setq greger-thinking-budget 0)
+          
+          ;; Toggle should enable thinking
+          (greger-toggle-thinking)
+          (should (> greger-thinking-budget 0))
+          (should (= greger-thinking-budget 4096)) ; Default budget
+          
+          ;; Toggle again should disable thinking
+          (greger-toggle-thinking)
+          (should (= greger-thinking-budget 0)))
+      
+      ;; Cleanup
+      (setq greger-thinking-budget original-thinking-budget))))
+
+(ert-deftest greger-end-to-end-test-thinking-mode-line ()
+  "Test thinking status appears in mode line."
+  :tags '(end-to-end thinking ui)
+
+  (let ((greger-buffer nil)
+        (original-thinking-budget greger-thinking-budget))
+    
+    (unwind-protect
+        (progn
+          ;; Create a greger buffer
+          (setq greger-buffer (generate-new-buffer "*greger-test-mode-line*"))
+          (with-current-buffer greger-buffer
+            (greger-mode)
+            
+            ;; Test with thinking enabled
+            (setq greger-thinking-budget 2048)
+            (let ((mode-line-info (greger--mode-line-info)))
+              (should (string-match-p "\\[T:2048\\]" mode-line-info)))
+            
+            ;; Test with thinking disabled
+            (setq greger-thinking-budget 0)
+            (let ((mode-line-info (greger--mode-line-info)))
+              (should (not (string-match-p "\\[T:" mode-line-info))))))
+      
+      ;; Cleanup
+      (progn
+        (setq greger-thinking-budget original-thinking-budget)
+        (when (and greger-buffer (buffer-live-p greger-buffer))
+          (kill-buffer greger-buffer))))))
+
 (provide 'test-end-to-end)
 
 ;;; test-end-to-end.el ends here
