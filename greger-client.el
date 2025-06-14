@@ -108,8 +108,8 @@ COMPLETE-CALLBACK when the entire response finishes."
 
 ;;; Request building
 
-(defun greger-client--build-request (model dialog &optional tools server-tools)
-  "Build Claude request for MODEL with DIALOG and optional TOOLS and SERVER-TOOLS."
+(defun greger-client--build-request (model dialog &optional tools server-tools thinking-budget)
+  "Build Claude request for MODEL with DIALOG and optional tools and THINKING-BUDGET."
   (let* ((api-key (greger-client--get-api-key))
          (headers (greger-client--build-headers api-key))
          (data (greger-client--build-data model dialog tools server-tools thinking-budget)))
