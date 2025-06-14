@@ -263,6 +263,30 @@ Comparison is order-independent."
   "Test roundtrip for server-tool-use-string-result corpus case."
   (greger-parser-test--roundtrip "server-tool-use-string-result"))
 
+(ert-deftest greger-parser-test-code-block-nested-headers ()
+  "Test roundtrip for code-block-nested-headers corpus case."
+  (greger-parser-test--roundtrip "code-block-nested-headers"))
+
+(ert-deftest greger-parser-test-inline-code ()
+  "Test roundtrip for inline-code corpus case."
+  (greger-parser-test--roundtrip "inline-code"))
+
+(ert-deftest greger-parser-test-safe-shell-commands ()
+  "Test roundtrip for safe-shell-commands corpus case."
+  (greger-parser-test--roundtrip "safe-shell-commands"))
+
+(ert-deftest greger-parser-test-text-with-markdown-headings ()
+  "Test roundtrip for text-with-markdown-headings corpus case."
+  (greger-parser-test--roundtrip "text-with-markdown-headings"))
+
+(ert-deftest greger-parser-test-triple-hash ()
+  "Test roundtrip for triple-hash corpus case."
+  (greger-parser-test--roundtrip "triple-hash"))
+
+(ert-deftest greger-parser-test-untagged-content ()
+  "Test roundtrip for untagged-content corpus case."
+  (greger-parser-test--roundtrip "untagged-content"))
+
 (ert-deftest greger-parser-test-tool-use-parsing ()
   "Test specific tool use parsing functionality."
   (let ((tool-use-markdown "# TOOL USE
