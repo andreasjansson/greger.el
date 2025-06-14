@@ -34,6 +34,10 @@
 (require 'greger-web)
 
 ;; Register all tools using the macro
+(greger-register-server-tool "web_search"
+    :type "web_search_20250305"
+    :max_uses 5)
+
 (greger-register-tool "read-file"
   :description "Read the contents of a file from the filesystem"
   :properties '((path . ((type . "string")
@@ -57,7 +61,7 @@
                          (default . ".")))
                 (exclude-directories-recursive . ((type . "array")
                                                    (items . ((type . "string")))
-                                                   (description . "List of directory names to exclude when recursively listing files. If you wish to exclude no files, pass in a list with an empty string, e.g. [\"\"].")
+                                                   (description . "List of directory names to exclude when recursively listing files.")
                                                    (default . (".git" "__pycache__"))))
                 (recursive . ((type . "boolean")
                               (description . "Whether to list files recursively")
@@ -584,6 +588,8 @@ If EXCLUDE-DIRECTORIES-RECURSIVE is an empty vector, exclude nothing."
 CALLBACK is called with (result error) when search completes.
 CASE-SENSITIVE, FILE-TYPE, CONTEXT-LINES and MAX-RESULTS are optional."
   (cond
+
+   ;; TODO: use utility functions for handling bad types like we do with sync methods
    ((not (stringp pattern))
     (funcall callback nil "Pattern must be a string"))
 
@@ -595,6 +601,10 @@ CASE-SENSITIVE, FILE-TYPE, CONTEXT-LINES and MAX-RESULTS are optional."
 
    (t
     (let ((expanded-path (expand-file-name path)))
+
+      ;; TODO: for some reason pattern always tends to end with ", no idea why!
+      (setq pattern (string-trim-right pattern "\""))
+
       (if (not (file-exists-p expanded-path))
           (funcall callback nil (format "Path does not exist: %s" expanded-path))
 
@@ -648,6 +658,11 @@ If BUFFER is provided, it will be staged and committed along with the new file."
     ;; Check if file already exists
     (when (file-exists-p expanded-path)
       (error "File already exists: %s" expanded-path))
+
+    (when (string-suffix-p ".el" expanded-path)
+      (let ((balance (greger-stdlib--count-paren-balance contents)))
+        (unless (= balance 0)
+          (error "Unbalanced parentheses in Emacs Lisp content: contents has balance %d. Must be 0. Try again!" balance))))
 
     ;; Check if parent directory exists, if not create it
     (let ((parent-dir (file-name-directory expanded-path)))
@@ -854,7 +869,7 @@ For Emacs Lisp files (.el), checks that parentheses balance is maintained."
       (let ((orig-balance (greger-stdlib--count-paren-balance original-content))
             (new-balance (greger-stdlib--count-paren-balance new-content)))
         (unless (= orig-balance new-balance)
-          (error "Parentheses balance mismatch in Emacs Lisp file: original has balance %d, new has balance %d. They must be equal"
+          (error "Parentheses balance mismatch in Emacs Lisp content: original has balance %d, new has balance %d. They must be equal. Try again!"
                  orig-balance new-balance))))
 
     (with-current-buffer (find-file-noselect expanded-path)
@@ -1056,8 +1071,10 @@ Returns a cancel function that can interrupt the command execution."
           (funcall callback nil (format "Working directory path is not a directory: %s" expanded-work-dir))
           (lambda () nil))
 
-         ((let ((safe-commands (plist-get metadata :safe-shell-commands)))
-            (and (not (member command safe-commands))
+         ((let ((safe-commands (plist-get metadata :safe-shell-commands))
+                (allow-all-shell-commands (plist-get metadata :allow-all-shell-commands)))
+            (and (not allow-all-shell-commands)
+                 (not (member command safe-commands))
                  (not (y-or-n-p (format "Execute shell command: '%s' in directory '%s'? "
                                        command expanded-work-dir)))))
           (funcall callback nil "Shell command execution cancelled by user")

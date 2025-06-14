@@ -46,54 +46,48 @@
 
 (cl-defstruct greger-client-state
   accumulated-output
-  complete-response
-  parsed-content-blocks
+  content-blocks
   process
-  output-buffer
+  output-buffer ;; used for undo handle
   undo-handle
-  text-start-callback
-  text-callback
+  block-start-callback
+  text-delta-callback
+  block-stop-callback
   complete-callback
-  cancel-callback
   restore-callback)
 
 ;;; Public API
 
-(cl-defun greger-client-stream (&key model dialog tools buffer text-start-callback text-callback complete-callback cancel-callback)
-  "Send streaming request for MODEL with DIALOG and TOOLS.
-Text is inserted into BUFFER.
-TEXT-START-CALLBACK is called when text streaming starts.
-TEXT-CALLBACK is called for each text chunk with (text).
-COMPLETE-CALLBACK is called when done with the parsed content blocks array.
-CANCEL-CALLBACK is called if cancelled.
-BUFFER defaults to current buffer if not specified.
-
-MODEL should be one of the supported Claude models:
-claude-sonnet-4-20250514 or claude-opus-4-20250514."
+(cl-defun greger-client-stream (&key model dialog tools server-tools buffer block-start-callback text-delta-callback block-stop-callback complete-callback)
+  "Stream AI responses with callbacks for handling content types and updates.
+MODEL specifies which AI model to use, DIALOG contains the conversation,
+TOOLS and SERVER-TOOLS enable function calling, BUFFER is the output target.
+BLOCK-START-CALLBACK is called when content blocks begin, TEXT-DELTA-CALLBACK
+for incremental text, BLOCK-STOP-CALLBACK when blocks complete, and
+COMPLETE-CALLBACK when the entire response finishes."
   (unless (memq model greger-client-supported-models)
     (error "Unsupported model: %s. Supported models: %s"
            model greger-client-supported-models))
 
   (let* ((output-buffer (or buffer (current-buffer)))
          (undo-handle (prepare-change-group output-buffer))
-         (request-spec (greger-client--build-request model dialog tools))
+         (request-spec (greger-client--build-request model dialog tools server-tools))
          (restore-callback (lambda (state)
-                             (with-current-buffer (greger-client-state-output-buffer state)
-                               (undo-amalgamate-change-group (greger-client-state-undo-handle state))
-                               (accept-change-group (greger-client-state-undo-handle state)))))
-         (wrapped-complete-callback (lambda (parsed-blocks _state)
-                                      (when complete-callback
-                                        (funcall complete-callback parsed-blocks))))
+                             (let ((buffer (greger-client-state-output-buffer state)))
+                               (when (buffer-live-p buffer)
+                                 (with-current-buffer buffer
+                                   (undo-amalgamate-change-group (greger-client-state-undo-handle state))
+                                   (accept-change-group (greger-client-state-undo-handle state)))))))
+
          (process (greger-client--start-curl-process request-spec))
          (state (make-greger-client-state
                  :accumulated-output ""
-                 :complete-response ""
-                 :parsed-content-blocks '()
+                 :content-blocks '()
                  :process process
-                 :text-start-callback text-start-callback
-                 :text-callback text-callback
-                 :complete-callback wrapped-complete-callback
-                 :cancel-callback cancel-callback
+                 :block-start-callback block-start-callback
+                 :text-delta-callback text-delta-callback
+                 :block-stop-callback block-stop-callback
+                 :complete-callback complete-callback
                  :restore-callback restore-callback
                  :output-buffer output-buffer
                  :undo-handle undo-handle)))
@@ -114,11 +108,11 @@ claude-sonnet-4-20250514 or claude-opus-4-20250514."
 
 ;;; Request building
 
-(defun greger-client--build-request (model dialog &optional tools)
-  "Build Claude request for MODEL with DIALOG and optional TOOLS."
+(defun greger-client--build-request (model dialog &optional tools server-tools)
+  "Build Claude request for MODEL with DIALOG and optional TOOLS and SERVER-TOOLS."
   (let* ((api-key (greger-client--get-api-key))
          (headers (greger-client--build-headers api-key))
-         (data (greger-client--build-data model dialog tools)))
+         (data (greger-client--build-data model dialog tools server-tools)))
     (list :url greger-client-api-url
           :method "POST"
           :headers headers
@@ -138,8 +132,9 @@ claude-sonnet-4-20250514 or claude-opus-4-20250514."
     ("anthropic-version" . "2023-06-01")
     ("anthropic-beta" . "token-efficient-tools-2025-02-19")))
 
-(defun greger-client--build-data (model dialog &optional tools)
-  "Build request data for Claude MODEL with DIALOG and optional TOOLS."
+(defun greger-client--build-data (model dialog &optional tools server-tools)
+  "Build request data for Claude MODEL with DIALOG and optional tools.
+TOOLS and SERVER-TOOLS add function calling capabilities to the request."
   (let ((system-message nil)
         (user-messages ())
         (request-data nil))
@@ -179,7 +174,8 @@ claude-sonnet-4-20250514 or claude-opus-4-20250514."
     ;; Build base request
     (setq request-data `(("model" . ,(symbol-name model))
                         ("messages" . ,user-messages)
-                        ("max_tokens" . 64000)
+                        ;("max_tokens" . 32000) ;; TODO: make this configurable
+                        ("max_tokens" . 8000)
                         ("stream" . t)))
 
     ;; Add system message if present
@@ -187,9 +183,15 @@ claude-sonnet-4-20250514 or claude-opus-4-20250514."
       (push `("system" . ,system-message) request-data))
 
     ;; Add tools if present
-    (when tools
-      (push `("tools" . ,tools) request-data)
-      (push `("tool_choice" . (("type" . "auto"))) request-data))
+    (when (or tools server-tools)
+      ;; TODO: why are we parsing server tools here?
+      (let* ((parsed-server-tools (when server-tools
+                                    (mapcar (lambda (json-string)
+                                              (json-parse-string json-string :object-type 'alist))
+                                            server-tools)))
+             (all-tools (append (or tools '()) (or parsed-server-tools '()))))
+        (push `("tools" . ,all-tools) request-data)
+        (push `("tool_choice" . (("type" . "auto"))) request-data)))
 
     (json-encode request-data)))
 
@@ -211,20 +213,20 @@ Returns nil if no error found or if OUTPUT is not valid JSON."
 
 (defun greger-client--process-output-chunk (output state)
   "Process a chunk of OUTPUT using STATE."
+
+  ;; TODO: remove debug
+  ;(message "output: %s" output)
+
   ;; Check for error responses and raise an error if found
   (greger-client--check-for-error output)
-
-  ;; Always accumulate for complete response
-  (setf (greger-client-state-complete-response state)
-        (concat (greger-client-state-complete-response state) output))
 
   ;; Update working buffer for chunk processing
   (setf (greger-client-state-accumulated-output state)
         (concat (greger-client-state-accumulated-output state) output))
 
-  (greger-client--process-claude-events state))
+  (greger-client--process-events state))
 
-(defun greger-client--process-claude-events (state)
+(defun greger-client--process-events (state)
   "Process Claude streaming events from accumulated output in STATE."
   (let ((accumulated (greger-client-state-accumulated-output state)))
 
@@ -237,7 +239,7 @@ Returns nil if no error found or if OUTPUT is not valid JSON."
         (when (string-prefix-p "data: " line)
           (let ((data-json (substring line 6)))
             (unless (string= data-json "[DONE]")
-              (greger-client--handle-claude-event data-json state))))
+              (greger-client--handle-event data-json state))))
 
         ;; Remove processed line
         (setq accumulated (substring accumulated line-end))))
@@ -245,98 +247,142 @@ Returns nil if no error found or if OUTPUT is not valid JSON."
     ;; Store remaining incomplete data
     (setf (greger-client-state-accumulated-output state) accumulated)))
 
-(defun greger-client--handle-claude-event (data-json state)
+(defun greger-client--handle-event (data-json state)
   "Handle a Claude streaming event with DATA-JSON using STATE."
   (let* ((data (json-read-from-string data-json))
          (type (alist-get 'type data)))
     (cond
      ;; Content block start - create new content block
      ((string= type "content_block_start")
-      (let* ((index (alist-get 'index data))
-             (content-block (copy-alist (alist-get 'content_block data)))
-             (blocks (greger-client-state-parsed-content-blocks state)))
-
-        ;; Initialize content for accumulation
-        (cond
-         ((string= (alist-get 'type content-block) "tool_use")
-          (setf (alist-get 'input content-block) ""))
-         ((string= (alist-get 'type content-block) "text")
-          (setf (alist-get 'text content-block) "")))
-
-        (when (and (string= (alist-get 'type content-block) "text")
-                   (greger-client-state-text-start-callback state))
-          (funcall (greger-client-state-text-start-callback state)))
-
-        ;; Add block at the right index
-        (greger-client--ensure-block-at-index blocks index content-block state)))
+      (greger-client--handle-content-block-start data state))
 
      ;; Content block delta - update existing content block
      ((string= type "content_block_delta")
-      (let* ((index (alist-get 'index data))
-             (delta (alist-get 'delta data))
-             (delta-type (alist-get 'type delta))
-             (blocks (greger-client-state-parsed-content-blocks state)))
-
-        (when (< index (length blocks))
-          (let ((block (nth index blocks)))
-            (cond
-             ;; Text delta
-             ((string= delta-type "text_delta")
-              (let ((text (alist-get 'text delta)))
-                (setf (alist-get 'text block)
-                      (concat (alist-get 'text block) text))
-                ;; Call text callback for live display
-                (when (greger-client-state-text-callback state)
-                  (funcall (greger-client-state-text-callback state) text))))
-
-             ;; Tool input delta
-             ((string= delta-type "input_json_delta")
-              (let ((partial-json (alist-get 'partial_json delta)))
-                (setf (alist-get 'input block)
-                      (concat (alist-get 'input block) partial-json)))))))))
+      (greger-client--handle-content-block-delta data state))
 
      ;; Content block stop - finalize tool input if needed
      ((string= type "content_block_stop")
-      (let* ((index (alist-get 'index data))
-             (blocks (greger-client-state-parsed-content-blocks state)))
+      (greger-client--handle-content-block-stop data state)))))
 
-        (when (< index (length blocks))
-          (let ((block (nth index blocks)))
-            (when (and (string= (alist-get 'type block) "tool_use")
-                       (stringp (alist-get 'input block)))
-              ;; Parse accumulated JSON input
-              (let ((input-str (alist-get 'input block)))
-                (condition-case nil
-                    (if (string-empty-p input-str)
-                        (setf (alist-get 'input block) '())
-                      (setf (alist-get 'input block)
-                            (json-read-from-string input-str)))
-                  (error
-                   (setf (alist-get 'input block) '()))))))))))))
+(defun greger-client--handle-content-block-start (data state)
+  "Initialize new streaming content block from DATA in STATE."
+  (let* ((index (alist-get 'index data))
+         (content-block (copy-alist (alist-get 'content_block data)))
+         (blocks (greger-client-state-content-blocks state))
+         (type (alist-get 'type content-block))
+         (citations (alist-get 'citations content-block)))
+
+    ;; Initialize content for accumulation.
+    ;; For tool_use and server_tool_use we make the input object a
+    ;; string while we accumulate the output, and turn it back into
+    ;; an object again in greger-client--handle-content-stop
+    ;; Initialize content fields based on content block type
+    (cond
+     ((string= type "tool_use")
+      (setf (alist-get 'input content-block) ""))
+     ((string= type "server_tool_use")
+      (setf (alist-get 'input content-block) ""))
+     ((string= type "text")
+      (setf (alist-get 'text content-block) "")
+      ;; For text blocks with citations, initialize citations as empty list
+      (when citations
+        (setf (alist-get 'citations content-block) '())))
+     ;; web_search_tool_result blocks come pre-populated with content - no initialization needed
+     )
+
+    (when-let ((callback (greger-client-state-block-start-callback state)))
+      (funcall callback content-block))
+
+    ;; Add block at the right index
+    (greger-client--ensure-block-at-index blocks index content-block state)))
+
+(defun greger-client--handle-content-block-delta (data state)
+  "Process incremental content updates from streaming DATA in STATE."
+  (let* ((index (alist-get 'index data))
+         (delta (alist-get 'delta data))
+         (delta-type (alist-get 'type delta))
+         (blocks (greger-client-state-content-blocks state))
+         (block (nth index blocks)))
+
+    ;; TODO: do we need to handle content block stop out-of-order,
+    ;; before content-block start has created the block in the state's content-blocks?
+
+    (cond
+
+     ;; assistant text and thinking
+     ;; {"type":"content_block_delta","index":0,"delta":{"type":"text_delta","text":"I'll search for the"}}
+     ((string= delta-type "text_delta")
+      (let ((text (alist-get 'text delta))
+            (has-citations (alist-get 'citations block)))
+        (setf (alist-get 'text block)
+              (concat (alist-get 'text block) text))
+        ;; Only call text callback for live display if this block doesn't have citations
+        ;; Citation blocks should not stream text - they'll be handled in block-stop
+        (unless has-citations
+          (when-let ((callback (greger-client-state-text-delta-callback state)))
+           (funcall callback text)))))
+
+     ;; tool_use and server_tool_use
+     ;; {"type":"content_block_delta","index":1,"delta":{"type":"input_json_delta","partial_json":""}}
+     ((string= delta-type "input_json_delta")
+      (let ((partial-json (alist-get 'partial_json delta)))
+        (setf (alist-get 'input block)
+              (concat (alist-get 'input block) partial-json))))
+
+     ;; Citations accumulation
+     ;; {"type":"content_block_delta","index":3,"delta":{"type":"citations_delta","citation":{"type":"web_search_result_location",...}}}
+     ((string= delta-type "citations_delta")
+      (let ((citation (alist-get 'citation delta))
+            (current-citations (alist-get 'citations block)))
+        ;; Add the new citation to the list
+        (setf (alist-get 'citations block)
+              (append current-citations (list citation))))))))
+
+(defun greger-client--handle-content-block-stop (data state)
+  "Finalize the current block and send callbacks from STATE.
+DATA is the streaming entry for the stop content block."
+  (let* ((index (alist-get 'index data))
+         (blocks (greger-client-state-content-blocks state))
+         (block (nth index blocks))
+         (type (alist-get 'type block)))
+
+    ;; TODO: do we need to handle content block stop out-of-order,
+    ;; before content-block start has created the block in the state's content-blocks?
+
+    (cond
+     ;; Handle tool use blocks - turn accumulated JSON string back into an object
+     ((or (string= type "tool_use") (string= type "server_tool_use"))
+      (let ((input-str (alist-get 'input block)))
+        (if (string-empty-p input-str)
+            (setf (alist-get 'input block) '())
+          (setf (alist-get 'input block) (json-read-from-string input-str))))))
+
+    (when-let ((callback (greger-client-state-block-stop-callback state)))
+      (funcall callback type block))))
 
 (defun greger-client--ensure-block-at-index (_blocks index new-block state)
   "Ensure BLOCKS list has NEW-BLOCK at INDEX, extending if necessary.
 STATE is used to update the parsed content blocks."
-  (let ((current-blocks (greger-client-state-parsed-content-blocks state)))
+  (let ((current-blocks (greger-client-state-content-blocks state)))
     ;; Extend list if needed
     (while (<= (length current-blocks) index)
       (setq current-blocks (append current-blocks (list nil))))
 
     ;; Set the block at index
     (setf (nth index current-blocks) new-block)
-    (setf (greger-client-state-parsed-content-blocks state) current-blocks)))
+    (setf (greger-client-state-content-blocks state) current-blocks)))
 
 (defun greger-client--handle-completion (proc state)
   "Handle process completion for PROC using STATE."
   (when (memq (process-status proc) '(exit signal))
     (funcall (greger-client-state-restore-callback state) state)
 
-    (if (= (process-exit-status proc) 0)
-        (when (greger-client-state-complete-callback state)
-          (let ((parsed-blocks (greger-client-state-parsed-content-blocks state)))
-            (funcall (greger-client-state-complete-callback state) parsed-blocks state)))
-      (when (greger-client-state-cancel-callback state)
-        (funcall (greger-client-state-cancel-callback state))))))
+    (let ((exit-code (process-exit-status proc)))
+      (if (= exit-code 0)
+        (when-let ((callback (greger-client-state-complete-callback state)))
+          (funcall callback (greger-client-state-content-blocks state)))
+      ;; TODO: Error callback
+      (message (format "Process exited with status code %d" exit-code))))))
 
 (defun greger-client--cancel-request (state)
   "Cancel streaming request using STATE."
@@ -345,9 +391,7 @@ STATE is used to update the parsed content blocks."
       (message "Interrupting generation")
       (interrupt-process process)
       (sit-for 0.1)
-      (delete-process process)
-      (when (greger-client-state-cancel-callback state)
-        (funcall (greger-client-state-cancel-callback state))))
+      (delete-process process))
     (funcall (greger-client-state-restore-callback state) state)))
 
 ;;; Utility functions

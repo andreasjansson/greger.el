@@ -41,6 +41,10 @@
 (defvar greger-tools-registry (make-hash-table :test 'equal)
   "Hash table mapping tool names to their definitions.")
 
+;; Registry to hold server tool definitions
+(defvar greger-server-tools-registry (make-hash-table :test 'equal)
+  "Hash table mapping server tool names to their definitions.")
+
 ;; greger-register-tool is the main public API of this package, so it uses the package prefix "greger-"
 ;; rather than the file prefix "greger-tools-"
 ;; package-lint: disable=wrong-prefix
@@ -89,6 +93,56 @@ Example:
                     :pass-metadata ,pass-metadata)
               greger-tools-registry)))
 
+;; greger-register-server-tool is the main public API for server tools, so it uses the package prefix "greger-"
+;; rather than the file prefix "greger-tools-"
+;; package-lint: disable=wrong-prefix
+(defmacro greger-register-server-tool (name &rest args)
+  "Register a server tool with NAME and properties specified in ARGS.
+Server tools are processed by the server (e.g., Anthropic's web search tool).
+ARGS should be a plist containing at least :type and any other
+named parameters specific to the server tool.
+
+Example:
+  (greger-register-server-tool \\='web_search\\='
+    :type \\='web_search_20250305\\='
+    :max_uses 5
+    :allowed_domains \\='[\\='example.com\\=' \\='trusteddomain.org\\=']
+    :user_location \\='((type . \\='approximate\\=')
+                     (city . \\='San Francisco\\=')
+                     (region . \\='California\\=')
+                     (country . \\='US\\=')
+                     (timezone . \\='America/Los_Angeles\\=')))
+
+The raw JSON string will be displayed for the server tool definition."
+  (let ((type (plist-get args :type))
+        (remaining-args (copy-sequence args)))
+    ;; Remove :type from remaining-args
+    (setq remaining-args (cl-copy-list remaining-args))
+    (cl-remf remaining-args :type)
+
+    ;; Build the tool definition alist - extract symbol name from quoted form
+    (let ((tool-def (list (cons 'type type)
+                          (cons 'name (if (and (listp name) (eq (car name) 'quote))
+                                         (symbol-name (cadr name))
+                                       (if (symbolp name)
+                                           (symbol-name name)
+                                         name))))))
+      ;; Add remaining parameters
+      (while remaining-args
+        (let ((key (pop remaining-args))
+              (value (pop remaining-args)))
+          (when key
+            (push (cons (intern (substring (symbol-name key) 1)) value) tool-def))))
+
+      ;; Store with string key like regular tools
+      `(puthash ,(if (and (listp name) (eq (car name) 'quote))
+                    (symbol-name (cadr name))
+                  (if (symbolp name)
+                      (symbol-name name)
+                    name))
+                (reverse ',tool-def)
+                greger-server-tools-registry))))
+
 (defun greger-tools-get-schemas (tool-names)
   "Get tool schemas for TOOL-NAMES."
   (mapcar (lambda (tool-name)
@@ -98,7 +152,25 @@ Example:
                 (error "Unknown tool: %s" tool-name))))
           tool-names))
 
-(defun greger-tools-execute (tool-name args callback buffer &optional metadata)
+(defun greger-server-tools-get-schemas (tool-names)
+  "Get server tool schemas for TOOL-NAMES as JSON strings."
+  (mapcar (lambda (tool-name)
+            (let* ((lookup-key (if (symbolp tool-name) (symbol-name tool-name) tool-name))
+                   (tool-def (gethash lookup-key greger-server-tools-registry)))
+              (if tool-def
+                  (json-encode tool-def)
+                (error "Unknown server tool: %s" tool-name))))
+          tool-names))
+
+(defun greger-server-tools-get-all-schemas ()
+  "Get all registered server tool schemas as JSON strings."
+  (let ((tools '()))
+    (maphash (lambda (_name def)
+               (push (json-encode def) tools))
+             greger-server-tools-registry)
+    tools))
+
+(cl-defun greger-tools-execute (&key tool-name args callback buffer metadata)
   "Execute TOOL-NAME with ARGS and call CALLBACK with (result error).
 Returns a greger-tool struct for tracking execution and cancellation.
 If the tool has :pass-buffer set, BUFFER will be passed to the tool function.
@@ -230,42 +302,47 @@ parameters.  Returns a list of arguments in the correct order for the function."
 (defun greger-tools--maybe-parse-json-value (value arg-key tool-def)
   "Parse VALUE as JSON if ARG-KEY requires JSON parsing based on TOOL-DEF schema.
 Handles arrays, booleans, and numbers."
-  (if (and (stringp value) tool-def)
-      (let* ((schema (plist-get tool-def :schema))
-             (input-schema (alist-get 'input_schema schema))
-             (properties (alist-get 'properties input-schema))
-             (arg-property (alist-get arg-key properties))
-             (param-type (alist-get 'type arg-property)))
-        (cond
-         ;; Parse JSON array string
-         ((string= param-type "array")
-          (condition-case nil
-              (json-parse-string value :array-type 'list)
-            (error value))) ; Return original value if parsing fails
+  (let* ((schema (plist-get tool-def :schema))
+         (input-schema (alist-get 'input_schema schema))
+         (properties (alist-get 'properties input-schema))
+         (arg-property (alist-get arg-key properties))
+         (param-type (alist-get 'type arg-property)))
+    (cond
+     ;; Parse JSON array string
+     ((and (stringp value) (string= param-type "array"))
+      (condition-case nil
+          (json-parse-string value :array-type 'list)
+        (error value))) ; Return original value if parsing fails
 
-         ;; Parse boolean strings
-         ((string= param-type "boolean")
-          (cond
-           ((string= value "true") t)
-           ((string= value "false") nil)
-           ((string= value ":json-true") t)
-           ((string= value ":json-false") nil)
-           (t value))) ; Return original if not a recognized boolean
+     ;; Parse boolean strings
+     ((and (stringp value) (string= param-type "boolean"))
+      (cond
+       ((string= value "true") t)
+       ((string= value "false") nil)
+       ((string= value ":json-true") t)
+       ((string= value ":json-false") nil)
+       (t nil))) ; Return nil if not a recognized boolean
 
-         ;; Parse number strings
-         ((or (string= param-type "integer") (string= param-type "number"))
-          (condition-case nil
-              (if (string-match-p "^-?[0-9]+$" value)
-                  (string-to-number value)
-                (if (string-match-p "^-?[0-9]*\\.[0-9]+$" value)
-                    (string-to-number value)
-                  value)) ; Return original if not a number
-            (error value)))
+     ((and (symbolp value) (string= param-type "boolean"))
+      (cond
+       ((eq value :json-true) t)
+       ((eq value :json-false) nil)
+       ((eq value t) t)        ; Handle regular Emacs Lisp t
+       ((null value) nil)      ; Handle regular Emacs Lisp nil
+       (t nil))) ; Return nil if not a recognized symbol
 
-         ;; For other types (string, object), return as-is
-         (t value)))
-    ;; Not a string or no tool-def, return as-is
-    value))
+     ;; Parse number strings
+     ((or (string= param-type "integer") (string= param-type "number"))
+      (condition-case nil
+          (if (string-match-p "^-?[0-9]+$" value)
+              (string-to-number value)
+            (if (string-match-p "^-?[0-9]*\\.[0-9]+$" value)
+                (string-to-number value)
+              value)) ; Return original if not a number
+        (error value)))
+
+     ;; For other types (string, object), return as-is
+     (t value))))
 
 (provide 'greger-tools)
 

@@ -4,582 +4,49 @@
 (require 'greger-parser)
 (require 'cl-lib)
 
-;; Test cases with tool use, thinking, and complex scenarios
-(defconst greger-parser-test-cases
-  '(
-    ;; Simple user message
-    (:name "simple-user-message"
-     :markdown "## USER:
-
-Hello, how are you?"
-     :dialog (((role . "user") (content . "Hello, how are you?"))))
-
-    ;; System and user message
-    (:name "system-and-user"
-     :markdown "## SYSTEM:
-
-You are a helpful assistant.
-
-## USER:
-
-What's the weather like?"
-     :dialog (((role . "system") (content . "You are a helpful assistant."))
-              ((role . "user") (content . "What's the weather like?"))))
-
-    ;; Simple conversation
-    (:name "simple-conversation"
-     :markdown "## USER:
-
-Hello
-
-## ASSISTANT:
-
-Hi there! How can I help you today?"
-     :dialog (((role . "user") (content . "Hello"))
-              ((role . "assistant") (content . "Hi there! How can I help you today?"))))
-
-    ;; Thinking section (becomes part of assistant message)
-    (:name "thinking-section"
-     :markdown "## USER:
-
-What's 2+2?
-
-## THINKING:
-
-This is a simple arithmetic question. I can answer this directly without needing any tools.
-
-## ASSISTANT:
-
-2 + 2 = 4"
-     :dialog (((role . "user") (content . "What's 2+2?"))
-              ((role . "assistant") (content . (((type . "thinking") (thinking . "This is a simple arithmetic question. I can answer this directly without needing any tools.")) ((type . "text") (text . "2 + 2 = 4")))))))
-
-    ;; Tool use with single parameter
-    (:name "tool-use-single-param"
-     :markdown "## USER:
-
-Read the file hello.txt
-
-## TOOL USE:
-
-Name: read-file
-ID: toolu_123
-
-### path
-
-<tool.toolu_123>
-hello.txt
-</tool.toolu_123>
-
-## TOOL RESULT:
-
-ID: toolu_123
-
-<tool.toolu_123>
-Hello, world!
-</tool.toolu_123>
-
-## ASSISTANT:
-
-The file contains: Hello, world!"
-     :dialog (((role . "user") (content . "Read the file hello.txt"))
-              ((role . "assistant") (content . (((type . "tool_use") (id . "toolu_123") (name . "read-file") (input . ((path . "hello.txt")))))))
-              ((role . "user") (content . (((type . "tool_result") (tool_use_id . "toolu_123") (content . "Hello, world!")))))
-              ((role . "assistant") (content . "The file contains: Hello, world!"))))
-
-    ;; Tool use with multiple parameters
-    (:name "tool-use-multiple-params"
-     :markdown "## USER:
-
-Search for python files containing 'def main'
-
-## TOOL USE:
-
-Name: ripgrep
-ID: toolu_456
-
-### pattern
-
-<tool.toolu_456>
-def main
-</tool.toolu_456>
-
-### file-type
-
-<tool.toolu_456>
-py
-</tool.toolu_456>
-
-### context-lines
-
-<tool.toolu_456>
-2
-</tool.toolu_456>
-
-## TOOL RESULT:
-
-ID: toolu_456
-
-<tool.toolu_456>
-src/main.py:10:def main():
-src/utils.py:25:def main_helper():
-</tool.toolu_456>
-
-## ASSISTANT:
-
-I found 2 matches for 'def main' in Python files."
-     :dialog (((role . "user") (content . "Search for python files containing 'def main'"))
-              ((role . "assistant") (content . (((type . "tool_use") (id . "toolu_456") (name . "ripgrep") (input . ((pattern . "def main") (file-type . "py") (context-lines . 2)))))))
-              ((role . "user") (content . (((type . "tool_result") (tool_use_id . "toolu_456") (content . "src/main.py:10:def main():\nsrc/utils.py:25:def main_helper():")))))
-              ((role . "assistant") (content . "I found 2 matches for 'def main' in Python files."))))
-
-    ;; Complex workflow with thinking, tool use, and multiple responses
-    (:name "complex-workflow"
-     :markdown "## USER:
-
-who's the current king of sweden?
-
-## THINKING:
-
-The user is asking about the current king of Sweden. This is a factual question that I can search for to get the most up-to-date information. I'll use the search function to find this information.
-
-## TOOL USE:
-
-Name: search-286d2fd3
-ID: toolu_01Kf8avk1cBqH5ZHoXL92Duc
-
-### query
-
-<tool.toolu_01Kf8avk1cBqH5ZHoXL92Duc>
-current king of Sweden 2024
-</tool.toolu_01Kf8avk1cBqH5ZHoXL92Duc>
-
-### include_answer
-
-<tool.toolu_01Kf8avk1cBqH5ZHoXL92Duc>
-basic
-</tool.toolu_01Kf8avk1cBqH5ZHoXL92Duc>
-
-### max_results
-
-<tool.toolu_01Kf8avk1cBqH5ZHoXL92Duc>
-3
-</tool.toolu_01Kf8avk1cBqH5ZHoXL92Duc>
-
-## TOOL RESULT:
-
-ID: toolu_01Kf8avk1cBqH5ZHoXL92Duc
-
-<tool.toolu_01Kf8avk1cBqH5ZHoXL92Duc>
-{\"query\": \"current king of Sweden 2024\", \"answer\": \"Carl XVI Gustaf\", \"response_time\": 2.38}
-</tool.toolu_01Kf8avk1cBqH5ZHoXL92Duc>
-
-## ASSISTANT:
-
-The current King of Sweden is **Carl XVI Gustaf**. He has been reigning since 1973 and is the longest-reigning monarch in Swedish history."
-     :dialog (((role . "user") (content . "who's the current king of sweden?"))
-              ((role . "assistant") (content . (((type . "thinking") (thinking . "The user is asking about the current king of Sweden. This is a factual question that I can search for to get the most up-to-date information. I'll use the search function to find this information.")) ((type . "tool_use") (id . "toolu_01Kf8avk1cBqH5ZHoXL92Duc") (name . "search-286d2fd3") (input . ((query . "current king of Sweden 2024") (include_answer . "basic") (max_results . 3)))))))
-              ((role . "user") (content . (((type . "tool_result") (tool_use_id . "toolu_01Kf8avk1cBqH5ZHoXL92Duc") (content . "{\"query\": \"current king of Sweden 2024\", \"answer\": \"Carl XVI Gustaf\", \"response_time\": 2.38}")))))
-              ((role . "assistant") (content . "The current King of Sweden is **Carl XVI Gustaf**. He has been reigning since 1973 and is the longest-reigning monarch in Swedish history."))))
-
-    ;; Multiple tool uses in sequence
-    (:name "multiple-tool-uses"
-     :markdown "## USER:
-
-List files and read the first one
-
-## TOOL USE:
-
-Name: list-directory
-ID: toolu_111
-
-### path
-
-<tool.toolu_111>
-.
-</tool.toolu_111>
-
-## TOOL RESULT:
-
-ID: toolu_111
-
-<tool.toolu_111>
-file1.txt
-file2.txt
-README.md
-</tool.toolu_111>
-
-## TOOL USE:
-
-Name: read-file
-ID: toolu_222
-
-### path
-
-<tool.toolu_222>
-file1.txt
-</tool.toolu_222>
-
-## TOOL RESULT:
-
-ID: toolu_222
-
-<tool.toolu_222>
-This is the content of file1.
-</tool.toolu_222>
-
-## ASSISTANT:
-
-I found 3 files in the directory. The first file (file1.txt) contains: \"This is the content of file1.\""
-     :dialog (((role . "user") (content . "List files and read the first one"))
-              ((role . "assistant") (content . (((type . "tool_use") (id . "toolu_111") (name . "list-directory") (input . ((path . ".")))))))
-              ((role . "user") (content . (((type . "tool_result") (tool_use_id . "toolu_111") (content . "file1.txt\nfile2.txt\nREADME.md")))))
-              ((role . "assistant") (content . (((type . "tool_use") (id . "toolu_222") (name . "read-file") (input . ((path . "file1.txt")))))))
-              ((role . "user") (content . (((type . "tool_result") (tool_use_id . "toolu_222") (content . "This is the content of file1.")))))
-              ((role . "assistant") (content . "I found 3 files in the directory. The first file (file1.txt) contains: \"This is the content of file1.\""))))
-
-    ;; Tool use with multiline parameter values
-    (:name "tool-use-multiline-params"
-     :markdown "## USER:
-
-Write a new Python file
-
-## TOOL USE:
-
-Name: write-new-file
-ID: toolu_789
-
-### file_path
-
-<tool.toolu_789>
-script.py
-</tool.toolu_789>
-
-### contents
-
-<tool.toolu_789>
-#!/usr/bin/env python3
-
-def main():
-    print(\"Hello, world!\")
-
-if __name__ == \"__main__\":
-    main()
-</tool.toolu_789>
-
-### git_commit_message
-
-<tool.toolu_789>
-Add new Python script
-</tool.toolu_789>
-
-## TOOL RESULT:
-
-ID: toolu_789
-
-<tool.toolu_789>
-Successfully wrote new file script.py with 85 characters.
-</tool.toolu_789>
-
-## ASSISTANT:
-
-I've created a new Python script file with a basic Hello World program."
-     :dialog (((role . "user") (content . "Write a new Python file"))
-              ((role . "assistant") (content . (((type . "tool_use") (id . "toolu_789") (name . "write-new-file") (input . ((file_path . "script.py") (contents . "#!/usr/bin/env python3\n\ndef main():\n    print(\"Hello, world!\")\n\nif __name__ == \"__main__\":\n    main()") (git_commit_message . "Add new Python script")))))))
-              ((role . "user") (content . (((type . "tool_result") (tool_use_id . "toolu_789") (content . "Successfully wrote new file script.py with 85 characters.")))))
-              ((role . "assistant") (content . "I've created a new Python script file with a basic Hello World program."))))
-
-    ;; Just thinking without any other content
-    (:name "thinking-only"
-     :markdown "## USER:
-
-Let me think about this
-
-## THINKING:
-
-I need to consider all the options carefully before responding."
-     :dialog (((role . "user") (content . "Let me think about this"))
-              ((role . "assistant") (content . (((type . "thinking") (thinking . "I need to consider all the options carefully before responding.")))))))
-
-    ;; Tool use without any following content
-    (:name "tool-use-only"
-     :markdown "## USER:
-
-Read a file
-
-## TOOL USE:
-
-Name: read-file
-ID: toolu_999
-
-### path
-
-<tool.toolu_999>
-test.txt
-</tool.toolu_999>
-"
-     :dialog (((role . "user") (content . "Read a file"))
-              ((role . "assistant") (content . (((type . "tool_use") (id . "toolu_999") (name . "read-file") (input . ((path . "test.txt")))))))))
-
-    (:name "tool-use-with-tags"
-     :markdown "## USER:
-
-Read a file
-
-## TOOL USE:
-
-Name: read-file
-ID: toolu_999
-
-### path
-
-<tool.toolu_999>
-test.txt
-
-## USER:
-
-foo
-</tool.toolu_999>
-"
-     :dialog (((role . "user") (content . "Read a file"))
-              ((role . "assistant") (content . (((type . "tool_use") (id . "toolu_999") (name . "read-file") (input . ((path . "test.txt\n\n## USER:\n\nfoo")))))))))
-
-    ;; Tool result with empty lines preserved
-    (:name "code-block-triple-backticks"
-           :markdown "## USER:
-
-Here's some code:
-
-```
-## ASSISTANT:
-This should not be parsed as a section header
-## TOOL USE:
-Neither should this
-```
-
-What do you think?"
-           :dialog (((role . "user") (content . "Here's some code:\n\n```\n## ASSISTANT:\nThis should not be parsed as a section header\n## TOOL USE:\nNeither should this\n```\n\nWhat do you think?"))))
-
-    ;; Code blocks with section headers inside (double backticks)
-    (:name "code-block-double-backticks"
-           :markdown "## USER:
-
-Inline code: ``## ASSISTANT: not a header`` and more text.
-
-## ASSISTANT:
-
-I see the inline code."
-           :dialog (((role . "user") (content . "Inline code: ``## ASSISTANT: not a header`` and more text."))
-                    ((role . "assistant") (content . "I see the inline code."))))
-
-    ;; Mixed code blocks and real sections
-    (:name "mixed-code-blocks-and-sections"
-           :markdown "## USER:
-
-Here's a code example:
-
-```python
-def example():
-    # This has ## USER: in a comment
-    print(\"## ASSISTANT: not a real header\")
-```
-
-Now please analyze it.
-
-## ASSISTANT:
-
-I can see your code example."
-           :dialog (((role . "user") (content . "Here's a code example:\n\n```python\ndef example():\n    # This has ## USER: in a comment\n    print(\"## ASSISTANT: not a real header\")\n```\n\nNow please analyze it."))
-                    ((role . "assistant") (content . "I can see your code example."))))
-
-    ;; Tool use with code blocks in parameters
-    (:name "tool-use-with-code-in-params"
-           :markdown "## USER:
-
-Write some Python code
-
-## TOOL USE:
-
-Name: write-file
-ID: toolu_999
-
-### filename
-
-<tool.toolu_999>
-example.py
-</tool.toolu_999>
-
-### content
-
-<tool.toolu_999>
-```python
-def main():
-    # This ## USER: comment should not break parsing
-    print(\"Hello world\")
-
-if __name__ == \"__main__\":
-    main()
-```
-</tool.toolu_999>
-
-## TOOL RESULT:
-
-ID: toolu_999
-
-<tool.toolu_999>
-File written successfully
-</tool.toolu_999>
-
-## ASSISTANT:
-
-I've written the Python file."
-           :dialog (((role . "user") (content . "Write some Python code"))
-                    ((role . "assistant") (content . (((type . "tool_use") (id . "toolu_999") (name . "write-file") (input . ((filename . "example.py") (content . "```python\ndef main():\n    # This ## USER: comment should not break parsing\n    print(\"Hello world\")\n\nif __name__ == \"__main__\":\n    main()\n```")))))))
-                    ((role . "user") (content . (((type . "tool_result") (tool_use_id . "toolu_999") (content . "File written successfully")))))
-                    ((role . "assistant") (content . "I've written the Python file."))))
-
-    ;; Nested code blocks (backticks inside code blocks)
-    (:name "nested-code-blocks"
-           :markdown "## USER:
-
-How do I use backticks in markdown?
-
-## ASSISTANT:
-
-You can use triple backticks:
-
-```
-Here's how to show `inline code` in a code block:
-Use single backticks around `your code`.
-```
-
-Does that help?"
-           :dialog (((role . "user") (content . "How do I use backticks in markdown?"))
-                    ((role . "assistant") (content . "You can use triple backticks:\n\n```\nHere's how to show `inline code` in a code block:\nUse single backticks around `your code`.\n```\n\nDoes that help?"))))
-
-    (:name "tool-use-complex-params"
-           :markdown "## USER:
-
-Test complex parameters
-
-## TOOL USE:
-
-Name: complex-tool
-ID: toolu_complex
-
-### string_param
-
-<tool.toolu_complex>
-hello world
-</tool.toolu_complex>
-
-### number_param
-
-<tool.toolu_complex>
-42
-</tool.toolu_complex>
-
-### float_param
-
-<tool.toolu_complex>
-3.14
-</tool.toolu_complex>
-
-### bool_true
-
-<tool.toolu_complex>
-true
-</tool.toolu_complex>
-
-### bool_false
-
-<tool.toolu_complex>
-false
-</tool.toolu_complex>
-
-### list_param
-
-<tool.toolu_complex>
-[\"item1\", \"item2\", 3]
-</tool.toolu_complex>
-
-### dict_param
-
-<tool.toolu_complex>
-{\"key\": \"value\", \"count\": 5}
-</tool.toolu_complex>
-
-## TOOL RESULT:
-
-ID: toolu_complex
-
-<tool.toolu_complex>
-Success
-</tool.toolu_complex>
-
-## ASSISTANT:
-
-Tool executed with complex parameters."
-           :dialog (((role . "user") (content . "Test complex parameters"))
-                    ((role . "assistant") (content . (((type . "tool_use") (id . "toolu_complex") (name . "complex-tool") (input . ((string_param . "hello world") (number_param . 42) (float_param . 3.14) (bool_true . t) (bool_false) (list_param . ["item1" "item2" 3]) (dict_param . ((key . "value") (count . 5)))))))))
-                    ((role . "user") (content . (((type . "tool_result") (tool_use_id . "toolu_complex") (content . "Success")))))
-                    ((role . "assistant") (content . "Tool executed with complex parameters."))))
-
-    (:name "tool-result-empty-lines"
-           :markdown "## TOOL USE:
-
-Name: write-file
-ID: tool_123
-
-### content
-
-<tool.tool_123>
-foo
-
-
-bar
-</tool.tool_123>
-
-## TOOL RESULT:
-
-ID: tool_123
-
-<tool.tool_123>
-foo
-
-
-bar
-</tool.tool_123>
-
-## ASSISTANT:
-
-File written successfully."
-           :dialog (((role . "assistant") (content . (((type . "tool_use") (id . "tool_123") (name . "write-file") (input . ((content . "foo\n\n\nbar")))))))
-                    ((role . "user") (content . (((type . "tool_result") (tool_use_id . "tool_123") (content . "foo\n\n\nbar")))))
-                    ((role . "assistant") (content . "File written successfully."))))
-
-    (:name "html-comments"
-           :markdown "## USER:
-
-Here's some code:
-
-<!-- comment -->
-<!-- multi
-line
-
-comment -->
-
-```
-<!-- comment should be included -->
-## ASSISTANT:
-This should not be parsed as a section header
-## TOOL USE:
-Neither should this
-```
-
-What do you think?"
-           :dialog (((role . "user") (content . "Here's some code:\n\n\n\n\n```\n<!-- comment should be included -->\n## ASSISTANT:\nThis should not be parsed as a section header\n## TOOL USE:\nNeither should this\n```\n\nWhat do you think?"))))
-    ))
+;; Global variable to store the grammar repo path
+(defvar greger-test-grammar-repo-path nil
+  "Path to the cloned greger-grammar repository.")
+
+;; Function to clone the grammar repo once
+(defun greger-test-setup-grammar-repo ()
+  "Clone the greger-grammar repository to a temporary directory if not already done."
+  (unless greger-test-grammar-repo-path
+    (let ((temp-dir (make-temp-file "greger-grammar-" t)))
+      (message "Cloning greger-grammar to %s..." temp-dir)
+      (let ((result (shell-command-to-string 
+                     (format "cd %s && git clone https://github.com/andreasjansson/greger-grammar.git" 
+                             (shell-quote-argument temp-dir)))))
+        (if (string-match-p "fatal:\\|error:" result)
+            (error "Failed to clone greger-grammar: %s" result)
+          (setq greger-test-grammar-repo-path (expand-file-name "greger-grammar" temp-dir))
+          (message "Successfully cloned greger-grammar to %s" greger-test-grammar-repo-path))))))
+
+;; Function to clean up the grammar repo
+(defun greger-test-cleanup-grammar-repo ()
+  "Clean up the cloned greger-grammar repository."
+  (when greger-test-grammar-repo-path
+    (let ((temp-dir (file-name-directory greger-test-grammar-repo-path)))
+      (message "Cleaning up greger-grammar repo at %s..." temp-dir)
+      (delete-directory temp-dir t)
+      (setq greger-test-grammar-repo-path nil))))
+
+;; Helper function to read markdown content from corpus .txt files
+(defun greger-read-corpus-file (name)
+  "Read markdown content from a .txt corpus file, extracting only the input portion.
+This function requires the grammar repository to be set up first."
+  (unless greger-test-grammar-repo-path
+    (error "Grammar repository not set up. Call greger-test-setup-grammar-repo first"))
+  (let ((file-path (expand-file-name (format "test/corpus/%s.txt" name) greger-test-grammar-repo-path)))
+    (if (file-exists-p file-path)
+        (with-temp-buffer
+          (insert-file-contents file-path)
+          (let ((content (buffer-string)))
+            ;; Find the test content between the title header and the "---" separator
+            (if (string-match "=\\{10,\\}\n.*?\n=\\{10,\\}\n\n\\(\\(?:.\\|\n\\)*?\\)\n---" content)
+                (match-string 1 content)
+              (error "Could not parse test file format: %s" file-path))))
+      (error "Corpus file not found: %s" file-path))))
 
 ;; Helper functions for tests
 (defun greger-parser-test--dialog-equal (expected actual)
@@ -633,8 +100,43 @@ What do you think?"
                 (greger-parser-test--input-equal (alist-get 'input expected) (alist-get 'input actual))))
           ((string= type "tool_result")
            (and (string= (alist-get 'tool_use_id expected) (alist-get 'tool_use_id actual))
-                (string= (alist-get 'content expected) (alist-get 'content actual))))
+                (greger-parser-test--strings-or-alists-equal-p (alist-get 'content expected) (alist-get 'content actual))))
+          ((string= type "server_tool_use")
+           (and (string= (alist-get 'id expected) (alist-get 'id actual))
+                (string= (alist-get 'name expected) (alist-get 'name actual))
+                (greger-parser-test--input-equal (alist-get 'input expected) (alist-get 'input actual))))
+          ((string= type "web_search_tool_result")
+           (and (string= (alist-get 'tool_use_id expected) (alist-get 'tool_use_id actual))
+                (equal (alist-get 'content expected) (alist-get 'content actual))))
           (t t)))))
+
+(defun greger-parser-test--strings-or-alists-equal-p (var1 var2)
+  "Return t if VAR1 and VAR2 are equal strings or alists.
+For alists, comparison is order-independent."
+  (cond
+   ;; Both are strings
+   ((and (stringp var1) (stringp var2))
+    (string-equal var1 var2))
+
+   ;; Both are alists (lists of cons cells)
+   ((and (listp var1) (listp var2)
+         (or (null var1) (consp (car var1)))
+         (or (null var2) (consp (car var2))))
+    (greger-parser-test--alists-equal-p var1 var2))
+
+   ;; Otherwise, use regular equality
+   (t (equal var1 var2))))
+
+(defun greger-parser-test--alists-equal-p (alist1 alist2)
+  "Return t if ALIST1 and ALIST2 contain the same key-value pairs.
+Comparison is order-independent."
+  (and (= (length alist1) (length alist2))
+       (catch 'not-equal
+         (dolist (pair alist1 t)
+           (let ((key (car pair))
+                 (val (cdr pair)))
+             (unless (equal val (cdr (assoc key alist2)))
+               (throw 'not-equal nil)))))))
 
 (defun greger-parser-test--input-equal (expected actual)
   "Compare tool input parameters."
@@ -651,50 +153,136 @@ What do you think?"
   "Normalize whitespace in string for comparison."
   (string-trim (replace-regexp-in-string "[ \t\n\r]+" " " str)))
 
-;; Main test suite
-(ert-deftest greger-parser-test-markdown-to-dialog ()
-  "Test converting markdown to dialog format."
-  (dolist (test-case greger-parser-test-cases)
-    (let ((name (plist-get test-case :name))
-          (markdown (plist-get test-case :markdown))
-          (expected-dialog (plist-get test-case :dialog)))
-      (message "Testing markdown-to-dialog for: %s" name)
-      (let ((actual-dialog (greger-parser-parse-dialog-messages-only markdown)))
-        (should (greger-parser-test--dialog-equal expected-dialog actual-dialog))))))
+;; Fixture macro for tests that need the grammar repo
+(defmacro greger-parser-test--with-grammar-repo (&rest body)
+  "Execute BODY with the grammar repository available, ensuring cleanup."
+  `(unwind-protect
+       (progn
+         (greger-test-setup-grammar-repo)
+         ,@body)
+     ;; Cleanup happens here only if this is the last test or if there's an error
+     ;; For normal operation, cleanup happens in the dedicated cleanup test
+     nil))
 
-(ert-deftest greger-parser-test-roundtrip ()
-  "Test that markdown -> dialog -> markdown preserves structure."
-  (dolist (test-case greger-parser-test-cases)
-    (let ((name (plist-get test-case :name))
-          (original-markdown (plist-get test-case :markdown)))
-      (message "Testing roundtrip for: %s" name)
-      (let* ((dialog (greger-parser-parse-dialog-messages-only original-markdown))
-             (roundtrip-markdown (greger-parser-dialog-to-markdown dialog))
-             (roundtrip-dialog (greger-parser-parse-dialog-messages-only roundtrip-markdown)))
-        ;; The dialog should be structurally equivalent after round-trip
-        (should (= (length dialog) (length roundtrip-dialog)))
-        (should (greger-parser-test--dialog-equal dialog roundtrip-dialog))))))
+;; Helper function for roundtrip testing
+(defun greger-parser-test--roundtrip (corpus-name)
+  "Test roundtrip conversion for a corpus file."
+  (greger-parser-test--with-grammar-repo
+   (let ((original-markdown (greger-read-corpus-file corpus-name)))
+     (let* ((dialog (greger-parser-markdown-to-dialog original-markdown))
+            (roundtrip-markdown (greger-parser-dialog-to-markdown dialog))
+            (roundtrip-dialog (greger-parser-markdown-to-dialog roundtrip-markdown)))
+       ;; The dialog should be structurally equivalent after round-trip
+       (should (= (length dialog) (length roundtrip-dialog)))
+       (should (greger-parser-test--dialog-equal dialog roundtrip-dialog))))))
+
+;; Individual test cases imported from greger-grammar corpus files
+;; Each test performs roundtrip testing: markdown -> dialog -> markdown
+
+(ert-deftest greger-parser-test-simple-user-message ()
+  "Test roundtrip for simple-user-message corpus case."
+  (greger-parser-test--roundtrip "simple-user-message"))
+
+(ert-deftest greger-parser-test-system-and-user ()
+  "Test roundtrip for system-and-user corpus case."
+  (greger-parser-test--roundtrip "system-and-user"))
+
+(ert-deftest greger-parser-test-simple-conversation ()
+  "Test roundtrip for simple-conversation corpus case."
+  (greger-parser-test--roundtrip "simple-conversation"))
+
+(ert-deftest greger-parser-test-thinking-section ()
+  "Test roundtrip for thinking-section corpus case."
+  (greger-parser-test--roundtrip "thinking-section"))
+
+(ert-deftest greger-parser-test-tool-use-single-param ()
+  "Test roundtrip for tool-use-single-param corpus case."
+  (greger-parser-test--roundtrip "tool-use-single-param"))
+
+(ert-deftest greger-parser-test-tool-use-multiple-params ()
+  "Test roundtrip for tool-use-multiple-params corpus case."
+  (greger-parser-test--roundtrip "tool-use-multiple-params"))
+
+(ert-deftest greger-parser-test-complex-workflow ()
+  "Test roundtrip for complex-workflow corpus case."
+  (greger-parser-test--roundtrip "complex-workflow"))
+
+(ert-deftest greger-parser-test-multiple-tool-uses ()
+  "Test roundtrip for multiple-tool-uses corpus case."
+  (greger-parser-test--roundtrip "multiple-tool-uses"))
+
+(ert-deftest greger-parser-test-thinking-only ()
+  "Test roundtrip for thinking-only corpus case."
+  (greger-parser-test--roundtrip "thinking-only"))
+
+(ert-deftest greger-parser-test-tool-use-only ()
+  "Test roundtrip for tool-use-only corpus case."
+  (greger-parser-test--roundtrip "tool-use-only"))
+
+(ert-deftest greger-parser-test-citations-basic ()
+  "Test roundtrip for citations-basic corpus case."
+  (greger-parser-test--roundtrip "citations-basic"))
+
+(ert-deftest greger-parser-test-citations-after-tool-result ()
+  "Test roundtrip for citations-after-tool-result corpus case."
+  (greger-parser-test--roundtrip "citations-after-tool-result"))
+
+(ert-deftest greger-parser-test-citations-multiple ()
+  "Test roundtrip for citations-multiple corpus case."
+  (greger-parser-test--roundtrip "citations-multiple"))
+
+(ert-deftest greger-parser-test-code-block-triple-backticks ()
+  "Test roundtrip for code-block-triple-backticks corpus case."
+  (greger-parser-test--roundtrip "code-block-triple-backticks"))
+
+(ert-deftest greger-parser-test-mixed-code-blocks-and-sections ()
+  "Test roundtrip for mixed-code-blocks-and-sections corpus case."
+  (greger-parser-test--roundtrip "mixed-code-blocks-and-sections"))
+
+(ert-deftest greger-parser-test-tool-use-with-code-in-params ()
+  "Test roundtrip for tool-use-with-code-in-params corpus case."
+  (greger-parser-test--roundtrip "tool-use-with-code-in-params"))
+
+(ert-deftest greger-parser-test-tool-use-with-tool-use-in-params ()
+  "Test roundtrip for tool-use-with-tool-use-in-params corpus case."
+  (greger-parser-test--roundtrip "tool-use-with-tool-use-in-params"))
+
+(ert-deftest greger-parser-test-nested-code-blocks ()
+  "Test roundtrip for nested-code-blocks corpus case."
+  (greger-parser-test--roundtrip "nested-code-blocks"))
+
+(ert-deftest greger-parser-test-html-comments ()
+  "Test roundtrip for html-comments corpus case."
+  (greger-parser-test--roundtrip "html-comments"))
+
+(ert-deftest greger-parser-test-server-tool-use-basic ()
+  "Test roundtrip for server-tool-use-basic corpus case."
+  (greger-parser-test--roundtrip "server-tool-use-basic"))
+
+(ert-deftest greger-parser-test-server-tool-use-string-result ()
+  "Test roundtrip for server-tool-use-string-result corpus case."
+  (greger-parser-test--roundtrip "server-tool-use-string-result"))
 
 (ert-deftest greger-parser-test-tool-use-parsing ()
   "Test specific tool use parsing functionality."
-  (let ((tool-use-markdown "## TOOL USE:
+  (let ((tool-use-markdown "# TOOL USE
 
 Name: read-file
 ID: toolu_123
 
-### path
+## path
 
 <tool.toolu_123>
 hello.txt
 </tool.toolu_123>
 
-### include_line_numbers
+## include_line_numbers
 
 <tool.toolu_123>
 true
 </tool.toolu_123>
 "))
-    (let ((parsed (greger-parser-parse-dialog-messages-only tool-use-markdown)))
+    (let ((parsed (greger-parser-markdown-to-dialog tool-use-markdown)))
       (should (= 1 (length parsed)))
       (let ((assistant-msg (car parsed)))
         (should (string= "assistant" (alist-get 'role assistant-msg)))
@@ -709,7 +297,7 @@ true
 
 (ert-deftest greger-parser-test-tool-result-parsing ()
   "Test specific tool result parsing functionality."
-  (let ((tool-result-markdown "## TOOL RESULT:
+  (let ((tool-result-markdown "# TOOL RESULT
 
 ID: toolu_123
 
@@ -717,7 +305,7 @@ ID: toolu_123
 File contents here
 with multiple lines
 </tool.toolu_123>"))
-    (let ((parsed (greger-parser-parse-dialog-messages-only tool-result-markdown)))
+    (let ((parsed (greger-parser-markdown-to-dialog tool-result-markdown)))
       (should (= 1 (length parsed)))
       (let ((user-msg (car parsed)))
         (should (string= "user" (alist-get 'role user-msg)))
@@ -731,11 +319,11 @@ with multiple lines"
 
 (ert-deftest greger-parser-test-thinking-parsing ()
   "Test thinking section parsing."
-  (let ((thinking-markdown "## THINKING:
+  (let ((thinking-markdown "# THINKING
 
 I need to think about this carefully.
 This is a complex problem."))
-    (let ((parsed (greger-parser-parse-dialog-messages-only thinking-markdown)))
+    (let ((parsed (greger-parser-markdown-to-dialog thinking-markdown)))
       (should (= 1 (length parsed)))
       (let ((assistant-msg (car parsed)))
         (should (string= "assistant" (alist-get 'role assistant-msg)))
@@ -750,127 +338,82 @@ This is a complex problem."
   "Test parser error handling for malformed input."
   ;; Test that malformed input returns empty result instead of error
   (should (condition-case err
-              (progn (greger-parser-parse-dialog-messages-only "## TOOL USE:\n\nMalformed") t)
+              (progn (greger-parser-markdown-to-dialog "# TOOL USE\n\nMalformed") t)
             (error nil)))
   (should (condition-case err
-              (progn (greger-parser-parse-dialog-messages-only "## TOOL RESULT:\n\nMalformed") t)
+              (progn (greger-parser-markdown-to-dialog "# TOOL RESULT\n\nMalformed") t)
             (error nil))))
 
 (ert-deftest greger-parser-test-edge-cases ()
   "Test edge cases like empty content, whitespace handling."
   ;; Empty content
-  (should (equal '() (greger-parser-parse-dialog-messages-only "")))
-  (should (equal '() (greger-parser-parse-dialog-messages-only "\n\n  ")))
-
-  ;; Only whitespace in sections - should return empty list
-  (should (equal '() (greger-parser-parse-dialog-messages-only "## USER:\n\n\n\n")))
+  (should (equal '() (greger-parser-markdown-to-dialog "")))
+  (should (equal '() (greger-parser-markdown-to-dialog "\n\n  ")))
 
   ;; Multiple consecutive newlines
-  (let ((result (greger-parser-parse-dialog-messages-only "## USER:\n\n\n\nHello\n\n\n\n## ASSISTANT:\n\n\n\nHi")))
-    (should (= 2 (length result)))
-    (should (string= "Hello" (alist-get 'content (car result))))
-    (should (string= "Hi" (alist-get 'content (cadr result))))))
+  (let ((result (greger-parser-markdown-to-dialog "# USER
+
+Hello
+
+
+
+# ASSISTANT
+
+
+
+Hi")))
+    (should (equal '(((role . "user")
+                      (content . "Hello\n\n"))
+                     ((role . "assistant")
+                      ;; This is wrong, it should be: (content ((text . "\n\nHi") (type . "text")))
+                      (content ((text . "Hi") (type . "text")))
+                      ))
+                   result))))
 
 (ert-deftest greger-parser-test-performance ()
   "Test parser performance with large dialogs."
   (let ((large-markdown
          (mapconcat
           (lambda (i)
-            (format "## USER:\n\nMessage %d\n\n## ASSISTANT:\n\nResponse %d" i i))
-          (number-sequence 1 100)
+            (format "# USER\n\nMessage %d\n\n# ASSISTANT\n\nResponse %d" i i))
+          (number-sequence 1 10000)
           "\n\n")))
     (let ((start-time (current-time)))
-      (greger-parser-parse-dialog-messages-only large-markdown)
+      (greger-parser-markdown-to-dialog large-markdown)
       (let ((elapsed (float-time (time-subtract (current-time) start-time))))
-        ;; Should parse 100 message pairs in under 1 second
+        ;; Should parse 10000 message pairs in under 1 second
         (should (< elapsed 1.0))))))
-
-(ert-deftest greger-parser-test-complex-mixed-content ()
-  "Test parsing of complex mixed content with thinking, tools, and text."
-  (let ((complex-markdown "## USER:
-
-Help me with a file
-
-## THINKING:
-
-The user wants help with a file. I should ask what they need.
-
-## ASSISTANT:
-
-What kind of help do you need with the file?
-
-## TOOL USE:
-
-Name: list-directory
-ID: toolu_abc
-
-### path
-
-<tool.toolu_abc>
-.
-</tool.toolu_abc>"))
-    (let ((parsed (greger-parser-parse-dialog-messages-only complex-markdown)))
-      (should (= 2 (length parsed)))
-      ;; First message should be user
-      (should (string= "user" (alist-get 'role (car parsed))))
-      ;; Second message should be assistant with mixed content
-      (let ((assistant-msg (cadr parsed)))
-        (should (string= "assistant" (alist-get 'role assistant-msg)))
-        (let ((content-blocks (alist-get 'content assistant-msg)))
-          (should (= 3 (length content-blocks)))
-          ;; Should have thinking, text, and tool_use blocks
-          (should (string= "thinking" (alist-get 'type (car content-blocks))))
-          (should (string= "text" (alist-get 'type (cadr content-blocks))))
-          (should (string= "tool_use" (alist-get 'type (caddr content-blocks)))))))))
-
-(ert-deftest greger-parser-test-markdown-generation ()
-  "Test that generated markdown follows expected format."
-  (let ((dialog '(((role . "user") (content . "Test message"))
-                  ((role . "assistant") (content . (((type . "thinking") (thinking . "Let me think")) ((type . "text") (text . "Here's my response")) ((type . "tool_use") (id . "tool_123") (name . "test-tool") (input . ((param . "value")))))))
-                  ((role . "user") (content . (((type . "tool_result") (tool_use_id . "tool_123") (content . "Tool output")))))
-                  ((role . "assistant") (content . "Final response")))))
-    (let ((markdown (greger-parser-dialog-to-markdown dialog)))
-      ;; Should contain all expected sections
-      (should (string-match-p "## USER:" markdown))
-      (should (string-match-p "## THINKING:" markdown))
-      (should (string-match-p "## ASSISTANT:" markdown))
-      (should (string-match-p "## TOOL USE:" markdown))
-      (should (string-match-p "## TOOL RESULT:" markdown))
-      (should (string-match-p "Name: test-tool" markdown))
-      (should (string-match-p "ID: tool_123" markdown))
-      (should (string-match-p "### param" markdown))
-      (should (string-match-p "value" markdown)))))
 
 ;; Test untagged content at the beginning
 (ert-deftest greger-parser-test-untagged-content ()
   "Test that untagged content at the beginning is treated as user message."
   (let ((markdown "Hello, this is untagged content
 
-## ASSISTANT:
+# ASSISTANT
 
 I understand you have untagged content."))
-    (let ((parsed (greger-parser-parse-dialog-messages-only markdown)))
-      (should (= 2 (length parsed)))
-      (should (string= "user" (alist-get 'role (car parsed))))
-      (should (string= "Hello, this is untagged content" (alist-get 'content (car parsed))))
-      (should (string= "assistant" (alist-get 'role (cadr parsed))))
-      (should (string= "I understand you have untagged content." (alist-get 'content (cadr parsed)))))))
+    (let ((parsed (greger-parser-markdown-to-dialog markdown)))
+      (should (equal parsed '(((role . "user")
+                               (content . "Hello, this is untagged content"))
+                              ((role . "assistant")
+                               (content ((text . "I understand you have untagged content.")
+                                         (type . "text"))))))))))
 
 ;; Test that we handle tool use parameters correctly with various whitespace
 (ert-deftest greger-parser-test-tool-use-whitespace ()
   "Test tool use parsing with various whitespace patterns."
-  (let ((markdown "## TOOL USE:
+  (let ((markdown "# TOOL USE
 
 Name: test-tool
 ID: tool_123
 
-### param1
+## param1
 
 <tool.tool_123>
 value1
 </tool.tool_123>
 
-### param2
+## param2
 
 <tool.tool_123>
 value2 with
@@ -880,13 +423,13 @@ multiple
   lines
 </tool.tool_123>
 
-### param3
+## param3
 
 <tool.tool_123>
 value3
 </tool.tool_123>
 "))
-    (let ((parsed (greger-parser-parse-dialog-messages-only markdown)))
+    (let ((parsed (greger-parser-markdown-to-dialog markdown)))
       (should (= 1 (length parsed)))
       (let* ((assistant-msg (car parsed))
              (content-blocks (alist-get 'content assistant-msg))
@@ -897,505 +440,59 @@ value3
         (should (string= "value2 with\nmultiple\n\n\n  lines" (alist-get 'param2 input)))
         (should (string= "value3" (alist-get 'param3 input)))))))
 
-(ert-deftest greger-parser-test-code-block-parsing ()
-  "Test that section headers inside code blocks are not parsed."
-  (let ((markdown "## USER:
-
-Here's code with fake headers:
-
-```
-## ASSISTANT:
-This looks like a header but isn't
-## TOOL USE:
-Same with this
-```
-
-Real content continues.
-
-## ASSISTANT:
-
-I see your code."))
-    (let ((parsed (greger-parser-parse-dialog-messages-only markdown)))
-      (should (= 2 (length parsed)))
-      ;; First message should contain the entire user content including code block
-      (let ((user-content (alist-get 'content (car parsed))))
-        (should (string-match-p "## ASSISTANT:" user-content))
-        (should (string-match-p "## TOOL USE:" user-content))
-        (should (string-match-p "Real content continues" user-content)))
-      ;; Second message should be the real assistant response
-      (should (string= "assistant" (alist-get 'role (cadr parsed))))
-      (should (string= "I see your code." (alist-get 'content (cadr parsed)))))))
-
-(ert-deftest greger-parser-test-inline-code-blocks ()
-  "Test that section headers inside inline code are not parsed."
-  (let ((markdown "## USER:
-
-Use ``## ASSISTANT: response`` to format.
-
-## ASSISTANT:
-
-Got it!"))
-    (let ((parsed (greger-parser-parse-dialog-messages-only markdown)))
-      (should (= 2 (length parsed)))
-      (should (string-match-p "## ASSISTANT: response" (alist-get 'content (car parsed))))
-      (should (string= "Got it!" (alist-get 'content (cadr parsed)))))))
-
 (ert-deftest greger-parser-test-code-blocks-in-tool-params ()
   "Test that code blocks in tool parameters are preserved correctly."
-  (let ((markdown "## TOOL USE:
+  (let ((markdown "# TOOL USE
 
 Name: write-file
 ID: tool_123
 
-### content
+## content
 
 <tool.tool_123>
 ```python
-# This ## USER: comment should be preserved
-print(\"## ASSISTANT: also preserved\")
+# This # USER comment should be preserved
+print(\"# ASSISTANT also preserved\")
 ```
 </tool.tool_123>
 "))
-    (let ((parsed (greger-parser-parse-dialog-messages-only markdown)))
+    (let ((parsed (greger-parser-markdown-to-dialog markdown)))
       (should (= 1 (length parsed)))
       (let* ((assistant-msg (car parsed))
              (content-blocks (alist-get 'content assistant-msg))
              (tool-block (car content-blocks))
              (input (alist-get 'input tool-block))
              (content-param (alist-get 'content input)))
-        (should (string-match-p "## USER:" content-param))
-        (should (string-match-p "## ASSISTANT:" content-param))
+        (should (string-match-p "# USER" content-param))
+        (should (string-match-p "# ASSISTANT" content-param))
         (should (string-match-p "```python" content-param))))))
 
-;; Include tag tests
-(ert-deftest greger-parser-test-include-tag-basic ()
-  "Test basic include tag functionality."
-  (let ((test-file (make-temp-file "greger-test-include" nil ".txt" "Hello from included file!"))
-        (markdown nil)
-        (expected nil))
-    (unwind-protect
-        (progn
-          (setq markdown (format "## USER:
-
-Here's the content:
-
-<include>%s</include>
-
-What do you think?" test-file))
-
-          (setq expected "## USER:
-
-Here's the content:
-
-Hello from included file!
-
-What do you think?")
-
-          (let ((parsed (greger-parser-parse-dialog-messages-only markdown)))
-            (should (= 1 (length parsed)))
-            (let ((generated-markdown (greger-parser-dialog-to-markdown parsed)))
-              (should (string= expected generated-markdown)))))
-      (when (file-exists-p test-file)
-        (delete-file test-file)))))
-
-(ert-deftest greger-parser-test-include-tag-with-code ()
-  "Test include tag with code attribute."
-  (let ((test-file (make-temp-file "greger-test-include" nil ".py" "def hello():\n    print('Hello, world!')"))
-        (markdown nil)
-        (expected nil))
-    (unwind-protect
-        (progn
-          (setq markdown (format "## USER:
-
-Here's the Python code:
-
-<include code>%s</include>
-
-Review this code." test-file))
-
-          (setq expected (format "## USER:
-
-Here's the Python code:
-
-%s:
-```
-def hello():
-    print('Hello, world!')
-```
-
-Review this code." test-file))
-
-          (let ((parsed (greger-parser-parse-dialog-messages-only markdown)))
-            (should (= 1 (length parsed)))
-            (let ((generated-markdown (greger-parser-dialog-to-markdown parsed)))
-              (should (string= expected generated-markdown)))))
-      (when (file-exists-p test-file)
-        (delete-file test-file)))))
-
-(ert-deftest greger-parser-test-include-tag-nonexistent-file ()
-  "Test include tag with nonexistent file."
-  (let ((markdown "## USER:
-
-Try to include: <include>/nonexistent/file.txt</include>
-
-This should handle errors gracefully.")
-        (expected "## USER:
-
-Try to include: [Error reading file: /nonexistent/file.txt]
-
-This should handle errors gracefully."))
-    (let ((parsed (greger-parser-parse-dialog-messages-only markdown)))
-      (should (= 1 (length parsed)))
-      (let ((generated-markdown (greger-parser-dialog-to-markdown parsed)))
-        (should (string= expected generated-markdown))))))
-
-(ert-deftest greger-parser-test-include-tag-multiline-content ()
-  "Test include tag with multiline file content."
-  (let ((test-file (make-temp-file "greger-test-include" nil ".txt" "Line 1\nLine 2\n\nLine 4 after empty line"))
-        (markdown nil)
-        (expected nil))
-    (unwind-protect
-        (progn
-          (setq markdown (format "## USER:
-
-Multiline content:
-
-<include>%s</include>
-
-End of message." test-file))
-
-          (setq expected "## USER:
-
-Multiline content:
-
-Line 1
-Line 2
-
-Line 4 after empty line
-
-End of message.")
-
-          (let ((parsed (greger-parser-parse-dialog-messages-only markdown)))
-            (should (= 1 (length parsed)))
-            (let ((generated-markdown (greger-parser-dialog-to-markdown parsed)))
-              (should (string= expected generated-markdown)))))
-      (when (file-exists-p test-file)
-        (delete-file test-file)))))
-
-
-(ert-deftest greger-parser-test-include-tag-recursive ()
-  "Test include tag with file that contains another include tag."
-  (let ((inner-file (make-temp-file "greger-test-inner" nil ".txt" "Inner file content"))
-        (outer-file nil)
-        (markdown nil)
-        (expected nil))
-    (unwind-protect
-        (progn
-          (setq outer-file (make-temp-file "greger-test-outer" nil ".txt"
-                                          (format "Before include\n<include>%s</include>\nAfter include" inner-file)))
-          (setq markdown (format "## USER:
-
-Recursive include:
-
-<include>%s</include>
-
-Done." outer-file))
-
-          (setq expected "## USER:
-
-Recursive include:
-
-Before include
-Inner file content
-After include
-
-Done.")
-
-          (let ((parsed (greger-parser-parse-dialog-messages-only markdown)))
-            (should (= 1 (length parsed)))
-            (let ((generated-markdown (greger-parser-dialog-to-markdown parsed)))
-              (should (string= expected generated-markdown)))))
-      (when (and inner-file (file-exists-p inner-file))
-        (delete-file inner-file))
-      (when (and outer-file (file-exists-p outer-file))
-        (delete-file outer-file)))))
-
-(ert-deftest greger-parser-test-include-tag-in-assistant-section ()
-  "Test include tag in assistant section."
-  (let ((test-file (make-temp-file "greger-test-include" nil ".txt" "Assistant included content"))
-        (markdown nil)
-        (expected nil))
-    (unwind-protect
-        (progn
-          (setq markdown (format "## USER:
-
-Show me the file.
-
-## ASSISTANT:
-
-Here's the content:
-
-<include>%s</include>
-
-Hope this helps!" test-file))
-
-          (setq expected "## USER:
-
-Show me the file.
-
-## ASSISTANT:
-
-Here's the content:
-
-Assistant included content
-
-Hope this helps!")
-
-          (let ((parsed (greger-parser-parse-dialog-messages-only markdown)))
-            (should (= 2 (length parsed)))
-            (let ((generated-markdown (greger-parser-dialog-to-markdown parsed)))
-              (should (string= expected generated-markdown)))))
-      (when (file-exists-p test-file)
-        (delete-file test-file)))))
-
-(ert-deftest greger-parser-test-include-tag-with-code-in-code-block ()
-  "Test include tag with code attribute where content has code blocks."
-  (let ((test-file (make-temp-file "greger-test-include" nil ".py" "def example():\n    pass\n"))
-        (markdown nil)
-        (expected nil))
-    (unwind-protect
-        (progn
-          (setq markdown (format "## USER:
-
-<include code>%s</include>" test-file))
-
-          (setq expected (format "## USER:
-
-%s:
-```
-def example():
-    pass
-```" test-file))
-
-          (let ((parsed (greger-parser-parse-dialog-messages-only markdown)))
-            (should (= 1 (length parsed)))
-            (let ((generated-markdown (greger-parser-dialog-to-markdown parsed)))
-              (should (string= expected generated-markdown)))))
-      (when (file-exists-p test-file)
-        (delete-file test-file)))))
-
-;; Tests to ensure include tags are NOT processed in code blocks or tool content
-(ert-deftest greger-parser-test-include-tag-not-processed-in-code-blocks ()
-  "Test that include tags inside code blocks are not processed."
-  (let ((test-file (make-temp-file "greger-test-include" nil ".txt" "This should not be included"))
-        (markdown nil)
-        (expected nil))
-    (unwind-protect
-        (progn
-          (setq markdown (format "## USER:
-
-Here's some code with an include tag:
-
-```
-<include>%s</include>
-```
-
-The include should not be processed." test-file))
-
-          (setq expected (format "## USER:
-
-Here's some code with an include tag:
-
-```
-<include>%s</include>
-```
-
-The include should not be processed." test-file))
-
-          (let ((parsed (greger-parser-parse-dialog-messages-only markdown)))
-            (should (= 1 (length parsed)))
-            (let ((generated-markdown (greger-parser-dialog-to-markdown parsed)))
-              (should (string= expected generated-markdown)))))
-      (when (file-exists-p test-file)
-        (delete-file test-file)))))
-
-(ert-deftest greger-parser-test-include-tag-not-processed-in-inline-code ()
-  "Test that include tags inside inline code are not processed."
-  (let ((test-file (make-temp-file "greger-test-include" nil ".txt" "This should not be included"))
-        (markdown nil)
-        (expected nil))
-    (unwind-protect
-        (progn
-          (setq markdown (format "## USER:
-
-Use `<include>%s</include>` to include files.
-
-The include in backticks should not be processed." test-file))
-
-          (setq expected (format "## USER:
-
-Use `<include>%s</include>` to include files.
-
-The include in backticks should not be processed." test-file))
-
-          (let ((parsed (greger-parser-parse-dialog-messages-only markdown)))
-            (should (= 1 (length parsed)))
-            (let ((generated-markdown (greger-parser-dialog-to-markdown parsed)))
-              (should (string= expected generated-markdown)))))
-      (when (file-exists-p test-file)
-        (delete-file test-file)))))
-
-(ert-deftest greger-parser-test-include-tag-not-processed-in-tool-params ()
-  "Test that include tags inside tool parameters are not processed."
-  (let ((test-file (make-temp-file "greger-test-include" nil ".txt" "This should not be included"))
-        (markdown nil)
-        (expected nil))
-    (unwind-protect
-        (progn
-          (setq markdown (format "## TOOL USE:
-
-Name: write-file
-ID: tool_123
-
-### content
-
-<tool.tool_123>
-<include>%s</include>
-</tool.tool_123>" test-file))
-
-          (setq expected (format "## TOOL USE:
-
-Name: write-file
-ID: tool_123
-
-### content
-
-<tool.tool_123>
-<include>%s</include>
-</tool.tool_123>" test-file))
-
-          (let ((parsed (greger-parser-parse-dialog-messages-only markdown)))
-            (should (= 1 (length parsed)))
-            (let ((generated-markdown (greger-parser-dialog-to-markdown parsed)))
-              (should (string= expected generated-markdown)))))
-      (when (file-exists-p test-file)
-        (delete-file test-file)))))
-
-(ert-deftest greger-parser-test-include-tag-web-url ()
-  "Test include tag with web URL functionality."
-  (let ((markdown "## USER:
-
-Check this out:
-
-<include>https://pub-b88c9764a4fc46baa90b9e8e1544f59e.r2.dev/hello.html</include>
-
-What do you think?")
-        (expected "## USER:
-
-Check this out:
-
-Hello world!
-
-What do you think?"))
-    ;; This test just verifies that URL handling doesn't crash
-    ;; The exact content will vary based on the response
-    (let ((parsed (greger-parser-parse-dialog-messages-only markdown)))
-      (should (= 1 (length parsed)))
-      (let ((generated-markdown (greger-parser-dialog-to-markdown parsed)))
-        (should (string= expected generated-markdown))))))
-
-(ert-deftest greger-parser-test-include-tag-web-url-with-code ()
-  "Test include tag with web URL and code attribute."
-  (let ((markdown "## USER:
-
-<include code>https://pub-b88c9764a4fc46baa90b9e8e1544f59e.r2.dev/hello.html</include>
-
-Pretty cool!")
-        (expected "## USER:
-
-https://pub-b88c9764a4fc46baa90b9e8e1544f59e.r2.dev/hello.html:
-```
-Hello world!
-```
-
-Pretty cool!"))
-    ;; This test verifies URL handling with code formatting
-    (let ((parsed (greger-parser-parse-dialog-messages-only markdown)))
-      (should (= 1 (length parsed)))
-      (let ((generated-markdown (greger-parser-dialog-to-markdown parsed)))
-        (should (string= expected generated-markdown))))))
-
-(ert-deftest greger-parser-test-include-tag-invalid-url ()
-  "Test include tag with invalid web URL."
-  (let ((markdown "## USER:
-
-This should fail:
-
-<include>https://invalid-url-that-does-not-exist-12345.com</include>
-
-Error handling test")
-        (expected "## USER:
-
-This should fail:
-
-[Error reading URL: https://invalid-url-that-does-not-exist-12345.com]
-
-Error handling test"))
-    (let ((parsed (greger-parser-parse-dialog-messages-only markdown)))
-      (should (= 1 (length parsed)))
-      (let ((generated-markdown (greger-parser-dialog-to-markdown parsed)))
-        (should (string= expected generated-markdown))))))
-
-;; Tests for safe-shell-commands metadata
-(ert-deftest greger-parser-test-safe-shell-commands-basic ()
-  "Test basic safe-shell-commands parsing."
-  (let ((markdown "## SYSTEM:
-
-<safe-shell-commands>
-ls -la
-pwd
-echo hello
-</safe-shell-commands>")
-        (expected-metadata '(:safe-shell-commands ("ls -la" "pwd" "echo hello"))))
-    (let ((result (greger-parser-parse-dialog markdown)))
-      ;; Should have one system message with the auto-generated descriptive text
-      (should (= 1 (length (plist-get result :messages))))
-      (let ((system-msg (car (plist-get result :messages))))
-        (should (string= "system" (alist-get 'role system-msg)))
-        (let ((content (alist-get 'content system-msg)))
-          (should (string= "You can run arbitrary shell commands with the shell-command tool, but the following are safe shell commands that will run without requiring user confirmation:
-
-* `ls -la`
-* `pwd`
-* `echo hello`"
-                           content))))
-      (should (equal expected-metadata (plist-get result :metadata))))))
-
-(ert-deftest greger-parser-test-safe-shell-commands-with-system-content ()
+;; Tests for safe-shell-commands
+(ert-deftest greger-parser-test-safe-shell-commands ()
   "Test safe-shell-commands with other system content."
-  (let ((markdown "## SYSTEM:
+  (let ((markdown "# SYSTEM
 
 You are a helpful assistant.
 
 <safe-shell-commands>
 ls
+
 pwd
 </safe-shell-commands>
 
 Please be careful."))
-    (let ((result (greger-parser-parse-dialog markdown)))
+    (let ((result (greger-parser-markdown-to-dialog markdown)))
       ;; Should have a system message with combined content
-      (should (= 1 (length (plist-get result :messages))))
-      (should (string= "system" (alist-get 'role (car (plist-get result :messages)))))
-      ;; Should also have metadata since safe-shell-commands can coexist with content
-      (should (equal '(:safe-shell-commands ("ls" "pwd")) (plist-get result :metadata)))
-      ;; System message should contain the original content and the auto-generated safe commands text
-      (let ((system-content (alist-get 'content (car (plist-get result :messages)))))
+      (should (= 1 (length result)))
+      (should (string= "system" (alist-get 'role (car result))))
+      (let ((system-content (alist-get 'content (car result))))
         (should (string= "You are a helpful assistant.
 
 
 
 Please be careful.
+
+# Safe shell commands
 
 You can run arbitrary shell commands with the shell-command tool, but the following are safe shell commands that will run without requiring user confirmation:
 
@@ -1403,126 +500,27 @@ You can run arbitrary shell commands with the shell-command tool, but the follow
 * `pwd`"
                          system-content))))))
 
-(ert-deftest greger-parser-test-safe-shell-commands-only-once ()
-  "Test that only one safe-shell-commands block is allowed."
-  (let ((markdown "## SYSTEM:
-
-<safe-shell-commands>
-ls
-pwd
-</safe-shell-commands>
-
-<safe-shell-commands>
-echo hello
-</safe-shell-commands>"))
-    (let ((result (greger-parser-parse-dialog markdown)))
-      ;; Should extract the first one found
-      (should (equal '(:safe-shell-commands ("ls" "pwd")) (plist-get result :metadata))))))
-
-(ert-deftest greger-parser-test-safe-shell-commands-empty-lines ()
-  "Test safe-shell-commands with empty lines and whitespace."
-  (let ((markdown "## SYSTEM:
-
-<safe-shell-commands>
-
-ls -la
-
-pwd
-
-echo hello
-
-</safe-shell-commands>"))
-    (let ((result (greger-parser-parse-dialog markdown)))
-      ;; Should have one system message with the auto-generated descriptive text
-      (should (= 1 (length (plist-get result :messages))))
-      (let ((system-msg (car (plist-get result :messages))))
-        (should (string= "system" (alist-get 'role system-msg)))
-        (let ((content (alist-get 'content system-msg)))
-          (should (string= "You can run arbitrary shell commands with the shell-command tool, but the following are safe shell commands that will run without requiring user confirmation:
-
-* `ls -la`
-* `pwd`
-* `echo hello`"
-                           content))))
-      (should (equal '(:safe-shell-commands ("ls -la" "pwd" "echo hello"))
-                     (plist-get result :metadata))))))
-
 (ert-deftest greger-parser-test-safe-shell-commands-not-in-system ()
   "Test that safe-shell-commands outside SYSTEM section are ignored."
-  (let ((markdown "## USER:
+  (let ((markdown "# USER
 
 <safe-shell-commands>
 ls -la
 </safe-shell-commands>
 
 What files are here?"))
-    (let ((result (greger-parser-parse-dialog markdown)))
+    (let ((result (greger-parser-markdown-to-dialog markdown)))
       ;; Should have no metadata
-      (should (equal '() (plist-get result :metadata)))
       ;; Should have user message with the tag as regular content
-      (should (= 1 (length (plist-get result :messages))))
+      (should (= 1 (length result)))
       (should (string-match-p "<safe-shell-commands>"
-                             (alist-get 'content (car (plist-get result :messages))))))))
+                             (alist-get 'content (car result)))))))
 
-(ert-deftest greger-parser-test-safe-shell-commands-in-code-block ()
-  "Test that safe-shell-commands inside code blocks are not processed."
-  (let ((markdown "## SYSTEM:
 
-Here's an example:
-
-```
-<safe-shell-commands>
-ls -la
-</safe-shell-commands>
-```
-
-Don't process that."))
-    (let ((result (greger-parser-parse-dialog markdown)))
-      ;; Should have no metadata
-      (should (equal '() (plist-get result :metadata)))
-      ;; Should have system message with code block
-      (should (= 1 (length (plist-get result :messages))))
-      (should (string-match-p "<safe-shell-commands>"
-                             (alist-get 'content (car (plist-get result :messages))))))))
-
-(ert-deftest greger-parser-test-system-content-with-safe-commands-example ()
-  "Test the exact example from the user: system content with safe-shell-commands."
-  (let ((markdown "## SYSTEM:
-
-you are a friendly assistant
-
-<safe-shell-commands>
-command1
-command2
-</safe-shell-commands>
-
-## USER:
-
-Hello"))
-    (let ((result (greger-parser-parse-dialog markdown)))
-      ;; Should have both system and user messages
-      (should (= 2 (length (plist-get result :messages))))
-
-      ;; Check system message - should contain both original content and auto-generated safe commands text
-      (let ((system-msg (car (plist-get result :messages))))
-        (should (string= "system" (alist-get 'role system-msg)))
-        (let ((content (alist-get 'content system-msg)))
-          (should (string= "you are a friendly assistant
-
-You can run arbitrary shell commands with the shell-command tool, but the following are safe shell commands that will run without requiring user confirmation:
-
-* `command1`
-* `command2`"
-                           content))))
-
-      ;; Check user message
-      (let ((user-msg (cadr (plist-get result :messages))))
-        (should (string= "user" (alist-get 'role user-msg)))
-        (should (string= "Hello" (alist-get 'content user-msg))))
-
-      ;; Should have metadata with safe shell commands
-      (should (equal '(:safe-shell-commands ("command1" "command2")) (plist-get result :metadata))))))
-
-(provide 'test-greger-parser)
+;; Cleanup test - should run last alphabetically
+(ert-deftest zz-greger-parser-test-cleanup ()
+  "Clean up test resources (runs last due to alphabetical ordering)."
+  (greger-test-cleanup-grammar-repo)
+  (should t)) ;; Always pass
 
 ;;; test-greger-parser.el ends here

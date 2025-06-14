@@ -8,7 +8,7 @@
 ;; - Each test has explicit "expected" content that defines the exact buffer state after execution
 ;; - Tests use string= for exact content comparison where possible
 ;; - Expected content follows the greger tool result format:
-;;   ## TOOL RESULT:
+;;   # TOOL RESULT:
 ;;
 ;;   ID: <tool_id>
 ;;
@@ -21,13 +21,6 @@
 (require 'greger)
 (require 'greger-tools)
 (require 'greger-parser)
-
-(ert-deftest greger-test-tool-placeholder ()
-  "Test the tool placeholder helper function."
-  (let ((expected1 "<!-- TOOL_RESULT_PLACEHOLDER_test123 -->")
-        (expected2 "<!-- TOOL_RESULT_PLACEHOLDER_tool_abc_def -->"))
-    (should (string= expected1 (greger--tool-placeholder "test123")))
-    (should (string= expected2 (greger--tool-placeholder "tool_abc_def")))))
 
 (ert-deftest greger-test-single-tool-execution ()
   "Test execution of a single tool with callback."
@@ -51,25 +44,25 @@
                           :current-iteration 0
                           :chat-buffer (current-buffer)
                           :directory default-directory
-                          :metadata nil))
+                          :tool-use-metadata '(:safe-shell-commands () :allow-all-shell-commands nil)))
             (tool-calls `(((type . "tool_use")
                           (id . "test_001")
                           (name . "test-simple")
                           (input . ((message . "Hello World"))))))
             (expected-content "
 
-## TOOL USE:
+# TOOL USE
 
 Name: test-simple
 ID: test_001
 
-### message
+## message
 
 <tool.test_001>
 Hello World
 </tool.test_001>
 
-## TOOL RESULT:
+# TOOL RESULT
 
 ID: test_001
 
@@ -81,6 +74,13 @@ Tool executed: Hello World
         (cl-letf (((symbol-function 'greger--run-agent-loop)
                    (lambda (state)
                      (setq test-completed t))))
+
+          ;; First insert the tool use markdown (simulating what greger--append-nonstreaming-content-block does)
+          (dolist (tool-call tool-calls)
+            (let ((tool-use-markdown (greger-parser--tool-use-to-markdown tool-call))
+                  (tool-id (alist-get 'id tool-call)))
+              (insert "\n\n" tool-use-markdown)
+              (insert "\n\n" (greger--tool-placeholder tool-id))))
 
           ;; Execute tools
           (greger--execute-tools tool-calls agent-state)
@@ -126,7 +126,7 @@ Tool executed: Hello World
       (let ((agent-state (make-greger-state
                           :current-iteration 0
                           :chat-buffer (current-buffer)
-                          :directory default-directory :metadata nil))
+                          :directory default-directory :tool-use-metadata '(:safe-shell-commands () :allow-all-shell-commands nil)))
             (tool-calls `(((type . "tool_use")
                           (id . "test_a")
                           (name . "test-tool-a")
@@ -138,18 +138,18 @@ Tool executed: Hello World
             ;; Expected content has each tool use followed by its result
             (expected-content "
 
-## TOOL USE:
+# TOOL USE
 
 Name: test-tool-a
 ID: test_a
 
-### value
+## value
 
 <tool.test_a>
 input-a
 </tool.test_a>
 
-## TOOL RESULT:
+# TOOL RESULT
 
 ID: test_a
 
@@ -157,18 +157,18 @@ ID: test_a
 Tool A result: input-a
 </tool.test_a>
 
-## TOOL USE:
+# TOOL USE
 
 Name: test-tool-b
 ID: test_b
 
-### value
+## value
 
 <tool.test_b>
 input-b
 </tool.test_b>
 
-## TOOL RESULT:
+# TOOL RESULT
 
 ID: test_b
 
@@ -180,6 +180,13 @@ Tool B result: input-b
         (cl-letf (((symbol-function 'greger--run-agent-loop)
                    (lambda (state)
                      (setq tools-completed t))))
+
+          ;; First insert the tool use markdown (simulating what greger--append-nonstreaming-content-block does)
+          (dolist (tool-call tool-calls)
+            (let ((tool-use-markdown (greger-parser--tool-use-to-markdown tool-call))
+                  (tool-id (alist-get 'id tool-call)))
+              (insert "\n\n" tool-use-markdown)
+              (insert "\n\n" (greger--tool-placeholder tool-id))))
 
           ;; Execute tools
           (greger--execute-tools tool-calls agent-state)
@@ -216,25 +223,25 @@ Tool B result: input-b
       (let ((agent-state (make-greger-state
                           :current-iteration 0
                           :chat-buffer (current-buffer)
-                          :directory default-directory :metadata nil))
+                          :directory default-directory :tool-use-metadata nil))
             (tool-calls `(((type . "tool_use")
                           (id . "error_test")
                           (name . "test-error")
                           (input . ((input . "bad-input"))))))
             (expected-error-content "
 
-## TOOL USE:
+# TOOL USE
 
 Name: test-error
 ID: error_test
 
-### input
+## input
 
 <tool.error_test>
 bad-input
 </tool.error_test>
 
-## TOOL RESULT:
+# TOOL RESULT
 
 ID: error_test
 
@@ -246,6 +253,13 @@ Error executing tool: Simulated tool error: bad-input
         (cl-letf (((symbol-function 'greger--run-agent-loop)
                    (lambda (state)
                      (setq test-completed t))))
+
+          ;; First insert the tool use markdown (simulating what greger--append-nonstreaming-content-block does)
+          (dolist (tool-call tool-calls)
+            (let ((tool-use-markdown (greger-parser--tool-use-to-markdown tool-call))
+                  (tool-id (alist-get 'id tool-call)))
+              (insert "\n\n" tool-use-markdown)
+              (insert "\n\n" (greger--tool-placeholder tool-id))))
 
           ;; Execute tools
           (greger--execute-tools tool-calls agent-state)
@@ -283,25 +297,25 @@ Error executing tool: Simulated tool error: bad-input
       (let ((agent-state (make-greger-state
                           :current-iteration 0
                           :chat-buffer (current-buffer)
-                          :directory default-directory :metadata nil))
+                          :directory default-directory :tool-use-metadata nil))
             (tool-calls `(((type . "tool_use")
                           (id . "content_test")
                           (name . "test-content")
                           (input . ((data . "test-data"))))))
             (expected-content "Existing content in buffer
 
-## TOOL USE:
+# TOOL USE
 
 Name: test-content
 ID: content_test
 
-### data
+## data
 
 <tool.content_test>
 test-data
 </tool.content_test>
 
-## TOOL RESULT:
+# TOOL RESULT
 
 ID: content_test
 
@@ -313,6 +327,13 @@ Processed: test-data
         (cl-letf (((symbol-function 'greger--run-agent-loop)
                    (lambda (state)
                      (setq test-completed t))))
+
+          ;; First insert the tool use markdown (simulating what greger--append-nonstreaming-content-block does)
+          (dolist (tool-call tool-calls)
+            (let ((tool-use-markdown (greger-parser--tool-use-to-markdown tool-call))
+                  (tool-id (alist-get 'id tool-call)))
+              (insert "\n\n" tool-use-markdown)
+              (insert "\n\n" (greger--tool-placeholder tool-id))))
 
           ;; Execute tools
           (greger--execute-tools tool-calls agent-state)
@@ -336,25 +357,25 @@ Processed: test-data
       (let ((agent-state (make-greger-state
                           :current-iteration 0
                           :chat-buffer (current-buffer)
-                          :directory default-directory :metadata nil))
+                          :directory default-directory :tool-use-metadata nil))
             (tool-calls `(((type . "tool_use")
                           (id . "unknown_test")
                           (name . "nonexistent-tool")
                           (input . ((param . "value"))))))
             (expected-error-content "
 
-## TOOL USE:
+# TOOL USE
 
 Name: nonexistent-tool
 ID: unknown_test
 
-### param
+## param
 
 <tool.unknown_test>
 value
 </tool.unknown_test>
 
-## TOOL RESULT:
+# TOOL RESULT
 
 ID: unknown_test
 
@@ -366,6 +387,13 @@ Unknown tool: nonexistent-tool
         (cl-letf (((symbol-function 'greger--run-agent-loop)
                    (lambda (state)
                      (setq test-completed t))))
+
+          ;; First insert the tool use markdown (simulating what greger--append-nonstreaming-content-block does)
+          (dolist (tool-call tool-calls)
+            (let ((tool-use-markdown (greger-parser--tool-use-to-markdown tool-call))
+                  (tool-id (alist-get 'id tool-call)))
+              (insert "\n\n" tool-use-markdown)
+              (insert "\n\n" (greger--tool-placeholder tool-id))))
 
           ;; Execute tools
           (greger--execute-tools tool-calls agent-state)
@@ -398,25 +426,25 @@ Unknown tool: nonexistent-tool
       (let ((agent-state (make-greger-state
                           :current-iteration 0
                           :chat-buffer (current-buffer)
-                          :directory default-directory :metadata nil))
+                          :directory default-directory :tool-use-metadata nil))
             (tool-calls `(((type . "tool_use")
                           (id . "multiline_test")
                           (name . "test-multiline")
                           (input . ((content . "Start"))))))
             (expected-content "
 
-## TOOL USE:
+# TOOL USE
 
 Name: test-multiline
 ID: multiline_test
 
-### content
+## content
 
 <tool.multiline_test>
 Start
 </tool.multiline_test>
 
-## TOOL RESULT:
+# TOOL RESULT
 
 ID: multiline_test
 
@@ -430,6 +458,13 @@ Line 3: End
         (cl-letf (((symbol-function 'greger--run-agent-loop)
                    (lambda (state)
                      (setq test-completed t))))
+
+          ;; First insert the tool use markdown (simulating what greger--append-nonstreaming-content-block does)
+          (dolist (tool-call tool-calls)
+            (let ((tool-use-markdown (greger-parser--tool-use-to-markdown tool-call))
+                  (tool-id (alist-get 'id tool-call)))
+              (insert "\n\n" tool-use-markdown)
+              (insert "\n\n" (greger--tool-placeholder tool-id))))
 
           ;; Execute tools
           (greger--execute-tools tool-calls agent-state)
@@ -467,7 +502,7 @@ Line 3: End
             (agent-state (make-greger-state
                           :current-iteration 0
                           :chat-buffer (current-buffer)
-                          :directory default-directory :metadata nil))
+                          :directory default-directory :tool-use-metadata nil))
             (tool-calls `(((type . "tool_use")
                           (id . "echo_001")
                           (name . "test-echo")
@@ -475,18 +510,18 @@ Line 3: End
             ;; Expected content after tool execution
             (expected-final-content "
 
-## TOOL USE:
+# TOOL USE
 
 Name: test-echo
 ID: echo_001
 
-### input
+## input
 
 <tool.echo_001>
 hello world
 </tool.echo_001>
 
-## TOOL RESULT:
+# TOOL RESULT
 
 ID: echo_001
 
@@ -501,6 +536,13 @@ Echo: hello world
         (cl-letf (((symbol-function 'greger--run-agent-loop)
                    (lambda (state)
                      (setq test-completed t))))
+
+          ;; First insert the tool use markdown (simulating what greger--append-nonstreaming-content-block does)
+          (dolist (tool-call tool-calls)
+            (let ((tool-use-markdown (greger-parser--tool-use-to-markdown tool-call))
+                  (tool-id (alist-get 'id tool-call)))
+              (insert "\n\n" tool-use-markdown)
+              (insert "\n\n" (greger--tool-placeholder tool-id))))
 
           ;; Execute tools
           (greger--execute-tools tool-calls agent-state)
@@ -544,11 +586,11 @@ Echo: hello world
                           :current-iteration 1
                           :chat-buffer (current-buffer)
                           :directory default-directory
-                          :metadata nil
+                          :tool-use-metadata '(:safe-shell-commands () :allow-all-shell-commands nil)
                           :client-state mock-client-state)))
 
         ;; Set buffer-local agent state
-        (setq greger--current-agent-state agent-state)
+        (setq greger--current-state agent-state)
 
         ;; Mock functions
         (cl-letf (((symbol-function 'greger-client--cancel-request)
@@ -590,12 +632,12 @@ Echo: hello world
                           :current-iteration 1
                           :chat-buffer (current-buffer)
                           :directory default-directory
-                          :metadata nil
+                          :tool-use-metadata nil
                           :client-state nil
                           :executing-tools executing-tools-map)))
 
         ;; Set buffer-local agent state
-        (setq greger--current-agent-state agent-state)
+        (setq greger--current-state agent-state)
 
         ;; Mock keyboard-quit
         (cl-letf (((symbol-function 'keyboard-quit)

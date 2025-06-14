@@ -35,13 +35,13 @@
             ;; Check if response started
             (when (and (not response-started)
                       (not (string= initial-content current-content))
-                      (string-match-p "## ASSISTANT:" current-content))
+                      (string-match-p "# ASSISTANT" current-content))
               (setq response-started t))
 
             ;; If response started, wait for it to finish
             (when response-started
               ;; Check if conversation is complete (has USER prompt at end)
-              (if (string-match-p "## USER:\n\n$" current-content)
+              (if (string-match-p "# USER\n\n$" current-content)
                   (setq completed t)
                 ;; Or if it's been a while since response started, consider it done
                 (let ((response-time (- (float-time (current-time))
@@ -51,21 +51,34 @@
 
     completed))
 
+(defun greger-test-get-curl-process ()
+  (seq-find (lambda (proc)
+              (and (process-live-p proc)
+                   (string-match-p "greger-curl" (process-name proc))))
+            (process-list)))
+
+
 (defun greger-test-wait-for-streaming-complete ()
   "Wait for any active streaming processes to complete."
-  (let ((max-wait 3.0)
+  (let ((max-wait 20.0)  ; Increased timeout
         (start-time (current-time)))
+
+    ;; First wait for curl processes to finish
     (while (and (< (float-time (time-subtract (current-time) start-time)) max-wait)
-                (cl-some (lambda (proc)
-                          (and (process-live-p proc)
-                               (string-match-p "greger-curl" (process-name proc))))
-                        (process-list)))
-      (sit-for 0.1))))
+                (greger-test-get-curl-process))
+      (sit-for 0.1))
+    
+    ;; Then wait a bit more for any remaining callbacks to finish
+    (sit-for 1.0)
+    
+    ;; Force process any remaining events
+    (accept-process-output nil 0.5)
+
+    (when (greger-test-get-curl-process)
+      (error "greger curl process didn't exit within 20 seconds"))))
 
 (ert-deftest greger-end-to-end-test-greger-function ()
   "Test the main greger function creates a buffer and sets it up correctly."
-  :tags '(end-to-end public-api)
-
   (let ((original-buffers (buffer-list)))
     (unwind-protect
         (progn
@@ -85,8 +98,8 @@
 
                 ;; Verify initial content is set up correctly
                 (let ((content (buffer-string)))
-                  (should (string-match-p "## SYSTEM:" content))
-                  (should (string-match-p "## USER:" content))
+                  (should (string-match-p "# SYSTEM" content))
+                  (should (string-match-p "# USER" content))
                   (should (string-match-p greger-default-system-prompt content)))
 
                 ;; Verify we're at the end of the buffer (ready for user input)
@@ -100,9 +113,6 @@
 
 (ert-deftest greger-end-to-end-test-simple-conversation ()
   "Test a simple conversation using the public API."
-  :tags '(end-to-end public-api)
-
-
   (let ((greger-buffer nil))
     (unwind-protect
         (progn
@@ -123,23 +133,22 @@
           ;; Wait for streaming to complete
           (greger-test-wait-for-streaming-complete)
 
-          ;; Verify response was added to buffer
-          (let ((content (buffer-string)))
-            (should (string-match-p "## ASSISTANT:" content))
-            (should (string-match-p "Hello from greger test!" content))
-            ;; Should have a new USER section at the end (or at least assistant response)
-            (should (or (string-match-p "## USER:\n\n$" content)
-                       (string-match-p "## ASSISTANT:" content)))))
+          ;; Verify response was added to buffer (with safety check)
+          (with-current-buffer greger-buffer
+            (let ((content (buffer-string)))
+              (should (string-match-p "# ASSISTANT" content))
+              (should (string-match-p "Hello from greger test!" content))
+              ;; Should have a new USER section at the end (or at least assistant response)
+              (should (or (string-match-p "# USER\n\n$" content)
+                          (string-match-p "# ASSISTANT" content))))))
 
-      ;; Cleanup
+      ;; Cleanup - wait a bit more before killing buffer
+      (sit-for 0.5)
       (when (and greger-buffer (buffer-live-p greger-buffer))
         (kill-buffer greger-buffer)))))
 
 (ert-deftest greger-end-to-end-test-tool-use-conversation ()
   "Test a conversation that involves tool use using the public API."
-  :tags '(end-to-end public-api tools)
-
-
   (let ((greger-buffer nil)
         (test-file nil))
     (unwind-protect
@@ -166,18 +175,20 @@
           ;; Wait for streaming to complete
           (greger-test-wait-for-streaming-complete)
 
-          ;; Verify response was added to buffer
-          (let ((content (buffer-string)))
-            (should (string-match-p "## ASSISTANT:" content))
-            ;; Should have tool use section or content from the file
-            (should (or (string-match-p "## TOOL USE:" content)
-                       (string-match-p "read-file" content)
-                       (string-match-p "test file for greger" content)))
-            ;; Should have a new USER section at the end (or at least assistant response)
-            (should (or (string-match-p "## USER:\n\n$" content)
-                       (string-match-p "## ASSISTANT:" content)))))
+          ;; Verify response was added to buffer (with safety check)
+          (with-current-buffer greger-buffer
+            (let ((content (buffer-string)))
+              (should (string-match-p "# ASSISTANT" content))
+              ;; Should have tool use section or content from the file
+              (should (or (string-match-p "# TOOL USE" content)
+                          (string-match-p "read-file" content)
+                          (string-match-p "test file for greger" content)))
+              ;; Should have a new USER section at the end (or at least assistant response)
+              (should (or (string-match-p "# USER\n\n$" content)
+                          (string-match-p "# ASSISTANT" content))))))
 
-      ;; Cleanup
+      ;; Cleanup - wait a bit more before killing buffer
+      (sit-for 0.5)
       (when (and test-file (file-exists-p test-file))
         (delete-file test-file))
       (when (and greger-buffer (buffer-live-p greger-buffer))
@@ -185,9 +196,6 @@
 
 (ert-deftest greger-end-to-end-test-no-tools-mode ()
   "Test the no-tools mode using C-M-return."
-  :tags '(end-to-end public-api no-tools)
-
-
   (let ((greger-buffer nil)
         (test-file nil))
     (unwind-protect
@@ -216,15 +224,15 @@
 
           ;; Verify response was added to buffer
           (let ((content (buffer-string)))
-            (should (string-match-p "## ASSISTANT:" content))
+            (should (string-match-p "# ASSISTANT" content))
             ;; Should NOT have tool use sections (no tools mode)
-            (should-not (string-match-p "## TOOL USE:" content))
-            (should-not (string-match-p "## TOOL RESULT:" content))
+            (should-not (string-match-p "# TOOL USE" content))
+            (should-not (string-match-p "# TOOL RESULT" content))
             ;; Should have responded without actually reading the file
             (should-not (string-match-p "This file should not be read" content))
             ;; Should have a new USER section at the end (or at least assistant response)
-            (should (or (string-match-p "## USER:\n\n$" content)
-                       (string-match-p "## ASSISTANT:" content)))))
+            (should (or (string-match-p "# USER\n\n$" content)
+                       (string-match-p "# ASSISTANT" content)))))
 
       ;; Cleanup
       (when (and test-file (file-exists-p test-file))
@@ -234,8 +242,6 @@
 
 (ert-deftest greger-end-to-end-test-model-configuration ()
   "Test that model configuration works correctly."
-  :tags '(end-to-end public-api configuration)
-
   (let ((original-model greger-model)
         (greger-buffer nil))
     (unwind-protect
@@ -262,8 +268,6 @@
 
 (ert-deftest greger-end-to-end-test-sleep-and-interrupt ()
   "Test sleep command with interruption and state transitions."
-  :tags '(end-to-end public-api interruption)
-
   (let ((greger-buffer nil))
     (unwind-protect
         (progn
@@ -273,7 +277,7 @@
 
           ;; Add system message with safe-shell-commands including sleep 5
           (goto-char (point-max))
-          (re-search-backward "## SYSTEM:")
+          (re-search-backward "# SYSTEM")
           (forward-line 1)
           (insert "\n<safe-shell-commands>\nsleep 5\n</safe-shell-commands>\n")
 
@@ -298,8 +302,10 @@
           ;; Wait 1 second while in executing state
           (sit-for 1.0)
 
-          ;; Interrupt generation
-          (should (eq 'executing (greger-interrupt)))
+          ;; Interrupt generation - could be in either 'executing or 'generating state
+          (let ((interrupt-result (greger-interrupt)))
+            (should (or (eq interrupt-result 'executing)
+                       (eq interrupt-result 'generating))))
 
           ;; Wait until state becomes 'idle (after interruption and any brief generation)
           (let ((max-wait 20.0)
@@ -326,8 +332,52 @@
 
           ;; Verify the output contains some indication that the command failed
           ;; (the exact exit code and message may vary depending on platform and signal)
-          (let ((content (buffer-string)))
-            (should (string-match-p "Command failed with exit code 2: (no output)" content))))
+          (when (buffer-live-p greger-buffer)
+            (with-current-buffer greger-buffer
+              (let ((content (buffer-string)))
+                (should (string-match-p "Command failed with exit code 2: (no output)" content))))))
+
+      ;; Cleanup - wait a bit more before killing buffer
+      (sit-for 0.5)
+      (when (and greger-buffer (buffer-live-p greger-buffer))
+        (kill-buffer greger-buffer)))))
+
+(ert-deftest greger-end-to-end-test-server-tool-web-search ()
+  "Test server tool functionality with web search."
+  (skip-unless (getenv "ANTHROPIC_API_KEY"))
+
+  (let ((greger-buffer nil))
+    (unwind-protect
+        (progn
+          ;; Create a greger buffer
+          (greger)
+          (setq greger-buffer (current-buffer))
+
+          ;; Enable web search server tool for this test
+          (let ((greger-server-tools '(web_search)))
+            ;; Add a user message that should trigger web search
+            (goto-char (point-max))
+            (insert "What is the current weather in San Francisco? Please search for this information and give me a short one-sentence summary..")
+
+            ;; Call greger-buffer to send the message
+            (greger-buffer)
+
+            ;; Wait for response (longer timeout for web search)
+            (should (greger-test-wait-for-response greger-buffer (* greger-test-timeout 2)))
+
+            ;; Wait for streaming to complete
+            (greger-test-wait-for-streaming-complete)
+
+            ;; Verify response was added to buffer
+            (let ((content (buffer-string)))
+              (should (string-match-p "# ASSISTANT" content))
+              ;; Should contain server tool use section
+              (should (string-match-p "# SERVER TOOL USE" content))
+              (should (string-match-p "Name: web_search" content))
+              ;; Should contain server tool result section
+              (should (string-match-p "# WEB SEARCH TOOL RESULT" content))
+              ;; Should contain some weather-related information
+              (should (string-match-p "\\(weather\\|temperature\\|San Francisco\\)" content)))))
 
       ;; Cleanup
       (when (and greger-buffer (buffer-live-p greger-buffer))

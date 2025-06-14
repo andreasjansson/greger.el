@@ -32,16 +32,20 @@
   ;; Test tool execution
   (let ((result nil)
         (error nil))
-    (greger-tools-execute "test-subtract" '((a . 5) (b . 3))
-                          (lambda (r e) (setq result r error e)) nil)
+    (greger-tools-execute :tool-name "test-subtract" 
+                          :args '((a . 5) (b . 3))
+                          :callback (lambda (r e) (setq result r error e)) 
+                          :buffer nil)
     (should (= 2 result))
     (should (null error)))
 
   ;; Test execution with different parameters
   (let ((result nil)
         (error nil))
-    (greger-tools-execute "test-subtract" '((b . 1) (a . 4))
-                          (lambda (r e) (setq result r error e)) nil)
+    (greger-tools-execute :tool-name "test-subtract" 
+                          :args '((b . 1) (a . 4))
+                          :callback (lambda (r e) (setq result r error e)) 
+                          :buffer nil)
     (should (= 3 result))
     (should (null error)))
 
@@ -52,8 +56,10 @@
   "Test that executing unknown tools calls callback with error."
   (let ((result nil)
         (error nil))
-    (greger-tools-execute "nonexistent-tool" '((param . "value"))
-                          (lambda (r e) (setq result r error e)) nil)
+    (greger-tools-execute :tool-name "nonexistent-tool" 
+                          :args '((param . "value"))
+                          :callback (lambda (r e) (setq result r error e)) 
+                          :buffer nil)
     (should (null result))
     (should (stringp error))
     (should (string-match "Unknown tool" error))))
@@ -78,10 +84,11 @@
   ;; Test execution with underscore parameters
   (let ((result nil)
         (error nil))
-    (greger-tools-execute "test-hyphens"
-                          '((file-path . "/path/to/file")
-                            (commit-message . "test commit"))
-                          (lambda (r e) (setq result r error e)) nil)
+    (greger-tools-execute :tool-name "test-hyphens"
+                          :args '((file-path . "/path/to/file")
+                                  (commit-message . "test commit"))
+                          :callback (lambda (r e) (setq result r error e)) 
+                          :buffer nil)
     (should (string= "file: /path/to/file, message: test commit" result))
     (should (null error)))
 
@@ -115,30 +122,33 @@
   ;; Test with only required parameter
   (let ((result nil)
         (error nil))
-    (greger-tools-execute "test-optional"
-                          '((required-param . "test"))
-                          (lambda (r e) (setq result r error e)) nil)
+    (greger-tools-execute :tool-name "test-optional"
+                          :args '((required-param . "test"))
+                          :callback (lambda (r e) (setq result r error e))
+                          :buffer nil)
     (should (string= "required: test, opt1: default1, opt2: default2" result))
     (should (null error)))
 
   ;; Test with required + one optional parameter
   (let ((result nil)
         (error nil))
-    (greger-tools-execute "test-optional"
-                          '((required-param . "test")
+    (greger-tools-execute :tool-name "test-optional"
+                          :args '((required-param . "test")
                             (optional-param1 . "provided1"))
-                          (lambda (r e) (setq result r error e)) nil)
+                          :callback (lambda (r e) (setq result r error e))
+                          :buffer nil)
     (should (string= "required: test, opt1: provided1, opt2: default2" result))
     (should (null error)))
 
   ;; Test with all parameters provided
   (let ((result nil)
         (error nil))
-    (greger-tools-execute "test-optional"
-                          '((required-param . "test")
+    (greger-tools-execute :tool-name "test-optional"
+                          :args '((required-param . "test")
                             (optional-param1 . "provided1")
                             (optional-param2 . "provided2"))
-                          (lambda (r e) (setq result r error e)) nil)
+                          :callback (lambda (r e) (setq result r error e))
+                          :buffer nil)
     (should (string= "required: test, opt1: provided1, opt2: provided2" result))
     (should (null error)))
 
@@ -150,10 +160,6 @@
   ;; Define a test function with default parameters
   (defun greger-test-default-params (message &optional count prefix)
     "Test function with default parameters."
-    ;; TODO: remove debug
-    (message (format "count: %s" count))
-    ;; TODO: remove debug
-    (message (format "prefix: %s" prefix))
     (let ((actual-prefix (or prefix ">>>")))
       (format "%s %s (repeated %d times)"
               actual-prefix message count)))
@@ -174,30 +180,33 @@
   ;; Test with only required parameter - should use defaults
   (let ((result nil)
         (error nil))
-    (greger-tools-execute "test-defaults"
-                          '((message . "hello"))
-                          (lambda (r e) (setq result r error e)) nil)
+    (greger-tools-execute :tool-name "test-defaults"
+                          :args '((message . "hello"))
+                          :callback (lambda (r e) (setq result r error e))
+                          :buffer nil)
     (should (string= ">>> hello (repeated 5 times)" result))
     (should (null error)))
 
   ;; Test with one default overridden
   (let ((result nil)
         (error nil))
-    (greger-tools-execute "test-defaults"
-                          '((message . "hello")
+    (greger-tools-execute :tool-name "test-defaults"
+                          :args '((message . "hello")
                             (count . 2))
-                          (lambda (r e) (setq result r error e)) nil)
+                          :callback (lambda (r e) (setq result r error e))
+                          :buffer nil)
     (should (string= ">>> hello (repeated 2 times)" result))
     (should (null error)))
 
   ;; Test with both defaults overridden
   (let ((result nil)
         (error nil))
-    (greger-tools-execute "test-defaults"
-                          '((message . "hello")
+    (greger-tools-execute :tool-name "test-defaults"
+                          :args '((message . "hello")
                             (count . 2)
                             (prefix . "***"))
-                          (lambda (r e) (setq result r error e)) nil)
+                          :callback (lambda (r e) (setq result r error e))
+                          :buffer nil)
     (should (string= "*** hello (repeated 2 times)" result))
     (should (null error)))
 
@@ -227,50 +236,55 @@
   ;; Test that missing first required parameter calls callback with error
   (let ((result nil)
         (error nil))
-    (greger-tools-execute "test-required"
-                          '((required-param2 . "value2")
+    (greger-tools-execute :tool-name "test-required"
+                          :args '((required-param2 . "value2")
                             (optional-param . "optional"))
-                          (lambda (r e) (setq result r error e)) nil)
+                          :callback (lambda (r e) (setq result r error e))
+                          :buffer nil)
     (should (null result))
     (should error))
 
   ;; Test that missing second required parameter calls callback with error
   (let ((result nil)
         (error nil))
-    (greger-tools-execute "test-required"
-                          '((required-param1 . "value1")
+    (greger-tools-execute :tool-name "test-required"
+                          :args '((required-param1 . "value1")
                             (optional-param . "optional"))
-                          (lambda (r e) (setq result r error e)) nil)
+                          :callback (lambda (r e) (setq result r error e))
+                          :buffer nil)
     (should (null result))
     (should error))
 
   ;; Test that missing both required parameters calls callback with error
   (let ((result nil)
         (error nil))
-    (greger-tools-execute "test-required"
-                          '((optional-param . "optional"))
-                          (lambda (r e) (setq result r error e)) nil)
+    (greger-tools-execute :tool-name "test-required"
+                          :args '((optional-param . "optional"))
+                          :callback (lambda (r e) (setq result r error e))
+                          :buffer nil)
     (should (null result))
     (should error))
 
   ;; Test that providing all required parameters works (even without optional)
   (let ((result nil)
         (error nil))
-    (greger-tools-execute "test-required"
-                          '((required-param1 . "value1")
+    (greger-tools-execute :tool-name "test-required"
+                          :args '((required-param1 . "value1")
                             (required-param2 . "value2"))
-                          (lambda (r e) (setq result r error e)) nil)
+                          :callback (lambda (r e) (setq result r error e))
+                          :buffer nil)
     (should (string= "req1: value1, req2: value2, opt: default" result))
     (should (null error)))
 
   ;; Test that providing all parameters works
   (let ((result nil)
         (error nil))
-    (greger-tools-execute "test-required"
-                          '((required-param1 . "value1")
+    (greger-tools-execute :tool-name "test-required"
+                          :args '((required-param1 . "value1")
                             (required-param2 . "value2")
                             (optional-param . "provided"))
-                          (lambda (r e) (setq result r error e)) nil)
+                          :callback (lambda (r e) (setq result r error e))
+                          :buffer nil)
     (should (string= "req1: value1, req2: value2, opt: provided" result))
     (should (null error)))
 
@@ -310,20 +324,20 @@
     ;; Test tool without :pass-buffer - should not receive buffer
     (let ((result nil)
           (error nil))
-      (greger-tools-execute "test-no-buffer"
-                            '((message . "hello"))
-                            (lambda (r e) (setq result r error e))
-                            (current-buffer))
+      (greger-tools-execute :tool-name "test-no-buffer"
+                            :args '((message . "hello"))
+                            :callback (lambda (r e) (setq result r error e))
+                            :buffer (current-buffer))
       (should (string= "message: hello, buffer: none" result))
       (should (null error)))
 
     ;; Test tool with :pass-buffer t - should receive buffer
     (let ((result nil)
           (error nil))
-      (greger-tools-execute "test-with-buffer"
-                            '((message . "hello"))
-                            (lambda (r e) (setq result r error e))
-                            (current-buffer))
+      (greger-tools-execute :tool-name "test-with-buffer"
+                            :args '((message . "hello"))
+                            :callback (lambda (r e) (setq result r error e))
+                            :buffer (current-buffer))
       (should (string= "message: hello, buffer: *test-buffer*" result))
       (should (null error))))
 
@@ -365,10 +379,10 @@
   ;; Test normal tool - greger-tools-execute calls callback with result
   (let ((result nil)
         (error nil))
-    (greger-tools-execute "test-normal-callback"
-                          '((message . "hello"))
-                          (lambda (r e) (setq result r error e))
-                          nil)
+    (greger-tools-execute :tool-name "test-normal-callback"
+                          :args '((message . "hello"))
+                          :callback (lambda (r e) (setq result r error e))
+                          :buffer nil)
     (should (string= "result: hello" result))
     (should (null error)))
 
@@ -376,11 +390,11 @@
   (let ((result nil)
         (error nil)
         (callback-called nil))
-    (greger-tools-execute "test-pass-callback"
-                          '((message . "world"))
-                          (lambda (r e)
+    (greger-tools-execute :tool-name "test-pass-callback"
+                          :args '((message . "world"))
+                          :callback (lambda (r e)
                             (setq result r error e callback-called t))
-                          nil)
+                          :buffer nil)
     ;; Since the callback is called synchronously in our test function,
     ;; we can check the results immediately
     (should callback-called)
@@ -409,11 +423,11 @@
     (let ((result nil)
           (error nil)
           (callback-called nil))
-      (greger-tools-execute "test-callback-with-buffer"
-                            '((message . "test"))
-                            (lambda (r e)
+      (greger-tools-execute :tool-name "test-callback-with-buffer"
+                            :args '((message . "test"))
+                            :callback (lambda (r e)
                               (setq result r error e callback-called t))
-                            (current-buffer))
+                            :buffer (current-buffer))
       ;; Since the callback is called synchronously in our test function,
       ;; we can check the results immediately
       (should callback-called)
@@ -463,18 +477,20 @@
   ;; Test with JSON array string
   (let ((result nil)
         (error nil))
-    (greger-tools-execute "test-array-parsing"
-                          '((items . "[\"apple\", \"banana\", \"cherry\"]"))
-                          (lambda (r e) (setq result r error e)) nil)
+    (greger-tools-execute :tool-name "test-array-parsing"
+                          :args '((items . "[\"apple\", \"banana\", \"cherry\"]"))
+                          :callback (lambda (r e) (setq result r error e))
+                          :buffer nil)
     (should (string= "received 3 items: apple, banana, cherry" result))
     (should (null error)))
 
   ;; Test with already parsed list (should work fine)
   (let ((result nil)
         (error nil))
-    (greger-tools-execute "test-array-parsing"
-                          '((items . ("apple" "banana")))
-                          (lambda (r e) (setq result r error e)) nil)
+    (greger-tools-execute :tool-name "test-array-parsing"
+                          :args '((items . ("apple" "banana")))
+                          :callback (lambda (r e) (setq result r error e))
+                          :buffer nil)
     (should (string= "received 2 items: apple, banana" result))
     (should (null error)))
 
@@ -501,27 +517,30 @@
   ;; Test with JSON boolean strings
   (let ((result nil)
         (error nil))
-    (greger-tools-execute "test-boolean-parsing"
-                          '((flag1 . "true") (flag2 . "false"))
-                          (lambda (r e) (setq result r error e)) nil)
+    (greger-tools-execute :tool-name "test-boolean-parsing"
+                          :args '((flag1 . "true") (flag2 . "false"))
+                          :callback (lambda (r e) (setq result r error e))
+                          :buffer nil)
     (should (string= "flag1: t, flag2: nil" result))
     (should (null error)))
 
   ;; Test with :json-true/:json-false format
   (let ((result nil)
         (error nil))
-    (greger-tools-execute "test-boolean-parsing"
-                          '((flag1 . ":json-false") (flag2 . ":json-true"))
-                          (lambda (r e) (setq result r error e)) nil)
+    (greger-tools-execute :tool-name "test-boolean-parsing"
+                          :args '((flag1 . ":json-false") (flag2 . ":json-true"))
+                          :callback (lambda (r e) (setq result r error e))
+                          :buffer nil)
     (should (string= "flag1: nil, flag2: t" result))
     (should (null error)))
 
   ;; Test with already parsed booleans (should work fine)
   (let ((result nil)
         (error nil))
-    (greger-tools-execute "test-boolean-parsing"
-                          '((flag1 . t) (flag2 . nil))
-                          (lambda (r e) (setq result r error e)) nil)
+    (greger-tools-execute :tool-name "test-boolean-parsing"
+                          :args '((flag1 . t) (flag2 . nil))
+                          :callback (lambda (r e) (setq result r error e))
+                          :buffer nil)
     (should (string= "flag1: t, flag2: nil" result))
     (should (null error)))
 
@@ -549,27 +568,30 @@
   ;; Test with JSON number strings
   (let ((result nil)
         (error nil))
-    (greger-tools-execute "test-number-parsing"
-                          '((count . "42") (rate . "3.14"))
-                          (lambda (r e) (setq result r error e)) nil)
+    (greger-tools-execute :tool-name "test-number-parsing"
+                          :args '((count . "42") (rate . "3.14"))
+                          :callback (lambda (r e) (setq result r error e))
+                          :buffer nil)
     (should (string= "count: 42 (type: integer), rate: 3.14 (type: float)" result))
     (should (null error)))
 
   ;; Test with negative numbers
   (let ((result nil)
         (error nil))
-    (greger-tools-execute "test-number-parsing"
-                          '((count . "-5") (rate . "-2.5"))
-                          (lambda (r e) (setq result r error e)) nil)
+    (greger-tools-execute :tool-name "test-number-parsing"
+                          :args '((count . "-5") (rate . "-2.5"))
+                          :callback (lambda (r e) (setq result r error e))
+                          :buffer nil)
     (should (string= "count: -5 (type: integer), rate: -2.5 (type: float)" result))
     (should (null error)))
 
   ;; Test with already parsed numbers (should work fine)
   (let ((result nil)
         (error nil))
-    (greger-tools-execute "test-number-parsing"
-                          '((count . 10) (rate . 1.5))
-                          (lambda (r e) (setq result r error e)) nil)
+    (greger-tools-execute :tool-name "test-number-parsing"
+                          :args '((count . 10) (rate . 1.5))
+                          :callback (lambda (r e) (setq result r error e))
+                          :buffer nil)
     (should (string= "count: 10 (type: integer), rate: 1.5 (type: float)" result))
     (should (null error)))
 
@@ -604,13 +626,14 @@
   ;; Test with mixed JSON strings and parsed values
   (let ((result nil)
         (error nil))
-    (greger-tools-execute "test-mixed-parsing"
-                          '((name . "test")
+    (greger-tools-execute :tool-name "test-mixed-parsing"
+                          :args '((name . "test")
                             (items . "[\"a\", \"b\", \"c\"]")
                             (count . "5")
                             (enabled . "true")
                             (rate . "2.5"))
-                          (lambda (r e) (setq result r error e)) nil)
+                          :callback (lambda (r e) (setq result r error e))
+                          :buffer nil)
     (should (string= "name: test, items: 3, count: 5, enabled: t, rate: 2.5" result))
     (should (null error)))
 
@@ -627,34 +650,36 @@
 
   ;; Register tool
   (greger-register-tool "test-edge-cases"
-    :description "Test edge cases in argument extraction"
-    :properties '((required-param . ((type . "string")
-                                     (description . "Required parameter")))
-                  (optional-param1 . ((type . "boolean")
-                                      (description . "Optional boolean")))
-                  (optional-param2 . ((type . "integer")
-                                      (description . "Optional integer"))))
-    :required '("required-param")
-    :function 'greger-test-edge-cases)
+                        :description "Test edge cases in argument extraction"
+                        :properties '((required-param . ((type . "string")
+                                                         (description . "Required parameter")))
+                                      (optional-param1 . ((type . "boolean")
+                                                          (description . "Optional boolean")))
+                                      (optional-param2 . ((type . "integer")
+                                                          (description . "Optional integer"))))
+                        :required '("required-param")
+                        :function 'greger-test-edge-cases)
 
   ;; Test with only required parameter
   (let ((result nil)
         (error nil))
-    (greger-tools-execute "test-edge-cases"
-                          '((required-param . "test"))
-                          (lambda (r e) (setq result r error e)) nil)
+    (greger-tools-execute :tool-name "test-edge-cases"
+                          :args '((required-param . "test"))
+                          :callback (lambda (r e) (setq result r error e))
+                          :buffer nil)
     (should (string= "required: test, opt1: nil, opt2: nil" result))
     (should (null error)))
 
   ;; Test with invalid JSON that should be returned as-is
   (let ((result nil)
         (error nil))
-    (greger-tools-execute "test-edge-cases"
-                          '((required-param . "test")
-                            (optional-param1 . "not-a-boolean")
-                            (optional-param2 . "not-a-number"))
-                          (lambda (r e) (setq result r error e)) nil)
-    (should (string= "required: test, opt1: not-a-boolean, opt2: not-a-number" result))
+    (greger-tools-execute :tool-name "test-edge-cases"
+                          :args '((required-param . "test")
+                                 (optional-param1 . "not-a-boolean")
+                                 (optional-param2 . "not-a-number"))
+                          :callback (lambda (r e) (setq result r error e))
+                          :buffer nil)
+    (should (string= "required: test, opt1: nil, opt2: not-a-number" result))
     (should (null error)))
 
   ;; Clean up
@@ -678,9 +703,10 @@
   ;; Test with invalid JSON - should return original string
   (let ((result nil)
         (error nil))
-    (greger-tools-execute "test-fallback"
-                          '((items . "[invalid json"))
-                          (lambda (r e) (setq result r error e)) nil)
+    (greger-tools-execute :tool-name "test-fallback"
+                          :args '((items . "[invalid json"))
+                          :callback (lambda (r e) (setq result r error e))
+                          :buffer nil)
     (should (string= "received: [invalid json (type: string)" result))
     (should (null error)))
 
@@ -705,9 +731,10 @@
         (greger-tool nil))
 
     ;; Execute the tool and capture the greger-tool struct
-    (setq greger-tool (greger-tools-execute "test-simple-struct"
-                                            '()
-                                            (lambda (r e) (setq result r error e)) nil))
+    (setq greger-tool (greger-tools-execute :tool-name "test-simple-struct"
+                                            :args '()
+                                            :callback (lambda (r e) (setq result r error e))
+                                            :buffer nil))
 
     ;; Should get a greger-tool struct
     (should (greger-tool-p greger-tool))
@@ -736,9 +763,10 @@
         (greger-tool nil))
 
     ;; Execute the tool and capture the greger-tool struct
-    (setq greger-tool (greger-tools-execute "test-with-cancel"
-                                            '()
-                                            (lambda (r e) (setq result r error e)) nil))
+    (setq greger-tool (greger-tools-execute :tool-name "test-with-cancel"
+                                            :args '()
+                                            :callback (lambda (r e) (setq result r error e))
+                                            :buffer nil))
 
     ;; Should get a greger-tool struct with a cancel function
     (should (greger-tool-p greger-tool))
@@ -774,9 +802,10 @@
         (greger-tool nil))
 
     ;; Execute the tool and capture the greger-tool struct
-    (setq greger-tool (greger-tools-execute "test-callback-cancel"
-                                            '()
-                                            (lambda (r e) (setq result r error e)) nil))
+    (setq greger-tool (greger-tools-execute :tool-name "test-callback-cancel"
+                                            :args '()
+                                            :callback (lambda (r e) (setq result r error e))
+                                            :buffer nil))
 
     ;; Should get a greger-tool struct with a cancel function
     (should (greger-tool-p greger-tool))
@@ -816,9 +845,10 @@
         (greger-tool nil))
 
     ;; Execute the tool and capture the greger-tool struct
-    (setq greger-tool (greger-tools-execute "test-cancellable"
-                                            '()
-                                            (lambda (r e) (setq result r error e)) nil))
+    (setq greger-tool (greger-tools-execute :tool-name "test-cancellable"
+                                            :args '()
+                                            :callback (lambda (r e) (setq result r error e))
+                                            :buffer nil))
 
     ;; Should get a greger-tool struct with a cancel function
     (should (greger-tool-p greger-tool))
@@ -837,5 +867,41 @@
 
   ;; Clean up
   (remhash "test-cancellable" greger-tools-registry))
+
+(ert-deftest greger-tools-test-server-tool-registration ()
+  "Test that server tools can be registered and schemas retrieved as JSON."
+  ;; Register a test server tool
+  (greger-register-server-tool 'test-web-search
+    :type "web_search_20250305"
+    :max_uses 5
+    :allowed_domains ["example.com" "trusteddomain.org"]
+    :user_location ((type . "approximate")
+                    (city . "San Francisco")
+                    (region . "California")
+                    (country . "US")
+                    (timezone . "America/Los_Angeles")))
+
+  ;; Test that the server tool was registered
+  (should (gethash "test-web-search" greger-server-tools-registry))
+
+  ;; Test getting server tool schemas as JSON
+  (let ((schemas (greger-server-tools-get-schemas '(test-web-search))))
+    (should (= 1 (length schemas)))
+    (let ((json-string (car schemas)))
+      (should (stringp json-string))
+      ;; Verify it's valid JSON by parsing it
+      (let ((parsed (json-parse-string json-string :object-type 'alist)))
+        (should (string= "web_search_20250305" (alist-get 'type parsed)))
+        (should (string= "test-web-search" (alist-get 'name parsed)))
+        (should (= 5 (alist-get 'max_uses parsed)))
+        (should (equal ["example.com" "trusteddomain.org"] (alist-get 'allowed_domains parsed))))))
+
+  ;; Test getting all server tool schemas
+  (let ((all-schemas (greger-server-tools-get-all-schemas)))
+    (should (>= (length all-schemas) 1))
+    (should (cl-every #'stringp all-schemas)))
+
+  ;; Clean up - remove test server tool from registry
+  (remhash "test-web-search" greger-server-tools-registry))
 
 ;;; test-greger-tools.el ends here

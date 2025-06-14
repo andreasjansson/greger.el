@@ -19,8 +19,6 @@ In Greger buffers:
 - `C-; a` - Insert assistant tag
 - `C-; u` - Insert user tag
 - `C-; s` - Insert system tag
-- `C-; i` - Insert include directive
-- `C-; f` - Insert file include
 - `C-; c` - Copy code block at point
 - `C-; m` - Change AI model
 - `TAB` - Toggle tool section visibility
@@ -68,17 +66,6 @@ Greger includes a set of tool out of the box:
 - Directory operations
 
 Tools can be easily extended by defining new functions and registering them with the tool system.
-
-### Including files and code
-
-You can include file contents in your conversations:
-
-```markdown
-<include>/path/to/file.txt</include>
-<include code>/path/to/source.py</include>
-```
-
-Note that the included files will be updated on each run, so it's often better to write out a file path and let Greger read the file itself.
 
 ### Safe shell commands
 
