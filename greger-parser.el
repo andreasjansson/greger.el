@@ -191,10 +191,19 @@ You can run arbitrary shell commands with the shell-command tool, but the follow
 
 (defun greger-parser--extract-thinking (node)
   "Extract thinking entry from NODE."
-  (let ((content (greger-parser--extract-text-content node)))
+  (let ((content (greger-parser--extract-text-content node))
+        (signature (greger-parser--extract-signature node))
+        )
     `((role . "assistant")
       (content . (((type . "thinking")
+                   (signature . ,signature)
                    (thinking . ,content)))))))
+
+(defun greger-parser--extract-signature (node)
+  (let* ((signature-node (treesit-search-subtree node "thinking_signature"))
+         (value-node (treesit-node-child-by-field-name signature-node "value"))
+         (signature (treesit-node-text value-node t)))
+    signature))
 
 (defun greger-parser--extract-tool-use (node)
   "Extract tool use entry from NODE."
@@ -505,13 +514,9 @@ If SKIP-HEADER is true, don't add section headers for text blocks."
   (let ((type (alist-get 'type block)))
     (cond
      ((string= type "text")
-      (if (alist-get 'citations block)
-          (greger-parser--citations-to-markdown block)
-        (if skip-header
-            (alist-get 'text block)
-          (concat greger-parser-assistant-tag "\n\n" (alist-get 'text block)))))
+      (greger-parser--assistant-text-to-markdown block skip-header))
      ((string= type "thinking")
-      (concat greger-parser-thinking-tag "\n\n" (alist-get 'thinking block)))
+      (greger-parser--thinking-to-markdown block))
      ((string= type "tool_use")
       (greger-parser--tool-use-to-markdown block))
      ((string= type "server_tool_use")
@@ -521,6 +526,28 @@ If SKIP-HEADER is true, don't add section headers for text blocks."
      ((string= type "web_search_tool_result")
       (greger-parser--web-search-tool-result-to-markdown block))
      (t ""))))
+
+(defun greger-parser--assistant-text-to-markdown (block &optional skip-header)
+  (let ((text (alist-get 'text block))
+        (citations (alist-get 'citations block)))
+    (cond
+     (citations
+      (greger-parser--citations-to-markdown block))
+     (skip-header
+      text)
+     (t
+      (concat greger-parser-assistant-tag
+              "\n\n"
+              text)))))
+
+(defun greger-parser--thinking-to-markdown (block)
+  (let ((contents alist-get 'thinking block)
+        (signature alist-get 'signature block))
+    (concat greger-parser-thinking-tag
+          "\n\n"
+          "Signature: " signature
+          "\n\n"
+          contents)))
 
 (defun greger-parser--citations-to-markdown (block)
   "Convert citation BLOCK to markdown with embedded citations."

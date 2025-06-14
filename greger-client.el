@@ -223,7 +223,8 @@ Returns nil if no error found or if OUTPUT is not valid JSON."
 (defun greger-client--process-output-chunk (output state)
   "Process a chunk of OUTPUT using STATE."
 
-  ;; TODO: remove debug
+  ;; Uncomment this line for raw debugging output of every
+  ;; streaming message returned from the Anthropic API
   ;(message "output: %s" output)
 
   ;; Check for error responses and raise an error if found
@@ -320,27 +321,33 @@ Returns nil if no error found or if OUTPUT is not valid JSON."
 
     (cond
 
-     ;; assistant text and thinking
+     ;; assistant text
      ;; {"type":"content_block_delta","index":0,"delta":{"type":"text_delta","text":"I'll search for the"}}
      ((string= delta-type "text_delta")
-      (let ((text (alist-get 'text delta))
-            (block-type (alist-get 'type block))
+      (let ((text-delta (alist-get 'text delta))
             (has-citations (alist-get 'citations block)))
-        (if (string= block-type "thinking")
-            ;; Handle thinking blocks
-            (progn
-              (setf (alist-get 'thinking block)
-                    (concat (alist-get 'thinking block) text))
-              (when-let ((callback (greger-client-state-text-delta-callback state)))
-                (funcall callback text)))
-          ;; Handle regular text blocks
-          (setf (alist-get 'text block)
-                (concat (alist-get 'text block) text))
-          ;; Only call text callback for live display if this block doesn't have citations
-          ;; Citation blocks should not stream text - they'll be handled in block-stop
-          (unless has-citations
-            (when-let ((callback (greger-client-state-text-delta-callback state)))
-             (funcall callback text))))))
+        (setf (alist-get 'text block)
+              (concat (alist-get 'text block) text-delta))
+        ;; Only call text callback for live display if this block doesn't have citations
+        ;; Citation blocks should not stream text - they'll be handled in block-stop
+        (unless has-citations
+          (when-let ((callback (greger-client-state-text-delta-callback state)))
+            (funcall callback text-delta)))))
+
+     ;; assistant thinking
+     ;; data: {"type":"content_block_delta","index":0,"delta":{"type":"thinking_delta","thinking":" needing to search for"}}
+     ((string= delta-type "thinking_delta")
+      (let ((thinking-delta (alist-get 'thinking delta)))
+        (setf (alist-get 'thinking block)
+              (concat (alist-get 'thinking block) thinking-delta))
+        (when-let ((callback (greger-client-state-text-delta-callback state)))
+          (funcall callback thinking-delta))))
+
+     ;; assistant thinking signature
+     ((string= delta-type "signature_delta")
+      (let ((signature-delta (alist-get 'signature delta)))
+        (setf (alist-get 'signature block)
+              (concat (alist-get 'signature block) signature-delta))))
 
      ;; tool_use and server_tool_use
      ;; {"type":"content_block_delta","index":1,"delta":{"type":"input_json_delta","partial_json":""}}

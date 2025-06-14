@@ -383,18 +383,15 @@
       (when (and greger-buffer (buffer-live-p greger-buffer))
         (kill-buffer greger-buffer)))))
 
-(ert-deftest greger-end-to-end-test-thinking-functionality ()
+(ert-deftest greger-end-to-end-test-thinking ()
   "Test thinking functionality works end-to-end."
   :tags '(end-to-end thinking api)
 
   (let ((greger-buffer nil)
-        (original-thinking-budget greger-thinking-budget))
+        (greger-thinking-budget 1024))
     
     (unwind-protect
         (progn
-          ;; Enable thinking with a moderate budget
-          (setq greger-thinking-budget 1024)
-          
           ;; Create a new greger buffer
           (setq greger-buffer (generate-new-buffer "*greger-test-thinking*"))
           (with-current-buffer greger-buffer
@@ -438,7 +435,6 @@
       
       ;; Cleanup
       (progn
-        (setq greger-thinking-budget original-thinking-budget)
         (when (and greger-buffer (buffer-live-p greger-buffer))
           (kill-buffer greger-buffer))))))
 

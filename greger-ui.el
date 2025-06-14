@@ -150,6 +150,14 @@ START and END are the region bounds."
     (put-text-property node-start node-end 'invisible (not is-visible))
     (put-text-property node-start node-end 'keymap greger-ui-tool-content-tail-keymap)))
 
+(defun greger-ui--thinking-signature-hiding-fn (node _override _start _end)
+  (let* ((node-start (treesit-node-start node))
+         (node-end (treesit-node-end node))
+         (invisible-end (+ node-end 2)))
+    
+    ;; Apply invisibility (default is invisible unless expanded)
+    (put-text-property node-start invisible-end 'invisible t)))
+
 ;; Links
 
 (defun greger-ui--url-link-fn (node _override _start _end)

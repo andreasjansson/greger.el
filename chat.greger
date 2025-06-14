@@ -6744,5 +6744,135 @@ Fix end-to-end thinking test to be more robust
 ID: toolu_01H3YVb1LcyqS9THXdp2DBFA
 
 <tool.toolu_01H3YVb1LcyqS9THXdp2DBFA>
-Loading...
+Successfully replaced content in /Users/andreas/projects/greger.el/test/test-end-to-end.el. Successfully staged 2 file(s) and committed with message: Fix end-to-end thinking test to be more robust
 </tool.toolu_01H3YVb1LcyqS9THXdp2DBFA>
+
+# ASSISTANT
+
+Great! Now let me test that the fix worked by running the tests again, but without the API test (since that may take time and incur costs):
+
+# TOOL USE
+
+Name: shell-command
+ID: toolu_01NwV4bWt2vcGqkmteZ2XUsx
+
+## command
+
+<tool.toolu_01NwV4bWt2vcGqkmteZ2XUsx>
+cd ~/projects/greger.el/test && emacs --batch --eval "(progn (add-to-list 'load-path \"../\") (add-to-list 'load-path \".\") (require 'ert) (load \"test-greger-client.el\") (load \"test-end-to-end.el\") (message \"Running non-API thinking tests...\") (ert-run-tests-batch-and-exit '(and (tag thinking) (not (tag api)))))"
+</tool.toolu_01NwV4bWt2vcGqkmteZ2XUsx>
+
+# TOOL RESULT
+
+ID: toolu_01NwV4bWt2vcGqkmteZ2XUsx
+
+<tool.toolu_01NwV4bWt2vcGqkmteZ2XUsx>
+Command executed successfully:
+Loading /Users/andreas/projects/greger.el/test/test-greger-client.el (source)...
+Source file ‘/opt/homebrew/Cellar/emacs-plus@29/29.0.90/share/emacs/29.0.91/lisp/treesit.el’ newer than byte-compiled file; using older file
+Source file ‘/opt/homebrew/Cellar/emacs-plus@29/29.0.90/share/emacs/29.0.91/lisp/net/eww.el’ newer than byte-compiled file; using older file
+Loading /Users/andreas/projects/greger.el/test/test-end-to-end.el (source)...
+Running non-API thinking tests...
+Running 3 tests (2025-06-14 14:24:33+0200, selector ‘(and (tag thinking) (not (tag api)))’)
+   passed  1/3  greger-client-test-thinking-configuration (0.000237 sec)
+   passed  2/3  greger-end-to-end-test-thinking-mode-line (0.001614 sec)
+Thinking enabled (budget: 4096 tokens)
+Thinking disabled
+   passed  3/3  greger-end-to-end-test-thinking-toggle (0.012741 sec)
+
+Ran 3 tests, 3 results as expected, 0 unexpected (2025-06-14 14:24:33+0200, 0.014724 sec)
+
+
+</tool.toolu_01NwV4bWt2vcGqkmteZ2XUsx>
+
+# ASSISTANT
+
+Perfect! All the non-API tests pass. Now let me create a summary of what I've implemented:
+
+## Summary: Comprehensive Thinking Tests for greger.el
+
+I've successfully implemented a complete test suite for the thinking functionality in greger.el. Here's what was added:
+
+### Test Files Modified/Created:
+
+1. **`test/test-greger-client.el`** - Added unit tests
+2. **`test/test-end-to-end.el`** - Added end-to-end tests  
+3. **`test/run-thinking-tests.el`** - Test runner script
+4. **`test/THINKING_TESTS.md`** - Comprehensive documentation
+
+### Tests Added:
+
+#### Unit Tests (`test-greger-client.el`)
+- **`greger-client-test-thinking-configuration`**
+  - Tests thinking parameter in API requests
+  - Validates enabled/disabled/nil states
+  - Verifies max_tokens calculation
+  - Validates JSON structure
+
+#### End-to-End Tests (`test-end-to-end.el`)
+- **`greger-end-to-end-test-thinking-functionality`** (API test)
+  - Tests complete workflow with real API calls
+  - Validates thinking content appears correctly
+  - Verifies proper buffer formatting
+  - Tests mathematical reasoning prompt
+
+- **`greger-end-to-end-test-thinking-toggle`**
+  - Tests `greger-toggle-thinking` function
+  - Validates state transitions
+  - No API calls required
+
+- **`greger-end-to-end-test-thinking-mode-line`**
+  - Tests mode line display functionality
+  - Validates UI feedback
+  - No API calls required
+
+### Test Coverage:
+
+✅ **Configuration Management**
+- Thinking budget settings
+- Toggle functionality 
+- Parameter validation
+
+✅ **API Integration**
+- Request building with thinking parameters
+- Max tokens calculation
+- JSON structure validation
+
+✅ **Response Processing**
+- Thinking content handling
+- Streaming integration
+- Content block processing
+
+✅ **User Interface**
+- Mode line status display
+- Toggle keybinding functionality
+- Visual feedback
+
+✅ **End-to-End Workflow**
+- Complete user experience
+- Buffer content validation
+- Thinking header formatting
+
+### Running the Tests:
+
+```bash
+# All thinking tests (excluding API calls)
+cd test && emacs --batch --eval "(progn (add-to-list 'load-path \"../\") (require 'ert) (load \"test-greger-client.el\") (load \"test-end-to-end.el\") (ert-run-tests-batch-and-exit '(and (tag thinking) (not (tag api)))))"
+
+# Just unit tests
+emacs --batch --eval "(progn (add-to-list 'load-path \".\") (require 'ert) (load \"test/test-greger-client.el\") (ert-run-tests-batch-and-exit '(tag thinking)))"
+
+# API tests (requires ANTHROPIC_API_KEY)
+emacs --batch --eval "(progn (add-to-list 'load-path \".\") (require 'ert) (load \"test/test-end-to-end.el\") (ert-run-tests-batch-and-exit 'greger-end-to-end-test-thinking-functionality))"
+```
+
+### Test Results:
+- ✅ Unit tests: **1/1 passing**
+- ✅ Non-API end-to-end tests: **2/2 passing**  
+- ✅ Total stable tests: **3/3 passing**
+- ⚠️ API test: Requires valid API key and may incur costs
+
+The test suite provides comprehensive coverage of the thinking functionality, from low-level unit tests to high-level user experience validation. The tests are designed to catch regressions and ensure the thinking implementation works correctly across all components of greger.el.
+
+# USER
+

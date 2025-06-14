@@ -64,8 +64,8 @@
   :type 'float
   :group 'greger)
 
-(defcustom greger-thinking-budget 4096
-  "Token budget for thinking (internal reasoning) content.
+(defcustom greger-default-thinking-budget 4096
+  "Default budget for thinking (internal reasoning) content, in tokens.
 Set to 0 to disable thinking entirely."
   :type 'integer
   :group 'greger)
@@ -108,6 +108,9 @@ May order 4,000 pounds of meat."
 
 (defvar-local greger--buffer-read-only-by-greger nil
   "Buffer-local variable to track if buffer is read-only due to greger activity.")
+
+(defvar-local greger-thinking-budget greger-default-thinking-budget
+  "Thinking budget for the current Greger chat.")
 
 (defcustom greger-citation-summary-face 'underline
   "Face to use for citation text when folded."
@@ -225,7 +228,8 @@ May order 4,000 pounds of meat."
    :override t
    '((tool_param_header) @greger-tool-param-name-face
      (key) @greger-key-face
-     (url) @greger-ui--url-link-fn)
+     (url) @greger-ui--url-link-fn
+     (thinking_signature) @greger-ui--thinking-signature-hiding-fn)
 
    :language 'greger
    :feature 'tool-tags
@@ -260,8 +264,13 @@ May order 4,000 pounds of meat."
 (defun greger-install-grammar ()
   "Install greger tree-sitter grammar."
   (interactive)
-  (add-to-list 'treesit-language-source-alist '(greger "https://github.com/andreasjansson/greger-grammar" "main"))
-  (treesit-install-language-grammar 'greger))
+  ;; (add-to-list 'treesit-language-source-alist '(greger "https://github.com/andreasjansson/greger-grammar" "main"))
+  ;; (treesit-install-language-grammar 'greger)
+  (let ((grammar-dir "/Users/andreas/projects/greger.el/grammar"))
+    (add-to-list 'treesit-extra-load-path grammar-dir))
+  (unless (treesit-ready-p 'greger)
+    (error "Tree-sitter for Greger isn't available"))
+  )
 
 ;;;###autoload
 (define-derived-mode greger-mode prog-mode "Greger"
@@ -288,7 +297,9 @@ May order 4,000 pounds of meat."
   (treesit-major-mode-setup)
 
   (setq-local mode-line-misc-info '(:eval (greger--mode-line-info)))
-  (use-local-map greger-mode-map))
+  (use-local-map greger-mode-map)
+
+  (setq-local greger-thinking-budget greger-default-thinking-budget))
 
 ;;;###autoload
 (add-to-list 'auto-mode-alist '("\\.greger\\'" . greger-mode))
@@ -367,11 +378,12 @@ May order 4,000 pounds of meat."
   (interactive)
   (if (> greger-thinking-budget 0)
       (progn
-        (customize-set-variable 'greger-thinking-budget 0)
+        (setq-local greger-thinking-budget 0)
         (message "Thinking disabled"))
     (progn
-      (customize-set-variable 'greger-thinking-budget 4096)
-      (message "Thinking enabled (budget: %d tokens)" greger-thinking-budget))))
+      (setq-local greger-thinking-budget greger-default-thinking-budget)
+      (message "Thinking enabled (budget: %d tokens)" greger-thinking-budget)))
+  (force-mode-line-update))
 
 (defun greger-debug-request ()
   "Debug the request data by parsing the buffer and saving the request data output."
@@ -483,7 +495,7 @@ READ-ONLY is t to make read-only, nil to make writable."
                          :text-delta-callback (lambda (text)
                                                 (greger--append-text state (greger--clean-excessive-newlines text)))
                          :block-stop-callback (lambda (type content-block)
-                                                (greger--append-nonstreaming-content-block state type content-block))
+                                                (greger--append-handle-content-block-stop state type content-block))
                          :complete-callback (lambda (content-blocks) (greger--handle-stream-completion state content-blocks)))))
 
       ;; Store the client state for potential cancellation
@@ -536,21 +548,38 @@ be displayed as they arrive rather than waiting for completion."
     (and (or (string= type "text") (string= type "thinking"))
          (not citations))))
 
-(defun greger--append-nonstreaming-content-block (state type content-block)
+(defun greger--append-handle-content-block-stop (state type content-block)
   "Append non-streaming CONTENT-BLOCK of TYPE to STATE."
+  ;; Only append markdown if it hasn't done that already during streaming
   (unless (greger--content-block-supports-streaming content-block)
-   (let ((markdown (greger-parser--block-to-markdown content-block)))
-     (greger--append-text
-      state (concat "\n\n" markdown)))
+    (let ((markdown (greger-parser--block-to-markdown content-block)))
+      (greger--append-text state (concat "\n\n" markdown))))
 
-   (when (string= type "tool_use")
-     (let ((tool-id (alist-get 'id content-block)))
-       (greger--append-text state (concat "\n\n" (greger--tool-placeholder tool-id)))))
+  ;; Special cases for tool use and thinking
+  (cond
+   ((string= type "tool_use")
+    (let ((tool-id (alist-get 'id content-block)))
+      (greger--append-text state (concat "\n\n" (greger--tool-placeholder tool-id)))))
+   ((string= type "thinking")
+    (let ((signature (alist-get 'signature content-block)))
+      ;; TODO: remove debug
+      (greger--insert-thinking-signature state signature))))
 
-   ;; Update buffer state after client completes
-   (let ((buffer (greger-state-chat-buffer state)))
-     (with-current-buffer buffer
-       (greger--update-buffer-state)))))
+  ;; Update buffer state after client completes
+  (let ((buffer (greger-state-chat-buffer state)))
+    (with-current-buffer buffer
+      (greger--update-buffer-state))))
+
+(defun greger--insert-thinking-signature (state signature)
+  ;; Assumes the last inserted thing is a thinking tag
+  (with-current-buffer (greger-state-chat-buffer state)
+    (save-excursion
+      (re-search-backward "^# THINKING")
+      (forward-line 1)
+      (let ((inhibit-read-only t))
+        (insert "\n"
+                "Signature: " signature
+                "\n")))))
 
 (defun greger--extract-tool-calls (content-blocks)
   "Extract tool calls from CONTENT-BLOCKS."
