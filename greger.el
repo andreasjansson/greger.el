@@ -436,8 +436,8 @@ May order 4,000 pounds of meat."
   "Generate mode line information showing model and current state."
   (let ((state (greger--get-current-state))
         (model-name (symbol-name greger-model))
-        (thinking-status (if (> greger-thinking-budget 0) 
-                            (format " [T:%d]" greger-thinking-budget) 
+        (thinking-status (if (> greger-thinking-budget 0)
+                            (format " [T:%d]" greger-thinking-budget)
                             "")))
     (concat model-name
             thinking-status
@@ -568,7 +568,8 @@ be displayed as they arrive rather than waiting for completion."
       (greger--update-buffer-state))))
 
 (defun greger--insert-thinking-signature (state signature)
-  ;; Assumes the last inserted thing is a thinking tag
+  "Insert thinking SIGNATURE after the last thinking tag, using STATE.
+Assumes the last inserted thing is a thinking tag."
   (with-current-buffer (greger-state-chat-buffer state)
     (save-excursion
       (re-search-backward "^# THINKING")

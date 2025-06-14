@@ -192,14 +192,14 @@ You can run arbitrary shell commands with the shell-command tool, but the follow
 (defun greger-parser--extract-thinking (node)
   "Extract thinking entry from NODE."
   (let ((content (greger-parser--extract-text-content node))
-        (signature (greger-parser--extract-signature node))
-        )
+        (signature (greger-parser--extract-signature node)))
     `((role . "assistant")
       (content . (((type . "thinking")
                    (signature . ,signature)
                    (thinking . ,content)))))))
 
 (defun greger-parser--extract-signature (node)
+  "Extract thinking signature from NODE."
   (let* ((signature-node (treesit-search-subtree node "thinking_signature"))
          (value-node (treesit-node-child-by-field-name signature-node "value"))
          (signature (treesit-node-text value-node t)))
@@ -385,7 +385,7 @@ Recognizes numbers, booleans, JSON arrays/objects, and plain strings."
         text-result)))))
 
 (defun greger-parser--parse-json-or-plain-content (content)
-  "Parse CONTENT as JSON if it looks like JSON, otherwise return as plain text."
+  "Parse CONTENT as json if it appears to be json, otherwise return as plain text."
   (if (and (string-match-p "^\\s-*\\[\\|^\\s-*{" content)
            (condition-case nil
                (json-parse-string content :object-type 'alist :array-type 'list)
@@ -528,6 +528,9 @@ If SKIP-HEADER is true, don't add section headers for text blocks."
      (t ""))))
 
 (defun greger-parser--assistant-text-to-markdown (block &optional skip-header)
+  "Convert assistant text BLOCK to markdown, including citations.
+If SKIP-HEADER is nil, don't include the assistant header tag,
+assuming it's already been sent in streaming."
   (let ((text (alist-get 'text block))
         (citations (alist-get 'citations block)))
     (cond
@@ -541,8 +544,9 @@ If SKIP-HEADER is true, don't add section headers for text blocks."
               text)))))
 
 (defun greger-parser--thinking-to-markdown (block)
-  (let ((contents alist-get 'thinking block)
-        (signature alist-get 'signature block))
+  "Convert thinking BLOCK to markdown (signature and text)."
+  (let ((contents (alist-get 'thinking block))
+        (signature (alist-get 'signature block)))
     (concat greger-parser-thinking-tag
           "\n\n"
           "Signature: " signature

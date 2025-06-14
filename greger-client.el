@@ -59,12 +59,14 @@
 ;;; Public API
 
 (cl-defun greger-client-stream (&key model dialog tools server-tools buffer block-start-callback text-delta-callback block-stop-callback complete-callback thinking-budget)
-  "Stream AI responses with callbacks for handling content types and updates.
+  "Send API request to the Claude streaming API.
+Streaming responses are handled using callbacks.
 MODEL specifies which AI model to use, DIALOG contains the conversation,
 TOOLS and SERVER-TOOLS enable function calling, BUFFER is the output target.
 BLOCK-START-CALLBACK is called when content blocks begin, TEXT-DELTA-CALLBACK
-for incremental text, BLOCK-STOP-CALLBACK when blocks complete, and
-COMPLETE-CALLBACK when the entire response finishes."
+for incremental text, BLOCK-STOP-CALLBACK when blocks complete,
+COMPLETE-CALLBACK when the entire response finishes, and THINKING-BUDGET
+is the number of thinking tokens."
   (unless (memq model greger-client-supported-models)
     (error "Unsupported model: %s. Supported models: %s"
            model greger-client-supported-models))
@@ -109,7 +111,12 @@ COMPLETE-CALLBACK when the entire response finishes."
 ;;; Request building
 
 (defun greger-client--build-request (model dialog &optional tools server-tools thinking-budget)
-  "Build Claude request for MODEL with DIALOG and optional tools and THINKING-BUDGET."
+  "Build Claude request to be sent to the Claude API.
+MODEL is the Claude mode.
+DIALOG is the chat dialog.
+TOOLS are tool definitions.
+SERVER-TOOLS are server tool definitions.
+THINKING-BUDGET is the number of thinking tokens."
   (let* ((api-key (greger-client--get-api-key))
          (headers (greger-client--build-headers api-key))
          (data (greger-client--build-data model dialog tools server-tools thinking-budget)))
@@ -409,7 +416,7 @@ STATE is used to update the parsed content blocks."
         (when-let ((callback (greger-client-state-complete-callback state)))
           (funcall callback (greger-client-state-content-blocks state)))
       ;; TODO: Error callback
-      (message (format "Process exited with status code %d" exit-code))))))
+      (message "Process exited with status code %d" exit-code)))))
 
 (defun greger-client--cancel-request (state)
   "Cancel streaming request using STATE."

@@ -57,7 +57,7 @@
     (define-key map (kbd "TAB") #'greger-ui--toggle-tool-content-tail-fold)
     map))
 
-;; Folding
+;; Folding and hiding
 
 (defun greger-ui--citation-entry-folding-fn (node _override _start _end)
   "Font-lock function to hide citation entries within assistant blocks.
@@ -140,8 +140,7 @@ START and END are the region bounds."
 
 (defun greger-ui--tool-content-tail-folding-fn (node _override _start _end)
   "Font-lock function to make tool_content_tail invisible by default.
-NODE is the matched tree-sitter node, OVERRIDE is the override setting,
-START and END are the region bounds."
+NODE is the matched tree-sitter node"
   (let* ((node-start (treesit-node-start node))
          (node-end (treesit-node-end node))
          (is-visible (get-text-property node-start 'greger-ui-tool-content-expanded)))
@@ -151,11 +150,10 @@ START and END are the region bounds."
     (put-text-property node-start node-end 'keymap greger-ui-tool-content-tail-keymap)))
 
 (defun greger-ui--thinking-signature-hiding-fn (node _override _start _end)
+  "Hide thinking signature.  NODE is the matched tree-sitter node."
   (let* ((node-start (treesit-node-start node))
          (node-end (treesit-node-end node))
          (invisible-end (+ node-end 2)))
-    
-    ;; Apply invisibility (default is invisible unless expanded)
     (put-text-property node-start invisible-end 'invisible t)))
 
 ;; Links
