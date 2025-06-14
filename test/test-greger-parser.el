@@ -382,7 +382,6 @@ Hi")))
       (greger-parser-markdown-to-dialog large-markdown)
       (let ((elapsed (float-time (time-subtract (current-time) start-time))))
         ;; Should parse 10000 message pairs in under 1 second
-        ;; TODO: remove debug
         (should (< elapsed 1.0))))))
 
 ;; Test untagged content at the beginning

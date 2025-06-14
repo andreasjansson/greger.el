@@ -160,10 +160,6 @@
   ;; Define a test function with default parameters
   (defun greger-test-default-params (message &optional count prefix)
     "Test function with default parameters."
-    ;; TODO: remove debug
-    (message (format "count: %s" count))
-    ;; TODO: remove debug
-    (message (format "prefix: %s" prefix))
     (let ((actual-prefix (or prefix ">>>")))
       (format "%s %s (repeated %d times)"
               actual-prefix message count)))

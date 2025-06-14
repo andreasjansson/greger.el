@@ -171,12 +171,6 @@ START and END are the region bounds."
          (url (substring text 3)))
     (browse-url url)))
 
-"Make URLs clickable by adding mouse highlighting and keybindings to NODE.
-Processes URL nodes from tree-sitter to add interactive properties,
-ignoring OVERRIDE, START, and END parameters."
-  "Open URL at point in default web browser.
-Finds the URL node under cursor and launches it, stripping the markdown
-URL prefix before opening."
   ;; Code blocks
 
 (defun greger-ui--copy-code ()
@@ -196,9 +190,6 @@ URL prefix before opening."
         str
       (concat (substring str 0 (- max-width 3)) "..."))))
 
-"Copy code block content at point to kill ring.
-Finds code block under cursor and copies the content for pasting elsewhere,
-showing a truncated preview of what was copied."
   ;; TAB toggles
 
 (defun greger-ui--toggle-citation-fold ()
@@ -209,9 +200,6 @@ showing a truncated preview of what was copied."
          (invisible-start (get-text-property node-start 'invisible-start))
          (invisible-end (get-text-property node-start 'invisible-end))
          (is-expanded (get-text-property node-start 'greger-ui-citation-expanded)))
-
-    ;; TODO: remove debug
-    (message "node: %s" node)
 
     (put-text-property node-start (1+ node-start) 'greger-ui-citation-expanded (not is-expanded))
     (font-lock-flush invisible-start invisible-end)))
