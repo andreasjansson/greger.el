@@ -1045,5 +1045,38 @@ This ensures all corpus test files have corresponding roundtrip tests.
 ID: toolu_01Davz8b3YQoy9V8mRAE9PZi
 
 <tool.toolu_01Davz8b3YQoy9V8mRAE9PZi>
-Loading...
+Successfully replaced content in /Users/andreas/projects/greger.el/test/test-greger-parser.el. Successfully staged 2 file(s) and committed with message: Add missing roundtrip tests for all corpus files
+
+Added roundtrip tests for the following corpus files that were missing:
+- code-block-nested-headers
+- inline-code  
+- safe-shell-commands
+- text-with-markdown-headings
+- triple-hash
+- untagged-content
+
+This ensures all corpus test files have corresponding roundtrip tests.
 </tool.toolu_01Davz8b3YQoy9V8mRAE9PZi>
+
+# ASSISTANT
+
+Perfect! I've successfully added the missing roundtrip tests to the test file. 
+
+## Summary
+
+I compared the existing roundtrip tests in `test/test-greger-parser.el` with the corpus test files in `grammar/test/corpus` and found that 6 corpus files were missing corresponding roundtrip tests:
+
+**Added missing tests for:**
+1. `code-block-nested-headers` - Tests handling of nested headers within code blocks
+2. `inline-code` - Tests inline code formatting
+3. `safe-shell-commands` - Tests safe shell command handling (already had a manual test but no roundtrip test)
+4. `text-with-markdown-headings` - Tests markdown headings in text content
+5. `triple-hash` - Tests triple hash formatting
+6. `untagged-content` - Tests untagged content handling (already had a manual test but no roundtrip test)
+
+Each new test follows the same pattern as existing roundtrip tests, calling `greger-parser-test--roundtrip` with the appropriate corpus file name. The tests ensure that parsing a corpus file to a dialog structure and then converting it back to markdown produces structurally equivalent results.
+
+Note that there were already some manual tests for `safe-shell-commands` and `untagged-content`, but these new tests specifically do the roundtrip testing (markdown → dialog → markdown) to ensure the parser can handle these cases in both directions correctly.
+
+# USER
+

@@ -548,10 +548,11 @@ assuming it's already been sent in streaming."
   (let ((contents (alist-get 'thinking block))
         (signature (alist-get 'signature block)))
     (concat greger-parser-thinking-tag
-          "\n\n"
-          "Signature: " signature
-          "\n\n"
-          contents)))
+            (if signature
+                (concat "\n\n" "Signature: " signature)
+              "")
+            "\n\n"
+            contents)))
 
 (defun greger-parser--citations-to-markdown (block)
   "Convert citation BLOCK to markdown with embedded citations."
