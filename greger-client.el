@@ -295,6 +295,8 @@ Returns nil if no error found or if OUTPUT is not valid JSON."
       ;; For text blocks with citations, initialize citations as empty list
       (when citations
         (setf (alist-get 'citations content-block) '())))
+     ((string= type "thinking")
+      (setf (alist-get 'thinking content-block) ""))
      ;; web_search_tool_result blocks come pre-populated with content - no initialization needed
      )
 
