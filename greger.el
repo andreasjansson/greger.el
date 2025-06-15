@@ -625,7 +625,7 @@ Assumes the last inserted thing is a thinking tag."
                 "\n")))))
 
 (defun greger--extract-tool-calls (content-blocks)
-  "Extract tool calls from CONTENT-BLOCKS."
+  "Extract tool call from CONTENT-BLOCKS."
   (let ((tool-calls '()))
     (dolist (block content-blocks)
       (when (string= (alist-get 'type block) "tool_use")
