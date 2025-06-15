@@ -53,13 +53,20 @@ Leaf nodes are wrapped in parentheses as single-element lists."
 
 (defun greger-test-mode-line-text (&optional buffer)
   "Get mode line text from BUFFER or current buffer.
-Returns empty string if mode line cannot be formatted."
+In batch mode, directly calls greger--mode-line-info since format-mode-line doesn't work.
+In interactive mode, uses the actual mode line."
   (let ((buf (or buffer (current-buffer))))
     (with-current-buffer buf
-      (let ((mode-line-text (format-mode-line mode-line-format)))
-        (if mode-line-text
-            (substring-no-properties mode-line-text)
-          "")))))
+      (if noninteractive
+          ;; In batch mode, format-mode-line returns empty string, so call greger--mode-line-info directly
+          (if (fboundp 'greger--mode-line-info)
+              (greger--mode-line-info)
+            "")
+        ;; In interactive mode, use the actual mode line
+        (let ((mode-line-text (format-mode-line mode-line-format)))
+          (if mode-line-text
+              (substring-no-properties mode-line-text)
+            ""))))))
 
 (defun greger-test-wait-for-mode-line-state (state &optional timeout buffer)
   "Wait for greger buffer to reach STATE within TIMEOUT seconds.
