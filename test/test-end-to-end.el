@@ -62,25 +62,15 @@ Uses greger--mode-line-info to get the greger-specific portion of the mode line.
 
 (defun greger-test-wait-for-mode-line-state (state &optional timeout buffer)
   "Wait for greger buffer to reach STATE within TIMEOUT seconds.
-If BUFFER is provided, check that buffer's mode line, otherwise use current buffer."
+If BUFFER is provided, check that buffer's status, otherwise use current buffer."
   (let ((start-time (current-time))
         (current-state nil)
         (timeout (or timeout greger-test-timeout))
         (buf (or buffer (current-buffer))))
     (while (and (not (equal state current-state))
                 (< (float-time (time-subtract (current-time) start-time)) timeout))
-      (let* ((mode-line (greger-test-mode-line-text buf))
-             (is-generating (string-search "[Generating]" mode-line))
-             (is-executing (string-search "[Executing]" mode-line))
-             (is-idle (and (not is-generating) (not is-executing))))
-        (setq current-state
-              (cond
-               (is-generating
-                'generating)
-               (is-executing
-                'executing)
-               (is-idle
-                'idle))))
+      (let ((status (greger-status buf)))
+        (setq current-state (plist-get status :state)))
       (sit-for 0.2))
     (equal state current-state)))
 
