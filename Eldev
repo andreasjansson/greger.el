@@ -1,9 +1,10 @@
 ; -*- mode: emacs-lisp; lexical-binding: t -*-
-; Eldev configuration for greger.el
 
-;; Use MELPA for any dependencies that might be needed
-(eldev-use-package-archive 'melpa)
+;; Uncomment some calls below as needed for your project.
+;(eldev-use-package-archive 'gnu-elpa)
+;(eldev-use-package-archive 'nongnu-elpa)
+;(eldev-use-package-archive 'melpa)
 
-;; Set up exclusions for files we don't want Eldev to process
-(setq eldev-standard-excludes 
-      '("*.ai" "*.greger" "request.json" "chat*.greger" "chat*.ai"))
+(eldev-use-plugin 'autoloads)
+
+(eldev-standard-excludes '("*.greger"))
