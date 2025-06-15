@@ -308,14 +308,14 @@ May order 4,000 pounds of meat."
 (add-to-list 'auto-mode-alist '("\\.greger\\'" . greger-mode))
 
 ;;;###autoload
-(defun greger (&optional prefix-arg)
+(defun greger (&optional with-context)
   "Create a new buffer and switch to `greger-mode`.
-With PREFIX-ARG (e.g. \[universal-argument] \[greger]), save the current buffer,
+With WITH-CONTEXT (e.g. \[universal-argument] \[greger]), save the current buffer,
 split the window if not already split, and insert location
 information at the beginning of the user section."
   (interactive "P")
   (let ((buffer (generate-new-buffer "*greger*"))
-        (source-info (when prefix-arg
+        (source-info (when with-context
                        (save-buffer)
                        (list (buffer-file-name)
                              (line-number-at-pos)
