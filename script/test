@@ -77,9 +77,8 @@ ELDEV_CMD="$ELDEV_CMD test"
 
 # Add file pattern if specified
 if [ -n "$SPECIFIC_FILE" ]; then
-    # Convert file path to pattern for Eldev
-    PATTERN=$(basename "$SPECIFIC_FILE" .el)
-    ELDEV_CMD="$ELDEV_CMD --pattern $PATTERN"
+    # Use Eldev's --file option
+    ELDEV_CMD="$ELDEV_CMD --file $SPECIFIC_FILE"
 fi
 
 # Run tests
