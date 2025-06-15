@@ -27,12 +27,10 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v4
 
-      - name: Test with Eldev
+      - name: Test
         env:
           ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
-        run: |
-          curl -fsSL https://raw.github.com/emacs-eldev/eldev/master/webinstall/eldev | sh
-          eldev test
+        run: ./script/test --verbose
 
   melpazoid:
     runs-on: ubuntu-latest
