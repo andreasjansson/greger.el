@@ -414,7 +414,7 @@ Hello from greger test!
           (let ((greger-thinking-budget 1024))
             (greger-buffer))
           
-          (should (greger-test-wait-for-mode-line-state 'idle))
+          (should (greger-test-wait-for-mode-line-state 'idle nil greger-buffer))
 
           (let ((expected-parse-tree '(source_file
                                        (system
