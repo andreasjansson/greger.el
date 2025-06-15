@@ -308,16 +308,33 @@ May order 4,000 pounds of meat."
 (add-to-list 'auto-mode-alist '("\\.greger\\'" . greger-mode))
 
 ;;;###autoload
-(defun greger ()
-  "Create a new buffer and switch to `greger-mode`."
-  (interactive)
-  (let ((buffer (generate-new-buffer "*greger*")))
+(defun greger (&optional prefix-arg)
+  "Create a new buffer and switch to `greger-mode`.
+With PREFIX-ARG (e.g. C-u M-x greger), save the current buffer and
+insert location information at the beginning of the user section."
+  (interactive "P")
+  (let ((buffer (generate-new-buffer "*greger*"))
+        (source-info (when prefix-arg
+                       (save-buffer)
+                       (list (buffer-file-name)
+                             (line-number-at-pos)
+                             (current-column)))))
     (switch-to-buffer buffer)
     (greger-mode)
     (insert greger-parser-system-tag
             "\n\n" greger-default-system-prompt "\n\n"
             greger-parser-user-tag
             "\n\n")
+    (when source-info
+      (let ((file-name (nth 0 source-info))
+            (line-num (nth 1 source-info))
+            (column (nth 2 source-info)))
+        (insert (format "In %s, at line %d%s, implement the following:\n\n"
+                        file-name
+                        line-num
+                        (if (> column 0)
+                            (format " and column %d" column)
+                          "")))))
     buffer))
 
 (defun greger-insert-assistant-tag ()
