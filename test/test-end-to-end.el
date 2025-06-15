@@ -326,7 +326,7 @@ Hello from greger test!
                 (greger-tools '("shell-command")))
             (greger-buffer)
 
-            (should (greger-test-wait-for-mode-line-state 'executing))
+            (should (greger-test-wait-for-mode-line-state 'executing nil greger-buffer))
 
             ;; Wait 1 second while in executing state
             (sit-for 1.0)
