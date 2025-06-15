@@ -264,7 +264,7 @@ Hello from greger test!
 
           (greger-buffer-no-tools)
 
-          (should (greger-test-wait-for-mode-line-state 'idle))
+          (should (greger-test-wait-for-mode-line-state 'idle nil greger-buffer))
 
           (let ((parse-tree (greger-test-parse-tree)))
             (should (not (greger-test-parse-tree-contains-p parse-tree 'thinking)))
