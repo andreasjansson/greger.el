@@ -57,12 +57,11 @@ echo
 
 # Check if Eldev is installed
 if ! command -v eldev &> /dev/null; then
-    echo -e "${YELLOW}Installing Eldev...${NC}"
-    if ! curl -fsSL https://raw.github.com/emacs-eldev/eldev/master/webinstall/eldev | sh; then
-        echo -e "${RED}Failed to install Eldev${NC}"
-        exit 1
-    fi
-    echo
+    echo -e "${RED}Error: Eldev is not installed${NC}"
+    echo "Please install Eldev first:"
+    echo "  curl -fsSL https://raw.github.com/emacs-eldev/eldev/master/webinstall/eldev | sh"
+    echo "Or visit: https://github.com/emacs-eldev/eldev"
+    exit 1
 fi
 
 # Build Eldev command
