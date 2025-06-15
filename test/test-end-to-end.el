@@ -382,7 +382,7 @@ Hello from greger test!
             (let ((greger-thinking-budget 0))
               (greger-buffer))
 
-            (greger-test-wait-for-mode-line-state 'idle)
+            (greger-test-wait-for-mode-line-state 'idle nil greger-buffer)
 
             ;; Verify response was added to buffer
             (let ((content (buffer-string)))
