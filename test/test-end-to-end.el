@@ -342,7 +342,7 @@ Hello from greger test!
               (should (eq interrupted-state 'generating)))
 
             ;; Should immediately become idle
-            (should (greger-test-wait-for-mode-line-state 'idle 0.1))
+            (should (greger-test-wait-for-mode-line-state 'idle 0.1 greger-buffer))
 
             (let ((content (buffer-string)))
               (should (string-match-p "Command failed with exit code 2: (no output)" content)))
