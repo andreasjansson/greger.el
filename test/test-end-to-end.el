@@ -360,7 +360,7 @@ Hello from greger test!
             (let ((interrupted-state (greger-interrupt)))
               (should (eq interrupted-state 'generating)))
 
-            (should (greger-test-wait-for-mode-line-state 'idle 0.1))))
+            (should (greger-test-wait-for-mode-line-state 'idle 0.1 greger-buffer))))
 
       (when (and greger-buffer (buffer-live-p greger-buffer))
         (kill-buffer greger-buffer)))))
