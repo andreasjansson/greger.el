@@ -467,7 +467,7 @@ information at the beginning of the user section."
 (defun greger-status ()
   "Get the current greger status information for current buffer.
 Returns a plist with the following keys:
-- :state - Current state: 'idle, 'generating, or 'executing
+- :state - Current state: \='idle, \='generating, or \='executing
 - :model - Current model name as a string
 - :thinking-budget - Current thinking budget (0 if disabled)
 
