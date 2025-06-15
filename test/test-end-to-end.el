@@ -61,13 +61,16 @@ Returns empty string if mode line cannot be formatted."
             (substring-no-properties mode-line-text)
           "")))))
 
-(defun greger-test-wait-for-mode-line-state (state &optional timeout)
+(defun greger-test-wait-for-mode-line-state (state &optional timeout buffer)
+  "Wait for greger buffer to reach STATE within TIMEOUT seconds.
+If BUFFER is provided, check that buffer's mode line, otherwise use current buffer."
   (let ((start-time (current-time))
         (current-state nil)
-        (timeout (or timeout greger-test-timeout)))
+        (timeout (or timeout greger-test-timeout))
+        (buf (or buffer (current-buffer))))
     (while (and (not (equal state current-state))
                 (< (float-time (time-subtract (current-time) start-time)) timeout))
-      (let* ((mode-line (greger-test-mode-line-text))
+      (let* ((mode-line (greger-test-mode-line-text buf))
              (is-generating (string-search "[Generating]" mode-line))
              (is-executing (string-search "[Executing]" mode-line))
              (is-idle (and (not is-generating) (not is-executing))))
