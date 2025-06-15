@@ -335,7 +335,7 @@ Hello from greger test!
             (let ((interrupted-state (greger-interrupt)))
               (should (eq interrupted-state 'executing)))
 
-            (should (greger-test-wait-for-mode-line-state 'generating))
+            (should (greger-test-wait-for-mode-line-state 'generating nil greger-buffer))
 
             ;; Interrupt assistant message before it even started
             (let ((interrupted-state (greger-interrupt)))
