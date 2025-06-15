@@ -1,0 +1,31 @@
+#!/bin/bash
+
+# Modern test script using Eldev + Buttercup
+# Replaces the old manual ERT setup
+
+set -e
+
+# Colors for output
+RED='\033[0;31m'
+GREEN='\033[0;32m'
+YELLOW='\033[1;33m'
+BLUE='\033[0;34m'
+NC='\033[0m' # No Color
+
+echo -e "${BLUE}Running tests with Eldev + Buttercup...${NC}"
+echo
+
+# Check if Eldev is installed
+if ! command -v eldev &> /dev/null; then
+    echo -e "${YELLOW}Installing Eldev...${NC}"
+    curl -fsSL https://raw.github.com/emacs-eldev/eldev/master/webinstall/eldev | sh
+fi
+
+# Run tests with Eldev
+if eldev test; then
+    echo -e "${GREEN}All tests passed!${NC}"
+    exit 0
+else
+    echo -e "${RED}Some tests failed.${NC}"
+    exit 1
+fi
