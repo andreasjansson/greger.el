@@ -1,18 +1,9 @@
 ; -*- mode: emacs-lisp; lexical-binding: t -*-
 ; Eldev configuration for greger.el
 
-;; Tell Eldev about the main package file
+;; Use MELPA for any dependencies that might be needed
 (eldev-use-package-archive 'melpa)
 
-;; Dependencies for your package
-;; Add any runtime dependencies here if needed
-;; (depends-on "some-package")
-
-;; Development dependencies
-;; ERT is built-in, no need to add it as a dependency
-
-;; Set up sources and exclusions
-(setq eldev-standard-excludes '("/*.ai" "/*.greger" "/request.json" "/chat*.greger" "/chat*.ai"))
-
-;; Test configuration
-;; Eldev will automatically discover ERT tests in test/ directory
+;; Set up exclusions for files we don't want Eldev to process
+(setq eldev-standard-excludes 
+      '("*.ai" "*.greger" "request.json" "chat*.greger" "chat*.ai"))
