@@ -310,8 +310,9 @@ May order 4,000 pounds of meat."
 ;;;###autoload
 (defun greger (&optional prefix-arg)
   "Create a new buffer and switch to `greger-mode`.
-With PREFIX-ARG (e.g. C-u M-x greger), save the current buffer and
-insert location information at the beginning of the user section."
+With PREFIX-ARG (e.g. C-u M-x greger), save the current buffer,
+split the window horizontally if not already split, and insert
+location information at the beginning of the user section."
   (interactive "P")
   (let ((buffer (generate-new-buffer "*greger*"))
         (source-info (when prefix-arg
@@ -319,6 +320,12 @@ insert location information at the beginning of the user section."
                        (list (buffer-file-name)
                              (line-number-at-pos)
                              (current-column)))))
+    (when prefix-arg
+      ;; Split horizontally if not already split
+      (when (= (length (window-list)) 1)
+        (split-window-below))
+      ;; Move to the next window
+      (other-window 1))
     (switch-to-buffer buffer)
     (greger-mode)
     (insert greger-parser-system-tag
