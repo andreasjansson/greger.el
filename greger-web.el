@@ -27,7 +27,6 @@
 
 ;;; Commentary:
 ;; Functions for downloading web content and extracting text from URLs.
-;; Originally part of greger-parser.el, moved here for better organization.
 
 ;;; Code:
 
