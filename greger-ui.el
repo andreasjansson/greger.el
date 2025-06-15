@@ -154,10 +154,6 @@ NODE is the matched tree-sitter node"
   (let* ((node-start (treesit-node-start node))
          (node-end (treesit-node-end node))
          (invisible-end (+ node-end 2)))
-    ;; TODO: remove debug
-    (message "node-start: %s" node-start)
-    ;; TODO: remove debug
-    (message "invisible-end: %s" invisible-end)
     (put-text-property node-start invisible-end 'invisible t)))
 
 ;; Links

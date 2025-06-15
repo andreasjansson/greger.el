@@ -310,9 +310,9 @@ May order 4,000 pounds of meat."
 ;;;###autoload
 (defun greger (&optional with-context)
   "Create a new buffer and switch to `greger-mode`.
-With WITH-CONTEXT (e.g. \[universal-argument] \[greger]), save the current buffer,
-split the window if not already split, and insert location
-information at the beginning of the user section."
+With WITH-CONTEXT (e.g. \[universal-argument] \[greger]), save
+the current buffer, split the window if not already split, and
+insert location information at the beginning of the user section."
   (interactive "P")
   (let ((buffer (generate-new-buffer "*greger*"))
         (source-info (when with-context
