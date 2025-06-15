@@ -320,7 +320,7 @@ information at the beginning of the user section."
                        (list (buffer-file-name)
                              (line-number-at-pos)
                              (current-column)))))
-    (when prefix-arg
+    (when with-context
       ;; Split horizontally if not already split
       (when (= (length (window-list)) 1)
         (split-window-right))
