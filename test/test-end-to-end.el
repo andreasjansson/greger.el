@@ -13,7 +13,17 @@
 (require 'greger)
 
 (defvar greger-test-timeout 30
-  "Timeout in seconds for API calls in tests.")
+  ;; Register a basic read-file tool that only accepts file-path
+  (defun greger-test-read-file-basic (file-path)
+    "Simple wrapper around greger-stdlib--read-file that only accepts file-path."
+    (greger-stdlib--read-file file-path))
+
+  (greger-register-tool "read-file-basic"
+    :description "Read the contents of a file from the filesystem (basic version with only file-path argument)"
+    :properties '((file-path . ((type . "string")
+                               (description . "Path to the file to read"))))
+    :required '("file-path")
+    :function 'greger-test-read-file-basic)"Timeout in seconds for API calls in tests.")
 
 (defun greger-test-parse-tree ()
   (greger-test-treesit-node-to-simplified-tree (treesit-buffer-root-node)))
@@ -153,6 +163,8 @@ Hello from greger test!
   "Test a conversation that involves tool use using the public API."
   (skip-unless (getenv "ANTHROPIC_API_KEY"))
 
+  
+
   (let ((greger-buffer nil)
         (test-file nil))
     (unwind-protect
@@ -165,57 +177,58 @@ Hello from greger test!
             (setq greger-buffer (greger)))
 
           (goto-char (point-max))
-          (insert (format "Read the file %s (it contains only a single short line of words) and output only the last word of that file, nothing else." test-file))
+          (insert (format "Read the file %s and output only the last word of that file, nothing else." test-file))
 
-          (let ((greger-thinking-budget 1024))
-            (greger-buffer))
+          (let ((greger-thinking-budget 1024)
+                (greger-tools '("read-file-basic")))
+            (greger-buffer)
 
-          (should (greger-test-wait-for-mode-line-state 'idle))
+            (should (greger-test-wait-for-mode-line-state 'idle))
 
-          (let ((expected-parse-tree '(source_file
-                                       (system
-                                        (system_header)
-                                        (text))
-                                       (user
-                                        (user_header)
-                                        (text))
-                                       (thinking
-                                        (thinking_header)
-                                        (thinking_signature
-                                         (key)
-                                         (value))
-                                        (text))
-                                       (tool_use
-                                        (tool_use_header)
-                                        (name
-                                         (key)
-                                         (value))
-                                        (id
-                                         (key)
-                                         (value))
-                                        (tool_param
-                                         (tool_param_header
-                                          (name))
-                                         (value
-                                          (tool_start_tag)
-                                          (tool_content
-                                           (tool_content_head))
-                                          (tool_end_tag))))
-                                       (tool_result
-                                        (tool_result_header)
-                                        (id
-                                         (key)
-                                         (value))
-                                        (content))
-                                       (assistant
-                                        (assistant_header)
-                                        (text))
-                                       (user
-                                        (user_header)
-                                        (text)))))
-            (should (equal expected-parse-tree (greger-test-parse-tree))))
+            (let ((expected-parse-tree '(source_file
+                                         (system
+                                          (system_header)
+                                          (text))
+                                         (user
+                                          (user_header)
+                                          (text))
+                                         (thinking
+                                          (thinking_header)
+                                          (thinking_signature
+                                           (key)
+                                           (value))
+                                          (text))
+                                         (tool_use
+                                          (tool_use_header)
+                                          (name
+                                           (key)
+                                           (value))
+                                          (id
+                                           (key)
+                                           (value))
+                                          (tool_param
+                                           (tool_param_header
+                                            (name))
+                                           (value
+                                            (tool_start_tag)
+                                            (tool_content
+                                             (tool_content_head))
+                                            (tool_end_tag))))
+                                         (tool_result
+                                          (tool_result_header)
+                                          (id
+                                           (key)
+                                           (value))
+                                          (content))
+                                         (assistant
+                                          (assistant_header)
+                                          (text))
+                                         (user
+                                          (user_header)
+                                          (text)))))
+              (should (equal expected-parse-tree (greger-test-parse-tree))))
 
-          (should (equal "wahey" (greger-test-last-assistant-message))))
+            (should (equal "wahey" (greger-test-last-assistant-message)))))
 
       (when (and test-file (file-exists-p test-file))
         (delete-file test-file))
@@ -237,7 +250,7 @@ Hello from greger test!
           (setq greger-buffer (greger))
 
           (goto-char (point-max))
-          (insert (format "Read the file %s (it contains only a single short line of words) and output only the last word of that file, nothing else." test-file))
+          (insert (format "Read the file %s and output only the last word of that file, nothing else." test-file))
 
           (greger-buffer-no-tools)
 
