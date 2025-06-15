@@ -51,8 +51,15 @@ Leaf nodes are wrapped in parentheses as single-element lists."
     (or (greger-test-parse-tree-contains-p (car parse-tree) name)
         (greger-test-parse-tree-contains-p (cdr parse-tree) name)))))
 
-(defun greger-test-mode-line-text ()
-  (substring-no-properties (format-mode-line mode-line-format)))
+(defun greger-test-mode-line-text (&optional buffer)
+  "Get mode line text from BUFFER or current buffer.
+Returns empty string if mode line cannot be formatted."
+  (let ((buf (or buffer (current-buffer))))
+    (with-current-buffer buf
+      (let ((mode-line-text (format-mode-line mode-line-format)))
+        (if mode-line-text
+            (substring-no-properties mode-line-text)
+          "")))))
 
 (defun greger-test-wait-for-mode-line-state (state &optional timeout)
   (let ((start-time (current-time))
