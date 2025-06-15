@@ -66,12 +66,14 @@ if ! command -v eldev &> /dev/null; then
 fi
 
 # Build Eldev command
-ELDEV_CMD="eldev test"
+ELDEV_CMD="eldev"
 
-# Add verbose flag if requested
+# Add verbose flag if requested (Eldev uses -v for verbose, but as a global option)
 if [ "$VERBOSE" = true ]; then
-    ELDEV_CMD="$ELDEV_CMD --verbose"
+    ELDEV_CMD="$ELDEV_CMD -v"
 fi
+
+ELDEV_CMD="$ELDEV_CMD test"
 
 # Add file pattern if specified
 if [ -n "$SPECIFIC_FILE" ]; then
