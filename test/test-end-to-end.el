@@ -137,7 +137,7 @@ If BUFFER is provided, check that buffer's mode line, otherwise use current buff
           (let ((greger-thinking-budget 0))
             (greger-buffer))
 
-          (should (greger-test-wait-for-mode-line-state 'idle))
+          (should (greger-test-wait-for-mode-line-state 'idle nil greger-buffer))
 
           (let ((buffer-contents (buffer-substring-no-properties (point-min) (point-max)))
                 (expected "# SYSTEM
