@@ -58,20 +58,26 @@
 
 ;;; Public API
 
-(cl-defun greger-client-stream (&key model dialog tools server-tools buffer block-start-callback text-delta-callback block-stop-callback complete-callback)
-  "Stream AI responses with callbacks for handling content types and updates.
-MODEL specifies which AI model to use, DIALOG contains the conversation,
-TOOLS and SERVER-TOOLS enable function calling, BUFFER is the output target.
-BLOCK-START-CALLBACK is called when content blocks begin, TEXT-DELTA-CALLBACK
-for incremental text, BLOCK-STOP-CALLBACK when blocks complete, and
-COMPLETE-CALLBACK when the entire response finishes."
+(cl-defun greger-client-stream (&key model dialog tools server-tools buffer block-start-callback text-delta-callback block-stop-callback complete-callback thinking-budget max-tokens)
+  "Send API request to the Claude streaming API.
+Streaming responses are handled using callbacks.
+MODEL specifies which AI model to use.
+DIALOG contains the conversation,
+TOOLS and SERVER-TOOLS enable function calling.
+BUFFER is the output target.
+BLOCK-START-CALLBACK is called when content blocks begin.
+TEXT-DELTA-CALLBACK for incremental text.
+BLOCK-STOP-CALLBACK when blocks complete.
+COMPLETE-CALLBACK when the entire response finishes.
+THINKING-BUDGET is the number of thinking tokens.
+MAX-TOKENS is the maximum number of tokens to generate."
   (unless (memq model greger-client-supported-models)
     (error "Unsupported model: %s. Supported models: %s"
            model greger-client-supported-models))
 
   (let* ((output-buffer (or buffer (current-buffer)))
          (undo-handle (prepare-change-group output-buffer))
-         (request-spec (greger-client--build-request model dialog tools server-tools))
+         (request-spec (greger-client--build-request model dialog tools server-tools thinking-budget max-tokens))
          (restore-callback (lambda (state)
                              (let ((buffer (greger-client-state-output-buffer state)))
                                (when (buffer-live-p buffer)
@@ -108,11 +114,17 @@ COMPLETE-CALLBACK when the entire response finishes."
 
 ;;; Request building
 
-(defun greger-client--build-request (model dialog &optional tools server-tools)
-  "Build Claude request for MODEL with DIALOG and optional TOOLS and SERVER-TOOLS."
+(defun greger-client--build-request (model dialog tools server-tools thinking-budget max-tokens)
+  "Build Claude request to be sent to the Claude API.
+MODEL is the Claude mode.
+DIALOG is the chat dialog.
+TOOLS are tool definitions.
+SERVER-TOOLS are server tool definitions.
+THINKING-BUDGET is the number of thinking tokens.
+MAX-TOKENS is the maximum number of tokens to generate"
   (let* ((api-key (greger-client--get-api-key))
          (headers (greger-client--build-headers api-key))
-         (data (greger-client--build-data model dialog tools server-tools)))
+         (data (greger-client--build-data model dialog tools server-tools thinking-budget max-tokens)))
     (list :url greger-client-api-url
           :method "POST"
           :headers headers
@@ -132,9 +144,11 @@ COMPLETE-CALLBACK when the entire response finishes."
     ("anthropic-version" . "2023-06-01")
     ("anthropic-beta" . "token-efficient-tools-2025-02-19")))
 
-(defun greger-client--build-data (model dialog &optional tools server-tools)
+(defun greger-client--build-data (model dialog tools server-tools thinking-budget max-tokens)
   "Build request data for Claude MODEL with DIALOG and optional tools.
-TOOLS and SERVER-TOOLS add function calling capabilities to the request."
+TOOLS and SERVER-TOOLS add function calling capabilities to the request.
+THINKING-BUDGET specifies the token budget for thinking content.
+MAX-TOKENS is the maximum number of tokens to generate."
   (let ((system-message nil)
         (user-messages ())
         (request-data nil))
@@ -172,11 +186,11 @@ TOOLS and SERVER-TOOLS add function calling capabilities to the request."
                               first-content-item))))))))
 
     ;; Build base request
-    (setq request-data `(("model" . ,(symbol-name model))
-                        ("messages" . ,user-messages)
-                        ;("max_tokens" . 32000) ;; TODO: make this configurable
-                        ("max_tokens" . 8000)
-                        ("stream" . t)))
+    (let ((max-tokens (+ max-tokens (or thinking-budget 0))))
+      (setq request-data `(("model" . ,(symbol-name model))
+                          ("messages" . ,user-messages)
+                          ("max_tokens" . ,max-tokens)
+                          ("stream" . t))))
 
     ;; Add system message if present
     (when system-message
@@ -192,6 +206,13 @@ TOOLS and SERVER-TOOLS add function calling capabilities to the request."
              (all-tools (append (or tools '()) (or parsed-server-tools '()))))
         (push `("tools" . ,all-tools) request-data)
         (push `("tool_choice" . (("type" . "auto"))) request-data)))
+
+    ;; Add thinking configuration if present
+    (when thinking-budget
+      (if (> thinking-budget 0)
+          (push `("thinking" . (("type" . "enabled")
+                                ("budget_tokens" . ,thinking-budget))) request-data)
+        (push `("thinking" . (("type" . "disabled"))) request-data)))
 
     (json-encode request-data)))
 
@@ -214,7 +235,8 @@ Returns nil if no error found or if OUTPUT is not valid JSON."
 (defun greger-client--process-output-chunk (output state)
   "Process a chunk of OUTPUT using STATE."
 
-  ;; TODO: remove debug
+  ;; Uncomment this line for raw debugging output of every
+  ;; streaming message returned from the Anthropic API
   ;(message "output: %s" output)
 
   ;; Check for error responses and raise an error if found
@@ -287,6 +309,8 @@ Returns nil if no error found or if OUTPUT is not valid JSON."
       ;; For text blocks with citations, initialize citations as empty list
       (when citations
         (setf (alist-get 'citations content-block) '())))
+     ((string= type "thinking")
+      (setf (alist-get 'thinking content-block) ""))
      ;; web_search_tool_result blocks come pre-populated with content - no initialization needed
      )
 
@@ -309,18 +333,33 @@ Returns nil if no error found or if OUTPUT is not valid JSON."
 
     (cond
 
-     ;; assistant text and thinking
+     ;; assistant text
      ;; {"type":"content_block_delta","index":0,"delta":{"type":"text_delta","text":"I'll search for the"}}
      ((string= delta-type "text_delta")
-      (let ((text (alist-get 'text delta))
+      (let ((text-delta (alist-get 'text delta))
             (has-citations (alist-get 'citations block)))
         (setf (alist-get 'text block)
-              (concat (alist-get 'text block) text))
+              (concat (alist-get 'text block) text-delta))
         ;; Only call text callback for live display if this block doesn't have citations
         ;; Citation blocks should not stream text - they'll be handled in block-stop
         (unless has-citations
           (when-let ((callback (greger-client-state-text-delta-callback state)))
-           (funcall callback text)))))
+            (funcall callback text-delta)))))
+
+     ;; assistant thinking
+     ;; data: {"type":"content_block_delta","index":0,"delta":{"type":"thinking_delta","thinking":" needing to search for"}}
+     ((string= delta-type "thinking_delta")
+      (let ((thinking-delta (alist-get 'thinking delta)))
+        (setf (alist-get 'thinking block)
+              (concat (alist-get 'thinking block) thinking-delta))
+        (when-let ((callback (greger-client-state-text-delta-callback state)))
+          (funcall callback thinking-delta))))
+
+     ;; assistant thinking signature
+     ((string= delta-type "signature_delta")
+      (let ((signature-delta (alist-get 'signature delta)))
+        (setf (alist-get 'signature block)
+              (concat (alist-get 'signature block) signature-delta))))
 
      ;; tool_use and server_tool_use
      ;; {"type":"content_block_delta","index":1,"delta":{"type":"input_json_delta","partial_json":""}}
@@ -382,7 +421,7 @@ STATE is used to update the parsed content blocks."
         (when-let ((callback (greger-client-state-complete-callback state)))
           (funcall callback (greger-client-state-content-blocks state)))
       ;; TODO: Error callback
-      (message (format "Process exited with status code %d" exit-code))))))
+      (message "Process exited with status code %d" exit-code)))))
 
 (defun greger-client--cancel-request (state)
   "Cancel streaming request using STATE."

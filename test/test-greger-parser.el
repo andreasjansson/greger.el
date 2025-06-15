@@ -263,6 +263,30 @@ Comparison is order-independent."
   "Test roundtrip for server-tool-use-string-result corpus case."
   (greger-parser-test--roundtrip "server-tool-use-string-result"))
 
+(ert-deftest greger-parser-test-code-block-nested-headers ()
+  "Test roundtrip for code-block-nested-headers corpus case."
+  (greger-parser-test--roundtrip "code-block-nested-headers"))
+
+(ert-deftest greger-parser-test-inline-code ()
+  "Test roundtrip for inline-code corpus case."
+  (greger-parser-test--roundtrip "inline-code"))
+
+(ert-deftest greger-parser-test-safe-shell-commands ()
+  "Test roundtrip for safe-shell-commands corpus case."
+  (greger-parser-test--roundtrip "safe-shell-commands"))
+
+(ert-deftest greger-parser-test-text-with-markdown-headings ()
+  "Test roundtrip for text-with-markdown-headings corpus case."
+  (greger-parser-test--roundtrip "text-with-markdown-headings"))
+
+(ert-deftest greger-parser-test-triple-hash ()
+  "Test roundtrip for triple-hash corpus case."
+  (greger-parser-test--roundtrip "triple-hash"))
+
+(ert-deftest greger-parser-test-untagged-content ()
+  "Test roundtrip for untagged-content corpus case."
+  (greger-parser-test--roundtrip "untagged-content"))
+
 (ert-deftest greger-parser-test-tool-use-parsing ()
   "Test specific tool use parsing functionality."
   (let ((tool-use-markdown "# TOOL USE
@@ -384,21 +408,6 @@ Hi")))
         ;; Should parse 10000 message pairs in under 1 second
         (should (< elapsed 1.0))))))
 
-;; Test untagged content at the beginning
-(ert-deftest greger-parser-test-untagged-content ()
-  "Test that untagged content at the beginning is treated as user message."
-  (let ((markdown "Hello, this is untagged content
-
-# ASSISTANT
-
-I understand you have untagged content."))
-    (let ((parsed (greger-parser-markdown-to-dialog markdown)))
-      (should (equal parsed '(((role . "user")
-                               (content . "Hello, this is untagged content"))
-                              ((role . "assistant")
-                               (content ((text . "I understand you have untagged content.")
-                                         (type . "text"))))))))))
-
 ;; Test that we handle tool use parameters correctly with various whitespace
 (ert-deftest greger-parser-test-tool-use-whitespace ()
   "Test tool use parsing with various whitespace patterns."
@@ -467,8 +476,7 @@ print(\"# ASSISTANT also preserved\")
         (should (string-match-p "# ASSISTANT" content-param))
         (should (string-match-p "```python" content-param))))))
 
-;; Tests for safe-shell-commands
-(ert-deftest greger-parser-test-safe-shell-commands ()
+(ert-deftest greger-parser-test-safe-shell-commands-basic ()
   "Test safe-shell-commands with other system content."
   (let ((markdown "# SYSTEM
 
