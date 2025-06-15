@@ -193,7 +193,7 @@ Hello from greger test!
                 (greger-tools '("read-file-basic")))
             (greger-buffer)
 
-            (should (greger-test-wait-for-mode-line-state 'idle))
+            (should (greger-test-wait-for-mode-line-state 'idle nil greger-buffer))
 
             (let ((expected-parse-tree '(source_file
                                          (system
