@@ -448,17 +448,18 @@ Hello from greger test!
         (progn
           (setq greger-buffer (greger))
 
-          (should (string-match-p "\\[T:2048\\]" (greger-test-mode-line-text)))
+          (with-current-buffer greger-buffer
+            (should (string-match-p "\\[T:2048\\]" (greger-test-mode-line-text)))
 
-          (greger-toggle-thinking)
-          (should (= greger-thinking-budget 0))
-          (should-not (string-match-p "\\[T:" (greger-test-mode-line-text)))
+            (greger-toggle-thinking)
+            (should (= greger-thinking-budget 0))
+            (should-not (string-match-p "\\[T:" (greger-test-mode-line-text)))
 
-          (greger-toggle-thinking)
-          (should (> greger-thinking-budget 0))
-          (should (= greger-thinking-budget 2048))
-          
-          (should (string-match-p "\\[T:2048\\]" (greger-test-mode-line-text))))
+            (greger-toggle-thinking)
+            (should (> greger-thinking-budget 0))
+            (should (= greger-thinking-budget 2048))
+            
+            (should (string-match-p "\\[T:2048\\]" (greger-test-mode-line-text)))))
       
       (when (and greger-buffer (buffer-live-p greger-buffer))
         (kill-buffer greger-buffer)))))
