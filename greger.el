@@ -464,19 +464,34 @@ information at the beginning of the user section."
      ;; Otherwise we're idle
      (t 'idle))))
 
+(defun greger-status (&optional buffer)
+  "Get the current greger status information for BUFFER (or current buffer).
+Returns a plist with the following keys:
+- :state - Current state: 'idle, 'generating, or 'executing
+- :model - Current model name as a string
+- :thinking-budget - Current thinking budget (0 if disabled)
+
+This function can be used for both UI display and programmatic access."
+  (let ((buf (or buffer (current-buffer))))
+    (with-current-buffer buf
+      (list :state (greger--get-current-state)
+            :model (symbol-name greger-model)
+            :thinking-budget greger-thinking-budget))))
+
 (defun greger--mode-line-info ()
   "Generate mode line information showing model and current state."
-  (let ((state (greger--get-current-state))
-        (model-name (symbol-name greger-model))
-        (thinking-status (if (> greger-thinking-budget 0)
-                            (format " [T:%d]" greger-thinking-budget)
-                            "")))
-    (concat model-name
-            thinking-status
-            (pcase state
-              ('generating " [Generating]")
-              ('executing " [Executing]")
-              ('idle "")))))
+  (let ((status (greger-status)))
+    (let ((state (plist-get status :state))
+          (model-name (plist-get status :model))
+          (thinking-budget (plist-get status :thinking-budget)))
+      (concat model-name
+              (if (> thinking-budget 0)
+                  (format " [T:%d]" thinking-budget)
+                "")
+              (pcase state
+                ('generating " [Generating]")
+                ('executing " [Executing]")
+                ('idle ""))))))
 
 (defun greger--set-buffer-read-only (read-only)
   "Set buffer read-only state for greger operations.
