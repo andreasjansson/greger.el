@@ -15,70 +15,70 @@
 (defvar greger-test-timeout 30
   "Timeout in seconds for API calls in tests.")
 
+(defun greger-test-parse-tree ()
+  (greger-test-treesit-node-to-simplified-tree (treesit-buffer-root-node)))
 
+(defun greger-test-last-assistant-message ()
+  (let (start end)
+   (save-excursion
+     (goto-char (point-max))
+     (re-search-backward "^# ASSISTANT")
+     (forward-line 2)
+     (setq start (point))
+     (re-search-forward "^# USER")
+     (forward-line -1)
+     (forward-char -1)
+     (setq end (point)))
+   (buffer-substring-no-properties start end)))
 
-(defun greger-test-wait-for-response (buffer timeout)
-  "Wait for a response to appear in BUFFER within TIMEOUT seconds."
+(defun greger-test-treesit-node-to-simplified-tree (node)
+  "Convert a treesit NODE to a simplified parse tree expression.
+Returns a list where the first element is the node type (symbol)
+and the remaining elements are the simplified representations of child nodes.
+Leaf nodes are wrapped in parentheses as single-element lists."
+  (let ((node-type (intern (treesit-node-type node)))
+        (children (treesit-node-children node t)))
+    (if children
+        (cons node-type
+              (mapcar #'treesit-node-to-simplified-tree children))
+      (list node-type))))
+
+(defun greger-test-parse-tree-contains-p (parse-tree name)
+  (cond
+   ((null parse-tree) nil)
+   ((atom parse-tree) (equal parse-tree name))
+   ((listp parse-tree)
+    (or (greger-test-parse-tree-contains-p (car parse-tree) name)
+        (greger-test-parse-tree-contains-p (cdr parse-tree) name)))))
+
+(defun greger-test-mode-line-text ()
+  (substring-no-properties (format-mode-line mode-line-format)))
+
+(defun greger-test-wait-for-mode-line-state (state &optional timeout)
   (let ((start-time (current-time))
-        (completed nil)
-        (response-started nil)
-        (initial-content (with-current-buffer buffer (buffer-string))))
-
-    (while (and (not completed)
-                (< (float-time (time-subtract (current-time) start-time)) timeout)
-                (buffer-live-p buffer))
-      (sit-for 0.2)
-      ;; Check if buffer content has changed (response received)
-      (when (buffer-live-p buffer)
-        (with-current-buffer buffer
-          (let ((current-content (buffer-string)))
-            ;; Check if response started
-            (when (and (not response-started)
-                      (not (string= initial-content current-content))
-                      (string-match-p "# ASSISTANT" current-content))
-              (setq response-started t))
-
-            ;; If response started, wait for it to finish
-            (when response-started
-              ;; Check if conversation is complete (has USER prompt at end)
-              (if (string-match-p "# USER\n\n$" current-content)
-                  (setq completed t)
-                ;; Or if it's been a while since response started, consider it done
-                (let ((response-time (- (float-time (current-time))
-                                       (float-time start-time))))
-                  (when (> response-time 5.0) ; If response has been going for 5+ seconds
-                    (setq completed t)))))))))
-
-    completed))
-
-(defun greger-test-get-curl-process ()
-  (seq-find (lambda (proc)
-              (and (process-live-p proc)
-                   (string-match-p "greger-curl" (process-name proc))))
-            (process-list)))
-
-
-(defun greger-test-wait-for-streaming-complete ()
-  "Wait for any active streaming processes to complete."
-  (let ((max-wait 20.0)  ; Increased timeout
-        (start-time (current-time)))
-
-    ;; First wait for curl processes to finish
-    (while (and (< (float-time (time-subtract (current-time) start-time)) max-wait)
-                (greger-test-get-curl-process))
-      (sit-for 0.1))
-    
-    ;; Then wait a bit more for any remaining callbacks to finish
-    (sit-for 1.0)
-    
-    ;; Force process any remaining events
-    (accept-process-output nil 0.5)
-
-    (when (greger-test-get-curl-process)
-      (error "greger curl process didn't exit within 20 seconds"))))
+        (current-state nil)
+        (timeout (or timeout greger-test-timeout)))
+    (while (and (not (equal state current-state))
+                (< (float-time (time-subtract (current-time) start-time)) timeout))
+      (let* ((mode-line (greger-test-mode-line-text))
+             (is-generating (string-search "[Generating]" mode-line))
+             (is-executing (string-search "[Executing]" mode-line))
+             (is-idle (and (not is-generating) (not is-executing))))
+        (setq current-state
+              (cond
+               (is-generating
+                'generating)
+               (is-executing
+                'executing)
+               (is-idle
+                'idle))))
+      (sit-for 0.2))
+    (equal state current-state)))
 
 (ert-deftest greger-end-to-end-test-greger-function ()
   "Test the main greger function creates a buffer and sets it up correctly."
+  (skip-unless (getenv "ANTHROPIC_API_KEY"))
+
   (let ((original-buffers (buffer-list)))
     (unwind-protect
         (progn
@@ -113,82 +113,110 @@
 
 (ert-deftest greger-end-to-end-test-simple-conversation ()
   "Test a simple conversation using the public API."
+  (skip-unless (getenv "ANTHROPIC_API_KEY"))
+
   (let ((greger-buffer nil))
     (unwind-protect
         (progn
-          ;; Create a greger buffer
-          (greger)
-          (setq greger-buffer (current-buffer))
+          (let ((greger-default-system-prompt "You are an agent."))
+            (setq greger-buffer (greger)))
 
-          ;; Add a simple user message
           (goto-char (point-max))
-          (insert "Hello! Please respond with exactly 'Hello from greger test!' and nothing else.")
+          (insert "Respond with exactly 'Hello from greger test!' and nothing else (don't include the quotes).")
 
-          ;; Call greger-buffer to send the message
-          (greger-buffer)
+          (let ((greger-thinking-budget 0))
+            (greger-buffer))
 
-          ;; Wait for response
-          (should (greger-test-wait-for-response greger-buffer greger-test-timeout))
+          (should (greger-test-wait-for-mode-line-state 'idle))
 
-          ;; Wait for streaming to complete
-          (greger-test-wait-for-streaming-complete)
+          (let ((buffer-contents (buffer-substring-no-properties (point-min) (point-max)))
+                (expected "# SYSTEM
 
-          ;; Verify response was added to buffer (with safety check)
-          (with-current-buffer greger-buffer
-            (let ((content (buffer-string)))
-              (should (string-match-p "# ASSISTANT" content))
-              (should (string-match-p "Hello from greger test!" content))
-              ;; Should have a new USER section at the end (or at least assistant response)
-              (should (or (string-match-p "# USER\n\n$" content)
-                          (string-match-p "# ASSISTANT" content))))))
+You are an agent.
 
-      ;; Cleanup - wait a bit more before killing buffer
-      (sit-for 0.5)
+# USER
+
+Respond with exactly 'Hello from greger test!' and nothing else (don't include the quotes).
+
+# ASSISTANT
+
+Hello from greger test!
+
+# USER
+
+"))
+            (should (string= expected buffer-contents))))
       (when (and greger-buffer (buffer-live-p greger-buffer))
         (kill-buffer greger-buffer)))))
 
 (ert-deftest greger-end-to-end-test-tool-use-conversation ()
   "Test a conversation that involves tool use using the public API."
+  (skip-unless (getenv "ANTHROPIC_API_KEY"))
+
   (let ((greger-buffer nil)
         (test-file nil))
     (unwind-protect
         (progn
-          ;; Create a temporary test file
           (setq test-file (make-temp-file "greger-test-" nil ".txt"))
           (with-temp-file test-file
-            (insert "This is a test file for greger end-to-end testing."))
+            (insert "This is a test file for greger end-to-end testing wahey"))
 
-          ;; Create a greger buffer
-          (greger)
-          (setq greger-buffer (current-buffer))
+          (let ((greger-default-system-prompt "You are an agent."))
+            (setq greger-buffer (greger)))
 
-          ;; Add a user message that should trigger tool use
           (goto-char (point-max))
-          (insert (format "Please read the file %s and tell me what it contains." test-file))
+          (insert (format "Read the file %s (it contains only a single short line of words) and output only the last word of that file, nothing else." test-file))
 
-          ;; Call greger-buffer to send the message
-          (greger-buffer)
+          (let ((greger-thinking-budget 1024))
+            (greger-buffer))
 
-          ;; Wait for response (tool use might take longer)
-          (should (greger-test-wait-for-response greger-buffer (* greger-test-timeout 2)))
+          (should (greger-test-wait-for-mode-line-state 'idle))
 
-          ;; Wait for streaming to complete
-          (greger-test-wait-for-streaming-complete)
+          (let ((expected-parse-tree '(source_file
+                                       (system
+                                        (system_header)
+                                        (text))
+                                       (user
+                                        (user_header)
+                                        (text))
+                                       (thinking
+                                        (thinking_header)
+                                        (thinking_signature
+                                         (key)
+                                         (value))
+                                        (text))
+                                       (tool_use
+                                        (tool_use_header)
+                                        (name
+                                         (key)
+                                         (value))
+                                        (id
+                                         (key)
+                                         (value))
+                                        (tool_param
+                                         (tool_param_header
+                                          (name))
+                                         (value
+                                          (tool_start_tag)
+                                          (tool_content
+                                           (tool_content_head))
+                                          (tool_end_tag))))
+                                       (tool_result
+                                        (tool_result_header)
+                                        (id
+                                         (key)
+                                         (value))
+                                        (content))
+                                       (assistant
+                                        (assistant_header)
+                                        (text))
+                                       (user
+                                        (user_header)
+                                        (text)))))
+            (should (equal expected-parse-tree (greger-test-parse-tree))))
 
-          ;; Verify response was added to buffer (with safety check)
-          (with-current-buffer greger-buffer
-            (let ((content (buffer-string)))
-              (should (string-match-p "# ASSISTANT" content))
-              ;; Should have tool use section or content from the file
-              (should (or (string-match-p "# TOOL USE" content)
-                          (string-match-p "read-file" content)
-                          (string-match-p "test file for greger" content)))
-              ;; Should have a new USER section at the end (or at least assistant response)
-              (should (or (string-match-p "# USER\n\n$" content)
-                          (string-match-p "# ASSISTANT" content))))))
+          (should (equal "wahey" (greger-test-last-assistant-message))))
 
-      ;; Cleanup - wait a bit more before killing buffer
-      (sit-for 0.5)
       (when (and test-file (file-exists-p test-file))
         (delete-file test-file))
       (when (and greger-buffer (buffer-live-p greger-buffer))
@@ -196,45 +224,32 @@
 
 (ert-deftest greger-end-to-end-test-no-tools-mode ()
   "Test the no-tools mode using C-M-return."
+  (skip-unless (getenv "ANTHROPIC_API_KEY"))
+
   (let ((greger-buffer nil)
         (test-file nil))
     (unwind-protect
         (progn
-          ;; Create a temporary test file
           (setq test-file (make-temp-file "greger-test-" nil ".txt"))
           (with-temp-file test-file
-            (insert "This file should not be read in no-tools mode."))
+            (insert "This file should not be read in no-tools mode wahey."))
 
-          ;; Create a greger buffer
-          (greger)
-          (setq greger-buffer (current-buffer))
+          (setq greger-buffer (greger))
 
-          ;; Add a user message that would trigger tool use if tools were enabled
           (goto-char (point-max))
-          (insert (format "Please read the file %s and tell me what it contains." test-file))
+          (insert (format "Read the file %s (it contains only a single short line of words) and output only the last word of that file, nothing else." test-file))
 
-          ;; Call greger-buffer-no-tools instead of greger-buffer
           (greger-buffer-no-tools)
 
-          ;; Wait for response
-          (should (greger-test-wait-for-response greger-buffer greger-test-timeout))
+          (should (greger-test-wait-for-mode-line-state 'idle))
 
-          ;; Wait for streaming to complete
-          (greger-test-wait-for-streaming-complete)
+          (let ((parse-tree (greger-test-parse-tree)))
+            (should (not (greger-test-parse-tree-contains-p parse-tree 'thinking)))
+            (should (not (greger-test-parse-tree-contains-p parse-tree 'tool_use)))
+            (should (not (greger-test-parse-tree-contains-p parse-tree 'tool_result))))
 
-          ;; Verify response was added to buffer
-          (let ((content (buffer-string)))
-            (should (string-match-p "# ASSISTANT" content))
-            ;; Should NOT have tool use sections (no tools mode)
-            (should-not (string-match-p "# TOOL USE" content))
-            (should-not (string-match-p "# TOOL RESULT" content))
-            ;; Should have responded without actually reading the file
-            (should-not (string-match-p "This file should not be read" content))
-            ;; Should have a new USER section at the end (or at least assistant response)
-            (should (or (string-match-p "# USER\n\n$" content)
-                       (string-match-p "# ASSISTANT" content)))))
+          (should-not (string-match-p "wahey" (greger-test-last-assistant-message))))
 
-      ;; Cleanup
       (when (and test-file (file-exists-p test-file))
         (delete-file test-file))
       (when (and greger-buffer (buffer-live-p greger-buffer))
@@ -268,77 +283,62 @@
 
 (ert-deftest greger-end-to-end-test-sleep-and-interrupt ()
   "Test sleep command with interruption and state transitions."
+  (skip-unless (getenv "ANTHROPIC_API_KEY"))
+
   (let ((greger-buffer nil))
     (unwind-protect
         (progn
-          ;; Create a greger buffer
-          (greger)
-          (setq greger-buffer (current-buffer))
+          (let ((greger-default-system-prompt "You are an agent."))
+            (setq greger-buffer (greger)))
 
-          ;; Add system message with safe-shell-commands including sleep 5
           (goto-char (point-max))
           (re-search-backward "# SYSTEM")
           (forward-line 1)
           (insert "\n<safe-shell-commands>\nsleep 5\n</safe-shell-commands>\n")
 
-          ;; Add user message requesting sleep
           (goto-char (point-max))
-          (insert "Please run the shell command 'sleep 5' using the shell-command tool.")
+          (insert "Run the shell command 'sleep 5' using the shell-command tool.")
 
-          ;; Call greger-buffer to send the message
-          (greger-buffer)
+          (let ((greger-thinking-budget 0)
+                (greger-tools '("shell-command")))
+            (greger-buffer)
 
-          ;; Wait until state becomes 'executing (should happen after AI decides to use shell tool)
-          (let ((max-wait 20.0)  ; Give more time for AI to process and decide to use tool
-                (start-time (current-time))
-                (state-found nil))
-            (while (and (not state-found)
-                       (< (float-time (time-subtract (current-time) start-time)) max-wait))
-              (sit-for 0.1)
-              (when (eq (greger--get-current-state) 'executing)
-                (setq state-found t)))
-            (should state-found))
+            (should (greger-test-wait-for-mode-line-state 'executing))
 
-          ;; Wait 1 second while in executing state
-          (sit-for 1.0)
+            ;; Wait 1 second while in executing state
+            (sit-for 1.0)
 
-          ;; Interrupt generation - could be in either 'executing or 'generating state
-          (let ((interrupt-result (greger-interrupt)))
-            (should (or (eq interrupt-result 'executing)
-                       (eq interrupt-result 'generating))))
+            ;; Interrupt execution
+            (let ((interrupted-state (greger-interrupt)))
+              (should (eq interrupted-state 'executing)))
 
-          ;; Wait until state becomes 'idle (after interruption and any brief generation)
-          (let ((max-wait 20.0)
-                (start-time (current-time))
-                (state-found nil))
-            (while (and (not state-found)
-                       (< (float-time (time-subtract (current-time) start-time)) max-wait))
-              (sit-for 0.1)
-              (when (eq (greger--get-current-state) 'generating)
-                (setq state-found t)))
-            (should state-found))
+            (should (greger-test-wait-for-mode-line-state 'generating))
 
-          (should (eq 'generating (greger-interrupt)))
+            ;; Interrupt assistant message before it even started
+            (let ((interrupted-state (greger-interrupt)))
+              (should (eq interrupted-state 'generating)))
 
-          (let ((max-wait 10.0)
-                (start-time (current-time))
-                (state-found nil))
-            (while (and (not state-found)
-                       (< (float-time (time-subtract (current-time) start-time)) max-wait))
-              (sit-for 0.1)
-              (when (eq (greger--get-current-state) 'idle)
-                (setq state-found t)))
-            (should state-found))
+            ;; Should immediately become idle
+            (should (greger-test-wait-for-mode-line-state 'idle 0.1))
 
-          ;; Verify the output contains some indication that the command failed
-          ;; (the exact exit code and message may vary depending on platform and signal)
-          (when (buffer-live-p greger-buffer)
-            (with-current-buffer greger-buffer
-              (let ((content (buffer-string)))
-                (should (string-match-p "Command failed with exit code 2: (no output)" content))))))
+            (let ((content (buffer-string)))
+              (should (string-match-p "Command failed with exit code 2: (no output)" content)))
 
-      ;; Cleanup - wait a bit more before killing buffer
-      (sit-for 0.5)
+            (insert "Write me a long poem with ten paragraphs about Emacs lisp")
+
+            (greger-buffer)
+
+            (should (greger-test-wait-for-mode-line-state 'generating))
+
+            ;; Wait for assistant text to start appearing
+            (sit-for 3.0)
+
+            ;; Interrupt assistant text generation
+            (let ((interrupted-state (greger-interrupt)))
+              (should (eq interrupted-state 'generating)))
+
+            (should (greger-test-wait-for-mode-line-state 'idle 0.1))))
+
       (when (and greger-buffer (buffer-live-p greger-buffer))
         (kill-buffer greger-buffer)))))
 
@@ -349,24 +349,17 @@
   (let ((greger-buffer nil))
     (unwind-protect
         (progn
-          ;; Create a greger buffer
-          (greger)
-          (setq greger-buffer (current-buffer))
+          (let ((greger-default-system-prompt "You are an agent."))
+            (setq greger-buffer (greger))(greger))
 
-          ;; Enable web search server tool for this test
           (let ((greger-server-tools '(web_search)))
-            ;; Add a user message that should trigger web search
             (goto-char (point-max))
             (insert "What is the current weather in San Francisco? Please search for this information and give me a short one-sentence summary..")
 
-            ;; Call greger-buffer to send the message
-            (greger-buffer)
+            (let ((greger-thinking-budget 0))
+              (greger-buffer))
 
-            ;; Wait for response (longer timeout for web search)
-            (should (greger-test-wait-for-response greger-buffer (* greger-test-timeout 2)))
-
-            ;; Wait for streaming to complete
-            (greger-test-wait-for-streaming-complete)
+            (greger-test-wait-for-mode-line-state 'idle)
 
             ;; Verify response was added to buffer
             (let ((content (buffer-string)))
@@ -385,111 +378,70 @@
 
 (ert-deftest greger-end-to-end-test-thinking ()
   "Test thinking functionality works end-to-end."
-  :tags '(end-to-end thinking api)
+  (skip-unless (getenv "ANTHROPIC_API_KEY"))
 
-  (let ((greger-buffer nil)
-        (greger-thinking-budget 1024))
-    
+  (let ((greger-buffer nil))
     (unwind-protect
         (progn
-          ;; Create a new greger buffer
-          (setq greger-buffer (generate-new-buffer "*greger-test-thinking*"))
-          (with-current-buffer greger-buffer
-            (greger-mode)
-            
-            ;; Insert a prompt that should trigger thinking
-            (insert "# SYSTEM\n\nYou are a helpful assistant.\n\n")
-            (insert "# USER\n\n")
-            (insert "Think step-by-step about why 2+2=4, then give me a brief explanation. ")
-            (insert "Use your thinking to work through the mathematical concepts first.\n\n")
-            
-            ;; Run greger-buffer to get response
-            (greger-buffer)
-            
-            ;; Wait for response to complete
-            (should (greger-test-wait-for-response greger-buffer greger-test-timeout))
-            
-            ;; Check buffer content
-            (let ((content (buffer-string)))
-              ;; Should have assistant response
-              (should (string-match-p "# ASSISTANT" content))
-              
-              ;; Should have thinking content if Claude used it
-              ;; Note: Claude may or may not use thinking, so we test both cases
-              (if (string-match-p "# THINKING" content)
-                  (progn
-                    ;; If thinking is present, verify it's structured correctly
-                    (should (string-match-p "# THINKING\n\n\\(.\\|\n\\)+# ASSISTANT" content))
-                    ;; Thinking should come before the assistant response
-                    (let ((thinking-pos (string-match "# THINKING" content))
-                          (assistant-pos (string-match "# ASSISTANT" content)))
-                      (should (< thinking-pos assistant-pos))))
-                ;; If no thinking, that's also valid - Claude doesn't always use it
-                (message "Claude chose not to use thinking for this prompt"))
-              
-              ;; Should have some kind of mathematical explanation
-              (should (string-match-p "\\(2\\+2\\|four\\|addition\\|math\\)" content))
-              
-              ;; Should have a user prompt (may not be at the very end due to timing)
-              (should (string-match-p "# USER" content)))))
+          (let ((greger-default-system-prompt "You are an agent."))
+            (setq greger-buffer (greger)))
+
+          (insert "2+2")
+          
+          (let ((greger-thinking-budget 1024))
+            (greger-buffer))
+          
+          (should (greger-test-wait-for-mode-line-state 'idle))
+
+          (let ((expected-parse-tree '(source_file
+                                       (system
+                                        (system_header)
+                                        (text))
+                                       (user
+                                        (user_header)
+                                        (text))
+                                       (thinking
+                                        (thinking_header)
+                                        (thinking_signature
+                                         (key)
+                                         (value))
+                                        (text))
+                                       (assistant
+                                        (assistant_header)
+                                        (text))
+                                       (user
+                                        (user_header)
+                                        (text)))))
+            (should (equal expected-parse-tree (greger-test-parse-tree))))
+
+          (should (string-match-p "\\(2\\+2\\|four\\|addition\\|math\\)" (buffer-string))))
       
-      ;; Cleanup
-      (progn
-        (when (and greger-buffer (buffer-live-p greger-buffer))
-          (kill-buffer greger-buffer))))))
+      (when (and greger-buffer (buffer-live-p greger-buffer))
+        (kill-buffer greger-buffer)))))
 
 (ert-deftest greger-end-to-end-test-thinking-toggle ()
   "Test thinking toggle functionality."
-  :tags '(end-to-end thinking)
-
-  (let ((original-thinking-budget greger-thinking-budget))
-    
-    (unwind-protect
-        (progn
-          ;; Start with thinking disabled
-          (setq greger-thinking-budget 0)
-          
-          ;; Toggle should enable thinking
-          (greger-toggle-thinking)
-          (should (> greger-thinking-budget 0))
-          (should (= greger-thinking-budget 4096)) ; Default budget
-          
-          ;; Toggle again should disable thinking
-          (greger-toggle-thinking)
-          (should (= greger-thinking-budget 0)))
-      
-      ;; Cleanup
-      (setq greger-thinking-budget original-thinking-budget))))
-
-(ert-deftest greger-end-to-end-test-thinking-mode-line ()
-  "Test thinking status appears in mode line."
-  :tags '(end-to-end thinking ui)
 
   (let ((greger-buffer nil)
-        (original-thinking-budget greger-thinking-budget))
-    
+        (greger-default-thinking-budget 2048))
     (unwind-protect
         (progn
-          ;; Create a greger buffer
-          (setq greger-buffer (generate-new-buffer "*greger-test-mode-line*"))
-          (with-current-buffer greger-buffer
-            (greger-mode)
-            
-            ;; Test with thinking enabled
-            (setq greger-thinking-budget 2048)
-            (let ((mode-line-info (greger--mode-line-info)))
-              (should (string-match-p "\\[T:2048\\]" mode-line-info)))
-            
-            ;; Test with thinking disabled
-            (setq greger-thinking-budget 0)
-            (let ((mode-line-info (greger--mode-line-info)))
-              (should (not (string-match-p "\\[T:" mode-line-info))))))
+          (setq greger-buffer (greger))
+
+          (should (string-match-p "\\[T:2048\\]" (greger-test-mode-line-text)))
+
+          (greger-toggle-thinking)
+          (should (= greger-thinking-budget 0))
+          (should-not (string-match-p "\\[T:" (greger-test-mode-line-text)))
+
+          (greger-toggle-thinking)
+          (should (> greger-thinking-budget 0))
+          (should (= greger-thinking-budget 2048))
+          
+          (should (string-match-p "\\[T:2048\\]" (greger-test-mode-line-text))))
       
-      ;; Cleanup
-      (progn
-        (setq greger-thinking-budget original-thinking-budget)
-        (when (and greger-buffer (buffer-live-p greger-buffer))
-          (kill-buffer greger-buffer))))))
+      (when (and greger-buffer (buffer-live-p greger-buffer))
+        (kill-buffer greger-buffer)))))
 
 (provide 'test-end-to-end)
 

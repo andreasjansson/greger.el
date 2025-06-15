@@ -221,7 +221,8 @@ May order 4,000 pounds of meat."
    :override t
    '((assistant (citation_entry) @greger-ui--citation-entry-folding-fn)
      (tool_content_tail) @greger-ui--tool-content-tail-folding-fn
-     (tool_content_head) @greger-ui--tool-content-head-folding-fn)
+     (tool_content_head) @greger-ui--tool-content-head-folding-fn
+     (thinking_signature) @greger-ui--thinking-signature-hiding-fn)
 
    :language 'greger
    :feature 'subheadings
@@ -233,8 +234,7 @@ May order 4,000 pounds of meat."
    :override t
    '((tool_param_header) @greger-tool-param-name-face
      (key) @greger-key-face
-     (url) @greger-ui--url-link-fn
-     (thinking_signature) @greger-ui--thinking-signature-hiding-fn)
+     (url) @greger-ui--url-link-fn)
 
    :language 'greger
    :feature 'tool-tags
@@ -287,8 +287,9 @@ May order 4,000 pounds of meat."
   (setq-local treesit-font-lock-settings greger--treesit-font-lock-settings)
   (setq-local treesit-font-lock-feature-list
               '((error)
-                (headers folding tool-folding fields)
+                (headers folding tool-folding)
                 (tool-tags comments)
+                (fields)
                 (subheadings)))
   (setq-local treesit-simple-indent-rules greger--treesit-indent-rules)
   
@@ -316,7 +317,8 @@ May order 4,000 pounds of meat."
     (insert greger-parser-system-tag
             "\n\n" greger-default-system-prompt "\n\n"
             greger-parser-user-tag
-            "\n\n")))
+            "\n\n")
+    buffer))
 
 (defun greger-insert-assistant-tag ()
   "Insert the assistant tag into the buffer."
@@ -416,10 +418,11 @@ May order 4,000 pounds of meat."
                            :tool-use-metadata `(:safe-shell-commands () :allow-all-shell-commands ,greger-allow-all-shell-commands))))
 
 (defun greger-buffer-no-tools ()
-  "Send the buffer content to AI as a dialog without tool use."
+  "Send the buffer content to AI as a dialog without tool use or thinking."
   (interactive)
   (let ((greger-tools '())
-        (greger-server-tools '()))
+        (greger-server-tools '())
+        (greger-thinking-budget 0))
     (greger-buffer)))
 
 (defun greger--get-current-state ()

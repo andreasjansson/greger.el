@@ -1,1082 +1,374 @@
 # USER
 
-Compare the list of roundtrip tests in test/test-greger-parser.el with the txt test files in grammar/test/corpus. Add any test cases where the txt file exists but there's no test yet.
+Write an emacs lisp function that takes a treesit `node` as input and returns a simplified parse tree as an emacs expression, e.g.
+
+```
+'(source_file
+  (user
+    (user_header)
+    (text))
+  (thinking
+    (thinking_header)
+    (thinking_signature
+      (key)
+      (value))
+    (text))
+  (assistant
+    (assistant_header)
+    (text))
+  (user
+    (user_header)
+    (text))
+  (thinking
+    (thinking_header)
+    (text)))
+```
+
+Write a second function that diffs two trees in this format.
+
+Output both functions here, don't write any files
 
 # THINKING
 
-Signature: EosFCkYIBBgCKkCXywBKxqNWoU/AB9tXm56pSsVFZUJjJM7Qm+KXy6XeikgD3Jtn/d42BtnOZZyjQx7i2vvDjdrQbYqPZC2svTOTEgxyHIWKjmz94DJQfRcaDPvuwm4zCqV+f7OThCIwhdGLSWuPsAi8U93Cv4vdnJIBwnc83atzD0vfU77I2+PQTvYIbYlPzxNzm2qyUekLKvIDYBTI34fVlN/K2fPb4pU4qYLRhjnYrQTP5nIDOV7EgfzKpxWm8aN5mKbEM+MBdPKDu69sIgBEefWq0cLORTd+/Rzp068ZwsPNzTO/w4IHkDEwsa0+ga67BCee1GDg6l5li5CnnHZMeukewFmSKHSP0SCVE+Eeu+rNS1dMv1HLMULQGIEFFElJHVEBEXh2ogiFPbCt0H24z8v4LBdwPWmB1FfUkk3640clEQTvYlY/XSaBQ7zvxCUN7CVZO7E4Nclqh1gx1a2dnuD4/xoeBV6HXi5U/wfKhjoDMvLSsD2da6gvVqmSLcm/n3fjGww7KLoa3zw5c00DjdXEK1fikYYoHiztJvyzUhzfg9RNk32H/C8CnoKMQGcGHF86zinSUrwKmEjm9THeoUU9FZuk1xbfOxS80pHSLnQlzulPSOaBv+okDaB5zG5c959KdJCvp3wnVRRICZgmgeb5zCvwTOhp1Ojt9bwDDDjiyDxGQxzsfdkb349ddtjWxbRVsj7o2D98txaCJHKnha4CRwoapkncj+3FluSYBo4bQ8CAeeZLqoiWm0twlL42iYAk5zsFCh5uZXdZTUVwJipGp+8SdrCAF6D1SIVSsV0PUgBJxsdiGjjwhmaQWqVHdc9ZkMdC3/PzIfhE2wZkRenl2y9I6ExxQJGlGAE=
+Signature: EoIKCkYIBBgCKkCYFefPX1umGdOJsDLYc1tToFX8SLEyNw1gFZBFcViMmHpgTIX9WsC95j/6oCKVPocuklyJP9QV+iZoJv4VjaInEgzUJGGRs/L74w3AVdkaDM1GD2JXckpLmP3V6yIwmrD0oXROGsGUs7zYGwaT/Adq8A9gSwkURe9aUmZvmOxvV3ZInXbrSyX/bK4q8jpLKukINDktCFBjclfD1LXdROkjcRhZ6MusGcoOAHq9w3HU5wMMrM3fBJrkDmEEk9zUlpzOoHfy3sfJeAIgEJ9O86EXHe6vtQ3l59FU40T4s1qhSdF6hWAYqywRwrSy5KVWKc+APivIZ9cv7ewStNd7wM4BnPobBzpIRcULmg/9aZ8w6GC5y+1UXPNwQXpvkH8rDDAvCx3cRsLrzdxgL3dfhhRmJxE2Yxt0TczXosPKznNrZbMHmzulqRK5NK2DA6DFe1TZA2dz2/dJTBqdKrGUN/qZmAvpNtf5iNBswMvFNqZUgMSoOKGKN+yYHpmad37RzB1L/PBrzy3iGqKBa1F/N5gL6O9knQGy3QH8wOpPpH0/9UHophR1K0G5Y3fthDAxWf8Of0H0xGepHxAsgVOzRNp6JwMmJRc4e0YNnFMiy0FnTqhpfeGLackPt1anYP6uR7am8JWycpK3F3QCVAq8vBH15xFIcT3h0vV9PNQ/3ExPfhKcN5swmaFCB6UN7rlDYRPrOXuMBaVsdwkCGv6XIlNit71V2vduB1mnc+Yrh7Q6i0j7vj6AGRELdI4/qp0jQ6jzO3I2UGp4O6pfXstzFxcZIIBYVPyom3AO+6E+f1TShQx7q8lmlimG/bAd3kEjo2VZCgUOWUQl13tp+kDSJVtqQcMx17qN16YbmadJlshrOA0vSKepBDwfuQ6goQiAxjfWs5QZlkUYCKcivNb9gWadkooQnlxv1Q0Y8srOKZ6vsjz7eeb67OfIS9Vh8YgguZgapQQeNwQ6lkLtsP9aCMYpUDYy2jvH9laSneiy2IU9VRhSglXoZiIH7feLQRwdNS0302KZUYlVv5IHxtx8sM3mYun6E/lT6MxPxzHK3guRxP5NR4TiGS7ytBOFu+0UQ4eGvfrFM/x7CP5JcHX2E2psKUn18SeIUNCDt4z8sWgBFBcTvtu+PYeNFJB5FGsOc2I0BZOVow8o2VUszL78v87dcTsMrB3Dn2RPl8gYQhmBKz6qIIq6Fcw29YwjhDNtOt/k+MchtvyYzqpNCZiFdetKNlhG9SQku+UdA1Vb58FingISWCR2d+CXaM3xdIX+oqYdTUjrHjx5VZViQDQ+xbxWSGpsaS/mZZDjLW5rXyZ3uu1kdzP/0kfnfaHyavj9IC6Sx55wL/grkB/xcRTQIssD0WKqHroNXGQvKuvTAzHQKIeUMjYgPjRyJBhI6jLGs7KP/d6SqB2viaIuFtEbLGC8TtcLIpi2ZJkAYh1Xo4tSJShIApuMA3T9WWI3tlLNXt9/2i0QSEWcLRG/kEMQbUaAa4eSq8L244mZUXdIXndD9Pw2TFHzAKa1yLUP9OReotz6BLR1UEFsdp2jSYkXBqkRa8T0xEDWl1iRczkmRVIFh5GV1BE1wrVeMjqYasHo9Ba1ENkFB8tI3QAFRU2m0Uo0AKYhtR+lb4Ay/nFru98qUN3iNiP0VnjpP6oIIahEuMtAaUwYxKTo3MLziQEs3SUnsweUUdPoXC+4QhgB
 
-The user wants me to compare the list of roundtrip tests in `test/test-greger-parser.el` with the txt test files in `grammar/test/corpus`. I need to:
+The user wants me to write two Emacs Lisp functions:
 
-1. First, look at the test file to see what roundtrip tests exist
-2. Then look at the corpus directory to see what txt files exist
-3. Compare them and identify any txt files that don't have corresponding roundtrip tests
-4. Add the missing test cases
+1. One that takes a treesit node and returns a simplified parse tree as an Emacs expression
+2. One that diffs two trees in that format
 
-Let me start by exploring the directory structure and then examining the files.
+For the first function, I need to:
+- Take a treesit node as input
+- Recursively traverse the tree
+- Build a simplified representation that shows the node types and structure
+- Return it as an Emacs Lisp expression (list structure)
 
-# ASSISTANT
+For the second function, I need to:
+- Take two tree structures (in the format produced by the first function)
+- Compare them and show differences
+- Return some kind of diff representation
 
-I'll help you compare the roundtrip tests with the corpus test files and add any missing test cases. Let me start by examining the existing test structure.
+Let me think about the implementation:
 
-# TOOL USE
+For the first function:
+- I'll need to use treesit node functions like `treesit-node-type`, `treesit-node-children`
+- I'll recursively process children
+- I'll build a list where the first element is the node type and the rest are the children
 
-Name: list-directory
-ID: toolu_01QnmtqoLqxMcStmCjZcB9jX
+For the second function:
+- I can do a recursive comparison
+- I'll need to handle cases where nodes are added, removed, or changed
+- I could return a structure that indicates what changed
 
-## path
-
-<tool.toolu_01QnmtqoLqxMcStmCjZcB9jX>
-.
-</tool.toolu_01QnmtqoLqxMcStmCjZcB9jX>
-
-## recursive
-
-<tool.toolu_01QnmtqoLqxMcStmCjZcB9jX>
-true
-</tool.toolu_01QnmtqoLqxMcStmCjZcB9jX>
-
-# TOOL RESULT
-
-ID: toolu_01QnmtqoLqxMcStmCjZcB9jX
-
-<tool.toolu_01QnmtqoLqxMcStmCjZcB9jX>
-./:
-drwxr-xr-x  (dir)  .
-drwxr-xr-x  (dir)  ..
--rw-r--r--      8196  .DS_Store
--rw-r--r--       158  .dir-locals.el
--rw-r--r--        55  .elpaignore
-drwxr-xr-x  (dir)  .git
-drwxr-xr-x  (dir)  .github
--rw-r--r--         5  .gitignore
--rw-r--r--      1071  LICENSE
--rw-r--r--      2826  README.md
--rw-r--r--    209316  chat.ai
--rw-r--r--    433565  chat.greger
--rw-r--r--    143538  chat2.greger
--rw-r--r--    316500  fix-tests.greger
-drwxr-xr-x  (dir)  grammar
--rw-r--r--     19444  greger-client.el
--rw-r--r--     26661  greger-parser.el
--rw-r--r--     54346  greger-stdlib.el
--rw-r--r--     15734  greger-tools.el
--rw-r--r--     11481  greger-ui.el
--rw-r--r--      4171  greger-web.el
--rw-r--r--     28113  greger.el
-drwxr-xr-x  (dir)  recipes
--rw-r--r--    629089  request.json
-drwxr-xr-x  (dir)  script
-drwxr-xr-x  (dir)  test
--rw-r--r--        64  test.greger
-
-./.github/:
-drwxr-xr-x  (dir)  .
-drwxr-xr-x  (dir)  ..
-drwxr-xr-x  (dir)  workflows
-
-./.github/workflows/:
-drwxr-xr-x  (dir)  .
-drwxr-xr-x  (dir)  ..
--rw-r--r--      1376  ci.yml
-
-./grammar/:
-drwxr-xr-x  (dir)  .
-drwxr-xr-x  (dir)  ..
--rw-r--r--       541  .editorconfig
-drwxr-xr-x  (dir)  .git
--rw-r--r--       941  .gitattributes
--rw-r--r--       431  .gitignore
--rw-r--r--      2820  CMakeLists.txt
--rw-r--r--       725  Cargo.toml
--rw-r--r--      3451  Makefile
--rw-r--r--      1090  Package.swift
--rw-r--r--       765  binding.gyp
-drwxr-xr-x  (dir)  bindings
--rw-r--r--       113  go.mod
--rw-r--r--      5321  grammar.js
--rwxr-xr-x     84520  libtree-sitter-greger.dylib
--rw-r--r--      1145  package.json
--rw-r--r--       771  pyproject.toml
--rw-r--r--      2066  setup.py
-drwxr-xr-x  (dir)  src
-drwxr-xr-x  (dir)  test
--rwxr-xr-x     49216  tree-sitter-greger.wasm
--rw-r--r--       874  tree-sitter.json
-
-./grammar/bindings/:
-drwxr-xr-x  (dir)  .
-drwxr-xr-x  (dir)  ..
-drwxr-xr-x  (dir)  c
-drwxr-xr-x  (dir)  go
-drwxr-xr-x  (dir)  node
-drwxr-xr-x  (dir)  python
-drwxr-xr-x  (dir)  rust
-drwxr-xr-x  (dir)  swift
-
-./grammar/bindings/c/:
-drwxr-xr-x  (dir)  .
-drwxr-xr-x  (dir)  ..
--rw-r--r--       297  tree-sitter-greger.pc.in
-drwxr-xr-x  (dir)  tree_sitter
-
-./grammar/bindings/c/tree_sitter/:
-drwxr-xr-x  (dir)  .
-drwxr-xr-x  (dir)  ..
--rw-r--r--       246  tree-sitter-greger.h
-
-./grammar/bindings/go/:
-drwxr-xr-x  (dir)  .
-drwxr-xr-x  (dir)  ..
--rw-r--r--       341  binding.go
--rw-r--r--       364  binding_test.go
-
-./grammar/bindings/node/:
-drwxr-xr-x  (dir)  .
-drwxr-xr-x  (dir)  ..
--rw-r--r--       529  binding.cc
--rw-r--r--       250  binding_test.js
--rw-r--r--       436  index.d.ts
--rw-r--r--       455  index.js
-
-./grammar/bindings/python/:
-drwxr-xr-x  (dir)  .
-drwxr-xr-x  (dir)  ..
-drwxr-xr-x  (dir)  tests
-drwxr-xr-x  (dir)  tree_sitter_greger
-
-./grammar/bindings/python/tests/:
-drwxr-xr-x  (dir)  .
-drwxr-xr-x  (dir)  ..
--rw-r--r--       302  test_binding.py
-
-./grammar/bindings/python/tree_sitter_greger/:
-drwxr-xr-x  (dir)  .
-drwxr-xr-x  (dir)  ..
--rw-r--r--      1141  __init__.py
--rw-r--r--       247  __init__.pyi
--rw-r--r--       836  binding.c
--rw-r--r--         0  py.typed
-
-./grammar/bindings/rust/:
-drwxr-xr-x  (dir)  .
-drwxr-xr-x  (dir)  ..
--rw-r--r--       613  build.rs
--rw-r--r--      1842  lib.rs
-
-./grammar/bindings/swift/:
-drwxr-xr-x  (dir)  .
-drwxr-xr-x  (dir)  ..
-drwxr-xr-x  (dir)  TreeSitterGreger
-drwxr-xr-x  (dir)  TreeSitterGregerTests
-
-./grammar/bindings/swift/TreeSitterGreger/:
-drwxr-xr-x  (dir)  .
-drwxr-xr-x  (dir)  ..
--rw-r--r--       246  greger.h
-
-./grammar/bindings/swift/TreeSitterGregerTests/:
-drwxr-xr-x  (dir)  .
-drwxr-xr-x  (dir)  ..
--rw-r--r--       367  TreeSitterGregerTests.swift
-
-./grammar/src/:
-drwxr-xr-x  (dir)  .
-drwxr-xr-x  (dir)  ..
--rw-r--r--     20455  grammar.json
--rw-r--r--     12344  node-types.json
--rw-r--r--    156987  parser.c
--rw-r--r--     11621  scanner.c
-drwxr-xr-x  (dir)  tree_sitter
-
-./grammar/src/tree_sitter/:
-drwxr-xr-x  (dir)  .
-drwxr-xr-x  (dir)  ..
--rw-r--r--       985  alloc.h
--rw-r--r--     10431  array.h
--rw-r--r--      7624  parser.h
-
-./grammar/test/:
-drwxr-xr-x  (dir)  .
-drwxr-xr-x  (dir)  ..
-drwxr-xr-x  (dir)  corpus
-
-./grammar/test/corpus/:
-drwxr-xr-x  (dir)  .
-drwxr-xr-x  (dir)  ..
--rw-r--r--      1331  citations-after-tool-result.txt
--rw-r--r--      1995  citations-basic.txt
--rw-r--r--      1752  citations-multiple.txt
--rw-r--r--       435  code-block-nested-headers.txt
--rw-r--r--       342  code-block-triple-backticks.txt
--rw-r--r--      2065  complex-workflow.txt
--rw-r--r--       451  html-comments.txt
--rw-r--r--       145  inline-code.txt
--rw-r--r--       493  mixed-code-blocks-and-sections.txt
--rw-r--r--      1638  multiple-tool-uses.txt
--rw-r--r--       430  nested-code-blocks.txt
--rw-r--r--       333  safe-shell-commands.txt
--rw-r--r--      1169  server-tool-use-basic.txt
--rw-r--r--      1007  server-tool-use-string-result.txt
--rw-r--r--       233  simple-conversation.txt
--rw-r--r--       149  simple-user-message.txt
--rw-r--r--       228  system-and-user.txt
--rw-r--r--       257  text-with-markdown-headings.txt
--rw-r--r--       260  thinking-only.txt
--rw-r--r--       609  thinking-section.txt
--rw-r--r--      1448  tool-use-multiple-params.txt
--rw-r--r--       502  tool-use-only.txt
--rw-r--r--       899  tool-use-single-param.txt
--rw-r--r--      1324  tool-use-with-code-in-params.txt
--rw-r--r--      1208  tool-use-with-tool-use-in-params.txt
--rw-r--r--       253  triple-hash.txt
--rw-r--r--       247  untagged-content.txt
-
-./recipes/:
-drwxr-xr-x  (dir)  .
-drwxr-xr-x  (dir)  ..
--rw-r--r--        88  greger
-
-./script/:
-drwxr-xr-x  (dir)  .
-drwxr-xr-x  (dir)  ..
--rwxr-xr-x      1175  lint
--rwxr-xr-x      7605  test
-
-./test/:
-drwxr-xr-x  (dir)  .
-drwxr-xr-x  (dir)  ..
--rw-r--r--      4028  THINKING_TESTS.md
--rw-r--r--       607  run-thinking-tests.el
--rw-r--r--     20522  test-end-to-end.el
--rw-r--r--     10537  test-greger-client.el
--rw-r--r--     20791  test-greger-parser.el
--rw-r--r--     36381  test-greger-stdlib.el
--rw-r--r--     38067  test-greger-tools.el
--rw-r--r--     22385  test-greger.el
-</tool.toolu_01QnmtqoLqxMcStmCjZcB9jX>
+Let me write these functions.
 
 # ASSISTANT
 
-Now let me examine the roundtrip tests in the test file:
+Here are the two Emacs Lisp functions you requested:
 
-# TOOL USE
+```elisp
+(defun treesit-node-to-simplified-tree (node)
+  "Convert a treesit NODE to a simplified parse tree expression.
+Returns a list where the first element is the node type (symbol)
+and the remaining elements are the simplified representations of child nodes."
+  (let ((node-type (intern (treesit-node-type node)))
+        (children (treesit-node-children node t)))
+    (if children
+        (cons node-type
+              (mapcar #'treesit-node-to-simplified-tree children))
+      node-type)))
 
-Name: read-file
-ID: toolu_01XyhMrqZJ79McMXi3rH1uq7
-
-## path
-
-<tool.toolu_01XyhMrqZJ79McMXi3rH1uq7>
-test/test-greger-parser.el
-</tool.toolu_01XyhMrqZJ79McMXi3rH1uq7>
-
-# TOOL RESULT
-
-ID: toolu_01XyhMrqZJ79McMXi3rH1uq7
-
-<tool.toolu_01XyhMrqZJ79McMXi3rH1uq7>
-;;; test-greger-parser.el --- Tests for greger parser -*- lexical-binding: t -*-
-
-(require 'ert)
-(require 'greger-parser)
-(require 'cl-lib)
-
-;; Global variable to store the grammar repo path
-(defvar greger-test-grammar-repo-path nil
-  "Path to the cloned greger-grammar repository.")
-
-;; Function to clone the grammar repo once
-(defun greger-test-setup-grammar-repo ()
-  "Clone the greger-grammar repository to a temporary directory if not already done."
-  (unless greger-test-grammar-repo-path
-    (let ((temp-dir (make-temp-file "greger-grammar-" t)))
-      (message "Cloning greger-grammar to %s..." temp-dir)
-      (let ((result (shell-command-to-string 
-                     (format "cd %s && git clone https://github.com/andreasjansson/greger-grammar.git" 
-                             (shell-quote-argument temp-dir)))))
-        (if (string-match-p "fatal:\\|error:" result)
-            (error "Failed to clone greger-grammar: %s" result)
-          (setq greger-test-grammar-repo-path (expand-file-name "greger-grammar" temp-dir))
-          (message "Successfully cloned greger-grammar to %s" greger-test-grammar-repo-path))))))
-
-;; Function to clean up the grammar repo
-(defun greger-test-cleanup-grammar-repo ()
-  "Clean up the cloned greger-grammar repository."
-  (when greger-test-grammar-repo-path
-    (let ((temp-dir (file-name-directory greger-test-grammar-repo-path)))
-      (message "Cleaning up greger-grammar repo at %s..." temp-dir)
-      (delete-directory temp-dir t)
-      (setq greger-test-grammar-repo-path nil))))
-
-;; Helper function to read markdown content from corpus .txt files
-(defun greger-read-corpus-file (name)
-  "Read markdown content from a .txt corpus file, extracting only the input portion.
-This function requires the grammar repository to be set up first."
-  (unless greger-test-grammar-repo-path
-    (error "Grammar repository not set up. Call greger-test-setup-grammar-repo first"))
-  (let ((file-path (expand-file-name (format "test/corpus/%s.txt" name) greger-test-grammar-repo-path)))
-    (if (file-exists-p file-path)
-        (with-temp-buffer
-          (insert-file-contents file-path)
-          (let ((content (buffer-string)))
-            ;; Find the test content between the title header and the "---" separator
-            (if (string-match "=\\{10,\\}\n.*?\n=\\{10,\\}\n\n\\(\\(?:.\\|\n\\)*?\\)\n---" content)
-                (match-string 1 content)
-              (error "Could not parse test file format: %s" file-path))))
-      (error "Corpus file not found: %s" file-path))))
-
-;; Helper functions for tests
-(defun greger-parser-test--dialog-equal (expected actual)
-  "Compare two dialog structures, handling content blocks."
-  (and (listp expected) (listp actual)
-       (= (length expected) (length actual))
-       (cl-every
-        (lambda (pair)
-          (let ((exp-msg (car pair))
-                (act-msg (cdr pair)))
-            (and (string= (alist-get 'role exp-msg) (alist-get 'role act-msg))
-                 (greger-parser-test--content-equal
-                  (alist-get 'content exp-msg)
-                  (alist-get 'content act-msg)))))
-        (cl-mapcar #'cons expected actual))))
-
-(defun greger-parser-test--content-equal (expected actual)
-  "Compare message content, handling both strings and content block lists."
+(defun tree-diff (tree1 tree2)
+  "Compare two simplified parse trees and return a diff structure.
+Returns a list indicating differences between TREE1 and TREE2.
+The diff format uses:
+- (:same node-type children...) for identical subtrees
+- (:changed tree1-subtree tree2-subtree) for differing subtrees
+- (:removed tree1-subtree) for nodes only in tree1
+- (:added tree2-subtree) for nodes only in tree2"
   (cond
-   ;; Both are strings - direct comparison
-   ((and (stringp expected) (stringp actual))
-    (string= expected actual))
+   ;; Both are atoms (leaf nodes)
+   ((and (atom tree1) (atom tree2))
+    (if (eq tree1 tree2)
+        `(:same ,tree1)
+      `(:changed ,tree1 ,tree2)))
+   
+   ;; One is atom, other is list
+   ((or (atom tree1) (atom tree2))
+    `(:changed ,tree1 ,tree2))
+   
+   ;; Both are lists - compare node types and children
+   (t
+    (let ((type1 (car tree1))
+          (type2 (car tree2))
+          (children1 (cdr tree1))
+          (children2 (cdr tree2)))
+      (if (eq type1 type2)
+          ;; Same node type, compare children
+          (let ((child-diffs (tree-diff-children children1 children2)))
+            (if (tree-diff-all-same-p child-diffs)
+                `(:same ,type1 ,@children1)
+              `(:same ,type1 ,@child-diffs)))
+        ;; Different node types
+        `(:changed ,tree1 ,tree2))))))
 
-   ;; Both are lists (content blocks) - compare structure
-   ((and (listp expected) (listp actual))
-    (greger-parser-test--content-blocks-equal expected actual))
-
-   ;; Fallback to string comparison
-   (t (string= (format "%s" expected) (format "%s" actual)))))
-
-(defun greger-parser-test--content-blocks-equal (expected actual)
-  "Compare two content block lists."
-  (and (= (length expected) (length actual))
-       (cl-every
-        (lambda (pair)
-          (greger-parser-test--content-block-equal (car pair) (cdr pair)))
-        (cl-mapcar #'cons expected actual))))
-
-(defun greger-parser-test--content-block-equal (expected actual)
-  "Compare two content blocks."
-  (and (string= (alist-get 'type expected) (alist-get 'type actual))
-       (let ((type (alist-get 'type expected)))
-         (cond
-          ((string= type "text")
-           (string= (alist-get 'text expected) (alist-get 'text actual)))
-          ((string= type "thinking")
-           (string= (alist-get 'thinking expected) (alist-get 'thinking actual)))
-          ((string= type "tool_use")
-           (and (string= (alist-get 'id expected) (alist-get 'id actual))
-                (string= (alist-get 'name expected) (alist-get 'name actual))
-                (greger-parser-test--input-equal (alist-get 'input expected) (alist-get 'input actual))))
-          ((string= type "tool_result")
-           (and (string= (alist-get 'tool_use_id expected) (alist-get 'tool_use_id actual))
-                (greger-parser-test--strings-or-alists-equal-p (alist-get 'content expected) (alist-get 'content actual))))
-          ((string= type "server_tool_use")
-           (and (string= (alist-get 'id expected) (alist-get 'id actual))
-                (string= (alist-get 'name expected) (alist-get 'name actual))
-                (greger-parser-test--input-equal (alist-get 'input expected) (alist-get 'input actual))))
-          ((string= type "web_search_tool_result")
-           (and (string= (alist-get 'tool_use_id expected) (alist-get 'tool_use_id actual))
-                (equal (alist-get 'content expected) (alist-get 'content actual))))
-          (t t)))))
-
-(defun greger-parser-test--strings-or-alists-equal-p (var1 var2)
-  "Return t if VAR1 and VAR2 are equal strings or alists.
-For alists, comparison is order-independent."
+(defun tree-diff-children (children1 children2)
+  "Compare two lists of child nodes and return diff results."
   (cond
-   ;; Both are strings
-   ((and (stringp var1) (stringp var2))
-    (string-equal var1 var2))
-
-   ;; Both are alists (lists of cons cells)
-   ((and (listp var1) (listp var2)
-         (or (null var1) (consp (car var1)))
-         (or (null var2) (consp (car var2))))
-    (greger-parser-test--alists-equal-p var1 var2))
-
-   ;; Otherwise, use regular equality
-   (t (equal var1 var2))))
-
-(defun greger-parser-test--alists-equal-p (alist1 alist2)
-  "Return t if ALIST1 and ALIST2 contain the same key-value pairs.
-Comparison is order-independent."
-  (and (= (length alist1) (length alist2))
-       (catch 'not-equal
-         (dolist (pair alist1 t)
-           (let ((key (car pair))
-                 (val (cdr pair)))
-             (unless (equal val (cdr (assoc key alist2)))
-               (throw 'not-equal nil)))))))
-
-(defun greger-parser-test--input-equal (expected actual)
-  "Compare tool input parameters."
-  (and (= (length expected) (length actual))
-       (cl-every
-        (lambda (exp-param)
-          (let ((key (car exp-param))
-                (exp-val (cdr exp-param)))
-            (let ((act-val (alist-get key actual)))
-              (equal exp-val act-val))))
-        expected)))
-
-(defun greger-parser-test--normalize-whitespace (str)
-  "Normalize whitespace in string for comparison."
-  (string-trim (replace-regexp-in-string "[ \t\n\r]+" " " str)))
-
-;; Fixture macro for tests that need the grammar repo
-(defmacro greger-parser-test--with-grammar-repo (&rest body)
-  "Execute BODY with the grammar repository available, ensuring cleanup."
-  `(unwind-protect
-       (progn
-         (greger-test-setup-grammar-repo)
-         ,@body)
-     ;; Cleanup happens here only if this is the last test or if there's an error
-     ;; For normal operation, cleanup happens in the dedicated cleanup test
-     nil))
-
-;; Helper function for roundtrip testing
-(defun greger-parser-test--roundtrip (corpus-name)
-  "Test roundtrip conversion for a corpus file."
-  (greger-parser-test--with-grammar-repo
-   (let ((original-markdown (greger-read-corpus-file corpus-name)))
-     (let* ((dialog (greger-parser-markdown-to-dialog original-markdown))
-            (roundtrip-markdown (greger-parser-dialog-to-markdown dialog))
-            (roundtrip-dialog (greger-parser-markdown-to-dialog roundtrip-markdown)))
-       ;; The dialog should be structurally equivalent after round-trip
-       (should (= (length dialog) (length roundtrip-dialog)))
-       (should (greger-parser-test--dialog-equal dialog roundtrip-dialog))))))
-
-;; Individual test cases imported from greger-grammar corpus files
-;; Each test performs roundtrip testing: markdown -> dialog -> markdown
-
-(ert-deftest greger-parser-test-simple-user-message ()
-  "Test roundtrip for simple-user-message corpus case."
-  (greger-parser-test--roundtrip "simple-user-message"))
-
-(ert-deftest greger-parser-test-system-and-user ()
-  "Test roundtrip for system-and-user corpus case."
-  (greger-parser-test--roundtrip "system-and-user"))
-
-(ert-deftest greger-parser-test-simple-conversation ()
-  "Test roundtrip for simple-conversation corpus case."
-  (greger-parser-test--roundtrip "simple-conversation"))
-
-(ert-deftest greger-parser-test-thinking-section ()
-  "Test roundtrip for thinking-section corpus case."
-  (greger-parser-test--roundtrip "thinking-section"))
-
-(ert-deftest greger-parser-test-tool-use-single-param ()
-  "Test roundtrip for tool-use-single-param corpus case."
-  (greger-parser-test--roundtrip "tool-use-single-param"))
-
-(ert-deftest greger-parser-test-tool-use-multiple-params ()
-  "Test roundtrip for tool-use-multiple-params corpus case."
-  (greger-parser-test--roundtrip "tool-use-multiple-params"))
-
-(ert-deftest greger-parser-test-complex-workflow ()
-  "Test roundtrip for complex-workflow corpus case."
-  (greger-parser-test--roundtrip "complex-workflow"))
-
-(ert-deftest greger-parser-test-multiple-tool-uses ()
-  "Test roundtrip for multiple-tool-uses corpus case."
-  (greger-parser-test--roundtrip "multiple-tool-uses"))
-
-(ert-deftest greger-parser-test-thinking-only ()
-  "Test roundtrip for thinking-only corpus case."
-  (greger-parser-test--roundtrip "thinking-only"))
-
-(ert-deftest greger-parser-test-tool-use-only ()
-  "Test roundtrip for tool-use-only corpus case."
-  (greger-parser-test--roundtrip "tool-use-only"))
-
-(ert-deftest greger-parser-test-citations-basic ()
-  "Test roundtrip for citations-basic corpus case."
-  (greger-parser-test--roundtrip "citations-basic"))
-
-(ert-deftest greger-parser-test-citations-after-tool-result ()
-  "Test roundtrip for citations-after-tool-result corpus case."
-  (greger-parser-test--roundtrip "citations-after-tool-result"))
-
-(ert-deftest greger-parser-test-citations-multiple ()
-  "Test roundtrip for citations-multiple corpus case."
-  (greger-parser-test--roundtrip "citations-multiple"))
-
-(ert-deftest greger-parser-test-code-block-triple-backticks ()
-  "Test roundtrip for code-block-triple-backticks corpus case."
-  (greger-parser-test--roundtrip "code-block-triple-backticks"))
-
-(ert-deftest greger-parser-test-mixed-code-blocks-and-sections ()
-  "Test roundtrip for mixed-code-blocks-and-sections corpus case."
-  (greger-parser-test--roundtrip "mixed-code-blocks-and-sections"))
-
-(ert-deftest greger-parser-test-tool-use-with-code-in-params ()
-  "Test roundtrip for tool-use-with-code-in-params corpus case."
-  (greger-parser-test--roundtrip "tool-use-with-code-in-params"))
-
-(ert-deftest greger-parser-test-tool-use-with-tool-use-in-params ()
-  "Test roundtrip for tool-use-with-tool-use-in-params corpus case."
-  (greger-parser-test--roundtrip "tool-use-with-tool-use-in-params"))
-
-(ert-deftest greger-parser-test-nested-code-blocks ()
-  "Test roundtrip for nested-code-blocks corpus case."
-  (greger-parser-test--roundtrip "nested-code-blocks"))
-
-(ert-deftest greger-parser-test-html-comments ()
-  "Test roundtrip for html-comments corpus case."
-  (greger-parser-test--roundtrip "html-comments"))
-
-(ert-deftest greger-parser-test-server-tool-use-basic ()
-  "Test roundtrip for server-tool-use-basic corpus case."
-  (greger-parser-test--roundtrip "server-tool-use-basic"))
-
-(ert-deftest greger-parser-test-server-tool-use-string-result ()
-  "Test roundtrip for server-tool-use-string-result corpus case."
-  (greger-parser-test--roundtrip "server-tool-use-string-result"))
-
-(ert-deftest greger-parser-test-tool-use-parsing ()
-  "Test specific tool use parsing functionality."
-  (let ((tool-use-markdown "# TOOL USE
-
-Name: read-file
-ID: toolu_123
-
-## path
-
-<tool.toolu_123>
-hello.txt
-</tool.toolu_123>
-
-## include_line_numbers
-
-<tool.toolu_123>
-true
-</tool.toolu_123>
-"))
-    (let ((parsed (greger-parser-markdown-to-dialog tool-use-markdown)))
-      (should (= 1 (length parsed)))
-      (let ((assistant-msg (car parsed)))
-        (should (string= "assistant" (alist-get 'role assistant-msg)))
-        (let* ((content-blocks (alist-get 'content assistant-msg))
-               (tool-use-block (car content-blocks)))
-          (should (string= "tool_use" (alist-get 'type tool-use-block)))
-          (should (string= "toolu_123" (alist-get 'id tool-use-block)))
-          (should (string= "read-file" (alist-get 'name tool-use-block)))
-          (let ((input (alist-get 'input tool-use-block)))
-            (should (string= "hello.txt" (alist-get 'path input)))
-            (should (eq t (alist-get 'include_line_numbers input)))))))))
-
-(ert-deftest greger-parser-test-tool-result-parsing ()
-  "Test specific tool result parsing functionality."
-  (let ((tool-result-markdown "# TOOL RESULT
-
-ID: toolu_123
-
-<tool.toolu_123>
-File contents here
-with multiple lines
-</tool.toolu_123>"))
-    (let ((parsed (greger-parser-markdown-to-dialog tool-result-markdown)))
-      (should (= 1 (length parsed)))
-      (let ((user-msg (car parsed)))
-        (should (string= "user" (alist-get 'role user-msg)))
-        (let* ((content-blocks (alist-get 'content user-msg))
-               (tool-result-block (car content-blocks)))
-          (should (string= "tool_result" (alist-get 'type tool-result-block)))
-          (should (string= "toolu_123" (alist-get 'tool_use_id tool-result-block)))
-          (should (string= "File contents here
-with multiple lines"
-                          (alist-get 'content tool-result-block))))))))
-
-(ert-deftest greger-parser-test-thinking-parsing ()
-  "Test thinking section parsing."
-  (let ((thinking-markdown "# THINKING
-
-I need to think about this carefully.
-This is a complex problem."))
-    (let ((parsed (greger-parser-markdown-to-dialog thinking-markdown)))
-      (should (= 1 (length parsed)))
-      (let ((assistant-msg (car parsed)))
-        (should (string= "assistant" (alist-get 'role assistant-msg)))
-        (let* ((content-blocks (alist-get 'content assistant-msg))
-               (thinking-block (car content-blocks)))
-          (should (string= "thinking" (alist-get 'type thinking-block)))
-          (should (string= "I need to think about this carefully.
-This is a complex problem."
-                          (alist-get 'thinking thinking-block))))))))
-
-(ert-deftest greger-parser-test-error-handling ()
-  "Test parser error handling for malformed input."
-  ;; Test that malformed input returns empty result instead of error
-  (should (condition-case err
-              (progn (greger-parser-markdown-to-dialog "# TOOL USE\n\nMalformed") t)
-            (error nil)))
-  (should (condition-case err
-              (progn (greger-parser-markdown-to-dialog "# TOOL RESULT\n\nMalformed") t)
-            (error nil))))
-
-(ert-deftest greger-parser-test-edge-cases ()
-  "Test edge cases like empty content, whitespace handling."
-  ;; Empty content
-  (should (equal '() (greger-parser-markdown-to-dialog "")))
-  (should (equal '() (greger-parser-markdown-to-dialog "\n\n  ")))
-
-  ;; Multiple consecutive newlines
-  (let ((result (greger-parser-markdown-to-dialog "# USER
-
-Hello
-
-
-
-# ASSISTANT
-
-
-
-Hi")))
-    (should (equal '(((role . "user")
-                      (content . "Hello\n\n"))
-                     ((role . "assistant")
-                      ;; This is wrong, it should be: (content ((text . "\n\nHi") (type . "text")))
-                      (content ((text . "Hi") (type . "text")))
-                      ))
-                   result))))
-
-(ert-deftest greger-parser-test-performance ()
-  "Test parser performance with large dialogs."
-  (let ((large-markdown
-         (mapconcat
-          (lambda (i)
-            (format "# USER\n\nMessage %d\n\n# ASSISTANT\n\nResponse %d" i i))
-          (number-sequence 1 10000)
-          "\n\n")))
-    (let ((start-time (current-time)))
-      (greger-parser-markdown-to-dialog large-markdown)
-      (let ((elapsed (float-time (time-subtract (current-time) start-time))))
-        ;; Should parse 10000 message pairs in under 1 second
-        (should (< elapsed 1.0))))))
-
-;; Test untagged content at the beginning
-(ert-deftest greger-parser-test-untagged-content ()
-  "Test that untagged content at the beginning is treated as user message."
-  (let ((markdown "Hello, this is untagged content
-
-# ASSISTANT
-
-I understand you have untagged content."))
-    (let ((parsed (greger-parser-markdown-to-dialog markdown)))
-      (should (equal parsed '(((role . "user")
-                               (content . "Hello, this is untagged content"))
-                              ((role . "assistant")
-                               (content ((text . "I understand you have untagged content.")
-                                         (type . "text"))))))))))
-
-;; Test that we handle tool use parameters correctly with various whitespace
-(ert-deftest greger-parser-test-tool-use-whitespace ()
-  "Test tool use parsing with various whitespace patterns."
-  (let ((markdown "# TOOL USE
-
-Name: test-tool
-ID: tool_123
-
-## param1
-
-<tool.tool_123>
-value1
-</tool.tool_123>
-
-## param2
-
-<tool.tool_123>
-value2 with
-multiple
-
-
-  lines
-</tool.tool_123>
-
-## param3
-
-<tool.tool_123>
-value3
-</tool.tool_123>
-"))
-    (let ((parsed (greger-parser-markdown-to-dialog markdown)))
-      (should (= 1 (length parsed)))
-      (let* ((assistant-msg (car parsed))
-             (content-blocks (alist-get 'content assistant-msg))
-             (tool-block (car content-blocks))
-             (input (alist-get 'input tool-block)))
-        (should (= 3 (length input)))
-        (should (string= "value1" (alist-get 'param1 input)))
-        (should (string= "value2 with\nmultiple\n\n\n  lines" (alist-get 'param2 input)))
-        (should (string= "value3" (alist-get 'param3 input)))))))
-
-(ert-deftest greger-parser-test-code-blocks-in-tool-params ()
-  "Test that code blocks in tool parameters are preserved correctly."
-  (let ((markdown "# TOOL USE
-
-Name: write-file
-ID: tool_123
-
-## content
-
-<tool.tool_123>
-```python
-# This # USER comment should be preserved
-print(\"# ASSISTANT also preserved\")
+   ;; Both empty
+   ((and (null children1) (null children2))
+    nil)
+   
+   ;; Only first has children (removals)
+   ((null children2)
+    (mapcar (lambda (child) `(:removed ,child)) children1))
+   
+   ;; Only second has children (additions)
+   ((null children1)
+    (mapcar (lambda (child) `(:added ,child)) children2))
+   
+   ;; Both have children - compare pairwise and handle length differences
+   (t
+    (let ((min-len (min (length children1) (length children2)))
+          (diffs nil))
+      ;; Compare common children
+      (dotimes (i min-len)
+        (push (tree-diff (nth i children1) (nth i children2)) diffs))
+      
+      ;; Handle extra children in first list (removals)
+      (when (> (length children1) min-len)
+        (dolist (child (nthcdr min-len children1))
+          (push `(:removed ,child) diffs)))
+      
+      ;; Handle extra children in second list (additions)
+      (when (> (length children2) min-len)
+        (dolist (child (nthcdr min-len children2))
+          (push `(:added ,child) diffs)))
+      
+      (nreverse diffs)))))
+
+(defun tree-diff-all-same-p (diff-list)
+  "Check if all diffs in DIFF-LIST indicate no changes."
+  (cl-every (lambda (diff) (eq (car diff) :same)) diff-list))
 ```
-</tool.tool_123>
-"))
-    (let ((parsed (greger-parser-markdown-to-dialog markdown)))
-      (should (= 1 (length parsed)))
-      (let* ((assistant-msg (car parsed))
-             (content-blocks (alist-get 'content assistant-msg))
-             (tool-block (car content-blocks))
-             (input (alist-get 'input tool-block))
-             (content-param (alist-get 'content input)))
-        (should (string-match-p "# USER" content-param))
-        (should (string-match-p "# ASSISTANT" content-param))
-        (should (string-match-p "```python" content-param))))))
 
-;; Tests for safe-shell-commands
-(ert-deftest greger-parser-test-safe-shell-commands ()
-  "Test safe-shell-commands with other system content."
-  (let ((markdown "# SYSTEM
+**Usage examples:**
 
-You are a helpful assistant.
+```elisp
+;; Convert a treesit node to simplified tree
+(let ((node (treesit-node-at (point))))
+  (treesit-node-to-simplified-tree node))
 
-<safe-shell-commands>
-ls
+;; Compare two trees
+(let ((tree1 '(source_file
+               (user (user_header) (text))
+               (assistant (assistant_header) (text))))
+      (tree2 '(source_file  
+               (user (user_header) (text))
+               (thinking (thinking_header) (text))
+               (assistant (assistant_header) (text)))))
+  (tree-diff tree1 tree2))
+```
 
-pwd
-</safe-shell-commands>
+The first function `treesit-node-to-simplified-tree` recursively traverses a treesit node and creates a simplified list representation where each node is represented as a list with the node type as the first element and child nodes as subsequent elements.
 
-Please be careful."))
-    (let ((result (greger-parser-markdown-to-dialog markdown)))
-      ;; Should have a system message with combined content
-      (should (= 1 (length result)))
-      (should (string= "system" (alist-get 'role (car result))))
-      (let ((system-content (alist-get 'content (car result))))
-        (should (string= "You are a helpful assistant.
+The second function `tree-diff` compares two simplified trees and returns a diff structure that indicates:
+- `:same` for identical subtrees
+- `:changed` for nodes that differ
+- `:removed` for nodes only in the first tree
+- `:added` for nodes only in the second tree
 
+The diff preserves the tree structure while annotating differences, making it easy to understand what changed between two parse trees.
 
+# USER
 
-Please be careful.
+At the moment treesit-node-to-simplified-tree returns
 
-# Safe shell commands
+```
+(source_file
+ (user
+  user_header
+  text)
+ (thinking
+  thinking_header
+  (thinking_signature
+   key
+   value)
+  text)
+ (assistant
+  assistant_header
+  text)
+ (user
+  user_header
+  text)
+ (thinking
+  thinking_header
+  text))
+```
 
-You can run arbitrary shell commands with the shell-command tool, but the following are safe shell commands that will run without requiring user confirmation:
+I want it to return
 
-* `ls`
-* `pwd`"
-                         system-content))))))
+```
+(source_file
+ (user
+  (user_header)
+  (text))
+ (thinking
+  (thinking_header)
+  (thinking_signature
+   (key)
+   (value))
+  (text))
+ (assistant
+  (assistant_header)
+  (text))
+ (user
+  (user_header)
+  (text))
+ (thinking
+  (thinking_header)
+  (text)))
+```
 
-(ert-deftest greger-parser-test-safe-shell-commands-not-in-system ()
-  "Test that safe-shell-commands outside SYSTEM section are ignored."
-  (let ((markdown "# USER
+Update the diff function to match. All outputs here
 
-<safe-shell-commands>
-ls -la
-</safe-shell-commands>
+# THINKING
 
-What files are here?"))
-    (let ((result (greger-parser-markdown-to-dialog markdown)))
-      ;; Should have no metadata
-      ;; Should have user message with the tag as regular content
-      (should (= 1 (length result)))
-      (should (string-match-p "<safe-shell-commands>"
-                             (alist-get 'content (car result)))))))
+Signature: Et4FCkYIBBgCKkAU2JOuYwie6Fk00n5Ta8cn6GfcpRcUrS6KmIdHLue1Y/ocWp2I26WHaPUFuzSzzObNooqX1Bx4J/Fe6clstD6rEgzpVJsD0TU7wEMpQxIaDKrPJaMlf2w7Z8M8GiIwjs4iYuyJYmwuaK8phpumH45YsaafQ2pyrZsHf9RS3WiZeahOifRYRvntvYBboewxKsUELkZT0WFgKhB2UhnXveoWGzRuf3JENX73NuDvBAJNEx4XJaT4b747c4cg8irdJdHgJNMnchwMxX/s28H4lbdxcoGjUTjX7AWTF2/EDrSt/BoSKmmTLndQUWXphmXHjrPdqg5oWGGPj7DVy1twFMvrkoJpIoRrAvywsJjiHIiv69JNyqq0aopzWi3GnBrMnIhU3QgQ22IsZmTx/AYynr6o5HVMOXpc7yjsYtylbtYOZPHNoYohwdi/mb9ehhmDJPpuJfYMswQ1B0npJbKJOCXGdooWuttWssYVBSfrtDu4avFkSQyR2U89ysQXaLefC8iMw6sRzmdmsF86ZfG6cwAf049iDdB+jDTBz36N3WqHY3qenJuKVKrrPa4s6JodpMUpZbkOPpIpOhfUN4ThlS8faPjbBn0gj/R1SsiJLyGc+a9tw70q7J1wUG5Q6pccSAqgni9Cc855o6zsyESgvuqFti0qYFPI+KlX97tyW3O1/rFSXg3WrgVCa2tuR1K2qnfVABpZ9fa2DX9OM+FP5ADemp2tJ331t84+RZOjfk34yCrQUS+yysIxbTFunaVlnkDnyJPbZTOTDva/nImVvIQUhc/7uInXpp2v/54E11TwVAZJh0IxG9W2eh5/z7ywHT5VGuzXXlajgrJ9uaIulr8733bS8rn2plAO7uEKoUA9lo8dsyW564IEnRtML+xkaS8Sb47IDoFc25nM6WqyBMJ1YYC7i/rzKKOP6mjKzY/1qhWhFz+ZKVSOxEw2T2YRblO1dauKnp0YAQ==
 
+The user wants the treesit-node-to-simplified-tree function to always wrap leaf nodes (nodes without children) in parentheses as well. So instead of returning just the symbol for a leaf node, it should return a list with just that symbol.
 
-;; Cleanup test - should run last alphabetically
-(ert-deftest zz-greger-parser-test-cleanup ()
-  "Clean up test resources (runs last due to alphabetical ordering)."
-  (greger-test-cleanup-grammar-repo)
-  (should t)) ;; Always pass
+Looking at the current output vs desired output:
+- Current: `user_header` (just the symbol)
+- Desired: `(user_header)` (a list containing the symbol)
 
-;;; test-greger-parser.el ends here
-</tool.toolu_01XyhMrqZJ79McMXi3rH1uq7>
+So I need to modify the function to always return a list, even for leaf nodes.
 
-# ASSISTANT
-
-Now let me look at the list of corpus files:
-
-# TOOL USE
-
-Name: list-directory
-ID: toolu_01SB9y7KudJXfWLuXTj15LSn
-
-## path
-
-<tool.toolu_01SB9y7KudJXfWLuXTj15LSn>
-grammar/test/corpus
-</tool.toolu_01SB9y7KudJXfWLuXTj15LSn>
-
-# TOOL RESULT
-
-ID: toolu_01SB9y7KudJXfWLuXTj15LSn
-
-<tool.toolu_01SB9y7KudJXfWLuXTj15LSn>
-grammar/test/corpus/:
-drwxr-xr-x  (dir)  .
-drwxr-xr-x  (dir)  ..
--rw-r--r--      1331  citations-after-tool-result.txt
--rw-r--r--      1995  citations-basic.txt
--rw-r--r--      1752  citations-multiple.txt
--rw-r--r--       435  code-block-nested-headers.txt
--rw-r--r--       342  code-block-triple-backticks.txt
--rw-r--r--      2065  complex-workflow.txt
--rw-r--r--       451  html-comments.txt
--rw-r--r--       145  inline-code.txt
--rw-r--r--       493  mixed-code-blocks-and-sections.txt
--rw-r--r--      1638  multiple-tool-uses.txt
--rw-r--r--       430  nested-code-blocks.txt
--rw-r--r--       333  safe-shell-commands.txt
--rw-r--r--      1169  server-tool-use-basic.txt
--rw-r--r--      1007  server-tool-use-string-result.txt
--rw-r--r--       233  simple-conversation.txt
--rw-r--r--       149  simple-user-message.txt
--rw-r--r--       228  system-and-user.txt
--rw-r--r--       257  text-with-markdown-headings.txt
--rw-r--r--       260  thinking-only.txt
--rw-r--r--       609  thinking-section.txt
--rw-r--r--      1448  tool-use-multiple-params.txt
--rw-r--r--       502  tool-use-only.txt
--rw-r--r--       899  tool-use-single-param.txt
--rw-r--r--      1324  tool-use-with-code-in-params.txt
--rw-r--r--      1208  tool-use-with-tool-use-in-params.txt
--rw-r--r--       253  triple-hash.txt
--rw-r--r--       247  untagged-content.txt
-</tool.toolu_01SB9y7KudJXfWLuXTj15LSn>
+Then I need to update the diff function to handle this new format where every node is a list.
 
 # ASSISTANT
 
-Now let me extract the existing test names from the test file by searching for roundtrip test function definitions:
+Here are the updated functions:
 
-# TOOL USE
+```elisp
+(defun treesit-node-to-simplified-tree (node)
+  "Convert a treesit NODE to a simplified parse tree expression.
+Returns a list where the first element is the node type (symbol)
+and the remaining elements are the simplified representations of child nodes.
+Leaf nodes are wrapped in parentheses as single-element lists."
+  (let ((node-type (intern (treesit-node-type node)))
+        (children (treesit-node-children node t)))
+    (if children
+        (cons node-type
+              (mapcar #'treesit-node-to-simplified-tree children))
+      (list node-type))))
 
-Name: ripgrep
-ID: toolu_013DMaJFPmLXXQnMQfSyDQE4
+(defun tree-diff (tree1 tree2)
+  "Compare two simplified parse trees and return a diff structure.
+Returns a list indicating differences between TREE1 and TREE2.
+The diff format uses:
+- (:same node-type children...) for identical subtrees
+- (:changed tree1-subtree tree2-subtree) for differing subtrees
+- (:removed tree1-subtree) for nodes only in tree1
+- (:added tree2-subtree) for nodes only in tree2"
+  (cond
+   ;; Both must be lists in the new format
+   ((or (not (listp tree1)) (not (listp tree2)))
+    (error "Invalid tree format: trees must be lists"))
+   
+   ;; Both are single-element lists (leaf nodes)
+   ((and (= (length tree1) 1) (= (length tree2) 1))
+    (if (eq (car tree1) (car tree2))
+        `(:same ,@tree1)
+      `(:changed ,tree1 ,tree2)))
+   
+   ;; One is leaf, other has children
+   ((or (= (length tree1) 1) (= (length tree2) 1))
+    `(:changed ,tree1 ,tree2))
+   
+   ;; Both have children - compare node types and children
+   (t
+    (let ((type1 (car tree1))
+          (type2 (car tree2))
+          (children1 (cdr tree1))
+          (children2 (cdr tree2)))
+      (if (eq type1 type2)
+          ;; Same node type, compare children
+          (let ((child-diffs (tree-diff-children children1 children2)))
+            (if (tree-diff-all-same-p child-diffs)
+                `(:same ,type1 ,@children1)
+              `(:same ,type1 ,@child-diffs)))
+        ;; Different node types
+        `(:changed ,tree1 ,tree2))))))
 
-## pattern
+(defun tree-diff-children (children1 children2)
+  "Compare two lists of child nodes and return diff results."
+  (cond
+   ;; Both empty
+   ((and (null children1) (null children2))
+    nil)
+   
+   ;; Only first has children (removals)
+   ((null children2)
+    (mapcar (lambda (child) `(:removed ,child)) children1))
+   
+   ;; Only second has children (additions)
+   ((null children1)
+    (mapcar (lambda (child) `(:added ,child)) children2))
+   
+   ;; Both have children - compare pairwise and handle length differences
+   (t
+    (let ((min-len (min (length children1) (length children2)))
+          (diffs nil))
+      ;; Compare common children
+      (dotimes (i min-len)
+        (push (tree-diff (nth i children1) (nth i children2)) diffs))
+      
+      ;; Handle extra children in first list (removals)
+      (when (> (length children1) min-len)
+        (dolist (child (nthcdr min-len children1))
+          (push `(:removed ,child) diffs)))
+      
+      ;; Handle extra children in second list (additions)
+      (when (> (length children2) min-len)
+        (dolist (child (nthcdr min-len children2))
+          (push `(:added ,child) diffs)))
+      
+      (nreverse diffs)))))
 
-<tool.toolu_013DMaJFPmLXXQnMQfSyDQE4>
-greger-parser-test--roundtrip
-</tool.toolu_013DMaJFPmLXXQnMQfSyDQE4>
+(defun tree-diff-all-same-p (diff-list)
+  "Check if all diffs in DIFF-LIST indicate no changes."
+  (cl-every (lambda (diff) (eq (car diff) :same)) diff-list))
+```
 
-## path
+**Key changes:**
 
-<tool.toolu_013DMaJFPmLXXQnMQfSyDQE4>
-test/test-greger-parser.el
-</tool.toolu_013DMaJFPmLXXQnMQfSyDQE4>
+1. **`treesit-node-to-simplified-tree`**: Changed the leaf node case from returning just `node-type` to returning `(list node-type)`, which wraps leaf nodes in parentheses.
 
-# TOOL RESULT
+2. **`tree-diff`**: Updated to handle the new format where all nodes are lists:
+   - Added validation that both inputs are lists
+   - Updated leaf node comparison to handle single-element lists
+   - Modified the logic to work with the consistent list format
 
-ID: toolu_013DMaJFPmLXXQnMQfSyDQE4
+**Usage examples:**
 
-<tool.toolu_013DMaJFPmLXXQnMQfSyDQE4>
-168:(defun greger-parser-test--roundtrip (corpus-name)
-184:  (greger-parser-test--roundtrip "simple-user-message"))
-188:  (greger-parser-test--roundtrip "system-and-user"))
-192:  (greger-parser-test--roundtrip "simple-conversation"))
-196:  (greger-parser-test--roundtrip "thinking-section"))
-200:  (greger-parser-test--roundtrip "tool-use-single-param"))
-204:  (greger-parser-test--roundtrip "tool-use-multiple-params"))
-208:  (greger-parser-test--roundtrip "complex-workflow"))
-212:  (greger-parser-test--roundtrip "multiple-tool-uses"))
-216:  (greger-parser-test--roundtrip "thinking-only"))
-220:  (greger-parser-test--roundtrip "tool-use-only"))
-224:  (greger-parser-test--roundtrip "citations-basic"))
-228:  (greger-parser-test--roundtrip "citations-after-tool-result"))
-232:  (greger-parser-test--roundtrip "citations-multiple"))
-236:  (greger-parser-test--roundtrip "code-block-triple-backticks"))
-240:  (greger-parser-test--roundtrip "mixed-code-blocks-and-sections"))
-244:  (greger-parser-test--roundtrip "tool-use-with-code-in-params"))
-248:  (greger-parser-test--roundtrip "tool-use-with-tool-use-in-params"))
-252:  (greger-parser-test--roundtrip "nested-code-blocks"))
-256:  (greger-parser-test--roundtrip "html-comments"))
-260:  (greger-parser-test--roundtrip "server-tool-use-basic"))
-264:  (greger-parser-test--roundtrip "server-tool-use-string-result"))
+```elisp
+;; Convert a treesit node to simplified tree (now with parentheses around leaf nodes)
+(let ((node (treesit-node-at (point))))
+  (treesit-node-to-simplified-tree node))
 
-</tool.toolu_013DMaJFPmLXXQnMQfSyDQE4>
+;; Compare two trees
+(let ((tree1 '(source_file
+               (user (user_header) (text))
+               (assistant (assistant_header) (text))))
+      (tree2 '(source_file  
+               (user (user_header) (text))
+               (thinking (thinking_header) (text))
+               (assistant (assistant_header) (text)))))
+  (tree-diff tree1 tree2))
+```
 
-# ASSISTANT
-
-Now let me compare the corpus files with the existing tests. From what I can see, here are the existing roundtrip tests:
-
-**Existing roundtrip tests:**
-1. simple-user-message
-2. system-and-user
-3. simple-conversation
-4. thinking-section
-5. tool-use-single-param
-6. tool-use-multiple-params
-7. complex-workflow
-8. multiple-tool-uses
-9. thinking-only
-10. tool-use-only
-11. citations-basic
-12. citations-after-tool-result
-13. citations-multiple
-14. code-block-triple-backticks
-15. mixed-code-blocks-and-sections
-16. tool-use-with-code-in-params
-17. tool-use-with-tool-use-in-params
-18. nested-code-blocks
-19. html-comments
-20. server-tool-use-basic
-21. server-tool-use-string-result
-
-**All corpus files:**
-1. citations-after-tool-result.txt ✓
-2. citations-basic.txt ✓
-3. citations-multiple.txt ✓
-4. code-block-nested-headers.txt ❌
-5. code-block-triple-backticks.txt ✓
-6. complex-workflow.txt ✓
-7. html-comments.txt ✓
-8. inline-code.txt ❌
-9. mixed-code-blocks-and-sections.txt ✓
-10. multiple-tool-uses.txt ✓
-11. nested-code-blocks.txt ✓
-12. safe-shell-commands.txt ❌
-13. server-tool-use-basic.txt ✓
-14. server-tool-use-string-result.txt ✓
-15. simple-conversation.txt ✓
-16. simple-user-message.txt ✓
-17. system-and-user.txt ✓
-18. text-with-markdown-headings.txt ❌
-19. thinking-only.txt ✓
-20. thinking-section.txt ✓
-21. tool-use-multiple-params.txt ✓
-22. tool-use-only.txt ✓
-23. tool-use-single-param.txt ✓
-24. tool-use-with-code-in-params.txt ✓
-25. tool-use-with-tool-use-in-params.txt ✓
-26. triple-hash.txt ❌
-27. untagged-content.txt ❌
-
-**Missing roundtrip tests:**
-- code-block-nested-headers
-- inline-code
-- safe-shell-commands
-- text-with-markdown-headings
-- triple-hash
-- untagged-content
-
-Let me add these missing test cases to the test file:
-
-# TOOL USE
-
-Name: str-replace
-ID: toolu_01Davz8b3YQoy9V8mRAE9PZi
-
-## file-path
-
-<tool.toolu_01Davz8b3YQoy9V8mRAE9PZi>
-test/test-greger-parser.el
-</tool.toolu_01Davz8b3YQoy9V8mRAE9PZi>
-
-## original-content
-
-<tool.toolu_01Davz8b3YQoy9V8mRAE9PZi>
-(ert-deftest greger-parser-test-server-tool-use-string-result ()
-  "Test roundtrip for server-tool-use-string-result corpus case."
-  (greger-parser-test--roundtrip "server-tool-use-string-result"))
-</tool.toolu_01Davz8b3YQoy9V8mRAE9PZi>
-
-## new-content
-
-<tool.toolu_01Davz8b3YQoy9V8mRAE9PZi>
-(ert-deftest greger-parser-test-server-tool-use-string-result ()
-  "Test roundtrip for server-tool-use-string-result corpus case."
-  (greger-parser-test--roundtrip "server-tool-use-string-result"))
-
-(ert-deftest greger-parser-test-code-block-nested-headers ()
-  "Test roundtrip for code-block-nested-headers corpus case."
-  (greger-parser-test--roundtrip "code-block-nested-headers"))
-
-(ert-deftest greger-parser-test-inline-code ()
-  "Test roundtrip for inline-code corpus case."
-  (greger-parser-test--roundtrip "inline-code"))
-
-(ert-deftest greger-parser-test-safe-shell-commands ()
-  "Test roundtrip for safe-shell-commands corpus case."
-  (greger-parser-test--roundtrip "safe-shell-commands"))
-
-(ert-deftest greger-parser-test-text-with-markdown-headings ()
-  "Test roundtrip for text-with-markdown-headings corpus case."
-  (greger-parser-test--roundtrip "text-with-markdown-headings"))
-
-(ert-deftest greger-parser-test-triple-hash ()
-  "Test roundtrip for triple-hash corpus case."
-  (greger-parser-test--roundtrip "triple-hash"))
-
-(ert-deftest greger-parser-test-untagged-content ()
-  "Test roundtrip for untagged-content corpus case."
-  (greger-parser-test--roundtrip "untagged-content"))
-</tool.toolu_01Davz8b3YQoy9V8mRAE9PZi>
-
-## git-commit-message
-
-<tool.toolu_01Davz8b3YQoy9V8mRAE9PZi>
-Add missing roundtrip tests for all corpus files
-
-Added roundtrip tests for the following corpus files that were missing:
-- code-block-nested-headers
-- inline-code  
-- safe-shell-commands
-- text-with-markdown-headings
-- triple-hash
-- untagged-content
-
-This ensures all corpus test files have corresponding roundtrip tests.
-</tool.toolu_01Davz8b3YQoy9V8mRAE9PZi>
-
-# TOOL RESULT
-
-ID: toolu_01Davz8b3YQoy9V8mRAE9PZi
-
-<tool.toolu_01Davz8b3YQoy9V8mRAE9PZi>
-Successfully replaced content in /Users/andreas/projects/greger.el/test/test-greger-parser.el. Successfully staged 2 file(s) and committed with message: Add missing roundtrip tests for all corpus files
-
-Added roundtrip tests for the following corpus files that were missing:
-- code-block-nested-headers
-- inline-code  
-- safe-shell-commands
-- text-with-markdown-headings
-- triple-hash
-- untagged-content
-
-This ensures all corpus test files have corresponding roundtrip tests.
-</tool.toolu_01Davz8b3YQoy9V8mRAE9PZi>
-
-# ASSISTANT
-
-Perfect! I've successfully added the missing roundtrip tests to the test file. 
-
-## Summary
-
-I compared the existing roundtrip tests in `test/test-greger-parser.el` with the corpus test files in `grammar/test/corpus` and found that 6 corpus files were missing corresponding roundtrip tests:
-
-**Added missing tests for:**
-1. `code-block-nested-headers` - Tests handling of nested headers within code blocks
-2. `inline-code` - Tests inline code formatting
-3. `safe-shell-commands` - Tests safe shell command handling (already had a manual test but no roundtrip test)
-4. `text-with-markdown-headings` - Tests markdown headings in text content
-5. `triple-hash` - Tests triple hash formatting
-6. `untagged-content` - Tests untagged content handling (already had a manual test but no roundtrip test)
-
-Each new test follows the same pattern as existing roundtrip tests, calling `greger-parser-test--roundtrip` with the appropriate corpus file name. The tests ensure that parsing a corpus file to a dialog structure and then converting it back to markdown produces structurally equivalent results.
-
-Note that there were already some manual tests for `safe-shell-commands` and `untagged-content`, but these new tests specifically do the roundtrip testing (markdown → dialog → markdown) to ensure the parser can handle these cases in both directions correctly.
+Now the function will produce the desired output format where leaf nodes like `(user_header)` and `(text)` are wrapped in parentheses, creating a consistent tree structure where every node is represented as a list.
 
 # USER
 
