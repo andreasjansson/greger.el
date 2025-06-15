@@ -5,7 +5,7 @@
 ;; Author: Andreas Jansson <andreas@jansson.me.uk>
 ;; Version: 0.1.0
 ;; URL: https://github.com/andreasjansson/greger.el
-;; Package-Requires: ((emacs "29.0.91"))
+;; Package-Requires: ((emacs "29.1"))
 ;; Keywords: ai, chat, language-models, tools
 ;; SPDX-License-Identifier: MIT
 
