@@ -1,4 +1,4 @@
-;;; test-end-to-end.el --- End-to-end tests for greger -*- lexical-binding: t -*-
+;;; test-greger-client-end.el --- Client tests for greger -*- lexical-binding: t -*-
 
 ;;; Commentary:
 ;;
@@ -31,11 +31,8 @@
 
     completed))
 
-(ert-deftest greger-end-to-end-test-simple-text-generation ()
+(ert-deftest greger-client-test-simple-text-generation ()
   "Test simple text generation with Claude API."
-  :tags '(end-to-end api)
-
-
   (let ((response-received nil)
         (text-chunks '())
         (final-blocks nil)
@@ -83,11 +80,8 @@
           (let ((buffer-content (buffer-string)))
             (should (string-match-p "Hello from Greger test!" buffer-content))))))))
 
-(ert-deftest greger-end-to-end-test-tool-use ()
+(ert-deftest greger-client-test-tool-use ()
   "Test tool use functionality with Claude API."
-  :tags '(end-to-end api tools)
-
-
   (let ((response-received nil)
         (final-blocks nil)
         (test-model 'claude-sonnet-4-20250514)
@@ -140,10 +134,8 @@
                                   (string= (alist-get 'type block) "text"))
                                 final-blocks)))))))))
 
-(ert-deftest greger-end-to-end-test-error-handling ()
+(ert-deftest greger-client-test-error-handling ()
   "Test error handling with invalid model."
-  :tags '(end-to-end error-handling)
-
 
   (let ((error-caught nil))
 
@@ -159,9 +151,8 @@
 
     (should error-caught)))
 
-(ert-deftest greger-end-to-end-test-supported-models ()
+(ert-deftest greger-client-test-supported-models ()
   "Test that supported models are accepted."
-  :tags '(end-to-end models)
 
   ;; Test that both supported models are accepted (we won't actually call API)
   (should (memq 'claude-sonnet-4-20250514 greger-client-supported-models))
@@ -170,11 +161,8 @@
   ;; Test that only these models are supported
   (should (= 2 (length greger-client-supported-models))))
 
-(ert-deftest greger-end-to-end-test-request-building ()
+(ert-deftest greger-client-test-request-building ()
   "Test that request building works correctly."
-  :tags '(end-to-end request-building)
-
-
   (let* ((test-model 'claude-sonnet-4-20250514)
          (test-dialog '(((role . "user") (content . "Hello"))
                         ((role . "assistant") (content . "Hi there!"))
@@ -184,7 +172,7 @@
                         (input_schema . ((type . "object")
                                         (properties . ())
                                         (required . []))))))
-         (request-spec (greger-client--build-request test-model test-dialog test-tools)))
+         (request-spec (greger-client--build-request test-model test-dialog test-tools nil 0 4096)))
 
     ;; Verify request structure
     (should (plist-get request-spec :url))
@@ -206,14 +194,13 @@
 
 (ert-deftest greger-client-test-thinking-configuration ()
   "Test that thinking configuration is properly added to requests."
-  :tags '(unit thinking)
-
   ;; Test thinking enabled
   (let ((test-model 'claude-sonnet-4-20250514)
         (test-dialog '(((role . "user") (content . "Hello"))))
-        (thinking-budget 2048))
+        (thinking-budget 2048)
+        (max-tokens 4096))
     
-    (let ((request-data (greger-client--build-data test-model test-dialog nil nil thinking-budget)))
+    (let ((request-data (greger-client--build-data test-model test-dialog nil nil thinking-budget max-tokens)))
       (should (stringp request-data))
       (let ((parsed (json-read-from-string request-data)))
         ;; Should have thinking configuration
@@ -221,17 +208,16 @@
         (let ((thinking-config (alist-get 'thinking parsed)))
           (should (string= (alist-get 'type thinking-config) "enabled"))
           (should (= (alist-get 'budget_tokens thinking-config) 2048)))
-        
-        ;; Max tokens should include thinking budget
-        (let ((max-tokens (alist-get 'max_tokens parsed)))
-          (should (= max-tokens (+ 8000 2048)))))))
+
+        (should (= (alist-get 'max_tokens parsed) (+ max-tokens thinking-budget))))))
 
   ;; Test thinking disabled
   (let ((test-model 'claude-sonnet-4-20250514)
         (test-dialog '(((role . "user") (content . "Hello"))))
-        (thinking-budget 0))
+        (thinking-budget 0)
+        (max-tokens 4096))
     
-    (let ((request-data (greger-client--build-data test-model test-dialog nil nil thinking-budget)))
+    (let ((request-data (greger-client--build-data test-model test-dialog nil nil thinking-budget max-tokens)))
       (should (stringp request-data))
       (let ((parsed (json-read-from-string request-data)))
         ;; Should have thinking configuration set to disabled
@@ -240,24 +226,7 @@
           (should (string= (alist-get 'type thinking-config) "disabled"))
           (should (not (alist-get 'budget_tokens thinking-config))))
         
-        ;; Max tokens should be base amount only
-        (let ((max-tokens (alist-get 'max_tokens parsed)))
-          (should (= max-tokens 8000))))))
-
-  ;; Test no thinking parameter
-  (let ((test-model 'claude-sonnet-4-20250514)
-        (test-dialog '(((role . "user") (content . "Hello"))))
-        (thinking-budget nil))
-    
-    (let ((request-data (greger-client--build-data test-model test-dialog nil nil thinking-budget)))
-      (should (stringp request-data))
-      (let ((parsed (json-read-from-string request-data)))
-        ;; Should not have thinking configuration
-        (should (not (assq 'thinking parsed)))
-        
-        ;; Max tokens should be base amount only
-        (let ((max-tokens (alist-get 'max_tokens parsed)))
-          (should (= max-tokens 8000)))))))
+        (should (= (alist-get 'max_tokens parsed) max-tokens))))))
 
 (provide 'test-greger-client)
 
