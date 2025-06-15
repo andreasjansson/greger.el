@@ -1,6 +1,6 @@
 ;;; greger-parser.el --- Parser for greger dialog format -*- lexical-binding: t -*-
 
-;; Copyright (C) 2023 Andreas Jansson
+;; Copyright (C) 2025 Andreas Jansson
 
 ;; Author: Andreas Jansson <andreas@jansson.me.uk>
 ;; Version: 0.1.0
@@ -45,8 +45,6 @@
 (defconst greger-parser-server-tool-use-tag "# SERVER TOOL USE")
 (defconst greger-parser-tool-result-tag "# TOOL RESULT")
 (defconst greger-parser-web-search-tool-result-tag "# WEB SEARCH TOOL RESULT")
-
-(add-to-list 'treesit-extra-load-path "/Users/andreas/projects/greger.el/greger-grammar")
 
 ;; Entrypoints
 

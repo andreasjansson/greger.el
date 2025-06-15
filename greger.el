@@ -1,11 +1,11 @@
 ;;; greger.el --- Chat with language models -*- lexical-binding: t -*-
 
-;; Copyright (C) 2023 Andreas Jansson
+;; Copyright (C) 2025 Andreas Jansson
 
 ;; Author: Andreas Jansson <andreas@jansson.me.uk>
 ;; Version: 0.1.0
 ;; URL: https://github.com/andreasjansson/greger.el
-;; Package-Requires: ((emacs "29.1"))
+;; Package-Requires: ((emacs "29.0.91"))
 ;; Keywords: ai, chat, language-models, tools
 ;; SPDX-License-Identifier: MIT
 
@@ -41,8 +41,6 @@
 (require 'greger-tools)
 (require 'greger-stdlib)
 (require 'greger-ui)
-
-
 
 (defconst greger-available-models
   '(claude-sonnet-4-20250514

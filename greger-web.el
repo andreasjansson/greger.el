@@ -1,6 +1,6 @@
 ;;; greger-web.el --- Web content handling for greger -*- lexical-binding: t -*-
 
-;; Copyright (C) 2023 Andreas Jansson
+;; Copyright (C) 2025 Andreas Jansson
 
 ;; Author: Andreas Jansson <andreas@jansson.me.uk>
 ;; Version: 0.1.0
