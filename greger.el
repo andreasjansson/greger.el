@@ -310,7 +310,7 @@ May order 4,000 pounds of meat."
 ;;;###autoload
 (defun greger (&optional prefix-arg)
   "Create a new buffer and switch to `greger-mode`.
-With PREFIX-ARG (e.g. C-u M-x greger), save the current buffer,
+With PREFIX-ARG (e.g. \[universal-argument] \[greger]), save the current buffer,
 split the window if not already split, and insert location
 information at the beginning of the user section."
   (interactive "P")
