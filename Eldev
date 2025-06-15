@@ -3,8 +3,15 @@
 
 (package-file "greger.el")
 
-(development
- (depends-on "buttercup"))
+;; Dependencies for your package
+;; Add any runtime dependencies here if needed
+;; (depends-on "some-package")
 
-;; Set up sources
+;; Development dependencies
+;; ERT is built-in, no need to add it as a dependency
+
+;; Set up sources and exclusions
 (setq eldev-standard-excludes '("/*.ai" "/*.greger" "/request.json" "/chat*.greger" "/chat*.ai"))
+
+;; Test configuration
+;; Eldev will automatically discover ERT tests in test/ directory
