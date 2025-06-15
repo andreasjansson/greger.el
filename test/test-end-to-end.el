@@ -40,7 +40,7 @@ Leaf nodes are wrapped in parentheses as single-element lists."
         (children (treesit-node-children node t)))
     (if children
         (cons node-type
-              (mapcar #'treesit-node-to-simplified-tree children))
+              (mapcar #'greger-test-treesit-node-to-simplified-tree children))
       (list node-type))))
 
 (defun greger-test-parse-tree-contains-p (parse-tree name)
@@ -60,16 +60,14 @@ Uses greger--mode-line-info to get the greger-specific portion of the mode line.
           (greger--mode-line-info)
         ""))))
 
-(defun greger-test-wait-for-mode-line-state (state &optional timeout buffer)
-  "Wait for greger buffer to reach STATE within TIMEOUT seconds.
-If BUFFER is provided, check that buffer's status, otherwise use current buffer."
+(defun greger-test-wait-for-status (state &optional timeout)
+  "Wait for greger buffer to reach STATE within TIMEOUT seconds."
   (let ((start-time (current-time))
         (current-state nil)
-        (timeout (or timeout greger-test-timeout))
-        (buf (or buffer (current-buffer))))
+        (timeout (or timeout greger-test-timeout)))
     (while (and (not (equal state current-state))
                 (< (float-time (time-subtract (current-time) start-time)) timeout))
-      (let ((status (greger-status buf)))
+      (let ((status (greger-status)))
         (setq current-state (plist-get status :state)))
       (sit-for 0.2))
     (equal state current-state)))
@@ -126,7 +124,7 @@ If BUFFER is provided, check that buffer's status, otherwise use current buffer.
           (let ((greger-thinking-budget 0))
             (greger-buffer))
 
-          (should (greger-test-wait-for-mode-line-state 'idle nil greger-buffer))
+          (should (greger-test-wait-for-status 'idle))
 
           (let ((buffer-contents (buffer-substring-no-properties (point-min) (point-max)))
                 (expected "# SYSTEM
@@ -182,7 +180,7 @@ Hello from greger test!
                 (greger-tools '("read-file-basic")))
             (greger-buffer)
 
-            (should (greger-test-wait-for-mode-line-state 'idle nil greger-buffer))
+            (should (greger-test-wait-for-status 'idle))
 
             (let ((expected-parse-tree '(source_file
                                          (system
@@ -253,7 +251,7 @@ Hello from greger test!
 
           (greger-buffer-no-tools)
 
-          (should (greger-test-wait-for-mode-line-state 'idle nil greger-buffer))
+          (should (greger-test-wait-for-status 'idle))
 
           (let ((parse-tree (greger-test-parse-tree)))
             (should (not (greger-test-parse-tree-contains-p parse-tree 'thinking)))
@@ -315,7 +313,7 @@ Hello from greger test!
                 (greger-tools '("shell-command")))
             (greger-buffer)
 
-            (should (greger-test-wait-for-mode-line-state 'executing nil greger-buffer))
+            (should (greger-test-wait-for-status 'executing))
 
             ;; Wait 1 second while in executing state
             (sit-for 1.0)
@@ -324,14 +322,14 @@ Hello from greger test!
             (let ((interrupted-state (greger-interrupt)))
               (should (eq interrupted-state 'executing)))
 
-            (should (greger-test-wait-for-mode-line-state 'generating nil greger-buffer))
+            (should (greger-test-wait-for-status 'generating))
 
             ;; Interrupt assistant message before it even started
             (let ((interrupted-state (greger-interrupt)))
               (should (eq interrupted-state 'generating)))
 
             ;; Should immediately become idle
-            (should (greger-test-wait-for-mode-line-state 'idle 0.1 greger-buffer))
+            (should (greger-test-wait-for-status 'idle 0.1))
 
             (let ((content (buffer-string)))
               (should (string-match-p "Command failed with exit code 2: (no output)" content)))
@@ -340,7 +338,7 @@ Hello from greger test!
 
             (greger-buffer)
 
-            (should (greger-test-wait-for-mode-line-state 'generating nil greger-buffer))
+            (should (greger-test-wait-for-status 'generating))
 
             ;; Wait for assistant text to start appearing
             (sit-for 3.0)
@@ -349,7 +347,7 @@ Hello from greger test!
             (let ((interrupted-state (greger-interrupt)))
               (should (eq interrupted-state 'generating)))
 
-            (should (greger-test-wait-for-mode-line-state 'idle 0.1 greger-buffer))))
+            (should (greger-test-wait-for-status 'idle 0.1))))
 
       (when (and greger-buffer (buffer-live-p greger-buffer))
         (kill-buffer greger-buffer)))))
@@ -366,12 +364,12 @@ Hello from greger test!
 
           (let ((greger-server-tools '(web_search)))
             (goto-char (point-max))
-            (insert "What is the current weather in San Francisco? Please search for this information and give me a short one-sentence summary..")
+            (insert "What is the current weather in San Francisco? Please search for this information and give me a short one-sentence summary.")
 
             (let ((greger-thinking-budget 0))
               (greger-buffer))
 
-            (greger-test-wait-for-mode-line-state 'idle nil greger-buffer)
+            (greger-test-wait-for-status 'idle)
 
             ;; Verify response was added to buffer
             (let ((content (buffer-string)))
@@ -403,7 +401,7 @@ Hello from greger test!
           (let ((greger-thinking-budget 1024))
             (greger-buffer))
           
-          (should (greger-test-wait-for-mode-line-state 'idle nil greger-buffer))
+          (should (greger-test-wait-for-status 'idle))
 
           (let ((expected-parse-tree '(source_file
                                        (system

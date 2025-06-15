@@ -464,19 +464,17 @@ information at the beginning of the user section."
      ;; Otherwise we're idle
      (t 'idle))))
 
-(defun greger-status (&optional buffer)
-  "Get the current greger status information for BUFFER (or current buffer).
+(defun greger-status ()
+  "Get the current greger status information for current buffer.
 Returns a plist with the following keys:
 - :state - Current state: 'idle, 'generating, or 'executing
 - :model - Current model name as a string
 - :thinking-budget - Current thinking budget (0 if disabled)
 
 This function can be used for both UI display and programmatic access."
-  (let ((buf (or buffer (current-buffer))))
-    (with-current-buffer buf
-      (list :state (greger--get-current-state)
-            :model (symbol-name greger-model)
-            :thinking-budget greger-thinking-budget))))
+  (list :state (greger--get-current-state)
+        :model (symbol-name greger-model)
+        :thinking-budget greger-thinking-budget))
 
 (defun greger--mode-line-info ()
   "Generate mode line information showing model and current state."
