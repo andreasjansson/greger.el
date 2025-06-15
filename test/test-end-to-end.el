@@ -79,18 +79,6 @@ Leaf nodes are wrapped in parentheses as single-element lists."
   "Test the main greger function creates a buffer and sets it up correctly."
   (skip-unless (getenv "ANTHROPIC_API_KEY"))
 
-  ;; Register a basic read-file tool that only accepts file-path
-  (defun greger-test-read-file-basic (file-path)
-    "Simple wrapper around greger-stdlib--read-file that only accepts file-path."
-    (greger-stdlib--read-file file-path))
-
-  (greger-register-tool "read-file-basic"
-    :description "Read the contents of a file from the filesystem (basic version with only file-path argument)"
-    :properties '((file-path . ((type . "string")
-                               (description . "Path to the file to read"))))
-    :required '("file-path")
-    :function 'greger-test-read-file-basic)
-
   (let ((original-buffers (buffer-list)))
     (unwind-protect
         (progn
