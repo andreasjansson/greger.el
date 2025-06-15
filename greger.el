@@ -311,8 +311,8 @@ May order 4,000 pounds of meat."
 (defun greger (&optional prefix-arg)
   "Create a new buffer and switch to `greger-mode`.
 With PREFIX-ARG (e.g. C-u M-x greger), save the current buffer,
-split the window horizontally if not already split, and insert
-location information at the beginning of the user section."
+split the window if not already split, and insert location
+information at the beginning of the user section."
   (interactive "P")
   (let ((buffer (generate-new-buffer "*greger*"))
         (source-info (when prefix-arg
@@ -323,7 +323,7 @@ location information at the beginning of the user section."
     (when prefix-arg
       ;; Split horizontally if not already split
       (when (= (length (window-list)) 1)
-        (split-window-below))
+        (split-window-right))
       ;; Move to the next window
       (other-window 1))
     (switch-to-buffer buffer)
