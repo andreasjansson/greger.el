@@ -13,17 +13,7 @@
 (require 'greger)
 
 (defvar greger-test-timeout 30
-  ;; Register a basic read-file tool that only accepts file-path
-  (defun greger-test-read-file-basic (file-path)
-    "Simple wrapper around greger-stdlib--read-file that only accepts file-path."
-    (greger-stdlib--read-file file-path))
-
-  (greger-register-tool "read-file-basic"
-    :description "Read the contents of a file from the filesystem (basic version with only file-path argument)"
-    :properties '((file-path . ((type . "string")
-                               (description . "Path to the file to read"))))
-    :required '("file-path")
-    :function 'greger-test-read-file-basic)"Timeout in seconds for API calls in tests.")
+  "Timeout in seconds for API calls in tests.")
 
 (defun greger-test-parse-tree ()
   (greger-test-treesit-node-to-simplified-tree (treesit-buffer-root-node)))
