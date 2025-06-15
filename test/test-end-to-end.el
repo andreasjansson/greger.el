@@ -351,7 +351,7 @@ Hello from greger test!
 
             (greger-buffer)
 
-            (should (greger-test-wait-for-mode-line-state 'generating))
+            (should (greger-test-wait-for-mode-line-state 'generating nil greger-buffer))
 
             ;; Wait for assistant text to start appearing
             (sit-for 3.0)
