@@ -126,7 +126,7 @@ START and END are the region bounds."
               (when (and old-overlay (overlayp old-overlay))
                 (delete-overlay old-overlay)
                 (remove-text-properties node-start node-end '(greger-ui-fold-overlay nil))))
-            
+
             ;; Add overlay with fold indicator when tail is hidden
             (unless is-tail-visible
               (let ((overlay (make-overlay (-  node-end 2) (1- node-end))))
@@ -144,7 +144,7 @@ NODE is the matched tree-sitter node"
   (let* ((node-start (treesit-node-start node))
          (node-end (treesit-node-end node))
          (is-visible (get-text-property node-start 'greger-ui-tool-content-expanded)))
-    
+
     ;; Apply invisibility (default is invisible unless expanded)
     (put-text-property node-start node-end 'invisible (not is-visible))
     (put-text-property node-start node-end 'keymap greger-ui-tool-content-tail-keymap)))

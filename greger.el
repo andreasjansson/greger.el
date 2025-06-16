@@ -293,11 +293,11 @@ May order 4,000 pounds of meat."
                 (fields)
                 (subheadings)))
   (setq-local treesit-simple-indent-rules greger--treesit-indent-rules)
-  
+
   ;; Disabled because this crashes Emacs.
   ;; Reproduce: At beginning of buffer, run (treesit-search-forward-goto (treesit-node-at (point)) "" t t t)
   ;; (setq-local treesit-defun-type-regexp (rx line-start (or "user" "assistant") line-end))
-  
+
   (treesit-major-mode-setup)
 
   (setq-local mode-line-misc-info '(:eval (greger--mode-line-info)))
@@ -363,7 +363,7 @@ insert location information at the beginning of the user section."
 
   ;; to not get stuck in read only
   (greger--set-buffer-read-only nil)
-  
+
   (let* ((buffer (current-buffer))
          (state (buffer-local-value 'greger--current-state buffer)))
     (cond

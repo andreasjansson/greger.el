@@ -145,15 +145,15 @@ This ensures the '..' entry has predictable permissions in tests."
   "Test shell-command tool when user denies permission."
   ;; Mock the permission prompt to always return no
   (cl-letf (((symbol-function 'y-or-n-p) (lambda (prompt) nil)))
-    ;; Should signal an error when permission is denied
-    (should-error
-     (greger-stdlib--shell-command
-      "echo test"
-      (lambda (output err) nil)  ; callback shouldn't be called
-      nil
-      nil
-      '(:allow-all-shell-commands nil))
-     :type 'error)))
+           ;; Should signal an error when permission is denied
+           (should-error
+            (greger-stdlib--shell-command
+             "echo test"
+             (lambda (output err) nil)  ; callback shouldn't be called
+             nil
+             nil
+             '(:allow-all-shell-commands nil))
+            :type 'error)))
 
 (ert-deftest greger-stdlib-test-shell-command-command-failure ()
   "Test shell-command tool when command fails."
@@ -511,7 +511,7 @@ This ensures the '..' entry has predictable permissions in tests."
                      (should (stringp result))
                      (should (string-match "Successfully replaced content" result))
                      (should-not (string-match "made.*replacements" result)) ; No count for single replacement
-                     
+
                      ;; Verify only first occurrence was replaced
                      (with-temp-buffer
                        (insert-file-contents test-file)
@@ -547,7 +547,7 @@ This ensures the '..' entry has predictable permissions in tests."
                      (should (stringp result))
                      (should (string-match "Successfully replaced content" result))
                      (should (string-match "made 3 replacements" result)) ; Should show count
-                     
+
                      ;; Verify all occurrences were replaced
                      (with-temp-buffer
                        (insert-file-contents test-file)
@@ -611,7 +611,7 @@ This ensures the '..' entry has predictable permissions in tests."
                      (should (stringp result))
                      (should (string-match "Successfully replaced content" result))
                      (should-not (string-match "made.*replacements" result)) ; No count for single replacement
-                     
+
                      ;; Verify content was replaced
                      (with-temp-buffer
                        (insert-file-contents test-file)
@@ -647,7 +647,7 @@ This ensures the '..' entry has predictable permissions in tests."
                      (should (stringp result))
                      (should (string-match "Successfully replaced content" result))
                      (should (string-match "made 2 replacements" result))
-                     
+
                      ;; Verify all occurrences were replaced
                      (with-temp-buffer
                        (insert-file-contents test-file)
@@ -683,7 +683,7 @@ This ensures the '..' entry has predictable permissions in tests."
                      (should (stringp result))
                      (should (string-match "Successfully replaced content" result))
                      (should-not (string-match "made.*replacements" result)) ; Only one match
-                     
+
                      ;; Verify only lowercase "hello" was replaced
                      (with-temp-buffer
                        (insert-file-contents test-file)
@@ -1261,7 +1261,7 @@ drwx------  (dir)  ..
 
 (ert-deftest greger-stdlib-test-write-new-file-basic ()
   "Test basic write-new-file functionality."
-  (let ((test-file (expand-file-name "new-test-file.txt" 
+  (let ((test-file (expand-file-name "new-test-file.txt"
                                      (make-temp-file "greger-write-test" t)))
         (test-content "Hello, world!\nThis is a new file."))
     (unwind-protect
@@ -1281,7 +1281,7 @@ drwx------  (dir)  ..
                      (should (stringp result))
                      (should (string-match "Successfully wrote new file" result))
                      (should (file-exists-p test-file))
-                     
+
                      ;; Verify file contents (write-file adds a newline at the end)
                      (with-temp-buffer
                        (insert-file-contents test-file)
@@ -1354,7 +1354,7 @@ drwx------  (dir)  ..
                                   "Replace file content")))
                      (should (stringp result))
                      (should (string-match "Successfully replaced" result))
-                     
+
                      ;; Verify new content
                      (with-temp-buffer
                        (insert-file-contents test-file)
@@ -1397,7 +1397,7 @@ drwx------  (dir)  ..
                                   "Replace with empty content")))
                      (should (stringp result))
                      (should (string-match "Successfully replaced" result))
-                     
+
                      ;; Verify file is now empty
                      (with-temp-buffer
                        (insert-file-contents test-file)
@@ -1409,7 +1409,7 @@ drwx------  (dir)  ..
 
 (ert-deftest greger-stdlib-test-make-directory-basic ()
   "Test basic make-directory functionality."
-  (let ((test-dir (expand-file-name "test-new-dir" 
+  (let ((test-dir (expand-file-name "test-new-dir"
                                     (make-temp-file "greger-mkdir-test" t))))
     (unwind-protect
         (progn
@@ -1442,7 +1442,7 @@ drwx------  (dir)  ..
     (unwind-protect
         (progn
           (setq nested-dir (expand-file-name "level1/level2/level3" parent-dir))
-          
+
           ;; Ensure nested path doesn't exist
           (should-not (file-exists-p nested-dir))
 
@@ -1458,7 +1458,7 @@ drwx------  (dir)  ..
                      (should (string-match "Successfully created directory" result))
                      (should (file-exists-p nested-dir))
                      (should (file-directory-p nested-dir))
-                     
+
                      ;; Verify intermediate directories were created
                      (should (file-exists-p (expand-file-name "level1" parent-dir)))
                      (should (file-exists-p (expand-file-name "level1/level2" parent-dir))))))
@@ -1494,7 +1494,7 @@ drwx------  (dir)  ..
 (ert-deftest greger-stdlib-test-rename-file-basic ()
   "Test basic rename-file functionality."
   (let ((old-file (make-temp-file "greger-rename-old"))
-        (new-file (expand-file-name "renamed-file.txt" 
+        (new-file (expand-file-name "renamed-file.txt"
                                     (make-temp-file "greger-rename-test" t)))
         (test-content "File content to preserve"))
     (unwind-protect
@@ -1519,7 +1519,7 @@ drwx------  (dir)  ..
                      (should (string-match "Successfully renamed" result))
                      (should-not (file-exists-p old-file))
                      (should (file-exists-p new-file))
-                     
+
                      ;; Verify content was preserved
                      (with-temp-buffer
                        (insert-file-contents new-file)
@@ -1544,7 +1544,7 @@ drwx------  (dir)  ..
         (progn
           (setq old-file (expand-file-name "original.txt" source-dir))
           (setq new-file (expand-file-name "moved.txt" dest-dir))
-          
+
           ;; Create original file
           (with-temp-file old-file
             (insert test-content))
@@ -1562,7 +1562,7 @@ drwx------  (dir)  ..
                      (should (string-match "Successfully renamed" result))
                      (should-not (file-exists-p old-file))
                      (should (file-exists-p new-file))
-                     
+
                      ;; Verify content was preserved
                      (with-temp-buffer
                        (insert-file-contents new-file)
@@ -1700,7 +1700,7 @@ drwx------  (dir)  ..
   "Test ripgrep case sensitivity options."
   (let ((test-dir (make-temp-file "greger-ripgrep-case" t))
         (result-sensitive nil)
-        (result-insensitive nil) 
+        (result-insensitive nil)
         (callback-count 0))
     (unwind-protect
         (progn
@@ -2165,7 +2165,7 @@ drwx------  (dir)  ..
   "Test ripgrep with invalid regex pattern."
   (let ((test-dir (make-temp-file "greger-ripgrep-invalid" t))
         (result nil)
-        (error nil)  
+        (error nil)
         (callback-called nil))
     (unwind-protect
         (progn
@@ -2209,7 +2209,7 @@ drwx------  (dir)  ..
           (with-temp-file (expand-file-name "binary.bin" test-dir)
             (set-buffer-multibyte nil)
             (insert "text\0binary\0content"))
-          
+
           ;; Create a normal text file for comparison
           (with-temp-file (expand-file-name "text.txt" test-dir)
             (insert "text content here"))

@@ -9,6 +9,8 @@
 
 ;;; Code:
 
+(require 'whitespace)
+
 (defvar format-check-mode nil
   "When non-nil, only check if files would be reformatted.")
 
@@ -22,9 +24,12 @@ Returns the formatted content as a string, or nil on error."
       (with-temp-buffer
         (insert-file-contents file)
         (emacs-lisp-mode)
+        ;; Load cl-lib to ensure proper indentation of cl-defun
+        (require 'cl-lib)
         ;; Suppress verbose indentation messages
         (let ((inhibit-message t))
           (indent-region (point-min) (point-max)))
+        (whitespace-cleanup)
         (untabify (point-min) (point-max))
         (buffer-string))
     (error

@@ -194,8 +194,8 @@
                                                           (description . "Directory to run the command in")
                                                           (default . ".")))
                                     (timeout . ((type . "integer")
-                                               (description . "Timeout in seconds for command execution")
-                                               (default . 600))))
+                                                (description . "Timeout in seconds for command execution")
+                                                (default . 600))))
                       :required '("command")
                       :function 'greger-stdlib--shell-command
                       :pass-callback t
@@ -219,11 +219,11 @@
 ;; Helper functions
 
 (cl-defun greger-stdlib--assert-arg-string (name value &key min-length)
-  "Assert that VALUE is a string, error with NAME if not."
-  (unless (stringp value)
-    (error "Invalid argument: %s must be a string" name))
-  (when (and min-length (< (length value) min-length))
-    (error "Invalid argument: %s must have a length of at least %d" name min-length)))
+          "Assert that VALUE is a string, error with NAME if not."
+          (unless (stringp value)
+            (error "Invalid argument: %s must be a string" name))
+          (when (and min-length (< (length value) min-length))
+            (error "Invalid argument: %s must have a length of at least %d" name min-length)))
 
 (defun greger-stdlib--assert-arg-bool (name value)
   "Assert that VALUE is a boolean, error with NAME if not."
@@ -257,98 +257,98 @@ Error with NAME if not. Either bound can be nil to skip that check."
     (error "Invalid argument: %s must be a valid URL (starting with http:// or https://)" name)))
 
 (cl-defun greger-stdlib--run-async-subprocess (&key command args working-directory callback timeout env)
-  "Run COMMAND with ARGS in WORKING-DIRECTORY and call CALLBACK.
+          "Run COMMAND with ARGS in WORKING-DIRECTORY and call CALLBACK.
 CALLBACK will be called with (output nil) on success or (nil error-message) on
 failure.
 TIMEOUT specifies the maximum time in seconds to wait for completion (default no timeout).
 ENV is an optional alist of environment variables to set.
 Returns a cancel function that can be called to interrupt the process."
-  (let* ((process-name (format "greger-subprocess-%s" (make-temp-name "")))
-         (process-buffer (generate-new-buffer (format " *%s*" process-name)))
-         (default-directory (expand-file-name (or working-directory ".")))
-         (process-environment (if env
-                                  (append (mapcar (lambda (pair) (format "%s=%s" (car pair) (cdr pair))) env)
-                                         process-environment)
-                                process-environment))
-         (process nil)
-         (callback-called nil)
-         (timeout-timer nil))
+          (let* ((process-name (format "greger-subprocess-%s" (make-temp-name "")))
+                 (process-buffer (generate-new-buffer (format " *%s*" process-name)))
+                 (default-directory (expand-file-name (or working-directory ".")))
+                 (process-environment (if env
+                                          (append (mapcar (lambda (pair) (format "%s=%s" (car pair) (cdr pair))) env)
+                                                  process-environment)
+                                        process-environment))
+                 (process nil)
+                 (callback-called nil)
+                 (timeout-timer nil))
 
-    (condition-case err
-        (progn
-          (setq process (apply #'start-process process-name process-buffer command args))
-          (set-process-query-on-exit-flag process nil)
-          
-          ;; Set up timeout timer if specified
-          (when timeout
-            (setq timeout-timer
-                  (run-at-time timeout nil
-                               (lambda ()
-                                 (when (and process (process-live-p process))
-                                   (unless callback-called
-                                     (setq callback-called t)
-                                     (when timeout-timer
-                                       (cancel-timer timeout-timer))
-                                     (interrupt-process process)
-                                     (sit-for 0.1)
-                                     (when (process-live-p process)
-                                       (delete-process process))
-                                     (when (buffer-live-p process-buffer)
-                                       (kill-buffer process-buffer))
-                                     (funcall callback nil (format "Command timed out after %d seconds" timeout))))))))
+            (condition-case err
+                (progn
+                  (setq process (apply #'start-process process-name process-buffer command args))
+                  (set-process-query-on-exit-flag process nil)
 
-          (set-process-sentinel
-           process
-           (lambda (proc _event)
-             (unless callback-called
-               (setq callback-called t)
-               ;; Cancel timeout timer if it's running
-               (when timeout-timer
-                 (cancel-timer timeout-timer))
-               (let ((exit-status (process-exit-status proc))
-                     (output (with-current-buffer process-buffer
-                               (buffer-string))))
-                 ;; TODO: remove debug
-                 (when (buffer-live-p process-buffer)
-                   (kill-buffer process-buffer))
-                 (cond
-                  ((= exit-status 0)
-                   (funcall callback
-                            (if (string-empty-p (string-trim output))
-                                "(no output)"
-                              output)
-                            nil))
+                  ;; Set up timeout timer if specified
+                  (when timeout
+                    (setq timeout-timer
+                          (run-at-time timeout nil
+                                       (lambda ()
+                                         (when (and process (process-live-p process))
+                                           (unless callback-called
+                                             (setq callback-called t)
+                                             (when timeout-timer
+                                               (cancel-timer timeout-timer))
+                                             (interrupt-process process)
+                                             (sit-for 0.1)
+                                             (when (process-live-p process)
+                                               (delete-process process))
+                                             (when (buffer-live-p process-buffer)
+                                               (kill-buffer process-buffer))
+                                             (funcall callback nil (format "Command timed out after %d seconds" timeout))))))))
 
-                  (t
-                   (funcall callback nil
-                            (format "Command failed with exit code %d: %s"
-                                    exit-status
+                  (set-process-sentinel
+                   process
+                   (lambda (proc _event)
+                     (unless callback-called
+                       (setq callback-called t)
+                       ;; Cancel timeout timer if it's running
+                       (when timeout-timer
+                         (cancel-timer timeout-timer))
+                       (let ((exit-status (process-exit-status proc))
+                             (output (with-current-buffer process-buffer
+                                       (buffer-string))))
+                         ;; TODO: remove debug
+                         (when (buffer-live-p process-buffer)
+                           (kill-buffer process-buffer))
+                         (cond
+                          ((= exit-status 0)
+                           (funcall callback
                                     (if (string-empty-p (string-trim output))
                                         "(no output)"
-                                      output)))))))))
+                                      output)
+                                    nil))
 
-          ;; Return cancel function
-          (lambda ()
-            ;; Cancel timeout timer if it's running
-            (when timeout-timer
-              (cancel-timer timeout-timer))
-            (when (and process (process-live-p process))
-              (interrupt-process process)
-              (sit-for 0.1)
-              (when (process-live-p process)
-                (delete-process process)))
-            (unless callback-called
-              (setq callback-called t)
-              (when (buffer-live-p process-buffer)
-                (kill-buffer process-buffer))
-              ;; Call callback with cancellation error
-              (funcall callback nil "Command execution was cancelled"))))
-      (error
-       (when (buffer-live-p process-buffer)
-         (kill-buffer process-buffer))
-       (funcall callback nil (format "Failed to start process: %s" (error-message-string err)))
-       ;; Return no-op cancel function if process failed to start
-       (lambda () nil)))))
+                          (t
+                           (funcall callback nil
+                                    (format "Command failed with exit code %d: %s"
+                                            exit-status
+                                            (if (string-empty-p (string-trim output))
+                                                "(no output)"
+                                              output)))))))))
+
+                  ;; Return cancel function
+                  (lambda ()
+                    ;; Cancel timeout timer if it's running
+                    (when timeout-timer
+                      (cancel-timer timeout-timer))
+                    (when (and process (process-live-p process))
+                      (interrupt-process process)
+                      (sit-for 0.1)
+                      (when (process-live-p process)
+                        (delete-process process)))
+                    (unless callback-called
+                      (setq callback-called t)
+                      (when (buffer-live-p process-buffer)
+                        (kill-buffer process-buffer))
+                      ;; Call callback with cancellation error
+                      (funcall callback nil "Command execution was cancelled"))))
+              (error
+               (when (buffer-live-p process-buffer)
+                 (kill-buffer process-buffer))
+               (funcall callback nil (format "Failed to start process: %s" (error-message-string err)))
+               ;; Return no-op cancel function if process failed to start
+               (lambda () nil)))))
 
 (defun greger-stdlib--find-git-repo-root (start-dir)
   "Find the git repository root starting from START-DIR."
@@ -855,7 +855,7 @@ For Emacs Lisp files (.el), checks that parentheses balance is maintained."
                   (replace-match new-content nil t)
                   (setq replacements-made 1))
               (error "Original content not found in file: %s -- Try again!" expanded-path)))
-          
+
           ;; Save the file
           (save-buffer)))
 
