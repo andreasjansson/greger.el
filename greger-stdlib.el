@@ -234,7 +234,8 @@
       (error "Invalid argument: each element in %s must be a string" name))))
 
 (cl-defun greger-stdlib--assert-arg-int (name value &key ge le)
-          "Assert that VALUE is an integer between GREATER-OR-EQUAL and LESS-OR-EQUAL.
+          "Assert that VALUE is an integer between GREATER-OR-EQUAL and
+LESS-OR-EQUAL.
 Error with NAME if not. Either bound can be nil to skip that check."
           (unless (integerp value)
             (error "Invalid argument: %s must be an integer" name))
