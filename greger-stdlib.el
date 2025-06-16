@@ -770,7 +770,9 @@ Uses `parse-partial-sexp' to properly handle strings and comments."
           (setq pos (1+ pos)))
         balance))))
 
-(defun greger-stdlib--str-replace (file-path original-content new-content git-commit-message &optional replace-all buffer)
+(defun greger-stdlib--str-replace (file-path original-content new-content
+                                           git-commit-message &optional
+                                           replace-all buffer)
   "Replace ORIGINAL-CONTENT with NEW-CONTENT in FILE-PATH.
 GIT-COMMIT-MESSAGE will be used for the git commit.
 If REPLACE-ALL is non-nil, replace all instances; otherwise replace only the first instance.
