@@ -90,9 +90,9 @@
         (test-tools '(((name . "calculator")
                        (description . "Performs basic arithmetic calculations")
                        (input_schema . ((type . "object")
-                                       (properties . ((expression . ((type . "string")
-                                                                     (description . "Mathematical expression to evaluate")))))
-                                       (required . ["expression"])))))))
+					(properties . ((expression . ((type . "string")
+                                                                      (description . "Mathematical expression to evaluate")))))
+					(required . ["expression"])))))))
 
     (with-temp-buffer
       (let ((test-buffer (current-buffer)))
@@ -129,10 +129,10 @@
             ;; We should have at least attempted to use a tool
             ;; (Note: Claude might not always use the tool, but this tests the capability)
             (should (or has-tool-use
-                       ;; Or at least responded with text
-                       (cl-some (lambda (block)
-                                  (string= (alist-get 'type block) "text"))
-                                final-blocks)))))))))
+			;; Or at least responded with text
+			(cl-some (lambda (block)
+                                   (string= (alist-get 'type block) "text"))
+                                 final-blocks)))))))))
 
 (ert-deftest greger-client-test-error-handling ()
   "Test error handling with invalid model."
@@ -170,8 +170,8 @@
          (test-tools '(((name . "test-tool")
                         (description . "A test tool")
                         (input_schema . ((type . "object")
-                                        (properties . ())
-                                        (required . []))))))
+                                         (properties . ())
+                                         (required . []))))))
          (request-spec (greger-client--build-request test-model test-dialog test-tools nil 0 4096)))
 
     ;; Verify request structure

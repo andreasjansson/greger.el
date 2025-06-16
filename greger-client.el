@@ -45,21 +45,21 @@
 ;;; Data structures
 
 (cl-defstruct greger-client-state
-  accumulated-output
-  content-blocks
-  process
-  output-buffer ;; used for undo handle
-  undo-handle
-  block-start-callback
-  text-delta-callback
-  block-stop-callback
-  complete-callback
-  restore-callback)
+	      accumulated-output
+	      content-blocks
+	      process
+	      output-buffer ;; used for undo handle
+	      undo-handle
+	      block-start-callback
+	      text-delta-callback
+	      block-stop-callback
+	      complete-callback
+	      restore-callback)
 
 ;;; Public API
 
 (cl-defun greger-client-stream (&key model dialog tools server-tools buffer block-start-callback text-delta-callback block-stop-callback complete-callback thinking-budget max-tokens)
-  "Send API request to the Claude streaming API.
+	  "Send API request to the Claude streaming API.
 Streaming responses are handled using callbacks.
 MODEL specifies which AI model to use.
 DIALOG contains the conversation,
@@ -71,46 +71,46 @@ BLOCK-STOP-CALLBACK when blocks complete.
 COMPLETE-CALLBACK when the entire response finishes.
 THINKING-BUDGET is the number of thinking tokens.
 MAX-TOKENS is the maximum number of tokens to generate."
-  (unless (memq model greger-client-supported-models)
-    (error "Unsupported model: %s. Supported models: %s"
-           model greger-client-supported-models))
+	  (unless (memq model greger-client-supported-models)
+	    (error "Unsupported model: %s. Supported models: %s"
+		   model greger-client-supported-models))
 
-  (let* ((output-buffer (or buffer (current-buffer)))
-         (undo-handle (prepare-change-group output-buffer))
-         (request-spec (greger-client--build-request model dialog tools server-tools thinking-budget max-tokens))
-         (restore-callback (lambda (state)
-                             (let ((buffer (greger-client-state-output-buffer state)))
-                               (when (buffer-live-p buffer)
-                                 (with-current-buffer buffer
-                                   (undo-amalgamate-change-group (greger-client-state-undo-handle state))
-                                   (accept-change-group (greger-client-state-undo-handle state)))))))
+	  (let* ((output-buffer (or buffer (current-buffer)))
+		 (undo-handle (prepare-change-group output-buffer))
+		 (request-spec (greger-client--build-request model dialog tools server-tools thinking-budget max-tokens))
+		 (restore-callback (lambda (state)
+				     (let ((buffer (greger-client-state-output-buffer state)))
+				       (when (buffer-live-p buffer)
+					 (with-current-buffer buffer
+					   (undo-amalgamate-change-group (greger-client-state-undo-handle state))
+					   (accept-change-group (greger-client-state-undo-handle state)))))))
 
-         (process (greger-client--start-curl-process request-spec))
-         (state (make-greger-client-state
-                 :accumulated-output ""
-                 :content-blocks '()
-                 :process process
-                 :block-start-callback block-start-callback
-                 :text-delta-callback text-delta-callback
-                 :block-stop-callback block-stop-callback
-                 :complete-callback complete-callback
-                 :restore-callback restore-callback
-                 :output-buffer output-buffer
-                 :undo-handle undo-handle)))
+		 (process (greger-client--start-curl-process request-spec))
+		 (state (make-greger-client-state
+			 :accumulated-output ""
+			 :content-blocks '()
+			 :process process
+			 :block-start-callback block-start-callback
+			 :text-delta-callback text-delta-callback
+			 :block-stop-callback block-stop-callback
+			 :complete-callback complete-callback
+			 :restore-callback restore-callback
+			 :output-buffer output-buffer
+			 :undo-handle undo-handle)))
 
-    (activate-change-group undo-handle)
+	    (activate-change-group undo-handle)
 
-    (set-process-filter process
-                       (lambda (_proc output)
-                         (greger-client--process-output-chunk output state)))
+	    (set-process-filter process
+				(lambda (_proc output)
+				  (greger-client--process-output-chunk output state)))
 
-    (set-process-sentinel process
-                         (lambda (proc _event)
-                           (greger-client--handle-completion proc state)))
+	    (set-process-sentinel process
+				  (lambda (proc _event)
+				    (greger-client--handle-completion proc state)))
 
-    (set-process-query-on-exit-flag process nil)
+	    (set-process-query-on-exit-flag process nil)
 
-    state))
+	    state))
 
 ;;; Request building
 
@@ -188,9 +188,9 @@ MAX-TOKENS is the maximum number of tokens to generate."
     ;; Build base request
     (let ((max-tokens (+ max-tokens (or thinking-budget 0))))
       (setq request-data `(("model" . ,(symbol-name model))
-                          ("messages" . ,user-messages)
-                          ("max_tokens" . ,max-tokens)
-                          ("stream" . t))))
+                           ("messages" . ,user-messages)
+                           ("max_tokens" . ,max-tokens)
+                           ("stream" . t))))
 
     ;; Add system message if present
     (when system-message
@@ -237,7 +237,7 @@ Returns nil if no error found or if OUTPUT is not valid JSON."
 
   ;; Uncomment this line for raw debugging output of every
   ;; streaming message returned from the Anthropic API
-  ;(message "output: %s" output)
+					;(message "output: %s" output)
 
   ;; Check for error responses and raise an error if found
   (greger-client--check-for-error output)
@@ -418,10 +418,10 @@ STATE is used to update the parsed content blocks."
 
     (let ((exit-code (process-exit-status proc)))
       (if (= exit-code 0)
-        (when-let ((callback (greger-client-state-complete-callback state)))
-          (funcall callback (greger-client-state-content-blocks state)))
-      ;; TODO: Error callback
-      (message "Process exited with status code %d" exit-code)))))
+          (when-let ((callback (greger-client-state-complete-callback state)))
+            (funcall callback (greger-client-state-content-blocks state)))
+	;; TODO: Error callback
+	(message "Process exited with status code %d" exit-code)))))
 
 (defun greger-client--cancel-request (state)
   "Cancel streaming request using STATE."

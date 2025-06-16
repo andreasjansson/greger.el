@@ -11,13 +11,13 @@
 
   ;; Register a test tool
   (greger-register-tool "test-subtract"
-    :description "Subtract second number from first number"
-    :properties '((a . ((type . "integer")
-                        (description . "First number")))
-                  (b . ((type . "integer")
-                        (description . "Second number"))))
-    :required '("a" "b")
-    :function 'greger-test-subtract-numbers)
+			:description "Subtract second number from first number"
+			:properties '((a . ((type . "integer")
+					    (description . "First number")))
+				      (b . ((type . "integer")
+					    (description . "Second number"))))
+			:required '("a" "b")
+			:function 'greger-test-subtract-numbers)
 
   ;; Test that the tool was registered
   (should (gethash "test-subtract" greger-tools-registry))
@@ -73,13 +73,13 @@
 
   ;; Register tool with underscore parameter names (as they come from JSON)
   (greger-register-tool "test-hyphens"
-    :description "Test hyphenated parameter mapping"
-    :properties '((file-path . ((type . "string")
-                                (description . "File path")))
-                  (commit-message . ((type . "string")
-                                     (description . "Commit message"))))
-    :required '("file-path" "commit-message")
-    :function 'greger-test-hyphenated-params)
+			:description "Test hyphenated parameter mapping"
+			:properties '((file-path . ((type . "string")
+						    (description . "File path")))
+				      (commit-message . ((type . "string")
+							 (description . "Commit message"))))
+			:required '("file-path" "commit-message")
+			:function 'greger-test-hyphenated-params)
 
   ;; Test execution with underscore parameters
   (let ((result nil)
@@ -109,15 +109,15 @@
 
   ;; Register tool with some optional parameters
   (greger-register-tool "test-optional"
-    :description "Test optional parameter handling"
-    :properties '((required-param . ((type . "string")
-                                     (description . "Required parameter")))
-                  (optional-param1 . ((type . "string")
-                                      (description . "First optional parameter")))
-                  (optional-param2 . ((type . "string")
-                                      (description . "Second optional parameter"))))
-    :required '("required-param")
-    :function 'greger-test-optional-params)
+			:description "Test optional parameter handling"
+			:properties '((required-param . ((type . "string")
+							 (description . "Required parameter")))
+				      (optional-param1 . ((type . "string")
+							  (description . "First optional parameter")))
+				      (optional-param2 . ((type . "string")
+							  (description . "Second optional parameter"))))
+			:required '("required-param")
+			:function 'greger-test-optional-params)
 
   ;; Test with only required parameter
   (let ((result nil)
@@ -134,7 +134,7 @@
         (error nil))
     (greger-tools-execute :tool-name "test-optional"
                           :args '((required-param . "test")
-                            (optional-param1 . "provided1"))
+				  (optional-param1 . "provided1"))
                           :callback (lambda (r e) (setq result r error e))
                           :buffer nil)
     (should (string= "required: test, opt1: provided1, opt2: default2" result))
@@ -145,8 +145,8 @@
         (error nil))
     (greger-tools-execute :tool-name "test-optional"
                           :args '((required-param . "test")
-                            (optional-param1 . "provided1")
-                            (optional-param2 . "provided2"))
+				  (optional-param1 . "provided1")
+				  (optional-param2 . "provided2"))
                           :callback (lambda (r e) (setq result r error e))
                           :buffer nil)
     (should (string= "required: test, opt1: provided1, opt2: provided2" result))
@@ -166,16 +166,16 @@
 
   ;; Register tool with default values in the schema
   (greger-register-tool "test-defaults"
-    :description "Test default parameter handling"
-    :properties '((message . ((type . "string")
-                              (description . "Message to format")))
-                  (count . ((type . "integer")
-                            (description . "Number of repetitions")
-                            (default . 5)))
-                  (prefix . ((type . "string")
-                             (description . "Prefix for message"))))
-    :required '("message")
-    :function 'greger-test-default-params)
+			:description "Test default parameter handling"
+			:properties '((message . ((type . "string")
+						  (description . "Message to format")))
+				      (count . ((type . "integer")
+						(description . "Number of repetitions")
+						(default . 5)))
+				      (prefix . ((type . "string")
+						 (description . "Prefix for message"))))
+			:required '("message")
+			:function 'greger-test-default-params)
 
   ;; Test with only required parameter - should use defaults
   (let ((result nil)
@@ -192,7 +192,7 @@
         (error nil))
     (greger-tools-execute :tool-name "test-defaults"
                           :args '((message . "hello")
-                            (count . 2))
+				  (count . 2))
                           :callback (lambda (r e) (setq result r error e))
                           :buffer nil)
     (should (string= ">>> hello (repeated 2 times)" result))
@@ -203,8 +203,8 @@
         (error nil))
     (greger-tools-execute :tool-name "test-defaults"
                           :args '((message . "hello")
-                            (count . 2)
-                            (prefix . "***"))
+				  (count . 2)
+				  (prefix . "***"))
                           :callback (lambda (r e) (setq result r error e))
                           :buffer nil)
     (should (string= "*** hello (repeated 2 times)" result))
@@ -223,22 +223,22 @@
 
   ;; Register tool with multiple required parameters
   (greger-register-tool "test-required"
-    :description "Test required parameter validation"
-    :properties '((required-param1 . ((type . "string")
-                                      (description . "First required parameter")))
-                  (required-param2 . ((type . "string")
-                                      (description . "Second required parameter")))
-                  (optional-param . ((type . "string")
-                                     (description . "Optional parameter"))))
-    :required '("required-param1" "required-param2")
-    :function 'greger-test-required-params)
+			:description "Test required parameter validation"
+			:properties '((required-param1 . ((type . "string")
+							  (description . "First required parameter")))
+				      (required-param2 . ((type . "string")
+							  (description . "Second required parameter")))
+				      (optional-param . ((type . "string")
+							 (description . "Optional parameter"))))
+			:required '("required-param1" "required-param2")
+			:function 'greger-test-required-params)
 
   ;; Test that missing first required parameter calls callback with error
   (let ((result nil)
         (error nil))
     (greger-tools-execute :tool-name "test-required"
                           :args '((required-param2 . "value2")
-                            (optional-param . "optional"))
+				  (optional-param . "optional"))
                           :callback (lambda (r e) (setq result r error e))
                           :buffer nil)
     (should (null result))
@@ -249,7 +249,7 @@
         (error nil))
     (greger-tools-execute :tool-name "test-required"
                           :args '((required-param1 . "value1")
-                            (optional-param . "optional"))
+				  (optional-param . "optional"))
                           :callback (lambda (r e) (setq result r error e))
                           :buffer nil)
     (should (null result))
@@ -270,7 +270,7 @@
         (error nil))
     (greger-tools-execute :tool-name "test-required"
                           :args '((required-param1 . "value1")
-                            (required-param2 . "value2"))
+				  (required-param2 . "value2"))
                           :callback (lambda (r e) (setq result r error e))
                           :buffer nil)
     (should (string= "req1: value1, req2: value2, opt: default" result))
@@ -281,8 +281,8 @@
         (error nil))
     (greger-tools-execute :tool-name "test-required"
                           :args '((required-param1 . "value1")
-                            (required-param2 . "value2")
-                            (optional-param . "provided"))
+				  (required-param2 . "value2")
+				  (optional-param . "provided"))
                           :callback (lambda (r e) (setq result r error e))
                           :buffer nil)
     (should (string= "req1: value1, req2: value2, opt: provided" result))
@@ -302,20 +302,20 @@
 
   ;; Register tool without :pass-buffer
   (greger-register-tool "test-no-buffer"
-    :description "Test tool without buffer passing"
-    :properties '((message . ((type . "string")
-                              (description . "Test message"))))
-    :required '("message")
-    :function 'greger-test-buffer-param)
+			:description "Test tool without buffer passing"
+			:properties '((message . ((type . "string")
+						  (description . "Test message"))))
+			:required '("message")
+			:function 'greger-test-buffer-param)
 
   ;; Register tool with :pass-buffer t
   (greger-register-tool "test-with-buffer"
-    :description "Test tool with buffer passing"
-    :properties '((message . ((type . "string")
-                              (description . "Test message"))))
-    :required '("message")
-    :function 'greger-test-buffer-param
-    :pass-buffer t)
+			:description "Test tool with buffer passing"
+			:properties '((message . ((type . "string")
+						  (description . "Test message"))))
+			:required '("message")
+			:function 'greger-test-buffer-param
+			:pass-buffer t)
 
   ;; Create a test buffer
   (with-temp-buffer
@@ -361,20 +361,20 @@
 
   ;; Register tool without :pass-callback (normal behavior)
   (greger-register-tool "test-normal-callback"
-    :description "Test tool with normal callback handling"
-    :properties '((message . ((type . "string")
-                              (description . "Test message"))))
-    :required '("message")
-    :function 'greger-test-no-callback-param)
+			:description "Test tool with normal callback handling"
+			:properties '((message . ((type . "string")
+						  (description . "Test message"))))
+			:required '("message")
+			:function 'greger-test-no-callback-param)
 
   ;; Register tool with :pass-callback set to 'callback
   (greger-register-tool "test-pass-callback"
-    :description "Test tool with callback parameter passing"
-    :properties '((message . ((type . "string")
-                              (description . "Test message"))))
-    :required '("message")
-    :function 'greger-test-callback-param
-    :pass-callback t)
+			:description "Test tool with callback parameter passing"
+			:properties '((message . ((type . "string")
+						  (description . "Test message"))))
+			:required '("message")
+			:function 'greger-test-callback-param
+			:pass-callback t)
 
   ;; Test normal tool - greger-tools-execute calls callback with result
   (let ((result nil)
@@ -393,7 +393,7 @@
     (greger-tools-execute :tool-name "test-pass-callback"
                           :args '((message . "world"))
                           :callback (lambda (r e)
-                            (setq result r error e callback-called t))
+				      (setq result r error e callback-called t))
                           :buffer nil)
     ;; Since the callback is called synchronously in our test function,
     ;; we can check the results immediately
@@ -409,13 +409,13 @@
       (funcall callback result nil)))
 
   (greger-register-tool "test-callback-with-buffer"
-    :description "Test tool with both callback and buffer passing"
-    :properties '((message . ((type . "string")
-                              (description . "Test message"))))
-    :required '("message")
-    :function 'greger-test-callback-with-buffer
-    :pass-callback t
-    :pass-buffer t)
+			:description "Test tool with both callback and buffer passing"
+			:properties '((message . ((type . "string")
+						  (description . "Test message"))))
+			:required '("message")
+			:function 'greger-test-callback-with-buffer
+			:pass-callback t
+			:pass-buffer t)
 
   ;; Test with both buffer and callback
   (with-temp-buffer
@@ -426,7 +426,7 @@
       (greger-tools-execute :tool-name "test-callback-with-buffer"
                             :args '((message . "test"))
                             :callback (lambda (r e)
-                              (setq result r error e callback-called t))
+					(setq result r error e callback-called t))
                             :buffer (current-buffer))
       ;; Since the callback is called synchronously in our test function,
       ;; we can check the results immediately
@@ -467,12 +467,12 @@
 
   ;; Register tool with array parameter
   (greger-register-tool "test-array-parsing"
-    :description "Test array parameter JSON parsing"
-    :properties '((items . ((type . "array")
-                            (items . ((type . "string")))
-                            (description . "List of items"))))
-    :required '("items")
-    :function 'greger-test-array-param)
+			:description "Test array parameter JSON parsing"
+			:properties '((items . ((type . "array")
+						(items . ((type . "string")))
+						(description . "List of items"))))
+			:required '("items")
+			:function 'greger-test-array-param)
 
   ;; Test with JSON array string
   (let ((result nil)
@@ -506,13 +506,13 @@
 
   ;; Register tool with boolean parameters
   (greger-register-tool "test-boolean-parsing"
-    :description "Test boolean parameter JSON parsing"
-    :properties '((flag1 . ((type . "boolean")
-                            (description . "First boolean flag")))
-                  (flag2 . ((type . "boolean")
-                            (description . "Second boolean flag"))))
-    :required '("flag1")
-    :function 'greger-test-boolean-params)
+			:description "Test boolean parameter JSON parsing"
+			:properties '((flag1 . ((type . "boolean")
+						(description . "First boolean flag")))
+				      (flag2 . ((type . "boolean")
+						(description . "Second boolean flag"))))
+			:required '("flag1")
+			:function 'greger-test-boolean-params)
 
   ;; Test with JSON boolean strings
   (let ((result nil)
@@ -557,13 +557,13 @@
 
   ;; Register tool with number parameters
   (greger-register-tool "test-number-parsing"
-    :description "Test number parameter JSON parsing"
-    :properties '((count . ((type . "integer")
-                            (description . "Integer count")))
-                  (rate . ((type . "number")
-                           (description . "Floating point rate"))))
-    :required '("count")
-    :function 'greger-test-number-params)
+			:description "Test number parameter JSON parsing"
+			:properties '((count . ((type . "integer")
+						(description . "Integer count")))
+				      (rate . ((type . "number")
+					       (description . "Floating point rate"))))
+			:required '("count")
+			:function 'greger-test-number-params)
 
   ;; Test with JSON number strings
   (let ((result nil)
@@ -608,30 +608,30 @@
 
   ;; Register tool with mixed parameter types
   (greger-register-tool "test-mixed-parsing"
-    :description "Test mixed parameter type JSON parsing"
-    :properties '((name . ((type . "string")
-                           (description . "String name")))
-                  (items . ((type . "array")
-                            (items . ((type . "string")))
-                            (description . "List of items")))
-                  (count . ((type . "integer")
-                            (description . "Integer count")))
-                  (enabled . ((type . "boolean")
-                              (description . "Boolean flag")))
-                  (rate . ((type . "number")
-                           (description . "Optional rate"))))
-    :required '("name" "items" "count" "enabled")
-    :function 'greger-test-mixed-params)
+			:description "Test mixed parameter type JSON parsing"
+			:properties '((name . ((type . "string")
+					       (description . "String name")))
+				      (items . ((type . "array")
+						(items . ((type . "string")))
+						(description . "List of items")))
+				      (count . ((type . "integer")
+						(description . "Integer count")))
+				      (enabled . ((type . "boolean")
+						  (description . "Boolean flag")))
+				      (rate . ((type . "number")
+					       (description . "Optional rate"))))
+			:required '("name" "items" "count" "enabled")
+			:function 'greger-test-mixed-params)
 
   ;; Test with mixed JSON strings and parsed values
   (let ((result nil)
         (error nil))
     (greger-tools-execute :tool-name "test-mixed-parsing"
                           :args '((name . "test")
-                            (items . "[\"a\", \"b\", \"c\"]")
-                            (count . "5")
-                            (enabled . "true")
-                            (rate . "2.5"))
+				  (items . "[\"a\", \"b\", \"c\"]")
+				  (count . "5")
+				  (enabled . "true")
+				  (rate . "2.5"))
                           :callback (lambda (r e) (setq result r error e))
                           :buffer nil)
     (should (string= "name: test, items: 3, count: 5, enabled: t, rate: 2.5" result))
@@ -675,8 +675,8 @@
         (error nil))
     (greger-tools-execute :tool-name "test-edge-cases"
                           :args '((required-param . "test")
-                                 (optional-param1 . "not-a-boolean")
-                                 (optional-param2 . "not-a-number"))
+                                  (optional-param1 . "not-a-boolean")
+                                  (optional-param2 . "not-a-number"))
                           :callback (lambda (r e) (setq result r error e))
                           :buffer nil)
     (should (string= "required: test, opt1: nil, opt2: not-a-number" result))
@@ -694,11 +694,11 @@
 
   ;; Register tool with array parameter
   (greger-register-tool "test-fallback"
-    :description "Test JSON parsing fallback"
-    :properties '((items . ((type . "array")
-                            (description . "List of items"))))
-    :required '("items")
-    :function 'greger-test-fallback)
+			:description "Test JSON parsing fallback"
+			:properties '((items . ((type . "array")
+						(description . "List of items"))))
+			:required '("items")
+			:function 'greger-test-fallback)
 
   ;; Test with invalid JSON - should return original string
   (let ((result nil)
@@ -721,10 +721,10 @@
 
   ;; Register a test tool
   (greger-register-tool "test-simple-struct"
-    :description "Simple tool for testing greger-tool struct"
-    :properties '()
-    :required '()
-    :function 'greger-test-simple-return)
+			:description "Simple tool for testing greger-tool struct"
+			:properties '()
+			:required '()
+			:function 'greger-test-simple-return)
 
   (let ((result nil)
         (error nil)
@@ -753,10 +753,10 @@
 
   ;; Register a test tool
   (greger-register-tool "test-with-cancel"
-    :description "Tool that returns a cancel function"
-    :properties '()
-    :required '()
-    :function 'greger-test-with-cancel)
+			:description "Tool that returns a cancel function"
+			:properties '()
+			:required '()
+			:function 'greger-test-with-cancel)
 
   (let ((result nil)
         (error nil)
@@ -791,11 +791,11 @@
 
   ;; Register a test tool with pass-callback
   (greger-register-tool "test-callback-cancel"
-    :description "Tool with callback that returns cancel function"
-    :properties '()
-    :required '()
-    :pass-callback t
-    :function 'greger-test-with-callback-and-cancel)
+			:description "Tool with callback that returns cancel function"
+			:properties '()
+			:required '()
+			:pass-callback t
+			:function 'greger-test-with-callback-and-cancel)
 
   (let ((result nil)
         (error nil)
@@ -834,11 +834,11 @@
 
   ;; Register a test tool with pass-callback
   (greger-register-tool "test-cancellable"
-    :description "Tool that can be cancelled"
-    :properties '()
-    :required '()
-    :pass-callback t
-    :function 'greger-test-long-running-with-cancel)
+			:description "Tool that can be cancelled"
+			:properties '()
+			:required '()
+			:pass-callback t
+			:function 'greger-test-long-running-with-cancel)
 
   (let ((result nil)
         (error nil)
@@ -872,14 +872,14 @@
   "Test that server tools can be registered and schemas retrieved as JSON."
   ;; Register a test server tool
   (greger-register-server-tool 'test-web-search
-    :type "web_search_20250305"
-    :max_uses 5
-    :allowed_domains ["example.com" "trusteddomain.org"]
-    :user_location ((type . "approximate")
-                    (city . "San Francisco")
-                    (region . "California")
-                    (country . "US")
-                    (timezone . "America/Los_Angeles")))
+			       :type "web_search_20250305"
+			       :max_uses 5
+			       :allowed_domains ["example.com" "trusteddomain.org"]
+			       :user_location ((type . "approximate")
+					       (city . "San Francisco")
+					       (region . "California")
+					       (country . "US")
+					       (timezone . "America/Los_Angeles")))
 
   ;; Test that the server tool was registered
   (should (gethash "test-web-search" greger-server-tools-registry))

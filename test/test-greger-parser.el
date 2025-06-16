@@ -339,7 +339,7 @@ with multiple lines
           (should (string= "toolu_123" (alist-get 'tool_use_id tool-result-block)))
           (should (string= "File contents here
 with multiple lines"
-                          (alist-get 'content tool-result-block))))))))
+                           (alist-get 'content tool-result-block))))))))
 
 (ert-deftest greger-parser-test-thinking-parsing ()
   "Test thinking section parsing."
@@ -356,7 +356,7 @@ This is a complex problem."))
           (should (string= "thinking" (alist-get 'type thinking-block)))
           (should (string= "I need to think about this carefully.
 This is a complex problem."
-                          (alist-get 'thinking thinking-block))))))))
+                           (alist-get 'thinking thinking-block))))))))
 
 (ert-deftest greger-parser-test-error-handling ()
   "Test parser error handling for malformed input."
@@ -524,7 +524,7 @@ What files are here?"))
       ;; Should have user message with the tag as regular content
       (should (= 1 (length result)))
       (should (string-match-p "<safe-shell-commands>"
-                             (alist-get 'content (car result)))))))
+                              (alist-get 'content (car result)))))))
 
 
 ;; Cleanup test - should run last alphabetically

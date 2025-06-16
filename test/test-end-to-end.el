@@ -20,16 +20,16 @@
 
 (defun greger-test-last-assistant-message ()
   (let (start end)
-   (save-excursion
-     (goto-char (point-max))
-     (re-search-backward "^# ASSISTANT")
-     (forward-line 2)
-     (setq start (point))
-     (re-search-forward "^# USER")
-     (forward-line -1)
-     (forward-char -1)
-     (setq end (point)))
-   (buffer-substring-no-properties start end)))
+    (save-excursion
+      (goto-char (point-max))
+      (re-search-backward "^# ASSISTANT")
+      (forward-line 2)
+      (setq start (point))
+      (re-search-forward "^# USER")
+      (forward-line -1)
+      (forward-char -1)
+      (setq end (point)))
+    (buffer-substring-no-properties start end)))
 
 (defun greger-test-treesit-node-to-simplified-tree (node)
   "Convert a treesit NODE to a simplified parse tree expression.
@@ -156,11 +156,11 @@ Hello from greger test!
     (greger-stdlib--read-file file-path))
 
   (greger-register-tool "read-file-basic"
-    :description "Read the contents of a file from the filesystem (basic version with only file-path argument)"
-    :properties '((file-path . ((type . "string")
-                               (description . "Path to the file to read"))))
-    :required '("file-path")
-    :function 'greger-test-read-file-basic)
+			:description "Read the contents of a file from the filesystem (basic version with only file-path argument)"
+			:properties '((file-path . ((type . "string")
+						    (description . "Path to the file to read"))))
+			:required '("file-path")
+			:function 'greger-test-read-file-basic)
 
   (let ((greger-buffer nil)
         (test-file nil))
@@ -284,7 +284,7 @@ Hello from greger test!
 
           ;; The model should be shown in the mode line
           (should (string-match-p "claude-sonnet-4-20250514"
-                                 (format "%s" (symbol-name greger-model)))))
+                                  (format "%s" (symbol-name greger-model)))))
 
       ;; Cleanup
       (setq greger-model original-model)

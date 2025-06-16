@@ -177,7 +177,7 @@ NODE is the matched tree-sitter node"
          (url (substring text 3)))
     (browse-url url)))
 
-  ;; Code blocks
+;; Code blocks
 
 (defun greger-ui--copy-code ()
   "Copy code block content at point to kill ring."
@@ -185,8 +185,8 @@ NODE is the matched tree-sitter node"
   (let ((node (treesit-node-at (point))))
     (if (string= (treesit-node-type node) "code_block_content")
         (let ((code (treesit-node-text node t)))
-              (kill-new code)
-              (message "Copied code:\n%s" (greger-ui--truncate-with-ellipsis code 40)))
+          (kill-new code)
+          (message "Copied code:\n%s" (greger-ui--truncate-with-ellipsis code 40)))
       (message "Not inside a code block"))))
 
 (defun greger-ui--truncate-with-ellipsis (str max-width)
@@ -196,7 +196,7 @@ NODE is the matched tree-sitter node"
         str
       (concat (substring str 0 (- max-width 3)) "..."))))
 
-  ;; TAB toggles
+;; TAB toggles
 
 (defun greger-ui--toggle-citation-fold ()
   "Toggle folding of citation or tool content at point."

@@ -32,11 +32,11 @@
 
     ;; Register test tool
     (greger-register-tool "test-simple"
-      :description "Simple test tool"
-      :properties '((message . ((type . "string")
-                                (description . "Test message"))))
-      :required '("message")
-      :function 'greger-test-simple-tool)
+			  :description "Simple test tool"
+			  :properties '((message . ((type . "string")
+						    (description . "Test message"))))
+			  :required '("message")
+			  :function 'greger-test-simple-tool)
 
     ;; Create test buffer
     (with-temp-buffer
@@ -46,9 +46,9 @@
                           :directory default-directory
                           :tool-use-metadata '(:safe-shell-commands () :allow-all-shell-commands nil)))
             (tool-calls `(((type . "tool_use")
-                          (id . "test_001")
-                          (name . "test-simple")
-                          (input . ((message . "Hello World"))))))
+                           (id . "test_001")
+                           (name . "test-simple")
+                           (input . ((message . "Hello World"))))))
             (expected-content "
 
 # TOOL USE
@@ -75,22 +75,22 @@ Tool executed: Hello World
                    (lambda (state)
                      (setq test-completed t))))
 
-          ;; First insert the tool use markdown (simulating what greger--append-nonstreaming-content-block does)
-          (dolist (tool-call tool-calls)
-            (let ((tool-use-markdown (greger-parser--tool-use-to-markdown tool-call))
-                  (tool-id (alist-get 'id tool-call)))
-              (insert "\n\n" tool-use-markdown)
-              (insert "\n\n" (greger--tool-placeholder tool-id))))
+		 ;; First insert the tool use markdown (simulating what greger--append-nonstreaming-content-block does)
+		 (dolist (tool-call tool-calls)
+		   (let ((tool-use-markdown (greger-parser--tool-use-to-markdown tool-call))
+			 (tool-id (alist-get 'id tool-call)))
+		     (insert "\n\n" tool-use-markdown)
+		     (insert "\n\n" (greger--tool-placeholder tool-id))))
 
-          ;; Execute tools
-          (greger--execute-tools tool-calls agent-state)
+		 ;; Execute tools
+		 (greger--execute-tools tool-calls agent-state)
 
-          ;; Check that the function completed
-          (should test-completed)
+		 ;; Check that the function completed
+		 (should test-completed)
 
-          ;; Check buffer contents match expected output exactly
-          (let ((actual-content (buffer-substring-no-properties (point-min) (point-max))))
-            (should (string= expected-content actual-content))))))
+		 ;; Check buffer contents match expected output exactly
+		 (let ((actual-content (buffer-substring-no-properties (point-min) (point-max))))
+		   (should (string= expected-content actual-content))))))
 
     ;; Clean up
     (remhash "test-simple" greger-tools-registry)))
@@ -108,18 +108,18 @@ Tool executed: Hello World
 
     ;; Register test tools
     (greger-register-tool "test-tool-a"
-      :description "Test tool A"
-      :properties '((value . ((type . "string")
-                              (description . "Input value"))))
-      :required '("value")
-      :function 'greger-test-tool-a)
+			  :description "Test tool A"
+			  :properties '((value . ((type . "string")
+						  (description . "Input value"))))
+			  :required '("value")
+			  :function 'greger-test-tool-a)
 
     (greger-register-tool "test-tool-b"
-      :description "Test tool B"
-      :properties '((value . ((type . "string")
-                              (description . "Input value"))))
-      :required '("value")
-      :function 'greger-test-tool-b)
+			  :description "Test tool B"
+			  :properties '((value . ((type . "string")
+						  (description . "Input value"))))
+			  :required '("value")
+			  :function 'greger-test-tool-b)
 
     ;; Create test buffer
     (with-temp-buffer
@@ -128,13 +128,13 @@ Tool executed: Hello World
                           :chat-buffer (current-buffer)
                           :directory default-directory :tool-use-metadata '(:safe-shell-commands () :allow-all-shell-commands nil)))
             (tool-calls `(((type . "tool_use")
-                          (id . "test_a")
-                          (name . "test-tool-a")
-                          (input . ((value . "input-a"))))
-                         ((type . "tool_use")
-                          (id . "test_b")
-                          (name . "test-tool-b")
-                          (input . ((value . "input-b"))))))
+                           (id . "test_a")
+                           (name . "test-tool-a")
+                           (input . ((value . "input-a"))))
+                          ((type . "tool_use")
+                           (id . "test_b")
+                           (name . "test-tool-b")
+                           (input . ((value . "input-b"))))))
             ;; Expected content has each tool use followed by its result
             (expected-content "
 
@@ -181,22 +181,22 @@ Tool B result: input-b
                    (lambda (state)
                      (setq tools-completed t))))
 
-          ;; First insert the tool use markdown (simulating what greger--append-nonstreaming-content-block does)
-          (dolist (tool-call tool-calls)
-            (let ((tool-use-markdown (greger-parser--tool-use-to-markdown tool-call))
-                  (tool-id (alist-get 'id tool-call)))
-              (insert "\n\n" tool-use-markdown)
-              (insert "\n\n" (greger--tool-placeholder tool-id))))
+		 ;; First insert the tool use markdown (simulating what greger--append-nonstreaming-content-block does)
+		 (dolist (tool-call tool-calls)
+		   (let ((tool-use-markdown (greger-parser--tool-use-to-markdown tool-call))
+			 (tool-id (alist-get 'id tool-call)))
+		     (insert "\n\n" tool-use-markdown)
+		     (insert "\n\n" (greger--tool-placeholder tool-id))))
 
-          ;; Execute tools
-          (greger--execute-tools tool-calls agent-state)
+		 ;; Execute tools
+		 (greger--execute-tools tool-calls agent-state)
 
-          ;; Check that all tools completed
-          (should tools-completed)
+		 ;; Check that all tools completed
+		 (should tools-completed)
 
-          ;; Check buffer contains both expected tool results
-          (let ((actual-content (buffer-substring-no-properties (point-min) (point-max))))
-            (should (string= expected-content actual-content))))))
+		 ;; Check buffer contains both expected tool results
+		 (let ((actual-content (buffer-substring-no-properties (point-min) (point-max))))
+		   (should (string= expected-content actual-content))))))
 
     ;; Clean up
     (remhash "test-tool-a" greger-tools-registry)
@@ -212,11 +212,11 @@ Tool B result: input-b
 
     ;; Register test tool
     (greger-register-tool "test-error"
-      :description "Tool that throws an error"
-      :properties '((input . ((type . "string")
-                              (description . "Input that will cause error"))))
-      :required '("input")
-      :function 'greger-test-error-tool)
+			  :description "Tool that throws an error"
+			  :properties '((input . ((type . "string")
+						  (description . "Input that will cause error"))))
+			  :required '("input")
+			  :function 'greger-test-error-tool)
 
     ;; Create test buffer
     (with-temp-buffer
@@ -225,9 +225,9 @@ Tool B result: input-b
                           :chat-buffer (current-buffer)
                           :directory default-directory :tool-use-metadata nil))
             (tool-calls `(((type . "tool_use")
-                          (id . "error_test")
-                          (name . "test-error")
-                          (input . ((input . "bad-input"))))))
+                           (id . "error_test")
+                           (name . "test-error")
+                           (input . ((input . "bad-input"))))))
             (expected-error-content "
 
 # TOOL USE
@@ -254,22 +254,22 @@ Error executing tool: Simulated tool error: bad-input
                    (lambda (state)
                      (setq test-completed t))))
 
-          ;; First insert the tool use markdown (simulating what greger--append-nonstreaming-content-block does)
-          (dolist (tool-call tool-calls)
-            (let ((tool-use-markdown (greger-parser--tool-use-to-markdown tool-call))
-                  (tool-id (alist-get 'id tool-call)))
-              (insert "\n\n" tool-use-markdown)
-              (insert "\n\n" (greger--tool-placeholder tool-id))))
+		 ;; First insert the tool use markdown (simulating what greger--append-nonstreaming-content-block does)
+		 (dolist (tool-call tool-calls)
+		   (let ((tool-use-markdown (greger-parser--tool-use-to-markdown tool-call))
+			 (tool-id (alist-get 'id tool-call)))
+		     (insert "\n\n" tool-use-markdown)
+		     (insert "\n\n" (greger--tool-placeholder tool-id))))
 
-          ;; Execute tools
-          (greger--execute-tools tool-calls agent-state)
+		 ;; Execute tools
+		 (greger--execute-tools tool-calls agent-state)
 
-          ;; Check that execution completed despite error
-          (should test-completed)
+		 ;; Check that execution completed despite error
+		 (should test-completed)
 
-          ;; Check buffer contents match expected error format
-          (let ((actual-content (buffer-substring-no-properties (point-min) (point-max))))
-            (should (string= expected-error-content actual-content))))))
+		 ;; Check buffer contents match expected error format
+		 (let ((actual-content (buffer-substring-no-properties (point-min) (point-max))))
+		   (should (string= expected-error-content actual-content))))))
 
     ;; Clean up
     (remhash "test-error" greger-tools-registry)))
@@ -284,11 +284,11 @@ Error executing tool: Simulated tool error: bad-input
 
     ;; Register test tool
     (greger-register-tool "test-content"
-      :description "Test tool with existing content"
-      :properties '((data . ((type . "string")
-                             (description . "Data to process"))))
-      :required '("data")
-      :function 'greger-test-content-tool)
+			  :description "Test tool with existing content"
+			  :properties '((data . ((type . "string")
+						 (description . "Data to process"))))
+			  :required '("data")
+			  :function 'greger-test-content-tool)
 
     ;; Create test buffer with existing content
     (with-temp-buffer
@@ -299,9 +299,9 @@ Error executing tool: Simulated tool error: bad-input
                           :chat-buffer (current-buffer)
                           :directory default-directory :tool-use-metadata nil))
             (tool-calls `(((type . "tool_use")
-                          (id . "content_test")
-                          (name . "test-content")
-                          (input . ((data . "test-data"))))))
+                           (id . "content_test")
+                           (name . "test-content")
+                           (input . ((data . "test-data"))))))
             (expected-content "Existing content in buffer
 
 # TOOL USE
@@ -328,22 +328,22 @@ Processed: test-data
                    (lambda (state)
                      (setq test-completed t))))
 
-          ;; First insert the tool use markdown (simulating what greger--append-nonstreaming-content-block does)
-          (dolist (tool-call tool-calls)
-            (let ((tool-use-markdown (greger-parser--tool-use-to-markdown tool-call))
-                  (tool-id (alist-get 'id tool-call)))
-              (insert "\n\n" tool-use-markdown)
-              (insert "\n\n" (greger--tool-placeholder tool-id))))
+		 ;; First insert the tool use markdown (simulating what greger--append-nonstreaming-content-block does)
+		 (dolist (tool-call tool-calls)
+		   (let ((tool-use-markdown (greger-parser--tool-use-to-markdown tool-call))
+			 (tool-id (alist-get 'id tool-call)))
+		     (insert "\n\n" tool-use-markdown)
+		     (insert "\n\n" (greger--tool-placeholder tool-id))))
 
-          ;; Execute tools
-          (greger--execute-tools tool-calls agent-state)
+		 ;; Execute tools
+		 (greger--execute-tools tool-calls agent-state)
 
-          ;; Check that execution completed
-          (should test-completed)
+		 ;; Check that execution completed
+		 (should test-completed)
 
-          ;; Check that content was appended correctly
-          (let ((actual-content (buffer-substring-no-properties (point-min) (point-max))))
-            (should (string= expected-content actual-content))))))
+		 ;; Check that content was appended correctly
+		 (let ((actual-content (buffer-substring-no-properties (point-min) (point-max))))
+		   (should (string= expected-content actual-content))))))
 
     ;; Clean up
     (remhash "test-content" greger-tools-registry)))
@@ -359,9 +359,9 @@ Processed: test-data
                           :chat-buffer (current-buffer)
                           :directory default-directory :tool-use-metadata nil))
             (tool-calls `(((type . "tool_use")
-                          (id . "unknown_test")
-                          (name . "nonexistent-tool")
-                          (input . ((param . "value"))))))
+                           (id . "unknown_test")
+                           (name . "nonexistent-tool")
+                           (input . ((param . "value"))))))
             (expected-error-content "
 
 # TOOL USE
@@ -388,22 +388,22 @@ Unknown tool: nonexistent-tool
                    (lambda (state)
                      (setq test-completed t))))
 
-          ;; First insert the tool use markdown (simulating what greger--append-nonstreaming-content-block does)
-          (dolist (tool-call tool-calls)
-            (let ((tool-use-markdown (greger-parser--tool-use-to-markdown tool-call))
-                  (tool-id (alist-get 'id tool-call)))
-              (insert "\n\n" tool-use-markdown)
-              (insert "\n\n" (greger--tool-placeholder tool-id))))
+		 ;; First insert the tool use markdown (simulating what greger--append-nonstreaming-content-block does)
+		 (dolist (tool-call tool-calls)
+		   (let ((tool-use-markdown (greger-parser--tool-use-to-markdown tool-call))
+			 (tool-id (alist-get 'id tool-call)))
+		     (insert "\n\n" tool-use-markdown)
+		     (insert "\n\n" (greger--tool-placeholder tool-id))))
 
-          ;; Execute tools
-          (greger--execute-tools tool-calls agent-state)
+		 ;; Execute tools
+		 (greger--execute-tools tool-calls agent-state)
 
-          ;; Check that execution completed despite unknown tool
-          (should test-completed)
+		 ;; Check that execution completed despite unknown tool
+		 (should test-completed)
 
-          ;; Check buffer contents match expected error message exactly
-          (let ((actual-content (buffer-substring-no-properties (point-min) (point-max))))
-            (should (string= expected-error-content actual-content))))))))
+		 ;; Check buffer contents match expected error message exactly
+		 (let ((actual-content (buffer-substring-no-properties (point-min) (point-max))))
+		   (should (string= expected-error-content actual-content))))))))
 
 (ert-deftest greger-test-exact-tool-output-formatting ()
   "Test exact tool output formatting with multiple scenarios."
@@ -415,11 +415,11 @@ Unknown tool: nonexistent-tool
 
     ;; Register test tool
     (greger-register-tool "test-multiline"
-      :description "Tool with multi-line output"
-      :properties '((content . ((type . "string")
-                                (description . "Content for first line"))))
-      :required '("content")
-      :function 'greger-test-multiline-tool)
+			  :description "Tool with multi-line output"
+			  :properties '((content . ((type . "string")
+						    (description . "Content for first line"))))
+			  :required '("content")
+			  :function 'greger-test-multiline-tool)
 
     ;; Create test buffer
     (with-temp-buffer
@@ -428,9 +428,9 @@ Unknown tool: nonexistent-tool
                           :chat-buffer (current-buffer)
                           :directory default-directory :tool-use-metadata nil))
             (tool-calls `(((type . "tool_use")
-                          (id . "multiline_test")
-                          (name . "test-multiline")
-                          (input . ((content . "Start"))))))
+                           (id . "multiline_test")
+                           (name . "test-multiline")
+                           (input . ((content . "Start"))))))
             (expected-content "
 
 # TOOL USE
@@ -459,22 +459,22 @@ Line 3: End
                    (lambda (state)
                      (setq test-completed t))))
 
-          ;; First insert the tool use markdown (simulating what greger--append-nonstreaming-content-block does)
-          (dolist (tool-call tool-calls)
-            (let ((tool-use-markdown (greger-parser--tool-use-to-markdown tool-call))
-                  (tool-id (alist-get 'id tool-call)))
-              (insert "\n\n" tool-use-markdown)
-              (insert "\n\n" (greger--tool-placeholder tool-id))))
+		 ;; First insert the tool use markdown (simulating what greger--append-nonstreaming-content-block does)
+		 (dolist (tool-call tool-calls)
+		   (let ((tool-use-markdown (greger-parser--tool-use-to-markdown tool-call))
+			 (tool-id (alist-get 'id tool-call)))
+		     (insert "\n\n" tool-use-markdown)
+		     (insert "\n\n" (greger--tool-placeholder tool-id))))
 
-          ;; Execute tools
-          (greger--execute-tools tool-calls agent-state)
+		 ;; Execute tools
+		 (greger--execute-tools tool-calls agent-state)
 
-          ;; Check that execution completed
-          (should test-completed)
+		 ;; Check that execution completed
+		 (should test-completed)
 
-          ;; Check exact multi-line formatting
-          (let ((actual-content (buffer-substring-no-properties (point-min) (point-max))))
-            (should (string= expected-content actual-content))))))
+		 ;; Check exact multi-line formatting
+		 (let ((actual-content (buffer-substring-no-properties (point-min) (point-max))))
+		   (should (string= expected-content actual-content))))))
 
     ;; Clean up
     (remhash "test-multiline" greger-tools-registry)))
@@ -489,11 +489,11 @@ Line 3: End
 
     ;; Register test tool
     (greger-register-tool "test-echo"
-      :description "Simple echo tool"
-      :properties '((input . ((type . "string")
-                              (description . "Input to echo"))))
-      :required '("input")
-      :function 'greger-test-simple-echo)
+			  :description "Simple echo tool"
+			  :properties '((input . ((type . "string")
+						  (description . "Input to echo"))))
+			  :required '("input")
+			  :function 'greger-test-simple-echo)
 
     ;; Create test buffer
     (with-temp-buffer
@@ -504,9 +504,9 @@ Line 3: End
                           :chat-buffer (current-buffer)
                           :directory default-directory :tool-use-metadata nil))
             (tool-calls `(((type . "tool_use")
-                          (id . "echo_001")
-                          (name . "test-echo")
-                          (input . ((input . "hello world"))))))
+                           (id . "echo_001")
+                           (name . "test-echo")
+                           (input . ((input . "hello world"))))))
             ;; Expected content after tool execution
             (expected-final-content "
 
@@ -537,22 +537,22 @@ Echo: hello world
                    (lambda (state)
                      (setq test-completed t))))
 
-          ;; First insert the tool use markdown (simulating what greger--append-nonstreaming-content-block does)
-          (dolist (tool-call tool-calls)
-            (let ((tool-use-markdown (greger-parser--tool-use-to-markdown tool-call))
-                  (tool-id (alist-get 'id tool-call)))
-              (insert "\n\n" tool-use-markdown)
-              (insert "\n\n" (greger--tool-placeholder tool-id))))
+		 ;; First insert the tool use markdown (simulating what greger--append-nonstreaming-content-block does)
+		 (dolist (tool-call tool-calls)
+		   (let ((tool-use-markdown (greger-parser--tool-use-to-markdown tool-call))
+			 (tool-id (alist-get 'id tool-call)))
+		     (insert "\n\n" tool-use-markdown)
+		     (insert "\n\n" (greger--tool-placeholder tool-id))))
 
-          ;; Execute tools
-          (greger--execute-tools tool-calls agent-state)
+		 ;; Execute tools
+		 (greger--execute-tools tool-calls agent-state)
 
-          ;; Verify completion
-          (should test-completed)
+		 ;; Verify completion
+		 (should test-completed)
 
-          ;; Verify exact final content using string= comparison
-          (let ((actual-final-content (buffer-substring-no-properties (point-min) (point-max))))
-            (should (string= expected-final-content actual-final-content))))))
+		 ;; Verify exact final content using string= comparison
+		 (let ((actual-final-content (buffer-substring-no-properties (point-min) (point-max))))
+		   (should (string= expected-final-content actual-final-content))))))
 
     ;; Clean up
     (remhash "test-echo" greger-tools-registry)))
@@ -566,10 +566,10 @@ Echo: hello world
       ;; Mock keyboard-quit to track if it's called
       (cl-letf (((symbol-function 'keyboard-quit)
                  (lambda () (setq keyboard-quit-called t))))
-        ;; Call greger-interrupt when no active generation
-        (greger-interrupt)
-        ;; Should have called keyboard-quit
-        (should keyboard-quit-called)))))
+               ;; Call greger-interrupt when no active generation
+               (greger-interrupt)
+               ;; Should have called keyboard-quit
+               (should keyboard-quit-called)))))
 
 (ert-deftest greger-test-interrupt-with-active-generation ()
   "Test greger-interrupt behavior when generation is active."
@@ -598,14 +598,14 @@ Echo: hello world
                   ((symbol-function 'keyboard-quit)
                    (lambda () (setq keyboard-quit-called t))))
 
-          ;; Call greger-interrupt
-          (greger-interrupt)
+		 ;; Call greger-interrupt
+		 (greger-interrupt)
 
-          ;; Should have called cancel but not keyboard-quit
-          (should cancel-called)
-          (should-not keyboard-quit-called)
-          ;; Client state should be nil after cancellation
-          (should (null (greger-state-client-state agent-state))))))))
+		 ;; Should have called cancel but not keyboard-quit
+		 (should cancel-called)
+		 (should-not keyboard-quit-called)
+		 ;; Client state should be nil after cancellation
+		 (should (null (greger-state-client-state agent-state))))))))
 
 (ert-deftest greger-test-interrupt-with-executing-tools ()
   "Test greger-interrupt behavior with executing tools."
@@ -643,16 +643,16 @@ Echo: hello world
         (cl-letf (((symbol-function 'keyboard-quit)
                    (lambda () (setq keyboard-quit-called t))))
 
-          ;; Call greger-interrupt
-          (greger-interrupt)
+		 ;; Call greger-interrupt
+		 (greger-interrupt)
 
-          ;; Should have called cancel function
-          (should greger-test-cancel-called)
-          ;; Should not have called keyboard-quit
-          (should-not keyboard-quit-called)
-          ;; The executing-tools map should still contain the tool
-          ;; (it should only be removed when callback is actually called)
-          (should (gethash "test-tool-id" executing-tools-map)))))))
+		 ;; Should have called cancel function
+		 (should greger-test-cancel-called)
+		 ;; Should not have called keyboard-quit
+		 (should-not keyboard-quit-called)
+		 ;; The executing-tools map should still contain the tool
+		 ;; (it should only be removed when callback is actually called)
+		 (should (gethash "test-tool-id" executing-tools-map)))))))
 
 (provide 'test-greger)
 
