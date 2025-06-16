@@ -813,8 +813,7 @@ For Emacs Lisp files (.el), checks that parentheses balance is maintained."
                   (replace-match new-content nil t)
                   (setq replacements-made (1+ replacements-made)))
                 (when (= replacements-made 0)
-                  (error "Original content not found in file: %s -- Try again!" expanded-path)))
-            ;; Replace only first instance (original behavior)
+                  (error "Original content not found in file: %s -- Try again!" expanded-path)))  ;; Replace only first instance (original behavior)
             (if (search-forward original-content nil t)
                 (progn
                   (replace-match new-content nil t)
