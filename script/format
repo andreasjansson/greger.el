@@ -31,6 +31,33 @@ Returns the formatted content as a string, or nil on error."
      (message "Error processing %s: %s" file (error-message-string err))
      nil)))
 
+(defun format-show-diff (file original-content formatted-content)
+  "Show a diff between ORIGINAL-CONTENT and FORMATTED-CONTENT for FILE."
+  (let ((diff-output 
+         (with-temp-buffer
+           (let ((orig-file (make-temp-file "format-orig"))
+                 (new-file (make-temp-file "format-new")))
+             (unwind-protect
+                 (progn
+                   ;; Write original content to temp file
+                   (with-temp-file orig-file
+                     (insert original-content))
+                   ;; Write formatted content to temp file  
+                   (with-temp-file new-file
+                     (insert formatted-content))
+                   ;; Generate diff
+                   (call-process "diff" nil t nil "-u" 
+                               (concat "--label=a/" (file-name-nondirectory file))
+                               (concat "--label=b/" (file-name-nondirectory file))
+                               orig-file new-file)
+                   (buffer-string))
+               ;; Cleanup temp files
+               (when (file-exists-p orig-file) (delete-file orig-file))
+               (when (file-exists-p new-file) (delete-file new-file)))))))
+    (when (> (length diff-output) 0)
+      (message "Diff for %s:" file)
+      (message "%s" diff-output))))
+
 (defun format-file-needs-formatting-p (file)
   "Check if FILE needs formatting.
 Returns t if the file would be changed by formatting, nil otherwise."
