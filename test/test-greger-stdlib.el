@@ -1047,11 +1047,10 @@ drwx------  (dir)  ..
           ;; Search only in Python files
           (greger-stdlib--ripgrep
            "file"
+           test-dir
            (lambda (output err)
              (setq result output error err callback-called t))
-           test-dir
-           nil ; case-sensitive
-           "py") ; file-type
+           nil "py" 0 nil nil nil 50) ; case-sensitive, file-type, context-lines, fixed-strings, word-regexp, line-regexp, max-results
 
           ;; Wait for operation
           (let ((timeout 0))
