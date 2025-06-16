@@ -935,6 +935,403 @@ drwx------  (dir)  ..
       (when (and parent-dir (file-exists-p parent-dir))
         (delete-directory parent-dir t)))))
 
+;; File manipulation tests
+
+(ert-deftest greger-test-write-new-file-basic ()
+  "Test basic write-new-file functionality."
+  (let ((test-file (expand-file-name "new-test-file.txt" 
+                                     (make-temp-file "greger-write-test" t)))
+        (test-content "Hello, world!\nThis is a new file."))
+    (unwind-protect
+        (progn
+          ;; Ensure file doesn't exist
+          (should-not (file-exists-p test-file))
+
+          ;; Mock git operations
+          (cl-letf (((symbol-function 'greger-stdlib--git-stage-and-commit)
+                     (lambda (files commit-message buffer) "Mocked git result")))
+
+            ;; Test successful file creation
+            (let ((result (greger-stdlib--write-new-file
+                          test-file
+                          test-content
+                          "Create new test file")))
+              (should (stringp result))
+              (should (string-match "Successfully created file" result))
+              (should (file-exists-p test-file))
+              
+              ;; Verify file contents
+              (with-temp-buffer
+                (insert-file-contents test-file)
+                (should (string= (buffer-string) test-content))))))
+
+      ;; Clean up
+      (when (file-exists-p test-file)
+        (delete-file test-file))
+      (when (file-exists-p (file-name-directory test-file))
+        (delete-directory (file-name-directory test-file) t)))))
+
+(ert-deftest greger-test-write-new-file-already-exists ()
+  "Test write-new-file when file already exists."
+  (let ((test-file (make-temp-file "greger-write-existing")))
+    (unwind-protect
+        (progn
+          ;; File already exists
+          (should (file-exists-p test-file))
+
+          ;; Mock git operations
+          (cl-letf (((symbol-function 'greger-stdlib--git-stage-and-commit)
+                     (lambda (files commit-message buffer) "Mocked git result")))
+
+            ;; Should error when trying to write to existing file
+            (should-error (greger-stdlib--write-new-file
+                          test-file
+                          "New content"
+                          "Should fail"))))
+
+      ;; Clean up
+      (when (file-exists-p test-file)
+        (delete-file test-file)))))
+
+(ert-deftest greger-test-write-new-file-invalid-path ()
+  "Test write-new-file with invalid path."
+  ;; Mock git operations
+  (cl-letf (((symbol-function 'greger-stdlib--git-stage-and-commit)
+             (lambda (files commit-message buffer) "Mocked git result")))
+
+    ;; Test with invalid directory
+    (should-error (greger-stdlib--write-new-file
+                  "/nonexistent/directory/file.txt"
+                  "Content"
+                  "Should fail"))))
+
+(ert-deftest greger-test-replace-file-basic ()
+  "Test basic replace-file functionality."
+  (let ((test-file (make-temp-file "greger-replace-test"))
+        (original-content "Original content")
+        (new-content "Replaced content\nWith multiple lines"))
+    (unwind-protect
+        (progn
+          ;; Write initial content
+          (with-temp-file test-file
+            (insert original-content))
+
+          ;; Verify initial content
+          (with-temp-buffer
+            (insert-file-contents test-file)
+            (should (string= (buffer-string) original-content)))
+
+          ;; Mock git operations
+          (cl-letf (((symbol-function 'greger-stdlib--git-stage-and-commit)
+                     (lambda (files commit-message buffer) "Mocked git result")))
+
+            ;; Test successful file replacement
+            (let ((result (greger-stdlib--replace-file
+                          test-file
+                          new-content
+                          "Replace file content")))
+              (should (stringp result))
+              (should (string-match "Successfully replaced" result))
+              
+              ;; Verify new content
+              (with-temp-buffer
+                (insert-file-contents test-file)
+                (should (string= (buffer-string) new-content))))))
+
+      ;; Clean up
+      (when (file-exists-p test-file)
+        (delete-file test-file)))))
+
+(ert-deftest greger-test-replace-file-nonexistent ()
+  "Test replace-file with non-existent file."
+  ;; Mock git operations
+  (cl-letf (((symbol-function 'greger-stdlib--git-stage-and-commit)
+             (lambda (files commit-message buffer) "Mocked git result")))
+
+    ;; Should error when trying to replace non-existent file
+    (should-error (greger-stdlib--replace-file
+                  "/path/that/does/not/exist.txt"
+                  "New content"
+                  "Should fail"))))
+
+(ert-deftest greger-test-replace-file-empty-content ()
+  "Test replace-file with empty content."
+  (let ((test-file (make-temp-file "greger-replace-empty"))
+        (original-content "Some original content"))
+    (unwind-protect
+        (progn
+          ;; Write initial content
+          (with-temp-file test-file
+            (insert original-content))
+
+          ;; Mock git operations
+          (cl-letf (((symbol-function 'greger-stdlib--git-stage-and-commit)
+                     (lambda (files commit-message buffer) "Mocked git result")))
+
+            ;; Test replacing with empty content
+            (let ((result (greger-stdlib--replace-file
+                          test-file
+                          ""
+                          "Replace with empty content")))
+              (should (stringp result))
+              (should (string-match "Successfully replaced" result))
+              
+              ;; Verify file is now empty
+              (with-temp-buffer
+                (insert-file-contents test-file)
+                (should (string= (buffer-string) ""))))))
+
+      ;; Clean up
+      (when (file-exists-p test-file)
+        (delete-file test-file)))))
+
+(ert-deftest greger-test-make-directory-basic ()
+  "Test basic make-directory functionality."
+  (let ((test-dir (expand-file-name "test-new-dir" 
+                                    (make-temp-file "greger-mkdir-test" t))))
+    (unwind-protect
+        (progn
+          ;; Ensure directory doesn't exist
+          (should-not (file-exists-p test-dir))
+
+          ;; Mock git operations
+          (cl-letf (((symbol-function 'greger-stdlib--git-stage-and-commit)
+                     (lambda (files commit-message buffer) "Mocked git result")))
+
+            ;; Test successful directory creation
+            (let ((result (greger-stdlib--make-directory
+                          test-dir
+                          "Create new directory")))
+              (should (stringp result))
+              (should (string-match "Successfully created directory" result))
+              (should (file-exists-p test-dir))
+              (should (file-directory-p test-dir)))))
+
+      ;; Clean up
+      (when (file-exists-p test-dir)
+        (delete-directory test-dir))
+      (when (file-exists-p (file-name-directory test-dir))
+        (delete-directory (file-name-directory test-dir) t)))))
+
+(ert-deftest greger-test-make-directory-recursive ()
+  "Test make-directory with nested directories."
+  (let ((parent-dir (make-temp-file "greger-mkdir-recursive" t))
+        (nested-dir nil))
+    (unwind-protect
+        (progn
+          (setq nested-dir (expand-file-name "level1/level2/level3" parent-dir))
+          
+          ;; Ensure nested path doesn't exist
+          (should-not (file-exists-p nested-dir))
+
+          ;; Mock git operations
+          (cl-letf (((symbol-function 'greger-stdlib--git-stage-and-commit)
+                     (lambda (files commit-message buffer) "Mocked git result")))
+
+            ;; Test recursive directory creation
+            (let ((result (greger-stdlib--make-directory
+                          nested-dir
+                          "Create nested directories")))
+              (should (stringp result))
+              (should (string-match "Successfully created directory" result))
+              (should (file-exists-p nested-dir))
+              (should (file-directory-p nested-dir))
+              
+              ;; Verify intermediate directories were created
+              (should (file-exists-p (expand-file-name "level1" parent-dir)))
+              (should (file-exists-p (expand-file-name "level1/level2" parent-dir))))))
+
+      ;; Clean up
+      (when (file-exists-p parent-dir)
+        (delete-directory parent-dir t)))))
+
+(ert-deftest greger-test-make-directory-already-exists ()
+  "Test make-directory when directory already exists."
+  (let ((test-dir (make-temp-file "greger-mkdir-existing" t)))
+    (unwind-protect
+        (progn
+          ;; Directory already exists
+          (should (file-exists-p test-dir))
+          (should (file-directory-p test-dir))
+
+          ;; Mock git operations
+          (cl-letf (((symbol-function 'greger-stdlib--git-stage-and-commit)
+                     (lambda (files commit-message buffer) "Mocked git result")))
+
+            ;; Should succeed even if directory exists (like mkdir -p)
+            (let ((result (greger-stdlib--make-directory
+                          test-dir
+                          "Directory already exists")))
+              (should (stringp result))
+              (should (string-match "already exists" result)))))
+
+      ;; Clean up
+      (when (file-exists-p test-dir)
+        (delete-directory test-dir t)))))
+
+(ert-deftest greger-test-rename-file-basic ()
+  "Test basic rename-file functionality."
+  (let ((old-file (make-temp-file "greger-rename-old"))
+        (new-file (expand-file-name "renamed-file.txt" 
+                                   (make-temp-file "greger-rename-test" t)))
+        (test-content "File content to preserve"))
+    (unwind-protect
+        (progn
+          ;; Write content to original file
+          (with-temp-file old-file
+            (insert test-content))
+
+          ;; Ensure new file doesn't exist
+          (should-not (file-exists-p new-file))
+
+          ;; Mock git operations
+          (cl-letf (((symbol-function 'greger-stdlib--git-stage-and-commit)
+                     (lambda (files commit-message buffer) "Mocked git result")))
+
+            ;; Test successful file rename
+            (let ((result (greger-stdlib--rename-file
+                          old-file
+                          new-file
+                          "Rename test file")))
+              (should (stringp result))
+              (should (string-match "Successfully renamed" result))
+              (should-not (file-exists-p old-file))
+              (should (file-exists-p new-file))
+              
+              ;; Verify content was preserved
+              (with-temp-buffer
+                (insert-file-contents new-file)
+                (should (string= (buffer-string) test-content))))))
+
+      ;; Clean up
+      (when (file-exists-p old-file)
+        (delete-file old-file))
+      (when (file-exists-p new-file)
+        (delete-file new-file))
+      (when (file-exists-p (file-name-directory new-file))
+        (delete-directory (file-name-directory new-file) t)))))
+
+(ert-deftest greger-test-rename-file-move-to-different-directory ()
+  "Test rename-file moving to different directory."
+  (let ((source-dir (make-temp-file "greger-rename-source" t))
+        (dest-dir (make-temp-file "greger-rename-dest" t))
+        (old-file nil)
+        (new-file nil)
+        (test-content "Content to move"))
+    (unwind-protect
+        (progn
+          (setq old-file (expand-file-name "original.txt" source-dir))
+          (setq new-file (expand-file-name "moved.txt" dest-dir))
+          
+          ;; Create original file
+          (with-temp-file old-file
+            (insert test-content))
+
+          ;; Mock git operations
+          (cl-letf (((symbol-function 'greger-stdlib--git-stage-and-commit)
+                     (lambda (files commit-message buffer) "Mocked git result")))
+
+            ;; Test moving file to different directory
+            (let ((result (greger-stdlib--rename-file
+                          old-file
+                          new-file
+                          "Move file to different directory")))
+              (should (stringp result))
+              (should (string-match "Successfully renamed" result))
+              (should-not (file-exists-p old-file))
+              (should (file-exists-p new-file))
+              
+              ;; Verify content was preserved
+              (with-temp-buffer
+                (insert-file-contents new-file)
+                (should (string= (buffer-string) test-content))))))
+
+      ;; Clean up
+      (when (file-exists-p source-dir)
+        (delete-directory source-dir t))
+      (when (file-exists-p dest-dir)
+        (delete-directory dest-dir t)))))
+
+(ert-deftest greger-test-rename-file-nonexistent-source ()
+  "Test rename-file with non-existent source file."
+  (let ((new-file (make-temp-file "greger-rename-target")))
+    (unwind-protect
+        (progn
+          ;; Mock git operations
+          (cl-letf (((symbol-function 'greger-stdlib--git-stage-and-commit)
+                     (lambda (files commit-message buffer) "Mocked git result")))
+
+            ;; Should error when source file doesn't exist
+            (should-error (greger-stdlib--rename-file
+                          "/path/that/does/not/exist.txt"
+                          new-file
+                          "Should fail"))))
+
+      ;; Clean up
+      (when (file-exists-p new-file)
+        (delete-file new-file)))))
+
+(ert-deftest greger-test-rename-file-target-exists ()
+  "Test rename-file when target file already exists."
+  (let ((old-file (make-temp-file "greger-rename-old"))
+        (new-file (make-temp-file "greger-rename-existing"))
+        (old-content "Original content")
+        (existing-content "Existing content"))
+    (unwind-protect
+        (progn
+          ;; Create files with different content
+          (with-temp-file old-file
+            (insert old-content))
+          (with-temp-file new-file
+            (insert existing-content))
+
+          ;; Mock git operations
+          (cl-letf (((symbol-function 'greger-stdlib--git-stage-and-commit)
+                     (lambda (files commit-message buffer) "Mocked git result")))
+
+            ;; Should succeed and overwrite existing file
+            (let ((result (greger-stdlib--rename-file
+                          old-file
+                          new-file
+                          "Overwrite existing file")))
+              (should (stringp result))
+              (should (string-match "Successfully renamed" result))
+              (should-not (file-exists-p old-file))
+              (should (file-exists-p new-file))
+              
+              ;; Verify new file has old file's content
+              (with-temp-buffer
+                (insert-file-contents new-file)
+                (should (string= (buffer-string) old-content))))))
+
+      ;; Clean up
+      (when (file-exists-p old-file)
+        (delete-file old-file))
+      (when (file-exists-p new-file)
+        (delete-file new-file)))))
+
+(ert-deftest greger-test-rename-file-directory ()
+  "Test that rename-file fails when trying to rename a directory."
+  (let ((test-dir (make-temp-file "greger-rename-dir" t))
+        (new-path (expand-file-name "new-name" (make-temp-file "greger-rename-parent" t))))
+    (unwind-protect
+        (progn
+          ;; Mock git operations
+          (cl-letf (((symbol-function 'greger-stdlib--git-stage-and-commit)
+                     (lambda (files commit-message buffer) "Mocked git result")))
+
+            ;; Should error when trying to rename a directory
+            (should-error (greger-stdlib--rename-file
+                          test-dir
+                          new-path
+                          "Should fail for directory"))))
+
+      ;; Clean up
+      (when (file-exists-p test-dir)
+        (delete-directory test-dir t))
+      (when (file-exists-p (file-name-directory new-path))
+        (delete-directory (file-name-directory new-path) t)))))
+
 ;; Ripgrep tests
 
 (ert-deftest greger-test-ripgrep-basic-search ()
