@@ -45,6 +45,8 @@ Cited text: laws of motion
 Encrypted index: ghi789
 
 ")
+    ;; Force font-lock to process the buffer
+    (font-lock-ensure)
     (let ((expected-visible "# ASSISTANT
 
 Einstein developed the theory of relativity while Newton formulated the laws of motion"))
