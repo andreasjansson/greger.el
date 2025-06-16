@@ -1454,9 +1454,10 @@ drwx------  (dir)  ..
           ;; Search with invalid regex (unmatched bracket)
           (greger-stdlib--ripgrep
            "[unclosed"
+           test-dir
            (lambda (output err)
              (setq result output error err callback-called t))
-           test-dir)
+           nil nil 0 nil nil nil 50)
 
           ;; Wait for operation
           (let ((timeout 0))
