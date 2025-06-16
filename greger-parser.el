@@ -345,7 +345,7 @@ Recognizes numbers, booleans, JSON arrays/objects, and plain strings."
   (let ((citation-entries '()))
     (dolist (child (treesit-node-children node))
       (let ((child-type (treesit-node-type child)))
-	(when (string= child-type "citation_entry")
+        (when (string= child-type "citation_entry")
           (push (greger-parser--extract-citation-entry child) citation-entries))))
     citation-entries))
 
@@ -475,13 +475,13 @@ Recognizes numbers, booleans, JSON arrays/objects, and plain strings."
                (has-citations (alist-get 'citations block))
                (is-text-block (and (string= block-type "text") (not has-citations)))
                (block-markdown (cond
-				((and is-text-block first-block)
+                                ((and is-text-block first-block)
                                  ;; First text block gets assistant header
                                  (concat greger-parser-assistant-tag "\n\n" (alist-get 'text block)))
-				(is-text-block
+                                (is-text-block
                                  ;; Subsequent text blocks need assistant header if previous wasn't text
                                  (concat greger-parser-assistant-tag "\n\n" (alist-get 'text block)))
-				(t
+                                (t
                                  ;; Non-text blocks handle their own headers
                                  (greger-parser--block-to-markdown block t)))))
           (when (not (string= result ""))
@@ -644,7 +644,7 @@ assuming it's already been sent in streaming."
           (let ((parsed (json-read-from-string value)))
             ;; If parsing succeeded, encode back with pretty print
             (json-encode parsed))
-	(error
+        (error
          ;; If parsing failed, return original string
          value)))
      ((numberp value) (number-to-string value))

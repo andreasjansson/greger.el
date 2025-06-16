@@ -156,11 +156,11 @@ Hello from greger test!
     (greger-stdlib--read-file file-path nil nil nil))
 
   (greger-register-tool "read-file-basic"
-			:description "Read the contents of a file from the filesystem (basic version with only file-path argument)"
-			:properties '((file-path . ((type . "string")
-						    (description . "Path to the file to read"))))
-			:required '("file-path")
-			:function 'greger-test-read-file-basic)
+                        :description "Read the contents of a file from the filesystem (basic version with only file-path argument)"
+                        :properties '((file-path . ((type . "string")
+                                                    (description . "Path to the file to read"))))
+                        :required '("file-path")
+                        :function 'greger-test-read-file-basic)
 
   (let ((greger-buffer nil)
         (test-file nil))

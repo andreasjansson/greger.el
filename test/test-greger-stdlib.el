@@ -387,20 +387,20 @@ This ensures the '..' entry has predictable permissions in tests."
           (cl-letf (((symbol-function 'greger-stdlib--git-stage-and-commit)
                      (lambda (files commit-message buffer) "Mocked git result")))
 
-            ;; Test replacing first occurrence only (default behavior)
-            (let ((result (greger-stdlib--str-replace
-                          test-file
-                          target-string
-                          replacement
-                          "Replace first Hello")))
-              (should (stringp result))
-              (should (string-match "Successfully replaced content" result))
-              (should-not (string-match "made.*replacements" result)) ; No count for single replacement
-              
-              ;; Verify only first occurrence was replaced
-              (with-temp-buffer
-                (insert-file-contents test-file)
-                (should (string= (buffer-string) "Hi world. Hello again."))))))
+                   ;; Test replacing first occurrence only (default behavior)
+                   (let ((result (greger-stdlib--str-replace
+                                  test-file
+                                  target-string
+                                  replacement
+                                  "Replace first Hello")))
+                     (should (stringp result))
+                     (should (string-match "Successfully replaced content" result))
+                     (should-not (string-match "made.*replacements" result)) ; No count for single replacement
+                     
+                     ;; Verify only first occurrence was replaced
+                     (with-temp-buffer
+                       (insert-file-contents test-file)
+                       (should (string= (buffer-string) "Hi world. Hello again."))))))
 
       ;; Clean up
       (when (file-exists-p test-file)
@@ -422,21 +422,21 @@ This ensures the '..' entry has predictable permissions in tests."
           (cl-letf (((symbol-function 'greger-stdlib--git-stage-and-commit)
                      (lambda (files commit-message buffer) "Mocked git result")))
 
-            ;; Test replacing all occurrences
-            (let ((result (greger-stdlib--str-replace
-                          test-file
-                          target-string
-                          replacement
-                          "Replace all Hellos"
-                          t))) ; replace-all = true
-              (should (stringp result))
-              (should (string-match "Successfully replaced content" result))
-              (should (string-match "made 3 replacements" result)) ; Should show count
-              
-              ;; Verify all occurrences were replaced
-              (with-temp-buffer
-                (insert-file-contents test-file)
-                (should (string= (buffer-string) "Hi world. Hi again. Hi everyone!"))))))
+                   ;; Test replacing all occurrences
+                   (let ((result (greger-stdlib--str-replace
+                                  test-file
+                                  target-string
+                                  replacement
+                                  "Replace all Hellos"
+                                  t))) ; replace-all = true
+                     (should (stringp result))
+                     (should (string-match "Successfully replaced content" result))
+                     (should (string-match "made 3 replacements" result)) ; Should show count
+                     
+                     ;; Verify all occurrences were replaced
+                     (with-temp-buffer
+                       (insert-file-contents test-file)
+                       (should (string= (buffer-string) "Hi world. Hi again. Hi everyone!"))))))
 
       ;; Clean up
       (when (file-exists-p test-file)
@@ -458,13 +458,13 @@ This ensures the '..' entry has predictable permissions in tests."
           (cl-letf (((symbol-function 'greger-stdlib--git-stage-and-commit)
                      (lambda (files commit-message buffer) "Mocked git result")))
 
-            ;; Should error when no matches found
-            (should-error (greger-stdlib--str-replace
-                          test-file
-                          target-string
-                          replacement
-                          "Should fail - no matches"
-                          t)))) ; replace-all = true
+                   ;; Should error when no matches found
+                   (should-error (greger-stdlib--str-replace
+                                  test-file
+                                  target-string
+                                  replacement
+                                  "Should fail - no matches"
+                                  t)))) ; replace-all = true
 
       ;; Clean up
       (when (file-exists-p test-file)
@@ -486,21 +486,21 @@ This ensures the '..' entry has predictable permissions in tests."
           (cl-letf (((symbol-function 'greger-stdlib--git-stage-and-commit)
                      (lambda (files commit-message buffer) "Mocked git result")))
 
-            ;; Test replacing single occurrence with replace-all=true
-            (let ((result (greger-stdlib--str-replace
-                          test-file
-                          target-string
-                          replacement
-                          "Replace single Hello with replace-all"
-                          t))) ; replace-all = true
-              (should (stringp result))
-              (should (string-match "Successfully replaced content" result))
-              (should-not (string-match "made.*replacements" result)) ; No count for single replacement
-              
-              ;; Verify content was replaced
-              (with-temp-buffer
-                (insert-file-contents test-file)
-                (should (string= (buffer-string) "Hi world"))))))
+                   ;; Test replacing single occurrence with replace-all=true
+                   (let ((result (greger-stdlib--str-replace
+                                  test-file
+                                  target-string
+                                  replacement
+                                  "Replace single Hello with replace-all"
+                                  t))) ; replace-all = true
+                     (should (stringp result))
+                     (should (string-match "Successfully replaced content" result))
+                     (should-not (string-match "made.*replacements" result)) ; No count for single replacement
+                     
+                     ;; Verify content was replaced
+                     (with-temp-buffer
+                       (insert-file-contents test-file)
+                       (should (string= (buffer-string) "Hi world"))))))
 
       ;; Clean up
       (when (file-exists-p test-file)
@@ -522,21 +522,21 @@ This ensures the '..' entry has predictable permissions in tests."
           (cl-letf (((symbol-function 'greger-stdlib--git-stage-and-commit)
                      (lambda (files commit-message buffer) "Mocked git result")))
 
-            ;; Test replacing all occurrences of multi-line pattern
-            (let ((result (greger-stdlib--str-replace
-                          test-file
-                          target-string
-                          replacement
-                          "Replace all multi-line patterns"
-                          t))) ; replace-all = true
-              (should (stringp result))
-              (should (string-match "Successfully replaced content" result))
-              (should (string-match "made 2 replacements" result))
-              
-              ;; Verify all occurrences were replaced
-              (with-temp-buffer
-                (insert-file-contents test-file)
-                (should (string= (buffer-string) "Line 1\nReplaced!\nLine 3\nReplaced!\nLine 5"))))))
+                   ;; Test replacing all occurrences of multi-line pattern
+                   (let ((result (greger-stdlib--str-replace
+                                  test-file
+                                  target-string
+                                  replacement
+                                  "Replace all multi-line patterns"
+                                  t))) ; replace-all = true
+                     (should (stringp result))
+                     (should (string-match "Successfully replaced content" result))
+                     (should (string-match "made 2 replacements" result))
+                     
+                     ;; Verify all occurrences were replaced
+                     (with-temp-buffer
+                       (insert-file-contents test-file)
+                       (should (string= (buffer-string) "Line 1\nReplaced!\nLine 3\nReplaced!\nLine 5"))))))
 
       ;; Clean up
       (when (file-exists-p test-file)
@@ -558,21 +558,21 @@ This ensures the '..' entry has predictable permissions in tests."
           (cl-letf (((symbol-function 'greger-stdlib--git-stage-and-commit)
                      (lambda (files commit-message buffer) "Mocked git result")))
 
-            ;; Test case-sensitive replacement
-            (let ((result (greger-stdlib--str-replace
-                          test-file
-                          target-string
-                          replacement
-                          "Case-sensitive replacement"
-                          t))) ; replace-all = true
-              (should (stringp result))
-              (should (string-match "Successfully replaced content" result))
-              (should-not (string-match "made.*replacements" result)) ; Only one match
-              
-              ;; Verify only lowercase "hello" was replaced
-              (with-temp-buffer
-                (insert-file-contents test-file)
-                (should (string= (buffer-string) "Hello hi HELLO"))))))
+                   ;; Test case-sensitive replacement
+                   (let ((result (greger-stdlib--str-replace
+                                  test-file
+                                  target-string
+                                  replacement
+                                  "Case-sensitive replacement"
+                                  t))) ; replace-all = true
+                     (should (stringp result))
+                     (should (string-match "Successfully replaced content" result))
+                     (should-not (string-match "made.*replacements" result)) ; Only one match
+                     
+                     ;; Verify only lowercase "hello" was replaced
+                     (with-temp-buffer
+                       (insert-file-contents test-file)
+                       (should (string= (buffer-string) "Hello hi HELLO"))))))
 
       ;; Clean up
       (when (file-exists-p test-file)
@@ -1158,19 +1158,19 @@ drwx------  (dir)  ..
           (cl-letf (((symbol-function 'greger-stdlib--git-stage-and-commit)
                      (lambda (files commit-message buffer) "Mocked git result")))
 
-            ;; Test successful file creation
-            (let ((result (greger-stdlib--write-new-file
-                          test-file
-                          test-content
-                          "Create new test file")))
-              (should (stringp result))
-              (should (string-match "Successfully wrote new file" result))
-              (should (file-exists-p test-file))
-              
-              ;; Verify file contents (write-file adds a newline at the end)
-              (with-temp-buffer
-                (insert-file-contents test-file)
-                (should (string= (buffer-string) (concat test-content "\n")))))))
+                   ;; Test successful file creation
+                   (let ((result (greger-stdlib--write-new-file
+                                  test-file
+                                  test-content
+                                  "Create new test file")))
+                     (should (stringp result))
+                     (should (string-match "Successfully wrote new file" result))
+                     (should (file-exists-p test-file))
+                     
+                     ;; Verify file contents (write-file adds a newline at the end)
+                     (with-temp-buffer
+                       (insert-file-contents test-file)
+                       (should (string= (buffer-string) (concat test-content "\n")))))))
 
       ;; Clean up
       (when (file-exists-p test-file)
@@ -1190,11 +1190,11 @@ drwx------  (dir)  ..
           (cl-letf (((symbol-function 'greger-stdlib--git-stage-and-commit)
                      (lambda (files commit-message buffer) "Mocked git result")))
 
-            ;; Should error when trying to write to existing file
-            (should-error (greger-stdlib--write-new-file
-                          test-file
-                          "New content"
-                          "Should fail"))))
+                   ;; Should error when trying to write to existing file
+                   (should-error (greger-stdlib--write-new-file
+                                  test-file
+                                  "New content"
+                                  "Should fail"))))
 
       ;; Clean up
       (when (file-exists-p test-file)
@@ -1206,11 +1206,11 @@ drwx------  (dir)  ..
   (cl-letf (((symbol-function 'greger-stdlib--git-stage-and-commit)
              (lambda (files commit-message buffer) "Mocked git result")))
 
-    ;; Test with invalid directory
-    (should-error (greger-stdlib--write-new-file
-                  "/nonexistent/directory/file.txt"
-                  "Content"
-                  "Should fail"))))
+           ;; Test with invalid directory
+           (should-error (greger-stdlib--write-new-file
+                          "/nonexistent/directory/file.txt"
+                          "Content"
+                          "Should fail"))))
 
 (ert-deftest greger-test-replace-file-basic ()
   "Test basic replace-file functionality."
@@ -1232,18 +1232,18 @@ drwx------  (dir)  ..
           (cl-letf (((symbol-function 'greger-stdlib--git-stage-and-commit)
                      (lambda (files commit-message buffer) "Mocked git result")))
 
-            ;; Test successful file replacement
-            (let ((result (greger-stdlib--replace-file
-                          test-file
-                          new-content
-                          "Replace file content")))
-              (should (stringp result))
-              (should (string-match "Successfully replaced" result))
-              
-              ;; Verify new content
-              (with-temp-buffer
-                (insert-file-contents test-file)
-                (should (string= (buffer-string) new-content))))))
+                   ;; Test successful file replacement
+                   (let ((result (greger-stdlib--replace-file
+                                  test-file
+                                  new-content
+                                  "Replace file content")))
+                     (should (stringp result))
+                     (should (string-match "Successfully replaced" result))
+                     
+                     ;; Verify new content
+                     (with-temp-buffer
+                       (insert-file-contents test-file)
+                       (should (string= (buffer-string) new-content))))))
 
       ;; Clean up
       (when (file-exists-p test-file)
@@ -1255,11 +1255,11 @@ drwx------  (dir)  ..
   (cl-letf (((symbol-function 'greger-stdlib--git-stage-and-commit)
              (lambda (files commit-message buffer) "Mocked git result")))
 
-    ;; Should error when trying to replace non-existent file
-    (should-error (greger-stdlib--replace-file
-                  "/path/that/does/not/exist.txt"
-                  "New content"
-                  "Should fail"))))
+           ;; Should error when trying to replace non-existent file
+           (should-error (greger-stdlib--replace-file
+                          "/path/that/does/not/exist.txt"
+                          "New content"
+                          "Should fail"))))
 
 (ert-deftest greger-test-replace-file-empty-content ()
   "Test replace-file with empty content."
@@ -1275,18 +1275,18 @@ drwx------  (dir)  ..
           (cl-letf (((symbol-function 'greger-stdlib--git-stage-and-commit)
                      (lambda (files commit-message buffer) "Mocked git result")))
 
-            ;; Test replacing with empty content
-            (let ((result (greger-stdlib--replace-file
-                          test-file
-                          ""
-                          "Replace with empty content")))
-              (should (stringp result))
-              (should (string-match "Successfully replaced" result))
-              
-              ;; Verify file is now empty
-              (with-temp-buffer
-                (insert-file-contents test-file)
-                (should (string= (buffer-string) ""))))))
+                   ;; Test replacing with empty content
+                   (let ((result (greger-stdlib--replace-file
+                                  test-file
+                                  ""
+                                  "Replace with empty content")))
+                     (should (stringp result))
+                     (should (string-match "Successfully replaced" result))
+                     
+                     ;; Verify file is now empty
+                     (with-temp-buffer
+                       (insert-file-contents test-file)
+                       (should (string= (buffer-string) ""))))))
 
       ;; Clean up
       (when (file-exists-p test-file)
@@ -1305,14 +1305,14 @@ drwx------  (dir)  ..
           (cl-letf (((symbol-function 'greger-stdlib--git-stage-and-commit)
                      (lambda (files commit-message buffer) "Mocked git result")))
 
-            ;; Test successful directory creation
-            (let ((result (greger-stdlib--make-directory
-                          test-dir
-                          "Create new directory")))
-              (should (stringp result))
-              (should (string-match "Successfully created directory" result))
-              (should (file-exists-p test-dir))
-              (should (file-directory-p test-dir)))))
+                   ;; Test successful directory creation
+                   (let ((result (greger-stdlib--make-directory
+                                  test-dir
+                                  "Create new directory")))
+                     (should (stringp result))
+                     (should (string-match "Successfully created directory" result))
+                     (should (file-exists-p test-dir))
+                     (should (file-directory-p test-dir)))))
 
       ;; Clean up
       (when (file-exists-p test-dir)
@@ -1335,18 +1335,18 @@ drwx------  (dir)  ..
           (cl-letf (((symbol-function 'greger-stdlib--git-stage-and-commit)
                      (lambda (files commit-message buffer) "Mocked git result")))
 
-            ;; Test recursive directory creation
-            (let ((result (greger-stdlib--make-directory
-                          nested-dir
-                          "Create nested directories")))
-              (should (stringp result))
-              (should (string-match "Successfully created directory" result))
-              (should (file-exists-p nested-dir))
-              (should (file-directory-p nested-dir))
-              
-              ;; Verify intermediate directories were created
-              (should (file-exists-p (expand-file-name "level1" parent-dir)))
-              (should (file-exists-p (expand-file-name "level1/level2" parent-dir))))))
+                   ;; Test recursive directory creation
+                   (let ((result (greger-stdlib--make-directory
+                                  nested-dir
+                                  "Create nested directories")))
+                     (should (stringp result))
+                     (should (string-match "Successfully created directory" result))
+                     (should (file-exists-p nested-dir))
+                     (should (file-directory-p nested-dir))
+                     
+                     ;; Verify intermediate directories were created
+                     (should (file-exists-p (expand-file-name "level1" parent-dir)))
+                     (should (file-exists-p (expand-file-name "level1/level2" parent-dir))))))
 
       ;; Clean up
       (when (file-exists-p parent-dir)
@@ -1365,12 +1365,12 @@ drwx------  (dir)  ..
           (cl-letf (((symbol-function 'greger-stdlib--git-stage-and-commit)
                      (lambda (files commit-message buffer) "Mocked git result")))
 
-            ;; Should succeed even if directory exists (like mkdir -p)
-            (let ((result (greger-stdlib--make-directory
-                          test-dir
-                          "Directory already exists")))
-              (should (stringp result))
-              (should (string-match "already exists" result)))))
+                   ;; Should succeed even if directory exists (like mkdir -p)
+                   (let ((result (greger-stdlib--make-directory
+                                  test-dir
+                                  "Directory already exists")))
+                     (should (stringp result))
+                     (should (string-match "already exists" result)))))
 
       ;; Clean up
       (when (file-exists-p test-dir)
@@ -1380,7 +1380,7 @@ drwx------  (dir)  ..
   "Test basic rename-file functionality."
   (let ((old-file (make-temp-file "greger-rename-old"))
         (new-file (expand-file-name "renamed-file.txt" 
-                                   (make-temp-file "greger-rename-test" t)))
+                                    (make-temp-file "greger-rename-test" t)))
         (test-content "File content to preserve"))
     (unwind-protect
         (progn
@@ -1395,20 +1395,20 @@ drwx------  (dir)  ..
           (cl-letf (((symbol-function 'greger-stdlib--git-stage-and-commit)
                      (lambda (files commit-message buffer) "Mocked git result")))
 
-            ;; Test successful file rename
-            (let ((result (greger-stdlib--rename-file
-                          old-file
-                          new-file
-                          "Rename test file")))
-              (should (stringp result))
-              (should (string-match "Successfully renamed" result))
-              (should-not (file-exists-p old-file))
-              (should (file-exists-p new-file))
-              
-              ;; Verify content was preserved
-              (with-temp-buffer
-                (insert-file-contents new-file)
-                (should (string= (buffer-string) test-content))))))
+                   ;; Test successful file rename
+                   (let ((result (greger-stdlib--rename-file
+                                  old-file
+                                  new-file
+                                  "Rename test file")))
+                     (should (stringp result))
+                     (should (string-match "Successfully renamed" result))
+                     (should-not (file-exists-p old-file))
+                     (should (file-exists-p new-file))
+                     
+                     ;; Verify content was preserved
+                     (with-temp-buffer
+                       (insert-file-contents new-file)
+                       (should (string= (buffer-string) test-content))))))
 
       ;; Clean up
       (when (file-exists-p old-file)
@@ -1438,20 +1438,20 @@ drwx------  (dir)  ..
           (cl-letf (((symbol-function 'greger-stdlib--git-stage-and-commit)
                      (lambda (files commit-message buffer) "Mocked git result")))
 
-            ;; Test moving file to different directory
-            (let ((result (greger-stdlib--rename-file
-                          old-file
-                          new-file
-                          "Move file to different directory")))
-              (should (stringp result))
-              (should (string-match "Successfully renamed" result))
-              (should-not (file-exists-p old-file))
-              (should (file-exists-p new-file))
-              
-              ;; Verify content was preserved
-              (with-temp-buffer
-                (insert-file-contents new-file)
-                (should (string= (buffer-string) test-content))))))
+                   ;; Test moving file to different directory
+                   (let ((result (greger-stdlib--rename-file
+                                  old-file
+                                  new-file
+                                  "Move file to different directory")))
+                     (should (stringp result))
+                     (should (string-match "Successfully renamed" result))
+                     (should-not (file-exists-p old-file))
+                     (should (file-exists-p new-file))
+                     
+                     ;; Verify content was preserved
+                     (with-temp-buffer
+                       (insert-file-contents new-file)
+                       (should (string= (buffer-string) test-content))))))
 
       ;; Clean up
       (when (file-exists-p source-dir)
@@ -1468,11 +1468,11 @@ drwx------  (dir)  ..
           (cl-letf (((symbol-function 'greger-stdlib--git-stage-and-commit)
                      (lambda (files commit-message buffer) "Mocked git result")))
 
-            ;; Should error when source file doesn't exist
-            (should-error (greger-stdlib--rename-file
-                          "/path/that/does/not/exist.txt"
-                          new-file
-                          "Should fail"))))
+                   ;; Should error when source file doesn't exist
+                   (should-error (greger-stdlib--rename-file
+                                  "/path/that/does/not/exist.txt"
+                                  new-file
+                                  "Should fail"))))
 
       ;; Clean up
       (when (file-exists-p new-file)
@@ -1496,11 +1496,11 @@ drwx------  (dir)  ..
           (cl-letf (((symbol-function 'greger-stdlib--git-stage-and-commit)
                      (lambda (files commit-message buffer) "Mocked git result")))
 
-            ;; Should fail when target file already exists
-            (should-error (greger-stdlib--rename-file
-                          old-file
-                          new-file
-                          "Should fail when target exists"))))
+                   ;; Should fail when target file already exists
+                   (should-error (greger-stdlib--rename-file
+                                  old-file
+                                  new-file
+                                  "Should fail when target exists"))))
 
       ;; Clean up
       (when (file-exists-p old-file)
@@ -1521,16 +1521,16 @@ drwx------  (dir)  ..
           (cl-letf (((symbol-function 'greger-stdlib--git-stage-and-commit)
                      (lambda (files commit-message buffer) "Mocked git result")))
 
-            ;; Should succeed when renaming a directory
-            (let ((result (greger-stdlib--rename-file
-                          test-dir
-                          new-path
-                          "Rename directory")))
-              (should (stringp result))
-              (should (string-match "Successfully renamed" result))
-              (should-not (file-exists-p test-dir))
-              (should (file-exists-p new-path))
-              (should (file-directory-p new-path)))))
+                   ;; Should succeed when renaming a directory
+                   (let ((result (greger-stdlib--rename-file
+                                  test-dir
+                                  new-path
+                                  "Rename directory")))
+                     (should (stringp result))
+                     (should (string-match "Successfully renamed" result))
+                     (should-not (file-exists-p test-dir))
+                     (should (file-exists-p new-path))
+                     (should (file-directory-p new-path)))))
 
       ;; Clean up
       (when (file-exists-p test-dir)

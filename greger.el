@@ -99,12 +99,12 @@ May order 4,000 pounds of meat."
 ;;; Agent state structure
 
 (cl-defstruct greger-state
-	      current-iteration
-	      chat-buffer
-	      directory
-	      tool-use-metadata
-	      client-state
-	      executing-tools)
+              current-iteration
+              chat-buffer
+              directory
+              tool-use-metadata
+              client-state
+              executing-tools)
 
 (defvar-local greger--current-state nil
   "Buffer-local variable to track the current state.")
@@ -704,43 +704,43 @@ Assumes the last inserted thing is a thinking tag."
         (insert text)))))
 
 (cl-defun greger--handle-tool-completion (&key tool-id result error state completion-callback)
-	  "Handle completion of a tool execution by updating buffer and calling callback.
+          "Handle completion of a tool execution by updating buffer and calling callback.
 TOOL-ID is the tool identifier.
 RESULT is the tool execution result.
 ERROR is any error that occurred.
 STATE contains the current agent state.
 COMPLETION-CALLBACK is called when complete."
-	  (let ((tool-result (if error
-				 `((type . "tool_result")
-				   (tool_use_id . ,tool-id)
-				   (content . ,(if (stringp error)
-						   error
-						 (format "Error executing tool: %s" (error-message-string error))))
-				   (is_error . t))
-			       `((type . "tool_result")
-				 (tool_use_id . ,tool-id)
-				 (content . ,result)))))
+          (let ((tool-result (if error
+                                 `((type . "tool_result")
+                                   (tool_use_id . ,tool-id)
+                                   (content . ,(if (stringp error)
+                                                   error
+                                                 (format "Error executing tool: %s" (error-message-string error))))
+                                   (is_error . t))
+                               `((type . "tool_result")
+                                 (tool_use_id . ,tool-id)
+                                 (content . ,result)))))
 
-	    ;; Update the buffer at the correct position
-	    (let ((buffer (greger-state-chat-buffer state)))
-	      (when (buffer-live-p buffer)
-		(with-current-buffer buffer
-		  (let ((inhibit-read-only t))
-		    (save-excursion
-		      (goto-char (point-max))
-		      ;; Find and replace the placeholder
-		      (when (search-backward (greger--tool-placeholder tool-id) nil t)
-			(replace-match "")
-			(let ((result-markdown (greger-parser--tool-result-to-markdown tool-result)))
-			  (unless (string-empty-p result-markdown)
-			    (insert result-markdown)))))))
+            ;; Update the buffer at the correct position
+            (let ((buffer (greger-state-chat-buffer state)))
+              (when (buffer-live-p buffer)
+                (with-current-buffer buffer
+                  (let ((inhibit-read-only t))
+                    (save-excursion
+                      (goto-char (point-max))
+                      ;; Find and replace the placeholder
+                      (when (search-backward (greger--tool-placeholder tool-id) nil t)
+                        (replace-match "")
+                        (let ((result-markdown (greger-parser--tool-result-to-markdown tool-result)))
+                          (unless (string-empty-p result-markdown)
+                            (insert result-markdown)))))))
 
-		;; Update buffer state after tool completion
-		(with-current-buffer buffer
-		  (greger--update-buffer-state))))
+                ;; Update buffer state after tool completion
+                (with-current-buffer buffer
+                  (greger--update-buffer-state))))
 
-	    ;; Call completion callback
-	    (funcall completion-callback)))
+            ;; Call completion callback
+            (funcall completion-callback)))
 
 (defun greger--finish-response (state)
   "Finish the agent response using STATE."
