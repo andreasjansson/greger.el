@@ -327,6 +327,9 @@ Returns a cancel function that can be called to interrupt the process."
 
           ;; Return cancel function
           (lambda ()
+            ;; Cancel timeout timer if it's running
+            (when timeout-timer
+              (cancel-timer timeout-timer))
             (when (and process (process-live-p process))
               (interrupt-process process)
               (sit-for 0.1)
