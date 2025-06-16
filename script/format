@@ -18,7 +18,9 @@ Returns the formatted content as a string, or nil on error."
       (with-temp-buffer
         (insert-file-contents file)
         (emacs-lisp-mode)
-        (indent-region (point-min) (point-max))
+        ;; Suppress verbose indentation messages
+        (let ((inhibit-message t))
+          (indent-region (point-min) (point-max)))
         (buffer-string))
     (error
      (message "Error processing %s: %s" file (error-message-string err))
