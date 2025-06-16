@@ -192,7 +192,10 @@
                                                 (description . "The shell command to execute")))
                                     (working-directory . ((type . "string")
                                                           (description . "Directory to run the command in")
-                                                          (default . "."))))
+                                                          (default . ".")))
+                                    (timeout . ((type . "integer")
+                                               (description . "Timeout in seconds for command execution")
+                                               (default . 600))))
                       :required '("command")
                       :function 'greger-stdlib--shell-command
                       :pass-callback t
@@ -875,7 +878,7 @@ Returns a cancel function that can interrupt the command execution."
           (if (string-match-p "[|><&;]" command)
               ;; Use shell to execute commands with shell operators
               (greger-stdlib--run-async-subprocess
-               "sh" (list "-c" command) expanded-work-dir
+               "bash" (list "-c" command) expanded-work-dir
                (lambda (output error)
                  (if error
                      (funcall callback nil error)
