@@ -991,20 +991,20 @@ drwx------  (dir)  ..
           ;; Test case-sensitive search (should only match exact case)
           (greger-stdlib--ripgrep
            "Hello"
+           test-dir
            (lambda (output err)
              (setq result-sensitive output)
              (setq callback-count (1+ callback-count)))
-           test-dir
-           t) ; case-sensitive = t
+           t nil 0 nil nil nil 50) ; case-sensitive = t
 
           ;; Test case-insensitive search (should match all cases)
           (greger-stdlib--ripgrep
            "Hello"
+           test-dir
            (lambda (output err)
              (setq result-insensitive output)
              (setq callback-count (1+ callback-count)))
-           test-dir
-           nil) ; case-sensitive = nil
+           nil nil 0 nil nil nil 50) ; case-sensitive = nil
 
           ;; Wait for both operations
           (let ((timeout 0))
