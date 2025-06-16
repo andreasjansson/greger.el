@@ -89,7 +89,13 @@ Encrypted index: ghi789
     
     ;; Try calling the toggle function directly instead of kbd macro
     (when (get-text-property (point) 'greger-ui-expandable-citation-entry)
-      (greger-ui--toggle-citation-fold))
+      (message "Before toggle - expanded property: %S" 
+               (get-text-property (point) 'greger-ui-citation-expanded))
+      (greger-ui--toggle-citation-fold)
+      (message "After toggle - expanded property: %S" 
+               (get-text-property (point) 'greger-ui-citation-expanded))
+      ;; Force font-lock to re-process
+      (font-lock-ensure))
     
     (let ((expanded-visible (greger-ui-test--visible-text)))
       (message "Expanded visible text: %S" expanded-visible)
