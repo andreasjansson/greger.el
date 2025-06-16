@@ -396,7 +396,7 @@ Hi")))
 
 (ert-deftest greger-parser-test-performance ()
   "Test parser performance with large dialogs."
-  (ert-skip-when (getenv "GITHUB_ACTIONS"))
+  (skip-when (getenv "GITHUB_ACTIONS"))
 
   (let ((large-markdown
          (mapconcat
