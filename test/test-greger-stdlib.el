@@ -957,7 +957,7 @@ drwx------  (dir)  ..
                           test-content
                           "Create new test file")))
               (should (stringp result))
-              (should (string-match "Successfully created file" result))
+              (should (string-match "Successfully wrote new file" result))
               (should (file-exists-p test-file))
               
               ;; Verify file contents
