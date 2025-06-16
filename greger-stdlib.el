@@ -833,11 +833,12 @@ For Emacs Lisp files (.el), checks that parentheses balance is maintained."
                          "")))
         (format "Successfully replaced content in %s%s. %s" expanded-path count-msg git-result)))))
 
-(defun greger-stdlib--shell-command (command callback &optional working-directory metadata)
+(defun greger-stdlib--shell-command (command callback &optional working-directory timeout metadata)
   "Execute COMMAND in WORKING-DIRECTORY and call CALLBACK with (result error).
 Prompts for permission before running the command for security.
 If METADATA contains safe-shell-commands and COMMAND is in that list, skips
 permission prompt.
+TIMEOUT specifies the maximum time in seconds to wait for command completion (default 600).
 Returns a cancel function that can interrupt the command execution."
   (let ((work-dir (or working-directory ".")))
     (cond
