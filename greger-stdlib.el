@@ -300,6 +300,9 @@ Returns a cancel function that can be called to interrupt the process."
            (lambda (proc _event)
              (unless callback-called
                (setq callback-called t)
+               ;; Cancel timeout timer if it's running
+               (when timeout-timer
+                 (cancel-timer timeout-timer))
                (let ((exit-status (process-exit-status proc))
                      (output (with-current-buffer process-buffer
                                (buffer-string))))
