@@ -1320,7 +1320,7 @@ drwx------  (dir)  ..
     (should callback-called)
     (should (null result))
     (should (stringp error))
-    (should (string-match-p "No such file or directory\\|not found" error))))
+    (should (string-match-p "No such file or directory\\|not found\\|does not exist" error))))
 
 (ert-deftest greger-test-ripgrep-empty-pattern ()
   "Test ripgrep with empty pattern."
