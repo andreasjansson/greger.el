@@ -3,22 +3,57 @@
 ;;; format --- Format all *.el files recursively -*- lexical-binding: t -*-
 
 ;; Format script to indent all *.el files recursively
-;; Usage: ./script/format
+;; Usage: ./script/format [--check]
+;;   --check: Check if files would be reformatted (like black --check)
 
 ;;; Code:
 
-(defun format-elisp-file (file)
-  "Format a single Elisp FILE by indenting it properly."
-  (message "Formatting: %s" file)
+(defvar format-check-mode nil
+  "When non-nil, only check if files would be reformatted.")
+
+(defun format-get-formatted-content (file)
+  "Get the formatted content of FILE without modifying the file.
+Returns the formatted content as a string, or nil on error."
   (condition-case err
       (with-temp-buffer
         (insert-file-contents file)
         (emacs-lisp-mode)
         (indent-region (point-min) (point-max))
-        (write-region (point-min) (point-max) file))
+        (buffer-string))
     (error
-     (message "Error formatting %s: %s" file (error-message-string err))
+     (message "Error processing %s: %s" file (error-message-string err))
      nil)))
+
+(defun format-file-needs-formatting-p (file)
+  "Check if FILE needs formatting.
+Returns t if the file would be changed by formatting, nil otherwise."
+  (let ((original-content (with-temp-buffer
+                            (insert-file-contents file)
+                            (buffer-string)))
+        (formatted-content (format-get-formatted-content file)))
+    (and formatted-content
+         (not (string= original-content formatted-content)))))
+
+(defun format-elisp-file (file)
+  "Format a single Elisp FILE by indenting it properly.
+If `format-check-mode' is non-nil, only check if formatting is needed."
+  (if format-check-mode
+      ;; Check mode: just check if file needs formatting
+      (when (format-file-needs-formatting-p file)
+        (message "would reformat %s" file)
+        t)
+    ;; Format mode: actually format the file
+    (message "Formatting: %s" file)
+    (condition-case err
+        (with-temp-buffer
+          (insert-file-contents file)
+          (emacs-lisp-mode)
+          (indent-region (point-min) (point-max))
+          (write-region (point-min) (point-max) file)
+          t)
+      (error
+       (message "Error formatting %s: %s" file (error-message-string err))
+       nil))))
 
 (defun find-elisp-files (directory)
   "Find all *.el files in DIRECTORY recursively."
@@ -28,17 +63,36 @@
     (nreverse files)))
 
 (defun format-all-elisp-files ()
-  "Format all *.el files in the current directory recursively."
-  (message "Formatting all *.el files...")
+  "Format all *.el files in the current directory recursively.
+If `format-check-mode' is non-nil, only check formatting."
+  (if format-check-mode
+      (message "Checking formatting of all *.el files...")
+    (message "Formatting all *.el files..."))
+  
   (let ((files (find-elisp-files "."))
-        (formatted-count 0)
+        (changed-count 0)
         (error-count 0))
     (dolist (file files)
-      (if (format-elisp-file file)
-          (setq formatted-count (1+ formatted-count))
-        (setq error-count (1+ error-count))))
-    (message "✓ Formatting complete! Formatted: %d, Errors: %d" 
-             formatted-count error-count)))
+      (let ((result (format-elisp-file file)))
+        (cond
+         ((eq result t) (setq changed-count (1+ changed-count)))
+         ((eq result nil) (setq error-count (1+ error-count))))))
+    
+    (if format-check-mode
+        (progn
+          (if (> changed-count 0)
+              (message "✗ %d file(s) would be reformatted, %d error(s)" 
+                       changed-count error-count)
+            (message "✓ All files are properly formatted"))
+          ;; Exit with error code if files would be reformatted
+          (when (> changed-count 0)
+            (kill-emacs 1)))
+      (message "✓ Formatting complete! Formatted: %d, Errors: %d" 
+               changed-count error-count))))
+
+;; Parse command line arguments
+(when (member "--check" command-line-args-left)
+  (setq format-check-mode t))
 
 ;; Run the formatter
 (format-all-elisp-files)
