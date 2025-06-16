@@ -1,6 +1,10 @@
 ; -*- mode: emacs-lisp; lexical-binding: t -*-
 ; Eldev configuration for greger.el
 
+;; Specify the main package file (contains Package-Requires)
+;; IMPORTANT: This must be set before using the autoloads plugin!
+(setf eldev-project-main-file "greger.el")
+
 ;; This is not working. When I enable autoloads, `eldev info` wrongly reports the
 ;; project as `greger-parser 0.1.0` instead of `greger 0.1.0`
 (eldev-use-plugin 'autoloads)
@@ -10,9 +14,6 @@
 
 ;; Use MELPA for any dependencies that might be needed
 (eldev-use-package-archive 'melpa)
-
-;; Specify the main package file (contains Package-Requires)
-(setf eldev-project-main-file "greger.el")
 
 ;; Set up exclusions for files we don't want Eldev to process
 (setf eldev-standard-excludes `(:or ,eldev-standard-excludes "*.greger" "grammar"))
