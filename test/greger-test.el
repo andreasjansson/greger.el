@@ -32,11 +32,11 @@
 
     ;; Register test tool
     (greger-register-tool "test-simple"
-      :description "Simple test tool"
-      :properties '((message . ((type . "string")
-                                (description . "Test message"))))
-      :required '("message")
-      :function 'greger-test-simple-tool)
+                          :description "Simple test tool"
+                          :properties '((message . ((type . "string")
+                                                    (description . "Test message"))))
+                          :required '("message")
+                          :function 'greger-test-simple-tool)
 
     ;; Create test buffer
     (with-temp-buffer
@@ -46,9 +46,9 @@
                           :directory default-directory
                           :tool-use-metadata '(:safe-shell-commands () :allow-all-shell-commands nil)))
             (tool-calls `(((type . "tool_use")
-                          (id . "test_001")
-                          (name . "test-simple")
-                          (input . ((message . "Hello World"))))))
+                           (id . "test_001")
+                           (name . "test-simple")
+                           (input . ((message . "Hello World"))))))
             (expected-content "
 
 # TOOL USE
@@ -108,18 +108,18 @@ Tool executed: Hello World
 
     ;; Register test tools
     (greger-register-tool "test-tool-a"
-      :description "Test tool A"
-      :properties '((value . ((type . "string")
-                              (description . "Input value"))))
-      :required '("value")
-      :function 'greger-test-tool-a)
+                          :description "Test tool A"
+                          :properties '((value . ((type . "string")
+                                                  (description . "Input value"))))
+                          :required '("value")
+                          :function 'greger-test-tool-a)
 
     (greger-register-tool "test-tool-b"
-      :description "Test tool B"
-      :properties '((value . ((type . "string")
-                              (description . "Input value"))))
-      :required '("value")
-      :function 'greger-test-tool-b)
+                          :description "Test tool B"
+                          :properties '((value . ((type . "string")
+                                                  (description . "Input value"))))
+                          :required '("value")
+                          :function 'greger-test-tool-b)
 
     ;; Create test buffer
     (with-temp-buffer
@@ -128,13 +128,13 @@ Tool executed: Hello World
                           :chat-buffer (current-buffer)
                           :directory default-directory :tool-use-metadata '(:safe-shell-commands () :allow-all-shell-commands nil)))
             (tool-calls `(((type . "tool_use")
-                          (id . "test_a")
-                          (name . "test-tool-a")
-                          (input . ((value . "input-a"))))
-                         ((type . "tool_use")
-                          (id . "test_b")
-                          (name . "test-tool-b")
-                          (input . ((value . "input-b"))))))
+                           (id . "test_a")
+                           (name . "test-tool-a")
+                           (input . ((value . "input-a"))))
+                          ((type . "tool_use")
+                           (id . "test_b")
+                           (name . "test-tool-b")
+                           (input . ((value . "input-b"))))))
             ;; Expected content has each tool use followed by its result
             (expected-content "
 
@@ -212,11 +212,11 @@ Tool B result: input-b
 
     ;; Register test tool
     (greger-register-tool "test-error"
-      :description "Tool that throws an error"
-      :properties '((input . ((type . "string")
-                              (description . "Input that will cause error"))))
-      :required '("input")
-      :function 'greger-test-error-tool)
+                          :description "Tool that throws an error"
+                          :properties '((input . ((type . "string")
+                                                  (description . "Input that will cause error"))))
+                          :required '("input")
+                          :function 'greger-test-error-tool)
 
     ;; Create test buffer
     (with-temp-buffer
@@ -225,9 +225,9 @@ Tool B result: input-b
                           :chat-buffer (current-buffer)
                           :directory default-directory :tool-use-metadata nil))
             (tool-calls `(((type . "tool_use")
-                          (id . "error_test")
-                          (name . "test-error")
-                          (input . ((input . "bad-input"))))))
+                           (id . "error_test")
+                           (name . "test-error")
+                           (input . ((input . "bad-input"))))))
             (expected-error-content "
 
 # TOOL USE
@@ -284,11 +284,11 @@ Error executing tool: Simulated tool error: bad-input
 
     ;; Register test tool
     (greger-register-tool "test-content"
-      :description "Test tool with existing content"
-      :properties '((data . ((type . "string")
-                             (description . "Data to process"))))
-      :required '("data")
-      :function 'greger-test-content-tool)
+                          :description "Test tool with existing content"
+                          :properties '((data . ((type . "string")
+                                                 (description . "Data to process"))))
+                          :required '("data")
+                          :function 'greger-test-content-tool)
 
     ;; Create test buffer with existing content
     (with-temp-buffer
@@ -299,9 +299,9 @@ Error executing tool: Simulated tool error: bad-input
                           :chat-buffer (current-buffer)
                           :directory default-directory :tool-use-metadata nil))
             (tool-calls `(((type . "tool_use")
-                          (id . "content_test")
-                          (name . "test-content")
-                          (input . ((data . "test-data"))))))
+                           (id . "content_test")
+                           (name . "test-content")
+                           (input . ((data . "test-data"))))))
             (expected-content "Existing content in buffer
 
 # TOOL USE
@@ -359,9 +359,9 @@ Processed: test-data
                           :chat-buffer (current-buffer)
                           :directory default-directory :tool-use-metadata nil))
             (tool-calls `(((type . "tool_use")
-                          (id . "unknown_test")
-                          (name . "nonexistent-tool")
-                          (input . ((param . "value"))))))
+                           (id . "unknown_test")
+                           (name . "nonexistent-tool")
+                           (input . ((param . "value"))))))
             (expected-error-content "
 
 # TOOL USE
@@ -415,11 +415,11 @@ Unknown tool: nonexistent-tool
 
     ;; Register test tool
     (greger-register-tool "test-multiline"
-      :description "Tool with multi-line output"
-      :properties '((content . ((type . "string")
-                                (description . "Content for first line"))))
-      :required '("content")
-      :function 'greger-test-multiline-tool)
+                          :description "Tool with multi-line output"
+                          :properties '((content . ((type . "string")
+                                                    (description . "Content for first line"))))
+                          :required '("content")
+                          :function 'greger-test-multiline-tool)
 
     ;; Create test buffer
     (with-temp-buffer
@@ -428,9 +428,9 @@ Unknown tool: nonexistent-tool
                           :chat-buffer (current-buffer)
                           :directory default-directory :tool-use-metadata nil))
             (tool-calls `(((type . "tool_use")
-                          (id . "multiline_test")
-                          (name . "test-multiline")
-                          (input . ((content . "Start"))))))
+                           (id . "multiline_test")
+                           (name . "test-multiline")
+                           (input . ((content . "Start"))))))
             (expected-content "
 
 # TOOL USE
@@ -489,11 +489,11 @@ Line 3: End
 
     ;; Register test tool
     (greger-register-tool "test-echo"
-      :description "Simple echo tool"
-      :properties '((input . ((type . "string")
-                              (description . "Input to echo"))))
-      :required '("input")
-      :function 'greger-test-simple-echo)
+                          :description "Simple echo tool"
+                          :properties '((input . ((type . "string")
+                                                  (description . "Input to echo"))))
+                          :required '("input")
+                          :function 'greger-test-simple-echo)
 
     ;; Create test buffer
     (with-temp-buffer
@@ -504,9 +504,9 @@ Line 3: End
                           :chat-buffer (current-buffer)
                           :directory default-directory :tool-use-metadata nil))
             (tool-calls `(((type . "tool_use")
-                          (id . "echo_001")
-                          (name . "test-echo")
-                          (input . ((input . "hello world"))))))
+                           (id . "echo_001")
+                           (name . "test-echo")
+                           (input . ((input . "hello world"))))))
             ;; Expected content after tool execution
             (expected-final-content "
 

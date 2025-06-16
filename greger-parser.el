@@ -343,11 +343,11 @@ Recognizes numbers, booleans, JSON arrays/objects, and plain strings."
 (defun greger-parser--extract-citation-entries (node)
   "Extract all citation entries from NODE."
   (let ((citation-entries '()))
-   (dolist (child (treesit-node-children node))
-     (let ((child-type (treesit-node-type child)))
-       (when (string= child-type "citation_entry")
-         (push (greger-parser--extract-citation-entry child) citation-entries))))
-   citation-entries))
+    (dolist (child (treesit-node-children node))
+      (let ((child-type (treesit-node-type child)))
+        (when (string= child-type "citation_entry")
+          (push (greger-parser--extract-citation-entry child) citation-entries))))
+    citation-entries))
 
 (defun greger-parser--extract-text-content (node)
   "Extract text content from NODE, handling nested structures."
@@ -475,15 +475,15 @@ Recognizes numbers, booleans, JSON arrays/objects, and plain strings."
                (has-citations (alist-get 'citations block))
                (is-text-block (and (string= block-type "text") (not has-citations)))
                (block-markdown (cond
-                               ((and is-text-block first-block)
-                                ;; First text block gets assistant header
-                                (concat greger-parser-assistant-tag "\n\n" (alist-get 'text block)))
-                               (is-text-block
-                                ;; Subsequent text blocks need assistant header if previous wasn't text
-                                (concat greger-parser-assistant-tag "\n\n" (alist-get 'text block)))
-                               (t
-                                ;; Non-text blocks handle their own headers
-                                (greger-parser--block-to-markdown block t)))))
+                                ((and is-text-block first-block)
+                                 ;; First text block gets assistant header
+                                 (concat greger-parser-assistant-tag "\n\n" (alist-get 'text block)))
+                                (is-text-block
+                                 ;; Subsequent text blocks need assistant header if previous wasn't text
+                                 (concat greger-parser-assistant-tag "\n\n" (alist-get 'text block)))
+                                (t
+                                 ;; Non-text blocks handle their own headers
+                                 (greger-parser--block-to-markdown block t)))))
           (when (not (string= result ""))
             (setq result (concat result "\n\n")))
           (setq result (concat result block-markdown))
@@ -638,21 +638,21 @@ assuming it's already been sent in streaming."
   "Convert VALUE to string representation."
   (let ((json-encoding-pretty-print t))
     (cond
-    ((stringp value)
-     ;; Try to parse as JSON and pretty print if valid
-     (condition-case nil
-         (let ((parsed (json-read-from-string value)))
-           ;; If parsing succeeded, encode back with pretty print
-           (json-encode parsed))
-       (error
-        ;; If parsing failed, return original string
-        value)))
-    ((numberp value) (number-to-string value))
-    ((eq value t) "true")
-    ((null value) "false")
-    ((vectorp value) (json-encode value))
-    ((listp value) (json-encode value))
-    (t (format "%s" value)))))
+     ((stringp value)
+      ;; Try to parse as JSON and pretty print if valid
+      (condition-case nil
+          (let ((parsed (json-read-from-string value)))
+            ;; If parsing succeeded, encode back with pretty print
+            (json-encode parsed))
+        (error
+         ;; If parsing failed, return original string
+         value)))
+     ((numberp value) (number-to-string value))
+     ((eq value t) "true")
+     ((null value) "false")
+     ((vectorp value) (json-encode value))
+     ((listp value) (json-encode value))
+     (t (format "%s" value)))))
 
 (provide 'greger-parser)
 

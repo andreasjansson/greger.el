@@ -20,16 +20,16 @@
 
 (defun greger-test-last-assistant-message ()
   (let (start end)
-   (save-excursion
-     (goto-char (point-max))
-     (re-search-backward "^# ASSISTANT")
-     (forward-line 2)
-     (setq start (point))
-     (re-search-forward "^# USER")
-     (forward-line -1)
-     (forward-char -1)
-     (setq end (point)))
-   (buffer-substring-no-properties start end)))
+    (save-excursion
+      (goto-char (point-max))
+      (re-search-backward "^# ASSISTANT")
+      (forward-line 2)
+      (setq start (point))
+      (re-search-forward "^# USER")
+      (forward-line -1)
+      (forward-char -1)
+      (setq end (point)))
+    (buffer-substring-no-properties start end)))
 
 (defun greger-test-treesit-node-to-simplified-tree (node)
   "Convert a treesit NODE to a simplified parse tree expression.
@@ -153,14 +153,14 @@ Hello from greger test!
   ;; Register a basic read-file tool that only accepts file-path
   (defun greger-test-read-file-basic (file-path)
     "Simple wrapper around greger-stdlib--read-file that only accepts file-path."
-    (greger-stdlib--read-file file-path))
+    (greger-stdlib--read-file file-path nil nil nil))
 
   (greger-register-tool "read-file-basic"
-    :description "Read the contents of a file from the filesystem (basic version with only file-path argument)"
-    :properties '((file-path . ((type . "string")
-                               (description . "Path to the file to read"))))
-    :required '("file-path")
-    :function 'greger-test-read-file-basic)
+                        :description "Read the contents of a file from the filesystem (basic version with only file-path argument)"
+                        :properties '((file-path . ((type . "string")
+                                                    (description . "Path to the file to read"))))
+                        :required '("file-path")
+                        :function 'greger-test-read-file-basic)
 
   (let ((greger-buffer nil)
         (test-file nil))
@@ -284,7 +284,7 @@ Hello from greger test!
 
           ;; The model should be shown in the mode line
           (should (string-match-p "claude-sonnet-4-20250514"
-                                 (format "%s" (symbol-name greger-model)))))
+                                  (format "%s" (symbol-name greger-model)))))
 
       ;; Cleanup
       (setq greger-model original-model)
@@ -397,10 +397,10 @@ Hello from greger test!
             (setq greger-buffer (greger)))
 
           (insert "2+2")
-          
+
           (let ((greger-thinking-budget 1024))
             (greger-buffer))
-          
+
           (should (greger-test-wait-for-status 'idle))
 
           (let ((expected-parse-tree '(source_file
@@ -425,7 +425,7 @@ Hello from greger test!
             (should (equal expected-parse-tree (greger-test-parse-tree))))
 
           (should (string-match-p "\\(2\\+2\\|four\\|addition\\|math\\)" (buffer-string))))
-      
+
       (when (and greger-buffer (buffer-live-p greger-buffer))
         (kill-buffer greger-buffer)))))
 
@@ -448,9 +448,9 @@ Hello from greger test!
             (greger-toggle-thinking)
             (should (> greger-thinking-budget 0))
             (should (= greger-thinking-budget 2048))
-            
+
             (should (string-match-p "\\[T:2048\\]" (greger-test-mode-line-text)))))
-      
+
       (when (and greger-buffer (buffer-live-p greger-buffer))
         (kill-buffer greger-buffer)))))
 

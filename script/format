@@ -1,0 +1,178 @@
+#!/usr/bin/env -S emacs --script
+
+;;; format --- Format all *.el files recursively -*- lexical-binding: t -*-
+
+;; Format script to indent all *.el files recursively
+;; Usage: ./script/format [--check] [-v|--verbose]
+;;   --check: Check if files would be reformatted (like black --check)
+;;   -v, --verbose: Show diff of changes that would be made/were made
+
+;;; Code:
+
+(require 'whitespace)
+
+(defvar format-check-mode nil
+  "When non-nil, only check if files would be reformatted.")
+
+(defvar format-verbose-mode nil
+  "When non-nil, show diffs of changes made/to be made.")
+
+(defun format-get-formatted-content (file)
+  "Get the formatted content of FILE without modifying the file.
+Returns the formatted content as a string, or nil on error."
+  (condition-case err
+      (with-temp-buffer
+        (insert-file-contents file)
+        (emacs-lisp-mode)
+        ;; Load cl-lib to ensure proper indentation of cl-defun
+        (require 'cl-lib)
+        ;; Suppress verbose indentation messages
+        (let ((inhibit-message t))
+          (indent-region (point-min) (point-max)))
+        (whitespace-cleanup)
+        (untabify (point-min) (point-max))
+        (buffer-string))
+    (error
+     (message "Error processing %s: %s" file (error-message-string err))
+     nil)))
+
+(defun format-show-diff (file original-content formatted-content)
+  "Show a diff between ORIGINAL-CONTENT and FORMATTED-CONTENT for FILE."
+  (let ((diff-output 
+         (with-temp-buffer
+           (let ((orig-file (make-temp-file "format-orig"))
+                 (new-file (make-temp-file "format-new")))
+             (unwind-protect
+                 (progn
+                   ;; Write original content to temp file
+                   (with-temp-file orig-file
+                     (insert original-content))
+                   ;; Write formatted content to temp file  
+                   (with-temp-file new-file
+                     (insert formatted-content))
+                   ;; Generate diff
+                   (call-process "diff" nil t nil "-u" 
+                               (concat "--label=a/" (file-name-nondirectory file))
+                               (concat "--label=b/" (file-name-nondirectory file))
+                               orig-file new-file)
+                   (buffer-string))
+               ;; Cleanup temp files
+               (when (file-exists-p orig-file) (delete-file orig-file))
+               (when (file-exists-p new-file) (delete-file new-file)))))))
+    (when (> (length diff-output) 0)
+      (message "Diff for %s:" file)
+      (message "%s" diff-output))))
+
+(defun format-file-needs-formatting-p (file)
+  "Check if FILE needs formatting.
+Returns t if the file would be changed by formatting, nil otherwise."
+  (let ((original-content (with-temp-buffer
+                            (insert-file-contents file)
+                            (buffer-string)))
+        (formatted-content (format-get-formatted-content file)))
+    (and formatted-content
+         (not (string= original-content formatted-content)))))
+
+(defun format-elisp-file (file)
+  "Format a single Elisp FILE by indenting it properly.
+If `format-check-mode' is non-nil, only check if formatting is needed.
+Returns:
+  'changed - file was changed or would be changed
+  'unchanged - file doesn't need formatting
+  'error - an error occurred while processing the file"
+  (let ((original-content (with-temp-buffer
+                            (insert-file-contents file)
+                            (buffer-string)))
+        (formatted-content (format-get-formatted-content file)))
+    (if (not formatted-content)
+        ;; Error getting formatted content
+        'error
+      (if format-check-mode
+          ;; Check mode: just check if file needs formatting
+          (if (not (string= original-content formatted-content))
+              (progn
+                (message "would reformat %s" file)
+                (when format-verbose-mode
+                  (format-show-diff file original-content formatted-content))
+                'changed)
+            'unchanged)
+        ;; Format mode: actually format the file
+        (if (not (string= original-content formatted-content))
+            (progn
+              (message "Formatting: %s" file)
+              (when format-verbose-mode
+                (format-show-diff file original-content formatted-content))
+              (condition-case err
+                  (progn
+                    (with-temp-file file
+                      (insert formatted-content))
+                    'changed)
+                (error
+                 (message "Error formatting %s: %s" file (error-message-string err))
+                 'error)))
+          ;; File doesn't need formatting
+          'unchanged)))))
+
+(defun find-elisp-files (directory)
+  "Find all *.el files in DIRECTORY recursively.
+Skips directories that start with a period (like .git, .eldev, etc.)."
+  (let ((files '()))
+    (dolist (file (directory-files-recursively 
+                   directory "\\.el$" nil
+                   (lambda (dir)
+                     ;; Skip directories that start with a period
+                     (not (string-match-p "/\\.[^/]*/?$" dir)))))
+      (push file files))
+    (nreverse files)))
+
+(defun format-all-elisp-files ()
+  "Format all *.el files in the current directory recursively.
+If `format-check-mode' is non-nil, only check formatting."
+  (if format-check-mode
+      (message "Checking formatting of all *.el files...")
+    (message "Formatting all *.el files..."))
+  
+  (let ((files (find-elisp-files "."))
+        (changed-count 0)
+        (unchanged-count 0)
+        (error-count 0))
+    (dolist (file files)
+      (let ((result (format-elisp-file file)))
+        (cond
+         ((eq result 'changed) (setq changed-count (1+ changed-count)))
+         ((eq result 'unchanged) (setq unchanged-count (1+ unchanged-count)))
+         ((eq result 'error) (setq error-count (1+ error-count))))))
+    
+    (if format-check-mode
+        (progn
+          (if (> changed-count 0)
+              (message "✗ %d file(s) would be reformatted, %d unchanged%s" 
+                       changed-count unchanged-count
+                       (if (> error-count 0) (format ", %d error(s)" error-count) ""))
+            (message "✓ All files are properly formatted (%d files checked)%s" 
+                     (+ unchanged-count error-count)
+                     (if (> error-count 0) (format ", %d error(s)" error-count) "")))
+          ;; Exit with error code if files would be reformatted
+          (when (> changed-count 0)
+            (kill-emacs 1)))
+      (message "✓ Formatting complete! Formatted: %d, Unchanged: %d%s" 
+               changed-count unchanged-count
+               (if (> error-count 0) (format ", Errors: %d" error-count) "")))))
+
+;; Parse command line arguments
+(when (member "--check" command-line-args-left)
+  (setq format-check-mode t)
+  ;; Remove --check from args so Emacs doesn't complain about unknown option
+  (setq command-line-args-left (delete "--check" command-line-args-left)))
+
+(when (or (member "-v" command-line-args-left) 
+          (member "--verbose" command-line-args-left))
+  (setq format-verbose-mode t)
+  ;; Remove verbose flags from args so Emacs doesn't complain about unknown options
+  (setq command-line-args-left (delete "-v" command-line-args-left))
+  (setq command-line-args-left (delete "--verbose" command-line-args-left)))
+
+;; Run the formatter
+(format-all-elisp-files)
+
+;;; format ends here

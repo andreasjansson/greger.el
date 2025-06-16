@@ -101,12 +101,12 @@ MAX-TOKENS is the maximum number of tokens to generate."
     (activate-change-group undo-handle)
 
     (set-process-filter process
-                       (lambda (_proc output)
-                         (greger-client--process-output-chunk output state)))
+                        (lambda (_proc output)
+                          (greger-client--process-output-chunk output state)))
 
     (set-process-sentinel process
-                         (lambda (proc _event)
-                           (greger-client--handle-completion proc state)))
+                          (lambda (proc _event)
+                            (greger-client--handle-completion proc state)))
 
     (set-process-query-on-exit-flag process nil)
 
@@ -188,9 +188,9 @@ MAX-TOKENS is the maximum number of tokens to generate."
     ;; Build base request
     (let ((max-tokens (+ max-tokens (or thinking-budget 0))))
       (setq request-data `(("model" . ,(symbol-name model))
-                          ("messages" . ,user-messages)
-                          ("max_tokens" . ,max-tokens)
-                          ("stream" . t))))
+                           ("messages" . ,user-messages)
+                           ("max_tokens" . ,max-tokens)
+                           ("stream" . t))))
 
     ;; Add system message if present
     (when system-message
@@ -237,7 +237,7 @@ Returns nil if no error found or if OUTPUT is not valid JSON."
 
   ;; Uncomment this line for raw debugging output of every
   ;; streaming message returned from the Anthropic API
-  ;(message "output: %s" output)
+                                        ;(message "output: %s" output)
 
   ;; Check for error responses and raise an error if found
   (greger-client--check-for-error output)
@@ -418,10 +418,10 @@ STATE is used to update the parsed content blocks."
 
     (let ((exit-code (process-exit-status proc)))
       (if (= exit-code 0)
-        (when-let ((callback (greger-client-state-complete-callback state)))
-          (funcall callback (greger-client-state-content-blocks state)))
-      ;; TODO: Error callback
-      (message "Process exited with status code %d" exit-code)))))
+          (when-let ((callback (greger-client-state-complete-callback state)))
+            (funcall callback (greger-client-state-content-blocks state)))
+        ;; TODO: Error callback
+        (message "Process exited with status code %d" exit-code)))))
 
 (defun greger-client--cancel-request (state)
   "Cancel streaming request using STATE."

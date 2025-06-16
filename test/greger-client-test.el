@@ -90,9 +90,9 @@
         (test-tools '(((name . "calculator")
                        (description . "Performs basic arithmetic calculations")
                        (input_schema . ((type . "object")
-                                       (properties . ((expression . ((type . "string")
-                                                                     (description . "Mathematical expression to evaluate")))))
-                                       (required . ["expression"])))))))
+                                        (properties . ((expression . ((type . "string")
+                                                                      (description . "Mathematical expression to evaluate")))))
+                                        (required . ["expression"])))))))
 
     (with-temp-buffer
       (let ((test-buffer (current-buffer)))
@@ -129,10 +129,10 @@
             ;; We should have at least attempted to use a tool
             ;; (Note: Claude might not always use the tool, but this tests the capability)
             (should (or has-tool-use
-                       ;; Or at least responded with text
-                       (cl-some (lambda (block)
-                                  (string= (alist-get 'type block) "text"))
-                                final-blocks)))))))))
+                        ;; Or at least responded with text
+                        (cl-some (lambda (block)
+                                   (string= (alist-get 'type block) "text"))
+                                 final-blocks)))))))))
 
 (ert-deftest greger-client-test-error-handling ()
   "Test error handling with invalid model."
@@ -170,8 +170,8 @@
          (test-tools '(((name . "test-tool")
                         (description . "A test tool")
                         (input_schema . ((type . "object")
-                                        (properties . ())
-                                        (required . []))))))
+                                         (properties . ())
+                                         (required . []))))))
          (request-spec (greger-client--build-request test-model test-dialog test-tools nil 0 4096)))
 
     ;; Verify request structure
@@ -199,7 +199,7 @@
         (test-dialog '(((role . "user") (content . "Hello"))))
         (thinking-budget 2048)
         (max-tokens 4096))
-    
+
     (let ((request-data (greger-client--build-data test-model test-dialog nil nil thinking-budget max-tokens)))
       (should (stringp request-data))
       (let ((parsed (json-read-from-string request-data)))
@@ -216,7 +216,7 @@
         (test-dialog '(((role . "user") (content . "Hello"))))
         (thinking-budget 0)
         (max-tokens 4096))
-    
+
     (let ((request-data (greger-client--build-data test-model test-dialog nil nil thinking-budget max-tokens)))
       (should (stringp request-data))
       (let ((parsed (json-read-from-string request-data)))
@@ -225,7 +225,7 @@
         (let ((thinking-config (alist-get 'thinking parsed)))
           (should (string= (alist-get 'type thinking-config) "disabled"))
           (should (not (alist-get 'budget_tokens thinking-config))))
-        
+
         (should (= (alist-get 'max_tokens parsed) max-tokens))))))
 
 (provide 'test-greger-client)

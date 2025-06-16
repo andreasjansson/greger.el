@@ -14,8 +14,8 @@
   (unless greger-test-grammar-repo-path
     (let ((temp-dir (make-temp-file "greger-grammar-" t)))
       (message "Cloning greger-grammar to %s..." temp-dir)
-      (let ((result (shell-command-to-string 
-                     (format "cd %s && git clone https://github.com/andreasjansson/greger-grammar.git" 
+      (let ((result (shell-command-to-string
+                     (format "cd %s && git clone https://github.com/andreasjansson/greger-grammar.git"
                              (shell-quote-argument temp-dir)))))
         (if (string-match-p "fatal:\\|error:" result)
             (error "Failed to clone greger-grammar: %s" result)
@@ -339,7 +339,7 @@ with multiple lines
           (should (string= "toolu_123" (alist-get 'tool_use_id tool-result-block)))
           (should (string= "File contents here
 with multiple lines"
-                          (alist-get 'content tool-result-block))))))))
+                           (alist-get 'content tool-result-block))))))))
 
 (ert-deftest greger-parser-test-thinking-parsing ()
   "Test thinking section parsing."
@@ -356,7 +356,7 @@ This is a complex problem."))
           (should (string= "thinking" (alist-get 'type thinking-block)))
           (should (string= "I need to think about this carefully.
 This is a complex problem."
-                          (alist-get 'thinking thinking-block))))))))
+                           (alist-get 'thinking thinking-block))))))))
 
 (ert-deftest greger-parser-test-error-handling ()
   "Test parser error handling for malformed input."
@@ -524,11 +524,11 @@ What files are here?"))
       ;; Should have user message with the tag as regular content
       (should (= 1 (length result)))
       (should (string-match-p "<safe-shell-commands>"
-                             (alist-get 'content (car result)))))))
+                              (alist-get 'content (car result)))))))
 
 
 ;; Cleanup test - should run last alphabetically
-(ert-deftest zz-greger-parser-test-cleanup ()
+(ert-deftest greger-parser-zz-test-cleanup ()
   "Clean up test resources (runs last due to alphabetical ordering)."
   (greger-test-cleanup-grammar-repo)
   (should t)) ;; Always pass
