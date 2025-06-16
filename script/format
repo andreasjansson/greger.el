@@ -1,33 +1,46 @@
-#!/bin/bash
+#!/usr/bin/env emacs --script
 
-# Format script to indent all *.el files recursively
-# Uses Emacs in batch mode to apply proper indentation
+;;; format --- Format all *.el files recursively -*- lexical-binding: t -*-
 
-set -e
+;; Format script to indent all *.el files recursively
+;; Usage: ./script/format
 
-# Color output for better visibility
-RED='\033[0;31m'
-GREEN='\033[0;32m'
-YELLOW='\033[1;33m'
-NC='\033[0m' # No Color
+;;; Code:
 
-echo -e "${GREEN}Formatting all *.el files...${NC}"
+(defun format-elisp-file (file)
+  "Format a single Elisp FILE by indenting it properly."
+  (message "Formatting: %s" file)
+  (condition-case err
+      (with-temp-buffer
+        (insert-file-contents file)
+        (emacs-lisp-mode)
+        (indent-region (point-min) (point-max))
+        (write-region (point-min) (point-max) file))
+    (error
+     (message "Error formatting %s: %s" file (error-message-string err))
+     nil)))
 
-# Find all .el files recursively and format them
-find . -name "*.el" -type f | while read -r file; do
-    echo -e "${YELLOW}Formatting:${NC} $file"
-    
-    # Use emacs in batch mode to indent the file
-    emacs --batch \
-          --eval "(progn
-                    (find-file \"$file\")
-                    (indent-region (point-min) (point-max))
-                    (save-buffer)
-                    (kill-buffer))" \
-          2>/dev/null || {
-        echo -e "${RED}Error formatting $file${NC}"
-        continue
-    }
-done
+(defun find-elisp-files (directory)
+  "Find all *.el files in DIRECTORY recursively."
+  (let ((files '()))
+    (dolist (file (directory-files-recursively directory "\\.el$"))
+      (push file files))
+    (nreverse files)))
 
-echo -e "${GREEN}✓ Formatting complete!${NC}"
+(defun format-all-elisp-files ()
+  "Format all *.el files in the current directory recursively."
+  (message "Formatting all *.el files...")
+  (let ((files (find-elisp-files "."))
+        (formatted-count 0)
+        (error-count 0))
+    (dolist (file files)
+      (if (format-elisp-file file)
+          (setq formatted-count (1+ formatted-count))
+        (setq error-count (1+ error-count))))
+    (message "✓ Formatting complete! Formatted: %d, Errors: %d" 
+             formatted-count error-count)))
+
+;; Run the formatter
+(format-all-elisp-files)
+
+;;; format ends here
