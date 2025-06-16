@@ -48,31 +48,31 @@
 ;; greger-register-tool is the main public API of this package, so it uses the package prefix "greger-"
 ;; rather than the file prefix "greger-tools-"
 ;; package-lint: disable=wrong-prefix
-(defmacro greger-register-tool (name &rest args)
+(defun greger-register-tool (name &rest args)
   "Register a tool with NAME and properties specified in ARGS.
 ARGS should be a plist containing :description, :properties, :required,
 :function, and optionally :pass-buffer, :pass-callback, and :pass-metadata.
 
 Example:
-  (greger-register-tool \\='rename-file\\='
-    :description \\='Rename or move a file from one path to another\\='
-    :properties \\='((old-path . ((type . \\='string\\=')
-                              (description . \\='Current path of the file\\=')))
-                  (new-path . ((type . \\='string\\=')
-                              (description . \\='New path for the file\\=')))
-                  (git-commit-message . ((type . \\='string\\=')
-                                        (description . \\='Git commit message\\='))))
-    :required \\='(\\='old-path\\=' \\='new-path\\=' \\='git-commit-message\\=')
-    :function \\='greger-tools--rename-file
+  (greger-register-tool 'rename-file
+    :description 'Rename or move a file from one path to another'
+    :properties '((old-path . ((type . 'string')
+                              (description . 'Current path of the file')))
+                  (new-path . ((type . 'string')
+                              (description . 'New path for the file')))
+                  (git-commit-message . ((type . 'string')
+                                        (description . 'Git commit message'))))
+    :required '('old-path' 'new-path' 'git-commit-message')
+    :function 'greger-tools--rename-file
     :pass-buffer t
     :pass-callback t
     :pass-metadata t)
 
   When :pass-callback is set to t, the callback function will be passed to the
-  tool function as a \\='callback\\=' parameter instead of `greger-tools-execute\\='
+  tool function as a 'callback' parameter instead of `greger-tools-execute'
   calling the callback with the result.
   When :pass-metadata is set to t, the metadata from the parser will be passed
-  as a \\='metadata\\=' parameter."
+  as a 'metadata' parameter."
   (let ((description (plist-get args :description))
         (properties (plist-get args :properties))
         (required (plist-get args :required))
@@ -80,18 +80,18 @@ Example:
         (pass-buffer (plist-get args :pass-buffer))
         (pass-callback (plist-get args :pass-callback))
         (pass-metadata (plist-get args :pass-metadata)))
-    `(puthash ,name
-              (list :schema (list (cons 'name ,name)
-                                  (cons 'description ,description)
-                                  (cons 'input_schema
-                                        (list (cons 'type "object")
-                                              (cons 'properties ,properties)
-                                              (cons 'required ,required))))
-                    :function ,function
-                    :pass-buffer ,pass-buffer
-                    :pass-callback ,pass-callback
-                    :pass-metadata ,pass-metadata)
-              greger-tools-registry)))
+    (puthash name
+             (list :schema (list (cons 'name name)
+                                 (cons 'description description)
+                                 (cons 'input_schema
+                                       (list (cons 'type "object")
+                                             (cons 'properties properties)
+                                             (cons 'required required))))
+                   :function function
+                   :pass-buffer pass-buffer
+                   :pass-callback pass-callback
+                   :pass-metadata pass-metadata)
+             greger-tools-registry)))
 
 ;; greger-register-server-tool is the main public API for server tools, so it uses the package prefix "greger-"
 ;; rather than the file prefix "greger-tools-"
