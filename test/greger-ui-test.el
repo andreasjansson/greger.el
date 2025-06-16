@@ -83,10 +83,8 @@ Encrypted index: ghi789
     (goto-char (point-min))
     (re-search-forward "Newton")
     
-    ;; Send TAB key directly
-    (ert-simulate-keys "\t"
-      ;; This will execute in the context where point is on Newton text
-      nil)
+    ;; Send TAB key directly 
+    (execute-kbd-macro "\t")
     
     (let ((expanded-visible (greger-ui-test--visible-text)))
       ;; After TAB, the Newton section should be visible
