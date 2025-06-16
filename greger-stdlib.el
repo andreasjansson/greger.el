@@ -826,8 +826,11 @@ For Emacs Lisp files (.el), checks that parentheses balance is maintained."
         (setq greger-stdlib--replacements-made replacements-made)))
 
     ;; Stage and commit the file
-    (let ((git-result (greger-stdlib--git-stage-and-commit (list expanded-path) git-commit-message buffer)))
-      (format "Successfully replaced content in %s. %s" expanded-path git-result))))
+    (let ((git-result (greger-stdlib--git-stage-and-commit (list expanded-path) git-commit-message buffer))
+          (count-msg (if (> greger-stdlib--replacements-made 1)
+                         (format " (made %d replacements)" greger-stdlib--replacements-made)
+                       "")))
+      (format "Successfully replaced content in %s%s. %s" expanded-path count-msg git-result))))
 
 (defun greger-stdlib--shell-command (command callback &optional working-directory metadata)
   "Execute COMMAND in WORKING-DIRECTORY and call CALLBACK with (result error).
