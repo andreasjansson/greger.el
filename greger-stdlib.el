@@ -819,7 +819,7 @@ For Emacs Lisp files (.el), checks that parentheses balance is maintained."
 GIT-COMMIT-MESSAGE will be used for the git commit.
 If BUFFER is provided, it will be staged and committed along with the file."
   (greger-stdlib--assert-arg-string "file-path" file-path)
-  (cl-greger-stdlib--assert-arg-int "line-number" line-number :ge 1)
+  (greger-stdlib--assert-arg-int "line-number" line-number :ge 1)
   (greger-stdlib--assert-arg-string "content" content)
   (greger-stdlib--assert-arg-string "git-commit-message" git-commit-message)
 
