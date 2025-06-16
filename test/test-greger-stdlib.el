@@ -1302,24 +1302,34 @@ drwx------  (dir)  ..
         (delete-file new-file)))))
 
 (ert-deftest greger-test-rename-file-directory ()
-  "Test that rename-file fails when trying to rename a directory."
+  "Test that rename-file works for directories too."
   (let ((test-dir (make-temp-file "greger-rename-dir" t))
         (new-path (expand-file-name "new-name" (make-temp-file "greger-rename-parent" t))))
     (unwind-protect
         (progn
+          ;; Ensure target doesn't exist
+          (should-not (file-exists-p new-path))
+
           ;; Mock git operations
           (cl-letf (((symbol-function 'greger-stdlib--git-stage-and-commit)
                      (lambda (files commit-message buffer) "Mocked git result")))
 
-            ;; Should error when trying to rename a directory
-            (should-error (greger-stdlib--rename-file
+            ;; Should succeed when renaming a directory
+            (let ((result (greger-stdlib--rename-file
                           test-dir
                           new-path
-                          "Should fail for directory"))))
+                          "Rename directory")))
+              (should (stringp result))
+              (should (string-match "Successfully renamed" result))
+              (should-not (file-exists-p test-dir))
+              (should (file-exists-p new-path))
+              (should (file-directory-p new-path)))))
 
       ;; Clean up
       (when (file-exists-p test-dir)
         (delete-directory test-dir t))
+      (when (file-exists-p new-path)
+        (delete-directory new-path t))
       (when (file-exists-p (file-name-directory new-path))
         (delete-directory (file-name-directory new-path) t)))))
 
