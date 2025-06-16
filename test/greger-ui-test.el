@@ -2,6 +2,7 @@
 
 (require 'ert)
 (require 'greger-ui)
+(require 'greger)
 
 (defun greger-ui--visible-text (input)
   "Extract visible text from INPUT after greger-ui folding is applied.
