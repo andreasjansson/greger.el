@@ -69,6 +69,6 @@ Cited text: laws of motion
 Encrypted index: ghi789
 
 "))
-      (should (string= expected-visible (greger-ui-test-visible-text))))))
+      (should (string= expected-visible (greger-ui-test--visible-text))))))
 
 ;;; greger-ui-test.el ends here
