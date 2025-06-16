@@ -276,6 +276,24 @@ Returns a cancel function that can be called to interrupt the process."
         (progn
           (setq process (apply #'start-process process-name process-buffer command args))
           (set-process-query-on-exit-flag process nil)
+          
+          ;; Set up timeout timer if specified
+          (when timeout
+            (setq timeout-timer
+                  (run-at-time timeout nil
+                               (lambda ()
+                                 (when (and process (process-live-p process))
+                                   (unless callback-called
+                                     (setq callback-called t)
+                                     (when timeout-timer
+                                       (cancel-timer timeout-timer))
+                                     (interrupt-process process)
+                                     (sit-for 0.1)
+                                     (when (process-live-p process)
+                                       (delete-process process))
+                                     (when (buffer-live-p process-buffer)
+                                       (kill-buffer process-buffer))
+                                     (funcall callback nil (format "Command timed out after %d seconds" timeout))))))))
 
           (set-process-sentinel
            process
