@@ -30,7 +30,7 @@ and returns only the text that would be visible to the user."
       (string-trim result))))
 
 (ert-deftest greger-ui-test-citations-folding ()
-  (let ((input "# ASSISTANT
+  (let* ((input "# ASSISTANT
 
 Einstein developed the theory of relativity
 
@@ -53,11 +53,11 @@ Encrypted index: def456
 Title: Newton Biography
 Cited text: laws of motion
 Encrypted index: ghi789
-"))
-    (expected-visible "# ASSISTANT
+")
+         (expected-visible "# ASSISTANT
 
 Einstein developed the theory of relativity while Newton formulated the laws of motion")
-    (actual-visible (greger-ui--visible-text input)))
-  (should (string= expected-visible actual-visible)))
+         (actual-visible (greger-ui--visible-text input)))
+    (should (string= expected-visible actual-visible))))
 
 ;;; greger-ui-test.el ends here
