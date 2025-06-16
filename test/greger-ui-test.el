@@ -4,6 +4,19 @@
 (require 'greger-ui)
 (require 'greger)
 
+(defun greger-ui-test--visible-text ()
+  "Extract only the visible text from the current buffer.
+Text with the 'invisible property set to t is excluded."
+  (let ((result "")
+        (pos (point-min)))
+    (while (< pos (point-max))
+      (let* ((next-change (next-single-property-change pos 'invisible nil (point-max)))
+             (invisible (get-text-property pos 'invisible)))
+        (unless invisible
+          (setq result (concat result (buffer-substring-no-properties pos next-change))))
+        (setq pos next-change)))
+    result))
+
 (ert-deftest greger-ui-test-citations-folding ()
   (with-current-buffer (greger)
     (insert "# ASSISTANT
