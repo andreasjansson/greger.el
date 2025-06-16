@@ -268,6 +268,128 @@ This ensures the '..' entry has predictable permissions in tests."
                (should (string-match "unsafe command" result))
                ;; Permission prompt SHOULD have been called since command not in safe list
                (should prompt-called)))))
+(ert-deftest greger-test-shell-command-with-timeout ()
+  "Test shell-command tool with timeout parameter."
+  (let ((result nil)
+        (error nil)
+        (callback-called nil))
+
+    ;; Mock the permission prompt to always return yes
+    (cl-letf (((symbol-function 'y-or-n-p) (lambda (prompt) t)))
+
+             ;; Execute a command that should complete within timeout
+             (greger-stdlib--shell-command
+              "echo timeout test"
+              (lambda (output err)
+                (setq result output error err callback-called t))
+              "."  ; working directory
+              10   ; timeout 10 seconds
+              nil) ; metadata
+
+             ;; Wait for async operation to complete
+             (let ((timeout 0))
+               (while (and (not callback-called) (< timeout 50))  ; 5 second timeout
+                 (sit-for 0.1)
+                 (setq timeout (1+ timeout))))
+
+             ;; Verify the results
+             (should callback-called)
+             (should (null error))
+             (should (stringp result))
+             (should (string-match "Command executed successfully" result))
+             (should (string-match "timeout test" result)))))
+
+(ert-deftest greger-test-shell-command-timeout-exceeded ()
+  "Test shell-command tool when timeout is exceeded."
+  (let ((result nil)
+        (error nil)
+        (callback-called nil))
+
+    ;; Mock the permission prompt to always return yes
+    (cl-letf (((symbol-function 'y-or-n-p) (lambda (prompt) t)))
+
+             ;; Execute a command that should timeout (sleep longer than timeout)
+             (greger-stdlib--shell-command
+              "sleep 3"
+              (lambda (output err)
+                (setq result output error err callback-called t))
+              "."  ; working directory
+              1    ; timeout 1 second
+              nil) ; metadata
+
+             ;; Wait for timeout to occur
+             (let ((timeout 0))
+               (while (and (not callback-called) (< timeout 30))  ; 3 second timeout
+                 (sit-for 0.1)
+                 (setq timeout (1+ timeout))))
+
+             ;; Verify the timeout occurred
+             (should callback-called)
+             (should error)
+             (should (null result))
+             (should (string-match "timed out after 1 seconds" error)))))
+
+(ert-deftest greger-test-shell-command-pager-environment ()
+  "Test shell-command tool sets PAGER=cat environment variable."
+  (let ((result nil)
+        (error nil)
+        (callback-called nil))
+
+    ;; Mock the permission prompt to always return yes
+    (cl-letf (((symbol-function 'y-or-n-p) (lambda (prompt) t)))
+
+             ;; Execute a command that checks the PAGER environment variable
+             (greger-stdlib--shell-command
+              "echo \"PAGER is: $PAGER\""
+              (lambda (output err)
+                (setq result output error err callback-called t))
+              "."  ; working directory
+              nil  ; timeout (use default)
+              nil) ; metadata
+
+             ;; Wait for async operation to complete
+             (let ((timeout 0))
+               (while (and (not callback-called) (< timeout 50))  ; 5 second timeout
+                 (sit-for 0.1)
+                 (setq timeout (1+ timeout))))
+
+             ;; Verify the results
+             (should callback-called)
+             (should (null error))
+             (should (stringp result))
+             (should (string-match "Command executed successfully" result))
+             (should (string-match "PAGER is: cat" result)))))
+
+(ert-deftest greger-test-shell-command-default-timeout ()
+  "Test shell-command tool uses default timeout of 600 seconds when not specified."
+  (let ((result nil)
+        (error nil)
+        (callback-called nil))
+
+    ;; Mock the permission prompt to always return yes
+    (cl-letf (((symbol-function 'y-or-n-p) (lambda (prompt) t)))
+
+             ;; Execute a quick command without specifying timeout
+             (greger-stdlib--shell-command
+              "echo default timeout test"
+              (lambda (output err)
+                (setq result output error err callback-called t))
+              "."  ; working directory
+              nil  ; timeout (should default to 600)
+              nil) ; metadata
+
+             ;; Wait for async operation to complete
+             (let ((timeout 0))
+               (while (and (not callback-called) (< timeout 50))  ; 5 second timeout
+                 (sit-for 0.1)
+                 (setq timeout (1+ timeout))))
+
+             ;; Verify the results - command should complete successfully
+             (should callback-called)
+             (should (null error))
+             (should (stringp result))
+             (should (string-match "Command executed successfully" result))
+             (should (string-match "default timeout test" result)))))
 
 (ert-deftest greger-test-count-paren-balance ()
   "Test the paren balance counting function."
