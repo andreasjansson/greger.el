@@ -234,8 +234,7 @@
       (error "Invalid argument: each element in %s must be a string" name))))
 
 (cl-defun greger-stdlib--assert-arg-int (name value &key ge le)
-          "Assert that VALUE is an integer between GREATER-OR-EQUAL and
-LESS-OR-EQUAL.
+          "Assert that VALUE is an integer within the specified bounds.
 Error with NAME if not. Either bound can be nil to skip that check."
           (unless (integerp value)
             (error "Invalid argument: %s must be an integer" name))
@@ -772,8 +771,8 @@ Uses `parse-partial-sexp' to properly handle strings and comments."
         balance))))
 
 (defun greger-stdlib--str-replace (file-path original-content new-content
-                                           git-commit-message &optional
-                                           replace-all buffer)
+                                             git-commit-message &optional
+                                             replace-all buffer)
   "Replace ORIGINAL-CONTENT with NEW-CONTENT in FILE-PATH.
 GIT-COMMIT-MESSAGE will be used for the git commit.
 If REPLACE-ALL is non-nil, replace all instances; otherwise replace only the first instance.
@@ -898,8 +897,8 @@ Returns a cancel function that can interrupt the command execution."
                             nil)))))))))))))
 
 (defun greger-stdlib--ripgrep (pattern path callback case-sensitive file-type
-                               context-lines fixed-strings word-regexp
-                               line-regexp max-results)
+                                       context-lines fixed-strings word-regexp
+                                       line-regexp max-results)
   "Search for PATTERN in PATH using the rg command line tool directly.
 CALLBACK is called with (result error) when search completes.
 CASE-SENSITIVE, FILE-TYPE, CONTEXT-LINES, FIXED-STRINGS, WORD-REGEXP,
