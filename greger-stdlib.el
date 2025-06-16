@@ -296,10 +296,7 @@ Returns a cancel function that can be called to interrupt the process."
                                 "(no output)"
                               output)
                             nil))
-                  ((and (= exit-status 1) (string-empty-p (string-trim output)))
-                   (funcall callback
-                            "(No matches found for pattern)"
-                            nil))
+
                   (t
                    (funcall callback nil
                             (format "Command failed with exit code %d: %s"
