@@ -264,6 +264,9 @@ May order 4,000 pounds of meat."
   "Tree-sitter indentation rules for `greger-mode'.")
 
 ;;;###autoload
+(add-to-list 'auto-mode-alist '("\\.greger\\'" . greger-mode))
+
+;;;###autoload
 (defun greger-install-grammar ()
   "Install greger tree-sitter grammar."
   (interactive)
@@ -301,9 +304,6 @@ May order 4,000 pounds of meat."
   (use-local-map greger-mode-map)
 
   (setq-local greger-thinking-budget greger-default-thinking-budget))
-
-;;;###autoload
-(add-to-list 'auto-mode-alist '("\\.greger\\'" . greger-mode))
 
 ;;;###autoload
 (defun greger (&optional with-context)
