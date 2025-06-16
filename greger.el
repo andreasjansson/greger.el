@@ -704,8 +704,7 @@ Assumes the last inserted thing is a thinking tag."
         (insert text)))))
 
 (cl-defun greger--handle-tool-completion (&key tool-id result error state completion-callback)
-          "Handle completion of a tool execution by updating buffer and calling
-callback.
+          "Handle completion of a tool execution by updating buffer and calling callback.
 TOOL-ID is the tool identifier.
 RESULT is the tool execution result.
 ERROR is any error that occurred.
