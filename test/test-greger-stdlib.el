@@ -1289,20 +1289,11 @@ drwx------  (dir)  ..
           (cl-letf (((symbol-function 'greger-stdlib--git-stage-and-commit)
                      (lambda (files commit-message buffer) "Mocked git result")))
 
-            ;; Should succeed and overwrite existing file
-            (let ((result (greger-stdlib--rename-file
+            ;; Should fail when target file already exists
+            (should-error (greger-stdlib--rename-file
                           old-file
                           new-file
-                          "Overwrite existing file")))
-              (should (stringp result))
-              (should (string-match "Successfully renamed" result))
-              (should-not (file-exists-p old-file))
-              (should (file-exists-p new-file))
-              
-              ;; Verify new file has old file's content
-              (with-temp-buffer
-                (insert-file-contents new-file)
-                (should (string= (buffer-string) old-content))))))
+                          "Should fail when target exists"))))
 
       ;; Clean up
       (when (file-exists-p old-file)
