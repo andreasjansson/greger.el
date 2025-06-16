@@ -960,10 +960,10 @@ drwx------  (dir)  ..
               (should (string-match "Successfully wrote new file" result))
               (should (file-exists-p test-file))
               
-              ;; Verify file contents
+              ;; Verify file contents (write-file adds a newline at the end)
               (with-temp-buffer
                 (insert-file-contents test-file)
-                (should (string= (buffer-string) test-content))))))
+                (should (string= (buffer-string) (concat test-content "\n")))))))
 
       ;; Clean up
       (when (file-exists-p test-file)
