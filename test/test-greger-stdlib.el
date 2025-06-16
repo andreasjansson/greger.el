@@ -1245,11 +1245,11 @@ drwx------  (dir)  ..
           (should callback-called)
           (should (null error))
           (should (stringp result))
-          ;; Should match the line that contains only "test"
-          (should (string-match-p "^test$" result))
+          ;; Should match the line that contains only "test" (with file path prefix)
+          (should (string-match-p ":test$" result))
           ;; Should NOT match lines with additional text
-          (should-not (string-match-p "exact test match" result))
-          (should-not (string-match-p "test with more text" result)))
+          (should-not (string-match-p ":exact test match" result))
+          (should-not (string-match-p ":test with more text" result)))
 
       ;; Clean up
       (when (file-exists-p test-dir)
