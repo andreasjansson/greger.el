@@ -4,38 +4,30 @@
 (require 'greger-ui)
 
 (defun greger-ui--visible-text (input)
-  "Extract visible text from INPUT as it would appear with greger-ui folding.
-This simulates the folding behavior where citation entries are hidden,
-leaving only the main assistant content visible."
+  "Extract visible text from INPUT after greger-ui folding is applied.
+This function sets up a buffer with greger-mode, applies the folding,
+and returns only the text that would be visible to the user."
   (with-temp-buffer
     (insert input)
-    (goto-char (point-min))
     
-    ;; Remove citation entries (lines starting with ## followed by content until next # or end)
-    (while (re-search-forward "^## " nil t)
-      (let ((citation-start (line-beginning-position)))
-        ;; Find the end of the citation entry (next # line or end of buffer)
-        (forward-line 1)
-        (let ((citation-content-start (point)))
-          (while (and (not (eobp))
-                      (not (looking-at "^#")))
-            (forward-line 1))
-          ;; Delete the entire citation entry
-          (delete-region citation-start (point)))))
+    ;; Enable greger-mode to get tree-sitter parsing and folding
+    (greger-mode)
     
-    ;; Clean up extra whitespace and normalize newlines
-    (goto-char (point-min))
-    ;; Remove multiple consecutive newlines, keeping structure
-    (while (re-search-forward "\n\n+" nil t)
-      (replace-match "\n\n"))
+    ;; Force font-lock to apply all the folding functions
+    (font-lock-ensure)
     
-    ;; Remove trailing whitespace at end
-    (goto-char (point-max))
-    (while (and (> (point) (point-min))
-                (memq (char-before) '(?\s ?\t ?\n)))
-      (delete-char -1))
-    
-    (buffer-string)))
+    ;; Extract only visible text by checking the 'invisible property
+    (let ((result ""))
+      (goto-char (point-min))
+      (while (< (point) (point-max))
+        (let* ((char (char-after))
+               (invisible (get-text-property (point) 'invisible)))
+          (unless invisible
+            (setq result (concat result (char-to-string char))))
+          (forward-char 1)))
+      
+      ;; Clean up trailing whitespace
+      (string-trim result))))
 
 (ert-deftest greger-ui-test-citations-folding ()
   (let ((input "# ASSISTANT
