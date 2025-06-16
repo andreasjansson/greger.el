@@ -32,6 +32,7 @@
 
 (require 'greger-tools)
 (require 'greger-web)
+(require 'cl-lib)
 
 ;; Server tool registrations
 
