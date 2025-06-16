@@ -1271,16 +1271,10 @@ drwx------  (dir)  ..
           ;; Search with max results limit
           (greger-stdlib--ripgrep
            "match"
+           test-dir
            (lambda (output err)
              (setq result output error err callback-called t))
-           test-dir
-           nil ; case-sensitive
-           nil ; file-type
-           0   ; context-lines
-           nil ; fixed-strings
-           nil ; word-regexp
-           nil ; line-regexp
-           3)  ; max-results = 3
+           nil nil 0 nil nil nil 3)  ; case-sensitive, file-type, context-lines, fixed-strings, word-regexp, line-regexp, max-results=3
 
           ;; Wait for operation
           (let ((timeout 0))
