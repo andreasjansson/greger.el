@@ -806,7 +806,6 @@ For Emacs Lisp files (.el), checks that parentheses balance is maintained."
       (with-current-buffer (find-file-noselect expanded-path)
         (let ((case-fold-search nil)) ; Make search case-sensitive
           (goto-char (point-min))
-          
           (if replace-all
               ;; Replace all instances
               (progn
