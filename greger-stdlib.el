@@ -254,10 +254,12 @@ Error with NAME if not. Either bound can be nil to skip that check."
   (unless (greger-web-is-web-url-p value)
     (error "Invalid argument: %s must be a valid URL (starting with http:// or https://)" name)))
 
-(defun greger-stdlib--run-async-subprocess (command args working-directory callback)
+(defun greger-stdlib--run-async-subprocess (command args working-directory callback &optional timeout env)
   "Run COMMAND with ARGS in WORKING-DIRECTORY and call CALLBACK.
 CALLBACK will be called with (output nil) on success or (nil error-message) on
 failure.
+TIMEOUT specifies the maximum time in seconds to wait for completion (default no timeout).
+ENV is an optional alist of environment variables to set.
 Returns a cancel function that can be called to interrupt the process."
   (let* ((process-name (format "greger-subprocess-%s" (make-temp-name "")))
          (process-buffer (generate-new-buffer (format " *%s*" process-name)))
