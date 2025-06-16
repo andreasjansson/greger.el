@@ -81,7 +81,7 @@ May order 4,000 pounds of meat."
 
 ;; Tool configuration and agent functionality
 
-(defcustom greger-tools '("read-file" "list-directory" "str-replace" "insert" "write-new-file" "replace-file" "make-directory" "rename-file" "ripgrep" "git-log" "git-show-commit" "shell-command" "read-webpage" "delete-files")
+(defcustom greger-tools '("read-file" "write-new-file" "replace-file" "str-replace" "make-directory" "rename-file" "delete-files" "list-directory" "ripgrep" "shell-command" "read-webpage")
   "List of tools available to the agent."
   :type '(repeat symbol)
   :group 'greger)
