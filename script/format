@@ -70,36 +70,43 @@ Returns t if the file would be changed by formatting, nil otherwise."
 
 (defun format-elisp-file (file)
   "Format a single Elisp FILE by indenting it properly.
-If `format-check-mode' is non-nil, only check if formatting is needed."
+If `format-check-mode' is non-nil, only check if formatting is needed.
+Returns:
+  'changed - file was changed or would be changed
+  'unchanged - file doesn't need formatting
+  'error - an error occurred while processing the file"
   (let ((original-content (with-temp-buffer
                             (insert-file-contents file)
                             (buffer-string)))
         (formatted-content (format-get-formatted-content file)))
-    (if format-check-mode
-        ;; Check mode: just check if file needs formatting
-        (when (and formatted-content
-                   (not (string= original-content formatted-content)))
-          (message "would reformat %s" file)
-          (when format-verbose-mode
-            (format-show-diff file original-content formatted-content))
-          t)
-      ;; Format mode: actually format the file
-      (if (and formatted-content
-               (not (string= original-content formatted-content)))
-          (progn
-            (message "Formatting: %s" file)
-            (when format-verbose-mode
-              (format-show-diff file original-content formatted-content))
-            (condition-case err
-                (progn
-                  (with-temp-file file
-                    (insert formatted-content))
-                  t)
-              (error
-               (message "Error formatting %s: %s" file (error-message-string err))
-               nil)))
-        ;; File doesn't need formatting
-        nil))))
+    (if (not formatted-content)
+        ;; Error getting formatted content
+        'error
+      (if format-check-mode
+          ;; Check mode: just check if file needs formatting
+          (if (not (string= original-content formatted-content))
+              (progn
+                (message "would reformat %s" file)
+                (when format-verbose-mode
+                  (format-show-diff file original-content formatted-content))
+                'changed)
+            'unchanged)
+        ;; Format mode: actually format the file
+        (if (not (string= original-content formatted-content))
+            (progn
+              (message "Formatting: %s" file)
+              (when format-verbose-mode
+                (format-show-diff file original-content formatted-content))
+              (condition-case err
+                  (progn
+                    (with-temp-file file
+                      (insert formatted-content))
+                    'changed)
+                (error
+                 (message "Error formatting %s: %s" file (error-message-string err))
+                 'error)))
+          ;; File doesn't need formatting
+          'unchanged)))))
 
 (defun find-elisp-files (directory)
   "Find all *.el files in DIRECTORY recursively.
