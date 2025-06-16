@@ -1305,9 +1305,10 @@ drwx------  (dir)  ..
     ;; Search in non-existent directory
     (greger-stdlib--ripgrep
      "test"
+     "/path/that/does/not/exist"
      (lambda (output err)
        (setq result output error err callback-called t))
-     "/path/that/does/not/exist")
+     nil nil 0 nil nil nil 50)
 
     ;; Wait for operation
     (let ((timeout 0))
