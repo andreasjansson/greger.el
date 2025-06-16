@@ -1,0 +1,17 @@
+; -*- mode: emacs-lisp; lexical-binding: t -*-
+; Eldev configuration for greger.el
+
+;; Specify the main package file (contains Package-Requires)
+;; IMPORTANT: This must be set before using the autoloads plugin!
+(setf eldev-project-main-file "greger.el")
+
+(eldev-use-plugin 'autoloads)
+
+(eldev-use-plugin 'maintainer)
+(eldev-use-plugin 'undercover)
+
+;; Use MELPA for any dependencies that might be needed
+(eldev-use-package-archive 'melpa)
+
+;; Set up exclusions for files we don't want Eldev to process
+(setf eldev-standard-excludes `(:or ,eldev-standard-excludes "*.greger" "grammar"))

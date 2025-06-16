@@ -24,13 +24,22 @@ jobs:
         with:
           version: ${{ matrix.emacs_version }}
 
+      - name: Install Eldev
+        uses: emacs-eldev/setup-eldev@v1
+
       - name: Checkout code
         uses: actions/checkout@v4
 
       - name: Test
         env:
           ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
-        run: ./script/test --verbose
+          COVERALLS_REPO_TOKEN: ${{ secrets.COVERALLS_REPO_TOKEN }}
+        run: |
+          if [[ "${{ matrix.os }}" == "ubuntu-latest" && "${{ matrix.emacs_version }}" == "30.1" ]]; then
+            eldev --verbose test --undercover=on,coveralls
+          else
+            eldev --verbose test --undercover=off
+          fi
 
   melpazoid:
     runs-on: ubuntu-latest

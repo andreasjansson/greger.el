@@ -1,5 +1,7 @@
 # Greger.el - Agentic coding in Emacs
 
+[![CI](https://github.com/andreasjansson/greger.el/actions/workflows/ci.yml/badge.svg)](https://github.com/andreasjansson/greger.el/actions/workflows/ci.yml)
+
 Greger is a Claude chat interface with tool use. It can read and edit code, download web pages, run shell commands, etc.
 
 ## Usage
