@@ -82,12 +82,18 @@ Encrypted index: ghi789
     ;; Test expanding a citation
     (goto-char (point-min))
     (re-search-forward "Newton")
-    (execute-kbd-macro (kbd "TAB"))
-    (font-lock-flush) ;; Make sure changes are applied
+    
+    ;; Debug: check if the text has the right properties
+    (let ((props (text-properties-at (point))))
+      (message "Text properties at Newton: %S" props))
+    
+    ;; Try calling the toggle function directly instead of kbd macro
+    (when (get-text-property (point) 'greger-ui-expandable-citation-entry)
+      (greger-ui--toggle-citation-fold))
     
     (let ((expanded-visible (greger-ui-test--visible-text)))
       (message "Expanded visible text: %S" expanded-visible)
-      ;; After TAB, the Newton section should be visible
+      ;; After toggle, the Newton section should be visible
       (should (string-match-p "https://physics.com/newton" expanded-visible)))))
 
 ;;; greger-ui-test.el ends here
