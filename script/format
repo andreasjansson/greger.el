@@ -129,24 +129,27 @@ If `format-check-mode' is non-nil, only check formatting."
   
   (let ((files (find-elisp-files "."))
         (changed-count 0)
+        (unchanged-count 0)
         (error-count 0))
     (dolist (file files)
       (let ((result (format-elisp-file file)))
         (cond
-         ((eq result t) (setq changed-count (1+ changed-count)))
-         ((eq result nil) (setq error-count (1+ error-count))))))
+         ((eq result 'changed) (setq changed-count (1+ changed-count)))
+         ((eq result 'unchanged) (setq unchanged-count (1+ unchanged-count)))
+         ((eq result 'error) (setq error-count (1+ error-count))))))
     
     (if format-check-mode
         (progn
           (if (> changed-count 0)
-              (message "✗ %d file(s) would be reformatted, %d error(s)" 
-                       changed-count error-count)
-            (message "✓ All files are properly formatted"))
+              (message "✗ %d file(s) would be reformatted, %d unchanged, %d error(s)" 
+                       changed-count unchanged-count error-count)
+            (message "✓ All files are properly formatted (%d files checked)" 
+                     (+ unchanged-count error-count)))
           ;; Exit with error code if files would be reformatted
           (when (> changed-count 0)
             (kill-emacs 1)))
-      (message "✓ Formatting complete! Formatted: %d, Errors: %d" 
-               changed-count error-count))))
+      (message "✓ Formatting complete! Formatted: %d, Unchanged: %d, Errors: %d" 
+               changed-count unchanged-count error-count))))
 
 ;; Parse command line arguments
 (when (member "--check" command-line-args-left)
