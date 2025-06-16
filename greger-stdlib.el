@@ -218,10 +218,12 @@
 
 ;; Helper functions
 
-(defun greger-stdlib--assert-arg-string (name value)
+(cl-defun greger-stdlib--assert-arg-string (name value &key min-length)
   "Assert that VALUE is a string, error with NAME if not."
   (unless (stringp value)
-    (error "Invalid argument: %s must be a string" name)))
+    (error "Invalid argument: %s must be a string" name))
+  (when (and min-length (< (length value) min-length))
+    (error "Invalid argument: %s must have a length of at least %d" name min-length)))
 
 (defun greger-stdlib--assert-arg-bool (name value)
   "Assert that VALUE is a boolean, error with NAME if not."
@@ -254,7 +256,7 @@ Error with NAME if not. Either bound can be nil to skip that check."
   (unless (greger-web-is-web-url-p value)
     (error "Invalid argument: %s must be a valid URL (starting with http:// or https://)" name)))
 
-(defun greger-stdlib--run-async-subprocess (command args working-directory callback &optional timeout env)
+(cl-defun greger-stdlib--run-async-subprocess (&key command args working-directory callback timeout env)
   "Run COMMAND with ARGS in WORKING-DIRECTORY and call CALLBACK.
 CALLBACK will be called with (output nil) on success or (nil error-message) on
 failure.
@@ -871,66 +873,37 @@ If METADATA contains safe-shell-commands and COMMAND is in that list, skips
 permission prompt.
 TIMEOUT specifies the maximum time in seconds to wait for command completion (default 600).
 Returns a cancel function that can interrupt the command execution."
-  (let ((work-dir (or working-directory ".")))
-    (cond
-     ((not (stringp command))
-      (funcall callback nil "Command must be a string")
-      (lambda () nil))
+  (greger-stdlib--assert-arg-string "command" command :min-length 1)
+  (when working-directory
+    (greger-stdlib--assert-arg-string "working-directory" working-directory))
 
-     ((string-empty-p (string-trim command))
-      (funcall callback nil "Command cannot be empty")
-      (lambda () nil))
+  (let ((work-dir (or working-directory "."))
+        (expanded-work-dir (expand-file-name work-dir))
+        (safe-commands (plist-get metadata :safe-shell-commands))
+        (allow-all-shell-commands (plist-get metadata :allow-all-shell-commands)))
 
-     ((not (stringp work-dir))
-      (funcall callback nil "Working directory must be a string")
-      (lambda () nil))
+    (unless (file-exists-p expanded-work-dir)
+      (error "Working directory does not exist: %s" expanded-work-dir))
+    (unless (file-directory-p expanded-work-dir)
+      (error "Working directory path is not a directory: %s" expanded-work-dir))
+    (when (and (not allow-all-shell-commands)
+               (not (member command safe-commands))
+               (not (y-or-n-p (format "Execute shell command: '%s' in directory '%s'? "
+                                      command expanded-work-dir))))
+      (error "Shell command execution cancelled by user"))
 
-     (t
-      (let ((expanded-work-dir (expand-file-name work-dir)))
-        (cond
-         ((not (file-exists-p expanded-work-dir))
-          (funcall callback nil (format "Working directory does not exist: %s" expanded-work-dir))
-          (lambda () nil))
-
-         ((not (file-directory-p expanded-work-dir))
-          (funcall callback nil (format "Working directory path is not a directory: %s" expanded-work-dir))
-          (lambda () nil))
-
-         ((let ((safe-commands (plist-get metadata :safe-shell-commands))
-                (allow-all-shell-commands (plist-get metadata :allow-all-shell-commands)))
-            (and (not allow-all-shell-commands)
-                 (not (member command safe-commands))
-                 (not (y-or-n-p (format "Execute shell command: '%s' in directory '%s'? "
-                                        command expanded-work-dir)))))
-          (funcall callback nil "Shell command execution cancelled by user")
-          (lambda () nil))
-
-         (t
-          ;; Check if command contains shell operators (pipes, redirections, etc.)
-          (if (string-match-p "[|><&;]" command)
-              ;; Use shell to execute commands with shell operators
-              (greger-stdlib--run-async-subprocess
-               "bash" (list "-c" command) expanded-work-dir
-               (lambda (output error)
+    (greger-stdlib--run-async-subprocess
+     :command "bash"
+     :args (list "-c" command)
+     :working-directory expanded-work-dir
+     :callback (lambda (output error)
                  (if error
                      (funcall callback nil error)
                    (funcall callback
                             (format "Command executed successfully:\n%s" output)
-                            nil))))
-            ;; For simple commands, parse into program and arguments
-            (let* ((command-parts (split-string-and-unquote command))
-                   (program (car command-parts))
-                   (args (cdr command-parts)))
-
-              ;; Execute the command asynchronously
-              (greger-stdlib--run-async-subprocess
-               program args expanded-work-dir
-               (lambda (output error)
-                 (if error
-                     (funcall callback nil error)
-                   (funcall callback
-                            (format "Command executed successfully:\n%s" output)
-                            nil)))))))))))))
+                            nil)))
+     :timeout timeout
+     :env '(("PAGER" . "cat")))))
 
 (defun greger-stdlib--ripgrep (pattern path callback case-sensitive file-type
                                        context-lines fixed-strings word-regexp
@@ -985,18 +958,20 @@ LINE-REGEXP and MAX-RESULTS are optional."
         (setq args (append args (list pattern expanded-path)))
 
         (greger-stdlib--run-async-subprocess
-         "rg" args nil
-         (lambda (output error)
-           (if error
-               ;; Check if it's a "no matches" error (exit code 1 with no output)
-               (if (string-match-p "failed with exit code 1" error)
-                   (funcall callback "No matches found" nil)
-                 (funcall callback nil (format "Failed to execute ripgrep search: %s" error)))
-             (funcall callback
-                      (if (string-empty-p (string-trim output))
-                          "No matches found"
-                        output)
-                      nil))))))))
+         :command "rg"
+         :args args
+         :working-directory nil
+         :callback (lambda (output error)
+                     (if error
+                         ;; Check if it's a "no matches" error (exit code 1 with no output)
+                         (if (string-match-p "failed with exit code 1" error)
+                             (funcall callback "No matches found" nil)
+                           (funcall callback nil (format "Failed to execute ripgrep search: %s" error)))
+                       (funcall callback
+                                (if (string-empty-p (string-trim output))
+                                    "No matches found"
+                                  output)
+                                nil))))))))
 
 (defun greger-stdlib--read-webpage (url &optional extract-text use-highest-readability)
   "Read webpage content from URL.
