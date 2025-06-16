@@ -9,6 +9,20 @@ on:
       - main
 
 jobs:
+  format-check:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Setup Emacs
+        uses: purcell/setup-emacs@master
+        with:
+          version: '30.1'
+
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Check formatting
+        run: ./script/format --check
+
   test:
     runs-on: ${{ matrix.os }}
 
