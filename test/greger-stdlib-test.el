@@ -204,6 +204,7 @@ This ensures the '..' entry has predictable permissions in tests."
                 (lambda (output err)
                   (setq result output error err callback-called t))
                 "."  ; working directory
+                nil  ; timeout (use default)
                 metadata)
 
                ;; Wait for async operation to complete
