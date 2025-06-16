@@ -528,7 +528,7 @@ What files are here?"))
 
 
 ;; Cleanup test - should run last alphabetically
-(ert-deftest zz-greger-parser-test-cleanup ()
+(ert-deftest greger-parser-zz-test-cleanup ()
   "Clean up test resources (runs last due to alphabetical ordering)."
   (greger-test-cleanup-grammar-repo)
   (should t)) ;; Always pass
