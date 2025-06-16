@@ -239,6 +239,11 @@
   (unless (stringp value)
     (error "Invalid argument: %s must be a string" name)))
 
+(defun greger-stdlib--assert-arg-bool (name value)
+  "Assert that VALUE is a boolean, error with NAME if not."
+  (unless (booleanp value)
+    (error "Invalid argument: %s must be a boolean" name)))
+
 (defun greger-stdlib--assert-arg-string-vector (name value)
   "Assert that VALUE is a vector of strings, error with NAME if not."
   (unless (vectorp value)
@@ -587,64 +592,50 @@ If EXCLUDE-DIRECTORIES-RECURSIVE is an empty vector, exclude nothing."
   "Search for PATTERN in PATH using the rg command line tool directly.
 CALLBACK is called with (result error) when search completes.
 CASE-SENSITIVE, FILE-TYPE, CONTEXT-LINES and MAX-RESULTS are optional."
-  (cond
 
-   ;; TODO: use utility functions for handling bad types like we do with sync methods
-   ((not (stringp pattern))
-    (funcall callback nil "Pattern must be a string"))
+  (unless (executable-find "rg")
+    (error "Command not found: ripgrep (rg).  Please install ripgrep"))
 
-   ((not (stringp path))
-    (funcall callback nil "Path must be a string"))
+  (greger-stdlib--assert-arg-string "pattern" pattern)
+  (greger-stdlib--assert-arg-string "path" path)
+  
 
-   ((not (executable-find "rg"))
-    (funcall callback nil "ripgrep (rg) command not found. Please install ripgrep"))
+  (let ((expanded-path (expand-file-name path)))
 
-   (t
-    (let ((expanded-path (expand-file-name path)))
+    ;; TODO: for some reason pattern always tends to end with ", no idea why!
+    (setq pattern (string-trim-right pattern "\""))
 
-      ;; TODO: for some reason pattern always tends to end with ", no idea why!
-      (setq pattern (string-trim-right pattern "\""))
+    (if (not (file-exists-p expanded-path))
+        (funcall callback nil (format "Path does not exist: %s" expanded-path))
 
-      (if (not (file-exists-p expanded-path))
-          (funcall callback nil (format "Path does not exist: %s" expanded-path))
+      (let ((args '()))
+        (if case-sensitive
+            (setq args (append args '("--case-sensitive")))
+          (setq args (append args '("--smart-case"))))
 
-        ;; Build the rg command arguments
-        (let ((args '()))
+        (when (and context-lines (> context-lines 0))
+          (setq args (append args (list "--context" (number-to-string context-lines)))))
 
-          ;; Add case sensitivity flag
-          (if case-sensitive
-              (setq args (append args '("--case-sensitive")))
-            (setq args (append args '("--smart-case"))))
+        (when (and max-results (> max-results 0))
+          (setq args (append args (list "--max-count" (number-to-string max-results)))))
 
-          ;; Add context lines if specified
-          (when (and context-lines (> context-lines 0))
-            (setq args (append args (list "--context" (number-to-string context-lines)))))
+        (when (and file-type (not (string-empty-p file-type)))
+          (setq args (append args (list "--type" file-type))))
 
-          ;; Add max results limit if specified (using --max-count)
-          (when (and max-results (> max-results 0))
-            (setq args (append args (list "--max-count" (number-to-string max-results)))))
+        (setq args (append args '("--line-number" "--no-heading")))
 
-          ;; Add file type if specified
-          (when (and file-type (not (string-empty-p file-type)))
-            (setq args (append args (list "--type" file-type))))
+        (setq args (append args (list pattern expanded-path)))
 
-          ;; Add line numbers and no heading for better output format
-          (setq args (append args '("--line-number" "--no-heading")))
-
-          ;; Add the pattern and path
-          (setq args (append args (list pattern expanded-path)))
-
-          ;; Execute the command asynchronously
-          (greger-stdlib--run-async-subprocess
-           "rg" args nil
-           (lambda (output error)
-             (if error
-                 (funcall callback nil (format "Failed to execute ripgrep search: %s" error))
-               (funcall callback
-			(if (string-empty-p (string-trim output))
-                            "No matches found"
-                          output)
-			nil))))))))))
+        (greger-stdlib--run-async-subprocess
+         "rg" args nil
+         (lambda (output error)
+           (if error
+               (funcall callback nil (format "Failed to execute ripgrep search: %s" error))
+             (funcall callback
+		      (if (string-empty-p (string-trim output))
+                          "No matches found"
+                        output)
+		      nil))))))))
 
 (defun greger-stdlib--write-new-file (file-path contents git-commit-message &optional buffer)
   "Write CONTENTS to a new file at FILE-PATH. Fails if file already exists.
