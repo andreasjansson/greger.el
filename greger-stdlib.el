@@ -167,7 +167,7 @@
 (greger-register-tool "ripgrep"
 		      :description "Search for patterns in files using ripgrep (rg) command line tool. Note that ripgrep only matches on single lines, so you can't search across multiple lines."
 		      :properties '((pattern . ((type . "string")
-						(description . "The search pattern (regex or literal string). Uses regular expression syntax by default. Meta characters like .(){}*+?[]^$|\\  have special meaning and should be escaped with backslash if you want to match them literally. For literal string matching, use the -F/--fixed-strings flag. Patterns beginning with dash should use -e/--regexp flag or -- delimiter. Supports Unicode by default.")))
+						(description . "The search pattern (regex or literal string). Uses regular expression syntax by default. Meta characters like .(){}*+?[]^$|\\  have special meaning and should be escaped with backslash if you want to match them literally. Use the fixed-strings parameter for literal string matching. Supports Unicode by default.")))
 				    (path . ((type . "string")
 					     (description . "Directory or file path to search in. Directories are searched recursively. Supports glob patterns and respects .gitignore rules by default. Use '.' for current directory, or specify multiple paths separated by spaces")
 					     (default . ".")))
