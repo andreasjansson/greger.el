@@ -1123,26 +1123,20 @@ drwx------  (dir)  ..
           ;; Search as regex pattern (should match multiple lines due to . wildcard)
           (greger-stdlib--ripgrep
            "test.txt"
+           test-dir
            (lambda (output err)
              (setq result-regex output)
              (setq callback-count (1+ callback-count)))
-           test-dir
-           nil ; case-sensitive
-           nil ; file-type
-           0   ; context-lines
-           nil) ; fixed-strings = nil (default regex)
+           nil nil 0 nil nil nil 50) ; case-sensitive, file-type, context-lines, fixed-strings, word-regexp, line-regexp, max-results
 
           ;; Search as literal/fixed string (should only match exact string)
           (greger-stdlib--ripgrep
            "test.txt"
+           test-dir
            (lambda (output err)
              (setq result-fixed output)
              (setq callback-count (1+ callback-count)))
-           test-dir
-           nil ; case-sensitive
-           nil ; file-type
-           0   ; context-lines
-           t)  ; fixed-strings = t
+           nil nil 0 t nil nil 50)  ; case-sensitive, file-type, context-lines, fixed-strings=t, word-regexp, line-regexp, max-results
 
           ;; Wait for both operations
           (let ((timeout 0))
