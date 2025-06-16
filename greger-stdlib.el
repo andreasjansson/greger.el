@@ -989,6 +989,15 @@ LINE-REGEXP and MAX-RESULTS are optional."
         (when (and file-type (not (string-empty-p file-type)))
           (setq args (append args (list "--type" file-type))))
 
+        (when fixed-strings
+          (setq args (append args '("--fixed-strings"))))
+
+        (when word-regexp
+          (setq args (append args '("--word-regexp"))))
+
+        (when line-regexp
+          (setq args (append args '("--line-regexp"))))
+
         (setq args (append args '("--line-number" "--no-heading")))
 
         (setq args (append args (list pattern expanded-path)))
