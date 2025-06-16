@@ -1208,9 +1208,9 @@ drwx------  (dir)  ..
 
           ;; Verify normal results (should match "test" anywhere including inside words)
           (should (stringp result-normal))
-          (should (string-match-p "test testing untested" result-normal))
-          (should (string-match-p "test-case" result-normal))
-          (should (string-match-p "test123" result-normal)))
+          (should (string-match-p ":test testing untested" result-normal))
+          (should (string-match-p ":test-case" result-normal))
+          (should (string-match-p ":test123" result-normal)))
 
       ;; Clean up
       (when (file-exists-p test-dir)
