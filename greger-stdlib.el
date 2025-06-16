@@ -167,7 +167,7 @@
 (greger-register-tool "ripgrep"
 		      :description "Search for patterns in files using ripgrep (rg) command line tool. Note that ripgrep only matches on single lines, so you can't search across multiple lines."
 		      :properties '((pattern . ((type . "string")
-						(description . "The search pattern (regex or literal string)")))
+						(description . "The search pattern (regex or literal string). Uses regular expression syntax by default. Meta characters like .(){}*+?[]^$|\\  have special meaning and should be escaped with backslash if you want to match them literally. For literal string matching, use the -F/--fixed-strings flag. Patterns beginning with dash should use -e/--regexp flag or -- delimiter. Supports Unicode by default.")))
 				    (path . ((type . "string")
 					     (description . "Directory or file path to search in")
 					     (default . ".")))
@@ -953,9 +953,6 @@ CASE-SENSITIVE, FILE-TYPE, CONTEXT-LINES and MAX-RESULTS are optional."
   (greger-stdlib--assert-arg-int "max-results" max-results :ge 1)
 
   (let ((expanded-path (expand-file-name path)))
-
-    ;; TODO: for some reason pattern always tends to end with ", no idea why!
-    (setq pattern (string-trim-right pattern "\""))
 
     (if (not (file-exists-p expanded-path))
         (funcall callback nil (format "Path does not exist: %s" expanded-path))
