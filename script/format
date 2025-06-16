@@ -101,7 +101,9 @@ If `format-check-mode' is non-nil, only check formatting."
 
 ;; Parse command line arguments
 (when (member "--check" command-line-args-left)
-  (setq format-check-mode t))
+  (setq format-check-mode t)
+  ;; Remove --check from args so Emacs doesn't complain about unknown option
+  (setq command-line-args-left (delete "--check" command-line-args-left)))
 
 ;; Run the formatter
 (format-all-elisp-files)
