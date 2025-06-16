@@ -775,7 +775,8 @@ Uses `parse-partial-sexp' to properly handle strings and comments."
                                              replace-all buffer)
   "Replace ORIGINAL-CONTENT with NEW-CONTENT in FILE-PATH.
 GIT-COMMIT-MESSAGE will be used for the git commit.
-If REPLACE-ALL is non-nil, replace all instances; otherwise replace only the first instance.
+If REPLACE-ALL is non-nil, replace all instances; otherwise replace only the
+first instance.
 If BUFFER is provided, it will be staged and committed along with the file.
 For Emacs Lisp files (.el), checks that parentheses balance is maintained."
   (greger-stdlib--assert-arg-string "file-path" file-path)
