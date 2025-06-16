@@ -598,7 +598,8 @@ CASE-SENSITIVE, FILE-TYPE, CONTEXT-LINES and MAX-RESULTS are optional."
 
   (greger-stdlib--assert-arg-string "pattern" pattern)
   (greger-stdlib--assert-arg-string "path" path)
-  
+  (when case-sensitive
+    (greger-stdlib--assert-arg-bool "case-sensitive" case-sensitive))
 
   (let ((expanded-path (expand-file-name path)))
 
