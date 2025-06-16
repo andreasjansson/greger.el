@@ -1177,28 +1177,20 @@ drwx------  (dir)  ..
           ;; Search with word boundaries
           (greger-stdlib--ripgrep
            "test"
+           test-dir
            (lambda (output err)
              (setq result-word output)
              (setq callback-count (1+ callback-count)))
-           test-dir
-           nil ; case-sensitive
-           nil ; file-type
-           0   ; context-lines
-           nil ; fixed-strings
-           t)  ; word-regexp = t
+           nil nil 0 nil t nil 50)  ; case-sensitive, file-type, context-lines, fixed-strings, word-regexp=t, line-regexp, max-results
 
           ;; Search without word boundaries
           (greger-stdlib--ripgrep
            "test"
+           test-dir
            (lambda (output err)
              (setq result-normal output)
              (setq callback-count (1+ callback-count)))
-           test-dir
-           nil ; case-sensitive
-           nil ; file-type
-           0   ; context-lines
-           nil ; fixed-strings
-           nil) ; word-regexp = nil
+           nil nil 0 nil nil nil 50) ; case-sensitive, file-type, context-lines, fixed-strings, word-regexp=nil, line-regexp, max-results
 
           ;; Wait for both operations
           (let ((timeout 0))
