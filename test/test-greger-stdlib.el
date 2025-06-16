@@ -676,19 +676,19 @@ Line 3"))
 (ert-deftest greger-test-read-file-error-cases ()
   "Test error handling in read-file function."
   ;; Test non-existent file
-  (should-error (greger-stdlib--read-file "/path/that/does/not/exist"))
+  (should-error (greger-stdlib--read-file "/path/that/does/not/exist" nil nil nil))
 
   ;; Test invalid path type
-  (should-error (greger-stdlib--read-file 123))
+  (should-error (greger-stdlib--read-file 123 nil nil nil))
 
   ;; Test invalid start-line type
-  (should-error (greger-stdlib--read-file "test-file" nil "not-a-number"))
+  (should-error (greger-stdlib--read-file "test-file" nil "not-a-number" nil))
 
   ;; Test invalid end-line type
   (should-error (greger-stdlib--read-file "test-file" nil 1 "not-a-number"))
 
   ;; Test invalid start-line value
-  (should-error (greger-stdlib--read-file "test-file" nil 0))
+  (should-error (greger-stdlib--read-file "test-file" nil 0 nil))
 
   ;; Test invalid end-line value
   (should-error (greger-stdlib--read-file "test-file" nil 1 0))
