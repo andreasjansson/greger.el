@@ -1020,9 +1020,9 @@ drwx------  (dir)  ..
 
           ;; Verify case-insensitive results (should find all variants)
           (should (stringp result-insensitive))
-          (should (string-match "Hello World" result-insensitive))
-          (should (string-match "hello world" result-insensitive))
-          (should (string-match "HELLO WORLD" result-insensitive)))
+          (should (string-match ":Hello World" result-insensitive))
+          (should (string-match ":hello world" result-insensitive))
+          (should (string-match ":HELLO WORLD" result-insensitive)))
 
       ;; Clean up
       (when (file-exists-p test-dir)
