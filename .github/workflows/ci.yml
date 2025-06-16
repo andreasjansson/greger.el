@@ -30,6 +30,15 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v4
 
+      - name: Install ripgrep
+        run: |
+          if [[ "${{ matrix.os }}" == "ubuntu-latest" ]]; then
+            sudo apt-get update
+            sudo apt-get install -y ripgrep
+          elif [[ "${{ matrix.os }}" == "macos-latest" ]]; then
+            brew install ripgrep
+          fi
+
       - name: Run tests
         env:
           ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
