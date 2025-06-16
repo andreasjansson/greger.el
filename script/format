@@ -141,15 +141,18 @@ If `format-check-mode' is non-nil, only check formatting."
     (if format-check-mode
         (progn
           (if (> changed-count 0)
-              (message "✗ %d file(s) would be reformatted, %d unchanged, %d error(s)" 
-                       changed-count unchanged-count error-count)
-            (message "✓ All files are properly formatted (%d files checked)" 
-                     (+ unchanged-count error-count)))
+              (message "✗ %d file(s) would be reformatted, %d unchanged%s" 
+                       changed-count unchanged-count
+                       (if (> error-count 0) (format ", %d error(s)" error-count) ""))
+            (message "✓ All files are properly formatted (%d files checked)%s" 
+                     (+ unchanged-count error-count)
+                     (if (> error-count 0) (format ", %d error(s)" error-count) "")))
           ;; Exit with error code if files would be reformatted
           (when (> changed-count 0)
             (kill-emacs 1)))
-      (message "✓ Formatting complete! Formatted: %d, Unchanged: %d, Errors: %d" 
-               changed-count unchanged-count error-count))))
+      (message "✓ Formatting complete! Formatted: %d, Unchanged: %d%s" 
+               changed-count unchanged-count
+               (if (> error-count 0) (format ", Errors: %d" error-count) "")))))
 
 ;; Parse command line arguments
 (when (member "--check" command-line-args-left)
