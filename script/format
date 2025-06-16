@@ -60,9 +60,14 @@ If `format-check-mode' is non-nil, only check if formatting is needed."
        nil))))
 
 (defun find-elisp-files (directory)
-  "Find all *.el files in DIRECTORY recursively."
+  "Find all *.el files in DIRECTORY recursively.
+Skips directories that start with a period (like .git, .eldev, etc.)."
   (let ((files '()))
-    (dolist (file (directory-files-recursively directory "\\.el$"))
+    (dolist (file (directory-files-recursively 
+                   directory "\\.el$" nil
+                   (lambda (dir)
+                     ;; Skip directories that start with a period
+                     (not (string-match-p "/\\.[^/]*/?$" dir)))))
       (push file files))
     (nreverse files)))
 
