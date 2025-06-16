@@ -1,0 +1,33 @@
+#!/bin/bash
+
+# Format script to indent all *.el files recursively
+# Uses Emacs in batch mode to apply proper indentation
+
+set -e
+
+# Color output for better visibility
+RED='\033[0;31m'
+GREEN='\033[0;32m'
+YELLOW='\033[1;33m'
+NC='\033[0m' # No Color
+
+echo -e "${GREEN}Formatting all *.el files...${NC}"
+
+# Find all .el files recursively and format them
+find . -name "*.el" -type f | while read -r file; do
+    echo -e "${YELLOW}Formatting:${NC} $file"
+    
+    # Use emacs in batch mode to indent the file
+    emacs --batch \
+          --eval "(progn
+                    (find-file \"$file\")
+                    (indent-region (point-min) (point-max))
+                    (save-buffer)
+                    (kill-buffer))" \
+          2>/dev/null || {
+        echo -e "${RED}Error formatting $file${NC}"
+        continue
+    }
+done
+
+echo -e "${GREEN}✓ Formatting complete!${NC}"
