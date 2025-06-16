@@ -3,8 +3,9 @@
 ;;; format --- Format all *.el files recursively -*- lexical-binding: t -*-
 
 ;; Format script to indent all *.el files recursively
-;; Usage: ./script/format [--check]
+;; Usage: ./script/format [--check] [-v|--verbose]
 ;;   --check: Check if files would be reformatted (like black --check)
+;;   -v, --verbose: Show diff of changes that would be made/were made
 
 ;;; Code:
 
@@ -21,6 +22,7 @@ Returns the formatted content as a string, or nil on error."
         ;; Suppress verbose indentation messages
         (let ((inhibit-message t))
           (indent-region (point-min) (point-max)))
+        (untabify (point-min) (point-max))
         (buffer-string))
     (error
      (message "Error processing %s: %s" file (error-message-string err))
