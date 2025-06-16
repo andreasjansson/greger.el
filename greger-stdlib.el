@@ -380,9 +380,9 @@ If END-LINE is specified, stop reading at that line (inclusive, 1-based)."
   (greger-stdlib--assert-arg-string "path" path)
   (greger-stdlib--assert-arg-bool "include-line-numbers" include-line-numbers)
   (when start-line
-    (cl-greger-stdlib--assert-arg-int "start-line" start-line :ge 1))
+    (greger-stdlib--assert-arg-int "start-line" start-line :ge 1))
   (when end-line
-    (cl-greger-stdlib--assert-arg-int "end-line" end-line :ge 1))
+    (greger-stdlib--assert-arg-int "end-line" end-line :ge 1))
 
   (when (and start-line end-line (> start-line end-line))
     (error "Invalid value: start-line must be <= end-line"))
