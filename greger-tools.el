@@ -51,7 +51,8 @@
 (defun greger-register-tool (name &rest args)
   "Register a tool with NAME and properties specified in ARGS.
 ARGS should be a plist containing :description, :properties, :required,
-:function, and optionally :pass-buffer, :pass-callback, and :pass-metadata.
+:function, and optionally :pass-buffer, :pass-callback, and 
+:pass-metadata.
 
 Example:
   (greger-register-tool \='rename-file
