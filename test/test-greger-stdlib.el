@@ -1230,15 +1230,10 @@ drwx------  (dir)  ..
           ;; Search with line regexp (entire line must match pattern)
           (greger-stdlib--ripgrep
            "test"
+           test-dir
            (lambda (output err)
              (setq result output error err callback-called t))
-           test-dir
-           nil ; case-sensitive
-           nil ; file-type
-           0   ; context-lines
-           nil ; fixed-strings
-           nil ; word-regexp
-           t)  ; line-regexp = t
+           nil nil 0 nil nil t 50)  ; case-sensitive, file-type, context-lines, fixed-strings, word-regexp, line-regexp=t, max-results
 
           ;; Wait for operation
           (let ((timeout 0))
