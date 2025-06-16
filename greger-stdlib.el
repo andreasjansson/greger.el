@@ -799,38 +799,35 @@ For Emacs Lisp files (.el), checks that parentheses balance is maintained."
           (error "Parentheses balance mismatch in Emacs Lisp content: original has balance %d, new has balance %d. They must be equal. Try again!"
                  orig-balance new-balance))))
 
-    (with-current-buffer (find-file-noselect expanded-path)
-      (let ((case-fold-search nil) ; Make search case-sensitive
-            (replacements-made 0))
-        (goto-char (point-min))
-        
-        (if replace-all
-            ;; Replace all instances
-            (progn
-              (while (search-forward original-content nil t)
-                (replace-match new-content nil t)
-                (setq replacements-made (1+ replacements-made)))
-              (when (= replacements-made 0)
-                (error "Original content not found in file: %s -- Try again!" expanded-path)))
-          ;; Replace only first instance (original behavior)
-          (if (search-forward original-content nil t)
+    (let ((replacements-made 0))
+      (with-current-buffer (find-file-noselect expanded-path)
+        (let ((case-fold-search nil)) ; Make search case-sensitive
+          (goto-char (point-min))
+          
+          (if replace-all
+              ;; Replace all instances
               (progn
-                (replace-match new-content nil t)
-                (setq replacements-made 1))
-            (error "Original content not found in file: %s -- Try again!" expanded-path)))
-        
-        ;; Save the file
-        (save-buffer)
-        
-        ;; Store replacement count for return message
-        (setq greger-stdlib--replacements-made replacements-made)))
+                (while (search-forward original-content nil t)
+                  (replace-match new-content nil t)
+                  (setq replacements-made (1+ replacements-made)))
+                (when (= replacements-made 0)
+                  (error "Original content not found in file: %s -- Try again!" expanded-path)))
+            ;; Replace only first instance (original behavior)
+            (if (search-forward original-content nil t)
+                (progn
+                  (replace-match new-content nil t)
+                  (setq replacements-made 1))
+              (error "Original content not found in file: %s -- Try again!" expanded-path)))
+          
+          ;; Save the file
+          (save-buffer)))
 
-    ;; Stage and commit the file
-    (let ((git-result (greger-stdlib--git-stage-and-commit (list expanded-path) git-commit-message buffer))
-          (count-msg (if (> greger-stdlib--replacements-made 1)
-                         (format " (made %d replacements)" greger-stdlib--replacements-made)
-                       "")))
-      (format "Successfully replaced content in %s%s. %s" expanded-path count-msg git-result))))
+      ;; Stage and commit the file
+      (let ((git-result (greger-stdlib--git-stage-and-commit (list expanded-path) git-commit-message buffer))
+            (count-msg (if (> replacements-made 1)
+                           (format " (made %d replacements)" replacements-made)
+                         "")))
+        (format "Successfully replaced content in %s%s. %s" expanded-path count-msg git-result)))))
 
 (defun greger-stdlib--shell-command (command callback &optional working-directory metadata)
   "Execute COMMAND in WORKING-DIRECTORY and call CALLBACK with (result error).
