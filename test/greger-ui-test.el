@@ -59,6 +59,8 @@ Encrypted index: ghi789
 
 Einstein developed the theory of relativity while Newton formulated the laws of motion")
          (actual-visible (greger-ui--visible-text input)))
+    (message "Expected: %S" expected-visible)
+    (message "Actual: %S" actual-visible)
     (should (string= expected-visible actual-visible))))
 
 ;;; greger-ui-test.el ends here
