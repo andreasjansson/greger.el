@@ -54,25 +54,25 @@ ARGS should be a plist containing :description, :properties, :required,
 :function, and optionally :pass-buffer, :pass-callback, and :pass-metadata.
 
 Example:
-  (greger-register-tool 'rename-file
-    :description 'Rename or move a file from one path to another'
-    :properties '((old-path . ((type . 'string')
-                              (description . 'Current path of the file')))
-                  (new-path . ((type . 'string')
-                              (description . 'New path for the file')))
-                  (git-commit-message . ((type . 'string')
-                                        (description . 'Git commit message'))))
-    :required '('old-path' 'new-path' 'git-commit-message')
-    :function 'greger-tools--rename-file
+  (greger-register-tool \='rename-file
+    :description \='Rename or move a file from one path to another\='
+    :properties \='((old-path . ((type . \='string\=')
+                              (description . \='Current path of the file\=')))
+                  (new-path . ((type . \='string\=')
+                              (description . \='New path for the file\=')))
+                  (git-commit-message . ((type . \='string\=')
+                                        (description . \='Git commit message\='))))
+    :required \='(\='old-path\=' \='new-path\=' \='git-commit-message\=')
+    :function \='greger-tools--rename-file
     :pass-buffer t
     :pass-callback t
     :pass-metadata t)
 
   When :pass-callback is set to t, the callback function will be passed to the
-  tool function as a 'callback' parameter instead of `greger-tools-execute'
+  tool function as a \='callback\=' parameter instead of `greger-tools-execute\='
   calling the callback with the result.
   When :pass-metadata is set to t, the metadata from the parser will be passed
-  as a 'metadata' parameter."
+  as a \='metadata\=' parameter."
   (let ((description (plist-get args :description))
         (properties (plist-get args :properties))
         (required (plist-get args :required))
