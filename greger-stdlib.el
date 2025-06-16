@@ -85,7 +85,7 @@
                       :pass-buffer t)
 
 (greger-register-tool "str-replace"
-                      :description "Replace a specific string or content block in a file with new content. Finds the exact original content and replaces it with new content. Be extra careful to format the original-content exactly correctly, taking extra care with whitespace and newlines. If you're making large swaths of changes, consider using replace-file instead"
+                      :description "Replace a specific string or content block in a file with new content. Finds the exact original content and replaces it with new content. Be extra careful to format the original-content exactly correctly, taking extra care with whitespace and newlines. In addition to replacing strings, str-replace can also be used to prepend, append, or delete contents from a file. If you're making large swaths of changes, consider using replace-file instead."
                       :properties '((file-path . ((type . "string")
                                                   (description . "Path to the file to modify")))
                                     (original-content . ((type . "string")
@@ -93,23 +93,12 @@
                                     (new-content . ((type . "string")
                                                     (description . "The new content to replace the original content with")))
                                     (git-commit-message . ((type . "string")
-                                                           (description . "Git commit message for this change"))))
+                                                           (description . "Git commit message for this change")))
+                                    (replace-all . ((type . "boolean")
+                                                    (description . "If true, replace all instances of original-content. If false (default), replace only the first instance")
+                                                    (default . nil))))
                       :required '("file-path" "original-content" "new-content" "git-commit-message")
                       :function 'greger-stdlib--str-replace
-                      :pass-buffer t)
-
-(greger-register-tool "insert"
-                      :description "Insert text at a specific line number in a file. The text will be inserted before the specified line number (use 0 to insert at the beginning of the file, 1 to insert before the first line, etc.). Useful for adding new content, comments, or code blocks at precise locations without replacing existing content."
-                      :properties '((file-path . ((type . "string")
-                                                  (description . "Path to the file to modify")))
-                                    (line-number . ((type . "integer")
-                                                    (description . "Line number before which to insert the content (0 for beginning of file, 1 to insert before first line, etc.)")))
-                                    (content . ((type . "string")
-                                                (description . "Content to insert at the specified location")))
-                                    (git-commit-message . ((type . "string")
-                                                           (description . "Git commit message for this change"))))
-                      :required '("file-path" "line-number" "content" "git-commit-message")
-                      :function 'greger-stdlib--insert
                       :pass-buffer t)
 
 ;; File tools
@@ -824,63 +813,6 @@ For Emacs Lisp files (.el), checks that parentheses balance is maintained."
     ;; Stage and commit the file
     (let ((git-result (greger-stdlib--git-stage-and-commit (list expanded-path) git-commit-message buffer)))
       (format "Successfully replaced content in %s. %s" expanded-path git-result))))
-
-(defun greger-stdlib--insert (file-path line-number content git-commit-message &optional buffer)
-  "Insert CONTENT at LINE-NUMBER in FILE-PATH.
-GIT-COMMIT-MESSAGE will be used for the git commit.
-If BUFFER is provided, it will be staged and committed along with the file."
-  (greger-stdlib--assert-arg-string "file-path" file-path)
-  (greger-stdlib--assert-arg-int "line-number" line-number :ge 1)
-  (greger-stdlib--assert-arg-string "content" content)
-  (greger-stdlib--assert-arg-string "git-commit-message" git-commit-message)
-
-  (let ((expanded-path (expand-file-name file-path)))
-
-    ;; Check if file exists
-    (unless (file-exists-p expanded-path)
-      (error "File does not exist: %s" expanded-path))
-
-    ;; Check if it's actually a file and not a directory
-    (when (file-directory-p expanded-path)
-      (error "Path is a directory, not a file: %s" expanded-path))
-
-    (with-current-buffer (find-file-noselect expanded-path)
-      ;; Count lines and validate line-number
-      (let ((total-lines (count-lines (point-min) (point-max))))
-        (when (> line-number (1+ total-lines))
-          (error "Invalid line number: %d is greater than total lines + 1 (%d)" line-number (1+ total-lines))))
-
-      ;; Navigate to the insertion point
-      (goto-char (point-min))
-      (if (= line-number 0)
-          ;; Insert at beginning of file
-          (goto-char (point-min))
-        ;; Go to the specified line - this is where the fix is needed
-        (goto-char (point-min))
-        (forward-line (1- line-number))
-        ;; Move to beginning of line to insert before it, not after it
-        (beginning-of-line))
-
-      ;; Insert the content
-      (if (= line-number 0)
-          ;; At beginning of file, insert content and newline
-          (progn
-            (insert content)
-            (unless (string-suffix-p "\n" content)
-              (insert "\n")))
-        ;; Before a line, insert content then newline
-        (progn
-          (insert content)
-          (unless (string-suffix-p "\n" content)
-            (insert "\n"))))
-
-      ;; Save the file
-      (save-buffer))
-
-    ;; Stage and commit the file
-    (let ((git-result (greger-stdlib--git-stage-and-commit (list expanded-path) git-commit-message buffer)))
-      (format "Successfully inserted %d characters at line %d in %s. %s"
-              (length content) line-number expanded-path git-result))))
 
 (defun greger-stdlib--shell-command (command callback &optional working-directory metadata)
   "Execute COMMAND in WORKING-DIRECTORY and call CALLBACK with (result error).
