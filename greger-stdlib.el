@@ -890,7 +890,8 @@ Returns a cancel function that can interrupt the command execution."
                (not (member command safe-commands))
                (not (y-or-n-p (format "Execute shell command: '%s' in directory '%s'? "
                                       command expanded-work-dir))))
-      (error "Shell command execution cancelled by user"))
+      (funcall callback nil "Shell command execution cancelled by user")
+      (return-from greger-stdlib--shell-command))
 
     (greger-stdlib--run-async-subprocess
      :command "bash"
