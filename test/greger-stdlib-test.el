@@ -67,9 +67,9 @@ This ensures the '..' entry has predictable permissions in tests."
              (lambda (url extract-text use-highest-readability)
                (error "Network timeout"))))
 
-           (let ((result (greger-stdlib--read-webpage "https://pub-b88c9764a4fc46baa90b9e8e1544f59e.r2.dev/hello.html")))
-             (should (stringp result))
-             (should (string-match-p "Network timeout" result)))))
+    (let ((result (greger-stdlib--read-webpage "https://pub-b88c9764a4fc46baa90b9e8e1544f59e.r2.dev/hello.html")))
+      (should (stringp result))
+      (should (string-match-p "Network timeout" result)))))
 
 (ert-deftest greger-stdlib-test-web-url-validation ()
   "Test the web URL validation function."
@@ -94,24 +94,24 @@ This ensures the '..' entry has predictable permissions in tests."
     ;; Mock the permission prompt to always return yes
     (cl-letf (((symbol-function 'y-or-n-p) (lambda (prompt) t)))
 
-             ;; Execute a simple echo command
-             (greger-stdlib--shell-command
-              "echo hello world"
-              (lambda (output err)
-                (setq result output error err callback-called t)))
+      ;; Execute a simple echo command
+      (greger-stdlib--shell-command
+       "echo hello world"
+       (lambda (output err)
+         (setq result output error err callback-called t)))
 
-             ;; Wait for async operation to complete
-             (let ((timeout 0))
-               (while (and (not callback-called) (< timeout 50))  ; 5 second timeout
-                 (sit-for 0.1)
-                 (setq timeout (1+ timeout))))
+      ;; Wait for async operation to complete
+      (let ((timeout 0))
+        (while (and (not callback-called) (< timeout 50))  ; 5 second timeout
+          (sit-for 0.1)
+          (setq timeout (1+ timeout))))
 
-             ;; Verify the results
-             (should callback-called)
-             (should (null error))
-             (should (stringp result))
-             (should (string-match "Command executed successfully" result))
-             (should (string-match "hello world" result)))))
+      ;; Verify the results
+      (should callback-called)
+      (should (null error))
+      (should (stringp result))
+      (should (string-match "Command executed successfully" result))
+      (should (string-match "hello world" result)))))
 
 (ert-deftest greger-stdlib-test-shell-command-with-pipe ()
   "Test shell-command tool with a command containing a pipe."
@@ -122,38 +122,38 @@ This ensures the '..' entry has predictable permissions in tests."
     ;; Mock the permission prompt to always return yes
     (cl-letf (((symbol-function 'y-or-n-p) (lambda (prompt) t)))
 
-             ;; Execute a command with a pipe
-             (greger-stdlib--shell-command
-              "echo 'apple\nbanana\ncherry' | grep 'an'"
-              (lambda (output err)
-                (setq result output error err callback-called t)))
+      ;; Execute a command with a pipe
+      (greger-stdlib--shell-command
+       "echo 'apple\nbanana\ncherry' | grep 'an'"
+       (lambda (output err)
+         (setq result output error err callback-called t)))
 
-             ;; Wait for async operation to complete
-             (let ((timeout 0))
-               (while (and (not callback-called) (< timeout 50))  ; 5 second timeout
-                 (sit-for 0.1)
-                 (setq timeout (1+ timeout))))
+      ;; Wait for async operation to complete
+      (let ((timeout 0))
+        (while (and (not callback-called) (< timeout 50))  ; 5 second timeout
+          (sit-for 0.1)
+          (setq timeout (1+ timeout))))
 
-             ;; Verify the results
-             (should callback-called)
-             (should (null error))
-             (should (stringp result))
-             (should (string-match "Command executed successfully" result))
-             (should (string-match "banana" result)))))
+      ;; Verify the results
+      (should callback-called)
+      (should (null error))
+      (should (stringp result))
+      (should (string-match "Command executed successfully" result))
+      (should (string-match "banana" result)))))
 
 (ert-deftest greger-stdlib-test-shell-command-permission-denied ()
   "Test shell-command tool when user denies permission."
   ;; Mock the permission prompt to always return no
   (cl-letf (((symbol-function 'y-or-n-p) (lambda (prompt) nil)))
-           ;; Should signal an error when permission is denied
-           (should-error
-            (greger-stdlib--shell-command
-             "echo test"
-             (lambda (output err) nil)  ; callback shouldn't be called
-             nil
-             nil
-             '(:allow-all-shell-commands nil))
-            :type 'error)))
+    ;; Should signal an error when permission is denied
+    (should-error
+     (greger-stdlib--shell-command
+      "echo test"
+      (lambda (output err) nil)  ; callback shouldn't be called
+      nil
+      nil
+      '(:allow-all-shell-commands nil))
+     :type 'error)))
 
 (ert-deftest greger-stdlib-test-shell-command-command-failure ()
   "Test shell-command tool when command fails."
@@ -164,23 +164,23 @@ This ensures the '..' entry has predictable permissions in tests."
     ;; Mock the permission prompt to always return yes
     (cl-letf (((symbol-function 'y-or-n-p) (lambda (prompt) t)))
 
-             ;; Execute a command that should fail
-             (greger-stdlib--shell-command
-              "false"  ; Command that always exits with code 1
-              (lambda (output err)
-                (setq result output error err callback-called t)))
+      ;; Execute a command that should fail
+      (greger-stdlib--shell-command
+       "false"  ; Command that always exits with code 1
+       (lambda (output err)
+         (setq result output error err callback-called t)))
 
-             ;; Wait for async operation to complete
-             (let ((timeout 0))
-               (while (and (not callback-called) (< timeout 50))  ; 5 second timeout
-                 (sit-for 0.1)
-                 (setq timeout (1+ timeout))))
+      ;; Wait for async operation to complete
+      (let ((timeout 0))
+        (while (and (not callback-called) (< timeout 50))  ; 5 second timeout
+          (sit-for 0.1)
+          (setq timeout (1+ timeout))))
 
-             ;; Verify the results
-             (should callback-called)
-             (should (null result))
-             (should (stringp error))
-             (should (string-match "failed with exit code" error)))))
+      ;; Verify the results
+      (should callback-called)
+      (should (null result))
+      (should (stringp error))
+      (should (string-match "failed with exit code" error)))))
 
 (ert-deftest greger-stdlib-test-shell-command-safe-commands ()
   "Test shell-command tool with safe-shell-commands metadata to skip permission prompt."
@@ -195,32 +195,32 @@ This ensures the '..' entry has predictable permissions in tests."
                  (setq prompt-called t)
                  t)))
 
-             ;; Create metadata with safe shell commands
-             (let ((metadata '(:safe-shell-commands ("echo safe command" "pwd" "ls -la"))))
+      ;; Create metadata with safe shell commands
+      (let ((metadata '(:safe-shell-commands ("echo safe command" "pwd" "ls -la"))))
 
-               ;; Execute a command that's in the safe list
-               (greger-stdlib--shell-command
-                "echo safe command"
-                (lambda (output err)
-                  (setq result output error err callback-called t))
-                "."  ; working directory
-                nil  ; timeout (use default)
-                metadata)
+        ;; Execute a command that's in the safe list
+        (greger-stdlib--shell-command
+         "echo safe command"
+         (lambda (output err)
+           (setq result output error err callback-called t))
+         "."  ; working directory
+         nil  ; timeout (use default)
+         metadata)
 
-               ;; Wait for async operation to complete
-               (let ((timeout 0))
-                 (while (and (not callback-called) (< timeout 50))  ; 5 second timeout
-                   (sit-for 0.1)
-                   (setq timeout (1+ timeout))))
+        ;; Wait for async operation to complete
+        (let ((timeout 0))
+          (while (and (not callback-called) (< timeout 50))  ; 5 second timeout
+            (sit-for 0.1)
+            (setq timeout (1+ timeout))))
 
-               ;; Verify the results
-               (should callback-called)
-               (should (null error))
-               (should (stringp result))
-               (should (string-match "Command executed successfully" result))
-               (should (string-match "safe command" result))
-               ;; Most importantly: permission prompt should NOT have been called
-               (should (null prompt-called))))))
+        ;; Verify the results
+        (should callback-called)
+        (should (null error))
+        (should (stringp result))
+        (should (string-match "Command executed successfully" result))
+        (should (string-match "safe command" result))
+        ;; Most importantly: permission prompt should NOT have been called
+        (should (null prompt-called))))))
 
 (ert-deftest greger-stdlib-test-shell-command-unsafe-commands-with-metadata ()
   "Test shell-command tool with metadata but command not in safe list still prompts."
@@ -235,32 +235,32 @@ This ensures the '..' entry has predictable permissions in tests."
                  (setq prompt-called t)
                  t)))
 
-             ;; Create metadata with safe shell commands
-             (let ((metadata '(:safe-shell-commands ("echo safe command" "pwd") :allow-all-shell-commands nil)))
+      ;; Create metadata with safe shell commands
+      (let ((metadata '(:safe-shell-commands ("echo safe command" "pwd") :allow-all-shell-commands nil)))
 
-               ;; Execute a command that's NOT in the safe list
-               (greger-stdlib--shell-command
-                "echo unsafe command"
-                (lambda (output err)
-                  (setq result output error err callback-called t))
-                "."  ; working directory
-                nil  ; timeout (use default)
-                metadata)
+        ;; Execute a command that's NOT in the safe list
+        (greger-stdlib--shell-command
+         "echo unsafe command"
+         (lambda (output err)
+           (setq result output error err callback-called t))
+         "."  ; working directory
+         nil  ; timeout (use default)
+         metadata)
 
-               ;; Wait for async operation to complete
-               (let ((timeout 0))
-                 (while (and (not callback-called) (< timeout 50))  ; 5 second timeout
-                   (sit-for 0.1)
-                   (setq timeout (1+ timeout))))
+        ;; Wait for async operation to complete
+        (let ((timeout 0))
+          (while (and (not callback-called) (< timeout 50))  ; 5 second timeout
+            (sit-for 0.1)
+            (setq timeout (1+ timeout))))
 
-               ;; Verify the results
-               (should callback-called)
-               (should (null error))
-               (should (stringp result))
-               (should (string-match "Command executed successfully" result))
-               (should (string-match "unsafe command" result))
-               ;; Permission prompt SHOULD have been called since command not in safe list
-               (should prompt-called)))))
+        ;; Verify the results
+        (should callback-called)
+        (should (null error))
+        (should (stringp result))
+        (should (string-match "Command executed successfully" result))
+        (should (string-match "unsafe command" result))
+        ;; Permission prompt SHOULD have been called since command not in safe list
+        (should prompt-called)))))
 (ert-deftest greger-stdlib-test-shell-command-with-timeout ()
   "Test shell-command tool with timeout parameter."
   (let ((result nil)
@@ -270,27 +270,27 @@ This ensures the '..' entry has predictable permissions in tests."
     ;; Mock the permission prompt to always return yes
     (cl-letf (((symbol-function 'y-or-n-p) (lambda (prompt) t)))
 
-             ;; Execute a command that should complete within timeout
-             (greger-stdlib--shell-command
-              "echo timeout test"
-              (lambda (output err)
-                (setq result output error err callback-called t))
-              "."  ; working directory
-              10   ; timeout 10 seconds
-              nil) ; metadata
+      ;; Execute a command that should complete within timeout
+      (greger-stdlib--shell-command
+       "echo timeout test"
+       (lambda (output err)
+         (setq result output error err callback-called t))
+       "."  ; working directory
+       10   ; timeout 10 seconds
+       nil) ; metadata
 
-             ;; Wait for async operation to complete
-             (let ((timeout 0))
-               (while (and (not callback-called) (< timeout 50))  ; 5 second timeout
-                 (sit-for 0.1)
-                 (setq timeout (1+ timeout))))
+      ;; Wait for async operation to complete
+      (let ((timeout 0))
+        (while (and (not callback-called) (< timeout 50))  ; 5 second timeout
+          (sit-for 0.1)
+          (setq timeout (1+ timeout))))
 
-             ;; Verify the results
-             (should callback-called)
-             (should (null error))
-             (should (stringp result))
-             (should (string-match "Command executed successfully" result))
-             (should (string-match "timeout test" result)))))
+      ;; Verify the results
+      (should callback-called)
+      (should (null error))
+      (should (stringp result))
+      (should (string-match "Command executed successfully" result))
+      (should (string-match "timeout test" result)))))
 
 (ert-deftest greger-stdlib-test-shell-command-timeout-exceeded ()
   "Test shell-command tool when timeout is exceeded."
@@ -301,26 +301,26 @@ This ensures the '..' entry has predictable permissions in tests."
     ;; Mock the permission prompt to always return yes
     (cl-letf (((symbol-function 'y-or-n-p) (lambda (prompt) t)))
 
-             ;; Execute a command that should timeout (sleep longer than timeout)
-             (greger-stdlib--shell-command
-              "sleep 3"
-              (lambda (output err)
-                (setq result output error err callback-called t))
-              "."  ; working directory
-              1    ; timeout 1 second
-              nil) ; metadata
+      ;; Execute a command that should timeout (sleep longer than timeout)
+      (greger-stdlib--shell-command
+       "sleep 3"
+       (lambda (output err)
+         (setq result output error err callback-called t))
+       "."  ; working directory
+       1    ; timeout 1 second
+       nil) ; metadata
 
-             ;; Wait for timeout to occur
-             (let ((timeout 0))
-               (while (and (not callback-called) (< timeout 30))  ; 3 second timeout
-                 (sit-for 0.1)
-                 (setq timeout (1+ timeout))))
+      ;; Wait for timeout to occur
+      (let ((timeout 0))
+        (while (and (not callback-called) (< timeout 30))  ; 3 second timeout
+          (sit-for 0.1)
+          (setq timeout (1+ timeout))))
 
-             ;; Verify the timeout occurred
-             (should callback-called)
-             (should error)
-             (should (null result))
-             (should (string-match "timed out after 1 seconds" error)))))
+      ;; Verify the timeout occurred
+      (should callback-called)
+      (should error)
+      (should (null result))
+      (should (string-match "timed out after 1 seconds" error)))))
 
 (ert-deftest greger-stdlib-test-shell-command-pager-environment ()
   "Test shell-command tool sets PAGER=cat environment variable."
@@ -331,27 +331,27 @@ This ensures the '..' entry has predictable permissions in tests."
     ;; Mock the permission prompt to always return yes
     (cl-letf (((symbol-function 'y-or-n-p) (lambda (prompt) t)))
 
-             ;; Execute a command that checks the PAGER environment variable
-             (greger-stdlib--shell-command
-              "echo \"PAGER is: $PAGER\""
-              (lambda (output err)
-                (setq result output error err callback-called t))
-              "."  ; working directory
-              nil  ; timeout (use default)
-              nil) ; metadata
+      ;; Execute a command that checks the PAGER environment variable
+      (greger-stdlib--shell-command
+       "echo \"PAGER is: $PAGER\""
+       (lambda (output err)
+         (setq result output error err callback-called t))
+       "."  ; working directory
+       nil  ; timeout (use default)
+       nil) ; metadata
 
-             ;; Wait for async operation to complete
-             (let ((timeout 0))
-               (while (and (not callback-called) (< timeout 50))  ; 5 second timeout
-                 (sit-for 0.1)
-                 (setq timeout (1+ timeout))))
+      ;; Wait for async operation to complete
+      (let ((timeout 0))
+        (while (and (not callback-called) (< timeout 50))  ; 5 second timeout
+          (sit-for 0.1)
+          (setq timeout (1+ timeout))))
 
-             ;; Verify the results
-             (should callback-called)
-             (should (null error))
-             (should (stringp result))
-             (should (string-match "Command executed successfully" result))
-             (should (string-match "PAGER is: cat" result)))))
+      ;; Verify the results
+      (should callback-called)
+      (should (null error))
+      (should (stringp result))
+      (should (string-match "Command executed successfully" result))
+      (should (string-match "PAGER is: cat" result)))))
 
 (ert-deftest greger-stdlib-test-shell-command-default-timeout ()
   "Test shell-command tool uses default timeout of 600 seconds when not specified."
@@ -362,27 +362,27 @@ This ensures the '..' entry has predictable permissions in tests."
     ;; Mock the permission prompt to always return yes
     (cl-letf (((symbol-function 'y-or-n-p) (lambda (prompt) t)))
 
-             ;; Execute a quick command without specifying timeout
-             (greger-stdlib--shell-command
-              "echo default timeout test"
-              (lambda (output err)
-                (setq result output error err callback-called t))
-              "."  ; working directory
-              nil  ; timeout (should default to 600)
-              nil) ; metadata
+      ;; Execute a quick command without specifying timeout
+      (greger-stdlib--shell-command
+       "echo default timeout test"
+       (lambda (output err)
+         (setq result output error err callback-called t))
+       "."  ; working directory
+       nil  ; timeout (should default to 600)
+       nil) ; metadata
 
-             ;; Wait for async operation to complete
-             (let ((timeout 0))
-               (while (and (not callback-called) (< timeout 50))  ; 5 second timeout
-                 (sit-for 0.1)
-                 (setq timeout (1+ timeout))))
+      ;; Wait for async operation to complete
+      (let ((timeout 0))
+        (while (and (not callback-called) (< timeout 50))  ; 5 second timeout
+          (sit-for 0.1)
+          (setq timeout (1+ timeout))))
 
-             ;; Verify the results - command should complete successfully
-             (should callback-called)
-             (should (null error))
-             (should (stringp result))
-             (should (string-match "Command executed successfully" result))
-             (should (string-match "default timeout test" result)))))
+      ;; Verify the results - command should complete successfully
+      (should callback-called)
+      (should (null error))
+      (should (stringp result))
+      (should (string-match "Command executed successfully" result))
+      (should (string-match "default timeout test" result)))))
 
 (ert-deftest greger-stdlib-test-count-paren-balance ()
   "Test the paren balance counting function."
@@ -436,24 +436,24 @@ This ensures the '..' entry has predictable permissions in tests."
           (cl-letf (((symbol-function 'greger-stdlib--git-stage-and-commit)
                      (lambda (files commit-message buffer) "Mocked git result")))
 
-                   ;; Test successful replacement with balanced parens
-                   (should (stringp (greger-stdlib--str-replace
-                                     test-file
-                                     original-content
-                                     new-content-balanced
-                                     "Test commit")))
+            ;; Test successful replacement with balanced parens
+            (should (stringp (greger-stdlib--str-replace
+                              test-file
+                              original-content
+                              new-content-balanced
+                              "Test commit")))
 
-                   ;; Reset file content
-                   (with-temp-file test-file
-                     (insert original-content))
+            ;; Reset file content
+            (with-temp-file test-file
+              (insert original-content))
 
-                   ;; Test failed replacement with unbalanced parens
-                   (should-error (greger-stdlib--str-replace
-                                  test-file
-                                  original-content
-                                  new-content-unbalanced
-                                  "Test commit")
-                                 :type 'error)))
+            ;; Test failed replacement with unbalanced parens
+            (should-error (greger-stdlib--str-replace
+                           test-file
+                           original-content
+                           new-content-unbalanced
+                           "Test commit")
+                          :type 'error)))
 
       ;; Clean up
       (when (file-exists-p test-file)
@@ -475,12 +475,12 @@ This ensures the '..' entry has predictable permissions in tests."
           (cl-letf (((symbol-function 'greger-stdlib--git-stage-and-commit)
                      (lambda (files commit-message buffer) "Mocked git result")))
 
-                   ;; Should succeed even with unbalanced parens since it's not a .el file
-                   (should (stringp (greger-stdlib--str-replace
-                                     test-file
-                                     original-content
-                                     new-content
-                                     "Test commit")))))
+            ;; Should succeed even with unbalanced parens since it's not a .el file
+            (should (stringp (greger-stdlib--str-replace
+                              test-file
+                              original-content
+                              new-content
+                              "Test commit")))))
 
       ;; Clean up
       (when (file-exists-p test-file)
@@ -502,20 +502,20 @@ This ensures the '..' entry has predictable permissions in tests."
           (cl-letf (((symbol-function 'greger-stdlib--git-stage-and-commit)
                      (lambda (files commit-message buffer) "Mocked git result")))
 
-                   ;; Test replacing first occurrence only (default behavior)
-                   (let ((result (greger-stdlib--str-replace
-                                  test-file
-                                  target-string
-                                  replacement
-                                  "Replace first Hello")))
-                     (should (stringp result))
-                     (should (string-match "Successfully replaced content" result))
-                     (should-not (string-match "made.*replacements" result)) ; No count for single replacement
+            ;; Test replacing first occurrence only (default behavior)
+            (let ((result (greger-stdlib--str-replace
+                           test-file
+                           target-string
+                           replacement
+                           "Replace first Hello")))
+              (should (stringp result))
+              (should (string-match "Successfully replaced content" result))
+              (should-not (string-match "made.*replacements" result)) ; No count for single replacement
 
-                     ;; Verify only first occurrence was replaced
-                     (with-temp-buffer
-                       (insert-file-contents test-file)
-                       (should (string= (buffer-string) "Hi world. Hello again."))))))
+              ;; Verify only first occurrence was replaced
+              (with-temp-buffer
+                (insert-file-contents test-file)
+                (should (string= (buffer-string) "Hi world. Hello again."))))))
 
       ;; Clean up
       (when (file-exists-p test-file)
@@ -537,21 +537,21 @@ This ensures the '..' entry has predictable permissions in tests."
           (cl-letf (((symbol-function 'greger-stdlib--git-stage-and-commit)
                      (lambda (files commit-message buffer) "Mocked git result")))
 
-                   ;; Test replacing all occurrences
-                   (let ((result (greger-stdlib--str-replace
-                                  test-file
-                                  target-string
-                                  replacement
-                                  "Replace all Hellos"
-                                  t))) ; replace-all = true
-                     (should (stringp result))
-                     (should (string-match "Successfully replaced content" result))
-                     (should (string-match "made 3 replacements" result)) ; Should show count
+            ;; Test replacing all occurrences
+            (let ((result (greger-stdlib--str-replace
+                           test-file
+                           target-string
+                           replacement
+                           "Replace all Hellos"
+                           t))) ; replace-all = true
+              (should (stringp result))
+              (should (string-match "Successfully replaced content" result))
+              (should (string-match "made 3 replacements" result)) ; Should show count
 
-                     ;; Verify all occurrences were replaced
-                     (with-temp-buffer
-                       (insert-file-contents test-file)
-                       (should (string= (buffer-string) "Hi world. Hi again. Hi everyone!"))))))
+              ;; Verify all occurrences were replaced
+              (with-temp-buffer
+                (insert-file-contents test-file)
+                (should (string= (buffer-string) "Hi world. Hi again. Hi everyone!"))))))
 
       ;; Clean up
       (when (file-exists-p test-file)
@@ -573,13 +573,13 @@ This ensures the '..' entry has predictable permissions in tests."
           (cl-letf (((symbol-function 'greger-stdlib--git-stage-and-commit)
                      (lambda (files commit-message buffer) "Mocked git result")))
 
-                   ;; Should error when no matches found
-                   (should-error (greger-stdlib--str-replace
-                                  test-file
-                                  target-string
-                                  replacement
-                                  "Should fail - no matches"
-                                  t)))) ; replace-all = true
+            ;; Should error when no matches found
+            (should-error (greger-stdlib--str-replace
+                           test-file
+                           target-string
+                           replacement
+                           "Should fail - no matches"
+                           t)))) ; replace-all = true
 
       ;; Clean up
       (when (file-exists-p test-file)
@@ -601,21 +601,21 @@ This ensures the '..' entry has predictable permissions in tests."
           (cl-letf (((symbol-function 'greger-stdlib--git-stage-and-commit)
                      (lambda (files commit-message buffer) "Mocked git result")))
 
-                   ;; Test replacing single occurrence with replace-all=true
-                   (let ((result (greger-stdlib--str-replace
-                                  test-file
-                                  target-string
-                                  replacement
-                                  "Replace single Hello with replace-all"
-                                  t))) ; replace-all = true
-                     (should (stringp result))
-                     (should (string-match "Successfully replaced content" result))
-                     (should-not (string-match "made.*replacements" result)) ; No count for single replacement
+            ;; Test replacing single occurrence with replace-all=true
+            (let ((result (greger-stdlib--str-replace
+                           test-file
+                           target-string
+                           replacement
+                           "Replace single Hello with replace-all"
+                           t))) ; replace-all = true
+              (should (stringp result))
+              (should (string-match "Successfully replaced content" result))
+              (should-not (string-match "made.*replacements" result)) ; No count for single replacement
 
-                     ;; Verify content was replaced
-                     (with-temp-buffer
-                       (insert-file-contents test-file)
-                       (should (string= (buffer-string) "Hi world"))))))
+              ;; Verify content was replaced
+              (with-temp-buffer
+                (insert-file-contents test-file)
+                (should (string= (buffer-string) "Hi world"))))))
 
       ;; Clean up
       (when (file-exists-p test-file)
@@ -637,21 +637,21 @@ This ensures the '..' entry has predictable permissions in tests."
           (cl-letf (((symbol-function 'greger-stdlib--git-stage-and-commit)
                      (lambda (files commit-message buffer) "Mocked git result")))
 
-                   ;; Test replacing all occurrences of multi-line pattern
-                   (let ((result (greger-stdlib--str-replace
-                                  test-file
-                                  target-string
-                                  replacement
-                                  "Replace all multi-line patterns"
-                                  t))) ; replace-all = true
-                     (should (stringp result))
-                     (should (string-match "Successfully replaced content" result))
-                     (should (string-match "made 2 replacements" result))
+            ;; Test replacing all occurrences of multi-line pattern
+            (let ((result (greger-stdlib--str-replace
+                           test-file
+                           target-string
+                           replacement
+                           "Replace all multi-line patterns"
+                           t))) ; replace-all = true
+              (should (stringp result))
+              (should (string-match "Successfully replaced content" result))
+              (should (string-match "made 2 replacements" result))
 
-                     ;; Verify all occurrences were replaced
-                     (with-temp-buffer
-                       (insert-file-contents test-file)
-                       (should (string= (buffer-string) "Line 1\nReplaced!\nLine 3\nReplaced!\nLine 5"))))))
+              ;; Verify all occurrences were replaced
+              (with-temp-buffer
+                (insert-file-contents test-file)
+                (should (string= (buffer-string) "Line 1\nReplaced!\nLine 3\nReplaced!\nLine 5"))))))
 
       ;; Clean up
       (when (file-exists-p test-file)
@@ -673,21 +673,21 @@ This ensures the '..' entry has predictable permissions in tests."
           (cl-letf (((symbol-function 'greger-stdlib--git-stage-and-commit)
                      (lambda (files commit-message buffer) "Mocked git result")))
 
-                   ;; Test case-sensitive replacement
-                   (let ((result (greger-stdlib--str-replace
-                                  test-file
-                                  target-string
-                                  replacement
-                                  "Case-sensitive replacement"
-                                  t))) ; replace-all = true
-                     (should (stringp result))
-                     (should (string-match "Successfully replaced content" result))
-                     (should-not (string-match "made.*replacements" result)) ; Only one match
+            ;; Test case-sensitive replacement
+            (let ((result (greger-stdlib--str-replace
+                           test-file
+                           target-string
+                           replacement
+                           "Case-sensitive replacement"
+                           t))) ; replace-all = true
+              (should (stringp result))
+              (should (string-match "Successfully replaced content" result))
+              (should-not (string-match "made.*replacements" result)) ; Only one match
 
-                     ;; Verify only lowercase "hello" was replaced
-                     (with-temp-buffer
-                       (insert-file-contents test-file)
-                       (should (string= (buffer-string) "Hello hi HELLO"))))))
+              ;; Verify only lowercase "hello" was replaced
+              (with-temp-buffer
+                (insert-file-contents test-file)
+                (should (string= (buffer-string) "Hello hi HELLO"))))))
 
       ;; Clean up
       (when (file-exists-p test-file)
@@ -715,18 +715,18 @@ This ensures the '..' entry has predictable permissions in tests."
           (cl-letf (((symbol-function 'greger-stdlib--git-stage-and-commit)
                      (lambda (files commit-message buffer) "Mocked git result")))
 
-                   ;; Test successful deletion with array input
-                   (let ((result (greger-stdlib--delete-files
-                                  (vector test-file1 test-file2)
-                                  "Test commit message")))
-                     (should (stringp result))
-                     (should (string-match "Successfully deleted 2 file" result))
-                     (should (string-match (file-name-nondirectory test-file1) result))
-                     (should (string-match (file-name-nondirectory test-file2) result)))
+            ;; Test successful deletion with array input
+            (let ((result (greger-stdlib--delete-files
+                           (vector test-file1 test-file2)
+                           "Test commit message")))
+              (should (stringp result))
+              (should (string-match "Successfully deleted 2 file" result))
+              (should (string-match (file-name-nondirectory test-file1) result))
+              (should (string-match (file-name-nondirectory test-file2) result)))
 
-                   ;; Verify files are deleted
-                   (should-not (file-exists-p test-file1))
-                   (should-not (file-exists-p test-file2))))
+            ;; Verify files are deleted
+            (should-not (file-exists-p test-file1))
+            (should-not (file-exists-p test-file2))))
 
       ;; Clean up any remaining files
       (when (file-exists-p test-file1)
@@ -752,16 +752,16 @@ This ensures the '..' entry has predictable permissions in tests."
           (cl-letf (((symbol-function 'greger-stdlib--git-stage-and-commit)
                      (lambda (files commit-message buffer) "Mocked git result")))
 
-                   ;; Test successful deletion with vector input
-                   (let ((result (greger-stdlib--delete-files
-                                  (vector test-file)
-                                  "Test commit message")))
-                     (should (stringp result))
-                     (should (string-match "Successfully deleted 1 file" result))
-                     (should (string-match (file-name-nondirectory test-file) result)))
+            ;; Test successful deletion with vector input
+            (let ((result (greger-stdlib--delete-files
+                           (vector test-file)
+                           "Test commit message")))
+              (should (stringp result))
+              (should (string-match "Successfully deleted 1 file" result))
+              (should (string-match (file-name-nondirectory test-file) result)))
 
-                   ;; Verify file is deleted
-                   (should-not (file-exists-p test-file))))
+            ;; Verify file is deleted
+            (should-not (file-exists-p test-file))))
 
       ;; Clean up any remaining files
       (when (file-exists-p test-file)
@@ -778,11 +778,11 @@ This ensures the '..' entry has predictable permissions in tests."
     (cl-letf (((symbol-function 'greger-stdlib--git-stage-and-commit)
                (lambda (files commit-message buffer) "Mocked git result")))
 
-             ;; Should error when trying to delete non-existent file
-             (should-error (greger-stdlib--delete-files
-                            (vector nonexistent-file)
-                            "Test commit message")
-                           :type 'error))))
+      ;; Should error when trying to delete non-existent file
+      (should-error (greger-stdlib--delete-files
+                     (vector nonexistent-file)
+                     "Test commit message")
+                    :type 'error))))
 
 (ert-deftest greger-stdlib-test-delete-files-directory ()
   "Test delete-files with directory path (should fail)."
@@ -798,11 +798,11 @@ This ensures the '..' entry has predictable permissions in tests."
           (cl-letf (((symbol-function 'greger-stdlib--git-stage-and-commit)
                      (lambda (files commit-message buffer) "Mocked git result")))
 
-                   ;; Should error when trying to delete directory
-                   (should-error (greger-stdlib--delete-files
-                                  (vector test-dir)
-                                  "Test commit message")
-                                 :type 'error)))
+            ;; Should error when trying to delete directory
+            (should-error (greger-stdlib--delete-files
+                           (vector test-dir)
+                           "Test commit message")
+                          :type 'error)))
 
       ;; Clean up
       (when (file-exists-p test-dir)
@@ -814,23 +814,23 @@ This ensures the '..' entry has predictable permissions in tests."
   (cl-letf (((symbol-function 'greger-stdlib--git-stage-and-commit)
              (lambda (files commit-message buffer) "Mocked git result")))
 
-           ;; Test with non-string file paths
-           (should-error (greger-stdlib--delete-files
-                          (vector 123)
-                          "Test commit message")
-                         :type 'error)
+    ;; Test with non-string file paths
+    (should-error (greger-stdlib--delete-files
+                   (vector 123)
+                   "Test commit message")
+                  :type 'error)
 
-           ;; Test with non-vector file-paths
-           (should-error (greger-stdlib--delete-files
-                          "not-a-vector"
-                          "Test commit message")
-                         :type 'error)
+    ;; Test with non-vector file-paths
+    (should-error (greger-stdlib--delete-files
+                   "not-a-vector"
+                   "Test commit message")
+                  :type 'error)
 
-           ;; Test with non-string commit message
-           (should-error (greger-stdlib--delete-files
-                          (vector "/tmp/test.txt")
-                          123)
-                         :type 'error)))
+    ;; Test with non-string commit message
+    (should-error (greger-stdlib--delete-files
+                   (vector "/tmp/test.txt")
+                   123)
+                  :type 'error)))
 
 (ert-deftest greger-stdlib-test-delete-files-git-tracking ()
   "Test delete-files git tracking behavior."
@@ -859,16 +859,16 @@ This ensures the '..' entry has predictable permissions in tests."
                        (setq staged-files files)
                        "Mocked git result")))
 
-                   ;; Test deletion of git-tracked file
-                   (let ((result (greger-stdlib--delete-files
-                                  (vector test-file)
-                                  "Delete test file")))
-                     (should (stringp result))
-                     (should (string-match "Successfully deleted 1 file" result))
-                     (should git-tracked-called)
-                     (should git-stage-called)
-                     (should (member test-file staged-files))
-                     (should-not (file-exists-p test-file)))))
+            ;; Test deletion of git-tracked file
+            (let ((result (greger-stdlib--delete-files
+                           (vector test-file)
+                           "Delete test file")))
+              (should (stringp result))
+              (should (string-match "Successfully deleted 1 file" result))
+              (should git-tracked-called)
+              (should git-stage-called)
+              (should (member test-file staged-files))
+              (should-not (file-exists-p test-file)))))
 
       ;; Clean up any remaining files
       (when (file-exists-p test-file)
@@ -894,15 +894,15 @@ This ensures the '..' entry has predictable permissions in tests."
                        (setq git-stage-called t)
                        "Should not be called")))
 
-                   ;; Test deletion of non-git-tracked file
-                   (let ((result (greger-stdlib--delete-files
-                                  (vector test-file)
-                                  "Delete test file")))
-                     (should (stringp result))
-                     (should (string-match "Successfully deleted 1 file" result))
-                     (should (string-match "No files were tracked by git" result))
-                     (should-not git-stage-called)
-                     (should-not (file-exists-p test-file)))))
+            ;; Test deletion of non-git-tracked file
+            (let ((result (greger-stdlib--delete-files
+                           (vector test-file)
+                           "Delete test file")))
+              (should (stringp result))
+              (should (string-match "Successfully deleted 1 file" result))
+              (should (string-match "No files were tracked by git" result))
+              (should-not git-stage-called)
+              (should-not (file-exists-p test-file)))))
 
       ;; Clean up any remaining files
       (when (file-exists-p test-file)
@@ -1273,19 +1273,19 @@ drwx------  (dir)  ..
           (cl-letf (((symbol-function 'greger-stdlib--git-stage-and-commit)
                      (lambda (files commit-message buffer) "Mocked git result")))
 
-                   ;; Test successful file creation
-                   (let ((result (greger-stdlib--write-new-file
-                                  test-file
-                                  test-content
-                                  "Create new test file")))
-                     (should (stringp result))
-                     (should (string-match "Successfully wrote new file" result))
-                     (should (file-exists-p test-file))
+            ;; Test successful file creation
+            (let ((result (greger-stdlib--write-new-file
+                           test-file
+                           test-content
+                           "Create new test file")))
+              (should (stringp result))
+              (should (string-match "Successfully wrote new file" result))
+              (should (file-exists-p test-file))
 
-                     ;; Verify file contents (write-file adds a newline at the end)
-                     (with-temp-buffer
-                       (insert-file-contents test-file)
-                       (should (string= (buffer-string) (concat test-content "\n")))))))
+              ;; Verify file contents (write-file adds a newline at the end)
+              (with-temp-buffer
+                (insert-file-contents test-file)
+                (should (string= (buffer-string) (concat test-content "\n")))))))
 
       ;; Clean up
       (when (file-exists-p test-file)
@@ -1305,11 +1305,11 @@ drwx------  (dir)  ..
           (cl-letf (((symbol-function 'greger-stdlib--git-stage-and-commit)
                      (lambda (files commit-message buffer) "Mocked git result")))
 
-                   ;; Should error when trying to write to existing file
-                   (should-error (greger-stdlib--write-new-file
-                                  test-file
-                                  "New content"
-                                  "Should fail"))))
+            ;; Should error when trying to write to existing file
+            (should-error (greger-stdlib--write-new-file
+                           test-file
+                           "New content"
+                           "Should fail"))))
 
       ;; Clean up
       (when (file-exists-p test-file)
@@ -1321,11 +1321,11 @@ drwx------  (dir)  ..
   (cl-letf (((symbol-function 'greger-stdlib--git-stage-and-commit)
              (lambda (files commit-message buffer) "Mocked git result")))
 
-           ;; Test with invalid directory
-           (should-error (greger-stdlib--write-new-file
-                          "/nonexistent/directory/file.txt"
-                          "Content"
-                          "Should fail"))))
+    ;; Test with invalid directory
+    (should-error (greger-stdlib--write-new-file
+                   "/nonexistent/directory/file.txt"
+                   "Content"
+                   "Should fail"))))
 
 (ert-deftest greger-stdlib-test-replace-file-basic ()
   "Test basic replace-file functionality."
@@ -1347,18 +1347,18 @@ drwx------  (dir)  ..
           (cl-letf (((symbol-function 'greger-stdlib--git-stage-and-commit)
                      (lambda (files commit-message buffer) "Mocked git result")))
 
-                   ;; Test successful file replacement
-                   (let ((result (greger-stdlib--replace-file
-                                  test-file
-                                  new-content
-                                  "Replace file content")))
-                     (should (stringp result))
-                     (should (string-match "Successfully replaced" result))
+            ;; Test successful file replacement
+            (let ((result (greger-stdlib--replace-file
+                           test-file
+                           new-content
+                           "Replace file content")))
+              (should (stringp result))
+              (should (string-match "Successfully replaced" result))
 
-                     ;; Verify new content
-                     (with-temp-buffer
-                       (insert-file-contents test-file)
-                       (should (string= (buffer-string) new-content))))))
+              ;; Verify new content
+              (with-temp-buffer
+                (insert-file-contents test-file)
+                (should (string= (buffer-string) new-content))))))
 
       ;; Clean up
       (when (file-exists-p test-file)
@@ -1370,11 +1370,11 @@ drwx------  (dir)  ..
   (cl-letf (((symbol-function 'greger-stdlib--git-stage-and-commit)
              (lambda (files commit-message buffer) "Mocked git result")))
 
-           ;; Should error when trying to replace non-existent file
-           (should-error (greger-stdlib--replace-file
-                          "/path/that/does/not/exist.txt"
-                          "New content"
-                          "Should fail"))))
+    ;; Should error when trying to replace non-existent file
+    (should-error (greger-stdlib--replace-file
+                   "/path/that/does/not/exist.txt"
+                   "New content"
+                   "Should fail"))))
 
 (ert-deftest greger-stdlib-test-replace-file-empty-content ()
   "Test replace-file with empty content."
@@ -1390,18 +1390,18 @@ drwx------  (dir)  ..
           (cl-letf (((symbol-function 'greger-stdlib--git-stage-and-commit)
                      (lambda (files commit-message buffer) "Mocked git result")))
 
-                   ;; Test replacing with empty content
-                   (let ((result (greger-stdlib--replace-file
-                                  test-file
-                                  ""
-                                  "Replace with empty content")))
-                     (should (stringp result))
-                     (should (string-match "Successfully replaced" result))
+            ;; Test replacing with empty content
+            (let ((result (greger-stdlib--replace-file
+                           test-file
+                           ""
+                           "Replace with empty content")))
+              (should (stringp result))
+              (should (string-match "Successfully replaced" result))
 
-                     ;; Verify file is now empty
-                     (with-temp-buffer
-                       (insert-file-contents test-file)
-                       (should (string= (buffer-string) ""))))))
+              ;; Verify file is now empty
+              (with-temp-buffer
+                (insert-file-contents test-file)
+                (should (string= (buffer-string) ""))))))
 
       ;; Clean up
       (when (file-exists-p test-file)
@@ -1420,14 +1420,14 @@ drwx------  (dir)  ..
           (cl-letf (((symbol-function 'greger-stdlib--git-stage-and-commit)
                      (lambda (files commit-message buffer) "Mocked git result")))
 
-                   ;; Test successful directory creation
-                   (let ((result (greger-stdlib--make-directory
-                                  test-dir
-                                  "Create new directory")))
-                     (should (stringp result))
-                     (should (string-match "Successfully created directory" result))
-                     (should (file-exists-p test-dir))
-                     (should (file-directory-p test-dir)))))
+            ;; Test successful directory creation
+            (let ((result (greger-stdlib--make-directory
+                           test-dir
+                           "Create new directory")))
+              (should (stringp result))
+              (should (string-match "Successfully created directory" result))
+              (should (file-exists-p test-dir))
+              (should (file-directory-p test-dir)))))
 
       ;; Clean up
       (when (file-exists-p test-dir)
@@ -1450,18 +1450,18 @@ drwx------  (dir)  ..
           (cl-letf (((symbol-function 'greger-stdlib--git-stage-and-commit)
                      (lambda (files commit-message buffer) "Mocked git result")))
 
-                   ;; Test recursive directory creation
-                   (let ((result (greger-stdlib--make-directory
-                                  nested-dir
-                                  "Create nested directories")))
-                     (should (stringp result))
-                     (should (string-match "Successfully created directory" result))
-                     (should (file-exists-p nested-dir))
-                     (should (file-directory-p nested-dir))
+            ;; Test recursive directory creation
+            (let ((result (greger-stdlib--make-directory
+                           nested-dir
+                           "Create nested directories")))
+              (should (stringp result))
+              (should (string-match "Successfully created directory" result))
+              (should (file-exists-p nested-dir))
+              (should (file-directory-p nested-dir))
 
-                     ;; Verify intermediate directories were created
-                     (should (file-exists-p (expand-file-name "level1" parent-dir)))
-                     (should (file-exists-p (expand-file-name "level1/level2" parent-dir))))))
+              ;; Verify intermediate directories were created
+              (should (file-exists-p (expand-file-name "level1" parent-dir)))
+              (should (file-exists-p (expand-file-name "level1/level2" parent-dir))))))
 
       ;; Clean up
       (when (file-exists-p parent-dir)
@@ -1480,12 +1480,12 @@ drwx------  (dir)  ..
           (cl-letf (((symbol-function 'greger-stdlib--git-stage-and-commit)
                      (lambda (files commit-message buffer) "Mocked git result")))
 
-                   ;; Should succeed even if directory exists (like mkdir -p)
-                   (let ((result (greger-stdlib--make-directory
-                                  test-dir
-                                  "Directory already exists")))
-                     (should (stringp result))
-                     (should (string-match "already exists" result)))))
+            ;; Should succeed even if directory exists (like mkdir -p)
+            (let ((result (greger-stdlib--make-directory
+                           test-dir
+                           "Directory already exists")))
+              (should (stringp result))
+              (should (string-match "already exists" result)))))
 
       ;; Clean up
       (when (file-exists-p test-dir)
@@ -1510,20 +1510,20 @@ drwx------  (dir)  ..
           (cl-letf (((symbol-function 'greger-stdlib--git-stage-and-commit)
                      (lambda (files commit-message buffer) "Mocked git result")))
 
-                   ;; Test successful file rename
-                   (let ((result (greger-stdlib--rename-file
-                                  old-file
-                                  new-file
-                                  "Rename test file")))
-                     (should (stringp result))
-                     (should (string-match "Successfully renamed" result))
-                     (should-not (file-exists-p old-file))
-                     (should (file-exists-p new-file))
+            ;; Test successful file rename
+            (let ((result (greger-stdlib--rename-file
+                           old-file
+                           new-file
+                           "Rename test file")))
+              (should (stringp result))
+              (should (string-match "Successfully renamed" result))
+              (should-not (file-exists-p old-file))
+              (should (file-exists-p new-file))
 
-                     ;; Verify content was preserved
-                     (with-temp-buffer
-                       (insert-file-contents new-file)
-                       (should (string= (buffer-string) test-content))))))
+              ;; Verify content was preserved
+              (with-temp-buffer
+                (insert-file-contents new-file)
+                (should (string= (buffer-string) test-content))))))
 
       ;; Clean up
       (when (file-exists-p old-file)
@@ -1553,20 +1553,20 @@ drwx------  (dir)  ..
           (cl-letf (((symbol-function 'greger-stdlib--git-stage-and-commit)
                      (lambda (files commit-message buffer) "Mocked git result")))
 
-                   ;; Test moving file to different directory
-                   (let ((result (greger-stdlib--rename-file
-                                  old-file
-                                  new-file
-                                  "Move file to different directory")))
-                     (should (stringp result))
-                     (should (string-match "Successfully renamed" result))
-                     (should-not (file-exists-p old-file))
-                     (should (file-exists-p new-file))
+            ;; Test moving file to different directory
+            (let ((result (greger-stdlib--rename-file
+                           old-file
+                           new-file
+                           "Move file to different directory")))
+              (should (stringp result))
+              (should (string-match "Successfully renamed" result))
+              (should-not (file-exists-p old-file))
+              (should (file-exists-p new-file))
 
-                     ;; Verify content was preserved
-                     (with-temp-buffer
-                       (insert-file-contents new-file)
-                       (should (string= (buffer-string) test-content))))))
+              ;; Verify content was preserved
+              (with-temp-buffer
+                (insert-file-contents new-file)
+                (should (string= (buffer-string) test-content))))))
 
       ;; Clean up
       (when (file-exists-p source-dir)
@@ -1583,11 +1583,11 @@ drwx------  (dir)  ..
           (cl-letf (((symbol-function 'greger-stdlib--git-stage-and-commit)
                      (lambda (files commit-message buffer) "Mocked git result")))
 
-                   ;; Should error when source file doesn't exist
-                   (should-error (greger-stdlib--rename-file
-                                  "/path/that/does/not/exist.txt"
-                                  new-file
-                                  "Should fail"))))
+            ;; Should error when source file doesn't exist
+            (should-error (greger-stdlib--rename-file
+                           "/path/that/does/not/exist.txt"
+                           new-file
+                           "Should fail"))))
 
       ;; Clean up
       (when (file-exists-p new-file)
@@ -1611,11 +1611,11 @@ drwx------  (dir)  ..
           (cl-letf (((symbol-function 'greger-stdlib--git-stage-and-commit)
                      (lambda (files commit-message buffer) "Mocked git result")))
 
-                   ;; Should fail when target file already exists
-                   (should-error (greger-stdlib--rename-file
-                                  old-file
-                                  new-file
-                                  "Should fail when target exists"))))
+            ;; Should fail when target file already exists
+            (should-error (greger-stdlib--rename-file
+                           old-file
+                           new-file
+                           "Should fail when target exists"))))
 
       ;; Clean up
       (when (file-exists-p old-file)
@@ -1636,16 +1636,16 @@ drwx------  (dir)  ..
           (cl-letf (((symbol-function 'greger-stdlib--git-stage-and-commit)
                      (lambda (files commit-message buffer) "Mocked git result")))
 
-                   ;; Should succeed when renaming a directory
-                   (let ((result (greger-stdlib--rename-file
-                                  test-dir
-                                  new-path
-                                  "Rename directory")))
-                     (should (stringp result))
-                     (should (string-match "Successfully renamed" result))
-                     (should-not (file-exists-p test-dir))
-                     (should (file-exists-p new-path))
-                     (should (file-directory-p new-path)))))
+            ;; Should succeed when renaming a directory
+            (let ((result (greger-stdlib--rename-file
+                           test-dir
+                           new-path
+                           "Rename directory")))
+              (should (stringp result))
+              (should (string-match "Successfully renamed" result))
+              (should-not (file-exists-p test-dir))
+              (should (file-exists-p new-path))
+              (should (file-directory-p new-path)))))
 
       ;; Clean up
       (when (file-exists-p test-dir)

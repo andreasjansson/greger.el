@@ -35,7 +35,7 @@
 
 ;; Tool structure for tracking executing tools
 (cl-defstruct greger-tool
-              cancel-fn)
+  cancel-fn)
 
 ;; Registry to hold tool definitions
 (defvar greger-tools-registry (make-hash-table :test 'equal)
@@ -175,7 +175,7 @@ The raw JSON string will be displayed for the server tool definition."
     tools))
 
 (cl-defun greger-tools-execute (&key tool-name args callback buffer metadata)
-          "Execute TOOL-NAME with ARGS and call CALLBACK with (result error).
+  "Execute TOOL-NAME with ARGS and call CALLBACK with (result error).
 Returns a greger-tool struct for tracking execution and cancellation.
 If the tool has :pass-buffer set, BUFFER will be passed to the tool function.
 If the tool has :pass-callback set, CALLBACK will be passed to the tool
@@ -183,45 +183,45 @@ function instead of `greger-tools-execute' calling the callback with result.
 If the tool has :pass-metadata set, METADATA will be passed to the tool
 function."
 
-          (let ((tool-def (gethash tool-name greger-tools-registry))
-                (cancel-fn nil))
-            (if tool-def
-                (let ((func (plist-get tool-def :function))
-                      (pass-buffer (plist-get tool-def :pass-buffer))
-                      (pass-callback (plist-get tool-def :pass-callback))
-                      (pass-metadata (plist-get tool-def :pass-metadata)))
-                  ;; Add buffer parameter if pass-buffer is set and buffer is provided
-                  (when (and pass-buffer buffer)
-                    (setq args (cons (cons 'buffer buffer) args)))
-                  ;; Add callback parameter if pass-callback is set
-                  (when pass-callback
-                    (setq args (cons (cons 'callback callback) args)))
-                  ;; Add metadata parameter if pass-metadata is set and metadata is provided
-                  (when (and pass-metadata metadata)
-                    (setq args (cons (cons 'metadata metadata) args)))
-                  (condition-case err
-                      (if pass-callback
-                          ;; Async case: When pass-callback is set,
-                          ;; the function handles calling the callback
-                          (let ((result (greger-tools--call-function-with-args func args tool-def)))
-                            ;; When the result of an async tool is a
-                            ;; function, it's assumed to be a cancel
-                            ;; function
-                            (when (functionp result)
-                              (setq cancel-fn result)))
+  (let ((tool-def (gethash tool-name greger-tools-registry))
+        (cancel-fn nil))
+    (if tool-def
+        (let ((func (plist-get tool-def :function))
+              (pass-buffer (plist-get tool-def :pass-buffer))
+              (pass-callback (plist-get tool-def :pass-callback))
+              (pass-metadata (plist-get tool-def :pass-metadata)))
+          ;; Add buffer parameter if pass-buffer is set and buffer is provided
+          (when (and pass-buffer buffer)
+            (setq args (cons (cons 'buffer buffer) args)))
+          ;; Add callback parameter if pass-callback is set
+          (when pass-callback
+            (setq args (cons (cons 'callback callback) args)))
+          ;; Add metadata parameter if pass-metadata is set and metadata is provided
+          (when (and pass-metadata metadata)
+            (setq args (cons (cons 'metadata metadata) args)))
+          (condition-case err
+              (if pass-callback
+                  ;; Async case: When pass-callback is set,
+                  ;; the function handles calling the callback
+                  (let ((result (greger-tools--call-function-with-args func args tool-def)))
+                    ;; When the result of an async tool is a
+                    ;; function, it's assumed to be a cancel
+                    ;; function
+                    (when (functionp result)
+                      (setq cancel-fn result)))
 
-                        ;; Sync case: call callback with result
-                        (let ((result (greger-tools--call-function-with-args func args tool-def)))
-                          (when (functionp result)
-                            (setq cancel-fn result))
-                          (funcall callback result nil)))
+                ;; Sync case: call callback with result
+                (let ((result (greger-tools--call-function-with-args func args tool-def)))
+                  (when (functionp result)
+                    (setq cancel-fn result))
+                  (funcall callback result nil)))
 
-                    ;; Errors from both sync and async tools are handled with a callback
-                    (error
-                     (funcall callback nil err))))
-              (funcall callback nil (format "Unknown tool: %s" tool-name)))
-            ;; Return greger-tool struct
-            (make-greger-tool :cancel-fn cancel-fn)))
+            ;; Errors from both sync and async tools are handled with a callback
+            (error
+             (funcall callback nil err))))
+      (funcall callback nil (format "Unknown tool: %s" tool-name)))
+    ;; Return greger-tool struct
+    (make-greger-tool :cancel-fn cancel-fn)))
 
 (defun greger-tools--call-function-with-args (func args tool-def)
   "Call FUNC with arguments extracted from ARGS alist based on function signature.
