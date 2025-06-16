@@ -37,192 +37,192 @@
 ;; Server tool registrations
 
 (greger-register-server-tool "web_search"
-			     :type "web_search_20250305"
-			     :max_uses 5)
+                             :type "web_search_20250305"
+                             :max_uses 5)
 
 ;; Tool registrations
 
 ;; Editing tools
 
 (greger-register-tool "read-file"
-		      :description "Read the contents of a file from the filesystem"
-		      :properties '((path . ((type . "string")
-					     (description . "Path to the file to read")))
-				    (include-line-numbers . ((type . "boolean")
-							     (description . "Whether to include line numbers in the output. If you plan to modify the file, you should include line numbers here so you know which lines to edit.")
-							     (default . nil)))
-				    (start-line . ((type . "integer")
-						   (description . "Starting line number (1-based) to begin reading from. If not specified, reads from the beginning of the file.")
-						   (default . nil)))
-				    (end-line . ((type . "integer")
-						 (description . "Ending line number (1-based) to stop reading at (inclusive). If not specified, reads to the end of the file.")
-						 (default . nil))))
-		      :required '("path")
-		      :function 'greger-stdlib--read-file)
+                      :description "Read the contents of a file from the filesystem"
+                      :properties '((path . ((type . "string")
+                                             (description . "Path to the file to read")))
+                                    (include-line-numbers . ((type . "boolean")
+                                                             (description . "Whether to include line numbers in the output. If you plan to modify the file, you should include line numbers here so you know which lines to edit.")
+                                                             (default . nil)))
+                                    (start-line . ((type . "integer")
+                                                   (description . "Starting line number (1-based) to begin reading from. If not specified, reads from the beginning of the file.")
+                                                   (default . nil)))
+                                    (end-line . ((type . "integer")
+                                                 (description . "Ending line number (1-based) to stop reading at (inclusive). If not specified, reads to the end of the file.")
+                                                 (default . nil))))
+                      :required '("path")
+                      :function 'greger-stdlib--read-file)
 
 (greger-register-tool "write-new-file"
-		      :description "Write a new file with the given contents. Fails if the file already exists."
-		      :properties '((file-path . ((type . "string")
-						  (description . "Absolute path to the new file")))
-				    (contents . ((type . "string")
-						 (description . "Contents to write to the new file")))
-				    (git-commit-message . ((type . "string")
-							   (description . "Git commit message for this change"))))
-		      :required '("file-path" "contents" "git-commit-message")
-		      :function 'greger-stdlib--write-new-file
-		      :pass-buffer t)
+                      :description "Write a new file with the given contents. Fails if the file already exists."
+                      :properties '((file-path . ((type . "string")
+                                                  (description . "Absolute path to the new file")))
+                                    (contents . ((type . "string")
+                                                 (description . "Contents to write to the new file")))
+                                    (git-commit-message . ((type . "string")
+                                                           (description . "Git commit message for this change"))))
+                      :required '("file-path" "contents" "git-commit-message")
+                      :function 'greger-stdlib--write-new-file
+                      :pass-buffer t)
 
 (greger-register-tool "replace-file"
-		      :description "Replace the entire contents of an existing file. Slow but reliable - replaces the complete file contents. Use str-replace for targeted changes in larger files."
-		      :properties '((file-path . ((type . "string")
-						  (description . "Path to the file to replace")))
-				    (contents . ((type . "string")
-						 (description . "New contents to replace the entire file")))
-				    (git-commit-message . ((type . "string")
-							   (description . "Git commit message for this change"))))
-		      :required '("file-path" "contents" "git-commit-message")
-		      :function 'greger-stdlib--replace-file
-		      :pass-buffer t)
+                      :description "Replace the entire contents of an existing file. Slow but reliable - replaces the complete file contents. Use str-replace for targeted changes in larger files."
+                      :properties '((file-path . ((type . "string")
+                                                  (description . "Path to the file to replace")))
+                                    (contents . ((type . "string")
+                                                 (description . "New contents to replace the entire file")))
+                                    (git-commit-message . ((type . "string")
+                                                           (description . "Git commit message for this change"))))
+                      :required '("file-path" "contents" "git-commit-message")
+                      :function 'greger-stdlib--replace-file
+                      :pass-buffer t)
 
 (greger-register-tool "str-replace"
-		      :description "Replace a specific string or content block in a file with new content. Finds the exact original content and replaces it with new content. Be extra careful to format the original-content exactly correctly, taking extra care with whitespace and newlines. If you're making large swaths of changes, consider using replace-file instead"
-		      :properties '((file-path . ((type . "string")
-						  (description . "Path to the file to modify")))
-				    (original-content . ((type . "string")
-							 (description . "The exact content to find and replace")))
-				    (new-content . ((type . "string")
-						    (description . "The new content to replace the original content with")))
-				    (git-commit-message . ((type . "string")
-							   (description . "Git commit message for this change"))))
-		      :required '("file-path" "original-content" "new-content" "git-commit-message")
-		      :function 'greger-stdlib--str-replace
-		      :pass-buffer t)
+                      :description "Replace a specific string or content block in a file with new content. Finds the exact original content and replaces it with new content. Be extra careful to format the original-content exactly correctly, taking extra care with whitespace and newlines. If you're making large swaths of changes, consider using replace-file instead"
+                      :properties '((file-path . ((type . "string")
+                                                  (description . "Path to the file to modify")))
+                                    (original-content . ((type . "string")
+                                                         (description . "The exact content to find and replace")))
+                                    (new-content . ((type . "string")
+                                                    (description . "The new content to replace the original content with")))
+                                    (git-commit-message . ((type . "string")
+                                                           (description . "Git commit message for this change"))))
+                      :required '("file-path" "original-content" "new-content" "git-commit-message")
+                      :function 'greger-stdlib--str-replace
+                      :pass-buffer t)
 
 (greger-register-tool "insert"
-		      :description "Insert text at a specific line number in a file. The text will be inserted before the specified line number (use 0 to insert at the beginning of the file, 1 to insert before the first line, etc.). Useful for adding new content, comments, or code blocks at precise locations without replacing existing content."
-		      :properties '((file-path . ((type . "string")
-						  (description . "Path to the file to modify")))
-				    (line-number . ((type . "integer")
-						    (description . "Line number before which to insert the content (0 for beginning of file, 1 to insert before first line, etc.)")))
-				    (content . ((type . "string")
-						(description . "Content to insert at the specified location")))
-				    (git-commit-message . ((type . "string")
-							   (description . "Git commit message for this change"))))
-		      :required '("file-path" "line-number" "content" "git-commit-message")
-		      :function 'greger-stdlib--insert
-		      :pass-buffer t)
+                      :description "Insert text at a specific line number in a file. The text will be inserted before the specified line number (use 0 to insert at the beginning of the file, 1 to insert before the first line, etc.). Useful for adding new content, comments, or code blocks at precise locations without replacing existing content."
+                      :properties '((file-path . ((type . "string")
+                                                  (description . "Path to the file to modify")))
+                                    (line-number . ((type . "integer")
+                                                    (description . "Line number before which to insert the content (0 for beginning of file, 1 to insert before first line, etc.)")))
+                                    (content . ((type . "string")
+                                                (description . "Content to insert at the specified location")))
+                                    (git-commit-message . ((type . "string")
+                                                           (description . "Git commit message for this change"))))
+                      :required '("file-path" "line-number" "content" "git-commit-message")
+                      :function 'greger-stdlib--insert
+                      :pass-buffer t)
 
 ;; File tools
 
 (greger-register-tool "make-directory"
-		      :description "Recursively create a directory and all parent directories if they don't exist"
-		      :properties '((path . ((type . "string")
-					     (description . "Path to the directory to create")))
-				    (git-commit-message . ((type . "string")
-							   (description . "Git commit message for this change"))))
-		      :required '("path" "git-commit-message")
-		      :function 'greger-stdlib--make-directory
-		      :pass-buffer t)
+                      :description "Recursively create a directory and all parent directories if they don't exist"
+                      :properties '((path . ((type . "string")
+                                             (description . "Path to the directory to create")))
+                                    (git-commit-message . ((type . "string")
+                                                           (description . "Git commit message for this change"))))
+                      :required '("path" "git-commit-message")
+                      :function 'greger-stdlib--make-directory
+                      :pass-buffer t)
 
 (greger-register-tool "rename-file"
-		      :description "Rename or move a file from one path to another"
-		      :properties '((old-path . ((type . "string")
-						 (description . "Current path of the file")))
-				    (new-path . ((type . "string")
-						 (description . "New path for the file")))
-				    (git-commit-message . ((type . "string")
-							   (description . "Git commit message for this change"))))
-		      :required '("old-path" "new-path" "git-commit-message")
-		      :function 'greger-stdlib--rename-file
-		      :pass-buffer t)
+                      :description "Rename or move a file from one path to another"
+                      :properties '((old-path . ((type . "string")
+                                                 (description . "Current path of the file")))
+                                    (new-path . ((type . "string")
+                                                 (description . "New path for the file")))
+                                    (git-commit-message . ((type . "string")
+                                                           (description . "Git commit message for this change"))))
+                      :required '("old-path" "new-path" "git-commit-message")
+                      :function 'greger-stdlib--rename-file
+                      :pass-buffer t)
 
 (greger-register-tool "delete-files"
-		      :description "Delete the files and if they're tracked in git it should stage the deletion and commit"
-		      :properties '((file-paths . ((type . "array")
-						   (items . ((type . "string")))
-						   (description . "List of file paths to delete")))
-				    (git-commit-message . ((type . "string")
-							   (description . "Git commit message for this change"))))
-		      :required '("file-paths" "git-commit-message")
-		      :function 'greger-stdlib--delete-files
-		      :pass-buffer t)
+                      :description "Delete the files and if they're tracked in git it should stage the deletion and commit"
+                      :properties '((file-paths . ((type . "array")
+                                                   (items . ((type . "string")))
+                                                   (description . "List of file paths to delete")))
+                                    (git-commit-message . ((type . "string")
+                                                           (description . "Git commit message for this change"))))
+                      :required '("file-paths" "git-commit-message")
+                      :function 'greger-stdlib--delete-files
+                      :pass-buffer t)
 
 (greger-register-tool "list-directory"
-		      :description "List files and directories in a given directory"
-		      :properties '((path . ((type . "string")
-					     (description . "Path to the directory to list. Defaults to current directory.")
-					     (default . ".")))
-				    (exclude-directories-recursive . ((type . "array")
-								      (items . ((type . "string")))
-								      (description . "List of directory names to exclude when recursively listing files.")
-								      (default . (".git" "__pycache__"))))
-				    (recursive . ((type . "boolean")
-						  (description . "Whether to list files recursively")
-						  (default . nil))))
-		      :required '()
-		      :function 'greger-stdlib--list-directory)
+                      :description "List files and directories in a given directory"
+                      :properties '((path . ((type . "string")
+                                             (description . "Path to the directory to list. Defaults to current directory.")
+                                             (default . ".")))
+                                    (exclude-directories-recursive . ((type . "array")
+                                                                      (items . ((type . "string")))
+                                                                      (description . "List of directory names to exclude when recursively listing files.")
+                                                                      (default . (".git" "__pycache__"))))
+                                    (recursive . ((type . "boolean")
+                                                  (description . "Whether to list files recursively")
+                                                  (default . nil))))
+                      :required '()
+                      :function 'greger-stdlib--list-directory)
 
 ;; Ripgrep tool
 
 (greger-register-tool "ripgrep"
-		      :description "Search for patterns in files using ripgrep (rg) command line tool. Note that ripgrep only matches on single lines, so you can't search across multiple lines."
-		      :properties '((pattern . ((type . "string")
-						(description . "The search pattern (regex or literal string). Uses regular expression syntax by default. Meta characters like .(){}*+?[]^$|\\  have special meaning and should be escaped with backslash if you want to match them literally. Use the fixed-strings parameter for literal string matching. Supports Unicode by default.")))
-				    (path . ((type . "string")
-					     (description . "Directory or file path to search in. Directories are searched recursively. Supports glob patterns and respects .gitignore rules by default. Use '.' for current directory, or specify multiple paths separated by spaces")
-					     (default . ".")))
-				    (case-sensitive . ((type . "boolean")
-						       (description . "Whether the search should be case-sensitive")
-						       (default . nil)))
-				    (file-type . ((type . "string")
-						  (description . "Restrict search to specific file types using predefined type names. Examples: 'py' (Python), 'js' (JavaScript), 'md' (Markdown), 'cpp' (C++), 'elisp' (Emacs Lisp), 'java', 'rust', 'go', 'html', 'css', 'json', 'xml', 'yaml', 'sh' (shell scripts), 'sql', 'tex', 'dockerfile'. Use 'rg --type-list' to see all available types and their file extensions")))
-				    (context-lines . ((type . "integer")
-						      (description . "Number of context lines to show around matches")
-						      (default . 0)))
-				    (fixed-strings . ((type . "boolean")
-						      (description . "Treat the pattern as a literal string instead of a regular expression")
-						      (default . nil)))
-				    (word-regexp . ((type . "boolean")
-						    (description . "Only show matches surrounded by word boundaries")
-						    (default . nil)))
-				    (line-regexp . ((type . "boolean")
-						    (description . "Only show matches where the entire line participates in the match")
-						    (default . nil)))
-				    (max-results . ((type . "integer")
-						    (description . "Maximum number of results to return")
-						    (default . 50))))
-		      :required '("pattern")
-		      :function 'greger-stdlib--ripgrep
-		      :pass-callback t)
+                      :description "Search for patterns in files using ripgrep (rg) command line tool. Note that ripgrep only matches on single lines, so you can't search across multiple lines."
+                      :properties '((pattern . ((type . "string")
+                                                (description . "The search pattern (regex or literal string). Uses regular expression syntax by default. Meta characters like .(){}*+?[]^$|\\  have special meaning and should be escaped with backslash if you want to match them literally. Use the fixed-strings parameter for literal string matching. Supports Unicode by default.")))
+                                    (path . ((type . "string")
+                                             (description . "Directory or file path to search in. Directories are searched recursively. Supports glob patterns and respects .gitignore rules by default. Use '.' for current directory, or specify multiple paths separated by spaces")
+                                             (default . ".")))
+                                    (case-sensitive . ((type . "boolean")
+                                                       (description . "Whether the search should be case-sensitive")
+                                                       (default . nil)))
+                                    (file-type . ((type . "string")
+                                                  (description . "Restrict search to specific file types using predefined type names. Examples: 'py' (Python), 'js' (JavaScript), 'md' (Markdown), 'cpp' (C++), 'elisp' (Emacs Lisp), 'java', 'rust', 'go', 'html', 'css', 'json', 'xml', 'yaml', 'sh' (shell scripts), 'sql', 'tex', 'dockerfile'. Use 'rg --type-list' to see all available types and their file extensions")))
+                                    (context-lines . ((type . "integer")
+                                                      (description . "Number of context lines to show around matches")
+                                                      (default . 0)))
+                                    (fixed-strings . ((type . "boolean")
+                                                      (description . "Treat the pattern as a literal string instead of a regular expression")
+                                                      (default . nil)))
+                                    (word-regexp . ((type . "boolean")
+                                                    (description . "Only show matches surrounded by word boundaries")
+                                                    (default . nil)))
+                                    (line-regexp . ((type . "boolean")
+                                                    (description . "Only show matches where the entire line participates in the match")
+                                                    (default . nil)))
+                                    (max-results . ((type . "integer")
+                                                    (description . "Maximum number of results to return")
+                                                    (default . 50))))
+                      :required '("pattern")
+                      :function 'greger-stdlib--ripgrep
+                      :pass-callback t)
 
 ;; Shell commands
 
 (greger-register-tool "shell-command"
-		      :description "Execute an arbitrary shell command and return the output. Prompts for permission before running the command for security."
-		      :properties '((command . ((type . "string")
-						(description . "The shell command to execute")))
-				    (working-directory . ((type . "string")
-							  (description . "Directory to run the command in")
-							  (default . "."))))
-		      :required '("command")
-		      :function 'greger-stdlib--shell-command
-		      :pass-callback t
-		      :pass-metadata t)
+                      :description "Execute an arbitrary shell command and return the output. Prompts for permission before running the command for security."
+                      :properties '((command . ((type . "string")
+                                                (description . "The shell command to execute")))
+                                    (working-directory . ((type . "string")
+                                                          (description . "Directory to run the command in")
+                                                          (default . "."))))
+                      :required '("command")
+                      :function 'greger-stdlib--shell-command
+                      :pass-callback t
+                      :pass-metadata t)
 
 ;; Web tools
 
 (greger-register-tool "read-webpage"
-		      :description "Read webpage content from a URL. Can return either extracted text or raw HTML."
-		      :properties '((url . ((type . "string")
-					    (description . "The URL to read content from")))
-				    (extract-text . ((type . "boolean")
-						     (description . "Whether to extract text content or return raw HTML")
-						     (default . t)))
-				    (use-highest-readability . ((type . "boolean")
-								(description . "Whether to use eww's aggressive highest readability setting for better text extraction")
-								(default . nil))))
-		      :required '("url")
-		      :function 'greger-stdlib--read-webpage)
+                      :description "Read webpage content from a URL. Can return either extracted text or raw HTML."
+                      :properties '((url . ((type . "string")
+                                            (description . "The URL to read content from")))
+                                    (extract-text . ((type . "boolean")
+                                                     (description . "Whether to extract text content or return raw HTML")
+                                                     (default . t)))
+                                    (use-highest-readability . ((type . "boolean")
+                                                                (description . "Whether to use eww's aggressive highest readability setting for better text extraction")
+                                                                (default . nil))))
+                      :required '("url")
+                      :function 'greger-stdlib--read-webpage)
 
 ;; Helper functions
 
@@ -245,14 +245,14 @@
       (error "Invalid argument: each element in %s must be a string" name))))
 
 (cl-defun greger-stdlib--assert-arg-int (name value &key ge le)
-  "Assert that VALUE is an integer between GREATER-OR-EQUAL and LESS-OR-EQUAL.
+          "Assert that VALUE is an integer between GREATER-OR-EQUAL and LESS-OR-EQUAL.
 Error with NAME if not. Either bound can be nil to skip that check."
-  (unless (integerp value)
-    (error "Invalid argument: %s must be an integer" name))
-  (when (and ge (< value ge))
-    (error "Invalid argument: %s must be >= %d" name ge))
-  (when (and le (> value le))
-    (error "Invalid argument: %s must be <= %d" name le)))
+          (unless (integerp value)
+            (error "Invalid argument: %s must be an integer" name))
+          (when (and ge (< value ge))
+            (error "Invalid argument: %s must be >= %d" name ge))
+          (when (and le (> value le))
+            (error "Invalid argument: %s must be <= %d" name le)))
 
 (defun greger-stdlib--assert-arg-string-web-url (name value)
   "Assert that VALUE is a valid web URL string, error with NAME if not."
@@ -286,21 +286,26 @@ Returns a cancel function that can be called to interrupt the process."
                (let ((exit-status (process-exit-status proc))
                      (output (with-current-buffer process-buffer
                                (buffer-string))))
+                 ;; TODO: remove debug
                  (when (buffer-live-p process-buffer)
                    (kill-buffer process-buffer))
                  (cond
                   ((= exit-status 0)
                    (funcall callback
                             (if (string-empty-p (string-trim output))
-				"(no output)"
+                                "(no output)"
                               output)
+                            nil))
+                  ((and (= exit-status 1) (string-empty-p (string-trim output)))
+                   (funcall callback
+                            "(No matches found for pattern)"
                             nil))
                   (t
                    (funcall callback nil
                             (format "Command failed with exit code %d: %s"
                                     exit-status
                                     (if (string-empty-p (string-trim output))
-					"(no output)"
+                                        "(no output)"
                                       output)))))))))
 
           ;; Return cancel function
@@ -413,7 +418,7 @@ If END-LINE is specified, stop reading at that line (inclusive, 1-based)."
                  ;; Remove trailing empty line if it exists (from trailing newline)
                  (all-lines (if (and (> (length all-lines) 0)
                                      (string-empty-p (car (last all-lines))))
-				(butlast all-lines)
+                                (butlast all-lines)
                               all-lines))
                  (total-lines (length all-lines))
                  (actual-start (or start-line 1))
@@ -531,8 +536,8 @@ PREFIX is used internally for nested directory structure."
       (dolist (subdir (reverse subdirs)) ; Reverse to maintain alphabetical order
         (let* ((basename (file-name-nondirectory subdir))
                (subdir-results (greger-stdlib--list-directory-recursive
-				subdir exclude-directories-recursive original-path recursive
-				(concat (or prefix "") basename "/"))))
+                                subdir exclude-directories-recursive original-path recursive
+                                (concat (or prefix "") basename "/"))))
           (setq all-results (append all-results (list "" subdir-results))))))
 
     ;; Return results
@@ -811,7 +816,7 @@ For Emacs Lisp files (.el), checks that parentheses balance is maintained."
       ;; Use isearch to find the original content
       (goto-char (point-min))
       (let ((case-fold-search nil)) ; Make search case-sensitive
-	(if (search-forward original-content nil t)
+        (if (search-forward original-content nil t)
             (progn
               ;; Replace the found content
               (replace-match new-content nil t)
@@ -845,7 +850,7 @@ If BUFFER is provided, it will be staged and committed along with the file."
     (with-current-buffer (find-file-noselect expanded-path)
       ;; Count lines and validate line-number
       (let ((total-lines (count-lines (point-min) (point-max))))
-	(when (> line-number (1+ total-lines))
+        (when (> line-number (1+ total-lines))
           (error "Invalid line number: %d is greater than total lines + 1 (%d)" line-number (1+ total-lines))))
 
       ;; Navigate to the insertion point
@@ -853,11 +858,11 @@ If BUFFER is provided, it will be staged and committed along with the file."
       (if (= line-number 0)
           ;; Insert at beginning of file
           (goto-char (point-min))
-	;; Go to the specified line - this is where the fix is needed
-	(goto-char (point-min))
+        ;; Go to the specified line - this is where the fix is needed
+        (goto-char (point-min))
         (forward-line (1- line-number))
-	;; Move to beginning of line to insert before it, not after it
-	(beginning-of-line))
+        ;; Move to beginning of line to insert before it, not after it
+        (beginning-of-line))
 
       ;; Insert the content
       (if (= line-number 0)
@@ -866,8 +871,8 @@ If BUFFER is provided, it will be staged and committed along with the file."
             (insert content)
             (unless (string-suffix-p "\n" content)
               (insert "\n")))
-	;; Before a line, insert content then newline
-	(progn
+        ;; Before a line, insert content then newline
+        (progn
           (insert content)
           (unless (string-suffix-p "\n" content)
             (insert "\n"))))
@@ -916,7 +921,7 @@ Returns a cancel function that can interrupt the command execution."
             (and (not allow-all-shell-commands)
                  (not (member command safe-commands))
                  (not (y-or-n-p (format "Execute shell command: '%s' in directory '%s'? "
-					command expanded-work-dir)))))
+                                        command expanded-work-dir)))))
           (funcall callback nil "Shell command execution cancelled by user")
           (lambda () nil))
 
@@ -947,10 +952,11 @@ Returns a cancel function that can interrupt the command execution."
                             (format "Command executed successfully:\n%s" output)
                             nil)))))))))))))
 
-(defun greger-stdlib--ripgrep (pattern path callback case-sensitive file-type context-lines max-results)
+(defun greger-stdlib--ripgrep (pattern path callback case-sensitive file-type context-lines fixed-strings word-regexp line-regexp max-results)
   "Search for PATTERN in PATH using the rg command line tool directly.
 CALLBACK is called with (result error) when search completes.
-CASE-SENSITIVE, FILE-TYPE, CONTEXT-LINES and MAX-RESULTS are optional."
+CASE-SENSITIVE, FILE-TYPE, CONTEXT-LINES, FIXED-STRINGS, WORD-REGEXP, 
+LINE-REGEXP and MAX-RESULTS are optional."
 
   (unless (executable-find "rg")
     (error "Command not found: ripgrep (rg).  Please install ripgrep"))
@@ -958,6 +964,9 @@ CASE-SENSITIVE, FILE-TYPE, CONTEXT-LINES and MAX-RESULTS are optional."
   (greger-stdlib--assert-arg-string "pattern" pattern)
   (greger-stdlib--assert-arg-string "path" path)
   (greger-stdlib--assert-arg-bool "case-sensitive" case-sensitive)
+  (greger-stdlib--assert-arg-bool "fixed-strings" fixed-strings)
+  (greger-stdlib--assert-arg-bool "word-regexp" word-regexp)
+  (greger-stdlib--assert-arg-bool "line-regexp" line-regexp)
   (greger-stdlib--assert-arg-int "context-lines" context-lines :ge 0)
   (greger-stdlib--assert-arg-int "max-results" max-results :ge 1)
 
@@ -990,10 +999,10 @@ CASE-SENSITIVE, FILE-TYPE, CONTEXT-LINES and MAX-RESULTS are optional."
            (if error
                (funcall callback nil (format "Failed to execute ripgrep search: %s" error))
              (funcall callback
-		      (if (string-empty-p (string-trim output))
+                      (if (string-empty-p (string-trim output))
                           "No matches found"
                         output)
-		      nil))))))))
+                      nil))))))))
 
 (defun greger-stdlib--read-webpage (url &optional extract-text use-highest-readability)
   "Read webpage content from URL.
