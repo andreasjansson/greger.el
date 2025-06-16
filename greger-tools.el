@@ -63,7 +63,8 @@ Example:
                   (new-path . ((type . \='string\=')
                               (description . \='New path for the file\=')))
                   (git-commit-message . ((type . \='string\=')
-                                        (description . \='Git commit message\='))))
+                                        (description .
+                                         \='Git commit message\='))))
     :required \='(\='old-path\=' \='new-path\=' \='git-commit-message\=')
     :function \='greger-tools--rename-file
     :pass-buffer t
