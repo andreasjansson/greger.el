@@ -19,6 +19,7 @@ Text with the 'invisible property set to t is excluded."
 
 (ert-deftest greger-ui-test-citations-folding ()
   (with-current-buffer (greger)
+    (erase-buffer)
     (insert "# ASSISTANT
 
 Einstein developed the theory of relativity
