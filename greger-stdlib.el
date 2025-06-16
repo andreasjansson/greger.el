@@ -899,7 +899,9 @@ Returns a cancel function that can interrupt the command execution."
                             (format "Command executed successfully:\n%s" output)
                             nil)))))))))))))
 
-(defun greger-stdlib--ripgrep (pattern path callback case-sensitive file-type context-lines fixed-strings word-regexp line-regexp max-results)
+(defun greger-stdlib--ripgrep (pattern path callback case-sensitive file-type
+                               context-lines fixed-strings word-regexp
+                               line-regexp max-results)
   "Search for PATTERN in PATH using the rg command line tool directly.
 CALLBACK is called with (result error) when search completes.
 CASE-SENSITIVE, FILE-TYPE, CONTEXT-LINES, FIXED-STRINGS, WORD-REGEXP, 
