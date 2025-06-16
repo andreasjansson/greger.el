@@ -1495,9 +1495,10 @@ drwx------  (dir)  ..
           ;; Search for pattern that exists in both files
           (greger-stdlib--ripgrep
            "text"
+           test-dir
            (lambda (output err)
              (setq result output error err callback-called t))
-           test-dir)
+           nil nil 0 nil nil nil 50)
 
           ;; Wait for operation
           (let ((timeout 0))
