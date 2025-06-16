@@ -371,6 +371,213 @@ This ensures the '..' entry has predictable permissions in tests."
       (when (file-exists-p test-file)
         (delete-file test-file)))))
 
+(ert-deftest greger-test-str-replace-single-occurrence ()
+  "Test str-replace with replace-all=false (default behavior)."
+  (let ((test-file (make-temp-file "greger-str-replace-single"))
+        (original-content "Hello world. Hello again.")
+        (target-string "Hello")
+        (replacement "Hi"))
+    (unwind-protect
+        (progn
+          ;; Create test file with original content
+          (with-temp-file test-file
+            (insert original-content))
+
+          ;; Mock git operations
+          (cl-letf (((symbol-function 'greger-stdlib--git-stage-and-commit)
+                     (lambda (files commit-message buffer) "Mocked git result")))
+
+            ;; Test replacing first occurrence only (default behavior)
+            (let ((result (greger-stdlib--str-replace
+                          test-file
+                          target-string
+                          replacement
+                          "Replace first Hello")))
+              (should (stringp result))
+              (should (string-match "Successfully replaced content" result))
+              (should-not (string-match "made.*replacements" result)) ; No count for single replacement
+              
+              ;; Verify only first occurrence was replaced
+              (with-temp-buffer
+                (insert-file-contents test-file)
+                (should (string= (buffer-string) "Hi world. Hello again."))))))
+
+      ;; Clean up
+      (when (file-exists-p test-file)
+        (delete-file test-file)))))
+
+(ert-deftest greger-test-str-replace-all-occurrences ()
+  "Test str-replace with replace-all=true."
+  (let ((test-file (make-temp-file "greger-str-replace-all"))
+        (original-content "Hello world. Hello again. Hello everyone!")
+        (target-string "Hello")
+        (replacement "Hi"))
+    (unwind-protect
+        (progn
+          ;; Create test file with original content
+          (with-temp-file test-file
+            (insert original-content))
+
+          ;; Mock git operations
+          (cl-letf (((symbol-function 'greger-stdlib--git-stage-and-commit)
+                     (lambda (files commit-message buffer) "Mocked git result")))
+
+            ;; Test replacing all occurrences
+            (let ((result (greger-stdlib--str-replace
+                          test-file
+                          target-string
+                          replacement
+                          "Replace all Hellos"
+                          t))) ; replace-all = true
+              (should (stringp result))
+              (should (string-match "Successfully replaced content" result))
+              (should (string-match "made 3 replacements" result)) ; Should show count
+              
+              ;; Verify all occurrences were replaced
+              (with-temp-buffer
+                (insert-file-contents test-file)
+                (should (string= (buffer-string) "Hi world. Hi again. Hi everyone!"))))))
+
+      ;; Clean up
+      (when (file-exists-p test-file)
+        (delete-file test-file)))))
+
+(ert-deftest greger-test-str-replace-all-no-matches ()
+  "Test str-replace with replace-all=true when no matches found."
+  (let ((test-file (make-temp-file "greger-str-replace-no-match"))
+        (original-content "Hello world")
+        (target-string "Goodbye")
+        (replacement "Hi"))
+    (unwind-protect
+        (progn
+          ;; Create test file with original content
+          (with-temp-file test-file
+            (insert original-content))
+
+          ;; Mock git operations
+          (cl-letf (((symbol-function 'greger-stdlib--git-stage-and-commit)
+                     (lambda (files commit-message buffer) "Mocked git result")))
+
+            ;; Should error when no matches found
+            (should-error (greger-stdlib--str-replace
+                          test-file
+                          target-string
+                          replacement
+                          "Should fail - no matches"
+                          t)))) ; replace-all = true
+
+      ;; Clean up
+      (when (file-exists-p test-file)
+        (delete-file test-file)))))
+
+(ert-deftest greger-test-str-replace-all-single-match ()
+  "Test str-replace with replace-all=true when only one match exists."
+  (let ((test-file (make-temp-file "greger-str-replace-single-match"))
+        (original-content "Hello world")
+        (target-string "Hello")
+        (replacement "Hi"))
+    (unwind-protect
+        (progn
+          ;; Create test file with original content
+          (with-temp-file test-file
+            (insert original-content))
+
+          ;; Mock git operations
+          (cl-letf (((symbol-function 'greger-stdlib--git-stage-and-commit)
+                     (lambda (files commit-message buffer) "Mocked git result")))
+
+            ;; Test replacing single occurrence with replace-all=true
+            (let ((result (greger-stdlib--str-replace
+                          test-file
+                          target-string
+                          replacement
+                          "Replace single Hello with replace-all"
+                          t))) ; replace-all = true
+              (should (stringp result))
+              (should (string-match "Successfully replaced content" result))
+              (should-not (string-match "made.*replacements" result)) ; No count for single replacement
+              
+              ;; Verify content was replaced
+              (with-temp-buffer
+                (insert-file-contents test-file)
+                (should (string= (buffer-string) "Hi world"))))))
+
+      ;; Clean up
+      (when (file-exists-p test-file)
+        (delete-file test-file)))))
+
+(ert-deftest greger-test-str-replace-multiline-content ()
+  "Test str-replace with multi-line content and replace-all."
+  (let ((test-file (make-temp-file "greger-str-replace-multiline"))
+        (original-content "Line 1\nReplace me\nLine 3\nReplace me\nLine 5")
+        (target-string "Replace me")
+        (replacement "Replaced!"))
+    (unwind-protect
+        (progn
+          ;; Create test file with original content
+          (with-temp-file test-file
+            (insert original-content))
+
+          ;; Mock git operations
+          (cl-letf (((symbol-function 'greger-stdlib--git-stage-and-commit)
+                     (lambda (files commit-message buffer) "Mocked git result")))
+
+            ;; Test replacing all occurrences of multi-line pattern
+            (let ((result (greger-stdlib--str-replace
+                          test-file
+                          target-string
+                          replacement
+                          "Replace all multi-line patterns"
+                          t))) ; replace-all = true
+              (should (stringp result))
+              (should (string-match "Successfully replaced content" result))
+              (should (string-match "made 2 replacements" result))
+              
+              ;; Verify all occurrences were replaced
+              (with-temp-buffer
+                (insert-file-contents test-file)
+                (should (string= (buffer-string) "Line 1\nReplaced!\nLine 3\nReplaced!\nLine 5"))))))
+
+      ;; Clean up
+      (when (file-exists-p test-file)
+        (delete-file test-file)))))
+
+(ert-deftest greger-test-str-replace-case-sensitive ()
+  "Test that str-replace is case-sensitive with replace-all."
+  (let ((test-file (make-temp-file "greger-str-replace-case"))
+        (original-content "Hello hello HELLO")
+        (target-string "hello")
+        (replacement "hi"))
+    (unwind-protect
+        (progn
+          ;; Create test file with original content
+          (with-temp-file test-file
+            (insert original-content))
+
+          ;; Mock git operations
+          (cl-letf (((symbol-function 'greger-stdlib--git-stage-and-commit)
+                     (lambda (files commit-message buffer) "Mocked git result")))
+
+            ;; Test case-sensitive replacement
+            (let ((result (greger-stdlib--str-replace
+                          test-file
+                          target-string
+                          replacement
+                          "Case-sensitive replacement"
+                          t))) ; replace-all = true
+              (should (stringp result))
+              (should (string-match "Successfully replaced content" result))
+              (should-not (string-match "made.*replacements" result)) ; Only one match
+              
+              ;; Verify only lowercase "hello" was replaced
+              (with-temp-buffer
+                (insert-file-contents test-file)
+                (should (string= (buffer-string) "Hello hi HELLO"))))))
+
+      ;; Clean up
+      (when (file-exists-p test-file)
+        (delete-file test-file)))))
+
 (ert-deftest greger-test-delete-files-basic ()
   "Test basic delete-files functionality."
   (let ((test-file1 (make-temp-file "test1" nil ".txt"))
