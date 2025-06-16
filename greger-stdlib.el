@@ -264,8 +264,13 @@ Returns a cancel function that can be called to interrupt the process."
   (let* ((process-name (format "greger-subprocess-%s" (make-temp-name "")))
          (process-buffer (generate-new-buffer (format " *%s*" process-name)))
          (default-directory (expand-file-name (or working-directory ".")))
+         (process-environment (if env
+                                  (append (mapcar (lambda (pair) (format "%s=%s" (car pair) (cdr pair))) env)
+                                         process-environment)
+                                process-environment))
          (process nil)
-         (callback-called nil))
+         (callback-called nil)
+         (timeout-timer nil))
 
     (condition-case err
         (progn
