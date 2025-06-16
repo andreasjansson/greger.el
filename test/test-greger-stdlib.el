@@ -1014,9 +1014,9 @@ drwx------  (dir)  ..
 
           ;; Verify case-sensitive results (should only find "Hello World")
           (should (stringp result-sensitive))
-          (should (string-match "Hello World" result-sensitive))
-          (should-not (string-match "hello world" result-sensitive))
-          (should-not (string-match "HELLO WORLD" result-sensitive))
+          (should (string-match ":Hello World" result-sensitive))
+          (should-not (string-match ":hello world" result-sensitive))
+          (should-not (string-match ":HELLO WORLD" result-sensitive))
 
           ;; Verify case-insensitive results (should find all variants)
           (should (stringp result-insensitive))
