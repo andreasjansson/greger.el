@@ -1372,9 +1372,10 @@ drwx------  (dir)  ..
           ;; Search with email regex pattern
           (greger-stdlib--ripgrep
            "[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\\.[a-zA-Z]{2,}"
+           test-dir
            (lambda (output err)
              (setq result output error err callback-called t))
-           test-dir)
+           nil nil 0 nil nil nil 50)
 
           ;; Wait for operation
           (let ((timeout 0))
