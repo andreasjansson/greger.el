@@ -50,7 +50,9 @@ If `format-check-mode' is non-nil, only check if formatting is needed."
         (with-temp-buffer
           (insert-file-contents file)
           (emacs-lisp-mode)
-          (indent-region (point-min) (point-max))
+          ;; Suppress verbose indentation messages
+          (let ((inhibit-message t))
+            (indent-region (point-min) (point-max)))
           (write-region (point-min) (point-max) file)
           t)
       (error
