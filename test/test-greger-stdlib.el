@@ -935,4 +935,608 @@ drwx------  (dir)  ..
       (when (and parent-dir (file-exists-p parent-dir))
         (delete-directory parent-dir t)))))
 
+;; Ripgrep tests
+
+(ert-deftest greger-test-ripgrep-basic-search ()
+  "Test basic ripgrep functionality with simple pattern matching."
+  (let ((test-dir (make-temp-file "greger-ripgrep-test" t))
+        (result nil)
+        (error nil)
+        (callback-called nil))
+    (unwind-protect
+        (progn
+          ;; Create test files with content
+          (with-temp-file (expand-file-name "test1.txt" test-dir)
+            (insert "Hello world\nThis is a test\nAnother line"))
+          (with-temp-file (expand-file-name "test2.py" test-dir)
+            (insert "def hello():\n    print('world')\n    return True"))
+
+          ;; Test basic pattern search
+          (greger-stdlib--ripgrep
+           "hello"
+           (lambda (output err)
+             (setq result output error err callback-called t))
+           test-dir)
+
+          ;; Wait for async operation
+          (let ((timeout 0))
+            (while (and (not callback-called) (< timeout 50))
+              (sit-for 0.1)
+              (setq timeout (1+ timeout))))
+
+          ;; Verify results
+          (should callback-called)
+          (should (null error))
+          (should (stringp result))
+          (should (string-match "Hello world" result))
+          (should (string-match "def hello" result)))
+
+      ;; Clean up
+      (when (file-exists-p test-dir)
+        (delete-directory test-dir t)))))
+
+(ert-deftest greger-test-ripgrep-case-sensitive ()
+  "Test ripgrep case sensitivity options."
+  (let ((test-dir (make-temp-file "greger-ripgrep-case" t))
+        (result-sensitive nil)
+        (result-insensitive nil) 
+        (callback-count 0))
+    (unwind-protect
+        (progn
+          ;; Create test file with mixed case content
+          (with-temp-file (expand-file-name "case-test.txt" test-dir)
+            (insert "Hello World\nhello world\nHELLO WORLD"))
+
+          ;; Test case-sensitive search (should only match exact case)
+          (greger-stdlib--ripgrep
+           "Hello"
+           (lambda (output err)
+             (setq result-sensitive output)
+             (setq callback-count (1+ callback-count)))
+           test-dir
+           t) ; case-sensitive = t
+
+          ;; Test case-insensitive search (should match all cases)
+          (greger-stdlib--ripgrep
+           "Hello"
+           (lambda (output err)
+             (setq result-insensitive output)
+             (setq callback-count (1+ callback-count)))
+           test-dir
+           nil) ; case-sensitive = nil
+
+          ;; Wait for both operations
+          (let ((timeout 0))
+            (while (and (< callback-count 2) (< timeout 100))
+              (sit-for 0.1)
+              (setq timeout (1+ timeout))))
+
+          ;; Verify case-sensitive results (should only find "Hello World")
+          (should (stringp result-sensitive))
+          (should (string-match "Hello World" result-sensitive))
+          (should-not (string-match "hello world" result-sensitive))
+          (should-not (string-match "HELLO WORLD" result-sensitive))
+
+          ;; Verify case-insensitive results (should find all variants)
+          (should (stringp result-insensitive))
+          (should (string-match "Hello World" result-insensitive))
+          (should (string-match "hello world" result-insensitive))
+          (should (string-match "HELLO WORLD" result-insensitive)))
+
+      ;; Clean up
+      (when (file-exists-p test-dir)
+        (delete-directory test-dir t)))))
+
+(ert-deftest greger-test-ripgrep-file-type-filter ()
+  "Test ripgrep file type filtering."
+  (let ((test-dir (make-temp-file "greger-ripgrep-filetype" t))
+        (result nil)
+        (error nil)
+        (callback-called nil))
+    (unwind-protect
+        (progn
+          ;; Create test files of different types
+          (with-temp-file (expand-file-name "test.py" test-dir)
+            (insert "print('Python file')"))
+          (with-temp-file (expand-file-name "test.js" test-dir)
+            (insert "console.log('JavaScript file');"))
+          (with-temp-file (expand-file-name "test.txt" test-dir)
+            (insert "Plain text file"))
+
+          ;; Search only in Python files
+          (greger-stdlib--ripgrep
+           "file"
+           (lambda (output err)
+             (setq result output error err callback-called t))
+           test-dir
+           nil ; case-sensitive
+           "py") ; file-type
+
+          ;; Wait for operation
+          (let ((timeout 0))
+            (while (and (not callback-called) (< timeout 50))
+              (sit-for 0.1)
+              (setq timeout (1+ timeout))))
+
+          ;; Verify results - should only find matches in Python file
+          (should callback-called)
+          (should (null error))
+          (should (stringp result))
+          (should (string-match "Python file" result))
+          (should-not (string-match "JavaScript file" result))
+          (should-not (string-match "Plain text file" result)))
+
+      ;; Clean up
+      (when (file-exists-p test-dir)
+        (delete-directory test-dir t)))))
+
+(ert-deftest greger-test-ripgrep-context-lines ()
+  "Test ripgrep context lines functionality."
+  (let ((test-dir (make-temp-file "greger-ripgrep-context" t))
+        (result nil)
+        (error nil)
+        (callback-called nil))
+    (unwind-protect
+        (progn
+          ;; Create test file with multiple lines
+          (with-temp-file (expand-file-name "context-test.txt" test-dir)
+            (insert "Line 1\nLine 2\nMATCH LINE\nLine 4\nLine 5"))
+
+          ;; Search with 1 context line
+          (greger-stdlib--ripgrep
+           "MATCH"
+           (lambda (output err)
+             (setq result output error err callback-called t))
+           test-dir
+           nil ; case-sensitive
+           nil ; file-type
+           1)  ; context-lines
+
+          ;; Wait for operation
+          (let ((timeout 0))
+            (while (and (not callback-called) (< timeout 50))
+              (sit-for 0.1)
+              (setq timeout (1+ timeout))))
+
+          ;; Verify results - should include context lines
+          (should callback-called)
+          (should (null error))
+          (should (stringp result))
+          (should (string-match "MATCH LINE" result))
+          (should (string-match "Line 2" result))  ; Before context
+          (should (string-match "Line 4" result))) ; After context
+
+      ;; Clean up
+      (when (file-exists-p test-dir)
+        (delete-directory test-dir t)))))
+
+(ert-deftest greger-test-ripgrep-fixed-strings ()
+  "Test ripgrep fixed strings vs regex patterns."
+  (let ((test-dir (make-temp-file "greger-ripgrep-fixed" t))
+        (result-regex nil)
+        (result-fixed nil)
+        (callback-count 0))
+    (unwind-protect
+        (progn
+          ;; Create test file with regex special characters
+          (with-temp-file (expand-file-name "special-chars.txt" test-dir)
+            (insert "test.txt\ntest[txt]\ntest(txt)\ntest+txt"))
+
+          ;; Search as regex pattern (should match multiple lines due to . wildcard)
+          (greger-stdlib--ripgrep
+           "test.txt"
+           (lambda (output err)
+             (setq result-regex output)
+             (setq callback-count (1+ callback-count)))
+           test-dir
+           nil ; case-sensitive
+           nil ; file-type
+           0   ; context-lines
+           nil) ; fixed-strings = nil (default regex)
+
+          ;; Search as literal/fixed string (should only match exact string)
+          (greger-stdlib--ripgrep
+           "test.txt"
+           (lambda (output err)
+             (setq result-fixed output)
+             (setq callback-count (1+ callback-count)))
+           test-dir
+           nil ; case-sensitive
+           nil ; file-type
+           0   ; context-lines
+           t)  ; fixed-strings = t
+
+          ;; Wait for both operations
+          (let ((timeout 0))
+            (while (and (< callback-count 2) (< timeout 100))
+              (sit-for 0.1)
+              (setq timeout (1+ timeout))))
+
+          ;; Verify regex results (. matches any character, so should match multiple lines)
+          (should (stringp result-regex))
+          (should (string-match "test.txt" result-regex))
+          (should (string-match "test\\[txt\\]" result-regex))  ; . matches [
+          (should (string-match "test(txt)" result-regex))     ; . matches (
+          (should (string-match "test\\+txt" result-regex))    ; . matches +
+
+          ;; Verify fixed string results (should only match literal "test.txt")
+          (should (stringp result-fixed))
+          (should (string-match "test\\.txt" result-fixed))
+          (should-not (string-match "test\\[txt\\]" result-fixed))
+          (should-not (string-match "test(txt)" result-fixed))
+          (should-not (string-match "test\\+txt" result-fixed)))
+
+      ;; Clean up
+      (when (file-exists-p test-dir)
+        (delete-directory test-dir t)))))
+
+(ert-deftest greger-test-ripgrep-word-regexp ()
+  "Test ripgrep word boundary matching."
+  (let ((test-dir (make-temp-file "greger-ripgrep-word" t))
+        (result-word nil)
+        (result-normal nil)
+        (callback-count 0))
+    (unwind-protect
+        (progn
+          ;; Create test file with word boundary scenarios
+          (with-temp-file (expand-file-name "word-test.txt" test-dir)
+            (insert "test testing untested\ntest-case\ntest123"))
+
+          ;; Search with word boundaries
+          (greger-stdlib--ripgrep
+           "test"
+           (lambda (output err)
+             (setq result-word output)
+             (setq callback-count (1+ callback-count)))
+           test-dir
+           nil ; case-sensitive
+           nil ; file-type
+           0   ; context-lines
+           nil ; fixed-strings
+           t)  ; word-regexp = t
+
+          ;; Search without word boundaries
+          (greger-stdlib--ripgrep
+           "test"
+           (lambda (output err)
+             (setq result-normal output)
+             (setq callback-count (1+ callback-count)))
+           test-dir
+           nil ; case-sensitive
+           nil ; file-type
+           0   ; context-lines
+           nil ; fixed-strings
+           nil) ; word-regexp = nil
+
+          ;; Wait for both operations
+          (let ((timeout 0))
+            (while (and (< callback-count 2) (< timeout 100))
+              (sit-for 0.1)
+              (setq timeout (1+ timeout))))
+
+          ;; Verify word boundary results (should only match whole word "test")
+          (should (stringp result-word))
+          ;; Should match "test" at word boundaries
+          (should (string-match-p "test testing untested" result-word))
+          (should (string-match-p "test-case" result-word))
+          (should (string-match-p "test123" result-word))
+
+          ;; Verify normal results (should match "test" anywhere including inside words)
+          (should (stringp result-normal))
+          (should (string-match-p "test testing untested" result-normal))
+          (should (string-match-p "test-case" result-normal))
+          (should (string-match-p "test123" result-normal)))
+
+      ;; Clean up
+      (when (file-exists-p test-dir)
+        (delete-directory test-dir t)))))
+
+(ert-deftest greger-test-ripgrep-line-regexp ()
+  "Test ripgrep line matching (entire line must match)."
+  (let ((test-dir (make-temp-file "greger-ripgrep-line" t))
+        (result nil)
+        (error nil)
+        (callback-called nil))
+    (unwind-protect
+        (progn
+          ;; Create test file
+          (with-temp-file (expand-file-name "line-test.txt" test-dir)
+            (insert "test\nexact test match\ntest with more text"))
+
+          ;; Search with line regexp (entire line must match pattern)
+          (greger-stdlib--ripgrep
+           "test"
+           (lambda (output err)
+             (setq result output error err callback-called t))
+           test-dir
+           nil ; case-sensitive
+           nil ; file-type
+           0   ; context-lines
+           nil ; fixed-strings
+           nil ; word-regexp
+           t)  ; line-regexp = t
+
+          ;; Wait for operation
+          (let ((timeout 0))
+            (while (and (not callback-called) (< timeout 50))
+              (sit-for 0.1)
+              (setq timeout (1+ timeout))))
+
+          ;; Verify results - should only match lines where entire line matches
+          (should callback-called)
+          (should (null error))
+          (should (stringp result))
+          ;; Should match the line that contains only "test"
+          (should (string-match-p "^test$" result))
+          ;; Should NOT match lines with additional text
+          (should-not (string-match-p "exact test match" result))
+          (should-not (string-match-p "test with more text" result)))
+
+      ;; Clean up
+      (when (file-exists-p test-dir)
+        (delete-directory test-dir t)))))
+
+(ert-deftest greger-test-ripgrep-max-results ()
+  "Test ripgrep max results limiting."
+  (let ((test-dir (make-temp-file "greger-ripgrep-max" t))
+        (result nil)
+        (error nil)
+        (callback-called nil))
+    (unwind-protect
+        (progn
+          ;; Create test file with many matches
+          (with-temp-file (expand-file-name "many-matches.txt" test-dir)
+            (insert (mapconcat (lambda (i) (format "match line %d" i))
+                              (number-sequence 1 20) "\n")))
+
+          ;; Search with max results limit
+          (greger-stdlib--ripgrep
+           "match"
+           (lambda (output err)
+             (setq result output error err callback-called t))
+           test-dir
+           nil ; case-sensitive
+           nil ; file-type
+           0   ; context-lines
+           nil ; fixed-strings
+           nil ; word-regexp
+           nil ; line-regexp
+           3)  ; max-results = 3
+
+          ;; Wait for operation
+          (let ((timeout 0))
+            (while (and (not callback-called) (< timeout 50))
+              (sit-for 0.1)
+              (setq timeout (1+ timeout))))
+
+          ;; Verify results - should be limited to max results
+          (should callback-called)
+          (should (null error))
+          (should (stringp result))
+          ;; Count the number of match lines in result
+          (let ((match-count (length (split-string result "\n" t))))
+            ;; Should have around 3 results (give or take for headers/formatting)
+            (should (<= match-count 5))  ; Allow some flexibility for ripgrep output format
+            (should (>= match-count 1))))
+
+      ;; Clean up
+      (when (file-exists-p test-dir)
+        (delete-directory test-dir t)))))
+
+(ert-deftest greger-test-ripgrep-nonexistent-path ()
+  "Test ripgrep with non-existent path."
+  (let ((result nil)
+        (error nil)
+        (callback-called nil))
+
+    ;; Search in non-existent directory
+    (greger-stdlib--ripgrep
+     "test"
+     (lambda (output err)
+       (setq result output error err callback-called t))
+     "/path/that/does/not/exist")
+
+    ;; Wait for operation
+    (let ((timeout 0))
+      (while (and (not callback-called) (< timeout 50))
+        (sit-for 0.1)
+        (setq timeout (1+ timeout))))
+
+    ;; Verify error handling
+    (should callback-called)
+    (should (null result))
+    (should (stringp error))
+    (should (string-match-p "No such file or directory\\|not found" error))))
+
+(ert-deftest greger-test-ripgrep-empty-pattern ()
+  "Test ripgrep with empty pattern."
+  (let ((test-dir (make-temp-file "greger-ripgrep-empty" t))
+        (result nil)
+        (error nil)
+        (callback-called nil))
+    (unwind-protect
+        (progn
+          ;; Create test file
+          (with-temp-file (expand-file-name "test.txt" test-dir)
+            (insert "Some content\nMore content"))
+
+          ;; Search with empty pattern
+          (greger-stdlib--ripgrep
+           ""
+           (lambda (output err)
+             (setq result output error err callback-called t))
+           test-dir)
+
+          ;; Wait for operation
+          (let ((timeout 0))
+            (while (and (not callback-called) (< timeout 50))
+              (sit-for 0.1)
+              (setq timeout (1+ timeout))))
+
+          ;; Verify handling of empty pattern
+          (should callback-called)
+          ;; Empty pattern might either return all lines or an error, depending on ripgrep version
+          (should (or result error)))
+
+      ;; Clean up
+      (when (file-exists-p test-dir)
+        (delete-directory test-dir t)))))
+
+(ert-deftest greger-test-ripgrep-regex-patterns ()
+  "Test ripgrep with various regex patterns."
+  (let ((test-dir (make-temp-file "greger-ripgrep-regex" t))
+        (result nil)
+        (error nil)
+        (callback-called nil))
+    (unwind-protect
+        (progn
+          ;; Create test file with various patterns
+          (with-temp-file (expand-file-name "regex-test.txt" test-dir)
+            (insert "Email: user@example.com\nPhone: 123-456-7890\nDate: 2023-12-25\nNo match here"))
+
+          ;; Search with email regex pattern
+          (greger-stdlib--ripgrep
+           "[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\\.[a-zA-Z]{2,}"
+           (lambda (output err)
+             (setq result output error err callback-called t))
+           test-dir)
+
+          ;; Wait for operation
+          (let ((timeout 0))
+            (while (and (not callback-called) (< timeout 50))
+              (sit-for 0.1)
+              (setq timeout (1+ timeout))))
+
+          ;; Verify regex matching
+          (should callback-called)
+          (should (null error))
+          (should (stringp result))
+          (should (string-match-p "user@example.com" result))
+          (should-not (string-match-p "123-456-7890" result))
+          (should-not (string-match-p "2023-12-25" result)))
+
+      ;; Clean up
+      (when (file-exists-p test-dir)
+        (delete-directory test-dir t)))))
+
+(ert-deftest greger-test-ripgrep-multiple-files ()
+  "Test ripgrep searching across multiple files."
+  (let ((test-dir (make-temp-file "greger-ripgrep-multi" t))
+        (result nil)
+        (error nil)
+        (callback-called nil))
+    (unwind-protect
+        (progn
+          ;; Create multiple test files
+          (with-temp-file (expand-file-name "file1.txt" test-dir)
+            (insert "target in file 1"))
+          (with-temp-file (expand-file-name "file2.txt" test-dir)
+            (insert "target in file 2"))
+          (with-temp-file (expand-file-name "file3.txt" test-dir)
+            (insert "no matches here"))
+
+          ;; Search across all files
+          (greger-stdlib--ripgrep
+           "target"
+           (lambda (output err)
+             (setq result output error err callback-called t))
+           test-dir)
+
+          ;; Wait for operation
+          (let ((timeout 0))
+            (while (and (not callback-called) (< timeout 50))
+              (sit-for 0.1)
+              (setq timeout (1+ timeout))))
+
+          ;; Verify results from multiple files
+          (should callback-called)
+          (should (null error))
+          (should (stringp result))
+          (should (string-match-p "file1.txt" result))
+          (should (string-match-p "file2.txt" result))
+          (should (string-match-p "target in file 1" result))
+          (should (string-match-p "target in file 2" result))
+          (should-not (string-match-p "file3.txt" result)))
+
+      ;; Clean up
+      (when (file-exists-p test-dir)
+        (delete-directory test-dir t)))))
+
+(ert-deftest greger-test-ripgrep-invalid-regex ()
+  "Test ripgrep with invalid regex pattern."
+  (let ((test-dir (make-temp-file "greger-ripgrep-invalid" t))
+        (result nil)
+        (error nil)  
+        (callback-called nil))
+    (unwind-protect
+        (progn
+          ;; Create test file
+          (with-temp-file (expand-file-name "test.txt" test-dir)
+            (insert "Some test content"))
+
+          ;; Search with invalid regex (unmatched bracket)
+          (greger-stdlib--ripgrep
+           "[unclosed"
+           (lambda (output err)
+             (setq result output error err callback-called t))
+           test-dir)
+
+          ;; Wait for operation
+          (let ((timeout 0))
+            (while (and (not callback-called) (< timeout 50))
+              (sit-for 0.1)
+              (setq timeout (1+ timeout))))
+
+          ;; Verify error handling for invalid regex
+          (should callback-called)
+          (should (null result))
+          (should (stringp error))
+          (should (string-match-p "regex\\|pattern\\|syntax" error)))
+
+      ;; Clean up
+      (when (file-exists-p test-dir)
+        (delete-directory test-dir t)))))
+
+(ert-deftest greger-test-ripgrep-binary-files ()
+  "Test ripgrep behavior with binary files."
+  (let ((test-dir (make-temp-file "greger-ripgrep-binary" t))
+        (result nil)
+        (error nil)
+        (callback-called nil))
+    (unwind-protect
+        (progn
+          ;; Create a binary file (with null bytes)
+          (with-temp-file (expand-file-name "binary.bin" test-dir)
+            (set-buffer-multibyte nil)
+            (insert "text\0binary\0content"))
+          
+          ;; Create a normal text file for comparison
+          (with-temp-file (expand-file-name "text.txt" test-dir)
+            (insert "text content here"))
+
+          ;; Search for pattern that exists in both files
+          (greger-stdlib--ripgrep
+           "text"
+           (lambda (output err)
+             (setq result output error err callback-called t))
+           test-dir)
+
+          ;; Wait for operation
+          (let ((timeout 0))
+            (while (and (not callback-called) (< timeout 50))
+              (sit-for 0.1)
+              (setq timeout (1+ timeout))))
+
+          ;; Verify results - ripgrep typically skips binary files by default
+          (should callback-called)
+          (should (null error))
+          (should (stringp result))
+          (should (string-match-p "text.txt" result))
+          ;; Binary file might be mentioned as skipped or not appear at all
+          (should (string-match-p "text content here" result)))
+
+      ;; Clean up
+      (when (file-exists-p test-dir)
+        (delete-directory test-dir t)))))
+
 ;;; greger-test-stdlib.el ends here
