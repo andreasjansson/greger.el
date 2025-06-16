@@ -877,10 +877,10 @@ Returns a cancel function that can interrupt the command execution."
   (when working-directory
     (greger-stdlib--assert-arg-string "working-directory" working-directory))
 
-  (let ((work-dir (or working-directory "."))
-        (expanded-work-dir (expand-file-name work-dir))
-        (safe-commands (plist-get metadata :safe-shell-commands))
-        (allow-all-shell-commands (plist-get metadata :allow-all-shell-commands)))
+  (let* ((work-dir (or working-directory "."))
+         (expanded-work-dir (expand-file-name work-dir))
+         (safe-commands (plist-get metadata :safe-shell-commands))
+         (allow-all-shell-commands (plist-get metadata :allow-all-shell-commands)))
 
     (unless (file-exists-p expanded-work-dir)
       (error "Working directory does not exist: %s" expanded-work-dir))
