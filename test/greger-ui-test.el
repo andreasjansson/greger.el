@@ -49,7 +49,9 @@ Encrypted index: ghi789
     (font-lock-ensure)
     (let ((expected-visible "# ASSISTANT
 
-Einstein developed the theory of relativity while Newton formulated the laws of motion"))
+Einstein developed the theory of relativity while Newton formulated the laws of motion
+
+"))
       (should (string= expected-visible (greger-ui-test--visible-text))))
 
     (goto-char (point-min))
