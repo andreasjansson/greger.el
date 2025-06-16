@@ -153,7 +153,7 @@ Hello from greger test!
   ;; Register a basic read-file tool that only accepts file-path
   (defun greger-test-read-file-basic (file-path)
     "Simple wrapper around greger-stdlib--read-file that only accepts file-path."
-    (greger-stdlib--read-file file-path))
+    (greger-stdlib--read-file file-path nil nil nil))
 
   (greger-register-tool "read-file-basic"
 			:description "Read the contents of a file from the filesystem (basic version with only file-path argument)"
