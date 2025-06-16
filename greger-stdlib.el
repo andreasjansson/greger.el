@@ -1003,7 +1003,10 @@ LINE-REGEXP and MAX-RESULTS are optional."
          "rg" args nil
          (lambda (output error)
            (if error
-               (funcall callback nil (format "Failed to execute ripgrep search: %s" error))
+               ;; Check if it's a "no matches" error (exit code 1 with no output)
+               (if (string-match-p "failed with exit code 1" error)
+                   (funcall callback "No matches found" nil)
+                 (funcall callback nil (format "Failed to execute ripgrep search: %s" error)))
              (funcall callback
                       (if (string-empty-p (string-trim output))
                           "No matches found"
