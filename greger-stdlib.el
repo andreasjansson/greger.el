@@ -175,7 +175,7 @@
 						       (description . "Whether the search should be case-sensitive")
 						       (default . nil)))
 				    (file-type . ((type . "string")
-						  (description . "Restrict search to specific file types using predefined type names. Examples: 'py' (Python), 'js' (JavaScript), 'md' (Markdown), 'cpp' (C++), 'java', 'rust', 'go', 'html', 'css', 'json', 'xml', 'yaml', 'sh' (shell scripts), 'sql', 'tex', 'dockerfile'. Use 'rg --type-list' to see all available types and their file extensions")))
+						  (description . "Restrict search to specific file types using predefined type names. Examples: 'py' (Python), 'js' (JavaScript), 'md' (Markdown), 'cpp' (C++), 'elisp' (Emacs Lisp), 'java', 'rust', 'go', 'html', 'css', 'json', 'xml', 'yaml', 'sh' (shell scripts), 'sql', 'tex', 'dockerfile'. Use 'rg --type-list' to see all available types and their file extensions")))
 				    (context-lines . ((type . "integer")
 						      (description . "Number of context lines to show around matches")
 						      (default . 0)))
