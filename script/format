@@ -147,6 +147,13 @@ If `format-check-mode' is non-nil, only check formatting."
   ;; Remove --check from args so Emacs doesn't complain about unknown option
   (setq command-line-args-left (delete "--check" command-line-args-left)))
 
+(when (or (member "-v" command-line-args-left) 
+          (member "--verbose" command-line-args-left))
+  (setq format-verbose-mode t)
+  ;; Remove verbose flags from args so Emacs doesn't complain about unknown options
+  (setq command-line-args-left (delete "-v" command-line-args-left))
+  (setq command-line-args-left (delete "--verbose" command-line-args-left)))
+
 ;; Run the formatter
 (format-all-elisp-files)
 
