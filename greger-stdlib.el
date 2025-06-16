@@ -902,7 +902,7 @@ Returns a cancel function that can interrupt the command execution."
                                line-regexp max-results)
   "Search for PATTERN in PATH using the rg command line tool directly.
 CALLBACK is called with (result error) when search completes.
-CASE-SENSITIVE, FILE-TYPE, CONTEXT-LINES, FIXED-STRINGS, WORD-REGEXP, 
+CASE-SENSITIVE, FILE-TYPE, CONTEXT-LINES, FIXED-STRINGS, WORD-REGEXP,
 LINE-REGEXP and MAX-RESULTS are optional."
 
   (unless (executable-find "rg")
