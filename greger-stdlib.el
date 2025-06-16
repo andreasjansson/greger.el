@@ -800,16 +800,30 @@ For Emacs Lisp files (.el), checks that parentheses balance is maintained."
                  orig-balance new-balance))))
 
     (with-current-buffer (find-file-noselect expanded-path)
-      ;; Use isearch to find the original content
-      (goto-char (point-min))
-      (let ((case-fold-search nil)) ; Make search case-sensitive
-        (if (search-forward original-content nil t)
+      (let ((case-fold-search nil) ; Make search case-sensitive
+            (replacements-made 0))
+        (goto-char (point-min))
+        
+        (if replace-all
+            ;; Replace all instances
             (progn
-              ;; Replace the found content
-              (replace-match new-content nil t)
-              ;; Save the file
-              (save-buffer))
-          (error "Original content not found in file: %s -- Try again!" expanded-path))))
+              (while (search-forward original-content nil t)
+                (replace-match new-content nil t)
+                (setq replacements-made (1+ replacements-made)))
+              (when (= replacements-made 0)
+                (error "Original content not found in file: %s -- Try again!" expanded-path)))
+          ;; Replace only first instance (original behavior)
+          (if (search-forward original-content nil t)
+              (progn
+                (replace-match new-content nil t)
+                (setq replacements-made 1))
+            (error "Original content not found in file: %s -- Try again!" expanded-path)))
+        
+        ;; Save the file
+        (save-buffer)
+        
+        ;; Store replacement count for return message
+        (setq greger-stdlib--replacements-made replacements-made)))
 
     ;; Stage and commit the file
     (let ((git-result (greger-stdlib--git-stage-and-commit (list expanded-path) git-commit-message buffer)))
