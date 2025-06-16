@@ -65,7 +65,7 @@ Encrypted index: ghi789
     (expected-visible "# ASSISTANT
 
 Einstein developed the theory of relativity while Newton formulated the laws of motion")
-    (actual-visible (greger-ui-test--visible-text input)))
+    (actual-visible (greger-ui--visible-text input)))
   (should (string= expected-visible actual-visible)))
 
 ;;; greger-ui-test.el ends here
