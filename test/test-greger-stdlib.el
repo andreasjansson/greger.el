@@ -600,7 +600,7 @@ Line 3
             (write-file test-file))
 
           ;; Test basic reading without line numbers
-          (let ((result (greger-stdlib--read-file test-file))
+          (let ((result (greger-stdlib--read-file test-file nil nil nil))
                 (expected "Line 1
 Line 2
 Line 3"))
@@ -608,7 +608,7 @@ Line 3"))
             (should (string= result expected)))
 
           ;; Test reading with line numbers
-          (let ((result (greger-stdlib--read-file test-file t))
+          (let ((result (greger-stdlib--read-file test-file t nil nil))
                 (expected "1: Line 1
 2: Line 2
 3: Line 3"))
