@@ -83,10 +83,8 @@ Encrypted index: ghi789
     (goto-char (point-min))
     (re-search-forward "Newton")
     
-    ;; Send TAB key directly
-    (let ((key-binding (key-binding (kbd "TAB"))))
-      (when key-binding
-        (call-interactively key-binding)))
+    ;; Send TAB key directly - simulate the key event
+    (push 'tab unread-command-events)
     
     (let ((expanded-visible (greger-ui-test--visible-text)))
       ;; After TAB, the Newton section should be visible
