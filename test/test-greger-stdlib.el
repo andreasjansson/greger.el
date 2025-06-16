@@ -1201,9 +1201,10 @@ drwx------  (dir)  ..
           ;; Verify word boundary results (should only match whole word "test")
           (should (stringp result-word))
           ;; Should match "test" at word boundaries
-          (should (string-match-p "test testing untested" result-word))
-          (should (string-match-p "test-case" result-word))
-          (should (string-match-p "test123" result-word))
+          (should (string-match-p ":test testing untested" result-word))
+          (should (string-match-p ":test-case" result-word))
+          ;; Should NOT match "test123" since "test" is not at a word boundary there
+          (should-not (string-match-p ":test123" result-word))
 
           ;; Verify normal results (should match "test" anywhere including inside words)
           (should (stringp result-normal))
