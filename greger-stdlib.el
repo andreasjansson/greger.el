@@ -33,10 +33,15 @@
 (require 'greger-tools)
 (require 'greger-web)
 
-;; Register all tools using the macro
+;; Server tool registrations
+
 (greger-register-server-tool "web_search"
 			     :type "web_search_20250305"
 			     :max_uses 5)
+
+;; Tool registrations
+
+;; Editing tools
 
 (greger-register-tool "read-file"
 		      :description "Read the contents of a file from the filesystem"
@@ -54,43 +59,6 @@
 		      :required '("path")
 		      :function 'greger-stdlib--read-file)
 
-(greger-register-tool "list-directory"
-		      :description "List files and directories in a given directory"
-		      :properties '((path . ((type . "string")
-					     (description . "Path to the directory to list. Defaults to current directory.")
-					     (default . ".")))
-				    (exclude-directories-recursive . ((type . "array")
-								      (items . ((type . "string")))
-								      (description . "List of directory names to exclude when recursively listing files.")
-								      (default . (".git" "__pycache__"))))
-				    (recursive . ((type . "boolean")
-						  (description . "Whether to list files recursively")
-						  (default . nil))))
-		      :required '()
-		      :function 'greger-stdlib--list-directory)
-
-(greger-register-tool "ripgrep"
-		      :description "Search for patterns in files using ripgrep (rg) command line tool. Note that ripgrep only matches on single lines, so you can't search across multiple lines."
-		      :properties '((pattern . ((type . "string")
-						(description . "The search pattern (regex or literal string)")))
-				    (path . ((type . "string")
-					     (description . "Directory or file path to search in")
-					     (default . ".")))
-				    (case-sensitive . ((type . "boolean")
-						       (description . "Whether the search should be case-sensitive")
-						       (default . nil)))
-				    (file-type . ((type . "string")
-						  (description . "Restrict search to specific file types (e.g., 'py', 'js', 'md')")))
-				    (context-lines . ((type . "integer")
-						      (description . "Number of context lines to show around matches")
-						      (default . 0)))
-				    (max-results . ((type . "integer")
-						    (description . "Maximum number of results to return")
-						    (default . 50))))
-		      :required '("pattern")
-		      :function 'greger-stdlib--ripgrep
-		      :pass-callback t)
-
 (greger-register-tool "write-new-file"
 		      :description "Write a new file with the given contents. Fails if the file already exists."
 		      :properties '((file-path . ((type . "string")
@@ -101,39 +69,6 @@
 							   (description . "Git commit message for this change"))))
 		      :required '("file-path" "contents" "git-commit-message")
 		      :function 'greger-stdlib--write-new-file
-		      :pass-buffer t)
-
-(greger-register-tool "make-directory"
-		      :description "Recursively create a directory and all parent directories if they don't exist"
-		      :properties '((path . ((type . "string")
-					     (description . "Path to the directory to create")))
-				    (git-commit-message . ((type . "string")
-							   (description . "Git commit message for this change"))))
-		      :required '("path" "git-commit-message")
-		      :function 'greger-stdlib--make-directory
-		      :pass-buffer t)
-
-(greger-register-tool "rename-file"
-		      :description "Rename or move a file from one path to another"
-		      :properties '((old-path . ((type . "string")
-						 (description . "Current path of the file")))
-				    (new-path . ((type . "string")
-						 (description . "New path for the file")))
-				    (git-commit-message . ((type . "string")
-							   (description . "Git commit message for this change"))))
-		      :required '("old-path" "new-path" "git-commit-message")
-		      :function 'greger-stdlib--rename-file
-		      :pass-buffer t)
-
-(greger-register-tool "delete-files"
-		      :description "Delete the files and if they're tracked in git it should stage the deletion and commit"
-		      :properties '((file-paths . ((type . "array")
-						   (items . ((type . "string")))
-						   (description . "List of file paths to delete")))
-				    (git-commit-message . ((type . "string")
-							   (description . "Git commit message for this change"))))
-		      :required '("file-paths" "git-commit-message")
-		      :function 'greger-stdlib--delete-files
 		      :pass-buffer t)
 
 (greger-register-tool "replace-file"
@@ -176,36 +111,81 @@
 		      :function 'greger-stdlib--insert
 		      :pass-buffer t)
 
-(greger-register-tool "git-log"
-		      :description "View git commit logs."
+;; File tools
+
+(greger-register-tool "make-directory"
+		      :description "Recursively create a directory and all parent directories if they don't exist"
 		      :properties '((path . ((type . "string")
-					     (description . "Path to the git repository or any file in the repository view logs for")
+					     (description . "Path to the directory to create")))
+				    (git-commit-message . ((type . "string")
+							   (description . "Git commit message for this change"))))
+		      :required '("path" "git-commit-message")
+		      :function 'greger-stdlib--make-directory
+		      :pass-buffer t)
+
+(greger-register-tool "rename-file"
+		      :description "Rename or move a file from one path to another"
+		      :properties '((old-path . ((type . "string")
+						 (description . "Current path of the file")))
+				    (new-path . ((type . "string")
+						 (description . "New path for the file")))
+				    (git-commit-message . ((type . "string")
+							   (description . "Git commit message for this change"))))
+		      :required '("old-path" "new-path" "git-commit-message")
+		      :function 'greger-stdlib--rename-file
+		      :pass-buffer t)
+
+(greger-register-tool "delete-files"
+		      :description "Delete the files and if they're tracked in git it should stage the deletion and commit"
+		      :properties '((file-paths . ((type . "array")
+						   (items . ((type . "string")))
+						   (description . "List of file paths to delete")))
+				    (git-commit-message . ((type . "string")
+							   (description . "Git commit message for this change"))))
+		      :required '("file-paths" "git-commit-message")
+		      :function 'greger-stdlib--delete-files
+		      :pass-buffer t)
+
+(greger-register-tool "list-directory"
+		      :description "List files and directories in a given directory"
+		      :properties '((path . ((type . "string")
+					     (description . "Path to the directory to list. Defaults to current directory.")
 					     (default . ".")))
-				    (max-rows . ((type . "integer")
-						 (description . "Maximum number of log entries to return")
-						 (default . 100))))
+				    (exclude-directories-recursive . ((type . "array")
+								      (items . ((type . "string")))
+								      (description . "List of directory names to exclude when recursively listing files.")
+								      (default . (".git" "__pycache__"))))
+				    (recursive . ((type . "boolean")
+						  (description . "Whether to list files recursively")
+						  (default . nil))))
 		      :required '()
-		      :function 'greger-stdlib--git-log)
+		      :function 'greger-stdlib--list-directory)
 
-(greger-register-tool "git-show-commit"
-		      :description "View a specific git commit."
-		      :properties '((commit-hash . ((type . "string")
-						    (description . "The commit hash to view")))
+;; Ripgrep tool
+
+(greger-register-tool "ripgrep"
+		      :description "Search for patterns in files using ripgrep (rg) command line tool. Note that ripgrep only matches on single lines, so you can't search across multiple lines."
+		      :properties '((pattern . ((type . "string")
+						(description . "The search pattern (regex or literal string)")))
 				    (path . ((type . "string")
-					     (description . "Path to the git repository or any file in the repository")
-					     (default . "."))))
-		      :required '("commit-hash")
-		      :function 'greger-stdlib--git-show-commit)
+					     (description . "Directory or file path to search in")
+					     (default . ".")))
+				    (case-sensitive . ((type . "boolean")
+						       (description . "Whether the search should be case-sensitive")
+						       (default . nil)))
+				    (file-type . ((type . "string")
+						  (description . "Restrict search to specific file types (e.g., 'py', 'js', 'md')")))
+				    (context-lines . ((type . "integer")
+						      (description . "Number of context lines to show around matches")
+						      (default . 0)))
+				    (max-results . ((type . "integer")
+						    (description . "Maximum number of results to return")
+						    (default . 50))))
+		      :required '("pattern")
+		      :function 'greger-stdlib--ripgrep
+		      :pass-callback t)
 
-(greger-register-tool "eval-elisp-defuns"
-		      :description "Evaluate Emacs lisp defuns in a specific file. Useful when the code has changed and you want to use the updated code."
-		      :properties '((file-path . ((type . "string")
-						  (description . "Path to the file containing functions/defuns to evaluate")))
-				    (function-names . ((type . "array")
-						       (items . ((type . "string")))
-						       (description . "List of function names to evaluate and run"))))
-		      :required '("file-path" "function-names")
-		      :function 'greger-stdlib--eval-elisp-defuns)
+;; Shell commands
 
 (greger-register-tool "shell-command"
 		      :description "Execute an arbitrary shell command and return the output. Prompts for permission before running the command for security."
@@ -218,6 +198,8 @@
 		      :function 'greger-stdlib--shell-command
 		      :pass-callback t
 		      :pass-metadata t)
+
+;; Web tools
 
 (greger-register-tool "read-webpage"
 		      :description "Read webpage content from a URL. Can return either extracted text or raw HTML."
@@ -252,15 +234,15 @@
     (unless (stringp item)
       (error "Invalid argument: each element in %s must be a string" name))))
 
-(defun greger-stdlib--assert-arg-int-between (name value greater-or-equal less-or-equal)
+(defun cl-greger-stdlib--assert-arg-int (name value &key ge le)
   "Assert that VALUE is an integer between GREATER-OR-EQUAL and LESS-OR-EQUAL.
 Error with NAME if not. Either bound can be nil to skip that check."
   (unless (integerp value)
     (error "Invalid argument: %s must be an integer" name))
-  (when (and greater-or-equal (< value greater-or-equal))
-    (error "Invalid argument: %s must be >= %d" name greater-or-equal))
-  (when (and less-or-equal (> value less-or-equal))
-    (error "Invalid argument: %s must be <= %d" name less-or-equal)))
+  (when (and ge (< value ge))
+    (error "Invalid argument: %s must be >= %d" name ge))
+  (when (and le (> value le))
+    (error "Invalid argument: %s must be <= %d" name le)))
 
 (defun greger-stdlib--assert-arg-string-web-url (name value)
   "Assert that VALUE is a valid web URL string, error with NAME if not."
@@ -390,15 +372,16 @@ If CHAT-BUFFER is provided, also stage and commit the chat buffer file."
                   (length all-files) commit-message)))
     (error "Git operation failed: %s" (error-message-string err))))
 
-(defun greger-stdlib--read-file (path &optional include-line-numbers start-line end-line)
+(defun greger-stdlib--read-file (path include-line-numbers start-line end-line)
   "Read file at PATH. If INCLUDE-LINE-NUMBERS is non-nil, prepend line numbers.
 If START-LINE is specified, start reading from that line (1-based).
 If END-LINE is specified, stop reading at that line (inclusive, 1-based)."
   (greger-stdlib--assert-arg-string "path" path)
+  (greger-stdlib--assert-arg-bool "include-line-numbers" include-line-numbers)
   (when start-line
-    (greger-stdlib--assert-arg-int-between "start-line" start-line 1 nil))
+    (cl-greger-stdlib--assert-arg-int "start-line" start-line :ge 1))
   (when end-line
-    (greger-stdlib--assert-arg-int-between "end-line" end-line 1 nil))
+    (cl-greger-stdlib--assert-arg-int "end-line" end-line :ge 1))
 
   (when (and start-line end-line (> start-line end-line))
     (error "Invalid value: start-line must be <= end-line"))
@@ -587,56 +570,6 @@ If EXCLUDE-DIRECTORIES-RECURSIVE is an empty vector, exclude nothing."
                                  [".git" "__pycache__"]
                                exclude-directories-recursive)))
     (not (seq-contains-p actual-exclude-list directory-name))))
-
-(defun greger-stdlib--ripgrep (pattern path callback &optional case-sensitive file-type context-lines max-results)
-  "Search for PATTERN in PATH using the rg command line tool directly.
-CALLBACK is called with (result error) when search completes.
-CASE-SENSITIVE, FILE-TYPE, CONTEXT-LINES and MAX-RESULTS are optional."
-
-  (unless (executable-find "rg")
-    (error "Command not found: ripgrep (rg).  Please install ripgrep"))
-
-  (greger-stdlib--assert-arg-string "pattern" pattern)
-  (greger-stdlib--assert-arg-string "path" path)
-  (when case-sensitive
-    (greger-stdlib--assert-arg-bool "case-sensitive" case-sensitive))
-
-  (let ((expanded-path (expand-file-name path)))
-
-    ;; TODO: for some reason pattern always tends to end with ", no idea why!
-    (setq pattern (string-trim-right pattern "\""))
-
-    (if (not (file-exists-p expanded-path))
-        (funcall callback nil (format "Path does not exist: %s" expanded-path))
-
-      (let ((args '()))
-        (if case-sensitive
-            (setq args (append args '("--case-sensitive")))
-          (setq args (append args '("--smart-case"))))
-
-        (when (and context-lines (> context-lines 0))
-          (setq args (append args (list "--context" (number-to-string context-lines)))))
-
-        (when (and max-results (> max-results 0))
-          (setq args (append args (list "--max-count" (number-to-string max-results)))))
-
-        (when (and file-type (not (string-empty-p file-type)))
-          (setq args (append args (list "--type" file-type))))
-
-        (setq args (append args '("--line-number" "--no-heading")))
-
-        (setq args (append args (list pattern expanded-path)))
-
-        (greger-stdlib--run-async-subprocess
-         "rg" args nil
-         (lambda (output error)
-           (if error
-               (funcall callback nil (format "Failed to execute ripgrep search: %s" error))
-             (funcall callback
-		      (if (string-empty-p (string-trim output))
-                          "No matches found"
-                        output)
-		      nil))))))))
 
 (defun greger-stdlib--write-new-file (file-path contents git-commit-message &optional buffer)
   "Write CONTENTS to a new file at FILE-PATH. Fails if file already exists.
@@ -885,7 +818,7 @@ For Emacs Lisp files (.el), checks that parentheses balance is maintained."
 GIT-COMMIT-MESSAGE will be used for the git commit.
 If BUFFER is provided, it will be staged and committed along with the file."
   (greger-stdlib--assert-arg-string "file-path" file-path)
-  (greger-stdlib--assert-arg-int-between "line-number" line-number 0 nil)
+  (greger-stdlib--assert-arg-int "line-number" line-number :ge 1)
   (greger-stdlib--assert-arg-string "content" content)
   (greger-stdlib--assert-arg-string "git-commit-message" git-commit-message)
 
@@ -936,101 +869,6 @@ If BUFFER is provided, it will be staged and committed along with the file."
     (let ((git-result (greger-stdlib--git-stage-and-commit (list expanded-path) git-commit-message buffer)))
       (format "Successfully inserted %d characters at line %d in %s. %s"
               (length content) line-number expanded-path git-result))))
-
-(defun greger-stdlib--git-log (path &optional max-rows)
-  "View git commit logs using git command line for PATH.
-MAX-ROWS limits the number of log entries returned (default 100)."
-  (greger-stdlib--assert-arg-string "path" path)
-
-  (let ((expanded-path (expand-file-name path))
-        (max-count (or max-rows 100)))
-
-    (unless (file-exists-p expanded-path)
-      (error "Path does not exist: %s" expanded-path))
-
-    ;; Get the directory to search for git repo (if path is a file, use its directory)
-    (let* ((search-dir (if (file-directory-p expanded-path)
-                           expanded-path
-                         (file-name-directory expanded-path)))
-           (repo-root (greger-stdlib--find-git-repo-root search-dir)))
-      (unless repo-root
-        (error "Path %s is not in a git repository" expanded-path))
-
-      (condition-case err
-          (let ((default-directory repo-root))
-            (with-temp-buffer
-              (let ((exit-code (call-process "git" nil t nil "log"
-                                             "--oneline" "--decorate" "--graph"
-                                             (format "--max-count=%d" max-count))))
-                (if (= exit-code 0)
-                    (let ((results (buffer-string)))
-                      (if (string-empty-p (string-trim results))
-                          "No git log available"
-                        results))
-                  (error "Git log command failed with exit code %d" exit-code)))))
-        (error "Failed to retrieve git log: %s" (error-message-string err))))))
-
-(defun greger-stdlib--git-show-commit (commit-hash path)
-  "View git commit using git command line for PATH.
-COMMIT-HASH specifies which commit to show."
-  (greger-stdlib--assert-arg-string "commit-hash" commit-hash)
-  (greger-stdlib--assert-arg-string "path" path)
-
-  (let ((expanded-path (expand-file-name path)))
-
-    (unless (file-exists-p expanded-path)
-      (error "Path does not exist: %s" expanded-path))
-
-    ;; Get the directory to search for git repo (if path is a file, use its directory)
-    (let* ((search-dir (if (file-directory-p expanded-path)
-                           expanded-path
-                         (file-name-directory expanded-path)))
-           (repo-root (greger-stdlib--find-git-repo-root search-dir)))
-      (unless repo-root
-        (error "Path %s is not in a git repository" expanded-path))
-
-      (condition-case err
-          (let ((default-directory repo-root))
-            (with-temp-buffer
-              (let ((exit-code (call-process "git" nil t nil "show" commit-hash)))
-                (if (= exit-code 0)
-                    (let ((results (buffer-string)))
-                      (if (string-empty-p (string-trim results))
-                          "No git commit available"
-                        results))
-                  (error "Git show command failed with exit code %d" exit-code)))))
-        (error "Failed to show git commit: %s" (error-message-string err))))))
-
-(defun greger-stdlib--eval-elisp-defuns (file-path function-names)
-  "Evaluate Emacs Lisp function definitions from FILE-PATH.
-FUNCTION-NAMES specifies which functions to evaluate."
-  (greger-stdlib--assert-arg-string "file-path" file-path)
-  (greger-stdlib--assert-arg-string-vector "function-names" function-names)
-
-  (let ((expanded-path (expand-file-name file-path)))
-    ;; Check if file exists
-    (unless (file-exists-p expanded-path)
-      (error "File does not exist: %s" expanded-path))
-
-    ;; Check if it's actually a file
-    (when (file-directory-p expanded-path)
-      (error "Path is a directory, not a file: %s" expanded-path))
-
-    (with-current-buffer (find-file-noselect expanded-path)
-      ;; Navigate to and evaluate each function
-      (seq-doseq (function-name function-names)
-	(goto-char (point-min))
-
-	;; Search for the function definition
-	(let ((function-pattern (format "^\\s-*(\\(ert-deftest\\|defun\\)\\s-+%s\\s-*("
-					(regexp-quote function-name))))
-          (unless (re-search-forward function-pattern nil t)
-            (error "Function '%s' not found in %s" function-name expanded-path))
-
-          ;; Move to beginning of defun and evaluate it
-          (beginning-of-defun)
-          (eval-defun nil))))
-    "Eval successful"))
 
 (defun greger-stdlib--shell-command (command callback &optional working-directory metadata)
   "Execute COMMAND in WORKING-DIRECTORY and call CALLBACK with (result error).
@@ -1098,6 +936,57 @@ Returns a cancel function that can interrupt the command execution."
                    (funcall callback
                             (format "Command executed successfully:\n%s" output)
                             nil)))))))))))))
+
+(defun greger-stdlib--ripgrep (pattern path callback case-sensitive file-type context-lines max-results)
+  "Search for PATTERN in PATH using the rg command line tool directly.
+CALLBACK is called with (result error) when search completes.
+CASE-SENSITIVE, FILE-TYPE, CONTEXT-LINES and MAX-RESULTS are optional."
+
+  (unless (executable-find "rg")
+    (error "Command not found: ripgrep (rg).  Please install ripgrep"))
+
+  (greger-stdlib--assert-arg-string "pattern" pattern)
+  (greger-stdlib--assert-arg-string "path" path)
+  (greger-stdlib--assert-arg-bool "case-sensitive" case-sensitive)
+  (greger-stdlib--assert-arg-int "context-lines" context-lines :ge 0)
+  (greger-stdlib--assert-arg-int "max-results" max-results :ge 1)
+
+  (let ((expanded-path (expand-file-name path)))
+
+    ;; TODO: for some reason pattern always tends to end with ", no idea why!
+    (setq pattern (string-trim-right pattern "\""))
+
+    (if (not (file-exists-p expanded-path))
+        (funcall callback nil (format "Path does not exist: %s" expanded-path))
+
+      (let ((args '()))
+        (if case-sensitive
+            (setq args (append args '("--case-sensitive")))
+          (setq args (append args '("--smart-case"))))
+
+        (when (and context-lines (> context-lines 0))
+          (setq args (append args (list "--context" (number-to-string context-lines)))))
+
+        (when (and max-results (> max-results 0))
+          (setq args (append args (list "--max-count" (number-to-string max-results)))))
+
+        (when (and file-type (not (string-empty-p file-type)))
+          (setq args (append args (list "--type" file-type))))
+
+        (setq args (append args '("--line-number" "--no-heading")))
+
+        (setq args (append args (list pattern expanded-path)))
+
+        (greger-stdlib--run-async-subprocess
+         "rg" args nil
+         (lambda (output error)
+           (if error
+               (funcall callback nil (format "Failed to execute ripgrep search: %s" error))
+             (funcall callback
+		      (if (string-empty-p (string-trim output))
+                          "No matches found"
+                        output)
+		      nil))))))))
 
 (defun greger-stdlib--read-webpage (url &optional extract-text use-highest-readability)
   "Read webpage content from URL.
