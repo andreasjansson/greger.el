@@ -67,25 +67,25 @@
 (ert-deftest greger-tools-test-parameter-mapping ()
   "Test that parameters are correctly mapped from underscores to hyphens."
   ;; Define a test function with hyphenated parameter names
-  (defun greger-test-hyphenated-params (file-path commit-message)
+  (defun greger-test-hyphenated-params (path commit-message)
     "Test function with hyphenated parameters."
-    (format "file: %s, message: %s" file-path commit-message))
+    (format "file: %s, message: %s" path commit-message))
 
   ;; Register tool with underscore parameter names (as they come from JSON)
   (greger-register-tool "test-hyphens"
                         :description "Test hyphenated parameter mapping"
-                        :properties '((file-path . ((type . "string")
-                                                    (description . "File path")))
+                        :properties '((path . ((type . "string")
+                                               (description . "File path")))
                                       (commit-message . ((type . "string")
                                                          (description . "Commit message"))))
-                        :required '("file-path" "commit-message")
+                        :required '("path" "commit-message")
                         :function 'greger-test-hyphenated-params)
 
   ;; Test execution with underscore parameters
   (let ((result nil)
         (error nil))
     (greger-tools-execute :tool-name "test-hyphens"
-                          :args '((file-path . "/path/to/file")
+                          :args '((path . "/path/to/file")
                                   (commit-message . "test commit"))
                           :callback (lambda (r e) (setq result r error e))
                           :buffer nil)
