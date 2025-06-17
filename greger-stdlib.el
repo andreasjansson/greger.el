@@ -610,7 +610,7 @@ If EXCLUDE-DIRECTORIES-RECURSIVE is an empty vector, exclude nothing."
     (not (seq-contains-p actual-exclude-list directory-name))))
 
 (defun greger-stdlib--write-new-file (path contents git-commit-message &optional buffer)
-  "Write CONTENTS to a new file at FILE-PATH.  Fails if file already exists.
+  "Write CONTENTS to a new file at PATH.  Fails if file already exists.
 GIT-COMMIT-MESSAGE will be used for the git commit.
 If BUFFER is provided, it will be staged and committed along with the new file."
   (greger-stdlib--assert-arg-string "path" path)
