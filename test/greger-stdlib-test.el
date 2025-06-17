@@ -693,6 +693,82 @@ This ensures the '..' entry has predictable permissions in tests."
       (when (file-exists-p test-file)
         (delete-file test-file)))))
 
+(ert-deftest greger-stdlib-test-str-replace-multiple-occurrences-error ()
+  "Test str-replace error when multiple occurrences exist and replace-all is false."
+  (let ((test-file (make-temp-file "greger-str-replace-multiple-error"))
+        (original-content "Hello world. Hello again. Hello everyone!")
+        (target-string "Hello")
+        (replacement "Hi"))
+    (unwind-protect
+        (progn
+          ;; Create test file with multiple occurrences
+          (with-temp-file test-file
+            (insert original-content))
+
+          ;; Mock git operations
+          (cl-letf (((symbol-function 'greger-stdlib--git-stage-and-commit)
+                     (lambda (files commit-message buffer) "Mocked git result")))
+
+            ;; Should error when multiple occurrences exist and replace-all is false (default)
+            (should-error (greger-stdlib--str-replace
+                           test-file
+                           target-string
+                           replacement
+                           "Should fail with multiple occurrences")
+                          :type 'error)
+
+            ;; Verify the error message mentions the occurrence count
+            (condition-case err
+                (greger-stdlib--str-replace
+                 test-file
+                 target-string
+                 replacement
+                 "Should fail with multiple occurrences")
+              (error
+               (let ((error-message (error-message-string err)))
+                 (should (string-match "Found 3 occurrences" error-message))
+                 (should (string-match "replace-all=t" error-message)))))))
+
+      ;; Clean up
+      (when (file-exists-p test-file)
+        (delete-file test-file)))))
+
+(ert-deftest greger-stdlib-test-str-replace-multiple-occurrences-success-with-all ()
+  "Test str-replace succeeds with multiple occurrences when replace-all=true."
+  (let ((test-file (make-temp-file "greger-str-replace-multiple-success"))
+        (original-content "Hello world. Hello again. Hello everyone!")
+        (target-string "Hello")
+        (replacement "Hi"))
+    (unwind-protect
+        (progn
+          ;; Create test file with multiple occurrences
+          (with-temp-file test-file
+            (insert original-content))
+
+          ;; Mock git operations
+          (cl-letf (((symbol-function 'greger-stdlib--git-stage-and-commit)
+                     (lambda (files commit-message buffer) "Mocked git result")))
+
+            ;; Should succeed when replace-all=true even with multiple occurrences
+            (let ((result (greger-stdlib--str-replace
+                           test-file
+                           target-string
+                           replacement
+                           "Replace all occurrences"
+                           t))) ; replace-all = true
+              (should (stringp result))
+              (should (string-match "Successfully replaced content" result))
+              (should (string-match "made 3 replacements" result))
+
+              ;; Verify all occurrences were replaced
+              (with-temp-buffer
+                (insert-file-contents test-file)
+                (should (string= (buffer-string) "Hi world. Hi again. Hi everyone!"))))))
+
+      ;; Clean up
+      (when (file-exists-p test-file)
+        (delete-file test-file)))))
+
 (ert-deftest greger-stdlib-test-delete-files-basic ()
   "Test basic delete-files functionality."
   (let ((test-file1 (make-temp-file "test1" nil ".txt"))
