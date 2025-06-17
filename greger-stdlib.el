@@ -362,7 +362,7 @@ Returns a cancel function that can be called to interrupt the process."
       dir)))
 
 (defun greger-stdlib--is-file-tracked-by-git (path repo-root)
-  "Check if FILE-PATH is tracked by git in REPO-ROOT.
+  "Check if PATH is tracked by git in REPO-ROOT.
 Returns t if the file is tracked, nil otherwise."
   (let ((default-directory repo-root)
         (relative-path (file-relative-name (expand-file-name path) repo-root)))
