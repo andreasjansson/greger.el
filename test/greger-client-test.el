@@ -29,6 +29,9 @@
       (when (not (process-live-p (greger-client-state-process state)))
         (setq completed t)))
 
+    ;; Extra sleep to make sure we have time to call callbacks
+    (sit-for 0.2)
+
     completed))
 
 (ert-deftest greger-client-test-simple-text-generation ()

@@ -421,7 +421,7 @@ insert location information at the beginning of the user section."
          (server-tools (when greger-server-tools
                          (greger-server-tools-get-schemas greger-server-tools)))
          (model greger-model)
-         (request-data (greger-client--build-data model dialog tools server-tools greger-thinking-budget))
+         (request-data (greger-client--build-data model dialog tools server-tools greger-thinking-budget greger-max-tokens))
          (parsed-json (json-read-from-string request-data)))
 
     (with-temp-file filename
@@ -432,7 +432,9 @@ insert location information at the beginning of the user section."
 (defun greger-buffer ()
   "Send buffer content to AI as an agent dialog with tool support."
   (interactive)
-  ;; (goto-char (point-max)) ; TODO: is this needed?
+
+  (greger--ensure-buffer-can-be-submitted)
+
   (greger--run-agent-loop (make-greger-state
                            :current-iteration 0
                            :chat-buffer (current-buffer)
@@ -447,7 +449,20 @@ insert location information at the beginning of the user section."
         (greger-thinking-budget 0))
     (greger-buffer)))
 
-(defun greger--get-current-state ()
+
+(defun greger-status ()
+  "Get the current greger status information for current buffer.
+Returns a plist with the following keys:
+- :state - Current state: \='idle, \='generating, or \='executing
+- :model - Current model name as a string
+- :thinking-budget - Current thinking budget (0 if disabled)
+
+This function can be used for both UI display and programmatic access."
+  (list :status (greger--get-current-status)
+        :model (symbol-name greger-model)
+        :thinking-budget greger-thinking-budget))
+
+(defun greger--get-current-status ()
   "Get the current greger state: \='idle, \='generating, or \='executing."
   (let ((state (buffer-local-value 'greger--current-state (current-buffer))))
     (cond
@@ -461,18 +476,6 @@ insert location information at the beginning of the user section."
       'generating)
      ;; Otherwise we're idle
      (t 'idle))))
-
-(defun greger-status ()
-  "Get the current greger status information for current buffer.
-Returns a plist with the following keys:
-- :state - Current state: \='idle, \='generating, or \='executing
-- :model - Current model name as a string
-- :thinking-budget - Current thinking budget (0 if disabled)
-
-This function can be used for both UI display and programmatic access."
-  (list :state (greger--get-current-state)
-        :model (symbol-name greger-model)
-        :thinking-budget greger-thinking-budget))
 
 (defun greger--mode-line-info ()
   "Generate mode line information showing model and current state."
@@ -502,10 +505,61 @@ READ-ONLY is t to make read-only, nil to make writable."
 
 (defun greger--update-buffer-state ()
   "Update buffer read-only state based on current greger state."
-  (let ((state (greger--get-current-state)))
-    (greger--set-buffer-read-only (not (eq state 'idle)))
+  (let ((status (greger--get-current-status)))
+    (greger--set-buffer-read-only (not (eq status 'idle)))
     ;; Force mode line update
     (force-mode-line-update)))
+
+(defun greger--ensure-buffer-can-be-submitted ()
+  "Ensure buffer can be submitted by fixing common issues with last message.
+Uses tree-sitter to find the last node and applies heuristics:
+- If last assistant text is empty or whitespace-only, insert '.'
+- If last assistant text ends with whitespace, trim it
+- If last message is thinking, insert '# ASSISTANT\\n\\n.' before submitting"
+  (let* ((root-node (treesit-buffer-root-node))
+         (last-node (greger--find-last-message-node root-node)))
+
+    (when last-node
+      (let ((node-type (treesit-node-type last-node)))
+        (cond
+         ((string= node-type "user")
+          (greger--insert-if-empty-content last-node "Continue"))
+
+         ((string= node-type "assistant")
+          (greger--insert-if-empty-content last-node "."))
+
+         ((string= node-type "thinking")
+          (greger--insert-assistant-after-thinking last-node)))))))
+
+(defun greger--find-last-message-node (root-node)
+  "Find the last message node in ROOT-NODE."
+  (let ((children (treesit-node-children root-node))
+        (last-message-node nil))
+    (dolist (child children)
+      (let ((node-type (treesit-node-type child)))
+        (when (member node-type '("assistant" "thinking" "user" "system"
+                                  "tool_use" "server_tool_use" "tool_result"
+                                  "web_search_tool_result" "untagged_text"))
+          (setq last-message-node child))))
+    last-message-node))
+
+(defun greger--insert-if-empty-content (node text)
+  "Add TEXT to NODE content if content is empty."
+  (let* ((header (treesit-node-child node 0 t))
+         (start-pos (treesit-node-end header))
+         (end-pos (treesit-node-end node))
+         (content (buffer-substring-no-properties start-pos end-pos)))
+
+    ;; Insert a dot if content is empty
+    (when (string= (string-trim content) "")
+      (goto-char end-pos)
+      (insert text))))
+
+(defun greger--insert-assistant-after-thinking (thinking-node)
+  "Insert assistant response after THINKING-NODE."
+  (let ((end-pos (treesit-node-end thinking-node)))
+    (goto-char end-pos)
+    (insert "\n\n# ASSISTANT\n\n.")))
 
 (defun greger--run-agent-loop (state)
   "Run the main agent loop with STATE."
