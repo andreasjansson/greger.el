@@ -62,31 +62,31 @@
 
 (greger-register-tool "write-new-file"
                       :description "Write a new file with the given contents. Fails if the file already exists."
-                      :properties '((file-path . ((type . "string")
+                      :properties '((path . ((type . "string")
                                                   (description . "Absolute path to the new file")))
                                     (contents . ((type . "string")
                                                  (description . "Contents to write to the new file")))
                                     (git-commit-message . ((type . "string")
                                                            (description . "Git commit message for this change"))))
-                      :required '("file-path" "contents" "git-commit-message")
+                      :required '("path" "contents" "git-commit-message")
                       :function 'greger-stdlib--write-new-file
                       :pass-buffer t)
 
 (greger-register-tool "replace-file"
                       :description "Replace the entire contents of an existing file. Slow but reliable - replaces the complete file contents. Use str-replace for targeted changes in larger files."
-                      :properties '((file-path . ((type . "string")
+                      :properties '((path . ((type . "string")
                                                   (description . "Path to the file to replace")))
                                     (contents . ((type . "string")
                                                  (description . "New contents to replace the entire file")))
                                     (git-commit-message . ((type . "string")
                                                            (description . "Git commit message for this change"))))
-                      :required '("file-path" "contents" "git-commit-message")
+                      :required '("path" "contents" "git-commit-message")
                       :function 'greger-stdlib--replace-file
                       :pass-buffer t)
 
 (greger-register-tool "str-replace"
                       :description "Replace a specific string or content block in a file with new content. Finds the exact original content and replaces it with new content. Be extra careful to format the original-content exactly correctly, taking extra care with whitespace and newlines. In addition to replacing strings, str-replace can also be used to prepend, append, or delete contents from a file. If you're making large swaths of changes, consider using replace-file instead."
-                      :properties '((file-path . ((type . "string")
+                      :properties '((path . ((type . "string")
                                                   (description . "Path to the file to modify")))
                                     (original-content . ((type . "string")
                                                          (description . "The exact content to find and replace")))
@@ -97,7 +97,7 @@
                                     (replace-all . ((type . "boolean")
                                                     (description . "If true, replace all instances of original-content. If false (default), replace only the first instance")
                                                     (default . nil))))
-                      :required '("file-path" "original-content" "new-content" "git-commit-message")
+                      :required '("path" "original-content" "new-content" "git-commit-message")
                       :function 'greger-stdlib--str-replace
                       :pass-buffer t)
 
@@ -127,12 +127,12 @@
 
 (greger-register-tool "delete-files"
                       :description "Delete the files and if they're tracked in git it should stage the deletion and commit"
-                      :properties '((file-paths . ((type . "array")
+                      :properties '((paths . ((type . "array")
                                                    (items . ((type . "string")))
                                                    (description . "List of file paths to delete")))
                                     (git-commit-message . ((type . "string")
                                                            (description . "Git commit message for this change"))))
-                      :required '("file-paths" "git-commit-message")
+                      :required '("paths" "git-commit-message")
                       :function 'greger-stdlib--delete-files
                       :pass-buffer t)
 
@@ -361,11 +361,11 @@ Returns a cancel function that can be called to interrupt the process."
     (when (and dir (file-exists-p (expand-file-name ".git" dir)))
       dir)))
 
-(defun greger-stdlib--is-file-tracked-by-git (file-path repo-root)
+(defun greger-stdlib--is-file-tracked-by-git (path repo-root)
   "Check if FILE-PATH is tracked by git in REPO-ROOT.
 Returns t if the file is tracked, nil otherwise."
   (let ((default-directory repo-root)
-        (relative-path (file-relative-name (expand-file-name file-path) repo-root)))
+        (relative-path (file-relative-name (expand-file-name path) repo-root)))
     (= 0 (call-process "git" nil nil nil "ls-files" "--error-unmatch" relative-path))))
 
 ;; Tools below
@@ -609,14 +609,14 @@ If EXCLUDE-DIRECTORIES-RECURSIVE is an empty vector, exclude nothing."
                                exclude-directories-recursive)))
     (not (seq-contains-p actual-exclude-list directory-name))))
 
-(defun greger-stdlib--write-new-file (file-path contents git-commit-message &optional buffer)
+(defun greger-stdlib--write-new-file (path contents git-commit-message &optional buffer)
   "Write CONTENTS to a new file at FILE-PATH.  Fails if file already exists.
 GIT-COMMIT-MESSAGE will be used for the git commit.
 If BUFFER is provided, it will be staged and committed along with the new file."
-  (greger-stdlib--assert-arg-string "file-path" file-path)
+  (greger-stdlib--assert-arg-string "path" path)
   (greger-stdlib--assert-arg-string "contents" contents)
 
-  (let ((expanded-path (expand-file-name file-path)))
+  (let ((expanded-path (expand-file-name path)))
 
     ;; Check if file already exists
     (when (file-exists-p expanded-path)
@@ -702,11 +702,11 @@ If BUFFER is provided, it will be staged and committed with the renamed file."
             (format "Successfully renamed %s to %s. %s" expanded-old-path expanded-new-path git-result)))
       (error "Failed to rename file: %s" (error-message-string err)))))
 
-(defun greger-stdlib--delete-files (file-paths git-commit-message &optional buffer)
+(defun greger-stdlib--delete-files (paths git-commit-message &optional buffer)
   "Delete files at FILE-PATHS and stage the deletion in git if tracked.
 GIT-COMMIT-MESSAGE will be used for the git commit.
 If BUFFER is provided, it will be staged and committed with deleted files."
-  (greger-stdlib--assert-arg-string-vector "file-paths" file-paths)
+  (greger-stdlib--assert-arg-string-vector "paths" paths)
   (greger-stdlib--assert-arg-string "git-commit-message" git-commit-message)
 
   (let ((expanded-paths '())
@@ -714,8 +714,8 @@ If BUFFER is provided, it will be staged and committed with deleted files."
         (git-tracked-files '()))
 
     ;; Validate all files exist first
-    (seq-doseq (file-path file-paths)
-      (let ((expanded-path (expand-file-name file-path)))
+    (seq-doseq (path paths)
+      (let ((expanded-path (expand-file-name path)))
         (unless (file-exists-p expanded-path)
           (error "File does not exist: %s" expanded-path))
         (when (file-directory-p expanded-path)
@@ -751,15 +751,15 @@ If BUFFER is provided, it will be staged and committed with deleted files."
               (mapconcat #'identity (reverse deleted-files) ", ")
               git-result))))
 
-(defun greger-stdlib--replace-file (file-path contents git-commit-message &optional buffer)
+(defun greger-stdlib--replace-file (path contents git-commit-message &optional buffer)
   "Replace the entire contents of FILE-PATH with CONTENTS.
 GIT-COMMIT-MESSAGE will be used for the git commit.
 If BUFFER is provided, it will be staged and committed along with the file."
-  (greger-stdlib--assert-arg-string "file-path" file-path)
+  (greger-stdlib--assert-arg-string "path" path)
   (greger-stdlib--assert-arg-string "contents" contents)
   (greger-stdlib--assert-arg-string "git-commit-message" git-commit-message)
 
-  (let ((expanded-path (expand-file-name file-path)))
+  (let ((expanded-path (expand-file-name path)))
 
     ;; Check if file exists
     (unless (file-exists-p expanded-path)
@@ -807,7 +807,7 @@ Uses `parse-partial-sexp' to properly handle strings and comments."
           (setq pos (1+ pos)))
         balance))))
 
-(defun greger-stdlib--str-replace (file-path original-content new-content
+(defun greger-stdlib--str-replace (path original-content new-content
                                              git-commit-message &optional
                                              replace-all buffer)
   "Replace ORIGINAL-CONTENT with NEW-CONTENT in FILE-PATH.
@@ -816,12 +816,12 @@ If REPLACE-ALL is non-nil, replace all instances; otherwise replace only the
 first instance.
 If BUFFER is provided, it will be staged and committed along with the file.
 For Emacs Lisp files (.el), checks that parentheses balance is maintained."
-  (greger-stdlib--assert-arg-string "file-path" file-path)
+  (greger-stdlib--assert-arg-string "path" path)
   (greger-stdlib--assert-arg-string "original-content" original-content)
   (greger-stdlib--assert-arg-string "new-content" new-content)
   (greger-stdlib--assert-arg-string "git-commit-message" git-commit-message)
 
-  (let ((expanded-path (expand-file-name file-path)))
+  (let ((expanded-path (expand-file-name path)))
 
     ;; Check if file exists
     (unless (file-exists-p expanded-path)
