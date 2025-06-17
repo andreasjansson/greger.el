@@ -7,7 +7,7 @@
 (defun greger-ui-test--key-binding-at-point (key)
   "Get the effective key binding for KEY at point.
 This checks text properties, overlays, and local/global keymaps."
-  (or 
+  (or
    ;; Check keymap text property
    (let ((keymap (get-char-property (point) 'keymap)))
      (when keymap (lookup-key keymap key)))
@@ -69,7 +69,7 @@ Encrypted index: ghi789
 ")
     ;; Force font-lock to process the buffer
     (font-lock-ensure)
-    
+
     (let ((actual (greger-ui-test--visible-text))
           (expected "# ASSISTANT
 
@@ -81,7 +81,7 @@ Einstein developed the theory of relativity while Newton formulated the laws of 
     ;; Test expanding a citation
     (goto-char (point-min))
     (re-search-forward "Newton")
-    
+
     (greger-ui-test--send-key (kbd "TAB"))
 
     (let ((actual (greger-ui-test--visible-text))
@@ -120,7 +120,7 @@ line6
 ")
     ;; Force font-lock to process the buffer
     (font-lock-ensure)
-    
+
     (let ((actual (greger-ui-test--visible-text))
           (expected "# TOOL USE
 
@@ -142,7 +142,7 @@ line4
     ;; Test expanding a citation
     (goto-char (point-min))
     (re-search-forward "line1")
-    
+
     (greger-ui-test--send-key (kbd "TAB"))
 
     (let ((actual (greger-ui-test--visible-text))
@@ -181,7 +181,7 @@ I need to consider all the options carefully before responding.
 ")
     ;; Force font-lock to process the buffer
     (font-lock-ensure)
-    
+
     (let ((actual (greger-ui-test--visible-text))
           (expected "# USER
 
