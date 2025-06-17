@@ -61,16 +61,16 @@ Uses greger--mode-line-info to get the greger-specific portion of the mode line.
         ""))))
 
 4(defun greger-test-wait-for-status (status &optional timeout)
-  "Wait for greger buffer to reach STATUS within TIMEOUT seconds."
-  (let ((start-time (current-time))
-        (current-status nil)
-        (timeout (or timeout greger-test-timeout)))
-    (while (and (not (equal status current-status))
-                (< (float-time (time-subtract (current-time) start-time)) timeout))
-      (let ((status (greger-status)))
-        (setq current-status (plist-get status :status)))
-      (sit-for 0.2))
-    (equal status current-status)))
+   "Wait for greger buffer to reach STATUS within TIMEOUT seconds."
+   (let ((start-time (current-time))
+         (current-status nil)
+         (timeout (or timeout greger-test-timeout)))
+     (while (and (not (equal status current-status))
+                 (< (float-time (time-subtract (current-time) start-time)) timeout))
+       (let ((status (greger-status)))
+         (setq current-status (plist-get status :status)))
+       (sit-for 0.2))
+     (equal status current-status)))
 
 (ert-deftest greger-end-to-end-test-greger-function ()
   "Test the main greger function creates a buffer and sets it up correctly."
