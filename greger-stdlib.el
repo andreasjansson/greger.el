@@ -703,7 +703,7 @@ If BUFFER is provided, it will be staged and committed with the renamed file."
       (error "Failed to rename file: %s" (error-message-string err)))))
 
 (defun greger-stdlib--delete-files (paths git-commit-message &optional buffer)
-  "Delete files at FILE-PATHS and stage the deletion in git if tracked.
+  "Delete files at PATHS and stage the deletion in git if tracked.
 GIT-COMMIT-MESSAGE will be used for the git commit.
 If BUFFER is provided, it will be staged and committed with deleted files."
   (greger-stdlib--assert-arg-string-vector "paths" paths)
