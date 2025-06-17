@@ -4,6 +4,26 @@
 (require 'greger-ui)
 (require 'greger)
 
+(defun greger-ui-test--key-binding-at-point (key)
+  "Get the effective key binding for KEY at point.
+This checks text properties, overlays, and local/global keymaps."
+  (or 
+   ;; Check keymap text property
+   (let ((keymap (get-char-property (point) 'keymap)))
+     (when keymap (lookup-key keymap key)))
+   ;; Check local-map text property
+   (let ((keymap (get-char-property (point) 'local-map)))
+     (when keymap (lookup-key keymap key)))
+   ;; Fall back to normal key lookup
+   (key-binding key)))
+
+
+(defun greger-ui-test--send-key (key)
+  (let ((fn (greger-ui-test--key-binding-at-point key)))
+    ;; TODO: remove debug
+    (message (format "fn: %s" fn))
+    (funcall fn)))
+
 (defun greger-ui-test--visible-text ()
   "Extract only the visible text from the current buffer.
 Text with the 'invisible property set to t is excluded."
@@ -16,28 +36,6 @@ Text with the 'invisible property set to t is excluded."
           (setq result (concat result (buffer-substring-no-properties pos next-change))))
         (setq pos next-change)))
     result))
-
-(ert-deftest greger-ui-test-citations-folding-simple ()
-  "Test basic citation folding with a single citation."
-  (with-current-buffer (greger)
-    (erase-buffer)
-    (insert "# ASSISTANT
-
-Einstein developed the theory of relativity
-
-## https://physics.com/einstein
-
-Title: Einstein
-Cited text: Albert Einstein developed the theory of relativity in the early 20th century...
-Encrypted index: def456
-
-")
-    ;; Force font-lock to process the buffer
-    (font-lock-ensure)
-    (let ((visible-text (greger-ui-test--visible-text)))
-      ;; Should hide the citation details but keep the main text
-      (should (string-match-p "Einstein developed the theory of relativity" visible-text))
-      (should-not (string-match-p "https://physics.com/einstein" visible-text)))))
 
 (ert-deftest greger-ui-test-citations-folding ()
   (with-current-buffer (greger)
@@ -70,26 +68,36 @@ Encrypted index: ghi789
     ;; Force font-lock to process the buffer
     (font-lock-ensure)
     
-    ;; Debug: let's see what we actually get
-    (let ((actual-visible (greger-ui-test--visible-text)))
-      (message "Actual visible text: %S" actual-visible)
-      
-      ;; Test that citation sections are hidden initially
-      (should (string-match-p "Einstein developed the theory of relativity" actual-visible))
-      (should (string-match-p "Newton formulated the laws of motion" actual-visible))
-      (should-not (string-match-p "https://physics.com/einstein" actual-visible)))
+    (let ((actual (greger-ui-test--visible-text))
+          (expected "# ASSISTANT
+
+Einstein developed the theory of relativity while Newton formulated the laws of motion
+
+"))
+      (should (string= expected actual)))
 
     ;; Test expanding a citation
     (goto-char (point-min))
     (re-search-forward "Newton")
     
-    ;; Send TAB key directly using unread-command-events
-    (setq unread-command-events (listify-key-sequence (kbd "TAB")))
-    (recursive-edit) ;; Process the events
-    (exit-recursive-edit)
-    
-    (let ((expanded-visible (greger-ui-test--visible-text)))
-      ;; After TAB, the Newton section should be visible
-      (should (string-match-p "https://physics.com/newton" expanded-visible)))))
+    (greger-ui-test--send-key (kbd "TAB"))
+
+    ;; Force synchronous font-lock processing instead of relying on sit-for
+    (font-lock-flush (point-min) (point-max))
+    (font-lock-ensure (point-min) (point-max))
+
+    (let ((actual (greger-ui-test--visible-text))
+          (expected "# ASSISTANT
+
+Einstein developed the theory of relativity while Newton formulated the laws of motion
+
+## https://physics.com/newton
+
+Title: Newton Biography
+Cited text: laws of motion
+Encrypted index: ghi789
+
+"))
+      (should (string= expected actual)))))
 
 ;;; greger-ui-test.el ends here
