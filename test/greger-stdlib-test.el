@@ -489,7 +489,7 @@ This ensures the '..' entry has predictable permissions in tests."
 (ert-deftest greger-stdlib-test-str-replace-single-occurrence ()
   "Test str-replace with replace-all=false (default behavior)."
   (let ((test-file (make-temp-file "greger-str-replace-single"))
-        (original-content "Hello world. Hello again.")
+        (original-content "Hello world. Goodbye everyone.")
         (target-string "Hello")
         (replacement "Hi"))
     (unwind-protect
