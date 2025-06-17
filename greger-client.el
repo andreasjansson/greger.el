@@ -239,7 +239,7 @@ Returns nil if no error found or if OUTPUT is not valid JSON."
 
   ;; Uncomment this line for raw debugging output of every
   ;; streaming message returned from the Anthropic API
-                                        ;(message "output: %s" output)
+  ;; (message "output: %s" output)
 
   ;; Check for error responses and raise an error if found
   (greger-client--check-for-error output)
