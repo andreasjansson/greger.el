@@ -515,7 +515,7 @@ This ensures the '..' entry has predictable permissions in tests."
               ;; Verify only first occurrence was replaced
               (with-temp-buffer
                 (insert-file-contents test-file)
-                (should (string= (buffer-string) "Hi world. Hello again."))))))
+                (should (string= (buffer-string) "Hi world. Goodbye everyone."))))))
 
       ;; Clean up
       (when (file-exists-p test-file)
