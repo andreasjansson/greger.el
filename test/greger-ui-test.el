@@ -18,12 +18,6 @@ This checks text properties, overlays, and local/global keymaps."
    (key-binding key)))
 
 
-(defun greger-ui-test--send-key (key)
-  (let ((fn (greger-ui-test--key-binding-at-point key)))
-    ;; TODO: remove debug
-    (message (format "fn: %s" fn))
-    (funcall fn)))
-
 (defun greger-ui-test--visible-text ()
   "Extract only the visible text from the current buffer.
 Text with the 'invisible property set to t is excluded."
@@ -36,6 +30,14 @@ Text with the 'invisible property set to t is excluded."
           (setq result (concat result (buffer-substring-no-properties pos next-change))))
         (setq pos next-change)))
     result))
+
+(defun greger-ui-test--send-key (key)
+  (let ((fn (greger-ui-test--key-binding-at-point key)))
+    (funcall fn))
+
+  ;; force font-lock to update
+  (font-lock-flush (point-min) (point-max))
+  (font-lock-ensure (point-min) (point-max)))
 
 (ert-deftest greger-ui-test-citations-folding ()
   (with-current-buffer (greger)
@@ -82,10 +84,6 @@ Einstein developed the theory of relativity while Newton formulated the laws of 
     
     (greger-ui-test--send-key (kbd "TAB"))
 
-    ;; Force synchronous font-lock processing instead of relying on sit-for
-    (font-lock-flush (point-min) (point-max))
-    (font-lock-ensure (point-min) (point-max))
-
     (let ((actual (greger-ui-test--visible-text))
           (expected "# ASSISTANT
 
@@ -96,6 +94,102 @@ Einstein developed the theory of relativity while Newton formulated the laws of 
 Title: Newton Biography
 Cited text: laws of motion
 Encrypted index: ghi789
+
+"))
+      (should (string= expected actual)))))
+
+(ert-deftest greger-ui-test-tool-content-folding ()
+  (with-current-buffer (greger)
+    (erase-buffer)
+    (insert "# TOOL USE
+
+Name: read-file
+ID: toolu_999
+
+## path
+
+<tool.toolu_999>
+line1
+line2
+line3
+line4
+line5
+line6
+</tool.toolu_999>
+
+")
+    ;; Force font-lock to process the buffer
+    (font-lock-ensure)
+    
+    (let ((actual (greger-ui-test--visible-text))
+          (expected "# TOOL USE
+
+Name: read-file
+ID: toolu_999
+
+## path
+
+<tool.toolu_999>
+line1
+line2
+line3
+line4
+</tool.toolu_999>
+
+"))
+      (should (string= expected actual)))
+
+    ;; Test expanding a citation
+    (goto-char (point-min))
+    (re-search-forward "line1")
+    
+    (greger-ui-test--send-key (kbd "TAB"))
+
+    (let ((actual (greger-ui-test--visible-text))
+          (expected "# TOOL USE
+
+Name: read-file
+ID: toolu_999
+
+## path
+
+<tool.toolu_999>
+line1
+line2
+line3
+line4
+line5
+line6
+</tool.toolu_999>
+
+"))
+      (should (string= expected actual)))))
+
+(ert-deftest greger-ui-test-thinking-signature-invisible ()
+  (with-current-buffer (greger)
+    (erase-buffer)
+    (insert "# USER
+
+Let me think about this
+
+# THINKING
+
+Signature: abc123
+
+I need to consider all the options carefully before responding.
+
+")
+    ;; Force font-lock to process the buffer
+    (font-lock-ensure)
+    
+    (let ((actual (greger-ui-test--visible-text))
+          (expected "# USER
+
+Let me think about this
+
+# THINKING
+
+I need to consider all the options carefully before responding.
 
 "))
       (should (string= expected actual)))))

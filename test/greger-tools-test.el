@@ -1,4 +1,4 @@
-;;; test-greger-tools.el --- Tests for greger tools -*- lexical-binding: t -*-
+;;; greger-tools-test.el --- Tests for greger tools -*- lexical-binding: t -*-
 
 (require 'ert)
 (require 'greger-tools)
@@ -885,4 +885,4 @@
   ;; Clean up - remove test server tool from registry
   (remhash "test-web-search" greger-server-tools-registry))
 
-;;; test-greger-tools.el ends here
+;;; greger-tools-test.el ends here

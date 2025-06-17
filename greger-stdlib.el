@@ -260,7 +260,8 @@ Error with NAME if not. Either bound can be nil to skip that check."
   "Run COMMAND with ARGS in WORKING-DIRECTORY and call CALLBACK.
 CALLBACK will be called with (output nil) on success or (nil error-message) on
 failure.
-TIMEOUT specifies the maximum time in seconds to wait for completion (default no timeout).
+TIMEOUT specifies the maximum time in seconds to wait for completion,
+the default is no timeout.
 ENV is an optional alist of environment variables to set.
 Returns a cancel function that can be called to interrupt the process."
   (let* ((process-name (format "greger-subprocess-%s" (make-temp-name "")))
@@ -410,7 +411,7 @@ If CHAT-BUFFER is provided, also stage and commit the chat buffer file."
     (error "Git operation failed: %s" (error-message-string err))))
 
 (defun greger-stdlib--read-file (path include-line-numbers start-line end-line)
-  "Read file at PATH. If INCLUDE-LINE-NUMBERS is non-nil, prepend line numbers.
+  "Read file at PATH.  If INCLUDE-LINE-NUMBERS is non-nil, prepend line numbers.
 If START-LINE is specified, start reading from that line (1-based).
 If END-LINE is specified, stop reading at that line (inclusive, 1-based)."
   (greger-stdlib--assert-arg-string "path" path)
@@ -609,7 +610,7 @@ If EXCLUDE-DIRECTORIES-RECURSIVE is an empty vector, exclude nothing."
     (not (seq-contains-p actual-exclude-list directory-name))))
 
 (defun greger-stdlib--write-new-file (file-path contents git-commit-message &optional buffer)
-  "Write CONTENTS to a new file at FILE-PATH. Fails if file already exists.
+  "Write CONTENTS to a new file at FILE-PATH.  Fails if file already exists.
 GIT-COMMIT-MESSAGE will be used for the git commit.
 If BUFFER is provided, it will be staged and committed along with the new file."
   (greger-stdlib--assert-arg-string "file-path" file-path)
@@ -835,7 +836,7 @@ For Emacs Lisp files (.el), checks that parentheses balance is maintained."
       (let ((orig-balance (greger-stdlib--count-paren-balance original-content))
             (new-balance (greger-stdlib--count-paren-balance new-content)))
         (unless (= orig-balance new-balance)
-          (error "Parentheses balance mismatch in Emacs Lisp content: original has balance %d, new has balance %d. They must be equal. Try again!"
+          (error "Parentheses balance mismatch in Emacs Lisp content: original has balance %d, new has balance %d.  They must be equal.  Try again!"
                  orig-balance new-balance))))
 
     (let ((replacements-made 0))
