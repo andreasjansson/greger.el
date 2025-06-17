@@ -421,7 +421,7 @@ insert location information at the beginning of the user section."
          (server-tools (when greger-server-tools
                          (greger-server-tools-get-schemas greger-server-tools)))
          (model greger-model)
-         (request-data (greger-client--build-data model dialog tools server-tools greger-thinking-budget))
+         (request-data (greger-client--build-data model dialog tools server-tools greger-thinking-budget greger-max-tokens))
          (parsed-json (json-read-from-string request-data)))
 
     (with-temp-file filename
@@ -432,7 +432,90 @@ insert location information at the beginning of the user section."
 (defun greger-buffer ()
   "Send buffer content to AI as an agent dialog with tool support."
   (interactive)
-  ;; (goto-char (point-max)) ; TODO: is this needed?
+
+(defun greger-ensure-buffer-can-be-submitted ()
+  "Ensure buffer can be submitted by fixing common issues with last message.
+Uses tree-sitter to find the last node and applies heuristics:
+- If last assistant text is empty or whitespace-only, insert '.'
+- If last assistant text ends with whitespace, trim it
+- If last message is thinking, insert '# ASSISTANT\\n\\n.' before submitting"
+  (unless (treesit-ready-p 'greger)
+    (error "Tree-sitter greger parser not available"))
+  
+  (let* ((parser (treesit-parser-create 'greger))
+         (root-node (treesit-parser-root-node parser))
+         (last-node (greger--find-last-message-node root-node)))
+    
+    (when last-node
+      (let ((node-type (treesit-node-type last-node)))
+        (cond
+         ;; Handle assistant nodes
+         ((string= node-type "assistant")
+          (greger--fix-assistant-content last-node))
+         
+         ;; Handle thinking nodes - insert assistant text after
+         ((string= node-type "thinking")
+          (greger--insert-assistant-after-thinking last-node)))))))
+
+(defun greger--find-last-message-node (root-node)
+  "Find the last message node in ROOT-NODE."
+  (let ((children (treesit-node-children root-node))
+        (last-message-node nil))
+    (dolist (child children)
+      (let ((node-type (treesit-node-type child)))
+        (when (member node-type '("assistant" "thinking" "user" "system" 
+                                  "tool_use" "server_tool_use" "tool_result"
+                                  "web_search_tool_result" "untagged_text"))
+          (setq last-message-node child))))
+    last-message-node))
+
+(defun greger--fix-assistant-content (assistant-node)
+  "Fix assistant content in ASSISTANT-NODE if needed."
+  (let* ((start-pos (treesit-node-start assistant-node))
+         (end-pos (treesit-node-end assistant-node))
+         (content (buffer-substring-no-properties start-pos end-pos))
+         (text-content (greger--extract-assistant-text-content content)))
+    
+    ;; Check if content is empty or whitespace-only after trimming
+    (cond
+     ((or (null text-content) 
+          (string= (string-trim text-content) ""))
+      ;; Insert a dot if content is empty
+      (goto-char end-pos)
+      (insert "."))
+     
+     ;; Check if content ends with whitespace
+     ((string-match-p "\\s-+\\'" text-content)
+      ;; Trim trailing whitespace
+      (let ((trimmed-content (replace-regexp-in-string "\\s-+\\'" "" content)))
+        (save-excursion
+          (goto-char start-pos)
+          (delete-region start-pos end-pos)
+          (insert trimmed-content)))))))
+
+(defun greger--extract-assistant-text-content (content)
+  "Extract text content from assistant CONTENT string, excluding header."
+  (let ((lines (split-string content "\n")))
+    ;; Skip first line if it's a header (starts with #)
+    (when (and lines (string-match-p "^#\\s-*ASSISTANT" (car lines)))
+      (setq lines (cdr lines)))
+    
+    ;; Skip empty lines at the beginning
+    (while (and lines (string= (string-trim (car lines)) ""))
+      (setq lines (cdr lines)))
+    
+    (if lines
+        (string-join lines "\n")
+      "")))
+
+(defun greger--insert-assistant-after-thinking (thinking-node)
+  "Insert assistant response after THINKING-NODE."
+  (let ((end-pos (treesit-node-end thinking-node)))
+    (goto-char end-pos)
+    (insert "\n\n# ASSISTANT\n\n.")))
+
+  (greger-ensure-buffer-can-be-submitted)
+
   (greger--run-agent-loop (make-greger-state
                            :current-iteration 0
                            :chat-buffer (current-buffer)
