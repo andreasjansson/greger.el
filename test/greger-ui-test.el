@@ -163,6 +163,30 @@ line6
 </tool.toolu_999>
 
 "))
+      (should (string= expected actual)))
+
+    ;; Test expanding a citation
+    (goto-char (point-min))
+    (re-search-forward "line5")
+
+    (greger-ui-test--send-key (kbd "TAB"))
+
+    (let ((actual (greger-ui-test--visible-text))
+          (expected "# TOOL USE
+
+Name: read-file
+ID: toolu_999
+
+## path
+
+<tool.toolu_999>
+line1
+line2
+line3
+line4
+</tool.toolu_999>
+
+"))
       (should (string= expected actual)))))
 
 (ert-deftest greger-ui-test-thinking-signature-invisible ()
