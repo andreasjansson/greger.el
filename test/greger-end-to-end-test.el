@@ -149,16 +149,16 @@ Hello from greger test!
   "Test a conversation that involves tool use using the public API."
   (skip-unless (getenv "ANTHROPIC_API_KEY"))
 
-  ;; Register a basic read-file tool that only accepts file-path
-  (defun greger-test-read-file-basic (file-path)
-    "Simple wrapper around greger-stdlib--read-file that only accepts file-path."
-    (greger-stdlib--read-file file-path nil nil nil))
+  ;; Register a basic read-file tool that only accepts path
+  (defun greger-test-read-file-basic (path)
+    "Simple wrapper around greger-stdlib--read-file that only accepts path."
+    (greger-stdlib--read-file path nil nil nil))
 
   (greger-register-tool "read-file-basic"
-                        :description "Read the contents of a file from the filesystem (basic version with only file-path argument)"
-                        :properties '((file-path . ((type . "string")
-                                                    (description . "Path to the file to read"))))
-                        :required '("file-path")
+                        :description "Read the contents of a file from the filesystem (basic version with only path argument)"
+                        :properties '((path . ((type . "string")
+                                               (description . "Path to the file to read"))))
+                        :required '("path")
                         :function 'greger-test-read-file-basic)
 
   (let ((greger-buffer nil)
