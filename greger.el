@@ -433,7 +433,7 @@ insert location information at the beginning of the user section."
   "Send buffer content to AI as an agent dialog with tool support."
   (interactive)
 
-  (greger-ensure-buffer-can-be-submitted)
+  (greger--ensure-buffer-can-be-submitted)
 
   (greger--run-agent-loop (make-greger-state
                            :current-iteration 0
@@ -510,7 +510,7 @@ READ-ONLY is t to make read-only, nil to make writable."
     ;; Force mode line update
     (force-mode-line-update)))
 
-(defun greger-ensure-buffer-can-be-submitted ()
+(defun greger--ensure-buffer-can-be-submitted ()
   "Ensure buffer can be submitted by fixing common issues with last message.
 Uses tree-sitter to find the last node and applies heuristics:
 - If last assistant text is empty or whitespace-only, insert '.'
