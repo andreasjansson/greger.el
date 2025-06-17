@@ -63,7 +63,7 @@
 (greger-register-tool "write-new-file"
                       :description "Write a new file with the given contents. Fails if the file already exists."
                       :properties '((path . ((type . "string")
-                                                  (description . "Absolute path to the new file")))
+                                             (description . "Absolute path to the new file")))
                                     (contents . ((type . "string")
                                                  (description . "Contents to write to the new file")))
                                     (git-commit-message . ((type . "string")
@@ -75,7 +75,7 @@
 (greger-register-tool "replace-file"
                       :description "Replace the entire contents of an existing file. Slow but reliable - replaces the complete file contents. Use str-replace for targeted changes in larger files."
                       :properties '((path . ((type . "string")
-                                                  (description . "Path to the file to replace")))
+                                             (description . "Path to the file to replace")))
                                     (contents . ((type . "string")
                                                  (description . "New contents to replace the entire file")))
                                     (git-commit-message . ((type . "string")
@@ -87,7 +87,7 @@
 (greger-register-tool "str-replace"
                       :description "Replace a specific string or content block in a file with new content. Finds the exact original content and replaces it with new content. Be extra careful to format the original-content exactly correctly, taking extra care with whitespace and newlines. In addition to replacing strings, str-replace can also be used to prepend, append, or delete contents from a file. If you're making large swaths of changes, consider using replace-file instead."
                       :properties '((path . ((type . "string")
-                                                  (description . "Path to the file to modify")))
+                                             (description . "Path to the file to modify")))
                                     (original-content . ((type . "string")
                                                          (description . "The exact content to find and replace")))
                                     (new-content . ((type . "string")
@@ -128,8 +128,8 @@
 (greger-register-tool "delete-files"
                       :description "Delete the files and if they're tracked in git it should stage the deletion and commit"
                       :properties '((paths . ((type . "array")
-                                                   (items . ((type . "string")))
-                                                   (description . "List of file paths to delete")))
+                                              (items . ((type . "string")))
+                                              (description . "List of file paths to delete")))
                                     (git-commit-message . ((type . "string")
                                                            (description . "Git commit message for this change"))))
                       :required '("paths" "git-commit-message")
@@ -808,8 +808,8 @@ Uses `parse-partial-sexp' to properly handle strings and comments."
         balance))))
 
 (defun greger-stdlib--str-replace (path original-content new-content
-                                             git-commit-message &optional
-                                             replace-all buffer)
+                                        git-commit-message &optional
+                                        replace-all buffer)
   "Replace ORIGINAL-CONTENT with NEW-CONTENT in PATH.
 GIT-COMMIT-MESSAGE will be used for the git commit.
 If REPLACE-ALL is non-nil, replace all instances; otherwise replace only the
