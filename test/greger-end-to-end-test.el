@@ -67,8 +67,7 @@ Uses greger--mode-line-info to get the greger-specific portion of the mode line.
          (timeout (or timeout greger-test-timeout)))
      (while (and (not (equal status current-status))
                  (< (float-time (time-subtract (current-time) start-time)) timeout))
-       (let ((status (greger-status)))
-         (setq current-status (plist-get status :status)))
+       (setq current-status (greger--get-current-status))
        (sit-for 0.2))
      (equal status current-status)))
 

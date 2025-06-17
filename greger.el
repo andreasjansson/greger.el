@@ -289,8 +289,9 @@ May order 4,000 pounds of meat."
   (setq-local treesit-font-lock-feature-list
               '((error)
                 (headers folding tool-folding)
-                (tool-tags comments)
+                (tool-tags)
                 (fields)
+                (comments)
                 (subheadings)))
   (setq-local treesit-simple-indent-rules greger--treesit-indent-rules)
 
@@ -450,20 +451,8 @@ insert location information at the beginning of the user section."
     (greger-buffer)))
 
 
-(defun greger-status ()
-  "Get the current greger status information for current buffer.
-Returns a plist with the following keys:
-- :state - Current state: \='idle, \='generating, or \='executing
-- :model - Current model name as a string
-- :thinking-budget - Current thinking budget (0 if disabled)
-
-This function can be used for both UI display and programmatic access."
-  (list :status (greger--get-current-status)
-        :model (symbol-name greger-model)
-        :thinking-budget greger-thinking-budget))
-
 (defun greger--get-current-status ()
-  "Get the current greger state: \='idle, \='generating, or \='executing."
+  "Get the current greger status: \='idle, \='generating, or \='executing."
   (let ((state (buffer-local-value 'greger--current-state (current-buffer))))
     (cond
      ;; Check if we're executing tools
@@ -479,18 +468,16 @@ This function can be used for both UI display and programmatic access."
 
 (defun greger--mode-line-info ()
   "Generate mode line information showing model and current state."
-  (let ((status (greger-status)))
-    (let ((state (plist-get status :state))
-          (model-name (plist-get status :model))
-          (thinking-budget (plist-get status :thinking-budget)))
-      (concat model-name
-              (if (> thinking-budget 0)
-                  (format " [T:%d]" thinking-budget)
-                "")
-              (pcase state
-                ('generating " [Generating]")
-                ('executing " [Executing]")
-                ('idle ""))))))
+  (let ((status (greger--get-current-status))
+        (model-name (symbol-name greger-model)))
+    (concat model-name
+            (if (> greger-thinking-budget 0)
+                (format " [T:%d]" greger-thinking-budget)
+              "")
+            (pcase status
+              ('generating " [Generating]")
+              ('executing " [Executing]")
+              ('idle "")))))
 
 (defun greger--set-buffer-read-only (read-only)
   "Set buffer read-only state for greger operations.
