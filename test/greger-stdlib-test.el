@@ -896,7 +896,7 @@ This ensures the '..' entry has predictable permissions in tests."
                    "Test commit message")
                   :type 'error)
 
-    ;; Test with non-vector file-paths
+    ;; Test with non-vector paths
     (should-error (greger-stdlib--delete-files
                    "not-a-vector"
                    "Test commit message")
