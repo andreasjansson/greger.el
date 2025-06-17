@@ -850,12 +850,26 @@ For Emacs Lisp files (.el), checks that parentheses balance is maintained."
                   (replace-match new-content nil t)
                   (setq replacements-made (1+ replacements-made)))
                 (when (= replacements-made 0)
-                  (error "Original content not found in file: %s -- Try again!" expanded-path)))  ;; Replace only first instance (original behavior)
-            (if (search-forward original-content nil t)
-                (progn
-                  (replace-match new-content nil t)
-                  (setq replacements-made 1))
-              (error "Original content not found in file: %s -- Try again!" expanded-path)))
+                  (error "Original content not found in file: %s -- Try again!" expanded-path)))
+            ;; Replace only first instance (original behavior)
+            ;; But first check if there are multiple occurrences
+            (let ((first-occurrence-pos nil)
+                  (occurrence-count 0))
+              (while (search-forward original-content nil t)
+                (setq occurrence-count (1+ occurrence-count))
+                (when (= occurrence-count 1)
+                  (setq first-occurrence-pos (match-beginning 0))))
+              (cond
+               ((= occurrence-count 0)
+                (error "Original content not found in file: %s -- Try again!" expanded-path))
+               ((> occurrence-count 1)
+                (error "Found %d occurrences of original content in file: %s. Use replace-all=t to replace all instances, or make the original content more specific -- Try again!" occurrence-count expanded-path))
+               (t
+                ;; Exactly one occurrence, replace it
+                (goto-char first-occurrence-pos)
+                (search-forward original-content nil t)
+                (replace-match new-content nil t)
+                (setq replacements-made 1)))))
 
           ;; Save the file
           (save-buffer)))
