@@ -752,7 +752,7 @@ If BUFFER is provided, it will be staged and committed with deleted files."
               git-result))))
 
 (defun greger-stdlib--replace-file (path contents git-commit-message &optional buffer)
-  "Replace the entire contents of FILE-PATH with CONTENTS.
+  "Replace the entire contents of PATH with CONTENTS.
 GIT-COMMIT-MESSAGE will be used for the git commit.
 If BUFFER is provided, it will be staged and committed along with the file."
   (greger-stdlib--assert-arg-string "path" path)
