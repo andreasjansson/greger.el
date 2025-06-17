@@ -810,7 +810,7 @@ Uses `parse-partial-sexp' to properly handle strings and comments."
 (defun greger-stdlib--str-replace (path original-content new-content
                                              git-commit-message &optional
                                              replace-all buffer)
-  "Replace ORIGINAL-CONTENT with NEW-CONTENT in FILE-PATH.
+  "Replace ORIGINAL-CONTENT with NEW-CONTENT in PATH.
 GIT-COMMIT-MESSAGE will be used for the git commit.
 If REPLACE-ALL is non-nil, replace all instances; otherwise replace only the
 first instance.
