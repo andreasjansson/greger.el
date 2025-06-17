@@ -174,7 +174,7 @@ MAX-TOKENS is the maximum number of tokens to generate."
           (when (and (listp content)
                      (not (stringp content))
                      ;; Can't attach cache control to thinking
-                     (string= (alist-get 'type content) "thinking"))
+                     (not (string= (alist-get 'type content) "thinking")))
             (setq last-dict-message message))))
 
       (when last-dict-message
