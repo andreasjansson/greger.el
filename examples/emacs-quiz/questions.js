@@ -400,10 +400,10 @@ const QUIZ_QUESTIONS = [
         difficulty: 'intermediate',
         question: 'What is the purpose of backquote (`) in Emacs Lisp?',
         options: [
-            'It creates a regular expression',
-            'It allows selective evaluation within a quoted expression',
-            'It starts a multi-line comment',
-            'It defines a macro'
+            'It creates regular expressions patterns',
+            'It allows selective evaluation in quotes',
+            'It starts multi-line comment blocks',
+            'It defines macro transformation rules'
         ],
         correct: 1,
         explanation: 'Backquote (`) is like quote but allows selective evaluation of parts marked with comma (,) or comma-at (,@) for splicing.',
