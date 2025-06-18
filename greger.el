@@ -1,4 +1,4 @@
-;;; greger.el --- Chat with language models -*- lexical-binding: t -*-
+;;; greger.el --- Agentic coding in Emacs -*- lexical-binding: t -*-
 
 ;; Copyright (C) 2025 Andreas Jansson
 
@@ -6,7 +6,7 @@
 ;; Version: 0.1.0
 ;; URL: https://github.com/andreasjansson/greger.el
 ;; Package-Requires: ((emacs "29.1"))
-;; Keywords: ai, chat, language-models, tools
+;; Keywords: agent, agentic, ai, chat, language-models, tools
 ;; SPDX-License-Identifier: MIT
 
 ;; Permission is hereby granted, free of charge, to any person obtaining a copy
