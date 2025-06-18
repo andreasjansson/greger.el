@@ -1047,10 +1047,10 @@ const QUIZ_QUESTIONS = [
         difficulty: 'advanced',
         question: 'What does the `intern` function do?',
         options: [
-            'Creates internal variables',
-            'Finds or creates a symbol in the obarray',
+            'Creates internal variables and bindings',
+            'Finds or creates symbol in obarray',
             'Converts strings to internal format',
-            'Optimizes internal function calls'
+            'Optimizes internal function call paths'
         ],
         correct: 1,
         explanation: '`intern` finds an existing symbol in the obarray or creates a new one if it doesn\'t exist. This is how symbols are "interned".',
