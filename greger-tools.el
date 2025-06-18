@@ -235,7 +235,7 @@ TOOL-DEF provides the tool definition for accessing defaults."
 TOOL-DEF provides the tool definition for accessing defaults and required
 parameters.  Returns a list of arguments in the correct order for the function."
 
-  (let ((arg-list (help-function-arglist func))
+  (let ((arg-list (help-function-arglist func t))
         (result '())
         (required-params (when tool-def
                            (let* ((schema (plist-get tool-def :schema))
