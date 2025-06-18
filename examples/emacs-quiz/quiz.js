@@ -141,6 +141,7 @@ class EmacsLispQuiz {
             optionElement.className = 'option';
             optionElement.dataset.index = index;
             optionElement.textContent = option;
+            optionElement.style.opacity = '1'; // Reset opacity for new question
             optionsContainer.appendChild(optionElement);
         });
         
