@@ -460,10 +460,10 @@ const QUIZ_QUESTIONS = [
         difficulty: 'intermediate',
         question: 'What is the purpose of the `catch` and `throw` mechanisms?',
         options: [
-            'Error handling',
-            'Non-local exits from nested function calls',
+            'Error handling and recovery',
+            'Non-local exits from nested calls',
             'Exception handling like try-catch',
-            'Memory management'
+            'Memory management and cleanup'
         ],
         correct: 1,
         explanation: '`catch` and `throw` provide a non-local exit mechanism, allowing you to jump out of deeply nested function calls to a specific catch point.',
