@@ -1,0 +1,571 @@
+# SYSTEM
+
+You are an expert coding agent.
+
+# USER
+
+In /Users/andreas/projects/greger.el/README.md, at line 15, implement the following:
+
+Before the `## Installation` section, add a table of contents. It should start at level 2 (i.e. not include the `# Greger.el ...` heading)
+
+# THINKING
+
+Signature: EsUDCkYIBBgCKkAy7DCf/08bWjdpI6+fwefhhDZnbOlt0tx8F6RGSN3+z47/Epk4JRsBKhjTvv5MhnjDr3WTgu0jPw4cYssjJ+DqEgyQAl44d8ZVjZ0b/BkaDL7XJ/516ZQ2jzupBSIwYebsf1+HQucFynbBG5xY4BtWGp0Yso3m0NiK4kavzBdjIY0pijxehKPMNEBC9x0uKqwCHB47nmvrFNP6Q1evNB8H3ATPrA3nvfuMQIPr9FjhoVDRCg//6xAduhZQPsKDdMBMldsmyR9ixvzptTGlIJbbKx7ZbiB9iwJbXaBl0ghZGQHREHTq071+KHJadFEQuJsgJRmODTgxsi89eqM9zr7uIXPEFlwkrSLY6x+XIukyW/LOxeEOIo8/VGz/QgcCTzFA5OdaVk2m9WGk+eN5/tqkrLR68SpseepZtn+vwBd7GP1YlT+yAzQnJF14ZDxXjxxr135mfqE+9WHBxotTOexwouRscart47EVFWhci7nZf6BARWq9bS4WCYzQJ4Btm6K2j6YPGFt9hOBYLc58WPdHZOyPb1/TamlvfkEh1onJPYjt9FCvYw/uJCWFhDtaVthlDMVYap7JVaEGoUYgGAE=
+
+I need to:
+1. First read the README.md file to understand its current structure
+2. Find line 15 and see what's there
+3. Look at the headings in the file to create a table of contents
+4. Add the table of contents before the "## Installation" section
+
+Let me start by reading the file.
+
+# ASSISTANT
+
+I'll help you add a table of contents to the README.md file. Let me first read the current file to understand its structure.
+
+# TOOL USE
+
+Name: read-file
+ID: toolu_013yC7cYdm6TD2fqe8X2THvU
+
+## path
+
+<tool.toolu_013yC7cYdm6TD2fqe8X2THvU>
+/Users/andreas/projects/greger.el/README.md
+</tool.toolu_013yC7cYdm6TD2fqe8X2THvU>
+
+## include-line-numbers
+
+<tool.toolu_013yC7cYdm6TD2fqe8X2THvU>
+true
+</tool.toolu_013yC7cYdm6TD2fqe8X2THvU>
+
+# TOOL RESULT
+
+ID: toolu_013yC7cYdm6TD2fqe8X2THvU
+
+<tool.toolu_013yC7cYdm6TD2fqe8X2THvU>
+  1: <div align="center">
+  2: 
+  3: ![Greger.el Logo](assets/greger-text-logo.png)
+  4: 
+  5: </div>
+  6: 
+  7: # Greger.el - Agentic coding in Emacs
+  8: 
+  9: [![CI](https://github.com/andreasjansson/greger.el/actions/workflows/ci.yml/badge.svg)](https://github.com/andreasjansson/greger.el/actions/workflows/ci.yml) [![Coverage Status](https://coveralls.io/repos/github/andreasjansson/greger.el/badge.svg?branch=main)](https://coveralls.io/github/andreasjansson/greger.el?branch=main)
+ 10: 
+ 11: <img src="assets/greger-icon-logo.png" alt="Greger Agent" width="120" align="right">
+ 12: 
+ 13: Greger is a Claude chat interface with tool use. It can read and edit code, download web pages, run shell commands, etc.
+ 14: 
+ 15: ## Installation
+ 16: 
+ 17: Greger is not on MELPA yet, so for now you'll need to download the repo and add it to your load path, and then
+ 18: 
+ 19: ``` emacs-lisp
+ 20: (require 'greger)
+ 21: ```
+ 22: 
+ 23: ## Usage
+ 24: 
+ 25: Configure your Claude API key:
+ 26: 
+ 27: ```bash
+ 28: export ANTHROPIC_API_KEY="your-claude-api-key"
+ 29: ```
+ 30: 
+ 31: Or set it in your Emacs configuration:
+ 32: 
+ 33: ```elisp
+ 34: (setenv "ANTHROPIC_API_KEY" "your-claude-api-key")
+ 35: ```
+ 36: 
+ 37: Then start a new Greger session:
+ 38: 
+ 39: ```
+ 40: M-x greger
+ 41: ```
+ 42: 
+ 43: Or start a session with a reference to a particular point in a file:
+ 44: 
+ 45: ```
+ 46: C-u M-x greger
+ 47: ```
+ 48: 
+ 49: The recommended key binding for `greger` is `C-M-;`
+ 50: 
+ 51: ```elisp
+ 52: (global-set-key (kbd "C-M-;") 'greger)
+ 53: ```
+ 54: 
+ 55: ### Keybindings
+ 56: 
+ 57: In Greger buffers:
+ 58: 
+ 59: - `M-<return>` - Run agent
+ 60: - `C-M-<return>` - Run without tools or thinking
+ 61: - `C-g` - Interrupt tool execution or text generation
+ 62: - `C-; u` - Insert `# USER` tag
+ 63: - `C-; a` - Insert `# ASSISTANT` tag
+ 64: - `C-; s` - Insert `# SYSTEM` tag
+ 65: - `C-; m` - Choose Claude model
+ 66: - `C-; c` - Copy code block at point
+ 67: - `C-; t` - Toggle thinking off and on
+ 68: 
+ 69: ## Features
+ 70: 
+ 71: ### Everything is text
+ 72: 
+ 73: The full chat history is an editable Emacs buffer.
+ 74: 
+ 75: Greger uses a markdown-inspired syntax:
+ 76: 
+ 77: ``` markdown
+ 78: # SYSTEM
+ 79: 
+ 80: You're a helpful agent.
+ 81: 
+ 82: # USER
+ 83: 
+ 84: Do something
+ 85: 
+ 86: # THINKING
+ 87: 
+ 88: The user wants me to do something.
+ 89: 
+ 90: # ASSISTANT
+ 91: 
+ 92: I'll do something for you.
+ 93: 
+ 94: # TOOL USE
+ 95: 
+ 96: Name: read-file
+ 97: ID: toolu_999
+ 98: 
+ 99: ## path
+100: 
+101: <tool.toolu_999>
+102: test.txt
+103: </tool.toolu_999>
+104: 
+105: # TOOL RESULT
+106: 
+107: ID: toolu_123
+108: 
+109: <tool.toolu_123>
+110: Hello, world!
+111: </tool.toolu_123>
+112: 
+113: # ASSISTANT
+114: 
+115: The file contains: Hello, world!
+116: ```
+117: 
+118: Font-lock is used to hide a few things (e.g. thinking signatures) but they're still there in the file if you `cat` the file.
+119: 
+120: This means that **anything in the chat can be edited as text**. You can yank any part of the conversation, undo steps, modify assistant responses, etc.
+121: 
+122: It also means that you can share and let others continue or modify it.
+123: 
+124: ### Tool use
+125: 
+126: Greger is able to use tools to edit files, run shell commands, search the web, etc. The full set of bundled tools is documented below. You can also give Greger your own custom tools (also documented below).
+127: 
+128: ### All changes tracked in Git
+129: 
+130: It's easy to get lost when an agent is editing multiple files in quick succession. Or if you're afk while the agent does your work for you.
+131: 
+132: Therefore Greger commits every change to Git. It means that the Git history can contain lots of commits for relatively minor changes, but it does give you the ability to revert to any previous state.
+133: 
+134: Branching is your friend here -- create a new branch for every new Greger session and keep your pieces of work separate. GitHub lets you squash PRs automatically, which also helps declutter the history.
+135: 
+136: [Magit](https://magit.vc/) is magic, and makes it really easy to navigate through agent commits.
+137: 
+138: ### Streaming output
+139: 
+140: Assistant text and thinking is streamed to output. Tool use and tool responses are currently not streamed, but will be in the future
+141: 
+142: ### Claude caching
+143: 
+144: Greger automatically uses [prompt caching](https://www.anthropic.com/news/prompt-caching). In agentic settings this can save tons of money.
+145: 
+146: ### Available models
+147: 
+148: Greger supports the latest Claude models:
+149: 
+150: - **claude-sonnet-4-20250514**
+151: - **claude-opus-4-20250514**
+152: 
+153: Claude is the only supported model provider at the moment. Others could be added, but right now Claude is the best code LLM.
+154: 
+155: ### No external dependencies (other than `curl`)
+156: 
+157: Greger should work out of the box on most UNIX systems without having to install external depdencies. The standard `curl` command is used to communicate with the Anthropic API.
+158: 
+159: ### Extensive testing
+160: 
+161: The Greger test suite has over 150 (unit/integration/end-to-end) tests and >80% test coverage. Not to say there aren't bugs, but it's fairly solid.
+162: 
+163: ## Included tools
+164: 
+165: Greger comes with a "standard library" of tools. These are the included tools:
+166: 
+167: ### Editing tools
+168: 
+169: #### `read-file`
+170: 
+171: Read the contents of a file from the filesystem.
+172: 
+173: **Parameters:**
+174: - `path` (required): Path to the file to read
+175: - `include-line-numbers` (optional): Whether to include line numbers in the output. Useful when you plan to modify the file
+176: - `start-line` (optional): Starting line number (1-based) to begin reading from
+177: - `end-line` (optional): Ending line number (1-based) to stop reading at (inclusive)
+178: 
+179: #### `write-new-file`
+180: 
+181: Write a new file with the given contents. Fails if the file already exists.
+182: 
+183: **Parameters:**
+184: - `path` (required): Absolute path to the new file
+185: - `contents` (required): Contents to write to the new file
+186: - `git-commit-message` (required): Git commit message for this change
+187: 
+188: #### `replace-file`
+189: 
+190: Replace the entire contents of an existing file. Slow but reliable - replaces the complete file contents. Use `str-replace` for targeted changes in larger files.
+191: 
+192: **Parameters:**
+193: - `path` (required): Path to the file to replace
+194: - `contents` (required): New contents to replace the entire file
+195: - `git-commit-message` (required): Git commit message for this change
+196: 
+197: #### `str-replace`
+198: 
+199: This is the real work horse of agentic editing.
+200: 
+201: Replace a specific string or content block in a file with new content. Finds the exact original content and replaces it with new content. Be extra careful to format the original-content exactly correctly, taking extra care with whitespace and newlines. In addition to replacing strings, str-replace can also be used to prepend, append, or delete contents from a file.
+202: 
+203: **Parameters:**
+204: - `path` (required): Path to the file to modify
+205: - `original-content` (required): The exact content to find and replace
+206: - `new-content` (required): The new content to replace the original content with
+207: - `git-commit-message` (required): Git commit message for this change
+208: - `replace-all` (optional): If true, replace all instances of original-content. If false (default), replace only the first instance
+209: 
+210: ### Filesystem tools
+211: 
+212: #### `make-directory`
+213: 
+214: Recursively create a directory and all parent directories if they don't exist.
+215: 
+216: **Parameters:**
+217: - `path` (required): Path to the directory to create
+218: - `git-commit-message` (required): Git commit message for this change
+219: 
+220: #### `rename-file`
+221: 
+222: Rename or move a file from one path to another.
+223: 
+224: **Parameters:**
+225: - `old-path` (required): Current path of the file
+226: - `new-path` (required): New path for the file
+227: - `git-commit-message` (required): Git commit message for this change
+228: 
+229: #### `delete-files`
+230: 
+231: Delete files and if they're tracked in git, stage the deletion and commit.
+232: 
+233: **Parameters:**
+234: - `paths` (required): List of file paths to delete
+235: - `git-commit-message` (required): Git commit message for this change
+236: 
+237: #### `list-directory`
+238: 
+239: List files and directories in a given directory.
+240: 
+241: **Parameters:**
+242: - `path` (optional): Path to the directory to list. Defaults to current directory
+243: - `exclude-directories-recursive` (optional): List of directory names to exclude when recursively listing files. Defaults to [".git", "__pycache__"]
+244: - `recursive` (optional): Whether to list files recursively
+245: 
+246: ### File search tools
+247: 
+248: #### `ripgrep`
+249: 
+250: Search for patterns in files using ripgrep (rg) command line tool. Note that ripgrep only matches on single lines, so you can't search across multiple lines.
+251: 
+252: If [Ripgrep](https://github.com/BurntSushi/ripgrep) isn't installed, just tell Greger to install it.
+253: 
+254: **Parameters:**
+255: - `pattern` (required): The search pattern (regex or literal string). Uses regular expression syntax by default. Meta characters like .(){}*+?[]^$|\\ have special meaning and should be escaped with backslash if you want to match them literally
+256: - `path` (optional): Directory or file path to search in. Directories are searched recursively. Supports glob patterns and respects .gitignore rules by default. Use '.' for current directory
+257: - `case-sensitive` (optional): Whether the search should be case-sensitive
+258: - `file-type` (optional): Restrict search to specific file types using predefined type names. Examples: 'py', 'js', 'md', 'cpp', 'elisp', 'java', 'rust', 'go', 'html', 'css', 'json', 'xml', 'yaml', 'sh', 'sql', 'tex', 'dockerfile'
+259: - `context-lines` (optional): Number of context lines to show around matches (default: 0)
+260: - `fixed-strings` (optional): Treat the pattern as a literal string instead of a regular expression
+261: - `word-regexp` (optional): Only show matches surrounded by word boundaries
+262: - `line-regexp` (optional): Only show matches where the entire line participates in the match
+263: - `max-results` (optional): Maximum number of results to return (default: 50)
+264: 
+265: ### Shell tools
+266: 
+267: #### `shell-command`
+268: 
+269: Execute an arbitrary shell command and return the output.
+270: 
+271: **Parameters:**
+272: - `command` (required): The shell command to execute
+273: - `working-directory` (optional): Directory to run the command in (default: ".")
+274: - `timeout` (optional): Timeout in seconds for command execution (default: 600)
+275: - `enable-environment` (optional): Whether to source shell initialization files (.bashrc, .bash_profile) which may contain secrets and environment variables
+276: 
+277: If `greger-allow-all-shell-commands` is nil, `shell-command` will prompt for permission before running the command for security.
+278: 
+279: You can allow-list "safe shell commands" using `<safe-shell-commands>` in the `# SYSTEM` section. For example:
+280: 
+281: ``` markdown
+282: # SYSTEM
+283: 
+284: You are a helpful agent
+285: 
+286: <safe-shell-commands>
+287: ls -al
+288: </safe-shell-commands>
+289: 
+290: # USER
+291: 
+292: List all files in this directory.
+293: ```
+294: 
+295: ### Web tools
+296: 
+297: #### `web_search`
+298: 
+299: Search the internet and return up-to-date information from web sources. This is a [server-side tool](https://docs.anthropic.com/en/docs/agents-and-tools/tool-use/web-search-tool) with usage limits.
+300: 
+301: **Parameters:**
+302: - `query` (required): Search query
+303: 
+304: #### `read-webpage`
+305: 
+306: Read webpage content from a URL. Can return either extracted text or raw HTML.
+307: 
+308: **Parameters:**
+309: - `url` (required): The URL to read content from
+310: - `extract-text` (optional): Whether to extract text content or return raw HTML (default: true)
+311: - `use-highest-readability` (optional): Whether to use eww's aggressive highest readability setting for better text extraction
+312: 
+313: ## Build your own tool
+314: 
+315: Greger can use any custom tool you want. It takes three simple steps:
+316: 
+317: 1. Write an emacs lisp function that returns some text
+318: 1. Register the tool
+319: 1. Add the tool to `greger-tools`
+320: 
+321: For example, let's say we want a `file-count-lines` tool. First we write our line counting function (naming doesn't matter):
+322: 
+323: ```elisp
+324: (defun count-lines-in-file (filename)
+325:   (with-temp-buffer
+326:     (insert-file-contents filename)
+327:     (count-lines (point-min) (point-max))))
+328: ```
+329: 
+330: Then we register the tool with `greger-register-tool`:
+331: 
+332: ```elisp
+333: (greger-register-tool "file-count-lines"
+334:                       :description "Count the number of lines in a file"
+335:                       :properties '((path . ((type . "string")
+336:                                              (description . "Path to file"))))
+337:                       :required '("path")
+338:                       :function count-lines-in-file)
+339: ```
+340: 
+341: There are lots of tool examples in greger-stdlib.el.
+342: 
+343: Finally, add the tool to 'greger-tools:
+344: 
+345: ```elisp
+346: (add-to-list 'greger-tools "file-count-lines")
+347: ```
+348: 
+349: ## Customization
+350: 
+351: The following customization options are available:
+352: 
+353: ### `greger-model`
+354: - **Type**: choice (from available models)
+355: - **Default**: `claude-sonnet-4-20250514`
+356: - **Description**: The currently used model.
+357: 
+358: ### `greger-default-system-prompt`
+359: - **Type**: string
+360: - **Default**: `"You are an expert coding agent."`
+361: - **Description**: Default system prompt used for AI interactions.
+362: 
+363: ### `greger-max-tokens`
+364: - **Type**: integer
+365: - **Default**: `32000`
+366: - **Description**: Maximum number of tokens to generate.
+367: 
+368: ### `greger-thinking-budget`
+369: - **Type**: integer
+370: - **Default**: `4096`
+371: - **Description**: Default budget for thinking (internal reasoning) content, in tokens. Set to 0 to disable thinking entirely.
+372: 
+373: ### `greger-allow-all-shell-commands`
+374: - **Type**: boolean
+375: - **Default**: `nil`
+376: - **Description**: Allow all shell commands to run without permission. May order 4,000 pounds of meat.
+377: 
+378: ### `greger-tools`
+379: - **Type**: repeat symbol
+380: - **Default**: `'("read-file" "write-new-file" "replace-file" "str-replace" "make-directory" "rename-file" "delete-files" "list-directory" "ripgrep" "shell-command" "read-webpage")`
+381: - **Description**: List of tools available to the agent.
+382: 
+383: ### `greger-server-tools`
+384: - **Type**: repeat symbol
+385: - **Default**: `'("web_search")`
+386: - **Description**: List of server tools available to the agent (e.g., web_search).
+387: 
+388: ### `greger-max-iterations`
+389: - **Type**: integer
+390: - **Default**: `100`
+391: - **Description**: Maximum number of agent iterations before stopping.
+392: 
+393: You can customize all these plus all the colors and fonts with:
+394: 
+395: ```
+396: M-x customize-group
+397: greger
+398: ```
+399: 
+400: ## Examples
+401: 
+402: There are a few examples of Greger chats in the ./examples directory.
+403: 
+404: ## Why "Greger"?
+405: 
+406: Greger Tragg is a secret cold war agent in The Messenger Must Die by Kjell-Olof Bornemark. He's like a Swedish George Smiley, but he somehow manages to be even more mundane and melancholic and _svårmodig_. The book is a masterpiece.
+407: 
+408: ## License
+409: 
+410: MIT
+</tool.toolu_013yC7cYdm6TD2fqe8X2THvU>
+
+# ASSISTANT
+
+Now I can see the structure of the file. Line 15 currently contains the "## Installation" heading. I need to add a table of contents before this line, starting at level 2 (excluding the main title). Let me identify all the level 2 headings and below to create the table of contents:
+
+From the file, I can see the following headings at level 2 and below:
+- ## Installation (line 15)
+- ## Usage (line 23)
+- ### Keybindings (line 55)
+- ## Features (line 69)
+- ### Everything is text (line 71)
+- ### Tool use (line 124)
+- ### All changes tracked in Git (line 128)
+- ### Streaming output (line 138)
+- ### Claude caching (line 142)
+- ### Available models (line 146)
+- ### No external dependencies (line 155)
+- ### Extensive testing (line 159)
+- ## Included tools (line 163)
+- ### Editing tools (line 167)
+- ### Filesystem tools (line 210)
+- ### File search tools (line 246)
+- ### Shell tools (line 265)
+- ### Web tools (line 295)
+- ## Build your own tool (line 313)
+- ## Customization (line 349)
+- ## Examples (line 400)
+- ## Why "Greger"? (line 404)
+- ## License (line 408)
+
+Now I'll add the table of contents before line 15:
+
+# TOOL USE
+
+Name: str-replace
+ID: toolu_016dopAgYctQBFZqXSKkUmXf
+
+## path
+
+<tool.toolu_016dopAgYctQBFZqXSKkUmXf>
+/Users/andreas/projects/greger.el/README.md
+</tool.toolu_016dopAgYctQBFZqXSKkUmXf>
+
+## original-content
+
+<tool.toolu_016dopAgYctQBFZqXSKkUmXf>
+Greger is a Claude chat interface with tool use. It can read and edit code, download web pages, run shell commands, etc.
+
+## Installation
+</tool.toolu_016dopAgYctQBFZqXSKkUmXf>
+
+## new-content
+
+<tool.toolu_016dopAgYctQBFZqXSKkUmXf>
+Greger is a Claude chat interface with tool use. It can read and edit code, download web pages, run shell commands, etc.
+
+## Table of Contents
+
+- [Installation](#installation)
+- [Usage](#usage)
+  - [Keybindings](#keybindings)
+- [Features](#features)
+  - [Everything is text](#everything-is-text)
+  - [Tool use](#tool-use)
+  - [All changes tracked in Git](#all-changes-tracked-in-git)
+  - [Streaming output](#streaming-output)
+  - [Claude caching](#claude-caching)
+  - [Available models](#available-models)
+  - [No external dependencies (other than `curl`)](#no-external-dependencies-other-than-curl)
+  - [Extensive testing](#extensive-testing)
+- [Included tools](#included-tools)
+  - [Editing tools](#editing-tools)
+  - [Filesystem tools](#filesystem-tools)
+  - [File search tools](#file-search-tools)
+  - [Shell tools](#shell-tools)
+  - [Web tools](#web-tools)
+- [Build your own tool](#build-your-own-tool)
+- [Customization](#customization)
+- [Examples](#examples)
+- [Why "Greger"?](#why-greger)
+- [License](#license)
+
+## Installation
+</tool.toolu_016dopAgYctQBFZqXSKkUmXf>
+
+## git-commit-message
+
+<tool.toolu_016dopAgYctQBFZqXSKkUmXf>
+Add table of contents to README.md
+</tool.toolu_016dopAgYctQBFZqXSKkUmXf>
+
+# TOOL RESULT
+
+ID: toolu_016dopAgYctQBFZqXSKkUmXf
+
+<tool.toolu_016dopAgYctQBFZqXSKkUmXf>
+Successfully replaced content in /Users/andreas/projects/greger.el/README.md. Successfully staged 1 file(s) and committed with message: Add table of contents to README.md
+</tool.toolu_016dopAgYctQBFZqXSKkUmXf>
+
+# ASSISTANT
+
+Perfect! I've successfully added a table of contents to the README.md file before the "## Installation" section at line 15. The table of contents:
+
+1. Starts at level 2 (excludes the main "# Greger.el ..." heading)
+2. Includes all section and subsection headings from the document
+3. Uses proper GitHub markdown anchor links (lowercase, spaces replaced with hyphens, special characters handled appropriately)
+4. Is properly indented to show the hierarchy of sections and subsections
+
+The table of contents will help readers navigate the document more easily by providing quick links to all the major sections.
+
+# USER
+
