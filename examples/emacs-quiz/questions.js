@@ -415,10 +415,10 @@ const QUIZ_QUESTIONS = [
         difficulty: 'intermediate',
         question: 'What is a closure in Emacs Lisp?',
         options: [
-            'A function that closes a buffer',
-            'A function that captures variables from its lexical environment',
-            'A function that terminates a program',
-            'A function that completes input'
+            'A function that closes buffer operations',
+            'A function capturing lexical environment',
+            'A function that terminates programs',
+            'A function that completes user input'
         ],
         correct: 1,
         explanation: 'A closure is a function that captures variables from its lexical environment. In Emacs Lisp, closures are created when lexical-binding is enabled.',
