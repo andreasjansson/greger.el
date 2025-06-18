@@ -83,10 +83,10 @@ const QUIZ_QUESTIONS = [
         difficulty: 'beginner',
         question: 'What does the `cons` function do?',
         options: [
-            'Constructs a cons cell from two arguments',
-            'Counts the elements in a list',
-            'Converts a string to a list',
-            'Compares two lists for equality'
+            'Builds a cons cell pair',
+            'Counts list elements',
+            'Converts string data',
+            'Compares two lists'
         ],
         correct: 0,
         explanation: 'The `cons` function constructs a cons cell with its first argument as the CAR and second argument as the CDR. For example, (cons 1 2) creates (1 . 2).',
