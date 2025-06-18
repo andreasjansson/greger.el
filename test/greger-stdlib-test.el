@@ -158,9 +158,10 @@ This ensures the '..' entry has predictable permissions in tests."
      (greger-stdlib--shell-command
       "echo test"
       (lambda (output err) nil)  ; callback shouldn't be called
-      nil
-      nil
-      '(:allow-all-shell-commands nil))
+      "."  ; working-directory
+      nil  ; timeout
+      nil  ; enable-environment
+      '(:allow-all-shell-commands nil)) ; metadata
      :type 'error)))
 
 (ert-deftest greger-stdlib-test-shell-command-command-failure ()
