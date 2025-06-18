@@ -12,6 +12,32 @@
 
 Greger is a Claude chat interface with tool use. It can read and edit code, download web pages, run shell commands, etc.
 
+## Table of Contents
+
+- [Installation](#installation)
+- [Usage](#usage)
+  - [Keybindings](#keybindings)
+- [Features](#features)
+  - [Everything is text](#everything-is-text)
+  - [Tool use](#tool-use)
+  - [All changes tracked in Git](#all-changes-tracked-in-git)
+  - [Streaming output](#streaming-output)
+  - [Claude caching](#claude-caching)
+  - [Available models](#available-models)
+  - [No external dependencies (other than `curl`)](#no-external-dependencies-other-than-curl)
+  - [Extensive testing](#extensive-testing)
+- [Included tools](#included-tools)
+  - [Editing tools](#editing-tools)
+  - [Filesystem tools](#filesystem-tools)
+  - [File search tools](#file-search-tools)
+  - [Shell tools](#shell-tools)
+  - [Web tools](#web-tools)
+- [Build your own tool](#build-your-own-tool)
+- [Customization](#customization)
+- [Examples](#examples)
+- [Why "Greger"?](#why-greger)
+- [License](#license)
+
 ## Installation
 
 Greger is not on MELPA yet, so for now you'll need to download the repo and add it to your load path, and then
