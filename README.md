@@ -66,11 +66,15 @@ Then start a new Greger session:
 M-x greger
 ```
 
+![screenshot-20250618-154320.png](assets/screenshot-20250618-154320.png)
+
 Or start a session with a reference to a particular point in a file:
 
 ```
 C-u M-x greger
 ```
+
+![screenshot-20250618-154453.png](assets/screenshot-20250618-154453.png)
 
 The recommended key binding for `greger` is `C-M-;`
 
@@ -193,6 +197,8 @@ Greger comes with a "standard library" of tools. These are the included tools:
 ### Editing tools
 
 #### `read-file`
+
+![screenshot-20250618-154809.png](/Users/andreas/projects/greger.el/assets/screenshot-20250618-154809.png)
 
 Read the contents of a file from the filesystem.
 
