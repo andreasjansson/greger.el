@@ -1062,10 +1062,10 @@ const QUIZ_QUESTIONS = [
         difficulty: 'advanced',
         question: 'What is the difference between `eq`, `eql`, and `equal`?',
         options: [
-            'eq tests identity, eql tests identity or numeric equality, equal tests structural equality',
-            'They are all the same',
-            'eq is fastest, equal is most comprehensive',
-            'eq is for symbols, eql for numbers, equal for strings'
+            'eq identity, eql numeric identity, equal structural',
+            'They are all functionally identical predicates',
+            'eq is fastest, equal is most comprehensive overall',
+            'eq for symbols, eql for numbers, equal for strings'
         ],
         correct: 0,
         explanation: '`eq` tests object identity, `eql` tests identity or numeric equality for numbers, and `equal` tests structural equality (same contents).',
