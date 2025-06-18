@@ -655,10 +655,10 @@ const QUIZ_QUESTIONS = [
         difficulty: 'intermediate',
         question: 'What is the difference between `mapc` and `mapcar`?',
         options: [
-            'mapc is for lists, mapcar is for arrays',
-            'mapc discards the results and returns the original list, mapcar returns a new list',
-            'mapc is faster than mapcar',
-            'mapc maps in reverse order'
+            'mapc works on lists, mapcar on arrays',
+            'mapc discards results, mapcar builds list',
+            'mapc has better performance characteristics',
+            'mapc processes elements in reverse order'
         ],
         correct: 1,
         explanation: '`mapc` applies a function to each element like `mapcar` but discards the results and returns the original list. It is used for side effects.',
