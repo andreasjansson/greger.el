@@ -685,10 +685,10 @@ const QUIZ_QUESTIONS = [
         difficulty: 'intermediate',
         question: 'What is the purpose of the `unwind-protect` special form?',
         options: [
-            'Protects against stack overflow',
-            'Ensures cleanup code runs even if an error occurs',
-            'Protects variables from being modified',
-            'Prevents functions from being redefined'
+            'Protects against stack overflow errors',
+            'Ensures cleanup code runs despite errors',
+            'Protects variables from modification',
+            'Prevents functions from redefinition'
         ],
         correct: 1,
         explanation: '`unwind-protect` ensures that cleanup code in its unwind-forms runs even if an error occurs in the protected form or if a non-local exit happens.',
