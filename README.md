@@ -4,31 +4,6 @@
 
 Greger is a Claude chat interface with tool use. It can read and edit code, download web pages, run shell commands, etc.
 
-## Usage
-
-Start a new Greger session with
-
-```
-M-x greger
-```
-
-### Keybindings
-
-In Greger buffers:
-
-- `M-RET` - Send message with tool support
-- `C-M-RET` - Send message without tools
-- `C-; a` - Insert assistant tag
-- `C-; u` - Insert user tag
-- `C-; s` - Insert system tag
-- `C-; c` - Copy code block at point
-- `C-; m` - Change AI model
-- `TAB` - Toggle tool section visibility
-
-While Greger is generating output:
-
-- `C-g` - Interrupt the output.
-
 ## Installation
 
 Greger is not on MELPA yet, so for now you'll need to download the repo and add it to your load path, and then
@@ -37,7 +12,7 @@ Greger is not on MELPA yet, so for now you'll need to download the repo and add 
 (require 'greger)
 ```
 
-## Configuration
+## Usage
 
 Configure your Claude API key:
 
@@ -51,47 +26,110 @@ Or set it in your Emacs configuration:
 (setenv "ANTHROPIC_API_KEY" "your-claude-api-key")
 ```
 
+Then start a new Greger session:
+
+```
+M-x greger
+```
+
+Or start a session with a reference to a particular point in a file:
+
+```
+C-u M-x greger
+```
+
+The recommended key binding for `greger` is `C-M-;`
+
+```elisp
+(global-set-key (kbd "C-M-;") 'greger)
+```
+
+### Keybindings
+
+In Greger buffers:
+
+- `M-<return>` - Run agent
+- `C-M-<return>` - Run without tools or thinking
+- `C-g` - Interrupt tool execution or text generation
+- `C-; u` - Insert `# USER` tag
+- `C-; a` - Insert `# ASSISTANT` tag
+- `C-; s` - Insert `# SYSTEM` tag
+- `C-; m` - Choose Claude model
+- `C-; c` - Copy code block at point
+- `C-; t` - Toggle thinking off and on
+
 ## Features
 
-The chat buffer is a complete representation of all the messages in the conversation with LLM, and it can be edited as a normal markdown buffer.
+### Everything is text
 
-Token caching is automatically enabled for cost efficiency.
+The full chat history is an editable Emacs buffer.
 
-### Available tools
+Greger uses a markdown-inspired syntax:
 
-Greger includes a set of tool out of the box:
+``` markdown
+# SYSTEM
 
-- File operations (read, write, edit files)
-- Web browsing and content extraction
-- Git operations
-- Shell command execution
-- Directory operations
+You're a helpful agent.
 
-Tools can be easily extended by defining new functions and registering them with the tool system.
+# USER
 
-### Safe shell commands
+Do something
 
-Greger automatically generates descriptive text for safe shell commands that don't require user confirmation. When you define safe commands in a system section:
+# THINKING
 
-```markdown
-## SYSTEM:
+The user wants me to do something.
 
-<safe-shell-commands>
-bash script/package-lint
-bash script/test --verbose
-bash script/test --verbose --file test/test-parser.el
-</safe-shell-commands>
+# ASSISTANT
+
+I'll do something for you.
+
+# TOOL USE
+
+Name: read-file
+ID: toolu_999
+
+## path
+
+<tool.toolu_999>
+test.txt
+</tool.toolu_999>
+
+# TOOL RESULT
+
+ID: toolu_123
+
+<tool.toolu_123>
+Hello, world!
+</tool.toolu_123>
+
+# ASSISTANT
+
+The file contains: Hello, world!
 ```
 
-The parser automatically generates this system prompt:
+Font-lock is used to hide a few things (e.g. thinking signatures) but they're still there in the file if you `cat` the file.
 
-```
-You can run arbitrary shell commands with the shell-command tool, but the following are safe shell commands that will run without requiring user confirmation:
+This means that **anything in the chat can be edited as text**. You can yank any part of the conversation, undo steps, modify assistant responses, etc.
 
-* `bash script/package-lint`
-* `bash script/test --verbose`
-* `bash script/test --verbose --file test/test-parser.el`
-```
+It also means that you can share and let others continue or modify it.
+
+### Tool use
+
+Greger is able to use tools to edit files, run shell commands, search the web, etc. The full set of bundled tools is documented below. You can also give Greger your own custom tools (also documented below).
+
+### All changes tracked in Git
+
+It's easy to get lost when an agent is editing multiple files in quick succession. Or if you're afk while the agent does your work for you.
+
+Therefore Greger commits every change to Git. It means that the Git history can contain lots of commits for relatively minor changes, but it does give you the ability to revert to any previous state.
+
+Branching is your friend here -- create a new branch for every new Greger session and keep your pieces of work separate. GitHub lets you squash PRs automatically, which also helps declutter the history.
+
+[Magit](https://magit.vc/) is magic, and makes it really easy to navigate through agent commits.
+
+### Claude caching
+
+Greger automatically uses [prompt caching](https://www.anthropic.com/news/prompt-caching). In agentic settings this can save tons of money.
 
 ### Available models
 
@@ -100,33 +138,239 @@ Greger supports the latest Claude models:
 - **claude-sonnet-4-20250514**
 - **claude-opus-4-20250514**
 
-## Development
+Claude is the only supported model provider at the moment. Others could be added, but right now Claude is the best code LLM.
 
-### Running Tests
+## Included tools
 
-The project includes comprehensive ERT tests for all major components. Use the test script to run them:
+Greger comes with a "standard library" of tools. These are the included tools:
 
-```bash
-# Run all tests
-./script/test
+### Editing tools
 
-# Run tests for a specific file
-./script/test -f test-greger-parser.el
+#### `read-file`
 
-# Run tests with verbose output
-./script/test --verbose
+Read the contents of a file from the filesystem.
 
-# Show help
-./script/test --help
+**Parameters:**
+- `path` (required): Path to the file to read
+- `include-line-numbers` (optional): Whether to include line numbers in the output. Useful when you plan to modify the file
+- `start-line` (optional): Starting line number (1-based) to begin reading from
+- `end-line` (optional): Ending line number (1-based) to stop reading at (inclusive)
+
+#### `write-new-file`
+
+Write a new file with the given contents. Fails if the file already exists.
+
+**Parameters:**
+- `path` (required): Absolute path to the new file
+- `contents` (required): Contents to write to the new file
+- `git-commit-message` (required): Git commit message for this change
+
+#### `replace-file`
+
+Replace the entire contents of an existing file. Slow but reliable - replaces the complete file contents. Use `str-replace` for targeted changes in larger files.
+
+**Parameters:**
+- `path` (required): Path to the file to replace
+- `contents` (required): New contents to replace the entire file
+- `git-commit-message` (required): Git commit message for this change
+
+#### `str-replace`
+
+This is the real work horse of agentic editing.
+
+Replace a specific string or content block in a file with new content. Finds the exact original content and replaces it with new content. Be extra careful to format the original-content exactly correctly, taking extra care with whitespace and newlines. In addition to replacing strings, str-replace can also be used to prepend, append, or delete contents from a file.
+
+**Parameters:**
+- `path` (required): Path to the file to modify
+- `original-content` (required): The exact content to find and replace
+- `new-content` (required): The new content to replace the original content with
+- `git-commit-message` (required): Git commit message for this change
+- `replace-all` (optional): If true, replace all instances of original-content. If false (default), replace only the first instance
+
+### Filesystem tools
+
+#### `make-directory`
+
+Recursively create a directory and all parent directories if they don't exist.
+
+**Parameters:**
+- `path` (required): Path to the directory to create
+- `git-commit-message` (required): Git commit message for this change
+
+#### `rename-file`
+
+Rename or move a file from one path to another.
+
+**Parameters:**
+- `old-path` (required): Current path of the file
+- `new-path` (required): New path for the file
+- `git-commit-message` (required): Git commit message for this change
+
+#### `delete-files`
+
+Delete files and if they're tracked in git, stage the deletion and commit.
+
+**Parameters:**
+- `paths` (required): List of file paths to delete
+- `git-commit-message` (required): Git commit message for this change
+
+#### `list-directory`
+
+List files and directories in a given directory.
+
+**Parameters:**
+- `path` (optional): Path to the directory to list. Defaults to current directory
+- `exclude-directories-recursive` (optional): List of directory names to exclude when recursively listing files. Defaults to [".git", "__pycache__"]
+- `recursive` (optional): Whether to list files recursively
+
+### File search tools
+
+#### `ripgrep`
+
+Search for patterns in files using ripgrep (rg) command line tool. Note that ripgrep only matches on single lines, so you can't search across multiple lines.
+
+If [Ripgrep](https://github.com/BurntSushi/ripgrep) isn't installed, just tell Greger to install it.
+
+**Parameters:**
+- `pattern` (required): The search pattern (regex or literal string). Uses regular expression syntax by default. Meta characters like .(){}*+?[]^$|\\ have special meaning and should be escaped with backslash if you want to match them literally
+- `path` (optional): Directory or file path to search in. Directories are searched recursively. Supports glob patterns and respects .gitignore rules by default. Use '.' for current directory
+- `case-sensitive` (optional): Whether the search should be case-sensitive
+- `file-type` (optional): Restrict search to specific file types using predefined type names. Examples: 'py', 'js', 'md', 'cpp', 'elisp', 'java', 'rust', 'go', 'html', 'css', 'json', 'xml', 'yaml', 'sh', 'sql', 'tex', 'dockerfile'
+- `context-lines` (optional): Number of context lines to show around matches (default: 0)
+- `fixed-strings` (optional): Treat the pattern as a literal string instead of a regular expression
+- `word-regexp` (optional): Only show matches surrounded by word boundaries
+- `line-regexp` (optional): Only show matches where the entire line participates in the match
+- `max-results` (optional): Maximum number of results to return (default: 50)
+
+### Shell tools
+
+#### `shell-command`
+
+Execute an arbitrary shell command and return the output.
+
+**Parameters:**
+- `command` (required): The shell command to execute
+- `working-directory` (optional): Directory to run the command in (default: ".")
+- `timeout` (optional): Timeout in seconds for command execution (default: 600)
+- `enable-environment` (optional): Whether to source shell initialization files (.bashrc, .bash_profile) which may contain secrets and environment variables
+
+If `greger-allow-all-shell-commands` is nil, `shell-command` will prompt for permission before running the command for security.
+
+You can allow-list "safe shell commands" using `<safe-shell-commands>` in the `# SYSTEM` section. For example:
+
+``` markdown
+# SYSTEM
+
+You are a helpful agent
+
+<safe-shell-commands>
+ls -al
+</safe-shell-commands>
+
+# USER
+
+List all files in this directory.
 ```
 
-### Package Linting
+### Web tools
 
-Check code quality with package-lint:
+#### `web_search`
 
-```bash
-bash script/package-lint
+Search the internet and return up-to-date information from web sources. This is a [server-side tool](https://docs.anthropic.com/en/docs/agents-and-tools/tool-use/web-search-tool) with usage limits.
+
+**Parameters:**
+- `query` (required): Search query
+
+#### `read-webpage`
+
+Read webpage content from a URL. Can return either extracted text or raw HTML.
+
+**Parameters:**
+- `url` (required): The URL to read content from
+- `extract-text` (optional): Whether to extract text content or return raw HTML (default: true)
+- `use-highest-readability` (optional): Whether to use eww's aggressive highest readability setting for better text extraction
+
+## Build your own tool
+
+Greger can use any custom tool you want. It takes three simple steps:
+
+1. Write an emacs lisp function that returns some text
+1. Register the tool
+1. Add the tool to `greger-tools`
+
+For example, let's say we want a `file-count-lines` tool. First we write our line counting function (naming doesn't matter):
+
+```elisp
+(defun count-lines-in-file (filename)
+  (with-temp-buffer
+    (insert-file-contents filename)
+    (count-lines (point-min) (point-max))))
 ```
+
+Then we register the tool with `greger-register-tool`:
+
+```elisp
+(greger-register-tool "file-count-lines"
+                      :description "Count the number of lines in a file"
+                      :properties '((path . ((type . "string")
+                                             (description . "Path to file"))))
+                      :required '("path")
+                      :function count-lines-in-file)
+```
+
+There are lots of tool examples in greger-stdlib.el.
+
+Finally, add the tool to 'greger-tools:
+
+```elisp
+(add-to-list 'greger-tools "file-count-lines")
+```
+
+## Customization
+
+The following customization options are available:
+
+### `greger-model`
+- **Type**: choice (from available models)
+- **Default**: `claude-sonnet-4-20250514`
+- **Description**: The currently used model.
+
+### `greger-default-system-prompt`
+- **Type**: string
+- **Default**: `"You are an expert coding agent."`
+- **Description**: Default system prompt used for AI interactions.
+
+### `greger-max-tokens`
+- **Type**: integer
+- **Default**: `32000`
+- **Description**: Maximum number of tokens to generate.
+
+### `greger-thinking-budget`
+- **Type**: integer
+- **Default**: `4096`
+- **Description**: Default budget for thinking (internal reasoning) content, in tokens. Set to 0 to disable thinking entirely.
+
+### `greger-allow-all-shell-commands`
+- **Type**: boolean
+- **Default**: `nil`
+- **Description**: Allow all shell commands to run without permission. May order 4,000 pounds of meat.
+
+### `greger-tools`
+- **Type**: repeat symbol
+- **Default**: `'("read-file" "write-new-file" "replace-file" "str-replace" "make-directory" "rename-file" "delete-files" "list-directory" "ripgrep" "shell-command" "read-webpage")`
+- **Description**: List of tools available to the agent.
+
+### `greger-server-tools`
+- **Type**: repeat symbol
+- **Default**: `'("web_search")`
+- **Description**: List of server tools available to the agent (e.g., web_search).
+
+### `greger-max-iterations`
+- **Type**: integer
+- **Default**: `100`
+- **Description**: Maximum number of agent iterations before stopping.
+
+
 
 ## License
 
