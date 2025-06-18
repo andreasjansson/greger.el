@@ -98,7 +98,11 @@ This ensures the '..' entry has predictable permissions in tests."
       (greger-stdlib--shell-command
        "echo hello world"
        (lambda (output err)
-         (setq result output error err callback-called t)))
+         (setq result output error err callback-called t))
+       "."  ; working-directory
+       nil  ; timeout
+       nil  ; enable-environment
+       nil) ; metadata
 
       ;; Wait for async operation to complete
       (let ((timeout 0))
@@ -126,7 +130,11 @@ This ensures the '..' entry has predictable permissions in tests."
       (greger-stdlib--shell-command
        "echo 'apple\nbanana\ncherry' | grep 'an'"
        (lambda (output err)
-         (setq result output error err callback-called t)))
+         (setq result output error err callback-called t))
+       "."  ; working-directory
+       nil  ; timeout
+       nil  ; enable-environment
+       nil) ; metadata
 
       ;; Wait for async operation to complete
       (let ((timeout 0))
@@ -150,9 +158,10 @@ This ensures the '..' entry has predictable permissions in tests."
      (greger-stdlib--shell-command
       "echo test"
       (lambda (output err) nil)  ; callback shouldn't be called
-      nil
-      nil
-      '(:allow-all-shell-commands nil))
+      "."  ; working-directory
+      nil  ; timeout
+      nil  ; enable-environment
+      '(:allow-all-shell-commands nil)) ; metadata
      :type 'error)))
 
 (ert-deftest greger-stdlib-test-shell-command-command-failure ()
@@ -168,7 +177,11 @@ This ensures the '..' entry has predictable permissions in tests."
       (greger-stdlib--shell-command
        "false"  ; Command that always exits with code 1
        (lambda (output err)
-         (setq result output error err callback-called t)))
+         (setq result output error err callback-called t))
+       "."  ; working-directory
+       nil  ; timeout
+       nil  ; enable-environment
+       nil) ; metadata
 
       ;; Wait for async operation to complete
       (let ((timeout 0))
@@ -205,6 +218,7 @@ This ensures the '..' entry has predictable permissions in tests."
            (setq result output error err callback-called t))
          "."  ; working directory
          nil  ; timeout (use default)
+         nil  ; enable-environment
          metadata)
 
         ;; Wait for async operation to complete
@@ -245,6 +259,7 @@ This ensures the '..' entry has predictable permissions in tests."
            (setq result output error err callback-called t))
          "."  ; working directory
          nil  ; timeout (use default)
+         nil  ; enable-environment
          metadata)
 
         ;; Wait for async operation to complete
@@ -277,7 +292,8 @@ This ensures the '..' entry has predictable permissions in tests."
          (setq result output error err callback-called t))
        "."  ; working directory
        10   ; timeout 10 seconds
-       nil) ; metadata
+       nil  ; enable-environment
+       nil) ; metadata ; metadata
 
       ;; Wait for async operation to complete
       (let ((timeout 0))
@@ -308,7 +324,8 @@ This ensures the '..' entry has predictable permissions in tests."
          (setq result output error err callback-called t))
        "."  ; working directory
        1    ; timeout 1 second
-       nil) ; metadata
+       nil  ; enable-environment
+       nil) ; metadata ; metadata
 
       ;; Wait for timeout to occur
       (let ((timeout 0))
@@ -338,7 +355,8 @@ This ensures the '..' entry has predictable permissions in tests."
          (setq result output error err callback-called t))
        "."  ; working directory
        nil  ; timeout (use default)
-       nil) ; metadata
+       nil  ; enable-environment
+       nil) ; metadata ; metadata
 
       ;; Wait for async operation to complete
       (let ((timeout 0))
@@ -369,7 +387,8 @@ This ensures the '..' entry has predictable permissions in tests."
          (setq result output error err callback-called t))
        "."  ; working directory
        nil  ; timeout (should default to 600)
-       nil) ; metadata
+       nil  ; enable-environment
+       nil) ; metadata ; metadata
 
       ;; Wait for async operation to complete
       (let ((timeout 0))
@@ -383,6 +402,67 @@ This ensures the '..' entry has predictable permissions in tests."
       (should (stringp result))
       (should (string-match "Command executed successfully" result))
       (should (string-match "default timeout test" result)))))
+
+(ert-deftest greger-stdlib-test-shell-command-environment-access ()
+  "Test shell-command with enable-environment loads bash initialization files."
+  (let ((result-without-env nil)
+        (result-with-env nil)
+        (error nil)
+        (callback-called nil))
+
+    ;; Mock the permission prompt to always return yes
+    (cl-letf (((symbol-function 'y-or-n-p) (lambda (prompt) t)))
+
+      ;; Test WITHOUT enable-environment - PS1 should be unset or minimal
+      (greger-stdlib--shell-command
+       "echo \"PS1 is: [$PS1]\""
+       (lambda (output err)
+         (setq result-without-env output error err callback-called t))
+       "."  ; working directory
+       nil  ; timeout
+       nil  ; enable-environment = nil
+       nil) ; metadata
+
+      ;; Wait for async operation to complete
+      (let ((timeout-count 0))
+        (while (and (not callback-called) (< timeout-count 100))
+          (sleep-for 0.1)
+          (setq timeout-count (1+ timeout-count))))
+
+      (should callback-called)
+      (should (null error))
+      (should (stringp result-without-env))
+
+      ;; Reset for next test
+      (setq callback-called nil error nil)
+
+      ;; Test WITH enable-environment - PS1 should be set from .bashrc
+      (greger-stdlib--shell-command
+       "echo \"PS1 is: [$PS1]\""
+       (lambda (output err)
+         (setq result-with-env output error err callback-called t))
+       "."  ; working directory
+       nil  ; timeout
+       t    ; enable-environment = t
+       nil) ; metadata
+
+      ;; Wait for async operation to complete
+      (let ((timeout-count 0))
+        (while (and (not callback-called) (< timeout-count 100))
+          (sleep-for 0.1)
+          (setq timeout-count (1+ timeout-count))))
+
+      (should callback-called)
+      (should (null error))
+      (should (stringp result-with-env))
+
+      ;; The key test: verify specific PS1 behavior
+      ;; Non-interactive (without env) should have empty PS1
+      (should (string-match "PS1 is: \\[\\]" result-without-env))
+
+      ;; Interactive (with env) should have PS1 set to some value from .bashrc
+      (should-not (string-match "PS1 is: \\[\\]" result-with-env))
+      (should (string-match "PS1 is: \\[.+\\]" result-with-env)))))
 
 (ert-deftest greger-stdlib-test-count-paren-balance ()
   "Test the paren balance counting function."
