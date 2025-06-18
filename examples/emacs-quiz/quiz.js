@@ -312,8 +312,10 @@ class EmacsLispQuiz {
         this.state.screen = 'results';
         this.state.totalTime = Date.now() - this.startTime;
         
-        const accuracy = Math.round((this.score > 0 ? 
-            (this.state.answeredQuestions.filter(q => q.correct).length / this.questions.length) * 100 : 0));
+        // Calculate accuracy based on answered questions vs total questions
+        const correctAnswers = this.state.answeredQuestions.filter(q => q.correct).length;
+        const totalQuestions = this.state.answeredQuestions.length;
+        const accuracy = totalQuestions > 0 ? Math.round((correctAnswers / totalQuestions) * 100) : 0;
         
         // Update final stats
         document.getElementById('final-score').textContent = this.score;
