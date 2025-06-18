@@ -1017,10 +1017,10 @@ const QUIZ_QUESTIONS = [
         difficulty: 'advanced',
         question: 'What is the difference between `symbol-value` and `symbol-function`?',
         options: [
-            'symbol-value gets the variable value, symbol-function gets the function definition',
-            'symbol-value is for local symbols, symbol-function is for global symbols',
-            'symbol-value is deprecated',
-            'They are the same function'
+            'symbol-value gets variable, symbol-function gets function',
+            'symbol-value for local, symbol-function for global symbols',
+            'symbol-value is deprecated in modern Emacs versions',
+            'They are equivalent functions with identical behavior'
         ],
         correct: 0,
         explanation: '`symbol-value` accesses the value cell of a symbol (its variable binding), while `symbol-function` accesses the function cell (its function definition).',
