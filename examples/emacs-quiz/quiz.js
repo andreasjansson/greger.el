@@ -212,9 +212,14 @@ class EmacsLispQuiz {
         // Show feedback
         this.showFeedback(isCorrect, question);
         
-        // Disable options
-        document.querySelectorAll('.option').forEach(opt => {
+        // Hide submit button and disable options
+        document.getElementById('submit-answer').style.display = 'none';
+        document.querySelectorAll('.option').forEach((opt, index) => {
             opt.style.pointerEvents = 'none';
+            // Gray out options that weren't selected
+            if (index !== this.selectedAnswer) {
+                opt.style.opacity = '0.5';
+            }
         });
         
         this.updateStats();
