@@ -1,4 +1,4 @@
-;;; greger.el --- Agentic coding in Emacs -*- lexical-binding: t -*-
+;;; greger.el --- Agentic coding with tool use -*- lexical-binding: t -*-
 
 ;; Copyright (C) 2025 Andreas Jansson
 
