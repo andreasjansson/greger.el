@@ -881,12 +881,14 @@ For Emacs Lisp files (.el), checks that parentheses balance is maintained."
                          "")))
         (format "Successfully replaced content in %s%s. %s" expanded-path count-msg git-result)))))
 
-(defun greger-stdlib--shell-command (command callback &optional working-directory timeout metadata)
+(defun greger-stdlib--shell-command (command callback &optional working-directory timeout metadata enable-environment)
   "Execute COMMAND in WORKING-DIRECTORY and call CALLBACK with (result error).
 Prompts for permission before running the command for security.
 If METADATA contains safe-shell-commands and COMMAND is in that list, skips
 permission prompt.
 TIMEOUT specifies the maximum time in seconds to wait for command completion (default 600).
+ENABLE-ENVIRONMENT, if non-nil, sources shell initialization files (.bashrc, .bash_profile)
+which may contain secrets and environment variables. User will be warned in permission prompt.
 Returns a cancel function that can interrupt the command execution."
   (greger-stdlib--assert-arg-string "command" command :min-length 1)
   (when working-directory
@@ -903,22 +905,37 @@ Returns a cancel function that can interrupt the command execution."
       (error "Working directory path is not a directory: %s" expanded-work-dir))
     (when (and (not allow-all-shell-commands)
                (not (member command safe-commands))
-               (not (y-or-n-p (format "Execute shell command: '%s' in directory '%s'? "
-                                      command expanded-work-dir))))
+               (not (y-or-n-p (format "Execute shell command: '%s' in directory '%s'%s? "
+                                      command
+                                      expanded-work-dir
+                                      (if enable-environment
+                                          " (with full environment including secrets)"
+                                        "")))))
       (error "Shell command execution cancelled by user"))
 
-    (greger-stdlib--run-async-subprocess
-     :command "bash"
-     :args (list "-c" command)
-     :working-directory expanded-work-dir
-     :callback (lambda (output error)
-                 (if error
-                     (funcall callback nil error)
-                   (funcall callback
-                            (format "Command executed successfully:\n%s" output)
-                            nil)))
-     :timeout timeout
-     :env '(("PAGER" . "cat")))))
+    (let* ((bash-args (if enable-environment
+                          ;; Interactive login shell to source .bash_profile and .bashrc
+                          (list "-i" "-l" "-c" command)
+                        ;; Non-interactive shell (current behavior)
+                        (list "-c" command)))
+           (base-env '(("PAGER" . "cat")))
+           (shell-env (if enable-environment
+                          ;; When enabling environment, don't override with minimal env
+                          base-env
+                        base-env)))
+
+      (greger-stdlib--run-async-subprocess
+       :command "bash"
+       :args bash-args
+       :working-directory expanded-work-dir
+       :callback (lambda (output error)
+                   (if error
+                       (funcall callback nil error)
+                     (funcall callback
+                              (format "Command executed successfully:\n%s" output)
+                              nil)))
+       :timeout timeout
+       :env shell-env))))
 
 (defun greger-stdlib--ripgrep (pattern path callback case-sensitive file-type
                                        context-lines fixed-strings word-regexp
