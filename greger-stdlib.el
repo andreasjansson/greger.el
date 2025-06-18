@@ -197,8 +197,8 @@
                                                 (description . "Timeout in seconds for command execution")
                                                 (default . 600)))
                                     (enable-environment . ((type . "boolean")
-                                                          (description . "Whether to source shell initialization files (.bashrc, .bash_profile) which may contain secrets and environment variables")
-                                                          (default . nil))))
+                                                           (description . "Whether to source shell initialization files (.bashrc, .bash_profile) which may contain secrets and environment variables")
+                                                           (default . nil))))
                       :required '("command")
                       :function 'greger-stdlib--shell-command
                       :pass-callback t
