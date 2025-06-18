@@ -38,7 +38,12 @@ class EmacsLispQuiz {
         this.showScreen(this.state.screen);
         
         if (this.state.screen === 'quiz') {
-            this.displayQuestion();
+            // If current question was already answered, show feedback
+            if (this.state.questionAnswered) {
+                this.displayQuestionWithFeedback();
+            } else {
+                this.displayQuestion();
+            }
             this.updateStats();
         }
     }
