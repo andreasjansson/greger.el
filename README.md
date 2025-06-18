@@ -228,6 +228,8 @@ Replace the entire contents of an existing file. Slow but reliable - replaces th
 
 #### `str-replace`
 
+![screenshot-20250618-155332.png](assets/screenshot-20250618-155332.png)
+
 This is the real work horse of agentic editing.
 
 Replace a specific string or content block in a file with new content. Finds the exact original content and replaces it with new content. Be extra careful to format the original-content exactly correctly, taking extra care with whitespace and newlines. In addition to replacing strings, str-replace can also be used to prepend, append, or delete contents from a file.
@@ -298,6 +300,8 @@ If [Ripgrep](https://github.com/BurntSushi/ripgrep) isn't installed, just tell G
 
 #### `shell-command`
 
+![screenshot-20250618-155502.png](assets/screenshot-20250618-155502.png)
+
 Execute an arbitrary shell command and return the output.
 
 **Parameters:**
@@ -327,6 +331,8 @@ List all files in this directory.
 ### Web tools
 
 #### `web_search`
+
+![screenshot-20250618-155601.png](assets/screenshot-20250618-155601.png)
 
 Search the internet and return up-to-date information from web sources. This is a [server-side tool](https://docs.anthropic.com/en/docs/agents-and-tools/tool-use/web-search-tool) with usage limits.
 
