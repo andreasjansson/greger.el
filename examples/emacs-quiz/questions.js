@@ -1497,9 +1497,9 @@ const QUIZ_QUESTIONS = [
         difficulty: 'advanced',
         question: 'What is the significance of the `lexical-binding` file-local variable?',
         options: [
-            'It enables lexical scoping for the entire file',
-            'It binds lexical variables',
-            'It enables syntax highlighting',
+            'It enables lexical scoping for entire file',
+            'It binds lexical variables automatically',
+            'It enables advanced syntax highlighting',
             'It enables compilation optimizations'
         ],
         correct: 0,
