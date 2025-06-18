@@ -610,6 +610,14 @@ class EmacsLispQuiz {
         `;
         resultsContainer.insertBefore(sharedBanner, resultsContainer.firstChild);
         
+        // Hide share results button and update restart button text for shared results
+        document.getElementById('share-results').style.display = 'none';
+        document.getElementById('restart-quiz').textContent = 'Take Quiz';
+        
+        // Mark as shared results for restart handling
+        this.isSharedResults = true;
+        this.sharedTestMode = data.testMode;
+        
         // Show results screen
         this.showScreen('results');
     }
