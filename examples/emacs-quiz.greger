@@ -5381,5 +5381,71 @@ Set questionAnswered flag when submitting answer
 ID: toolu_017sUc1E1TDH99FvVnRguJLG
 
 <tool.toolu_017sUc1E1TDH99FvVnRguJLG>
-Loading...
+Successfully replaced content in /Users/andreas/projects/greger.el/examples/emacs-quiz/quiz.js. Successfully staged 2 file(s) and committed with message: Set questionAnswered flag when submitting answer
 </tool.toolu_017sUc1E1TDH99FvVnRguJLG>
+
+# TOOL USE
+
+Name: str-replace
+ID: toolu_01Qun9sJ5ZWGfsqfNj2S2VWG
+
+## path
+
+<tool.toolu_01Qun9sJ5ZWGfsqfNj2S2VWG>
+./emacs-quiz/quiz.js
+</tool.toolu_01Qun9sJ5ZWGfsqfNj2S2VWG>
+
+## original-content
+
+<tool.toolu_01Qun9sJ5ZWGfsqfNj2S2VWG>
+    nextQuestion() {
+        // Hide feedback section
+        document.getElementById('feedback-section').classList.add('hidden');
+        
+        // Move to next question or show results
+        this.currentQuestionIndex++;
+        
+        if (this.currentQuestionIndex >= this.questions.length) {
+            this.showResults();
+        } else {
+            this.questionStartTime = Date.now();
+            this.displayQuestion();
+        }
+    }
+</tool.toolu_01Qun9sJ5ZWGfsqfNj2S2VWG>
+
+## new-content
+
+<tool.toolu_01Qun9sJ5ZWGfsqfNj2S2VWG>
+    nextQuestion() {
+        // Hide feedback section
+        document.getElementById('feedback-section').classList.add('hidden');
+        
+        // Clear question answered flag
+        this.state.questionAnswered = false;
+        
+        // Move to next question or show results
+        this.currentQuestionIndex++;
+        
+        if (this.currentQuestionIndex >= this.questions.length) {
+            this.showResults();
+        } else {
+            this.questionStartTime = Date.now();
+            this.displayQuestion();
+        }
+    }
+</tool.toolu_01Qun9sJ5ZWGfsqfNj2S2VWG>
+
+## git-commit-message
+
+<tool.toolu_01Qun9sJ5ZWGfsqfNj2S2VWG>
+Clear questionAnswered flag when moving to next question
+</tool.toolu_01Qun9sJ5ZWGfsqfNj2S2VWG>
+
+# TOOL RESULT
+
+ID: toolu_01Qun9sJ5ZWGfsqfNj2S2VWG
+
+<tool.toolu_01Qun9sJ5ZWGfsqfNj2S2VWG>
+Loading...
+</tool.toolu_01Qun9sJ5ZWGfsqfNj2S2VWG>
