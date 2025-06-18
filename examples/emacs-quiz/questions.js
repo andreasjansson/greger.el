@@ -1092,10 +1092,10 @@ const QUIZ_QUESTIONS = [
         difficulty: 'advanced',
         question: 'What does the `byte-compile` function do?',
         options: [
-            'Compiles Emacs Lisp to bytecode for faster execution',
-            'Compiles C code to bytecode',
-            'Compiles bytecode to machine code',
-            'Compiles regular expressions'
+            'Compiles Emacs Lisp to faster bytecode',
+            'Compiles C code to portable bytecode',
+            'Compiles bytecode to native machine code',
+            'Compiles regular expressions to bytecode'
         ],
         correct: 0,
         explanation: '`byte-compile` compiles Emacs Lisp code to bytecode, which executes faster than interpreted Lisp code.',
