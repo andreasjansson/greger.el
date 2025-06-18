@@ -4097,5 +4097,61 @@ Add live timer that ticks every second during quiz
 ID: toolu_015eg5hu1sgu5EkoCeLtBrAd
 
 <tool.toolu_015eg5hu1sgu5EkoCeLtBrAd>
-Loading...
+Successfully replaced content in /Users/andreas/projects/greger.el/examples/emacs-quiz/quiz.js. Successfully staged 2 file(s) and committed with message: Add live timer that ticks every second during quiz
 </tool.toolu_015eg5hu1sgu5EkoCeLtBrAd>
+
+# TOOL USE
+
+Name: str-replace
+ID: toolu_01Dz9xz3qJosF6XBXBNcqusp
+
+## path
+
+<tool.toolu_01Dz9xz3qJosF6XBXBNcqusp>
+./emacs-quiz/quiz.js
+</tool.toolu_01Dz9xz3qJosF6XBXBNcqusp>
+
+## original-content
+
+<tool.toolu_01Dz9xz3qJosF6XBXBNcqusp>
+    updateStats() {
+        document.getElementById('current-score').textContent = this.score;
+        document.getElementById('current-streak').textContent = this.streak;
+        
+        if (this.startTime) {
+            const elapsed = Date.now() - this.startTime;
+            document.getElementById('current-time').textContent = this.formatTime(elapsed);
+        }
+    }
+</tool.toolu_01Dz9xz3qJosF6XBXBNcqusp>
+
+## new-content
+
+<tool.toolu_01Dz9xz3qJosF6XBXBNcqusp>
+    updateStats() {
+        document.getElementById('current-score').textContent = this.score;
+        document.getElementById('current-streak').textContent = this.streak;
+        this.updateTimer();
+    }
+    
+    updateTimer() {
+        if (this.startTime) {
+            const elapsed = Date.now() - this.startTime;
+            document.getElementById('current-time').textContent = this.formatTime(elapsed);
+        }
+    }
+</tool.toolu_01Dz9xz3qJosF6XBXBNcqusp>
+
+## git-commit-message
+
+<tool.toolu_01Dz9xz3qJosF6XBXBNcqusp>
+Extract timer update logic to separate method for live updates
+</tool.toolu_01Dz9xz3qJosF6XBXBNcqusp>
+
+# TOOL RESULT
+
+ID: toolu_01Dz9xz3qJosF6XBXBNcqusp
+
+<tool.toolu_01Dz9xz3qJosF6XBXBNcqusp>
+Loading...
+</tool.toolu_01Dz9xz3qJosF6XBXBNcqusp>
