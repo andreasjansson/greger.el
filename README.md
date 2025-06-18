@@ -413,7 +413,7 @@ The following customization options are available:
 ### `greger-allow-all-shell-commands`
 - **Type**: boolean
 - **Default**: `nil`
-- **Description**: Allow all shell commands to run without permission. May order 4,000 pounds of meat.
+- **Description**: Allow all shell commands to run without permission. [May order 4,000 pounds of meat.](https://www.youtube.com/watch?v=m0b_D2JgZgY&t=74s)
 
 ### `greger-tools`
 - **Type**: repeat symbol
