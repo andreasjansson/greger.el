@@ -355,10 +355,10 @@ const QUIZ_QUESTIONS = [
         difficulty: 'intermediate',
         question: 'What is the difference between `let` and `let*`?',
         options: [
-            'let* is more efficient than let',
-            'let* allows sequential binding where later bindings can refer to earlier ones',
-            'let* is the deprecated version of let',
-            'let* creates global bindings while let creates local ones'
+            'let* has better performance characteristics',
+            'let* allows sequential variable binding',
+            'let* is the deprecated legacy version',
+            'let* creates global instead of local scope'
         ],
         correct: 1,
         explanation: 'In `let*`, variables are bound sequentially, so later bindings can refer to earlier ones. In `let`, all variables are bound simultaneously.',
