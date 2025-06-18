@@ -563,43 +563,49 @@ class EmacsLispQuiz {
     }
     
     displaySharedResults(data) {
-        // Show a modal or section with shared results
-        const message = `
-            🎉 Someone scored ${data.score} points with ${data.accuracy}% accuracy 
-            in ${this.formatTime(data.time)} on the ${data.testMode ? 'test' : 'full'} 
-            Emacs Lisp quiz! Can you beat their score?
-        `;
+        // Set up the results screen with shared data
+        this.state.screen = 'results';
+        this.score = data.score;
+        this.maxStreak = data.maxStreak;
+        this.state.totalTime = data.time;
         
-        // Create a temporary notification
-        const notification = document.createElement('div');
-        notification.className = 'shared-results-notification';
-        notification.style.cssText = `
-            position: fixed;
-            top: 20px;
-            right: 20px;
-            background: var(--bg-secondary);
-            color: var(--text-primary);
+        // Create mock answered questions for accuracy calculation
+        const correctCount = Math.round((data.accuracy / 100) * data.questionsCount);
+        this.state.answeredQuestions = Array.from({ length: data.questionsCount }, (_, i) => ({
+            questionId: i + 1,
+            correct: i < correctCount
+        }));
+        
+        // Update final stats
+        document.getElementById('final-score').textContent = this.score;
+        document.getElementById('final-accuracy').textContent = `${data.accuracy}%`;
+        document.getElementById('final-time').textContent = this.formatTime(this.state.totalTime);
+        document.getElementById('max-streak').textContent = this.maxStreak;
+        
+        // Update performance message
+        this.updatePerformanceMessage(data.accuracy);
+        
+        // Add a banner to indicate these are shared results
+        const resultsContainer = document.querySelector('.results-container');
+        const sharedBanner = document.createElement('div');
+        sharedBanner.className = 'shared-banner';
+        sharedBanner.style.cssText = `
+            background: var(--gradient-2);
+            color: white;
             padding: 1rem;
             border-radius: 10px;
-            border: 1px solid var(--border);
-            box-shadow: 0 10px 20px var(--shadow);
-            max-width: 300px;
-            z-index: 1001;
-            animation: slideIn 0.3s ease;
+            margin-bottom: 2rem;
+            text-align: center;
+            font-weight: 600;
         `;
-        notification.innerHTML = `
-            <button onclick="this.parentElement.remove()" style="float: right; background: none; border: none; color: var(--text-secondary); cursor: pointer;">&times;</button>
-            <p style="margin: 0; font-size: 0.9rem;">${message}</p>
+        sharedBanner.innerHTML = `
+            🎉 Shared Results from ${data.testMode ? 'Test Mode' : 'Full Quiz'}!<br>
+            <small style="opacity: 0.9;">Can you beat this score? Take the quiz to find out!</small>
         `;
+        resultsContainer.insertBefore(sharedBanner, resultsContainer.firstChild);
         
-        document.body.appendChild(notification);
-        
-        // Auto-remove after 10 seconds
-        setTimeout(() => {
-            if (notification.parentElement) {
-                notification.remove();
-            }
-        }, 10000);
+        // Show results screen
+        this.showScreen('results');
     }
 }
 

@@ -5810,5 +5810,214 @@ Initialize questionAnswered flag in state object
 ID: toolu_01LHYDp6i36YRNnLggvmUXEo
 
 <tool.toolu_01LHYDp6i36YRNnLggvmUXEo>
-Loading...
+Successfully replaced content in /Users/andreas/projects/greger.el/examples/emacs-quiz/quiz.js. Successfully staged 2 file(s) and committed with message: Initialize questionAnswered flag in state object
 </tool.toolu_01LHYDp6i36YRNnLggvmUXEo>
+
+# ASSISTANT
+
+Perfect! ✅ I've fixed both issues:
+
+## **1. Fixed Refresh Issue**
+- Added a `questionAnswered` flag to track when a question has been submitted
+- When the page is refreshed after submitting an answer, the app now:
+  - Detects the question was already answered
+  - Shows the question with feedback already displayed
+  - Grays out unselected options and highlights correct/incorrect answers
+  - Shows the "Next Question" button instead of "Submit Answer"
+
+## **2. Fixed Accuracy Calculation Bug**
+- **Before**: Used `this.questions.length` (total possible questions)
+- **After**: Uses `this.state.answeredQuestions.length` (actual answered questions)
+
+This fixes the 133% accuracy issue because:
+- If you answered 4 out of 3 test questions correctly (due to re-answering), it was calculating 4/3 = 133%
+- Now it correctly calculates based on actual attempts
+
+## **How It Works Now**
+1. **Answer a question** → Sets `questionAnswered = true` and saves state
+2. **Refresh page** → Loads state, detects question was answered, shows it with feedback
+3. **Click "Next Question"** → Clears `questionAnswered = false` and moves forward
+4. **Final accuracy** → Based on actual answered questions, not total possible
+
+No more duplicate answers or impossible accuracy percentages! 🎯✨
+
+# USER
+
+The share link doesn't seem to work. When I copy it and open it in the browser it takes me back to the start page
+
+# THINKING
+
+Signature: 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
+
+The user is saying the share link doesn't work - when they copy and open it, it goes back to the start page. Looking at the code, I can see that there's a `checkSharedResults()` method that's supposed to handle shared results from the URL, but let me check if it's actually being called and working properly.
+
+Looking at the `checkSharedResults()` method:
+
+```javascript
+checkSharedResults() {
+    const urlParams = new URLSearchParams(window.location.search);
+    const resultsData = urlParams.get('results');
+    
+    if (resultsData) {
+        try {
+            const data = JSON.parse(atob(resultsData));
+            this.displaySharedResults(data);
+        } catch (err) {
+            console.error('Failed to parse shared results:', err);
+        }
+    }
+}
+```
+
+And it's being called in the DOMContentLoaded event:
+
+```javascript
+setTimeout(() => {
+    quiz.checkSharedResults();
+}, 1000);
+```
+
+The issue might be that the `checkSharedResults()` method only displays a notification, but doesn't actually do anything special with the shared results - it just shows a notification and the user still sees the start page. 
+
+Looking at `displaySharedResults()`:
+
+```javascript
+displaySharedResults(data) {
+    // Show a modal or section with shared results
+    const message = `
+        🎉 Someone scored ${data.score} points with ${data.accuracy}% accuracy 
+        in ${this.formatTime(data.time)} on the ${data.testMode ? 'test' : 'full'} 
+        Emacs Lisp quiz! Can you beat their score?
+    `;
+    
+    // Create a temporary notification
+    // ... creates notification that auto-removes after 10 seconds
+}
+```
+
+So the issue is that the shared results only show a notification, but the user still sees the normal start page. 
+
+I'll need to update the method to directly load the results screen with the shared data, bypassing the initial start page entirely. This means modifying the `displaySharedResults()` method to switch the entire view to a results display mode, using the decoded shared data to populate the results screen.
+
+# ASSISTANT
+
+You're right! The share link currently only shows a small notification but doesn't actually display the shared results properly. Let me fix this so it shows the actual results screen with the shared data.
+
+# TOOL USE
+
+Name: str-replace
+ID: toolu_015Kvij6boGQnkTkU8bsnBP6
+
+## path
+
+<tool.toolu_015Kvij6boGQnkTkU8bsnBP6>
+./emacs-quiz/quiz.js
+</tool.toolu_015Kvij6boGQnkTkU8bsnBP6>
+
+## original-content
+
+<tool.toolu_015Kvij6boGQnkTkU8bsnBP6>
+    displaySharedResults(data) {
+        // Show a modal or section with shared results
+        const message = `
+            🎉 Someone scored ${data.score} points with ${data.accuracy}% accuracy 
+            in ${this.formatTime(data.time)} on the ${data.testMode ? 'test' : 'full'} 
+            Emacs Lisp quiz! Can you beat their score?
+        `;
+        
+        // Create a temporary notification
+        const notification = document.createElement('div');
+        notification.className = 'shared-results-notification';
+        notification.style.cssText = `
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            background: var(--bg-secondary);
+            color: var(--text-primary);
+            padding: 1rem;
+            border-radius: 10px;
+            border: 1px solid var(--border);
+            box-shadow: 0 10px 20px var(--shadow);
+            max-width: 300px;
+            z-index: 1001;
+            animation: slideIn 0.3s ease;
+        `;
+        notification.innerHTML = `
+            <button onclick="this.parentElement.remove()" style="float: right; background: none; border: none; color: var(--text-secondary); cursor: pointer;">&times;</button>
+            <p style="margin: 0; font-size: 0.9rem;">${message}</p>
+        `;
+        
+        document.body.appendChild(notification);
+        
+        // Auto-remove after 10 seconds
+        setTimeout(() => {
+            if (notification.parentElement) {
+                notification.remove();
+            }
+        }, 10000);
+    }
+</tool.toolu_015Kvij6boGQnkTkU8bsnBP6>
+
+## new-content
+
+<tool.toolu_015Kvij6boGQnkTkU8bsnBP6>
+    displaySharedResults(data) {
+        // Set up the results screen with shared data
+        this.state.screen = 'results';
+        this.score = data.score;
+        this.maxStreak = data.maxStreak;
+        this.state.totalTime = data.time;
+        
+        // Create mock answered questions for accuracy calculation
+        const correctCount = Math.round((data.accuracy / 100) * data.questionsCount);
+        this.state.answeredQuestions = Array.from({ length: data.questionsCount }, (_, i) => ({
+            questionId: i + 1,
+            correct: i < correctCount
+        }));
+        
+        // Update final stats
+        document.getElementById('final-score').textContent = this.score;
+        document.getElementById('final-accuracy').textContent = `${data.accuracy}%`;
+        document.getElementById('final-time').textContent = this.formatTime(this.state.totalTime);
+        document.getElementById('max-streak').textContent = this.maxStreak;
+        
+        // Update performance message
+        this.updatePerformanceMessage(data.accuracy);
+        
+        // Add a banner to indicate these are shared results
+        const resultsContainer = document.querySelector('.results-container');
+        const sharedBanner = document.createElement('div');
+        sharedBanner.className = 'shared-banner';
+        sharedBanner.style.cssText = `
+            background: var(--gradient-2);
+            color: white;
+            padding: 1rem;
+            border-radius: 10px;
+            margin-bottom: 2rem;
+            text-align: center;
+            font-weight: 600;
+        `;
+        sharedBanner.innerHTML = `
+            🎉 Shared Results from ${data.testMode ? 'Test Mode' : 'Full Quiz'}!<br>
+            <small style="opacity: 0.9;">Can you beat this score? Take the quiz to find out!</small>
+        `;
+        resultsContainer.insertBefore(sharedBanner, resultsContainer.firstChild);
+        
+        // Show results screen
+        this.showScreen('results');
+    }
+</tool.toolu_015Kvij6boGQnkTkU8bsnBP6>
+
+## git-commit-message
+
+<tool.toolu_015Kvij6boGQnkTkU8bsnBP6>
+Display shared results on actual results screen instead of just notification
+</tool.toolu_015Kvij6boGQnkTkU8bsnBP6>
+
+# TOOL RESULT
+
+ID: toolu_015Kvij6boGQnkTkU8bsnBP6
+
+<tool.toolu_015Kvij6boGQnkTkU8bsnBP6>
+Loading...
+</tool.toolu_015Kvij6boGQnkTkU8bsnBP6>
