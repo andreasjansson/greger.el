@@ -372,7 +372,10 @@ class EmacsLispQuiz {
     updateStats() {
         document.getElementById('current-score').textContent = this.score;
         document.getElementById('current-streak').textContent = this.streak;
-        
+        this.updateTimer();
+    }
+    
+    updateTimer() {
         if (this.startTime) {
             const elapsed = Date.now() - this.startTime;
             document.getElementById('current-time').textContent = this.formatTime(elapsed);
