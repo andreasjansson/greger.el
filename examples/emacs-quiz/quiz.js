@@ -480,6 +480,7 @@ class EmacsLispQuiz {
             this.maxStreak = state.maxStreak;
             this.startTime = state.startTime;
             this.state.answeredQuestions = state.answeredQuestions || [];
+            this.state.questionAnswered = state.questionAnswered || false;
             
             // Validate state
             if (this.currentQuestionIndex >= this.questions.length) {
