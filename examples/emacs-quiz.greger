@@ -6397,5 +6397,56 @@ Add flags to track shared results state
 ID: toolu_01Mhkp2PnWFXzfx9eSxoQdYF
 
 <tool.toolu_01Mhkp2PnWFXzfx9eSxoQdYF>
-Loading...
+Successfully replaced content in /Users/andreas/projects/greger.el/examples/emacs-quiz/quiz.js. Successfully staged 2 file(s) and committed with message: Add flags to track shared results state
 </tool.toolu_01Mhkp2PnWFXzfx9eSxoQdYF>
+
+# TOOL USE
+
+Name: str-replace
+ID: toolu_01JucnmgVabFDfZyduLBeBuF
+
+## path
+
+<tool.toolu_01JucnmgVabFDfZyduLBeBuF>
+./emacs-quiz/quiz.js
+</tool.toolu_01JucnmgVabFDfZyduLBeBuF>
+
+## original-content
+
+<tool.toolu_01JucnmgVabFDfZyduLBeBuF>
+    restartQuiz() {
+        this.clearState();
+        location.reload();
+    }
+</tool.toolu_01JucnmgVabFDfZyduLBeBuF>
+
+## new-content
+
+<tool.toolu_01JucnmgVabFDfZyduLBeBuF>
+    restartQuiz() {
+        this.clearState();
+        
+        // If restarting from shared results, preserve the test mode and remove shared results params
+        if (this.isSharedResults) {
+            const baseUrl = window.location.origin + window.location.pathname;
+            const newUrl = this.sharedTestMode ? baseUrl + '?test=true' : baseUrl;
+            window.location.href = newUrl;
+        } else {
+            location.reload();
+        }
+    }
+</tool.toolu_01JucnmgVabFDfZyduLBeBuF>
+
+## git-commit-message
+
+<tool.toolu_01JucnmgVabFDfZyduLBeBuF>
+Fix restart quiz functionality for shared results
+</tool.toolu_01JucnmgVabFDfZyduLBeBuF>
+
+# TOOL RESULT
+
+ID: toolu_01JucnmgVabFDfZyduLBeBuF
+
+<tool.toolu_01JucnmgVabFDfZyduLBeBuF>
+Loading...
+</tool.toolu_01JucnmgVabFDfZyduLBeBuF>
