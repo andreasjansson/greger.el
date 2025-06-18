@@ -130,7 +130,11 @@ This ensures the '..' entry has predictable permissions in tests."
       (greger-stdlib--shell-command
        "echo 'apple\nbanana\ncherry' | grep 'an'"
        (lambda (output err)
-         (setq result output error err callback-called t)))
+         (setq result output error err callback-called t))
+       "."  ; working-directory
+       nil  ; timeout
+       nil  ; enable-environment
+       nil) ; metadata
 
       ;; Wait for async operation to complete
       (let ((timeout 0))
