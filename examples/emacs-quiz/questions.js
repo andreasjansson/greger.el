@@ -505,10 +505,10 @@ const QUIZ_QUESTIONS = [
         difficulty: 'intermediate',
         question: 'What is the difference between a function and a macro?',
         options: [
-            'Macros are faster than functions',
-            'Functions evaluate their arguments, macros do not',
-            'Macros can only be called interactively',
-            'Functions are compiled, macros are interpreted'
+            'Macros have superior performance',
+            'Functions evaluate args, macros do not',
+            'Macros only work interactively',
+            'Functions compile, macros interpret'
         ],
         correct: 1,
         explanation: 'Functions evaluate their arguments before being called, while macros receive their arguments unevaluated and can manipulate them as code.',
