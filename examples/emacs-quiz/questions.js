@@ -955,17 +955,17 @@ const QUIZ_QUESTIONS = [
     {
         id: 64,
         difficulty: 'advanced',
-        question: 'What is the difference between `defmacro` and `defun`?',
+        question: 'What does the `with-temp-buffer` macro do?',
         options: [
-            'defmacro creates functions that run at compile time',
-            'defmacro creates code transformations that expand at compile time',
-            'defmacro is faster than defun',
-            'defmacro is only for mathematical functions'
+            'Creates a temporary buffer for operations',
+            'Temporarily switches buffer focus',
+            'Creates a backup buffer copy',
+            'Temporarily disables buffer saving'
         ],
-        correct: 1,
-        explanation: '`defmacro` defines macros that are code transformations expanded at compile time, while `defun` defines functions that are called at runtime.',
-        reference: 'GNU Emacs Lisp Reference Manual - Defining Macros',
-        referenceUrl: 'https://www.gnu.org/software/emacs/manual/html_node/elisp/Defining-Macros.html'
+        correct: 0,
+        explanation: '`with-temp-buffer` creates a temporary buffer, executes code in it, then automatically kills the buffer when done. Useful for string processing and temporary operations.',
+        reference: 'GNU Emacs Lisp Reference Manual - Current Buffer',
+        referenceUrl: 'https://www.gnu.org/software/emacs/manual/html_node/elisp/Current-Buffer.html'
     },
     {
         id: 65,
