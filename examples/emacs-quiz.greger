@@ -5573,5 +5573,80 @@ Add method to display question with feedback when restoring answered state
 ID: toolu_01PP72ZQtafZprFv7Q8PE3nt
 
 <tool.toolu_01PP72ZQtafZprFv7Q8PE3nt>
-Loading...
+Successfully replaced content in /Users/andreas/projects/greger.el/examples/emacs-quiz/quiz.js. Successfully staged 2 file(s) and committed with message: Add method to display question with feedback when restoring answered state
 </tool.toolu_01PP72ZQtafZprFv7Q8PE3nt>
+
+# TOOL USE
+
+Name: str-replace
+ID: toolu_01TFjSpx3Y3YXW9w6FXi8FSv
+
+## path
+
+<tool.toolu_01TFjSpx3Y3YXW9w6FXi8FSv>
+./emacs-quiz/quiz.js
+</tool.toolu_01TFjSpx3Y3YXW9w6FXi8FSv>
+
+## original-content
+
+<tool.toolu_01TFjSpx3Y3YXW9w6FXi8FSv>
+    showResults() {
+        this.state.screen = 'results';
+        this.state.totalTime = Date.now() - this.startTime;
+        
+        const accuracy = Math.round((this.score > 0 ? 
+            (this.state.answeredQuestions.filter(q => q.correct).length / this.questions.length) * 100 : 0));
+        
+        // Update final stats
+        document.getElementById('final-score').textContent = this.score;
+        document.getElementById('final-accuracy').textContent = `${accuracy}%`;
+        document.getElementById('final-time').textContent = this.formatTime(this.state.totalTime);
+        document.getElementById('max-streak').textContent = this.maxStreak;
+        
+        // Update performance message
+        this.updatePerformanceMessage(accuracy);
+        
+        this.showScreen('results');
+        this.clearState(); // Clear saved progress
+    }
+</tool.toolu_01TFjSpx3Y3YXW9w6FXi8FSv>
+
+## new-content
+
+<tool.toolu_01TFjSpx3Y3YXW9w6FXi8FSv>
+    showResults() {
+        this.state.screen = 'results';
+        this.state.totalTime = Date.now() - this.startTime;
+        
+        // Calculate accuracy based on answered questions vs total questions
+        const correctAnswers = this.state.answeredQuestions.filter(q => q.correct).length;
+        const totalQuestions = this.state.answeredQuestions.length;
+        const accuracy = totalQuestions > 0 ? Math.round((correctAnswers / totalQuestions) * 100) : 0;
+        
+        // Update final stats
+        document.getElementById('final-score').textContent = this.score;
+        document.getElementById('final-accuracy').textContent = `${accuracy}%`;
+        document.getElementById('final-time').textContent = this.formatTime(this.state.totalTime);
+        document.getElementById('max-streak').textContent = this.maxStreak;
+        
+        // Update performance message
+        this.updatePerformanceMessage(accuracy);
+        
+        this.showScreen('results');
+        this.clearState(); // Clear saved progress
+    }
+</tool.toolu_01TFjSpx3Y3YXW9w6FXi8FSv>
+
+## git-commit-message
+
+<tool.toolu_01TFjSpx3Y3YXW9w6FXi8FSv>
+Fix accuracy calculation to use actual answered questions instead of total questions
+</tool.toolu_01TFjSpx3Y3YXW9w6FXi8FSv>
+
+# TOOL RESULT
+
+ID: toolu_01TFjSpx3Y3YXW9w6FXi8FSv
+
+<tool.toolu_01TFjSpx3Y3YXW9w6FXi8FSv>
+Loading...
+</tool.toolu_01TFjSpx3Y3YXW9w6FXi8FSv>
