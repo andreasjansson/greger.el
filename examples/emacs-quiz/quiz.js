@@ -401,7 +401,15 @@ class EmacsLispQuiz {
     
     restartQuiz() {
         this.clearState();
-        location.reload();
+        
+        // If restarting from shared results, preserve the test mode and remove shared results params
+        if (this.isSharedResults) {
+            const baseUrl = window.location.origin + window.location.pathname;
+            const newUrl = this.sharedTestMode ? baseUrl + '?test=true' : baseUrl;
+            window.location.href = newUrl;
+        } else {
+            location.reload();
+        }
     }
     
     displayQuestionWithFeedback() {
