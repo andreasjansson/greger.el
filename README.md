@@ -198,7 +198,7 @@ Greger comes with a "standard library" of tools. These are the included tools:
 
 #### `read-file`
 
-![screenshot-20250618-154809.png](/Users/andreas/projects/greger.el/assets/screenshot-20250618-154809.png)
+![screenshot-20250618-154809.png](assets/screenshot-20250618-154809.png)
 
 Read the contents of a file from the filesystem.
 
