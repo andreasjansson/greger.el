@@ -408,17 +408,17 @@ class EmacsLispQuiz {
         
         // Enter to submit
         if (e.key === 'Enter' && this.selectedAnswer !== null) {
-            if (!document.getElementById('feedback-modal').classList.contains('hidden')) {
+            if (!document.getElementById('feedback-section').classList.contains('hidden')) {
                 this.nextQuestion();
             } else {
                 this.submitAnswer();
             }
         }
         
-        // Escape to close modal
+        // Escape to close feedback
         if (e.key === 'Escape') {
-            const modal = document.getElementById('feedback-modal');
-            if (!modal.classList.contains('hidden')) {
+            const feedbackSection = document.getElementById('feedback-section');
+            if (!feedbackSection.classList.contains('hidden')) {
                 this.nextQuestion();
             }
         }
