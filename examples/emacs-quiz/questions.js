@@ -430,10 +430,10 @@ const QUIZ_QUESTIONS = [
         difficulty: 'intermediate',
         question: 'What does the `while` loop do when its condition becomes nil?',
         options: [
-            'It raises an error',
-            'It returns nil and exits the loop',
-            'It continues with the next iteration',
-            'It returns the last evaluated expression'
+            'It raises an error condition',
+            'It returns nil and exits loop',
+            'It continues with next iteration',
+            'It returns last evaluated expression'
         ],
         correct: 1,
         explanation: 'A `while` loop continues executing its body as long as the condition is non-nil. When the condition becomes nil, the loop exits and returns nil.',
