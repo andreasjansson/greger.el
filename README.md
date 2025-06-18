@@ -377,6 +377,14 @@ M-x customize-group
 greger
 ```
 
+## Examples
+
+There are a few examples of Greger chats in the ./examples directory.
+
+## Why "Greger"?
+
+Greger Tragg is a secret cold war agent in The Messenger Must Die by Kjell-Olof Bornemark. He's like a Swedish George Smiley, but he somehow manages to be even more mundane and melancholic and _svårmodig_. The book is a masterpiece.
+
 ## License
 
 MIT
