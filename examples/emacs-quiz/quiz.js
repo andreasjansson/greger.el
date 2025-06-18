@@ -238,10 +238,11 @@ class EmacsLispQuiz {
     }
     
     showFeedback(isCorrect, question) {
-        const modal = document.getElementById('feedback-modal');
+        const feedbackSection = document.getElementById('feedback-section');
         const result = document.getElementById('feedback-result');
         const explanation = document.getElementById('feedback-explanation');
         const reference = document.getElementById('feedback-reference');
+        const nextButton = document.getElementById('next-question');
         
         // Show result
         result.textContent = isCorrect ? '🎉 Correct!' : '❌ Incorrect';
@@ -256,6 +257,10 @@ class EmacsLispQuiz {
             <a href="${question.referenceUrl}" target="_blank">📖 Read more in the manual</a>
         `;
         
+        // Update button text for last question
+        const isLastQuestion = this.currentQuestionIndex >= this.questions.length - 1;
+        nextButton.textContent = isLastQuestion ? 'Finish Quiz' : 'Next Question';
+        
         // Highlight correct answer
         document.querySelectorAll('.option').forEach((opt, index) => {
             if (index === question.correct) {
@@ -265,8 +270,8 @@ class EmacsLispQuiz {
             }
         });
         
-        // Show modal
-        modal.classList.remove('hidden');
+        // Show feedback section
+        feedbackSection.classList.remove('hidden');
     }
     
     nextQuestion() {

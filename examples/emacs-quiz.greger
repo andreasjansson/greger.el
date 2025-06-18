@@ -4441,5 +4441,107 @@ Replace modal styles with inline feedback section styles
 ID: toolu_01FPi8gLFu8tZH9FvgT3FWpP
 
 <tool.toolu_01FPi8gLFu8tZH9FvgT3FWpP>
-Loading...
+Successfully replaced content in /Users/andreas/projects/greger.el/examples/emacs-quiz/style.css. Successfully staged 2 file(s) and committed with message: Replace modal styles with inline feedback section styles
 </tool.toolu_01FPi8gLFu8tZH9FvgT3FWpP>
+
+# TOOL USE
+
+Name: str-replace
+ID: toolu_017y8eJExGvx37XGmLAUnrMy
+
+## path
+
+<tool.toolu_017y8eJExGvx37XGmLAUnrMy>
+./emacs-quiz/quiz.js
+</tool.toolu_017y8eJExGvx37XGmLAUnrMy>
+
+## original-content
+
+<tool.toolu_017y8eJExGvx37XGmLAUnrMy>
+    showFeedback(isCorrect, question) {
+        const modal = document.getElementById('feedback-modal');
+        const result = document.getElementById('feedback-result');
+        const explanation = document.getElementById('feedback-explanation');
+        const reference = document.getElementById('feedback-reference');
+        
+        // Show result
+        result.textContent = isCorrect ? '🎉 Correct!' : '❌ Incorrect';
+        result.className = `feedback-result ${isCorrect ? 'correct' : 'incorrect'}`;
+        
+        // Show explanation
+        explanation.textContent = question.explanation;
+        
+        // Show reference
+        reference.innerHTML = `
+            <strong>Reference:</strong> ${question.reference}<br>
+            <a href="${question.referenceUrl}" target="_blank">📖 Read more in the manual</a>
+        `;
+        
+        // Highlight correct answer
+        document.querySelectorAll('.option').forEach((opt, index) => {
+            if (index === question.correct) {
+                opt.classList.add('correct');
+            } else if (index === this.selectedAnswer && !isCorrect) {
+                opt.classList.add('incorrect');
+            }
+        });
+        
+        // Show modal
+        modal.classList.remove('hidden');
+    }
+</tool.toolu_017y8eJExGvx37XGmLAUnrMy>
+
+## new-content
+
+<tool.toolu_017y8eJExGvx37XGmLAUnrMy>
+    showFeedback(isCorrect, question) {
+        const feedbackSection = document.getElementById('feedback-section');
+        const result = document.getElementById('feedback-result');
+        const explanation = document.getElementById('feedback-explanation');
+        const reference = document.getElementById('feedback-reference');
+        const nextButton = document.getElementById('next-question');
+        
+        // Show result
+        result.textContent = isCorrect ? '🎉 Correct!' : '❌ Incorrect';
+        result.className = `feedback-result ${isCorrect ? 'correct' : 'incorrect'}`;
+        
+        // Show explanation
+        explanation.textContent = question.explanation;
+        
+        // Show reference
+        reference.innerHTML = `
+            <strong>Reference:</strong> ${question.reference}<br>
+            <a href="${question.referenceUrl}" target="_blank">📖 Read more in the manual</a>
+        `;
+        
+        // Update button text for last question
+        const isLastQuestion = this.currentQuestionIndex >= this.questions.length - 1;
+        nextButton.textContent = isLastQuestion ? 'Finish Quiz' : 'Next Question';
+        
+        // Highlight correct answer
+        document.querySelectorAll('.option').forEach((opt, index) => {
+            if (index === question.correct) {
+                opt.classList.add('correct');
+            } else if (index === this.selectedAnswer && !isCorrect) {
+                opt.classList.add('incorrect');
+            }
+        });
+        
+        // Show feedback section
+        feedbackSection.classList.remove('hidden');
+    }
+</tool.toolu_017y8eJExGvx37XGmLAUnrMy>
+
+## git-commit-message
+
+<tool.toolu_017y8eJExGvx37XGmLAUnrMy>
+Update feedback display logic and add dynamic button text for last question
+</tool.toolu_017y8eJExGvx37XGmLAUnrMy>
+
+# TOOL RESULT
+
+ID: toolu_017y8eJExGvx37XGmLAUnrMy
+
+<tool.toolu_017y8eJExGvx37XGmLAUnrMy>
+Loading...
+</tool.toolu_017y8eJExGvx37XGmLAUnrMy>
