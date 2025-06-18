@@ -8,11 +8,11 @@
 
 [![CI](https://github.com/andreasjansson/greger.el/actions/workflows/ci.yml/badge.svg)](https://github.com/andreasjansson/greger.el/actions/workflows/ci.yml) [![Coverage Status](https://coveralls.io/repos/github/andreasjansson/greger.el/badge.svg?branch=main)](https://coveralls.io/github/andreasjansson/greger.el?branch=main)
 
-<img src="assets/greger-icon-logo.png" alt="Greger Agent" width="120" align="right">
-
 Greger is a Claude chat interface with tool use. It can read and edit code, download web pages, run shell commands, etc.
 
-## Table of Contents
+## Table of contents
+
+<img src="assets/greger-icon-logo.png" alt="Greger Agent" width="120" align="right">
 
 - [Installation](#installation)
 - [Usage](#usage)
