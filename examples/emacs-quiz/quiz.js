@@ -552,7 +552,6 @@ class EmacsLispQuiz {
         localStorage.removeItem('emacsQuizState');
     }
     
-    // Check for shared results in URL
     checkSharedResults() {
         const urlParams = new URLSearchParams(window.location.search);
         const resultsData = urlParams.get('results');
