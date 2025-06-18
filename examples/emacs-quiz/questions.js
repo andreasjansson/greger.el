@@ -912,10 +912,10 @@ const QUIZ_QUESTIONS = [
         difficulty: 'advanced',
         question: 'What is the difference between dynamic and lexical scoping in Emacs Lisp?',
         options: [
-            'Dynamic scoping looks up variables at runtime, lexical scoping at compile time',
-            'Dynamic scoping is faster than lexical scoping',
-            'Dynamic scoping is the newer approach in Emacs Lisp',
-            'There is no difference'
+            'Dynamic looks up at runtime, lexical at compile time',
+            'Dynamic scoping has superior performance characteristics',
+            'Dynamic scoping represents the newer modern approach',
+            'There are no meaningful differences between them'
         ],
         correct: 0,
         explanation: 'Dynamic scoping looks up variables in the dynamic environment at runtime, while lexical scoping captures variables from the lexical environment where they are defined.',
