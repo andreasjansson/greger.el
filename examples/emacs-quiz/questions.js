@@ -1108,9 +1108,9 @@ const QUIZ_QUESTIONS = [
         question: 'What is the purpose of the `autoload` mechanism?',
         options: [
             'To automatically load files when Emacs starts',
-            'To defer loading of function definitions until they are first called',
-            'To automatically reload changed files',
-            'To load functions faster'
+            'To defer loading functions until first called',
+            'To automatically reload changed files on disk',
+            'To load functions with improved performance'
         ],
         correct: 1,
         explanation: '`autoload` allows function definitions to be loaded on demand when the function is first called, improving startup time.',
