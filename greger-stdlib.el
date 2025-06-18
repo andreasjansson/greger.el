@@ -887,9 +887,10 @@ For Emacs Lisp files (.el), checks that parentheses balance is maintained."
 (defun greger-stdlib--shell-command (command callback working-directory timeout enable-environment metadata)
   "Execute COMMAND in WORKING-DIRECTORY and call CALLBACK with (result error).
 Prompts for permission before running the command for security.
-TIMEOUT specifies the maximum time in seconds to wait for command completion (default 600).
-ENABLE-ENVIRONMENT, if non-nil, sources shell initialization files (.bashrc, .bash_profile)
-which may contain secrets and environment variables. User will be warned in permission prompt.
+TIMEOUT is the maximum time in sconds to wait for completion (default 600).
+ENABLE-ENVIRONMENT, if non-nil, sources shell initialization files which
+may contain secrets and environment variables.  User will be warned in
+permission prompt.
 If METADATA contains safe-shell-commands and COMMAND is in that list, skips
 permission prompt.
 Returns a cancel function that can interrupt the command execution."
