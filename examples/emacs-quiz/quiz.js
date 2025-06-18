@@ -556,10 +556,12 @@ class EmacsLispQuiz {
             try {
                 const data = JSON.parse(atob(resultsData));
                 this.displaySharedResults(data);
+                return true; // Indicate that shared results were displayed
             } catch (err) {
                 console.error('Failed to parse shared results:', err);
             }
         }
+        return false;
     }
     
     displaySharedResults(data) {

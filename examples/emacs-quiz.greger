@@ -6019,5 +6019,68 @@ Display shared results on actual results screen instead of just notification
 ID: toolu_015Kvij6boGQnkTkU8bsnBP6
 
 <tool.toolu_015Kvij6boGQnkTkU8bsnBP6>
-Loading...
+Successfully replaced content in /Users/andreas/projects/greger.el/examples/emacs-quiz/quiz.js. Successfully staged 2 file(s) and committed with message: Display shared results on actual results screen instead of just notification
 </tool.toolu_015Kvij6boGQnkTkU8bsnBP6>
+
+# TOOL USE
+
+Name: str-replace
+ID: toolu_017sdsuv8MZa7N8GpkcA8yos
+
+## path
+
+<tool.toolu_017sdsuv8MZa7N8GpkcA8yos>
+./emacs-quiz/quiz.js
+</tool.toolu_017sdsuv8MZa7N8GpkcA8yos>
+
+## original-content
+
+<tool.toolu_017sdsuv8MZa7N8GpkcA8yos>
+    checkSharedResults() {
+        const urlParams = new URLSearchParams(window.location.search);
+        const resultsData = urlParams.get('results');
+        
+        if (resultsData) {
+            try {
+                const data = JSON.parse(atob(resultsData));
+                this.displaySharedResults(data);
+            } catch (err) {
+                console.error('Failed to parse shared results:', err);
+            }
+        }
+    }
+</tool.toolu_017sdsuv8MZa7N8GpkcA8yos>
+
+## new-content
+
+<tool.toolu_017sdsuv8MZa7N8GpkcA8yos>
+    checkSharedResults() {
+        const urlParams = new URLSearchParams(window.location.search);
+        const resultsData = urlParams.get('results');
+        
+        if (resultsData) {
+            try {
+                const data = JSON.parse(atob(resultsData));
+                this.displaySharedResults(data);
+                return true; // Indicate that shared results were displayed
+            } catch (err) {
+                console.error('Failed to parse shared results:', err);
+            }
+        }
+        return false;
+    }
+</tool.toolu_017sdsuv8MZa7N8GpkcA8yos>
+
+## git-commit-message
+
+<tool.toolu_017sdsuv8MZa7N8GpkcA8yos>
+Return boolean from checkSharedResults to indicate if results were displayed
+</tool.toolu_017sdsuv8MZa7N8GpkcA8yos>
+
+# TOOL RESULT
+
+ID: toolu_017sdsuv8MZa7N8GpkcA8yos
+
+<tool.toolu_017sdsuv8MZa7N8GpkcA8yos>
+Loading...
+</tool.toolu_017sdsuv8MZa7N8GpkcA8yos>
