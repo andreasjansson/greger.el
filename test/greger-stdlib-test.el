@@ -292,7 +292,8 @@ This ensures the '..' entry has predictable permissions in tests."
          (setq result output error err callback-called t))
        "."  ; working directory
        10   ; timeout 10 seconds
-       nil) ; metadata
+       nil  ; enable-environment
+       nil) ; metadata ; metadata
 
       ;; Wait for async operation to complete
       (let ((timeout 0))
