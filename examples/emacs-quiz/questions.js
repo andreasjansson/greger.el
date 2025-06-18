@@ -278,9 +278,9 @@ const QUIZ_QUESTIONS = [
         difficulty: 'beginner',
         question: 'How do you make a function interactive (callable with M-x)?',
         options: [
-            'Add (interactive) to the function body',
+            'Add (interactive) to function body',
             'Use definteractive instead of defun',
-            'Add :interactive t to the function definition',
+            'Add :interactive t to the definition',
             'Functions are interactive by default'
         ],
         correct: 0,
