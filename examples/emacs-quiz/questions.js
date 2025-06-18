@@ -927,10 +927,10 @@ const QUIZ_QUESTIONS = [
         difficulty: 'advanced',
         question: 'What does the `eval` function do and why should it be used carefully?',
         options: [
-            'It evaluates expressions at runtime and can be a security risk',
-            'It only evaluates mathematical expressions',
+            'Evaluates at runtime, poses security risks',
+            'Only evaluates mathematical expressions',
             'It is deprecated and should not be used',
-            'It evaluates expressions faster than normal evaluation'
+            'Evaluates faster than normal evaluation'
         ],
         correct: 0,
         explanation: '`eval` evaluates Lisp expressions at runtime. It should be used carefully as it can execute arbitrary code and may introduce security vulnerabilities.',
