@@ -1137,10 +1137,10 @@ const QUIZ_QUESTIONS = [
         difficulty: 'advanced',
         question: 'What is the difference between `require` and `load`?',
         options: [
-            'require checks if a feature is already loaded, load always loads the file',
-            'require is for packages, load is for individual files',
-            'require is newer than load',
-            'require is more secure than load'
+            'require checks if loaded, load always loads',
+            'require for packages, load for individual files',
+            'require is newer than load in Emacs history',
+            'require is more secure than load mechanism'
         ],
         correct: 0,
         explanation: '`require` loads a library only if its feature is not already loaded, while `load` always loads the specified file regardless.',
