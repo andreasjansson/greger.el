@@ -972,10 +972,10 @@ const QUIZ_QUESTIONS = [
         difficulty: 'advanced',
         question: 'What is the purpose of `gensym` in macro writing?',
         options: [
-            'To generate random symbols',
-            'To generate unique symbols to avoid variable capture',
-            'To generate system symbols',
-            'To generate symbols for debugging'
+            'To generate random symbol names',
+            'To generate unique symbols avoiding capture',
+            'To generate system symbol references',
+            'To generate symbols for debugging purposes'
         ],
         correct: 1,
         explanation: '`gensym` generates unique symbols to avoid variable capture problems in macros, ensuring that macro-generated code doesn\'t accidentally refer to user variables.',
