@@ -619,10 +619,7 @@ class EmacsLispQuiz {
 document.addEventListener('DOMContentLoaded', () => {
     const quiz = new EmacsLispQuiz();
     
-    // Check for shared results after a short delay
-    setTimeout(() => {
-        quiz.checkSharedResults();
-    }, 1000);
+    // Shared results are now checked in init(), no need for delayed check
     
     // Add some CSS animations dynamically
     const style = document.createElement('style');
