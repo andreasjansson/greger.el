@@ -670,10 +670,10 @@ const QUIZ_QUESTIONS = [
         difficulty: 'intermediate',
         question: 'What does the `prog1` special form do?',
         options: [
-            'Executes the first form and returns its value',
-            'Executes all forms and returns the first value',
-            'Executes forms in sequence and returns the first value',
-            'Starts a new program'
+            'Executes first form, returns its value',
+            'Executes all forms, returns first value',
+            'Executes sequentially, returns first value',
+            'Starts a new program execution context'
         ],
         correct: 2,
         explanation: '`prog1` evaluates all its forms in sequence but returns the value of the first form. It is useful when you want to return a value but also perform side effects.',
