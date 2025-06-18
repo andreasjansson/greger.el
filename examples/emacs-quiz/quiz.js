@@ -14,7 +14,8 @@ class EmacsLispQuiz {
         this.state = {
             screen: 'start', // start, quiz, results
             answeredQuestions: [],
-            totalTime: 0
+            totalTime: 0,
+            questionAnswered: false
         };
         
         this.init();
