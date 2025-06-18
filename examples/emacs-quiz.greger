@@ -5648,5 +5648,79 @@ Fix accuracy calculation to use actual answered questions instead of total quest
 ID: toolu_01TFjSpx3Y3YXW9w6FXi8FSv
 
 <tool.toolu_01TFjSpx3Y3YXW9w6FXi8FSv>
-Loading...
+Successfully replaced content in /Users/andreas/projects/greger.el/examples/emacs-quiz/quiz.js. Successfully staged 2 file(s) and committed with message: Fix accuracy calculation to use actual answered questions instead of total questions
 </tool.toolu_01TFjSpx3Y3YXW9w6FXi8FSv>
+
+# TOOL USE
+
+Name: str-replace
+ID: toolu_01RdUNUDr1LjM19CB5xPhftW
+
+## path
+
+<tool.toolu_01RdUNUDr1LjM19CB5xPhftW>
+./emacs-quiz/quiz.js
+</tool.toolu_01RdUNUDr1LjM19CB5xPhftW>
+
+## original-content
+
+<tool.toolu_01RdUNUDr1LjM19CB5xPhftW>
+    shareResults() {
+        const accuracy = Math.round((this.score > 0 ? 
+            (this.state.answeredQuestions.filter(q => q.correct).length / this.questions.length) * 100 : 0));
+        
+        const shareData = {
+            score: this.score,
+            accuracy: accuracy,
+            time: this.state.totalTime,
+            maxStreak: this.maxStreak,
+            questionsCount: this.questions.length,
+            testMode: this.isTestMode
+        };
+        
+        const encodedData = btoa(JSON.stringify(shareData));
+        const shareUrl = `${window.location.origin}${window.location.pathname}?results=${encodedData}`;
+        
+        document.getElementById('share-link').value = shareUrl;
+        document.getElementById('share-url').classList.remove('hidden');
+    }
+</tool.toolu_01RdUNUDr1LjM19CB5xPhftW>
+
+## new-content
+
+<tool.toolu_01RdUNUDr1LjM19CB5xPhftW>
+    shareResults() {
+        const correctAnswers = this.state.answeredQuestions.filter(q => q.correct).length;
+        const totalQuestions = this.state.answeredQuestions.length;
+        const accuracy = totalQuestions > 0 ? Math.round((correctAnswers / totalQuestions) * 100) : 0;
+        
+        const shareData = {
+            score: this.score,
+            accuracy: accuracy,
+            time: this.state.totalTime,
+            maxStreak: this.maxStreak,
+            questionsCount: totalQuestions,
+            testMode: this.isTestMode
+        };
+        
+        const encodedData = btoa(JSON.stringify(shareData));
+        const shareUrl = `${window.location.origin}${window.location.pathname}?results=${encodedData}`;
+        
+        document.getElementById('share-link').value = shareUrl;
+        document.getElementById('share-url').classList.remove('hidden');
+    }
+</tool.toolu_01RdUNUDr1LjM19CB5xPhftW>
+
+## git-commit-message
+
+<tool.toolu_01RdUNUDr1LjM19CB5xPhftW>
+Fix accuracy calculation in shareResults to match showResults logic
+</tool.toolu_01RdUNUDr1LjM19CB5xPhftW>
+
+# TOOL RESULT
+
+ID: toolu_01RdUNUDr1LjM19CB5xPhftW
+
+<tool.toolu_01RdUNUDr1LjM19CB5xPhftW>
+Loading...
+</tool.toolu_01RdUNUDr1LjM19CB5xPhftW>

@@ -353,15 +353,16 @@ class EmacsLispQuiz {
     }
     
     shareResults() {
-        const accuracy = Math.round((this.score > 0 ? 
-            (this.state.answeredQuestions.filter(q => q.correct).length / this.questions.length) * 100 : 0));
+        const correctAnswers = this.state.answeredQuestions.filter(q => q.correct).length;
+        const totalQuestions = this.state.answeredQuestions.length;
+        const accuracy = totalQuestions > 0 ? Math.round((correctAnswers / totalQuestions) * 100) : 0;
         
         const shareData = {
             score: this.score,
             accuracy: accuracy,
             time: this.state.totalTime,
             maxStreak: this.maxStreak,
-            questionsCount: this.questions.length,
+            questionsCount: totalQuestions,
             testMode: this.isTestMode
         };
         
