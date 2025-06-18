@@ -1,3 +1,13 @@
+<div align="center">
+
+![Greger.el Logo](assets/greger-text-logo.png)
+
+<p align="center">
+  <img src="assets/greger-icon-logo.png" alt="Greger Agent" width="150">
+</p>
+
+</div>
+
 # Greger.el - Agentic coding in Emacs
 
 [![CI](https://github.com/andreasjansson/greger.el/actions/workflows/ci.yml/badge.svg)](https://github.com/andreasjansson/greger.el/actions/workflows/ci.yml) [![Coverage Status](https://coveralls.io/repos/github/andreasjansson/greger.el/badge.svg?branch=main)](https://coveralls.io/github/andreasjansson/greger.el?branch=main)
@@ -127,6 +137,10 @@ Branching is your friend here -- create a new branch for every new Greger sessio
 
 [Magit](https://magit.vc/) is magic, and makes it really easy to navigate through agent commits.
 
+### Streaming output
+
+Assistant text and thinking is streamed to output. Tool use and tool responses are currently not streamed, but will be in the future
+
 ### Claude caching
 
 Greger automatically uses [prompt caching](https://www.anthropic.com/news/prompt-caching). In agentic settings this can save tons of money.
@@ -139,6 +153,14 @@ Greger supports the latest Claude models:
 - **claude-opus-4-20250514**
 
 Claude is the only supported model provider at the moment. Others could be added, but right now Claude is the best code LLM.
+
+### No external dependencies (other than `curl`)
+
+Greger should work out of the box on most UNIX systems without having to install external depdencies. The standard `curl` command is used to communicate with the Anthropic API.
+
+### Extensive testing
+
+The Greger test suite has over 150 (unit/integration/end-to-end) tests and >80% test coverage. Not to say there aren't bugs, but it's fairly solid.
 
 ## Included tools
 
