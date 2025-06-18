@@ -263,9 +263,9 @@ const QUIZ_QUESTIONS = [
         difficulty: 'beginner',
         question: 'What is the difference between `eq` and `equal`?',
         options: [
-            'No difference, they are the same',
-            'eq compares object identity, equal compares structural equality',
-            'eq is for numbers, equal is for strings',
+            'No difference between them',
+            'eq tests identity, equal tests contents',
+            'eq is for numbers, equal for strings',
             'eq is deprecated, use equal instead'
         ],
         correct: 1,
