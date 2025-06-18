@@ -146,7 +146,9 @@ class EmacsLispQuiz {
         
         // Reset state
         this.selectedAnswer = null;
-        document.getElementById('submit-answer').disabled = true;
+        const submitButton = document.getElementById('submit-answer');
+        submitButton.disabled = true;
+        submitButton.style.display = 'block'; // Show submit button for new question
         
         this.updateStats();
     }
