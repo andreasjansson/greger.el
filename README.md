@@ -336,6 +336,8 @@ List all files in this directory.
 
 Search the internet and return up-to-date information from web sources. This is a [server-side tool](https://docs.anthropic.com/en/docs/agents-and-tools/tool-use/web-search-tool) with usage limits.
 
+Hit `TAB` or click on underlined text to see the cited URLs.
+
 **Parameters:**
 - `query` (required): Search query
 
