@@ -4883,5 +4883,53 @@ Move feedback section above options for better flow
 ID: toolu_013oDcPm32wAmAuSDSRikz5c
 
 <tool.toolu_013oDcPm32wAmAuSDSRikz5c>
-Loading...
+Successfully replaced content in /Users/andreas/projects/greger.el/examples/emacs-quiz/index.html. Successfully staged 2 file(s) and committed with message: Move feedback section above options for better flow
 </tool.toolu_013oDcPm32wAmAuSDSRikz5c>
+
+# TOOL USE
+
+Name: str-replace
+ID: toolu_0112BKm2YKjgZBroP32qha3E
+
+## path
+
+<tool.toolu_0112BKm2YKjgZBroP32qha3E>
+./emacs-quiz/quiz.js
+</tool.toolu_0112BKm2YKjgZBroP32qha3E>
+
+## original-content
+
+<tool.toolu_0112BKm2YKjgZBroP32qha3E>
+        // Disable options
+        document.querySelectorAll('.option').forEach(opt => {
+            opt.style.pointerEvents = 'none';
+        });
+</tool.toolu_0112BKm2YKjgZBroP32qha3E>
+
+## new-content
+
+<tool.toolu_0112BKm2YKjgZBroP32qha3E>
+        // Hide submit button and disable options
+        document.getElementById('submit-answer').style.display = 'none';
+        document.querySelectorAll('.option').forEach((opt, index) => {
+            opt.style.pointerEvents = 'none';
+            // Gray out options that weren't selected
+            if (index !== this.selectedAnswer) {
+                opt.style.opacity = '0.5';
+            }
+        });
+</tool.toolu_0112BKm2YKjgZBroP32qha3E>
+
+## git-commit-message
+
+<tool.toolu_0112BKm2YKjgZBroP32qha3E>
+Hide submit button and gray out unselected options after submission
+</tool.toolu_0112BKm2YKjgZBroP32qha3E>
+
+# TOOL RESULT
+
+ID: toolu_0112BKm2YKjgZBroP32qha3E
+
+<tool.toolu_0112BKm2YKjgZBroP32qha3E>
+Loading...
+</tool.toolu_0112BKm2YKjgZBroP32qha3E>
