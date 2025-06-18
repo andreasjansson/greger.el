@@ -1,0 +1,149 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Emacs Lisp Quiz Challenge</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1 class="title">🌟 Emacs Lisp Quiz Challenge 🌟</h1>
+            <p class="subtitle">Test your knowledge of the editor that never sleeps!</p>
+        </header>
+
+        <div id="game-area">
+            <!-- Start Screen -->
+            <div id="start-screen" class="screen">
+                <div class="welcome-box">
+                    <h2>Ready to dive into the world of Emacs Lisp?</h2>
+                    <p>This quiz features 100 carefully crafted questions from official Emacs documentation, ranging from beginner-friendly to expert-level challenges.</p>
+                    
+                    <div class="features">
+                        <div class="feature">
+                            <span class="icon">🎯</span>
+                            <span>Progressive difficulty</span>
+                        </div>
+                        <div class="feature">
+                            <span class="icon">📚</span>
+                            <span>Official documentation references</span>
+                        </div>
+                        <div class="feature">
+                            <span class="icon">🏆</span>
+                            <span>Shareable results</span>
+                        </div>
+                        <div class="feature">
+                            <span class="icon">💾</span>
+                            <span>Auto-save progress</span>
+                        </div>
+                    </div>
+                    
+                    <button id="start-btn" class="btn btn-primary">Begin Quest</button>
+                </div>
+            </div>
+
+            <!-- Quiz Screen -->
+            <div id="quiz-screen" class="screen hidden">
+                <div class="quiz-header">
+                    <div class="progress-container">
+                        <div class="progress-bar">
+                            <div id="progress-fill" class="progress-fill"></div>
+                        </div>
+                        <span id="question-counter">1 / 100</span>
+                    </div>
+                    
+                    <div class="stats">
+                        <div class="stat">
+                            <span class="stat-label">Score</span>
+                            <span id="current-score" class="stat-value">0</span>
+                        </div>
+                        <div class="stat">
+                            <span class="stat-label">Streak</span>
+                            <span id="current-streak" class="stat-value">0</span>
+                        </div>
+                        <div class="stat">
+                            <span class="stat-label">Time</span>
+                            <span id="current-time" class="stat-value">0:00</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="question-container">
+                    <div class="difficulty-indicator">
+                        <span id="difficulty-level">Beginner</span>
+                        <div id="difficulty-stars" class="stars"></div>
+                    </div>
+                    
+                    <div id="question-text" class="question"></div>
+                    
+                    <div id="options-container" class="options">
+                        <!-- Options will be dynamically inserted -->
+                    </div>
+                    
+                    <button id="submit-answer" class="btn btn-primary" disabled>Submit Answer</button>
+                </div>
+
+                <!-- Feedback Modal -->
+                <div id="feedback-modal" class="modal hidden">
+                    <div class="modal-content">
+                        <div id="feedback-result" class="feedback-result"></div>
+                        <div id="feedback-explanation" class="feedback-explanation"></div>
+                        <div id="feedback-reference" class="feedback-reference"></div>
+                        <button id="next-question" class="btn btn-primary">Next Question</button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Results Screen -->
+            <div id="results-screen" class="screen hidden">
+                <div class="results-container">
+                    <h2>Quest Complete! 🎉</h2>
+                    
+                    <div class="final-stats">
+                        <div class="stat-card">
+                            <div class="stat-number" id="final-score">0</div>
+                            <div class="stat-label">Final Score</div>
+                        </div>
+                        <div class="stat-card">
+                            <div class="stat-number" id="final-accuracy">0%</div>
+                            <div class="stat-label">Accuracy</div>
+                        </div>
+                        <div class="stat-card">
+                            <div class="stat-number" id="final-time">0:00</div>
+                            <div class="stat-label">Total Time</div>
+                        </div>
+                        <div class="stat-card">
+                            <div class="stat-number" id="max-streak">0</div>
+                            <div class="stat-label">Best Streak</div>
+                        </div>
+                    </div>
+
+                    <div class="performance-message">
+                        <h3 id="performance-title">Well done!</h3>
+                        <p id="performance-description">You've completed the Emacs Lisp challenge!</p>
+                    </div>
+
+                    <div class="actions">
+                        <button id="share-results" class="btn btn-secondary">Share Results</button>
+                        <button id="restart-quiz" class="btn btn-primary">Take Quiz Again</button>
+                    </div>
+
+                    <div id="share-url" class="share-url hidden">
+                        <p>Share your results with this URL:</p>
+                        <input id="share-link" type="text" readonly>
+                        <button id="copy-link" class="btn btn-small">Copy</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <footer>
+        <p>Based on official <a href="https://www.gnu.org/software/emacs/manual/elisp.html" target="_blank">GNU Emacs Lisp Reference Manual</a></p>
+    </footer>
+
+    <script src="questions.js"></script>
+    <script src="quiz.js"></script>
+</body>
+</html>
