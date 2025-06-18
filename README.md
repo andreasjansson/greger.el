@@ -2,10 +2,10 @@
 
 ![Greger.el Logo](assets/greger-text-logo.png)
 
-<p align="center">
-  <img src="assets/greger-icon-logo.png" alt="Greger Agent" width="150">
-</p>
+</div>
 
+<div align="right">
+  <img src="assets/greger-icon-logo.png" alt="Greger Agent" width="120" align="right">
 </div>
 
 # Greger.el - Agentic coding in Emacs
