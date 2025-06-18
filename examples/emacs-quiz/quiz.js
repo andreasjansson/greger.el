@@ -574,13 +574,8 @@ document.addEventListener('DOMContentLoaded', () => {
             transition: width 0.8s cubic-bezier(0.4, 0, 0.2, 1);
         }
         
-        .modal {
-            animation: fadeIn 0.3s ease;
-        }
-        
-        @keyframes fadeIn {
-            from { opacity: 0; }
-            to { opacity: 1; }
+        .feedback-section {
+            animation: slideDown 0.3s ease;
         }
         
         .stat-value {
