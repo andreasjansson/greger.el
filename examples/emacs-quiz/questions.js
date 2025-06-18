@@ -326,9 +326,9 @@ const QUIZ_QUESTIONS = [
         question: 'What is a lambda expression in Emacs Lisp?',
         options: [
             'A special variable type',
-            'An anonymous function',
-            'A type of loop construct',
-            'A conditional statement'
+            'An anonymous function definition',
+            'A loop construct variant',
+            'A conditional statement form'
         ],
         correct: 1,
         explanation: 'A lambda expression creates an anonymous function that can be used without giving it a name. It starts with the symbol `lambda` followed by parameters and body.',
