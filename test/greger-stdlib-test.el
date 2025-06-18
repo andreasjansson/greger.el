@@ -443,8 +443,8 @@ This ensures the '..' entry has predictable permissions in tests."
          (setq result-with-env output error err callback-called t))
        "."  ; working directory
        nil  ; timeout
-       nil  ; metadata
-       t)   ; enable-environment = t
+       t    ; enable-environment = t
+       nil) ; metadata
 
       ;; Wait for async operation to complete
       (let ((timeout-count 0))
