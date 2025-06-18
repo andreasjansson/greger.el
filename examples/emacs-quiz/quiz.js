@@ -451,7 +451,8 @@ class EmacsLispQuiz {
             maxStreak: this.maxStreak,
             startTime: this.startTime,
             answeredQuestions: this.state.answeredQuestions,
-            isTestMode: this.isTestMode
+            isTestMode: this.isTestMode,
+            questionAnswered: this.state.questionAnswered || false
         };
         
         localStorage.setItem('emacsQuizState', JSON.stringify(state));
