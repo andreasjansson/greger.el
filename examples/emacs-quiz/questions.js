@@ -1002,10 +1002,10 @@ const QUIZ_QUESTIONS = [
         difficulty: 'advanced',
         question: 'What is the purpose of the `declare` form in function definitions?',
         options: [
-            'To declare variable types',
-            'To provide metadata about functions for the compiler and tools',
-            'To declare function dependencies',
-            'To declare function visibility'
+            'To declare variable types and constraints',
+            'To provide metadata for compiler and tools',
+            'To declare function dependencies and imports',
+            'To declare function visibility and access'
         ],
         correct: 1,
         explanation: '`declare` provides metadata about functions, such as indentation rules, compiler optimizations, or other information for development tools.',
