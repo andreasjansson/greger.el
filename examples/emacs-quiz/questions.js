@@ -23,10 +23,10 @@ const QUIZ_QUESTIONS = [
         difficulty: 'beginner',
         question: 'What does the function `cdr` return when applied to a list?',
         options: [
-            'The first element of the list',
-            'The rest of the list after the first element',
-            'The last element of the list',
-            'The number of elements in the list'
+            'The first element',
+            'The remaining elements',
+            'The last element',
+            'The element count'
         ],
         correct: 1,
         explanation: 'The `cdr` function returns the rest of the list after removing the first element. For example, (cdr \'(a b c)) returns (b c).',
