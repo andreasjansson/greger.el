@@ -212,6 +212,9 @@ class EmacsLispQuiz {
             timeSpent: Date.now() - this.questionStartTime || 0
         });
         
+        // Mark question as answered
+        this.state.questionAnswered = true;
+        
         // Show feedback
         this.showFeedback(isCorrect, question);
         
