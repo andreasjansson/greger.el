@@ -52,14 +52,9 @@
   :type `(choice ,@(mapcar (lambda (model) `(const ,model)) greger-available-models))
   :group 'greger)
 
-(defcustom greger-default-system-prompt "You are a helpful assistant."
+(defcustom greger-default-system-prompt "You are an expert coding agent."
   "Default system prompt used for AI interactions."
   :type 'string
-  :group 'greger)
-
-(defcustom greger-temperature 0.8
-  "Sampling temperature between 0 and 1."
-  :type 'float
   :group 'greger)
 
 (defcustom greger-max-tokens 32000
@@ -67,7 +62,7 @@
   :type 'integer
   :group 'greger)
 
-(defcustom greger-default-thinking-budget 4096
+(defcustom greger-thinking-budget 4096
   "Default budget for thinking (internal reasoning) content, in tokens.
 Set to 0 to disable thinking entirely."
   :type 'integer
@@ -112,7 +107,7 @@ May order 4,000 pounds of meat."
 (defvar-local greger--buffer-read-only-by-greger nil
   "Buffer-local variable to track if buffer is read-only due to greger activity.")
 
-(defvar-local greger-thinking-budget greger-default-thinking-budget
+(defvar-local greger-current-thinking-budget greger-thinking-budget
   "Thinking budget for the current Greger chat.")
 
 (defcustom greger-citation-summary-face 'underline
@@ -194,8 +189,7 @@ May order 4,000 pounds of meat."
     (define-key map (kbd "C-; u") #'greger-insert-user-tag)
     (define-key map (kbd "C-; s") #'greger-insert-system-tag)
     (define-key map (kbd "C-; m") #'greger-set-model)
-    (define-key map (kbd "C-; c") #'greger-ui--copy-code)
-    (define-key map (kbd "C-; D") #'greger-debug-request)
+    (define-key map (kbd "C-; c") #'greger-ui-copy-code)
     (define-key map (kbd "C-; t") #'greger-toggle-thinking)
     map)
   "Keymap for `greger-mode'.")
@@ -304,7 +298,7 @@ May order 4,000 pounds of meat."
   (setq-local mode-line-misc-info '(:eval (greger--mode-line-info)))
   (use-local-map greger-mode-map)
 
-  (setq-local greger-thinking-budget greger-default-thinking-budget))
+  (setq-local greger-current-thinking-budget greger-thinking-budget))
 
 ;;;###autoload
 (defun greger (&optional with-context)
@@ -403,13 +397,13 @@ insert location information at the beginning of the user section."
 (defun greger-toggle-thinking ()
   "Toggle thinking on/off."
   (interactive)
-  (if (> greger-thinking-budget 0)
+  (if (> greger-current-thinking-budget 0)
       (progn
-        (setq-local greger-thinking-budget 0)
+        (setq-local greger-current-thinking-budget 0)
         (message "Thinking disabled"))
     (progn
-      (setq-local greger-thinking-budget greger-default-thinking-budget)
-      (message "Thinking enabled (budget: %d tokens)" greger-thinking-budget)))
+      (setq-local greger-current-thinking-budget greger-thinking-budget)
+      (message "Thinking enabled (budget: %d tokens)" greger-current-thinking-budget)))
   (force-mode-line-update))
 
 (defun greger-debug-request ()
@@ -422,7 +416,7 @@ insert location information at the beginning of the user section."
          (server-tools (when greger-server-tools
                          (greger-server-tools-get-schemas greger-server-tools)))
          (model greger-model)
-         (request-data (greger-client--build-data model dialog tools server-tools greger-thinking-budget greger-max-tokens))
+         (request-data (greger-client--build-data model dialog tools server-tools greger-current-thinking-budget greger-max-tokens))
          (parsed-json (json-read-from-string request-data)))
 
     (with-temp-file filename
@@ -447,7 +441,7 @@ insert location information at the beginning of the user section."
   (interactive)
   (let ((greger-tools '())
         (greger-server-tools '())
-        (greger-thinking-budget 0))
+        (greger-current-thinking-budget 0))
     (greger-buffer)))
 
 
@@ -471,8 +465,8 @@ insert location information at the beginning of the user section."
   (let ((status (greger--get-current-status))
         (model-name (symbol-name greger-model)))
     (concat model-name
-            (if (> greger-thinking-budget 0)
-                (format " [T:%d]" greger-thinking-budget)
+            (if (> greger-current-thinking-budget 0)
+                (format " [T:%d]" greger-current-thinking-budget)
               "")
             (pcase status
               ('generating " [Generating]")
@@ -570,7 +564,7 @@ Uses tree-sitter to find the last node and applies heuristics:
                          :tools tools
                          :server-tools server-tools
                          :buffer chat-buffer
-                         :thinking-budget greger-thinking-budget
+                         :thinking-budget greger-current-thinking-budget
                          :block-start-callback (lambda (content-block)
                                                  (greger--append-streaming-content-header state content-block))
                          :text-delta-callback (lambda (text)

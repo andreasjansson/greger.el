@@ -120,7 +120,7 @@ Uses greger--mode-line-info to get the greger-specific portion of the mode line.
           (goto-char (point-max))
           (insert "Respond with exactly 'Hello from greger test!' and nothing else (don't include the quotes).")
 
-          (let ((greger-thinking-budget 0))
+          (let ((greger-current-thinking-budget 0))
             (greger-buffer))
 
           (should (greger-test-wait-for-status 'idle))
@@ -175,7 +175,7 @@ Hello from greger test!
           (goto-char (point-max))
           (insert (format "Read the file %s and output only the last word of that file, nothing else." test-file))
 
-          (let ((greger-thinking-budget 1024)
+          (let ((greger-current-thinking-budget 1024)
                 (greger-tools '("read-file-basic")))
             (greger-buffer)
 
@@ -308,7 +308,7 @@ Hello from greger test!
           (goto-char (point-max))
           (insert "Run the shell command 'sleep 5' using the shell-command tool.")
 
-          (let ((greger-thinking-budget 0)
+          (let ((greger-current-thinking-budget 0)
                 (greger-tools '("shell-command")))
             (greger-buffer)
 
@@ -365,7 +365,7 @@ Hello from greger test!
             (goto-char (point-max))
             (insert "What is the current weather in San Francisco? Please search for this information and give me a short one-sentence summary.")
 
-            (let ((greger-thinking-budget 0))
+            (let ((greger-current-thinking-budget 0))
               (greger-buffer))
 
             (greger-test-wait-for-status 'idle)
@@ -397,7 +397,7 @@ Hello from greger test!
 
           (insert "2+2")
 
-          (let ((greger-thinking-budget 1024))
+          (let ((greger-current-thinking-budget 1024))
             (greger-buffer))
 
           (should (greger-test-wait-for-status 'idle))
@@ -432,7 +432,7 @@ Hello from greger test!
   "Test thinking toggle functionality."
 
   (let ((greger-buffer nil)
-        (greger-default-thinking-budget 2048))
+        (greger-thinking-budget 2048))
     (unwind-protect
         (progn
           (setq greger-buffer (greger))
@@ -441,12 +441,12 @@ Hello from greger test!
             (should (string-match-p "\\[T:2048\\]" (greger-test-mode-line-text)))
 
             (greger-toggle-thinking)
-            (should (= greger-thinking-budget 0))
+            (should (= greger-current-thinking-budget 0))
             (should-not (string-match-p "\\[T:" (greger-test-mode-line-text)))
 
             (greger-toggle-thinking)
-            (should (> greger-thinking-budget 0))
-            (should (= greger-thinking-budget 2048))
+            (should (> greger-current-thinking-budget 0))
+            (should (= greger-current-thinking-budget 2048))
 
             (should (string-match-p "\\[T:2048\\]" (greger-test-mode-line-text)))))
 

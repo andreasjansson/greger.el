@@ -179,7 +179,7 @@ NODE is the matched tree-sitter node"
 
 ;; Code blocks
 
-(defun greger-ui--copy-code ()
+(defun greger-ui-copy-code ()
   "Copy code block content at point to kill ring."
   (interactive)
   (let ((node (treesit-node-at (point))))

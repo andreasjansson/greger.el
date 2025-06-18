@@ -34,7 +34,6 @@
 (require 'treesit)
 (require 'json)
 (require 'cl-lib)
-(require 'greger-web)
 
 ;; Section tag constants
 (defconst greger-parser-system-tag "# SYSTEM")

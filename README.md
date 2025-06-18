@@ -370,7 +370,12 @@ The following customization options are available:
 - **Default**: `100`
 - **Description**: Maximum number of agent iterations before stopping.
 
+You can customize all these plus all the colors and fonts with:
 
+```
+M-x customize-group
+greger
+```
 
 ## License
 
