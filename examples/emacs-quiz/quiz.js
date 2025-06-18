@@ -32,11 +32,16 @@ class EmacsLispQuiz {
         // Bind events
         this.bindEvents();
         
-        // Try to restore saved state
-        this.loadState();
+        // Check for shared results first
+        const hasSharedResults = this.checkSharedResults();
         
-        // Show appropriate screen
-        this.showScreen(this.state.screen);
+        if (!hasSharedResults) {
+            // Try to restore saved state only if not showing shared results
+            this.loadState();
+            
+            // Show appropriate screen
+            this.showScreen(this.state.screen);
+        }
         
         if (this.state.screen === 'quiz') {
             // If current question was already answered, show feedback

@@ -6082,5 +6082,55 @@ Return boolean from checkSharedResults to indicate if results were displayed
 ID: toolu_017sdsuv8MZa7N8GpkcA8yos
 
 <tool.toolu_017sdsuv8MZa7N8GpkcA8yos>
-Loading...
+Successfully replaced content in /Users/andreas/projects/greger.el/examples/emacs-quiz/quiz.js. Successfully staged 2 file(s) and committed with message: Return boolean from checkSharedResults to indicate if results were displayed
 </tool.toolu_017sdsuv8MZa7N8GpkcA8yos>
+
+# TOOL USE
+
+Name: str-replace
+ID: toolu_017hUGDU5BEBqGYe2KGe8c2k
+
+## path
+
+<tool.toolu_017hUGDU5BEBqGYe2KGe8c2k>
+./emacs-quiz/quiz.js
+</tool.toolu_017hUGDU5BEBqGYe2KGe8c2k>
+
+## original-content
+
+<tool.toolu_017hUGDU5BEBqGYe2KGe8c2k>
+        // Try to restore saved state
+        this.loadState();
+        
+        // Show appropriate screen
+        this.showScreen(this.state.screen);
+</tool.toolu_017hUGDU5BEBqGYe2KGe8c2k>
+
+## new-content
+
+<tool.toolu_017hUGDU5BEBqGYe2KGe8c2k>
+        // Check for shared results first
+        const hasSharedResults = this.checkSharedResults();
+        
+        if (!hasSharedResults) {
+            // Try to restore saved state only if not showing shared results
+            this.loadState();
+            
+            // Show appropriate screen
+            this.showScreen(this.state.screen);
+        }
+</tool.toolu_017hUGDU5BEBqGYe2KGe8c2k>
+
+## git-commit-message
+
+<tool.toolu_017hUGDU5BEBqGYe2KGe8c2k>
+Check for shared results before loading saved state
+</tool.toolu_017hUGDU5BEBqGYe2KGe8c2k>
+
+# TOOL RESULT
+
+ID: toolu_017hUGDU5BEBqGYe2KGe8c2k
+
+<tool.toolu_017hUGDU5BEBqGYe2KGe8c2k>
+Loading...
+</tool.toolu_017hUGDU5BEBqGYe2KGe8c2k>
