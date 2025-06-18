@@ -393,6 +393,39 @@ class EmacsLispQuiz {
         location.reload();
     }
     
+    displayQuestionWithFeedback() {
+        const question = this.questions[this.currentQuestionIndex];
+        if (!question) return;
+        
+        // Display the question normally first
+        this.displayQuestion();
+        
+        // Find the answered question data
+        const answeredQuestion = this.state.answeredQuestions.find(q => q.questionId === question.id);
+        if (!answeredQuestion) return;
+        
+        // Restore the selected answer and show feedback
+        this.selectedAnswer = answeredQuestion.selectedAnswer;
+        
+        // Hide submit button and gray out unselected options
+        document.getElementById('submit-answer').style.display = 'none';
+        document.querySelectorAll('.option').forEach((opt, index) => {
+            opt.style.pointerEvents = 'none';
+            if (index !== this.selectedAnswer) {
+                opt.style.opacity = '0.5';
+            }
+            // Highlight correct/incorrect answers
+            if (index === question.correct) {
+                opt.classList.add('correct');
+            } else if (index === this.selectedAnswer && !answeredQuestion.correct) {
+                opt.classList.add('incorrect');
+            }
+        });
+        
+        // Show feedback
+        this.showFeedback(answeredQuestion.correct, question);
+    }
+    
     updateStats() {
         document.getElementById('current-score').textContent = this.score;
         document.getElementById('current-streak').textContent = this.streak;
