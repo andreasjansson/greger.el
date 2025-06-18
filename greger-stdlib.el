@@ -917,8 +917,8 @@ Returns a cancel function that can interrupt the command execution."
       (error "Shell command execution cancelled by user"))
 
     (let* ((bash-args (if enable-environment
-                          ;; Interactive login shell to source .bash_profile and .bashrc
-                          (list "-i" "-l" "-c" command)
+                          ;; Interactive to source .bash_profile and .bashrc
+                          (list "-i" "-c" command)
                         ;; Non-interactive shell (current behavior)
                         (list "-c" command)))
            (base-env '(("PAGER" . "cat")))
