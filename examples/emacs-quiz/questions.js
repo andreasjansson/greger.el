@@ -310,10 +310,10 @@ const QUIZ_QUESTIONS = [
         difficulty: 'intermediate',
         question: 'What is the purpose of the `mapcar` function?',
         options: [
-            'Maps key-value pairs in a hash table',
-            'Applies a function to each element of a list and returns a new list',
-            'Changes the car of each cons cell in a list',
-            'Converts a list to a mapping structure'
+            'Maps hash table pairs',
+            'Applies function to list elements',
+            'Changes cons cell cars',
+            'Converts to mapping structure'
         ],
         correct: 1,
         explanation: '`mapcar` applies a function to each element of a list and returns a new list containing the results. For example, (mapcar \'1+ \'(1 2 3)) returns (2 3 4).',
