@@ -92,6 +92,13 @@ class EmacsLispQuiz {
                 this.saveState();
             }
         }, 5000);
+        
+        // Update timer every second during quiz
+        setInterval(() => {
+            if (this.state.screen === 'quiz' && this.startTime) {
+                this.updateTimer();
+            }
+        }, 1000);
     }
     
     startQuiz() {
