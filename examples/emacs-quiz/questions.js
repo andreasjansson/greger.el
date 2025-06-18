@@ -942,10 +942,10 @@ const QUIZ_QUESTIONS = [
         difficulty: 'advanced',
         question: 'What is the purpose of the `advice` system in Emacs?',
         options: [
-            'To provide help documentation',
-            'To modify the behavior of existing functions without changing their definition',
-            'To give coding suggestions',
-            'To handle compiler warnings'
+            'To provide comprehensive help documentation',
+            'To modify existing function behavior dynamically',
+            'To give intelligent coding suggestions',
+            'To handle compiler warnings and errors'
         ],
         correct: 1,
         explanation: 'The advice system allows you to modify the behavior of existing functions by adding code before, after, or around their execution without changing the original definition.',
