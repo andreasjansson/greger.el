@@ -1122,10 +1122,10 @@ const QUIZ_QUESTIONS = [
         difficulty: 'advanced',
         question: 'What does the `load-path` variable contain?',
         options: [
-            'The path to the current file being loaded',
-            'A list of directories where Emacs looks for library files',
-            'The loading progress of the current operation',
-            'The path to the Emacs executable'
+            'The path to current file being loaded',
+            'List of directories for library search',
+            'The loading progress of current operation',
+            'The path to the main Emacs executable'
         ],
         correct: 1,
         explanation: '`load-path` is a list of directories that Emacs searches when loading library files with `load`, `require`, or `autoload`.',
