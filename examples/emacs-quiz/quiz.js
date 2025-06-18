@@ -9,6 +9,8 @@ class EmacsLispQuiz {
         this.startTime = null;
         this.selectedAnswer = null;
         this.isTestMode = false;
+        this.isSharedResults = false;
+        this.sharedTestMode = false;
         
         // State management
         this.state = {
