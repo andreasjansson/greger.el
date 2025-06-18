@@ -8,10 +8,10 @@ const QUIZ_QUESTIONS = [
         difficulty: 'beginner',
         question: 'What does the function `car` return when applied to a list?',
         options: [
-            'The first element of the list',
-            'The last element of the list', 
-            'The length of the list',
-            'A new empty list'
+            'The first element',
+            'The last element', 
+            'The list length',
+            'An empty list'
         ],
         correct: 0,
         explanation: 'The `car` function returns the first element of a list. For example, (car \'(a b c)) returns `a`.',
