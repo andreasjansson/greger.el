@@ -1317,10 +1317,10 @@ const QUIZ_QUESTIONS = [
         difficulty: 'advanced',
         question: 'What is the purpose of the `prin1-to-string` function?',
         options: [
-            'Prints the first element to a string',
-            'Converts a Lisp object to its printed representation as a string',
-            'Prints a string to the first available output',
-            'Converts a string to printable format'
+            'Prints first element to string representation',
+            'Converts Lisp object to printed string form',
+            'Prints string to first available output stream',
+            'Converts string to printable display format'
         ],
         correct: 1,
         explanation: '`prin1-to-string` converts a Lisp object to its printed representation as a string, which can be read back with `read-from-string`.',
