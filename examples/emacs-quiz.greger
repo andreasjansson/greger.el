@@ -4543,5 +4543,68 @@ Update feedback display logic and add dynamic button text for last question
 ID: toolu_017y8eJExGvx37XGmLAUnrMy
 
 <tool.toolu_017y8eJExGvx37XGmLAUnrMy>
-Loading...
+Successfully replaced content in /Users/andreas/projects/greger.el/examples/emacs-quiz/quiz.js. Successfully staged 2 file(s) and committed with message: Update feedback display logic and add dynamic button text for last question
 </tool.toolu_017y8eJExGvx37XGmLAUnrMy>
+
+# TOOL USE
+
+Name: str-replace
+ID: toolu_01QnpjcBSSLqA3BRtSNsa7xu
+
+## path
+
+<tool.toolu_01QnpjcBSSLqA3BRtSNsa7xu>
+./emacs-quiz/quiz.js
+</tool.toolu_01QnpjcBSSLqA3BRtSNsa7xu>
+
+## original-content
+
+<tool.toolu_01QnpjcBSSLqA3BRtSNsa7xu>
+    nextQuestion() {
+        // Hide feedback modal
+        document.getElementById('feedback-modal').classList.add('hidden');
+        
+        // Move to next question or show results
+        this.currentQuestionIndex++;
+        
+        if (this.currentQuestionIndex >= this.questions.length) {
+            this.showResults();
+        } else {
+            this.questionStartTime = Date.now();
+            this.displayQuestion();
+        }
+    }
+</tool.toolu_01QnpjcBSSLqA3BRtSNsa7xu>
+
+## new-content
+
+<tool.toolu_01QnpjcBSSLqA3BRtSNsa7xu>
+    nextQuestion() {
+        // Hide feedback section
+        document.getElementById('feedback-section').classList.add('hidden');
+        
+        // Move to next question or show results
+        this.currentQuestionIndex++;
+        
+        if (this.currentQuestionIndex >= this.questions.length) {
+            this.showResults();
+        } else {
+            this.questionStartTime = Date.now();
+            this.displayQuestion();
+        }
+    }
+</tool.toolu_01QnpjcBSSLqA3BRtSNsa7xu>
+
+## git-commit-message
+
+<tool.toolu_01QnpjcBSSLqA3BRtSNsa7xu>
+Update nextQuestion method to use feedback section instead of modal
+</tool.toolu_01QnpjcBSSLqA3BRtSNsa7xu>
+
+# TOOL RESULT
+
+ID: toolu_01QnpjcBSSLqA3BRtSNsa7xu
+
+<tool.toolu_01QnpjcBSSLqA3BRtSNsa7xu>
+Loading...
+</tool.toolu_01QnpjcBSSLqA3BRtSNsa7xu>

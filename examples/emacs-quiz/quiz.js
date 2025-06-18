@@ -275,8 +275,8 @@ class EmacsLispQuiz {
     }
     
     nextQuestion() {
-        // Hide feedback modal
-        document.getElementById('feedback-modal').classList.add('hidden');
+        // Hide feedback section
+        document.getElementById('feedback-section').classList.add('hidden');
         
         // Move to next question or show results
         this.currentQuestionIndex++;
