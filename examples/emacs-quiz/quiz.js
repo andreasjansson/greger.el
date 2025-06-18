@@ -289,6 +289,9 @@ class EmacsLispQuiz {
         // Hide feedback section
         document.getElementById('feedback-section').classList.add('hidden');
         
+        // Clear question answered flag
+        this.state.questionAnswered = false;
+        
         // Move to next question or show results
         this.currentQuestionIndex++;
         
