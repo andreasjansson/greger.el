@@ -204,6 +204,23 @@ Deletes diff headers (file and hunk headers) and makes 'No newline' messages inv
         (font-lock-fontify-buffer)
         ;; Convert face properties to font-lock-face
         (greger-diff--convert-faces-for-tree-sitter)
+        ;; Convert to background-based highlighting
+        (let ((pos (point-min)))
+          (while (< pos (point-max))
+            (let* ((current-face (get-text-property pos 'font-lock-face))
+                   (next-pos (next-single-property-change pos 'font-lock-face nil (point-max))))
+              (cond
+               ((eq current-face 'diff-removed)
+                (put-text-property pos next-pos 'font-lock-face '(:background "#4d1f1f")))
+               ((eq current-face 'diff-added) 
+                (put-text-property pos next-pos 'font-lock-face '(:background "#1f4d1f")))
+               ((eq current-face 'diff-indicator-removed)
+                (put-text-property pos next-pos 'font-lock-face '(:background "#662222" :foreground "#ff6666")))
+               ((eq current-face 'diff-indicator-added)
+                (put-text-property pos next-pos 'font-lock-face '(:background "#226622" :foreground "#66ff66")))
+               ((eq current-face 'diff-context)
+                (put-text-property pos next-pos 'font-lock-face nil)))
+              (setq pos next-pos))))
         
         (buffer-string)))))
 
