@@ -105,20 +105,26 @@ messages invisible."
 
     (buffer-string)))
 
-(defun greger-diff--get-syntax-highlighted-content (content filename)
-  "Apply syntax highlighting to CONTENT based on FILENAME, preserving context."
-  (if (string-empty-p (string-trim content))
-      content
+(defun greger-diff--apply-syntax-highlighting (contents path)
+  "Apply syntax highlighting to CONTENTS based on PATH file extension."
+  (if (or (not (stringp contents)) (string-empty-p (string-trim contents)))
+      contents
     (condition-case _err
         (with-temp-buffer
-          (insert content)
-          ;; Determine major mode from filename
-          (let ((buffer-file-name filename))
+          (insert contents)
+          ;; Determine major mode from path extension
+          (let ((buffer-file-name (concat (make-temp-name "temp-")
+                                          (file-name-extension path t))))
             (set-auto-mode)
             ;; Apply syntax highlighting
             (font-lock-ensure)
             ;; Convert face properties to font-lock-face for compatibility
             (let ((pos (point-min)))
+              ;; First check if there's a face at the beginning
+              (when-let ((face (get-text-property pos 'face)))
+                (let ((end (next-single-property-change pos 'face nil (point-max))))
+                  (put-text-property pos end 'font-lock-face face)))
+              ;; Then look for property changes
               (while (setq pos (next-single-property-change pos 'face))
                 (when-let ((face (get-text-property pos 'face)))
                   (let ((end (next-single-property-change pos 'face nil (point-max))))
@@ -126,7 +132,7 @@ messages invisible."
             (buffer-string)))
       (error
        ;; If syntax highlighting fails, return original content
-       content))))
+       contents))))
 
 (defun greger-diff--apply-syntax-to-diff-content (diff-string filename)
   "Apply syntax highlighting to DIFF-STRING using FILENAME while preserving diffs."
@@ -165,8 +171,8 @@ messages invisible."
       ;; Now we have the full original and new content - apply syntax highlighting
       (let* ((original-content (string-join (nreverse original-lines) "\n"))
              (new-content (string-join (nreverse new-lines) "\n"))
-             (highlighted-original (greger-diff--get-syntax-highlighted-content original-content filename))
-             (highlighted-new (greger-diff--get-syntax-highlighted-content new-content filename)))
+             (highlighted-original (greger-diff--apply-syntax-highlighting original-content filename))
+             (highlighted-new (greger-diff--apply-syntax-highlighting new-content filename)))
 
         ;; Now reconstruct the diff with syntax highlighting
         (erase-buffer)
