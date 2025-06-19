@@ -312,7 +312,6 @@ Returns a cancel function that can be called to interrupt the process."
                (let ((exit-status (process-exit-status proc))
                      (output (with-current-buffer process-buffer
                                (buffer-string))))
-                 ;; TODO: remove debug
                  (when (buffer-live-p process-buffer)
                    (kill-buffer process-buffer))
                  (cond
