@@ -230,8 +230,7 @@ May order 4,000 pounds of meat."
      (tool_use (id) @greger-ui--make-tool-use-id-invisible)
      (tool_param_header) @greger-tool-param-name-face
      (key) @greger-key-face
-     (url) @greger-ui--url-link-fn
-     )
+     (url) @greger-ui--url-link-fn)
 
    :language 'greger
    :feature 'comments
