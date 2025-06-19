@@ -544,8 +544,9 @@ Uses tree-sitter to find the last node and applies heuristics:
 
     ;; Insert a dot if content is empty
     (when (string= (string-trim content) "")
-      (goto-char end-pos)
-      (insert text))))
+      (greger--maybe-save-excursion
+       (goto-char end-pos)
+       (insert text)))))
 
 (defun greger--insert-assistant-after-thinking (thinking-node)
   "Insert assistant response after THINKING-NODE."
@@ -783,13 +784,13 @@ COMPLETION-CALLBACK is called when complete."
         (with-current-buffer buffer
           (let ((inhibit-read-only t))
             (greger--maybe-save-excursion
-              (goto-char (point-max))
-              ;; Find and replace the placeholder
-              (when (search-backward (greger--tool-placeholder tool-id) nil t)
-                (replace-match "")
-                (let ((result-markdown (greger-parser--tool-result-to-markdown tool-result)))
-                  (unless (string-empty-p result-markdown)
-                    (insert result-markdown)))))))
+             (goto-char (point-max))
+             ;; Find and replace the placeholder
+             (when (search-backward (greger--tool-placeholder tool-id) nil t)
+               (replace-match "")
+               (let ((result-markdown (greger-parser--tool-result-to-markdown tool-result)))
+                 (unless (string-empty-p result-markdown)
+                   (insert result-markdown)))))))
 
         ;; Update buffer state after tool completion
         (with-current-buffer buffer
