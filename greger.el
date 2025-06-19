@@ -588,6 +588,14 @@ If TEXT ends with more than two consecutive newlines, remove all but the
 first two."
   (replace-regexp-in-string "\n\n\n+\\'" "\n\n" text))
 
+(defmacro greger--maybe-save-excursion (&rest body)
+  "Execute BODY, optionally preserving point position.
+If `greger-follow-mode' is enabled, execute BODY normally (point moves to bottom).
+If `greger-follow-mode' is disabled, use `save-excursion' to preserve point position."
+  `(if greger-follow-mode
+       (progn ,@body)
+     (save-excursion ,@body)))
+
 (defun greger--append-streaming-content-header (state content-block)
   "Append appropriate header for streaming CONTENT-BLOCK to STATE."
   (let ((type (alist-get 'type content-block))
