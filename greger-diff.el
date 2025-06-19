@@ -192,9 +192,10 @@ Returns a cons cell (ORIGINAL-STR . NEW-STR)."
           (cond
            ;; Handle "No newline" messages
            ((string-match "^\\\\ No newline" line)
-            ;; The "No newline" message applies to the last processed line
-            ;; We need to track which file it applies to based on context
-            (setq orig-no-newline t new-no-newline t))
+            ;; The "No newline" message applies to the last line that was processed
+            ;; We need to determine which side it applies to based on the last operation
+            (when original-lines (setq orig-no-newline t))
+            (when new-lines (setq new-no-newline t)))
            
            ;; Process normal lines
            ((> (length line) 0)
