@@ -79,7 +79,7 @@ Deletes diff headers (file and hunk headers) and makes \='No newline\='
 messages invisible."
   (if (string-empty-p (string-trim diff-string))
       diff-string
-    (condition-case err
+    (condition-case _err
         (with-temp-buffer
           (insert diff-string)
           (delay-mode-hooks (diff-mode))
