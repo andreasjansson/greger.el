@@ -95,53 +95,68 @@ Returns a cons cell (ORIGINAL-STR . NEW-STR)."
       (cons "" "")
 
     (let ((lines (split-string unified-diff-str "\n"))
-        (original-lines '())
-        (new-lines '())
-        (in-hunk nil))
+          (original-lines '())
+          (new-lines '())
+          (in-hunk nil)
+          (orig-no-newline nil)
+          (new-no-newline nil))
     
-    (dolist (line lines)
-      (cond
-       ;; Skip header lines
-       ((string-match "^\\(---\\|\\+\\+\\+\\|@@\\)" line)
-        (when (string-match "^@@" line)
-          (setq in-hunk t)))
-       
-       ;; Process hunk content
-       (in-hunk
+      (dolist (line lines)
         (cond
-         ;; Skip "No newline" messages
-         ((string-match "^\\\\ No newline" line)
-          nil)
+         ;; Skip header lines
+         ((string-match "^\\(---\\|\\+\\+\\+\\|@@\\)" line)
+          (when (string-match "^@@" line)
+            (setq in-hunk t)))
          
-         ;; Process normal lines
-         ((> (length line) 0)
-          (let ((prefix (substring line 0 1))
-                (content (substring line 1)))
-            (cond
-             ;; Unchanged line
-             ((string= prefix " ")
-              (push content original-lines)
-              (push content new-lines))
-             
-             ;; Deleted line
-             ((string= prefix "-")
-              (push content original-lines))
-             
-             ;; Added line
-             ((string= prefix "+")
-              (push content new-lines))
-             
-             ;; Handle lines without prefix (context)
-             ((not (member prefix '("-" "+")))
-              (push line original-lines)
-              (push line new-lines)))))))))
-    
-    ;; Return cons cell, removing empty strings from ends
-    (let ((orig-str (string-join (nreverse original-lines) "\n"))
-          (new-str (string-join (nreverse new-lines) "\n")))
-      ;; Clean up trailing newlines that diff might add
-      (cons (string-trim-right orig-str "\n")
-            (string-trim-right new-str "\n"))))))
+         ;; Process hunk content
+         (in-hunk
+          (cond
+           ;; Handle "No newline" messages
+           ((string-match "^\\\\ No newline" line)
+            ;; The "No newline" message applies to the last processed line
+            ;; We need to track which file it applies to based on context
+            (setq orig-no-newline t new-no-newline t))
+           
+           ;; Process normal lines
+           ((> (length line) 0)
+            (let ((prefix (substring line 0 1))
+                  (content (substring line 1)))
+              (cond
+               ;; Unchanged line
+               ((string= prefix " ")
+                (push content original-lines)
+                (push content new-lines)
+                (setq orig-no-newline nil new-no-newline nil))
+               
+               ;; Deleted line
+               ((string= prefix "-")
+                (push content original-lines)
+                (setq orig-no-newline nil))
+               
+               ;; Added line
+               ((string= prefix "+")
+                (push content new-lines)
+                (setq new-no-newline nil))
+               
+               ;; Handle lines without prefix (context)
+               ((not (member prefix '("-" "+")))
+                (push line original-lines)
+                (push line new-lines)
+                (setq orig-no-newline nil new-no-newline nil)))))))))
+      
+      ;; Build the final strings
+      (let ((orig-str (if original-lines 
+                          (string-join (nreverse original-lines) "\n")
+                        ""))
+            (new-str (if new-lines 
+                         (string-join (nreverse new-lines) "\n")
+                       "")))
+        ;; Add trailing newlines unless explicitly marked as having no newline
+        (unless (or orig-no-newline (string= orig-str ""))
+          (setq orig-str (concat orig-str "\n")))
+        (unless (or new-no-newline (string= new-str ""))
+          (setq new-str (concat new-str "\n")))
+        (cons orig-str new-str)))))
 
 (provide 'greger-diff)
 ;;; greger-diff.el ends here
