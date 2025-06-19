@@ -289,7 +289,8 @@ messages invisible.""
 (defun greger-diff-strings (original-str new-str filename)
   "Return a diff string using the system `diff` command with full context.
 Applies syntax highlighting based on FILENAME before diffing.
-This creates a unified diff that can be reconstructed with `greger-diff-undiff-strings`."
+This creates a unified diff that can be reconstructed with
+`greger-diff-undiff-strings'."
   (let ((temp-dir (make-temp-file "greger-diff-" t))
         (original-file nil)
         (new-file nil))
