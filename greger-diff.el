@@ -33,7 +33,7 @@
 ;;; Code:
 
 (defun greger-diff--clean-diff-output (diff-str)
-  "Clean up diff output by removing timestamps and 'No newline' messages."
+  "Clean up diff output by removing timestamps but preserving newline indicators."
   (with-temp-buffer
     (insert diff-str)
     (goto-char (point-min))
@@ -41,11 +41,6 @@
     ;; Remove timestamps from header lines
     (while (re-search-forward "^\\(---\\|\\+\\+\\+\\) \\([^\t]*\\)\t.*$" nil t)
       (replace-match "\\1 \\2" nil nil))
-    
-    ;; Remove "\ No newline at end of file" lines
-    (goto-char (point-min))
-    (while (re-search-forward "^\\\\ No newline.*$" nil t)
-      (delete-region (line-beginning-position) (1+ (line-end-position))))
     
     (buffer-string)))
 
