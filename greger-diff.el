@@ -195,8 +195,8 @@ This creates a unified diff that can be reconstructed with `greger-diff-undiff-s
               ;; diff returns 0 when files are identical, 1 when they differ
               (cond
                ((zerop exit-code)
-                ;; Files are identical, create a special marker diff with syntax highlighting
-                (let ((lines (split-string syntax-highlighted-original "\n")))
+                ;; Files are identical, create a special marker diff
+                (let ((lines (split-string original-str "\n")))
                   ;; Remove the last empty line if the string doesn't end with newline
                   (when (and lines (string= (car (last lines)) ""))
                     (setq lines (butlast lines)))
@@ -207,8 +207,10 @@ This creates a unified diff that can be reconstructed with `greger-diff-undiff-s
                                                   line-count line-count)
                                           (mapconcat (lambda (line) (concat " " line))
                                                      lines "\n")
-                                          (when has-no-newline "\n\\ No newline at end of file"))))
-                    (greger-diff-fontify-string identical-diff))))
+                                          (when has-no-newline "\n\\ No newline at end of file")))
+                         (diff-fontified (greger-diff-fontify-string identical-diff)))
+                    ;; Apply syntax highlighting on top of diff highlighting
+                    (greger-diff--apply-syntax-to-diff-content diff-fontified filename))))
                ((eq exit-code 1)
                 ;; Files differ, clean up the output and apply fontification
                 (let* ((clean-diff (greger-diff--clean-diff-output (buffer-string)))
