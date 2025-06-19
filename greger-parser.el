@@ -217,21 +217,24 @@ You can run arbitrary shell commands with the shell-command tool, but the follow
     
     ;; Check if this is a str-replace tool with diff param and convert back
     (when (string= name "str-replace")
-      (let ((diff-content (alist-get 'diff params))
-            (other-params (cl-remove-if (lambda (param)
-                                          (eq (car param) 'diff))
-                                        params)))
-        (when diff-content
-          (let ((undiff-result (greger-diff-undiff-strings diff-content)))
-            (setq params (append other-params
-                                 `((original-content . ,(car undiff-result))
-                                   (new-content . ,(cdr undiff-result)))))))))
+      (setq params (greger-parser--str-replace-undiff-params params)))
     
     `((role . "assistant")
       (content . (((type . "tool_use")
                    (id . ,id)
                    (name . ,name)
                    (input . ,params)))))))
+
+(defun greger-parser--str-replace-undiff-params (params)
+  (let ((diff-content (alist-get 'diff params))
+        (other-params (cl-remove-if (lambda (param)
+                                      (eq (car param) 'diff))
+                                    params)))
+    (when diff-content
+      (let ((undiff-result (greger-diff-undiff-strings diff-content)))
+        (setq params (append other-params
+                             `((original-content . ,(car undiff-result))
+                               (new-content . ,(cdr undiff-result)))))))))
 
 (defun greger-parser--extract-server-tool-use (node)
   "Extract tool use entry from NODE."
@@ -270,6 +273,14 @@ You can run arbitrary shell commands with the shell-command tool, but the follow
          (value (treesit-node-text value-node t)))
 
     (greger-parser--convert-value value)))
+
+(defun greger-parser--extract-tool-result-content (node)
+  "Extract the value field from tree-sitter NODE as a string for tool results.
+Tool result content must always be a string for Claude API compatibility."
+  (let* ((value-node (treesit-node-child-by-field-name node "value"))
+         (value (treesit-node-text value-node t)))
+    ;; Always return as string, don't convert to numbers or other types
+    (greger-parser--remove-single-leading-and-trailing-newline value)))
 
 (defun greger-parser--convert-param-value (value)
   "Convert VALUE to appropriate type for tool parameters.
@@ -589,19 +600,22 @@ assuming it's already been sent in streaming."
 
     ;; Check if this is a str-replace tool and convert to diff format
     (when (string= name "str-replace")
-      (let ((original-content (alist-get 'original-content input))
-            (new-content (alist-get 'new-content input))
-            (other-params (cl-remove-if (lambda (param)
-                                          (memq (car param) '(original-content new-content)))
-                                        input)))
-        (when (and original-content new-content)
-          (let ((diff-content (greger-diff-strings original-content new-content)))
-            (setq input (cons `(diff . ,diff-content) other-params))))))
+      (setq input (greger-parser--str-replace-diff-params input)))
 
     (concat greger-parser-tool-use-tag "\n\n"
             "Name: " name "\n"
             "ID: " id "\n\n"
             (greger-parser--tool-params-to-markdown id input))))
+
+(defun greger-parser--str-replace-diff-params (input)
+  (let ((original-content (alist-get 'original-content input))
+        (new-content (alist-get 'new-content input))
+        (other-params (cl-remove-if (lambda (param)
+                                      (memq (car param) '(original-content new-content)))
+                                    input)))
+    (when (and original-content new-content)
+      (let ((diff-content (greger-diff-strings original-content new-content)))
+        (setq input (cons `(diff . ,diff-content) other-params))))))
 
 (defun greger-parser--server-tool-use-to-markdown (tool-use)
   "Convert TOOL-USE to markdown."
