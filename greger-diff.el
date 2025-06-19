@@ -84,8 +84,8 @@ Also makes diff metadata lines (headers, hunk headers, 'No newline' messages) in
           (font-lock-fontify-buffer)
           ;; Convert 'face to 'font-lock-face for tree-sitter compatibility
           (greger-diff--convert-faces-for-tree-sitter)
-          ;; Hide metadata lines (headers and "No newline" messages)
-          (greger-diff--hide-metadata-lines (buffer-string)))
+          ;; Delete headers and hide "No newline" messages
+          (greger-diff--clean-and-hide-metadata (buffer-string)))
       (error
        ;; If fontification fails, return the original string
        (message "greger-diff: fontification failed: %s" (error-message-string err))
