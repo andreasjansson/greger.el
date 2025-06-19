@@ -192,7 +192,7 @@
   "Test that diff strings are properly fontified."
   (let* ((original "hello\nworld")
          (new "hello\nmodified")
-         (diff-result (greger-diff-strings original new)))
+         (diff-result (greger-diff-strings original new "test.txt")))
     
     ;; Should contain diff content (headers deleted)
     (should (string-match-p "^ hello" diff-result))
@@ -214,7 +214,7 @@
   ;; Test identical strings also get fontified
   (let* ((original "hello")
          (new "hello")
-         (diff-result (greger-diff-strings original new)))
+         (diff-result (greger-diff-strings original new "test.txt")))
     (should (text-property-any 0 (length diff-result) 'font-lock-face nil diff-result))))
 
 (ert-deftest greger-diff-test-invisible-metadata ()
@@ -222,7 +222,7 @@
   ;; Test with strings that don't end with newlines
   (let* ((original "hello")
          (new "world") 
-         (diff-result (greger-diff-strings original new)))
+         (diff-result (greger-diff-strings original new "test.txt")))
     
     ;; Headers should be deleted (not present)
     (should-not (string-match-p "^--- " diff-result))
@@ -242,7 +242,7 @@
   ;; Test with strings that end with newlines (should not have "No newline" message)
   (let* ((original "hello\n")
          (new "world\n")
-         (diff-result (greger-diff-strings original new)))
+         (diff-result (greger-diff-strings original new "test.txt")))
     ;; Should NOT contain the "No newline" message
     (should-not (string-match-p "\\\\ No newline at end of file" diff-result))
     
