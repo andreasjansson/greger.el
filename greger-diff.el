@@ -42,10 +42,33 @@
     ;; Mark as fontified to prevent re-fontification
     (add-text-properties (point-min) (point-max) '(fontified t))))
 
-(defun greger-diff--hide-no-newline-messages (diff-string)
-  "Add invisible property to '\\\ No newline at end of file' lines in DIFF-STRING."
+(defun greger-diff--hide-metadata-lines (diff-string)
+  "Add invisible property to diff metadata lines in DIFF-STRING.
+Hides file headers (--- and +++), hunk headers (@@), and 'No newline' messages."
   (with-temp-buffer
     (insert diff-string)
+    (goto-char (point-min))
+    
+    ;; Hide file headers (--- and +++ lines)
+    (while (re-search-forward "^\\(---\\|\\+\\+\\+\\) " nil t)
+      (let ((line-start (line-beginning-position))
+            (line-end (line-end-position)))
+        ;; Make the entire line invisible, including the newline
+        (put-text-property line-start 
+                          (if (< line-end (point-max)) (1+ line-end) line-end)
+                          'invisible t)))
+    
+    ;; Hide hunk headers (@@ lines)
+    (goto-char (point-min))
+    (while (re-search-forward "^@@.*@@" nil t)
+      (let ((line-start (line-beginning-position))
+            (line-end (line-end-position)))
+        ;; Make the entire line invisible, including the newline
+        (put-text-property line-start 
+                          (if (< line-end (point-max)) (1+ line-end) line-end)
+                          'invisible t)))
+    
+    ;; Hide "No newline at end of file" messages
     (goto-char (point-min))
     (while (re-search-forward "^\\\\ No newline at end of file$" nil t)
       (let ((line-start (line-beginning-position))
@@ -54,6 +77,7 @@
         (put-text-property line-start 
                           (if (< line-end (point-max)) (1+ line-end) line-end)
                           'invisible t)))
+    
     (buffer-string)))
 
 (defun greger-diff-fontify-string (diff-string)
