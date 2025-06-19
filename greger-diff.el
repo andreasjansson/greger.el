@@ -105,14 +105,15 @@ This creates a unified diff that can be reconstructed with `greger-diff-undiff-s
                   ;; Remove the last empty line if the string doesn't end with newline
                   (when (and lines (string= (car (last lines)) ""))
                     (setq lines (butlast lines)))
-                  (let ((line-count (length lines))
-                        (has-no-newline (not (string-suffix-p "\n" original-str))))
-                    (concat
-                     (format "--- original-content\n+++ new-content\n@@ -1,%d +1,%d @@\n"
-                             line-count line-count)
-                     (mapconcat (lambda (line) (concat " " line))
-                                lines "\n")
-                     (when has-no-newline "\n\\ No newline at end of file")))))
+                  (let* ((line-count (length lines))
+                         (has-no-newline (not (string-suffix-p "\n" original-str)))
+                         (identical-diff (concat
+                                          (format "--- original-content\n+++ new-content\n@@ -1,%d +1,%d @@\n"
+                                                  line-count line-count)
+                                          (mapconcat (lambda (line) (concat " " line))
+                                                     lines "\n")
+                                          (when has-no-newline "\n\\ No newline at end of file"))))
+                    (greger-diff-fontify-string identical-diff))))
                ((eq exit-code 1)
                 ;; Files differ, clean up the output and apply fontification
                 (let ((clean-diff (greger-diff--clean-diff-output (buffer-string))))
