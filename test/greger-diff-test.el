@@ -217,5 +217,42 @@
          (diff-result (greger-diff-strings original new)))
     (should (text-property-any 0 (length diff-result) 'font-lock-face nil diff-result))))
 
+(ert-deftest greger-diff-test-invisible-no-newline ()
+  "Test that 'No newline at end of file' messages are made invisible."
+  ;; Test with strings that don't end with newlines
+  (let* ((original "hello")
+         (new "world") 
+         (diff-result (greger-diff-strings original new)))
+    
+    ;; Should contain the "No newline" message
+    (should (string-match-p "\\\\ No newline at end of file" diff-result))
+    
+    ;; Find position of the "No newline" message
+    (let ((pos (string-match "\\\\ No newline at end of file" diff-result)))
+      (should pos)
+      ;; Should have invisible property
+      (should (get-text-property pos 'invisible diff-result))))
+  
+  ;; Test with strings that end with newlines (should not have the message)
+  (let* ((original "hello\n")
+         (new "world\n")
+         (diff-result (greger-diff-strings original new)))
+    ;; Should NOT contain the "No newline" message
+    (should-not (string-match-p "\\\\ No newline at end of file" diff-result)))
+  
+  ;; Test mixed case (one newline, one not)
+  (let* ((original "hello\n")
+         (new "world")
+         (diff-result (greger-diff-strings original new)))
+    ;; Should contain exactly one "No newline" message
+    (should (string-match-p "\\\\ No newline at end of file" diff-result))
+    ;; Count occurrences
+    (let ((count 0)
+          (pos 0))
+      (while (string-match "\\\\ No newline at end of file" diff-result pos)
+        (setq count (1+ count))
+        (setq pos (match-end 0)))
+      (should (= count 1)))))
+
 (provide 'greger-diff-test)
 ;;; greger-diff-test.el ends here
