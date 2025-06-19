@@ -42,10 +42,25 @@
     ;; Mark as fontified to prevent re-fontification
     (add-text-properties (point-min) (point-max) '(fontified t))))
 
+(defun greger-diff--hide-no-newline-messages (diff-string)
+  "Add invisible property to '\\\ No newline at end of file' lines in DIFF-STRING."
+  (with-temp-buffer
+    (insert diff-string)
+    (goto-char (point-min))
+    (while (re-search-forward "^\\\\ No newline at end of file$" nil t)
+      (let ((line-start (line-beginning-position))
+            (line-end (line-end-position)))
+        ;; Make the entire line invisible, including the newline if present
+        (put-text-property line-start 
+                          (if (< line-end (point-max)) (1+ line-end) line-end)
+                          'invisible t)))
+    (buffer-string)))
+
 (defun greger-diff-fontify-string (diff-string)
   "Apply diff-mode fontification to DIFF-STRING and return fontified string.
 Uses a temporary buffer to apply diff-mode fontification, then converts
-face properties to font-lock-face for tree-sitter compatibility."
+face properties to font-lock-face for tree-sitter compatibility.
+Also makes '\\\ No newline at end of file' lines invisible."
   (if (string-empty-p (string-trim diff-string))
       diff-string
     (condition-case err
@@ -55,7 +70,8 @@ face properties to font-lock-face for tree-sitter compatibility."
           (font-lock-fontify-buffer)
           ;; Convert 'face to 'font-lock-face for tree-sitter compatibility
           (greger-diff--convert-faces-for-tree-sitter)
-          (buffer-string))
+          ;; Hide "No newline" messages
+          (greger-diff--hide-no-newline-messages (buffer-string)))
       (error
        ;; If fontification fails, return the original string
        (message "greger-diff: fontification failed: %s" (error-message-string err))
