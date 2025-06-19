@@ -43,7 +43,7 @@
     (add-text-properties (point-min) (point-max) '(fontified t))))
 
 (defun greger-diff--clean-and-hide-metadata (diff-string)
-  "Delete diff headers and make \='No newline\\=' messages invisible.
+  "Delete diff headers and make \='No newline\\=' messages invisible in DIFF-STRING.
 Deletes file headers (--- and +++), hunk headers (@@), but keeps
 \='No newline\\=' messages invisible."
   (with-temp-buffer
