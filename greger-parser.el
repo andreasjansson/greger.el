@@ -574,6 +574,17 @@ assuming it's already been sent in streaming."
         (id (alist-get 'id tool-use))
         (input (alist-get 'input tool-use)))
 
+    ;; Check if this is a str-replace tool and convert to diff format
+    (when (string= name "str-replace")
+      (let ((original-content (alist-get 'original-content input))
+            (new-content (alist-get 'new-content input))
+            (other-params (cl-remove-if (lambda (param)
+                                          (memq (car param) '(original-content new-content)))
+                                        input)))
+        (when (and original-content new-content)
+          (let ((diff-content (greger-diff-strings original-content new-content)))
+            (setq input (cons `(diff . ,diff-content) other-params))))))
+
     (concat greger-parser-tool-use-tag "\n\n"
             "Name: " name "\n"
             "ID: " id "\n\n"
