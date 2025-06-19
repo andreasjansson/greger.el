@@ -449,5 +449,17 @@ Returns a cons cell (ORIGINAL-STR . NEW-STR)."
         (cons (substring-no-properties orig-str)
               (substring-no-properties new-str))))))
 
+(defun greger-diff-insert (diff-string)
+  "Insert DIFF-STRING with proper invisibility handling.
+This ensures that 'No newline' messages are properly hidden."
+  (let ((start-pos (point)))
+    (insert diff-string)
+    ;; Ensure invisibility spec includes 't' so invisible text is hidden
+    (unless (member t buffer-invisibility-spec)
+      (add-to-invisibility-spec t))
+    ;; Refresh the display to apply invisibility
+    (when (called-interactively-p 'any)
+      (redisplay))))
+
 (provide 'greger-diff)
 ;;; greger-diff.el ends here
