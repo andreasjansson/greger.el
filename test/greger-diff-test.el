@@ -23,11 +23,10 @@
          (diff-result (greger-diff-strings original new))
          (undiff-result (greger-diff-undiff-strings diff-result)))
     
-    ;; Verify the diff result contains expected diff format
-    (should (string-match-p "^---" diff-result))
-    (should (string-match-p "^\\+\\+\\+" diff-result))
-    (should (string-match-p "^@@" diff-result))
+    ;; Verify the diff result contains expected diff content (headers deleted)
     (should (string-match-p "^ a" diff-result))
+    (should (string-match-p "^-c" diff-result))
+    (should (string-match-p "^\\+d" diff-result))
     (should (string-match-p "^ b" diff-result))
     (should (string-match-p "^-c" diff-result))
     (should (string-match-p "^\\+d" diff-result))
