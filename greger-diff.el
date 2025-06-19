@@ -176,23 +176,36 @@ Deletes diff headers (file and hunk headers) and makes 'No newline' messages inv
           
           (dolist (diff-line diff-lines)
             (when (> (length diff-line) 0)
-              (let ((prefix (substring diff-line 0 1)))
+              (let ((prefix (substring diff-line 0 1))
+                    (line-start (point)))
                 (cond
                  ;; Context line
                  ((string= prefix " ")
                   (when (< orig-pos (length orig-lines))
-                    (insert " " (nth orig-pos orig-lines) "\n")
+                    (insert " ")
+                    (let ((content-start (point)))
+                      (insert (nth orig-pos orig-lines))
+                      ;; The syntax highlighting is already in the content
+                      (insert "\n"))
                     (setq orig-pos (1+ orig-pos))
                     (setq new-pos (1+ new-pos))))
                  ;; Removed line  
                  ((string= prefix "-")
                   (when (< orig-pos (length orig-lines))
-                    (insert "-" (nth orig-pos orig-lines) "\n")
+                    (insert "-")
+                    (let ((content-start (point)))
+                      (insert (nth orig-pos orig-lines))
+                      ;; The syntax highlighting is already in the content
+                      (insert "\n"))
                     (setq orig-pos (1+ orig-pos))))
                  ;; Added line
                  ((string= prefix "+")
                   (when (< new-pos (length new-lines))
-                    (insert "+" (nth new-pos new-lines) "\n")
+                    (insert "+")
+                    (let ((content-start (point)))
+                      (insert (nth new-pos new-lines))
+                      ;; The syntax highlighting is already in the content
+                      (insert "\n"))
                     (setq new-pos (1+ new-pos))))
                  ;; Other lines (invisible markers, etc.) - copy as-is
                  (t
