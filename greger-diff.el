@@ -211,70 +211,72 @@ Deletes diff headers (file and hunk headers) and makes 'No newline' messages inv
                  (t
                   (insert diff-line "\n")))))))
         
-        ;; Apply diff highlighting to the reconstructed diff
-        (goto-char (point-min))
-        (delay-mode-hooks (diff-mode))
-        (font-lock-fontify-buffer)
-        ;; Convert face properties to font-lock-face
-        (greger-diff--convert-faces-for-tree-sitter)
-        ;; Apply background-based diff highlighting while preserving syntax highlighting
-        (let ((pos (point-min)))
-          (while (< pos (point-max))
-            (let* ((start-pos pos)
-                   (end-pos (next-single-property-change pos 'font-lock-face nil (point-max)))
-                   (current-face (get-text-property pos 'font-lock-face)))
+        ;; Store syntax highlighting before applying diff highlighting
+        (let ((syntax-map (make-hash-table)))
+          ;; Store all syntax highlighting faces  
+          (let ((pos (point-min)))
+            (while (< pos (point-max))
+              (let ((face (get-text-property pos 'font-lock-face)))
+                (when (and face 
+                           (or (symbolp face)
+                               (and (listp face) (symbolp (car face))))
+                           (not (member face '(diff-context diff-removed diff-added diff-indicator-removed diff-indicator-added))))
+                  (puthash pos face syntax-map)))
+              (setq pos (1+ pos))))
+          
+          ;; Apply diff highlighting
+          (goto-char (point-min))
+          (delay-mode-hooks (diff-mode))
+          (font-lock-fontify-buffer)
+          (greger-diff--convert-faces-for-tree-sitter)
+          
+          ;; Combine syntax highlighting with diff background highlighting
+          (goto-char (point-min))
+          (while (not (eobp))
+            (let* ((line-start (line-beginning-position))
+                   (line-end (line-end-position))
+                   (line-content (buffer-substring line-start line-end)))
               
-              ;; Check what type of line we're on by looking at the first character
-              (save-excursion
-                (goto-char pos)
-                (beginning-of-line)
-                (let* ((line-start (point))
-                       (line-content (buffer-substring line-start (line-end-position)))
-                       (line-prefix (if (> (length line-content) 0) (substring line-content 0 1) "")))
-                  
-                  ;; Apply background based on line type, preserving existing syntax highlighting
+              (when (> (length line-content) 0)
+                (let ((line-prefix (substring line-content 0 1)))
+                  ;; Apply background to entire line based on prefix
                   (cond
                    ((string= line-prefix "-")
-                    ;; Removed line - red background
-                    (cond
-                     ;; If it's a syntax highlighting face, combine with red background
-                     ((and current-face 
-                           (not (member current-face '(diff-removed diff-indicator-removed)))
-                           (or (symbolp current-face)
-                               (and (listp current-face) (symbolp (car current-face)))))
-                      (put-text-property start-pos end-pos 'font-lock-face 
-                                         (list current-face :background "#4d1f1f")))
-                     ;; Otherwise just red background
-                     (t
-                      (put-text-property start-pos end-pos 'font-lock-face '(:background "#4d1f1f")))))
+                    ;; Apply red background to removed line
+                    (let ((pos line-start))
+                      (while (<= pos line-end)
+                        (let ((syntax-face (gethash pos syntax-map)))
+                          (if syntax-face
+                              ;; Combine syntax face with red background
+                              (put-text-property pos (1+ pos) 'font-lock-face 
+                                                 (list syntax-face :background "#4d1f1f"))
+                            ;; Just red background
+                            (put-text-property pos (1+ pos) 'font-lock-face '(:background "#4d1f1f"))))
+                        (setq pos (1+ pos)))))
                    
                    ((string= line-prefix "+")
-                    ;; Added line - green background  
-                    (cond
-                     ;; If it's a syntax highlighting face, combine with green background
-                     ((and current-face 
-                           (not (member current-face '(diff-added diff-indicator-added)))
-                           (or (symbolp current-face)
-                               (and (listp current-face) (symbolp (car current-face)))))
-                      (put-text-property start-pos end-pos 'font-lock-face 
-                                         (list current-face :background "#1f4d1f")))
-                     ;; Otherwise just green background
-                     (t
-                      (put-text-property start-pos end-pos 'font-lock-face '(:background "#1f4d1f")))))
+                    ;; Apply green background to added line
+                    (let ((pos line-start))
+                      (while (<= pos line-end)
+                        (let ((syntax-face (gethash pos syntax-map)))
+                          (if syntax-face
+                              ;; Combine syntax face with green background
+                              (put-text-property pos (1+ pos) 'font-lock-face 
+                                                 (list syntax-face :background "#1f4d1f"))
+                            ;; Just green background
+                            (put-text-property pos (1+ pos) 'font-lock-face '(:background "#1f4d1f"))))
+                        (setq pos (1+ pos)))))
                    
                    ((string= line-prefix " ")
-                    ;; Context line - preserve syntax highlighting, no special background
-                    (when (eq current-face 'diff-context)
-                      (put-text-property start-pos end-pos 'font-lock-face nil)))
-                   
-                   ;; Handle diff indicators
-                   ((and (eq current-face 'diff-indicator-removed))
-                    (put-text-property start-pos end-pos 'font-lock-face '(:background "#662222" :foreground "#ff6666")))
-                   
-                   ((and (eq current-face 'diff-indicator-added))
-                    (put-text-property start-pos end-pos 'font-lock-face '(:background "#226622" :foreground "#66ff66"))))))
+                    ;; Context line - restore syntax highlighting only
+                    (let ((pos line-start))
+                      (while (<= pos line-end)
+                        (let ((syntax-face (gethash pos syntax-map)))
+                          (when syntax-face
+                            (put-text-property pos (1+ pos) 'font-lock-face syntax-face)))
+                        (setq pos (1+ pos))))))))
               
-              (setq pos end-pos))))
+              (forward-line 1))))
         
         (buffer-string)))))
 
