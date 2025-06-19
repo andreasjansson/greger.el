@@ -223,21 +223,31 @@ Deletes diff headers (file and hunk headers) and makes 'No newline' messages inv
                   (cond
                    ((string= line-prefix "-")
                     ;; Removed line - red background
-                    (if (and current-face (not (member current-face '(diff-removed diff-indicator-removed))))
-                        ;; Preserve syntax highlighting, add red background
-                        (put-text-property start-pos end-pos 'font-lock-face 
-                                           (list current-face :background "#4d1f1f"))
-                      ;; Just red background
-                      (put-text-property start-pos end-pos 'font-lock-face '(:background "#4d1f1f"))))
+                    (cond
+                     ;; If it's a syntax highlighting face, combine with red background
+                     ((and current-face 
+                           (not (member current-face '(diff-removed diff-indicator-removed)))
+                           (or (symbolp current-face)
+                               (and (listp current-face) (symbolp (car current-face)))))
+                      (put-text-property start-pos end-pos 'font-lock-face 
+                                         (list current-face :background "#4d1f1f")))
+                     ;; Otherwise just red background
+                     (t
+                      (put-text-property start-pos end-pos 'font-lock-face '(:background "#4d1f1f")))))
                    
                    ((string= line-prefix "+")
-                    ;; Added line - green background
-                    (if (and current-face (not (member current-face '(diff-added diff-indicator-added))))
-                        ;; Preserve syntax highlighting, add green background
-                        (put-text-property start-pos end-pos 'font-lock-face 
-                                           (list current-face :background "#1f4d1f"))
-                      ;; Just green background
-                      (put-text-property start-pos end-pos 'font-lock-face '(:background "#1f4d1f"))))
+                    ;; Added line - green background  
+                    (cond
+                     ;; If it's a syntax highlighting face, combine with green background
+                     ((and current-face 
+                           (not (member current-face '(diff-added diff-indicator-added)))
+                           (or (symbolp current-face)
+                               (and (listp current-face) (symbolp (car current-face)))))
+                      (put-text-property start-pos end-pos 'font-lock-face 
+                                         (list current-face :background "#1f4d1f")))
+                     ;; Otherwise just green background
+                     (t
+                      (put-text-property start-pos end-pos 'font-lock-face '(:background "#1f4d1f")))))
                    
                    ((string= line-prefix " ")
                     ;; Context line - preserve syntax highlighting, no special background
