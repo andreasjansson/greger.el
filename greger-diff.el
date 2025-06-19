@@ -72,10 +72,18 @@ This creates a unified diff that can be reconstructed with `greger-diff-undiff-s
               (cond
                ((zerop exit-code)
                 ;; Files are identical, create a special marker diff
-                (format "--- original-content\n+++ new-content\n@@ -0,0 +0,0 @@\n%s"
-                        (mapconcat (lambda (line) (concat " " line))
-                                   (split-string original-str "\n")
-                                   "\n")))
+                (let ((lines (split-string original-str "\n")))
+                  ;; Remove the last empty line if the string doesn't end with newline
+                  (when (and lines (string= (car (last lines)) ""))
+                    (setq lines (butlast lines)))
+                  (let ((line-count (length lines))
+                        (has-no-newline (not (string-suffix-p "\n" original-str))))
+                    (concat
+                     (format "--- original-content\n+++ new-content\n@@ -1,%d +1,%d @@\n"
+                             line-count line-count)
+                     (mapconcat (lambda (line) (concat " " line))
+                                lines "\n")
+                     (when has-no-newline "\n\\ No newline at end of file")))))
                ((eq exit-code 1)
                 ;; Files differ, clean up the output
                 (greger-diff--clean-diff-output (buffer-string)))
