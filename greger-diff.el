@@ -49,22 +49,24 @@ This creates a unified diff that can be reconstructed with `greger-diff-undiff-s
           (with-temp-file new-file
             (insert new-str))
           
-          ;; Run diff with full context (use a large number for context lines)
+          ;; Run diff with full context and custom labels
           (with-temp-buffer
             (let ((exit-code (call-process "diff" nil t nil
                                          "-U" "1000000"  ; Very large context
+                                         "--label" "original-content"
+                                         "--label" "new-content"
                                          original-file new-file)))
               ;; diff returns 0 when files are identical, 1 when they differ
               (cond
                ((zerop exit-code)
                 ;; Files are identical, create a special marker diff
-                (format "--- IDENTICAL\n+++ IDENTICAL\n@@ -0,0 +0,0 @@\n%s"
+                (format "--- original-content\n+++ new-content\n@@ -0,0 +0,0 @@\n%s"
                         (mapconcat (lambda (line) (concat " " line))
                                    (split-string original-str "\n")
                                    "\n")))
                ((eq exit-code 1)
-                ;; Files differ, return normal diff
-                (buffer-string))
+                ;; Files differ, clean up the output
+                (greger-diff--clean-diff-output (buffer-string)))
                (t
                 (error "diff command failed with exit code %d" exit-code))))))
       
@@ -77,10 +79,10 @@ This creates a unified diff that can be reconstructed with `greger-diff-undiff-s
 Handles unified diff format created by the `diff` command.
 Returns a cons cell (ORIGINAL-STR . NEW-STR)."
   ;; Handle empty diff (identical files)  
-  (when (string= "" (string-trim unified-diff-str))
-    (cons "" ""))
-  
-  (let ((lines (split-string unified-diff-str "\n"))
+  (if (string= "" (string-trim unified-diff-str))
+      (cons "" "")
+
+    (let ((lines (split-string unified-diff-str "\n"))
         (original-lines '())
         (new-lines '())
         (in-hunk nil))
@@ -127,7 +129,7 @@ Returns a cons cell (ORIGINAL-STR . NEW-STR)."
           (new-str (string-join (nreverse new-lines) "\n")))
       ;; Clean up trailing newlines that diff might add
       (cons (string-trim-right orig-str "\n")
-            (string-trim-right new-str "\n")))))
+            (string-trim-right new-str "\n"))))))
 
 (provide 'greger-diff)
 ;;; greger-diff.el ends here
