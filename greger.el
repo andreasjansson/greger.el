@@ -794,9 +794,10 @@ COMPLETION-CALLBACK is called when complete."
     (when (buffer-live-p buffer)
       (with-current-buffer buffer
         (let ((inhibit-read-only t))
-          (goto-char (point-max))
-          (unless (looking-back (concat greger-parser-user-tag "\n\n") nil)
-            (insert "\n\n" greger-parser-user-tag "\n\n")))
+          (greger--maybe-save-excursion
+           (goto-char (point-max))
+           (unless (looking-back (concat greger-parser-user-tag "\n\n") nil)
+             (insert "\n\n" greger-parser-user-tag "\n\n"))))
         ;; Clear the buffer-local agent state
         (setq greger--current-state nil)
         ;; Update buffer state to idle
