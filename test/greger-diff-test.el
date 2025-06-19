@@ -194,9 +194,10 @@
          (new "hello\nmodified")
          (diff-result (greger-diff-strings original new)))
     
-    ;; Should contain proper diff structure
-    (should (string-match-p "^--- original-content" diff-result))
-    (should (string-match-p "^\\+\\+\\+ new-content" diff-result))
+    ;; Should contain diff content (headers deleted)
+    (should (string-match-p "^ hello" diff-result))
+    (should (string-match-p "^-world" diff-result))
+    (should (string-match-p "^\\+modified" diff-result))
     
     ;; Should have fontification properties
     (should (text-property-any 0 (length diff-result) 'font-lock-face nil diff-result))
