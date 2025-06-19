@@ -16,6 +16,44 @@
 (require 'greger-diff)
 (require 'greger-parser)
 
+;; Global variable to store the grammar repo path
+(defvar greger-diff-test-grammar-repo-path nil
+  "Path to the cloned greger-grammar repository.")
+
+;; Function to clone the grammar repo once
+(defun greger-diff-test-setup-grammar-repo ()
+  "Clone the greger-grammar repository to a temporary directory if not already done."
+  (unless greger-diff-test-grammar-repo-path
+    (let ((temp-dir (make-temp-file "greger-grammar-" t)))
+      (message "Cloning greger-grammar to %s..." temp-dir)
+      (let ((result (shell-command-to-string
+                     (format "cd %s && git clone https://github.com/andreasjansson/greger-grammar.git"
+                             (shell-quote-argument temp-dir)))))
+        (if (string-match-p "fatal:\\|error:" result)
+            (error "Failed to clone greger-grammar: %s" result)
+          (setq greger-diff-test-grammar-repo-path (expand-file-name "greger-grammar" temp-dir))
+          (message "Successfully cloned greger-grammar to %s" greger-diff-test-grammar-repo-path))))))
+
+;; Function to clean up the grammar repo
+(defun greger-diff-test-cleanup-grammar-repo ()
+  "Clean up the cloned greger-grammar repository."
+  (when greger-diff-test-grammar-repo-path
+    (let ((temp-dir (file-name-directory greger-diff-test-grammar-repo-path)))
+      (message "Cleaning up greger-grammar repo at %s..." temp-dir)
+      (delete-directory temp-dir t)
+      (setq greger-diff-test-grammar-repo-path nil))))
+
+;; Fixture macro for tests that need the grammar repo
+(defmacro greger-diff-test--with-grammar-repo (&rest body)
+  "Execute BODY with the grammar repository available, ensuring cleanup."
+  `(unwind-protect
+       (progn
+         (greger-diff-test-setup-grammar-repo)
+         ,@body)
+     ;; Cleanup happens here only if there's an error
+     ;; For normal operation, cleanup happens in the dedicated cleanup test
+     nil))
+
 (ert-deftest greger-diff-test-basic ()
   "Test basic diff and undiff functionality."
   (let* ((original "a\nb\nc\n1\n2\n3")
