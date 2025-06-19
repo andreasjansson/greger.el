@@ -74,7 +74,7 @@ Deletes file headers (--- and +++), hunk headers (@@), but keeps 'No newline' me
   "Apply diff-mode fontification to DIFF-STRING and return fontified string.
 Uses a temporary buffer to apply diff-mode fontification, then converts
 face properties to font-lock-face for tree-sitter compatibility.
-Also makes diff metadata lines (headers, hunk headers, 'No newline' messages) invisible."
+Deletes diff headers (file and hunk headers) and makes 'No newline' messages invisible."
   (if (string-empty-p (string-trim diff-string))
       diff-string
     (condition-case err
