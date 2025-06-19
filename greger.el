@@ -110,6 +110,10 @@ May order 4,000 pounds of meat."
 (defvar-local greger-current-thinking-budget greger-thinking-budget
   "Thinking budget for the current Greger chat.")
 
+(defvar-local greger-follow-mode t
+  "When non-nil, keep point at the bottom of the chat during updates.
+When nil, preserve point position using `save-excursion'.")
+
 (defcustom greger-citation-summary-face 'underline
   "Face to use for citation text when folded."
   :type 'face
