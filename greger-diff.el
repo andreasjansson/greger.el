@@ -267,7 +267,19 @@ This creates a unified diff that can be reconstructed with `greger-diff-undiff-s
                                           (when has-no-newline "\n\\ No newline at end of file")))
                          (diff-fontified (greger-diff-fontify-string identical-diff)))
                     ;; Apply syntax highlighting on top of diff highlighting
-                    (greger-diff--apply-syntax-to-diff-content diff-fontified filename))))
+                    (let ((result (greger-diff--apply-syntax-to-diff-content diff-fontified filename)))
+                      ;; Apply background highlighting
+                      (with-temp-buffer
+                        (insert result)
+                        (let ((pos (point-min)))
+                          (while (< pos (point-max))
+                            (let* ((current-face (get-text-property pos 'font-lock-face))
+                                   (next-pos (next-single-property-change pos 'font-lock-face nil (point-max))))
+                              (cond
+                               ((eq current-face 'diff-context)
+                                (put-text-property pos next-pos 'font-lock-face nil)))
+                              (setq pos next-pos))))
+                        (buffer-string))))))
                ((eq exit-code 1)
                 ;; Files differ, clean up the output and apply fontification
                 (let* ((clean-diff (greger-diff--clean-diff-output (buffer-string)))
