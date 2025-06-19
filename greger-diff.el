@@ -32,6 +32,35 @@
 
 ;;; Code:
 
+(defun greger-diff--convert-faces-for-tree-sitter ()
+  "Convert 'face text properties to 'font-lock-face for tree-sitter compatibility."
+  (let ((pos (point-min)))
+    (while (setq pos (next-single-property-change pos 'face))
+      (when-let ((face (get-text-property pos 'face)))
+        (let ((end (next-single-property-change pos 'face nil (point-max))))
+          (put-text-property pos end 'font-lock-face face))))
+    ;; Mark as fontified to prevent re-fontification
+    (add-text-properties (point-min) (point-max) '(fontified t))))
+
+(defun greger-diff-fontify-string (diff-string)
+  "Apply diff-mode fontification to DIFF-STRING and return fontified string.
+Uses a temporary buffer to apply diff-mode fontification, then converts
+face properties to font-lock-face for tree-sitter compatibility."
+  (if (string-empty-p (string-trim diff-string))
+      diff-string
+    (condition-case err
+        (with-temp-buffer
+          (insert diff-string)
+          (delay-mode-hooks (diff-mode))
+          (font-lock-fontify-buffer)
+          ;; Convert 'face to 'font-lock-face for tree-sitter compatibility
+          (greger-diff--convert-faces-for-tree-sitter)
+          (buffer-string))
+      (error
+       ;; If fontification fails, return the original string
+       (message "greger-diff: fontification failed: %s" (error-message-string err))
+       diff-string))))
+
 (defun greger-diff--clean-diff-output (diff-str)
   "Clean up diff output by removing timestamps but preserving newline indicators."
   (with-temp-buffer
