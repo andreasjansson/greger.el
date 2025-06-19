@@ -173,19 +173,17 @@ Applies syntax highlighting based on FILENAME before diffing.
 This creates a unified diff that can be reconstructed with `greger-diff-undiff-strings`."
   (let ((temp-dir (make-temp-file "greger-diff-" t))
         (original-file nil)
-        (new-file nil)
-        (syntax-highlighted-original (greger-diff--apply-syntax-highlighting original-str filename))
-        (syntax-highlighted-new (greger-diff--apply-syntax-highlighting new-str filename)))
+        (new-file nil))
     (unwind-protect
         (progn
           (setq original-file (expand-file-name "original" temp-dir))
           (setq new-file (expand-file-name "new" temp-dir))
           
-          ;; Write syntax-highlighted strings to temporary files
+          ;; Write plain strings to temporary files
           (with-temp-file original-file
-            (insert syntax-highlighted-original))
+            (insert original-str))
           (with-temp-file new-file
-            (insert syntax-highlighted-new))
+            (insert new-str))
           
           ;; Run diff with full context and custom labels
           (with-temp-buffer
