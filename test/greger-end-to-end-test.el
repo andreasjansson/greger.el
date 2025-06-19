@@ -61,15 +61,15 @@ Uses greger--mode-line-info to get the greger-specific portion of the mode line.
         ""))))
 
 (defun greger-test-wait-for-status (status &optional timeout)
-   "Wait for greger buffer to reach STATUS within TIMEOUT seconds."
-   (let ((start-time (current-time))
-         (current-status nil)
-         (timeout (or timeout greger-test-timeout)))
-     (while (and (not (equal status current-status))
-                 (< (float-time (time-subtract (current-time) start-time)) timeout))
-       (setq current-status (greger--get-current-status))
-       (sit-for 0.2))
-     (equal status current-status)))
+  "Wait for greger buffer to reach STATUS within TIMEOUT seconds."
+  (let ((start-time (current-time))
+        (current-status nil)
+        (timeout (or timeout greger-test-timeout)))
+    (while (and (not (equal status current-status))
+                (< (float-time (time-subtract (current-time) start-time)) timeout))
+      (setq current-status (greger--get-current-status))
+      (sit-for 0.2))
+    (equal status current-status)))
 
 (ert-deftest greger-end-to-end-test-greger-function ()
   "Test the main greger function creates a buffer and sets it up correctly."
@@ -479,10 +479,10 @@ Hello from greger test!
                 ;; With follow mode enabled, point should move to bottom
                 (goto-char initial-point)
                 (should (= (point) initial-point))
-                
+
                 (greger-buffer)
                 (greger-test-wait-for-status 'idle)
-                
+
                 ;; Point should be at the end now (follow mode behavior)
                 (should (= (point) (point-max))))
 
@@ -502,7 +502,7 @@ Hello from greger test!
                 (let ((greger-current-thinking-budget 0))
                   (greger-buffer)
                   (greger-test-wait-for-status 'idle)
-                  
+
                   ;; Point should still be at the beginning (no follow mode)
                   (should (= (point) test-point))))
 

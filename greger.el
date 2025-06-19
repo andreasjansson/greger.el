@@ -457,6 +457,15 @@ When disabled, point position is preserved using `save-excursion'."
         (greger-current-thinking-budget 0))
     (greger-buffer)))
 
+(defmacro greger--maybe-save-excursion (&rest body)
+  "Execute BODY, optionally preserving point position.
+If `greger-follow-mode' is enabled, point follows output
+at the end of the buffer.
+If `greger-follow-mode' is disabled, use `save-excursion'
+to preserve point position."
+  `(if greger-follow-mode
+       (progn ,@body)
+     (save-excursion ,@body)))
 
 (defun greger--get-current-status ()
   "Get the current greger status: \='idle, \='generating, or \='executing."
@@ -601,14 +610,6 @@ Uses tree-sitter to find the last node and applies heuristics:
 If TEXT ends with more than two consecutive newlines, remove all but the
 first two."
   (replace-regexp-in-string "\n\n\n+\\'" "\n\n" text))
-
-(defmacro greger--maybe-save-excursion (&rest body)
-  "Execute BODY, optionally preserving point position.
-If `greger-follow-mode' is enabled, execute BODY normally (point moves to bottom).
-If `greger-follow-mode' is disabled, use `save-excursion' to preserve point position."
-  `(if greger-follow-mode
-       (progn ,@body)
-     (save-excursion ,@body)))
 
 (defun greger--append-streaming-content-header (state content-block)
   "Append appropriate header for streaming CONTENT-BLOCK to STATE."
