@@ -744,8 +744,9 @@ Assumes the last inserted thing is a thinking tag."
   (let ((buffer (greger-state-chat-buffer state)))
     (with-current-buffer buffer
       (let ((inhibit-read-only t))
-        (goto-char (point-max))
-        (insert text)))))
+        (greger--maybe-save-excursion
+         (goto-char (point-max))
+         (insert text))))))
 
 (cl-defun greger--handle-tool-completion (&key tool-id result error state completion-callback)
   "Handle completion of a tool execution.
