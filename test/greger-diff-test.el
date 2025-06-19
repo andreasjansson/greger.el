@@ -176,5 +176,18 @@
       (should (string= "ls -la" (alist-get 'command input)))
       (should (string= "/tmp" (alist-get 'working-directory input))))))
 
+(ert-deftest greger-diff-test-empty-diff-string ()
+  "Test that empty diff string returns empty strings instead of error."
+  (let ((result (greger-diff-undiff-strings "")))
+    (should (consp result))
+    (should (string= "" (car result)))
+    (should (string= "" (cdr result))))
+  
+  ;; Test with whitespace-only string
+  (let ((result (greger-diff-undiff-strings "   \n  \t  ")))
+    (should (consp result))
+    (should (string= "" (car result)))
+    (should (string= "" (cdr result)))))
+
 (provide 'greger-diff-test)
 ;;; greger-diff-test.el ends here
