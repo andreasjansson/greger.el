@@ -414,6 +414,8 @@ When follow mode is enabled, point moves to the bottom during chat updates.
 When disabled, point position is preserved using `save-excursion'."
   (interactive)
   (setq-local greger-follow-mode (not greger-follow-mode))
+  (when greger-follow-mode
+    (goto-char (point-max)))
   (message "Follow mode %s" (if greger-follow-mode "enabled" "disabled"))
   (force-mode-line-update))
 
