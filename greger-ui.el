@@ -246,11 +246,7 @@ NODE is the matched tree-sitter node"
       (let ((is-tail-visible (get-text-property tail-start 'greger-ui-tool-content-expanded)))
         (put-text-property tail-start (min (1+ tail-start) tail-end) 'greger-ui-tool-content-expanded (not is-tail-visible))
         ;; Also need to flush both head and tail for overlay updates
-        (font-lock-flush (point) tail-end)
-
-        ;; Apply diff de-emphasis in tail
-        (unless is-tail-visible
-         (greger-diff--apply-diff-deemphasis tail-start tail-end))))))
+        (font-lock-flush (point) tail-end)))))
 
 ;; Define faces for tool content backgrounds
 (defface greger-tool-content-face
