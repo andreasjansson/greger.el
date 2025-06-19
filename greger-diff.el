@@ -242,9 +242,9 @@ Deletes diff headers (file and hunk headers) and makes 'No newline' messages inv
                   ;; Apply background to entire line based on prefix
                   (cond
                    ((string= line-prefix "-")
-                    ;; Apply red background to removed line
+                    ;; Apply red background to removed line (excluding newline)
                     (let ((pos line-start))
-                      (while (<= pos line-end)
+                      (while (< pos line-end)
                         (let ((syntax-face (gethash pos syntax-map)))
                           (if syntax-face
                               ;; Combine syntax face with red background
@@ -255,9 +255,9 @@ Deletes diff headers (file and hunk headers) and makes 'No newline' messages inv
                         (setq pos (1+ pos)))))
                    
                    ((string= line-prefix "+")
-                    ;; Apply green background to added line
+                    ;; Apply green background to added line (excluding newline)
                     (let ((pos line-start))
-                      (while (<= pos line-end)
+                      (while (< pos line-end)
                         (let ((syntax-face (gethash pos syntax-map)))
                           (if syntax-face
                               ;; Combine syntax face with green background
@@ -268,9 +268,9 @@ Deletes diff headers (file and hunk headers) and makes 'No newline' messages inv
                         (setq pos (1+ pos)))))
                    
                    ((string= line-prefix " ")
-                    ;; Context line - restore syntax highlighting only
+                    ;; Context line - restore syntax highlighting only (excluding newline)
                     (let ((pos line-start))
-                      (while (<= pos line-end)
+                      (while (< pos line-end)
                         (let ((syntax-face (gethash pos syntax-map)))
                           (when syntax-face
                             (put-text-property pos (1+ pos) 'font-lock-face syntax-face)))
