@@ -772,7 +772,7 @@ COMPLETION-CALLBACK is called when complete."
       (when (buffer-live-p buffer)
         (with-current-buffer buffer
           (let ((inhibit-read-only t))
-            (save-excursion
+            (greger--maybe-save-excursion
               (goto-char (point-max))
               ;; Find and replace the placeholder
               (when (search-backward (greger--tool-placeholder tool-id) nil t)
