@@ -484,7 +484,10 @@ Call this after UI operations that might have removed invisibility."
   "Enable greger-diff invisibility in current buffer.
 Call this to ensure diff elements are hidden."
   (interactive)
-  (unless (member 'greger-diff buffer-invisibility-spec)
+  (unless (and (listp buffer-invisibility-spec) 
+               (member 'greger-diff buffer-invisibility-spec))
+    (when (eq buffer-invisibility-spec t)
+      (setq buffer-invisibility-spec '(t)))
     (add-to-invisibility-spec 'greger-diff)))
 
 (provide 'greger-diff)
