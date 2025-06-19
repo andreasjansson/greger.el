@@ -246,10 +246,8 @@
     ;; Should NOT contain the "No newline" message
     (should-not (string-match-p "\\\\ No newline at end of file" diff-result))
     
-    ;; But headers should still be invisible
-    (let ((file-header-pos (string-match "^---" diff-result)))
-      (should file-header-pos)
-      (should (get-text-property file-header-pos 'invisible diff-result)))))
+    ;; Headers should still be deleted
+    (should-not (string-match-p "^---" diff-result))))
 
 (provide 'greger-diff-test)
 ;;; greger-diff-test.el ends here
