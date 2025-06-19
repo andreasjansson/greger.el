@@ -128,7 +128,7 @@ messages invisible.""
        content))))
 
 (defun greger-diff--apply-syntax-to-diff-content (diff-string filename)
-  "Apply syntax highlighting to diff content while preserving diff highlighting."
+  "Apply syntax highlighting to DIFF-STRING while preserving diff highlighting."
   (with-temp-buffer
     (insert diff-string)
 
