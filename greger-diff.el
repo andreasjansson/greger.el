@@ -93,7 +93,7 @@ messages invisible.""
        diff-string))))
 
 (defun greger-diff--clean-diff-output (diff-str)
-  "Clean up diff output by removing timestamps but preserving newline indicators."
+  "Clean up DIFF-STR by removing timestamps but preserving newline indicators."
   (with-temp-buffer
     (insert diff-str)
     (goto-char (point-min))
