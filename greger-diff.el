@@ -77,7 +77,7 @@ This creates a unified diff that can be reconstructed with `greger-diff-undiff-s
 Handles unified diff format created by the `diff` command.
 Returns a cons cell (ORIGINAL-STR . NEW-STR)."
   ;; Handle empty diff (identical files)
-  (when (string-empty-p (string-trim unified-diff-str))
+  (when (string= "" (string-trim unified-diff-str))
     (error "Cannot undiff empty diff string - original content unknown"))
   
   (let ((lines (split-string unified-diff-str "\n"))
