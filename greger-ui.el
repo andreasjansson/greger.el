@@ -150,25 +150,28 @@ NODE is the matched tree-sitter node"
          (is-visible (get-text-property node-start 'greger-ui-tool-content-expanded))
          (should-hide-tail (not is-visible)))
 
-    ;; Apply invisibility preserving existing invisible properties
-    (let ((pos node-start))
-      (while (< pos node-end)
-        (let* ((next-pos (next-single-property-change pos 'invisible nil node-end))
-               (existing-invisible (get-text-property pos 'invisible)))
-          
-          ;; If content should be visible but there's existing invisibility, preserve it
-          ;; If content should be hidden, hide everything
-          (cond
-           ;; Tail should be hidden - hide everything
-           (should-hide-tail
-            (put-text-property pos next-pos 'invisible t))
-           ;; Tail should be visible - preserve existing invisible properties
-           (t
-            ;; Only override if there's no existing invisible property
-            (unless existing-invisible
-              (remove-text-properties pos next-pos '(invisible nil)))))
-          
-          (setq pos next-pos))))
+    (if should-hide-tail
+        ;; Tail should be hidden - hide everything
+        (put-text-property node-start node-end 'invisible t)
+      ;; Tail should be visible - clear tail invisibility but preserve diff-specific invisibility
+      (let ((pos node-start))
+        (while (< pos node-end)
+          (let* ((next-pos (next-single-property-change pos 'invisible nil node-end))
+                 (existing-invisible (get-text-property pos 'invisible))
+                 (char-at-pos (when (< pos (point-max)) (char-after pos))))
+            
+            ;; Only remove invisibility if it's not a diff-related invisible character
+            ;; Preserve invisibility for diff indicators and "No newline" messages
+            (when (and existing-invisible
+                       (not (and char-at-pos 
+                                 (or (memq char-at-pos '(?\s ?- ?+))  ; diff indicators
+                                     ;; Check if this is part of a "No newline" message
+                                     (save-excursion
+                                       (goto-char pos)
+                                       (looking-at "\\\\.*No newline"))))))
+              (remove-text-properties pos next-pos '(invisible nil)))
+            
+            (setq pos next-pos)))))
     
     (put-text-property node-start node-end 'keymap greger-ui-tool-content-tail-keymap)
     ;; Apply color
