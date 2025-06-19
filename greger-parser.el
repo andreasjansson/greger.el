@@ -609,6 +609,7 @@ assuming it's already been sent in streaming."
             (greger-parser--tool-params-to-markdown id input))))
 
 (defun greger-parser--str-replace-diff-params (input)
+  "Convert original-content and new-content to diff parameter in INPUT."
   (let ((original-content (alist-get 'original-content input))
         (new-content (alist-get 'new-content input))
         (path (alist-get 'path input))
