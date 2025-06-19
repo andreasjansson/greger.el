@@ -31,6 +31,16 @@
 ;;; Code:
 
 (require 'treesit)
+(require 'greger-diff)
+
+;; Ensure greger-diff invisibility is enabled when UI is loaded
+(defun greger-ui--ensure-diff-invisibility ()
+  "Ensure greger-diff invisibility spec is enabled."
+  (unless (member 'greger-diff buffer-invisibility-spec)
+    (add-to-invisibility-spec 'greger-diff)))
+
+;; Hook to enable diff invisibility in greger buffers
+(add-hook 'greger-mode-hook #'greger-ui--ensure-diff-invisibility)
 
 (defvar greger-ui-citation-keymap
   (let ((map (make-sparse-keymap)))
@@ -244,7 +254,12 @@ NODE is the matched tree-sitter node"
       (let ((is-tail-visible (get-text-property tail-start 'greger-ui-tool-content-expanded)))
         (put-text-property tail-start (min (1+ tail-start) tail-end) 'greger-ui-tool-content-expanded (not is-tail-visible))
         ;; Also need to flush both head and tail for overlay updates
-        (font-lock-flush (point) tail-end)))))
+        (font-lock-flush (point) tail-end)
+
+        ;; Restore invisibility in tail
+        (unless is-tail-visible
+         (greger-diff--apply-diff-invisibility tail-start tail-end)
+         (font-lock-flush (point) tail-end))))))
 
 ;; Define faces for tool content backgrounds
 (defface greger-tool-content-face
@@ -259,33 +274,19 @@ NODE is the matched tree-sitter node"
   (let* ((node (treesit-node-at (point)))
          (tail-start (treesit-node-start node))
          (tail-end (treesit-node-end node))
-         (is-tail-visible (get-text-property tail-start 'greger-ui-tool-content-expanded)))
+         (is-tail-visible (get-text-property tail-start 'greger-ui-tool-content-expanded))
+         (parent (treesit-node-parent node))
+         (head-node (treesit-search-subtree parent "^tool_content_head$" nil nil 1)))
 
-    (when is-tail-visible
-      (put-text-property tail-start (1+ tail-start) 'greger-ui-tool-content-expanded nil)
-      ;; Find the corresponding head to flush it too for overlay updates
-      (let* ((parent (treesit-node-parent node))
-             (head-node (treesit-search-subtree parent "^tool_content_head$" nil nil 1)))
-        (when head-node
-          (font-lock-flush (treesit-node-start head-node) tail-end)
-          ;; Restore diff invisibility after font-lock processing
-          (run-with-timer 0.01 nil 
-                          (lambda ()
-                            (when (fboundp 'greger-diff--apply-diff-invisibility)
-                              (greger-diff--apply-diff-invisibility tail-start tail-end)))))))
-    
-    ;; If expanding, also restore diff invisibility after font-lock
-    (unless is-tail-visible
+    (if is-tail-visible
+        (progn
+          (put-text-property tail-start (1+ tail-start) 'greger-ui-tool-content-expanded nil)
+          (font-lock-flush (treesit-node-start head-node) tail-end))
+
       (put-text-property tail-start (1+ tail-start) 'greger-ui-tool-content-expanded t)
-      (let* ((parent (treesit-node-parent node))
-             (head-node (treesit-search-subtree parent "^tool_content_head$" nil nil 1)))
-        (when head-node
-          (font-lock-flush (treesit-node-start head-node) tail-end)
-          ;; Restore diff invisibility after font-lock processing
-          (run-with-timer 0.01 nil
-                          (lambda ()
-                            (when (fboundp 'greger-diff--apply-diff-invisibility)
-                              (greger-diff--apply-diff-invisibility tail-start tail-end)))))))))
+      (font-lock-flush (treesit-node-start head-node) tail-end)
+      ;; Restore diff invisibility after font-lock processing
+      (greger-diff--apply-diff-invisibility tail-start tail-end))))
 
 
 (provide 'greger-ui)
