@@ -42,33 +42,23 @@
     ;; Mark as fontified to prevent re-fontification
     (add-text-properties (point-min) (point-max) '(fontified t))))
 
-(defun greger-diff--hide-metadata-lines (diff-string)
-  "Add invisible property to diff metadata lines in DIFF-STRING.
-Hides file headers (--- and +++), hunk headers (@@), and 'No newline' messages."
+(defun greger-diff--clean-and-hide-metadata (diff-string)
+  "Delete diff headers and make 'No newline' messages invisible in DIFF-STRING.
+Deletes file headers (--- and +++), hunk headers (@@), but keeps 'No newline' messages invisible."
   (with-temp-buffer
     (insert diff-string)
+    
+    ;; Delete file headers (--- and +++ lines)
     (goto-char (point-min))
+    (while (re-search-forward "^\\(---\\|\\+\\+\\+\\) .*\n" nil t)
+      (replace-match ""))
     
-    ;; Hide file headers (--- and +++ lines)
-    (while (re-search-forward "^\\(---\\|\\+\\+\\+\\) " nil t)
-      (let ((line-start (line-beginning-position))
-            (line-end (line-end-position)))
-        ;; Make the entire line invisible, including the newline
-        (put-text-property line-start 
-                          (if (< line-end (point-max)) (1+ line-end) line-end)
-                          'invisible t)))
-    
-    ;; Hide hunk headers (@@ lines)
+    ;; Delete hunk headers (@@ lines)
     (goto-char (point-min))
-    (while (re-search-forward "^@@.*@@" nil t)
-      (let ((line-start (line-beginning-position))
-            (line-end (line-end-position)))
-        ;; Make the entire line invisible, including the newline
-        (put-text-property line-start 
-                          (if (< line-end (point-max)) (1+ line-end) line-end)
-                          'invisible t)))
+    (while (re-search-forward "^@@.*@@.*\n" nil t)
+      (replace-match ""))
     
-    ;; Hide "No newline at end of file" messages
+    ;; Make "No newline at end of file" messages invisible (don't delete them)
     (goto-char (point-min))
     (while (re-search-forward "^\\\\ No newline at end of file$" nil t)
       (let ((line-start (line-beginning-position))
