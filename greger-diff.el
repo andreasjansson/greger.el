@@ -284,15 +284,7 @@ Deletes diff headers (file and hunk headers) and makes 'No newline' messages inv
           (put-text-property (line-beginning-position) (1+ (line-end-position)) 'invisible t))
         
         ;; Make diff indicators (space, minus, plus) invisible
-        (goto-char (point-min))
-        (while (not (eobp))
-          (let* ((line-start (line-beginning-position))
-                 (line-content (buffer-substring line-start (line-end-position))))
-            (when (and (> (length line-content) 0)
-                       (member (substring line-content 0 1) '(" " "-" "+")))
-              ;; Make the first character (diff indicator) invisible
-              (put-text-property line-start (1+ line-start) 'invisible t)))
-          (forward-line 1))
+        (greger-diff--apply-diff-invisibility (point-min) (point-max))
         
         (buffer-string)))))
 
