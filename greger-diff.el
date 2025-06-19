@@ -192,10 +192,9 @@ messages invisible.""
                  ((string= prefix "-")
                   (when (< orig-pos (length orig-lines))
                     (insert "-")
-                    (let ((content-start (point)))
-                      (insert (nth orig-pos orig-lines))
-                      ;; The syntax highlighting is already in the content
-                      (insert "\n"))
+                    (insert (nth orig-pos orig-lines))
+                    ;; The syntax highlighting is already in the content
+                    (insert "\n")
                     (setq orig-pos (1+ orig-pos))))
                  ;; Added line
                  ((string= prefix "+")
