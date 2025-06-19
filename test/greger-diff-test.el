@@ -161,33 +161,34 @@
 
 (ert-deftest greger-diff-test-parser-integration ()
   "Test integration with greger-parser for str-replace tools."
-  (let* ((original-content "function hello() {\n  return \"hello\";\n}")
-         (new-content "function hello() {\n  return \"hi there\";\n}")
-         (tool-use `((name . "str-replace")
-                     (id . "test-123")
-                     (input . ((path . "test.js")
-                               (original-content . ,original-content)
-                               (new-content . ,new-content)))))
-         ;; Convert to markdown
-         (markdown (greger-parser--tool-use-to-markdown tool-use)))
+  (greger-diff-test--with-grammar-repo
+   (let* ((original-content "function hello() {\n  return \"hello\";\n}")
+          (new-content "function hello() {\n  return \"hi there\";\n}")
+          (tool-use `((name . "str-replace")
+                      (id . "test-123")
+                      (input . ((path . "test.js")
+                                (original-content . ,original-content)
+                                (new-content . ,new-content)))))
+          ;; Convert to markdown
+          (markdown (greger-parser--tool-use-to-markdown tool-use)))
 
-    ;; The markdown should contain a diff parameter instead of original/new content
-    (should (string-match-p "## diff" markdown))
-    (should (string-match-p "## path" markdown))
-    (should-not (string-match-p "## original-content" markdown))
-    (should-not (string-match-p "## new-content" markdown))
+     ;; The markdown should contain a diff parameter instead of original/new content
+     (should (string-match-p "## diff" markdown))
+     (should (string-match-p "## path" markdown))
+     (should-not (string-match-p "## original-content" markdown))
+     (should-not (string-match-p "## new-content" markdown))
 
-    ;; Parse the markdown back to verify round-trip
-    (let* ((parsed (greger-parser-markdown-to-dialog markdown))
-           (content (alist-get 'content (car parsed)))
-           (tool-content (car content))
-           (input (alist-get 'input tool-content)))
+     ;; Parse the markdown back to verify round-trip
+     (let* ((parsed (greger-parser-markdown-to-dialog markdown))
+            (content (alist-get 'content (car parsed)))
+            (tool-content (car content))
+            (input (alist-get 'input tool-content)))
 
-      ;; Verify the parsed result has original-content and new-content back
-      (should (alist-get 'original-content input))
-      (should (alist-get 'new-content input))
-      (should (string= original-content (alist-get 'original-content input)))
-      (should (string= new-content (alist-get 'new-content input))))))
+       ;; Verify the parsed result has original-content and new-content back
+       (should (alist-get 'original-content input))
+       (should (alist-get 'new-content input))
+       (should (string= original-content (alist-get 'original-content input)))
+       (should (string= new-content (alist-get 'new-content input)))))))
 
 (ert-deftest greger-diff-test-non-str-replace-unchanged ()
   "Test that non-str-replace tools are unchanged by diff processing."
