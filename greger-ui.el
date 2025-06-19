@@ -287,8 +287,8 @@ NODE is the matched tree-sitter node"
 
       (put-text-property tail-start (1+ tail-start) 'greger-ui-tool-content-expanded t)
       (font-lock-flush (treesit-node-start head-node) tail-end)
-      ;; Restore diff invisibility after font-lock processing
-      (greger-diff--apply-diff-invisibility tail-start tail-end))))
+      ;; Apply diff de-emphasis after font-lock processing
+      (greger-diff--apply-diff-deemphasis tail-start tail-end))))
 
 
 (provide 'greger-ui)
