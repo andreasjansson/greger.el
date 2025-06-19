@@ -192,27 +192,28 @@
 
 (ert-deftest greger-diff-test-non-str-replace-unchanged ()
   "Test that non-str-replace tools are unchanged by diff processing."
-  (let* ((tool-use `((name . "shell-command")
-                     (id . "test-456")
-                     (input . ((command . "ls -la")
-                               (working-directory . "/tmp")))))
-         ;; Convert to markdown
-         (markdown (greger-parser--tool-use-to-markdown tool-use)))
+  (greger-diff-test--with-grammar-repo
+   (let* ((tool-use `((name . "shell-command")
+                      (id . "test-456")
+                      (input . ((command . "ls -la")
+                                (working-directory . "/tmp")))))
+          ;; Convert to markdown
+          (markdown (greger-parser--tool-use-to-markdown tool-use)))
 
-    ;; The markdown should not be affected by diff processing
-    (should (string-match-p "## command" markdown))
-    (should (string-match-p "## working-directory" markdown))
-    (should-not (string-match-p "## diff" markdown))
+     ;; The markdown should not be affected by diff processing
+     (should (string-match-p "## command" markdown))
+     (should (string-match-p "## working-directory" markdown))
+     (should-not (string-match-p "## diff" markdown))
 
-    ;; Parse the markdown back to verify it's unchanged
-    (let* ((parsed (greger-parser-markdown-to-dialog markdown))
-           (content (alist-get 'content (car parsed)))
-           (tool-content (car content))
-           (input (alist-get 'input tool-content)))
+     ;; Parse the markdown back to verify it's unchanged
+     (let* ((parsed (greger-parser-markdown-to-dialog markdown))
+            (content (alist-get 'content (car parsed)))
+            (tool-content (car content))
+            (input (alist-get 'input tool-content)))
 
-      ;; Verify the parsed result is unchanged
-      (should (string= "ls -la" (alist-get 'command input)))
-      (should (string= "/tmp" (alist-get 'working-directory input))))))
+       ;; Verify the parsed result is unchanged
+       (should (string= "ls -la" (alist-get 'command input)))
+       (should (string= "/tmp" (alist-get 'working-directory input)))))))
 
 (ert-deftest greger-diff-test-empty-diff-string ()
   "Test that empty diff string returns empty strings instead of error."
