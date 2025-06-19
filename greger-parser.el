@@ -346,7 +346,7 @@ Recognizes numbers, booleans, JSON arrays/objects, and plain strings."
          ((string= child-type "id")
           (setq id (greger-parser--extract-value child)))
          ((string= child-type "content")
-          (setq content (greger-parser--extract-tool-result-content child))))))
+          (setq content (greger-parser--extract-tool-content child))))))
     `((role . "assistant")
       (content . (((type . "web_search_tool_result")
                    (tool_use_id . ,id)
