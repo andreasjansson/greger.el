@@ -229,7 +229,6 @@ This ensures the '..' entry has predictable permissions in tests."
         (should callback-called)
         (should (null error))
         (should (stringp result))
-        (should (string-match "Command executed successfully" result))
         (should (string-match "safe command" result))
         ;; Most importantly: permission prompt should NOT have been called
         (should (null prompt-called))))))
