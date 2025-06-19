@@ -204,23 +204,54 @@ Deletes diff headers (file and hunk headers) and makes 'No newline' messages inv
         (font-lock-fontify-buffer)
         ;; Convert face properties to font-lock-face
         (greger-diff--convert-faces-for-tree-sitter)
-        ;; Convert to background-based highlighting
+        ;; Apply background-based diff highlighting while preserving syntax highlighting
         (let ((pos (point-min)))
           (while (< pos (point-max))
-            (let* ((current-face (get-text-property pos 'font-lock-face))
-                   (next-pos (next-single-property-change pos 'font-lock-face nil (point-max))))
-              (cond
-               ((eq current-face 'diff-removed)
-                (put-text-property pos next-pos 'font-lock-face '(:background "#4d1f1f")))
-               ((eq current-face 'diff-added) 
-                (put-text-property pos next-pos 'font-lock-face '(:background "#1f4d1f")))
-               ((eq current-face 'diff-indicator-removed)
-                (put-text-property pos next-pos 'font-lock-face '(:background "#662222" :foreground "#ff6666")))
-               ((eq current-face 'diff-indicator-added)
-                (put-text-property pos next-pos 'font-lock-face '(:background "#226622" :foreground "#66ff66")))
-               ((eq current-face 'diff-context)
-                (put-text-property pos next-pos 'font-lock-face nil)))
-              (setq pos next-pos))))
+            (let* ((start-pos pos)
+                   (end-pos (next-single-property-change pos 'font-lock-face nil (point-max)))
+                   (current-face (get-text-property pos 'font-lock-face)))
+              
+              ;; Check what type of line we're on by looking at the first character
+              (save-excursion
+                (goto-char pos)
+                (beginning-of-line)
+                (let* ((line-start (point))
+                       (line-content (buffer-substring line-start (line-end-position)))
+                       (line-prefix (if (> (length line-content) 0) (substring line-content 0 1) "")))
+                  
+                  ;; Apply background based on line type, preserving existing syntax highlighting
+                  (cond
+                   ((string= line-prefix "-")
+                    ;; Removed line - red background
+                    (if (and current-face (not (member current-face '(diff-removed diff-indicator-removed))))
+                        ;; Preserve syntax highlighting, add red background
+                        (put-text-property start-pos end-pos 'font-lock-face 
+                                           (list current-face :background "#4d1f1f"))
+                      ;; Just red background
+                      (put-text-property start-pos end-pos 'font-lock-face '(:background "#4d1f1f"))))
+                   
+                   ((string= line-prefix "+")
+                    ;; Added line - green background
+                    (if (and current-face (not (member current-face '(diff-added diff-indicator-added))))
+                        ;; Preserve syntax highlighting, add green background
+                        (put-text-property start-pos end-pos 'font-lock-face 
+                                           (list current-face :background "#1f4d1f"))
+                      ;; Just green background
+                      (put-text-property start-pos end-pos 'font-lock-face '(:background "#1f4d1f"))))
+                   
+                   ((string= line-prefix " ")
+                    ;; Context line - preserve syntax highlighting, no special background
+                    (when (eq current-face 'diff-context)
+                      (put-text-property start-pos end-pos 'font-lock-face nil)))
+                   
+                   ;; Handle diff indicators
+                   ((and (eq current-face 'diff-indicator-removed))
+                    (put-text-property start-pos end-pos 'font-lock-face '(:background "#662222" :foreground "#ff6666")))
+                   
+                   ((and (eq current-face 'diff-indicator-added))
+                    (put-text-property start-pos end-pos 'font-lock-face '(:background "#226622" :foreground "#66ff66"))))))
+              
+              (setq pos end-pos))))
         
         (buffer-string)))))
 
