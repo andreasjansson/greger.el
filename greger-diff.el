@@ -357,7 +357,7 @@ This creates a unified diff that can be reconstructed with
         (delete-directory temp-dir t)))))
 
 (defun greger-diff-undiff-strings (unified-diff-str)
-  "Extract original and new strings from a unified diff string.
+  "Extract original and new strings from UNIFIED-DIFF-STR.
 Handles unified diff format created by the `diff` command, including diffs
 without headers (file/hunk headers deleted).
 Returns a cons cell (ORIGINAL-STR . NEW-STR)."
