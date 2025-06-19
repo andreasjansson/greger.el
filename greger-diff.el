@@ -453,9 +453,9 @@ Returns a cons cell (ORIGINAL-STR . NEW-STR)."
         (cons (substring-no-properties orig-str)
               (substring-no-properties new-str))))))
 
-(defun greger-diff--apply-diff-invisibility (start end)
-  "Apply invisibility to diff indicators in region from START to END.
-Uses 'greger-diff invisibility spec which overrides UI folding."
+(defun greger-diff--apply-diff-deemphasis (start end)
+  "Apply visual de-emphasis to diff indicators in region from START to END.
+Makes indicators small and muted while keeping them readable."
   (save-excursion
     (goto-char start)
     (while (< (point) end)
@@ -464,32 +464,10 @@ Uses 'greger-diff invisibility spec which overrides UI folding."
              (line-content (buffer-substring line-start (min line-end end))))
         (when (and (> (length line-content) 0)
                    (member (substring line-content 0 1) '(" " "-" "+")))
-          ;; Make the first character (diff indicator) invisible with diff-specific spec
-          (put-text-property line-start (1+ line-start) 'invisible 'greger-diff)))
+          ;; Make the first character (diff indicator) small and muted
+          (put-text-property line-start (1+ line-start) 
+                             'font-lock-face '(:height 0.6 :foreground "gray50"))))
       (forward-line 1))))
-
-(defun greger-diff-restore-invisibility ()
-  "Restore diff-specific invisibility in current buffer.
-Call this after UI operations that might have removed invisibility."
-  (interactive)
-  (save-excursion
-    ;; Restore "No newline" message invisibility
-    (goto-char (point-min))
-    (while (re-search-forward "^\\\\ No newline at end of file$" nil t)
-      (put-text-property (line-beginning-position) (1+ (line-end-position)) 'invisible 'greger-diff))
-    
-    ;; Restore diff indicator invisibility
-    (greger-diff--apply-diff-invisibility (point-min) (point-max))))
-
-(defun greger-diff-enable-invisibility ()
-  "Enable greger-diff invisibility in current buffer.
-Call this to ensure diff elements are hidden."
-  (interactive)
-  (unless (and (listp buffer-invisibility-spec) 
-               (member 'greger-diff buffer-invisibility-spec))
-    (when (eq buffer-invisibility-spec t)
-      (setq buffer-invisibility-spec '(t)))
-    (add-to-invisibility-spec 'greger-diff)))
 
 (provide 'greger-diff)
 ;;; greger-diff.el ends here
