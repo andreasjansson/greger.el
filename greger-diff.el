@@ -90,7 +90,6 @@ messages invisible.""
           (greger-diff--clean-and-hide-metadata (buffer-string)))
       (error
        ;; If fontification fails, return the original string
-       (message "greger-diff: fontification failed: %s" (error-message-string err))
        diff-string))))
 
 (defun greger-diff--clean-diff-output (diff-str)
