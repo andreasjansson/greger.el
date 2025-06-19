@@ -109,8 +109,8 @@ START and END are the region bounds."
          (node-end (treesit-node-end node))
          (parent (treesit-node-parent node)))
 
-    ;; Apply background color only if there's at least two newlines between node-start and node-end
-    (put-text-property node-start node-end 'face 'greger-tool-content-face)
+    ;; Apply color
+    ;(put-text-property node-start node-end 'face 'greger-tool-content-face)
 
     (when parent
       ;; Find the corresponding tail safely
@@ -147,13 +147,33 @@ START and END are the region bounds."
 NODE is the matched tree-sitter node"
   (let* ((node-start (treesit-node-start node))
          (node-end (treesit-node-end node))
-         (is-visible (get-text-property node-start 'greger-ui-tool-content-expanded)))
+         (is-visible (get-text-property node-start 'greger-ui-tool-content-expanded))
+         (should-hide-tail (not is-visible)))
 
-    ;; Apply invisibility (default is invisible unless expanded)
-    (put-text-property node-start node-end 'invisible (not is-visible))
+    ;; Apply invisibility preserving existing invisible properties
+    (let ((pos node-start))
+      (while (< pos node-end)
+        (let* ((next-pos (next-single-property-change pos 'invisible nil node-end))
+               (existing-invisible (get-text-property pos 'invisible)))
+          
+          ;; If content should be visible but there's existing invisibility, preserve it
+          ;; If content should be hidden, hide everything
+          (cond
+           ;; Tail should be hidden - hide everything
+           (should-hide-tail
+            (put-text-property pos next-pos 'invisible t))
+           ;; Tail should be visible - preserve existing invisible properties
+           (t
+            ;; Only override if there's no existing invisible property
+            (unless existing-invisible
+              (remove-text-properties pos next-pos '(invisible nil)))))
+          
+          (setq pos next-pos))))
+    
     (put-text-property node-start node-end 'keymap greger-ui-tool-content-tail-keymap)
-    ;; Apply background color
-    (put-text-property node-start node-end 'face 'greger-tool-content-face)))
+    ;; Apply color
+    ;(put-text-property node-start node-end 'face 'greger-tool-content-face)
+    ))
 
 (defun greger-ui--thinking-signature-hiding-fn (node _override _start _end)
   "Hide thinking signature.  NODE is the matched tree-sitter node."
