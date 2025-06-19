@@ -200,7 +200,7 @@
     (should (string-match-p "^\\+modified" diff-result))
     
     ;; Should have fontification properties
-    (should (text-property-any 0 (length diff-result) 'font-lock-face nil diff-result))
+    (should (not (null (text-property-not-all 0 (length diff-result) 'font-lock-face nil diff-result))))
     
     ;; Round-trip should work and return clean strings
     (let ((undiff-result (greger-diff-undiff-strings diff-result)))
