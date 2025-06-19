@@ -200,10 +200,9 @@ messages invisible.""
                  ((string= prefix "+")
                   (when (< new-pos (length new-lines))
                     (insert "+")
-                    (let ((content-start (point)))
-                      (insert (nth new-pos new-lines))
-                      ;; The syntax highlighting is already in the content
-                      (insert "\n"))
+                    (insert (nth new-pos new-lines))
+                    ;; The syntax highlighting is already in the content
+                    (insert "\n")
                     (setq new-pos (1+ new-pos))))
                  ;; Other lines (invisible markers, etc.) - copy as-is
                  (t
