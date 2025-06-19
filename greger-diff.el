@@ -33,7 +33,7 @@
 ;;; Code:
 
 (defun greger-diff--convert-faces-for-tree-sitter ()
-  "Convert \='face text properties to \='font-lock-face for tree-sitter compatibility."
+  "Convert \='face text properties to \='font-lock-face for tree-sitter."
   (let ((pos (point-min)))
     (while (setq pos (next-single-property-change pos 'face))
       (when-let ((face (get-text-property pos 'face)))
