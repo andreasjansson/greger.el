@@ -619,8 +619,9 @@ assuming it's already been sent in streaming."
     (condition-case _err
         (with-temp-buffer
           (insert contents)
-          ;; Determine major mode from path
-          (let ((buffer-file-name path))
+          ;; Determine major mode from path extension
+          (let ((buffer-file-name (concat (make-temp-name "temp-")
+                                          (file-name-extension path t))))
             (set-auto-mode)
             ;; Apply syntax highlighting
             (font-lock-ensure)
