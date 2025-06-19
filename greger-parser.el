@@ -235,7 +235,8 @@ You can run arbitrary shell commands with the shell-command tool, but the follow
       (let ((undiff-result (greger-diff-undiff-strings diff-content)))
         (setq params (append other-params
                              `((original-content . ,(car undiff-result))
-                               (new-content . ,(cdr undiff-result)))))))))
+                               (new-content . ,(cdr undiff-result)))))))
+    params))
 
 (defun greger-parser--extract-server-tool-use (node)
   "Extract tool use entry from NODE."
