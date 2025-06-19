@@ -159,8 +159,8 @@ This creates a unified diff that can be reconstructed with `greger-diff-undiff-s
               ;; diff returns 0 when files are identical, 1 when they differ
               (cond
                ((zerop exit-code)
-                ;; Files are identical, create a special marker diff
-                (let ((lines (split-string original-str "\n")))
+                ;; Files are identical, create a special marker diff with syntax highlighting
+                (let ((lines (split-string syntax-highlighted-original "\n")))
                   ;; Remove the last empty line if the string doesn't end with newline
                   (when (and lines (string= (car (last lines)) ""))
                     (setq lines (butlast lines)))
