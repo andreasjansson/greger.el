@@ -14,6 +14,7 @@
 
 (require 'ert)
 (require 'greger-diff)
+(require 'greger-parser)
 
 (ert-deftest greger-diff-test-basic ()
   "Test basic diff and undiff functionality."
