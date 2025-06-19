@@ -195,6 +195,7 @@ When nil, preserve point position using `save-excursion'.")
     (define-key map (kbd "C-; m") #'greger-set-model)
     (define-key map (kbd "C-; c") #'greger-ui-copy-code)
     (define-key map (kbd "C-; t") #'greger-toggle-thinking)
+    (define-key map (kbd "C-; f") #'greger-toggle-follow-mode)
     map)
   "Keymap for `greger-mode'.")
 
