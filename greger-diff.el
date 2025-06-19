@@ -195,7 +195,9 @@ Returns a cons cell (ORIGINAL-STR . NEW-STR)."
           (setq orig-str (concat orig-str "\n")))
         (unless (or new-no-newline (string= new-str ""))
           (setq new-str (concat new-str "\n")))
-        (cons orig-str new-str)))))
+        ;; Strip text properties to return clean strings
+        (cons (substring-no-properties orig-str)
+              (substring-no-properties new-str))))))
 
 (provide 'greger-diff)
 ;;; greger-diff.el ends here
