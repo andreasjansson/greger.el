@@ -218,30 +218,20 @@
     (should (text-property-any 0 (length diff-result) 'font-lock-face nil diff-result))))
 
 (ert-deftest greger-diff-test-invisible-metadata ()
-  "Test that diff metadata lines (headers and 'No newline' messages) are made invisible."
+  "Test that diff headers are deleted and 'No newline' messages are made invisible."
   ;; Test with strings that don't end with newlines
   (let* ((original "hello")
          (new "world") 
          (diff-result (greger-diff-strings original new)))
     
-    ;; Should contain diff headers
-    (should (string-match-p "^--- " diff-result))
-    (should (string-match-p "^\\+\\+\\+ " diff-result))
-    (should (string-match-p "^@@.*@@" diff-result))
+    ;; Headers should be deleted (not present)
+    (should-not (string-match-p "^--- " diff-result))
+    (should-not (string-match-p "^\\+\\+\\+ " diff-result))
+    (should-not (string-match-p "^@@.*@@" diff-result))
     
-    ;; File headers should be invisible
-    (let ((file-header-pos (string-match "^---" diff-result)))
-      (should file-header-pos)
-      (should (get-text-property file-header-pos 'invisible diff-result)))
-    
-    (let ((file-header-pos (string-match "^\\+\\+\\+" diff-result)))
-      (should file-header-pos)
-      (should (get-text-property file-header-pos 'invisible diff-result)))
-    
-    ;; Hunk header should be invisible
-    (let ((hunk-header-pos (string-match "^@@" diff-result)))
-      (should hunk-header-pos)
-      (should (get-text-property hunk-header-pos 'invisible diff-result)))
+    ;; Should start directly with diff content
+    (should (string-match-p "^-hello" diff-result))
+    (should (string-match-p "^\\+world" diff-result))
     
     ;; Should contain the "No newline" message and it should be invisible
     (should (string-match-p "\\\\ No newline at end of file" diff-result))
