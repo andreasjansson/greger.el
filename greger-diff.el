@@ -474,19 +474,5 @@ Makes indicators small and muted while keeping them readable."
                              'font-lock-face '(:height 0.6 :foreground "gray50"))))
       (forward-line 1))))
 
-(defun greger-diff-apply-deemphasis ()
-  "Apply visual de-emphasis to diff indicators in current buffer.
-Makes diff indicators (-, +, space) and \='No newline\\=' messages less prominent."
-  (interactive)
-  (save-excursion
-    ;; De-emphasize "No newline" messages
-    (goto-char (point-min))
-    (while (re-search-forward "^\\\\ No newline at end of file$" nil t)
-      (put-text-property (line-beginning-position) (1+ (line-end-position))
-                         'font-lock-face '(:height 0.6 :foreground "gray50")))
-
-    ;; De-emphasize diff indicators
-    (greger-diff--apply-diff-deemphasis (point-min) (point-max))))
-
 (provide 'greger-diff)
 ;;; greger-diff.el ends here
