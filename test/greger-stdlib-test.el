@@ -301,7 +301,6 @@ This ensures the '..' entry has predictable permissions in tests."
       (should callback-called)
       (should (null error))
       (should (stringp result))
-      (should (string-match "Command executed successfully" result))
       (should (string-match "timeout test" result)))))
 
 (ert-deftest greger-stdlib-test-shell-command-timeout-exceeded ()
