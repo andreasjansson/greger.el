@@ -217,42 +217,49 @@
          (diff-result (greger-diff-strings original new)))
     (should (text-property-any 0 (length diff-result) 'font-lock-face nil diff-result))))
 
-(ert-deftest greger-diff-test-invisible-no-newline ()
-  "Test that 'No newline at end of file' messages are made invisible."
+(ert-deftest greger-diff-test-invisible-metadata ()
+  "Test that diff metadata lines (headers and 'No newline' messages) are made invisible."
   ;; Test with strings that don't end with newlines
   (let* ((original "hello")
          (new "world") 
          (diff-result (greger-diff-strings original new)))
     
-    ;; Should contain the "No newline" message
-    (should (string-match-p "\\\\ No newline at end of file" diff-result))
+    ;; Should contain diff headers
+    (should (string-match-p "^--- " diff-result))
+    (should (string-match-p "^\\+\\+\\+ " diff-result))
+    (should (string-match-p "^@@.*@@" diff-result))
     
-    ;; Find position of the "No newline" message
+    ;; File headers should be invisible
+    (let ((file-header-pos (string-match "^---" diff-result)))
+      (should file-header-pos)
+      (should (get-text-property file-header-pos 'invisible diff-result)))
+    
+    (let ((file-header-pos (string-match "^\\+\\+\\+" diff-result)))
+      (should file-header-pos)
+      (should (get-text-property file-header-pos 'invisible diff-result)))
+    
+    ;; Hunk header should be invisible
+    (let ((hunk-header-pos (string-match "^@@" diff-result)))
+      (should hunk-header-pos)
+      (should (get-text-property hunk-header-pos 'invisible diff-result)))
+    
+    ;; Should contain the "No newline" message and it should be invisible
+    (should (string-match-p "\\\\ No newline at end of file" diff-result))
     (let ((pos (string-match "\\\\ No newline at end of file" diff-result)))
       (should pos)
-      ;; Should have invisible property
       (should (get-text-property pos 'invisible diff-result))))
   
-  ;; Test with strings that end with newlines (should not have the message)
+  ;; Test with strings that end with newlines (should not have "No newline" message)
   (let* ((original "hello\n")
          (new "world\n")
          (diff-result (greger-diff-strings original new)))
     ;; Should NOT contain the "No newline" message
-    (should-not (string-match-p "\\\\ No newline at end of file" diff-result)))
-  
-  ;; Test mixed case (one newline, one not)
-  (let* ((original "hello\n")
-         (new "world")
-         (diff-result (greger-diff-strings original new)))
-    ;; Should contain exactly one "No newline" message
-    (should (string-match-p "\\\\ No newline at end of file" diff-result))
-    ;; Count occurrences
-    (let ((count 0)
-          (pos 0))
-      (while (string-match "\\\\ No newline at end of file" diff-result pos)
-        (setq count (1+ count))
-        (setq pos (match-end 0)))
-      (should (= count 1)))))
+    (should-not (string-match-p "\\\\ No newline at end of file" diff-result))
+    
+    ;; But headers should still be invisible
+    (let ((file-header-pos (string-match "^---" diff-result)))
+      (should file-header-pos)
+      (should (get-text-property file-header-pos 'invisible diff-result)))))
 
 (provide 'greger-diff-test)
 ;;; greger-diff-test.el ends here
