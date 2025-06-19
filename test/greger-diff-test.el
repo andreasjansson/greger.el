@@ -152,5 +152,29 @@
       (should (string= original-content (alist-get 'original-content input)))
       (should (string= new-content (alist-get 'new-content input))))))
 
+(ert-deftest greger-diff-test-non-str-replace-unchanged ()
+  "Test that non-str-replace tools are unchanged by diff processing."
+  (let* ((tool-use `((name . "shell-command")
+                     (id . "test-456")
+                     (input . ((command . "ls -la")
+                               (working-directory . "/tmp")))))
+         ;; Convert to markdown
+         (markdown (greger-parser--tool-use-to-markdown tool-use)))
+    
+    ;; The markdown should not be affected by diff processing
+    (should (string-match-p "## command" markdown))
+    (should (string-match-p "## working-directory" markdown))
+    (should-not (string-match-p "## diff" markdown))
+    
+    ;; Parse the markdown back to verify it's unchanged
+    (let* ((parsed (greger-parser-markdown-to-dialog markdown))
+           (content (alist-get 'content (car parsed)))
+           (tool-content (car content))
+           (input (alist-get 'input tool-content)))
+      
+      ;; Verify the parsed result is unchanged
+      (should (string= "ls -la" (alist-get 'command input)))
+      (should (string= "/tmp" (alist-get 'working-directory input))))))
+
 (provide 'greger-diff-test)
 ;;; greger-diff-test.el ends here
