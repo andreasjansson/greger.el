@@ -407,6 +407,15 @@ insert location information at the beginning of the user section."
       (message "Thinking enabled (budget: %d tokens)" greger-current-thinking-budget)))
   (force-mode-line-update))
 
+(defun greger-toggle-follow-mode ()
+  "Toggle follow mode on/off.
+When follow mode is enabled, point moves to the bottom during chat updates.
+When disabled, point position is preserved using `save-excursion'."
+  (interactive)
+  (setq-local greger-follow-mode (not greger-follow-mode))
+  (message "Follow mode %s" (if greger-follow-mode "enabled" "disabled"))
+  (force-mode-line-update))
+
 (defun greger-debug-request ()
   "Debug the request data by parsing the buffer and saving the request data output."
   (interactive)
