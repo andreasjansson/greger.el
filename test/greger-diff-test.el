@@ -289,5 +289,11 @@
     ;; Headers should still be deleted
     (should-not (string-match-p "^---" diff-result))))
 
+;; Cleanup test - should run last alphabetically
+(ert-deftest greger-diff-zz-test-cleanup ()
+  "Clean up test resources (runs last due to alphabetical ordering)."
+  (greger-diff-test-cleanup-grammar-repo)
+  (should t)) ;; Always pass
+
 (provide 'greger-diff-test)
 ;;; greger-diff-test.el ends here
