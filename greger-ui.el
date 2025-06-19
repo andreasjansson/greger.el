@@ -31,7 +31,6 @@
 ;;; Code:
 
 (require 'treesit)
-(require 'greger-diff)
 
 
 
