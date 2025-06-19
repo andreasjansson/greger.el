@@ -177,8 +177,7 @@ messages invisible.""
 
           (dolist (diff-line diff-lines)
             (when (> (length diff-line) 0)
-              (let ((prefix (substring diff-line 0 1))
-                    (line-start (point)))
+              (let ((prefix (substring diff-line 0 1)))
                 (cond
                  ;; Context line
                  ((string= prefix " ")
