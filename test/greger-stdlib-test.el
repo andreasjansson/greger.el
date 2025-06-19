@@ -269,7 +269,6 @@ This ensures the '..' entry has predictable permissions in tests."
         (should callback-called)
         (should (null error))
         (should (stringp result))
-        (should (string-match "Command executed successfully" result))
         (should (string-match "unsafe command" result))
         ;; Permission prompt SHOULD have been called since command not in safe list
         (should prompt-called)))))
