@@ -94,8 +94,8 @@ Also makes '\\\ No newline at end of file' lines invisible."
           (font-lock-fontify-buffer)
           ;; Convert 'face to 'font-lock-face for tree-sitter compatibility
           (greger-diff--convert-faces-for-tree-sitter)
-          ;; Hide "No newline" messages
-          (greger-diff--hide-no-newline-messages (buffer-string)))
+          ;; Hide metadata lines (headers and "No newline" messages)
+          (greger-diff--hide-metadata-lines (buffer-string)))
       (error
        ;; If fontification fails, return the original string
        (message "greger-diff: fontification failed: %s" (error-message-string err))
