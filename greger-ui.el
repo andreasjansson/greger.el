@@ -108,6 +108,10 @@ START and END are the region bounds."
   (let* ((node-start (treesit-node-start node))
          (node-end (treesit-node-end node))
          (parent (treesit-node-parent node)))
+
+    ;; Apply background color only if there's at least two newlines between node-start and node-end
+    (put-text-property node-start node-end 'face 'greger-tool-content-face)
+
     (when parent
       ;; Find the corresponding tail safely
       (let ((tail-node (treesit-search-subtree parent "^tool_content_tail$" nil nil 1)))
@@ -147,7 +151,9 @@ NODE is the matched tree-sitter node"
 
     ;; Apply invisibility (default is invisible unless expanded)
     (put-text-property node-start node-end 'invisible (not is-visible))
-    (put-text-property node-start node-end 'keymap greger-ui-tool-content-tail-keymap)))
+    (put-text-property node-start node-end 'keymap greger-ui-tool-content-tail-keymap)
+    ;; Apply background color
+    (put-text-property node-start node-end 'face 'greger-tool-content-face)))
 
 (defun greger-ui--thinking-signature-hiding-fn (node _override _start _end)
   "Hide thinking signature.  NODE is the matched tree-sitter node."
@@ -155,6 +161,24 @@ NODE is the matched tree-sitter node"
          (node-end (treesit-node-end node))
          (invisible-end (+ node-end 2)))
     (put-text-property node-start invisible-end 'invisible t)))
+
+(defun greger-ui--make-tool-tag-invisible (node _override _start _end)
+  "Make tool tag NODE invisible while preserving face styling."
+  (let ((node-start (treesit-node-start node))
+        (node-end (1+ (treesit-node-end node))))
+    (put-text-property node-start node-end 'invisible t)))
+
+(defun greger-ui--make-tool-result-id-invisible (node _override _start _end)
+  "Make id NODE invisible while preserving face styling."
+  (let ((node-start (treesit-node-start node))
+        (node-end (treesit-node-end node)))
+    (put-text-property node-start node-end 'invisible t)))
+
+(defun greger-ui--make-tool-use-id-invisible (node _override _start _end)
+  "Make id NODE invisible while preserving face styling."
+  (let ((node-start (treesit-node-start node))
+        (node-end (1- (treesit-node-end node))))
+    (put-text-property node-start node-end 'invisible t)))
 
 ;; Links
 
@@ -220,6 +244,13 @@ NODE is the matched tree-sitter node"
         (put-text-property tail-start (min (1+ tail-start) tail-end) 'greger-ui-tool-content-expanded (not is-tail-visible))
         ;; Also need to flush both head and tail for overlay updates
         (font-lock-flush (point) tail-end)))))
+
+;; Define faces for tool content backgrounds
+(defface greger-tool-content-face
+  '((((background dark)) (:foreground "#bbbbbb" t))
+    (((background light)) (:foreground "#444444" t)))
+  "Face for tool content head background."
+  :group 'greger)
 
 (defun greger-ui--toggle-tool-content-tail-fold ()
   "Toggle folding of citation or tool content at point."

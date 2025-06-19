@@ -929,12 +929,7 @@ Returns a cancel function that can interrupt the command execution."
        :command "bash"
        :args bash-args
        :working-directory expanded-work-dir
-       :callback (lambda (output error)
-                   (if error
-                       (funcall callback nil error)
-                     (funcall callback
-                              (format "Command executed successfully:\n%s" output)
-                              nil)))
+       :callback callback
        :timeout timeout
        :env shell-env))))
 

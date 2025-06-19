@@ -222,17 +222,16 @@ May order 4,000 pounds of meat."
    '((citation_entry) @greger-subheading-face)
 
    :language 'greger
-   :feature 'fields
-   :override t
-   '((tool_param_header) @greger-tool-param-name-face
-     (key) @greger-key-face
-     (url) @greger-ui--url-link-fn)
-
-   :language 'greger
    :feature 'tool-tags
    :override t
-   '((tool_start_tag) @greger-tool-tag-face
-     (tool_end_tag) @greger-tool-tag-face)
+   '((tool_start_tag) @greger-ui--make-tool-tag-invisible
+     (tool_end_tag) @greger-ui--make-tool-tag-invisible
+     (tool_result (id) @greger-ui--make-tool-result-id-invisible)
+     (tool_use (id) @greger-ui--make-tool-use-id-invisible)
+     (tool_param_header) @greger-tool-param-name-face
+     (key) @greger-key-face
+     (url) @greger-ui--url-link-fn
+     )
 
    :language 'greger
    :feature 'comments
@@ -284,7 +283,6 @@ May order 4,000 pounds of meat."
               '((error)
                 (headers folding tool-folding)
                 (tool-tags)
-                (fields)
                 (comments)
                 (subheadings)))
   (setq-local treesit-simple-indent-rules greger--treesit-indent-rules)
