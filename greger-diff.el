@@ -78,7 +78,7 @@ Handles unified diff format created by the `diff` command.
 Returns a cons cell (ORIGINAL-STR . NEW-STR)."
   ;; Handle empty diff (identical files)
   (when (string= "" (string-trim unified-diff-str))
-    (error "Cannot undiff empty diff string - original content unknown"))
+    (return '("" . "")))
   
   (let ((lines (split-string unified-diff-str "\n"))
         (original-lines '())
