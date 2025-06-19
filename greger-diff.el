@@ -454,7 +454,7 @@ Returns a cons cell (ORIGINAL-STR . NEW-STR)."
 
 (defun greger-diff--apply-diff-invisibility (start end)
   "Apply invisibility to diff indicators in region from START to END.
-This can be called to restore diff invisibility after UI processing."
+Uses 'greger-diff invisibility spec which overrides UI folding."
   (save-excursion
     (goto-char start)
     (while (< (point) end)
@@ -463,8 +463,8 @@ This can be called to restore diff invisibility after UI processing."
              (line-content (buffer-substring line-start (min line-end end))))
         (when (and (> (length line-content) 0)
                    (member (substring line-content 0 1) '(" " "-" "+")))
-          ;; Make the first character (diff indicator) invisible
-          (put-text-property line-start (1+ line-start) 'invisible t)))
+          ;; Make the first character (diff indicator) invisible with diff-specific spec
+          (put-text-property line-start (1+ line-start) 'invisible 'greger-diff)))
       (forward-line 1))))
 
 (defun greger-diff-restore-invisibility ()
@@ -475,10 +475,17 @@ Call this after UI operations that might have removed invisibility."
     ;; Restore "No newline" message invisibility
     (goto-char (point-min))
     (while (re-search-forward "^\\\\ No newline at end of file$" nil t)
-      (put-text-property (line-beginning-position) (1+ (line-end-position)) 'invisible t))
+      (put-text-property (line-beginning-position) (1+ (line-end-position)) 'invisible 'greger-diff))
     
     ;; Restore diff indicator invisibility
     (greger-diff--apply-diff-invisibility (point-min) (point-max))))
+
+(defun greger-diff-enable-invisibility ()
+  "Enable greger-diff invisibility in current buffer.
+Call this to ensure diff elements are hidden."
+  (interactive)
+  (unless (member 'greger-diff buffer-invisibility-spec)
+    (add-to-invisibility-spec 'greger-diff)))
 
 (provide 'greger-diff)
 ;;; greger-diff.el ends here
