@@ -259,10 +259,9 @@ NODE is the matched tree-sitter node"
         ;; Also need to flush both head and tail for overlay updates
         (font-lock-flush (point) tail-end)
 
-        ;; Restore invisibility in tail
+        ;; Apply diff de-emphasis in tail
         (unless is-tail-visible
-         (greger-diff--apply-diff-invisibility tail-start tail-end)
-         (font-lock-flush (point) tail-end))))))
+         (greger-diff--apply-diff-deemphasis tail-start tail-end))))))
 
 ;; Define faces for tool content backgrounds
 (defface greger-tool-content-face
