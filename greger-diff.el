@@ -283,6 +283,17 @@ Deletes diff headers (file and hunk headers) and makes 'No newline' messages inv
         (while (re-search-forward "^\\\\ No newline at end of file$" nil t)
           (put-text-property (line-beginning-position) (1+ (line-end-position)) 'invisible t))
         
+        ;; Make diff indicators (space, minus, plus) invisible
+        (goto-char (point-min))
+        (while (not (eobp))
+          (let* ((line-start (line-beginning-position))
+                 (line-content (buffer-substring line-start (line-end-position))))
+            (when (and (> (length line-content) 0)
+                       (member (substring line-content 0 1) '(" " "-" "+")))
+              ;; Make the first character (diff indicator) invisible
+              (put-text-property line-start (1+ line-start) 'invisible t)))
+          (forward-line 1))
+        
         (buffer-string)))))
 
 (defun greger-diff-strings (original-str new-str filename)
@@ -448,22 +459,6 @@ Returns a cons cell (ORIGINAL-STR . NEW-STR)."
         ;; Strip text properties to return clean strings
         (cons (substring-no-properties orig-str)
               (substring-no-properties new-str))))))
-
-(defun greger-diff-insert (diff-string)
-  "Insert DIFF-STRING with proper invisibility handling.
-This ensures that 'No newline' messages are properly hidden."
-  (let ((start-pos (point)))
-    (insert diff-string)
-    ;; Ensure invisibility spec includes 't' so invisible text is hidden
-    (unless (and (listp buffer-invisibility-spec) 
-                 (member t buffer-invisibility-spec))
-      (when (eq buffer-invisibility-spec t)
-        (setq buffer-invisibility-spec '(t)))
-      (unless (member t buffer-invisibility-spec)
-        (add-to-invisibility-spec t)))
-    ;; Refresh the display to apply invisibility
-    (when (called-interactively-p 'any)
-      (redisplay))))
 
 (provide 'greger-diff)
 ;;; greger-diff.el ends here
