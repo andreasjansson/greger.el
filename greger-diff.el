@@ -114,8 +114,9 @@ This creates a unified diff that can be reconstructed with `greger-diff-undiff-s
                                 lines "\n")
                      (when has-no-newline "\n\\ No newline at end of file")))))
                ((eq exit-code 1)
-                ;; Files differ, clean up the output
-                (greger-diff--clean-diff-output (buffer-string)))
+                ;; Files differ, clean up the output and apply fontification
+                (let ((clean-diff (greger-diff--clean-diff-output (buffer-string))))
+                  (greger-diff-fontify-string clean-diff)))
                (t
                 (error "diff command failed with exit code %d" exit-code))))))
       
