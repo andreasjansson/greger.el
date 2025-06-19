@@ -54,10 +54,19 @@ This creates a unified diff that can be reconstructed with `greger-diff-undiff-s
             (let ((exit-code (call-process "diff" nil t nil
                                          "-U" "1000000"  ; Very large context
                                          original-file new-file)))
-              ;; diff returns 1 when files differ, which is expected
-              (when (and (not (zerop exit-code)) (not (eq exit-code 1)))
-                (error "diff command failed with exit code %d" exit-code))
-              (buffer-string))))
+              ;; diff returns 0 when files are identical, 1 when they differ
+              (cond
+               ((zerop exit-code)
+                ;; Files are identical, create a special marker diff
+                (format "--- IDENTICAL\n+++ IDENTICAL\n@@ -0,0 +0,0 @@\n%s"
+                        (mapconcat (lambda (line) (concat " " line))
+                                   (split-string original-str "\n")
+                                   "\n")))
+               ((eq exit-code 1)
+                ;; Files differ, return normal diff
+                (buffer-string))
+               (t
+                (error "diff command failed with exit code %d" exit-code))))))
       
       ;; Cleanup
       (when (file-exists-p temp-dir)
