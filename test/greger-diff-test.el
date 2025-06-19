@@ -118,10 +118,8 @@
              (undiff-result (greger-diff-undiff-strings diff-result)))
         
         ;; Verify the inverse property holds
-        (should (string= original (car undiff-result))
-                (format "Original reconstruction failed for case: %S" test-case))
-        (should (string= new (cdr undiff-result))
-                (format "New reconstruction failed for case: %S" test-case))))))
+        (should (string= original (car undiff-result)))
+        (should (string= new (cdr undiff-result)))))))
 
 (provide 'greger-diff-test)
 ;;; greger-diff-test.el ends here
