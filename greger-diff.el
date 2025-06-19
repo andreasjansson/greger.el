@@ -103,18 +103,16 @@ Deletes diff headers (file and hunk headers) and makes 'No newline' messages inv
     
     (buffer-string)))
 
-(defun greger-diff--apply-syntax-highlighting-to-line (line filename)
-  "Apply syntax highlighting to a single LINE based on FILENAME's major mode."
-  (if (string-empty-p (string-trim line))
-      line
+(defun greger-diff--get-syntax-highlighted-content (content filename)
+  "Apply syntax highlighting to CONTENT based on FILENAME, preserving context."
+  (if (string-empty-p (string-trim content))
+      content
     (condition-case err
         (with-temp-buffer
-          (insert line)
+          (insert content)
           ;; Determine major mode from filename
           (let ((buffer-file-name filename))
             (set-auto-mode)
-            ;; Enable font-lock explicitly
-            (font-lock-mode 1)
             ;; Apply syntax highlighting
             (font-lock-fontify-buffer)
             ;; Convert face properties to font-lock-face for compatibility
@@ -125,47 +123,89 @@ Deletes diff headers (file and hunk headers) and makes 'No newline' messages inv
                     (put-text-property pos end 'font-lock-face face)))))
             (buffer-string)))
       (error
-       ;; If syntax highlighting fails, return original line
-       line))))
+       ;; If syntax highlighting fails, return original content
+       content))))
 
 (defun greger-diff--apply-syntax-to-diff-content (diff-string filename)
   "Apply syntax highlighting to diff content while preserving diff highlighting."
   (with-temp-buffer
     (insert diff-string)
-    (goto-char (point-min))
     
-    ;; Process each line
-    (while (not (eobp))
-      (let* ((line-start (line-beginning-position))
-             (line-end (line-end-position))
-             (line-content (buffer-substring line-start line-end)))
-        
-        ;; Only apply syntax highlighting to content lines (not headers)
-        (when (and (> (length line-content) 0)
-                   (member (substring line-content 0 1) '(" " "-" "+")))
-          (let* ((prefix (substring line-content 0 1))
-                 (content (substring line-content 1))
-                 (diff-face (get-text-property line-start 'font-lock-face))
-                 (highlighted-content (greger-diff--apply-syntax-highlighting-to-line content filename))
-                 (new-line (concat prefix highlighted-content)))
-            
-            ;; Replace the line with syntax-highlighted version
-            (delete-region line-start line-end)
-            (insert new-line)
-            
-            ;; Restore diff highlighting on the prefix and any areas without syntax highlighting
-            (when diff-face
-              (put-text-property line-start (1+ line-start) 'font-lock-face diff-face)
-              ;; Apply diff highlighting to areas that don't have syntax highlighting
-              (let ((pos (1+ line-start)))
-                (while (< pos (line-end-position))
-                  (unless (get-text-property pos 'font-lock-face)
-                    (put-text-property pos (1+ pos) 'font-lock-face diff-face))
-                  (setq pos (1+ pos))))))))
+    ;; Extract just the content lines to build the full original and new content
+    (let ((original-lines '())
+          (new-lines '()))
       
-      (forward-line 1))
-    
-    (buffer-string)))
+      (goto-char (point-min))
+      (while (not (eobp))
+        (let* ((line-start (line-beginning-position))
+               (line-end (line-end-position))
+               (line-content (buffer-substring line-start line-end)))
+          
+          (when (> (length line-content) 0)
+            (let ((prefix (substring line-content 0 1))
+                  (content (if (> (length line-content) 1)
+                              (substring line-content 1)
+                            "")))
+              (cond
+               ;; Context line - goes to both original and new
+               ((string= prefix " ")
+                (push content original-lines)
+                (push content new-lines))
+               ;; Removed line - only in original
+               ((string= prefix "-")
+                (push content original-lines))
+               ;; Added line - only in new
+               ((string= prefix "+")
+                (push content new-lines)))))
+          
+          (forward-line 1)))
+      
+      ;; Now we have the full original and new content - apply syntax highlighting
+      (let* ((original-content (string-join (nreverse original-lines) "\n"))
+             (new-content (string-join (nreverse new-lines) "\n"))
+             (highlighted-original (greger-diff--get-syntax-highlighted-content original-content filename))
+             (highlighted-new (greger-diff--get-syntax-highlighted-content new-content filename)))
+        
+        ;; Now reconstruct the diff with syntax highlighting
+        (erase-buffer)
+        (let ((orig-lines (split-string highlighted-original "\n"))
+              (new-lines (split-string highlighted-new "\n"))
+              (diff-lines (split-string diff-string "\n"))
+              (orig-pos 0)
+              (new-pos 0))
+          
+          (dolist (diff-line diff-lines)
+            (when (> (length diff-line) 0)
+              (let ((prefix (substring diff-line 0 1)))
+                (cond
+                 ;; Context line
+                 ((string= prefix " ")
+                  (when (< orig-pos (length orig-lines))
+                    (insert " " (nth orig-pos orig-lines) "\n")
+                    (setq orig-pos (1+ orig-pos))
+                    (setq new-pos (1+ new-pos))))
+                 ;; Removed line  
+                 ((string= prefix "-")
+                  (when (< orig-pos (length orig-lines))
+                    (insert "-" (nth orig-pos orig-lines) "\n")
+                    (setq orig-pos (1+ orig-pos))))
+                 ;; Added line
+                 ((string= prefix "+")
+                  (when (< new-pos (length new-lines))
+                    (insert "+" (nth new-pos new-lines) "\n")
+                    (setq new-pos (1+ new-pos))))
+                 ;; Other lines (invisible markers, etc.) - copy as-is
+                 (t
+                  (insert diff-line "\n")))))))
+        
+        ;; Apply diff highlighting to the reconstructed diff
+        (goto-char (point-min))
+        (delay-mode-hooks (diff-mode))
+        (font-lock-fontify-buffer)
+        ;; Convert face properties to font-lock-face
+        (greger-diff--convert-faces-for-tree-sitter)
+        
+        (buffer-string)))))
 
 (defun greger-diff-strings (original-str new-str filename)
   "Return a diff string using the system `diff` command with full context.
