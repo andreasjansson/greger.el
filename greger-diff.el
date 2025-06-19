@@ -211,8 +211,10 @@ This creates a unified diff that can be reconstructed with `greger-diff-undiff-s
                     (greger-diff-fontify-string identical-diff))))
                ((eq exit-code 1)
                 ;; Files differ, clean up the output and apply fontification
-                (let ((clean-diff (greger-diff--clean-diff-output (buffer-string))))
-                  (greger-diff-fontify-string clean-diff)))
+                (let* ((clean-diff (greger-diff--clean-diff-output (buffer-string)))
+                       (diff-fontified (greger-diff-fontify-string clean-diff)))
+                  ;; Apply syntax highlighting on top of diff highlighting
+                  (greger-diff--apply-syntax-to-diff-content diff-fontified filename)))
                (t
                 (error "diff command failed with exit code %d" exit-code))))))
       
