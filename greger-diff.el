@@ -157,7 +157,8 @@ This creates a unified diff that can be reconstructed with `greger-diff-undiff-s
 
 (defun greger-diff-undiff-strings (unified-diff-str)
   "Extract original and new strings from a unified diff string.
-Handles unified diff format created by the `diff` command.
+Handles unified diff format created by the `diff` command, including diffs
+without headers (file/hunk headers deleted).
 Returns a cons cell (ORIGINAL-STR . NEW-STR)."
   ;; Handle empty diff (identical files)  
   (if (string= "" (string-trim unified-diff-str))
@@ -169,7 +170,8 @@ Returns a cons cell (ORIGINAL-STR . NEW-STR)."
           (in-hunk nil)
           (orig-no-newline nil)
           (new-no-newline nil)
-          (has-headers nil))
+          (has-headers nil)
+          (last-operation nil)) ; Track what the last operation was for "No newline" handling
     
       ;; Check if the diff has headers (to determine processing mode)
       (dolist (line lines)
@@ -192,10 +194,15 @@ Returns a cons cell (ORIGINAL-STR . NEW-STR)."
           (cond
            ;; Handle "No newline" messages
            ((string-match "^\\\\ No newline" line)
-            ;; The "No newline" message applies to the last line that was processed
-            ;; We need to determine which side it applies to based on the last operation
-            (when original-lines (setq orig-no-newline t))
-            (when new-lines (setq new-no-newline t)))
+            ;; Apply "No newline" based on the last operation
+            (cond
+             ((eq last-operation 'deleted)
+              (setq orig-no-newline t))
+             ((eq last-operation 'added)
+              (setq new-no-newline t))
+             ((eq last-operation 'context)
+              ;; For context lines, both sides don't have newlines
+              (setq orig-no-newline t new-no-newline t))))
            
            ;; Process normal lines
            ((> (length line) 0)
@@ -206,23 +213,23 @@ Returns a cons cell (ORIGINAL-STR . NEW-STR)."
                ((string= prefix " ")
                 (push content original-lines)
                 (push content new-lines)
-                (setq orig-no-newline nil new-no-newline nil))
+                (setq last-operation 'context))
                
                ;; Deleted line
                ((string= prefix "-")
                 (push content original-lines)
-                (setq orig-no-newline nil))
+                (setq last-operation 'deleted))
                
                ;; Added line
                ((string= prefix "+")
                 (push content new-lines)
-                (setq new-no-newline nil))
+                (setq last-operation 'added))
                
                ;; Handle lines without prefix (context)
                ((not (member prefix '("-" "+")))
                 (push line original-lines)
                 (push line new-lines)
-                (setq orig-no-newline nil new-no-newline nil)))))))))
+                (setq last-operation 'context)))))))))
       
       ;; Build the final strings
       (let ((orig-str (if original-lines 
