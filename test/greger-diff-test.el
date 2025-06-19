@@ -20,7 +20,7 @@
   "Test basic diff and undiff functionality."
   (let* ((original "a\nb\nc\n1\n2\n3")
          (new "a\nb\nd\n4\n2\n3")
-         (diff-result (greger-diff-strings original new))
+         (diff-result (greger-diff-strings original new "test.txt"))
          (undiff-result (greger-diff-undiff-strings diff-result)))
     
     ;; Verify the diff result contains expected diff content (headers deleted)
@@ -39,7 +39,7 @@
   "Test diff with empty strings."
   (let* ((original "")
          (new "hello\nworld")
-         (diff-result (greger-diff-strings original new))
+         (diff-result (greger-diff-strings original new "test.txt"))
          (undiff-result (greger-diff-undiff-strings diff-result)))
     
     ;; Verify undiff reconstructs correctly
@@ -50,7 +50,7 @@
   "Test diff with identical strings."
   (let* ((original "hello\nworld\ntest")
          (new "hello\nworld\ntest")
-         (diff-result (greger-diff-strings original new))
+         (diff-result (greger-diff-strings original new "test.txt"))
          (undiff-result (greger-diff-undiff-strings diff-result)))
     
     ;; When strings are identical, diff should be empty or minimal
@@ -62,7 +62,7 @@
   "Test diff with single line strings."
   (let* ((original "hello")
          (new "world")
-         (diff-result (greger-diff-strings original new))
+         (diff-result (greger-diff-strings original new "test.txt"))
          (undiff-result (greger-diff-undiff-strings diff-result)))
     
     ;; Verify undiff reconstructs correctly
@@ -73,7 +73,7 @@
   "Test diff with only additions."
   (let* ((original "line1\nline2")
          (new "line1\nline2\nline3\nline4")
-         (diff-result (greger-diff-strings original new))
+         (diff-result (greger-diff-strings original new "test.txt"))
          (undiff-result (greger-diff-undiff-strings diff-result)))
     
     ;; Verify undiff reconstructs correctly
@@ -84,7 +84,7 @@
   "Test diff with only deletions."
   (let* ((original "line1\nline2\nline3\nline4")
          (new "line1\nline2")
-         (diff-result (greger-diff-strings original new))
+         (diff-result (greger-diff-strings original new "test.txt"))
          (undiff-result (greger-diff-undiff-strings diff-result)))
     
     ;; Verify undiff reconstructs correctly
@@ -95,7 +95,7 @@
   "Test diff with complex mix of changes."
   (let* ((original "#!/bin/bash\necho \"hello\"\necho \"world\"\necho \"test\"\nexit 0")
          (new "#!/bin/bash\necho \"hi there\"\necho \"universe\"\necho \"testing\"\necho \"done\"\nexit 1")
-         (diff-result (greger-diff-strings original new))
+         (diff-result (greger-diff-strings original new "test.txt"))
          (undiff-result (greger-diff-undiff-strings diff-result)))
     
     ;; Verify undiff reconstructs correctly
