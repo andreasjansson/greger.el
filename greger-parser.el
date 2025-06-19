@@ -604,10 +604,51 @@ assuming it's already been sent in streaming."
     (when (string= name "str-replace")
       (setq input (greger-parser--str-replace-diff-params input)))
 
+    (when (or (string= name "write-new-file") (string= name "replace-file"))
+      (setq input (greger-parser--syntax-highlight-contents input)))
+
     (concat greger-parser-tool-use-tag "\n\n"
             "Name: " name "\n"
             "ID: " id "\n\n"
             (greger-parser--tool-params-to-markdown id input))))
+
+(defun greger-parser--apply-syntax-highlighting (contents path)
+  "Apply syntax highlighting to CONTENTS based on PATH file extension."
+  (if (or (not (stringp contents)) (string-empty-p (string-trim contents)))
+      contents
+    (condition-case _err
+        (with-temp-buffer
+          (insert contents)
+          ;; Determine major mode from path
+          (let ((buffer-file-name path))
+            (set-auto-mode)
+            ;; Apply syntax highlighting
+            (font-lock-ensure)
+            ;; Convert face properties to font-lock-face for compatibility
+            (let ((pos (point-min)))
+              ;; First check if there's a face at the beginning
+              (when-let ((face (get-text-property pos 'face)))
+                (let ((end (next-single-property-change pos 'face nil (point-max))))
+                  (put-text-property pos end 'font-lock-face face)))
+              ;; Then look for property changes
+              (while (setq pos (next-single-property-change pos 'face))
+                (when-let ((face (get-text-property pos 'face)))
+                  (let ((end (next-single-property-change pos 'face nil (point-max))))
+                    (put-text-property pos end 'font-lock-face face)))))
+            (buffer-string)))
+      (error
+       ;; If syntax highlighting fails, return original content
+       contents))))
+
+(defun greger-parser--syntax-highlight-contents (input)
+  "Apply syntax highlighting to contents parameter in INPUT.
+Assumes 'contents is the source code in input,
+and 'path is the file path in input."
+  (let* ((contents (alist-get 'contents input))
+         (path (alist-get 'path input))
+         (highlighted-contents (greger-parser--apply-syntax-highlighting contents path)))
+    (setf (alist-get 'contents input) highlighted-contents))
+  input)
 
 (defun greger-parser--str-replace-diff-params (input)
   "Convert original-content and new-content to diff parameter in INPUT."
@@ -633,10 +674,14 @@ assuming it's already been sent in streaming."
             "ID: " id "\n\n"
             (greger-parser--tool-params-to-markdown id input))))
 
-(defun greger-parser--tool-result-to-markdown (tool-result)
+(defun greger-parser--tool-result-to-markdown (tool-result &optional tool-use-path)
   "Convert TOOL-RESULT to markdown."
   (let ((id (alist-get 'tool_use_id tool-result))
         (content (greger-parser--tool-content-to-markdown tool-result)))
+
+    (when tool-use-path
+      (setq content (greger-parser--apply-syntax-highlighting content tool-use-path)))
+
     (greger-parser--wrapped-tool-content greger-parser-tool-result-tag id content)))
 
 (defun greger-parser--wrapped-tool-content (tag id content)
@@ -664,6 +709,7 @@ assuming it's already been sent in streaming."
 
 (defun greger-parser--tool-params-to-markdown (id input)
   "Convert tool parameters with ID and INPUT to markdown."
+
   (if (null input)
       ""
     (mapconcat (lambda (param)

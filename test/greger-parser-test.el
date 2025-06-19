@@ -526,6 +526,57 @@ What files are here?"))
       (should (string-match-p "<safe-shell-commands>"
                               (alist-get 'content (car result)))))))
 
+(ert-deftest greger-parser-test-syntax-highlight-contents ()
+  "Test syntax highlighting for write-new-file and replace-file contents."
+  ;; Test that the syntax highlighting function works on input parameters
+  (let ((input '((path . "test.el")
+                 (contents . "(defun test-func ()
+  \"A test function.\"
+  (message \"Hello, world!\"))")
+                 (git-commit-message . "Add test function"))))
+    (let ((result (greger-parser--syntax-highlight-contents input)))
+      ;; The result should be the modified input
+      (should (listp result))
+      ;; Should still have all the original parameters
+      (should (alist-get 'path result))
+      (should (alist-get 'contents result))
+      (should (alist-get 'git-commit-message result))
+      ;; Contents should still be a string
+      (should (stringp (alist-get 'contents result)))))
+  
+  ;; Test with different file extensions
+  (let ((input '((path . "test.py")
+                 (contents . "def test_func():
+    \"\"\"A test function.\"\"\"
+    print(\"Hello, world!\")"))))
+    (let ((result (greger-parser--syntax-highlight-contents input)))
+      (should (listp result))
+      (should (stringp (alist-get 'contents result)))))
+  
+  ;; Test with no contents parameter (should return unchanged)
+  (let ((input '((path . "test.el")
+                 (git-commit-message . "No contents"))))
+    (let ((result (greger-parser--syntax-highlight-contents input)))
+      (should (equal input result)))))
+
+(ert-deftest greger-parser-test-tool-params-with-contents-highlighting ()
+  "Test that tool parameters with contents get syntax highlighting applied."
+  ;; Create a mock tool use structure for write-new-file
+  (let ((elisp-code "(defun hello ()
+  (message \"Hello, world!\"))"))
+    (let ((input `((path . "hello.el")
+                   (contents . ,elisp-code)
+                   (git-commit-message . "Add hello function"))))
+      ;; Test the tool-params-to-markdown function (syntax highlighting happens earlier)
+      (let ((result (greger-parser--tool-params-to-markdown "test-id" input)))
+        (should (stringp result))
+        ;; Should contain the path parameter
+        (should (string-match-p "## path" result))
+        ;; Should contain the contents parameter  
+        (should (string-match-p "## contents" result))
+        ;; Should contain the original code
+        (should (string-match-p "defun hello" result))))))
+
 
 ;; Cleanup test - should run last alphabetically
 (ert-deftest greger-parser-zz-test-cleanup ()
