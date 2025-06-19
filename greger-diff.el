@@ -455,8 +455,12 @@ This ensures that 'No newline' messages are properly hidden."
   (let ((start-pos (point)))
     (insert diff-string)
     ;; Ensure invisibility spec includes 't' so invisible text is hidden
-    (unless (member t buffer-invisibility-spec)
-      (add-to-invisibility-spec t))
+    (unless (and (listp buffer-invisibility-spec) 
+                 (member t buffer-invisibility-spec))
+      (when (eq buffer-invisibility-spec t)
+        (setq buffer-invisibility-spec '(t)))
+      (unless (member t buffer-invisibility-spec)
+        (add-to-invisibility-spec t)))
     ;; Refresh the display to apply invisibility
     (when (called-interactively-p 'any)
       (redisplay))))
