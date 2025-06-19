@@ -291,9 +291,17 @@ When nil, preserve point position using `save-excursion'.")
                 (subheadings)))
   (setq-local treesit-simple-indent-rules greger--treesit-indent-rules)
 
-  ;; Disabled because this crashes Emacs.
+  ;; This crashes Emacs 29.0.91 but not Emacs 30.1. TODO: test if it crashes Emacs 29.1
   ;; Reproduce: At beginning of buffer, run (treesit-search-forward-goto (treesit-node-at (point)) "" t t t)
-  ;; (setq-local treesit-defun-type-regexp (rx line-start (or "user" "assistant") line-end))
+  (setq-local treesit-defun-type-regexp (rx line-start
+                                            (or "system"
+                                                "user"
+                                                "assistant"
+                                                "tool_use"
+                                                "server_tool_user"
+                                                "tool_result"
+                                                "web_search_tool_result")
+                                            line-end))
 
   (treesit-major-mode-setup)
 
@@ -796,8 +804,8 @@ COMPLETION-CALLBACK is called when complete."
                (replace-match "")
                ;; Now that we've deleted the tool result "placeholder",
                ;; we're now inside a tool_use block
-               (let* ((tool-use-path (greger--find-tool-use-path))
-                      (result-markdown (greger-parser--tool-result-to-markdown tool-result tool-use-path)))
+               (let* ((read-file-path (greger--find-read-file-path))
+                      (result-markdown (greger-parser--tool-result-to-markdown tool-result read-file-path)))
                  (when (string-empty-p result-markdown)
                    (error "Failed to parse result markdown"))
                  (insert result-markdown))))))
@@ -827,13 +835,16 @@ COMPLETION-CALLBACK is called when complete."
   (setf (greger-state-current-iteration state) 0)
   (setf (greger-state-client-state state) nil))
 
-(defun greger--find-tool-use-path ()
-  "Find the path parameter from the current tool_use node.
+(defun greger--find-read-file-path ()
+  "Find the path parameter from the current tool_use read-file node.
 Wrapped in `save-excursion', uses tree-sitter to find the previous tool_use.
 Then iterates over the input parameters of the tool_use.  If one is called
 `path` return it, otherwise return nil."
   (save-excursion
     (when-let* ((tool-use-node (treesit-parent-until (treesit-node-at (point)) "^tool_use$" t))
+                (name-node (treesit-search-subtree tool-use-node "name"))
+                (name (greger-parser--extract-value name-node))
+                ((string= name "read-file"))
                 (path-param (greger--tool-use-path-param tool-use-node))
                 (value-node (treesit-search-subtree path-param "value"))
                 (value-field-node (treesit-node-child-by-field-name value-node "value")))
