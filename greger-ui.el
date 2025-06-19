@@ -267,7 +267,25 @@ NODE is the matched tree-sitter node"
       (let* ((parent (treesit-node-parent node))
              (head-node (treesit-search-subtree parent "^tool_content_head$" nil nil 1)))
         (when head-node
-          (font-lock-flush (treesit-node-start head-node) tail-end))))))
+          (font-lock-flush (treesit-node-start head-node) tail-end)
+          ;; Restore diff invisibility after font-lock processing
+          (run-with-timer 0.01 nil 
+                          (lambda ()
+                            (when (fboundp 'greger-diff--apply-diff-invisibility)
+                              (greger-diff--apply-diff-invisibility tail-start tail-end)))))))
+    
+    ;; If expanding, also restore diff invisibility after font-lock
+    (unless is-tail-visible
+      (put-text-property tail-start (1+ tail-start) 'greger-ui-tool-content-expanded t)
+      (let* ((parent (treesit-node-parent node))
+             (head-node (treesit-search-subtree parent "^tool_content_head$" nil nil 1)))
+        (when head-node
+          (font-lock-flush (treesit-node-start head-node) tail-end)
+          ;; Restore diff invisibility after font-lock processing
+          (run-with-timer 0.01 nil
+                          (lambda ()
+                            (when (fboundp 'greger-diff--apply-diff-invisibility)
+                              (greger-diff--apply-diff-invisibility tail-start tail-end)))))))))
 
 
 (provide 'greger-ui)
