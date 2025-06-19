@@ -83,7 +83,7 @@ messages invisible.""
         (with-temp-buffer
           (insert diff-string)
           (delay-mode-hooks (diff-mode))
-          (font-lock-fontify-buffer)
+          (font-lock-ensure)
           ;; Convert 'face to 'font-lock-face for tree-sitter compatibility
           (greger-diff--convert-faces-for-tree-sitter)
           ;; Delete headers and hide "No newline" messages
@@ -116,7 +116,7 @@ messages invisible.""
           (let ((buffer-file-name filename))
             (set-auto-mode)
             ;; Apply syntax highlighting
-            (font-lock-fontify-buffer)
+            (font-lock-ensure)
             ;; Convert face properties to font-lock-face for compatibility
             (let ((pos (point-min)))
               (while (setq pos (next-single-property-change pos 'face))
@@ -229,7 +229,7 @@ messages invisible.""
           ;; Apply diff highlighting
           (goto-char (point-min))
           (delay-mode-hooks (diff-mode))
-          (font-lock-fontify-buffer)
+          (font-lock-ensure)
           (greger-diff--convert-faces-for-tree-sitter)
 
           ;; Combine syntax highlighting with diff background highlighting
