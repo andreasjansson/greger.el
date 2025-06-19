@@ -168,11 +168,21 @@ Returns a cons cell (ORIGINAL-STR . NEW-STR)."
           (new-lines '())
           (in-hunk nil)
           (orig-no-newline nil)
-          (new-no-newline nil))
+          (new-no-newline nil)
+          (has-headers nil))
     
+      ;; Check if the diff has headers (to determine processing mode)
+      (dolist (line lines)
+        (when (string-match "^\\(---\\|\\+\\+\\+\\|@@\\)" line)
+          (setq has-headers t)))
+      
+      ;; If no headers found, assume we're directly in hunk content
+      (unless has-headers
+        (setq in-hunk t))
+      
       (dolist (line lines)
         (cond
-         ;; Skip header lines
+         ;; Skip header lines if they exist
          ((string-match "^\\(---\\|\\+\\+\\+\\|@@\\)" line)
           (when (string-match "^@@" line)
             (setq in-hunk t)))
