@@ -610,11 +610,12 @@ assuming it's already been sent in streaming."
 (defun greger-parser--str-replace-diff-params (input)
   (let ((original-content (alist-get 'original-content input))
         (new-content (alist-get 'new-content input))
+        (path (alist-get 'path input))
         (other-params (cl-remove-if (lambda (param)
                                       (memq (car param) '(original-content new-content)))
                                     input)))
     (when (and original-content new-content)
-      (let ((diff-content (greger-diff-strings original-content new-content)))
+      (let ((diff-content (greger-diff-strings original-content new-content (or path "unknown.txt"))))
         (setq input (cons `(diff . ,diff-content) other-params))))))
 
 (defun greger-parser--server-tool-use-to-markdown (tool-use)
