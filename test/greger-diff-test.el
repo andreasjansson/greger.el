@@ -114,7 +114,7 @@
     (dolist (test-case test-cases)
       (let* ((original (car test-case))
              (new (cadr test-case))
-             (diff-result (greger-diff-strings original new))
+             (diff-result (greger-diff-strings original new "test.txt"))
              (undiff-result (greger-diff-undiff-strings diff-result)))
         
         ;; Verify the inverse property holds
