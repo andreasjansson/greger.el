@@ -103,17 +103,18 @@ Deletes diff headers (file and hunk headers) and makes 'No newline' messages inv
     
     (buffer-string)))
 
-(defun greger-diff--apply-syntax-highlighting (content filename)
-  "Apply syntax highlighting to CONTENT based on FILENAME's major mode.
-Returns the content with syntax highlighting applied as text properties."
-  (if (string-empty-p (string-trim content))
-      content
+(defun greger-diff--apply-syntax-highlighting-to-line (line filename)
+  "Apply syntax highlighting to a single LINE based on FILENAME's major mode."
+  (if (string-empty-p (string-trim line))
+      line
     (condition-case err
         (with-temp-buffer
-          (insert content)
+          (insert line)
           ;; Determine major mode from filename
           (let ((buffer-file-name filename))
             (set-auto-mode)
+            ;; Enable font-lock explicitly
+            (font-lock-mode 1)
             ;; Apply syntax highlighting
             (font-lock-fontify-buffer)
             ;; Convert face properties to font-lock-face for compatibility
@@ -124,10 +125,47 @@ Returns the content with syntax highlighting applied as text properties."
                     (put-text-property pos end 'font-lock-face face)))))
             (buffer-string)))
       (error
-       ;; If syntax highlighting fails, return original content
-       (message "greger-diff: syntax highlighting failed for %s: %s" 
-                filename (error-message-string err))
-       content))))
+       ;; If syntax highlighting fails, return original line
+       line))))
+
+(defun greger-diff--apply-syntax-to-diff-content (diff-string filename)
+  "Apply syntax highlighting to diff content while preserving diff highlighting."
+  (with-temp-buffer
+    (insert diff-string)
+    (goto-char (point-min))
+    
+    ;; Process each line
+    (while (not (eobp))
+      (let* ((line-start (line-beginning-position))
+             (line-end (line-end-position))
+             (line-content (buffer-substring line-start line-end)))
+        
+        ;; Only apply syntax highlighting to content lines (not headers)
+        (when (and (> (length line-content) 0)
+                   (member (substring line-content 0 1) '(" " "-" "+")))
+          (let* ((prefix (substring line-content 0 1))
+                 (content (substring line-content 1))
+                 (diff-face (get-text-property line-start 'font-lock-face))
+                 (highlighted-content (greger-diff--apply-syntax-highlighting-to-line content filename))
+                 (new-line (concat prefix highlighted-content)))
+            
+            ;; Replace the line with syntax-highlighted version
+            (delete-region line-start line-end)
+            (insert new-line)
+            
+            ;; Restore diff highlighting on the prefix and any areas without syntax highlighting
+            (when diff-face
+              (put-text-property line-start (1+ line-start) 'font-lock-face diff-face)
+              ;; Apply diff highlighting to areas that don't have syntax highlighting
+              (let ((pos (1+ line-start)))
+                (while (< pos (line-end-position))
+                  (unless (get-text-property pos 'font-lock-face)
+                    (put-text-property pos (1+ pos) 'font-lock-face diff-face))
+                  (setq pos (1+ pos))))))))
+      
+      (forward-line 1))
+    
+    (buffer-string)))
 
 (defun greger-diff-strings (original-str new-str filename)
   "Return a diff string using the system `diff` command with full context.
