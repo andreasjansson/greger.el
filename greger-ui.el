@@ -32,6 +32,8 @@
 
 (require 'treesit)
 
+
+
 (defvar greger-ui-citation-keymap
   (let ((map (make-sparse-keymap)))
     (define-key map [mouse-1] #'greger-ui--toggle-citation-fold)
@@ -108,6 +110,7 @@ START and END are the region bounds."
   (let* ((node-start (treesit-node-start node))
          (node-end (treesit-node-end node))
          (parent (treesit-node-parent node)))
+
     (when parent
       ;; Find the corresponding tail safely
       (let ((tail-node (treesit-search-subtree parent "^tool_content_tail$" nil nil 1)))
@@ -155,6 +158,24 @@ NODE is the matched tree-sitter node"
          (node-end (treesit-node-end node))
          (invisible-end (+ node-end 2)))
     (put-text-property node-start invisible-end 'invisible t)))
+
+(defun greger-ui--make-tool-tag-invisible (node _override _start _end)
+  "Make tool tag NODE invisible while preserving face styling."
+  (let ((node-start (treesit-node-start node))
+        (node-end (1+ (treesit-node-end node))))
+    (put-text-property node-start node-end 'invisible t)))
+
+(defun greger-ui--make-tool-result-id-invisible (node _override _start _end)
+  "Make id NODE invisible while preserving face styling."
+  (let ((node-start (treesit-node-start node))
+        (node-end (treesit-node-end node)))
+    (put-text-property node-start node-end 'invisible t)))
+
+(defun greger-ui--make-tool-use-id-invisible (node _override _start _end)
+  "Make id NODE invisible while preserving face styling."
+  (let ((node-start (treesit-node-start node))
+        (node-end (1- (treesit-node-end node))))
+    (put-text-property node-start node-end 'invisible t)))
 
 ;; Links
 
@@ -216,7 +237,8 @@ NODE is the matched tree-sitter node"
   (let* ((tail-start (get-text-property (point) 'greger-ui-tool-tail-start))
          (tail-end (get-text-property (point) 'greger-ui-tool-tail-end)))
     (when (and tail-start tail-end)
-      (let ((is-tail-visible (get-text-property tail-start 'greger-ui-tool-content-expanded)))
+      (let ((is-tail-visible (get-text-property tail-start 'greger-ui-tool-content-expanded))
+            (inhibit-read-only t))
         (put-text-property tail-start (min (1+ tail-start) tail-end) 'greger-ui-tool-content-expanded (not is-tail-visible))
         ;; Also need to flush both head and tail for overlay updates
         (font-lock-flush (point) tail-end)))))
@@ -227,15 +249,18 @@ NODE is the matched tree-sitter node"
   (let* ((node (treesit-node-at (point)))
          (tail-start (treesit-node-start node))
          (tail-end (treesit-node-end node))
-         (is-tail-visible (get-text-property tail-start 'greger-ui-tool-content-expanded)))
+         (is-tail-visible (get-text-property tail-start 'greger-ui-tool-content-expanded))
+         (parent (treesit-node-parent node))
+         (head-node (treesit-search-subtree parent "^tool_content_head$" nil nil 1))
+         (inhibit-read-only t))
 
-    (when is-tail-visible
-      (put-text-property tail-start (1+ tail-start) 'greger-ui-tool-content-expanded nil)
-      ;; Find the corresponding head to flush it too for overlay updates
-      (let* ((parent (treesit-node-parent node))
-             (head-node (treesit-search-subtree parent "^tool_content_head$" nil nil 1)))
-        (when head-node
-          (font-lock-flush (treesit-node-start head-node) tail-end))))))
+    (if is-tail-visible
+        (progn
+          (put-text-property tail-start (1+ tail-start) 'greger-ui-tool-content-expanded nil)
+          (font-lock-flush (treesit-node-start head-node) tail-end))
+
+      (put-text-property tail-start (1+ tail-start) 'greger-ui-tool-content-expanded t)
+      (font-lock-flush (treesit-node-start head-node) tail-end))))
 
 
 (provide 'greger-ui)

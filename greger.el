@@ -110,6 +110,10 @@ May order 4,000 pounds of meat."
 (defvar-local greger-current-thinking-budget greger-thinking-budget
   "Thinking budget for the current Greger chat.")
 
+(defvar-local greger-follow-mode t
+  "When non-nil, keep point at the bottom of the chat during updates.
+When nil, preserve point position using `save-excursion'.")
+
 (defcustom greger-citation-summary-face 'underline
   "Face to use for citation text when folded."
   :type 'face
@@ -191,6 +195,7 @@ May order 4,000 pounds of meat."
     (define-key map (kbd "C-; m") #'greger-set-model)
     (define-key map (kbd "C-; c") #'greger-ui-copy-code)
     (define-key map (kbd "C-; t") #'greger-toggle-thinking)
+    (define-key map (kbd "C-; f") #'greger-toggle-follow-mode)
     map)
   "Keymap for `greger-mode'.")
 
@@ -222,17 +227,15 @@ May order 4,000 pounds of meat."
    '((citation_entry) @greger-subheading-face)
 
    :language 'greger
-   :feature 'fields
-   :override t
-   '((tool_param_header) @greger-tool-param-name-face
-     (key) @greger-key-face
-     (url) @greger-ui--url-link-fn)
-
-   :language 'greger
    :feature 'tool-tags
    :override t
-   '((tool_start_tag) @greger-tool-tag-face
-     (tool_end_tag) @greger-tool-tag-face)
+   '((tool_start_tag) @greger-ui--make-tool-tag-invisible
+     (tool_end_tag) @greger-ui--make-tool-tag-invisible
+     (tool_result (id) @greger-ui--make-tool-result-id-invisible)
+     (tool_use (id) @greger-ui--make-tool-use-id-invisible)
+     (tool_param_header) @greger-tool-param-name-face
+     (key) @greger-key-face
+     (url) @greger-ui--url-link-fn)
 
    :language 'greger
    :feature 'comments
@@ -284,7 +287,6 @@ May order 4,000 pounds of meat."
               '((error)
                 (headers folding tool-folding)
                 (tool-tags)
-                (fields)
                 (comments)
                 (subheadings)))
   (setq-local treesit-simple-indent-rules greger--treesit-indent-rules)
@@ -406,6 +408,17 @@ insert location information at the beginning of the user section."
       (message "Thinking enabled (budget: %d tokens)" greger-current-thinking-budget)))
   (force-mode-line-update))
 
+(defun greger-toggle-follow-mode ()
+  "Toggle follow mode on/off.
+When follow mode is enabled, point moves to the bottom during chat updates.
+When disabled, point position is preserved using `save-excursion'."
+  (interactive)
+  (setq-local greger-follow-mode (not greger-follow-mode))
+  (when greger-follow-mode
+    (goto-char (point-max)))
+  (message "Follow mode %s" (if greger-follow-mode "enabled" "disabled"))
+  (force-mode-line-update))
+
 (defun greger-debug-request ()
   "Debug the request data by parsing the buffer and saving the request data output."
   (interactive)
@@ -444,6 +457,15 @@ insert location information at the beginning of the user section."
         (greger-current-thinking-budget 0))
     (greger-buffer)))
 
+(defmacro greger--maybe-save-excursion (&rest body)
+  "Execute BODY, optionally preserving point position.
+If `greger-follow-mode' is enabled, point follows output
+at the end of the buffer.
+If `greger-follow-mode' is disabled, use `save-excursion'
+to preserve point position."
+  `(if greger-follow-mode
+       (progn ,@body)
+     (save-excursion ,@body)))
 
 (defun greger--get-current-status ()
   "Get the current greger status: \='idle, \='generating, or \='executing."
@@ -533,14 +555,16 @@ Uses tree-sitter to find the last node and applies heuristics:
 
     ;; Insert a dot if content is empty
     (when (string= (string-trim content) "")
-      (goto-char end-pos)
-      (insert text))))
+      (greger--maybe-save-excursion
+       (goto-char end-pos)
+       (insert text)))))
 
 (defun greger--insert-assistant-after-thinking (thinking-node)
   "Insert assistant response after THINKING-NODE."
   (let ((end-pos (treesit-node-end thinking-node)))
-    (goto-char end-pos)
-    (insert "\n\n# ASSISTANT\n\n.")))
+    (greger--maybe-save-excursion
+     (goto-char end-pos)
+     (insert "\n\n# ASSISTANT\n\n."))))
 
 (defun greger--run-agent-loop (state)
   "Run the main agent loop with STATE."
@@ -650,6 +674,7 @@ be displayed as they arrive rather than waiting for completion."
 Assumes the last inserted thing is a thinking tag."
   (with-current-buffer (greger-state-chat-buffer state)
     (save-excursion
+      (goto-char (point-max))
       (re-search-backward "^# THINKING")
       (forward-line 1)
       (let ((inhibit-read-only t))
@@ -687,7 +712,8 @@ Assumes the last inserted thing is a thinking tag."
       ;; First, display the tool calls and reserve space for each tool's output
       (with-current-buffer buffer
         (let ((inhibit-read-only t))
-          (goto-char (point-max)))))
+          (greger--maybe-save-excursion
+           (goto-char (point-max))))))
 
     ;; Execute all tools in parallel
     (dolist (tool-call tool-calls)
@@ -735,8 +761,9 @@ Assumes the last inserted thing is a thinking tag."
   (let ((buffer (greger-state-chat-buffer state)))
     (with-current-buffer buffer
       (let ((inhibit-read-only t))
-        (goto-char (point-max))
-        (insert text)))))
+        (greger--maybe-save-excursion
+         (goto-char (point-max))
+         (insert text))))))
 
 (cl-defun greger--handle-tool-completion (&key tool-id result error state completion-callback)
   "Handle completion of a tool execution.
@@ -762,14 +789,14 @@ COMPLETION-CALLBACK is called when complete."
       (when (buffer-live-p buffer)
         (with-current-buffer buffer
           (let ((inhibit-read-only t))
-            (save-excursion
-              (goto-char (point-max))
-              ;; Find and replace the placeholder
-              (when (search-backward (greger--tool-placeholder tool-id) nil t)
-                (replace-match "")
-                (let ((result-markdown (greger-parser--tool-result-to-markdown tool-result)))
-                  (unless (string-empty-p result-markdown)
-                    (insert result-markdown)))))))
+            (greger--maybe-save-excursion
+             (goto-char (point-max))
+             ;; Find and replace the placeholder
+             (when (search-backward (greger--tool-placeholder tool-id) nil t)
+               (replace-match "")
+               (let ((result-markdown (greger-parser--tool-result-to-markdown tool-result)))
+                 (unless (string-empty-p result-markdown)
+                   (insert result-markdown)))))))
 
         ;; Update buffer state after tool completion
         (with-current-buffer buffer
@@ -784,9 +811,10 @@ COMPLETION-CALLBACK is called when complete."
     (when (buffer-live-p buffer)
       (with-current-buffer buffer
         (let ((inhibit-read-only t))
-          (goto-char (point-max))
-          (unless (looking-back (concat greger-parser-user-tag "\n\n") nil)
-            (insert "\n\n" greger-parser-user-tag "\n\n")))
+          (greger--maybe-save-excursion
+           (goto-char (point-max))
+           (unless (looking-back (concat greger-parser-user-tag "\n\n") nil)
+             (insert "\n\n" greger-parser-user-tag "\n\n"))))
         ;; Clear the buffer-local agent state
         (setq greger--current-state nil)
         ;; Update buffer state to idle

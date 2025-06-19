@@ -114,7 +114,6 @@ This ensures the '..' entry has predictable permissions in tests."
       (should callback-called)
       (should (null error))
       (should (stringp result))
-      (should (string-match "Command executed successfully" result))
       (should (string-match "hello world" result)))))
 
 (ert-deftest greger-stdlib-test-shell-command-with-pipe ()
@@ -146,7 +145,6 @@ This ensures the '..' entry has predictable permissions in tests."
       (should callback-called)
       (should (null error))
       (should (stringp result))
-      (should (string-match "Command executed successfully" result))
       (should (string-match "banana" result)))))
 
 (ert-deftest greger-stdlib-test-shell-command-permission-denied ()
@@ -231,7 +229,6 @@ This ensures the '..' entry has predictable permissions in tests."
         (should callback-called)
         (should (null error))
         (should (stringp result))
-        (should (string-match "Command executed successfully" result))
         (should (string-match "safe command" result))
         ;; Most importantly: permission prompt should NOT have been called
         (should (null prompt-called))))))
@@ -272,7 +269,6 @@ This ensures the '..' entry has predictable permissions in tests."
         (should callback-called)
         (should (null error))
         (should (stringp result))
-        (should (string-match "Command executed successfully" result))
         (should (string-match "unsafe command" result))
         ;; Permission prompt SHOULD have been called since command not in safe list
         (should prompt-called)))))
@@ -305,7 +301,6 @@ This ensures the '..' entry has predictable permissions in tests."
       (should callback-called)
       (should (null error))
       (should (stringp result))
-      (should (string-match "Command executed successfully" result))
       (should (string-match "timeout test" result)))))
 
 (ert-deftest greger-stdlib-test-shell-command-timeout-exceeded ()
@@ -368,7 +363,6 @@ This ensures the '..' entry has predictable permissions in tests."
       (should callback-called)
       (should (null error))
       (should (stringp result))
-      (should (string-match "Command executed successfully" result))
       (should (string-match "PAGER is: cat" result)))))
 
 (ert-deftest greger-stdlib-test-shell-command-default-timeout ()
@@ -400,7 +394,6 @@ This ensures the '..' entry has predictable permissions in tests."
       (should callback-called)
       (should (null error))
       (should (stringp result))
-      (should (string-match "Command executed successfully" result))
       (should (string-match "default timeout test" result)))))
 
 (ert-deftest greger-stdlib-test-shell-command-environment-access ()

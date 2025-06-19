@@ -34,6 +34,7 @@
 (require 'treesit)
 (require 'json)
 (require 'cl-lib)
+(require 'greger-diff)
 
 ;; Section tag constants
 (defconst greger-parser-system-tag "# SYSTEM")
@@ -213,11 +214,29 @@ You can run arbitrary shell commands with the shell-command tool, but the follow
     (dolist (tool-param-node tool-param-nodes)
       (push (greger-parser--extract-tool-param tool-param-node) params))
     (setq params (nreverse params))
+
+    ;; Check if this is a str-replace tool with diff param and convert back
+    (when (string= name "str-replace")
+      (setq params (greger-parser--str-replace-undiff-params params)))
+
     `((role . "assistant")
       (content . (((type . "tool_use")
                    (id . ,id)
                    (name . ,name)
                    (input . ,params)))))))
+
+(defun greger-parser--str-replace-undiff-params (params)
+  "Convert diff parameter to original-content and new-content in PARAMS."
+  (let ((diff-content (alist-get 'diff params))
+        (other-params (cl-remove-if (lambda (param)
+                                      (eq (car param) 'diff))
+                                    params)))
+    (when diff-content
+      (let ((undiff-result (greger-diff-undiff-strings diff-content)))
+        (setq params (append other-params
+                             `((original-content . ,(car undiff-result))
+                               (new-content . ,(cdr undiff-result)))))))
+    params))
 
 (defun greger-parser--extract-server-tool-use (node)
   "Extract tool use entry from NODE."
@@ -256,6 +275,14 @@ You can run arbitrary shell commands with the shell-command tool, but the follow
          (value (treesit-node-text value-node t)))
 
     (greger-parser--convert-value value)))
+
+(defun greger-parser--extract-tool-result-content (node)
+  "Extract the value field from tree-sitter NODE as a string for tool results.
+Tool result content must always be a string for Claude API compatibility."
+  (let* ((value-node (treesit-node-child-by-field-name node "value"))
+         (value (treesit-node-text value-node t)))
+    ;; Always return as string, don't convert to numbers or other types
+    (greger-parser--remove-single-leading-and-trailing-newline value)))
 
 (defun greger-parser--convert-param-value (value)
   "Convert VALUE to appropriate type for tool parameters.
@@ -305,7 +332,7 @@ Recognizes numbers, booleans, JSON arrays/objects, and plain strings."
          ((string= child-type "id")
           (setq id (string-trim (greger-parser--extract-value child))))
          ((string= child-type "content")
-          (setq content (greger-parser--extract-tool-content child))))))
+          (setq content (greger-parser--extract-tool-result-content child))))))
     `((role . "user")
       (content . (((type . "tool_result")
                    (tool_use_id . ,id)
@@ -573,10 +600,27 @@ assuming it's already been sent in streaming."
         (id (alist-get 'id tool-use))
         (input (alist-get 'input tool-use)))
 
+    ;; Check if this is a str-replace tool and convert to diff format
+    (when (string= name "str-replace")
+      (setq input (greger-parser--str-replace-diff-params input)))
+
     (concat greger-parser-tool-use-tag "\n\n"
             "Name: " name "\n"
             "ID: " id "\n\n"
             (greger-parser--tool-params-to-markdown id input))))
+
+(defun greger-parser--str-replace-diff-params (input)
+  "Convert original-content and new-content to diff parameter in INPUT."
+  (let ((original-content (alist-get 'original-content input))
+        (new-content (alist-get 'new-content input))
+        (path (alist-get 'path input))
+        (other-params (cl-remove-if (lambda (param)
+                                      (memq (car param) '(original-content new-content)))
+                                    input)))
+    (if (and original-content new-content)
+        (let ((diff-content (greger-diff-strings original-content new-content (or path "unknown.txt"))))
+          (cons `(diff . ,diff-content) other-params))
+      input)))
 
 (defun greger-parser--server-tool-use-to-markdown (tool-use)
   "Convert TOOL-USE to markdown."

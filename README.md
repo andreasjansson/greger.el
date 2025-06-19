@@ -95,6 +95,7 @@ In Greger buffers:
 - `C-; m` - Choose Claude model
 - `C-; c` - Copy code block at point
 - `C-; t` - Toggle thinking off and on
+- `C-; f` - Toggle follow mode
 
 ## Features
 
@@ -124,21 +125,14 @@ I'll do something for you.
 # TOOL USE
 
 Name: read-file
-ID: toolu_999
 
 ## path
 
-<tool.toolu_999>
 test.txt
-</tool.toolu_999>
 
 # TOOL RESULT
 
-ID: toolu_123
-
-<tool.toolu_123>
 Hello, world!
-</tool.toolu_123>
 
 # ASSISTANT
 
@@ -147,7 +141,7 @@ The file contains: Hello, world!
 
 Font-lock is used to hide a few things (e.g. thinking signatures) but they're still there in the file if you `cat` the file.
 
-This means that **anything in the chat can be edited as text**. You can yank any part of the conversation, undo steps, modify assistant responses, etc.
+This means that **anything in the chat can be edited as text**. You can yank any part of the conversation, undo steps, modify assistant responses, etc. And you can save chats as regular files.
 
 It also means that you can share and let others continue or modify it.
 
@@ -160,6 +154,8 @@ Greger is able to use tools to edit files, run shell commands, search the web, e
 It's easy to get lost when an agent is editing multiple files in quick succession. Or if you're afk while the agent does your work for you.
 
 Therefore Greger commits every change to Git. It means that the Git history can contain lots of commits for relatively minor changes, but it does give you the ability to revert to any previous state.
+
+If the Greger chat is a file that's added to the Git repository, the Greger file will also be committed along with the changes, so you have lineage of the prompts and agent decisions that resulted in each change.
 
 Branching is your friend here -- create a new branch for every new Greger session and keep your pieces of work separate. GitHub lets you squash PRs automatically, which also helps declutter the history.
 

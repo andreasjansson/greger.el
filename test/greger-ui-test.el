@@ -125,16 +125,13 @@ line6
           (expected "# TOOL USE
 
 Name: read-file
-ID: toolu_999
 
 ## path
 
-<tool.toolu_999>
 line1
 line2
 line3
 line4
-</tool.toolu_999>
 
 "))
       (should (string= expected actual)))
@@ -149,18 +146,15 @@ line4
           (expected "# TOOL USE
 
 Name: read-file
-ID: toolu_999
 
 ## path
 
-<tool.toolu_999>
 line1
 line2
 line3
 line4
 line5
 line6
-</tool.toolu_999>
 
 "))
       (should (string= expected actual)))
@@ -175,16 +169,13 @@ line6
           (expected "# TOOL USE
 
 Name: read-file
-ID: toolu_999
 
 ## path
 
-<tool.toolu_999>
 line1
 line2
 line3
 line4
-</tool.toolu_999>
 
 "))
       (should (string= expected actual)))))

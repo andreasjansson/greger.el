@@ -60,16 +60,16 @@ Uses greger--mode-line-info to get the greger-specific portion of the mode line.
           (greger--mode-line-info)
         ""))))
 
-4(defun greger-test-wait-for-status (status &optional timeout)
-   "Wait for greger buffer to reach STATUS within TIMEOUT seconds."
-   (let ((start-time (current-time))
-         (current-status nil)
-         (timeout (or timeout greger-test-timeout)))
-     (while (and (not (equal status current-status))
-                 (< (float-time (time-subtract (current-time) start-time)) timeout))
-       (setq current-status (greger--get-current-status))
-       (sit-for 0.2))
-     (equal status current-status)))
+(defun greger-test-wait-for-status (status &optional timeout)
+  "Wait for greger buffer to reach STATUS within TIMEOUT seconds."
+  (let ((start-time (current-time))
+        (current-status nil)
+        (timeout (or timeout greger-test-timeout)))
+    (while (and (not (equal status current-status))
+                (< (float-time (time-subtract (current-time) start-time)) timeout))
+      (setq current-status (greger--get-current-status))
+      (sit-for 0.2))
+    (equal status current-status)))
 
 (ert-deftest greger-end-to-end-test-greger-function ()
   "Test the main greger function creates a buffer and sets it up correctly."
@@ -449,6 +449,66 @@ Hello from greger test!
             (should (= greger-current-thinking-budget 2048))
 
             (should (string-match-p "\\[T:2048\\]" (greger-test-mode-line-text)))))
+
+      (when (and greger-buffer (buffer-live-p greger-buffer))
+        (kill-buffer greger-buffer)))))
+
+(ert-deftest greger-end-to-end-test-follow-mode ()
+  "Test follow-mode functionality and toggle."
+  (skip-unless (getenv "ANTHROPIC_API_KEY"))
+
+  (let ((greger-buffer nil))
+    (unwind-protect
+        (progn
+          (let ((greger-default-system-prompt "You are an agent."))
+            (setq greger-buffer (greger)))
+
+          (with-current-buffer greger-buffer
+            ;; Test that follow mode is enabled by default
+            (should (eq greger-follow-mode t))
+
+            ;; Position cursor at beginning of buffer
+            (goto-char (point-min))
+            (let ((initial-point (point)))
+
+              ;; Add a simple message and run without tools (to avoid complex async)
+              (goto-char (point-max))
+              (insert "Say 'Hello' and nothing else.")
+
+              (let ((greger-current-thinking-budget 0))
+                ;; With follow mode enabled, point should move to bottom
+                (goto-char initial-point)
+                (should (= (point) initial-point))
+
+                (greger-buffer)
+                (greger-test-wait-for-status 'idle)
+
+                ;; Point should be at the end now (follow mode behavior)
+                (should (= (point) (point-max))))
+
+              ;; Now test with follow mode disabled
+              (greger-toggle-follow-mode)
+              (should (eq greger-follow-mode nil))
+
+              ;; Clear buffer and start fresh for second test
+              (let ((inhibit-read-only t))
+                (erase-buffer))
+              (insert "# SYSTEM\n\nYou are an agent.\n\n# USER\n\nSay 'Goodbye' and nothing else.")
+
+              ;; Position cursor at beginning again
+              (goto-char (point-min))
+              (let ((test-point (point)))
+
+                (let ((greger-current-thinking-budget 0))
+                  (greger-buffer)
+                  (greger-test-wait-for-status 'idle)
+
+                  ;; Point should still be at the beginning (no follow mode)
+                  (should (= (point) test-point))))
+
+              ;; Test toggling back to enabled
+              (greger-toggle-follow-mode)
+              (should (eq greger-follow-mode t)))))
 
       (when (and greger-buffer (buffer-live-p greger-buffer))
         (kill-buffer greger-buffer)))))
