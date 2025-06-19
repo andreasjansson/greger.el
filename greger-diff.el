@@ -43,9 +43,9 @@
     (add-text-properties (point-min) (point-max) '(fontified t))))
 
 (defun greger-diff--clean-and-hide-metadata (diff-string)
-  "  "Delete diff headers and make \='No newline\\=' messages invisible.
+  "Delete diff headers and make \='No newline\\=' messages invisible.
 Deletes file headers (--- and +++), hunk headers (@@), but keeps
-\='No newline\\=' messages invisible.""
+\='No newline\\=' messages invisible."
   (with-temp-buffer
     (insert diff-string)
 
@@ -72,11 +72,11 @@ Deletes file headers (--- and +++), hunk headers (@@), but keeps
     (buffer-string)))
 
 (defun greger-diff-fontify-string (diff-string)
-  "  "Apply `diff-mode' fontification to DIFF-STRING and return fontified string.
+    "Apply `diff-mode' fontification to DIFF-STRING and return fontified string.
 Uses a temporary buffer to apply `diff-mode' fontification, then converts
 face properties to font-lock-face for tree-sitter compatibility.
 Deletes diff headers (file and hunk headers) and makes \='No newline\='
-messages invisible.""
+messages invisible."
   (if (string-empty-p (string-trim diff-string))
       diff-string
     (condition-case err
@@ -288,7 +288,7 @@ messages invisible.""
 
 (defun greger-diff-strings (original-str new-str filename)
   "Return a diff string using the system `diff` command with full context.
-Applies syntax highlighting based on FILENAME before diffing.
+Compares ORIGINAL-STR with NEW-STR, applying syntax highlighting based on FILENAME before diffing.
 This creates a unified diff that can be reconstructed with
 `greger-diff-undiff-strings'."
   (let ((temp-dir (make-temp-file "greger-diff-" t))
