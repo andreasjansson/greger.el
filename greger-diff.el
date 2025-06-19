@@ -468,8 +468,8 @@ Makes indicators small and muted while keeping them readable."
       (forward-line 1))))
 
 (defun greger-diff-apply-deemphasis ()
-  "Apply visual de-emphasis to diff indicators in current buffer.
-Makes diff indicators (-, +, space) and 'No newline' messages less prominent."
+  "  "Apply visual de-emphasis to diff indicators in current buffer.
+Makes diff indicators (-, +, space) and \='No newline\\=' messages less prominent.""
   (interactive)
   (save-excursion
     ;; De-emphasize "No newline" messages
