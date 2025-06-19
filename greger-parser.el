@@ -214,11 +214,11 @@ You can run arbitrary shell commands with the shell-command tool, but the follow
     (dolist (tool-param-node tool-param-nodes)
       (push (greger-parser--extract-tool-param tool-param-node) params))
     (setq params (nreverse params))
-    
+
     ;; Check if this is a str-replace tool with diff param and convert back
     (when (string= name "str-replace")
       (setq params (greger-parser--str-replace-undiff-params params)))
-    
+
     `((role . "assistant")
       (content . (((type . "tool_use")
                    (id . ,id)
@@ -226,6 +226,7 @@ You can run arbitrary shell commands with the shell-command tool, but the follow
                    (input . ,params)))))))
 
 (defun greger-parser--str-replace-undiff-params (params)
+  "Convert diff parameter to original-content and new-content in PARAMS."
   (let ((diff-content (alist-get 'diff params))
         (other-params (cl-remove-if (lambda (param)
                                       (eq (car param) 'diff))
