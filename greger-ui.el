@@ -112,7 +112,7 @@ START and END are the region bounds."
          (parent (treesit-node-parent node)))
 
     ;; Apply color
-    ;(put-text-property node-start node-end 'face 'greger-tool-content-face)
+                                        ;(put-text-property node-start node-end 'face 'greger-tool-content-face)
 
     (when parent
       ;; Find the corresponding tail safely
@@ -155,7 +155,7 @@ NODE is the matched tree-sitter node"
     (put-text-property node-start node-end 'invisible (not is-visible))
     (put-text-property node-start node-end 'keymap greger-ui-tool-content-tail-keymap)
     ;; Apply color
-    ;(put-text-property node-start node-end 'face 'greger-tool-content-face)
+                                        ;(put-text-property node-start node-end 'face 'greger-tool-content-face)
     ))
 
 (defun greger-ui--thinking-signature-hiding-fn (node _override _start _end)
@@ -243,7 +243,8 @@ NODE is the matched tree-sitter node"
   (let* ((tail-start (get-text-property (point) 'greger-ui-tool-tail-start))
          (tail-end (get-text-property (point) 'greger-ui-tool-tail-end)))
     (when (and tail-start tail-end)
-      (let ((is-tail-visible (get-text-property tail-start 'greger-ui-tool-content-expanded)))
+      (let ((is-tail-visible (get-text-property tail-start 'greger-ui-tool-content-expanded))
+            (inhibit-read-only t))
         (put-text-property tail-start (min (1+ tail-start) tail-end) 'greger-ui-tool-content-expanded (not is-tail-visible))
         ;; Also need to flush both head and tail for overlay updates
         (font-lock-flush (point) tail-end)))))
@@ -263,7 +264,8 @@ NODE is the matched tree-sitter node"
          (tail-end (treesit-node-end node))
          (is-tail-visible (get-text-property tail-start 'greger-ui-tool-content-expanded))
          (parent (treesit-node-parent node))
-         (head-node (treesit-search-subtree parent "^tool_content_head$" nil nil 1)))
+         (head-node (treesit-search-subtree parent "^tool_content_head$" nil nil 1))
+         (inhibit-read-only t))
 
     (if is-tail-visible
         (progn

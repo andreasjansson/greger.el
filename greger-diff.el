@@ -73,7 +73,7 @@ Deletes file headers (--- and +++), hunk headers (@@), but keeps
     (buffer-string)))
 
 (defun greger-diff-fontify-string (diff-string)
-    "Apply `diff-mode' fontification to DIFF-STRING and return fontified string.
+  "Apply `diff-mode' fontification to DIFF-STRING and return fontified string.
 Uses a temporary buffer to apply `diff-mode' fontification, then converts
 face properties to font-lock-face for tree-sitter compatibility.
 Deletes diff headers (file and hunk headers) and makes \='No newline\='
