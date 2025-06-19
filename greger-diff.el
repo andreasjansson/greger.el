@@ -202,6 +202,9 @@ Returns a cons cell (ORIGINAL-STR . NEW-STR)."
               (setq new-no-newline t))
              ((eq last-operation 'context)
               ;; For context lines, both sides don't have newlines
+              (setq orig-no-newline t new-no-newline t))
+             (t
+              ;; Fallback: if we can't determine, assume it applies to both
               (setq orig-no-newline t new-no-newline t))))
            
            ;; Process normal lines
