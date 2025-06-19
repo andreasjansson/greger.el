@@ -278,6 +278,11 @@ Deletes diff headers (file and hunk headers) and makes 'No newline' messages inv
               
               (forward-line 1))))
         
+        ;; Make "\ No newline at end of file" messages invisible
+        (goto-char (point-min))
+        (while (re-search-forward "^\\\\ No newline at end of file$" nil t)
+          (put-text-property (line-beginning-position) (1+ (line-end-position)) 'invisible t))
+        
         (buffer-string)))))
 
 (defun greger-diff-strings (original-str new-str filename)
