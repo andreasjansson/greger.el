@@ -33,7 +33,7 @@
 ;;; Code:
 
 (defun greger-diff--convert-faces-for-tree-sitter ()
-  "Convert 'face text properties to 'font-lock-face for tree-sitter compatibility."
+  "Convert \='face text properties to \='font-lock-face for tree-sitter compatibility."
   (let ((pos (point-min)))
     (while (setq pos (next-single-property-change pos 'face))
       (when-let ((face (get-text-property pos 'face)))
@@ -47,27 +47,27 @@
 Deletes file headers (--- and +++), hunk headers (@@), but keeps 'No newline' messages invisible."
   (with-temp-buffer
     (insert diff-string)
-    
+
     ;; Delete file headers (--- and +++ lines)
     (goto-char (point-min))
     (while (re-search-forward "^\\(---\\|\\+\\+\\+\\) .*\n" nil t)
       (replace-match ""))
-    
+
     ;; Delete hunk headers (@@ lines)
     (goto-char (point-min))
     (while (re-search-forward "^@@.*@@.*\n" nil t)
       (replace-match ""))
-    
+
     ;; Make "No newline at end of file" messages invisible (don't delete them)
     (goto-char (point-min))
     (while (re-search-forward "^\\\\ No newline at end of file$" nil t)
       (let ((line-start (line-beginning-position))
             (line-end (line-end-position)))
         ;; Make the entire line invisible, including the newline if present
-        (put-text-property line-start 
-                          (if (< line-end (point-max)) (1+ line-end) line-end)
-                          'invisible t)))
-    
+        (put-text-property line-start
+                           (if (< line-end (point-max)) (1+ line-end) line-end)
+                           'invisible t)))
+
     (buffer-string)))
 
 (defun greger-diff-fontify-string (diff-string)
@@ -96,11 +96,11 @@ Deletes diff headers (file and hunk headers) and makes 'No newline' messages inv
   (with-temp-buffer
     (insert diff-str)
     (goto-char (point-min))
-    
+
     ;; Remove timestamps from header lines
     (while (re-search-forward "^\\(---\\|\\+\\+\\+\\) \\([^\t]*\\)\t.*$" nil t)
       (replace-match "\\1 \\2" nil nil))
-    
+
     (buffer-string)))
 
 (defun greger-diff--get-syntax-highlighted-content (content filename)
@@ -130,22 +130,22 @@ Deletes diff headers (file and hunk headers) and makes 'No newline' messages inv
   "Apply syntax highlighting to diff content while preserving diff highlighting."
   (with-temp-buffer
     (insert diff-string)
-    
+
     ;; Extract just the content lines to build the full original and new content
     (let ((original-lines '())
           (new-lines '()))
-      
+
       (goto-char (point-min))
       (while (not (eobp))
         (let* ((line-start (line-beginning-position))
                (line-end (line-end-position))
                (line-content (buffer-substring line-start line-end)))
-          
+
           (when (> (length line-content) 0)
             (let ((prefix (substring line-content 0 1))
                   (content (if (> (length line-content) 1)
-                              (substring line-content 1)
-                            "")))
+                               (substring line-content 1)
+                             "")))
               (cond
                ;; Context line - goes to both original and new
                ((string= prefix " ")
@@ -157,15 +157,15 @@ Deletes diff headers (file and hunk headers) and makes 'No newline' messages inv
                ;; Added line - only in new
                ((string= prefix "+")
                 (push content new-lines)))))
-          
+
           (forward-line 1)))
-      
+
       ;; Now we have the full original and new content - apply syntax highlighting
       (let* ((original-content (string-join (nreverse original-lines) "\n"))
              (new-content (string-join (nreverse new-lines) "\n"))
              (highlighted-original (greger-diff--get-syntax-highlighted-content original-content filename))
              (highlighted-new (greger-diff--get-syntax-highlighted-content new-content filename)))
-        
+
         ;; Now reconstruct the diff with syntax highlighting
         (erase-buffer)
         (let ((orig-lines (split-string highlighted-original "\n"))
@@ -173,7 +173,7 @@ Deletes diff headers (file and hunk headers) and makes 'No newline' messages inv
               (diff-lines (split-string diff-string "\n"))
               (orig-pos 0)
               (new-pos 0))
-          
+
           (dolist (diff-line diff-lines)
             (when (> (length diff-line) 0)
               (let ((prefix (substring diff-line 0 1))
@@ -189,7 +189,7 @@ Deletes diff headers (file and hunk headers) and makes 'No newline' messages inv
                       (insert "\n"))
                     (setq orig-pos (1+ orig-pos))
                     (setq new-pos (1+ new-pos))))
-                 ;; Removed line  
+                 ;; Removed line
                  ((string= prefix "-")
                   (when (< orig-pos (length orig-lines))
                     (insert "-")
@@ -210,33 +210,33 @@ Deletes diff headers (file and hunk headers) and makes 'No newline' messages inv
                  ;; Other lines (invisible markers, etc.) - copy as-is
                  (t
                   (insert diff-line "\n")))))))
-        
+
         ;; Store syntax highlighting before applying diff highlighting
         (let ((syntax-map (make-hash-table)))
-          ;; Store all syntax highlighting faces  
+          ;; Store all syntax highlighting faces
           (let ((pos (point-min)))
             (while (< pos (point-max))
               (let ((face (get-text-property pos 'font-lock-face)))
-                (when (and face 
+                (when (and face
                            (or (symbolp face)
                                (and (listp face) (symbolp (car face))))
                            (not (member face '(diff-context diff-removed diff-added diff-indicator-removed diff-indicator-added))))
                   (puthash pos face syntax-map)))
               (setq pos (1+ pos))))
-          
+
           ;; Apply diff highlighting
           (goto-char (point-min))
           (delay-mode-hooks (diff-mode))
           (font-lock-fontify-buffer)
           (greger-diff--convert-faces-for-tree-sitter)
-          
+
           ;; Combine syntax highlighting with diff background highlighting
           (goto-char (point-min))
           (while (not (eobp))
             (let* ((line-start (line-beginning-position))
                    (line-end (line-end-position))
                    (line-content (buffer-substring line-start line-end)))
-              
+
               (when (> (length line-content) 0)
                 (let ((line-prefix (substring line-content 0 1)))
                   ;; Apply background to entire line based on prefix
@@ -248,12 +248,12 @@ Deletes diff headers (file and hunk headers) and makes 'No newline' messages inv
                         (let ((syntax-face (gethash pos syntax-map)))
                           (if syntax-face
                               ;; Combine syntax face with red background
-                              (put-text-property pos (1+ pos) 'font-lock-face 
+                              (put-text-property pos (1+ pos) 'font-lock-face
                                                  (list syntax-face :background "#4d1f1f"))
                             ;; Just red background
                             (put-text-property pos (1+ pos) 'font-lock-face '(:background "#4d1f1f"))))
                         (setq pos (1+ pos)))))
-                   
+
                    ((string= line-prefix "+")
                     ;; Apply green background to added line (excluding newline)
                     (let ((pos line-start))
@@ -261,12 +261,12 @@ Deletes diff headers (file and hunk headers) and makes 'No newline' messages inv
                         (let ((syntax-face (gethash pos syntax-map)))
                           (if syntax-face
                               ;; Combine syntax face with green background
-                              (put-text-property pos (1+ pos) 'font-lock-face 
+                              (put-text-property pos (1+ pos) 'font-lock-face
                                                  (list syntax-face :background "#1f4d1f"))
                             ;; Just green background
                             (put-text-property pos (1+ pos) 'font-lock-face '(:background "#1f4d1f"))))
                         (setq pos (1+ pos)))))
-                   
+
                    ((string= line-prefix " ")
                     ;; Context line - restore syntax highlighting only (excluding newline)
                     (let ((pos line-start))
@@ -275,18 +275,18 @@ Deletes diff headers (file and hunk headers) and makes 'No newline' messages inv
                           (when syntax-face
                             (put-text-property pos (1+ pos) 'font-lock-face syntax-face)))
                         (setq pos (1+ pos))))))))
-              
+
               (forward-line 1))))
-        
+
         ;; Make "\ No newline at end of file" messages less prominent
         (goto-char (point-min))
         (while (re-search-forward "^\\\\ No newline at end of file$" nil t)
-          (put-text-property (line-beginning-position) (1+ (line-end-position)) 
+          (put-text-property (line-beginning-position) (1+ (line-end-position))
                              'font-lock-face '(:height 0.6 :foreground "gray50")))
-        
+
         ;; Make diff indicators (space, minus, plus) less prominent
         (greger-diff--apply-diff-deemphasis (point-min) (point-max))
-        
+
         (buffer-string)))))
 
 (defun greger-diff-strings (original-str new-str filename)
@@ -300,20 +300,20 @@ This creates a unified diff that can be reconstructed with `greger-diff-undiff-s
         (progn
           (setq original-file (expand-file-name "original" temp-dir))
           (setq new-file (expand-file-name "new" temp-dir))
-          
+
           ;; Write plain strings to temporary files
           (with-temp-file original-file
             (insert original-str))
           (with-temp-file new-file
             (insert new-str))
-          
+
           ;; Run diff with full context and custom labels
           (with-temp-buffer
             (let ((exit-code (call-process "diff" nil t nil
-                                         "-U" "1000000"  ; Very large context
-                                         "--label" "original-content"
-                                         "--label" "new-content"
-                                         original-file new-file)))
+                                           "-U" "1000000"  ; Very large context
+                                           "--label" "original-content"
+                                           "--label" "new-content"
+                                           original-file new-file)))
               ;; diff returns 0 when files are identical, 1 when they differ
               (cond
                ((zerop exit-code)
@@ -353,7 +353,7 @@ This creates a unified diff that can be reconstructed with `greger-diff-undiff-s
                   (greger-diff--apply-syntax-to-diff-content diff-fontified filename)))
                (t
                 (error "diff command failed with exit code %d" exit-code))))))
-      
+
       ;; Cleanup
       (when (file-exists-p temp-dir)
         (delete-directory temp-dir t)))))
@@ -363,7 +363,7 @@ This creates a unified diff that can be reconstructed with `greger-diff-undiff-s
 Handles unified diff format created by the `diff` command, including diffs
 without headers (file/hunk headers deleted).
 Returns a cons cell (ORIGINAL-STR . NEW-STR)."
-  ;; Handle empty diff (identical files)  
+  ;; Handle empty diff (identical files)
   (if (string= "" (string-trim unified-diff-str))
       (cons "" "")
 
@@ -375,23 +375,23 @@ Returns a cons cell (ORIGINAL-STR . NEW-STR)."
           (new-no-newline nil)
           (has-headers nil)
           (last-operation nil)) ; Track what the last operation was for "No newline" handling
-    
+
       ;; Check if the diff has headers (to determine processing mode)
       (dolist (line lines)
         (when (string-match "^\\(---\\|\\+\\+\\+\\|@@\\)" line)
           (setq has-headers t)))
-      
+
       ;; If no headers found, assume we're directly in hunk content
       (unless has-headers
         (setq in-hunk t))
-      
+
       (dolist (line lines)
         (cond
          ;; Skip header lines if they exist
          ((string-match "^\\(---\\|\\+\\+\\+\\|@@\\)" line)
           (when (string-match "^@@" line)
             (setq in-hunk t)))
-         
+
          ;; Process hunk content
          (in-hunk
           (cond
@@ -409,7 +409,7 @@ Returns a cons cell (ORIGINAL-STR . NEW-STR)."
              (t
               ;; Fallback: if we can't determine, assume it applies to both
               (setq orig-no-newline t new-no-newline t))))
-           
+
            ;; Process normal lines
            ((> (length line) 0)
             (let ((prefix (substring line 0 1))
@@ -420,28 +420,28 @@ Returns a cons cell (ORIGINAL-STR . NEW-STR)."
                 (push content original-lines)
                 (push content new-lines)
                 (setq last-operation 'context))
-               
+
                ;; Deleted line
                ((string= prefix "-")
                 (push content original-lines)
                 (setq last-operation 'deleted))
-               
+
                ;; Added line
                ((string= prefix "+")
                 (push content new-lines)
                 (setq last-operation 'added))
-               
+
                ;; Handle lines without prefix (context)
                ((not (member prefix '("-" "+")))
                 (push line original-lines)
                 (push line new-lines)
                 (setq last-operation 'context)))))))))
-      
+
       ;; Build the final strings
-      (let ((orig-str (if original-lines 
+      (let ((orig-str (if original-lines
                           (string-join (nreverse original-lines) "\n")
                         ""))
-            (new-str (if new-lines 
+            (new-str (if new-lines
                          (string-join (nreverse new-lines) "\n")
                        "")))
         ;; Add trailing newlines unless explicitly marked as having no newline
@@ -465,7 +465,7 @@ Makes indicators small and muted while keeping them readable."
         (when (and (> (length line-content) 0)
                    (member (substring line-content 0 1) '(" " "-" "+")))
           ;; Make the first character (diff indicator) small and muted
-          (put-text-property line-start (1+ line-start) 
+          (put-text-property line-start (1+ line-start)
                              'font-lock-face '(:height 0.6 :foreground "gray50"))))
       (forward-line 1))))
 
@@ -477,9 +477,9 @@ Makes diff indicators (-, +, space) and 'No newline' messages less prominent."
     ;; De-emphasize "No newline" messages
     (goto-char (point-min))
     (while (re-search-forward "^\\\\ No newline at end of file$" nil t)
-      (put-text-property (line-beginning-position) (1+ (line-end-position)) 
+      (put-text-property (line-beginning-position) (1+ (line-end-position))
                          'font-lock-face '(:height 0.6 :foreground "gray50")))
-    
+
     ;; De-emphasize diff indicators
     (greger-diff--apply-diff-deemphasis (point-min) (point-max))))
 
