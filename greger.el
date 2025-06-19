@@ -671,6 +671,7 @@ be displayed as they arrive rather than waiting for completion."
 Assumes the last inserted thing is a thinking tag."
   (with-current-buffer (greger-state-chat-buffer state)
     (save-excursion
+      (goto-char (point-max))
       (re-search-backward "^# THINKING")
       (forward-line 1)
       (let ((inhibit-read-only t))
