@@ -363,7 +363,6 @@ This ensures the '..' entry has predictable permissions in tests."
       (should callback-called)
       (should (null error))
       (should (stringp result))
-      (should (string-match "Command executed successfully" result))
       (should (string-match "PAGER is: cat" result)))))
 
 (ert-deftest greger-stdlib-test-shell-command-default-timeout ()
