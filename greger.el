@@ -551,8 +551,9 @@ Uses tree-sitter to find the last node and applies heuristics:
 (defun greger--insert-assistant-after-thinking (thinking-node)
   "Insert assistant response after THINKING-NODE."
   (let ((end-pos (treesit-node-end thinking-node)))
-    (goto-char end-pos)
-    (insert "\n\n# ASSISTANT\n\n.")))
+    (greger--maybe-save-excursion
+     (goto-char end-pos)
+     (insert "\n\n# ASSISTANT\n\n."))))
 
 (defun greger--run-agent-loop (state)
   "Run the main agent loop with STATE."
