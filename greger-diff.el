@@ -103,8 +103,35 @@ Deletes diff headers (file and hunk headers) and makes 'No newline' messages inv
     
     (buffer-string)))
 
-(defun greger-diff-strings (original-str new-str)
+(defun greger-diff--apply-syntax-highlighting (content filename)
+  "Apply syntax highlighting to CONTENT based on FILENAME's major mode.
+Returns the content with syntax highlighting applied as text properties."
+  (if (string-empty-p (string-trim content))
+      content
+    (condition-case err
+        (with-temp-buffer
+          (insert content)
+          ;; Determine major mode from filename
+          (let ((buffer-file-name filename))
+            (set-auto-mode)
+            ;; Apply syntax highlighting
+            (font-lock-fontify-buffer)
+            ;; Convert face properties to font-lock-face for compatibility
+            (let ((pos (point-min)))
+              (while (setq pos (next-single-property-change pos 'face))
+                (when-let ((face (get-text-property pos 'face)))
+                  (let ((end (next-single-property-change pos 'face nil (point-max))))
+                    (put-text-property pos end 'font-lock-face face)))))
+            (buffer-string)))
+      (error
+       ;; If syntax highlighting fails, return original content
+       (message "greger-diff: syntax highlighting failed for %s: %s" 
+                filename (error-message-string err))
+       content))))
+
+(defun greger-diff-strings (original-str new-str filename)
   "Return a diff string using the system `diff` command with full context.
+Applies syntax highlighting based on FILENAME before diffing.
 This creates a unified diff that can be reconstructed with `greger-diff-undiff-strings`."
   (let ((temp-dir (make-temp-file "greger-diff-" t))
         (original-file nil)
