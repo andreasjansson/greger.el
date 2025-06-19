@@ -36,7 +36,10 @@
 ;; Ensure greger-diff invisibility is enabled when UI is loaded
 (defun greger-ui--ensure-diff-invisibility ()
   "Ensure greger-diff invisibility spec is enabled."
-  (unless (member 'greger-diff buffer-invisibility-spec)
+  (unless (and (listp buffer-invisibility-spec) 
+               (member 'greger-diff buffer-invisibility-spec))
+    (when (eq buffer-invisibility-spec t)
+      (setq buffer-invisibility-spec '(t)))
     (add-to-invisibility-spec 'greger-diff)))
 
 ;; Hook to enable diff invisibility in greger buffers
