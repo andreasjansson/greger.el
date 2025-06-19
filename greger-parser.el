@@ -616,9 +616,10 @@ assuming it's already been sent in streaming."
         (other-params (cl-remove-if (lambda (param)
                                       (memq (car param) '(original-content new-content)))
                                     input)))
-    (when (and original-content new-content)
-      (let ((diff-content (greger-diff-strings original-content new-content (or path "unknown.txt"))))
-        (setq input (cons `(diff . ,diff-content) other-params))))))
+    (if (and original-content new-content)
+        (let ((diff-content (greger-diff-strings original-content new-content (or path "unknown.txt"))))
+          (cons `(diff . ,diff-content) other-params))
+      input)))
 
 (defun greger-parser--server-tool-use-to-markdown (tool-use)
   "Convert TOOL-USE to markdown."
