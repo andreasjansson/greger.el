@@ -108,7 +108,7 @@ messages invisible.""
   "Apply syntax highlighting to CONTENT based on FILENAME, preserving context."
   (if (string-empty-p (string-trim content))
       content
-    (condition-case err
+    (condition-case _err
         (with-temp-buffer
           (insert content)
           ;; Determine major mode from filename
