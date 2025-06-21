@@ -113,22 +113,23 @@ messages invisible."
         (with-temp-buffer
           (insert contents)
           ;; Determine major mode from path extension
-          (let ((buffer-file-name (concat (make-temp-name "temp-")
-                                          (file-name-extension path t))))
+          (let* ((pos (point-min))
+                 (file-ext (file-name-extension path t))
+                 (buffer-file-name (concat (make-temp-name "temp-") file-ext)))
             (set-auto-mode)
             ;; Apply syntax highlighting
             (font-lock-ensure)
             ;; Convert face properties to font-lock-face for compatibility
-            (let ((pos (point-min)))
-              ;; First check if there's a face at the beginning
-              (when-let ((face (get-text-property pos 'face)))
-                (let ((end (next-single-property-change pos 'face nil (point-max))))
-                  (put-text-property pos end 'font-lock-face face)))
-              ;; Then look for property changes
-              (while (setq pos (next-single-property-change pos 'face))
-                (when-let ((face (get-text-property pos 'face)))
-                  (let ((end (next-single-property-change pos 'face nil (point-max))))
-                    (put-text-property pos end 'font-lock-face face)))))
+
+            ;; First check if there's a face at the beginning
+            (when-let* ((face (get-text-property pos 'face))
+                        (end (next-single-property-change pos 'face nil (point-max))))
+              (put-text-property pos end 'font-lock-face face))
+            ;; Then look for property changes
+            (while (setq pos (next-single-property-change pos 'face))
+              (when-let* ((face (get-text-property pos 'face))
+                          (end (next-single-property-change pos 'face nil (point-max))))
+                (put-text-property pos end 'font-lock-face face)))
             (buffer-string)))
       (error
        ;; If syntax highlighting fails, return original content
