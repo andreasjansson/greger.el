@@ -480,7 +480,25 @@ Expensive operations are deferred to idle time to avoid blocking scrolling."
          (red-bg (if is-dark-theme "#2d1b1b" "#ffe6e6")) ; Dark red vs light red
          (green-bg (if is-dark-theme "#1b2d1b" "#e6ffe6"))) ; Dark green vs light green
     
-    ;; Convert overlays with 'face property (syntax highlighting overlays)
+    ;; First pass: Set background on all characters in diff lines
+    (save-excursion
+      (goto-char (point-min))
+      (while (not (eobp))
+        (let* ((line-start (line-beginning-position))
+               (line-end (line-end-position))
+               (line-start-char (char-after line-start)))
+          (cond
+           ;; Lines starting with - get red background
+           ((eq line-start-char ?-)
+            (put-text-property line-start (1+ line-end) 'font-lock-face 
+                               (list :background red-bg)))
+           ;; Lines starting with + get green background
+           ((eq line-start-char ?+)
+            (put-text-property line-start (1+ line-end) 'font-lock-face 
+                               (list :background green-bg))))
+          (forward-line 1))))
+    
+    ;; Second pass: Convert overlays with 'face property (syntax highlighting overlays)
     (dolist (overlay (overlays-in (point-min) (point-max)))
       (when-let* ((face (overlay-get overlay 'face))
                   (face-attrs (greger-ui--get-face-attributes face))
@@ -507,18 +525,12 @@ Expensive operations are deferred to idle time to avoid blocking scrolling."
                 ;; TODO: remove debug
                 (message (format "face-attrs: %s" face-attrs))
                 (put-text-property overlay-start-in-line overlay-end-in-line
-                                   'font-lock-face face-attrs)
-                ;; Set background on all characters in the line, including those without overlay attributes
-                (put-text-property line-start (1+ line-end) 'font-lock-face 
-                                   (list :background red-bg)))
+                                   'font-lock-face face-attrs))
                ;; Lines starting with + get green background
                ((eq line-start-char ?+)
                 (plist-put face-attrs :background green-bg)
                 (put-text-property overlay-start-in-line overlay-end-in-line
-                                   'font-lock-face face-attrs)
-                ;; Set background on all characters in the line, including those without overlay attributes
-                (put-text-property line-start (1+ line-end) 'font-lock-face 
-                                   (list :background green-bg)))
+                                   'font-lock-face face-attrs))
                ;; Other lines get just the overlay face
                (t
                 ;; TODO: remove debug
