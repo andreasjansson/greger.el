@@ -517,28 +517,6 @@ Expensive operations are deferred to idle time to avoid blocking scrolling."
   ;; Mark as fontified to prevent re-fontification
   (add-text-properties (point-min) (point-max) '(fontified t)))
 
-(defun greger-ui--apply-diff-backgrounds ()
-  "Apply background colors to lines starting with - or + using overlays."
-  (let* ((background-mode (frame-parameter nil 'background-mode))
-         (is-dark-theme (eq background-mode 'dark))
-         (red-bg (if is-dark-theme "#2d1b1b" "#ffe6e6"))   ; Dark red vs light red
-         (green-bg (if is-dark-theme "#1b2d1b" "#e6ffe6"))) ; Dark green vs light green
-    
-    (goto-char (point-min))
-    (while (not (eobp))
-      (let ((line-start (line-beginning-position))
-            (line-end (line-end-position)))
-        (cond
-         ;; Lines starting with - get red background overlay
-         ((looking-at "^-")
-          (let ((overlay (make-overlay line-start (1+ line-end))))
-            (overlay-put overlay 'face `(:background ,red-bg))))
-         ;; Lines starting with + get green background overlay
-         ((looking-at "^\\+")
-          (let ((overlay (make-overlay line-start (1+ line-end))))
-            (overlay-put overlay 'face `(:background ,green-bg))))))
-      (forward-line 1))))
-
 
 (defun greger-ui--remove-diff-headers ()
   "Process diff output, remove headers and apply syntax highlighting."
