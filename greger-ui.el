@@ -291,6 +291,71 @@ NODE is the matched tree-sitter node"
 (defvar greger-ui--idle-timer nil
   "Timer for processing diff operations during idle time.")
 
+;; Customizable delay for idle processing
+(defcustom greger-ui-idle-delay 0.5
+  "Delay in seconds before processing diff operations during idle time.
+Lower values make diff processing more responsive but may impact performance.
+Higher values reduce interruptions during active editing."
+  :type 'number
+  :group 'greger)
+
+(defun greger-ui--schedule-diff-operation (operation-type node start end cache-key)
+  "Schedule a diff operation to be processed during idle time.
+OPERATION-TYPE is either 'transform or 'highlight.
+NODE, START, END, and CACHE-KEY are the operation parameters."
+  (let ((buffer (current-buffer))
+        (operation (list operation-type buffer node start end cache-key)))
+    
+    ;; Add to pending operations (avoid duplicates)
+    (unless (member operation greger-ui--pending-diff-operations)
+      (push operation greger-ui--pending-diff-operations))
+    
+    ;; Set up or restart the idle timer
+    (when greger-ui--idle-timer
+      (cancel-timer greger-ui--idle-timer))
+    
+    (setq greger-ui--idle-timer
+          (run-with-idle-timer greger-ui-idle-delay nil
+                               #'greger-ui--process-pending-operations))))
+
+(defun greger-ui--process-pending-operations ()
+  "Process all pending diff operations."
+  (let ((operations greger-ui--pending-diff-operations))
+    (setq greger-ui--pending-diff-operations nil
+          greger-ui--idle-timer nil)
+    
+    ;; Process operations in LIFO order (most recent first)
+    (dolist (operation operations)
+      (let ((operation-type (nth 0 operation))
+            (buffer (nth 1 operation))
+            (node (nth 2 operation))
+            (start (nth 3 operation))
+            (end (nth 4 operation))
+            (cache-key (nth 5 operation)))
+        
+        ;; Only process if buffer is still live and visible
+        (when (and (buffer-live-p buffer)
+                   (get-buffer-window buffer))
+          (with-current-buffer buffer
+            (condition-case err
+                (cond
+                 ((eq operation-type 'transform)
+                  (greger-ui--apply-str-replace-diff-content node start end cache-key))
+                 ((eq operation-type 'highlight)
+                  (greger-ui--apply-diff-syntax-highlighting node start end cache-key)))
+              (error
+               (message "Error processing diff operation: %s" (error-message-string err))))))))))
+
+(defun greger-ui--cleanup-idle-operations ()
+  "Clean up idle operations when buffer is killed or mode is disabled."
+  (when greger-ui--idle-timer
+    (cancel-timer greger-ui--idle-timer)
+    (setq greger-ui--idle-timer nil))
+  ;; Remove operations for this buffer
+  (setq greger-ui--pending-diff-operations
+        (cl-remove-if (lambda (op) (eq (nth 1 op) (current-buffer)))
+                      greger-ui--pending-diff-operations)))
+
 (defun greger-ui--str-replace-diff-transform-fn (node _override start end)
   "Font-lock function to transform str-replace original/new content into diff content.
 NODE is the matched tree-sitter node for tool_use block.
