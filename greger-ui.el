@@ -502,10 +502,18 @@ Expensive operations are deferred to idle time to avoid blocking scrolling."
         (cond
          ;; Lines starting with - get red background
          ((looking-at "^-")
-          (add-face-text-property line-start line-end `(:background ,red-bg)))
+          (let ((existing-face (get-text-property line-start 'font-lock-face)))
+            (put-text-property line-start line-end 'font-lock-face
+                              (if existing-face
+                                  `(,existing-face (:background ,red-bg))
+                                `(:background ,red-bg)))))
          ;; Lines starting with + get green background
          ((looking-at "^\\+")
-          (add-face-text-property line-start line-end `(:background ,green-bg)))))
+          (let ((existing-face (get-text-property line-start 'font-lock-face)))
+            (put-text-property line-start line-end 'font-lock-face
+                              (if existing-face
+                                  `(,existing-face (:background ,green-bg))
+                                `(:background ,green-bg)))))))
       (forward-line 1))))
 
 
