@@ -475,15 +475,44 @@ Expensive operations are deferred to idle time to avoid blocking scrolling."
 
 (defun greger-ui--convert-faces-for-tree-sitter ()
   "Convert 'face text properties and overlay faces to 'font-lock-face for tree-sitter."
-  ;; Convert overlays with 'face property (syntax highlighting overlays)
-  (dolist (overlay (overlays-in (point-min) (point-max)))
-    (when-let ((face (overlay-get overlay 'face))
-               (start (overlay-start overlay))
-               (end (overlay-end overlay)))
-      (put-text-property start end 'font-lock-face face)))
-  
-  ;; Add background colors to diff lines while preserving foreground colors
-  (greger-ui--apply-diff-backgrounds)
+  (let* ((background-mode (frame-parameter nil 'background-mode))
+         (is-dark-theme (eq background-mode 'dark))
+         (red-bg (if is-dark-theme "#2d1b1b" "#ffe6e6"))   ; Dark red vs light red
+         (green-bg (if is-dark-theme "#1b2d1b" "#e6ffe6"))) ; Dark green vs light green
+    
+    ;; Convert overlays with 'face property (syntax highlighting overlays)
+    (dolist (overlay (overlays-in (point-min) (point-max)))
+      (when-let ((face (overlay-get overlay 'face))
+                 (start (overlay-start overlay))
+                 (end (overlay-end overlay)))
+        
+        ;; Check if this overlay spans any diff lines and modify background accordingly
+        (save-excursion
+          (goto-char start)
+          (while (< (point) end)
+            (let ((line-start (line-beginning-position))
+                  (line-end (min (line-end-position) end))
+                  (overlay-start-in-line (max start line-start))
+                  (overlay-end-in-line (min end (1+ line-end))))
+              
+              (cond
+               ;; Lines starting with - get red background
+               ((looking-at "^-")
+                (let ((face-attrs (face-all-attributes face)))
+                  (plist-put face-attrs :background red-bg)
+                  (put-text-property overlay-start-in-line overlay-end-in-line
+                                    'font-lock-face face-attrs)))
+               ;; Lines starting with + get green background
+               ((looking-at "^\\+")
+                (let ((face-attrs (face-all-attributes face)))
+                  (plist-put face-attrs :background green-bg)
+                  (put-text-property overlay-start-in-line overlay-end-in-line
+                                    'font-lock-face face-attrs)))
+               ;; Other lines get just the overlay face
+               (t
+                (put-text-property overlay-start-in-line overlay-end-in-line
+                                  'font-lock-face face))))
+            (forward-line 1))))))
   
   ;; Mark as fontified to prevent re-fontification
   (add-text-properties (point-min) (point-max) '(fontified t)))
