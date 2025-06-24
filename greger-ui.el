@@ -31,6 +31,8 @@
 ;;; Code:
 
 (require 'treesit)
+(require 'diff)
+(require 'diff-mode)
 
 
 
