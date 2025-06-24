@@ -219,7 +219,8 @@ When nil, preserve point position using `save-excursion'.")
    '((assistant (citation_entry) @greger-ui--citation-entry-folding-fn)
      (tool_content_tail) @greger-ui--tool-content-tail-folding-fn
      (tool_content_head) @greger-ui--tool-content-head-folding-fn
-     (thinking_signature) @greger-ui--thinking-signature-hiding-fn)
+     (thinking_signature) @greger-ui--thinking-signature-hiding-fn
+     (tool_use) @greger-ui--str-replace-diff-transform-fn)
 
    :language 'greger
    :feature 'subheadings
