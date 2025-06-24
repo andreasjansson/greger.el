@@ -359,13 +359,30 @@ overriding existing diff syntax highlighting."
       (when (file-exists-p new-file) (delete-file new-file))
       (kill-buffer diff-buffer))))
 
+(defun greger-ui--convert-faces-for-tree-sitter ()
+  "Convert 'face text properties to 'font-lock-face for tree-sitter."
+  (let ((pos (point-min)))
+    (while (setq pos (next-single-property-change pos 'face))
+      (when-let ((face (get-text-property pos 'face)))
+        (let ((end (next-single-property-change pos 'face nil (point-max))))
+          (put-text-property pos end 'font-lock-face face))))
+    ;; Mark as fontified to prevent re-fontification
+    (add-text-properties (point-min) (point-max) '(fontified t))))
+
 (defun greger-ui--remove-diff-headers (diff-content)
-  "Process diff output in current buffer, remove headers and apply syntax highlighting."
+  "Process diff output, remove headers and apply syntax highlighting."
   (with-temp-buffer
     (insert diff-content)
-    (goto-char (point-min))
+    
+    ;; Apply diff-mode syntax highlighting
+    (delay-mode-hooks (diff-mode))
+    (font-lock-ensure)
+    
+    ;; Convert 'face to 'font-lock-face for tree-sitter compatibility
+    (greger-ui--convert-faces-for-tree-sitter)
     
     ;; Remove the file header lines (--- and +++ lines)
+    (goto-char (point-min))
     (when (looking-at "^--- ")
       (delete-region (point) (progn (forward-line 1) (point))))
     (when (looking-at "^\\+\\+\\+ ")
