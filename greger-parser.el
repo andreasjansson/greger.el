@@ -202,12 +202,24 @@ You can run arbitrary shell commands with the shell-command tool, but the follow
          (signature (treesit-node-text value-node t)))
     signature))
 
+(defun greger-parser--extract-tool-use-param-nodes (node)
+  "Extract tool parameter nodes from NODE and return an alist mapping param names to param nodes."
+  (let* ((tool-param-nodes (treesit-filter-child node (lambda (n) (string= (treesit-node-type n) "tool_param"))))
+         (param-map '()))
+    (dolist (tool-param-node tool-param-nodes)
+      (let* ((name-node (treesit-search-subtree tool-param-node "name"))
+             (name (intern (treesit-node-text name-node t))))
+        (push `(,name . ,tool-param-node) param-map)))
+    (nreverse param-map)))
+
 (defun greger-parser--extract-tool-use-params (node)
   "Extract tool use parameters from NODE and return an alist of param names to values."
-  (let* ((tool-param-nodes (treesit-filter-child node (lambda (n) (string= (treesit-node-type n) "tool_param"))))
+  (let* ((param-node-map (greger-parser--extract-tool-use-param-nodes node))
          (params '()))
-    (dolist (tool-param-node tool-param-nodes)
-      (push (greger-parser--extract-tool-param tool-param-node) params))
+    (dolist (param-entry param-node-map)
+      (let ((param-name (car param-entry))
+            (param-node (cdr param-entry)))
+        (push (greger-parser--extract-tool-param param-node) params)))
     (nreverse params)))
 
 (defun greger-parser--extract-tool-use (node)
