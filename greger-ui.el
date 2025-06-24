@@ -457,12 +457,11 @@ Expensive operations are deferred to idle time to avoid blocking scrolling."
             ;; fontified text
             (setq buffer-read-only nil)
 
-            ;; Convert 'face to 'font-lock-face for tree-sitter compatibility
-            (greger-ui--convert-faces-for-tree-sitter)
-
             ;; Add background colors to diff lines
             (greger-ui--apply-diff-line-backgrounds)
 
+            ;; Convert 'face to 'font-lock-face for tree-sitter compatibility
+            (greger-ui--convert-faces-for-tree-sitter)
 
             ;; Remove headers/footers inserted by the diff command and diff.el
             (greger-ui--remove-diff-headers)
@@ -475,21 +474,65 @@ Expensive operations are deferred to idle time to avoid blocking scrolling."
       ;; Cleanup temp files
       (when (file-exists-p original-file) (delete-file original-file))
       (when (file-exists-p new-file) (delete-file new-file))
-      ;(kill-buffer diff-buffer)
+      (kill-buffer diff-buffer)
       )))
 
 (defun greger-ui--convert-faces-for-tree-sitter ()
-  "Convert 'face text properties and overlay faces to 'font-lock-face for tree-sitter."
-  ;; Convert overlays with 'face property (syntax highlighting overlays)
-  (dolist (overlay (overlays-in (point-min) (point-max)))
-    (when-let ((face (overlay-get overlay 'face))
-               (start (overlay-start overlay))
-               (end (overlay-end overlay)))
+  "Convert 'face text properties and overlay faces to 'font-lock-face for tree-sitter.
+Also applies diff line background colors, combining them with overlay foreground colors."
+  (let* ((background-mode (frame-parameter nil 'background-mode))
+         (is-dark-theme (eq background-mode 'dark))
+         (red-bg (if is-dark-theme "#2d1b1b" "#ffe6e6"))   ; Dark red vs light red
+         (green-bg (if is-dark-theme "#1b2d1b" "#e6ffe6"))) ; Dark green vs light green
 
-      (put-text-property start end 'font-lock-face face)))
-  
-  ;; Mark as fontified to prevent re-fontification
-  (add-text-properties (point-min) (point-max) '(fontified t)))
+    ;; Convert overlays with 'face property (syntax highlighting overlays)
+    (dolist (overlay (overlays-in (point-min) (point-max)))
+      (when-let ((face (overlay-get overlay 'face))
+                 (start (overlay-start overlay))
+                 (end (overlay-end overlay)))
+        
+        ;; Check if this overlay spans any diff lines and combine faces accordingly
+        (save-excursion
+          (goto-char start)
+          (while (< (point) end)
+            (let ((line-start (line-beginning-position))
+                  (line-end (min (line-end-position) end))
+                  (overlay-start-in-line (max start line-start))
+                  (overlay-end-in-line (min end (1+ line-end))))
+              
+              (cond
+               ;; Lines starting with - get red background + overlay face
+               ((looking-at "^-")
+                (put-text-property overlay-start-in-line overlay-end-in-line
+                                  'font-lock-face `(,face (:background ,red-bg))))
+               ;; Lines starting with + get green background + overlay face  
+               ((looking-at "^\\+")
+                (put-text-property overlay-start-in-line overlay-end-in-line
+                                  'font-lock-face `(,face (:background ,green-bg))))
+               ;; Other lines get just the overlay face
+               (t
+                (put-text-property overlay-start-in-line overlay-end-in-line
+                                  'font-lock-face face))))
+            (forward-line 1)))))
+
+    ;; Apply background colors to diff lines that don't have overlays
+    (goto-char (point-min))
+    (while (not (eobp))
+      (let ((line-start (line-beginning-position))
+            (line-end (line-end-position)))
+        (when (and (or (looking-at "^-") (looking-at "^\\+"))
+                   (not (get-text-property line-start 'font-lock-face)))
+          (cond
+           ((looking-at "^-")
+            (put-text-property line-start (1+ line-end)
+                              'font-lock-face `(:background ,red-bg)))
+           ((looking-at "^\\+")
+            (put-text-property line-start (1+ line-end)
+                              'font-lock-face `(:background ,green-bg))))))
+      (forward-line 1))
+    
+    ;; Mark as fontified to prevent re-fontification
+    (add-text-properties (point-min) (point-max) '(fontified t))))
 
 (defun greger-ui--apply-diff-line-backgrounds ()
   "Apply background colors to diff lines that start with - (soft red) or + (soft green).
