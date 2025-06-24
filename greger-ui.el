@@ -393,7 +393,8 @@ NODE is the matched tree-sitter node for tool_use block."
       ;; Cleanup temp files
       (when (file-exists-p original-file) (delete-file original-file))
       (when (file-exists-p new-file) (delete-file new-file))
-      (kill-buffer diff-buffer))))
+      ;(kill-buffer diff-buffer)
+      )))
 
 (defun greger-ui--convert-faces-for-tree-sitter ()
   "Convert 'face text properties to 'font-lock-face for tree-sitter."

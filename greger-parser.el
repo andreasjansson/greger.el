@@ -223,10 +223,8 @@ You can run arbitrary shell commands with the shell-command tool, but the follow
 
 (defun greger-parser--extract-tool-use (node)
   "Extract tool use entry from NODE."
-  (let* ((name-node (treesit-search-subtree node "name"))
-         (name (greger-parser--extract-value name-node))
-         (id-node (treesit-search-subtree node "id"))
-         (id (greger-parser--extract-value id-node))
+  (let* ((name (greger-parser--extract-tool-use-name node))
+         (id (greger-parser--extract-tool-use-id node))
          (params (greger-parser--extract-tool-use-params node)))
 
     ;; Check if this is a str-replace tool with diff param and convert back
@@ -238,6 +236,14 @@ You can run arbitrary shell commands with the shell-command tool, but the follow
                    (id . ,id)
                    (name . ,name)
                    (input . ,params)))))))
+
+(defun greger-parser--extract-tool-use-name (tool-use-node)
+  (let ((name-node (treesit-search-subtree tool-use-node "name")))
+    (greger-parser--extract-value name-node)))
+
+(defun greger-parser--extract-tool-use-id (tool-use-node)
+  (let ((id-node (treesit-search-subtree tool-use-node "id")))
+    (greger-parser--extract-value id-node)))
 
 (defun greger-parser--extract-server-tool-use (node)
   "Extract tool use entry from NODE."
@@ -653,11 +659,17 @@ assuming it's already been sent in streaming."
                                  (symbol-name (car param))
                                (format "%s" (car param))))
                        (value (cdr param)))
-                   (concat "## " name "\n\n"
-                           "<tool." id ">\n"
-                           (greger-parser--value-to-string value) "\n"
-                           "</tool." id ">")))
+                   (greger-parser--wrapped-tool-param name id value)))
                input "\n\n")))
+
+(defun greger-parser--wrapped-tool-param (name id value &optional raw-value)
+  (let ((formatted-value (if raw-value
+                             value
+                           (greger-parser--value-to-string value))))
+    (concat "## " name "\n\n"
+            "<tool." id ">\n"
+            formatted-value "\n"
+            "</tool." id ">")))
 
 (defun greger-parser--value-to-string (value)
   "Convert VALUE to string representation."
