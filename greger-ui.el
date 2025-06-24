@@ -494,9 +494,8 @@ Expensive operations are deferred to idle time to avoid blocking scrolling."
 (defun greger-ui--apply-diff-line-backgrounds ()
   "Apply background colors to diff lines that start with - (soft red) or + (soft green).
 Colors are adapted to the current theme (dark/light)."
-  (let* ((bg-color (face-background 'default))
-         (is-dark-theme (and bg-color
-                            (< (apply '+ (color-values bg-color)) 98304))) ; Sum of RGB < 0.5 * 3 * 65535
+  (let* ((background-mode (frame-parameter nil 'background-mode))
+         (is-dark-theme (eq background-mode 'dark))
          (red-bg (if is-dark-theme "#2d1b1b" "#ffe6e6"))   ; Dark red vs light red
          (green-bg (if is-dark-theme "#1b2d1b" "#e6ffe6"))) ; Dark green vs light green
     (goto-char (point-min))
