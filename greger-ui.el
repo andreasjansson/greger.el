@@ -499,11 +499,11 @@ Also applies diff line background colors, combining them with overlay foreground
                ;; Lines starting with - get red background (overwrite existing background)
                ((looking-at "^-")
                 (put-text-property overlay-start-in-line overlay-end-in-line
-                                  'font-lock-face `((:background ,red-bg) ,face)))
+                                  'font-lock-face `(,face (:background ,red-bg))))
                ;; Lines starting with + get green background (overwrite existing background)
                ((looking-at "^\\+")
                 (put-text-property overlay-start-in-line overlay-end-in-line
-                                  'font-lock-face `((:background ,green-bg) ,face)))
+                                  'font-lock-face `(,face (:background ,green-bg))))
                ;; Other lines get just the overlay face
                (t
                 (put-text-property overlay-start-in-line overlay-end-in-line
