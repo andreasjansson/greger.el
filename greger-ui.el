@@ -268,15 +268,31 @@ NODE is the matched tree-sitter node"
 
 ;; Str-replace diff content replacement functionality
 
+(defun greger-ui--get-str-replace-cached-overlay (start end)
+  "Get cached overlay for str-replace transformation between START and END."
+  (let ((overlays (overlays-in start end)))
+    (seq-find (lambda (ov) (overlay-get ov 'greger-ui-str-replace-cached-key)) overlays)))
+
+(defun greger-ui--create-str-replace-cached-overlay (start end cache-key)
+  "Create a cached overlay for str-replace transformation between START and END with CACHE-KEY."
+  ;; Clean up any old overlay first
+  (when-let ((old-overlay (greger-ui--get-str-replace-cached-overlay start end)))
+    (delete-overlay old-overlay))
+  
+  ;; Create new overlay
+  (let ((overlay (make-overlay start end)))
+    (overlay-put overlay 'greger-ui-str-replace-cached-key cache-key)
+    (overlay-put overlay 'evaporate t)
+    overlay))
+
 (defun greger-ui--str-replace-diff-transform-fn (node _override start end)
   "Font-lock function to transform str-replace original/new content into diff content.
 NODE is the matched tree-sitter node for tool_use block."
   (when-let* ((tool-use-name (greger-parser--extract-tool-use-name node))
               ((string= tool-use-name "str-replace"))
               (cache-key (greger-ui--compute-str-replace-cache-key node start end)))
-    ;(greger-ui--apply-str-replace-diff-content node start end cache-key)
 
-    (unless (get-text-property start 'greger-ui-str-replace-cached-key)
+    (unless (greger-ui--get-str-replace-cached-overlay start end)
       (let* ((params (greger-parser--extract-tool-use-params node))
              (has-diff (alist-get 'diff params))
              (has-original-new (and (alist-get 'original-content params)
@@ -296,16 +312,6 @@ NODE is the matched tree-sitter node for tool_use block."
   (let ((content (buffer-substring-no-properties start end)))
     (md5 content)))
 
-(defun greger-ui--preserve-diff-fontification (start end)
-  "Preserve diff text properties in regions marked as diff content.
-This function runs before tree-sitter font-lock and prevents it from
-overriding existing diff syntax highlighting."
-  (when (get-text-property start 'greger-diff-region)
-    ;; Mark the entire region as already fontified to prevent tree-sitter processing
-    (put-text-property start end 'fontified t)
-    ;; Return non-nil to indicate we handled this region
-    t))
-
 (defun greger-ui--apply-str-replace-diff-content (node start end cache-key)
   "Apply diff overlay to str-replace NODE content between START and END."
   (let* ((params (greger-parser--extract-tool-use-params node))
@@ -317,42 +323,48 @@ overriding existing diff syntax highlighting."
          (new-content-node (alist-get 'new-content param-nodes))
          (replace-start (treesit-node-start original-content-node))
          (replace-end (treesit-node-end new-content-node))
-         (tool-use-id (greger-parser--extract-tool-use-id node)))
+         (tool-use-id (greger-parser--extract-tool-use-id node))
+         (diff-content (greger-ui--generate-diff-content original-content new-content path))
+         (diff-no-headers (greger-ui--remove-diff-headers diff-content))
+         (wrapped-diff (greger-parser--wrapped-tool-param "diff" tool-use-id diff-no-headers t))
+         (inhibit-read-only t))
 
-    ;; TODO: remove debug
-    (message (format "replace-start: %s" replace-start))
-
-    (when (and original-content new-content path)
-      ;; Generate diff using diff.el
-      (let* ((diff-content (greger-ui--generate-diff-content original-content new-content path))
-             (diff-no-headers (greger-ui--remove-diff-headers diff-content))
-             (wrapped-diff (greger-parser--wrapped-tool-param "diff" tool-use-id diff-no-headers t)))
-
-        (setq gg-wrapped-diff wrapped-diff)
-
-        ;; Replace buffer content with diff
-        (let ((inhibit-read-only t))
-          ;; Replace the entire range from start of original-content to end of new-content
-          (goto-char replace-start)
-          (delete-region replace-start replace-end)
-          (insert wrapped-diff)
-          
-          ;; Mark as cached to avoid re-computation
-          (put-text-property start end 'greger-ui-str-replace-cached-key cache-key))))))
+    ;; Replace buffer content with diff
+    (goto-char replace-start)
+    (delete-region replace-start replace-end)
+    (insert wrapped-diff)
+    
+    ;; Mark as cached to avoid re-computation
+    (put-text-property start end 'greger-ui-str-replace-cached-key cache-key)))
 
 (defun greger-ui--apply-diff-syntax-highlighting (node start end cache-key)
   "Apply syntax highlighting to existing diff content in str-replace tool_use."
+
+  ;; TODO: remove debug
+  (message (format "(greger-parser--extract-tool-use-params node): %s" (greger-parser--extract-tool-use-params node)))
   (let* ((params (greger-parser--extract-tool-use-params node))
-         (diff-content (alist-get 'diff params))
-         (path (alist-get 'path params)))
+         (raw-diff-content (alist-get 'diff params))
+         (path (alist-get 'path params))
+         (undiff-result (greger-parser-undiff-strings raw-diff-content))
+         (original-content (car undiff-result))
+         (new-content (cdr undiff-result))
+         (param-nodes (greger-parser--extract-tool-use-param-nodes node))
+         (diff-node (alist-get 'diff param-nodes))
+         (replace-start (treesit-node-start diff-node))
+         (replace-end (treesit-node-end diff-node))
+         (tool-use-id (greger-parser--extract-tool-use-id node))
+         (diff-content (greger-ui--generate-diff-content original-content new-content path))
+         (diff-no-headers (greger-ui--remove-diff-headers diff-content))
+         (wrapped-diff (greger-parser--wrapped-tool-param "diff" tool-use-id diff-no-headers t))
+         (inhibit-read-only t))
+
+    ;; Replace buffer content with diff
+    (goto-char replace-start)
+    (delete-region replace-start replace-end)
+    (insert wrapped-diff)
     
-    (when (and diff-content path)
-      ;; Use undiff to get original and new content, then apply shared transformation
-      (let ((undiff-result (greger-parser-undiff-strings diff-content)))
-        (greger-ui--transform-str-replace-to-diff node start end cache-key
-                                                  (car undiff-result) ; original-content
-                                                  (cdr undiff-result) ; new-content
-                                                  path)))))
+    ;; Mark as cached to avoid re-computation
+    (put-text-property start end 'greger-ui-str-replace-cached-key cache-key)))
 
 (defun greger-ui--generate-diff-content (original new path)
   "Generate diff content from ORIGINAL to NEW for PATH using diff.el."
