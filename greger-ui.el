@@ -303,8 +303,8 @@ Higher values reduce interruptions during active editing."
   "Schedule a diff operation to be processed during idle time.
 OPERATION-TYPE is either 'transform or 'highlight.
 NODE, START, END, and CACHE-KEY are the operation parameters."
-  (let ((buffer (current-buffer))
-        (operation (list operation-type buffer node start end cache-key)))
+  (let* ((buffer (current-buffer))
+         (operation (list operation-type buffer node start end cache-key)))
     
     ;; Add to pending operations (avoid duplicates)
     (unless (member operation greger-ui--pending-diff-operations)
@@ -337,14 +337,11 @@ NODE, START, END, and CACHE-KEY are the operation parameters."
         (when (and (buffer-live-p buffer)
                    (get-buffer-window buffer))
           (with-current-buffer buffer
-            (condition-case err
-                (cond
-                 ((eq operation-type 'transform)
-                  (greger-ui--apply-str-replace-diff-content node start end cache-key))
-                 ((eq operation-type 'highlight)
-                  (greger-ui--apply-diff-syntax-highlighting node start end cache-key)))
-              (error
-               (message "Error processing diff operation: %s" (error-message-string err))))))))))
+            (cond
+             ((eq operation-type 'transform)
+              (greger-ui--apply-str-replace-diff-content node start end cache-key))
+             ((eq operation-type 'highlight)
+              (greger-ui--apply-diff-syntax-highlighting node start end cache-key)))))))))
 
 (defun greger-ui--cleanup-idle-operations ()
   "Clean up idle operations when buffer is killed or mode is disabled."
@@ -439,7 +436,10 @@ Expensive operations are deferred to idle time to avoid blocking scrolling."
   (let* ((ext (or (file-name-extension path t) ""))
          (original-file (make-temp-file "greger-original-" nil ext))
          (new-file (make-temp-file "greger-new-" nil ext))
-         (diff-buffer (get-buffer-create "*Greger diff*")))
+         (diff-buffer (get-buffer-create "*Greger diff*"))
+         (diff-refine nil))
+    (message (format "diff-buffer: %s" diff-buffer))
+
     (unwind-protect
         (progn
           ;; Write content to temp files
@@ -452,7 +452,11 @@ Expensive operations are deferred to idle time to avoid blocking scrolling."
           (with-current-buffer diff-buffer
             ;; Ensure font-lock is active and force fontification
             (font-lock-ensure (point-min) (point-max))
-            
+
+            ;; Turn off read-only mode and we'll do operations on the
+            ;; fontified text
+            (setq buffer-read-only nil)
+
             ;; Convert 'face to 'font-lock-face for tree-sitter compatibility
             (greger-ui--convert-faces-for-tree-sitter)
 
@@ -461,7 +465,7 @@ Expensive operations are deferred to idle time to avoid blocking scrolling."
   
             ;; Make diff indicators (space, minus, plus) less prominent
             (greger-ui--apply-diff-deemphasis)
-    
+
             (buffer-string)))
       
       ;; Cleanup temp files
@@ -472,19 +476,17 @@ Expensive operations are deferred to idle time to avoid blocking scrolling."
 
 (defun greger-ui--convert-faces-for-tree-sitter ()
   "Convert 'face text properties and overlay faces to 'font-lock-face for tree-sitter."
-  ;; Convert text properties first
-  (let ((pos (point-min)))
-    (while (setq pos (next-single-property-change pos 'face))
-      (when-let ((face (get-text-property pos 'face)))
-        (let ((end (next-single-property-change pos 'face nil (point-max))))
-          (put-text-property pos end 'font-lock-face face)))))
-  
+
+  ;; Add background colors to diff lines
+  (greger-ui--apply-diff-line-backgrounds)
+
   ;; Convert overlays with 'face property (syntax highlighting overlays)
   (dolist (overlay (overlays-in (point-min) (point-max)))
-    (when-let ((face (overlay-get overlay 'face)))
-      (let ((start (overlay-start overlay))
-            (end (overlay-end overlay)))
-        (put-text-property start end 'font-lock-face face))))
+    (when-let ((face (overlay-get overlay 'face))
+               (start (overlay-start overlay))
+               (end (overlay-end overlay)))
+
+      (put-text-property start end 'font-lock-face face)))
   
   ;; Mark as fontified to prevent re-fontification
   (add-text-properties (point-min) (point-max) '(fontified t)))
