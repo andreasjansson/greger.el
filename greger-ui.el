@@ -383,6 +383,8 @@ Expensive operations are deferred to idle time to avoid blocking scrolling."
 
 (defun greger-ui--apply-str-replace-diff-content (node start end cache-key)
   "Apply diff overlay to str-replace NODE content between START and END."
+  (greger-ui--create-str-replace-cached-overlay start end cache-key)
+
   (let* ((params (greger-parser--extract-tool-use-params node))
          (original-content (alist-get 'original-content params))
          (new-content (alist-get 'new-content params))
@@ -400,13 +402,11 @@ Expensive operations are deferred to idle time to avoid blocking scrolling."
     ;; Replace buffer content with diff
     (goto-char replace-start)
     (delete-region replace-start replace-end)
-    (insert wrapped-diff)
-    
-    ;; Mark as cached to avoid re-computation using overlay
-    (greger-ui--create-str-replace-cached-overlay start end cache-key)))
+    (insert wrapped-diff)))
 
 (defun greger-ui--apply-diff-syntax-highlighting (node start end cache-key)
   "Apply syntax highlighting to existing diff content in str-replace tool_use."
+  (greger-ui--create-str-replace-cached-overlay start end cache-key)
 
   (let* ((params (greger-parser--extract-tool-use-params node))
          (raw-diff-content (alist-get 'diff params))
@@ -426,10 +426,7 @@ Expensive operations are deferred to idle time to avoid blocking scrolling."
     ;; Replace buffer content with diff
     (goto-char replace-start)
     (delete-region replace-start replace-end)
-    (insert wrapped-diff)
-    
-    ;; Mark as cached to avoid re-computation using overlay
-    (greger-ui--create-str-replace-cached-overlay start end cache-key)))
+    (insert wrapped-diff)))
 
 (defun greger-ui--generate-diff-content (original new path)
   "Generate diff content from ORIGINAL to NEW for PATH using diff.el."
@@ -437,7 +434,8 @@ Expensive operations are deferred to idle time to avoid blocking scrolling."
          (original-file (make-temp-file "greger-original-" nil ext))
          (new-file (make-temp-file "greger-new-" nil ext))
          (diff-buffer (get-buffer-create "*Greger diff*"))
-         (diff-refine nil))
+         (diff-refine nil)
+         (diff-switches '("-u" "-U" "100000")))
     (message (format "diff-buffer: %s" diff-buffer))
 
     (unwind-protect
@@ -448,7 +446,7 @@ Expensive operations are deferred to idle time to avoid blocking scrolling."
           (with-temp-file new-file
             (insert new))
 
-          (diff-no-select original-file new-file '("-u" "-U" "100000") t diff-buffer)
+          (diff-no-select original-file new-file nil t diff-buffer)
           (with-current-buffer diff-buffer
             ;; Ensure font-lock is active and force fontification
             (font-lock-ensure (point-min) (point-max))
@@ -456,9 +454,6 @@ Expensive operations are deferred to idle time to avoid blocking scrolling."
             ;; Turn off read-only mode and we'll do operations on the
             ;; fontified text
             (setq buffer-read-only nil)
-
-            ;; Add background colors to diff lines
-            (greger-ui--apply-diff-line-backgrounds)
 
             ;; Convert 'face to 'font-lock-face for tree-sitter compatibility
             (greger-ui--convert-faces-for-tree-sitter)
@@ -482,7 +477,7 @@ Expensive operations are deferred to idle time to avoid blocking scrolling."
 Also applies diff line background colors, combining them with overlay foreground colors."
   (let* ((background-mode (frame-parameter nil 'background-mode))
          (is-dark-theme (eq background-mode 'dark))
-         (red-bg (if is-dark-theme "#2d1b1b" "#ffe6e6"))   ; Dark red vs light red
+         (red-bg (if is-dark-theme "#2d1b1b" "#ffe6e6")) ; Dark red vs light red
          (green-bg (if is-dark-theme "#1b2d1b" "#e6ffe6"))) ; Dark green vs light green
 
     ;; Convert overlays with 'face property (syntax highlighting overlays)
@@ -495,24 +490,30 @@ Also applies diff line background colors, combining them with overlay foreground
         (save-excursion
           (goto-char start)
           (while (< (point) end)
-            (let ((line-start (line-beginning-position))
-                  (line-end (min (line-end-position) end))
-                  (overlay-start-in-line (max start line-start))
-                  (overlay-end-in-line (min end (1+ line-end))))
+            (let* ((line-start (line-beginning-position))
+                   (line-end (min (line-end-position) end))
+                   (overlay-start-in-line (max start line-start))
+                   (overlay-end-in-line (min end (1+ line-end))))
               
               (cond
-               ;; Lines starting with - get red background + overlay face
+               ;; Lines starting with - get red background (overwrite existing background)
                ((looking-at "^-")
-                (put-text-property overlay-start-in-line overlay-end-in-line
-                                  'font-lock-face `(,face (:background ,red-bg))))
-               ;; Lines starting with + get green background + overlay face  
+                (let ((modified-face (if (listp face)
+                                       (plist-put (copy-sequence face) :background red-bg)
+                                     `(,face :background ,red-bg))))
+                  (put-text-property overlay-start-in-line overlay-end-in-line
+                                    'font-lock-face modified-face)))
+               ;; Lines starting with + get green background (overwrite existing background)
                ((looking-at "^\\+")
-                (put-text-property overlay-start-in-line overlay-end-in-line
-                                  'font-lock-face `(,face (:background ,green-bg))))
+                (let ((modified-face (if (listp face)
+                                       (plist-put (copy-sequence face) :background green-bg)
+                                     `(,face :background ,green-bg))))
+                  (put-text-property overlay-start-in-line overlay-end-in-line
+                                    'font-lock-face modified-face)))
                ;; Other lines get just the overlay face
                (t
                 (put-text-property overlay-start-in-line overlay-end-in-line
-                                  'font-lock-face face))))
+                                   'font-lock-face face))))
             (forward-line 1)))))
 
     ;; Apply background colors to diff lines that don't have overlays
@@ -525,10 +526,10 @@ Also applies diff line background colors, combining them with overlay foreground
           (cond
            ((looking-at "^-")
             (put-text-property line-start (1+ line-end)
-                              'font-lock-face `(:background ,red-bg)))
+                               'font-lock-face `(:background ,red-bg)))
            ((looking-at "^\\+")
             (put-text-property line-start (1+ line-end)
-                              'font-lock-face `(:background ,green-bg))))))
+                               'font-lock-face `(:background ,green-bg))))))
       (forward-line 1))
     
     ;; Mark as fontified to prevent re-fontification
