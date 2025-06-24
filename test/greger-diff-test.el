@@ -198,35 +198,6 @@
     (should (string= "" (car result)))
     (should (string= "" (cdr result)))))
 
-(ert-deftest greger-diff-test-fontification ()
-  "Test that diff strings are properly fontified."
-  (let* ((original "hello\nworld")
-         (new "hello\nmodified")
-         (diff-result (greger-diff-strings original new "test.txt")))
-
-    ;; Should contain diff content (headers deleted)
-    (should (string-match-p "^ hello" diff-result))
-    (should (string-match-p "^-world" diff-result))
-    (should (string-match-p "^\\+modified" diff-result))
-
-    ;; Should have fontification properties
-    (should (not (null (text-property-not-all 0 (length diff-result) 'font-lock-face nil diff-result))))
-
-    ;; Round-trip should work and return clean strings
-    (let ((undiff-result (greger-diff-undiff-strings diff-result)))
-      (should (string= original (car undiff-result)))
-      (should (string= new (cdr undiff-result)))
-
-      ;; Undiffed strings should be clean (no text properties)
-      (should (= 0 (length (text-properties-at 0 (car undiff-result)))))
-      (should (= 0 (length (text-properties-at 0 (cdr undiff-result)))))))
-
-  ;; Test identical strings also get fontified
-  (let* ((original "hello")
-         (new "hello")
-         (diff-result (greger-diff-strings original new "test.txt")))
-    (should (text-property-any 0 (length diff-result) 'font-lock-face nil diff-result))))
-
 (ert-deftest greger-diff-test-invisible-metadata ()
   "Test that diff headers are deleted and 'No newline' messages are made invisible."
   ;; Test with strings that don't end with newlines

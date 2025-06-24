@@ -605,20 +605,22 @@ assuming it's already been sent in streaming."
       (setq input (greger-parser--str-replace-diff-params input)))
 
     (when (or (string= name "write-new-file") (string= name "replace-file"))
-      (setq input (greger-parser--syntax-highlight-contents input)))
+      (setq input (greger-parser--syntax-highlight-node input)))
 
     (concat greger-parser-tool-use-tag "\n\n"
             "Name: " name "\n"
             "ID: " id "\n\n"
             (greger-parser--tool-params-to-markdown id input))))
 
-(defun greger-parser--syntax-highlight-contents (input)
+(defun greger-parser--syntax-highlight-node (input)
   "Apply syntax highlighting to contents parameter in INPUT.
 Assumes 'contents is the source code in input,
 and 'path is the file path in input."
   (let* ((contents (alist-get 'contents input))
          (path (alist-get 'path input))
-         (highlighted-contents (greger-diff--apply-syntax-highlighting contents path)))
+         ;; Placeholder for
+         ;; (highlighted-contents (syntax-highlight contents path))
+         (highlighted-contents contents))
     (setf (alist-get 'contents input) highlighted-contents))
   input)
 
@@ -652,7 +654,8 @@ and 'path is the file path in input."
         (content (greger-parser--tool-content-to-markdown tool-result)))
 
     (when tool-use-path
-      (setq content (greger-diff--apply-syntax-highlighting content tool-use-path)))
+      ;; Placeholder for (setq content (syntax-highlight content tool-use-path))
+      nil)
 
     (greger-parser--wrapped-tool-content greger-parser-tool-result-tag id content)))
 
