@@ -316,14 +316,12 @@ NODE is the matched tree-sitter node for tool_use block."
           (goto-char replace-start)
           (delete-region replace-start replace-end)
           (insert wrapped-diff)
-          ;; Ensure text properties are displayed for syntax highlighting
-          ;; The wrapped-diff already contains proper face properties, we just need
-          ;; to make sure they are visible by forcing a redisplay
+          ;; Prevent tree-sitter fontification of this region to preserve diff text properties
           (let ((inserted-start replace-start)
                 (inserted-end (point)))
-            ;; Force redisplay of the inserted region to show text properties
-            (add-text-properties inserted-start inserted-end '(fontified nil))
-            (font-lock-ensure inserted-start inserted-end))
+            ;; Mark region to be ignored by font-lock/tree-sitter
+            (put-text-property inserted-start inserted-end 'font-lock-ignore t)
+            (put-text-property inserted-start inserted-end 'fontified t))
           
           ;; Mark as cached to avoid re-computation
           (put-text-property start end 'greger-ui-str-replace-cached-key cache-key))))))
