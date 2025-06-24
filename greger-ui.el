@@ -356,25 +356,29 @@ NODE is the matched tree-sitter node for tool_use block."
 
 (defun greger-ui--process-diff-output (path)
   "Process diff output in current buffer, remove headers and apply syntax highlighting."
-  ;; Remove the file header lines (--- and +++ lines)
-  (goto-char (point-min))
-  (when (looking-at "^--- ")
-    (delete-region (point) (progn (forward-line 1) (point))))
-  (when (looking-at "^\\+\\+\\+ ")
-    (delete-region (point) (progn (forward-line 1) (point))))
-  
-  ;; Remove hunk headers (@@ lines) 
-  (goto-char (point-min))
-  (while (re-search-forward "^@@.*@@\\s-*\n" nil t)
-    (replace-match ""))
-  
-  ;; Apply diff-mode syntax highlighting
-  (let ((diff-mode-syntax-highlight-buffer (current-buffer)))
-    (diff-mode)
-    (font-lock-ensure))
-  
-  ;; Return the processed content
-  (buffer-string))
+  (let ((content (buffer-string)))
+    ;; Process in a temporary buffer with diff-mode
+    (with-temp-buffer
+      (insert content)
+      (goto-char (point-min))
+      
+      ;; Remove the file header lines (--- and +++ lines)
+      (when (looking-at "^--- ")
+        (delete-region (point) (progn (forward-line 1) (point))))
+      (when (looking-at "^\\+\\+\\+ ")
+        (delete-region (point) (progn (forward-line 1) (point))))
+      
+      ;; Remove hunk headers (@@ lines) 
+      (goto-char (point-min))
+      (while (re-search-forward "^@@.*@@\\s-*\n" nil t)
+        (replace-match ""))
+      
+      ;; Apply diff-mode syntax highlighting in temp buffer
+      (diff-mode)
+      (font-lock-ensure)
+      
+      ;; Return the processed content with font-lock properties
+      (buffer-string))))
 
 (defun greger-ui--clear-str-replace-overlays ()
   "Clear all str-replace diff overlays."
