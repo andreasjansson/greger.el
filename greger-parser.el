@@ -229,6 +229,10 @@ You can run arbitrary shell commands with the shell-command tool, but the follow
          (id (greger-parser--extract-value id-node))
          (params (greger-parser--extract-tool-use-params node)))
 
+    ;; Check if this is a str-replace tool with diff param and convert back
+    (when (string= name "str-replace")
+      (setq params (greger-parser--str-replace-undiff-params params)))
+
     `((role . "assistant")
       (content . (((type . "tool_use")
                    (id . ,id)
