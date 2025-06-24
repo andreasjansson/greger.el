@@ -363,8 +363,8 @@ NODE is the matched tree-sitter node for tool_use block."
     (delete-region replace-start replace-end)
     (insert wrapped-diff)
     
-    ;; Mark as cached to avoid re-computation
-    (put-text-property start end 'greger-ui-str-replace-cached-key cache-key)))
+    ;; Mark as cached to avoid re-computation using overlay
+    (greger-ui--create-str-replace-cached-overlay start end cache-key)))
 
 (defun greger-ui--generate-diff-content (original new path)
   "Generate diff content from ORIGINAL to NEW for PATH using diff.el."
