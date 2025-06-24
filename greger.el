@@ -230,8 +230,8 @@ When nil, preserve point position using `save-excursion'.")
    :language 'greger
    :feature 'tool-tags
    :override t
-   '(;(tool_start_tag) @greger-ui--make-tool-tag-invisible
-     ;(tool_end_tag) @greger-ui--make-tool-tag-invisible
+   '((tool_start_tag) @greger-ui--make-tool-tag-invisible
+     (tool_end_tag) @greger-ui--make-tool-tag-invisible
      (tool_use (id) @greger-ui--make-tool-use-id-invisible)
      (tool_result (id) @greger-ui--make-tool-result-id-invisible)
      (server_tool_use (id) @greger-ui--make-tool-use-id-invisible)
@@ -289,8 +289,8 @@ When nil, preserve point position using `save-excursion'.")
   (setq-local treesit-font-lock-feature-list
               '((error)
                 (folding)
-                (headers)
                 (tool-tags)
+                (headers)
                 (comments)
                 (subheadings)
                 ))
@@ -313,7 +313,10 @@ When nil, preserve point position using `save-excursion'.")
   (setq-local mode-line-misc-info '(:eval (greger--mode-line-info)))
   (use-local-map greger-mode-map)
 
-  (setq-local greger-current-thinking-budget greger-thinking-budget))
+  (setq-local greger-current-thinking-budget greger-thinking-budget)
+  
+  ;; Add cleanup hook for diff operations
+  (add-hook 'kill-buffer-hook #'greger-ui--cleanup-idle-operations nil t))
 
 ;;;###autoload
 (defun greger (&optional with-context)
