@@ -286,6 +286,16 @@ NODE is the matched tree-sitter node for tool_use block."
   (let ((content (buffer-substring-no-properties start end)))
     (md5 content)))
 
+(defun greger-ui--preserve-diff-fontification (start end)
+  "Preserve diff text properties in regions marked as diff content.
+This function runs before tree-sitter font-lock and prevents it from
+overriding existing diff syntax highlighting."
+  (when (get-text-property start 'greger-diff-region)
+    ;; Mark the entire region as already fontified to prevent tree-sitter processing
+    (put-text-property start end 'fontified t)
+    ;; Return non-nil to indicate we handled this region
+    t))
+
 (defun greger-ui--apply-str-replace-diff-content (node start end cache-key)
   "Apply diff overlay to str-replace NODE content between START and END."
   (let* ((params (greger-parser--extract-tool-use-params node))
