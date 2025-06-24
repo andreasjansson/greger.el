@@ -290,48 +290,42 @@ NODE is the matched tree-sitter node for tool_use block."
   (let ((content (buffer-substring-no-properties start end)))
     (md5 content)))
 
+(defvar-local greger-ui--str-replace-overlays nil
+  "List of overlays created for str-replace diff display.")
+
 (defun greger-ui--apply-str-replace-diff-content (node start end cache-key)
-  "Replace str-replace original-content/new-content params with diff content."
-  (let* ((original-content (greger-ui--extract-str-replace-param node "original-content"))
-         (new-content (greger-ui--extract-str-replace-param node "new-content"))
-         (path (greger-ui--extract-str-replace-param node "path")))
-    
+  "Apply diff overlay to str-replace NODE content between START and END."
+  (let* ((params (greger-parser--extract-tool-use-params node))
+         (original-content (alist-get 'original-content params))
+         (new-content (alist-get 'new-content params))
+         (path (alist-get 'path params))
+         (param-nodes (greger-parser--extract-tool-use-param-nodes node))
+         (original-content-node (alist-get 'original-content param-nodes))
+         (new-content-node (alist-get 'new-content param-nodes))
+         (overlay-start (treesit-node-start original-content-node))
+         (overlay-end (treesit-node-end new-content-node)))
+
     (when (and original-content new-content path)
       ;; Generate diff using diff.el
-      (let ((diff-content (greger-ui--generate-diff-content original-content new-content path)))
+      (let* ((diff-content (greger-ui--generate-diff-content original-content new-content path))
+             (diff-with-header (concat "## diff\n\n" diff-content)))
         
-        ;; Find the original-content and new-content params and replace with diff
-        (save-excursion
-          (goto-char start)
-          (let ((inhibit-read-only t))
-            
-            ;; Find and replace original-content param
-            (when (re-search-forward "^## original-content" end t)
-              (let ((param-start (line-beginning-position))
-                    (param-end (greger-ui--find-param-end)))
-                (when (< param-end end)
-                  (delete-region param-start param-end))))
-            
-            ;; Find and replace new-content param
-            (goto-char start)
-            (when (re-search-forward "^## new-content" end t)
-              (let ((param-start (line-beginning-position))
-                    (param-end (greger-ui--find-param-end)))
-                (when (< param-end end)
-                  (delete-region param-start param-end))))
-            
-            ;; Insert diff param after path param
-            (goto-char start)
-            (when (re-search-forward "</tool\\.[^>]+>" end t)
-              (forward-line 1)
-              (insert "\n## diff\n\n")
-              (let ((diff-start (point)))
-                (insert diff-content)
-                (insert "\n"))
-              (insert "\n"))))
-        
-        ;; Mark as cached to avoid re-computation
-        (put-text-property start end 'greger-ui-str-replace-cached-key cache-key)))))
+        ;; Create overlay to replace the display
+        (let ((overlay (make-overlay overlay-start overlay-end)))
+          (overlay-put overlay 'display diff-with-header)
+          (overlay-put overlay 'greger-ui-str-replace-diff t)
+          (overlay-put overlay 'evaporate t)
+          
+          ;; Store metadata for potential reconstruction
+          (overlay-put overlay 'greger-ui-original-content original-content)
+          (overlay-put overlay 'greger-ui-new-content new-content)
+          (overlay-put overlay 'greger-ui-path path)
+          
+          ;; Track overlay for cleanup
+          (push overlay greger-ui--str-replace-overlays)
+          
+          ;; Mark as cached to avoid re-computation
+          (put-text-property start end 'greger-ui-str-replace-cached-key cache-key))))))
 
 (defun greger-ui--find-param-end ()
   "Find the end of the current parameter section."
