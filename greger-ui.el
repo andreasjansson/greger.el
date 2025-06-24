@@ -361,20 +361,21 @@ Expensive operations are deferred to idle time to avoid blocking scrolling."
               ((string= tool-use-name "str-replace")))
 
     (unless (greger-ui--get-str-replace-cached-overlay start end)
-      (let* ((params (greger-parser--extract-tool-use-params node))
-             (has-diff (alist-get 'diff params))
-             (has-original-new (and (alist-get 'original-content params)
-                                    (alist-get 'new-content params)))
-             (cache-key (greger-ui--compute-str-replace-cache-key node start end)))
-        (cond
-         ;; Case 1: File already has diff parameter - defer syntax highlighting
-         (has-diff
-          (greger-ui--schedule-diff-operation 'highlight node start end cache-key))
-         ;; Case 2: File has original-content/new-content - defer diff transformation
-         (has-original-new
-          (greger-ui--schedule-diff-operation 'transform node start end cache-key))
-         ;; Case 3: Neither - do nothing
-         (t nil))))))
+      (when node
+       (let* ((params (greger-parser--extract-tool-use-params node))
+              (has-diff (alist-get 'diff params))
+              (has-original-new (and (alist-get 'original-content params)
+                                     (alist-get 'new-content params)))
+              (cache-key (greger-ui--compute-str-replace-cache-key node start end)))
+         (cond
+          ;; Case 1: File already has diff parameter - defer syntax highlighting
+          (has-diff
+           (greger-ui--schedule-diff-operation 'highlight node start end cache-key))
+          ;; Case 2: File has original-content/new-content - defer diff transformation
+          (has-original-new
+           (greger-ui--schedule-diff-operation 'transform node start end cache-key))
+          ;; Case 3: Neither - do nothing
+          (t nil)))))))
 
 (defun greger-ui--compute-str-replace-cache-key (_node start end)
   "Compute cache key for str-replace NODE content between START and END."
@@ -499,11 +500,11 @@ Also applies diff line background colors, combining them with overlay foreground
                ;; Lines starting with - get red background (overwrite existing background)
                ((looking-at "^-")
                 (put-text-property overlay-start-in-line overlay-end-in-line
-                                  'font-lock-face `(,face (:background ,red-bg))))
+                                  'font-lock-face `(:inherit ,face :background ,red-bg)))
                ;; Lines starting with + get green background (overwrite existing background)
                ((looking-at "^\\+")
                 (put-text-property overlay-start-in-line overlay-end-in-line
-                                  'font-lock-face `(,face (:background ,green-bg))))
+                                  'font-lock-face `(:inherit ,face :background ,green-bg)))
                ;; Other lines get just the overlay face
                (t
                 (put-text-property overlay-start-in-line overlay-end-in-line
