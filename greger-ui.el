@@ -489,7 +489,7 @@ Expensive operations are deferred to idle time to avoid blocking scrolling."
   (add-text-properties (point-min) (point-max) '(fontified t)))
 
 (defun greger-ui--apply-diff-backgrounds ()
-  "Apply background colors to lines starting with - or + while preserving foreground colors."
+  "Apply background colors to lines starting with - or + using overlays."
   (let* ((background-mode (frame-parameter nil 'background-mode))
          (is-dark-theme (eq background-mode 'dark))
          (red-bg (if is-dark-theme "#2d1b1b" "#ffe6e6"))   ; Dark red vs light red
@@ -498,22 +498,16 @@ Expensive operations are deferred to idle time to avoid blocking scrolling."
     (goto-char (point-min))
     (while (not (eobp))
       (let ((line-start (line-beginning-position))
-            (line-end (1+ (line-end-position)))) ; Include newline
+            (line-end (line-end-position)))
         (cond
-         ;; Lines starting with - get red background
+         ;; Lines starting with - get red background overlay
          ((looking-at "^-")
-          (let ((existing-face (get-text-property line-start 'font-lock-face)))
-            (put-text-property line-start line-end 'font-lock-face
-                              (if existing-face
-                                  `(,existing-face (:background ,red-bg))
-                                `(:background ,red-bg)))))
-         ;; Lines starting with + get green background
+          (let ((overlay (make-overlay line-start (1+ line-end))))
+            (overlay-put overlay 'face `(:background ,red-bg))))
+         ;; Lines starting with + get green background overlay
          ((looking-at "^\\+")
-          (let ((existing-face (get-text-property line-start 'font-lock-face)))
-            (put-text-property line-start line-end 'font-lock-face
-                              (if existing-face
-                                  `(,existing-face (:background ,green-bg))
-                                `(:background ,green-bg)))))))
+          (let ((overlay (make-overlay line-start (1+ line-end))))
+            (overlay-put overlay 'face `(:background ,green-bg))))))
       (forward-line 1))))
 
 
