@@ -264,6 +264,122 @@ NODE is the matched tree-sitter node"
       (put-text-property tail-start (1+ tail-start) 'greger-ui-tool-content-expanded t)
       (font-lock-flush (treesit-node-start head-node) tail-end))))
 
+;; Str-replace diff overlay functionality
+
+(defvar-local greger-ui--str-replace-overlays nil
+  "List of overlays created for str-replace diff display.")
+
+(defun greger-ui--str-replace-diff-transform-fn (node _override start end)
+  "Font-lock function to transform str-replace original/new content into diff display.
+NODE is the matched tree-sitter node for tool_use block."
+  (when (greger-ui--is-str-replace-tool-use-p node)
+    (let ((cache-key (greger-ui--compute-str-replace-cache-key node start end)))
+      (unless (get-text-property start 'greger-ui-str-replace-cached-key)
+        ;; Apply diff transformation
+        (greger-ui--apply-str-replace-diff-overlay node start end cache-key)))))
+
+(defun greger-ui--is-str-replace-tool-use-p (node)
+  "Check if NODE is a str-replace tool_use block."
+  (when (string= (treesit-node-type node) "tool_use")
+    (let ((name-node (treesit-search-subtree node "^tool_name$" nil nil 1)))
+      (when name-node
+        (string= (string-trim (treesit-node-text name-node t)) "str-replace")))))
+
+(defun greger-ui--compute-str-replace-cache-key (node start end)
+  "Compute cache key for str-replace NODE content between START and END."
+  (let ((content (buffer-substring-no-properties start end)))
+    (md5 content)))
+
+(defun greger-ui--apply-str-replace-diff-overlay (node start end cache-key)
+  "Apply diff overlay to str-replace NODE content between START and END."
+  (let* ((original-content (greger-ui--extract-str-replace-param node "original-content"))
+         (new-content (greger-ui--extract-str-replace-param node "new-content"))
+         (path (greger-ui--extract-str-replace-param node "path")))
+    
+    (when (and original-content new-content path)
+      ;; Generate diff using diff.el
+      (let ((diff-content (greger-ui--generate-diff-content original-content new-content path)))
+        
+        ;; Create overlay to replace the display
+        (let ((overlay (make-overlay start end)))
+          (overlay-put overlay 'display diff-content)
+          (overlay-put overlay 'greger-ui-str-replace-diff t)
+          (overlay-put overlay 'evaporate t)
+          
+          ;; Store metadata for potential reconstruction
+          (overlay-put overlay 'greger-ui-original-content original-content)
+          (overlay-put overlay 'greger-ui-new-content new-content)
+          (overlay-put overlay 'greger-ui-path path)
+          
+          ;; Track overlay for cleanup
+          (push overlay greger-ui--str-replace-overlays)
+          
+          ;; Mark as cached to avoid re-computation
+          (put-text-property start end 'greger-ui-str-replace-cached-key cache-key))))))
+
+(defun greger-ui--extract-str-replace-param (tool-use-node param-name)
+  "Extract PARAM-NAME value from str-replace TOOL-USE-NODE."
+  (let ((param-nodes (treesit-search-subtree tool-use-node "^tool_param$" nil nil 'all)))
+    (catch 'found
+      (dolist (param-node param-nodes)
+        (let ((name-node (treesit-search-subtree param-node "^name$" nil nil 1)))
+          (when (and name-node 
+                     (string= (string-trim (treesit-node-text name-node t)) param-name))
+            (let ((value-node (treesit-search-subtree param-node "^value$" nil nil 1)))
+              (when value-node
+                (throw 'found (string-trim (treesit-node-text value-node t)))))))))))
+
+(defun greger-ui--generate-diff-content (original new path)
+  "Generate diff content from ORIGINAL to NEW for PATH using diff.el."
+  (let ((original-file (make-temp-file "greger-original"))
+        (new-file (make-temp-file "greger-new")))
+    (unwind-protect
+        (progn
+          ;; Write content to temp files
+          (with-temp-file original-file (insert original))
+          (with-temp-file new-file (insert new))
+          
+          ;; Generate diff
+          (with-temp-buffer
+            (call-process "diff" nil t nil "-u" original-file new-file)
+            (goto-char (point-min))
+            
+            ;; Remove diff headers and apply diff-mode syntax highlighting
+            (greger-ui--process-diff-output path)))
+      
+      ;; Cleanup temp files
+      (when (file-exists-p original-file) (delete-file original-file))
+      (when (file-exists-p new-file) (delete-file new-file)))))
+
+(defun greger-ui--process-diff-output (path)
+  "Process diff output in current buffer, remove headers and apply syntax highlighting."
+  ;; Remove the file header lines (--- and +++ lines)
+  (goto-char (point-min))
+  (when (looking-at "^--- ")
+    (delete-region (point) (progn (forward-line 1) (point))))
+  (when (looking-at "^\\+\\+\\+ ")
+    (delete-region (point) (progn (forward-line 1) (point))))
+  
+  ;; Remove hunk headers (@@ lines) 
+  (goto-char (point-min))
+  (while (re-search-forward "^@@.*@@\\s-*\n" nil t)
+    (replace-match ""))
+  
+  ;; Apply diff-mode syntax highlighting
+  (let ((diff-mode-syntax-highlight-buffer (current-buffer)))
+    (diff-mode)
+    (font-lock-ensure))
+  
+  ;; Return the processed content
+  (buffer-string))
+
+(defun greger-ui--clear-str-replace-overlays ()
+  "Clear all str-replace diff overlays."
+  (dolist (overlay greger-ui--str-replace-overlays)
+    (when (overlay-buffer overlay)
+      (delete-overlay overlay)))
+  (setq greger-ui--str-replace-overlays nil))
+
 
 (provide 'greger-ui)
 ;;; greger-ui.el ends here
