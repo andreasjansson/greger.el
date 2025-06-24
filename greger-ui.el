@@ -272,18 +272,14 @@ NODE is the matched tree-sitter node"
 (defun greger-ui--str-replace-diff-transform-fn (node _override start end)
   "Font-lock function to transform str-replace original/new content into diff content.
 NODE is the matched tree-sitter node for tool_use block."
-  (when (greger-ui--is-str-replace-tool-use-p node)
-    (let ((cache-key (greger-ui--compute-str-replace-cache-key node start end)))
-      (unless (get-text-property start 'greger-ui-str-replace-cached-key)
-        ;; Apply diff content transformation
-        (greger-ui--replace-str-replace-with-diff node start end cache-key)))))
+  (when-let* ((tool-use-name (greger-parser--extract-tool-use-name node))
+              ((string= tool-use-name "str-replace"))
+              (cache-key (greger-ui--compute-str-replace-cache-key node start end)))
+    ;(greger-ui--apply-str-replace-diff-content node start end cache-key)
 
-(defun greger-ui--is-str-replace-tool-use-p (node)
-  "Check if NODE is a str-replace tool_use block."
-  (when (string= (treesit-node-type node) "tool_use")
-    (let ((name-node (treesit-search-subtree node "^tool_name$" nil nil 1)))
-      (when name-node
-        (string= (string-trim (treesit-node-text name-node t)) "str-replace")))))
+    (unless (get-text-property start 'greger-ui-str-replace-cached-key)
+      ;; Apply diff content transformation
+      (greger-ui--apply-str-replace-diff-content node start end cache-key))))
 
 (defun greger-ui--compute-str-replace-cache-key (node start end)
   "Compute cache key for str-replace NODE content between START and END."
@@ -300,20 +296,31 @@ NODE is the matched tree-sitter node for tool_use block."
          (original-content-node (alist-get 'original-content param-nodes))
          (new-content-node (alist-get 'new-content param-nodes))
          (replace-start (treesit-node-start original-content-node))
-         (replace-end (treesit-node-end new-content-node)))
+         (replace-end (treesit-node-end new-content-node))
+         (tool-use-id (greger-parser--extract-tool-use-id node)))
+
+    ;; TODO: remove debug
+    (message (format "replace-start: %s" replace-start))
 
     (when (and original-content new-content path)
       ;; Generate diff using diff.el
       (let* ((diff-content (greger-ui--generate-diff-content original-content new-content path))
-             (processed-diff-content (greger-ui--process-diff-output diff-content))
-             (diff-with-header (concat "## diff\n\n" processed-diff-content)))
+             (diff-no-headers (greger-ui--remove-diff-headers diff-content))
+             (wrapped-diff (greger-parser--wrapped-tool-param "diff" tool-use-id diff-no-headers t)))
+
+        (setq gg-wrapped-diff wrapped-diff)
 
         ;; Replace buffer content with diff
         (let ((inhibit-read-only t))
           ;; Replace the entire range from start of original-content to end of new-content
           (goto-char replace-start)
           (delete-region replace-start replace-end)
-          (insert diff-with-header)
+          (insert wrapped-diff)
+          ;; Force display of text properties for syntax highlighting
+          (let ((inserted-start replace-start)
+                (inserted-end (point)))
+            (put-text-property inserted-start inserted-end 'font-lock-face nil)
+            (font-lock-flush inserted-start inserted-end))
           
           ;; Mark as cached to avoid re-computation
           (put-text-property start end 'greger-ui-str-replace-cached-key cache-key))))))
@@ -347,7 +354,7 @@ NODE is the matched tree-sitter node for tool_use block."
       (when (file-exists-p new-file) (delete-file new-file))
       (kill-buffer diff-buffer))))
 
-(defun greger-ui--process-diff-output (diff-content)
+(defun greger-ui--remove-diff-headers (diff-content)
   "Process diff output in current buffer, remove headers and apply syntax highlighting."
   (with-temp-buffer
     (insert diff-content)
