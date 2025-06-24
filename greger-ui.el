@@ -341,6 +341,33 @@ overriding existing diff syntax highlighting."
           ;; Mark as cached to avoid re-computation
           (put-text-property start end 'greger-ui-str-replace-cached-key cache-key))))))
 
+(defun greger-ui--apply-diff-syntax-highlighting (node start end cache-key)
+  "Apply syntax highlighting to existing diff content in str-replace tool_use."
+  (let* ((params (greger-parser--extract-tool-use-params node))
+         (diff-content (alist-get 'diff params))
+         (param-nodes (greger-parser--extract-tool-use-param-nodes node))
+         (diff-node (alist-get 'diff param-nodes)))
+    
+    (when (and diff-content diff-node)
+      ;; Apply syntax highlighting to the existing diff content
+      (let* ((processed-diff (greger-ui--remove-diff-headers diff-content))
+             (diff-start (treesit-node-start diff-node))
+             (diff-end (treesit-node-end diff-node))
+             (inhibit-read-only t))
+        
+        ;; Replace the diff content with syntax-highlighted version
+        (save-excursion
+          (goto-char diff-start)
+          ;; Find the actual diff content (after the "## diff" header)
+          (when (re-search-forward "^## diff\n\n" diff-end t)
+            (let ((content-start (point)))
+              ;; Delete existing diff content and replace with highlighted version
+              (delete-region content-start diff-end)
+              (insert processed-diff))))
+        
+        ;; Mark as cached to avoid re-computation
+        (put-text-property start end 'greger-ui-str-replace-cached-key cache-key)))))
+
 (defun greger-ui--generate-diff-content (original new path)
   "Generate diff content from ORIGINAL to NEW for PATH using diff.el."
   (let* ((ext (file-name-extension path t))
