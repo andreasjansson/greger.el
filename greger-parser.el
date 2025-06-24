@@ -681,6 +681,21 @@ assuming it's already been sent in streaming."
 
 ;; Undiff functionality for str-replace
 
+(defun greger-parser--str-replace-undiff-params (params)
+  "Convert diff parameter to original-content and new-content in PARAMS."
+  (let ((diff-content (alist-get 'diff params))
+        (other-params (cl-remove-if (lambda (param)
+                                      (eq (car param) 'diff))
+                                    params)))
+    (if diff-content
+        ;; Undiff the content back to original and new
+        (let ((undiff-result (greger-parser-undiff-strings diff-content)))
+          (append other-params
+                  `((original-content . ,(car undiff-result))
+                    (new-content . ,(cdr undiff-result)))))
+      ;; No diff content found, return params as-is
+      params)))
+
 (defun greger-parser-undiff-strings (unified-diff-str)
   "Extract original and new strings from UNIFIED-DIFF-STR.
 Handles unified diff format created by the `diff` command, including diffs
