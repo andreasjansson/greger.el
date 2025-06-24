@@ -397,14 +397,23 @@ NODE is the matched tree-sitter node for tool_use block."
       )))
 
 (defun greger-ui--convert-faces-for-tree-sitter ()
-  "Convert 'face text properties to 'font-lock-face for tree-sitter."
+  "Convert 'face text properties and overlay faces to 'font-lock-face for tree-sitter."
+  ;; Convert text properties first
   (let ((pos (point-min)))
     (while (setq pos (next-single-property-change pos 'face))
       (when-let ((face (get-text-property pos 'face)))
         (let ((end (next-single-property-change pos 'face nil (point-max))))
-          (put-text-property pos end 'font-lock-face face))))
-    ;; Mark as fontified to prevent re-fontification
-    (add-text-properties (point-min) (point-max) '(fontified t))))
+          (put-text-property pos end 'font-lock-face face)))))
+  
+  ;; Convert overlays with 'face property (syntax highlighting overlays)
+  (dolist (overlay (overlays-in (point-min) (point-max)))
+    (when-let ((face (overlay-get overlay 'face)))
+      (let ((start (overlay-start overlay))
+            (end (overlay-end overlay)))
+        (put-text-property start end 'font-lock-face face))))
+  
+  ;; Mark as fontified to prevent re-fontification
+  (add-text-properties (point-min) (point-max) '(fontified t)))
 
 (defun greger-ui--remove-diff-headers (diff-content)
   "Process diff output, remove headers and apply syntax highlighting."
