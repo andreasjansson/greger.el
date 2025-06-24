@@ -359,28 +359,28 @@ NODE is the matched tree-sitter node for tool_use block."
 
 (defun greger-ui--generate-diff-content (original new path)
   "Generate diff content from ORIGINAL to NEW for PATH using diff.el."
-  (let ((original-file (make-temp-file "greger-original"))
-        (new-file (make-temp-file "greger-new")))
+  (let* ((ext (file-name-extension path t))
+         (original-file (make-temp-file "greger-original" nil ext))
+         (new-file (make-temp-file "greger-new" nil ext))
+         (diff-buffer (get-buffer-create "*Greger diff*")))
     (unwind-protect
         (progn
           ;; Write content to temp files
-          (with-temp-file original-file (insert original))
-          (with-temp-file new-file (insert new))
-          
-          ;; Generate diff
-          (with-temp-buffer
-            (let ((exit-code (call-process "diff" nil t nil "-u" original-file new-file)))
-              (goto-char (point-min))
-              
-              ;; If no differences, show a simple message
-              (if (and (= exit-code 0) (= (point-min) (point-max)))
-                  (format "No differences found between original and new content for %s" (file-name-nondirectory path))
-                ;; Remove diff headers and apply diff-mode syntax highlighting
-                (greger-ui--process-diff-output path)))))
+          (with-temp-file original-file
+            (insert original))
+          (with-temp-file new-file
+            (insert new))
+
+          (diff-no-select original-file new-file '("-u" "-U" "100000") t diff-buffer)
+          (with-current-buffer diff-buffer
+            ;; Ensure font-lock is active and force fontification
+            (font-lock-ensure (point-min) (point-max))
+            (buffer-string)))
       
       ;; Cleanup temp files
       (when (file-exists-p original-file) (delete-file original-file))
-      (when (file-exists-p new-file) (delete-file new-file)))))
+      (when (file-exists-p new-file) (delete-file new-file))
+      (kill-buffer diff-buffer))))
 
 (defun greger-ui--process-diff-output (path)
   "Process diff output in current buffer, remove headers and apply syntax highlighting."
