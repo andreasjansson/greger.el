@@ -36,8 +36,6 @@
 
 (require 'greger-parser)
 
-
-
 (defvar greger-ui-citation-keymap
   (let ((map (make-sparse-keymap)))
     (define-key map [mouse-1] #'greger-ui--toggle-citation-fold)
@@ -285,9 +283,18 @@ NODE is the matched tree-sitter node"
     (overlay-put overlay 'evaporate t)
     overlay))
 
+;; Variable to track pending idle operations
+(defvar greger-ui--pending-diff-operations nil
+  "List of pending diff operations to be processed during idle time.")
+
+;; Timer for processing pending operations
+(defvar greger-ui--idle-timer nil
+  "Timer for processing diff operations during idle time.")
+
 (defun greger-ui--str-replace-diff-transform-fn (node _override start end)
   "Font-lock function to transform str-replace original/new content into diff content.
-NODE is the matched tree-sitter node for tool_use block."
+NODE is the matched tree-sitter node for tool_use block.
+Expensive operations are deferred to idle time to avoid blocking scrolling."
   (when-let* ((tool-use-name (greger-parser--extract-tool-use-name node))
               ((string= tool-use-name "str-replace"))
               (cache-key (greger-ui--compute-str-replace-cache-key node start end)))
@@ -298,16 +305,16 @@ NODE is the matched tree-sitter node for tool_use block."
              (has-original-new (and (alist-get 'original-content params)
                                     (alist-get 'new-content params))))
         (cond
-         ;; Case 1: File already has diff parameter - apply syntax highlighting
+         ;; Case 1: File already has diff parameter - defer syntax highlighting
          (has-diff
-          (greger-ui--apply-diff-syntax-highlighting node start end cache-key))
-         ;; Case 2: File has original-content/new-content - transform to diff
+          (greger-ui--schedule-diff-operation 'highlight node start end cache-key))
+         ;; Case 2: File has original-content/new-content - defer diff transformation
          (has-original-new
-          (greger-ui--apply-str-replace-diff-content node start end cache-key))
+          (greger-ui--schedule-diff-operation 'transform node start end cache-key))
          ;; Case 3: Neither - do nothing
          (t nil))))))
 
-(defun greger-ui--compute-str-replace-cache-key (node start end)
+(defun greger-ui--compute-str-replace-cache-key (_node start end)
   "Compute cache key for str-replace NODE content between START and END."
   (let ((content (buffer-substring-no-properties start end)))
     (md5 content)))
@@ -325,8 +332,7 @@ NODE is the matched tree-sitter node for tool_use block."
          (replace-end (treesit-node-end new-content-node))
          (tool-use-id (greger-parser--extract-tool-use-id node))
          (diff-content (greger-ui--generate-diff-content original-content new-content path))
-         (diff-no-headers (greger-ui--remove-diff-headers diff-content))
-         (wrapped-diff (greger-parser--wrapped-tool-param "diff" tool-use-id diff-no-headers t))
+         (wrapped-diff (greger-parser--wrapped-tool-param "diff" tool-use-id diff-content t))
          (inhibit-read-only t))
 
     ;; Replace buffer content with diff
@@ -340,8 +346,6 @@ NODE is the matched tree-sitter node for tool_use block."
 (defun greger-ui--apply-diff-syntax-highlighting (node start end cache-key)
   "Apply syntax highlighting to existing diff content in str-replace tool_use."
 
-  ;; TODO: remove debug
-  (message (format "(greger-parser--extract-tool-use-params node): %s" (greger-parser--extract-tool-use-params node)))
   (let* ((params (greger-parser--extract-tool-use-params node))
          (raw-diff-content (alist-get 'diff params))
          (path (alist-get 'path params))
@@ -354,8 +358,7 @@ NODE is the matched tree-sitter node for tool_use block."
          (replace-end (treesit-node-end diff-node))
          (tool-use-id (greger-parser--extract-tool-use-id node))
          (diff-content (greger-ui--generate-diff-content original-content new-content path))
-         (diff-no-headers (greger-ui--remove-diff-headers diff-content))
-         (wrapped-diff (greger-parser--wrapped-tool-param "diff" tool-use-id diff-no-headers t))
+         (wrapped-diff (greger-parser--wrapped-tool-param "diff" tool-use-id diff-content t))
          (inhibit-read-only t))
 
     ;; Replace buffer content with diff
@@ -369,9 +372,8 @@ NODE is the matched tree-sitter node for tool_use block."
 (defun greger-ui--generate-diff-content (original new path)
   "Generate diff content from ORIGINAL to NEW for PATH using diff.el."
   (let* ((ext (or (file-name-extension path t) ""))
-         (basename (file-name-base path))
-         (original-file (make-temp-file (concat "greger-original-" basename) nil ext))
-         (new-file (make-temp-file (concat "greger-new-" basename) nil ext))
+         (original-file (make-temp-file "greger-original-" nil ext))
+         (new-file (make-temp-file "greger-new-" nil ext))
          (diff-buffer (get-buffer-create "*Greger diff*")))
     (unwind-protect
         (progn
@@ -383,37 +385,18 @@ NODE is the matched tree-sitter node for tool_use block."
 
           (diff-no-select original-file new-file '("-u" "-U" "100000") t diff-buffer)
           (with-current-buffer diff-buffer
-            ;; Enable syntax highlighting explicitly
-            (setq-local diff-font-lock-syntax t)
-            (setq-local diff-vc-backend 'Git)  ; Fake a VC backend
-            
-            ;; Set file names so diff-mode can detect file types
-            (setq-local diff-vc-revisions (list original-file new-file))
-            
-            ;; Debug: check if syntax highlighting is enabled
-            (message "diff-font-lock-syntax: %s" diff-font-lock-syntax)
-            (message "major-mode: %s" major-mode)
-            
             ;; Ensure font-lock is active and force fontification
             (font-lock-ensure (point-min) (point-max))
             
-            ;; Debug: check file names detected by diff-mode
-            (save-excursion
-              (goto-char (point-min))
-              (when (re-search-forward "^\\+\\+\\+ " nil t)
-                (message "Detected new file: %s" (buffer-substring (point) (line-end-position))))
-              (goto-char (point-min))
-              (when (re-search-forward "^--- " nil t)
-                (message "Detected old file: %s" (buffer-substring (point) (line-end-position)))))
-            
-            ;; Debug: check overlays
-            (message "Overlays count: %d" (length (overlays-in (point-min) (point-max))))
-            (dolist (overlay (overlays-in (point-min) (point-max)))
-              (message "Overlay: %s-%s, diff-mode: %s, face: %s" 
-                       (overlay-start overlay) (overlay-end overlay)
-                       (overlay-get overlay 'diff-mode)
-                       (overlay-get overlay 'face)))
+            ;; Convert 'face to 'font-lock-face for tree-sitter compatibility
+            (greger-ui--convert-faces-for-tree-sitter)
 
+            ;; Remove headers/footers inserted by the diff command and diff.el
+            (greger-ui--remove-diff-headers)
+  
+            ;; Make diff indicators (space, minus, plus) less prominent
+            (greger-ui--apply-diff-deemphasis)
+    
             (buffer-string)))
       
       ;; Cleanup temp files
@@ -434,8 +417,6 @@ NODE is the matched tree-sitter node for tool_use block."
   ;; Convert overlays with 'face property (syntax highlighting overlays)
   (dolist (overlay (overlays-in (point-min) (point-max)))
     (when-let ((face (overlay-get overlay 'face)))
-      ;; TODO: remove debug
-      (message (format "face: %s" face))
       (let ((start (overlay-start overlay))
             (end (overlay-end overlay)))
         (put-text-property start end 'font-lock-face face))))
@@ -443,42 +424,24 @@ NODE is the matched tree-sitter node for tool_use block."
   ;; Mark as fontified to prevent re-fontification
   (add-text-properties (point-min) (point-max) '(fontified t)))
 
-(defun greger-ui--remove-diff-headers (diff-content)
+(defun greger-ui--remove-diff-headers ()
   "Process diff output, remove headers and apply syntax highlighting."
-  (with-temp-buffer
-    (insert diff-content)
-    
-    ;; Apply diff-mode syntax highlighting
-    (delay-mode-hooks (diff-mode))
-    (font-lock-ensure)
-    
-    ;; Convert 'face to 'font-lock-face for tree-sitter compatibility
-    (greger-ui--convert-faces-for-tree-sitter)
-    
-    ;; Remove the file header lines (--- and +++ lines)
-    (goto-char (point-min))
-    (when (looking-at "^diff -u")
-      (delete-region (point) (progn (forward-line 1) (point))))
-    (when (looking-at "^--- ")
-      (delete-region (point) (progn (forward-line 1) (point))))
-    (when (looking-at "^\\+\\+\\+ ")
-      (delete-region (point) (progn (forward-line 1) (point))))
-    
-    ;; Remove hunk headers (@@ lines)
-    (goto-char (point-min))
-    (while (re-search-forward "^@@.*@@\\s-*\n" nil t)
-      (replace-match ""))
+  (goto-char (point-min))
+  (when (looking-at "^diff -u")
+    (delete-region (point) (progn (forward-line 1) (point))))
+  (when (looking-at "^--- ")
+    (delete-region (point) (progn (forward-line 1) (point))))
+  (when (looking-at "^\\+\\+\\+ ")
+    (delete-region (point) (progn (forward-line 1) (point))))
+  
+  ;; Remove hunk headers (@@ lines)
+  (goto-char (point-min))
+  (while (re-search-forward "^@@.*@@\\s-*\n" nil t)
+    (replace-match ""))
 
-    (goto-char (point-max))
-    (re-search-backward "\nDiff finished" nil t)
-    (delete-region (point) (point-max))
-
-    ;; Make diff indicators (space, minus, plus) less prominent
-    (greger-ui--apply-diff-deemphasis)
-
-    (greger-ui--convert-faces-for-tree-sitter)
-    
-    (buffer-string)))
+  (goto-char (point-max))
+  (re-search-backward "\nDiff finished" nil t)
+  (delete-region (point) (point-max)))
 
 (defun greger-ui--apply-diff-deemphasis ()
   "Apply visual de-emphasis to diff indicators.
@@ -486,21 +449,8 @@ Makes indicators small and muted while keeping them readable."
   ;; Make "\ No newline at end of file" messages less prominent
   (goto-char (point-min))
   (while (re-search-forward "^\\\\ No newline at end of file$" nil t)
-    (message "newline!")
     (put-text-property (line-beginning-position) (1+ (line-end-position))
-                       'font-lock-face '(:height 0.6 :foreground "gray50")))
-  
-  (goto-char (point-min))
-  (while (< (point) (point-max))
-    (let* ((line-start (line-beginning-position))
-           (line-end (line-end-position))
-           (line-content (buffer-substring line-start (min line-end (point-max)))))
-      (when (and (> (length line-content) 0)
-                 (member (substring line-content 0 1) '(" " "-" "+")))
-        ;; Make the first character (diff indicator) small and muted
-        (put-text-property line-start (1+ line-start)
-                           'font-lock-face '(:height 0.6 :foreground "gray50"))))
-    (forward-line 1)))
+                       'font-lock-face '(:height 0.6 :foreground "gray50"))))
 
 (provide 'greger-ui)
 ;;; greger-ui.el ends here
