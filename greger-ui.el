@@ -31,6 +31,8 @@
 ;;; Code:
 
 (require 'treesit)
+(require 'diff)
+(require 'diff-mode)
 
 (require 'greger-parser)
 
@@ -266,9 +268,6 @@ NODE is the matched tree-sitter node"
 
 ;; Str-replace diff content replacement functionality
 
-(require 'diff)
-(require 'diff-mode)
-
 (defun greger-ui--str-replace-diff-transform-fn (node _override start end)
   "Font-lock function to transform str-replace original/new content into diff content.
 NODE is the matched tree-sitter node for tool_use block."
@@ -345,28 +344,15 @@ overriding existing diff syntax highlighting."
   "Apply syntax highlighting to existing diff content in str-replace tool_use."
   (let* ((params (greger-parser--extract-tool-use-params node))
          (diff-content (alist-get 'diff params))
-         (param-nodes (greger-parser--extract-tool-use-param-nodes node))
-         (diff-node (alist-get 'diff param-nodes)))
+         (path (alist-get 'path params)))
     
-    (when (and diff-content diff-node)
-      ;; Apply syntax highlighting to the existing diff content
-      (let* ((processed-diff (greger-ui--remove-diff-headers diff-content))
-             (diff-start (treesit-node-start diff-node))
-             (diff-end (treesit-node-end diff-node))
-             (inhibit-read-only t))
-        
-        ;; Replace the diff content with syntax-highlighted version
-        (save-excursion
-          (goto-char diff-start)
-          ;; Find the actual diff content (after the "## diff" header)
-          (when (re-search-forward "^## diff\n\n" diff-end t)
-            (let ((content-start (point)))
-              ;; Delete existing diff content and replace with highlighted version
-              (delete-region content-start diff-end)
-              (insert processed-diff))))
-        
-        ;; Mark as cached to avoid re-computation
-        (put-text-property start end 'greger-ui-str-replace-cached-key cache-key)))))
+    (when (and diff-content path)
+      ;; Use undiff to get original and new content, then apply shared transformation
+      (let ((undiff-result (greger-parser-undiff-strings diff-content)))
+        (greger-ui--transform-str-replace-to-diff node start end cache-key
+                                                  (car undiff-result) ; original-content
+                                                  (cdr undiff-result) ; new-content
+                                                  path)))))
 
 (defun greger-ui--generate-diff-content (original new path)
   "Generate diff content from ORIGINAL to NEW for PATH using diff.el."
@@ -434,37 +420,37 @@ overriding existing diff syntax highlighting."
       (replace-match ""))
 
     (goto-char (point-max))
-    (re-search-backward "\nDiff finished")
+    (re-search-backward "\nDiff finished" nil t)
     (delete-region (point) (point-max))
 
-    ;; Make "\ No newline at end of file" messages less prominent
-    (goto-char (point-min))
-    (while (re-search-forward "^\\\\ No newline at end of file$" nil t)
-      (put-text-property (line-beginning-position) (1+ (line-end-position))
-                         'font-lock-face '(:height 0.6 :foreground "gray50")))
-    
     ;; Make diff indicators (space, minus, plus) less prominent
-    (greger-ui--apply-diff-deemphasis (point-min) (point-max))
+    (greger-ui--apply-diff-deemphasis)
 
     (greger-ui--convert-faces-for-tree-sitter)
     
     (buffer-string)))
 
-(defun greger-ui--apply-diff-deemphasis (start end)
-  "Apply visual de-emphasis to diff indicators in region from START to END.
+(defun greger-ui--apply-diff-deemphasis ()
+  "Apply visual de-emphasis to diff indicators.
 Makes indicators small and muted while keeping them readable."
-  (save-excursion
-    (goto-char start)
-    (while (< (point) end)
-      (let* ((line-start (line-beginning-position))
-             (line-end (line-end-position))
-             (line-content (buffer-substring line-start (min line-end end))))
-        (when (and (> (length line-content) 0)
-                   (member (substring line-content 0 1) '(" " "-" "+")))
-          ;; Make the first character (diff indicator) small and muted
-          (put-text-property line-start (1+ line-start)
-                             'font-lock-face '(:height 0.6 :foreground "gray50"))))
-      (forward-line 1))))
+  ;; Make "\ No newline at end of file" messages less prominent
+  (goto-char (point-min))
+  (while (re-search-forward "^\\\\ No newline at end of file$" nil t)
+    (message "newline!")
+    (put-text-property (line-beginning-position) (1+ (line-end-position))
+                       'font-lock-face '(:height 0.6 :foreground "gray50")))
+  
+  (goto-char (point-min))
+  (while (< (point) (point-max))
+    (let* ((line-start (line-beginning-position))
+           (line-end (line-end-position))
+           (line-content (buffer-substring line-start (min line-end (point-max)))))
+      (when (and (> (length line-content) 0)
+                 (member (substring line-content 0 1) '(" " "-" "+")))
+        ;; Make the first character (diff indicator) small and muted
+        (put-text-property line-start (1+ line-start)
+                           'font-lock-face '(:height 0.6 :foreground "gray50"))))
+    (forward-line 1)))
 
 (provide 'greger-ui)
 ;;; greger-ui.el ends here
