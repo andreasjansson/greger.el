@@ -278,8 +278,19 @@ NODE is the matched tree-sitter node for tool_use block."
     ;(greger-ui--apply-str-replace-diff-content node start end cache-key)
 
     (unless (get-text-property start 'greger-ui-str-replace-cached-key)
-      ;; Apply diff content transformation
-      (greger-ui--apply-str-replace-diff-content node start end cache-key))))
+      (let* ((params (greger-parser--extract-tool-use-params node))
+             (has-diff (alist-get 'diff params))
+             (has-original-new (and (alist-get 'original-content params)
+                                    (alist-get 'new-content params))))
+        (cond
+         ;; Case 1: File already has diff parameter - apply syntax highlighting
+         (has-diff
+          (greger-ui--apply-diff-syntax-highlighting node start end cache-key))
+         ;; Case 2: File has original-content/new-content - transform to diff
+         (has-original-new
+          (greger-ui--apply-str-replace-diff-content node start end cache-key))
+         ;; Case 3: Neither - do nothing
+         (t nil))))))
 
 (defun greger-ui--compute-str-replace-cache-key (node start end)
   "Compute cache key for str-replace NODE content between START and END."
