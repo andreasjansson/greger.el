@@ -231,8 +231,10 @@ When nil, preserve point position using `save-excursion'.")
    :override t
    '((tool_start_tag) @greger-ui--make-tool-tag-invisible
      (tool_end_tag) @greger-ui--make-tool-tag-invisible
-     (tool_result (id) @greger-ui--make-tool-result-id-invisible)
      (tool_use (id) @greger-ui--make-tool-use-id-invisible)
+     (tool_result (id) @greger-ui--make-tool-result-id-invisible)
+     (server_tool_use (id) @greger-ui--make-tool-use-id-invisible)
+     (web_search_tool_result (id) @greger-ui--make-tool-result-id-invisible)
      (tool_param_header) @greger-tool-param-name-face
      (key) @greger-key-face
      (url) @greger-ui--url-link-fn)
