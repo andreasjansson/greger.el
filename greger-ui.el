@@ -477,8 +477,8 @@ Expensive operations are deferred to idle time to avoid blocking scrolling."
   "Convert 'face text properties and overlay faces to 'font-lock-face for tree-sitter."
   (let* ((background-mode (frame-parameter nil 'background-mode))
          (is-dark-theme (eq background-mode 'dark))
-         (red-bg (if is-dark-theme "#2d1b1b" "#ffe6e6")) ; Dark red vs light red
-         (green-bg (if is-dark-theme "#1b2d1b" "#e6ffe6"))) ; Dark green vs light green
+         (red-bg (if is-dark-theme "#32171E" "#ffe6e6")) ; Dark red vs light red
+         (green-bg (if is-dark-theme "#143212" "#e6ffe6"))) ; Dark green vs light green
     
     ;; First pass: Set background on all characters in diff lines
     (save-excursion
@@ -490,11 +490,11 @@ Expensive operations are deferred to idle time to avoid blocking scrolling."
           (cond
            ;; Lines starting with - get red background
            ((eq line-start-char ?-)
-            (put-text-property line-start (1+ line-end) 'font-lock-face 
+            (put-text-property (1+ line-start) line-end 'font-lock-face 
                                (list :background red-bg)))
            ;; Lines starting with + get green background
            ((eq line-start-char ?+)
-            (put-text-property line-start (1+ line-end) 'font-lock-face 
+            (put-text-property (1+ line-start) line-end 'font-lock-face 
                                (list :background green-bg))))
           (forward-line 1))))
     

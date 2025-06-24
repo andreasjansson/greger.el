@@ -207,7 +207,7 @@ You can run arbitrary shell commands with the shell-command tool, but the follow
   (let* ((tool-param-nodes (treesit-filter-child node (lambda (n) (string= (treesit-node-type n) "tool_param"))))
          (param-map '()))
     (dolist (tool-param-node tool-param-nodes)
-      (let* ((name-node (treesit-search-subtree tool-param-node "name"))
+      (when-let* ((name-node (treesit-search-subtree tool-param-node "name"))
              (name (intern (treesit-node-text name-node t))))
         (push `(,name . ,tool-param-node) param-map)))
     (nreverse param-map)))
