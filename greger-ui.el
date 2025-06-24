@@ -292,19 +292,19 @@ NODE is the matched tree-sitter node"
   "Timer for processing diff operations during idle time.")
 
 ;; Customizable delay for idle processing
-(defcustom greger-ui-idle-delay 0.5
+(defcustom greger-ui-idle-delay 0.01
   "Delay in seconds before processing diff operations during idle time.
 Lower values make diff processing more responsive but may impact performance.
 Higher values reduce interruptions during active editing."
   :type 'number
   :group 'greger)
 
-(defun greger-ui--schedule-diff-operation (operation-type node start end cache-key)
+(defun greger-ui--schedule-diff-operation (operation-type node start end)
   "Schedule a diff operation to be processed during idle time.
 OPERATION-TYPE is either 'transform or 'highlight.
 NODE, START, END, and CACHE-KEY are the operation parameters."
   (let* ((buffer (current-buffer))
-         (operation (list operation-type buffer node start end cache-key)))
+         (operation (list operation-type buffer node start end)))
     
     ;; Add to pending operations (avoid duplicates)
     (unless (member operation greger-ui--pending-diff-operations)
@@ -330,8 +330,7 @@ NODE, START, END, and CACHE-KEY are the operation parameters."
             (buffer (nth 1 operation))
             (node (nth 2 operation))
             (start (nth 3 operation))
-            (end (nth 4 operation))
-            (cache-key (nth 5 operation)))
+            (end (nth 4 operation)))
         
         ;; Only process if buffer is still live and visible
         (when (and (buffer-live-p buffer)
@@ -339,9 +338,9 @@ NODE, START, END, and CACHE-KEY are the operation parameters."
           (with-current-buffer buffer
             (cond
              ((eq operation-type 'transform)
-              (greger-ui--apply-str-replace-diff-content node start end cache-key))
+              (greger-ui--apply-str-replace-diff-content node start end))
              ((eq operation-type 'highlight)
-              (greger-ui--apply-diff-syntax-highlighting node start end cache-key)))))))))
+              (greger-ui--apply-diff-syntax-highlighting node start end)))))))))
 
 (defun greger-ui--cleanup-idle-operations ()
   "Clean up idle operations when buffer is killed or mode is disabled."
@@ -362,67 +361,64 @@ Expensive operations are deferred to idle time to avoid blocking scrolling."
 
     (unless (greger-ui--get-str-replace-cached-overlay start end)
       (when node
-       (let* ((params (greger-parser--extract-tool-use-params node))
-              (has-diff (alist-get 'diff params))
-              (has-original-new (and (alist-get 'original-content params)
-                                     (alist-get 'new-content params)))
-              (cache-key (greger-ui--compute-str-replace-cache-key node start end)))
-         (cond
-          ;; Case 1: File already has diff parameter - defer syntax highlighting
-          (has-diff
-           (greger-ui--schedule-diff-operation 'highlight node start end cache-key))
-          ;; Case 2: File has original-content/new-content - defer diff transformation
-          (has-original-new
-           (greger-ui--schedule-diff-operation 'transform node start end cache-key))
-          ;; Case 3: Neither - do nothing
-          (t nil)))))))
+        (let* ((params (greger-parser--extract-tool-use-params node))
+               (has-diff (alist-get 'diff params))
+               (has-original-new (and (alist-get 'original-content params)
+                                      (alist-get 'new-content params)))
+               (cache-key (greger-ui--compute-str-replace-cache-key node start end)))
+          (greger-ui--create-str-replace-cached-overlay start end cache-key)
+          (cond
+           ;; Case 1: File already has diff parameter - defer syntax highlighting
+           (has-diff
+            (greger-ui--schedule-diff-operation 'highlight node start end))
+           ;; Case 2: File has original-content/new-content - defer diff transformation
+           (has-original-new
+            (greger-ui--schedule-diff-operation 'transform node start end))
+           ;; Case 3: Neither - do nothing
+           (t nil)))))))
 
 (defun greger-ui--compute-str-replace-cache-key (_node start end)
   "Compute cache key for str-replace NODE content between START and END."
   (let ((content (buffer-substring-no-properties start end)))
     (md5 content)))
 
-(defun greger-ui--apply-str-replace-diff-content (node start end cache-key)
+(defun greger-ui--apply-str-replace-diff-content (node _start _end)
   "Apply diff overlay to str-replace NODE content between START and END."
-  (greger-ui--create-str-replace-cached-overlay start end cache-key)
-
-  (let* ((params (greger-parser--extract-tool-use-params node))
-         (original-content (alist-get 'original-content params))
-         (new-content (alist-get 'new-content params))
-         (path (alist-get 'path params))
-         (param-nodes (greger-parser--extract-tool-use-param-nodes node))
-         (original-content-node (alist-get 'original-content param-nodes))
-         (new-content-node (alist-get 'new-content param-nodes))
-         (replace-start (treesit-node-start original-content-node))
-         (replace-end (treesit-node-end new-content-node))
-         (tool-use-id (greger-parser--extract-tool-use-id node))
-         (diff-content (greger-ui--generate-diff-content original-content new-content path))
-         (wrapped-diff (greger-parser--wrapped-tool-param "diff" tool-use-id diff-content t))
-         (inhibit-read-only t))
+  (when-let* ((params (greger-parser--extract-tool-use-params node))
+              (original-content (alist-get 'original-content params))
+              (new-content (alist-get 'new-content params))
+              (path (alist-get 'path params))
+              (param-nodes (greger-parser--extract-tool-use-param-nodes node))
+              (original-content-node (alist-get 'original-content param-nodes))
+              (new-content-node (alist-get 'new-content param-nodes))
+              (replace-start (treesit-node-start original-content-node))
+              (replace-end (treesit-node-end new-content-node))
+              (tool-use-id (greger-parser--extract-tool-use-id node))
+              (diff-content (greger-ui--generate-diff-content original-content new-content path))
+              (wrapped-diff (greger-parser--wrapped-tool-param "diff" tool-use-id diff-content t))
+              (inhibit-read-only t))
 
     ;; Replace buffer content with diff
     (goto-char replace-start)
     (delete-region replace-start replace-end)
     (insert wrapped-diff)))
 
-(defun greger-ui--apply-diff-syntax-highlighting (node start end cache-key)
+(defun greger-ui--apply-diff-syntax-highlighting (node _start _end)
   "Apply syntax highlighting to existing diff content in str-replace tool_use."
-  (greger-ui--create-str-replace-cached-overlay start end cache-key)
-
-  (let* ((params (greger-parser--extract-tool-use-params node))
-         (raw-diff-content (alist-get 'diff params))
-         (path (alist-get 'path params))
-         (undiff-result (greger-parser-undiff-strings raw-diff-content))
-         (original-content (car undiff-result))
-         (new-content (cdr undiff-result))
-         (param-nodes (greger-parser--extract-tool-use-param-nodes node))
-         (diff-node (alist-get 'diff param-nodes))
-         (replace-start (treesit-node-start diff-node))
-         (replace-end (treesit-node-end diff-node))
-         (tool-use-id (greger-parser--extract-tool-use-id node))
-         (diff-content (greger-ui--generate-diff-content original-content new-content path))
-         (wrapped-diff (greger-parser--wrapped-tool-param "diff" tool-use-id diff-content t))
-         (inhibit-read-only t))
+  (when-let* ((params (greger-parser--extract-tool-use-params node))
+              (raw-diff-content (alist-get 'diff params))
+              (path (alist-get 'path params))
+              (undiff-result (greger-parser-undiff-strings raw-diff-content))
+              (original-content (car undiff-result))
+              (new-content (cdr undiff-result))
+              (param-nodes (greger-parser--extract-tool-use-param-nodes node))
+              (diff-node (alist-get 'diff param-nodes))
+              (replace-start (treesit-node-start diff-node))
+              (replace-end (treesit-node-end diff-node))
+              (tool-use-id (greger-parser--extract-tool-use-id node))
+              (diff-content (greger-ui--generate-diff-content original-content new-content path))
+              (wrapped-diff (greger-parser--wrapped-tool-param "diff" tool-use-id diff-content t))
+              (inhibit-read-only t))
 
     ;; Replace buffer content with diff
     (goto-char replace-start)
@@ -443,8 +439,10 @@ Expensive operations are deferred to idle time to avoid blocking scrolling."
         (progn
           ;; Write content to temp files
           (with-temp-file original-file
+            (set-buffer-file-coding-system 'utf-8)
             (insert original))
           (with-temp-file new-file
+            (set-buffer-file-coding-system 'utf-8)
             (insert new))
 
           (diff-no-select original-file new-file nil t diff-buffer)
@@ -490,11 +488,11 @@ Expensive operations are deferred to idle time to avoid blocking scrolling."
           (cond
            ;; Lines starting with - get red background
            ((eq line-start-char ?-)
-            (put-text-property (1+ line-start) line-end 'font-lock-face 
+            (put-text-property (1+ line-start) line-end 'font-lock-face
                                (list :background red-bg)))
            ;; Lines starting with + get green background
            ((eq line-start-char ?+)
-            (put-text-property (1+ line-start) line-end 'font-lock-face 
+            (put-text-property (1+ line-start) line-end 'font-lock-face
                                (list :background green-bg))))
           (forward-line 1))))
     
