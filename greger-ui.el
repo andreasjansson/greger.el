@@ -308,16 +308,15 @@ NODE is the matched tree-sitter node for tool_use block."
              (processed-diff-content (greger-ui--process-diff-output diff-content))
              (diff-with-header (concat "## diff\n\n" processed-diff-content)))
 
-        ;; Create overlay to replace the display
-        (let ((overlay (make-overlay overlay-start overlay-end)))
-          (overlay-put overlay 'display diff-with-header)
-          (overlay-put overlay 'greger-ui-str-replace-diff t)
-          (overlay-put overlay 'evaporate t)
+        ;; Replace buffer content with diff
+        (let ((inhibit-read-only t))
+          ;; Delete new-content param first (it comes after original-content)
+          (delete-region (treesit-node-start new-content-node) (treesit-node-end new-content-node))
           
-          ;; Store metadata for potential reconstruction
-          (overlay-put overlay 'greger-ui-original-content original-content)
-          (overlay-put overlay 'greger-ui-new-content new-content)
-          (overlay-put overlay 'greger-ui-path path)
+          ;; Replace original-content param with diff param
+          (goto-char (treesit-node-start original-content-node))
+          (delete-region (treesit-node-start original-content-node) (treesit-node-end original-content-node))
+          (insert diff-with-header)
           
           ;; Mark as cached to avoid re-computation
           (put-text-property start end 'greger-ui-str-replace-cached-key cache-key))))))
