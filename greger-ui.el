@@ -315,32 +315,17 @@ NODE is the matched tree-sitter node for tool_use block."
           ;; Replace the entire range from start of original-content to end of new-content
           (goto-char replace-start)
           (delete-region replace-start replace-end)
-          ;; Debug: Check properties before insertion
-          (message "DEBUG: Properties in wrapped-diff sample: %S" 
-                   (text-properties-at 50 wrapped-diff))
-          (message "DEBUG: Font-lock mode active: %S" font-lock-mode)
-          (message "DEBUG: Major mode: %S" major-mode)
-          
           (insert wrapped-diff)
           
-          ;; Debug: Check properties after insertion
+          ;; Use fontification-functions to bypass tree-sitter for diff regions
           (let ((inserted-start replace-start)
                 (inserted-end (point)))
-            (message "DEBUG: Inserted region: %d-%d" inserted-start inserted-end)
-            (message "DEBUG: Properties after insertion (sample): %S" 
-                     (text-properties-at (+ inserted-start 50) (current-buffer)))
-            
-            ;; Mark region to be ignored by font-lock/tree-sitter
-            (put-text-property inserted-start inserted-end 'font-lock-ignore t)
-            (put-text-property inserted-start inserted-end 'fontified t)
-            
-            ;; Debug: Check properties after setting ignore flags
-            (message "DEBUG: Properties after setting flags: %S" 
-                     (text-properties-at (+ inserted-start 50) (current-buffer)))
-            (message "DEBUG: font-lock-ignore set: %S" 
-                     (get-text-property (+ inserted-start 50) 'font-lock-ignore))
-            (message "DEBUG: fontified set: %S" 
-                     (get-text-property (+ inserted-start 50) 'fontified)))
+            ;; Mark this region as a diff region that should preserve its text properties
+            (put-text-property inserted-start inserted-end 'greger-diff-region t)
+            ;; Add a buffer-local fontification function if not already present
+            (unless (memq 'greger-ui--preserve-diff-fontification 
+                          (buffer-local-value 'fontification-functions (current-buffer)))
+              (add-hook 'fontification-functions 'greger-ui--preserve-diff-fontification nil t)))
           
           ;; Mark as cached to avoid re-computation
           (put-text-property start end 'greger-ui-str-replace-cached-key cache-key))))))
