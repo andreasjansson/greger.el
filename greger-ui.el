@@ -491,6 +491,23 @@ Expensive operations are deferred to idle time to avoid blocking scrolling."
   ;; Mark as fontified to prevent re-fontification
   (add-text-properties (point-min) (point-max) '(fontified t)))
 
+(defun greger-ui--apply-diff-line-backgrounds ()
+  "Apply background colors to diff lines that start with - (soft red) or + (soft green)."
+  (goto-char (point-min))
+  (while (not (eobp))
+    (let ((line-start (line-beginning-position))
+          (line-end (line-end-position)))
+      (cond
+       ;; Lines starting with - get soft red background
+       ((looking-at "^-")
+        (put-text-property line-start (1+ line-end)
+                          'font-lock-face '(:background "#ffe6e6")))
+       ;; Lines starting with + get soft green background
+       ((looking-at "^\\+")
+        (put-text-property line-start (1+ line-end)
+                          'font-lock-face '(:background "#e6ffe6")))))
+    (forward-line 1)))
+
 (defun greger-ui--remove-diff-headers ()
   "Process diff output, remove headers and apply syntax highlighting."
   (goto-char (point-min))
