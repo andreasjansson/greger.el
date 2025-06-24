@@ -397,6 +397,15 @@ NODE is the matched tree-sitter node for tool_use block."
             ;; Ensure font-lock is active and force fontification
             (font-lock-ensure (point-min) (point-max))
             
+            ;; Debug: check file names detected by diff-mode
+            (save-excursion
+              (goto-char (point-min))
+              (when (re-search-forward "^\\+\\+\\+ " nil t)
+                (message "Detected new file: %s" (buffer-substring (point) (line-end-position))))
+              (goto-char (point-min))
+              (when (re-search-forward "^--- " nil t)
+                (message "Detected old file: %s" (buffer-substring (point) (line-end-position)))))
+            
             ;; Debug: check overlays
             (message "Overlays count: %d" (length (overlays-in (point-min) (point-max))))
             (dolist (overlay (overlays-in (point-min) (point-max)))
