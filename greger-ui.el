@@ -413,6 +413,27 @@ NODE is the matched tree-sitter node for tool_use block."
                            path (length original) (length new)))))
           (message "No tool_use node found"))))))
 
+(defun greger-ui--test-str-replace-diff ()
+  "Test function to generate diff for str-replace at point."
+  (interactive)
+  (let ((node (treesit-node-at (point))))
+    (when node
+      (let ((tool-use-node (treesit-node-parent node)))
+        (while (and tool-use-node 
+                    (not (string= (treesit-node-type tool-use-node) "tool_use")))
+          (setq tool-use-node (treesit-node-parent tool-use-node)))
+        
+        (when (and tool-use-node (greger-ui--is-str-replace-tool-use-p tool-use-node))
+          (let* ((original (greger-ui--extract-str-replace-param tool-use-node "original-content"))
+                 (new (greger-ui--extract-str-replace-param tool-use-node "new-content"))
+                 (path (greger-ui--extract-str-replace-param tool-use-node "path"))
+                 (diff-content (greger-ui--generate-diff-content original new path)))
+            (with-current-buffer (get-buffer-create "*str-replace-diff-test*")
+              (erase-buffer)
+              (insert diff-content)
+              (goto-char (point-min))
+              (display-buffer (current-buffer)))))))))
+
 
 (provide 'greger-ui)
 ;;; greger-ui.el ends here
