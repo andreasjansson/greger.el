@@ -305,8 +305,7 @@ NODE is the matched tree-sitter node for tool_use block."
     (when (and original-content new-content path)
       ;; Generate diff using diff.el
       (let* ((diff-content (greger-ui--generate-diff-content original-content new-content path))
-             (processed-diff-content (greger-ui--process-diff-output diff-content))
-             (diff-with-header (concat "## diff\n\n" processed-diff-content)))
+             (diff-with-header (concat "## diff\n\n" diff-content)))
 
         ;; Replace buffer content with diff
         (let ((inhibit-read-only t))
