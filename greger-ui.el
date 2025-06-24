@@ -380,6 +380,9 @@ NODE is the matched tree-sitter node for tool_use block."
       (delete-overlay overlay)))
   (setq greger-ui--str-replace-overlays nil))
 
+;; Add cleanup hook for when buffer is killed
+(add-hook 'kill-buffer-hook #'greger-ui--clear-str-replace-overlays)
+
 
 (provide 'greger-ui)
 ;;; greger-ui.el ends here
