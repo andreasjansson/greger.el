@@ -358,14 +358,14 @@ NODE, START, END, and CACHE-KEY are the operation parameters."
 NODE is the matched tree-sitter node for tool_use block.
 Expensive operations are deferred to idle time to avoid blocking scrolling."
   (when-let* ((tool-use-name (greger-parser--extract-tool-use-name node))
-              ((string= tool-use-name "str-replace"))
-              (cache-key (greger-ui--compute-str-replace-cache-key node start end)))
+              ((string= tool-use-name "str-replace")))
 
     (unless (greger-ui--get-str-replace-cached-overlay start end)
       (let* ((params (greger-parser--extract-tool-use-params node))
              (has-diff (alist-get 'diff params))
              (has-original-new (and (alist-get 'original-content params)
-                                    (alist-get 'new-content params))))
+                                    (alist-get 'new-content params)))
+             (cache-key (greger-ui--compute-str-replace-cache-key node start end)))
         (cond
          ;; Case 1: File already has diff parameter - defer syntax highlighting
          (has-diff
@@ -534,27 +534,6 @@ Also applies diff line background colors, combining them with overlay foreground
     ;; Mark as fontified to prevent re-fontification
     (add-text-properties (point-min) (point-max) '(fontified t))))
 
-(defun greger-ui--apply-diff-line-backgrounds ()
-  "Apply background colors to diff lines that start with - (soft red) or + (soft green).
-Colors are adapted to the current theme (dark/light)."
-  (let* ((background-mode (frame-parameter nil 'background-mode))
-         (is-dark-theme (eq background-mode 'dark))
-         (red-bg (if is-dark-theme "#2d1b1b" "#ffe6e6"))   ; Dark red vs light red
-         (green-bg (if is-dark-theme "#1b2d1b" "#e6ffe6"))) ; Dark green vs light green
-    (goto-char (point-min))
-    (while (not (eobp))
-      (let ((line-start (line-beginning-position))
-            (line-end (line-end-position)))
-        (cond
-         ;; Lines starting with - get theme-appropriate red background
-         ((looking-at "^-")
-          (put-text-property line-start (1+ line-end)
-                            'font-lock-face `(:background ,red-bg)))
-         ;; Lines starting with + get theme-appropriate green background
-         ((looking-at "^\\+")
-          (put-text-property line-start (1+ line-end)
-                            'font-lock-face `(:background ,green-bg)))))
-      (forward-line 1))))
 
 (defun greger-ui--remove-diff-headers ()
   "Process diff output, remove headers and apply syntax highlighting."
