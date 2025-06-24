@@ -276,7 +276,7 @@ NODE is the matched tree-sitter node for tool_use block."
     (let ((cache-key (greger-ui--compute-str-replace-cache-key node start end)))
       (unless (get-text-property start 'greger-ui-str-replace-cached-key)
         ;; Apply diff content transformation
-        (greger-ui--apply-str-replace-diff-content node start end cache-key)))))
+        (greger-ui--replace-str-replace-with-diff node start end cache-key)))))
 
 (defun greger-ui--is-str-replace-tool-use-p (node)
   "Check if NODE is a str-replace tool_use block."
@@ -290,9 +290,6 @@ NODE is the matched tree-sitter node for tool_use block."
   (let ((content (buffer-substring-no-properties start end)))
     (md5 content)))
 
-(defvar-local greger-ui--str-replace-overlays nil
-  "List of overlays created for str-replace diff display.")
-
 (defun greger-ui--apply-str-replace-diff-content (node start end cache-key)
   "Apply diff overlay to str-replace NODE content between START and END."
   (let* ((params (greger-parser--extract-tool-use-params node))
@@ -302,14 +299,15 @@ NODE is the matched tree-sitter node for tool_use block."
          (param-nodes (greger-parser--extract-tool-use-param-nodes node))
          (original-content-node (alist-get 'original-content param-nodes))
          (new-content-node (alist-get 'new-content param-nodes))
-         (overlay-start (treesit-node-start original-content-node))
-         (overlay-end (treesit-node-end new-content-node)))
+         (replace-start (treesit-node-start original-content-node))
+         (replace-end (treesit-node-end new-content-node)))
 
     (when (and original-content new-content path)
       ;; Generate diff using diff.el
       (let* ((diff-content (greger-ui--generate-diff-content original-content new-content path))
-             (diff-with-header (concat "## diff\n\n" diff-content)))
-        
+             (processed-diff-content (greger-ui--process-diff-output diff-content))
+             (diff-with-header (concat "## diff\n\n" processed-diff-content)))
+
         ;; Create overlay to replace the display
         (let ((overlay (make-overlay overlay-start overlay-end)))
           (overlay-put overlay 'display diff-with-header)
@@ -321,35 +319,8 @@ NODE is the matched tree-sitter node for tool_use block."
           (overlay-put overlay 'greger-ui-new-content new-content)
           (overlay-put overlay 'greger-ui-path path)
           
-          ;; Track overlay for cleanup
-          (push overlay greger-ui--str-replace-overlays)
-          
           ;; Mark as cached to avoid re-computation
           (put-text-property start end 'greger-ui-str-replace-cached-key cache-key))))))
-
-(defun greger-ui--find-param-end ()
-  "Find the end of the current parameter section."
-  (save-excursion
-    (forward-line 1)
-    (if (re-search-forward "^## " nil t)
-        ;; Found next param, go back to end of previous line
-        (progn (forward-line -1) (line-end-position))
-      ;; No next param found, find the closing tool tag
-      (if (re-search-forward "</tool\\.[^>]+>" nil t)
-          (line-beginning-position)
-        (point-max)))))
-
-(defun greger-ui--extract-str-replace-param (tool-use-node param-name)
-  "Extract PARAM-NAME value from str-replace TOOL-USE-NODE."
-  (let ((param-nodes (treesit-search-subtree tool-use-node "^tool_param$" nil nil 'all)))
-    (catch 'found
-      (dolist (param-node param-nodes)
-        (let ((name-node (treesit-search-subtree param-node "^name$" nil nil 1)))
-          (when (and name-node 
-                     (string= (string-trim (treesit-node-text name-node t)) param-name))
-            (let ((value-node (treesit-search-subtree param-node "^value$" nil nil 1)))
-              (when value-node
-                (throw 'found (string-trim (treesit-node-text value-node t)))))))))))
 
 (defun greger-ui--generate-diff-content (original new path)
   "Generate diff content from ORIGINAL to NEW for PATH using diff.el."
@@ -369,6 +340,10 @@ NODE is the matched tree-sitter node for tool_use block."
           (with-current-buffer diff-buffer
             ;; Ensure font-lock is active and force fontification
             (font-lock-ensure (point-min) (point-max))
+
+            ;; TODO: remove debug
+            (message (format "(buffer-string: %S" (buffer-string)))
+
             (buffer-string)))
       
       ;; Cleanup temp files
@@ -376,31 +351,24 @@ NODE is the matched tree-sitter node for tool_use block."
       (when (file-exists-p new-file) (delete-file new-file))
       (kill-buffer diff-buffer))))
 
-(defun greger-ui--process-diff-output (path)
+(defun greger-ui--process-diff-output (diff-content)
   "Process diff output in current buffer, remove headers and apply syntax highlighting."
-  (let ((content (buffer-string)))
-    ;; Process in a temporary buffer with diff-mode
-    (with-temp-buffer
-      (insert content)
-      (goto-char (point-min))
-      
-      ;; Remove the file header lines (--- and +++ lines)
-      (when (looking-at "^--- ")
-        (delete-region (point) (progn (forward-line 1) (point))))
-      (when (looking-at "^\\+\\+\\+ ")
-        (delete-region (point) (progn (forward-line 1) (point))))
-      
-      ;; Remove hunk headers (@@ lines) 
-      (goto-char (point-min))
-      (while (re-search-forward "^@@.*@@\\s-*\n" nil t)
-        (replace-match ""))
-      
-      ;; Apply diff-mode syntax highlighting in temp buffer
-      (diff-mode)
-      (font-lock-ensure)
-      
-      ;; Return the processed content with font-lock properties
-      (buffer-string))))
+  (with-temp-buffer
+    (insert diff-content)
+    (goto-char (point-min))
+    
+    ;; Remove the file header lines (--- and +++ lines)
+    (when (looking-at "^--- ")
+      (delete-region (point) (progn (forward-line 1) (point))))
+    (when (looking-at "^\\+\\+\\+ ")
+      (delete-region (point) (progn (forward-line 1) (point))))
+    
+    ;; Remove hunk headers (@@ lines)
+    (goto-char (point-min))
+    (while (re-search-forward "^@@.*@@\\s-*\n" nil t)
+      (replace-match ""))
+    
+    (buffer-string)))
 
 (provide 'greger-ui)
 ;;; greger-ui.el ends here
