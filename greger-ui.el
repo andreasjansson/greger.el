@@ -383,6 +383,8 @@ overriding existing diff syntax highlighting."
     
     ;; Remove the file header lines (--- and +++ lines)
     (goto-char (point-min))
+    (when (looking-at "^diff -u")
+      (delete-region (point) (progn (forward-line 1) (point))))
     (when (looking-at "^--- ")
       (delete-region (point) (progn (forward-line 1) (point))))
     (when (looking-at "^\\+\\+\\+ ")
@@ -392,8 +394,39 @@ overriding existing diff syntax highlighting."
     (goto-char (point-min))
     (while (re-search-forward "^@@.*@@\\s-*\n" nil t)
       (replace-match ""))
+
+    (goto-char (point-max))
+    (re-search-backward "\nDiff finished")
+    (delete-region (point) (point-max))
+
+    ;; Make "\ No newline at end of file" messages less prominent
+    (goto-char (point-min))
+    (while (re-search-forward "^\\\\ No newline at end of file$" nil t)
+      (put-text-property (line-beginning-position) (1+ (line-end-position))
+                         'font-lock-face '(:height 0.6 :foreground "gray50")))
+    
+    ;; Make diff indicators (space, minus, plus) less prominent
+    (greger-ui--apply-diff-deemphasis (point-min) (point-max))
+
+    (greger-ui--convert-faces-for-tree-sitter)
     
     (buffer-string)))
+
+(defun greger-ui--apply-diff-deemphasis (start end)
+  "Apply visual de-emphasis to diff indicators in region from START to END.
+Makes indicators small and muted while keeping them readable."
+  (save-excursion
+    (goto-char start)
+    (while (< (point) end)
+      (let* ((line-start (line-beginning-position))
+             (line-end (line-end-position))
+             (line-content (buffer-substring line-start (min line-end end))))
+        (when (and (> (length line-content) 0)
+                   (member (substring line-content 0 1) '(" " "-" "+")))
+          ;; Make the first character (diff indicator) small and muted
+          (put-text-property line-start (1+ line-start)
+                             'font-lock-face '(:height 0.6 :foreground "gray50"))))
+      (forward-line 1))))
 
 (provide 'greger-ui)
 ;;; greger-ui.el ends here
