@@ -438,12 +438,12 @@ Expensive operations are deferred to idle time to avoid blocking scrolling."
     (unwind-protect
         (progn
           ;; Write content to temp files
-          (with-temp-file original-file
-            (set-buffer-file-coding-system 'utf-8)
-            (insert original))
-          (with-temp-file new-file
-            (set-buffer-file-coding-system 'utf-8)
-            (insert new))
+          (let ((coding-system-for-write 'raw-text))
+            (with-temp-file original-file
+              (insert original)))
+          (let ((coding-system-for-write 'raw-text))
+            (with-temp-file new-file
+              (insert new)))
 
           (diff-no-select original-file new-file nil t diff-buffer)
           (with-current-buffer diff-buffer
