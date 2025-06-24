@@ -324,8 +324,8 @@ NODE, START, END, and CACHE-KEY are the operation parameters."
     (setq greger-ui--pending-diff-operations nil
           greger-ui--idle-timer nil)
     
-    ;; Process operations in LIFO order (most recent first)
-    (dolist (operation operations)
+    ;; Process operations in FIFO order (oldest first)
+    (dolist (operation (reverse operations))
       (let ((operation-type (nth 0 operation))
             (buffer (nth 1 operation))
             (node (nth 2 operation))
@@ -384,7 +384,7 @@ Expensive operations are deferred to idle time to avoid blocking scrolling."
 
 (defun greger-ui--apply-str-replace-diff-content (node _start _end)
   "Apply diff overlay to str-replace NODE content between START and END."
-  (when-let* ((params (greger-parser--extract-tool-use-params node))
+  (let* ((params (greger-parser--extract-tool-use-params node))
               (original-content (alist-get 'original-content params))
               (new-content (alist-get 'new-content params))
               (path (alist-get 'path params))
@@ -405,7 +405,7 @@ Expensive operations are deferred to idle time to avoid blocking scrolling."
 
 (defun greger-ui--apply-diff-syntax-highlighting (node _start _end)
   "Apply syntax highlighting to existing diff content in str-replace tool_use."
-  (when-let* ((params (greger-parser--extract-tool-use-params node))
+  (let* ((params (greger-parser--extract-tool-use-params node))
               (raw-diff-content (alist-get 'diff params))
               (path (alist-get 'path params))
               (undiff-result (greger-parser-undiff-strings raw-diff-content))
