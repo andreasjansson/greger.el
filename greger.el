@@ -804,8 +804,7 @@ COMPLETION-CALLBACK is called when complete."
                (replace-match "")
                ;; Now that we've deleted the tool result "placeholder",
                ;; we're now inside a tool_use block
-               (let* ((read-file-path (greger--find-read-file-path))
-                      (result-markdown (greger-parser--tool-result-to-markdown tool-result read-file-path)))
+               (let ((result-markdown (greger-parser--tool-result-to-markdown tool-result)))
                  (when (string-empty-p result-markdown)
                    (error "Failed to parse result markdown"))
                  (insert result-markdown))))))
@@ -834,32 +833,6 @@ COMPLETION-CALLBACK is called when complete."
   ;; Reset the state
   (setf (greger-state-current-iteration state) 0)
   (setf (greger-state-client-state state) nil))
-
-(defun greger--find-read-file-path ()
-  "Find the path parameter from the current tool_use read-file node.
-Wrapped in `save-excursion', uses tree-sitter to find the previous tool_use.
-Then iterates over the input parameters of the tool_use.  If one is called
-`path` return it, otherwise return nil."
-  (save-excursion
-    (when-let* ((tool-use-node (treesit-parent-until (treesit-node-at (point)) "^tool_use$" t))
-                (name-node (treesit-search-subtree tool-use-node "name"))
-                (name (greger-parser--extract-value name-node))
-                ((string= name "read-file"))
-                (path-param (greger--tool-use-path-param tool-use-node))
-                (value-node (treesit-search-subtree path-param "value"))
-                (value-field-node (treesit-node-child-by-field-name value-node "value")))
-      (string-trim (treesit-node-text value-field-node t)))))
-
-(defun greger--tool-use-path-param (tool-use-node)
-  (let ((param-nodes (treesit-filter-child
-                      tool-use-node
-                      (lambda (n) (string= (treesit-node-type n) "tool_param")))))
-    (cl-find-if
-     (lambda (param-node)
-       (when-let ((name-node (treesit-search-subtree param-node "name")))
-         (string= (string-trim (treesit-node-text name-node t)) "path")))
-     param-nodes)))
-
 
 (provide 'greger)
 

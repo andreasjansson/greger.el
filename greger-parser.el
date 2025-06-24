@@ -598,7 +598,7 @@ assuming it's already been sent in streaming."
             "ID: " id "\n\n"
             (greger-parser--tool-params-to-markdown id input))))
 
-(defun greger-parser--tool-result-to-markdown (tool-result &optional tool-use-path)
+(defun greger-parser--tool-result-to-markdown (tool-result)
   "Convert TOOL-RESULT to markdown."
   (let ((id (alist-get 'tool_use_id tool-result))
         (content (greger-parser--tool-content-to-markdown tool-result)))
