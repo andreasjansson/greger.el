@@ -526,7 +526,6 @@ What files are here?"))
       (should (string-match-p "<safe-shell-commands>"
                               (alist-get 'content (car result)))))))
 
-
 ;; Cleanup test - should run last alphabetically
 (ert-deftest greger-parser-zz-test-cleanup ()
   "Clean up test resources (runs last due to alphabetical ordering)."

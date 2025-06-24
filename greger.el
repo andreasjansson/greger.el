@@ -231,8 +231,10 @@ When nil, preserve point position using `save-excursion'.")
    :override t
    '((tool_start_tag) @greger-ui--make-tool-tag-invisible
      (tool_end_tag) @greger-ui--make-tool-tag-invisible
-     (tool_result (id) @greger-ui--make-tool-result-id-invisible)
      (tool_use (id) @greger-ui--make-tool-use-id-invisible)
+     (tool_result (id) @greger-ui--make-tool-result-id-invisible)
+     (server_tool_use (id) @greger-ui--make-tool-use-id-invisible)
+     (web_search_tool_result (id) @greger-ui--make-tool-result-id-invisible)
      (tool_param_header) @greger-tool-param-name-face
      (key) @greger-key-face
      (url) @greger-ui--url-link-fn)
@@ -291,9 +293,17 @@ When nil, preserve point position using `save-excursion'.")
                 (subheadings)))
   (setq-local treesit-simple-indent-rules greger--treesit-indent-rules)
 
-  ;; Disabled because this crashes Emacs.
+  ;; This crashes Emacs 29.0.91 but not Emacs 30.1. TODO: test if it crashes Emacs 29.1
   ;; Reproduce: At beginning of buffer, run (treesit-search-forward-goto (treesit-node-at (point)) "" t t t)
-  ;; (setq-local treesit-defun-type-regexp (rx line-start (or "user" "assistant") line-end))
+  (setq-local treesit-defun-type-regexp (rx line-start
+                                            (or "system"
+                                                "user"
+                                                "assistant"
+                                                "tool_use"
+                                                "server_tool_user"
+                                                "tool_result"
+                                                "web_search_tool_result")
+                                            line-end))
 
   (treesit-major-mode-setup)
 
@@ -794,9 +804,12 @@ COMPLETION-CALLBACK is called when complete."
              ;; Find and replace the placeholder
              (when (search-backward (greger--tool-placeholder tool-id) nil t)
                (replace-match "")
+               ;; Now that we've deleted the tool result "placeholder",
+               ;; we're now inside a tool_use block
                (let ((result-markdown (greger-parser--tool-result-to-markdown tool-result)))
-                 (unless (string-empty-p result-markdown)
-                   (insert result-markdown)))))))
+                 (when (string-empty-p result-markdown)
+                   (error "Failed to parse result markdown"))
+                 (insert result-markdown))))))
 
         ;; Update buffer state after tool completion
         (with-current-buffer buffer

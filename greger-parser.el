@@ -34,7 +34,6 @@
 (require 'treesit)
 (require 'json)
 (require 'cl-lib)
-(require 'greger-diff)
 
 ;; Section tag constants
 (defconst greger-parser-system-tag "# SYSTEM")
@@ -215,28 +214,11 @@ You can run arbitrary shell commands with the shell-command tool, but the follow
       (push (greger-parser--extract-tool-param tool-param-node) params))
     (setq params (nreverse params))
 
-    ;; Check if this is a str-replace tool with diff param and convert back
-    (when (string= name "str-replace")
-      (setq params (greger-parser--str-replace-undiff-params params)))
-
     `((role . "assistant")
       (content . (((type . "tool_use")
                    (id . ,id)
                    (name . ,name)
                    (input . ,params)))))))
-
-(defun greger-parser--str-replace-undiff-params (params)
-  "Convert diff parameter to original-content and new-content in PARAMS."
-  (let ((diff-content (alist-get 'diff params))
-        (other-params (cl-remove-if (lambda (param)
-                                      (eq (car param) 'diff))
-                                    params)))
-    (when diff-content
-      (let ((undiff-result (greger-diff-undiff-strings diff-content)))
-        (setq params (append other-params
-                             `((original-content . ,(car undiff-result))
-                               (new-content . ,(cdr undiff-result)))))))
-    params))
 
 (defun greger-parser--extract-server-tool-use (node)
   "Extract tool use entry from NODE."
@@ -600,27 +582,10 @@ assuming it's already been sent in streaming."
         (id (alist-get 'id tool-use))
         (input (alist-get 'input tool-use)))
 
-    ;; Check if this is a str-replace tool and convert to diff format
-    (when (string= name "str-replace")
-      (setq input (greger-parser--str-replace-diff-params input)))
-
     (concat greger-parser-tool-use-tag "\n\n"
             "Name: " name "\n"
             "ID: " id "\n\n"
             (greger-parser--tool-params-to-markdown id input))))
-
-(defun greger-parser--str-replace-diff-params (input)
-  "Convert original-content and new-content to diff parameter in INPUT."
-  (let ((original-content (alist-get 'original-content input))
-        (new-content (alist-get 'new-content input))
-        (path (alist-get 'path input))
-        (other-params (cl-remove-if (lambda (param)
-                                      (memq (car param) '(original-content new-content)))
-                                    input)))
-    (if (and original-content new-content)
-        (let ((diff-content (greger-diff-strings original-content new-content (or path "unknown.txt"))))
-          (cons `(diff . ,diff-content) other-params))
-      input)))
 
 (defun greger-parser--server-tool-use-to-markdown (tool-use)
   "Convert TOOL-USE to markdown."
@@ -637,6 +602,7 @@ assuming it's already been sent in streaming."
   "Convert TOOL-RESULT to markdown."
   (let ((id (alist-get 'tool_use_id tool-result))
         (content (greger-parser--tool-content-to-markdown tool-result)))
+
     (greger-parser--wrapped-tool-content greger-parser-tool-result-tag id content)))
 
 (defun greger-parser--wrapped-tool-content (tag id content)
@@ -664,6 +630,7 @@ assuming it's already been sent in streaming."
 
 (defun greger-parser--tool-params-to-markdown (id input)
   "Convert tool parameters with ID and INPUT to markdown."
+
   (if (null input)
       ""
     (mapconcat (lambda (param)
