@@ -216,11 +216,13 @@ When nil, preserve point position using `save-excursion'.")
    :language 'greger
    :feature 'folding
    :override t
-   '((assistant (citation_entry) @greger-ui--citation-entry-folding-fn)
-     (tool_content_tail) @greger-ui--tool-content-tail-folding-fn
-     (tool_content_head) @greger-ui--tool-content-head-folding-fn
-     (thinking_signature) @greger-ui--thinking-signature-hiding-fn
-     (tool_use) @greger-ui--str-replace-diff-transform-fn)
+   '((tool_use) @greger-ui--str-replace-diff-transform-fn
+     ;(assistant (citation_entry) @greger-ui--citation-entry-folding-fn)
+     ;(tool_content_tail) @greger-ui--tool-content-tail-folding-fn
+     ;(tool_content_head) @greger-ui--tool-content-head-folding-fn
+     ;(thinking_signature) @greger-ui--thinking-signature-hiding-fn
+     
+     )
 
    :language 'greger
    :feature 'subheadings
@@ -288,7 +290,8 @@ When nil, preserve point position using `save-excursion'.")
   (setq-local treesit-font-lock-settings greger--treesit-font-lock-settings)
   (setq-local treesit-font-lock-feature-list
               '((error)
-                (headers folding tool-folding)
+                (folding)
+                (headers)
                 (tool-tags)
                 (comments)
                 (subheadings)))

@@ -34,6 +34,8 @@
 (require 'diff)
 (require 'diff-mode)
 
+(require 'greger-parser)
+
 
 
 (defvar greger-ui-citation-keymap
@@ -274,6 +276,9 @@ NODE is the matched tree-sitter node"
 NODE is the matched tree-sitter node for tool_use block."
   (when (greger-ui--is-str-replace-tool-use-p node)
     (let ((cache-key (greger-ui--compute-str-replace-cache-key node start end)))
+      ;; TODO: remove
+      (greger-ui--apply-str-replace-diff-overlay node start end cache-key)
+
       (unless (get-text-property start 'greger-ui-str-replace-cached-key)
         ;; Apply diff transformation
         (greger-ui--apply-str-replace-diff-overlay node start end cache-key)))))
@@ -281,9 +286,9 @@ NODE is the matched tree-sitter node for tool_use block."
 (defun greger-ui--is-str-replace-tool-use-p (node)
   "Check if NODE is a str-replace tool_use block."
   (when (string= (treesit-node-type node) "tool_use")
-    (let ((name-node (treesit-search-subtree node "^tool_name$" nil nil 1)))
-      (when name-node
-        (string= (string-trim (treesit-node-text name-node t)) "str-replace")))))
+    (let* ((name-node (treesit-search-subtree node "name"))
+           (name (greger-parser--extract-value name-node)))
+      name)))
 
 (defun greger-ui--compute-str-replace-cache-key (node start end)
   "Compute cache key for str-replace NODE content between START and END."
@@ -292,17 +297,28 @@ NODE is the matched tree-sitter node for tool_use block."
 
 (defun greger-ui--apply-str-replace-diff-overlay (node start end cache-key)
   "Apply diff overlay to str-replace NODE content between START and END."
-  (let* ((original-content (greger-ui--extract-str-replace-param node "original-content"))
-         (new-content (greger-ui--extract-str-replace-param node "new-content"))
-         (path (greger-ui--extract-str-replace-param node "path")))
-    
+  (let* ((params (greger-parser--extract-tool-use-params node))
+         (original-content (alist-get 'original-content params))
+         (new-content (alist-get 'new-content params))
+         (path (alist-get 'path params))
+         (param-nodes (greger-parser--extract-tool-use-param-nodes node))
+         (original-content-node (alist-get 'original-content param-nodes))
+         (new-content-node (alist-get 'new-content param-nodes))
+         (overlay-start (treesit-node-start original-content-node))
+         (overlay-end (treesit-node-end new-content-node)))
+
+    ;; TODO: remove debug
+    (message (format "overlay-start: %s" overlay-start))
+    ;; TODO: remove debug
+    (message (format "overlay-end: %s" overlay-end))
+
     (when (and original-content new-content path)
       ;; Generate diff using diff.el
-      (let ((diff-content (greger-ui--generate-diff-content original-content new-content path)))
-        
+      (let* ((diff-content (greger-ui--generate-diff-content original-content new-content path))
+             (diff-with-header (concat "## diff\n\n" diff-content)))
         ;; Create overlay to replace the display
-        (let ((overlay (make-overlay start end)))
-          (overlay-put overlay 'display diff-content)
+        (let ((overlay (make-overlay overlay-start overlay-end)))
+          (overlay-put overlay 'display diff-with-header)
           (overlay-put overlay 'greger-ui-str-replace-diff t)
           (overlay-put overlay 'evaporate t)
           
@@ -317,68 +333,33 @@ NODE is the matched tree-sitter node for tool_use block."
           ;; Mark as cached to avoid re-computation
           (put-text-property start end 'greger-ui-str-replace-cached-key cache-key))))))
 
-(defun greger-ui--extract-str-replace-param (tool-use-node param-name)
-  "Extract PARAM-NAME value from str-replace TOOL-USE-NODE."
-  (let ((param-nodes (treesit-search-subtree tool-use-node "^tool_param$" nil nil 'all)))
-    (catch 'found
-      (dolist (param-node param-nodes)
-        (let ((name-node (treesit-search-subtree param-node "^name$" nil nil 1)))
-          (when (and name-node 
-                     (string= (string-trim (treesit-node-text name-node t)) param-name))
-            (let ((value-node (treesit-search-subtree param-node "^value$" nil nil 1)))
-              (when value-node
-                (throw 'found (string-trim (treesit-node-text value-node t)))))))))))
-
 (defun greger-ui--generate-diff-content (original new path)
   "Generate diff content from ORIGINAL to NEW for PATH using diff.el."
-  (let ((original-file (make-temp-file "greger-original"))
-        (new-file (make-temp-file "greger-new")))
+  (let* ((ext (file-name-extension path t))
+         (original-file (make-temp-file "greger-original" nil ext))
+         (new-file (make-temp-file "greger-new" nil ext))
+         (diff-buffer (get-buffer-create "*Greger diff*")))
     (unwind-protect
         (progn
           ;; Write content to temp files
-          (with-temp-file original-file (insert original))
-          (with-temp-file new-file (insert new))
-          
-          ;; Generate diff
-          (with-temp-buffer
-            (let ((exit-code (call-process "diff" nil t nil "-u" original-file new-file)))
-              (goto-char (point-min))
-              
-              ;; If no differences, show a simple message
-              (if (and (= exit-code 0) (= (point-min) (point-max)))
-                  (format "No differences found between original and new content for %s" (file-name-nondirectory path))
-                ;; Remove diff headers and apply diff-mode syntax highlighting
-                (greger-ui--process-diff-output path)))))
+          (with-temp-file original-file
+            (insert original))
+          (with-temp-file new-file
+            (insert new))
+
+          (message "BEFORE")
+
+          (diff-no-select original-file new-file '("-u" "-U" "100000") t diff-buffer)
+          (message "AFTER")
+
+          (with-current-buffer diff-buffer
+            (buffer-string)))
       
       ;; Cleanup temp files
       (when (file-exists-p original-file) (delete-file original-file))
-      (when (file-exists-p new-file) (delete-file new-file)))))
-
-(defun greger-ui--process-diff-output (path)
-  "Process diff output in current buffer, remove headers and apply syntax highlighting."
-  (let ((content (buffer-string)))
-    ;; Process in a temporary buffer with diff-mode
-    (with-temp-buffer
-      (insert content)
-      (goto-char (point-min))
-      
-      ;; Remove the file header lines (--- and +++ lines)
-      (when (looking-at "^--- ")
-        (delete-region (point) (progn (forward-line 1) (point))))
-      (when (looking-at "^\\+\\+\\+ ")
-        (delete-region (point) (progn (forward-line 1) (point))))
-      
-      ;; Remove hunk headers (@@ lines) 
-      (goto-char (point-min))
-      (while (re-search-forward "^@@.*@@\\s-*\n" nil t)
-        (replace-match ""))
-      
-      ;; Apply diff-mode syntax highlighting in temp buffer
-      (diff-mode)
-      (font-lock-ensure)
-      
-      ;; Return the processed content with font-lock properties
-      (buffer-string))))
+      (when (file-exists-p new-file) (delete-file new-file))
+      ;(kill-buffer diff-buffer)
+      )))
 
 (defun greger-ui--clear-str-replace-overlays ()
   "Clear all str-replace diff overlays."
@@ -389,51 +370,6 @@ NODE is the matched tree-sitter node for tool_use block."
 
 ;; Add cleanup hook for when buffer is killed
 (add-hook 'kill-buffer-hook #'greger-ui--clear-str-replace-overlays)
-
-;; Debug function for testing
-(defun greger-ui--debug-str-replace-at-point ()
-  "Debug function to test str-replace detection at point."
-  (interactive)
-  (let ((node (treesit-node-at (point))))
-    (when node
-      (let ((tool-use-node (treesit-node-parent node)))
-        (while (and tool-use-node 
-                    (not (string= (treesit-node-type tool-use-node) "tool_use")))
-          (setq tool-use-node (treesit-node-parent tool-use-node)))
-        
-        (if tool-use-node
-            (let ((is-str-replace (greger-ui--is-str-replace-tool-use-p tool-use-node)))
-              (message "Found tool_use node: %s, is str-replace: %s" 
-                       (treesit-node-type tool-use-node) is-str-replace)
-              (when is-str-replace
-                (let ((original (greger-ui--extract-str-replace-param tool-use-node "original-content"))
-                      (new (greger-ui--extract-str-replace-param tool-use-node "new-content"))
-                      (path (greger-ui--extract-str-replace-param tool-use-node "path")))
-                  (message "Extracted: path='%s' original=%d chars, new=%d chars" 
-                           path (length original) (length new)))))
-          (message "No tool_use node found"))))))
-
-(defun greger-ui--test-str-replace-diff ()
-  "Test function to generate diff for str-replace at point."
-  (interactive)
-  (let ((node (treesit-node-at (point))))
-    (when node
-      (let ((tool-use-node (treesit-node-parent node)))
-        (while (and tool-use-node 
-                    (not (string= (treesit-node-type tool-use-node) "tool_use")))
-          (setq tool-use-node (treesit-node-parent tool-use-node)))
-        
-        (when (and tool-use-node (greger-ui--is-str-replace-tool-use-p tool-use-node))
-          (let* ((original (greger-ui--extract-str-replace-param tool-use-node "original-content"))
-                 (new (greger-ui--extract-str-replace-param tool-use-node "new-content"))
-                 (path (greger-ui--extract-str-replace-param tool-use-node "path"))
-                 (diff-content (greger-ui--generate-diff-content original new path)))
-            (with-current-buffer (get-buffer-create "*str-replace-diff-test*")
-              (erase-buffer)
-              (insert diff-content)
-              (goto-char (point-min))
-              (display-buffer (current-buffer)))))))))
-
 
 (provide 'greger-ui)
 ;;; greger-ui.el ends here

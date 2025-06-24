@@ -217,8 +217,7 @@ You can run arbitrary shell commands with the shell-command tool, but the follow
   (let* ((param-node-map (greger-parser--extract-tool-use-param-nodes node))
          (params '()))
     (dolist (param-entry param-node-map)
-      (let ((param-name (car param-entry))
-            (param-node (cdr param-entry)))
+      (let ((param-node (cdr param-entry)))
         (push (greger-parser--extract-tool-param param-node) params)))
     (nreverse params)))
 
