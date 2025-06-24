@@ -316,6 +316,10 @@ NODE is the matched tree-sitter node for tool_use block."
       ;; Generate diff using diff.el
       (let* ((diff-content (greger-ui--generate-diff-content original-content new-content path))
              (diff-with-header (concat "## diff\n\n" diff-content)))
+
+        (setq gg-diff-content diff-content)
+        (setq gg-diff-with-header diff-with-header)
+
         ;; Create overlay to replace the display
         (let ((overlay (make-overlay overlay-start overlay-end)))
           (overlay-put overlay 'display diff-with-header)
@@ -347,17 +351,22 @@ NODE is the matched tree-sitter node for tool_use block."
           (with-temp-file new-file
             (insert new))
 
-          (message "BEFORE")
-
           (diff-no-select original-file new-file '("-u" "-U" "100000") t diff-buffer)
-          (message "AFTER")
-
+          ;; TODO: remove debug
           (with-current-buffer diff-buffer
+            ;; Ensure font-lock is active and force fontification
+            (font-lock-ensure (point-min) (point-max))
+            ;; Alternative approaches if font-lock-ensure doesn't work:
+            ;; 1. Force jit-lock fontification
+            ;; (jit-lock-fontify-now (point-min) (point-max))
+            ;; 2. Or manually trigger font-lock
+            ;; (font-lock-fontify-region (point-min) (point-max))
+            (setq gg-buffer-string (buffer-string))
             (buffer-string)))
       
       ;; Cleanup temp files
-      (when (file-exists-p original-file) (delete-file original-file))
-      (when (file-exists-p new-file) (delete-file new-file))
+      ;(when (file-exists-p original-file) (delete-file original-file))
+      ;(when (file-exists-p new-file) (delete-file new-file))
       ;(kill-buffer diff-buffer)
       )))
 
