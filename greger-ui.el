@@ -388,5 +388,20 @@ overriding existing diff syntax highlighting."
     
     (buffer-string)))
 
+(defun greger-ui--preserve-diff-fontification (start end)
+  "Preserve diff text properties in regions marked as diff regions.
+This function runs in `fontification-functions' before tree-sitter
+font-lock to ensure diff highlighting is preserved."
+  (let ((pos start))
+    (while (< pos end)
+      (let ((next-change (next-single-property-change pos 'greger-diff-region nil end)))
+        (when (get-text-property pos 'greger-diff-region)
+          ;; This is a diff region, mark it as already fontified to prevent
+          ;; tree-sitter from overriding the existing face properties
+          (put-text-property pos (min next-change end) 'fontified t))
+        (setq pos next-change))))
+  ;; Return nil to let other fontification functions run
+  nil)
+
 (provide 'greger-ui)
 ;;; greger-ui.el ends here
