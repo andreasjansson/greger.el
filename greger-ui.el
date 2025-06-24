@@ -460,6 +460,10 @@ Expensive operations are deferred to idle time to avoid blocking scrolling."
             ;; Convert 'face to 'font-lock-face for tree-sitter compatibility
             (greger-ui--convert-faces-for-tree-sitter)
 
+            ;; Add background colors to diff lines
+            (greger-ui--apply-diff-line-backgrounds)
+
+
             ;; Remove headers/footers inserted by the diff command and diff.el
             (greger-ui--remove-diff-headers)
   
@@ -476,10 +480,6 @@ Expensive operations are deferred to idle time to avoid blocking scrolling."
 
 (defun greger-ui--convert-faces-for-tree-sitter ()
   "Convert 'face text properties and overlay faces to 'font-lock-face for tree-sitter."
-
-  ;; Add background colors to diff lines
-  (greger-ui--apply-diff-line-backgrounds)
-
   ;; Convert overlays with 'face property (syntax highlighting overlays)
   (dolist (overlay (overlays-in (point-min) (point-max)))
     (when-let ((face (overlay-get overlay 'face))
@@ -492,21 +492,27 @@ Expensive operations are deferred to idle time to avoid blocking scrolling."
   (add-text-properties (point-min) (point-max) '(fontified t)))
 
 (defun greger-ui--apply-diff-line-backgrounds ()
-  "Apply background colors to diff lines that start with - (soft red) or + (soft green)."
-  (goto-char (point-min))
-  (while (not (eobp))
-    (let ((line-start (line-beginning-position))
-          (line-end (line-end-position)))
-      (cond
-       ;; Lines starting with - get soft red background
-       ((looking-at "^-")
-        (put-text-property line-start (1+ line-end)
-                          'font-lock-face '(:background "#ffe6e6")))
-       ;; Lines starting with + get soft green background
-       ((looking-at "^\\+")
-        (put-text-property line-start (1+ line-end)
-                          'font-lock-face '(:background "#e6ffe6")))))
-    (forward-line 1)))
+  "Apply background colors to diff lines that start with - (soft red) or + (soft green).
+Colors are adapted to the current theme (dark/light)."
+  (let* ((bg-color (face-background 'default))
+         (is-dark-theme (and bg-color
+                            (< (apply '+ (color-values bg-color)) 98304))) ; Sum of RGB < 0.5 * 3 * 65535
+         (red-bg (if is-dark-theme "#2d1b1b" "#ffe6e6"))   ; Dark red vs light red
+         (green-bg (if is-dark-theme "#1b2d1b" "#e6ffe6"))) ; Dark green vs light green
+    (goto-char (point-min))
+    (while (not (eobp))
+      (let ((line-start (line-beginning-position))
+            (line-end (line-end-position)))
+        (cond
+         ;; Lines starting with - get theme-appropriate red background
+         ((looking-at "^-")
+          (put-text-property line-start (1+ line-end)
+                            'font-lock-face `(:background ,red-bg)))
+         ;; Lines starting with + get theme-appropriate green background
+         ((looking-at "^\\+")
+          (put-text-property line-start (1+ line-end)
+                            'font-lock-face `(:background ,green-bg)))))
+      (forward-line 1))))
 
 (defun greger-ui--remove-diff-headers ()
   "Process diff output, remove headers and apply syntax highlighting."
