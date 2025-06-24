@@ -341,11 +341,14 @@ NODE is the matched tree-sitter node for tool_use block."
           
           ;; Generate diff
           (with-temp-buffer
-            (call-process "diff" nil t nil "-u" original-file new-file)
-            (goto-char (point-min))
-            
-            ;; Remove diff headers and apply diff-mode syntax highlighting
-            (greger-ui--process-diff-output path)))
+            (let ((exit-code (call-process "diff" nil t nil "-u" original-file new-file)))
+              (goto-char (point-min))
+              
+              ;; If no differences, show a simple message
+              (if (and (= exit-code 0) (= (point-min) (point-max)))
+                  (format "No differences found between original and new content for %s" (file-name-nondirectory path))
+                ;; Remove diff headers and apply diff-mode syntax highlighting
+                (greger-ui--process-diff-output path)))))
       
       ;; Cleanup temp files
       (when (file-exists-p original-file) (delete-file original-file))
