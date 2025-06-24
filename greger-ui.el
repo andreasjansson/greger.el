@@ -368,9 +368,10 @@ NODE is the matched tree-sitter node for tool_use block."
 
 (defun greger-ui--generate-diff-content (original new path)
   "Generate diff content from ORIGINAL to NEW for PATH using diff.el."
-  (let* ((ext (file-name-extension path t))
-         (original-file (make-temp-file "greger-original" nil ext))
-         (new-file (make-temp-file "greger-new" nil ext))
+  (let* ((ext (or (file-name-extension path t) ""))
+         (basename (file-name-base path))
+         (original-file (make-temp-file (concat "greger-original-" basename) nil ext))
+         (new-file (make-temp-file (concat "greger-new-" basename) nil ext))
          (diff-buffer (get-buffer-create "*Greger diff*")))
     (unwind-protect
         (progn
