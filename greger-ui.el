@@ -498,18 +498,12 @@ Also applies diff line background colors, combining them with overlay foreground
               (cond
                ;; Lines starting with - get red background (overwrite existing background)
                ((looking-at "^-")
-                (let ((modified-face (if (listp face)
-                                       (plist-put (copy-sequence face) :background red-bg)
-                                     `(,face :background ,red-bg))))
-                  (put-text-property overlay-start-in-line overlay-end-in-line
-                                    'font-lock-face modified-face)))
+                (put-text-property overlay-start-in-line overlay-end-in-line
+                                  'font-lock-face `((:background ,red-bg) ,face)))
                ;; Lines starting with + get green background (overwrite existing background)
                ((looking-at "^\\+")
-                (let ((modified-face (if (listp face)
-                                       (plist-put (copy-sequence face) :background green-bg)
-                                     `(,face :background ,green-bg))))
-                  (put-text-property overlay-start-in-line overlay-end-in-line
-                                    'font-lock-face modified-face)))
+                (put-text-property overlay-start-in-line overlay-end-in-line
+                                  'font-lock-face `((:background ,green-bg) ,face)))
                ;; Other lines get just the overlay face
                (t
                 (put-text-property overlay-start-in-line overlay-end-in-line
