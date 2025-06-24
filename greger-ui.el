@@ -382,11 +382,27 @@ NODE is the matched tree-sitter node for tool_use block."
 
           (diff-no-select original-file new-file '("-u" "-U" "100000") t diff-buffer)
           (with-current-buffer diff-buffer
+            ;; Enable syntax highlighting explicitly
+            (setq-local diff-font-lock-syntax t)
+            (setq-local diff-vc-backend 'Git)  ; Fake a VC backend
+            
+            ;; Set file names so diff-mode can detect file types
+            (setq-local diff-vc-revisions (list original-file new-file))
+            
+            ;; Debug: check if syntax highlighting is enabled
+            (message "diff-font-lock-syntax: %s" diff-font-lock-syntax)
+            (message "major-mode: %s" major-mode)
+            
             ;; Ensure font-lock is active and force fontification
             (font-lock-ensure (point-min) (point-max))
-
-            ;; TODO: remove debug
-            (message (format "(buffer-string: %S" (buffer-string)))
+            
+            ;; Debug: check overlays
+            (message "Overlays count: %d" (length (overlays-in (point-min) (point-max))))
+            (dolist (overlay (overlays-in (point-min) (point-max)))
+              (message "Overlay: %s-%s, diff-mode: %s, face: %s" 
+                       (overlay-start overlay) (overlay-end overlay)
+                       (overlay-get overlay 'diff-mode)
+                       (overlay-get overlay 'face)))
 
             (buffer-string)))
       
@@ -408,6 +424,8 @@ NODE is the matched tree-sitter node for tool_use block."
   ;; Convert overlays with 'face property (syntax highlighting overlays)
   (dolist (overlay (overlays-in (point-min) (point-max)))
     (when-let ((face (overlay-get overlay 'face)))
+      ;; TODO: remove debug
+      (message (format "face: %s" face))
       (let ((start (overlay-start overlay))
             (end (overlay-end overlay)))
         (put-text-property start end 'font-lock-face face))))
