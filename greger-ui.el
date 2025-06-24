@@ -390,6 +390,29 @@ NODE is the matched tree-sitter node for tool_use block."
 ;; Add cleanup hook for when buffer is killed
 (add-hook 'kill-buffer-hook #'greger-ui--clear-str-replace-overlays)
 
+;; Debug function for testing
+(defun greger-ui--debug-str-replace-at-point ()
+  "Debug function to test str-replace detection at point."
+  (interactive)
+  (let ((node (treesit-node-at (point))))
+    (when node
+      (let ((tool-use-node (treesit-node-parent node)))
+        (while (and tool-use-node 
+                    (not (string= (treesit-node-type tool-use-node) "tool_use")))
+          (setq tool-use-node (treesit-node-parent tool-use-node)))
+        
+        (if tool-use-node
+            (let ((is-str-replace (greger-ui--is-str-replace-tool-use-p tool-use-node)))
+              (message "Found tool_use node: %s, is str-replace: %s" 
+                       (treesit-node-type tool-use-node) is-str-replace)
+              (when is-str-replace
+                (let ((original (greger-ui--extract-str-replace-param tool-use-node "original-content"))
+                      (new (greger-ui--extract-str-replace-param tool-use-node "new-content"))
+                      (path (greger-ui--extract-str-replace-param tool-use-node "path")))
+                  (message "Extracted: path='%s' original=%d chars, new=%d chars" 
+                           path (length original) (length new)))))
+          (message "No tool_use node found"))))))
+
 
 (provide 'greger-ui)
 ;;; greger-ui.el ends here
