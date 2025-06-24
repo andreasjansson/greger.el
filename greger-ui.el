@@ -310,12 +310,9 @@ NODE is the matched tree-sitter node for tool_use block."
 
         ;; Replace buffer content with diff
         (let ((inhibit-read-only t))
-          ;; Delete new-content param first (it comes after original-content)
-          (delete-region (treesit-node-start new-content-node) (treesit-node-end new-content-node))
-          
-          ;; Replace original-content param with diff param
-          (goto-char (treesit-node-start original-content-node))
-          (delete-region (treesit-node-start original-content-node) (treesit-node-end original-content-node))
+          ;; Replace the entire range from start of original-content to end of new-content
+          (goto-char replace-start)
+          (delete-region replace-start replace-end)
           (insert diff-with-header)
           
           ;; Mark as cached to avoid re-computation
