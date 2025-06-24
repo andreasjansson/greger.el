@@ -675,6 +675,103 @@ assuming it's already been sent in streaming."
      ((listp value) (json-encode value))
      (t (format "%s" value)))))
 
+;; Undiff functionality for str-replace
+
+(defun greger-parser-undiff-strings (unified-diff-str)
+  "Extract original and new strings from UNIFIED-DIFF-STR.
+Handles unified diff format created by the `diff` command, including diffs
+without headers (file/hunk headers deleted).
+Returns a cons cell (ORIGINAL-STR . NEW-STR)."
+  ;; Handle empty diff (identical files)
+  (if (string= "" (string-trim unified-diff-str))
+      (cons "" "")
+
+    (let ((lines (split-string unified-diff-str "\n"))
+          (original-lines '())
+          (new-lines '())
+          (in-hunk nil)
+          (orig-no-newline nil)
+          (new-no-newline nil)
+          (has-headers nil)
+          (last-operation nil)) ; Track what the last operation was for "No newline" handling
+
+      ;; Check if the diff has headers (to determine processing mode)
+      (dolist (line lines)
+        (when (string-match "^\\(---\\|\\+\\+\\+\\|@@\\)" line)
+          (setq has-headers t)))
+
+      ;; If no headers found, assume we're directly in hunk content
+      (unless has-headers
+        (setq in-hunk t))
+
+      (dolist (line lines)
+        (cond
+         ;; Skip header lines if they exist
+         ((string-match "^\\(---\\|\\+\\+\\+\\|@@\\)" line)
+          (when (string-match "^@@" line)
+            (setq in-hunk t)))
+
+         ;; Process hunk content
+         (in-hunk
+          (cond
+           ;; Handle "No newline" messages
+           ((string-match "^\\\\ No newline" line)
+            ;; Apply "No newline" based on the last operation
+            (cond
+             ((eq last-operation 'deleted)
+              (setq orig-no-newline t))
+             ((eq last-operation 'added)
+              (setq new-no-newline t))
+             ((eq last-operation 'context)
+              ;; For context lines, both sides don't have newlines
+              (setq orig-no-newline t new-no-newline t))
+             (t
+              ;; Fallback: if we can't determine, assume it applies to both
+              (setq orig-no-newline t new-no-newline t))))
+
+           ;; Process normal lines
+           ((> (length line) 0)
+            (let ((prefix (substring line 0 1))
+                  (content (substring line 1)))
+              (cond
+               ;; Unchanged line
+               ((string= prefix " ")
+                (push content original-lines)
+                (push content new-lines)
+                (setq last-operation 'context))
+
+               ;; Deleted line
+               ((string= prefix "-")
+                (push content original-lines)
+                (setq last-operation 'deleted))
+
+               ;; Added line
+               ((string= prefix "+")
+                (push content new-lines)
+                (setq last-operation 'added))
+
+               ;; Handle lines without prefix (context)
+               ((not (member prefix '("-" "+")))
+                (push line original-lines)
+                (push line new-lines)
+                (setq last-operation 'context)))))))))
+
+      ;; Build the final strings
+      (let ((orig-str (if original-lines
+                          (string-join (nreverse original-lines) "\n")
+                        ""))
+            (new-str (if new-lines
+                         (string-join (nreverse new-lines) "\n")
+                       "")))
+        ;; Add trailing newlines unless explicitly marked as having no newline
+        (unless (or orig-no-newline (string= orig-str ""))
+          (setq orig-str (concat orig-str "\n")))
+        (unless (or new-no-newline (string= new-str ""))
+          (setq new-str (concat new-str "\n")))
+        ;; Strip text properties to return clean strings
+        (cons (substring-no-properties orig-str)
+              (substring-no-properties new-str))))))
+
 (provide 'greger-parser)
 
 ;;; greger-parser.el ends here
