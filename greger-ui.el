@@ -327,16 +327,6 @@ overriding existing diff syntax highlighting."
           (delete-region replace-start replace-end)
           (insert wrapped-diff)
           
-          ;; Use fontification-functions to bypass tree-sitter for diff regions
-          (let ((inserted-start replace-start)
-                (inserted-end (point)))
-            ;; Mark this region as a diff region that should preserve its text properties
-            (put-text-property inserted-start inserted-end 'greger-diff-region t)
-            ;; Add a buffer-local fontification function if not already present
-            (unless (memq 'greger-ui--preserve-diff-fontification 
-                          (buffer-local-value 'fontification-functions (current-buffer)))
-              (add-hook 'fontification-functions 'greger-ui--preserve-diff-fontification nil t)))
-          
           ;; Mark as cached to avoid re-computation
           (put-text-property start end 'greger-ui-str-replace-cached-key cache-key))))))
 
