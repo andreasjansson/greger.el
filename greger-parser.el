@@ -34,7 +34,6 @@
 (require 'treesit)
 (require 'json)
 (require 'cl-lib)
-(require 'greger-diff)
 
 ;; Section tag constants
 (defconst greger-parser-system-tag "# SYSTEM")
@@ -215,28 +214,11 @@ You can run arbitrary shell commands with the shell-command tool, but the follow
       (push (greger-parser--extract-tool-param tool-param-node) params))
     (setq params (nreverse params))
 
-    ;; Check if this is a str-replace tool with diff param and convert back
-    (when (string= name "str-replace")
-      (setq params (greger-parser--str-replace-undiff-params params)))
-
     `((role . "assistant")
       (content . (((type . "tool_use")
                    (id . ,id)
                    (name . ,name)
                    (input . ,params)))))))
-
-(defun greger-parser--str-replace-undiff-params (params)
-  "Convert diff parameter to original-content and new-content in PARAMS."
-  (let ((diff-content (alist-get 'diff params))
-        (other-params (cl-remove-if (lambda (param)
-                                      (eq (car param) 'diff))
-                                    params)))
-    (when diff-content
-      (let ((undiff-result (greger-diff-undiff-strings diff-content)))
-        (setq params (append other-params
-                             `((original-content . ,(car undiff-result))
-                               (new-content . ,(cdr undiff-result)))))))
-    params))
 
 (defun greger-parser--extract-server-tool-use (node)
   "Extract tool use entry from NODE."
@@ -600,42 +582,10 @@ assuming it's already been sent in streaming."
         (id (alist-get 'id tool-use))
         (input (alist-get 'input tool-use)))
 
-    ;; Check if this is a str-replace tool and convert to diff format
-    (when (string= name "str-replace")
-      (setq input (greger-parser--str-replace-diff-params input)))
-
-    (when (or (string= name "write-new-file") (string= name "replace-file"))
-      (setq input (greger-parser--syntax-highlight-node input)))
-
     (concat greger-parser-tool-use-tag "\n\n"
             "Name: " name "\n"
             "ID: " id "\n\n"
             (greger-parser--tool-params-to-markdown id input))))
-
-(defun greger-parser--syntax-highlight-node (input)
-  "Apply syntax highlighting to contents parameter in INPUT.
-Assumes 'contents is the source code in input,
-and 'path is the file path in input."
-  (let* ((contents (alist-get 'contents input))
-         (path (alist-get 'path input))
-         ;; Placeholder for
-         ;; (highlighted-contents (syntax-highlight contents path))
-         (highlighted-contents contents))
-    (setf (alist-get 'contents input) highlighted-contents))
-  input)
-
-(defun greger-parser--str-replace-diff-params (input)
-  "Convert original-content and new-content to diff parameter in INPUT."
-  (let ((original-content (alist-get 'original-content input))
-        (new-content (alist-get 'new-content input))
-        (path (alist-get 'path input))
-        (other-params (cl-remove-if (lambda (param)
-                                      (memq (car param) '(original-content new-content)))
-                                    input)))
-    (if (and original-content new-content)
-        (let ((diff-content (greger-diff-strings original-content new-content (or path "unknown.txt"))))
-          (cons `(diff . ,diff-content) other-params))
-      input)))
 
 (defun greger-parser--server-tool-use-to-markdown (tool-use)
   "Convert TOOL-USE to markdown."
@@ -652,10 +602,6 @@ and 'path is the file path in input."
   "Convert TOOL-RESULT to markdown."
   (let ((id (alist-get 'tool_use_id tool-result))
         (content (greger-parser--tool-content-to-markdown tool-result)))
-
-    (when tool-use-path
-      ;; Placeholder for (setq content (syntax-highlight content tool-use-path))
-      nil)
 
     (greger-parser--wrapped-tool-content greger-parser-tool-result-tag id content)))
 
