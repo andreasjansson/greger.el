@@ -264,104 +264,149 @@ NODE is the matched tree-sitter node"
       (put-text-property tail-start (1+ tail-start) 'greger-ui-tool-content-expanded t)
       (font-lock-flush (treesit-node-start head-node) tail-end))))
 
-;; Str-replace diff overlay functionality
+;; Str-replace diff content replacement functionality
 
-(defvar-local greger-ui--str-replace-overlays nil
-  "List of overlays created for str-replace diff display.")
+(require 'diff)
+(require 'diff-mode)
 
 (defun greger-ui--str-replace-diff-transform-fn (node _override start end)
-  "Font-lock function to transform str-replace original/new content into diff display.
+  "Font-lock function to transform str-replace original/new content into diff content.
 NODE is the matched tree-sitter node for tool_use block."
   (when (greger-ui--is-str-replace-tool-use-p node)
     (let ((cache-key (greger-ui--compute-str-replace-cache-key node start end)))
-      ;; TODO: remove
-      (greger-ui--apply-str-replace-diff-overlay node start end cache-key)
-
       (unless (get-text-property start 'greger-ui-str-replace-cached-key)
-        ;; Apply diff transformation
-        (greger-ui--apply-str-replace-diff-overlay node start end cache-key)))))
+        ;; Apply diff content transformation
+        (greger-ui--apply-str-replace-diff-content node start end cache-key)))))
 
 (defun greger-ui--is-str-replace-tool-use-p (node)
   "Check if NODE is a str-replace tool_use block."
   (when (string= (treesit-node-type node) "tool_use")
-    (let* ((name-node (treesit-search-subtree node "name"))
-           (name (greger-parser--extract-value name-node)))
-      name)))
+    (let ((name-node (treesit-search-subtree node "^tool_name$" nil nil 1)))
+      (when name-node
+        (string= (string-trim (treesit-node-text name-node t)) "str-replace")))))
 
 (defun greger-ui--compute-str-replace-cache-key (node start end)
   "Compute cache key for str-replace NODE content between START and END."
   (let ((content (buffer-substring-no-properties start end)))
     (md5 content)))
 
-(defun greger-ui--apply-str-replace-diff-overlay (node start end cache-key)
-  "Apply diff overlay to str-replace NODE content between START and END."
-  (let* ((params (greger-parser--extract-tool-use-params node))
-         (original-content (alist-get 'original-content params))
-         (new-content (alist-get 'new-content params))
-         (path (alist-get 'path params))
-         (param-nodes (greger-parser--extract-tool-use-param-nodes node))
-         (original-content-node (alist-get 'original-content param-nodes))
-         (new-content-node (alist-get 'new-content param-nodes))
-         (overlay-start (treesit-node-start original-content-node))
-         (overlay-end (treesit-node-end new-content-node)))
-
+(defun greger-ui--apply-str-replace-diff-content (node start end cache-key)
+  "Replace str-replace original-content/new-content params with diff content."
+  (let* ((original-content (greger-ui--extract-str-replace-param node "original-content"))
+         (new-content (greger-ui--extract-str-replace-param node "new-content"))
+         (path (greger-ui--extract-str-replace-param node "path")))
+    
     (when (and original-content new-content path)
       ;; Generate diff using diff.el
-      (let* ((diff-content (greger-ui--generate-diff-content original-content new-content path))
-             (diff-with-header (concat "## diff\n\n" diff-content)))
+      (let ((diff-content (greger-ui--generate-diff-content original-content new-content path)))
+        
+        ;; Find the original-content and new-content params and replace with diff
+        (save-excursion
+          (goto-char start)
+          (let ((inhibit-read-only t))
+            
+            ;; Find and replace original-content param
+            (when (re-search-forward "^## original-content" end t)
+              (let ((param-start (line-beginning-position))
+                    (param-end (greger-ui--find-param-end)))
+                (when (< param-end end)
+                  (delete-region param-start param-end))))
+            
+            ;; Find and replace new-content param
+            (goto-char start)
+            (when (re-search-forward "^## new-content" end t)
+              (let ((param-start (line-beginning-position))
+                    (param-end (greger-ui--find-param-end)))
+                (when (< param-end end)
+                  (delete-region param-start param-end))))
+            
+            ;; Insert diff param after path param
+            (goto-char start)
+            (when (re-search-forward "</tool\\.[^>]+>" end t)
+              (forward-line 1)
+              (insert "\n## diff\n\n")
+              (let ((diff-start (point)))
+                (insert diff-content)
+                (insert "\n"))
+              (insert "\n"))))
+        
+        ;; Mark as cached to avoid re-computation
+        (put-text-property start end 'greger-ui-str-replace-cached-key cache-key)))))
 
-        ;; Create overlay to replace the display
-        (let ((overlay (make-overlay overlay-start overlay-end)))
-          (overlay-put overlay 'display diff-with-header)
-          (overlay-put overlay 'greger-ui-str-replace-diff t)
-          (overlay-put overlay 'evaporate t)
-          
-          ;; Store metadata for potential reconstruction
-          (overlay-put overlay 'greger-ui-original-content original-content)
-          (overlay-put overlay 'greger-ui-new-content new-content)
-          (overlay-put overlay 'greger-ui-path path)
-          
-          ;; Track overlay for cleanup
-          (push overlay greger-ui--str-replace-overlays)
-          
-          ;; Mark as cached to avoid re-computation
-          (put-text-property start end 'greger-ui-str-replace-cached-key cache-key))))))
+(defun greger-ui--find-param-end ()
+  "Find the end of the current parameter section."
+  (save-excursion
+    (forward-line 1)
+    (if (re-search-forward "^## " nil t)
+        ;; Found next param, go back to end of previous line
+        (progn (forward-line -1) (line-end-position))
+      ;; No next param found, find the closing tool tag
+      (if (re-search-forward "</tool\\.[^>]+>" nil t)
+          (line-beginning-position)
+        (point-max)))))
+
+(defun greger-ui--extract-str-replace-param (tool-use-node param-name)
+  "Extract PARAM-NAME value from str-replace TOOL-USE-NODE."
+  (let ((param-nodes (treesit-search-subtree tool-use-node "^tool_param$" nil nil 'all)))
+    (catch 'found
+      (dolist (param-node param-nodes)
+        (let ((name-node (treesit-search-subtree param-node "^name$" nil nil 1)))
+          (when (and name-node 
+                     (string= (string-trim (treesit-node-text name-node t)) param-name))
+            (let ((value-node (treesit-search-subtree param-node "^value$" nil nil 1)))
+              (when value-node
+                (throw 'found (string-trim (treesit-node-text value-node t)))))))))))
 
 (defun greger-ui--generate-diff-content (original new path)
   "Generate diff content from ORIGINAL to NEW for PATH using diff.el."
-  (let* ((ext (file-name-extension path t))
-         (original-file (make-temp-file "greger-original" nil ext))
-         (new-file (make-temp-file "greger-new" nil ext))
-         (diff-buffer (get-buffer-create "*Greger diff*")))
+  (let ((original-file (make-temp-file "greger-original"))
+        (new-file (make-temp-file "greger-new")))
     (unwind-protect
         (progn
           ;; Write content to temp files
-          (with-temp-file original-file
-            (insert original))
-          (with-temp-file new-file
-            (insert new))
-
-          (diff-no-select original-file new-file '("-u" "-U" "100000") t diff-buffer)
-          (with-current-buffer diff-buffer
-            ;; Ensure font-lock is active and force fontification
-            (font-lock-ensure (point-min) (point-max))
-            (buffer-string)))
+          (with-temp-file original-file (insert original))
+          (with-temp-file new-file (insert new))
+          
+          ;; Generate diff
+          (with-temp-buffer
+            (let ((exit-code (call-process "diff" nil t nil "-u" original-file new-file)))
+              (goto-char (point-min))
+              
+              ;; If no differences, show a simple message
+              (if (and (= exit-code 0) (= (point-min) (point-max)))
+                  (format "No differences found between original and new content for %s" (file-name-nondirectory path))
+                ;; Remove diff headers and apply diff-mode syntax highlighting
+                (greger-ui--process-diff-output path)))))
       
       ;; Cleanup temp files
       (when (file-exists-p original-file) (delete-file original-file))
-      (when (file-exists-p new-file) (delete-file new-file))
-      (kill-buffer diff-buffer)
-      )))
+      (when (file-exists-p new-file) (delete-file new-file)))))
 
-(defun greger-ui--clear-str-replace-overlays ()
-  "Clear all str-replace diff overlays."
-  (dolist (overlay greger-ui--str-replace-overlays)
-    (when (overlay-buffer overlay)
-      (delete-overlay overlay)))
-  (setq greger-ui--str-replace-overlays nil))
-
-;; Add cleanup hook for when buffer is killed
-(add-hook 'kill-buffer-hook #'greger-ui--clear-str-replace-overlays)
+(defun greger-ui--process-diff-output (path)
+  "Process diff output in current buffer, remove headers and apply syntax highlighting."
+  (let ((content (buffer-string)))
+    ;; Process in a temporary buffer with diff-mode
+    (with-temp-buffer
+      (insert content)
+      (goto-char (point-min))
+      
+      ;; Remove the file header lines (--- and +++ lines)
+      (when (looking-at "^--- ")
+        (delete-region (point) (progn (forward-line 1) (point))))
+      (when (looking-at "^\\+\\+\\+ ")
+        (delete-region (point) (progn (forward-line 1) (point))))
+      
+      ;; Remove hunk headers (@@ lines) 
+      (goto-char (point-min))
+      (while (re-search-forward "^@@.*@@\\s-*\n" nil t)
+        (replace-match ""))
+      
+      ;; Apply diff-mode syntax highlighting in temp buffer
+      (diff-mode)
+      (font-lock-ensure)
+      
+      ;; Return the processed content with font-lock properties
+      (buffer-string))))
 
 (provide 'greger-ui)
 ;;; greger-ui.el ends here
