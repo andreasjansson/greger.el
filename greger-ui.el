@@ -130,7 +130,8 @@ START and END are the region bounds."
         (when tail-node
           (let* ((tail-start (treesit-node-start tail-node))
                  (tail-end (treesit-node-end tail-node))
-                 (is-tail-visible (get-text-property tail-start 'greger-ui-tool-content-expanded))
+                 (is-tail-visible (or (get-text-property tail-start 'greger-ui-tool-content-expanded)
+                                      (not greger-ui-folding-mode)))
                  (line-count (max 1 (count-lines tail-start tail-end))))
             ;; Mark the head as foldable and store tail info
             (put-text-property node-start node-end 'greger-ui-foldable-tool-content t)
