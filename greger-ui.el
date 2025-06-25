@@ -167,11 +167,10 @@ NODE is the matched tree-sitter node"
 
 (defun greger-ui--thinking-signature-hiding-fn (node _override _start _end)
   "Hide thinking signature.  NODE is the matched tree-sitter node."
-  (when greger-ui-folding-mode
-    (let* ((node-start (treesit-node-start node))
-           (node-end (treesit-node-end node))
-           (invisible-end (+ node-end 2)))
-      (put-text-property node-start invisible-end 'invisible t))))
+  (let* ((node-start (treesit-node-start node))
+         (node-end (treesit-node-end node))
+         (invisible-end (+ node-end 2)))
+    (put-text-property node-start invisible-end 'invisible greger-ui-folding-mode)))
 
 (defun greger-ui--make-tool-tag-invisible (node _override _start _end)
   "Make tool tag NODE invisible while preserving face styling."
