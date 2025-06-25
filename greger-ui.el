@@ -592,69 +592,7 @@ NODE is the matched tree-sitter node, OVERRIDE, START, and END are font-lock par
               (string= tool-use-id tool-result-id))))
      nil nil 1)))
 
-(defun greger-ui--detect-major-mode-from-path (file-path)
-  "Detect the appropriate major mode for FILE-PATH based on file extension."
-  (let ((case-fold-search t))
-    (cond
-     ;; Programming languages
-     ((string-match-p "\\.py\\'" file-path) 'python-mode)
-     ((string-match-p "\\.js\\'" file-path) 'js-mode)
-     ((string-match-p "\\.ts\\'" file-path) 'typescript-mode)
-     ((string-match-p "\\.el\\'" file-path) 'emacs-lisp-mode)
-     ((string-match-p "\\.\\(c\\|h\\)\\'" file-path) 'c-mode)
-     ((string-match-p "\\.\\(cpp\\|cxx\\|cc\\|hpp\\|hxx\\)\\'" file-path) 'c++-mode)
-     ((string-match-p "\\.java\\'" file-path) 'java-mode)
-     ((string-match-p "\\.go\\'" file-path) 'go-mode)
-     ((string-match-p "\\.rs\\'" file-path) 'rust-mode)
-     ((string-match-p "\\.rb\\'" file-path) 'ruby-mode)
-     ((string-match-p "\\.php\\'" file-path) 'php-mode)
-     ((string-match-p "\\.swift\\'" file-path) 'swift-mode)
-     ((string-match-p "\\.kt\\'" file-path) 'kotlin-mode)
-     ((string-match-p "\\.scala\\'" file-path) 'scala-mode)
-     ((string-match-p "\\.clj\\'" file-path) 'clojure-mode)
-     ((string-match-p "\\.hs\\'" file-path) 'haskell-mode)
-     ((string-match-p "\\.ml\\'" file-path) 'ocaml-mode)
-     ((string-match-p "\\.f\\(90\\|95\\|03\\|08\\)?\\'" file-path) 'fortran-mode)
-     ((string-match-p "\\.r\\'" file-path) 'r-mode)
-     ((string-match-p "\\.jl\\'" file-path) 'julia-mode)
-     ((string-match-p "\\.dart\\'" file-path) 'dart-mode)
-     
-     ;; Web technologies
-     ((string-match-p "\\.html?\\'" file-path) 'html-mode)
-     ((string-match-p "\\.css\\'" file-path) 'css-mode)
-     ((string-match-p "\\.scss\\'" file-path) 'scss-mode)
-     ((string-match-p "\\.less\\'" file-path) 'less-css-mode)
-     ((string-match-p "\\.vue\\'" file-path) 'vue-mode)
-     ((string-match-p "\\.jsx?\\'" file-path) 'js-mode)
-     ((string-match-p "\\.tsx?\\'" file-path) 'typescript-mode)
-     
-     ;; Data formats
-     ((string-match-p "\\.json\\'" file-path) 'json-mode)
-     ((string-match-p "\\.ya?ml\\'" file-path) 'yaml-mode)
-     ((string-match-p "\\.toml\\'" file-path) 'toml-mode)
-     ((string-match-p "\\.xml\\'" file-path) 'xml-mode)
-     ((string-match-p "\\.csv\\'" file-path) 'csv-mode)
-     
-     ;; Configuration files
-     ((string-match-p "\\.ini\\'" file-path) 'ini-mode)
-     ((string-match-p "\\.conf\\'" file-path) 'conf-mode)
-     ((string-match-p "Dockerfile\\'" file-path) 'dockerfile-mode)
-     ((string-match-p "\\.env\\'" file-path) 'conf-mode)
-     
-     ;; Shell scripts
-     ((string-match-p "\\.\\(sh\\|bash\\|zsh\\|fish\\)\\'" file-path) 'shell-script-mode)
-     
-     ;; Documentation
-     ((string-match-p "\\.md\\'" file-path) 'markdown-mode)
-     ((string-match-p "\\.rst\\'" file-path) 'rst-mode)
-     ((string-match-p "\\.tex\\'" file-path) 'latex-mode)
-     ((string-match-p "\\.org\\'" file-path) 'org-mode)
-     
-     ;; SQL
-     ((string-match-p "\\.sql\\'" file-path) 'sql-mode)
-     
-     ;; Default to text-mode
-     (t 'text-mode))))
+
 
 (defun greger-ui--apply-syntax-highlighting (start end content file-path)
   "Apply syntax highlighting to CONTENT between START and END based on FILE-PATH."
