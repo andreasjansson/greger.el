@@ -630,43 +630,47 @@ NODE is the matched tree-sitter node, OVERRIDE, START, and END are font-lock par
 
 (defun greger-ui--apply-syntax-highlighting (start end content major-mode)
   "Apply syntax highlighting for MAJOR-MODE to CONTENT between START and END."
-  ;; Create a temporary buffer to get proper syntax highlighting
-  (let ((temp-buffer (generate-new-buffer " *greger-syntax-temp*")))
-    (unwind-protect
-        (with-current-buffer temp-buffer
-          ;; Insert content and enable the appropriate major mode
-          (insert content)
-          
-          ;; Try to enable the major mode, fall back to text-mode if it fails
-          (condition-case nil
-              (funcall major-mode)
-            (error (text-mode)))
-          
-          ;; Enable font-lock and force fontification
-          (font-lock-mode 1)
-          (font-lock-ensure (point-min) (point-max))
-          
-          ;; Copy the font-lock-face properties to the original buffer
-          (let ((temp-start (point-min))
-                (temp-end (point-max))
-                (original-pos start))
+  ;; Skip highlighting for very long content to avoid performance issues
+  (when (< (length content) 50000)
+    ;; Create a temporary buffer to get proper syntax highlighting
+    (let ((temp-buffer (generate-new-buffer " *greger-syntax-temp*"))
+          (original-buffer (current-buffer)))
+      (unwind-protect
+          (with-current-buffer temp-buffer
+            ;; Insert content and enable the appropriate major mode
+            (insert content)
             
-            (while (< temp-start temp-end)
-              (let* ((next-change (or (next-single-property-change temp-start 'face (current-buffer) temp-end)
-                                      temp-end))
-                     (face (get-text-property temp-start 'face))
-                     (len (- next-change temp-start)))
-                
-                (when face
-                  ;; Apply the face to the corresponding position in the original buffer
-                  (with-current-buffer (marker-buffer (make-marker))
-                    (put-text-property original-pos (+ original-pos len) 'font-lock-face face)))
-                
-                (setq temp-start next-change
-                      original-pos (+ original-pos len))))))
-      
-      ;; Clean up temp buffer
-      (kill-buffer temp-buffer))))
+            ;; Try to enable the major mode, fall back to text-mode if it fails
+            (condition-case nil
+                (funcall major-mode)
+              (error (text-mode)))
+            
+            ;; Enable font-lock and force fontification
+            (when (fboundp 'font-lock-mode)
+              (font-lock-mode 1)
+              (font-lock-ensure (point-min) (point-max)))
+            
+            ;; Copy the font-lock-face properties to the original buffer
+            (let ((temp-start (point-min))
+                  (temp-end (point-max))
+                  (original-pos start))
+              
+              (while (< temp-start temp-end)
+                (let* ((next-change (or (next-single-property-change temp-start 'face (current-buffer) temp-end)
+                                        temp-end))
+                       (face (get-text-property temp-start 'face))
+                       (len (- next-change temp-start)))
+                  
+                  (when face
+                    ;; Apply the face to the corresponding position in the original buffer
+                    (with-current-buffer original-buffer
+                      (put-text-property original-pos (min (+ original-pos len) end) 'font-lock-face face)))
+                  
+                  (setq temp-start next-change
+                        original-pos (+ original-pos len))))))
+        
+        ;; Clean up temp buffer
+        (kill-buffer temp-buffer)))))
 
 (provide 'greger-ui)
 ;;; greger-ui.el ends here
