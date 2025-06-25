@@ -144,11 +144,6 @@ When nil, preserve point position using `save-excursion'.")
   "Face for tool-related headers (TOOL USE, TOOL RESULT, etc.)."
   :group 'greger)
 
-(defface greger-subheading-face
-  '((t (:foreground "coral" :weight semi-bold)))
-  "Face for subheadings like tool parameters and citation entries."
-  :group 'greger)
-
 (defface greger-field-name-face
   '((t (:foreground "lightyellow")))
   "Face for field names like \='Name:\=', \='ID:\=', etc."
@@ -227,11 +222,6 @@ When nil, preserve point position using `save-excursion'.")
      (thinking_signature) @greger-ui--thinking-signature-hiding-fn)
 
    :language 'greger
-   :feature 'subheadings
-   :override t
-   '((citation_entry) @greger-subheading-face)
-
-   :language 'greger
    :feature 'tool-tags
    :override t
    '((tool_start_tag) @greger-ui--make-tool-tag-invisible
@@ -296,9 +286,10 @@ When nil, preserve point position using `save-excursion'.")
   (treesit-parser-create 'greger)
   (setq-local treesit-font-lock-settings greger--treesit-font-lock-settings)
   (setq-local treesit-font-lock-feature-list
-              '((error)
-                (tool-tags tool-use-highlighting)
-                (headers folding comments subheadings tool-result-syntax)))
+              '((tool-tags tool-use-highlighting)
+                (headers folding comments tool-result-syntax)
+                (error)
+                ))
   (setq-local treesit-simple-indent-rules greger--treesit-indent-rules)
 
   ;; This crashes Emacs 29.0.91 but not Emacs 30.1. TODO: test if it crashes Emacs 29.1
@@ -318,10 +309,7 @@ When nil, preserve point position using `save-excursion'.")
   (setq-local mode-line-misc-info '(:eval (greger--mode-line-info)))
   (use-local-map greger-mode-map)
 
-  (setq-local greger-current-thinking-budget greger-thinking-budget)
-  
-  ;; Add cleanup hook for diff operations
-  (add-hook 'kill-buffer-hook #'greger-ui--cleanup-idle-operations nil t))
+  (setq-local greger-current-thinking-budget greger-thinking-budget))
 
 ;;;###autoload
 (defun greger (&optional with-context)
