@@ -524,7 +524,8 @@ NODE is the matched tree-sitter node, OVERRIDE, START, and END are font-lock par
   "Apply syntax highlighting to TOOL-RESULT-NODE content based on the corresponding tool_use."
   (when-let* ((tool-use-node (greger-ui--find-corresponding-tool-use tool-result-node))
               (tool-name (greger-parser--extract-tool-use-name tool-use-node))
-              (content-node (treesit-search-subtree tool-result-node "tool_content" nil nil 1))
+              (content-wrapper-node (treesit-search-subtree tool-result-node "content" nil nil 1))
+              (content-node (treesit-search-subtree content-wrapper-node "tool_content" nil nil 1))
               (content-start (treesit-node-start content-node))
               (content-end (treesit-node-end content-node))
               (content-text (treesit-node-text content-node t)))
