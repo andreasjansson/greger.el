@@ -558,7 +558,6 @@ NODE is the matched tree-sitter node, OVERRIDE, START, and END are font-lock par
          ((string= tool-name "read-file")
           (let* ((tool-use-params (greger-parser--extract-tool-use-params tool-use-node))
                  (file-path (alist-get 'path tool-use-params)))
-            (message "DEBUG: File path: %s" file-path)
             (when file-path
               (greger-ui--apply-syntax-highlighting content-start content-end content-text file-path))))
          
