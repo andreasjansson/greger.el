@@ -531,8 +531,11 @@ NODE is the matched tree-sitter node, OVERRIDE, START, and END are font-lock par
     (let* ((content-wrapper-node (treesit-search-subtree tool-result-node "content" nil nil 1))
            (content-text (when content-wrapper-node
                            (greger-parser--extract-tool-result-content content-wrapper-node)))
-           (content-node (when content-wrapper-node
-                           (treesit-search-subtree content-wrapper-node "tool_content" nil nil 1)))
+           ;; For tool_result, the structure is: content -> value -> tool_start_tag + tool_content + tool_end_tag  
+           (value-node (when content-wrapper-node
+                         (treesit-node-child-by-field-name content-wrapper-node "value")))
+           (content-node (when value-node
+                           (treesit-search-subtree value-node "tool_content" nil nil 1)))
            (content-start (when content-node (treesit-node-start content-node)))
            (content-end (when content-node (treesit-node-end content-node))))
       
