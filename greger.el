@@ -209,9 +209,11 @@ When nil, preserve point position using `save-excursion'.")
      (web_search_tool_result_header) @greger-tool-header-face)
 
    :language 'greger
-   :feature 'tool-use-highlighting
+   :feature 'tool-syntax-highlighting
    :override t
-   '((tool_use) @greger-ui--str-replace-diff-transform-fn)
+   '((tool_use) @greger-ui--str-replace-diff-transform-fn
+     ;(tool_result) @greger-ui--tool-result-syntax-highlighting
+     )
 
    :language 'greger
    :feature 'folding
@@ -242,12 +244,7 @@ When nil, preserve point position using `save-excursion'.")
    :language 'greger
    :feature 'error
    :override t
-   '((ERROR) @greger-error-face)
-
-   :language 'greger
-   :feature 'tool-result-syntax
-   :override t
-   '((tool_result) @greger-ui--tool-result-syntax-highlighting))
+   '((ERROR) @greger-error-face))
   "Tree-sitter font-lock settings for `greger-mode'.")
 
 (defvar greger--treesit-indent-rules
@@ -286,7 +283,8 @@ When nil, preserve point position using `save-excursion'.")
   (treesit-parser-create 'greger)
   (setq-local treesit-font-lock-settings greger--treesit-font-lock-settings)
   (setq-local treesit-font-lock-feature-list
-              '((tool-tags tool-use-highlighting)
+              '((tool-tags tool-syntax-highlighting
+                 )
                 (headers folding comments tool-result-syntax)
                 (error)
                 ))
