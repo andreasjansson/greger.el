@@ -214,10 +214,14 @@ When nil, preserve point position using `save-excursion'.")
      (web_search_tool_result_header) @greger-tool-header-face)
 
    :language 'greger
+   :feature 'tool-use-highlighting
+   :override t
+   '((tool_use) @greger-ui--str-replace-diff-transform-fn)
+
+   :language 'greger
    :feature 'folding
    :override t
-   '((tool_use) @greger-ui--str-replace-diff-transform-fn
-     (assistant (citation_entry) @greger-ui--citation-entry-folding-fn)
+   '((assistant (citation_entry) @greger-ui--citation-entry-folding-fn)
      (tool_content_tail) @greger-ui--tool-content-tail-folding-fn
      (tool_content_head) @greger-ui--tool-content-head-folding-fn
      (thinking_signature) @greger-ui--thinking-signature-hiding-fn)
@@ -288,12 +292,8 @@ When nil, preserve point position using `save-excursion'.")
   (setq-local treesit-font-lock-settings greger--treesit-font-lock-settings)
   (setq-local treesit-font-lock-feature-list
               '((error)
-                (folding)
-                (tool-tags)
-                (headers)
-                (comments)
-                (subheadings)
-                ))
+                (tool-tags tool-use-highlighting)
+                (headers folding comments subheadings)))
   (setq-local treesit-simple-indent-rules greger--treesit-indent-rules)
 
   ;; This crashes Emacs 29.0.91 but not Emacs 30.1. TODO: test if it crashes Emacs 29.1
