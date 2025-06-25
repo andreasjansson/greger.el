@@ -266,159 +266,92 @@ NODE is the matched tree-sitter node"
 
 ;; Str-replace diff content replacement functionality
 
-(defun greger-ui--get-str-replace-cached-overlay (start end)
+(defun greger-ui--get-str-replace-fontified-overlay (tool-use-node)
   "Get cached overlay for str-replace transformation between START and END."
-  (let ((overlays (overlays-in start end)))
-    (seq-find (lambda (ov) (overlay-get ov 'greger-ui-str-replace-cached-key)) overlays)))
+  (let* ((node-start (treesit-node-start tool-use-node))
+         (overlays (overlays-at node-start)))
+    (seq-find (lambda (ov) (overlay-get ov 'greger-ui-str-replace-fontified)) overlays)))
 
-(defun greger-ui--create-str-replace-cached-overlay (start end cache-key)
+(defun greger-ui--create-str-replace-fontified-overlay (tool-use-node)
   "Create a cached overlay for str-replace transformation between START and END with CACHE-KEY."
   ;; Clean up any old overlay first
-  (when-let ((old-overlay (greger-ui--get-str-replace-cached-overlay start end)))
+  (when-let ((old-overlay (greger-ui--get-str-replace-fontified-overlay tool-use-node)))
     (delete-overlay old-overlay))
   
   ;; Create new overlay
-  (let ((overlay (make-overlay start end)))
-    (overlay-put overlay 'greger-ui-str-replace-cached-key cache-key)
+  (let* ((node-start (treesit-node-start tool-use-node))
+         (overlay (make-overlay node-start (1+ node-start))))
+    (overlay-put overlay 'greger-ui-str-replace-fontified t)
     (overlay-put overlay 'evaporate t)
     overlay))
 
-;; Variable to track pending idle operations
-(defvar greger-ui--pending-diff-operations nil
-  "List of pending diff operations to be processed during idle time.")
-
-;; Timer for processing pending operations
-(defvar greger-ui--idle-timer nil
-  "Timer for processing diff operations during idle time.")
-
-;; Customizable delay for idle processing
-(defcustom greger-ui-idle-delay 0.01
-  "Delay in seconds before processing diff operations during idle time.
-Lower values make diff processing more responsive but may impact performance.
-Higher values reduce interruptions during active editing."
-  :type 'number
-  :group 'greger)
-
-(defun greger-ui--schedule-diff-operation (operation-type node start end)
-  "Schedule a diff operation to be processed during idle time.
-OPERATION-TYPE is either 'transform or 'highlight.
-NODE, START, END, and CACHE-KEY are the operation parameters."
-  (let* ((buffer (current-buffer))
-         (operation (list operation-type buffer node start end)))
-    
-    ;; Add to pending operations (avoid duplicates)
-    (unless (member operation greger-ui--pending-diff-operations)
-      (push operation greger-ui--pending-diff-operations))
-    
-    ;; Set up or restart the idle timer
-    (when greger-ui--idle-timer
-      (cancel-timer greger-ui--idle-timer))
-    
-    (setq greger-ui--idle-timer
-          (run-with-idle-timer greger-ui-idle-delay nil
-                               #'greger-ui--process-pending-operations))))
-
-(defun greger-ui--process-pending-operations ()
-  "Process all pending diff operations."
-  (let ((operations greger-ui--pending-diff-operations))
-    (setq greger-ui--pending-diff-operations nil
-          greger-ui--idle-timer nil)
-    
-    ;; Process operations in FIFO order (oldest first)
-    (dolist (operation (reverse operations))
-      (let ((operation-type (nth 0 operation))
-            (buffer (nth 1 operation))
-            (node (nth 2 operation))
-            (start (nth 3 operation))
-            (end (nth 4 operation)))
-        
-        ;; Only process if buffer is still live and visible
-        (when (and (buffer-live-p buffer)
-                   (get-buffer-window buffer))
-          (with-current-buffer buffer
-            (cond
-             ((eq operation-type 'transform)
-              (greger-ui--apply-str-replace-diff-content node start end))
-             ((eq operation-type 'highlight)
-              (greger-ui--apply-diff-syntax-highlighting node start end)))))))))
-
-(defun greger-ui--cleanup-idle-operations ()
-  "Clean up idle operations when buffer is killed or mode is disabled."
-  (when greger-ui--idle-timer
-    (cancel-timer greger-ui--idle-timer)
-    (setq greger-ui--idle-timer nil))
-  ;; Remove operations for this buffer
-  (setq greger-ui--pending-diff-operations
-        (cl-remove-if (lambda (op) (eq (nth 1 op) (current-buffer)))
-                      greger-ui--pending-diff-operations)))
-
-(defun greger-ui--str-replace-diff-transform-fn (node _override start end)
+(defun greger-ui--str-replace-diff-transform-fn (tool-use-node _override start end)
   "Font-lock function to transform str-replace original/new content into diff content.
 NODE is the matched tree-sitter node for tool_use block.
 Expensive operations are deferred to idle time to avoid blocking scrolling."
-  (when-let* ((tool-use-name (greger-parser--extract-tool-use-name node))
+  (when-let* ((tool-use-name (greger-parser--extract-tool-use-name tool-use-node))
               ((string= tool-use-name "str-replace")))
 
-    (unless (greger-ui--get-str-replace-cached-overlay start end)
-      (when node
-        (let* ((params (greger-parser--extract-tool-use-params node))
-               (has-diff (alist-get 'diff params))
-               (has-original-new (and (alist-get 'original-content params)
-                                      (alist-get 'new-content params)))
-               (cache-key (greger-ui--compute-str-replace-cache-key node start end)))
-          (greger-ui--create-str-replace-cached-overlay start end cache-key)
-          (cond
-           ;; Case 1: File already has diff parameter - defer syntax highlighting
-           (has-diff
-            (greger-ui--schedule-diff-operation 'highlight node start end))
-           ;; Case 2: File has original-content/new-content - defer diff transformation
-           (has-original-new
-            (greger-ui--schedule-diff-operation 'transform node start end))
-           ;; Case 3: Neither - do nothing
-           (t nil)))))))
+    (unless (greger-ui--get-str-replace-fontified-overlay tool-use-node)
+      (let* ((params (greger-parser--extract-tool-use-params tool-use-node))
+             (has-diff (alist-get 'diff params))
+             (has-original-new (and (alist-get 'original-content params)
+                                    (alist-get 'new-content params))))
+        (cond
+         ;; Case 1: File already has diff parameter - defer syntax highlighting
+         (has-diff
+                                        ;(greger-ui--schedule-diff-operation 'highlight node start end)
+          (greger-ui--apply-diff-syntax-highlighting tool-use-node start end)
+          )
+         ;; Case 2: File has original-content/new-content - defer diff transformation
+         (has-original-new
+                                        ;(greger-ui--schedule-diff-operation 'transform node start end)
+          (greger-ui--apply-str-replace-diff-content tool-use-node start end)
+          )
+         ;; Case 3: Neither - do nothing
+         (t nil))))))
 
-(defun greger-ui--compute-str-replace-cache-key (_node start end)
-  "Compute cache key for str-replace NODE content between START and END."
-  (let ((content (buffer-substring-no-properties start end)))
-    (md5 content)))
-
-(defun greger-ui--apply-str-replace-diff-content (node _start _end)
+(defun greger-ui--apply-str-replace-diff-content (tool-use-node _start _end)
   "Apply diff overlay to str-replace NODE content between START and END."
-  (let* ((params (greger-parser--extract-tool-use-params node))
-              (original-content (alist-get 'original-content params))
-              (new-content (alist-get 'new-content params))
-              (path (alist-get 'path params))
-              (param-nodes (greger-parser--extract-tool-use-param-nodes node))
-              (original-content-node (alist-get 'original-content param-nodes))
-              (new-content-node (alist-get 'new-content param-nodes))
-              (replace-start (treesit-node-start original-content-node))
-              (replace-end (treesit-node-end new-content-node))
-              (tool-use-id (greger-parser--extract-tool-use-id node))
-              (diff-content (greger-ui--generate-diff-content original-content new-content path))
-              (wrapped-diff (greger-parser--wrapped-tool-param "diff" tool-use-id diff-content t))
-              (inhibit-read-only t))
+  (let* ((params (greger-parser--extract-tool-use-params tool-use-node))
+         (original-content (alist-get 'original-content params))
+         (new-content (alist-get 'new-content params))
+         (path (alist-get 'path params))
+         (param-nodes (greger-parser--extract-tool-use-param-nodes tool-use-node))
+         (original-content-node (alist-get 'original-content param-nodes))
+         (new-content-node (alist-get 'new-content param-nodes))
+         (replace-start (treesit-node-start original-content-node))
+         (replace-end (treesit-node-end new-content-node))
+         (tool-use-id (greger-parser--extract-tool-use-id tool-use-node))
+         (diff-content (greger-ui--generate-diff-content original-content new-content path))
+         (wrapped-diff (greger-parser--wrapped-tool-param "diff" tool-use-id diff-content t))
+         (inhibit-read-only t))
+
+    (greger-ui--create-str-replace-fontified-overlay tool-use-node)
 
     ;; Replace buffer content with diff
     (goto-char replace-start)
     (delete-region replace-start replace-end)
     (insert wrapped-diff)))
 
-(defun greger-ui--apply-diff-syntax-highlighting (node _start _end)
+(defun greger-ui--apply-diff-syntax-highlighting (tool-use-node _start _end)
   "Apply syntax highlighting to existing diff content in str-replace tool_use."
-  (let* ((params (greger-parser--extract-tool-use-params node))
-              (raw-diff-content (alist-get 'diff params))
-              (path (alist-get 'path params))
-              (undiff-result (greger-parser-undiff-strings raw-diff-content))
-              (original-content (car undiff-result))
-              (new-content (cdr undiff-result))
-              (param-nodes (greger-parser--extract-tool-use-param-nodes node))
-              (diff-node (alist-get 'diff param-nodes))
-              (replace-start (treesit-node-start diff-node))
-              (replace-end (treesit-node-end diff-node))
-              (tool-use-id (greger-parser--extract-tool-use-id node))
-              (diff-content (greger-ui--generate-diff-content original-content new-content path))
-              (wrapped-diff (greger-parser--wrapped-tool-param "diff" tool-use-id diff-content t))
-              (inhibit-read-only t))
+  (let* ((params (greger-parser--extract-tool-use-params tool-use-node))
+         (raw-diff-content (alist-get 'diff params))
+         (path (alist-get 'path params))
+         (undiff-result (greger-parser-undiff-strings raw-diff-content))
+         (original-content (car undiff-result))
+         (new-content (cdr undiff-result))
+         (param-nodes (greger-parser--extract-tool-use-param-nodes tool-use-node))
+         (diff-node (alist-get 'diff param-nodes))
+         (replace-start (treesit-node-start diff-node))
+         (replace-end (treesit-node-end diff-node))
+         (tool-use-id (greger-parser--extract-tool-use-id tool-use-node))
+         (diff-content (greger-ui--generate-diff-content original-content new-content path))
+         (wrapped-diff (greger-parser--wrapped-tool-param "diff" tool-use-id diff-content t))
+         (inhibit-read-only t))
+
+    (greger-ui--create-str-replace-fontified-overlay tool-use-node)
 
     ;; Replace buffer content with diff
     (goto-char replace-start)
@@ -433,7 +366,6 @@ Expensive operations are deferred to idle time to avoid blocking scrolling."
          (diff-buffer (get-buffer-create "*Greger diff*"))
          (diff-refine nil)
          (diff-switches '("-u" "-U" "100000")))
-    (message (format "diff-buffer: %s" diff-buffer))
 
     (unwind-protect
         (progn
@@ -476,7 +408,7 @@ Expensive operations are deferred to idle time to avoid blocking scrolling."
   (let* ((background-mode (frame-parameter nil 'background-mode))
          (is-dark-theme (eq background-mode 'dark))
          (red-bg (if is-dark-theme "#32171E" "#ffe6e6")) ; Dark red vs light red
-         (green-bg (if is-dark-theme "#143212" "#e6ffe6"))) ; Dark green vs light green
+         (green-bg (if is-dark-theme "#173714" "#e6ffe6"))) ; Dark green vs light green
     
     ;; First pass: Set background on all characters in diff lines
     (save-excursion
@@ -513,15 +445,11 @@ Expensive operations are deferred to idle time to avoid blocking scrolling."
                    (overlay-end-in-line (min end (1+ line-end)))
                    (line-start-char (char-after line-start)))
 
-              ;; TODO: remove debug
-              (message (format "line-start-char: %s" line-start-char))
-              
               (cond
                ;; Lines starting with - get red background
                ((eq line-start-char ?-)
                 (plist-put face-attrs :background red-bg)
                 ;; TODO: remove debug
-                (message (format "face-attrs: %s" face-attrs))
                 (put-text-property overlay-start-in-line overlay-end-in-line
                                    'font-lock-face face-attrs))
                ;; Lines starting with + get green background
@@ -532,7 +460,6 @@ Expensive operations are deferred to idle time to avoid blocking scrolling."
                ;; Other lines get just the overlay face
                (t
                 ;; TODO: remove debug
-                (message (format "face-attrs: %s" face-attrs))
                 (put-text-property overlay-start-in-line overlay-end-in-line
                                    'font-lock-face face))))
             (forward-line 1))))))
