@@ -525,6 +525,8 @@ NODE is the matched tree-sitter node, OVERRIDE, START, and END are font-lock par
   (when-let* ((tool-use-node (greger-ui--find-corresponding-tool-use tool-result-node))
               (tool-name (greger-parser--extract-tool-use-name tool-use-node)))
     
+    (message "DEBUG: Found tool %s for result highlighting" tool-name)
+    
     ;; Extract content using existing parser function  
     (let* ((content-wrapper-node (treesit-search-subtree tool-result-node "content" nil nil 1))
            (content-text (when content-wrapper-node
@@ -534,14 +536,19 @@ NODE is the matched tree-sitter node, OVERRIDE, START, and END are font-lock par
            (content-start (when content-node (treesit-node-start content-node)))
            (content-end (when content-node (treesit-node-end content-node))))
       
+      (message "DEBUG: Content extracted - start: %s, end: %s, text length: %s" 
+               content-start content-end (when content-text (length content-text)))
+      
       (when (and content-text content-start content-end)
         (cond
          ;; Handle read-file results - detect file extension from tool_use path parameter
          ((string= tool-name "read-file")
-          (when-let* ((tool-use-params (greger-parser--extract-tool-use-params tool-use-node))
-                      (file-path (alist-get 'path tool-use-params))
-                      (major-mode (greger-ui--detect-major-mode-from-path file-path)))
-            (greger-ui--apply-syntax-highlighting content-start content-end content-text major-mode)))
+          (let* ((tool-use-params (greger-parser--extract-tool-use-params tool-use-node))
+                 (file-path (alist-get 'path tool-use-params))
+                 (major-mode (when file-path (greger-ui--detect-major-mode-from-path file-path))))
+            (message "DEBUG: File path: %s, detected mode: %s" file-path major-mode)
+            (when major-mode
+              (greger-ui--apply-syntax-highlighting content-start content-end content-text major-mode))))
          
          ;; Handle list-directory results - treat as text/plain, no special highlighting
          ((string= tool-name "list-directory")
