@@ -560,11 +560,10 @@ NODE is the matched tree-sitter node, OVERRIDE, START, and END are font-lock par
          ;; Handle read-file results - detect file extension from tool_use path parameter
          ((string= tool-name "read-file")
           (let* ((tool-use-params (greger-parser--extract-tool-use-params tool-use-node))
-                 (file-path (alist-get 'path tool-use-params))
-                 (major-mode (when file-path (greger-ui--detect-major-mode-from-path file-path))))
-            (message "DEBUG: File path: %s, detected mode: %s" file-path major-mode)
-            (when major-mode
-              (greger-ui--apply-syntax-highlighting content-start content-end content-text major-mode))))
+                 (file-path (alist-get 'path tool-use-params)))
+            (message "DEBUG: File path: %s" file-path)
+            (when file-path
+              (greger-ui--apply-syntax-highlighting content-start content-end content-text file-path))))
          
          ;; Handle list-directory results - treat as text/plain, no special highlighting
          ((string= tool-name "list-directory")
