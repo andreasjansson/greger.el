@@ -550,8 +550,7 @@ NODE is the matched tree-sitter node, OVERRIDE, START, and END are font-lock par
            (content-start (when content-node (treesit-node-start content-node)))
            (content-end (when content-node (treesit-node-end content-node))))
       
-      (message "DEBUG: Content extracted - start: %s, end: %s, text length: %s" 
-               content-start content-end (when content-text (length content-text)))
+
       
       (when (and content-text content-start content-end)
         (cond
