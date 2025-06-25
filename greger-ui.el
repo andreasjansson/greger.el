@@ -538,8 +538,6 @@ NODE is the matched tree-sitter node, OVERRIDE, START, and END are font-lock par
   (when-let* ((tool-use-node (greger-ui--find-corresponding-tool-use tool-result-node))
               (tool-name (greger-parser--extract-tool-use-name tool-use-node)))
     
-    (message "DEBUG: Found tool %s for result highlighting" tool-name)
-    
     ;; Extract content using existing parser function  
     (let* ((content-wrapper-node (treesit-search-subtree tool-result-node "content" nil nil 1))
            (content-text (when content-wrapper-node
