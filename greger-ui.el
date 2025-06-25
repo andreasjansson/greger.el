@@ -174,10 +174,9 @@ NODE is the matched tree-sitter node"
 
 (defun greger-ui--make-tool-tag-invisible (node _override _start _end)
   "Make tool tag NODE invisible while preserving face styling."
-  (when greger-ui-folding-mode
-   (let ((node-start (treesit-node-start node))
-         (node-end (1+ (treesit-node-end node))))
-     (put-text-property node-start node-end 'invisible t))))
+  (let ((node-start (treesit-node-start node))
+        (node-end (1+ (treesit-node-end node))))
+    (put-text-property node-start node-end 'invisible greger-ui-folding-mode)))
 
 (defun greger-ui--make-tool-result-id-invisible (node _override _start _end)
   "Make id NODE invisible while preserving face styling."
