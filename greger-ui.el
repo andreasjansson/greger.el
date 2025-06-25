@@ -656,27 +656,29 @@ NODE is the matched tree-sitter node, OVERRIDE, START, and END are font-lock par
      ;; Default to text-mode
      (t 'text-mode))))
 
-(defun greger-ui--apply-syntax-highlighting (start end content major-mode)
-  "Apply syntax highlighting for MAJOR-MODE to CONTENT between START and END."
-  ;; Skip highlighting for very long content to avoid performance issues
+(defun greger-ui--apply-syntax-highlighting (start end content file-path)
+  "Apply syntax highlighting to CONTENT between START and END based on FILE-PATH."
+  ;; Skip highlighting for very long content to avoid performance issues  
   (when (< (length content) 50000)
-    (message "DEBUG: Applying syntax highlighting with mode %s" major-mode)
+    (message "DEBUG: Applying syntax highlighting for file %s" file-path)
     ;; Create a temporary buffer to get proper syntax highlighting
     (let ((temp-buffer (generate-new-buffer " *greger-syntax-temp*"))
           (original-buffer (current-buffer)))
       (unwind-protect
           (with-current-buffer temp-buffer
-            ;; Insert content and enable the appropriate major mode
+            ;; Insert content and set buffer-file-name for major mode detection
             (insert content)
-            (message "DEBUG: Inserted %d characters into temp buffer" (length content))
+            (setq buffer-file-name file-path)
+            (message "DEBUG: Inserted %d characters, set buffer-file-name to %s" (length content) file-path)
             
-            ;; Try to enable the major mode, fall back to text-mode if it fails
+            ;; Let Emacs determine the major mode based on the file name
+            ;; Don't run hooks that might assume buffer-file-name really associates buffer with a file
             (condition-case err
                 (progn
-                  (funcall major-mode)
-                  (message "DEBUG: Successfully enabled %s" major-mode))
+                  (delay-mode-hooks (set-auto-mode))
+                  (message "DEBUG: Successfully set major mode to %s" major-mode))
               (error 
-               (message "DEBUG: Failed to enable %s: %s, falling back to text-mode" major-mode err)
+               (message "DEBUG: Failed to set auto mode: %s, using text-mode" err)
                (text-mode)))
             
             ;; Enable font-lock and force fontification
