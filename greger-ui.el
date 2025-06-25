@@ -76,44 +76,45 @@
   "Font-lock function to hide citation entries within assistant blocks.
 NODE is the matched tree-sitter node, OVERRIDE is the override setting,
 START and END are the region bounds."
-  (when greger-ui-folding-mode
-    (let* ((node-start (treesit-node-start node))
-           (node-end (treesit-node-end node))
-           (parent (treesit-node-parent node))
-           (first-text (treesit-search-subtree parent "^text$" nil nil 1))
-           (last-text (treesit-search-subtree parent "^text$" t nil 1))
-           (text-start (treesit-node-start first-text))
-           (text-end (- (treesit-node-end last-text) 2))
-           (uncle (treesit-node-prev-sibling parent))
-           (aunt (treesit-node-next-sibling parent))
-           (should-fold (not (get-text-property text-start 'greger-ui-citation-expanded)))
-           (invisible-start text-end)
-           (invisible-end (- node-end 2)))
+  (let* ((node-start (treesit-node-start node))
+         (node-end (treesit-node-end node))
+         (parent (treesit-node-parent node))
+         (first-text (treesit-search-subtree parent "^text$" nil nil 1))
+         (last-text (treesit-search-subtree parent "^text$" t nil 1))
+         (text-start (treesit-node-start first-text))
+         (text-end (- (treesit-node-end last-text) 2))
+         (uncle (treesit-node-prev-sibling parent))
+         (aunt (treesit-node-next-sibling parent))
+         (should-fold (and greger-ui-folding-mode
+                          (not (get-text-property text-start 'greger-ui-citation-expanded))))
+         (invisible-start text-end)
+         (invisible-end (- node-end 2)))
 
-      (put-text-property text-start text-end 'face 'greger-citation-face)
-      (put-text-property text-start text-end 'greger-ui-expandable-citation-entry t)
-      (put-text-property text-start text-end 'mouse-face 'highlight)
-      (put-text-property text-start text-end 'keymap greger-ui-citation-keymap)
-      (put-text-property text-start text-end 'invisible-start invisible-start)
-      (put-text-property text-start text-end 'invisible-end invisible-end)
+    (put-text-property text-start text-end 'face 'greger-citation-face)
+    (put-text-property text-start text-end 'greger-ui-expandable-citation-entry t)
+    (put-text-property text-start text-end 'mouse-face 'highlight)
+    (put-text-property text-start text-end 'keymap greger-ui-citation-keymap)
+    (put-text-property text-start text-end 'invisible-start invisible-start)
+    (put-text-property text-start text-end 'invisible-end invisible-end)
 
-      (when (and uncle (equal (treesit-node-type uncle) "assistant"))
-        (let* ((uncle-last-citation-entry (treesit-search-subtree uncle "^citation_entry$" t nil 1)))
+    (when (and uncle (equal (treesit-node-type uncle) "assistant"))
+      (let* ((uncle-last-citation-entry (treesit-search-subtree uncle "^citation_entry$" t nil 1)))
 
-          (if uncle-last-citation-entry
-              ;; uncle always invisible
-              (put-text-property (treesit-node-end uncle-last-citation-entry) node-start 'invisible should-fold)
+        (if uncle-last-citation-entry
+            ;; uncle always invisible when folding mode is on
+            (put-text-property (treesit-node-end uncle-last-citation-entry) node-start 'invisible 
+                              (and greger-ui-folding-mode should-fold))
 
-            (let* ((uncle-last-child (treesit-node-child uncle -1))
-                   (uncle-last-child-end (treesit-node-end uncle-last-child)))
-              (put-text-property (- uncle-last-child-end 2) text-start 'invisible t)))))
+          (let* ((uncle-last-child (treesit-node-child uncle -1))
+                 (uncle-last-child-end (treesit-node-end uncle-last-child)))
+            (put-text-property (- uncle-last-child-end 2) text-start 'invisible greger-ui-folding-mode)))))
 
-      (when (and aunt (equal (treesit-node-type aunt) "assistant"))
-        (let* ((aunt-header (treesit-search-subtree aunt "assistant_header"))
-               (aunt-header-end (treesit-node-end aunt-header)))
-          (setq invisible-end (+ aunt-header-end 2))))
+    (when (and aunt (equal (treesit-node-type aunt) "assistant"))
+      (let* ((aunt-header (treesit-search-subtree aunt "assistant_header"))
+             (aunt-header-end (treesit-node-end aunt-header)))
+        (setq invisible-end (+ aunt-header-end 2))))
 
-      (put-text-property (+ invisible-start 0) invisible-end 'invisible should-fold))))
+    (put-text-property (+ invisible-start 0) invisible-end 'invisible should-fold)))
 
 (defun greger-ui--tool-content-head-folding-fn (node _override _start _end)
   "Font-lock function to make tool_content_head TAB-able for tail visibility.
