@@ -510,41 +510,15 @@ Makes indicators small and muted while keeping them readable."
 
 ;; Tool result syntax highlighting
 
-(defun greger-ui--tool-result-syntax-highlighting (max)
-  "Apply source language syntax highlighting to tool results.
-Calls `greger-ui--fontify-tool-result-content' on every tool_result found between point
-and the position in MAX."
-  (when (get-char-property (point) 'greger-ui--tool-result-syntax-fontified)
-    (goto-char (next-single-char-property-change
-                (point) 'greger-ui--tool-result-syntax-fontified nil max)))
-  
-  (let ((start-pos (point)))
-    (while (< (point) max)
-      (let ((node (treesit-node-at (point)))
-            (next-pos (min (1+ (point)) max)))
-        
-        ;; Find the tool_result node if we're inside one
-        (when node
-          (let ((tool-result-node (treesit-search-forward node "tool_result" nil nil 1)))
-            (when (and tool-result-node
-                       (< (treesit-node-start tool-result-node) max)
-                       (not (get-char-property (treesit-node-start tool-result-node) 
-                                               'greger-ui--tool-result-syntax-fontified)))
-              (greger-ui--fontify-tool-result-content tool-result-node)
-              (let ((tool-result-start (treesit-node-start tool-result-node))
-                    (tool-result-end (treesit-node-end tool-result-node)))
-                ;; Mark as fontified to prevent re-processing
-                (let ((overlay (make-overlay tool-result-start tool-result-end)))
-                  (overlay-put overlay 'greger-ui--tool-result-syntax-fontified t)
-                  (overlay-put overlay 'evaporate t))
-                (setq next-pos tool-result-end)))))
-        
-        (goto-char next-pos)))
-    
-    ;; Move to the end if we processed everything
-    (goto-char max))
-  
-  nil)
+(defun greger-ui--tool-result-syntax-highlighting (tool-result-node _override _start _end)
+  "Apply source language syntax highlighting to TOOL-RESULT-NODE based on corresponding tool_use.
+NODE is the matched tree-sitter node, OVERRIDE, START, and END are font-lock parameters."
+  (unless (get-char-property (treesit-node-start tool-result-node) 'greger-ui--tool-result-syntax-fontified)
+    (greger-ui--fontify-tool-result-content tool-result-node)
+    ;; Mark as fontified to prevent re-processing
+    (let ((tool-result-start (treesit-node-start tool-result-node))
+          (tool-result-end (treesit-node-end tool-result-node)))
+      (put-text-property tool-result-start tool-result-end 'greger-ui--tool-result-syntax-fontified t))))
 
 (defun greger-ui--fontify-tool-result-content (tool-result-node)
   "Apply syntax highlighting to TOOL-RESULT-NODE content based on the corresponding tool_use."
