@@ -523,33 +523,38 @@ NODE is the matched tree-sitter node, OVERRIDE, START, and END are font-lock par
 (defun greger-ui--fontify-tool-result-content (tool-result-node)
   "Apply syntax highlighting to TOOL-RESULT-NODE content based on the corresponding tool_use."
   (when-let* ((tool-use-node (greger-ui--find-corresponding-tool-use tool-result-node))
-              (tool-name (greger-parser--extract-tool-use-name tool-use-node))
-              (content-wrapper-node (treesit-search-subtree tool-result-node "content" nil nil 1))
-              (content-node (treesit-search-subtree content-wrapper-node "tool_content" nil nil 1))
-              (content-start (treesit-node-start content-node))
-              (content-end (treesit-node-end content-node))
-              (content-text (treesit-node-text content-node t)))
+              (tool-name (greger-parser--extract-tool-use-name tool-use-node)))
     
-    (cond
-     ;; Handle read-file results - detect file extension from tool_use path parameter
-     ((string= tool-name "read-file")
-      (when-let* ((tool-use-params (greger-parser--extract-tool-use-params tool-use-node))
-                  (file-path (alist-get 'path tool-use-params))
-                  (major-mode (greger-ui--detect-major-mode-from-path file-path)))
-        (greger-ui--apply-syntax-highlighting content-start content-end content-text major-mode)))
-     
-     ;; Handle list-directory results - treat as text/plain, no special highlighting
-     ((string= tool-name "list-directory")
-      ;; Directory listings don't need special syntax highlighting
-      nil)
-     
-     ;; Handle shell-command results - treat as shell output
-     ((string= tool-name "shell-command")
-      ;; Could potentially highlight as shell output, but for now just leave as-is
-      nil)
-     
-     ;; Handle other tools - no special highlighting for now
-     (t nil))))
+    ;; Extract content using existing parser function  
+    (let* ((content-wrapper-node (treesit-search-subtree tool-result-node "content" nil nil 1))
+           (content-text (when content-wrapper-node
+                           (greger-parser--extract-tool-result-content content-wrapper-node)))
+           (content-node (when content-wrapper-node
+                           (treesit-search-subtree content-wrapper-node "tool_content" nil nil 1)))
+           (content-start (when content-node (treesit-node-start content-node)))
+           (content-end (when content-node (treesit-node-end content-node))))
+      
+      (when (and content-text content-start content-end)
+        (cond
+         ;; Handle read-file results - detect file extension from tool_use path parameter
+         ((string= tool-name "read-file")
+          (when-let* ((tool-use-params (greger-parser--extract-tool-use-params tool-use-node))
+                      (file-path (alist-get 'path tool-use-params))
+                      (major-mode (greger-ui--detect-major-mode-from-path file-path)))
+            (greger-ui--apply-syntax-highlighting content-start content-end content-text major-mode)))
+         
+         ;; Handle list-directory results - treat as text/plain, no special highlighting
+         ((string= tool-name "list-directory")
+          ;; Directory listings don't need special syntax highlighting
+          nil)
+         
+         ;; Handle shell-command results - treat as shell output
+         ((string= tool-name "shell-command")
+          ;; Could potentially highlight as shell output, but for now just leave as-is
+          nil)
+         
+         ;; Handle other tools - no special highlighting for now
+         (t nil))))))
 
 (defun greger-ui--find-corresponding-tool-use (tool-result-node)
   "Find the tool_use node that corresponds to TOOL-RESULT-NODE by matching IDs."
