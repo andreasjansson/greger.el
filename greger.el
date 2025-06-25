@@ -252,7 +252,12 @@ When nil, preserve point position using `save-excursion'.")
    :language 'greger
    :feature 'error
    :override t
-   '((ERROR) @greger-error-face))
+   '((ERROR) @greger-error-face)
+
+   :language 'greger
+   :feature 'tool-result-syntax
+   :override t
+   '((tool_result) @greger-ui--tool-result-syntax-highlighting))
   "Tree-sitter font-lock settings for `greger-mode'.")
 
 (defvar greger--treesit-indent-rules
