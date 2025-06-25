@@ -376,7 +376,7 @@ Expensive operations are deferred to idle time to avoid blocking scrolling."
   (let* ((ext (or (file-name-extension path t) ""))
          (original-file (make-temp-file "greger-original-" nil ext))
          (new-file (make-temp-file "greger-new-" nil ext))
-         (diff-buffer (get-buffer-create "*Greger diff*"))
+         (diff-buffer (get-buffer-create "*greger-diff-temp*"))
          (diff-refine nil)
          (diff-switches '("-u" "-U" "100000")))
 
@@ -447,7 +447,7 @@ Expensive operations are deferred to idle time to avoid blocking scrolling."
                   (face-attrs (greger-ui--get-face-attributes face))
                   (start (overlay-start overlay))
                   (end (overlay-end overlay)))
-        
+
         ;; Check if this overlay spans any diff lines and modify background accordingly
         (save-excursion
           (goto-char start)
@@ -462,7 +462,6 @@ Expensive operations are deferred to idle time to avoid blocking scrolling."
                ;; Lines starting with - get red background
                ((eq line-start-char ?-)
                 (plist-put face-attrs :background red-bg)
-                ;; TODO: remove debug
                 (put-text-property overlay-start-in-line overlay-end-in-line
                                    'font-lock-face face-attrs))
                ;; Lines starting with + get green background
@@ -472,7 +471,6 @@ Expensive operations are deferred to idle time to avoid blocking scrolling."
                                    'font-lock-face face-attrs))
                ;; Other lines get just the overlay face
                (t
-                ;; TODO: remove debug
                 (put-text-property overlay-start-in-line overlay-end-in-line
                                    'font-lock-face face))))
             (forward-line 1))))))
@@ -483,14 +481,20 @@ Expensive operations are deferred to idle time to avoid blocking scrolling."
 (defun greger-ui--get-face-attributes (face)
   "Get all non-unspecified attributes of FACE as a plist."
   (let ((attrs '(:family :foundry :width :height :weight :slant
-                 :underline :overline :strike-through :box
-                 :inverse-video :foreground :background
-                 :stipple :font :inherit))
+                         :underline :overline :strike-through :box
+                         :inverse-video :foreground :background
+                         :stipple :font :inherit))
         result)
+    ;; If face is a list, use the first element,
+    ;; otheriwse face-attribute will error
+    (when (listp face)
+      (setq face (car face)))
     (dolist (attr attrs)
       (let ((value (face-attribute face attr nil t)))
         (when (not (eq value 'unspecified))
-          (setq result (plist-put result attr value)))))
+          (setq result (plist-put result attr value))))
+      )
+    
     result))
 
 (defun greger-ui--remove-diff-headers ()
@@ -628,13 +632,15 @@ NODE is the matched tree-sitter node, OVERRIDE, START, and END are font-lock par
                   (when face
                     ;; Apply the face to the corresponding position in the original buffer
                     (with-current-buffer original-buffer
-                      (put-text-property original-pos (min (+ original-pos len) end) 'font-lock-face face)))
+                      (put-text-property original-pos (min (+ original-pos len 1) end) 'font-lock-face face)))
                   
                   (setq temp-start next-change
                         original-pos (+ original-pos len))))))
         
         ;; Clean up temp buffer
-        (kill-buffer temp-buffer)))))
+        (with-current-buffer temp-buffer
+          (set-buffer-modified-p nil)
+          (kill-buffer))))))
 
 (provide 'greger-ui)
 ;;; greger-ui.el ends here
