@@ -245,6 +245,10 @@ You can run arbitrary shell commands with the shell-command tool, but the follow
   (let ((id-node (treesit-search-subtree tool-use-node "id")))
     (greger-parser--extract-value id-node)))
 
+(defun greger-parser--extract-tool-result-id (tool-result-node)
+  (let ((id-node (treesit-search-subtree tool-result-node "id")))
+    (greger-parser--extract-value id-node)))
+
 (defun greger-parser--extract-server-tool-use (node)
   "Extract tool use entry from NODE."
   (let* ((name-node (treesit-search-subtree node "name"))
