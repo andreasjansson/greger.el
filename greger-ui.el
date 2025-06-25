@@ -594,7 +594,6 @@ NODE is the matched tree-sitter node, OVERRIDE, START, and END are font-lock par
   "Apply syntax highlighting to CONTENT between START and END based on FILE-PATH."
   ;; Skip highlighting for very long content to avoid performance issues  
   (when (< (length content) 50000)
-    (message "DEBUG: Applying syntax highlighting for file %s" file-path)
     ;; Create a temporary buffer to get proper syntax highlighting
     (let ((temp-buffer (generate-new-buffer " *greger-syntax-temp*"))
           (original-buffer (current-buffer)))
@@ -603,39 +602,22 @@ NODE is the matched tree-sitter node, OVERRIDE, START, and END are font-lock par
             ;; Insert content and set buffer-file-name for major mode detection
             (insert content)
             (setq buffer-file-name file-path)
-            (message "DEBUG: Inserted %d characters, set buffer-file-name to %s" (length content) file-path)
             
             ;; Let Emacs determine the major mode based on the file name
             ;; Don't run hooks that might assume buffer-file-name really associates buffer with a file
-            (condition-case err
-                (progn
-                  (delay-mode-hooks (set-auto-mode))
-                  (message "DEBUG: Successfully set major mode to %s" major-mode))
-              (error 
-               (message "DEBUG: Failed to set auto mode: %s, using text-mode" err)
-               (text-mode)))
+            (condition-case nil
+                (delay-mode-hooks (set-auto-mode))
+              (error (text-mode)))
             
             ;; Enable font-lock and force fontification
             (when (fboundp 'font-lock-mode)
               (font-lock-mode 1)
-              (font-lock-ensure (point-min) (point-max))
-              (message "DEBUG: Font-lock enabled and ensured"))
-            
-            ;; Check if there are any face properties in temp buffer
-            (let ((faces-found 0))
-              (save-excursion
-                (goto-char (point-min))
-                (while (< (point) (point-max))
-                  (when (get-text-property (point) 'face)
-                    (setq faces-found (1+ faces-found)))
-                  (forward-char 1)))
-              (message "DEBUG: Found %d characters with face properties in temp buffer" faces-found))
+              (font-lock-ensure (point-min) (point-max)))
             
             ;; Copy the font-lock-face properties to the original buffer
             (let ((temp-start (point-min))
                   (temp-end (point-max))
-                  (original-pos start)
-                  (properties-copied 0))
+                  (original-pos start))
               
               (while (< temp-start temp-end)
                 (let* ((next-change (or (next-single-property-change temp-start 'face (current-buffer) temp-end)
@@ -646,12 +628,10 @@ NODE is the matched tree-sitter node, OVERRIDE, START, and END are font-lock par
                   (when face
                     ;; Apply the face to the corresponding position in the original buffer
                     (with-current-buffer original-buffer
-                      (put-text-property original-pos (min (+ original-pos len) end) 'font-lock-face face))
-                    (setq properties-copied (1+ properties-copied)))
+                      (put-text-property original-pos (min (+ original-pos len) end) 'font-lock-face face)))
                   
                   (setq temp-start next-change
-                        original-pos (+ original-pos len))))
-              (message "DEBUG: Copied %d face properties to original buffer" properties-copied)))
+                        original-pos (+ original-pos len))))))
         
         ;; Clean up temp buffer
         (kill-buffer temp-buffer)))))
