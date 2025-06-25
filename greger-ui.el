@@ -61,7 +61,7 @@
     (define-key map (kbd "TAB") #'greger-ui--toggle-tool-content-tail-fold)
     map))
 
-(defvar-local greger-ui-folding-mode t)
+(defvar greger-ui-folding-mode t)
 
 (defun greger-ui-toggle-folding ()
   "Toggle greger-ui-folding-mode and re-fontify the buffer."
@@ -161,8 +161,9 @@ NODE is the matched tree-sitter node"
          (node-end (treesit-node-end node))
          (is-visible (get-text-property node-start 'greger-ui-tool-content-expanded)))
 
-    ;; Apply invisibility (default is invisible unless expanded)
-    (put-text-property node-start node-end 'invisible (not is-visible))
+    ;; Apply invisibility (default is invisible unless expanded, but respect global folding mode)
+    (put-text-property node-start node-end 'invisible 
+                       (and greger-ui-folding-mode (not is-visible)))
     (put-text-property node-start node-end 'keymap greger-ui-tool-content-tail-keymap)))
 
 (defun greger-ui--thinking-signature-hiding-fn (node _override _start _end)
