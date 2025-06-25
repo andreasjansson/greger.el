@@ -508,5 +508,191 @@ Makes indicators small and muted while keeping them readable."
     (put-text-property (line-beginning-position) (1+ (line-end-position))
                        'font-lock-face '(:height 0.6 :foreground "gray50"))))
 
+;; Tool result syntax highlighting
+
+(defun greger-ui--tool-result-syntax-highlighting (max)
+  "Apply source language syntax highlighting to tool results.
+Calls `greger-ui--fontify-tool-result-content' on every tool_result found between point
+and the position in MAX."
+  (when (get-char-property (point) 'greger-ui--tool-result-syntax-fontified)
+    (goto-char (next-single-char-property-change
+                (point) 'greger-ui--tool-result-syntax-fontified nil max)))
+  
+  (let ((start-pos (point)))
+    (while (< (point) max)
+      (let ((node (treesit-node-at (point)))
+            (next-pos (min (1+ (point)) max)))
+        
+        ;; Find the tool_result node if we're inside one
+        (when node
+          (let ((tool-result-node (treesit-search-forward node "tool_result" nil nil 1)))
+            (when (and tool-result-node
+                       (< (treesit-node-start tool-result-node) max)
+                       (not (get-char-property (treesit-node-start tool-result-node) 
+                                               'greger-ui--tool-result-syntax-fontified)))
+              (greger-ui--fontify-tool-result-content tool-result-node)
+              (let ((tool-result-start (treesit-node-start tool-result-node))
+                    (tool-result-end (treesit-node-end tool-result-node)))
+                ;; Mark as fontified to prevent re-processing
+                (let ((overlay (make-overlay tool-result-start tool-result-end)))
+                  (overlay-put overlay 'greger-ui--tool-result-syntax-fontified t)
+                  (overlay-put overlay 'evaporate t))
+                (setq next-pos tool-result-end)))))
+        
+        (goto-char next-pos)))
+    
+    ;; Move to the end if we processed everything
+    (goto-char max))
+  
+  nil)
+
+(defun greger-ui--fontify-tool-result-content (tool-result-node)
+  "Apply syntax highlighting to TOOL-RESULT-NODE content based on the corresponding tool_use."
+  (when-let* ((tool-use-node (greger-ui--find-corresponding-tool-use tool-result-node))
+              (tool-name (greger-parser--extract-tool-use-name tool-use-node))
+              (content-node (treesit-search-subtree tool-result-node "tool_content" nil nil 1))
+              (content-start (treesit-node-start content-node))
+              (content-end (treesit-node-end content-node))
+              (content-text (treesit-node-text content-node t)))
+    
+    (cond
+     ;; Handle read-file results - detect file extension from tool_use path parameter
+     ((string= tool-name "read-file")
+      (when-let* ((tool-use-params (greger-parser--extract-tool-use-params tool-use-node))
+                  (file-path (alist-get 'path tool-use-params))
+                  (major-mode (greger-ui--detect-major-mode-from-path file-path)))
+        (greger-ui--apply-syntax-highlighting content-start content-end content-text major-mode)))
+     
+     ;; Handle list-directory results - treat as text/plain, no special highlighting
+     ((string= tool-name "list-directory")
+      ;; Directory listings don't need special syntax highlighting
+      nil)
+     
+     ;; Handle shell-command results - treat as shell output
+     ((string= tool-name "shell-command")
+      ;; Could potentially highlight as shell output, but for now just leave as-is
+      nil)
+     
+     ;; Handle other tools - no special highlighting for now
+     (t nil))))
+
+(defun greger-ui--find-corresponding-tool-use (tool-result-node)
+  "Find the tool_use node that corresponds to TOOL-RESULT-NODE by matching IDs."
+  (when-let* ((tool-result-id (greger-parser--extract-tool-result-id tool-result-node))
+              (root (treesit-buffer-root-node)))
+    
+    ;; Search for tool_use nodes with matching ID
+    (treesit-search-subtree 
+     root
+     (lambda (node)
+       (and (string= (treesit-node-type node) "tool_use")
+            (when-let ((tool-use-id (greger-parser--extract-tool-use-id node)))
+              (string= tool-use-id tool-result-id))))
+     nil nil 1)))
+
+(defun greger-ui--detect-major-mode-from-path (file-path)
+  "Detect the appropriate major mode for FILE-PATH based on file extension."
+  (let ((case-fold-search t))
+    (cond
+     ;; Programming languages
+     ((string-match-p "\\.py\\'" file-path) 'python-mode)
+     ((string-match-p "\\.js\\'" file-path) 'js-mode)
+     ((string-match-p "\\.ts\\'" file-path) 'typescript-mode)
+     ((string-match-p "\\.el\\'" file-path) 'emacs-lisp-mode)
+     ((string-match-p "\\.\\(c\\|h\\)\\'" file-path) 'c-mode)
+     ((string-match-p "\\.\\(cpp\\|cxx\\|cc\\|hpp\\|hxx\\)\\'" file-path) 'c++-mode)
+     ((string-match-p "\\.java\\'" file-path) 'java-mode)
+     ((string-match-p "\\.go\\'" file-path) 'go-mode)
+     ((string-match-p "\\.rs\\'" file-path) 'rust-mode)
+     ((string-match-p "\\.rb\\'" file-path) 'ruby-mode)
+     ((string-match-p "\\.php\\'" file-path) 'php-mode)
+     ((string-match-p "\\.swift\\'" file-path) 'swift-mode)
+     ((string-match-p "\\.kt\\'" file-path) 'kotlin-mode)
+     ((string-match-p "\\.scala\\'" file-path) 'scala-mode)
+     ((string-match-p "\\.clj\\'" file-path) 'clojure-mode)
+     ((string-match-p "\\.hs\\'" file-path) 'haskell-mode)
+     ((string-match-p "\\.ml\\'" file-path) 'ocaml-mode)
+     ((string-match-p "\\.f\\(90\\|95\\|03\\|08\\)?\\'" file-path) 'fortran-mode)
+     ((string-match-p "\\.r\\'" file-path) 'r-mode)
+     ((string-match-p "\\.jl\\'" file-path) 'julia-mode)
+     ((string-match-p "\\.dart\\'" file-path) 'dart-mode)
+     
+     ;; Web technologies
+     ((string-match-p "\\.html?\\'" file-path) 'html-mode)
+     ((string-match-p "\\.css\\'" file-path) 'css-mode)
+     ((string-match-p "\\.scss\\'" file-path) 'scss-mode)
+     ((string-match-p "\\.less\\'" file-path) 'less-css-mode)
+     ((string-match-p "\\.vue\\'" file-path) 'vue-mode)
+     ((string-match-p "\\.jsx?\\'" file-path) 'js-mode)
+     ((string-match-p "\\.tsx?\\'" file-path) 'typescript-mode)
+     
+     ;; Data formats
+     ((string-match-p "\\.json\\'" file-path) 'json-mode)
+     ((string-match-p "\\.ya?ml\\'" file-path) 'yaml-mode)
+     ((string-match-p "\\.toml\\'" file-path) 'toml-mode)
+     ((string-match-p "\\.xml\\'" file-path) 'xml-mode)
+     ((string-match-p "\\.csv\\'" file-path) 'csv-mode)
+     
+     ;; Configuration files
+     ((string-match-p "\\.ini\\'" file-path) 'ini-mode)
+     ((string-match-p "\\.conf\\'" file-path) 'conf-mode)
+     ((string-match-p "Dockerfile\\'" file-path) 'dockerfile-mode)
+     ((string-match-p "\\.env\\'" file-path) 'conf-mode)
+     
+     ;; Shell scripts
+     ((string-match-p "\\.\\(sh\\|bash\\|zsh\\|fish\\)\\'" file-path) 'shell-script-mode)
+     
+     ;; Documentation
+     ((string-match-p "\\.md\\'" file-path) 'markdown-mode)
+     ((string-match-p "\\.rst\\'" file-path) 'rst-mode)
+     ((string-match-p "\\.tex\\'" file-path) 'latex-mode)
+     ((string-match-p "\\.org\\'" file-path) 'org-mode)
+     
+     ;; SQL
+     ((string-match-p "\\.sql\\'" file-path) 'sql-mode)
+     
+     ;; Default to text-mode
+     (t 'text-mode))))
+
+(defun greger-ui--apply-syntax-highlighting (start end content major-mode)
+  "Apply syntax highlighting for MAJOR-MODE to CONTENT between START and END."
+  ;; Create a temporary buffer to get proper syntax highlighting
+  (let ((temp-buffer (generate-new-buffer " *greger-syntax-temp*")))
+    (unwind-protect
+        (with-current-buffer temp-buffer
+          ;; Insert content and enable the appropriate major mode
+          (insert content)
+          
+          ;; Try to enable the major mode, fall back to text-mode if it fails
+          (condition-case nil
+              (funcall major-mode)
+            (error (text-mode)))
+          
+          ;; Enable font-lock and force fontification
+          (font-lock-mode 1)
+          (font-lock-ensure (point-min) (point-max))
+          
+          ;; Copy the font-lock-face properties to the original buffer
+          (let ((temp-start (point-min))
+                (temp-end (point-max))
+                (original-pos start))
+            
+            (while (< temp-start temp-end)
+              (let* ((next-change (or (next-single-property-change temp-start 'face (current-buffer) temp-end)
+                                      temp-end))
+                     (face (get-text-property temp-start 'face))
+                     (len (- next-change temp-start)))
+                
+                (when face
+                  ;; Apply the face to the corresponding position in the original buffer
+                  (with-current-buffer (marker-buffer (make-marker))
+                    (put-text-property original-pos (+ original-pos len) 'font-lock-face face)))
+                
+                (setq temp-start next-change
+                      original-pos (+ original-pos len))))))
+      
+      ;; Clean up temp buffer
+      (kill-buffer temp-buffer))))
+
 (provide 'greger-ui)
 ;;; greger-ui.el ends here
