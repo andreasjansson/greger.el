@@ -654,6 +654,83 @@ Echo: hello world
           ;; (it should only be removed when callback is actually called)
           (should (gethash "test-tool-id" executing-tools-map)))))))
 
+;; Tests for font-lock configuration changes
+
+(ert-deftest greger-test-font-lock-feature-list ()
+  "Test that font-lock features are properly configured."
+  (with-current-buffer (greger)
+    ;; Check that treesit-font-lock-feature-list is set correctly
+    (should (listp treesit-font-lock-feature-list))
+    
+    ;; Should have tool-syntax-highlighting feature
+    (let ((features (apply #'append treesit-font-lock-feature-list)))
+      (should (memq 'tool-syntax-highlighting features))
+      (should (memq 'tool-tags features))
+      (should (memq 'headers features))
+      (should (memq 'folding features))
+      (should (memq 'comments features)))))
+
+(ert-deftest greger-test-syntax-highlighting-features-enabled ()
+  "Test that syntax highlighting features are enabled by default."
+  (with-current-buffer (greger)
+    ;; The tool-syntax-highlighting feature should be in the first group (always enabled)
+    (let ((always-enabled (car treesit-font-lock-feature-list)))
+      (should (memq 'tool-syntax-highlighting always-enabled)))))
+
+(ert-deftest greger-test-font-lock-settings-contains-syntax-highlighting ()
+  "Test that font-lock settings include syntax highlighting rules."
+  (with-current-buffer (greger)
+    ;; Check that syntax highlighting functions are in the font-lock settings
+    (let ((settings-str (format "%s" treesit-font-lock-settings)))
+      (should (string-match-p "tool-use-syntax-highlighting" settings-str))
+      (should (string-match-p "tool-result-syntax-highlighting" settings-str)))))
+
+(ert-deftest greger-test-face-removal ()
+  "Test that greger-subheading-face was removed."
+  ;; The greger-subheading-face should no longer be defined
+  (should-not (facep 'greger-subheading-face)))
+
+(ert-deftest greger-test-folding-function-name-changes ()
+  "Test that folding function names have been updated."
+  (with-current-buffer (greger)
+    ;; Check that the new function names are used in font-lock settings
+    (let ((settings-str (format "%s" treesit-font-lock-settings)))
+      (should (string-match-p "citation-entry-folding" settings-str))
+      (should (string-match-p "tool-content-tail-folding" settings-str))
+      (should (string-match-p "tool-content-head-folding" settings-str))
+      (should (string-match-p "thinking-signature-hiding" settings-str))
+      
+      ;; Old function names should not be present
+      (should-not (string-match-p "citation-entry-folding-fn" settings-str))
+      (should-not (string-match-p "tool-content-tail-folding-fn" settings-str)))))
+
+(ert-deftest greger-test-url-link-function-rename ()
+  "Test that url link function has been renamed."
+  (with-current-buffer (greger)
+    ;; Check that the new function name is used
+    (let ((settings-str (format "%s" treesit-font-lock-settings)))
+      (should (string-match-p "url-link" settings-str))
+      ;; Should not have the old -fn suffix
+      (should-not (string-match-p "url-link-fn" settings-str)))))
+
+(ert-deftest greger-test-buffer-creation-with-new-features ()
+  "Test that creating a greger buffer works with the new font-lock configuration."
+  (let ((test-buffer (greger)))
+    (unwind-protect
+        (with-current-buffer test-buffer
+          ;; Buffer should be created successfully
+          (should (eq major-mode 'greger-mode))
+          
+          ;; Font-lock should be enabled
+          (should font-lock-mode)
+          
+          ;; Tree-sitter should be active
+          (should (treesit-parser-list)))
+      
+      ;; Clean up
+      (when (buffer-live-p test-buffer)
+        (kill-buffer test-buffer)))))
+
 (provide 'test-greger)
 
 ;;; test-greger.el ends here
