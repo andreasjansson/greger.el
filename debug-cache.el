@@ -5,8 +5,8 @@
 (defun test-cache-control ()
   (let ((messages '(((role . "user") (content . "Hello"))
                     ((role . "assistant") 
-                     (content (((type . "thinking") (thinking . "Let me think..."))
-                               ((type . "text") (text . "Response text"))))))))
+                     (content . (((type . "thinking") (thinking . "Let me think..."))
+                                 ((type . "text") (text . "Response text"))))))))
     
     (message "BEFORE:")
     (message "Messages: %S" messages)
