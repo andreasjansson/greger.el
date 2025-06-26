@@ -142,15 +142,22 @@ MAX-TOKENS is the maximum number of tokens to generate."
     ;; Walk all messages and find the last non-thinking content block
     (dolist (message messages)
       (let ((content (alist-get 'content message)))
+        (message "Processing message content: %S" content)
         (when (listp content)
           (dolist (block content)
+            (message "Processing block: %S" block)
+            (message "Block type: %S" (alist-get 'type block))
             (when (and (listp block)
                        (not (string= (alist-get 'type block) "thinking")))
+              (message "Found non-thinking block: %S" block)
               (setq last-non-thinking-block block))))))
+    
+    (message "Final last-non-thinking-block: %S" last-non-thinking-block)
     
     ;; Add cache control directly to the block by modifying it in place
     (when last-non-thinking-block
       (let ((cache-control '(cache_control . ((type . "ephemeral")))))
+        (message "Adding cache control to block")
         (setcdr last-non-thinking-block (cons (car last-non-thinking-block) (cdr last-non-thinking-block)))
         (setcar last-non-thinking-block cache-control)))))
 
