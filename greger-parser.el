@@ -214,7 +214,8 @@ The alist maps parameter names to parameter nodes."
     (nreverse param-map)))
 
 (defun greger-parser--extract-tool-use-params (node)
-  "Extract tool use parameters from NODE and return an alist of param names to values."
+  "Extract tool use parameters from NODE and return an alist.
+The alist maps parameter names to their values."
   (let* ((param-node-map (greger-parser--extract-tool-use-param-nodes node))
          (params '()))
     (dolist (param-entry param-node-map)
