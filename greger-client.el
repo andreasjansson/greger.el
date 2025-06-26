@@ -161,14 +161,19 @@ MAX-TOKENS is the maximum number of tokens to generate."
 
     (when last-dict-message
       (let ((content-list (alist-get 'content last-dict-message)))
-        ;; Modify the first content item in place
+        ;; Find the first non-thinking content item and modify it in place
         (when (and content-list (listp content-list))
-          (let ((first-content-item (car content-list)))
-            (when (and first-content-item (listp first-content-item))
-              ;; Modify the car of the content-list directly
-              (setcar content-list
+          (let ((current-list content-list))
+            (while (and current-list
+                        (let ((item (car current-list)))
+                          (and (listp item)
+                               (string= (alist-get 'type item) "thinking"))))
+              (setq current-list (cdr current-list)))
+            (when (and current-list (listp (car current-list)))
+              ;; Modify the first non-thinking content item directly
+              (setcar current-list
                       (cons '(cache_control . ((type . "ephemeral")))
-                            first-content-item)))))))))
+                            (car current-list))))))))))
 
 (defun greger-client--build-request (model dialog tools server-tools thinking-budget max-tokens)
   "Build Claude request to be sent to the Claude API.
