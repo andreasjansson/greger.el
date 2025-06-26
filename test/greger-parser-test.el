@@ -526,6 +526,119 @@ What files are here?"))
       (should (string-match-p "<safe-shell-commands>"
                               (alist-get 'content (car result)))))))
 
+;; Tests for undiff functionality
+
+(ert-deftest greger-parser-test-undiff-simple-addition ()
+  "Test undiffing a simple addition."
+  (let* ((diff-content "@@ -1,3 +1,4 @@
+ line1
+ line2
++new line
+ line3")
+         (result (greger-parser-undiff-strings diff-content))
+         (original (car result))
+         (new (cdr result)))
+    (should (string= original "line1\nline2\nline3\n"))
+    (should (string= new "line1\nline2\nnew line\nline3\n"))))
+
+(ert-deftest greger-parser-test-undiff-simple-deletion ()
+  "Test undiffing a simple deletion."
+  (let* ((diff-content "@@ -1,3 +1,2 @@
+ line1
+-line2
+ line3")
+         (result (greger-parser-undiff-strings diff-content))
+         (original (car result))
+         (new (cdr result)))
+    (should (string= original "line1\nline2\nline3\n"))
+    (should (string= new "line1\nline3\n"))))
+
+(ert-deftest greger-parser-test-undiff-replacement ()
+  "Test undiffing a replacement operation."
+  (let* ((diff-content "@@ -1,3 +1,3 @@
+ line1
+-old line
++new line
+ line3")
+         (result (greger-parser-undiff-strings diff-content))
+         (original (car result))
+         (new (cdr result)))
+    (should (string= original "line1\nold line\nline3\n"))
+    (should (string= new "line1\nnew line\nline3\n"))))
+
+(ert-deftest greger-parser-test-undiff-empty-diff ()
+  "Test undiffing an empty diff (no changes)."
+  (let* ((diff-content "")
+         (result (greger-parser-undiff-strings diff-content))
+         (original (car result))
+         (new (cdr result)))
+    (should (string= original ""))
+    (should (string= new ""))))
+
+(ert-deftest greger-parser-test-undiff-no-newline ()
+  "Test undiffing with 'No newline at end of file' markers."
+  (let* ((diff-content "@@ -1,2 +1,2 @@
+ line1
+-old line
+\\ No newline at end of file
++new line")
+         (result (greger-parser-undiff-strings diff-content))
+         (original (car result))
+         (new (cdr result)))
+    (should (string= original "line1\nold line"))
+    (should (string= new "line1\nnew line\n"))))
+
+(ert-deftest greger-parser-test-undiff-headerless ()
+  "Test undiffing content without diff headers."
+  (let* ((diff-content " line1
+-old line
++new line
+ line3")
+         (result (greger-parser-undiff-strings diff-content))
+         (original (car result))
+         (new (cdr result)))
+    (should (string= original "line1\nold line\nline3\n"))
+    (should (string= new "line1\nnew line\nline3\n"))))
+
+(ert-deftest greger-parser-test-undiff-multiple-hunks ()
+  "Test undiffing with multiple hunks."
+  (let* ((diff-content "@@ -1,3 +1,3 @@
+ line1
+-old line1
++new line1
+ line3
+@@ -5,3 +5,3 @@
+ line5
+-old line2
++new line2
+ line7")
+         (result (greger-parser-undiff-strings diff-content))
+         (original (car result))
+         (new (cdr result)))
+    (should (string= original "line1\nold line1\nline3\nline5\nold line2\nline7\n"))
+    (should (string= new "line1\nnew line1\nline3\nline5\nnew line2\nline7\n"))))
+
+(ert-deftest greger-parser-test-str-replace-undiff-params ()
+  "Test str-replace parameter undiffing."
+  (let* ((params '((path . "test.txt")
+                   (diff . "@@ -1,2 +1,2 @@\n line1\n-old\n+new")))
+         (result (greger-parser--str-replace-undiff-params params))
+         (original-content (alist-get 'original-content result))
+         (new-content (alist-get 'new-content result))
+         (path (alist-get 'path result)))
+    (should (string= path "test.txt"))
+    (should (string= original-content "line1\nold\n"))
+    (should (string= new-content "line1\nnew\n"))
+    (should-not (alist-get 'diff result))))
+
+(ert-deftest greger-parser-test-str-replace-undiff-params-no-diff ()
+  "Test str-replace parameter undiffing when no diff is present."
+  (let* ((params '((path . "test.txt")
+                   (original-content . "old content")
+                   (new-content . "new content")))
+         (result (greger-parser--str-replace-undiff-params params)))
+    (should (equal result params))))
+
 ;; Cleanup test - should run last alphabetically
 (ert-deftest greger-parser-zz-test-cleanup ()
   "Clean up test resources (runs last due to alphabetical ordering)."
