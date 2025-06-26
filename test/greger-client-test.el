@@ -12,6 +12,67 @@
 (require 'greger-client)
 (require 'greger-parser)
 
+;;; Unit tests (no API calls required)
+
+(ert-deftest greger-client-test-add-cache-control-basic ()
+  "Test cache control addition to basic non-thinking content."
+  (let ((messages '(((role . "user") (content . "Hello"))
+                    ((role . "assistant") 
+                     (content (((type . "text") (text . "Response text"))))))))
+    (greger-client--add-cache-control messages)
+    ;; Should add cache control to the text block
+    (let* ((assistant-msg (cadr messages))
+           (content-blocks (alist-get 'content assistant-msg))
+           (text-block (car content-blocks)))
+      (should (assq 'cache_control text-block))
+      (should (equal '((type . "ephemeral")) 
+                     (alist-get 'cache_control text-block))))))
+
+(ert-deftest greger-client-test-add-cache-control-mixed-thinking ()
+  "Test cache control with mixed thinking and non-thinking content."
+  (let ((messages '(((role . "user") (content . "Hello"))
+                    ((role . "assistant") 
+                     (content (((type . "thinking") (thinking . "Let me think..."))
+                               ((type . "text") (text . "Response text"))))))))
+    (greger-client--add-cache-control messages)
+    ;; Should add cache control to the text block, not thinking
+    (let* ((assistant-msg (cadr messages))
+           (content-blocks (alist-get 'content assistant-msg))
+           (thinking-block (car content-blocks))
+           (text-block (cadr content-blocks)))
+      ;; Thinking block should not have cache control
+      (should-not (assq 'cache_control thinking-block))
+      ;; Text block should have cache control
+      (should (assq 'cache_control text-block))
+      (should (equal '((type . "ephemeral")) 
+                     (alist-get 'cache_control text-block))))))
+
+(ert-deftest greger-client-test-add-cache-control-all-thinking ()
+  "Test cache control with only thinking content blocks."
+  (let ((messages '(((role . "user") (content . "Hello"))
+                    ((role . "assistant") 
+                     (content (((type . "thinking") (thinking . "First thought..."))
+                               ((type . "thinking") (thinking . "Second thought..."))))))))
+    (greger-client--add-cache-control messages)
+    ;; Should not add cache control to any block
+    (let* ((assistant-msg (cadr messages))
+           (content-blocks (alist-get 'content assistant-msg)))
+      (dolist (block content-blocks)
+        (should-not (assq 'cache_control block))))))
+
+(ert-deftest greger-client-test-add-cache-control-no-list-content ()
+  "Test cache control with string content (should be ignored)."
+  (let ((messages '(((role . "user") (content . "Hello"))
+                    ((role . "assistant") (content . "Simple string response")))))
+    (greger-client--add-cache-control messages)
+    ;; Should not modify string content
+    (let* ((assistant-msg (cadr messages))
+           (content (alist-get 'content assistant-msg)))
+      (should (stringp content))
+      (should (string= "Simple string response" content)))))
+
+;;; End-to-end tests (require API calls)
+
 (defvar greger-test-timeout 30
   "Timeout in seconds for API calls in tests.")
 
@@ -231,84 +292,87 @@
 
         (should (= (alist-get 'max_tokens parsed) max-tokens))))))
 
-(ert-deftest greger-client-test-thinking-message-filtering ()
+(ert-deftest greger-client-test-thinking-filtering ()
   "Test that thinking messages are filtered when thinking-budget is 0."
   ;; Test messages with thinking content are filtered
-  (let ((test-messages '(((role . "user")
-                          (content . "Hello"))
-                         ((role . "assistant")
-                          (content . (((type . "thinking")
-                                       (thinking . "Let me think about this..."))
-                                      ((type . "text")
-                                       (text . "Here's my response")))))
-                         ((role . "user") 
-                          (content . "Follow up question")))))
+  (let* ((messages '(((role . "user")
+                      (content . "Hello"))
+                     ((role . "assistant")
+                      (content . (((type . "thinking")
+                                   (thinking . "Let me think about this...")
+                                   (signature . "abc123"))
+                                  ((type . "text")
+                                   (text . "Here's my response")))))
+                     ((role . "user")
+                      (content . "Follow up question"))))
+         (filtered (greger-client--filter-thinking-messages messages))
+         (expected '(((role . "user")
+                      (content . "Hello"))
+                     ((role . "assistant")
+                      (content . (((type . "text")
+                                   (text . "Here's my response")))))
+                     ((role . "user")
+                      (content . "Follow up question")))))
 
-    (let ((filtered (greger-client--filter-thinking-messages test-messages)))
-      ;; Should have 3 messages (none removed completely)
-      (should (= (length filtered) 3))
-      
-      ;; First message should be unchanged (no thinking content)
-      (should (string= (alist-get 'content (nth 0 filtered)) "Hello"))
-      
-      ;; Second message should have thinking content filtered out
-      (let ((assistant-content (alist-get 'content (nth 1 filtered))))
-        (should (listp assistant-content))
-        (should (= (length assistant-content) 1))
-        (should (string= (alist-get 'type (car assistant-content)) "text")))
-      
-      ;; Third message should be unchanged
-      (should (string= (alist-get 'content (nth 2 filtered)) "Follow up question"))))
+    (should (equal expected filtered)))
 
   ;; Test message with only thinking content is removed
-  (let ((test-messages '(((role . "user")
-                          (content . "Hello"))
-                         ((role . "assistant")
-                          (content . (((type . "thinking")
-                                       (thinking . "Just thinking...")))))
-                         ((role . "user")
-                          (content . "Another message")))))
-
-    (let ((filtered (greger-client--filter-thinking-messages test-messages)))
-      ;; Should have 2 messages (thinking-only message removed)
-      (should (= (length filtered) 2))
-      (should (string= (alist-get 'content (nth 0 filtered)) "Hello"))
-      (should (string= (alist-get 'content (nth 1 filtered)) "Another message"))))
+  (let* ((messages '(((role . "user")
+                      (content . "Hello"))
+                     ((role . "assistant")
+                      (content . (((type . "thinking")
+                                   (thinking . "Just thinking...")))))
+                     ((role . "user")
+                      (content . "Another message"))))
+         (filtered (greger-client--filter-thinking-messages messages))
+         (expected '(((role . "user")
+                      (content . "Hello"))
+                     ((role . "user")
+                      (content . "Another message")))))
+    (should (equal expected filtered)))
 
   ;; Test string content is preserved
-  (let ((test-messages '(((role . "user")
-                          (content . "Simple string message")))))
-    
-    (let ((filtered (greger-client--filter-thinking-messages test-messages)))
-      (should (= (length filtered) 1))
-      (should (string= (alist-get 'content (car filtered)) "Simple string message")))))
+  (let* ((messages '(((role . "user")
+                      (content . "Simple string message"))))
+         (filtered (greger-client--filter-thinking-messages messages))
+         (expected '(((role . "user")
+                      (content . "Simple string message")))))
+    (should (equal expected filtered))))
 
 (ert-deftest greger-client-test-thinking-filtering-integration ()
   "Test thinking filtering integration in build-data function."
-  (let ((test-model 'claude-sonnet-4-20250514)
-        (test-dialog '(((role . "user") (content . "Hello"))
-                       ((role . "assistant") 
-                        (content . (((type . "thinking") (thinking . "Let me think..."))
-                                    ((type . "text") (text . "Response text")))))
-                       ((role . "user") (content . "Follow up"))))
-        (thinking-budget 0)
-        (max-tokens 4096))
-
-    (let ((request-data (greger-client--build-data test-model test-dialog nil nil thinking-budget max-tokens)))
-      (should (stringp request-data))
-      (let* ((parsed (json-read-from-string request-data))
-             (messages (alist-get 'messages parsed)))
-        
-        ;; Should have 3 messages
-        (should (= (length messages) 3))
-        
-        ;; Assistant message should have thinking content filtered out
-        (let ((assistant-message (aref messages 1)))
-          (should (string= (alist-get 'role assistant-message) "assistant"))
-          (let ((content (alist-get 'content assistant-message)))
-            (should (vectorp content))
-            (should (= (length content) 1))
-            (should (string= (alist-get 'type (aref content 0)) "text"))))))))
+  (let* ((model 'claude-sonnet-4-20250514)
+         (dialog '(((role . "user") (content . "Hello"))
+                   ((role . "assistant")
+                    (content . (((type . "thinking")
+                                 (thinking . "Let me think...")
+                                 (signature . "abc123"))
+                                ((type . "text")
+                                 (text . "Response text")))))
+                   ((role . "user") (content . "Follow up"))))
+         (max-tokens 4096)
+         (json-array-type 'list)
+         (request-data-no-thinking (greger-client--build-data model dialog nil nil 0 max-tokens))
+         (messages-no-thinking (alist-get 'messages (json-read-from-string request-data-no-thinking)))
+         (request-data-thinking (greger-client--build-data model dialog nil nil 4096 max-tokens))
+         (messages-thinking (alist-get 'messages (json-read-from-string request-data-thinking)))
+         (expected-no-thinking '(((role . "user") (content . "Hello"))
+                                 ((role . "assistant")
+                                  (content . (((cache_control (type . "ephemeral"))
+                                               (type . "text")
+                                               (text . "Response text")))))
+                                 ((role . "user") (content . "Follow up"))))
+         (expected-thinking '(((role . "user") (content . "Hello"))
+                              ((role . "assistant")
+                               (content . (((type . "thinking")
+                                            (thinking . "Let me think...")
+                                            (signature . "abc123"))
+                                           ((cache_control (type . "ephemeral"))
+                                            (type . "text")
+                                            (text . "Response text")))))
+                              ((role . "user") (content . "Follow up")))))
+    (should (equal expected-no-thinking messages-no-thinking))
+    (should (equal expected-thinking messages-thinking))))
 
 (provide 'test-greger-client)
 
