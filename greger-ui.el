@@ -533,8 +533,8 @@ Makes indicators small and muted while keeping them readable."
 ;; Tool result syntax highlighting
 
 (defun greger-ui--tool-result-syntax-highlighting (tool-result-node _override _start _end)
-  "Apply source language syntax highlighting to TOOL-RESULT-NODE based on corresponding tool_use.
-NODE is the matched tree-sitter node, OVERRIDE, START, and END are font-lock parameters."
+  "Apply syntax highlighting to TOOL-RESULT-NODE based on corresponding tool use.
+_OVERRIDE, _START, and _END are font-lock parameters."
   (unless (greger-ui--syntax-highlighted-p tool-result-node)
     (when-let* ((tool-use-node (greger-ui--find-corresponding-tool-use tool-result-node))
                 (tool-name (greger-parser--extract-tool-use-name tool-use-node))
