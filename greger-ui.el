@@ -346,10 +346,22 @@ _START and _END are ignored font-lock parameters."
          (wrapped-diff (greger-parser--wrapped-tool-param "diff" tool-use-id diff-content t))
          (inhibit-read-only t))
 
+    ;; Debug output for Emacs 29.4 investigation
+    (when (and (>= emacs-major-version 29) (< emacs-major-version 30))
+      (message "DEBUG 29.4: About to modify buffer")
+      (message "DEBUG 29.4: replace-start=%d, replace-end=%d" replace-start replace-end)
+      (message "DEBUG 29.4: wrapped-diff length=%d" (length wrapped-diff))
+      (message "DEBUG 29.4: buffer-size before=%d" (buffer-size)))
+
     ;; Replace buffer content with diff
     (goto-char replace-start)
     (delete-region replace-start replace-end)
-    (insert wrapped-diff)))
+    (insert wrapped-diff)
+
+    ;; Debug output for Emacs 29.4 investigation
+    (when (and (>= emacs-major-version 29) (< emacs-major-version 30))
+      (message "DEBUG 29.4: buffer-size after=%d" (buffer-size))
+      (message "DEBUG 29.4: current point=%d" (point)))))
 
 (defun greger-ui--apply-diff-syntax-highlighting (tool-use-node _start _end)
   "Apply syntax highlighting to existing diff content in str-replace TOOL-USE-NODE.
