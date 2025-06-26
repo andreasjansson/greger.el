@@ -534,13 +534,26 @@ def new_function():
     (font-lock-ensure)
     
     ;; Check that the content has been transformed to diff format
-    (let ((buffer-content (buffer-string)))
-      ;; Should contain unified diff markers
-      (should (string-match-p "@@.*@@" buffer-content))
-      (should (string-match-p "^-.*old_function" buffer-content))
-      (should (string-match-p "^+.*new_function" buffer-content))
-      (should (string-match-p "^-.*old implementation" buffer-content))
-      (should (string-match-p "^+.*new implementation" buffer-content)))
+    (let ((expected "# TOOL USE
+
+Name: str-replace
+ID: toolu_999
+
+## path
+
+example.py
+
+## diff
+
+-def old_function():
+-    print('old implementation')
+-    return False
++def new_function():
+-    print('new implementation')
++    return True
+
+"))
+      (should (string= expected (greger-ui-test--visible-text))))
     
     ;; Check that Python syntax highlighting has been applied to the diff
     ;; Check that "def" has keyword face in the diff context
