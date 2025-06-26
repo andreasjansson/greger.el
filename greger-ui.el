@@ -280,6 +280,7 @@ NODE is the matched tree-sitter node"
 ;; Tool use syntax highlighting
 
 (defun greger-ui--syntax-highlighted-p (node)
+  "Return non-nil if NODE has already been syntax highlighted."
   (let* ((node-start (treesit-node-start node))
          (overlays (overlays-at node-start)))
     (if (seq-find (lambda (ov) (overlay-get ov 'greger-ui-syntax-highlighted)) overlays)
