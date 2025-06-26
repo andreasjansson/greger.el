@@ -289,11 +289,16 @@ NODE is the matched tree-sitter node"
 
 (defun greger-ui--set-syntax-highlighted (tool-use-node)
   "Mark TOOL-USE-NODE as syntax highlighted with an overlay."
-  (let* ((node-start (treesit-node-start tool-use-node))
-         (overlay (make-overlay node-start (1+ node-start))))
-    (overlay-put overlay 'greger-ui-syntax-highlighted t)
-    (overlay-put overlay 'evaporate t)
-    overlay))
+  (condition-case nil
+      (let* ((node-start (treesit-node-start tool-use-node))
+             (overlay (make-overlay node-start (1+ node-start))))
+        (overlay-put overlay 'greger-ui-syntax-highlighted t)
+        (overlay-put overlay 'evaporate t)
+        overlay)
+    (treesit-node-outdated
+     ;; Node became outdated, likely due to buffer modification
+     ;; This can happen after str-replace diff content transformation
+     nil)))
 
 (defun greger-ui--tool-use-syntax-highlighting (tool-use-node _override start end)
   "Font-lock function to transform tool content for syntax highlighting.
