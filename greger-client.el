@@ -137,7 +137,7 @@ MAX-TOKENS is the maximum number of tokens to generate."
                 messages)))
 
 (defun greger-client--add-cache-control (messages)
-  "Add ephemeral cache control to the last non-thinking content block."
+  "Add ephemeral cache control to the last non-thinking content block in MESSAGES."
   (let ((last-non-thinking-block nil))
     ;; Walk all messages and find the last non-thinking content block
     (dolist (message messages)
