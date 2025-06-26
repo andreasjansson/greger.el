@@ -124,7 +124,7 @@ MAX-TOKENS is the maximum number of tokens to generate."
                      ((stringp content) message)
                      ;; List content - filter out thinking blocks
                      ((listp content)
-                      (let ((filtered-content (cl-remove-if 
+                      (let ((filtered-content (cl-remove-if
                                                (lambda (block)
                                                  (and (listp block)
                                                       (string= (alist-get 'type block) "thinking")))
@@ -147,7 +147,7 @@ MAX-TOKENS is the maximum number of tokens to generate."
             (when (and (listp block)
                        (not (string= (alist-get 'type block) "thinking")))
               (setq last-non-thinking-block block))))))
-    
+
     ;; Add cache control directly to the block by modifying it in place
     (when last-non-thinking-block
       (let ((cache-control '(cache_control . ((type . "ephemeral")))))

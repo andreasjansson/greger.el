@@ -234,10 +234,10 @@ function test() {
                (lambda (_) "read-file"))
               ((symbol-function 'greger-parser--extract-tool-use-params)
                (lambda (_) '((path . "test.js")))))
-      
+
       ;; Force font-lock to process the buffer
       (font-lock-ensure)
-      
+
       ;; Check that the content has been processed for syntax highlighting
       ;; We can't easily test the actual highlighting without a full Emacs environment,
       ;; but we can test that the functions are called correctly
@@ -272,16 +272,16 @@ def hello():
     ;; Mock tree-sitter nodes and functions for testing
     (let* ((mock-tool-result-node (list 'tool_result 'id "toolu_456"))
            (mock-tool-use-node (list 'tool_use 'id "toolu_456")))
-      
+
       ;; Mock the required parser functions
       (cl-letf (((symbol-function 'greger-parser--extract-tool-id)
-                 (lambda (node) 
+                 (lambda (node)
                    (plist-get (cdr node) 'id)))
                 ((symbol-function 'treesit-node-prev-sibling)
                  (lambda (_) mock-tool-use-node))
                 ((symbol-function 'treesit-node-type)
                  (lambda (node) (symbol-name (car node)))))
-        
+
         ;; Test the correspondence finding
         (let ((found-node (greger-ui--find-corresponding-tool-use mock-tool-result-node)))
           (should (equal found-node mock-tool-use-node)))))))
@@ -367,13 +367,13 @@ ID: toolu_html
          (start 100)
          (end 200)
          (path "large.txt"))
-    
+
     ;; Mock the buffer operations to test the performance check
     (with-temp-buffer
       ;; This should not trigger syntax highlighting due to size limit
       (cl-letf (((symbol-function 'generate-new-buffer)
                  (lambda (_) (error "Should not create buffer for large content"))))
-        
+
         ;; The function should return early without error
         (should-not (greger-ui--syntax-highlight-text start end large-content path))))))
 
@@ -381,14 +381,14 @@ ID: toolu_html
   "Test that syntax highlighting works for normal-sized content."
   (let* ((content "function test() {\n    return 'hello';\n}")
          (path "test.js"))
-    
+
     (with-temp-buffer
       (insert "dummy content before")
       (let ((buffer-start (point)))
         (insert content)
         (let ((buffer-end (point)))
           (insert "dummy content after")
-          
+
           ;; Test that the function can be called without error
           ;; The actual highlighting behavior would depend on js-mode being available
           (should-not (greger-ui--syntax-highlight-text buffer-start buffer-end content path)))))))
@@ -419,7 +419,7 @@ def hello():
 ")
     ;; Force font-lock to process the buffer
     (font-lock-ensure)
-    
+
     ;; The content should be transformed to show a diff
     ;; Check that diff markers are present after transformation
     (let ((content (buffer-string)))
@@ -452,7 +452,7 @@ test.html
 ")
     ;; Force font-lock to process the buffer
     (font-lock-ensure)
-    
+
     ;; Check that the HTML content is present
     (should (string-match-p "<html>" (buffer-string)))
     (should (string-match-p "<title>Test</title>" (buffer-string)))
@@ -480,25 +480,25 @@ More text here.
     ;; Start with folding enabled
     (setq greger-ui-folding-mode t)
     (font-lock-ensure)
-    
+
     ;; Citations should be folded
     (let ((visible-before (greger-ui-test--visible-text)))
       (should (string-match-p "This is some text with citations" visible-before))
       (should-not (string-match-p "Title: Example" visible-before)))
-    
+
     ;; Toggle folding off
     (greger-ui-toggle-folding)
     (font-lock-ensure)
-    
+
     ;; Citations should now be visible
     (let ((visible-after (greger-ui-test--visible-text)))
       (should (string-match-p "This is some text with citations" visible-after))
       (should (string-match-p "Title: Example" visible-after)))
-    
+
     ;; Toggle folding back on
     (greger-ui-toggle-folding)
     (font-lock-ensure)
-    
+
     ;; Citations should be folded again
     (let ((visible-final (greger-ui-test--visible-text)))
       (should (string-match-p "This is some text with citations" visible-final))
@@ -536,7 +536,7 @@ line10
     ;; Enable folding mode
     (setq greger-ui-folding-mode t)
     (font-lock-ensure)
-    
+
     ;; Should show first few lines but fold the tail
     (let ((visible (greger-ui-test--visible-text)))
       (should (string-match-p "line1" visible))
@@ -578,7 +578,7 @@ line10
     ;; Disable folding mode
     (setq greger-ui-folding-mode nil)
     (font-lock-ensure)
-    
+
     ;; Should show all lines
     (let ((visible (greger-ui-test--visible-text)))
       (should (string-match-p "line1" visible))
@@ -605,24 +605,24 @@ More text
     ;; Enable folding mode
     (setq greger-ui-folding-mode t)
     (font-lock-ensure)
-    
+
     ;; Citation should be initially folded
     (let ((visible-initial (greger-ui-test--visible-text)))
       (should-not (string-match-p "Title: Test Citation" visible-initial)))
-    
+
     ;; Find and expand the citation
     (goto-char (point-min))
     (re-search-forward "More text")
     (greger-ui-test--send-key (kbd "TAB"))
-    
+
     ;; Citation should now be expanded
     (let ((visible-expanded (greger-ui-test--visible-text)))
       (should (string-match-p "Title: Test Citation" visible-expanded))
       (should (string-match-p "This is cited content" visible-expanded)))
-    
+
     ;; Collapse again
     (greger-ui-test--send-key (kbd "TAB"))
-    
+
     ;; Citation should be folded again
     (let ((visible-collapsed (greger-ui-test--visible-text)))
       (should-not (string-match-p "Title: Test Citation" visible-collapsed)))))
@@ -646,7 +646,7 @@ test.txt
     ;; Test that the functions exist
     (should (fboundp 'greger-ui--syntax-highlighted-p))
     (should (fboundp 'greger-ui--set-syntax-highlighted))
-    
+
     ;; Test with a buffer position (simpler than mocking tree-sitter nodes)
     (let ((test-pos 100))
       ;; Initially no overlay should exist
@@ -748,10 +748,10 @@ test.txt
 +new line
  line3
 Diff finished at Thu Jun 26 2025")
-    
+
     ;; Apply the header removal function
     (greger-ui--remove-diff-headers)
-    
+
     (let ((result (buffer-string)))
       ;; Headers should be removed
       (should-not (string-match-p "^diff -u" result))
@@ -759,7 +759,7 @@ Diff finished at Thu Jun 26 2025")
       (should-not (string-match-p "^\\+\\+\\+" result))
       (should-not (string-match-p "^@@" result))
       (should-not (string-match-p "Diff finished" result))
-      
+
       ;; Content should remain
       (should (string-match-p "^ line1$" result))
       (should (string-match-p "^-old line$" result))
@@ -774,14 +774,14 @@ Diff finished at Thu Jun 26 2025")
 \\ No newline at end of file
 +new line
  line3")
-    
+
     ;; Apply the newline message processing
     (greger-ui--diff-make-newline-messages-smaller)
-    
+
     (let ((result (buffer-string)))
       ;; Should still contain the message but with modified properties
       (should (string-match-p "No newline at end of file" result))
-      
+
       ;; Check that the message has the right text properties
       (goto-char (point-min))
       (when (re-search-forward "No newline at end of file" nil t)

@@ -17,7 +17,7 @@
 (ert-deftest greger-client-test-add-cache-control-basic ()
   "Test cache control addition to basic non-thinking content."
   (let ((messages '(((role . "user") (content . "Hello"))
-                    ((role . "assistant") 
+                    ((role . "assistant")
                      (content . (((type . "text") (text . "Response text"))))))))
     (greger-client--add-cache-control messages)
     ;; Should add cache control to the text block
@@ -25,13 +25,13 @@
            (content-blocks (alist-get 'content assistant-msg))
            (text-block (car content-blocks)))
       (should (assq 'cache_control text-block))
-      (should (equal '((type . "ephemeral")) 
+      (should (equal '((type . "ephemeral"))
                      (alist-get 'cache_control text-block))))))
 
 (ert-deftest greger-client-test-add-cache-control-mixed-thinking ()
   "Test cache control with mixed thinking and non-thinking content."
   (let ((messages '(((role . "user") (content . "Hello"))
-                    ((role . "assistant") 
+                    ((role . "assistant")
                      (content . (((type . "thinking") (thinking . "Let me think..."))
                                  ((type . "text") (text . "Response text"))))))))
     (greger-client--add-cache-control messages)
@@ -44,13 +44,13 @@
       (should-not (assq 'cache_control thinking-block))
       ;; Text block should have cache control
       (should (assq 'cache_control text-block))
-      (should (equal '((type . "ephemeral")) 
+      (should (equal '((type . "ephemeral"))
                      (alist-get 'cache_control text-block))))))
 
 (ert-deftest greger-client-test-add-cache-control-all-thinking ()
   "Test cache control with only thinking content blocks."
   (let ((messages '(((role . "user") (content . "Hello"))
-                    ((role . "assistant") 
+                    ((role . "assistant")
                      (content . (((type . "thinking") (thinking . "First thought..."))
                                  ((type . "thinking") (thinking . "Second thought..."))))))))
     (greger-client--add-cache-control messages)
