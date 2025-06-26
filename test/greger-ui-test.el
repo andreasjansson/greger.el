@@ -497,4 +497,64 @@ class Calculator:
     ;; Check that "return" has keyword face
     (should (eq (greger-ui-test-font-lock-face-at "return") 'font-lock-keyword-face))))
 
+(ert-deftest greger-ui-test-str-replace-diff-and-syntax-highlighting ()
+  "Test str-replace diff transformation and syntax highlighting."
+  (with-current-buffer (greger)
+    (erase-buffer)
+    (insert "# TOOL USE
+
+Name: str-replace
+ID: toolu_999
+
+## path
+
+<tool.toolu_999>
+example.py
+</tool.toolu_999>
+
+## original-content
+
+<tool.toolu_999>
+def old_function():
+    print('old implementation')
+    return False
+</tool.toolu_999>
+
+## new-content
+
+<tool.toolu_999>
+def new_function():
+    print('new implementation')
+    return True
+</tool.toolu_999>
+
+")
+    
+    ;; Force font-lock to process the buffer and trigger diff transformation
+    (font-lock-ensure)
+    
+    ;; Check that the content has been transformed to diff format
+    (let ((buffer-content (buffer-string)))
+      ;; Should contain unified diff markers
+      (should (string-match-p "@@.*@@" buffer-content))
+      (should (string-match-p "^-.*old_function" buffer-content))
+      (should (string-match-p "^+.*new_function" buffer-content))
+      (should (string-match-p "^-.*old implementation" buffer-content))
+      (should (string-match-p "^+.*new implementation" buffer-content)))
+    
+    ;; Check that Python syntax highlighting has been applied to the diff
+    ;; Check that "def" has keyword face in the diff context
+    (should (eq (greger-ui-test-font-lock-face-at "def") 'font-lock-keyword-face))
+    
+    ;; Check that function names have function name face  
+    (should (eq (greger-ui-test-font-lock-face-at "old_function") 'font-lock-function-name-face))
+    (should (eq (greger-ui-test-font-lock-face-at "new_function") 'font-lock-function-name-face))
+    
+    ;; Check that string content has string face
+    (should (eq (greger-ui-test-font-lock-face-at "'old implementation'") 'font-lock-string-face))
+    (should (eq (greger-ui-test-font-lock-face-at "'new implementation'") 'font-lock-string-face))
+    
+    ;; Check that "return" has keyword face
+    (should (eq (greger-ui-test-font-lock-face-at "return") 'font-lock-keyword-face))))
+
 ;;; greger-ui-test.el ends here
