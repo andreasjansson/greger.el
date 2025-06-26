@@ -347,7 +347,8 @@ _START and _END are ignored font-lock parameters."
     (insert wrapped-diff)))
 
 (defun greger-ui--apply-diff-syntax-highlighting (tool-use-node _start _end)
-  "Apply syntax highlighting to existing diff content in str-replace tool_use."
+  "Apply syntax highlighting to existing diff content in str-replace TOOL-USE-NODE.
+_START and _END are ignored font-lock parameters."
   (let* ((params (greger-parser--extract-tool-use-params tool-use-node))
          (raw-diff-content (alist-get 'diff params))
          (path (alist-get 'path params))
