@@ -367,4 +367,50 @@ Multiplication: 3 * 4 = 12
       ;; Check that folding is working again
       (should (string= folded-content (greger-ui-test--visible-text))))))
 
+(ert-deftest greger-ui-test-write-new-file-syntax-highlighting ()
+  "Test syntax highlighting for write-new-file tool."
+  (with-current-buffer (greger)
+    (erase-buffer)
+    (insert "# TOOL USE
+
+Name: write-new-file
+ID: toolu_123
+
+## path
+
+test.py
+
+## contents
+
+def hello_world():
+    print('Hello, World!')
+    return 42
+
+")
+    
+    ;; Force font-lock to process the buffer
+    (font-lock-ensure)
+    
+    ;; Check that Python syntax highlighting has been applied
+    (goto-char (point-min))
+    (when (re-search-forward "def hello_world" nil t)
+      (goto-char (match-beginning 0))
+      ;; Check that "def" has keyword face
+      (should (eq (get-text-property (point) 'font-lock-face) 'font-lock-keyword-face))
+      ;; Check that "hello_world" has function name face
+      (goto-char (+ (point) 4)) ; move past "def "
+      (should (eq (get-text-property (point) 'font-lock-face) 'font-lock-function-name-face)))
+    
+    ;; Check that string has string face
+    (goto-char (point-min))
+    (when (re-search-forward "'Hello, World!'" nil t)
+      (goto-char (1+ (match-beginning 0))) ; move past opening quote
+      (should (eq (get-text-property (point) 'font-lock-face) 'font-lock-string-face)))
+    
+    ;; Check that "return" has keyword face
+    (goto-char (point-min))
+    (when (re-search-forward "return" nil t)
+      (goto-char (match-beginning 0))
+      (should (eq (get-text-property (point) 'font-lock-face) 'font-lock-keyword-face)))))
+
 ;;; greger-ui-test.el ends here
