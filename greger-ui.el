@@ -312,6 +312,7 @@ Expensive operations are deferred to idle time to avoid blocking scrolling."
     (greger-ui--set-syntax-highlighted tool-use-node)))
 
 (defun greger-ui--str-replace-syntax-highlighting (tool-use-node start end)
+  "Apply syntax highlighting to str-replace TOOL-USE-NODE from START to END."
   (let* ((params (greger-parser--extract-tool-use-params tool-use-node))
          (has-diff (alist-get 'diff params))
          (has-original-new (and (alist-get 'original-content params)
