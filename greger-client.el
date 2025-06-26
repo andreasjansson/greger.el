@@ -170,7 +170,7 @@ MAX-TOKENS is the maximum number of tokens to generate."
                                (string= (alist-get 'type item) "thinking"))))
               (setq current-list (cdr current-list)))
             (when (and current-list (listp (car current-list)))
-              ;; Modify the first non-thinking content item directly
+              ;; Add cache_control to the beginning of the content block's alist
               (setcar current-list
                       (cons '(cache_control . ((type . "ephemeral")))
                             (car current-list))))))))))
