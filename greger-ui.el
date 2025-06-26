@@ -543,24 +543,14 @@ NODE is the matched tree-sitter node, OVERRIDE, START, and END are font-lock par
               (content-node (treesit-search-subtree tool-result-node "content"))
               (content-start (treesit-node-start content-node))
               (content-end (treesit-node-end content-node))
-              (content-text (treesit-node-text content-node)))
+              (content-text (treesit-node-text content-node))
+              (tool-use-params (greger-parser--extract-tool-use-params tool-use-node)))
 
     (cond
-     ;; Handle read-file results - detect file extension from tool_use path parameter
-     ((string= tool-name "read-file")
-      (when-let* ((tool-use-params (greger-parser--extract-tool-use-params tool-use-node))
-                  (file-path (alist-get 'path tool-use-params)))
+     ;; Handle file-related tools - detect file extension from tool_use path parameter
+     ((member tool-name '("read-file" "replace-file" "write-new-file"))
+      (when-let ((file-path (alist-get 'path tool-use-params)))
         (greger-ui--apply-syntax-highlighting content-start content-end content-text file-path)))
-     
-     ;; Handle list-directory results - treat as text/plain, no special highlighting
-     ((string= tool-name "list-directory")
-      ;; Directory listings don't need special syntax highlighting
-      nil)
-     
-     ;; Handle shell-command results - treat as shell output
-     ((string= tool-name "shell-command")
-      ;; Could potentially highlight as shell output, but for now just leave as-is
-      nil)
      
      ;; Handle other tools - no special highlighting for now
      (t nil))))
