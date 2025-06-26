@@ -412,7 +412,8 @@ Expensive operations are deferred to idle time to avoid blocking scrolling."
       (kill-buffer diff-buffer))))
 
 (defun greger-ui--convert-faces-for-tree-sitter ()
-  "Convert \='face text properties and overlay faces to \='font-lock-face for tree-sitter."
+  "Convert \='face text properties and overlay faces to \='font-lock-face.
+This is needed for tree-sitter compatibility."
   (let* ((background-mode (frame-parameter nil 'background-mode))
          (is-dark-theme (eq background-mode 'dark))
          (red-bg (if is-dark-theme "#32171E" "#ffe6e6")) ; Dark red vs light red
