@@ -412,4 +412,83 @@ def hello_world():
     (should (eq (greger-ui-test-font-lock-face-at "'Hello world!'") 'font-lock-string-face))
     (should (eq (greger-ui-test-font-lock-face-at "return") 'font-lock-keyword-face))))
 
+(ert-deftest greger-ui-test-replace-file-syntax-highlighting ()
+  "Test syntax highlighting for replace-file tool."
+  (with-current-buffer (greger)
+    (erase-buffer)
+    (insert "# TOOL USE
+
+Name: replace-file
+ID: toolu_456
+
+## path
+
+script.js
+
+## contents
+
+<tool.toolu_456>
+function calculateSum(a, b) {
+    return a + b;
+}
+</tool.toolu_456>
+
+")
+    
+    ;; Force font-lock to process the buffer
+    (font-lock-ensure)
+    
+    ;; Check that JavaScript syntax highlighting has been applied
+    ;; Check that "function" has keyword face
+    (should (eq (greger-ui-test-font-lock-face-at "function") 'font-lock-keyword-face))
+    
+    ;; Check that "calculateSum" has function name face  
+    (should (eq (greger-ui-test-font-lock-face-at "calculateSum") 'font-lock-function-name-face))
+    
+    ;; Check that "return" has keyword face
+    (should (eq (greger-ui-test-font-lock-face-at "return") 'font-lock-keyword-face))))
+
+(ert-deftest greger-ui-test-read-file-syntax-highlighting ()
+  "Test syntax highlighting for read-file tool result."
+  (with-current-buffer (greger)
+    (erase-buffer)
+    (insert "# TOOL USE
+
+Name: read-file
+ID: toolu_789
+
+## path
+
+utils.py
+
+# TOOL RESULT
+
+ID: toolu_789
+
+class Calculator:
+    def __init__(self):
+        self.result = 0
+    
+    def add(self, value):
+        self.result += value
+        return self.result
+
+")
+    
+    ;; Force font-lock to process the buffer
+    (font-lock-ensure)
+    
+    ;; Check that Python syntax highlighting has been applied to the tool result
+    ;; Check that "class" has keyword face
+    (should (eq (greger-ui-test-font-lock-face-at "class") 'font-lock-keyword-face))
+    
+    ;; Check that "Calculator" has type face
+    (should (eq (greger-ui-test-font-lock-face-at "Calculator") 'font-lock-type-face))
+    
+    ;; Check that "def" has keyword face
+    (should (eq (greger-ui-test-font-lock-face-at "def") 'font-lock-keyword-face))
+    
+    ;; Check that "return" has keyword face
+    (should (eq (greger-ui-test-font-lock-face-at "return") 'font-lock-keyword-face))))
+
 ;;; greger-ui-test.el ends here
