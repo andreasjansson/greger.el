@@ -150,11 +150,7 @@ MAX-TOKENS is the maximum number of tokens to generate."
     
     ;; Add cache control directly to the block
     (when last-non-thinking-block
-      (setcar last-non-thinking-block
-              (cons '(cache_control . ((type . "ephemeral")))
-                    (car last-non-thinking-block)))
-      (setcdr last-non-thinking-block
-              (cdr last-non-thinking-block)))))
+      (push '(cache_control . ((type . "ephemeral"))) last-non-thinking-block))))
 
 (defun greger-client--build-request (model dialog tools server-tools thinking-budget max-tokens)
   "Build Claude request to be sent to the Claude API.
