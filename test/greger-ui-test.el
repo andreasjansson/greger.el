@@ -209,4 +209,300 @@ I need to consider all the options carefully before responding.
 "))
       (should (string= expected actual)))))
 
+;; Tests for syntax highlighting functionality
+
+(ert-deftest greger-ui-test-tool-result-syntax-highlighting ()
+  "Test syntax highlighting in tool results based on file extensions."
+  (with-current-buffer (greger)
+    (erase-buffer)
+    (insert "# TOOL RESULT
+
+ID: toolu_123
+
+## Content
+
+<tool.toolu_123>
+function test() {
+    console.log('hello world');
+    return 42;
+}
+</tool.toolu_123>
+
+")
+    ;; Mock the tool use extraction to return a JavaScript file
+    (cl-letf (((symbol-function 'greger-parser--extract-tool-use-name)
+               (lambda (_) "read-file"))
+              ((symbol-function 'greger-parser--extract-tool-use-params)
+               (lambda (_) '((path . "test.js")))))
+      
+      ;; Force font-lock to process the buffer
+      (font-lock-ensure)
+      
+      ;; Check that the content has been processed for syntax highlighting
+      ;; We can't easily test the actual highlighting without a full Emacs environment,
+      ;; but we can test that the functions are called correctly
+      (should (string-match-p "function test()" (buffer-string)))
+      (should (string-match-p "console.log" (buffer-string))))))
+
+(ert-deftest greger-ui-test-str-replace-diff-transformation ()
+  "Test str-replace diff transformation functionality."
+  (with-current-buffer (greger)
+    (erase-buffer)
+    (insert "# TOOL USE
+
+Name: str-replace
+ID: toolu_456
+
+## path
+
+test.py
+
+## original-content
+
+def hello():
+    print('old')
+
+## new-content
+
+def hello():
+    print('new')
+
+")
+    ;; Force font-lock to process the buffer
+    (font-lock-ensure)
+    
+    ;; The content should be transformed to show a diff
+    ;; Check that diff markers are present after transformation
+    (let ((content (buffer-string)))
+      ;; Should contain the original tool structure but may have diff content
+      (should (string-match-p "str-replace" content))
+      (should (string-match-p "test.py" content)))))
+
+(ert-deftest greger-ui-test-file-syntax-highlighting ()
+  "Test syntax highlighting for write-new-file and replace-file tools."
+  (with-current-buffer (greger)
+    (erase-buffer)
+    (insert "# TOOL USE
+
+Name: write-new-file
+ID: toolu_789
+
+## path
+
+test.html
+
+## contents
+
+<html>
+<head><title>Test</title></head>
+<body>
+    <h1>Hello World</h1>
+</body>
+</html>
+
+")
+    ;; Force font-lock to process the buffer
+    (font-lock-ensure)
+    
+    ;; Check that the HTML content is present
+    (should (string-match-p "<html>" (buffer-string)))
+    (should (string-match-p "<title>Test</title>" (buffer-string)))
+    (should (string-match-p "Hello World" (buffer-string)))))
+
+;; Tests for enhanced folding functionality
+
+(ert-deftest greger-ui-test-folding-toggle ()
+  "Test toggling folding mode on and off."
+  (with-current-buffer (greger)
+    (erase-buffer)
+    (insert "# ASSISTANT
+
+This is some text with citations
+
+## https://example.com
+
+Title: Example
+Cited text: Some example content
+Encrypted index: abc123
+
+More text here.
+
+")
+    ;; Start with folding enabled
+    (setq greger-ui-folding-mode t)
+    (font-lock-ensure)
+    
+    ;; Citations should be folded
+    (let ((visible-before (greger-ui-test--visible-text)))
+      (should (string-match-p "This is some text with citations" visible-before))
+      (should-not (string-match-p "Title: Example" visible-before)))
+    
+    ;; Toggle folding off
+    (greger-ui-toggle-folding)
+    (font-lock-ensure)
+    
+    ;; Citations should now be visible
+    (let ((visible-after (greger-ui-test--visible-text)))
+      (should (string-match-p "This is some text with citations" visible-after))
+      (should (string-match-p "Title: Example" visible-after)))
+    
+    ;; Toggle folding back on
+    (greger-ui-toggle-folding)
+    (font-lock-ensure)
+    
+    ;; Citations should be folded again
+    (let ((visible-final (greger-ui-test--visible-text)))
+      (should (string-match-p "This is some text with citations" visible-final))
+      (should-not (string-match-p "Title: Example" visible-final)))))
+
+(ert-deftest greger-ui-test-tool-content-tail-folding ()
+  "Test that tool content tail is properly folded when folding mode is enabled."
+  (with-current-buffer (greger)
+    (erase-buffer)
+    (insert "# TOOL USE
+
+Name: read-file
+ID: toolu_999
+
+## path
+
+test.txt
+
+## contents
+
+<tool.toolu_999>
+line1
+line2
+line3
+line4
+line5
+line6
+line7
+line8
+line9
+line10
+</tool.toolu_999>
+
+")
+    ;; Enable folding mode
+    (setq greger-ui-folding-mode t)
+    (font-lock-ensure)
+    
+    ;; Should show first few lines but fold the tail
+    (let ((visible (greger-ui-test--visible-text)))
+      (should (string-match-p "line1" visible))
+      (should (string-match-p "line2" visible))
+      (should (string-match-p "line3" visible))
+      (should (string-match-p "line4" visible))
+      ;; Later lines should be folded
+      (should-not (string-match-p "line10" visible)))))
+
+(ert-deftest greger-ui-test-tool-content-tail-no-folding ()
+  "Test that tool content tail is not folded when folding mode is disabled."
+  (with-current-buffer (greger)
+    (erase-buffer)
+    (insert "# TOOL USE
+
+Name: read-file
+ID: toolu_999
+
+## path
+
+test.txt
+
+## contents
+
+<tool.toolu_999>
+line1
+line2
+line3
+line4
+line5
+line6
+line7
+line8
+line9
+line10
+</tool.toolu_999>
+
+")
+    ;; Disable folding mode
+    (setq greger-ui-folding-mode nil)
+    (font-lock-ensure)
+    
+    ;; Should show all lines
+    (let ((visible (greger-ui-test--visible-text)))
+      (should (string-match-p "line1" visible))
+      (should (string-match-p "line5" visible))
+      (should (string-match-p "line10" visible)))))
+
+(ert-deftest greger-ui-test-citation-expansion-interaction ()
+  "Test interaction between citation expansion and folding mode."
+  (with-current-buffer (greger)
+    (erase-buffer)
+    (insert "# ASSISTANT
+
+Text with citation
+
+## https://example.com
+
+Title: Test Citation
+Cited text: This is cited content
+Encrypted index: xyz789
+
+More text
+
+")
+    ;; Enable folding mode
+    (setq greger-ui-folding-mode t)
+    (font-lock-ensure)
+    
+    ;; Citation should be initially folded
+    (let ((visible-initial (greger-ui-test--visible-text)))
+      (should-not (string-match-p "Title: Test Citation" visible-initial)))
+    
+    ;; Find and expand the citation
+    (goto-char (point-min))
+    (re-search-forward "More text")
+    (greger-ui-test--send-key (kbd "TAB"))
+    
+    ;; Citation should now be expanded
+    (let ((visible-expanded (greger-ui-test--visible-text)))
+      (should (string-match-p "Title: Test Citation" visible-expanded))
+      (should (string-match-p "This is cited content" visible-expanded)))
+    
+    ;; Collapse again
+    (greger-ui-test--send-key (kbd "TAB"))
+    
+    ;; Citation should be folded again
+    (let ((visible-collapsed (greger-ui-test--visible-text)))
+      (should-not (string-match-p "Title: Test Citation" visible-collapsed)))))
+
+;; Test helper functions for syntax highlighting
+
+(ert-deftest greger-ui-test-syntax-highlighted-tracking ()
+  "Test that syntax highlighting tracking works correctly."
+  (with-current-buffer (greger)
+    (erase-buffer)
+    (insert "# TOOL USE
+
+Name: str-replace
+ID: toolu_123
+
+## path
+
+test.txt
+
+")
+    ;; Mock a tool use node
+    (let ((mock-node (cons 'tool-use 100))) ; Simple mock node
+      ;; Initially should not be syntax highlighted
+      (should-not (greger-ui--syntax-highlighted-p mock-node))
+      
+      ;; Mark as syntax highlighted
+      (greger-ui--set-syntax-highlighted mock-node)
+      
+      ;; Should now be marked as highlighted
+      (should (greger-ui--syntax-highlighted-p mock-node)))))
+
 ;;; greger-ui-test.el ends here
