@@ -344,12 +344,27 @@ _START and _END are ignored font-lock parameters."
          (tool-use-id (greger-parser--extract-tool-id tool-use-node))
          (diff-content (greger-ui--generate-diff-content original-content new-content path))
          (wrapped-diff (greger-parser--wrapped-tool-param "diff" tool-use-id diff-content t))
-         (inhibit-read-only t))
+         (inhibit-read-only t)
+         (inhibit-modification-hooks t)  ; Prevent modification hooks from interfering
+         (buffer-undo-list t))           ; Disable undo recording during modification
 
-    ;; Replace buffer content with diff
-    (goto-char replace-start)
-    (delete-region replace-start replace-end)
-    (insert wrapped-diff)))
+    ;; Replace buffer content with diff, with protection against interruption
+    (condition-case err
+        (progn
+          (goto-char replace-start)
+          (delete-region replace-start replace-end)
+          (insert wrapped-diff)
+          ;; Verify the insertion was complete
+          (let ((actual-end (point)))
+            (unless (= (- actual-end replace-start) (length wrapped-diff))
+              (message "Warning: Buffer modification may have been interrupted in Emacs 29.4")
+              ;; Try to complete the insertion
+              (goto-char replace-start)
+              (delete-region replace-start actual-end)
+              (insert wrapped-diff))))
+      (error
+       (message "Error during buffer modification: %s" (error-message-string err))
+       (throw 'font-lock-interrupted err)))))
 
 (defun greger-ui--apply-diff-syntax-highlighting (tool-use-node _start _end)
   "Apply syntax highlighting to existing diff content in str-replace TOOL-USE-NODE.
