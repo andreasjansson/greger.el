@@ -335,7 +335,7 @@ Expensive operations are deferred to idle time to avoid blocking scrolling."
          (new-content-node (alist-get 'new-content param-nodes))
          (replace-start (treesit-node-start original-content-node))
          (replace-end (treesit-node-end new-content-node))
-         (tool-use-id (greger-parser--extract-tool-use-id tool-use-node))
+         (tool-use-id (greger-parser--extract-tool-id tool-use-node))
          (diff-content (greger-ui--generate-diff-content original-content new-content path))
          (wrapped-diff (greger-parser--wrapped-tool-param "diff" tool-use-id diff-content t))
          (inhibit-read-only t))
@@ -359,7 +359,7 @@ Expensive operations are deferred to idle time to avoid blocking scrolling."
          (diff-node (alist-get 'diff param-nodes))
          (replace-start (treesit-node-start diff-node))
          (replace-end (treesit-node-end diff-node))
-         (tool-use-id (greger-parser--extract-tool-use-id tool-use-node))
+         (tool-use-id (greger-parser--extract-tool-id tool-use-node))
          (diff-content (greger-ui--generate-diff-content original-content new-content path))
          (wrapped-diff (greger-parser--wrapped-tool-param "diff" tool-use-id diff-content t))
          (inhibit-read-only t))
@@ -406,15 +406,14 @@ Expensive operations are deferred to idle time to avoid blocking scrolling."
             (greger-ui--remove-diff-headers)
   
             ;; Make diff indicators (space, minus, plus) less prominent
-            (greger-ui--apply-diff-deemphasis)
+            (greger-ui--diff-make-newline-messages-smaller)
 
             (buffer-string)))
       
       ;; Cleanup temp files
       (when (file-exists-p original-file) (delete-file original-file))
       (when (file-exists-p new-file) (delete-file new-file))
-      (kill-buffer diff-buffer)
-      )))
+      (kill-buffer diff-buffer))))
 
 (defun greger-ui--convert-faces-for-tree-sitter ()
   "Convert 'face text properties and overlay faces to 'font-lock-face for tree-sitter."
@@ -516,7 +515,7 @@ Expensive operations are deferred to idle time to avoid blocking scrolling."
   (re-search-backward "\nDiff finished" nil t)
   (delete-region (point) (point-max)))
 
-(defun greger-ui--apply-diff-deemphasis ()
+(defun greger-ui--diff-make-newline-messages-smaller ()
   "Apply visual de-emphasis to diff indicators.
 Makes indicators small and muted while keeping them readable."
   ;; Make "\ No newline at end of file" messages less prominent
@@ -540,78 +539,59 @@ NODE is the matched tree-sitter node, OVERRIDE, START, and END are font-lock par
 (defun greger-ui--fontify-tool-result-content (tool-result-node)
   "Apply syntax highlighting to TOOL-RESULT-NODE content based on the corresponding tool_use."
   (when-let* ((tool-use-node (greger-ui--find-corresponding-tool-use tool-result-node))
-              (tool-name (greger-parser--extract-tool-use-name tool-use-node)))
-    
-    ;; Extract content using existing parser function  
-    (let* ((content-wrapper-node (treesit-search-subtree tool-result-node "content" nil nil 1))
-           (content-text (when content-wrapper-node
-                           (greger-parser--extract-tool-result-content content-wrapper-node)))
-           ;; For tool_result, the structure is: content -> value -> tool_start_tag + tool_content + tool_end_tag  
-           (value-node (when content-wrapper-node
-                         (treesit-node-child-by-field-name content-wrapper-node "value")))
-           (content-node (when value-node
-                           (treesit-search-subtree value-node "tool_content" nil nil 1)))
-           (content-start (when content-node (treesit-node-start content-node)))
-           (content-end (when content-node (treesit-node-end content-node))))
-      
+              (tool-name (greger-parser--extract-tool-use-name tool-use-node))
+              (content-node (treesit-search-subtree tool-result-node "content"))
+              (content-start (treesit-node-start content-node))
+              (content-end (treesit-node-end content-node))
+              (content-text (treesit-node-text content-node)))
 
-      
-      (when (and content-text content-start content-end)
-        (cond
-         ;; Handle read-file results - detect file extension from tool_use path parameter
-         ((string= tool-name "read-file")
-          (let* ((tool-use-params (greger-parser--extract-tool-use-params tool-use-node))
-                 (file-path (alist-get 'path tool-use-params)))
-            (when file-path
-              (greger-ui--apply-syntax-highlighting content-start content-end content-text file-path))))
-         
-         ;; Handle list-directory results - treat as text/plain, no special highlighting
-         ((string= tool-name "list-directory")
-          ;; Directory listings don't need special syntax highlighting
-          nil)
-         
-         ;; Handle shell-command results - treat as shell output
-         ((string= tool-name "shell-command")
-          ;; Could potentially highlight as shell output, but for now just leave as-is
-          nil)
-         
-         ;; Handle other tools - no special highlighting for now
-         (t nil))))))
+    (cond
+     ;; Handle read-file results - detect file extension from tool_use path parameter
+     ((string= tool-name "read-file")
+      (when-let* ((tool-use-params (greger-parser--extract-tool-use-params tool-use-node))
+                  (file-path (alist-get 'path tool-use-params)))
+        (greger-ui--apply-syntax-highlighting content-start content-end content-text file-path)))
+     
+     ;; Handle list-directory results - treat as text/plain, no special highlighting
+     ((string= tool-name "list-directory")
+      ;; Directory listings don't need special syntax highlighting
+      nil)
+     
+     ;; Handle shell-command results - treat as shell output
+     ((string= tool-name "shell-command")
+      ;; Could potentially highlight as shell output, but for now just leave as-is
+      nil)
+     
+     ;; Handle other tools - no special highlighting for now
+     (t nil))))
 
 (defun greger-ui--find-corresponding-tool-use (tool-result-node)
   "Find the tool_use node that corresponds to TOOL-RESULT-NODE by matching IDs."
-  (when-let* ((tool-result-id (greger-parser--extract-tool-result-id tool-result-node))
-              (root (treesit-buffer-root-node)))
-    
-    ;; Search for tool_use nodes with matching ID
-    (treesit-search-subtree 
-     root
-     (lambda (node)
-       (and (string= (treesit-node-type node) "tool_use")
-            (when-let ((tool-use-id (greger-parser--extract-tool-use-id node)))
-              (string= tool-use-id tool-result-id))))
-     nil nil 1)))
-
-
+  (when-let* ((tool-result-id (greger-parser--extract-tool-id tool-result-node))
+              (prev-node (treesit-node-prev-sibling tool-result-node))
+              ((string= (treesit-node-type prev-node) "tool_use"))
+              (tool-use-node prev-node)
+              (tool-use-id (greger-parser--extract-tool-id tool-use-node))
+              ((string= tool-use-id tool-result-id)))
+    tool-use-node))
 
 (defun greger-ui--apply-syntax-highlighting (start end content file-path)
   "Apply syntax highlighting to CONTENT between START and END based on FILE-PATH."
   ;; Skip highlighting for very long content to avoid performance issues  
   (when (< (length content) 50000)
     ;; Create a temporary buffer to get proper syntax highlighting
-    (let ((temp-buffer (generate-new-buffer " *greger-syntax-temp*"))
+    (let ((temp-buffer (generate-new-buffer "*greger-syntax-temp*"))
           (original-buffer (current-buffer)))
       (unwind-protect
           (with-current-buffer temp-buffer
             ;; Insert content and set buffer-file-name for major mode detection
             (insert content)
-            (setq buffer-file-name file-path)
             
             ;; Let Emacs determine the major mode based on the file name
             ;; Don't run hooks that might assume buffer-file-name really associates buffer with a file
-            (condition-case nil
-                (delay-mode-hooks (set-auto-mode))
-              (error (text-mode)))
+            (let ((enable-local-variables nil)
+                  (buffer-file-name file-path))
+              (delay-mode-hooks (set-auto-mode)))
             
             ;; Enable font-lock and force fontification
             (when (fboundp 'font-lock-mode)

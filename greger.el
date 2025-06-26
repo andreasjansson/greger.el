@@ -212,8 +212,7 @@ When nil, preserve point position using `save-excursion'.")
    :feature 'tool-syntax-highlighting
    :override t
    '((tool_use) @greger-ui--str-replace-diff-transform-fn
-     ;(tool_result) @greger-ui--tool-result-syntax-highlighting
-     )
+     (tool_result) @greger-ui--tool-result-syntax-highlighting)
 
    :language 'greger
    :feature 'folding

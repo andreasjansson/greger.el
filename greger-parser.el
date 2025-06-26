@@ -224,7 +224,7 @@ You can run arbitrary shell commands with the shell-command tool, but the follow
 (defun greger-parser--extract-tool-use (node)
   "Extract tool use entry from NODE."
   (let* ((name (greger-parser--extract-tool-use-name node))
-         (id (greger-parser--extract-tool-use-id node))
+         (id (greger-parser--extract-tool-id node))
          (params (greger-parser--extract-tool-use-params node)))
 
     ;; Check if this is a str-replace tool with diff param and convert back
@@ -241,8 +241,8 @@ You can run arbitrary shell commands with the shell-command tool, but the follow
   (let ((name-node (treesit-search-subtree tool-use-node "name")))
     (greger-parser--extract-value name-node)))
 
-(defun greger-parser--extract-tool-use-id (tool-use-node)
-  (let ((id-node (treesit-search-subtree tool-use-node "id")))
+(defun greger-parser--extract-tool-id (tool-node)
+  (let ((id-node (treesit-search-subtree tool-node "id")))
     (greger-parser--extract-value id-node)))
 
 (defun greger-parser--extract-tool-result-id (tool-result-node)
