@@ -86,7 +86,7 @@ START and END are the region bounds."
          (uncle (treesit-node-prev-sibling parent))
          (aunt (treesit-node-next-sibling parent))
          (should-fold (and greger-ui-folding-mode
-                          (not (get-text-property text-start 'greger-ui-citation-expanded))))
+                           (not (get-text-property text-start 'greger-ui-citation-expanded))))
          (invisible-start text-end)
          (invisible-end (- node-end 2)))
 
@@ -102,8 +102,8 @@ START and END are the region bounds."
 
         (if uncle-last-citation-entry
             ;; uncle always invisible when folding mode is on
-            (put-text-property (treesit-node-end uncle-last-citation-entry) node-start 'invisible 
-                              (and greger-ui-folding-mode should-fold))
+            (put-text-property (treesit-node-end uncle-last-citation-entry) node-start 'invisible
+                               (and greger-ui-folding-mode should-fold))
 
           (let* ((uncle-last-child (treesit-node-child uncle -1))
                  (uncle-last-child-end (treesit-node-end uncle-last-child)))
@@ -163,7 +163,7 @@ NODE is the matched tree-sitter node"
          (is-visible (get-text-property node-start 'greger-ui-tool-content-expanded)))
 
     ;; Apply invisibility (default is invisible unless expanded, but respect global folding mode)
-    (put-text-property node-start node-end 'invisible 
+    (put-text-property node-start node-end 'invisible
                        (and greger-ui-folding-mode (not is-visible)))
     (put-text-property node-start node-end 'keymap greger-ui-tool-content-tail-keymap)))
 
@@ -395,12 +395,12 @@ Expensive operations are deferred to idle time to avoid blocking scrolling."
 
             ;; Remove headers/footers inserted by the diff command and diff.el
             (greger-ui--remove-diff-headers)
-  
+
             ;; Make diff indicators (space, minus, plus) less prominent
             (greger-ui--diff-make-newline-messages-smaller)
 
             (buffer-string)))
-      
+
       ;; Cleanup temp files
       (when (file-exists-p original-file) (delete-file original-file))
       (when (file-exists-p new-file) (delete-file new-file))
@@ -412,7 +412,7 @@ Expensive operations are deferred to idle time to avoid blocking scrolling."
          (is-dark-theme (eq background-mode 'dark))
          (red-bg (if is-dark-theme "#32171E" "#ffe6e6")) ; Dark red vs light red
          (green-bg (if is-dark-theme "#173714" "#e6ffe6"))) ; Dark green vs light green
-    
+
     ;; First pass: Set background on all characters in diff lines
     (save-excursion
       (goto-char (point-min))
@@ -430,7 +430,7 @@ Expensive operations are deferred to idle time to avoid blocking scrolling."
             (put-text-property (1+ line-start) line-end 'font-lock-face
                                (list :background green-bg))))
           (forward-line 1))))
-    
+
     ;; Second pass: Convert overlays with 'face property (syntax highlighting overlays)
     (dolist (overlay (overlays-in (point-min) (point-max)))
       (when-let* ((face (overlay-get overlay 'face))
@@ -464,7 +464,7 @@ Expensive operations are deferred to idle time to avoid blocking scrolling."
                 (put-text-property overlay-start-in-line overlay-end-in-line
                                    'font-lock-face face))))
             (forward-line 1))))))
-  
+
   ;; Mark as fontified to prevent re-fontification
   (add-text-properties (point-min) (point-max) '(fontified t)))
 
@@ -483,7 +483,7 @@ Expensive operations are deferred to idle time to avoid blocking scrolling."
       (let ((value (face-attribute face attr nil t)))
         (when (not (eq value 'unspecified))
           (setq result (plist-put result attr value)))))
-    
+
     result))
 
 (defun greger-ui--remove-diff-headers ()
@@ -495,7 +495,7 @@ Expensive operations are deferred to idle time to avoid blocking scrolling."
     (delete-region (point) (progn (forward-line 1) (point))))
   (when (looking-at "^\\+\\+\\+ ")
     (delete-region (point) (progn (forward-line 1) (point))))
-  
+
   ;; Remove hunk headers (@@ lines)
   (goto-char (point-min))
   (while (re-search-forward "^@@.*@@\\s-*\n" nil t)
@@ -558,7 +558,7 @@ NODE is the matched tree-sitter node, OVERRIDE, START, and END are font-lock par
 
 (defun greger-ui--syntax-highlight-text (start end content path)
   "Apply syntax highlighting to CONTENT between START and END based on FILE-PATH."
-  ;; Skip highlighting for very long content to avoid performance issues  
+  ;; Skip highlighting for very long content to avoid performance issues
   (when (< (length content) 50000)
     ;; Create a temporary buffer to get proper syntax highlighting
     (let ((temp-buffer (generate-new-buffer "*greger-syntax-temp*"))
@@ -567,13 +567,13 @@ NODE is the matched tree-sitter node, OVERRIDE, START, and END are font-lock par
           (with-current-buffer temp-buffer
             ;; Insert content and set buffer-file-name for major mode detection
             (insert content)
-            
+
             ;; Let Emacs determine the major mode based on the file name
             ;; Don't run hooks that might assume buffer-file-name really associates buffer with a file
             (let ((enable-local-variables nil)
                   (buffer-file-name path))
               (delay-mode-hooks (set-auto-mode)))
-            
+
             ;; Enable font-lock and force fontification
             (font-lock-mode 1)
             (font-lock-ensure (point-min) (point-max))
@@ -582,21 +582,21 @@ NODE is the matched tree-sitter node, OVERRIDE, START, and END are font-lock par
             (let ((temp-start (point-min))
                   (temp-end (point-max))
                   (original-pos start))
-              
+
               (while (< temp-start temp-end)
                 (let* ((next-change (or (next-single-property-change temp-start 'face (current-buffer) temp-end)
                                         temp-end))
                        (face (get-text-property temp-start 'face))
                        (len (- next-change temp-start)))
-                  
+
                   (when face
                     ;; Apply the face to the corresponding position in the original buffer
                     (with-current-buffer original-buffer
                       (put-text-property original-pos (min (+ original-pos len) end) 'font-lock-face face)))
-                  
+
                   (setq temp-start next-change
                         original-pos (+ original-pos len))))))
-        
+
         ;; Clean up temp buffer
         (with-current-buffer temp-buffer
           (set-buffer-modified-p nil)

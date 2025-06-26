@@ -283,7 +283,7 @@ When nil, preserve point position using `save-excursion'.")
   (setq-local treesit-font-lock-settings greger--treesit-font-lock-settings)
   (setq-local treesit-font-lock-feature-list
               '((tool-tags tool-syntax-highlighting
-                 )
+                           )
                 (headers folding comments tool-result-syntax)
                 (error)
                 ))
