@@ -39,8 +39,9 @@ new content here
           (message "Buffer now: %s" (buffer-substring (max 1 (- start 10)) (min (point-max) (+ (point) 20)))))))
     
     ;; Try to modify the content
-    (let ((start (search-forward "## original-content"))
-          (end (progn (search-forward "## new-content") 
+    (goto-char (point-min))
+    (let ((start (search-forward "original-content"))
+          (end (progn (search-forward "new-content") 
                      (forward-line 3)
                      (point))))
       (goto-char start)
