@@ -554,7 +554,7 @@ line10
       (should (string-match-p "line10" visible)))))
 
 (ert-deftest greger-ui-test-citation-expansion-interaction ()
-  "Test that citation content is present in buffer."
+  "Test interaction between citation expansion and folding mode."
   (with-current-buffer (greger)
     (erase-buffer)
     (insert "# ASSISTANT
@@ -570,12 +570,30 @@ Encrypted index: xyz789
 More text
 
 ")
-    ;; Just test that the content structure is correct
-    (let ((content (buffer-string)))
-      (should (string-match-p "Text with citation" content))
-      (should (string-match-p "Title: Test Citation" content))
-      (should (string-match-p "This is cited content" content))
-      (should (string-match-p "More text" content)))))
+    ;; Enable folding mode
+    (setq greger-ui-folding-mode t)
+    (font-lock-ensure)
+    
+    ;; Citation should be initially folded
+    (let ((visible-initial (greger-ui-test--visible-text)))
+      (should-not (string-match-p "Title: Test Citation" visible-initial)))
+    
+    ;; Find and expand the citation
+    (goto-char (point-min))
+    (re-search-forward "More text")
+    (greger-ui-test--send-key (kbd "TAB"))
+    
+    ;; Citation should now be expanded
+    (let ((visible-expanded (greger-ui-test--visible-text)))
+      (should (string-match-p "Title: Test Citation" visible-expanded))
+      (should (string-match-p "This is cited content" visible-expanded)))
+    
+    ;; Collapse again
+    (greger-ui-test--send-key (kbd "TAB"))
+    
+    ;; Citation should be folded again
+    (let ((visible-collapsed (greger-ui-test--visible-text)))
+      (should-not (string-match-p "Title: Test Citation" visible-collapsed)))))
 
 ;; Test helper functions for syntax highlighting
 
