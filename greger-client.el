@@ -114,6 +114,28 @@ MAX-TOKENS is the maximum number of tokens to generate."
 
 ;;; Request building
 
+(defun greger-client--filter-thinking-messages (messages)
+  "Filter out thinking content blocks from MESSAGES."
+  (cl-remove-if-not
+   (lambda (message)
+     (let ((content (alist-get 'content message)))
+       (cond
+        ;; String content - keep message
+        ((stringp content) t)
+        ;; List content - filter out thinking blocks and keep if any content remains
+        ((listp content)
+         (let ((filtered-content (cl-remove-if 
+                                  (lambda (block)
+                                    (and (listp block)
+                                         (string= (alist-get 'type block) "thinking")))
+                                  content)))
+           (when filtered-content
+             (setf (alist-get 'content message) filtered-content)
+             t)))
+        ;; Other content types - keep message
+        (t t))))
+   messages))
+
 (defun greger-client--build-request (model dialog tools server-tools thinking-budget max-tokens)
   "Build Claude request to be sent to the Claude API.
 MODEL is the Claude mode.
