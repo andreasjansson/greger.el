@@ -283,11 +283,9 @@ When nil, preserve point position using `save-excursion'.")
   (treesit-parser-create 'greger)
   (setq-local treesit-font-lock-settings greger--treesit-font-lock-settings)
   (setq-local treesit-font-lock-feature-list
-              '((tool-tags tool-syntax-highlighting
-                           )
+              '((tool-tags tool-syntax-highlighting)
                 (headers folding comments tool-result-syntax)
-                (error)
-                ))
+                (error)))
   (setq-local treesit-simple-indent-rules greger--treesit-indent-rules)
 
   ;; This crashes Emacs 29.0.91 but not Emacs 30.1. TODO: test if it crashes Emacs 29.1
