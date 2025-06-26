@@ -296,8 +296,10 @@ NODE is the matched tree-sitter node"
     overlay))
 
 (defun greger-ui--tool-use-syntax-highlighting (tool-use-node _override start end)
-  "Font-lock function to transform str-replace original/new content into diff content.
-NODE is the matched tree-sitter node for tool_use block.
+  "Font-lock function to transform tool content for syntax highlighting.
+
+TOOL-USE-NODE is the matched tree-sitter node for tool_use block.
+_OVERRIDE is ignored.  START and END define the fontification range.
 Expensive operations are deferred to idle time to avoid blocking scrolling."
   (unless (greger-ui--syntax-highlighted-p tool-use-node)
     (when-let ((tool-use-name (greger-parser--extract-tool-use-name tool-use-node)))
