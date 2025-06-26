@@ -390,6 +390,15 @@ _START and _END are ignored font-lock parameters."
 
           (diff-no-select original-file new-file nil t diff-buffer)
           (with-current-buffer diff-buffer
+            ;; Ensure buffer is still alive before processing
+            (unless (buffer-live-p diff-buffer)
+              (error "Diff buffer was killed unexpectedly"))
+            
+            ;; Set buffer-file-name to nil to prevent dir-local variables
+            ;; from trying to read from the file system which can cause
+            ;; issues in Emacs 29.4
+            (setq buffer-file-name nil)
+            
             ;; Ensure font-lock is active and force fontification
             (font-lock-ensure (point-min) (point-max))
 
@@ -411,7 +420,8 @@ _START and _END are ignored font-lock parameters."
       ;; Cleanup temp files
       (when (file-exists-p original-file) (delete-file original-file))
       (when (file-exists-p new-file) (delete-file new-file))
-      (kill-buffer diff-buffer))))
+      (when (buffer-live-p diff-buffer)
+        (kill-buffer diff-buffer)))))
 
 (defun greger-ui--convert-faces-for-tree-sitter ()
   "Convert \='face text properties and overlay faces to \='font-lock-face.
