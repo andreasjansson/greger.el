@@ -23,31 +23,12 @@ This checks text properties, overlays, and local/global keymaps."
 Text with the 'invisible property set to t is excluded."
   (let ((result "")
         (pos (point-min)))
-    (when (and (>= emacs-major-version 29) (< emacs-major-version 30))
-      (message "DEBUG VISIBLE: Starting visible-text extraction")
-      (message "DEBUG VISIBLE: Buffer size: %d, point-min: %d, point-max: %d" 
-               (buffer-size) (point-min) (point-max)))
-    
     (while (< pos (point-max))
       (let* ((next-change (next-single-property-change pos 'invisible nil (point-max)))
              (invisible (get-text-property pos 'invisible)))
-        (when (and (>= emacs-major-version 29) (< emacs-major-version 30))
-          (message "DEBUG VISIBLE: pos=%d, next-change=%d, invisible=%s" pos next-change invisible))
-        
         (unless invisible
           (setq result (concat result (buffer-substring-no-properties pos next-change))))
-        (setq pos next-change)
-        
-        ;; Safety check to prevent infinite loops
-        (when (> (length result) 1000)
-          (when (and (>= emacs-major-version 29) (< emacs-major-version 30))
-            (message "DEBUG VISIBLE: Breaking loop, result length: %d" (length result)))
-          (cl-return))))
-    
-    (when (and (>= emacs-major-version 29) (< emacs-major-version 30))
-      (message "DEBUG VISIBLE: Final result length: %d" (length result))
-      (message "DEBUG VISIBLE: Result ends with: %s" 
-               (substring result (max 0 (- (length result) 50)))))
+        (setq pos next-change)))
     result))
 
 (defun greger-ui-test--send-key (key)
