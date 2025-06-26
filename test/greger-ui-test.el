@@ -465,6 +465,7 @@ utils.py
 
 ID: toolu_789
 
+<tool.toolu_789>
 class Calculator:
     def __init__(self):
         self.result = 0
@@ -472,6 +473,7 @@ class Calculator:
     def add(self, value):
         self.result += value
         return self.result
+</tool.toolu_789>
 
 ")
     
