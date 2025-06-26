@@ -245,6 +245,7 @@ The alist maps parameter names to their values."
     (greger-parser--extract-value name-node)))
 
 (defun greger-parser--extract-tool-id (tool-node)
+  "Extract the tool ID from TOOL-NODE."
   (let ((id-node (treesit-search-subtree tool-node "id")))
     (greger-parser--extract-value id-node)))
 
