@@ -39,6 +39,18 @@ Text with the 'invisible property set to t is excluded."
   (font-lock-flush (point-min) (point-max))
   (font-lock-ensure (point-min) (point-max)))
 
+(defun greger-ui-test-font-lock-face-at (text &optional offset)
+  "Get the font-lock-face property at TEXT in the current buffer.
+OFFSET specifies position within the match (default 0 for match beginning).
+Returns nil if TEXT is not found."
+  (save-excursion
+    (goto-char (point-min))
+    (when (re-search-forward (regexp-quote text) nil t)
+      (let ((pos (+ (match-beginning 0) (or offset 0))))
+        (when (and (>= pos (match-beginning 0))
+                   (< pos (match-end 0)))
+          (get-text-property pos 'font-lock-face))))))
+
 (ert-deftest greger-ui-test-citations-folding ()
   (with-current-buffer (greger)
     (erase-buffer)
@@ -208,5 +220,377 @@ I need to consider all the options carefully before responding.
 
 "))
       (should (string= expected actual)))))
+
+(ert-deftest greger-ui-test-toggle-folding ()
+  (with-current-buffer (greger)
+    (erase-buffer)
+
+    ;; Start with folding enabled
+    (let ((greger-ui-folding-mode t)
+          (original-content "# USER
+
+Let me analyze this with multiple tools and citations.
+
+# ASSISTANT
+
+Here's my analysis with citations and tool use:
+
+# ASSISTANT
+
+ Some analysis here.
+
+## https://example.com/tutorial
+
+Title: Programming Tutorial
+Cited text: Best practices for writing clean code
+Encrypted index: def456
+
+# THINKING
+
+Signature: think123
+
+I need to use multiple tools to verify this information and provide a comprehensive analysis.
+
+# TOOL USE
+
+Name: read-file
+ID: toolu_001
+
+## path
+
+<tool.toolu_001>
+test.py
+</tool.toolu_001>
+
+# TOOL RESULT
+
+ID: toolu_001
+
+<tool.toolu_001>
+def calculate_sum(a, b):
+    \"\"\"Calculate the sum of two numbers.\"\"\"
+    result = a + b
+    print(f\"Sum: {result}\")
+    return result
+
+# More complex example
+class Calculator:
+    def __init__(self):
+        self.history = []
+
+    def add(self, x, y):
+        result = x + y
+        self.history.append(f\"{x} + {y} = {result}\")
+        return result
+
+    def multiply(self, x, y):
+        result = x * y
+        self.history.append(f\"{x} * {y} = {result}\")
+        return result
+</tool.toolu_001>
+
+# TOOL USE
+
+Name: shell-command
+ID: toolu_002
+
+## command
+
+<tool.toolu_002>
+python test.py
+</tool.toolu_002>
+
+# TOOL RESULT
+
+ID: toolu_002
+
+<tool.toolu_002>
+Sum: 15
+Calculator created successfully
+Addition: 10 + 5 = 15
+Multiplication: 3 * 4 = 12
+</tool.toolu_002>
+
+")
+          (folded-content "# USER
+
+Let me analyze this with multiple tools and citations.
+
+# ASSISTANT
+
+Here's my analysis with citations and tool use: Some analysis here.
+
+# THINKING
+
+I need to use multiple tools to verify this information and provide a comprehensive analysis.
+
+# TOOL USE
+
+Name: read-file
+
+## path
+
+test.py
+
+# TOOL RESULT
+
+def calculate_sum(a, b):
+    \"\"\"Calculate the sum of two numbers.\"\"\"
+    result = a + b
+    print(f\"Sum: {result}\")
+
+# TOOL USE
+
+Name: shell-command
+
+## command
+
+python test.py
+
+# TOOL RESULT
+
+Sum: 15
+Calculator created successfully
+Addition: 10 + 5 = 15
+Multiplication: 3 * 4 = 12
+
+"))
+      (insert original-content)
+
+      ;; Force font-lock to process the buffer
+      (font-lock-ensure)
+
+      ;; Check that folding is working - content should be folded
+      (should (string= folded-content (greger-ui-test--visible-text)))
+
+      ;; Toggle folding off
+      (greger-ui-toggle-folding)
+
+      (font-lock-ensure)
+
+      ;; Check that everything is now visible
+      (should (string= original-content (greger-ui-test--visible-text)))
+
+      ;; Toggle folding back on
+      (greger-ui-toggle-folding)
+
+      (font-lock-ensure)
+
+      ;; Check that folding is working again
+      (should (string= folded-content (greger-ui-test--visible-text))))))
+
+(ert-deftest greger-ui-test-write-new-file-syntax-highlighting ()
+  "Test syntax highlighting for write-new-file tool."
+  (with-current-buffer (greger)
+    (erase-buffer)
+    (insert "# TOOL USE
+
+Name: write-new-file
+ID: toolu_123
+
+## path
+
+<tool.tool001>
+test.py
+</tool.tool001>
+
+## contents
+
+<tool.tool001>
+def hello_world():
+    print('Hello world!')
+    return 42
+</tool.tool001>
+
+")
+
+    ;; Force font-lock to process the buffer
+    (font-lock-ensure)
+
+    (should (eq (greger-ui-test-font-lock-face-at "def") 'font-lock-keyword-face))
+    (should (eq (greger-ui-test-font-lock-face-at "hello_world") 'font-lock-function-name-face))
+    (should (eq (greger-ui-test-font-lock-face-at "'Hello world!'") 'font-lock-string-face))
+    (should (eq (greger-ui-test-font-lock-face-at "return") 'font-lock-keyword-face))))
+
+(ert-deftest greger-ui-test-replace-file-syntax-highlighting ()
+  "Test syntax highlighting for replace-file tool."
+  (with-current-buffer (greger)
+    (erase-buffer)
+    (insert "# TOOL USE
+
+Name: replace-file
+ID: toolu_456
+
+## path
+
+<tool.toolu_456>
+script.js
+</tool.toolu_456>
+
+## contents
+
+<tool.toolu_456>
+function calculateSum(a, b) {
+    return a + b;
+}
+</tool.toolu_456>
+
+")
+
+    ;; Force font-lock to process the buffer
+    (font-lock-ensure)
+
+    ;; Check that JavaScript syntax highlighting has been applied
+    ;; Check that "function" has keyword face
+    (should (eq (greger-ui-test-font-lock-face-at "function") 'font-lock-keyword-face))
+
+    ;; Check that "calculateSum" has function name face
+    (should (eq (greger-ui-test-font-lock-face-at "calculateSum") 'font-lock-function-name-face))
+
+    ;; Check that "return" has keyword face
+    (should (eq (greger-ui-test-font-lock-face-at "return") 'font-lock-keyword-face))))
+
+(ert-deftest greger-ui-test-read-file-syntax-highlighting ()
+  "Test syntax highlighting for read-file tool result."
+  (with-current-buffer (greger)
+    (erase-buffer)
+    (insert "# TOOL USE
+
+Name: read-file
+ID: toolu_789
+
+## path
+
+<tool.toolu_789>
+utils.py
+</tool.toolu_789>
+
+# TOOL RESULT
+
+ID: toolu_789
+
+<tool.toolu_789>
+class Calculator:
+    def __init__(self):
+        self.result = 0
+
+    def add(self, value):
+        self.result += value
+        return self.result
+</tool.toolu_789>
+
+")
+
+    ;; Force font-lock to process the buffer
+    (font-lock-ensure)
+
+    ;; Check that Python syntax highlighting has been applied to the tool result
+    ;; Check that "class" has keyword face
+    (should (eq (greger-ui-test-font-lock-face-at "class") 'font-lock-keyword-face))
+
+    ;; Check that "Calculator" has type face
+    (should (eq (greger-ui-test-font-lock-face-at "Calculator") 'font-lock-type-face))
+
+    ;; Check that "def" has keyword face
+    (should (eq (greger-ui-test-font-lock-face-at "def") 'font-lock-keyword-face))
+
+    ;; Check that "return" has keyword face
+    (should (eq (greger-ui-test-font-lock-face-at "return") 'font-lock-keyword-face))))
+
+(ert-deftest greger-ui-test-str-replace-diff-and-syntax-highlighting ()
+  "Test str-replace diff transformation and syntax highlighting."
+  (with-current-buffer (greger)
+    (let ((greger-ui-folding-mode nil))
+      (erase-buffer)
+      ;; Temporarily disable folding mode for this test to prevent invisible text issues
+      (insert "# TOOL USE
+
+Name: str-replace
+ID: toolu_999
+
+## path
+
+<tool.toolu_999>
+example.py
+</tool.toolu_999>
+
+## original-content
+
+<tool.toolu_999>
+def old_function():
+    print('old implementation')
+    return False
+</tool.toolu_999>
+
+## new-content
+
+<tool.toolu_999>
+def new_function():
+    print('new implementation')
+    return True
+</tool.toolu_999>
+
+")
+
+      (font-lock-ensure)
+
+      ;; Check that the content has been transformed to diff format
+      (let ((expected "# TOOL USE
+
+Name: str-replace
+ID: toolu_999
+
+## path
+
+<tool.toolu_999>
+example.py
+</tool.toolu_999>
+
+## diff
+
+<tool.toolu_999>
+-def old_function():
+-    print('old implementation')
+-    return False
+\\ No newline at end of file
++def new_function():
++    print('new implementation')
++    return True
+\\ No newline at end of file
+
+</tool.toolu_999>
+
+"))
+        (should (string= expected (greger-ui-test--visible-text))))
+
+      (greger-ui-toggle-folding)
+      (font-lock-ensure)
+
+      ;; Check that the content has been transformed to diff format
+      (let ((expected "# TOOL USE
+
+Name: str-replace
+
+## path
+
+example.py
+
+## diff
+
+-def old_function():
+-    print('old implementation')
+-    return False
+\\ No newline at end of file
+
+"))
+        (should (string= expected (greger-ui-test--visible-text))))
+
+      ;; Check that Python syntax highlighting has been applied to the diff
+      ;; The diff transformation applies both syntax highlighting and diff faces
+      ;; so we check that font-lock-face properties are present (not nil)
+      (should (greger-ui-test-font-lock-face-at "def"))
+      (should (greger-ui-test-font-lock-face-at "old_function"))
+      (should (greger-ui-test-font-lock-face-at "'old implementation'"))
+      (should (greger-ui-test-font-lock-face-at "return")))))
 
 ;;; greger-ui-test.el ends here

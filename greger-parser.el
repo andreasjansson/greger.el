@@ -202,17 +202,36 @@ You can run arbitrary shell commands with the shell-command tool, but the follow
          (signature (treesit-node-text value-node t)))
     signature))
 
+(defun greger-parser--extract-tool-use-param-nodes (node)
+  "Extract tool parameter nodes from NODE and return an alist.
+The alist maps parameter names to parameter nodes."
+  (let* ((tool-param-nodes (treesit-filter-child node (lambda (n) (string= (treesit-node-type n) "tool_param"))))
+         (param-map '()))
+    (dolist (tool-param-node tool-param-nodes)
+      (when-let* ((name-node (treesit-search-subtree tool-param-node "name"))
+                  (name (intern (treesit-node-text name-node t))))
+        (push `(,name . ,tool-param-node) param-map)))
+    (nreverse param-map)))
+
+(defun greger-parser--extract-tool-use-params (node)
+  "Extract tool use parameters from NODE and return an alist.
+The alist maps parameter names to their values."
+  (let* ((param-node-map (greger-parser--extract-tool-use-param-nodes node))
+         (params '()))
+    (dolist (param-entry param-node-map)
+      (let ((param-node (cdr param-entry)))
+        (push (greger-parser--extract-tool-param param-node) params)))
+    (nreverse params)))
+
 (defun greger-parser--extract-tool-use (node)
   "Extract tool use entry from NODE."
-  (let* ((name-node (treesit-search-subtree node "name"))
-         (name (greger-parser--extract-value name-node))
-         (id-node (treesit-search-subtree node "id"))
-         (id (greger-parser--extract-value id-node))
-         (tool-param-nodes (treesit-filter-child node (lambda (n) (string= (treesit-node-type n) "tool_param"))))
-         (params '()))
-    (dolist (tool-param-node tool-param-nodes)
-      (push (greger-parser--extract-tool-param tool-param-node) params))
-    (setq params (nreverse params))
+  (let* ((name (greger-parser--extract-tool-use-name node))
+         (id (greger-parser--extract-tool-id node))
+         (params (greger-parser--extract-tool-use-params node)))
+
+    ;; Check if this is a str-replace tool with diff param and convert back
+    (when (string= name "str-replace")
+      (setq params (greger-parser--str-replace-undiff-params params)))
 
     `((role . "assistant")
       (content . (((type . "tool_use")
@@ -220,17 +239,28 @@ You can run arbitrary shell commands with the shell-command tool, but the follow
                    (name . ,name)
                    (input . ,params)))))))
 
+(defun greger-parser--extract-tool-use-name (tool-use-node)
+  "Extract the tool name from TOOL-USE-NODE."
+  (let ((name-node (treesit-search-subtree tool-use-node "name")))
+    (greger-parser--extract-value name-node)))
+
+(defun greger-parser--extract-tool-id (tool-node)
+  "Extract the tool ID from TOOL-NODE."
+  (let ((id-node (treesit-search-subtree tool-node "id")))
+    (greger-parser--extract-value id-node)))
+
+(defun greger-parser--extract-tool-result-id (tool-result-node)
+  "Extract the tool result ID from TOOL-RESULT-NODE."
+  (let ((id-node (treesit-search-subtree tool-result-node "id")))
+    (greger-parser--extract-value id-node)))
+
 (defun greger-parser--extract-server-tool-use (node)
   "Extract tool use entry from NODE."
   (let* ((name-node (treesit-search-subtree node "name"))
          (name (greger-parser--extract-value name-node))
          (id-node (treesit-search-subtree node "id"))
          (id (greger-parser--extract-value id-node))
-         (tool-param-nodes (treesit-filter-child node (lambda (n) (string= (treesit-node-type n) "tool_param"))))
-         (params '()))
-    (dolist (tool-param-node tool-param-nodes)
-      (push (greger-parser--extract-tool-param tool-param-node) params))
-    (setq params (nreverse params))
+         (params (greger-parser--extract-tool-use-params node)))
     `((role . "assistant")
       (content . (((type . "server_tool_use")
                    (id . ,id)
@@ -638,11 +668,19 @@ assuming it's already been sent in streaming."
                                  (symbol-name (car param))
                                (format "%s" (car param))))
                        (value (cdr param)))
-                   (concat "## " name "\n\n"
-                           "<tool." id ">\n"
-                           (greger-parser--value-to-string value) "\n"
-                           "</tool." id ">")))
+                   (greger-parser--wrapped-tool-param name id value)))
                input "\n\n")))
+
+(defun greger-parser--wrapped-tool-param (name id value &optional raw-value)
+  "Wrap tool parameter NAME with ID and VALUE.
+If RAW-VALUE is non-nil, use VALUE directly without formatting."
+  (let ((formatted-value (if raw-value
+                             value
+                           (greger-parser--value-to-string value))))
+    (concat "## " name "\n\n"
+            "<tool." id ">\n"
+            formatted-value "\n"
+            "</tool." id ">")))
 
 (defun greger-parser--value-to-string (value)
   "Convert VALUE to string representation."
@@ -663,6 +701,118 @@ assuming it's already been sent in streaming."
      ((vectorp value) (json-encode value))
      ((listp value) (json-encode value))
      (t (format "%s" value)))))
+
+;; Undiff functionality for str-replace
+
+(defun greger-parser--str-replace-undiff-params (params)
+  "Convert diff parameter to original-content and new-content in PARAMS."
+  (let ((diff-content (alist-get 'diff params))
+        (other-params (cl-remove-if (lambda (param)
+                                      (eq (car param) 'diff))
+                                    params)))
+    (if diff-content
+        ;; Undiff the content back to original and new
+        (let ((undiff-result (greger-parser-undiff-strings diff-content)))
+          (append other-params
+                  `((original-content . ,(car undiff-result))
+                    (new-content . ,(cdr undiff-result)))))
+      ;; No diff content found, return params as-is
+      params)))
+
+(defun greger-parser-undiff-strings (unified-diff-str)
+  "Extract original and new strings from UNIFIED-DIFF-STR.
+Handles unified diff format created by the `diff` command, including diffs
+without headers (file/hunk headers deleted).
+Returns a cons cell (ORIGINAL-STR . NEW-STR)."
+  ;; Handle empty diff (identical files)
+  (if (string= "" (string-trim unified-diff-str))
+      (cons "" "")
+
+    (let ((lines (split-string unified-diff-str "\n"))
+          (original-lines '())
+          (new-lines '())
+          (in-hunk nil)
+          (orig-no-newline nil)
+          (new-no-newline nil)
+          (has-headers nil)
+          (last-operation nil)) ; Track what the last operation was for "No newline" handling
+
+      ;; Check if the diff has headers (to determine processing mode)
+      (dolist (line lines)
+        (when (string-match "^\\(---\\|\\+\\+\\+\\|@@\\)" line)
+          (setq has-headers t)))
+
+      ;; If no headers found, assume we're directly in hunk content
+      (unless has-headers
+        (setq in-hunk t))
+
+      (dolist (line lines)
+        (cond
+         ;; Skip header lines if they exist
+         ((string-match "^\\(---\\|\\+\\+\\+\\|@@\\)" line)
+          (when (string-match "^@@" line)
+            (setq in-hunk t)))
+
+         ;; Process hunk content
+         (in-hunk
+          (cond
+           ;; Handle "No newline" messages
+           ((string-match "^\\\\ No newline" line)
+            ;; Apply "No newline" based on the last operation
+            (cond
+             ((eq last-operation 'deleted)
+              (setq orig-no-newline t))
+             ((eq last-operation 'added)
+              (setq new-no-newline t))
+             ((eq last-operation 'context)
+              ;; For context lines, both sides don't have newlines
+              (setq orig-no-newline t new-no-newline t))
+             (t
+              ;; Fallback: if we can't determine, assume it applies to both
+              (setq orig-no-newline t new-no-newline t))))
+
+           ;; Process normal lines
+           ((> (length line) 0)
+            (let ((prefix (substring line 0 1))
+                  (content (substring line 1)))
+              (cond
+               ;; Unchanged line
+               ((string= prefix " ")
+                (push content original-lines)
+                (push content new-lines)
+                (setq last-operation 'context))
+
+               ;; Deleted line
+               ((string= prefix "-")
+                (push content original-lines)
+                (setq last-operation 'deleted))
+
+               ;; Added line
+               ((string= prefix "+")
+                (push content new-lines)
+                (setq last-operation 'added))
+
+               ;; Handle lines without prefix (context)
+               ((not (member prefix '("-" "+")))
+                (push line original-lines)
+                (push line new-lines)
+                (setq last-operation 'context)))))))))
+
+      ;; Build the final strings
+      (let ((orig-str (if original-lines
+                          (string-join (nreverse original-lines) "\n")
+                        ""))
+            (new-str (if new-lines
+                         (string-join (nreverse new-lines) "\n")
+                       "")))
+        ;; Add trailing newlines unless explicitly marked as having no newline
+        (unless (or orig-no-newline (string= orig-str ""))
+          (setq orig-str (concat orig-str "\n")))
+        (unless (or new-no-newline (string= new-str ""))
+          (setq new-str (concat new-str "\n")))
+        ;; Strip text properties to return clean strings
+        (cons (substring-no-properties orig-str)
+              (substring-no-properties new-str))))))
 
 (provide 'greger-parser)
 

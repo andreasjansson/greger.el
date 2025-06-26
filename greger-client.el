@@ -114,6 +114,46 @@ MAX-TOKENS is the maximum number of tokens to generate."
 
 ;;; Request building
 
+(defun greger-client--filter-thinking-messages (messages)
+  "Filter out thinking content blocks from MESSAGES."
+  (delq nil
+        (mapcar (lambda (message)
+                  (let ((content (alist-get 'content message)))
+                    (cond
+                     ;; String content - keep message as-is
+                     ((stringp content) message)
+                     ;; List content - filter out thinking blocks
+                     ((listp content)
+                      (let ((filtered-content (cl-remove-if
+                                               (lambda (block)
+                                                 (and (listp block)
+                                                      (string= (alist-get 'type block) "thinking")))
+                                               content)))
+                        (when filtered-content
+                          `((role . ,(alist-get 'role message))
+                            (content . ,filtered-content)))))
+                     ;; Other content types - keep message as-is
+                     (t message))))
+                messages)))
+
+(defun greger-client--add-cache-control (messages)
+  "Add ephemeral cache control to the last non-thinking content block in MESSAGES."
+  (let ((last-non-thinking-block nil))
+    ;; Walk all messages and find the last non-thinking content block
+    (dolist (message messages)
+      (let ((content (alist-get 'content message)))
+        (when (listp content)
+          (dolist (block content)
+            (when (and (listp block)
+                       (not (string= (alist-get 'type block) "thinking")))
+              (setq last-non-thinking-block block))))))
+
+    ;; Add cache control directly to the block by modifying it in place
+    (when last-non-thinking-block
+      (let ((cache-control '(cache_control . ((type . "ephemeral")))))
+        (setcdr last-non-thinking-block (cons (car last-non-thinking-block) (cdr last-non-thinking-block)))
+        (setcar last-non-thinking-block cache-control)))))
+
 (defun greger-client--build-request (model dialog tools server-tools thinking-budget max-tokens)
   "Build Claude request to be sent to the Claude API.
 MODEL is the Claude mode.
@@ -149,7 +189,8 @@ MAX-TOKENS is the maximum number of tokens to generate"
 TOOLS and SERVER-TOOLS add function calling capabilities to the request.
 THINKING-BUDGET specifies the token budget for thinking content.
 MAX-TOKENS is the maximum number of tokens to generate."
-  (let ((system-message nil)
+  (let ((dialog (copy-tree dialog)) ;; we're mutating dialog
+        (system-message nil)
         (user-messages ())
         (request-data nil))
 
@@ -167,25 +208,12 @@ MAX-TOKENS is the maximum number of tokens to generate."
     ;; Reverse to get correct order
     (setq user-messages (nreverse user-messages))
 
-    ;; Find the last message with dict content and add ephemeral cache control
-    (let ((last-dict-message nil))
-      (dolist (message user-messages)
-        (let ((content (alist-get 'content message)))
-          (when (and (listp content)
-                     ;; Can't attach cache control to thinking
-                     (not (string= (alist-get 'type content) "thinking")))
-            (setq last-dict-message message))))
+    ;; Filter out thinking messages if thinking-budget is 0
+    (when (and thinking-budget (= thinking-budget 0))
+      (setq user-messages (greger-client--filter-thinking-messages user-messages)))
 
-      (when last-dict-message
-        (let ((content-list (alist-get 'content last-dict-message)))
-          ;; Modify the first content item in place
-          (when (and content-list (listp content-list))
-            (let ((first-content-item (car content-list)))
-              (when (and first-content-item (listp first-content-item))
-                ;; Modify the car of the content-list directly
-                (setcar content-list
-                        (cons '(cache_control . ((type . "ephemeral")))
-                              first-content-item))))))))
+    ;; Add ephemeral cache-control
+    (greger-client--add-cache-control user-messages)
 
     ;; Build base request
     (let ((max-tokens (+ max-tokens (or thinking-budget 0))))

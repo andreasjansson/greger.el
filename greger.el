@@ -147,11 +147,6 @@ When nil, preserve point position using `save-excursion'.")
   "Face for tool-related headers (TOOL USE, TOOL RESULT, etc.)."
   :group 'greger)
 
-(defface greger-subheading-face
-  '((t (:foreground "coral" :weight semi-bold)))
-  "Face for subheadings like tool parameters and citation entries."
-  :group 'greger)
-
 (defface greger-field-name-face
   '((t (:foreground "lightyellow")))
   "Face for field names like \='Name:\=', \='ID:\=', etc."
@@ -199,6 +194,7 @@ When nil, preserve point position using `save-excursion'.")
     (define-key map (kbd "C-; c") #'greger-ui-copy-code)
     (define-key map (kbd "C-; t") #'greger-toggle-thinking)
     (define-key map (kbd "C-; f") #'greger-toggle-follow-mode)
+    (define-key map (kbd "C-; C-f") #'greger-ui-toggle-folding)
     map)
   "Keymap for `greger-mode'.")
 
@@ -217,17 +213,18 @@ When nil, preserve point position using `save-excursion'.")
      (web_search_tool_result_header) @greger-tool-header-face)
 
    :language 'greger
-   :feature 'folding
+   :feature 'tool-syntax-highlighting
    :override t
-   '((assistant (citation_entry) @greger-ui--citation-entry-folding-fn)
-     (tool_content_tail) @greger-ui--tool-content-tail-folding-fn
-     (tool_content_head) @greger-ui--tool-content-head-folding-fn
-     (thinking_signature) @greger-ui--thinking-signature-hiding-fn)
+   '((tool_use) @greger-ui--tool-use-syntax-highlighting
+     (tool_result) @greger-ui--tool-result-syntax-highlighting)
 
    :language 'greger
-   :feature 'subheadings
+   :feature 'folding
    :override t
-   '((citation_entry) @greger-subheading-face)
+   '((assistant (citation_entry) @greger-ui--citation-entry-folding)
+     (tool_content_tail) @greger-ui--tool-content-tail-folding
+     (tool_content_head) @greger-ui--tool-content-head-folding
+     (thinking_signature) @greger-ui--thinking-signature-hiding)
 
    :language 'greger
    :feature 'tool-tags
@@ -240,7 +237,7 @@ When nil, preserve point position using `save-excursion'.")
      (web_search_tool_result (id) @greger-ui--make-tool-result-id-invisible)
      (tool_param_header) @greger-tool-param-name-face
      (key) @greger-key-face
-     (url) @greger-ui--url-link-fn)
+     (url) @greger-ui--url-link)
 
    :language 'greger
    :feature 'comments
@@ -289,11 +286,9 @@ When nil, preserve point position using `save-excursion'.")
   (treesit-parser-create 'greger)
   (setq-local treesit-font-lock-settings greger--treesit-font-lock-settings)
   (setq-local treesit-font-lock-feature-list
-              '((error)
-                (headers folding tool-folding)
-                (tool-tags)
-                (comments)
-                (subheadings)))
+              '((tool-tags tool-syntax-highlighting)
+                (headers folding comments tool-result-syntax)
+                (error)))
   (setq-local treesit-simple-indent-rules greger--treesit-indent-rules)
 
   ;; This crashes Emacs 29.0.91 but not Emacs 30.1. TODO: test if it crashes Emacs 29.1
@@ -595,26 +590,26 @@ Uses tree-sitter to find the last node and applies heuristics:
     (when (>= current-iteration greger-max-iterations)
       (error "Maximum iterations (%d) reached, stopping agent execution" greger-max-iterations))
 
-    (let ((client-state (greger-client-stream
-                         :model greger-model
-                         :dialog dialog
-                         :tools tools
-                         :server-tools server-tools
-                         :buffer chat-buffer
-                         :thinking-budget greger-current-thinking-budget
-                         :block-start-callback (lambda (content-block)
-                                                 (greger--append-streaming-content-header state content-block))
-                         :text-delta-callback (lambda (text)
-                                                (greger--append-text state (greger--clean-excessive-newlines text)))
-                         :block-stop-callback (lambda (type content-block)
-                                                (greger--append-handle-content-block-stop state type content-block))
-                         :complete-callback (lambda (content-blocks) (greger--handle-stream-completion state content-blocks))
-                         :max-tokens greger-max-tokens)))
+    (with-current-buffer chat-buffer
+      (let ((client-state (greger-client-stream
+                           :model greger-model
+                           :dialog dialog
+                           :tools tools
+                           :server-tools server-tools
+                           :buffer chat-buffer
+                           :thinking-budget greger-current-thinking-budget
+                           :block-start-callback (lambda (content-block)
+                                                   (greger--append-streaming-content-header state content-block))
+                           :text-delta-callback (lambda (text)
+                                                  (greger--append-text state (greger--clean-excessive-newlines text)))
+                           :block-stop-callback (lambda (type content-block)
+                                                  (greger--append-handle-content-block-stop state type content-block))
+                           :complete-callback (lambda (content-blocks) (greger--handle-stream-completion state content-blocks))
+                           :max-tokens greger-max-tokens)))
 
-      ;; Store the client state for potential cancellation
-      (setf (greger-state-client-state state) client-state)
-      ;; Set buffer-local variable for greger-interrupt to access
-      (with-current-buffer chat-buffer
+        ;; Store the client state for potential cancellation
+        (setf (greger-state-client-state state) client-state)
+        ;; Set buffer-local variable for greger-interrupt to access
         (setq greger--current-state state) ;; TODO: why do we set that _here_? Or should it be greger--current-client-state instead?
         (greger--update-buffer-state)))))
 
