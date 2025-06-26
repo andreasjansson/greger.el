@@ -541,16 +541,23 @@ ID: toolu_999
 
 ## path
 
+<tool.toolu_999>
 example.py
+</tool.toolu_999>
 
 ## diff
 
+<tool.toolu_999>
 -def old_function():
 -    print('old implementation')
 -    return False
+\\ No newline at end of file
 +def new_function():
 +    print('new implementation')
 +    return True
+\\ No newline at end of file
+
+</tool.toolu_999>
 
 "))
       (should (string= expected (greger-ui-test--visible-text))))
