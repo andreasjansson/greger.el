@@ -388,16 +388,16 @@ _START and _END are ignored font-lock parameters."
             (with-temp-file new-file
               (insert new)))
 
+          ;; Set up the buffer to prevent dir-local variable issues
+          (with-current-buffer diff-buffer
+            (setq buffer-file-name nil)
+            (setq default-directory (temporary-file-directory)))
+
           (diff-no-select original-file new-file nil t diff-buffer)
           (with-current-buffer diff-buffer
             ;; Ensure buffer is still alive before processing
             (unless (buffer-live-p diff-buffer)
               (error "Diff buffer was killed unexpectedly"))
-            
-            ;; Set buffer-file-name to nil to prevent dir-local variables
-            ;; from trying to read from the file system which can cause
-            ;; issues in Emacs 29.4
-            (setq buffer-file-name nil)
             
             ;; Ensure font-lock is active and force fontification
             (font-lock-ensure (point-min) (point-max))
