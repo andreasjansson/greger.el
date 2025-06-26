@@ -240,6 +240,7 @@ The alist maps parameter names to their values."
                    (input . ,params)))))))
 
 (defun greger-parser--extract-tool-use-name (tool-use-node)
+  "Extract the tool name from TOOL-USE-NODE."
   (let ((name-node (treesit-search-subtree tool-use-node "name")))
     (greger-parser--extract-value name-node)))
 
