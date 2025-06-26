@@ -343,26 +343,13 @@ _START and _END are ignored font-lock parameters."
          (replace-end (treesit-node-end new-content-node))
          (tool-use-id (greger-parser--extract-tool-id tool-use-node))
          (diff-content (greger-ui--generate-diff-content original-content new-content path))
-         (wrapped-diff (greger-parser--wrapped-tool-param "diff" tool-use-id diff-content t)))
+         (wrapped-diff (greger-parser--wrapped-tool-param "diff" tool-use-id diff-content t))
+         (inhibit-read-only t))
 
-    ;; Check if we're running Emacs 29.4 or similar version where buffer modification
-    ;; during font-lock causes issues
-    (if (and (>= emacs-major-version 29) (< emacs-major-version 30))
-        ;; For Emacs 29.x, avoid buffer modification during font-lock
-        ;; Instead, mark for post-fontification transformation
-        (progn
-          (put-text-property replace-start replace-end 'greger-ui-needs-diff-transform t)
-          (put-text-property replace-start replace-end 'greger-ui-diff-content wrapped-diff)
-          ;; Schedule the transformation for after font-lock completes
-          (run-with-idle-timer 0.001 nil
-                               (lambda ()
-                                 (when (buffer-live-p (current-buffer))
-                                   (greger-ui--complete-diff-transformation replace-start replace-end wrapped-diff)))))
-      ;; For Emacs 30.x+, do the transformation immediately as before
-      (let ((inhibit-read-only t))
-        (goto-char replace-start)
-        (delete-region replace-start replace-end)
-        (insert wrapped-diff)))))
+    ;; Replace buffer content with diff
+    (goto-char replace-start)
+    (delete-region replace-start replace-end)
+    (insert wrapped-diff)))
 
 (defun greger-ui--apply-diff-syntax-highlighting (tool-use-node _start _end)
   "Apply syntax highlighting to existing diff content in str-replace TOOL-USE-NODE.
