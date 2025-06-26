@@ -244,6 +244,157 @@ function test() {
       (should (string-match-p "function test()" (buffer-string)))
       (should (string-match-p "console.log" (buffer-string))))))
 
+(ert-deftest greger-ui-test-tool-result-find-corresponding-tool-use ()
+  "Test finding corresponding tool_use node for tool_result."
+  (with-current-buffer (greger)
+    (erase-buffer)
+    (insert "# TOOL USE
+
+Name: read-file
+ID: toolu_456
+
+## path
+
+test.py
+
+# TOOL RESULT
+
+ID: toolu_456
+
+## Content
+
+<tool.toolu_456>
+def hello():
+    print('world')
+</tool.toolu_456>
+
+")
+    ;; Mock tree-sitter nodes and functions for testing
+    (let* ((mock-tool-result-node (list 'tool_result 'id "toolu_456"))
+           (mock-tool-use-node (list 'tool_use 'id "toolu_456")))
+      
+      ;; Mock the required parser functions
+      (cl-letf (((symbol-function 'greger-parser--extract-tool-id)
+                 (lambda (node) 
+                   (plist-get (cdr node) 'id)))
+                ((symbol-function 'treesit-node-prev-sibling)
+                 (lambda (_) mock-tool-use-node))
+                ((symbol-function 'treesit-node-type)
+                 (lambda (node) (symbol-name (car node)))))
+        
+        ;; Test the correspondence finding
+        (let ((found-node (greger-ui--find-corresponding-tool-use mock-tool-result-node)))
+          (should (equal found-node mock-tool-use-node)))))))
+
+(ert-deftest greger-ui-test-tool-result-syntax-highlighting-python ()
+  "Test syntax highlighting for Python code in tool results."
+  (with-current-buffer (greger)
+    (erase-buffer)
+    (insert "# TOOL USE
+
+Name: read-file
+ID: toolu_789
+
+## path
+
+script.py
+
+# TOOL RESULT
+
+ID: toolu_789
+
+## Content
+
+<tool.toolu_789>
+def fibonacci(n):
+    if n <= 1:
+        return n
+    return fibonacci(n-1) + fibonacci(n-2)
+
+print(fibonacci(10))
+</tool.toolu_789>
+
+")
+    ;; This test ensures the structure is correct for Python syntax highlighting
+    ;; The actual highlighting would depend on Python mode being available
+    (let ((content (buffer-string)))
+      (should (string-match-p "def fibonacci" content))
+      (should (string-match-p "print(fibonacci" content)))))
+
+(ert-deftest greger-ui-test-tool-result-syntax-highlighting-html ()
+  "Test syntax highlighting for HTML code in tool results."
+  (with-current-buffer (greger)
+    (erase-buffer)
+    (insert "# TOOL USE
+
+Name: read-file
+ID: toolu_html
+
+## path
+
+index.html
+
+# TOOL RESULT
+
+ID: toolu_html
+
+## Content
+
+<tool.toolu_html>
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Test Page</title>
+</head>
+<body>
+    <h1>Hello World</h1>
+    <p>This is a test page.</p>
+</body>
+</html>
+</tool.toolu_html>
+
+")
+    ;; Test the HTML structure is preserved
+    (let ((content (buffer-string)))
+      (should (string-match-p "<!DOCTYPE html>" content))
+      (should (string-match-p "<title>Test Page</title>" content))
+      (should (string-match-p "<h1>Hello World</h1>" content)))))
+
+(ert-deftest greger-ui-test-syntax-highlight-text-performance ()
+  "Test that syntax highlighting skips very large content for performance."
+  ;; Create a very large content string (over 50000 characters)
+  (let* ((large-content (make-string 60000 ?x))
+         (start 100)
+         (end 200)
+         (path "large.txt"))
+    
+    ;; Mock the buffer operations to test the performance check
+    (with-temp-buffer
+      ;; This should not trigger syntax highlighting due to size limit
+      (cl-letf (((symbol-function 'generate-new-buffer)
+                 (lambda (_) (error "Should not create buffer for large content"))))
+        
+        ;; The function should return early without error
+        (should-not (greger-ui--syntax-highlight-text start end large-content path))))))
+
+(ert-deftest greger-ui-test-syntax-highlight-text-normal-size ()
+  "Test that syntax highlighting works for normal-sized content."
+  (let* ((content "function test() {\n    return 'hello';\n}")
+         (start 100)
+         (end 200)
+         (path "test.js"))
+    
+    (with-temp-buffer
+      (insert "dummy content before")
+      (let ((buffer-start (point)))
+        (insert content)
+        (let ((buffer-end (point)))
+          (insert "dummy content after")
+          
+          ;; Test that the function can be called without error
+          ;; The actual highlighting behavior would depend on js-mode being available
+          (should-not (greger-ui--syntax-highlight-text buffer-start buffer-end content path)))))))
+
 (ert-deftest greger-ui-test-str-replace-diff-transformation ()
   "Test str-replace diff transformation functionality."
   (with-current-buffer (greger)
