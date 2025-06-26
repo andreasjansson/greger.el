@@ -672,6 +672,8 @@ assuming it's already been sent in streaming."
                input "\n\n")))
 
 (defun greger-parser--wrapped-tool-param (name id value &optional raw-value)
+  "Wrap tool parameter NAME with ID and VALUE.
+If RAW-VALUE is non-nil, use VALUE directly without formatting."
   (let ((formatted-value (if raw-value
                              value
                            (greger-parser--value-to-string value))))
