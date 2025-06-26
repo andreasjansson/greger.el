@@ -410,7 +410,7 @@ _START and _END are ignored font-lock parameters."
             ;; Ensure buffer is still alive before processing
             (unless (buffer-live-p diff-buffer)
               (error "Diff buffer was killed unexpectedly"))
-            
+
             ;; Ensure font-lock is active and force fontification
             (font-lock-ensure (point-min) (point-max))
 

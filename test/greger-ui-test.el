@@ -502,8 +502,8 @@ class Calculator:
   (with-current-buffer (greger)
     (let ((greger-ui-folding-mode nil))
       (erase-buffer)
-     ;; Temporarily disable folding mode for this test to prevent invisible text issues
-     (insert "# TOOL USE
+      ;; Temporarily disable folding mode for this test to prevent invisible text issues
+      (insert "# TOOL USE
 
 Name: str-replace
 ID: toolu_999
@@ -532,10 +532,10 @@ def new_function():
 
 ")
 
-     (font-lock-ensure)
+      (font-lock-ensure)
 
-     ;; Check that the content has been transformed to diff format
-     (let ((expected "# TOOL USE
+      ;; Check that the content has been transformed to diff format
+      (let ((expected "# TOOL USE
 
 Name: str-replace
 ID: toolu_999
@@ -561,13 +561,13 @@ example.py
 </tool.toolu_999>
 
 "))
-       (should (string= expected (greger-ui-test--visible-text))))
+        (should (string= expected (greger-ui-test--visible-text))))
 
-     (greger-ui-toggle-folding)
-     (font-lock-ensure)
+      (greger-ui-toggle-folding)
+      (font-lock-ensure)
 
-     ;; Check that the content has been transformed to diff format
-     (let ((expected "# TOOL USE
+      ;; Check that the content has been transformed to diff format
+      (let ((expected "# TOOL USE
 
 Name: str-replace
 
@@ -583,14 +583,14 @@ example.py
 \\ No newline at end of file
 
 "))
-       (should (string= expected (greger-ui-test--visible-text))))
+        (should (string= expected (greger-ui-test--visible-text))))
 
-     ;; Check that Python syntax highlighting has been applied to the diff
-     ;; The diff transformation applies both syntax highlighting and diff faces
-     ;; so we check that font-lock-face properties are present (not nil)
-     (should (greger-ui-test-font-lock-face-at "def"))
-     (should (greger-ui-test-font-lock-face-at "old_function"))
-     (should (greger-ui-test-font-lock-face-at "'old implementation'"))
-     (should (greger-ui-test-font-lock-face-at "return")))))
+      ;; Check that Python syntax highlighting has been applied to the diff
+      ;; The diff transformation applies both syntax highlighting and diff faces
+      ;; so we check that font-lock-face properties are present (not nil)
+      (should (greger-ui-test-font-lock-face-at "def"))
+      (should (greger-ui-test-font-lock-face-at "old_function"))
+      (should (greger-ui-test-font-lock-face-at "'old implementation'"))
+      (should (greger-ui-test-font-lock-face-at "return")))))
 
 ;;; greger-ui-test.el ends here
