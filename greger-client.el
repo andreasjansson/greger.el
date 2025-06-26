@@ -137,43 +137,24 @@ MAX-TOKENS is the maximum number of tokens to generate."
                 messages)))
 
 (defun greger-client--add-cache-control (messages)
-  ;; Find the last message with dict content and add ephemeral cache control
-  (let ((last-dict-message nil))
+  "Add ephemeral cache control to the last non-thinking content block."
+  (let ((last-non-thinking-block nil))
+    ;; Walk all messages and find the last non-thinking content block
     (dolist (message messages)
       (let ((content (alist-get 'content message)))
-        ;; TODO: remove debug
-        ;; TODO: remove debug
-        ;(message (format "message: %S" message))
-        ;(message (format "content: %S" content))
-        ;; TODO: remove debug
         (when (listp content)
-          (message (format "(alist-get 'type content): %s" (alist-get 'type content))))
-        (when (and (listp content)
-                   ;; Can't attach cache control to thinking - check if there are any non-thinking blocks
-                   (cl-some (lambda (block)
-                              (and (listp block)
-                                   (not (string= (alist-get 'type block) "thinking"))))
-                            content))
-          (setq last-dict-message message))))
-
-    ;; TODO: remove debug
-    ;(message (format "last-dict-message: %s" last-dict-message))
-
-    (when last-dict-message
-      (let ((content-list (alist-get 'content last-dict-message)))
-        ;; Find the first non-thinking content item and modify it in place
-        (when (and content-list (listp content-list))
-          (let ((current-list content-list))
-            (while (and current-list
-                        (let ((item (car current-list)))
-                          (and (listp item)
-                               (string= (alist-get 'type item) "thinking"))))
-              (setq current-list (cdr current-list)))
-            (when (and current-list (listp (car current-list)))
-              ;; Add cache_control to the beginning of the content block's alist
-              (setcar current-list
-                      (cons '(cache_control . ((type . "ephemeral")))
-                            (car current-list))))))))))
+          (dolist (block content)
+            (when (and (listp block)
+                       (not (string= (alist-get 'type block) "thinking")))
+              (setq last-non-thinking-block block))))))
+    
+    ;; Add cache control directly to the block
+    (when last-non-thinking-block
+      (setcar last-non-thinking-block
+              (cons '(cache_control . ((type . "ephemeral")))
+                    (car last-non-thinking-block)))
+      (setcdr last-non-thinking-block
+              (cdr last-non-thinking-block)))))
 
 (defun greger-client--build-request (model dialog tools server-tools thinking-budget max-tokens)
   "Build Claude request to be sent to the Claude API.
