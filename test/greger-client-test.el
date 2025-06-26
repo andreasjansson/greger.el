@@ -231,6 +231,85 @@
 
         (should (= (alist-get 'max_tokens parsed) max-tokens))))))
 
+(ert-deftest greger-client-test-thinking-message-filtering ()
+  "Test that thinking messages are filtered when thinking-budget is 0."
+  ;; Test messages with thinking content are filtered
+  (let ((test-messages '(((role . "user")
+                          (content . "Hello"))
+                         ((role . "assistant")
+                          (content . (((type . "thinking")
+                                       (thinking . "Let me think about this..."))
+                                      ((type . "text")
+                                       (text . "Here's my response")))))
+                         ((role . "user") 
+                          (content . "Follow up question")))))
+
+    (let ((filtered (greger-client--filter-thinking-messages test-messages)))
+      ;; Should have 3 messages (none removed completely)
+      (should (= (length filtered) 3))
+      
+      ;; First message should be unchanged (no thinking content)
+      (should (string= (alist-get 'content (nth 0 filtered)) "Hello"))
+      
+      ;; Second message should have thinking content filtered out
+      (let ((assistant-content (alist-get 'content (nth 1 filtered))))
+        (should (listp assistant-content))
+        (should (= (length assistant-content) 1))
+        (should (string= (alist-get 'type (car assistant-content)) "text")))
+      
+      ;; Third message should be unchanged
+      (should (string= (alist-get 'content (nth 2 filtered)) "Follow up question"))))
+
+  ;; Test message with only thinking content is removed
+  (let ((test-messages '(((role . "user")
+                          (content . "Hello"))
+                         ((role . "assistant")
+                          (content . (((type . "thinking")
+                                       (thinking . "Just thinking...")))))
+                         ((role . "user")
+                          (content . "Another message")))))
+
+    (let ((filtered (greger-client--filter-thinking-messages test-messages)))
+      ;; Should have 2 messages (thinking-only message removed)
+      (should (= (length filtered) 2))
+      (should (string= (alist-get 'content (nth 0 filtered)) "Hello"))
+      (should (string= (alist-get 'content (nth 1 filtered)) "Another message"))))
+
+  ;; Test string content is preserved
+  (let ((test-messages '(((role . "user")
+                          (content . "Simple string message")))))
+    
+    (let ((filtered (greger-client--filter-thinking-messages test-messages)))
+      (should (= (length filtered) 1))
+      (should (string= (alist-get 'content (car filtered)) "Simple string message")))))
+
+(ert-deftest greger-client-test-thinking-filtering-integration ()
+  "Test thinking filtering integration in build-data function."
+  (let ((test-model 'claude-sonnet-4-20250514)
+        (test-dialog '(((role . "user") (content . "Hello"))
+                       ((role . "assistant") 
+                        (content . (((type . "thinking") (thinking . "Let me think..."))
+                                    ((type . "text") (text . "Response text")))))
+                       ((role . "user") (content . "Follow up"))))
+        (thinking-budget 0)
+        (max-tokens 4096))
+
+    (let ((request-data (greger-client--build-data test-model test-dialog nil nil thinking-budget max-tokens)))
+      (should (stringp request-data))
+      (let* ((parsed (json-read-from-string request-data))
+             (messages (alist-get 'messages parsed)))
+        
+        ;; Should have 3 messages
+        (should (= (length messages) 3))
+        
+        ;; Assistant message should have thinking content filtered out
+        (let ((assistant-message (nth 1 messages)))
+          (should (string= (alist-get 'role assistant-message) "assistant"))
+          (let ((content (alist-get 'content assistant-message)))
+            (should (listp content))
+            (should (= (length content) 1))
+            (should (string= (alist-get 'type (car content)) "text"))))))))
+
 (provide 'test-greger-client)
 
 ;;; test-greger-client.el ends here
