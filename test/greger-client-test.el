@@ -18,7 +18,7 @@
   "Test cache control addition to basic non-thinking content."
   (let ((messages '(((role . "user") (content . "Hello"))
                     ((role . "assistant") 
-                     (content (((type . "text") (text . "Response text"))))))))
+                     (content . (((type . "text") (text . "Response text"))))))))
     (greger-client--add-cache-control messages)
     ;; Should add cache control to the text block
     (let* ((assistant-msg (cadr messages))
