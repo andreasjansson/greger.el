@@ -212,10 +212,10 @@ I need to consider all the options carefully before responding.
 (ert-deftest greger-ui-test-toggle-folding ()
   (with-current-buffer (greger)
     (erase-buffer)
-    
+
     ;; Start with folding enabled
-    (let ((greger-ui-folding-mode t))
-      (insert "# USER
+    (let ((greger-ui-folding-mode t)
+          (original-content "# USER
 
 Let me analyze this with multiple tools and citations.
 
@@ -223,17 +223,13 @@ Let me analyze this with multiple tools and citations.
 
 Here's my analysis with citations and tool use:
 
-## https://example.com/docs
+# ASSISTANT
 
-Title: Code Documentation
-Cited text: This function performs mathematical operations efficiently
-Encrypted index: abc123
-
-Some analysis here.
+ Some analysis here.
 
 ## https://example.com/tutorial
 
-Title: Programming Tutorial  
+Title: Programming Tutorial
 Cited text: Best practices for writing clean code
 Encrypted index: def456
 
@@ -250,7 +246,13 @@ ID: toolu_001
 
 ## path
 
+<tool.toolu_001>
 test.py
+</tool.toolu_001>
+
+# TOOL RESULT
+
+ID: toolu_001
 
 <tool.toolu_001>
 def calculate_sum(a, b):
@@ -263,23 +265,17 @@ def calculate_sum(a, b):
 class Calculator:
     def __init__(self):
         self.history = []
-    
+
     def add(self, x, y):
         result = x + y
         self.history.append(f\"{x} + {y} = {result}\")
         return result
-        
+
     def multiply(self, x, y):
         result = x * y
         self.history.append(f\"{x} * {y} = {result}\")
         return result
 </tool.toolu_001>
-
-# TOOL RESULT
-
-ID: toolu_001
-
-File contents read successfully.
 
 # TOOL USE
 
@@ -288,7 +284,13 @@ ID: toolu_002
 
 ## command
 
+<tool.toolu_002>
 python test.py
+</tool.toolu_002>
+
+# TOOL RESULT
+
+ID: toolu_002
 
 <tool.toolu_002>
 Sum: 15
@@ -296,26 +298,15 @@ Calculator created successfully
 Addition: 10 + 5 = 15
 Multiplication: 3 * 4 = 12
 </tool.toolu_002>
-
-# TOOL RESULT
-
-ID: toolu_002
-
-Command executed successfully.
 
 ")
-      
-      ;; Force font-lock to process the buffer
-      (font-lock-ensure)
-      
-      ;; Check that folding is working - content should be folded
-      (let ((expected "# USER
+          (folded-content "# USER
 
 Let me analyze this with multiple tools and citations.
 
 # ASSISTANT
 
-Here's my analysis with citations and tool use:Some analysis here.
+Here's my analysis with citations and tool use: Some analysis here.
 
 # THINKING
 
@@ -329,14 +320,12 @@ Name: read-file
 
 test.py
 
+# TOOL RESULT
+
 def calculate_sum(a, b):
     \"\"\"Calculate the sum of two numbers.\"\"\"
     result = a + b
     print(f\"Sum: {result}\")
-
-# TOOL RESULT
-
-File contents read successfully.
 
 # TOOL USE
 
@@ -346,162 +335,36 @@ Name: shell-command
 
 python test.py
 
-Sum: 15
-Calculator created successfully
-Addition: 10 + 5 = 15
-
 # TOOL RESULT
 
-Command executed successfully.
-
-"))
-        (should (string= expected (greger-ui-test--visible-text))))
-      
-      ;; Toggle folding off
-      (greger-ui-toggle-folding)
-      
-      ;; Check that everything is now visible  
-      (let ((expected "# USER
-
-Let me analyze this with multiple tools and citations.
-
-# ASSISTANT
-
-Here's my analysis with citations and tool use:
-
-## https://example.com/docs
-
-Title: Code Documentation
-Cited text: This function performs mathematical operations efficiently
-Encrypted index: abc123
-
-Some analysis here.
-
-## https://example.com/tutorial
-
-Title: Programming Tutorial  
-Cited text: Best practices for writing clean code
-Encrypted index: def456
-
-# THINKING
-
-Signature: think123
-
-I need to use multiple tools to verify this information and provide a comprehensive analysis.
-
-# TOOL USE
-
-Name: read-file
-ID: toolu_001
-
-## path
-
-test.py
-
-<tool.toolu_001>
-def calculate_sum(a, b):
-    \"\"\"Calculate the sum of two numbers.\"\"\"
-    result = a + b
-    print(f\"Sum: {result}\")
-    return result
-
-# More complex example
-class Calculator:
-    def __init__(self):
-        self.history = []
-    
-    def add(self, x, y):
-        result = x + y
-        self.history.append(f\"{x} + {y} = {result}\")
-        return result
-        
-    def multiply(self, x, y):
-        result = x * y
-        self.history.append(f\"{x} * {y} = {result}\")
-        return result
-</tool.toolu_001>
-
-# TOOL RESULT
-
-ID: toolu_001
-
-File contents read successfully.
-
-# TOOL USE
-
-Name: shell-command
-ID: toolu_002
-
-## command
-
-python test.py
-
-<tool.toolu_002>
 Sum: 15
 Calculator created successfully
 Addition: 10 + 5 = 15
 Multiplication: 3 * 4 = 12
-</tool.toolu_002>
-
-# TOOL RESULT
-
-ID: toolu_002
-
-Command executed successfully.
 
 "))
-        (should (string= expected (greger-ui-test--visible-text))))
-      
+      (insert original-content)
+
+      ;; Force font-lock to process the buffer
+      (font-lock-ensure)
+
+      ;; Check that folding is working - content should be folded
+      (should (string= folded-content (greger-ui-test--visible-text)))
+
+      ;; Toggle folding off
+      (greger-ui-toggle-folding)
+
+      (font-lock-ensure)
+
+      ;; Check that everything is now visible
+      (should (string= original-content (greger-ui-test--visible-text)))
+
       ;; Toggle folding back on
       (greger-ui-toggle-folding)
-      
+
+      (font-lock-ensure)
+
       ;; Check that folding is working again
-      (let ((expected "# USER
-
-Let me analyze this with multiple tools and citations.
-
-# ASSISTANT
-
-Here's my analysis with citations and tool use:Some analysis here.
-
-# THINKING
-
-I need to use multiple tools to verify this information and provide a comprehensive analysis.
-
-# TOOL USE
-
-Name: read-file
-
-## path
-
-test.py
-
-def calculate_sum(a, b):
-    \"\"\"Calculate the sum of two numbers.\"\"\"
-    result = a + b
-    print(f\"Sum: {result}\")
-
-# TOOL RESULT
-
-File contents read successfully.
-
-# TOOL USE
-
-Name: shell-command
-
-## command
-
-python test.py
-
-Sum: 15
-Calculator created successfully
-Addition: 10 + 5 = 15
-
-# TOOL RESULT
-
-Command executed successfully.
-
-"))
-        (should (string= expected (greger-ui-test--visible-text)))))))
+      (should (string= folded-content (greger-ui-test--visible-text))))))
 
 ;;; greger-ui-test.el ends here
