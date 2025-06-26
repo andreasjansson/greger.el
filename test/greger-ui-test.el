@@ -39,6 +39,18 @@ Text with the 'invisible property set to t is excluded."
   (font-lock-flush (point-min) (point-max))
   (font-lock-ensure (point-min) (point-max)))
 
+(defun greger-ui-test-font-lock-face-at (text &optional offset)
+  "Get the font-lock-face property at TEXT in the current buffer.
+OFFSET specifies position within the match (default 0 for match beginning).
+Returns nil if TEXT is not found."
+  (save-excursion
+    (goto-char (point-min))
+    (when (re-search-forward (regexp-quote text) nil t)
+      (let ((pos (+ (match-beginning 0) (or offset 0))))
+        (when (and (>= pos (match-beginning 0)) 
+                   (< pos (match-end 0)))
+          (get-text-property pos 'font-lock-face))))))
+
 (ert-deftest greger-ui-test-citations-folding ()
   (with-current-buffer (greger)
     (erase-buffer)
@@ -383,34 +395,17 @@ test.py
 ## contents
 
 def hello_world():
-    print('Hello, World!')
+    print('Hello world!')
     return 42
 
 ")
     
     ;; Force font-lock to process the buffer
     (font-lock-ensure)
-    
-    ;; Check that Python syntax highlighting has been applied
-    (goto-char (point-min))
-    (when (re-search-forward "def hello_world" nil t)
-      (goto-char (match-beginning 0))
-      ;; Check that "def" has keyword face
-      (should (eq (get-text-property (point) 'font-lock-face) 'font-lock-keyword-face))
-      ;; Check that "hello_world" has function name face
-      (goto-char (+ (point) 4)) ; move past "def "
-      (should (eq (get-text-property (point) 'font-lock-face) 'font-lock-function-name-face)))
-    
-    ;; Check that string has string face
-    (goto-char (point-min))
-    (when (re-search-forward "'Hello, World!'" nil t)
-      (goto-char (1+ (match-beginning 0))) ; move past opening quote
-      (should (eq (get-text-property (point) 'font-lock-face) 'font-lock-string-face)))
-    
-    ;; Check that "return" has keyword face
-    (goto-char (point-min))
-    (when (re-search-forward "return" nil t)
-      (goto-char (match-beginning 0))
-      (should (eq (get-text-property (point) 'font-lock-face) 'font-lock-keyword-face)))))
+
+    (should (eq (greger-ui-test-font-lock-face-at "def") 'font-lock-keyword-face))
+    (should (eq (greger-ui-test-font-lock-face-at "hello_world") 'font-lock-function-name-face))
+    (should (eq (greger-ui-test-font-lock-face-at "'Hello world!'") 'font-lock-string-face))
+    (should (eq (greger-ui-test-font-lock-face-at "return") 'font-lock-keyword-face))))
 
 ;;; greger-ui-test.el ends here
