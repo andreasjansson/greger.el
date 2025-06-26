@@ -96,6 +96,8 @@ In Greger buffers:
 - `C-; c` - Copy code block at point
 - `C-; t` - Toggle thinking off and on
 - `C-; f` - Toggle follow mode
+- `C-; C-f` - Toggle folding and invisibility
+- `TAB` - When inside a folded code block or citation: toggle folding 
 
 ## Features
 
