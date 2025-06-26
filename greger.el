@@ -191,6 +191,7 @@ When nil, preserve point position using `save-excursion'.")
     (define-key map (kbd "C-; c") #'greger-ui-copy-code)
     (define-key map (kbd "C-; t") #'greger-toggle-thinking)
     (define-key map (kbd "C-; f") #'greger-toggle-follow-mode)
+    (define-key map (kbd "C-; C-f") #'greger-ui-toggle-folding)
     map)
   "Keymap for `greger-mode'.")
 
@@ -588,26 +589,26 @@ Uses tree-sitter to find the last node and applies heuristics:
     (when (>= current-iteration greger-max-iterations)
       (error "Maximum iterations (%d) reached, stopping agent execution" greger-max-iterations))
 
-    (let ((client-state (greger-client-stream
-                         :model greger-model
-                         :dialog dialog
-                         :tools tools
-                         :server-tools server-tools
-                         :buffer chat-buffer
-                         :thinking-budget greger-current-thinking-budget
-                         :block-start-callback (lambda (content-block)
-                                                 (greger--append-streaming-content-header state content-block))
-                         :text-delta-callback (lambda (text)
-                                                (greger--append-text state (greger--clean-excessive-newlines text)))
-                         :block-stop-callback (lambda (type content-block)
-                                                (greger--append-handle-content-block-stop state type content-block))
-                         :complete-callback (lambda (content-blocks) (greger--handle-stream-completion state content-blocks))
-                         :max-tokens greger-max-tokens)))
+    (with-current-buffer chat-buffer
+      (let ((client-state (greger-client-stream
+                           :model greger-model
+                           :dialog dialog
+                           :tools tools
+                           :server-tools server-tools
+                           :buffer chat-buffer
+                           :thinking-budget greger-current-thinking-budget
+                           :block-start-callback (lambda (content-block)
+                                                   (greger--append-streaming-content-header state content-block))
+                           :text-delta-callback (lambda (text)
+                                                  (greger--append-text state (greger--clean-excessive-newlines text)))
+                           :block-stop-callback (lambda (type content-block)
+                                                  (greger--append-handle-content-block-stop state type content-block))
+                           :complete-callback (lambda (content-blocks) (greger--handle-stream-completion state content-blocks))
+                           :max-tokens greger-max-tokens)))
 
-      ;; Store the client state for potential cancellation
-      (setf (greger-state-client-state state) client-state)
-      ;; Set buffer-local variable for greger-interrupt to access
-      (with-current-buffer chat-buffer
+        ;; Store the client state for potential cancellation
+        (setf (greger-state-client-state state) client-state)
+        ;; Set buffer-local variable for greger-interrupt to access
         (setq greger--current-state state) ;; TODO: why do we set that _here_? Or should it be greger--current-client-state instead?
         (greger--update-buffer-state)))))
 
