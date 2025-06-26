@@ -520,7 +520,7 @@ Makes indicators small and muted while keeping them readable."
                        'font-lock-face '(:height 0.6 :foreground "gray50"))))
 
 (defun greger-ui--file-syntax-highlighting (tool-use-node)
-  "Apply syntax highlighting to TOOL-RESULT-NODE content based on the corresponding tool_use."
+  "Apply syntax highlighting to TOOL-USE-NODE content based on file path."
   (when-let* ((params (greger-parser--extract-tool-use-params tool-use-node))
               (param-nodes (greger-parser--extract-tool-use-param-nodes tool-use-node))
               (path (alist-get 'path params))
