@@ -203,7 +203,8 @@ You can run arbitrary shell commands with the shell-command tool, but the follow
     signature))
 
 (defun greger-parser--extract-tool-use-param-nodes (node)
-  "Extract tool parameter nodes from NODE and return an alist mapping param names to param nodes."
+  "Extract tool parameter nodes from NODE and return an alist.
+The alist maps parameter names to parameter nodes."
   (let* ((tool-param-nodes (treesit-filter-child node (lambda (n) (string= (treesit-node-type n) "tool_param"))))
          (param-map '()))
     (dolist (tool-param-node tool-param-nodes)
