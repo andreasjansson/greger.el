@@ -288,6 +288,7 @@ NODE is the matched tree-sitter node"
       nil)))
 
 (defun greger-ui--set-syntax-highlighted (tool-use-node)
+  "Mark TOOL-USE-NODE as syntax highlighted with an overlay."
   (let* ((node-start (treesit-node-start tool-use-node))
          (overlay (make-overlay node-start (1+ node-start))))
     (overlay-put overlay 'greger-ui-syntax-highlighted t)
