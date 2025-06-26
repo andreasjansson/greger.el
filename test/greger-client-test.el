@@ -32,8 +32,8 @@
   "Test cache control with mixed thinking and non-thinking content."
   (let ((messages '(((role . "user") (content . "Hello"))
                     ((role . "assistant") 
-                     (content (((type . "thinking") (thinking . "Let me think..."))
-                               ((type . "text") (text . "Response text"))))))))
+                     (content . (((type . "thinking") (thinking . "Let me think..."))
+                                 ((type . "text") (text . "Response text"))))))))
     (greger-client--add-cache-control messages)
     ;; Should add cache control to the text block, not thinking
     (let* ((assistant-msg (cadr messages))
