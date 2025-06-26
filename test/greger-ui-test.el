@@ -505,4 +505,139 @@ test.txt
       ;; Should now be marked as highlighted
       (should (greger-ui--syntax-highlighted-p mock-node)))))
 
+;; Tests for diff generation and processing
+
+(ert-deftest greger-ui-test-generate-diff-content-simple ()
+  "Test basic diff generation between two strings."
+  (let* ((original "line1\nold line\nline3\n")
+         (new "line1\nnew line\nline3\n")
+         (path "test.txt")
+         (diff-result (greger-ui--generate-diff-content original new path)))
+    ;; Should contain diff markers
+    (should (string-match-p "^-old line$" diff-result))
+    (should (string-match-p "^\\+new line$" diff-result))
+    ;; Should contain context lines
+    (should (string-match-p "^ line1$" diff-result))
+    (should (string-match-p "^ line3$" diff-result))))
+
+(ert-deftest greger-ui-test-generate-diff-content-addition ()
+  "Test diff generation for content addition."
+  (let* ((original "line1\nline2\n")
+         (new "line1\nline2\nadded line\n")
+         (path "test.txt")
+         (diff-result (greger-ui--generate-diff-content original new path)))
+    ;; Should show the addition
+    (should (string-match-p "^\\+added line$" diff-result))
+    ;; Should show context
+    (should (string-match-p "^ line1$" diff-result))
+    (should (string-match-p "^ line2$" diff-result))))
+
+(ert-deftest greger-ui-test-generate-diff-content-deletion ()
+  "Test diff generation for content deletion."
+  (let* ((original "line1\nto delete\nline3\n")
+         (new "line1\nline3\n")
+         (path "test.txt")
+         (diff-result (greger-ui--generate-diff-content original new path)))
+    ;; Should show the deletion
+    (should (string-match-p "^-to delete$" diff-result))
+    ;; Should show context
+    (should (string-match-p "^ line1$" diff-result))
+    (should (string-match-p "^ line3$" diff-result))))
+
+(ert-deftest greger-ui-test-generate-diff-content-identical ()
+  "Test diff generation for identical content."
+  (let* ((original "same content\n")
+         (new "same content\n")
+         (path "test.txt")
+         (diff-result (greger-ui--generate-diff-content original new path)))
+    ;; Should be empty or minimal for identical content
+    ;; The exact behavior may depend on diff implementation
+    (should (stringp diff-result))))
+
+(ert-deftest greger-ui-test-generate-diff-content-empty-to-content ()
+  "Test diff generation from empty to content."
+  (let* ((original "")
+         (new "new content\nline2\n")
+         (path "test.txt")
+         (diff-result (greger-ui--generate-diff-content original new path)))
+    ;; Should show additions
+    (should (string-match-p "^\\+new content$" diff-result))
+    (should (string-match-p "^\\+line2$" diff-result))))
+
+(ert-deftest greger-ui-test-generate-diff-content-content-to-empty ()
+  "Test diff generation from content to empty."
+  (let* ((original "old content\nline2\n")
+         (new "")
+         (path "test.txt")
+         (diff-result (greger-ui--generate-diff-content original new path)))
+    ;; Should show deletions
+    (should (string-match-p "^-old content$" diff-result))
+    (should (string-match-p "^-line2$" diff-result))))
+
+(ert-deftest greger-ui-test-generate-diff-with-file-extension ()
+  "Test diff generation respects file extensions for syntax highlighting."
+  (let* ((original "function old() { return 1; }")
+         (new "function new() { return 2; }")
+         (path "test.js")
+         (diff-result (greger-ui--generate-diff-content original new path)))
+    ;; Should contain the function changes
+    (should (string-match-p "^-function old" diff-result))
+    (should (string-match-p "^\\+function new" diff-result))
+    ;; The diff should be generated (exact formatting may vary)
+    (should (> (length diff-result) 0))))
+
+;; Tests for diff header removal
+
+(ert-deftest greger-ui-test-remove-diff-headers ()
+  "Test removal of diff headers from generated output."
+  (with-temp-buffer
+    (insert "diff -u /tmp/original /tmp/new
+--- /tmp/original
++++ /tmp/new
+@@ -1,3 +1,3 @@
+ line1
+-old line
++new line
+ line3
+Diff finished at Thu Jun 26 2025")
+    
+    ;; Apply the header removal function
+    (greger-ui--remove-diff-headers)
+    
+    (let ((result (buffer-string)))
+      ;; Headers should be removed
+      (should-not (string-match-p "^diff -u" result))
+      (should-not (string-match-p "^---" result))
+      (should-not (string-match-p "^\\+\\+\\+" result))
+      (should-not (string-match-p "^@@" result))
+      (should-not (string-match-p "Diff finished" result))
+      
+      ;; Content should remain
+      (should (string-match-p "^ line1$" result))
+      (should (string-match-p "^-old line$" result))
+      (should (string-match-p "^\\+new line$" result))
+      (should (string-match-p "^ line3$" result)))))
+
+(ert-deftest greger-ui-test-diff-newline-messages ()
+  "Test processing of 'No newline' messages in diffs."
+  (with-temp-buffer
+    (insert " line1
+-old line
+\\ No newline at end of file
++new line
+ line3")
+    
+    ;; Apply the newline message processing
+    (greger-ui--diff-make-newline-messages-smaller)
+    
+    (let ((result (buffer-string)))
+      ;; Should still contain the message but with modified properties
+      (should (string-match-p "No newline at end of file" result))
+      
+      ;; Check that the message has the right text properties
+      (goto-char (point-min))
+      (when (re-search-forward "No newline at end of file" nil t)
+        (let ((props (text-properties-at (match-beginning 0))))
+          (should (plist-get props 'font-lock-face)))))))
+
 ;;; greger-ui-test.el ends here
