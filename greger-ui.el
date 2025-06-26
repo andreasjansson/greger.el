@@ -64,7 +64,7 @@
 (defvar greger-ui-folding-mode t)
 
 (defun greger-ui-toggle-folding ()
-  "Toggle greger-ui-folding-mode and re-fontify the buffer."
+  "Toggle `greger-ui-folding-mode' and re-fontify the buffer."
   (interactive)
   (setq greger-ui-folding-mode (not greger-ui-folding-mode))
   (font-lock-flush (point-min) (point-max))
