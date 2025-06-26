@@ -549,7 +549,7 @@ example.py
 -    print('old implementation')
 -    return False
 +def new_function():
--    print('new implementation')
++    print('new implementation')
 +    return True
 
 "))
