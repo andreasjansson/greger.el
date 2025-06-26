@@ -167,6 +167,25 @@ MAX-TOKENS is the maximum number of tokens to generate."
     ;; Reverse to get correct order
     (setq user-messages (nreverse user-messages))
 
+    ;; Filter out thinking messages if thinking-budget is 0
+    (when (and thinking-budget (= thinking-budget 0))
+      (setq user-messages
+            (mapcar (lambda (message)
+                      (let ((content (alist-get 'content message)))
+                        (if (listp content)
+                            ;; Filter out thinking content blocks
+                            (let ((filtered-content
+                                   (cl-remove-if (lambda (content-block)
+                                                   (and (listp content-block)
+                                                        (string= (alist-get 'type content-block) "thinking")))
+                                                 content)))
+                              (if filtered-content
+                                  `((role . ,(alist-get 'role message))
+                                    (content . ,filtered-content))
+                                message))
+                          message)))
+                    user-messages)))
+
     ;; Find the last message with dict content and add ephemeral cache control
     (let ((last-dict-message nil))
       (dolist (message user-messages)
