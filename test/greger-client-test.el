@@ -303,12 +303,12 @@
         (should (= (length messages) 3))
         
         ;; Assistant message should have thinking content filtered out
-        (let ((assistant-message (nth 1 messages)))
+        (let ((assistant-message (aref messages 1)))
           (should (string= (alist-get 'role assistant-message) "assistant"))
           (let ((content (alist-get 'content assistant-message)))
-            (should (listp content))
+            (should (vectorp content))
             (should (= (length content) 1))
-            (should (string= (alist-get 'type (car content)) "text"))))))))
+            (should (string= (alist-get 'type (aref content 0)) "text"))))))))
 
 (provide 'test-greger-client)
 
