@@ -47,7 +47,7 @@ Returns nil if TEXT is not found."
     (goto-char (point-min))
     (when (re-search-forward (regexp-quote text) nil t)
       (let ((pos (+ (match-beginning 0) (or offset 0))))
-        (when (and (>= pos (match-beginning 0)) 
+        (when (and (>= pos (match-beginning 0))
                    (< pos (match-end 0)))
           (get-text-property pos 'font-lock-face))))))
 
@@ -403,7 +403,7 @@ def hello_world():
 </tool.tool001>
 
 ")
-    
+
     ;; Force font-lock to process the buffer
     (font-lock-ensure)
 
@@ -436,17 +436,17 @@ function calculateSum(a, b) {
 </tool.toolu_456>
 
 ")
-    
+
     ;; Force font-lock to process the buffer
     (font-lock-ensure)
-    
+
     ;; Check that JavaScript syntax highlighting has been applied
     ;; Check that "function" has keyword face
     (should (eq (greger-ui-test-font-lock-face-at "function") 'font-lock-keyword-face))
-    
-    ;; Check that "calculateSum" has function name face  
+
+    ;; Check that "calculateSum" has function name face
     (should (eq (greger-ui-test-font-lock-face-at "calculateSum") 'font-lock-function-name-face))
-    
+
     ;; Check that "return" has keyword face
     (should (eq (greger-ui-test-font-lock-face-at "return") 'font-lock-keyword-face))))
 
@@ -473,27 +473,27 @@ ID: toolu_789
 class Calculator:
     def __init__(self):
         self.result = 0
-    
+
     def add(self, value):
         self.result += value
         return self.result
 </tool.toolu_789>
 
 ")
-    
+
     ;; Force font-lock to process the buffer
     (font-lock-ensure)
-    
+
     ;; Check that Python syntax highlighting has been applied to the tool result
     ;; Check that "class" has keyword face
     (should (eq (greger-ui-test-font-lock-face-at "class") 'font-lock-keyword-face))
-    
+
     ;; Check that "Calculator" has type face
     (should (eq (greger-ui-test-font-lock-face-at "Calculator") 'font-lock-type-face))
-    
+
     ;; Check that "def" has keyword face
     (should (eq (greger-ui-test-font-lock-face-at "def") 'font-lock-keyword-face))
-    
+
     ;; Check that "return" has keyword face
     (should (eq (greger-ui-test-font-lock-face-at "return") 'font-lock-keyword-face))))
 
@@ -529,10 +529,10 @@ def new_function():
 </tool.toolu_999>
 
 ")
-    
+
     ;; Force font-lock to process the buffer and trigger diff transformation
     (font-lock-ensure)
-    
+
     ;; Check that the content has been transformed to diff format
     (let ((expected "# TOOL USE
 
@@ -561,7 +561,7 @@ example.py
 
 "))
       (should (string= expected (greger-ui-test--visible-text))))
-    
+
     ;; Check that Python syntax highlighting has been applied to the diff
     ;; The diff transformation applies both syntax highlighting and diff faces
     ;; so we check that font-lock-face properties are present (not nil)

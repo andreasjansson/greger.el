@@ -14,9 +14,6 @@ NC='\033[0m' # No Color
 echo -e "${YELLOW}Running melpazoid linting on greger package...${NC}"
 echo
 
-# Get the current directory (should be the examples directory)
-# Navigate to the project root
-cd ..
 PROJECT_ROOT=$(pwd)
 
 # Create temporary directory for melpazoid
@@ -36,7 +33,7 @@ echo -e "Running melpazoid on greger.el package..."
 echo
 
 # Run melpazoid with the greger recipe and local repo
-RECIPE='(greger :fetcher github :repo "andreasjansson/greger.el" :files (:defaults "README.md" (:exclude "debug-*.el")))' \
+RECIPE='(greger :fetcher github :repo "andreasjansson/greger.el")' \
 LOCAL_REPO="$PROJECT_ROOT" \
 make
 
