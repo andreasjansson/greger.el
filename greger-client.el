@@ -136,6 +136,40 @@ MAX-TOKENS is the maximum number of tokens to generate."
                      (t message))))
                 messages)))
 
+(defun greger-client--add-cache-control (messages)
+  ;; Find the last message with dict content and add ephemeral cache control
+  (let ((last-dict-message nil))
+    (dolist (message messages)
+      (let ((content (alist-get 'content message)))
+        ;; TODO: remove debug
+        ;; TODO: remove debug
+        ;(message (format "message: %S" message))
+        ;(message (format "content: %S" content))
+        ;; TODO: remove debug
+        (when (listp content)
+          (message (format "(alist-get 'type content): %s" (alist-get 'type content))))
+        (when (and (listp content)
+                   ;; Can't attach cache control to thinking - check if there are any non-thinking blocks
+                   (cl-some (lambda (block)
+                              (and (listp block)
+                                   (not (string= (alist-get 'type block) "thinking"))))
+                            content))
+          (setq last-dict-message message))))
+
+    ;; TODO: remove debug
+    ;(message (format "last-dict-message: %s" last-dict-message))
+
+    (when last-dict-message
+      (let ((content-list (alist-get 'content last-dict-message)))
+        ;; Modify the first content item in place
+        (when (and content-list (listp content-list))
+          (let ((first-content-item (car content-list)))
+            (when (and first-content-item (listp first-content-item))
+              ;; Modify the car of the content-list directly
+              (setcar content-list
+                      (cons '(cache_control . ((type . "ephemeral")))
+                            first-content-item)))))))))
+
 (defun greger-client--build-request (model dialog tools server-tools thinking-budget max-tokens)
   "Build Claude request to be sent to the Claude API.
 MODEL is the Claude mode.
@@ -171,7 +205,8 @@ MAX-TOKENS is the maximum number of tokens to generate"
 TOOLS and SERVER-TOOLS add function calling capabilities to the request.
 THINKING-BUDGET specifies the token budget for thinking content.
 MAX-TOKENS is the maximum number of tokens to generate."
-  (let ((system-message nil)
+  (let ((dialog (copy-tree dialog)) ;; we're mutating dialog
+        (system-message nil)
         (user-messages ())
         (request-data nil))
 
@@ -193,25 +228,8 @@ MAX-TOKENS is the maximum number of tokens to generate."
     (when (and thinking-budget (= thinking-budget 0))
       (setq user-messages (greger-client--filter-thinking-messages user-messages)))
 
-    ;; Find the last message with dict content and add ephemeral cache control
-    (let ((last-dict-message nil))
-      (dolist (message user-messages)
-        (let ((content (alist-get 'content message)))
-          (when (and (listp content)
-                     ;; Can't attach cache control to thinking
-                     (not (string= (alist-get 'type content) "thinking")))
-            (setq last-dict-message message))))
-
-      (when last-dict-message
-        (let ((content-list (alist-get 'content last-dict-message)))
-          ;; Modify the first content item in place
-          (when (and content-list (listp content-list))
-            (let ((first-content-item (car content-list)))
-              (when (and first-content-item (listp first-content-item))
-                ;; Modify the car of the content-list directly
-                (setcar content-list
-                        (cons '(cache_control . ((type . "ephemeral")))
-                              first-content-item))))))))
+    ;; Add ephemeral cache-control
+    (greger-client--add-cache-control user-messages)
 
     ;; Build base request
     (let ((max-tokens (+ max-tokens (or thinking-budget 0))))
