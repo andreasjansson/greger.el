@@ -461,16 +461,48 @@ test.html
 ;; Tests for enhanced folding functionality
 
 (ert-deftest greger-ui-test-folding-toggle ()
-  "Test toggling folding mode variable."
+  "Test toggling folding mode on and off."
   (with-current-buffer (greger)
-    ;; Test that the toggle function exists and changes the variable
-    (let ((initial-state greger-ui-folding-mode))
-      (greger-ui-toggle-folding)
-      (should (not (eq initial-state greger-ui-folding-mode)))
-      
-      ;; Toggle back
-      (greger-ui-toggle-folding)
-      (should (eq initial-state greger-ui-folding-mode)))))
+    (erase-buffer)
+    (insert "# ASSISTANT
+
+This is some text with citations
+
+## https://example.com
+
+Title: Example
+Cited text: Some example content
+Encrypted index: abc123
+
+More text here.
+
+")
+    ;; Start with folding enabled
+    (setq greger-ui-folding-mode t)
+    (font-lock-ensure)
+    
+    ;; Citations should be folded
+    (let ((visible-before (greger-ui-test--visible-text)))
+      (should (string-match-p "This is some text with citations" visible-before))
+      (should-not (string-match-p "Title: Example" visible-before)))
+    
+    ;; Toggle folding off
+    (greger-ui-toggle-folding)
+    (font-lock-ensure)
+    
+    ;; Citations should now be visible
+    (let ((visible-after (greger-ui-test--visible-text)))
+      (should (string-match-p "This is some text with citations" visible-after))
+      (should (string-match-p "Title: Example" visible-after)))
+    
+    ;; Toggle folding back on
+    (greger-ui-toggle-folding)
+    (font-lock-ensure)
+    
+    ;; Citations should be folded again
+    (let ((visible-final (greger-ui-test--visible-text)))
+      (should (string-match-p "This is some text with citations" visible-final))
+      (should-not (string-match-p "Title: Example" visible-final)))))
 
 (ert-deftest greger-ui-test-tool-content-tail-folding ()
   "Test that tool content tail is properly folded when folding mode is enabled."
