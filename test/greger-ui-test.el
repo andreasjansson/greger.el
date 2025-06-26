@@ -423,7 +423,9 @@ ID: toolu_456
 
 ## path
 
+<tool.toolu_456>
 script.js
+</tool.toolu_456>
 
 ## contents
 
