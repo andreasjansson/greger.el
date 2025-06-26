@@ -11,6 +11,15 @@
     (message "BEFORE:")
     (message "Messages: %S" messages)
     
+    ;; Let's see what blocks we actually find
+    (let* ((assistant-msg (cadr messages))
+           (content-blocks (alist-get 'content assistant-msg))
+           (thinking-block (car content-blocks))
+           (text-block (cadr content-blocks)))
+      (message "Content blocks: %S" content-blocks)
+      (message "Thinking block: %S" thinking-block)
+      (message "Text block: %S" text-block))
+    
     (greger-client--add-cache-control messages)
     
     (message "AFTER:")
@@ -21,8 +30,8 @@
            (content-blocks (alist-get 'content assistant-msg))
            (thinking-block (car content-blocks))
            (text-block (cadr content-blocks)))
-      (message "Thinking block: %S" thinking-block)
-      (message "Text block: %S" text-block)
+      (message "After - Thinking block: %S" thinking-block)
+      (message "After - Text block: %S" text-block)
       (message "Thinking has cache_control: %S" (assq 'cache_control thinking-block))
       (message "Text has cache_control: %S" (assq 'cache_control text-block)))))
 
