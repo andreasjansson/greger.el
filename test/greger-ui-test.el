@@ -390,13 +390,17 @@ ID: toolu_123
 
 ## path
 
+<tool.tool001>
 test.py
+</tool.tool001>
 
 ## contents
 
+<tool.tool001>
 def hello_world():
     print('Hello world!')
     return 42
+</tool.tool001>
 
 ")
     
