@@ -51,8 +51,8 @@
   "Test cache control with only thinking content blocks."
   (let ((messages '(((role . "user") (content . "Hello"))
                     ((role . "assistant") 
-                     (content (((type . "thinking") (thinking . "First thought..."))
-                               ((type . "thinking") (thinking . "Second thought..."))))))))
+                     (content . (((type . "thinking") (thinking . "First thought..."))
+                                 ((type . "thinking") (thinking . "Second thought..."))))))))
     (greger-client--add-cache-control messages)
     ;; Should not add cache control to any block
     (let* ((assistant-msg (cadr messages))
