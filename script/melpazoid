@@ -36,7 +36,7 @@ echo -e "Running melpazoid on greger.el package..."
 echo
 
 # Run melpazoid with the greger recipe and local repo
-RECIPE='(greger :fetcher github :repo "andreasjansson/greger.el" :files (:defaults "README.md"))' \
+RECIPE='(greger :fetcher github :repo "andreasjansson/greger.el" :files (:defaults "README.md" (:exclude "debug-*.el")))' \
 LOCAL_REPO="$PROJECT_ROOT" \
 make
 
