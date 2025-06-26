@@ -211,16 +211,16 @@ When nil, preserve point position using `save-excursion'.")
    :language 'greger
    :feature 'tool-syntax-highlighting
    :override t
-   '((tool_use) @greger-ui--str-replace-diff-transform-fn
+   '((tool_use) @greger-ui--tool-use-syntax-highlighting
      (tool_result) @greger-ui--tool-result-syntax-highlighting)
 
    :language 'greger
    :feature 'folding
    :override t
-   '((assistant (citation_entry) @greger-ui--citation-entry-folding-fn)
-     (tool_content_tail) @greger-ui--tool-content-tail-folding-fn
-     (tool_content_head) @greger-ui--tool-content-head-folding-fn
-     (thinking_signature) @greger-ui--thinking-signature-hiding-fn)
+   '((assistant (citation_entry) @greger-ui--citation-entry-folding)
+     (tool_content_tail) @greger-ui--tool-content-tail-folding
+     (tool_content_head) @greger-ui--tool-content-head-folding
+     (thinking_signature) @greger-ui--thinking-signature-hiding)
 
    :language 'greger
    :feature 'tool-tags
@@ -233,7 +233,7 @@ When nil, preserve point position using `save-excursion'.")
      (web_search_tool_result (id) @greger-ui--make-tool-result-id-invisible)
      (tool_param_header) @greger-tool-param-name-face
      (key) @greger-key-face
-     (url) @greger-ui--url-link-fn)
+     (url) @greger-ui--url-link)
 
    :language 'greger
    :feature 'comments

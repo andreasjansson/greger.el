@@ -72,7 +72,7 @@
 
 ;; Folding and hiding
 
-(defun greger-ui--citation-entry-folding-fn (node _override _start _end)
+(defun greger-ui--citation-entry-folding (node _override _start _end)
   "Font-lock function to hide citation entries within assistant blocks.
 NODE is the matched tree-sitter node, OVERRIDE is the override setting,
 START and END are the region bounds."
@@ -116,7 +116,7 @@ START and END are the region bounds."
 
     (put-text-property (+ invisible-start 0) invisible-end 'invisible should-fold)))
 
-(defun greger-ui--tool-content-head-folding-fn (node _override _start _end)
+(defun greger-ui--tool-content-head-folding (node _override _start _end)
   "Font-lock function to make tool_content_head TAB-able for tail visibility.
 NODE is the matched tree-sitter node, OVERRIDE is the override setting,
 START and END are the region bounds."
@@ -155,7 +155,7 @@ START and END are the region bounds."
                 ;; Store overlay reference for cleanup
                 (put-text-property node-start node-end 'greger-ui-fold-overlay overlay)))))))))
 
-(defun greger-ui--tool-content-tail-folding-fn (node _override _start _end)
+(defun greger-ui--tool-content-tail-folding (node _override _start _end)
   "Font-lock function to make tool_content_tail invisible by default.
 NODE is the matched tree-sitter node"
   (let* ((node-start (treesit-node-start node))
@@ -167,7 +167,7 @@ NODE is the matched tree-sitter node"
                        (and greger-ui-folding-mode (not is-visible)))
     (put-text-property node-start node-end 'keymap greger-ui-tool-content-tail-keymap)))
 
-(defun greger-ui--thinking-signature-hiding-fn (node _override _start _end)
+(defun greger-ui--thinking-signature-hiding (node _override _start _end)
   "Hide thinking signature.  NODE is the matched tree-sitter node."
   (let* ((node-start (treesit-node-start node))
          (node-end (treesit-node-end node))
@@ -194,7 +194,7 @@ NODE is the matched tree-sitter node"
 
 ;; Links
 
-(defun greger-ui--url-link-fn (node _override _start _end)
+(defun greger-ui--url-link (node _override _start _end)
   "Apply URL link properties to NODE for interactive behavior."
   (let* ((node-start (treesit-node-start node))
          (node-end (treesit-node-end node))
@@ -277,52 +277,47 @@ NODE is the matched tree-sitter node"
       (put-text-property tail-start (1+ tail-start) 'greger-ui-tool-content-expanded t)
       (font-lock-flush (treesit-node-start head-node) tail-end))))
 
-;; Str-replace diff content replacement functionality
+;; Tool use syntax highlighting
 
-(defun greger-ui--get-str-replace-fontified-overlay (tool-use-node)
-  "Get cached overlay for str-replace transformation between START and END."
-  (let* ((node-start (treesit-node-start tool-use-node))
+(defun greger-ui--syntax-highlighted-p (node)
+  (let* ((node-start (treesit-node-start node))
          (overlays (overlays-at node-start)))
-    (seq-find (lambda (ov) (overlay-get ov 'greger-ui-str-replace-fontified)) overlays)))
+    (if (seq-find (lambda (ov) (overlay-get ov 'greger-ui-syntax-highlighted)) overlays)
+        t
+      nil)))
 
-(defun greger-ui--create-str-replace-fontified-overlay (tool-use-node)
-  "Create a cached overlay for str-replace transformation between START and END with CACHE-KEY."
-  ;; Clean up any old overlay first
-  (when-let ((old-overlay (greger-ui--get-str-replace-fontified-overlay tool-use-node)))
-    (delete-overlay old-overlay))
-  
-  ;; Create new overlay
+(defun greger-ui--set-syntax-highlighted (tool-use-node)
   (let* ((node-start (treesit-node-start tool-use-node))
          (overlay (make-overlay node-start (1+ node-start))))
-    (overlay-put overlay 'greger-ui-str-replace-fontified t)
+    (overlay-put overlay 'greger-ui-syntax-highlighted t)
     (overlay-put overlay 'evaporate t)
     overlay))
 
-(defun greger-ui--str-replace-diff-transform-fn (tool-use-node _override start end)
+(defun greger-ui--tool-use-syntax-highlighting (tool-use-node _override start end)
   "Font-lock function to transform str-replace original/new content into diff content.
 NODE is the matched tree-sitter node for tool_use block.
 Expensive operations are deferred to idle time to avoid blocking scrolling."
-  (when-let* ((tool-use-name (greger-parser--extract-tool-use-name tool-use-node))
-              ((string= tool-use-name "str-replace")))
+  (unless (greger-ui--syntax-highlighted-p tool-use-node)
+    (when-let ((tool-use-name (greger-parser--extract-tool-use-name tool-use-node)))
+      (cond
+       ((string= tool-use-name "str-replace")
+        (greger-ui--str-replace-syntax-highlighting tool-use-node start end))
+       ((member tool-use-name '("replace-file" "write-new-file"))
+        (greger-ui--file-syntax-highlighting tool-use-node))
+       (t nil)))
+    (greger-ui--set-syntax-highlighted tool-use-node)))
 
-    (unless (greger-ui--get-str-replace-fontified-overlay tool-use-node)
-      (let* ((params (greger-parser--extract-tool-use-params tool-use-node))
-             (has-diff (alist-get 'diff params))
-             (has-original-new (and (alist-get 'original-content params)
-                                    (alist-get 'new-content params))))
-        (cond
-         ;; Case 1: File already has diff parameter - defer syntax highlighting
-         (has-diff
-                                        ;(greger-ui--schedule-diff-operation 'highlight node start end)
-          (greger-ui--apply-diff-syntax-highlighting tool-use-node start end)
-          )
-         ;; Case 2: File has original-content/new-content - defer diff transformation
-         (has-original-new
-                                        ;(greger-ui--schedule-diff-operation 'transform node start end)
-          (greger-ui--apply-str-replace-diff-content tool-use-node start end)
-          )
-         ;; Case 3: Neither - do nothing
-         (t nil))))))
+(defun greger-ui--str-replace-syntax-highlighting (tool-use-node start end)
+  (let* ((params (greger-parser--extract-tool-use-params tool-use-node))
+         (has-diff (alist-get 'diff params))
+         (has-original-new (and (alist-get 'original-content params)
+                                (alist-get 'new-content params))))
+    (cond
+     (has-diff
+      (greger-ui--apply-diff-syntax-highlighting tool-use-node start end))
+     (has-original-new
+      (greger-ui--apply-str-replace-diff-content tool-use-node start end))
+     (t nil))))
 
 (defun greger-ui--apply-str-replace-diff-content (tool-use-node _start _end)
   "Apply diff overlay to str-replace NODE content between START and END."
@@ -339,8 +334,6 @@ Expensive operations are deferred to idle time to avoid blocking scrolling."
          (diff-content (greger-ui--generate-diff-content original-content new-content path))
          (wrapped-diff (greger-parser--wrapped-tool-param "diff" tool-use-id diff-content t))
          (inhibit-read-only t))
-
-    (greger-ui--create-str-replace-fontified-overlay tool-use-node)
 
     ;; Replace buffer content with diff
     (goto-char replace-start)
@@ -363,8 +356,6 @@ Expensive operations are deferred to idle time to avoid blocking scrolling."
          (diff-content (greger-ui--generate-diff-content original-content new-content path))
          (wrapped-diff (greger-parser--wrapped-tool-param "diff" tool-use-id diff-content t))
          (inhibit-read-only t))
-
-    (greger-ui--create-str-replace-fontified-overlay tool-use-node)
 
     ;; Replace buffer content with diff
     (goto-char replace-start)
@@ -491,8 +482,7 @@ Expensive operations are deferred to idle time to avoid blocking scrolling."
     (dolist (attr attrs)
       (let ((value (face-attribute face attr nil t)))
         (when (not (eq value 'unspecified))
-          (setq result (plist-put result attr value))))
-      )
+          (setq result (plist-put result attr value)))))
     
     result))
 
@@ -524,36 +514,37 @@ Makes indicators small and muted while keeping them readable."
     (put-text-property (line-beginning-position) (1+ (line-end-position))
                        'font-lock-face '(:height 0.6 :foreground "gray50"))))
 
+(defun greger-ui--file-syntax-highlighting (tool-use-node)
+  "Apply syntax highlighting to TOOL-RESULT-NODE content based on the corresponding tool_use."
+  (when-let* ((params (greger-parser--extract-tool-use-params tool-use-node))
+              (param-nodes (greger-parser--extract-tool-use-param-nodes tool-use-node))
+              (path (alist-get 'path params))
+              (contents-node (alist-get 'contents param-nodes))
+              (start (treesit-node-start contents-node))
+              (end (treesit-node-end contents-node))
+              (text (treesit-node-text contents-node)))
+    (greger-ui--syntax-highlight-text start end text path)))
+
 ;; Tool result syntax highlighting
 
 (defun greger-ui--tool-result-syntax-highlighting (tool-result-node _override _start _end)
   "Apply source language syntax highlighting to TOOL-RESULT-NODE based on corresponding tool_use.
 NODE is the matched tree-sitter node, OVERRIDE, START, and END are font-lock parameters."
-  (unless (get-char-property (treesit-node-start tool-result-node) 'greger-ui--tool-result-syntax-fontified)
-    (greger-ui--fontify-tool-result-content tool-result-node)
-    ;; Mark as fontified to prevent re-processing
-    (let ((tool-result-start (treesit-node-start tool-result-node))
-          (tool-result-end (treesit-node-end tool-result-node)))
-      (put-text-property tool-result-start tool-result-end 'greger-ui--tool-result-syntax-fontified t))))
+  (unless (greger-ui--syntax-highlighted-p tool-result-node)
+    (when-let* ((tool-use-node (greger-ui--find-corresponding-tool-use tool-result-node))
+                (tool-name (greger-parser--extract-tool-use-name tool-use-node))
+                (content-node (treesit-search-subtree tool-result-node "content"))
+                (start (treesit-node-start content-node))
+                (end (treesit-node-end content-node))
+                (text (treesit-node-text content-node))
+                (tool-use-params (greger-parser--extract-tool-use-params tool-use-node)))
 
-(defun greger-ui--fontify-tool-result-content (tool-result-node)
-  "Apply syntax highlighting to TOOL-RESULT-NODE content based on the corresponding tool_use."
-  (when-let* ((tool-use-node (greger-ui--find-corresponding-tool-use tool-result-node))
-              (tool-name (greger-parser--extract-tool-use-name tool-use-node))
-              (content-node (treesit-search-subtree tool-result-node "content"))
-              (content-start (treesit-node-start content-node))
-              (content-end (treesit-node-end content-node))
-              (content-text (treesit-node-text content-node))
-              (tool-use-params (greger-parser--extract-tool-use-params tool-use-node)))
-
-    (cond
-     ;; Handle read-file results - detect file extension from tool_use path parameter
-     ((string= tool-name "read-file")
-      (when-let ((file-path (alist-get 'path tool-use-params)))
-        (greger-ui--apply-syntax-highlighting content-start content-end content-text file-path)))
-     
-     ;; Handle other tools - no special highlighting for now
-     (t nil))))
+      (cond
+       ((string= tool-name "read-file")
+        (when-let ((path (alist-get 'path tool-use-params)))
+          (greger-ui--syntax-highlight-text start end text path)))
+       (t nil)))
+    (greger-ui--set-syntax-highlighted tool-result-node)))
 
 (defun greger-ui--find-corresponding-tool-use (tool-result-node)
   "Find the tool_use node that corresponds to TOOL-RESULT-NODE by matching IDs."
@@ -565,7 +556,7 @@ NODE is the matched tree-sitter node, OVERRIDE, START, and END are font-lock par
               ((string= tool-use-id tool-result-id)))
     tool-use-node))
 
-(defun greger-ui--apply-syntax-highlighting (start end content file-path)
+(defun greger-ui--syntax-highlight-text (start end content path)
   "Apply syntax highlighting to CONTENT between START and END based on FILE-PATH."
   ;; Skip highlighting for very long content to avoid performance issues  
   (when (< (length content) 50000)
@@ -580,14 +571,13 @@ NODE is the matched tree-sitter node, OVERRIDE, START, and END are font-lock par
             ;; Let Emacs determine the major mode based on the file name
             ;; Don't run hooks that might assume buffer-file-name really associates buffer with a file
             (let ((enable-local-variables nil)
-                  (buffer-file-name file-path))
+                  (buffer-file-name path))
               (delay-mode-hooks (set-auto-mode)))
             
             ;; Enable font-lock and force fontification
-            (when (fboundp 'font-lock-mode)
-              (font-lock-mode 1)
-              (font-lock-ensure (point-min) (point-max)))
-            
+            (font-lock-mode 1)
+            (font-lock-ensure (point-min) (point-max))
+
             ;; Copy the font-lock-face properties to the original buffer
             (let ((temp-start (point-min))
                   (temp-end (point-max))
@@ -602,7 +592,7 @@ NODE is the matched tree-sitter node, OVERRIDE, START, and END are font-lock par
                   (when face
                     ;; Apply the face to the corresponding position in the original buffer
                     (with-current-buffer original-buffer
-                      (put-text-property original-pos (min (+ original-pos len 1) end) 'font-lock-face face)))
+                      (put-text-property original-pos (min (+ original-pos len) end) 'font-lock-face face)))
                   
                   (setq temp-start next-change
                         original-pos (+ original-pos len))))))
