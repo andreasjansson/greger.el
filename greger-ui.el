@@ -325,7 +325,8 @@ Expensive operations are deferred to idle time to avoid blocking scrolling."
      (t nil))))
 
 (defun greger-ui--apply-str-replace-diff-content (tool-use-node _start _end)
-  "Apply diff overlay to str-replace NODE content between START and END."
+  "Apply diff overlay to str-replace TOOL-USE-NODE content.
+_START and _END are ignored font-lock parameters."
   (let* ((params (greger-parser--extract-tool-use-params tool-use-node))
          (original-content (alist-get 'original-content params))
          (new-content (alist-get 'new-content params))
