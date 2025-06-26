@@ -500,7 +500,7 @@ class Calculator:
 (ert-deftest greger-ui-test-str-replace-diff-and-syntax-highlighting ()
   "Test str-replace diff transformation and syntax highlighting."
   (with-current-buffer (greger)
-    (let ((greger-ui-folding-mode t))
+    (let ((greger-ui-folding-mode nil))
       (erase-buffer)
      ;; Temporarily disable folding mode for this test to prevent invisible text issues
      (insert "# TOOL USE
@@ -532,10 +532,38 @@ def new_function():
 
 ")
 
-     ;; Really, really ensure font-lock
      (font-lock-ensure)
-     (sit-for 0.5)
-     (font-lock-flush (point-min) (point-max))
+
+     ;; Check that the content has been transformed to diff format
+     (let ((expected "# TOOL USE
+
+Name: str-replace
+ID: toolu_999
+
+## path
+
+<tool.toolu_999>
+example.py
+</tool.toolu_999>
+
+## diff
+
+<tool.toolu_999>
+-def old_function():
+-    print('old implementation')
+-    return False
+\\ No newline at end of file
++def new_function():
++    print('new implementation')
++    return True
+\\ No newline at end of file
+
+</tool.toolu_999>
+
+"))
+       (should (string= expected (greger-ui-test--visible-text))))
+
+     (greger-ui-toggle-folding)
      (font-lock-ensure)
 
      ;; Check that the content has been transformed to diff format
