@@ -285,7 +285,7 @@ This ensures the '..' entry has predictable permissions in tests."
         (should prompt-called)))))
 (ert-deftest greger-stdlib-test-shell-command-with-timeout ()
   "Test shell-command tool with timeout parameter."
-  (let ((result nil)
+  (let ((result "")
         (error nil)
         (callback-called nil))
 
@@ -296,11 +296,13 @@ This ensures the '..' entry has predictable permissions in tests."
       (greger-stdlib--shell-command
        "echo timeout test"
        (lambda (output err)
-         (setq result output error err callback-called t))
+         (setq error err callback-called t))
        "."  ; working directory
        10   ; timeout 10 seconds
        nil  ; enable-environment
-       nil) ; metadata ; metadata
+       (lambda (chunk)  ; streaming-callback
+         (setq result (concat result chunk)))
+       nil) ; metadata
 
       ;; Wait for async operation to complete
       (let ((timeout 0))
