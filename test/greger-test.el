@@ -124,6 +124,7 @@ Tool executed: Hello World
 
     ;; Create test buffer
     (with-temp-buffer
+      (greger-mode) ; Set up greger-mode for tree-sitter support
       (let ((agent-state (make-greger-state
                           :current-iteration 0
                           :chat-buffer (current-buffer)
