@@ -503,6 +503,7 @@ Line 3: End
 
     ;; Create test buffer
     (with-temp-buffer
+      (greger-mode) ; Set up greger-mode for tree-sitter support
       ;; Initial buffer state (empty)
       (let ((initial-content "")
             (agent-state (make-greger-state
