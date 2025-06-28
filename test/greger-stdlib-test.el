@@ -346,7 +346,7 @@ This ensures the '..' entry has predictable permissions in tests."
       ;; Verify the timeout occurred
       (should callback-called)
       (should error)
-      (should (null result))
+      (should (string= result ""))  ; sleep command produces no output
       (should (string-match "timed out after 1 seconds" error)))))
 
 (ert-deftest greger-stdlib-test-shell-command-pager-environment ()
