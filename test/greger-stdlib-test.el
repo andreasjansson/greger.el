@@ -169,7 +169,7 @@ This ensures the '..' entry has predictable permissions in tests."
 
 (ert-deftest greger-stdlib-test-shell-command-command-failure ()
   "Test shell-command tool when command fails."
-  (let ((result nil)
+  (let ((result "")
         (error nil)
         (callback-called nil))
 
@@ -180,10 +180,12 @@ This ensures the '..' entry has predictable permissions in tests."
       (greger-stdlib--shell-command
        "false"  ; Command that always exits with code 1
        (lambda (output err)
-         (setq result output error err callback-called t))
+         (setq error err callback-called t))
        "."  ; working-directory
        nil  ; timeout
        nil  ; enable-environment
+       (lambda (chunk)  ; streaming-callback
+         (setq result (concat result chunk)))
        nil) ; metadata
 
       ;; Wait for async operation to complete
