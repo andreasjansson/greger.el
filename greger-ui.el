@@ -178,11 +178,13 @@ NODE is the matched tree-sitter node"
   "Make tool tag NODE invisible while preserving face styling."
   (condition-case nil
       (let ((node-start (treesit-node-start node))
-            (node-end (1+ (treesit-node-end node))))
+            (node-end (min (1+ (treesit-node-end node)) (point-max))))
         ;; In Emacs 29.4, be more careful about invisible property boundaries
         ;; to prevent accidentally marking too much content as invisible
         (when (<= node-end (point-max))
-          (put-text-property node-start (min node-end (point-max)) 'invisible greger-ui-folding-mode)))
+          (put-text-property node-start node-end 'invisible greger-ui-folding-mode)
+          (unless greger-ui-folding-mode
+            (put-text-property node-start node-end 'font-lock-face '(:height 0.8 :foreground "gray70")))))
     (treesit-node-outdated
      ;; Node became outdated, skip this operation
      nil)))

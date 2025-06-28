@@ -475,6 +475,11 @@ to preserve point position."
        (progn ,@body)
      (save-excursion ,@body)))
 
+(defun greger--live-chat-buffer (state)
+  (let ((buffer (greger-state-chat-buffer state)))
+    (when (buffer-live-p buffer)
+      buffer)))
+
 (defun greger--get-current-status ()
   "Get the current greger status: \='idle, \='generating, or \='executing."
   (let ((state (buffer-local-value 'greger--current-state (current-buffer))))
@@ -642,10 +647,9 @@ first two."
           (greger--execute-tools tool-calls state))
       (greger--finish-response state)))
 
-  (let ((buffer (greger-state-chat-buffer state)))
-    (when (buffer-live-p buffer)
-      (with-current-buffer buffer
-        (greger--update-buffer-state)))))
+  (when-let ((buffer (greger--live-chat-buffer state)))
+    (with-current-buffer buffer
+      (greger--update-buffer-state))))
 
 (defun greger--content-block-supports-streaming (content-block)
   "Check if CONTENT-BLOCK can be streamed incrementally.
@@ -673,7 +677,7 @@ be displayed as they arrive rather than waiting for completion."
       (greger--insert-thinking-signature state signature))))
 
   ;; Update buffer state after client completes
-  (let ((buffer (greger-state-chat-buffer state)))
+  (when-let ((buffer (greger--live-chat-buffer state)))
     (with-current-buffer buffer
       (greger--update-buffer-state))))
 
@@ -700,7 +704,10 @@ Assumes the last inserted thing is a thinking tag."
 
 (defun greger--tool-placeholder (tool-id)
   "Generate placeholder string for TOOL-ID."
-  (greger-parser--wrapped-tool-content greger-parser-tool-result-tag tool-id "Loading..."))
+  ;; It's ugly that we need to insert the trailing \n
+  ;; But we need it because otherwise the closing tool tag is not recognized.
+  ;; TODO: update greger-grammar
+  (concat (greger-parser--wrapped-tool-content greger-parser-tool-result-tag tool-id "") "\n"))
 
 (defun greger--execute-tools (tool-calls state)
   "Execute TOOL-CALLS using STATE in parallel with callbacks."
@@ -713,15 +720,12 @@ Assumes the last inserted thing is a thinking tag."
       (setf (greger-state-executing-tools state) executing-tools-map))
 
     ;; Update buffer state to show we're executing tools
-    (let ((buffer (greger-state-chat-buffer state)))
+    (when-let ((buffer (greger--live-chat-buffer state)))
       (with-current-buffer buffer
-        (greger--update-buffer-state))
+        (greger--update-buffer-state)
 
-      ;; First, display the tool calls and reserve space for each tool's output
-      (with-current-buffer buffer
-        (let ((inhibit-read-only t))
-          (greger--maybe-save-excursion
-           (goto-char (point-max))))))
+        (greger--maybe-save-excursion
+         (goto-char (point-max)))))
 
     ;; Execute all tools in parallel
     (dolist (tool-call tool-calls)
@@ -753,10 +757,13 @@ Assumes the last inserted thing is a thinking tag."
                                          :error error
                                          :state state
                                          :completion-callback (lambda ()
+                                                                ;; TODO: add completed-tools to state instead of this nested callback
                                                                 (setq completed-tools (1+ completed-tools))
                                                                 (when (and (= completed-tools total-tools)
                                                                            (greger-state-chat-buffer state))
                                                                   (greger--run-agent-loop state)))))
+                            :streaming-callback (lambda (text)
+                                                  (greger--append-tool-result-text state tool-id text))
                             :buffer (greger-state-chat-buffer state)
                             :metadata (greger-state-tool-use-metadata state))))
 
@@ -781,55 +788,63 @@ RESULT is the tool execution result.
 ERROR is any error that occurred.
 STATE contains the current agent state.
 COMPLETION-CALLBACK is called when complete."
-  (let ((tool-result (if error
-                         `((type . "tool_result")
-                           (tool_use_id . ,tool-id)
-                           (content . ,(if (stringp error)
-                                           error
-                                         (format "Error executing tool: %s" (error-message-string error))))
-                           (is_error . t))
-                       `((type . "tool_result")
-                         (tool_use_id . ,tool-id)
-                         (content . ,result)))))
+  (let ((tool-result-text (if error
+                              (if (listp error)
+                                  (error-message-string error)
+                                error)
+                            result)))
 
-    ;; Update the buffer at the correct position
-    (let ((buffer (greger-state-chat-buffer state)))
-      (when (buffer-live-p buffer)
-        (with-current-buffer buffer
-          (let ((inhibit-read-only t))
-            (greger--maybe-save-excursion
-             (goto-char (point-max))
-             ;; Find and replace the placeholder
-             (when (search-backward (greger--tool-placeholder tool-id) nil t)
-               (replace-match "")
-               ;; Now that we've deleted the tool result "placeholder",
-               ;; we're now inside a tool_use block
-               (let ((result-markdown (greger-parser--tool-result-to-markdown tool-result)))
-                 (when (string-empty-p result-markdown)
-                   (error "Failed to parse result markdown"))
-                 (insert result-markdown))))))
-
-        ;; Update buffer state after tool completion
-        (with-current-buffer buffer
-          (greger--update-buffer-state))))
+    (greger--append-tool-result-text state tool-id tool-result-text t)
+    ;; TODO: trim trailing newlines from tool result and delete the
+    ;; trailing newline after the tool close tag that we inserted in the
+    ;; placeholder
 
     ;; Call completion callback
     (funcall completion-callback)))
 
+(defun greger--append-tool-result-text (state tool-id text &optional is-completed)
+  (when-let ((buffer (greger--live-chat-buffer state)))
+    (with-current-buffer buffer
+      (when-let ((inhibit-read-only t)
+                 (tool-result-content-node (greger--find-tool-result-content-node tool-id))
+                 (tool-result-content-end (treesit-node-end tool-result-content-node)))
+        (greger--maybe-save-excursion
+         (goto-char (1- tool-result-content-end))
+         (insert text)
+
+         (when is-completed
+           ;; Trim trailing newline after closing tag
+           (when-let ((tool-end-tag (treesit-node-next-sibling tool-result-content-node t)))
+             (when (string= (treesit-node-type tool-end-tag) "tool_end_tag")
+               (goto-char (treesit-node-end tool-end-tag))
+               (when (looking-at-p "\n")
+                 (delete-char 1))))
+
+           ;; Update buffer state after tool completion
+           (greger--update-buffer-state)))))))
+
+(defun greger--find-tool-result-content-node (tool-id)
+  (let* ((query `((tool_result (id (value) @id) (:match ,tool-id @id)
+                               (content) @content)))
+         (capture (treesit-query-capture (treesit-buffer-root-node) query))
+         (content-node (alist-get 'content capture))
+         ;; for some reason, querying directly for tool_content fails, but this works
+         (content-node-first-child (car (treesit-node-children content-node))))
+    (treesit-search-subtree content-node-first-child "tool_content")))
+
 (defun greger--finish-response (state)
   "Finish the agent response using STATE."
-  (let ((buffer (greger-state-chat-buffer state)))
-    (when (buffer-live-p buffer)
-      (with-current-buffer buffer
-        (let ((inhibit-read-only t))
-          (greger--maybe-save-excursion
-           (goto-char (point-max))
-           (unless (looking-back (concat greger-parser-user-tag "\n\n") nil)
-             (insert "\n\n" greger-parser-user-tag "\n\n"))))
-        ;; Clear the buffer-local agent state
-        (setq greger--current-state nil)
-        ;; Update buffer state to idle
-        (greger--update-buffer-state))))
+  (when-let ((buffer (greger--live-chat-buffer state)))
+    (with-current-buffer buffer
+      (let ((inhibit-read-only t))
+        (greger--maybe-save-excursion
+         (goto-char (point-max))
+         (unless (looking-back (concat greger-parser-user-tag "\n\n") nil)
+           (insert "\n\n" greger-parser-user-tag "\n\n"))))
+      ;; Clear the buffer-local agent state
+      (setq greger--current-state nil)
+      ;; Update buffer state to idle
+      (greger--update-buffer-state)))
   ;; Reset the state
   (setf (greger-state-current-iteration state) 0)
   (setf (greger-state-client-state state) nil))
