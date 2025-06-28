@@ -476,6 +476,7 @@ to preserve point position."
      (save-excursion ,@body)))
 
 (defun greger--live-chat-buffer (state)
+  "Return the chat buffer from STATE if it's still live."
   (let ((buffer (greger-state-chat-buffer state)))
     (when (buffer-live-p buffer)
       buffer)))
