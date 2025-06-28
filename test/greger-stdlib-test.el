@@ -163,6 +163,7 @@ This ensures the '..' entry has predictable permissions in tests."
       "."  ; working-directory
       nil  ; timeout
       nil  ; enable-environment
+      nil  ; streaming-callback
       '(:allow-all-shell-commands nil)) ; metadata
      :type 'error)))
 
