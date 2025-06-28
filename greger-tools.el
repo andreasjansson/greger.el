@@ -184,7 +184,9 @@ If the tool has :pass-buffer set, BUFFER will be passed to the tool function.
 If the tool has :pass-callback set, CALLBACK will be passed to the tool
 function instead of `greger-tools-execute' calling the callback with result.
 If the tool has :pass-metadata set, METADATA will be passed to the tool
-function."
+function.
+If the tool has :streaming set, STREAMING-CALLBACK will be passed to the tool
+function for streaming output."
 
   (let ((tool-def (gethash tool-name greger-tools-registry))
         (cancel-fn nil))
