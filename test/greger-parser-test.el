@@ -36,12 +36,10 @@
 
 ;; Function to clean up the grammar repo
 (defun greger-test-cleanup-grammar-repo ()
-  "Clean up the cloned greger-grammar repository."
+  "Clean up the grammar repository reference (but keep the persistent directory)."
   (when greger-test-grammar-repo-path
-    (let ((temp-dir (file-name-directory greger-test-grammar-repo-path)))
-      (message "Cleaning up greger-grammar repo at %s..." temp-dir)
-      (delete-directory temp-dir t)
-      (setq greger-test-grammar-repo-path nil))))
+    (message "Cleaning up greger-grammar repo reference...")
+    (setq greger-test-grammar-repo-path nil)))
 
 ;; Helper function to read markdown content from corpus .txt files
 (defun greger-read-corpus-file (name)
