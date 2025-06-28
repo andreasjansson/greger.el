@@ -828,6 +828,9 @@ end tag and update the buffer state."
            (greger--update-buffer-state)))))))
 
 (defun greger--find-tool-result-content-node (tool-id)
+  "Find the tool_content node for the tool_result with TOOL-ID.
+Uses treesit to query for a tool_result with matching id and returns
+the tool_content node within its content section."
   (let* ((query `((tool_result (id (value) @id) (:match ,tool-id @id)
                                (content) @content)))
          (capture (treesit-query-capture (treesit-buffer-root-node) query))
