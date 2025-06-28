@@ -267,6 +267,8 @@ failure.
 TIMEOUT specifies the maximum time in seconds to wait for completion,
 the default is no timeout.
 ENV is an optional alist of environment variables to set.
+STREAMING-CALLBACK, if provided, will be called with each chunk of output
+as it arrives from the subprocess.
 Returns a cancel function that can be called to interrupt the process."
   (let* ((process-name (format "greger-subprocess-%s" (make-temp-name "")))
          (process-buffer (generate-new-buffer (format " *%s*" process-name)))
