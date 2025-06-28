@@ -120,7 +120,7 @@ This ensures the '..' entry has predictable permissions in tests."
 
 (ert-deftest greger-stdlib-test-shell-command-with-pipe ()
   "Test shell-command tool with a command containing a pipe."
-  (let ((result nil)
+  (let ((result "")
         (error nil)
         (callback-called nil))
 
@@ -131,11 +131,12 @@ This ensures the '..' entry has predictable permissions in tests."
       (greger-stdlib--shell-command
        "echo 'apple\nbanana\ncherry' | grep 'an'"
        (lambda (output err)
-         (setq result output error err callback-called t))
+         (setq error err callback-called t))
        "."  ; working-directory
        nil  ; timeout
        nil  ; enable-environment
-       nil  ; streaming-callback
+       (lambda (chunk)  ; streaming-callback
+         (setq result (concat result chunk)))
        nil) ; metadata
 
       ;; Wait for async operation to complete
