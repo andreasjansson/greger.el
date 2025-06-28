@@ -417,8 +417,8 @@ This ensures the '..' entry has predictable permissions in tests."
 
 (ert-deftest greger-stdlib-test-shell-command-environment-access ()
   "Test shell-command with enable-environment loads bash initialization files."
-  (let ((result-without-env nil)
-        (result-with-env nil)
+  (let ((result-without-env "")
+        (result-with-env "")
         (error nil)
         (callback-called nil))
 
@@ -429,10 +429,12 @@ This ensures the '..' entry has predictable permissions in tests."
       (greger-stdlib--shell-command
        "echo \"PS1 is: [$PS1]\""
        (lambda (output err)
-         (setq result-without-env output error err callback-called t))
+         (setq error err callback-called t))
        "."  ; working directory
        nil  ; timeout
        nil  ; enable-environment = nil
+       (lambda (chunk)  ; streaming-callback
+         (setq result-without-env (concat result-without-env chunk)))
        nil) ; metadata
 
       ;; Wait for async operation to complete
