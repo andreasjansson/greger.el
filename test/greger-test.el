@@ -249,7 +249,7 @@ bad-input
 ID: error_test
 
 <tool.error_test>
-Error executing tool: Simulated tool error: bad-input
+Simulated tool error: bad-input
 </tool.error_test>"))
 
         ;; Mock greger--run-agent-loop to capture completion
