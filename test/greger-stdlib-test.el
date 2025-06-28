@@ -202,7 +202,7 @@ This ensures the '..' entry has predictable permissions in tests."
 
 (ert-deftest greger-stdlib-test-shell-command-safe-commands ()
   "Test shell-command tool with safe-shell-commands metadata to skip permission prompt."
-  (let ((result nil)
+  (let ((result "")
         (error nil)
         (callback-called nil)
         (prompt-called nil))
@@ -220,10 +220,12 @@ This ensures the '..' entry has predictable permissions in tests."
         (greger-stdlib--shell-command
          "echo safe command"
          (lambda (output err)
-           (setq result output error err callback-called t))
+           (setq error err callback-called t))
          "."  ; working directory
          nil  ; timeout (use default)
          nil  ; enable-environment
+         (lambda (chunk)  ; streaming-callback
+           (setq result (concat result chunk)))
          metadata)
 
         ;; Wait for async operation to complete
