@@ -804,6 +804,8 @@ COMPLETION-CALLBACK is called when complete."
     (funcall completion-callback)))
 
 (defun greger--append-tool-result-text (state tool-id text &optional is-completed)
+  "Append TEXT to the tool result content for TOOL-ID in STATE.
+If IS-COMPLETED is non-nil, mark the tool result as completed."
   (when-let ((buffer (greger--live-chat-buffer state)))
     (with-current-buffer buffer
       (when-let ((inhibit-read-only t)
