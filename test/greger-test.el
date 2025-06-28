@@ -295,6 +295,7 @@ Error executing tool: Simulated tool error: bad-input
 
     ;; Create test buffer with existing content
     (with-temp-buffer
+      (greger-mode) ; Set up greger-mode for tree-sitter support
       (insert "Existing content in buffer")
 
       (let ((agent-state (make-greger-state
