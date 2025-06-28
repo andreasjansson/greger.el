@@ -318,7 +318,7 @@ This ensures the '..' entry has predictable permissions in tests."
 
 (ert-deftest greger-stdlib-test-shell-command-timeout-exceeded ()
   "Test shell-command tool when timeout is exceeded."
-  (let ((result nil)
+  (let ((result "")
         (error nil)
         (callback-called nil))
 
@@ -329,11 +329,13 @@ This ensures the '..' entry has predictable permissions in tests."
       (greger-stdlib--shell-command
        "sleep 3"
        (lambda (output err)
-         (setq result output error err callback-called t))
+         (setq error err callback-called t))
        "."  ; working directory
        1    ; timeout 1 second
        nil  ; enable-environment
-       nil) ; metadata ; metadata
+       (lambda (chunk)  ; streaming-callback
+         (setq result (concat result chunk)))
+       nil) ; metadata
 
       ;; Wait for timeout to occur
       (let ((timeout 0))
