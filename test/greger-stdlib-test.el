@@ -196,7 +196,7 @@ This ensures the '..' entry has predictable permissions in tests."
 
       ;; Verify the results
       (should callback-called)
-      (should (null result))
+      (should (string= result ""))  ; false command produces no output
       (should (stringp error))
       (should (string-match "failed with exit code" error)))))
 
