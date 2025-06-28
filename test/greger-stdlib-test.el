@@ -102,6 +102,7 @@ This ensures the '..' entry has predictable permissions in tests."
        "."  ; working-directory
        nil  ; timeout
        nil  ; enable-environment
+       nil  ; streaming-callback
        nil) ; metadata
 
       ;; Wait for async operation to complete
