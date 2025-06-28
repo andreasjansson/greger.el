@@ -642,7 +642,9 @@ assuming it's already been sent in streaming."
           "ID: " id "\n\n"
           "<tool." id ">\n"
           content
-          "\n"
+          (if (and (not (string-empty-p content))
+                   (not (string-suffix-p "\n" content)))
+              "\n" "")
           "</tool." id ">"))
 
 (defun greger-parser--web-search-tool-result-to-markdown (tool-result)
