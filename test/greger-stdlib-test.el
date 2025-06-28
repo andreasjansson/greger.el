@@ -454,10 +454,12 @@ This ensures the '..' entry has predictable permissions in tests."
       (greger-stdlib--shell-command
        "echo \"PS1 is: [$PS1]\""
        (lambda (output err)
-         (setq result-with-env output error err callback-called t))
+         (setq error err callback-called t))
        "."  ; working directory
        nil  ; timeout
        t    ; enable-environment = t
+       (lambda (chunk)  ; streaming-callback
+         (setq result-with-env (concat result-with-env chunk)))
        nil) ; metadata
 
       ;; Wait for async operation to complete
