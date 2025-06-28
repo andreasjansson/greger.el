@@ -351,7 +351,7 @@ This ensures the '..' entry has predictable permissions in tests."
 
 (ert-deftest greger-stdlib-test-shell-command-pager-environment ()
   "Test shell-command tool sets PAGER=cat environment variable."
-  (let ((result nil)
+  (let ((result "")
         (error nil)
         (callback-called nil))
 
@@ -362,11 +362,13 @@ This ensures the '..' entry has predictable permissions in tests."
       (greger-stdlib--shell-command
        "echo \"PAGER is: $PAGER\""
        (lambda (output err)
-         (setq result output error err callback-called t))
+         (setq error err callback-called t))
        "."  ; working directory
        nil  ; timeout (use default)
        nil  ; enable-environment
-       nil) ; metadata ; metadata
+       (lambda (chunk)  ; streaming-callback
+         (setq result (concat result chunk)))
+       nil) ; metadata
 
       ;; Wait for async operation to complete
       (let ((timeout 0))
