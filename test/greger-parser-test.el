@@ -686,8 +686,8 @@ new
   (should (string= (greger-parser--value-to-string 42) "42"))
   (should (string= (greger-parser--value-to-string t) "true"))
   (should (string= (greger-parser--value-to-string nil) "false"))
-  (should (string= (greger-parser--value-to-string [1 2 3]) "[1,2,3]"))
-  (should (string= (greger-parser--value-to-string '(1 2 3)) "[1,2,3]")))
+  (should (string= (greger-parser--value-to-string [1 2 3]) "[\n  1,\n  2,\n  3\n]"))
+  (should (string= (greger-parser--value-to-string '(1 2 3)) "[\n  1,\n  2,\n  3\n]")))
 
 ;; Cleanup test - should run last alphabetically
 (ert-deftest greger-parser-zz-test-cleanup ()
