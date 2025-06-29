@@ -650,7 +650,8 @@ The function processes text to simulate how a terminal would handle these
 sequences, making progress bars and dynamic output display correctly in
 the greger UI instead of showing all intermediate states."
   (let ((pos 0)
-        (len (length text)))
+        (len (length text))
+        (at-bol-after-cr nil))
     
     (while (< pos len)
       (let ((char (aref text pos)))
@@ -658,11 +659,22 @@ the greger UI instead of showing all intermediate states."
          ;; Handle carriage return - move to beginning of current line
          ((= char ?\r)
           (beginning-of-line)
+          (setq at-bol-after-cr t)
           (setq pos (1+ pos)))
          
-         ;; Regular character - insert it
+         ;; Handle newline
+         ((= char ?\n)
+          (insert "\n")
+          (setq at-bol-after-cr nil)
+          (setq pos (1+ pos)))
+         
+         ;; Regular character
          (t
-          (insert char)
+          ;; If we're at beginning of line after a \r, delete rest of line first
+          (when at-bol-after-cr
+            (delete-region (point) (line-end-position))
+            (setq at-bol-after-cr nil))
+          (insert-char char)
           (setq pos (1+ pos))))
       
       ;; Safety check to prevent infinite loops
