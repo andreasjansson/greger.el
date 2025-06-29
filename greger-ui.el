@@ -671,7 +671,9 @@ the greger UI instead of showing all intermediate states."
                ;; ESC[K - clear from cursor to end of line
                ((and (< (+ pos 2) len)
                      (= (aref text (+ pos 2)) ?K))
+                ;; Clear from current position to end of line
                 (delete-region (point) (line-end-position))
+                (setq at-bol-after-cr nil)
                 (setq pos (+ pos 3)))
                ;; ESC[2K - clear entire line
                ((and (< (+ pos 3) len)
