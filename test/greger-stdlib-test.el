@@ -9,7 +9,6 @@
 (require 'cl-lib)
 (require 'greger-stdlib)
 (require 'greger-web)
-(require 'greger-ui)
 
 ;; Helper function for creating controlled test directories
 (defun greger-stdlib-test--make-controlled-temp-dir (prefix)
