@@ -814,7 +814,10 @@ end tag and update the buffer state."
                  (tool-result-content-end (treesit-node-end tool-result-content-node)))
         (greger--maybe-save-excursion
          (goto-char (1- tool-result-content-end))
-         (insert text)
+         
+         ;; Process terminal sequences to handle progress bars and dynamic output
+         (let ((processed-text (greger-ui--process-terminal-sequences text)))
+           (insert processed-text))
 
          (when is-completed
            ;; Trim trailing newline after closing tag
