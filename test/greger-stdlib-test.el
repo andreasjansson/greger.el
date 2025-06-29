@@ -2412,4 +2412,189 @@ drwx------  (dir)  ..
       (when (file-exists-p test-dir)
         (delete-directory test-dir t)))))
 
+;; Terminal sequence processing tests
+
+(ert-deftest greger-stdlib-test-process-terminal-sequences-carriage-return-basic ()
+  "Test basic carriage return handling - overwrites current line."
+  ;; Basic carriage return at end of string
+  (should (string= "new content" 
+                   (greger-stdlib--process-terminal-sequences "old content\rnew content")))
+  
+  ;; Multiple carriage returns  
+  (should (string= "final" 
+                   (greger-stdlib--process-terminal-sequences "first\rsecond\rfinal")))
+  
+  ;; Carriage return with newline preservation
+  (should (string= "line1\noverwritten\nline3"
+                   (greger-stdlib--process-terminal-sequences "line1\noriginal\roverwritten\nline3"))))
+
+(ert-deftest greger-stdlib-test-process-terminal-sequences-progress-bar-simulation ()
+  "Test progress bar simulation with carriage returns."
+  ;; Simulate typical progress bar output like wget or homebrew
+  (let ((progress-output "Downloading file...\rProgress: 25%\rProgress: 50%\rProgress: 100% Complete!"))
+    (should (string= "Progress: 100% Complete!"
+                     (greger-stdlib--process-terminal-sequences progress-output))))
+  
+  ;; Multiple progress bars on separate lines
+  (let ((multi-progress "File1: 0%\nFile2: 0%\rFile1: 50%\rFile2: 30%\rFile1: 100%\rFile2: 100%"))
+    (let ((result (greger-stdlib--process-terminal-sequences multi-progress)))
+      (should (string-match "File1: 100%" result))
+      (should (string-match "File2: 100%" result)))))
+
+(ert-deftest greger-stdlib-test-process-terminal-sequences-homebrew-example ()
+  "Test with actual Homebrew-style output containing carriage returns."
+  ;; Simulate the exact pattern from your example
+  (let ((homebrew-output "==> Downloading https://example.com/file\n######################################################################## 100.0%###                                                                        4.3%#################################################################         91.3%######################################################################## 100.0%"))
+    (let ((result (greger-stdlib--process-terminal-sequences homebrew-output)))
+      ;; Should contain the URL line
+      (should (string-match "==> Downloading" result))
+      ;; Should end with the final progress state
+      (should (string-match "100\\.0%$" result)))))
+
+(ert-deftest greger-stdlib-test-process-terminal-sequences-escape-sequences ()
+  "Test handling of ANSI escape sequences for cursor movement."
+  ;; ESC[K - clear to end of line
+  (should (string= "keep" 
+                   (greger-stdlib--process-terminal-sequences "keep\e[K")))
+  
+  ;; ESC[2K - clear entire line  
+  (should (string= "" 
+                   (greger-stdlib--process-terminal-sequences "remove this\e[2K")))
+  
+  ;; ESC[A - cursor up (removes previous line)
+  (should (string= "line1\nfinal"
+                   (greger-stdlib--process-terminal-sequences "line1\nremove\e[Afinal")))
+  
+  ;; ESC[B - cursor down (adds newline)
+  (should (string= "line1\n\nline3"
+                   (greger-stdlib--process-terminal-sequences "line1\e[Bline3"))))
+
+(ert-deftest greger-stdlib-test-process-terminal-sequences-mixed-control-codes ()
+  "Test mixed control codes and escape sequences."
+  ;; Combination of carriage return and escape sequences
+  (let ((mixed-input "Start\rProgress 50%\e[KProgress 100%"))
+    (should (string= "Progress 100%" 
+                     (greger-stdlib--process-terminal-sequences mixed-input))))
+  
+  ;; Complex sequence with line clearing and carriage returns
+  (let ((complex-input "Line1\nOld\e[2K\rNew Content\nLine3"))
+    (let ((result (greger-stdlib--process-terminal-sequences complex-input)))
+      (should (string-match "Line1" result))
+      (should (string-match "New Content" result))
+      (should (string-match "Line3" result))
+      (should-not (string-match "Old" result)))))
+
+(ert-deftest greger-stdlib-test-process-terminal-sequences-edge-cases ()
+  "Test edge cases in terminal sequence processing."
+  ;; Empty string
+  (should (string= "" (greger-stdlib--process-terminal-sequences "")))
+  
+  ;; Just carriage return
+  (should (string= "" (greger-stdlib--process-terminal-sequences "\r")))
+  
+  ;; Just escape sequence
+  (should (string= "" (greger-stdlib--process-terminal-sequences "\e[K")))
+  
+  ;; Text with no control sequences
+  (should (string= "normal text\nwith lines" 
+                   (greger-stdlib--process-terminal-sequences "normal text\nwith lines")))
+  
+  ;; Invalid escape sequence (should be preserved)
+  (should (string= "text\e[Zinvalid"
+                   (greger-stdlib--process-terminal-sequences "text\e[Zinvalid")))
+  
+  ;; ESC without bracket
+  (should (string= "text\ealone"
+                   (greger-stdlib--process-terminal-sequences "text\ealone"))))
+
+(ert-deftest greger-stdlib-test-process-terminal-sequences-newline-preservation ()
+  "Test that newlines are properly preserved in various scenarios."
+  ;; Text ending with newline should preserve it
+  (should (string= "line1\nline2\n"
+                   (greger-stdlib--process-terminal-sequences "line1\nline2\n")))
+  
+  ;; Text not ending with newline should not add one
+  (should (string= "line1\nline2"
+                   (greger-stdlib--process-terminal-sequences "line1\nline2")))
+  
+  ;; Carriage return at end without newline
+  (should (string= "final"
+                   (greger-stdlib--process-terminal-sequences "original\rfinal")))
+  
+  ;; Carriage return at end with newline
+  (should (string= "final\n"
+                   (greger-stdlib--process-terminal-sequences "original\rfinal\n"))))
+
+(ert-deftest greger-stdlib-test-process-terminal-sequences-real-world-patterns ()
+  "Test patterns commonly seen in real-world terminal output."
+  ;; Git clone progress
+  (let ((git-output "Cloning into 'repo'...\rReceiving objects: 50%\rReceiving objects: 100%"))
+    (should (string= "Receiving objects: 100%"
+                     (greger-stdlib--process-terminal-sequences git-output))))
+  
+  ;; npm install progress
+  (let ((npm-output "Installing dependencies...\n⠋ package1\r⠙ package1\r⠹ package1\r✓ package1"))
+    (let ((result (greger-stdlib--process-terminal-sequences npm-output)))
+      (should (string-match "Installing dependencies" result))
+      (should (string-match "✓ package1" result))
+      (should-not (string-match "⠋\\|⠙\\|⠹" result))))
+  
+  ;; wget download progress
+  (let ((wget-output "file.tar.gz       10%[=>     ]  1.2MB  500KB/s\rfile.tar.gz      100%[======>] 12.0MB  1.2MB/s"))
+    (let ((result (greger-stdlib--process-terminal-sequences wget-output)))
+      (should (string-match "100%" result))
+      (should (string-match "12\\.0MB" result))
+      (should-not (string-match "10%" result)))))
+
+(ert-deftest greger-stdlib-test-process-terminal-sequences-multiline-with-overwrite ()
+  "Test multiline text with overwrite patterns on different lines."
+  ;; Each line has its own overwrite pattern
+  (let ((input "Line1: start\rLine1: done\nLine2: start\rLine2: done\nLine3: final"))
+    (let ((result (greger-stdlib--process-terminal-sequences input)))
+      (should (string-match "Line1: done" result))
+      (should (string-match "Line2: done" result))
+      (should (string-match "Line3: final" result))
+      (should-not (string-match "start" result))))
+  
+  ;; Mixed patterns across lines
+  (let ((input "Static line\nProgress: 0%\rProgress: 100%\nAnother static line"))
+    (let ((result (greger-stdlib--process-terminal-sequences input)))
+      (should (string-match "Static line" result))
+      (should (string-match "Progress: 100%" result))
+      (should (string-match "Another static line" result))
+      (should-not (string-match "Progress: 0%" result)))))
+
+(ert-deftest greger-stdlib-test-process-terminal-sequences-cursor-movement ()
+  "Test cursor movement sequences for more complex terminal interactions."
+  ;; Cursor up to overwrite previous line
+  (let ((input "Line 1\nLine 2\nLine 3\e[A\e[AOverwritten Line 1"))
+    (let ((result (greger-stdlib--process-terminal-sequences input)))
+      ;; Should have the overwritten content
+      (should (string-match "Overwritten Line 1" result))
+      ;; Should still have Line 3
+      (should (string-match "Line 3" result))))
+  
+  ;; Cursor down to add spacing
+  (let ((input "Line 1\e[B\e[BLine 4"))
+    (let ((result (greger-stdlib--process-terminal-sequences input)))
+      (should (string-match "Line 1\n\n\nLine 4" result)))))
+
+(ert-deftest greger-stdlib-test-process-terminal-sequences-performance ()
+  "Test that the function handles large inputs reasonably well."
+  ;; Large text with many carriage returns (simulating long progress output)
+  (let* ((iterations 1000)
+         (large-input (mapconcat (lambda (i) (format "Progress: %d%%\r" (/ (* i 100) iterations)))
+                                 (number-sequence 0 iterations) ""))
+         (start-time (current-time)))
+    
+    ;; Add final progress
+    (setq large-input (concat large-input "Progress: 100% Complete!"))
+    
+    (let ((result (greger-stdlib--process-terminal-sequences large-input)))
+      (should (string= "Progress: 100% Complete!" result))
+      
+      ;; Check that it completes in reasonable time (less than 1 second)
+      (let ((elapsed (float-time (time-subtract (current-time) start-time))))
+        (should (< elapsed 1.0))))))
+
 ;;; greger-stdlib-test.el ends here
