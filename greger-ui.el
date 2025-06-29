@@ -663,7 +663,7 @@ the greger UI instead of showing all intermediate states."
           (setq pos (1+ pos)))
          
          ;; Handle ESC sequences
-         ((= char ?\e)
+         ((= char 27)
           (cond
            ;; ESC[K - simple case
            ((and (>= (- len pos) 3)
