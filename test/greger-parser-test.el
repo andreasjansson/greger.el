@@ -689,6 +689,73 @@ new
   (should (string= (greger-parser--value-to-string [1 2 3]) "[\n  1,\n  2,\n  3\n]"))
   (should (string= (greger-parser--value-to-string '(1 2 3)) "[\n  1,\n  2,\n  3\n]")))
 
+(ert-deftest greger-parser-test-convert-value-booleans ()
+  "Test conversion of boolean strings."
+  (should (eq (greger-parser--convert-value "true") t))
+  (should (eq (greger-parser--convert-value "false") nil))
+  (should (eq (greger-parser--convert-value " true ") t))
+  (should (eq (greger-parser--convert-value " false ") nil))
+  ;; Non-boolean strings should remain strings
+  (should (string= (greger-parser--convert-value "True") "True"))
+  (should (string= (greger-parser--convert-value "FALSE") "FALSE"))
+  (should (string= (greger-parser--convert-value "truex") "truex")))
+
+(ert-deftest greger-parser-test-convert-value-numbers ()
+  "Test conversion of numeric strings."
+  ;; Integers
+  (should (equal (greger-parser--convert-value "42") 42))
+  (should (equal (greger-parser--convert-value "-17") -17))
+  (should (equal (greger-parser--convert-value " 123 ") 123))
+  (should (equal (greger-parser--convert-value "0") 0))
+  ;; Floats
+  (should (equal (greger-parser--convert-value "3.14") 3.14))
+  (should (equal (greger-parser--convert-value "-2.5") -2.5))
+  (should (equal (greger-parser--convert-value " 0.0 ") 0.0))
+  ;; Invalid numbers should remain strings
+  (should (string= (greger-parser--convert-value "42abc") "42abc"))
+  (should (string= (greger-parser--convert-value "3.14.15") "3.14.15"))
+  (should (string= (greger-parser--convert-value "42.") "42.")))
+
+(ert-deftest greger-parser-test-convert-value-json-arrays ()
+  "Test conversion of JSON arrays."
+  ;; Valid arrays
+  (should (equal (greger-parser--convert-value "[1,2,3]") [1 2 3]))
+  (should (equal (greger-parser--convert-value "[\"a\",\"b\"]") ["a" "b"]))
+  (should (equal (greger-parser--convert-value "[]") []))
+  (should (equal (greger-parser--convert-value " [1, 2, 3] ") [1 2 3]))
+  ;; Invalid arrays (with trailing content) should remain strings
+  (should (string= (greger-parser--convert-value "[1,2,3]extra") "[1,2,3]extra"))
+  (should (string= (greger-parser--convert-value "[1,2,3] garbage") "[1,2,3] garbage"))
+  ;; Malformed arrays should remain strings
+  (should (string= (greger-parser--convert-value "[1,2,") "[1,2,"))
+  (should (string= (greger-parser--convert-value "1,2,3]") "1,2,3]")))
+
+(ert-deftest greger-parser-test-convert-value-json-objects ()
+  "Test conversion of JSON objects."
+  ;; Valid objects (converted to alists with symbol keys)
+  (should (equal (greger-parser--convert-value "{\"key\":\"value\"}") '((key . "value"))))
+  (should (equal (greger-parser--convert-value "{\"a\":1,\"b\":2}") '((a . 1) (b . 2))))
+  (should (equal (greger-parser--convert-value "{}") '()))
+  (should (equal (greger-parser--convert-value " {\"key\": \"value\"} ") '((key . "value"))))
+  ;; Invalid objects (with trailing content) should remain strings
+  (should (string= (greger-parser--convert-value "{\"key\":\"value\"}garbage") "{\"key\":\"value\"}garbage"))
+  (should (string= (greger-parser--convert-value "{\"key\":\"value\"} extra") "{\"key\":\"value\"} extra"))
+  ;; Malformed objects should remain strings
+  (should (string= (greger-parser--convert-value "{\"key\":") "{\"key\":"))
+  (should (string= (greger-parser--convert-value "\"key\":\"value\"}") "\"key\":\"value\"}")))
+
+(ert-deftest greger-parser-test-convert-value-strings ()
+  "Test conversion of regular strings."
+  (should (string= (greger-parser--convert-value "hello world") "hello world"))
+  (should (string= (greger-parser--convert-value "some text") "some text"))
+  ;; Test newline removal
+  (should (string= (greger-parser--convert-value "\nhello\n") "hello"))
+  (should (string= (greger-parser--convert-value "\n\nhello\n\n") "\nhello\n"))
+  ;; Test edge cases that look like JSON but aren't
+  (should (string= (greger-parser--convert-value "\"\"\"test\"\"\"") "\"\"\"test\"\"\""))
+  (should (string= (greger-parser--convert-value "[not json") "[not json"))
+  (should (string= (greger-parser--convert-value "{not json") "{not json")))
+
 ;; Cleanup test - should run last alphabetically
 (ert-deftest greger-parser-zz-test-cleanup ()
   "Clean up test resources (runs last due to alphabetical ordering)."
