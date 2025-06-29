@@ -595,22 +595,26 @@ example.py
 
 ;; Terminal sequence processing tests
 
+(defun greger-ui-test--process-terminal-sequences (input)
+  "Helper function to test terminal sequence processing.
+Processes INPUT in a temp buffer and returns the result."
+  (with-temp-buffer
+    (greger-ui--process-terminal-sequences input)
+    (buffer-string)))
+
 (ert-deftest greger-ui-test-process-terminal-sequences-carriage-return-basic ()
   "Test basic carriage return handling - overwrites current line."
   ;; Basic carriage return at end of string
-  (with-temp-buffer
-    (greger-ui--process-terminal-sequences "old content\rnew content")
-    (should (string= "new content" (buffer-string))))
+  (should (string= "new content" 
+                   (greger-ui-test--process-terminal-sequences "old content\rnew content")))
   
   ;; Multiple carriage returns  
-  (with-temp-buffer
-    (greger-ui--process-terminal-sequences "first\rsecond\rfinal")
-    (should (string= "final" (buffer-string))))
+  (should (string= "final" 
+                   (greger-ui-test--process-terminal-sequences "first\rsecond\rfinal")))
   
   ;; Carriage return with newline preservation
-  (with-temp-buffer
-    (greger-ui--process-terminal-sequences "line1\noriginal\roverwritten\nline3")
-    (should (string= "line1\noverwritten\nline3" (buffer-string)))))
+  (should (string= "line1\noverwritten\nline3"
+                   (greger-ui-test--process-terminal-sequences "line1\noriginal\roverwritten\nline3"))))
 
 (ert-deftest greger-ui-test-process-terminal-sequences-progress-bar-simulation ()
   "Test progress bar simulation with carriage returns."
