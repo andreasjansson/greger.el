@@ -1028,6 +1028,106 @@ If USE-HIGHEST-READABILITY is non-nil, use eww's aggressive readability setting.
       (greger-web-download-page url extract-text use-highest-readability)
     (error "Failed to read webpage: %s" (error-message-string err))))
 
+(defun greger-stdlib--process-terminal-sequences (text)
+  "Process terminal control sequences in TEXT to simulate terminal behavior.
+
+This function handles common ANSI movement codes and control sequences:
+- \\r (carriage return) - moves cursor to beginning of line, overwrites content
+- ESC[K - clears from cursor to end of line  
+- ESC[2K - clears entire line
+- ESC[A - cursor up (removes previous line)
+- ESC[B - cursor down (adds newline)
+
+The function processes text incrementally to simulate how a terminal would
+handle these sequences, useful for progress bars and dynamic output."
+  (let ((result "")
+        (current-line "")
+        (lines (split-string text "\n" t))) ; Don't omit nulls initially
+    
+    ;; Handle case where text doesn't end with newline
+    (when (and (> (length text) 0)
+               (not (string-suffix-p "\n" text)))
+      ;; If text doesn't end with newline, we need to preserve that
+      (setq lines (split-string text "\n")))
+    
+    (dolist (line lines)
+      (let ((pos 0)
+            (line-length (length line)))
+        
+        (while (< pos line-length)
+          (let ((char (aref line pos)))
+            (cond
+             ;; Handle carriage return - move to beginning of current line, overwrite
+             ((= char ?\r)
+              ;; If we're at the end of the line, this starts a new overwrite
+              ;; Otherwise, we truncate the current line and start over
+              (setq current-line "")
+              (setq pos (1+ pos)))
+             
+             ;; Handle ESC sequences
+             ((= char ?\e)
+              (if (and (< (1+ pos) line-length)
+                       (= (aref line (1+ pos)) ?\[))
+                  ;; Found ESC[, look for specific sequences
+                  (let ((seq-start (+ pos 2))
+                        (seq-end nil))
+                    ;; Find end of escape sequence
+                    (let ((search-pos seq-start))
+                      (while (and (< search-pos line-length)
+                                  (not seq-end))
+                        (let ((c (aref line search-pos)))
+                          (when (or (= c ?K) (= c ?A) (= c ?B) (= c ?m))
+                            (setq seq-end (1+ search-pos))))
+                        (setq search-pos (1+ search-pos))))
+                    
+                    (if seq-end
+                        (let ((sequence (substring line pos seq-end)))
+                          (cond
+                           ;; ESC[K - clear from cursor to end of line
+                           ((string-match "\\[K" sequence)
+                            ;; Just keep current line as is, don't add anything
+                            )
+                           ;; ESC[2K - clear entire line
+                           ((string-match "\\[2K" sequence)
+                            (setq current-line ""))
+                           ;; ESC[A - cursor up (simulate by removing last line from result)
+                           ((string-match "\\[A" sequence)
+                            (when (string-match "\\(.*\\)\n[^\n]*$" result)
+                              (setq result (match-string 1 result))))
+                           ;; ESC[B - cursor down (simulate by adding newline)
+                           ((string-match "\\[B" sequence)
+                            (setq result (concat result current-line "\n"))
+                            (setq current-line "")))
+                          (setq pos seq-end))
+                      ;; Invalid escape sequence, treat as regular character
+                      (setq current-line (concat current-line (char-to-string char)))
+                      (setq pos (1+ pos))))
+                ;; ESC without [, treat as regular character
+                (setq current-line (concat current-line (char-to-string char)))
+                (setq pos (1+ pos))))
+             
+             ;; Regular character
+             (t
+              (setq current-line (concat current-line (char-to-string char)))
+              (setq pos (1+ pos))))))
+        
+        ;; After processing the line, add it to result if it's not the last line
+        ;; or if the original text ended with a newline
+        (unless (and (eq line (car (last lines)))
+                     (not (string-suffix-p "\n" text)))
+          (setq result (concat result current-line "\n"))
+          (setq current-line ""))))
+    
+    ;; Add any remaining current line content
+    (if (> (length current-line) 0)
+        (concat result current-line)
+      ;; Remove trailing newline if result is only newlines
+      (if (and (> (length result) 0)
+               (string-suffix-p "\n" result)
+               (not (string-suffix-p "\n" text)))
+          (substring result 0 -1)
+        result))))
+
 (provide 'greger-stdlib)
 
 ;;; greger-stdlib.el ends here
