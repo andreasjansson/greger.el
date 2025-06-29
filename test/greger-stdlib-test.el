@@ -2473,7 +2473,7 @@ drwx------  (dir)  ..
   "Test mixed control codes and escape sequences."
   ;; Combination of carriage return and escape sequences
   (let ((mixed-input "Start\rProgress 50%\e[KProgress 100%"))
-    (should (string= "Progress 100%" 
+    (should (string= "Progress 50%Progress 100%" 
                      (greger-ui--process-terminal-sequences mixed-input))))
   
   ;; Complex sequence with line clearing and carriage returns
