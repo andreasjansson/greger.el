@@ -664,16 +664,25 @@ the greger UI instead of showing all intermediate states."
          
          ;; Handle ESC sequences
          ((= char ?\e)
-          ;; Just skip ESC sequences entirely for now to test
           (if (and (< (1+ pos) len) 
                    (= (aref text (1+ pos)) ?\[))
-              ;; Skip ESC[ sequences entirely 
+              ;; Process ESC[ sequences 
               (let ((end-pos (+ pos 2)))
                 ;; Find the end of the escape sequence
                 (while (and (< end-pos len)
                            (let ((c (aref text end-pos)))
                              (not (or (= c ?K) (= c ?A) (= c ?B) (= c ?m)))))
                   (setq end-pos (1+ end-pos)))
+                ;; Process the specific sequence
+                (when (< end-pos len)
+                  (let ((final-char (aref text end-pos)))
+                    (cond
+                     ;; ESC[K or ESC[0K - clear from cursor to end of line
+                     ((= final-char ?K)
+                      (beginning-of-line)
+                      (delete-region (point) (line-end-position)))
+                     ;; Other sequences - just ignore for now
+                     )))
                 ;; Skip to after the sequence
                 (setq pos (if (< end-pos len) (1+ end-pos) len)))
             ;; ESC without [, treat as regular character
