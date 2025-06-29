@@ -2436,8 +2436,8 @@ drwx------  (dir)  ..
     (should (string= "Progress: 100% Complete!"
                      (greger-ui--process-terminal-sequences progress-output))))
   
-  ;; Multiple progress bars on separate lines
-  (let ((multi-progress "File1: 0%\nFile2: 0%\rFile1: 50%\rFile2: 30%\rFile1: 100%\rFile2: 100%"))
+  ;; Multiple progress bars on separate lines - each line handled independently
+  (let ((multi-progress "File1: 0%\rFile1: 50%\rFile1: 100%\nFile2: 0%\rFile2: 30%\rFile2: 100%"))
     (let ((result (greger-ui--process-terminal-sequences multi-progress)))
       (should (string-match "File1: 100%" result))
       (should (string-match "File2: 100%" result)))))
