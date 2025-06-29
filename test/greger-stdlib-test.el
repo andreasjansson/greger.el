@@ -2418,15 +2418,15 @@ drwx------  (dir)  ..
   "Test basic carriage return handling - overwrites current line."
   ;; Basic carriage return at end of string
   (should (string= "new content" 
-                   (greger-stdlib--process-terminal-sequences "old content\rnew content")))
+                   (greger-ui--process-terminal-sequences "old content\rnew content")))
   
   ;; Multiple carriage returns  
   (should (string= "final" 
-                   (greger-stdlib--process-terminal-sequences "first\rsecond\rfinal")))
+                   (greger-ui--process-terminal-sequences "first\rsecond\rfinal")))
   
   ;; Carriage return with newline preservation
   (should (string= "line1\noverwritten\nline3"
-                   (greger-stdlib--process-terminal-sequences "line1\noriginal\roverwritten\nline3"))))
+                   (greger-ui--process-terminal-sequences "line1\noriginal\roverwritten\nline3"))))
 
 (ert-deftest greger-stdlib-test-process-terminal-sequences-progress-bar-simulation ()
   "Test progress bar simulation with carriage returns."
