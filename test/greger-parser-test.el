@@ -662,6 +662,33 @@ new
          (result (greger-parser--str-replace-undiff-params params)))
     (should (equal result params))))
 
+(ert-deftest greger-parser-test-value-to-string-valid-json ()
+  "Test that valid JSON strings are parsed and pretty-printed."
+  (should (string= (greger-parser--value-to-string "[1,2,3]") "[\n  1,\n  2,\n  3\n]"))
+  (should (string= (greger-parser--value-to-string "{\"key\": \"value\"}") "{\n  \"key\": \"value\"\n}"))
+  (should (string= (greger-parser--value-to-string "\"hello\"") "\"hello\""))
+  (should (string= (greger-parser--value-to-string "true") "true"))
+  (should (string= (greger-parser--value-to-string "null") "null"))
+  (should (string= (greger-parser--value-to-string "42") "42")))
+
+(ert-deftest greger-parser-test-value-to-string-invalid-json ()
+  "Test that invalid JSON strings are returned as-is without parsing."
+  ;; This is the main bug case - should return original string, not parse as empty string
+  (should (string= (greger-parser--value-to-string "\"\"\"test\"\"\"") "\"\"\"test\"\"\""))
+  ;; Other invalid JSON cases
+  (should (string= (greger-parser--value-to-string "[1,2,3]extra") "[1,2,3]extra"))
+  (should (string= (greger-parser--value-to-string "{\"key\": \"value\"}garbage") "{\"key\": \"value\"}garbage"))
+  (should (string= (greger-parser--value-to-string "not json at all") "not json at all"))
+  (should (string= (greger-parser--value-to-string "\"unclosed string") "\"unclosed string")))
+
+(ert-deftest greger-parser-test-value-to-string-non-strings ()
+  "Test that non-string values are handled correctly."
+  (should (string= (greger-parser--value-to-string 42) "42"))
+  (should (string= (greger-parser--value-to-string t) "true"))
+  (should (string= (greger-parser--value-to-string nil) "false"))
+  (should (string= (greger-parser--value-to-string [1 2 3]) "[1,2,3]"))
+  (should (string= (greger-parser--value-to-string '(1 2 3)) "[1,2,3]")))
+
 ;; Cleanup test - should run last alphabetically
 (ert-deftest greger-parser-zz-test-cleanup ()
   "Clean up test resources (runs last due to alphabetical ordering)."
