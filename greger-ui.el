@@ -662,6 +662,39 @@ the greger UI instead of showing all intermediate states."
           (setq at-bol-after-cr t)
           (setq pos (1+ pos)))
          
+         ;; Handle ESC sequences
+         ((= char ?\e)
+          (if (and (< (+ pos 2) len) 
+                   (= (aref text (1+ pos)) ?\[))
+              ;; Found ESC[, look for K sequences
+              (let ((seq-start (+ pos 2))
+                    (k-pos (string-match "K" text (+ pos 2))))
+                (cond
+                 ;; ESC[K - clear from cursor to end of line
+                 ((and k-pos (= k-pos seq-start))
+                  (delete-region (point) (line-end-position))
+                  (setq pos (1+ k-pos)))
+                 ;; ESC[2K - clear entire line
+                 ((and k-pos (= k-pos (1+ seq-start))
+                       (= (aref text seq-start) ?2))
+                  (beginning-of-line)
+                  (delete-region (point) (line-end-position))
+                  (setq pos (1+ k-pos)))
+                 ;; Not a recognized sequence, treat as regular character
+                 (t
+                  (when at-bol-after-cr
+                    (delete-region (point) (line-end-position))
+                    (setq at-bol-after-cr nil))
+                  (insert-char char)
+                  (setq pos (1+ pos)))))
+            ;; ESC without [, treat as regular character
+            (progn
+              (when at-bol-after-cr
+                (delete-region (point) (line-end-position))
+                (setq at-bol-after-cr nil))
+              (insert-char char)
+              (setq pos (1+ pos)))))
+         
          ;; Handle newline
          ((= char ?\n)
           (insert "\n")
