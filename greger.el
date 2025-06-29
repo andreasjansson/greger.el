@@ -818,7 +818,8 @@ end tag and update the buffer state."
 
          (when is-completed
            ;; Trim trailing newline after closing tag
-           (when-let ((tool-end-tag (treesit-node-next-sibling tool-result-content-node t)))
+           (when-let* ((tool-result-content-node (greger--find-tool-result-content-node tool-id)) ;; content node might have gotten outdated, so need to get it again
+                       (tool-end-tag (treesit-node-next-sibling tool-result-content-node t)))
              (when (string= (treesit-node-type tool-end-tag) "tool_end_tag")
                (goto-char (treesit-node-end tool-end-tag))
                (when (looking-at-p "\n")
