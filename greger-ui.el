@@ -651,17 +651,34 @@ sequences, making progress bars and dynamic output display correctly in
 the greger UI instead of showing all intermediate states."
   ;; Handle the most common case efficiently: carriage return overwriting
   (when (string-match "\r" text)
-    ;; Split on carriage returns and keep only the last part of each line
-    (let ((lines (split-string text "\n"))
-          (result-lines '()))
+    ;; Process carriage returns to simulate terminal overwriting behavior
+    (let ((result "")
+          (lines (split-string text "\n" t)))
+      
+      ;; Handle the case where text doesn't end with newline
+      (when (and (> (length text) 0)
+                 (not (string-suffix-p "\n" text)))
+        (setq lines (split-string text "\n")))
+      
       (dolist (line lines)
         (if (string-match "\r" line)
-            ;; Line contains carriage return - split and keep last part
-            (let ((parts (split-string line "\r")))
-              (push (car (last parts)) result-lines))
+            ;; Line contains carriage return - simulate overwriting
+            (let ((parts (split-string line "\r" t)))
+              (if parts
+                  ;; Keep only the last non-empty part (final state after all overwrites)
+                  (let ((final-part (car (last parts))))
+                    (setq result (concat result final-part)))
+                ;; If all parts are empty, just add empty line
+                (setq result (concat result ""))))
           ;; No carriage return - keep the line as is
-          (push line result-lines)))
-      (setq text (string-join (nreverse result-lines) "\n"))))
+          (setq result (concat result line)))
+        
+        ;; Add newline if this isn't the last line or if original text ended with newline
+        (unless (and (eq line (car (last lines)))
+                     (not (string-suffix-p "\n" text)))
+          (setq result (concat result "\n"))))
+      
+      (setq text result)))
   
   ;; Handle other escape sequences (simplified for now)
   ;; Remove ESC[K sequences (clear to end of line)
