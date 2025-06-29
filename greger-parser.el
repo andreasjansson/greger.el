@@ -660,7 +660,6 @@ assuming it's already been sent in streaming."
 
 (defun greger-parser--tool-params-to-markdown (id input)
   "Convert tool parameters with ID and INPUT to markdown."
-
   (if (null input)
       ""
     (mapconcat (lambda (param)
@@ -689,9 +688,19 @@ If RAW-VALUE is non-nil, use VALUE directly without formatting."
      ((stringp value)
       ;; Try to parse as JSON and pretty print if valid
       (condition-case nil
-          (let ((parsed (json-read-from-string value)))
-            ;; If parsing succeeded, encode back with pretty print
-            (json-encode parsed))
+          (let (parsed)
+            ;; Use a buffer to parse JSON and ensure entire string is consumed
+            (with-temp-buffer
+              (insert value)
+              (goto-char (point-min))
+              (setq parsed (json-read))
+              ;; Check if we consumed the entire buffer (ignoring whitespace)
+              (skip-chars-forward " \t\n\r")
+              (if (eobp)
+                  ;; If entire string was consumed, encode back with pretty print
+                  (json-encode parsed)
+                ;; If not all consumed, treat as invalid JSON
+                (signal 'json-parse-error "Trailing content after JSON"))))
         (error
          ;; If parsing failed, return original string
          value)))
