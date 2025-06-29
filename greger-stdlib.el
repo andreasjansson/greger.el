@@ -342,7 +342,9 @@ Returns a cancel function that can be called to interrupt the process."
              (lambda (_proc output)
                ;; TODO: handle this in a font-lock function instead so
                ;; ansi color codes are applied when a buffer is opened too
-               (funcall streaming-callback (ansi-color-apply output)))))
+               (funcall streaming-callback 
+                        (ansi-color-apply 
+                         (greger-stdlib--process-terminal-sequences output))))))
 
           ;; Return cancel function
           (lambda ()
