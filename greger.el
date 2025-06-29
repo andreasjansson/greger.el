@@ -817,8 +817,8 @@ end tag and update the buffer state."
          (goto-char (1- tool-result-content-end))
          
          ;; Process terminal sequences to handle progress bars and dynamic output
-         ;; The function processes text at current point, inserting and moving cursor
-         (greger-ui--process-terminal-sequences text)
+         (let ((processed-text (greger-ui--process-terminal-sequences text)))
+           (insert processed-text))
 
          (when is-completed
            ;; Trim trailing newline after closing tag
