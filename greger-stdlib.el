@@ -202,6 +202,7 @@
                       :required '("command")
                       :function 'greger-stdlib--shell-command
                       :pass-callback t
+                      :streaming t
                       :pass-metadata t)
 
 ;; Web tools
@@ -259,13 +260,15 @@ Error with NAME if not. Either bound can be nil to skip that check."
   (unless (greger-web-is-web-url-p value)
     (error "Invalid argument: %s must be a valid URL (starting with http:// or https://)" name)))
 
-(cl-defun greger-stdlib--run-async-subprocess (&key command args working-directory callback timeout env)
+(cl-defun greger-stdlib--run-async-subprocess (&key command args working-directory callback timeout env streaming-callback)
   "Run COMMAND with ARGS in WORKING-DIRECTORY and call CALLBACK.
 CALLBACK will be called with (output nil) on success or (nil error-message) on
 failure.
 TIMEOUT specifies the maximum time in seconds to wait for completion,
 the default is no timeout.
 ENV is an optional alist of environment variables to set.
+STREAMING-CALLBACK, if provided, will be called with each chunk of output
+as it arrives from the subprocess.
 Returns a cancel function that can be called to interrupt the process."
   (let* ((process-name (format "greger-subprocess-%s" (make-temp-name "")))
          (process-buffer (generate-new-buffer (format " *%s*" process-name)))
@@ -309,26 +312,33 @@ Returns a cancel function that can be called to interrupt the process."
                ;; Cancel timeout timer if it's running
                (when timeout-timer
                  (cancel-timer timeout-timer))
-               (let ((exit-status (process-exit-status proc))
-                     (output (with-current-buffer process-buffer
-                               (buffer-string))))
+               (let* ((exit-status (process-exit-status proc))
+                      (output (with-current-buffer process-buffer
+                                (buffer-string)))
+                      (callback-output (cond
+                                        ((and (not streaming-callback)
+                                              (string-empty-p (string-trim output)))
+                                         "(no output)")
+                                        ;; when streaming, don't output the text
+                                        (streaming-callback "")
+                                        (t output)))
+                      (callback-error-message (concat (format "Command failed with exit code %d" exit-status)
+                                                      (if streaming-callback
+                                                          ""
+                                                        (concat ": " callback-output)))))
                  (when (buffer-live-p process-buffer)
                    (kill-buffer process-buffer))
                  (cond
                   ((= exit-status 0)
-                   (funcall callback
-                            (if (string-empty-p (string-trim output))
-                                "(no output)"
-                              output)
-                            nil))
-
+                   (funcall callback callback-output nil))
                   (t
-                   (funcall callback nil
-                            (format "Command failed with exit code %d: %s"
-                                    exit-status
-                                    (if (string-empty-p (string-trim output))
-                                        "(no output)"
-                                      output)))))))))
+                   (funcall callback nil callback-error-message)))))))
+
+          (when streaming-callback
+            (set-process-filter
+             process
+             (lambda (_proc output)
+               (funcall streaming-callback output))))
 
           ;; Return cancel function
           (lambda ()
@@ -883,7 +893,7 @@ For Emacs Lisp files (.el), checks that parentheses balance is maintained."
                          "")))
         (format "Successfully replaced content in %s%s. %s" expanded-path count-msg git-result)))))
 
-(defun greger-stdlib--shell-command (command callback working-directory timeout enable-environment metadata)
+(defun greger-stdlib--shell-command (command callback working-directory timeout enable-environment streaming-callback metadata)
   "Execute COMMAND in WORKING-DIRECTORY and call CALLBACK with (result error).
 Prompts for permission before running the command for security.
 TIMEOUT is the maximum time in sconds to wait for completion (default 600).
@@ -930,6 +940,7 @@ Returns a cancel function that can interrupt the command execution."
        :working-directory expanded-work-dir
        :callback callback
        :timeout timeout
+       :streaming-callback streaming-callback
        :env shell-env))))
 
 (defun greger-stdlib--ripgrep (pattern path callback case-sensitive file-type

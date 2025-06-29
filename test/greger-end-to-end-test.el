@@ -331,7 +331,7 @@ Hello from greger test!
             (should (greger-test-wait-for-status 'idle 0.1))
 
             (let ((content (buffer-string)))
-              (should (string-match-p "Command failed with exit code 2: (no output)" content)))
+              (should (string-match-p "Command failed with exit code 2" content)))
 
             (insert "Write me a long poem with ten paragraphs about Emacs lisp")
 

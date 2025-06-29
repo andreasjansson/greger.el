@@ -87,7 +87,7 @@ This ensures the '..' entry has predictable permissions in tests."
 
 (ert-deftest greger-stdlib-test-shell-command-simple ()
   "Test shell-command tool with a simple command."
-  (let ((result nil)
+  (let ((result "")
         (error nil)
         (callback-called nil))
 
@@ -98,10 +98,12 @@ This ensures the '..' entry has predictable permissions in tests."
       (greger-stdlib--shell-command
        "echo hello world"
        (lambda (output err)
-         (setq result output error err callback-called t))
+         (setq error err callback-called t))
        "."  ; working-directory
        nil  ; timeout
        nil  ; enable-environment
+       (lambda (chunk)  ; streaming-callback
+         (setq result (concat result chunk)))
        nil) ; metadata
 
       ;; Wait for async operation to complete
@@ -118,7 +120,7 @@ This ensures the '..' entry has predictable permissions in tests."
 
 (ert-deftest greger-stdlib-test-shell-command-with-pipe ()
   "Test shell-command tool with a command containing a pipe."
-  (let ((result nil)
+  (let ((result "")
         (error nil)
         (callback-called nil))
 
@@ -129,10 +131,12 @@ This ensures the '..' entry has predictable permissions in tests."
       (greger-stdlib--shell-command
        "echo 'apple\nbanana\ncherry' | grep 'an'"
        (lambda (output err)
-         (setq result output error err callback-called t))
+         (setq error err callback-called t))
        "."  ; working-directory
        nil  ; timeout
        nil  ; enable-environment
+       (lambda (chunk)  ; streaming-callback
+         (setq result (concat result chunk)))
        nil) ; metadata
 
       ;; Wait for async operation to complete
@@ -159,12 +163,13 @@ This ensures the '..' entry has predictable permissions in tests."
       "."  ; working-directory
       nil  ; timeout
       nil  ; enable-environment
+      nil  ; streaming-callback
       '(:allow-all-shell-commands nil)) ; metadata
      :type 'error)))
 
 (ert-deftest greger-stdlib-test-shell-command-command-failure ()
   "Test shell-command tool when command fails."
-  (let ((result nil)
+  (let ((result "")
         (error nil)
         (callback-called nil))
 
@@ -175,10 +180,12 @@ This ensures the '..' entry has predictable permissions in tests."
       (greger-stdlib--shell-command
        "false"  ; Command that always exits with code 1
        (lambda (output err)
-         (setq result output error err callback-called t))
+         (setq error err callback-called t))
        "."  ; working-directory
        nil  ; timeout
        nil  ; enable-environment
+       (lambda (chunk)  ; streaming-callback
+         (setq result (concat result chunk)))
        nil) ; metadata
 
       ;; Wait for async operation to complete
@@ -189,13 +196,13 @@ This ensures the '..' entry has predictable permissions in tests."
 
       ;; Verify the results
       (should callback-called)
-      (should (null result))
+      (should (string= result ""))  ; false command produces no output
       (should (stringp error))
       (should (string-match "failed with exit code" error)))))
 
 (ert-deftest greger-stdlib-test-shell-command-safe-commands ()
   "Test shell-command tool with safe-shell-commands metadata to skip permission prompt."
-  (let ((result nil)
+  (let ((result "")
         (error nil)
         (callback-called nil)
         (prompt-called nil))
@@ -213,10 +220,12 @@ This ensures the '..' entry has predictable permissions in tests."
         (greger-stdlib--shell-command
          "echo safe command"
          (lambda (output err)
-           (setq result output error err callback-called t))
+           (setq error err callback-called t))
          "."  ; working directory
          nil  ; timeout (use default)
          nil  ; enable-environment
+         (lambda (chunk)  ; streaming-callback
+           (setq result (concat result chunk)))
          metadata)
 
         ;; Wait for async operation to complete
@@ -235,7 +244,7 @@ This ensures the '..' entry has predictable permissions in tests."
 
 (ert-deftest greger-stdlib-test-shell-command-unsafe-commands-with-metadata ()
   "Test shell-command tool with metadata but command not in safe list still prompts."
-  (let ((result nil)
+  (let ((result "")
         (error nil)
         (callback-called nil)
         (prompt-called nil))
@@ -253,10 +262,12 @@ This ensures the '..' entry has predictable permissions in tests."
         (greger-stdlib--shell-command
          "echo unsafe command"
          (lambda (output err)
-           (setq result output error err callback-called t))
+           (setq error err callback-called t))
          "."  ; working directory
          nil  ; timeout (use default)
          nil  ; enable-environment
+         (lambda (chunk)  ; streaming-callback
+           (setq result (concat result chunk)))
          metadata)
 
         ;; Wait for async operation to complete
@@ -274,7 +285,7 @@ This ensures the '..' entry has predictable permissions in tests."
         (should prompt-called)))))
 (ert-deftest greger-stdlib-test-shell-command-with-timeout ()
   "Test shell-command tool with timeout parameter."
-  (let ((result nil)
+  (let ((result "")
         (error nil)
         (callback-called nil))
 
@@ -285,11 +296,13 @@ This ensures the '..' entry has predictable permissions in tests."
       (greger-stdlib--shell-command
        "echo timeout test"
        (lambda (output err)
-         (setq result output error err callback-called t))
+         (setq error err callback-called t))
        "."  ; working directory
        10   ; timeout 10 seconds
        nil  ; enable-environment
-       nil) ; metadata ; metadata
+       (lambda (chunk)  ; streaming-callback
+         (setq result (concat result chunk)))
+       nil) ; metadata
 
       ;; Wait for async operation to complete
       (let ((timeout 0))
@@ -305,7 +318,7 @@ This ensures the '..' entry has predictable permissions in tests."
 
 (ert-deftest greger-stdlib-test-shell-command-timeout-exceeded ()
   "Test shell-command tool when timeout is exceeded."
-  (let ((result nil)
+  (let ((result "")
         (error nil)
         (callback-called nil))
 
@@ -316,11 +329,13 @@ This ensures the '..' entry has predictable permissions in tests."
       (greger-stdlib--shell-command
        "sleep 3"
        (lambda (output err)
-         (setq result output error err callback-called t))
+         (setq error err callback-called t))
        "."  ; working directory
        1    ; timeout 1 second
        nil  ; enable-environment
-       nil) ; metadata ; metadata
+       (lambda (chunk)  ; streaming-callback
+         (setq result (concat result chunk)))
+       nil) ; metadata
 
       ;; Wait for timeout to occur
       (let ((timeout 0))
@@ -331,12 +346,12 @@ This ensures the '..' entry has predictable permissions in tests."
       ;; Verify the timeout occurred
       (should callback-called)
       (should error)
-      (should (null result))
+      (should (string= result ""))  ; sleep command produces no output
       (should (string-match "timed out after 1 seconds" error)))))
 
 (ert-deftest greger-stdlib-test-shell-command-pager-environment ()
   "Test shell-command tool sets PAGER=cat environment variable."
-  (let ((result nil)
+  (let ((result "")
         (error nil)
         (callback-called nil))
 
@@ -347,11 +362,13 @@ This ensures the '..' entry has predictable permissions in tests."
       (greger-stdlib--shell-command
        "echo \"PAGER is: $PAGER\""
        (lambda (output err)
-         (setq result output error err callback-called t))
+         (setq error err callback-called t))
        "."  ; working directory
        nil  ; timeout (use default)
        nil  ; enable-environment
-       nil) ; metadata ; metadata
+       (lambda (chunk)  ; streaming-callback
+         (setq result (concat result chunk)))
+       nil) ; metadata
 
       ;; Wait for async operation to complete
       (let ((timeout 0))
@@ -367,7 +384,7 @@ This ensures the '..' entry has predictable permissions in tests."
 
 (ert-deftest greger-stdlib-test-shell-command-default-timeout ()
   "Test shell-command tool uses default timeout of 600 seconds when not specified."
-  (let ((result nil)
+  (let ((result "")
         (error nil)
         (callback-called nil))
 
@@ -378,11 +395,13 @@ This ensures the '..' entry has predictable permissions in tests."
       (greger-stdlib--shell-command
        "echo default timeout test"
        (lambda (output err)
-         (setq result output error err callback-called t))
+         (setq error err callback-called t))
        "."  ; working directory
        nil  ; timeout (should default to 600)
        nil  ; enable-environment
-       nil) ; metadata ; metadata
+       (lambda (chunk)  ; streaming-callback
+         (setq result (concat result chunk)))
+       nil) ; metadata
 
       ;; Wait for async operation to complete
       (let ((timeout 0))
@@ -398,8 +417,8 @@ This ensures the '..' entry has predictable permissions in tests."
 
 (ert-deftest greger-stdlib-test-shell-command-environment-access ()
   "Test shell-command with enable-environment loads bash initialization files."
-  (let ((result-without-env nil)
-        (result-with-env nil)
+  (let ((result-without-env "")
+        (result-with-env "")
         (error nil)
         (callback-called nil))
 
@@ -410,10 +429,12 @@ This ensures the '..' entry has predictable permissions in tests."
       (greger-stdlib--shell-command
        "echo \"PS1 is: [$PS1]\""
        (lambda (output err)
-         (setq result-without-env output error err callback-called t))
+         (setq error err callback-called t))
        "."  ; working directory
        nil  ; timeout
        nil  ; enable-environment = nil
+       (lambda (chunk)  ; streaming-callback
+         (setq result-without-env (concat result-without-env chunk)))
        nil) ; metadata
 
       ;; Wait for async operation to complete
@@ -433,10 +454,12 @@ This ensures the '..' entry has predictable permissions in tests."
       (greger-stdlib--shell-command
        "echo \"PS1 is: [$PS1]\""
        (lambda (output err)
-         (setq result-with-env output error err callback-called t))
+         (setq error err callback-called t))
        "."  ; working directory
        nil  ; timeout
        t    ; enable-environment = t
+       (lambda (chunk)  ; streaming-callback
+         (setq result-with-env (concat result-with-env chunk)))
        nil) ; metadata
 
       ;; Wait for async operation to complete

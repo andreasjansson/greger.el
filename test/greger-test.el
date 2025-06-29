@@ -40,6 +40,7 @@
 
     ;; Create test buffer
     (with-temp-buffer
+      (greger-mode) ; Set up greger-mode for tree-sitter support
       (let ((agent-state (make-greger-state
                           :current-iteration 0
                           :chat-buffer (current-buffer)
@@ -123,6 +124,7 @@ Tool executed: Hello World
 
     ;; Create test buffer
     (with-temp-buffer
+      (greger-mode) ; Set up greger-mode for tree-sitter support
       (let ((agent-state (make-greger-state
                           :current-iteration 0
                           :chat-buffer (current-buffer)
@@ -220,6 +222,7 @@ Tool B result: input-b
 
     ;; Create test buffer
     (with-temp-buffer
+      (greger-mode) ; Set up greger-mode for tree-sitter support
       (let ((agent-state (make-greger-state
                           :current-iteration 0
                           :chat-buffer (current-buffer)
@@ -246,7 +249,7 @@ bad-input
 ID: error_test
 
 <tool.error_test>
-Error executing tool: Simulated tool error: bad-input
+Simulated tool error: bad-input
 </tool.error_test>"))
 
         ;; Mock greger--run-agent-loop to capture completion
@@ -292,6 +295,7 @@ Error executing tool: Simulated tool error: bad-input
 
     ;; Create test buffer with existing content
     (with-temp-buffer
+      (greger-mode) ; Set up greger-mode for tree-sitter support
       (insert "Existing content in buffer")
 
       (let ((agent-state (make-greger-state
@@ -354,6 +358,7 @@ Processed: test-data
 
     ;; Create test buffer
     (with-temp-buffer
+      (greger-mode) ; Set up greger-mode for tree-sitter support
       (let ((agent-state (make-greger-state
                           :current-iteration 0
                           :chat-buffer (current-buffer)
@@ -423,6 +428,7 @@ Unknown tool: nonexistent-tool
 
     ;; Create test buffer
     (with-temp-buffer
+      (greger-mode) ; Set up greger-mode for tree-sitter support
       (let ((agent-state (make-greger-state
                           :current-iteration 0
                           :chat-buffer (current-buffer)
@@ -497,6 +503,7 @@ Line 3: End
 
     ;; Create test buffer
     (with-temp-buffer
+      (greger-mode) ; Set up greger-mode for tree-sitter support
       ;; Initial buffer state (empty)
       (let ((initial-content "")
             (agent-state (make-greger-state

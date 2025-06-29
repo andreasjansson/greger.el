@@ -69,6 +69,7 @@ Example:
     :function \='greger-tools--rename-file
     :pass-buffer t
     :pass-callback t
+    :streaming t
     :pass-metadata t)
 
   When :pass-callback is set to t, the callback function will be passed to the
@@ -83,6 +84,7 @@ Example:
         (function (plist-get args :function))
         (pass-buffer (plist-get args :pass-buffer))
         (pass-callback (plist-get args :pass-callback))
+        (streaming (plist-get args :streaming))
         (pass-metadata (plist-get args :pass-metadata)))
     (puthash name
              (list :schema (list (cons 'name name)
@@ -94,6 +96,7 @@ Example:
                    :function function
                    :pass-buffer pass-buffer
                    :pass-callback pass-callback
+                   :streaming streaming
                    :pass-metadata pass-metadata)
              greger-tools-registry)))
 
@@ -174,14 +177,16 @@ The raw JSON string will be displayed for the server tool definition."
              greger-server-tools-registry)
     tools))
 
-(cl-defun greger-tools-execute (&key tool-name args callback buffer metadata)
+(cl-defun greger-tools-execute (&key tool-name args callback streaming-callback buffer metadata)
   "Execute TOOL-NAME with ARGS and call CALLBACK with (result error).
 Returns a greger-tool struct for tracking execution and cancellation.
 If the tool has :pass-buffer set, BUFFER will be passed to the tool function.
 If the tool has :pass-callback set, CALLBACK will be passed to the tool
 function instead of `greger-tools-execute' calling the callback with result.
 If the tool has :pass-metadata set, METADATA will be passed to the tool
-function."
+function.
+If the tool has :streaming set, STREAMING-CALLBACK will be passed to the tool
+function for streaming output."
 
   (let ((tool-def (gethash tool-name greger-tools-registry))
         (cancel-fn nil))
@@ -189,6 +194,7 @@ function."
         (let ((func (plist-get tool-def :function))
               (pass-buffer (plist-get tool-def :pass-buffer))
               (pass-callback (plist-get tool-def :pass-callback))
+              (streaming (plist-get tool-def :streaming))
               (pass-metadata (plist-get tool-def :pass-metadata)))
           ;; Add buffer parameter if pass-buffer is set and buffer is provided
           (when (and pass-buffer buffer)
@@ -199,6 +205,8 @@ function."
           ;; Add metadata parameter if pass-metadata is set and metadata is provided
           (when (and pass-metadata metadata)
             (setq args (cons (cons 'metadata metadata) args)))
+          (when streaming
+            (setq args (cons (cons 'streaming-callback streaming-callback) args)))
           (condition-case err
               (if pass-callback
                   ;; Async case: When pass-callback is set,

@@ -17,18 +17,24 @@ echo
 # Get the current directory (should be the greger.el project root)
 PROJECT_ROOT=$(pwd)
 
-# Create temporary directory for melpazoid
-TEMP_DIR="/tmp/melpazoid-$$"
-mkdir -p "$TEMP_DIR"
-cd "$TEMP_DIR"
+# Set up melpazoid directory
+MELPAZOID_DIR="/tmp/melpazoid"
 
-echo -e "Downloading melpazoid..."
-if ! git clone https://github.com/riscy/melpazoid.git; then
-    echo -e "${RED}Failed to clone melpazoid repository${NC}"
-    exit 1
+if [ -d "$MELPAZOID_DIR" ]; then
+    echo -e "Updating melpazoid..."
+    cd "$MELPAZOID_DIR"
+    if ! git pull; then
+        echo -e "${RED}Failed to update melpazoid repository${NC}"
+        exit 1
+    fi
+else
+    echo -e "Downloading melpazoid..."
+    if ! git clone https://github.com/riscy/melpazoid.git "$MELPAZOID_DIR"; then
+        echo -e "${RED}Failed to clone melpazoid repository${NC}"
+        exit 1
+    fi
+    cd "$MELPAZOID_DIR"
 fi
-
-cd melpazoid
 
 echo -e "Running melpazoid on greger.el package..."
 echo
@@ -40,9 +46,8 @@ make
 
 MELPAZOID_EXIT_CODE=$?
 
-# Clean up
+# Return to project root
 cd "$PROJECT_ROOT"
-rm -rf "$TEMP_DIR"
 
 echo
 if [ $MELPAZOID_EXIT_CODE -eq 0 ]; then
