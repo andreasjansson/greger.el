@@ -11,28 +11,29 @@
 ;; Function to clone the grammar repo once
 (defun greger-test-setup-grammar-repo ()
   "Clone the greger-grammar repository to /tmp/greger-grammar if not already done, then pull updates."
-  (let ((repo-path "/tmp/greger-grammar"))
-    (if (file-directory-p repo-path)
-        ;; Repository exists, pull updates
+  (unless greger-test-grammar-repo-path
+    (let ((repo-path "/tmp/greger-grammar"))
+      (if (file-directory-p repo-path)
+          ;; Repository exists, pull updates
+          (progn
+            (message "Pulling latest updates for greger-grammar at %s..." repo-path)
+            (let ((result (shell-command-to-string
+                           (format "cd %s && git pull"
+                                   (shell-quote-argument repo-path)))))
+              (if (string-match-p "fatal:\\|error:" result)
+                  (error "Failed to pull greger-grammar updates: %s" result)
+                (setq greger-test-grammar-repo-path repo-path)
+                (message "Successfully pulled greger-grammar updates"))))
+        ;; Repository doesn't exist, clone it
         (progn
-          (message "Pulling latest updates for greger-grammar at %s..." repo-path)
+          (message "Cloning greger-grammar to %s..." repo-path)
           (let ((result (shell-command-to-string
-                         (format "cd %s && git pull"
+                         (format "git clone https://github.com/andreasjansson/greger-grammar.git %s"
                                  (shell-quote-argument repo-path)))))
             (if (string-match-p "fatal:\\|error:" result)
-                (error "Failed to pull greger-grammar updates: %s" result)
+                (error "Failed to clone greger-grammar: %s" result)
               (setq greger-test-grammar-repo-path repo-path)
-              (message "Successfully pulled greger-grammar updates"))))
-      ;; Repository doesn't exist, clone it
-      (progn
-        (message "Cloning greger-grammar to %s..." repo-path)
-        (let ((result (shell-command-to-string
-                       (format "git clone https://github.com/andreasjansson/greger-grammar.git %s"
-                               (shell-quote-argument repo-path)))))
-          (if (string-match-p "fatal:\\|error:" result)
-              (error "Failed to clone greger-grammar: %s" result)
-            (setq greger-test-grammar-repo-path repo-path)
-            (message "Successfully cloned greger-grammar to %s" greger-test-grammar-repo-path)))))))
+              (message "Successfully cloned greger-grammar to %s" greger-test-grammar-repo-path))))))))
 
 ;; Function to clean up the grammar repo
 (defun greger-test-cleanup-grammar-repo ()
