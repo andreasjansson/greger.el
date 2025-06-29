@@ -675,10 +675,15 @@ the greger UI instead of showing all intermediate states."
                   (setq end-pos (1+ end-pos)))
                 ;; Process the specific sequence
                 (when (< end-pos len)
-                  (let ((final-char (aref text end-pos)))
+                  (let ((final-char (aref text end-pos))
+                        (seq-content (substring text (+ pos 2) end-pos)))
                     (cond
                      ;; ESC[K or ESC[0K - clear from cursor to end of line
-                     ((= final-char ?K)
+                     ((and (= final-char ?K) (or (string= seq-content "") (string= seq-content "0")))
+                      (beginning-of-line)
+                      (delete-region (point) (line-end-position)))
+                     ;; ESC[2K - clear entire line
+                     ((and (= final-char ?K) (string= seq-content "2"))
                       (beginning-of-line)
                       (delete-region (point) (line-end-position)))
                      ;; Other sequences - just ignore for now
