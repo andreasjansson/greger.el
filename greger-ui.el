@@ -664,29 +664,29 @@ the greger UI instead of showing all intermediate states."
          
          ;; Handle ESC sequences
          ((= char ?\e)
-          (if (and (< (+ pos 2) len) 
+          (if (and (< (1+ pos) len) 
                    (= (aref text (1+ pos)) ?\[))
-              ;; Found ESC[, look for K sequences
-              (let ((seq-start (+ pos 2))
-                    (k-pos (string-match "K" text (+ pos 2))))
-                (cond
-                 ;; ESC[K - clear from cursor to end of line
-                 ((and k-pos (= k-pos seq-start))
+              ;; Found ESC[, check what follows
+              (cond
+               ;; ESC[K - clear from cursor to end of line
+               ((and (< (+ pos 2) len)
+                     (= (aref text (+ pos 2)) ?K))
+                (delete-region (point) (line-end-position))
+                (setq pos (+ pos 3)))
+               ;; ESC[2K - clear entire line
+               ((and (< (+ pos 3) len)
+                     (= (aref text (+ pos 2)) ?2)
+                     (= (aref text (+ pos 3)) ?K))
+                (beginning-of-line)
+                (delete-region (point) (line-end-position))
+                (setq pos (+ pos 4)))
+               ;; Not a recognized sequence, treat as regular character
+               (t
+                (when at-bol-after-cr
                   (delete-region (point) (line-end-position))
-                  (setq pos (1+ k-pos)))
-                 ;; ESC[2K - clear entire line
-                 ((and k-pos (= k-pos (1+ seq-start))
-                       (= (aref text seq-start) ?2))
-                  (beginning-of-line)
-                  (delete-region (point) (line-end-position))
-                  (setq pos (1+ k-pos)))
-                 ;; Not a recognized sequence, treat as regular character
-                 (t
-                  (when at-bol-after-cr
-                    (delete-region (point) (line-end-position))
-                    (setq at-bol-after-cr nil))
-                  (insert-char char)
-                  (setq pos (1+ pos)))))
+                  (setq at-bol-after-cr nil))
+                (insert-char char)
+                (setq pos (1+ pos))))
             ;; ESC without [, treat as regular character
             (progn
               (when at-bol-after-cr
