@@ -668,12 +668,14 @@ the greger UI instead of showing all intermediate states."
                    (= (aref text (1+ pos)) ?\[))
               ;; Found ESC[, check what follows
               (cond
-               ;; ESC[K - clear from cursor to end of line (or entire line in our case)
+               ;; ESC[K - clear from cursor to end of line 
                ((and (< (+ pos 2) len)
                      (= (aref text (+ pos 2)) ?K))
-                ;; In practice, this often clears the whole line content when used in progress displays
-                (beginning-of-line)
-                (delete-region (point) (line-end-position))
+                ;; Clear from cursor to end of line, but also move to start of line
+                ;; This simulates the common terminal behavior where ESC[K effectively clears visible content
+                (let ((line-start (save-excursion (beginning-of-line) (point))))
+                  (delete-region line-start (line-end-position))
+                  (goto-char line-start))
                 (setq at-bol-after-cr nil)
                 (setq pos (+ pos 3)))
                ;; ESC[2K - clear entire line
