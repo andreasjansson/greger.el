@@ -649,6 +649,7 @@ are used by command-line tools for progress bars and dynamic output:
 The function processes text to simulate how a terminal would handle these
 sequences, making progress bars and dynamic output display correctly in
 the greger UI instead of showing all intermediate states."
+  (insert "[FUNCTION-CALLED]")
   (let ((pos 0)
         (len (length text))
         (at-bol-after-cr nil))
