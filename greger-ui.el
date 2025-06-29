@@ -669,21 +669,20 @@ the greger UI instead of showing all intermediate states."
               ;; Found ESC[, check what follows
               (cond
                ;; ESC[K - clear from cursor to end of line 
-               ((and (< (+ pos 2) len)
+               ((and (<= (+ pos 2) (1- len))
                      (= (aref text (+ pos 2)) ?K))
-                ;; Clear from cursor to end of line, but also move to start of line
-                ;; This simulates the common terminal behavior where ESC[K effectively clears visible content
-                (let ((line-start (save-excursion (beginning-of-line) (point))))
-                  (delete-region line-start (line-end-position))
-                  (goto-char line-start))
+                ;; Clear the entire current line content
+                (beginning-of-line)
+                (delete-region (point) (line-end-position))
                 (setq at-bol-after-cr nil)
                 (setq pos (+ pos 3)))
                ;; ESC[2K - clear entire line
-               ((and (< (+ pos 3) len)
+               ((and (<= (+ pos 3) (1- len))
                      (= (aref text (+ pos 2)) ?2)
                      (= (aref text (+ pos 3)) ?K))
                 (beginning-of-line)
                 (delete-region (point) (line-end-position))
+                (setq at-bol-after-cr nil)
                 (setq pos (+ pos 4)))
                ;; Not a recognized sequence, treat as regular character
                (t
