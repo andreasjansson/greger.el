@@ -669,7 +669,7 @@ the greger UI instead of showing all intermediate states."
               ;; Found ESC[, check what follows
               (cond
                ;; ESC[K - clear from cursor to end of line 
-               ((and (<= (+ pos 2) (1- len))
+               ((and (< (+ pos 2) len)
                      (= (aref text (+ pos 2)) ?K))
                 ;; For now, just skip the sequence to test detection
                 (setq pos (+ pos 3)))
