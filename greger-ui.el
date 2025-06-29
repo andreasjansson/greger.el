@@ -649,92 +649,31 @@ are used by command-line tools for progress bars and dynamic output:
 The function processes text to simulate how a terminal would handle these
 sequences, making progress bars and dynamic output display correctly in
 the greger UI instead of showing all intermediate states."
-  (let ((buffer (get-buffer-create " *greger-terminal-processing*"))
-        (result ""))
-    (unwind-protect
-        (with-current-buffer buffer
-          (erase-buffer)
-          (insert text)
-          (goto-char (point-min))
-          
-          (while (not (eobp))
-            (let ((char (following-char)))
-              (cond
-               ;; Handle carriage return - move to beginning of current line
-               ((= char ?\r)
-                (beginning-of-line)
-                (delete-region (point) (line-end-position))
-                (delete-char 1)) ; Delete the \r itself
-               
-               ;; Handle ESC sequences
-               ((= char ?\e)
-                (let ((start-pos (point)))
-                  (forward-char 1)
-                  (when (and (not (eobp)) (= (following-char) ?\[))
-                    ;; Found ESC[, look for specific sequences
-                    (forward-char 1)
-                    (let ((seq-start (point))
-                          (found-sequence nil))
-                      
-                      ;; Look for sequence terminator
-                      (while (and (not (eobp))
-                                  (not found-sequence))
-                        (let ((c (following-char)))
-                          (cond
-                           ;; ESC[K - clear from cursor to end of line
-                           ((= c ?K)
-                            (delete-region seq-start (point))
-                            (delete-region start-pos (point))
-                            (delete-region (point) (line-end-position))
-                            (setq found-sequence t))
-                           ;; ESC[2K - clear entire line
-                           ((and (>= (- (point) seq-start) 1)
-                                 (= c ?K)
-                                 (= (char-before) ?2))
-                            (delete-region seq-start (point))
-                            (delete-region start-pos (point))
-                            (beginning-of-line)
-                            (delete-region (point) (line-end-position))
-                            (setq found-sequence t))
-                           ;; ESC[A - cursor up
-                           ((= c ?A)
-                            (delete-region seq-start (point))
-                            (delete-region start-pos (point))
-                            ;; Move up one line and delete it
-                            (when (not (bobp))
-                              (forward-line -1)
-                              (delete-region (point) (progn (forward-line 1) (point))))
-                            (setq found-sequence t))
-                           ;; ESC[B - cursor down  
-                           ((= c ?B)
-                            (delete-region seq-start (point))
-                            (delete-region start-pos (point))
-                            (insert "\n")
-                            (setq found-sequence t))
-                           ;; Skip other characters in sequence
-                           (t
-                            (forward-char 1)))))
-                      
-                      ;; If no valid sequence found, treat as regular text
-                      (unless found-sequence
-                        (goto-char start-pos)
-                        (forward-char 1)))))
-                ;; ESC without [, treat as regular character
-                (unless (= (point) start-pos)
-                  (forward-char 1)))
-               
-               ;; Regular character - just move forward
-               (t
-                (forward-char 1)))))
-          
-          ;; Get the processed result
-          (setq result (buffer-string)))
-      
-      ;; Clean up buffer
-      (when (buffer-live-p buffer)
-        (kill-buffer buffer)))
-    
-    result))
+  ;; Handle the most common case efficiently: carriage return overwriting
+  (when (string-match "\r" text)
+    ;; Split on carriage returns and keep only the last part of each line
+    (let ((lines (split-string text "\n"))
+          (result-lines '()))
+      (dolist (line lines)
+        (if (string-match "\r" line)
+            ;; Line contains carriage return - split and keep last part
+            (let ((parts (split-string line "\r")))
+              (push (car (last parts)) result-lines))
+          ;; No carriage return - keep the line as is
+          (push line result-lines)))
+      (setq text (string-join (nreverse result-lines) "\n"))))
+  
+  ;; Handle other escape sequences (simplified for now)
+  ;; Remove ESC[K sequences (clear to end of line)
+  (setq text (replace-regexp-in-string "\e\\[K" "" text))
+  
+  ;; Remove ESC[2K sequences (clear entire line) 
+  (setq text (replace-regexp-in-string "\e\\[2K" "" text))
+  
+  ;; For now, we'll leave ESC[A and ESC[B sequences as they are more complex
+  ;; to handle properly without full terminal state management
+  
+  text)
 
 (provide 'greger-ui)
 ;;; greger-ui.el ends here
