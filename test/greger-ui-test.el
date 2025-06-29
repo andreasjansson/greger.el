@@ -598,16 +598,19 @@ example.py
 (ert-deftest greger-ui-test-process-terminal-sequences-carriage-return-basic ()
   "Test basic carriage return handling - overwrites current line."
   ;; Basic carriage return at end of string
-  (should (string= "new content" 
-                   (greger-ui--process-terminal-sequences "old content\rnew content")))
+  (with-temp-buffer
+    (greger-ui--process-terminal-sequences "old content\rnew content")
+    (should (string= "new content" (buffer-string))))
   
   ;; Multiple carriage returns  
-  (should (string= "final" 
-                   (greger-ui--process-terminal-sequences "first\rsecond\rfinal")))
+  (with-temp-buffer
+    (greger-ui--process-terminal-sequences "first\rsecond\rfinal")
+    (should (string= "final" (buffer-string))))
   
   ;; Carriage return with newline preservation
-  (should (string= "line1\noverwritten\nline3"
-                   (greger-ui--process-terminal-sequences "line1\noriginal\roverwritten\nline3"))))
+  (with-temp-buffer
+    (greger-ui--process-terminal-sequences "line1\noriginal\roverwritten\nline3")
+    (should (string= "line1\noverwritten\nline3" (buffer-string)))))
 
 (ert-deftest greger-ui-test-process-terminal-sequences-progress-bar-simulation ()
   "Test progress bar simulation with carriage returns."
