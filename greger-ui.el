@@ -660,48 +660,14 @@ the greger UI instead of showing all intermediate states."
           (beginning-of-line)
           (setq pos (1+ pos)))
          
-         ;; Handle ESC sequences
-         ((= char ?\e)
-          (if (and (< (1+ pos) len) (= (aref text (1+ pos)) ?\[))
-              ;; Found ESC[, look for specific sequences
-              (let ((seq-start (+ pos 2))
-                    (seq-end nil))
-                ;; Find end of escape sequence
-                (let ((search-pos seq-start))
-                  (while (and (< search-pos len) (not seq-end))
-                    (let ((c (aref text search-pos)))
-                      (when (or (= c ?K) (= c ?A) (= c ?B) (= c ?m))
-                        (setq seq-end (1+ search-pos)))
-                      (setq search-pos (1+ search-pos)))))
-                
-                (if seq-end
-                    (let ((sequence (substring text pos seq-end)))
-                      (cond
-                       ;; ESC[K - clear from cursor to end of line
-                       ((string-match "\\[K$" sequence)
-                        (delete-region (point) (line-end-position)))
-                       ;; ESC[2K - clear entire line
-                       ((string-match "\\[2K$" sequence)
-                        (beginning-of-line)
-                        (delete-region (point) (line-end-position)))
-                       ;; ESC[A - cursor up
-                       ((string-match "\\[A$" sequence)
-                        (forward-line -1))
-                       ;; ESC[B - cursor down
-                       ((string-match "\\[B$" sequence)
-                        (forward-line 1)))
-                      (setq pos seq-end))
-                  ;; Invalid escape sequence, treat as regular character
-                  (insert char)
-                  (setq pos (1+ pos))))
-            ;; ESC without [, treat as regular character
-            (insert char)
-            (setq pos (1+ pos))))
-         
          ;; Regular character - insert it
          (t
           (insert char)
-          (setq pos (1+ pos))))))))
+          (setq pos (1+ pos))))
+      
+      ;; Safety check to prevent infinite loops
+      (when (> pos len)
+        (setq pos len))))))
 
 (provide 'greger-ui)
 ;;; greger-ui.el ends here
