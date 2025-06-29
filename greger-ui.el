@@ -649,48 +649,59 @@ are used by command-line tools for progress bars and dynamic output:
 The function processes text to simulate how a terminal would handle these
 sequences, making progress bars and dynamic output display correctly in
 the greger UI instead of showing all intermediate states."
-  ;; Handle the most common case efficiently: carriage return overwriting
-  (when (string-match "\r" text)
-    ;; Process carriage returns to simulate terminal overwriting behavior
-    (let ((result "")
-          (lines (split-string text "\n" t)))
-      
-      ;; Handle the case where text doesn't end with newline
-      (when (and (> (length text) 0)
-                 (not (string-suffix-p "\n" text)))
-        (setq lines (split-string text "\n")))
-      
-      (dolist (line lines)
-        (if (string-match "\r" line)
-            ;; Line contains carriage return - simulate overwriting
-            (let ((parts (split-string line "\r" t)))
-              (if parts
-                  ;; Keep only the last non-empty part (final state after all overwrites)
-                  (let ((final-part (car (last parts))))
-                    (setq result (concat result final-part)))
-                ;; If all parts are empty, just add empty line
-                (setq result (concat result ""))))
-          ;; No carriage return - keep the line as is
-          (setq result (concat result line)))
-        
-        ;; Add newline if this isn't the last line or if original text ended with newline
-        (unless (and (eq line (car (last lines)))
-                     (not (string-suffix-p "\n" text)))
-          (setq result (concat result "\n"))))
-      
-      (setq text result)))
-  
-  ;; Handle other escape sequences (simplified for now)
-  ;; Remove ESC[K sequences (clear to end of line)
-  (setq text (replace-regexp-in-string "\e\\[K" "" text))
-  
-  ;; Remove ESC[2K sequences (clear entire line) 
-  (setq text (replace-regexp-in-string "\e\\[2K" "" text))
-  
-  ;; For now, we'll leave ESC[A and ESC[B sequences as they are more complex
-  ;; to handle properly without full terminal state management
-  
-  text)
+  (let ((pos 0)
+        (len (length text)))
+    
+    (while (< pos len)
+      (let ((char (aref text pos)))
+        (cond
+         ;; Handle carriage return - move to beginning of current line
+         ((= char ?\r)
+          (beginning-of-line)
+          (setq pos (1+ pos)))
+         
+         ;; Handle ESC sequences
+         ((= char ?\e)
+          (if (and (< (1+ pos) len) (= (aref text (1+ pos)) ?\[))
+              ;; Found ESC[, look for specific sequences
+              (let ((seq-start (+ pos 2))
+                    (seq-end nil))
+                ;; Find end of escape sequence
+                (let ((search-pos seq-start))
+                  (while (and (< search-pos len) (not seq-end))
+                    (let ((c (aref text search-pos)))
+                      (when (or (= c ?K) (= c ?A) (= c ?B) (= c ?m))
+                        (setq seq-end (1+ search-pos)))
+                      (setq search-pos (1+ search-pos)))))
+                
+                (if seq-end
+                    (let ((sequence (substring text pos seq-end)))
+                      (cond
+                       ;; ESC[K - clear from cursor to end of line
+                       ((string-match "\\[K$" sequence)
+                        (delete-region (point) (line-end-position)))
+                       ;; ESC[2K - clear entire line
+                       ((string-match "\\[2K$" sequence)
+                        (beginning-of-line)
+                        (delete-region (point) (line-end-position)))
+                       ;; ESC[A - cursor up
+                       ((string-match "\\[A$" sequence)
+                        (forward-line -1))
+                       ;; ESC[B - cursor down
+                       ((string-match "\\[B$" sequence)
+                        (forward-line 1)))
+                      (setq pos seq-end))
+                  ;; Invalid escape sequence, treat as regular character
+                  (insert char)
+                  (setq pos (1+ pos))))
+            ;; ESC without [, treat as regular character
+            (insert char)
+            (setq pos (1+ pos))))
+         
+         ;; Regular character - insert it
+         (t
+          (insert char)
+          (setq pos (1+ pos))))))))
 
 (provide 'greger-ui)
 ;;; greger-ui.el ends here
