@@ -44,6 +44,7 @@
 (require 'greger-tools)
 (require 'greger-stdlib)
 (require 'greger-ui)
+(require 'greger-ui)
 
 (defconst greger-available-models
   '(claude-sonnet-4-20250514
