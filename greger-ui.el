@@ -664,32 +664,8 @@ the greger UI instead of showing all intermediate states."
          
          ;; Handle ESC sequences
          ((= char 27)
-          (cond
-           ;; ESC[K - simple case
-           ((and (>= (- len pos) 3)
-                 (= (aref text (+ pos 1)) ?\[)
-                 (= (aref text (+ pos 2)) ?K))
-            ;; Clear entire line content
-            (beginning-of-line)
-            (delete-region (point) (line-end-position))
-            (setq at-bol-after-cr nil)
-            (setq pos (+ pos 3)))
-           ;; ESC[2K - clear entire line
-           ((and (>= (- len pos) 4)
-                 (= (aref text (+ pos 1)) ?\[)
-                 (= (aref text (+ pos 2)) ?2)
-                 (= (aref text (+ pos 3)) ?K))
-            (beginning-of-line)
-            (delete-region (point) (line-end-position))
-            (setq at-bol-after-cr nil)
-            (setq pos (+ pos 4)))
-           ;; ESC not followed by recognized sequence, treat as regular char
-           (t
-            (when at-bol-after-cr
-              (delete-region (point) (line-end-position))
-              (setq at-bol-after-cr nil))
-            (insert-char char)
-            (setq pos (1+ pos)))))
+          (insert "[ESC-DETECTED]")
+          (setq pos (1+ pos)))
          
          ;; Handle newline
          ((= char ?\n)
