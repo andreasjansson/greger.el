@@ -296,13 +296,6 @@ Tool result content must always be a string for Claude API compatibility."
     ;; Always return as string, don't convert to numbers or other types
     (greger-parser--remove-single-leading-and-trailing-newline value)))
 
-(defun greger-parser--convert-param-value (value)
-  "Convert VALUE to appropriate type for tool parameters.
-Recognizes numbers, booleans, JSON arrays/objects, and plain strings."
-  (if (string-match "^[0-9]+$" value)
-      (string-to-number value)
-    value))
-
 (defun greger-parser--convert-value (str)
   "Convert STR to appropriate Elisp value."
   (let ((trimmed (string-trim str)))
@@ -320,18 +313,41 @@ Recognizes numbers, booleans, JSON arrays/objects, and plain strings."
      (t (greger-parser--remove-single-leading-and-trailing-newline str)))))
 
 (defun greger-parser--parse-json-array (str)
-  "Parse JSON array STR."
+  "Parse JSON array STR, ensuring entire string is consumed."
   (condition-case nil
-      (json-read-from-string str)
+      (let (parsed)
+        ;; Use a buffer to parse JSON and ensure entire string is consumed
+        (with-temp-buffer
+          (insert str)
+          (goto-char (point-min))
+          (setq parsed (json-read))
+          ;; Check if we consumed the entire buffer (ignoring whitespace)
+          (skip-chars-forward " \t\n\r")
+          (if (eobp)
+              ;; If entire string was consumed, return parsed result
+              parsed
+            ;; If not all consumed, treat as invalid JSON
+            (signal 'json-parse-error "Trailing content after JSON"))))
     (error str)))
 
 (defun greger-parser--parse-json-object (str)
-  "Parse JSON object STR."
+  "Parse JSON object STR, ensuring entire string is consumed."
   (condition-case nil
-      (let ((parsed (json-read-from-string str)))
-        (mapcar (lambda (pair)
-                  (cons (intern (symbol-name (car pair))) (cdr pair)))
-                parsed))
+      (let (parsed)
+        ;; Use a buffer to parse JSON and ensure entire string is consumed
+        (with-temp-buffer
+          (insert str)
+          (goto-char (point-min))
+          (setq parsed (json-read))
+          ;; Check if we consumed the entire buffer (ignoring whitespace)
+          (skip-chars-forward " \t\n\r")
+          (if (eobp)
+              ;; If entire string was consumed, convert to alist and return
+              (mapcar (lambda (pair)
+                        (cons (intern (symbol-name (car pair))) (cdr pair)))
+                      parsed)
+            ;; If not all consumed, treat as invalid JSON
+            (signal 'json-parse-error "Trailing content after JSON"))))
     (error str)))
 
 (defun greger-parser--extract-tool-result (node)
