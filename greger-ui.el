@@ -664,30 +664,18 @@ the greger UI instead of showing all intermediate states."
          
          ;; Handle ESC sequences
          ((= char ?\e)
+          ;; Just skip ESC sequences entirely for now to test
           (if (and (< (1+ pos) len) 
                    (= (aref text (1+ pos)) ?\[))
-              ;; Found ESC[, check what follows
-              (cond
-               ;; ESC[K - clear from cursor to end of line 
-               ((and (< (+ pos 2) len)
-                     (= (aref text (+ pos 2)) ?K))
-                ;; For now, just skip the sequence to test detection
-                (setq pos (+ pos 3)))
-               ;; ESC[2K - clear entire line
-               ((and (<= (+ pos 3) (1- len))
-                     (= (aref text (+ pos 2)) ?2)
-                     (= (aref text (+ pos 3)) ?K))
-                (beginning-of-line)
-                (delete-region (point) (line-end-position))
-                (setq at-bol-after-cr nil)
-                (setq pos (+ pos 4)))
-               ;; Not a recognized sequence, treat as regular character
-               (t
-                (when at-bol-after-cr
-                  (delete-region (point) (line-end-position))
-                  (setq at-bol-after-cr nil))
-                (insert-char char)
-                (setq pos (1+ pos))))
+              ;; Skip ESC[ sequences entirely 
+              (let ((end-pos (+ pos 2)))
+                ;; Find the end of the escape sequence
+                (while (and (< end-pos len)
+                           (let ((c (aref text end-pos)))
+                             (not (or (= c ?K) (= c ?A) (= c ?B) (= c ?m)))))
+                  (setq end-pos (1+ end-pos)))
+                ;; Skip to after the sequence
+                (setq pos (if (< end-pos len) (1+ end-pos) len)))
             ;; ESC without [, treat as regular character
             (progn
               (when at-bol-after-cr
