@@ -703,10 +703,17 @@ buffer being updated according to the terminal sequences encountered."
                        ((= command ?A)
                         (let ((line-start (line-beginning-position))
                               (line-end (line-end-position)))
-                          ;; Delete current line content only
-                          (delete-region line-start line-end)
-                          ;; Position cursor at the beginning of the (now empty) line
-                          (goto-char line-start))
+                          (if (= line-start line-end)
+                              ;; Current line is empty, move up to previous line and delete it
+                              (when (> line-start 1)
+                                (backward-char 1)  ; Move to previous line
+                                (let ((prev-line-start (line-beginning-position))
+                                      (prev-line-end (line-end-position)))
+                                  (delete-region prev-line-start prev-line-end)
+                                  (goto-char prev-line-start)))
+                            ;; Current line has content, delete it
+                            (delete-region line-start line-end)
+                            (goto-char line-start)))
                         (setq pos (1+ pos)))
                        
                        ;; ESC[B - cursor down (insert newline)
