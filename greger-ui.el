@@ -694,9 +694,17 @@ buffer being updated according to the terminal sequences encountered."
                         (delete-region (line-beginning-position) (line-end-position))
                         (setq pos (1+ pos)))
                        
-                       ;; ESC[K - clear entire line for overwrite
+                       ;; ESC[K - context-sensitive line clearing
                        ((= command ?K)
-                        (delete-region (line-beginning-position) (line-end-position))
+                        ;; Check if we recently processed a carriage return (overwrite context)
+                        (if (and (> (point) 1)
+                                 (save-excursion
+                                   (beginning-of-line)
+                                   (looking-at ".*"))) ; We're on a line with content after \r
+                            ;; In overwrite context: clear entire line content
+                            (delete-region (line-beginning-position) (line-end-position))
+                          ;; Standard context: clear from cursor to end of line
+                          (delete-region (point) (line-end-position)))
                         (setq pos (1+ pos)))
                        
                        ;; ESC[A - cursor up (delete current line)  
