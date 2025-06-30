@@ -599,7 +599,7 @@ example.py
   "Helper function to test terminal sequence processing.
 Processes INPUT in a temp buffer and returns the result."
   (with-temp-buffer
-    (greger-ui-process-terminal-sequences input)
+    (greger-ui--process-terminal-sequences input)
     (buffer-string)))
 
 (ert-deftest greger-ui-test-process-terminal-sequences-carriage-return-basic ()
