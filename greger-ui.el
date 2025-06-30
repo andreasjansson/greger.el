@@ -699,12 +699,15 @@ buffer being updated according to the terminal sequences encountered."
                         (delete-region (point) (line-end-position))
                         (setq pos (1+ pos)))
                        
-                       ;; ESC[A - cursor up (delete previous line)
+                       ;; ESC[A - cursor up (delete current line)
                        ((= command ?A)
+                        ;; Delete current line first
+                        (delete-region (line-beginning-position) 
+                                       (min (1+ (line-end-position)) (point-max)))
+                        ;; Move to end of previous line if it exists
                         (when (not (bobp))
-                          (forward-line -1)
-                          (delete-region (line-beginning-position) 
-                                         (min (1+ (line-end-position)) (point-max))))
+                          (backward-char 1)
+                          (end-of-line))
                         (setq pos (1+ pos)))
                        
                        ;; ESC[B - cursor down (insert newline)
