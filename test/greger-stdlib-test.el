@@ -2702,4 +2702,33 @@ drwx------  (dir)  ..
       (when (file-exists-p test-dir)
         (delete-directory test-dir t)))))
 
+(ert-deftest greger-stdlib-test-git-stage-and-commit-empty-message ()
+  "Test git staging with empty commit message."
+  (let ((test-dir (make-temp-file "greger-git-empty-msg" t))
+        (test-file nil))
+    (unwind-protect
+        (progn
+          ;; Initialize git repository
+          (let ((default-directory test-dir))
+            (should (= 0 (call-process "git" nil nil nil "init")))
+            (should (= 0 (call-process "git" nil nil nil "config" "user.name" "Test User")))
+            (should (= 0 (call-process "git" nil nil nil "config" "user.email" "test@example.com"))))
+          
+          ;; Create test file
+          (setq test-file (expand-file-name "test.txt" test-dir))
+          (with-temp-file test-file
+            (insert "Test content"))
+          
+          ;; Test git stage and commit with empty message - should fail
+          (let ((result (greger-stdlib--git-stage-and-commit 
+                         (list test-file)
+                         "")))
+            (should (stringp result))
+            (should (string-match "Git operation failed" result))
+            (should (string-match "Failed to create commit" result))))
+      
+      ;; Clean up
+      (when (file-exists-p test-dir)
+        (delete-directory test-dir t)))))
+
 ;;; greger-stdlib-test.el ends here
