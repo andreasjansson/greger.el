@@ -701,13 +701,17 @@ buffer being updated according to the terminal sequences encountered."
                        
                        ;; ESC[A - cursor up (delete current line)
                        ((= command ?A)
-                        ;; Delete current line first
-                        (delete-region (line-beginning-position) 
-                                       (min (1+ (line-end-position)) (point-max)))
-                        ;; Move to end of previous line if it exists
-                        (when (not (bobp))
-                          (backward-char 1)
-                          (end-of-line))
+                        (let ((at-end-of-buffer (= (point) (point-max))))
+                          ;; If we're not at beginning of buffer, move up and delete the previous line
+                          (when (not (bobp))
+                            (forward-line -1)
+                            ;; Delete from beginning of current line to beginning of next line
+                            (delete-region (line-beginning-position)
+                                           (if at-end-of-buffer
+                                               (line-end-position)
+                                             (progn (forward-line 1) (line-beginning-position))))
+                            ;; Position cursor at end of the line we're now on
+                            (end-of-line)))
                         (setq pos (1+ pos)))
                        
                        ;; ESC[B - cursor down (insert newline)
