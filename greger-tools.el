@@ -250,7 +250,7 @@ parameters.  Returns a list of arguments in the correct order for the function."
                              (alist-get 'required input-schema)))))
     (cl-loop for arg-name in arg-list
              until (eq arg-name '&rest)
-             unless (eq arg-name '&optional)
+             when (not (eq arg-name '&optional))
              for arg-symbol = (if (symbolp arg-name) arg-name (intern (symbol-name arg-name)))
              for arg-key = (intern (symbol-name arg-symbol))
              for arg-provided-p = (assoc arg-key args)
