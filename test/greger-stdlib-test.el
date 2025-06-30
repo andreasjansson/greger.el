@@ -2495,11 +2495,13 @@ drwx------  (dir)  ..
           (with-temp-file test-file
             (insert "Test content"))
           
-          ;; Should error when trying to stage and commit
-          (should-error (greger-stdlib--git-stage-and-commit 
+          ;; Should return error message when trying to stage and commit
+          (let ((result (greger-stdlib--git-stage-and-commit 
                          (list test-file)
-                         "This should fail")
-                        :type 'error))
+                         "This should fail")))
+            (should (stringp result))
+            (should (string-match "Git operation failed" result))
+            (should (string-match "not in a git repository" result))))
       
       ;; Clean up
       (when (file-exists-p test-dir)
