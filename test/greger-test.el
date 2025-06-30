@@ -676,10 +676,10 @@ Echo: hello world
           ;; Open the file and position cursor at a specific location
           (setq source-buffer (find-file-noselect test-file))
           (with-current-buffer source-buffer
-            ;; Position cursor at line 5, column 10 (in the TODO comment)
+            ;; Position cursor at line 5, column 9 (in the TODO comment)
             (goto-char (point-min))
             (forward-line 4) ; Move to line 5 (TODO comment)
-            (forward-char 9)  ; Move to column 10 (just after "// TODO: ")
+            (forward-char 9)  ; Move to column 9 (just after "// TODO: ")
             
             ;; Test the context collection logic directly to avoid window manipulation
             (let* ((with-context t)
