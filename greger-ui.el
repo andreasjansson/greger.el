@@ -726,7 +726,10 @@ buffer being updated according to the terminal sequences encountered."
                        ;; ESC[B - cursor down (insert newline)
                        ((= command ?B)
                         (end-of-line)
-                        (insert "\n")
+                        ;; Insert 2 newlines if at end of content, 1 if already after newlines
+                        (if (and (> (point) 1) (= (char-before) ?\n))
+                            (insert "\n")   ; Already after newline, just add one more
+                          (insert "\n\n")) ; At end of text, add two to create blank line
                         (setq pos (1+ pos)))
                        
                        ;; Unrecognized sequence - insert as is
