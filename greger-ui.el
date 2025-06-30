@@ -711,47 +711,24 @@ buffer being updated according to the terminal sequences encountered."
                        ((= command ?B)
                         (end-of-line)
                         (insert "\n")
-                        (setq overwrite-flag nil)
                         (setq pos (1+ csi-end)))
                        
                        ;; Unrecognized sequence - insert as is
                        (t
-                        (if overwrite-flag
-                            ;; In overwrite mode, delete existing chars first
-                            (let ((text-to-insert (substring text pos (1+ csi-end))))
-                              (delete-region (point) (min (+ (point) (length text-to-insert)) 
-                                                           (line-end-position)))
-                              (insert text-to-insert))
-                          (insert (substring text pos (1+ csi-end))))
+                        (insert (substring text pos (1+ csi-end)))
                         (setq pos (1+ csi-end)))))
                   
                   ;; Incomplete sequence - insert as is
-                  (if overwrite-flag
-                      (let ((text-to-insert (substring text pos)))
-                        (delete-region (point) (min (+ (point) (length text-to-insert)) 
-                                                     (line-end-position)))
-                        (insert text-to-insert))
-                    (insert (substring text pos)))
+                  (insert (substring text pos))
                   (setq pos len)))
             
             ;; Not a CSI sequence, just insert the ESC
-            (if overwrite-flag
-                (progn
-                  (when (< (point) (line-end-position))
-                    (delete-char 1))
-                  (insert char))
-              (insert char))
+            (insert char)
             (setq pos (1+ pos))))
          
          ;; Regular character
          (t
-          (if overwrite-flag
-              (progn
-                ;; In overwrite mode, delete existing character first if it exists
-                (when (< (point) (line-end-position))
-                  (delete-char 1))
-                (insert char))
-            (insert char))
+          (insert char)
           (setq pos (1+ pos))))))))
 
 (provide 'greger-ui)
