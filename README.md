@@ -57,6 +57,20 @@ M-x package-install RET greger
 
 Alternatively, you can use `M-x package-list-packages` to browse and install Greger interactively.
 
+### Using use-package
+
+If you use [use-package](https://github.com/jwiegley/use-package), you can install and configure Greger with:
+
+```elisp
+(use-package greger
+  :ensure t
+  :bind ("C-M-;" . greger))
+```
+
+This will automatically install Greger from MELPA and set up the recommended keybinding.
+
+### Manual installation
+
 Once installed, just add to your configuration:
 
 ``` emacs-lisp
