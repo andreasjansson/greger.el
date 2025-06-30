@@ -671,7 +671,7 @@ Echo: hello world
       (forward-line 1) ; Move to line 2
       (forward-char 3)  ; Move to column 3
       
-      ;; Mock save-buffer to avoid file I/O during tests
+      ;; Mock functions to avoid side effects during tests
       (cl-letf (((symbol-function 'save-buffer) #'ignore)
                 ((symbol-function 'buffer-file-name) 
                  (lambda () "/test/path/test-file.txt"))
@@ -680,7 +680,9 @@ Echo: hello world
                  (lambda () '(window1))) ; Single window
                 ((symbol-function 'split-window-right) #'ignore)
                 ((symbol-function 'other-window) #'ignore)
-                ((symbol-function 'switch-to-buffer) #'ignore))
+                ((symbol-function 'switch-to-buffer) #'ignore)
+                ;; Mock greger-mode to avoid mode setup issues
+                ((symbol-function 'greger-mode) #'ignore))
         
         ;; Call greger with context (greger t)
         (let ((result-buffer (greger t)))
