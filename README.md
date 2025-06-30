@@ -55,6 +55,12 @@ M-x package-refresh-contents
 M-x package-install RET greger
 ```
 
+Once installed, just add to your configuration:
+
+``` emacs-lisp
+(require 'greger)
+```
+
 If you use [use-package](https://www.gnu.org/software/emacs/manual/html_node/use-package/), you can install and configure Greger with:
 
 ```elisp
@@ -64,14 +70,6 @@ If you use [use-package](https://www.gnu.org/software/emacs/manual/html_node/use
 ```
 
 This will automatically install Greger from MELPA and set up the recommended keybinding.
-
-### Manual installation
-
-Once installed, just add to your configuration:
-
-``` emacs-lisp
-(require 'greger)
-```
 
 ## Usage
 
