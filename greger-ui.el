@@ -699,18 +699,17 @@ buffer being updated according to the terminal sequences encountered."
                         (delete-region (point) (line-end-position))
                         (setq pos (1+ pos)))
                        
-                       ;; ESC[A - cursor up (delete current line)
+                       ;; ESC[A - cursor up (delete current line)  
                        ((= command ?A)
-                        ;; Find start and end of current line
                         (let ((line-start (line-beginning-position))
                               (line-end (line-end-position)))
-                          ;; Delete current line content
+                          ;; Delete current line content only (not the newline)
                           (delete-region line-start line-end)
-                          ;; If there's a newline before this line, delete it and move up
-                          (when (and (> line-start 1) 
+                          ;; Move cursor to the end of previous line if it exists  
+                          (when (and (> line-start 1)
                                      (= (char-before line-start) ?\n))
-                            (delete-char -1)
-                            (end-of-line)))
+                            (backward-char 1)
+                            (insert "\n")))
                         (setq pos (1+ pos)))
                        
                        ;; ESC[B - cursor down (insert newline)
