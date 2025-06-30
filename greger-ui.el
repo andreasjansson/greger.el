@@ -754,7 +754,6 @@ buffer being updated according to the terminal sequences encountered."
          ;; Regular character
          (t
           (insert char)
-          (setq after-carriage-return nil)
           (setq pos (1+ pos))))))))
 
 (provide 'greger-ui)
