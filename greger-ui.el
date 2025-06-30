@@ -711,7 +711,8 @@ buffer being updated according to the terminal sequences encountered."
                           ;; Move cursor to end of previous line if it exists
                           (when (> line-start 1)
                             (backward-char 1)
-                            (end-of-line)))
+                            (end-of-line)
+                            (insert "\n")))
                         (setq pos (1+ pos)))
                        
                        ;; ESC[B - cursor down (insert newline)
