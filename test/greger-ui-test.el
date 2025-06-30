@@ -752,4 +752,22 @@ Processes INPUT in a temp buffer and returns the result."
       (let ((elapsed (float-time (time-subtract (current-time) start-time))))
         (should (< elapsed 1.0))))))
 
+(ert-deftest greger-ui-test-ansi-escape-sequences-debug ()
+  "Test ANSI escape sequence processing for debugging."
+  ;; Test ESC[K sequence
+  (should (string= "[FUNCTION-CALLED]after" 
+                   (greger-ui-test--process-terminal-sequences "before\033[Kafter")))
+  
+  ;; Test ESC[2K sequence  
+  (should (string= "[FUNCTION-CALLED]after"
+                   (greger-ui-test--process-terminal-sequences "before\033[2K\rafter")))
+  
+  ;; Test that function is actually called
+  (should (string-match "\\[FUNCTION-CALLED\\]"
+                       (greger-ui-test--process-terminal-sequences "test")))
+  
+  ;; Test carriage return still works
+  (should (string= "[FUNCTION-CALLED]final"
+                   (greger-ui-test--process-terminal-sequences "first\rsecond\rfinal"))))
+
 ;;; greger-ui-test.el ends here
