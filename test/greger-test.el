@@ -661,6 +661,164 @@ Echo: hello world
           ;; (it should only be removed when callback is actually called)
           (should (gethash "test-tool-id" executing-tools-map)))))))
 
+(ert-deftest greger-test-with-context-functionality ()
+  "Test greger with-context feature (greger t)."
+  ;; Create a test file to work with
+  (let ((test-file-content "Line 1\nLine 2\nLine 3"))
+    (with-temp-buffer
+      (insert test-file-content)
+      (goto-char (point-min))
+      (forward-line 1) ; Move to line 2
+      (forward-char 3)  ; Move to column 3
+      
+      ;; Mock save-buffer to avoid file I/O during tests
+      (cl-letf (((symbol-function 'save-buffer) #'ignore)
+                ((symbol-function 'buffer-file-name) 
+                 (lambda () "/test/path/test-file.txt"))
+                ;; Mock window functions for context testing
+                ((symbol-function 'window-list)
+                 (lambda () '(window1))) ; Single window
+                ((symbol-function 'split-window-right) #'ignore)
+                ((symbol-function 'other-window) #'ignore)
+                ((symbol-function 'switch-to-buffer) #'ignore))
+        
+        ;; Call greger with context (greger t)
+        (let ((result-buffer (greger t)))
+          (should (bufferp result-buffer))
+          (should (string-match "\\*greger\\*" (buffer-name result-buffer)))
+          
+          (with-current-buffer result-buffer
+            (let ((buffer-content (buffer-substring-no-properties (point-min) (point-max))))
+              ;; Should contain system tag and default prompt
+              (should (string-match greger-parser-system-tag buffer-content))
+              (should (string-match greger-default-system-prompt buffer-content))
+              (should (string-match greger-parser-user-tag buffer-content))
+              
+              ;; Should contain context information
+              (should (string-match "In /test/path/test-file\\.txt, at line 2 and column 3" buffer-content))
+              (should (string-match "implement the following:" buffer-content))))
+          
+          ;; Clean up
+          (kill-buffer result-buffer))))))
+
+(ert-deftest greger-test-without-context-functionality ()
+  "Test greger without context feature (regular greger call)."
+  (cl-letf (((symbol-function 'switch-to-buffer) #'ignore))
+    ;; Call greger without context
+    (let ((result-buffer (greger)))
+      (should (bufferp result-buffer))
+      (should (string-match "\\*greger\\*" (buffer-name result-buffer)))
+      
+      (with-current-buffer result-buffer
+        (let ((buffer-content (buffer-substring-no-properties (point-min) (point-max))))
+          ;; Should contain system tag and default prompt
+          (should (string-match greger-parser-system-tag buffer-content))
+          (should (string-match greger-default-system-prompt buffer-content))
+          (should (string-match greger-parser-user-tag buffer-content))
+          
+          ;; Should NOT contain context information
+          (should-not (string-match "In .* at line .* implement the following:" buffer-content))))
+      
+      ;; Clean up
+      (kill-buffer result-buffer))))
+
+(ert-deftest greger-test-set-model ()
+  "Test greger-set-model functionality."
+  (let ((original-model greger-model)
+        (selected-model 'claude-opus-4-20250514)
+        (completing-read-called nil)
+        (customize-set-variable-called nil)
+        (set-variable nil)
+        (set-value nil))
+    
+    (unwind-protect
+        (progn
+          ;; Mock completing-read to return a specific model
+          (cl-letf (((symbol-function 'completing-read)
+                     (lambda (prompt collection &optional predicate require-match)
+                       (setq completing-read-called t)
+                       (should (string= prompt "Choose model: "))
+                       (should (equal collection greger-available-models))
+                       (should require-match)
+                       "claude-opus-4-20250514"))
+                    ;; Mock customize-set-variable to track the call
+                    ((symbol-function 'customize-set-variable)
+                     (lambda (variable value)
+                       (setq customize-set-variable-called t)
+                       (setq set-variable variable)
+                       (setq set-value value)))
+                    ;; Mock message to avoid output during tests
+                    ((symbol-function 'message) #'ignore))
+            
+            ;; Call greger-set-model
+            (greger-set-model)
+            
+            ;; Verify completing-read was called
+            (should completing-read-called)
+            
+            ;; Verify customize-set-variable was called with correct parameters
+            (should customize-set-variable-called)
+            (should (eq set-variable 'greger-model))
+            (should (eq set-value selected-model))))
+      
+      ;; Restore original model
+      (setq greger-model original-model))))
+
+(ert-deftest greger-test-debug-request ()
+  "Test greger-debug-request functionality."
+  (let ((temp-file nil)
+        (request-data-saved nil)
+        (read-string-called nil)
+        (filename-used nil))
+    
+    (unwind-protect
+        (with-temp-buffer
+          (greger-mode)
+          ;; Set up a basic greger buffer with some content
+          (insert greger-parser-system-tag "\n\nTest system prompt\n\n"
+                  greger-parser-user-tag "\n\nTest user message\n\n"
+                  greger-parser-assistant-tag "\n\nTest response")
+          
+          ;; Mock functions
+          (cl-letf (((symbol-function 'read-string)
+                     (lambda (prompt &optional initial-input history default-value)
+                       (setq read-string-called t)
+                       (should (string-match "Save to filename" prompt))
+                       (should (string= default-value "request.json"))
+                       (setq filename-used (or default-value "request.json"))
+                       filename-used))
+                    ;; Mock the greger-client--build-data function to return predictable JSON
+                    ((symbol-function 'greger-client--build-data)
+                     (lambda (model dialog tools server-tools thinking-budget max-tokens)
+                       (setq request-data-saved t)
+                       "{\"model\":\"test-model\",\"messages\":[]}"))
+                    ;; Mock message to avoid output during tests
+                    ((symbol-function 'message) #'ignore))
+            
+            ;; Call greger-debug-request
+            (greger-debug-request)
+            
+            ;; Verify read-string was called
+            (should read-string-called)
+            
+            ;; Verify request data was built
+            (should request-data-saved)
+            
+            ;; Verify file was created with expected content
+            (should (file-exists-p filename-used))
+            (with-temp-buffer
+              (insert-file-contents filename-used)
+              (let ((file-content (buffer-substring-no-properties (point-min) (point-max))))
+                ;; Should contain pretty-printed JSON
+                (should (string-match "model" file-content))
+                (should (string-match "messages" file-content))))
+            
+            (setq temp-file filename-used)))
+      
+      ;; Clean up temp file
+      (when (and temp-file (file-exists-p temp-file))
+        (delete-file temp-file)))))
+
 (provide 'test-greger)
 
 ;;; test-greger.el ends here
