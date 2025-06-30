@@ -673,31 +673,31 @@ buffer being updated according to the terminal sequences encountered."
          ;; ESC sequence
          ((= char ?\e)
           (if (and (< (1+ pos) len) (= (aref text (1+ pos)) ?\[))
-              ;; ANSI CSI sequence
-              (let ((csi-start (+ pos 2))
-                    (csi-end csi-start))
+              ;; ANSI CSI sequence - handle escape code
+              (let ((seq-start pos))
+                (setq pos (+ pos 2)) ; skip ESC[
                 ;; Find end of CSI sequence
-                (while (and (< csi-end len)
-                            (let ((c (aref text csi-end)))
+                (while (and (< pos len)
+                            (let ((c (aref text pos)))
                               (or (and (>= c ?0) (<= c ?9))
                                   (= c ?\;)
                                   (= c ?\:))))
-                  (setq csi-end (1+ csi-end)))
+                  (setq pos (1+ pos)))
                 
-                (if (< csi-end len)
-                    (let ((command (aref text csi-end)))
+                (if (< pos len)
+                    (let ((command (aref text pos)))
                       (cond
                        ;; ESC[K - clear from cursor to end of line
                        ((= command ?K)
                         (delete-region (point) (line-end-position))
-                        (setq pos (1+ csi-end)))
+                        (setq pos (1+ pos)))
                        
-                       ;; ESC[2K - clear entire line
-                       ((and (= (- csi-end csi-start) 1)
-                             (= (aref text csi-start) ?2)
+                       ;; ESC[2K - clear entire line  
+                       ((and (= (- pos (+ seq-start 2)) 1)
+                             (= (aref text (+ seq-start 2)) ?2)
                              (= command ?K))
                         (delete-region (line-beginning-position) (line-end-position))
-                        (setq pos (1+ csi-end)))
+                        (setq pos (1+ pos)))
                        
                        ;; ESC[A - cursor up (delete previous line)
                        ((= command ?A)
@@ -705,21 +705,21 @@ buffer being updated according to the terminal sequences encountered."
                           (forward-line -1)
                           (delete-region (line-beginning-position) 
                                          (min (1+ (line-end-position)) (point-max))))
-                        (setq pos (1+ csi-end)))
+                        (setq pos (1+ pos)))
                        
                        ;; ESC[B - cursor down (insert newline)
                        ((= command ?B)
                         (end-of-line)
                         (insert "\n")
-                        (setq pos (1+ csi-end)))
+                        (setq pos (1+ pos)))
                        
                        ;; Unrecognized sequence - insert as is
                        (t
-                        (insert (substring text pos (1+ csi-end)))
-                        (setq pos (1+ csi-end)))))
+                        (insert (substring text seq-start (1+ pos)))
+                        (setq pos (1+ pos)))))
                   
                   ;; Incomplete sequence - insert as is
-                  (insert (substring text pos))
+                  (insert (substring text seq-start))
                   (setq pos len)))
             
             ;; Not a CSI sequence, just insert the ESC
