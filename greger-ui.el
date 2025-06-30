@@ -656,7 +656,7 @@ the greger UI instead of showing all intermediate states."
     (setq processed-text (replace-regexp-in-string "\\[2?K" "" processed-text))
     
     ;; Process carriage returns by keeping only the last part after each \r on each line
-    (let ((lines (split-string processed-text "\n" t)))
+    (let ((lines (split-string processed-text "\n")))
       (setq processed-text
             (mapconcat 
              (lambda (line)
