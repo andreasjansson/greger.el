@@ -654,8 +654,7 @@ intermediate states.
 TEXT is processed character by character, with the cursor position in the
 buffer being updated according to the terminal sequences encountered."
   (let ((pos 0)
-        (len (length text))
-        (start-point (point)))
+        (len (length text)))
     
     (while (< pos len)
       (let ((char (aref text pos)))
@@ -679,42 +678,41 @@ buffer being updated according to the terminal sequences encountered."
                                   (= c ?\:))))
                   (setq csi-end (1+ csi-end)))
                 
-                (when (< csi-end len)
-                  (let ((command (aref text csi-end)))
-                    (cond
-                     ;; ESC[K - clear from cursor to end of line
-                     ((= command ?K)
-                      (delete-region (point) (line-end-position))
-                      (setq pos (1+ csi-end)))
-                     
-                     ;; ESC[2K - clear entire line
-                     ((and (>= (- csi-end csi-start) 1)
-                           (= (aref text csi-start) ?2)
-                           (= command ?K))
-                      (delete-region (line-beginning-position) (line-end-position))
-                      (setq pos (1+ csi-end)))
-                     
-                     ;; ESC[A - cursor up (delete previous line)
-                     ((= command ?A)
-                      (when (not (bobp))
-                        (forward-line -1)
-                        (delete-region (line-beginning-position) 
-                                       (min (1+ (line-end-position)) (point-max))))
-                      (setq pos (1+ csi-end)))
-                     
-                     ;; ESC[B - cursor down (insert newline)
-                     ((= command ?B)
-                      (end-of-line)
-                      (insert "\n")
-                      (setq pos (1+ csi-end)))
-                     
-                     ;; Unrecognized sequence - insert as is
-                     (t
-                      (insert (substring text pos (1+ csi-end)))
-                      (setq pos (1+ csi-end))))))
-                
-                ;; Incomplete sequence - insert as is
-                (when (>= csi-end len)
+                (if (< csi-end len)
+                    (let ((command (aref text csi-end)))
+                      (cond
+                       ;; ESC[K - clear from cursor to end of line
+                       ((= command ?K)
+                        (delete-region (point) (line-end-position))
+                        (setq pos (1+ csi-end)))
+                       
+                       ;; ESC[2K - clear entire line
+                       ((and (>= (- csi-end csi-start) 1)
+                             (= (aref text csi-start) ?2)
+                             (= command ?K))
+                        (delete-region (line-beginning-position) (line-end-position))
+                        (setq pos (1+ csi-end)))
+                       
+                       ;; ESC[A - cursor up (delete previous line)
+                       ((= command ?A)
+                        (when (not (bobp))
+                          (forward-line -1)
+                          (delete-region (line-beginning-position) 
+                                         (min (1+ (line-end-position)) (point-max))))
+                        (setq pos (1+ csi-end)))
+                       
+                       ;; ESC[B - cursor down (insert newline)
+                       ((= command ?B)
+                        (end-of-line)
+                        (insert "\n")
+                        (setq pos (1+ csi-end)))
+                       
+                       ;; Unrecognized sequence - insert as is
+                       (t
+                        (insert (substring text pos (1+ csi-end)))
+                        (setq pos (1+ csi-end)))))
+                  
+                  ;; Incomplete sequence - insert as is
                   (insert (substring text pos))
                   (setq pos len)))
             
