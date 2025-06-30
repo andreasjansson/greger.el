@@ -724,7 +724,12 @@ buffer being updated according to the terminal sequences encountered."
                                   (goto-char prev-line-start)))
                             ;; Current line has content, delete it
                             (delete-region line-start line-end)
-                            (goto-char line-start)))
+                            (goto-char line-start))
+                          ;; If we're at the end of input and there's a trailing newline, remove it
+                          (when (and (= (1+ pos) len)  ; This is the last escape sequence
+                                     (> (point) 1)
+                                     (= (char-before) ?\n))
+                            (delete-char -1)))
                         (setq pos (1+ pos)))
                        
                        ;; ESC[B - cursor down (insert newline)
