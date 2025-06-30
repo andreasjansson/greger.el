@@ -703,12 +703,11 @@ buffer being updated according to the terminal sequences encountered."
                        ((= command ?A)
                         (let ((line-start (line-beginning-position))
                               (line-end (line-end-position)))
-                          ;; Delete current line content only (not the newline)
+                          ;; Delete current line content
                           (delete-region line-start line-end)
-                          ;; Move cursor to the end of previous line if it exists  
-                          (when (and (> line-start 1)
-                                     (= (char-before line-start) ?\n))
-                            (backward-char 1)))
+                          ;; Position cursor at the beginning of this (now empty) line
+                          ;; The next text will be inserted here, creating the right structure
+                          (goto-char line-start))
                         (setq pos (1+ pos)))
                        
                        ;; ESC[B - cursor down (insert newline)
