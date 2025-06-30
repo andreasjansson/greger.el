@@ -40,7 +40,24 @@ Greger is a Claude chat interface with tool use. It can read and edit code, down
 
 ## Installation
 
-Greger is not on MELPA yet, so for now you'll need to download the repo and add it to your load path, and then
+Greger is available from MELPA. To install it, first add MELPA to your package archives by adding this to your init file:
+
+```elisp
+(require 'package)
+(add-to-list 'package-archives '("melpa" . "https://melpa.org/packages/") t)
+(package-initialize)
+```
+
+Then refresh your package list and install Greger:
+
+```
+M-x package-refresh-contents
+M-x package-install RET greger
+```
+
+Alternatively, you can use `M-x package-list-packages` to browse and install Greger interactively.
+
+Once installed, just add to your configuration:
 
 ``` emacs-lisp
 (require 'greger)
