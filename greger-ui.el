@@ -709,10 +709,17 @@ buffer being updated according to the terminal sequences encountered."
                                 (backward-char 1)  ; Move to previous line
                                 (let ((prev-line-start (line-beginning-position))
                                       (prev-line-end (line-end-position)))
-                                  (delete-region prev-line-start prev-line-end)
+                                  ;; Delete line content and its newline if present
+                                  (delete-region prev-line-start 
+                                                 (if (< prev-line-end (point-max))
+                                                     (1+ prev-line-end)
+                                                   prev-line-end))
                                   (goto-char prev-line-start)))
-                            ;; Current line has content, delete it
-                            (delete-region line-start line-end)
+                            ;; Current line has content, delete it and its newline if present
+                            (delete-region line-start 
+                                           (if (< line-end (point-max))
+                                               (1+ line-end)
+                                             line-end))
                             (goto-char line-start)))
                         (setq pos (1+ pos)))
                        
