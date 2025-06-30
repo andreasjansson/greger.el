@@ -672,7 +672,7 @@ Echo: hello world
           ;; Write test content to file
           (with-temp-file test-file
             (insert test-content))
-          
+
           ;; Open the file and position cursor at a specific location
           (setq source-buffer (find-file-noselect test-file))
           (with-current-buffer source-buffer
@@ -680,21 +680,21 @@ Echo: hello world
             (goto-char (point-min))
             (forward-line 4) ; Move to line 5 (TODO comment)
             (forward-char 9)  ; Move to column 9 (just after "// TODO: ")
-            
+
             ;; Mock window operations to avoid actual window manipulation in tests
             (cl-letf (((symbol-function 'split-window-right) #'ignore)
                       ((symbol-function 'other-window) #'ignore)
-                      ((symbol-function 'switch-to-buffer) 
-                       (lambda (buffer) 
+                      ((symbol-function 'switch-to-buffer)
+                       (lambda (buffer)
                          (setq greger-buffer buffer)
                          (set-buffer buffer))))
-              
+
               ;; Call greger with context (equivalent to (greger t))
               (let ((result-buffer (greger t)))
-                
+
                 ;; Verify the greger buffer was created and contains context info
                 (should (bufferp result-buffer))
-                
+
                 (with-current-buffer result-buffer
                   (let ((buffer-content (buffer-string)))
                     ;; Check that context information is included
@@ -702,17 +702,17 @@ Echo: hello world
                     (should (string-match "at line 5" buffer-content))
                     (should (string-match "and column 9" buffer-content))
                     (should (string-match "implement the following:" buffer-content))
-                    
+
                     ;; Verify the buffer is in greger-mode
                     (should (eq major-mode 'greger-mode))
-                    
+
                     ;; Check that system and user tags are present
                     (should (string-match greger-parser-system-tag buffer-content))
                     (should (string-match greger-parser-user-tag buffer-content))
-                    
+
                     ;; Check that default system prompt is present
                     (should (string-match greger-default-system-prompt buffer-content))))))))
-      
+
       ;; Clean up
       (when (and greger-buffer (buffer-live-p greger-buffer))
         (kill-buffer greger-buffer))
