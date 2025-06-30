@@ -705,7 +705,8 @@ Echo: hello world
 
 (ert-deftest greger-test-without-context-functionality ()
   "Test greger without context feature (regular greger call)."
-  (cl-letf (((symbol-function 'switch-to-buffer) #'ignore))
+  (cl-letf (((symbol-function 'switch-to-buffer) #'ignore)
+            ((symbol-function 'greger-mode) #'ignore))
     ;; Call greger without context
     (let ((result-buffer (greger)))
       (should (bufferp result-buffer))
