@@ -448,25 +448,25 @@ When disabled, point position is preserved using `save-excursion'."
         (insert (json-encode parsed-json))))
     (message "Request data saved to %s" filename)))
 
-(defun greger-buffer ()
-  "Send buffer content to AI as an agent dialog with tool support."
-  (interactive)
-
+(defun greger-buffer (&optional no-tools)
+  "Send buffer content to AI as an agent dialog with tool support.
+When NO-TOOLS is set, disable tools and thinking."
+  (interactive "P")
   (greger--ensure-buffer-can-be-submitted)
 
-  (greger--run-agent-loop (make-greger-state
-                           :current-iteration 0
-                           :chat-buffer (current-buffer)
-                           :directory default-directory
-                           :tool-use-metadata `(:safe-shell-commands () :allow-all-shell-commands ,greger-allow-all-shell-commands))))
+  (let ((greger-tools (if no-tools '() greger-tools))
+        (greger-server-tools (if no-tools '() greger-server-tools))
+        (greger-current-thinking-budget (if no-tools 0 greger-current-thinking-budget)))
+   (greger--run-agent-loop (make-greger-state
+                            :current-iteration 0
+                            :chat-buffer (current-buffer)
+                            :directory default-directory
+                            :tool-use-metadata `(:safe-shell-commands () :allow-all-shell-commands ,greger-allow-all-shell-commands)))))
 
 (defun greger-buffer-no-tools ()
   "Send the buffer content to AI as a dialog without tool use or thinking."
   (interactive)
-  (let ((greger-tools '())
-        (greger-server-tools '())
-        (greger-current-thinking-budget 0))
-    (greger-buffer)))
+  (greger-buffer t))
 
 (defmacro greger--maybe-save-excursion (&rest body)
   "Execute BODY, optionally preserving point position.

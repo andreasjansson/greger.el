@@ -114,7 +114,7 @@ The recommended key binding for `greger` is `C-M-;`
 In Greger buffers:
 
 - `M-<return>` - Run agent (`greger-buffer`)
-- `C-M-<return>` - Run without tools or thinking (`greger-buffer-no-tools`)
+- `C-M-<return>` or `C-u M-<return>`- Run without tools or thinking (`greger-buffer-no-tools`)
 - `C-g` - Interrupt tool execution or text generation (`greger-interrupt`)
 - `C-; u` - Insert `# USER` tag (`greger-insert-user-tag`)
 - `C-; a` - Insert `# ASSISTANT` tag (`greger-insert-assistant-tag`)
@@ -124,7 +124,7 @@ In Greger buffers:
 - `C-; t` - Toggle thinking off and on (`greger-toggle-thinking`)
 - `C-; f` - Toggle follow mode (`greger-toggle-follow-mode`)
 - `C-; C-f` - Toggle folding and invisibility (`greger-ui-toggle-folding`)
-- `TAB` - When inside a folded code block or citation: toggle folding (`greger-ui--toggle-citation-fold` / `greger-ui--toggle-tool-content-*-fold`) 
+- `TAB` - When inside a folded code block or citation: toggle folding
 
 ## Features
 
