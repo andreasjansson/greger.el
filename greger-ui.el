@@ -722,12 +722,13 @@ buffer being updated according to the terminal sequences encountered."
                                                      (1+ prev-line-end)
                                                    prev-line-end))
                                   (goto-char prev-line-start)))
-                            ;; Current line has content, delete it and its newline if present
-                            (delete-region line-start 
-                                           (if (< line-end (point-max))
-                                               (1+ line-end)
-                                             line-end))
-                            (goto-char line-start)))
+                            ;; Current line has content, delete it and preceding newline if present
+                            (let ((delete-start (if (and (> line-start 1) 
+                                                          (= (char-before line-start) ?\n))
+                                                     (1- line-start)  ; Include preceding newline
+                                                   line-start)))
+                              (delete-region delete-start line-end)
+                              (goto-char delete-start))))
                         (setq pos (1+ pos)))
                        
                        ;; ESC[B - cursor down (insert newline)
