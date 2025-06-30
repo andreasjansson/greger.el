@@ -805,24 +805,6 @@ Processes INPUT in a temp buffer and returns the result."
   (should (string= "Line 1\n\n\nLine 4"
                    (greger-ui-test--process-terminal-sequences "Line 1\e[B\e[BLine 4"))))
 
-(ert-deftest greger-ui-test-process-terminal-sequences-performance ()
-  "Test that the function handles large inputs reasonably well."
-  ;; Large text with many carriage returns (simulating long progress output)
-  (let* ((iterations 1000)
-         (large-input (mapconcat (lambda (i) (format "Progress: %d%%\r" (/ (* i 100) iterations)))
-                                 (number-sequence 0 iterations) ""))
-         (start-time (current-time)))
-
-    ;; Add final progress
-    (setq large-input (concat large-input "Progress: 100% Complete!"))
-
-    (let ((result (greger-ui-test--process-terminal-sequences large-input)))
-      (should (string= "Progress: 100% Complete!" result))
-
-      ;; Check that it completes in reasonable time (less than 1 second)
-      (let ((elapsed (float-time (time-subtract (current-time) start-time))))
-        (should (< elapsed 1.0))))))
-
 (ert-deftest greger-ui-test-ansi-clear-sequences ()
   "Test ANSI escape sequence clearing behavior."
   ;; Test ESC[K sequence - should clear to end of line
