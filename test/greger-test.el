@@ -662,11 +662,10 @@ Echo: hello world
           (should (gethash "test-tool-id" executing-tools-map)))))))
 
 (ert-deftest greger-test-with-context ()
-  "Test greger with-context feature using real temp file and (greger t) call."
+  "Test calling (greger-buffer t) from a temp file with specific cursor position."
   (let ((test-file (make-temp-file "greger-test-context" nil ".txt"))
         (test-content "function calculateSum(a, b) {\n  return a + b;\n}\n\n// TODO: Add error handling here\nconsole.log('Hello world');")
-        (source-buffer nil)
-        (greger-buffer nil))
+        (source-buffer nil))
     (unwind-protect
         (progn
           ;; Write test content to file
@@ -681,58 +680,35 @@ Echo: hello world
             (forward-line 4) ; Move to line 5 (TODO comment)
             (forward-char 9)  ; Move to column 9 (just after "// TODO: ")
             
-            ;; Test the context collection logic directly to avoid window manipulation
-            (let* ((with-context t)
-                   (source-info (when with-context
-                                  (save-buffer)
-                                  (list (buffer-file-name)
-                                        (line-number-at-pos)
-                                        (current-column))))
-                   (buffer (generate-new-buffer "*greger*")))
-              
-              (setq greger-buffer buffer)
-              (with-current-buffer buffer
-                (greger-mode)
-                (insert greger-parser-system-tag
-                        "\n\n" greger-default-system-prompt "\n\n"
-                        greger-parser-user-tag
-                        "\n\n")
-                (when source-info
-                  (let ((file-name (nth 0 source-info))
-                        (line-num (nth 1 source-info))
-                        (column (nth 2 source-info)))
-                    (insert (format "In %s, at line %d%s, implement the following:\n\n"
-                                    file-name
-                                    line-num
-                                    (if (> column 0)
-                                        (format " and column %d" column)
-                                      ""))))))
-              
-              ;; Verify the context information is correct
-              (should source-info)
-              (should (string= (nth 0 source-info) test-file))
-              (should (= (nth 1 source-info) 5))
-              (should (= (nth 2 source-info) 9))
-              
-              ;; Verify the greger buffer content
-              (with-current-buffer buffer
-                (let ((buffer-content (buffer-string)))
-                  ;; Check that context information is included
-                  (should (string-match (regexp-quote test-file) buffer-content))
-                  (should (string-match "at line 5" buffer-content))
-                  (should (string-match "and column 9" buffer-content))
-                  (should (string-match "implement the following:" buffer-content))
-                  
-                  ;; Verify the buffer is in greger-mode
-                  (should (eq major-mode 'greger-mode))
-                  
-                  ;; Check that system and user tags are present
-                  (should (string-match greger-parser-system-tag buffer-content))
-                  (should (string-match greger-parser-user-tag buffer-content)))))))
+            ;; Mock the agent loop to capture what would be sent
+            (let ((captured-state nil))
+              (cl-letf (((symbol-function 'greger--run-agent-loop)
+                         (lambda (state)
+                           (setq captured-state state)
+                           "Mocked agent response"))
+                        ((symbol-function 'greger--ensure-buffer-can-be-submitted)
+                         #'ignore))
+                
+                ;; Call greger-buffer with t (no-tools parameter)
+                (greger-buffer t)
+                
+                ;; Verify the state was created correctly
+                (should captured-state)
+                (should (eq (greger-state-chat-buffer captured-state) source-buffer))
+                (should (string= (greger-state-directory captured-state) default-directory))
+                
+                ;; Verify the current buffer is the source buffer with content
+                (should (eq (current-buffer) source-buffer))
+                (should (string= (buffer-string) test-content))
+                
+                ;; Verify cursor position
+                (should (= (line-number-at-pos) 5))
+                (should (= (current-column) 9))
+                
+                ;; Verify buffer has the test file name
+                (should (string= (buffer-file-name) test-file))))))
       
       ;; Clean up
-      (when (and greger-buffer (buffer-live-p greger-buffer))
-        (kill-buffer greger-buffer))
       (when (and source-buffer (buffer-live-p source-buffer))
         (kill-buffer source-buffer))
       (when (file-exists-p test-file)
