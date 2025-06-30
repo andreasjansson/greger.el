@@ -250,17 +250,22 @@ parameters.  Returns a list of arguments in the correct order for the function."
                              (alist-get 'required input-schema)))))
     (cl-loop for arg-name in arg-list
              until (eq arg-name '&rest)
-             when (not (eq arg-name '&optional))
-             for arg-symbol = (if (symbolp arg-name) arg-name (intern (symbol-name arg-name)))
-             for arg-key = (intern (symbol-name arg-symbol))
-             for arg-provided-p = (assoc arg-key args)
-             for is-required = (member (symbol-name arg-key) required-params)
-             if (and is-required (not arg-provided-p))
-               do (error "Required parameter missing: %s" arg-key)
-             else if arg-provided-p
-               collect (greger-tools--maybe-parse-json-value (alist-get arg-key args) arg-key tool-def)
-             else
-               collect (greger-tools--get-default-from-schema arg-key tool-def))))
+             unless (eq arg-name '&optional)
+             collect
+             (let* ((arg-symbol (if (symbolp arg-name) arg-name (intern (symbol-name arg-name))))
+                    (arg-key (intern (symbol-name arg-symbol)))
+                    (arg-provided-p (assoc arg-key args))
+                    (is-required (member (symbol-name arg-key) required-params)))
+               (cond
+                ;; Required parameter not provided
+                ((and is-required (not arg-provided-p))
+                 (error "Required parameter missing: %s" arg-key))
+                ;; Parameter provided (required or optional)
+                (arg-provided-p
+                 (greger-tools--maybe-parse-json-value (alist-get arg-key args) arg-key tool-def))
+                ;; Optional parameter not provided - use default or nil
+                (t
+                 (greger-tools--get-default-from-schema arg-key tool-def)))))))
 
 (defun greger-tools--get-default-from-schema (arg-key tool-def)
   "Get default value for ARG-KEY from TOOL-DEF schema."
