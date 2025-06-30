@@ -1,4 +1,4 @@
-;;; greger.el --- Agentic coding with tool use -*- lexical-binding: t -*-
+;;; greger.el --- Agentic coding environment with tool use, using Claude -*- lexical-binding: t -*-
 
 ;; Copyright (C) 2025 Andreas Jansson
 

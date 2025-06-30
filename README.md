@@ -6,7 +6,7 @@
 
 # Greger.el - Agentic coding in Emacs
 
-[![CI](https://github.com/andreasjansson/greger.el/actions/workflows/ci.yml/badge.svg)](https://github.com/andreasjansson/greger.el/actions/workflows/ci.yml) [![Coverage Status](https://coveralls.io/repos/github/andreasjansson/greger.el/badge.svg?branch=main)](https://coveralls.io/github/andreasjansson/greger.el?branch=main)
+[![MELPA](https://melpa.org/packages/greger-badge.svg)](https://melpa.org/#/greger) [![CI](https://github.com/andreasjansson/greger.el/actions/workflows/ci.yml/badge.svg)](https://github.com/andreasjansson/greger.el/actions/workflows/ci.yml) [![Coverage Status](https://coveralls.io/repos/github/andreasjansson/greger.el/badge.svg?branch=main)](https://coveralls.io/github/andreasjansson/greger.el?branch=main)
 
 Greger is a Claude chat interface with tool use. It can read and edit code, download web pages, run shell commands, etc.
 
