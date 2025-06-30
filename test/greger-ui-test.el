@@ -593,6 +593,76 @@ example.py
       (should (greger-ui-test-font-lock-face-at "'old implementation'"))
       (should (greger-ui-test-font-lock-face-at "return")))))
 
+(ert-deftest greger-ui-test-diff-syntax-highlighting ()
+  "Test str-replace diff transformation and syntax highlighting."
+  (with-current-buffer (greger)
+    (let ((greger-ui-folding-mode nil)
+          (content "# TOOL USE
+
+Name: str-replace
+ID: toolu_999
+
+## path
+
+<tool.toolu_999>
+example.py
+</tool.toolu_999>
+
+## diff
+
+<tool.toolu_999>
+-def old_function():
+-    print('old implementation')
+-    return False
+\\ No newline at end of file
++def new_function():
++    print('new implementation')
++    return True
+\\ No newline at end of file
+
+</tool.toolu_999>
+
+"))
+      (erase-buffer)
+      ;; Temporarily disable folding mode for this test to prevent invisible text issues
+      (insert content)
+
+      (font-lock-ensure)
+
+      ;; Check that the content is unaltered
+      (let ((expected content))
+        (should (string= expected (greger-ui-test--visible-text))))
+
+      (greger-ui-toggle-folding)
+      (font-lock-ensure)
+
+      ;; Check that the content has been transformed to diff format
+      (let ((expected "# TOOL USE
+
+Name: str-replace
+
+## path
+
+example.py
+
+## diff
+
+-def old_function():
+-    print('old implementation')
+-    return False
+\\ No newline at end of file
+
+"))
+        (should (string= expected (greger-ui-test--visible-text))))
+
+      ;; Check that Python syntax highlighting has been applied to the diff
+      ;; The diff transformation applies both syntax highlighting and diff faces
+      ;; so we check that font-lock-face properties are present (not nil)
+      (should (greger-ui-test-font-lock-face-at "def"))
+      (should (greger-ui-test-font-lock-face-at "old_function"))
+      (should (greger-ui-test-font-lock-face-at "'old implementation'"))
+      (should (greger-ui-test-font-lock-face-at "return")))))
+
 ;; Terminal sequence processing tests
 
 (defun greger-ui-test--process-terminal-sequences (input)

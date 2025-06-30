@@ -2426,24 +2426,24 @@ drwx------  (dir)  ..
             (should (= 0 (call-process "git" nil nil nil "init")))
             (should (= 0 (call-process "git" nil nil nil "config" "user.name" "Test User")))
             (should (= 0 (call-process "git" nil nil nil "config" "user.email" "test@example.com"))))
-          
+
           ;; Create test file
           (setq test-file (expand-file-name "test.txt" test-dir))
           (with-temp-file test-file
             (insert test-content))
-          
+
           ;; Test git stage and commit
-          (let ((result (greger-stdlib--git-stage-and-commit 
+          (let ((result (greger-stdlib--git-stage-and-commit
                          (list test-file)
                          "Initial commit: add test file")))
             (should (stringp result))
             (should (string-match "Successfully staged 1 file(s) and committed" result))
             (should (string-match "Initial commit: add test file" result)))
-          
+
           ;; Verify file is committed
           (let ((default-directory test-dir))
             (should (= 0 (call-process "git" nil nil nil "ls-files" "--error-unmatch" "test.txt")))))
-      
+
       ;; Clean up
       (when (file-exists-p test-dir)
         (delete-directory test-dir t)))))
@@ -2460,26 +2460,26 @@ drwx------  (dir)  ..
             (should (= 0 (call-process "git" nil nil nil "init")))
             (should (= 0 (call-process "git" nil nil nil "config" "user.name" "Test User")))
             (should (= 0 (call-process "git" nil nil nil "config" "user.email" "test@example.com"))))
-          
+
           ;; Create test files
           (setq test-file1 (expand-file-name "file1.txt" test-dir))
           (setq test-file2 (expand-file-name "file2.txt" test-dir))
           (with-temp-file test-file1 (insert "Content of file 1"))
           (with-temp-file test-file2 (insert "Content of file 2"))
-          
+
           ;; Test git stage and commit multiple files
-          (let ((result (greger-stdlib--git-stage-and-commit 
+          (let ((result (greger-stdlib--git-stage-and-commit
                          (list test-file1 test-file2)
                          "Add multiple test files")))
             (should (stringp result))
             (should (string-match "Successfully staged 2 file(s) and committed" result))
             (should (string-match "Add multiple test files" result)))
-          
+
           ;; Verify both files are committed
           (let ((default-directory test-dir))
             (should (= 0 (call-process "git" nil nil nil "ls-files" "--error-unmatch" "file1.txt")))
             (should (= 0 (call-process "git" nil nil nil "ls-files" "--error-unmatch" "file2.txt")))))
-      
+
       ;; Clean up
       (when (file-exists-p test-dir)
         (delete-directory test-dir t)))))
@@ -2494,14 +2494,14 @@ drwx------  (dir)  ..
           (setq test-file (expand-file-name "test.txt" test-dir))
           (with-temp-file test-file
             (insert "Test content"))
-          
+
           ;; Should return error message when trying to stage and commit
-          (let ((result (greger-stdlib--git-stage-and-commit 
+          (let ((result (greger-stdlib--git-stage-and-commit
                          (list test-file)
                          "This should fail")))
             (should (stringp result))
             (should (string-match "not in a git repository" result))))
-      
+
       ;; Clean up
       (when (file-exists-p test-dir)
         (delete-directory test-dir t)))))
@@ -2519,7 +2519,7 @@ drwx------  (dir)  ..
             (should (= 0 (call-process "git" nil nil nil "init")))
             (should (= 0 (call-process "git" nil nil nil "config" "user.name" "Test User")))
             (should (= 0 (call-process "git" nil nil nil "config" "user.email" "test@example.com"))))
-          
+
           ;; Create and commit chat file first (to make it tracked)
           (setq chat-file (expand-file-name "chat.greger" test-dir))
           (with-temp-file chat-file
@@ -2527,32 +2527,32 @@ drwx------  (dir)  ..
           (let ((default-directory test-dir))
             (should (= 0 (call-process "git" nil nil nil "add" "chat.greger")))
             (should (= 0 (call-process "git" nil nil nil "commit" "-m" "Initial chat"))))
-          
+
           ;; Create chat buffer and modify it
           (setq chat-buffer (find-file-noselect chat-file))
           (with-current-buffer chat-buffer
             (goto-char (point-max))
             (insert "\nUpdated chat content"))
-          
+
           ;; Create test file
           (setq test-file (expand-file-name "test.txt" test-dir))
           (with-temp-file test-file
             (insert "Test content"))
-          
+
           ;; Test git stage and commit with chat buffer
-          (let ((result (greger-stdlib--git-stage-and-commit 
+          (let ((result (greger-stdlib--git-stage-and-commit
                          (list test-file)
                          "Add test file and update chat"
                          chat-buffer)))
             (should (stringp result))
             (should (string-match "Successfully staged 2 file(s) and committed" result))
             (should (string-match "Add test file and update chat" result)))
-          
+
           ;; Verify both files are committed
           (let ((default-directory test-dir))
             (should (= 0 (call-process "git" nil nil nil "ls-files" "--error-unmatch" "test.txt")))
             (should (= 0 (call-process "git" nil nil nil "ls-files" "--error-unmatch" "chat.greger")))))
-      
+
       ;; Clean up
       (when chat-buffer (kill-buffer chat-buffer))
       (when (file-exists-p test-dir)
@@ -2571,22 +2571,22 @@ drwx------  (dir)  ..
             (should (= 0 (call-process "git" nil nil nil "init")))
             (should (= 0 (call-process "git" nil nil nil "config" "user.name" "Test User")))
             (should (= 0 (call-process "git" nil nil nil "config" "user.email" "test@example.com"))))
-          
+
           ;; Create chat file but don't track it
           (setq chat-file (expand-file-name "untracked-chat.greger" test-dir))
           (with-temp-file chat-file
             (insert "Untracked chat content"))
-          
+
           ;; Create chat buffer
           (setq chat-buffer (find-file-noselect chat-file))
-          
+
           ;; Create test file
           (setq test-file (expand-file-name "test.txt" test-dir))
           (with-temp-file test-file
             (insert "Test content"))
-          
+
           ;; Test git stage and commit with untracked chat buffer
-          (let ((result (greger-stdlib--git-stage-and-commit 
+          (let ((result (greger-stdlib--git-stage-and-commit
                          (list test-file)
                          "Add test file (chat untracked)"
                          chat-buffer)))
@@ -2594,13 +2594,13 @@ drwx------  (dir)  ..
             ;; Should only stage the test file, not the untracked chat file
             (should (string-match "Successfully staged 1 file(s) and committed" result))
             (should (string-match "Add test file (chat untracked)" result)))
-          
+
           ;; Verify only test file is committed
           (let ((default-directory test-dir))
             (should (= 0 (call-process "git" nil nil nil "ls-files" "--error-unmatch" "test.txt")))
             ;; Chat file should not be tracked
             (should-not (= 0 (call-process "git" nil nil nil "ls-files" "--error-unmatch" "untracked-chat.greger")))))
-      
+
       ;; Clean up
       (when chat-buffer (kill-buffer chat-buffer))
       (when (file-exists-p test-dir)
@@ -2617,25 +2617,25 @@ drwx------  (dir)  ..
             (should (= 0 (call-process "git" nil nil nil "init")))
             (should (= 0 (call-process "git" nil nil nil "config" "user.name" "Test User")))
             (should (= 0 (call-process "git" nil nil nil "config" "user.email" "test@example.com"))))
-          
+
           ;; Create test file
           (setq test-file (expand-file-name "test.txt" test-dir))
           (with-temp-file test-file
             (insert "Test content"))
-          
+
           ;; Test git stage and commit without chat buffer
-          (let ((result (greger-stdlib--git-stage-and-commit 
+          (let ((result (greger-stdlib--git-stage-and-commit
                          (list test-file)
                          "Add test file (no chat buffer)"
                          nil)))
             (should (stringp result))
             (should (string-match "Successfully staged 1 file(s) and committed" result))
             (should (string-match "Add test file (no chat buffer)" result)))
-          
+
           ;; Verify file is committed
           (let ((default-directory test-dir))
             (should (= 0 (call-process "git" nil nil nil "ls-files" "--error-unmatch" "test.txt")))))
-      
+
       ;; Clean up
       (when (file-exists-p test-dir)
         (delete-directory test-dir t)))))
@@ -2651,17 +2651,17 @@ drwx------  (dir)  ..
             (should (= 0 (call-process "git" nil nil nil "init")))
             (should (= 0 (call-process "git" nil nil nil "config" "user.name" "Test User")))
             (should (= 0 (call-process "git" nil nil nil "config" "user.email" "test@example.com"))))
-          
+
           ;; Try to stage a non-existent file
           (setq test-file (expand-file-name "nonexistent.txt" test-dir))
-          
+
           ;; Should return error message when trying to stage non-existent file
-          (let ((result (greger-stdlib--git-stage-and-commit 
+          (let ((result (greger-stdlib--git-stage-and-commit
                          (list test-file)
                          "This should fail - file doesn't exist")))
             (should (stringp result))
             (should (string-match "Failed to stage file" result))))
-      
+
       ;; Clean up
       (when (file-exists-p test-dir)
         (delete-directory test-dir t)))))
@@ -2678,26 +2678,26 @@ drwx------  (dir)  ..
             (should (= 0 (call-process "git" nil nil nil "init")))
             (should (= 0 (call-process "git" nil nil nil "config" "user.name" "Test User")))
             (should (= 0 (call-process "git" nil nil nil "config" "user.email" "test@example.com"))))
-          
+
           ;; Create subdirectory and file
           (setq subdir (expand-file-name "subdir" test-dir))
           (make-directory subdir)
           (setq test-file (expand-file-name "test.txt" subdir))
           (with-temp-file test-file
             (insert "Test content in subdirectory"))
-          
+
           ;; Test git stage and commit with file in subdirectory
-          (let ((result (greger-stdlib--git-stage-and-commit 
+          (let ((result (greger-stdlib--git-stage-and-commit
                          (list test-file)
                          "Add file in subdirectory")))
             (should (stringp result))
             (should (string-match "Successfully staged 1 file(s) and committed" result))
             (should (string-match "Add file in subdirectory" result)))
-          
+
           ;; Verify file is committed with relative path
           (let ((default-directory test-dir))
             (should (= 0 (call-process "git" nil nil nil "ls-files" "--error-unmatch" "subdir/test.txt")))))
-      
+
       ;; Clean up
       (when (file-exists-p test-dir)
         (delete-directory test-dir t)))))

@@ -669,26 +669,26 @@ Echo: hello world
     (goto-char (point-min))
     (forward-line 1) ; Move to line 2
     (forward-char 3)  ; Move to column 3
-    
+
     ;; Mock functions and test the logic directly
     (cl-letf (((symbol-function 'save-buffer) #'ignore)
-              ((symbol-function 'buffer-file-name) 
+              ((symbol-function 'buffer-file-name)
                (lambda () "/test/path/test-file.txt")))
-      
+
       ;; Test that context information is properly collected
       (let* ((with-context t)
              (source-info (when with-context
-                           (save-buffer)
-                           (list (buffer-file-name)
-                                 (line-number-at-pos)
-                                 (current-column)))))
-        
+                            (save-buffer)
+                            (list (buffer-file-name)
+                                  (line-number-at-pos)
+                                  (current-column)))))
+
         ;; Verify context information is captured correctly
         (should source-info)
         (should (string= (nth 0 source-info) "/test/path/test-file.txt"))
         (should (= (nth 1 source-info) 2))
         (should (= (nth 2 source-info) 3))
-        
+
         ;; Test the context message generation
         (let ((file-name (nth 0 source-info))
               (line-num (nth 1 source-info))
@@ -710,20 +710,20 @@ Echo: hello world
     (goto-char (point-min))
     (forward-line 1) ; Move to line 2
     (forward-char 3)  ; Move to column 3
-    
+
     ;; Mock functions
     (cl-letf (((symbol-function 'save-buffer) #'ignore)
-              ((symbol-function 'buffer-file-name) 
+              ((symbol-function 'buffer-file-name)
                (lambda () "/test/path/test-file.txt")))
-      
+
       ;; Test that without context, no source info is collected
       (let* ((with-context nil)
              (source-info (when with-context
-                           (save-buffer)
-                           (list (buffer-file-name)
-                                 (line-number-at-pos)
-                                 (current-column)))))
-        
+                            (save-buffer)
+                            (list (buffer-file-name)
+                                  (line-number-at-pos)
+                                  (current-column)))))
+
         ;; Verify no context information is captured
         (should-not source-info)))))
 
@@ -735,7 +735,7 @@ Echo: hello world
         (customize-set-variable-called nil)
         (set-variable nil)
         (set-value nil))
-    
+
     (unwind-protect
         (progn
           ;; Mock completing-read to return a specific model
@@ -754,18 +754,18 @@ Echo: hello world
                        (setq set-value value)))
                     ;; Mock message to avoid output during tests
                     ((symbol-function 'message) #'ignore))
-            
+
             ;; Call greger-set-model
             (greger-set-model)
-            
+
             ;; Verify completing-read was called
             (should completing-read-called)
-            
+
             ;; Verify customize-set-variable was called with correct parameters
             (should customize-set-variable-called)
             (should (eq set-variable 'greger-model))
             (should (eq set-value selected-model))))
-      
+
       ;; Restore original model
       (setq greger-model original-model))))
 
@@ -777,7 +777,7 @@ Echo: hello world
         (find-file-called nil)
         (filename-used nil)
         (opened-filename nil))
-    
+
     (unwind-protect
         (with-temp-buffer
           (greger-mode)
@@ -785,7 +785,7 @@ Echo: hello world
           (insert greger-parser-system-tag "\n\nTest system prompt\n\n"
                   greger-parser-user-tag "\n\nTest user message\n\n"
                   greger-parser-assistant-tag "\n\nTest response")
-          
+
           ;; Mock functions
           (cl-letf (((symbol-function 'read-string)
                      (lambda (prompt &optional initial-input history default-value)
@@ -806,20 +806,20 @@ Echo: hello world
                        (setq opened-filename filename)))
                     ;; Mock message to avoid output during tests
                     ((symbol-function 'message) #'ignore))
-            
+
             ;; Call greger-debug-request
             (greger-debug-request)
-            
+
             ;; Verify read-string was called
             (should read-string-called)
-            
+
             ;; Verify request data was built
             (should request-data-saved)
-            
+
             ;; Verify find-file was called with the correct filename
             (should find-file-called)
             (should (string= opened-filename filename-used))
-            
+
             ;; Verify file was created with expected content
             (should (file-exists-p filename-used))
             (with-temp-buffer
@@ -828,9 +828,9 @@ Echo: hello world
                 ;; Should contain pretty-printed JSON
                 (should (string-match "model" file-content))
                 (should (string-match "messages" file-content))))
-            
+
             (setq temp-file filename-used)))
-      
+
       ;; Clean up temp file
       (when (and temp-file (file-exists-p temp-file))
         (delete-file temp-file)))))
