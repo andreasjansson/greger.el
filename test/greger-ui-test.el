@@ -605,13 +605,13 @@ Processes INPUT in a temp buffer and returns the result."
 (ert-deftest greger-ui-test-process-terminal-sequences-carriage-return-basic ()
   "Test basic carriage return handling - overwrites current line."
   ;; Basic carriage return at end of string
-  (should (string= "new content" 
+  (should (string= "new content"
                    (greger-ui-test--process-terminal-sequences "old content\rnew content")))
-  
-  ;; Multiple carriage returns  
-  (should (string= "final" 
+
+  ;; Multiple carriage returns
+  (should (string= "final"
                    (greger-ui-test--process-terminal-sequences "first\rsecond\rfinal")))
-  
+
   ;; Carriage return with newline preservation
   (should (string= "line1\noverwritten\nline3"
                    (greger-ui-test--process-terminal-sequences "line1\noriginal\roverwritten\nline3"))))
@@ -621,7 +621,7 @@ Processes INPUT in a temp buffer and returns the result."
   ;; Simulate typical progress bar output like wget or homebrew
   (should (string= "Progress: 100% Complete!"
                    (greger-ui-test--process-terminal-sequences "Downloading file...\rProgress: 25%\rProgress: 50%\rProgress: 100% Complete!")))
-  
+
   ;; Multiple progress bars on separate lines - each line handled independently
   (should (string= "File1: 100%\nFile2: 100%"
                    (greger-ui-test--process-terminal-sequences "File1: 0%\rFile1: 50%\rFile1: 100%\nFile2: 0%\rFile2: 30%\rFile2: 100%"))))
@@ -635,17 +635,17 @@ Processes INPUT in a temp buffer and returns the result."
 (ert-deftest greger-ui-test-process-terminal-sequences-escape-sequences ()
   "Test handling of ANSI escape sequences for cursor movement."
   ;; ESC[K - clear to end of line
-  (should (string= "keep" 
+  (should (string= "keep"
                    (greger-ui-test--process-terminal-sequences "keep\e[K")))
-  
+
   ;; ESC[2K - clear entire line
-  (should (string= "" 
+  (should (string= ""
                    (greger-ui-test--process-terminal-sequences "remove this\e[2K")))
-  
+
   ;; ESC[A - cursor up (delete previous line)
   (should (string= "line1\nfinal"
                    (greger-ui-test--process-terminal-sequences "line1\nremove\e[Afinal")))
-  
+
   ;; ESC[B - cursor down (insert newline)
   (should (string= "line1\n\nline3"
                    (greger-ui-test--process-terminal-sequences "line1\e[Bline3"))))
@@ -653,9 +653,9 @@ Processes INPUT in a temp buffer and returns the result."
 (ert-deftest greger-ui-test-process-terminal-sequences-mixed-control-codes ()
   "Test mixed control codes and escape sequences."
   ;; Combination of carriage return and escape sequences
-  (should (string= "Progress 100%" 
+  (should (string= "Progress 100%"
                    (greger-ui-test--process-terminal-sequences "Start\rProgress 50%\e[KProgress 100%")))
-  
+
   ;; Complex sequence with line clearing and carriage returns
   (should (string= "Line1\nNew Content\nLine3"
                    (greger-ui-test--process-terminal-sequences "Line1\nOld\e[2K\rNew Content\nLine3"))))
@@ -664,21 +664,21 @@ Processes INPUT in a temp buffer and returns the result."
   "Test edge cases in terminal sequence processing."
   ;; Empty string
   (should (string= "" (greger-ui-test--process-terminal-sequences "")))
-  
+
   ;; Just carriage return
   (should (string= "" (greger-ui-test--process-terminal-sequences "\r")))
-  
+
   ;; Just escape sequence
   (should (string= "" (greger-ui-test--process-terminal-sequences "\e[K")))
-  
+
   ;; Text with no control sequences
-  (should (string= "normal text\nwith lines" 
+  (should (string= "normal text\nwith lines"
                    (greger-ui-test--process-terminal-sequences "normal text\nwith lines")))
-  
+
   ;; Invalid escape sequence (should be preserved)
   (should (string= "text\e[Zinvalid"
                    (greger-ui-test--process-terminal-sequences "text\e[Zinvalid")))
-  
+
   ;; ESC without bracket
   (should (string= "text\ealone"
                    (greger-ui-test--process-terminal-sequences "text\ealone"))))
@@ -688,15 +688,15 @@ Processes INPUT in a temp buffer and returns the result."
   ;; Text ending with newline should preserve it
   (should (string= "line1\nline2\n"
                    (greger-ui-test--process-terminal-sequences "line1\nline2\n")))
-  
+
   ;; Text not ending with newline should not add one
   (should (string= "line1\nline2"
                    (greger-ui-test--process-terminal-sequences "line1\nline2")))
-  
+
   ;; Carriage return at end without newline
   (should (string= "final"
                    (greger-ui-test--process-terminal-sequences "original\rfinal")))
-  
+
   ;; Carriage return at end with newline
   (should (string= "final\n"
                    (greger-ui-test--process-terminal-sequences "original\rfinal\n"))))
@@ -706,11 +706,11 @@ Processes INPUT in a temp buffer and returns the result."
   ;; Git clone progress
   (should (string= "Receiving objects: 100%"
                    (greger-ui-test--process-terminal-sequences "Cloning into 'repo'...\rReceiving objects: 50%\rReceiving objects: 100%")))
-  
+
   ;; npm install progress - spinner characters cleaned up
   (should (string= "Installing dependencies...\n✓ package1"
                    (greger-ui-test--process-terminal-sequences "Installing dependencies...\n⠋ package1\r⠙ package1\r⠹ package1\r✓ package1")))
-  
+
   ;; wget download progress - final state preserved
   (should (string= "file.tar.gz      100%[======>] 12.0MB  1.2MB/s"
                    (greger-ui-test--process-terminal-sequences "file.tar.gz       10%[=>     ]  1.2MB  500KB/s\rfile.tar.gz      100%[======>] 12.0MB  1.2MB/s"))))
@@ -720,7 +720,7 @@ Processes INPUT in a temp buffer and returns the result."
   ;; Each line has its own overwrite pattern
   (should (string= "Line1: done\nLine2: done\nLine3: final"
                    (greger-ui-test--process-terminal-sequences "Line1: start\rLine1: done\nLine2: start\rLine2: done\nLine3: final")))
-  
+
   ;; Mixed patterns across lines
   (should (string= "Static line\nProgress: 100%\nAnother static line"
                    (greger-ui-test--process-terminal-sequences "Static line\nProgress: 0%\rProgress: 100%\nAnother static line"))))
@@ -730,7 +730,7 @@ Processes INPUT in a temp buffer and returns the result."
   ;; ESC[A - cursor up deletes previous line
   (should (string= "Line 1\nOverwritten Line 1"
                    (greger-ui-test--process-terminal-sequences "Line 1\nLine 2\nLine 3\e[A\e[AOverwritten Line 1")))
-  
+
   ;; ESC[B - cursor down inserts newlines
   (should (string= "Line 1\n\n\nLine 4"
                    (greger-ui-test--process-terminal-sequences "Line 1\e[B\e[BLine 4"))))
@@ -742,13 +742,13 @@ Processes INPUT in a temp buffer and returns the result."
          (large-input (mapconcat (lambda (i) (format "Progress: %d%%\r" (/ (* i 100) iterations)))
                                  (number-sequence 0 iterations) ""))
          (start-time (current-time)))
-    
+
     ;; Add final progress
     (setq large-input (concat large-input "Progress: 100% Complete!"))
-    
+
     (let ((result (greger-ui-test--process-terminal-sequences large-input)))
       (should (string= "Progress: 100% Complete!" result))
-      
+
       ;; Check that it completes in reasonable time (less than 1 second)
       (let ((elapsed (float-time (time-subtract (current-time) start-time))))
         (should (< elapsed 1.0))))))
@@ -756,17 +756,17 @@ Processes INPUT in a temp buffer and returns the result."
 (ert-deftest greger-ui-test-ansi-clear-sequences ()
   "Test ANSI escape sequence clearing behavior."
   ;; Test ESC[K sequence - should clear to end of line
-  (should (string= "before" 
+  (should (string= "beforeafter"
                    (greger-ui-test--process-terminal-sequences "before\033[Kafter")))
-  
+
   ;; Test ESC[2K sequence - should clear entire line
   (should (string= "after"
                    (greger-ui-test--process-terminal-sequences "before\033[2K\rafter")))
-  
+
   ;; Test that unrecognized ESC sequences are preserved
   (should (string= "text\033[Amore"
                    (greger-ui-test--process-terminal-sequences "text\033[Amore")))
-  
+
   ;; Test basic carriage return still works
   (should (string= "final"
                    (greger-ui-test--process-terminal-sequences "first\rsecond\rfinal"))))
@@ -778,25 +778,25 @@ Processes INPUT in a temp buffer and returns the result."
     ;; First chunk
     (greger-ui--process-terminal-sequences "Downloading...")
     (should (string= "Downloading..." (buffer-string)))
-    
+
     ;; Second chunk with carriage return
     (greger-ui--process-terminal-sequences "\rProgress: 50%")
     (should (string= "Progress: 50%" (buffer-string)))
-    
+
     ;; Third chunk with another carriage return
     (greger-ui--process-terminal-sequences "\rProgress: 100% Complete!")
     (should (string= "Progress: 100% Complete!" (buffer-string))))
-  
+
   ;; Test with escape sequences across chunks
   (with-temp-buffer
     ;; First chunk
     (greger-ui--process-terminal-sequences "Line 1\nLine 2")
     (should (string= "Line 1\nLine 2" (buffer-string)))
-    
+
     ;; Second chunk with escape sequence
     (greger-ui--process-terminal-sequences "\e[A")
     (should (string= "Line 1" (buffer-string)))
-    
+
     ;; Third chunk with new content
     (greger-ui--process-terminal-sequences "Replaced Line 2")
     (should (string= "Line 1Replaced Line 2" (buffer-string)))))
