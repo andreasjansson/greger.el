@@ -2656,11 +2656,13 @@ drwx------  (dir)  ..
           ;; Try to stage a non-existent file
           (setq test-file (expand-file-name "nonexistent.txt" test-dir))
           
-          ;; Should error when trying to stage non-existent file
-          (should-error (greger-stdlib--git-stage-and-commit 
+          ;; Should return error message when trying to stage non-existent file
+          (let ((result (greger-stdlib--git-stage-and-commit 
                          (list test-file)
-                         "This should fail - file doesn't exist")
-                        :type 'error))
+                         "This should fail - file doesn't exist")))
+            (should (stringp result))
+            (should (string-match "Git operation failed" result))
+            (should (string-match "Failed to stage file" result))))
       
       ;; Clean up
       (when (file-exists-p test-dir)
