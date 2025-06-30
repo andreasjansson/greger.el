@@ -168,7 +168,7 @@ Hello, world!
 The file contains: Hello, world!
 ```
 
-Font-lock is used to hide a few things (e.g. thinking signatures) but they're still there in the file if you `cat` the file.
+Font-lock is used to hide a few things (e.g. thinking signatures) but they're still there in the file, and you can reveal all hidden text with `C-; C-f` or `M-x greger-ui-toggle-folding)`.
 
 This means that **anything in the chat can be edited as text**. You can yank any part of the conversation, undo steps, modify assistant responses, etc. And you can save chats as regular files.
 
