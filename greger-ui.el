@@ -726,7 +726,7 @@ buffer being updated according to the terminal sequences encountered."
                        ;; ESC[B - cursor down (insert newline)
                        ((= command ?B)
                         (end-of-line)
-                        (insert "\n\n")
+                        (insert "\n")
                         (setq pos (1+ pos)))
                        
                        ;; Unrecognized sequence - insert as is
