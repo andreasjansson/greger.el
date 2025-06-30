@@ -687,16 +687,16 @@ buffer being updated according to the terminal sequences encountered."
                 (if (< pos len)
                     (let ((command (aref text pos)))
                       (cond
-                       ;; ESC[K - clear from cursor to end of line
-                       ((= command ?K)
-                        (delete-region (point) (line-end-position))
-                        (setq pos (1+ pos)))
-                       
-                       ;; ESC[2K - clear entire line  
+                       ;; ESC[2K - clear entire line (check this first!)
                        ((and (= (- pos (+ seq-start 2)) 1)
                              (= (aref text (+ seq-start 2)) ?2)
                              (= command ?K))
                         (delete-region (line-beginning-position) (line-end-position))
+                        (setq pos (1+ pos)))
+                       
+                       ;; ESC[K - clear from cursor to end of line
+                       ((= command ?K)
+                        (delete-region (point) (line-end-position))
                         (setq pos (1+ pos)))
                        
                        ;; ESC[A - cursor up (delete previous line)
