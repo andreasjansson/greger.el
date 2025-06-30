@@ -661,46 +661,63 @@ Echo: hello world
           ;; (it should only be removed when callback is actually called)
           (should (gethash "test-tool-id" executing-tools-map)))))))
 
-(ert-deftest greger-test-with-context-functionality ()
-  "Test greger with-context feature (greger t)."
-  ;; Test the core logic by verifying context information is collected
-  (with-temp-buffer
-    (insert "Line 1\nLine 2\nLine 3")
-    (goto-char (point-min))
-    (forward-line 1) ; Move to line 2
-    (forward-char 3)  ; Move to column 3
-
-    ;; Mock functions and test the logic directly
-    (cl-letf (((symbol-function 'save-buffer) #'ignore)
-              ((symbol-function 'buffer-file-name)
-               (lambda () "/test/path/test-file.txt")))
-
-      ;; Test that context information is properly collected
-      (let* ((with-context t)
-             (source-info (when with-context
-                            (save-buffer)
-                            (list (buffer-file-name)
-                                  (line-number-at-pos)
-                                  (current-column)))))
-
-        ;; Verify context information is captured correctly
-        (should source-info)
-        (should (string= (nth 0 source-info) "/test/path/test-file.txt"))
-        (should (= (nth 1 source-info) 2))
-        (should (= (nth 2 source-info) 3))
-
-        ;; Test the context message generation
-        (let ((file-name (nth 0 source-info))
-              (line-num (nth 1 source-info))
-              (column (nth 2 source-info)))
-          (let ((context-message (format "In %s, at line %d%s, implement the following:\n\n"
-                                         file-name
-                                         line-num
-                                         (if (> column 0)
-                                             (format " and column %d" column)
-                                           ""))))
-            (should (string-match "In /test/path/test-file\\.txt, at line 2 and column 3" context-message))
-            (should (string-match "implement the following:" context-message))))))))
+(ert-deftest greger-test-with-context ()
+  "Test greger with-context feature using real temp file and (greger t) call."
+  (let ((test-file (make-temp-file "greger-test-context" nil ".txt"))
+        (test-content "function calculateSum(a, b) {\n  return a + b;\n}\n\n// TODO: Add error handling here\nconsole.log('Hello world');"))
+    (unwind-protect
+        (progn
+          ;; Write test content to file
+          (with-temp-file test-file
+            (insert test-content))
+          
+          ;; Open the file and position cursor at a specific location
+          (with-current-buffer (find-file-noselect test-file)
+            (unwind-protect
+                (progn
+                  ;; Position cursor at line 5, column 10 (in the TODO comment)
+                  (goto-char (point-min))
+                  (forward-line 4) ; Move to line 5 (TODO comment)
+                  (forward-char 9)  ; Move to column 10 (just after "// TODO: ")
+                  
+                  ;; Mock window splitting to avoid actual window manipulation in tests
+                  (cl-letf (((symbol-function 'split-window-right) #'ignore)
+                            ((symbol-function 'other-window) #'ignore)
+                            ((symbol-function 'switch-to-buffer) 
+                             (lambda (buffer) (set-buffer buffer))))
+                    
+                    ;; Call greger with context (equivalent to (greger t))
+                    (let ((greger-buffer (greger t)))
+                      (unwind-protect
+                          (progn
+                            ;; Verify the greger buffer was created and contains context info
+                            (should (bufferp greger-buffer))
+                            
+                            (with-current-buffer greger-buffer
+                              (let ((buffer-content (buffer-string)))
+                                ;; Check that context information is included
+                                (should (string-match (regexp-quote test-file) buffer-content))
+                                (should (string-match "at line 5" buffer-content))
+                                (should (string-match "and column 10" buffer-content))
+                                (should (string-match "implement the following:" buffer-content))
+                                
+                                ;; Verify the buffer is in greger-mode
+                                (should (eq major-mode 'greger-mode))
+                                
+                                ;; Check that system and user tags are present
+                                (should (string-match greger-parser-system-tag buffer-content))
+                                (should (string-match greger-parser-user-tag buffer-content)))))
+                        
+                        ;; Clean up greger buffer
+                        (when (buffer-live-p greger-buffer)
+                          (kill-buffer greger-buffer))))))
+              
+              ;; Clean up file buffer
+              (kill-buffer (current-buffer)))))
+      
+      ;; Clean up temp file
+      (when (file-exists-p test-file)
+        (delete-file test-file)))))
 
 
 
