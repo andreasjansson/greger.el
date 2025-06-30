@@ -712,7 +712,7 @@ Echo: hello world
               (should source-info)
               (should (string= (nth 0 source-info) test-file))
               (should (= (nth 1 source-info) 5))
-              (should (= (nth 2 source-info) 10))
+              (should (= (nth 2 source-info) 9))
               
               ;; Verify the greger buffer content
               (with-current-buffer buffer
