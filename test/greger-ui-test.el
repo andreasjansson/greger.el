@@ -764,8 +764,8 @@ Processes INPUT in a temp buffer and returns the result."
                    (greger-ui-test--process-terminal-sequences "before\033[2K\rafter")))
 
   ;; Test that unrecognized ESC sequences are preserved
-  (should (string= "text\033[Amore"
-                   (greger-ui-test--process-terminal-sequences "text\033[Amore")))
+  (should (string= "text\033[Zmore"
+                   (greger-ui-test--process-terminal-sequences "text\033[Zmore")))
 
   ;; Test basic carriage return still works
   (should (string= "final"
