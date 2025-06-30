@@ -641,7 +641,7 @@ This function handles common ANSI movement codes and control sequences that
 are used by command-line tools for progress bars and dynamic output:
 
 - \\r (carriage return) - moves cursor to beginning of line, overwrites content
-- ESC[K - clears from cursor to end of line  
+- ESC[K - clears from cursor to end of line
 - ESC[2K - clears entire line
 - ESC[A - cursor up (removes previous line)
 - ESC[B - cursor down (adds newline)
@@ -656,7 +656,7 @@ buffer being updated according to the terminal sequences encountered."
   (let ((pos 0)
         (len (length text))
         (after-carriage-return nil))
-    
+
     (while (< pos len)
       (let ((char (aref text pos)))
         (cond
@@ -664,14 +664,14 @@ buffer being updated according to the terminal sequences encountered."
          ((= char ?\n)
           (insert char)
           (setq pos (1+ pos)))
-         
+
          ;; Carriage return - move to beginning of current line and clear it
          ((= char ?\r)
           (beginning-of-line)
           (delete-region (point) (line-end-position))
           (setq after-carriage-return t)
           (setq pos (1+ pos)))
-         
+
          ;; ESC sequence
          ((= char ?\e)
           (if (and (< (1+ pos) len) (= (aref text (1+ pos)) ?\[))
@@ -685,7 +685,7 @@ buffer being updated according to the terminal sequences encountered."
                                   (= c ?\;)
                                   (= c ?\:))))
                   (setq pos (1+ pos)))
-                
+
                 (if (< pos len)
                     (let ((command (aref text pos)))
                       (cond
@@ -695,7 +695,7 @@ buffer being updated according to the terminal sequences encountered."
                              (= command ?K))
                         (delete-region (line-beginning-position) (line-end-position))
                         (setq pos (1+ pos)))
-                       
+
                        ;; ESC[K - context-sensitive line clearing
                        ((= command ?K)
                         (if after-carriage-return
@@ -705,8 +705,8 @@ buffer being updated according to the terminal sequences encountered."
                           (delete-region (point) (line-end-position)))
                         (setq after-carriage-return nil)
                         (setq pos (1+ pos)))
-                       
-                       ;; ESC[A - cursor up (delete current line)  
+
+                       ;; ESC[A - cursor up (delete current line)
                        ((= command ?A)
                         (let ((line-start (line-beginning-position))
                               (line-end (line-end-position)))
@@ -717,7 +717,7 @@ buffer being updated according to the terminal sequences encountered."
                                 (let ((prev-line-start (line-beginning-position))
                                       (prev-line-end (line-end-position)))
                                   ;; Delete line content and its newline if present
-                                  (delete-region prev-line-start 
+                                  (delete-region prev-line-start
                                                  (if (< prev-line-end (point-max))
                                                      (1+ prev-line-end)
                                                    prev-line-end))
@@ -731,7 +731,7 @@ buffer being updated according to the terminal sequences encountered."
                                      (= (char-before) ?\n))
                             (delete-char -1)))
                         (setq pos (1+ pos)))
-                       
+
                        ;; ESC[B - cursor down (insert newline)
                        ((= command ?B)
                         (end-of-line)
@@ -740,20 +740,20 @@ buffer being updated according to the terminal sequences encountered."
                             (insert "\n")   ; Already after newline, just add one more
                           (insert "\n\n")) ; At end of text, add two to create blank line
                         (setq pos (1+ pos)))
-                       
+
                        ;; Unrecognized sequence - insert as is
                        (t
                         (insert (substring text seq-start (1+ pos)))
                         (setq pos (1+ pos)))))
-                  
+
                   ;; Incomplete sequence - insert as is
                   (insert (substring text seq-start))
                   (setq pos len)))
-            
+
             ;; Not a CSI sequence, just insert the ESC
             (insert char)
             (setq pos (1+ pos))))
-         
+
          ;; Regular character
          (t
           (insert char)

@@ -815,7 +815,7 @@ end tag and update the buffer state."
                  (tool-result-content-end (treesit-node-end tool-result-content-node)))
         (greger--maybe-save-excursion
          (goto-char (1- tool-result-content-end))
-         
+
          ;; Process terminal sequences to handle progress bars and dynamic output
          ;; The function processes text at current point, inserting and moving cursor
          (greger-ui--process-terminal-sequences text)
