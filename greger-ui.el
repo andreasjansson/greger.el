@@ -703,6 +703,7 @@ buffer being updated according to the terminal sequences encountered."
                             (delete-region (line-beginning-position) (line-end-position))
                           ;; Standard context: clear from cursor to end of line
                           (delete-region (point) (line-end-position)))
+                        (setq after-carriage-return nil)
                         (setq pos (1+ pos)))
                        
                        ;; ESC[A - cursor up (delete current line)  
