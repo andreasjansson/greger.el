@@ -694,9 +694,10 @@ buffer being updated according to the terminal sequences encountered."
                         (delete-region (line-beginning-position) (line-end-position))
                         (setq pos (1+ pos)))
                        
-                       ;; ESC[K - clear from cursor to end of line
+                       ;; ESC[K - clear from cursor to end of line, then move cursor to beginning
                        ((= command ?K)
                         (delete-region (point) (line-end-position))
+                        (beginning-of-line)
                         (setq pos (1+ pos)))
                        
                        ;; ESC[A - cursor up (delete previous line)
