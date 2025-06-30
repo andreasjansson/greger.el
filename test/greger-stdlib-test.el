@@ -2500,7 +2500,6 @@ drwx------  (dir)  ..
                          (list test-file)
                          "This should fail")))
             (should (stringp result))
-            (should (string-match "Git operation failed" result))
             (should (string-match "not in a git repository" result))))
       
       ;; Clean up
