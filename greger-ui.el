@@ -662,14 +662,14 @@ buffer being updated according to the terminal sequences encountered."
         (cond
          ;; Newline - reset overwrite mode
          ((= char ?\n)
-          (setq overwrite-mode nil)
+          (setq overwrite-flag nil)
           (insert char)
           (setq pos (1+ pos)))
          
          ;; Carriage return - move to beginning of current line and enable overwrite
          ((= char ?\r)
           (beginning-of-line)
-          (setq overwrite-mode t)
+          (setq overwrite-flag t)
           (setq pos (1+ pos)))
          
          ;; ESC sequence
