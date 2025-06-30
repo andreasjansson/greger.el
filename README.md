@@ -55,7 +55,7 @@ M-x package-refresh-contents
 M-x package-install RET greger
 ```
 
-If you use [use-package](https://github.com/jwiegley/use-package), you can install and configure Greger with:
+If you use [use-package](https://www.gnu.org/software/emacs/manual/html_node/use-package/), you can install and configure Greger with:
 
 ```elisp
 (use-package greger
