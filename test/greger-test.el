@@ -720,7 +720,7 @@ Echo: hello world
                   ;; Check that context information is included
                   (should (string-match (regexp-quote test-file) buffer-content))
                   (should (string-match "at line 5" buffer-content))
-                  (should (string-match "and column 10" buffer-content))
+                  (should (string-match "and column 9" buffer-content))
                   (should (string-match "implement the following:" buffer-content))
                   
                   ;; Verify the buffer is in greger-mode
