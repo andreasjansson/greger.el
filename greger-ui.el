@@ -694,10 +694,9 @@ buffer being updated according to the terminal sequences encountered."
                         (delete-region (line-beginning-position) (line-end-position))
                         (setq pos (1+ pos)))
                        
-                       ;; ESC[K - clear from cursor to end of line, enable overwrite
+                       ;; ESC[K - clear entire line for overwrite
                        ((= command ?K)
-                        (delete-region (point) (line-end-position))
-                        (beginning-of-line)
+                        (delete-region (line-beginning-position) (line-end-position))
                         (setq pos (1+ pos)))
                        
                        ;; ESC[A - cursor up (delete current line)  
