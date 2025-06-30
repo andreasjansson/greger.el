@@ -701,9 +701,9 @@ buffer being updated according to the terminal sequences encountered."
                        
                        ;; ESC[A - cursor up (delete current line)  
                        ((= command ?A)
-                        (let ((line-start (line-beginning-position))
-                              (line-end (line-end-position))
-                              (had-content (> line-end line-start)))
+                        (let* ((line-start (line-beginning-position))
+                               (line-end (line-end-position))
+                               (had-content (> line-end line-start)))
                           ;; Delete current line including the newline if present
                           (delete-region line-start 
                                          (if (< line-end (point-max))
