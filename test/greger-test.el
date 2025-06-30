@@ -697,14 +697,6 @@ Echo: hello world
                 
                 (with-current-buffer result-buffer
                   (let ((buffer-content (buffer-string)))
-                    ;; Debug: Print buffer content if test fails
-                    (when (string-empty-p buffer-content)
-                      (message "Buffer content is empty. Buffer name: %s, Major mode: %s" 
-                               (buffer-name) major-mode))
-                    
-                    ;; Check that we have some content at least
-                    (should (not (string-empty-p buffer-content)))
-                    
                     ;; Check that context information is included
                     (should (string-match (regexp-quote test-file) buffer-content))
                     (should (string-match "at line 5" buffer-content))
