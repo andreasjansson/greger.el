@@ -27,11 +27,18 @@ Greger is a Claude chat interface with tool use. It can read and edit code, down
   - [No external dependencies (other than `curl`)](#no-external-dependencies-other-than-curl)
   - [Extensive testing](#extensive-testing)
 - [Included tools](#included-tools)
-  - [Editing tools](#editing-tools)
-  - [Filesystem tools](#filesystem-tools)
-  - [File search tools](#file-search-tools)
-  - [Shell tools](#shell-tools)
-  - [Web tools](#web-tools)
+  - [`read-file`](#read-file)
+  - [`write-new-file`](#write-new-file)
+  - [`replace-file`](#replace-file)
+  - [`str-replace`](#str-replace)
+  - [`make-directory`](#make-directory)
+  - [`rename-file`](#rename-file)
+  - [`delete-files`](#delete-files)
+  - [`list-directory`](#list-directory)
+  - [`ripgrep`](#ripgrep)
+  - [`shell-command`](#shell-command)
+  - [`web_search`](#web_search)
+  - [`read-webpage`](#read-webpage)
 - [Build your own tool](#build-your-own-tool)
 - [Customization](#customization)
 - [Examples](#examples)
@@ -217,9 +224,7 @@ The Greger test suite has over 150 (unit/integration/end-to-end) tests and >80% 
 
 Greger comes with a "standard library" of tools. These are the included tools:
 
-### Editing tools
-
-#### `read-file`
+### `read-file`
 
 ![screenshot-20250618-154809.png](assets/screenshot-20250618-154809.png)
 
@@ -231,7 +236,7 @@ Read the contents of a file from the filesystem.
 - `start-line` (optional): Starting line number (1-based) to begin reading from
 - `end-line` (optional): Ending line number (1-based) to stop reading at (inclusive)
 
-#### `write-new-file`
+### `write-new-file`
 
 Write a new file with the given contents. Fails if the file already exists.
 
@@ -240,7 +245,7 @@ Write a new file with the given contents. Fails if the file already exists.
 - `contents` (required): Contents to write to the new file
 - `git-commit-message` (required): Git commit message for this change
 
-#### `replace-file`
+### `replace-file`
 
 Replace the entire contents of an existing file. Slow but reliable - replaces the complete file contents. Use `str-replace` for targeted changes in larger files.
 
@@ -249,7 +254,7 @@ Replace the entire contents of an existing file. Slow but reliable - replaces th
 - `contents` (required): New contents to replace the entire file
 - `git-commit-message` (required): Git commit message for this change
 
-#### `str-replace`
+### `str-replace`
 
 ![screenshot-20250618-155332.png](assets/screenshot-20250618-155332.png)
 
@@ -264,9 +269,7 @@ Replace a specific string or content block in a file with new content. Finds the
 - `git-commit-message` (required): Git commit message for this change
 - `replace-all` (optional): If true, replace all instances of original-content. If false (default), replace only the first instance
 
-### Filesystem tools
-
-#### `make-directory`
+### `make-directory`
 
 Recursively create a directory and all parent directories if they don't exist.
 
@@ -274,7 +277,7 @@ Recursively create a directory and all parent directories if they don't exist.
 - `path` (required): Path to the directory to create
 - `git-commit-message` (required): Git commit message for this change
 
-#### `rename-file`
+### `rename-file`
 
 Rename or move a file from one path to another.
 
@@ -283,7 +286,7 @@ Rename or move a file from one path to another.
 - `new-path` (required): New path for the file
 - `git-commit-message` (required): Git commit message for this change
 
-#### `delete-files`
+### `delete-files`
 
 Delete files and if they're tracked in git, stage the deletion and commit.
 
@@ -291,7 +294,7 @@ Delete files and if they're tracked in git, stage the deletion and commit.
 - `paths` (required): List of file paths to delete
 - `git-commit-message` (required): Git commit message for this change
 
-#### `list-directory`
+### `list-directory`
 
 List files and directories in a given directory.
 
@@ -300,9 +303,7 @@ List files and directories in a given directory.
 - `exclude-directories-recursive` (optional): List of directory names to exclude when recursively listing files. Defaults to [".git", "__pycache__"]
 - `recursive` (optional): Whether to list files recursively
 
-### File search tools
-
-#### `ripgrep`
+### `ripgrep`
 
 Search for patterns in files using ripgrep (rg) command line tool. Note that ripgrep only matches on single lines, so you can't search across multiple lines.
 
@@ -319,9 +320,7 @@ If [Ripgrep](https://github.com/BurntSushi/ripgrep) isn't installed, just tell G
 - `line-regexp` (optional): Only show matches where the entire line participates in the match
 - `max-results` (optional): Maximum number of results to return (default: 50)
 
-### Shell tools
-
-#### `shell-command`
+### `shell-command`
 
 ![screenshot-20250618-155502.png](assets/screenshot-20250618-155502.png)
 
@@ -351,9 +350,7 @@ ls -al
 List all files in this directory.
 ```
 
-### Web tools
-
-#### `web_search`
+### `web_search`
 
 ![screenshot-20250618-155601.png](assets/screenshot-20250618-155601.png)
 
@@ -364,7 +361,7 @@ Hit `TAB` or click on underlined text to see the cited URLs.
 **Parameters:**
 - `query` (required): Search query
 
-#### `read-webpage`
+### `read-webpage`
 
 Read webpage content from a URL. Can return either extracted text or raw HTML.
 
