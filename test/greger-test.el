@@ -769,7 +769,9 @@ Echo: hello world
   (let ((temp-file nil)
         (request-data-saved nil)
         (read-string-called nil)
-        (filename-used nil))
+        (find-file-called nil)
+        (filename-used nil)
+        (opened-filename nil))
     
     (unwind-protect
         (with-temp-buffer
@@ -792,6 +794,11 @@ Echo: hello world
                      (lambda (model dialog tools server-tools thinking-budget max-tokens)
                        (setq request-data-saved t)
                        "{\"model\":\"test-model\",\"messages\":[]}"))
+                    ;; Mock find-file to track file opening
+                    ((symbol-function 'find-file)
+                     (lambda (filename)
+                       (setq find-file-called t)
+                       (setq opened-filename filename)))
                     ;; Mock message to avoid output during tests
                     ((symbol-function 'message) #'ignore))
             
@@ -803,6 +810,10 @@ Echo: hello world
             
             ;; Verify request data was built
             (should request-data-saved)
+            
+            ;; Verify find-file was called with the correct filename
+            (should find-file-called)
+            (should (string= opened-filename filename-used))
             
             ;; Verify file was created with expected content
             (should (file-exists-p filename-used))
