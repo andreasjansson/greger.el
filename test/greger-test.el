@@ -685,17 +685,26 @@ Echo: hello world
             (cl-letf (((symbol-function 'split-window-right) #'ignore)
                       ((symbol-function 'other-window) #'ignore)
                       ((symbol-function 'switch-to-buffer) 
-                       (lambda (buffer) (setq greger-buffer buffer))))
+                       (lambda (buffer) 
+                         (setq greger-buffer buffer)
+                         (set-buffer buffer))))
               
               ;; Call greger with context (equivalent to (greger t))
               (let ((result-buffer (greger t)))
-                (setq greger-buffer result-buffer)
                 
                 ;; Verify the greger buffer was created and contains context info
                 (should (bufferp result-buffer))
                 
                 (with-current-buffer result-buffer
                   (let ((buffer-content (buffer-string)))
+                    ;; Debug: Print buffer content if test fails
+                    (when (string-empty-p buffer-content)
+                      (message "Buffer content is empty. Buffer name: %s, Major mode: %s" 
+                               (buffer-name) major-mode))
+                    
+                    ;; Check that we have some content at least
+                    (should (not (string-empty-p buffer-content)))
+                    
                     ;; Check that context information is included
                     (should (string-match (regexp-quote test-file) buffer-content))
                     (should (string-match "at line 5" buffer-content))
