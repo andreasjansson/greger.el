@@ -250,7 +250,8 @@ NODE is the matched tree-sitter node"
          (node-start (treesit-node-start node))
          (invisible-start (get-text-property node-start 'invisible-start))
          (invisible-end (get-text-property node-start 'invisible-end))
-         (is-expanded (get-text-property node-start 'greger-ui-citation-expanded)))
+         (is-expanded (get-text-property node-start 'greger-ui-citation-expanded))
+         (inhibit-read-only t))
 
     (put-text-property node-start (1+ node-start) 'greger-ui-citation-expanded (not is-expanded))
     (font-lock-flush invisible-start invisible-end)))
