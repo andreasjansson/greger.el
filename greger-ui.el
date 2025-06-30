@@ -698,11 +698,7 @@ buffer being updated according to the terminal sequences encountered."
                        
                        ;; ESC[K - context-sensitive line clearing
                        ((= command ?K)
-                        ;; Check if we recently processed a carriage return (overwrite context)
-                        (if (and (> (point) 1)
-                                 (save-excursion
-                                   (beginning-of-line)
-                                   (looking-at ".*"))) ; We're on a line with content after \r
+                        (if after-carriage-return
                             ;; In overwrite context: clear entire line content
                             (delete-region (line-beginning-position) (line-end-position))
                           ;; Standard context: clear from cursor to end of line
