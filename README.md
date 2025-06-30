@@ -55,10 +55,6 @@ M-x package-refresh-contents
 M-x package-install RET greger
 ```
 
-Alternatively, you can use `M-x package-list-packages` to browse and install Greger interactively.
-
-### Using use-package
-
 If you use [use-package](https://github.com/jwiegley/use-package), you can install and configure Greger with:
 
 ```elisp
@@ -117,18 +113,18 @@ The recommended key binding for `greger` is `C-M-;`
 
 In Greger buffers:
 
-- `M-<return>` - Run agent
-- `C-M-<return>` - Run without tools or thinking
-- `C-g` - Interrupt tool execution or text generation
-- `C-; u` - Insert `# USER` tag
-- `C-; a` - Insert `# ASSISTANT` tag
-- `C-; s` - Insert `# SYSTEM` tag
-- `C-; m` - Choose Claude model
-- `C-; c` - Copy code block at point
-- `C-; t` - Toggle thinking off and on
-- `C-; f` - Toggle follow mode
-- `C-; C-f` - Toggle folding and invisibility
-- `TAB` - When inside a folded code block or citation: toggle folding 
+- `M-<return>` - Run agent (`greger-buffer`)
+- `C-M-<return>` - Run without tools or thinking (`greger-buffer-no-tools`)
+- `C-g` - Interrupt tool execution or text generation (`greger-interrupt`)
+- `C-; u` - Insert `# USER` tag (`greger-insert-user-tag`)
+- `C-; a` - Insert `# ASSISTANT` tag (`greger-insert-assistant-tag`)
+- `C-; s` - Insert `# SYSTEM` tag (`greger-insert-system-tag`)
+- `C-; m` - Choose Claude model (`greger-set-model`)
+- `C-; c` - Copy code block at point (`greger-ui-copy-code`)
+- `C-; t` - Toggle thinking off and on (`greger-toggle-thinking`)
+- `C-; f` - Toggle follow mode (`greger-toggle-follow-mode`)
+- `C-; C-f` - Toggle folding and invisibility (`greger-ui-toggle-folding`)
+- `TAB` - When inside a folded code block or citation: toggle folding (`greger-ui--toggle-citation-fold` / `greger-ui--toggle-tool-content-*-fold`) 
 
 ## Features
 
