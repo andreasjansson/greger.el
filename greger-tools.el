@@ -244,69 +244,34 @@ TOOL-DEF provides the tool definition for accessing defaults and required
 parameters.  Returns a list of arguments in the correct order for the function."
 
   (let ((arg-list (help-function-arglist func t))
-        (result '())
         (required-params (when tool-def
                            (let* ((schema (plist-get tool-def :schema))
                                   (input-schema (alist-get 'input_schema schema)))
                              (alist-get 'required input-schema)))))
-    (dolist (arg-name arg-list)
-      (cond
-       ;; Handle &optional marker
-       ((eq arg-name '&optional)
-        t)
-       ;; Handle &rest marker (stop processing)
-       ((eq arg-name '&rest)
-        (cl-return))
-       ;; Handle regular arguments
-       (t
-        (let* ((arg-symbol (if (symbolp arg-name) arg-name (intern (symbol-name arg-name))))
-               (arg-key (intern (symbol-name arg-symbol)))
-               (arg-provided-p (assoc arg-key args))
-               (is-required (member (symbol-name arg-key) required-params)))
+    (nreverse
+     (cl-loop for arg-name in arg-list
+              until (eq arg-name '&rest)  ; Stop processing at &rest
+              unless (eq arg-name '&optional)  ; Skip &optional marker
+              collect
+              (let* ((arg-symbol (if (symbolp arg-name) arg-name (intern (symbol-name arg-name))))
+                     (arg-key (intern (symbol-name arg-symbol)))
+                     (arg-provided-p (assoc arg-key args))
+                     (is-required (member (symbol-name arg-key) required-params)))
 
-          (cond
-           ;; Required parameter not provided
-           ((and is-required (not arg-provided-p))
-            (error "Required parameter missing: %s" arg-key))
+                (cond
+                 ;; Required parameter not provided
+                 ((and is-required (not arg-provided-p))
+                  (error "Required parameter missing: %s" arg-key))
 
-           ;; Parameter provided (required or optional)
-           (arg-provided-p
-            (let ((raw-value (alist-get arg-key args)))
-              ;; Check if this parameter should be parsed as JSON array
-              (push (greger-tools--maybe-parse-json-value raw-value arg-key tool-def) result)))
+                 ;; Parameter provided (required or optional)
+                 (arg-provided-p
+                  (let ((raw-value (alist-get arg-key args)))
+                    ;; Check if this parameter should be parsed as JSON array
+                    (greger-tools--maybe-parse-json-value raw-value arg-key tool-def)))
 
-           ;; Optional parameter not provided - use default or nil
-           ((not is-required)
-            (let ((default-value (greger-tools--get-default-from-schema arg-key tool-def)))
-              (push default-value result)))
-
-           ;; Optional parameter not provided and no more optional args
-           (t
-            (cl-return)))))))
-    (nreverse result)))
-
-(defun greger-tools--arg-provided-p (arg-name args)
-  "Check if ARG-NAME was provided in ARGS."
-  (let* ((arg-symbol (if (symbolp arg-name) arg-name (intern (symbol-name arg-name))))
-         (arg-key (intern (symbol-name arg-symbol))))
-    (assoc arg-key args)))
-
-(defun greger-tools--get-arg-value (arg-name args tool-def)
-  "Get value for ARG-NAME from ARGS alist, handling defaults from TOOL-DEF schema."
-  (let* ((arg-symbol (if (symbolp arg-name) arg-name (intern (symbol-name arg-name))))
-         (arg-key (intern (symbol-name arg-symbol)))
-         (value (alist-get arg-key args)))
-    ;; If value is provided, use it
-    (if value
-        value
-      ;; Otherwise, check for default in tool schema, then hardcoded defaults
-      (or (greger-tools--get-default-from-schema arg-key tool-def)
-          ;; Keep existing hardcoded defaults for backward compatibility
-          (cond
-           ((eq arg-key 'path) ".")
-           ((eq arg-key 'context-lines) 0)
-           ((eq arg-key 'max-results) 50)
-           (t nil))))))
+                 ;; Optional parameter not provided - use default or nil
+                 (t
+                  (greger-tools--get-default-from-schema arg-key tool-def))))))))
 
 (defun greger-tools--get-default-from-schema (arg-key tool-def)
   "Get default value for ARG-KEY from TOOL-DEF schema."
