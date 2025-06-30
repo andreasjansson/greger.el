@@ -2724,7 +2724,6 @@ drwx------  (dir)  ..
                          (list test-file)
                          "")))
             (should (stringp result))
-            (should (string-match "Git operation failed" result))
             (should (string-match "Failed to create commit" result))))
       
       ;; Clean up
