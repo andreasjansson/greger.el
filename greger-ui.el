@@ -653,7 +653,7 @@ the greger UI instead of showing all intermediate states."
   ;; Simple string processing approach to avoid infinite recursion
   (let ((processed-text text))
     ;; First, remove ANSI escape sequences like ESC[K and ESC[2K
-    (setq processed-text (replace-regexp-in-string "\033\\[2?K" "" processed-text))
+    (setq processed-text (replace-regexp-in-string "\\[2?K" "" processed-text))
     
     ;; Process carriage returns by keeping only the last part after each \r on each line
     (let ((lines (split-string processed-text "\n" t)))
