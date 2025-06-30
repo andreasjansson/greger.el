@@ -752,4 +752,22 @@ Processes INPUT in a temp buffer and returns the result."
       (let ((elapsed (float-time (time-subtract (current-time) start-time))))
         (should (< elapsed 1.0))))))
 
+(ert-deftest greger-ui-test-ansi-clear-sequences ()
+  "Test ANSI escape sequence clearing behavior."
+  ;; Test ESC[K sequence - should clear line and show only "after"
+  (should (string= "after" 
+                   (greger-ui-test--process-terminal-sequences "before\033[Kafter")))
+  
+  ;; Test ESC[2K sequence with carriage return - should clear line and show only "after"
+  (should (string= "after"
+                   (greger-ui-test--process-terminal-sequences "before\033[2K\rafter")))
+  
+  ;; Test that ESC sequences without K are preserved for now
+  (should (string= "text\033[Amore"
+                   (greger-ui-test--process-terminal-sequences "text\033[Amore")))
+  
+  ;; Test basic carriage return still works
+  (should (string= "final"
+                   (greger-ui-test--process-terminal-sequences "first\rsecond\rfinal"))))
+
 ;;; greger-ui-test.el ends here
