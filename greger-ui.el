@@ -654,14 +654,22 @@ intermediate states.
 TEXT is processed character by character, with the cursor position in the
 buffer being updated according to the terminal sequences encountered."
   (let ((pos 0)
-        (len (length text)))
+        (len (length text))
+        (overwrite-mode nil))
     
     (while (< pos len)
       (let ((char (aref text pos)))
         (cond
-         ;; Carriage return - move to beginning of current line
+         ;; Newline - reset overwrite mode
+         ((= char ?\n)
+          (setq overwrite-mode nil)
+          (insert char)
+          (setq pos (1+ pos)))
+         
+         ;; Carriage return - move to beginning of current line and enable overwrite
          ((= char ?\r)
           (beginning-of-line)
+          (setq overwrite-mode t)
           (setq pos (1+ pos)))
          
          ;; ESC sequence
@@ -705,24 +713,47 @@ buffer being updated according to the terminal sequences encountered."
                        ((= command ?B)
                         (end-of-line)
                         (insert "\n")
+                        (setq overwrite-mode nil)
                         (setq pos (1+ csi-end)))
                        
                        ;; Unrecognized sequence - insert as is
                        (t
-                        (insert (substring text pos (1+ csi-end)))
+                        (if overwrite-mode
+                            ;; In overwrite mode, delete existing chars first
+                            (let ((text-to-insert (substring text pos (1+ csi-end))))
+                              (delete-region (point) (min (+ (point) (length text-to-insert)) 
+                                                           (line-end-position)))
+                              (insert text-to-insert))
+                          (insert (substring text pos (1+ csi-end))))
                         (setq pos (1+ csi-end)))))
                   
                   ;; Incomplete sequence - insert as is
-                  (insert (substring text pos))
+                  (if overwrite-mode
+                      (let ((text-to-insert (substring text pos)))
+                        (delete-region (point) (min (+ (point) (length text-to-insert)) 
+                                                     (line-end-position)))
+                        (insert text-to-insert))
+                    (insert (substring text pos)))
                   (setq pos len)))
             
             ;; Not a CSI sequence, just insert the ESC
-            (insert char)
+            (if overwrite-mode
+                (progn
+                  (when (< (point) (line-end-position))
+                    (delete-char 1))
+                  (insert char))
+              (insert char))
             (setq pos (1+ pos))))
          
          ;; Regular character
          (t
-          (insert char)
+          (if overwrite-mode
+              (progn
+                ;; In overwrite mode, delete existing character first if it exists
+                (when (< (point) (line-end-position))
+                  (delete-char 1))
+                (insert char))
+            (insert char))
           (setq pos (1+ pos))))))))
 
 (provide 'greger-ui)
