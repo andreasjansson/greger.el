@@ -646,30 +646,86 @@ are used by command-line tools for progress bars and dynamic output:
 - ESC[A - cursor up (removes previous line)
 - ESC[B - cursor down (adds newline)
 
-The function processes text to simulate how a terminal would handle these
-sequences, making progress bars and dynamic output display correctly in
-the greger UI instead of showing all intermediate states."
+The function processes text by navigating the buffer and modifying it in place
+to simulate how a terminal would handle these sequences, making progress bars
+and dynamic output display correctly in the greger UI instead of showing all
+intermediate states.
 
-  ;; Simple string processing approach to avoid infinite recursion
-  (let ((processed-text text))
-    ;; First, remove ANSI escape sequences like ESC[K and ESC[2K
-    (setq processed-text (replace-regexp-in-string "\\[2?K" "" processed-text))
+TEXT is processed character by character, with the cursor position in the
+buffer being updated according to the terminal sequences encountered."
+  (let ((pos 0)
+        (len (length text))
+        (start-point (point)))
     
-    ;; Process carriage returns by keeping only the last part after each \r on each line
-    (let ((lines (split-string processed-text "\n")))
-      (setq processed-text
-            (mapconcat 
-             (lambda (line)
-               (if (string-match "\r" line)
-                   ;; Keep only the last part after the final \r
-                   (let ((parts (split-string line "\r" t)))
-                     (if parts (car (last parts)) ""))
-                 line))
-             lines
-             "\n")))
-    
-    ;; Insert the processed text
-    (insert processed-text)))
+    (while (< pos len)
+      (let ((char (aref text pos)))
+        (cond
+         ;; Carriage return - move to beginning of current line
+         ((= char ?\r)
+          (beginning-of-line)
+          (setq pos (1+ pos)))
+         
+         ;; ESC sequence
+         ((= char ?\e)
+          (if (and (< (1+ pos) len) (= (aref text (1+ pos)) ?\[))
+              ;; ANSI CSI sequence
+              (let ((csi-start (+ pos 2))
+                    (csi-end csi-start))
+                ;; Find end of CSI sequence
+                (while (and (< csi-end len)
+                            (let ((c (aref text csi-end)))
+                              (or (and (>= c ?0) (<= c ?9))
+                                  (= c ?\;)
+                                  (= c ?\:))))
+                  (setq csi-end (1+ csi-end)))
+                
+                (when (< csi-end len)
+                  (let ((command (aref text csi-end)))
+                    (cond
+                     ;; ESC[K - clear from cursor to end of line
+                     ((= command ?K)
+                      (delete-region (point) (line-end-position))
+                      (setq pos (1+ csi-end)))
+                     
+                     ;; ESC[2K - clear entire line
+                     ((and (>= (- csi-end csi-start) 1)
+                           (= (aref text csi-start) ?2)
+                           (= command ?K))
+                      (delete-region (line-beginning-position) (line-end-position))
+                      (setq pos (1+ csi-end)))
+                     
+                     ;; ESC[A - cursor up (delete previous line)
+                     ((= command ?A)
+                      (when (not (bobp))
+                        (forward-line -1)
+                        (delete-region (line-beginning-position) 
+                                       (min (1+ (line-end-position)) (point-max))))
+                      (setq pos (1+ csi-end)))
+                     
+                     ;; ESC[B - cursor down (insert newline)
+                     ((= command ?B)
+                      (end-of-line)
+                      (insert "\n")
+                      (setq pos (1+ csi-end)))
+                     
+                     ;; Unrecognized sequence - insert as is
+                     (t
+                      (insert (substring text pos (1+ csi-end)))
+                      (setq pos (1+ csi-end))))))
+                
+                ;; Incomplete sequence - insert as is
+                (when (>= csi-end len)
+                  (insert (substring text pos))
+                  (setq pos len)))
+            
+            ;; Not a CSI sequence, just insert the ESC
+            (insert char)
+            (setq pos (1+ pos))))
+         
+         ;; Regular character
+         (t
+          (insert char)
+          (setq pos (1+ pos))))))))
 
 (provide 'greger-ui)
 ;;; greger-ui.el ends here
