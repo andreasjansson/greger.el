@@ -248,20 +248,19 @@ parameters.  Returns a list of arguments in the correct order for the function."
                            (let* ((schema (plist-get tool-def :schema))
                                   (input-schema (alist-get 'input_schema schema)))
                              (alist-get 'required input-schema)))))
-    (nreverse
-     (cl-loop for arg-name in arg-list
-              until (eq arg-name '&rest)
-              unless (eq arg-name '&optional)
-              for arg-symbol = (if (symbolp arg-name) arg-name (intern (symbol-name arg-name)))
-              for arg-key = (intern (symbol-name arg-symbol))
-              for arg-provided-p = (assoc arg-key args)
-              for is-required = (member (symbol-name arg-key) required-params)
-              if (and is-required (not arg-provided-p))
-                do (error "Required parameter missing: %s" arg-key)
-              else if arg-provided-p
-                collect (greger-tools--maybe-parse-json-value (alist-get arg-key args) arg-key tool-def)
-              else
-                collect (greger-tools--get-default-from-schema arg-key tool-def)))))
+    (cl-loop for arg-name in arg-list
+             until (eq arg-name '&rest)
+             unless (eq arg-name '&optional)
+             for arg-symbol = (if (symbolp arg-name) arg-name (intern (symbol-name arg-name)))
+             for arg-key = (intern (symbol-name arg-symbol))
+             for arg-provided-p = (assoc arg-key args)
+             for is-required = (member (symbol-name arg-key) required-params)
+             if (and is-required (not arg-provided-p))
+               do (error "Required parameter missing: %s" arg-key)
+             else if arg-provided-p
+               collect (greger-tools--maybe-parse-json-value (alist-get arg-key args) arg-key tool-def)
+             else
+               collect (greger-tools--get-default-from-schema arg-key tool-def))))
 
 (defun greger-tools--get-default-from-schema (arg-key tool-def)
   "Get default value for ARG-KEY from TOOL-DEF schema."
