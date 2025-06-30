@@ -693,7 +693,7 @@ buffer being updated according to the terminal sequences encountered."
                         (setq pos (1+ csi-end)))
                        
                        ;; ESC[2K - clear entire line
-                       ((and (>= (- csi-end csi-start) 1)
+                       ((and (= (- csi-end csi-start) 1)
                              (= (aref text csi-start) ?2)
                              (= command ?K))
                         (delete-region (line-beginning-position) (line-end-position))
