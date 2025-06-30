@@ -669,6 +669,7 @@ buffer being updated according to the terminal sequences encountered."
          ((= char ?\r)
           (beginning-of-line)
           (delete-region (point) (line-end-position))
+          (setq after-carriage-return t)
           (setq pos (1+ pos)))
          
          ;; ESC sequence
