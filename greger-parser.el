@@ -436,15 +436,6 @@ Tool result content must always be a string for Claude API compatibility."
           (setq text-result (greger-parser--collect-text-blocks child text-result)))
         text-result)))))
 
-(defun greger-parser--parse-json-or-plain-content (content)
-  "Parse CONTENT as json if it appears to be json, otherwise return as plain text."
-  (if (and (string-match-p "^\\s-*\\[\\|^\\s-*{" content)
-           (condition-case nil
-               (json-parse-string content :object-type 'alist :array-type 'list)
-             (json-parse-error nil)))
-      (json-parse-string content :object-type 'alist :array-type 'list)
-    content))
-
 (defun greger-parser--extract-citation-entry (node)
   "Extract a citation entry from NODE."
   (let ((url nil)

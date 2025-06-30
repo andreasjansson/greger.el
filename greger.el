@@ -431,7 +431,8 @@ When disabled, point position is preserved using `save-excursion'."
   (force-mode-line-update))
 
 (defun greger-debug-request ()
-  "Debug the request data by parsing the buffer and saving the request data output."
+  "Debug the request data by parsing the buffer and saving the request data output.
+After saving, opens the JSON file in a new buffer for inspection."
   (interactive)
   (let* ((filename (read-string "Save to filename (default: request.json): " nil nil "request.json"))
          (dialog (greger-parser-markdown-buffer-to-dialog (current-buffer)))
@@ -446,7 +447,9 @@ When disabled, point position is preserved using `save-excursion'."
     (with-temp-file filename
       (let ((json-encoding-pretty-print t))
         (insert (json-encode parsed-json))))
-    (message "Request data saved to %s" filename)))
+    (message "Request data saved to %s" filename)
+    ;; Open the file in a new buffer for inspection
+    (find-file filename)))
 
 (defun greger-buffer (&optional no-tools)
   "Send buffer content to AI as an agent dialog with tool support.
