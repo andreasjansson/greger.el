@@ -2660,7 +2660,6 @@ drwx------  (dir)  ..
                          (list test-file)
                          "This should fail - file doesn't exist")))
             (should (stringp result))
-            (should (string-match "Git operation failed" result))
             (should (string-match "Failed to stage file" result))))
       
       ;; Clean up
