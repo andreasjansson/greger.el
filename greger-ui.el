@@ -701,21 +701,12 @@ buffer being updated according to the terminal sequences encountered."
                        
                        ;; ESC[A - cursor up (delete current line)  
                        ((= command ?A)
-                        (let* ((line-start (line-beginning-position))
-                               (line-end (line-end-position))
-                               (had-content (> line-end line-start)))
-                          ;; Delete current line including the newline if present
-                          (delete-region line-start 
-                                         (if (< line-end (point-max))
-                                             (1+ line-end)  ; include newline
-                                           line-end))
-                          ;; Move cursor to end of previous line if it exists
-                          (when (> line-start 1)
-                            (backward-char 1)
-                            (end-of-line)
-                            ;; Only insert newline if the deleted line had content
-                            (when had-content
-                              (insert "\n"))))
+                        (let ((line-start (line-beginning-position))
+                              (line-end (line-end-position)))
+                          ;; Delete current line content only
+                          (delete-region line-start line-end)
+                          ;; Position cursor at the beginning of the (now empty) line
+                          (goto-char line-start))
                         (setq pos (1+ pos)))
                        
                        ;; ESC[B - cursor down (insert newline)
