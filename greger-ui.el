@@ -666,10 +666,10 @@ buffer being updated according to the terminal sequences encountered."
           (insert char)
           (setq pos (1+ pos)))
          
-         ;; Carriage return - move to beginning of current line and enable overwrite
+         ;; Carriage return - move to beginning of current line and clear it
          ((= char ?\r)
           (beginning-of-line)
-          (setq overwrite-flag t)
+          (delete-region (point) (line-end-position))
           (setq pos (1+ pos)))
          
          ;; ESC sequence
