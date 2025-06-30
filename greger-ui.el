@@ -654,8 +654,7 @@ intermediate states.
 TEXT is processed character by character, with the cursor position in the
 buffer being updated according to the terminal sequences encountered."
   (let ((pos 0)
-        (len (length text))
-        (overwrite-flag nil))
+        (len (length text)))
     
     (while (< pos len)
       (let ((char (aref text pos)))
