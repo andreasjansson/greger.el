@@ -659,9 +659,8 @@ buffer being updated according to the terminal sequences encountered."
     (while (< pos len)
       (let ((char (aref text pos)))
         (cond
-         ;; Newline - reset overwrite mode
+         ;; Newline
          ((= char ?\n)
-          (setq overwrite-flag nil)
           (insert char)
           (setq pos (1+ pos)))
          
