@@ -44,6 +44,7 @@
 (require 'greger-tools)
 (require 'greger-stdlib)
 (require 'greger-ui)
+(require 'greger-ui)
 
 (defconst greger-available-models
   '(claude-sonnet-4-20250514
@@ -814,7 +815,10 @@ end tag and update the buffer state."
                  (tool-result-content-end (treesit-node-end tool-result-content-node)))
         (greger--maybe-save-excursion
          (goto-char (1- tool-result-content-end))
-         (insert text)
+
+         ;; Process terminal sequences to handle progress bars and dynamic output
+         ;; The function processes text at current point, inserting and moving cursor
+         (greger-ui--process-terminal-sequences text)
 
          (when is-completed
            ;; Trim trailing newline after closing tag

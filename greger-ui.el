@@ -634,5 +634,130 @@ _OVERRIDE, _START, and _END are font-lock parameters."
           (set-buffer-modified-p nil)
           (kill-buffer))))))
 
+(defun greger-ui--process-terminal-sequences (text)
+  "Process terminal control sequences in TEXT to simulate terminal behavior.
+
+This function handles common ANSI movement codes and control sequences that
+are used by command-line tools for progress bars and dynamic output:
+
+- \\r (carriage return) - moves cursor to beginning of line, overwrites content
+- ESC[K - clears from cursor to end of line
+- ESC[2K - clears entire line
+- ESC[A - cursor up (removes previous line)
+- ESC[B - cursor down (adds newline)
+
+The function processes text by navigating the buffer and modifying it in place
+to simulate how a terminal would handle these sequences, making progress bars
+and dynamic output display correctly in the greger UI instead of showing all
+intermediate states.
+
+TEXT is processed character by character, with the cursor position in the
+buffer being updated according to the terminal sequences encountered."
+  (let ((pos 0)
+        (len (length text))
+        (after-carriage-return nil))
+
+    (while (< pos len)
+      (let ((char (aref text pos)))
+        (cond
+         ;; Newline
+         ((= char ?\n)
+          (insert char)
+          (setq pos (1+ pos)))
+
+         ;; Carriage return - move to beginning of current line and clear it
+         ((= char ?\r)
+          (beginning-of-line)
+          (delete-region (point) (line-end-position))
+          (setq after-carriage-return t)
+          (setq pos (1+ pos)))
+
+         ;; ESC sequence
+         ((= char ?\e)
+          (if (and (< (1+ pos) len) (= (aref text (1+ pos)) ?\[))
+              ;; ANSI CSI sequence - handle escape code
+              (let ((seq-start pos))
+                (setq pos (+ pos 2)) ; skip ESC[
+                ;; Find end of CSI sequence
+                (while (and (< pos len)
+                            (let ((c (aref text pos)))
+                              (or (and (>= c ?0) (<= c ?9))
+                                  (= c ?\;)
+                                  (= c ?\:))))
+                  (setq pos (1+ pos)))
+
+                (if (< pos len)
+                    (let ((command (aref text pos)))
+                      (cond
+                       ;; ESC[2K - clear entire line (check this first!)
+                       ((and (= (- pos (+ seq-start 2)) 1)
+                             (= (aref text (+ seq-start 2)) ?2)
+                             (= command ?K))
+                        (delete-region (line-beginning-position) (line-end-position))
+                        (setq pos (1+ pos)))
+
+                       ;; ESC[K - context-sensitive line clearing
+                       ((= command ?K)
+                        (if after-carriage-return
+                            ;; In overwrite context: clear entire line content
+                            (delete-region (line-beginning-position) (line-end-position))
+                          ;; Standard context: clear from cursor to end of line
+                          (delete-region (point) (line-end-position)))
+                        (setq after-carriage-return nil)
+                        (setq pos (1+ pos)))
+
+                       ;; ESC[A - cursor up (delete current line)
+                       ((= command ?A)
+                        (let ((line-start (line-beginning-position))
+                              (line-end (line-end-position)))
+                          (if (= line-start line-end)
+                              ;; Current line is empty, move up to previous line and delete it
+                              (when (> line-start 1)
+                                (backward-char 1)  ; Move to previous line
+                                (let ((prev-line-start (line-beginning-position))
+                                      (prev-line-end (line-end-position)))
+                                  ;; Delete line content and its newline if present
+                                  (delete-region prev-line-start
+                                                 (if (< prev-line-end (point-max))
+                                                     (1+ prev-line-end)
+                                                   prev-line-end))
+                                  (goto-char prev-line-start)))
+                            ;; Current line has content, delete it
+                            (delete-region line-start line-end)
+                            (goto-char line-start))
+                          ;; If we're at the end of input and there's a trailing newline, remove it
+                          (when (and (= (1+ pos) len)  ; This is the last escape sequence
+                                     (> (point) 1)
+                                     (= (char-before) ?\n))
+                            (delete-char -1)))
+                        (setq pos (1+ pos)))
+
+                       ;; ESC[B - cursor down (insert newline)
+                       ((= command ?B)
+                        (end-of-line)
+                        ;; Insert 2 newlines if at end of content, 1 if already after newlines
+                        (if (and (> (point) 1) (= (char-before) ?\n))
+                            (insert "\n")   ; Already after newline, just add one more
+                          (insert "\n\n")) ; At end of text, add two to create blank line
+                        (setq pos (1+ pos)))
+
+                       ;; Unrecognized sequence - insert as is
+                       (t
+                        (insert (substring text seq-start (1+ pos)))
+                        (setq pos (1+ pos)))))
+
+                  ;; Incomplete sequence - insert as is
+                  (insert (substring text seq-start))
+                  (setq pos len)))
+
+            ;; Not a CSI sequence, just insert the ESC
+            (insert char)
+            (setq pos (1+ pos))))
+
+         ;; Regular character
+         (t
+          (insert char)
+          (setq pos (1+ pos))))))))
+
 (provide 'greger-ui)
 ;;; greger-ui.el ends here
