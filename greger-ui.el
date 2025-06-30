@@ -650,66 +650,26 @@ The function processes text to simulate how a terminal would handle these
 sequences, making progress bars and dynamic output display correctly in
 the greger UI instead of showing all intermediate states."
 
-  (let ((pos 0)
-        (len (length text))
-        (at-bol-after-cr nil))
+  ;; Simple string processing approach to avoid infinite recursion
+  (let ((processed-text text))
+    ;; First, remove ANSI escape sequences like ESC[K and ESC[2K
+    (setq processed-text (replace-regexp-in-string "\033\\[2?K" "" processed-text))
     
-    (while (< pos len)
-      (let ((char (aref text pos)))
-        (cond
-         ;; Handle carriage return - move to beginning of current line
-         ((= char ?\r)
-          (beginning-of-line)
-          (setq at-bol-after-cr t)
-          (setq pos (1+ pos)))
-         
-         ;; Handle ESC sequences
-         ((= char 27)
-          (cond
-           ;; ESC[K - simple case
-           ((and (>= (- len pos) 3)
-                 (= (aref text (+ pos 1)) ?\[)
-                 (= (aref text (+ pos 2)) ?K))
-            ;; Clear entire line content
-            (beginning-of-line)
-            (delete-region (point) (line-end-position))
-            (setq at-bol-after-cr nil)
-            (setq pos (+ pos 3)))
-           ;; ESC[2K - clear entire line
-           ((and (>= (- len pos) 4)
-                 (= (aref text (+ pos 1)) ?\[)
-                 (= (aref text (+ pos 2)) ?2)
-                 (= (aref text (+ pos 3)) ?K))
-            (beginning-of-line)
-            (delete-region (point) (line-end-position))
-            (setq at-bol-after-cr nil)
-            (setq pos (+ pos 4)))
-           ;; ESC not followed by recognized sequence, treat as regular char
-           (t
-            (when at-bol-after-cr
-              (delete-region (point) (line-end-position))
-              (setq at-bol-after-cr nil))
-            (insert-char char)
-            (setq pos (1+ pos)))))
-         
-         ;; Handle newline
-         ((= char ?\n)
-          (insert "\n")
-          (setq at-bol-after-cr nil)
-          (setq pos (1+ pos)))
-         
-         ;; Regular character
-         (t
-          ;; If we're at beginning of line after a \r, delete rest of line first
-          (when at-bol-after-cr
-            (delete-region (point) (line-end-position))
-            (setq at-bol-after-cr nil))
-          (insert-char char)
-          (setq pos (1+ pos))))
-      
-      ;; Safety check to prevent infinite loops
-      (when (> pos len)
-        (setq pos len))))))
+    ;; Process carriage returns by keeping only the last part after each \r on each line
+    (let ((lines (split-string processed-text "\n" t)))
+      (setq processed-text
+            (mapconcat 
+             (lambda (line)
+               (if (string-match "\r" line)
+                   ;; Keep only the last part after the final \r
+                   (let ((parts (split-string line "\r" t)))
+                     (if parts (car (last parts)) ""))
+                 line))
+             lines
+             "\n")))
+    
+    ;; Insert the processed text
+    (insert processed-text)))
 
 (provide 'greger-ui)
 ;;; greger-ui.el ends here
