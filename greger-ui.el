@@ -563,7 +563,8 @@ Makes indicators small and muted while keeping them readable."
 (defun greger-ui--tool-result-syntax-highlighting (tool-result-node _override _start _end)
   "Apply syntax highlighting to TOOL-RESULT-NODE based on corresponding tool use.
 _OVERRIDE, _START, and _END are font-lock parameters."
-  (unless (greger-ui--syntax-highlighted-p tool-result-node)
+  (unless (or (greger-ui--syntax-highlighted-p tool-result-node)
+             (get-text-property (treesit-node-start tool-result-node) 'greger-tool-result-generating))
     (when-let* ((tool-use-node (greger-ui--find-corresponding-tool-use tool-result-node))
                 (tool-name (greger-parser--extract-tool-use-name tool-use-node))
                 (content-node (treesit-search-subtree tool-result-node "content"))
