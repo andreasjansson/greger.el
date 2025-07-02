@@ -678,7 +678,7 @@ be displayed as they arrive rather than waiting for completion."
   (cond
    ((string= type "tool_use")
     (let ((tool-id (alist-get 'id content-block)))
-      (greger--append-text state (concat "\n\n" (greger--tool-placeholder tool-id)))))
+      (greger--append-text state (concat "\n\n" (greger--tool-result-placeholder tool-id)))))
    ((string= type "thinking")
     (let ((signature (alist-get 'signature content-block)))
       (greger--insert-thinking-signature state signature))))
@@ -709,12 +709,15 @@ Assumes the last inserted thing is a thinking tag."
         (push block tool-calls)))
     (reverse tool-calls)))
 
-(defun greger--tool-placeholder (tool-id)
+(defun greger--tool-result-placeholder (tool-id)
   "Generate placeholder string for TOOL-ID."
   ;; It's ugly that we need to insert the trailing \n
   ;; But we need it because otherwise the closing tool tag is not recognized.
   ;; TODO: update greger-grammar
-  (concat (greger-parser--wrapped-tool-content greger-parser-tool-result-tag tool-id "") "\n"))
+  (let ((placeholder (concat (greger-parser--wrapped-tool-content greger-parser-tool-result-tag tool-id "") "\n")))
+    ;; Add a text property to the first character to indicate this is a generating tool result
+    (put-text-property 0 1 'greger-tool-result-generating t placeholder)
+    placeholder))
 
 (defun greger--execute-tools (tool-calls state)
   "Execute TOOL-CALLS using STATE in parallel with callbacks."
@@ -802,9 +805,6 @@ COMPLETION-CALLBACK is called when complete."
                             result)))
 
     (greger--append-tool-result-text state tool-id tool-result-text t)
-    ;; TODO: trim trailing newlines from tool result and delete the
-    ;; trailing newline after the tool close tag that we inserted in the
-    ;; placeholder
 
     ;; Call completion callback
     (funcall completion-callback)))
