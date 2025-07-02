@@ -834,6 +834,12 @@ end tag and update the buffer state."
                (when (looking-at-p "\n")
                  (delete-char 1))))
 
+           ;; Remove the generating property from the tool result
+           (when-let ((tool-result-node (greger--find-tool-result-node tool-id)))
+             (let ((start (treesit-node-start tool-result-node))
+                   (end (treesit-node-end tool-result-node)))
+               (remove-text-properties start end '(greger-tool-result-generating))))
+           
            ;; Update buffer state after tool completion
            (greger--update-buffer-state)))))))
 
