@@ -853,4 +853,63 @@ Processes INPUT in a temp buffer and returns the result."
     (greger-ui--process-terminal-sequences "Replaced Line 2")
     (should (string= "Line 1Replaced Line 2" (buffer-string)))))
 
+(ert-deftest greger-ui-test-tool-result-generating-behavior ()
+  "Test that tool results with generating property don't get syntax highlighted or folded."
+  (with-current-buffer (greger)
+    (erase-buffer)
+    (insert "# TOOL RESULT
+
+ID: toolu_999
+
+<tool.toolu_999>
+line1
+line2
+line3
+line4
+line5
+line6
+</tool.toolu_999>
+
+")
+
+    ;; Add the generating property to simulate a generating tool result
+    (put-text-property (point-min) (1+ (point-min)) 'greger-tool-result-generating t)
+
+    ;; Force font-lock to process the buffer
+    (font-lock-ensure)
+
+    ;; With generating property, content should be visible (not folded)
+    ;; Note: ID line is hidden by default due to greger-ui--make-tool-result-id-invisible
+    (let ((actual (greger-ui-test--visible-text))
+          (expected "# TOOL RESULT
+
+line1
+line2
+line3
+line4
+line5
+line6
+
+"))
+      (should (string= expected actual)))
+
+    ;; Remove the generating property to simulate completion
+    (remove-text-properties (point-min) (point-max) '(greger-tool-result-generating))
+
+    ;; Force font-lock to re-process
+    (font-lock-flush (point-min) (point-max))
+    (font-lock-ensure)
+
+    ;; Now content should be folded (tail should be invisible)
+    (let ((actual (greger-ui-test--visible-text))
+          (expected "# TOOL RESULT
+
+line1
+line2
+line3
+line4
+
+"))
+      (should (string= expected actual)))))
+
 ;;; greger-ui-test.el ends here

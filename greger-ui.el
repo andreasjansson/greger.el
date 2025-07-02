@@ -122,9 +122,13 @@ NODE is the matched tree-sitter node, OVERRIDE is the override setting,
 START and END are the region bounds."
   (let* ((node-start (treesit-node-start node))
          (node-end (treesit-node-end node))
-         (parent (treesit-node-parent node)))
+         (parent (treesit-node-parent node))
+         ;; Check if the tool result is still generating
+         (tool-result-node (treesit-parent-until node (lambda (n) (string= (treesit-node-type n) "tool_result"))))
+         (is-generating (when tool-result-node
+                          (get-text-property (treesit-node-start tool-result-node) 'greger-tool-result-generating))))
 
-    (when parent
+    (when (and parent (not is-generating))
       ;; Find the corresponding tail safely
       (let ((tail-node (treesit-search-subtree parent "^tool_content_tail$" nil nil 1)))
         (when tail-node
@@ -160,12 +164,18 @@ START and END are the region bounds."
 NODE is the matched tree-sitter node"
   (let* ((node-start (treesit-node-start node))
          (node-end (treesit-node-end node))
-         (is-visible (get-text-property node-start 'greger-ui-tool-content-expanded)))
+         (is-visible (get-text-property node-start 'greger-ui-tool-content-expanded))
+         ;; Check if the tool result is still generating
+         (tool-result-node (treesit-parent-until node (lambda (n) (string= (treesit-node-type n) "tool_result"))))
+         (is-generating (when tool-result-node
+                          (get-text-property (treesit-node-start tool-result-node) 'greger-tool-result-generating))))
 
-    ;; Apply invisibility (default is invisible unless expanded, but respect global folding mode)
-    (put-text-property node-start node-end 'invisible
-                       (and greger-ui-folding-mode (not is-visible)))
-    (put-text-property node-start node-end 'keymap greger-ui-tool-content-tail-keymap)))
+    ;; Don't apply folding if the tool result is still generating
+    (unless is-generating
+      ;; Apply invisibility (default is invisible unless expanded, but respect global folding mode)
+      (put-text-property node-start node-end 'invisible
+                         (and greger-ui-folding-mode (not is-visible)))
+      (put-text-property node-start node-end 'keymap greger-ui-tool-content-tail-keymap))))
 
 (defun greger-ui--thinking-signature-hiding (node _override _start _end)
   "Hide thinking signature.  NODE is the matched tree-sitter node."
@@ -563,7 +573,8 @@ Makes indicators small and muted while keeping them readable."
 (defun greger-ui--tool-result-syntax-highlighting (tool-result-node _override _start _end)
   "Apply syntax highlighting to TOOL-RESULT-NODE based on corresponding tool use.
 _OVERRIDE, _START, and _END are font-lock parameters."
-  (unless (greger-ui--syntax-highlighted-p tool-result-node)
+  (unless (or (greger-ui--syntax-highlighted-p tool-result-node)
+              (get-text-property (treesit-node-start tool-result-node) 'greger-tool-result-generating))
     (when-let* ((tool-use-node (greger-ui--find-corresponding-tool-use tool-result-node))
                 (tool-name (greger-parser--extract-tool-use-name tool-use-node))
                 (content-node (treesit-search-subtree tool-result-node "content"))
