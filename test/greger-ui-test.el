@@ -879,10 +879,9 @@ line6
     (font-lock-ensure)
     
     ;; With generating property, content should be visible (not folded)
+    ;; Note: ID line is hidden by default due to greger-ui--make-tool-result-id-invisible
     (let ((actual (greger-ui-test--visible-text))
           (expected "# TOOL RESULT
-
-ID: toolu_999
 
 line1
 line2
