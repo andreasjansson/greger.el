@@ -164,12 +164,18 @@ START and END are the region bounds."
 NODE is the matched tree-sitter node"
   (let* ((node-start (treesit-node-start node))
          (node-end (treesit-node-end node))
-         (is-visible (get-text-property node-start 'greger-ui-tool-content-expanded)))
+         (is-visible (get-text-property node-start 'greger-ui-tool-content-expanded))
+         ;; Check if the tool result is still generating
+         (tool-result-node (treesit-parent-until node (lambda (n) (string= (treesit-node-type n) "tool_result"))))
+         (is-generating (when tool-result-node
+                         (get-text-property (treesit-node-start tool-result-node) 'greger-tool-result-generating))))
 
-    ;; Apply invisibility (default is invisible unless expanded, but respect global folding mode)
-    (put-text-property node-start node-end 'invisible
-                       (and greger-ui-folding-mode (not is-visible)))
-    (put-text-property node-start node-end 'keymap greger-ui-tool-content-tail-keymap)))
+    ;; Don't apply folding if the tool result is still generating
+    (unless is-generating
+      ;; Apply invisibility (default is invisible unless expanded, but respect global folding mode)
+      (put-text-property node-start node-end 'invisible
+                         (and greger-ui-folding-mode (not is-visible)))
+      (put-text-property node-start node-end 'keymap greger-ui-tool-content-tail-keymap))))
 
 (defun greger-ui--thinking-signature-hiding (node _override _start _end)
   "Hide thinking signature.  NODE is the matched tree-sitter node."
