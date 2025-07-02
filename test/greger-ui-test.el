@@ -904,8 +904,6 @@ line6
     (let ((actual (greger-ui-test--visible-text))
           (expected "# TOOL RESULT
 
-ID: toolu_999
-
 line1
 line2
 line3
