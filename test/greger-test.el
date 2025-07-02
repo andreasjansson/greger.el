@@ -81,7 +81,7 @@ Tool executed: Hello World
             (let ((tool-use-markdown (greger-parser--tool-use-to-markdown tool-call))
                   (tool-id (alist-get 'id tool-call)))
               (insert "\n\n" tool-use-markdown)
-              (insert "\n\n" (greger--tool-placeholder tool-id))))
+              (insert "\n\n" (greger--tool-result-placeholder tool-id))))
 
           ;; Execute tools
           (greger--execute-tools tool-calls agent-state)
@@ -188,7 +188,7 @@ Tool B result: input-b
             (let ((tool-use-markdown (greger-parser--tool-use-to-markdown tool-call))
                   (tool-id (alist-get 'id tool-call)))
               (insert "\n\n" tool-use-markdown)
-              (insert "\n\n" (greger--tool-placeholder tool-id))))
+              (insert "\n\n" (greger--tool-result-placeholder tool-id))))
 
           ;; Execute tools
           (greger--execute-tools tool-calls agent-state)
@@ -262,7 +262,7 @@ Simulated tool error: bad-input
             (let ((tool-use-markdown (greger-parser--tool-use-to-markdown tool-call))
                   (tool-id (alist-get 'id tool-call)))
               (insert "\n\n" tool-use-markdown)
-              (insert "\n\n" (greger--tool-placeholder tool-id))))
+              (insert "\n\n" (greger--tool-result-placeholder tool-id))))
 
           ;; Execute tools
           (greger--execute-tools tool-calls agent-state)
@@ -337,7 +337,7 @@ Processed: test-data
             (let ((tool-use-markdown (greger-parser--tool-use-to-markdown tool-call))
                   (tool-id (alist-get 'id tool-call)))
               (insert "\n\n" tool-use-markdown)
-              (insert "\n\n" (greger--tool-placeholder tool-id))))
+              (insert "\n\n" (greger--tool-result-placeholder tool-id))))
 
           ;; Execute tools
           (greger--execute-tools tool-calls agent-state)
@@ -398,7 +398,7 @@ Unknown tool: nonexistent-tool
             (let ((tool-use-markdown (greger-parser--tool-use-to-markdown tool-call))
                   (tool-id (alist-get 'id tool-call)))
               (insert "\n\n" tool-use-markdown)
-              (insert "\n\n" (greger--tool-placeholder tool-id))))
+              (insert "\n\n" (greger--tool-result-placeholder tool-id))))
 
           ;; Execute tools
           (greger--execute-tools tool-calls agent-state)
@@ -470,7 +470,7 @@ Line 3: End
             (let ((tool-use-markdown (greger-parser--tool-use-to-markdown tool-call))
                   (tool-id (alist-get 'id tool-call)))
               (insert "\n\n" tool-use-markdown)
-              (insert "\n\n" (greger--tool-placeholder tool-id))))
+              (insert "\n\n" (greger--tool-result-placeholder tool-id))))
 
           ;; Execute tools
           (greger--execute-tools tool-calls agent-state)
@@ -549,7 +549,7 @@ Echo: hello world
             (let ((tool-use-markdown (greger-parser--tool-use-to-markdown tool-call))
                   (tool-id (alist-get 'id tool-call)))
               (insert "\n\n" tool-use-markdown)
-              (insert "\n\n" (greger--tool-placeholder tool-id))))
+              (insert "\n\n" (greger--tool-result-placeholder tool-id))))
 
           ;; Execute tools
           (greger--execute-tools tool-calls agent-state)
