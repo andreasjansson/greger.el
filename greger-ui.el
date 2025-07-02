@@ -122,9 +122,13 @@ NODE is the matched tree-sitter node, OVERRIDE is the override setting,
 START and END are the region bounds."
   (let* ((node-start (treesit-node-start node))
          (node-end (treesit-node-end node))
-         (parent (treesit-node-parent node)))
+         (parent (treesit-node-parent node))
+         ;; Check if the tool result is still generating
+         (tool-result-node (treesit-parent-until node (lambda (n) (string= (treesit-node-type n) "tool_result"))))
+         (is-generating (when tool-result-node
+                         (get-text-property (treesit-node-start tool-result-node) 'greger-tool-result-generating))))
 
-    (when parent
+    (when (and parent (not is-generating))
       ;; Find the corresponding tail safely
       (let ((tail-node (treesit-search-subtree parent "^tool_content_tail$" nil nil 1)))
         (when tail-node
