@@ -10,7 +10,7 @@
 
 Greger is a Claude chat interface with tool use. It can read and edit code, download web pages, run shell commands, etc.
 
-[![Greger demo video](assets/screencap.gif)](https://www.youtube.com/watch?v=VTw2aJv5C8Y)
+[![Greger demo video](assets/screencap.gif)](https://www.youtube.com/watch?v=ik0cRmXz_jU)
 
 
 ## Table of contents
