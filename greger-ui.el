@@ -126,7 +126,7 @@ START and END are the region bounds."
          ;; Check if the tool result is still generating
          (tool-result-node (treesit-parent-until node (lambda (n) (string= (treesit-node-type n) "tool_result"))))
          (is-generating (when tool-result-node
-                         (get-text-property (treesit-node-start tool-result-node) 'greger-tool-result-generating))))
+                          (get-text-property (treesit-node-start tool-result-node) 'greger-tool-result-generating))))
 
     (when (and parent (not is-generating))
       ;; Find the corresponding tail safely
@@ -168,7 +168,7 @@ NODE is the matched tree-sitter node"
          ;; Check if the tool result is still generating
          (tool-result-node (treesit-parent-until node (lambda (n) (string= (treesit-node-type n) "tool_result"))))
          (is-generating (when tool-result-node
-                         (get-text-property (treesit-node-start tool-result-node) 'greger-tool-result-generating))))
+                          (get-text-property (treesit-node-start tool-result-node) 'greger-tool-result-generating))))
 
     ;; Don't apply folding if the tool result is still generating
     (unless is-generating
@@ -574,7 +574,7 @@ Makes indicators small and muted while keeping them readable."
   "Apply syntax highlighting to TOOL-RESULT-NODE based on corresponding tool use.
 _OVERRIDE, _START, and _END are font-lock parameters."
   (unless (or (greger-ui--syntax-highlighted-p tool-result-node)
-             (get-text-property (treesit-node-start tool-result-node) 'greger-tool-result-generating))
+              (get-text-property (treesit-node-start tool-result-node) 'greger-tool-result-generating))
     (when-let* ((tool-use-node (greger-ui--find-corresponding-tool-use tool-result-node))
                 (tool-name (greger-parser--extract-tool-use-name tool-use-node))
                 (content-node (treesit-search-subtree tool-result-node "content"))

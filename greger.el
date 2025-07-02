@@ -839,7 +839,7 @@ end tag and update the buffer state."
              (let ((start (treesit-node-start tool-result-node))
                    (end (treesit-node-end tool-result-node)))
                (remove-text-properties start end '(greger-tool-result-generating))))
-           
+
            ;; Update buffer state after tool completion
            (greger--update-buffer-state)))))))
 
