@@ -127,6 +127,7 @@ In Greger buffers:
 - `C-; u` - Insert `# USER` tag (`greger-insert-user-tag`)
 - `C-; a` - Insert `# ASSISTANT` tag (`greger-insert-assistant-tag`)
 - `C-; s` - Insert `# SYSTEM` tag (`greger-insert-system-tag`)
+- `C-; b` - Select a buffer and insert its file path (`greger-mention-buffer-file`)
 - `C-; m` - Choose Claude model (`greger-set-model`)
 - `C-; c` - Copy code block at point (`greger-ui-copy-code`)
 - `C-; t` - Toggle thinking off and on (`greger-toggle-thinking`)
