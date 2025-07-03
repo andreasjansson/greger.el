@@ -198,6 +198,7 @@ When nil, preserve point position using `save-excursion'.")
     (define-key map (kbd "C-; t") #'greger-toggle-thinking)
     (define-key map (kbd "C-; f") #'greger-toggle-follow-mode)
     (define-key map (kbd "C-; C-f") #'greger-ui-toggle-folding)
+    (define-key map (kbd "C-; b") #'greger-mention-buffer-file)
     map)
   "Keymap for `greger-mode'.")
 
@@ -429,6 +430,36 @@ When disabled, point position is preserved using `save-excursion'."
     (goto-char (point-max)))
   (message "Follow mode %s" (if greger-follow-mode "enabled" "disabled"))
   (force-mode-line-update))
+
+(defun greger-mention-buffer-file ()
+  "Select a buffer and insert its file path at point.
+Uses relative path if file is in current working directory or subdirectory.
+Uses ~/path notation if file is in home directory or subdirectory."
+  (interactive)
+  (let* ((buffer-names (mapcar (lambda (buffer)
+                                 (let ((file (buffer-file-name buffer)))
+                                   (if file
+                                       (cons (buffer-name buffer) file)
+                                     (cons (buffer-name buffer) nil))))
+                               (buffer-list)))
+         (file-buffers (cl-remove-if (lambda (item) (null (cdr item))) buffer-names))
+         (selected-buffer (completing-read "Select buffer: "
+                                          (mapcar #'car file-buffers) nil t)))
+    (when selected-buffer
+      (let* ((file-path (cdr (assoc selected-buffer file-buffers)))
+             (file-path-abs (expand-file-name file-path))
+             (home-dir (expand-file-name "~/"))
+             (cwd (file-name-as-directory (expand-file-name default-directory)))
+             (formatted-path (cond
+                              ;; If file is in cwd or subdirectory, use relative path
+                              ((string-prefix-p cwd file-path-abs)
+                               (file-relative-name file-path))
+                              ;; If file is in home directory or subdirectory, use ~/path
+                              ((string-prefix-p home-dir file-path-abs)
+                               (concat "~/" (file-relative-name file-path home-dir)))
+                              ;; Otherwise, use absolute path
+                              (t file-path))))
+        (insert formatted-path)))))
 
 (defun greger-debug-request ()
   "Debug the request data by parsing the buffer and saving the request data output.
