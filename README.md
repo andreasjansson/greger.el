@@ -224,6 +224,21 @@ Greger should work out of the box on most UNIX systems without having to install
 
 The Greger test suite has over 150 (unit/integration/end-to-end) tests and >80% test coverage. Not to say there aren't bugs, but it's fairly solid.
 
+### Buffer file path insertion
+
+Quickly reference files by inserting their paths into your conversation with `C-; b` (`greger-mention-buffer-file`). This opens an interactive buffer selector and inserts the selected buffer's file path at point.
+
+Path formatting is intelligent:
+- Files in the current working directory or subdirectories use relative paths (`src/main.py`)
+- Files in your home directory or subdirectories use `~/` notation (`~/Documents/notes.txt`)
+- Other files use absolute paths (`/usr/local/bin/example`)
+
+The function can also be called programmatically:
+```elisp
+(greger-mention-buffer-file (current-buffer))
+(greger-mention-buffer-file "my-file.txt")
+```
+
 ## Included tools
 
 Greger comes with a "standard library" of tools. These are the included tools:
