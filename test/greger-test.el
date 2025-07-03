@@ -846,11 +846,11 @@ Echo: hello world
           (setq temp-file-home (expand-file-name "greger-test-home.txt" "~/"))
           (setq temp-file-cwd (expand-file-name "test-cwd-file.txt" default-directory))
           (setq temp-file-other "/tmp/greger-test-other.txt")
-          
+
           ;; Write content to home directory file
           (with-temp-file temp-file-home
             (insert "home test content"))
-          
+
           ;; Write content to cwd and other location files
           (with-temp-file temp-file-cwd
             (insert "cwd test content"))

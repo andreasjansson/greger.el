@@ -438,24 +438,23 @@ When called programmatically, BUFFER can be a buffer object or buffer name.
 Uses relative path if file is in current working directory or subdirectory.
 Uses ~/path notation if file is in home directory or subdirectory."
   (interactive "bBuffer: ")
-  
-  (let* ((buf (if (bufferp buffer) buffer (get-buffer buffer)))
-         (file-path (when buf (buffer-file-name buf))))
-    (if file-path
-        (let* ((file-path-abs (expand-file-name file-path))
-               (home-dir (expand-file-name "~/"))
-               (cwd (file-name-as-directory (expand-file-name default-directory)))
-               (formatted-path (cond
-                                ;; If file is in cwd or subdirectory, use relative path
-                                ((string-prefix-p cwd file-path-abs)
-                                 (file-relative-name file-path))
-                                ;; If file is in home directory or subdirectory, use ~/path
-                                ((string-prefix-p home-dir file-path-abs)
-                                 (concat "~/" (file-relative-name file-path home-dir)))
-                                ;; Otherwise, use absolute path
-                                (t file-path))))
-          (insert formatted-path))
-      (user-error "Buffer %s has no associated file" (or (buffer-name buf) buffer)))))
+
+  (if-let* ((buf (if (bufferp buffer) buffer (get-buffer buffer)))
+            (file-path (when buf (buffer-file-name buf))))
+      (let* ((file-path-abs (expand-file-name file-path))
+             (home-dir (expand-file-name "~/"))
+             (cwd (file-name-as-directory (expand-file-name default-directory)))
+             (formatted-path (cond
+                              ;; If file is in cwd or subdirectory, use relative path
+                              ((string-prefix-p cwd file-path-abs)
+                               (file-relative-name file-path))
+                              ;; If file is in home directory or subdirectory, use ~/path
+                              ((string-prefix-p home-dir file-path-abs)
+                               (concat "~/" (file-relative-name file-path home-dir)))
+                              ;; Otherwise, use absolute path
+                              (t file-path))))
+        (insert formatted-path))
+    (user-error "Buffer %s has no associated file" (or (buffer-name buf) buffer))))
 
 (defun greger-debug-request ()
   "Debug the request data by parsing the buffer and saving the request data output.

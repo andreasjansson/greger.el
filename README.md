@@ -127,8 +127,8 @@ In Greger buffers:
 - `C-; u` - Insert `# USER` tag (`greger-insert-user-tag`)
 - `C-; a` - Insert `# ASSISTANT` tag (`greger-insert-assistant-tag`)
 - `C-; s` - Insert `# SYSTEM` tag (`greger-insert-system-tag`)
-- `C-; b` - Select a buffer and insert its file path (`greger-mention-buffer-file`)
 - `C-; m` - Choose Claude model (`greger-set-model`)
+- `C-; b` - Select a buffer and insert its file path (`greger-mention-buffer-file`)
 - `C-; c` - Copy code block at point (`greger-ui-copy-code`)
 - `C-; t` - Toggle thinking off and on (`greger-toggle-thinking`)
 - `C-; f` - Toggle follow mode (`greger-toggle-follow-mode`)
@@ -222,22 +222,7 @@ Greger should work out of the box on most UNIX systems without having to install
 
 ### Extensive testing
 
-The Greger test suite has over 150 (unit/integration/end-to-end) tests and >80% test coverage. Not to say there aren't bugs, but it's fairly solid.
-
-### Buffer file path insertion
-
-Quickly reference files by inserting their paths into your conversation with `C-; b` (`greger-mention-buffer-file`). This opens an interactive buffer selector and inserts the selected buffer's file path at point.
-
-Path formatting is intelligent:
-- Files in the current working directory or subdirectories use relative paths (`src/main.py`)
-- Files in your home directory or subdirectories use `~/` notation (`~/Documents/notes.txt`)
-- Other files use absolute paths (`/usr/local/bin/example`)
-
-The function can also be called programmatically:
-```elisp
-(greger-mention-buffer-file (current-buffer))
-(greger-mention-buffer-file "my-file.txt")
-```
+The Greger test suite has over 200 (unit/integration/end-to-end) tests and >90% test coverage. Not to say there aren't bugs, but it's fairly solid.
 
 ## Included tools
 
