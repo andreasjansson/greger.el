@@ -198,6 +198,7 @@ When nil, preserve point position using `save-excursion'.")
     (define-key map (kbd "C-; t") #'greger-toggle-thinking)
     (define-key map (kbd "C-; f") #'greger-toggle-follow-mode)
     (define-key map (kbd "C-; C-f") #'greger-ui-toggle-folding)
+    (define-key map (kbd "C-; b") #'greger-mention-buffer-file)
     map)
   "Keymap for `greger-mode'.")
 
@@ -429,6 +430,31 @@ When disabled, point position is preserved using `save-excursion'."
     (goto-char (point-max)))
   (message "Follow mode %s" (if greger-follow-mode "enabled" "disabled"))
   (force-mode-line-update))
+
+(defun greger-mention-buffer-file (buffer)
+  "Insert the file path of BUFFER at point.
+When called interactively, prompts for buffer selection.
+When called programmatically, BUFFER can be a buffer object or buffer name.
+Uses relative path if file is in current working directory or subdirectory.
+Uses ~/path notation if file is in home directory or subdirectory."
+  (interactive "bBuffer: ")
+
+  (if-let* ((buf (if (bufferp buffer) buffer (get-buffer buffer)))
+            (file-path (when buf (buffer-file-name buf))))
+      (let* ((file-path-abs (expand-file-name file-path))
+             (home-dir (expand-file-name "~/"))
+             (cwd (file-name-as-directory (expand-file-name default-directory)))
+             (formatted-path (cond
+                              ;; If file is in cwd or subdirectory, use relative path
+                              ((string-prefix-p cwd file-path-abs)
+                               (file-relative-name file-path))
+                              ;; If file is in home directory or subdirectory, use ~/path
+                              ((string-prefix-p home-dir file-path-abs)
+                               (concat "~/" (file-relative-name file-path home-dir)))
+                              ;; Otherwise, use absolute path
+                              (t file-path))))
+        (insert formatted-path))
+    (user-error "Buffer %s has no associated file" (or (buffer-name buf) buffer))))
 
 (defun greger-debug-request ()
   "Debug the request data by parsing the buffer and saving the request data output.

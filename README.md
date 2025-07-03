@@ -128,6 +128,7 @@ In Greger buffers:
 - `C-; a` - Insert `# ASSISTANT` tag (`greger-insert-assistant-tag`)
 - `C-; s` - Insert `# SYSTEM` tag (`greger-insert-system-tag`)
 - `C-; m` - Choose Claude model (`greger-set-model`)
+- `C-; b` - Select a buffer and insert its file path (`greger-mention-buffer-file`)
 - `C-; c` - Copy code block at point (`greger-ui-copy-code`)
 - `C-; t` - Toggle thinking off and on (`greger-toggle-thinking`)
 - `C-; f` - Toggle follow mode (`greger-toggle-follow-mode`)
@@ -221,7 +222,7 @@ Greger should work out of the box on most UNIX systems without having to install
 
 ### Extensive testing
 
-The Greger test suite has over 150 (unit/integration/end-to-end) tests and >80% test coverage. Not to say there aren't bugs, but it's fairly solid.
+The Greger test suite has over 200 (unit/integration/end-to-end) tests and >90% test coverage. Not to say there aren't bugs, but it's fairly solid.
 
 ## Included tools
 

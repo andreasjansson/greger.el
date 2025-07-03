@@ -831,6 +831,87 @@ Echo: hello world
       (when (and temp-file (file-exists-p temp-file))
         (delete-file temp-file)))))
 
+(ert-deftest greger-test-mention-buffer-file ()
+  "Test greger-mention-buffer-file functionality with different path scenarios."
+  (let ((temp-file-home nil)
+        (temp-file-cwd nil)
+        (temp-file-other nil)
+        (test-buffer-home nil)
+        (test-buffer-cwd nil)
+        (test-buffer-other nil))
+
+    (unwind-protect
+        (progn
+          ;; Create temporary files in different locations
+          (setq temp-file-home (expand-file-name "greger-test-home.txt" "~/"))
+          (setq temp-file-cwd (expand-file-name "test-cwd-file.txt" default-directory))
+          (setq temp-file-other "/tmp/greger-test-other.txt")
+
+          ;; Write content to home directory file
+          (with-temp-file temp-file-home
+            (insert "home test content"))
+
+          ;; Write content to cwd and other location files
+          (with-temp-file temp-file-cwd
+            (insert "cwd test content"))
+          (with-temp-file temp-file-other
+            (insert "other test content"))
+
+          ;; Create buffers for these files
+          (setq test-buffer-home (find-file-noselect temp-file-home))
+          (setq test-buffer-cwd (find-file-noselect temp-file-cwd))
+          (setq test-buffer-other (find-file-noselect temp-file-other))
+
+          ;; Test 1: File in home directory should use ~/path
+          (with-temp-buffer
+            (greger-mode)
+            (greger-mention-buffer-file test-buffer-home)
+            (let ((inserted-path (buffer-substring-no-properties (point-min) (point-max))))
+              (should (string-prefix-p "~/" inserted-path))
+              (should (string-suffix-p ".txt" inserted-path))))
+
+          ;; Test 2: File in current working directory should use relative path
+          (with-temp-buffer
+            (greger-mode)
+            (greger-mention-buffer-file test-buffer-cwd)
+            (let ((inserted-path (buffer-substring-no-properties (point-min) (point-max))))
+              (should (string= "test-cwd-file.txt" inserted-path))))
+
+          ;; Test 3: File in other location should use absolute path
+          (with-temp-buffer
+            (greger-mode)
+            (greger-mention-buffer-file test-buffer-other)
+            (let ((inserted-path (buffer-substring-no-properties (point-min) (point-max))))
+              (should (string= temp-file-other inserted-path))))
+
+          ;; Test 4: Error when buffer has no file
+          (with-temp-buffer
+            (greger-mode)
+            (let ((no-file-buffer (get-buffer-create "*test-no-file*")))
+              (should-error (greger-mention-buffer-file no-file-buffer)
+                            :type 'user-error)))
+
+          ;; Test 5: Programmatic use with buffer name string
+          (with-temp-buffer
+            (greger-mode)
+            (greger-mention-buffer-file (buffer-name test-buffer-cwd))
+            (let ((inserted-path (buffer-substring-no-properties (point-min) (point-max))))
+              (should (string= "test-cwd-file.txt" inserted-path)))))
+
+      ;; Clean up
+      (when (and temp-file-home (file-exists-p temp-file-home))
+        (delete-file temp-file-home))
+      (when (and temp-file-cwd (file-exists-p temp-file-cwd))
+        (delete-file temp-file-cwd))
+      (when (and temp-file-other (file-exists-p temp-file-other))
+        (delete-file temp-file-other))
+      (when (buffer-live-p test-buffer-home)
+        (kill-buffer test-buffer-home))
+      (when (buffer-live-p test-buffer-cwd)
+        (kill-buffer test-buffer-cwd))
+      (when (buffer-live-p test-buffer-other)
+        (kill-buffer test-buffer-other)))))
+
 (provide 'test-greger)
 
 ;;; test-greger.el ends here
