@@ -437,17 +437,7 @@ When called interactively, prompts for buffer selection.
 When called programmatically, BUFFER can be a buffer object or buffer name.
 Uses relative path if file is in current working directory or subdirectory.
 Uses ~/path notation if file is in home directory or subdirectory."
-  (interactive
-   (let* ((buffer-names (mapcar (lambda (buffer)
-                                  (let ((file (buffer-file-name buffer)))
-                                    (if file
-                                        (cons (buffer-name buffer) file)
-                                      (cons (buffer-name buffer) nil))))
-                                (buffer-list)))
-          (file-buffers (cl-remove-if (lambda (item) (null (cdr item))) buffer-names))
-          (selected-buffer (completing-read "Select buffer: "
-                                           (mapcar #'car file-buffers) nil t)))
-     (list (get-buffer selected-buffer))))
+  (interactive "bBuffer: ")
   
   (let* ((buf (if (bufferp buffer) buffer (get-buffer buffer)))
          (file-path (when buf (buffer-file-name buf))))
