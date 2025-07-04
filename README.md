@@ -83,19 +83,40 @@ This will automatically install Greger from MELPA and set up the recommended key
 
 ## Usage
 
-Configure your Claude API key:
+### Authentication
 
-```bash
-export ANTHROPIC_API_KEY="your-claude-api-key"
-```
+There are two ways to authenticate Greger:
+* Set the `ANTHROPIC_API_KEY` environment variable, or
+* Set `greger-anthropic-key-fn` to a function that returns an API key
 
-Or set it in your Emacs configuration:
+You can set the environment variable in your Emacs configuration:
 
 ```elisp
 (setenv "ANTHROPIC_API_KEY" "your-claude-api-key")
 ```
 
-Then start a new Greger session:
+If you use `greger-anthropic-key-fn`, you can for example use `auth-source-and-password`:
+
+```elisp
+(setq greger-anthropic-key-fn
+  (lambda () (cadr (auth-source-user-and-password "api.anthropic.com" "emacs"))))
+```
+
+Or in use-package:
+
+```elisp
+(use-package greger
+  :ensure t
+  :bind ("C-M-;" . greger)
+  :config
+  (setq greger-anthropic-key-fn
+        (lambda () (cadr (auth-source-user-and-password "api.anthropic.com" "emacs")))))
+```
+
+
+### Start Greger
+
+To start a new Greger session:
 
 ```
 M-x greger
