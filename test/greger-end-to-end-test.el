@@ -518,7 +518,8 @@ Hello from greger test!
   (skip-unless (getenv "ANTHROPIC_API_KEY"))
 
   (let ((greger-buffer nil)
-        (original-key-fn greger-anthropic-key-fn))
+        (original-key-fn greger-anthropic-key-fn)
+        (messages-buffer-content nil))
     (unwind-protect
         (progn
           ;; Set greger-anthropic-key-fn to return a bad key
@@ -532,10 +533,18 @@ Hello from greger test!
             (goto-char (point-max))
             (insert "Say 'Hello' and nothing else.")
 
-            ;; Run greger-buffer with bad key
-            (let ((greger-current-thinking-budget 0))
-              (greger-buffer)
-              (greger-test-wait-for-status 'idle))
+            ;; Capture messages before running greger-buffer
+            (let ((initial-messages (with-current-buffer "*Messages*" (buffer-string))))
+              
+              ;; Run greger-buffer with bad key - expect it to fail
+              (let ((greger-current-thinking-budget 0))
+                (greger-buffer)
+                (greger-test-wait-for-status 'idle))
+
+              ;; Check that error message appeared in *Messages* buffer
+              (setq messages-buffer-content (with-current-buffer "*Messages*" (buffer-string)))
+              (let ((new-messages (substring messages-buffer-content (length initial-messages))))
+                (should (string-match-p "Process exited with status code \\|API Error.*authentication" new-messages))))
 
             ;; With bad key, we should not get a proper assistant response
             ;; The buffer should not have been updated with assistant content
