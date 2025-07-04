@@ -533,11 +533,22 @@ Hello from greger test!
             (insert "Say 'Hello' and nothing else.")
 
             ;; Run greger-buffer with bad key - should throw an error
-            (should-error
-             (let ((greger-current-thinking-budget 0))
-               (greger-buffer)
-               (greger-test-wait-for-status 'idle))
-             :type 'error)))
+            (let ((error-caught nil))
+              (condition-case err
+                  (let ((greger-current-thinking-budget 0))
+                    (greger-buffer)
+                    (greger-test-wait-for-status 'idle))
+                (error 
+                 (setq error-caught err)))
+              
+              ;; Debug: check what actually happened
+              (let ((content (buffer-string)))
+                (message "Error caught: %s" error-caught)
+                (message "Buffer content length: %d" (length content))
+                (message "Contains assistant: %s" (string-match-p "# ASSISTANT" content)))
+              
+              ;; Should have caught an error
+              (should error-caught))))
 
       ;; Cleanup
       (setq greger-anthropic-key-fn original-key-fn)
