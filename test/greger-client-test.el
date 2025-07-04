@@ -168,6 +168,7 @@
                       :dialog test-dialog
                       :tools test-tools
                       :buffer test-buffer
+                      :auth-key (getenv "ANTHROPIC_API_KEY")
                       :complete-callback (lambda (blocks)
                                            (setq final-blocks blocks
                                                  response-received t))
