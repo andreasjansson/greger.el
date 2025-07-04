@@ -519,15 +519,9 @@ Hello from greger test!
 
   (let ((greger-buffer nil)
         (original-key-fn greger-anthropic-key-fn)
-        (original-debug-on-error debug-on-error)
-        (original-process-error-pause-time process-error-pause-time))
+        (warning-caught nil))
     (unwind-protect
         (progn
-          ;; Enable debug-on-error so process sentinel errors aren't caught
-          (setq debug-on-error t)
-          ;; Disable the pause time to prevent warning system interference
-          (setq process-error-pause-time 0)
-          
           ;; Set greger-anthropic-key-fn to return a bad key
           (setq greger-anthropic-key-fn (lambda () "bad-api-key"))
           
@@ -539,15 +533,42 @@ Hello from greger test!
             (goto-char (point-max))
             (insert "Say 'Hello' and nothing else.")
 
-            ;; Run greger-buffer with bad key - should throw an error
-            (should-error
-             (let ((greger-current-thinking-budget 0))
-               (greger-buffer)
-               (greger-test-wait-for-status 'idle))
-             :type 'error)))
+            ;; Capture warnings during execution
+            (let ((warning-buffer (get-buffer-create "*test-warnings*")))
+              (with-current-buffer warning-buffer
+                (erase-buffer))
+              
+              ;; Temporarily redirect warnings to our test buffer
+              (let ((warning-fill-prefix "")
+                    (warning-type-format "%s"))
+                (add-hook 'warning-functions 
+                          (lambda (level message) 
+                            (with-current-buffer warning-buffer
+                              (insert (format "%s: %s\n" level message)))
+                            (when (string-match-p "authentication_error" message)
+                              (setq warning-caught t))))
+                
+                ;; Run greger-buffer with bad key
+                (let ((greger-current-thinking-budget 0))
+                  (greger-buffer)
+                  (greger-test-wait-for-status 'idle))
+                
+                ;; Clean up warning hook
+                (setq warning-functions 
+                      (delq (lambda (level message) 
+                              (with-current-buffer warning-buffer
+                                (insert (format "%s: %s\n" level message)))
+                              (when (string-match-p "authentication_error" message)
+                                (setq warning-caught t)))
+                            warning-functions)))
+              
+              ;; Check that we caught the authentication error warning
+              (should warning-caught)
+              
+              ;; Clean up test buffer
+              (kill-buffer warning-buffer))))
 
       ;; Cleanup
-      (setq debug-on-error original-debug-on-error)
       (setq greger-anthropic-key-fn original-key-fn)
       (when (and greger-buffer (buffer-live-p greger-buffer))
         (kill-buffer greger-buffer)))))
