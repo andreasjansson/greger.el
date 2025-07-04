@@ -236,7 +236,7 @@
                         (input_schema . ((type . "object")
                                          (properties . ())
                                          (required . []))))))
-         (request-spec (greger-client--build-request test-model test-dialog test-tools nil 0 4096)))
+         (request-spec (greger-client--build-request test-model test-dialog test-tools nil 0 4096 "test-api-key")))
 
     ;; Verify request structure
     (should (plist-get request-spec :url))
