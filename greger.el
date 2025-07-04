@@ -636,13 +636,16 @@ Uses tree-sitter to find the last node and applies heuristics:
       (error "Maximum iterations (%d) reached, stopping agent execution" greger-max-iterations))
 
     (with-current-buffer chat-buffer
-      (let ((client-state (greger-client-stream
+      (let ((auth-key (or (getenv "ANTHROPIC_API_KEY")
+                          (and greger-anthropic-key-fn (funcall greger-anthropic-key-fn))))
+            (client-state (greger-client-stream
                            :model greger-model
                            :dialog dialog
                            :tools tools
                            :server-tools server-tools
                            :buffer chat-buffer
                            :thinking-budget greger-current-thinking-budget
+                           :auth-key auth-key
                            :block-start-callback (lambda (content-block)
                                                    (greger--append-streaming-content-header state content-block))
                            :text-delta-callback (lambda (text)
@@ -651,6 +654,9 @@ Uses tree-sitter to find the last node and applies heuristics:
                                                   (greger--append-handle-content-block-stop state type content-block))
                            :complete-callback (lambda (content-blocks) (greger--handle-stream-completion state content-blocks))
                            :max-tokens greger-max-tokens)))
+        
+        (unless auth-key
+          (error "No API key found. Set ANTHROPIC_API_KEY environment variable or configure greger-anthropic-key-fn"))
 
         ;; Store the client state for potential cancellation
         (setf (greger-state-client-state state) client-state)
