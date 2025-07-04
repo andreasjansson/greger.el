@@ -78,6 +78,13 @@ May order 4,000 pounds of meat."
   :type 'boolean
   :group 'greger)
 
+(defcustom greger-anthropic-key-fn nil
+  "Function to call to get the Anthropic API key.
+This function should return a string containing the API key.
+If nil, the ANTHROPIC_API_KEY environment variable will be used."
+  :type '(choice (const nil) function)
+  :group 'greger)
+
 ;; Tool configuration and agent functionality
 
 (defcustom greger-tools '("read-file" "write-new-file" "replace-file" "str-replace" "make-directory" "rename-file" "delete-files" "list-directory" "ripgrep" "shell-command" "read-webpage")
