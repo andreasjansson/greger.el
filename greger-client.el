@@ -55,12 +55,11 @@
   block-stop-callback
   complete-callback
   restore-callback
-  error-callback
   error-message)
 
 ;;; Public API
 
-(cl-defun greger-client-stream (&key model dialog tools server-tools buffer block-start-callback text-delta-callback block-stop-callback complete-callback thinking-budget max-tokens auth-key error-callback)
+(cl-defun greger-client-stream (&key model dialog tools server-tools buffer block-start-callback text-delta-callback block-stop-callback complete-callback thinking-budget max-tokens auth-key)
   "Send API request to the Claude streaming API.
 Streaming responses are handled using callbacks.
 MODEL specifies which AI model to use.
@@ -74,7 +73,7 @@ COMPLETE-CALLBACK when the entire response finishes.
 THINKING-BUDGET is the number of thinking tokens.
 MAX-TOKENS is the maximum number of tokens to generate.
 AUTH-KEY is the Anthropic API key to use for authentication.
-ERROR-CALLBACK is called when errors occur during processing."
+"
   (unless (memq model greger-client-supported-models)
     (error "Unsupported model: %s. Supported models: %s"
            model greger-client-supported-models))
@@ -100,8 +99,7 @@ ERROR-CALLBACK is called when errors occur during processing."
                  :complete-callback complete-callback
                  :restore-callback restore-callback
                  :output-buffer output-buffer
-                 :undo-handle undo-handle
-                 :error-callback error-callback)))
+                 :undo-handle undo-handle)))
 
     (activate-change-group undo-handle)
 
@@ -451,22 +449,14 @@ STATE is used to update the parsed content blocks."
 
     (let ((exit-code (process-exit-status proc))
           (stored-error (greger-client-state-error-message state)))
-      (cond
-       ;; If there's a stored error message, still call completion callback
-       ;; The completion callback will check for the stored error
-       (stored-error
-        (when-let ((callback (greger-client-state-complete-callback state)))
-          (funcall callback (greger-client-state-content-blocks state))))
-       ;; If process succeeded normally, call completion callback
-       ((= exit-code 0)
-        (when-let ((callback (greger-client-state-complete-callback state)))
-          (funcall callback (greger-client-state-content-blocks state))))
-       ;; Process failed with non-zero exit code - store error message
-       (t
-        (let ((error-message (format "Process exited with status code %d" exit-code)))
-          (setf (greger-client-state-error-message state) error-message)
+      (if (= exit-code 0)
+          ;; Process succeeded - call completion callback
           (when-let ((callback (greger-client-state-complete-callback state)))
-            (funcall callback (greger-client-state-content-blocks state)))))))))
+            (funcall callback (greger-client-state-content-blocks state)))
+        ;; Process failed - raise error with stored message or generic message
+        (let ((error-message (or stored-error
+                                 (format "Process exited with status code %d" exit-code))))
+          (error "%s" error-message))))))
 
 (defun greger-client--cancel-request (state)
   "Cancel streaming request using STATE."
