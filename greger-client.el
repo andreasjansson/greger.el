@@ -461,9 +461,7 @@ STATE is used to update the parsed content blocks."
 
        ;; Exit code 2 means process interrupted
        ((= exit-code 2)
-        (message "Process interrupted")
-        (when-let ((callback (greger-client-state-complete-callback state)))
-          (funcall callback (greger-client-state-content-blocks state))))
+        (message "Process interrupted"))
 
        ;; Process failed - raise error with stored message or generic message
        (t
