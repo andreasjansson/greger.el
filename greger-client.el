@@ -449,15 +449,24 @@ STATE is used to update the parsed content blocks."
   (when (memq (process-status proc) '(exit signal))
     (funcall (greger-client-state-restore-callback state) state)
 
-    (let ((exit-code (process-exit-status proc)))
-      (if (= exit-code 0)
-          (when-let ((callback (greger-client-state-complete-callback state)))
-            (funcall callback (greger-client-state-content-blocks state)))
-        ;; Process failed - call error callback
+    (let ((exit-code (process-exit-status proc))
+          (stored-error (greger-client-state-error-message state)))
+      (cond
+       ;; If there's a stored error message, call error callback with that
+       (stored-error
+        (if-let ((callback (greger-client-state-error-callback state)))
+            (funcall callback stored-error)
+          (message "%s" stored-error)))
+       ;; If process succeeded normally, call completion callback
+       ((= exit-code 0)
+        (when-let ((callback (greger-client-state-complete-callback state)))
+          (funcall callback (greger-client-state-content-blocks state))))
+       ;; Process failed with non-zero exit code
+       (t
         (let ((error-message (format "Process exited with status code %d" exit-code)))
           (if-let ((callback (greger-client-state-error-callback state)))
               (funcall callback error-message)
-            (message "%s" error-message)))))))
+            (message "%s" error-message))))))))
 
 (defun greger-client--cancel-request (state)
   "Cancel streaming request using STATE."
