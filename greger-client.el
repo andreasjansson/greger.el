@@ -99,7 +99,8 @@ ERROR-CALLBACK is called when errors occur during processing."
                  :complete-callback complete-callback
                  :restore-callback restore-callback
                  :output-buffer output-buffer
-                 :undo-handle undo-handle)))
+                 :undo-handle undo-handle
+                 :error-callback error-callback)))
 
     (activate-change-group undo-handle)
 
