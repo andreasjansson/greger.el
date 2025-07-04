@@ -515,13 +515,16 @@ Hello from greger test!
 
 (ert-deftest greger-end-to-end-test-bad-key-from-function ()
   "Test that greger fails when greger-anthropic-key-fn returns a bad key."
-  :expected-result :failed  ; This test is expected to fail due to authentication error
   (skip-unless (getenv "ANTHROPIC_API_KEY"))
 
   (let ((greger-buffer nil)
-        (original-key-fn greger-anthropic-key-fn))
+        (original-key-fn greger-anthropic-key-fn)
+        (original-debug-on-error debug-on-error))
     (unwind-protect
         (progn
+          ;; Enable debug-on-error so process sentinel errors aren't caught
+          (setq debug-on-error t)
+          
           ;; Set greger-anthropic-key-fn to return a bad key
           (setq greger-anthropic-key-fn (lambda () "bad-api-key"))
           
@@ -533,16 +536,15 @@ Hello from greger test!
             (goto-char (point-max))
             (insert "Say 'Hello' and nothing else.")
 
-            ;; Run greger-buffer with bad key - this will cause the test to fail
-            ;; due to authentication error in the process sentinel
-            (let ((greger-current-thinking-budget 0))
-              (greger-buffer)
-              (greger-test-wait-for-status 'idle))
-
-            ;; This point may not be reached due to the authentication error
-            (should t)))
+            ;; Run greger-buffer with bad key - should throw an error
+            (should-error
+             (let ((greger-current-thinking-budget 0))
+               (greger-buffer)
+               (greger-test-wait-for-status 'idle))
+             :type 'error)))
 
       ;; Cleanup
+      (setq debug-on-error original-debug-on-error)
       (setq greger-anthropic-key-fn original-key-fn)
       (when (and greger-buffer (buffer-live-p greger-buffer))
         (kill-buffer greger-buffer)))))
