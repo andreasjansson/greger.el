@@ -54,7 +54,8 @@
   text-delta-callback
   block-stop-callback
   complete-callback
-  restore-callback)
+  restore-callback
+  error-callback)
 
 ;;; Public API
 
