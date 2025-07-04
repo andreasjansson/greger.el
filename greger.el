@@ -907,6 +907,9 @@ the tool_result node itself."
 
 (defun greger--handle-client-error (state error-message)
   "Handle client error with STATE and ERROR-MESSAGE."
+  ;; Store the error in the client state so it can be checked later
+  (when-let ((client-state (greger-state-client-state state)))
+    (setf (greger-client-state-error-message client-state) error-message))
   (when-let ((buffer (greger--live-chat-buffer state)))
     (with-current-buffer buffer
       ;; Clear the buffer-local agent state
@@ -915,9 +918,7 @@ the tool_result node itself."
       (greger--update-buffer-state)))
   ;; Reset the state
   (setf (greger-state-current-iteration state) 0)
-  (setf (greger-state-client-state state) nil)
-  ;; Raise the error in the main thread where it can be caught by tests
-  (error "%s" error-message))
+  (setf (greger-state-client-state state) nil))
 
 (defun greger--finish-response (state)
   "Finish the agent response using STATE."
