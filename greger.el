@@ -657,7 +657,8 @@ Uses tree-sitter to find the last node and applies heuristics:
                            :block-stop-callback (lambda (type content-block)
                                                   (greger--append-handle-content-block-stop state type content-block))
                            :complete-callback (lambda (content-blocks) (greger--handle-stream-completion state content-blocks))
-
+                           :error-callback (lambda (error-message)
+                                             (greger--handle-client-error state error-message))
                            :max-tokens greger-max-tokens)))
         
         ;; Store the client state for potential cancellation
@@ -915,7 +916,7 @@ the tool_result node itself."
   (setf (greger-state-current-iteration state) 0)
   (setf (greger-state-client-state state) nil)
   ;; Raise the error in the main thread where it can be caught by tests
-  (error "%s" error-message))
+  (warn "%s" error-message))
 
 (defun greger--finish-response (state)
   "Finish the agent response using STATE."

@@ -55,11 +55,12 @@
   block-stop-callback
   complete-callback
   restore-callback
+  error-callback
   error-message)
 
 ;;; Public API
 
-(cl-defun greger-client-stream (&key model dialog tools server-tools buffer block-start-callback text-delta-callback block-stop-callback complete-callback thinking-budget max-tokens auth-key)
+(cl-defun greger-client-stream (&key model dialog tools server-tools buffer block-start-callback text-delta-callback block-stop-callback complete-callback thinking-budget max-tokens auth-key error-callback)
   "Send API request to the Claude streaming API.
 Streaming responses are handled using callbacks.
 MODEL specifies which AI model to use.
@@ -73,7 +74,7 @@ COMPLETE-CALLBACK when the entire response finishes.
 THINKING-BUDGET is the number of thinking tokens.
 MAX-TOKENS is the maximum number of tokens to generate.
 AUTH-KEY is the Anthropic API key to use for authentication.
-"
+ERROR-CALLBACK is called when errors occur during processing."
   (unless (memq model greger-client-supported-models)
     (error "Unsupported model: %s. Supported models: %s"
            model greger-client-supported-models))
@@ -99,7 +100,8 @@ AUTH-KEY is the Anthropic API key to use for authentication.
                  :complete-callback complete-callback
                  :restore-callback restore-callback
                  :output-buffer output-buffer
-                 :undo-handle undo-handle)))
+                 :undo-handle undo-handle
+                 :error-callback error-callback)))
 
     (activate-change-group undo-handle)
 
@@ -248,7 +250,8 @@ MAX-TOKENS is the maximum number of tokens to generate."
 
 (defun greger-client--check-for-error (output state)
   "Check OUTPUT for error responses and store error message if found.
-Returns error information if found, nil otherwise."
+Returns error information if found, nil otherwise.
+STATE is the greger client state."
   (condition-case nil
       (let ((data (json-read-from-string output)))
         (when (and (listp data)
@@ -352,7 +355,7 @@ Returns error information if found, nil otherwise."
     (greger-client--ensure-block-at-index blocks index content-block state)))
 
 (defun greger-client--handle-content-block-delta (data state)
-  "Process incremental content updates from streaming DATA in STATE."
+  "Process incremental content update from streaming DATA in STATE."
   (let* ((index (alist-get 'index data))
          (delta (alist-get 'delta data))
          (delta-type (alist-get 'type delta))
@@ -466,7 +469,8 @@ STATE is used to update the parsed content blocks."
        (t
         (let ((error-message (or stored-error
                                  (format "Process exited with status code %d" exit-code))))
-          (warn "%s" error-message)))))))
+          (when-let ((callback (greger-client-state-error-callback state)))
+            (funcall callback error-message))))))))
 
 (defun greger-client--cancel-request (state)
   "Cancel streaming request using STATE."
