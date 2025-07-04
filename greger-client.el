@@ -155,16 +155,16 @@ AUTH-KEY is the Anthropic API key to use for authentication."
         (setcdr last-non-thinking-block (cons (car last-non-thinking-block) (cdr last-non-thinking-block)))
         (setcar last-non-thinking-block cache-control)))))
 
-(defun greger-client--build-request (model dialog tools server-tools thinking-budget max-tokens)
+(defun greger-client--build-request (model dialog tools server-tools thinking-budget max-tokens auth-key)
   "Build Claude request to be sent to the Claude API.
 MODEL is the Claude mode.
 DIALOG is the chat dialog.
 TOOLS are tool definitions.
 SERVER-TOOLS are server tool definitions.
 THINKING-BUDGET is the number of thinking tokens.
-MAX-TOKENS is the maximum number of tokens to generate"
-  (let* ((api-key (greger-client--get-api-key))
-         (headers (greger-client--build-headers api-key))
+MAX-TOKENS is the maximum number of tokens to generate.
+AUTH-KEY is the Anthropic API key to use for authentication."
+  (let* ((headers (greger-client--build-headers auth-key))
          (data (greger-client--build-data model dialog tools server-tools thinking-budget max-tokens)))
     (list :url greger-client-api-url
           :method "POST"
