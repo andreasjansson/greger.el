@@ -523,7 +523,7 @@ Hello from greger test!
         (progn
           ;; Set greger-anthropic-key-fn to return a bad key
           (setq greger-anthropic-key-fn (lambda () "bad-api-key"))
-          
+
           (let ((greger-default-system-prompt "You are an agent."))
             (setq greger-buffer (greger)))
 
@@ -536,17 +536,17 @@ Hello from greger test!
             (when (get-buffer "*Warnings*")
               (with-current-buffer "*Warnings*"
                 (erase-buffer)))
-            
+
             ;; Run greger-buffer with bad key
             (let ((greger-current-thinking-budget 0))
               (greger-buffer)
               (greger-test-wait-for-status 'idle))
-            
+
             ;; Check that an authentication error warning was generated
             (let ((warnings-buffer (get-buffer "*Warnings*")))
               (should warnings-buffer)
               (with-current-buffer warnings-buffer
-                (should (string-match-p "authentication_error.*invalid x-api-key" 
+                (should (string-match-p "authentication_error.*invalid x-api-key"
                                         (buffer-string)))))))
 
       ;; Cleanup
@@ -565,10 +565,10 @@ Hello from greger test!
         (progn
           ;; Set environment variable to a bad key
           (setenv "ANTHROPIC_API_KEY" "bad-env-key")
-          
+
           ;; Set greger-anthropic-key-fn to return the real key
           (setq greger-anthropic-key-fn (lambda () original-env-key))
-          
+
           (let ((greger-default-system-prompt "You are an agent."))
             (setq greger-buffer (greger)))
 

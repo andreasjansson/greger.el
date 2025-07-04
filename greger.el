@@ -639,7 +639,7 @@ Uses tree-sitter to find the last node and applies heuristics:
 
     (unless auth-key
       (error "No API key found.  Set ANTHROPIC_API_KEY environment variable or configure greger-anthropic-key-fn"))
-      
+
 
     (with-current-buffer chat-buffer
       (let ((client-state (greger-client-stream
@@ -660,7 +660,7 @@ Uses tree-sitter to find the last node and applies heuristics:
                            :error-callback (lambda (error-message)
                                              (greger--handle-client-error state error-message))
                            :max-tokens greger-max-tokens)))
-        
+
         ;; Store the client state for potential cancellation
         (setf (greger-state-client-state state) client-state)
         ;; Set buffer-local variable for greger-interrupt to access
