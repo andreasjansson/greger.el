@@ -99,7 +99,7 @@ If you use `greger-anthropic-key-fn`, you can for example use `auth-source-and-p
 
 ```elisp
 (setq greger-anthropic-key-fn
-  (lambda () (cadr (auth-source-user-and-password "api.anthropic.com" "emacs"))))
+      (lambda () (cadr (auth-source-user-and-password "api.anthropic.com" "emacs"))))
 ```
 
 Or in use-package:
@@ -108,9 +108,9 @@ Or in use-package:
 (use-package greger
   :ensure t
   :bind ("C-M-;" . greger)
-  :config
-  (setq greger-anthropic-key-fn
-        (lambda () (cadr (auth-source-user-and-password "api.anthropic.com" "emacs")))))
+  :custom
+  (greger-anthropic-key-fn
+   (lambda () (cadr (auth-source-user-and-password "api.anthropic.com" "emacs")))))
 ```
 
 
