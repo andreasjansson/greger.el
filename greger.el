@@ -905,6 +905,20 @@ the tool_result node itself."
          (capture (treesit-query-capture (treesit-buffer-root-node) query)))
     (alist-get 'tool-result capture)))
 
+(defun greger--handle-client-error (state error-message)
+  "Handle client error with STATE and ERROR-MESSAGE."
+  (when-let ((buffer (greger--live-chat-buffer state)))
+    (with-current-buffer buffer
+      ;; Clear the buffer-local agent state
+      (setq greger--current-state nil)
+      ;; Update buffer state to idle
+      (greger--update-buffer-state)))
+  ;; Reset the state
+  (setf (greger-state-current-iteration state) 0)
+  (setf (greger-state-client-state state) nil)
+  ;; Raise the error in the main thread where it can be caught by tests
+  (error "%s" error-message))
+
 (defun greger--finish-response (state)
   "Finish the agent response using STATE."
   (when-let ((buffer (greger--live-chat-buffer state)))
