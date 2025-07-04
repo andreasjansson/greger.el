@@ -628,42 +628,44 @@ Uses tree-sitter to find the last node and applies heuristics:
          (dialog (greger-parser-markdown-buffer-to-dialog chat-buffer))
          (safe-shell-commands (greger-parser-find-safe-shell-commands-in-buffer chat-buffer))
          (tool-use-metadata (greger-state-tool-use-metadata state))
-         (current-iteration (greger-state-current-iteration state)))
+         (current-iteration (greger-state-current-iteration state))
+         (auth-key (or (and greger-anthropic-key-fn (funcall greger-anthropic-key-fn))
+                       (getenv "ANTHROPIC_API_KEY"))))
 
     (setf (plist-get tool-use-metadata :safe-shell-commands) safe-shell-commands)
 
     (when (>= current-iteration greger-max-iterations)
       (error "Maximum iterations (%d) reached, stopping agent execution" greger-max-iterations))
 
+    (unless auth-key
+      (error "No API key found.  Set ANTHROPIC_API_KEY environment variable or configure greger-anthropic-key-fn"))
+      
+
     (with-current-buffer chat-buffer
-      (let* ((auth-key (or (getenv "ANTHROPIC_API_KEY")
-                           (and greger-anthropic-key-fn (funcall greger-anthropic-key-fn)))))
+      (let ((client-state (greger-client-stream
+                           :model greger-model
+                           :dialog dialog
+                           :tools tools
+                           :server-tools server-tools
+                           :buffer chat-buffer
+                           :thinking-budget greger-current-thinking-budget
+                           :auth-key auth-key
+                           :block-start-callback (lambda (content-block)
+                                                   (greger--append-streaming-content-header state content-block))
+                           :text-delta-callback (lambda (text)
+                                                  (greger--append-text state (greger--clean-excessive-newlines text)))
+                           :block-stop-callback (lambda (type content-block)
+                                                  (greger--append-handle-content-block-stop state type content-block))
+                           :complete-callback (lambda (content-blocks) (greger--handle-stream-completion state content-blocks))
+                           :error-callback (lambda (error-message)
+                                             (greger--handle-client-error state error-message))
+                           :max-tokens greger-max-tokens)))
         
-        (unless auth-key
-          (error "No API key found. Set ANTHROPIC_API_KEY environment variable or configure greger-anthropic-key-fn"))
-        
-        (let ((client-state (greger-client-stream
-                             :model greger-model
-                             :dialog dialog
-                             :tools tools
-                             :server-tools server-tools
-                             :buffer chat-buffer
-                             :thinking-budget greger-current-thinking-budget
-                             :auth-key auth-key
-                             :block-start-callback (lambda (content-block)
-                                                     (greger--append-streaming-content-header state content-block))
-                             :text-delta-callback (lambda (text)
-                                                    (greger--append-text state (greger--clean-excessive-newlines text)))
-                             :block-stop-callback (lambda (type content-block)
-                                                    (greger--append-handle-content-block-stop state type content-block))
-                             :complete-callback (lambda (content-blocks) (greger--handle-stream-completion state content-blocks))
-                             :max-tokens greger-max-tokens)))
-          
-          ;; Store the client state for potential cancellation
-          (setf (greger-state-client-state state) client-state)
-          ;; Set buffer-local variable for greger-interrupt to access
-          (setq greger--current-state state) ;; TODO: why do we set that _here_? Or should it be greger--current-client-state instead?
-          (greger--update-buffer-state))))))
+        ;; Store the client state for potential cancellation
+        (setf (greger-state-client-state state) client-state)
+        ;; Set buffer-local variable for greger-interrupt to access
+        (setq greger--current-state state) ;; TODO: why do we set that _here_? Or should it be greger--current-client-state instead?
+        (greger--update-buffer-state)))))
 
 (defun greger--clean-excessive-newlines (text)
   "Remove excessive newlines from the end of TEXT, keeping at most two.
