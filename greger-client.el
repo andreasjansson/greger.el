@@ -54,11 +54,13 @@
   text-delta-callback
   block-stop-callback
   complete-callback
-  restore-callback)
+  restore-callback
+  error-callback
+  error-message)
 
 ;;; Public API
 
-(cl-defun greger-client-stream (&key model dialog tools server-tools buffer block-start-callback text-delta-callback block-stop-callback complete-callback thinking-budget max-tokens)
+(cl-defun greger-client-stream (&key model dialog tools server-tools buffer block-start-callback text-delta-callback block-stop-callback complete-callback thinking-budget max-tokens auth-key error-callback)
   "Send API request to the Claude streaming API.
 Streaming responses are handled using callbacks.
 MODEL specifies which AI model to use.
@@ -70,14 +72,16 @@ TEXT-DELTA-CALLBACK for incremental text.
 BLOCK-STOP-CALLBACK when blocks complete.
 COMPLETE-CALLBACK when the entire response finishes.
 THINKING-BUDGET is the number of thinking tokens.
-MAX-TOKENS is the maximum number of tokens to generate."
+MAX-TOKENS is the maximum number of tokens to generate.
+AUTH-KEY is the Anthropic API key to use for authentication.
+ERROR-CALLBACK is called when errors occur during processing."
   (unless (memq model greger-client-supported-models)
     (error "Unsupported model: %s. Supported models: %s"
            model greger-client-supported-models))
 
   (let* ((output-buffer (or buffer (current-buffer)))
          (undo-handle (prepare-change-group output-buffer))
-         (request-spec (greger-client--build-request model dialog tools server-tools thinking-budget max-tokens))
+         (request-spec (greger-client--build-request model dialog tools server-tools thinking-budget max-tokens auth-key))
          (restore-callback (lambda (state)
                              (let ((buffer (greger-client-state-output-buffer state)))
                                (when (buffer-live-p buffer)
@@ -96,7 +100,8 @@ MAX-TOKENS is the maximum number of tokens to generate."
                  :complete-callback complete-callback
                  :restore-callback restore-callback
                  :output-buffer output-buffer
-                 :undo-handle undo-handle)))
+                 :undo-handle undo-handle
+                 :error-callback error-callback)))
 
     (activate-change-group undo-handle)
 
@@ -154,28 +159,23 @@ MAX-TOKENS is the maximum number of tokens to generate."
         (setcdr last-non-thinking-block (cons (car last-non-thinking-block) (cdr last-non-thinking-block)))
         (setcar last-non-thinking-block cache-control)))))
 
-(defun greger-client--build-request (model dialog tools server-tools thinking-budget max-tokens)
+(defun greger-client--build-request (model dialog tools server-tools thinking-budget max-tokens auth-key)
   "Build Claude request to be sent to the Claude API.
 MODEL is the Claude mode.
 DIALOG is the chat dialog.
 TOOLS are tool definitions.
 SERVER-TOOLS are server tool definitions.
 THINKING-BUDGET is the number of thinking tokens.
-MAX-TOKENS is the maximum number of tokens to generate"
-  (let* ((api-key (greger-client--get-api-key))
-         (headers (greger-client--build-headers api-key))
+MAX-TOKENS is the maximum number of tokens to generate.
+AUTH-KEY is the Anthropic API key to use for authentication."
+  (let* ((headers (greger-client--build-headers auth-key))
          (data (greger-client--build-data model dialog tools server-tools thinking-budget max-tokens)))
     (list :url greger-client-api-url
           :method "POST"
           :headers headers
           :data data)))
 
-(defun greger-client--get-api-key ()
-  "Get Claude API key from environment."
-  (let ((api-key (getenv "ANTHROPIC_API_KEY")))
-    (unless api-key
-      (error "Please set the ANTHROPIC_API_KEY environment variable"))
-    api-key))
+
 
 (defun greger-client--build-headers (api-key)
   "Build headers for Claude with API-KEY."
@@ -248,17 +248,21 @@ MAX-TOKENS is the maximum number of tokens to generate."
 
 ;;; Stream processing
 
-(defun greger-client--check-for-error (output)
-  "Check OUTPUT for error responses and raise an error if found.
-Returns nil if no error found or if OUTPUT is not valid JSON."
+(defun greger-client--check-for-error (output state)
+  "Check OUTPUT for error responses and store error message if found.
+Returns error information if found, nil otherwise.
+STATE is the greger client state."
   (condition-case nil
       (let ((data (json-read-from-string output)))
         (when (and (listp data)
                    (string= (alist-get 'type data) "error"))
           (let* ((error-info (alist-get 'error data))
                  (error-message (alist-get 'message error-info))
-                 (error-type (alist-get 'type error-info)))
-            (error "API Error (%s): %s" error-type error-message))))
+                 (error-type (alist-get 'type error-info))
+                 (error-string (format "API Error (%s): %s" error-type error-message)))
+            ;; Store the error message for later processing in completion handler
+            (setf (greger-client-state-error-message state) error-string)
+            error-info)))
     (json-error nil)
     (json-readtable-error nil)))
 
@@ -269,8 +273,8 @@ Returns nil if no error found or if OUTPUT is not valid JSON."
   ;; streaming message returned from the Anthropic API
   ;; (message "output: %s" output)
 
-  ;; Check for error responses and raise an error if found
-  (greger-client--check-for-error output)
+  ;; Check for error responses and call error callback if found
+  (greger-client--check-for-error output state)
 
   ;; Update working buffer for chunk processing
   (setf (greger-client-state-accumulated-output state)
@@ -351,7 +355,7 @@ Returns nil if no error found or if OUTPUT is not valid JSON."
     (greger-client--ensure-block-at-index blocks index content-block state)))
 
 (defun greger-client--handle-content-block-delta (data state)
-  "Process incremental content updates from streaming DATA in STATE."
+  "Process incremental content update from streaming DATA in STATE."
   (let* ((index (alist-get 'index data))
          (delta (alist-get 'delta data))
          (delta-type (alist-get 'type delta))
@@ -446,12 +450,25 @@ STATE is used to update the parsed content blocks."
   (when (memq (process-status proc) '(exit signal))
     (funcall (greger-client-state-restore-callback state) state)
 
-    (let ((exit-code (process-exit-status proc)))
-      (if (= exit-code 0)
-          (when-let ((callback (greger-client-state-complete-callback state)))
-            (funcall callback (greger-client-state-content-blocks state)))
-        ;; TODO: Error callback
-        (message "Process exited with status code %d" exit-code)))))
+    (let ((exit-code (process-exit-status proc))
+          (stored-error (greger-client-state-error-message state)))
+      (cond
+
+       ;; Process succeeded - call completion callback
+       ((and (= exit-code 0) (not stored-error))
+        (when-let ((callback (greger-client-state-complete-callback state)))
+          (funcall callback (greger-client-state-content-blocks state))))
+
+       ;; Exit code 2 means process interrupted
+       ((= exit-code 2)
+        (message "Process interrupted"))
+
+       ;; Process failed - raise error with stored message or generic message
+       (t
+        (let ((error-message (or stored-error
+                                 (format "Process exited with status code %d" exit-code))))
+          (when-let ((callback (greger-client-state-error-callback state)))
+            (funcall callback error-message))))))))
 
 (defun greger-client--cancel-request (state)
   "Cancel streaming request using STATE."

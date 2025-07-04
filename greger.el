@@ -78,6 +78,13 @@ May order 4,000 pounds of meat."
   :type 'boolean
   :group 'greger)
 
+(defcustom greger-anthropic-key-fn nil
+  "Function to call to get the Anthropic API key.
+This function should return a string containing the API key.
+If nil, the ANTHROPIC_API_KEY environment variable will be used."
+  :type '(choice (const nil) function)
+  :group 'greger)
+
 ;; Tool configuration and agent functionality
 
 (defcustom greger-tools '("read-file" "write-new-file" "replace-file" "str-replace" "make-directory" "rename-file" "delete-files" "list-directory" "ripgrep" "shell-command" "read-webpage")
@@ -621,12 +628,18 @@ Uses tree-sitter to find the last node and applies heuristics:
          (dialog (greger-parser-markdown-buffer-to-dialog chat-buffer))
          (safe-shell-commands (greger-parser-find-safe-shell-commands-in-buffer chat-buffer))
          (tool-use-metadata (greger-state-tool-use-metadata state))
-         (current-iteration (greger-state-current-iteration state)))
+         (current-iteration (greger-state-current-iteration state))
+         (auth-key (or (and greger-anthropic-key-fn (funcall greger-anthropic-key-fn))
+                       (getenv "ANTHROPIC_API_KEY"))))
 
     (setf (plist-get tool-use-metadata :safe-shell-commands) safe-shell-commands)
 
     (when (>= current-iteration greger-max-iterations)
       (error "Maximum iterations (%d) reached, stopping agent execution" greger-max-iterations))
+
+    (unless auth-key
+      (error "No API key found.  Set ANTHROPIC_API_KEY environment variable or configure greger-anthropic-key-fn"))
+
 
     (with-current-buffer chat-buffer
       (let ((client-state (greger-client-stream
@@ -636,6 +649,7 @@ Uses tree-sitter to find the last node and applies heuristics:
                            :server-tools server-tools
                            :buffer chat-buffer
                            :thinking-budget greger-current-thinking-budget
+                           :auth-key auth-key
                            :block-start-callback (lambda (content-block)
                                                    (greger--append-streaming-content-header state content-block))
                            :text-delta-callback (lambda (text)
@@ -643,6 +657,8 @@ Uses tree-sitter to find the last node and applies heuristics:
                            :block-stop-callback (lambda (type content-block)
                                                   (greger--append-handle-content-block-stop state type content-block))
                            :complete-callback (lambda (content-blocks) (greger--handle-stream-completion state content-blocks))
+                           :error-callback (lambda (error-message)
+                                             (greger--handle-client-error state error-message))
                            :max-tokens greger-max-tokens)))
 
         ;; Store the client state for potential cancellation
@@ -670,15 +686,13 @@ first two."
 
 (defun greger--handle-stream-completion (state content-blocks)
   "Handle completion of stream with STATE and CONTENT-BLOCKS."
-  (let ((tool-calls (greger--extract-tool-calls content-blocks)))
-
-    (if tool-calls
-        (progn
-          (setf (greger-state-current-iteration state)
-                (1+ (greger-state-current-iteration state)))
-          ;; TODO: execute tool calls in greger--append-content-block instead
-          (greger--execute-tools tool-calls state))
-      (greger--finish-response state)))
+  (if-let ((tool-calls (greger--extract-tool-calls content-blocks)))
+      (progn
+        (setf (greger-state-current-iteration state)
+              (1+ (greger-state-current-iteration state)))
+        ;; TODO: execute tool calls in greger--append-content-block instead
+        (greger--execute-tools tool-calls state))
+    (greger--finish-response state))
 
   (when-let ((buffer (greger--live-chat-buffer state)))
     (with-current-buffer buffer
@@ -873,12 +887,12 @@ end tag and update the buffer state."
   "Find the tool_content node for the tool_result with TOOL-ID.
 Uses treesit to query for a tool_result with matching id and returns
 the tool_content node within its content section."
-  (let* ((query `((tool_result (id (value) @id) (:match ,tool-id @id)
-                               (content) @content)))
-         (capture (treesit-query-capture (treesit-buffer-root-node) query))
-         (content-node (alist-get 'content capture))
-         ;; for some reason, querying directly for tool_content fails, but this works
-         (content-node-first-child (car (treesit-node-children content-node))))
+  (when-let* ((query `((tool_result (id (value) @id) (:match ,tool-id @id)
+                                    (content) @content)))
+              (capture (treesit-query-capture (treesit-buffer-root-node) query))
+              (content-node (alist-get 'content capture))
+              ;; for some reason, querying directly for tool_content fails, but this works
+              (content-node-first-child (car (treesit-node-children content-node))))
     (treesit-search-subtree content-node-first-child "tool_content")))
 
 (defun greger--find-tool-result-node (tool-id)
@@ -888,6 +902,21 @@ the tool_result node itself."
   (let* ((query `((tool_result (id (value) @id) (:match ,tool-id @id)) @tool-result))
          (capture (treesit-query-capture (treesit-buffer-root-node) query)))
     (alist-get 'tool-result capture)))
+
+(defun greger--handle-client-error (state error-message)
+  "Handle client error with STATE and ERROR-MESSAGE."
+  ;; This will be called from the main thread via the completion handler
+  (when-let ((buffer (greger--live-chat-buffer state)))
+    (with-current-buffer buffer
+      ;; Clear the buffer-local agent state
+      (setq greger--current-state nil)
+      ;; Update buffer state to idle
+      (greger--update-buffer-state)))
+  ;; Reset the state
+  (setf (greger-state-current-iteration state) 0)
+  (setf (greger-state-client-state state) nil)
+  ;; Raise the error in the main thread where it can be caught by tests
+  (warn "%s" error-message))
 
 (defun greger--finish-response (state)
   "Finish the agent response using STATE."

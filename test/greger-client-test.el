@@ -112,6 +112,7 @@
                       :model test-model
                       :dialog test-dialog
                       :buffer test-buffer
+                      :auth-key (getenv "ANTHROPIC_API_KEY")
                       :text-delta-callback (lambda (text)
                                              (push text text-chunks)
                                              (with-current-buffer test-buffer
@@ -167,6 +168,7 @@
                       :dialog test-dialog
                       :tools test-tools
                       :buffer test-buffer
+                      :auth-key (getenv "ANTHROPIC_API_KEY")
                       :complete-callback (lambda (blocks)
                                            (setq final-blocks blocks
                                                  response-received t))
@@ -236,7 +238,7 @@
                         (input_schema . ((type . "object")
                                          (properties . ())
                                          (required . []))))))
-         (request-spec (greger-client--build-request test-model test-dialog test-tools nil 0 4096)))
+         (request-spec (greger-client--build-request test-model test-dialog test-tools nil 0 4096 "test-api-key")))
 
     ;; Verify request structure
     (should (plist-get request-spec :url))

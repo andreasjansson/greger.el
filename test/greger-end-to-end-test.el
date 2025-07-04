@@ -513,6 +513,85 @@ Hello from greger test!
       (when (and greger-buffer (buffer-live-p greger-buffer))
         (kill-buffer greger-buffer)))))
 
+(ert-deftest greger-end-to-end-test-bad-key-from-function ()
+  "Test that greger fails when greger-anthropic-key-fn returns a bad key."
+  (skip-unless (getenv "ANTHROPIC_API_KEY"))
+
+  (let ((greger-buffer nil)
+        (original-key-fn greger-anthropic-key-fn))
+    (unwind-protect
+        (progn
+          ;; Set greger-anthropic-key-fn to return a bad key
+          (setq greger-anthropic-key-fn (lambda () "bad-api-key"))
+
+          (let ((greger-default-system-prompt "You are an agent."))
+            (setq greger-buffer (greger)))
+
+          (with-current-buffer greger-buffer
+            ;; Add a simple message
+            (goto-char (point-max))
+            (insert "Say 'Hello' and nothing else.")
+
+            ;; Clear any existing warnings
+            (when (get-buffer "*Warnings*")
+              (with-current-buffer "*Warnings*"
+                (erase-buffer)))
+
+            ;; Run greger-buffer with bad key
+            (let ((greger-current-thinking-budget 0))
+              (greger-buffer)
+              (greger-test-wait-for-status 'idle))
+
+            ;; Check that an authentication error warning was generated
+            (let ((warnings-buffer (get-buffer "*Warnings*")))
+              (should warnings-buffer)
+              (with-current-buffer warnings-buffer
+                (should (string-match-p "authentication_error.*invalid x-api-key"
+                                        (buffer-string)))))))
+
+      ;; Cleanup
+      (setq greger-anthropic-key-fn original-key-fn)
+      (when (and greger-buffer (buffer-live-p greger-buffer))
+        (kill-buffer greger-buffer)))))
+
+(ert-deftest greger-end-to-end-test-good-key-from-function-bad-env ()
+  "Test that greger works when greger-anthropic-key-fn returns good key but ANTHROPIC_API_KEY is bad."
+  (skip-unless (getenv "ANTHROPIC_API_KEY"))
+
+  (let ((greger-buffer nil)
+        (original-key-fn greger-anthropic-key-fn)
+        (original-env-key (getenv "ANTHROPIC_API_KEY")))
+    (unwind-protect
+        (progn
+          ;; Set environment variable to a bad key
+          (setenv "ANTHROPIC_API_KEY" "bad-env-key")
+
+          ;; Set greger-anthropic-key-fn to return the real key
+          (setq greger-anthropic-key-fn (lambda () original-env-key))
+
+          (let ((greger-default-system-prompt "You are an agent."))
+            (setq greger-buffer (greger)))
+
+          (with-current-buffer greger-buffer
+            ;; Add a simple message
+            (goto-char (point-max))
+            (insert "Say 'Hello' and nothing else.")
+
+            ;; Run greger-buffer - should work because greger-anthropic-key-fn provides good key
+            (let ((greger-current-thinking-budget 0))
+              (greger-buffer)
+              (greger-test-wait-for-status 'idle))
+
+            ;; Verify we got a response
+            (let ((response (greger-test-last-assistant-message)))
+              (should (string-match-p "Hello\\|hello" response)))))
+
+      ;; Cleanup
+      (setq greger-anthropic-key-fn original-key-fn)
+      (setenv "ANTHROPIC_API_KEY" original-env-key)
+      (when (and greger-buffer (buffer-live-p greger-buffer))
+        (kill-buffer greger-buffer)))))
+
 (provide 'test-end-to-end)
 
 ;;; test-end-to-end.el ends here
