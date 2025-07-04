@@ -78,7 +78,7 @@ AUTH-KEY is the Anthropic API key to use for authentication."
 
   (let* ((output-buffer (or buffer (current-buffer)))
          (undo-handle (prepare-change-group output-buffer))
-         (request-spec (greger-client--build-request model dialog tools server-tools thinking-budget max-tokens))
+         (request-spec (greger-client--build-request model dialog tools server-tools thinking-budget max-tokens auth-key))
          (restore-callback (lambda (state)
                              (let ((buffer (greger-client-state-output-buffer state)))
                                (when (buffer-live-p buffer)
