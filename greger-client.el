@@ -55,7 +55,8 @@
   block-stop-callback
   complete-callback
   restore-callback
-  error-callback)
+  error-callback
+  error-message)
 
 ;;; Public API
 
