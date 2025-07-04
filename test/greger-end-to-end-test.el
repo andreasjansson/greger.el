@@ -519,11 +519,14 @@ Hello from greger test!
 
   (let ((greger-buffer nil)
         (original-key-fn greger-anthropic-key-fn)
-        (original-debug-on-error debug-on-error))
+        (original-debug-on-error debug-on-error)
+        (original-process-error-pause-time process-error-pause-time))
     (unwind-protect
         (progn
           ;; Enable debug-on-error so process sentinel errors aren't caught
           (setq debug-on-error t)
+          ;; Disable the pause time to prevent warning system interference
+          (setq process-error-pause-time 0)
           
           ;; Set greger-anthropic-key-fn to return a bad key
           (setq greger-anthropic-key-fn (lambda () "bad-api-key"))
