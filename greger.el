@@ -685,15 +685,13 @@ first two."
 
 (defun greger--handle-stream-completion (state content-blocks)
   "Handle completion of stream with STATE and CONTENT-BLOCKS."
-  (let ((tool-calls (greger--extract-tool-calls content-blocks)))
-
-    (if tool-calls
-        (progn
-          (setf (greger-state-current-iteration state)
-                (1+ (greger-state-current-iteration state)))
-          ;; TODO: execute tool calls in greger--append-content-block instead
-          (greger--execute-tools tool-calls state))
-      (greger--finish-response state)))
+  (if-let ((tool-calls (greger--extract-tool-calls content-blocks)))
+      (progn
+        (setf (greger-state-current-iteration state)
+              (1+ (greger-state-current-iteration state)))
+        ;; TODO: execute tool calls in greger--append-content-block instead
+        (greger--execute-tools tool-calls state))
+    (greger--finish-response state))
 
   (when-let ((buffer (greger--live-chat-buffer state)))
     (with-current-buffer buffer
