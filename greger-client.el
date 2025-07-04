@@ -249,7 +249,7 @@ MAX-TOKENS is the maximum number of tokens to generate."
 ;;; Stream processing
 
 (defun greger-client--check-for-error (output state)
-  "Check OUTPUT for error responses and call error callback if found.
+  "Check OUTPUT for error responses and store error message if found.
 Returns error information if found, nil otherwise."
   (condition-case nil
       (let ((data (json-read-from-string output)))
@@ -259,8 +259,8 @@ Returns error information if found, nil otherwise."
                  (error-message (alist-get 'message error-info))
                  (error-type (alist-get 'type error-info))
                  (error-string (format "API Error (%s): %s" error-type error-message)))
-            (when-let ((callback (greger-client-state-error-callback state)))
-              (funcall callback error-string))
+            ;; Store the error message for later processing in completion handler
+            (setf (greger-client-state-error-message state) error-string)
             error-info)))
     (json-error nil)
     (json-readtable-error nil)))
