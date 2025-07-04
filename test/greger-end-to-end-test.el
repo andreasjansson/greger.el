@@ -515,7 +515,6 @@ Hello from greger test!
 
 (ert-deftest greger-end-to-end-test-bad-key-from-function ()
   "Test that greger fails when greger-anthropic-key-fn returns a bad key."
-  :expected-result :failed  ; We expect this test to "fail" due to process filter errors
   (skip-unless (getenv "ANTHROPIC_API_KEY"))
 
   (let ((greger-buffer nil)
@@ -533,18 +532,12 @@ Hello from greger test!
             (goto-char (point-max))
             (insert "Say 'Hello' and nothing else.")
 
-            ;; Run greger-buffer with bad key
-            (let ((greger-current-thinking-budget 0))
-              (greger-buffer)
-              (greger-test-wait-for-status 'idle))
-
-            ;; With bad key, we should not get a proper assistant response
-            ;; The buffer should not have been updated with assistant content
-            (let ((content (buffer-string)))
-              ;; Should still contain the user message but no assistant response
-              (should (string-match-p "Say 'Hello' and nothing else" content))
-              ;; Should not contain assistant response with "Hello"
-              (should-not (string-match-p "# ASSISTANT.*Hello" content)))))
+            ;; Run greger-buffer with bad key - should throw an error
+            (should-error
+             (let ((greger-current-thinking-budget 0))
+               (greger-buffer)
+               (greger-test-wait-for-status 'idle))
+             :type 'error)))
 
       ;; Cleanup
       (setq greger-anthropic-key-fn original-key-fn)
