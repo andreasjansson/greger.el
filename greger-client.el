@@ -58,7 +58,7 @@
 
 ;;; Public API
 
-(cl-defun greger-client-stream (&key model dialog tools server-tools buffer block-start-callback text-delta-callback block-stop-callback complete-callback thinking-budget max-tokens)
+(cl-defun greger-client-stream (&key model dialog tools server-tools buffer block-start-callback text-delta-callback block-stop-callback complete-callback thinking-budget max-tokens auth-key)
   "Send API request to the Claude streaming API.
 Streaming responses are handled using callbacks.
 MODEL specifies which AI model to use.
@@ -70,7 +70,8 @@ TEXT-DELTA-CALLBACK for incremental text.
 BLOCK-STOP-CALLBACK when blocks complete.
 COMPLETE-CALLBACK when the entire response finishes.
 THINKING-BUDGET is the number of thinking tokens.
-MAX-TOKENS is the maximum number of tokens to generate."
+MAX-TOKENS is the maximum number of tokens to generate.
+AUTH-KEY is the Anthropic API key to use for authentication."
   (unless (memq model greger-client-supported-models)
     (error "Unsupported model: %s. Supported models: %s"
            model greger-client-supported-models))
