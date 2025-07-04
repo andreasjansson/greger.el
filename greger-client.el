@@ -271,8 +271,8 @@ Returns error information if found, nil otherwise."
   ;; streaming message returned from the Anthropic API
   ;; (message "output: %s" output)
 
-  ;; Check for error responses and raise an error if found
-  (greger-client--check-for-error output)
+  ;; Check for error responses and call error callback if found
+  (greger-client--check-for-error output state)
 
   ;; Update working buffer for chunk processing
   (setf (greger-client-state-accumulated-output state)
