@@ -518,8 +518,7 @@ Hello from greger test!
   (skip-unless (getenv "ANTHROPIC_API_KEY"))
 
   (let ((greger-buffer nil)
-        (original-key-fn greger-anthropic-key-fn)
-        (warning-caught nil))
+        (original-key-fn greger-anthropic-key-fn))
     (unwind-protect
         (progn
           ;; Set greger-anthropic-key-fn to return a bad key
