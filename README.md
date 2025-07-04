@@ -95,7 +95,7 @@ You can set the environment variable in your Emacs configuration:
 (setenv "ANTHROPIC_API_KEY" "your-claude-api-key")
 ```
 
-If you use `greger-anthropic-key-fn`, you can for example use `auth-source-and-password`:
+If you use `greger-anthropic-key-fn`, you can for example use [auth-source](https://www.gnu.org/software/emacs/manual/html_mono/auth.html):
 
 ```elisp
 (setq greger-anthropic-key-fn
