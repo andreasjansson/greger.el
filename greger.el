@@ -657,8 +657,7 @@ Uses tree-sitter to find the last node and applies heuristics:
                            :block-stop-callback (lambda (type content-block)
                                                   (greger--append-handle-content-block-stop state type content-block))
                            :complete-callback (lambda (content-blocks) (greger--handle-stream-completion state content-blocks))
-                           :error-callback (lambda (error-message)
-                                             (greger--handle-client-error state error-message))
+
                            :max-tokens greger-max-tokens)))
         
         ;; Store the client state for potential cancellation
