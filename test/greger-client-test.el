@@ -112,6 +112,7 @@
                       :model test-model
                       :dialog test-dialog
                       :buffer test-buffer
+                      :auth-key (getenv "ANTHROPIC_API_KEY")
                       :text-delta-callback (lambda (text)
                                              (push text text-chunks)
                                              (with-current-buffer test-buffer
