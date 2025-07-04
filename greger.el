@@ -686,6 +686,12 @@ first two."
 
 (defun greger--handle-stream-completion (state content-blocks)
   "Handle completion of stream with STATE and CONTENT-BLOCKS."
+  ;; Check if there was an error stored in the client state
+  (when-let ((client-state (greger-state-client-state state))
+             (error-message (greger-client-state-error-message client-state)))
+    (greger--handle-client-error state error-message)
+    (return-from greger--handle-stream-completion))
+
   (let ((tool-calls (greger--extract-tool-calls content-blocks)))
 
     (if tool-calls
