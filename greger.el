@@ -886,12 +886,12 @@ end tag and update the buffer state."
   "Find the tool_content node for the tool_result with TOOL-ID.
 Uses treesit to query for a tool_result with matching id and returns
 the tool_content node within its content section."
-  (let* ((query `((tool_result (id (value) @id) (:match ,tool-id @id)
-                               (content) @content)))
-         (capture (treesit-query-capture (treesit-buffer-root-node) query))
-         (content-node (alist-get 'content capture))
-         ;; for some reason, querying directly for tool_content fails, but this works
-         (content-node-first-child (car (treesit-node-children content-node))))
+  (when-let* ((query `((tool_result (id (value) @id) (:match ,tool-id @id)
+                                    (content) @content)))
+              (capture (treesit-query-capture (treesit-buffer-root-node) query))
+              (content-node (alist-get 'content capture))
+              ;; for some reason, querying directly for tool_content fails, but this works
+              (content-node-first-child (car (treesit-node-children content-node))))
     (treesit-search-subtree content-node-first-child "tool_content")))
 
 (defun greger--find-tool-result-node (tool-id)
