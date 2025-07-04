@@ -171,12 +171,7 @@ AUTH-KEY is the Anthropic API key to use for authentication."
           :headers headers
           :data data)))
 
-(defun greger-client--get-api-key ()
-  "Get Claude API key from environment."
-  (let ((api-key (getenv "ANTHROPIC_API_KEY")))
-    (unless api-key
-      (error "Please set the ANTHROPIC_API_KEY environment variable"))
-    api-key))
+
 
 (defun greger-client--build-headers (api-key)
   "Build headers for Claude with API-KEY."
