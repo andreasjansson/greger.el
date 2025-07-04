@@ -533,40 +533,22 @@ Hello from greger test!
             (goto-char (point-max))
             (insert "Say 'Hello' and nothing else.")
 
-            ;; Capture warnings during execution
-            (let ((warning-buffer (get-buffer-create "*test-warnings*")))
-              (with-current-buffer warning-buffer
-                (erase-buffer))
-              
-              ;; Temporarily redirect warnings to our test buffer
-              (let ((warning-fill-prefix "")
-                    (warning-type-format "%s"))
-                (add-hook 'warning-functions 
-                          (lambda (level message) 
-                            (with-current-buffer warning-buffer
-                              (insert (format "%s: %s\n" level message)))
-                            (when (string-match-p "authentication_error" message)
-                              (setq warning-caught t))))
-                
-                ;; Run greger-buffer with bad key
-                (let ((greger-current-thinking-budget 0))
-                  (greger-buffer)
-                  (greger-test-wait-for-status 'idle))
-                
-                ;; Clean up warning hook
-                (setq warning-functions 
-                      (delq (lambda (level message) 
-                              (with-current-buffer warning-buffer
-                                (insert (format "%s: %s\n" level message)))
-                              (when (string-match-p "authentication_error" message)
-                                (setq warning-caught t)))
-                            warning-functions)))
-              
-              ;; Check that we caught the authentication error warning
-              (should warning-caught)
-              
-              ;; Clean up test buffer
-              (kill-buffer warning-buffer))))
+            ;; Clear any existing warnings
+            (when (get-buffer "*Warnings*")
+              (with-current-buffer "*Warnings*"
+                (erase-buffer)))
+            
+            ;; Run greger-buffer with bad key
+            (let ((greger-current-thinking-budget 0))
+              (greger-buffer)
+              (greger-test-wait-for-status 'idle))
+            
+            ;; Check that an authentication error warning was generated
+            (let ((warnings-buffer (get-buffer "*Warnings*")))
+              (should warnings-buffer)
+              (with-current-buffer warnings-buffer
+                (should (string-match-p "authentication_error.*invalid x-api-key" 
+                                        (buffer-string)))))))
 
       ;; Cleanup
       (setq greger-anthropic-key-fn original-key-fn)
