@@ -466,7 +466,7 @@ STATE is used to update the parsed content blocks."
        (t
         (let ((error-message (or stored-error
                                  (format "Process exited with status code %d" exit-code))))
-          (error "%s" error-message)))))))
+          (warn "%s" error-message)))))))
 
 (defun greger-client--cancel-request (state)
   "Cancel streaming request using STATE."
