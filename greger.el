@@ -328,16 +328,16 @@ Use nil to revert to using the remote GitHub repository."
       (message "Reverted to using remote GitHub repository")
       (message "Run M-x greger-install-grammar to reinstall with remote grammar"))))
 
-;;;###autoload
-(defun greger-install-eval-grammars ()
+(defun greger--install-eval-grammars ()
   "Install language grammars needed for eval tag support."
-  (interactive)
   (let ((grammars '((elisp "https://github.com/Wilfred/tree-sitter-elisp")
                     (python "https://github.com/tree-sitter/tree-sitter-python")
                     (bash "https://github.com/tree-sitter/tree-sitter-bash"))))
     (dolist (grammar grammars)
-      (add-to-list 'treesit-language-source-alist grammar)
-      (treesit-install-language-grammar (car grammar)))))
+      (let ((lang (car grammar)))
+        (unless (treesit-language-available-p lang)
+          (add-to-list 'treesit-language-source-alist grammar)
+          (treesit-install-language-grammar lang))))))
 
 ;;;###autoload
 (defun greger-install-grammar ()
