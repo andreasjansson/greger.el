@@ -342,21 +342,16 @@ Use nil to revert to the default 'main' branch."
 ;;;###autoload
 (defun greger-install-grammar ()
   "Install greger tree-sitter grammar.
-Uses local path from `greger-local-grammar-path' if set, otherwise
-downloads from the GitHub repository."
+Uses branch from `greger-local-grammar-path' if set, otherwise uses 'main'."
   (interactive)
   ;; Remove any existing greger entries first
   (setq treesit-language-source-alist
         (assq-delete-all 'greger treesit-language-source-alist))
   
-  (let ((grammar-source (if greger-local-grammar-path
-                            (list 'greger (expand-file-name greger-local-grammar-path))
-                          '(greger "https://github.com/andreasjansson/greger-grammar" "main"))))
-    (message "Grammar source: %S" grammar-source)
+  (let* ((branch (or greger-local-grammar-path "main"))
+         (grammar-source (list 'greger "https://github.com/andreasjansson/greger-grammar" branch)))
+    (message "Installing greger grammar from branch: %s" branch)
     (add-to-list 'treesit-language-source-alist grammar-source)
-    (message "treesit-language-source-alist: %S" treesit-language-source-alist)
-    (when greger-local-grammar-path
-      (message "Installing grammar from local path: %s" greger-local-grammar-path))
     (treesit-install-language-grammar 'greger)
     (unless (treesit-ready-p 'greger)
       (error "Tree-sitter for Greger isn't available"))))
