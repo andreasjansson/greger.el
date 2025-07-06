@@ -384,7 +384,8 @@ downloads from the GitHub repository."
                                                 "web_search_tool_result")
                                             line-end))
 
-  ;; Set up embedded language parsing for eval tags
+  ;; Install eval grammars and set up embedded language parsing
+  (greger--install-eval-grammars)
   (setq-local treesit-range-settings
               (treesit-range-rules
                :embed #'greger--eval-language-at-node
