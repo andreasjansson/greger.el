@@ -313,25 +313,20 @@ or 'bash' for <eval bash>."
 (add-to-list 'auto-mode-alist '("\\.greger\\'" . greger-mode))
 
 ;;;###autoload
-(defun greger-set-local-grammar-path (path)
-  "Set the path to local greger grammar for development.
-PATH should point to the root directory of the greger-grammar repository.
-Use nil to revert to using the remote GitHub repository."
-  (interactive "DLocal grammar directory (empty for remote): ")
-  (if (and path (not (string-empty-p path)))
+(defun greger-set-grammar-branch (branch)
+  "Set the git branch to use for greger grammar installation.
+BRANCH should be a git branch name (e.g., 'main', 'dev', 'feature-branch').
+Use nil to revert to the default 'main' branch."
+  (interactive "sBranch name (empty for main): ")
+  (if (and branch (not (string-empty-p branch)))
       (progn
-        (setq greger-local-grammar-path (expand-file-name path))
-        ;; Add to treesit-extra-load-path for local development
-        (add-to-list 'treesit-extra-load-path greger-local-grammar-path)
-        (message "Local grammar path set to: %s" greger-local-grammar-path)
-        (message "Make sure to compile the grammar: cd %s && npm run build" greger-local-grammar-path)
-        (message "The compiled grammar should be at: %s/libtree-sitter-greger.dylib" greger-local-grammar-path))
+        (setq greger-local-grammar-path branch)
+        (message "Grammar branch set to: %s" branch)
+        (message "Run M-x greger-install-grammar to reinstall from branch"))
     (progn
-      (when greger-local-grammar-path
-        (setq treesit-extra-load-path (delete greger-local-grammar-path treesit-extra-load-path)))
       (setq greger-local-grammar-path nil)
-      (message "Reverted to using remote GitHub repository")
-      (message "Run M-x greger-install-grammar to reinstall with remote grammar"))))
+      (message "Reverted to main branch")
+      (message "Run M-x greger-install-grammar to reinstall from main"))))
 
 (defun greger--install-eval-grammars ()
   "Install language grammars needed for eval tag support."
