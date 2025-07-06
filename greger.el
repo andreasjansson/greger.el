@@ -381,10 +381,6 @@ Uses branch from `greger-local-grammar-path' if set, otherwise uses 'main'."
     (unless (treesit-ready-p 'greger)
       (error "Tree-sitter for Greger isn't available"))
     
-    ;; Try to refresh all greger buffers
-    (message "Refreshing greger buffers...")
-    (greger--refresh-all-buffers)
-    
     (message "=== GREGER GRAMMAR INSTALLATION DEBUG END ===")))
 
 ;;;###autoload
