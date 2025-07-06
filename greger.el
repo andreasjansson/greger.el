@@ -308,6 +308,18 @@ or 'bash' for <eval bash>."
            (t 'elisp))) ; Default to elisp for unknown languages
       'elisp))) ; Default when no language is specified
 
+(defun greger--refresh-all-buffers ()
+  "Refresh all greger-mode buffers to use updated grammar."
+  (dolist (buffer (buffer-list))
+    (when (with-current-buffer buffer (derived-mode-p 'greger-mode))
+      (with-current-buffer buffer
+        (message "Refreshing buffer: %s" (buffer-name))
+        ;; Delete all existing parsers
+        (dolist (parser (treesit-parser-list))
+          (treesit-parser-delete parser))
+        ;; Restart the mode to recreate parsers with new grammar
+        (greger-mode)))))
+
 ;;;###autoload
 (add-to-list 'auto-mode-alist '("\\.greger\\'" . greger-mode))
 
