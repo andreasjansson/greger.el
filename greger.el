@@ -308,7 +308,29 @@ or 'bash' for <eval bash>."
            (t 'elisp))) ; Default to elisp for unknown languages
       'elisp))) ; Default when no language is specified
 
-
+(defun greger--force-grammar-reload ()
+  "Force reload of greger grammar by clearing all parsers and caches."
+  ;; Delete all existing parsers in all greger buffers
+  (dolist (buffer (buffer-list))
+    (when (with-current-buffer buffer (derived-mode-p 'greger-mode))
+      (with-current-buffer buffer
+        (message "Clearing parsers in buffer: %s" (buffer-name))
+        (dolist (parser (treesit-parser-list nil nil t)) ; Get all parsers including embedded
+          (condition-case err
+              (treesit-parser-delete parser)
+            (error (message "Error deleting parser: %S" err)))))))
+  
+  ;; Try to force a complete reload by calling GC
+  (garbage-collect)
+  (message "Garbage collection completed")
+  
+  ;; Test if the reload worked
+  (condition-case err
+      (progn
+        (treesit-query-validate 'greger '((eval)))
+        (message "SUCCESS: eval nodes now recognized!"))
+    (error 
+     (message "FAILED: eval nodes still not recognized: %S" err))))
 
 ;;;###autoload
 (add-to-list 'auto-mode-alist '("\\.greger\\'" . greger-mode))
