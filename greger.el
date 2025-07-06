@@ -287,6 +287,22 @@ When nil, preserve point position using `save-excursion'.")
 (add-to-list 'auto-mode-alist '("\\.greger\\'" . greger-mode))
 
 ;;;###autoload
+(defun greger-set-local-grammar-path (path)
+  "Set the path to local greger grammar for development.
+PATH should point to the root directory of the greger-grammar repository.
+Use nil to revert to using the remote GitHub repository."
+  (interactive "DLocal grammar directory (empty for remote): ")
+  (if (and path (not (string-empty-p path)))
+      (progn
+        (setq greger-local-grammar-path (expand-file-name path))
+        (message "Local grammar path set to: %s" greger-local-grammar-path)
+        (message "Run M-x greger-install-grammar to reinstall with local grammar"))
+    (progn
+      (setq greger-local-grammar-path nil)
+      (message "Reverted to using remote GitHub repository")
+      (message "Run M-x greger-install-grammar to reinstall with remote grammar"))))
+
+;;;###autoload
 (defun greger-install-grammar ()
   "Install greger tree-sitter grammar.
 Uses local path from `greger-local-grammar-path' if set, otherwise
@@ -296,6 +312,8 @@ downloads from the GitHub repository."
                             (list 'greger (expand-file-name greger-local-grammar-path))
                           '(greger "https://github.com/andreasjansson/greger-grammar" "main"))))
     (add-to-list 'treesit-language-source-alist grammar-source)
+    (when greger-local-grammar-path
+      (message "Installing grammar from local path: %s" greger-local-grammar-path))
     (treesit-install-language-grammar 'greger)
     (unless (treesit-ready-p 'greger)
       (error "Tree-sitter for Greger isn't available"))))
