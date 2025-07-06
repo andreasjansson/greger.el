@@ -72,6 +72,16 @@ Set to 0 to disable thinking entirely."
   :type 'integer
   :group 'greger)
 
+(defcustom greger-local-grammar-path nil
+  "Path to local greger grammar directory for development.
+When set, this directory will be used instead of the remote GitHub repository
+for installing the greger tree-sitter grammar. This is useful for development
+when you want to test changes to the grammar without pushing to GitHub.
+Should point to the root directory of the greger-grammar repository."
+  :type '(choice (const :tag "Use remote GitHub repository" nil)
+                 (directory :tag "Local grammar directory"))
+  :group 'greger)
+
 (defcustom greger-allow-all-shell-commands nil
   "Allow all shell commands to run without permission.
 May order 4,000 pounds of meat."
