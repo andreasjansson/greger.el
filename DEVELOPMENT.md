@@ -76,3 +76,49 @@ $ eldev test
 $ ./script/melpazoid
 ```
 
+### Local Grammar Development
+
+When developing changes to the greger grammar (located in `../greger-grammar`), you can configure greger.el to use your local grammar instead of downloading from GitHub:
+
+#### Method 1: Using .dir-locals.el (Recommended)
+
+1. Copy the development configuration:
+   ```bash
+   cp .dir-locals-dev.el .dir-locals.el
+   ```
+
+2. Restart Emacs or run `M-x revert-buffer` in greger.el files
+
+3. The local grammar will automatically be used when you run `M-x greger-install-grammar`
+
+#### Method 2: Using the helper function
+
+1. Run `M-x greger-set-local-grammar-path` and select the `../greger-grammar` directory
+
+2. Run `M-x greger-install-grammar` to install the grammar from your local path
+
+#### Method 3: Manual configuration
+
+Add this to your init.el or evaluate interactively:
+
+```elisp
+(setq greger-local-grammar-path (expand-file-name "../greger-grammar"))
+```
+
+#### Reverting to Remote Grammar
+
+To go back to using the remote GitHub repository:
+
+- Run `M-x greger-set-local-grammar-path` and leave the path empty
+- Or set `greger-local-grammar-path` to `nil`
+- Or delete the `.dir-locals.el` file
+
+#### Development Workflow
+
+1. Make changes to the grammar in `../greger-grammar`
+2. Run `M-x greger-install-grammar` to reinstall with your changes
+3. Test your changes in greger.el
+4. The grammar will be compiled and installed to your local tree-sitter directory
+
+**Note**: Make sure your grammar compiles successfully before testing. You can test the grammar compilation in the `../greger-grammar` directory using the tree-sitter CLI tools.
+
