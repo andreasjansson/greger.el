@@ -288,12 +288,17 @@ When nil, preserve point position using `save-excursion'.")
 
 ;;;###autoload
 (defun greger-install-grammar ()
-  "Install greger tree-sitter grammar."
+  "Install greger tree-sitter grammar.
+Uses local path from `greger-local-grammar-path' if set, otherwise
+downloads from the GitHub repository."
   (interactive)
-  (add-to-list 'treesit-language-source-alist '(greger "https://github.com/andreasjansson/greger-grammar" "main"))
-  (treesit-install-language-grammar 'greger)
-  (unless (treesit-ready-p 'greger)
-    (error "Tree-sitter for Greger isn't available")))
+  (let ((grammar-source (if greger-local-grammar-path
+                            (list 'greger (expand-file-name greger-local-grammar-path))
+                          '(greger "https://github.com/andreasjansson/greger-grammar" "main"))))
+    (add-to-list 'treesit-language-source-alist grammar-source)
+    (treesit-install-language-grammar 'greger)
+    (unless (treesit-ready-p 'greger)
+      (error "Tree-sitter for Greger isn't available"))))
 
 ;;;###autoload
 (define-derived-mode greger-mode prog-mode "Greger"
