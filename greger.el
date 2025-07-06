@@ -373,6 +373,17 @@ downloads from the GitHub repository."
                                                 "web_search_tool_result")
                                             line-end))
 
+  ;; Set up embedded language parsing for eval tags
+  (when (and (treesit-language-available-p 'elisp)
+             (treesit-language-available-p 'python)
+             (treesit-language-available-p 'bash))
+    (setq-local treesit-range-settings
+                (treesit-range-rules
+                 :embed #'greger--eval-language-at-node
+                 :host 'greger
+                 :local t
+                 '((eval (eval_content) @capture)))))
+
   (treesit-major-mode-setup)
 
   (setq-local mode-line-misc-info '(:eval (greger--mode-line-info)))
