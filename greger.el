@@ -394,32 +394,12 @@ downloads from the GitHub repository."
                                             line-end))
 
   ;; Set up embedded language parsing for eval tags
-  (let ((available-languages '())
-        (all-languages '(elisp python bash)))
-    ;; Check which languages are available
-    (dolist (lang all-languages)
-      (when (treesit-language-available-p lang)
-        (push lang available-languages)))
-    
-    ;; Only set up embedded parsing if we have at least one language available
-    (when available-languages
-      (setq-local treesit-range-settings
-                  (treesit-range-rules
-                   :embed #'greger--eval-language-at-node
-                   :host 'greger
-                   :local t
-                   '((eval (eval_content) @capture))))
-      (message "Greger: Enabled eval syntax highlighting for: %s" 
-               (mapconcat #'symbol-name (reverse available-languages) ", ")))
-    
-    ;; Warn if some languages are missing
-    (let ((missing-languages '()))
-      (dolist (lang all-languages)
-        (unless (treesit-language-available-p lang)
-          (push lang missing-languages)))
-      (when missing-languages
-        (message "Greger: Missing grammars for eval tags: %s. Run M-x greger-install-eval-grammars"
-                 (mapconcat #'symbol-name (reverse missing-languages) ", ")))))
+  (setq-local treesit-range-settings
+              (treesit-range-rules
+               :embed #'greger--eval-language-at-node
+               :host 'greger
+               :local t
+               '((eval (eval_content) @capture))))
 
   (treesit-major-mode-setup)
 
