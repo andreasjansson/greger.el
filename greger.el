@@ -343,17 +343,43 @@ Use nil to revert to the default 'main' branch."
   "Install greger tree-sitter grammar.
 Uses branch from `greger-local-grammar-path' if set, otherwise uses 'main'."
   (interactive)
+  (message "=== GREGER GRAMMAR INSTALLATION DEBUG ===")
+  (message "greger-local-grammar-path: %S" greger-local-grammar-path)
+  
   ;; Remove any existing greger entries first
+  (message "treesit-language-source-alist before cleanup: %S" treesit-language-source-alist)
   (setq treesit-language-source-alist
         (assq-delete-all 'greger treesit-language-source-alist))
+  (message "treesit-language-source-alist after cleanup: %S" treesit-language-source-alist)
   
   (let* ((branch (or greger-local-grammar-path "main"))
          (grammar-source (list 'greger "https://github.com/andreasjansson/greger-grammar" branch)))
     (message "Installing greger grammar from branch: %s" branch)
+    (message "Grammar source: %S" grammar-source)
     (add-to-list 'treesit-language-source-alist grammar-source)
+    (message "treesit-language-source-alist after adding: %S" treesit-language-source-alist)
+    
+    (message "Calling treesit-install-language-grammar...")
     (treesit-install-language-grammar 'greger)
+    (message "treesit-install-language-grammar completed")
+    
+    (message "Checking grammar availability...")
+    (message "treesit-language-available-p result: %S" (treesit-language-available-p 'greger))
+    (message "treesit-ready-p result: %S" (treesit-ready-p 'greger))
+    
+    ;; Try to get detailed info
+    (condition-case err
+        (progn
+          (message "Testing query validation...")
+          (treesit-query-validate 'greger '((eval)))
+          (message "Query validation succeeded!"))
+      (error 
+       (message "Query validation failed: %S" err)))
+    
     (unless (treesit-ready-p 'greger)
-      (error "Tree-sitter for Greger isn't available"))))
+      (error "Tree-sitter for Greger isn't available"))
+    
+    (message "=== GREGER GRAMMAR INSTALLATION DEBUG END ===")))
 
 ;;;###autoload
 (define-derived-mode greger-mode prog-mode "Greger"
