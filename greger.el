@@ -294,6 +294,21 @@ When nil, preserve point position using `save-excursion'.")
      ((node-is "web_search_tool_result") column-0 0)))
   "Tree-sitter indentation rules for `greger-mode'.")
 
+(defun greger--eval-language-at-node (node)
+  "Determine the language for an eval content NODE.
+Returns 'elisp' for <eval> (default), 'python' for <eval python>,
+or 'bash' for <eval bash>."
+  (let* ((eval-node (treesit-node-parent node))
+         (start-tag (treesit-node-child eval-node 0))
+         (language-node (treesit-node-child-by-field-name start-tag "language")))
+    (if language-node
+        (let ((lang-text (treesit-node-text language-node)))
+          (cond
+           ((string= lang-text "python") 'python)
+           ((string= lang-text "bash") 'bash)
+           (t 'elisp))) ; Default to elisp for unknown languages
+      'elisp))) ; Default when no language is specified
+
 ;;;###autoload
 (add-to-list 'auto-mode-alist '("\\.greger\\'" . greger-mode))
 
