@@ -348,10 +348,17 @@ downloads from the GitHub repository."
   (let ((grammar-source (if greger-local-grammar-path
                             (list 'greger (expand-file-name greger-local-grammar-path))
                           '(greger "https://github.com/andreasjansson/greger-grammar" "main"))))
+    (message "Grammar source: %S" grammar-source)
+    (message "treesit-language-source-alist before: %S" treesit-language-source-alist)
     (add-to-list 'treesit-language-source-alist grammar-source)
+    (message "treesit-language-source-alist after: %S" treesit-language-source-alist)
     (when greger-local-grammar-path
       (message "Installing grammar from local path: %s" greger-local-grammar-path))
+    (message "About to call treesit-install-language-grammar")
     (treesit-install-language-grammar 'greger)
+    (message "Finished treesit-install-language-grammar")
+    (message "treesit-ready-p result: %S" (treesit-ready-p 'greger))
+    (message "treesit-language-available-p result: %S" (treesit-language-available-p 'greger))
     (unless (treesit-ready-p 'greger)
       (error "Tree-sitter for Greger isn't available"))))
 
