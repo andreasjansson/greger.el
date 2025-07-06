@@ -329,6 +329,26 @@ Use nil to revert to using the remote GitHub repository."
       (message "Run M-x greger-install-grammar to reinstall with remote grammar"))))
 
 ;;;###autoload
+(defun greger-install-eval-grammars ()
+  "Install language grammars needed for eval tag support.
+Installs grammars for Emacs Lisp (elisp), Python, and Bash."
+  (interactive)
+  (let ((grammars '((elisp "https://github.com/Wilfred/tree-sitter-elisp")
+                    (python "https://github.com/tree-sitter/tree-sitter-python")
+                    (bash "https://github.com/tree-sitter/tree-sitter-bash"))))
+    (dolist (grammar grammars)
+      (let ((lang (car grammar))
+            (url (cadr grammar)))
+        (unless (treesit-language-available-p lang)
+          (add-to-list 'treesit-language-source-alist (list lang url))
+          (message "Installing %s grammar..." lang)
+          (treesit-install-language-grammar lang)
+          (if (treesit-language-available-p lang)
+              (message "Successfully installed %s grammar" lang)
+            (message "Failed to install %s grammar" lang))))))
+  (message "Eval grammar installation complete"))
+
+;;;###autoload
 (defun greger-install-grammar ()
   "Install greger tree-sitter grammar.
 Uses local path from `greger-local-grammar-path' if set, otherwise
