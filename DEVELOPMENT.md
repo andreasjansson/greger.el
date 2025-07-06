@@ -76,49 +76,38 @@ $ eldev test
 $ ./script/melpazoid
 ```
 
-### Local Grammar Development
+### Grammar Development with Git Branches
 
-When developing changes to the greger grammar (located in `../greger-grammar`), you can configure greger.el to use your local grammar instead of downloading from GitHub:
+When developing changes to the greger grammar, you can configure greger.el to install from a specific git branch instead of the default 'main' branch:
 
-#### Method 1: Using .dir-locals.el (Recommended)
+#### Method 1: Using the helper function
 
-1. Copy the development configuration:
-   ```bash
-   cp .dir-locals-dev.el .dir-locals.el
-   ```
+1. Run `M-x greger-set-grammar-branch` and enter your development branch name (e.g., `feature-eval-tags`)
 
-2. Restart Emacs or run `M-x revert-buffer` in greger.el files
+2. Run `M-x greger-install-grammar` to install the grammar from your branch
 
-3. The local grammar will automatically be used when you run `M-x greger-install-grammar`
-
-#### Method 2: Using the helper function
-
-1. Run `M-x greger-set-local-grammar-path` and select the `../greger-grammar` directory
-
-2. Run `M-x greger-install-grammar` to install the grammar from your local path
-
-#### Method 3: Manual configuration
+#### Method 2: Manual configuration
 
 Add this to your init.el or evaluate interactively:
 
 ```elisp
-(setq greger-local-grammar-path (expand-file-name "../greger-grammar"))
+(setq greger-local-grammar-path "your-branch-name")
 ```
 
-#### Reverting to Remote Grammar
+#### Reverting to Main Branch
 
-To go back to using the remote GitHub repository:
+To go back to using the main branch:
 
-- Run `M-x greger-set-local-grammar-path` and leave the path empty
+- Run `M-x greger-set-grammar-branch` and leave the branch name empty
 - Or set `greger-local-grammar-path` to `nil`
-- Or delete the `.dir-locals.el` file
 
 #### Development Workflow
 
-1. Make changes to the grammar in `../greger-grammar`
-2. Run `M-x greger-install-grammar` to reinstall with your changes
-3. Test your changes in greger.el
-4. The grammar will be compiled and installed to your local tree-sitter directory
+1. Create a feature branch in the greger-grammar repository
+2. Push your changes to that branch
+3. Set greger.el to use your branch with `M-x greger-set-grammar-branch`
+4. Run `M-x greger-install-grammar` to install from your branch
+5. Test your changes in greger.el
 
-**Note**: Make sure your grammar compiles successfully before testing. You can test the grammar compilation in the `../greger-grammar` directory using the tree-sitter CLI tools.
+This approach ensures you're always working with properly compiled grammars and can easily switch between different development branches.
 
