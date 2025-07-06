@@ -266,6 +266,12 @@ When nil, preserve point position using `save-excursion'.")
      (url) @greger-ui--url-link)
 
    :language 'greger
+   :feature 'eval-tags
+   :override t
+   '((eval_start_tag) @greger-eval-tag-face
+     (eval_end_tag) @greger-eval-tag-face)
+
+   :language 'greger
    :feature 'comments
    :override t
    '((html_comment) @font-lock-comment-face)
