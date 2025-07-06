@@ -313,7 +313,7 @@ or 'bash' for <eval bash>."
 
 ;;;###autoload
 (defun greger-set-grammar-branch (branch)
-  "Set the git branch to use for greger grammar installation.
+  "Set the git branch to use for greger grammar installation and install it.
 BRANCH should be a git branch name (e.g., 'main', 'dev', 'feature-branch').
 Use nil to revert to the default 'main' branch."
   (interactive "sBranch name (empty for main): ")
@@ -321,11 +321,11 @@ Use nil to revert to the default 'main' branch."
       (progn
         (setq greger-local-grammar-path branch)
         (message "Grammar branch set to: %s" branch)
-        (message "Run M-x greger-install-grammar to reinstall from branch"))
+        (greger-install-grammar))
     (progn
       (setq greger-local-grammar-path nil)
       (message "Reverted to main branch")
-      (message "Run M-x greger-install-grammar to reinstall from main"))))
+      (greger-install-grammar))))
 
 (defun greger--install-eval-grammars ()
   "Install language grammars needed for eval tag support."
