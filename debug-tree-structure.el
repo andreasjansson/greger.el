@@ -37,7 +37,21 @@
       ;; Search for eval result nodes
       (let ((eval-results (treesit-search-subtree root "eval_result")))
         (if eval-results
-            (message "Found eval_result node: %s" eval-results)
+            (progn
+              (message "Found eval_result node: %s" eval-results)
+              
+              ;; Test the same search logic as the folding function
+              (let ((start-tag-from-node (treesit-search-subtree eval-results "eval_result_start_tag"))
+                    (end-tag-from-node (treesit-search-subtree eval-results "eval_result_end_tag")))
+                (message "Start tag from eval_result node: %s" start-tag-from-node)
+                (message "End tag from eval_result node: %s" end-tag-from-node)
+                
+                (when start-tag-from-node
+                  (message "Start tag range: %d-%d" 
+                           (treesit-node-start start-tag-from-node)
+                           (treesit-node-end start-tag-from-node))
+                  (message "Start tag text: '%s'"
+                           (treesit-node-text start-tag-from-node t)))))
           (message "No eval_result nodes found!"))
         
         ;; Search for eval result start tags
