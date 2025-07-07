@@ -31,7 +31,7 @@
           (message "Found eval_result node: %s" (treesit-node-type parent))
           (message "Eval result range: %d-%d" (treesit-node-start parent) (treesit-node-end parent))
           
-          ;; Find the start tag
+          ;; Find the start tag using the same logic as the folding function
           (let ((start-tag (treesit-search-subtree parent "eval_result_start_tag")))
             (when start-tag
               (message "Start tag range: %d-%d" (treesit-node-start start-tag) (treesit-node-end start-tag))
@@ -43,4 +43,11 @@
               (let ((after-tag-pos (treesit-node-end start-tag)))
                 (message "Character after tag at %d: '%c'" after-tag-pos (char-after after-tag-pos))
                 (message "Next 5 chars: '%s'" 
-                         (buffer-substring-no-properties after-tag-pos (min (+ after-tag-pos 5) (point-max))))))))))))  
+                         (buffer-substring-no-properties after-tag-pos (min (+ after-tag-pos 5) (point-max)))))
+              
+              ;; Check if the display property is being applied to the tag
+              (message "Display property on tag: %s" (get-text-property (treesit-node-start start-tag) 'display))
+              
+              ;; Check if the display property is being applied to the content  
+              (let ((content-pos (treesit-node-end start-tag)))
+                (message "Display property on content: %s" (get-text-property content-pos 'display))))))))))  
