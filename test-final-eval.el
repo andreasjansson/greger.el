@@ -63,14 +63,19 @@
                        (if is-invisible "hidden" "visible"))))))
       (message "✓ Folding: %d eval results have foldable content" foldable-results))
   
-  ;; Test expansion message overlays
-  (let ((fold-overlays 0))
-    (dolist (overlay (overlays-in (point-min) (point-max)))
-      (when (overlay-get overlay 'greger-ui-eval-fold-overlay)
-        (setq fold-overlays (1+ fold-overlays))
-        (message "  - Found expansion overlay: '%s'" 
-                 (overlay-get overlay 'after-string))))
-    (message "✓ Expansion messages: %d overlays found" fold-overlays)))
+  ;; Test expansion message text properties
+  (let ((expansion-messages 0))
+    (save-excursion
+      (goto-char (point-min))
+      (while (< (point) (point-max))
+        (let ((display-prop (get-text-property (point) 'display)))
+          (when (and display-prop 
+                     (stringp display-prop) 
+                     (string-match-p "\\[\\+.*lines.*TAB.*expand\\]" display-prop))
+            (setq expansion-messages (1+ expansion-messages))
+            (message "  - Found expansion message at %d: '%s'" (point) display-prop)))
+        (goto-char (1+ (point)))))
+    (message "✓ Expansion messages: %d found" expansion-messages)))
   
   ;; Test 4: Test toggling folding mode
   (message "✓ Testing folding mode toggle...")
