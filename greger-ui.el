@@ -105,6 +105,11 @@ START and END are the region bounds."
             (put-text-property node-start node-end 'keymap greger-ui-tool-content-head-keymap)
             (put-text-property node-start node-end 'font-lock-face 'greger-tool-content-face)
             
+            ;; Clean up any existing overlays in this region first
+            (dolist (overlay (overlays-in (- node-end 2) node-end))
+              (when (overlay-get overlay 'greger-ui-fold-overlay)
+                (delete-overlay overlay)))
+            
             ;; Add expansion indicator when not visible
             (unless is-tail-visible
               (let ((overlay (make-overlay (-  node-end 2) (1- node-end))))
@@ -112,9 +117,7 @@ START and END are the region bounds."
                              (propertize (format "\n[+%d lines, TAB to expand]" line-count)
                                          'face '(:foreground "gray" :height 0.8 :slant italic)))
                 (overlay-put overlay 'greger-ui-fold-overlay t)
-                (overlay-put overlay 'evaporate t)
-                ;; Store overlay reference for cleanup
-                (put-text-property node-start node-end 'greger-ui-fold-overlay overlay)))))))))
+                (overlay-put overlay 'evaporate t)))))))))
 
 (defun greger-ui--tool-content-tail-folding (node _override _start _end)
   "Font-lock function to make tool_content_tail invisible by default.
