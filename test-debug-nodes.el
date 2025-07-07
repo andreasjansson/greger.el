@@ -30,8 +30,8 @@
     
     (let ((root (treesit-buffer-root-node)))
       (message "=== EVAL RESULT NODE STRUCTURE ===")
-      ;; Find all eval result nodes
-      (let ((eval-results (list (treesit-search-subtree root "eval_result"))))
-        (dolist (eval-result eval-results)
+      ;; Find first eval result node and examine its structure
+      (let ((eval-result (treesit-search-subtree root "eval_result")))
+        (when eval-result
           (message "\n--- EVAL RESULT ---")
           (print-tree-recursive eval-result 0))))))
