@@ -244,10 +244,10 @@ NODE is the matched tree-sitter node for eval_result."
         
         ;; Handle arrow display and tag hiding for folding
         (let ((eval-result-start-tag (treesit-search-subtree 
-                                      (treesit-node-parent node)
+                                      node
                                       "eval_result_start_tag"))
               (eval-result-end-tag (treesit-search-subtree 
-                                    (treesit-node-parent node)
+                                    node
                                     "eval_result_end_tag")))
           
           ;; Clean up old display properties first
