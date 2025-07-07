@@ -430,8 +430,8 @@ When nil, preserve point position using `save-excursion'.")
    :language 'greger
    :feature 'eval-tags
    :override t
-   '((eval_start_tag) @greger-eval-tag-face
-     (eval_end_tag) @greger-eval-tag-face
+   '((eval (eval_start_tag) @greger-eval-tag-face)
+     (eval (eval_end_tag) @greger-eval-tag-face)
      (eval_result_content) @greger-eval-result-face)
 
    :language 'greger
@@ -471,30 +471,6 @@ or 'bash' for <eval bash>."
            ((string= lang-text "bash") 'bash)
            (t 'elisp))) ; Default to elisp for unknown languages
       'elisp))) ; Default when no language is specified
-
-(defun greger--force-grammar-reload ()
-  "Force reload of greger grammar by clearing all parsers and caches."
-  ;; Delete all existing parsers in all greger buffers
-  (dolist (buffer (buffer-list))
-    (when (with-current-buffer buffer (derived-mode-p 'greger-mode))
-      (with-current-buffer buffer
-        (message "Clearing parsers in buffer: %s" (buffer-name))
-        (dolist (parser (treesit-parser-list nil nil t)) ; Get all parsers including embedded
-          (condition-case err
-              (treesit-parser-delete parser)
-            (error (message "Error deleting parser: %S" err)))))))
-  
-  ;; Try to force a complete reload by calling GC
-  (garbage-collect)
-  (message "Garbage collection completed")
-  
-  ;; Test if the reload worked
-  (condition-case err
-      (progn
-        (treesit-query-validate 'greger '((eval)))
-        (message "SUCCESS: eval nodes now recognized!"))
-    (error 
-     (message "FAILED: eval nodes still not recognized: %S" err))))
 
 ;;;###autoload
 (add-to-list 'auto-mode-alist '("\\.greger\\'" . greger-mode))
@@ -581,10 +557,6 @@ Uses branch from `greger-local-grammar-path' if set, otherwise uses 'main'."
     
     (unless (treesit-ready-p 'greger)
       (error "Tree-sitter for Greger isn't available"))
-    
-    ;; Try to force reload the grammar
-    (message "Attempting to force grammar reload...")
-    (greger--force-grammar-reload)
     
     (message "=== GREGER GRAMMAR INSTALLATION DEBUG END ===")))
 
@@ -938,7 +910,7 @@ Uses tree-sitter to find the last node and applies heuristics:
                          (greger-server-tools-get-schemas greger-server-tools)))
          (chat-buffer (greger-state-chat-buffer state))
          ;; Process evals before parsing the dialog
-         (_ (greger--process-evals-in-buffer chat-buffer))
+         (greger--process-evals-in-buffer chat-buffer)
          (dialog (greger-parser-markdown-buffer-to-dialog chat-buffer))
          (safe-shell-commands (greger-parser-find-safe-shell-commands-in-buffer chat-buffer))
          (tool-use-metadata (greger-state-tool-use-metadata state))
