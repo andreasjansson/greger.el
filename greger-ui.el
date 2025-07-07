@@ -263,20 +263,13 @@ NODE is the matched tree-sitter node for eval_result."
           ;; When folding mode is enabled, show arrow and hide end tag
           (when greger-ui-folding-mode
             (when eval-result-start-tag
-              (let ((start-pos (treesit-node-start eval-result-start-tag))
-                    (end-pos (treesit-node-end eval-result-start-tag)))
-                (message "DEBUG: Applying arrow to start tag at %d-%d: '%s'" 
-                         start-pos end-pos
-                         (buffer-substring-no-properties start-pos end-pos))
-                (put-text-property start-pos end-pos
-                                   'display (propertize "⇒" 'face 'greger-eval-arrow-face))))
+              (put-text-property (treesit-node-start eval-result-start-tag)
+                                 (treesit-node-end eval-result-start-tag)
+                                 'display (propertize "⇒" 'face 'greger-eval-arrow-face)))
             (when eval-result-end-tag
-              (let ((start-pos (treesit-node-start eval-result-end-tag))
-                    (end-pos (treesit-node-end eval-result-end-tag)))
-                (message "DEBUG: Hiding end tag at %d-%d: '%s'" 
-                         start-pos end-pos
-                         (buffer-substring-no-properties start-pos end-pos))
-                (put-text-property start-pos end-pos 'invisible t)))))
+              (put-text-property (treesit-node-start eval-result-end-tag)
+                                 (treesit-node-end eval-result-end-tag)
+                                 'invisible t))))
         
         ;; Handle content folding for long results
         (when (and content-head-node content-tail-node)
