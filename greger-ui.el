@@ -255,12 +255,11 @@ NODE is the matched tree-sitter node for eval_result."
         (put-text-property content-start content-end 'keymap greger-ui-eval-result-keymap)
         (put-text-property content-start content-end 'greger-ui-eval-result-expandable t)
         
-        ;; Always add arrow overlay for eval results
+        ;; Always add arrow for eval results using text properties
         (when eval-content-node
-          (greger-ui--add-eval-arrow-overlay eval-content-node eval-content-text 
-                                             (if content-head-node
-                                                 (string-trim (treesit-node-text content-head-node t))
-                                               (string-trim content-text))))
+          (let ((eval-content-end (treesit-node-end eval-content-node)))
+            (put-text-property eval-content-end (min (1+ eval-content-end) (point-max))
+                               'display (propertize "⇒" 'face 'greger-eval-arrow-face))))
         
         ;; Handle folding based on content structure
         (when (and content-head-node content-tail-node)
