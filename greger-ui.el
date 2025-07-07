@@ -282,14 +282,12 @@ NODE is the matched tree-sitter node for eval_result."
             ;; Add expansion indicator when folded
             (unless is-expanded
               (when greger-ui-folding-mode
-                (message "DEBUG: Adding expansion message for %d lines" tail-line-count)
                 ;; Find the end tag and add expansion message before it
                 (let* ((eval-result-end-tag (treesit-search-subtree 
                                              (treesit-node-parent node)
                                              "eval_result_end_tag")))
                   (when eval-result-end-tag
                     (let ((end-tag-start (treesit-node-start eval-result-end-tag)))
-                      (message "DEBUG: Placing expansion message at position %d" end-tag-start)
                       (put-text-property end-tag-start (min (1+ end-tag-start) (point-max)) 'display
                                          (propertize (format "[+%d lines, TAB to expand]\n" tail-line-count)
                                                      'face '(:foreground "gray" :height 0.8 :slant italic))))))))))))))
