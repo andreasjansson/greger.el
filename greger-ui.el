@@ -227,7 +227,7 @@ NODE is the matched tree-sitter node, similar to tool content tail folding."
     (put-text-property node-start node-end 'invisible greger-ui-folding-mode)))
 
 (defun greger-ui--make-eval-result-tag-invisible (node _override _start _end)
-  "Handle eval result end tag visibility based on folding mode."
+  "Handle eval result end tag visibility and styling based on folding mode."
   (condition-case nil
       (let ((node-start (treesit-node-start node))
             (node-end (min (1+ (treesit-node-end node)) (point-max))))
@@ -236,8 +236,10 @@ NODE is the matched tree-sitter node, similar to tool content tail folding."
           (if greger-ui-folding-mode
               ;; Hide end tag when folding mode is enabled
               (put-text-property node-start node-end 'invisible t)
-            ;; Show tag normally when folding mode is disabled
-            (remove-text-properties node-start node-end '(invisible nil)))))
+            ;; Show styled tag when folding mode is disabled
+            (progn
+              (remove-text-properties node-start node-end '(invisible nil))
+              (put-text-property node-start node-end 'font-lock-face 'greger-eval-result-tag-face)))))
     (treesit-node-outdated
      ;; Node became outdated, skip this operation
      nil)))
