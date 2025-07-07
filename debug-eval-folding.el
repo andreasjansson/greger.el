@@ -31,14 +31,14 @@
         
         ;; Check each character in the content
         (let ((content-start end)
-              (content-end (when (search-forward "</eval-result-abc123>" nil t)
+              (content-end (when (search-forward "</eval-result-1>" nil t)
                              (match-beginning 0))))
           (when content-end
             (message "Content from %d to %d: '%s'" content-start content-end 
                      (buffer-substring-no-properties content-start content-end))
             
-            ;; Check each character's properties
-            (dotimes (i (- content-end content-start))
+            ;; Check first 5 characters for brevity  
+            (dotimes (i (min 5 (- content-end content-start)))
               (let ((pos (+ content-start i))
                     (char (char-after (+ content-start i))))
                 (message "Char %d at pos %d: '%c' display='%s' invisible='%s'"
