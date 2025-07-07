@@ -123,6 +123,71 @@ Raises an error if evaluation fails."
         (error "%s" error-msg)
       result)))
 
+(defun greger--process-evals-in-buffer (buffer)
+  "Process all eval blocks in BUFFER according to greger eval semantics.
+- Evaluate evals in system section every time
+- Evaluate evals in current user section (last user section only)
+- Replace eval blocks with eval results
+- Raise errors if evaluation fails"
+  (with-current-buffer buffer
+    (save-excursion
+      (goto-char (point-min))
+      (let ((system-sections (greger--find-sections "# SYSTEM"))
+            (user-sections (greger--find-sections "# USER")))
+        
+        ;; Process all evals in system sections
+        (dolist (section system-sections)
+          (greger--process-evals-in-section section))
+        
+        ;; Process evals in the last user section only
+        (when user-sections
+          (let ((last-user-section (car (last user-sections))))
+            (greger--process-evals-in-section last-user-section)))))))
+
+(defun greger--find-sections (header)
+  "Find all sections with HEADER in the current buffer.
+Returns a list of (start . end) positions."
+  (save-excursion
+    (goto-char (point-min))
+    (let (sections)
+      (while (re-search-forward (format "^%s" (regexp-quote header)) nil t)
+        (let ((section-start (line-beginning-position))
+              (section-end (save-excursion
+                             (if (re-search-forward "^# \\(SYSTEM\\|USER\\|ASSISTANT\\|THINKING\\|TOOL\\)" nil t)
+                                 (line-beginning-position)
+                               (point-max)))))
+          (push (cons section-start section-end) sections)))
+      (nreverse sections))))
+
+(defun greger--process-evals-in-section (section)
+  "Process all eval blocks in SECTION (a cons of start . end positions)."
+  (save-excursion
+    (goto-char (car section))
+    (let ((section-end (cdr section)))
+      (while (re-search-forward "<eval>\\(?:\n\\)?\\(?:\\([a-zA-Z_][a-zA-Z0-9_]*\\)\n\\)?\\(\\(?:.\\|\n\\)*?\\)</eval>" section-end t)
+        (let* ((full-match-start (match-beginning 0))
+               (full-match-end (match-end 0))
+               (language (or (match-string 1) "elisp"))  ; default to elisp
+               (code (match-string 2))
+               (eval-id (greger--generate-eval-id))
+               (result (greger--eval-code language (string-trim code)))
+               (eval-result-block (format "<eval-result-%s>\n%s\n</eval-result-%s>" eval-id result eval-id)))
+          
+          ;; Replace the eval block with the eval result
+          (goto-char full-match-start)
+          (delete-region full-match-start full-match-end)
+          (insert eval-result-block)
+          
+          ;; Update section-end since we changed the buffer
+          (setq section-end (+ section-end (- (length eval-result-block) 
+                                              (- full-match-end full-match-start)))))))))
+
+(defun greger--generate-eval-id ()
+  "Generate a unique ID for eval results."
+  (format "%s%06d" 
+          (format-time-string "%H%M%S")
+          (random 1000000)))
+
 (defconst greger-available-models
   '(claude-sonnet-4-20250514
     claude-opus-4-20250514)
