@@ -195,7 +195,8 @@ line4
 (ert-deftest greger-ui-test-eval-result-content-folding ()
   (with-current-buffer (greger)
     (erase-buffer)
-    (insert "<eval>
+    (let ((greger-ui-folding-mode t))  ; Enable folding mode for this test
+      (insert "<eval>
 test eval
 <eval-result-abc123>
 content_line1
@@ -208,12 +209,12 @@ content_line6
 </eval>
 
 ")
-    ;; Force font-lock to process the buffer
-    (font-lock-ensure)
+      ;; Force font-lock to process the buffer
+      (font-lock-ensure)
 
-    ;; Test that eval result content is folded by default (shows head + first few lines)
-    (let ((actual (greger-ui-test--visible-text))
-          (expected "<eval>
+      ;; Test that eval result content is folded by default (shows head + first few lines)
+      (let ((actual (greger-ui-test--visible-text))
+            (expected "<eval>
 test eval
 ⇒ 
 content_line1
@@ -224,16 +225,16 @@ content_line4
 </eval>
 
 "))
-      (should (string= expected actual)))
+        (should (string= expected actual)))
 
-    ;; Test expanding eval result content
-    (goto-char (point-min))
-    (re-search-forward "content_line1")
+      ;; Test expanding eval result content
+      (goto-char (point-min))
+      (re-search-forward "content_line1")
 
-    (greger-ui-test--send-key (kbd "TAB"))
+      (greger-ui-test--send-key (kbd "TAB"))
 
-    (let ((actual (greger-ui-test--visible-text))
-          (expected "<eval>
+      (let ((actual (greger-ui-test--visible-text))
+            (expected "<eval>
 test eval
 ⇒ 
 content_line1
@@ -246,16 +247,16 @@ content_line6
 </eval>
 
 "))
-      (should (string= expected actual)))
+        (should (string= expected actual)))
 
-    ;; Test collapsing eval result content
-    (goto-char (point-min))
-    (re-search-forward "content_line5")
+      ;; Test collapsing eval result content
+      (goto-char (point-min))
+      (re-search-forward "content_line5")
 
-    (greger-ui-test--send-key (kbd "TAB"))
+      (greger-ui-test--send-key (kbd "TAB"))
 
-    (let ((actual (greger-ui-test--visible-text))
-          (expected "<eval>
+      (let ((actual (greger-ui-test--visible-text))
+            (expected "<eval>
 test eval
 ⇒ 
 content_line1
@@ -266,7 +267,7 @@ content_line4
 </eval>
 
 "))
-      (should (string= expected actual)))))
+        (should (string= expected actual))))))
 
 (ert-deftest greger-ui-test-thinking-signature-invisible ()
   (with-current-buffer (greger)
