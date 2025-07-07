@@ -61,6 +61,12 @@
     (define-key map (kbd "TAB") #'greger-ui--toggle-tool-content-tail-fold)
     map))
 
+(defvar greger-ui-eval-result-keymap
+  (let ((map (make-sparse-keymap)))
+    (define-key map [mouse-1] #'greger-ui--toggle-eval-result-fold)
+    (define-key map (kbd "TAB") #'greger-ui--toggle-eval-result-fold)
+    map))
+
 (defvar greger-ui-folding-mode t)
 
 (defun greger-ui-toggle-folding ()
