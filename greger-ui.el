@@ -258,6 +258,85 @@ NODE is the matched tree-sitter node"
         (node-end (1- (treesit-node-end node))))
     (put-text-property node-start node-end 'invisible greger-ui-folding-mode)))
 
+(defun greger-ui--eval-result-content-head-folding (node _override _start _end)
+  "Make eval_result_content_head TAB-able for tail visibility.
+NODE is the matched tree-sitter node, similar to tool content head folding."
+  (let* ((node-start (treesit-node-start node))
+         (node-end (treesit-node-end node))
+         (parent (treesit-node-parent node)))
+
+    (when parent
+      ;; Find the corresponding tail safely
+      (let ((tail-node (treesit-search-subtree parent "^eval_result_content_tail$" nil nil 1)))
+        (when tail-node
+          (let* ((tail-start (treesit-node-start tail-node))
+                 (tail-end (treesit-node-end tail-node))
+                 (is-tail-visible (or (get-text-property tail-start 'greger-ui-eval-result-content-expanded)
+                                      (not greger-ui-folding-mode)))
+                 (line-count (max 1 (count-lines tail-start tail-end))))
+            ;; Mark the head as foldable
+            (put-text-property node-start node-end 'greger-ui-foldable-eval-result-content t)
+            (put-text-property node-start node-end 'keymap greger-ui-eval-result-content-head-keymap)
+            (put-text-property node-start node-end 'font-lock-face 'greger-eval-result-face)
+            
+            ;; Clean up any existing overlays in this region first
+            (dolist (overlay (overlays-in (- node-end 2) node-end))
+              (when (overlay-get overlay 'greger-ui-fold-overlay)
+                (delete-overlay overlay)))
+            
+            ;; Add expansion indicator when not visible
+            (unless is-tail-visible
+              (let ((overlay (make-overlay (- node-end 2) (1- node-end))))
+                (overlay-put overlay 'after-string
+                             (propertize (format "\n[+%d lines, TAB to expand]" line-count)
+                                         'face '(:foreground "gray" :height 0.8 :slant italic)))
+                (overlay-put overlay 'greger-ui-fold-overlay t)
+                (overlay-put overlay 'evaporate t)))))))))
+
+(defun greger-ui--eval-result-content-tail-folding (node _override _start _end)
+  "Font-lock function to make eval_result_content_tail invisible by default.
+NODE is the matched tree-sitter node, similar to tool content tail folding."
+  (let* ((node-start (treesit-node-start node))
+         (node-end (treesit-node-end node))
+         (is-visible (get-text-property node-start 'greger-ui-eval-result-content-expanded)))
+
+    ;; Apply invisibility (default is invisible unless expanded, but respect global folding mode)
+    (put-text-property node-start node-end 'invisible
+                       (and greger-ui-folding-mode (not is-visible)))
+    (put-text-property node-start node-end 'keymap greger-ui-eval-result-content-tail-keymap)
+    (put-text-property node-start node-end 'font-lock-face 'greger-eval-result-face)))
+
+(defun greger-ui--make-eval-result-tag-invisible (node _override _start _end)
+  "Handle eval result end tag visibility and styling based on folding mode."
+  (condition-case nil
+      (let ((node-start (treesit-node-start node))
+            (node-end (min (1+ (treesit-node-end node)) (point-max))))
+
+        (when (<= node-end (point-max))
+          (if greger-ui-folding-mode
+              ;; Hide end tag when folding mode is enabled
+              (put-text-property node-start node-end 'invisible t)
+            ;; Show styled tag when folding mode is disabled
+            (progn
+              (remove-text-properties node-start node-end '(invisible nil))
+              (put-text-property node-start node-end 'font-lock-face 'greger-tool-tag-face)))))
+    (treesit-node-outdated
+     ;; Node became outdated, skip this operation
+     nil)))
+
+(defun greger-ui--eval-result-start-tag-with-arrow (node _override _start _end)
+  "Show arrow for eval result start tag NODE when folding mode is enabled."
+  (let ((node-start (treesit-node-start node))
+        (node-end (treesit-node-end node)))
+    (if greger-ui-folding-mode
+        ;; Show arrow when folding mode is enabled
+        (progn
+          (remove-text-properties node-start node-end '(font-lock-face nil))
+          (put-text-property node-start node-end 'display (propertize "⇒" 'face 'greger-eval-arrow-face)))
+      ;; Show styled tag when folding mode is disabled
+      (remove-text-properties node-start node-end '(display nil invisible nil))
+      (put-text-property node-start node-end 'font-lock-face 'greger-tool-tag-face))))
+
 ;; Links
 
 (defun greger-ui--url-link (node _override _start _end)
