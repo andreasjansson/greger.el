@@ -273,7 +273,9 @@ When nil, preserve point position using `save-excursion'.")
      (web_search_tool_result (id) @greger-ui--make-tool-result-id-invisible)
      (tool_param_header) @greger-tool-param-name-face
      (key) @greger-key-face
-     (url) @greger-ui--url-link)
+     (url) @greger-ui--url-link
+     (eval_result_start_tag) @greger-ui--make-eval-result-tag-invisible
+     (eval_result_end_tag) @greger-ui--make-eval-result-tag-invisible)
 
    :language 'greger
    :feature 'eval-tags
