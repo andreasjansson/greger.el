@@ -47,151 +47,6 @@
 (require 'greger-ui)
 
 ;; Eval functionality
-(defvar greger-supported-eval-languages '("elisp" "python" "bash")
-  "List of languages supported for eval blocks.")
-
-(defun greger--eval-code (language code)
-  "Evaluate CODE in the specified LANGUAGE.
-Returns the result as a string.
-Raises an error if evaluation fails."
-  (cond
-   ((string= language "elisp")
-    (greger--eval-elisp code))
-   ((string= language "python")
-    (greger--eval-python code))
-   ((string= language "bash")
-    (greger--eval-bash code))
-   (t
-    (error "Unsupported eval language: %s. Supported languages: %s"
-           language (string-join greger-supported-eval-languages ", ")))))
-
-(defun greger--eval-elisp (code)
-  "Evaluate Emacs Lisp CODE and return the result as a string."
-  (condition-case err
-      (let ((result (eval (read (format "(progn %s)" code)))))
-        (format "%s" result))
-    (error
-     (error "Elisp evaluation failed: %s" (error-message-string err)))))
-
-(defun greger--eval-python (code)
-  "Evaluate Python CODE and return the result as a string."
-  (let* ((process-name (format "greger-python-eval-%s" (make-temp-name "")))
-         (process-buffer (generate-new-buffer (format " *%s*" process-name)))
-         (result nil)
-         (error-msg nil)
-         (process (let ((inhibit-message t))
-                    (start-process process-name process-buffer "python3" "-c" code)))
-         (exit-status nil))
-    (unwind-protect
-        (progn
-          (set-process-query-on-exit-flag process nil)
-          (set-process-sentinel process #'ignore)  ; Suppress process messages
-          (while (process-live-p process)
-            (accept-process-output process 0.1))
-          (setq exit-status (process-exit-status process))
-          (with-current-buffer process-buffer
-            (let ((output (string-trim (buffer-string))))
-              (if (= exit-status 0)
-                  (setq result (if (string-empty-p output) "(no output)" output))
-                (setq error-msg (format "Python evaluation failed with exit code %d: %s" 
-                                      exit-status output))))))
-      (when (buffer-live-p process-buffer)
-        (kill-buffer process-buffer)))
-    (if error-msg
-        (error "%s" error-msg)
-      result)))
-
-(defun greger--eval-bash (code)
-  "Evaluate Bash CODE and return the result as a string."
-  (let* ((process-name (format "greger-bash-eval-%s" (make-temp-name "")))
-         (process-buffer (generate-new-buffer (format " *%s*" process-name)))
-         (result nil)
-         (error-msg nil)
-         (process (let ((inhibit-message t))
-                    (start-process process-name process-buffer "bash" "-c" code)))
-         (exit-status nil))
-    (unwind-protect
-        (progn
-          (set-process-query-on-exit-flag process nil)
-          (set-process-sentinel process #'ignore)  ; Suppress process messages
-          (while (process-live-p process)
-            (accept-process-output process 0.1))
-          (setq exit-status (process-exit-status process))
-          (with-current-buffer process-buffer
-            (let ((output (string-trim (buffer-string))))
-              (if (= exit-status 0)
-                  (setq result (if (string-empty-p output) "(no output)" output))
-                (setq error-msg (format "Bash evaluation failed with exit code %d: %s" 
-                                      exit-status output))))))
-      (when (buffer-live-p process-buffer)
-        (kill-buffer process-buffer)))
-    (if error-msg
-        (error "%s" error-msg)
-      result)))
-
-(defun greger--process-evals-in-buffer (buffer)
-  "Process all eval blocks in BUFFER according to greger eval semantics.
-- Evaluate evals in system section every time
-- Evaluate evals in current user section (last user section only)
-- Replace eval blocks with eval results
-- Raise errors if evaluation fails"
-  (with-current-buffer buffer
-    (save-excursion
-      (goto-char (point-min))
-      (let ((root-node (treesit-buffer-root-node)))
-        (when root-node
-          ;; Process all evals in system sections
-          (let ((system-nodes (treesit-query-capture root-node '((system) @system))))
-            (dolist (capture system-nodes)
-              (when (eq (car capture) 'system)
-                (greger--process-evals-in-node (cdr capture)))))
-          
-          ;; Process evals in the last user section only
-          (let ((user-nodes (treesit-query-capture root-node '((user) @user))))
-            (when user-nodes
-              (let ((last-user-node (cdar (last user-nodes))))
-                (greger--process-evals-in-node last-user-node)))))))))
-
-(defun greger--process-evals-in-node (node)
-  "Process all eval blocks in NODE."
-  (let ((eval-nodes (treesit-query-capture node '((eval) @eval))))
-    ;; Process eval nodes in reverse order to avoid position shifts
-    (dolist (capture (reverse eval-nodes))
-      (when (eq (car capture) 'eval)
-        (greger--process-single-eval (cdr capture))))))
-
-(defun greger--process-single-eval (eval-node)
-  "Process a single eval block represented by EVAL-NODE."
-  (let* ((start-tag-node (treesit-search-subtree eval-node "eval_start_tag"))
-         (content-node (treesit-search-subtree eval-node "eval_content"))
-         (language (greger--extract-eval-language start-tag-node))
-         (code (if content-node (treesit-node-text content-node t) ""))
-         (eval-id (greger--generate-eval-id))
-         (result (greger--eval-code language (string-trim code)))
-         (eval-result-block (format "<eval-result-%s>\n%s\n</eval-result-%s>" eval-id result eval-id))
-         (eval-start (treesit-node-start eval-node))
-         (eval-end (treesit-node-end eval-node)))
-    
-    ;; Replace the eval block with the eval result
-    (goto-char eval-start)
-    (delete-region eval-start eval-end)
-    (insert eval-result-block)))
-
-(defun greger--extract-eval-language (start-tag-node)
-  "Extract language from eval start tag node, defaulting to elisp."
-  (if start-tag-node
-      (let ((language-node (treesit-search-subtree start-tag-node "language")))
-        (if language-node
-            (treesit-node-text language-node t)
-          "elisp"))  ; default to elisp
-    "elisp"))
-
-(defun greger--generate-eval-id ()
-  "Generate a unique ID for eval results."
-  (format "%s%06d" 
-          (format-time-string "%H%M%S")
-          (random 1000000)))
-
 (defconst greger-available-models
   '(claude-sonnet-4-20250514
     claude-opus-4-20250514)
@@ -910,7 +765,7 @@ Uses tree-sitter to find the last node and applies heuristics:
                          (greger-server-tools-get-schemas greger-server-tools)))
          (chat-buffer (greger-state-chat-buffer state))
          ;; Process evals before parsing the dialog
-         (greger--process-evals-in-buffer chat-buffer)
+         (_ (greger--process-evals-in-buffer chat-buffer))
          (dialog (greger-parser-markdown-buffer-to-dialog chat-buffer))
          (safe-shell-commands (greger-parser-find-safe-shell-commands-in-buffer chat-buffer))
          (tool-use-metadata (greger-state-tool-use-metadata state))
@@ -1220,6 +1075,158 @@ the tool_result node itself."
   ;; Reset the state
   (setf (greger-state-current-iteration state) 0)
   (setf (greger-state-client-state state) nil))
+
+;; Eval functionality
+
+(defvar greger-supported-eval-languages '("elisp" "python" "bash")
+  "List of languages supported for eval blocks.")
+
+(defun greger--eval-code (language code)
+  "Evaluate CODE in the specified LANGUAGE.
+Returns the result as a string.
+Raises an error if evaluation fails."
+  (cond
+   ((string= language "elisp")
+    (greger--eval-elisp code))
+   ((string= language "python")
+    (greger--eval-python code))
+   ((string= language "bash")
+    (greger--eval-bash code))
+   (t
+    (error "Unsupported eval language: %s. Supported languages: %s"
+           language (string-join greger-supported-eval-languages ", ")))))
+
+(defun greger--eval-elisp (code)
+  "Evaluate Emacs Lisp CODE and return the result as a string."
+  (condition-case err
+      (let ((result (eval (read (format "(progn %s)" code)))))
+        (substring-no-properties (format "%s" result)))
+    (error
+     (error "Elisp evaluation failed: %s" (error-message-string err)))))
+
+(defun greger--eval-python (code)
+  "Evaluate Python CODE and return the result as a string."
+  (let* ((process-name (format "greger-python-eval-%s" (make-temp-name "")))
+         (process-buffer (generate-new-buffer (format " *%s*" process-name)))
+         (result nil)
+         (error-msg nil)
+         (process (let ((inhibit-message t))
+                    (start-process process-name process-buffer "python3" "-c" code)))
+         (exit-status nil))
+    (unwind-protect
+        (progn
+          (set-process-query-on-exit-flag process nil)
+          (set-process-sentinel process #'ignore)  ; Suppress process messages
+          (while (process-live-p process)
+            (accept-process-output process 0.1))
+          (setq exit-status (process-exit-status process))
+          (with-current-buffer process-buffer
+            (let ((output (string-trim (buffer-string))))
+              (if (= exit-status 0)
+                  (setq result (if (string-empty-p output) "(no output)" output))
+                (setq error-msg (format "Python evaluation failed with exit code %d: %s" 
+                                      exit-status output))))))
+      (when (buffer-live-p process-buffer)
+        (kill-buffer process-buffer)))
+    (if error-msg
+        (error "%s" error-msg)
+      result)))
+
+(defun greger--eval-bash (code)
+  "Evaluate Bash CODE and return the result as a string."
+  (let* ((process-name (format "greger-bash-eval-%s" (make-temp-name "")))
+         (process-buffer (generate-new-buffer (format " *%s*" process-name)))
+         (result nil)
+         (error-msg nil)
+         (process (let ((inhibit-message t))
+                    (start-process process-name process-buffer "bash" "-c" code)))
+         (exit-status nil))
+    (unwind-protect
+        (progn
+          (set-process-query-on-exit-flag process nil)
+          (set-process-sentinel process #'ignore)  ; Suppress process messages
+          (while (process-live-p process)
+            (accept-process-output process 0.1))
+          (setq exit-status (process-exit-status process))
+          (with-current-buffer process-buffer
+            (let ((output (string-trim (buffer-string))))
+              (if (= exit-status 0)
+                  (setq result (if (string-empty-p output) "(no output)" output))
+                (setq error-msg (format "Bash evaluation failed with exit code %d: %s" 
+                                      exit-status output))))))
+      (when (buffer-live-p process-buffer)
+        (kill-buffer process-buffer)))
+    (if error-msg
+        (error "%s" error-msg)
+      result)))
+
+(defun greger--process-evals-in-buffer (buffer)
+  "Process all eval blocks in BUFFER according to greger eval semantics.
+- Evaluate evals in system section every time
+- Evaluate evals in current user section (last user section only)
+- Replace eval blocks with eval results
+- Raise errors if evaluation fails"
+  (with-current-buffer buffer
+    (save-excursion
+      (goto-char (point-min))
+      (let ((root-node (treesit-buffer-root-node)))
+        (when root-node
+          ;; Process all evals in system sections
+          (let ((system-nodes (treesit-query-capture root-node '((system) @system))))
+            (dolist (capture system-nodes)
+              (when (eq (car capture) 'system)
+                (greger--process-evals-in-node (cdr capture) :clear-existing t))))
+          
+          ;; Process evals in the last user section only
+          (let ((user-nodes (treesit-query-capture root-node '((user) @user))))
+            (when user-nodes
+              (let ((last-user-node (cdar (last user-nodes))))
+                (greger--process-evals-in-node last-user-node)))))))))
+
+(cl-defun greger--process-evals-in-node (node &key clear-existing)
+  "Process all eval blocks in NODE.
+If CLEAR-EXISTING, clear any existing eval results."
+  (let ((eval-nodes (treesit-query-capture node '((eval) @eval))))
+    ;; Process eval nodes in reverse order to avoid position shifts
+    (dolist (capture (reverse eval-nodes))
+      (when (eq (car capture) 'eval)
+        (greger--process-single-eval (cdr capture) :clear-existing clear-existing)))))
+
+(cl-defun greger--process-single-eval (eval-node &key clear-existing)
+  "Process a single eval block represented by EVAL-NODE.
+If CLEAR-EXISTING, clear any existing eval results."
+  (let* ((start-tag-node (treesit-search-subtree eval-node "eval_start_tag"))
+         (end-tag-node (treesit-search-subtree eval-node "eval_end_tag"))
+         (content-node (treesit-search-subtree eval-node "eval_content"))
+         (language (greger--extract-eval-language start-tag-node))
+         (code (treesit-node-text content-node t))
+         (eval-id (greger--generate-eval-id))
+         (result (greger--eval-code language (string-trim code)))
+         (existing-result-node (treesit-search-subtree eval-node "eval_result"))
+         (new-result-block (format "<eval-result-%s>\n%s\n</eval-result-%s>" eval-id result eval-id))
+         (content-end (treesit-node-end content-node))
+         (end-tag-start (treesit-node-start end-tag-node)))
+
+    (when (or clear-existing (not existing-result-node))
+      (save-excursion
+        (goto-char content-end)
+        (delete-region content-end end-tag-start)
+        (insert new-result-block)))))
+
+(defun greger--extract-eval-language (start-tag-node)
+  "Extract language from eval start tag node, defaulting to elisp."
+  (if start-tag-node
+      (let ((language-node (treesit-search-subtree start-tag-node "language")))
+        (if language-node
+            (treesit-node-text language-node t)
+          "elisp"))  ; default to elisp
+    "elisp"))
+
+(defun greger--generate-eval-id ()
+  "Generate a unique ID for eval results."
+  (format "%s%06d" 
+          (format-time-string "%H%M%S")
+          (random 1000000)))
 
 (provide 'greger)
 
