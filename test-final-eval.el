@@ -15,15 +15,19 @@
   (font-lock-ensure)
   
   ;; Test 1: Check arrows are present
-  (let ((arrow-count 0))
+  (let ((arrow-positions '()))
     (save-excursion
       (goto-char (point-min))
       (while (< (point) (point-max))
         (let ((display-prop (get-text-property (point) 'display)))
           (when (and display-prop (stringp display-prop) (string-match-p "⇒" display-prop))
-            (setq arrow-count (1+ arrow-count))))
+            ;; Only count the start of each arrow region
+            (unless (and (> (point) (point-min))
+                         (get-text-property (1- (point)) 'display))
+              (push (point) arrow-positions))))
         (goto-char (1+ (point)))))
-    (message "✓ Arrows: Found %d arrows (expected 4)" arrow-count))
+    (message "✓ Arrows: Found %d arrow regions at positions %s" 
+             (length arrow-positions) (reverse arrow-positions)))
   
   ;; Test 2: Check eval result content has correct face
   (let ((root (treesit-buffer-root-node))
