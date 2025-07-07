@@ -290,7 +290,7 @@ NODE is the matched tree-sitter node for eval_result."
                   (when eval-result-end-tag
                     (let ((end-tag-start (treesit-node-start eval-result-end-tag)))
                       (message "DEBUG: Placing expansion message at position %d" end-tag-start)
-                      (put-text-property end-tag-start end-tag-start 'display
+                      (put-text-property end-tag-start (min (1+ end-tag-start) (point-max)) 'display
                                          (propertize (format "[+%d lines, TAB to expand]\n" tail-line-count)
                                                      'face '(:foreground "gray" :height 0.8 :slant italic))))))))))))))
 
