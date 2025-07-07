@@ -331,14 +331,15 @@ NODE is the matched tree-sitter node for eval_result."
     (put-text-property node-start node-end 'invisible greger-ui-folding-mode)))
 
 (defun greger-ui--make-eval-result-tag-invisible (node _override _start _end)
-  "Make eval result tag NODE invisible when folding mode is disabled."
+  "Make eval result tag NODE invisible when folding mode is disabled.
+When folding mode is enabled, the folding function handles tag visibility."
   (condition-case nil
       (let ((node-start (treesit-node-start node))
             (node-end (min (1+ (treesit-node-end node)) (point-max))))
 
         (when (<= node-end (point-max))
-          ;; Always hide tags when folding mode is disabled
-          ;; When folding mode is enabled, the folding function handles visibility
+          ;; Only hide tags when folding mode is disabled
+          ;; When folding mode is enabled, folding function controls visibility
           (unless greger-ui-folding-mode
             (put-text-property node-start node-end 'invisible t))))
     (treesit-node-outdated
