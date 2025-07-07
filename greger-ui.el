@@ -217,6 +217,17 @@ NODE is the matched tree-sitter node"
         (node-end (1- (treesit-node-end node))))
     (put-text-property node-start node-end 'invisible greger-ui-folding-mode)))
 
+(defun greger-ui--make-eval-result-tag-invisible (node _override _start _end)
+  "Make eval result tag NODE invisible while preserving face styling."
+  (condition-case nil
+      (let ((node-start (treesit-node-start node))
+            (node-end (min (1+ (treesit-node-end node)) (point-max))))
+        (when (<= node-end (point-max))
+          (put-text-property node-start node-end 'invisible greger-ui-folding-mode)))
+    (treesit-node-outdated
+     ;; Node became outdated, skip this operation
+     nil)))
+
 ;; Links
 
 (defun greger-ui--url-link (node _override _start _end)
