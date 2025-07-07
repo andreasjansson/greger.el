@@ -18,6 +18,11 @@
   "Face for eval result arrow."
   :group 'greger)
 
+(defface greger-eval-result-tag-face
+  '((t (:foreground "#6A4C93" :weight bold :height 0.9)))
+  "Face for eval result tags (<eval-result-xxx>, </eval-result-xxx>)."
+  :group 'greger)
+
 ;; Variables
 (defvar greger-ui-folding-mode nil
   "Non-nil if greger UI folding mode is enabled.")
