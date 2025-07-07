@@ -63,13 +63,9 @@
 
 (defun greger-ui--cleanup-fold-overlays ()
   "Remove all fold overlays in the current buffer."
-  (save-excursion
-    (goto-char (point-min))
-    (while (< (point) (point-max))
-      (dolist (overlay (overlays-at (point)))
-        (when (overlay-get overlay 'greger-ui-fold-overlay)
-          (delete-overlay overlay)))
-      (forward-char 1))))
+  (dolist (overlay (overlays-in (point-min) (point-max)))
+    (when (overlay-get overlay 'greger-ui-fold-overlay)
+      (delete-overlay overlay))))
 
 (defun greger-ui--citation-hiding (node _override _start _end)
   "Font-lock function to hide citation entries within assistant blocks.
