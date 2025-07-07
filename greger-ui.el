@@ -190,6 +190,25 @@ NODE is the matched tree-sitter node"
          (invisible-end (+ node-end 2)))
     (put-text-property node-start invisible-end 'invisible greger-ui-folding-mode)))
 
+(defun greger-ui--add-eval-arrow-overlay (eval-content-node eval-content-text result-head-text)
+  "Add arrow overlay between EVAL-CONTENT-NODE and result.
+EVAL-CONTENT-TEXT is the eval code text, RESULT-HEAD-TEXT is the result preview."
+  (let* ((eval-content-end (treesit-node-end eval-content-node))
+         ;; Clean up old arrow overlay
+         (old-overlay (get-text-property eval-content-end 'greger-ui-eval-arrow-overlay)))
+    
+    (when (and old-overlay (overlayp old-overlay))
+      (delete-overlay old-overlay))
+    
+    ;; Create new arrow overlay
+    (let ((overlay (make-overlay eval-content-end eval-content-end)))
+      (overlay-put overlay 'after-string
+                   (propertize "⇒" 'face 'greger-eval-arrow-face))
+      (overlay-put overlay 'greger-ui-eval-arrow-overlay t)
+      (overlay-put overlay 'evaporate t)
+      (put-text-property eval-content-end (min (1+ eval-content-end) (point-max))
+                         'greger-ui-eval-arrow-overlay overlay))))
+
 (defun greger-ui--eval-result-folding (node _override _start _end)
   "Font-lock function to fold eval result content similar to tool content.
 NODE is the matched tree-sitter node for eval_result."
