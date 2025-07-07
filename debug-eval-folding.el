@@ -21,7 +21,7 @@
     
     ;; Look at the first eval result
     (goto-char (point-min))
-    (when (search-forward "<eval-result-abc123>" nil t)
+    (when (search-forward "<eval-result-1>" nil t)
       (let ((start (match-beginning 0))
             (end (match-end 0)))
         (message "Found eval result tag at %d-%d: '%s'" start end 
