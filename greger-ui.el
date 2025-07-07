@@ -261,16 +261,21 @@ NODE is the matched tree-sitter node for eval_result."
             ;; Hide tail when folding
             (put-text-property tail-start tail-end 'invisible should-fold)
             
+            ;; Clean up old fold overlays first
+            (let ((existing-overlays (overlays-in head-start head-end)))
+              (dolist (overlay existing-overlays)
+                (when (overlay-get overlay 'greger-ui-eval-fold-overlay)
+                  (delete-overlay overlay))))
+            
             ;; Add expansion indicator overlay when folded
             (unless is-expanded
               (when greger-ui-folding-mode
                 (let ((overlay (make-overlay (- head-end 1) head-end)))
                   (overlay-put overlay 'after-string
-                               (propertize (format "\n[+%d lines, TAB to expand]" tail-line-count)
+                               (propertize (format "[+%d lines, TAB to expand]\n" tail-line-count)
                                            'face '(:foreground "gray" :height 0.8 :slant italic)))
                   (overlay-put overlay 'greger-ui-eval-fold-overlay t)
-                  (overlay-put overlay 'evaporate t)
-                  (put-text-property head-start head-end 'greger-ui-eval-fold-overlay overlay))))))
+                  (overlay-put overlay 'evaporate t))))))
          
          ;; If only head content (4 lines or less), just add arrow
          (content-head-node
