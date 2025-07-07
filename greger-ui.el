@@ -90,8 +90,32 @@
   "Toggle `greger-ui-folding-mode' and re-fontify the buffer."
   (interactive)
   (setq greger-ui-folding-mode (not greger-ui-folding-mode))
+  
+  ;; Always clean up overlays when toggling
+  (greger-ui--cleanup-fold-overlays)
+  (greger-ui--cleanup-eval-fold-overlays)
+  
   (font-lock-flush (point-min) (point-max))
   (message "Greger UI folding mode: %s" (if greger-ui-folding-mode "enabled" "disabled")))
+
+(defun greger-ui--cleanup-eval-fold-overlays ()
+  "Clean up all eval fold text properties in the current buffer."
+  ;; Remove display properties that were added for eval arrows and expansion messages
+  (save-excursion
+    (goto-char (point-min))
+    (while (< (point) (point-max))
+      (let ((display-prop (get-text-property (point) 'display)))
+        (when (and display-prop
+                   (or (string-match-p "⇒" display-prop)
+                       (string-match-p "\\[\\+.*lines.*TAB.*expand\\]" display-prop)))
+          (remove-text-properties (point) (1+ (point)) '(display nil))))
+      (forward-char 1))))
+
+(defun greger-ui--cleanup-fold-overlays ()
+  "Remove all fold overlays in the current buffer."
+  (dolist (overlay (overlays-in (point-min) (point-max)))
+    (when (overlay-get overlay 'greger-ui-fold-overlay)
+      (delete-overlay overlay))))
 
 ;; Folding and hiding
 
