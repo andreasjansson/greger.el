@@ -302,8 +302,8 @@ When folding mode is enabled, the folding function handles tag visibility."
     (if greger-ui-folding-mode
         ;; Show arrow when folding mode is enabled
         (put-text-property node-start node-end 'display (propertize "⇒" 'face 'greger-eval-arrow-face))
-      ;; Hide tag when folding mode is disabled
-      (put-text-property node-start node-end 'invisible t))))
+      ;; Show tag normally when folding mode is disabled
+      (remove-text-properties node-start node-end '(display nil invisible nil)))))
 
 ;; Content transformation
 
