@@ -73,8 +73,20 @@
   "Toggle `greger-ui-folding-mode' and re-fontify the buffer."
   (interactive)
   (setq greger-ui-folding-mode (not greger-ui-folding-mode))
+  
+  ;; Clean up all eval fold overlays when disabling folding mode
+  (unless greger-ui-folding-mode
+    (greger-ui--cleanup-eval-fold-overlays))
+  
   (font-lock-flush (point-min) (point-max))
   (message "Greger UI folding mode: %s" (if greger-ui-folding-mode "enabled" "disabled")))
+
+(defun greger-ui--cleanup-eval-fold-overlays ()
+  "Clean up all eval fold overlays in the current buffer."
+  (dolist (overlay (overlays-in (point-min) (point-max)))
+    (when (or (overlay-get overlay 'greger-ui-eval-fold-overlay)
+              (overlay-get overlay 'greger-ui-eval-arrow-overlay))
+      (delete-overlay overlay))))
 
 ;; Folding and hiding
 
