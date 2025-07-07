@@ -199,6 +199,16 @@ When nil, preserve point position using `save-excursion'.")
   "Face for eval tags (<eval>, </eval>)."
   :group 'greger)
 
+(defface greger-eval-result-face
+  '((t (:foreground "#7BA7D7")))
+  "Face for eval result content."
+  :group 'greger)
+
+(defface greger-eval-arrow-face
+  '((t (:foreground "#4A90E2" :weight bold)))
+  "Face for eval result arrow overlay."
+  :group 'greger)
+
 (defface greger-error-face
   '((t (:background "red" :foreground "white")))
   "Face for parse errors in greger-mode."
