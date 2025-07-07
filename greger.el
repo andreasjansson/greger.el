@@ -263,7 +263,8 @@ When nil, preserve point position using `save-excursion'.")
      (tool_content_tail) @greger-ui--tool-content-tail-folding
      (tool_content_head) @greger-ui--tool-content-head-folding
      (thinking_signature) @greger-ui--thinking-signature-hiding
-     (eval_result) @greger-ui--eval-result-folding)
+     (eval_result_content_head) @greger-ui--eval-result-content-head-folding
+     (eval_result_content_tail) @greger-ui--eval-result-content-tail-folding)
 
    :language 'greger
    :feature 'tool-tags
