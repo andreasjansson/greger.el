@@ -18,12 +18,19 @@
   "Face for eval result arrow."
   :group 'greger)
 
-
-;; Variables
-(defvar greger-ui-folding-mode nil
-  "Non-nil if greger UI folding mode is enabled.")
-
 ;; Keymaps
+(defvar greger-ui-tool-content-head-keymap
+  (let ((map (make-sparse-keymap)))
+    (define-key map (kbd "TAB") 'greger-ui-toggle-tool-content)
+    map)
+  "Keymap for tool content head when it's foldable.")
+
+(defvar greger-ui-tool-content-tail-keymap
+  (let ((map (make-sparse-keymap)))
+    (define-key map (kbd "TAB") 'greger-ui-toggle-tool-content)
+    map)
+  "Keymap for tool content tail.")
+
 (defvar greger-ui-eval-result-content-head-keymap
   (let ((map (make-sparse-keymap)))
     (define-key map (kbd "TAB") 'greger-ui-toggle-eval-result-content)
@@ -35,6 +42,17 @@
     (define-key map (kbd "TAB") 'greger-ui-toggle-eval-result-content)
     map)
   "Keymap for eval result content tail.")
+
+(defvar greger-url-keymap
+  (let ((map (make-sparse-keymap)))
+    (define-key map (kbd "RET") 'greger-browse-url-at-point)
+    (define-key map [mouse-1] 'greger-browse-url-at-point)
+    map)
+  "Keymap for URL links.")
+
+;; Variables
+(defvar greger-ui-folding-mode nil
+  "Non-nil if greger UI folding mode is enabled.")
 
 ;; Functions
 (defun greger-ui-toggle-folding-mode ()
@@ -161,10 +179,8 @@ NODE is the matched tree-sitter node, similar to tool content head folding."
                  (is-tail-visible (or (get-text-property tail-start 'greger-ui-eval-result-content-expanded)
                                       (not greger-ui-folding-mode)))
                  (line-count (max 1 (count-lines tail-start tail-end))))
-            ;; Mark the head as foldable and store tail info
+            ;; Mark the head as foldable
             (put-text-property node-start node-end 'greger-ui-foldable-eval-result-content t)
-            (put-text-property node-start node-end 'greger-ui-eval-result-tail-start tail-start)
-            (put-text-property node-start node-end 'greger-ui-eval-result-tail-end tail-end)
             (put-text-property node-start node-end 'keymap greger-ui-eval-result-content-head-keymap)
             (put-text-property node-start node-end 'font-lock-face 'greger-eval-result-face)
             
@@ -455,27 +471,6 @@ This ensures compatibility with tree-sitter font-lock."
                                    'font-lock-face overlay-face)))))
         
         (forward-char 1)))))
-
-;; Keymap definitions
-
-(defvar greger-ui-tool-content-head-keymap
-  (let ((map (make-sparse-keymap)))
-    (define-key map (kbd "TAB") 'greger-ui-toggle-tool-content)
-    map)
-  "Keymap for tool content head when it's foldable.")
-
-(defvar greger-ui-tool-content-tail-keymap
-  (let ((map (make-sparse-keymap)))
-    (define-key map (kbd "TAB") 'greger-ui-toggle-tool-content)
-    map)
-  "Keymap for tool content tail.")
-
-(defvar greger-url-keymap
-  (let ((map (make-sparse-keymap)))
-    (define-key map (kbd "RET") 'greger-browse-url-at-point)
-    (define-key map [mouse-1] 'greger-browse-url-at-point)
-    map)
-  "Keymap for URL links.")
 
 (defun greger-browse-url-at-point ()
   "Browse URL at point."
