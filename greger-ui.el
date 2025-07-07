@@ -304,14 +304,16 @@ NODE is the matched tree-sitter node, similar to tool content tail folding."
 ;; Arrow handling for eval results
 
 (defun greger-ui--eval-result-start-tag-with-arrow (node _override _start _end)
-  "Show arrow for eval result start tag when folding mode is enabled."
+  "Show arrow for eval result start tag when folding mode is enabled, or style when visible."
   (let ((node-start (treesit-node-start node))
         (node-end (treesit-node-end node)))
     (if greger-ui-folding-mode
         ;; Show arrow when folding mode is enabled
         (put-text-property node-start node-end 'display (propertize "⇒" 'face 'greger-eval-arrow-face))
-      ;; Show tag normally when folding mode is disabled
-      (remove-text-properties node-start node-end '(display nil invisible nil)))))
+      ;; Show styled tag when folding mode is disabled
+      (progn
+        (remove-text-properties node-start node-end '(display nil invisible nil))
+        (put-text-property node-start node-end 'font-lock-face 'greger-eval-result-tag-face)))))
 
 ;; Content transformation
 
