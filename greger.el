@@ -107,11 +107,13 @@ Raises an error if evaluation fails."
          (process-buffer (generate-new-buffer (format " *%s*" process-name)))
          (result nil)
          (error-msg nil)
-         (process (start-process process-name process-buffer "bash" "-c" code))
+         (process (let ((inhibit-message t))
+                    (start-process process-name process-buffer "bash" "-c" code)))
          (exit-status nil))
     (unwind-protect
         (progn
           (set-process-query-on-exit-flag process nil)
+          (set-process-sentinel process #'ignore)  ; Suppress process messages
           (while (process-live-p process)
             (accept-process-output process 0.1))
           (setq exit-status (process-exit-status process))
