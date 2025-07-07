@@ -274,10 +274,14 @@ NODE is the matched tree-sitter node for eval_result."
             ;; Hide tail when folding
             (put-text-property tail-start tail-end 'invisible should-fold)
             
-            ;; Clean up old fold overlays first
-            (dolist (overlay (overlays-in head-start head-end))
-              (when (overlay-get overlay 'greger-ui-eval-fold-overlay)
-                (delete-overlay overlay)))
+            ;; Clean up old expansion message display properties first
+            (let* ((eval-result-end-tag (treesit-search-subtree 
+                                         (treesit-node-parent node)
+                                         "eval_result_end_tag")))
+              (when eval-result-end-tag
+                (remove-text-properties (treesit-node-start eval-result-end-tag) 
+                                        (treesit-node-end eval-result-end-tag) 
+                                        '(display nil))))
             
             ;; Add expansion indicator when folded
             (unless is-expanded
