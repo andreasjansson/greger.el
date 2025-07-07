@@ -249,9 +249,10 @@ NODE is the matched tree-sitter node for eval_result."
                                          (treesit-node-parent node)
                                          "eval_result_start_tag")))
             (when eval-result-start-tag
-              (let ((tag-start (treesit-node-start eval-result-start-tag)))
-                ;; Place arrow right before the eval result start tag
-                (put-text-property tag-start (min (1+ tag-start) (point-max))
+              (let ((tag-start (treesit-node-start eval-result-start-tag))
+                    (tag-end (treesit-node-end eval-result-start-tag)))
+                ;; Place arrow to replace the eval result start tag
+                (put-text-property tag-start tag-end
                                    'display (propertize "⇒" 'face 'greger-eval-arrow-face))))))
         
         ;; Handle folding based on content structure
