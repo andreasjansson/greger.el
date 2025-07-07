@@ -262,11 +262,8 @@ NODE is the matched tree-sitter node for eval_result."
             ;; Hide tail when folding
             (put-text-property tail-start tail-end 'invisible should-fold)
             
-            ;; Clean up old fold overlays first
-            (let ((existing-overlays (overlays-in head-start head-end)))
-              (dolist (overlay existing-overlays)
-                (when (overlay-get overlay 'greger-ui-eval-fold-overlay)
-                  (delete-overlay overlay))))
+            ;; Clean up old fold display properties first
+            (remove-text-properties head-start head-end '(display nil))
             
             ;; Add expansion indicator when folded
             (unless is-expanded
