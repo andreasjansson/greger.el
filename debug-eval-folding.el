@@ -26,4 +26,14 @@
             (end (match-end 0)))
         (message "Found eval result tag at %d-%d" start end)
         (message "invisible property: %s" (get-text-property start 'invisible))
-        (message "display property: %s" (get-text-property start 'display))))))
+        (message "display property: %s" (get-text-property start 'display))
+        
+        ;; Check the content after the tag
+        (let ((content-start end)
+              (content-end (when (search-forward "</eval-result-abc123>" nil t)
+                             (match-beginning 0))))
+          (when content-end
+            (message "Content from %d to %d: '%s'" content-start content-end 
+                     (buffer-substring-no-properties content-start content-end))
+            (message "Content display property: %s" (get-text-property content-start 'display))
+            (message "Content invisible property: %s" (get-text-property content-start 'invisible))))))))
