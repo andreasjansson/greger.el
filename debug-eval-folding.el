@@ -1,5 +1,6 @@
 ;; Debug script for eval folding issues
-(load-file (expand-file-name "greger.el"))
+(add-to-list 'load-path ".")
+(require 'greger)
 
 ;; Load the test file
 (let ((test-file (expand-file-name "test-eval.greger")))
