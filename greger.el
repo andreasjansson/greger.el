@@ -200,13 +200,13 @@ When nil, preserve point position using `save-excursion'.")
   :group 'greger)
 
 (defface greger-eval-result-face
-  '((t (:foreground "#7BA7D7")))
-  "Face for eval result content."
+  '((t (:foreground "#8FA5C7")))
+  "Face for eval result content - blue-ish gray."
   :group 'greger)
 
 (defface greger-eval-arrow-face
-  '((t (:foreground "#4A90E2" :weight bold)))
-  "Face for eval result arrow overlay."
+  '((t (:foreground "#5A7BA7" :weight bold)))
+  "Face for eval result arrow overlay - darker blue-ish gray."
   :group 'greger)
 
 (defface greger-error-face
