@@ -164,6 +164,11 @@ NODE is the matched tree-sitter node, similar to tool content head folding."
             (put-text-property node-start node-end 'keymap greger-ui-eval-result-content-head-keymap)
             (put-text-property node-start node-end 'font-lock-face 'greger-eval-result-face)
             
+            ;; Clean up any existing overlays in this region first
+            (dolist (overlay (overlays-in (- node-end 2) node-end))
+              (when (overlay-get overlay 'greger-ui-fold-overlay)
+                (delete-overlay overlay)))
+            
             ;; Add expansion indicator when not visible
             (unless is-tail-visible
               (let ((overlay (make-overlay (- node-end 2) (1- node-end))))
