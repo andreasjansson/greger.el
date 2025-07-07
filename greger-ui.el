@@ -41,10 +41,9 @@
   (interactive)
   (setq greger-ui-folding-mode (not greger-ui-folding-mode))
   
-  (when greger-ui-folding-mode
-    ;; Clean up old overlays when enabling folding mode
-    (greger-ui--cleanup-fold-overlays)
-    (greger-ui--cleanup-eval-fold-overlays))
+  ;; Always clean up overlays when toggling
+  (greger-ui--cleanup-fold-overlays)
+  (greger-ui--cleanup-eval-fold-overlays)
   
   (font-lock-flush (point-min) (point-max))
   (message "Greger UI folding mode: %s" (if greger-ui-folding-mode "enabled" "disabled")))
