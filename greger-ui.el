@@ -242,22 +242,34 @@ NODE is the matched tree-sitter node for eval_result."
         (put-text-property content-start content-end 'keymap greger-ui-eval-result-keymap)
         (put-text-property content-start content-end 'greger-ui-eval-result-expandable t)
         
-        ;; Handle arrow display and folding
+        ;; Handle arrow display and tag hiding for folding
         (let ((eval-result-start-tag (treesit-search-subtree 
                                       (treesit-node-parent node)
-                                      "eval_result_start_tag")))
+                                      "eval_result_start_tag"))
+              (eval-result-end-tag (treesit-search-subtree 
+                                    (treesit-node-parent node)
+                                    "eval_result_end_tag")))
           
           ;; Clean up old display properties first
           (when eval-result-start-tag
             (remove-text-properties (treesit-node-start eval-result-start-tag)
                                     (treesit-node-end eval-result-start-tag)
-                                    '(display nil)))
+                                    '(display nil invisible nil)))
+          (when eval-result-end-tag
+            (remove-text-properties (treesit-node-start eval-result-end-tag)
+                                    (treesit-node-end eval-result-end-tag)
+                                    '(display nil invisible nil)))
           
-          ;; Show arrow only when folding mode is enabled
-          (when (and greger-ui-folding-mode eval-result-start-tag)
-            (put-text-property (treesit-node-start eval-result-start-tag)
-                               (treesit-node-end eval-result-start-tag)
-                               'display (propertize "⇒" 'face 'greger-eval-arrow-face))))
+          ;; When folding mode is enabled, show arrow and hide end tag
+          (when greger-ui-folding-mode
+            (when eval-result-start-tag
+              (put-text-property (treesit-node-start eval-result-start-tag)
+                                 (treesit-node-end eval-result-start-tag)
+                                 'display (propertize "⇒" 'face 'greger-eval-arrow-face)))
+            (when eval-result-end-tag
+              (put-text-property (treesit-node-start eval-result-end-tag)
+                                 (treesit-node-end eval-result-end-tag)
+                                 'invisible t))))
         
         ;; Handle content folding for long results
         (when (and content-head-node content-tail-node)
