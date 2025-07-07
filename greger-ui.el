@@ -243,9 +243,16 @@ NODE is the matched tree-sitter node for eval_result."
         
         ;; Always add arrow for eval results using text properties
         (when eval-content-node
-          (let ((eval-content-end (treesit-node-end eval-content-node)))
-            (put-text-property eval-content-end (min (1+ eval-content-end) (point-max))
-                               'display (propertize "⇒" 'face 'greger-eval-arrow-face))))
+          (let* ((eval-content-end (treesit-node-end eval-content-node))
+                 ;; Find the eval result start tag that immediately follows
+                 (eval-result-start-tag (treesit-search-subtree 
+                                         (treesit-node-parent node)
+                                         "eval_result_start_tag")))
+            (when eval-result-start-tag
+              (let ((tag-start (treesit-node-start eval-result-start-tag)))
+                ;; Place arrow right before the eval result start tag
+                (put-text-property tag-start (min (1+ tag-start) (point-max))
+                                   'display (propertize "⇒" 'face 'greger-eval-arrow-face))))))
         
         ;; Handle folding based on content structure
         (when (and content-head-node content-tail-node)
