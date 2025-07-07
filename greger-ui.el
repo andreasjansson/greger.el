@@ -194,15 +194,21 @@ NODE is the matched tree-sitter node"
   "Add arrow overlay between EVAL-CONTENT-NODE and result.
 EVAL-CONTENT-TEXT is the eval code text, RESULT-HEAD-TEXT is the result preview."
   (let* ((eval-content-end (treesit-node-end eval-content-node))
+         ;; Position the arrow right after the eval content, before the result
+         (arrow-position (save-excursion
+                          (goto-char eval-content-end)
+                          ;; Skip any whitespace to find the eval result start
+                          (skip-chars-forward " \t\n")
+                          (point)))
          ;; Clean up old arrow overlay
          (old-overlay (get-text-property eval-content-end 'greger-ui-eval-arrow-overlay)))
     
     (when (and old-overlay (overlayp old-overlay))
       (delete-overlay old-overlay))
     
-    ;; Create new arrow overlay
-    (let ((overlay (make-overlay eval-content-end eval-content-end)))
-      (overlay-put overlay 'after-string
+    ;; Create new arrow overlay at the right position
+    (let ((overlay (make-overlay arrow-position arrow-position)))
+      (overlay-put overlay 'before-string
                    (propertize "⇒" 'face 'greger-eval-arrow-face))
       (overlay-put overlay 'greger-ui-eval-arrow-overlay t)
       (overlay-put overlay 'evaporate t)
