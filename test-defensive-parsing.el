@@ -1,3 +1,4 @@
+#!/usr/bin/env emacs --script
 ;;; test-defensive-parsing.el --- Test defensive parsing wrapper
 
 (require 'greger)
