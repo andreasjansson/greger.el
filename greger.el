@@ -281,7 +281,8 @@ When nil, preserve point position using `save-excursion'.")
    :feature 'eval-tags
    :override t
    '((eval_start_tag) @greger-eval-tag-face
-     (eval_end_tag) @greger-eval-tag-face)
+     (eval_end_tag) @greger-eval-tag-face
+     (eval_result_content) @greger-eval-result-face)
 
    :language 'greger
    :feature 'comments
