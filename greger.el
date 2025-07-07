@@ -75,13 +75,14 @@ Raises an error if evaluation fails."
 
 (defun greger--eval-python (code)
   "Evaluate Python CODE and return the result as a string."
-  (let ((process-name (format "greger-python-eval-%s" (make-temp-name "")))
-        (process-buffer (generate-new-buffer (format " *%s*" process-name)))
-        (result nil)
-        (error-msg nil))
+  (let* ((process-name (format "greger-python-eval-%s" (make-temp-name "")))
+         (process-buffer (generate-new-buffer (format " *%s*" process-name)))
+         (result nil)
+         (error-msg nil)
+         (process (start-process process-name process-buffer "python3" "-c" code))
+         (exit-status nil))
     (unwind-protect
-        (let* ((process (start-process process-name process-buffer "python3" "-c" code))
-               (exit-status nil))
+        (progn
           (set-process-query-on-exit-flag process nil)
           (while (process-live-p process)
             (accept-process-output process 0.1))
@@ -100,13 +101,14 @@ Raises an error if evaluation fails."
 
 (defun greger--eval-bash (code)
   "Evaluate Bash CODE and return the result as a string."
-  (let ((process-name (format "greger-bash-eval-%s" (make-temp-name "")))
-        (process-buffer (generate-new-buffer (format " *%s*" process-name)))
-        (result nil)
-        (error-msg nil))
+  (let* ((process-name (format "greger-bash-eval-%s" (make-temp-name "")))
+         (process-buffer (generate-new-buffer (format " *%s*" process-name)))
+         (result nil)
+         (error-msg nil)
+         (process (start-process process-name process-buffer "bash" "-c" code))
+         (exit-status nil))
     (unwind-protect
-        (let* ((process (start-process process-name process-buffer "bash" "-c" code))
-               (exit-status nil))
+        (progn
           (set-process-query-on-exit-flag process nil)
           (while (process-live-p process)
             (accept-process-output process 0.1))
