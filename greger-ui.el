@@ -276,8 +276,8 @@ NODE is the matched tree-sitter node for eval_result."
             ;; Add expansion indicator when folded
             (unless is-expanded
               (when greger-ui-folding-mode
-                (put-text-property (- head-end 1) head-end 'display
-                                   (propertize (format "[+%d lines, TAB to expand]\n" tail-line-count)
+                (put-text-property head-end head-end 'display
+                                   (propertize (format "\n[+%d lines, TAB to expand]" tail-line-count)
                                                'face '(:foreground "gray" :height 0.8 :slant italic)))))))))))
 
 (defun greger-ui--make-tool-tag-invisible (node _override _start _end)
