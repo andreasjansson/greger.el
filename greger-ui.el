@@ -282,13 +282,15 @@ NODE is the matched tree-sitter node for eval_result."
             ;; Add expansion indicator when folded
             (unless is-expanded
               (when greger-ui-folding-mode
-                ;; Create an overlay for the expansion message to avoid property conflicts
-                (let ((overlay (make-overlay head-end head-end)))
-                  (overlay-put overlay 'after-string
-                               (propertize (format "\n[+%d lines, TAB to expand]" tail-line-count)
-                                           'face '(:foreground "gray" :height 0.8 :slant italic)))
-                  (overlay-put overlay 'greger-ui-eval-fold-overlay t)
-                  (overlay-put overlay 'evaporate t))))))))))
+                ;; Find the end tag and add expansion message before it
+                (let* ((eval-result-end-tag (treesit-search-subtree 
+                                             (treesit-node-parent node)
+                                             "eval_result_end_tag")))
+                  (when eval-result-end-tag
+                    (let ((end-tag-start (treesit-node-start eval-result-end-tag)))
+                      (put-text-property end-tag-start end-tag-start 'display
+                                         (propertize (format "[+%d lines, TAB to expand]\n" tail-line-count)
+                                                     'face '(:foreground "gray" :height 0.8 :slant italic))))))))))))))
 
 (defun greger-ui--make-tool-tag-invisible (node _override _start _end)
   "Make tool tag NODE invisible while preserving face styling."
