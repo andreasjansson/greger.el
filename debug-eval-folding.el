@@ -3,7 +3,7 @@
 (require 'greger)
 
 ;; Load the test file
-(let ((test-file (expand-file-name "test-eval.greger")))
+(let ((test-file (expand-file-name "test-intended-behavior.greger")))
   (when (file-exists-p test-file)
     (find-file test-file)
     (greger-mode)
