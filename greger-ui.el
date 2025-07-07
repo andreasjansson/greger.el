@@ -209,6 +209,8 @@ EVAL-CONTENT-TEXT is the eval code text, RESULT-HEAD-TEXT is the result preview.
          ;; Clean up old arrow overlay at this position
          (existing-overlays (overlays-at eval-content-end)))
     
+    (message "DEBUG: Creating arrow overlay at position %d" eval-content-end)
+    
     ;; Remove any existing eval arrow overlays
     (dolist (overlay existing-overlays)
       (when (overlay-get overlay 'greger-ui-eval-arrow-overlay)
@@ -219,7 +221,8 @@ EVAL-CONTENT-TEXT is the eval code text, RESULT-HEAD-TEXT is the result preview.
       (overlay-put overlay 'after-string
                    (propertize "⇒" 'face 'greger-eval-arrow-face))
       (overlay-put overlay 'greger-ui-eval-arrow-overlay t)
-      (overlay-put overlay 'evaporate t))))
+      (overlay-put overlay 'evaporate t)
+      (message "DEBUG: Arrow overlay created: %s" overlay))))
 
 (defun greger-ui--eval-result-folding (node _override _start _end)
   "Font-lock function to fold eval result content similar to tool content.
