@@ -393,9 +393,24 @@ Uses branch from `greger-local-grammar-path' if set, otherwise uses 'main'."
         (assq-delete-all 'greger treesit-language-source-alist))
   (message "treesit-language-source-alist after cleanup: %S" treesit-language-source-alist)
   
-  (let* ((branch (or greger-local-grammar-path "main"))
-         (grammar-source (list 'greger "https://github.com/andreasjansson/greger-grammar" branch)))
-    (message "Installing greger grammar from branch: %s" branch)
+  (let* ((grammar-source 
+          (cond 
+           ;; Local path (starts with / or ~)
+           ((and greger-local-grammar-path
+                 (or (string-prefix-p "/" greger-local-grammar-path)
+                     (string-prefix-p "~" greger-local-grammar-path)))
+            (let ((expanded-path (expand-file-name greger-local-grammar-path)))
+              (message "Installing greger grammar from local path: %s" expanded-path)
+              (list 'greger expanded-path)))
+           ;; Git branch name
+           (greger-local-grammar-path
+            (message "Installing greger grammar from branch: %s" greger-local-grammar-path)
+            (list 'greger "https://github.com/andreasjansson/greger-grammar" greger-local-grammar-path))
+           ;; Default to main branch
+           (t
+            (message "Installing greger grammar from main branch")
+            (list 'greger "https://github.com/andreasjansson/greger-grammar" "main")))))
+    
     (message "Grammar source: %S" grammar-source)
     (add-to-list 'treesit-language-source-alist grammar-source)
     (message "treesit-language-source-alist after adding: %S" treesit-language-source-alist)
