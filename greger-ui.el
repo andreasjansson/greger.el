@@ -224,6 +224,8 @@ EVAL-CONTENT-TEXT is the eval code text, RESULT-HEAD-TEXT is the result preview.
 (defun greger-ui--eval-result-folding (node _override _start _end)
   "Font-lock function to fold eval result content similar to tool content.
 NODE is the matched tree-sitter node for eval_result."
+  (message "DEBUG: greger-ui--eval-result-folding called for node at %d-%d" 
+           (treesit-node-start node) (treesit-node-end node))
   (let* ((node-start (treesit-node-start node))
          (node-end (treesit-node-end node))
          ;; Get the content node within the eval_result
