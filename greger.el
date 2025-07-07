@@ -73,11 +73,15 @@ Set to 0 to disable thinking entirely."
   :group 'greger)
 
 (defcustom greger-local-grammar-path nil
-  "Git branch to use for greger grammar installation.
-When set, this branch will be used instead of 'main' when installing
-the greger tree-sitter grammar. This is useful for development when
-you want to test changes from a development branch."
+  "Path to local greger grammar or git branch for development.
+When set to a local directory path (e.g., \"../greger-grammar\"), 
+the grammar will be installed from that local directory.
+When set to a git branch name (e.g., \"eval\"), that branch will 
+be used instead of 'main' when installing from the remote repository.
+This is useful for development when you want to test changes from
+a development branch or local modifications."
   :type '(choice (const :tag "Use main branch" nil)
+                 (directory :tag "Local grammar directory")
                  (string :tag "Git branch name"))
   :group 'greger)
 
@@ -439,13 +443,13 @@ Uses branch from `greger-local-grammar-path' if set, otherwise uses 'main'."
                                             line-end))
 
   ;; Install eval grammars and set up embedded language parsing
-  (greger--install-eval-grammars)
-  (setq-local treesit-range-settings
-              (treesit-range-rules
-               :embed #'greger--eval-language-at-node
-               :host 'greger
-               :local t
-               '((eval (eval_content) @capture))))
+  ;(greger--install-eval-grammars)
+  ;; (setq-local treesit-range-settings
+  ;;             (treesit-range-rules
+  ;;              :embed #'greger--eval-language-at-node
+  ;;              :host 'greger
+  ;;              :local t
+  ;;              '((eval (eval_content) @capture))))
 
   (treesit-major-mode-setup)
 
