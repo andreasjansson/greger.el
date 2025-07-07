@@ -217,12 +217,13 @@ EVAL-CONTENT-TEXT is the eval code text, RESULT-HEAD-TEXT is the result preview.
         (delete-overlay overlay)))
     
     ;; Create new arrow overlay right after the eval content
-    (let ((overlay (make-overlay eval-content-end eval-content-end (current-buffer))))
-      (overlay-put overlay 'after-string
-                   (propertize "⇒" 'face 'greger-eval-arrow-face))
-      (overlay-put overlay 'greger-ui-eval-arrow-overlay t)
-      (overlay-put overlay 'evaporate t)
-      (message "DEBUG: Arrow overlay created: %s in buffer %s" overlay (current-buffer)))))
+    (with-current-buffer (treesit-node-buffer eval-content-node)
+      (let ((overlay (make-overlay eval-content-end eval-content-end)))
+        (overlay-put overlay 'after-string
+                     (propertize "⇒" 'face 'greger-eval-arrow-face))
+        (overlay-put overlay 'greger-ui-eval-arrow-overlay t)
+        (overlay-put overlay 'evaporate t)
+        (message "DEBUG: Arrow overlay created: %s in buffer %s" overlay (current-buffer))))))
 
 (defun greger-ui--eval-result-folding (node _override _start _end)
   "Font-lock function to fold eval result content similar to tool content.
