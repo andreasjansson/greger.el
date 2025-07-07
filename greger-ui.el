@@ -408,6 +408,26 @@ NODE is the matched tree-sitter node for eval_result."
       (put-text-property tail-start (1+ tail-start) 'greger-ui-tool-content-expanded t)
       (font-lock-flush (treesit-node-start head-node) tail-end))))
 
+(defun greger-ui--toggle-eval-result-fold ()
+  "Toggle folding of eval result content at point."
+  (interactive)
+  (let* ((node (treesit-node-at (point)))
+         ;; Find the eval_result node
+         (eval-result-node (treesit-parent-until node (lambda (n) (string= (treesit-node-type n) "eval_result"))))
+         (content-node (when eval-result-node
+                         (treesit-search-subtree eval-result-node "eval_result_content")))
+         (content-start (when content-node (treesit-node-start content-node)))
+         (content-end (when content-node (treesit-node-end content-node)))
+         (is-expanded (when content-start
+                        (get-text-property content-start 'greger-ui-eval-result-expanded)))
+         (inhibit-read-only t))
+    
+    (when content-start
+      (put-text-property content-start (min (1+ content-start) content-end) 
+                         'greger-ui-eval-result-expanded (not is-expanded))
+      (font-lock-flush (treesit-node-start eval-result-node) 
+                       (treesit-node-end eval-result-node)))))
+
 ;; Tool use syntax highlighting
 
 (defun greger-ui--syntax-highlighted-p (node)
