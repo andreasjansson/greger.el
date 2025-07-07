@@ -75,11 +75,12 @@
   (setq greger-ui-folding-mode (not greger-ui-folding-mode))
   
   ;; Clean up all eval fold overlays when disabling folding mode
-  (unless greger-ui-folding-mode
-    (greger-ui--cleanup-eval-fold-overlays))
+  (let ((inhibit-read-only t))
+   (unless greger-ui-folding-mode
+     (greger-ui--cleanup-eval-fold-overlays))
   
-  (font-lock-flush (point-min) (point-max))
-  (message "Greger UI folding mode: %s" (if greger-ui-folding-mode "enabled" "disabled")))
+   (font-lock-flush (point-min) (point-max))
+   (message "Greger UI folding mode: %s" (if greger-ui-folding-mode "enabled" "disabled"))))
 
 (defun greger-ui--cleanup-eval-fold-overlays ()
   "Clean up all eval fold text properties in the current buffer."
@@ -241,56 +242,54 @@ NODE is the matched tree-sitter node for eval_result."
         (put-text-property content-start content-end 'keymap greger-ui-eval-result-keymap)
         (put-text-property content-start content-end 'greger-ui-eval-result-expandable t)
         
-        ;; Always add arrow for eval results using text properties
-        (when eval-content-node
-          (let* ((eval-content-end (treesit-node-end eval-content-node))
-                 ;; Find the eval result start tag that immediately follows
-                 (eval-result-start-tag (treesit-search-subtree 
-                                         (treesit-node-parent node)
-                                         "eval_result_start_tag")))
-            (when eval-result-start-tag
-              (let ((tag-start (treesit-node-start eval-result-start-tag))
-                    (tag-end (treesit-node-end eval-result-start-tag)))
-                ;; Place arrow to replace the entire eval result start tag
-                (put-text-property tag-start tag-end
-                                   'display (propertize "⇒" 'face 'greger-eval-arrow-face))))))
+        ;; Handle arrow display and folding
+        (let ((eval-result-start-tag (treesit-search-subtree 
+                                      (treesit-node-parent node)
+                                      "eval_result_start_tag")))
+          
+          ;; Clean up old display properties first
+          (when eval-result-start-tag
+            (remove-text-properties (treesit-node-start eval-result-start-tag)
+                                    (treesit-node-end eval-result-start-tag)
+                                    '(display nil)))
+          
+          ;; Show arrow only when folding mode is enabled
+          (when (and greger-ui-folding-mode eval-result-start-tag)
+            (put-text-property (treesit-node-start eval-result-start-tag)
+                               (treesit-node-end eval-result-start-tag)
+                               'display (propertize "⇒" 'face 'greger-eval-arrow-face))))
         
-        ;; Handle folding based on content structure
+        ;; Handle content folding for long results
         (when (and content-head-node content-tail-node)
           (let* ((head-start (treesit-node-start content-head-node))
                  (head-end (treesit-node-end content-head-node))
                  (tail-start (treesit-node-start content-tail-node))
                  (tail-end (treesit-node-end content-tail-node))
-                 (tail-line-count (max 1 (count-lines tail-start tail-end))))
+                 (tail-line-count (max 1 (count-lines tail-start tail-end)))
+                 (eval-result-end-tag (treesit-search-subtree 
+                                       (treesit-node-parent node)
+                                       "eval_result_end_tag")))
             
             ;; Make head clickable
             (put-text-property head-start head-end 'keymap greger-ui-eval-result-keymap)
             (put-text-property head-start head-end 'greger-ui-eval-result-expandable t)
             
-            ;; Hide tail when folding
-            (put-text-property tail-start tail-end 'invisible should-fold)
+            ;; Hide tail when folded and not expanded
+            (put-text-property tail-start tail-end 'invisible 
+                               (and greger-ui-folding-mode (not is-expanded)))
             
-            ;; Clean up old expansion message display properties first
-            (let* ((eval-result-end-tag (treesit-search-subtree 
-                                         (treesit-node-parent node)
-                                         "eval_result_end_tag")))
-              (when eval-result-end-tag
-                (remove-text-properties (treesit-node-start eval-result-end-tag) 
-                                        (treesit-node-end eval-result-end-tag) 
-                                        '(display nil))))
+            ;; Clean up old expansion message
+            (when eval-result-end-tag
+              (remove-text-properties (treesit-node-start eval-result-end-tag)
+                                      (treesit-node-end eval-result-end-tag)
+                                      '(display nil)))
             
-            ;; Add expansion indicator when folded
-            (unless is-expanded
-              (when greger-ui-folding-mode
-                ;; Find the end tag and add expansion message before it
-                (let* ((eval-result-end-tag (treesit-search-subtree 
-                                             (treesit-node-parent node)
-                                             "eval_result_end_tag")))
-                  (when eval-result-end-tag
-                    (let ((end-tag-start (treesit-node-start eval-result-end-tag)))
-                      (put-text-property end-tag-start (min (1+ end-tag-start) (point-max)) 'display
-                                         (propertize (format "[+%d lines, TAB to expand]\n" tail-line-count)
-                                                     'face '(:foreground "gray" :height 0.8 :slant italic))))))))))))))
+            ;; Add expansion message when folded and not expanded
+            (when (and greger-ui-folding-mode (not is-expanded) eval-result-end-tag)
+              (put-text-property (treesit-node-start eval-result-end-tag)
+                                 (min (1+ (treesit-node-start eval-result-end-tag)) (point-max))
+                                 'display (propertize (format "[+%d lines, TAB to expand]\n" tail-line-count)
+                                                      'face '(:foreground "gray" :height 0.8 :slant italic))))))))))
 
 (defun greger-ui--make-tool-tag-invisible (node _override _start _end)
   "Make tool tag NODE invisible while preserving face styling."
