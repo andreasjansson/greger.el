@@ -73,11 +73,14 @@ Set to 0 to disable thinking entirely."
   :group 'greger)
 
 (defcustom greger-local-grammar-path nil
-  "Git branch to use for greger grammar installation.
-When set, this branch will be used instead of 'main' when installing
-the greger tree-sitter grammar. This is useful for development when
-you want to test changes from a development branch."
-  :type '(choice (const :tag "Use main branch" nil)
+  "Local path or Git branch for greger grammar development.
+When set to a local directory path (starting with / or ~), the grammar
+will be installed from that local directory. When set to a string not
+starting with / or ~, it will be treated as a Git branch name.
+This is useful for development when you want to test local changes
+or changes from a development branch."
+  :type '(choice (const :tag "Use main branch from GitHub" nil)
+                 (directory :tag "Local grammar directory path")
                  (string :tag "Git branch name"))
   :group 'greger)
 
