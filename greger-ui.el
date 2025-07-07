@@ -261,15 +261,12 @@ NODE is the matched tree-sitter node for eval_result."
                 (when (overlay-get overlay 'greger-ui-eval-fold-overlay)
                   (delete-overlay overlay))))
             
-            ;; Add expansion indicator overlay when folded
+            ;; Add expansion indicator when folded
             (unless is-expanded
               (when greger-ui-folding-mode
-                (let ((overlay (make-overlay (- head-end 1) head-end)))
-                  (overlay-put overlay 'after-string
-                               (propertize (format "[+%d lines, TAB to expand]\n" tail-line-count)
-                                           'face '(:foreground "gray" :height 0.8 :slant italic)))
-                  (overlay-put overlay 'greger-ui-eval-fold-overlay t)
-                  (overlay-put overlay 'evaporate t))))))))))
+                (put-text-property (- head-end 1) head-end 'display
+                                   (propertize (format "[+%d lines, TAB to expand]\n" tail-line-count)
+                                               'face '(:foreground "gray" :height 0.8 :slant italic)))))))))))
 
 (defun greger-ui--make-tool-tag-invisible (node _override _start _end)
   "Make tool tag NODE invisible while preserving face styling."
