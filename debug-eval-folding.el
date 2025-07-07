@@ -24,16 +24,24 @@
     (when (search-forward "<eval-result-abc123>" nil t)
       (let ((start (match-beginning 0))
             (end (match-end 0)))
-        (message "Found eval result tag at %d-%d" start end)
-        (message "invisible property: %s" (get-text-property start 'invisible))
-        (message "display property: %s" (get-text-property start 'display))
+        (message "Found eval result tag at %d-%d: '%s'" start end 
+                 (buffer-substring-no-properties start end))
+        (message "Tag invisible property: %s" (get-text-property start 'invisible))
+        (message "Tag display property: %s" (get-text-property start 'display))
         
-        ;; Check the content after the tag
+        ;; Check each character in the content
         (let ((content-start end)
               (content-end (when (search-forward "</eval-result-abc123>" nil t)
                              (match-beginning 0))))
           (when content-end
             (message "Content from %d to %d: '%s'" content-start content-end 
                      (buffer-substring-no-properties content-start content-end))
-            (message "Content display property: %s" (get-text-property content-start 'display))
-            (message "Content invisible property: %s" (get-text-property content-start 'invisible))))))))
+            
+            ;; Check each character's properties
+            (dotimes (i (- content-end content-start))
+              (let ((pos (+ content-start i))
+                    (char (char-after (+ content-start i))))
+                (message "Char %d at pos %d: '%c' display='%s' invisible='%s'"
+                         i pos char
+                         (get-text-property pos 'display)
+                         (get-text-property pos 'invisible))))))))))
