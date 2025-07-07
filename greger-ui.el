@@ -239,7 +239,7 @@ NODE is the matched tree-sitter node, similar to tool content tail folding."
             ;; Show styled tag when folding mode is disabled
             (progn
               (remove-text-properties node-start node-end '(invisible nil))
-              (put-text-property node-start node-end 'font-lock-face 'greger-eval-result-tag-face)))))
+              (put-text-property node-start node-end 'font-lock-face 'greger-tool-tag-face)))))
     (treesit-node-outdated
      ;; Node became outdated, skip this operation
      nil)))
@@ -315,7 +315,7 @@ NODE is the matched tree-sitter node, similar to tool content tail folding."
       ;; Show styled tag when folding mode is disabled
       (progn
         (remove-text-properties node-start node-end '(display nil invisible nil))
-        (put-text-property node-start node-end 'font-lock-face 'greger-eval-result-tag-face)))))
+        (put-text-property node-start node-end 'font-lock-face 'greger-tool-tag-face)))))
 
 ;; Content transformation
 
@@ -457,28 +457,6 @@ This ensures compatibility with tree-sitter font-lock."
                                    'font-lock-face overlay-face)))))
         
         (forward-char 1)))))
-
-(defun greger-ui--line-numbers (node _override _start _end)
-  "Add line numbers to content.
-NODE is the tree-sitter node.
-_OVERRIDE, _START, and _END are font-lock parameters."
-  (when greger-line-numbers
-    (let* ((node-start (treesit-node-start node))
-           (node-end (treesit-node-end node))
-           (content-lines (split-string (treesit-node-text node t) "\n"))
-           (line-count (length content-lines)))
-      
-      (save-excursion
-        (goto-char node-start)
-        (dotimes (i line-count)
-          (let ((line-start (line-beginning-position))
-                (line-end (line-end-position)))
-            (when (< line-start node-end)
-              (put-text-property line-start (min (1+ line-start) line-end)
-                                 'display
-                                 (propertize (format "%3d│ " (1+ i))
-                                             'font-lock-face '(:height 0.6 :foreground "gray50"))))
-            (forward-line 1)))))))
 
 ;; Keymap definitions
 
