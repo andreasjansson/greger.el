@@ -307,7 +307,9 @@ NODE is the matched tree-sitter node, similar to tool content tail folding."
         (node-end (treesit-node-end node)))
     (if greger-ui-folding-mode
         ;; Show arrow when folding mode is enabled
-        (put-text-property node-start node-end 'display (propertize "⇒" 'face 'greger-eval-arrow-face))
+        (progn
+          (remove-text-properties node-start node-end '(font-lock-face nil))
+          (put-text-property node-start node-end 'display (propertize "⇒" 'face 'greger-eval-arrow-face)))
       ;; Show styled tag when folding mode is disabled
       (progn
         (remove-text-properties node-start node-end '(display nil invisible nil))
