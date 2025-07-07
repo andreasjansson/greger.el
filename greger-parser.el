@@ -430,6 +430,12 @@ Tool result content must always be a string for Claude API compatibility."
      ((string= node-type "html_comment")
       ;; Skip HTML comments outside of code blocks
       result)
+     ((string= node-type "eval_result")
+      ;; Extract eval result content and concatenate it
+      (let ((content-node (treesit-search-subtree node "eval_result_content")))
+        (if content-node
+            (concat result (treesit-node-text content-node t))
+          result)))
      (t
       (let ((text-result result))
         (dolist (child (treesit-node-children node))
