@@ -134,55 +134,53 @@ Raises an error if evaluation fails."
   (with-current-buffer buffer
     (save-excursion
       (goto-char (point-min))
-      (let ((system-sections (greger--find-sections "# SYSTEM"))
-            (user-sections (greger--find-sections "# USER")))
-        
-        ;; Process all evals in system sections
-        (dolist (section system-sections)
-          (greger--process-evals-in-section section))
-        
-        ;; Process evals in the last user section only
-        (when user-sections
-          (let ((last-user-section (car (last user-sections))))
-            (greger--process-evals-in-section last-user-section)))))))
-
-(defun greger--find-sections (header)
-  "Find all sections with HEADER in the current buffer.
-Returns a list of (start . end) positions."
-  (save-excursion
-    (goto-char (point-min))
-    (let (sections)
-      (while (re-search-forward (format "^%s" (regexp-quote header)) nil t)
-        (let ((section-start (line-beginning-position))
-              (section-end (save-excursion
-                             (if (re-search-forward "^# \\(SYSTEM\\|USER\\|ASSISTANT\\|THINKING\\|TOOL\\)" nil t)
-                                 (line-beginning-position)
-                               (point-max)))))
-          (push (cons section-start section-end) sections)))
-      (nreverse sections))))
-
-(defun greger--process-evals-in-section (section)
-  "Process all eval blocks in SECTION (a cons of start . end positions)."
-  (save-excursion
-    (goto-char (car section))
-    (let ((section-end (cdr section)))
-      (while (re-search-forward "<eval>\\(?:\n\\)?\\(?:\\([a-zA-Z_][a-zA-Z0-9_]*\\)\n\\)?\\(\\(?:.\\|\n\\)*?\\)</eval>" section-end t)
-        (let* ((full-match-start (match-beginning 0))
-               (full-match-end (match-end 0))
-               (language (or (match-string 1) "elisp"))  ; default to elisp
-               (code (match-string 2))
-               (eval-id (greger--generate-eval-id))
-               (result (greger--eval-code language (string-trim code)))
-               (eval-result-block (format "<eval-result-%s>\n%s\n</eval-result-%s>" eval-id result eval-id)))
+      (let ((root-node (treesit-buffer-root-node)))
+        (when root-node
+          ;; Process all evals in system sections
+          (let ((system-nodes (treesit-query-capture root-node '((system) @system))))
+            (dolist (capture system-nodes)
+              (when (eq (car capture) 'system)
+                (greger--process-evals-in-node (cdr capture)))))
           
-          ;; Replace the eval block with the eval result
-          (goto-char full-match-start)
-          (delete-region full-match-start full-match-end)
-          (insert eval-result-block)
-          
-          ;; Update section-end since we changed the buffer
-          (setq section-end (+ section-end (- (length eval-result-block) 
-                                              (- full-match-end full-match-start)))))))))
+          ;; Process evals in the last user section only
+          (let ((user-nodes (treesit-query-capture root-node '((user) @user))))
+            (when user-nodes
+              (let ((last-user-node (cdar (last user-nodes))))
+                (greger--process-evals-in-node last-user-node)))))))))
+
+(defun greger--process-evals-in-node (node)
+  "Process all eval blocks in NODE."
+  (let ((eval-nodes (treesit-query-capture node '((eval) @eval))))
+    ;; Process eval nodes in reverse order to avoid position shifts
+    (dolist (capture (reverse eval-nodes))
+      (when (eq (car capture) 'eval)
+        (greger--process-single-eval (cdr capture))))))
+
+(defun greger--process-single-eval (eval-node)
+  "Process a single eval block represented by EVAL-NODE."
+  (let* ((start-tag-node (treesit-search-subtree eval-node "eval_start_tag"))
+         (content-node (treesit-search-subtree eval-node "eval_content"))
+         (language (greger--extract-eval-language start-tag-node))
+         (code (if content-node (treesit-node-text content-node t) ""))
+         (eval-id (greger--generate-eval-id))
+         (result (greger--eval-code language (string-trim code)))
+         (eval-result-block (format "<eval-result-%s>\n%s\n</eval-result-%s>" eval-id result eval-id))
+         (eval-start (treesit-node-start eval-node))
+         (eval-end (treesit-node-end eval-node)))
+    
+    ;; Replace the eval block with the eval result
+    (goto-char eval-start)
+    (delete-region eval-start eval-end)
+    (insert eval-result-block)))
+
+(defun greger--extract-eval-language (start-tag-node)
+  "Extract language from eval start tag node, defaulting to elisp."
+  (if start-tag-node
+      (let ((language-node (treesit-search-subtree start-tag-node "language")))
+        (if language-node
+            (treesit-node-text language-node t)
+          "elisp"))  ; default to elisp
+    "elisp"))
 
 (defun greger--generate-eval-id ()
   "Generate a unique ID for eval results."
