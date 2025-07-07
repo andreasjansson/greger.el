@@ -190,6 +190,81 @@ NODE is the matched tree-sitter node"
          (invisible-end (+ node-end 2)))
     (put-text-property node-start invisible-end 'invisible greger-ui-folding-mode)))
 
+(defun greger-ui--eval-result-folding (node _override _start _end)
+  "Font-lock function to fold eval result content similar to tool content.
+NODE is the matched tree-sitter node for eval_result."
+  (let* ((node-start (treesit-node-start node))
+         (node-end (treesit-node-end node))
+         ;; Get the content node within the eval_result
+         (content-node (treesit-search-subtree node "eval_result_content"))
+         (content-head-node (when content-node
+                              (treesit-search-subtree content-node "eval_result_content_head")))
+         (content-tail-node (when content-node
+                              (treesit-search-subtree content-node "eval_result_content_tail"))))
+    
+    (when content-node
+      (let* ((content-start (treesit-node-start content-node))
+             (content-end (treesit-node-end content-node))
+             (content-text (treesit-node-text content-node t))
+             (is-expanded (get-text-property content-start 'greger-ui-eval-result-expanded))
+             (should-fold (and greger-ui-folding-mode (not is-expanded)))
+             ;; Find the parent eval node to get the eval content
+             (eval-node (treesit-parent-until node (lambda (n) (string= (treesit-node-type n) "eval"))))
+             (eval-content-node (when eval-node
+                                  (treesit-search-subtree eval-node "eval_content")))
+             (eval-content-text (when eval-content-node
+                                  (string-trim (treesit-node-text eval-content-node t)))))
+        
+        ;; Apply styling to the eval result content
+        (put-text-property content-start content-end 'font-lock-face 'greger-eval-result-face)
+        (put-text-property content-start content-end 'keymap greger-ui-eval-result-keymap)
+        (put-text-property content-start content-end 'greger-ui-eval-result-expandable t)
+        
+        ;; Handle folding based on content structure
+        (cond
+         ;; If there's both head and tail, fold the tail
+         ((and content-head-node content-tail-node)
+          (let* ((head-start (treesit-node-start content-head-node))
+                 (head-end (treesit-node-end content-head-node))
+                 (tail-start (treesit-node-start content-tail-node))
+                 (tail-end (treesit-node-end content-tail-node))
+                 (tail-line-count (max 1 (count-lines tail-start tail-end))))
+            
+            ;; Make head clickable
+            (put-text-property head-start head-end 'keymap greger-ui-eval-result-keymap)
+            (put-text-property head-start head-end 'greger-ui-eval-result-expandable t)
+            
+            ;; Add arrow overlay after eval content (before result)
+            (when eval-content-node
+              (greger-ui--add-eval-arrow-overlay eval-content-node eval-content-text 
+                                                 (string-trim (treesit-node-text content-head-node t))))
+            
+            ;; Hide tail when folding
+            (put-text-property tail-start tail-end 'invisible should-fold)
+            
+            ;; Add expansion indicator overlay when folded
+            (unless is-expanded
+              (when greger-ui-folding-mode
+                (let ((overlay (make-overlay (- head-end 1) head-end)))
+                  (overlay-put overlay 'after-string
+                               (propertize (format "\n[+%d lines, TAB to expand]" tail-line-count)
+                                           'face '(:foreground "gray" :height 0.8 :slant italic)))
+                  (overlay-put overlay 'greger-ui-eval-fold-overlay t)
+                  (overlay-put overlay 'evaporate t)
+                  (put-text-property head-start head-end 'greger-ui-eval-fold-overlay overlay))))))
+         
+         ;; If only head content (4 lines or less), just add arrow
+         (content-head-node
+          (when eval-content-node
+            (greger-ui--add-eval-arrow-overlay eval-content-node eval-content-text 
+                                               (string-trim (treesit-node-text content-head-node t)))))
+         
+         ;; Fallback: just add arrow for any content
+         (t
+          (when eval-content-node
+            (greger-ui--add-eval-arrow-overlay eval-content-node eval-content-text 
+                                               (string-trim content-text)))))))))
+
 (defun greger-ui--make-tool-tag-invisible (node _override _start _end)
   "Make tool tag NODE invisible while preserving face styling."
   (condition-case nil
