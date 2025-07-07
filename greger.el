@@ -46,6 +46,83 @@
 (require 'greger-ui)
 (require 'greger-ui)
 
+;; Eval functionality
+(defvar greger-supported-eval-languages '("elisp" "python" "bash")
+  "List of languages supported for eval blocks.")
+
+(defun greger--eval-code (language code)
+  "Evaluate CODE in the specified LANGUAGE.
+Returns the result as a string.
+Raises an error if evaluation fails."
+  (cond
+   ((string= language "elisp")
+    (greger--eval-elisp code))
+   ((string= language "python")
+    (greger--eval-python code))
+   ((string= language "bash")
+    (greger--eval-bash code))
+   (t
+    (error "Unsupported eval language: %s. Supported languages: %s"
+           language (string-join greger-supported-eval-languages ", ")))))
+
+(defun greger--eval-elisp (code)
+  "Evaluate Emacs Lisp CODE and return the result as a string."
+  (condition-case err
+      (let ((result (eval (read (format "(progn %s)" code)))))
+        (format "%s" result))
+    (error
+     (error "Elisp evaluation failed: %s" (error-message-string err)))))
+
+(defun greger--eval-python (code)
+  "Evaluate Python CODE and return the result as a string."
+  (let ((process-name (format "greger-python-eval-%s" (make-temp-name "")))
+        (process-buffer (generate-new-buffer (format " *%s*" process-name)))
+        (result nil)
+        (error-msg nil))
+    (unwind-protect
+        (let* ((process (start-process process-name process-buffer "python3" "-c" code))
+               (exit-status nil))
+          (set-process-query-on-exit-flag process nil)
+          (while (process-live-p process)
+            (accept-process-output process 0.1))
+          (setq exit-status (process-exit-status process))
+          (with-current-buffer process-buffer
+            (let ((output (string-trim (buffer-string))))
+              (if (= exit-status 0)
+                  (setq result (if (string-empty-p output) "(no output)" output))
+                (setq error-msg (format "Python evaluation failed with exit code %d: %s" 
+                                      exit-status output))))))
+      (when (buffer-live-p process-buffer)
+        (kill-buffer process-buffer)))
+    (if error-msg
+        (error "%s" error-msg)
+      result)))
+
+(defun greger--eval-bash (code)
+  "Evaluate Bash CODE and return the result as a string."
+  (let ((process-name (format "greger-bash-eval-%s" (make-temp-name "")))
+        (process-buffer (generate-new-buffer (format " *%s*" process-name)))
+        (result nil)
+        (error-msg nil))
+    (unwind-protect
+        (let* ((process (start-process process-name process-buffer "bash" "-c" code))
+               (exit-status nil))
+          (set-process-query-on-exit-flag process nil)
+          (while (process-live-p process)
+            (accept-process-output process 0.1))
+          (setq exit-status (process-exit-status process))
+          (with-current-buffer process-buffer
+            (let ((output (string-trim (buffer-string))))
+              (if (= exit-status 0)
+                  (setq result (if (string-empty-p output) "(no output)" output))
+                (setq error-msg (format "Bash evaluation failed with exit code %d: %s" 
+                                      exit-status output))))))
+      (when (buffer-live-p process-buffer)
+        (kill-buffer process-buffer)))
+    (if error-msg
+        (error "%s" error-msg)
+      result)))
+
 (defconst greger-available-models
   '(claude-sonnet-4-20250514
     claude-opus-4-20250514)
