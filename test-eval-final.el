@@ -42,8 +42,20 @@
               
               ;; Check if folding properties are applied
               (let ((expandable (get-text-property content-start 'greger-ui-eval-result-expandable))
-                    (face (get-text-property content-start 'font-lock-face)))
-                (message "  - Expandable: %s, Face: %s" expandable face)))))))))
+                    (face (get-text-property content-start 'font-lock-face))
+                    (eval-parent-node (treesit-parent-until node (lambda (n) (string= (treesit-node-type n) "eval"))))
+                    (eval-content-node (when eval-parent-node
+                                         (treesit-search-subtree eval-parent-node "eval_content"))))
+                (message "  - Expandable: %s, Face: %s" expandable face)
+                
+                ;; Check for arrow overlays
+                (when eval-content-node
+                  (let* ((eval-content-end (treesit-node-end eval-content-node))
+                         (overlays-at-pos (overlays-at eval-content-end))
+                         (arrow-overlays (seq-filter (lambda (ov) (overlay-get ov 'greger-ui-eval-arrow-overlay)) overlays-at-pos)))
+                    (message "  - Arrow overlays at pos %d: %d found" eval-content-end (length arrow-overlays))
+                    (dolist (ov arrow-overlays)
+                      (message "    - Arrow overlay: %s" (overlay-get ov 'after-string)))))))))))))
 
 ;; Run the test
 (test-eval-final)
