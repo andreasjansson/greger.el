@@ -275,25 +275,33 @@ NODE is the matched tree-sitter node, similar to tool content tail folding."
   (interactive)
   (let ((pos (or pos (point))))
     (when (get-text-property pos 'greger-ui-foldable-eval-result-content)
-      (let* ((tail-start (get-text-property pos 'greger-ui-eval-result-tail-start))
-             (tail-end (get-text-property pos 'greger-ui-eval-result-tail-end))
-             (currently-visible (get-text-property tail-start 'greger-ui-eval-result-content-expanded)))
+      ;; Find the current node and navigate to find the tail
+      (let* ((current-node (treesit-node-at pos))
+             (head-node (treesit-parent-until current-node 
+                                              (lambda (n) (string= (treesit-node-type n) "eval_result_content_head"))))
+             (content-node (when head-node (treesit-node-parent head-node)))
+             (tail-node (when content-node 
+                          (treesit-search-subtree content-node "eval_result_content_tail"))))
         
-        (when (and tail-start tail-end)
-          ;; Toggle the expanded state
-          (put-text-property tail-start tail-end 'greger-ui-eval-result-content-expanded (not currently-visible))
-          
-          ;; Update invisibility
-          (put-text-property tail-start tail-end 'invisible 
-                             (and greger-ui-folding-mode (not (not currently-visible))))
-          
-          ;; Force fontification refresh for this region
-          (let ((eval-result-node (treesit-parent-until 
-                                   (treesit-node-at pos)
-                                   (lambda (n) (string= (treesit-node-type n) "eval_result")))))
-            (when eval-result-node
-              (font-lock-flush (treesit-node-start eval-result-node) 
-                               (treesit-node-end eval-result-node)))))))))
+        (when tail-node
+          (let* ((tail-start (treesit-node-start tail-node))
+                 (tail-end (treesit-node-end tail-node))
+                 (currently-visible (get-text-property tail-start 'greger-ui-eval-result-content-expanded)))
+            
+            ;; Toggle the expanded state
+            (put-text-property tail-start tail-end 'greger-ui-eval-result-content-expanded (not currently-visible))
+            
+            ;; Update invisibility
+            (put-text-property tail-start tail-end 'invisible 
+                               (and greger-ui-folding-mode (not (not currently-visible))))
+            
+            ;; Force fontification refresh for this region
+            (let ((eval-result-node (treesit-parent-until 
+                                     current-node
+                                     (lambda (n) (string= (treesit-node-type n) "eval_result")))))
+              (when eval-result-node
+                (font-lock-flush (treesit-node-start eval-result-node) 
+                                 (treesit-node-end eval-result-node)))))))))) 
 
 (defun greger-ui-toggle-tool-content (&optional pos)
   "Toggle visibility of tool content tail at POS (or point)."
