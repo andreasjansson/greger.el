@@ -250,12 +250,6 @@ NODE is the matched tree-sitter node for eval_result."
                                     node
                                     "eval_result_end_tag")))
           
-          (message "DEBUG: Folding function called on node %s at %d-%d" 
-                   (treesit-node-type node) (treesit-node-start node) (treesit-node-end node))
-          (message "DEBUG: Found start tag: %s" eval-result-start-tag)
-          (message "DEBUG: Found end tag: %s" eval-result-end-tag)
-          (message "DEBUG: Folding mode enabled: %s" greger-ui-folding-mode)
-          
           ;; Clean up old display properties first
           (when eval-result-start-tag
             (remove-text-properties (treesit-node-start eval-result-start-tag)
