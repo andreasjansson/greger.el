@@ -251,8 +251,8 @@ NODE is the matched tree-sitter node for eval_result."
             (when eval-result-start-tag
               (let ((tag-start (treesit-node-start eval-result-start-tag))
                     (tag-end (treesit-node-end eval-result-start-tag)))
-                ;; Place arrow to replace just the first character of eval result start tag
-                (put-text-property tag-start (min (1+ tag-start) tag-end)
+                ;; Place arrow to replace the entire eval result start tag
+                (put-text-property tag-start tag-end
                                    'display (propertize "⇒" 'face 'greger-eval-arrow-face))))))
         
         ;; Handle folding based on content structure
