@@ -238,8 +238,6 @@ NODE is the matched tree-sitter node for eval_result."
                               (treesit-search-subtree content-node "eval_result_content_tail"))))
     
     (when content-node
-      (message "DEBUG: Found content node at %d-%d" 
-               (treesit-node-start content-node) (treesit-node-end content-node))
       (let* ((content-start (treesit-node-start content-node))
              (content-end (treesit-node-end content-node))
              (content-text (treesit-node-text content-node t))
@@ -251,9 +249,6 @@ NODE is the matched tree-sitter node for eval_result."
                                   (treesit-search-subtree eval-node "eval_content")))
              (eval-content-text (when eval-content-node
                                   (string-trim (treesit-node-text eval-content-node t)))))
-        
-        (message "DEBUG: eval-node: %s, eval-content-node: %s" 
-                 (if eval-node "found" "nil") (if eval-content-node "found" "nil"))
         
         ;; Apply styling to the eval result content
         (put-text-property content-start content-end 'font-lock-face 'greger-eval-result-face)
