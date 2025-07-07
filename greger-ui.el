@@ -279,7 +279,7 @@ NODE is the matched tree-sitter node for eval_result."
                  (tail-end (treesit-node-end content-tail-node))
                  (tail-line-count (max 1 (count-lines tail-start tail-end)))
                  (eval-result-end-tag (treesit-search-subtree 
-                                       (treesit-node-parent node)
+                                       node
                                        "eval_result_end_tag")))
             
             ;; Make head clickable
