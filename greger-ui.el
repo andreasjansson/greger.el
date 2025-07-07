@@ -312,8 +312,7 @@ NODE is the matched tree-sitter node for eval_result."
   (condition-case nil
       (let ((node-start (treesit-node-start node))
             (node-end (min (1+ (treesit-node-end node)) (point-max))))
-        (message "EVAL-TAG: Hiding %s at %d-%d, folding-mode: %s" 
-                 (treesit-node-type node) node-start node-end greger-ui-folding-mode)
+
         (when (<= node-end (point-max))
           (put-text-property node-start node-end 'invisible greger-ui-folding-mode)))
     (treesit-node-outdated
