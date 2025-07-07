@@ -61,7 +61,16 @@
                    (is-invisible (get-text-property tail-start 'invisible)))
               (message "  - Eval result has tail that is %s" 
                        (if is-invisible "hidden" "visible"))))))
-      (message "✓ Folding: %d eval results have foldable content" foldable-results)))
+      (message "✓ Folding: %d eval results have foldable content" foldable-results))
+  
+  ;; Test expansion message overlays
+  (let ((fold-overlays 0))
+    (dolist (overlay (overlays-in (point-min) (point-max)))
+      (when (overlay-get overlay 'greger-ui-eval-fold-overlay)
+        (setq fold-overlays (1+ fold-overlays))
+        (message "  - Found expansion overlay: '%s'" 
+                 (overlay-get overlay 'after-string))))
+    (message "✓ Expansion messages: %d overlays found" fold-overlays)))
   
   ;; Test 4: Test toggling folding mode
   (message "✓ Testing folding mode toggle...")
