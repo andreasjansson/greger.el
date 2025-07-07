@@ -325,9 +325,10 @@ NODE is the matched tree-sitter node for eval_result."
             (node-end (min (1+ (treesit-node-end node)) (point-max))))
 
         (when (<= node-end (point-max))
-          ;; Hide the tag when folding mode is disabled
-          ;; When folding mode is enabled, tags are handled by the arrow display
-          (put-text-property node-start node-end 'invisible (not greger-ui-folding-mode))))
+          ;; Always hide tags when folding mode is disabled
+          ;; When folding mode is enabled, the folding function handles visibility
+          (unless greger-ui-folding-mode
+            (put-text-property node-start node-end 'invisible t))))
     (treesit-node-outdated
      ;; Node became outdated, skip this operation
      nil)))
