@@ -1181,7 +1181,46 @@ It looks like it's sunny and warm today!")
 
 (ert-deftest greger-parser-test-code-block-nested-headers ()
   "Test roundtrip for code-block-nested-headers corpus case."
-  (greger-parser-test--roundtrip "code-block-nested-headers"))
+  (let* ((markdown "# USER
+
+Here's code with fake headers:
+
+```
+# ASSISTANT
+
+This looks like a header but isn't
+
+# TOOL USE
+
+Same with this
+```
+
+Real content continues.
+
+# ASSISTANT
+
+I see your code.")
+         (dialog (greger-parser-markdown-to-dialog markdown))
+         (roundtrip-markdown (greger-parser-dialog-to-markdown dialog))
+         (expected-dialog '(((role . "user")
+                             (content . "Here's code with fake headers:
+
+```
+# ASSISTANT
+
+This looks like a header but isn't
+
+# TOOL USE
+
+Same with this
+```
+
+Real content continues."))
+                            ((role . "assistant")
+                             (content ((text . "I see your code.")
+                                       (type . "text")))))))
+    (should (equal expected-dialog dialog))
+    (should (string= markdown roundtrip-markdown))))
 
 (ert-deftest greger-parser-test-inline-code ()
   "Test roundtrip for inline-code corpus case."
