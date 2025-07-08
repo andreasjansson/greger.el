@@ -988,11 +988,11 @@ I've written the Python file.")
                              (content ((type . "tool_use")
                                        (id . "toolu_999")
                                        (name . "write-file")
-                                       (input ((filename . "example.py")
-                                               (content . "foo
+                                       (input (filename . "example.py")
+                                              (content . "foo
 <tool.toolu_123>
 bar
-</tool.toolu_123>"))))))
+</tool.toolu_123>")))))
                             ((role . "user")
                              (content ((type . "tool_result")
                                        (tool_use_id . "toolu_999")
