@@ -469,7 +469,82 @@ The current King of Sweden is **Carl XVI Gustaf**. He has been reigning since 19
 
 (ert-deftest greger-parser-test-multiple-tool-uses ()
   "Test roundtrip for multiple-tool-uses corpus case."
-  (greger-parser-test--roundtrip "multiple-tool-uses"))
+  (let* ((markdown "# USER
+
+List files and read the first one
+
+# TOOL USE
+
+Name: list-directory
+ID: toolu_111
+
+## path
+
+<tool.toolu_111>
+.
+</tool.toolu_111>
+
+# TOOL RESULT
+
+ID: toolu_111
+
+<tool.toolu_111>
+file1.txt
+file2.txt
+README.md
+</tool.toolu_111>
+
+# TOOL USE
+
+Name: read-file
+ID: toolu_222
+
+## path
+
+<tool.toolu_222>
+file1.txt
+</tool.toolu_222>
+
+# TOOL RESULT
+
+ID: toolu_222
+
+<tool.toolu_222>
+This is the content of file1.
+</tool.toolu_222>
+
+# ASSISTANT
+
+I found 3 files in the directory. The first file (file1.txt) contains: \"This is the content of file1.\"")
+         (dialog (greger-parser-markdown-to-dialog markdown))
+         (roundtrip-markdown (greger-parser-dialog-to-markdown dialog))
+         (expected-dialog '(((role . "user")
+                             (content . "List files and read the first one"))
+                            ((role . "assistant")
+                             (content ((type . "tool_use")
+                                       (id . "toolu_111")
+                                       (name . "list-directory")
+                                       (input ((path . "."))))))
+                            ((role . "user")
+                             (content ((type . "tool_result")
+                                       (tool_use_id . "toolu_111")
+                                       (content . "file1.txt
+file2.txt
+README.md"))))
+                            ((role . "assistant")
+                             (content ((type . "tool_use")
+                                       (id . "toolu_222")
+                                       (name . "read-file")
+                                       (input ((path . "file1.txt"))))))
+                            ((role . "user")
+                             (content ((type . "tool_result")
+                                       (tool_use_id . "toolu_222")
+                                       (content . "This is the content of file1."))))
+                            ((role . "assistant")
+                             (content ((text . "I found 3 files in the directory. The first file (file1.txt) contains: \"This is the content of file1.\"")
+                                       (type . "text")))))))
+    (should (equal expected-dialog dialog))
+    (should (string= markdown roundtrip-markdown))))
 
 (ert-deftest greger-parser-test-thinking-only ()
   "Test roundtrip for thinking-only corpus case."
