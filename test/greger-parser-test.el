@@ -839,7 +839,38 @@ What do you think?")))))
 
 (ert-deftest greger-parser-test-mixed-code-blocks-and-sections ()
   "Test roundtrip for mixed-code-blocks-and-sections corpus case."
-  (greger-parser-test--roundtrip "mixed-code-blocks-and-sections"))
+  (let* ((markdown "# USER
+
+Here's a code example:
+
+```python
+def example():
+    # This has # USER in a comment
+    print(\"# ASSISTANT not a real header\")
+```
+
+Now please analyze it.
+
+# ASSISTANT
+
+I can see your code example.")
+         (dialog (greger-parser-markdown-to-dialog markdown))
+         (roundtrip-markdown (greger-parser-dialog-to-markdown dialog))
+         (expected-dialog '(((role . "user")
+                             (content . "Here's a code example:
+
+```python
+def example():
+    # This has # USER in a comment
+    print(\"# ASSISTANT not a real header\")
+```
+
+Now please analyze it."))
+                            ((role . "assistant")
+                             (content ((text . "I can see your code example.")
+                                       (type . "text")))))))
+    (should (equal expected-dialog dialog))
+    (should (string= markdown roundtrip-markdown))))
 
 (ert-deftest greger-parser-test-tool-use-with-code-in-params ()
   "Test roundtrip for tool-use-with-code-in-params corpus case."
