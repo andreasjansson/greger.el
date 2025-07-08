@@ -567,7 +567,31 @@ I need to consider all the options carefully before responding.")
 
 (ert-deftest greger-parser-test-tool-use-only ()
   "Test roundtrip for tool-use-only corpus case."
-  (greger-parser-test--roundtrip "tool-use-only"))
+  (let* ((markdown "# USER
+
+Read a file
+
+# TOOL USE
+
+Name: read-file
+ID: toolu_999
+
+## path
+
+<tool.toolu_999>
+test.txt
+</tool.toolu_999>")
+         (dialog (greger-parser-markdown-to-dialog markdown))
+         (roundtrip-markdown (greger-parser-dialog-to-markdown dialog))
+         (expected-dialog '(((role . "user")
+                             (content . "Read a file"))
+                            ((role . "assistant")
+                             (content ((type . "tool_use")
+                                       (id . "toolu_999")
+                                       (name . "read-file")
+                                       (input ((path . "test.txt")))))))))
+    (should (equal expected-dialog dialog))
+    (should (string= markdown roundtrip-markdown))))
 
 (ert-deftest greger-parser-test-citations-basic ()
   "Test roundtrip for citations-basic corpus case."
