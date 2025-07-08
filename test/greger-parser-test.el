@@ -241,7 +241,45 @@ Hi there! How can I help you today?")
 
 (ert-deftest greger-parser-test-thinking-section ()
   "Test roundtrip for thinking-section corpus case."
-  (greger-parser-test--roundtrip "thinking-section"))
+  (let* ((markdown "# USER
+
+What's 2+2?
+
+# THINKING
+
+Signature: sig123
+
+This is a simple arithmetic question. I can answer this directly without needing any tools.
+
+# ASSISTANT
+
+2 + 2 = 4
+
+# USER
+
+What's 1+1?
+
+# THINKING
+
+Another simple question. But I haven't finished generating yet.")
+         (dialog (greger-parser-markdown-to-dialog markdown))
+         (roundtrip-markdown (greger-parser-dialog-to-markdown dialog))
+         (expected-dialog '(((role . "user")
+                             (content . "What's 2+2?"))
+                            ((role . "assistant")
+                             (content ((type . "thinking")
+                                       (signature . "sig123")
+                                       (thinking . "This is a simple arithmetic question. I can answer this directly without needing any tools."))))
+                            ((role . "assistant")
+                             (content ((text . "2 + 2 = 4")
+                                       (type . "text"))))
+                            ((role . "user")
+                             (content . "What's 1+1?"))
+                            ((role . "assistant")
+                             (content ((type . "thinking")
+                                       (thinking . "Another simple question. But I haven't finished generating yet.")))))))
+    (should (equal expected-dialog dialog))
+    (should (string= markdown roundtrip-markdown))))
 
 (ert-deftest greger-parser-test-tool-use-single-param ()
   "Test roundtrip for tool-use-single-param corpus case."
