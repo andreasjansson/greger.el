@@ -1236,7 +1236,38 @@ Foo `bar` baz")
 
 (ert-deftest greger-parser-test-safe-shell-commands ()
   "Test roundtrip for safe-shell-commands corpus case."
-  (greger-parser-test--roundtrip "safe-shell-commands"))
+  (let* ((markdown "# SYSTEM
+
+Hello
+
+<safe-shell-commands>
+foo
+bar
+</safe-shell-commands>
+
+world
+
+# USER
+
+test")
+         (dialog (greger-parser-markdown-to-dialog markdown))
+         (roundtrip-markdown (greger-parser-dialog-to-markdown dialog))
+         (expected-dialog '(((role . "system")
+                             (content . "Hello
+
+
+world
+
+# Safe shell commands
+
+You can run arbitrary shell commands with the shell-command tool, but the following are safe shell commands that will run without requiring user confirmation:
+
+* `foo`
+* `bar`"))
+                            ((role . "user")
+                             (content . "test")))))
+    (should (equal expected-dialog dialog))
+    (should (string= markdown roundtrip-markdown))))
 
 (ert-deftest greger-parser-test-text-with-markdown-headings ()
   "Test roundtrip for text-with-markdown-headings corpus case."
