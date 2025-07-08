@@ -526,7 +526,7 @@ I found 3 files in the directory. The first file (file1.txt) contains: \"This is
                              (content ((type . "tool_use")
                                        (id . "toolu_111")
                                        (name . "list-directory")
-                                       (input ((path . "."))))))
+                                       (input (path . ".")))))
                             ((role . "user")
                              (content ((type . "tool_result")
                                        (tool_use_id . "toolu_111")
