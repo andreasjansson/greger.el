@@ -924,15 +924,15 @@ I've written the Python file.")
                              (content ((type . "tool_use")
                                        (id . "toolu_999")
                                        (name . "write-file")
-                                       (input ((filename . "example.py")
-                                               (content . "```python
+                                       (input (filename . "example.py")
+                                              (content . "```python
 def main():
     # This # USER comment should not break parsing
     print(\"Hello world\")
 
 if __name__ == \"__main__\":
     main()
-```"))))))
+```")))))
                             ((role . "user")
                              (content ((type . "tool_result")
                                        (tool_use_id . "toolu_999")
