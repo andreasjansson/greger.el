@@ -1002,7 +1002,36 @@ bar
 
 (ert-deftest greger-parser-test-nested-code-blocks ()
   "Test roundtrip for nested-code-blocks corpus case."
-  (greger-parser-test--roundtrip "nested-code-blocks"))
+  (let* ((markdown "# USER
+
+How do I use backticks in markdown?
+
+# ASSISTANT
+
+You can use triple backticks:
+
+```
+Here's how to show `inline code` in a code block:
+Use single backticks around `your code`.
+```
+
+Does that help?")
+         (dialog (greger-parser-markdown-to-dialog markdown))
+         (roundtrip-markdown (greger-parser-dialog-to-markdown dialog))
+         (expected-dialog '(((role . "user")
+                             (content . "How do I use backticks in markdown?"))
+                            ((role . "assistant")
+                             (content ((text . "You can use triple backticks:
+
+```
+Here's how to show `inline code` in a code block:
+Use single backticks around `your code`.
+```
+
+Does that help?")
+                                       (type . "text")))))))
+    (should (equal expected-dialog dialog))
+    (should (string= markdown roundtrip-markdown))))
 
 (ert-deftest greger-parser-test-html-comments ()
   "Test roundtrip for html-comments corpus case."
