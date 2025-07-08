@@ -548,7 +548,22 @@ README.md"))))
 
 (ert-deftest greger-parser-test-thinking-only ()
   "Test roundtrip for thinking-only corpus case."
-  (greger-parser-test--roundtrip "thinking-only"))
+  (let* ((markdown "# USER
+
+Let me think about this
+
+# THINKING
+
+I need to consider all the options carefully before responding.")
+         (dialog (greger-parser-markdown-to-dialog markdown))
+         (roundtrip-markdown (greger-parser-dialog-to-markdown dialog))
+         (expected-dialog '(((role . "user")
+                             (content . "Let me think about this"))
+                            ((role . "assistant")
+                             (content ((type . "thinking")
+                                       (thinking . "I need to consider all the options carefully before responding.")))))))
+    (should (equal expected-dialog dialog))
+    (should (string= markdown roundtrip-markdown))))
 
 (ert-deftest greger-parser-test-tool-use-only ()
   "Test roundtrip for tool-use-only corpus case."
