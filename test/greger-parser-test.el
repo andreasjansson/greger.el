@@ -1134,7 +1134,50 @@ The current weather in San Francisco is sunny and 72°F.")
 
 (ert-deftest greger-parser-test-server-tool-use-string-result ()
   "Test roundtrip for server-tool-use-string-result corpus case."
-  (greger-parser-test--roundtrip "server-tool-use-string-result"))
+  (let* ((markdown "# USER
+
+What's the weather like?
+
+# SERVER TOOL USE
+
+Name: web_search
+ID: srvtoolu_456
+
+## query
+
+<tool.srvtoolu_456>
+weather
+</tool.srvtoolu_456>
+
+# WEB SEARCH TOOL RESULT
+
+ID: srvtoolu_456
+
+<tool.srvtoolu_456>
+Sunny and warm today
+</tool.srvtoolu_456>
+
+# ASSISTANT
+
+It looks like it's sunny and warm today!")
+         (dialog (greger-parser-markdown-to-dialog markdown))
+         (roundtrip-markdown (greger-parser-dialog-to-markdown dialog))
+         (expected-dialog '(((role . "user")
+                             (content . "What's the weather like?"))
+                            ((role . "assistant")
+                             (content ((type . "server_tool_use")
+                                       (id . "srvtoolu_456")
+                                       (name . "web_search")
+                                       (input ((query . "weather"))))))
+                            ((role . "assistant")
+                             (content ((type . "web_search_tool_result")
+                                       (tool_use_id . "srvtoolu_456")
+                                       (content . "Sunny and warm today"))))
+                            ((role . "assistant")
+                             (content ((text . "It looks like it's sunny and warm today!")
+                                       (type . "text")))))))
+    (should (equal expected-dialog dialog))
+    (should (string= markdown roundtrip-markdown))))
 
 (ert-deftest greger-parser-test-code-block-nested-headers ()
   "Test roundtrip for code-block-nested-headers corpus case."
