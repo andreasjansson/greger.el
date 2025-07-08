@@ -222,7 +222,22 @@ What's the weather like?")
 
 (ert-deftest greger-parser-test-simple-conversation ()
   "Test roundtrip for simple-conversation corpus case."
-  (greger-parser-test--roundtrip "simple-conversation"))
+  (let* ((markdown "# USER
+
+Hello
+
+# ASSISTANT
+
+Hi there! How can I help you today?")
+         (dialog (greger-parser-markdown-to-dialog markdown))
+         (roundtrip-markdown (greger-parser-dialog-to-markdown dialog))
+         (expected-dialog '(((role . "user")
+                             (content . "Hello"))
+                            ((role . "assistant")
+                             (content ((text . "Hi there! How can I help you today?")
+                                       (type . "text")))))))
+    (should (equal expected-dialog dialog))
+    (should (string= markdown roundtrip-markdown))))
 
 (ert-deftest greger-parser-test-thinking-section ()
   "Test roundtrip for thinking-section corpus case."
