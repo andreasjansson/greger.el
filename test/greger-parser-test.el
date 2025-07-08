@@ -1082,10 +1082,25 @@ This should not be parsed as a section header
 Neither should this
 ```
 
-What do you think?")))))
+What do you think?"))))
+         (expected-roundtrip-markdown "# USER
+
+Here's some code:
+
+
+
+
+```
+<!-- comment should be included -->
+# ASSISTANT
+This should not be parsed as a section header
+# TOOL USE
+Neither should this
+```
+
+What do you think?"))
     (should (equal expected-dialog dialog))
-    ;; Note: roundtrip test not valid for HTML comments as they get stripped
-    ))
+    (should (string= expected-roundtrip-markdown roundtrip-markdown))))
 
 (ert-deftest greger-parser-test-server-tool-use-basic ()
   "Test roundtrip for server-tool-use-basic corpus case."
