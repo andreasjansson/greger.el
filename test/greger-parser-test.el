@@ -393,7 +393,79 @@ src/utils.py:25:def main_helper():"))))
 
 (ert-deftest greger-parser-test-complex-workflow ()
   "Test roundtrip for complex-workflow corpus case."
-  (greger-parser-test--roundtrip "complex-workflow"))
+  (let* ((markdown "# USER
+
+who's the current king of sweden?
+
+# THINKING
+
+The user is asking about the current king of Sweden. This is a factual question that I can search for to get the most up-to-date information. I'll use the search function to find this information.
+
+# TOOL USE
+
+Name: search-286d2fd3
+ID: toolu_01Kf8avk1cBqH5ZHoXL92Duc
+
+## query
+
+<tool.toolu_01Kf8avk1cBqH5ZHoXL92Duc>
+current king of Sweden 2024
+</tool.toolu_01Kf8avk1cBqH5ZHoXL92Duc>
+
+## include_answer
+
+<tool.toolu_01Kf8avk1cBqH5ZHoXL92Duc>
+basic
+</tool.toolu_01Kf8avk1cBqH5ZHoXL92Duc>
+
+## max_results
+
+<tool.toolu_01Kf8avk1cBqH5ZHoXL92Duc>
+3
+</tool.toolu_01Kf8avk1cBqH5ZHoXL92Duc>
+
+# TOOL RESULT
+
+ID: toolu_01Kf8avk1cBqH5ZHoXL92Duc
+
+<tool.toolu_01Kf8avk1cBqH5ZHoXL92Duc>
+{
+  \"query\": \"current king of Sweden 2024\",
+  \"answer\": \"Carl XVI Gustaf\",
+  \"response_time\": 2.38
+}
+</tool.toolu_01Kf8avk1cBqH5ZHoXL92Duc>
+
+# ASSISTANT
+
+The current King of Sweden is **Carl XVI Gustaf**. He has been reigning since 1973 and is the longest-reigning monarch in Swedish history.")
+         (dialog (greger-parser-markdown-to-dialog markdown))
+         (roundtrip-markdown (greger-parser-dialog-to-markdown dialog))
+         (expected-dialog '(((role . "user")
+                             (content . "who's the current king of sweden?"))
+                            ((role . "assistant")
+                             (content ((type . "thinking")
+                                       (thinking . "The user is asking about the current king of Sweden. This is a factual question that I can search for to get the most up-to-date information. I'll use the search function to find this information."))))
+                            ((role . "assistant")
+                             (content ((type . "tool_use")
+                                       (id . "toolu_01Kf8avk1cBqH5ZHoXL92Duc")
+                                       (name . "search-286d2fd3")
+                                       (input ((query . "current king of Sweden 2024")
+                                               (include_answer . "basic")
+                                               (max_results . 3))))))
+                            ((role . "user")
+                             (content ((type . "tool_result")
+                                       (tool_use_id . "toolu_01Kf8avk1cBqH5ZHoXL92Duc")
+                                       (content . "{
+  \"query\": \"current king of Sweden 2024\",
+  \"answer\": \"Carl XVI Gustaf\",
+  \"response_time\": 2.38
+}"))))
+                            ((role . "assistant")
+                             (content ((text . "The current King of Sweden is **Carl XVI Gustaf**. He has been reigning since 1973 and is the longest-reigning monarch in Swedish history.")
+                                       (type . "text")))))))
+    (should (equal expected-dialog dialog))
+    (should (string= markdown roundtrip-markdown))))
 
 (ert-deftest greger-parser-test-multiple-tool-uses ()
   "Test roundtrip for multiple-tool-uses corpus case."
