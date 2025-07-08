@@ -1330,7 +1330,24 @@ all")
 
 (ert-deftest greger-parser-test-untagged-content ()
   "Test roundtrip for untagged-content corpus case."
-  (greger-parser-test--roundtrip "untagged-content"))
+  (let* ((markdown "Hello, this is untagged content
+
+more untagged content
+
+# ASSISTANT
+
+I understand you have untagged content.")
+         (dialog (greger-parser-markdown-to-dialog markdown))
+         (roundtrip-markdown (greger-parser-dialog-to-markdown dialog))
+         (expected-dialog '(((role . "user")
+                             (content . "Hello, this is untagged content
+
+more untagged content"))
+                            ((role . "assistant")
+                             (content ((text . "I understand you have untagged content.")
+                                       (type . "text")))))))
+    (should (equal expected-dialog dialog))
+    (should (string= markdown roundtrip-markdown))))
 
 (ert-deftest greger-parser-test-tool-use-parsing ()
   "Test specific tool use parsing functionality."
