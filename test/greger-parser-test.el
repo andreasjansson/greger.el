@@ -1295,7 +1295,38 @@ test
 
 (ert-deftest greger-parser-test-triple-hash ()
   "Test roundtrip for triple-hash corpus case."
-  (greger-parser-test--roundtrip "triple-hash"))
+  (let* ((markdown "# ASSISTANT
+
+Hello, how are you?
+
+## Heading
+
+This is not a citation
+
+This
+is not
+a
+citation
+at
+all")
+         (dialog (greger-parser-markdown-to-dialog markdown))
+         (roundtrip-markdown (greger-parser-dialog-to-markdown dialog))
+         (expected-dialog '(((role . "assistant")
+                             (content ((text . "Hello, how are you?
+
+## Heading
+
+This is not a citation
+
+This
+is not
+a
+citation
+at
+all")
+                                       (type . "text")))))))
+    (should (equal expected-dialog dialog))
+    (should (string= markdown roundtrip-markdown))))
 
 (ert-deftest greger-parser-test-untagged-content ()
   "Test roundtrip for untagged-content corpus case."
