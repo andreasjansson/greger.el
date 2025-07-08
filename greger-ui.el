@@ -310,7 +310,7 @@ NODE is the matched tree-sitter node, similar to tool content tail folding."
   "Handle eval result end tag visibility and styling based on folding mode."
   (condition-case nil
       (let ((node-start (treesit-node-start node))
-            (node-end (min (1+ (treesit-node-end node)) (point-max))))
+            (node-end (min (treesit-node-end node) (point-max))))
 
         (when (<= node-end (point-max))
           (if greger-ui-folding-mode
@@ -929,3 +929,4 @@ buffer being updated according to the terminal sequences encountered."
 
 (provide 'greger-ui)
 ;;; greger-ui.el ends here
+ 
