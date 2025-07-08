@@ -1070,11 +1070,8 @@ What do you think?")
          (expected-dialog '(((role . "user")
                              (content . "Here's some code:
 
-<!-- comment -->
-<!-- multi
-line
 
-comment -->
+
 
 ```
 <!-- comment should be included -->
