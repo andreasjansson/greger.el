@@ -1906,6 +1906,175 @@ new
   (should (string= (greger-parser--convert-value "[not json") "[not json"))
   (should (string= (greger-parser--convert-value "{not json") "{not json")))
 
+(ert-deftest greger-parser-test-eval ()
+  "Test parsing of eval blocks with various formats."
+  (let* ((markdown "# SYSTEM
+
+${before}
+
+You are a helpful assistant.
+
+<safe-shell-commands>
+foo
+${:bash echo bar}
+</safe-shell-commands>
+
+${:python
+after
+{ foo ${bar} }
+}
+
+# USER
+
+${
+before
+}
+
+What's the weather like?
+
+what is ${(+ 1 1)} + ${2}?
+
+# ASSISTANT
+
+Warm.
+
+${foo}")
+         (expected-dialog '((messages
+                           ((role . "system")
+                            (content . "You are a helpful assistant.
+
+<safe-shell-commands>
+foo
+${:bash echo bar}
+</safe-shell-commands>"))
+                          ((role . "user")
+                            (content . "What's the weather like?
+
+what is ${(+ 1 1)} + ${2}?"))
+                          ((role . "assistant")
+                            (content . "Warm.")))))
+         (dialog (greger-parser-markdown-to-dialog markdown))
+         (roundtrip-markdown (greger-parser-dialog-to-markdown dialog)))
+    (should (equal expected-dialog dialog))
+    (should (string= markdown roundtrip-markdown))))
+
+(ert-deftest greger-parser-test-eval-results ()
+  "Test parsing of eval blocks with eval results."
+  (let* ((markdown "# SYSTEM
+
+${1. single-line<eval-result-abc123>hello</eval-result-abc123>}
+
+${
+2. newlines-and-single-line
+<eval-result-abc123>hello</eval-result-abc123>
+}
+
+${
+3. multi-
+line
+<eval-result-abc123>
+hello
+</eval-result-abc123>
+}
+
+${
+
+4. whilespace
+
+<eval-result-abc123>
+
+hello
+
+</eval-result-abc123>
+
+}
+
+${
+5. four-line-head
+<eval-result-abc123>
+line1
+line2
+line3
+line4
+</eval-result-abc123>
+}
+
+${
+6. four
+line
+head
+and
+one
+line
+tail
+<eval-result-abc123>
+line1
+line2
+line3
+line4
+line5
+</eval-result-abc123>
+}
+
+
+${7. empty-eval-result<eval-result-empty></eval-result-empty>}
+
+${
+8. whitespace-only-eval-result
+<eval-result-spaces>   
+   </eval-result-spaces>
+}
+
+${9. eval-result-with-html<eval-result-html>before<img src=\"test\">after<div>nested</div></eval-result-html>}
+
+${   
+   }")
+         (expected-dialog '((messages
+                           ((role . "system")
+                            (content . "1. single-linehello
+
+2. newlines-and-single-line
+hello
+
+3. multi-
+line
+hello
+
+4. whilespace
+
+hello
+
+5. four-line-head
+line1
+line2
+line3
+line4
+
+6. four
+line
+head
+and
+one
+line
+tail
+line1
+line2
+line3
+line4
+line5
+
+7. empty-eval-result
+
+8. whitespace-only-eval-result
+   
+   
+
+9. eval-result-with-html<img src=\"test\">after<div>nested</div>")))))
+         (dialog (greger-parser-markdown-to-dialog markdown))
+         (roundtrip-markdown (greger-parser-dialog-to-markdown dialog)))
+    (should (equal expected-dialog dialog))
+    (should (string= markdown roundtrip-markdown))))
+
 ;; Cleanup test - should run last alphabetically
 (ert-deftest greger-parser-zz-test-cleanup ()
   "Clean up test resources (runs last due to alphabetical ordering)."
