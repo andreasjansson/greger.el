@@ -592,7 +592,7 @@ test.txt
                              (content ((type . "tool_use")
                                        (id . "toolu_999")
                                        (name . "read-file")
-                                       (input ((path . "test.txt")))))))))
+                                       (input (path . "test.txt"))))))))
     (should (equal expected-dialog dialog))
     (should (string= markdown roundtrip-markdown))))
 
