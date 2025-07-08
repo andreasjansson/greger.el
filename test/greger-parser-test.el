@@ -671,7 +671,60 @@ Encrypted index: Eo8BCioIAhgBIiQyYjQ0OWJmZi1lNm..")
 
 (ert-deftest greger-parser-test-citations-after-tool-result ()
   "Test roundtrip for citations-after-tool-result corpus case."
-  (greger-parser-test--roundtrip "citations-after-tool-result"))
+  (let* ((markdown "# USER
+
+What's the current weather?
+
+# SERVER TOOL USE
+
+Name: web_search
+ID: srvtoolu_456
+
+## query
+
+<tool.srvtoolu_456>
+current weather
+</tool.srvtoolu_456>
+
+# WEB SEARCH TOOL RESULT
+
+ID: srvtoolu_456
+
+<tool.srvtoolu_456>
+Weather search results
+</tool.srvtoolu_456>
+
+# ASSISTANT
+
+It's currently sunny and 75°F
+
+## https://weather.com
+
+Title: Weather.com
+Cited text: Currently sunny with a temperature of 75 degrees Fahrenheit...
+Encrypted index: xyz789")
+         (dialog (greger-parser-markdown-to-dialog markdown))
+         (roundtrip-markdown (greger-parser-dialog-to-markdown dialog))
+         (expected-dialog '(((role . "user")
+                             (content . "What's the current weather?"))
+                            ((role . "assistant")
+                             (content ((type . "server_tool_use")
+                                       (id . "srvtoolu_456")
+                                       (name . "web_search")
+                                       (input ((query . "current weather"))))))
+                            ((role . "assistant")
+                             (content ((type . "web_search_tool_result")
+                                       (tool_use_id . "srvtoolu_456")
+                                       (content . "Weather search results"))))
+                            ((role . "assistant")
+                             (content ((text . "It's currently sunny and 75°F")
+                                       (type . "text")
+                                       (citations . ((url . "https://weather.com")
+                                                     (title . "Weather.com")
+                                                     (cited_text . "Currently sunny with a temperature of 75 degrees Fahrenheit...")
+                                                     (encrypted_index . "xyz789")))))))))
+    (should (equal expected-dialog dialog))
+    (should (string= markdown roundtrip-markdown))))
 
 (ert-deftest greger-parser-test-citations-multiple ()
   "Test roundtrip for citations-multiple corpus case."
