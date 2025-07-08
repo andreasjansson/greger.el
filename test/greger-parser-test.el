@@ -283,7 +283,50 @@ Another simple question. But I haven't finished generating yet.")
 
 (ert-deftest greger-parser-test-tool-use-single-param ()
   "Test roundtrip for tool-use-single-param corpus case."
-  (greger-parser-test--roundtrip "tool-use-single-param"))
+  (let* ((markdown "# USER
+
+Read the file hello.txt
+
+# TOOL USE
+
+Name: read-file
+ID: toolu_123
+
+## path
+
+<tool.toolu_123>
+hello.txt
+</tool.toolu_123>
+
+# TOOL RESULT
+
+ID: toolu_123
+
+<tool.toolu_123>
+Hello, world!
+</tool.toolu_123>
+
+# ASSISTANT
+
+The file contains: Hello, world!")
+         (dialog (greger-parser-markdown-to-dialog markdown))
+         (roundtrip-markdown (greger-parser-dialog-to-markdown dialog))
+         (expected-dialog '(((role . "user")
+                             (content . "Read the file hello.txt"))
+                            ((role . "assistant")
+                             (content ((type . "tool_use")
+                                       (id . "toolu_123")
+                                       (name . "read-file")
+                                       (input ((path . "hello.txt"))))))
+                            ((role . "user")
+                             (content ((type . "tool_result")
+                                       (tool_use_id . "toolu_123")
+                                       (content . "Hello, world!"))))
+                            ((role . "assistant")
+                             (content ((text . "The file contains: Hello, world!")
+                                       (type . "text")))))))
+    (should (equal expected-dialog dialog))
+    (should (string= markdown roundtrip-markdown))))
 
 (ert-deftest greger-parser-test-tool-use-multiple-params ()
   "Test roundtrip for tool-use-multiple-params corpus case."
