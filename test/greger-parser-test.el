@@ -799,7 +799,7 @@ Encrypted index: ghi789")
                                        (citations
                                         ((type . "web_search_result_location")
                                          (url . "https://physics.com/einstein")
-                                         (title . "")
+                                         (title . "(no value)")
                                          (cited_text . "Albert Einstein developed the theory of relativity in the early 20th century...")
                                          (encrypted_index . "def456")))
                                        (type . "text"))))
