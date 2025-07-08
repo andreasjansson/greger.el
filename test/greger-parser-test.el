@@ -2014,10 +2014,48 @@ line5
    
 
 before<img src=\"test\">after<div>nested</div>"))))
+         (expected-roundtrip-markdown "# SYSTEM
+
+hello
+
+hello
+
+
+hello
+
+
+
+
+hello
+
+
+
+
+line1
+line2
+line3
+line4
+
+
+
+line1
+line2
+line3
+line4
+line5
+
+
+
+
+
+   
+   
+
+before<img src=\"test\">after<div>nested</div>")
          (dialog (greger-parser-markdown-to-dialog markdown))
          (roundtrip-markdown (greger-parser-dialog-to-markdown dialog)))
     (should (equal expected-dialog dialog))
-    (should (string= markdown roundtrip-markdown))))
+    (should (string= expected-roundtrip-markdown roundtrip-markdown))))
 
 ;; Cleanup test - should run last alphabetically
 (ert-deftest greger-parser-zz-test-cleanup ()
