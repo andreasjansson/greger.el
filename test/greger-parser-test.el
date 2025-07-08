@@ -814,10 +814,55 @@ Encrypted index: ghi789")
                                          (title . "Newton Biography")
                                          (cited_text . "(no value)")
                                          (encrypted_index . "ghi789")))
-                                       (type . "text")))))))
+                                       (type . "text"))))))
+         (expected-roundtrip-markdown "# USER
+
+Tell me about Einstein and Newton
+
+# SERVER TOOL USE
+
+Name: web_search
+ID: srvtoolu_789
+
+## query
+
+<tool.srvtoolu_789>
+Einstein Newton physics
+</tool.srvtoolu_789>
+
+# WEB SEARCH TOOL RESULT
+
+ID: srvtoolu_789
+
+<tool.srvtoolu_789>
+Physics search results
+</tool.srvtoolu_789>
+
+# ASSISTANT
+
+Einstein developed the theory of relativity
+
+## https://physics.com/einstein
+
+Title: (no value)
+Cited text: Albert Einstein developed the theory of relativity in the early 20th century...
+Encrypted index: def456
+
+# ASSISTANT
+
+while
+
+# ASSISTANT
+
+Newton formulated the laws of motion
+
+## https://physics.com/newton
+
+Title: Newton Biography
+Cited text: (no value)
+Encrypted index: ghi789"))
     (should (equal expected-dialog dialog))
-    ;; Note: roundtrip test not valid for citations with empty values as they get converted to "(no value)"
-    ))
+    (should (string= expected-roundtrip-markdown roundtrip-markdown))))
 
 (ert-deftest greger-parser-test-code-block-triple-backticks ()
   "Test roundtrip for code-block-triple-backticks corpus case."
