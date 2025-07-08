@@ -728,7 +728,84 @@ Encrypted index: xyz789")
 
 (ert-deftest greger-parser-test-citations-multiple ()
   "Test roundtrip for citations-multiple corpus case."
-  (greger-parser-test--roundtrip "citations-multiple"))
+  (let* ((markdown "# USER
+
+Tell me about Einstein and Newton
+
+# SERVER TOOL USE
+
+Name: web_search
+ID: srvtoolu_789
+
+## query
+
+<tool.srvtoolu_789>
+Einstein Newton physics
+</tool.srvtoolu_789>
+
+# WEB SEARCH TOOL RESULT
+
+ID: srvtoolu_789
+
+<tool.srvtoolu_789>
+Physics search results
+</tool.srvtoolu_789>
+
+# ASSISTANT
+
+Einstein developed the theory of relativity
+
+## https://physics.com/einstein
+
+Title: 
+Cited text: Albert Einstein developed the theory of relativity in the early 20th century...
+Encrypted index: def456
+
+# ASSISTANT
+
+while
+
+# ASSISTANT
+
+Newton formulated the laws of motion
+
+## https://physics.com/newton
+
+Title: Newton Biography
+Cited text: 
+Encrypted index: ghi789")
+         (dialog (greger-parser-markdown-to-dialog markdown))
+         (roundtrip-markdown (greger-parser-dialog-to-markdown dialog))
+         (expected-dialog '(((role . "user")
+                             (content . "Tell me about Einstein and Newton"))
+                            ((role . "assistant")
+                             (content ((type . "server_tool_use")
+                                       (id . "srvtoolu_789")
+                                       (name . "web_search")
+                                       (input ((query . "Einstein Newton physics"))))))
+                            ((role . "assistant")
+                             (content ((type . "web_search_tool_result")
+                                       (tool_use_id . "srvtoolu_789")
+                                       (content . "Physics search results"))))
+                            ((role . "assistant")
+                             (content ((text . "Einstein developed the theory of relativity")
+                                       (type . "text")
+                                       (citations . ((url . "https://physics.com/einstein")
+                                                     (title . "")
+                                                     (cited_text . "Albert Einstein developed the theory of relativity in the early 20th century...")
+                                                     (encrypted_index . "def456"))))))
+                            ((role . "assistant")
+                             (content ((text . "while")
+                                       (type . "text"))))
+                            ((role . "assistant")
+                             (content ((text . "Newton formulated the laws of motion")
+                                       (type . "text")
+                                       (citations . ((url . "https://physics.com/newton")
+                                                     (title . "Newton Biography")
+                                                     (cited_text . "")
+                                                     (encrypted_index . "ghi789")))))))))
+    (should (equal expected-dialog dialog))
+    (should (string= markdown roundtrip-markdown))))
 
 (ert-deftest greger-parser-test-code-block-triple-backticks ()
   "Test roundtrip for code-block-triple-backticks corpus case."
