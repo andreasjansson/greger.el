@@ -1939,20 +1939,28 @@ what is ${(+ 1 1)} + ${2}?
 Warm.
 
 ${foo}")
-         (expected-dialog '((messages
-                           ((role . "system")
-                            (content . "You are a helpful assistant.
+         (expected-dialog '(((role . "system")
+                            (content . "
 
-<safe-shell-commands>
-foo
-${:bash echo bar}
-</safe-shell-commands>"))
+You are a helpful assistant.
+
+# Safe shell commands
+
+You can run arbitrary shell commands with the shell-command tool, but the following are safe shell commands that will run without requiring user confirmation:
+
+* `foo`
+
+"))
                           ((role . "user")
-                            (content . "What's the weather like?
+                            (content . "
 
-what is ${(+ 1 1)} + ${2}?"))
+What's the weather like?
+
+what is  + ?"))
                           ((role . "assistant")
-                            (content . "Warm.")))))
+                            (content ((text . "Warm.
+
+${foo}") (type . "text"))))))
          (dialog (greger-parser-markdown-to-dialog markdown))
          (roundtrip-markdown (greger-parser-dialog-to-markdown dialog)))
     (should (equal expected-dialog dialog))
