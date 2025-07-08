@@ -1271,7 +1271,27 @@ You can run arbitrary shell commands with the shell-command tool, but the follow
 
 (ert-deftest greger-parser-test-text-with-markdown-headings ()
   "Test roundtrip for text-with-markdown-headings corpus case."
-  (greger-parser-test--roundtrip "text-with-markdown-headings"))
+  (let* ((markdown "# USER
+
+Hello, how are you?
+
+## This is not a Greger heading
+
+test
+
+# Another heading that should be part of text")
+         (dialog (greger-parser-markdown-to-dialog markdown))
+         (roundtrip-markdown (greger-parser-dialog-to-markdown dialog))
+         (expected-dialog '(((role . "user")
+                             (content . "Hello, how are you?
+
+## This is not a Greger heading
+
+test
+
+# Another heading that should be part of text")))))
+    (should (equal expected-dialog dialog))
+    (should (string= markdown roundtrip-markdown))))
 
 (ert-deftest greger-parser-test-triple-hash ()
   "Test roundtrip for triple-hash corpus case."
