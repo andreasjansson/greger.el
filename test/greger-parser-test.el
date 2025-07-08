@@ -1079,7 +1079,58 @@ What do you think?")))))
 
 (ert-deftest greger-parser-test-server-tool-use-basic ()
   "Test roundtrip for server-tool-use-basic corpus case."
-  (greger-parser-test--roundtrip "server-tool-use-basic"))
+  (let* ((markdown "# USER
+
+Search for current weather in San Francisco
+
+# SERVER TOOL USE
+
+Name: web_search
+ID: srvtoolu_123
+
+## query
+
+<tool.srvtoolu_123>
+current weather San Francisco
+</tool.srvtoolu_123>
+
+# WEB SEARCH TOOL RESULT
+
+ID: srvtoolu_123
+
+<tool.srvtoolu_123>
+[
+  {
+    \"title\": \"Weather in San Francisco\",
+    \"url\": \"https://weather.com/sf\",
+    \"content\": \"Sunny, 72°F\"
+  }
+]
+</tool.srvtoolu_123>
+
+# ASSISTANT
+
+The current weather in San Francisco is sunny and 72°F.")
+         (dialog (greger-parser-markdown-to-dialog markdown))
+         (roundtrip-markdown (greger-parser-dialog-to-markdown dialog))
+         (expected-dialog '(((role . "user")
+                             (content . "Search for current weather in San Francisco"))
+                            ((role . "assistant")
+                             (content ((type . "server_tool_use")
+                                       (id . "srvtoolu_123")
+                                       (name . "web_search")
+                                       (input ((query . "current weather San Francisco"))))))
+                            ((role . "assistant")
+                             (content ((type . "web_search_tool_result")
+                                       (tool_use_id . "srvtoolu_123")
+                                       (content . [((title . "Weather in San Francisco")
+                                                    (url . "https://weather.com/sf")
+                                                    (content . "Sunny, 72°F"))]))))
+                            ((role . "assistant")
+                             (content ((text . "The current weather in San Francisco is sunny and 72°F.")
+                                       (type . "text")))))))
+    (should (equal expected-dialog dialog))
+    (should (string= markdown roundtrip-markdown))))
 
 (ert-deftest greger-parser-test-server-tool-use-string-result ()
   "Test roundtrip for server-tool-use-string-result corpus case."
