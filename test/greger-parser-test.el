@@ -679,7 +679,33 @@ Encrypted index: Eo8BCioIAhgBIiQyYjQ0OWJmZi1lNm..")
 
 (ert-deftest greger-parser-test-code-block-triple-backticks ()
   "Test roundtrip for code-block-triple-backticks corpus case."
-  (greger-parser-test--roundtrip "code-block-triple-backticks"))
+  (let* ((markdown "# USER
+
+Here's some code:
+
+```
+# ASSISTANT
+This should not be parsed as a section header
+# TOOL USE
+Neither should this
+```
+
+What do you think?")
+         (dialog (greger-parser-markdown-to-dialog markdown))
+         (roundtrip-markdown (greger-parser-dialog-to-markdown dialog))
+         (expected-dialog '(((role . "user")
+                             (content . "Here's some code:
+
+```
+# ASSISTANT
+This should not be parsed as a section header
+# TOOL USE
+Neither should this
+```
+
+What do you think?")))))
+    (should (equal expected-dialog dialog))
+    (should (string= markdown roundtrip-markdown))))
 
 (ert-deftest greger-parser-test-mixed-code-blocks-and-sections ()
   "Test roundtrip for mixed-code-blocks-and-sections corpus case."
