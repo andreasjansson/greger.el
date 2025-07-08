@@ -1035,7 +1035,47 @@ Does that help?")
 
 (ert-deftest greger-parser-test-html-comments ()
   "Test roundtrip for html-comments corpus case."
-  (greger-parser-test--roundtrip "html-comments"))
+  (let* ((markdown "# USER
+
+Here's some code:
+
+<!-- comment -->
+<!-- multi
+line
+
+comment -->
+
+```
+<!-- comment should be included -->
+# ASSISTANT
+This should not be parsed as a section header
+# TOOL USE
+Neither should this
+```
+
+What do you think?")
+         (dialog (greger-parser-markdown-to-dialog markdown))
+         (roundtrip-markdown (greger-parser-dialog-to-markdown dialog))
+         (expected-dialog '(((role . "user")
+                             (content . "Here's some code:
+
+<!-- comment -->
+<!-- multi
+line
+
+comment -->
+
+```
+<!-- comment should be included -->
+# ASSISTANT
+This should not be parsed as a section header
+# TOOL USE
+Neither should this
+```
+
+What do you think?")))))
+    (should (equal expected-dialog dialog))
+    (should (string= markdown roundtrip-markdown))))
 
 (ert-deftest greger-parser-test-server-tool-use-basic ()
   "Test roundtrip for server-tool-use-basic corpus case."
