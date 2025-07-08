@@ -942,7 +942,63 @@ if __name__ == \"__main__\":
 
 (ert-deftest greger-parser-test-tool-use-with-tool-use-in-params ()
   "Test roundtrip for tool-use-with-tool-use-in-params corpus case."
-  (greger-parser-test--roundtrip "tool-use-with-tool-use-in-params"))
+  (let* ((markdown "# USER
+
+Write some Python code
+
+# TOOL USE
+
+Name: write-file
+ID: toolu_999
+
+## filename
+
+<tool.toolu_999>
+example.py
+</tool.toolu_999>
+
+## content
+
+<tool.toolu_999>
+foo
+<tool.toolu_123>
+bar
+</tool.toolu_123>
+</tool.toolu_999>
+
+# TOOL RESULT
+
+ID: toolu_999
+
+<tool.toolu_999>
+File written successfully
+</tool.toolu_999>
+
+# ASSISTANT
+
+I've written the Python file.")
+         (dialog (greger-parser-markdown-to-dialog markdown))
+         (roundtrip-markdown (greger-parser-dialog-to-markdown dialog))
+         (expected-dialog '(((role . "user")
+                             (content . "Write some Python code"))
+                            ((role . "assistant")
+                             (content ((type . "tool_use")
+                                       (id . "toolu_999")
+                                       (name . "write-file")
+                                       (input ((filename . "example.py")
+                                               (content . "foo
+<tool.toolu_123>
+bar
+</tool.toolu_123>"))))))
+                            ((role . "user")
+                             (content ((type . "tool_result")
+                                       (tool_use_id . "toolu_999")
+                                       (content . "File written successfully"))))
+                            ((role . "assistant")
+                             (content ((text . "I've written the Python file.")
+                                       (type . "text")))))))
+    (should (equal expected-dialog dialog))
+    (should (string= markdown roundtrip-markdown))))
 
 (ert-deftest greger-parser-test-nested-code-blocks ()
   "Test roundtrip for nested-code-blocks corpus case."
