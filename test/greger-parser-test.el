@@ -192,11 +192,33 @@ Comparison is order-independent."
 
 (ert-deftest greger-parser-test-simple-user-message ()
   "Test roundtrip for simple-user-message corpus case."
-  (greger-parser-test--roundtrip "simple-user-message"))
+  (let* ((markdown "# USER
 
-(ert-deftest greger-parser-test-system-and-user ()
-  "Test roundtrip for system-and-user corpus case."
-  (greger-parser-test--roundtrip "system-and-user"))
+Hello, how are you?")
+       (dialog (greger-parser-markdown-to-dialog markdown))
+       (roundtrip-markdown (greger-parser-dialog-to-markdown dialog))
+       (expected-dialog '(((role . "user")
+                           (content . "Hello, how are you?")))))
+  (should (equal expected-dialog dialog))
+  (should (string= markdown roundtrip-markdown))))
+
+(ert-deftest greger-parser-system-and-user ()
+  "Test roundtrip for simple-user-message corpus case."
+  (let* ((markdown "# SYSTEM
+
+You are a helpful assistant.
+
+# USER
+
+What's the weather like?")
+       (dialog (greger-parser-markdown-to-dialog markdown))
+       (roundtrip-markdown (greger-parser-dialog-to-markdown dialog))
+       (expected-dialog '(((role . "system")
+                           (content . "You are a helpful assistant."))
+                          ((role . "user")
+                           (content . "What's the weather like?")))))
+  (should (equal expected-dialog dialog))
+  (should (string= markdown roundtrip-markdown))))
 
 (ert-deftest greger-parser-test-simple-conversation ()
   "Test roundtrip for simple-conversation corpus case."
