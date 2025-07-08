@@ -1291,10 +1291,27 @@ You can run arbitrary shell commands with the shell-command tool, but the follow
 * `foo`
 * `bar`"))
                             ((role . "user")
-                             (content . "test")))))
+                             (content . "test"))))
+         (expected-roundtrip-markdown "# SYSTEM
+
+Hello
+
+
+
+world
+
+# Safe shell commands
+
+You can run arbitrary shell commands with the shell-command tool, but the following are safe shell commands that will run without requiring user confirmation:
+
+* `foo`
+* `bar`
+
+# USER
+
+test"))
     (should (equal expected-dialog dialog))
-    ;; Note: roundtrip test not valid for safe-shell-commands as they get expanded
-    ))
+    (should (string= expected-roundtrip-markdown roundtrip-markdown))))
 
 (ert-deftest greger-parser-test-text-with-markdown-headings ()
   "Test roundtrip for text-with-markdown-headings corpus case."
