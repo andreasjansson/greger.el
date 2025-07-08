@@ -330,7 +330,66 @@ The file contains: Hello, world!")
 
 (ert-deftest greger-parser-test-tool-use-multiple-params ()
   "Test roundtrip for tool-use-multiple-params corpus case."
-  (greger-parser-test--roundtrip "tool-use-multiple-params"))
+  (let* ((markdown "# USER
+
+Search for python files containing 'def main'
+
+# TOOL USE
+
+Name: ripgrep
+ID: toolu_456
+
+## pattern
+
+<tool.toolu_456>
+def main
+</tool.toolu_456>
+
+## file-type
+
+<tool.toolu_456>
+py
+</tool.toolu_456>
+
+## context-lines
+
+<tool.toolu_456>
+2
+</tool.toolu_456>
+
+# TOOL RESULT
+
+ID: toolu_456
+
+<tool.toolu_456>
+src/main.py:10:def main():
+src/utils.py:25:def main_helper():
+</tool.toolu_456>
+
+# ASSISTANT
+
+I found 2 matches for 'def main' in Python files.")
+         (dialog (greger-parser-markdown-to-dialog markdown))
+         (roundtrip-markdown (greger-parser-dialog-to-markdown dialog))
+         (expected-dialog '(((role . "user")
+                             (content . "Search for python files containing 'def main'"))
+                            ((role . "assistant")
+                             (content ((type . "tool_use")
+                                       (id . "toolu_456")
+                                       (name . "ripgrep")
+                                       (input ((pattern . "def main")
+                                               (file-type . "py")
+                                               (context-lines . 2))))))
+                            ((role . "user")
+                             (content ((type . "tool_result")
+                                       (tool_use_id . "toolu_456")
+                                       (content . "src/main.py:10:def main():
+src/utils.py:25:def main_helper():"))))
+                            ((role . "assistant")
+                             (content ((text . "I found 2 matches for 'def main' in Python files.")
+                                       (type . "text")))))))
+    (should (equal expected-dialog dialog))
+    (should (string= markdown roundtrip-markdown))))
 
 (ert-deftest greger-parser-test-complex-workflow ()
   "Test roundtrip for complex-workflow corpus case."
