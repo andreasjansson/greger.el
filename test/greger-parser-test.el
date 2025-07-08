@@ -595,7 +595,79 @@ test.txt
 
 (ert-deftest greger-parser-test-citations-basic ()
   "Test roundtrip for citations-basic corpus case."
-  (greger-parser-test--roundtrip "citations-basic"))
+  (let* ((markdown "# USER
+
+When was Claude Shannon born?
+
+# SERVER TOOL USE
+
+Name: web_search
+ID: srvtoolu_01WYG3ziw53XMcoyKL4XcZmE
+
+## query
+
+<tool.srvtoolu_01WYG3ziw53XMcoyKL4XcZmE>
+claude shannon birth date
+</tool.srvtoolu_01WYG3ziw53XMcoyKL4XcZmE>
+
+# WEB SEARCH TOOL RESULT
+
+ID: srvtoolu_01WYG3ziw53XMcoyKL4XcZmE
+
+<tool.srvtoolu_01WYG3ziw53XMcoyKL4XcZmE>
+[
+  {
+    \"type\": \"web_search_result\",
+    \"url\": \"https://en.wikipedia.org/wiki/Claude_Shannon\",
+    \"title\": \"Claude Shannon - Wikipedia\",
+    \"encrypted_content\": \"EqgfCioIARgBIiQ3YTAwMjY1Mi1mZjM5LTQ1NGUtODgxNC1kNjNjNTk1ZWI3Y...\",
+    \"page_age\": \"April 30, 2025\"
+  }
+]
+</tool.srvtoolu_01WYG3ziw53XMcoyKL4XcZmE>
+
+# ASSISTANT
+
+Based on the search results,
+
+# ASSISTANT
+
+Claude Shannon was born on April 30, 1916, in Petoskey, Michigan
+
+## https://en.wikipedia.org/wiki/Claude_Shannon
+
+Title: Claude Shannon - Wikipedia
+Cited text: Claude Elwood Shannon (April 30, 1916 – February 24, 2001) was an American mathematician, electrical engineer, computer scientist, cryptographer and i...
+Encrypted index: Eo8BCioIAhgBIiQyYjQ0OWJmZi1lNm..")
+         (dialog (greger-parser-markdown-to-dialog markdown))
+         (roundtrip-markdown (greger-parser-dialog-to-markdown dialog))
+         (expected-dialog '(((role . "user")
+                             (content . "When was Claude Shannon born?"))
+                            ((role . "assistant")
+                             (content ((type . "server_tool_use")
+                                       (id . "srvtoolu_01WYG3ziw53XMcoyKL4XcZmE")
+                                       (name . "web_search")
+                                       (input ((query . "claude shannon birth date"))))))
+                            ((role . "assistant")
+                             (content ((type . "web_search_tool_result")
+                                       (tool_use_id . "srvtoolu_01WYG3ziw53XMcoyKL4XcZmE")
+                                       (content . [((type . "web_search_result")
+                                                    (url . "https://en.wikipedia.org/wiki/Claude_Shannon")
+                                                    (title . "Claude Shannon - Wikipedia")
+                                                    (encrypted_content . "EqgfCioIARgBIiQ3YTAwMjY1Mi1mZjM5LTQ1NGUtODgxNC1kNjNjNTk1ZWI3Y...")
+                                                    (page_age . "April 30, 2025"))]))))
+                            ((role . "assistant")
+                             (content ((text . "Based on the search results,")
+                                       (type . "text"))))
+                            ((role . "assistant")
+                             (content ((text . "Claude Shannon was born on April 30, 1916, in Petoskey, Michigan")
+                                       (type . "text")
+                                       (citations . ((url . "https://en.wikipedia.org/wiki/Claude_Shannon")
+                                                     (title . "Claude Shannon - Wikipedia")
+                                                     (cited_text . "Claude Elwood Shannon (April 30, 1916 – February 24, 2001) was an American mathematician, electrical engineer, computer scientist, cryptographer and i...")
+                                                     (encrypted_index . "Eo8BCioIAhgBIiQyYjQ0OWJmZi1lNm..")))))))))
+    (should (equal expected-dialog dialog))
+    (should (string= markdown roundtrip-markdown))))
 
 (ert-deftest greger-parser-test-citations-after-tool-result ()
   "Test roundtrip for citations-after-tool-result corpus case."
