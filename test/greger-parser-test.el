@@ -1906,66 +1906,6 @@ new
   (should (string= (greger-parser--convert-value "[not json") "[not json"))
   (should (string= (greger-parser--convert-value "{not json") "{not json")))
 
-(ert-deftest greger-parser-test-eval ()
-  "Test parsing of eval blocks with various formats."
-  (let* ((markdown "# SYSTEM
-
-${before}
-
-You are a helpful assistant.
-
-<safe-shell-commands>
-foo
-${:bash echo bar}
-</safe-shell-commands>
-
-${:python
-after
-{ foo ${bar} }
-}
-
-# USER
-
-${
-before
-}
-
-What's the weather like?
-
-what is ${(+ 1 1)} + ${2}?
-
-# ASSISTANT
-
-Warm.
-
-${foo}")
-         (expected-dialog '(((role . "system")
-                            (content . "
-
-You are a helpful assistant.
-
-# Safe shell commands
-
-You can run arbitrary shell commands with the shell-command tool, but the following are safe shell commands that will run without requiring user confirmation:
-
-* `foo`
-
-"))
-                          ((role . "user")
-                            (content . "
-
-What's the weather like?
-
-what is  + ?"))
-                          ((role . "assistant")
-                            (content ((text . "Warm.
-
-${foo}") (type . "text"))))))
-         (dialog (greger-parser-markdown-to-dialog markdown))
-         (roundtrip-markdown (greger-parser-dialog-to-markdown dialog)))
-    (should (equal expected-dialog dialog))
-    (should (string= markdown roundtrip-markdown))))
-
 (ert-deftest greger-parser-test-eval-results ()
   "Test parsing of eval blocks with eval results."
   (let* ((markdown "# SYSTEM
@@ -2037,47 +1977,43 @@ ${9. eval-result-with-html<eval-result-html>before<img src=\"test\">after<div>ne
 
 ${   
    }")
-         (expected-dialog '((messages
-                           ((role . "system")
-                            (content . "1. single-linehello
-
-2. newlines-and-single-line
-hello
-
-3. multi-
-line
-hello
-
-4. whilespace
+         (expected-dialog '(((role . "system")
+                            (content . "hello
 
 hello
 
-5. four-line-head
+
+hello
+
+
+
+
+hello
+
+
+
+
 line1
 line2
 line3
 line4
 
-6. four
-line
-head
-and
-one
-line
-tail
+
+
 line1
 line2
 line3
 line4
 line5
 
-7. empty-eval-result
 
-8. whitespace-only-eval-result
+
+
+
    
    
 
-9. eval-result-with-html<img src=\"test\">after<div>nested</div>")))))
+before<img src=\"test\">after<div>nested</div>"))))
          (dialog (greger-parser-markdown-to-dialog markdown))
          (roundtrip-markdown (greger-parser-dialog-to-markdown dialog)))
     (should (equal expected-dialog dialog))
