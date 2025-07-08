@@ -446,6 +446,7 @@ The current King of Sweden is **Carl XVI Gustaf**. He has been reigning since 19
                              (content . "who's the current king of sweden?"))
                             ((role . "assistant")
                              (content ((type . "thinking")
+                                       (signature)
                                        (thinking . "The user is asking about the current king of Sweden. This is a factual question that I can search for to get the most up-to-date information. I'll use the search function to find this information."))))
                             ((role . "assistant")
                              (content ((type . "tool_use")
