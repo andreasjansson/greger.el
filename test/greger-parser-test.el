@@ -1224,7 +1224,15 @@ Real content continues."))
 
 (ert-deftest greger-parser-test-inline-code ()
   "Test roundtrip for inline-code corpus case."
-  (greger-parser-test--roundtrip "inline-code"))
+  (let* ((markdown "# USER
+
+Foo `bar` baz")
+         (dialog (greger-parser-markdown-to-dialog markdown))
+         (roundtrip-markdown (greger-parser-dialog-to-markdown dialog))
+         (expected-dialog '(((role . "user")
+                             (content . "Foo `bar` baz")))))
+    (should (equal expected-dialog dialog))
+    (should (string= markdown roundtrip-markdown))))
 
 (ert-deftest greger-parser-test-safe-shell-commands ()
   "Test roundtrip for safe-shell-commands corpus case."
