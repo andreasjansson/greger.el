@@ -37,11 +37,6 @@
 (require 'greger-parser)
 
 ;; Additional faces for eval results
-(defface greger-eval-result-face
-  '((t (:background "#f0f8ff" :foreground "#003366")))
-  "Face for eval result content."
-  :group 'greger)
-
 (defface greger-eval-arrow-face
   '((t (:foreground "#0066cc" :weight bold)))
   "Face for eval result arrow."
@@ -759,7 +754,8 @@ _OVERRIDE, _START, and _END are font-lock parameters."
 (defun greger-ui--syntax-highlight-text (start end content path)
   "Apply syntax highlighting to CONTENT between START and END based on FILE-PATH."
   ;; Skip highlighting for very long content to avoid performance issues
-  (when (< (length content) 50000)
+  (when (and (< (length content) 50000)
+             (not (string-suffix-p ".greger" path)))
     ;; Create a temporary buffer to get proper syntax highlighting
     (let ((temp-buffer (generate-new-buffer "*greger-syntax-temp*"))
           (original-buffer (current-buffer)))
