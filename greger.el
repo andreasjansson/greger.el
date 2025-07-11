@@ -328,7 +328,7 @@ or slightly less bright than default for light themes."
    :language 'greger
    :feature 'code-styling
    :override t
-   '((code_content) @greger--fontify-code-content-excluding-newlines
+   '((code_content) @greger-code-content-face
      (code_start_tag) @greger-code-backtick-face
      (code_end_tag) @greger-code-backtick-face))
   "Tree-sitter font-lock settings for `greger-mode'.")
