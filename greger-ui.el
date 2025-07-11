@@ -319,6 +319,18 @@ NODE is the matched tree-sitter node, similar to tool content tail folding."
      ;; Node became outdated, skip this operation
      nil)))
 
+(defun greger-ui--make-code-close-invisible (node _override _start _end)
+  "Make code_close NODE invisible when folding mode is enabled."
+  (condition-case nil
+      (let ((node-start (treesit-node-start node))
+            (node-end (min (treesit-node-end node) (point-max))))
+
+        (when (<= node-end (point-max))
+          (put-text-property node-start node-end 'invisible greger-ui-folding-mode)))
+    (treesit-node-outdated
+     ;; Node became outdated, skip this operation
+     nil)))
+
 (defun greger-ui--eval-result-start-tag-with-arrow (node _override _start _end)
   "Show arrow for eval result start tag NODE when folding mode is enabled."
   (let ((node-start (treesit-node-start node))
