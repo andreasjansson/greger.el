@@ -223,6 +223,26 @@ When nil, preserve point position using `save-excursion'.")
   "Face for parse errors in greger-mode."
   :group 'greger)
 
+(defface greger-code-content-face
+  '((((class color) (background dark))
+     (:background "#2a2a2a"))
+    (((class color) (background light))
+     (:background "#f8f8f8"))
+    (t (:background "gray")))
+  "Face for code content blocks.
+Background is slightly less dark than default for dark themes,
+or slightly less bright than default for light themes."
+  :group 'greger)
+
+(defface greger-code-backtick-face
+  '((((class color) (background dark))
+     (:foreground "#b5651d"))
+    (((class color) (background light))
+     (:foreground "#8b4513"))
+    (t (:foreground "orange")))
+  "Face for backticks around code content - orange-ish gray color."
+  :group 'greger)
+
 (defvar greger-mode-map
   (let ((map (make-sparse-keymap)))
     (define-key map (kbd "M-<return>") #'greger-buffer)
@@ -292,7 +312,7 @@ When nil, preserve point position using `save-excursion'.")
    :override t
    '((eval_start_brace) @greger-eval-tag-face
      (eval_end_brace) @greger-eval-tag-face
-     (language) @greger-eval-language-face
+     (eval_language) @greger-eval-language-face
      (eval_result_content) @greger-eval-result-face)
 
    :language 'greger
@@ -638,7 +658,7 @@ When NO-TOOLS is set, disable tools and thinking."
   (let ((greger-tools (if no-tools '() greger-tools))
         (greger-server-tools (if no-tools '() greger-server-tools))
         (greger-current-thinking-budget (if no-tools 0 greger-current-thinking-budget)))
-    (greger--process-evals)
+    ;(greger--process-evals)
     
     (greger--run-agent-loop (make-greger-state
                              :current-iteration 0
@@ -820,8 +840,24 @@ If TEXT ends with more than two consecutive newlines, remove all but the
 first two."
   (replace-regexp-in-string "\n\n\n+\\'" "\n\n" text))
 
+(defun greger--force-code-close (state)
+  (with-current-buffer (greger-state-chat-buffer state)
+    (let ((end-is-code nil)
+          (inhibit-read-only t))
+     (save-excursion
+       (goto-char (point-max))
+       (insert " ")
+       (when (member (treesit-node-type (treesit-node-at (point-max))) '("code_block_content" "code_block_language" "```"))
+         (setq end-is-code t))
+       (delete-char -1))
+     (when end-is-code
+       (insert "<$code-close/>")))))
+
 (defun greger--append-streaming-content-header (state content-block)
   "Append appropriate header for streaming CONTENT-BLOCK to STATE."
+
+  (greger--force-code-close state)
+
   (let ((type (alist-get 'type content-block))
         (has-citations (assq 'citations content-block)))
     (cond
@@ -1073,6 +1109,7 @@ the tool_result node itself."
         (greger--maybe-save-excursion
          (goto-char (point-max))
          (unless (looking-back (concat greger-parser-user-tag "\n\n") nil)
+           (greger--force-code-close state)
            (insert "\n\n" greger-parser-user-tag "\n\n"))))
       ;; Clear the buffer-local agent state
       (setq greger--current-state nil)
@@ -1091,8 +1128,6 @@ Raises an error if evaluation fails."
   (cond
    ((string= language "elisp")
     (greger--eval-elisp code))
-   ((string= language "python")
-    (greger--eval-python code))
    ((string= language "sh")
     (greger--eval-bash code))
    (t
