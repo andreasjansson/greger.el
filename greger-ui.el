@@ -69,13 +69,13 @@
 
 (defvar greger-ui-eval-result-content-head-keymap
   (let ((map (make-sparse-keymap)))
-    (define-key map (kbd "TAB") 'greger-ui-toggle-eval-result-content)
+    (define-key map (kbd "TAB") #'greger-ui-toggle-eval-result-content)
     map)
   "Keymap for eval result content head.")
 
 (defvar greger-ui-eval-result-content-tail-keymap
   (let ((map (make-sparse-keymap)))
-    (define-key map (kbd "TAB") 'greger-ui-toggle-eval-result-content)
+    (define-key map (kbd "TAB") #'greger-ui-toggle-eval-result-content)
     map)
   "Keymap for eval result content tail.")
 
