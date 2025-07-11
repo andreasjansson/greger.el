@@ -468,6 +468,10 @@ Uses branch from `greger-local-grammar-path' if set, otherwise uses 'main'."
   (greger--install-eval-grammars)
   (setq-local treesit-range-settings
               (treesit-range-rules
+               :embed 'bash
+               :host 'greger
+               :local t
+               '((eval (eval_start_brace "sh") (eval_content) @content))
                :embed 'elisp
                :host 'greger
                :local t
