@@ -460,7 +460,7 @@ Uses branch from `greger-local-grammar-path' if set, otherwise uses 'main'."
   (treesit-parser-create 'greger)
   (setq-local treesit-font-lock-settings greger--treesit-font-lock-settings)
   (setq-local treesit-font-lock-feature-list
-              '((tool-tags tool-syntax-highlighting eval-tags)
+              '((tool-tags tool-syntax-highlighting eval-tags code-styling)
                 (headers folding comments tool-result-syntax)
                 (error)))
   (setq-local treesit-simple-indent-rules greger--treesit-indent-rules)
