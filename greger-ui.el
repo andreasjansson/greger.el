@@ -326,7 +326,13 @@ NODE is the matched tree-sitter node, similar to tool content tail folding."
             (node-end (min (treesit-node-end node) (point-max))))
 
         (when (<= node-end (point-max))
-          (put-text-property node-start node-end 'invisible greger-ui-folding-mode)))
+          (if greger-ui-folding-mode
+              ;; Hide code_close when folding mode is enabled
+              (put-text-property node-start node-end 'invisible t)
+            ;; Show styled code_close when folding mode is disabled
+            (progn
+              (remove-text-properties node-start node-end '(invisible nil))
+              (put-text-property node-start node-end 'font-lock-face 'greger-tool-tag-face)))))
     (treesit-node-outdated
      ;; Node became outdated, skip this operation
      nil)))
