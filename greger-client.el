@@ -308,6 +308,11 @@ STATE is the greger client state."
   (let* ((data (json-read-from-string data-json))
          (type (alist-get 'type data)))
     (cond
+
+     ;; Handle errors
+     ((string= type "error")
+      (greger-client--handle-error data))
+
      ;; Content block start - create new content block
      ((string= type "content_block_start")
       (greger-client--handle-content-block-start data state))
@@ -319,6 +324,12 @@ STATE is the greger client state."
      ;; Content block stop - finalize tool input if needed
      ((string= type "content_block_stop")
       (greger-client--handle-content-block-stop data state)))))
+
+(defun greger-client--handle-error (data)
+  (if-let* ((err (alist-get 'error data))
+            (message (alist-get 'message err)))
+      (warn "Anthropic API threw error: %s" message)
+    (warn "Anthropic API threw error")))
 
 (defun greger-client--handle-content-block-start (data state)
   "Initialize new streaming content block from DATA in STATE."

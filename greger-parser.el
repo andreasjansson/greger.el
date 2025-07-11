@@ -423,9 +423,7 @@ Tool result content must always be a string for Claude API compatibility."
      ((string= node-type "text")
       (concat result (treesit-node-text node t)))
      ;; For code blocks, include the entire text content
-     ((string= node-type "code_block")
-      (concat result (treesit-node-text node t)))
-     ((string= node-type "inline_code")
+     ((string= node-type "code")
       (concat result (treesit-node-text node t)))
      ((string= node-type "html_comment")
       ;; Skip HTML comments outside of code blocks

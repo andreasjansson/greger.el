@@ -326,7 +326,7 @@ or slightly less bright than default for light themes."
    '((code_content) @greger-code-content-face
      (code_start_tag) @greger-code-backtick-face
      (code_end_tag) @greger-code-backtick-face
-     (code_close) @greger-ui--make-code-close-invisible)
+     (code_close_tag) @greger-ui--make-code-close-invisible)
 
    :language 'greger
    :feature 'error
@@ -854,7 +854,7 @@ first two."
           (inhibit-read-only t))
      (save-excursion
        (goto-char (point-max))
-       (insert " ")
+       (insert "\n")
 
        ;; TODO: remove debug
        (message (format "(treesit-node-type (treesit-node-at (1- (point-max)))): %s" (treesit-node-type (treesit-node-at (1- (point-max))))))

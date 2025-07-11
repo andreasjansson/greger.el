@@ -224,6 +224,20 @@ Branching is your friend here -- create a new branch for every new Greger sessio
 
 Assistant text and thinking is streamed to output. Tool use and tool responses are currently not streamed, but will be in the future
 
+### Eval
+
+examples:
+
+``` elisp
+today is ${(current-time-string)}
+```
+
+``` elisp
+# SYSTEM
+
+${:sh [ -f CLAUDE.md ] && cat CLAUDE.md}
+```
+
 ### Claude caching
 
 Greger automatically uses [prompt caching](https://www.anthropic.com/news/prompt-caching). In agentic settings this can save tons of money.
