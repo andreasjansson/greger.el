@@ -471,8 +471,8 @@ Uses branch from `greger-local-grammar-path' if set, otherwise uses 'main'."
                :embed 'bash
                :host 'greger
                :local t
-               '((eval (eval_start_brace (eval_language) @lang) (eval_content) @content)
-                 (:match "sh" @lang))
+               '(((eval (eval_start_brace (eval_language) @lang) (eval_content) @content)
+                  (:match "sh" @lang)))
                :embed 'elisp
                :host 'greger
                :local t
@@ -484,6 +484,42 @@ Uses branch from `greger-local-grammar-path' if set, otherwise uses 'main'."
   (use-local-map greger-mode-map)
 
   (setq-local greger-current-thinking-budget greger-thinking-budget))
+
+(defun greger-debug-ranges ()
+  "Debug function to check treesit ranges and parsers."
+  (interactive)
+  (let ((buf (get-buffer-create "*greger-debug*")))
+    (with-current-buffer buf
+      (erase-buffer)
+      (insert "=== GREGER DEBUG INFO ===\n\n")
+      
+      ;; Check all parsers
+      (insert "PARSERS:\n")
+      (dolist (parser (treesit-parser-list))
+        (insert (format "- %s (language: %s, ranges: %s)\n" 
+                        parser 
+                        (treesit-parser-language parser)
+                        (treesit-parser-included-ranges parser))))
+      
+      ;; Check language at different positions
+      (insert "\nLANGUAGE AT POSITIONS:\n")
+      (with-current-buffer (other-buffer)
+        (save-excursion
+          (goto-char (point-min))
+          (while (not (eobp))
+            (let ((pos (point))
+                  (lang (treesit-language-at (point))))
+              (insert (format "pos %d: %s (%s)\n" 
+                             pos lang 
+                             (buffer-substring pos (min (+ pos 10) (point-max)))))
+              (forward-char 50)))))
+      
+      ;; Check range settings
+      (insert "\nRANGE SETTINGS:\n")
+      (insert (format "%s\n" treesit-range-settings))
+      
+      (goto-char (point-min)))
+    (display-buffer buf)))
 
 ;;;###autoload
 (defun greger (&optional with-context)
