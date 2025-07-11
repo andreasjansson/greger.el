@@ -236,10 +236,10 @@ or slightly less bright than default for light themes."
 
 (defface greger-code-backtick-face
   '((((class color) (background dark))
-     (:foreground "#b5651d"))
+     (:foreground "#b5651d" :background "#2a2a2a"))
     (((class color) (background light))
-     (:foreground "#8b4513"))
-    (t (:foreground "orange")))
+     (:foreground "#8b4513" :background "#f8f8f8"))
+    (t (:foreground "orange" :background "gray")))
   "Face for backticks around code content - orange-ish gray color."
   :group 'greger)
 
@@ -321,16 +321,17 @@ or slightly less bright than default for light themes."
    '((html_comment) @font-lock-comment-face)
 
    :language 'greger
-   :feature 'error
-   :override t
-   '((ERROR) @greger-error-face)
-
-   :language 'greger
    :feature 'code-styling
    :override t
    '((code_content) @greger-code-content-face
      (code_start_tag) @greger-code-backtick-face
-     (code_end_tag) @greger-code-backtick-face))
+     (code_end_tag) @greger-code-backtick-face
+     (code_close) @greger-ui--make-code-close-invisible)
+
+   :language 'greger
+   :feature 'error
+   :override t
+   '((ERROR) @greger-error-face))
   "Tree-sitter font-lock settings for `greger-mode'.")
 
 (defvar greger--treesit-indent-rules
@@ -665,7 +666,7 @@ When NO-TOOLS is set, disable tools and thinking."
   (let ((greger-tools (if no-tools '() greger-tools))
         (greger-server-tools (if no-tools '() greger-server-tools))
         (greger-current-thinking-budget (if no-tools 0 greger-current-thinking-budget)))
-    ;(greger--process-evals)
+    (greger--process-evals)
     
     (greger--run-agent-loop (make-greger-state
                              :current-iteration 0
@@ -854,7 +855,11 @@ first two."
      (save-excursion
        (goto-char (point-max))
        (insert " ")
-       (when (member (treesit-node-type (treesit-node-at (point-max))) '("code_block_content" "code_block_language" "```"))
+
+       ;; TODO: remove debug
+       (message (format "(treesit-node-type (treesit-node-at (1- (point-max)))): %s" (treesit-node-type (treesit-node-at (1- (point-max))))))
+
+       (when (string= (treesit-node-type (treesit-node-at (1- (point-max)))) "code_content")
          (setq end-is-code t))
        (delete-char -1))
      (when end-is-code
@@ -1191,7 +1196,7 @@ Raises an error if evaluation fails."
     ;; Process evals in the last user section only
     (when-let* ((user-nodes (treesit-query-capture root-node '((user) @user)))
                 (last-user-node (cdar (last user-nodes))))
-      (greger--process-evals-in-node last-user-node))))
+      (greger--process-evals-in-node last-user-node :clear-existing t))))
 
 (cl-defun greger--process-evals-in-node (node &key clear-existing)
   "Process all eval blocks in NODE.
