@@ -471,7 +471,8 @@ Uses branch from `greger-local-grammar-path' if set, otherwise uses 'main'."
                :embed 'bash
                :host 'greger
                :local t
-               '((eval (eval_start_brace "sh") (eval_content) @content))
+               '((eval (eval_start_brace (eval_language) @lang) (eval_content) @content)
+                 (:match "sh" @lang))
                :embed 'elisp
                :host 'greger
                :local t
