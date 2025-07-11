@@ -348,21 +348,6 @@ or slightly less bright than default for light themes."
      ((node-is "web_search_tool_result") column-0 0)))
   "Tree-sitter indentation rules for `greger-mode'.")
 
-(defun greger--eval-language-at-node (node)
-  "Determine the language for an eval content NODE.
-Returns 'elisp' for <eval> (default), 'python' for <eval python>,
-or 'bash' for <eval bash>."
-  (let* ((eval-node (treesit-node-parent node))
-         (start-tag (treesit-node-child eval-node 0))
-         (language-node (treesit-node-child-by-field-name start-tag "language")))
-    (if language-node
-        (let ((lang-text (treesit-node-text language-node)))
-          (cond
-           ((string= lang-text "elisp") 'elisp)
-           ((string= lang-text "bash") 'bash)
-           (t 'text))) ; Default to text for unknown languages
-      'elisp))) ; Default when no language is specified
-
 ;;;###autoload
 (add-to-list 'auto-mode-alist '("\\.greger\\'" . greger-mode))
 
@@ -483,20 +468,15 @@ Uses branch from `greger-local-grammar-path' if set, otherwise uses 'main'."
   (greger--install-eval-grammars)
   (setq-local treesit-range-settings
               (treesit-range-rules
-               :embed 'elisp
-               :host 'greger
-               :local t
-               '((eval (eval_content) @elisp))
                :embed 'bash
                :host 'greger
                :local t
-               '((eval (start_tag (language) @lang) (eval_content) @bash)
-                 (:match "bash" @lang))
-               :embed 'text
+               '((eval (eval_start_brace (eval_language) @lang) (eval_content) @content)
+                 (:match "sh" @lang))
+               :embed 'elisp
                :host 'greger
                :local t
-               '((eval (start_tag (language) @lang) (eval_content) @text)
-                 (:match "^(?!bash|elisp)" @lang))))
+               '((eval (eval_content) @content))))
 
   (treesit-major-mode-setup)
 
