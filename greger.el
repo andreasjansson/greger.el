@@ -472,7 +472,7 @@ Uses branch from `greger-local-grammar-path' if set, otherwise uses 'main'."
                :host 'greger
                :local t
                '((eval (eval_start_brace (eval_language) @lang) (eval_content) @content)
-                 (:match "sh" @lang))
+                 (#match? @lang "sh"))
                :embed 'elisp
                :host 'greger
                :local t
