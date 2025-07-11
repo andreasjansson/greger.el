@@ -44,7 +44,7 @@
 (require 'greger-tools)
 (require 'greger-stdlib)
 (require 'greger-ui)
-(require 'greger-ui)
+(require 'greger-prompt)
 
 ;; Eval functionality
 (defconst greger-available-models
@@ -57,7 +57,9 @@
   :type `(choice ,@(mapcar (lambda (model) `(const ,model)) greger-available-models))
   :group 'greger)
 
-(defcustom greger-default-system-prompt "You are an expert coding agent."
+(defcustom greger-default-system-prompt "You are Greger, and expert coding agent.
+
+${greger-prompt-code-style}"
   "Default system prompt used for AI interactions."
   :type 'string
   :group 'greger)
@@ -356,9 +358,9 @@ or 'bash' for <eval bash>."
     (if language-node
         (let ((lang-text (treesit-node-text language-node)))
           (cond
-           ((string= lang-text "python") 'python)
+           ((string= lang-text "elisp") 'elisp)
            ((string= lang-text "bash") 'bash)
-           (t 'elisp))) ; Default to elisp for unknown languages
+           (t 'text))) ; Default to text for unknown languages
       'elisp))) ; Default when no language is specified
 
 ;;;###autoload
@@ -383,7 +385,6 @@ Use nil to revert to the default 'main' branch."
 (defun greger--install-eval-grammars ()
   "Install language grammars needed for eval tag support."
   (let ((grammars '((elisp "https://github.com/Wilfred/tree-sitter-elisp")
-                    (python "https://github.com/tree-sitter/tree-sitter-python")
                     (bash "https://github.com/tree-sitter/tree-sitter-bash"))))
     (dolist (grammar grammars)
       (let ((lang (car grammar)))
@@ -479,13 +480,23 @@ Uses branch from `greger-local-grammar-path' if set, otherwise uses 'main'."
                                             line-end))
 
   ;; Install eval grammars and set up embedded language parsing
-  ;(greger--install-eval-grammars)
-  ;; (setq-local treesit-range-settings
-  ;;             (treesit-range-rules
-  ;;              :embed #'greger--eval-language-at-node
-  ;;              :host 'greger
-  ;;              :local t
-  ;;              '((eval (eval_content) @capture))))
+  (greger--install-eval-grammars)
+  (setq-local treesit-range-settings
+              (treesit-range-rules
+               :embed 'elisp
+               :host 'greger
+               :local t
+               '((eval (eval_content) @elisp))
+               :embed 'bash
+               :host 'greger
+               :local t
+               '((eval (start_tag (language) @lang) (eval_content) @bash)
+                 (:match "bash" @lang))
+               :embed 'text
+               :host 'greger
+               :local t
+               '((eval (start_tag (language) @lang) (eval_content) @text)
+                 (:match "^(?!bash|elisp)" @lang))))
 
   (treesit-major-mode-setup)
 
