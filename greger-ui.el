@@ -270,7 +270,6 @@ NODE is the matched tree-sitter node, similar to tool content head folding."
                                       (not greger-ui-folding-mode)))
                  (line-count (max 1 (count-lines tail-start tail-end))))
             ;; Mark the head as foldable
-            (put-text-property node-start node-end 'greger-ui-foldable-eval-result-content t)
             (put-text-property node-start node-end 'keymap greger-ui-eval-result-content-head-keymap)
             (put-text-property node-start node-end 'font-lock-face 'greger-eval-result-face)
             
@@ -439,32 +438,27 @@ NODE is the matched tree-sitter node, similar to tool content tail folding."
 (defun greger-ui-toggle-eval-result-content (&optional pos)
   "Toggle visibility of eval result content tail at POS (or point)."
   (interactive)
-  (let ((pos (or pos (point))))
-    (when (get-text-property pos 'greger-ui-foldable-eval-result-content)
-      ;; Find the current node and navigate to find the tail
-      (when-let* ((current-node (treesit-node-at pos))
-                  (head-node (treesit-parent-until current-node
-                                                   (lambda (n) (string= (treesit-node-type n) "eval_result_content_head"))))
-                  (content-node (treesit-node-parent head-node))
-                  (tail-node (treesit-search-subtree content-node "eval_result_content_tail"))
-                  (tail-start (treesit-node-start tail-node))
-                  (tail-end (treesit-node-end tail-node))
-                  (eval-result-node (treesit-parent-until
-                                     current-node
-                                     (lambda (n) (string= (treesit-node-type n) "eval_result")))))
-        
-        (let* ((currently-visible (get-text-property tail-start 'greger-ui-eval-result-content-expanded)))
-          
-          ;; Toggle the expanded state
-          (put-text-property tail-start tail-end 'greger-ui-eval-result-content-expanded (not currently-visible))
-          
-          ;; Update invisibility
-          (put-text-property tail-start tail-end 'invisible
-                             (and greger-ui-folding-mode (not (not currently-visible))))
-          
-          ;; Force fontification refresh for this region
-          (font-lock-flush (treesit-node-start eval-result-node)
-                           (treesit-node-end eval-result-node)))))))
+  (when-let* ((pos (or pos (point)))
+              (current-node (treesit-node-at pos))
+              (content-node (treesit-node-parent current-node))
+              (tail-node (treesit-search-subtree content-node "eval_result_content_tail"))
+              (tail-start (treesit-node-start tail-node))
+              (tail-end (treesit-node-end tail-node))
+              (eval-result-node (treesit-parent-until
+                                 current-node
+                                 (lambda (n) (string= (treesit-node-type n) "eval_result")))))
+    (let* ((currently-visible (get-text-property tail-start 'greger-ui-eval-result-content-expanded)))
+      
+      ;; Toggle the expanded state
+      (put-text-property tail-start tail-end 'greger-ui-eval-result-content-expanded (not currently-visible))
+      
+      ;; Update invisibility
+      (put-text-property tail-start tail-end 'invisible
+                         (and greger-ui-folding-mode (not (not currently-visible))))
+      
+      ;; Force fontification refresh for this region
+      (font-lock-flush (treesit-node-start eval-result-node)
+                       (treesit-node-end eval-result-node)))))
 
 ;; Tool use syntax highlighting
 
