@@ -36,8 +36,16 @@ Successfully implemented interactive input handling for the vterm-enabled shell-
 
 ### Core Functions Added
 1. **`detect-interactive-prompt()`**: Identifies interactive prompts using regex patterns
-2. **`handle-interactive-input()`**: Manages user input collection and transmission
-3. **Enhanced process monitoring**: Integrated with existing vterm buffer management
+2. **`greger-stdlib--query-claude-for-interactive-input()`**: Queries Claude API for automated responses
+3. **`handle-interactive-input()`**: Manages both Claude and user input collection and transmission
+4. **Enhanced process monitoring**: Integrated with existing vterm buffer management
+
+### Claude Integration
+- **API Integration**: Uses existing `greger-client-stream` for Claude API calls
+- **Context Truncation**: Limits context to 2000 characters to avoid token limits
+- **Timeout Management**: Configurable timeout for Claude API calls (default: 10 seconds)
+- **Error Handling**: Comprehensive error handling with fallback to user input
+- **Security**: Password prompts are never sent to Claude
 
 ### Prompt Detection Patterns
 - `:` endings: `"Enter name: "`
