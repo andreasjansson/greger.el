@@ -1100,8 +1100,7 @@ Returns a cancel function that can interrupt the command execution."
             ;; Remove form feed characters (^L) from vterm-clear and other control chars
             (setq content (replace-regexp-in-string "[\f\r]" "" content))
             
-            ;; For debugging - let's be much less aggressive with filtering
-            ;; Just remove obvious shell prompts and the command itself
+            ;; Filter out shell prompts and command echoes
             (let ((lines (split-string content "\n")))
               (let ((filtered-lines
                      (seq-remove 
@@ -1111,7 +1110,9 @@ Returns a cancel function that can interrupt the command execution."
                               (string-equal trimmed command)             ; Exact command match
                               (string-equal trimmed "exit"))))          ; Exit command
                       lines)))
-                (string-join filtered-lines "\n")))))
+                ;; Remove empty lines from beginning and end, but preserve internal empty lines
+                (let ((result (string-join filtered-lines "\n")))
+                  (string-trim result))))))
         
         ;; Set up process sentinel to capture output when shell terminates
         (when process
