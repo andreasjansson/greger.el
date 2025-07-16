@@ -900,7 +900,7 @@ For Emacs Lisp files (.el), checks that parentheses balance is maintained."
                          "")))
         (format "Successfully replaced content in %s%s. %s" expanded-path count-msg git-result)))))
 
-(defun greger-stdlib--shell-command (command callback working-directory timeout enable-environment use-vterm streaming-callback metadata)
+(defun greger-stdlib--shell-command (command callback &optional working-directory timeout enable-environment use-vterm streaming-callback metadata)
   "Execute COMMAND in WORKING-DIRECTORY and call CALLBACK with (result error).
 Prompts for permission before running the command for security.
 TIMEOUT is the maximum time in sconds to wait for completion (default 600).
