@@ -1041,25 +1041,23 @@ end tag and update the buffer state."
                  (tool-result-content-node (greger--find-tool-result-content-node tool-id))
                  (tool-result-content-end (treesit-node-end tool-result-content-node)))
         (greger--maybe-save-excursion
-         (goto-char (1- tool-result-content-end))
-         
-         ;; For vterm streaming, we receive the full buffer content each time
-         ;; So we need to replace the entire tool result content, not append
-         (if (and (fboundp 'vterm-mode) 
-                  (string-match "vterm" (or (buffer-name) "")))
-             ;; Replace entire content for vterm
-             (progn
+         ;; Check if this is a vterm full replacement
+         (if (string-prefix-p "VTERM_FULL_REPLACE:" text)
+             ;; Replace entire tool result content with vterm buffer content
+             (let ((vterm-content (substring text (length "VTERM_FULL_REPLACE:"))))
                (delete-region tool-result-content-start (1- tool-result-content-end))
                (goto-char tool-result-content-start)
-               (insert text))
-           ;; For regular streaming, process terminal sequences and append
-           (if (fboundp 'vterm-mode)
-               (condition-case err
-                   (greger--process-terminal-sequences-with-vterm text)
-                 (error
-                  ;; If vterm fails, fall back to basic processing
-                  (greger-ui--process-terminal-sequences text)))
-             (greger-ui--process-terminal-sequences text)))
+               (insert vterm-content))
+           ;; Regular streaming - append and process terminal sequences
+           (progn
+             (goto-char (1- tool-result-content-end))
+             (if (fboundp 'vterm-mode)
+                 (condition-case err
+                     (greger--process-terminal-sequences-with-vterm text)
+                   (error
+                    ;; If vterm fails, fall back to basic processing
+                    (greger-ui--process-terminal-sequences text)))
+               (greger-ui--process-terminal-sequences text))))
 
          (when is-completed
            ;; Trim trailing newline after closing tag

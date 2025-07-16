@@ -11465,5 +11465,78 @@ Add vterm marker to streaming callback to indicate full buffer replacement
 ID: toolu_014gbXFccSCsHGEm1AjDQF2w
 
 <tool.toolu_014gbXFccSCsHGEm1AjDQF2w>
-
+Successfully replaced content in /Users/andreas/projects/greger.el/greger-stdlib.el. Successfully staged 2 file(s) and committed with message: Add vterm marker to streaming callback to indicate full buffer replacement
 </tool.toolu_014gbXFccSCsHGEm1AjDQF2w>
+
+# TOOL USE
+
+Name: str-replace
+ID: toolu_01QcrwHu3NvxWCASa4onwaNy
+
+## path
+
+<tool.toolu_01QcrwHu3NvxWCASa4onwaNy>
+greger.el
+</tool.toolu_01QcrwHu3NvxWCASa4onwaNy>
+
+## git-commit-message
+
+<tool.toolu_01QcrwHu3NvxWCASa4onwaNy>
+Update streaming callback to detect vterm full replacement marker
+</tool.toolu_01QcrwHu3NvxWCASa4onwaNy>
+
+## original-content
+
+<tool.toolu_01QcrwHu3NvxWCASa4onwaNy>
+        (greger--maybe-save-excursion
+         (goto-char (1- tool-result-content-end))
+         
+         ;; For vterm streaming, we receive the full buffer content each time
+         ;; So we need to replace the entire tool result content, not append
+         (if (and (fboundp 'vterm-mode) 
+                  (string-match "vterm" (or (buffer-name) "")))
+             ;; Replace entire content for vterm
+             (progn
+               (delete-region tool-result-content-start (1- tool-result-content-end))
+               (goto-char tool-result-content-start)
+               (insert text))
+           ;; For regular streaming, process terminal sequences and append
+           (if (fboundp 'vterm-mode)
+               (condition-case err
+                   (greger--process-terminal-sequences-with-vterm text)
+                 (error
+                  ;; If vterm fails, fall back to basic processing
+                  (greger-ui--process-terminal-sequences text)))
+             (greger-ui--process-terminal-sequences text)))
+</tool.toolu_01QcrwHu3NvxWCASa4onwaNy>
+
+## new-content
+
+<tool.toolu_01QcrwHu3NvxWCASa4onwaNy>
+        (greger--maybe-save-excursion
+         ;; Check if this is a vterm full replacement
+         (if (string-prefix-p "VTERM_FULL_REPLACE:" text)
+             ;; Replace entire tool result content with vterm buffer content
+             (let ((vterm-content (substring text (length "VTERM_FULL_REPLACE:"))))
+               (delete-region tool-result-content-start (1- tool-result-content-end))
+               (goto-char tool-result-content-start)
+               (insert vterm-content))
+           ;; Regular streaming - append and process terminal sequences
+           (progn
+             (goto-char (1- tool-result-content-end))
+             (if (fboundp 'vterm-mode)
+                 (condition-case err
+                     (greger--process-terminal-sequences-with-vterm text)
+                   (error
+                    ;; If vterm fails, fall back to basic processing
+                    (greger-ui--process-terminal-sequences text)))
+               (greger-ui--process-terminal-sequences text))))
+</tool.toolu_01QcrwHu3NvxWCASa4onwaNy>
+
+# TOOL RESULT
+
+ID: toolu_01QcrwHu3NvxWCASa4onwaNy
+
+<tool.toolu_01QcrwHu3NvxWCASa4onwaNy>
+
+</tool.toolu_01QcrwHu3NvxWCASa4onwaNy>
