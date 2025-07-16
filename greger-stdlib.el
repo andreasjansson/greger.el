@@ -1114,7 +1114,7 @@ Returns a cancel function that can interrupt the command execution."
                           (unless (string= current-content last-content)
                             (let ((new-text (substring current-content (length last-content))))
                               (when (> (length new-text) 0)
-                                (funcall streaming-callback new-text nil)))
+                                (funcall streaming-callback new-text)))
                             (setq last-content current-content))))
                       nil t)))
         
