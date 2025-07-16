@@ -1054,6 +1054,60 @@ If USE-HIGHEST-READABILITY is non-nil, use eww's aggressive readability setting.
 
 
 
+(defun greger-stdlib--query-claude-for-interactive-input (context prompt)
+  "Query Claude to determine if it can answer an interactive prompt.
+CONTEXT is the current command output and context.
+PROMPT is the interactive prompt text.
+Returns the response or 'USER' if the user should respond."
+  (let ((response nil)
+        (error nil)
+        (completed nil)
+        (auth-key (or (getenv "ANTHROPIC_API_KEY")
+                     (when (functionp greger-anthropic-key-fn)
+                       (funcall greger-anthropic-key-fn)))))
+    
+    (when auth-key
+      (let ((dialog `(((role . "system")
+                       (content . "You are helping to automate interactive shell commands. You will be given context from a command execution and an interactive prompt. If you can reasonably answer the prompt based on the context, provide a brief appropriate response. If the user should respond themselves (especially for personal information, passwords, or complex decisions), respond with exactly 'USER' and nothing else. Never try to respond to password prompts."))
+                     ((role . "user")
+                       (content . ,(format "Command context:\n%s\n\nInteractive prompt: %s\n\nAnswer this if you can, otherwise let the user respond. If the user should respond, respond with the string USER and nothing else." context prompt))))))
+        
+        (greger-client-stream
+         :model 'claude-sonnet-4-20250514
+         :dialog dialog
+         :auth-key auth-key
+         :max-tokens 100
+         :thinking-budget 0
+         :text-delta-callback (lambda (text)
+                               (setq response (concat (or response "") text)))
+         :complete-callback (lambda (content-blocks)
+                             (setq completed t))
+         :error-callback (lambda (error-message)
+                          (setq error error-message)
+                          (setq completed t)))
+        
+        ;; Wait for completion with timeout
+        (let ((start-time (current-time)))
+          (while (and (not completed) 
+                     (< (float-time (time-subtract (current-time) start-time)) 10.0))
+            (accept-process-output nil 0.1)))
+        
+        (cond
+         (error
+          (message "Claude API error: %s" error)
+          "USER")
+         ((not completed)
+          (message "Claude API timeout")
+          "USER")
+         (t
+          (let ((trimmed-response (string-trim (or response ""))))
+            (if (string-empty-p trimmed-response)
+                "USER"
+              trimmed-response))))))
+    
+    ;; Return "USER" if no auth key or other failure
+    (or response "USER")))
+
 (defun greger-stdlib--run-shell-command-with-vterm (command working-directory callback timeout enable-environment streaming-callback)
   "Execute COMMAND using vterm in WORKING-DIRECTORY and call CALLBACK with (result error).
 This function creates a fresh vterm buffer for each command execution.
