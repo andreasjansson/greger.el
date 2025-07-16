@@ -639,28 +639,29 @@ Hello from greger test!
           (let ((greger-default-system-prompt "You are an agent."))
             (setq greger-buffer (greger)))
 
-          (goto-char (point-max))
-          (re-search-backward "# SYSTEM")
-          (forward-line 1)
-          (insert "\n<safe-shell-commands>\necho 'Test prompt'; read -p 'Do you want to continue? [y/n] ' choice; echo \"Choice: $choice\"\n</safe-shell-commands>\n")
+          (with-current-buffer greger-buffer
+            (goto-char (point-max))
+            (re-search-backward "# SYSTEM")
+            (forward-line 1)
+            (insert "\n<safe-shell-commands>\necho 'Test prompt'; read -p 'Do you want to continue? [y/n] ' choice; echo \"Choice: $choice\"\n</safe-shell-commands>\n")
 
-          (goto-char (point-max))
-          (insert "Run the shell command with vterm: echo 'Test prompt'; read -p 'Do you want to continue? [y/n] ' choice; echo \"Choice: $choice\"")
+            (goto-char (point-max))
+            (insert "Run the shell command with vterm: echo 'Test prompt'; read -p 'Do you want to continue? [y/n] ' choice; echo \"Choice: $choice\"")
 
-          (let ((greger-current-thinking-budget 0)
-                (greger-tools '("shell-command"))
-                (greger-stdlib-claude-interactive-input t))
-            (greger-buffer)
+            (let ((greger-current-thinking-budget 0)
+                  (greger-tools '("shell-command"))
+                  (greger-stdlib-claude-interactive-input t))
+              (greger-buffer)
 
-            (should (greger-test-wait-for-status 'idle))
+              (should (greger-test-wait-for-status 'idle))
 
-            (let ((content (buffer-string)))
-              ;; Should contain the shell command execution
-              (should (string-match-p "Test prompt" content))
-              ;; Should contain the choice output
-              (should (string-match-p "Choice:" content))
-              ;; Should not contain error messages
-              (should-not (string-match-p "Command failed" content)))))
+              (let ((content (buffer-string)))
+                ;; Should contain the shell command execution
+                (should (string-match-p "Test prompt" content))
+                ;; Should contain the choice output
+                (should (string-match-p "Choice:" content))
+                ;; Should not contain error messages
+                (should-not (string-match-p "Command failed" content))))))
 
       (when (and greger-buffer (buffer-live-p greger-buffer))
         (kill-buffer greger-buffer)))))
