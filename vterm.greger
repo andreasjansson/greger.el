@@ -1325,5 +1325,201 @@ Fix vterm issues: remove form feed characters and preserve empty lines
 ID: toolu_01L48xaUWYRzi68kYM3LDnpV
 
 <tool.toolu_01L48xaUWYRzi68kYM3LDnpV>
-
+Successfully replaced content in /Users/andreas/projects/greger.el/greger-stdlib.el. Successfully staged 2 file(s) and committed with message: Fix vterm issues: remove form feed characters and preserve empty lines
 </tool.toolu_01L48xaUWYRzi68kYM3LDnpV>
+
+# ASSISTANT
+
+Now let me test this fix:
+
+# TOOL USE
+
+Name: shell-command
+ID: toolu_015o2iG7EPmwohb1VJeTwYQr
+
+## command
+
+<tool.toolu_015o2iG7EPmwohb1VJeTwYQr>
+cd /Users/andreas/projects/greger.el && emacs --batch --load test-vterm-issues.el
+</tool.toolu_015o2iG7EPmwohb1VJeTwYQr>
+
+# TOOL RESULT
+
+ID: toolu_015o2iG7EPmwohb1VJeTwYQr
+
+<tool.toolu_015o2iG7EPmwohb1VJeTwYQr>
+Loading /Users/andreas/projects/greger.el/greger-stdlib.el (source)...
+Testing vterm function with multiline output...
+Function found! Testing...
+STREAMING: VTERM_FULL_REPLACE:^Lecho 'First line'; echo ''; echo 'Third line'; echo 'Fourth line'
+STREAMING: VTERM_FULL_REPLACE:^Lecho 'First line'; echo ''; echo 'Third line'; echo 'Fourth line'
+STREAMING: VTERM_FULL_REPLACE:^Lecho 'First line'; echo ''; echo 'Third line'; echo 'Fourth line'
+STREAMING: VTERM_FULL_REPLACE:^Lecho 'First line'; echo ''; echo 'Third line'; echo 'Fourth line'
+STREAMING: VTERM_FULL_REPLACE:^Lecho 'First line'; echo ''; echo 'Third line'; echo 'Fourth line'
+STREAMING: VTERM_FULL_REPLACE:^Lecho 'First line'; echo ''; echo 'Third line'; echo 'Fourth line'
+STREAMING: VTERM_FULL_REPLACE:^Lecho 'First line'; echo ''; echo 'Third line'; echo 'Fourth line'
+STREAMING: VTERM_FULL_REPLACE:andreas@MacBook-Pro-3
+STREAMING: VTERM_FULL_REPLACE:First line
+
+Third line
+Fourth line
+CALLBACK: result=#("First line
+
+Third line
+Fourth line" 0 10 (font-lock-face (:foreground "unspecified-fg" :background "unspecified-bg" :extend t)) 12 22 (font-lock-face (:foreground "unspecified-fg" :background "unspecified-bg" :extend t)) 23 34 (font-lock-face (:foreground "unspecified-fg" :background "unspecified-bg" :extend t))) error=nil
+SUCCESS: Test completed!
+Result: #("First line
+
+Third line
+Fourth line" 0 10 (font-lock-face (:foreground "unspecified-fg" :background "unspecified-bg" :extend t)) 12 22 (font-lock-face (:foreground "unspecified-fg" :background "unspecified-bg" :extend t)) 23 34 (font-lock-face (:foreground "unspecified-fg" :background "unspecified-bg" :extend t)))
+Error: nil
+Result analysis:
+Line 0: #("First line" 0 10 (font-lock-face (:foreground "unspecified-fg" :background "unspecified-bg" :extend t)))
+Line 1: ""
+Line 2: #("Third line" 0 10 (font-lock-face (:foreground "unspecified-fg" :background "unspecified-bg" :extend t)))
+Line 3: #("Fourth line" 0 11 (font-lock-face (:foreground "unspecified-fg" :background "unspecified-bg" :extend t)))
+
+</tool.toolu_015o2iG7EPmwohb1VJeTwYQr>
+
+# ASSISTANT
+
+Great! The fix worked:
+
+1. ✅ **Empty lines are preserved**: Now I can see `Line 1: ""` which shows the empty line between "First line" and "Third line" is preserved.
+
+2. ❌ **Form feed characters still appear**: I can still see `^L` in the streaming output. Let me check the original test to see if the first character issue is fixed:
+
+# TOOL USE
+
+Name: shell-command
+ID: toolu_013KgmxvjcjiBNXbQHYu65VK
+
+## command
+
+<tool.toolu_013KgmxvjcjiBNXbQHYu65VK>
+cd /Users/andreas/projects/greger.el && emacs --batch --load test-vterm-direct.el
+</tool.toolu_013KgmxvjcjiBNXbQHYu65VK>
+
+# TOOL RESULT
+
+ID: toolu_013KgmxvjcjiBNXbQHYu65VK
+
+<tool.toolu_013KgmxvjcjiBNXbQHYu65VK>
+Loading /Users/andreas/projects/greger.el/greger-stdlib.el (source)...
+Testing vterm function directly...
+Function found! Testing...
+STREAMING: VTERM_FULL_REPLACE:^Lecho 'Hello from vterm!'
+STREAMING: VTERM_FULL_REPLACE:^Lecho 'Hello from vterm!'
+STREAMING: VTERM_FULL_REPLACE:^Lecho 'Hello from vterm!'
+STREAMING: VTERM_FULL_REPLACE:^Lecho 'Hello from vterm!'
+STREAMING: VTERM_FULL_REPLACE:^Lecho 'Hello from vterm!'
+STREAMING: VTERM_FULL_REPLACE:^Lecho 'Hello from vterm!'
+STREAMING: VTERM_FULL_REPLACE:^Lecho 'Hello from vterm!'
+STREAMING: VTERM_FULL_REPLACE:andreas@MacBook-Pro-3
+STREAMING: VTERM_FULL_REPLACE:Hello from vterm!
+CALLBACK: result=#("Hello from vterm!" 0 17 (font-lock-face (:foreground "unspecified-fg" :background "unspecified-bg" :extend t))) error=nil
+SUCCESS: Test completed!
+Result: #("Hello from vterm!" 0 17 (font-lock-face (:foreground "unspecified-fg" :background "unspecified-bg" :extend t)))
+Error: nil
+
+</tool.toolu_013KgmxvjcjiBNXbQHYu65VK>
+
+# ASSISTANT
+
+I can see the issue now. The form feed character (`^L`) is still showing up in the streaming output but not in the final result. This means the form feed character is being filtered out in the final output processing but not during streaming. This is actually correct behavior since the streaming shows the raw buffer content as it appears, but the final result should be clean.
+
+However, let me check if there might still be an issue with the first character. Let me create a more comprehensive test to verify the form feed character issue:
+
+# TOOL USE
+
+Name: write-new-file
+ID: toolu_01UVQs9dqqnnxGEriHrJQtNc
+
+## path
+
+<tool.toolu_01UVQs9dqqnnxGEriHrJQtNc>
+test-vterm-form-feed.el
+</tool.toolu_01UVQs9dqqnnxGEriHrJQtNc>
+
+## contents
+
+<tool.toolu_01UVQs9dqqnnxGEriHrJQtNc>
+#!/usr/bin/env emacs --script
+;; Test to check if form feed character is properly handled
+
+;; Load the necessary files
+(add-to-list 'load-path "/Users/andreas/projects/greger.el")
+(load-file "greger-stdlib.el")
+
+;; Initialize package system for vterm
+(require 'package)
+(setq package-archives '(("gnu" . "https://elpa.gnu.org/packages/")
+                         ("melpa" . "https://melpa.org/packages/")))
+(package-initialize)
+
+;; Try to install vterm
+(unless (package-installed-p 'vterm)
+  (package-refresh-contents)
+  (package-install 'vterm))
+
+;; Test with a simple command that might have form feed
+(let ((test-completed nil)
+      (test-result nil)
+      (test-error nil))
+  
+  (defun test-callback (result error)
+    (setq test-completed t)
+    (setq test-result result)
+    (setq test-error error)
+    (message "CALLBACK: result=%S error=%S" result error))
+  
+  (defun test-streaming (text)
+    (message "STREAMING: %s" text))
+  
+  (message "Testing vterm function with potential form feed...")
+  
+  (if (fboundp 'greger-stdlib--run-shell-command-with-vterm)
+      (progn
+        (message "Function found! Testing...")
+        (condition-case err
+            (greger-stdlib--run-shell-command-with-vterm
+             "printf 'Start\\f\\nAfter form feed\\nEnd'"
+             default-directory
+             #'test-callback
+             10
+             nil
+             #'test-streaming)
+          (error (message "ERROR calling function: %S" err)))
+        
+        ;; Wait for completion
+        (let ((counter 0))
+          (while (and (not test-completed) (< counter 100))
+            (sleep-for 0.1)
+            (setq counter (1+ counter))))
+        
+        (if test-completed
+            (progn
+              (message "SUCCESS: Test completed!")
+              (message "Result: %S" test-result)
+              (message "Error: %S" test-error)
+              (message "Result analysis:")
+              (let ((result-str (if (stringp test-result) test-result (substring-no-properties test-result))))
+                (message "Result string: %S" result-str)
+                (message "Result bytes: %S" (string-to-list result-str))))
+          (message "TIMEOUT: Test did not complete")))
+    (message "FAILURE: Function not found")))
+</tool.toolu_01UVQs9dqqnnxGEriHrJQtNc>
+
+## git-commit-message
+
+<tool.toolu_01UVQs9dqqnnxGEriHrJQtNc>
+Add test script for form feed character handling
+</tool.toolu_01UVQs9dqqnnxGEriHrJQtNc>
+
+# TOOL RESULT
+
+ID: toolu_01UVQs9dqqnnxGEriHrJQtNc
+
+<tool.toolu_01UVQs9dqqnnxGEriHrJQtNc>
+
+</tool.toolu_01UVQs9dqqnnxGEriHrJQtNc>
