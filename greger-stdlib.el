@@ -1106,7 +1106,7 @@ Returns the response or 'USER' if the user should respond."
               trimmed-response))))))
     
     ;; Return "USER" if no auth key or other failure
-    (or response "USER")))
+    (or (and auth-key response) "USER")))
 
 (defun greger-stdlib--run-shell-command-with-vterm (command working-directory callback timeout enable-environment streaming-callback)
   "Execute COMMAND using vterm in WORKING-DIRECTORY and call CALLBACK with (result error).
