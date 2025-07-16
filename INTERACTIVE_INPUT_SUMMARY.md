@@ -10,9 +10,15 @@ Successfully implemented interactive input handling for the vterm-enabled shell-
 - **Keyword Recognition**: Identifies prompts containing keywords like "Password", "Enter", "Press", "Type", "Input", "Select", "Confirm"
 - **Real-time Monitoring**: Continuously monitors vterm buffer for new prompts during command execution
 
-### 2. User Interaction
+### 2. Claude AI Integration
+- **Automated Response Generation**: Claude analyzes command context and provides appropriate responses
+- **Smart Fallback**: If Claude responds with "USER", falls back to user input
+- **Context-Aware**: Sends command output and prompt context to Claude for intelligent responses
+- **Configurable**: Can be enabled/disabled via `greger-stdlib-claude-interactive-input`
+
+### 3. User Interaction
 - **Minibuffer Integration**: Presents shell prompts in the Emacs minibuffer for user input
-- **Password Handling**: Automatically detects password prompts and uses `read-passwd` for hidden input
+- **Password Handling**: Automatically detects password prompts and uses `read-passwd` for hidden input (never sent to Claude)
 - **Multiple Prompt Support**: Handles commands with multiple sequential prompts
 
 ### 3. Process Management
