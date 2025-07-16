@@ -1194,6 +1194,7 @@ Returns a cancel function that can interrupt the command execution."
         ;; Create cancel function
         (setq cancel-func (lambda ()
                            (when timer (cancel-timer timer))
+                           (when completion-timer (cancel-timer completion-timer))
                            (when (and process (process-live-p process))
                              (set-process-query-on-exit-flag process nil)
                              (delete-process process))

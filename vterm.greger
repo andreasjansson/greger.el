@@ -3251,5 +3251,65 @@ Clean up completion timer in process sentinel
 ID: toolu_01K5KMeb2VtbpmfAXinYxMVz
 
 <tool.toolu_01K5KMeb2VtbpmfAXinYxMVz>
+Successfully replaced content in /Users/andreas/projects/greger.el/greger-stdlib.el. Successfully staged 2 file(s) and committed with message: Clean up completion timer in process sentinel
 
+- Cancel completion timer when process terminates
+- This ensures all timers are properly cleaned up
 </tool.toolu_01K5KMeb2VtbpmfAXinYxMVz>
+
+# TOOL USE
+
+Name: str-replace
+ID: toolu_015fujBShGY68Hb77JutRKea
+
+## path
+
+<tool.toolu_015fujBShGY68Hb77JutRKea>
+greger-stdlib.el
+</tool.toolu_015fujBShGY68Hb77JutRKea>
+
+## original-content
+
+<tool.toolu_015fujBShGY68Hb77JutRKea>
+        ;; Create cancel function
+        (setq cancel-func (lambda ()
+                           (when timer (cancel-timer timer))
+                           (when (and process (process-live-p process))
+                             (set-process-query-on-exit-flag process nil)
+                             (delete-process process))
+                           (when (buffer-live-p vterm-buffer)
+                             (kill-buffer vterm-buffer))
+                           (funcall callback nil "Command cancelled by user")))
+</tool.toolu_015fujBShGY68Hb77JutRKea>
+
+## new-content
+
+<tool.toolu_015fujBShGY68Hb77JutRKea>
+        ;; Create cancel function
+        (setq cancel-func (lambda ()
+                           (when timer (cancel-timer timer))
+                           (when completion-timer (cancel-timer completion-timer))
+                           (when (and process (process-live-p process))
+                             (set-process-query-on-exit-flag process nil)
+                             (delete-process process))
+                           (when (buffer-live-p vterm-buffer)
+                             (kill-buffer vterm-buffer))
+                           (funcall callback nil "Command cancelled by user")))
+</tool.toolu_015fujBShGY68Hb77JutRKea>
+
+## git-commit-message
+
+<tool.toolu_015fujBShGY68Hb77JutRKea>
+Clean up completion timer in cancel function
+
+- Cancel completion timer when command is cancelled
+- This ensures proper cleanup in all exit paths
+</tool.toolu_015fujBShGY68Hb77JutRKea>
+
+# TOOL RESULT
+
+ID: toolu_015fujBShGY68Hb77JutRKea
+
+<tool.toolu_015fujBShGY68Hb77JutRKea>
+
+</tool.toolu_015fujBShGY68Hb77JutRKea>
