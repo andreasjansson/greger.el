@@ -1200,15 +1200,13 @@ Returns a cancel function that can interrupt the command execution."
                                (vterm-send-return)
                                (sleep-for 0.3))
                              
-                             ;; Set up command completion detection
-                             (setq detecting-completion t)
-                             (message "DEBUG: Command completion detection enabled")
+                             ;; Execute the command and exit to terminate shell
+                             (vterm-send-string command)
+                             (vterm-send-return)
                              
-                             ;; Execute the command followed by completion marker
-                             (let ((full-command (format "%s; echo 'GREGER_COMMAND_DONE'" command)))
-                               (message "DEBUG: Sending command: %S" full-command)
-                               (vterm-send-string full-command)
-                               (vterm-send-return))
+                             ;; Send exit command to terminate the shell
+                             (vterm-send-string "exit")
+                             (vterm-send-return)
                              
                              ;; Start a timer to check completion periodically
                              (setq completion-timer 
