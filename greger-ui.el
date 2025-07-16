@@ -811,10 +811,10 @@ _OVERRIDE, _START, and _END are font-lock parameters."
           (kill-buffer))))))
 
 (defun greger-ui--process-terminal-sequences (text)
-  "Process terminal control sequences in TEXT with basic terminal behavior simulation.
+  "Process terminal control sequences in TEXT to simulate terminal behavior.
 
-This is a fallback function that handles common ANSI movement codes and control
-sequences when vterm is not available or not being used:
+This function handles common ANSI movement codes and control sequences that
+are used by command-line tools for progress bars and dynamic output:
 
 - \\r (carriage return) - moves cursor to beginning of line, overwrites content
 - ESC[K - clears from cursor to end of line
@@ -822,8 +822,10 @@ sequences when vterm is not available or not being used:
 - ESC[A - cursor up (removes previous line)
 - ESC[B - cursor down (adds newline)
 
-For full terminal emulation with colors and complex sequences, use the
-shell-command tool with use-vterm=true.
+The function processes text by navigating the buffer and modifying it in place
+to simulate how a terminal would handle these sequences, making progress bars
+and dynamic output display correctly in the greger UI instead of showing all
+intermediate states.
 
 TEXT is processed character by character, with the cursor position in the
 buffer being updated according to the terminal sequences encountered."
