@@ -1100,15 +1100,17 @@ Returns a cancel function that can interrupt the command execution."
             ;; Remove form feed characters (^L) from vterm-clear and other control chars
             (setq content (replace-regexp-in-string "[\f\r]" "" content))
             
-            ;; Split into lines and only remove clear shell artifacts
+            ;; Split into lines and remove shell artifacts
             (let ((lines (split-string content "\n")))
               (let ((filtered-lines
                      (seq-remove 
                       (lambda (line)
                         (let ((trimmed (string-trim line)))
                           (or 
-                           ;; Shell prompts that end with $
-                           (string-match "^[^@]*@[^:]*:[^$]*\\$$" trimmed)
+                           ;; Shell prompts (user@host:path format)
+                           (string-match "^[^@]*@[^:]*:" trimmed)
+                           ;; Command prompts that start with $
+                           (string-match "^\\$ " trimmed)
                            ;; Exact command match
                            (string-equal trimmed command)
                            ;; Exit command
