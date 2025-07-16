@@ -1276,7 +1276,6 @@ sequences are handled correctly with full terminal emulation."
             (set-process-query-on-exit-flag vterm--process nil)))
         (kill-buffer vterm-buffer)))))
 
-(message "greger.el loaded successfully")
 (provide 'greger)
 
 ;;; greger.el ends here
