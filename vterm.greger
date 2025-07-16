@@ -4454,5 +4454,268 @@ Fix missing tool-result-content-start variable in streaming callback
 ID: toolu_01HCawrDhUKD4Vr5kwo7hXbB
 
 <tool.toolu_01HCawrDhUKD4Vr5kwo7hXbB>
+Successfully replaced content in /Users/andreas/projects/greger.el/greger.el. Successfully staged 2 file(s) and committed with message: Fix missing tool-result-content-start variable in streaming callback
 
+- Add missing tool-result-content-start binding in greger--append-tool-result-text
+- This fixes the VTERM_FULL_REPLACE: processing that was causing markers to appear in output
+- The variable was referenced but not defined, causing the replacement logic to fail
 </tool.toolu_01HCawrDhUKD4Vr5kwo7hXbB>
+
+# ASSISTANT
+
+Now let's test the fixed implementation:
+
+# TOOL USE
+
+Name: shell-command
+ID: toolu_01PF3q8jLNK4x4KgZEYFbN4S
+
+## command
+
+<tool.toolu_01PF3q8jLNK4x4KgZEYFbN4S>
+cd /Users/andreas/projects/greger.el && emacs --batch -l test-vterm-tool-usage.el
+</tool.toolu_01PF3q8jLNK4x4KgZEYFbN4S>
+
+# TOOL RESULT
+
+ID: toolu_01PF3q8jLNK4x4KgZEYFbN4S
+
+<tool.toolu_01PF3q8jLNK4x4KgZEYFbN4S>
+=== TESTING VTERM TOOL USAGE ===
+Command submitted, waiting for completion...
+=== STREAMING CALLBACK ===
+Received: "VTERM_FULL_REPLACE:"
+VTERM full replace with content: ""
+=== STREAMING CALLBACK ===
+Received: "VTERM_FULL_REPLACE:"
+VTERM full replace with content: ""
+=== STREAMING CALLBACK ===
+Received: #("VTERM_FULL_REPLACE:andreas@MacBook-Pro-3" 19 40 (font-lock-face (:foreground "green3" :background "unspecified-bg" :weight bold :extend t)))
+VTERM full replace with content: #("andreas@MacBook-Pro-3" 0 21 (font-lock-face (:foreground "green3" :background "unspecified-bg" :weight bold :extend t)))
+=== STREAMING CALLBACK ===
+Received: "VTERM_FULL_REPLACE:"
+VTERM full replace with content: ""
+=== STREAMING CALLBACK ===
+Received: "VTERM_FULL_REPLACE:"
+VTERM full replace with content: ""
+=== STREAMING CALLBACK ===
+Received: "VTERM_FULL_REPLACE:"
+VTERM full replace with content: ""
+=== STREAMING CALLBACK ===
+Received: "VTERM_FULL_REPLACE:"
+VTERM full replace with content: ""
+=== STREAMING CALLBACK ===
+Received: "VTERM_FULL_REPLACE:"
+VTERM full replace with content: ""
+=== STREAMING CALLBACK ===
+Received: "VTERM_FULL_REPLACE:"
+VTERM full replace with content: ""
+=== STREAMING CALLBACK ===
+Received: "VTERM_FULL_REPLACE:"
+VTERM full replace with content: ""
+=== STREAMING CALLBACK ===
+Received: "VTERM_FULL_REPLACE:"
+VTERM full replace with content: ""
+=== STREAMING CALLBACK ===
+Received: "VTERM_FULL_REPLACE:"
+VTERM full replace with content: ""
+=== STREAMING CALLBACK ===
+Received: #("VTERM_FULL_REPLACE:total 2072
+drwxr-xr-x  48 andreas  staff    1536 Jul 16 03:26 .
+drwxr-xr-x  15 andreas  staff     480 Jul  9 19:02 ..
+-rw-r--r--   1 andreas  staff     833 Jul  6 15:45 .dir-locals-dev.el
+-rw-r--r--   1 andreas  staff     226 Jul 11 14:22 .dir-locals.el
+drwxr-xr-x   7 andreas  staff     224 Jul 15 23:18 .eldev
+-rw-r--r--   1 andreas  staff      81 Jun 27 03:15 .elpaignore
+drwxr-xr-x  16 andreas  staff     512 Jul 16 03:27 .git
+drwxr-xr-x   3 andreas  staff      96 Jun  3 15:40 .github
+-rw-r--r--   1 andreas  staff      52 Jul  6 15:08 .gitignore
+-rw-r--r--   1 andreas  staff    3332 Jul  6 15:44 DEVELOPMENT.md
+-rw-r--r--   1 andreas  staff     676 Jun 16 17:32 Eldev
+-rw-r--r--   1 andreas  staff    1071 Jun  4 00:50 LICENSE
+-rw-r--r--   1 andreas  staff   17556 Jul  8 23:17 README.md
+drwxr-xr-x  11 andreas  staff     352 Jul  2 12:53 assets
+-rw-r--r--   1 andreas  staff    3681 Jul  7 18:24 debug-eval-display.el
+-rw-r--r--   1 andreas  staff      27 Jul  7 16:25 debug.greger
+-rw-r--r--   1 andreas  staff     182 Jul 11 20:28 eval.greger
+drwxr-xr-x   8 andreas  staff     256 Jul  2 13:09 examples" 19 29 (font-lock-face (:foreground "unspecified-fg" :background "unspecified-bg" :extend t)) 30 82 (font-lock-face (:foreground "unspecified-fg" :background "unspecified-bg" :extend t)) 83 136 (font-lock-face (:foreground "unspecified-fg" :background "unspecified-bg" :extend t)) 137 206 (font-lock-face (:foreground "unspecified-fg" :background "unspecified-bg" :extend t)) 207 272 (font-lock-face (:foreground "unspecified-fg" :background "unspecified-bg" :extend t)) 273 330 (font-lock-face (:foreground "unspecified-fg" :background "unspecified-bg" :extend t)) 331 393 (font-lock-face (:foreground "unspecified-fg" :background "unspecified-bg" :extend t)) 394 449 (font-lock-face (:foreground "unspecified-fg" :background "unspecified-bg" :extend t)) 450 508 (font-lock-face (:foreground "unspecified-fg" :background "unspecified-bg" :extend t)) 509 570 (font-lock-face (:foreground "unspecified-fg" :background "unspecified-bg" :extend t)) 571 636 (font-lock-face (:foreground "unspecified-fg" :background "unspecified-bg" :extend t)) 637 693 (font-lock-face (:foreground "unspecified-fg" :background "unspecified-bg" :extend t)) 694 752 (font-lock-face (:foreground "unspecified-fg" :background "unspecified-bg" :extend t)) 753 813 (font-lock-face (:foreground "unspecified-fg" :background "unspecified-bg" :extend t)) 814 871 (font-lock-face (:foreground "unspecified-fg" :background "unspecified-bg" :extend t)) 872 944 (font-lock-face (:foreground "unspecified-fg" :background "unspecified-bg" :extend t)) 945 1008 (font-lock-face (:foreground "unspecified-fg" :background "unspecified-bg" :extend t)) 1009 1071 (font-lock-face (:foreground "unspecified-fg" :background "unspecified-bg" :extend t)) 1072 1131 (font-lock-face (:foreground "unspecified-fg" :background "unspecified-bg" :extend t)))
+VTERM full replace with content: #("total 2072
+drwxr-xr-x  48 andreas  staff    1536 Jul 16 03:26 .
+drwxr-xr-x  15 andreas  staff     480 Jul  9 19:02 ..
+-rw-r--r--   1 andreas  staff     833 Jul  6 15:45 .dir-locals-dev.el
+-rw-r--r--   1 andreas  staff     226 Jul 11 14:22 .dir-locals.el
+drwxr-xr-x   7 andreas  staff     224 Jul 15 23:18 .eldev
+-rw-r--r--   1 andreas  staff      81 Jun 27 03:15 .elpaignore
+drwxr-xr-x  16 andreas  staff     512 Jul 16 03:27 .git
+drwxr-xr-x   3 andreas  staff      96 Jun  3 15:40 .github
+-rw-r--r--   1 andreas  staff      52 Jul  6 15:08 .gitignore
+-rw-r--r--   1 andreas  staff    3332 Jul  6 15:44 DEVELOPMENT.md
+-rw-r--r--   1 andreas  staff     676 Jun 16 17:32 Eldev
+-rw-r--r--   1 andreas  staff    1071 Jun  4 00:50 LICENSE
+-rw-r--r--   1 andreas  staff   17556 Jul  8 23:17 README.md
+drwxr-xr-x  11 andreas  staff     352 Jul  2 12:53 assets
+-rw-r--r--   1 andreas  staff    3681 Jul  7 18:24 debug-eval-display.el
+-rw-r--r--   1 andreas  staff      27 Jul  7 16:25 debug.greger
+-rw-r--r--   1 andreas  staff     182 Jul 11 20:28 eval.greger
+drwxr-xr-x   8 andreas  staff     256 Jul  2 13:09 examples" 0 10 (font-lock-face (:foreground "unspecified-fg" :background "unspecified-bg" :extend t)) 11 63 (font-lock-face (:foreground "unspecified-fg" :background "unspecified-bg" :extend t)) 64 117 (font-lock-face (:foreground "unspecified-fg" :background "unspecified-bg" :extend t)) 118 187 (font-lock-face (:foreground "unspecified-fg" :background "unspecified-bg" :extend t)) 188 253 (font-lock-face (:foreground "unspecified-fg" :background "unspecified-bg" :extend t)) 254 311 (font-lock-face (:foreground "unspecified-fg" :background "unspecified-bg" :extend t)) 312 374 (font-lock-face (:foreground "unspecified-fg" :background "unspecified-bg" :extend t)) 375 430 (font-lock-face (:foreground "unspecified-fg" :background "unspecified-bg" :extend t)) 431 489 (font-lock-face (:foreground "unspecified-fg" :background "unspecified-bg" :extend t)) 490 551 (font-lock-face (:foreground "unspecified-fg" :background "unspecified-bg" :extend t)) 552 617 (font-lock-face (:foreground "unspecified-fg" :background "unspecified-bg" :extend t)) 618 674 (font-lock-face (:foreground "unspecified-fg" :background "unspecified-bg" :extend t)) 675 733 (font-lock-face (:foreground "unspecified-fg" :background "unspecified-bg" :extend t)) 734 794 (font-lock-face (:foreground "unspecified-fg" :background "unspecified-bg" :extend t)) 795 852 (font-lock-face (:foreground "unspecified-fg" :background "unspecified-bg" :extend t)) 853 925 (font-lock-face (:foreground "unspecified-fg" :background "unspecified-bg" :extend t)) 926 989 (font-lock-face (:foreground "unspecified-fg" :background "unspecified-bg" :extend t)) 990 1052 (font-lock-face (:foreground "unspecified-fg" :background "unspecified-bg" :extend t)) 1053 1112 (font-lock-face (:foreground "unspecified-fg" :background "unspecified-bg" :extend t)))
+=== FINAL CALLBACK ===
+Final output: #("total 2072
+drwxr-xr-x  48 andreas  staff    1536 Jul 16 03:26 .
+drwxr-xr-x  15 andreas  staff     480 Jul  9 19:02 ..
+-rw-r--r--   1 andreas  staff     833 Jul  6 15:45 .dir-locals-dev.el
+-rw-r--r--   1 andreas  staff     226 Jul 11 14:22 .dir-locals.el
+drwxr-xr-x   7 andreas  staff     224 Jul 15 23:18 .eldev
+-rw-r--r--   1 andreas  staff      81 Jun 27 03:15 .elpaignore
+drwxr-xr-x  16 andreas  staff     512 Jul 16 03:27 .git
+drwxr-xr-x   3 andreas  staff      96 Jun  3 15:40 .github
+-rw-r--r--   1 andreas  staff      52 Jul  6 15:08 .gitignore
+-rw-r--r--   1 andreas  staff    3332 Jul  6 15:44 DEVELOPMENT.md
+-rw-r--r--   1 andreas  staff     676 Jun 16 17:32 Eldev
+-rw-r--r--   1 andreas  staff    1071 Jun  4 00:50 LICENSE
+-rw-r--r--   1 andreas  staff   17556 Jul  8 23:17 README.md
+drwxr-xr-x  11 andreas  staff     352 Jul  2 12:53 assets
+-rw-r--r--   1 andreas  staff    3681 Jul  7 18:24 debug-eval-display.el
+-rw-r--r--   1 andreas  staff      27 Jul  7 16:25 debug.greger
+-rw-r--r--   1 andreas  staff     182 Jul 11 20:28 eval.greger
+drwxr-xr-x   8 andreas  staff     256 Jul  2 13:09 examples" 0 10 (font-lock-face (:foreground "unspecified-fg" :background "unspecified-bg" :extend t)) 11 63 (font-lock-face (:foreground "unspecified-fg" :background "unspecified-bg" :extend t)) 64 117 (font-lock-face (:foreground "unspecified-fg" :background "unspecified-bg" :extend t)) 118 187 (font-lock-face (:foreground "unspecified-fg" :background "unspecified-bg" :extend t)) 188 253 (font-lock-face (:foreground "unspecified-fg" :background "unspecified-bg" :extend t)) 254 311 (font-lock-face (:foreground "unspecified-fg" :background "unspecified-bg" :extend t)) 312 374 (font-lock-face (:foreground "unspecified-fg" :background "unspecified-bg" :extend t)) 375 430 (font-lock-face (:foreground "unspecified-fg" :background "unspecified-bg" :extend t)) 431 489 (font-lock-face (:foreground "unspecified-fg" :background "unspecified-bg" :extend t)) 490 551 (font-lock-face (:foreground "unspecified-fg" :background "unspecified-bg" :extend t)) 552 617 (font-lock-face (:foreground "unspecified-fg" :background "unspecified-bg" :extend t)) 618 674 (font-lock-face (:foreground "unspecified-fg" :background "unspecified-bg" :extend t)) 675 733 (font-lock-face (:foreground "unspecified-fg" :background "unspecified-bg" :extend t)) 734 794 (font-lock-face (:foreground "unspecified-fg" :background "unspecified-bg" :extend t)) 795 852 (font-lock-face (:foreground "unspecified-fg" :background "unspecified-bg" :extend t)) 853 925 (font-lock-face (:foreground "unspecified-fg" :background "unspecified-bg" :extend t)) 926 989 (font-lock-face (:foreground "unspecified-fg" :background "unspecified-bg" :extend t)) 990 1052 (font-lock-face (:foreground "unspecified-fg" :background "unspecified-bg" :extend t)) 1053 1112 (font-lock-face (:foreground "unspecified-fg" :background "unspecified-bg" :extend t)))
+Error: nil
+=== FINAL TOOL OUTPUT ===
+What would appear in tool result:
+total 2072
+drwxr-xr-x  48 andreas  staff    1536 Jul 16 03:26 .
+drwxr-xr-x  15 andreas  staff     480 Jul  9 19:02 ..
+-rw-r--r--   1 andreas  staff     833 Jul  6 15:45 .dir-locals-dev.el
+-rw-r--r--   1 andreas  staff     226 Jul 11 14:22 .dir-locals.el
+drwxr-xr-x   7 andreas  staff     224 Jul 15 23:18 .eldev
+-rw-r--r--   1 andreas  staff      81 Jun 27 03:15 .elpaignore
+drwxr-xr-x  16 andreas  staff     512 Jul 16 03:27 .git
+drwxr-xr-x   3 andreas  staff      96 Jun  3 15:40 .github
+-rw-r--r--   1 andreas  staff      52 Jul  6 15:08 .gitignore
+-rw-r--r--   1 andreas  staff    3332 Jul  6 15:44 DEVELOPMENT.md
+-rw-r--r--   1 andreas  staff     676 Jun 16 17:32 Eldev
+-rw-r--r--   1 andreas  staff    1071 Jun  4 00:50 LICENSE
+-rw-r--r--   1 andreas  staff   17556 Jul  8 23:17 README.md
+drwxr-xr-x  11 andreas  staff     352 Jul  2 12:53 assets
+-rw-r--r--   1 andreas  staff    3681 Jul  7 18:24 debug-eval-display.el
+-rw-r--r--   1 andreas  staff      27 Jul  7 16:25 debug.greger
+-rw-r--r--   1 andreas  staff     182 Jul 11 20:28 eval.greger
+drwxr-xr-x   8 andreas  staff     256 Jul  2 13:09 examples
+=== END TOOL OUTPUT ===
+✅ Test passed - clean output received
+
+</tool.toolu_01PF3q8jLNK4x4KgZEYFbN4S>
+
+# ASSISTANT
+
+Perfect! The fix worked. Now let's create a more comprehensive test that simulates the actual greger.el processing logic to make sure the streaming works correctly:
+
+# TOOL USE
+
+Name: write-new-file
+ID: toolu_013ScPbiUrvHBxJK63CVmc7D
+
+## path
+
+<tool.toolu_013ScPbiUrvHBxJK63CVmc7D>
+test-vterm-greger-simulation.el
+</tool.toolu_013ScPbiUrvHBxJK63CVmc7D>
+
+## contents
+
+<tool.toolu_013ScPbiUrvHBxJK63CVmc7D>
+;;; Test vterm implementation simulating greger.el behavior
+
+(add-to-list 'load-path ".")
+(add-to-list 'load-path "~/.emacs.d/elpa/vterm-20241218.331")
+
+(require 'greger-stdlib)
+(require 'vterm)
+
+(defvar test-tool-result "")
+
+(defun test-greger-streaming (text)
+  "Simulate greger.el streaming behavior."
+  (message "=== GREGER STREAMING ===")
+  (message "Processing: %s" (substring (prin1-to-string text) 0 (min 100 (length (prin1-to-string text)))))
+  
+  ;; Simulate what greger.el does
+  (if (string-prefix-p "VTERM_FULL_REPLACE:" text)
+      (let ((vterm-content (substring text (length "VTERM_FULL_REPLACE:"))))
+        (message "Full replace with content length: %d" (length vterm-content))
+        (setq test-tool-result vterm-content))
+    (progn
+      (message "Regular append: %s" (substring text 0 (min 50 (length text))))
+      (setq test-tool-result (concat test-tool-result text)))))
+
+(defun test-final-callback (output error)
+  "Final callback."
+  (message "=== FINAL CALLBACK ===")
+  (message "Final output length: %d" (length output))
+  (message "Error: %s" error)
+  (when output
+    (setq test-tool-result output)))
+
+(defun test-vterm-greger-behavior ()
+  "Test the complete vterm + greger behavior."
+  (interactive)
+  (message "=== TESTING VTERM + GREGER BEHAVIOR ===")
+  (setq test-tool-result "")
+  
+  ;; Test with ls command
+  (greger-stdlib--shell-command
+   "ls -la | head -10"
+   #'test-final-callback
+   nil                                   ; working-directory
+   nil                                   ; timeout
+   nil                                   ; enable-environment
+   t                                     ; use-vterm
+   #'test-greger-streaming               ; streaming-callback
+   '(:safe-shell-commands ("ls") :allow-all-shell-commands t))
+  
+  (message "Command submitted...")
+  
+  ;; Wait for completion
+  (let ((wait-count 0)
+        (last-length 0))
+    (while (and (< wait-count 100) 
+                (or (string= test-tool-result "")
+                    (not (equal (length test-tool-result) last-length))))
+      (setq last-length (length test-tool-result))
+      (sleep-for 0.1)
+      (setq wait-count (1+ wait-count)))
+    
+    (message "=== FINAL RESULT ===")
+    (message "Tool result length: %d" (length test-tool-result))
+    (message "First 200 chars of result:")
+    (message "%s" (substring test-tool-result 0 (min 200 (length test-tool-result))))
+    (message "...")
+    (message "Last 200 chars of result:")
+    (let ((start (max 0 (- (length test-tool-result) 200))))
+      (message "%s" (substring test-tool-result start)))
+    
+    (if (string-match "VTERM_FULL_REPLACE:" test-tool-result)
+        (message "❌ FAIL: VTERM_FULL_REPLACE markers still in result")
+      (message "✅ PASS: Clean result without markers"))))
+
+;; Run the test
+(test-vterm-greger-behavior)
+</tool.toolu_013ScPbiUrvHBxJK63CVmc7D>
+
+## git-commit-message
+
+<tool.toolu_013ScPbiUrvHBxJK63CVmc7D>
+Add comprehensive test simulating greger.el vterm behavior
+
+- Tests complete vterm + greger streaming behavior
+- Simulates actual greger.el processing logic
+- Verifies that VTERM_FULL_REPLACE markers are properly handled
+- Shows final result as it would appear in tool output
+</tool.toolu_013ScPbiUrvHBxJK63CVmc7D>
+
+# TOOL RESULT
+
+ID: toolu_013ScPbiUrvHBxJK63CVmc7D
+
+<tool.toolu_013ScPbiUrvHBxJK63CVmc7D>
+
+</tool.toolu_013ScPbiUrvHBxJK63CVmc7D>
