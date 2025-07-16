@@ -1052,13 +1052,7 @@ end tag and update the buffer state."
            ;; Regular streaming - append and process terminal sequences
            (progn
              (goto-char (1- tool-result-content-end))
-             (if (fboundp 'vterm-mode)
-                 (condition-case err
-                     (greger--process-terminal-sequences-with-vterm text)
-                   (error
-                    ;; If vterm fails, fall back to basic processing
-                    (greger-ui--process-terminal-sequences text)))
-               (greger-ui--process-terminal-sequences text))))
+             (greger-ui--process-terminal-sequences text)))
 
          (when is-completed
            ;; Trim trailing newline after closing tag
