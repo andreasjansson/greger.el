@@ -1132,6 +1132,10 @@ Returns a cancel function that can interrupt the command execution."
                                 (funcall callback clean-output nil)))
                             
                             (when (buffer-live-p vterm-buffer)
+                              (with-current-buffer vterm-buffer
+                                (when (and process (process-live-p process))
+                                  (set-process-query-on-exit-flag process nil)
+                                  (delete-process process)))
                               (kill-buffer vterm-buffer)))
                           
                           (setq last-content current-content))))
