@@ -1100,19 +1100,20 @@ Returns a cancel function that can interrupt the command execution."
             ;; Remove form feed characters (^L) from vterm-clear and other control chars
             (setq content (replace-regexp-in-string "[\f\r]" "" content))
             
-            ;; Filter out shell prompts and command echoes
-            (let ((lines (split-string content "\n")))
-              (let ((filtered-lines
-                     (seq-remove 
-                      (lambda (line)
-                        (let ((trimmed (string-trim line)))
-                          (or (string-match "^[^@]*@[^:]*:" trimmed)     ; Shell prompts like "user@host:"
-                              (string-equal trimmed command)             ; Exact command match
-                              (string-equal trimmed "exit"))))          ; Exit command
-                      lines)))
-                ;; Remove empty lines from beginning and end, but preserve internal empty lines
-                (let ((result (string-join filtered-lines "\n")))
-                  (string-trim result))))))
+            ;; Remove shell prompts by regex replacement rather than line filtering
+            ;; This is more precise and less likely to remove legitimate content
+            (setq content (replace-regexp-in-string "^[^@]*@[^:]*:[^$]*\\$ " "" content))
+            
+            ;; Remove the command echo line if it appears
+            (when (string-prefix-p command content)
+              (setq content (substring content (length command)))
+              (setq content (string-trim-left content)))
+            
+            ;; Remove "exit" command if it appears at the end
+            (setq content (replace-regexp-in-string "\\nexit\\s-*\\'" "" content))
+            
+            ;; Clean up extra whitespace
+            (string-trim content)))
         
         ;; Set up process sentinel to capture output when shell terminates
         (when process
