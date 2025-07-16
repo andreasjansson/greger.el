@@ -1,0 +1,1747 @@
+# USER
+
+Add a probe tool (https://github.com/buger/probe) to greger-stdlib.el. Only use it for it's code searching functionality, not the MCP server, CLI, AI chat, web interface, etc.
+
+If it's not installed, respond similarly to when ripgrep isn't installed.
+
+# THINKING
+
+Signature: EsIFCkYIBRgCKkARLZQPdwE1uNMgTpS4p1AebvyMEbAUM7rEy/o33nYS3R/YpTrEaTUlgOxvO2XoztS/O8VbMRLRziQ9ybVJzDaOEgwegKNv7M6nNVY5u7oaDJTaihX/bKVmf9+F3iIw6JWSM8sz31Wc/LLc50ASRlKY6JHmgUvrAGZCh1JN9MVfDtYB/E8VCskVLbkueta0KqkE7WaIDQejEGAVNtbAbO/UipdN4gtT8YUwNy7seqvUJ5nWAmI7kBEwOC8j5K/6lj8RQ0A5ltXgFaGIAb2i0lPYiWmUrw6hQXoJPF/EriSBvOYFyPt3nn71/NXcIQ8yfZXZdxsjW4rbCL0uYU/ge+2jBHcQ+e0XHDwCM5R4+m9C2176z5xhEM12cBzvocnH6Y6NbY1qMCcSZvC6M4h39sA/xOHCO+C8d2p7/uaHayLpn/R/spK8TioBDRgZTpZZ1T0S1M7O/rtpzvS/wz7DB5Faz1eYNEs/Wbxw7Tch29JwndC3VKT0gSMxvTlNdI1ZwbTtUyFLNzz8XcTyEzSOiyAoc+pV7vxUilutRmFihqGgvG5jDDRNbDbMy+9VYeicHL50hykyYPqBQxplv2q7Xg3CTzRYdFf9/oPyz7qCE/ESPS2UK8uY8V45JIHzA4yrKoKxfWLd43LR1tlx4CeBKrMa3IaFgUc8MkWcch7BkUoZMxSx042Gt/V5fPzaXm43XcyvWQskQjk+lIV9p4a7fW45J3lrFjjUrOR03zn2pSUeT+Mxj2xx8qqYPI8/1+/en7QARzg5z9+hsbkfUs3qjaaS+kkMC0hexoNxvOlz25HQBSsnAUpcBV32EuFteR44OxjYVqGXUQqtmmMDhHj98a+Dg5aNL+rkit8mXpngg91tSV8l+99LtFqqa8lQlEGT38+etvUmtYiokR1JvGgEcDqwCpGxkIWDMfdoARgB
+
+The user wants me to add a probe tool to greger-stdlib.el. They want me to use it only for its code searching functionality, not for other features like MCP server, CLI, AI chat, web interface, etc.
+
+I need to:
+1. First, look at the existing greger-stdlib.el file to understand the structure
+2. See how ripgrep is implemented as a reference
+3. Add the probe tool functionality similar to how ripgrep is handled
+4. Make sure to handle the case when probe is not installed, similar to ripgrep
+
+Let me start by examining the existing file.
+
+# ASSISTANT
+
+I'll help you add a probe tool to greger-stdlib.el. Let me first examine the existing file to understand the structure and see how ripgrep is implemented as a reference.
+
+# TOOL USE
+
+Name: read-file
+ID: toolu_01VEeraCpuAai9ZMuoSU49Gx
+
+## path
+
+<tool.toolu_01VEeraCpuAai9ZMuoSU49Gx>
+greger-stdlib.el
+</tool.toolu_01VEeraCpuAai9ZMuoSU49Gx>
+
+# TOOL RESULT
+
+ID: toolu_01VEeraCpuAai9ZMuoSU49Gx
+
+<tool.toolu_01VEeraCpuAai9ZMuoSU49Gx>
+;;; greger-stdlib.el --- Tool definitions for greger agent -*- lexical-binding: t -*-
+
+;; Copyright (C) 2025 Andreas Jansson
+
+;; Author: Andreas Jansson <andreas@jansson.me.uk>
+;; Version: 0.1.0
+;; URL: https://github.com/andreasjansson/greger.el
+;; SPDX-License-Identifier: MIT
+
+;; Permission is hereby granted, free of charge, to any person obtaining a copy
+;; of this software and associated documentation files (the "Software"), to deal
+;; in the Software without restriction, including without limitation the rights
+;; to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+;; copies of the Software, and to permit persons to whom the Software is
+;; furnished to do so, subject to the following conditions:
+
+;; The above copyright notice and this permission notice shall be included in all
+;; copies or substantial portions of the Software.
+
+;; THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+;; IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+;; FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+;; AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+;; LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+;; OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+;; SOFTWARE.
+
+;;; Commentary:
+;; Defines tools available to the greger agent
+
+;;; Code:
+
+(require 'cl-lib)
+(require 'ansi-color)
+
+(require 'greger-tools)
+(require 'greger-web)
+
+;; Server tool registrations
+
+(greger-register-server-tool "web_search"
+                             :type "web_search_20250305"
+                             :max_uses 5)
+
+;; Tool registrations
+
+;; Editing tools
+
+(greger-register-tool "read-file"
+                      :description "Read the contents of a file from the filesystem"
+                      :properties '((path . ((type . "string")
+                                             (description . "Path to the file to read")))
+                                    (include-line-numbers . ((type . "boolean")
+                                                             (description . "Whether to include line numbers in the output. If you plan to modify the file, you should include line numbers here so you know which lines to edit.")
+                                                             (default . nil)))
+                                    (start-line . ((type . "integer")
+                                                   (description . "Starting line number (1-based) to begin reading from. If not specified, reads from the beginning of the file.")
+                                                   (default . nil)))
+                                    (end-line . ((type . "integer")
+                                                 (description . "Ending line number (1-based) to stop reading at (inclusive). If not specified, reads to the end of the file.")
+                                                 (default . nil))))
+                      :required '("path")
+                      :function 'greger-stdlib--read-file)
+
+(greger-register-tool "write-new-file"
+                      :description "Write a new file with the given contents. Fails if the file already exists."
+                      :properties '((path . ((type . "string")
+                                             (description . "Absolute path to the new file")))
+                                    (contents . ((type . "string")
+                                                 (description . "Contents to write to the new file")))
+                                    (git-commit-message . ((type . "string")
+                                                           (description . "Git commit message for this change"))))
+                      :required '("path" "contents" "git-commit-message")
+                      :function 'greger-stdlib--write-new-file
+                      :pass-buffer t)
+
+(greger-register-tool "replace-file"
+                      :description "Replace the entire contents of an existing file. Slow but reliable - replaces the complete file contents. Use str-replace for targeted changes in larger files."
+                      :properties '((path . ((type . "string")
+                                             (description . "Path to the file to replace")))
+                                    (contents . ((type . "string")
+                                                 (description . "New contents to replace the entire file")))
+                                    (git-commit-message . ((type . "string")
+                                                           (description . "Git commit message for this change"))))
+                      :required '("path" "contents" "git-commit-message")
+                      :function 'greger-stdlib--replace-file
+                      :pass-buffer t)
+
+(greger-register-tool "str-replace"
+                      :description "Replace a specific string or content block in a file with new content. Finds the exact original content and replaces it with new content. Be extra careful to format the original-content exactly correctly, taking extra care with whitespace and newlines. In addition to replacing strings, str-replace can also be used to prepend, append, or delete contents from a file. If you're making large swaths of changes, consider using replace-file instead."
+                      :properties '((path . ((type . "string")
+                                             (description . "Path to the file to modify")))
+                                    (original-content . ((type . "string")
+                                                         (description . "The exact content to find and replace")))
+                                    (new-content . ((type . "string")
+                                                    (description . "The new content to replace the original content with")))
+                                    (git-commit-message . ((type . "string")
+                                                           (description . "Git commit message for this change")))
+                                    (replace-all . ((type . "boolean")
+                                                    (description . "If true, replace all instances of original-content. If false (default), replace only the first instance")
+                                                    (default . nil))))
+                      :required '("path" "original-content" "new-content" "git-commit-message")
+                      :function 'greger-stdlib--str-replace
+                      :pass-buffer t)
+
+;; File tools
+
+(greger-register-tool "make-directory"
+                      :description "Recursively create a directory and all parent directories if they don't exist"
+                      :properties '((path . ((type . "string")
+                                             (description . "Path to the directory to create")))
+                                    (git-commit-message . ((type . "string")
+                                                           (description . "Git commit message for this change"))))
+                      :required '("path" "git-commit-message")
+                      :function 'greger-stdlib--make-directory
+                      :pass-buffer t)
+
+(greger-register-tool "rename-file"
+                      :description "Rename or move a file from one path to another"
+                      :properties '((old-path . ((type . "string")
+                                                 (description . "Current path of the file")))
+                                    (new-path . ((type . "string")
+                                                 (description . "New path for the file")))
+                                    (git-commit-message . ((type . "string")
+                                                           (description . "Git commit message for this change"))))
+                      :required '("old-path" "new-path" "git-commit-message")
+                      :function 'greger-stdlib--rename-file
+                      :pass-buffer t)
+
+(greger-register-tool "delete-files"
+                      :description "Delete the files and if they're tracked in git it should stage the deletion and commit"
+                      :properties '((paths . ((type . "array")
+                                              (items . ((type . "string")))
+                                              (description . "List of file paths to delete")))
+                                    (git-commit-message . ((type . "string")
+                                                           (description . "Git commit message for this change"))))
+                      :required '("paths" "git-commit-message")
+                      :function 'greger-stdlib--delete-files
+                      :pass-buffer t)
+
+(greger-register-tool "list-directory"
+                      :description "List files and directories in a given directory"
+                      :properties '((path . ((type . "string")
+                                             (description . "Path to the directory to list. Defaults to current directory.")
+                                             (default . ".")))
+                                    (exclude-directories-recursive . ((type . "array")
+                                                                      (items . ((type . "string")))
+                                                                      (description . "List of directory names to exclude when recursively listing files.")
+                                                                      (default . (".git" "__pycache__"))))
+                                    (recursive . ((type . "boolean")
+                                                  (description . "Whether to list files recursively")
+                                                  (default . nil))))
+                      :required '()
+                      :function 'greger-stdlib--list-directory)
+
+;; Ripgrep tool
+
+(greger-register-tool "ripgrep"
+                      :description "Search for patterns in files using ripgrep (rg) command line tool. Note that ripgrep only matches on single lines, so you can't search across multiple lines."
+                      :properties '((pattern . ((type . "string")
+                                                (description . "The search pattern (regex or literal string). Uses regular expression syntax by default. Meta characters like .(){}*+?[]^$|\\  have special meaning and should be escaped with backslash if you want to match them literally. Use the fixed-strings parameter for literal string matching. Supports Unicode by default. You have a tendency to add a trailing double quote `\"` to the end of `pattern` -- don't to that since it will break matching!")))
+                                    (path . ((type . "string")
+                                             (description . "Directory or file path to search in. Directories are searched recursively. Supports glob patterns and respects .gitignore rules by default. Use '.' for current directory, or specify multiple paths separated by spaces")
+                                             (default . ".")))
+                                    (case-sensitive . ((type . "boolean")
+                                                       (description . "Whether the search should be case-sensitive")
+                                                       (default . nil)))
+                                    (file-type . ((type . "string")
+                                                  (description . "Restrict search to specific file types using predefined type names. Examples: 'py' (Python), 'js' (JavaScript), 'md' (Markdown), 'cpp' (C++), 'elisp' (Emacs Lisp), 'java', 'rust', 'go', 'html', 'css', 'json', 'xml', 'yaml', 'sh' (shell scripts), 'sql', 'tex', 'dockerfile'. Use 'rg --type-list' to see all available types and their file extensions")))
+                                    (context-lines . ((type . "integer")
+                                                      (description . "Number of context lines to show around matches")
+                                                      (default . 0)))
+                                    (fixed-strings . ((type . "boolean")
+                                                      (description . "Treat the pattern as a literal string instead of a regular expression")
+                                                      (default . nil)))
+                                    (word-regexp . ((type . "boolean")
+                                                    (description . "Only show matches surrounded by word boundaries")
+                                                    (default . nil)))
+                                    (line-regexp . ((type . "boolean")
+                                                    (description . "Only show matches where the entire line participates in the match")
+                                                    (default . nil)))
+                                    (max-results . ((type . "integer")
+                                                    (description . "Maximum number of results to return")
+                                                    (default . 50))))
+                      :required '("pattern")
+                      :function 'greger-stdlib--ripgrep
+                      :pass-callback t)
+
+;; Shell commands
+
+(greger-register-tool "shell-command"
+                      :description "Execute an arbitrary shell command and return the output. Prompts for permission before running the command for security."
+                      :properties '((command . ((type . "string")
+                                                (description . "The shell command to execute")))
+                                    (working-directory . ((type . "string")
+                                                          (description . "Directory to run the command in")
+                                                          (default . ".")))
+                                    (timeout . ((type . "integer")
+                                                (description . "Timeout in seconds for command execution")
+                                                (default . 600)))
+                                    (enable-environment . ((type . "boolean")
+                                                           (description . "Whether to source shell initialization files (.bashrc, .bash_profile) which may contain secrets and environment variables")
+                                                           (default . nil))))
+                      :required '("command")
+                      :function 'greger-stdlib--shell-command
+                      :pass-callback t
+                      :streaming t
+                      :pass-metadata t)
+
+;; Web tools
+
+(greger-register-tool "read-webpage"
+                      :description "Read webpage content from a URL. Can return either extracted text or raw HTML."
+                      :properties '((url . ((type . "string")
+                                            (description . "The URL to read content from")))
+                                    (extract-text . ((type . "boolean")
+                                                     (description . "Whether to extract text content or return raw HTML")
+                                                     (default . t)))
+                                    (use-highest-readability . ((type . "boolean")
+                                                                (description . "Whether to use eww's aggressive highest readability setting for better text extraction")
+                                                                (default . nil))))
+                      :required '("url")
+                      :function 'greger-stdlib--read-webpage)
+
+;; Helper functions
+
+(cl-defun greger-stdlib--assert-arg-string (name value &key min-length)
+  "Assert that VALUE is a string, error with NAME if not."
+  (unless (stringp value)
+    (error "Invalid argument: %s must be a string" name))
+  (when (and min-length (< (length value) min-length))
+    (error "Invalid argument: %s must have a length of at least %d" name min-length)))
+
+(defun greger-stdlib--assert-arg-bool (name value)
+  "Assert that VALUE is a boolean, error with NAME if not."
+  (unless (booleanp value)
+    (error "Invalid argument: %s must be a boolean" name)))
+
+(defun greger-stdlib--assert-arg-string-vector (name value)
+  "Assert that VALUE is a vector of strings, error with NAME if not."
+  (unless (vectorp value)
+    (error "Invalid argument: %s must be a vector" name))
+  (seq-doseq (item value)
+    (unless (stringp item)
+      (error "Invalid argument: each element in %s must be a string" name))))
+
+(cl-defun greger-stdlib--assert-arg-int (name value &key ge le)
+  "Assert that VALUE is an integer within the specified bounds.
+Error with NAME if not. Either bound can be nil to skip that check."
+  (unless (integerp value)
+    (error "Invalid argument: %s must be an integer" name))
+  (when (and ge (< value ge))
+    (error "Invalid argument: %s must be >= %d" name ge))
+  (when (and le (> value le))
+    (error "Invalid argument: %s must be <= %d" name le)))
+
+(defun greger-stdlib--assert-arg-string-web-url (name value)
+  "Assert that VALUE is a valid web URL string, error with NAME if not."
+  (greger-stdlib--assert-arg-string name value)
+  (when (string-empty-p (string-trim value))
+    (error "Invalid argument: %s cannot be empty" name))
+  (unless (greger-web-is-web-url-p value)
+    (error "Invalid argument: %s must be a valid URL (starting with http:// or https://)" name)))
+
+(cl-defun greger-stdlib--run-async-subprocess (&key command args working-directory callback timeout env streaming-callback)
+  "Run COMMAND with ARGS in WORKING-DIRECTORY and call CALLBACK.
+CALLBACK will be called with (output nil) on success or (nil error-message) on
+failure.
+TIMEOUT specifies the maximum time in seconds to wait for completion,
+the default is no timeout.
+ENV is an optional alist of environment variables to set.
+STREAMING-CALLBACK, if provided, will be called with each chunk of output
+as it arrives from the subprocess.
+Returns a cancel function that can be called to interrupt the process."
+  (let* ((process-name (format "greger-subprocess-%s" (make-temp-name "")))
+         (process-buffer (generate-new-buffer (format " *%s*" process-name)))
+         (default-directory (expand-file-name (or working-directory ".")))
+         (process-environment (if env
+                                  (append (mapcar (lambda (pair) (format "%s=%s" (car pair) (cdr pair))) env)
+                                          process-environment)
+                                process-environment))
+         (process nil)
+         (callback-called nil)
+         (timeout-timer nil))
+
+    (condition-case err
+        (progn
+          (setq process (apply #'start-process process-name process-buffer command args))
+          (set-process-query-on-exit-flag process nil)
+
+          ;; Set up timeout timer if specified
+          (when timeout
+            (setq timeout-timer
+                  (run-at-time timeout nil
+                               (lambda ()
+                                 (when (and process (process-live-p process))
+                                   (unless callback-called
+                                     (setq callback-called t)
+                                     (when timeout-timer
+                                       (cancel-timer timeout-timer))
+                                     (interrupt-process process)
+                                     (sit-for 0.1)
+                                     (when (process-live-p process)
+                                       (delete-process process))
+                                     (when (buffer-live-p process-buffer)
+                                       (kill-buffer process-buffer))
+                                     (funcall callback nil (format "Command timed out after %d seconds" timeout))))))))
+
+          (set-process-sentinel
+           process
+           (lambda (proc _event)
+             (unless callback-called
+               (setq callback-called t)
+               ;; Cancel timeout timer if it's running
+               (when timeout-timer
+                 (cancel-timer timeout-timer))
+               (let* ((exit-status (process-exit-status proc))
+                      (output (with-current-buffer process-buffer
+                                (buffer-string)))
+                      (callback-output (cond
+                                        ((and (not streaming-callback)
+                                              (string-empty-p (string-trim output)))
+                                         "(no output)")
+                                        ;; when streaming, don't output the text
+                                        (streaming-callback "")
+                                        (t output)))
+                      (callback-error-message (concat (format "Command failed with exit code %d" exit-status)
+                                                      (if streaming-callback
+                                                          ""
+                                                        (concat ": " callback-output)))))
+                 (when (buffer-live-p process-buffer)
+                   (kill-buffer process-buffer))
+                 (cond
+                  ((= exit-status 0)
+                   (funcall callback callback-output nil))
+                  (t
+                   (funcall callback nil callback-error-message)))))))
+
+          (when streaming-callback
+            (set-process-filter
+             process
+             (lambda (_proc output)
+               ;; TODO: handle this in a font-lock function instead so
+               ;; ansi color codes are applied when a buffer is opened too
+               (funcall streaming-callback (ansi-color-apply output)))))
+
+          ;; Return cancel function
+          (lambda ()
+            ;; Cancel timeout timer if it's running
+            (when timeout-timer
+              (cancel-timer timeout-timer))
+            (when (and process (process-live-p process))
+              (interrupt-process process)
+              (sit-for 0.1)
+              (when (process-live-p process)
+                (delete-process process)))
+            (unless callback-called
+              (setq callback-called t)
+              (when (buffer-live-p process-buffer)
+                (kill-buffer process-buffer))
+              ;; Call callback with cancellation error
+              (funcall callback nil "Command execution was cancelled"))))
+      (error
+       (when (buffer-live-p process-buffer)
+         (kill-buffer process-buffer))
+       (funcall callback nil (format "Failed to start process: %s" (error-message-string err)))
+       ;; Return no-op cancel function if process failed to start
+       (lambda () nil)))))
+
+(defun greger-stdlib--find-git-repo-root (start-dir)
+  "Find the git repository root starting from START-DIR."
+  (let ((dir (expand-file-name start-dir)))
+    (while (and dir
+                (not (file-exists-p (expand-file-name ".git" dir)))
+                (not (string= dir (directory-file-name dir))))
+      (setq dir (file-name-directory (directory-file-name dir))))
+    (when (and dir (file-exists-p (expand-file-name ".git" dir)))
+      dir)))
+
+(defun greger-stdlib--is-file-tracked-by-git (path repo-root)
+  "Check if PATH is tracked by git in REPO-ROOT.
+Returns t if the file is tracked, nil otherwise."
+  (let ((default-directory repo-root)
+        (relative-path (file-relative-name (expand-file-name path) repo-root)))
+    (= 0 (call-process "git" nil nil nil "ls-files" "--error-unmatch" relative-path))))
+
+;; Tools below
+
+(defun greger-stdlib--git-stage-and-commit (files commit-message &optional chat-buffer)
+  "Stage FILES and commit with COMMIT-MESSAGE using git command line.
+If CHAT-BUFFER is provided, also stage and commit the chat buffer file."
+  (condition-case err
+      (let* ((first-file (car files))
+             (file-dir (file-name-directory (expand-file-name first-file)))
+             (repo-root (greger-stdlib--find-git-repo-root file-dir)))
+        (unless repo-root
+          (error "File %s is not in a git repository" first-file))
+
+        ;; Set default-directory to the repository root for git operations
+        (let ((default-directory repo-root)
+              (all-files files))
+
+          ;; Add chat buffer file if provided, it has a file, and it's already tracked in git
+          (when (and chat-buffer (buffer-file-name chat-buffer))
+            (let ((chat-file (buffer-file-name chat-buffer)))
+              ;; Only proceed if the chat file is already tracked by git
+              (when (greger-stdlib--is-file-tracked-by-git chat-file repo-root)
+                ;; Save the chat buffer first if it has unsaved changes
+                (with-current-buffer chat-buffer
+                  (when (buffer-modified-p)
+                    (save-buffer)))
+                ;; Add chat file to the list of files to stage
+                (push chat-file all-files))))
+
+          ;; Stage the files
+          (dolist (file all-files)
+            (let ((relative-path (file-relative-name (expand-file-name file) repo-root)))
+              (unless (= 0 (call-process "git" nil nil nil "add" relative-path))
+                (error "Failed to stage file: %s" file))))
+
+          ;; Create the commit
+          (unless (= 0 (call-process "git" nil nil nil "commit" "-m" commit-message))
+            (error "Failed to create commit"))
+
+          (format "Successfully staged %d file(s) and committed with message: %s"
+                  (length all-files) commit-message)))
+    (error "Git operation failed: %s" (error-message-string err))))
+
+(defun greger-stdlib--read-file (path include-line-numbers start-line end-line)
+  "Read file at PATH.  If INCLUDE-LINE-NUMBERS is non-nil, prepend line numbers.
+If START-LINE is specified, start reading from that line (1-based).
+If END-LINE is specified, stop reading at that line (inclusive, 1-based)."
+  (greger-stdlib--assert-arg-string "path" path)
+  (greger-stdlib--assert-arg-bool "include-line-numbers" include-line-numbers)
+  (when start-line
+    (greger-stdlib--assert-arg-int "start-line" start-line :ge 1))
+  (when end-line
+    (greger-stdlib--assert-arg-int "end-line" end-line :ge 1))
+
+  (when (and start-line end-line (> start-line end-line))
+    (error "Invalid value: start-line must be <= end-line"))
+
+  (let ((expanded-path (expand-file-name path)))
+    (unless (file-exists-p expanded-path)
+      (error "File does not exist: %s" expanded-path))
+
+    (unless (file-readable-p expanded-path)
+      (error "File is not readable: %s" expanded-path))
+
+    (when (file-directory-p expanded-path)
+      (error "Path is a directory, not a file: %s" expanded-path))
+
+    (condition-case err
+        (with-temp-buffer
+          (insert-file-contents expanded-path)
+          (let* ((all-lines (split-string (buffer-string) "\n"))
+                 ;; Remove trailing empty line if it exists (from trailing newline)
+                 (all-lines (if (and (> (length all-lines) 0)
+                                     (string-empty-p (car (last all-lines))))
+                                (butlast all-lines)
+                              all-lines))
+                 (total-lines (length all-lines))
+                 (actual-start (or start-line 1))
+                 (actual-end (or end-line total-lines))
+                 (selected-lines (greger-stdlib--extract-line-range all-lines actual-start actual-end))
+                 (contents (mapconcat #'identity selected-lines "\n")))
+            (if include-line-numbers
+                (greger-stdlib--add-line-numbers-with-offset contents actual-start)
+              contents)))
+      (error "Failed to read file: %s" (error-message-string err)))))
+
+(defun greger-stdlib--extract-line-range (lines start-line end-line)
+  "Extract lines from LINES between START-LINE and END-LINE (1-based, inclusive)."
+  (let ((start-index (1- start-line))  ; Convert to 0-based index
+        (end-index (1- end-line)))     ; Convert to 0-based index
+    ;; Ensure indices are within bounds
+    (setq start-index (max 0 start-index))
+    (setq end-index (min (1- (length lines)) end-index))
+    ;; Extract the range
+    (cl-subseq lines start-index (1+ end-index))))
+
+(defun greger-stdlib--add-line-numbers-with-offset (content start-line-num)
+  "Add line numbers to CONTENT string starting from START-LINE-NUM."
+  (let* ((lines (split-string content "\n"))
+         (line-num start-line-num)
+         (max-width (length (number-to-string (+ start-line-num (length lines) -1))))
+         (number-format (concat "%" (number-to-string max-width) "d: %s"))
+         result)
+
+    ;; Add line numbers to each line
+    (dolist (line lines)
+      (push (format number-format line-num line) result)
+      (setq line-num (1+ line-num)))
+
+    ;; Join back with newlines
+    (mapconcat #'identity (reverse result) "\n")))
+
+(defun greger-stdlib--list-directory (path &optional exclude-directories-recursive recursive)
+  "List directory contents at PATH with detailed file information.
+Similar to \\='ls -Rla\\='.
+EXCLUDE-DIRECTORIES-RECURSIVE is a vector of directory names to exclude when
+recursively listing (defaults to [\".git\" \"__pycache__\"]).
+If RECURSIVE is non-nil, list files recursively."
+  (greger-stdlib--assert-arg-string "path" path)
+
+  (let ((expanded-path (expand-file-name path))
+        (original-path path))
+    (unless (file-exists-p expanded-path)
+      (error "Directory does not exist: %s" expanded-path))
+
+    (unless (file-directory-p expanded-path)
+      (error "Path is not a directory: %s" expanded-path))
+
+    (unless (file-readable-p expanded-path)
+      (error "Directory is not readable: %s" expanded-path))
+
+    (condition-case err
+        (greger-stdlib--list-directory-recursive expanded-path exclude-directories-recursive original-path recursive)
+      (error "Failed to list directory: %s" (error-message-string err)))))
+
+(defun greger-stdlib--list-directory-recursive (path exclude-directories-recursive original-path recursive &optional prefix)
+  "Recursively list directory contents with detailed information.
+PATH is the actual directory path to list.
+EXCLUDE-DIRECTORIES-RECURSIVE is vector of directory names to exclude when
+recursively listing.
+ORIGINAL-PATH is used for display purposes at the root level.
+RECURSIVE determines if we should recurse into subdirectories.
+PREFIX is used internally for nested directory structure."
+  (let ((all-results '())
+        (subdirs '())
+        (display-path (cond
+                       ;; Root level: use original path or relative notation
+                       ((string= (or prefix "") "")
+                        (let ((display-path-base (or original-path path)))
+                          (if (string= display-path-base ".")
+                              "./"
+                            (file-name-as-directory display-path-base))))
+                       ;; Nested level with absolute original path: build absolute path
+                       ((and original-path (file-name-absolute-p original-path))
+                        (file-name-as-directory
+                         (expand-file-name prefix (directory-file-name original-path))))
+                       ;; Nested level with relative path: use relative notation
+                       (t (concat "./" prefix)))))
+
+    ;; Build current directory listing
+    (let ((current-listing '()))
+      ;; Add directory header
+      (push (format "%s:" display-path) current-listing)
+
+      ;; Add current and parent directory entries
+      (push (greger-stdlib--format-file-info path "." exclude-directories-recursive) current-listing)
+      (unless (string= (expand-file-name path) (expand-file-name "/"))
+        (push (greger-stdlib--format-file-info (file-name-directory (directory-file-name path)) ".." exclude-directories-recursive) current-listing))
+
+      ;; Process files and directories
+      (let ((files (directory-files path t)))
+        (dolist (file (sort files #'string<))
+          (let* ((basename (file-name-nondirectory file)))
+            (when (and (not (string= basename "."))
+                       (not (string= basename "..")))
+              (let ((formatted (greger-stdlib--format-file-info file basename exclude-directories-recursive)))
+                (when formatted
+                  (push formatted current-listing)))
+              ;; Collect subdirectories for recursive processing, excluding based on pattern
+              (when (and recursive
+                         (file-directory-p file)
+                         (greger-stdlib--should-include-directory-in-recursive-listing-p basename exclude-directories-recursive))
+                (push file subdirs))))))
+
+      ;; Add current directory to results (reverse to get correct order)
+      (setq all-results (reverse current-listing)))
+
+    ;; Process subdirectories recursively if requested
+    (when recursive
+      (dolist (subdir (reverse subdirs)) ; Reverse to maintain alphabetical order
+        (let* ((basename (file-name-nondirectory subdir))
+               (subdir-results (greger-stdlib--list-directory-recursive
+                                subdir exclude-directories-recursive original-path recursive
+                                (concat (or prefix "") basename "/"))))
+          (setq all-results (append all-results (list "" subdir-results))))))
+
+    ;; Return results
+    (if (> (length all-results) 1) ; More than just the header
+        (mapconcat #'identity all-results "\n")
+      (format "%s:\nDirectory is empty" display-path))))
+
+(defun greger-stdlib--format-file-info (filepath displayname _exclude-directories-recursive)
+  "Format file information similar to \\='ls -la\\=' output.
+FILEPATH is the full path to the file.
+DISPLAYNAME is the name to display in the output.
+_EXCLUDE-DIRECTORIES-RECURSIVE is unused in this function."
+  (when (file-exists-p filepath)
+    (let* ((attrs (file-attributes filepath))
+           (file-type (nth 0 attrs))
+           (size (nth 7 attrs))
+           (mode-string (greger-stdlib--file-mode-string attrs))
+           (size-or-dir (if (eq file-type t) "(dir)" (format "%8d" size))))
+
+      (format "%s  %s  %s"
+              mode-string
+              size-or-dir
+              displayname))))
+
+(defun greger-stdlib--file-mode-string (attrs)
+  "Convert file attributes to mode string like \\='drwxr-xr-x\\='.
+ATTRS should be the result of `file-attributes'."
+  (let* ((file-type (nth 0 attrs))
+         (mode (nth 8 attrs))
+         (type-char (cond
+                     ((eq file-type t) "d")          ; directory
+                     ((stringp file-type) "l")       ; symbolic link
+                     (t "-")))                       ; regular file
+         (perms (if (stringp mode)
+                    (substring mode 1)  ; Skip the type character from mode string
+                  "rwxrwxrwx")))       ; Default fallback
+    (concat type-char perms)))
+
+(defun greger-stdlib--should-include-directory-in-recursive-listing-p (directory-name exclude-directories-recursive)
+  "Return t if directory with DIRECTORY-NAME should be included in listing.
+EXCLUDE-DIRECTORIES-RECURSIVE is a vector of directory names to exclude.
+If EXCLUDE-DIRECTORIES-RECURSIVE is nil, use default excludes.
+If EXCLUDE-DIRECTORIES-RECURSIVE is an empty vector, exclude nothing."
+  (let ((actual-exclude-list (if (null exclude-directories-recursive)
+                                 [".git" "__pycache__"]
+                               exclude-directories-recursive)))
+    (not (seq-contains-p actual-exclude-list directory-name))))
+
+(defun greger-stdlib--write-new-file (path contents git-commit-message &optional buffer)
+  "Write CONTENTS to a new file at PATH.  Fails if file already exists.
+GIT-COMMIT-MESSAGE will be used for the git commit.
+If BUFFER is provided, it will be staged and committed along with the new file."
+  (greger-stdlib--assert-arg-string "path" path)
+  (greger-stdlib--assert-arg-string "contents" contents)
+
+  (let ((expanded-path (expand-file-name path)))
+
+    ;; Check if file already exists
+    (when (file-exists-p expanded-path)
+      (error "File already exists: %s" expanded-path))
+
+    (when (string-suffix-p ".el" expanded-path)
+      (let ((balance (greger-stdlib--count-paren-balance contents)))
+        (unless (= balance 0)
+          (error "Unbalanced parentheses in Emacs Lisp content: contents has balance %d. Must be 0. Try again!" balance))))
+
+    ;; Check if parent directory exists, if not create it
+    (let ((parent-dir (file-name-directory expanded-path)))
+      (unless (file-exists-p parent-dir)
+        (make-directory parent-dir t)))
+
+    ;; Write the file
+    (condition-case err
+        (with-temp-buffer
+          (insert contents)
+          (write-file expanded-path))
+      (error "Failed to write file: %s" (error-message-string err)))
+
+    ;; Stage and commit changes - infer the file to stage
+    (let ((git-result (greger-stdlib--git-stage-and-commit (list expanded-path) git-commit-message buffer)))
+      (format "Successfully wrote new file %s with %d characters. %s"
+              expanded-path (length contents) git-result))))
+
+(defun greger-stdlib--make-directory (path git-commit-message &optional buffer)
+  "Recursively create directory at PATH.
+GIT-COMMIT-MESSAGE will be used for the git commit.
+If BUFFER is provided, it will be staged and committed along with the directory."
+  (greger-stdlib--assert-arg-string "path" path)
+
+  (let ((expanded-path (expand-file-name path)))
+
+    ;; Check if path already exists
+    (if (file-exists-p expanded-path)
+        (if (file-directory-p expanded-path)
+            (format "Directory already exists: %s" expanded-path)
+          (error "Path exists but is not a directory: %s" expanded-path))
+
+      ;; Create directory recursively
+      (condition-case err
+          (progn
+            (make-directory expanded-path t)
+            ;; For directory creation, we might want to stage a .gitkeep file or similar
+            ;; For now, we'll stage the directory path itself (though git doesn't track empty dirs)
+            (let ((git-result (greger-stdlib--git-stage-and-commit (list expanded-path) git-commit-message buffer)))
+              (format "Successfully created directory: %s. %s" expanded-path git-result)))
+        (error "Failed to create directory: %s" (error-message-string err))))))
+
+(defun greger-stdlib--rename-file (old-path new-path git-commit-message &optional buffer)
+  "Rename file from OLD-PATH to NEW-PATH.
+GIT-COMMIT-MESSAGE will be used for the git commit.
+If BUFFER is provided, it will be staged and committed with the renamed file."
+  (greger-stdlib--assert-arg-string "old-path" old-path)
+  (greger-stdlib--assert-arg-string "new-path" new-path)
+
+  (let ((expanded-old-path (expand-file-name old-path))
+        (expanded-new-path (expand-file-name new-path)))
+
+    ;; Check if old file exists
+    (unless (file-exists-p expanded-old-path)
+      (error "Source file does not exist: %s" expanded-old-path))
+
+    ;; Check if new file already exists
+    (when (file-exists-p expanded-new-path)
+      (error "Destination file already exists: %s" expanded-new-path))
+
+    ;; Ensure destination directory exists
+    (let ((parent-dir (file-name-directory expanded-new-path)))
+      (unless (file-exists-p parent-dir)
+        (make-directory parent-dir t)))
+
+    ;; Rename the file
+    (condition-case err
+        (progn
+          (rename-file expanded-old-path expanded-new-path)
+          ;; Stage both old and new paths (git mv operation)
+          (let ((git-result (greger-stdlib--git-stage-and-commit
+                             (list expanded-old-path expanded-new-path)
+                             git-commit-message buffer)))
+            (format "Successfully renamed %s to %s. %s" expanded-old-path expanded-new-path git-result)))
+      (error "Failed to rename file: %s" (error-message-string err)))))
+
+(defun greger-stdlib--delete-files (paths git-commit-message &optional buffer)
+  "Delete files at PATHS and stage the deletion in git if tracked.
+GIT-COMMIT-MESSAGE will be used for the git commit.
+If BUFFER is provided, it will be staged and committed with deleted files."
+  (greger-stdlib--assert-arg-string-vector "paths" paths)
+  (greger-stdlib--assert-arg-string "git-commit-message" git-commit-message)
+
+  (let ((expanded-paths '())
+        (deleted-files '())
+        (git-tracked-files '()))
+
+    ;; Validate all files exist first
+    (seq-doseq (path paths)
+      (let ((expanded-path (expand-file-name path)))
+        (unless (file-exists-p expanded-path)
+          (error "File does not exist: %s" expanded-path))
+        (when (file-directory-p expanded-path)
+          (error "Cannot delete directories: %s (only files are supported)" expanded-path))
+        (push expanded-path expanded-paths)))
+
+    ;; Check which files are tracked by git before deletion
+    (dolist (expanded-path (reverse expanded-paths))
+      (let* ((file-dir (file-name-directory expanded-path))
+             (repo-root (greger-stdlib--find-git-repo-root file-dir)))
+        (when (and repo-root
+                   (greger-stdlib--is-file-tracked-by-git expanded-path repo-root))
+          (push expanded-path git-tracked-files))))
+
+    ;; Delete the files
+    (condition-case err
+        (dolist (expanded-path (reverse expanded-paths))
+          (delete-file expanded-path)
+          (push expanded-path deleted-files))
+      (error "Failed to delete file: %s" (error-message-string err)))
+
+    ;; Stage and commit the deletions for git-tracked files
+    (let ((git-result
+           (if git-tracked-files
+               (greger-stdlib--git-stage-and-commit
+                (reverse git-tracked-files)
+                git-commit-message
+                buffer)
+             "No files were tracked by git")))
+
+      (format "Successfully deleted %d file(s): %s. Git status: %s"
+              (length deleted-files)
+              (mapconcat #'identity (reverse deleted-files) ", ")
+              git-result))))
+
+(defun greger-stdlib--replace-file (path contents git-commit-message &optional buffer)
+  "Replace the entire contents of PATH with CONTENTS.
+GIT-COMMIT-MESSAGE will be used for the git commit.
+If BUFFER is provided, it will be staged and committed along with the file."
+  (greger-stdlib--assert-arg-string "path" path)
+  (greger-stdlib--assert-arg-string "contents" contents)
+  (greger-stdlib--assert-arg-string "git-commit-message" git-commit-message)
+
+  (let ((expanded-path (expand-file-name path)))
+
+    ;; Check if file exists
+    (unless (file-exists-p expanded-path)
+      (error "File does not exist: %s" expanded-path))
+
+    ;; Check if it's actually a file and not a directory
+    (when (file-directory-p expanded-path)
+      (error "Path is a directory, not a file: %s" expanded-path))
+
+    (with-current-buffer (find-file-noselect expanded-path)
+      ;; Select all content and replace it
+      (erase-buffer)
+      (insert contents)
+
+      ;; Save the file
+      (save-buffer))
+
+    ;; Stage and commit the file
+    (let ((git-result (greger-stdlib--git-stage-and-commit (list expanded-path) git-commit-message buffer)))
+      (format "Successfully replaced contents of %s with %d characters. %s"
+              expanded-path (length contents) git-result))))
+
+(defun greger-stdlib--count-paren-balance (content)
+  "Count paren balance in CONTENT, ignoring parens in strings and comments.
+Returns the difference between left and right parens (left - right).
+Uses `parse-partial-sexp' to properly handle strings and comments."
+  (with-temp-buffer
+    ;; Set up the buffer with lisp-mode syntax table for proper parsing
+    (with-syntax-table lisp-data-mode-syntax-table
+      (insert content)
+      (goto-char (point-min))
+      (let ((balance 0)
+            (state nil)
+            (pos (point-min)))
+        (while (< pos (point-max))
+          ;; Parse to the next character
+          (setq state (parse-partial-sexp pos (1+ pos) nil nil state))
+          (let ((char (char-after pos)))
+            ;; Only count parens if we're not in a string or comment
+            (unless (or (nth 3 state)  ; in string
+                        (nth 4 state)) ; in comment
+              (cond
+               ((eq char ?\() (setq balance (1+ balance)))
+               ((eq char ?\)) (setq balance (1- balance))))))
+          (setq pos (1+ pos)))
+        balance))))
+
+(defun greger-stdlib--str-replace (path original-content new-content
+                                        git-commit-message &optional
+                                        replace-all buffer)
+  "Replace ORIGINAL-CONTENT with NEW-CONTENT in PATH.
+GIT-COMMIT-MESSAGE will be used for the git commit.
+If REPLACE-ALL is non-nil, replace all instances; otherwise replace only the
+first instance.
+If BUFFER is provided, it will be staged and committed along with the file.
+For Emacs Lisp files (.el), checks that parentheses balance is maintained."
+  (greger-stdlib--assert-arg-string "path" path)
+  (greger-stdlib--assert-arg-string "original-content" original-content)
+  (greger-stdlib--assert-arg-string "new-content" new-content)
+  (greger-stdlib--assert-arg-string "git-commit-message" git-commit-message)
+
+  (let ((expanded-path (expand-file-name path)))
+
+    ;; Check if file exists
+    (unless (file-exists-p expanded-path)
+      (error "File does not exist: %s" expanded-path))
+
+    ;; Check if it's actually a file and not a directory
+    (when (file-directory-p expanded-path)
+      (error "Path is a directory, not a file: %s" expanded-path))
+
+    ;; Check paren balance for Emacs Lisp files
+    (when (string-suffix-p ".el" expanded-path)
+      (let ((orig-balance (greger-stdlib--count-paren-balance original-content))
+            (new-balance (greger-stdlib--count-paren-balance new-content)))
+        (unless (= orig-balance new-balance)
+          (error "Parentheses balance mismatch in Emacs Lisp content: original has balance %d, new has balance %d.  They must be equal.  Try again!"
+                 orig-balance new-balance))))
+
+    (let ((replacements-made 0))
+      (with-current-buffer (find-file-noselect expanded-path)
+        (let ((case-fold-search nil)) ; Make search case-sensitive
+          (goto-char (point-min))
+          (if replace-all
+              ;; Replace all instances
+              (progn
+                (while (search-forward original-content nil t)
+                  (replace-match new-content nil t)
+                  (setq replacements-made (1+ replacements-made)))
+                (when (= replacements-made 0)
+                  (error "Original content not found in file: %s -- Try again!" expanded-path)))
+            ;; Replace only first instance (original behavior)
+            ;; But first check if there are multiple occurrences
+            (let ((first-occurrence-pos nil)
+                  (occurrence-count 0))
+              (while (search-forward original-content nil t)
+                (setq occurrence-count (1+ occurrence-count))
+                (when (= occurrence-count 1)
+                  (setq first-occurrence-pos (match-beginning 0))))
+              (cond
+               ((= occurrence-count 0)
+                (error "Original content not found in file: %s -- Try again!" expanded-path))
+               ((> occurrence-count 1)
+                (error "Found %d occurrences of original content in file: %s. Use replace-all=t to replace all instances, or make the original content more specific -- Try again!" occurrence-count expanded-path))
+               (t
+                ;; Exactly one occurrence, replace it
+                (goto-char first-occurrence-pos)
+                (search-forward original-content nil t)
+                (replace-match new-content nil t)
+                (setq replacements-made 1)))))
+
+          ;; Save the file
+          (save-buffer)))
+
+      ;; Stage and commit the file
+      (let ((git-result (greger-stdlib--git-stage-and-commit (list expanded-path) git-commit-message buffer))
+            (count-msg (if (> replacements-made 1)
+                           (format " (made %d replacements)" replacements-made)
+                         "")))
+        (format "Successfully replaced content in %s%s. %s" expanded-path count-msg git-result)))))
+
+(defun greger-stdlib--shell-command (command callback working-directory timeout enable-environment streaming-callback metadata)
+  "Execute COMMAND in WORKING-DIRECTORY and call CALLBACK with (result error).
+Prompts for permission before running the command for security.
+TIMEOUT is the maximum time in sconds to wait for completion (default 600).
+ENABLE-ENVIRONMENT, if non-nil, sources shell initialization files which
+may contain secrets and environment variables.  User will be warned in
+permission prompt.
+If METADATA contains safe-shell-commands and COMMAND is in that list, skips
+permission prompt.
+Returns a cancel function that can interrupt the command execution."
+  (greger-stdlib--assert-arg-string "command" command :min-length 1)
+  (when working-directory
+    (greger-stdlib--assert-arg-string "working-directory" working-directory))
+
+  (let* ((work-dir (or working-directory "."))
+         (expanded-work-dir (expand-file-name work-dir))
+         (safe-commands (plist-get metadata :safe-shell-commands))
+         (allow-all-shell-commands (plist-get metadata :allow-all-shell-commands)))
+
+    (unless (file-exists-p expanded-work-dir)
+      (error "Working directory does not exist: %s" expanded-work-dir))
+    (unless (file-directory-p expanded-work-dir)
+      (error "Working directory path is not a directory: %s" expanded-work-dir))
+    (when (and (not allow-all-shell-commands)
+               (not (member command safe-commands))
+               (not (y-or-n-p (format "Execute shell command: '%s' in directory '%s'%s? "
+                                      command
+                                      expanded-work-dir
+                                      (if enable-environment
+                                          " (with full environment including secrets)"
+                                        "")))))
+      (error "Shell command execution cancelled by user"))
+
+    (let* ((bash-args (if enable-environment
+                          ;; Interactive to source .bash_profile and .bashrc
+                          (list "-i" "-c" command)
+                        ;; Non-interactive shell (current behavior)
+                        (list "-c" command)))
+           (base-env '(("PAGER" . "cat")))
+           (shell-env base-env))
+
+      (greger-stdlib--run-async-subprocess
+       :command "bash"
+       :args bash-args
+       :working-directory expanded-work-dir
+       :callback callback
+       :timeout timeout
+       :streaming-callback streaming-callback
+       :env shell-env))))
+
+(defun greger-stdlib--ripgrep (pattern path callback case-sensitive file-type
+                                       context-lines fixed-strings word-regexp
+                                       line-regexp max-results)
+  "Search for PATTERN in PATH using the rg command line tool directly.
+CALLBACK is called with (result error) when search completes.
+CASE-SENSITIVE, FILE-TYPE, CONTEXT-LINES, FIXED-STRINGS, WORD-REGEXP,
+LINE-REGEXP and MAX-RESULTS are optional."
+
+  (unless (executable-find "rg")
+    (error "Command not found: ripgrep (rg).  Please install ripgrep"))
+
+  (greger-stdlib--assert-arg-string "pattern" pattern)
+  (greger-stdlib--assert-arg-string "path" path)
+  (greger-stdlib--assert-arg-bool "case-sensitive" case-sensitive)
+  (greger-stdlib--assert-arg-bool "fixed-strings" fixed-strings)
+  (greger-stdlib--assert-arg-bool "word-regexp" word-regexp)
+  (greger-stdlib--assert-arg-bool "line-regexp" line-regexp)
+  (greger-stdlib--assert-arg-int "context-lines" context-lines :ge 0)
+  (greger-stdlib--assert-arg-int "max-results" max-results :ge 1)
+
+  (let ((expanded-path (expand-file-name path)))
+
+    (if (not (file-exists-p expanded-path))
+        (funcall callback nil (format "Path does not exist: %s" expanded-path))
+
+      (let ((args '()))
+        (if case-sensitive
+            (setq args (append args '("--case-sensitive")))
+          (setq args (append args '("--smart-case"))))
+
+        (when (and context-lines (> context-lines 0))
+          (setq args (append args (list "--context" (number-to-string context-lines)))))
+
+        (when (and max-results (> max-results 0))
+          (setq args (append args (list "--max-count" (number-to-string max-results)))))
+
+        (when (and file-type (not (string-empty-p file-type)))
+          (setq args (append args (list "--type" file-type))))
+
+        (when fixed-strings
+          (setq args (append args '("--fixed-strings"))))
+
+        (when word-regexp
+          (setq args (append args '("--word-regexp"))))
+
+        (when line-regexp
+          (setq args (append args '("--line-regexp"))))
+
+        (setq args (append args '("--line-number" "--no-heading")))
+
+        (setq args (append args (list pattern expanded-path)))
+
+        (greger-stdlib--run-async-subprocess
+         :command "rg"
+         :args args
+         :working-directory nil
+         :callback (lambda (output error)
+                     (if error
+                         ;; Check if it's a "no matches" error (exit code 1 with no output)
+                         (if (string-match-p "failed with exit code 1" error)
+                             (funcall callback "No matches found" nil)
+                           (funcall callback nil (format "Failed to execute ripgrep search: %s" error)))
+                       (funcall callback
+                                (if (string-empty-p (string-trim output))
+                                    "No matches found"
+                                  output)
+                                nil))))))))
+
+(defun greger-stdlib--read-webpage (url &optional extract-text use-highest-readability)
+  "Read webpage content from URL.
+If EXTRACT-TEXT is non-nil (default t), extract and return text content.
+If EXTRACT-TEXT is nil, return raw HTML.
+If USE-HIGHEST-READABILITY is non-nil, use eww's aggressive readability setting."
+  (greger-stdlib--assert-arg-string-web-url "url" url)
+
+  (condition-case err
+      (greger-web-download-page url extract-text use-highest-readability)
+    (error "Failed to read webpage: %s" (error-message-string err))))
+
+
+(provide 'greger-stdlib)
+
+;;; greger-stdlib.el ends here
+</tool.toolu_01VEeraCpuAai9ZMuoSU49Gx>
+
+# ASSISTANT
+
+Now I can see the structure of the file. I need to add a probe tool similar to how ripgrep is implemented. Let me check the GitHub repository for probe to understand its functionality first.
+
+# SERVER TOOL USE
+
+Name: web_search
+ID: srvtoolu_011EXKayFajPxt57u9ELuDU5
+
+## query
+
+<tool.srvtoolu_011EXKayFajPxt57u9ELuDU5>
+probe buger github code search
+</tool.srvtoolu_011EXKayFajPxt57u9ELuDU5>
+
+# WEB SEARCH TOOL RESULT
+
+ID: srvtoolu_011EXKayFajPxt57u9ELuDU5
+
+<tool.srvtoolu_011EXKayFajPxt57u9ELuDU5>
+[
+  {
+    "type": "web_search_result",
+    "title": "GitHub - buger/probe: Probe is an AI-friendly, fully local, semantic code search engine which which works with for large codebases. The final missing building block for next generation of AI coding tools.",
+    "url": "https://github.com/buger/probe",
+    "encrypted_content": "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",
+    "page_age": null
+  },
+  {
+    "type": "web_search_result",
+    "title": "buger (Leonid Bugaev) · GitHub",
+    "url": "https://github.com/buger",
+    "encrypted_content": "Es0JCioIBRgCIiQ1OTMxOGJiOC0zZjNhLTQ0Y2UtOWFkNS0wYzYxNWE4MGI0YWISDHjPph4YWCTBkWhrixoMyXFcx4p6iU72VT+lIjC+lieNN0xsvqhSxr2Y2izdGpA2k1CNcjsf3c2d0Y2rWTahebq696JHiFB+kQzCG1Eq0AgoI+c3VXuKdwGo3svLuRFy72pfGwbCVOItB3k8fAB4MxpnQ4sGtCtNdWXak84rWAYROU9eW6YR+X5eD3Wvlpd5Sfe7t+EM9GVq19L3fK+jONy5ZvB/fhUz4B6aLn5o6no41hhi0x4tFjzRn/v3kaYFuh5ByajqNcvANRYNrt8cPFV3UWUAAYRXUoo+iJ4gixhzZminq6Ju1QaPuiFdWoqpqaJSHBKFCopyqxcEDndEZW62UuuHTrFgOxGEjKyGFTakVQsu0bRrsqkzZ928V+yXAVGyhGgeCDh/p/bF9SellDJget3FnscJo+NXFVj9Ctb6frbLSJg/5U8oZ54ccp+rA0iGQpre+S3JtStEd1BcE1Zlf1m20ePVyQGTL+VyTZLvDcBMbMXazEElkWx4n7OEdl9VugUFKDZPQ4aPKQYoDtAQgmu0pIDrgIFyW3ZnX6Ygm5oMxCZoWC/o9EBDozfJyNIgqCgcX8mWkXKbZGa9u79bJTqzhNt1dosJNitrRrts++l+ONJIuWpRNh03sXRAndb3TNmDMGuErrzoEbJbRxVxDgbv5+zER2pq1SBFxo1FvFZXCtVw2fMoea3eElb7TWDBSEXzyt6e8/0B9YRXzGUPM6togli6t3diCoYZL/dCF3/Dhwcg99XArnKOFCLaw5ZQHgW56TMny8yJcQx8nqAtcBTBSu3/2N2bAMrssSVDb9pjg4WNz4Zrbf2ioHtTIeMw43gakeDWEMnlaGG210stNdTJMopKHEyRhydvs6cxHeEXpCrq/ZqCwQxk51QP5pNigXzQWcC9FJn0Tq+SMaULln9neACqUWPnIRNeZOs29cfqWSb06cjUES76xC/CVfJyP3Ex4hKfvpYhit21BzGZ0cTA3suTU0T9LCCxPx5jNpS4TG9NysawSuO7ym3TUmfpwKEQ8j+Eg+9TIVPJOnummjpA52QGCv7EzBQAK7pQsK4y/5yKJwBkE1abIjU3KFx7H+11I1WwRMvAndoj3OGVSkFLSHF+s2Nbi72u5XeamQhvWGTsKThT8X0hdJrLBQckkc/f2qw+vBOq7LQKZ7iKCZ7/5niBq/jdrVKmSFkeyRW32ehrEYYgx8wuKn9YdOL9XNllJSLbMHaL11aq6A2XrezpUfYVY6z9jedjmS2/Y3wQozdEQmtg6ddIU1sGt/DoA6yWDbUS4ESquVwIcQcKLSgPhc5TaE/XU1CtNZxCZ6GLiEIHcacD+ZFabvwZMMOcK67JUVSDiHfblQ1E4bv8q25Jl3lBhkXjdeol9BqnxfJ3w4lSQkZ/+ja44UO4vpu5Pi1Wt1a+XlKeNHs5DZA7mLebKZw/l7drVOEHjD5ZBjWonYGNxOP4HhLUjZH07/TxPiqr1FGZKUj+gld0IgXNwRpnI3CEy8rkGvdnsyf+eiFeZnBlniurAArVIQ61y0cS91Yxbi/SVC4HWcz+dLPbdrGw+5uKarlEi8V31HcYAw==",
+    "page_age": null
+  },
+  {
+    "type": "web_search_result",
+    "title": "GitHub - buger/docs-mcp: Turn any github repo to MCP server, and chat with code or docs",
+    "url": "https://github.com/buger/docs-mcp",
+    "encrypted_content": "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",
+    "page_age": null
+  },
+  {
+    "type": "web_search_result",
+    "title": "Probe - Local, AI-Ready Code Intelligence | Probe",
+    "url": "https://probeai.dev/",
+    "encrypted_content": "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",
+    "page_age": null
+  },
+  {
+    "type": "web_search_result",
+    "title": "buger/probe-mcp",
+    "url": "https://www.npmjs.com/package/@buger/probe-mcp",
+    "encrypted_content": "EpUFCioIBRgCIiQ1OTMxOGJiOC0zZjNhLTQ0Y2UtOWFkNS0wYzYxNWE4MGI0YWISDIiJRXaliaNWWxyxsBoMGVt/25fnL6ulDJCbIjCixvBUNUh3y0ZyHRVnuFHmrDAWykTcanEmBsu83RrQod/M+CiULxYEnSNlcd0MPLwqmAQB3T8reg08GpppDJgV2RfS552/Wm6QaLPIbadXCt71p1cYp2WdoyPA7JYB42nxtrFsCc0MkS0p2caYGNSS8WBVVTSGlR8QtfXvPiF4o5XN0f1Vx4ljOhz0NBCxqTsPrl0ciBcFVYCLPhF2U8aNnJqQAO6wu5eAUzNNyNDNqJGYq+8It+TknfnKj4vsVUe8kjaIJZ/OBQiAsQ83jk3t3DBCutSa/r9t+ppvJI5esjcaIZznS3795f9bGgq0el06IBzFvoOZPrqNb9572nkiymJKIxciXIlM6jEernOsQC4jEKn6emcB29P8NALX2ubN5mDODye6YOz4G2sUNrXA6UbR1xwkgVwLC8Zl7qtJvfOCn3hG6gonG5EKxQWQrB6yIdpO+W7t/diBDEv9T+GQlEk/qvBMj8wAXAgp2PEsoAmQBeE1KcDK75YpNCzNH88m7ONOB8CXtBA3Bz08PcgBEH4Xa8s/iJP5yObXzHCojJZaSUE3sOAyxo5pWpRDM/gd7E8fW9w09t/4saKsLyz4HoJfhQiCYyD83v4kUo7yot7klozIz7jB4biNF0RD7MwG1YlpS/rS0xxdhPANpeZnnpFkGC1CGxe/6V4TLFCUwpO4UxDSnOJRHmMm0uwPLghhaq8JzdN48oN71kaGtN0+TAIuFMyrG9s71Gh8SzuHtJ+CLoRxnaRX8NWHBQhZJMQXdKQT6TcJqY7E8BgD",
+    "page_age": null
+  },
+  {
+    "type": "web_search_result",
+    "title": "GitHub Code Search · GitHub",
+    "url": "https://github.com/features/code-search",
+    "encrypted_content": "Ep8KCioIBRgCIiQ1OTMxOGJiOC0zZjNhLTQ0Y2UtOWFkNS0wYzYxNWE4MGI0YWISDM0vnW2oodqUZ424FRoM1Jn7HDSoP8mb7aBTIjBPCB9sq+G2BDcPU/ID9T5QYzv4XiGabQSUJ7xrPxnzDiMH8+rx1TrUqCjSkAnBvMAqognWhht88MtXJdC0rujfSf2utkc7Q7BcTvxRLzBD8+ayRMDZCKCB+UVR3R22lqitQWApVlojotVDaZdt5K8g6sgdKwT0l7M0GibAzwXFC7uEBJ86WwuBo0BByAby6X1Ke4K6IGUUa55uoQ1gEJuHNhU5E3NV59Uj3Pm/GSoIhWas4kmuxUawGLESxqm4RkaFTSlpks6bvKvXlWg71VvnLd+LtA+1q0DXZWz58VUIq+4+Myy9T5TNBK5rQ5u5HiOi3Yj5/iEP3wORIpPx7Ym0iUu7g//JpgvEsfIfkSyOhXvI47Jh02Gj//etSw6P8YHyJy74a7yju3iuMewowXoq3Gqoi3MXEiolHexAJB7C7IPgUtXT1egUOwFlBrrAznRGtsZ/2cGbzEI4NES5qymp6RjkM0b96jiaTNDuPB7Y500WKdOLHpD5fIMbOGW+LBbMZoKK92ez+8C6sVnQyBVURdj5i2XyVxfa8ks0lPf0t09Et7HDGFdo0KR82b900TVSVhRtvfJmsC4LUdM1Y7unExNH7tA0Xv7dwh4lWnDTBmdfDzn+hMLIc1CAwiOAsg+yEFCZ6Jm2y7uKJArJee1T/qnQl9hPRE4PCRJy9BUWtEKI4K8vyDk7j5zL6IQF4vRHrvaNhSFXeBKL4FvWThWnHjDVHEanaBXKeKxGhf1uANME8mj/6oBhm0WVsT/ZpPIe/U7VHgqztPuDNe7WvmGnF3eGLBqDNxGGaPwTMHUEY7XLzaNSy7FxYt5fndXGLLTe0magYF0zmOfwoheLsRwscx4fHyMsPO5ku+bEmsVM1TLUC9OxwsfUINOhKBZYBUtaRHGac38Dsbplp8q7K/9cs3UkIqqD7xDVTFNu+7Wg5pE979OU2M2OVAi+sr8VinoJzFrirETq0MnitXBE9coSmBpe9mpdj1nbPhfCNWRgDy9ufcdRNKqdycllbFplVrgmdmqSSFMMOiBYmjaY3TqxtLP0W9kEWlAaNDFIpH37GjQKzEkUDw7rmRh7Ger566qws2QYLE5dT2mjBMeHobSQm4auuNb5tTQ1kfksNZuzCKGYU/DCoUPjNMP2EkJ9tehbXhIKpvqYh+aq8Mtnf9dO1w6FUnVtWFpuW2Gkv825ywf51pxxOuMUHdbRUJiNkxAkXtlZj3hZTGG2nhkmBvEp0tBAFMdavIIGDrJwaeIHlrf/3UyoiyyuCTZR3YYbx0qhq+OlGU3z5v1HP0UP+T/CmYW9Z5/CAxULt+7E9pGkl5BmK8EbyqtLOXhWHwSyP4ioCYqSWYi0XSNebBVKQsJgJ8JovKugjfbSNplJDqyDVHoswsp6joMLJvEs1IOygROzX8ixDSr4KuLzF69UzdsJRZ3HcHlWT7irFiYRKsVWoAP3NC8HmcfZ3cFbKdTrplSE6XV02e2puF34nhpDuTTCWFpxiGJtEaTupxQGgYxSk/0qmgDP7qTaPIACXlYZTKGZEi10qyVjSVkWQtSsxKD6U60fQ6+BgPFBAJgJGUkPRT0XgJqRZ6agoj4o6ECfebWuSc0xJRS3+8jn0xMEbZC6fxdabbDUJf13Nbckde6dRa1VNLT4GAM=",
+    "page_age": null
+  },
+  {
+    "type": "web_search_result",
+    "title": "GitHub - buger/buger",
+    "url": "https://github.com/buger/buger",
+    "encrypted_content": "ErIECioIBRgCIiQ1OTMxOGJiOC0zZjNhLTQ0Y2UtOWFkNS0wYzYxNWE4MGI0YWISDFNfJWdca+/5IqDmlBoMw5CDKyQiWaBzbWvMIjD1YgEQZeMNJxByDBcK4Y7/w1HVJagL4LDAARZDqlxgGHno2MUSzgEmka1krE9HaTcqtQO3Xh/cGTbXiETNXzJQJKiehBqauxd0V99FB/8WiQI3aIlMjj7Uya70pMZZE5UuhK8JLTIgUbvvqHDLRdICBRczjMQlsXey5wlBmGe/ANRSsY3KfT6yUyNmtjXc8SvAvJuYbAXXCRxDZx94QlCqNG3E/dQbl/N6hHoJeiR7YPGLandohIHYvl61YFtDUV1Nv69c236xcNbL+iQaiPYnUiiALAgXKohx8g8+UEtbfO5jTcB9EaVd7z7QJMGx7hyGmWpKo/g6Xi2A9sHVs+CTo4DlBBKH2stNfcBOKJTN8gymrRU6/VzcVGjWJpxNWMd5D7XTsmZmtqrivOH1THh+H5bU5eOhAf0Fb0Zw1AS1JMAhlTstQsn6Pjla0DotY7fx4G2NC/msuDATJ+tCCQwd2iJzcE5k3a3kqe8XsmWQQnYHsXRCw616gEVTugro39ptWo6PHmv0+xTwUGscRf+iqVWdKa3Ia8G+ntPqrLwrmlxxDica0nOGbnp3bn1B2Zt5isRypfOQptpu3WLmYhP5NoTBy0Od/3xkAsM9Gm5n4geHl7dFSJWEJ63gthJPJftpEo4xSAljQhgD",
+    "page_age": null
+  },
+  {
+    "type": "web_search_result",
+    "title": "Improving GitHub code search - The GitHub Blog",
+    "url": "https://github.blog/engineering/architecture-optimization/improving-github-code-search/",
+    "encrypted_content": "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",
+    "page_age": "July 23, 2024"
+  },
+  {
+    "type": "web_search_result",
+    "title": "docs-mcp/package.json at main · buger/docs-mcp",
+    "url": "https://github.com/buger/docs-mcp/blob/main/package.json",
+    "encrypted_content": "ErQICioIBRgCIiQ1OTMxOGJiOC0zZjNhLTQ0Y2UtOWFkNS0wYzYxNWE4MGI0YWISDO9zAL+TSz7GwGyj2hoMKEe62TKwC7UUGQCpIjC6cHZPMvq/wri1H3fiOqWmwuRhzAbZs3UtoQPZC8+sD1Pyt+4yzOiELscvkNk7Tqcqtwdg3xVpYFexGiGiu6MQzXY9o/WNBEeN0A7YSuk7ha2hgJBWjJMi5txH6NM8ufOMfVUMaE4tvTokLpw8DMsgngXQwNPLTVG499RpNQ6f5fCcF0k3HdGXNoo/dCqFYFHozc2H9AnMCdDRUSEw6LnpVt+vOAgWeZtGm4jzBvT5L3sGh8niG5BZj7/hJIDJc6M3xKRyWWglOC23aNA6qIsJ+/9olGFcf7US8NoLno6qbOXzZgWbkdptccZjW88kFRU8KBZFVuCUGNRtTvdSmzr2afhUfH8HNJUKbhXVOcd8MyyYWPnh7SOcPX9NogLNNJFj+rXT3go1ylDgWhqRDbOpgXDrBY304TPfdOewGx7MurqyHNhzPftMht4CMLKwzqhteqbVaTzLR8v4Qq7AqdRdbp/kGJCRldfOg+mNhTQenZd+8sT+8AsE803tbtjn3s+vOXZhNPPjBGcwym/X4JtFqfLzdwMDurm9xaZ0Y/QL65JC6L+L+Lg67Y0l+TODcc7w4jN/Th31VgAu7euka6xv1HJWE8eqPrz0BvQRvmMlco3mffImm64ymPljyf+jpt/nWTcqrhfzZt3dswoiPavEIGNClYULuc5FUcqgWT+6a2+ibYT69Yo0nuwfIoi6o/M/G4sMvPnSITqtGnWFQV4oLid9ZlWnA+JgmMYRL5QLEZRrkJJ0fACswisnULStrZpQrvmeuhPdzsvlN/UShk50i3fWOSVbep/8d3lVrH8AU9AKhi7/PUCch/ZFxGH3psxuDenE8ieEKkRbG4KmAdJX5/zmHybTvr2RqoK5fT7uzVhC0+lL2GmzygTbUdpATh7HH0sXYEWHBM61Glr5yG0GxxCdqkjC/fhfpmVm4qxenchvtCldGyEfgdLnJnRmxhc9LsbZZQ3Z0so7Bcd+HqigecEUc0+kXBsLn1V3v4e0oSoOQcpUaF56iD9hYlBx0uLhhggecHlVKXOdAaiZPDsmlsvoDMW8+M6BrQXDlCde5tvYU1Ws0yWRdfVbjEdBv7waTerxG93OQ9vQxhKNzNnFDX8iMFChJMFIrhl24fK44GFAZ0pkdDrslk2IYTDk5QmLXE6XsJ9I5GRqBK8QiOd1L7qNcGqzoxxqiVo6hdr6Aes2Vebz+hdNrhUyh/2T5Q6bNhxAr7SnasUSF+vJTptZV5A/PA5V2k15WAXz41sTexQkBjbDi/ecB/2pmRdgdaEG2p5T+HB6r0Kd8K2vs1fES6/KNFxmTAPh78brBXkEfYcn+Ri+CTqOifwYAw==",
+    "page_age": null
+  },
+  {
+    "type": "web_search_result",
+    "title": "Explore GitHub · GitHub",
+    "url": "https://github.com/explore",
+    "encrypted_content": "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",
+    "page_age": null
+  }
+]
+</tool.srvtoolu_011EXKayFajPxt57u9ELuDU5>
+
+# ASSISTANT
+
+Now let me get more information about the probe CLI command line options and usage:
+
+# SERVER TOOL USE
+
+Name: web_search
+ID: srvtoolu_018KZp8NiUcfg6z8ytBKxmgV
+
+## query
+
+<tool.srvtoolu_018KZp8NiUcfg6z8ytBKxmgV>
+probe CLI commands search options parameters
+</tool.srvtoolu_018KZp8NiUcfg6z8ytBKxmgV>
+
+# WEB SEARCH TOOL RESULT
+
+ID: srvtoolu_018KZp8NiUcfg6z8ytBKxmgV
+
+<tool.srvtoolu_018KZp8NiUcfg6z8ytBKxmgV>
+[
+  {
+    "type": "web_search_result",
+    "title": "Application Control Engine Module Command Reference (Software Version A2(3.0)) - Probe Configuration Mode Commands [Cisco Services Modules] - Cisco Systems",
+    "url": "https://www.cisco.com/en/US/docs/interfaces_modules/services_modules/ace/vA2(3.0)/command/reference/probe.html",
+    "encrypted_content": "Et0BCioIBRgCIiQ1OTMxOGJiOC0zZjNhLTQ0Y2UtOWFkNS0wYzYxNWE4MGI0YWISDDnfajdUnGIyECN0sxoMfojT26oYbggnErE4IjD5opG2d6tW40awQNV/LqGnvSefhZhDRWDCa4eG4X+3EPtjxelB9Kd5Rrs8Ncz5sLkqYVVrBUgDI2HgI+qK/krR2i7hCUSrTqswEIUlVfw84t8Jyh3zrruv/7YDlCj20XllEfQGPG32a39kFqI3L7F6JLzl7QVWSMdEu5SRb66kM5hLuUIFNSW+sO2onPpEiEKamXMYAw==",
+    "page_age": null
+  },
+  {
+    "type": "web_search_result",
+    "title": "Run Probe Commands from a Command Prompt",
+    "url": "https://techdocs.broadcom.com/us/en/ca-enterprise-software/it-operations-management/unified-infrastructure-management/20-1/administering/run-probe-commands-from-a-command-prompt.html",
+    "encrypted_content": "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",
+    "page_age": "November 8, 2021"
+  },
+  {
+    "type": "web_search_result",
+    "title": "Configure Liveness, Readiness and Startup Probes | Kubernetes",
+    "url": "https://kubernetes.io/docs/tasks/configure-pod-container/configure-liveness-readiness-startup-probes/",
+    "encrypted_content": "EoohCioIBRgCIiQ1OTMxOGJiOC0zZjNhLTQ0Y2UtOWFkNS0wYzYxNWE4MGI0YWISDAsvIoOEc1e3WXRTNBoMyKsQwWzdLz6CkiT5IjD6TtpXPRxXDgl7rseu2/qGLgK0LecHBlSx8tU+HSmE/S7lQjPF4LqmxNyWQWB7324qjSC6aZ9U6f2jpPjKrs1JQv3a0hR8uCrwAYCBBEkteMzZVcpWGRpEDhuU/EISnycC8F4VaGSTOYRUhYPa80Ionzv4rhN3teJw9f8c8PxGk4lpO/6BhAV5JgK2e2Dgf9tOJBmGgyXaxjqKuGgg6U/hoxs6kKUJuD0K0IOaX9vnaeN/Nh+0KOR4kG7jVC8OLWheebMeW/LqZcFuZBVUjO3SpVoeuytfF8LytJGvcCUyjcsUoVPD+fXhjZuEgUOYRdPF44U6gBRg9Tt5qPoGClFzML2cekxBr3/sf9Bmbs5o10H6JodHcX/jLWsiiVym2VjQdfBkCiXITEQAKB7j9NORf5STYZN8HHnvxeT5mQ/C4N+Tccrj6Zhe/QWWCGjVsbMgc+0sMAjZPZqRVNE9B6ecKJgCjU0RquNuxV/03ag7UH/dYyW4guHdds4UrpIQqq6R7u2O4ROaVDG8PWs1ytQ8LZUb7kQDnaQREzJGtdhXL3GwCi3zsbuYSz72lw2m44BOxO2JFTSSrgqCjC0KXCxGQBLhZ6GbVVPDZ4kkWnN8DNj1St1idnutmz0fgUmIeaxj3Q/ncxgsVXn9rx1KnaJzkEMrBvlfu7BQv+K6mIcoSHVcHzOGjVi7EKVyVHfSp9Qmm0+VOZX90Cmo6ObFsltm81YEUM6uOHI1s/5f7MJvXVGGCbEt06jTxR2hHZb3mockrNGnDDo+LPJymr+SJIiRCNXHBKanmHXkVhaEH7OE/nR2qCgAR9jf5Qnrqb8vQ7Kem0L1E0iYkOD7CoTJtTKmnqvihDBYO3BTUhjXUzJsDJKF2yRm2vTNx4caIVbC+2jiW0XgJGr0C/CynAgNp4RzJUs2hkICAcGcYauUYnXS0uNSU/wYaPMnZ/HtFME4s901RzdHgZ4vMNlOJj7rAO72LdOJNlCS+2E9ftNUAoPxA2AH07gFsmSyDoGPF5JNuxuvu/6YMkjCg9ztsZu8uEFyNh5His54uIeYWA3y4Z36o5TYbYj+uW/ab+Bg0qsUGRRZkX8wEolqXprDlxd2oUhAS/kEu8/vNx5ZbWcuwJDJpge+AoCQh3Vs+al7MZMk8WFl5zkXFMH1Zqbhmk12JCeXIpmp5IjCiRosr0Hx8nxCiN8e0whgRmdZoV5hziyahs9xVfmi/HvsllNXPf7QmBrjQB9InbOQVqoV1OzEeH1gSvXBqNLmQ4FU7EKAsmHemFxu+T+1tQfep3fauBsNvl9kqc/q7rw/8V10ql24SQNt8QoDvDayBClNikd2ZkIU9Pd4wP8tRwIqSC8qOxvjsMJDVzbXapKUW4z1iqM/IuzCv3ushOGpnZTOyAE40LU21u7V39VfM/Y/n7HxmKXeL//cnsrxjnycQnqiF+MBJAn9UqE4xMMX4gkDzZMYPV1eJvj15KCQhwYFb+63WaoTXtA1kNW7yrjk3RJSZoucT55lImJIDNqbnR8VEds5K+YC3CJiYxbFkP81Hy9iwmzcDgUJ4PlTrDQQlXr04wZcDi31tBX22nD5U68MMn8nwyRw6/WpecUDEaLbNVU9QlnyBDuNgi7NEdDNSPDlCsuQQYLSV4WMeGVgzajUVQUm306g6yw7LkfDtmZoH0jn5kKGUDsY59YEiO8pyKF9vlrZGwVHleWcLALqTLeLyniqkKMSpjNucek8jJiO8DtVQiH3iBkhyXhGx7XqrMHq/PDpMmZHD4I3v5UcW2wNTEDla1GZ96qgYz4EgC4XrYufLn9ovUgA5yGO+awZuQ104TQNFMkYPD+PfUHnrv8FQSEqUonJ37/wEAdfhPOyryjJSzpklCT0mGLCfrR2wbbbSVxVLjR1/5YOFz0JdVBYAHTOvjnLNWjbasWu97pdVaY9m5jHWWo5zcgsqKBlwlaCiJbjYtcbcFkGJY1nokdk8Q3cHSsRFK5MykqX4HW28hwtJnledMP+I6Xu7dMQHMrDt75WkmK03J6+NHvuUbysZVfqKUhq45VTkv6AAWoz36oQyc63wUm8uDuKxYy+J4KeRM3e45QGXkQrxEPzukwe7CZRgQ7W5a6qwpTxrxVzB08axibxx4gHduU1VkWIMnUPBMabpRAo82oKSyr7zGt6L1FK2GPxgkbZgsy9pLsLL2iUEx/TtUbHLpFSrWZ4EkWKKsYA3YX1p5rrC+I9Kl7+cumTXU/kmhCdyFipybwKrpmC5ZtOIlABZGXrdJHJdDlCcuTpUZ+RhXOLiFl//nNXfjZDBz1uIF1CzTgzQ5S0U25/XH3mP+SVJIfUjHfNnbcR8FPeeU0uvRV1UzAe5aISeSuFBeBo3GC/jJQWe2oW8BNoOA3xIo2z4QTZlXLcSqMPz49kY96i+x1JRyTdchPyEF255djR+3xGLKs11tNtovTJsWqyZYe8HMQcZqZjozEcd2oeXvXaGa75ycikwpTpwdxT47rh3aiMq/5OmSwQr5hc4x3x0v1IWqDI+bfvtyF9eju+fG4QKBj/DvhkYlsYNmR0FraFboCjoZVsn3Bs0+Z2QXOk3+7YrzxkNKFugA7znOcLK5Rl2k6/IL4KDWe0iX0nvJq2Tyv3Rz9isavwuWfub8gLTaCKINawrz56fWYN1SkejCIQFu4XZ5yZgWwEpLdSvJyrABFRLL0BjCHiJGuC6pZ/fSoKp8gDuIg1K6rFK9gS+mS+E4zWzsCPdOVHkCRVG4hOs80Wf5C+StUfehGnoLAxO/9avuVgH0iMRBGONTLlFMwlyF+gE1qJF6nftZKC4j0tGYxzn+pAK1SzgYUeqa/DngH3OpoCXHUPBJZMWBIds8inlv/xMpxyeMdDuVuuV0ucCOB37/O5rPFAw23fK6ZWDTN1Lr65mAShE8y9K57pm0ckp/QFrEZMZofO9e46toWH78OY8FMSYF1ZuTADwtFhMAJUIz1NoDJcF17wqQcYaWb4tfKY1Yr+sgRykE4nY1l871gXyxwvDfHSX2TTVwiCTfb2ys7e5YhAxRTdYiKhnUdxgU3uzx1iro7VACZpAdyu4dmQXqJd58Y7wiwOiKssFBzDJDsGz7N39abZFTL7McBJ00hrpGEP0TsuaCDZsADTmAFpEX5ndz6o7kgX3jtOD9KXgeYyBBgUMEb+CDLrirhQ/dtPdzxDGRTvYQo/vxE8ic3GuGACTyY0Vcqu9qQzGJ4BIjIcgIsCDpVmIyS+7XJWWFmqZ8JSy0JEPBwEn+2qEoSuu1mgpDg+N6xiOjtcvRNiTrI9F0Ld/NewMIwG4gTkakSXj9nncFTgYa86XLkeAJa0otGy7rp3inR6vlgVGLQIjUHAAIjh5xE8H2YSoBDACeCTetM4ououaFHL54GNjZ1BI9vXwkPAlz09ZzbTT33CqyOrMFg/EC20dA8f2ya5d2rwb4Jcx8du6iYaUSTcEjb5opMl2Rr3GoarwTb1P+wi7QOVnBq+4qR78hKYBh2GmXVB1z0PN7K1WRbePlvHiu9lWDwk0oXJmpb8+cFrXAHak7XT7y0tlPqTgTfPdYuj8xd3h1Vf4xtnhJ6n4FqQugvMeoFUt4y8ooLTzwHjgY6uRFSV9rJsiOlXiw7KuwHJ2z8ei+m0p7R0mZKeutr6nJJETZhBIhdHRFIVeOTnu1FTRaJo8xQ7j6mx/NrgezdH0aIUx2jbIZd7riTL9gefMVEdIrmbIMPIYRZ9Z8iKoVdru1Mq+PNLGsEDL27XdpgUtbjJ7YJy7iAkBiXNrqzLx8uW4egyXTASdbk87+Q9mJsIzzbXpDvmIA+3zzheJbVewK4uzqnsZyrMxpXPd3+Y5Ua9RUhVxtKZP7LI7EyRSO+whrBlUQErNxw9N42LUaoTSSAQns+SlzI5uSk4kuqqWrgV6kFiyetFFxqe18raoQsMPlI7H+9ZLf5nJN4rq7EJ4tvUF1TPlLP5nVDthKftuv6Qw2l8FXAv//UTUhN/QXDlPd2pw9fZyHXM02m8j9ft9OiMYbawh+yzLUJH0CPTkddkL9ER1PNNMSddBeC1T1Q2gfuSYTQKBj6KQAeTR7fqHKGFHC19zUCWVKnHmBk/Efc7YNQ2H7yiiifOtujgUq9pVW2bMY96/Gf3mBoAJD0W3lRbaMh+An1N67IMk8EZd60E+Uv2RXvQz0prKKw51uBa28p0UuQjmDHG8Ut5LZfS+7DXXkGEkUM/mQ5ywIV9lyFPx70yKECvKr8IwoxzSvmXG/P9mLlfUKXBGUITN2xC2vhqTMc2fkzTstNn4SLhPNYzADjojH0lKfqQYSOiuHPEHSiEtw4TSxAPKc8E4E3BLVoboAuduhQVfY80c9ZekunBb7o2DnjFfXjzp9V4uKmHevtJjVOyCfe9cU7QThEroKa0vWz4GDVuy8nyAT4kpTRt2IOvgtaxuGI4za1hGbUph2IeHQQCk0NRqXonkNXHA+eUsuR0N+jHzDRCkllldRTvEWqjVmrDBovDAd7RuIsdXnqfZTWJoaj1bvsXkM9U/M+AM5D18oKD3BOJO1cBqWRGN2okNEz+XF+0ZssFQfHwKljSKZa5J/FTwiniAJdxBvO+QAm/StDHUVW3hydINgci4a2spq9Dq97hRZxthnAoTVsWFxCKR7rjQQSvPsmES8ijNDY3u/DuFqxWxzrHGgtCdiwGDpk7dcnOzL6PzV9tX2aqxdVtXP35VfPVWpvApffFlooc+oAiAky6Lk6fxYkx9+DqNPLU1MP+mXj2EdVhjELT46/6HVxhn3DG7rFwV3IO3/GCdZySq4PqX+k6lFLvE6RvBIWR8Dbw9BfnSw6EIGMXqysV1MqwotnbyoOGVxTLtvGzKi3Hifmv4xVAtpjwv+raJUwEA0tdMmL7P/ygAAllxyTd60Ppez5/qh4hMF0f2IjElrHKBrL2XNPVrM7QTwmNjEbw5qvpE4ojN5+IIu7xPiNnQiPBO2Ju+C3Sq0FZ3fCc9gl1gPLBI0xsEt+5nwF1nCQQJg+cQMKRX8PJN6n+9BAFyNilvLiP6THunNRoBcgS+NhHyFcDONkLF6rx6cspP5gSc8mN+phK9Zo1/FhUfSTEzlNTMQI8S9SIk9lt7F5JZ5v8yD9T+EjOXfHUjjY2MXzzCQ9By67xPV6CfoB1TYJEohJFHnZBFbfSJeNhPFvaQhWd2wjtr5SdpipNfiAk0HG15Jp6+rKLll5po4dTNBSze+nHNsT/JVKEi52R6bLMCQwTpAGPYbpcd9Uad9GsIDIJOXnnpaDRch4yJQKa4BkU7qqgiwjduOdKTTyQLWOMI8S49PnkEHNFS/m0cIq6hdBqc/ODQ0OYS4QZ+KVcG6VaskmhZ1zcrKyjDzaE58n8gey1uOYrmL4P2U4wY0daMaT+CyoEyZ5+xxafJ84urR44jFMMVa3rYl278F+6aI/KAlE1caHCKwN6Tg/45AoJ0OMnx2Sqy2MrqrV+79bztraqekqXdNQMUjgEXc0O6lPx2h0pcMlyvCKyjcl95yMBBi7zPXO4x3cCzWNtWFlo/x8/vQqQmIxOiMuffBgD",
+    "page_age": "January 17, 2025"
+  },
+  {
+    "type": "web_search_result",
+    "title": "How to Use the Probe Command | Junos OS | Juniper Networks",
+    "url": "https://www.juniper.net/documentation/us/en/software/junos/icmp/topics/topic-map/probe-concept-overview.html",
+    "encrypted_content": "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",
+    "page_age": null
+  },
+  {
+    "type": "web_search_result",
+    "title": "Probe commands",
+    "url": "https://www.ibm.com/docs/en/netcoolomnibus/8.0.0?topic=hci-probe-commands-1",
+    "encrypted_content": "EpcCCioIBRgCIiQ1OTMxOGJiOC0zZjNhLTQ0Y2UtOWFkNS0wYzYxNWE4MGI0YWISDHaQC+RVymoqPk/p1hoMMQTWwEeXOMngzDqdIjAEo9gLl8KNvLE5eJbN5g59l7ZlD81pGFqCpKh+1TpMaTFkKp4c9frEMY1vJNPCKAcqmgEdtC4JbHCs48jQPqsHLtKdylzKzZTudBwWtbUGH5kzmNCptbSHjEy6DJIJOcY+pfLZNn9vJogbf18qXcKUSOrt8KSwjB6SIA4y6hx3NRiqNq1H/9BKRu9yxr4c7u6biC67plziDt1lNjidPRPflFsZh6erl/pLVqFdPKNvqv8V+zO4AhkT0MpH+PigPYg9cukpQaV92PBQija0GAM=",
+    "page_age": null
+  },
+  {
+    "type": "web_search_result",
+    "title": "Common probe properties and command-line options",
+    "url": "https://www.ibm.com/docs/en/netcoolomnibus/8.1?topic=data-common-probe-properties-command-line-options",
+    "encrypted_content": "EuABCioIBRgCIiQ1OTMxOGJiOC0zZjNhLTQ0Y2UtOWFkNS0wYzYxNWE4MGI0YWISDDTR2QqnfXDCcG7G0BoM1hC3oVagGNp+tutTIjBaORIr6CRtIVUj244j764RBKndRRoklZic3TgqMSuBope61SFhr3vTJxPulMjJI1sqZMI9Gtse6McBVa1Q4zX1X4lVfZ/u5piPYcNuYgrvtyuBMOteIyJjSqzSKuqyafoW32D52zqycTzip+U8lFdcjD8Ez6Tnd5NQjKyD1zMiHD+UnOQpebjtiTDu23R5uUzjyvBT3LUYAw==",
+    "page_age": null
+  },
+  {
+    "type": "web_search_result",
+    "title": "Syntax for searches in the CLI | Splunk Docs",
+    "url": "https://help.splunk.com/en/splunk-enterprise/search/spl-search-reference/9.4/search-in-the-cli/syntax-for-searches-in-the-cli",
+    "encrypted_content": "EpsKCioIBRgCIiQ1OTMxOGJiOC0zZjNhLTQ0Y2UtOWFkNS0wYzYxNWE4MGI0YWISDA3cGJPHb7Ta/R1E0xoM4HC8FaWsp2K1TuJTIjAdcNaYeAninG35kRdKo9KwHA/NdT237ecK6T2Vd4gyJ4oJ+yd7exCSY39v0R1TjhMqngmu21P4iDZCNSGGw8T268aUeEuhmuhqQfXadL01ZpiZVlWhb37tawXxwnmODCI+CrJ9liSXzRaIoaOT7NOnGAbi2GLihyg3rduRJ+LxAULLbIWn8NdlHwCKGHVRjdHV/Du9fN4TFijSKLteeKSZnnH7NS6VI8YM6XNwbniE2NHReJhB7+iKrxz4tuh2l03HJh3yH58rK0CSCDnaVqqNyo4TlL4uvTq98HZcX3OcqBXSfcDflIG0w0EYQ8ekGnlIRq1NuqivDGPGb2aHbB2Mp3Gklep6lR9xqK2VvJ/KOvmZQK/1BMT9Zeic23JjLVja7rA9disfSV7V+mdETuQcK/8inHQuP8qt9QvO3GF2vFouftQZbF2GEMAnGIXBOPQTdXXMv7+aejIhU7ERt0lsUMW9ua2LEEtUPvdbuTM2WMSJpnJ6d58wfnmMNDTUq2ligcO07gQVWKdjQ6g6oqoWRL9nxMhWQfwkvjbeztGC0j9QDa5ddIVZqQc8JhEXpD3KKV7W427r7x84lnBL0TfWnTv5HFGW/WjJm+j3gTVhlik58qIoJ+KhEPp/6S9eWerW2YOE9u2tuReedQb/uIyEy41n0IRhOZ92F7Uaah6ewSNwH6ROUpk4o/7m4YT1rMsuN2pyFOwFRTmIC8opscm1GoHb/DnCHKYFAQPZpz3OaAKz1iLZezM9kBluaR6kPNd9nGv7SlldCDbTo6QrPdeTuo5xqpwWbF4+huUyAM9vYBqWT3qcRXX5DIIlEWcrE3XVOjc4uo1RJk1PQihvvCZjlRB+EMJ0p+ZEP2IWdxw3I35mMzuY0sORMW+8nWRNml+ZUlCFbvJ6+ivxn7MFnrUNFT1sFVxXs481kvPCJiQjRP02/kzWo6hEtcAc4Uq3x3yyyV96h7BEXHWBRFr9G2Wu+RMcAT1WYcK12llVV+1kWQ9C17P1oJh7NiulXrtdV6/7xZTrL1Hsl9nze8njT7j6//B71HMd0TU1uwH+pLnCXgQdki29KzK7EZOPZ2Wz4nxzdyHXu3pbJ+fhkSvyLmQXrCShzgO7TjkxEWxadi4O8LAARuiVJ4GBPUxnAGTflQPuJmeiP1kpyrQbjNfChs9MOD8KI0H2iR3fXOlA0jtxsf9p1EBLwwh1OOTjF+rDAnsqesnLB2kPnOb3C7rz0z8WWmlwMt7pyQk8aXhSMSZqI7dWSEI3cS+SPZmB1xy+EOuXQx+NekAf4178X2eXleVXjnMlRPhw4uR1P73DMBis4PXIYZviSahRgEwkbHO2e+PvCFp0/Ovezev6j/F9Q7bteLbb1oP/1FP2R5PbYAiuVxN0BXYR/CObtz5BjbSjWzlYjxvoGI4aXOicoFwoxg3bYwgUOeOEGkOBFaAXYmzR39nWkeaGqrUe2ccZVA/MGgOFhI0KpHKso++EE+C1A6G/cytccWnvxYkibrxTU8N5nPz6C57t83UfATNhumu8F9tqnG17do0JRF13ERyCEccHSAlsupKS9a3uucVatrODoBjXxodD5l7ELD40qMiYgO0YZFySFgOtSV0J9rtWzSuHb88aLruTzM4sS0ncT6KU/T0YAw==",
+    "page_age": null
+  },
+  {
+    "type": "web_search_result",
+    "title": "User Guide: OONI Probe Command Line Interface (CLI) | OONI",
+    "url": "https://ooni.org/support/ooni-probe-cli/",
+    "encrypted_content": "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",
+    "page_age": null
+  },
+  {
+    "type": "web_search_result",
+    "title": "Command line options in the AWS CLI - AWS Command Line Interface",
+    "url": "https://docs.aws.amazon.com/cli/v1/userguide/cli-configure-options.html",
+    "encrypted_content": "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",
+    "page_age": null
+  },
+  {
+    "type": "web_search_result",
+    "title": "Command line options",
+    "url": "https://www.objectplanet.com/probe/doc/files/advanced_options.html",
+    "encrypted_content": "EroMCioIBRgCIiQ1OTMxOGJiOC0zZjNhLTQ0Y2UtOWFkNS0wYzYxNWE4MGI0YWISDKXfkVJOlk3i49NYhBoM+DN0Vi753cHGYqzzIjCLJ5/Z0VpPvLWg7eGwmSI9GTrGou7uT82KCsFJNN4nYYpoHIGjB0PTMUOplzXmc7AqvQtZqDhpvlFys9PGZK53C3FJjgx756yPrOmDIgOhNLJossoDHtHHfPbI6EmwatX4+BI+dEBw+4SZZr3MF+7Ka2iTyf16Ffv/uLxDTYV5//95ysquUnVRcW4jy0gTEct59E8F8Ln50g79UohgrYxnKA9ICPyNgBxmUy7JihFgkOFAjE/v4HPACwa4PHJg6e8CBv4CAhAcIzpUepS3veChuO81QY5reSHNe2mpoYuREzFT7x/Ic54PkxKl3C8PPSn5vc29QVo2hvIIMT5AXFV8Lim6nKzqLrW3QF4665uytY/ghdBIfFthAYORtMRRdJF3YvkrrY/E8LcpbLG3Q4NU3tpgce3j4L9lpPBjp129W0o/mghaE0KxAWcAzgdnuQlsyQVSiXkzpB3jh1t2fmXtgfKNBQU3eJ3fHhMMoKAXo8J7nRivQ4MXQYhd9y4rEaYKSDyQCq0T9pmnIUS8+7ydkNGOj4VbD/D3xryd3FtoO0RHwjoUtV/QiNn0arG9pUNxxjMqAMBapt6kd49ts9/7BOPtkePHRPFTHGwW+1RBKzDHWkbde8NqlNd6GapNyB/9iC7eh0vuXJC/FLM1tLx2YpAp3TAwTewyXcE/MaSicVPijNktyAWmckVdHXlzFy7Koj1Yh/Ku9wQgZZEhWKk96DhVmp2l1yBdM8nSeXDyqJXSq/VzEUmZc9UOwK6YWzSc5fzao9+zVZIQDrh9TfhNGctSknGmn6vk570DdNB5gLNGZgn2jRpDffzfGxpv5lod39iUy8XCpLSAI/M/GtpjXPS09Wo9SUAZubYfh3hAHNhGVzrvAvKCHvjAZkD3DFKCnmeljlvQl8szzGF4DsXVdBuwQcgZtKM9CPLZBQ1JVywRW3mI3ne/vggbLntmdHBEsG/Vmm1056ERGn/YBkY+Zq7Cc386+ScQhL0IVxRWd6cNkfm6sa3B75ZGHwkyMVcjvE6ygKOS+vaa6PQ3DrNs22dtD1nEB3MC+Q65QIZhID77tvbqWNXNkBCHJNn2X6cQzxPxRLclgDkfxvyqi2wyEDFCuk79zIHbwZwUmmLspgGL9HBSlMaSlCcTR39xobevS53mRyWFPsagNuztLjWvl8KKo0L2AwbnfabDBNbqDsjtNWZmDVcu6B/6xry8reWHpYpCJw0U9oX/JMbZ2w367WKdNu+e53AK8qYuCxDrBedkbYDeQtGVH5nnPX4HRVMoy9IV3dtLh2WeSJPClCN2gG3OzmA4uffR3ImKq4JmmTH0KucNdgx8IqVOsRZS5JwGWFXYav7xzi7X0MFfsaCyBtPUPm9CHsFqKhkPfUxHGrLzEMhliFbVaRvTf7G4w1DqBn0DglLv7CZ7R2LnYkA817MA2dCgXM5ugzNE8uXvyQ3gA++gWYEQbsZaUzdLPT40b/cJvNEikKAmgP4oaxgqj6cAfBhrYYc2DlupsJe3uGevECOw//n+7D/56qTtDTV1eTbapV5/aEZCktkjFAzg09PliASg9uURTh9QlQPU6AexH3RwpIpOS6t09dZ4kW2o1ZokZ1Y1cm+u0aEkWAei87pctDtwN4rfHM0vs2u7aoyuljocjtlya5QUcPxgtIgzKEZC7/mJjZbiQG38fGWrXGUr35ydqBT6kIYLHmdFrkQsIA9pa8kGwqSRYWUz2Hndw0QHqdCNGlZOkQA6hbktez8g4Ko6wL1DxHkqePILpx60DJF/NnjBXmTBqHmUb9KZk/oukA0+pP7bSeW7BcS8tv5abdFIWwPaNE245xb5EOfDeJYFfQ965KKbD1ifw8HgaiZXZcl+B+DtUeSnvtqQU8WcV3bZkL8lMcicM2P4/3rXYFZkbJ7vzma8GacWLcS336xRGkXf0LYGtxIAxIk0IDPer8TggpZ3dk4XGnqC/mVQb2IbLnrR0BO2lrOKp4mrgJE1k/+VXS5tdL/1ns7UBfT0Iy1XQiAqraI13S94nxgD",
+    "page_age": null
+  }
+]
+</tool.srvtoolu_018KZp8NiUcfg6z8ytBKxmgV>
+
+# ASSISTANT
+
+These search results are mostly about other probe tools, not the buger/probe tool. Let me search more specifically for buger probe CLI commands:
+
+# SERVER TOOL USE
+
+Name: web_search
+ID: srvtoolu_017JUqjLtit5i3FrY1qG8ZGZ
+
+## query
+
+<tool.srvtoolu_017JUqjLtit5i3FrY1qG8ZGZ>
+"@buger/probe" CLI search command options
+</tool.srvtoolu_017JUqjLtit5i3FrY1qG8ZGZ>
+
+# WEB SEARCH TOOL RESULT
+
+ID: srvtoolu_017JUqjLtit5i3FrY1qG8ZGZ
+
+<tool.srvtoolu_017JUqjLtit5i3FrY1qG8ZGZ>
+[
+  {
+    "type": "web_search_result",
+    "title": "Probe - Local, AI-Ready Code Intelligence | Probe",
+    "url": "https://probeai.dev/",
+    "encrypted_content": "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",
+    "page_age": null
+  },
+  {
+    "type": "web_search_result",
+    "title": "GitHub - buger/probe: Probe is an AI-friendly, fully local, semantic code search engine which which works with for large codebases. The final missing building block for next generation of AI coding tools.",
+    "url": "https://github.com/buger/probe",
+    "encrypted_content": "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",
+    "page_age": null
+  },
+  {
+    "type": "web_search_result",
+    "title": "@edmondfrank/probe-darwin-x64 - npm",
+    "url": "https://www.npmjs.com/package/@edmondfrank/probe-darwin-x64",
+    "encrypted_content": "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",
+    "page_age": null
+  }
+]
+</tool.srvtoolu_017JUqjLtit5i3FrY1qG8ZGZ>
+
+# ASSISTANT
+
+Perfect! Now I have the information I need. Based on the search results, I can see that probe is a AI-friendly, fully local, semantic code search engine which which works with for large codebases
+
+# ASSISTANT
+
+. The search functionality includes commands like:
+
+- 
+
+# ASSISTANT
+
+# Basic search with natural language probe search "user authentication" ./src # Token-limited search for AI context windows probe search "error handling" --max-tokens 8000 # Elastic search syntax with operators probe search "(login OR auth) AND NOT test" ./src
+
+## https://www.npmjs.com/package/@edmondfrank/probe-darwin-x64
+
+Title: @edmondfrank/probe-darwin-x64 - npm
+Cited text: Interactive AI Chat: AI assistant example in the examples directory that can answer questions about your codebase using Claude or GPT models. 
+Encrypted index: EpEBCioIBRgCIiQ1OTMxOGJiOC0zZjNhLTQ0Y2UtOWFkNS0wYzYxNWE4MGI0YWISDAo27T8HksfRekcWrBoMMu42I+jLCxoZnaayIjA0zwcWBb+0Bcf8ST5UlY0I0x9r/bIvcvzs9b4Edy0ilvaIWuVsQp+wrRXFY24JolkqFfR/Bkm75RyDpmLjfeE6g1segu9CGhgE
+
+# ASSISTANT
+
+
+
+Now I'll add the probe tool to greger-stdlib.el, following the pattern used for ripgrep. Let me add the tool registration and implementation:
+
+# TOOL USE
+
+Name: str-replace
+ID: toolu_017bk7UFhCDXG463ZpC87A5k
+
+## path
+
+<tool.toolu_017bk7UFhCDXG463ZpC87A5k>
+greger-stdlib.el
+</tool.toolu_017bk7UFhCDXG463ZpC87A5k>
+
+## diff
+
+<tool.toolu_017bk7UFhCDXG463ZpC87A5k>
+ ;; Ripgrep tool
+ 
+ (greger-register-tool "ripgrep"
+                       :description "Search for patterns in files using ripgrep (rg) command line tool. Note that ripgrep only matches on single lines, so you can't search across multiple lines."
+                       :properties '((pattern . ((type . "string")
+                                                 (description . "The search pattern (regex or literal string). Uses regular expression syntax by default. Meta characters like .(){}*+?[]^$|\\  have special meaning and should be escaped with backslash if you want to match them literally. Use the fixed-strings parameter for literal string matching. Supports Unicode by default. You have a tendency to add a trailing double quote `\"` to the end of `pattern` -- don't to that since it will break matching!")))
+                                     (path . ((type . "string")
+                                              (description . "Directory or file path to search in. Directories are searched recursively. Supports glob patterns and respects .gitignore rules by default. Use '.' for current directory, or specify multiple paths separated by spaces")
+                                              (default . ".")))
+                                     (case-sensitive . ((type . "boolean")
+                                                        (description . "Whether the search should be case-sensitive")
+                                                        (default . nil)))
+                                     (file-type . ((type . "string")
+                                                   (description . "Restrict search to specific file types using predefined type names. Examples: 'py' (Python), 'js' (JavaScript), 'md' (Markdown), 'cpp' (C++), 'elisp' (Emacs Lisp), 'java', 'rust', 'go', 'html', 'css', 'json', 'xml', 'yaml', 'sh' (shell scripts), 'sql', 'tex', 'dockerfile'. Use 'rg --type-list' to see all available types and their file extensions")))
+                                     (context-lines . ((type . "integer")
+                                                       (description . "Number of context lines to show around matches")
+                                                       (default . 0)))
+                                     (fixed-strings . ((type . "boolean")
+                                                       (description . "Treat the pattern as a literal string instead of a regular expression")
+                                                       (default . nil)))
+                                     (word-regexp . ((type . "boolean")
+                                                     (description . "Only show matches surrounded by word boundaries")
+                                                     (default . nil)))
+                                     (line-regexp . ((type . "boolean")
+                                                     (description . "Only show matches where the entire line participates in the match")
+                                                     (default . nil)))
+                                     (max-results . ((type . "integer")
+                                                     (description . "Maximum number of results to return")
+                                                     (default . 50))))
+                       :required '("pattern")
+                       :function 'greger-stdlib--ripgrep
++                      :pass-callback t)
++
++;; Probe tool
++
++(greger-register-tool "probe"
++                      :description "Search for code using probe, an AI-friendly semantic code search engine. Unlike ripgrep which matches lines, probe returns complete code blocks (functions, classes, etc.) with semantic understanding and ranking."
++                      :properties '((query . ((type . "string")
++                                              (description . "The search query (supports natural language, Elastic Search syntax, and boolean operators like AND, OR, NOT). Examples: 'error handling', '(login OR auth) AND NOT test', 'function authenticate user'")))
++                                    (path . ((type . "string")
++                                             (description . "Directory or file path to search in. Directories are searched recursively. Use '.' for current directory")
++                                             (default . ".")))
++                                    (max-results . ((type . "integer")
++                                                    (description . "Maximum number of results to return")
++                                                    (default . 10)))
++                                    (max-tokens . ((type . "integer")
++                                                   (description . "Maximum tokens to include in results (useful for AI context windows). If specified, results will be limited to fit within this token budget")))
++                                    (context-lines . ((type . "integer")
++                                                      (description . "Number of context lines to show around matches")
++                                                      (default . 0)))
++                                    (format . ((type . "string")
++                                               (description . "Output format: 'text' (default) or 'json'")
++                                               (default . "text")))
++                                    (include-tests . ((type . "boolean")
++                                                      (description . "Whether to include test files in search results")
++                                                      (default . t))))
++                      :required '("query")
++                      :function 'greger-stdlib--probe
+                       :pass-callback t)
+\ No newline at end of file
+
+</tool.toolu_017bk7UFhCDXG463ZpC87A5k>
+
+## git-commit-message
+
+<tool.toolu_017bk7UFhCDXG463ZpC87A5k>
+Add probe tool registration to greger-stdlib.el
+</tool.toolu_017bk7UFhCDXG463ZpC87A5k>
+
+# TOOL RESULT
+
+ID: toolu_017bk7UFhCDXG463ZpC87A5k
+
+<tool.toolu_017bk7UFhCDXG463ZpC87A5k>
+Successfully replaced content in /Users/andreas/projects/greger.el/greger-stdlib.el. Successfully staged 1 file(s) and committed with message: Add probe tool registration to greger-stdlib.el
+</tool.toolu_017bk7UFhCDXG463ZpC87A5k>
+
+# ASSISTANT
+
+Now I need to add the implementation function `greger-stdlib--probe`. Let me add it after the ripgrep implementation:
+
+# TOOL USE
+
+Name: str-replace
+ID: toolu_01AuJN7KzugeSTKGrUdGfHLh
+
+## path
+
+<tool.toolu_01AuJN7KzugeSTKGrUdGfHLh>
+greger-stdlib.el
+</tool.toolu_01AuJN7KzugeSTKGrUdGfHLh>
+
+## git-commit-message
+
+<tool.toolu_01AuJN7KzugeSTKGrUdGfHLh>
+Add probe tool implementation function
+</tool.toolu_01AuJN7KzugeSTKGrUdGfHLh>
+
+## original-content
+
+<tool.toolu_01AuJN7KzugeSTKGrUdGfHLh>
+(defun greger-stdlib--ripgrep (pattern path callback case-sensitive file-type
+                                       context-lines fixed-strings word-regexp
+                                       line-regexp max-results)
+  "Search for PATTERN in PATH using the rg command line tool directly.
+CALLBACK is called with (result error) when search completes.
+CASE-SENSITIVE, FILE-TYPE, CONTEXT-LINES, FIXED-STRINGS, WORD-REGEXP,
+LINE-REGEXP and MAX-RESULTS are optional."
+
+  (unless (executable-find "rg")
+    (error "Command not found: ripgrep (rg).  Please install ripgrep"))
+
+  (greger-stdlib--assert-arg-string "pattern" pattern)
+  (greger-stdlib--assert-arg-string "path" path)
+  (greger-stdlib--assert-arg-bool "case-sensitive" case-sensitive)
+  (greger-stdlib--assert-arg-bool "fixed-strings" fixed-strings)
+  (greger-stdlib--assert-arg-bool "word-regexp" word-regexp)
+  (greger-stdlib--assert-arg-bool "line-regexp" line-regexp)
+  (greger-stdlib--assert-arg-int "context-lines" context-lines :ge 0)
+  (greger-stdlib--assert-arg-int "max-results" max-results :ge 1)
+
+  (let ((expanded-path (expand-file-name path)))
+
+    (if (not (file-exists-p expanded-path))
+        (funcall callback nil (format "Path does not exist: %s" expanded-path))
+
+      (let ((args '()))
+        (if case-sensitive
+            (setq args (append args '("--case-sensitive")))
+          (setq args (append args '("--smart-case"))))
+
+        (when (and context-lines (> context-lines 0))
+          (setq args (append args (list "--context" (number-to-string context-lines)))))
+
+        (when (and max-results (> max-results 0))
+          (setq args (append args (list "--max-count" (number-to-string max-results)))))
+
+        (when (and file-type (not (string-empty-p file-type)))
+          (setq args (append args (list "--type" file-type))))
+
+        (when fixed-strings
+          (setq args (append args '("--fixed-strings"))))
+
+        (when word-regexp
+          (setq args (append args '("--word-regexp"))))
+
+        (when line-regexp
+          (setq args (append args '("--line-regexp"))))
+
+        (setq args (append args '("--line-number" "--no-heading")))
+
+        (setq args (append args (list pattern expanded-path)))
+
+        (greger-stdlib--run-async-subprocess
+         :command "rg"
+         :args args
+         :working-directory nil
+         :callback (lambda (output error)
+                     (if error
+                         ;; Check if it's a "no matches" error (exit code 1 with no output)
+                         (if (string-match-p "failed with exit code 1" error)
+                             (funcall callback "No matches found" nil)
+                           (funcall callback nil (format "Failed to execute ripgrep search: %s" error)))
+                       (funcall callback
+                                (if (string-empty-p (string-trim output))
+                                    "No matches found"
+                                  output)
+                                nil))))))))
+
+(defun greger-stdlib--read-webpage (url &optional extract-text use-highest-readability)
+</tool.toolu_01AuJN7KzugeSTKGrUdGfHLh>
+
+## new-content
+
+<tool.toolu_01AuJN7KzugeSTKGrUdGfHLh>
+(defun greger-stdlib--ripgrep (pattern path callback case-sensitive file-type
+                                       context-lines fixed-strings word-regexp
+                                       line-regexp max-results)
+  "Search for PATTERN in PATH using the rg command line tool directly.
+CALLBACK is called with (result error) when search completes.
+CASE-SENSITIVE, FILE-TYPE, CONTEXT-LINES, FIXED-STRINGS, WORD-REGEXP,
+LINE-REGEXP and MAX-RESULTS are optional."
+
+  (unless (executable-find "rg")
+    (error "Command not found: ripgrep (rg).  Please install ripgrep"))
+
+  (greger-stdlib--assert-arg-string "pattern" pattern)
+  (greger-stdlib--assert-arg-string "path" path)
+  (greger-stdlib--assert-arg-bool "case-sensitive" case-sensitive)
+  (greger-stdlib--assert-arg-bool "fixed-strings" fixed-strings)
+  (greger-stdlib--assert-arg-bool "word-regexp" word-regexp)
+  (greger-stdlib--assert-arg-bool "line-regexp" line-regexp)
+  (greger-stdlib--assert-arg-int "context-lines" context-lines :ge 0)
+  (greger-stdlib--assert-arg-int "max-results" max-results :ge 1)
+
+  (let ((expanded-path (expand-file-name path)))
+
+    (if (not (file-exists-p expanded-path))
+        (funcall callback nil (format "Path does not exist: %s" expanded-path))
+
+      (let ((args '()))
+        (if case-sensitive
+            (setq args (append args '("--case-sensitive")))
+          (setq args (append args '("--smart-case"))))
+
+        (when (and context-lines (> context-lines 0))
+          (setq args (append args (list "--context" (number-to-string context-lines)))))
+
+        (when (and max-results (> max-results 0))
+          (setq args (append args (list "--max-count" (number-to-string max-results)))))
+
+        (when (and file-type (not (string-empty-p file-type)))
+          (setq args (append args (list "--type" file-type))))
+
+        (when fixed-strings
+          (setq args (append args '("--fixed-strings"))))
+
+        (when word-regexp
+          (setq args (append args '("--word-regexp"))))
+
+        (when line-regexp
+          (setq args (append args '("--line-regexp"))))
+
+        (setq args (append args '("--line-number" "--no-heading")))
+
+        (setq args (append args (list pattern expanded-path)))
+
+        (greger-stdlib--run-async-subprocess
+         :command "rg"
+         :args args
+         :working-directory nil
+         :callback (lambda (output error)
+                     (if error
+                         ;; Check if it's a "no matches" error (exit code 1 with no output)
+                         (if (string-match-p "failed with exit code 1" error)
+                             (funcall callback "No matches found" nil)
+                           (funcall callback nil (format "Failed to execute ripgrep search: %s" error)))
+                       (funcall callback
+                                (if (string-empty-p (string-trim output))
+                                    "No matches found"
+                                  output)
+                                nil))))))))
+
+(defun greger-stdlib--probe (query path callback max-results max-tokens
+                                   context-lines format include-tests)
+  "Search for QUERY in PATH using the probe command line tool.
+CALLBACK is called with (result error) when search completes.
+MAX-RESULTS, MAX-TOKENS, CONTEXT-LINES, FORMAT, and INCLUDE-TESTS are optional."
+
+  (unless (executable-find "probe")
+    (error "Command not found: probe.  Please install probe from https://github.com/buger/probe"))
+
+  (greger-stdlib--assert-arg-string "query" query)
+  (greger-stdlib--assert-arg-string "path" path)
+  (greger-stdlib--assert-arg-int "max-results" max-results :ge 1)
+  (when max-tokens
+    (greger-stdlib--assert-arg-int "max-tokens" max-tokens :ge 1))
+  (greger-stdlib--assert-arg-int "context-lines" context-lines :ge 0)
+  (greger-stdlib--assert-arg-string "format" format)
+  (greger-stdlib--assert-arg-bool "include-tests" include-tests)
+
+  (let ((expanded-path (expand-file-name path)))
+
+    (if (not (file-exists-p expanded-path))
+        (funcall callback nil (format "Path does not exist: %s" expanded-path))
+
+      (let ((args '("search")))
+
+        (when (and max-results (> max-results 0))
+          (setq args (append args (list "--max-results" (number-to-string max-results)))))
+
+        (when (and max-tokens (> max-tokens 0))
+          (setq args (append args (list "--max-tokens" (number-to-string max-tokens)))))
+
+        (when (and context-lines (> context-lines 0))
+          (setq args (append args (list "--context" (number-to-string context-lines)))))
+
+        (when (and format (not (string-empty-p format)))
+          (setq args (append args (list "--format" format))))
+
+        (unless include-tests
+          (setq args (append args '("--no-tests"))))
+
+        (setq args (append args (list query expanded-path)))
+
+        (greger-stdlib--run-async-subprocess
+         :command "probe"
+         :args args
+         :working-directory nil
+         :callback (lambda (output error)
+                     (if error
+                         ;; Check if it's a "no matches" error (exit code 1 with no output)
+                         (if (string-match-p "failed with exit code 1" error)
+                             (funcall callback "No matches found" nil)
+                           (funcall callback nil (format "Failed to execute probe search: %s" error)))
+                       (funcall callback
+                                (if (string-empty-p (string-trim output))
+                                    "No matches found"
+                                  output)
+                                nil))))))))
+
+(defun greger-stdlib--read-webpage (url &optional extract-text use-highest-readability)
+</tool.toolu_01AuJN7KzugeSTKGrUdGfHLh>
+
+# TOOL RESULT
+
+ID: toolu_01AuJN7KzugeSTKGrUdGfHLh
+
+<tool.toolu_01AuJN7KzugeSTKGrUdGfHLh>
+Successfully replaced content in /Users/andreas/projects/greger.el/greger-stdlib.el. Successfully staged 1 file(s) and committed with message: Add probe tool implementation function
+</tool.toolu_01AuJN7KzugeSTKGrUdGfHLh>
+
+# ASSISTANT
+
+Perfect! I've successfully added the probe tool to greger-stdlib.el. Here's a summary of what I added:
+
+## Summary
+
+I've added a complete probe tool integration to `greger-stdlib.el` that includes:
+
+### Tool Registration
+- **Name**: `probe`
+- **Description**: Search for code using probe, an AI-friendly semantic code search engine that returns complete code blocks (functions, classes, etc.) with semantic understanding and ranking
+- **Required parameter**: `query` (the search query)
+
+### Parameters
+1. **query** (required): Supports natural language, Elastic Search syntax, and boolean operators (AND, OR, NOT)
+2. **path** (optional, default "."): Directory or file path to search in
+3. **max-results** (optional, default 10): Maximum number of results to return
+4. **max-tokens** (optional): Token limit for AI context windows
+5. **context-lines** (optional, default 0): Number of context lines around matches
+6. **format** (optional, default "text"): Output format ("text" or "json")
+7. **include-tests** (optional, default true): Whether to include test files
+
+### Implementation Features
+- **Error handling**: Checks if probe is installed, similar to ripgrep
+- **Path validation**: Ensures the search path exists
+- **Async execution**: Uses the existing async subprocess framework
+- **Proper error messages**: Handles "no matches" vs actual errors
+- **Argument validation**: Uses existing validation functions for type checking
+
+### Key Differences from Ripgrep
+- 
+
+# ASSISTANT
+
+Probe is an AI-friendly, fully local, semantic code search engine which which works with for large codebases
+
+## https://github.com/buger/probe
+
+Title: GitHub - buger/probe: Probe is an AI-friendly, fully local, semantic code search engine which which works with for large codebases. The final missing building block for next generation of AI coding tools.
+Cited text: Probe is an AI-friendly, fully local, semantic code search engine which which works with for large codebases. 
+Encrypted index: Eo8BCioIBRgCIiQ1OTMxOGJiOC0zZjNhLTQ0Y2UtOWFkNS0wYzYxNWE4MGI0YWISDN9jWB4hvYHBHO4wOhoMVVCHJJEK8qc5xQlGIjBigKG0+FKh3YsClILbNTT3VAkGmFxkHi33dNd3G1uV31ccZz07kiHylnvBcUZoc1cqE8OFSF05DSjEZVPAreVxkRzVvb0YBA==
+
+## https://github.com/buger/probe
+
+Title: GitHub - buger/probe: Probe is an AI-friendly, fully local, semantic code search engine which which works with for large codebases. The final missing building block for next generation of AI coding tools.
+Cited text: Probe is an AI-friendly, fully local, semantic code search engine which which works with for large codebases. 
+Encrypted index: EpABCioIBRgCIiQ1OTMxOGJiOC0zZjNhLTQ0Y2UtOWFkNS0wYzYxNWE4MGI0YWISDOnRXpy8X7M4QY3OvRoMqBv+Ai/x6WKuBD9BIjDZq8DUt4ay35eoEREradIYtI5lyDfGqEebrPJygP//RuSEKC2wGS5p/iLQU2mKyAEqFHgDDGqRcws3z3YhmgijNPjZmfFWGAQ=
+
+# ASSISTANT
+
+
+- Returns complete code blocks (functions, classes) rather than just line matches
+- Supports semantic understanding and ranking
+- 
+
+# ASSISTANT
+
+Supports full Elastic Search syntax for powerful queries
+
+## https://probeai.dev/
+
+Title: Probe - Local, AI-Ready Code Intelligence | Probe
+Cited text: Supports full Elastic Search syntax for powerful queries.
+Encrypted index: EpEBCioIBRgCIiQ1OTMxOGJiOC0zZjNhLTQ0Y2UtOWFkNS0wYzYxNWE4MGI0YWISDDTjZrGQk7YNFvgnuxoM+grw4AKmNFyqAP4OIjARbwJvgIZWKPoH47dMq7W4TFRAsGahyA0d2VUxrvFU8H/iIvLTcqWRPzfqv1UJR50qFaRQem3Z29H/LpgHLIOEB1RmqOFjSxgE
+
+# ASSISTANT
+
+
+- 
+
+# ASSISTANT
+
+Token-Aware: Limits results to fit AI context windows
+
+## https://probeai.dev/
+
+Title: Probe - Local, AI-Ready Code Intelligence | Probe
+Cited text: // Example of using Probe's Node.js SDK import { search } from '@buger/probe'; const results = await search({ query: "error handling", path: "./src", ...
+Encrypted index: EpEBCioIBRgCIiQ1OTMxOGJiOC0zZjNhLTQ0Y2UtOWFkNS0wYzYxNWE4MGI0YWISDF0HJaqYSGAheeavVBoMS7onjTkfB1IrXbcOIjAFeSkuqiyg4bg79ID5Sj/2KfCxx/hNoMOw7uIil4zdkLvJXbU7fUct7NPwz80o0aEqFUCoKI2CuzRKXDJ1gqMY1mRnRysPahgE
+
+# ASSISTANT
+
+
+
+The implementation follows the same pattern as ripgrep but adapts the command-line arguments and functionality to match probe's capabilities. When probe is not installed, it will show an appropriate error message directing users to install it from the GitHub repository.
+
+# USER
+
