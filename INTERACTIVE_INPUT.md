@@ -2,7 +2,39 @@
 
 ## Overview
 
-The `shell-command` tool in greger-stdlib now supports interactive input handling when using the `use-vterm` option. This allows shell commands that prompt for user input to work seamlessly by presenting prompts in the Emacs minibuffer.
+The `shell-command` tool in greger-stdlib now supports interactive input handling when using the `use-vterm` option. This allows shell commands that prompt for user input to work seamlessly by either:
+1. **Automated responses via Claude API** - Claude analyzes the context and provides appropriate responses
+2. **User input via minibuffer** - When Claude cannot or should not respond, prompts are presented in the Emacs minibuffer
+
+## Claude Integration
+
+### Automatic Response Generation
+When an interactive prompt is detected, the system:
+1. Sends the command context and prompt to Claude
+2. Claude evaluates whether it can provide an appropriate response
+3. If Claude responds with "USER", the user is prompted in the minibuffer
+4. If Claude provides a response, it's automatically sent to the shell
+
+### Configuration
+```elisp
+;; Enable/disable Claude integration (default: t)
+(setq greger-stdlib-claude-interactive-input t)
+
+;; Set timeout for Claude API calls (default: 10.0 seconds)
+(setq greger-stdlib-claude-interactive-timeout 15.0)
+```
+
+### Examples of Claude-Handled Prompts
+- Software installation confirmations: "Install package X? [y/n]"
+- License agreements: "Accept license? [y/n]"
+- Default value confirmations: "Use default configuration? [y/n]"
+- Common yes/no questions with clear context
+
+### Examples of User-Handled Prompts
+- Personal information requests: "Enter your name:"
+- Password prompts: "Password:" (always handled by user)
+- Complex configuration choices
+- Ambiguous questions without clear context
 
 ## How It Works
 
