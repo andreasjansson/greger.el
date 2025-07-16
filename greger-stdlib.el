@@ -1225,12 +1225,20 @@ Returns a cancel function that can interrupt the command execution."
                                      (run-with-timer 1.0 nil #'handle-interactive-input)))
                              
                              ;; Wait a bit for command to complete, then exit
+                             ;; But only if we haven't detected an interactive prompt
                              (run-with-timer 0.1 nil
                                             (lambda ()
                                               (when (buffer-live-p vterm-buffer)
                                                 (with-current-buffer vterm-buffer
-                                                  (vterm-send-string "exit")
-                                                  (vterm-send-return)))))))))
+                                                  ;; Check if there's an interactive prompt before exiting
+                                                  (run-with-timer 2.0 nil
+                                                                 (lambda ()
+                                                                   (when (and (buffer-live-p vterm-buffer)
+                                                                             (not command-completed))
+                                                                     (with-current-buffer vterm-buffer
+                                                                       (unless (detect-interactive-prompt)
+                                                                         (vterm-send-string "exit")
+                                                                         (vterm-send-return))))))))))))))
         
         ;; Return cancel function
         (lambda ()

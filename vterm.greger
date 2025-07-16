@@ -2352,5 +2352,68 @@ Fix auto-exit behavior when handling interactive prompts
 ID: toolu_01PAyJthhz87iLUeENzAbhry
 
 <tool.toolu_01PAyJthhz87iLUeENzAbhry>
-
+Successfully replaced content in /Users/andreas/projects/greger.el/greger-stdlib.el. Successfully staged 2 file(s) and committed with message: Fix auto-exit behavior when handling interactive prompts
 </tool.toolu_01PAyJthhz87iLUeENzAbhry>
+
+# ASSISTANT
+
+Now I need to improve the logic to prevent the auto-exit when there's an interactive prompt. Let me modify the auto-exit behavior:
+
+# TOOL USE
+
+Name: str-replace
+ID: toolu_01AevgowPKdS2UeJ7CmYBqeR
+
+## path
+
+<tool.toolu_01AevgowPKdS2UeJ7CmYBqeR>
+~/projects/greger.el/greger-stdlib.el
+</tool.toolu_01AevgowPKdS2UeJ7CmYBqeR>
+
+## git-commit-message
+
+<tool.toolu_01AevgowPKdS2UeJ7CmYBqeR>
+Improve auto-exit logic to handle interactive prompts better
+</tool.toolu_01AevgowPKdS2UeJ7CmYBqeR>
+
+## diff
+
+<tool.toolu_01AevgowPKdS2UeJ7CmYBqeR>
+                              ;; Execute the command
+                              (vterm-send-string command)
+                              (vterm-send-return)
+                              
+                              ;; Set up interactive prompt monitoring if no streaming callback
+                              (unless streaming-callback
+                                (setq prompt-check-timer
+                                      (run-with-timer 1.0 nil #'handle-interactive-input)))
+                              
+                              ;; Wait a bit for command to complete, then exit
++                             ;; But only if we haven't detected an interactive prompt
+                              (run-with-timer 0.1 nil
+                                             (lambda ()
+                                               (when (buffer-live-p vterm-buffer)
+                                                 (with-current-buffer vterm-buffer
+-                                                  (vterm-send-string "exit")
+-                                                  (vterm-send-return)))))
+\ No newline at end of file
++                                                  ;; Check if there's an interactive prompt before exiting
++                                                  (run-with-timer 2.0 nil
++                                                                 (lambda ()
++                                                                   (when (and (buffer-live-p vterm-buffer)
++                                                                             (not command-completed))
++                                                                     (with-current-buffer vterm-buffer
++                                                                       (unless (detect-interactive-prompt)
++                                                                         (vterm-send-string "exit")
++                                                                         (vterm-send-return))))))))))
+\ No newline at end of file
+
+</tool.toolu_01AevgowPKdS2UeJ7CmYBqeR>
+
+# TOOL RESULT
+
+ID: toolu_01AevgowPKdS2UeJ7CmYBqeR
+
+<tool.toolu_01AevgowPKdS2UeJ7CmYBqeR>
+
+</tool.toolu_01AevgowPKdS2UeJ7CmYBqeR>
