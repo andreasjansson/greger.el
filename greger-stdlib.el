@@ -1077,10 +1077,9 @@ Returns a cancel function that can interrupt the command execution."
       
       ;; Configure vterm environment
       (let ((vterm-environment (append
-                               (list "PAGER=cat" "PS1=GREGER_PROMPT> ")
+                               (list "PAGER=cat")
                                (when enable-environment
-                                 vterm-environment)
-                               vterm-environment))
+                                 vterm-environment)))
             (vterm-kill-buffer-on-exit nil)
             (vterm-shell (if enable-environment "bash -i" "bash")))
         
