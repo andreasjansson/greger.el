@@ -1242,17 +1242,21 @@ Returns a cancel function that can interrupt the command execution."
                 (if is-password
                     (setq user-input (read-passwd (format "Shell prompt: %s " prompt)))
                   
-                  ;; For non-password prompts, try Claude first
-                  (let* ((context (buffer-string))
-                         (claude-response (greger-stdlib--query-claude-for-interactive-input context prompt)))
+                  ;; For non-password prompts, try Claude first if enabled
+                  (if greger-stdlib-claude-interactive-input
+                      (let* ((context (buffer-string))
+                             (claude-response (greger-stdlib--query-claude-for-interactive-input context prompt)))
+                        
+                        (if (string= claude-response "USER")
+                            ;; Claude says user should respond
+                            (setq user-input (read-from-minibuffer (format "Shell prompt: %s " prompt)))
+                          ;; Claude provided a response
+                          (progn
+                            (message "Claude responding: %s" claude-response)
+                            (setq user-input claude-response))))
                     
-                    (if (string= claude-response "USER")
-                        ;; Claude says user should respond
-                        (setq user-input (read-from-minibuffer (format "Shell prompt: %s " prompt)))
-                      ;; Claude provided a response
-                      (progn
-                        (message "Claude responding: %s" claude-response)
-                        (setq user-input claude-response)))))
+                    ;; Claude integration disabled, ask user directly
+                    (setq user-input (read-from-minibuffer (format "Shell prompt: %s " prompt)))))
                 
                 (vterm-send-string user-input)
                 (vterm-send-return)
