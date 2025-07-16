@@ -898,7 +898,7 @@ For Emacs Lisp files (.el), checks that parentheses balance is maintained."
         (format "Successfully replaced content in %s%s. %s" expanded-path count-msg git-result)))))
 
 (defun greger-stdlib--shell-command (command callback working-directory timeout enable-environment streaming-callback metadata)
-  "Execute COMMAND in WORKING-DIRECTORY and call CALLBACK with (result error).
+  "Execute COMMAND in WORKING-DIRECTORY using vterm and call CALLBACK with (result error).
 Prompts for permission before running the command for security.
 TIMEOUT is the maximum time in sconds to wait for completion (default 600).
 ENABLE-ENVIRONMENT, if non-nil, sources shell initialization files which
@@ -930,22 +930,13 @@ Returns a cancel function that can interrupt the command execution."
                                         "")))))
       (error "Shell command execution cancelled by user"))
 
-    (let* ((bash-args (if enable-environment
-                          ;; Interactive to source .bash_profile and .bashrc
-                          (list "-i" "-c" command)
-                        ;; Non-interactive shell (current behavior)
-                        (list "-c" command)))
-           (base-env '(("PAGER" . "cat")))
-           (shell-env base-env))
-
-      (greger-stdlib--run-async-subprocess
-       :command "bash"
-       :args bash-args
-       :working-directory expanded-work-dir
-       :callback callback
-       :timeout timeout
-       :streaming-callback streaming-callback
-       :env shell-env))))
+    (greger-stdlib--run-shell-command-with-vterm
+     command
+     expanded-work-dir
+     callback
+     timeout
+     enable-environment
+     streaming-callback)))
 
 (defun greger-stdlib--ripgrep (pattern path callback case-sensitive file-type
                                        context-lines fixed-strings word-regexp
