@@ -11407,5 +11407,63 @@ Update streaming callback to handle full buffer content from vterm
 ID: toolu_01BbKehQGBYb1d2bomsqsv6d
 
 <tool.toolu_01BbKehQGBYb1d2bomsqsv6d>
-
+Successfully replaced content in /Users/andreas/projects/greger.el/greger.el. Successfully staged 2 file(s) and committed with message: Update streaming callback to handle full buffer content from vterm
 </tool.toolu_01BbKehQGBYb1d2bomsqsv6d>
+
+# ASSISTANT
+
+That detection method won't work well. Let me instead modify the streaming callback to detect when we're using vterm more directly:
+
+# TOOL USE
+
+Name: str-replace
+ID: toolu_014gbXFccSCsHGEm1AjDQF2w
+
+## path
+
+<tool.toolu_014gbXFccSCsHGEm1AjDQF2w>
+greger-stdlib.el
+</tool.toolu_014gbXFccSCsHGEm1AjDQF2w>
+
+## git-commit-message
+
+<tool.toolu_014gbXFccSCsHGEm1AjDQF2w>
+Add vterm marker to streaming callback to indicate full buffer replacement
+</tool.toolu_014gbXFccSCsHGEm1AjDQF2w>
+
+## original-content
+
+<tool.toolu_014gbXFccSCsHGEm1AjDQF2w>
+        ;; Sync vterm buffer contents to greger tool result
+        (when streaming-callback
+          (add-hook 'after-change-functions
+                    (lambda (start end old-len)
+                      (let ((current-content (buffer-string)))
+                        ;; Just send the entire buffer content on each change
+                        ;; This gives us the full vterm experience in the tool result
+                        (funcall streaming-callback current-content)))
+                    nil t))
+</tool.toolu_014gbXFccSCsHGEm1AjDQF2w>
+
+## new-content
+
+<tool.toolu_014gbXFccSCsHGEm1AjDQF2w>
+        ;; Sync vterm buffer contents to greger tool result
+        (when streaming-callback
+          (add-hook 'after-change-functions
+                    (lambda (start end old-len)
+                      (let ((current-content (buffer-string)))
+                        ;; Send the entire buffer content with a special marker
+                        ;; to indicate this is a vterm full replacement
+                        (funcall streaming-callback 
+                                (concat "VTERM_FULL_REPLACE:" current-content))))
+                    nil t))
+</tool.toolu_014gbXFccSCsHGEm1AjDQF2w>
+
+# TOOL RESULT
+
+ID: toolu_014gbXFccSCsHGEm1AjDQF2w
+
+<tool.toolu_014gbXFccSCsHGEm1AjDQF2w>
+
+</tool.toolu_014gbXFccSCsHGEm1AjDQF2w>

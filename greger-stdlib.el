@@ -1095,9 +1095,10 @@ Returns a cancel function that can interrupt the command execution."
           (add-hook 'after-change-functions
                     (lambda (start end old-len)
                       (let ((current-content (buffer-string)))
-                        ;; Just send the entire buffer content on each change
-                        ;; This gives us the full vterm experience in the tool result
-                        (funcall streaming-callback current-content)))
+                        ;; Send the entire buffer content with a special marker
+                        ;; to indicate this is a vterm full replacement
+                        (funcall streaming-callback 
+                                (concat "VTERM_FULL_REPLACE:" current-content))))
                     nil t))
         
         ;; Use process sentinel to detect when command completes
