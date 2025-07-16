@@ -1054,7 +1054,11 @@ Returns a cancel function that can interrupt the command execution."
          (timer nil)
          (process nil)
          (command-completed nil)
-         (cancel-func nil))
+         (cancel-func nil)
+         (command-start-marker nil)
+         (command-end-marker nil)
+         (output-lines nil)
+         (detecting-completion nil))
     
     (with-current-buffer vterm-buffer
       ;; Set up working directory
@@ -1062,7 +1066,7 @@ Returns a cancel function that can interrupt the command execution."
       
       ;; Configure vterm environment
       (let ((vterm-environment (append
-                               (list "PAGER=cat")
+                               (list "PAGER=cat" "PS1=GREGER_PROMPT> ")
                                (when enable-environment
                                  vterm-environment)
                                vterm-environment))
@@ -1090,18 +1094,53 @@ Returns a cancel function that can interrupt the command execution."
                                          (when (buffer-live-p vterm-buffer)
                                            (kill-buffer vterm-buffer)))))))
         
+        ;; Function to extract command output
+        (defun extract-command-output ()
+          "Extract the command output, filtering out prompts and command echo."
+          (let ((content (buffer-string)))
+            ;; Split into lines
+            (let ((lines (split-string content "\n")))
+              ;; Remove lines that look like prompts or command echoes
+              (let ((filtered-lines
+                     (seq-filter (lambda (line)
+                                   (not (or (string-match "^GREGER_PROMPT>" line)
+                                           (string-match "^[^@]*@[^:]*:" line)  ; Common prompt patterns
+                                           (string-match "^\\$" line)
+                                           (string-match (regexp-quote command) line))))
+                                 lines)))
+                (string-join filtered-lines "\n")))))
+        
+        ;; Function to check if command completed
+        (defun check-command-completion ()
+          "Check if the command has completed by looking for prompt."
+          (let ((content (buffer-string)))
+            (when (and detecting-completion
+                      (string-match "GREGER_PROMPT>" content))
+              (unless command-completed
+                (setq command-completed t)
+                (when timer (cancel-timer timer))
+                
+                ;; Get the final filtered output
+                (let ((final-output (extract-command-output)))
+                  (funcall callback final-output nil))
+                
+                (when (buffer-live-p vterm-buffer)
+                  (kill-buffer vterm-buffer))))))
+        
         ;; Sync vterm buffer contents to greger tool result
         (when streaming-callback
           (add-hook 'after-change-functions
                     (lambda (start end old-len)
-                      (let ((current-content (buffer-string)))
-                        ;; Send the entire buffer content with a special marker
+                      (let ((current-content (extract-command-output)))
+                        ;; Send the filtered content with a special marker
                         ;; to indicate this is a vterm full replacement
                         (funcall streaming-callback 
-                                (concat "VTERM_FULL_REPLACE:" current-content))))
+                                (concat "VTERM_FULL_REPLACE:" current-content)))
+                      ;; Check if command completed
+                      (check-command-completion))
                     nil t))
         
-        ;; Use process sentinel to detect when command completes
+        ;; Use process sentinel to detect when shell process terminates
         (when process
           (set-process-sentinel process
                                 (lambda (proc event)
@@ -1113,7 +1152,7 @@ Returns a cancel function that can interrupt the command execution."
                                     ;; Get the final buffer content
                                     (let ((final-content (if (buffer-live-p vterm-buffer)
                                                              (with-current-buffer vterm-buffer
-                                                               (buffer-string))
+                                                               (extract-command-output))
                                                            "")))
                                       (funcall callback final-content nil))
                                     
@@ -1121,7 +1160,7 @@ Returns a cancel function that can interrupt the command execution."
                                       (kill-buffer vterm-buffer))))))
         
         ;; Wait for shell to be ready, then execute command
-        (run-with-timer 0.5 nil
+        (run-with-timer 1.0 nil
                        (lambda ()
                          (when (buffer-live-p vterm-buffer)
                            (with-current-buffer vterm-buffer
@@ -1130,11 +1169,21 @@ Returns a cancel function that can interrupt the command execution."
                                        (not (string= working-directory default-directory)))
                                (vterm-send-string (format "cd %s" (shell-quote-argument working-directory)))
                                (vterm-send-return)
-                               (sleep-for 0.2))
+                               (sleep-for 0.3))
                              
-                             ;; Execute the command
-                             (vterm-send-string command)
-                             (vterm-send-return)))))
+                             ;; Set up command completion detection
+                             (setq detecting-completion t)
+                             
+                             ;; Execute the command followed by exit to terminate cleanly
+                             (vterm-send-string (format "%s; echo 'GREGER_COMMAND_DONE'" command))
+                             (vterm-send-return)
+                             
+                             ;; Start a timer to check completion periodically
+                             (run-with-timer 0.1 0.1
+                                           (lambda ()
+                                             (when (buffer-live-p vterm-buffer)
+                                               (with-current-buffer vterm-buffer
+                                                 (check-command-completion)))))))))
         
         ;; Create cancel function
         (setq cancel-func (lambda ()
