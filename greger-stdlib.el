@@ -1054,7 +1054,8 @@ Returns a cancel function that can interrupt the command execution."
          (timer nil)
          (process nil)
          (command-completed nil)
-         (output-buffer "")
+         (output-lines '())
+         (completion-marker (format "GREGER_DONE_%d" (random 100000)))
          (cancel-func nil))
     
     (with-current-buffer vterm-buffer
@@ -1063,15 +1064,13 @@ Returns a cancel function that can interrupt the command execution."
       
       ;; Configure vterm environment
       (let ((vterm-environment (append
-                               (list "PAGER=cat")
-                               (when enable-environment
-                                 ;; For interactive shells, we'll let vterm handle environment setup
-                                 vterm-environment)
+                               (list "PAGER=cat"
+                                     "PS1=$ "           ; Simple prompt
+                                     "PS2="             ; No continuation prompt
+                                     "HISTFILE=/dev/null") ; No history
                                vterm-environment))
             (vterm-kill-buffer-on-exit nil)
-            (vterm-shell (if enable-environment
-                            "bash"  ; Interactive shell
-                          "bash"))) ; Non-interactive shell
+            (vterm-shell "bash"))
         
         ;; Initialize vterm
         (vterm-mode)
@@ -1079,71 +1078,80 @@ Returns a cancel function that can interrupt the command execution."
         ;; Get the process
         (setq process vterm--process)
         
-        ;; Set up process sentinel to detect completion
-        (when process
-          (set-process-sentinel process
-                                (lambda (proc event)
-                                  (when (string-match "\\(finished\\|exited\\)" event)
-                                    (setq command-completed t)
-                                    (when timer (cancel-timer timer))
-                                    (let ((exit-code (process-exit-status proc)))
-                                      (if (= exit-code 0)
-                                          (funcall callback output-buffer nil)
-                                        (funcall callback nil (format "Command failed with exit code %d" exit-code))))
-                                    (when (buffer-live-p vterm-buffer)
-                                      (kill-buffer vterm-buffer))))))
-        
         ;; Set up timeout
         (when timeout
           (setq timer (run-with-timer timeout nil
                                      (lambda ()
-                                       (when (not command-completed)
+                                       (unless command-completed
+                                         (setq command-completed t)
                                          (when (and process (process-live-p process))
                                            (interrupt-process process))
                                          (funcall callback nil "Command timed out")
                                          (when (buffer-live-p vterm-buffer)
                                            (kill-buffer vterm-buffer)))))))
         
-        ;; Set up streaming callback if provided
-        (when streaming-callback
-          (let ((last-content ""))
-            (add-hook 'after-change-functions
-                      (lambda (start end old-len)
-                        (let ((current-content (buffer-string)))
-                          (setq output-buffer current-content)
-                          (unless (string= current-content last-content)
+        ;; Set up streaming callback and output collection
+        (let ((last-content ""))
+          (add-hook 'after-change-functions
+                    (lambda (start end old-len)
+                      (let ((current-content (buffer-string)))
+                        (unless (string= current-content last-content)
+                          (when streaming-callback
                             (let ((last-len (length last-content))
                                   (current-len (length current-content)))
-                              (cond
-                               ;; Content was added
-                               ((> current-len last-len)
+                              (when (> current-len last-len)
                                 (let ((new-text (substring current-content last-len)))
                                   (when (> (length new-text) 0)
-                                    (funcall streaming-callback new-text))))
-                               ;; Content was replaced/cleared - send the entire current content
-                               ((< current-len last-len)
-                                (when (> current-len 0)
-                                  (funcall streaming-callback current-content)))
-                               ;; Same length but different content - send the current content
-                               (t
-                                (when (> current-len 0)
-                                  (funcall streaming-callback current-content)))))
-                            (setq last-content current-content))))
-                      nil t)))
+                                    (funcall streaming-callback new-text))))))
+                          
+                          ;; Check for completion marker
+                          (when (and (not command-completed) 
+                                    (string-match completion-marker current-content))
+                            (setq command-completed t)
+                            (when timer (cancel-timer timer))
+                            
+                            ;; Extract just the command output, filtering out shell prompts
+                            (let* ((lines (split-string current-content "\n"))
+                                   (clean-lines '())
+                                   (capturing nil))
+                              (dolist (line lines)
+                                (cond
+                                 ;; Found completion marker, stop capturing
+                                 ((string-match completion-marker line)
+                                  (setq capturing nil))
+                                 ;; Found our command, start capturing next lines
+                                 ((string-match (regexp-quote command) line)
+                                  (setq capturing t))
+                                 ;; Capture output lines (skip prompts)
+                                 ((and capturing 
+                                       (not (string-match "^\\$" line))
+                                       (not (string-empty-p (string-trim line))))
+                                  (push line clean-lines))))
+                              
+                              (let ((clean-output (string-join (reverse clean-lines) "\n")))
+                                (funcall callback clean-output nil)))
+                            
+                            (when (buffer-live-p vterm-buffer)
+                              (kill-buffer vterm-buffer)))
+                          
+                          (setq last-content current-content))))
+                    nil t))
         
-        ;; Change to working directory if interactive
-        (when enable-environment
-          (vterm-send-string (format "cd %s" (shell-quote-argument working-directory)))
-          (vterm-send-return))
-        
-        ;; Execute the command
-        (vterm-send-string command)
-        (vterm-send-return)
-        
-        ;; If not interactive, send exit to terminate the shell
-        (unless enable-environment
-          (vterm-send-string "exit")
-          (vterm-send-return))
+        ;; Wait for shell to be ready, then execute command
+        (run-with-timer 0.3 nil
+                       (lambda ()
+                         (when (buffer-live-p vterm-buffer)
+                           (with-current-buffer vterm-buffer
+                             ;; Change to working directory if needed
+                             (when (and enable-environment 
+                                       (not (string= working-directory default-directory)))
+                               (vterm-send-string (format "cd %s" (shell-quote-argument working-directory)))
+                               (vterm-send-return)
+                               (sleep-for 0.1)) ; Give cd time to complete
+                             
+                             ;; Execute the command with completion marker
+                             (vterm-send-string (format "%s && echo %s" command completion-marker))
+                             (vterm-send-return)))))
         
         ;; Create cancel function
         (setq cancel-func (lambda ()
