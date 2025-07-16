@@ -1112,7 +1112,8 @@ Returns a cancel function that can interrupt the command execution."
                                (not (string-prefix-p command trimmed))       ; Command echo
                                (not (string-match "^exit" trimmed)))))       ; Exit command
                       lines)))
-                (string-trim (string-join filtered-lines "\n"))))))
+                ;; Don't trim the final result - this might be removing the first character
+                (string-join filtered-lines "\n")))))
         
         ;; Set up process sentinel to capture output when shell terminates
         (when process
