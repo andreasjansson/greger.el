@@ -907,8 +907,7 @@ TIMEOUT is the maximum time in sconds to wait for completion (default 600).
 ENABLE-ENVIRONMENT, if non-nil, sources shell initialization files which
 may contain secrets and environment variables.  User will be warned in
 permission prompt.
-USE-VTERM, if non-nil, uses vterm for full terminal emulation with colors
-and ANSI sequences. Falls back to regular subprocess if vterm is not available.
+
 If METADATA contains safe-shell-commands and COMMAND is in that list, skips
 permission prompt.
 Returns a cancel function that can interrupt the command execution."
