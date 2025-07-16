@@ -1206,15 +1206,7 @@ Returns a cancel function that can interrupt the command execution."
                              
                              ;; Send exit command to terminate the shell
                              (vterm-send-string "exit")
-                             (vterm-send-return)
-                             
-                             ;; Start a timer to check completion periodically
-                             (setq completion-timer 
-                                   (run-with-timer 0.1 0.1
-                                                 (lambda ()
-                                                   (when (buffer-live-p vterm-buffer)
-                                                     (with-current-buffer vterm-buffer
-                                                       (check-command-completion))))))))))
+                             (vterm-send-return)))))
         
         ;; Create cancel function
         (setq cancel-func (lambda ()
