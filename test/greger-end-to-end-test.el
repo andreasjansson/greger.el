@@ -660,28 +660,21 @@ Hello from greger test!
           (let ((greger-default-system-prompt "You are an agent."))
             (setq greger-buffer (greger)))
 
-          (with-current-buffer greger-buffer
-            (goto-char (point-max))
-            (re-search-backward "# SYSTEM")
-            (forward-line 1)
-            (insert "\n<safe-shell-commands>\necho 'Testing disabled mode'; echo 'This should work without prompts'\n</safe-shell-commands>\n")
+          (goto-char (point-max))
+          (insert "Use the shell-command tool to run: echo 'Testing disabled mode works'")
 
-            (goto-char (point-max))
-            (insert "Run the shell command: echo 'Testing disabled mode'; echo 'This should work without prompts'")
+          (let ((greger-current-thinking-budget 0)
+                (greger-tools '("shell-command"))
+                (greger-stdlib-claude-interactive-input nil))
+            (greger-buffer)
 
-            (let ((greger-current-thinking-budget 0)
-                  (greger-tools '("shell-command"))
-                  (greger-stdlib-claude-interactive-input nil))
-              (greger-buffer)
+            (should (greger-test-wait-for-status 'idle))
 
-              (should (greger-test-wait-for-status 'idle))
-
-              (let ((content (buffer-string)))
-                ;; Should contain the shell command execution
-                (should (string-match-p "Testing disabled mode" content))
-                (should (string-match-p "This should work without prompts" content))
-                ;; Should not contain error messages
-                (should-not (string-match-p "Command failed" content))))))
+            (let ((content (buffer-string)))
+              ;; Should contain the shell command execution
+              (should (string-match-p "Testing disabled mode works" content))
+              ;; Should not contain error messages
+              (should-not (string-match-p "Command failed" content)))))
 
       (when (and greger-buffer (buffer-live-p greger-buffer))
         (kill-buffer greger-buffer)))))

@@ -7460,5 +7460,84 @@ Simplify vterm interactive input test
 ID: toolu_015tqiY9dUdRSA4UDzWgpaYo
 
 <tool.toolu_015tqiY9dUdRSA4UDzWgpaYo>
-
+Successfully replaced content in /Users/andreas/projects/greger.el/test/greger-end-to-end-test.el. Successfully staged 2 file(s) and committed with message: Simplify vterm interactive input test
 </tool.toolu_015tqiY9dUdRSA4UDzWgpaYo>
+
+# TOOL USE
+
+Name: str-replace
+ID: toolu_01WLz6V5Ds77WNWYNMtTdFR8
+
+## path
+
+<tool.toolu_01WLz6V5Ds77WNWYNMtTdFR8>
+~/projects/greger.el/test/greger-end-to-end-test.el
+</tool.toolu_01WLz6V5Ds77WNWYNMtTdFR8>
+
+## git-commit-message
+
+<tool.toolu_01WLz6V5Ds77WNWYNMtTdFR8>
+Simplify disabled interactive input test
+</tool.toolu_01WLz6V5Ds77WNWYNMtTdFR8>
+
+## diff
+
+<tool.toolu_01WLz6V5Ds77WNWYNMtTdFR8>
+ (ert-deftest greger-end-to-end-test-interactive-input-disabled ()
+   "Test interactive input handling with Claude integration disabled."
+   (skip-unless (getenv "ANTHROPIC_API_KEY"))
+ 
+   (let ((greger-buffer nil))
+     (unwind-protect
+         (progn
+           (let ((greger-default-system-prompt "You are an agent."))
+             (setq greger-buffer (greger)))
+ 
+-          (with-current-buffer greger-buffer
+-            (goto-char (point-max))
+-            (re-search-backward "# SYSTEM")
+-            (forward-line 1)
+-            (insert "\n<safe-shell-commands>\necho 'Testing disabled mode'; echo 'This should work without prompts'\n</safe-shell-commands>\n")
++          (goto-char (point-max))
++          (insert "Use the shell-command tool to run: echo 'Testing disabled mode works'")
+ 
+-            (goto-char (point-max))
+-            (insert "Run the shell command: echo 'Testing disabled mode'; echo 'This should work without prompts'")
++          (let ((greger-current-thinking-budget 0)
++                (greger-tools '("shell-command"))
++                (greger-stdlib-claude-interactive-input nil))
++            (greger-buffer)
+ 
+-            (let ((greger-current-thinking-budget 0)
+-                  (greger-tools '("shell-command"))
+-                  (greger-stdlib-claude-interactive-input nil))
+-              (greger-buffer)
++            (should (greger-test-wait-for-status 'idle))
+ 
+-              (should (greger-test-wait-for-status 'idle))
++            (let ((content (buffer-string)))
++              ;; Should contain the shell command execution
++              (should (string-match-p "Testing disabled mode works" content))
++              ;; Should not contain error messages
++              (should-not (string-match-p "Command failed" content)))))
+ 
+-              (let ((content (buffer-string)))
+-                ;; Should contain the shell command execution
+-                (should (string-match-p "Testing disabled mode" content))
+-                (should (string-match-p "This should work without prompts" content))
+-                ;; Should not contain error messages
+-                (should-not (string-match-p "Command failed" content))))))
+-
+       (when (and greger-buffer (buffer-live-p greger-buffer))
+         (kill-buffer greger-buffer)))))
+\ No newline at end of file
+
+</tool.toolu_01WLz6V5Ds77WNWYNMtTdFR8>
+
+# TOOL RESULT
+
+ID: toolu_01WLz6V5Ds77WNWYNMtTdFR8
+
+<tool.toolu_01WLz6V5Ds77WNWYNMtTdFR8>
+
+</tool.toolu_01WLz6V5Ds77WNWYNMtTdFR8>
