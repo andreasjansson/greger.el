@@ -1036,6 +1036,105 @@ If USE-HIGHEST-READABILITY is non-nil, use eww's aggressive readability setting.
       (greger-web-download-page url extract-text use-highest-readability)
     (error "Failed to read webpage: %s" (error-message-string err))))
 
+(defun greger-stdlib--run-shell-command-with-vterm (command working-directory callback timeout enable-environment streaming-callback)
+  "Execute COMMAND using vterm in WORKING-DIRECTORY and call CALLBACK with (result error).
+This function creates a vterm buffer, executes the command, and provides 
+streaming output through STREAMING-CALLBACK. The final result is passed to CALLBACK.
+Returns a cancel function that can interrupt the command execution."
+  (let* ((buffer-name (format " *greger-vterm-%s*" (random 100000)))
+         (vterm-buffer (get-buffer-create buffer-name))
+         (timer nil)
+         (process nil)
+         (command-completed nil)
+         (output-buffer "")
+         (cancel-func nil))
+    
+    (with-current-buffer vterm-buffer
+      ;; Set up working directory
+      (setq default-directory working-directory)
+      
+      ;; Configure vterm environment
+      (let ((vterm-environment (append
+                               (list "PAGER=cat")
+                               (when enable-environment
+                                 ;; For interactive shells, we'll let vterm handle environment setup
+                                 vterm-environment)
+                               vterm-environment))
+            (vterm-kill-buffer-on-exit nil)
+            (vterm-shell (if enable-environment
+                            "bash"  ; Interactive shell
+                          "bash"))) ; Non-interactive shell
+        
+        ;; Initialize vterm
+        (vterm-mode)
+        
+        ;; Get the process
+        (setq process vterm--process)
+        
+        ;; Set up process sentinel to detect completion
+        (when process
+          (set-process-sentinel process
+                                (lambda (proc event)
+                                  (when (string-match "\\(finished\\|exited\\)" event)
+                                    (setq command-completed t)
+                                    (when timer (cancel-timer timer))
+                                    (let ((exit-code (process-exit-status proc)))
+                                      (if (= exit-code 0)
+                                          (funcall callback output-buffer nil)
+                                        (funcall callback nil (format "Command failed with exit code %d" exit-code))))
+                                    (when (buffer-live-p vterm-buffer)
+                                      (kill-buffer vterm-buffer))))))
+        
+        ;; Set up timeout
+        (when timeout
+          (setq timer (run-with-timer timeout nil
+                                     (lambda ()
+                                       (when (not command-completed)
+                                         (when (and process (process-live-p process))
+                                           (interrupt-process process))
+                                         (funcall callback nil "Command timed out")
+                                         (when (buffer-live-p vterm-buffer)
+                                           (kill-buffer vterm-buffer)))))))
+        
+        ;; Set up streaming callback if provided
+        (when streaming-callback
+          (let ((last-content ""))
+            (add-hook 'after-change-functions
+                      (lambda (start end old-len)
+                        (let ((current-content (buffer-string)))
+                          (setq output-buffer current-content)
+                          (unless (string= current-content last-content)
+                            (let ((new-text (substring current-content (length last-content))))
+                              (when (> (length new-text) 0)
+                                (funcall streaming-callback new-text nil)))
+                            (setq last-content current-content))))
+                      nil t)))
+        
+        ;; Change to working directory if interactive
+        (when enable-environment
+          (vterm-send-string (format "cd %s" (shell-quote-argument working-directory)))
+          (vterm-send-return))
+        
+        ;; Execute the command
+        (vterm-send-string command)
+        (vterm-send-return)
+        
+        ;; If not interactive, send exit to terminate the shell
+        (unless enable-environment
+          (vterm-send-string "exit")
+          (vterm-send-return))
+        
+        ;; Create cancel function
+        (setq cancel-func (lambda ()
+                           (when timer (cancel-timer timer))
+                           (when (and process (process-live-p process))
+                             (interrupt-process process))
+                           (when (buffer-live-p vterm-buffer)
+                             (kill-buffer vterm-buffer))
+                           (funcall callback nil "Command cancelled by user")))))
+    
+    ;; Return the cancel function
+    cancel-func))
 
 (provide 'greger-stdlib)
 
