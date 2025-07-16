@@ -3185,5 +3185,71 @@ Store completion timer for proper cleanup
 ID: toolu_01KuCAuj9iz3QV6rqSTqPxtg
 
 <tool.toolu_01KuCAuj9iz3QV6rqSTqPxtg>
+Successfully replaced content in /Users/andreas/projects/greger.el/greger-stdlib.el. Successfully staged 2 file(s) and committed with message: Store completion timer for proper cleanup
 
+- Store completion timer in variable for later cleanup
+- This allows proper timer cancellation when needed
 </tool.toolu_01KuCAuj9iz3QV6rqSTqPxtg>
+
+# TOOL USE
+
+Name: str-replace
+ID: toolu_01K5KMeb2VtbpmfAXinYxMVz
+
+## path
+
+<tool.toolu_01K5KMeb2VtbpmfAXinYxMVz>
+greger-stdlib.el
+</tool.toolu_01K5KMeb2VtbpmfAXinYxMVz>
+
+## original-content
+
+<tool.toolu_01K5KMeb2VtbpmfAXinYxMVz>
+                                    (setq command-completed t)
+                                    (when timer (cancel-timer timer))
+                                    
+                                    ;; Get the final buffer content
+                                    (let ((final-content (if (buffer-live-p vterm-buffer)
+                                                             (with-current-buffer vterm-buffer
+                                                               (extract-command-output))
+                                                           "")))
+                                      (funcall callback final-content nil))
+                                    
+                                    (when (buffer-live-p vterm-buffer)
+                                      (kill-buffer vterm-buffer))))))
+</tool.toolu_01K5KMeb2VtbpmfAXinYxMVz>
+
+## new-content
+
+<tool.toolu_01K5KMeb2VtbpmfAXinYxMVz>
+                                    (setq command-completed t)
+                                    (when timer (cancel-timer timer))
+                                    (when completion-timer (cancel-timer completion-timer))
+                                    
+                                    ;; Get the final buffer content
+                                    (let ((final-content (if (buffer-live-p vterm-buffer)
+                                                             (with-current-buffer vterm-buffer
+                                                               (extract-command-output))
+                                                           "")))
+                                      (funcall callback final-content nil))
+                                    
+                                    (when (buffer-live-p vterm-buffer)
+                                      (kill-buffer vterm-buffer))))))
+</tool.toolu_01K5KMeb2VtbpmfAXinYxMVz>
+
+## git-commit-message
+
+<tool.toolu_01K5KMeb2VtbpmfAXinYxMVz>
+Clean up completion timer in process sentinel
+
+- Cancel completion timer when process terminates
+- This ensures all timers are properly cleaned up
+</tool.toolu_01K5KMeb2VtbpmfAXinYxMVz>
+
+# TOOL RESULT
+
+ID: toolu_01K5KMeb2VtbpmfAXinYxMVz
+
+<tool.toolu_01K5KMeb2VtbpmfAXinYxMVz>
+
+</tool.toolu_01K5KMeb2VtbpmfAXinYxMVz>

@@ -1152,6 +1152,7 @@ Returns a cancel function that can interrupt the command execution."
                                             (string-match "\\(finished\\|exited\\)" event))
                                     (setq command-completed t)
                                     (when timer (cancel-timer timer))
+                                    (when completion-timer (cancel-timer completion-timer))
                                     
                                     ;; Get the final buffer content
                                     (let ((final-content (if (buffer-live-p vterm-buffer)
