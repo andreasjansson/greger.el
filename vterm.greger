@@ -5598,3 +5598,197 @@ ID: toolu_019FZsvFRdW8noFFxRqA4G27
 <tool.toolu_019FZsvFRdW8noFFxRqA4G27>
 
 </tool.toolu_019FZsvFRdW8noFFxRqA4G27>
+
+# TOOL USE
+
+Name: shell-command
+ID: toolu_01T9q3CwVHFXXWxJTV5e3tjS
+
+## command
+
+<tool.toolu_01T9q3CwVHFXXWxJTV5e3tjS>
+cd /Users/andreas/projects/greger.el && git add test-empty-result.el && git commit -m "Add test to reproduce empty tool result content issue
+
+- Creates test that shows exactly what's happening with vterm output
+- Captures streaming calls and final callback
+- Helps diagnose why tool result content is empty"
+</tool.toolu_01T9q3CwVHFXXWxJTV5e3tjS>
+
+# TOOL RESULT
+
+ID: toolu_01T9q3CwVHFXXWxJTV5e3tjS
+
+<tool.toolu_01T9q3CwVHFXXWxJTV5e3tjS>
+
+</tool.toolu_01T9q3CwVHFXXWxJTV5e3tjS>
+
+# TOOL USE
+
+Name: shell-command
+ID: toolu_01URLPwSqFhZqvM6FKsHRpNr
+
+## command
+
+<tool.toolu_01URLPwSqFhZqvM6FKsHRpNr>
+cd /Users/andreas/projects/greger.el && emacs --batch -l test-empty-result.el
+</tool.toolu_01URLPwSqFhZqvM6FKsHRpNr>
+
+# TOOL RESULT
+
+ID: toolu_01URLPwSqFhZqvM6FKsHRpNr
+
+<tool.toolu_01URLPwSqFhZqvM6FKsHRpNr>
+
+</tool.toolu_01URLPwSqFhZqvM6FKsHRpNr>
+
+# ASSISTANT
+
+That's strange - no output. Let me try a simpler test:
+
+# TOOL USE
+
+Name: shell-command
+ID: toolu_01M1sJnkrzRsV9umFUEYpejy
+
+## command
+
+<tool.toolu_01M1sJnkrzRsV9umFUEYpejy>
+cd /Users/andreas/projects/greger.el && emacs --batch -eval "(progn (message \"Testing basic output\") (add-to-list 'load-path \".\") (require 'greger-stdlib) (message \"greger-stdlib loaded\"))"
+</tool.toolu_01M1sJnkrzRsV9umFUEYpejy>
+
+# TOOL RESULT
+
+ID: toolu_01M1sJnkrzRsV9umFUEYpejy
+
+<tool.toolu_01M1sJnkrzRsV9umFUEYpejy>
+
+</tool.toolu_01M1sJnkrzRsV9umFUEYpejy>
+
+# ASSISTANT
+
+Let me fix the test and try again:
+
+# TOOL USE
+
+Name: str-replace
+ID: toolu_01TWfAn78Mz6A31bZwGrPkKS
+
+## path
+
+<tool.toolu_01TWfAn78Mz6A31bZwGrPkKS>
+test-empty-result.el
+</tool.toolu_01TWfAn78Mz6A31bZwGrPkKS>
+
+## diff
+
+<tool.toolu_01TWfAn78Mz6A31bZwGrPkKS>
+ ;;; Test to reproduce empty tool result content issue
+ 
+ (add-to-list 'load-path ".")
+ (add-to-list 'load-path "~/.emacs.d/elpa/vterm-20241218.331")
+ 
++(message "Loading greger-stdlib...")
+ (require 'greger-stdlib)
+-(require 'vterm)
+\ No newline at end of file
++(message "Loading vterm...")
++(require 'vterm)
++(message "Libraries loaded successfully")
+\ No newline at end of file
+
+</tool.toolu_01TWfAn78Mz6A31bZwGrPkKS>
+
+# TOOL RESULT
+
+ID: toolu_01TWfAn78Mz6A31bZwGrPkKS
+
+<tool.toolu_01TWfAn78Mz6A31bZwGrPkKS>
+
+</tool.toolu_01TWfAn78Mz6A31bZwGrPkKS>
+
+# TOOL USE
+
+Name: shell-command
+ID: toolu_012zmqNPtLDXTVehaMZDHuH6
+
+## command
+
+<tool.toolu_012zmqNPtLDXTVehaMZDHuH6>
+cd /Users/andreas/projects/greger.el && emacs --batch -l test-empty-result.el 2>&1
+</tool.toolu_012zmqNPtLDXTVehaMZDHuH6>
+
+# TOOL RESULT
+
+ID: toolu_012zmqNPtLDXTVehaMZDHuH6
+
+<tool.toolu_012zmqNPtLDXTVehaMZDHuH6>
+
+</tool.toolu_012zmqNPtLDXTVehaMZDHuH6>
+
+# ASSISTANT
+
+Let me try a different approach - run the test directly:
+
+# TOOL USE
+
+Name: shell-command
+ID: toolu_01QsLxFJEeopXk6EUoSmCAwR
+
+## command
+
+<tool.toolu_01QsLxFJEeopXk6EUoSmCAwR>
+cd /Users/andreas/projects/greger.el && emacs --batch -eval "(progn (setq debug-on-error t) (load \"test-empty-result.el\"))" 2>&1
+</tool.toolu_01QsLxFJEeopXk6EUoSmCAwR>
+
+# TOOL RESULT
+
+ID: toolu_01QsLxFJEeopXk6EUoSmCAwR
+
+<tool.toolu_01QsLxFJEeopXk6EUoSmCAwR>
+
+</tool.toolu_01QsLxFJEeopXk6EUoSmCAwR>
+
+# ASSISTANT
+
+Let me simplify and test directly:
+
+# TOOL USE
+
+Name: write-new-file
+ID: toolu_01RS6qv9p2VJMPEmx21fGKZ6
+
+## path
+
+<tool.toolu_01RS6qv9p2VJMPEmx21fGKZ6>
+test-simple-vterm.el
+</tool.toolu_01RS6qv9p2VJMPEmx21fGKZ6>
+
+## contents
+
+<tool.toolu_01RS6qv9p2VJMPEmx21fGKZ6>
+;;; Simple test
+
+(message "Starting test...")
+
+(defun simple-test ()
+  (message "Simple test function called")
+  (let ((result "test"))
+    (message "Result: %s" result)))
+
+(simple-test)
+(message "Test completed")
+</tool.toolu_01RS6qv9p2VJMPEmx21fGKZ6>
+
+## git-commit-message
+
+<tool.toolu_01RS6qv9p2VJMPEmx21fGKZ6>
+Add simple test to debug batch mode issues
+</tool.toolu_01RS6qv9p2VJMPEmx21fGKZ6>
+
+# TOOL RESULT
+
+ID: toolu_01RS6qv9p2VJMPEmx21fGKZ6
+
+<tool.toolu_01RS6qv9p2VJMPEmx21fGKZ6>
+
+</tool.toolu_01RS6qv9p2VJMPEmx21fGKZ6>
