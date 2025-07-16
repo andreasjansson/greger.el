@@ -37,4 +37,5 @@
   
   (when test-completed
     (message "Result: %S" test-result)
-    (message "First char: %c" (aref test-result 0))))
+    (message "First char: %c (byte %d)" (aref test-result 0) (aref test-result 0))
+    (message "Second char: %c (byte %d)" (aref test-result 1) (aref test-result 1))))
