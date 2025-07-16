@@ -1122,6 +1122,7 @@ Returns a cancel function that can interrupt the command execution."
               (unless command-completed
                 (setq command-completed t)
                 (when timer (cancel-timer timer))
+                (when completion-timer (cancel-timer completion-timer))
                 
                 ;; Get the final filtered output
                 (let ((final-output (extract-command-output)))

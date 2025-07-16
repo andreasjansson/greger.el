@@ -3069,5 +3069,67 @@ Add completion timer tracking for proper cleanup
 ID: toolu_01VseZjBJE8PZYeJVCRz1CHd
 
 <tool.toolu_01VseZjBJE8PZYeJVCRz1CHd>
+Successfully replaced content in /Users/andreas/projects/greger.el/greger-stdlib.el. Successfully staged 2 file(s) and committed with message: Add completion timer tracking for proper cleanup
 
+- Track completion timer for proper cleanup
+- This prevents timer leaks when buffers are killed
 </tool.toolu_01VseZjBJE8PZYeJVCRz1CHd>
+
+# TOOL USE
+
+Name: str-replace
+ID: toolu_0164gAMsBj8NE3wsJz1Cksou
+
+## path
+
+<tool.toolu_0164gAMsBj8NE3wsJz1Cksou>
+greger-stdlib.el
+</tool.toolu_0164gAMsBj8NE3wsJz1Cksou>
+
+## original-content
+
+<tool.toolu_0164gAMsBj8NE3wsJz1Cksou>
+              (unless command-completed
+                (setq command-completed t)
+                (when timer (cancel-timer timer))
+                
+                ;; Get the final filtered output
+                (let ((final-output (extract-command-output)))
+                  (funcall callback final-output nil))
+                
+                (when (buffer-live-p vterm-buffer)
+                  (kill-buffer vterm-buffer))))))
+</tool.toolu_0164gAMsBj8NE3wsJz1Cksou>
+
+## new-content
+
+<tool.toolu_0164gAMsBj8NE3wsJz1Cksou>
+              (unless command-completed
+                (setq command-completed t)
+                (when timer (cancel-timer timer))
+                (when completion-timer (cancel-timer completion-timer))
+                
+                ;; Get the final filtered output
+                (let ((final-output (extract-command-output)))
+                  (funcall callback final-output nil))
+                
+                (when (buffer-live-p vterm-buffer)
+                  (kill-buffer vterm-buffer))))))
+</tool.toolu_0164gAMsBj8NE3wsJz1Cksou>
+
+## git-commit-message
+
+<tool.toolu_0164gAMsBj8NE3wsJz1Cksou>
+Clean up completion timer on command completion
+
+- Cancel completion timer when command completes
+- This prevents timer from running after buffer is killed
+</tool.toolu_0164gAMsBj8NE3wsJz1Cksou>
+
+# TOOL RESULT
+
+ID: toolu_0164gAMsBj8NE3wsJz1Cksou
+
+<tool.toolu_0164gAMsBj8NE3wsJz1Cksou>
+
+</tool.toolu_0164gAMsBj8NE3wsJz1Cksou>
