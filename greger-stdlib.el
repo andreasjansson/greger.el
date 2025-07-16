@@ -1085,6 +1085,13 @@ Returns a cancel function that can interrupt the command execution."
         (when process
           (set-process-query-on-exit-flag process nil))
         
+        ;; Wait for vterm to be fully initialized
+        (while (and (not vterm--process) (< (setq counter (1+ counter)) 100))
+          (sleep-for 0.01))
+        
+        (unless vterm--process
+          (error "Failed to initialize vterm process"))
+        
         ;; Set up timeout
         (when timeout
           (setq timer (run-with-timer timeout nil
