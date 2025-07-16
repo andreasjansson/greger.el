@@ -7006,5 +7006,89 @@ Fix treesit node reference issues in all interactive input tests
 ID: toolu_01LpoUpYiis5CFxd68Z2zRAV
 
 <tool.toolu_01LpoUpYiis5CFxd68Z2zRAV>
-
+Successfully replaced content in /Users/andreas/projects/greger.el/test/greger-end-to-end-test.el. Successfully staged 2 file(s) and committed with message: Fix treesit node reference issues in all interactive input tests
 </tool.toolu_01LpoUpYiis5CFxd68Z2zRAV>
+
+# TOOL USE
+
+Name: str-replace
+ID: toolu_017Y19mFg1RG34PEfRXYt3EM
+
+## path
+
+<tool.toolu_017Y19mFg1RG34PEfRXYt3EM>
+~/projects/greger.el/test/greger-end-to-end-test.el
+</tool.toolu_017Y19mFg1RG34PEfRXYt3EM>
+
+## git-commit-message
+
+<tool.toolu_017Y19mFg1RG34PEfRXYt3EM>
+Fix treesit node reference issues in disabled interactive input test
+</tool.toolu_017Y19mFg1RG34PEfRXYt3EM>
+
+## diff
+
+<tool.toolu_017Y19mFg1RG34PEfRXYt3EM>
+ (ert-deftest greger-end-to-end-test-interactive-input-disabled ()
+   "Test interactive input handling with Claude integration disabled."
+   (skip-unless (getenv "ANTHROPIC_API_KEY"))
+ 
+   (let ((greger-buffer nil))
+     (unwind-protect
+         (progn
+           (let ((greger-default-system-prompt "You are an agent."))
+             (setq greger-buffer (greger)))
+ 
+-          (goto-char (point-max))
+-          (re-search-backward "# SYSTEM")
+-          (forward-line 1)
+-          (insert "\n<safe-shell-commands>\necho 'Testing disabled mode'; echo 'This should work without prompts'\n</safe-shell-commands>\n")
++          (with-current-buffer greger-buffer
++            (goto-char (point-max))
++            (re-search-backward "# SYSTEM")
++            (forward-line 1)
++            (insert "\n<safe-shell-commands>\necho 'Testing disabled mode'; echo 'This should work without prompts'\n</safe-shell-commands>\n")
+ 
+-          (goto-char (point-max))
+-          (insert "Run the shell command: echo 'Testing disabled mode'; echo 'This should work without prompts'")
++            (goto-char (point-max))
++            (insert "Run the shell command: echo 'Testing disabled mode'; echo 'This should work without prompts'")
+ 
+-          (let ((greger-current-thinking-budget 0)
+-                (greger-tools '("shell-command"))
+-                (greger-stdlib-claude-interactive-input nil))
+-            (greger-buffer)
++            (let ((greger-current-thinking-budget 0)
++                  (greger-tools '("shell-command"))
++                  (greger-stdlib-claude-interactive-input nil))
++              (greger-buffer)
+ 
+-            (should (greger-test-wait-for-status 'idle))
++              (should (greger-test-wait-for-status 'idle))
+ 
+-            (let ((content (buffer-string)))
+-              ;; Should contain the shell command execution
+-              (should (string-match-p "Testing disabled mode" content))
+-              (should (string-match-p "This should work without prompts" content))
+-              ;; Should not contain error messages
+-              (should-not (string-match-p "Command failed" content)))))
++              (let ((content (buffer-string)))
++                ;; Should contain the shell command execution
++                (should (string-match-p "Testing disabled mode" content))
++                (should (string-match-p "This should work without prompts" content))
++                ;; Should not contain error messages
++                (should-not (string-match-p "Command failed" content))))))
+ 
+       (when (and greger-buffer (buffer-live-p greger-buffer))
+         (kill-buffer greger-buffer)))))
+\ No newline at end of file
+
+</tool.toolu_017Y19mFg1RG34PEfRXYt3EM>
+
+# TOOL RESULT
+
+ID: toolu_017Y19mFg1RG34PEfRXYt3EM
+
+<tool.toolu_017Y19mFg1RG34PEfRXYt3EM>
+
+</tool.toolu_017Y19mFg1RG34PEfRXYt3EM>
