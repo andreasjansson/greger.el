@@ -1112,10 +1112,10 @@ Returns a cancel function that can interrupt the command execution."
         
         ;; Function to check if command completed
         (defun check-command-completion ()
-          "Check if the command has completed by looking for prompt."
+          "Check if the command has completed by looking for completion marker."
           (let ((content (buffer-string)))
             (when (and detecting-completion
-                      (string-match "GREGER_PROMPT>" content))
+                      (string-match "GREGER_COMMAND_DONE" content))
               (unless command-completed
                 (setq command-completed t)
                 (when timer (cancel-timer timer))
