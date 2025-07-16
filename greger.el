@@ -1044,8 +1044,10 @@ end tag and update the buffer state."
          (goto-char (1- tool-result-content-end))
 
          ;; Process terminal sequences to handle progress bars and dynamic output
-         ;; The function processes text at current point, inserting and moving cursor
-         (greger-ui--process-terminal-sequences text)
+         ;; Use vterm for accurate terminal emulation when available
+         (if (fboundp 'vterm-mode)
+             (greger--process-terminal-sequences-with-vterm text)
+           (greger-ui--process-terminal-sequences text))
 
          (when is-completed
            ;; Trim trailing newline after closing tag
