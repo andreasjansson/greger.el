@@ -10453,5 +10453,153 @@ Set process query flag on creation to avoid interactive prompts
 ID: toolu_01MsKBa3aB65P1jeSxjML3de
 
 <tool.toolu_01MsKBa3aB65P1jeSxjML3de>
-
+Successfully replaced content in /Users/andreas/projects/greger.el/greger-stdlib.el. Successfully staged 2 file(s) and committed with message: Set process query flag on creation to avoid interactive prompts
 </tool.toolu_01MsKBa3aB65P1jeSxjML3de>
+
+# ASSISTANT
+
+Now let's test the fix:
+
+# TOOL USE
+
+Name: shell-command
+ID: toolu_018bWcsgsD1BosMX8CdzyV2S
+
+## command
+
+<tool.toolu_018bWcsgsD1BosMX8CdzyV2S>
+cd /Users/andreas/projects/greger.el && emacs --batch --load test-vterm-debug.el
+</tool.toolu_018bWcsgsD1BosMX8CdzyV2S>
+
+# TOOL RESULT
+
+ID: toolu_018bWcsgsD1BosMX8CdzyV2S
+
+<tool.toolu_018bWcsgsD1BosMX8CdzyV2S>
+Starting vterm ls test...
+Command submitted, waiting for completion...
+=== STREAMING: "
+" ===
+=== STREAMING: #("ls && echo GREGER_DONE_80063
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+" 0 51 (font-lock-face (:foreground "unspecified-fg" :background "unspecified-bg" :extend t))) ===
+=== FINAL CALLBACK ===
+Output length: 0
+Error: nil
+First 200 chars: 
+=== TEST COMPLETED ===
+Final output length: 0
+Final error: nil
+=== FULL OUTPUT ===
+
+=== END OUTPUT ===
+
+</tool.toolu_018bWcsgsD1BosMX8CdzyV2S>
+
+# ASSISTANT
+
+Good! The interactive prompt is gone, but now the output is empty. The issue is that my completion detection logic is not working correctly. Let me debug this by creating a simpler test:
+
+# TOOL USE
+
+Name: write-new-file
+ID: toolu_014vuYHkFVqgMY1foWgznd6M
+
+## path
+
+<tool.toolu_014vuYHkFVqgMY1foWgznd6M>
+test-vterm-simple.el
+</tool.toolu_014vuYHkFVqgMY1foWgznd6M>
+
+## git-commit-message
+
+<tool.toolu_014vuYHkFVqgMY1foWgznd6M>
+Create simple vterm test to debug completion detection
+</tool.toolu_014vuYHkFVqgMY1foWgznd6M>
+
+## contents
+
+<tool.toolu_014vuYHkFVqgMY1foWgznd6M>
+;;; Simple vterm test to debug completion detection
+
+(add-to-list 'load-path ".")
+(add-to-list 'load-path "~/.emacs.d/elpa/vterm-20241218.331")
+
+(require 'vterm)
+
+(defun test-simple-vterm ()
+  "Test vterm directly to see what happens."
+  (interactive)
+  (let* ((buffer-name " *test-vterm*")
+         (vterm-buffer (get-buffer-create buffer-name))
+         (completion-marker "GREGER_DONE_12345"))
+    
+    (with-current-buffer vterm-buffer
+      (let ((vterm-kill-buffer-on-exit nil)
+            (vterm-shell "bash"))
+        (vterm-mode)
+        
+        ;; Set up process for non-interactive cleanup
+        (when vterm--process
+          (set-process-query-on-exit-flag vterm--process nil))
+        
+        ;; Monitor buffer changes
+        (add-hook 'after-change-functions
+                  (lambda (start end old-len)
+                    (let ((content (buffer-string)))
+                      (message "=== BUFFER CONTENT ===")
+                      (message "%s" content)
+                      (message "=== END CONTENT ===")
+                      (when (string-match completion-marker content)
+                        (message "Found completion marker!")
+                        (when vterm--process
+                          (set-process-query-on-exit-flag vterm--process nil)
+                          (delete-process vterm--process))
+                        (kill-buffer vterm-buffer))))
+                  nil t)
+        
+        ;; Wait for shell to be ready
+        (run-with-timer 0.5 nil
+                       (lambda ()
+                         (when (buffer-live-p vterm-buffer)
+                           (with-current-buffer vterm-buffer
+                             (message "Executing command...")
+                             (vterm-send-string (format "ls && echo %s" completion-marker))
+                             (vterm-send-return)))))))))
+
+;; Run the test
+(test-simple-vterm)
+
+;; Wait for completion
+(sleep-for 3)
+(message "Test completed")
+</tool.toolu_014vuYHkFVqgMY1foWgznd6M>
+
+# TOOL RESULT
+
+ID: toolu_014vuYHkFVqgMY1foWgznd6M
+
+<tool.toolu_014vuYHkFVqgMY1foWgznd6M>
+
+</tool.toolu_014vuYHkFVqgMY1foWgznd6M>
