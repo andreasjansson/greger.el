@@ -1046,8 +1046,8 @@ If USE-HIGHEST-READABILITY is non-nil, use eww's aggressive readability setting.
 
 (defun greger-stdlib--run-shell-command-with-vterm (command working-directory callback timeout enable-environment streaming-callback)
   "Execute COMMAND using vterm in WORKING-DIRECTORY and call CALLBACK with (result error).
-This function creates a vterm buffer, executes the command, and provides 
-streaming output through STREAMING-CALLBACK. The final result is passed to CALLBACK.
+This function creates a vterm buffer, executes the command, and syncs the buffer
+contents to the greger tool result in real-time through STREAMING-CALLBACK.
 Returns a cancel function that can interrupt the command execution."
   (let* ((buffer-name (format " *greger-vterm-%s*" (random 100000)))
          (vterm-buffer (get-buffer-create buffer-name))
@@ -1060,14 +1060,14 @@ Returns a cancel function that can interrupt the command execution."
       ;; Set up working directory
       (setq default-directory working-directory)
       
-      ;; Configure vterm environment - use a single command that exits
+      ;; Configure vterm environment
       (let ((vterm-environment (append
                                (list "PAGER=cat")
+                               (when enable-environment
+                                 vterm-environment)
                                vterm-environment))
             (vterm-kill-buffer-on-exit nil)
-            (vterm-shell (if enable-environment
-                            "bash"
-                          "bash")))
+            (vterm-shell (if enable-environment "bash -i" "bash")))
         
         ;; Initialize vterm
         (vterm-mode)
@@ -1090,20 +1090,14 @@ Returns a cancel function that can interrupt the command execution."
                                          (when (buffer-live-p vterm-buffer)
                                            (kill-buffer vterm-buffer)))))))
         
-        ;; Set up streaming callback and use process sentinel for completion
-        (let ((last-content ""))
+        ;; Sync vterm buffer contents to greger tool result
+        (when streaming-callback
           (add-hook 'after-change-functions
                     (lambda (start end old-len)
                       (let ((current-content (buffer-string)))
-                        (unless (string= current-content last-content)
-                          (when streaming-callback
-                            (let ((last-len (length last-content))
-                                  (current-len (length current-content)))
-                              (when (> current-len last-len)
-                                (let ((new-text (substring current-content last-len)))
-                                  (when (> (length new-text) 0)
-                                    (funcall streaming-callback new-text))))))
-                          (setq last-content current-content))))
+                        ;; Just send the entire buffer content on each change
+                        ;; This gives us the full vterm experience in the tool result
+                        (funcall streaming-callback current-content)))
                     nil t))
         
         ;; Use process sentinel to detect when command completes
@@ -1125,8 +1119,8 @@ Returns a cancel function that can interrupt the command execution."
                                     (when (buffer-live-p vterm-buffer)
                                       (kill-buffer vterm-buffer))))))
         
-        ;; Wait for shell to be ready, then execute command and exit
-        (run-with-timer 0.3 nil
+        ;; Wait for shell to be ready, then execute command
+        (run-with-timer 0.5 nil
                        (lambda ()
                          (when (buffer-live-p vterm-buffer)
                            (with-current-buffer vterm-buffer
@@ -1135,10 +1129,10 @@ Returns a cancel function that can interrupt the command execution."
                                        (not (string= working-directory default-directory)))
                                (vterm-send-string (format "cd %s" (shell-quote-argument working-directory)))
                                (vterm-send-return)
-                               (sleep-for 0.1))
+                               (sleep-for 0.2))
                              
-                             ;; Execute the command and exit immediately
-                             (vterm-send-string (format "%s; exit" command))
+                             ;; Execute the command
+                             (vterm-send-string command)
                              (vterm-send-return)))))
         
         ;; Create cancel function
