@@ -72,16 +72,14 @@
           
           ;; Look for color properties
           (message "\n--- Color Properties Check ---")
-          (let ((has-colors nil)
-                (color-positions '()))
-            (dotimes (i (length result-str))
+          (let ((has-colors nil))
+            (dotimes (i (min 20 (length result-str)))
               (let ((props (text-properties-at i result-str)))
                 (when (plist-get props 'font-lock-face)
-                  (setq has-colors t)
-                  (push i color-positions))))
+                  (setq has-colors t))))
             (if has-colors
-                (message "✅ Found colors at positions: %S" (reverse color-positions))
-              (message "❌ No color properties found")))
+                (message "✅ Found colors in first 20 characters")
+              (message "❌ No color properties found in first 20 characters")))
           
           ;; Check for line positioning issues
           (message "\n--- Line Analysis ---")
