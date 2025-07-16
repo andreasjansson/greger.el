@@ -1102,6 +1102,8 @@ Returns a cancel function that can interrupt the command execution."
         (defun extract-command-output ()
           "Extract the command output, filtering out prompts and command echo."
           (let ((content (buffer-string)))
+            ;; Log the raw content for debugging
+            (message "DEBUG: Raw vterm buffer content: %S" content)
             ;; Split into lines
             (let ((lines (split-string content "\n")))
               ;; Remove lines that look like prompts or command echoes
@@ -1114,7 +1116,9 @@ Returns a cancel function that can interrupt the command execution."
                                            (string-match (regexp-quote command) line)
                                            (string= (string-trim line) ""))))  ; Remove empty lines
                                  lines)))
-                (string-trim (string-join filtered-lines "\n"))))))
+                (let ((result (string-trim (string-join filtered-lines "\n"))))
+                  (message "DEBUG: Filtered vterm result: %S" result)
+                  result)))))
         
         ;; Function to check if command completed
         (defun check-command-completion ()
