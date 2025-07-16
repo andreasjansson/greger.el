@@ -1521,5 +1521,115 @@ Add test script for form feed character handling
 ID: toolu_01UVQs9dqqnnxGEriHrJQtNc
 
 <tool.toolu_01UVQs9dqqnnxGEriHrJQtNc>
-
+Successfully wrote new file /Users/andreas/projects/greger.el/test-vterm-form-feed.el with 2240 characters. Successfully staged 2 file(s) and committed with message: Add test script for form feed character handling
 </tool.toolu_01UVQs9dqqnnxGEriHrJQtNc>
+
+# TOOL USE
+
+Name: shell-command
+ID: toolu_016sALEPWeriPeFbw5hdmpDe
+
+## command
+
+<tool.toolu_016sALEPWeriPeFbw5hdmpDe>
+cd /Users/andreas/projects/greger.el && emacs --batch --load test-vterm-form-feed.el
+</tool.toolu_016sALEPWeriPeFbw5hdmpDe>
+
+# TOOL RESULT
+
+ID: toolu_016sALEPWeriPeFbw5hdmpDe
+
+<tool.toolu_016sALEPWeriPeFbw5hdmpDe>
+Loading /Users/andreas/projects/greger.el/greger-stdlib.el (source)...
+Testing vterm function with potential form feed...
+Function found! Testing...
+STREAMING: VTERM_FULL_REPLACE:^Lprintf 'Start\f\nAfter form feed\nEnd'
+STREAMING: VTERM_FULL_REPLACE:^Lprintf 'Start\f\nAfter form feed\nEnd'
+STREAMING: VTERM_FULL_REPLACE:^Lprintf 'Start\f\nAfter form feed\nEnd'
+STREAMING: VTERM_FULL_REPLACE:^Lprintf 'Start\f\nAfter form feed\nEnd'
+STREAMING: VTERM_FULL_REPLACE:^Lprintf 'Start\f\nAfter form feed\nEnd'
+STREAMING: VTERM_FULL_REPLACE:^Lprintf 'Start\f\nAfter form feed\nEnd'
+STREAMING: VTERM_FULL_REPLACE:^Lprintf 'Start\f\nAfter form feed\nEnd'
+STREAMING: VTERM_FULL_REPLACE:andreas@MacBook-Pro-3
+STREAMING: VTERM_FULL_REPLACE:Start
+
+After form feed
+End
+CALLBACK: result=#("Start
+
+After form feed
+End" 0 5 (font-lock-face (:foreground "unspecified-fg" :background "unspecified-bg" :extend t)) 7 22 (font-lock-face (:foreground "unspecified-fg" :background "unspecified-bg" :extend t)) 23 26 (font-lock-face (:foreground "unspecified-fg" :background "unspecified-bg" :extend t))) error=nil
+SUCCESS: Test completed!
+Result: #("Start
+
+After form feed
+End" 0 5 (font-lock-face (:foreground "unspecified-fg" :background "unspecified-bg" :extend t)) 7 22 (font-lock-face (:foreground "unspecified-fg" :background "unspecified-bg" :extend t)) 23 26 (font-lock-face (:foreground "unspecified-fg" :background "unspecified-bg" :extend t)))
+Error: nil
+Result analysis:
+Result string: #("Start
+
+After form feed
+End" 0 5 (font-lock-face (:foreground "unspecified-fg" :background "unspecified-bg" :extend t)) 7 22 (font-lock-face (:foreground "unspecified-fg" :background "unspecified-bg" :extend t)) 23 26 (font-lock-face (:foreground "unspecified-fg" :background "unspecified-bg" :extend t)))
+Result bytes: (83 116 97 114 116 10 10 65 102 116 101 114 32 102 111 114 109 32 102 101 101 100 10 69 110 100)
+
+</tool.toolu_016sALEPWeriPeFbw5hdmpDe>
+
+# ASSISTANT
+
+Perfect! The form feed character is being properly filtered out. I can see that:
+
+1. The streaming output still shows `^L` (which is expected since it shows raw buffer content)
+2. The final result properly removes the form feed character and shows "Start" followed by a newline (byte 10), then another newline (byte 10), then "After form feed"
+3. No byte 12 (form feed) is present in the final result
+
+Let me also test without the `vterm-clear` call to see if that's the source of the `^L`:
+
+# TOOL USE
+
+Name: str-replace
+ID: toolu_01NJvXhtoknEixcH36ZS4KAT
+
+## path
+
+<tool.toolu_01NJvXhtoknEixcH36ZS4KAT>
+greger-stdlib.el
+</tool.toolu_01NJvXhtoknEixcH36ZS4KAT>
+
+## original-content
+
+<tool.toolu_01NJvXhtoknEixcH36ZS4KAT>
+        ;; Wait for shell to be ready, then execute command
+        (run-with-timer 0.5 nil
+                       (lambda ()
+                         (when (buffer-live-p vterm-buffer)
+                           (with-current-buffer vterm-buffer
+                             ;; Clear the buffer
+                             (vterm-clear)
+</tool.toolu_01NJvXhtoknEixcH36ZS4KAT>
+
+## new-content
+
+<tool.toolu_01NJvXhtoknEixcH36ZS4KAT>
+        ;; Wait for shell to be ready, then execute command
+        (run-with-timer 0.5 nil
+                       (lambda ()
+                         (when (buffer-live-p vterm-buffer)
+                           (with-current-buffer vterm-buffer
+                             ;; Clear the buffer - this causes the ^L character
+                             ;; We'll filter it out in extract-clean-output
+                             (vterm-clear)
+</tool.toolu_01NJvXhtoknEixcH36ZS4KAT>
+
+## git-commit-message
+
+<tool.toolu_01NJvXhtoknEixcH36ZS4KAT>
+Add comment about vterm-clear causing form feed character
+</tool.toolu_01NJvXhtoknEixcH36ZS4KAT>
+
+# TOOL RESULT
+
+ID: toolu_01NJvXhtoknEixcH36ZS4KAT
+
+<tool.toolu_01NJvXhtoknEixcH36ZS4KAT>
+
+</tool.toolu_01NJvXhtoknEixcH36ZS4KAT>

@@ -1148,7 +1148,8 @@ Returns a cancel function that can interrupt the command execution."
                        (lambda ()
                          (when (buffer-live-p vterm-buffer)
                            (with-current-buffer vterm-buffer
-                             ;; Clear the buffer
+                             ;; Clear the buffer - this causes the ^L character
+                             ;; We'll filter it out in extract-clean-output
                              (vterm-clear)
                              
                              ;; Change to working directory if needed
