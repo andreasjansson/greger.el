@@ -1158,8 +1158,10 @@ Returns a cancel function that can interrupt the command execution."
         (when process
           (set-process-sentinel process
                                 (lambda (proc event)
+                                  (message "DEBUG: Process sentinel called with event: %S" event)
                                   (when (and (not command-completed)
                                             (string-match "\\(finished\\|exited\\)" event))
+                                    (message "DEBUG: Process exited, getting final content")
                                     (setq command-completed t)
                                     (when timer (cancel-timer timer))
                                     (when completion-timer (cancel-timer completion-timer))
@@ -1169,6 +1171,7 @@ Returns a cancel function that can interrupt the command execution."
                                                              (with-current-buffer vterm-buffer
                                                                (extract-command-output))
                                                            "")))
+                                      (message "DEBUG: Process sentinel final content: %S" final-content)
                                       (funcall callback final-content nil))
                                     
                                     (when (buffer-live-p vterm-buffer)

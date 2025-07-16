@@ -1683,5 +1683,85 @@ Add more debug logging to understand vterm issue
 ID: toolu_01QZnj3AqY4XcydtJT1EMibu
 
 <tool.toolu_01QZnj3AqY4XcydtJT1EMibu>
-
+Successfully replaced content in /Users/andreas/projects/greger.el/greger-stdlib.el. Successfully staged 2 file(s) and committed with message: Add more debug logging to understand vterm issue
 </tool.toolu_01QZnj3AqY4XcydtJT1EMibu>
+
+# ASSISTANT
+
+Let me also add debug logging to the process sentinel:
+
+# TOOL USE
+
+Name: str-replace
+ID: toolu_01SDzCAUQXUvBhD2BCzAETSV
+
+## path
+
+<tool.toolu_01SDzCAUQXUvBhD2BCzAETSV>
+greger-stdlib.el
+</tool.toolu_01SDzCAUQXUvBhD2BCzAETSV>
+
+## git-commit-message
+
+<tool.toolu_01SDzCAUQXUvBhD2BCzAETSV>
+Add debug logging to process sentinel
+</tool.toolu_01SDzCAUQXUvBhD2BCzAETSV>
+
+## original-content
+
+<tool.toolu_01SDzCAUQXUvBhD2BCzAETSV>
+        ;; Use process sentinel to detect when shell process terminates
+        (when process
+          (set-process-sentinel process
+                                (lambda (proc event)
+                                  (when (and (not command-completed)
+                                            (string-match "\\(finished\\|exited\\)" event))
+                                    (setq command-completed t)
+                                    (when timer (cancel-timer timer))
+                                    (when completion-timer (cancel-timer completion-timer))
+                                    
+                                    ;; Get the final buffer content
+                                    (let ((final-content (if (buffer-live-p vterm-buffer)
+                                                             (with-current-buffer vterm-buffer
+                                                               (extract-command-output))
+                                                           "")))
+                                      (funcall callback final-content nil))
+                                    
+                                    (when (buffer-live-p vterm-buffer)
+                                      (kill-buffer vterm-buffer))))))
+</tool.toolu_01SDzCAUQXUvBhD2BCzAETSV>
+
+## new-content
+
+<tool.toolu_01SDzCAUQXUvBhD2BCzAETSV>
+        ;; Use process sentinel to detect when shell process terminates
+        (when process
+          (set-process-sentinel process
+                                (lambda (proc event)
+                                  (message "DEBUG: Process sentinel called with event: %S" event)
+                                  (when (and (not command-completed)
+                                            (string-match "\\(finished\\|exited\\)" event))
+                                    (message "DEBUG: Process exited, getting final content")
+                                    (setq command-completed t)
+                                    (when timer (cancel-timer timer))
+                                    (when completion-timer (cancel-timer completion-timer))
+                                    
+                                    ;; Get the final buffer content
+                                    (let ((final-content (if (buffer-live-p vterm-buffer)
+                                                             (with-current-buffer vterm-buffer
+                                                               (extract-command-output))
+                                                           "")))
+                                      (message "DEBUG: Process sentinel final content: %S" final-content)
+                                      (funcall callback final-content nil))
+                                    
+                                    (when (buffer-live-p vterm-buffer)
+                                      (kill-buffer vterm-buffer))))))
+</tool.toolu_01SDzCAUQXUvBhD2BCzAETSV>
+
+# TOOL RESULT
+
+ID: toolu_01SDzCAUQXUvBhD2BCzAETSV
+
+<tool.toolu_01SDzCAUQXUvBhD2BCzAETSV>
+
+</tool.toolu_01SDzCAUQXUvBhD2BCzAETSV>
