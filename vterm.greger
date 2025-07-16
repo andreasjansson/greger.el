@@ -7171,5 +7171,62 @@ Fix test script to handle shell command permissions
 ID: toolu_01GnAiz8AoBtiHBFmVr3oGim
 
 <tool.toolu_01GnAiz8AoBtiHBFmVr3oGim>
-
+Successfully replaced content in /Users/andreas/projects/greger.el/test-vterm-working.el. Successfully staged 2 file(s) and committed with message: Fix test script to handle shell command permissions
 </tool.toolu_01GnAiz8AoBtiHBFmVr3oGim>
+
+# TOOL USE
+
+Name: str-replace
+ID: toolu_01JejYgzrguhreJyw5RhkxGv
+
+## path
+
+<tool.toolu_01JejYgzrguhreJyw5RhkxGv>
+/Users/andreas/projects/greger.el/test-vterm-working.el
+</tool.toolu_01JejYgzrguhreJyw5RhkxGv>
+
+## git-commit-message
+
+<tool.toolu_01JejYgzrguhreJyw5RhkxGv>
+Fix test script to pass metadata for shell commands
+</tool.toolu_01JejYgzrguhreJyw5RhkxGv>
+
+## original-content
+
+<tool.toolu_01JejYgzrguhreJyw5RhkxGv>
+    ;; Run the regular command
+    (message "Testing regular command: echo 'Hello regular world!'")
+    (greger-stdlib--shell-command
+     "echo 'Hello regular world!'"
+     #'test-callback
+     default-directory
+     10
+     nil
+     nil
+     nil
+     nil)
+</tool.toolu_01JejYgzrguhreJyw5RhkxGv>
+
+## new-content
+
+<tool.toolu_01JejYgzrguhreJyw5RhkxGv>
+    ;; Run the regular command
+    (message "Testing regular command: echo 'Hello regular world!'")
+    (greger-stdlib--shell-command
+     "echo 'Hello regular world!'"
+     #'test-callback
+     default-directory
+     10
+     nil
+     nil
+     nil
+     '(:allow-all-shell-commands t))
+</tool.toolu_01JejYgzrguhreJyw5RhkxGv>
+
+# TOOL RESULT
+
+ID: toolu_01JejYgzrguhreJyw5RhkxGv
+
+<tool.toolu_01JejYgzrguhreJyw5RhkxGv>
+
+</tool.toolu_01JejYgzrguhreJyw5RhkxGv>

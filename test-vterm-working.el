@@ -74,7 +74,7 @@
      nil
      nil
      nil
-     nil)
+     '(:allow-all-shell-commands t))
     
     ;; Wait for completion
     (let ((counter 0))
