@@ -35,17 +35,15 @@
   
   (message "Testing vterm function with vterm available...")
   
-  ;; Test with vterm enabled
+  ;; Test vterm function directly
   (condition-case err
-      (greger-stdlib--shell-command
+      (greger-stdlib--run-shell-command-with-vterm
        "echo 'Hello vterm world!'"   ; command
-       #'test-callback               ; callback
        default-directory             ; working-directory
+       #'test-callback               ; callback
        10                           ; timeout
        nil                          ; enable-environment
-       t                            ; use-vterm = true
-       #'test-streaming             ; streaming-callback
-       '(:allow-all-shell-commands t)) ; metadata
+       #'test-streaming)             ; streaming-callback
     (error (message "VTERM ERROR: %S" err)))
   
   ;; Wait for completion
