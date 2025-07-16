@@ -16,7 +16,10 @@
   (package-install 'vterm))
 
 ;; Load greger-stdlib
-(require 'greger-stdlib)
+(condition-case err
+    (require 'greger-stdlib)
+  (error (message "Failed to load greger-stdlib: %S" err)))
+
 (setq greger-allow-all-shell-commands t)
 
 ;; Check if function exists
