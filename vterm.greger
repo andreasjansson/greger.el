@@ -10356,5 +10356,57 @@ Fix timeout handling to avoid interactive prompts
 ID: toolu_01LoNTQ4dC3RHWc17LP7Z1X9
 
 <tool.toolu_01LoNTQ4dC3RHWc17LP7Z1X9>
-
+Successfully replaced content in /Users/andreas/projects/greger.el/greger-stdlib.el. Successfully staged 2 file(s) and committed with message: Fix timeout handling to avoid interactive prompts
 </tool.toolu_01LoNTQ4dC3RHWc17LP7Z1X9>
+
+# TOOL USE
+
+Name: str-replace
+ID: toolu_01DHjorMBrtLhKVQC2qoGxRb
+
+## path
+
+<tool.toolu_01DHjorMBrtLhKVQC2qoGxRb>
+greger-stdlib.el
+</tool.toolu_01DHjorMBrtLhKVQC2qoGxRb>
+
+## git-commit-message
+
+<tool.toolu_01DHjorMBrtLhKVQC2qoGxRb>
+Fix cancel function to avoid interactive prompts
+</tool.toolu_01DHjorMBrtLhKVQC2qoGxRb>
+
+## original-content
+
+<tool.toolu_01DHjorMBrtLhKVQC2qoGxRb>
+        ;; Create cancel function
+        (setq cancel-func (lambda ()
+                           (when timer (cancel-timer timer))
+                           (when (and process (process-live-p process))
+                             (interrupt-process process))
+                           (when (buffer-live-p vterm-buffer)
+                             (kill-buffer vterm-buffer))
+                           (funcall callback nil "Command cancelled by user")))
+</tool.toolu_01DHjorMBrtLhKVQC2qoGxRb>
+
+## new-content
+
+<tool.toolu_01DHjorMBrtLhKVQC2qoGxRb>
+        ;; Create cancel function
+        (setq cancel-func (lambda ()
+                           (when timer (cancel-timer timer))
+                           (when (and process (process-live-p process))
+                             (set-process-query-on-exit-flag process nil)
+                             (delete-process process))
+                           (when (buffer-live-p vterm-buffer)
+                             (kill-buffer vterm-buffer))
+                           (funcall callback nil "Command cancelled by user")))
+</tool.toolu_01DHjorMBrtLhKVQC2qoGxRb>
+
+# TOOL RESULT
+
+ID: toolu_01DHjorMBrtLhKVQC2qoGxRb
+
+<tool.toolu_01DHjorMBrtLhKVQC2qoGxRb>
+
+</tool.toolu_01DHjorMBrtLhKVQC2qoGxRb>
