@@ -1079,6 +1079,9 @@ Returns a cancel function that can interrupt the command execution."
             (vterm-shell (if enable-environment "bash -i" "bash")))
         
         ;; Initialize vterm
+        (with-temp-file "/tmp/greger-vterm-init.txt"
+          (insert (format "Starting vterm initialization in buffer: %s\n" buffer-name)))
+        
         (vterm-mode)
         
         ;; Get the process and configure it for non-interactive cleanup
@@ -1092,6 +1095,9 @@ Returns a cancel function that can interrupt the command execution."
         
         (unless vterm--process
           (error "Failed to initialize vterm process"))
+        
+        (with-temp-file "/tmp/greger-vterm-init.txt"
+          (insert (format "Vterm initialization complete. Process: %s\n" vterm--process)))
         
         ;; Set up timeout
         (when timeout
