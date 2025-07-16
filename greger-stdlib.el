@@ -1107,9 +1107,10 @@ Returns a cancel function that can interrupt the command execution."
                                            (string-match "^[^@]*@[^:]*:" line)  ; Common prompt patterns
                                            (string-match "^\\$" line)
                                            (string-match "GREGER_COMMAND_DONE" line)
-                                           (string-match (regexp-quote command) line))))
+                                           (string-match (regexp-quote command) line)
+                                           (string= (string-trim line) ""))))  ; Remove empty lines
                                  lines)))
-                (string-join filtered-lines "\n")))))
+                (string-trim (string-join filtered-lines "\n"))))))
         
         ;; Function to check if command completed
         (defun check-command-completion ()
