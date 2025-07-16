@@ -1044,9 +1044,13 @@ end tag and update the buffer state."
          (goto-char (1- tool-result-content-end))
 
          ;; Process terminal sequences to handle progress bars and dynamic output
-         ;; Use vterm for accurate terminal emulation when available
+         ;; Use vterm for more accurate terminal emulation when available
          (if (fboundp 'vterm-mode)
-             (greger--process-terminal-sequences-with-vterm text)
+             (condition-case err
+                 (greger--process-terminal-sequences-with-vterm text)
+               (error
+                ;; If vterm fails, fall back to basic processing
+                (greger-ui--process-terminal-sequences text)))
            (greger-ui--process-terminal-sequences text))
 
          (when is-completed
