@@ -1164,7 +1164,13 @@ Returns a cancel function that can interrupt the command execution."
           "Handle interactive input when a prompt is detected."
           (let ((prompt (detect-interactive-prompt)))
             (when prompt
-              (let ((user-input (read-from-minibuffer (format "Shell prompt: %s " prompt))))
+              (let ((is-password (string-match-p "password\\|Password\\|PASS" prompt))
+                    (user-input nil))
+                ;; Use read-passwd for password prompts, regular input for others
+                (setq user-input 
+                      (if is-password
+                          (read-passwd (format "Shell prompt: %s " prompt))
+                        (read-from-minibuffer (format "Shell prompt: %s " prompt))))
                 (vterm-send-string user-input)
                 (vterm-send-return)
                 ;; Continue monitoring for more prompts
