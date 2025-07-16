@@ -37,6 +37,21 @@
 (require 'greger-web)
 (require 'greger-client)
 
+;; Configuration for Claude interactive input
+(defcustom greger-stdlib-claude-interactive-input t
+  "Whether to use Claude for automated interactive input responses.
+When enabled, Claude will be consulted first for interactive prompts.
+If Claude responds with 'USER', the user will be prompted.
+Password prompts always go to the user regardless of this setting."
+  :type 'boolean
+  :group 'greger)
+
+(defcustom greger-stdlib-claude-interactive-timeout 10.0
+  "Timeout in seconds for Claude API calls during interactive input.
+If Claude doesn't respond within this time, fallback to user input."
+  :type 'float
+  :group 'greger)
+
 ;; Server tool registrations
 
 (greger-register-server-tool "web_search"
