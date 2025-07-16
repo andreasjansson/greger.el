@@ -221,7 +221,10 @@
                                                      (default . t)))
                                     (use-highest-readability . ((type . "boolean")
                                                                 (description . "Whether to use eww's aggressive highest readability setting for better text extraction")
-                                                                (default . nil))))
+                                                                (default . nil)))
+                                    (use-vterm . ((type . "boolean")
+                                                  (description . "Use vterm for full terminal emulation with colors and ANSI sequences. Falls back to regular subprocess if vterm is not available.")
+                                                  (default . nil))))
                       :required '("url")
                       :function 'greger-stdlib--read-webpage)
 
