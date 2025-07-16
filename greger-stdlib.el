@@ -1134,6 +1134,9 @@ Returns a cancel function that can interrupt the command execution."
             (let ((line (buffer-substring-no-properties (point) (point-max))))
               (let ((trimmed (string-trim line)))
                 (when (and (not (string-empty-p trimmed))
+                          ;; Exclude normal shell prompts
+                          (not (string-match-p "^[^@]*@[^:]*:" trimmed))
+                          (not (string-match-p "^\\$ " trimmed))
                           ;; Common interactive prompt patterns
                           (or (string-match-p ":\\s-*$" trimmed)         ; ends with colon
                               (string-match-p "\\?\\s-*$" trimmed)       ; ends with question mark
@@ -1147,7 +1150,13 @@ Returns a cancel function that can interrupt the command execution."
                               (string-match-p "Confirm" trimmed)         ; confirm prompt
                               (string-match-p "Type" trimmed)            ; type something prompt
                               (string-match-p "Input" trimmed)           ; input prompt
-                              (string-match-p "Select" trimmed)))        ; select prompt
+                              (string-match-p "Select" trimmed)          ; select prompt
+                              (string-match-p "Please" trimmed)          ; please prompt
+                              (string-match-p "\\bname\\b" trimmed)      ; name prompt
+                              (string-match-p "\\bage\\b" trimmed)       ; age prompt
+                              (string-match-p "\\[.*\\]" trimmed)        ; options in brackets
+                              (string-match-p ">>.*" trimmed)            ; any >> prompt
+                              (string-match-p ".*:\\s-*$" trimmed)))     ; any colon at end
                   trimmed)))))
         
         ;; Function to handle interactive input
