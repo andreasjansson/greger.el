@@ -1085,7 +1085,8 @@ Returns a cancel function that can interrupt the command execution."
                                        (unless command-completed
                                          (setq command-completed t)
                                          (when (and process (process-live-p process))
-                                           (interrupt-process process))
+                                           (set-process-query-on-exit-flag process nil)
+                                           (delete-process process))
                                          (funcall callback nil "Command timed out")
                                          (when (buffer-live-p vterm-buffer)
                                            (kill-buffer vterm-buffer)))))))
