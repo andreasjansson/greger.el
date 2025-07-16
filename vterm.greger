@@ -3592,5 +3592,58 @@ Update test to pass metadata for shell command permissions
 ID: toolu_015NagozDfc9KpSSLgbSGiPT
 
 <tool.toolu_015NagozDfc9KpSSLgbSGiPT>
-
+Successfully replaced content in /Users/andreas/projects/greger.el/test-vterm-integration.el. Successfully staged 2 file(s) and committed with message: Update test to pass metadata for shell command permissions
 </tool.toolu_015NagozDfc9KpSSLgbSGiPT>
+
+# TOOL USE
+
+Name: str-replace
+ID: toolu_017XYWymTPFYPciscoPoC1n3
+
+## path
+
+<tool.toolu_017XYWymTPFYPciscoPoC1n3>
+test-vterm-integration.el
+</tool.toolu_017XYWymTPFYPciscoPoC1n3>
+
+## original-content
+
+<tool.toolu_017XYWymTPFYPciscoPoC1n3>
+  (greger-stdlib--shell-command
+   "printf '\\033[31mRed text\\033[0m and \\033[32mGreen text\\033[0m'"
+   #'test-callback
+   default-directory
+   10
+   nil
+   t ; use-vterm = true
+   #'test-streaming
+   nil)
+</tool.toolu_017XYWymTPFYPciscoPoC1n3>
+
+## new-content
+
+<tool.toolu_017XYWymTPFYPciscoPoC1n3>
+  (greger-stdlib--shell-command
+   "printf '\\033[31mRed text\\033[0m and \\033[32mGreen text\\033[0m'"
+   #'test-callback
+   default-directory
+   10
+   nil
+   t ; use-vterm = true
+   #'test-streaming
+   test-metadata)
+</tool.toolu_017XYWymTPFYPciscoPoC1n3>
+
+## git-commit-message
+
+<tool.toolu_017XYWymTPFYPciscoPoC1n3>
+Update color test to pass metadata for shell command permissions
+</tool.toolu_017XYWymTPFYPciscoPoC1n3>
+
+# TOOL RESULT
+
+ID: toolu_017XYWymTPFYPciscoPoC1n3
+
+<tool.toolu_017XYWymTPFYPciscoPoC1n3>
+
+</tool.toolu_017XYWymTPFYPciscoPoC1n3>
