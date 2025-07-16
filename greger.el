@@ -1257,6 +1257,10 @@ sequences are handled correctly with full terminal emulation."
                 (vterm-shell "cat"))  ; Use cat as shell to just echo input
             (vterm-mode)
             
+            ;; Configure process to not prompt on exit
+            (when vterm--process
+              (set-process-query-on-exit-flag vterm--process nil))
+            
             ;; Send the text to vterm for processing
             (vterm-send-string text)
             
@@ -1266,7 +1270,11 @@ sequences are handled correctly with full terminal emulation."
             ;; Extract the rendered content
             (buffer-string)))
       ;; Clean up the temporary buffer
-      (kill-buffer vterm-buffer))))
+      (when (buffer-live-p vterm-buffer)
+        (with-current-buffer vterm-buffer
+          (when (and vterm--process (process-live-p vterm--process))
+            (set-process-query-on-exit-flag vterm--process nil)))
+        (kill-buffer vterm-buffer)))))
 
 (provide 'greger)
 
