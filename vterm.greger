@@ -10726,5 +10726,225 @@ Create fixed vterm test with proper scoping
 ID: toolu_01KEf2qE1F9m7EsVr4uPbtsX
 
 <tool.toolu_01KEf2qE1F9m7EsVr4uPbtsX>
-
+Successfully wrote new file /Users/andreas/projects/greger.el/test-vterm-fixed.el with 2607 characters. Successfully staged 2 file(s) and committed with message: Create fixed vterm test with proper scoping
 </tool.toolu_01KEf2qE1F9m7EsVr4uPbtsX>
+
+# TOOL USE
+
+Name: shell-command
+ID: toolu_01VhsjNcKGXm84u7p9iNUXx6
+
+## command
+
+<tool.toolu_01VhsjNcKGXm84u7p9iNUXx6>
+cd /Users/andreas/projects/greger.el && emacs --batch --load test-vterm-fixed.el
+</tool.toolu_01VhsjNcKGXm84u7p9iNUXx6>
+
+# TOOL RESULT
+
+ID: toolu_01VhsjNcKGXm84u7p9iNUXx6
+
+<tool.toolu_01VhsjNcKGXm84u7p9iNUXx6>
+Error running timer: (void-variable vterm-buffer)
+Buffer changed. Length: 1
+Error running timer ‘vterm--delayed-redraw’: (void-variable found-completion)
+=== FINAL OUTPUT ===
+
+
+=== END OUTPUT ===
+Test completed
+
+</tool.toolu_01VhsjNcKGXm84u7p9iNUXx6>
+
+# ASSISTANT
+
+The issue is that the lambda functions in the timers don't have access to the lexical variables. Let me go back to the original issue and fix it properly. The problem is that I'm making the vterm implementation too complex. Let me simplify it:
+
+# TOOL USE
+
+Name: str-replace
+ID: toolu_019SSEAutjk5rqySyqLSxAWK
+
+## path
+
+<tool.toolu_019SSEAutjk5rqySyqLSxAWK>
+greger-stdlib.el
+</tool.toolu_019SSEAutjk5rqySyqLSxAWK>
+
+## git-commit-message
+
+<tool.toolu_019SSEAutjk5rqySyqLSxAWK>
+Simplify vterm implementation - use simpler approach without complex parsing
+</tool.toolu_019SSEAutjk5rqySyqLSxAWK>
+
+## diff
+
+<tool.toolu_019SSEAutjk5rqySyqLSxAWK>
+ (defun greger-stdlib--run-shell-command-with-vterm (command working-directory callback timeout enable-environment streaming-callback)
+   "Execute COMMAND using vterm in WORKING-DIRECTORY and call CALLBACK with (result error).
+ This function creates a vterm buffer, executes the command, and provides 
+ streaming output through STREAMING-CALLBACK. The final result is passed to CALLBACK.
+ Returns a cancel function that can interrupt the command execution."
+   (let* ((buffer-name (format " *greger-vterm-%s*" (random 100000)))
+          (vterm-buffer (get-buffer-create buffer-name))
+          (timer nil)
+          (process nil)
+          (command-completed nil)
+-         (output-lines '())
+-         (completion-marker (format "GREGER_DONE_%d" (random 100000)))
+          (cancel-func nil))
+     
+     (with-current-buffer vterm-buffer
+       ;; Set up working directory
+       (setq default-directory working-directory)
+       
+-      ;; Configure vterm environment
++      ;; Configure vterm environment - use a single command that exits
+       (let ((vterm-environment (append
+-                               (list "PAGER=cat"
+-                                     "PS1=$ "           ; Simple prompt
+-                                     "PS2="             ; No continuation prompt
+-                                     "HISTFILE=/dev/null") ; No history
++                               (list "PAGER=cat")
+                                vterm-environment))
+             (vterm-kill-buffer-on-exit nil)
+-            (vterm-shell "bash"))
++            (vterm-shell (if enable-environment
++                            "bash"
++                          "bash")))
+         
+         ;; Initialize vterm
+         (vterm-mode)
+         
+         ;; Get the process and configure it for non-interactive cleanup
+         (setq process vterm--process)
+         (when process
+           (set-process-query-on-exit-flag process nil))
+         
+         ;; Set up timeout
+         (when timeout
+           (setq timer (run-with-timer timeout nil
+                                      (lambda ()
+                                        (unless command-completed
+                                          (setq command-completed t)
+                                          (when (and process (process-live-p process))
+                                            (set-process-query-on-exit-flag process nil)
+                                            (delete-process process))
+                                          (funcall callback nil "Command timed out")
+                                          (when (buffer-live-p vterm-buffer)
+                                            (kill-buffer vterm-buffer)))))))
+         
+-        ;; Set up streaming callback and output collection
++        ;; Set up streaming callback and use process sentinel for completion
+         (let ((last-content ""))
+           (add-hook 'after-change-functions
+                     (lambda (start end old-len)
+                       (let ((current-content (buffer-string)))
+                         (unless (string= current-content last-content)
+                           (when streaming-callback
+                             (let ((last-len (length last-content))
+                                   (current-len (length current-content)))
+                               (when (> current-len last-len)
+                                 (let ((new-text (substring current-content last-len)))
+                                   (when (> (length new-text) 0)
+                                     (funcall streaming-callback new-text))))))
+-                          
+-                          ;; Check for completion marker
+-                          (when (and (not command-completed) 
+-                                    (string-match completion-marker current-content))
+-                            (setq command-completed t)
+-                            (when timer (cancel-timer timer))
+-                            
+-                            ;; Extract just the command output, filtering out shell prompts
+-                            (let* ((lines (split-string current-content "\n"))
+-                                   (clean-lines '())
+-                                   (capturing nil))
+-                              (dolist (line lines)
+-                                (cond
+-                                 ;; Found completion marker, stop capturing
+-                                 ((string-match completion-marker line)
+-                                  (setq capturing nil))
+-                                 ;; Found our command, start capturing next lines
+-                                 ((string-match (regexp-quote command) line)
+-                                  (setq capturing t))
+-                                 ;; Capture output lines (skip prompts)
+-                                 ((and capturing 
+-                                       (not (string-match "^\\$" line))
+-                                       (not (string-empty-p (string-trim line))))
+-                                  (push line clean-lines))))
+-                              
+-                              (let ((clean-output (string-join (reverse clean-lines) "\n")))
+-                                (funcall callback clean-output nil)))
+-                            
+-                            (when (buffer-live-p vterm-buffer)
+-                              (with-current-buffer vterm-buffer
+-                                (when (and process (process-live-p process))
+-                                  (set-process-query-on-exit-flag process nil)
+-                                  (delete-process process)))
+-                              (kill-buffer vterm-buffer)))
+-                          
+                           (setq last-content current-content))))
+                     nil t))
+         
+-        ;; Wait for shell to be ready, then execute command
++        ;; Use process sentinel to detect when command completes
++        (when process
++          (set-process-sentinel process
++                                (lambda (proc event)
++                                  (when (and (not command-completed)
++                                            (string-match "\\(finished\\|exited\\)" event))
++                                    (setq command-completed t)
++                                    (when timer (cancel-timer timer))
++                                    
++                                    ;; Get the final buffer content
++                                    (let ((final-content (if (buffer-live-p vterm-buffer)
++                                                             (with-current-buffer vterm-buffer
++                                                               (buffer-string))
++                                                           "")))
++                                      (funcall callback final-content nil))
++                                    
++                                    (when (buffer-live-p vterm-buffer)
++                                      (kill-buffer vterm-buffer))))))
++        
++        ;; Wait for shell to be ready, then execute command and exit
+         (run-with-timer 0.3 nil
+                        (lambda ()
+                          (when (buffer-live-p vterm-buffer)
+                            (with-current-buffer vterm-buffer
+                              ;; Change to working directory if needed
+                              (when (and enable-environment 
+                                        (not (string= working-directory default-directory)))
+                                (vterm-send-string (format "cd %s" (shell-quote-argument working-directory)))
+                                (vterm-send-return)
+-                               (sleep-for 0.1)) ; Give cd time to complete
++                               (sleep-for 0.1))
+                              
+-                             ;; Execute the command with completion marker
+-                             (vterm-send-string (format "%s && echo %s" command completion-marker))
++                             ;; Execute the command and exit immediately
++                             (vterm-send-string (format "%s; exit" command))
+                              (vterm-send-return)))))
+         
+         ;; Create cancel function
+         (setq cancel-func (lambda ()
+                            (when timer (cancel-timer timer))
+                            (when (and process (process-live-p process))
+                              (set-process-query-on-exit-flag process nil)
+                              (delete-process process))
+                            (when (buffer-live-p vterm-buffer)
+                              (kill-buffer vterm-buffer))
+                            (funcall callback nil "Command cancelled by user")))))
+     
+     ;; Return the cancel function
+     cancel-func))
+\ No newline at end of file
+
+</tool.toolu_019SSEAutjk5rqySyqLSxAWK>
+
+# TOOL RESULT
+
+ID: toolu_019SSEAutjk5rqySyqLSxAWK
+
+<tool.toolu_019SSEAutjk5rqySyqLSxAWK>
+
+</tool.toolu_019SSEAutjk5rqySyqLSxAWK>
