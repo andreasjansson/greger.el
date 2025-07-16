@@ -944,16 +944,13 @@ Returns a cancel function that can interrupt the command execution."
                  (progn (require 'vterm) t)
                (error nil))
              (fboundp 'vterm-mode))
-        (progn
-          (with-temp-file "/tmp/greger-vterm-path.txt"
-            (insert (format "Taking vterm path for command: %s\n" command)))
-          (greger-stdlib--run-shell-command-with-vterm
-           command
-           expanded-work-dir
-           callback
-           timeout
-           enable-environment
-           streaming-callback))
+        (greger-stdlib--run-shell-command-with-vterm
+         command
+         expanded-work-dir
+         callback
+         timeout
+         enable-environment
+         streaming-callback)
       ;; Check if vterm was requested but not available
       (if use-vterm
           (progn
