@@ -2169,5 +2169,84 @@ Add interactive input handling for vterm-enabled shell commands
 ID: toolu_01XkzQpFZrUnaqax4Lpx6j5F
 
 <tool.toolu_01XkzQpFZrUnaqax4Lpx6j5F>
-
+Successfully replaced content in /Users/andreas/projects/greger.el/greger-stdlib.el. Successfully staged 2 file(s) and committed with message: Add interactive input handling for vterm-enabled shell commands
 </tool.toolu_01XkzQpFZrUnaqax4Lpx6j5F>
+
+# ASSISTANT
+
+Now let me update the rest of the function to also handle interactive prompts when no streaming callback is provided:
+
+# TOOL USE
+
+Name: str-replace
+ID: toolu_01KgpzkKQXhf4PgZd2wP29Ff
+
+## path
+
+<tool.toolu_01KgpzkKQXhf4PgZd2wP29Ff>
+~/projects/greger.el/greger-stdlib.el
+</tool.toolu_01KgpzkKQXhf4PgZd2wP29Ff>
+
+## git-commit-message
+
+<tool.toolu_01KgpzkKQXhf4PgZd2wP29Ff>
+Add interactive input handling for non-streaming vterm commands
+</tool.toolu_01KgpzkKQXhf4PgZd2wP29Ff>
+
+## diff
+
+<tool.toolu_01KgpzkKQXhf4PgZd2wP29Ff>
+         ;; Wait for shell to be ready, then execute command
+         (run-with-timer 0.5 nil
+                        (lambda ()
+                          (when (buffer-live-p vterm-buffer)
+                            (with-current-buffer vterm-buffer
+                              ;; Clear the buffer - this causes the ^L character
+                              ;; We'll filter it out in extract-clean-output
+                              (vterm-clear)
+                              
+                              ;; Change to working directory if needed
+                              (when (and enable-environment 
+                                        (not (string= working-directory default-directory)))
+                                (vterm-send-string (format "cd %s" (shell-quote-argument working-directory)))
+                                (vterm-send-return)
+                                (sleep-for 0.2))
+                              
+                              ;; Execute the command
+                              (vterm-send-string command)
+                              (vterm-send-return)
+                              
++                             ;; Set up interactive prompt monitoring if no streaming callback
++                             (unless streaming-callback
++                               (setq prompt-check-timer
++                                     (run-with-timer 1.0 nil #'handle-interactive-input)))
++                             
+                              ;; Wait a bit for command to complete, then exit
+                              (run-with-timer 0.1 nil
+                                             (lambda ()
+                                               (when (buffer-live-p vterm-buffer)
+                                                 (with-current-buffer vterm-buffer
+                                                   (vterm-send-string "exit")
+                                                   (vterm-send-return)))))))))
+         
+         ;; Return cancel function
+         (lambda ()
+           (when timer (cancel-timer timer))
++          (when prompt-check-timer (cancel-timer prompt-check-timer))
+           (setq command-completed t)
+           (when (and process (process-live-p process))
+             (delete-process process))
+           (when (buffer-live-p vterm-buffer)
+             (kill-buffer vterm-buffer))
+           (funcall callback nil "Command cancelled by user"))))))
+\ No newline at end of file
+
+</tool.toolu_01KgpzkKQXhf4PgZd2wP29Ff>
+
+# TOOL RESULT
+
+ID: toolu_01KgpzkKQXhf4PgZd2wP29Ff
+
+<tool.toolu_01KgpzkKQXhf4PgZd2wP29Ff>
+
+</tool.toolu_01KgpzkKQXhf4PgZd2wP29Ff>

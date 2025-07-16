@@ -1220,6 +1220,11 @@ Returns a cancel function that can interrupt the command execution."
                              (vterm-send-string command)
                              (vterm-send-return)
                              
+                             ;; Set up interactive prompt monitoring if no streaming callback
+                             (unless streaming-callback
+                               (setq prompt-check-timer
+                                     (run-with-timer 1.0 nil #'handle-interactive-input)))
+                             
                              ;; Wait a bit for command to complete, then exit
                              (run-with-timer 0.1 nil
                                             (lambda ()
@@ -1231,6 +1236,7 @@ Returns a cancel function that can interrupt the command execution."
         ;; Return cancel function
         (lambda ()
           (when timer (cancel-timer timer))
+          (when prompt-check-timer (cancel-timer prompt-check-timer))
           (setq command-completed t)
           (when (and process (process-live-p process))
             (delete-process process))
