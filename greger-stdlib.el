@@ -1075,8 +1075,10 @@ Returns a cancel function that can interrupt the command execution."
         ;; Initialize vterm
         (vterm-mode)
         
-        ;; Get the process
+        ;; Get the process and configure it for non-interactive cleanup
         (setq process vterm--process)
+        (when process
+          (set-process-query-on-exit-flag process nil))
         
         ;; Set up timeout
         (when timeout
