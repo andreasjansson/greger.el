@@ -200,7 +200,10 @@
                                                 (default . 600)))
                                     (enable-environment . ((type . "boolean")
                                                            (description . "Whether to source shell initialization files (.bashrc, .bash_profile) which may contain secrets and environment variables")
-                                                           (default . nil))))
+                                                           (default . nil)))
+                                    (use-vterm . ((type . "boolean")
+                                                  (description . "Use vterm for full terminal emulation with colors and ANSI sequences. Falls back to regular subprocess if vterm is not available.")
+                                                  (default . nil))))
                       :required '("command")
                       :function 'greger-stdlib--shell-command
                       :pass-callback t
