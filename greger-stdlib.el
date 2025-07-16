@@ -939,11 +939,11 @@ Returns a cancel function that can interrupt the command execution."
       (error "Shell command execution cancelled by user"))
 
     ;; Use vterm if explicitly requested and available
-    (with-temp-file "/tmp/greger-vterm-check.txt"
-      (insert (format "use-vterm: %s\n" use-vterm))
-      (insert (format "vterm-mode available: %s\n" (fboundp 'vterm-mode)))
-      (insert (format "vterm--new available: %s\n" (fboundp 'vterm--new))))
-    (if (and use-vterm (fboundp 'vterm-mode) (fboundp 'vterm--new))
+    (if (and use-vterm 
+             (condition-case nil
+                 (progn (require 'vterm) t)
+               (error nil))
+             (fboundp 'vterm-mode))
         (progn
           (with-temp-file "/tmp/greger-vterm-path.txt"
             (insert (format "Taking vterm path for command: %s\n" command)))
