@@ -1112,9 +1112,22 @@ Returns a cancel function that can interrupt the command execution."
                         (let ((current-content (buffer-string)))
                           (setq output-buffer current-content)
                           (unless (string= current-content last-content)
-                            (let ((new-text (substring current-content (length last-content))))
-                              (when (> (length new-text) 0)
-                                (funcall streaming-callback new-text)))
+                            (let ((last-len (length last-content))
+                                  (current-len (length current-content)))
+                              (cond
+                               ;; Content was added
+                               ((> current-len last-len)
+                                (let ((new-text (substring current-content last-len)))
+                                  (when (> (length new-text) 0)
+                                    (funcall streaming-callback new-text))))
+                               ;; Content was replaced/cleared - send the entire current content
+                               ((< current-len last-len)
+                                (when (> current-len 0)
+                                  (funcall streaming-callback current-content)))
+                               ;; Same length but different content - send the current content
+                               (t
+                                (when (> current-len 0)
+                                  (funcall streaming-callback current-content)))))
                             (setq last-content current-content))))
                       nil t)))
         
