@@ -1176,6 +1176,9 @@ Returns a cancel function that can interrupt the command execution."
                        (lambda ()
                          (when (buffer-live-p vterm-buffer)
                            (with-current-buffer vterm-buffer
+                             ;; Clear the vterm buffer before running the command
+                             (vterm-clear)
+                             
                              ;; Change to working directory if needed
                              (when (and enable-environment 
                                        (not (string= working-directory default-directory)))
