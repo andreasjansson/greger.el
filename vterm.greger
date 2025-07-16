@@ -2354,5 +2354,81 @@ Fix command completion detection to use GREGER_COMMAND_DONE marker
 ID: toolu_01BSboifdXHBe1LqJTFKp8Re
 
 <tool.toolu_01BSboifdXHBe1LqJTFKp8Re>
+Successfully replaced content in /Users/andreas/projects/greger.el/greger-stdlib.el. Successfully staged 2 file(s) and committed with message: Fix command completion detection to use GREGER_COMMAND_DONE marker
 
+- Change completion detection from GREGER_PROMPT> to GREGER_COMMAND_DONE
+- This matches the marker that is actually sent by the command execution
 </tool.toolu_01BSboifdXHBe1LqJTFKp8Re>
+
+# ASSISTANT
+
+Now let's also improve the output filtering to remove the GREGER_COMMAND_DONE marker from the final output:
+
+# TOOL USE
+
+Name: str-replace
+ID: toolu_01AGBho7HPZuWeagTCUs3dMv
+
+## path
+
+<tool.toolu_01AGBho7HPZuWeagTCUs3dMv>
+greger-stdlib.el
+</tool.toolu_01AGBho7HPZuWeagTCUs3dMv>
+
+## original-content
+
+<tool.toolu_01AGBho7HPZuWeagTCUs3dMv>
+        ;; Function to extract command output
+        (defun extract-command-output ()
+          "Extract the command output, filtering out prompts and command echo."
+          (let ((content (buffer-string)))
+            ;; Split into lines
+            (let ((lines (split-string content "\n")))
+              ;; Remove lines that look like prompts or command echoes
+              (let ((filtered-lines
+                     (seq-filter (lambda (line)
+                                   (not (or (string-match "^GREGER_PROMPT>" line)
+                                           (string-match "^[^@]*@[^:]*:" line)  ; Common prompt patterns
+                                           (string-match "^\\$" line)
+                                           (string-match (regexp-quote command) line))))
+                                 lines)))
+                (string-join filtered-lines "\n")))))
+</tool.toolu_01AGBho7HPZuWeagTCUs3dMv>
+
+## new-content
+
+<tool.toolu_01AGBho7HPZuWeagTCUs3dMv>
+        ;; Function to extract command output
+        (defun extract-command-output ()
+          "Extract the command output, filtering out prompts and command echo."
+          (let ((content (buffer-string)))
+            ;; Split into lines
+            (let ((lines (split-string content "\n")))
+              ;; Remove lines that look like prompts or command echoes
+              (let ((filtered-lines
+                     (seq-filter (lambda (line)
+                                   (not (or (string-match "^GREGER_PROMPT>" line)
+                                           (string-match "^[^@]*@[^:]*:" line)  ; Common prompt patterns
+                                           (string-match "^\\$" line)
+                                           (string-match "GREGER_COMMAND_DONE" line)
+                                           (string-match (regexp-quote command) line))))
+                                 lines)))
+                (string-join filtered-lines "\n")))))
+</tool.toolu_01AGBho7HPZuWeagTCUs3dMv>
+
+## git-commit-message
+
+<tool.toolu_01AGBho7HPZuWeagTCUs3dMv>
+Filter out GREGER_COMMAND_DONE marker from command output
+
+- Add filter to remove GREGER_COMMAND_DONE from the final output
+- This ensures clean output without internal completion markers
+</tool.toolu_01AGBho7HPZuWeagTCUs3dMv>
+
+# TOOL RESULT
+
+ID: toolu_01AGBho7HPZuWeagTCUs3dMv
+
+<tool.toolu_01AGBho7HPZuWeagTCUs3dMv>
+
+</tool.toolu_01AGBho7HPZuWeagTCUs3dMv>

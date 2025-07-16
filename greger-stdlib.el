@@ -1106,6 +1106,7 @@ Returns a cancel function that can interrupt the command execution."
                                    (not (or (string-match "^GREGER_PROMPT>" line)
                                            (string-match "^[^@]*@[^:]*:" line)  ; Common prompt patterns
                                            (string-match "^\\$" line)
+                                           (string-match "GREGER_COMMAND_DONE" line)
                                            (string-match (regexp-quote command) line))))
                                  lines)))
                 (string-join filtered-lines "\n")))))
