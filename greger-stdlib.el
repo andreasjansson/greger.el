@@ -1076,10 +1076,7 @@ Returns a cancel function that can interrupt the command execution."
       (setq default-directory working-directory)
       
       ;; Configure vterm environment
-      (let ((vterm-environment (append
-                               (list "PAGER=cat")
-                               (when enable-environment
-                                 vterm-environment)))
+      (let ((vterm-environment (list "PAGER=cat"))
             (vterm-kill-buffer-on-exit nil)
             (vterm-shell (if enable-environment "bash -i" "bash")))
         
