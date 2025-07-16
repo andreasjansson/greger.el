@@ -3137,5 +3137,139 @@ Clean up test files for vterm implementation
 ID: toolu_01SJsdaxLCd5NGU3pKiAPKwL
 
 <tool.toolu_01SJsdaxLCd5NGU3pKiAPKwL>
-
+Successfully deleted 4 file(s): /Users/andreas/projects/greger.el/test-vterm-direct.el, /Users/andreas/projects/greger.el/test-vterm-issues.el, /Users/andreas/projects/greger.el/test-vterm-form-feed.el, /Users/andreas/projects/greger.el/test-vterm-comprehensive.el. Git status: Successfully staged 5 file(s) and committed with message: Clean up test files for vterm implementation
 </tool.toolu_01SJsdaxLCd5NGU3pKiAPKwL>
+
+# ASSISTANT
+
+Now let me create a test script to verify that vterm works properly in the actual greger environment:
+
+# TOOL USE
+
+Name: write-new-file
+ID: toolu_01EnrbStTjM7K9e8ueUTYWzz
+
+## path
+
+<tool.toolu_01EnrbStTjM7K9e8ueUTYWzz>
+test-vterm-integration.el
+</tool.toolu_01EnrbStTjM7K9e8ueUTYWzz>
+
+## contents
+
+<tool.toolu_01EnrbStTjM7K9e8ueUTYWzz>
+#!/usr/bin/env emacs --script
+;; Test vterm integration with greger shell command tool
+
+;; Load the necessary files
+(add-to-list 'load-path "/Users/andreas/projects/greger.el")
+(load-file "greger-stdlib.el")
+
+;; Initialize package system for vterm
+(require 'package)
+(setq package-archives '(("gnu" . "https://elpa.gnu.org/packages/")
+                         ("melpa" . "https://melpa.org/packages/")))
+(package-initialize)
+
+;; Try to install vterm
+(unless (package-installed-p 'vterm)
+  (package-refresh-contents)
+  (package-install 'vterm))
+
+;; Test 1: Basic command with vterm
+(message "=== Test 1: Basic command with vterm ===")
+(let ((test-completed nil)
+      (test-result nil)
+      (test-error nil))
+  
+  (defun test-callback (result error)
+    (setq test-completed t)
+    (setq test-result result)
+    (setq test-error error))
+  
+  (defun test-streaming (text)
+    (when (string-prefix-p "VTERM_FULL_REPLACE:" text)
+      (message "✅ VTERM streaming working")))
+  
+  (greger-stdlib--shell-command
+   "echo 'Hello from vterm!'"
+   #'test-callback
+   default-directory
+   10
+   nil
+   t ; use-vterm = true
+   #'test-streaming
+   nil)
+  
+  ;; Wait for completion
+  (let ((counter 0))
+    (while (and (not test-completed) (< counter 100))
+      (sleep-for 0.1)
+      (setq counter (1+ counter))))
+  
+  (if test-completed
+      (progn
+        (message "✅ Test completed successfully")
+        (message "Result: %S" test-result)
+        (if test-error
+            (message "❌ Error: %S" test-error)
+          (message "✅ No errors")))
+    (message "❌ Test timed out")))
+
+;; Test 2: Command with colors
+(message "\n=== Test 2: Command with colors ===")
+(let ((test-completed nil)
+      (test-result nil)
+      (test-error nil))
+  
+  (defun test-callback (result error)
+    (setq test-completed t)
+    (setq test-result result)
+    (setq test-error error))
+  
+  (defun test-streaming (text)
+    nil) ; Silent
+  
+  (greger-stdlib--shell-command
+   "printf '\\033[31mRed text\\033[0m and \\033[32mGreen text\\033[0m'"
+   #'test-callback
+   default-directory
+   10
+   nil
+   t ; use-vterm = true
+   #'test-streaming
+   nil)
+  
+  ;; Wait for completion
+  (let ((counter 0))
+    (while (and (not test-completed) (< counter 100))
+      (sleep-for 0.1)
+      (setq counter (1+ counter))))
+  
+  (if test-completed
+      (progn
+        (message "✅ Color test completed")
+        (let ((result-str (if (stringp test-result) test-result (substring-no-properties test-result))))
+          (message "Result: %S" result-str)
+          (if (get-text-property 0 'font-lock-face test-result)
+              (message "✅ Colors preserved (font-lock-face properties found)")
+            (message "❓ Colors may not be preserved (no font-lock-face properties)"))))
+    (message "❌ Color test timed out")))
+
+(message "\n=== Integration tests completed ===")
+(message "To use vterm in greger, add 'use-vterm: true' to your shell-command tool calls.")
+</tool.toolu_01EnrbStTjM7K9e8ueUTYWzz>
+
+## git-commit-message
+
+<tool.toolu_01EnrbStTjM7K9e8ueUTYWzz>
+Add integration test for vterm functionality
+</tool.toolu_01EnrbStTjM7K9e8ueUTYWzz>
+
+# TOOL RESULT
+
+ID: toolu_01EnrbStTjM7K9e8ueUTYWzz
+
+<tool.toolu_01EnrbStTjM7K9e8ueUTYWzz>
+
+</tool.toolu_01EnrbStTjM7K9e8ueUTYWzz>
