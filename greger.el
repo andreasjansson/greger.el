@@ -1049,10 +1049,10 @@ end tag and update the buffer state."
                (delete-region tool-result-content-start (1- tool-result-content-end))
                (goto-char tool-result-content-start)
                (insert vterm-content))
-           ;; Regular streaming - append and process terminal sequences
+           ;; Regular streaming - append text directly (no terminal sequence processing)
            (progn
              (goto-char (1- tool-result-content-end))
-             (greger-ui--process-terminal-sequences text)))
+             (insert text)))
 
          (when is-completed
            ;; Trim trailing newline after closing tag
