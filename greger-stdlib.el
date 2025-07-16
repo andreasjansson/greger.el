@@ -930,13 +930,22 @@ Returns a cancel function that can interrupt the command execution."
                                         "")))))
       (error "Shell command execution cancelled by user"))
 
-    (greger-stdlib--run-shell-command-with-vterm
-     command
-     expanded-work-dir
-     callback
-     timeout
-     enable-environment
-     streaming-callback)))
+    (let* ((bash-args (if enable-environment
+                          ;; Interactive to source .bash_profile and .bashrc
+                          (list "-i" "-c" command)
+                        ;; Non-interactive shell (current behavior)
+                        (list "-c" command)))
+           (base-env '(("PAGER" . "cat")))
+           (shell-env base-env))
+
+      (greger-stdlib--run-async-subprocess
+       :command "bash"
+       :args bash-args
+       :working-directory expanded-work-dir
+       :callback callback
+       :timeout timeout
+       :streaming-callback streaming-callback
+       :env shell-env))))
 
 (defun greger-stdlib--ripgrep (pattern path callback case-sensitive file-type
                                        context-lines fixed-strings word-regexp

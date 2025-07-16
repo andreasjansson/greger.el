@@ -3259,5 +3259,1293 @@ Replace shell-command implementation with vterm-based approach
 ID: toolu_01KQRabr3TqbRj9WGqBZfo96
 
 <tool.toolu_01KQRabr3TqbRj9WGqBZfo96>
-
+Successfully replaced content in /Users/andreas/projects/greger.el/greger-stdlib.el. Successfully staged 2 file(s) and committed with message: Replace shell-command implementation with vterm-based approach
 </tool.toolu_01KQRabr3TqbRj9WGqBZfo96>
+
+# ASSISTANT
+
+Now let me add the vterm implementation function:
+
+# TOOL USE
+
+Name: str-replace
+ID: toolu_01YDakD1wMxKfhJdkjsaGRxp
+
+## path
+
+<tool.toolu_01YDakD1wMxKfhJdkjsaGRxp>
+greger-stdlib.el
+</tool.toolu_01YDakD1wMxKfhJdkjsaGRxp>
+
+## git-commit-message
+
+<tool.toolu_01YDakD1wMxKfhJdkjsaGRxp>
+Add vterm-based shell command execution function
+</tool.toolu_01YDakD1wMxKfhJdkjsaGRxp>
+
+## diff
+
+<tool.toolu_01YDakD1wMxKfhJdkjsaGRxp>
+     (greger-stdlib--run-shell-command-with-vterm
+      command
+      expanded-work-dir
+      callback
+      timeout
+      enable-environment
+      streaming-callback)))
+ 
++(defun greger-stdlib--run-shell-command-with-vterm (command working-directory callback timeout enable-environment streaming-callback)
++  "Execute COMMAND using vterm in WORKING-DIRECTORY and call CALLBACK with (result error).
++Returns a cancel function that can interrupt the command execution."
++  (let* ((buffer-name (format " *greger-shell-vterm-%s*" (random)))
++         (vterm-buffer (get-buffer-create buffer-name))
++         (timer nil)
++         (command-complete nil)
++         (command-output "")
++         (command-error nil)
++         (cancel-func nil)
++         (original-dir default-directory))
++    
++    (with-current-buffer vterm-buffer
++      ;; Set up the working directory
++      (setq default-directory working-directory)
++      
++      ;; Set up vterm environment
++      (let ((vterm-environment (append
++                               (list "PAGER=cat")
++                               (when enable-environment
++                                 ;; Add environment variables that would be available in interactive shell
++                                 (let ((shell-env (greger-stdlib--get-shell-environment)))
++                                   shell-env))
++                               vterm-environment))
++            (vterm-kill-buffer-on-exit nil)  ; Don't kill buffer on exit, we need to read the output
++            (vterm-shell (if enable-environment
++                            ;; Use interactive shell to source .bash_profile and .bashrc
++                            (format "bash -i -c %s" (shell-quote-argument command))
++                          ;; Use non-interactive shell
++                          (format "bash -c %s" (shell-quote-argument command)))))
++        
++        ;; Initialize vterm
++        (vterm-mode)
++        
++        ;; Set up process sentinel to detect completion
++        (let ((process vterm--process))
++          (when process
++            (set-process-sentinel process
++                                  (lambda (proc event)
++                                    (when (string-match "\\(finished\\|exited\\)" event)
++                                      (setq command-complete t)
++                                      (setq command-output (with-current-buffer vterm-buffer (buffer-string)))
++                                      (unless (string-match "exited abnormally" event)
++                                        ;; Normal completion
++                                        (when timer (cancel-timer timer))
++                                        (funcall callback command-output nil)
++                                        (kill-buffer vterm-buffer))
++                                      (when (string-match "exited abnormally" event)
++                                        ;; Command failed
++                                        (setq command-error (format "Command failed: %s" event))
++                                        (when timer (cancel-timer timer))
++                                        (funcall callback nil command-error)
++                                        (kill-buffer vterm-buffer))))))
++          
++          ;; Set up timeout
++          (when timeout
++            (setq timer (run-with-timer timeout nil
++                                       (lambda ()
++                                         (when (not command-complete)
++                                           (when (process-live-p process)
++                                             (kill-process process))
++                                           (setq command-error "Command timed out")
++                                           (funcall callback nil command-error)
++                                           (kill-buffer vterm-buffer))))))
++          
++          ;; Set up streaming callback if provided
++          (when streaming-callback
++            (let ((last-output ""))
++              (add-hook 'after-change-functions
++                        (lambda (start end old-len)
++                          (let ((current-output (buffer-string)))
++                            (unless (string= current-output last-output)
++                              (let ((new-text (substring current-output (length last-output))))
++                                (funcall streaming-callback new-text nil))
++                              (setq last-output current-output))))
++                        nil t)))
++          
++          ;; Return cancel function
++          (setq cancel-func (lambda ()
++                             (when timer (cancel-timer timer))
++                             (when (and process (process-live-p process))
++                               (kill-process process))
++                             (when (buffer-live-p vterm-buffer)
++                               (kill-buffer vterm-buffer))
++                             (funcall callback nil "Command cancelled by user")))))
++        
++        ;; Execute the command by sending it to the vterm
++        (vterm-send-string command)
++        (vterm-send-return)))
++    
++    ;; Return the cancel function
++    cancel-func))
++
++(defun greger-stdlib--get-shell-environment ()
++  "Get environment variables from an interactive shell."
++  (let ((env-output (shell-command-to-string "bash -i -c 'env'")))
++    (mapcar (lambda (line)
++              (let ((eq-pos (string-match "=" line)))
++                (if eq-pos
++                    (format "%s=%s" 
++                            (substring line 0 eq-pos)
++                            (substring line (1+ eq-pos)))
++                  line)))
++            (split-string env-output "\n" t))))
++
+ (defun greger-stdlib--ripgrep (pattern path callback case-sensitive file-type
+\ No newline at end of file
+
+</tool.toolu_01YDakD1wMxKfhJdkjsaGRxp>
+
+# TOOL RESULT
+
+ID: toolu_01YDakD1wMxKfhJdkjsaGRxp
+
+<tool.toolu_01YDakD1wMxKfhJdkjsaGRxp>
+Parentheses balance mismatch in Emacs Lisp content: original has balance 0, new has balance -1.  They must be equal.  Try again!
+</tool.toolu_01YDakD1wMxKfhJdkjsaGRxp>
+
+# ASSISTANT
+
+Let me fix the parentheses issue:
+
+# TOOL USE
+
+Name: str-replace
+ID: toolu_01LWdG4G3rvCHn6jDxyj9EHe
+
+## path
+
+<tool.toolu_01LWdG4G3rvCHn6jDxyj9EHe>
+greger-stdlib.el
+</tool.toolu_01LWdG4G3rvCHn6jDxyj9EHe>
+
+## git-commit-message
+
+<tool.toolu_01LWdG4G3rvCHn6jDxyj9EHe>
+Add vterm-based shell command execution function
+</tool.toolu_01LWdG4G3rvCHn6jDxyj9EHe>
+
+## diff
+
+<tool.toolu_01LWdG4G3rvCHn6jDxyj9EHe>
+     (greger-stdlib--run-shell-command-with-vterm
+      command
+      expanded-work-dir
+      callback
+      timeout
+      enable-environment
+      streaming-callback)))
+ 
++(defun greger-stdlib--run-shell-command-with-vterm (command working-directory callback timeout enable-environment streaming-callback)
++  "Execute COMMAND using vterm in WORKING-DIRECTORY and call CALLBACK with (result error).
++Returns a cancel function that can interrupt the command execution."
++  (let* ((buffer-name (format " *greger-shell-vterm-%s*" (random)))
++         (vterm-buffer (get-buffer-create buffer-name))
++         (timer nil)
++         (command-complete nil)
++         (command-output "")
++         (command-error nil)
++         (cancel-func nil)
++         (original-dir default-directory))
++    
++    (with-current-buffer vterm-buffer
++      ;; Set up the working directory
++      (setq default-directory working-directory)
++      
++      ;; Set up vterm environment
++      (let ((vterm-environment (append
++                               (list "PAGER=cat")
++                               (when enable-environment
++                                 ;; Add environment variables that would be available in interactive shell
++                                 (let ((shell-env (greger-stdlib--get-shell-environment)))
++                                   shell-env))
++                               vterm-environment))
++            (vterm-kill-buffer-on-exit nil)  ; Don't kill buffer on exit, we need to read the output
++            (vterm-shell (if enable-environment
++                            ;; Use interactive shell to source .bash_profile and .bashrc
++                            (format "bash -i -c %s" (shell-quote-argument command))
++                          ;; Use non-interactive shell
++                          (format "bash -c %s" (shell-quote-argument command)))))
++        
++        ;; Initialize vterm
++        (vterm-mode)
++        
++        ;; Set up process sentinel to detect completion
++        (let ((process vterm--process))
++          (when process
++            (set-process-sentinel process
++                                  (lambda (proc event)
++                                    (when (string-match "\\(finished\\|exited\\)" event)
++                                      (setq command-complete t)
++                                      (setq command-output (with-current-buffer vterm-buffer (buffer-string)))
++                                      (unless (string-match "exited abnormally" event)
++                                        ;; Normal completion
++                                        (when timer (cancel-timer timer))
++                                        (funcall callback command-output nil)
++                                        (kill-buffer vterm-buffer))
++                                      (when (string-match "exited abnormally" event)
++                                        ;; Command failed
++                                        (setq command-error (format "Command failed: %s" event))
++                                        (when timer (cancel-timer timer))
++                                        (funcall callback nil command-error)
++                                        (kill-buffer vterm-buffer))))))
++          
++          ;; Set up timeout
++          (when timeout
++            (setq timer (run-with-timer timeout nil
++                                       (lambda ()
++                                         (when (not command-complete)
++                                           (when (process-live-p process)
++                                             (kill-process process))
++                                           (setq command-error "Command timed out")
++                                           (funcall callback nil command-error)
++                                           (kill-buffer vterm-buffer))))))
++          
++          ;; Set up streaming callback if provided
++          (when streaming-callback
++            (let ((last-output ""))
++              (add-hook 'after-change-functions
++                        (lambda (start end old-len)
++                          (let ((current-output (buffer-string)))
++                            (unless (string= current-output last-output)
++                              (let ((new-text (substring current-output (length last-output))))
++                                (funcall streaming-callback new-text nil))
++                              (setq last-output current-output))))
++                        nil t)))
++          
++          ;; Return cancel function
++          (setq cancel-func (lambda ()
++                             (when timer (cancel-timer timer))
++                             (when (and process (process-live-p process))
++                               (kill-process process))
++                             (when (buffer-live-p vterm-buffer)
++                               (kill-buffer vterm-buffer))
++                             (funcall callback nil "Command cancelled by user")))))
++        
++        ;; Execute the command by sending it to the vterm
++        (vterm-send-string command)
++        (vterm-send-return)))
++    
++    ;; Return the cancel function
++    cancel-func))
++
++(defun greger-stdlib--get-shell-environment ()
++  "Get environment variables from an interactive shell."
++  (let ((env-output (shell-command-to-string "bash -i -c 'env'")))
++    (mapcar (lambda (line)
++              (let ((eq-pos (string-match "=" line)))
++                (if eq-pos
++                    (format "%s=%s" 
++                            (substring line 0 eq-pos)
++                            (substring line (1+ eq-pos)))
++                  line)))
++            (split-string env-output "\n" t))))
++
+ (defun greger-stdlib--ripgrep (pattern path callback case-sensitive file-type
+\ No newline at end of file
+
+</tool.toolu_01LWdG4G3rvCHn6jDxyj9EHe>
+
+# TOOL RESULT
+
+ID: toolu_01LWdG4G3rvCHn6jDxyj9EHe
+
+<tool.toolu_01LWdG4G3rvCHn6jDxyj9EHe>
+Parentheses balance mismatch in Emacs Lisp content: original has balance 0, new has balance -1.  They must be equal.  Try again!
+</tool.toolu_01LWdG4G3rvCHn6jDxyj9EHe>
+
+# ASSISTANT
+
+I need to check the exact parentheses count. Let me read the section to understand the structure better:
+
+# TOOL USE
+
+Name: read-file
+ID: toolu_01WGsua98YDdnPsveozmiFPd
+
+## path
+
+<tool.toolu_01WGsua98YDdnPsveozmiFPd>
+greger-stdlib.el
+</tool.toolu_01WGsua98YDdnPsveozmiFPd>
+
+## start-line
+
+<tool.toolu_01WGsua98YDdnPsveozmiFPd>
+935
+</tool.toolu_01WGsua98YDdnPsveozmiFPd>
+
+## end-line
+
+<tool.toolu_01WGsua98YDdnPsveozmiFPd>
+950
+</tool.toolu_01WGsua98YDdnPsveozmiFPd>
+
+# TOOL RESULT
+
+ID: toolu_01WGsua98YDdnPsveozmiFPd
+
+<tool.toolu_01WGsua98YDdnPsveozmiFPd>
+     expanded-work-dir
+     callback
+     timeout
+     enable-environment
+     streaming-callback)))
+
+(defun greger-stdlib--ripgrep (pattern path callback case-sensitive file-type
+                                       context-lines fixed-strings word-regexp
+                                       line-regexp max-results)
+  "Search for PATTERN in PATH using the rg command line tool directly.
+CALLBACK is called with (result error) when search completes.
+CASE-SENSITIVE, FILE-TYPE, CONTEXT-LINES, FIXED-STRINGS, WORD-REGEXP,
+LINE-REGEXP and MAX-RESULTS are optional."
+
+  (unless (executable-find "rg")
+    (error "Command not found: ripgrep (rg).  Please install ripgrep"))
+</tool.toolu_01WGsua98YDdnPsveozmiFPd>
+
+# ASSISTANT
+
+Now let me add the vterm function implementation after the shell-command function:
+
+# TOOL USE
+
+Name: str-replace
+ID: toolu_013NLAPGjm8GxBrFXStGGEcX
+
+## path
+
+<tool.toolu_013NLAPGjm8GxBrFXStGGEcX>
+greger-stdlib.el
+</tool.toolu_013NLAPGjm8GxBrFXStGGEcX>
+
+## git-commit-message
+
+<tool.toolu_013NLAPGjm8GxBrFXStGGEcX>
+Add vterm-based shell command execution function
+</tool.toolu_013NLAPGjm8GxBrFXStGGEcX>
+
+## diff
+
+<tool.toolu_013NLAPGjm8GxBrFXStGGEcX>
+      expanded-work-dir
+      callback
+      timeout
+      enable-environment
+      streaming-callback)))
+ 
++(defun greger-stdlib--run-shell-command-with-vterm (command working-directory callback timeout enable-environment streaming-callback)
++  "Execute COMMAND using vterm in WORKING-DIRECTORY and call CALLBACK with (result error).
++Returns a cancel function that can interrupt the command execution."
++  (let* ((buffer-name (format " *greger-shell-vterm-%s*" (random)))
++         (vterm-buffer (get-buffer-create buffer-name))
++         (timer nil)
++         (command-complete nil)
++         (command-output "")
++         (command-error nil)
++         (cancel-func nil)
++         (original-dir default-directory))
++    
++    (with-current-buffer vterm-buffer
++      ;; Set up the working directory
++      (setq default-directory working-directory)
++      
++      ;; Set up vterm environment
++      (let ((vterm-environment (append
++                               (list "PAGER=cat")
++                               (when enable-environment
++                                 ;; Add environment variables that would be available in interactive shell
++                                 (let ((shell-env (greger-stdlib--get-shell-environment)))
++                                   shell-env))
++                               vterm-environment))
++            (vterm-kill-buffer-on-exit nil)  ; Don't kill buffer on exit, we need to read the output
++            (vterm-shell (if enable-environment
++                            ;; Use interactive shell to source .bash_profile and .bashrc
++                            (format "bash -i -c %s" (shell-quote-argument command))
++                          ;; Use non-interactive shell
++                          (format "bash -c %s" (shell-quote-argument command)))))
++        
++        ;; Initialize vterm
++        (vterm-mode)
++        
++        ;; Set up process sentinel to detect completion
++        (let ((process vterm--process))
++          (when process
++            (set-process-sentinel process
++                                  (lambda (proc event)
++                                    (when (string-match "\\(finished\\|exited\\)" event)
++                                      (setq command-complete t)
++                                      (setq command-output (with-current-buffer vterm-buffer (buffer-string)))
++                                      (unless (string-match "exited abnormally" event)
++                                        ;; Normal completion
++                                        (when timer (cancel-timer timer))
++                                        (funcall callback command-output nil)
++                                        (kill-buffer vterm-buffer))
++                                      (when (string-match "exited abnormally" event)
++                                        ;; Command failed
++                                        (setq command-error (format "Command failed: %s" event))
++                                        (when timer (cancel-timer timer))
++                                        (funcall callback nil command-error)
++                                        (kill-buffer vterm-buffer))))))
++          
++          ;; Set up timeout
++          (when timeout
++            (setq timer (run-with-timer timeout nil
++                                       (lambda ()
++                                         (when (not command-complete)
++                                           (when (process-live-p process)
++                                             (kill-process process))
++                                           (setq command-error "Command timed out")
++                                           (funcall callback nil command-error)
++                                           (kill-buffer vterm-buffer))))))
++          
++          ;; Set up streaming callback if provided
++          (when streaming-callback
++            (let ((last-output ""))
++              (add-hook 'after-change-functions
++                        (lambda (start end old-len)
++                          (let ((current-output (buffer-string)))
++                            (unless (string= current-output last-output)
++                              (let ((new-text (substring current-output (length last-output))))
++                                (funcall streaming-callback new-text nil))
++                              (setq last-output current-output))))
++                        nil t)))
++          
++          ;; Return cancel function
++          (setq cancel-func (lambda ()
++                             (when timer (cancel-timer timer))
++                             (when (and process (process-live-p process))
++                               (kill-process process))
++                             (when (buffer-live-p vterm-buffer)
++                               (kill-buffer vterm-buffer))
++                             (funcall callback nil "Command cancelled by user")))))
++        
++        ;; Execute the command by sending it to the vterm
++        (vterm-send-string command)
++        (vterm-send-return)))
++    
++    ;; Return the cancel function
++    cancel-func))
++
++(defun greger-stdlib--get-shell-environment ()
++  "Get environment variables from an interactive shell."
++  (let ((env-output (shell-command-to-string "bash -i -c 'env'")))
++    (mapcar (lambda (line)
++              (let ((eq-pos (string-match "=" line)))
++                (if eq-pos
++                    (format "%s=%s" 
++                            (substring line 0 eq-pos)
++                            (substring line (1+ eq-pos)))
++                  line)))
++            (split-string env-output "\n" t))))
++
+ (defun greger-stdlib--ripgrep (pattern path callback case-sensitive file-type
+\ No newline at end of file
+
+</tool.toolu_013NLAPGjm8GxBrFXStGGEcX>
+
+# TOOL RESULT
+
+ID: toolu_013NLAPGjm8GxBrFXStGGEcX
+
+<tool.toolu_013NLAPGjm8GxBrFXStGGEcX>
+Parentheses balance mismatch in Emacs Lisp content: original has balance -1, new has balance -2.  They must be equal.  Try again!
+</tool.toolu_013NLAPGjm8GxBrFXStGGEcX>
+
+# ASSISTANT
+
+I'm having trouble with the parentheses. Let me first check what's wrong by reading a bit more context:
+
+# TOOL USE
+
+Name: read-file
+ID: toolu_013qda3GTTKgSgTER4H13def
+
+## path
+
+<tool.toolu_013qda3GTTKgSgTER4H13def>
+greger-stdlib.el
+</tool.toolu_013qda3GTTKgSgTER4H13def>
+
+## start-line
+
+<tool.toolu_013qda3GTTKgSgTER4H13def>
+930
+</tool.toolu_013qda3GTTKgSgTER4H13def>
+
+## end-line
+
+<tool.toolu_013qda3GTTKgSgTER4H13def>
+945
+</tool.toolu_013qda3GTTKgSgTER4H13def>
+
+# TOOL RESULT
+
+ID: toolu_013qda3GTTKgSgTER4H13def
+
+<tool.toolu_013qda3GTTKgSgTER4H13def>
+                                        "")))))
+      (error "Shell command execution cancelled by user"))
+
+    (greger-stdlib--run-shell-command-with-vterm
+     command
+     expanded-work-dir
+     callback
+     timeout
+     enable-environment
+     streaming-callback)))
+
+(defun greger-stdlib--ripgrep (pattern path callback case-sensitive file-type
+                                       context-lines fixed-strings word-regexp
+                                       line-regexp max-results)
+  "Search for PATTERN in PATH using the rg command line tool directly.
+CALLBACK is called with (result error) when search completes.
+</tool.toolu_013qda3GTTKgSgTER4H13def>
+
+# ASSISTANT
+
+Now I see the structure. Let me add the function right after the existing function:
+
+# TOOL USE
+
+Name: str-replace
+ID: toolu_012KJaXj2v1jbiqfZhsfyZ92
+
+## path
+
+<tool.toolu_012KJaXj2v1jbiqfZhsfyZ92>
+greger-stdlib.el
+</tool.toolu_012KJaXj2v1jbiqfZhsfyZ92>
+
+## git-commit-message
+
+<tool.toolu_012KJaXj2v1jbiqfZhsfyZ92>
+Add vterm-based shell command execution function
+</tool.toolu_012KJaXj2v1jbiqfZhsfyZ92>
+
+## diff
+
+<tool.toolu_012KJaXj2v1jbiqfZhsfyZ92>
+     (greger-stdlib--run-shell-command-with-vterm
+      command
+      expanded-work-dir
+      callback
+      timeout
+      enable-environment
+      streaming-callback)))
+ 
++(defun greger-stdlib--run-shell-command-with-vterm (command working-directory callback timeout enable-environment streaming-callback)
++  "Execute COMMAND using vterm in WORKING-DIRECTORY and call CALLBACK with (result error).
++Returns a cancel function that can interrupt the command execution."
++  (let* ((buffer-name (format " *greger-shell-vterm-%s*" (random)))
++         (vterm-buffer (get-buffer-create buffer-name))
++         (timer nil)
++         (command-complete nil)
++         (command-output "")
++         (command-error nil)
++         (cancel-func nil)
++         (original-dir default-directory))
++    
++    (with-current-buffer vterm-buffer
++      ;; Set up the working directory
++      (setq default-directory working-directory)
++      
++      ;; Set up vterm environment
++      (let ((vterm-environment (append
++                               (list "PAGER=cat")
++                               (when enable-environment
++                                 ;; Add environment variables that would be available in interactive shell
++                                 (let ((shell-env (greger-stdlib--get-shell-environment)))
++                                   shell-env))
++                               vterm-environment))
++            (vterm-kill-buffer-on-exit nil)  ; Don't kill buffer on exit, we need to read the output
++            (vterm-shell (if enable-environment
++                            ;; Use interactive shell to source .bash_profile and .bashrc
++                            (format "bash -i -c %s" (shell-quote-argument command))
++                          ;; Use non-interactive shell
++                          (format "bash -c %s" (shell-quote-argument command)))))
++        
++        ;; Initialize vterm
++        (vterm-mode)
++        
++        ;; Set up process sentinel to detect completion
++        (let ((process vterm--process))
++          (when process
++            (set-process-sentinel process
++                                  (lambda (proc event)
++                                    (when (string-match "\\(finished\\|exited\\)" event)
++                                      (setq command-complete t)
++                                      (setq command-output (with-current-buffer vterm-buffer (buffer-string)))
++                                      (unless (string-match "exited abnormally" event)
++                                        ;; Normal completion
++                                        (when timer (cancel-timer timer))
++                                        (funcall callback command-output nil)
++                                        (kill-buffer vterm-buffer))
++                                      (when (string-match "exited abnormally" event)
++                                        ;; Command failed
++                                        (setq command-error (format "Command failed: %s" event))
++                                        (when timer (cancel-timer timer))
++                                        (funcall callback nil command-error)
++                                        (kill-buffer vterm-buffer))))))
++          
++          ;; Set up timeout
++          (when timeout
++            (setq timer (run-with-timer timeout nil
++                                       (lambda ()
++                                         (when (not command-complete)
++                                           (when (process-live-p process)
++                                             (kill-process process))
++                                           (setq command-error "Command timed out")
++                                           (funcall callback nil command-error)
++                                           (kill-buffer vterm-buffer))))))
++          
++          ;; Set up streaming callback if provided
++          (when streaming-callback
++            (let ((last-output ""))
++              (add-hook 'after-change-functions
++                        (lambda (start end old-len)
++                          (let ((current-output (buffer-string)))
++                            (unless (string= current-output last-output)
++                              (let ((new-text (substring current-output (length last-output))))
++                                (funcall streaming-callback new-text nil))
++                              (setq last-output current-output))))
++                        nil t)))
++          
++          ;; Return cancel function
++          (setq cancel-func (lambda ()
++                             (when timer (cancel-timer timer))
++                             (when (and process (process-live-p process))
++                               (kill-process process))
++                             (when (buffer-live-p vterm-buffer)
++                               (kill-buffer vterm-buffer))
++                             (funcall callback nil "Command cancelled by user")))))
++        
++        ;; Execute the command by sending it to the vterm
++        (vterm-send-string command)
++        (vterm-send-return)))
++    
++    ;; Return the cancel function
++    cancel-func))
++
++(defun greger-stdlib--get-shell-environment ()
++  "Get environment variables from an interactive shell."
++  (let ((env-output (shell-command-to-string "bash -i -c 'env'")))
++    (mapcar (lambda (line)
++              (let ((eq-pos (string-match "=" line)))
++                (if eq-pos
++                    (format "%s=%s" 
++                            (substring line 0 eq-pos)
++                            (substring line (1+ eq-pos)))
++                  line)))
++            (split-string env-output "\n" t))))
++
+ (defun greger-stdlib--ripgrep (pattern path callback case-sensitive file-type
+                                        context-lines fixed-strings word-regexp
+                                        line-regexp max-results)
+\ No newline at end of file
+
+</tool.toolu_012KJaXj2v1jbiqfZhsfyZ92>
+
+# TOOL RESULT
+
+ID: toolu_012KJaXj2v1jbiqfZhsfyZ92
+
+<tool.toolu_012KJaXj2v1jbiqfZhsfyZ92>
+Parentheses balance mismatch in Emacs Lisp content: original has balance -1, new has balance -2.  They must be equal.  Try again!
+</tool.toolu_012KJaXj2v1jbiqfZhsfyZ92>
+
+# ASSISTANT
+
+Let me examine more carefully the exact context. The issue seems to be with the parentheses count. Let me check the exact file section:
+
+# TOOL USE
+
+Name: read-file
+ID: toolu_01Ndy1ikhgPiWyik9DAdfAhQ
+
+## path
+
+<tool.toolu_01Ndy1ikhgPiWyik9DAdfAhQ>
+greger-stdlib.el
+</tool.toolu_01Ndy1ikhgPiWyik9DAdfAhQ>
+
+## start-line
+
+<tool.toolu_01Ndy1ikhgPiWyik9DAdfAhQ>
+933
+</tool.toolu_01Ndy1ikhgPiWyik9DAdfAhQ>
+
+## end-line
+
+<tool.toolu_01Ndy1ikhgPiWyik9DAdfAhQ>
+942
+</tool.toolu_01Ndy1ikhgPiWyik9DAdfAhQ>
+
+## include-line-numbers
+
+<tool.toolu_01Ndy1ikhgPiWyik9DAdfAhQ>
+true
+</tool.toolu_01Ndy1ikhgPiWyik9DAdfAhQ>
+
+# TOOL RESULT
+
+ID: toolu_01Ndy1ikhgPiWyik9DAdfAhQ
+
+<tool.toolu_01Ndy1ikhgPiWyik9DAdfAhQ>
+933:     (greger-stdlib--run-shell-command-with-vterm
+934:      command
+935:      expanded-work-dir
+936:      callback
+937:      timeout
+938:      enable-environment
+939:      streaming-callback)))
+940: 
+941: (defun greger-stdlib--ripgrep (pattern path callback case-sensitive file-type
+942:                                        context-lines fixed-strings word-regexp
+</tool.toolu_01Ndy1ikhgPiWyik9DAdfAhQ>
+
+# ASSISTANT
+
+I see the issue - the original section has 3 closing parentheses. Let me add the function between the shell-command and ripgrep functions:
+
+# TOOL USE
+
+Name: str-replace
+ID: toolu_01HSNFFvW3ZRpJ9Fx7BiRAHB
+
+## path
+
+<tool.toolu_01HSNFFvW3ZRpJ9Fx7BiRAHB>
+greger-stdlib.el
+</tool.toolu_01HSNFFvW3ZRpJ9Fx7BiRAHB>
+
+## git-commit-message
+
+<tool.toolu_01HSNFFvW3ZRpJ9Fx7BiRAHB>
+Add vterm-based shell command execution function
+</tool.toolu_01HSNFFvW3ZRpJ9Fx7BiRAHB>
+
+## original-content
+
+<tool.toolu_01HSNFFvW3ZRpJ9Fx7BiRAHB>
+     streaming-callback)))
+
+(defun greger-stdlib--ripgrep (pattern path callback case-sensitive file-type
+</tool.toolu_01HSNFFvW3ZRpJ9Fx7BiRAHB>
+
+## new-content
+
+<tool.toolu_01HSNFFvW3ZRpJ9Fx7BiRAHB>
+     streaming-callback)))
+
+(defun greger-stdlib--run-shell-command-with-vterm (command working-directory callback timeout enable-environment streaming-callback)
+  "Execute COMMAND using vterm in WORKING-DIRECTORY and call CALLBACK with (result error).
+Returns a cancel function that can interrupt the command execution."
+  (let* ((buffer-name (format " *greger-shell-vterm-%s*" (random)))
+         (vterm-buffer (get-buffer-create buffer-name))
+         (timer nil)
+         (command-complete nil)
+         (command-output "")
+         (command-error nil)
+         (cancel-func nil)
+         (original-dir default-directory))
+    
+    (with-current-buffer vterm-buffer
+      ;; Set up the working directory
+      (setq default-directory working-directory)
+      
+      ;; Set up vterm environment
+      (let ((vterm-environment (append
+                               (list "PAGER=cat")
+                               (when enable-environment
+                                 ;; Add environment variables that would be available in interactive shell
+                                 (let ((shell-env (greger-stdlib--get-shell-environment)))
+                                   shell-env))
+                               vterm-environment))
+            (vterm-kill-buffer-on-exit nil)  ; Don't kill buffer on exit, we need to read the output
+            (vterm-shell (if enable-environment
+                            ;; Use interactive shell to source .bash_profile and .bashrc
+                            (format "bash -i -c %s" (shell-quote-argument command))
+                          ;; Use non-interactive shell
+                          (format "bash -c %s" (shell-quote-argument command)))))
+        
+        ;; Initialize vterm
+        (vterm-mode)
+        
+        ;; Set up process sentinel to detect completion
+        (let ((process vterm--process))
+          (when process
+            (set-process-sentinel process
+                                  (lambda (proc event)
+                                    (when (string-match "\\(finished\\|exited\\)" event)
+                                      (setq command-complete t)
+                                      (setq command-output (with-current-buffer vterm-buffer (buffer-string)))
+                                      (unless (string-match "exited abnormally" event)
+                                        ;; Normal completion
+                                        (when timer (cancel-timer timer))
+                                        (funcall callback command-output nil)
+                                        (kill-buffer vterm-buffer))
+                                      (when (string-match "exited abnormally" event)
+                                        ;; Command failed
+                                        (setq command-error (format "Command failed: %s" event))
+                                        (when timer (cancel-timer timer))
+                                        (funcall callback nil command-error)
+                                        (kill-buffer vterm-buffer))))))
+          
+          ;; Set up timeout
+          (when timeout
+            (setq timer (run-with-timer timeout nil
+                                       (lambda ()
+                                         (when (not command-complete)
+                                           (when (process-live-p process)
+                                             (kill-process process))
+                                           (setq command-error "Command timed out")
+                                           (funcall callback nil command-error)
+                                           (kill-buffer vterm-buffer))))))
+          
+          ;; Set up streaming callback if provided
+          (when streaming-callback
+            (let ((last-output ""))
+              (add-hook 'after-change-functions
+                        (lambda (start end old-len)
+                          (let ((current-output (buffer-string)))
+                            (unless (string= current-output last-output)
+                              (let ((new-text (substring current-output (length last-output))))
+                                (funcall streaming-callback new-text nil))
+                              (setq last-output current-output))))
+                        nil t)))
+          
+          ;; Return cancel function
+          (setq cancel-func (lambda ()
+                             (when timer (cancel-timer timer))
+                             (when (and process (process-live-p process))
+                               (kill-process process))
+                             (when (buffer-live-p vterm-buffer)
+                               (kill-buffer vterm-buffer))
+                             (funcall callback nil "Command cancelled by user")))))
+        
+        ;; Execute the command by sending it to the vterm
+        (vterm-send-string command)
+        (vterm-send-return)))
+    
+    ;; Return the cancel function
+    cancel-func))
+
+(defun greger-stdlib--get-shell-environment ()
+  "Get environment variables from an interactive shell."
+  (let ((env-output (shell-command-to-string "bash -i -c 'env'")))
+    (mapcar (lambda (line)
+              (let ((eq-pos (string-match "=" line)))
+                (if eq-pos
+                    (format "%s=%s" 
+                            (substring line 0 eq-pos)
+                            (substring line (1+ eq-pos)))
+                  line)))
+            (split-string env-output "\n" t))))
+
+(defun greger-stdlib--ripgrep (pattern path callback case-sensitive file-type
+</tool.toolu_01HSNFFvW3ZRpJ9Fx7BiRAHB>
+
+# TOOL RESULT
+
+ID: toolu_01HSNFFvW3ZRpJ9Fx7BiRAHB
+
+<tool.toolu_01HSNFFvW3ZRpJ9Fx7BiRAHB>
+Parentheses balance mismatch in Emacs Lisp content: original has balance -1, new has balance -2.  They must be equal.  Try again!
+</tool.toolu_01HSNFFvW3ZRpJ9Fx7BiRAHB>
+
+# ASSISTANT
+
+Let me check if the issue is with the file structure. Let me look at the broader context to understand what's happening:
+
+# TOOL USE
+
+Name: read-file
+ID: toolu_01WJy7smrioL6mM9f26CpPdV
+
+## path
+
+<tool.toolu_01WJy7smrioL6mM9f26CpPdV>
+greger-stdlib.el
+</tool.toolu_01WJy7smrioL6mM9f26CpPdV>
+
+## start-line
+
+<tool.toolu_01WJy7smrioL6mM9f26CpPdV>
+920
+</tool.toolu_01WJy7smrioL6mM9f26CpPdV>
+
+## end-line
+
+<tool.toolu_01WJy7smrioL6mM9f26CpPdV>
+950
+</tool.toolu_01WJy7smrioL6mM9f26CpPdV>
+
+## include-line-numbers
+
+<tool.toolu_01WJy7smrioL6mM9f26CpPdV>
+true
+</tool.toolu_01WJy7smrioL6mM9f26CpPdV>
+
+# TOOL RESULT
+
+ID: toolu_01WJy7smrioL6mM9f26CpPdV
+
+<tool.toolu_01WJy7smrioL6mM9f26CpPdV>
+920:       (error "Working directory does not exist: %s" expanded-work-dir))
+921:     (unless (file-directory-p expanded-work-dir)
+922:       (error "Working directory path is not a directory: %s" expanded-work-dir))
+923:     (when (and (not allow-all-shell-commands)
+924:                (not (member command safe-commands))
+925:                (not (y-or-n-p (format "Execute shell command: '%s' in directory '%s'%s? "
+926:                                       command
+927:                                       expanded-work-dir
+928:                                       (if enable-environment
+929:                                           " (with full environment including secrets)"
+930:                                         "")))))
+931:       (error "Shell command execution cancelled by user"))
+932: 
+933:     (greger-stdlib--run-shell-command-with-vterm
+934:      command
+935:      expanded-work-dir
+936:      callback
+937:      timeout
+938:      enable-environment
+939:      streaming-callback)))
+940: 
+941: (defun greger-stdlib--ripgrep (pattern path callback case-sensitive file-type
+942:                                        context-lines fixed-strings word-regexp
+943:                                        line-regexp max-results)
+944:   "Search for PATTERN in PATH using the rg command line tool directly.
+945: CALLBACK is called with (result error) when search completes.
+946: CASE-SENSITIVE, FILE-TYPE, CONTEXT-LINES, FIXED-STRINGS, WORD-REGEXP,
+947: LINE-REGEXP and MAX-RESULTS are optional."
+948: 
+949:   (unless (executable-find "rg")
+950:     (error "Command not found: ripgrep (rg).  Please install ripgrep"))
+</tool.toolu_01WJy7smrioL6mM9f26CpPdV>
+
+# ASSISTANT
+
+Now I see the issue. The function call `greger-stdlib--run-shell-command-with-vterm` needs to be properly balanced. Let me try a different approach. Let me add the function at the end of the file instead:
+
+# TOOL USE
+
+Name: read-file
+ID: toolu_019TxCjKwiimmeLXbUPqao6j
+
+## path
+
+<tool.toolu_019TxCjKwiimmeLXbUPqao6j>
+greger-stdlib.el
+</tool.toolu_019TxCjKwiimmeLXbUPqao6j>
+
+## start-line
+
+<tool.toolu_019TxCjKwiimmeLXbUPqao6j>
+1480
+</tool.toolu_019TxCjKwiimmeLXbUPqao6j>
+
+## end-line
+
+<tool.toolu_019TxCjKwiimmeLXbUPqao6j>
+1500
+</tool.toolu_019TxCjKwiimmeLXbUPqao6j>
+
+# TOOL RESULT
+
+ID: toolu_019TxCjKwiimmeLXbUPqao6j
+
+<tool.toolu_019TxCjKwiimmeLXbUPqao6j>
+Start index out of bounds: 1479
+</tool.toolu_019TxCjKwiimmeLXbUPqao6j>
+
+# TOOL USE
+
+Name: shell-command
+ID: toolu_01LMXpBe7MaebMCMaAbfKRcF
+
+## command
+
+<tool.toolu_01LMXpBe7MaebMCMaAbfKRcF>
+wc -l greger-stdlib.el
+</tool.toolu_01LMXpBe7MaebMCMaAbfKRcF>
+
+# TOOL RESULT
+
+ID: toolu_01LMXpBe7MaebMCMaAbfKRcF
+
+<tool.toolu_01LMXpBe7MaebMCMaAbfKRcF>
+    1023 greger-stdlib.el
+
+</tool.toolu_01LMXpBe7MaebMCMaAbfKRcF>
+
+# TOOL USE
+
+Name: read-file
+ID: toolu_012saTemjDkfPSUsNNo6hjzv
+
+## path
+
+<tool.toolu_012saTemjDkfPSUsNNo6hjzv>
+greger-stdlib.el
+</tool.toolu_012saTemjDkfPSUsNNo6hjzv>
+
+## start-line
+
+<tool.toolu_012saTemjDkfPSUsNNo6hjzv>
+1015
+</tool.toolu_012saTemjDkfPSUsNNo6hjzv>
+
+## end-line
+
+<tool.toolu_012saTemjDkfPSUsNNo6hjzv>
+1023
+</tool.toolu_012saTemjDkfPSUsNNo6hjzv>
+
+# TOOL RESULT
+
+ID: toolu_012saTemjDkfPSUsNNo6hjzv
+
+<tool.toolu_012saTemjDkfPSUsNNo6hjzv>
+
+  (condition-case err
+      (greger-web-download-page url extract-text use-highest-readability)
+    (error "Failed to read webpage: %s" (error-message-string err))))
+
+
+(provide 'greger-stdlib)
+
+;;; greger-stdlib.el ends here
+</tool.toolu_012saTemjDkfPSUsNNo6hjzv>
+
+# ASSISTANT
+
+Let me add the functions at the end, before the provide statement:
+
+# TOOL USE
+
+Name: str-replace
+ID: toolu_01RbeuLkwKAr2dMamy8kiGxU
+
+## path
+
+<tool.toolu_01RbeuLkwKAr2dMamy8kiGxU>
+greger-stdlib.el
+</tool.toolu_01RbeuLkwKAr2dMamy8kiGxU>
+
+## git-commit-message
+
+<tool.toolu_01RbeuLkwKAr2dMamy8kiGxU>
+Add vterm-based shell command execution function
+</tool.toolu_01RbeuLkwKAr2dMamy8kiGxU>
+
+## original-content
+
+<tool.toolu_01RbeuLkwKAr2dMamy8kiGxU>
+  (condition-case err
+      (greger-web-download-page url extract-text use-highest-readability)
+    (error "Failed to read webpage: %s" (error-message-string err))))
+
+
+(provide 'greger-stdlib)
+</tool.toolu_01RbeuLkwKAr2dMamy8kiGxU>
+
+## new-content
+
+<tool.toolu_01RbeuLkwKAr2dMamy8kiGxU>
+  (condition-case err
+      (greger-web-download-page url extract-text use-highest-readability)
+    (error "Failed to read webpage: %s" (error-message-string err))))
+
+(defun greger-stdlib--run-shell-command-with-vterm (command working-directory callback timeout enable-environment streaming-callback)
+  "Execute COMMAND using vterm in WORKING-DIRECTORY and call CALLBACK with (result error).
+Returns a cancel function that can interrupt the command execution."
+  (let* ((buffer-name (format " *greger-shell-vterm-%s*" (random)))
+         (vterm-buffer (get-buffer-create buffer-name))
+         (timer nil)
+         (command-complete nil)
+         (command-output "")
+         (command-error nil)
+         (cancel-func nil)
+         (original-dir default-directory))
+    
+    (with-current-buffer vterm-buffer
+      ;; Set up the working directory
+      (setq default-directory working-directory)
+      
+      ;; Set up vterm environment
+      (let ((vterm-environment (append
+                               (list "PAGER=cat")
+                               (when enable-environment
+                                 ;; Add environment variables that would be available in interactive shell
+                                 (let ((shell-env (greger-stdlib--get-shell-environment)))
+                                   shell-env))
+                               vterm-environment))
+            (vterm-kill-buffer-on-exit nil)  ; Don't kill buffer on exit, we need to read the output
+            (vterm-shell (if enable-environment
+                            ;; Use interactive shell to source .bash_profile and .bashrc
+                            (format "bash -i -c %s" (shell-quote-argument command))
+                          ;; Use non-interactive shell
+                          (format "bash -c %s" (shell-quote-argument command)))))
+        
+        ;; Initialize vterm
+        (vterm-mode)
+        
+        ;; Set up process sentinel to detect completion
+        (let ((process vterm--process))
+          (when process
+            (set-process-sentinel process
+                                  (lambda (proc event)
+                                    (when (string-match "\\(finished\\|exited\\)" event)
+                                      (setq command-complete t)
+                                      (setq command-output (with-current-buffer vterm-buffer (buffer-string)))
+                                      (unless (string-match "exited abnormally" event)
+                                        ;; Normal completion
+                                        (when timer (cancel-timer timer))
+                                        (funcall callback command-output nil)
+                                        (kill-buffer vterm-buffer))
+                                      (when (string-match "exited abnormally" event)
+                                        ;; Command failed
+                                        (setq command-error (format "Command failed: %s" event))
+                                        (when timer (cancel-timer timer))
+                                        (funcall callback nil command-error)
+                                        (kill-buffer vterm-buffer))))))
+          
+          ;; Set up timeout
+          (when timeout
+            (setq timer (run-with-timer timeout nil
+                                       (lambda ()
+                                         (when (not command-complete)
+                                           (when (process-live-p process)
+                                             (kill-process process))
+                                           (setq command-error "Command timed out")
+                                           (funcall callback nil command-error)
+                                           (kill-buffer vterm-buffer))))))
+          
+          ;; Set up streaming callback if provided
+          (when streaming-callback
+            (let ((last-output ""))
+              (add-hook 'after-change-functions
+                        (lambda (start end old-len)
+                          (let ((current-output (buffer-string)))
+                            (unless (string= current-output last-output)
+                              (let ((new-text (substring current-output (length last-output))))
+                                (funcall streaming-callback new-text nil))
+                              (setq last-output current-output))))
+                        nil t)))
+          
+          ;; Return cancel function
+          (setq cancel-func (lambda ()
+                             (when timer (cancel-timer timer))
+                             (when (and process (process-live-p process))
+                               (kill-process process))
+                             (when (buffer-live-p vterm-buffer)
+                               (kill-buffer vterm-buffer))
+                             (funcall callback nil "Command cancelled by user")))))
+        
+        ;; Execute the command by sending it to the vterm
+        (vterm-send-string command)
+        (vterm-send-return)))
+    
+    ;; Return the cancel function
+    cancel-func))
+
+(defun greger-stdlib--get-shell-environment ()
+  "Get environment variables from an interactive shell."
+  (let ((env-output (shell-command-to-string "bash -i -c 'env'")))
+    (mapcar (lambda (line)
+              (let ((eq-pos (string-match "=" line)))
+                (if eq-pos
+                    (format "%s=%s" 
+                            (substring line 0 eq-pos)
+                            (substring line (1+ eq-pos)))
+                  line)))
+            (split-string env-output "\n" t))))
+
+(provide 'greger-stdlib)
+</tool.toolu_01RbeuLkwKAr2dMamy8kiGxU>
+
+# TOOL RESULT
+
+ID: toolu_01RbeuLkwKAr2dMamy8kiGxU
+
+<tool.toolu_01RbeuLkwKAr2dMamy8kiGxU>
+Parentheses balance mismatch in Emacs Lisp content: original has balance -1, new has balance -2.  They must be equal.  Try again!
+</tool.toolu_01RbeuLkwKAr2dMamy8kiGxU>
+
+# ASSISTANT
+
+I think the issue is that the function has incorrect parentheses. Let me reconsider the approach. I realize that the issue might be with the approach itself. Let me step back and think about this differently.
+
+Actually, I think the issue is that I'm trying to use vterm incorrectly. Let me research the issue more carefully. Based on the vterm documentation, I should not try to override the shell that vterm runs, but rather control the command execution differently.
+
+Let me try a different approach. Instead of trying to manipulate the vterm shell, I'll create a better approach that embeds the vterm inside the tool result display.
+
+Let me first fix the current issue by reverting the function call:
+
+# TOOL USE
+
+Name: str-replace
+ID: toolu_01BfBNcBSB9kLkpoHDv9suMJ
+
+## path
+
+<tool.toolu_01BfBNcBSB9kLkpoHDv9suMJ>
+greger-stdlib.el
+</tool.toolu_01BfBNcBSB9kLkpoHDv9suMJ>
+
+## git-commit-message
+
+<tool.toolu_01BfBNcBSB9kLkpoHDv9suMJ>
+Revert to original approach while implementing vterm integration
+</tool.toolu_01BfBNcBSB9kLkpoHDv9suMJ>
+
+## original-content
+
+<tool.toolu_01BfBNcBSB9kLkpoHDv9suMJ>
+    (greger-stdlib--run-shell-command-with-vterm
+     command
+     expanded-work-dir
+     callback
+     timeout
+     enable-environment
+     streaming-callback)))
+</tool.toolu_01BfBNcBSB9kLkpoHDv9suMJ>
+
+## new-content
+
+<tool.toolu_01BfBNcBSB9kLkpoHDv9suMJ>
+    (let* ((bash-args (if enable-environment
+                          ;; Interactive to source .bash_profile and .bashrc
+                          (list "-i" "-c" command)
+                        ;; Non-interactive shell (current behavior)
+                        (list "-c" command)))
+           (base-env '(("PAGER" . "cat")))
+           (shell-env base-env))
+
+      (greger-stdlib--run-async-subprocess
+       :command "bash"
+       :args bash-args
+       :working-directory expanded-work-dir
+       :callback callback
+       :timeout timeout
+       :streaming-callback streaming-callback
+       :env shell-env))))
+</tool.toolu_01BfBNcBSB9kLkpoHDv9suMJ>
+
+# TOOL RESULT
+
+ID: toolu_01BfBNcBSB9kLkpoHDv9suMJ
+
+<tool.toolu_01BfBNcBSB9kLkpoHDv9suMJ>
+
+</tool.toolu_01BfBNcBSB9kLkpoHDv9suMJ>
