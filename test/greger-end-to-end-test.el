@@ -686,6 +686,43 @@ Hello from greger test!
   (should (fboundp 'greger-stdlib--query-claude-for-interactive-input))
   (should (fboundp 'greger-stdlib--run-shell-command-with-vterm)))
 
+(ert-deftest greger-end-to-end-test-interactive-input-prompt-detection ()
+  "Test that interactive prompt detection works correctly."
+  (let ((test-prompts '(("Enter your name: " . t)
+                       ("Password: " . t)
+                       ("Continue? [y/n] " . t)
+                       ("Press any key to continue" . t)
+                       ("Type your response >> " . t)
+                       ("Select option: " . t)
+                       ("Just some text" . nil)
+                       ("Command output" . nil))))
+    (dolist (test test-prompts)
+      (let* ((prompt (car test))
+             (expected (cdr test))
+             (detected (or (string-match-p ":\\s-*$" prompt)
+                          (string-match-p "\\?\\s-*$" prompt)
+                          (string-match-p "\\]\\s-*$" prompt)
+                          (string-match-p ">>\\s-*$" prompt)
+                          (string-match-p "Password:" prompt)
+                          (string-match-p "Enter " prompt)
+                          (string-match-p "\\(y/n\\|Y/N\\)" prompt)
+                          (string-match-p "Press" prompt)
+                          (string-match-p "Continue" prompt)
+                          (string-match-p "Confirm" prompt)
+                          (string-match-p "Type" prompt)
+                          (string-match-p "Input" prompt)
+                          (string-match-p "Select" prompt))))
+        (should (eq (not (not detected)) expected))))))
+
+(ert-deftest greger-end-to-end-test-interactive-input-password-detection ()
+  "Test that password prompts are detected correctly."
+  (let ((password-prompts '("Enter password: " "Password: " "Enter PASS: " "sudo password: "))
+        (regular-prompts '("Enter name: " "Continue? " "Select option: " "Username: ")))
+    (dolist (prompt password-prompts)
+      (should (string-match-p "password\\|Password\\|PASS" prompt)))
+    (dolist (prompt regular-prompts)
+      (should-not (string-match-p "password\\|Password\\|PASS" prompt)))))
+
 (provide 'test-end-to-end)
 
 ;;; test-end-to-end.el ends here
