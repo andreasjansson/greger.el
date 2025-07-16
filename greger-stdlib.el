@@ -1156,12 +1156,11 @@ Returns a cancel function that can interrupt the command execution."
           (let ((prompt (detect-interactive-prompt)))
             (when prompt
               (let ((user-input (read-from-minibuffer (format "Shell prompt: %s " prompt))))
-                (when (not (string-empty-p user-input))
-                  (vterm-send-string user-input)
-                  (vterm-send-return)
-                  ;; Continue monitoring for more prompts
-                  (setq prompt-check-timer
-                        (run-with-timer 0.5 nil #'handle-interactive-input)))))))
+                (vterm-send-string user-input)
+                (vterm-send-return)
+                ;; Continue monitoring for more prompts
+                (setq prompt-check-timer
+                      (run-with-timer 0.5 nil #'handle-interactive-input))))))
         
         ;; Set up process sentinel to capture output when shell terminates
         (when process
