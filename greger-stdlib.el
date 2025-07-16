@@ -900,13 +900,15 @@ For Emacs Lisp files (.el), checks that parentheses balance is maintained."
                          "")))
         (format "Successfully replaced content in %s%s. %s" expanded-path count-msg git-result)))))
 
-(defun greger-stdlib--shell-command (command callback working-directory timeout enable-environment streaming-callback metadata)
-  "Execute COMMAND in WORKING-DIRECTORY using vterm and call CALLBACK with (result error).
+(defun greger-stdlib--shell-command (command callback working-directory timeout enable-environment use-vterm streaming-callback metadata)
+  "Execute COMMAND in WORKING-DIRECTORY and call CALLBACK with (result error).
 Prompts for permission before running the command for security.
 TIMEOUT is the maximum time in sconds to wait for completion (default 600).
 ENABLE-ENVIRONMENT, if non-nil, sources shell initialization files which
 may contain secrets and environment variables.  User will be warned in
 permission prompt.
+USE-VTERM, if non-nil, uses vterm for full terminal emulation with colors
+and ANSI sequences. Falls back to regular subprocess if vterm is not available.
 If METADATA contains safe-shell-commands and COMMAND is in that list, skips
 permission prompt.
 Returns a cancel function that can interrupt the command execution."
