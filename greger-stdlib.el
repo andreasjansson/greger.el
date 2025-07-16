@@ -1100,20 +1100,24 @@ Returns a cancel function that can interrupt the command execution."
             ;; Remove form feed characters (^L) from vterm-clear and other control chars
             (setq content (replace-regexp-in-string "[\f\r]" "" content))
             
-            ;; Remove shell prompts by regex replacement rather than line filtering
-            ;; This is more precise and less likely to remove legitimate content
-            (setq content (replace-regexp-in-string "^[^@]*@[^:]*:[^$]*\\$ " "" content))
-            
-            ;; Remove the command echo line if it appears
-            (when (string-prefix-p command content)
-              (setq content (substring content (length command)))
-              (setq content (string-trim-left content)))
-            
-            ;; Remove "exit" command if it appears at the end
-            (setq content (replace-regexp-in-string "\\nexit\\s-*\\'" "" content))
-            
-            ;; Clean up extra whitespace
-            (string-trim content)))
+            ;; Split into lines and only remove clear shell artifacts
+            (let ((lines (split-string content "\n")))
+              (let ((filtered-lines
+                     (seq-remove 
+                      (lambda (line)
+                        (let ((trimmed (string-trim line)))
+                          (or 
+                           ;; Shell prompts that end with $
+                           (string-match "^[^@]*@[^:]*:[^$]*\\$$" trimmed)
+                           ;; Exact command match
+                           (string-equal trimmed command)
+                           ;; Exit command
+                           (string-equal trimmed "exit"))))
+                      lines)))
+                ;; Join lines but don't trim the result to avoid removing first characters
+                (let ((result (string-join filtered-lines "\n")))
+                  ;; Only remove leading/trailing newlines, not other whitespace
+                  (replace-regexp-in-string "\\`\n+\\|\n+\\'" "" result))))))
         
         ;; Set up process sentinel to capture output when shell terminates
         (when process

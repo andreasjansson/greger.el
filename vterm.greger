@@ -5156,5 +5156,77 @@ Clean up test files
 ID: toolu_01JYaBSshrCdVEQbRZNdsnaJ
 
 <tool.toolu_01JYaBSshrCdVEQbRZNdsnaJ>
-
+Successfully deleted 2 file(s): /Users/andreas/projects/greger.el/test-vterm-vitest.el, /Users/andreas/projects/greger.el/test-vterm-position.el. Git status: Successfully staged 3 file(s) and committed with message: Clean up test files
 </tool.toolu_01JYaBSshrCdVEQbRZNdsnaJ>
+
+# TOOL USE
+
+Name: str-replace
+ID: toolu_01Kn3Qq3TxZYjebEQQ1DNHJe
+
+## path
+
+<tool.toolu_01Kn3Qq3TxZYjebEQQ1DNHJe>
+greger-stdlib.el
+</tool.toolu_01Kn3Qq3TxZYjebEQQ1DNHJe>
+
+## git-commit-message
+
+<tool.toolu_01Kn3Qq3TxZYjebEQQ1DNHJe>
+Simplify extract-clean-output to minimal filtering
+</tool.toolu_01Kn3Qq3TxZYjebEQQ1DNHJe>
+
+## diff
+
+<tool.toolu_01Kn3Qq3TxZYjebEQQ1DNHJe>
+         ;; Function to extract clean output
+         (defun extract-clean-output ()
+           "Extract command output, filtering out shell prompts and command echoes."
+           (let ((content (buffer-string)))
+             ;; Remove form feed characters (^L) from vterm-clear and other control chars
+             (setq content (replace-regexp-in-string "[\f\r]" "" content))
+             
+-            ;; Remove shell prompts by regex replacement rather than line filtering
+-            ;; This is more precise and less likely to remove legitimate content
+-            (setq content (replace-regexp-in-string "^[^@]*@[^:]*:[^$]*\\$ " "" content))
+-            
+-            ;; Remove the command echo line if it appears
+-            (when (string-prefix-p command content)
+-              (setq content (substring content (length command)))
+-              (setq content (string-trim-left content)))
+-            
+-            ;; Remove "exit" command if it appears at the end
+-            (setq content (replace-regexp-in-string "\\nexit\\s-*\\'" "" content))
+-            
+-            ;; Clean up extra whitespace
+-            (string-trim content)))
+\ No newline at end of file
++            ;; Split into lines and only remove clear shell artifacts
++            (let ((lines (split-string content "\n")))
++              (let ((filtered-lines
++                     (seq-remove 
++                      (lambda (line)
++                        (let ((trimmed (string-trim line)))
++                          (or 
++                           ;; Shell prompts that end with $
++                           (string-match "^[^@]*@[^:]*:[^$]*\\$$" trimmed)
++                           ;; Exact command match
++                           (string-equal trimmed command)
++                           ;; Exit command
++                           (string-equal trimmed "exit"))))
++                      lines)))
++                ;; Join lines but don't trim the result to avoid removing first characters
++                (let ((result (string-join filtered-lines "\n")))
++                  ;; Only remove leading/trailing newlines, not other whitespace
++                  (replace-regexp-in-string "\\`\n+\\|\n+\\'" "" result))))))
+\ No newline at end of file
+
+</tool.toolu_01Kn3Qq3TxZYjebEQQ1DNHJe>
+
+# TOOL RESULT
+
+ID: toolu_01Kn3Qq3TxZYjebEQQ1DNHJe
+
+<tool.toolu_01Kn3Qq3TxZYjebEQQ1DNHJe>
+
+</tool.toolu_01Kn3Qq3TxZYjebEQQ1DNHJe>
