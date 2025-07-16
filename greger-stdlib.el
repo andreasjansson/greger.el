@@ -1124,8 +1124,10 @@ Returns a cancel function that can interrupt the command execution."
         (defun check-command-completion ()
           "Check if the command has completed by looking for completion marker."
           (let ((content (buffer-string)))
+            (message "DEBUG: Command completion check, content: %S" content)
             (when (and detecting-completion
                       (string-match "GREGER_COMMAND_DONE" content))
+              (message "DEBUG: Command completion detected!")
               (unless command-completed
                 (setq command-completed t)
                 (when timer (cancel-timer timer))
@@ -1133,6 +1135,7 @@ Returns a cancel function that can interrupt the command execution."
                 
                 ;; Get the final filtered output
                 (let ((final-output (extract-command-output)))
+                  (message "DEBUG: Final output: %S" final-output)
                   (funcall callback final-output nil))
                 
                 (when (buffer-live-p vterm-buffer)
