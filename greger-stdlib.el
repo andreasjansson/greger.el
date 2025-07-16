@@ -935,8 +935,8 @@ Returns a cancel function that can interrupt the command execution."
                                         "")))))
       (error "Shell command execution cancelled by user"))
 
-    ;; Try to use vterm for enhanced terminal emulation if available
-    (if (and (fboundp 'vterm-mode) (fboundp 'vterm--new))
+    ;; Use vterm if explicitly requested and available
+    (if (and use-vterm (fboundp 'vterm-mode) (fboundp 'vterm--new))
         (greger-stdlib--run-shell-command-with-vterm
          command
          expanded-work-dir
@@ -944,23 +944,26 @@ Returns a cancel function that can interrupt the command execution."
          timeout
          enable-environment
          streaming-callback)
-      ;; Fall back to traditional subprocess execution
-      (let* ((bash-args (if enable-environment
-                            ;; Interactive to source .bash_profile and .bashrc
-                            (list "-i" "-c" command)
-                          ;; Non-interactive shell (current behavior)
-                          (list "-c" command)))
-             (base-env '(("PAGER" . "cat")))
-             (shell-env base-env))
+      ;; Check if vterm was requested but not available
+      (if use-vterm
+          (error "vterm is not available. Please install the vterm package or set use-vterm to false")
+        ;; Use traditional subprocess execution
+        (let* ((bash-args (if enable-environment
+                              ;; Interactive to source .bash_profile and .bashrc
+                              (list "-i" "-c" command)
+                            ;; Non-interactive shell (current behavior)
+                            (list "-c" command)))
+               (base-env '(("PAGER" . "cat")))
+               (shell-env base-env))
 
-        (greger-stdlib--run-async-subprocess
-         :command "bash"
-         :args bash-args
-         :working-directory expanded-work-dir
-         :callback callback
-         :timeout timeout
-         :streaming-callback streaming-callback
-         :env shell-env)))))
+          (greger-stdlib--run-async-subprocess
+           :command "bash"
+           :args bash-args
+           :working-directory expanded-work-dir
+           :callback callback
+           :timeout timeout
+           :streaming-callback streaming-callback
+           :env shell-env))))))
 
 (defun greger-stdlib--ripgrep (pattern path callback case-sensitive file-type
                                        context-lines fixed-strings word-regexp

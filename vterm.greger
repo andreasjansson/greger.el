@@ -7508,5 +7508,89 @@ Update shell-command function signature to include use-vterm parameter
 ID: toolu_016xUtpNLojDJiyYsFEJzZYH
 
 <tool.toolu_016xUtpNLojDJiyYsFEJzZYH>
-
+Successfully replaced content in /Users/andreas/projects/greger.el/greger-stdlib.el. Successfully staged 2 file(s) and committed with message: Update shell-command function signature to include use-vterm parameter
 </tool.toolu_016xUtpNLojDJiyYsFEJzZYH>
+
+# ASSISTANT
+
+Now I need to update the logic to use the use-vterm parameter instead of automatic detection:
+
+# TOOL USE
+
+Name: str-replace
+ID: toolu_012BkAsgGVD1i4v98pgKAciU
+
+## path
+
+<tool.toolu_012BkAsgGVD1i4v98pgKAciU>
+greger-stdlib.el
+</tool.toolu_012BkAsgGVD1i4v98pgKAciU>
+
+## git-commit-message
+
+<tool.toolu_012BkAsgGVD1i4v98pgKAciU>
+Update shell-command implementation to use use-vterm parameter
+</tool.toolu_012BkAsgGVD1i4v98pgKAciU>
+
+## diff
+
+<tool.toolu_012BkAsgGVD1i4v98pgKAciU>
+-    ;; Try to use vterm for enhanced terminal emulation if available
+-    (if (and (fboundp 'vterm-mode) (fboundp 'vterm--new))
++    ;; Use vterm if explicitly requested and available
++    (if (and use-vterm (fboundp 'vterm-mode) (fboundp 'vterm--new))
+         (greger-stdlib--run-shell-command-with-vterm
+          command
+          expanded-work-dir
+          callback
+          timeout
+          enable-environment
+          streaming-callback)
+-      ;; Fall back to traditional subprocess execution
+-      (let* ((bash-args (if enable-environment
+-                            ;; Interactive to source .bash_profile and .bashrc
+-                            (list "-i" "-c" command)
+-                          ;; Non-interactive shell (current behavior)
+-                          (list "-c" command)))
+-             (base-env '(("PAGER" . "cat")))
+-             (shell-env base-env))
++      ;; Check if vterm was requested but not available
++      (if use-vterm
++          (error "vterm is not available. Please install the vterm package or set use-vterm to false")
++        ;; Use traditional subprocess execution
++        (let* ((bash-args (if enable-environment
++                              ;; Interactive to source .bash_profile and .bashrc
++                              (list "-i" "-c" command)
++                            ;; Non-interactive shell (current behavior)
++                            (list "-c" command)))
++               (base-env '(("PAGER" . "cat")))
++               (shell-env base-env))
+ 
+-        (greger-stdlib--run-async-subprocess
+-         :command "bash"
+-         :args bash-args
+-         :working-directory expanded-work-dir
+-         :callback callback
+-         :timeout timeout
+-         :streaming-callback streaming-callback
+-         :env shell-env)))))
+\ No newline at end of file
++          (greger-stdlib--run-async-subprocess
++           :command "bash"
++           :args bash-args
++           :working-directory expanded-work-dir
++           :callback callback
++           :timeout timeout
++           :streaming-callback streaming-callback
++           :env shell-env))))))
+\ No newline at end of file
+
+</tool.toolu_012BkAsgGVD1i4v98pgKAciU>
+
+# TOOL RESULT
+
+ID: toolu_012BkAsgGVD1i4v98pgKAciU
+
+<tool.toolu_012BkAsgGVD1i4v98pgKAciU>
+
+</tool.toolu_012BkAsgGVD1i4v98pgKAciU>
