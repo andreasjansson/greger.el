@@ -6585,5 +6585,336 @@ Add end-to-end test for Claude-enabled interactive input handling
 ID: toolu_01RXwSKdCzE1hy3FB4sKoPY5
 
 <tool.toolu_01RXwSKdCzE1hy3FB4sKoPY5>
-
+Successfully replaced content in /Users/andreas/projects/greger.el/test/greger-end-to-end-test.el. Successfully staged 2 file(s) and committed with message: Add end-to-end test for Claude-enabled interactive input handling
 </tool.toolu_01RXwSKdCzE1hy3FB4sKoPY5>
+
+# ASSISTANT
+
+Now let's run the tests to make sure they work properly:
+
+# TOOL USE
+
+Name: shell-command
+ID: toolu_01TRQzxmoZ3C7mRRv7VmDJzv
+
+## command
+
+<tool.toolu_01TRQzxmoZ3C7mRRv7VmDJzv>
+cd ~/projects/greger.el && emacs --batch -l test/greger-end-to-end-test.el -f ert-run-tests-batch-and-exit
+</tool.toolu_01TRQzxmoZ3C7mRRv7VmDJzv>
+
+## timeout
+
+<tool.toolu_01TRQzxmoZ3C7mRRv7VmDJzv>
+120
+</tool.toolu_01TRQzxmoZ3C7mRRv7VmDJzv>
+
+# TOOL RESULT
+
+ID: toolu_01TRQzxmoZ3C7mRRv7VmDJzv
+
+<tool.toolu_01TRQzxmoZ3C7mRRv7VmDJzv>
+
+Error: file-missing ("Cannot open load file" "No such file or directory" "greger")
+  require(greger)
+  load-with-code-conversion("/Users/andreas/projects/greger.el/test/greger-end-to-end-test.el" "/Users/andreas/projects/greger.el/test/greger-end-to-end-test.el" nil t)
+  command-line-1(("-l" "test/greger-end-to-end-test.el" "-f" "ert-run-tests-batch-and-exit"))
+  command-line()
+  normal-top-level()
+Cannot open load file: No such file or directory, greger
+Command failed with exit code 255
+</tool.toolu_01TRQzxmoZ3C7mRRv7VmDJzv>
+
+# ASSISTANT
+
+I need to set up the load path properly. Let me check how the tests are usually run:
+
+# TOOL USE
+
+Name: read-file
+ID: toolu_018GbiX5DdAgLfVJUGBvBieA
+
+## path
+
+<tool.toolu_018GbiX5DdAgLfVJUGBvBieA>
+~/projects/greger.el/Makefile
+</tool.toolu_018GbiX5DdAgLfVJUGBvBieA>
+
+# TOOL RESULT
+
+ID: toolu_018GbiX5DdAgLfVJUGBvBieA
+
+<tool.toolu_018GbiX5DdAgLfVJUGBvBieA>
+File does not exist: /Users/andreas/projects/greger.el/Makefile
+</tool.toolu_018GbiX5DdAgLfVJUGBvBieA>
+
+# TOOL USE
+
+Name: list-directory
+ID: toolu_018udeQTDJhBaHRPu2TBpFXp
+
+## path
+
+<tool.toolu_018udeQTDJhBaHRPu2TBpFXp>
+~/projects/greger.el
+</tool.toolu_018udeQTDJhBaHRPu2TBpFXp>
+
+# TOOL RESULT
+
+ID: toolu_018udeQTDJhBaHRPu2TBpFXp
+
+<tool.toolu_018udeQTDJhBaHRPu2TBpFXp>
+~/projects/greger.el/:
+drwxr-xr-x  (dir)  .
+drwxr-xr-x  (dir)  ..
+-rw-r--r--      6148  .DS_Store
+-rw-r--r--       833  .dir-locals-dev.el
+-rw-r--r--       226  .dir-locals.el
+drwxr-xr-x  (dir)  .eldev
+-rw-r--r--        81  .elpaignore
+drwxr-xr-x  (dir)  .git
+drwxr-xr-x  (dir)  .github
+-rw-r--r--        52  .gitignore
+-rw-r--r--      3332  DEVELOPMENT.md
+-rw-r--r--       676  Eldev
+-rw-r--r--      6819  INTERACTIVE_INPUT.md
+-rw-r--r--      5893  INTERACTIVE_INPUT_SUMMARY.md
+-rw-r--r--      1071  LICENSE
+-rw-r--r--     17556  README.md
+drwxr-xr-x  (dir)  assets
+-rw-r--r--      3681  debug-eval-display.el
+-rw-r--r--        27  debug.greger
+-rw-r--r--       182  eval.greger
+drwxr-xr-x  (dir)  examples
+-rw-r--r--    204801  fix-read-file-syntax-highlighting.greger
+-rw-r--r--     22186  greger-client.el
+-rw-r--r--     34275  greger-parser.el
+-rw-r--r--      2215  greger-prompt.el
+-rw-r--r--     73798  greger-stdlib.el
+-rw-r--r--     14942  greger-tools.el
+-rw-r--r--     39207  greger-ui.el
+-rw-r--r--      4095  greger-web.el
+-rw-r--r--     53896  greger.el
+-rw-r--r--    160239  probe-tool.greger
+drwxr-xr-x  (dir)  recipes
+-rw-r--r--     11230  reproduce-vitest.greger
+drwxr-xr-x  (dir)  script
+drwxr-xr-x  (dir)  test
+-rw-r--r--        58  test-bug-reproduction.greger
+-rwxr-xr-x      1486  test-defensive-parsing.el
+-rw-r--r--      3381  test-empty-result.el
+-rw-r--r--       310  test-eval-basic.greger
+-rw-r--r--       108  test-eval-error.greger
+-rw-r--r--       282  test-eval-full-flow.greger
+-rw-r--r--       515  test-eval.greger
+-rw-r--r--       831  test-font-lock-minimal.el
+-rw-r--r--      1191  test-interactive-hang.el
+-rw-r--r--      1645  test-isolated-hang.el
+-rw-r--r--      1852  test-reproduce-bug.el
+-rw-r--r--      1575  test-script-hang.el
+-rw-r--r--       214  test-simple-vterm.el
+-rw-r--r--       760  test-treesit-only.el
+-rw-r--r--      1916  test-vterm-final.el
+-rw-r--r--      3189  test-vterm-fixed.el
+-rw-r--r--      4535  test-vterm-simple.el
+-rw-r--r--      2132  test-vterm-with-install.el
+-rw-r--r--      2832  test-vterm-working.el
+-rw-r--r--    398911  vterm.greger
+</tool.toolu_018udeQTDJhBaHRPu2TBpFXp>
+
+# ASSISTANT
+
+Let me check if there's an Eldev file:
+
+# TOOL USE
+
+Name: read-file
+ID: toolu_01RvTN1MPvgzFkMAwTj7prbe
+
+## path
+
+<tool.toolu_01RvTN1MPvgzFkMAwTj7prbe>
+~/projects/greger.el/Eldev
+</tool.toolu_01RvTN1MPvgzFkMAwTj7prbe>
+
+# TOOL RESULT
+
+ID: toolu_01RvTN1MPvgzFkMAwTj7prbe
+
+<tool.toolu_01RvTN1MPvgzFkMAwTj7prbe>
+; -*- mode: emacs-lisp; lexical-binding: t -*-
+; Eldev configuration for greger.el
+
+;; Specify the main package file (contains Package-Requires)
+;; IMPORTANT: This must be set before using the autoloads plugin!
+(setf eldev-project-main-file "greger.el")
+
+;; Disable autoloads plugin for now since the generated autoload doesn't pass melpazoid
+;;(eldev-use-plugin 'autoloads)
+
+(eldev-use-plugin 'maintainer)
+(eldev-use-plugin 'undercover)
+
+;; Use MELPA for any dependencies that might be needed
+(eldev-use-package-archive 'melpa)
+
+;; Set up exclusions for files we don't want Eldev to process
+(setf eldev-standard-excludes `(:or ,eldev-standard-excludes "*.greger" "grammar"))
+</tool.toolu_01RvTN1MPvgzFkMAwTj7prbe>
+
+# ASSISTANT
+
+Let me try running the test with eldev:
+
+# TOOL USE
+
+Name: shell-command
+ID: toolu_01H4LfuTtTRc8w4g3LTwRUzd
+
+## command
+
+<tool.toolu_01H4LfuTtTRc8w4g3LTwRUzd>
+cd ~/projects/greger.el && eldev test greger-end-to-end-test-interactive-input-claude
+</tool.toolu_01H4LfuTtTRc8w4g3LTwRUzd>
+
+## timeout
+
+<tool.toolu_01H4LfuTtTRc8w4g3LTwRUzd>
+120
+</tool.toolu_01H4LfuTtTRc8w4g3LTwRUzd>
+
+# TOOL RESULT
+
+ID: toolu_01H4LfuTtTRc8w4g3LTwRUzd
+
+<tool.toolu_01H4LfuTtTRc8w4g3LTwRUzd>
+.eldev/30.1/packages/undercover-0.8.1/undercover.el: Warning: Missing format argument in ‘with-demoted-errors’
+Running 1 tests (2025-07-16 12:24:29+0200, selector ‘greger-end-to-end-test-interactive-input-claude’)
+Test greger-end-to-end-test-interactive-input-claude backtrace:
+  treesit-query-capture(#<treesit-node-in-killed-buffer> ((eval) @eval))
+  (let ((eval-nodes (treesit-query-capture node '((eval) @eval)))) (let ((tail (reverse eval-nodes))) (while tail (let ((capture (car tail))) (if (eq (car capture) 'eval) (progn (greger--process-single-eval (cdr capture) :clear-existing clear-existing))) (setq tail (cdr tail))))))
+  (progn (let ((--cl-keys-- --cl-rest--)) (while --cl-keys-- (cond ((memq (car --cl-keys--) '(:clear-existing :allow-other-keys)) (if (cdr --cl-keys--) nil (error "Missing argument for %s" (car --cl-keys--))) (setq --cl-keys-- (cdr (cdr --cl-keys--)))) ((car (cdr (memq ... --cl-rest--))) (setq --cl-keys-- nil)) (t (error "Keyword argument %s not one of (:clear-existing)" (car --cl-keys--)))))) (let ((eval-nodes (treesit-query-capture node '((eval) @eval)))) (let ((tail (reverse eval-nodes))) (while tail (let ((capture (car tail))) (if (eq (car capture) 'eval) (progn (greger--process-single-eval ... :clear-existing clear-existing))) (setq tail (cdr tail)))))))
+  (let* ((clear-existing (car (cdr (plist-member --cl-rest-- ':clear-existing))))) (progn (let ((--cl-keys-- --cl-rest--)) (while --cl-keys-- (cond ((memq (car --cl-keys--) '...) (if (cdr --cl-keys--) nil (error "Missing argument for %s" ...)) (setq --cl-keys-- (cdr ...))) ((car (cdr ...)) (setq --cl-keys-- nil)) (t (error "Keyword argument %s not one of (:clear-existing)" (car --cl-keys--)))))) (let ((eval-nodes (treesit-query-capture node '(... @eval)))) (let ((tail (reverse eval-nodes))) (while tail (let ((capture ...)) (if (eq ... ...) (progn ...)) (setq tail (cdr tail))))))))
+  greger--process-evals-in-node(#<treesit-node-in-killed-buffer> :clear-existing t)
+  (progn (greger--process-evals-in-node (cdr capture) :clear-existing t))
+  (if (eq (car capture) 'system) (progn (greger--process-evals-in-node (cdr capture) :clear-existing t)))
+  (let ((capture (car tail))) (if (eq (car capture) 'system) (progn (greger--process-evals-in-node (cdr capture) :clear-existing t))) (setq tail (cdr tail)))
+  (while tail (let ((capture (car tail))) (if (eq (car capture) 'system) (progn (greger--process-evals-in-node (cdr capture) :clear-existing t))) (setq tail (cdr tail))))
+  (let ((tail system-nodes)) (while tail (let ((capture (car tail))) (if (eq (car capture) 'system) (progn (greger--process-evals-in-node (cdr capture) :clear-existing t))) (setq tail (cdr tail)))))
+  (progn (let ((tail system-nodes)) (while tail (let ((capture (car tail))) (if (eq (car capture) 'system) (progn (greger--process-evals-in-node (cdr capture) :clear-existing t))) (setq tail (cdr tail))))) (let* ((user-nodes (and t (treesit-query-capture root-node '(... @user)))) (last-user-node (and user-nodes (cdr (car (last user-nodes)))))) (if last-user-node (greger--process-evals-in-node last-user-node :clear-existing t))))
+  (if system-nodes (progn (let ((tail system-nodes)) (while tail (let ((capture (car tail))) (if (eq (car capture) 'system) (progn (greger--process-evals-in-node ... :clear-existing t))) (setq tail (cdr tail))))) (let* ((user-nodes (and t (treesit-query-capture root-node '...))) (last-user-node (and user-nodes (cdr (car ...))))) (if last-user-node (greger--process-evals-in-node last-user-node :clear-existing t)))))
+  (let* ((root-node (and t (treesit-buffer-root-node))) (system-nodes (and root-node (treesit-query-capture root-node '((system) @system))))) (if system-nodes (progn (let ((tail system-nodes)) (while tail (let ((capture ...)) (if (eq ... ...) (progn ...)) (setq tail (cdr tail))))) (let* ((user-nodes (and t (treesit-query-capture root-node ...))) (last-user-node (and user-nodes (cdr ...)))) (if last-user-node (greger--process-evals-in-node last-user-node :clear-existing t))))))
+  greger--process-evals()
+  (let ((greger-tools (if no-tools 'nil greger-tools)) (greger-server-tools (if no-tools 'nil greger-server-tools)) (greger-current-thinking-budget (if no-tools 0 greger-current-thinking-budget))) (greger--process-evals) (greger--run-agent-loop (let ((current-iteration 0) (chat-buffer (current-buffer)) (directory default-directory) (tool-use-metadata (list ':safe-shell-commands nil ':allow-all-shell-commands greger-allow-all-shell-commands)) (client-state nil) (executing-tools nil)) (progn (record 'greger-state current-iteration chat-buffer directory tool-use-metadata client-state executing-tools)))))
+  greger-buffer()
+  (let ((greger-current-thinking-budget 0) (greger-tools '("shell-command")) (greger-stdlib-claude-interactive-input t)) (greger-buffer) (let* ((fn-683 #'greger-test-wait-for-status) (args-684 (condition-case err (list 'idle) (error (progn (setq fn-683 ...) (list ... ...)))))) (let ((value-685 'ert-form-evaluation-aborted-686)) (let (form-description-687) (if (unwind-protect (setq value-685 (apply fn-683 args-684)) (setq form-description-687 (nconc ... ... ... ...)) (ert--signal-should-execution form-description-687)) nil (ert-fail form-description-687))) value-685)) (let ((content (buffer-string))) (let* ((fn-688 #'string-match-p) (args-689 (condition-case err (list "Installing package" content) (error (progn ... ...))))) (let ((value-690 'ert-form-evaluation-aborted-691)) (let (form-description-692) (if (unwind-protect (setq value-690 ...) (setq form-description-692 ...) (ert--signal-should-execution form-description-692)) nil (ert-fail form-description-692))) value-690)) (let* ((fn-693 #'string-match-p) (args-694 (condition-case err (list "Answer:" content) (error (progn ... ...))))) (let ((value-695 'ert-form-evaluation-aborted-696)) (let (form-description-697) (if (unwind-protect (setq value-695 ...) (setq form-description-697 ...) (ert--signal-should-execution form-description-697)) nil (ert-fail form-description-697))) value-695)) (let* ((fn-698 #'string-match-p) (args-699 (condition-case err (list "Command failed" content) (error (progn ... ...))))) (let ((value-700 'ert-form-evaluation-aborted-701)) (let (form-description-702) (if (not (unwind-protect ... ... ...)) nil (ert-fail form-description-702))) value-700))))
+  (progn (let ((greger-default-system-prompt "You are an agent.")) (setq greger-buffer (greger))) (goto-char (point-max)) (re-search-backward "# SYSTEM") (forward-line 1) (insert "\n<safe-shell-commands>\necho 'Installing package...'; read -p 'Continue? [y/n] ' answer; echo \"Answer: $answer\"\n</safe-shell-commands>\n") (goto-char (point-max)) (insert "Run the shell command: echo 'Installing package...'; read -p 'Continue? [y/n] ' answer; echo \"Answer: $answer\"") (let ((greger-current-thinking-budget 0) (greger-tools '("shell-command")) (greger-stdlib-claude-interactive-input t)) (greger-buffer) (let* ((fn-683 #'greger-test-wait-for-status) (args-684 (condition-case err (list 'idle) (error (progn ... ...))))) (let ((value-685 'ert-form-evaluation-aborted-686)) (let (form-description-687) (if (unwind-protect (setq value-685 ...) (setq form-description-687 ...) (ert--signal-should-execution form-description-687)) nil (ert-fail form-description-687))) value-685)) (let ((content (buffer-string))) (let* ((fn-688 #'string-match-p) (args-689 (condition-case err (list "Installing package" content) (error ...)))) (let ((value-690 'ert-form-evaluation-aborted-691)) (let (form-description-692) (if (unwind-protect ... ... ...) nil (ert-fail form-description-692))) value-690)) (let* ((fn-693 #'string-match-p) (args-694 (condition-case err (list "Answer:" content) (error ...)))) (let ((value-695 'ert-form-evaluation-aborted-696)) (let (form-description-697) (if (unwind-protect ... ... ...) nil (ert-fail form-description-697))) value-695)) (let* ((fn-698 #'string-match-p) (args-699 (condition-case err (list "Command failed" content) (error ...)))) (let ((value-700 'ert-form-evaluation-aborted-701)) (let (form-description-702) (if (not ...) nil (ert-fail form-description-702))) value-700)))))
+  (unwind-protect (progn (let ((greger-default-system-prompt "You are an agent.")) (setq greger-buffer (greger))) (goto-char (point-max)) (re-search-backward "# SYSTEM") (forward-line 1) (insert "\n<safe-shell-commands>\necho 'Installing package...'; read -p 'Continue? [y/n] ' answer; echo \"Answer: $answer\"\n</safe-shell-commands>\n") (goto-char (point-max)) (insert "Run the shell command: echo 'Installing package...'; read -p 'Continue? [y/n] ' answer; echo \"Answer: $answer\"") (let ((greger-current-thinking-budget 0) (greger-tools '("shell-command")) (greger-stdlib-claude-interactive-input t)) (greger-buffer) (let* ((fn-683 #'greger-test-wait-for-status) (args-684 (condition-case err (list ...) (error ...)))) (let ((value-685 'ert-form-evaluation-aborted-686)) (let (form-description-687) (if (unwind-protect ... ... ...) nil (ert-fail form-description-687))) value-685)) (let ((content (buffer-string))) (let* ((fn-688 #'string-match-p) (args-689 (condition-case err ... ...))) (let ((value-690 ...)) (let (form-description-692) (if ... nil ...)) value-690)) (let* ((fn-693 #'string-match-p) (args-694 (condition-case err ... ...))) (let ((value-695 ...)) (let (form-description-697) (if ... nil ...)) value-695)) (let* ((fn-698 #'string-match-p) (args-699 (condition-case err ... ...))) (let ((value-700 ...)) (let (form-description-702) (if ... nil ...)) value-700))))) (if (and greger-buffer (buffer-live-p greger-buffer)) (progn (kill-buffer greger-buffer))))
+  (let ((greger-buffer nil)) (unwind-protect (progn (let ((greger-default-system-prompt "You are an agent.")) (setq greger-buffer (greger))) (goto-char (point-max)) (re-search-backward "# SYSTEM") (forward-line 1) (insert "\n<safe-shell-commands>\necho 'Installing package...'; read -p 'Continue? [y/n] ' answer; echo \"Answer: $answer\"\n</safe-shell-commands>\n") (goto-char (point-max)) (insert "Run the shell command: echo 'Installing package...'; read -p 'Continue? [y/n] ' answer; echo \"Answer: $answer\"") (let ((greger-current-thinking-budget 0) (greger-tools '("shell-command")) (greger-stdlib-claude-interactive-input t)) (greger-buffer) (let* ((fn-683 #'greger-test-wait-for-status) (args-684 (condition-case err ... ...))) (let ((value-685 ...)) (let (form-description-687) (if ... nil ...)) value-685)) (let ((content (buffer-string))) (let* ((fn-688 ...) (args-689 ...)) (let (...) (let ... ...) value-690)) (let* ((fn-693 ...) (args-694 ...)) (let (...) (let ... ...) value-695)) (let* ((fn-698 ...) (args-699 ...)) (let (...) (let ... ...) value-700))))) (if (and greger-buffer (buffer-live-p greger-buffer)) (progn (kill-buffer greger-buffer)))))
+  #f(lambda () [t] (let* ((fn-678 #'getenv) (args-679 (condition-case err ... ...))) (let ((value-680 ...)) (let (form-description-682) (if ... nil ...)) value-680)) (let ((greger-buffer nil)) (unwind-protect (progn (let ... ...) (goto-char ...) (re-search-backward "# SYSTEM") (forward-line 1) (insert "\n<safe-shell-commands>\necho 'Installing package...'; read -p 'Continue? [y/n] ' answer; echo \"Answer: $answer\"\n</safe-shell-commands>\n") (goto-char ...) (insert "Run the shell command: echo 'Installing package...'; read -p 'Continue? [y/n] ' answer; echo \"Answer: $answer\"") (let ... ... ... ...)) (if (and greger-buffer ...) (progn ...)))) nil)()
+  #f(compiled-function () #<bytecode -0x39652a6b6de606d>)()
+  handler-bind-1(#f(compiled-function () #<bytecode -0x39652a6b6de606d>) (error quit) #f(compiled-function (err) #<bytecode -0x6b07f802765881f>))
+
+Test greger-end-to-end-test-interactive-input-claude condition:
+    (treesit-query-error "Node type error at" 2 "(eval) @eval"
+			 "Debug the query with `treesit-query-validate'")
+   FAILED  1/1  greger-end-to-end-test-interactive-input-claude (0.021831 sec) at test/greger-end-to-end-test.el:595
+
+Ran 1 tests, 0 results as expected, 1 unexpected (2025-07-16 12:24:30+0200, 0.602123 sec)
+
+1 unexpected results:
+   FAILED  greger-end-to-end-test-interactive-input-claude
+
+1 ERT test produced an unexpected result
+Command failed with exit code 1
+</tool.toolu_01H4LfuTtTRc8w4g3LTwRUzd>
+
+# ASSISTANT
+
+There's an issue with the treesit query. The problem is that the buffer gets killed during cleanup, causing the treesit nodes to become invalid. Let me fix the test by ensuring we don't have this issue:
+
+# TOOL USE
+
+Name: str-replace
+ID: toolu_016cQnvMwxBudMRLeyC85knC
+
+## path
+
+<tool.toolu_016cQnvMwxBudMRLeyC85knC>
+~/projects/greger.el/test/greger-end-to-end-test.el
+</tool.toolu_016cQnvMwxBudMRLeyC85knC>
+
+## git-commit-message
+
+<tool.toolu_016cQnvMwxBudMRLeyC85knC>
+Fix treesit node reference issues in interactive input tests
+</tool.toolu_016cQnvMwxBudMRLeyC85knC>
+
+## diff
+
+<tool.toolu_016cQnvMwxBudMRLeyC85knC>
+ (ert-deftest greger-end-to-end-test-interactive-input-claude ()
+   "Test interactive input handling with Claude integration."
+   (skip-unless (getenv "ANTHROPIC_API_KEY"))
+ 
+   (let ((greger-buffer nil))
+     (unwind-protect
+         (progn
+           (let ((greger-default-system-prompt "You are an agent."))
+             (setq greger-buffer (greger)))
+ 
+-          (goto-char (point-max))
+-          (re-search-backward "# SYSTEM")
+-          (forward-line 1)
+-          (insert "\n<safe-shell-commands>\necho 'Installing package...'; read -p 'Continue? [y/n] ' answer; echo \"Answer: $answer\"\n</safe-shell-commands>\n")
++          (with-current-buffer greger-buffer
++            (goto-char (point-max))
++            (re-search-backward "# SYSTEM")
++            (forward-line 1)
++            (insert "\n<safe-shell-commands>\necho 'Installing package...'; read -p 'Continue? [y/n] ' answer; echo \"Answer: $answer\"\n</safe-shell-commands>\n")
+ 
+-          (goto-char (point-max))
+-          (insert "Run the shell command: echo 'Installing package...'; read -p 'Continue? [y/n] ' answer; echo \"Answer: $answer\"")
++            (goto-char (point-max))
++            (insert "Run the shell command: echo 'Installing package...'; read -p 'Continue? [y/n] ' answer; echo \"Answer: $answer\"")
+ 
+-          (let ((greger-current-thinking-budget 0)
+-                (greger-tools '("shell-command"))
+-                (greger-stdlib-claude-interactive-input t))
+-            (greger-buffer)
++            (let ((greger-current-thinking-budget 0)
++                  (greger-tools '("shell-command"))
++                  (greger-stdlib-claude-interactive-input t))
++              (greger-buffer)
+ 
+-            (should (greger-test-wait-for-status 'idle))
++              (should (greger-test-wait-for-status 'idle))
+ 
+-            (let ((content (buffer-string)))
+-              ;; Should contain the shell command execution
+-              (should (string-match-p "Installing package" content))
+-              ;; Should contain Claude's response or user interaction
+-              (should (string-match-p "Answer:" content))
+-              ;; Should not contain error messages
+-              (should-not (string-match-p "Command failed" content)))))
++              (let ((content (buffer-string)))
++                ;; Should contain the shell command execution
++                (should (string-match-p "Installing package" content))
++                ;; Should contain Claude's response or user interaction
++                (should (string-match-p "Answer:" content))
++                ;; Should not contain error messages
++                (should-not (string-match-p "Command failed" content))))))
+ 
+       (when (and greger-buffer (buffer-live-p greger-buffer))
+         (kill-buffer greger-buffer)))))
+\ No newline at end of file
+
+</tool.toolu_016cQnvMwxBudMRLeyC85knC>
+
+# TOOL RESULT
+
+ID: toolu_016cQnvMwxBudMRLeyC85knC
+
+<tool.toolu_016cQnvMwxBudMRLeyC85knC>
+
+</tool.toolu_016cQnvMwxBudMRLeyC85knC>
