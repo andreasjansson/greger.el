@@ -940,13 +940,16 @@ Returns a cancel function that can interrupt the command execution."
 
     ;; Use vterm if explicitly requested and available
     (if (and use-vterm (fboundp 'vterm-mode) (fboundp 'vterm--new))
-        (greger-stdlib--run-shell-command-with-vterm
-         command
-         expanded-work-dir
-         callback
-         timeout
-         enable-environment
-         streaming-callback)
+        (progn
+          (with-temp-file "/tmp/greger-vterm-path.txt"
+            (insert (format "Taking vterm path for command: %s\n" command)))
+          (greger-stdlib--run-shell-command-with-vterm
+           command
+           expanded-work-dir
+           callback
+           timeout
+           enable-environment
+           streaming-callback))
       ;; Check if vterm was requested but not available
       (if use-vterm
           (error "vterm is not available. Please install the vterm package or set use-vterm to false")
