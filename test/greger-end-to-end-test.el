@@ -592,6 +592,113 @@ Hello from greger test!
       (when (and greger-buffer (buffer-live-p greger-buffer))
         (kill-buffer greger-buffer)))))
 
+(ert-deftest greger-end-to-end-test-interactive-input-claude ()
+  "Test interactive input handling with Claude integration."
+  (skip-unless (getenv "ANTHROPIC_API_KEY"))
+
+  (let ((greger-buffer nil))
+    (unwind-protect
+        (progn
+          (let ((greger-default-system-prompt "You are an agent."))
+            (setq greger-buffer (greger)))
+
+          (goto-char (point-max))
+          (re-search-backward "# SYSTEM")
+          (forward-line 1)
+          (insert "\n<safe-shell-commands>\necho 'Installing package...'; read -p 'Continue? [y/n] ' answer; echo \"Answer: $answer\"\n</safe-shell-commands>\n")
+
+          (goto-char (point-max))
+          (insert "Run the shell command: echo 'Installing package...'; read -p 'Continue? [y/n] ' answer; echo \"Answer: $answer\"")
+
+          (let ((greger-current-thinking-budget 0)
+                (greger-tools '("shell-command"))
+                (greger-stdlib-claude-interactive-input t))
+            (greger-buffer)
+
+            (should (greger-test-wait-for-status 'idle))
+
+            (let ((content (buffer-string)))
+              ;; Should contain the shell command execution
+              (should (string-match-p "Installing package" content))
+              ;; Should contain Claude's response or user interaction
+              (should (string-match-p "Answer:" content))
+              ;; Should not contain error messages
+              (should-not (string-match-p "Command failed" content)))))
+
+      (when (and greger-buffer (buffer-live-p greger-buffer))
+        (kill-buffer greger-buffer)))))
+
+(ert-deftest greger-end-to-end-test-interactive-input-vterm ()
+  "Test interactive input handling with vterm enabled."
+  (skip-unless (getenv "ANTHROPIC_API_KEY"))
+
+  (let ((greger-buffer nil))
+    (unwind-protect
+        (progn
+          (let ((greger-default-system-prompt "You are an agent."))
+            (setq greger-buffer (greger)))
+
+          (goto-char (point-max))
+          (re-search-backward "# SYSTEM")
+          (forward-line 1)
+          (insert "\n<safe-shell-commands>\necho 'Test prompt'; read -p 'Do you want to continue? [y/n] ' choice; echo \"Choice: $choice\"\n</safe-shell-commands>\n")
+
+          (goto-char (point-max))
+          (insert "Run the shell command with vterm: echo 'Test prompt'; read -p 'Do you want to continue? [y/n] ' choice; echo \"Choice: $choice\"")
+
+          (let ((greger-current-thinking-budget 0)
+                (greger-tools '("shell-command"))
+                (greger-stdlib-claude-interactive-input t))
+            (greger-buffer)
+
+            (should (greger-test-wait-for-status 'idle))
+
+            (let ((content (buffer-string)))
+              ;; Should contain the shell command execution
+              (should (string-match-p "Test prompt" content))
+              ;; Should contain the choice output
+              (should (string-match-p "Choice:" content))
+              ;; Should not contain error messages
+              (should-not (string-match-p "Command failed" content)))))
+
+      (when (and greger-buffer (buffer-live-p greger-buffer))
+        (kill-buffer greger-buffer)))))
+
+(ert-deftest greger-end-to-end-test-interactive-input-disabled ()
+  "Test interactive input handling with Claude integration disabled."
+  (skip-unless (getenv "ANTHROPIC_API_KEY"))
+
+  (let ((greger-buffer nil))
+    (unwind-protect
+        (progn
+          (let ((greger-default-system-prompt "You are an agent."))
+            (setq greger-buffer (greger)))
+
+          (goto-char (point-max))
+          (re-search-backward "# SYSTEM")
+          (forward-line 1)
+          (insert "\n<safe-shell-commands>\necho 'Testing disabled mode'; echo 'This should work without prompts'\n</safe-shell-commands>\n")
+
+          (goto-char (point-max))
+          (insert "Run the shell command: echo 'Testing disabled mode'; echo 'This should work without prompts'")
+
+          (let ((greger-current-thinking-budget 0)
+                (greger-tools '("shell-command"))
+                (greger-stdlib-claude-interactive-input nil))
+            (greger-buffer)
+
+            (should (greger-test-wait-for-status 'idle))
+
+            (let ((content (buffer-string)))
+              ;; Should contain the shell command execution
+              (should (string-match-p "Testing disabled mode" content))
+              (should (string-match-p "This should work without prompts" content))
+              ;; Should not contain error messages
+              (should-not (string-match-p "Command failed" content)))))
+
+      (when (and greger-buffer (buffer-live-p greger-buffer))
+        (kill-buffer greger-buffer)))))
+
 (provide 'test-end-to-end)
 
 ;;; test-end-to-end.el ends here
