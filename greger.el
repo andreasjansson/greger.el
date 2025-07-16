@@ -1232,6 +1232,31 @@ If CLEAR-EXISTING, clear any existing eval results."
           (format-time-string "%H%M%S")
           (random 1000000)))
 
+(defun greger--process-terminal-sequences-with-vterm (text)
+  "Process terminal control sequences in TEXT using vterm for accurate rendering.
+
+This function creates a temporary vterm buffer, sends the text to it, and
+extracts the properly rendered output. This ensures that all ANSI escape
+sequences are handled correctly with full terminal emulation."
+  (let ((vterm-buffer (generate-new-buffer " *greger-terminal*")))
+    (unwind-protect
+        (with-current-buffer vterm-buffer
+          ;; Set up vterm environment for non-interactive use
+          (let ((vterm-kill-buffer-on-exit nil)
+                (vterm-shell "cat"))  ; Use cat as shell to just echo input
+            (vterm-mode)
+            
+            ;; Send the text to vterm for processing
+            (vterm-send-string text)
+            
+            ;; Wait a brief moment for vterm to process the text
+            (sit-for 0.1)
+            
+            ;; Extract the rendered content
+            (buffer-string)))
+      ;; Clean up the temporary buffer
+      (kill-buffer vterm-buffer))))
+
 (provide 'greger)
 
 ;;; greger.el ends here
