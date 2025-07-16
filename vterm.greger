@@ -5489,5 +5489,73 @@ Add Claude integration details to summary
 ID: toolu_01FcWn9tj36BSzTSszQf4dSu
 
 <tool.toolu_01FcWn9tj36BSzTSszQf4dSu>
-
+Successfully replaced content in /Users/andreas/projects/greger.el/INTERACTIVE_INPUT_SUMMARY.md. Successfully staged 2 file(s) and committed with message: Add Claude integration details to summary
 </tool.toolu_01FcWn9tj36BSzTSszQf4dSu>
+
+# TOOL USE
+
+Name: str-replace
+ID: toolu_016aJCwzGokA2R21RDbFCG6Y
+
+## path
+
+<tool.toolu_016aJCwzGokA2R21RDbFCG6Y>
+~/projects/greger.el/INTERACTIVE_INPUT_SUMMARY.md
+</tool.toolu_016aJCwzGokA2R21RDbFCG6Y>
+
+## git-commit-message
+
+<tool.toolu_016aJCwzGokA2R21RDbFCG6Y>
+Add new Claude examples to summary
+</tool.toolu_016aJCwzGokA2R21RDbFCG6Y>
+
+## diff
+
+<tool.toolu_016aJCwzGokA2R21RDbFCG6Y>
+ ## Usage Examples
+ 
+-### Basic Interactive Command
++### Claude-Automated Response
+ ```elisp
++;; Claude will automatically respond to installation prompts
+ (greger-stdlib--run-shell-command-with-vterm
++ "npm install some-package"  ; Claude responds "y" to confirmation
++ default-directory callback 120 nil nil)
++```
++
++### User Fallback
++```elisp
++;; Claude will respond "USER" for personal information
++(greger-stdlib--run-shell-command-with-vterm
+  "read -p 'Enter your name: ' name && echo \"Hello, $name!\""
+  default-directory callback 30 nil nil)
+ ```
+ 
+-### Password Input
++### Password Input (Always User)
+ ```elisp
++;; Password prompts always go to user, never to Claude
+ (greger-stdlib--run-shell-command-with-vterm
+  "sudo apt update"
+  default-directory callback 60 nil nil)
+ ```
+ 
+ ### Multiple Prompts
+ ```elisp
++;; Claude evaluates each prompt independently
+ (greger-stdlib--run-shell-command-with-vterm
+- "read -p 'Name: ' name; read -p 'Age: ' age; echo \"$name is $age\""
++ "read -p 'Install package? [y/n] ' choice; read -p 'Your name: ' name"
+  default-directory callback 60 nil nil)
+ ```
+\ No newline at end of file
+
+</tool.toolu_016aJCwzGokA2R21RDbFCG6Y>
+
+# TOOL RESULT
+
+ID: toolu_016aJCwzGokA2R21RDbFCG6Y
+
+<tool.toolu_016aJCwzGokA2R21RDbFCG6Y>
+
+</tool.toolu_016aJCwzGokA2R21RDbFCG6Y>

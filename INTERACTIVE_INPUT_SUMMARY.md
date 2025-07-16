@@ -75,15 +75,25 @@ Successfully implemented interactive input handling for the vterm-enabled shell-
 
 ## Usage Examples
 
-### Basic Interactive Command
+### Claude-Automated Response
 ```elisp
+;; Claude will automatically respond to installation prompts
+(greger-stdlib--run-shell-command-with-vterm
+ "npm install some-package"  ; Claude responds "y" to confirmation
+ default-directory callback 120 nil nil)
+```
+
+### User Fallback
+```elisp
+;; Claude will respond "USER" for personal information
 (greger-stdlib--run-shell-command-with-vterm
  "read -p 'Enter your name: ' name && echo \"Hello, $name!\""
  default-directory callback 30 nil nil)
 ```
 
-### Password Input
+### Password Input (Always User)
 ```elisp
+;; Password prompts always go to user, never to Claude
 (greger-stdlib--run-shell-command-with-vterm
  "sudo apt update"
  default-directory callback 60 nil nil)
@@ -91,8 +101,9 @@ Successfully implemented interactive input handling for the vterm-enabled shell-
 
 ### Multiple Prompts
 ```elisp
+;; Claude evaluates each prompt independently
 (greger-stdlib--run-shell-command-with-vterm
- "read -p 'Name: ' name; read -p 'Age: ' age; echo \"$name is $age\""
+ "read -p 'Install package? [y/n] ' choice; read -p 'Your name: ' name"
  default-directory callback 60 nil nil)
 ```
 
