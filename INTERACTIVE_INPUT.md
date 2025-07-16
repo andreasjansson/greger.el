@@ -20,6 +20,8 @@ When an interactive prompt is detected:
 1. The command execution pauses
 2. A minibuffer prompt appears showing the shell prompt text
 3. The user enters their response in the minibuffer
+   - For password prompts (containing "password", "Password", or "PASS"), input is hidden using `read-passwd`
+   - For regular prompts, input is shown normally using `read-from-minibuffer`
 4. The response is sent to the shell command
 5. The system continues monitoring for additional prompts
 
