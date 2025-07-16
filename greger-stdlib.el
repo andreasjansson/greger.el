@@ -35,6 +35,7 @@
 
 (require 'greger-tools)
 (require 'greger-web)
+(require 'greger-client)
 
 ;; Server tool registrations
 
