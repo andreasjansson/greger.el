@@ -19,6 +19,11 @@
 (require 'greger-stdlib)
 (setq greger-allow-all-shell-commands t)
 
+;; Check if function exists
+(if (fboundp 'greger-stdlib--run-shell-command-with-vterm)
+    (message "Function loaded successfully")
+  (message "Function NOT loaded"))
+
 ;; Test the function with vterm available
 (let ((test-completed nil)
       (test-result nil)
