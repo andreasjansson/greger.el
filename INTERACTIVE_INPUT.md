@@ -95,6 +95,31 @@ The system automatically:
  )
 ```
 
+### Claude-Enabled Interactive Commands
+```elisp
+;; Claude will automatically respond to installation prompts
+(greger-stdlib--run-shell-command-with-vterm
+ "npm install some-package"
+ default-directory
+ (lambda (output error)
+   (message "Installation result: %s" (or output error)))
+ 120 ;; timeout
+ nil ;; enable-environment
+ nil ;; streaming-callback
+ )
+
+;; Claude will evaluate context and respond appropriately
+(greger-stdlib--run-shell-command-with-vterm
+ "echo 'Configuring system...'; read -p 'Use default settings? [y/n] ' choice; echo \"Choice: $choice\""
+ default-directory
+ (lambda (output error)
+   (message "Configuration result: %s" (or output error)))
+ 60 ;; timeout
+ nil ;; enable-environment
+ nil ;; streaming-callback
+ )
+```
+
 ### Multiple Prompts
 ```elisp
 (greger-stdlib--run-shell-command-with-vterm
