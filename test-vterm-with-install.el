@@ -38,14 +38,14 @@
   ;; Test with vterm enabled
   (condition-case err
       (greger-stdlib--shell-command
-       "echo 'Hello vterm world!'"
-       #'test-callback
-       default-directory
-       10
-       nil
-       t  ; use-vterm = true
-       #'test-streaming
-       '(:allow-all-shell-commands t))
+       "echo 'Hello vterm world!'"   ; command
+       #'test-callback               ; callback
+       default-directory             ; working-directory
+       10                           ; timeout
+       nil                          ; enable-environment
+       t                            ; use-vterm = true
+       #'test-streaming             ; streaming-callback
+       '(:allow-all-shell-commands t)) ; metadata
     (error (message "VTERM ERROR: %S" err)))
   
   ;; Wait for completion
