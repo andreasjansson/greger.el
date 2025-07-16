@@ -1062,7 +1062,9 @@ Returns a cancel function that can interrupt the command execution."
          (vterm-buffer (get-buffer-create buffer-name))
          (timer nil)
          (process nil)
-         (command-completed nil))
+         (command-completed nil)
+         (last-output-point 0)
+         (prompt-check-timer nil))
     
     (with-current-buffer vterm-buffer
       ;; Set up working directory
@@ -1087,6 +1089,8 @@ Returns a cancel function that can interrupt the command execution."
                                      (lambda ()
                                        (unless command-completed
                                          (setq command-completed t)
+                                         (when prompt-check-timer
+                                           (cancel-timer prompt-check-timer))
                                          (when (and process (process-live-p process))
                                            (delete-process process))
                                          (funcall callback nil "Command timed out")
@@ -1121,6 +1125,44 @@ Returns a cancel function that can interrupt the command execution."
                   ;; Only remove leading/trailing newlines, not other whitespace
                   (replace-regexp-in-string "\\`\n+\\|\n+\\'" "" result))))))
         
+        ;; Function to detect interactive prompts
+        (defun detect-interactive-prompt ()
+          "Check if there's an interactive prompt at the end of the buffer."
+          (save-excursion
+            (goto-char (point-max))
+            (forward-line 0)
+            (let ((line (buffer-substring-no-properties (point) (point-max))))
+              (let ((trimmed (string-trim line)))
+                (when (and (not (string-empty-p trimmed))
+                          ;; Common interactive prompt patterns
+                          (or (string-match-p ":\\s-*$" trimmed)         ; ends with colon
+                              (string-match-p "\\?\\s-*$" trimmed)       ; ends with question mark
+                              (string-match-p "\\]\\s-*$" trimmed)       ; ends with closing bracket
+                              (string-match-p ">>\\s-*$" trimmed)        ; ends with >>
+                              (string-match-p "Password:" trimmed)       ; password prompt
+                              (string-match-p "Enter " trimmed)          ; "Enter something" prompt
+                              (string-match-p "\\(y/n\\|Y/N\\)" trimmed) ; yes/no prompt
+                              (string-match-p "Press" trimmed)           ; "Press key" prompt
+                              (string-match-p "Continue" trimmed)        ; continue prompt
+                              (string-match-p "Confirm" trimmed)         ; confirm prompt
+                              (string-match-p "Type" trimmed)            ; type something prompt
+                              (string-match-p "Input" trimmed)           ; input prompt
+                              (string-match-p "Select" trimmed)))        ; select prompt
+                  trimmed)))))
+        
+        ;; Function to handle interactive input
+        (defun handle-interactive-input ()
+          "Handle interactive input when a prompt is detected."
+          (let ((prompt (detect-interactive-prompt)))
+            (when prompt
+              (let ((user-input (read-from-minibuffer (format "Shell prompt: %s " prompt))))
+                (when (not (string-empty-p user-input))
+                  (vterm-send-string user-input)
+                  (vterm-send-return)
+                  ;; Continue monitoring for more prompts
+                  (setq prompt-check-timer
+                        (run-with-timer 0.5 nil #'handle-interactive-input)))))))
+        
         ;; Set up process sentinel to capture output when shell terminates
         (when process
           (set-process-sentinel process
@@ -1129,6 +1171,8 @@ Returns a cancel function that can interrupt the command execution."
                                             (string-match "\\(finished\\|exited\\)" event))
                                     (setq command-completed t)
                                     (when timer (cancel-timer timer))
+                                    (when prompt-check-timer
+                                      (cancel-timer prompt-check-timer))
                                     
                                     ;; Get the final output
                                     (let ((final-output (if (buffer-live-p vterm-buffer)
@@ -1147,7 +1191,13 @@ Returns a cancel function that can interrupt the command execution."
                       (let ((current-content (extract-clean-output)))
                         (unless (string-empty-p current-content)
                           (funcall streaming-callback 
-                                  (concat "VTERM_FULL_REPLACE:" current-content)))))
+                                  (concat "VTERM_FULL_REPLACE:" current-content))))
+                      ;; Check for interactive prompts on content change
+                      (unless command-completed
+                        (when prompt-check-timer
+                          (cancel-timer prompt-check-timer))
+                        (setq prompt-check-timer
+                              (run-with-timer 0.5 nil #'handle-interactive-input))))
                     nil t))
         
         ;; Wait for shell to be ready, then execute command
