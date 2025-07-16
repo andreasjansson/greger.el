@@ -5,6 +5,9 @@
 (add-to-list 'load-path "/Users/andreas/projects/greger.el")
 (require 'greger-stdlib)
 
+;; Set up permissions for shell commands
+(setq greger-allow-all-shell-commands t)
+
 ;; Test function
 (defun test-vterm-command ()
   "Test vterm shell command execution"
