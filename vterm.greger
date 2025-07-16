@@ -3539,5 +3539,58 @@ Fix test script to use metadata for shell command permissions
 ID: toolu_01UDw6mwBazTVWmobRYnwDtU
 
 <tool.toolu_01UDw6mwBazTVWmobRYnwDtU>
-
+Successfully replaced content in /Users/andreas/projects/greger.el/test-vterm-integration.el. Successfully staged 2 file(s) and committed with message: Fix test script to use metadata for shell command permissions
 </tool.toolu_01UDw6mwBazTVWmobRYnwDtU>
+
+# TOOL USE
+
+Name: str-replace
+ID: toolu_015NagozDfc9KpSSLgbSGiPT
+
+## path
+
+<tool.toolu_015NagozDfc9KpSSLgbSGiPT>
+test-vterm-integration.el
+</tool.toolu_015NagozDfc9KpSSLgbSGiPT>
+
+## original-content
+
+<tool.toolu_015NagozDfc9KpSSLgbSGiPT>
+  (greger-stdlib--shell-command
+   "echo 'Hello from vterm!'"
+   #'test-callback
+   default-directory
+   10
+   nil
+   t ; use-vterm = true
+   #'test-streaming
+   nil)
+</tool.toolu_015NagozDfc9KpSSLgbSGiPT>
+
+## new-content
+
+<tool.toolu_015NagozDfc9KpSSLgbSGiPT>
+  (greger-stdlib--shell-command
+   "echo 'Hello from vterm!'"
+   #'test-callback
+   default-directory
+   10
+   nil
+   t ; use-vterm = true
+   #'test-streaming
+   test-metadata)
+</tool.toolu_015NagozDfc9KpSSLgbSGiPT>
+
+## git-commit-message
+
+<tool.toolu_015NagozDfc9KpSSLgbSGiPT>
+Update test to pass metadata for shell command permissions
+</tool.toolu_015NagozDfc9KpSSLgbSGiPT>
+
+# TOOL RESULT
+
+ID: toolu_015NagozDfc9KpSSLgbSGiPT
+
+<tool.toolu_015NagozDfc9KpSSLgbSGiPT>
+
+</tool.toolu_015NagozDfc9KpSSLgbSGiPT>

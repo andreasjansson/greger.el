@@ -42,7 +42,7 @@
    nil
    t ; use-vterm = true
    #'test-streaming
-   nil)
+   test-metadata)
   
   ;; Wait for completion
   (let ((counter 0))
