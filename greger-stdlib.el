@@ -1104,7 +1104,8 @@ Returns the response or 'USER' if the user should respond."
         ;; Wait for completion with timeout
         (let ((start-time (current-time)))
           (while (and (not completed) 
-                     (< (float-time (time-subtract (current-time) start-time)) 10.0))
+                     (< (float-time (time-subtract (current-time) start-time)) 
+                        greger-stdlib-claude-interactive-timeout))
             (accept-process-output nil 0.1)))
         
         (cond
