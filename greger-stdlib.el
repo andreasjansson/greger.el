@@ -1062,7 +1062,8 @@ Returns a cancel function that can interrupt the command execution."
          (command-end-marker nil)
          (output-lines nil)
          (detecting-completion nil)
-         (completion-timer nil))
+         (completion-timer nil)
+         (counter 0))
     
     (with-current-buffer vterm-buffer
       ;; Set up working directory
