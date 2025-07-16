@@ -4350,5 +4350,398 @@ Make test output much more concise and focused
 ID: toolu_01HiHoUDp2z3AsgUguYD9nQY
 
 <tool.toolu_01HiHoUDp2z3AsgUguYD9nQY>
-
+Successfully replaced content in /Users/andreas/projects/greger.el/test-vterm-vitest.el. Successfully staged 2 file(s) and committed with message: Make test output much more concise and focused
 </tool.toolu_01HiHoUDp2z3AsgUguYD9nQY>
+
+# TOOL USE
+
+Name: str-replace
+ID: toolu_013GjPu9gW8okBESaLfDRcup
+
+## path
+
+<tool.toolu_013GjPu9gW8okBESaLfDRcup>
+test-vterm-vitest.el
+</tool.toolu_013GjPu9gW8okBESaLfDRcup>
+
+## git-commit-message
+
+<tool.toolu_013GjPu9gW8okBESaLfDRcup>
+Further limit output to focus on key issues
+</tool.toolu_013GjPu9gW8okBESaLfDRcup>
+
+## original-content
+
+<tool.toolu_013GjPu9gW8okBESaLfDRcup>
+        ;; Analyze streaming messages
+        (message "\n--- Streaming Analysis ---")
+        (let ((vterm-messages (seq-filter (lambda (msg) (string-prefix-p "VTERM_FULL_REPLACE:" msg)) streaming-messages)))
+          (message "Number of VTERM streaming messages: %d" (length vterm-messages))
+          (when vterm-messages
+            (let ((first-vterm (car (last vterm-messages))))
+              (message "First VTERM message: %S" (substring first-vterm 0 (min 200 (length first-vterm)))))))
+</tool.toolu_013GjPu9gW8okBESaLfDRcup>
+
+## new-content
+
+<tool.toolu_013GjPu9gW8okBESaLfDRcup>
+        ;; Analyze streaming messages
+        (message "\n--- Streaming Analysis ---")
+        (let ((vterm-messages (seq-filter (lambda (msg) (string-prefix-p "VTERM_FULL_REPLACE:" msg)) streaming-messages)))
+          (message "Number of VTERM streaming messages: %d" (length vterm-messages))
+          (when vterm-messages
+            (let ((first-vterm (car (last vterm-messages))))
+              (message "First VTERM message length: %d" (length first-vterm))))))
+</tool.toolu_013GjPu9gW8okBESaLfDRcup>
+
+# TOOL RESULT
+
+ID: toolu_013GjPu9gW8okBESaLfDRcup
+
+<tool.toolu_013GjPu9gW8okBESaLfDRcup>
+Parentheses balance mismatch in Emacs Lisp content: original has balance 0, new has balance -1.  They must be equal.  Try again!
+</tool.toolu_013GjPu9gW8okBESaLfDRcup>
+
+# TOOL USE
+
+Name: str-replace
+ID: toolu_01QN3j8EfbGCnWArLkttxGi9
+
+## path
+
+<tool.toolu_01QN3j8EfbGCnWArLkttxGi9>
+test-vterm-vitest.el
+</tool.toolu_01QN3j8EfbGCnWArLkttxGi9>
+
+## git-commit-message
+
+<tool.toolu_01QN3j8EfbGCnWArLkttxGi9>
+Further limit output to focus on key issues
+</tool.toolu_01QN3j8EfbGCnWArLkttxGi9>
+
+## original-content
+
+<tool.toolu_01QN3j8EfbGCnWArLkttxGi9>
+        ;; Analyze streaming messages
+        (message "\n--- Streaming Analysis ---")
+        (let ((vterm-messages (seq-filter (lambda (msg) (string-prefix-p "VTERM_FULL_REPLACE:" msg)) streaming-messages)))
+          (message "Number of VTERM streaming messages: %d" (length vterm-messages))
+          (when vterm-messages
+            (let ((first-vterm (car (last vterm-messages))))
+              (message "First VTERM message: %S" (substring first-vterm 0 (min 200 (length first-vterm)))))))
+</tool.toolu_01QN3j8EfbGCnWArLkttxGi9>
+
+## new-content
+
+<tool.toolu_01QN3j8EfbGCnWArLkttxGi9>
+        ;; Analyze streaming messages
+        (message "\n--- Streaming Analysis ---")
+        (let ((vterm-messages (seq-filter (lambda (msg) (string-prefix-p "VTERM_FULL_REPLACE:" msg)) streaming-messages)))
+          (message "Number of VTERM streaming messages: %d" (length vterm-messages))
+          (when vterm-messages
+            (let ((first-vterm (car (last vterm-messages))))
+              (message "First VTERM message length: %d" (length first-vterm))))))
+</tool.toolu_01QN3j8EfbGCnWArLkttxGi9>
+
+# TOOL RESULT
+
+ID: toolu_01QN3j8EfbGCnWArLkttxGi9
+
+<tool.toolu_01QN3j8EfbGCnWArLkttxGi9>
+Parentheses balance mismatch in Emacs Lisp content: original has balance 0, new has balance -1.  They must be equal.  Try again!
+</tool.toolu_01QN3j8EfbGCnWArLkttxGi9>
+
+# ASSISTANT
+
+Let me check what the issue is:
+
+# TOOL USE
+
+Name: read-file
+ID: toolu_01ApTJzrZFAGGtTg6sLifAiu
+
+## path
+
+<tool.toolu_01ApTJzrZFAGGtTg6sLifAiu>
+test-vterm-vitest.el
+</tool.toolu_01ApTJzrZFAGGtTg6sLifAiu>
+
+## start-line
+
+<tool.toolu_01ApTJzrZFAGGtTg6sLifAiu>
+70
+</tool.toolu_01ApTJzrZFAGGtTg6sLifAiu>
+
+## end-line
+
+<tool.toolu_01ApTJzrZFAGGtTg6sLifAiu>
+80
+</tool.toolu_01ApTJzrZFAGGtTg6sLifAiu>
+
+# TOOL RESULT
+
+ID: toolu_01ApTJzrZFAGGtTg6sLifAiu
+
+<tool.toolu_01ApTJzrZFAGGtTg6sLifAiu>
+                  (props (text-properties-at i result-str)))
+              (message "Char %d: %c (byte %d) props: %S" i char char props)))
+          
+          ;; Look for color properties
+          (message "\n--- Color Properties Check ---")
+          (let ((has-colors nil))
+            (dotimes (i (min 20 (length result-str)))
+              (let ((props (text-properties-at i result-str)))
+                (when (plist-get props 'font-lock-face)
+                  (setq has-colors t))))
+            (if has-colors
+</tool.toolu_01ApTJzrZFAGGtTg6sLifAiu>
+
+# ASSISTANT
+
+I see the issue. From the previous output, I can see that the first character "M" is present and has colors. But you mentioned it's "starting on the previous line (one backspace too many)". This sounds like the issue is with the `extract-clean-output` function - it might be removing too much or not handling the positioning correctly.
+
+Let me look at the extract-clean-output function:
+
+# TOOL USE
+
+Name: read-file
+ID: toolu_01ASDCAzFRHyaqrJH268cJ1z
+
+## path
+
+<tool.toolu_01ASDCAzFRHyaqrJH268cJ1z>
+greger-stdlib.el
+</tool.toolu_01ASDCAzFRHyaqrJH268cJ1z>
+
+## start-line
+
+<tool.toolu_01ASDCAzFRHyaqrJH268cJ1z>
+1070
+</tool.toolu_01ASDCAzFRHyaqrJH268cJ1z>
+
+## end-line
+
+<tool.toolu_01ASDCAzFRHyaqrJH268cJ1z>
+1090
+</tool.toolu_01ASDCAzFRHyaqrJH268cJ1z>
+
+# TOOL RESULT
+
+ID: toolu_01ASDCAzFRHyaqrJH268cJ1z
+
+<tool.toolu_01ASDCAzFRHyaqrJH268cJ1z>
+      
+      ;; Configure vterm environment
+      (let ((vterm-environment (list "PAGER=cat"))
+            (vterm-kill-buffer-on-exit nil)
+            (vterm-shell (if enable-environment "bash -i" "bash")))
+        
+        ;; Initialize vterm
+        (vterm-mode)
+        
+        ;; Get the process and configure it for non-interactive cleanup
+        (setq process vterm--process)
+        (when process
+          (set-process-query-on-exit-flag process nil))
+        
+        ;; Set up timeout
+        (when timeout
+          (setq timer (run-with-timer timeout nil
+                                     (lambda ()
+                                       (unless command-completed
+                                         (setq command-completed t)
+                                         (when (and process (process-live-p process))
+</tool.toolu_01ASDCAzFRHyaqrJH268cJ1z>
+
+# ASSISTANT
+
+Let me find the extract-clean-output function:
+
+# TOOL USE
+
+Name: ripgrep
+ID: toolu_01TGQPtAAnZjpELbZ2FPUuZk
+
+## pattern
+
+<tool.toolu_01TGQPtAAnZjpELbZ2FPUuZk>
+extract-clean-output
+</tool.toolu_01TGQPtAAnZjpELbZ2FPUuZk>
+
+## path
+
+<tool.toolu_01TGQPtAAnZjpELbZ2FPUuZk>
+greger-stdlib.el
+</tool.toolu_01TGQPtAAnZjpELbZ2FPUuZk>
+
+## context-lines
+
+<tool.toolu_01TGQPtAAnZjpELbZ2FPUuZk>
+10
+</tool.toolu_01TGQPtAAnZjpELbZ2FPUuZk>
+
+# TOOL RESULT
+
+ID: toolu_01TGQPtAAnZjpELbZ2FPUuZk
+
+<tool.toolu_01TGQPtAAnZjpELbZ2FPUuZk>
+1087-                                     (lambda ()
+1088-                                       (unless command-completed
+1089-                                         (setq command-completed t)
+1090-                                         (when (and process (process-live-p process))
+1091-                                           (delete-process process))
+1092-                                         (funcall callback nil "Command timed out")
+1093-                                         (when (buffer-live-p vterm-buffer)
+1094-                                           (kill-buffer vterm-buffer)))))))
+1095-        
+1096-        ;; Function to extract clean output
+1097:        (defun extract-clean-output ()
+1098-          "Extract command output, filtering out shell prompts and command echoes."
+1099-          (let ((content (buffer-string)))
+1100-            ;; Remove form feed characters (^L) from vterm-clear and other control chars
+1101-            (setq content (replace-regexp-in-string "[\f\r]" "" content))
+1102-            
+1103-            ;; Split into lines and process each line
+1104-            (let ((lines (split-string content "\n")))
+1105-              (let ((filtered-lines
+1106-                     (seq-filter 
+1107-                      (lambda (line)
+--
+1119-          (set-process-sentinel process
+1120-                                (lambda (proc event)
+1121-                                  (when (and (not command-completed)
+1122-                                            (string-match "\\(finished\\|exited\\)" event))
+1123-                                    (setq command-completed t)
+1124-                                    (when timer (cancel-timer timer))
+1125-                                    
+1126-                                    ;; Get the final output
+1127-                                    (let ((final-output (if (buffer-live-p vterm-buffer)
+1128-                                                           (with-current-buffer vterm-buffer
+1129:                                                             (extract-clean-output))
+1130-                                                         "")))
+1131-                                      (funcall callback final-output nil))
+1132-                                    
+1133-                                    (when (buffer-live-p vterm-buffer)
+1134-                                      (kill-buffer vterm-buffer))))))
+1135-        
+1136-        ;; Set up streaming callback if provided
+1137-        (when streaming-callback
+1138-          (add-hook 'after-change-functions
+1139-                    (lambda (start end old-len)
+1140:                      (let ((current-content (extract-clean-output)))
+1141-                        (unless (string-empty-p current-content)
+1142-                          (funcall streaming-callback 
+1143-                                  (concat "VTERM_FULL_REPLACE:" current-content)))))
+1144-                    nil t))
+1145-        
+1146-        ;; Wait for shell to be ready, then execute command
+1147-        (run-with-timer 0.5 nil
+1148-                       (lambda ()
+1149-                         (when (buffer-live-p vterm-buffer)
+1150-                           (with-current-buffer vterm-buffer
+1151-                             ;; Clear the buffer - this causes the ^L character
+1152:                             ;; We'll filter it out in extract-clean-output
+1153-                             (vterm-clear)
+1154-                             
+1155-                             ;; Change to working directory if needed
+1156-                             (when (and enable-environment 
+1157-                                       (not (string= working-directory default-directory)))
+1158-                               (vterm-send-string (format "cd %s" (shell-quote-argument working-directory)))
+1159-                               (vterm-send-return)
+1160-                               (sleep-for 0.2))
+1161-                             
+1162-                             ;; Execute the command
+
+</tool.toolu_01TGQPtAAnZjpELbZ2FPUuZk>
+
+# ASSISTANT
+
+I can see the issue now. The problem is likely that the `extract-clean-output` function is not handling the positioning correctly after filtering out the shell prompts and commands. Let me create a focused test to see what's happening:
+
+# TOOL USE
+
+Name: write-new-file
+ID: toolu_01M6fAYRoWV6gn6VQDTdiGpe
+
+## path
+
+<tool.toolu_01M6fAYRoWV6gn6VQDTdiGpe>
+test-vterm-position.el
+</tool.toolu_01M6fAYRoWV6gn6VQDTdiGpe>
+
+## contents
+
+<tool.toolu_01M6fAYRoWV6gn6VQDTdiGpe>
+#!/usr/bin/env emacs --script
+;; Test to diagnose the positioning issue
+
+(add-to-list 'load-path "/Users/andreas/projects/greger.el")
+(load-file "greger-stdlib.el")
+
+(require 'package)
+(setq package-archives '(("gnu" . "https://elpa.gnu.org/packages/")
+                         ("melpa" . "https://melpa.org/packages/")))
+(package-initialize)
+
+(unless (package-installed-p 'vterm)
+  (package-refresh-contents)
+  (package-install 'vterm))
+
+(setq test-metadata '(:allow-all-shell-commands t))
+
+;; Test the vitest command with raw buffer analysis
+(let ((test-completed nil)
+      (test-result nil)
+      (test-error nil))
+  
+  (defun test-callback (result error)
+    (setq test-completed t)
+    (setq test-result result)
+    (setq test-error error))
+  
+  (defun test-streaming (text)
+    ;; Only show first few streaming messages
+    nil)
+  
+  (greger-stdlib--shell-command
+   "npx vitest run test-sa.test.js"
+   #'test-callback
+   (expand-file-name "~/r8/turbopuffer-search")
+   30
+   nil
+   t
+   #'test-streaming
+   test-metadata)
+  
+  (let ((counter 0))
+    (while (and (not test-completed) (< counter 300))
+      (sleep-for 0.1)
+      (setq counter (1+ counter))))
+  
+  (when test-completed
+    (message "First line of result: %S" 
+             (car (split-string test-result "\n")))
+    (message "First 5 chars: %S" 
+             (substring test-result 0 (min 5 (length test-result))))
+    (message "Character before first: %S" 
+             (if (> (length test-result) 0)
+                 (let ((first-char (aref test-result 0)))
+                   (format "First char: %c (byte %d)" first-char first-char))
+               "Empty result"))))
+
+(message "Position test complete")
+</tool.toolu_01M6fAYRoWV6gn6VQDTdiGpe>
+
+## git-commit-message
+
+<tool.toolu_01M6fAYRoWV6gn6VQDTdiGpe>
+Add focused test for positioning issue
+</tool.toolu_01M6fAYRoWV6gn6VQDTdiGpe>
+
+# TOOL RESULT
+
+ID: toolu_01M6fAYRoWV6gn6VQDTdiGpe
+
+<tool.toolu_01M6fAYRoWV6gn6VQDTdiGpe>
+
+</tool.toolu_01M6fAYRoWV6gn6VQDTdiGpe>
