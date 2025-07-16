@@ -1206,7 +1206,13 @@ Returns a cancel function that can interrupt the command execution."
                              
                              ;; Send exit command to terminate the shell
                              (vterm-send-string "exit")
-                             (vterm-send-return)))))
+                             (vterm-send-return)
+                             
+                             ;; Write debug info to file
+                             (with-temp-file "/tmp/greger-vterm-debug.txt"
+                               (insert (format "Command: %s\n" command))
+                               (insert (format "Working directory: %s\n" working-directory))
+                               (insert (format "Process: %s\n" process)))))))
         
         ;; Create cancel function
         (setq cancel-func (lambda ()
