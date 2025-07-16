@@ -1,65 +1,81 @@
-;;; Fixed vterm test with proper scoping
+#!/usr/bin/env emacs --script
+;; Test script to create a working vterm implementation
 
-(add-to-list 'load-path ".")
-(add-to-list 'load-path "~/.emacs.d/elpa/vterm-20241218.331")
+;; Load the necessary files
+(add-to-list 'load-path "/Users/andreas/projects/greger.el")
 
-(require 'vterm)
-
-(defvar test-vterm-output "")
-
-(defun test-simple-vterm ()
-  "Test vterm directly to see what happens."
-  (interactive)
-  (let* ((buffer-name " *test-vterm*")
+(defun test-vterm-working (command callback)
+  "Create a working vterm implementation"
+  (require 'vterm)
+  (let* ((buffer-name (format " *test-vterm-%s*" (random 100000)))
          (vterm-buffer (get-buffer-create buffer-name))
-         (completion-marker "GREGER_DONE_12345")
-         (found-completion nil))
+         (command-completed nil))
     
     (with-current-buffer vterm-buffer
-      (let ((vterm-kill-buffer-on-exit nil)
-            (vterm-shell "bash"))
-        (vterm-mode)
+      ;; Initialize vterm
+      (vterm-mode)
+      
+      ;; Get the process
+      (let ((process vterm--process))
+        (when process
+          (set-process-query-on-exit-flag process nil))
         
-        ;; Set up process for non-interactive cleanup
-        (when vterm--process
-          (set-process-query-on-exit-flag vterm--process nil))
+        ;; Set up process sentinel
+        (when process
+          (set-process-sentinel process
+                                (lambda (proc event)
+                                  (when (and (not command-completed)
+                                            (string-match "\\(finished\\|exited\\)" event))
+                                    (setq command-completed t)
+                                    
+                                    ;; Get the final output
+                                    (let ((final-output (if (buffer-live-p vterm-buffer)
+                                                           (with-current-buffer vterm-buffer
+                                                             (buffer-string))
+                                                         "")))
+                                      (funcall callback final-output nil))
+                                    
+                                    (when (buffer-live-p vterm-buffer)
+                                      (kill-buffer vterm-buffer))))))
         
-        ;; Monitor buffer changes
-        (add-hook 'after-change-functions
-                  (lambda (start end old-len)
-                    (let ((content (buffer-string)))
-                      (setq test-vterm-output content)
-                      (message "Buffer changed. Length: %d" (length content))
-                      (when (and (not found-completion)
-                                (string-match completion-marker content))
-                        (setq found-completion t)
-                        (message "Found completion marker!")
-                        (message "Final content: %s" content)
-                        (run-with-timer 0.1 nil
-                                       (lambda ()
-                                         (when (buffer-live-p vterm-buffer)
-                                           (with-current-buffer vterm-buffer
-                                             (when vterm--process
-                                               (set-process-query-on-exit-flag vterm--process nil)
-                                               (delete-process vterm--process)))
-                                           (kill-buffer vterm-buffer)))))))
-                  nil t)
-        
-        ;; Wait for shell to be ready
+        ;; Execute command after a short delay
         (run-with-timer 0.5 nil
                        (lambda ()
                          (when (buffer-live-p vterm-buffer)
                            (with-current-buffer vterm-buffer
-                             (message "Executing command...")
-                             (vterm-send-string (format "ls && echo %s" completion-marker))
+                             ;; Clear the buffer
+                             (vterm-clear)
+                             
+                             ;; Execute the command
+                             (vterm-send-string command)
+                             (vterm-send-return)
+                             
+                             ;; Exit to terminate shell
+                             (vterm-send-string "exit")
                              (vterm-send-return)))))))))
 
-;; Run the test
-(test-simple-vterm)
-
-;; Wait for completion
-(sleep-for 5)
-(message "=== FINAL OUTPUT ===")
-(message "%s" test-vterm-output)
-(message "=== END OUTPUT ===")
-(message "Test completed")
+;; Test the function
+(let ((test-completed nil)
+      (test-result nil)
+      (test-error nil))
+  
+  (defun test-callback (result error)
+    (setq test-completed t)
+    (setq test-result result)
+    (setq test-error error))
+  
+  (message "Testing working vterm command...")
+  (test-vterm-working "echo 'Hello working vterm!'" #'test-callback)
+  
+  ;; Wait for completion
+  (let ((counter 0))
+    (while (and (not test-completed) (< counter 100))
+      (sleep-for 0.1)
+      (setq counter (1+ counter))))
+  
+  (if test-completed
+      (progn
+        (message "SUCCESS: Test completed!")
+        (message "Result: %S" test-result)
+        (message "Error: %S" test-error))
+    (message "FAILED: Test did not complete within timeout")))
