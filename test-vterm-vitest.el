@@ -33,7 +33,8 @@
   
   (defun test-streaming (text)
     (push text streaming-messages)
-    (message "STREAMING: %S" text))
+    (when (< (length streaming-messages) 50)
+      (message "STREAMING: %S" text)))
   
   (greger-stdlib--shell-command
    "npx vitest run test-sa.test.js"
