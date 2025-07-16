@@ -956,7 +956,10 @@ Returns a cancel function that can interrupt the command execution."
            streaming-callback))
       ;; Check if vterm was requested but not available
       (if use-vterm
-          (error "vterm is not available. Please install the vterm package or set use-vterm to false")
+          (progn
+            (with-temp-file "/tmp/greger-vterm-fallback.txt"
+              (insert (format "vterm was requested but not available\n")))
+            (error "vterm is not available. Please install the vterm package or set use-vterm to false"))
         ;; Use traditional subprocess execution
         (let* ((bash-args (if enable-environment
                               ;; Interactive to source .bash_profile and .bashrc
