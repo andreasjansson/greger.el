@@ -1039,6 +1039,7 @@ end tag and update the buffer state."
     (with-current-buffer buffer
       (when-let ((inhibit-read-only t)
                  (tool-result-content-node (greger--find-tool-result-content-node tool-id))
+                 (tool-result-content-start (treesit-node-start tool-result-content-node))
                  (tool-result-content-end (treesit-node-end tool-result-content-node)))
         (greger--maybe-save-excursion
          ;; Check if this is a vterm full replacement
