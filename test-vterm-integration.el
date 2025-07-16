@@ -16,6 +16,9 @@
   (package-refresh-contents)
   (package-install 'vterm))
 
+;; Allow all shell commands for testing
+(setq greger-allow-all-shell-commands t)
+
 ;; Test 1: Basic command with vterm
 (message "=== Test 1: Basic command with vterm ===")
 (let ((test-completed nil)
