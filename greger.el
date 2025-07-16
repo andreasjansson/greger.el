@@ -1042,16 +1042,24 @@ end tag and update the buffer state."
                  (tool-result-content-end (treesit-node-end tool-result-content-node)))
         (greger--maybe-save-excursion
          (goto-char (1- tool-result-content-end))
-
-         ;; Process terminal sequences to handle progress bars and dynamic output
-         ;; Use vterm for more accurate terminal emulation when available
-         (if (fboundp 'vterm-mode)
-             (condition-case err
-                 (greger--process-terminal-sequences-with-vterm text)
-               (error
-                ;; If vterm fails, fall back to basic processing
-                (greger-ui--process-terminal-sequences text)))
-           (greger-ui--process-terminal-sequences text))
+         
+         ;; For vterm streaming, we receive the full buffer content each time
+         ;; So we need to replace the entire tool result content, not append
+         (if (and (fboundp 'vterm-mode) 
+                  (string-match "vterm" (or (buffer-name) "")))
+             ;; Replace entire content for vterm
+             (progn
+               (delete-region tool-result-content-start (1- tool-result-content-end))
+               (goto-char tool-result-content-start)
+               (insert text))
+           ;; For regular streaming, process terminal sequences and append
+           (if (fboundp 'vterm-mode)
+               (condition-case err
+                   (greger--process-terminal-sequences-with-vterm text)
+                 (error
+                  ;; If vterm fails, fall back to basic processing
+                  (greger-ui--process-terminal-sequences text)))
+             (greger-ui--process-terminal-sequences text)))
 
          (when is-completed
            ;; Trim trailing newline after closing tag

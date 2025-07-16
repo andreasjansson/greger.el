@@ -11336,5 +11336,76 @@ Returns a cancel function that can interrupt the command execution."
 ID: toolu_015dMbpeaCF75PzCMsHJjPbF
 
 <tool.toolu_015dMbpeaCF75PzCMsHJjPbF>
-
+Successfully replaced content in /Users/andreas/projects/greger.el/greger-stdlib.el. Successfully staged 2 file(s) and committed with message: Simplify vterm implementation - just sync buffer contents directly
 </tool.toolu_015dMbpeaCF75PzCMsHJjPbF>
+
+# ASSISTANT
+
+Now I need to update the streaming callback to handle the fact that we're sending the entire buffer content each time, not just the new content:
+
+# TOOL USE
+
+Name: str-replace
+ID: toolu_01BbKehQGBYb1d2bomsqsv6d
+
+## path
+
+<tool.toolu_01BbKehQGBYb1d2bomsqsv6d>
+greger.el
+</tool.toolu_01BbKehQGBYb1d2bomsqsv6d>
+
+## git-commit-message
+
+<tool.toolu_01BbKehQGBYb1d2bomsqsv6d>
+Update streaming callback to handle full buffer content from vterm
+</tool.toolu_01BbKehQGBYb1d2bomsqsv6d>
+
+## original-content
+
+<tool.toolu_01BbKehQGBYb1d2bomsqsv6d>
+        (greger--maybe-save-excursion
+         (goto-char (1- tool-result-content-end))
+
+         ;; Process terminal sequences to handle progress bars and dynamic output
+         ;; Use vterm for more accurate terminal emulation when available
+         (if (fboundp 'vterm-mode)
+             (condition-case err
+                 (greger--process-terminal-sequences-with-vterm text)
+               (error
+                ;; If vterm fails, fall back to basic processing
+                (greger-ui--process-terminal-sequences text)))
+           (greger-ui--process-terminal-sequences text))
+</tool.toolu_01BbKehQGBYb1d2bomsqsv6d>
+
+## new-content
+
+<tool.toolu_01BbKehQGBYb1d2bomsqsv6d>
+        (greger--maybe-save-excursion
+         (goto-char (1- tool-result-content-end))
+         
+         ;; For vterm streaming, we receive the full buffer content each time
+         ;; So we need to replace the entire tool result content, not append
+         (if (and (fboundp 'vterm-mode) 
+                  (string-match "vterm" (or (buffer-name) "")))
+             ;; Replace entire content for vterm
+             (progn
+               (delete-region tool-result-content-start (1- tool-result-content-end))
+               (goto-char tool-result-content-start)
+               (insert text))
+           ;; For regular streaming, process terminal sequences and append
+           (if (fboundp 'vterm-mode)
+               (condition-case err
+                   (greger--process-terminal-sequences-with-vterm text)
+                 (error
+                  ;; If vterm fails, fall back to basic processing
+                  (greger-ui--process-terminal-sequences text)))
+             (greger-ui--process-terminal-sequences text)))
+</tool.toolu_01BbKehQGBYb1d2bomsqsv6d>
+
+# TOOL RESULT
+
+ID: toolu_01BbKehQGBYb1d2bomsqsv6d
+
+<tool.toolu_01BbKehQGBYb1d2bomsqsv6d>
+
+</tool.toolu_01BbKehQGBYb1d2bomsqsv6d>
