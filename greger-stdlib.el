@@ -1221,11 +1221,23 @@ Returns a cancel function that can interrupt the command execution."
             (when prompt
               (let ((is-password (string-match-p "password\\|Password\\|PASS" prompt))
                     (user-input nil))
-                ;; Use read-passwd for password prompts, regular input for others
-                (setq user-input 
-                      (if is-password
-                          (read-passwd (format "Shell prompt: %s " prompt))
-                        (read-from-minibuffer (format "Shell prompt: %s " prompt))))
+                
+                ;; For password prompts, always ask the user
+                (if is-password
+                    (setq user-input (read-passwd (format "Shell prompt: %s " prompt)))
+                  
+                  ;; For non-password prompts, try Claude first
+                  (let* ((context (buffer-string))
+                         (claude-response (greger-stdlib--query-claude-for-interactive-input context prompt)))
+                    
+                    (if (string= claude-response "USER")
+                        ;; Claude says user should respond
+                        (setq user-input (read-from-minibuffer (format "Shell prompt: %s " prompt)))
+                      ;; Claude provided a response
+                      (progn
+                        (message "Claude responding: %s" claude-response)
+                        (setq user-input claude-response)))))
+                
                 (vterm-send-string user-input)
                 (vterm-send-return)
                 ;; Continue monitoring for more prompts
