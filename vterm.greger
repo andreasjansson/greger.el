@@ -4830,5 +4830,94 @@ Debug extract-clean-output function to fix first character issue
 ID: toolu_011DvqRDk5C1FN4BfB2u3xtx
 
 <tool.toolu_011DvqRDk5C1FN4BfB2u3xtx>
-
+Successfully replaced content in /Users/andreas/projects/greger.el/greger-stdlib.el. Successfully staged 2 file(s) and committed with message: Debug extract-clean-output function to fix first character issue
 </tool.toolu_011DvqRDk5C1FN4BfB2u3xtx>
+
+# TOOL USE
+
+Name: shell-command
+ID: toolu_013QFctqyqLQuZaUZ7qREWyw
+
+## command
+
+<tool.toolu_013QFctqyqLQuZaUZ7qREWyw>
+cd /Users/andreas/projects/greger.el && timeout 45 emacs --batch --load test-vterm-position.el
+</tool.toolu_013QFctqyqLQuZaUZ7qREWyw>
+
+# TOOL RESULT
+
+ID: toolu_013QFctqyqLQuZaUZ7qREWyw
+
+<tool.toolu_013QFctqyqLQuZaUZ7qREWyw>
+Loading /Users/andreas/projects/greger.el/greger-stdlib.el (source)...
+First line of result: #("<empty line>" 0 12 (font-lock-face (:foreground "unspecified-fg" :background "unspecified-bg" :extend t)))
+First 5 chars: #("<empt" 0 5 (font-lock-face (:foreground "unspecified-fg" :background "unspecified-bg" :extend t)))
+Character before first: "First char: < (byte 60)"
+Position test complete
+
+</tool.toolu_013QFctqyqLQuZaUZ7qREWyw>
+
+# ASSISTANT
+
+Now I see a different issue! The result is showing `<empty line>` which means the filtering might be too aggressive or there's an issue with how empty lines are handled. Let me look more carefully at the filtering logic.
+
+The issue is that the current filtering is likely removing legitimate content. Let me examine the vterm buffer more directly by temporarily adding debug output:
+
+# TOOL USE
+
+Name: str-replace
+ID: toolu_01Y5kd7NTesa4YeYA3sK4TGV
+
+## path
+
+<tool.toolu_01Y5kd7NTesa4YeYA3sK4TGV>
+greger-stdlib.el
+</tool.toolu_01Y5kd7NTesa4YeYA3sK4TGV>
+
+## git-commit-message
+
+<tool.toolu_01Y5kd7NTesa4YeYA3sK4TGV>
+Add debug to understand vterm buffer content
+</tool.toolu_01Y5kd7NTesa4YeYA3sK4TGV>
+
+## diff
+
+<tool.toolu_01Y5kd7NTesa4YeYA3sK4TGV>
+         ;; Function to extract clean output
+         (defun extract-clean-output ()
+           "Extract command output, filtering out shell prompts and command echoes."
+           (let ((content (buffer-string)))
+             ;; Remove form feed characters (^L) from vterm-clear and other control chars
+             (setq content (replace-regexp-in-string "[\f\r]" "" content))
+             
+-            ;; Split into lines and process each line
++            ;; For debugging - let's be much less aggressive with filtering
++            ;; Just remove obvious shell prompts and the command itself
+             (let ((lines (split-string content "\n")))
+               (let ((filtered-lines
+-                     (seq-filter 
++                     (seq-remove 
+                       (lambda (line)
+                         (let ((trimmed (string-trim line)))
+-                          (and (not (string-match "^[^@]*@[^:]*:" trimmed))  ; Shell prompts
+-                               (not (string-match "^\\$" trimmed))           ; $ prompts
+-                               (not (string-match "^>" trimmed))             ; > prompts
+-                               (not (string-prefix-p command trimmed))       ; Command echo
+-                               (not (string-match "^exit" trimmed)))))       ; Exit command
++                          (or (string-match "^[^@]*@[^:]*:" trimmed)     ; Shell prompts like "user@host:"
++                              (string-equal trimmed command)             ; Exact command match
++                              (string-equal trimmed "exit"))))          ; Exit command
+                       lines)))
+-                ;; Don't trim the final result - this might be removing the first character
+                 (string-join filtered-lines "\n")))))
+\ No newline at end of file
+
+</tool.toolu_01Y5kd7NTesa4YeYA3sK4TGV>
+
+# TOOL RESULT
+
+ID: toolu_01Y5kd7NTesa4YeYA3sK4TGV
+
+<tool.toolu_01Y5kd7NTesa4YeYA3sK4TGV>
+
+</tool.toolu_01Y5kd7NTesa4YeYA3sK4TGV>

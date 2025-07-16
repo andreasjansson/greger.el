@@ -1100,19 +1100,17 @@ Returns a cancel function that can interrupt the command execution."
             ;; Remove form feed characters (^L) from vterm-clear and other control chars
             (setq content (replace-regexp-in-string "[\f\r]" "" content))
             
-            ;; Split into lines and process each line
+            ;; For debugging - let's be much less aggressive with filtering
+            ;; Just remove obvious shell prompts and the command itself
             (let ((lines (split-string content "\n")))
               (let ((filtered-lines
-                     (seq-filter 
+                     (seq-remove 
                       (lambda (line)
                         (let ((trimmed (string-trim line)))
-                          (and (not (string-match "^[^@]*@[^:]*:" trimmed))  ; Shell prompts
-                               (not (string-match "^\\$" trimmed))           ; $ prompts
-                               (not (string-match "^>" trimmed))             ; > prompts
-                               (not (string-prefix-p command trimmed))       ; Command echo
-                               (not (string-match "^exit" trimmed)))))       ; Exit command
+                          (or (string-match "^[^@]*@[^:]*:" trimmed)     ; Shell prompts like "user@host:"
+                              (string-equal trimmed command)             ; Exact command match
+                              (string-equal trimmed "exit"))))          ; Exit command
                       lines)))
-                ;; Don't trim the final result - this might be removing the first character
                 (string-join filtered-lines "\n")))))
         
         ;; Set up process sentinel to capture output when shell terminates
