@@ -4147,5 +4147,84 @@ Limit streaming output to 50 lines to avoid token overflow
 ID: toolu_01Pfk9AtmGph2Ez5iDbjrPVA
 
 <tool.toolu_01Pfk9AtmGph2Ez5iDbjrPVA>
-
+Successfully replaced content in /Users/andreas/projects/greger.el/test-vterm-vitest.el. Successfully staged 2 file(s) and committed with message: Limit streaming output to 50 lines to avoid token overflow
 </tool.toolu_01Pfk9AtmGph2Ez5iDbjrPVA>
+
+# TOOL USE
+
+Name: shell-command
+ID: toolu_019V6v953dbsxNm8asj4CsYp
+
+## command
+
+<tool.toolu_019V6v953dbsxNm8asj4CsYp>
+cd /Users/andreas/projects/greger.el && emacs --batch --load test-vterm-vitest.el
+</tool.toolu_019V6v953dbsxNm8asj4CsYp>
+
+# TOOL RESULT
+
+ID: toolu_019V6v953dbsxNm8asj4CsYp
+
+<tool.toolu_019V6v953dbsxNm8asj4CsYp>
+Loading /Users/andreas/projects/greger.el/greger-stdlib.el (source)...
+=== Testing exact vitest command ===
+STREAMING: #("VTERM_FULL_REPLACE:^Lnpx vitest run test-sa.test.js" 19 51 (font-lock-face (:foreground "unspecified-fg" :background "unspecified-bg" :extend t)))
+STREAMING: #("VTERM_FULL_REPLACE:^Lnpx vitest run test-sa.test.js" 19 51 (font-lock-face (:foreground "unspecified-fg" :background "unspecified-bg" :extend t)))
+STREAMING: #("VTERM_FULL_REPLACE:^Lnpx vitest run test-sa.test.js" 19 51 (font-lock-face (:foreground "unspecified-fg" :background "unspecified-bg" :extend t)))
+STREAMING: #("VTERM_FULL_REPLACE:^Lnpx vitest run test-sa.test.js" 19 51 (font-lock-face (:foreground "unspecified-fg" :background "unspecified-bg" :extend t)))
+STREAMING: #("VTERM_FULL_REPLACE:andreas@MacBook-Pro-3" 19 40 (font-lock-face (:foreground "green3" :background "unspecified-bg" :weight bold :extend t)))
+STREAMING: #("VTERM_FULL_REPLACE:RUN" 19 22 (font-lock-face (:foreground "cyan3" :background [...]
+</tool.toolu_019V6v953dbsxNm8asj4CsYp>
+
+# USER
+
+No I had to cut you off manually there because you were spewing too many tokens
+
+# THINKING
+
+Signature: EsYDCkYIBRgCKkBerisReJy8vh/DlICaUysqS+eINXd6Fg9K0f1Oqethv6ZPw0YUr0Av9DYIoKYjuiJS7Gna4GZd+xCeISH9numdEgyVU9qOenL1mk7TpxgaDEgfwStwRGogJ6eB8iIw7Bvo7jr9r9K37yN/i2whXBDmSrKPYGmgwkH69PYd82265Xx1s6HJZWydeU3d/i55Kq0CDjbjrdMh1QdNTJsl0M41VtZ+dmg+X6cN9ppkNjGRJViuKbKzHSFBMFA7kGIppuMGJlphcJQwY+AaBJBMrdyi9iH3bA4romj+AqQukJjAk00ZNoegvIiFOYjjIZf0SiELqSff5TaZU2XF7fnTUW6qwZS5QMUYGblXYDLfch5VLSWjWdKuo8H8mKbcxxflkiZb+F/dp/bK0yRfG5bY/KkMFWaMDT1C1Akg7g8iNfnIb8ws/mrlHC42VA0BQ6kIvL+gOGVnM7X3Vn+81zRgqqaWQKhziX03So7p+Yzr+HBcSM3YSVBzXXyPnt3Xykuv/VRHc1Q9nBFT5xYQvfPrMAT5nV7FSLy3AHexzkTwv8XEsBPHfhhclrqu8NFOXMIWpOnPRxJgm7pSl/TB2hFUUhgB
+
+The user is saying they had to cut me off manually because I was generating too many tokens in the output. They want me to modify the test to limit the output automatically. Let me update the test script to limit the streaming output to just a few lines and focus on the key analysis.
+
+# ASSISTANT
+
+You're right! Let me update the test script to limit the output much more:
+
+# TOOL USE
+
+Name: str-replace
+ID: toolu_01Fi6dQ4n3FUHwgjRb1HwiWX
+
+## path
+
+<tool.toolu_01Fi6dQ4n3FUHwgjRb1HwiWX>
+test-vterm-vitest.el
+</tool.toolu_01Fi6dQ4n3FUHwgjRb1HwiWX>
+
+## git-commit-message
+
+<tool.toolu_01Fi6dQ4n3FUHwgjRb1HwiWX>
+Severely limit output to avoid token overflow
+</tool.toolu_01Fi6dQ4n3FUHwgjRb1HwiWX>
+
+## diff
+
+<tool.toolu_01Fi6dQ4n3FUHwgjRb1HwiWX>
+   (defun test-streaming (text)
+     (push text streaming-messages)
+-    (when (< (length streaming-messages) 50)
+-      (message "STREAMING: %S" text)))
+\ No newline at end of file
++    (when (< (length streaming-messages) 3)
++      (message "STREAMING: %S" (substring text 0 (min 100 (length text))))))
+\ No newline at end of file
+
+</tool.toolu_01Fi6dQ4n3FUHwgjRb1HwiWX>
+
+# TOOL RESULT
+
+ID: toolu_01Fi6dQ4n3FUHwgjRb1HwiWX
+
+<tool.toolu_01Fi6dQ4n3FUHwgjRb1HwiWX>
+
+</tool.toolu_01Fi6dQ4n3FUHwgjRb1HwiWX>
