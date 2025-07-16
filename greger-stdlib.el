@@ -1053,6 +1053,134 @@ If USE-HIGHEST-READABILITY is non-nil, use eww's aggressive readability setting.
 
 
 
+(defun greger-stdlib--run-shell-command-with-vterm (command working-directory callback timeout enable-environment streaming-callback)
+  "Execute COMMAND using vterm in WORKING-DIRECTORY and call CALLBACK with (result error).
+This function creates a fresh vterm buffer for each command execution.
+Returns a cancel function that can interrupt the command execution."
+  (require 'vterm)
+  (let* ((buffer-name (format " *greger-vterm-%s*" (random 100000)))
+         (vterm-buffer (get-buffer-create buffer-name))
+         (timer nil)
+         (process nil)
+         (command-completed nil))
+    
+    (with-current-buffer vterm-buffer
+      ;; Set up working directory
+      (setq default-directory working-directory)
+      
+      ;; Configure vterm environment
+      (let ((vterm-environment (list "PAGER=cat"))
+            (vterm-kill-buffer-on-exit nil)
+            (vterm-shell (if enable-environment "bash -i" "bash")))
+        
+        ;; Initialize vterm
+        (vterm-mode)
+        
+        ;; Get the process and configure it for non-interactive cleanup
+        (setq process vterm--process)
+        (when process
+          (set-process-query-on-exit-flag process nil))
+        
+        ;; Set up timeout
+        (when timeout
+          (setq timer (run-with-timer timeout nil
+                                     (lambda ()
+                                       (unless command-completed
+                                         (setq command-completed t)
+                                         (when (and process (process-live-p process))
+                                           (delete-process process))
+                                         (funcall callback nil "Command timed out")
+                                         (when (buffer-live-p vterm-buffer)
+                                           (kill-buffer vterm-buffer)))))))
+        
+        ;; Function to extract clean output
+        (defun extract-clean-output ()
+          "Extract command output, filtering out shell prompts and command echoes."
+          (let ((content (buffer-string)))
+            ;; Remove form feed characters (^L) from vterm-clear and other control chars
+            (setq content (replace-regexp-in-string "[\f\r]" "" content))
+            
+            ;; Split into lines and process each line
+            (let ((lines (split-string content "\n")))
+              (let ((filtered-lines
+                     (seq-filter 
+                      (lambda (line)
+                        (let ((trimmed (string-trim line)))
+                          (and (not (string-match "^[^@]*@[^:]*:" trimmed))  ; Shell prompts
+                               (not (string-match "^\\$" trimmed))           ; $ prompts
+                               (not (string-match "^>" trimmed))             ; > prompts
+                               (not (string-prefix-p command trimmed))       ; Command echo
+                               (not (string-match "^exit" trimmed)))))       ; Exit command
+                      lines)))
+                (string-trim (string-join filtered-lines "\n"))))))
+        
+        ;; Set up process sentinel to capture output when shell terminates
+        (when process
+          (set-process-sentinel process
+                                (lambda (proc event)
+                                  (when (and (not command-completed)
+                                            (string-match "\\(finished\\|exited\\)" event))
+                                    (setq command-completed t)
+                                    (when timer (cancel-timer timer))
+                                    
+                                    ;; Get the final output
+                                    (let ((final-output (if (buffer-live-p vterm-buffer)
+                                                           (with-current-buffer vterm-buffer
+                                                             (extract-clean-output))
+                                                         "")))
+                                      (funcall callback final-output nil))
+                                    
+                                    (when (buffer-live-p vterm-buffer)
+                                      (kill-buffer vterm-buffer))))))
+        
+        ;; Set up streaming callback if provided
+        (when streaming-callback
+          (add-hook 'after-change-functions
+                    (lambda (start end old-len)
+                      (let ((current-content (extract-clean-output)))
+                        (unless (string-empty-p current-content)
+                          (funcall streaming-callback 
+                                  (concat "VTERM_FULL_REPLACE:" current-content)))))
+                    nil t))
+        
+        ;; Wait for shell to be ready, then execute command
+        (run-with-timer 0.5 nil
+                       (lambda ()
+                         (when (buffer-live-p vterm-buffer)
+                           (with-current-buffer vterm-buffer
+                             ;; Clear the buffer
+                             (vterm-clear)
+                             
+                             ;; Change to working directory if needed
+                             (when (and enable-environment 
+                                       (not (string= working-directory default-directory)))
+                               (vterm-send-string (format "cd %s" (shell-quote-argument working-directory)))
+                               (vterm-send-return)
+                               (sleep-for 0.2))
+                             
+                             ;; Execute the command
+                             (vterm-send-string command)
+                             (vterm-send-return)
+                             
+                             ;; Wait a bit for command to complete, then exit
+                             (run-with-timer 0.1 nil
+                                            (lambda ()
+                                              (when (buffer-live-p vterm-buffer)
+                                                (with-current-buffer vterm-buffer
+                                                  (vterm-send-string "exit")
+                                                  (vterm-send-return)))))))))
+        
+        ;; Return cancel function
+        (lambda ()
+          (when timer (cancel-timer timer))
+          (setq command-completed t)
+          (when (and process (process-live-p process))
+            (delete-process process))
+          (when (buffer-live-p vterm-buffer)
+            (kill-buffer vterm-buffer))
+          (funcall callback nil "Command cancelled by user"))))))
+
+
 (provide 'greger-stdlib)
 
 ;;; greger-stdlib.el ends here
