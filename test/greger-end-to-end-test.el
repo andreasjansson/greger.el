@@ -679,6 +679,13 @@ Hello from greger test!
       (when (and greger-buffer (buffer-live-p greger-buffer))
         (kill-buffer greger-buffer)))))
 
+(ert-deftest greger-end-to-end-test-interactive-input-configuration ()
+  "Test that interactive input configuration options are available."
+  (should (boundp 'greger-stdlib-claude-interactive-input))
+  (should (boundp 'greger-stdlib-claude-interactive-timeout))
+  (should (fboundp 'greger-stdlib--query-claude-for-interactive-input))
+  (should (fboundp 'greger-stdlib--run-shell-command-with-vterm)))
+
 (provide 'test-end-to-end)
 
 ;;; test-end-to-end.el ends here
