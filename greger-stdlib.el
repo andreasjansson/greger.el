@@ -1052,6 +1052,8 @@ If USE-HIGHEST-READABILITY is non-nil, use eww's aggressive readability setting.
 This function creates a vterm buffer, executes the command, and syncs the buffer
 contents to the greger tool result in real-time through STREAMING-CALLBACK.
 Returns a cancel function that can interrupt the command execution."
+  (with-temp-file "/tmp/greger-vterm-start.txt"
+    (insert (format "Starting vterm command: %s\n" command)))
   (let* ((buffer-name (format " *greger-vterm-%s*" (random 100000)))
          (vterm-buffer (get-buffer-create buffer-name))
          (timer nil)
