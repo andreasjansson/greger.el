@@ -1010,6 +1010,11 @@ LINE-REGEXP, MAX-RESULTS and ALLOW-TRAILING-DOUBLE-QUOTE are optional."
   (greger-stdlib--assert-arg-bool "line-regexp" line-regexp)
   (greger-stdlib--assert-arg-int "context-lines" context-lines :ge 0)
   (greger-stdlib--assert-arg-int "max-results" max-results :ge 1)
+  (greger-stdlib--assert-arg-bool "allow-trailing-double-quote" allow-trailing-double-quote)
+
+  (when (and (not allow-trailing-double-quote) 
+             (string-suffix-p "\"" pattern))
+    (error "Pattern ends with trailing double quote. This is likely an error. If you really want to search for patterns ending with a double quote, set allow_trailing_double_quote to true"))
 
   (let ((expanded-path (expand-file-name path)))
 
