@@ -997,7 +997,7 @@ Returns a cancel function that can interrupt the command execution."
   "Search for PATTERN in PATH using the rg command line tool directly.
 CALLBACK is called with (result error) when search completes.
 CASE-SENSITIVE, FILE-TYPE, CONTEXT-LINES, FIXED-STRINGS, WORD-REGEXP,
-LINE-REGEXP and MAX-RESULTS are optional."
+LINE-REGEXP, MAX-RESULTS and ALLOW-TRAILING-DOUBLE-QUOTE are optional."
 
   (unless (executable-find "rg")
     (error "Command not found: ripgrep (rg).  Please install ripgrep"))
