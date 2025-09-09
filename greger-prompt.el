@@ -30,7 +30,7 @@
 
 ;;; Code:
 
-(defconst greger-prompt-code-style "
+(defconst greger-prompt-code-style (concat "
 # Code style
 
 ## Don't be overly defensive
@@ -53,8 +53,8 @@ The first time you read a source code file, read the full file so you get a real
 
 ## Today's date
 
-Today's date is September 09, 2025.
-")
+Today's date is " (format-time-string "%B %d, %Y") ".
+"))
 
 (provide 'greger-prompt)
 
