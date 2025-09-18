@@ -162,7 +162,7 @@ If Claude doesn't respond within this time, fallback to user input."
                                     (exclude-directories-recursive . ((type . "array")
                                                                       (items . ((type . "string")))
                                                                       (description . "List of directory names to exclude when recursively listing files.")
-                                                                      (default . (".git" "__pycache__"))))
+                                                                      (default . (".git" "__pycache__" "node_modules" ".wrangler"))))
                                     (recursive . ((type . "boolean")
                                                   (description . "Whether to list files recursively")
                                                   (default . nil))))
@@ -200,7 +200,10 @@ If Claude doesn't respond within this time, fallback to user input."
                                                     (default . 50)))
                                     (allow-trailing-double-quote . ((type . "boolean")
                                                                      (description . "Allow patterns ending with double quote. Set to true only if you intentionally want to search for patterns ending with a literal double quote character")
-                                                                     (default . nil))))
+                                                                     (default . nil)))
+                                    (allow-command-line-like-pattern . ((type . "boolean")
+                                                                        (description . "Allow patterns that contain command-line-like flags (e.g. patterns containing \" -\"). Set to true only if you intentionally want to search for patterns that look like command line arguments")
+                                                                        (default . nil))))
                       :required '("pattern")
                       :function 'greger-stdlib--ripgrep
                       :pass-callback t)
@@ -218,7 +221,7 @@ If Claude doesn't respond within this time, fallback to user input."
                                                 (description . "Timeout in seconds for command execution")
                                                 (default . 600)))
                                     (enable-environment . ((type . "boolean")
-                                                           (description . "Whether to source shell initialization files (.bashrc, .bash_profile) which may contain secrets and environment variables")
+                                                           (description . "Whether to source shell initialization files (.bashrc, .bash_profile) which may contain secrets and environment variables. You want to use this whenever you run a command that interacts with the outside world, e.g. pulling git repositories, putting files on S3, etc.")
                                                            (default . nil)))
                                     (use-vterm . ((type . "boolean")
                                                   (description . "Use vterm for full terminal emulation with colors and ANSI sequences. Falls back to regular subprocess if vterm is not available.")
@@ -1014,7 +1017,7 @@ LINE-REGEXP, MAX-RESULTS and ALLOW-TRAILING-DOUBLE-QUOTE are optional."
 
   (when (and (not allow-trailing-double-quote) 
              (string-suffix-p "\"" pattern))
-    (error "Pattern ends with trailing double quote. This is likely an error. If you really want to search for patterns ending with a double quote, set allow_trailing_double_quote to true"))
+    (error "Pattern ends with trailing double quote. This is likely an error. If you really want to search for patterns ending with a double quote, set allow-trailing-double-quote to true"))
 
   (let ((expanded-path (expand-file-name path)))
 
