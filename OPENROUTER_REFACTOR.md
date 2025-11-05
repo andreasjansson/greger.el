@@ -213,6 +213,8 @@ Similar to greger-client-stream but for OpenRouter/OpenAI format."
 (defun greger-openrouter--build-data (model dialog tools thinking-budget max-tokens)
   "Build OpenRouter request data in OpenAI format."
   (let ((messages (greger-openrouter--convert-dialog-to-messages dialog))
+        ;; NOTE: We don't append :online here because we're disabling web search for OpenRouter
+        ;; If we wanted to enable it, we'd do: (actual-model (if enable-web-search (concat model ":online") model))
         (request-data `(("model" . ,model)
                         ("max_tokens" . ,max-tokens)
                         ("stream" . t))))
