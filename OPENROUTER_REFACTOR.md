@@ -398,6 +398,7 @@ Returns list of messages (may be multiple for tool calls)."
          (choices (alist-get 'choices data))
          (choice (when choices (aref choices 0)))
          (delta (alist-get 'delta choice))
+         (message (alist-get 'message choice))
          (finish-reason (alist-get 'finish_reason choice)))
     
     (when delta
@@ -414,6 +415,11 @@ Returns list of messages (may be multiple for tool calls)."
        ;; Tool call delta - accumulate
        ((alist-get 'tool_calls delta)
         (greger-openrouter--accumulate-tool-calls delta state))))
+    
+    ;; Store annotations when message is complete (web search results)
+    (when (and message (alist-get 'annotations message))
+      (setf (greger-openrouter-state-annotations state)
+            (alist-get 'annotations message)))
     
     ;; Handle completion
     (when finish-reason
