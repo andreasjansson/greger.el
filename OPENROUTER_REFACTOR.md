@@ -345,10 +345,9 @@ Returns list of messages (may be multiple for tool calls)."
         (when-let ((callback (greger-openrouter-state-text-delta-callback state)))
           (funcall callback (alist-get 'content delta))))
        
-       ;; Reasoning/thinking delta
+       ;; Reasoning/thinking delta - needs special handling
        ((alist-get 'reasoning delta)
-        (when-let ((callback (greger-openrouter-state-text-delta-callback state)))
-          (funcall callback (alist-get 'reasoning delta))))
+        (greger-openrouter--handle-reasoning-delta delta state))
        
        ;; Tool call delta - accumulate
        ((alist-get 'tool_calls delta)
@@ -357,6 +356,28 @@ Returns list of messages (may be multiple for tool calls)."
     ;; Handle completion
     (when finish-reason
       (greger-openrouter--handle-finish state finish-reason))))
+
+(defun greger-openrouter--handle-reasoning-delta (delta state)
+  "Handle reasoning/thinking delta and convert to Greger thinking format.
+OpenRouter provides reasoning in delta.reasoning field, but we need to
+convert it to Greger's thinking block format for consistency."
+  (let ((reasoning-text (alist-get 'reasoning delta))
+        (block-start-callback (greger-openrouter-state-block-start-callback state))
+        (text-delta-callback (greger-openrouter-state-text-delta-callback state)))
+    
+    ;; First time we see reasoning, send thinking block start
+    (unless (greger-openrouter-state-thinking-started state)
+      (setf (greger-openrouter-state-thinking-started state) t)
+      ;; Create thinking block header (no signature for OpenRouter)
+      (when block-start-callback
+        (funcall block-start-callback
+                 `((type . "thinking")
+                   (thinking . "")
+                   (signature . "")))))  ; Empty signature - OpenRouter doesn't provide them
+    
+    ;; Stream the thinking text
+    (when (and reasoning-text text-delta-callback)
+      (funcall text-delta-callback reasoning-text))))
 
 (defun greger-openrouter--accumulate-tool-calls (delta state)
   "Accumulate tool call deltas - OpenAI sends them incrementally."
