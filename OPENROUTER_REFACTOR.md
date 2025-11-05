@@ -1277,22 +1277,19 @@ Cited text: Python 3.13.0 was released on October 7, 2024
 Encrypted index: b8a9f2e1d4c6...
 ```
 
-**With OpenRouter**:
-```
-Web search not supported with OpenRouter provider.
-To use web search, switch to Claude provider with:
-M-x greger-set-provider RET Anthropic (Claude) RET
-```
-
-Alternative (if `:online` variant implemented):
+**With OpenRouter (uses :online variant)**:
 ```markdown
 # ASSISTANT
 
 Based on recent information, Python 3.13 was released in October 2024.
 
-## Sources
-- [Python Downloads](https://www.python.org/downloads/)
+## https://www.python.org/downloads/
+
+Title: Python Downloads
+Cited text: Python 3.13.0 was released on October 7, 2024
 ```
+
+Note: Citations are similar but simpler - no encrypted index, no fold/unfold functionality.
 
 ### Example 3: Tool Calling
 
