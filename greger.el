@@ -102,6 +102,24 @@ If nil, the ANTHROPIC_API_KEY environment variable will be used."
   :type '(choice (const nil) function)
   :group 'greger)
 
+(defcustom greger-provider 'anthropic
+  "Provider to use for API calls.
+Options: 'anthropic (default) or 'openrouter (beta)."
+  :type '(choice (const :tag "Anthropic (Claude)" anthropic)
+                 (const :tag "OpenRouter (Beta)" openrouter))
+  :group 'greger)
+
+(defcustom greger-openrouter-api-key-fn nil
+  "Function to call to get the OpenRouter API key.
+If nil, uses OPENROUTER_API_KEY environment variable."
+  :type '(choice (const nil) function)
+  :group 'greger)
+
+(defcustom greger-openrouter-model "openai/gpt-5-codex"
+  "Model to use when greger-provider is 'openrouter."
+  :type 'string
+  :group 'greger)
+
 ;; Tool configuration and agent functionality
 
 (defcustom greger-tools '("read-file" "write-new-file" "replace-file" "str-replace" "make-directory" "rename-file" "delete-files" "list-directory" "ripgrep" "shell-command" "read-webpage")
