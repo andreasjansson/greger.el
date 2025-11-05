@@ -799,6 +799,117 @@ M-x greger-set-openrouter-model RET openai/gpt-5 RET
 4. **Error Messages**: Provider-specific or normalized?
    - **Recommendation**: Normalize error categories, preserve original in details
 
+## Implementation Checklist
+
+### Step 1: Add Configuration Variables
+```elisp
+;; Add to greger.el after existing defcustoms
+(defcustom greger-provider 'anthropic
+  "Provider to use for API calls.
+Options: 'anthropic (default) or 'openrouter (beta)"
+  :type '(choice (const :tag "Anthropic (Claude)" anthropic)
+                 (const :tag "OpenRouter (Beta)" openrouter))
+  :group 'greger)
+
+(defcustom greger-openrouter-api-key-fn nil
+  "Function to return OpenRouter API key.
+If nil, uses OPENROUTER_API_KEY environment variable."
+  :type '(choice (const nil) function)
+  :group 'greger)
+
+(defcustom greger-openrouter-model "openai/gpt-5-codex"
+  "Model to use when greger-provider is 'openrouter."
+  :type 'string
+  :group 'greger)
+```
+
+### Step 2: Add Dispatch Function
+```elisp
+;; In greger.el, rename existing function:
+;; greger--run-agent-loop → greger--run-agent-loop-claude
+
+;; Then add new dispatch function:
+(defun greger--run-agent-loop (state)
+  "Run agent loop - dispatches based on greger-provider."
+  (if (eq greger-provider 'openrouter)
+      (greger-openrouter--run-agent-loop state)
+    (greger--run-agent-loop-claude state)))
+```
+
+### Step 3: Create greger-openrouter.el
+- Copy template from this document
+- Implement all functions
+- Test incrementally
+
+### Step 4: Add UI Commands
+```elisp
+;; Add to greger.el
+(defun greger-set-provider () ...)
+(defun greger-set-openrouter-model () ...)
+
+;; Add to greger-mode-map
+(define-key greger-mode-map (kbd "C-; p") #'greger-set-provider)
+(define-key greger-mode-map (kbd "C-; o") #'greger-set-openrouter-model)
+```
+
+### Step 5: Update Documentation
+- README: Add OpenRouter section
+- Document API key setup
+- Document model selection
+- Note beta status and limitations
+
+## Known Limitations (Beta)
+
+1. **No Server Tools**: OpenRouter doesn't support Anthropic's `web_search` server tool
+2. **Reasoning Token Support Varies**: Not all models expose thinking/reasoning
+3. **Different Token Limits**: Each model has different context windows
+4. **Cost Differences**: OpenRouter adds markup, pricing varies by model
+5. **Message Format Conversion**: May lose some nuances in complex scenarios
+
+## Future Enhancements
+
+1. **Cost Tracking**: Add per-provider cost tracking
+2. **Model Recommendations**: Suggest models based on task type
+3. **Automatic Fallback**: Try multiple providers if one fails
+4. **More Providers**: Add direct Gemini, Mistral, etc.
+5. **Reasoning Normalization**: Better handling of different thinking formats
+
+## Benefits of This Approach
+
+1. ✅ **Zero Risk**: Current code path completely unchanged
+2. ✅ **No Refactoring**: Duplication is acceptable for safety
+3. ✅ **Easy Rollback**: Just set `greger-provider` to `'anthropic`
+4. ✅ **Independent Evolution**: Each provider can optimize separately
+5. ✅ **Clear Ownership**: Easy to understand which code does what
+6. ✅ **Beta Testing**: Can gather feedback before committing to abstraction
+
+## Example Usage
+
+```elisp
+;; In your Emacs config:
+
+;; Option 1: Use OpenRouter with GPT-5 Codex
+(setq greger-provider 'openrouter)
+(setq greger-openrouter-model "openai/gpt-5-codex")
+(setq greger-openrouter-api-key-fn
+      (lambda () (auth-source-pick-first-password :host "openrouter.ai")))
+
+;; Option 2: Stick with Claude (default, no config needed)
+;; greger-provider defaults to 'anthropic
+
+;; Option 3: Switch on the fly
+M-x greger-set-provider RET OpenRouter (Beta) RET
+M-x greger-set-openrouter-model RET openai/gpt-5 RET
+M-RET ;; Start chat with selected provider
+```
+
 ## Conclusion
 
-This design provides a clean path to OpenRouter support while maintaining 100% backward compatibility. The provider abstraction makes it easy to add more providers in the future, and the opt-in nature means existing users see zero disruption.
+This design provides OpenRouter support as a **completely parallel implementation** with:
+- **Zero modifications** to existing Claude code path
+- **One dispatch point** to route to the right implementation
+- **Complete isolation** of provider-specific logic
+- **Easy opt-in/opt-out** via configuration
+- **Future-proof** for adding more providers
+
+The key insight: **duplication is better than the wrong abstraction** when you need 100% backward compatibility. Once both implementations are stable and patterns emerge, we can consider refactoring to share code - but that's a future optimization, not a requirement.
