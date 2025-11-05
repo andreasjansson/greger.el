@@ -83,9 +83,46 @@ This will automatically install Greger from MELPA and set up the recommended key
 
 ## Usage
 
+### Provider Selection (Beta)
+
+Greger supports multiple AI providers:
+- **Anthropic (Claude)** - Default, recommended
+- **OpenRouter** - Access to 400+ models including GPT-5, GPT-5 Codex
+
+To use OpenRouter:
+
+```elisp
+;; Set provider
+(setq greger-provider 'openrouter)
+
+;; Set model (default is openai/gpt-5-codex)
+(setq greger-openrouter-model "openai/gpt-5-codex")
+
+;; Set API key
+(setenv "OPENROUTER_API_KEY" "your-key-here")
+;; Or use a function:
+(setq greger-openrouter-api-key-fn
+      (lambda () (auth-source-pick-first-password :host "openrouter.ai")))
+```
+
+Available OpenRouter models include:
+- `openai/gpt-5-codex` - Purpose-built for coding (recommended)
+- `openai/gpt-5` - Latest GPT-5
+- `openai/gpt-5-mini` - Faster, cheaper
+- `anthropic/claude-sonnet-4` - Claude via OpenRouter
+- `google/gemini-2.5-pro` - Google's latest
+- 400+ more at [openrouter.ai/models](https://openrouter.ai/models)
+
+**Note**: OpenRouter is in beta. Key differences from Claude:
+- Thinking blocks work but without cryptographic signatures
+- Web search uses `:online` variant (works great with OpenAI native search)
+- Citations shown in simplified format (no encryption/folding)
+
+You can switch providers interactively with `M-x greger-set-provider` and select models with `M-x greger-set-openrouter-model`.
+
 ### Authentication
 
-There are two ways to authenticate Greger:
+For **Anthropic (Claude)**:
 * Set the `ANTHROPIC_API_KEY` environment variable, or
 * Set `greger-anthropic-key-fn` to a function that returns an API key
 
@@ -100,6 +137,17 @@ If you use `greger-anthropic-key-fn`, you can for example use [auth-source](http
 ```elisp
 (setq greger-anthropic-key-fn
       (lambda () (cadr (auth-source-user-and-password "api.anthropic.com" "emacs"))))
+```
+
+For **OpenRouter**:
+* Set the `OPENROUTER_API_KEY` environment variable, or
+* Set `greger-openrouter-api-key-fn` to a function that returns an API key
+
+```elisp
+(setenv "OPENROUTER_API_KEY" "your-openrouter-key")
+;; Or with auth-source:
+(setq greger-openrouter-api-key-fn
+      (lambda () (auth-source-pick-first-password :host "openrouter.ai")))
 ```
 
 Or in use-package:

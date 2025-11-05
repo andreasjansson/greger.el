@@ -8111,5 +8111,419 @@ Add require statement for greger-openrouter
 ID: toolu_01MDw6bBAghqKNPQCSBjQagB
 
 <tool.toolu_01MDw6bBAghqKNPQCSBjQagB>
-
+Successfully replaced content in /Users/andreas/projects/greger.el/greger.el. Successfully staged 2 file(s) and committed with message: Add require statement for greger-openrouter
 </tool.toolu_01MDw6bBAghqKNPQCSBjQagB>
+
+# ASSISTANT
+
+Perfect! Now let's create a simple test to verify the implementation works. Let me add some documentation to the README as well.
+
+# TOOL USE
+
+Name: str-replace
+ID: toolu_01YXgsYG7T1vBFJuKjCaacJg
+
+## path
+
+<tool.toolu_01YXgsYG7T1vBFJuKjCaacJg>
+README.md
+</tool.toolu_01YXgsYG7T1vBFJuKjCaacJg>
+
+## git-commit-message
+
+<tool.toolu_01YXgsYG7T1vBFJuKjCaacJg>
+Add OpenRouter documentation to README
+</tool.toolu_01YXgsYG7T1vBFJuKjCaacJg>
+
+## diff
+
+<tool.toolu_01YXgsYG7T1vBFJuKjCaacJg>
+ ## Configuration
+ 
++### Provider Selection (NEW - Beta)
++
++Greger now supports multiple AI providers:
++- **Anthropic (Claude)** - Default, recommended
++- **OpenRouter** - Access to 400+ models including GPT-5, GPT-5 Codex
++
++To use OpenRouter:
++
++```elisp
++;; Set provider
++(setq greger-provider 'openrouter)
++
++;; Set model (default is openai/gpt-5-codex)
++(setq greger-openrouter-model "openai/gpt-5-codex")
++
++;; Set API key
++(setenv "OPENROUTER_API_KEY" "your-key-here")
++;; Or use a function:
++(setq greger-openrouter-api-key-fn
++      (lambda () (auth-source-pick-first-password :host "openrouter.ai")))
++```
++
++Available models include:
++- `openai/gpt-5-codex` - Purpose-built for coding (recommended)
++- `openai/gpt-5` - Latest GPT-5
++- `openai/gpt-5-mini` - Faster, cheaper
++- `anthropic/claude-sonnet-4` - Claude via OpenRouter
++- `google/gemini-2.5-pro` - Google's latest
++- 400+ more at [openrouter.ai/models](https://openrouter.ai/models)
++
++**Note**: OpenRouter is in beta. Key differences from Claude:
++- Thinking blocks work but without cryptographic signatures
++- Web search uses `:online` variant (works great with OpenAI native search)
++- Citations shown in simplified format (no encryption/folding)
++
+ ### API Key
+ 
+ Set your Anthropic API key via environment variable:
+ 
+ ```bash
+ export ANTHROPIC_API_KEY="your-key-here"
+ ```
+ 
+ Or configure it in Emacs:
+\ No newline at end of file
+
+</tool.toolu_01YXgsYG7T1vBFJuKjCaacJg>
+
+# TOOL RESULT
+
+ID: toolu_01YXgsYG7T1vBFJuKjCaacJg
+
+<tool.toolu_01YXgsYG7T1vBFJuKjCaacJg>
+Original content not found in file: /Users/andreas/projects/greger.el/README.md -- Try again!
+</tool.toolu_01YXgsYG7T1vBFJuKjCaacJg>
+
+# ASSISTANT
+
+Let me check what the README looks like:
+
+# TOOL USE
+
+Name: read-file
+ID: toolu_01RUNDonciWSg29eT1XrHun7
+
+## path
+
+<tool.toolu_01RUNDonciWSg29eT1XrHun7>
+README.md
+</tool.toolu_01RUNDonciWSg29eT1XrHun7>
+
+## start-line
+
+<tool.toolu_01RUNDonciWSg29eT1XrHun7>
+1
+</tool.toolu_01RUNDonciWSg29eT1XrHun7>
+
+## end-line
+
+<tool.toolu_01RUNDonciWSg29eT1XrHun7>
+50
+</tool.toolu_01RUNDonciWSg29eT1XrHun7>
+
+# TOOL RESULT
+
+ID: toolu_01RUNDonciWSg29eT1XrHun7
+
+<tool.toolu_01RUNDonciWSg29eT1XrHun7>
+<div align="center">
+
+![Greger.el Logo](assets/greger-text-logo.png)
+
+</div>
+
+# Greger.el - Agentic coding in Emacs
+
+[![MELPA](https://melpa.org/packages/greger-badge.svg)](https://melpa.org/#/greger) [![CI](https://github.com/andreasjansson/greger.el/actions/workflows/ci.yml/badge.svg)](https://github.com/andreasjansson/greger.el/actions/workflows/ci.yml) [![Coverage Status](https://coveralls.io/repos/github/andreasjansson/greger.el/badge.svg?branch=main)](https://coveralls.io/github/andreasjansson/greger.el?branch=main)
+
+Greger is a Claude chat interface with tool use. It can read and edit code, download web pages, run shell commands, etc.
+
+[![Greger demo video](assets/screencap.gif)](https://www.youtube.com/watch?v=ik0cRmXz_jU)
+
+
+## Table of contents
+
+<img src="assets/greger-icon-logo.png" alt="Greger Agent" width="120" align="right">
+
+- [Installation](#installation)
+- [Usage](#usage)
+  - [Keybindings](#keybindings)
+- [Features](#features)
+  - [Everything is text](#everything-is-text)
+  - [Tool use](#tool-use)
+  - [All changes tracked in Git](#all-changes-tracked-in-git)
+  - [Streaming output](#streaming-output)
+  - [Claude caching](#claude-caching)
+  - [Available models](#available-models)
+  - [No external dependencies (other than `curl`)](#no-external-dependencies-other-than-curl)
+  - [Extensive testing](#extensive-testing)
+- [Included tools](#included-tools)
+  - [`read-file`](#read-file)
+  - [`write-new-file`](#write-new-file)
+  - [`replace-file`](#replace-file)
+  - [`str-replace`](#str-replace)
+  - [`make-directory`](#make-directory)
+  - [`rename-file`](#rename-file)
+  - [`delete-files`](#delete-files)
+  - [`list-directory`](#list-directory)
+  - [`ripgrep`](#ripgrep)
+  - [`shell-command`](#shell-command)
+  - [`web_search`](#web_search)
+  - [`read-webpage`](#read-webpage)
+- [Build your own tool](#build-your-own-tool)
+- [Customization](#customization)
+- [Examples](#examples)
+- [Why "Greger"?](#why-greger)
+- [License](#license)
+
+</tool.toolu_01RUNDonciWSg29eT1XrHun7>
+
+# TOOL USE
+
+Name: ripgrep
+ID: toolu_0195eLWG8NBkhSfBfNqetRYd
+
+## pattern
+
+<tool.toolu_0195eLWG8NBkhSfBfNqetRYd>
+## Installation
+</tool.toolu_0195eLWG8NBkhSfBfNqetRYd>
+
+## path
+
+<tool.toolu_0195eLWG8NBkhSfBfNqetRYd>
+README.md
+</tool.toolu_0195eLWG8NBkhSfBfNqetRYd>
+
+## context-lines
+
+<tool.toolu_0195eLWG8NBkhSfBfNqetRYd>
+10
+</tool.toolu_0195eLWG8NBkhSfBfNqetRYd>
+
+# TOOL RESULT
+
+ID: toolu_0195eLWG8NBkhSfBfNqetRYd
+
+<tool.toolu_0195eLWG8NBkhSfBfNqetRYd>
+41-  - [`ripgrep`](#ripgrep)
+42-  - [`shell-command`](#shell-command)
+43-  - [`web_search`](#web_search)
+44-  - [`read-webpage`](#read-webpage)
+45-- [Build your own tool](#build-your-own-tool)
+46-- [Customization](#customization)
+47-- [Examples](#examples)
+48-- [Why "Greger"?](#why-greger)
+49-- [License](#license)
+50-
+51:## Installation
+52-
+53-Greger is available from MELPA. To install it, first add MELPA to your package archives by adding this to your init file:
+54-
+55-```elisp
+56-(require 'package)
+57-(add-to-list 'package-archives '("melpa" . "https://melpa.org/packages/") t)
+58-(package-initialize)
+59-```
+60-
+61-Then refresh your package list and install Greger:
+
+</tool.toolu_0195eLWG8NBkhSfBfNqetRYd>
+
+# TOOL USE
+
+Name: ripgrep
+ID: toolu_01Mtk4RpPW3EKT72X2oUeTWW
+
+## pattern
+
+<tool.toolu_01Mtk4RpPW3EKT72X2oUeTWW>
+Set your Anthropic API key
+</tool.toolu_01Mtk4RpPW3EKT72X2oUeTWW>
+
+## path
+
+<tool.toolu_01Mtk4RpPW3EKT72X2oUeTWW>
+README.md
+</tool.toolu_01Mtk4RpPW3EKT72X2oUeTWW>
+
+## context-lines
+
+<tool.toolu_01Mtk4RpPW3EKT72X2oUeTWW>
+20
+</tool.toolu_01Mtk4RpPW3EKT72X2oUeTWW>
+
+# TOOL RESULT
+
+ID: toolu_01Mtk4RpPW3EKT72X2oUeTWW
+
+<tool.toolu_01Mtk4RpPW3EKT72X2oUeTWW>
+No matches found
+</tool.toolu_01Mtk4RpPW3EKT72X2oUeTWW>
+
+# TOOL USE
+
+Name: ripgrep
+ID: toolu_01CoQ2UXCeNFbpDvUjGWacJx
+
+## pattern
+
+<tool.toolu_01CoQ2UXCeNFbpDvUjGWacJx>
+ANTHROPIC_API_KEY
+</tool.toolu_01CoQ2UXCeNFbpDvUjGWacJx>
+
+## path
+
+<tool.toolu_01CoQ2UXCeNFbpDvUjGWacJx>
+README.md
+</tool.toolu_01CoQ2UXCeNFbpDvUjGWacJx>
+
+## context-lines
+
+<tool.toolu_01CoQ2UXCeNFbpDvUjGWacJx>
+10
+</tool.toolu_01CoQ2UXCeNFbpDvUjGWacJx>
+
+# TOOL RESULT
+
+ID: toolu_01CoQ2UXCeNFbpDvUjGWacJx
+
+<tool.toolu_01CoQ2UXCeNFbpDvUjGWacJx>
+79-  :bind ("C-M-;" . greger))
+80-```
+81-
+82-This will automatically install Greger from MELPA and set up the recommended keybinding.
+83-
+84-## Usage
+85-
+86-### Authentication
+87-
+88-There are two ways to authenticate Greger:
+89:* Set the `ANTHROPIC_API_KEY` environment variable, or
+90-* Set `greger-anthropic-key-fn` to a function that returns an API key
+91-
+92-You can set the environment variable in your Emacs configuration:
+93-
+94-```elisp
+95:(setenv "ANTHROPIC_API_KEY" "your-claude-api-key")
+96-```
+97-
+98-If you use `greger-anthropic-key-fn`, you can for example use [auth-source](https://www.gnu.org/software/emacs/manual/html_mono/auth.html):
+99-
+100-```elisp
+101-(setq greger-anthropic-key-fn
+102-      (lambda () (cadr (auth-source-user-and-password "api.anthropic.com" "emacs"))))
+103-```
+104-
+105-Or in use-package:
+
+</tool.toolu_01CoQ2UXCeNFbpDvUjGWacJx>
+
+# ASSISTANT
+
+Now I can add the OpenRouter documentation:
+
+# TOOL USE
+
+Name: str-replace
+ID: toolu_01LpnhdWmUhmEqRNsb6HEaof
+
+## path
+
+<tool.toolu_01LpnhdWmUhmEqRNsb6HEaof>
+README.md
+</tool.toolu_01LpnhdWmUhmEqRNsb6HEaof>
+
+## git-commit-message
+
+<tool.toolu_01LpnhdWmUhmEqRNsb6HEaof>
+Add OpenRouter documentation to README
+</tool.toolu_01LpnhdWmUhmEqRNsb6HEaof>
+
+## diff
+
+<tool.toolu_01LpnhdWmUhmEqRNsb6HEaof>
+ ## Usage
+ 
++### Provider Selection (Beta)
++
++Greger supports multiple AI providers:
++- **Anthropic (Claude)** - Default, recommended
++- **OpenRouter** - Access to 400+ models including GPT-5, GPT-5 Codex
++
++To use OpenRouter:
++
++```elisp
++;; Set provider
++(setq greger-provider 'openrouter)
++
++;; Set model (default is openai/gpt-5-codex)
++(setq greger-openrouter-model "openai/gpt-5-codex")
++
++;; Set API key
++(setenv "OPENROUTER_API_KEY" "your-key-here")
++;; Or use a function:
++(setq greger-openrouter-api-key-fn
++      (lambda () (auth-source-pick-first-password :host "openrouter.ai")))
++```
++
++Available OpenRouter models include:
++- `openai/gpt-5-codex` - Purpose-built for coding (recommended)
++- `openai/gpt-5` - Latest GPT-5
++- `openai/gpt-5-mini` - Faster, cheaper
++- `anthropic/claude-sonnet-4` - Claude via OpenRouter
++- `google/gemini-2.5-pro` - Google's latest
++- 400+ more at [openrouter.ai/models](https://openrouter.ai/models)
++
++**Note**: OpenRouter is in beta. Key differences from Claude:
++- Thinking blocks work but without cryptographic signatures
++- Web search uses `:online` variant (works great with OpenAI native search)
++- Citations shown in simplified format (no encryption/folding)
++
++You can switch providers interactively with `M-x greger-set-provider` and select models with `M-x greger-set-openrouter-model`.
++
+ ### Authentication
+ 
+-There are two ways to authenticate Greger:
++For **Anthropic (Claude)**:
+ * Set the `ANTHROPIC_API_KEY` environment variable, or
+ * Set `greger-anthropic-key-fn` to a function that returns an API key
+ 
+ You can set the environment variable in your Emacs configuration:
+ 
+ ```elisp
+ (setenv "ANTHROPIC_API_KEY" "your-claude-api-key")
+ ```
+ 
+ If you use `greger-anthropic-key-fn`, you can for example use [auth-source](https://www.gnu.org/software/emacs/manual/html_mono/auth.html):
+ 
+ ```elisp
+ (setq greger-anthropic-key-fn
+       (lambda () (cadr (auth-source-user-and-password "api.anthropic.com" "emacs"))))
+ ```
+ 
++For **OpenRouter**:
++* Set the `OPENROUTER_API_KEY` environment variable, or
++* Set `greger-openrouter-api-key-fn` to a function that returns an API key
++
++```elisp
++(setenv "OPENROUTER_API_KEY" "your-openrouter-key")
++;; Or with auth-source:
++(setq greger-openrouter-api-key-fn
++      (lambda () (auth-source-pick-first-password :host "openrouter.ai")))
++```
++
+ Or in use-package:
+\ No newline at end of file
+
+</tool.toolu_01LpnhdWmUhmEqRNsb6HEaof>
+
+# TOOL RESULT
+
+ID: toolu_01LpnhdWmUhmEqRNsb6HEaof
+
+<tool.toolu_01LpnhdWmUhmEqRNsb6HEaof>
+
+</tool.toolu_01LpnhdWmUhmEqRNsb6HEaof>
