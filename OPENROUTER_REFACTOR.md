@@ -1388,4 +1388,4 @@ The key insight: **duplication is better than the wrong abstraction** when you n
 **A:** No, they're separate services. You need an OpenRouter API key from openrouter.ai.
 
 ### Q: What happens if I set `greger-server-tools` with OpenRouter?
-**A:** You'll get a warning message: "Server tools (web_search) not supported with OpenRouter provider". The tools won't be sent in the request.
+**A:** If you have `web_search` in `greger-server-tools`, OpenRouter will automatically use the `:online` variant to enable web search. It works seamlessly - just with a different implementation than Claude's server-side tool.
