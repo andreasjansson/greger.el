@@ -128,91 +128,175 @@ If nil, uses OPENROUTER_API_KEY environment variable."
 This is a COMPLETE parallel implementation - it duplicates functionality rather than sharing code with Claude:
 
 ```elisp
-(require 'greger-provider)
+;;; greger-openrouter.el --- OpenRouter client for greger -*- lexical-binding: t -*-
+
+(require 'json)
+(require 'cl-lib)
 
 (defconst greger-openrouter-api-url "https://openrouter.ai/api/v1/chat/completions"
   "OpenRouter API endpoint.")
 
-(cl-defmethod greger-provider-build-headers ((provider (eql 'openrouter)) auth-key)
-  "Build OpenRouter headers."
+;; State structure - parallel to greger-client-state but for OpenRouter
+(cl-defstruct greger-openrouter-state
+  accumulated-output
+  current-tool-calls  ; OpenAI accumulates tool calls differently
+  process
+  output-buffer
+  undo-handle
+  block-start-callback
+  text-delta-callback
+  block-stop-callback
+  complete-callback
+  restore-callback
+  error-callback
+  error-message)
+
+;;; Main streaming function - parallel to greger-client-stream
+(cl-defun greger-openrouter-stream (&key model dialog tools buffer block-start-callback text-delta-callback block-stop-callback complete-callback thinking-budget max-tokens auth-key error-callback)
+  "Stream request to OpenRouter API.
+Similar to greger-client-stream but for OpenRouter/OpenAI format."
+  (let* ((output-buffer (or buffer (current-buffer)))
+         (undo-handle (prepare-change-group output-buffer))
+         (request-spec (greger-openrouter--build-request model dialog tools thinking-budget max-tokens auth-key))
+         (restore-callback (lambda (state)
+                             (let ((buffer (greger-openrouter-state-output-buffer state)))
+                               (when (buffer-live-p buffer)
+                                 (with-current-buffer buffer
+                                   (undo-amalgamate-change-group (greger-openrouter-state-undo-handle state))
+                                   (accept-change-group (greger-openrouter-state-undo-handle state)))))))
+         (process (greger-openrouter--start-curl-process request-spec))
+         (state (make-greger-openrouter-state
+                 :accumulated-output ""
+                 :current-tool-calls (make-hash-table :test 'equal)
+                 :process process
+                 :block-start-callback block-start-callback
+                 :text-delta-callback text-delta-callback
+                 :block-stop-callback block-stop-callback
+                 :complete-callback complete-callback
+                 :restore-callback restore-callback
+                 :output-buffer output-buffer
+                 :undo-handle undo-handle
+                 :error-callback error-callback)))
+    
+    (activate-change-group undo-handle)
+    
+    (set-process-filter process
+                        (lambda (_proc output)
+                          (greger-openrouter--process-output-chunk output state)))
+    
+    (set-process-sentinel process
+                          (lambda (proc _event)
+                            (greger-openrouter--handle-completion proc state)))
+    
+    (set-process-query-on-exit-flag process nil)
+    
+    state))
+
+(defun greger-openrouter--build-request (model dialog tools thinking-budget max-tokens auth-key)
+  "Build OpenRouter API request."
+  (let* ((headers (greger-openrouter--build-headers auth-key))
+         (data (greger-openrouter--build-data model dialog tools thinking-budget max-tokens)))
+    (list :url greger-openrouter-api-url
+          :method "POST"
+          :headers headers
+          :data data)))
+
+(defun greger-openrouter--build-headers (api-key)
+  "Build OpenRouter headers - Bearer auth, not x-api-key like Anthropic."
   `(("Content-Type" . "application/json")
-    ("Authorization" . ,(concat "Bearer " auth-key))
+    ("Authorization" . ,(concat "Bearer " api-key))
     ("HTTP-Referer" . "https://github.com/andreasjansson/greger.el")
     ("X-Title" . "Greger.el")))
 
-(cl-defmethod greger-provider-build-data ((provider (eql 'openrouter)) model dialog tools server-tools thinking-budget max-tokens)
-  "Build OpenRouter request data.
-OpenRouter uses OpenAI-compatible format."
-  (let ((messages (greger-openrouter--format-messages dialog))
+(defun greger-openrouter--build-data (model dialog tools thinking-budget max-tokens)
+  "Build OpenRouter request data in OpenAI format."
+  (let ((messages (greger-openrouter--convert-dialog-to-messages dialog))
         (request-data `(("model" . ,model)
-                        ("messages" . ,messages)
                         ("max_tokens" . ,max-tokens)
                         ("stream" . t))))
     
-    ;; Add tools if present (OpenAI format)
+    (push `("messages" . ,messages) request-data)
+    
+    ;; Add tools in OpenAI format
     (when tools
-      (push `("tools" . ,(greger-openrouter--format-tools tools)) request-data)
+      (push `("tools" . ,(greger-openrouter--convert-tools tools)) request-data)
       (push `("tool_choice" . "auto") request-data))
     
-    ;; Add reasoning parameter for thinking
+    ;; Add reasoning for thinking (if model supports it)
     (when (and thinking-budget (> thinking-budget 0))
-      (push `("reasoning" . (("effort" . "high")
-                             ("max_tokens" . ,thinking-budget))) request-data))
+      (push `("reasoning" . (("max_tokens" . ,thinking-budget))) request-data)
+      (push `("include_reasoning" . t) request-data))
     
     (json-encode request-data)))
 
-(cl-defmethod greger-provider-process-event ((provider (eql 'openrouter)) data-json state)
-  "Process OpenRouter streaming event.
-OpenRouter uses OpenAI-compatible SSE format with delta fields."
-  (let* ((data (json-read-from-string data-json))
-         (choices (alist-get 'choices data))
-         (choice (aref choices 0))
-         (delta (alist-get 'delta choice))
-         (finish-reason (alist-get 'finish_reason choice)))
-    
-    (cond
-     ;; Text delta
-     ((alist-get 'content delta)
-      (greger-openrouter--handle-text-delta delta state))
-     
-     ;; Tool call delta
-     ((alist-get 'tool_calls delta)
-      (greger-openrouter--handle-tool-call-delta delta state))
-     
-     ;; Reasoning delta (if model supports it)
-     ((alist-get 'reasoning delta)
-      (greger-openrouter--handle-reasoning-delta delta state))
-     
-     ;; Completion
-     ((string= finish-reason "stop")
-      (greger-openrouter--handle-completion state))
-     
-     ((string= finish-reason "tool_calls")
-      (greger-openrouter--handle-tool-calls-completion state)))))
-
-(defun greger-openrouter--format-messages (dialog)
-  "Convert Greger dialog format to OpenRouter/OpenAI message format.
-Handles differences:
-- Anthropic uses 'content' blocks with 'type' field
-- OpenAI uses simpler message format
-- Tool results have different structure"
-  (mapcar
-   (lambda (message)
-     (let ((role (alist-get 'role message))
-           (content (alist-get 'content message)))
-       
-       (cond
-        ;; Simple text message
-        ((stringp content)
-         `((role . ,role)
-           (content . ,content)))
+(defun greger-openrouter--convert-dialog-to-messages (dialog)
+  "Convert Greger dialog format to OpenAI/OpenRouter message format.
+This handles the differences between Anthropic's content blocks and OpenAI's simpler format."
+  (let (messages)
+    (dolist (msg dialog)
+      (let ((role (alist-get 'role msg))
+            (content (alist-get 'content msg)))
         
-        ;; Complex content blocks (tool use, etc.)
-        ((listp content)
-         (greger-openrouter--format-complex-message role content)))))
-   dialog))
+        ;; Skip system messages for now (handle separately)
+        (unless (string= role "system")
+          (cond
+           ;; Simple string content
+           ((stringp content)
+            (push `((role . ,role) (content . ,content)) messages))
+           
+           ;; Complex content - need to convert
+           ((listp content)
+            (let ((converted (greger-openrouter--convert-content-blocks role content)))
+              (when converted
+                (setq messages (append converted messages)))))))))
+    
+    (nreverse messages)))
 
-(defun greger-openrouter--format-tools (tools)
+(defun greger-openrouter--convert-content-blocks (role content-blocks)
+  "Convert Anthropic content blocks to OpenAI format.
+Returns list of messages (may be multiple for tool calls)."
+  (let (result-messages
+        current-text
+        tool-calls)
+    
+    (dolist (block content-blocks)
+      (let ((type (alist-get 'type block)))
+        (cond
+         ;; Text content
+         ((string= type "text")
+          (setq current-text (alist-get 'text block)))
+         
+         ;; Thinking - treat as text for now
+         ((string= type "thinking")
+          (setq current-text (alist-get 'thinking block)))
+         
+         ;; Tool use - convert to OpenAI tool call format
+         ((string= type "tool_use")
+          (let ((tool-call `((id . ,(alist-get 'id block))
+                             (type . "function")
+                             (function . ((name . ,(alist-get 'name block))
+                                          (arguments . ,(json-encode (alist-get 'input block))))))))
+            (push tool-call tool-calls)))
+         
+         ;; Tool result - convert to OpenAI tool message format
+         ((string= type "tool_result")
+          (let ((tool-msg `((role . "tool")
+                            (tool_call_id . ,(alist-get 'tool_use_id block))
+                            (content . ,(alist-get 'content block)))))
+            (push tool-msg result-messages))))))
+    
+    ;; Build assistant message if we have content or tool calls
+    (when (or current-text tool-calls)
+      (let ((msg `((role . ,role))))
+        (when current-text
+          (push `(content . ,current-text) msg))
+        (when tool-calls
+          (push `(tool_calls . ,(vconcat (nreverse tool-calls))) msg))
+        (push msg result-messages)))
+    
+    (nreverse result-messages)))
+
+(defun greger-openrouter--convert-tools (tools)
   "Convert Anthropic tool format to OpenAI function calling format."
   (mapcar
    (lambda (tool)
@@ -222,17 +306,180 @@ Handles differences:
                     (parameters . ,(alist-get 'input_schema tool))))))
    tools))
 
-(defun greger-openrouter--handle-reasoning-delta (delta state)
-  "Handle reasoning/thinking tokens if model supports them.
-OpenRouter exposes reasoning via 'reasoning' field in delta."
-  (when-let ((reasoning-text (alist-get 'reasoning delta)))
-    ;; Convert to Anthropic-style thinking format for consistency
-    (greger-provider--append-thinking-text state reasoning-text)))
+(defun greger-openrouter--process-output-chunk (output state)
+  "Process streaming output chunk - similar to greger-client but for OpenAI format."
+  (setf (greger-openrouter-state-accumulated-output state)
+        (concat (greger-openrouter-state-accumulated-output state) output))
+  
+  (greger-openrouter--process-events state))
+
+(defun greger-openrouter--process-events (state)
+  "Process OpenAI-style SSE events."
+  (let ((accumulated (greger-openrouter-state-accumulated-output state)))
+    
+    (while (string-match "\n" accumulated)
+      (let* ((line-end (match-end 0))
+             (line (substring accumulated 0 (1- line-end))))
+        
+        (when (string-prefix-p "data: " line)
+          (let ((data-json (substring line 6)))
+            (unless (string= data-json "[DONE]")
+              (greger-openrouter--handle-event data-json state))))
+        
+        (setq accumulated (substring accumulated line-end))))
+    
+    (setf (greger-openrouter-state-accumulated-output state) accumulated)))
+
+(defun greger-openrouter--handle-event (data-json state)
+  "Handle OpenAI-style streaming event with delta."
+  (let* ((data (json-read-from-string data-json))
+         (choices (alist-get 'choices data))
+         (choice (when choices (aref choices 0)))
+         (delta (alist-get 'delta choice))
+         (finish-reason (alist-get 'finish_reason choice)))
+    
+    (when delta
+      (cond
+       ;; Text delta
+       ((alist-get 'content delta)
+        (when-let ((callback (greger-openrouter-state-text-delta-callback state)))
+          (funcall callback (alist-get 'content delta))))
+       
+       ;; Reasoning/thinking delta
+       ((alist-get 'reasoning delta)
+        (when-let ((callback (greger-openrouter-state-text-delta-callback state)))
+          (funcall callback (alist-get 'reasoning delta))))
+       
+       ;; Tool call delta - accumulate
+       ((alist-get 'tool_calls delta)
+        (greger-openrouter--accumulate-tool-calls delta state))))
+    
+    ;; Handle completion
+    (when finish-reason
+      (greger-openrouter--handle-finish state finish-reason))))
+
+(defun greger-openrouter--accumulate-tool-calls (delta state)
+  "Accumulate tool call deltas - OpenAI sends them incrementally."
+  ;; OpenAI streams tool calls in chunks, need to accumulate them
+  ;; This is more complex than Anthropic's approach
+  (let ((tool-calls (alist-get 'tool_calls delta))
+        (accumulated (greger-openrouter-state-current-tool-calls state)))
+    
+    (when tool-calls
+      (seq-doseq (call tool-calls)
+        (let* ((index (alist-get 'index call))
+               (id (alist-get 'id call))
+               (function-delta (alist-get 'function call))
+               (name (alist-get 'name function-delta))
+               (arguments (alist-get 'arguments function-delta))
+               (existing (gethash index accumulated)))
+          
+          (if existing
+              ;; Append to existing
+              (let ((existing-args (alist-get 'arguments existing)))
+                (setf (alist-get 'arguments existing)
+                      (concat existing-args arguments)))
+            ;; Create new entry
+            (puthash index
+                     `((id . ,id)
+                       (name . ,name)
+                       (arguments . ,arguments))
+                     accumulated)))))))
+
+(defun greger-openrouter--handle-finish (state finish-reason)
+  "Handle completion based on finish reason."
+  (cond
+   ((string= finish-reason "stop")
+    ;; Normal completion - call complete callback
+    (when-let ((callback (greger-openrouter-state-complete-callback state)))
+      (funcall callback (greger-openrouter--build-content-blocks state))))
+   
+   ((string= finish-reason "tool_calls")
+    ;; Tool calls completed - convert and call complete callback
+    (when-let ((callback (greger-openrouter-state-complete-callback state)))
+      (funcall callback (greger-openrouter--build-content-blocks state))))))
+
+(defun greger-openrouter--build-content-blocks (state)
+  "Build Anthropic-style content blocks from accumulated state.
+This converts back to Greger's internal format."
+  (let ((tool-calls (greger-openrouter-state-current-tool-calls state))
+        blocks)
+    
+    (when (> (hash-table-count tool-calls) 0)
+      (maphash
+       (lambda (_index call)
+         (let* ((id (alist-get 'id call))
+                (name (alist-get 'name call))
+                (arguments (alist-get 'arguments call))
+                (parsed-args (json-read-from-string arguments)))
+           (push `((type . "tool_use")
+                   (id . ,id)
+                   (name . ,name)
+                   (input . ,parsed-args))
+                 blocks)))
+       tool-calls))
+    
+    (nreverse blocks)))
+
+(defun greger-openrouter--handle-completion (proc state)
+  "Handle process completion."
+  (when (memq (process-status proc) '(exit signal))
+    (funcall (greger-openrouter-state-restore-callback state) state)
+    
+    (let ((exit-code (process-exit-status proc))
+          (stored-error (greger-openrouter-state-error-message state)))
+      (cond
+       ((and (= exit-code 0) (not stored-error))
+        (when-let ((callback (greger-openrouter-state-complete-callback state)))
+          (funcall callback (greger-openrouter--build-content-blocks state))))
+       
+       ((= exit-code 2)
+        (message "Process interrupted"))
+       
+       (t
+        (let ((error-message (or stored-error
+                                 (format "Process exited with status code %d" exit-code))))
+          (when-let ((callback (greger-openrouter-state-error-callback state)))
+            (funcall callback error-message))))))))
+
+(defun greger-openrouter--start-curl-process (request-spec)
+  "Start curl process for OpenRouter."
+  (start-process-shell-command
+   "greger-openrouter-curl" nil
+   (greger-openrouter--build-curl-command request-spec)))
+
+(defun greger-openrouter--build-curl-command (request-spec)
+  "Build curl command for OpenRouter."
+  (let ((url (plist-get request-spec :url))
+        (method (plist-get request-spec :method))
+        (headers (plist-get request-spec :headers))
+        (data (plist-get request-spec :data)))
+    (format "curl -s -X %s %s %s %s"
+            method
+            (mapconcat (lambda (header)
+                         (format "-H \"%s: %s\"" (car header) (cdr header)))
+                       headers " ")
+            (if data
+                (format "--data-raw %s" (shell-quote-argument data))
+              "")
+            url)))
+
+(defun greger-openrouter--cancel-request (state)
+  "Cancel streaming request."
+  (let ((process (greger-openrouter-state-process state)))
+    (when (process-live-p process)
+      (message "Interrupting generation")
+      (interrupt-process process)
+      (sit-for 0.1)
+      (delete-process process))
+    (funcall (greger-openrouter-state-restore-callback state) state)))
+
+(provide 'greger-openrouter)
 ```
 
-#### 5. Main Entry Point Updates (MODIFIED: `greger.el`)
+#### 3. Agent Loop Entry Point (NEW FUNCTION in `greger.el`)
 
-Update the main file to use the provider abstraction:
+Add the OpenRouter agent loop as a completely separate implementation:
 
 ```elisp
 (require 'greger-config)
