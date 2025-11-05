@@ -1345,7 +1345,7 @@ The key insight: **duplication is better than the wrong abstraction** when you n
 **A:** Yes, if you switch providers mid-chat. The chat format (markdown with tags) is the same. However, features like thinking signatures and citations won't be present in OpenRouter responses.
 
 ### Q: Can I use web search with OpenRouter?
-**A:** Not initially. Web search is disabled for OpenRouter because it uses a different format (annotations vs content blocks). Future enhancement: Could support `:online` variant with simplified citation rendering.
+**A:** Yes! OpenRouter uses the `:online` variant which automatically appends web search to any model. OpenAI models get fast native web search, Claude models get Anthropic's native search, and other models use Exa. Citations are shown in simplified format (no encryption or folding).
 
 ### Q: What about thinking/reasoning?
 **A:** Thinking works with OpenRouter (GPT-5, Claude-via-OpenRouter, some others), but:
