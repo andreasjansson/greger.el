@@ -1148,6 +1148,99 @@ M-x greger-set-openrouter-model RET openai/gpt-5 RET
 M-RET ;; Start chat with selected provider
 ```
 
+## Concrete Examples of Differences
+
+### Example 1: Thinking Block
+
+**With Claude (Anthropic)**:
+```markdown
+# THINKING
+
+Signature: 8f3e9d2a1b7c...
+
+I need to analyze this problem step by step. First, I'll consider...
+```
+
+**With OpenRouter (GPT-5)**:
+```markdown
+# THINKING
+
+Signature: 
+
+I need to analyze this problem step by step. First, I'll consider...
+```
+
+Note: Signature is empty - OpenRouter doesn't provide cryptographic verification of thinking.
+
+### Example 2: Web Search
+
+**With Claude (Anthropic)**:
+```markdown
+# ASSISTANT
+
+Based on recent information, Python 3.13 was released in October 2024.
+
+## https://www.python.org/downloads/
+
+Title: Python Downloads
+Cited text: Python 3.13.0 was released on October 7, 2024
+Encrypted index: b8a9f2e1d4c6...
+```
+
+**With OpenRouter**:
+```
+Web search not supported with OpenRouter provider.
+To use web search, switch to Claude provider with:
+M-x greger-set-provider RET Anthropic (Claude) RET
+```
+
+Alternative (if `:online` variant implemented):
+```markdown
+# ASSISTANT
+
+Based on recent information, Python 3.13 was released in October 2024.
+
+## Sources
+- [Python Downloads](https://www.python.org/downloads/)
+```
+
+### Example 3: Tool Calling
+
+**Both Work the Same** (internally converted):
+```markdown
+# TOOL USE
+
+Name: read-file
+ID: toolu_abc123
+
+## path
+
+<tool.toolu_abc123>
+/path/to/file.py
+</tool.toolu_abc123>
+```
+
+Behind the scenes:
+- Claude sends: `{"type": "tool_use", "id": "toolu_abc123", "name": "read-file", "input": {"path": "/path/to/file.py"}}`
+- OpenRouter sends: `{"tool_calls": [{"id": "call_abc123", "type": "function", "function": {"name": "read-file", "arguments": "{\"path\":\"/path/to/file.py\"}"}}]}`
+- Greger converts both to same internal format
+
+### Example 4: Model Selection
+
+**Claude**:
+```elisp
+(setq greger-model 'claude-sonnet-4-20250514)
+```
+
+**OpenRouter**:
+```elisp
+(setq greger-openrouter-model "openai/gpt-5-codex")
+;; or "openai/gpt-5"
+;; or "anthropic/claude-sonnet-4"
+;; or "google/gemini-2.5-pro"
+;; ... 400+ models
+```
+
 ## Conclusion
 
 This design provides OpenRouter support as a **completely parallel implementation** with:
