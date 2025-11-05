@@ -1251,3 +1251,60 @@ This design provides OpenRouter support as a **completely parallel implementatio
 - **Future-proof** for adding more providers
 
 The key insight: **duplication is better than the wrong abstraction** when you need 100% backward compatibility. Once both implementations are stable and patterns emerge, we can consider refactoring to share code - but that's a future optimization, not a requirement.
+
+## FAQ
+
+### Q: Will my existing chats work with OpenRouter?
+**A:** Yes, if you switch providers mid-chat. The chat format (markdown with tags) is the same. However, features like thinking signatures and citations won't be present in OpenRouter responses.
+
+### Q: Can I use web search with OpenRouter?
+**A:** Not initially. Web search is disabled for OpenRouter because it uses a different format (annotations vs content blocks). Future enhancement: Could support `:online` variant with simplified citation rendering.
+
+### Q: What about thinking/reasoning?
+**A:** Thinking works with OpenRouter (GPT-5, Claude-via-OpenRouter, some others), but:
+- No cryptographic signatures
+- Must explicitly enable with `thinking-budget > 0`
+- Not all models support it
+- Set `include_reasoning: true` in request
+
+### Q: Which models support tool calling?
+**A:** Most modern models on OpenRouter support tool calling (GPT-5, Claude, Gemini, etc.). Check model page on openrouter.ai for specifics.
+
+### Q: How do I know which provider I'm using?
+**A:** Check the mode line - it shows the model name. Also, the variable `greger-provider` tells you.
+
+### Q: Can I switch providers mid-chat?
+**A:** Yes! Use `M-x greger-set-provider`. However, switching from Claude to OpenRouter mid-chat means you lose web search capability going forward.
+
+### Q: Why not just use OpenRouter for everything?
+**A:** 
+- **Pro OpenRouter**: Access to 400+ models, model comparison, sometimes cheaper
+- **Pro Claude**: Native web search with citations, thinking signatures, first-party features
+- Best: Use both! Claude for web research, OpenRouter for coding with GPT-5 Codex
+
+### Q: What if I need web search with OpenRouter?
+**A:** Three options:
+1. Switch to Claude temporarily: `M-x greger-set-provider RET Anthropic RET`
+2. Wait for `:online` variant support (future enhancement)
+3. Use the `read-webpage` tool manually (current workaround)
+
+### Q: Will this slow down Claude?
+**A:** No! Claude path is unchanged. Zero performance impact.
+
+### Q: What's the recommended model for coding?
+**A:** 
+- **OpenRouter**: `openai/gpt-5-codex` - purpose-built for coding
+- **Claude**: `claude-sonnet-4-20250514` - excellent all-around, includes web search
+
+### Q: How much does OpenRouter cost?
+**A:** Varies by model. Example prices:
+- GPT-5 Codex: $1.25/M input, $10/M output
+- GPT-5 Mini: $1.10/M input, $4.40/M output  
+- Claude via OpenRouter: Similar to direct pricing + small markup
+- Check openrouter.ai/models for current pricing
+
+### Q: Can I use my Claude API key with OpenRouter?
+**A:** No, they're separate services. You need an OpenRouter API key from openrouter.ai.
+
+### Q: What happens if I set `greger-server-tools` with OpenRouter?
+**A:** You'll get a warning message: "Server tools (web_search) not supported with OpenRouter provider". The tools won't be sent in the request.
