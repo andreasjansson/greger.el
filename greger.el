@@ -49,7 +49,9 @@
 ;; Eval functionality
 (defconst greger-available-models
   '(claude-sonnet-4-20250514
-    claude-opus-4-20250514)
+    claude-opus-4-20250514
+    claude-opus-4-1-20250805
+    claude-sonnet-4-5)
   "List of available models.")
 
 (defcustom greger-model 'claude-sonnet-4-20250514
@@ -64,7 +66,7 @@ ${greger-prompt-code-style}"
   :type 'string
   :group 'greger)
 
-(defcustom greger-max-tokens 32000
+(defcustom greger-max-tokens 27000
   "Maximum number of tokens to generate."
   :type 'integer
   :group 'greger)

@@ -37,7 +37,7 @@
 
 I don't trust the code you write, so I want you to fail early and loudly.
 
-Don't add fallbacks, guards, or try/catch blocks against errors unless I specifically ask you to.
+**Don't** add fallbacks, guards, or try/catch blocks against errors unless I specifically ask you to. I don't trust the code you write so I'd rather fail hard early and detect your errors than softly receive a fallback and not detect your errors.
 
 ## Imports go at the top
 
@@ -49,11 +49,11 @@ You have a tendency to comment every line. I'm an expert programmer and I prefer
 
 ## Read full files
 
-The first time you read a source code file, read the full file so you get a real holistic understanding of the logic.
+Important: The first time you read a source code file, read the _entire_ file (_not_ piecemeal with start-line and end-line) so you get a real holistic understanding of the logic.
 
-## Today's date
+## IMPORTANT: NO SUMMARY DOCUMENTS!!!
 
-Today's date is " (format-time-string "%B %d, %Y") ".
+IMPORTANT: DON'T write summary documents (e.g. SUMMARY.md, FINAL_REPORT.md) unless the user explicitly asks you to. If you feel the need to explain something, just do it in the chat. The ONLY exception to this rule is if the user explicitly asks you to write up a markdown file on disk.
 "))
 
 (provide 'greger-prompt)
