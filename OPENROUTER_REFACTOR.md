@@ -987,7 +987,7 @@ If nil, uses OPENROUTER_API_KEY environment variable."
 - Map `delta.reasoning` → Greger thinking block
 - Prefix with `# THINKING` header for consistency
 
-### 2. Web Search / Server Tools
+### 2. Web Search
 
 **Claude (Anthropic)**:
 - Has built-in `web_search` **server tool** (Anthropic executes the search)
@@ -1011,12 +1011,12 @@ If nil, uses OPENROUTER_API_KEY environment variable."
 - Greger has complex citation rendering with clickable URLs, fold/unfold
 
 **OpenRouter**:
-- **NO server-side web_search tool**
-- Has `:online` variant that adds web search (client-side integration)
-  - Example: `"anthropic/claude-sonnet-4:online"`
-  - Powered by native search (Anthropic/OpenAI) or Exa for other models
-  - Costs extra: $4 per 1000 results with Exa (default 5 results = $0.02)
-- Returns annotations in different format:
+- Uses `:online` variant that appends web search to any model
+  - Example: `"openai/gpt-5-codex"` becomes `"openai/gpt-5-codex:online"`
+  - Powered by native search (OpenAI/Anthropic built-in) or Exa for other models
+  - OpenAI's native web search is fast and high-quality
+  - Costs: Native search included in model pricing, Exa costs $4 per 1000 results (default 5 = $0.02)
+- Returns annotations at message completion:
   ```json
   {
     "choices": [{
@@ -1026,6 +1026,7 @@ If nil, uses OPENROUTER_API_KEY environment variable."
           "type": "url_citation",
           "url": "https://...",
           "title": "...",
+          "text": "...",
           "start_index": 123,
           "end_index": 456
         }]
@@ -1033,38 +1034,35 @@ If nil, uses OPENROUTER_API_KEY environment variable."
     }]
   }
   ```
-- **Different structure**: annotations are per-message, not per-content-block
-- **No encrypted indices**: Uses simple start/end character positions
 
-**Implementation Options**:
+**Implementation**:
+We append `:online` to the model name automatically when web search is enabled (when `greger-server-tools` contains `"web_search"`). This gives us:
+- Fast OpenAI native web search for GPT models
+- Fast Anthropic native search for Claude models  
+- Exa fallback for other models
 
-**Option A: Disable Web Search for OpenRouter** (RECOMMENDED)
-- Simplest: Don't register `web_search` in server tools for OpenRouter
-- User message: "Web search not available with OpenRouter provider"
-- Benefits:
-  - No complex citation format conversion
-  - Avoids extra costs from `:online` variant
-  - Clear expectations
-- Can add later once we understand annotation format better
+Citations are rendered in simplified format:
+```markdown
+# ASSISTANT
 
-**Option B: Use `:online` Variant with Conversion**
-- Automatically append `:online` to model name when web search requested
-- Convert OpenRouter annotations to Greger citation format
-- Challenges:
-  - Annotations are message-level, not content-block-level
-  - No encrypted indices (can generate dummy ones)
-  - Different timing (annotations come with final message, not as separate blocks)
-  - Harder to render inline with streaming
+Response with web search results...
 
-**Option C: Fall Back to Claude for Web Search**
-- When user requests web search, automatically switch to Claude
-- Display notice: "Switching to Claude for web search capabilities"
-- Benefits:
-  - Full feature parity for web search
-  - No conversion headaches
-  - Clear user communication
+## https://example.com
 
-**Recommendation**: Implement **Option A** initially (disable web search), add **Option C** (fallback) if users demand it, consider **Option B** (conversion) as future enhancement.
+Title: Example Site
+Cited text: relevant quote from search
+
+## https://another.com
+
+Title: Another Source
+Cited text: another quote
+```
+
+**Differences from Claude citations**:
+- No encrypted indices (not provided by OpenRouter)
+- No fold/unfold (always visible)
+- No signature verification
+- Rendered at end of response (not streamed inline)
 
 ### 3. Citations Handling
 
