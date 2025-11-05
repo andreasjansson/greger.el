@@ -20,6 +20,36 @@
 
 ---
 
+## Table of Contents
+
+1. [Overview](#overview)
+2. [Key Requirements Met](#key-requirements-met)
+3. [Core Principle: PARALLEL Implementation](#core-principle-parallel-implementation)
+4. [Architecture Overview](#architecture-overview)
+5. [Critical Feature Differences](#critical-feature-differences)
+   - [Thinking/Reasoning Blocks](#1-thinkingreasoning-blocks)
+   - [Web Search / Server Tools](#2-web-search--server-tools)
+   - [Citations Handling](#3-citations-handling)
+6. [New Files Created](#new-files-created)
+   - [Configuration](#1-configuration-new-file-greger-configel)
+   - [OpenRouter Implementation](#2-openrouter-implementation-new-file-greger-openrouterel)
+   - [Agent Loop Entry Point](#3-agent-loop-entry-point-new-function-in-gregerel)
+   - [Provider Switching UI](#4-provider-switching-ui-new-in-gregerel)
+7. [Implementation Details](#implementation-details)
+8. [Summary of Changes](#summary-of-changes)
+9. [Migration Path](#migration-path)
+10. [Testing Strategy](#testing-strategy)
+11. [Known Limitations](#known-limitations-beta)
+12. [Implementation Checklist](#implementation-checklist)
+13. [Feature Comparison Table](#feature-comparison-table)
+14. [Concrete Examples](#concrete-examples-of-differences)
+15. [Benefits](#benefits-of-this-approach)
+16. [Example Usage](#example-usage)
+17. [FAQ](#faq)
+18. [Conclusion](#conclusion)
+
+---
+
 ## Overview
 
 Add OpenRouter support to Greger to access GPT-5, GPT-5 Codex, and 400+ other models while maintaining 100% backward compatibility with the current Claude-based implementation.
