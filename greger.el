@@ -40,6 +40,7 @@
 (require 'treesit)
 
 (require 'greger-client)
+(require 'greger-openrouter)
 (require 'greger-parser)
 (require 'greger-tools)
 (require 'greger-stdlib)
