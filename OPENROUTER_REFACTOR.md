@@ -1092,6 +1092,33 @@ Features:
 4. **More Providers**: Add direct Gemini, Mistral, etc.
 5. **Reasoning Normalization**: Better handling of different thinking formats
 
+## Feature Comparison Table
+
+| Feature | Claude (Anthropic) | OpenRouter | Implementation Status |
+|---------|-------------------|------------|----------------------|
+| **Basic Streaming** | ✅ SSE with `data:` events | ✅ SSE with `data:` events | ✅ Full support |
+| **Tool Calling** | ✅ Anthropic format | ✅ OpenAI format (converted) | ✅ Full support with format conversion |
+| **Thinking/Reasoning** | ✅ With signatures | ⚠️ Without signatures | ✅ Supported, no signature verification |
+| **Web Search** | ✅ Server-side `web_search` tool | ❌ No server tools | ❌ Disabled (can add `:online` variant later) |
+| **Citations** | ✅ Structured with encryption | ⚠️ Annotations (different format) | ❌ Not implemented (simple sources list possible) |
+| **Content Blocks** | ✅ Native format | ✅ Converted from OpenAI | ✅ Full support |
+| **Error Handling** | ✅ Normalized | ✅ Normalized | ✅ Full support |
+| **Cancellation** | ✅ Interrupt process | ✅ Interrupt process | ✅ Full support |
+| **Model Selection** | ✅ 4 Claude models | ✅ 400+ models | ✅ Full support |
+| **Cost Tracking** | ✅ Token counts | ✅ Token counts | ✅ Full support |
+
+### Legend
+- ✅ Full support
+- ⚠️ Partial support / differences
+- ❌ Not supported / disabled
+
+### Key Differences Summary
+
+1. **Thinking Format**: OpenRouter doesn't provide cryptographic signatures for thinking blocks
+2. **Web Search**: Disabled for OpenRouter (no Anthropic server tools)
+3. **Citations**: Not implemented (OpenRouter uses different annotation format)
+4. **Everything Else**: Works the same or better (more model choices)
+
 ## Benefits of This Approach
 
 1. ✅ **Zero Risk**: Current code path completely unchanged
