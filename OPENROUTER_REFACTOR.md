@@ -140,6 +140,8 @@ This is a COMPLETE parallel implementation - it duplicates functionality rather 
 (cl-defstruct greger-openrouter-state
   accumulated-output
   current-tool-calls  ; OpenAI accumulates tool calls differently
+  thinking-started    ; Track if we've started a thinking block
+  annotations         ; Store annotations (citations) until completion
   process
   output-buffer
   undo-handle
