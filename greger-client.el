@@ -35,10 +35,6 @@
 
 ;;; Constants and configuration
 
-(defconst greger-client-supported-models
-  '(claude-sonnet-4-20250514 claude-opus-4-20250514)
-  "List of supported Claude models.")
-
 (defconst greger-client-api-url "https://api.anthropic.com/v1/messages"
   "Claude API endpoint URL.")
 
@@ -75,10 +71,6 @@ THINKING-BUDGET is the number of thinking tokens.
 MAX-TOKENS is the maximum number of tokens to generate.
 AUTH-KEY is the Anthropic API key to use for authentication.
 ERROR-CALLBACK is called when errors occur during processing."
-  (unless (memq model greger-client-supported-models)
-    (error "Unsupported model: %s. Supported models: %s"
-           model greger-client-supported-models))
-
   (let* ((output-buffer (or buffer (current-buffer)))
          (undo-handle (prepare-change-group output-buffer))
          (request-spec (greger-client--build-request model dialog tools server-tools thinking-budget max-tokens auth-key))
