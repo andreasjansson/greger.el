@@ -215,6 +215,42 @@ The existing parser and renderer were written to handle missing/empty fields gra
 
 **The Key**: We normalize OpenRouter's format to Greger's internal format in `greger-openrouter.el`. Everything downstream is unchanged!
 
+### Conversion Boundary - The Safety Line
+
+```
+┌─────────────────────────────────────────────────────────────┐
+│                    OpenRouter Territory                      │
+│  - greger-openrouter.el handles all OpenRouter specifics    │
+│  - Receives: OpenAI format (delta.reasoning, annotations)   │
+│  - Converts to: Greger internal format                      │
+└─────────────────────────────────────────────────────────────┘
+                            ↓
+                    [CONVERSION POINT]
+                            ↓
+┌─────────────────────────────────────────────────────────────┐
+│                   Greger Internal Format                     │
+│  - Content blocks with type, text, thinking, citations      │
+│  - Same whether from Claude or OpenRouter                   │
+└─────────────────────────────────────────────────────────────┘
+                            ↓
+┌─────────────────────────────────────────────────────────────┐
+│              Existing Unchanged Code                         │
+│  - greger.el (callbacks)                                    │
+│  - greger-parser.el (markdown conversion)                   │
+│  - greger-ui.el (rendering, folding, etc)                   │
+│  - ALL code sees normalized format                          │
+└─────────────────────────────────────────────────────────────┘
+```
+
+**Critical Points:**
+
+1. **All provider-specific logic in one file**: `greger-openrouter.el`
+2. **Conversion happens at stream processing time**: Before any callbacks
+3. **Callbacks receive identical data**: Whether Claude or OpenRouter
+4. **Zero knowledge of providers downstream**: Parser, UI, renderer don't know or care
+
+**This is why it's safe**: The conversion is a one-way transformation at the boundary. Once converted, it's indistinguishable from Claude output (except for empty fields).
+
 ## Core Principle: PARALLEL Implementation
 
 **CRITICAL**: This is NOT a refactor. This is adding a completely parallel code path that:
