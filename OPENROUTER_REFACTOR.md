@@ -208,12 +208,13 @@ This is a COMPLETE parallel implementation - it duplicates functionality rather 
   error-message)
 
 ;;; Main streaming function - parallel to greger-client-stream
-(cl-defun greger-openrouter-stream (&key model dialog tools buffer block-start-callback text-delta-callback block-stop-callback complete-callback thinking-budget max-tokens auth-key error-callback)
+(cl-defun greger-openrouter-stream (&key model dialog tools buffer enable-web-search block-start-callback text-delta-callback block-stop-callback complete-callback thinking-budget max-tokens auth-key error-callback)
   "Stream request to OpenRouter API.
-Similar to greger-client-stream but for OpenRouter/OpenAI format."
+Similar to greger-client-stream but for OpenRouter/OpenAI format.
+ENABLE-WEB-SEARCH determines if we append :online to the model."
   (let* ((output-buffer (or buffer (current-buffer)))
          (undo-handle (prepare-change-group output-buffer))
-         (request-spec (greger-openrouter--build-request model dialog tools thinking-budget max-tokens auth-key))
+         (request-spec (greger-openrouter--build-request model dialog tools thinking-budget max-tokens auth-key enable-web-search))
          (restore-callback (lambda (state)
                              (let ((buffer (greger-openrouter-state-output-buffer state)))
                                (when (buffer-live-p buffer)
