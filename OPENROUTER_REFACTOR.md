@@ -1189,8 +1189,8 @@ This provides functional web search with citations - just in a slightly differen
 | **Basic Streaming** | ✅ SSE with `data:` events | ✅ SSE with `data:` events | ✅ Full support |
 | **Tool Calling** | ✅ Anthropic format | ✅ OpenAI format (converted) | ✅ Full support with format conversion |
 | **Thinking/Reasoning** | ✅ With signatures | ⚠️ Without signatures | ✅ Supported, no signature verification |
-| **Web Search** | ✅ Server-side `web_search` tool | ❌ No server tools | ❌ Disabled (can add `:online` variant later) |
-| **Citations** | ✅ Structured with encryption | ⚠️ Annotations (different format) | ❌ Not implemented (simple sources list possible) |
+| **Web Search** | ✅ Server-side `web_search` tool | ✅ `:online` variant (native search) | ✅ Full support with `:online` |
+| **Citations** | ✅ With encryption & fold/unfold | ⚠️ Simplified format | ✅ Supported, no encryption/folding |
 | **Content Blocks** | ✅ Native format | ✅ Converted from OpenAI | ✅ Full support |
 | **Error Handling** | ✅ Normalized | ✅ Normalized | ✅ Full support |
 | **Cancellation** | ✅ Interrupt process | ✅ Interrupt process | ✅ Full support |
