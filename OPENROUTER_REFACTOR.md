@@ -1205,8 +1205,8 @@ This provides functional web search with citations - just in a slightly differen
 ### Key Differences Summary
 
 1. **Thinking Format**: OpenRouter doesn't provide cryptographic signatures for thinking blocks
-2. **Web Search**: Disabled for OpenRouter (no Anthropic server tools)
-3. **Citations**: Not implemented (OpenRouter uses different annotation format)
+2. **Web Search**: Uses `:online` variant instead of server-side tool (works great with OpenAI native search)
+3. **Citations**: Simplified format - no encryption, no folding, rendered at end instead of inline
 4. **Everything Else**: Works the same or better (more model choices)
 
 ## Benefits of This Approach
