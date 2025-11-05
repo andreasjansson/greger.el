@@ -66,6 +66,90 @@ Add OpenRouter support to Greger to access GPT-5, GPT-5 Codex, and 400+ other mo
 4. ✅ Uses messages API (not responses API) for full chat history control
 5. ✅ Access to GPT-5, GPT-5 Codex, and other models
 
+## Backward Compatibility Strategy
+
+**Q: How do we handle thinking without signatures and citations without encryption without breaking existing code?**
+
+**A: We create the SAME data structures that existing code expects, just with some fields empty.**
+
+### Thinking Blocks - Already Compatible!
+
+Current code in `greger-parser.el` (line 594-602):
+```elisp
+(defun greger-parser--thinking-to-markdown (block)
+  "Convert thinking BLOCK to markdown (signature and text)."
+  (let ((contents (alist-get 'thinking block))
+        (signature (alist-get 'signature block)))
+    (concat greger-parser-thinking-tag
+            (if signature
+                (concat "\n\n" "Signature: " signature)
+              "")  ; <-- Already handles missing signature!
+            "\n\n"
+            contents)))
+```
+
+**OpenRouter creates**: `((type . "thinking") (thinking . "text") (signature . ""))`
+**Existing code sees**: Normal thinking block, just renders without signature line
+**No changes needed**: Parser already handles this case!
+
+### Citations - Already Compatible!
+
+Current code in `greger-parser.el` (line 443-464):
+```elisp
+(defun greger-parser--extract-citation-entry (node)
+  "Extract a citation entry from NODE."
+  (let ((url nil) (title nil) (cited-text nil) (encrypted-index nil))
+    ;; ... extraction logic ...
+    `((type . "web_search_result_location")
+      (url . ,url)
+      (title . ,title)
+      (cited_text . ,cited-text)
+      (encrypted_index . ,encrypted-index))))
+```
+
+Current renderer in `greger-parser.el` (line 546-556):
+```elisp
+(defun greger-parser--citation-to-markdown (citation)
+  "Convert single CITATION to markdown format."
+  (let ((url (alist-get 'url citation))
+        (title (alist-get 'title citation))
+        (cited-text (alist-get 'cited_text citation))
+        (encrypted-index (alist-get 'encrypted_index citation)))
+    (concat "## " url "\n\n"
+            "Title: " title "\n"
+            "Cited text: " cited-text "\n"
+            "Encrypted index: " encrypted-index)))  ; <-- Just renders empty string!
+```
+
+**OpenRouter creates**:
+```elisp
+`((type . "web_search_result_location")
+  (url . "https://...")
+  (title . "...")
+  (cited_text . "...")
+  (encrypted_index . ""))  ; <-- Empty, but same structure!
+```
+
+**Existing code sees**: Normal citation, renders as:
+```markdown
+## https://example.com
+
+Title: Example
+Cited text: quote
+Encrypted index: 
+```
+
+**No changes needed**: Renderer just outputs empty string for encrypted-index!
+
+### The Magic: Existing Code is Already Defensive
+
+The existing parser and renderer were written to handle missing/empty fields gracefully:
+- `(if signature ...)` - checks before rendering
+- Fields are just concatenated - empty strings work fine
+- No validation that encrypted-index is non-empty
+
+**Result**: OpenRouter output is 100% compatible with existing rendering code. Zero changes needed to `greger-parser.el`, `greger-ui.el`, or any downstream consumers!
+
 ## Core Principle: PARALLEL Implementation
 
 **CRITICAL**: This is NOT a refactor. This is adding a completely parallel code path that:
