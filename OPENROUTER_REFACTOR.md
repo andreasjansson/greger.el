@@ -6,22 +6,102 @@ Add OpenRouter support to Greger to access GPT-5, GPT-5 Codex, and 400+ other mo
 
 ## Key Requirements Met
 
-1. ✅ Current code continues working unchanged
+1. ✅ **Current code continues working unchanged** - NO modifications to existing functions
 2. ✅ Separate code path via configuration
 3. ✅ Beta feature that can be enabled/disabled
 4. ✅ Uses messages API (not responses API) for full chat history control
 5. ✅ Access to GPT-5, GPT-5 Codex, and other models
 
+## Core Principle: PARALLEL Implementation
+
+**CRITICAL**: This is NOT a refactor. This is adding a completely parallel code path that:
+- Leaves ALL existing code untouched (except for ONE dispatch point)
+- Duplicates functionality in new files rather than abstracting
+- Only activates when explicitly configured
+
 ## Architecture Overview
 
-### Current State
-- `greger-client.el` - Claude-specific client using Anthropic API
-- Hardcoded to Anthropic endpoints and message format
-- Supports Claude's thinking blocks, tool use, server tools
+### Current State (UNTOUCHED)
+- `greger-client.el` - Stays exactly as-is, zero changes
+- `greger.el` - Current implementation stays, just adds ONE dispatch at entry point
+- All current functions remain unchanged
 
-### Proposed Changes
+### What Actually Changes
 
-#### 1. Configuration Layer (NEW FILE: `greger-config.el`)
+**ONLY ONE FUNCTION MODIFIED** in `greger.el`:
+
+```elisp
+;; BEFORE (current code):
+(defun greger--run-agent-loop (state)
+  "Run the main agent loop with STATE."
+  (let* ((tools (greger-tools-get-schemas greger-tools))
+         (server-tools ...)
+         ...)
+    (greger-client-stream ...)))
+
+;; AFTER (with dispatch):
+(defun greger--run-agent-loop (state)
+  "Run the main agent loop with STATE."
+  (if (eq greger-provider 'openrouter)
+      (greger-openrouter--run-agent-loop state)  ; NEW: OpenRouter path
+    (greger--run-agent-loop-claude state)))      ; OLD: Renamed but unchanged
+
+;; NEW: Exact copy of old implementation
+(defun greger--run-agent-loop-claude (state)
+  "Run the main agent loop with STATE using Claude/Anthropic."
+  ;; EXACT COPY of current greger--run-agent-loop implementation
+  ;; No changes to any logic
+  (let* ((tools (greger-tools-get-schemas greger-tools))
+         (server-tools (when greger-server-tools
+                        (greger-server-tools-get-schemas greger-server-tools)))
+         (chat-buffer (greger-state-chat-buffer state))
+         (dialog (greger-parser-markdown-buffer-to-dialog chat-buffer))
+         (safe-shell-commands (greger-parser-find-safe-shell-commands-in-buffer chat-buffer))
+         (tool-use-metadata (greger-state-tool-use-metadata state))
+         (current-iteration (greger-state-current-iteration state))
+         (auth-key (or (and greger-anthropic-key-fn (funcall greger-anthropic-key-fn))
+                       (getenv "ANTHROPIC_API_KEY"))))
+    
+    (setf (plist-get tool-use-metadata :safe-shell-commands) safe-shell-commands)
+    
+    (when (>= current-iteration greger-max-iterations)
+      (error "Maximum iterations (%d) reached, stopping agent execution" greger-max-iterations))
+    
+    (unless auth-key
+      (error "No API key found.  Set ANTHROPIC_API_KEY environment variable or configure greger-anthropic-key-fn"))
+    
+    (with-current-buffer chat-buffer
+      (let ((client-state (greger-client-stream
+                           :model greger-model
+                           :dialog dialog
+                           :tools tools
+                           :server-tools server-tools
+                           :buffer chat-buffer
+                           :thinking-budget greger-current-thinking-budget
+                           :auth-key auth-key
+                           :block-start-callback (lambda (content-block)
+                                                   (greger--append-streaming-content-header state content-block))
+                           :text-delta-callback (lambda (text)
+                                                  (greger--append-text state (greger--clean-excessive-newlines text)))
+                           :block-stop-callback (lambda (type content-block)
+                                                  (greger--append-handle-content-block-stop state type content-block))
+                           :complete-callback (lambda (content-blocks) (greger--handle-stream-completion state content-blocks))
+                           :error-callback (lambda (error-message)
+                                             (greger--handle-client-error state error-message))
+                           :max-tokens greger-max-tokens)))
+        
+        (setf (greger-state-client-state state) client-state)
+        (setq greger--current-state state)
+        (greger--update-buffer-state)))))
+```
+
+That's it. That's the ONLY change to existing files.
+
+### New Files Created
+
+#### 1. Configuration (NEW FILE: `greger-config.el`)
+
+Just adds new config variables, doesn't touch existing ones:
 
 ```elisp
 (defcustom greger-provider 'anthropic
