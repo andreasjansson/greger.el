@@ -11047,5 +11047,302 @@ Add OpenRouter configuration variables
 ID: toolu_01UeBTnKAY5yoP7fpmmpYyv9
 
 <tool.toolu_01UeBTnKAY5yoP7fpmmpYyv9>
-
+Successfully replaced content in /Users/andreas/projects/greger.el/greger.el. Successfully staged 2 file(s) and committed with message: Add OpenRouter configuration variables
 </tool.toolu_01UeBTnKAY5yoP7fpmmpYyv9>
+
+# ASSISTANT
+
+## Step 2: Rename and Add Dispatch Function
+
+# TOOL USE
+
+Name: str-replace
+ID: toolu_01GCTYUboFYGbYUHFX1pLSiJ
+
+## path
+
+<tool.toolu_01GCTYUboFYGbYUHFX1pLSiJ>
+greger.el
+</tool.toolu_01GCTYUboFYGbYUHFX1pLSiJ>
+
+## git-commit-message
+
+<tool.toolu_01GCTYUboFYGbYUHFX1pLSiJ>
+Add dispatch function and rename Claude-specific agent loop
+</tool.toolu_01GCTYUboFYGbYUHFX1pLSiJ>
+
+## diff
+
+<tool.toolu_01GCTYUboFYGbYUHFX1pLSiJ>
+ (defun greger--run-agent-loop (state)
+-  "Run the main agent loop with STATE."
++  "Run the main agent loop with STATE.
++Dispatches to provider-specific implementation based on greger-provider."
++  (if (eq greger-provider 'openrouter)
++      (greger-openrouter--run-agent-loop state)
++    (greger--run-agent-loop-claude state)))
++
++(defun greger--run-agent-loop-claude (state)
++  "Run the main agent loop with STATE using Claude/Anthropic.
++This is the original implementation, unchanged."
+   (let* ((tools (greger-tools-get-schemas greger-tools))
+          (server-tools (when greger-server-tools
+                         (greger-server-tools-get-schemas greger-server-tools)))
+          (chat-buffer (greger-state-chat-buffer state))
+          (dialog (greger-parser-markdown-buffer-to-dialog chat-buffer))
+          (safe-shell-commands (greger-parser-find-safe-shell-commands-in-buffer chat-buffer))
+          (tool-use-metadata (greger-state-tool-use-metadata state))
+          (current-iteration (greger-state-current-iteration state))
+          (auth-key (or (and greger-anthropic-key-fn (funcall greger-anthropic-key-fn))
+                        (getenv "ANTHROPIC_API_KEY"))))
+\ No newline at end of file
+
+</tool.toolu_01GCTYUboFYGbYUHFX1pLSiJ>
+
+# TOOL RESULT
+
+ID: toolu_01GCTYUboFYGbYUHFX1pLSiJ
+
+<tool.toolu_01GCTYUboFYGbYUHFX1pLSiJ>
+Original content not found in file: /Users/andreas/projects/greger.el/greger.el -- Try again!
+</tool.toolu_01GCTYUboFYGbYUHFX1pLSiJ>
+
+# ASSISTANT
+
+Let me read the actual function first:
+
+# TOOL USE
+
+Name: read-file
+ID: toolu_01UnAdzt5uLY1Kb5yjHFpg8k
+
+## path
+
+<tool.toolu_01UnAdzt5uLY1Kb5yjHFpg8k>
+greger.el
+</tool.toolu_01UnAdzt5uLY1Kb5yjHFpg8k>
+
+## start-line
+
+<tool.toolu_01UnAdzt5uLY1Kb5yjHFpg8k>
+790
+</tool.toolu_01UnAdzt5uLY1Kb5yjHFpg8k>
+
+## end-line
+
+<tool.toolu_01UnAdzt5uLY1Kb5yjHFpg8k>
+840
+</tool.toolu_01UnAdzt5uLY1Kb5yjHFpg8k>
+
+## include-line-numbers
+
+<tool.toolu_01UnAdzt5uLY1Kb5yjHFpg8k>
+true
+</tool.toolu_01UnAdzt5uLY1Kb5yjHFpg8k>
+
+# TOOL RESULT
+
+ID: toolu_01UnAdzt5uLY1Kb5yjHFpg8k
+
+<tool.toolu_01UnAdzt5uLY1Kb5yjHFpg8k>
+790:   (let* ((header (treesit-node-child node 0 t))
+791:          (start-pos (treesit-node-end header))
+792:          (end-pos (treesit-node-end node))
+793:          (content (buffer-substring-no-properties start-pos end-pos)))
+794: 
+795:     ;; Insert a dot if content is empty
+796:     (when (string= (string-trim content) "")
+797:       (greger--maybe-save-excursion
+798:        (goto-char end-pos)
+799:        (insert text)))))
+800: 
+801: (defun greger--insert-assistant-after-thinking (thinking-node)
+802:   "Insert assistant response after THINKING-NODE."
+803:   (let ((end-pos (treesit-node-end thinking-node)))
+804:     (greger--maybe-save-excursion
+805:      (goto-char end-pos)
+806:      (insert "\n\n# ASSISTANT\n\n."))))
+807: 
+808: (defun greger--run-agent-loop (state)
+809:   "Run the main agent loop with STATE."
+810:   (let* ((tools (greger-tools-get-schemas greger-tools))
+811:          (server-tools (when greger-server-tools
+812:                          (greger-server-tools-get-schemas greger-server-tools)))
+813:          (chat-buffer (greger-state-chat-buffer state))
+814:          (dialog (greger-parser-markdown-buffer-to-dialog chat-buffer))
+815:          (safe-shell-commands (greger-parser-find-safe-shell-commands-in-buffer chat-buffer))
+816:          (tool-use-metadata (greger-state-tool-use-metadata state))
+817:          (current-iteration (greger-state-current-iteration state))
+818:          (auth-key (or (and greger-anthropic-key-fn (funcall greger-anthropic-key-fn))
+819:                        (getenv "ANTHROPIC_API_KEY"))))
+820: 
+821:     (setf (plist-get tool-use-metadata :safe-shell-commands) safe-shell-commands)
+822: 
+823:     (when (>= current-iteration greger-max-iterations)
+824:       (error "Maximum iterations (%d) reached, stopping agent execution" greger-max-iterations))
+825: 
+826:     (unless auth-key
+827:       (error "No API key found.  Set ANTHROPIC_API_KEY environment variable or configure greger-anthropic-key-fn"))
+828: 
+829: 
+830:     (with-current-buffer chat-buffer
+831:       (let ((client-state (greger-client-stream
+832:                            :model greger-model
+833:                            :dialog dialog
+834:                            :tools tools
+835:                            :server-tools server-tools
+836:                            :buffer chat-buffer
+837:                            :thinking-budget greger-current-thinking-budget
+838:                            :auth-key auth-key
+839:                            :block-start-callback (lambda (content-block)
+840:                                                    (greger--append-streaming-content-header state content-block))
+</tool.toolu_01UnAdzt5uLY1Kb5yjHFpg8k>
+
+# TOOL USE
+
+Name: read-file
+ID: toolu_01GNjEauvFewiouz2Tn6dpdD
+
+## path
+
+<tool.toolu_01GNjEauvFewiouz2Tn6dpdD>
+greger.el
+</tool.toolu_01GNjEauvFewiouz2Tn6dpdD>
+
+## start-line
+
+<tool.toolu_01GNjEauvFewiouz2Tn6dpdD>
+840
+</tool.toolu_01GNjEauvFewiouz2Tn6dpdD>
+
+## end-line
+
+<tool.toolu_01GNjEauvFewiouz2Tn6dpdD>
+860
+</tool.toolu_01GNjEauvFewiouz2Tn6dpdD>
+
+## include-line-numbers
+
+<tool.toolu_01GNjEauvFewiouz2Tn6dpdD>
+true
+</tool.toolu_01GNjEauvFewiouz2Tn6dpdD>
+
+# TOOL RESULT
+
+ID: toolu_01GNjEauvFewiouz2Tn6dpdD
+
+<tool.toolu_01GNjEauvFewiouz2Tn6dpdD>
+840:                                                    (greger--append-streaming-content-header state content-block))
+841:                            :text-delta-callback (lambda (text)
+842:                                                   (greger--append-text state (greger--clean-excessive-newlines text)))
+843:                            :block-stop-callback (lambda (type content-block)
+844:                                                   (greger--append-handle-content-block-stop state type content-block))
+845:                            :complete-callback (lambda (content-blocks) (greger--handle-stream-completion state content-blocks))
+846:                            :error-callback (lambda (error-message)
+847:                                              (greger--handle-client-error state error-message))
+848:                            :max-tokens greger-max-tokens)))
+849: 
+850:         ;; Store the client state for potential cancellation
+851:         (setf (greger-state-client-state state) client-state)
+852:         ;; Set buffer-local variable for greger-interrupt to access
+853:         (setq greger--current-state state) ;; TODO: why do we set that _here_? Or should it be greger--current-client-state instead?
+854:         (greger--update-buffer-state)))))
+855: 
+856: (defun greger--clean-excessive-newlines (text)
+857:   "Remove excessive newlines from the end of TEXT, keeping at most two.
+858: If TEXT ends with more than two consecutive newlines, remove all but the
+859: first two."
+860:   (replace-regexp-in-string "\n\n\n+\\'" "\n\n" text))
+</tool.toolu_01GNjEauvFewiouz2Tn6dpdD>
+
+# ASSISTANT
+
+Now I can do the replacement:
+
+# TOOL USE
+
+Name: str-replace
+ID: toolu_01Ju5ZSHtNuUQz9Bou9NbT9Z
+
+## path
+
+<tool.toolu_01Ju5ZSHtNuUQz9Bou9NbT9Z>
+greger.el
+</tool.toolu_01Ju5ZSHtNuUQz9Bou9NbT9Z>
+
+## git-commit-message
+
+<tool.toolu_01Ju5ZSHtNuUQz9Bou9NbT9Z>
+Add dispatch function and rename Claude-specific agent loop
+</tool.toolu_01Ju5ZSHtNuUQz9Bou9NbT9Z>
+
+## diff
+
+<tool.toolu_01Ju5ZSHtNuUQz9Bou9NbT9Z>
+ (defun greger--run-agent-loop (state)
+-  "Run the main agent loop with STATE."
++  "Run the main agent loop with STATE.
++Dispatches to provider-specific implementation based on greger-provider."
++  (if (eq greger-provider 'openrouter)
++      (greger-openrouter--run-agent-loop state)
++    (greger--run-agent-loop-claude state)))
++
++(defun greger--run-agent-loop-claude (state)
++  "Run the main agent loop with STATE using Claude/Anthropic.
++This is the original implementation, unchanged."
+   (let* ((tools (greger-tools-get-schemas greger-tools))
+          (server-tools (when greger-server-tools
+                          (greger-server-tools-get-schemas greger-server-tools)))
+          (chat-buffer (greger-state-chat-buffer state))
+          (dialog (greger-parser-markdown-buffer-to-dialog chat-buffer))
+          (safe-shell-commands (greger-parser-find-safe-shell-commands-in-buffer chat-buffer))
+          (tool-use-metadata (greger-state-tool-use-metadata state))
+          (current-iteration (greger-state-current-iteration state))
+          (auth-key (or (and greger-anthropic-key-fn (funcall greger-anthropic-key-fn))
+                        (getenv "ANTHROPIC_API_KEY"))))
+ 
+     (setf (plist-get tool-use-metadata :safe-shell-commands) safe-shell-commands)
+ 
+     (when (>= current-iteration greger-max-iterations)
+       (error "Maximum iterations (%d) reached, stopping agent execution" greger-max-iterations))
+ 
+     (unless auth-key
+       (error "No API key found.  Set ANTHROPIC_API_KEY environment variable or configure greger-anthropic-key-fn"))
+ 
+ 
+     (with-current-buffer chat-buffer
+       (let ((client-state (greger-client-stream
+                            :model greger-model
+                            :dialog dialog
+                            :tools tools
+                            :server-tools server-tools
+                            :buffer chat-buffer
+                            :thinking-budget greger-current-thinking-budget
+                            :auth-key auth-key
+                            :block-start-callback (lambda (content-block)
+                                                    (greger--append-streaming-content-header state content-block))
+                            :text-delta-callback (lambda (text)
+                                                   (greger--append-text state (greger--clean-excessive-newlines text)))
+                            :block-stop-callback (lambda (type content-block)
+                                                   (greger--append-handle-content-block-stop state type content-block))
+                            :complete-callback (lambda (content-blocks) (greger--handle-stream-completion state content-blocks))
+                            :error-callback (lambda (error-message)
+                                              (greger--handle-client-error state error-message))
+                            :max-tokens greger-max-tokens)))
+ 
+         ;; Store the client state for potential cancellation
+         (setf (greger-state-client-state state) client-state)
+         ;; Set buffer-local variable for greger-interrupt to access
+         (setq greger--current-state state) ;; TODO: why do we set that _here_? Or should it be greger--current-client-state instead?
+         (greger--update-buffer-state)))))
+\ No newline at end of file
+
+</tool.toolu_01Ju5ZSHtNuUQz9Bou9NbT9Z>
+
+# TOOL RESULT
+
+ID: toolu_01Ju5ZSHtNuUQz9Bou9NbT9Z
+
+<tool.toolu_01Ju5ZSHtNuUQz9Bou9NbT9Z>
+
+</tool.toolu_01Ju5ZSHtNuUQz9Bou9NbT9Z>

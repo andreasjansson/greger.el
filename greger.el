@@ -806,7 +806,15 @@ Uses tree-sitter to find the last node and applies heuristics:
      (insert "\n\n# ASSISTANT\n\n."))))
 
 (defun greger--run-agent-loop (state)
-  "Run the main agent loop with STATE."
+  "Run the main agent loop with STATE.
+Dispatches to provider-specific implementation based on greger-provider."
+  (if (eq greger-provider 'openrouter)
+      (greger-openrouter--run-agent-loop state)
+    (greger--run-agent-loop-claude state)))
+
+(defun greger--run-agent-loop-claude (state)
+  "Run the main agent loop with STATE using Claude/Anthropic.
+This is the original implementation, unchanged."
   (let* ((tools (greger-tools-get-schemas greger-tools))
          (server-tools (when greger-server-tools
                          (greger-server-tools-get-schemas greger-server-tools)))
