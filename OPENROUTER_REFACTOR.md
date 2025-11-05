@@ -482,69 +482,56 @@ This converts back to Greger's internal format."
 Add the OpenRouter agent loop as a completely separate implementation:
 
 ```elisp
-(require 'greger-config)
-(require 'greger-provider)
-(require 'greger-provider-anthropic)
-(require 'greger-provider-openrouter)
-
-(defun greger--run-agent-loop (state)
-  "Run the main agent loop with STATE using configured provider."
-  (let* ((provider greger-provider)
-         (model (if (eq provider 'openrouter)
-                    greger-openrouter-model
-                  greger-model))
-         (auth-key (greger--get-auth-key provider))
-         (tools (greger-tools-get-schemas greger-tools))
-         (server-tools (greger--get-server-tools-for-provider provider))
+;; NEW FUNCTION - completely parallel implementation
+(defun greger-openrouter--run-agent-loop (state)
+  "Run agent loop using OpenRouter - parallel to greger--run-agent-loop-claude."
+  (let* ((tools (greger-tools-get-schemas greger-tools))
+         ;; Note: NO server-tools for OpenRouter
          (chat-buffer (greger-state-chat-buffer state))
-         (dialog (greger-parser-markdown-buffer-to-dialog chat-buffer)))
+         (dialog (greger-parser-markdown-buffer-to-dialog chat-buffer))
+         (safe-shell-commands (greger-parser-find-safe-shell-commands-in-buffer chat-buffer))
+         (tool-use-metadata (greger-state-tool-use-metadata state))
+         (current-iteration (greger-state-current-iteration state))
+         (auth-key (or (and greger-openrouter-api-key-fn 
+                            (funcall greger-openrouter-api-key-fn))
+                       (getenv "OPENROUTER_API_KEY"))))
     
-    ;; Use generic provider interface
-    (let ((client-state 
-           (greger-provider-stream
-            provider
-            model
-            dialog
-            tools
-            server-tools
-            chat-buffer
-            ;; Callbacks remain the same
-            :block-start-callback (lambda (block) ...)
-            :text-delta-callback (lambda (text) ...)
-            :block-stop-callback (lambda (type block) ...)
-            :complete-callback (lambda (blocks) ...)
-            :error-callback (lambda (error) ...)
-            auth-key
-            `(:thinking-budget ,greger-current-thinking-budget
-              :max-tokens ,greger-max-tokens))))
-      
-      (setf (greger-state-client-state state) client-state)
-      (setq greger--current-state state)
-      (greger--update-buffer-state))))
-
-(defun greger--get-auth-key (provider)
-  "Get API key for PROVIDER."
-  (pcase provider
-    ('anthropic
-     (or (and greger-anthropic-key-fn (funcall greger-anthropic-key-fn))
-         (getenv "ANTHROPIC_API_KEY")))
-    ('openrouter
-     (or (and greger-openrouter-api-key-fn (funcall greger-openrouter-api-key-fn))
-         (getenv "OPENROUTER_API_KEY")))))
-
-(defun greger--get-server-tools-for-provider (provider)
-  "Get server tools appropriate for PROVIDER.
-OpenRouter doesn't support Anthropic server tools, return nil."
-  (pcase provider
-    ('anthropic
-     (when greger-server-tools
-       (greger-server-tools-get-schemas greger-server-tools)))
-    ('openrouter nil)))  ;; OpenRouter doesn't support Anthropic's server tools
+    (setf (plist-get tool-use-metadata :safe-shell-commands) safe-shell-commands)
+    
+    (when (>= current-iteration greger-max-iterations)
+      (error "Maximum iterations (%d) reached" greger-max-iterations))
+    
+    (unless auth-key
+      (error "No OpenRouter API key found. Set OPENROUTER_API_KEY environment variable"))
+    
+    (with-current-buffer chat-buffer
+      (let ((client-state (greger-openrouter-stream
+                           :model greger-openrouter-model
+                           :dialog dialog
+                           :tools tools
+                           :buffer chat-buffer
+                           :thinking-budget greger-current-thinking-budget
+                           :auth-key auth-key
+                           :block-start-callback (lambda (content-block)
+                                                   (greger--append-streaming-content-header state content-block))
+                           :text-delta-callback (lambda (text)
+                                                  (greger--append-text state (greger--clean-excessive-newlines text)))
+                           :block-stop-callback (lambda (type content-block)
+                                                  (greger--append-handle-content-block-stop state type content-block))
+                           :complete-callback (lambda (content-blocks) 
+                                                (greger--handle-stream-completion state content-blocks))
+                           :error-callback (lambda (error-message)
+                                             (greger--handle-client-error state error-message))
+                           :max-tokens greger-max-tokens)))
+        
+        (setf (greger-state-client-state state) client-state)
+        (setq greger--current-state state)
+        (greger--update-buffer-state)))))
 ```
 
-#### 6. Provider Switching UI
+That's it! The OpenRouter implementation is completely separate, reuses the same UI callbacks (like `greger--append-text`, `greger--handle-stream-completion`, etc.) but has its own API handling.
 
-Add interactive commands to switch providers:
+#### 4. Provider Switching UI (NEW in `greger.el`)
 
 ```elisp
 (defun greger-set-provider ()
@@ -552,21 +539,28 @@ Add interactive commands to switch providers:
   (interactive)
   (let ((choice (completing-read
                  "Select provider: "
-                 '(("Anthropic (Claude)" . anthropic)
+                 '(("Anthropic (Claude) - Default" . anthropic)
                    ("OpenRouter (Beta)" . openrouter))
                  nil t)))
     (setq greger-provider (cdr (assoc choice 
-                                      '(("Anthropic (Claude)" . anthropic)
+                                      '(("Anthropic (Claude) - Default" . anthropic)
                                         ("OpenRouter (Beta)" . openrouter)))))
     (message "Provider set to: %s" choice)))
 
 (defun greger-set-openrouter-model ()
-  "Set the OpenRouter model."
+  "Set the OpenRouter model when using OpenRouter provider."
   (interactive)
-  (let ((model (completing-read "OpenRouter model: " 
-                                greger-openrouter-models nil nil)))
-    (setq greger-openrouter-model model)
-    (message "OpenRouter model set to: %s" model)))
+  (unless (eq greger-provider 'openrouter)
+    (user-error "OpenRouter provider not active. Use M-x greger-set-provider first"))
+  (let ((models '("openai/gpt-5"
+                  "openai/gpt-5-codex" 
+                  "openai/gpt-5-mini"
+                  "anthropic/claude-sonnet-4"
+                  "anthropic/claude-opus-4"
+                  "google/gemini-2.5-pro")))
+    (setq greger-openrouter-model 
+          (completing-read "OpenRouter model: " models nil nil))
+    (message "OpenRouter model set to: %s" greger-openrouter-model)))
 
 ;; Add to greger-mode-map
 (define-key greger-mode-map (kbd "C-; p") #'greger-set-provider)
