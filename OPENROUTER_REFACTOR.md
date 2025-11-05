@@ -1,5 +1,25 @@
 # OpenRouter Integration Proposal
 
+## Executive Summary
+
+**Goal**: Add GPT-5 Codex and 400+ other models via OpenRouter without breaking current Claude implementation.
+
+**Approach**: Complete parallel implementation - duplicate code rather than abstract/refactor.
+
+**Impact**: 
+- ✅ Current code: **ZERO changes** (except renaming one function)
+- ✅ New code: Completely separate `greger-openrouter.el` file
+- ✅ User impact: Opt-in beta feature via config variable
+
+**Key Tradeoffs**:
+- ✅ **Keep**: Tool calling, thinking (without signatures), basic streaming
+- ❌ **Lose**: Web search, citation rendering (different format)
+- ⚠️ **Different**: Thinking has no crypto signatures, annotations instead of citations
+
+**Recommendation**: Implement as proposed. Clear separation makes it safe, and we can add web search/citations later if needed.
+
+---
+
 ## Overview
 
 Add OpenRouter support to Greger to access GPT-5, GPT-5 Codex, and 400+ other models while maintaining 100% backward compatibility with the current Claude-based implementation.
