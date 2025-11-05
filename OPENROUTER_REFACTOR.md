@@ -264,14 +264,17 @@ Similar to greger-client-stream but for OpenRouter/OpenAI format."
     ("HTTP-Referer" . "https://github.com/andreasjansson/greger.el")
     ("X-Title" . "Greger.el")))
 
-(defun greger-openrouter--build-data (model dialog tools thinking-budget max-tokens)
-  "Build OpenRouter request data in OpenAI format."
-  (let ((messages (greger-openrouter--convert-dialog-to-messages dialog))
-        ;; NOTE: We don't append :online here because we're disabling web search for OpenRouter
-        ;; If we wanted to enable it, we'd do: (actual-model (if enable-web-search (concat model ":online") model))
-        (request-data `(("model" . ,model)
-                        ("max_tokens" . ,max-tokens)
-                        ("stream" . t))))
+(defun greger-openrouter--build-data (model dialog tools thinking-budget max-tokens enable-web-search)
+  "Build OpenRouter request data in OpenAI format.
+ENABLE-WEB-SEARCH determines if we append :online to the model."
+  (let* ((messages (greger-openrouter--convert-dialog-to-messages dialog))
+         ;; Append :online if web search enabled - gives us fast native search for OpenAI/Anthropic
+         (actual-model (if enable-web-search
+                           (concat model ":online")
+                         model))
+         (request-data `(("model" . ,actual-model)
+                         ("max_tokens" . ,max-tokens)
+                         ("stream" . t))))
     
     (push `("messages" . ,messages) request-data)
     
