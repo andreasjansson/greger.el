@@ -11,12 +11,16 @@
 - ✅ New code: Completely separate `greger-openrouter.el` file
 - ✅ User impact: Opt-in beta feature via config variable
 
-**Key Tradeoffs**:
-- ✅ **Keep**: Tool calling, thinking (without signatures), basic streaming
-- ❌ **Lose**: Web search, citation rendering (different format)
-- ⚠️ **Different**: Thinking has no crypto signatures, annotations instead of citations
+**What Works**:
+- ✅ Tool calling with format conversion
+- ✅ Thinking/reasoning (without signatures)
+- ✅ Web search via `:online` variant (annotations converted to simplified citations)
+- ✅ Basic streaming with all callbacks
 
-**Recommendation**: Implement as proposed. Clear separation makes it safe, and we can add web search/citations later if needed.
+**What's Different**:
+- No cryptographic signatures on thinking blocks (OpenRouter doesn't provide them)
+- Citations are simpler (no encrypted indices, no fold/unfold)
+- Web search uses `:online` variant instead of server-side tool
 
 ---
 
