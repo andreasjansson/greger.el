@@ -105,7 +105,8 @@ Just adds new config variables, doesn't touch existing ones:
 
 ```elisp
 (defcustom greger-provider 'anthropic
-  "Provider to use for API calls. Options: 'anthropic or 'openrouter"
+  "Provider to use for API calls. Options: 'anthropic or 'openrouter.
+Default: 'anthropic (existing behavior)"
   :type '(choice (const :tag "Anthropic (Claude)" anthropic)
                  (const :tag "OpenRouter (Beta)" openrouter))
   :group 'greger)
@@ -120,72 +121,11 @@ If nil, uses OPENROUTER_API_KEY environment variable."
   "Model to use when provider is 'openrouter"
   :type 'string
   :group 'greger)
-
-;; Provider-specific model lists
-(defconst greger-anthropic-models
-  '(claude-sonnet-4-20250514
-    claude-opus-4-20250514
-    claude-opus-4-1-20250805
-    claude-sonnet-4-5))
-
-(defconst greger-openrouter-models
-  '("openai/gpt-5"
-    "openai/gpt-5-codex"
-    "openai/gpt-5-mini"
-    "anthropic/claude-sonnet-4"
-    "anthropic/claude-opus-4"
-    "google/gemini-2.5-pro"))
 ```
 
-#### 2. Provider Abstraction Layer (NEW FILE: `greger-provider.el`)
+#### 2. OpenRouter Implementation (NEW FILE: `greger-openrouter.el`)
 
-This file contains protocol/generic functions that dispatch to provider-specific implementations:
-
-```elisp
-;; Generic interface for providers
-(cl-defgeneric greger-provider-stream (provider model dialog tools server-tools buffer callbacks auth-key options)
-  "Stream a request to PROVIDER using MODEL with DIALOG, TOOLS, etc.
-Returns a provider-specific state object.")
-
-(cl-defgeneric greger-provider-build-headers (provider auth-key)
-  "Build HTTP headers for PROVIDER with AUTH-KEY.")
-
-(cl-defgeneric greger-provider-build-data (provider model dialog tools server-tools thinking-budget max-tokens)
-  "Build request data for PROVIDER.")
-
-(cl-defgeneric greger-provider-process-event (provider data-json state)
-  "Process streaming event DATA-JSON for PROVIDER using STATE.")
-
-(cl-defgeneric greger-provider-cancel-request (provider state)
-  "Cancel active request for PROVIDER using STATE.")
-```
-
-#### 3. Anthropic Implementation (REFACTORED: `greger-client.el`)
-
-Rename to `greger-provider-anthropic.el` and implement the protocol:
-
-```elisp
-;; Implement the protocol methods
-(cl-defmethod greger-provider-stream ((provider (eql 'anthropic)) model dialog tools ...)
-  ;; Current greger-client-stream implementation
-  ...)
-
-(cl-defmethod greger-provider-build-headers ((provider (eql 'anthropic)) auth-key)
-  ;; Current greger-client--build-headers
-  ...)
-
-(cl-defmethod greger-provider-build-data ((provider (eql 'anthropic)) ...)
-  ;; Current greger-client--build-data
-  ...)
-
-(cl-defmethod greger-provider-process-event ((provider (eql 'anthropic)) data-json state)
-  ;; Current greger-client--handle-event
-  ...)
-```
-
-#### 4. OpenRouter Implementation (NEW FILE: `greger-provider-openrouter.el`)
-
-Implement OpenRouter-specific API handling:
+This is a COMPLETE parallel implementation - it duplicates functionality rather than sharing code with Claude:
 
 ```elisp
 (require 'greger-provider)
