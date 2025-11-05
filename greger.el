@@ -647,6 +647,34 @@ Uses ~/path notation if file is in home directory or subdirectory."
         (insert formatted-path))
     (user-error "Buffer %s has no associated file" (or (buffer-name buf) buffer))))
 
+(defun greger-set-provider ()
+  "Interactively set the API provider."
+  (interactive)
+  (let ((choice (completing-read
+                 "Select provider: "
+                 '(("Anthropic (Claude) - Default" . anthropic)
+                   ("OpenRouter (Beta)" . openrouter))
+                 nil t)))
+    (setq greger-provider (cdr (assoc choice 
+                                      '(("Anthropic (Claude) - Default" . anthropic)
+                                        ("OpenRouter (Beta)" . openrouter)))))
+    (message "Provider set to: %s" choice)))
+
+(defun greger-set-openrouter-model ()
+  "Set the OpenRouter model when using OpenRouter provider."
+  (interactive)
+  (unless (eq greger-provider 'openrouter)
+    (user-error "OpenRouter provider not active. Use M-x greger-set-provider first"))
+  (let ((models '("openai/gpt-5"
+                  "openai/gpt-5-codex" 
+                  "openai/gpt-5-mini"
+                  "anthropic/claude-sonnet-4"
+                  "anthropic/claude-opus-4"
+                  "google/gemini-2.5-pro")))
+    (setq greger-openrouter-model 
+          (completing-read "OpenRouter model: " models nil nil))
+    (message "OpenRouter model set to: %s" greger-openrouter-model)))
+
 (defun greger-debug-request ()
   "Debug the request data by parsing the buffer and saving the request data output.
 After saving, opens the JSON file in a new buffer for inspection."

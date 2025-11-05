@@ -11344,5 +11344,95 @@ Add dispatch function and rename Claude-specific agent loop
 ID: toolu_01Ju5ZSHtNuUQz9Bou9NbT9Z
 
 <tool.toolu_01Ju5ZSHtNuUQz9Bou9NbT9Z>
-
+Successfully replaced content in /Users/andreas/projects/greger.el/greger.el. Successfully staged 2 file(s) and committed with message: Add dispatch function and rename Claude-specific agent loop
 </tool.toolu_01Ju5ZSHtNuUQz9Bou9NbT9Z>
+
+# ASSISTANT
+
+## Step 3: Add Provider Switching Commands
+
+# TOOL USE
+
+Name: str-replace
+ID: toolu_01SuXye9a8e1HenMg4vxvWEA
+
+## path
+
+<tool.toolu_01SuXye9a8e1HenMg4vxvWEA>
+greger.el
+</tool.toolu_01SuXye9a8e1HenMg4vxvWEA>
+
+## git-commit-message
+
+<tool.toolu_01SuXye9a8e1HenMg4vxvWEA>
+Add provider switching commands
+</tool.toolu_01SuXye9a8e1HenMg4vxvWEA>
+
+## diff
+
+<tool.toolu_01SuXye9a8e1HenMg4vxvWEA>
+ (defun greger-mention-buffer-file (buffer)
+   "Insert the file path of BUFFER at point.
+ When called interactively, prompts for buffer selection.
+ When called programmatically, BUFFER can be a buffer object or buffer name.
+ Uses relative path if file is in current working directory or subdirectory.
+ Uses ~/path notation if file is in home directory or subdirectory."
+   (interactive "bBuffer: ")
+ 
+   (if-let* ((buf (if (bufferp buffer) buffer (get-buffer buffer)))
+             (file-path (when buf (buffer-file-name buf))))
+       (let* ((file-path-abs (expand-file-name file-path))
+              (home-dir (expand-file-name "~/"))
+              (cwd (file-name-as-directory (expand-file-name default-directory)))
+              (formatted-path (cond
+                               ;; If file is in cwd or subdirectory, use relative path
+                               ((string-prefix-p cwd file-path-abs)
+                                (file-relative-name file-path))
+                               ;; If file is in home directory or subdirectory, use ~/path
+                               ((string-prefix-p home-dir file-path-abs)
+                                (concat "~/" (file-relative-name file-path home-dir)))
+                               ;; Otherwise, use absolute path
+                               (t file-path))))
+         (insert formatted-path))
+-    (user-error "Buffer %s has no associated file" (or (buffer-name buf) buffer))))
+\ No newline at end of file
++    (user-error "Buffer %s has no associated file" (or (buffer-name buf) buffer))))
++
++(defun greger-set-provider ()
++  "Interactively set the API provider."
++  (interactive)
++  (let ((choice (completing-read
++                 "Select provider: "
++                 '(("Anthropic (Claude) - Default" . anthropic)
++                   ("OpenRouter (Beta)" . openrouter))
++                 nil t)))
++    (setq greger-provider (cdr (assoc choice 
++                                      '(("Anthropic (Claude) - Default" . anthropic)
++                                        ("OpenRouter (Beta)" . openrouter)))))
++    (message "Provider set to: %s" choice)))
++
++(defun greger-set-openrouter-model ()
++  "Set the OpenRouter model when using OpenRouter provider."
++  (interactive)
++  (unless (eq greger-provider 'openrouter)
++    (user-error "OpenRouter provider not active. Use M-x greger-set-provider first"))
++  (let ((models '("openai/gpt-5"
++                  "openai/gpt-5-codex" 
++                  "openai/gpt-5-mini"
++                  "anthropic/claude-sonnet-4"
++                  "anthropic/claude-opus-4"
++                  "google/gemini-2.5-pro")))
++    (setq greger-openrouter-model 
++          (completing-read "OpenRouter model: " models nil nil))
++    (message "OpenRouter model set to: %s" greger-openrouter-model)))
+\ No newline at end of file
+
+</tool.toolu_01SuXye9a8e1HenMg4vxvWEA>
+
+# TOOL RESULT
+
+ID: toolu_01SuXye9a8e1HenMg4vxvWEA
+
+<tool.toolu_01SuXye9a8e1HenMg4vxvWEA>
+
+</tool.toolu_01SuXye9a8e1HenMg4vxvWEA>
