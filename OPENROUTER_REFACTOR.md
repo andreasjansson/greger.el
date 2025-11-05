@@ -1361,13 +1361,13 @@ The key insight: **duplication is better than the wrong abstraction** when you n
 **A:** Check the mode line - it shows the model name. Also, the variable `greger-provider` tells you.
 
 ### Q: Can I switch providers mid-chat?
-**A:** Yes! Use `M-x greger-set-provider`. However, switching from Claude to OpenRouter mid-chat means you lose web search capability going forward.
+**A:** Yes! Use `M-x greger-set-provider`. Web search works with both providers, just with slightly different citation formats.
 
 ### Q: Why not just use OpenRouter for everything?
 **A:** 
-- **Pro OpenRouter**: Access to 400+ models, model comparison, sometimes cheaper
-- **Pro Claude**: Native web search with citations, thinking signatures, first-party features
-- Best: Use both! Claude for web research, OpenRouter for coding with GPT-5 Codex
+- **Pro OpenRouter**: Access to 400+ models including GPT-5 Codex (purpose-built for coding), often cheaper, fast OpenAI native web search
+- **Pro Claude**: Encrypted citation indices, thinking signatures, first-party features
+- Both are great! OpenRouter gives you more model choice, Claude gives you some extra verification features
 
 ### Q: Will this slow down Claude?
 **A:** No! Claude path is unchanged. Zero performance impact.
