@@ -492,8 +492,10 @@ convert it to Greger's thinking block format for consistency."
   "Build Anthropic-style content blocks from accumulated state.
 This converts back to Greger's internal format."
   (let ((tool-calls (greger-openrouter-state-current-tool-calls state))
+        (annotations (greger-openrouter-state-annotations state))
         blocks)
     
+    ;; Add tool use blocks
     (when (> (hash-table-count tool-calls) 0)
       (maphash
        (lambda (_index call)
@@ -508,7 +510,26 @@ This converts back to Greger's internal format."
                  blocks)))
        tool-calls))
     
+    ;; Add citation blocks from annotations (web search results)
+    (when annotations
+      (dolist (annotation annotations)
+        (when (string= (alist-get 'type annotation) "url_citation")
+          (let ((citation-block `((type . "text")
+                                  (text . "")
+                                  (citations . (,annotation)))))
+            (push citation-block blocks)))))
+    
     (nreverse blocks)))
+
+(defun greger-openrouter--convert-annotation-to-citation (annotation)
+  "Convert OpenRouter annotation to Greger citation format.
+OpenRouter provides: url, title, text, start_index, end_index
+Greger expects: type, url, title, cited_text, encrypted_index"
+  `((type . "web_search_result_location")
+    (url . ,(alist-get 'url annotation))
+    (title . ,(or (alist-get 'title annotation) ""))
+    (cited_text . ,(or (alist-get 'text annotation) ""))
+    (encrypted_index . "")))
 
 (defun greger-openrouter--handle-completion (proc state)
   "Handle process completion."
