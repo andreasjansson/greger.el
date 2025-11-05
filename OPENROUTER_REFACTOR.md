@@ -249,10 +249,10 @@ ENABLE-WEB-SEARCH determines if we append :online to the model."
     
     state))
 
-(defun greger-openrouter--build-request (model dialog tools thinking-budget max-tokens auth-key)
+(defun greger-openrouter--build-request (model dialog tools thinking-budget max-tokens auth-key enable-web-search)
   "Build OpenRouter API request."
   (let* ((headers (greger-openrouter--build-headers auth-key))
-         (data (greger-openrouter--build-data model dialog tools thinking-budget max-tokens)))
+         (data (greger-openrouter--build-data model dialog tools thinking-budget max-tokens enable-web-search)))
     (list :url greger-openrouter-api-url
           :method "POST"
           :headers headers
