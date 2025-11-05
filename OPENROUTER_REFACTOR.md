@@ -6,21 +6,34 @@
 
 **Approach**: Complete parallel implementation - duplicate code rather than abstract/refactor.
 
+**Compatibility Guarantee**: 
+- ✅ **Existing code unchanged**: `greger-client.el`, `greger-parser.el`, `greger-ui.el` - ZERO modifications
+- ✅ **Same data structures**: OpenRouter creates identical content blocks (thinking, citations, tool_use)
+- ✅ **Empty fields handled gracefully**: Parser already checks `(if signature ...)`, renders empty strings fine
+- ✅ **One conversion point**: All OpenRouter-specific logic isolated in `greger-openrouter.el`
+
 **Impact**: 
-- ✅ Current code: **ZERO changes** (except renaming one function)
+- ✅ Current code: **ZERO changes** (except renaming one function for dispatch)
 - ✅ New code: Completely separate `greger-openrouter.el` file
 - ✅ User impact: Opt-in beta feature via config variable
 
 **What Works**:
 - ✅ Tool calling with format conversion
-- ✅ Thinking/reasoning (without signatures)
-- ✅ Web search via `:online` variant (annotations converted to simplified citations)
+- ✅ Thinking/reasoning (signature field empty but same structure)
+- ✅ Web search via `:online` variant (annotations converted to citation blocks)
+- ✅ Citations (encrypted_index field empty but same structure)
 - ✅ Basic streaming with all callbacks
 
-**What's Different**:
-- No cryptographic signatures on thinking blocks (OpenRouter doesn't provide them)
-- Citations are simpler (no encrypted indices, no fold/unfold)
-- Web search uses `:online` variant instead of server-side tool
+**What's Different (User-Visible)**:
+- Thinking blocks don't show "Signature: xyz" line (field is empty)
+- Citations don't show encrypted index value (field is empty)
+- Web search uses `:online` variant (works great with OpenAI native search)
+
+**What's The Same (Implementation)**:
+- Content block structures identical
+- Parser/renderer work unchanged
+- UI folding works (except citations don't fold - no encrypted index to verify)
+- All callbacks receive same data format
 
 ---
 
