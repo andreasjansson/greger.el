@@ -150,6 +150,71 @@ The existing parser and renderer were written to handle missing/empty fields gra
 
 **Result**: OpenRouter output is 100% compatible with existing rendering code. Zero changes needed to `greger-parser.el`, `greger-ui.el`, or any downstream consumers!
 
+### Concrete Data Flow Example
+
+**Thinking Block Flow:**
+
+1. **OpenRouter returns**: `{"delta": {"reasoning": "I need to think..."}}`
+2. **greger-openrouter.el converts to**:
+   ```elisp
+   `((type . "thinking")
+     (thinking . "I need to think...")
+     (signature . ""))
+   ```
+3. **greger.el callbacks receive**: Same structure as Claude thinking blocks
+4. **greger-parser--thinking-to-markdown renders**:
+   ```markdown
+   # THINKING
+   
+   I need to think...
+   ```
+   (No "Signature:" line because signature is empty)
+
+5. **User sees**: Normal thinking block, just without signature verification
+
+**Citation Block Flow:**
+
+1. **OpenRouter returns**: 
+   ```json
+   {
+     "message": {
+       "content": "...",
+       "annotations": [{
+         "type": "url_citation",
+         "url": "https://example.com",
+         "title": "Example",
+         "text": "quote"
+       }]
+     }
+   }
+   ```
+
+2. **greger-openrouter.el converts to**:
+   ```elisp
+   `((type . "text")
+     (text . "")
+     (citations . (((type . "web_search_result_location")
+                    (url . "https://example.com")
+                    (title . "Example")
+                    (cited_text . "quote")
+                    (encrypted_index . "")))))
+   ```
+
+3. **greger.el callbacks receive**: Same structure as Claude citations
+
+4. **greger-parser--citation-to-markdown renders**:
+   ```markdown
+   ## https://example.com
+   
+   Title: Example
+   Cited text: quote
+   Encrypted index: 
+   ```
+
+5. **User sees**: Normal citations, just without encrypted index value
+
+**The Key**: We normalize OpenRouter's format to Greger's internal format in `greger-openrouter.el`. Everything downstream is unchanged!
+
 ## Core Principle: PARALLEL Implementation
 
 **CRITICAL**: This is NOT a refactor. This is adding a completely parallel code path that:
