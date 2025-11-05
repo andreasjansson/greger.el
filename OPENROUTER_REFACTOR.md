@@ -646,31 +646,81 @@ Response includes reasoning in separate field:
 }
 ```
 
+## Summary of Changes
+
+### Files Modified
+
+1. **`greger.el`** - ONE function modified:
+   - Rename existing `greger--run-agent-loop` → `greger--run-agent-loop-claude`
+   - Add new `greger--run-agent-loop` that dispatches based on `greger-provider`
+   - Add new `greger-openrouter--run-agent-loop` function
+   - Add provider switching commands
+   - Add keybindings for provider switching
+
+### Files Created
+
+1. **`greger-config.el`** (OPTIONAL - can add to greger.el instead)
+   - New config variables: `greger-provider`, `greger-openrouter-api-key-fn`, `greger-openrouter-model`
+
+2. **`greger-openrouter.el`** 
+   - Complete parallel implementation
+   - Own state structure
+   - Own streaming logic  
+   - Own message format conversion
+   - Own tool format conversion
+
+### Files Unchanged
+
+- ✅ `greger-client.el` - 100% unchanged
+- ✅ `greger-parser.el` - 100% unchanged
+- ✅ `greger-tools.el` - 100% unchanged
+- ✅ `greger-stdlib.el` - 100% unchanged
+- ✅ All other files - 100% unchanged
+
 ## Migration Path
 
-### Phase 1: Foundation (No Breaking Changes)
-1. Create `greger-config.el` with provider configuration
-2. Create `greger-provider.el` with generic protocol
-3. Keep `greger-client.el` as-is, add backward-compatible wrapper
+### Phase 1: Add Configuration (5 minutes)
+1. Add config variables to `greger.el` or new `greger-config.el`
+2. Default: `(defcustom greger-provider 'anthropic ...)`
+3. Zero impact on existing behavior
 
-### Phase 2: Anthropic Refactor (No Breaking Changes)
-1. Copy current implementation to `greger-provider-anthropic.el`
-2. Implement protocol methods
-3. Update `greger-client.el` to dispatch to provider implementations
-4. All existing code continues to work via `'anthropic` default
+### Phase 2: Add Dispatch Point (5 minutes)
+1. Rename `greger--run-agent-loop` → `greger--run-agent-loop-claude`
+2. Create new `greger--run-agent-loop` with if/else dispatch
+3. Still zero impact - defaults to Claude path
 
-### Phase 3: OpenRouter Implementation (Beta)
-1. Implement `greger-provider-openrouter.el`
-2. Add configuration UI
-3. Document beta status and limitations
-4. Users opt-in by setting `greger-provider` to `'openrouter`
+### Phase 3: Implement OpenRouter (main work)
+1. Create `greger-openrouter.el` with complete parallel implementation
+2. Create `greger-openrouter--run-agent-loop`
+3. Still zero impact unless user sets `greger-provider` to `'openrouter`
+
+### Phase 4: Add UI (10 minutes)
+1. Add `greger-set-provider` command
+2. Add `greger-set-openrouter-model` command  
+3. Add keybindings
 
 ## Testing Strategy
 
-1. **Regression Testing**: Run full test suite with `greger-provider` = `'anthropic`
-2. **Dual Testing**: Same tests run with both providers where applicable
-3. **Provider-Specific Tests**: OpenRouter-specific features (model switching, etc.)
-4. **Manual Testing**: Real-world usage with both providers
+1. **Regression Testing**: 
+   - Keep `greger-provider` = `'anthropic` (default)
+   - Run ALL existing tests
+   - Everything should pass identically
+
+2. **OpenRouter Testing**:
+   - Set `greger-provider` = `'openrouter`
+   - Test basic streaming
+   - Test tool calls
+   - Test thinking (if model supports)
+   - Test error handling
+
+3. **Provider Switching**:
+   - Test switching between providers mid-session
+   - Verify state isolation
+
+4. **Manual Testing**:
+   - Real coding tasks with GPT-5 Codex
+   - Compare quality vs Claude
+   - Test different models
 
 ## Limitations (Beta)
 
