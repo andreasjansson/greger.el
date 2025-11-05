@@ -1092,26 +1092,32 @@ Features:
 - Character offset-based (start_index, end_index)
 - Delivered at end of response, not streamed
 
-**Conversion Challenges**:
-1. **Timing**: Greger expects citations during streaming; OpenRouter sends them at end
-2. **Structure**: Greger treats citations as blocks; OpenRouter as message metadata
-3. **Verification**: Greger has encrypted indices; OpenRouter doesn't
-4. **Rendering**: Greger renders inline with fold/unfold; harder with offsets
+**Implementation**:
+We convert OpenRouter annotations to simplified Greger citation format. When the response completes and we receive annotations, we append them as citation blocks:
 
-**Implementation Strategy**:
-- For OpenRouter, skip citation rendering initially
-- If annotations present, display simplified version:
-  ```
-  # ASSISTANT
-  
-  Response text here...
-  
-  ## Sources
-  - [Example Site](https://example.com)
-  - [Another Source](https://another.com)
-  ```
-- No inline underlines, no fold/unfold
-- Keep it simple for MVP
+```markdown
+# ASSISTANT
+
+Response text with search results...
+
+## https://example.com
+
+Title: Example Site
+Cited text: relevant quote from the search result
+
+## https://another.com
+
+Title: Another Source  
+Cited text: another relevant quote
+```
+
+**What's different**:
+- No `encrypted_index` field (not provided by OpenRouter)
+- Citations appear at end, not inline during streaming
+- No fold/unfold functionality (always visible)
+- URLs still clickable with same `greger-ui--url-link` functionality
+
+This provides functional web search with citations - just in a slightly different format than Claude's native implementation.
 
 ## Known Limitations (Beta)
 
