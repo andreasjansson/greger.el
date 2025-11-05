@@ -1369,12 +1369,6 @@ The key insight: **duplication is better than the wrong abstraction** when you n
 - **Pro Claude**: Native web search with citations, thinking signatures, first-party features
 - Best: Use both! Claude for web research, OpenRouter for coding with GPT-5 Codex
 
-### Q: What if I need web search with OpenRouter?
-**A:** Three options:
-1. Switch to Claude temporarily: `M-x greger-set-provider RET Anthropic RET`
-2. Wait for `:online` variant support (future enhancement)
-3. Use the `read-webpage` tool manually (current workaround)
-
 ### Q: Will this slow down Claude?
 **A:** No! Claude path is unchanged. Zero performance impact.
 
