@@ -568,8 +568,9 @@ Add the OpenRouter agent loop as a completely separate implementation:
 (defun greger-openrouter--run-agent-loop (state)
   "Run agent loop using OpenRouter - parallel to greger--run-agent-loop-claude."
   (let* ((tools (greger-tools-get-schemas greger-tools))
-         ;; Note: NO server-tools for OpenRouter
-         ;; Web search is disabled - if user configured it, warn them
+         ;; Check if web search is enabled (user has web_search in server-tools)
+         (enable-web-search (and greger-server-tools
+                                 (member "web_search" greger-server-tools)))
          (chat-buffer (greger-state-chat-buffer state))
          (dialog (greger-parser-markdown-buffer-to-dialog chat-buffer))
          (safe-shell-commands (greger-parser-find-safe-shell-commands-in-buffer chat-buffer))
@@ -578,10 +579,6 @@ Add the OpenRouter agent loop as a completely separate implementation:
          (auth-key (or (and greger-openrouter-api-key-fn 
                             (funcall greger-openrouter-api-key-fn))
                        (getenv "OPENROUTER_API_KEY"))))
-    
-    ;; Warn if user has server tools configured (they won't work with OpenRouter)
-    (when greger-server-tools
-      (message "Warning: Server tools (web_search) not supported with OpenRouter provider"))
     
     (setf (plist-get tool-use-metadata :safe-shell-commands) safe-shell-commands)
     
@@ -596,6 +593,7 @@ Add the OpenRouter agent loop as a completely separate implementation:
                            :model greger-openrouter-model
                            :dialog dialog
                            :tools tools
+                           :enable-web-search enable-web-search
                            :buffer chat-buffer
                            :thinking-budget greger-current-thinking-budget
                            :auth-key auth-key
