@@ -858,13 +858,201 @@ If nil, uses OPENROUTER_API_KEY environment variable."
 - Document model selection
 - Note beta status and limitations
 
+## Critical Feature Differences
+
+### 1. Thinking/Reasoning Blocks
+
+**Claude (Anthropic)**:
+- Uses explicit `thinking` content blocks with signatures
+- Format:
+  ```json
+  {
+    "type": "thinking",
+    "thinking": "reasoning text...",
+    "signature": "crypto signature for verification"
+  }
+  ```
+- Rendered as `# THINKING\n\nSignature: xyz\n\nthinking text`
+
+**OpenRouter**:
+- Uses `reasoning` parameter and returns reasoning in separate field
+- Format in request:
+  ```json
+  {
+    "reasoning": {
+      "max_tokens": 4096,
+      "effort": "high"  // or "low", "medium"
+    },
+    "include_reasoning": true
+  }
+  ```
+- Format in response (streaming):
+  ```json
+  {
+    "delta": {
+      "reasoning": "reasoning text chunk..."
+    }
+  }
+  ```
+- **NO SIGNATURES**: OpenRouter doesn't provide cryptographic signatures for thinking
+- **Model-dependent**: Not all models expose reasoning (GPT-5, Claude via OpenRouter do; others may not)
+
+**Implementation Strategy**:
+- Convert OpenRouter `reasoning` deltas to Greger's thinking format
+- Omit signature field (set to empty string)
+- Map `delta.reasoning` → Greger thinking block
+- Prefix with `# THINKING` header for consistency
+
+### 2. Web Search / Server Tools
+
+**Claude (Anthropic)**:
+- Has built-in `web_search` **server tool** (Anthropic executes the search)
+- Returns `web_search_tool_result` content blocks
+- Includes structured citations with encrypted indices:
+  ```json
+  {
+    "type": "web_search_tool_result",
+    "tool_use_id": "...",
+    "content": {
+      "citations": [{
+        "type": "web_search_result_location",
+        "url": "https://...",
+        "title": "...",
+        "cited_text": "...",
+        "encrypted_index": "..."
+      }]
+    }
+  }
+  ```
+- Greger has complex citation rendering with clickable URLs, fold/unfold
+
+**OpenRouter**:
+- **NO server-side web_search tool**
+- Has `:online` variant that adds web search (client-side integration)
+  - Example: `"anthropic/claude-sonnet-4:online"`
+  - Powered by native search (Anthropic/OpenAI) or Exa for other models
+  - Costs extra: $4 per 1000 results with Exa (default 5 results = $0.02)
+- Returns annotations in different format:
+  ```json
+  {
+    "choices": [{
+      "message": {
+        "content": "...",
+        "annotations": [{
+          "type": "url_citation",
+          "url": "https://...",
+          "title": "...",
+          "start_index": 123,
+          "end_index": 456
+        }]
+      }
+    }]
+  }
+  ```
+- **Different structure**: annotations are per-message, not per-content-block
+- **No encrypted indices**: Uses simple start/end character positions
+
+**Implementation Options**:
+
+**Option A: Disable Web Search for OpenRouter** (RECOMMENDED)
+- Simplest: Don't register `web_search` in server tools for OpenRouter
+- User message: "Web search not available with OpenRouter provider"
+- Benefits:
+  - No complex citation format conversion
+  - Avoids extra costs from `:online` variant
+  - Clear expectations
+- Can add later once we understand annotation format better
+
+**Option B: Use `:online` Variant with Conversion**
+- Automatically append `:online` to model name when web search requested
+- Convert OpenRouter annotations to Greger citation format
+- Challenges:
+  - Annotations are message-level, not content-block-level
+  - No encrypted indices (can generate dummy ones)
+  - Different timing (annotations come with final message, not as separate blocks)
+  - Harder to render inline with streaming
+
+**Option C: Fall Back to Claude for Web Search**
+- When user requests web search, automatically switch to Claude
+- Display notice: "Switching to Claude for web search capabilities"
+- Benefits:
+  - Full feature parity for web search
+  - No conversion headaches
+  - Clear user communication
+
+**Recommendation**: Implement **Option A** initially (disable web search), add **Option C** (fallback) if users demand it, consider **Option B** (conversion) as future enhancement.
+
+### 3. Citations Handling
+
+**Greger's Current Citation System** (for Claude):
+```markdown
+# ASSISTANT
+
+This is cited text with underline.
+
+## https://example.com
+
+Title: Example Site
+Cited text: relevant quote
+Encrypted index: abc123xyz
+```
+
+Features:
+- Inline citations with special formatting
+- Clickable URLs (opens in browser)
+- Fold/unfold citation details
+- Encrypted indices for verification
+- Citations are content blocks themselves
+
+**OpenRouter Annotations**:
+- Message-level, not content-block-level
+- No encryption/verification
+- Character offset-based (start_index, end_index)
+- Delivered at end of response, not streamed
+
+**Conversion Challenges**:
+1. **Timing**: Greger expects citations during streaming; OpenRouter sends them at end
+2. **Structure**: Greger treats citations as blocks; OpenRouter as message metadata
+3. **Verification**: Greger has encrypted indices; OpenRouter doesn't
+4. **Rendering**: Greger renders inline with fold/unfold; harder with offsets
+
+**Implementation Strategy**:
+- For OpenRouter, skip citation rendering initially
+- If annotations present, display simplified version:
+  ```
+  # ASSISTANT
+  
+  Response text here...
+  
+  ## Sources
+  - [Example Site](https://example.com)
+  - [Another Source](https://another.com)
+  ```
+- No inline underlines, no fold/unfold
+- Keep it simple for MVP
+
 ## Known Limitations (Beta)
 
 1. **No Server Tools**: OpenRouter doesn't support Anthropic's `web_search` server tool
-2. **Reasoning Token Support Varies**: Not all models expose thinking/reasoning
-3. **Different Token Limits**: Each model has different context windows
-4. **Cost Differences**: OpenRouter adds markup, pricing varies by model
-5. **Message Format Conversion**: May lose some nuances in complex scenarios
+   - **Solution**: Disable web search for OpenRouter provider initially
+   - **Alternative**: Use `:online` variant with simplified citation handling
+
+2. **Thinking Format Differences**: 
+   - No cryptographic signatures (signature field will be empty)
+   - Model support varies (GPT-5, Claude work; others may not)
+   - Reasoning must be explicitly enabled with `include_reasoning: true`
+
+3. **Citations Not Supported**: Complex citation rendering won't work with OpenRouter
+   - OpenRouter annotations are message-level, not content-block-level
+   - No encrypted indices for verification
+   - **Solution**: Display simple source list at end instead of inline citations
+
+4. **Different Token Limits**: Each model has different context windows
+
+5. **Cost Differences**: OpenRouter adds markup, pricing varies by model
+   - `:online` variant adds $0.02+ per request for web search
+
+6. **Message Format Conversion**: May lose some nuances in complex scenarios
 
 ## Future Enhancements
 
