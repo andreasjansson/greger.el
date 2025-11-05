@@ -1121,26 +1121,29 @@ This provides functional web search with citations - just in a slightly differen
 
 ## Known Limitations (Beta)
 
-1. **No Server Tools**: OpenRouter doesn't support Anthropic's `web_search` server tool
-   - **Solution**: Disable web search for OpenRouter provider initially
-   - **Alternative**: Use `:online` variant with simplified citation handling
+1. **Web Search Format**: Uses `:online` variant instead of server-side tool
+   - Works well with OpenAI/Anthropic models (native search)
+   - Falls back to Exa for other models ($0.02 per request)
+   - Citations appear at end of response, not inline during streaming
+   - No fold/unfold, no encrypted indices
 
-2. **Thinking Format Differences**: 
+2. **Thinking Format**: 
    - No cryptographic signatures (signature field will be empty)
-   - Model support varies (GPT-5, Claude work; others may not)
-   - Reasoning must be explicitly enabled with `include_reasoning: true`
+   - Model support varies (GPT-5, Claude-via-OpenRouter work; others may not)
+   - Must enable with `greger-current-thinking-budget > 0`
 
-3. **Citations Not Supported**: Complex citation rendering won't work with OpenRouter
-   - OpenRouter annotations are message-level, not content-block-level
+3. **Citation Simplification**: 
    - No encrypted indices for verification
-   - **Solution**: Display simple source list at end instead of inline citations
+   - No inline underlines
+   - No fold/unfold functionality
+   - Citations always visible at end of response
 
-4. **Different Token Limits**: Each model has different context windows
+4. **Model-Specific Limits**: Each model has different context windows and capabilities
 
-5. **Cost Differences**: OpenRouter adds markup, pricing varies by model
-   - `:online` variant adds $0.02+ per request for web search
-
-6. **Message Format Conversion**: May lose some nuances in complex scenarios
+5. **Cost Variance**: Pricing varies by model and provider
+   - OpenRouter adds small markup over direct API pricing
+   - Native web search included in model cost
+   - Exa web search adds $0.02 per request (5 results)
 
 ## Future Enhancements
 
