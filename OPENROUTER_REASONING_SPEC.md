@@ -323,12 +323,13 @@ Accumulates both readable text and full reasoning_details array."
         (annotations (greger-openrouter-state-annotations state))
         blocks)
     
-    ;; Add reasoning block if we have reasoning
+    ;; Add thinking block if we have reasoning (reuse THINKING format)
     (when (and reasoning-text reasoning-details)
-      (push `((type . "reasoning")
-              (reasoning . ,reasoning-text)
-              (reasoning_details . ,reasoning-details))
-            blocks))
+      (let ((signature-base64 (base64-encode-string (json-encode reasoning-details) t)))
+        (push `((type . "thinking")
+                (thinking . ,reasoning-text)
+                (signature . ,signature-base64))
+              blocks)))
     
     ;; Add tool use blocks
     (when (> (hash-table-count tool-calls) 0)

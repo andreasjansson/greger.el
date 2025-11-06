@@ -14556,5 +14556,92 @@ Update Content Block Structures for THINKING reuse
 ID: toolu_01AudNS8R9goo2xFBo8AA6M9
 
 <tool.toolu_01AudNS8R9goo2xFBo8AA6M9>
-
+Successfully replaced content in /Users/andreas/projects/greger.el/OPENROUTER_REASONING_SPEC.md. Successfully staged 2 file(s) and committed with message: Update Content Block Structures for THINKING reuse
 </tool.toolu_01AudNS8R9goo2xFBo8AA6M9>
+
+# TOOL USE
+
+Name: str-replace
+ID: toolu_01ANuhH5JqtkDMAuL6fW9jft
+
+## path
+
+<tool.toolu_01ANuhH5JqtkDMAuL6fW9jft>
+/Users/andreas/projects/greger.el/OPENROUTER_REASONING_SPEC.md
+</tool.toolu_01ANuhH5JqtkDMAuL6fW9jft>
+
+## git-commit-message
+
+<tool.toolu_01ANuhH5JqtkDMAuL6fW9jft>
+Update Streaming Response Handling for THINKING blocks
+</tool.toolu_01ANuhH5JqtkDMAuL6fW9jft>
+
+## diff
+
+<tool.toolu_01ANuhH5JqtkDMAuL6fW9jft>
+ ### Building Content Blocks at Completion
+ 
+ ```elisp
+ (defun greger-openrouter--build-content-blocks (state)
+   "Build content blocks including reasoning if present."
+   (let ((reasoning-text (greger-openrouter-state-current-reasoning-text state))
+         (reasoning-details (greger-openrouter-state-current-reasoning-details state))
+         (tool-calls (greger-openrouter-state-current-tool-calls state))
+         (annotations (greger-openrouter-state-annotations state))
+         blocks)
+     
+-    ;; Add reasoning block if we have reasoning
++    ;; Add thinking block if we have reasoning (reuse THINKING format)
+     (when (and reasoning-text reasoning-details)
+-      (push `((type . "reasoning")
+-              (reasoning . ,reasoning-text)
+-              (reasoning_details . ,reasoning-details))
+-            blocks))
++      (let ((signature-base64 (base64-encode-string (json-encode reasoning-details) t)))
++        (push `((type . "thinking")
++                (thinking . ,reasoning-text)
++                (signature . ,signature-base64))
++              blocks)))
+     
+     ;; Add tool use blocks
+     (when (> (hash-table-count tool-calls) 0)
+       (maphash
+        (lambda (_index call)
+          (let* ((id (alist-get 'id call))
+                 (name (alist-get 'name call))
+                 (arguments (alist-get 'arguments call))
+                 (parsed-args (condition-case nil
+                                  (json-read-from-string arguments)
+                                (error '()))))
+            (push `((type . "tool_use")
+                    (id . ,id)
+                    (name . ,name)
+                    (input . ,parsed-args))
+                  blocks)))
+        tool-calls))
+     
+     ;; Add citation blocks from annotations
+     (when annotations
+       (let ((citations (seq-filter
+                         (lambda (annotation)
+                           (string= (alist-get 'type annotation) "url_citation"))
+                         annotations)))
+         (when citations
+           (push `((type . "text")
+                   (text . "")
+                   (citations . ,(mapcar #'greger-openrouter--convert-annotation-to-citation citations)))
+                 blocks))))
+     
+     (nreverse blocks)))
+ ```
+\ No newline at end of file
+
+</tool.toolu_01ANuhH5JqtkDMAuL6fW9jft>
+
+# TOOL RESULT
+
+ID: toolu_01ANuhH5JqtkDMAuL6fW9jft
+
+<tool.toolu_01ANuhH5JqtkDMAuL6fW9jft>
+
+</tool.toolu_01ANuhH5JqtkDMAuL6fW9jft>
