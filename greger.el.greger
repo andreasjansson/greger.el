@@ -14273,5 +14273,94 @@ Remove more debug logging
 ID: toolu_01DfPB5feAezGxDhbYK73rNQ
 
 <tool.toolu_01DfPB5feAezGxDhbYK73rNQ>
-
+Successfully replaced content in /Users/andreas/projects/greger.el/greger-openrouter.el. Successfully staged 2 file(s) and committed with message: Remove more debug logging
 </tool.toolu_01DfPB5feAezGxDhbYK73rNQ>
+
+# TOOL USE
+
+Name: str-replace
+ID: toolu_011st8o9hKuKoYHCqt6R6RUE
+
+## path
+
+<tool.toolu_011st8o9hKuKoYHCqt6R6RUE>
+greger-openrouter.el
+</tool.toolu_011st8o9hKuKoYHCqt6R6RUE>
+
+## git-commit-message
+
+<tool.toolu_011st8o9hKuKoYHCqt6R6RUE>
+Remove remaining debug messages
+</tool.toolu_011st8o9hKuKoYHCqt6R6RUE>
+
+## diff
+
+<tool.toolu_011st8o9hKuKoYHCqt6R6RUE>
+            ;; Handle text streaming from output_item.added events
+            ((string= event-type "response.output_item.added")
+             (when (and item (string= (alist-get 'type item) "message"))
+               (let ((content (alist-get 'content item)))
+                 (when content
+                   (seq-doseq (content-item content)
+                     (when (and (string= (alist-get 'type content-item) "output_text")
+                                (alist-get 'text content-item))
+                       (let ((text (alist-get 'text content-item))
+                             (block-start-callback (greger-openrouter-state-block-start-callback state)))
+-                        (message "OPENROUTER: Got initial text: %s" text)
+                         (unless (greger-openrouter-state-text-started state)
+                           (setf (greger-openrouter-state-text-started state) t)
+                           (when block-start-callback
+                             (funcall block-start-callback
+                                      `((type . "text")
+                                        (text . ""))))))))))))
+            
+            ;; Handle incremental text updates
+            ((string= event-type "response.content_part.delta")
+-            (message "OPENROUTER: Processing content delta")
+             (when-let* ((part-type (alist-get 'type content-part))
+                         ((string= part-type "output_text"))
+                         (text (alist-get 'text content-part)))
+-              (message "OPENROUTER: Got text delta: %s" text)
+               (let ((text-delta-callback (greger-openrouter-state-text-delta-callback state)))
+                 (setf (greger-openrouter-state-current-text state)
+                       (concat (greger-openrouter-state-current-text state) text))
+                 (when text-delta-callback
+                   (funcall text-delta-callback text)))))
+            
+-           ;; Handle text done event
+-           ((string= event-type "response.output_text.done")
+-            (message "OPENROUTER: Text output done"))
+-           
++           ;; Handle completion
+            ((string= event-type "response.completed")
+-            (message "OPENROUTER: Processing completion")
+             (when response
+               (let* ((output (alist-get 'output response))
+                      (message-item (when output
+                                      (seq-find (lambda (item)
+                                                  (string= (alist-get 'type item) "message"))
+                                                output)))
+                      (content (when message-item (alist-get 'content message-item)))
+                      (text-content (when content
+                                      (seq-find (lambda (item)
+                                                  (string= (alist-get 'type item) "output_text"))
+                                                content)))
+-                     (text (when text-content (alist-get 'text text-content)))
+-                     (annotations (when text-content (alist-get 'annotations text-content))))
+-                
+-                (message "OPENROUTER: Text: %s" text)
+-                (message "OPENROUTER: Annotations: %s" annotations)
+\ No newline at end of file
++                     (text (when text-content (alist-get 'text text-content))))
++                
+\ No newline at end of file
+
+</tool.toolu_011st8o9hKuKoYHCqt6R6RUE>
+
+# TOOL RESULT
+
+ID: toolu_011st8o9hKuKoYHCqt6R6RUE
+
+<tool.toolu_011st8o9hKuKoYHCqt6R6RUE>
+
+</tool.toolu_011st8o9hKuKoYHCqt6R6RUE>

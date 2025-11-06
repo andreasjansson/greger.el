@@ -339,7 +339,6 @@ OpenAI function calling doesn't support default values."
                                (alist-get 'text content-item))
                       (let ((text (alist-get 'text content-item))
                             (block-start-callback (greger-openrouter-state-block-start-callback state)))
-                        (message "OPENROUTER: Got initial text: %s" text)
                         (unless (greger-openrouter-state-text-started state)
                           (setf (greger-openrouter-state-text-started state) t)
                           (when block-start-callback
@@ -349,23 +348,17 @@ OpenAI function calling doesn't support default values."
            
            ;; Handle incremental text updates
            ((string= event-type "response.content_part.delta")
-            (message "OPENROUTER: Processing content delta")
             (when-let* ((part-type (alist-get 'type content-part))
                         ((string= part-type "output_text"))
                         (text (alist-get 'text content-part)))
-              (message "OPENROUTER: Got text delta: %s" text)
               (let ((text-delta-callback (greger-openrouter-state-text-delta-callback state)))
                 (setf (greger-openrouter-state-current-text state)
                       (concat (greger-openrouter-state-current-text state) text))
                 (when text-delta-callback
                   (funcall text-delta-callback text)))))
            
-           ;; Handle text done event
-           ((string= event-type "response.output_text.done")
-            (message "OPENROUTER: Text output done"))
-           
+           ;; Handle completion
            ((string= event-type "response.completed")
-            (message "OPENROUTER: Processing completion")
             (when response
               (let* ((output (alist-get 'output response))
                      (message-item (when output
@@ -377,11 +370,8 @@ OpenAI function calling doesn't support default values."
                                      (seq-find (lambda (item)
                                                  (string= (alist-get 'type item) "output_text"))
                                                content)))
-                     (text (when text-content (alist-get 'text text-content)))
-                     (annotations (when text-content (alist-get 'annotations text-content))))
+                     (text (when text-content (alist-get 'text text-content))))
                 
-                (message "OPENROUTER: Text: %s" text)
-                (message "OPENROUTER: Annotations: %s" annotations)
                 
                 (when text
                   (setf (greger-openrouter-state-current-text state) text))
