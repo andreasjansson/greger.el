@@ -10200,5 +10200,58 @@ Fix base64 encoding to handle multibyte characters in reasoning_details
 ID: toolu_01Hex1Gd1qU2LhtFD6wnXqGW
 
 <tool.toolu_01Hex1Gd1qU2LhtFD6wnXqGW>
-
+Successfully replaced content in /Users/andreas/projects/greger.el/greger-openrouter.el. Successfully staged 2 file(s) and committed with message: Fix base64 encoding to handle multibyte characters in reasoning_details
 </tool.toolu_01Hex1Gd1qU2LhtFD6wnXqGW>
+
+# ASSISTANT
+
+Also need to fix the decoding side:
+
+# TOOL USE
+
+Name: str-replace
+ID: toolu_01CgQgWbEA9fs8cN1dvwZy6C
+
+## path
+
+<tool.toolu_01CgQgWbEA9fs8cN1dvwZy6C>
+greger-openrouter.el
+</tool.toolu_01CgQgWbEA9fs8cN1dvwZy6C>
+
+## git-commit-message
+
+<tool.toolu_01CgQgWbEA9fs8cN1dvwZy6C>
+Fix base64 decoding to handle UTF-8 encoded reasoning_details
+</tool.toolu_01CgQgWbEA9fs8cN1dvwZy6C>
+
+## original-content
+
+<tool.toolu_01CgQgWbEA9fs8cN1dvwZy6C>
+            (when (and signature (not (string-empty-p signature)))
+              (condition-case nil
+                  (let* ((decoded (base64-decode-string signature))
+                         (parsed (json-read-from-string decoded)))
+                    (when (vectorp parsed)
+                      (setq reasoning-details parsed)))
+                (error nil)))
+</tool.toolu_01CgQgWbEA9fs8cN1dvwZy6C>
+
+## new-content
+
+<tool.toolu_01CgQgWbEA9fs8cN1dvwZy6C>
+            (when (and signature (not (string-empty-p signature)))
+              (condition-case nil
+                  (let* ((decoded (decode-coding-string (base64-decode-string signature) 'utf-8))
+                         (parsed (json-read-from-string decoded)))
+                    (when (vectorp parsed)
+                      (setq reasoning-details parsed)))
+                (error nil)))
+</tool.toolu_01CgQgWbEA9fs8cN1dvwZy6C>
+
+# TOOL RESULT
+
+ID: toolu_01CgQgWbEA9fs8cN1dvwZy6C
+
+<tool.toolu_01CgQgWbEA9fs8cN1dvwZy6C>
+
+</tool.toolu_01CgQgWbEA9fs8cN1dvwZy6C>

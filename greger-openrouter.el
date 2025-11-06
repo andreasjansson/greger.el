@@ -184,7 +184,7 @@ Converts citations back to OpenRouter annotations format."
             
             (when (and signature (not (string-empty-p signature)))
               (condition-case nil
-                  (let* ((decoded (base64-decode-string signature))
+                  (let* ((decoded (decode-coding-string (base64-decode-string signature) 'utf-8))
                          (parsed (json-read-from-string decoded)))
                     (when (vectorp parsed)
                       (setq reasoning-details parsed)))
