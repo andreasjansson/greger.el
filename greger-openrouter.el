@@ -332,33 +332,28 @@ OpenAI function calling doesn't support default values."
           (cond
            ;; Handle reasoning summary part being added (starts thinking block)
            ((string= event-type "response.reasoning_summary_part.added")
-            (unless (greger-openrouter-state-thinking-started state)
-              (setf (greger-openrouter-state-thinking-started state) t)
-              (when-let ((block-start-callback (greger-openrouter-state-block-start-callback state)))
-                (funcall block-start-callback
-                         `((type . "thinking")
-                           (thinking . "")
-                           (signature . ""))))))
+            (when-let ((block-start-callback (greger-openrouter-state-block-start-callback state)))
+              (funcall block-start-callback
+                       `((type . "thinking")
+                         (thinking . "")
+                         (signature . "")))))
            
            ;; Handle reasoning summary text updates
            ((string= event-type "response.reasoning_summary_text.delta")
             (when-let ((text (alist-get 'delta data)))
-              (let ((text-delta-callback (greger-openrouter-state-text-delta-callback state)))
-                (setf (greger-openrouter-state-current-reasoning-text state)
-                      (concat (or (greger-openrouter-state-current-reasoning-text state) "") text))
-                (when text-delta-callback
-                  (funcall text-delta-callback text)))))
+              (setf (greger-openrouter-state-current-reasoning-text state)
+                    (concat (or (greger-openrouter-state-current-reasoning-text state) "") text))
+              (when-let ((text-delta-callback (greger-openrouter-state-text-delta-callback state)))
+                (funcall text-delta-callback text))))
            
            ;; Handle content part being added (starts the text block)
            ((string= event-type "response.content_part.added")
             (when-let* ((part (alist-get 'part data))
                         ((string= (alist-get 'type part) "output_text")))
-              (unless (greger-openrouter-state-text-started state)
-                (setf (greger-openrouter-state-text-started state) t)
-                (when-let ((block-start-callback (greger-openrouter-state-block-start-callback state)))
-                  (funcall block-start-callback
-                           `((type . "text")
-                             (text . "")))))))
+              (when-let ((block-start-callback (greger-openrouter-state-block-start-callback state)))
+                (funcall block-start-callback
+                         `((type . "text")
+                           (text . ""))))))
            
            ;; Handle incremental text updates
            ((string= event-type "response.output_text.delta")

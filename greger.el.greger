@@ -16088,45 +16088,28 @@ greger-openrouter.el
 Remove unnecessary started tracking - just call callbacks directly
 </tool.toolu_01FTWTkhtJUqWoBBsp1ZpBNd>
 
-## original-content
+## diff
 
 <tool.toolu_01FTWTkhtJUqWoBBsp1ZpBNd>
-(cl-defstruct greger-openrouter-state
-  accumulated-output
-  current-text
-  text-started
-  thinking-started
-  current-reasoning-text
-  annotations
-  process
-  output-buffer
-  undo-handle
-  block-start-callback
-  text-delta-callback
-  block-stop-callback
-  complete-callback
-  restore-callback
-  error-callback
-  error-message)
-</tool.toolu_01FTWTkhtJUqWoBBsp1ZpBNd>
+ (cl-defstruct greger-openrouter-state
+   accumulated-output
+   current-text
+-  text-started
+-  thinking-started
+   current-reasoning-text
+-  annotations
+   process
+   output-buffer
+   undo-handle
+   block-start-callback
+   text-delta-callback
+   block-stop-callback
+   complete-callback
+   restore-callback
+   error-callback
+   error-message)
+\ No newline at end of file
 
-## new-content
-
-<tool.toolu_01FTWTkhtJUqWoBBsp1ZpBNd>
-(cl-defstruct greger-openrouter-state
-  accumulated-output
-  current-text
-  current-reasoning-text
-  process
-  output-buffer
-  undo-handle
-  block-start-callback
-  text-delta-callback
-  block-stop-callback
-  complete-callback
-  restore-callback
-  error-callback
-  error-message)
 </tool.toolu_01FTWTkhtJUqWoBBsp1ZpBNd>
 
 # TOOL RESULT
@@ -16134,5 +16117,80 @@ Remove unnecessary started tracking - just call callbacks directly
 ID: toolu_01FTWTkhtJUqWoBBsp1ZpBNd
 
 <tool.toolu_01FTWTkhtJUqWoBBsp1ZpBNd>
-
+Successfully replaced content in /Users/andreas/projects/greger.el/greger-openrouter.el. Successfully staged 2 file(s) and committed with message: Remove unnecessary started tracking - just call callbacks directly
 </tool.toolu_01FTWTkhtJUqWoBBsp1ZpBNd>
+
+# TOOL USE
+
+Name: str-replace
+ID: toolu_01HQcfrWvoRViNYkZEFLMnNa
+
+## path
+
+<tool.toolu_01HQcfrWvoRViNYkZEFLMnNa>
+greger-openrouter.el
+</tool.toolu_01HQcfrWvoRViNYkZEFLMnNa>
+
+## git-commit-message
+
+<tool.toolu_01HQcfrWvoRViNYkZEFLMnNa>
+Simplify event handlers - remove started checks
+</tool.toolu_01HQcfrWvoRViNYkZEFLMnNa>
+
+## diff
+
+<tool.toolu_01HQcfrWvoRViNYkZEFLMnNa>
+            ;; Handle reasoning summary part being added (starts thinking block)
+            ((string= event-type "response.reasoning_summary_part.added")
+-            (unless (greger-openrouter-state-thinking-started state)
+-              (setf (greger-openrouter-state-thinking-started state) t)
+-              (when-let ((block-start-callback (greger-openrouter-state-block-start-callback state)))
+-                (funcall block-start-callback
+-                         `((type . "thinking")
+-                           (thinking . "")
+-                           (signature . ""))))))
++            (when-let ((block-start-callback (greger-openrouter-state-block-start-callback state)))
++              (funcall block-start-callback
++                       `((type . "thinking")
++                         (thinking . "")
++                         (signature . "")))))
+            
+            ;; Handle reasoning summary text updates
+            ((string= event-type "response.reasoning_summary_text.delta")
+             (when-let ((text (alist-get 'delta data)))
+-              (let ((text-delta-callback (greger-openrouter-state-text-delta-callback state)))
+-                (setf (greger-openrouter-state-current-reasoning-text state)
+-                      (concat (or (greger-openrouter-state-current-reasoning-text state) "") text))
+-                (when text-delta-callback
+-                  (funcall text-delta-callback text)))))
++              (setf (greger-openrouter-state-current-reasoning-text state)
++                    (concat (or (greger-openrouter-state-current-reasoning-text state) "") text))
++              (when-let ((text-delta-callback (greger-openrouter-state-text-delta-callback state)))
++                (funcall text-delta-callback text))))
+            
+            ;; Handle content part being added (starts the text block)
+            ((string= event-type "response.content_part.added")
+             (when-let* ((part (alist-get 'part data))
+                         ((string= (alist-get 'type part) "output_text")))
+-              (unless (greger-openrouter-state-text-started state)
+-                (setf (greger-openrouter-state-text-started state) t)
+-                (when-let ((block-start-callback (greger-openrouter-state-block-start-callback state)))
+-                  (funcall block-start-callback
+-                           `((type . "text")
+-                             (text . "")))))))
+\ No newline at end of file
++              (when-let ((block-start-callback (greger-openrouter-state-block-start-callback state)))
++                (funcall block-start-callback
++                         `((type . "text")
++                           (text . ""))))))
+\ No newline at end of file
+
+</tool.toolu_01HQcfrWvoRViNYkZEFLMnNa>
+
+# TOOL RESULT
+
+ID: toolu_01HQcfrWvoRViNYkZEFLMnNa
+
+<tool.toolu_01HQcfrWvoRViNYkZEFLMnNa>
+
+</tool.toolu_01HQcfrWvoRViNYkZEFLMnNa>
