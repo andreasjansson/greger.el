@@ -216,42 +216,49 @@ This already handles both Claude and OpenRouter cases!
 
 ### Internal Representation
 
-**Reasoning Content Block** (new):
+Both Claude and OpenRouter use the **same THINKING block structure**:
 
 ```elisp
-'((type . "reasoning")
-  (reasoning . "Human-readable reasoning text")
-  (reasoning_details . [vector-of-reasoning-detail-objects]))
-```
-
-Example with actual data:
-
-```elisp
-'((type . "reasoning")
-  (reasoning . "I need to analyze this step by step...")
-  (reasoning_details . [((type . "reasoning.summary")
-                          (summary . "I need to analyze this step by step...")
-                          (format . "openai-responses-v1")
-                          (index . 0))
-                         ((type . "reasoning.encrypted")
-                          (data . "gAAAAAB...")
-                          (id . "rs_abc123")
-                          (format . "openai-responses-v1")
-                          (index . 0))]))
-```
-
-**Comparison with THINKING Block**:
-
-```elisp
-;; THINKING (Claude/Anthropic)
 '((type . "thinking")
-  (thinking . "thought process")
-  (signature . "cryptographic-signature"))
+  (thinking . "Human-readable reasoning text")
+  (signature . "base64-or-cryptographic-signature"))
+```
 
-;; REASONING (OpenRouter)
-'((type . "reasoning")
-  (reasoning . "thought process")
-  (reasoning_details . [array]))
+**Claude Example**:
+```elisp
+'((type . "thinking")
+  (thinking . "I need to analyze this step by step...")
+  (signature . "8f3e9d2a1b7c4f5e9a3d8c2b1f6e4a7d"))
+```
+
+**OpenRouter Example**:
+```elisp
+'((type . "thinking")
+  (thinking . "I need to analyze this step by step...")
+  (signature . "eyJ0eXBlIjoicmVhc29uaW5nLnN1bW1hcnkiLCJzdW1tYXJ5IjoiLi4uIiwiZm9ybWF0Ijoib3BlbmFpLXJlc3BvbnNlcy12MSIsImluZGV4IjowfSx7InR5cGUiOiJyZWFzb25pbmcuZW5jcnlwdGVkIiwiZGF0YSI6ImdBQUFBQUIuLi4iLCJpZCI6InJzX2FiYzEyMyIsImZvcm1hdCI6Im9wZW5haS1yZXNwb25zZXMtdjEiLCJpbmRleCI6MH0="))
+```
+
+**Signature Field Semantics**:
+- **Claude**: Cryptographic hash for verification (hex string)
+- **OpenRouter**: Base64-encoded JSON array of `reasoning_details` (for API continuity)
+
+When decoded, the OpenRouter signature contains:
+```json
+[
+  {
+    "type": "reasoning.summary",
+    "summary": "I need to analyze this step by step...",
+    "format": "openai-responses-v1",
+    "index": 0
+  },
+  {
+    "type": "reasoning.encrypted",
+    "data": "gAAAAAB...",
+    "id": "rs_abc123",
+    "format": "openai-responses-v1",
+    "index": 0
+  }
+]
 ```
 
 ---

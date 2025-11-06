@@ -14450,5 +14450,111 @@ Update New REASONING Section to explain THINKING reuse
 ID: toolu_01GXK4WXWDLYNSNnfbeZdNR9
 
 <tool.toolu_01GXK4WXWDLYNSNnfbeZdNR9>
-
+Successfully replaced content in /Users/andreas/projects/greger.el/OPENROUTER_REASONING_SPEC.md. Successfully staged 2 file(s) and committed with message: Update New REASONING Section to explain THINKING reuse
 </tool.toolu_01GXK4WXWDLYNSNnfbeZdNR9>
+
+# TOOL USE
+
+Name: str-replace
+ID: toolu_01AudNS8R9goo2xFBo8AA6M9
+
+## path
+
+<tool.toolu_01AudNS8R9goo2xFBo8AA6M9>
+/Users/andreas/projects/greger.el/OPENROUTER_REASONING_SPEC.md
+</tool.toolu_01AudNS8R9goo2xFBo8AA6M9>
+
+## git-commit-message
+
+<tool.toolu_01AudNS8R9goo2xFBo8AA6M9>
+Update Content Block Structures for THINKING reuse
+</tool.toolu_01AudNS8R9goo2xFBo8AA6M9>
+
+## diff
+
+<tool.toolu_01AudNS8R9goo2xFBo8AA6M9>
+ ## Content Block Structures
+ 
+ ### Internal Representation
+ 
+-**Reasoning Content Block** (new):
++Both Claude and OpenRouter use the **same THINKING block structure**:
+ 
+ ```elisp
+-'((type . "reasoning")
+-  (reasoning . "Human-readable reasoning text")
+-  (reasoning_details . [vector-of-reasoning-detail-objects]))
++'((type . "thinking")
++  (thinking . "Human-readable reasoning text")
++  (signature . "base64-or-cryptographic-signature"))
+ ```
+ 
+-Example with actual data:
+-
++**Claude Example**:
+ ```elisp
+-'((type . "reasoning")
+-  (reasoning . "I need to analyze this step by step...")
+-  (reasoning_details . [((type . "reasoning.summary")
+-                          (summary . "I need to analyze this step by step...")
+-                          (format . "openai-responses-v1")
+-                          (index . 0))
+-                         ((type . "reasoning.encrypted")
+-                          (data . "gAAAAAB...")
+-                          (id . "rs_abc123")
+-                          (format . "openai-responses-v1")
+-                          (index . 0))]))
++'((type . "thinking")
++  (thinking . "I need to analyze this step by step...")
++  (signature . "8f3e9d2a1b7c4f5e9a3d8c2b1f6e4a7d"))
+ ```
+ 
+-**Comparison with THINKING Block**:
+-
++**OpenRouter Example**:
+ ```elisp
+-;; THINKING (Claude/Anthropic)
+ '((type . "thinking")
+-  (thinking . "thought process")
+-  (signature . "cryptographic-signature"))
++  (thinking . "I need to analyze this step by step...")
++  (signature . "eyJ0eXBlIjoicmVhc29uaW5nLnN1bW1hcnkiLCJzdW1tYXJ5IjoiLi4uIiwiZm9ybWF0Ijoib3BlbmFpLXJlc3BvbnNlcy12MSIsImluZGV4IjowfSx7InR5cGUiOiJyZWFzb25pbmcuZW5jcnlwdGVkIiwiZGF0YSI6ImdBQUFBQUIuLi4iLCJpZCI6InJzX2FiYzEyMyIsImZvcm1hdCI6Im9wZW5haS1yZXNwb25zZXMtdjEiLCJpbmRleCI6MH0="))
++```
+ 
+-;; REASONING (OpenRouter)
+-'((type . "reasoning")
+-  (reasoning . "thought process")
+-  (reasoning_details . [array]))
++**Signature Field Semantics**:
++- **Claude**: Cryptographic hash for verification (hex string)
++- **OpenRouter**: Base64-encoded JSON array of `reasoning_details` (for API continuity)
++
++When decoded, the OpenRouter signature contains:
++```json
++[
++  {
++    "type": "reasoning.summary",
++    "summary": "I need to analyze this step by step...",
++    "format": "openai-responses-v1",
++    "index": 0
++  },
++  {
++    "type": "reasoning.encrypted",
++    "data": "gAAAAAB...",
++    "id": "rs_abc123",
++    "format": "openai-responses-v1",
++    "index": 0
++  }
++]
+ ```
+\ No newline at end of file
+
+</tool.toolu_01AudNS8R9goo2xFBo8AA6M9>
+
+# TOOL RESULT
+
+ID: toolu_01AudNS8R9goo2xFBo8AA6M9
+
+<tool.toolu_01AudNS8R9goo2xFBo8AA6M9>
+
+</tool.toolu_01AudNS8R9goo2xFBo8AA6M9>
