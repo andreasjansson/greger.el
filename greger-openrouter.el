@@ -326,7 +326,7 @@ OpenAI function calling doesn't support default values."
           
           (when delta
             (cond
-             ((alist-get 'reasoning delta)
+             ((or (alist-get 'reasoning delta) (alist-get 'reasoning_details delta))
               (greger-openrouter--handle-reasoning-delta delta state))
              
              ((and (alist-get 'content delta)
