@@ -2,7 +2,7 @@
 
 You are Greger, and expert coding agent.
 
-${greger-prompt-code-style<eval-result-011524368422>
+${greger-prompt-code-style<eval-result-011648803243>
 # Code style
 
 ## Don't be overly defensive
@@ -26,10 +26,10 @@ Important: The first time you read a source code file, read the _entire_ file (_
 ## IMPORTANT: NO SUMMARY DOCUMENTS!!!
 
 IMPORTANT: DON'T write summary documents (e.g. SUMMARY.md, FINAL_REPORT.md) unless the user explicitly asks you to. If you feel the need to explain something, just do it in the chat. The ONLY exception to this rule is if the user explicitly asks you to write up a markdown file on disk.
-</eval-result-011524368422>}
+</eval-result-011648803243>}
 
-${:sh cat CLAUDE.md || true<eval-result-011524962300>cat: CLAUDE.md: No such file or directory
-</eval-result-011524962300>}
+${:sh cat CLAUDE.md || true<eval-result-011648235639>cat: CLAUDE.md: No such file or directory
+</eval-result-011648235639>}
 
 # USER
 
@@ -9209,5 +9209,274 @@ Fix OpenRouter tool schema conversion to remove default values
 ID: toolu_01W6e9YfR13EtekG2V4V4qbf
 
 <tool.toolu_01W6e9YfR13EtekG2V4V4qbf>
-
+Successfully replaced content in /Users/andreas/projects/greger.el/greger-openrouter.el. Successfully staged 2 file(s) and committed with message: Fix OpenRouter tool schema conversion to remove default values
 </tool.toolu_01W6e9YfR13EtekG2V4V4qbf>
+
+# ASSISTANT
+
+Now reload the file and try again:
+
+```elisp
+(load-file "~/projects/greger.el/greger-openrouter.el")
+```
+
+The tool schemas should now be properly converted without the `default` values that OpenAI doesn't support.
+
+# USER
+
+Still
+
+```
+OpenRouter output chunk: {"error":{"message":"Provider returned error","code":400,"metadata":{"raw":"{\n  \"error\": {\n    \"message\": \"Invalid schema for function 'list-directory': None is not of type 'array'.\",\n    \"type\": \"invalid_request_error\",\n    \"param\": \"tools[7].parameters\",\n    \"code\": \"invalid_function_parameters\"\n  }\n}","provider_name":"OpenAI"}},"user_id":"user_3556Pgm15MRCBbWZdxd1b1J2Z3j"}
+```
+
+# THINKING
+
+Signature: EpUECkYICRgCKkAwfNST5zQr9OqtYjGvuQUucnMMOCqRBmN/4RBBMGUqx9qlKUwoJFFO3RLiOhFed6SmEAmqYJzIFtFju04FhMI3EgzRPN3wKVUFS3tjC8IaDAMAnfv6znYB3kZEsyIwXnvpTYM3UF7CjSl5HSpVvPc3MpxFSjqpweGTvYytQgc8R+Bimp6dvFWxyQoRgWczKvwCA3tQSShSDAdPA5hRobTAieQB6Vj/x9HsEaEIlDjvxAXo4/3FWLqQRNAvPIPPm0qjMzvIu5I6J11luxU49y7A+rukQRqAm+M4E+IfB/sceZmYokQZXuELPu6fXwDvibXWnT3FMkBvSL9uLJqp5junPxl25S+LYhjxtbR+ByYfEvbNYg4FD23N93zfbQSUfjYY/PM0CGYcQdAeqQ/nHTjqoJJBaCr3mN4wnEnTChMg/DQ6E4RmVSpOJhc0vNS4i7cSt/x9n+nzUzqgxL5kOiDxIo+C7IJeAPqAL0SN3pcnE4YygmD/qvEnkRR2eirKZ3TJ10foO8W6bp1MytpI3eEea1clBieNYC/B9HpcAghd4GHG7wKCMe2uBzTspG9SMf2tLBFF3MXgNOdodhRt7AJ+lAKw74lOVhe6e08ctIIHD+pInXB3GnvlZEhjPGD5msPkWklfJkGfa+VECJwg4WXLkvfsY0mSry2KOQ/gQpvbea9zA5yFP6NVBxZsVaIYAQ==
+
+The error is "None is not of type 'array'" for the list-directory function. Let me check what the list-directory tool definition looks like. The issue is that when we remove the `default` values, we might be leaving `nil` in the schema which JSON encodes as `null` (or "None" in Python).
+
+Let me look at the list-directory tool definition to see what's happening.
+
+# ASSISTANT
+
+The issue is that when we remove `default`, we're leaving `nil` values which get encoded as `null` in JSON. Let me look at the list-directory tool and fix the schema cleaning:
+
+# TOOL USE
+
+Name: ripgrep
+ID: toolu_01BjSgpW8FgfhdYsCRst3xXH
+
+## pattern
+
+<tool.toolu_01BjSgpW8FgfhdYsCRst3xXH>
+list-directory
+</tool.toolu_01BjSgpW8FgfhdYsCRst3xXH>
+
+## path
+
+<tool.toolu_01BjSgpW8FgfhdYsCRst3xXH>
+greger-stdlib.el
+</tool.toolu_01BjSgpW8FgfhdYsCRst3xXH>
+
+## context-lines
+
+<tool.toolu_01BjSgpW8FgfhdYsCRst3xXH>
+15
+</tool.toolu_01BjSgpW8FgfhdYsCRst3xXH>
+
+# TOOL RESULT
+
+ID: toolu_01BjSgpW8FgfhdYsCRst3xXH
+
+<tool.toolu_01BjSgpW8FgfhdYsCRst3xXH>
+142-                      :required '("old-path" "new-path" "git-commit-message")
+143-                      :function 'greger-stdlib--rename-file
+144-                      :pass-buffer t)
+145-
+146-(greger-register-tool "delete-files"
+147-                      :description "Delete the files and if they're tracked in git it should stage the deletion and commit"
+148-                      :properties '((paths . ((type . "array")
+149-                                              (items . ((type . "string")))
+150-                                              (description . "List of file paths to delete")))
+151-                                    (git-commit-message . ((type . "string")
+152-                                                           (description . "Git commit message for this change"))))
+153-                      :required '("paths" "git-commit-message")
+154-                      :function 'greger-stdlib--delete-files
+155-                      :pass-buffer t)
+156-
+157:(greger-register-tool "list-directory"
+158-                      :description "List files and directories in a given directory"
+159-                      :properties '((path . ((type . "string")
+160-                                             (description . "Path to the directory to list. Defaults to current directory.")
+161-                                             (default . ".")))
+162-                                    (exclude-directories-recursive . ((type . "array")
+163-                                                                      (items . ((type . "string")))
+164-                                                                      (description . "List of directory names to exclude when recursively listing files.")
+165-                                                                      (default . (".git" "__pycache__" "node_modules" ".wrangler"))))
+166-                                    (recursive . ((type . "boolean")
+167-                                                  (description . "Whether to list files recursively")
+168-                                                  (default . nil))))
+169-                      :required '()
+170:                      :function 'greger-stdlib--list-directory)
+171-
+172-;; Ripgrep tool
+173-
+174-(greger-register-tool "ripgrep"
+175-                      :description "Search for patterns in files using ripgrep (rg) command line tool. Note that ripgrep only matches on single lines, so you can't search across multiple lines."
+176-                      :properties '((pattern . ((type . "string")
+177-                                                (description . "The search pattern (regex or literal string). Uses regular expression syntax by default. Meta characters like .(){}*+?[]^$|\\  have special meaning and should be escaped with backslash if you want to match them literally. Use the fixed-strings parameter for literal string matching. Supports Unicode by default. You have a tendency to add a trailing double quote `\"` to the end of `pattern` -- Important: DON'T ADD TRAILING DOUBLE QUOTES since it will break matching! `pattern` is just the search pattern, not an entire ripgrep command line. Use the other tool inputs to control ripgrep's behavior.")))
+178-                                    (path . ((type . "string")
+179-                                             (description . "Directory or file path to search in. Directories are searched recursively. Supports glob patterns and respects .gitignore rules by default. Use '.' for current directory, or specify multiple paths separated by spaces")
+180-                                             (default . ".")))
+181-                                    (case-sensitive . ((type . "boolean")
+182-                                                       (description . "Whether the search should be case-sensitive")
+183-                                                       (default . nil)))
+184-                                    (file-type . ((type . "string")
+185-                                                  (description . "Restrict search to specific file types using predefined type names. Examples: 'py' (Python), 'js' (JavaScript), 'md' (Markdown), 'cpp' (C++), 'elisp' (Emacs Lisp), 'java', 'rust', 'go', 'html', 'css', 'json', 'xml', 'yaml', 'sh' (shell scripts), 'sql', 'tex', 'dockerfile'. Use 'rg --type-list' to see all available types and their file extensions")))
+--
+511-  "Add line numbers to CONTENT string starting from START-LINE-NUM."
+512-  (let* ((lines (split-string content "\n"))
+513-         (line-num start-line-num)
+514-         (max-width (length (number-to-string (+ start-line-num (length lines) -1))))
+515-         (number-format (concat "%" (number-to-string max-width) "d: %s"))
+516-         result)
+517-
+518-    ;; Add line numbers to each line
+519-    (dolist (line lines)
+520-      (push (format number-format line-num line) result)
+521-      (setq line-num (1+ line-num)))
+522-
+523-    ;; Join back with newlines
+524-    (mapconcat #'identity (reverse result) "\n")))
+525-
+526:(defun greger-stdlib--list-directory (path &optional exclude-directories-recursive recursive)
+527-  "List directory contents at PATH with detailed file information.
+528-Similar to \\='ls -Rla\\='.
+529-EXCLUDE-DIRECTORIES-RECURSIVE is a vector of directory names to exclude when
+530-recursively listing (defaults to [\".git\" \"__pycache__\"]).
+531-If RECURSIVE is non-nil, list files recursively."
+532-  (greger-stdlib--assert-arg-string "path" path)
+533-
+534-  (let ((expanded-path (expand-file-name path))
+535-        (original-path path))
+536-    (unless (file-exists-p expanded-path)
+537-      (error "Directory does not exist: %s" expanded-path))
+538-
+539-    (unless (file-directory-p expanded-path)
+540-      (error "Path is not a directory: %s" expanded-path))
+541-
+542-    (unless (file-readable-p expanded-path)
+543-      (error "Directory is not readable: %s" expanded-path))
+544-
+545-    (condition-case err
+546:        (greger-stdlib--list-directory-recursive expanded-path exclude-directories-recursive original-path recursive)
+547-      (error "Failed to list directory: %s" (error-message-string err)))))
+548-
+549:(defun greger-stdlib--list-directory-recursive (path exclude-directories-recursive original-path recursive &optional prefix)
+550-  "Recursively list directory contents with detailed information.
+551-PATH is the actual directory path to list.
+552-EXCLUDE-DIRECTORIES-RECURSIVE is vector of directory names to exclude when
+553-recursively listing.
+554-ORIGINAL-PATH is used for display purposes at the root level.
+555-RECURSIVE determines if we should recurse into subdirectories.
+556-PREFIX is used internally for nested directory structure."
+557-  (let ((all-results '())
+558-        (subdirs '())
+559-        (display-path (cond
+560-                       ;; Root level: use original path or relative notation
+561-                       ((string= (or prefix "") "")
+562-                        (let ((display-path-base (or original-path path)))
+563-                          (if (string= display-path-base ".")
+564-                              "./"
+--
+590-                (when formatted
+591-                  (push formatted current-listing)))
+592-              ;; Collect subdirectories for recursive processing, excluding based on pattern
+593-              (when (and recursive
+594-                         (file-directory-p file)
+595-                         (greger-stdlib--should-include-directory-in-recursive-listing-p basename exclude-directories-recursive))
+596-                (push file subdirs))))))
+597-
+598-      ;; Add current directory to results (reverse to get correct order)
+599-      (setq all-results (reverse current-listing)))
+600-
+601-    ;; Process subdirectories recursively if requested
+602-    (when recursive
+603-      (dolist (subdir (reverse subdirs)) ; Reverse to maintain alphabetical order
+604-        (let* ((basename (file-name-nondirectory subdir))
+605:               (subdir-results (greger-stdlib--list-directory-recursive
+606-                                subdir exclude-directories-recursive original-path recursive
+607-                                (concat (or prefix "") basename "/"))))
+608-          (setq all-results (append all-results (list "" subdir-results))))))
+609-
+610-    ;; Return results
+611-    (if (> (length all-results) 1) ; More than just the header
+612-        (mapconcat #'identity all-results "\n")
+613-      (format "%s:\nDirectory is empty" display-path))))
+614-
+615-(defun greger-stdlib--format-file-info (filepath displayname _exclude-directories-recursive)
+616-  "Format file information similar to \\='ls -la\\=' output.
+617-FILEPATH is the full path to the file.
+618-DISPLAYNAME is the name to display in the output.
+619-_EXCLUDE-DIRECTORIES-RECURSIVE is unused in this function."
+620-  (when (file-exists-p filepath)
+
+</tool.toolu_01BjSgpW8FgfhdYsCRst3xXH>
+
+# ASSISTANT
+
+I see - the `default` for `exclude-directories-recursive` is a vector `(".git" "__pycache__" "node_modules" ".wrangler")`. The problem is my schema cleaning is leaving `nil` values. Let me fix it properly:
+
+# TOOL USE
+
+Name: str-replace
+ID: toolu_011woiMR2zESZno8Bo63XCq5
+
+## path
+
+<tool.toolu_011woiMR2zESZno8Bo63XCq5>
+greger-openrouter.el
+</tool.toolu_011woiMR2zESZno8Bo63XCq5>
+
+## git-commit-message
+
+<tool.toolu_011woiMR2zESZno8Bo63XCq5>
+Fix schema cleaning to properly handle nested structures
+</tool.toolu_011woiMR2zESZno8Bo63XCq5>
+
+## diff
+
+<tool.toolu_011woiMR2zESZno8Bo63XCq5>
+ (defun greger-openrouter--remove-defaults-from-schema (schema)
+   "Remove 'default' keys from SCHEMA recursively.
+ OpenAI function calling doesn't support default values."
+   (cond
+-   ((null schema) nil)
+-   ((not (listp schema)) schema)
+-   ((and (consp schema) (not (listp (cdr schema))))
+-    ;; This is an alist entry (key . value)
+-    (if (eq (car schema) 'default)
+-        nil  ; Skip default entries
+-      (cons (car schema) (greger-openrouter--remove-defaults-from-schema (cdr schema)))))
+-   (t
+-    ;; This is a list - process each element
+-    (delq nil (mapcar #'greger-openrouter--remove-defaults-from-schema schema)))))
+\ No newline at end of file
++   ((not (consp schema)) schema)
++   
++   ;; Check if this is an alist (list of cons cells)
++   ((and (listp schema) (consp (car schema)))
++    ;; This is an alist - filter out 'default' keys
++    (let ((filtered (seq-filter
++                     (lambda (pair)
++                       (not (eq (car pair) 'default)))
++                     schema)))
++      ;; Recursively process values
++      (mapcar (lambda (pair)
++                (cons (car pair)
++                      (greger-openrouter--remove-defaults-from-schema (cdr pair))))
++              filtered)))
++   
++   ;; Regular list - process each element
++   ((listp schema)
++    (mapcar #'greger-openrouter--remove-defaults-from-schema schema))
++   
++   ;; Cons cell - process both parts
++   ((consp schema)
++    (cons (greger-openrouter--remove-defaults-from-schema (car schema))
++          (greger-openrouter--remove-defaults-from-schema (cdr schema))))
++   
++   ;; Atom - return as-is
++   (t schema)))
+\ No newline at end of file
+
+</tool.toolu_011woiMR2zESZno8Bo63XCq5>
+
+# TOOL RESULT
+
+ID: toolu_011woiMR2zESZno8Bo63XCq5
+
+<tool.toolu_011woiMR2zESZno8Bo63XCq5>
+
+</tool.toolu_011woiMR2zESZno8Bo63XCq5>

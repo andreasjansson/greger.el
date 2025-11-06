@@ -208,16 +208,32 @@ OpenAI doesn't support 'default' values in parameters, so we strip them."
   "Remove 'default' keys from SCHEMA recursively.
 OpenAI function calling doesn't support default values."
   (cond
-   ((null schema) nil)
-   ((not (listp schema)) schema)
-   ((and (consp schema) (not (listp (cdr schema))))
-    ;; This is an alist entry (key . value)
-    (if (eq (car schema) 'default)
-        nil  ; Skip default entries
-      (cons (car schema) (greger-openrouter--remove-defaults-from-schema (cdr schema)))))
-   (t
-    ;; This is a list - process each element
-    (delq nil (mapcar #'greger-openrouter--remove-defaults-from-schema schema)))))
+   ((not (consp schema)) schema)
+   
+   ;; Check if this is an alist (list of cons cells)
+   ((and (listp schema) (consp (car schema)))
+    ;; This is an alist - filter out 'default' keys
+    (let ((filtered (seq-filter
+                     (lambda (pair)
+                       (not (eq (car pair) 'default)))
+                     schema)))
+      ;; Recursively process values
+      (mapcar (lambda (pair)
+                (cons (car pair)
+                      (greger-openrouter--remove-defaults-from-schema (cdr pair))))
+              filtered)))
+   
+   ;; Regular list - process each element
+   ((listp schema)
+    (mapcar #'greger-openrouter--remove-defaults-from-schema schema))
+   
+   ;; Cons cell - process both parts
+   ((consp schema)
+    (cons (greger-openrouter--remove-defaults-from-schema (car schema))
+          (greger-openrouter--remove-defaults-from-schema (cdr schema))))
+   
+   ;; Atom - return as-is
+   (t schema)))
 
 (defun greger-openrouter--process-output-chunk (output state)
   "Process streaming output chunk."
