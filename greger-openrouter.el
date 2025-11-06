@@ -656,6 +656,23 @@ Converts OpenRouter annotations to Greger citations format."
                            (end_index . 0))))))
     citations)))
 
+(defun greger-openrouter--convert-annotations-to-citations (annotations)
+  "Convert OpenRouter annotations from web search to Greger citations format."
+  (when (vectorp annotations)
+    (let (citations)
+      (seq-doseq (annotation annotations)
+        (when (string= (alist-get 'type annotation) "url_citation")
+          (let ((url (alist-get 'url annotation))
+                (start-idx (alist-get 'start_index annotation))
+                (end-idx (alist-get 'end_index annotation)))
+            (push `((type . "web_search_result_location")
+                    (url . ,url)
+                    (title . "")
+                    (cited_text . ,(format "chars %d-%d" start-idx end-idx))
+                    (encrypted_index . ""))
+                  citations))))
+      (nreverse citations))))
+
 (defun greger-openrouter--handle-completion (proc state)
   "Handle process completion."
   (when (memq (process-status proc) '(exit signal))

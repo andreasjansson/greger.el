@@ -8702,5 +8702,91 @@ Add citation support from web search annotations
 ID: toolu_01QikasFgDff5tw55Kw9xv6k
 
 <tool.toolu_01QikasFgDff5tw55Kw9xv6k>
-
+Successfully replaced content in /Users/andreas/projects/greger.el/greger-openrouter.el. Successfully staged 2 file(s) and committed with message: Add citation support from web search annotations
 </tool.toolu_01QikasFgDff5tw55Kw9xv6k>
+
+# ASSISTANT
+
+Now I need to add the function to convert annotations to citations:
+
+# TOOL USE
+
+Name: str-replace
+ID: toolu_014wy4H9VYQxhTM9TtBdw3oW
+
+## path
+
+<tool.toolu_014wy4H9VYQxhTM9TtBdw3oW>
+greger-openrouter.el
+</tool.toolu_014wy4H9VYQxhTM9TtBdw3oW>
+
+## original-content
+
+<tool.toolu_014wy4H9VYQxhTM9TtBdw3oW>
+(defun greger-openrouter--convert-citations-to-annotations (citations)
+  "Convert Greger citation list back to OpenRouter annotations format."
+  (vconcat
+   (mapcar
+    (lambda (citation)
+      (let ((url (alist-get 'url citation))
+            (title (alist-get 'title citation))
+            (cited-text (alist-get 'cited_text citation)))
+        `((type . "url_citation")
+          (url_citation . ((url . ,url)
+                           (title . ,title)
+                           (content . ,cited-text)
+                           (start_index . 0)
+                           (end_index . 0))))))
+    citations)))
+</tool.toolu_014wy4H9VYQxhTM9TtBdw3oW>
+
+## new-content
+
+<tool.toolu_014wy4H9VYQxhTM9TtBdw3oW>
+(defun greger-openrouter--convert-citations-to-annotations (citations)
+  "Convert Greger citation list back to OpenRouter annotations format."
+  (vconcat
+   (mapcar
+    (lambda (citation)
+      (let ((url (alist-get 'url citation))
+            (title (alist-get 'title citation))
+            (cited-text (alist-get 'cited_text citation)))
+        `((type . "url_citation")
+          (url_citation . ((url . ,url)
+                           (title . ,title)
+                           (content . ,cited-text)
+                           (start_index . 0)
+                           (end_index . 0))))))
+    citations)))
+
+(defun greger-openrouter--convert-annotations-to-citations (annotations)
+  "Convert OpenRouter annotations from web search to Greger citations format."
+  (when (vectorp annotations)
+    (let (citations)
+      (seq-doseq (annotation annotations)
+        (when (string= (alist-get 'type annotation) "url_citation")
+          (let ((url (alist-get 'url annotation))
+                (start-idx (alist-get 'start_index annotation))
+                (end-idx (alist-get 'end_index annotation)))
+            (push `((type . "web_search_result_location")
+                    (url . ,url)
+                    (title . "")
+                    (cited_text . ,(format "chars %d-%d" start-idx end-idx))
+                    (encrypted_index . ""))
+                  citations))))
+      (nreverse citations))))
+</tool.toolu_014wy4H9VYQxhTM9TtBdw3oW>
+
+## git-commit-message
+
+<tool.toolu_014wy4H9VYQxhTM9TtBdw3oW>
+Add annotation to citation conversion for web search
+</tool.toolu_014wy4H9VYQxhTM9TtBdw3oW>
+
+# TOOL RESULT
+
+ID: toolu_014wy4H9VYQxhTM9TtBdw3oW
+
+<tool.toolu_014wy4H9VYQxhTM9TtBdw3oW>
+
+</tool.toolu_014wy4H9VYQxhTM9TtBdw3oW>
