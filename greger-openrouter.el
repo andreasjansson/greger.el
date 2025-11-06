@@ -365,39 +365,10 @@ OpenAI function calling doesn't support default values."
 
 (defun greger-openrouter--build-content-blocks (state)
   "Build Anthropic-style content blocks from accumulated state.
-Includes THINKING blocks with base64-encoded reasoning_details in signature field.
 Converts OpenRouter annotations to Greger citations format."
-  (let ((reasoning-text (greger-openrouter-state-current-reasoning-text state))
-        (reasoning-details (greger-openrouter-state-current-reasoning-details state))
-        (current-text (greger-openrouter-state-current-text state))
-        (tool-calls (greger-openrouter-state-current-tool-calls state))
+  (let ((current-text (greger-openrouter-state-current-text state))
         (annotations (greger-openrouter-state-annotations state))
         blocks)
-    
-    (when (and reasoning-text reasoning-details)
-      (let ((signature-base64 (base64-encode-string 
-                               (encode-coding-string (json-encode reasoning-details) 'utf-8)
-                               t)))
-        (push `((type . "thinking")
-                (thinking . ,reasoning-text)
-                (signature . ,signature-base64))
-              blocks)))
-    
-    (when (> (hash-table-count tool-calls) 0)
-      (maphash
-       (lambda (_index call)
-         (let* ((id (alist-get 'id call))
-                (name (alist-get 'name call))
-                (arguments (alist-get 'arguments call))
-                (parsed-args (condition-case nil
-                                 (json-read-from-string arguments)
-                               (error '()))))
-           (push `((type . "tool_use")
-                   (id . ,id)
-                   (name . ,name)
-                   (input . ,parsed-args))
-                 blocks)))
-       tool-calls))
     
     (when current-text
       (let ((text-block `((type . "text")
