@@ -131,33 +131,7 @@ ERROR-CALLBACK is called when errors occur."
     (json-encode request-data)))
 
 (defun greger-openrouter--convert-dialog-to-messages (dialog)
-  "Convert Greger dialog format to OpenAI Chat Completions message format."
-  (let (messages
-        system-message)
-    (dolist (msg dialog)
-      (let ((role (alist-get 'role msg))
-            (content (alist-get 'content msg)))
-        
-        (cond
-         ((string= role "system")
-          (setq system-message content))
-         
-         ((stringp content)
-          (push `((role . ,role) (content . ,content)) messages))
-         
-         ((listp content)
-          (let ((converted (greger-openrouter--convert-content-blocks role content)))
-            (when converted
-              (setq messages (append converted messages))))))))
-    
-    (let ((result (nreverse messages)))
-      (when system-message
-        (setq result (cons `((role . "system") (content . ,system-message)) result)))
-      result)))
-
-(defun greger-openrouter--convert-dialog-to-responses-messages (dialog)
-  "Convert Greger dialog format to OpenAI Responses API input format.
-The Responses API uses a different message structure with type fields."
+  "Convert Greger dialog format to Responses API input format."
   (let (messages
         system-content)
     (dolist (msg dialog)
@@ -176,7 +150,7 @@ The Responses API uses a different message structure with type fields."
                 messages))
          
          ((listp content)
-          (let ((converted (greger-openrouter--convert-content-blocks-to-responses role content)))
+          (let ((converted (greger-openrouter--convert-content-blocks role content)))
             (when converted
               (setq messages (append converted messages))))))))
     
