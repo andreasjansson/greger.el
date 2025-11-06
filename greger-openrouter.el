@@ -593,7 +593,8 @@ Accumulates both readable text and full reasoning_details array."
 
 (defun greger-openrouter--build-content-blocks (state)
   "Build Anthropic-style content blocks from accumulated state.
-Includes THINKING blocks with base64-encoded reasoning_details in signature field."
+Includes THINKING blocks with base64-encoded reasoning_details in signature field.
+Converts OpenRouter annotations to Greger citations format."
   (let ((reasoning-text (greger-openrouter-state-current-reasoning-text state))
         (reasoning-details (greger-openrouter-state-current-reasoning-details state))
         (current-text (greger-openrouter-state-current-text state))
@@ -627,9 +628,13 @@ Includes THINKING blocks with base64-encoded reasoning_details in signature fiel
        tool-calls))
     
     (when current-text
-      (push `((type . "text")
-              (text . ,current-text))
-            blocks))
+      (let ((text-block `((type . "text")
+                          (text . ,current-text))))
+        (when annotations
+          (let ((citations (greger-openrouter--convert-annotations-to-citations annotations)))
+            (when citations
+              (push `(citations . ,citations) text-block))))
+        (push text-block blocks)))
     
     (nreverse blocks)))
 

@@ -8576,5 +8576,131 @@ Add Responses API event handling for web search
 ID: toolu_01JYMiw4Ranc6JLJveAYzomG
 
 <tool.toolu_01JYMiw4Ranc6JLJveAYzomG>
-
+Successfully replaced content in /Users/andreas/projects/greger.el/greger-openrouter.el. Successfully staged 2 file(s) and committed with message: Add Responses API event handling for web search
 </tool.toolu_01JYMiw4Ranc6JLJveAYzomG>
+
+# ASSISTANT
+
+Now I need to update the build-content-blocks function to handle annotations/citations from web search:
+
+# TOOL USE
+
+Name: str-replace
+ID: toolu_01QikasFgDff5tw55Kw9xv6k
+
+## path
+
+<tool.toolu_01QikasFgDff5tw55Kw9xv6k>
+greger-openrouter.el
+</tool.toolu_01QikasFgDff5tw55Kw9xv6k>
+
+## original-content
+
+<tool.toolu_01QikasFgDff5tw55Kw9xv6k>
+(defun greger-openrouter--build-content-blocks (state)
+  "Build Anthropic-style content blocks from accumulated state.
+Includes THINKING blocks with base64-encoded reasoning_details in signature field."
+  (let ((reasoning-text (greger-openrouter-state-current-reasoning-text state))
+        (reasoning-details (greger-openrouter-state-current-reasoning-details state))
+        (current-text (greger-openrouter-state-current-text state))
+        (tool-calls (greger-openrouter-state-current-tool-calls state))
+        (annotations (greger-openrouter-state-annotations state))
+        blocks)
+    
+    (when (and reasoning-text reasoning-details)
+      (let ((signature-base64 (base64-encode-string 
+                               (encode-coding-string (json-encode reasoning-details) 'utf-8)
+                               t)))
+        (push `((type . "thinking")
+                (thinking . ,reasoning-text)
+                (signature . ,signature-base64))
+              blocks)))
+    
+    (when (> (hash-table-count tool-calls) 0)
+      (maphash
+       (lambda (_index call)
+         (let* ((id (alist-get 'id call))
+                (name (alist-get 'name call))
+                (arguments (alist-get 'arguments call))
+                (parsed-args (condition-case nil
+                                 (json-read-from-string arguments)
+                               (error '()))))
+           (push `((type . "tool_use")
+                   (id . ,id)
+                   (name . ,name)
+                   (input . ,parsed-args))
+                 blocks)))
+       tool-calls))
+    
+    (when current-text
+      (push `((type . "text")
+              (text . ,current-text))
+            blocks))
+    
+    (nreverse blocks)))
+</tool.toolu_01QikasFgDff5tw55Kw9xv6k>
+
+## new-content
+
+<tool.toolu_01QikasFgDff5tw55Kw9xv6k>
+(defun greger-openrouter--build-content-blocks (state)
+  "Build Anthropic-style content blocks from accumulated state.
+Includes THINKING blocks with base64-encoded reasoning_details in signature field.
+Converts OpenRouter annotations to Greger citations format."
+  (let ((reasoning-text (greger-openrouter-state-current-reasoning-text state))
+        (reasoning-details (greger-openrouter-state-current-reasoning-details state))
+        (current-text (greger-openrouter-state-current-text state))
+        (tool-calls (greger-openrouter-state-current-tool-calls state))
+        (annotations (greger-openrouter-state-annotations state))
+        blocks)
+    
+    (when (and reasoning-text reasoning-details)
+      (let ((signature-base64 (base64-encode-string 
+                               (encode-coding-string (json-encode reasoning-details) 'utf-8)
+                               t)))
+        (push `((type . "thinking")
+                (thinking . ,reasoning-text)
+                (signature . ,signature-base64))
+              blocks)))
+    
+    (when (> (hash-table-count tool-calls) 0)
+      (maphash
+       (lambda (_index call)
+         (let* ((id (alist-get 'id call))
+                (name (alist-get 'name call))
+                (arguments (alist-get 'arguments call))
+                (parsed-args (condition-case nil
+                                 (json-read-from-string arguments)
+                               (error '()))))
+           (push `((type . "tool_use")
+                   (id . ,id)
+                   (name . ,name)
+                   (input . ,parsed-args))
+                 blocks)))
+       tool-calls))
+    
+    (when current-text
+      (let ((text-block `((type . "text")
+                          (text . ,current-text))))
+        (when annotations
+          (let ((citations (greger-openrouter--convert-annotations-to-citations annotations)))
+            (when citations
+              (push `(citations . ,citations) text-block))))
+        (push text-block blocks)))
+    
+    (nreverse blocks)))
+</tool.toolu_01QikasFgDff5tw55Kw9xv6k>
+
+## git-commit-message
+
+<tool.toolu_01QikasFgDff5tw55Kw9xv6k>
+Add citation support from web search annotations
+</tool.toolu_01QikasFgDff5tw55Kw9xv6k>
+
+# TOOL RESULT
+
+ID: toolu_01QikasFgDff5tw55Kw9xv6k
+
+<tool.toolu_01QikasFgDff5tw55Kw9xv6k>
+
+</tool.toolu_01QikasFgDff5tw55Kw9xv6k>
