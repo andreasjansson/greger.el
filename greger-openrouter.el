@@ -480,37 +480,7 @@ Includes THINKING blocks with base64-encoded reasoning_details in signature fiel
     
     (nreverse blocks)))
 
-(defun greger-openrouter--convert-annotation-to-citation (annotation)
-  "Convert OpenRouter annotation to Greger citation format.
-OpenRouter annotations have structure: {type: 'url_citation', url_citation: {...}}."
-  (message "DEBUG: Converting annotation: %S" annotation)
-  (let* ((url-citation (alist-get 'url_citation annotation))
-         (url (alist-get 'url url-citation))
-         (title (alist-get 'title url-citation))
-         (content (alist-get 'content url-citation)))
-    (message "DEBUG: Extracted url=%s title=%s content-length=%d" 
-             url title (length (or content "")))
-    `((type . "web_search_result_location")
-      (url . ,url)
-      (title . ,(or title ""))
-      (cited_text . ,(or content ""))
-      (encrypted_index . ""))))
 
-(defun greger-openrouter--convert-citations-to-annotations (citations)
-  "Convert Greger citation list back to OpenRouter annotations format."
-  (vconcat
-   (mapcar
-    (lambda (citation)
-      (let ((url (alist-get 'url citation))
-            (title (alist-get 'title citation))
-            (cited-text (alist-get 'cited_text citation)))
-        `((type . "url_citation")
-          (url_citation . ((url . ,url)
-                           (title . ,title)
-                           (content . ,cited-text)
-                           (start_index . 0)
-                           (end_index . 0))))))
-    citations)))
 
 (defun greger-openrouter--convert-citations-to-annotations (citations)
   "Convert Greger citation list back to OpenRouter annotations format."
