@@ -367,44 +367,29 @@ Accumulates both readable text and full reasoning_details array."
 
 ## Markdown Rendering
 
-### Reasoning Block to Markdown
+### No Changes Needed
 
-Add to `greger-parser.el`:
+The existing `greger-parser--thinking-to-markdown` function already handles both Claude and OpenRouter cases:
 
 ```elisp
-(defun greger-parser--reasoning-to-markdown (block)
-  "Convert reasoning BLOCK to markdown format.
-Includes both the reasoning_details JSON metadata and readable text."
-  (let ((reasoning-text (alist-get 'reasoning block))
-        (reasoning-details (alist-get 'reasoning_details block)))
-    (concat greger-parser-reasoning-tag
+(defun greger-parser--thinking-to-markdown (block)
+  "Convert thinking BLOCK to markdown (signature and text)."
+  (let ((contents (alist-get 'thinking block))
+        (signature (alist-get 'signature block)))
+    (concat greger-parser-thinking-tag
+            (if signature
+                (concat "\n\n" "Signature: " signature)
+              "")
             "\n\n"
-            (when reasoning-details
-              (concat "<reasoning_details>\n"
-                      (json-encode reasoning-details)
-                      "\n</reasoning_details>\n\n"))
-            reasoning-text)))
-
-(defconst greger-parser-reasoning-tag "# REASONING"
-  "Tag for reasoning sections.")
+            contents)))
 ```
 
-### Content Block Dispatcher
+**How it works:**
+- Claude block: `signature` is a hex hash → renders as `Signature: 8f3e9d2a...`
+- OpenRouter block: `signature` is base64 JSON → renders as `Signature: eyJ0eXBlIjoic...`
+- No signature: omits the signature line entirely
 
-Update `greger-parser--content-block-to-markdown`:
-
-```elisp
-(defun greger-parser--content-block-to-markdown (block)
-  "Convert content BLOCK to markdown."
-  (let ((type (alist-get 'type block)))
-    (cond
-     ((string= type "text") (greger-parser--text-to-markdown block))
-     ((string= type "thinking") (greger-parser--thinking-to-markdown block))
-     ((string= type "reasoning") (greger-parser--reasoning-to-markdown block))  ; NEW
-     ((string= type "tool_use") (greger-parser--tool-use-to-markdown block))
-     ;; ... other types ...
-     )))
-```
+**No dispatcher changes needed** - `thinking` type is already handled.
 
 ---
 

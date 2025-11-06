@@ -2,7 +2,7 @@
 
 You are Greger, and expert coding agent.
 
-${greger-prompt-code-style<eval-result-132547234674>
+${greger-prompt-code-style<eval-result-132914261889>
 # Code style
 
 ## Don't be overly defensive
@@ -26,10 +26,10 @@ Important: The first time you read a source code file, read the _entire_ file (_
 ## IMPORTANT: NO SUMMARY DOCUMENTS!!!
 
 IMPORTANT: DON'T write summary documents (e.g. SUMMARY.md, FINAL_REPORT.md) unless the user explicitly asks you to. If you feel the need to explain something, just do it in the chat. The ONLY exception to this rule is if the user explicitly asks you to write up a markdown file on disk.
-</eval-result-132547234674>}
+</eval-result-132914261889>}
 
-${:sh cat CLAUDE.md || true<eval-result-132547316517>cat: CLAUDE.md: No such file or directory
-</eval-result-132547316517>}
+${:sh cat CLAUDE.md || true<eval-result-132914166224>cat: CLAUDE.md: No such file or directory
+</eval-result-132914166224>}
 
 # USER
 
@@ -5464,8 +5464,6 @@ ${:sh for f in *.el; do echo; echo "# ${f}:"; echo; cat -n $f; echo; echo "-----
 
 ---
 
--->
-
 # Plan
 
 ${:sh cat OPENROUTER_REFACTOR.md<eval-result-235342567144># OpenRouter Integration Proposal
@@ -7058,6 +7056,8 @@ The key insight: **duplication is better than the wrong abstraction** when you n
 ### Q: What happens if I set `greger-server-tools` with OpenRouter?
 **A:** If you have `web_search` in `greger-server-tools`, OpenRouter will automatically use the `:online` variant to enable web search. It works seamlessly - just with a different implementation than Claude's server-side tool.
 </eval-result-235342567144>}
+
+-->
 
 # THINKING
 
@@ -14643,5 +14643,113 @@ Update Streaming Response Handling for THINKING blocks
 ID: toolu_01ANuhH5JqtkDMAuL6fW9jft
 
 <tool.toolu_01ANuhH5JqtkDMAuL6fW9jft>
-
+Successfully replaced content in /Users/andreas/projects/greger.el/OPENROUTER_REASONING_SPEC.md. Successfully staged 2 file(s) and committed with message: Update Streaming Response Handling for THINKING blocks
 </tool.toolu_01ANuhH5JqtkDMAuL6fW9jft>
+
+# USER
+
+Continue
+
+# THINKING
+
+Signature: EsIECkYICRgCKkCyG6PY7zENwnTcY26fxrewe+uhEPv3HfVhyrXoNUB2T6ggFH0wWx4tSuzlH/6se2B+mdG605jNjni5H5IpBXGmEgwzCOHrS5TVXGryNEUaDFmSvJmecgNxWv/ZDSIwobthK4DuSMZL9YxdG6Q4KlnkvP1sB+rj5qin4moFcLK8veDKQD5lUdmHoNY04jFTKqkDh8F3D5M6Oq+Dsk1HW6OenDgj/jPW85AkUDQr+0rCTea8Vvavry3NO4q0kbvY4ti1WnXKoAYRo129nlAWngW0xTDOXaNeymjsA4MdsnUNb3ZKmChg/xapbsykkng+6GZKkXy5XmpeJ0dBj9PR72cofYYC9/oZMaoAtoCUlpcwUG4XFf8mllFtwZcmhAJqal56xycBvVM775We5j6YU+nzoG7YAmF206jUJ7lNUnFRUt7o9Q2jzBGB0bSUtd05gjY2hn2q3P0mO8MeVikWraDI9RvjQHQ6MUU9uvuBVHwUktWyWzMNTWf8S8ZD23cXIp31Vw+lSVr83C1aYffl8HwsANLnIy4M2prZHYClUCXR8X4d9zmpjGNQqy3oO39dZFBBLUtFjNbP2LEafKyTgsLgI20sKx2EIna1KCK9WhjmXc4HqfJfPmPvtOA04oMIqruzy2w1U3qZkR/4FELA8twiEs5ggDbxKtlmZlOVetLrhDPVwtG7E3KJVl1apjHN8NZoGsTKWQLah758T0IHtLn7IUUvD6bQABZtEZ8kMTbKUfTgKJLt4WK4lNIYAQ==
+
+I need to continue updating the spec to reflect the THINKING block reuse. Let me update the remaining sections that reference the old "reasoning" content block type:
+
+1. Markdown Rendering section
+2. Parser Updates section (which I already added)
+3. Dialog Parsing section
+4. OpenRouter Message Conversion section
+5. Complete Data Flow section
+6. Implementation Checklist
+
+Let me continue with these updates.
+
+# TOOL USE
+
+Name: str-replace
+ID: toolu_01SCkr9TK6bcxH9h6JpLeANF
+
+## path
+
+<tool.toolu_01SCkr9TK6bcxH9h6JpLeANF>
+/Users/andreas/projects/greger.el/OPENROUTER_REASONING_SPEC.md
+</tool.toolu_01SCkr9TK6bcxH9h6JpLeANF>
+
+## git-commit-message
+
+<tool.toolu_01SCkr9TK6bcxH9h6JpLeANF>
+Update Markdown Rendering section for THINKING reuse
+</tool.toolu_01SCkr9TK6bcxH9h6JpLeANF>
+
+## diff
+
+<tool.toolu_01SCkr9TK6bcxH9h6JpLeANF>
+ ## Markdown Rendering
+ 
+-### Reasoning Block to Markdown
++### No Changes Needed
+ 
+-Add to `greger-parser.el`:
++The existing `greger-parser--thinking-to-markdown` function already handles both Claude and OpenRouter cases:
+ 
+ ```elisp
+-(defun greger-parser--reasoning-to-markdown (block)
+-  "Convert reasoning BLOCK to markdown format.
+-Includes both the reasoning_details JSON metadata and readable text."
+-  (let ((reasoning-text (alist-get 'reasoning block))
+-        (reasoning-details (alist-get 'reasoning_details block)))
+-    (concat greger-parser-reasoning-tag
++(defun greger-parser--thinking-to-markdown (block)
++  "Convert thinking BLOCK to markdown (signature and text)."
++  (let ((contents (alist-get 'thinking block))
++        (signature (alist-get 'signature block)))
++    (concat greger-parser-thinking-tag
++            (if signature
++                (concat "\n\n" "Signature: " signature)
++              "")
+             "\n\n"
+-            (when reasoning-details
+-              (concat "<reasoning_details>\n"
+-                      (json-encode reasoning-details)
+-                      "\n</reasoning_details>\n\n"))
+-            reasoning-text)))
+-
+-(defconst greger-parser-reasoning-tag "# REASONING"
+-  "Tag for reasoning sections.")
++            contents)))
+ ```
+ 
+-### Content Block Dispatcher
++**How it works:**
++- Claude block: `signature` is a hex hash → renders as `Signature: 8f3e9d2a...`
++- OpenRouter block: `signature` is base64 JSON → renders as `Signature: eyJ0eXBlIjoic...`
++- No signature: omits the signature line entirely
+ 
+-Update `greger-parser--content-block-to-markdown`:
+-
+-```elisp
+-(defun greger-parser--content-block-to-markdown (block)
+-  "Convert content BLOCK to markdown."
+-  (let ((type (alist-get 'type block)))
+-    (cond
+-     ((string= type "text") (greger-parser--text-to-markdown block))
+-     ((string= type "thinking") (greger-parser--thinking-to-markdown block))
+-     ((string= type "reasoning") (greger-parser--reasoning-to-markdown block))  ; NEW
+-     ((string= type "tool_use") (greger-parser--tool-use-to-markdown block))
+-     ;; ... other types ...
+-     )))
+-```
+\ No newline at end of file
++**No dispatcher changes needed** - `thinking` type is already handled.
+\ No newline at end of file
+
+</tool.toolu_01SCkr9TK6bcxH9h6JpLeANF>
+
+# TOOL RESULT
+
+ID: toolu_01SCkr9TK6bcxH9h6JpLeANF
+
+<tool.toolu_01SCkr9TK6bcxH9h6JpLeANF>
+
+</tool.toolu_01SCkr9TK6bcxH9h6JpLeANF>
