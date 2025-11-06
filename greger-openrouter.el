@@ -352,14 +352,12 @@ OpenAI function calling doesn't support default values."
               (greger-openrouter--accumulate-tool-calls delta state)))
             
             (when (alist-get 'annotations delta)
-              (let ((annotations (alist-get 'annotations delta)))
-                (message "DEBUG: Received annotations in delta: %S" annotations)
-                (setf (greger-openrouter-state-annotations state) annotations))))
+              (setf (greger-openrouter-state-annotations state)
+                    (alist-get 'annotations delta))))
           
           (when (and message (alist-get 'annotations message))
-            (let ((annotations (alist-get 'annotations message)))
-              (message "DEBUG: Received annotations in message: %S" annotations)
-              (setf (greger-openrouter-state-annotations state) annotations)))
+            (setf (greger-openrouter-state-annotations state)
+                  (alist-get 'annotations message)))
           
           (when finish-reason
             (greger-openrouter--handle-finish state finish-reason))))
