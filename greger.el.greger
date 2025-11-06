@@ -10083,5 +10083,69 @@ OpenRouter annotations have structure: {type: 'url_citation', url_citation: {...
 ID: toolu_01H27tijvHBtyew9CaKr6d4e
 
 <tool.toolu_01H27tijvHBtyew9CaKr6d4e>
-
+Successfully replaced content in /Users/andreas/projects/greger.el/greger-openrouter.el. Successfully staged 2 file(s) and committed with message: Add debug logging in annotation to citation converter
 </tool.toolu_01H27tijvHBtyew9CaKr6d4e>
+
+# TOOL USE
+
+Name: str-replace
+ID: toolu_01E8HN39bJeSwvZ4xgU2gFZG
+
+## path
+
+<tool.toolu_01E8HN39bJeSwvZ4xgU2gFZG>
+greger-openrouter.el
+</tool.toolu_01E8HN39bJeSwvZ4xgU2gFZG>
+
+## git-commit-message
+
+<tool.toolu_01E8HN39bJeSwvZ4xgU2gFZG>
+Add debug logging for final content blocks
+</tool.toolu_01E8HN39bJeSwvZ4xgU2gFZG>
+
+## original-content
+
+<tool.toolu_01E8HN39bJeSwvZ4xgU2gFZG>
+(defun greger-openrouter--handle-finish (state finish-reason)
+  "Handle completion based on finish reason."
+  (let ((content-blocks (greger-openrouter--build-content-blocks state))
+        (block-stop-callback (greger-openrouter-state-block-stop-callback state)))
+    
+    (when block-stop-callback
+      (dolist (block content-blocks)
+        (let ((type (alist-get 'type block)))
+          (funcall block-stop-callback type block))))
+    
+    (when-let ((callback (greger-openrouter-state-complete-callback state)))
+      (funcall callback content-blocks))))
+</tool.toolu_01E8HN39bJeSwvZ4xgU2gFZG>
+
+## new-content
+
+<tool.toolu_01E8HN39bJeSwvZ4xgU2gFZG>
+(defun greger-openrouter--handle-finish (state finish-reason)
+  "Handle completion based on finish reason."
+  (let ((content-blocks (greger-openrouter--build-content-blocks state))
+        (block-stop-callback (greger-openrouter-state-block-stop-callback state)))
+    
+    (message "DEBUG: handle-finish built %d content blocks: %S" 
+             (length content-blocks) 
+             (mapcar (lambda (b) (alist-get 'type b)) content-blocks))
+    
+    (when block-stop-callback
+      (dolist (block content-blocks)
+        (let ((type (alist-get 'type block)))
+          (message "DEBUG: Calling block-stop-callback for type=%s" type)
+          (funcall block-stop-callback type block))))
+    
+    (when-let ((callback (greger-openrouter-state-complete-callback state)))
+      (funcall callback content-blocks))))
+</tool.toolu_01E8HN39bJeSwvZ4xgU2gFZG>
+
+# TOOL RESULT
+
+ID: toolu_01E8HN39bJeSwvZ4xgU2gFZG
+
+<tool.toolu_01E8HN39bJeSwvZ4xgU2gFZG>
+
+</tool.toolu_01E8HN39bJeSwvZ4xgU2gFZG>

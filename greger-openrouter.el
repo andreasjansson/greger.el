@@ -426,9 +426,14 @@ Accumulates both readable text and full reasoning_details array."
   (let ((content-blocks (greger-openrouter--build-content-blocks state))
         (block-stop-callback (greger-openrouter-state-block-stop-callback state)))
     
+    (message "DEBUG: handle-finish built %d content blocks: %S" 
+             (length content-blocks) 
+             (mapcar (lambda (b) (alist-get 'type b)) content-blocks))
+    
     (when block-stop-callback
       (dolist (block content-blocks)
         (let ((type (alist-get 'type block)))
+          (message "DEBUG: Calling block-stop-callback for type=%s" type)
           (funcall block-stop-callback type block))))
     
     (when-let ((callback (greger-openrouter-state-complete-callback state)))
