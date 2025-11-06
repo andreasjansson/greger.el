@@ -1321,7 +1321,6 @@ If CLEAR-EXISTING, clear any existing eval results."
         
         (if eval-node
             (progn
-              (message "GREGER EVAL: Processing eval at position %s" (treesit-node-start eval-node))
               (greger--process-single-eval eval-node :clear-existing clear-existing)
               ;; Move past this eval for next search
               (setq next-search-pos (1+ (treesit-node-end eval-node))))
