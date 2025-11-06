@@ -17536,5 +17536,54 @@ Don't call block-stop-callback in output_item.done - let complete handle it
 ID: toolu_01MGircXqmLF4raMi8mHEDQL
 
 <tool.toolu_01MGircXqmLF4raMi8mHEDQL>
-
+Successfully replaced content in /Users/andreas/projects/greger.el/greger-openrouter.el. Successfully staged 2 file(s) and committed with message: Don't call block-stop-callback in output_item.done - let complete handle it
 </tool.toolu_01MGircXqmLF4raMi8mHEDQL>
+
+# ASSISTANT
+
+Wait, but then we need to call block-stop-callback in the process sentinel along with complete-callback. Let me check how to do this properly:
+
+# TOOL USE
+
+Name: str-replace
+ID: toolu_01QdGx7n5pL2WYkeafqdhheT
+
+## path
+
+<tool.toolu_01QdGx7n5pL2WYkeafqdhheT>
+greger-openrouter.el
+</tool.toolu_01QdGx7n5pL2WYkeafqdhheT>
+
+## git-commit-message
+
+<tool.toolu_01QdGx7n5pL2WYkeafqdhheT>
+Call block-stop for each block before complete
+</tool.toolu_01QdGx7n5pL2WYkeafqdhheT>
+
+## diff
+
+<tool.toolu_01QdGx7n5pL2WYkeafqdhheT>
+       (cond
+        ((and (= exit-code 0) (not stored-error))
+-        ;; Call complete callback to finalize (adds # USER prompt, etc)
+-        (when-let ((callback (greger-openrouter-state-complete-callback state)))
+-          (funcall callback (greger-openrouter--build-content-blocks state))))
+\ No newline at end of file
++        ;; Call block-stop for each block, then complete callback
++        (let ((content-blocks (greger-openrouter--build-content-blocks state)))
++          (when-let ((block-stop-callback (greger-openrouter-state-block-stop-callback state)))
++            (dolist (block content-blocks)
++              (funcall block-stop-callback (alist-get 'type block) block)))
++          (when-let ((callback (greger-openrouter-state-complete-callback state)))
++            (funcall callback content-blocks))))
+\ No newline at end of file
+
+</tool.toolu_01QdGx7n5pL2WYkeafqdhheT>
+
+# TOOL RESULT
+
+ID: toolu_01QdGx7n5pL2WYkeafqdhheT
+
+<tool.toolu_01QdGx7n5pL2WYkeafqdhheT>
+
+</tool.toolu_01QdGx7n5pL2WYkeafqdhheT>
