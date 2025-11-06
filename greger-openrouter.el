@@ -238,11 +238,21 @@ ERROR-CALLBACK is called when errors occur."
         (when delta
           (cond
            ((alist-get 'content delta)
-            (let ((text (alist-get 'content delta)))
+            (let ((text (alist-get 'content delta))
+                  (block-start-callback (greger-openrouter-state-block-start-callback state))
+                  (text-delta-callback (greger-openrouter-state-text-delta-callback state)))
+              
+              (unless (greger-openrouter-state-text-started state)
+                (setf (greger-openrouter-state-text-started state) t)
+                (when block-start-callback
+                  (funcall block-start-callback
+                           `((type . "text")
+                             (text . "")))))
+              
               (setf (greger-openrouter-state-current-text state)
                     (concat (greger-openrouter-state-current-text state) text))
-              (when-let ((callback (greger-openrouter-state-text-delta-callback state)))
-                (funcall callback text))))
+              (when text-delta-callback
+                (funcall text-delta-callback text))))
            
            ((alist-get 'reasoning delta)
             (greger-openrouter--handle-reasoning-delta delta state))
