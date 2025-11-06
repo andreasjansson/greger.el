@@ -468,17 +468,24 @@ Includes THINKING blocks with base64-encoded reasoning_details in signature fiel
        tool-calls))
     
     (when current-text
+      (message "DEBUG: Building text block. current-text length: %d, annotations: %S" 
+               (length current-text) annotations)
       (let ((citations (when annotations
-                         (mapcar #'greger-openrouter--convert-annotation-to-citation
-                                 (seq-filter
-                                  (lambda (annotation)
-                                    (string= (alist-get 'type annotation) "url_citation"))
-                                  annotations)))))
+                         (let ((filtered (seq-filter
+                                          (lambda (annotation)
+                                            (string= (alist-get 'type annotation) "url_citation"))
+                                          annotations)))
+                           (message "DEBUG: Filtered %d url_citation annotations" (length filtered))
+                           (mapcar #'greger-openrouter--convert-annotation-to-citation filtered)))))
+        (message "DEBUG: Built %d citations" (length citations))
         (if citations
-            (push `((type . "text")
-                    (text . ,current-text)
-                    (citations . ,citations))
-                  blocks)
+            (progn
+              (message "DEBUG: Adding text block WITH citations")
+              (push `((type . "text")
+                      (text . ,current-text)
+                      (citations . ,citations))
+                    blocks))
+          (message "DEBUG: Adding text block WITHOUT citations")
           (push `((type . "text")
                   (text . ,current-text))
                 blocks))))

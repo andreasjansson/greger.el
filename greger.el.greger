@@ -9949,5 +9949,77 @@ Add debug logging for citation processing
 ID: toolu_013n9yx4YNWFvNgMz1bnGnua
 
 <tool.toolu_013n9yx4YNWFvNgMz1bnGnua>
-
+Successfully replaced content in /Users/andreas/projects/greger.el/greger-openrouter.el. Successfully staged 2 file(s) and committed with message: Add debug logging for citation processing
 </tool.toolu_013n9yx4YNWFvNgMz1bnGnua>
+
+# TOOL USE
+
+Name: str-replace
+ID: toolu_0116LEg6J12Hn3U14btg9iQ8
+
+## path
+
+<tool.toolu_0116LEg6J12Hn3U14btg9iQ8>
+greger-openrouter.el
+</tool.toolu_0116LEg6J12Hn3U14btg9iQ8>
+
+## git-commit-message
+
+<tool.toolu_0116LEg6J12Hn3U14btg9iQ8>
+Add debug logging in content block builder
+</tool.toolu_0116LEg6J12Hn3U14btg9iQ8>
+
+## original-content
+
+<tool.toolu_0116LEg6J12Hn3U14btg9iQ8>
+    (when current-text
+      (let ((citations (when annotations
+                         (mapcar #'greger-openrouter--convert-annotation-to-citation
+                                 (seq-filter
+                                  (lambda (annotation)
+                                    (string= (alist-get 'type annotation) "url_citation"))
+                                  annotations)))))
+        (if citations
+            (push `((type . "text")
+                    (text . ,current-text)
+                    (citations . ,citations))
+                  blocks)
+          (push `((type . "text")
+                  (text . ,current-text))
+                blocks))))
+</tool.toolu_0116LEg6J12Hn3U14btg9iQ8>
+
+## new-content
+
+<tool.toolu_0116LEg6J12Hn3U14btg9iQ8>
+    (when current-text
+      (message "DEBUG: Building text block. current-text length: %d, annotations: %S" 
+               (length current-text) annotations)
+      (let ((citations (when annotations
+                         (let ((filtered (seq-filter
+                                          (lambda (annotation)
+                                            (string= (alist-get 'type annotation) "url_citation"))
+                                          annotations)))
+                           (message "DEBUG: Filtered %d url_citation annotations" (length filtered))
+                           (mapcar #'greger-openrouter--convert-annotation-to-citation filtered)))))
+        (message "DEBUG: Built %d citations" (length citations))
+        (if citations
+            (progn
+              (message "DEBUG: Adding text block WITH citations")
+              (push `((type . "text")
+                      (text . ,current-text)
+                      (citations . ,citations))
+                    blocks))
+          (message "DEBUG: Adding text block WITHOUT citations")
+          (push `((type . "text")
+                  (text . ,current-text))
+                blocks))))
+</tool.toolu_0116LEg6J12Hn3U14btg9iQ8>
+
+# TOOL RESULT
+
+ID: toolu_0116LEg6J12Hn3U14btg9iQ8
+
+<tool.toolu_0116LEg6J12Hn3U14btg9iQ8>
+
+</tool.toolu_0116LEg6J12Hn3U14btg9iQ8>
