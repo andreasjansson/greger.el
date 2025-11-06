@@ -449,64 +449,26 @@ OpenRouter's reasoning with API continuity metadata...
 
 ## Dialog Parsing
 
-### Extracting Reasoning from Markdown
+### No Changes Needed
 
-Add to `greger-parser.el`:
-
-```elisp
-(defun greger-parser--extract-reasoning-details (node)
-  "Extract reasoning_details JSON from REASONING section NODE.
-Returns parsed JSON array or nil if not found."
-  (when node
-    (let* ((details-node (treesit-node-child-by-field-name node "reasoning_details"))
-           (json-node (when details-node
-                        (treesit-node-child-by-field-name details-node "json")))
-           (json-text (when json-node
-                        (treesit-node-text json-node))))
-      (when json-text
-        (condition-case err
-            (json-read-from-string json-text)
-          (error
-           (message "Failed to parse reasoning_details JSON: %s" (error-message-string err))
-           nil))))))
-
-(defun greger-parser--extract-reasoning-content (node)
-  "Extract readable reasoning content from REASONING section NODE."
-  (when node
-    (let ((content-node (treesit-node-child-by-field-name node "content")))
-      (if content-node
-          (string-trim (treesit-node-text content-node))
-        ""))))
-
-(defun greger-parser--reasoning-section-to-content-block (node)
-  "Convert reasoning section NODE to content block."
-  (let ((reasoning-text (greger-parser--extract-reasoning-content node))
-        (reasoning-details (greger-parser--extract-reasoning-details node)))
-    `((type . "reasoning")
-      (reasoning . ,reasoning-text)
-      (reasoning_details . ,(or reasoning-details [])))))
-```
-
-### Dialog Builder
-
-Update `greger-parser-markdown-buffer-to-dialog`:
+The existing `greger-parser--thinking-section-to-content-block` already extracts both signature and thinking text:
 
 ```elisp
-(defun greger-parser--extract-message-content (message-node)
-  "Extract content blocks from MESSAGE-NODE."
-  (let ((children (treesit-node-children message-node t))
-        content-blocks)
-    (dolist (child children)
-      (let ((type (treesit-node-type child)))
-        (cond
-         ((string= type "reasoning_section")
-          (push (greger-parser--reasoning-section-to-content-block child) content-blocks))
-         ((string= type "thinking_section")
-          (push (greger-parser--thinking-section-to-content-block child) content-blocks))
-         ;; ... other section types ...
-         )))
-    (nreverse content-blocks)))
+(defun greger-parser--thinking-section-to-content-block (node)
+  "Convert thinking section NODE to content block."
+  (let ((signature (greger-parser--extract-thinking-signature node))
+        (contents (greger-parser--extract-thinking-content node)))
+    `((type . "thinking")
+      (thinking . ,contents)
+      (signature . ,(or signature "")))))
 ```
+
+**How it works:**
+- Extracts signature field (whether it's Claude's hex hash or OpenRouter's base64 JSON)
+- Extracts thinking text content
+- Returns standard thinking block
+
+**The parser doesn't need to know the difference** between Claude and OpenRouter signatures - it's just a string field.
 
 ---
 
