@@ -62,7 +62,6 @@ ERROR-CALLBACK is called when errors occur."
          (process (greger-openrouter--start-curl-process request-spec))
          (state (make-greger-openrouter-state
                  :accumulated-output ""
-                 :current-tool-calls (make-hash-table :test 'equal)
                  :current-text ""
                  :process process
                  :block-start-callback block-start-callback
