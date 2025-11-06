@@ -329,22 +329,16 @@ OpenAI function calling doesn't support default values."
                (response (alist-get 'response data)))
           
           (cond
-           ;; Handle text streaming from output_item.added events
-           ((string= event-type "response.output_item.added")
-            (when (and item (string= (alist-get 'type item) "message"))
-              (let ((content (alist-get 'content item)))
-                (when content
-                  (seq-doseq (content-item content)
-                    (when (and (string= (alist-get 'type content-item) "output_text")
-                               (alist-get 'text content-item))
-                      (let ((text (alist-get 'text content-item))
-                            (block-start-callback (greger-openrouter-state-block-start-callback state)))
-                        (unless (greger-openrouter-state-text-started state)
-                          (setf (greger-openrouter-state-text-started state) t)
-                          (when block-start-callback
-                            (funcall block-start-callback
-                                     `((type . "text")
-                                       (text . ""))))))))))))
+           ;; Handle content part being added (starts the text block)
+           ((string= event-type "response.content_part.added")
+            (when-let* ((part (alist-get 'part data))
+                        ((string= (alist-get 'type part) "output_text")))
+              (unless (greger-openrouter-state-text-started state)
+                (setf (greger-openrouter-state-text-started state) t)
+                (when-let ((block-start-callback (greger-openrouter-state-block-start-callback state)))
+                  (funcall block-start-callback
+                           `((type . "text")
+                             (text . "")))))))
            
            ;; Handle incremental text updates
            ((string= event-type "response.content_part.delta")

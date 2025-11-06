@@ -15445,5 +15445,69 @@ Fix streaming - delta is top-level not nested
 ID: toolu_01Y1b6CPkDiECiXqsKE1J5qQ
 
 <tool.toolu_01Y1b6CPkDiECiXqsKE1J5qQ>
-
+Successfully replaced content in /Users/andreas/projects/greger.el/greger-openrouter.el. Successfully staged 2 file(s) and committed with message: Fix streaming - delta is top-level not nested
 </tool.toolu_01Y1b6CPkDiECiXqsKE1J5qQ>
+
+# ASSISTANT
+
+Also I notice we need to handle `response.content_part.added` to start the block:
+
+# TOOL USE
+
+Name: str-replace
+ID: toolu_01X2n6HD3xNRCcLxopEufwM8
+
+## path
+
+<tool.toolu_01X2n6HD3xNRCcLxopEufwM8>
+greger-openrouter.el
+</tool.toolu_01X2n6HD3xNRCcLxopEufwM8>
+
+## git-commit-message
+
+<tool.toolu_01X2n6HD3xNRCcLxopEufwM8>
+Handle response.content_part.added to start text block
+</tool.toolu_01X2n6HD3xNRCcLxopEufwM8>
+
+## diff
+
+<tool.toolu_01X2n6HD3xNRCcLxopEufwM8>
+-           ;; Handle text streaming from output_item.added events
+-           ((string= event-type "response.output_item.added")
+-            (when (and item (string= (alist-get 'type item) "message"))
+-              (let ((content (alist-get 'content item)))
+-                (when content
+-                  (seq-doseq (content-item content)
+-                    (when (and (string= (alist-get 'type content-item) "output_text")
+-                               (alist-get 'text content-item))
+-                      (let ((text (alist-get 'text content-item))
+-                            (block-start-callback (greger-openrouter-state-block-start-callback state)))
+-                        (unless (greger-openrouter-state-text-started state)
+-                          (setf (greger-openrouter-state-text-started state) t)
+-                          (when block-start-callback
+-                            (funcall block-start-callback
+-                                     `((type . "text")
+-                                       (text . ""))))))))))))
++           ;; Handle content part being added (starts the text block)
++           ((string= event-type "response.content_part.added")
++            (when-let* ((part (alist-get 'part data))
++                        ((string= (alist-get 'type part) "output_text")))
++              (unless (greger-openrouter-state-text-started state)
++                (setf (greger-openrouter-state-text-started state) t)
++                (when-let ((block-start-callback (greger-openrouter-state-block-start-callback state)))
++                  (funcall block-start-callback
++                           `((type . "text")
++                             (text . "")))))))
+            
+            ;; Handle incremental text updates
+\ No newline at end of file
+
+</tool.toolu_01X2n6HD3xNRCcLxopEufwM8>
+
+# TOOL RESULT
+
+ID: toolu_01X2n6HD3xNRCcLxopEufwM8
+
+<tool.toolu_01X2n6HD3xNRCcLxopEufwM8>
+
+</tool.toolu_01X2n6HD3xNRCcLxopEufwM8>
