@@ -15892,5 +15892,77 @@ Add thinking state fields back
 ID: toolu_0155tTDhXkUNn5544wDw4UWM
 
 <tool.toolu_0155tTDhXkUNn5544wDw4UWM>
-
+Successfully replaced content in /Users/andreas/projects/greger.el/greger-openrouter.el. Successfully staged 2 file(s) and committed with message: Add thinking state fields back
 </tool.toolu_0155tTDhXkUNn5544wDw4UWM>
+
+# ASSISTANT
+
+Now update the content blocks builder to include thinking:
+
+# TOOL USE
+
+Name: str-replace
+ID: toolu_01MT6u1pxhzvPAVmKM7wGw88
+
+## path
+
+<tool.toolu_01MT6u1pxhzvPAVmKM7wGw88>
+greger-openrouter.el
+</tool.toolu_01MT6u1pxhzvPAVmKM7wGw88>
+
+## git-commit-message
+
+<tool.toolu_01MT6u1pxhzvPAVmKM7wGw88>
+Include thinking in content blocks
+</tool.toolu_01MT6u1pxhzvPAVmKM7wGw88>
+
+## original-content
+
+<tool.toolu_01MT6u1pxhzvPAVmKM7wGw88>
+(defun greger-openrouter--build-content-blocks (state)
+  "Build Anthropic-style content blocks from accumulated state.
+Note: We don't include citations from web search because the text already
+contains inline markdown links to sources."
+  (let ((current-text (greger-openrouter-state-current-text state))
+        blocks)
+    
+    (when current-text
+      (push `((type . "text")
+              (text . ,current-text))
+            blocks))
+    
+    (nreverse blocks)))
+</tool.toolu_01MT6u1pxhzvPAVmKM7wGw88>
+
+## new-content
+
+<tool.toolu_01MT6u1pxhzvPAVmKM7wGw88>
+(defun greger-openrouter--build-content-blocks (state)
+  "Build Anthropic-style content blocks from accumulated state.
+Note: We don't include citations from web search because the text already
+contains inline markdown links to sources."
+  (let ((reasoning-text (greger-openrouter-state-current-reasoning-text state))
+        (current-text (greger-openrouter-state-current-text state))
+        blocks)
+    
+    (when reasoning-text
+      (push `((type . "thinking")
+              (thinking . ,reasoning-text)
+              (signature . ""))
+            blocks))
+    
+    (when current-text
+      (push `((type . "text")
+              (text . ,current-text))
+            blocks))
+    
+    (nreverse blocks)))
+</tool.toolu_01MT6u1pxhzvPAVmKM7wGw88>
+
+# TOOL RESULT
+
+ID: toolu_01MT6u1pxhzvPAVmKM7wGw88
+
+<tool.toolu_01MT6u1pxhzvPAVmKM7wGw88>
+
+</tool.toolu_01MT6u1pxhzvPAVmKM7wGw88>

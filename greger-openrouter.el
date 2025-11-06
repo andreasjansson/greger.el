@@ -428,8 +428,15 @@ OpenAI function calling doesn't support default values."
   "Build Anthropic-style content blocks from accumulated state.
 Note: We don't include citations from web search because the text already
 contains inline markdown links to sources."
-  (let ((current-text (greger-openrouter-state-current-text state))
+  (let ((reasoning-text (greger-openrouter-state-current-reasoning-text state))
+        (current-text (greger-openrouter-state-current-text state))
         blocks)
+    
+    (when reasoning-text
+      (push `((type . "thinking")
+              (thinking . ,reasoning-text)
+              (signature . ""))
+            blocks))
     
     (when current-text
       (push `((type . "text")
