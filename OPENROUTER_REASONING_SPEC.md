@@ -679,10 +679,16 @@ Cited text: quote from source
      {
        "role": "assistant",
        "content": "Helpful AI assistant",
-       "reasoning_details": [...]  // <-- PARSED FROM REASONING BLOCK
+       "reasoning_details": [...]  // <-- DECODED FROM THINKING SIGNATURE
      },
      {"role": "user", "content": "Read the file README.md"}
    ]
+   
+   Note: The signature field "eyJ0eXBlIjoicmVhc29..." was:
+   1. Extracted from THINKING block
+   2. Base64-decoded
+   3. JSON-parsed to array
+   4. Added as reasoning_details to message
 
 3. OpenRouter receives reasoning_details from previous turn
    → Model continues reasoning from where it left off
