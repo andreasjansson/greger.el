@@ -388,40 +388,42 @@ OpenAI function calling doesn't support default values."
            
            ;; Handle completion
            ((string= event-type "response.completed")
-            (when response
-              ;; Only use the completed event's text as fallback if we didn't get streaming
-              (let ((current-text (greger-openrouter-state-current-text state))
-                    (current-reasoning (greger-openrouter-state-current-reasoning-text state)))
-                
-                ;; If we didn't get any streaming text, extract it from the completed response
-                (when (and (not current-text) (not current-reasoning))
-                  (let* ((output (alist-get 'output response))
-                         (message-item (when output
-                                         (seq-find (lambda (item)
-                                                     (string= (alist-get 'type item) "message"))
-                                                   output)))
-                         (content (when message-item (alist-get 'content message-item)))
-                         (text-content (when content
-                                         (seq-find (lambda (item)
-                                                     (string= (alist-get 'type item) "output_text"))
-                                                   content)))
-                         (text (when text-content (alist-get 'text text-content))))
-                    
-                    (when text
-                      ;; Start the block
-                      (when-let ((block-start-callback (greger-openrouter-state-block-start-callback state)))
-                        (funcall block-start-callback
-                                 `((type . "text")
-                                   (text . ""))))
-                      
-                      ;; Set the full text
-                      (setf (greger-openrouter-state-current-text state) text)
-                      
-                      ;; Send all the text at once
-                      (when-let ((text-delta-callback (greger-openrouter-state-text-delta-callback state)))
-                        (funcall text-delta-callback text)))))
-                
-                (greger-openrouter--handle-finish state "stop")))))))
+            ;; Only use the completed event's text as fallback if we didn't get streaming
+            (let ((current-text (greger-openrouter-state-current-text state))
+                  (current-reasoning (greger-openrouter-state-current-reasoning-text state)))
+              
+              ;; If we didn't get any streaming, extract from the completed response
+              (when (and (not current-text) (not current-reasoning))
+                (when-let* ((output (alist-get 'output response))
+                            (message-item (seq-find (lambda (item)
+                                                      (string= (alist-get 'type item) "message"))
+                                                    output))
+                            (content (alist-get 'content message-item))
+                            (text-content (seq-find (lambda (item)
+                                                      (string= (alist-get 'type item) "output_text"))
+                                                    content))
+                            (text (alist-get 'text text-content)))
+                  
+                  ;; Start and populate the block
+                  (when-let ((block-start-callback (greger-openrouter-state-block-start-callback state)))
+                    (funcall block-start-callback
+                             `((type . "text")
+                               (text . ""))))
+                  
+                  (setf (greger-openrouter-state-current-text state) text)
+                  
+                  (when-let ((text-delta-callback (greger-openrouter-state-text-delta-callback state)))
+                    (funcall text-delta-callback text))
+                  
+                  ;; Stop the block
+                  (when-let ((block-stop-callback (greger-openrouter-state-block-stop-callback state)))
+                    (funcall block-stop-callback "text"
+                             `((type . "text")
+                               (text . ,text))))))
+              
+              ;; Always call complete callback at the end
+              (when-let ((complete-callback (greger-openrouter-state-complete-callback state)))
+                (funcall complete-callback (greger-openrouter--build-content-blocks state))))))))
     (error
      (let ((error-message (format "Failed to parse event: %s" (error-message-string err))))
        (setf (greger-openrouter-state-error-message state) error-message)
