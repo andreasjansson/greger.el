@@ -9791,5 +9791,267 @@ Accumulates both readable text and full reasoning_details array."
 ID: toolu_01XQNijnNTRJNT6J9LjXqrzV
 
 <tool.toolu_01XQNijnNTRJNT6J9LjXqrzV>
-
+Successfully replaced content in /Users/andreas/projects/greger.el/greger-openrouter.el. Successfully staged 2 file(s) and committed with message: Remove unused Chat Completions helper functions
 </tool.toolu_01XQNijnNTRJNT6J9LjXqrzV>
+
+# ASSISTANT
+
+Now let me check the state structure - we might have some unused fields now:
+
+# TOOL USE
+
+Name: read-file
+ID: toolu_01BdigC4vJx77BAMjR1JgW6d
+
+## path
+
+<tool.toolu_01BdigC4vJx77BAMjR1JgW6d>
+greger-openrouter.el
+</tool.toolu_01BdigC4vJx77BAMjR1JgW6d>
+
+## start-line
+
+<tool.toolu_01BdigC4vJx77BAMjR1JgW6d>
+22
+</tool.toolu_01BdigC4vJx77BAMjR1JgW6d>
+
+## end-line
+
+<tool.toolu_01BdigC4vJx77BAMjR1JgW6d>
+41
+</tool.toolu_01BdigC4vJx77BAMjR1JgW6d>
+
+# TOOL RESULT
+
+ID: toolu_01BdigC4vJx77BAMjR1JgW6d
+
+<tool.toolu_01BdigC4vJx77BAMjR1JgW6d>
+(cl-defstruct greger-openrouter-state
+  accumulated-output
+  current-tool-calls
+  current-text
+  thinking-started
+  text-started
+  annotations
+  current-reasoning-text
+  current-reasoning-details
+  process
+  output-buffer
+  undo-handle
+  block-start-callback
+  text-delta-callback
+  block-stop-callback
+  complete-callback
+  restore-callback
+  error-callback
+  error-message)
+
+</tool.toolu_01BdigC4vJx77BAMjR1JgW6d>
+
+# ASSISTANT
+
+The Responses API doesn't stream tool calls or reasoning in the same way, so we don't need those fields. Let me check if they're still being used:
+
+# TOOL USE
+
+Name: ripgrep
+ID: toolu_01HrGAeuE47yPk1a8xdLUcPb
+
+## pattern
+
+<tool.toolu_01HrGAeuE47yPk1a8xdLUcPb>
+current-tool-calls|thinking-started|current-reasoning-text|current-reasoning-details
+</tool.toolu_01HrGAeuE47yPk1a8xdLUcPb>
+
+## path
+
+<tool.toolu_01HrGAeuE47yPk1a8xdLUcPb>
+greger-openrouter.el
+</tool.toolu_01HrGAeuE47yPk1a8xdLUcPb>
+
+# TOOL RESULT
+
+ID: toolu_01HrGAeuE47yPk1a8xdLUcPb
+
+<tool.toolu_01HrGAeuE47yPk1a8xdLUcPb>
+24:  current-tool-calls
+26:  thinking-started
+29:  current-reasoning-text
+30:  current-reasoning-details
+69:                 :current-tool-calls (make-hash-table :test 'equal)
+375:  (let ((reasoning-text (greger-openrouter-state-current-reasoning-text state))
+376:        (reasoning-details (greger-openrouter-state-current-reasoning-details state))
+378:        (tool-calls (greger-openrouter-state-current-tool-calls state))
+
+</tool.toolu_01HrGAeuE47yPk1a8xdLUcPb>
+
+# ASSISTANT
+
+They're still used in build-content-blocks. Let me check if we even need those for Responses API:
+
+# TOOL USE
+
+Name: read-file
+ID: toolu_019728YujeomZughAhDSvid1
+
+## path
+
+<tool.toolu_019728YujeomZughAhDSvid1>
+greger-openrouter.el
+</tool.toolu_019728YujeomZughAhDSvid1>
+
+## start-line
+
+<tool.toolu_019728YujeomZughAhDSvid1>
+357
+</tool.toolu_019728YujeomZughAhDSvid1>
+
+## end-line
+
+<tool.toolu_019728YujeomZughAhDSvid1>
+420
+</tool.toolu_019728YujeomZughAhDSvid1>
+
+# TOOL RESULT
+
+ID: toolu_019728YujeomZughAhDSvid1
+
+<tool.toolu_019728YujeomZughAhDSvid1>
+
+(defun greger-openrouter--handle-finish (state finish-reason)
+  "Handle completion based on finish reason."
+  (let ((content-blocks (greger-openrouter--build-content-blocks state))
+        (block-stop-callback (greger-openrouter-state-block-stop-callback state)))
+    
+    (when block-stop-callback
+      (dolist (block content-blocks)
+        (let ((type (alist-get 'type block)))
+          (funcall block-stop-callback type block))))
+    
+    (when-let ((callback (greger-openrouter-state-complete-callback state)))
+      (funcall callback content-blocks))))
+
+(defun greger-openrouter--build-content-blocks (state)
+  "Build Anthropic-style content blocks from accumulated state.
+Includes THINKING blocks with base64-encoded reasoning_details in signature field.
+Converts OpenRouter annotations to Greger citations format."
+  (let ((reasoning-text (greger-openrouter-state-current-reasoning-text state))
+        (reasoning-details (greger-openrouter-state-current-reasoning-details state))
+        (current-text (greger-openrouter-state-current-text state))
+        (tool-calls (greger-openrouter-state-current-tool-calls state))
+        (annotations (greger-openrouter-state-annotations state))
+        blocks)
+    
+    (when (and reasoning-text reasoning-details)
+      (let ((signature-base64 (base64-encode-string 
+                               (encode-coding-string (json-encode reasoning-details) 'utf-8)
+                               t)))
+        (push `((type . "thinking")
+                (thinking . ,reasoning-text)
+                (signature . ,signature-base64))
+              blocks)))
+    
+    (when (> (hash-table-count tool-calls) 0)
+      (maphash
+       (lambda (_index call)
+         (let* ((id (alist-get 'id call))
+                (name (alist-get 'name call))
+                (arguments (alist-get 'arguments call))
+                (parsed-args (condition-case nil
+                                 (json-read-from-string arguments)
+                               (error '()))))
+           (push `((type . "tool_use")
+                   (id . ,id)
+                   (name . ,name)
+                   (input . ,parsed-args))
+                 blocks)))
+       tool-calls))
+    
+    (when current-text
+      (let ((text-block `((type . "text")
+                          (text . ,current-text))))
+        (when annotations
+          (let ((citations (greger-openrouter--convert-annotations-to-citations annotations)))
+            (when citations
+              (push `(citations . ,citations) text-block))))
+        (push text-block blocks)))
+    
+    (nreverse blocks)))
+
+
+
+(defun greger-openrouter--convert-citations-to-annotations (citations)
+</tool.toolu_019728YujeomZughAhDSvid1>
+
+# ASSISTANT
+
+For the Responses API, we won't get streaming tool calls and reasoning the same way. Let me simplify this:
+
+# TOOL USE
+
+Name: str-replace
+ID: toolu_01RXPyvwenfaynS81rSBq6Uk
+
+## path
+
+<tool.toolu_01RXPyvwenfaynS81rSBq6Uk>
+greger-openrouter.el
+</tool.toolu_01RXPyvwenfaynS81rSBq6Uk>
+
+## git-commit-message
+
+<tool.toolu_01RXPyvwenfaynS81rSBq6Uk>
+Simplify state structure for Responses API
+</tool.toolu_01RXPyvwenfaynS81rSBq6Uk>
+
+## original-content
+
+<tool.toolu_01RXPyvwenfaynS81rSBq6Uk>
+(cl-defstruct greger-openrouter-state
+  accumulated-output
+  current-tool-calls
+  current-text
+  thinking-started
+  text-started
+  annotations
+  current-reasoning-text
+  current-reasoning-details
+  process
+  output-buffer
+  undo-handle
+  block-start-callback
+  text-delta-callback
+  block-stop-callback
+  complete-callback
+  restore-callback
+  error-callback
+  error-message)
+</tool.toolu_01RXPyvwenfaynS81rSBq6Uk>
+
+## new-content
+
+<tool.toolu_01RXPyvwenfaynS81rSBq6Uk>
+(cl-defstruct greger-openrouter-state
+  accumulated-output
+  current-text
+  text-started
+  annotations
+  process
+  output-buffer
+  undo-handle
+  block-start-callback
+  text-delta-callback
+  block-stop-callback
+  complete-callback
+  restore-callback
+  error-callback
+  error-message)
+</tool.toolu_01RXPyvwenfaynS81rSBq6Uk>
+
+# TOOL RESULT
+
+ID: toolu_01RXPyvwenfaynS81rSBq6Uk
+
+<tool.toolu_01RXPyvwenfaynS81rSBq6Uk>
+
+</tool.toolu_01RXPyvwenfaynS81rSBq6Uk>

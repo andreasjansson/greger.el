@@ -21,13 +21,9 @@
 
 (cl-defstruct greger-openrouter-state
   accumulated-output
-  current-tool-calls
   current-text
-  thinking-started
   text-started
   annotations
-  current-reasoning-text
-  current-reasoning-details
   process
   output-buffer
   undo-handle
