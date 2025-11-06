@@ -815,12 +815,22 @@ Just verify:
 
 ## Summary
 
-This specification adds comprehensive reasoning support to Greger for OpenRouter models:
+This specification adds comprehensive reasoning support to Greger for OpenRouter models by **reusing existing THINKING blocks**:
 
-1. **New REASONING markdown section** stores both human-readable text and API metadata
-2. **Full reasoning_details preservation** enables conversation continuity across tool calls
-3. **Backward compatibility** with existing THINKING blocks for Claude
-4. **Web search via :online** with inline citation support
-5. **Zero changes to existing Claude code path** - completely parallel implementation
+1. **Zero parser changes** - THINKING blocks already support signature field
+2. **Dual-purpose signature field**:
+   - Claude: Cryptographic verification (hex hash)
+   - OpenRouter: Reasoning continuity (base64-encoded reasoning_details JSON)
+3. **Full reasoning_details preservation** enables conversation continuity across tool calls
+4. **Automatic detection** - decode signature; if JSON array, use as reasoning_details
+5. **Web search via :online** with inline citation support
+6. **Backward/forward compatible** - Claude and OpenRouter THINKING blocks coexist
+
+**Benefits of Reusing THINKING:**
+- No grammar changes needed
+- No new markdown format to learn
+- Same UI (folding, syntax highlighting)
+- Signature line naturally hides complexity
+- Parser doesn't need to understand the semantic difference
 
 The implementation preserves Greger's philosophy of transparency and user control while enabling advanced reasoning features from OpenRouter's 400+ models.
