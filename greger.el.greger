@@ -15236,5 +15236,78 @@ Update Phase 3 UI checklist for THINKING blocks
 ID: toolu_01Ry2T5pAxMpnsC726SgmeRW
 
 <tool.toolu_01Ry2T5pAxMpnsC726SgmeRW>
-
+Successfully replaced content in /Users/andreas/projects/greger.el/OPENROUTER_REASONING_SPEC.md. Successfully staged 2 file(s) and committed with message: Update Phase 3 UI checklist for THINKING blocks
 </tool.toolu_01Ry2T5pAxMpnsC726SgmeRW>
+
+# TOOL USE
+
+Name: str-replace
+ID: toolu_01QyAiL1fWz2D87TxkVanXKm
+
+## path
+
+<tool.toolu_01QyAiL1fWz2D87TxkVanXKm>
+/Users/andreas/projects/greger.el/OPENROUTER_REASONING_SPEC.md
+</tool.toolu_01QyAiL1fWz2D87TxkVanXKm>
+
+## git-commit-message
+
+<tool.toolu_01QyAiL1fWz2D87TxkVanXKm>
+Update Phase 4 testing and Phase 5 documentation
+</tool.toolu_01QyAiL1fWz2D87TxkVanXKm>
+
+## diff
+
+<tool.toolu_01QyAiL1fWz2D87TxkVanXKm>
+ ### Phase 4: Testing
+ - [ ] Test Turn 1: Basic reasoning response
+-  - Verify reasoning_details captured
+-  - Verify markdown rendering
+-  - Verify parsing back
++  - Verify reasoning_details captured in state
++  - Verify THINKING block created with base64 signature
++  - Verify markdown renders correctly
++  - Verify signature can be decoded back to JSON
+ - [ ] Test Turn 2: Reasoning continuity
+-  - Verify reasoning_details passed back
+-  - Verify model continues coherently
++  - Verify signature decoded during parsing
++  - Verify reasoning_details passed back in API request
++  - Verify model continues reasoning coherently
+ - [ ] Test Tool calling with reasoning
+   - Verify reasoning preserved across tool execution
+   - Verify model reasoning continues after tool result
++  - This is the CRITICAL use case for reasoning_details
+ - [ ] Test Web search with :online
+   - Verify citations render
+   - Verify inline footnotes work
++- [ ] Test Mixed conversations:
++  - OpenRouter turn (has base64 signature) followed by Claude turn (ignore signature)
++  - Claude turn (has crypto signature) followed by OpenRouter turn (ignore signature)
+ - [ ] Test Different models:
+   - `openai/gpt-5-codex`
+   - `openai/gpt-5`
+   - `anthropic/claude-sonnet-4` via OpenRouter
+ 
+ ### Phase 5: Documentation
+ - [ ] Update README with OpenRouter reasoning notes
+-- [ ] Add example showing REASONING block format
+-- [ ] Document differences from THINKING blocks
+-- [ ] Note that reasoning_details must not be edited manually
+\ No newline at end of file
++- [ ] Add example showing THINKING block with base64 signature
++- [ ] Explain that signature field has dual purpose:
++  - Claude: cryptographic verification
++  - OpenRouter: reasoning_details preservation
++- [ ] Note that base64 signatures must not be manually edited
+\ No newline at end of file
+
+</tool.toolu_01QyAiL1fWz2D87TxkVanXKm>
+
+# TOOL RESULT
+
+ID: toolu_01QyAiL1fWz2D87TxkVanXKm
+
+<tool.toolu_01QyAiL1fWz2D87TxkVanXKm>
+
+</tool.toolu_01QyAiL1fWz2D87TxkVanXKm>

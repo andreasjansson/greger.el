@@ -748,18 +748,24 @@ Just verify:
 
 ### Phase 4: Testing
 - [ ] Test Turn 1: Basic reasoning response
-  - Verify reasoning_details captured
-  - Verify markdown rendering
-  - Verify parsing back
+  - Verify reasoning_details captured in state
+  - Verify THINKING block created with base64 signature
+  - Verify markdown renders correctly
+  - Verify signature can be decoded back to JSON
 - [ ] Test Turn 2: Reasoning continuity
-  - Verify reasoning_details passed back
-  - Verify model continues coherently
+  - Verify signature decoded during parsing
+  - Verify reasoning_details passed back in API request
+  - Verify model continues reasoning coherently
 - [ ] Test Tool calling with reasoning
   - Verify reasoning preserved across tool execution
   - Verify model reasoning continues after tool result
+  - This is the CRITICAL use case for reasoning_details
 - [ ] Test Web search with :online
   - Verify citations render
   - Verify inline footnotes work
+- [ ] Test Mixed conversations:
+  - OpenRouter turn (has base64 signature) followed by Claude turn (ignore signature)
+  - Claude turn (has crypto signature) followed by OpenRouter turn (ignore signature)
 - [ ] Test Different models:
   - `openai/gpt-5-codex`
   - `openai/gpt-5`
@@ -767,9 +773,11 @@ Just verify:
 
 ### Phase 5: Documentation
 - [ ] Update README with OpenRouter reasoning notes
-- [ ] Add example showing REASONING block format
-- [ ] Document differences from THINKING blocks
-- [ ] Note that reasoning_details must not be edited manually
+- [ ] Add example showing THINKING block with base64 signature
+- [ ] Explain that signature field has dual purpose:
+  - Claude: cryptographic verification
+  - OpenRouter: reasoning_details preservation
+- [ ] Note that base64 signatures must not be manually edited
 
 ---
 
