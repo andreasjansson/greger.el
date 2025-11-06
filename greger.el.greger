@@ -2,7 +2,7 @@
 
 You are Greger, and expert coding agent.
 
-${greger-prompt-code-style<eval-result-011308902508>
+${greger-prompt-code-style<eval-result-011524368422>
 # Code style
 
 ## Don't be overly defensive
@@ -26,10 +26,10 @@ Important: The first time you read a source code file, read the _entire_ file (_
 ## IMPORTANT: NO SUMMARY DOCUMENTS!!!
 
 IMPORTANT: DON'T write summary documents (e.g. SUMMARY.md, FINAL_REPORT.md) unless the user explicitly asks you to. If you feel the need to explain something, just do it in the chat. The ONLY exception to this rule is if the user explicitly asks you to write up a markdown file on disk.
-</eval-result-011308902508>}
+</eval-result-011524368422>}
 
-${:sh cat CLAUDE.md || true<eval-result-011307578998>cat: CLAUDE.md: No such file or directory
-</eval-result-011307578998>}
+${:sh cat CLAUDE.md || true<eval-result-011524962300>cat: CLAUDE.md: No such file or directory
+</eval-result-011524962300>}
 
 # USER
 
@@ -9099,5 +9099,115 @@ Add better error handling for OpenRouter events
 ID: toolu_01QH4A5WVNTYTzQbUMsHEa8t
 
 <tool.toolu_01QH4A5WVNTYTzQbUMsHEa8t>
-
+Successfully replaced content in /Users/andreas/projects/greger.el/greger-openrouter.el. Successfully staged 2 file(s) and committed with message: Add better error handling for OpenRouter events
 </tool.toolu_01QH4A5WVNTYTzQbUMsHEa8t>
+
+# ASSISTANT
+
+Now reload and try again. If there's an error, you should see it in the `*Messages*` buffer. Can you check if you see any error messages there?
+
+Also, can you verify your OpenRouter setup is correct:
+
+```elisp
+;; Check these values
+greger-provider  ; should be 'openrouter
+greger-openrouter-model  ; should be something like "openai/gpt-5-codex"
+(getenv "OPENROUTER_API_KEY")  ; should return your API key (or check greger-openrouter-api-key-fn)
+```
+
+# USER
+
+Seeing this when I uncomment that logging code
+
+```
+OpenRouter output chunk: {"error":{"message":"Provider returned error","code":400,"metadata":{"raw":"{\n  \"error\": {\n    \"message\": \"Invalid schema for function 'list-directory': None is not of type 'array'.\",\n    \"type\": \"invalid_request_error\",\n    \"param\": \"tools[7].parameters\",\n    \"code\": \"invalid_function_parameters\"\n  }\n}","provider_name":"OpenAI"}},"user_id":"user_3556Pgm15MRCBbWZdxd1b1J2Z3j"}
+```
+
+# THINKING
+
+Signature: EsMICkYICRgCKkDcdC/iFjORMW7aknGK2IfXDB3WeNiGC2XCkOUgAtjXQHBQQa4Sx5wM52t5R7bx84lKofrD/ZgPD4GfLHYPnQ31EgwGnGIqQkpohKwnALIaDOyYn4u0MiShtz5oXyIwFvGNKUx0FogBehATCM9rMbSGS1PAl5Nk+6o5ZKui8qTIpKV9dudtY4MS1p1BmqWGKqoHbOVQBh7vRjc3zlT6+WN1p4SAZYUMFh8Fes/52Q7bUNsNuIAYrv+h/KbWiczpefpHuyNt5bpe3FUIuEjRhip4umlSc00FOI548ROQTbXGBHUw+BkDZPxDWUy+iYnh/3SY5iWcmQLBxyKfSjXzK1MnBOVdcnayOwTN/IsL5zicIaIZ5MFI/XfPbbaBHjS8Kheo4Z5xau0ovPgiMiTV05YBo65ZHFCbV3XcUx9BUHulfdKbQ2p8ZUX7nX5NZNbn18ta1z9W+Y5fylrVHo+t6wWZvsLkXCuYZ+Mn4SBTYXRILFsxZahuSLnfkTzXbhQxQIklKVePLsTTuMwhwawRy1AwpLuLXsRm6G2ws1YIvOqcyDDffhloutwnRwGXUwduSlgA1cpnclSEKGTm3kByHQZHMHtRj06BJfPdJtd9tU7Erx37L7UjYsXyJEwpTkCiX3PbPRw6g91nkMEQOo4uqDskWPflE/5jdcqsf5B8BcdIg5sDqYhOfQd4qpkNOOVslRphoqxY88KVIL394i2a2F3DxUTeeOSC4I7jJBJxStq+gbjQKucxYzWCH/shViuwD05l2KNRpBz62YJs68DjNkgg5BSO1xljyVT20m6JgidM+nTKYW8Vi61HanKGELKLtw35dAwHFXUcCGgENang0zhgpvudrdVVJE/twU+hA2vABcOepiT+eCoP1mQaPfWxZM6f8mgJFbeQMoUL+bxb6ui1Zt7l4ETr6vqG9oHvU0pUF3fc7OZcAV+dmQNiYze/ZUHkNcCAxNcMiTAnbt3Cy4PMlmoStElm/z6k4cHCb99cDFvwij7nPoCA5EUV0OrEbXzFEPvl3LWao/repi+BbkURe7oyFNZP7AGgJlb54a1eahhrq+DQO0rKAA1J5Ys0DtKxK0tFN/oJfjQznkyh/q76cadinGBS8hvgbLt/ZSQDQL6yvWJpoHV5/Etw+jba4qUN8o81Ks+00s7R0mpwloVJ+Kv+Gbve2c7ajxFb+EiXWFIfsymR7AozW9Ua1YHBFu71iQUlBrY4tgms02rr9syMGCD/t2p68y598j2nwg/LofwqEqhb58RLrV3KdBwiL35GT7S6HjNMmsF5iTIs1qQWGLizD8100Vpm/u0qoEEat07AV8fBUqDb6QYrOEDav0IQNa2HGB+WB8XQJGKsqH0RYS4uqoRJlG+eRn7h0YhsNJQhyxtlvFTO4JdD9etQCNIg2o1Zkurf62jGxtbvXzrzckKF3f05S5QYqu4YAQ==
+
+Ah! The issue is that the tool schema conversion is not handling the `default` values correctly. OpenAI's function calling doesn't allow `default` values in the parameters schema - they need to be omitted or handled differently.
+
+Looking at the error: "None is not of type 'array'" for the `list-directory` tool's parameters. This is because in the Anthropic schema, we have:
+
+```elisp
+(exclude-directories-recursive . ((type . "array")
+                                  (items . ((type . "string")))
+                                  (description . "...")
+                                  (default . (".git" "__pycache__" "node_modules" ".wrangler"))))
+```
+
+But OpenAI's function calling schema doesn't support `default` values in the parameters. When we convert the schema, we need to strip out the `default` keys.
+
+Let me fix the `greger-openrouter--convert-tools` function to remove `default` values from the schema.
+
+# ASSISTANT
+
+Ah! The issue is that OpenAI's function calling doesn't support `default` values in the parameters schema, but our Anthropic tool definitions have them. I need to strip those out during conversion:
+
+# TOOL USE
+
+Name: str-replace
+ID: toolu_01W6e9YfR13EtekG2V4V4qbf
+
+## path
+
+<tool.toolu_01W6e9YfR13EtekG2V4V4qbf>
+greger-openrouter.el
+</tool.toolu_01W6e9YfR13EtekG2V4V4qbf>
+
+## git-commit-message
+
+<tool.toolu_01W6e9YfR13EtekG2V4V4qbf>
+Fix OpenRouter tool schema conversion to remove default values
+</tool.toolu_01W6e9YfR13EtekG2V4V4qbf>
+
+## diff
+
+<tool.toolu_01W6e9YfR13EtekG2V4V4qbf>
+ (defun greger-openrouter--convert-tools (tools)
+-  "Convert Anthropic tool format to OpenAI function calling format."
++  "Convert Anthropic tool format to OpenAI function calling format.
++OpenAI doesn't support 'default' values in parameters, so we strip them."
+   (mapcar
+    (lambda (tool)
+-     `((type . "function")
+-       (function . ((name . ,(alist-get 'name tool))
+-                    (description . ,(alist-get 'description tool))
+-                    (parameters . ,(alist-get 'input_schema tool))))))
+-   tools))
+\ No newline at end of file
++     (let* ((input-schema (alist-get 'input_schema tool))
++            (cleaned-schema (greger-openrouter--remove-defaults-from-schema input-schema)))
++       `((type . "function")
++         (function . ((name . ,(alist-get 'name tool))
++                      (description . ,(alist-get 'description tool))
++                      (parameters . ,cleaned-schema))))))
++   tools))
++
++(defun greger-openrouter--remove-defaults-from-schema (schema)
++  "Remove 'default' keys from SCHEMA recursively.
++OpenAI function calling doesn't support default values."
++  (cond
++   ((null schema) nil)
++   ((not (listp schema)) schema)
++   ((and (consp schema) (not (listp (cdr schema))))
++    ;; This is an alist entry (key . value)
++    (if (eq (car schema) 'default)
++        nil  ; Skip default entries
++      (cons (car schema) (greger-openrouter--remove-defaults-from-schema (cdr schema)))))
++   (t
++    ;; This is a list - process each element
++    (delq nil (mapcar #'greger-openrouter--remove-defaults-from-schema schema)))))
+\ No newline at end of file
+
+</tool.toolu_01W6e9YfR13EtekG2V4V4qbf>
+
+# TOOL RESULT
+
+ID: toolu_01W6e9YfR13EtekG2V4V4qbf
+
+<tool.toolu_01W6e9YfR13EtekG2V4V4qbf>
+
+</tool.toolu_01W6e9YfR13EtekG2V4V4qbf>

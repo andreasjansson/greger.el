@@ -192,19 +192,37 @@ ERROR-CALLBACK is called when errors occur."
     (nreverse result-messages)))
 
 (defun greger-openrouter--convert-tools (tools)
-  "Convert Anthropic tool format to OpenAI function calling format."
+  "Convert Anthropic tool format to OpenAI function calling format.
+OpenAI doesn't support 'default' values in parameters, so we strip them."
   (mapcar
    (lambda (tool)
-     `((type . "function")
-       (function . ((name . ,(alist-get 'name tool))
-                    (description . ,(alist-get 'description tool))
-                    (parameters . ,(alist-get 'input_schema tool))))))
+     (let* ((input-schema (alist-get 'input_schema tool))
+            (cleaned-schema (greger-openrouter--remove-defaults-from-schema input-schema)))
+       `((type . "function")
+         (function . ((name . ,(alist-get 'name tool))
+                      (description . ,(alist-get 'description tool))
+                      (parameters . ,cleaned-schema))))))
    tools))
+
+(defun greger-openrouter--remove-defaults-from-schema (schema)
+  "Remove 'default' keys from SCHEMA recursively.
+OpenAI function calling doesn't support default values."
+  (cond
+   ((null schema) nil)
+   ((not (listp schema)) schema)
+   ((and (consp schema) (not (listp (cdr schema))))
+    ;; This is an alist entry (key . value)
+    (if (eq (car schema) 'default)
+        nil  ; Skip default entries
+      (cons (car schema) (greger-openrouter--remove-defaults-from-schema (cdr schema)))))
+   (t
+    ;; This is a list - process each element
+    (delq nil (mapcar #'greger-openrouter--remove-defaults-from-schema schema)))))
 
 (defun greger-openrouter--process-output-chunk (output state)
   "Process streaming output chunk."
   ;; Debug: uncomment to see raw output
-  ;; (message "OpenRouter output chunk: %s" output)
+   (message "OpenRouter output chunk: %s" output)
   (setf (greger-openrouter-state-accumulated-output state)
         (concat (greger-openrouter-state-accumulated-output state) output))
   
