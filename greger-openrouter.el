@@ -231,46 +231,58 @@ ERROR-CALLBACK is called when errors occur."
   "Handle OpenAI-style streaming event."
   (condition-case err
       (let* ((data (json-read-from-string data-json))
-             (choices (alist-get 'choices data))
-             (choice (when choices (aref choices 0)))
-             (delta (alist-get 'delta choice))
-             (message (alist-get 'message choice))
-             (finish-reason (alist-get 'finish_reason choice)))
+             (error-data (alist-get 'error data)))
         
-        (when delta
-          (cond
-           ((alist-get 'content delta)
-            (let ((text (alist-get 'content delta))
-                  (block-start-callback (greger-openrouter-state-block-start-callback state))
-                  (text-delta-callback (greger-openrouter-state-text-delta-callback state)))
-              
-              (unless (greger-openrouter-state-text-started state)
-                (setf (greger-openrouter-state-text-started state) t)
-                (when block-start-callback
-                  (funcall block-start-callback
-                           `((type . "text")
-                             (text . "")))))
-              
-              (setf (greger-openrouter-state-current-text state)
-                    (concat (greger-openrouter-state-current-text state) text))
-              (when text-delta-callback
-                (funcall text-delta-callback text))))
-           
-           ((alist-get 'reasoning delta)
-            (greger-openrouter--handle-reasoning-delta delta state))
-           
-           ((alist-get 'tool_calls delta)
-            (greger-openrouter--accumulate-tool-calls delta state))))
+        ;; Check for API errors first
+        (when error-data
+          (let ((error-message (format "OpenRouter API error: %s" 
+                                       (or (alist-get 'message error-data)
+                                           (json-encode error-data)))))
+            (setf (greger-openrouter-state-error-message state) error-message)
+            (message "OpenRouter error: %s" error-message)
+            (error error-message)))
         
-        (when (and message (alist-get 'annotations message))
-          (setf (greger-openrouter-state-annotations state)
-                (alist-get 'annotations message)))
-        
-        (when finish-reason
-          (greger-openrouter--handle-finish state finish-reason)))
+        (let* ((choices (alist-get 'choices data))
+               (choice (when choices (aref choices 0)))
+               (delta (alist-get 'delta choice))
+               (message (alist-get 'message choice))
+               (finish-reason (alist-get 'finish_reason choice)))
+          
+          (when delta
+            (cond
+             ((alist-get 'content delta)
+              (let ((text (alist-get 'content delta))
+                    (block-start-callback (greger-openrouter-state-block-start-callback state))
+                    (text-delta-callback (greger-openrouter-state-text-delta-callback state)))
+                
+                (unless (greger-openrouter-state-text-started state)
+                  (setf (greger-openrouter-state-text-started state) t)
+                  (when block-start-callback
+                    (funcall block-start-callback
+                             `((type . "text")
+                               (text . "")))))
+                
+                (setf (greger-openrouter-state-current-text state)
+                      (concat (greger-openrouter-state-current-text state) text))
+                (when text-delta-callback
+                  (funcall text-delta-callback text))))
+             
+             ((alist-get 'reasoning delta)
+              (greger-openrouter--handle-reasoning-delta delta state))
+             
+             ((alist-get 'tool_calls delta)
+              (greger-openrouter--accumulate-tool-calls delta state))))
+          
+          (when (and message (alist-get 'annotations message))
+            (setf (greger-openrouter-state-annotations state)
+                  (alist-get 'annotations message)))
+          
+          (when finish-reason
+            (greger-openrouter--handle-finish state finish-reason))))
     (error
-     (setf (greger-openrouter-state-error-message state)
-           (format "Failed to parse event: %s" (error-message-string err))))))
+     (let ((error-message (format "Failed to parse event: %s" (error-message-string err))))
+       (setf (greger-openrouter-state-error-message state) error-message)
+       (message "OpenRouter parse error: %s" error-message)))))
 
 (defun greger-openrouter--handle-reasoning-delta (delta state)
   "Handle reasoning/thinking delta and convert to Greger thinking format."

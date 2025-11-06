@@ -8911,5 +8911,193 @@ Add debugging for OpenRouter requests
 ID: toolu_01QV5YDSVQdmqEj4te1dfCix
 
 <tool.toolu_01QV5YDSVQdmqEj4te1dfCix>
-
+Successfully replaced content in /Users/andreas/projects/greger.el/greger-openrouter.el. Successfully staged 2 file(s) and committed with message: Add debugging for OpenRouter requests
 </tool.toolu_01QV5YDSVQdmqEj4te1dfCix>
+
+# ASSISTANT
+
+Now let's check if there's an error being raised:
+
+# TOOL USE
+
+Name: str-replace
+ID: toolu_013MHid4MpWbzeZVJZBkbPao
+
+## path
+
+<tool.toolu_013MHid4MpWbzeZVJZBkbPao>
+greger-openrouter.el
+</tool.toolu_013MHid4MpWbzeZVJZBkbPao>
+
+## git-commit-message
+
+<tool.toolu_013MHid4MpWbzeZVJZBkbPao>
+Add better error handling for OpenRouter events
+</tool.toolu_013MHid4MpWbzeZVJZBkbPao>
+
+## diff
+
+<tool.toolu_013MHid4MpWbzeZVJZBkbPao>
+ (defun greger-openrouter--handle-event (data-json state)
+   "Handle OpenAI-style streaming event."
+   (condition-case err
+       (let* ((data (json-read-from-string data-json))
+-             (choices (alist-get 'choices data))
+-             (choice (when choices (aref choices 0)))
+-             (delta (alist-get 'delta choice))
+-             (message (alist-get 'message choice))
+-             (finish-reason (alist-get 'finish_reason choice)))
+\ No newline at end of file
++             (error-data (alist-get 'error data)))
++        
++        ;; Check for API errors first
++        (when error-data
++          (let ((error-message (format "OpenRouter API error: %s" 
++                                       (or (alist-get 'message error-data)
++                                           (json-encode error-data)))))
++            (setf (greger-openrouter-state-error-message state) error-message)
++            (message "OpenRouter error: %s" error-message)
++            (error error-message)))
++        
++        (let* ((choices (alist-get 'choices data))
++               (choice (when choices (aref choices 0)))
++               (delta (alist-get 'delta choice))
++               (message (alist-get 'message choice))
++               (finish-reason (alist-get 'finish_reason choice)))
+\ No newline at end of file
+
+</tool.toolu_013MHid4MpWbzeZVJZBkbPao>
+
+# TOOL RESULT
+
+ID: toolu_013MHid4MpWbzeZVJZBkbPao
+
+<tool.toolu_013MHid4MpWbzeZVJZBkbPao>
+Parentheses balance mismatch in Emacs Lisp content: original has balance 3, new has balance 4.  They must be equal.  Try again!
+</tool.toolu_013MHid4MpWbzeZVJZBkbPao>
+
+# TOOL USE
+
+Name: str-replace
+ID: toolu_01QH4A5WVNTYTzQbUMsHEa8t
+
+## path
+
+<tool.toolu_01QH4A5WVNTYTzQbUMsHEa8t>
+greger-openrouter.el
+</tool.toolu_01QH4A5WVNTYTzQbUMsHEa8t>
+
+## git-commit-message
+
+<tool.toolu_01QH4A5WVNTYTzQbUMsHEa8t>
+Add better error handling for OpenRouter events
+</tool.toolu_01QH4A5WVNTYTzQbUMsHEa8t>
+
+## diff
+
+<tool.toolu_01QH4A5WVNTYTzQbUMsHEa8t>
+ (defun greger-openrouter--handle-event (data-json state)
+   "Handle OpenAI-style streaming event."
+   (condition-case err
+       (let* ((data (json-read-from-string data-json))
+-             (choices (alist-get 'choices data))
+-             (choice (when choices (aref choices 0)))
+-             (delta (alist-get 'delta choice))
+-             (message (alist-get 'message choice))
+-             (finish-reason (alist-get 'finish_reason choice)))
++             (error-data (alist-get 'error data)))
+         
+-        (when delta
+-          (cond
+-           ((alist-get 'content delta)
+-            (let ((text (alist-get 'content delta))
+-                  (block-start-callback (greger-openrouter-state-block-start-callback state))
+-                  (text-delta-callback (greger-openrouter-state-text-delta-callback state)))
+-              
+-              (unless (greger-openrouter-state-text-started state)
+-                (setf (greger-openrouter-state-text-started state) t)
+-                (when block-start-callback
+-                  (funcall block-start-callback
+-                           `((type . "text")
+-                             (text . "")))))
+-              
+-              (setf (greger-openrouter-state-current-text state)
+-                    (concat (greger-openrouter-state-current-text state) text))
+-              (when text-delta-callback
+-                (funcall text-delta-callback text))))
+-           
+-           ((alist-get 'reasoning delta)
+-            (greger-openrouter--handle-reasoning-delta delta state))
+-           
+-           ((alist-get 'tool_calls delta)
+-            (greger-openrouter--accumulate-tool-calls delta state))))
++        ;; Check for API errors first
++        (when error-data
++          (let ((error-message (format "OpenRouter API error: %s" 
++                                       (or (alist-get 'message error-data)
++                                           (json-encode error-data)))))
++            (setf (greger-openrouter-state-error-message state) error-message)
++            (message "OpenRouter error: %s" error-message)
++            (error error-message)))
+         
+-        (when (and message (alist-get 'annotations message))
+-          (setf (greger-openrouter-state-annotations state)
+-                (alist-get 'annotations message)))
+-        
+-        (when finish-reason
+-          (greger-openrouter--handle-finish state finish-reason)))
++        (let* ((choices (alist-get 'choices data))
++               (choice (when choices (aref choices 0)))
++               (delta (alist-get 'delta choice))
++               (message (alist-get 'message choice))
++               (finish-reason (alist-get 'finish_reason choice)))
++          
++          (when delta
++            (cond
++             ((alist-get 'content delta)
++              (let ((text (alist-get 'content delta))
++                    (block-start-callback (greger-openrouter-state-block-start-callback state))
++                    (text-delta-callback (greger-openrouter-state-text-delta-callback state)))
++                
++                (unless (greger-openrouter-state-text-started state)
++                  (setf (greger-openrouter-state-text-started state) t)
++                  (when block-start-callback
++                    (funcall block-start-callback
++                             `((type . "text")
++                               (text . "")))))
++                
++                (setf (greger-openrouter-state-current-text state)
++                      (concat (greger-openrouter-state-current-text state) text))
++                (when text-delta-callback
++                  (funcall text-delta-callback text))))
++             
++             ((alist-get 'reasoning delta)
++              (greger-openrouter--handle-reasoning-delta delta state))
++             
++             ((alist-get 'tool_calls delta)
++              (greger-openrouter--accumulate-tool-calls delta state))))
++          
++          (when (and message (alist-get 'annotations message))
++            (setf (greger-openrouter-state-annotations state)
++                  (alist-get 'annotations message)))
++          
++          (when finish-reason
++            (greger-openrouter--handle-finish state finish-reason))))
+     (error
+-     (setf (greger-openrouter-state-error-message state)
+-           (format "Failed to parse event: %s" (error-message-string err))))))
+\ No newline at end of file
++     (let ((error-message (format "Failed to parse event: %s" (error-message-string err))))
++       (setf (greger-openrouter-state-error-message state) error-message)
++       (message "OpenRouter parse error: %s" error-message)))))
+\ No newline at end of file
+
+</tool.toolu_01QH4A5WVNTYTzQbUMsHEa8t>
+
+# TOOL RESULT
+
+ID: toolu_01QH4A5WVNTYTzQbUMsHEa8t
+
+<tool.toolu_01QH4A5WVNTYTzQbUMsHEa8t>
+
+</tool.toolu_01QH4A5WVNTYTzQbUMsHEa8t>
