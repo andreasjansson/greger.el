@@ -9104,21 +9104,19 @@ ID: toolu_01L7Yr4G6SBkv6f1WJAGDoaz
 greger-openrouter.el
 </tool.toolu_01L7Yr4G6SBkv6f1WJAGDoaz>
 
-## original-content
+## diff
 
 <tool.toolu_01L7Yr4G6SBkv6f1WJAGDoaz>
-(defconst greger-openrouter-api-url "https://openrouter.ai/api/v1/chat/completions"
-  "OpenRouter Chat Completions API endpoint.")
+-(defconst greger-openrouter-api-url "https://openrouter.ai/api/v1/chat/completions"
+-  "OpenRouter Chat Completions API endpoint.")
+-
+-(defconst greger-openrouter-responses-api-url "https://openrouter.ai/api/v1/responses"
+-  "OpenRouter Responses API endpoint for web search support.")
+\ No newline at end of file
++(defconst greger-openrouter-api-url "https://openrouter.ai/api/v1/responses"
++  "OpenRouter Responses API endpoint.")
+\ No newline at end of file
 
-(defconst greger-openrouter-responses-api-url "https://openrouter.ai/api/v1/responses"
-  "OpenRouter Responses API endpoint for web search support.")
-</tool.toolu_01L7Yr4G6SBkv6f1WJAGDoaz>
-
-## new-content
-
-<tool.toolu_01L7Yr4G6SBkv6f1WJAGDoaz>
-(defconst greger-openrouter-api-url "https://openrouter.ai/api/v1/responses"
-  "OpenRouter Responses API endpoint.")
 </tool.toolu_01L7Yr4G6SBkv6f1WJAGDoaz>
 
 ## git-commit-message
@@ -9146,39 +9144,31 @@ ID: toolu_016zLPSzK5FxQJG5FqAxEyTe
 greger-openrouter.el
 </tool.toolu_016zLPSzK5FxQJG5FqAxEyTe>
 
-## original-content
+## diff
 
 <tool.toolu_016zLPSzK5FxQJG5FqAxEyTe>
-(defun greger-openrouter--build-request (model dialog tools thinking-budget max-tokens auth-key enable-web-search)
-  "Build OpenRouter API request.
-Uses Responses API when web search is enabled, Chat Completions API otherwise."
-  (let* ((headers (greger-openrouter--build-headers auth-key))
-         (use-responses-api enable-web-search)
-         (data (if use-responses-api
-                   (greger-openrouter--build-responses-data model dialog tools thinking-budget max-tokens)
-                 (greger-openrouter--build-data model dialog tools thinking-budget max-tokens enable-web-search)))
-         (url (if use-responses-api
-                  greger-openrouter-responses-api-url
-                greger-openrouter-api-url)))
-    (message "url: %s; request data: %s" url data)
-    (list :url url
-          :method "POST"
-          :headers headers
-          :data data)))
-</tool.toolu_016zLPSzK5FxQJG5FqAxEyTe>
+ (defun greger-openrouter--build-request (model dialog tools thinking-budget max-tokens auth-key enable-web-search)
+-  "Build OpenRouter API request.
+-Uses Responses API when web search is enabled, Chat Completions API otherwise."
++  "Build OpenRouter Responses API request."
+   (let* ((headers (greger-openrouter--build-headers auth-key))
+-         (use-responses-api enable-web-search)
+-         (data (if use-responses-api
+-                   (greger-openrouter--build-responses-data model dialog tools thinking-budget max-tokens)
+-                 (greger-openrouter--build-data model dialog tools thinking-budget max-tokens enable-web-search)))
+-         (url (if use-responses-api
+-                  greger-openrouter-responses-api-url
+-                greger-openrouter-api-url)))
+-    (message "url: %s; request data: %s" url data)
+-    (list :url url
++         (data (greger-openrouter--build-data model dialog tools thinking-budget max-tokens enable-web-search)))
++    (message "url: %s; request data: %s" greger-openrouter-api-url data)
++    (list :url greger-openrouter-api-url
+           :method "POST"
+           :headers headers
+           :data data)))
+\ No newline at end of file
 
-## new-content
-
-<tool.toolu_016zLPSzK5FxQJG5FqAxEyTe>
-(defun greger-openrouter--build-request (model dialog tools thinking-budget max-tokens auth-key enable-web-search)
-  "Build OpenRouter Responses API request."
-  (let* ((headers (greger-openrouter--build-headers auth-key))
-         (data (greger-openrouter--build-data model dialog tools thinking-budget max-tokens enable-web-search)))
-    (message "url: %s; request data: %s" greger-openrouter-api-url data)
-    (list :url greger-openrouter-api-url
-          :method "POST"
-          :headers headers
-          :data data)))
 </tool.toolu_016zLPSzK5FxQJG5FqAxEyTe>
 
 ## git-commit-message
@@ -9206,76 +9196,58 @@ ID: toolu_016Zcuegne9Ly1tJwaJT2g2n
 greger-openrouter.el
 </tool.toolu_016Zcuegne9Ly1tJwaJT2g2n>
 
-## original-content
+## diff
 
 <tool.toolu_016Zcuegne9Ly1tJwaJT2g2n>
-(defun greger-openrouter--build-data (model dialog tools thinking-budget max-tokens enable-web-search)
-  "Build OpenRouter request data in OpenAI Chat Completions format."
-  (let* ((messages (greger-openrouter--convert-dialog-to-messages dialog))
-         (actual-model (if enable-web-search
-                           (concat model ":online")
-                         model))
-         (request-data `(("model" . ,actual-model)
-                         ("max_tokens" . ,max-tokens)
-                         ("stream" . t))))
-    
-    (push `("messages" . ,messages) request-data)
-    
-    (when tools
-      (let ((converted-tools (greger-openrouter--convert-tools tools)))
-        (push `("tools" . ,converted-tools) request-data)
-        (push `("tool_choice" . "auto") request-data)))
-    
-    (when (and thinking-budget (> thinking-budget 0))
-      (push `("reasoning" . (("max_tokens" . ,thinking-budget))) request-data)
-      (push `("include_reasoning" . t) request-data))
-    
-    (json-encode request-data)))
+ (defun greger-openrouter--build-data (model dialog tools thinking-budget max-tokens enable-web-search)
+-  "Build OpenRouter request data in OpenAI Chat Completions format."
++  "Build OpenRouter request data in Responses API format."
+   (let* ((messages (greger-openrouter--convert-dialog-to-messages dialog))
+-         (actual-model (if enable-web-search
+-                           (concat model ":online")
+-                         model))
+-         (request-data `(("model" . ,actual-model)
+-                         ("max_tokens" . ,max-tokens)
+-                         ("stream" . t))))
+-    
+-    (push `("messages" . ,messages) request-data)
+-    
+-    (when tools
+-      (let ((converted-tools (greger-openrouter--convert-tools tools)))
+-        (push `("tools" . ,converted-tools) request-data)
+-        (push `("tool_choice" . "auto") request-data)))
+-    
+-    (when (and thinking-budget (> thinking-budget 0))
+-      (push `("reasoning" . (("max_tokens" . ,thinking-budget))) request-data)
+-      (push `("include_reasoning" . t) request-data))
+-    
+-    (json-encode request-data)))
+-
+-(defun greger-openrouter--build-responses-data (model dialog tools thinking-budget max-tokens)
+-  "Build OpenRouter request data in OpenAI Responses API format.
+-This format is used for web search functionality."
+-  (let* ((messages (greger-openrouter--convert-dialog-to-responses-messages dialog))
+          (request-data `(("model" . ,model)
+                          ("max_output_tokens" . ,max-tokens)
+-                         ("stream" . t)
+-                         ("plugins" . [((id . "web") (max_results . 5))]))))
++                         ("stream" . t))))
+     
++    (when enable-web-search
++      (push `("plugins" . [((id . "web") (max_results . 5))]) request-data))
++    
+     (push `("input" . ,messages) request-data)
+     
+     (when tools
+       (let ((converted-tools (greger-openrouter--convert-tools tools)))
+         (push `("tools" . ,converted-tools) request-data)))
+     
+     (when (and thinking-budget (> thinking-budget 0))
+       (push `("reasoning" . (("effort" . "medium"))) request-data))
+     
+     (json-encode request-data)))
+\ No newline at end of file
 
-(defun greger-openrouter--build-responses-data (model dialog tools thinking-budget max-tokens)
-  "Build OpenRouter request data in OpenAI Responses API format.
-This format is used for web search functionality."
-  (let* ((messages (greger-openrouter--convert-dialog-to-responses-messages dialog))
-         (request-data `(("model" . ,model)
-                         ("max_output_tokens" . ,max-tokens)
-                         ("stream" . t)
-                         ("plugins" . [((id . "web") (max_results . 5))]))))
-    
-    (push `("input" . ,messages) request-data)
-    
-    (when tools
-      (let ((converted-tools (greger-openrouter--convert-tools tools)))
-        (push `("tools" . ,converted-tools) request-data)))
-    
-    (when (and thinking-budget (> thinking-budget 0))
-      (push `("reasoning" . (("effort" . "medium"))) request-data))
-    
-    (json-encode request-data)))
-</tool.toolu_016Zcuegne9Ly1tJwaJT2g2n>
-
-## new-content
-
-<tool.toolu_016Zcuegne9Ly1tJwaJT2g2n>
-(defun greger-openrouter--build-data (model dialog tools thinking-budget max-tokens enable-web-search)
-  "Build OpenRouter request data in Responses API format."
-  (let* ((messages (greger-openrouter--convert-dialog-to-messages dialog))
-         (request-data `(("model" . ,model)
-                         ("max_output_tokens" . ,max-tokens)
-                         ("stream" . t))))
-    
-    (when enable-web-search
-      (push `("plugins" . [((id . "web") (max_results . 5))]) request-data))
-    
-    (push `("input" . ,messages) request-data)
-    
-    (when tools
-      (let ((converted-tools (greger-openrouter--convert-tools tools)))
-        (push `("tools" . ,converted-tools) request-data)))
-    
-    (when (and thinking-budget (> thinking-budget 0))
-      (push `("reasoning" . (("effort" . "medium"))) request-data))
-    
-    (json-encode request-data)))
 </tool.toolu_016Zcuegne9Ly1tJwaJT2g2n>
 
 ## git-commit-message
@@ -9303,104 +9275,71 @@ ID: toolu_01KKsjiWs2Sv89ksDKcEMPB4
 greger-openrouter.el
 </tool.toolu_01KKsjiWs2Sv89ksDKcEMPB4>
 
-## original-content
+## diff
 
 <tool.toolu_01KKsjiWs2Sv89ksDKcEMPB4>
-(defun greger-openrouter--convert-dialog-to-messages (dialog)
-  "Convert Greger dialog format to OpenAI Chat Completions message format."
-  (let (messages
-        system-message)
-    (dolist (msg dialog)
-      (let ((role (alist-get 'role msg))
-            (content (alist-get 'content msg)))
-        
-        (cond
-         ((string= role "system")
-          (setq system-message content))
+ (defun greger-openrouter--convert-dialog-to-messages (dialog)
+-  "Convert Greger dialog format to OpenAI Chat Completions message format."
++  "Convert Greger dialog format to Responses API input format."
+   (let (messages
+-        system-message)
+-    (dolist (msg dialog)
+-      (let ((role (alist-get 'role msg))
+-            (content (alist-get 'content msg)))
+-        
+-        (cond
+-         ((string= role "system")
+-          (setq system-message content))
+-         
+-         ((stringp content)
+-          (push `((role . ,role) (content . ,content)) messages))
+-         
+-         ((listp content)
+-          (let ((converted (greger-openrouter--convert-content-blocks role content)))
+-            (when converted
+-              (setq messages (append converted messages))))))))
+-    
+-    (let ((result (nreverse messages)))
+-      (when system-message
+-        (setq result (cons `((role . "system") (content . ,system-message)) result)))
+-      result)))
+-
+-(defun greger-openrouter--convert-dialog-to-responses-messages (dialog)
+-  "Convert Greger dialog format to OpenAI Responses API input format.
+-The Responses API uses a different message structure with type fields."
+-  (let (messages
+         system-content)
+     (dolist (msg dialog)
+       (let ((role (alist-get 'role msg))
+             (content (alist-get 'content msg)))
          
-         ((stringp content)
-          (push `((role . ,role) (content . ,content)) messages))
-         
-         ((listp content)
-          (let ((converted (greger-openrouter--convert-content-blocks role content)))
-            (when converted
-              (setq messages (append converted messages))))))))
-    
-    (let ((result (nreverse messages)))
-      (when system-message
-        (setq result (cons `((role . "system") (content . ,system-message)) result)))
-      result)))
+         (cond
+          ((string= role "system")
+           (setq system-content content))
+          
+          ((stringp content)
+           (push `((type . "message")
+                   (role . ,role)
+                   (content . [((type . "input_text")
+                                (text . ,content))]))
+                 messages))
+          
+          ((listp content)
+-          (let ((converted (greger-openrouter--convert-content-blocks-to-responses role content)))
++          (let ((converted (greger-openrouter--convert-content-blocks role content)))
+             (when converted
+               (setq messages (append converted messages))))))))
+     
+     (let ((result (nreverse messages)))
+       (when system-content
+         (setq result (cons `((type . "message")
+                              (role . "system")
+                              (content . [((type . "input_text")
+                                           (text . ,system-content))]))
+                            result)))
+       result)))
+\ No newline at end of file
 
-(defun greger-openrouter--convert-dialog-to-responses-messages (dialog)
-  "Convert Greger dialog format to OpenAI Responses API input format.
-The Responses API uses a different message structure with type fields."
-  (let (messages
-        system-content)
-    (dolist (msg dialog)
-      (let ((role (alist-get 'role msg))
-            (content (alist-get 'content msg)))
-        
-        (cond
-         ((string= role "system")
-          (setq system-content content))
-         
-         ((stringp content)
-          (push `((type . "message")
-                  (role . ,role)
-                  (content . [((type . "input_text")
-                               (text . ,content))]))
-                messages))
-         
-         ((listp content)
-          (let ((converted (greger-openrouter--convert-content-blocks-to-responses role content)))
-            (when converted
-              (setq messages (append converted messages))))))))
-    
-    (let ((result (nreverse messages)))
-      (when system-content
-        (setq result (cons `((type . "message")
-                             (role . "system")
-                             (content . [((type . "input_text")
-                                          (text . ,system-content))]))
-                           result)))
-      result)))
-</tool.toolu_01KKsjiWs2Sv89ksDKcEMPB4>
-
-## new-content
-
-<tool.toolu_01KKsjiWs2Sv89ksDKcEMPB4>
-(defun greger-openrouter--convert-dialog-to-messages (dialog)
-  "Convert Greger dialog format to Responses API input format."
-  (let (messages
-        system-content)
-    (dolist (msg dialog)
-      (let ((role (alist-get 'role msg))
-            (content (alist-get 'content msg)))
-        
-        (cond
-         ((string= role "system")
-          (setq system-content content))
-         
-         ((stringp content)
-          (push `((type . "message")
-                  (role . ,role)
-                  (content . [((type . "input_text")
-                               (text . ,content))]))
-                messages))
-         
-         ((listp content)
-          (let ((converted (greger-openrouter--convert-content-blocks role content)))
-            (when converted
-              (setq messages (append converted messages))))))))
-    
-    (let ((result (nreverse messages)))
-      (when system-content
-        (setq result (cons `((type . "message")
-                             (role . "system")
-                             (content . [((type . "input_text")
-                                          (text . ,system-content))]))
-                           result)))
-      result)))
 </tool.toolu_01KKsjiWs2Sv89ksDKcEMPB4>
 
 ## git-commit-message
@@ -9428,149 +9367,107 @@ ID: toolu_01TBFFKEDQoe8jqrJ2QDa2tq
 greger-openrouter.el
 </tool.toolu_01TBFFKEDQoe8jqrJ2QDa2tq>
 
-## original-content
+## diff
 
 <tool.toolu_01TBFFKEDQoe8jqrJ2QDa2tq>
-(defun greger-openrouter--convert-content-blocks (role content-blocks)
-  "Convert Greger content blocks to OpenRouter Chat Completions message format.
-Handles thinking blocks by decoding reasoning_details from signature field.
-Converts citations back to OpenRouter annotations format."
-  (let (result-messages
-        current-text
-        tool-calls
-        reasoning-details)
-    
-    (dolist (block content-blocks)
-      (let ((type (alist-get 'type block)))
-        (cond
-         ((string= type "text")
-          (setq current-text (alist-get 'text block)))
-         
-         ((string= type "thinking")
-          (let ((thinking-text (alist-get 'thinking block))
-                (signature (alist-get 'signature block)))
-            
-            (setq current-text thinking-text)
-            
-            (when (and signature (not (string-empty-p signature)))
-              (condition-case nil
-                  (let* ((decoded (decode-coding-string (base64-decode-string signature) 'utf-8))
-                         (parsed (json-read-from-string decoded)))
-                    (when (vectorp parsed)
-                      (setq reasoning-details parsed)))
-                (error nil)))))
-         
-         ((string= type "tool_use")
-          (let ((tool-call `((id . ,(alist-get 'id block))
-                             (type . "function")
-                             (function . ((name . ,(alist-get 'name block))
-                                          (arguments . ,(json-encode (alist-get 'input block))))))))
-            (push tool-call tool-calls)))
-         
-         ((string= type "tool_result")
-          (let ((tool-msg `((role . "tool")
-                            (tool_call_id . ,(alist-get 'tool_use_id block))
-                            (content . ,(alist-get 'content block)))))
-            (push tool-msg result-messages))))))
-    
-    (when (or current-text tool-calls reasoning-details)
-      (let ((msg `((role . ,role))))
-        (when current-text
-          (push `(content . ,current-text) msg))
-        (when tool-calls
-          (push `(tool_calls . ,(vconcat (nreverse tool-calls))) msg))
-        (when reasoning-details
-          (push `(reasoning_details . ,reasoning-details) msg))
-        (push msg result-messages)))
-    
-    (nreverse result-messages)))
+ (defun greger-openrouter--convert-content-blocks (role content-blocks)
+-  "Convert Greger content blocks to OpenRouter Chat Completions message format.
+-Handles thinking blocks by decoding reasoning_details from signature field.
+-Converts citations back to OpenRouter annotations format."
++  "Convert Greger content blocks to Responses API format."
+   (let (result-messages
+-        current-text
+-        tool-calls
+-        reasoning-details)
+-    
+-    (dolist (block content-blocks)
+-      (let ((type (alist-get 'type block)))
+-        (cond
+-         ((string= type "text")
+-          (setq current-text (alist-get 'text block)))
+-         
+-         ((string= type "thinking")
+-          (let ((thinking-text (alist-get 'thinking block))
+-                (signature (alist-get 'signature block)))
+-            
+-            (setq current-text thinking-text)
+-            
+-            (when (and signature (not (string-empty-p signature)))
+-              (condition-case nil
+-                  (let* ((decoded (decode-coding-string (base64-decode-string signature) 'utf-8))
+-                         (parsed (json-read-from-string decoded)))
+-                    (when (vectorp parsed)
+-                      (setq reasoning-details parsed)))
+-                (error nil)))))
+-         
+-         ((string= type "tool_use")
+-          (let ((tool-call `((id . ,(alist-get 'id block))
+-                             (type . "function")
+-                             (function . ((name . ,(alist-get 'name block))
+-                                          (arguments . ,(json-encode (alist-get 'input block))))))))
+-            (push tool-call tool-calls)))
+-         
+-         ((string= type "tool_result")
+-          (let ((tool-msg `((role . "tool")
+-                            (tool_call_id . ,(alist-get 'tool_use_id block))
+-                            (content . ,(alist-get 'content block)))))
+-            (push tool-msg result-messages))))))
+-    
+-    (when (or current-text tool-calls reasoning-details)
+-      (let ((msg `((role . ,role))))
+-        (when current-text
+-          (push `(content . ,current-text) msg))
+-        (when tool-calls
+-          (push `(tool_calls . ,(vconcat (nreverse tool-calls))) msg))
+-        (when reasoning-details
+-          (push `(reasoning_details . ,reasoning-details) msg))
+-        (push msg result-messages)))
+-    
+-    (nreverse result-messages)))
+-
+-(defun greger-openrouter--convert-content-blocks-to-responses (role content-blocks)
+-  "Convert Greger content blocks to Responses API format.
+-Uses structured content with type fields for the Responses API."
+-  (let (result-messages
+         current-content-items)
+     
+     (dolist (block content-blocks)
+       (let ((type (alist-get 'type block)))
+         (cond
+          ((string= type "text")
+           (push `((type . "input_text")
+                   (text . ,(alist-get 'text block)))
+                 current-content-items))
+          
+          ((string= type "thinking")
+           (push `((type . "input_text")
+                   (text . ,(alist-get 'thinking block)))
+                 current-content-items))
+          
+          ((string= type "tool_use")
+           (when current-content-items
+             (push `((type . "message")
+                     (role . ,role)
+                     (content . ,(vconcat (nreverse current-content-items))))
+                   result-messages)
+             (setq current-content-items nil)))
+          
+          ((string= type "tool_result")
+           (push `((type . "message")
+                   (role . "user")
+                   (content . [((type . "input_text")
+                                (text . ,(alist-get 'content block)))]))
+                 result-messages)))))
+     
+     (when current-content-items
+       (push `((type . "message")
+               (role . ,role)
+               (content . ,(vconcat (nreverse current-content-items))))
+             result-messages))
+     
+     (nreverse result-messages)))
+\ No newline at end of file
 
-(defun greger-openrouter--convert-content-blocks-to-responses (role content-blocks)
-  "Convert Greger content blocks to Responses API format.
-Uses structured content with type fields for the Responses API."
-  (let (result-messages
-        current-content-items)
-    
-    (dolist (block content-blocks)
-      (let ((type (alist-get 'type block)))
-        (cond
-         ((string= type "text")
-          (push `((type . "input_text")
-                  (text . ,(alist-get 'text block)))
-                current-content-items))
-         
-         ((string= type "thinking")
-          (push `((type . "input_text")
-                  (text . ,(alist-get 'thinking block)))
-                current-content-items))
-         
-         ((string= type "tool_use")
-          (when current-content-items
-            (push `((type . "message")
-                    (role . ,role)
-                    (content . ,(vconcat (nreverse current-content-items))))
-                  result-messages)
-            (setq current-content-items nil)))
-         
-         ((string= type "tool_result")
-          (push `((type . "message")
-                  (role . "user")
-                  (content . [((type . "input_text")
-                               (text . ,(alist-get 'content block)))]))
-                result-messages)))))
-    
-    (when current-content-items
-      (push `((type . "message")
-              (role . ,role)
-              (content . ,(vconcat (nreverse current-content-items))))
-            result-messages))
-    
-    (nreverse result-messages)))
-</tool.toolu_01TBFFKEDQoe8jqrJ2QDa2tq>
-
-## new-content
-
-<tool.toolu_01TBFFKEDQoe8jqrJ2QDa2tq>
-(defun greger-openrouter--convert-content-blocks (role content-blocks)
-  "Convert Greger content blocks to Responses API format."
-  (let (result-messages
-        current-content-items)
-    
-    (dolist (block content-blocks)
-      (let ((type (alist-get 'type block)))
-        (cond
-         ((string= type "text")
-          (push `((type . "input_text")
-                  (text . ,(alist-get 'text block)))
-                current-content-items))
-         
-         ((string= type "thinking")
-          (push `((type . "input_text")
-                  (text . ,(alist-get 'thinking block)))
-                current-content-items))
-         
-         ((string= type "tool_use")
-          (when current-content-items
-            (push `((type . "message")
-                    (role . ,role)
-                    (content . ,(vconcat (nreverse current-content-items))))
-                  result-messages)
-            (setq current-content-items nil)))
-         
-         ((string= type "tool_result")
-          (push `((type . "message")
-                  (role . "user")
-                  (content . [((type . "input_text")
-                               (text . ,(alist-get 'content block)))]))
-                result-messages)))))
-    
-    (when current-content-items
-      (push `((type . "message")
-              (role . ,role)
-              (content . ,(vconcat (nreverse current-content-items))))
-            result-messages))
-    
-    (nreverse result-messages)))
 </tool.toolu_01TBFFKEDQoe8jqrJ2QDa2tq>
 
 ## git-commit-message
@@ -9584,5 +9481,193 @@ Remove duplicate content blocks converter
 ID: toolu_01TBFFKEDQoe8jqrJ2QDa2tq
 
 <tool.toolu_01TBFFKEDQoe8jqrJ2QDa2tq>
-
+Successfully replaced content in /Users/andreas/projects/greger.el/greger-openrouter.el. Successfully staged 2 file(s) and committed with message: Remove duplicate content blocks converter
 </tool.toolu_01TBFFKEDQoe8jqrJ2QDa2tq>
+
+# TOOL USE
+
+Name: str-replace
+ID: toolu_01DDnY87rbCfrKMGqN96TBCS
+
+## path
+
+<tool.toolu_01DDnY87rbCfrKMGqN96TBCS>
+greger-openrouter.el
+</tool.toolu_01DDnY87rbCfrKMGqN96TBCS>
+
+## diff
+
+<tool.toolu_01DDnY87rbCfrKMGqN96TBCS>
+ (defun greger-openrouter--handle-event (data-json state)
+-  "Handle OpenAI-style streaming event.
+-Supports both Chat Completions and Responses API formats."
++  "Handle Responses API streaming event."
+ 
+   (message "data-json: %s" data-json)
+ 
+   (condition-case err
+       (let* ((data (json-read-from-string data-json))
+              (error-data (alist-get 'error data))
+              (event-type (alist-get 'type data)))
+         
+         ;; Check for API errors first
+         (when error-data
+           (let ((error-message (format "OpenRouter API error: %s" 
+                                        (or (alist-get 'message error-data)
+                                            (json-encode error-data)))))
+             (setf (greger-openrouter-state-error-message state) error-message)
+             (message "OpenRouter error: %s" error-message)
+             (error error-message)))
+         
+-        ;; Handle Responses API format
+-        (if event-type
+-            (greger-openrouter--handle-responses-event data state)
+-          ;; Handle Chat Completions format
+-          (greger-openrouter--handle-chat-event data state)))
++        (let* ((content-part (alist-get 'content_part data))
++               (response (alist-get 'response data)))
++          
++          (cond
++           ((string= event-type "response.content_part.delta")
++            (when-let* ((part-type (alist-get 'type content-part))
++                        ((string= part-type "output_text"))
++                        (text (alist-get 'text content-part)))
++              (let ((block-start-callback (greger-openrouter-state-block-start-callback state))
++                    (text-delta-callback (greger-openrouter-state-text-delta-callback state)))
++                
++                (unless (greger-openrouter-state-text-started state)
++                  (setf (greger-openrouter-state-text-started state) t)
++                  (when block-start-callback
++                    (funcall block-start-callback
++                             `((type . "text")
++                               (text . "")))))
++                
++                (setf (greger-openrouter-state-current-text state)
++                      (concat (greger-openrouter-state-current-text state) text))
++                (when text-delta-callback
++                  (funcall text-delta-callback text)))))
++           
++           ((string= event-type "response.completed")
++            (when response
++              (let* ((output (alist-get 'output response))
++                     (message-item (when output (aref output 0)))
++                     (content (when message-item (alist-get 'content message-item)))
++                     (text-content (when content (aref content 0)))
++                     (annotations (when text-content (alist-get 'annotations text-content))))
++                
++                (when annotations
++                  (setf (greger-openrouter-state-annotations state) annotations))
++                
++                (greger-openrouter--handle-finish state "stop")))))))
+     (error
+      (let ((error-message (format "Failed to parse event: %s" (error-message-string err))))
+        (setf (greger-openrouter-state-error-message state) error-message)
+-       (message "OpenRouter parse error: %s" error-message)))))
+-
+-(defun greger-openrouter--handle-chat-event (data state)
+-  "Handle Chat Completions API streaming event."
+-  (let* ((choices (alist-get 'choices data))
+-         (choice (when choices (aref choices 0)))
+-         (delta (alist-get 'delta choice))
+-         (message (alist-get 'message choice))
+-         (finish-reason (alist-get 'finish_reason choice)))
+-    
+-    (when delta
+-      (cond
+-       ((or (alist-get 'reasoning delta) (alist-get 'reasoning_details delta))
+-        (greger-openrouter--handle-reasoning-delta delta state))
+-       
+-       ((and (alist-get 'content delta)
+-             (not (string-empty-p (alist-get 'content delta))))
+-        (let ((text (alist-get 'content delta))
+-              (block-start-callback (greger-openrouter-state-block-start-callback state))
+-              (text-delta-callback (greger-openrouter-state-text-delta-callback state)))
+-          
+-          (unless (greger-openrouter-state-text-started state)
+-            (setf (greger-openrouter-state-text-started state) t)
+-            (when block-start-callback
+-              (funcall block-start-callback
+-                       `((type . "text")
+-                         (text . "")))))
+-          
+-          (setf (greger-openrouter-state-current-text state)
+-                (concat (greger-openrouter-state-current-text state) text))
+-          (when text-delta-callback
+-            (funcall text-delta-callback text))))
+-       
+-       ((alist-get 'tool_calls delta)
+-        (greger-openrouter--accumulate-tool-calls delta state)))
+-      
+-      (when (alist-get 'annotations delta)
+-        (setf (greger-openrouter-state-annotations state)
+-              (alist-get 'annotations delta))))
+-    
+-    (when (and message (alist-get 'annotations message))
+-      (setf (greger-openrouter-state-annotations state)
+-            (alist-get 'annotations message)))
+-    
+-    (when finish-reason
+-      (greger-openrouter--handle-finish state finish-reason))))
+-
+-(defun greger-openrouter--handle-responses-event (data state)
+-  "Handle Responses API streaming event."
+-  (let* ((event-type (alist-get 'type data))
+-         (item (alist-get 'item data))
+-         (content-part (alist-get 'content_part data))
+-         (response (alist-get 'response data)))
+-    
+-    (cond
+-     ((string= event-type "response.content_part.delta")
+-      (when-let* ((part-type (alist-get 'type content-part))
+-                  ((string= part-type "output_text"))
+-                  (text (alist-get 'text content-part)))
+-        (let ((block-start-callback (greger-openrouter-state-block-start-callback state))
+-              (text-delta-callback (greger-openrouter-state-text-delta-callback state)))
+-          
+-          (unless (greger-openrouter-state-text-started state)
+-            (setf (greger-openrouter-state-text-started state) t)
+-            (when block-start-callback
+-              (funcall block-start-callback
+-                       `((type . "text")
+-                         (text . "")))))
+-          
+-          (setf (greger-openrouter-state-current-text state)
+-                (concat (greger-openrouter-state-current-text state) text))
+-          (when text-delta-callback
+-            (funcall text-delta-callback text)))))
+-     
+-     ((string= event-type "response.completed")
+-      (when response
+-        (greger-openrouter--handle-responses-completion response state))))))
+-
+-(defun greger-openrouter--handle-responses-completion (response state)
+-  "Handle Responses API completion event."
+-  (let* ((output (alist-get 'output response))
+-         (message-item (when output (aref output 0)))
+-         (content (when message-item (alist-get 'content message-item)))
+-         (text-content (when content (aref content 0)))
+-         (annotations (when text-content (alist-get 'annotations text-content))))
+-    
+-    (when annotations
+-      (setf (greger-openrouter-state-annotations state) annotations))
+-    
+-    (greger-openrouter--handle-finish state "stop")))
+\ No newline at end of file
++       (message "OpenRouter parse error: %s" error-message)))))
+\ No newline at end of file
+
+</tool.toolu_01DDnY87rbCfrKMGqN96TBCS>
+
+## git-commit-message
+
+<tool.toolu_01DDnY87rbCfrKMGqN96TBCS>
+Remove Chat Completions event handler
+</tool.toolu_01DDnY87rbCfrKMGqN96TBCS>
+
+# TOOL RESULT
+
+ID: toolu_01DDnY87rbCfrKMGqN96TBCS
+
+<tool.toolu_01DDnY87rbCfrKMGqN96TBCS>
+
+</tool.toolu_01DDnY87rbCfrKMGqN96TBCS>
