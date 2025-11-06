@@ -404,10 +404,20 @@ Accumulates both readable text and full reasoning_details array."
     (funcall callback (greger-openrouter--build-content-blocks state))))
 
 (defun greger-openrouter--build-content-blocks (state)
-  "Build Anthropic-style content blocks from accumulated state."
-  (let ((tool-calls (greger-openrouter-state-current-tool-calls state))
+  "Build Anthropic-style content blocks from accumulated state.
+Includes THINKING blocks with base64-encoded reasoning_details in signature field."
+  (let ((reasoning-text (greger-openrouter-state-current-reasoning-text state))
+        (reasoning-details (greger-openrouter-state-current-reasoning-details state))
+        (tool-calls (greger-openrouter-state-current-tool-calls state))
         (annotations (greger-openrouter-state-annotations state))
         blocks)
+    
+    (when (and reasoning-text reasoning-details)
+      (let ((signature-base64 (base64-encode-string (json-encode reasoning-details) t)))
+        (push `((type . "thinking")
+                (thinking . ,reasoning-text)
+                (signature . ,signature-base64))
+              blocks)))
     
     (when (> (hash-table-count tool-calls) 0)
       (maphash
