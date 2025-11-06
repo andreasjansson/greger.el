@@ -2,7 +2,7 @@
 
 You are Greger, and expert coding agent.
 
-${greger-prompt-code-style<eval-result-165103479597>
+${greger-prompt-code-style<eval-result-165232026191>
 # Code style
 
 ## Don't be overly defensive
@@ -26,10 +26,10 @@ Important: The first time you read a source code file, read the _entire_ file (_
 ## IMPORTANT: NO SUMMARY DOCUMENTS!!!
 
 IMPORTANT: DON'T write summary documents (e.g. SUMMARY.md, FINAL_REPORT.md) unless the user explicitly asks you to. If you feel the need to explain something, just do it in the chat. The ONLY exception to this rule is if the user explicitly asks you to write up a markdown file on disk.
-</eval-result-165103479597>}
+</eval-result-165232026191>}
 
-${:sh cat CLAUDE.md || true<eval-result-165103280000>cat: CLAUDE.md: No such file or directory
-</eval-result-165103280000>}
+${:sh cat CLAUDE.md || true<eval-result-165232802164>cat: CLAUDE.md: No such file or directory
+</eval-result-165232802164>}
 
 # USER
 
@@ -10931,54 +10931,32 @@ greger-openrouter.el
 Fix tool format for Responses API
 </tool.toolu_01XLaFkGNebkcawLQ2NsfRv1>
 
-## original-content
+## diff
 
 <tool.toolu_01XLaFkGNebkcawLQ2NsfRv1>
-(defun greger-openrouter--build-data (model dialog tools thinking-budget max-tokens enable-web-search)
-  "Build OpenRouter request data in Responses API format."
-  (let* ((messages (greger-openrouter--convert-dialog-to-messages dialog))
-         (request-data `(("model" . ,model)
-                         ("max_output_tokens" . ,max-tokens)
-                         ("stream" . t))))
-    
-    (when enable-web-search
-      (push `("plugins" . [((id . "web") (max_results . 5))]) request-data))
-    
-    (push `("input" . ,messages) request-data)
-    
-    (when tools
-      (let ((converted-tools (greger-openrouter--convert-tools tools)))
-        (push `("tools" . ,converted-tools) request-data)))
-    
-    (when (and thinking-budget (> thinking-budget 0))
-      (push `("reasoning" . (("effort" . "medium"))) request-data))
-    
-    (json-encode request-data)))
-</tool.toolu_01XLaFkGNebkcawLQ2NsfRv1>
+ (defun greger-openrouter--build-data (model dialog tools thinking-budget max-tokens enable-web-search)
+   "Build OpenRouter request data in Responses API format."
+   (let* ((messages (greger-openrouter--convert-dialog-to-messages dialog))
+          (request-data `(("model" . ,model)
+                          ("max_output_tokens" . ,max-tokens)
+                          ("stream" . t))))
+     
+     (when enable-web-search
+       (push `("plugins" . [((id . "web") (max_results . 5))]) request-data))
+     
+     (push `("input" . ,messages) request-data)
+     
+     (when tools
+-      (let ((converted-tools (greger-openrouter--convert-tools tools)))
++      (let ((converted-tools (greger-openrouter--convert-tools-for-responses tools)))
+         (push `("tools" . ,converted-tools) request-data)))
+     
+     (when (and thinking-budget (> thinking-budget 0))
+       (push `("reasoning" . (("effort" . "medium"))) request-data))
+     
+     (json-encode request-data)))
+\ No newline at end of file
 
-## new-content
-
-<tool.toolu_01XLaFkGNebkcawLQ2NsfRv1>
-(defun greger-openrouter--build-data (model dialog tools thinking-budget max-tokens enable-web-search)
-  "Build OpenRouter request data in Responses API format."
-  (let* ((messages (greger-openrouter--convert-dialog-to-messages dialog))
-         (request-data `(("model" . ,model)
-                         ("max_output_tokens" . ,max-tokens)
-                         ("stream" . t))))
-    
-    (when enable-web-search
-      (push `("plugins" . [((id . "web") (max_results . 5))]) request-data))
-    
-    (push `("input" . ,messages) request-data)
-    
-    (when tools
-      (let ((converted-tools (greger-openrouter--convert-tools-for-responses tools)))
-        (push `("tools" . ,converted-tools) request-data)))
-    
-    (when (and thinking-budget (> thinking-budget 0))
-      (push `("reasoning" . (("effort" . "medium"))) request-data))
-    
-    (json-encode request-data)))
 </tool.toolu_01XLaFkGNebkcawLQ2NsfRv1>
 
 # TOOL RESULT
@@ -10986,5 +10964,971 @@ Fix tool format for Responses API
 ID: toolu_01XLaFkGNebkcawLQ2NsfRv1
 
 <tool.toolu_01XLaFkGNebkcawLQ2NsfRv1>
-
+Successfully replaced content in /Users/andreas/projects/greger.el/greger-openrouter.el. Successfully staged 2 file(s) and committed with message: Fix tool format for Responses API
 </tool.toolu_01XLaFkGNebkcawLQ2NsfRv1>
+
+# USER
+
+Read this full page https://openrouter.ai/docs/api-reference/responses-api/tool-calling/llms.txt, and also make sure you include the web_search tool in there (for openrouter only -- don't touch the current code path!)!
+
+# THINKING
+
+Signature: EuUDCkYICRgCKkCwVTmiH/2wIed6o2/AXWc18tzS9LXJ8MseQ6bpzrq7jhFZHuWvPM/3vBhhfV5405iRayXNdnYRPJqPAaB28rttEgzAU/v9mzXIAPqUZAgaDImssZflPbuYVKFQ5yIwMvdtlatpbo9pusyIP4e+1PlPpRSOyFrvNc+N8nGML9mmhODeVPYk/lubj9eMpT/oKswCwCjT9LgY5yGHZQVcm3iEzStqJrJdHD6VjGsitHxBtVQp3Ya2Z86fTtxCA+EsJ/gGXsC57031elzBvxQFHBQns4x/NvSYtxQtkaiKHPqKQyBeK/JJm1IlGvNVqtXAiWr1UJa0fwZE6IGrH+6JLmEvBL/VRptlc5ElnzTmkboIhAky/JNv49xnkpyhJuY3IQytVuCD1gI1CewcQyfS/cHLsM5ixdVKghXhprfhvw4dI+5aOFa1wbJtAW1XwsdTMlcLHWJIEBFY/V+qw4ptTX8RlgyOTj5ddVlU1+BfITYJMC9ZhPLuKmg/eAuMnC6Fm95Hn0eym0tTiB2fysoG6cMF+ORhRuHyoGYqEqa/rkY49z9r50Vcy8nrjcjDeFSwMKkqw+ZM71pU8zkyF6WDzOvcxhdu0Hqy8ANLC6gwWS7KCctB8BnxPwRM9w1jV0UYAQ==
+
+The user wants me to:
+1. Read the OpenRouter Responses API tool calling documentation
+2. Make sure I include the web_search tool in the tools definition for OpenRouter
+3. Only modify the OpenRouter code path, not touching the Claude/Anthropic path
+
+Let me read that page first to understand the correct tool format.
+
+# TOOL USE
+
+Name: read-webpage
+ID: toolu_01WfjZpsjJ59oDPfYfGUBSt9
+
+## url
+
+<tool.toolu_01WfjZpsjJ59oDPfYfGUBSt9>
+https://openrouter.ai/docs/api-reference/responses-api/tool-calling/llms.txt
+</tool.toolu_01WfjZpsjJ59oDPfYfGUBSt9>
+
+## extract-text
+
+<tool.toolu_01WfjZpsjJ59oDPfYfGUBSt9>
+true
+</tool.toolu_01WfjZpsjJ59oDPfYfGUBSt9>
+
+# TOOL RESULT
+
+ID: toolu_01WfjZpsjJ59oDPfYfGUBSt9
+
+<tool.toolu_01WfjZpsjJ59oDPfYfGUBSt9>
+# Tool Calling
+
+> Integrate function calling with support for parallel execution and complex tool interactions using OpenRouter's Responses API Beta.
+
+ 
+  This API is in **beta stage** and may have breaking changes.
+ 
+
+The Responses API Beta supports comprehensive tool calling capabilities, allowing models to call functions, execute tools in parallel, and handle complex multi-step workflows.
+
+## Basic Tool Definition
+
+Define tools using the OpenAI function calling format:
+
+ 
+  ```typescript title="TypeScript"
+  const weatherTool = {
+    type: 'function' as const,
+    name: 'get_weather',
+    description: 'Get the current weather in a location',
+    strict: null,
+    parameters: {
+      type: 'object',
+      properties: {
+        location: {
+          type: 'string',
+          description: 'The city and state, e.g. San Francisco, CA',
+        },
+        unit: {
+          type: 'string',
+          enum: ['celsius', 'fahrenheit'],
+        },
+      },
+      required: ['location'],
+    },
+  };
+
+  const response = await fetch('https://openrouter.ai/api/v1/responses', {
+    method: 'POST',
+    headers: {
+      'Authorization': 'Bearer YOUR_OPENROUTER_API_KEY',
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify({
+      model: 'openai/o4-mini',
+      input: [
+        {
+          type: 'message',
+          role: 'user',
+          content: [
+            {
+              type: 'input_text',
+              text: 'What is the weather in San Francisco?',
+            },
+          ],
+        },
+      ],
+      tools: [weatherTool],
+      tool_choice: 'auto',
+      max_output_tokens: 9000,
+    }),
+  });
+
+  const result = await response.json();
+  console.log(result);
+  ```
+
+  ```python title="Python"
+  import requests
+
+  weather_tool = {
+      'type': 'function',
+      'name': 'get_weather',
+      'description': 'Get the current weather in a location',
+      'strict': None,
+      'parameters': {
+          'type': 'object',
+          'properties': {
+              'location': {
+                  'type': 'string',
+                  'description': 'The city and state, e.g. San Francisco, CA',
+              },
+              'unit': {
+                  'type': 'string',
+                  'enum': ['celsius', 'fahrenheit'],
+              },
+          },
+          'required': ['location'],
+      },
+  }
+
+  response = requests.post(
+      'https://openrouter.ai/api/v1/responses',
+      headers={
+          'Authorization': 'Bearer YOUR_OPENROUTER_API_KEY',
+          'Content-Type': 'application/json',
+      },
+      json={
+          'model': 'openai/o4-mini',
+          'input': [
+              {
+                  'type': 'message',
+                  'role': 'user',
+                  'content': [
+                      {
+                          'type': 'input_text',
+                          'text': 'What is the weather in San Francisco?',
+                      },
+                  ],
+              },
+          ],
+          'tools': [weather_tool],
+          'tool_choice': 'auto',
+          'max_output_tokens': 9000,
+      }
+  )
+
+  result = response.json()
+  print(result)
+  ```
+
+  ```bash title="cURL"
+  curl -X POST https://openrouter.ai/api/v1/responses \
+    -H "Authorization: Bearer YOUR_OPENROUTER_API_KEY" \
+    -H "Content-Type: application/json" \
+    -d '{
+      "model": "openai/o4-mini",
+      "input": [
+        {
+          "type": "message",
+          "role": "user",
+          "content": [
+            {
+              "type": "input_text",
+              "text": "What is the weather in San Francisco?"
+            }
+          ]
+        }
+      ],
+      "tools": [
+        {
+          "type": "function",
+          "name": "get_weather",
+          "description": "Get the current weather in a location",
+          "strict": null,
+          "parameters": {
+            "type": "object",
+            "properties": {
+              "location": {
+                "type": "string",
+                "description": "The city and state, e.g. San Francisco, CA"
+              },
+              "unit": {
+                "type": "string",
+                "enum": ["celsius", "fahrenheit"]
+              }
+            },
+            "required": ["location"]
+          }
+        }
+      ],
+      "tool_choice": "auto",
+      "max_output_tokens": 9000
+    }'
+  ```
+ 
+
+## Tool Choice Options
+
+Control when and how tools are called:
+
+| Tool Choice                             | Description                         |
+| --------------------------------------- | ----------------------------------- |
+| `auto`                                  | Model decides whether to call tools |
+| `none`                                  | Model will not call any tools       |
+| `{type: 'function', name: 'tool_name'}` | Force specific tool call            |
+
+### Force Specific Tool
+
+ 
+  ```typescript title="TypeScript"
+  const response = await fetch('https://openrouter.ai/api/v1/responses', {
+    method: 'POST',
+    headers: {
+      'Authorization': 'Bearer YOUR_OPENROUTER_API_KEY',
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify({
+      model: 'openai/o4-mini',
+      input: [
+        {
+          type: 'message',
+          role: 'user',
+          content: [
+            {
+              type: 'input_text',
+              text: 'Hello, how are you?',
+            },
+          ],
+        },
+      ],
+      tools: [weatherTool],
+      tool_choice: { type: 'function', name: 'get_weather' },
+      max_output_tokens: 9000,
+    }),
+  });
+  ```
+
+  ```python title="Python"
+  import requests
+
+  response = requests.post(
+      'https://openrouter.ai/api/v1/responses',
+      headers={
+          'Authorization': 'Bearer YOUR_OPENROUTER_API_KEY',
+          'Content-Type': 'application/json',
+      },
+      json={
+          'model': 'openai/o4-mini',
+          'input': [
+              {
+                  'type': 'message',
+                  'role': 'user',
+                  'content': [
+                      {
+                          'type': 'input_text',
+                          'text': 'Hello, how are you?',
+                      },
+                  ],
+              },
+          ],
+          'tools': [weather_tool],
+          'tool_choice': {'type': 'function', 'name': 'get_weather'},
+          'max_output_tokens': 9000,
+      }
+  )
+  ```
+ 
+
+### Disable Tool Calling
+
+ 
+  ```typescript title="TypeScript"
+  const response = await fetch('https://openrouter.ai/api/v1/responses', {
+    method: 'POST',
+    headers: {
+      'Authorization': 'Bearer YOUR_OPENROUTER_API_KEY',
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify({
+      model: 'openai/o4-mini',
+      input: [
+        {
+          type: 'message',
+          role: 'user',
+          content: [
+            {
+              type: 'input_text',
+              text: 'What is the weather in Paris?',
+            },
+          ],
+        },
+      ],
+      tools: [weatherTool],
+      tool_choice: 'none',
+      max_output_tokens: 9000,
+    }),
+  });
+  ```
+
+  ```python title="Python"
+  import requests
+
+  response = requests.post(
+      'https://openrouter.ai/api/v1/responses',
+      headers={
+          'Authorization': 'Bearer YOUR_OPENROUTER_API_KEY',
+          'Content-Type': 'application/json',
+      },
+      json={
+          'model': 'openai/o4-mini',
+          'input': [
+              {
+                  'type': 'message',
+                  'role': 'user',
+                  'content': [
+                      {
+                          'type': 'input_text',
+                          'text': 'What is the weather in Paris?',
+                      },
+                  ],
+              },
+          ],
+          'tools': [weather_tool],
+          'tool_choice': 'none',
+          'max_output_tokens': 9000,
+      }
+  )
+  ```
+ 
+
+## Multiple Tools
+
+Define multiple tools for complex workflows:
+
+ 
+  ```typescript title="TypeScript"
+  const calculatorTool = {
+    type: 'function' as const,
+    name: 'calculate',
+    description: 'Perform mathematical calculations',
+    strict: null,
+    parameters: {
+      type: 'object',
+      properties: {
+        expression: {
+          type: 'string',
+          description: 'The mathematical expression to evaluate',
+        },
+      },
+      required: ['expression'],
+    },
+  };
+
+  const response = await fetch('https://openrouter.ai/api/v1/responses', {
+    method: 'POST',
+    headers: {
+      'Authorization': 'Bearer YOUR_OPENROUTER_API_KEY',
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify({
+      model: 'openai/o4-mini',
+      input: [
+        {
+          type: 'message',
+          role: 'user',
+          content: [
+            {
+              type: 'input_text',
+              text: 'What is 25 * 4?',
+            },
+          ],
+        },
+      ],
+      tools: [weatherTool, calculatorTool],
+      tool_choice: 'auto',
+      max_output_tokens: 9000,
+    }),
+  });
+  ```
+
+  ```python title="Python"
+  calculator_tool = {
+      'type': 'function',
+      'name': 'calculate',
+      'description': 'Perform mathematical calculations',
+      'strict': None,
+      'parameters': {
+          'type': 'object',
+          'properties': {
+              'expression': {
+                  'type': 'string',
+                  'description': 'The mathematical expression to evaluate',
+              },
+          },
+          'required': ['expression'],
+      },
+  }
+
+  response = requests.post(
+      'https://openrouter.ai/api/v1/responses',
+      headers={
+          'Authorization': 'Bearer YOUR_OPENROUTER_API_KEY',
+          'Content-Type': 'application/json',
+      },
+      json={
+          'model': 'openai/o4-mini',
+          'input': [
+              {
+                  'type': 'message',
+                  'role': 'user',
+                  'content': [
+                      {
+                          'type': 'input_text',
+                          'text': 'What is 25 * 4?',
+                      },
+                  ],
+              },
+          ],
+          'tools': [weather_tool, calculator_tool],
+          'tool_choice': 'auto',
+          'max_output_tokens': 9000,
+      }
+  )
+  ```
+ 
+
+## Parallel Tool Calls
+
+The API supports parallel execution of multiple tools:
+
+ 
+  ```typescript title="TypeScript"
+  const response = await fetch('https://openrouter.ai/api/v1/responses', {
+    method: 'POST',
+    headers: {
+      'Authorization': 'Bearer YOUR_OPENROUTER_API_KEY',
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify({
+      model: 'openai/o4-mini',
+      input: [
+        {
+          type: 'message',
+          role: 'user',
+          content: [
+            {
+              type: 'input_text',
+              text: 'Calculate 10*5 and also tell me the weather in Miami',
+            },
+          ],
+        },
+      ],
+      tools: [weatherTool, calculatorTool],
+      tool_choice: 'auto',
+      max_output_tokens: 9000,
+    }),
+  });
+
+  const result = await response.json();
+  console.log(result);
+  ```
+
+  ```python title="Python"
+  import requests
+
+  response = requests.post(
+      'https://openrouter.ai/api/v1/responses',
+      headers={
+          'Authorization': 'Bearer YOUR_OPENROUTER_API_KEY',
+          'Content-Type': 'application/json',
+      },
+      json={
+          'model': 'openai/o4-mini',
+          'input': [
+              {
+                  'type': 'message',
+                  'role': 'user',
+                  'content': [
+                      {
+                          'type': 'input_text',
+                          'text': 'Calculate 10*5 and also tell me the weather in Miami',
+                      },
+                  ],
+              },
+          ],
+          'tools': [weather_tool, calculator_tool],
+          'tool_choice': 'auto',
+          'max_output_tokens': 9000,
+      }
+  )
+
+  result = response.json()
+  print(result)
+  ```
+ 
+
+## Tool Call Response
+
+When tools are called, the response includes function call information:
+
+```json
+{
+  "id": "resp_1234567890",
+  "object": "response",
+  "created_at": 1234567890,
+  "model": "openai/o4-mini",
+  "output": [
+    {
+      "type": "function_call",
+      "id": "fc_abc123",
+      "call_id": "call_xyz789",
+      "name": "get_weather",
+      "arguments": "{\"location\":\"San Francisco, CA\"}"
+    }
+  ],
+  "usage": {
+    "input_tokens": 45,
+    "output_tokens": 25,
+    "total_tokens": 70
+  },
+  "status": "completed"
+}
+```
+
+## Tool Responses in Conversation
+
+Include tool responses in follow-up requests:
+
+ 
+  ```typescript title="TypeScript"
+  const response = await fetch('https://openrouter.ai/api/v1/responses', {
+    method: 'POST',
+    headers: {
+      'Authorization': 'Bearer YOUR_OPENROUTER_API_KEY',
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify({
+      model: 'openai/o4-mini',
+      input: [
+        {
+          type: 'message',
+          role: 'user',
+          content: [
+            {
+              type: 'input_text',
+              text: 'What is the weather in Boston?',
+            },
+          ],
+        },
+        {
+          type: 'function_call',
+          id: 'fc_1',
+          call_id: 'call_123',
+          name: 'get_weather',
+          arguments: JSON.stringify({ location: 'Boston, MA' }),
+        },
+        {
+          type: 'function_call_output',
+          id: 'fc_output_1',
+          call_id: 'call_123',
+          output: JSON.stringify({ temperature: '72°F', condition: 'Sunny' }),
+        },
+        {
+          type: 'message',
+          role: 'assistant',
+          id: 'msg_abc123',
+          status: 'completed',
+          content: [
+            {
+              type: 'output_text',
+              text: 'The weather in Boston is currently 72°F and sunny. This looks like perfect weather for a picnic!',
+              annotations: []
+            }
+          ]
+        },
+        {
+          type: 'message',
+          role: 'user',
+          content: [
+            {
+              type: 'input_text',
+              text: 'Is that good weather for a picnic?',
+            },
+          ],
+        },
+      ],
+      max_output_tokens: 9000,
+    }),
+  });
+  ```
+
+  ```python title="Python"
+  import requests
+
+  response = requests.post(
+      'https://openrouter.ai/api/v1/responses',
+      headers={
+          'Authorization': 'Bearer YOUR_OPENROUTER_API_KEY',
+          'Content-Type': 'application/json',
+      },
+      json={
+          'model': 'openai/o4-mini',
+          'input': [
+              {
+                  'type': 'message',
+                  'role': 'user',
+                  'content': [
+                      {
+                          'type': 'input_text',
+                          'text': 'What is the weather in Boston?',
+                      },
+                  ],
+              },
+              {
+                  'type': 'function_call',
+                  'id': 'fc_1',
+                  'call_id': 'call_123',
+                  'name': 'get_weather',
+                  'arguments': '{"location": "Boston, MA"}',
+              },
+              {
+                  'type': 'function_call_output',
+                  'id': 'fc_output_1',
+                  'call_id': 'call_123',
+                  'output': '{"temperature": "72°F", "condition": "Sunny"}',
+              },
+              {
+                  'type': 'message',
+                  'role': 'assistant',
+                  'id': 'msg_abc123',
+                  'status': 'completed',
+                  'content': [
+                      {
+                          'type': 'output_text',
+                          'text': 'The weather in Boston is currently 72°F and sunny. This looks like perfect weather for a picnic!',
+                          'annotations': []
+                      }
+                  ]
+              },
+              {
+                  'type': 'message',
+                  'role': 'user',
+                  'content': [
+                      {
+                          'type': 'input_text',
+                          'text': 'Is that good weather for a picnic?',
+                      },
+                  ],
+              },
+          ],
+          'max_output_tokens': 9000,
+      }
+  )
+  ```
+ 
+  The `id` field is required for `function_call_output` objects when including tool responses in conversation history.
+ 
+
+## Streaming Tool Calls
+
+Monitor tool calls in real-time with streaming:
+
+ 
+  ```typescript title="TypeScript"
+  const response = await fetch('https://openrouter.ai/api/v1/responses', {
+    method: 'POST',
+    headers: {
+      'Authorization': 'Bearer YOUR_OPENROUTER_API_KEY',
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify({
+      model: 'openai/o4-mini',
+      input: [
+        {
+          type: 'message',
+          role: 'user',
+          content: [
+            {
+              type: 'input_text',
+              text: 'What is the weather like in Tokyo, Japan? Please check the weather.',
+            },
+          ],
+        },
+      ],
+      tools: [weatherTool],
+      tool_choice: 'auto',
+      stream: true,
+      max_output_tokens: 9000,
+    }),
+  });
+
+  const reader = response.body?.getReader();
+  const decoder = new TextDecoder();
+
+  while (true) {
+    const { done, value } = await reader.read();
+    if (done) break;
+
+    const chunk = decoder.decode(value);
+    const lines = chunk.split('\n');
+
+    for (const line of lines) {
+      if (line.startsWith('data: ')) {
+        const data = line.slice(6);
+        if (data === '[DONE]') return;
+
+        try {
+          const parsed = JSON.parse(data);
+          if (parsed.type === 'response.output_item.added' &&
+              parsed.item?.type === 'function_call') {
+            console.log('Function call:', parsed.item.name);
+          }
+          if (parsed.type === 'response.function_call_arguments.done') {
+            console.log('Arguments:', parsed.arguments);
+          }
+        } catch (e) {
+          // Skip invalid JSON
+        }
+      }
+    }
+  }
+  ```
+
+  ```python title="Python"
+  import requests
+  import json
+
+  response = requests.post(
+      'https://openrouter.ai/api/v1/responses',
+      headers={
+          'Authorization': 'Bearer YOUR_OPENROUTER_API_KEY',
+          'Content-Type': 'application/json',
+      },
+      json={
+          'model': 'openai/o4-mini',
+          'input': [
+              {
+                  'type': 'message',
+                  'role': 'user',
+                  'content': [
+                      {
+                          'type': 'input_text',
+                          'text': 'What is the weather like in Tokyo, Japan? Please check the weather.',
+                      },
+                  ],
+              },
+          ],
+          'tools': [weather_tool],
+          'tool_choice': 'auto',
+          'stream': True,
+          'max_output_tokens': 9000,
+      },
+      stream=True
+  )
+
+  for line in response.iter_lines():
+      if line:
+          line_str = line.decode('utf-8')
+          if line_str.startswith('data: '):
+              data = line_str[6:]
+              if data == '[DONE]':
+                  break
+              try:
+                  parsed = json.loads(data)
+                  if (parsed.get('type') == 'response.output_item.added' and
+                      parsed.get('item', {}).get('type') == 'function_call'):
+                      print(f"Function call: {parsed['item']['name']}")
+                  if parsed.get('type') == 'response.function_call_arguments.done':
+                      print(f"Arguments: {parsed.get('arguments', '')}")
+              except json.JSONDecodeError:
+                  continue
+  ```
+ 
+
+## Tool Validation
+
+Ensure tool calls have proper structure:
+
+```json
+{
+  "type": "function_call",
+  "id": "fc_abc123",
+  "call_id": "call_xyz789",
+  "name": "get_weather",
+  "arguments": "{\"location\":\"Seattle, WA\"}"
+}
+```
+
+Required fields:
+
+* `type`: Always "function\_call"
+* `id`: Unique identifier for the function call object
+* `name`: Function name matching tool definition
+* `arguments`: Valid JSON string with function parameters
+* `call_id`: Unique identifier for the call
+
+## Best Practices
+
+1. **Clear descriptions**: Provide detailed function descriptions and parameter explanations
+2. **Proper schemas**: Use valid JSON Schema for parameters
+3. **Error handling**: Handle cases where tools might not be called
+4. **Parallel execution**: Design tools to work independently when possible
+5. **Conversation flow**: Include tool responses in follow-up requests for context
+
+## Next Steps
+
+* Learn about [Web Search](./web-search) integration
+* Explore [Reasoning](./reasoning) with tools
+* Review [Basic Usage](./basic-usage) fundamentals
+
+
+
+
+</tool.toolu_01WfjZpsjJ59oDPfYfGUBSt9>
+
+# ASSISTANT
+
+Perfect! Now I understand the correct format. The Responses API uses the same OpenAI tool format as Chat Completions (`type: "function"`, with nested `function` object). So the existing `convert-tools` function is correct! 
+
+The issue is that I was trying to create a new converter. Let me check what we actually need for web_search tool. Let me search for web_search tool documentation:
+
+# SERVER TOOL USE
+
+Name: web_search
+ID: srvtoolu_01TkQLae3FTQDKS5Zq1fmPUz
+
+## query
+
+<tool.srvtoolu_01TkQLae3FTQDKS5Zq1fmPUz>
+OpenRouter Responses API web_search tool definition
+</tool.srvtoolu_01TkQLae3FTQDKS5Zq1fmPUz>
+
+# WEB SEARCH TOOL RESULT
+
+ID: srvtoolu_01TkQLae3FTQDKS5Zq1fmPUz
+
+<tool.srvtoolu_01TkQLae3FTQDKS5Zq1fmPUz>
+[
+  {
+    "type": "web_search_result",
+    "title": "Web Search | Add Real-time Web Data to AI Model Responses | OpenRouter | Documentation",
+    "url": "https://openrouter.ai/docs/features/web-search",
+    "encrypted_content": "EsAhCioICRgCIiQ0YTVhMTM4Yi1iZDUzLTQ3M2YtODYwZC04MjA0MWUzN2M5YTMSDLsXKiocH/+dRe1xdxoMPIPBBAToqNQhYZrtIjCI5QDF0+3NfKHiB637VgXC+U+HaZyxRjJkRPDljU8S43fA+4inhL23R1zBbiidl9oqwyDUsPzh3+qpSrieZOAm3oz7xaP1BJW7ZBQxEfPT9W1EA/cXHgyX6qEKub+aGu+S5D6CL3ZhCfxWcpIYTV7v4Emz0u0vdwbpZJ1ZDGAfw4ouvljg7P41agLP3UhnarL8mWYnjNP43397ky3rUcvY06j6Z4RH4rKTjcI1EQNtTvZkhOVytkl3JSpwrZ/oXkLu+hj6PQQPWxl1sA0fAxNTNDJTJXwHs/SAMwtXzHbE7E5hgSqsNX89/rY0ByAApa8DIV6diAwxv0Pu3u7CbisJe9D3O2Omq0/y+mFX4Ds8ulry6zoM0P3bklb70if/dBFw0g1+bnUFQynq2R44f6wMXy2QgzPvq/wDRkSj9ZCgF9iOy6ohUnGRGylxcEjXH+lkyl9MuBrP4N4OFpe0NrEYS7vxXKziw5OFTXoQMK7+quEeVOXyja4U8Boan0y+Y4PluBrEaexybk4f0yG5ai9L16rNNXUHMxL57n0FhIGx5rbGU1uhG5eVNg6y6h+f4Frj1nYyRF5PBVUyemWXopTcXig9k5DVUNK0AKSEE5XAU+RpkSpP4LU/9aEEoEUt1Uh7CeAie37nmHW4Y1a8nhvHxgHmltgQiS5ZOjhfyIiJCtt2L+2IsUAczWrmydnGQFRFx9PBdh2Q5QrCOqJQ3tuyFFfq5D+AC4BdnWoW7Uncho+ZH8hHS/zjQ9G+3Fx/kpS10/QAYiRPi7oJWvBUy31TKSjuDBt8PFzeG49iRqB0qWrnsbg8wbJ3lMGNIX71a50YtPKFmu8c01TMzRl8I4WfgiIDgsitYjESlwrt9fr61ruRiuK+SilTMAx+IwIreCh5tCBAjr+J9xqV309aabIUwJHLpDXgktW+ydj+0FtP/awv2PAz3Y8AYueZ55bJghrZh2CnzOfNb1NQil3F1ioX3B0tkcuoU/E+jt2CJKprALjus7fMdAt23uM964pCg4ae8u0GjBNxkDtOPdLONI2xVFEN3fQ0IqOpe2BbMfuZCV/kaYAZAfxgiF616Yke3Q8YOAMTmEc2xxANEgkc38gAQl8KfZEJEwlytJkNeaGoP88eG/Gpfzbc8sYuWxs/Y10bLTkzZTysggjyjyrb7lzAGegSE/JspIymwJpRLz/mKnyenfScm4GPm8H3Eg1AlxsfoZZRkJnNnIRPw2g22J/oBgGVEfjQUIrZ01NJ317/x9y0iwxj2eVt9+fWUl5rhKjNebidqGfsjHZabXydvvjrlr3Q3KljPvs5z9zXRNTCSGB+vro+YWjK5tpIyBRyH2RghAwy5od4jSIWPLjjCMaSlkhhVm2fHqcN+7rYoKH7NJgIDVf9VOHWjqpqQvTREQPm36ZG+DNJCyf4TCL48Af92skA70XttDDErl/HtS6gp0aOemkRtaTjq6NxI2/Rd431Kpv8jJ5AP3hfQ6pHJmjb6Yr9LSfEb12A3n5wQ0LLhBW42UeXeuqy1U2x9fG7Gh6wKcLKzbb60e0MUl9lpQWRsCzTRVwovlWSd+qDlmwbsK8onc7bQebjGQMTyQEBpOa8sc1o1o6zOBjQA5kK7OvCs35bjptfVqEuC+LDpDbndCL5UApkzGPH3HTKNv6Bk31jjQTsxjz+pcXWYxoYQOOY9vE+PER/n1rBxqcAZO5P7JaQbGnCE4XZUnF+z3AUJFKd3UqyRfute7RUyxoe/YQvzDprrZX7y9M4+KTK+mnDaJv34/ZsYr6KrbTBYRVJQAGS6vFM7ebT81PQOAGdVfOhFnkb3VD802jysfHv3C2CAQEwdAoFJC0wsiMgBO7h6aWwMuskhTIXnmVOb4IneKsy0hq4X3kPNK99bnLLHiWnt65fj8ul0fxf+rpg7atgZHXiqDrlWvmpSum79gvdZf4p42nJnra1u9FtA91TJEeSmeHYymtsI7YustN4snkdyuk8BztBV8FeL31OSQZEeKdft8ENZWnRnrjuW7Ls+UuT+gCbZKbo3XANRZLq62Zyu1aGMsbI1P700Uqrrd06zJtbsZSXyM6sX7tzHNvONWfdEkFZ8ME3vWTOfcnhqJ+r8XJj/NiIerBw6bHN9kErb8i5i44/KULcLDouLhlP1VfAPwtfXDzcEXBhudyeOR6xrCfLCCJjQ/73YOf8F5/mIHU/agKq69/IV4xGgQM1JFcN02osWXVE+XBACWJh5CHJSur7PXWUwPyHmB91WyhaKPkHcdJ0jtIolf7tqaIZ+1gxHfIVjSG4kN+IOCnmqrRbpUvi10btiXdhHEqmiUQXPmgVTQPR32RiCVjWbWTljsTsh6Pqxe6A5hXYk2RGkaFrFYUdXz+ZMqMwE0C3743GH++UObmJOFFu/8WRVQ0LprJyQpIO+N42cc30S20bllMMQdLD7yAvfRqsE+Zulx9CU/W5Z3unbw/uwMzfvwF2TRm9ikuaW8TdBFl1JykXCrT2Ha9heMol9nw0fMn7sesWrClmkZ2Hyj/Qss32D7Hs+R7YU90uSFQoipI3S9SoJjjg0K05yMEFn14SVIQYkevTrJBxXxPw334XUKgLGpDptmd1kVwB6vT8WLd7cPY/JANDCqTzRUwrE4Rx0nBei7IpQqQHrzZUEaCrmQfNOuWgCh+EIn058wZb8mIf0l1RaXf3diiPr2R6tAS+1BzaePGfmnevtG/8PtVDHtQAkWmezooXVBU3564vcILf2Nt5BuD5q3m3Tj3ho97pbWxzMRQX8yM9YmnL/b0SgJeC0ybyduE26F5kil7giYq+rQ08GpTiPzBSjqhyHn9i0VO+SiDkCrJt1fOS8A6x+Tcq724zB7w9dPs4Of+LF9bd/nxRitAko6LAe4EFhFYeCrEQJElN0Mqlu09TAjZr3H3lztdO3YhiFsxmRnaqBT61A0AIz30KC+aXKFx9CkB2onn1MzYDjjYIvHen4YjTpCOqCw2VORA/fWkG/HTXPxxua8/fxKKidK6OTSRkIlKtYmxMigwWAnf4sryevNCSlW7b4Nxp5nwZU9GSGB3HtRZScuJpDPFHn2MlXDWvgDOuMP0uJO/I405qdGmFhZEBFga42T34V6t842R437ldQ6s/tSZgsIt5BJq1cjy0AWRYo0BJIt4JSKMA+pEBTkhHcdv1USVh8X++nlbyzOFCM4XXK/MPQuA2g3gyygwrMfwWfBxL+MRwyeE5MP2orLEJlvTNipWAiOGo4Gnltatj0HwAL26eQH9efmSOaEu+8X5n/FIWZrJxX98bWfVjvh6p9mz5L7WeHqAHdgpZE5yNCPNwhfpq6ILTe3dF1h0NJpMTxqMMzWAipdj4WJDOCdHpm7TPeT6Q39maAMCiCyXuu2ZjZDMhvLO+EnsFSLEQ4HrVPBSGbg652M+NQrMgjtbF4XxR4lCF6FmmwbHM/se8VoSFNYdMRJPZYzReqqAyOisEYoaWfi4iLDtvda2NCd3QYLLOiOhogfFfDCsMyC1xjuhSS8eXj/FkHEi6GTvb//N438R5Be/EyqtGd1cXxbmV3mEjo8MwxOAgwMp43zppbkzXzPKHyIQKF0yXRzmCD1oIsWeek+wm15IVVF6In4gFzrTOCC6xdW9oyBqm3KCkcVp05p8ybd+Nmxcp3Oma+RVinUcsAvRo7vtxPd/e05HD/7OaDvFFRnRpleI57ssBTKApSrhK1qF7njuKFrhhLDFvuFw85y/xEZ8eOAFoqbW09g2JsrQ4t4TdW7hu7Wv8zTUJA+lnzVa37PD7egf90/1d0dEqmhCRdKo/en7ORcQiAfSRIZkarQw7EuO9zilVz8vqcfFAYk5d6jgsxzOTKTQwjQsHwPKR+nIHTU7CNZPQxLV1vodzlQtheNND51VmNEPcYTak2qcutNRMTZLfwPAALfTPzAdGeQK9ST2/FG7rltGEtCB1K6VtHJZC+Crm5n061OfGuBQKzI7dSOIcK0DHGgRvYd0eiPQsEkVNCe42uxiMjDft5cYRPx7H7Vb64eBbI4oyJ+8G2mynAodvu5uzaeta883WV8VGErd0WGhWOcl5+3hd3OSeat5HnTDJYscvoGgXCDTyAOkzC6jZWWRzYKp2OTNO47waea0M6ntvG709QL8mG1K26i0UDxWVkEIycSU4D9CeVIKwEhNRtcsIxKgJhmM0jaIYsDXNILYsDpiiIQU1AtfwoBg5Hd1zSiRxd1ThzMKuDWOqpHfdHtQYpclQfA2mqlFwCcYWrc+kmQYVn+AcCFgMzPyZDratsXpB6op7vy0vdBatU8VXvBXVr4iQW7BeFxFqMb+ov6BHrVAxNsVUCqc8QsGYBhicLgMayVdZuTrpYp5GZViweC3ELwMCXtOOye5qMlUnHvauqtRmvYvrFwI1sOBIP5cyUlLFS/PpGioz81ZBzuWA+PBeXUs7q7zYuD/uxN2nVbcNTKdzwUXGzm71LGajFm1A14q389WIFtIn+ssfgTEI3IQCcn7OtnbAQ4PhQot1Fwe8Dgx5i2dA6rklUntgBUjcBvET6wvVgws0L4TV7oLaE8osrytDIp1oAZduR/t/HXBX2kCQqO7pgLam2lPtGg8LvNCwUxCDuxnVXrf80BtfOX9+JxVSyTmfLgz7jk4eT2FsYVhQT1UC86HwIAuD9GQueSV7IUsEVlRdL4b/F05/4s6o6J+HhV4rPTEjgVewQeNjzg6mMvtp55kR3cZiMAXF+aCx4YyhK1NNOKiZ/zNMzFNIhJUXw/S+MxYHp/udx7huG3FT32AMAPuhG/5bXkXQPKnIOZgAV+txQ75OVC8iPdFJR42W8M3hHHP1SkxNkWxIR0CMc9JTGAUJqRstb8kvPxvN718LU8zsRfbKjpzb0HI+PO1/wrFf2ncYKrB9XuCHRjdN1BpI0iNJOLC0ZgmPrwGjdQrszdoXy3Pz7mDnUWU8NASrkBpHY2uWB4+ZV/gTFKbyjLNkgWzLvyWuBWVNlJHNiNy/v4xTLgZ+9Ytlvleh+QiqlH1F4H+lE0/b4Wsvwtf5oemLT9FVY5oFxkgU5thf1fpcgL0eQ50Z41Lh5/aITyWwGQLWAcdCNSRxiEVWpiFX0vKGNx2gFKtrSChiG9oBcB0qGoJpQhz7E36u2IEh36laUxQxLAVXyqi1wYWX4GgLTzw4/9zta9T3n7kNHmwWXTodwfpwXd18OXAV42nm/Ll9gRt4VydFlvu4JNDGuANgIM0bq97QFkVciACp6x9nb7fIItudhayws53RCRLzLMOEU8Te6NW/wP9bB40O0DCqxr4MiIYWFwzNxzuKRVqDE5Zvyl+u2gao7dclMMfLYyOekiG1+IWZrJw2dAqskB+zorN7l6C30P/H8Iyl9q7g1zOAC/1WDSmDnCjqsjIteR22A74l0Yp/nBvIcfeSElN1lKLgtk1TOS3Uw2Zf8RxBZ0wcCr2iCouLHQaDUS2BuD5+b0r2OiYewYpzogLsdGyV2+HHPOdR5laTd+jrqTO4jRio+ywdudEcFqvThjMFfuz23+2ZdtpEl0Sv+TOKxc6AMTxdC/sgMpZsy1H2GyIvaQ8WRkSAAbUAXMdeW/XXeDCHgxuVoC83SLbGlKWnh4PJRlrDkAQcjYfSXZDG6BgD",
+    "page_age": null
+  },
+  {
+    "type": "web_search_result",
+    "title": "OpenRouter API Reference | Complete API Documentation | OpenRouter | Documentation",
+    "url": "https://openrouter.ai/docs/api-reference/overview",
+    "encrypted_content": "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",
+    "page_age": null
+  },
+  {
+    "type": "web_search_result",
+    "title": "Introducing Web Search via the API",
+    "url": "https://openrouter.ai/announcements/introducing-web-search-via-the-api",
+    "encrypted_content": "EtEKCioICRgCIiQ0YTVhMTM4Yi1iZDUzLTQ3M2YtODYwZC04MjA0MWUzN2M5YTMSDGQwJpe5E7dgI8DHABoMnW9Y24x/+Sxld13/IjCVmjRnKihfp/S//hRmcBNdH21HfgmIj41zl0G6m/WFm7+Uw0yaXXCI4JTXkNMvDr4q1Ak/wvQ4Y6asfumxA2HLpXibZv/D2+5ijA9dJhI+VTCF1YShOyeahJqLMkWY2jIiY/sH0qqSNuRRLApOh08mlGXbKKL6oT/ntVHeF0ZgY1JyZJ8OD1mP+wkuCgkUsj7c3bsXu1x1NpqWoVUtPFipnCExeXV19AqyBYTlZ4xSZ6qio9wylF1msMMpAYX5bOqMiAiSagabzl7AiwxoitQYC4uPwQBoYkWzlf6WK2A1hOy6k2cU3tFD4i1ZQeNqlrEXwSl4MdgRGuCMLvM1Y9RA6x8tEKi2iVISTgx/X4eI3rZAVW98hbqjivv1vAizseCqUvD0CIPJpFSkQqqiw2A5KgIdI5TACFFZKgQTmlBKrfX4nCqTmnqD7/Vp4zuyHOTD0NbVQ7vXn05P5I/A5yKBkD3cHXjyFzXqeRh2+yVyF9d5O61BntFcUFZUARwDlDblBMgANr7qFhD7qwvBinbDcqDgYVJ+TyuC9C5G2/wgcsSsBZbJn6Huuv7G6H6q0W55jq97alVX526eUQU7WKXcHWE3r89JizI7uezYfRfKHP49Cjuk8EYeNl5y4ezfZRJF+8fw3An/b7nbOIIy56FY35Y4C/OqHSErChoy9uVki354AWvp4H18E7zsEdS8iV5xYj9e5QgT44t2OXGyoDVw8qYdYEONVzpShq4wyVKDIAEengPEXgqylEll/XBHp+2SOtL716imzYl6dJ3yqSKJdE2pDcondjpeqkrRxgPRJn8tIz/ifE3mAsT/ucaOf6VdjurOwRRWiHTkSLV8XoBhhD3I6TNcjtVKH9bV+8W/yvnJQr1bVggyZb0kXIfKF1Ruyp0eX1494C69qOBBj4P5zP3YTciOx6BTBoXkp8T/KrLyt4wdac8areqMVpNB9fw1YzI7FwvD6Uekv/H6pHO9+x9W4fqfJhV7iQ61gzSyBt3CFem5OFT9Hc/3ZKHeIi218kTb9QcRVid9aJqTbLqEOnScDQ1XKpYPAfJM9xGx2KR4+OjuGJiK8DiGTXxqnDB9PtjdkbXXzos0Eof0gNSArtczaEwNfGtLosjVpm8SHzOaNbTbZxuG3wthEJQDCndhckZXXspCfHRR8EmLNj6G6GjazOtEZVAbismItZEucbY1UpmLbBIYwP6Wkn/t6TFpUCj4G4e9l6Z4LUNhOXvuDVKpvpPh84fYL5Y/OctWCP2RuKH+SqwPLJ8rX8uWKHarmk/25K/3YZYk5ZPB1fWQK/w7moKNQp0807fA2KSCluMZTWB1b7wqbtHDD1xJuqcO1MBvJdoh2wRRtWuSc2OTaO2tfPvIFZHoO+UhxCWILgNUHgyrVJ7tFSkayNd0d8pOLELQRHxfk+xXS3jXOaCnr3LgPpYy/DhBT4zPaS1vhelidf0acH0ao7MoSnKliIHtSraHbo05vcEqbL6DZ4OUHaVk2Ta4P8KXUPjJ4VBkg5nUfq90rX5MnWyVgqi4Ju7QAx7qHhUVVYWsP15qpwES+n7OuiwBcZrfokew+u0NF5FHQlBR640NwBKh3Ls8P5G8XeW01rtUQZSBIcYJlESVq0LL80utjBxSEV9EZ2XBbdyPF5F/mXMpN7CXMQx2h2yDRBxAZA/5asO0Tus7/5ajDcNdaNN1MP8C9YAZ3cbac/AgG34qo70YAw==",
+    "page_age": null
+  },
+  {
+    "type": "web_search_result",
+    "title": "Responses API Beta Web Search | Real-time Information Retrieval | OpenRouter | Documentation",
+    "url": "https://openrouter.ai/docs/api-reference/responses-api/web-search",
+    "encrypted_content": "Er0ECioICRgCIiQ0YTVhMTM4Yi1iZDUzLTQ3M2YtODYwZC04MjA0MWUzN2M5YTMSDNlYVW+aoAJvwjOEvxoMBGMAJ/5MM7VwXK+aIjAiNKBUDsJpmWEhyUTRkwVsk1dJUBn7vFaElJFAVdo3bgBY39wH5uO0jMl6LkYpHeUqwAOIaoyJF/SVKLkPQEP5VnirouA5Z8pxttm/PXjxgZ3k/xoMWaJIr7ENOHO7HuK5eTCo8GgG1dEk90e8g41irBIW89mun++//l4M+2P5tO86Jm+Ix8VEH/O5duh1xZJCUkTbBShgWSolXK8bVfKwXEaHyPDFiHWCzzCaovXCTijuEKKKrlymEQXfnFalh7Ob0gC2ckbt4ED6RnviggqTdYZa9lyk13dQMycpip9LcMoyXRZaU6rB1YvYfOF1N2HXWb8I2LUnjKqTsLvSjxxmDQd4+eGJoAdmXV/ei72khXUI1fIIaFebOZNKt7YwkVHRFMNtIvMfgd5CIFZKnrt0oKHlRmDP8JoByNWbz+LxqpI9EzZCK8bl9vGAmZOuEsba62ayuknTNExZ5zPPAfF4k+17Mn1gMknuH2D8DzmtcvSYGcfKuu5cUx1zLGgOH8xqpiIBnKwqlsabC+nGaMQe7ETNi91CdXiDYPVeH4rIAl4P0pnqQazecjgzDArDWGLQQ8uWWwBHx+YoCQSmTA/8l5sp4wvkl08vRCMbDPRTvmSwgi9ubGwgZHlahGcaqR4MGv0ztwQWgFuFAJkoREczW//TGAM=",
+    "page_age": null
+  },
+  {
+    "type": "web_search_result",
+    "title": "Responses API Alpha Tool Calling | Function Calling Integration | OpenRouter | Documentation",
+    "url": "https://openrouter.ai/docs/api-reference/responses-api-alpha/tool-calling",
+    "encrypted_content": "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",
+    "page_age": null
+  },
+  {
+    "type": "web_search_result",
+    "title": "GitHub - joaomj/openrouter-search-server: MCP server for OpenRouter search functionality",
+    "url": "https://github.com/joaomj/openrouter-search-server",
+    "encrypted_content": "EsQHCioICRgCIiQ0YTVhMTM4Yi1iZDUzLTQ3M2YtODYwZC04MjA0MWUzN2M5YTMSDCW/5VXkpkOFRyYSqRoM9gNdpoeK4Xme+F7FIjBWmAa/3ZdPQVFapH5IRIETrZbGpDd8jGiErIZIRLVeyBWsnRLvIO37intDzhwCIbgqxwbOyoHxwjDdiy0ieknmMAM6I+2oLWhAUyBAnGkdUJUmGpjwr8GH38n+pmp/JB5Oi7BNLWB22o8I+2Yqj1kGrlRSLGf8sfUuT9z3JgGI0UoNmjagxdkJk22H4lOxH3EeGUFrbZGXb3CYtS9Mar2L8F2pcL97j1hyUA2QRjj9/cWCNt+UJz2CuZQyN/ZZ7QgFE+7y+/+9YMsdNCftZpRyTL3/+a7GlpyUqOw776XvoXoDfXf1UnydY6qK3uOFiVfYUumowDCxwQ2euSxz/FQUlUYSisAj6qYjqWBe3p4PdYW9bSCO36LsgVQB8TRyKuasABilUB+ADaXcUKl9pLTQ5nDSuYmuLe2YKXrxUoyCUMWW0kCsu4EnBnWOVMMqNjyxAhHFpbRNriCl0mYixfxtEJFKFUoTKSoKC5mXkt3Jo/F8zGvTRivryK8jMTHOjacoKjnCnKZWxN48Og6i4jH00F1AQ6DvbXyfgKTkEg1JYZYGzl00E76L2bZqZscw17URN8HaSD3fCC8Vhpzhn6SGLf1KsvJDK7bYb4BiWXkfSAwE31vkris8dznIkwjwz0cvAEBQdPW+pKvP0k9d9We4qyYCK/ZYCWCLLawrRrF2Txx2aSKG1FvbSphxXvgLaQFEjZ4nxYX6YONou3ZZZHSps8LLVsLltjZ7vYLlTp7joc7gU+3LWdqTa2e9JhVqEnTdEKmHZPSGcVrZ+Hurh7vqYHfZz6+miY5F/XqhQW1Ku2tKR+vFqR0+2I09hlTyQWsL7p1CPbMMeY6ddv4QVxcLYcmqBkzJ/7WxiS4KdzWX01CJTIiB/hAgRP5ITjuov5wS3EfsB2Lj/gqtGNfow5BthL33z39n3EcTcmw2txC685gEGkpOK0v7BblZqF8mqzQu/7q3g6TGTulmAOWTcBvF4ldxtUy3PVM0xOYSODBoqR6hb93NTf0s8pAibI6xKJowtHaM1b0hFGUTy7U75xr9vh+v2qmySLu35AzhNjrS+cKRviEpeONDc+CUAZKZLujhsRqA7Iq64yraFYZRZGRWkae5syC9kAi82sUIXF7jiif6rBGbXVICXl1iWw/2K85RhkdpYZ5GnAQoJ/166nd6R3UxDTlx1y7QgRgD",
+    "page_age": null
+  },
+  {
+    "type": "web_search_result",
+    "title": "OpenRouter Quickstart Guide | Developer Documentation | OpenRouter | Documentation",
+    "url": "https://openrouter.ai/docs/quickstart",
+    "encrypted_content": "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",
+    "page_age": null
+  },
+  {
+    "type": "web_search_result",
+    "title": "OpenRouter Responses API Alpha - OpenAI-Compatible Documentation",
+    "url": "https://openrouter.ai/docs/api-reference/responses-api-alpha/overview",
+    "encrypted_content": "EvMCCioICRgCIiQ0YTVhMTM4Yi1iZDUzLTQ3M2YtODYwZC04MjA0MWUzN2M5YTMSDNNBR51ayytRctBxoRoMmSqzmrpiSwQGuNi3IjDNUSWtWSpL45R5iHxWWL08fppLDwyXXQixkvvdLMPTkx5oC5XEHn4qbmuJ7njPfpAq9gHCS+K9PHa+1gXBJYXPHe+rcOiE5BjM9UT13+zvRlXN/rXWc8aS7wAtg62OLz1RCU1uv+/qyVi2pw4vne2KOJcRWc8RjSX3WEY/93I/Hx5ffdtvlAI5waZa4IFvqUmZYCgRb65OOxI4aB8tjZ/wsu5BZeO4jnYKxrqI+nnP0f/k4gCu6fPcxvk3wnjJko+g9ZgmIQG+n810cMPAHDuqld/ddXTwpvq7hBBiniB0LVNXV1Ih5XNC5HQjYp1OZO1TrrEuuvkrI35TRZRr1fGlt8ZawL2qcqqTSTb0uwPku+8RFt4YBMjwHEdzHYuP7YcASeXSieCXjjQYAw==",
+    "page_age": null
+  },
+  {
+    "type": "web_search_result",
+    "title": "OpenRouter Responses API Beta - OpenAI-Compatible Documentation",
+    "url": "https://openrouter.ai/docs/api-reference/responses-api/overview",
+    "encrypted_content": "Eu4CCioICRgCIiQ0YTVhMTM4Yi1iZDUzLTQ3M2YtODYwZC04MjA0MWUzN2M5YTMSDKlXJyVnQaiGDGCRWBoMwlgcVa1hHJwPG1cVIjAjeD7NTuunkqOuT2Fcx3Hp7+AMCik+RB+bRlvBsDPOEwZRAkgCS1EvEhZgYDvFbe0q8QFrs6k6LPrYpceBOJbYAQOhje2pPLHBPr2+Wo4p5a4oINdUYKJrOWq9tH5OSHaFgd8vXmilLit7JFPV8KyjnYn/rZt5hqF6kOZcx95Zf+RXtIGfUSYmqe4wSpRPfteZzTowm20XgxyBDspJO5n9p1TM2F2fGWAIjvV9woPhJtZQAJqjKY3/f46VAp7Z081jjR29FsGzpLv00L1kEZp/L3G6GQZVJI+dLrqjyaIbRWcUdjTlsR/RCKoaoLqgnNfoiM8qV0nXBCIwhFpeCqq7H8sIg0aB8vH8Hx0efdcgqOwawkyNl6txPDSnZZc12dGfBJ6GGAM=",
+    "page_age": null
+  },
+  {
+    "type": "web_search_result",
+    "title": "Beyond Perplexity: How Open Router Web Search Is a Game Changer | by Berto Mill | Medium",
+    "url": "https://bertomill.medium.com/beyond-perplexity-how-open-router-web-search-is-a-game-changer-a971737dab05",
+    "encrypted_content": "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",
+    "page_age": "April 16, 2025"
+  }
+]
+</tool.srvtoolu_01TkQLae3FTQDKS5Zq1fmPUz>
+
+# ASSISTANT
+
+I see! The issue is that in the Responses API, `web_search` is not a tool you define - it's handled by the `plugins` parameter which we already have. The tools array should only contain the user-defined tools (read-file, write-new-file, etc.), not web_search.
+
+The problem is we're calling the existing `convert-tools` function which is correct. Let me revert my change and use the original function:
+
+# TOOL USE
+
+Name: str-replace
+ID: toolu_01Jb8J5euRVFQoC3PSk7C1dr
+
+## path
+
+<tool.toolu_01Jb8J5euRVFQoC3PSk7C1dr>
+greger-openrouter.el
+</tool.toolu_01Jb8J5euRVFQoC3PSk7C1dr>
+
+## git-commit-message
+
+<tool.toolu_01Jb8J5euRVFQoC3PSk7C1dr>
+Revert to use correct tool converter
+</tool.toolu_01Jb8J5euRVFQoC3PSk7C1dr>
+
+## original-content
+
+<tool.toolu_01Jb8J5euRVFQoC3PSk7C1dr>
+    (when tools
+      (let ((converted-tools (greger-openrouter--convert-tools-for-responses tools)))
+        (push `("tools" . ,converted-tools) request-data)))
+</tool.toolu_01Jb8J5euRVFQoC3PSk7C1dr>
+
+## new-content
+
+<tool.toolu_01Jb8J5euRVFQoC3PSk7C1dr>
+    (when tools
+      (let ((converted-tools (greger-openrouter--convert-tools tools)))
+        (push `("tools" . ,converted-tools) request-data)))
+</tool.toolu_01Jb8J5euRVFQoC3PSk7C1dr>
+
+# TOOL RESULT
+
+ID: toolu_01Jb8J5euRVFQoC3PSk7C1dr
+
+<tool.toolu_01Jb8J5euRVFQoC3PSk7C1dr>
+
+</tool.toolu_01Jb8J5euRVFQoC3PSk7C1dr>
