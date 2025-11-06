@@ -723,11 +723,18 @@ Cited text: quote from source
   - `reasoning-started`
   - `current-reasoning-text`
   - `current-reasoning-details`
-- [ ] Update `greger-openrouter--handle-reasoning-delta` to accumulate both text and details
-- [ ] Update `greger-openrouter--build-content-blocks` to include reasoning blocks
-- [ ] Update `greger-openrouter--convert-content-blocks` to handle reasoning type
-- [ ] Add `reasoning_details` field to assistant messages in conversion
-- [ ] Update `greger-openrouter--build-data` for :online variant support
+- [ ] Update `greger-openrouter--handle-reasoning-delta` to accumulate both text and details array
+- [ ] Update `greger-openrouter--build-content-blocks` to:
+  - Build THINKING blocks (not "reasoning" blocks)
+  - Base64-encode `reasoning_details` array into `signature` field
+  - Use `thinking` field for readable text
+- [ ] Update `greger-openrouter--convert-content-blocks` to:
+  - Detect THINKING blocks
+  - Base64-decode signature field
+  - JSON-parse to get `reasoning_details` array
+  - Add `reasoning_details` to assistant message if parse succeeds
+  - Gracefully ignore if signature is Claude's cryptographic hash
+- [ ] Verify :online variant support in `greger-openrouter--build-data`
 
 ### Phase 3: UI/Rendering
 - [ ] Add syntax highlighting for REASONING sections (similar to THINKING)
