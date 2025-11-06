@@ -309,6 +309,8 @@ OpenAI function calling doesn't support default values."
 (defun greger-openrouter--handle-event (data-json state)
   "Handle Responses API streaming event."
 
+  (message "data-json: %s" data-json)
+
   (condition-case err
       (let* ((data (json-read-from-string data-json))
              (error-data (alist-get 'error data))
@@ -329,6 +331,25 @@ OpenAI function calling doesn't support default values."
                (response (alist-get 'response data)))
           
           (cond
+           ;; Handle reasoning summary part being added (starts thinking block)
+           ((string= event-type "response.reasoning_summary_part.added")
+            (unless (greger-openrouter-state-thinking-started state)
+              (setf (greger-openrouter-state-thinking-started state) t)
+              (when-let ((block-start-callback (greger-openrouter-state-block-start-callback state)))
+                (funcall block-start-callback
+                         `((type . "thinking")
+                           (thinking . "")
+                           (signature . ""))))))
+           
+           ;; Handle reasoning summary text updates
+           ((string= event-type "response.reasoning_summary_text.delta")
+            (when-let ((text (alist-get 'delta data)))
+              (let ((text-delta-callback (greger-openrouter-state-text-delta-callback state)))
+                (setf (greger-openrouter-state-current-reasoning-text state)
+                      (concat (or (greger-openrouter-state-current-reasoning-text state) "") text))
+                (when text-delta-callback
+                  (funcall text-delta-callback text)))))
+           
            ;; Handle content part being added (starts the text block)
            ((string= event-type "response.content_part.added")
             (when-let* ((part (alist-get 'part data))

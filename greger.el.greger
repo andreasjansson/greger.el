@@ -2,7 +2,7 @@
 
 You are Greger, and expert coding agent.
 
-${greger-prompt-code-style<eval-result-174417350598>
+${greger-prompt-code-style<eval-result-175041866405>
 # Code style
 
 ## Don't be overly defensive
@@ -26,10 +26,10 @@ Important: The first time you read a source code file, read the _entire_ file (_
 ## IMPORTANT: NO SUMMARY DOCUMENTS!!!
 
 IMPORTANT: DON'T write summary documents (e.g. SUMMARY.md, FINAL_REPORT.md) unless the user explicitly asks you to. If you feel the need to explain something, just do it in the chat. The ONLY exception to this rule is if the user explicitly asks you to write up a markdown file on disk.
-</eval-result-174417350598>}
+</eval-result-175041866405>}
 
-${:sh cat CLAUDE.md || true<eval-result-174417295699>cat: CLAUDE.md: No such file or directory
-</eval-result-174417295699>}
+${:sh cat CLAUDE.md || true<eval-result-175041752500>cat: CLAUDE.md: No such file or directory
+</eval-result-175041752500>}
 
 # USER
 
@@ -15728,5 +15728,116 @@ Remove debug logging
 ID: toolu_01HdcbJpUVGN6FPLbzjwwHFx
 
 <tool.toolu_01HdcbJpUVGN6FPLbzjwwHFx>
-
+Successfully replaced content in /Users/andreas/projects/greger.el/greger-openrouter.el. Successfully staged 2 file(s) and committed with message: Remove debug logging
 </tool.toolu_01HdcbJpUVGN6FPLbzjwwHFx>
+
+# ASSISTANT
+
+Perfect! Now reload and test:
+
+```elisp
+M-x load-file RET greger-openrouter.el RET
+```
+
+The streaming should work now! The event is `response.output_text.delta` with the text in the `delta` field, which we're now handling correctly. You should see the text appear character by character (or token by token) as it streams in.
+
+# USER
+
+Okay, not it's streaming the assistant output, but I'm not seeing any thinking output. This is the messages we get:
+
+```
+[...]
+data-json: {"type":"response.output_item.added","output_index":0,"item":{"type":"reasoning","id":"rs_tmp_i9iqwmdg3bq","summary":[]},"sequence_number":2}
+data-json: {"type":"response.reasoning_summary_part.added","output_index":0,"item_id":"rs_tmp_i9iqwmdg3bq","summary_index":0,"part":{"type":"summary_text","text":""},"sequence_number":3}
+data-json: {"type":"response.reasoning_summary_text.delta","item_id":"rs_tmp_i9iqwmdg3bq","output_index":0,"summary_index":0,"delta":"**Summ","sequence_number":4}
+data-json: {"type":"response.reasoning_summary_text.delta","item_id":"rs_tmp_i9iqwmdg3bq","output_index":0,"summary_index":0,"delta":"ar","sequence_number":5}
+data-json: {"type":"response.reasoning_summary_text.delta","item_id":"rs_tmp_i9iqwmdg3bq","output_index":0,"summary_index":0,"delta":"izing","sequence_number":6}
+data-json: {"type":"response.reasoning_summary_text.delta","item_id":"rs_tmp_i9iqwmdg3bq","output_index":0,"summary_index":0,"delta":" key","sequence_number":7}
+data-json: {"type":"response.reasoning_summary_text.delta","item_id":"rs_tmp_i9iqwmdg3bq","output_index":0,"summary_index":0,"delta":" facts","sequence_number":8}
+data-json: {"type":"response.reasoning_summary_text.delta","item_id":"rs_tmp_i9iqwmdg3bq","output_index":0,"summary_index":0,"delta":" with","sequence_number":9}
+data-json: {"type":"response.reasoning_summary_text.delta","item_id":"rs_tmp_i9iqwmdg3bq","output_index":0,"summary_index":0,"delta":" citations","sequence_number":10}
+data-json: {"type":"response.reasoning_summary_text.delta","item_id":"rs_tmp_i9iqwmdg3bq","output_index":0,"summary_index":0,"delta":"**","sequence_number":11}
+data-json: {"type":"response.output_item.added","output_index":1,"item":{"type":"message","status":"in_progress","content":[],"id":"msg_tmp_a5yk8ejvi66","role":"assistant"},"sequence_number":12}
+data-json: {"type":"response.content_part.added","item_id":"msg_tmp_a5yk8ejvi66","output_index":1,"content_index":0,"part":{"type":"output_text","annotations":[],"text":""},"sequence_number":13}
+data-json: {"type":"response.output_text.delta","logprobs":[],"output_index":1,"item_id":"msg_tmp_a5yk8ejvi66","content_index":0,"delta":"-","sequence_number":14}
+data-json: {"type":"response.output_text.delta","logprobs":[],"output_index":1,"item_id":"msg_tmp_a5yk8ejvi66","content_index":0,"delta":" Carl","sequence_number":15}
+[...]
+```
+
+# THINKING
+
+Signature: EtsDCkYICRgCKkBZXbHhxAKWg3nSlmN0gYWwxGXuuCMQURanpHzzkwadGCutimVKCQ2hihmJvct5BC2QHHC7MN8UbKsiJacHAJLCEgw+F2TSPqU0KcdvRp0aDCiNfWy955BZjbNmaCIwOkoemkUBLqQhbu1Ww0mhwZe28urDkGqYVOAv+oY9GvAz25ousT3/o5/lemrZyeL3KsICnszwJQCjLwGTd9jN1HRN4lBxkd3NTpXtvDz/x/T2oQhQZEz74/NHOy5FDWtXLRj1AkWm3qsocmtKAD9VJt8iuK85svdMGtOJCIe1V560Qrilzo9PkMqUbheOScWfj2AukCm+PWtlQbQO63G0mv2q//QNwDHlIIsyy2KW2nHgeKR41IWX4ZM/lRBYxGshnuraqKw7fwIDErqxxTCcfIxYNQN5koqq5Df8K1IP0kRik77bLXmE0q5n9Fnaq+1WzrsexdIW0ztwSK+0z1WC50NzGf25F9JVEth9Vnq+5icl5blfdvLTmI73SykxfKmB7MGRPtpaPowXn2UiQBdRwXt5j5o/cn2IXo6TcpDKsNF5hxDpKVpD70AC9RAP4Ea4WhOL5tTkcLpjbM+vw6KX5YsJM1KiV3n3I7jp+31BG5M11u/10RgB
+
+I see! There are reasoning summary events coming through:
+- `response.reasoning_summary_part.added` - starts the reasoning summary
+- `response.reasoning_summary_text.delta` - incremental text for the reasoning summary
+
+We need to handle these events to show thinking output. Let me add handlers for these.
+
+# ASSISTANT
+
+I see! The reasoning/thinking is coming through as `response.reasoning_summary_text.delta` events. We need to handle those to show the thinking output. Let me add support for that:
+
+# TOOL USE
+
+Name: str-replace
+ID: toolu_01EN9PcG4vfqsSiXXAMqGGjr
+
+## path
+
+<tool.toolu_01EN9PcG4vfqsSiXXAMqGGjr>
+greger-openrouter.el
+</tool.toolu_01EN9PcG4vfqsSiXXAMqGGjr>
+
+## git-commit-message
+
+<tool.toolu_01EN9PcG4vfqsSiXXAMqGGjr>
+Add support for streaming reasoning/thinking output
+</tool.toolu_01EN9PcG4vfqsSiXXAMqGGjr>
+
+## diff
+
+<tool.toolu_01EN9PcG4vfqsSiXXAMqGGjr>
++           ;; Handle reasoning summary part being added (starts thinking block)
++           ((string= event-type "response.reasoning_summary_part.added")
++            (unless (greger-openrouter-state-thinking-started state)
++              (setf (greger-openrouter-state-thinking-started state) t)
++              (when-let ((block-start-callback (greger-openrouter-state-block-start-callback state)))
++                (funcall block-start-callback
++                         `((type . "thinking")
++                           (thinking . "")
++                           (signature . ""))))))
++           
++           ;; Handle reasoning summary text updates
++           ((string= event-type "response.reasoning_summary_text.delta")
++            (when-let ((text (alist-get 'delta data)))
++              (let ((text-delta-callback (greger-openrouter-state-text-delta-callback state)))
++                (setf (greger-openrouter-state-current-reasoning-text state)
++                      (concat (or (greger-openrouter-state-current-reasoning-text state) "") text))
++                (when text-delta-callback
++                  (funcall text-delta-callback text)))))
++           
+            ;; Handle content part being added (starts the text block)
+            ((string= event-type "response.content_part.added")
+             (when-let* ((part (alist-get 'part data))
+                         ((string= (alist-get 'type part) "output_text")))
+               (unless (greger-openrouter-state-text-started state)
+                 (setf (greger-openrouter-state-text-started state) t)
+                 (when-let ((block-start-callback (greger-openrouter-state-block-start-callback state)))
+                   (funcall block-start-callback
+                            `((type . "text")
+                              (text . "")))))))
+            
+            ;; Handle incremental text updates
+            ((string= event-type "response.output_text.delta")
+\ No newline at end of file
+
+</tool.toolu_01EN9PcG4vfqsSiXXAMqGGjr>
+
+# TOOL RESULT
+
+ID: toolu_01EN9PcG4vfqsSiXXAMqGGjr
+
+<tool.toolu_01EN9PcG4vfqsSiXXAMqGGjr>
+
+</tool.toolu_01EN9PcG4vfqsSiXXAMqGGjr>
