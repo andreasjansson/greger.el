@@ -16192,5 +16192,59 @@ Simplify event handlers - remove started checks
 ID: toolu_01HQcfrWvoRViNYkZEFLMnNa
 
 <tool.toolu_01HQcfrWvoRViNYkZEFLMnNa>
-
+Successfully replaced content in /Users/andreas/projects/greger.el/greger-openrouter.el. Successfully staged 2 file(s) and committed with message: Simplify event handlers - remove started checks
 </tool.toolu_01HQcfrWvoRViNYkZEFLMnNa>
+
+# TOOL USE
+
+Name: str-replace
+ID: toolu_01G59XUuYTp3PH1E7iJRUgNE
+
+## path
+
+<tool.toolu_01G59XUuYTp3PH1E7iJRUgNE>
+greger-openrouter.el
+</tool.toolu_01G59XUuYTp3PH1E7iJRUgNE>
+
+## git-commit-message
+
+<tool.toolu_01G59XUuYTp3PH1E7iJRUgNE>
+Simplify completed event handler
+</tool.toolu_01G59XUuYTp3PH1E7iJRUgNE>
+
+## diff
+
+<tool.toolu_01G59XUuYTp3PH1E7iJRUgNE>
+                 (when text
+-                  ;; If we never got streaming events, start the block now
+-                  (unless (greger-openrouter-state-text-started state)
+-                    (setf (greger-openrouter-state-text-started state) t)
+-                    (when-let ((block-start-callback (greger-openrouter-state-block-start-callback state)))
+-                      (funcall block-start-callback
+-                               `((type . "text")
+-                                 (text . "")))))
++                  ;; If we never got streaming events, we need to handle it here
++                  ;; Start the block
++                  (when-let ((block-start-callback (greger-openrouter-state-block-start-callback state)))
++                    (funcall block-start-callback
++                             `((type . "text")
++                               (text . ""))))
+                   
+                   ;; Set the full text
+                   (setf (greger-openrouter-state-current-text state) text)
+                   
+-                  ;; If we have a text-delta callback, send all the text at once
++                  ;; Send all the text at once
+                   (when-let ((text-delta-callback (greger-openrouter-state-text-delta-callback state)))
+                     (funcall text-delta-callback text)))
+\ No newline at end of file
+
+</tool.toolu_01G59XUuYTp3PH1E7iJRUgNE>
+
+# TOOL RESULT
+
+ID: toolu_01G59XUuYTp3PH1E7iJRUgNE
+
+<tool.toolu_01G59XUuYTp3PH1E7iJRUgNE>
+
+</tool.toolu_01G59XUuYTp3PH1E7iJRUgNE>

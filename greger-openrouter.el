@@ -380,18 +380,17 @@ OpenAI function calling doesn't support default values."
                      (text (when text-content (alist-get 'text text-content))))
                 
                 (when text
-                  ;; If we never got streaming events, start the block now
-                  (unless (greger-openrouter-state-text-started state)
-                    (setf (greger-openrouter-state-text-started state) t)
-                    (when-let ((block-start-callback (greger-openrouter-state-block-start-callback state)))
-                      (funcall block-start-callback
-                               `((type . "text")
-                                 (text . "")))))
+                  ;; If we never got streaming events, we need to handle it here
+                  ;; Start the block
+                  (when-let ((block-start-callback (greger-openrouter-state-block-start-callback state)))
+                    (funcall block-start-callback
+                             `((type . "text")
+                               (text . ""))))
                   
                   ;; Set the full text
                   (setf (greger-openrouter-state-current-text state) text)
                   
-                  ;; If we have a text-delta callback, send all the text at once
+                  ;; Send all the text at once
                   (when-let ((text-delta-callback (greger-openrouter-state-text-delta-callback state)))
                     (funcall text-delta-callback text)))
                 
