@@ -1285,15 +1285,11 @@ Raises an error if evaluation fails."
 - Evaluate evals in current user section (last user section only)
 - Replace eval blocks with eval results
 - Raise errors if evaluation fails"
-  (message "=== GREGER EVAL DEBUG: Starting eval processing ===")
-  
   ;; Process system sections
   (when-let* ((root-node (treesit-buffer-root-node))
               (system-nodes (treesit-query-capture root-node '((system) @system))))
-    (message "GREGER EVAL: Found %d system sections" (length system-nodes))
     (dolist (capture system-nodes)
       (when (eq (car capture) 'system)
-        (message "GREGER EVAL: Processing SYSTEM section")
         (greger--process-evals-in-node (cdr capture) :clear-existing t))))
   
   ;; Get a FRESH root node after system processing
@@ -1301,10 +1297,7 @@ Raises an error if evaluation fails."
   (when-let* ((fresh-root-node (treesit-buffer-root-node))
               (user-nodes (treesit-query-capture fresh-root-node '((user) @user)))
               (last-user-node (cdar (last user-nodes))))
-    (message "GREGER EVAL: Found %d user sections, processing last one" (length user-nodes))
-    (greger--process-evals-in-node last-user-node :clear-existing t))
-  
-  (message "=== GREGER EVAL DEBUG: Finished eval processing ==="))
+    (greger--process-evals-in-node last-user-node :clear-existing t)))
 
 (cl-defun greger--process-evals-in-node (node &key clear-existing)
   "Process all eval blocks in NODE.
