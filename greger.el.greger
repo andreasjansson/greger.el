@@ -9414,5 +9414,175 @@ Remove duplicate dialog converter function
 ID: toolu_01KKsjiWs2Sv89ksDKcEMPB4
 
 <tool.toolu_01KKsjiWs2Sv89ksDKcEMPB4>
-
+Successfully replaced content in /Users/andreas/projects/greger.el/greger-openrouter.el. Successfully staged 2 file(s) and committed with message: Remove duplicate dialog converter function
 </tool.toolu_01KKsjiWs2Sv89ksDKcEMPB4>
+
+# TOOL USE
+
+Name: str-replace
+ID: toolu_01TBFFKEDQoe8jqrJ2QDa2tq
+
+## path
+
+<tool.toolu_01TBFFKEDQoe8jqrJ2QDa2tq>
+greger-openrouter.el
+</tool.toolu_01TBFFKEDQoe8jqrJ2QDa2tq>
+
+## original-content
+
+<tool.toolu_01TBFFKEDQoe8jqrJ2QDa2tq>
+(defun greger-openrouter--convert-content-blocks (role content-blocks)
+  "Convert Greger content blocks to OpenRouter Chat Completions message format.
+Handles thinking blocks by decoding reasoning_details from signature field.
+Converts citations back to OpenRouter annotations format."
+  (let (result-messages
+        current-text
+        tool-calls
+        reasoning-details)
+    
+    (dolist (block content-blocks)
+      (let ((type (alist-get 'type block)))
+        (cond
+         ((string= type "text")
+          (setq current-text (alist-get 'text block)))
+         
+         ((string= type "thinking")
+          (let ((thinking-text (alist-get 'thinking block))
+                (signature (alist-get 'signature block)))
+            
+            (setq current-text thinking-text)
+            
+            (when (and signature (not (string-empty-p signature)))
+              (condition-case nil
+                  (let* ((decoded (decode-coding-string (base64-decode-string signature) 'utf-8))
+                         (parsed (json-read-from-string decoded)))
+                    (when (vectorp parsed)
+                      (setq reasoning-details parsed)))
+                (error nil)))))
+         
+         ((string= type "tool_use")
+          (let ((tool-call `((id . ,(alist-get 'id block))
+                             (type . "function")
+                             (function . ((name . ,(alist-get 'name block))
+                                          (arguments . ,(json-encode (alist-get 'input block))))))))
+            (push tool-call tool-calls)))
+         
+         ((string= type "tool_result")
+          (let ((tool-msg `((role . "tool")
+                            (tool_call_id . ,(alist-get 'tool_use_id block))
+                            (content . ,(alist-get 'content block)))))
+            (push tool-msg result-messages))))))
+    
+    (when (or current-text tool-calls reasoning-details)
+      (let ((msg `((role . ,role))))
+        (when current-text
+          (push `(content . ,current-text) msg))
+        (when tool-calls
+          (push `(tool_calls . ,(vconcat (nreverse tool-calls))) msg))
+        (when reasoning-details
+          (push `(reasoning_details . ,reasoning-details) msg))
+        (push msg result-messages)))
+    
+    (nreverse result-messages)))
+
+(defun greger-openrouter--convert-content-blocks-to-responses (role content-blocks)
+  "Convert Greger content blocks to Responses API format.
+Uses structured content with type fields for the Responses API."
+  (let (result-messages
+        current-content-items)
+    
+    (dolist (block content-blocks)
+      (let ((type (alist-get 'type block)))
+        (cond
+         ((string= type "text")
+          (push `((type . "input_text")
+                  (text . ,(alist-get 'text block)))
+                current-content-items))
+         
+         ((string= type "thinking")
+          (push `((type . "input_text")
+                  (text . ,(alist-get 'thinking block)))
+                current-content-items))
+         
+         ((string= type "tool_use")
+          (when current-content-items
+            (push `((type . "message")
+                    (role . ,role)
+                    (content . ,(vconcat (nreverse current-content-items))))
+                  result-messages)
+            (setq current-content-items nil)))
+         
+         ((string= type "tool_result")
+          (push `((type . "message")
+                  (role . "user")
+                  (content . [((type . "input_text")
+                               (text . ,(alist-get 'content block)))]))
+                result-messages)))))
+    
+    (when current-content-items
+      (push `((type . "message")
+              (role . ,role)
+              (content . ,(vconcat (nreverse current-content-items))))
+            result-messages))
+    
+    (nreverse result-messages)))
+</tool.toolu_01TBFFKEDQoe8jqrJ2QDa2tq>
+
+## new-content
+
+<tool.toolu_01TBFFKEDQoe8jqrJ2QDa2tq>
+(defun greger-openrouter--convert-content-blocks (role content-blocks)
+  "Convert Greger content blocks to Responses API format."
+  (let (result-messages
+        current-content-items)
+    
+    (dolist (block content-blocks)
+      (let ((type (alist-get 'type block)))
+        (cond
+         ((string= type "text")
+          (push `((type . "input_text")
+                  (text . ,(alist-get 'text block)))
+                current-content-items))
+         
+         ((string= type "thinking")
+          (push `((type . "input_text")
+                  (text . ,(alist-get 'thinking block)))
+                current-content-items))
+         
+         ((string= type "tool_use")
+          (when current-content-items
+            (push `((type . "message")
+                    (role . ,role)
+                    (content . ,(vconcat (nreverse current-content-items))))
+                  result-messages)
+            (setq current-content-items nil)))
+         
+         ((string= type "tool_result")
+          (push `((type . "message")
+                  (role . "user")
+                  (content . [((type . "input_text")
+                               (text . ,(alist-get 'content block)))]))
+                result-messages)))))
+    
+    (when current-content-items
+      (push `((type . "message")
+              (role . ,role)
+              (content . ,(vconcat (nreverse current-content-items))))
+            result-messages))
+    
+    (nreverse result-messages)))
+</tool.toolu_01TBFFKEDQoe8jqrJ2QDa2tq>
+
+## git-commit-message
+
+<tool.toolu_01TBFFKEDQoe8jqrJ2QDa2tq>
+Remove duplicate content blocks converter
+</tool.toolu_01TBFFKEDQoe8jqrJ2QDa2tq>
+
+# TOOL RESULT
+
+ID: toolu_01TBFFKEDQoe8jqrJ2QDa2tq
+
+<tool.toolu_01TBFFKEDQoe8jqrJ2QDa2tq>
+
+</tool.toolu_01TBFFKEDQoe8jqrJ2QDa2tq>

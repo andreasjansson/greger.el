@@ -164,62 +164,7 @@ ERROR-CALLBACK is called when errors occur."
       result)))
 
 (defun greger-openrouter--convert-content-blocks (role content-blocks)
-  "Convert Greger content blocks to OpenRouter Chat Completions message format.
-Handles thinking blocks by decoding reasoning_details from signature field.
-Converts citations back to OpenRouter annotations format."
-  (let (result-messages
-        current-text
-        tool-calls
-        reasoning-details)
-    
-    (dolist (block content-blocks)
-      (let ((type (alist-get 'type block)))
-        (cond
-         ((string= type "text")
-          (setq current-text (alist-get 'text block)))
-         
-         ((string= type "thinking")
-          (let ((thinking-text (alist-get 'thinking block))
-                (signature (alist-get 'signature block)))
-            
-            (setq current-text thinking-text)
-            
-            (when (and signature (not (string-empty-p signature)))
-              (condition-case nil
-                  (let* ((decoded (decode-coding-string (base64-decode-string signature) 'utf-8))
-                         (parsed (json-read-from-string decoded)))
-                    (when (vectorp parsed)
-                      (setq reasoning-details parsed)))
-                (error nil)))))
-         
-         ((string= type "tool_use")
-          (let ((tool-call `((id . ,(alist-get 'id block))
-                             (type . "function")
-                             (function . ((name . ,(alist-get 'name block))
-                                          (arguments . ,(json-encode (alist-get 'input block))))))))
-            (push tool-call tool-calls)))
-         
-         ((string= type "tool_result")
-          (let ((tool-msg `((role . "tool")
-                            (tool_call_id . ,(alist-get 'tool_use_id block))
-                            (content . ,(alist-get 'content block)))))
-            (push tool-msg result-messages))))))
-    
-    (when (or current-text tool-calls reasoning-details)
-      (let ((msg `((role . ,role))))
-        (when current-text
-          (push `(content . ,current-text) msg))
-        (when tool-calls
-          (push `(tool_calls . ,(vconcat (nreverse tool-calls))) msg))
-        (when reasoning-details
-          (push `(reasoning_details . ,reasoning-details) msg))
-        (push msg result-messages)))
-    
-    (nreverse result-messages)))
-
-(defun greger-openrouter--convert-content-blocks-to-responses (role content-blocks)
-  "Convert Greger content blocks to Responses API format.
-Uses structured content with type fields for the Responses API."
+  "Convert Greger content blocks to Responses API format."
   (let (result-messages
         current-content-items)
     
