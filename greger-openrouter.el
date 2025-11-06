@@ -159,10 +159,12 @@ ERROR-CALLBACK is called when errors occur."
       result)))
 
 (defun greger-openrouter--convert-content-blocks (role content-blocks)
-  "Convert Anthropic content blocks to OpenAI format."
+  "Convert Greger content blocks to OpenRouter message format.
+Handles thinking blocks by decoding reasoning_details from signature field."
   (let (result-messages
         current-text
-        tool-calls)
+        tool-calls
+        reasoning-details)
     
     (dolist (block content-blocks)
       (let ((type (alist-get 'type block)))
@@ -171,7 +173,18 @@ ERROR-CALLBACK is called when errors occur."
           (setq current-text (alist-get 'text block)))
          
          ((string= type "thinking")
-          (setq current-text (alist-get 'thinking block)))
+          (let ((thinking-text (alist-get 'thinking block))
+                (signature (alist-get 'signature block)))
+            
+            (setq current-text thinking-text)
+            
+            (when (and signature (not (string-empty-p signature)))
+              (condition-case nil
+                  (let* ((decoded (base64-decode-string signature))
+                         (parsed (json-read-from-string decoded)))
+                    (when (vectorp parsed)
+                      (setq reasoning-details parsed)))
+                (error nil)))))
          
          ((string= type "tool_use")
           (let ((tool-call `((id . ,(alist-get 'id block))
@@ -186,12 +199,14 @@ ERROR-CALLBACK is called when errors occur."
                             (content . ,(alist-get 'content block)))))
             (push tool-msg result-messages))))))
     
-    (when (or current-text tool-calls)
+    (when (or current-text tool-calls reasoning-details)
       (let ((msg `((role . ,role))))
         (when current-text
           (push `(content . ,current-text) msg))
         (when tool-calls
           (push `(tool_calls . ,(vconcat (nreverse tool-calls))) msg))
+        (when reasoning-details
+          (push `(reasoning_details . ,reasoning-details) msg))
         (push msg result-messages)))
     
     (nreverse result-messages)))

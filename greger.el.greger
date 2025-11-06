@@ -7058,5 +7058,99 @@ Update content blocks builder to include THINKING blocks with base64-encoded sig
 ID: toolu_01EZDBQS5BBExenPPKBBTpjp
 
 <tool.toolu_01EZDBQS5BBExenPPKBBTpjp>
-
+Successfully replaced content in /Users/andreas/projects/greger.el/greger-openrouter.el. Successfully staged 2 file(s) and committed with message: Update content blocks builder to include THINKING blocks with base64-encoded signature
 </tool.toolu_01EZDBQS5BBExenPPKBBTpjp>
+
+# ASSISTANT
+
+## Phase 4: Update Dialog Conversion to Handle THINKING Blocks
+
+Now I need to update the `greger-openrouter--convert-content-blocks` function to decode THINKING blocks and add `reasoning_details` to assistant messages:
+
+# TOOL USE
+
+Name: str-replace
+ID: toolu_012oNvVRgmsjeSBYA3ovH5CQ
+
+## path
+
+<tool.toolu_012oNvVRgmsjeSBYA3ovH5CQ>
+greger-openrouter.el
+</tool.toolu_012oNvVRgmsjeSBYA3ovH5CQ>
+
+## git-commit-message
+
+<tool.toolu_012oNvVRgmsjeSBYA3ovH5CQ>
+Update content blocks conversion to decode THINKING signatures and add reasoning_details
+</tool.toolu_012oNvVRgmsjeSBYA3ovH5CQ>
+
+## diff
+
+<tool.toolu_012oNvVRgmsjeSBYA3ovH5CQ>
+ (defun greger-openrouter--convert-content-blocks (role content-blocks)
+-  "Convert Anthropic content blocks to OpenAI format."
++  "Convert Greger content blocks to OpenRouter message format.
++Handles thinking blocks by decoding reasoning_details from signature field."
+   (let (result-messages
+         current-text
+-        tool-calls)
++        tool-calls
++        reasoning-details)
+     
+     (dolist (block content-blocks)
+       (let ((type (alist-get 'type block)))
+         (cond
+          ((string= type "text")
+           (setq current-text (alist-get 'text block)))
+          
+          ((string= type "thinking")
+-          (setq current-text (alist-get 'thinking block)))
++          (let ((thinking-text (alist-get 'thinking block))
++                (signature (alist-get 'signature block)))
++            
++            (setq current-text thinking-text)
++            
++            (when (and signature (not (string-empty-p signature)))
++              (condition-case nil
++                  (let* ((decoded (base64-decode-string signature))
++                         (parsed (json-read-from-string decoded)))
++                    (when (vectorp parsed)
++                      (setq reasoning-details parsed)))
++                (error nil)))))
+          
+          ((string= type "tool_use")
+           (let ((tool-call `((id . ,(alist-get 'id block))
+                              (type . "function")
+                              (function . ((name . ,(alist-get 'name block))
+                                           (arguments . ,(json-encode (alist-get 'input block))))))))
+             (push tool-call tool-calls)))
+          
+          ((string= type "tool_result")
+           (let ((tool-msg `((role . "tool")
+                             (tool_call_id . ,(alist-get 'tool_use_id block))
+                             (content . ,(alist-get 'content block)))))
+             (push tool-msg result-messages))))))
+     
+-    (when (or current-text tool-calls)
++    (when (or current-text tool-calls reasoning-details)
+       (let ((msg `((role . ,role))))
+         (when current-text
+           (push `(content . ,current-text) msg))
+         (when tool-calls
+           (push `(tool_calls . ,(vconcat (nreverse tool-calls))) msg))
++        (when reasoning-details
++          (push `(reasoning_details . ,reasoning-details) msg))
+         (push msg result-messages)))
+     
+     (nreverse result-messages)))
+\ No newline at end of file
+
+</tool.toolu_012oNvVRgmsjeSBYA3ovH5CQ>
+
+# TOOL RESULT
+
+ID: toolu_012oNvVRgmsjeSBYA3ovH5CQ
+
+<tool.toolu_012oNvVRgmsjeSBYA3ovH5CQ>
+
+</tool.toolu_012oNvVRgmsjeSBYA3ovH5CQ>
