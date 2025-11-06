@@ -9669,5 +9669,127 @@ Remove Chat Completions event handler
 ID: toolu_01DDnY87rbCfrKMGqN96TBCS
 
 <tool.toolu_01DDnY87rbCfrKMGqN96TBCS>
-
+Successfully replaced content in /Users/andreas/projects/greger.el/greger-openrouter.el. Successfully staged 2 file(s) and committed with message: Remove Chat Completions event handler
 </tool.toolu_01DDnY87rbCfrKMGqN96TBCS>
+
+# ASSISTANT
+
+Now let me also remove the reasoning delta handler and tool calls accumulator since those were for the Chat Completions format. Let me check what's still using them:
+
+# TOOL USE
+
+Name: ripgrep
+ID: toolu_01LYw3UhmCynLpxgnytTbjUD
+
+## pattern
+
+<tool.toolu_01LYw3UhmCynLpxgnytTbjUD>
+greger-openrouter--handle-reasoning-delta|greger-openrouter--accumulate-tool-calls
+</tool.toolu_01LYw3UhmCynLpxgnytTbjUD>
+
+## path
+
+<tool.toolu_01LYw3UhmCynLpxgnytTbjUD>
+greger-openrouter.el
+</tool.toolu_01LYw3UhmCynLpxgnytTbjUD>
+
+# TOOL RESULT
+
+ID: toolu_01LYw3UhmCynLpxgnytTbjUD
+
+<tool.toolu_01LYw3UhmCynLpxgnytTbjUD>
+356:(defun greger-openrouter--handle-reasoning-delta (delta state)
+384:(defun greger-openrouter--accumulate-tool-calls (delta state)
+
+</tool.toolu_01LYw3UhmCynLpxgnytTbjUD>
+
+# ASSISTANT
+
+Good, they're not referenced anymore. Let me remove them:
+
+# TOOL USE
+
+Name: str-replace
+ID: toolu_01XQNijnNTRJNT6J9LjXqrzV
+
+## path
+
+<tool.toolu_01XQNijnNTRJNT6J9LjXqrzV>
+greger-openrouter.el
+</tool.toolu_01XQNijnNTRJNT6J9LjXqrzV>
+
+## git-commit-message
+
+<tool.toolu_01XQNijnNTRJNT6J9LjXqrzV>
+Remove unused Chat Completions helper functions
+</tool.toolu_01XQNijnNTRJNT6J9LjXqrzV>
+
+## original-content
+
+<tool.toolu_01XQNijnNTRJNT6J9LjXqrzV>
+(defun greger-openrouter--handle-reasoning-delta (delta state)
+  "Handle reasoning/thinking delta and convert to Greger thinking format.
+Accumulates both readable text and full reasoning_details array."
+  (let ((reasoning-text (alist-get 'reasoning delta))
+        (reasoning-details (alist-get 'reasoning_details delta))
+        (block-start-callback (greger-openrouter-state-block-start-callback state))
+        (text-delta-callback (greger-openrouter-state-text-delta-callback state)))
+    
+    (unless (greger-openrouter-state-thinking-started state)
+      (setf (greger-openrouter-state-thinking-started state) t)
+      (when block-start-callback
+        (funcall block-start-callback
+                 `((type . "thinking")
+                   (thinking . "")
+                   (signature . "")))))
+    
+    (when reasoning-text
+      (setf (greger-openrouter-state-current-reasoning-text state)
+            (concat (or (greger-openrouter-state-current-reasoning-text state) "")
+                    reasoning-text))
+      (when text-delta-callback
+        (funcall text-delta-callback reasoning-text)))
+    
+    (when reasoning-details
+      (let ((current (or (greger-openrouter-state-current-reasoning-details state) [])))
+        (setf (greger-openrouter-state-current-reasoning-details state)
+              (vconcat current reasoning-details))))))
+
+(defun greger-openrouter--accumulate-tool-calls (delta state)
+  "Accumulate tool call deltas."
+  (let ((tool-calls (alist-get 'tool_calls delta))
+        (accumulated (greger-openrouter-state-current-tool-calls state)))
+    
+    (when tool-calls
+      (seq-doseq (call tool-calls)
+        (let* ((index (alist-get 'index call))
+               (id (alist-get 'id call))
+               (function-delta (alist-get 'function call))
+               (name (alist-get 'name function-delta))
+               (arguments (alist-get 'arguments function-delta))
+               (existing (gethash index accumulated)))
+          
+          (if existing
+              (let ((existing-args (alist-get 'arguments existing)))
+                (setf (alist-get 'arguments existing)
+                      (concat existing-args arguments)))
+            (puthash index
+                     `((id . ,id)
+                       (name . ,name)
+                       (arguments . ,arguments))
+                     accumulated)))))))
+</tool.toolu_01XQNijnNTRJNT6J9LjXqrzV>
+
+## new-content
+
+<tool.toolu_01XQNijnNTRJNT6J9LjXqrzV>
+
+</tool.toolu_01XQNijnNTRJNT6J9LjXqrzV>
+
+# TOOL RESULT
+
+ID: toolu_01XQNijnNTRJNT6J9LjXqrzV
+
+<tool.toolu_01XQNijnNTRJNT6J9LjXqrzV>
+
+</tool.toolu_01XQNijnNTRJNT6J9LjXqrzV>

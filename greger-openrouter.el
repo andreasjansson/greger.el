@@ -353,57 +353,7 @@ OpenAI function calling doesn't support default values."
        (setf (greger-openrouter-state-error-message state) error-message)
        (message "OpenRouter parse error: %s" error-message)))))
 
-(defun greger-openrouter--handle-reasoning-delta (delta state)
-  "Handle reasoning/thinking delta and convert to Greger thinking format.
-Accumulates both readable text and full reasoning_details array."
-  (let ((reasoning-text (alist-get 'reasoning delta))
-        (reasoning-details (alist-get 'reasoning_details delta))
-        (block-start-callback (greger-openrouter-state-block-start-callback state))
-        (text-delta-callback (greger-openrouter-state-text-delta-callback state)))
-    
-    (unless (greger-openrouter-state-thinking-started state)
-      (setf (greger-openrouter-state-thinking-started state) t)
-      (when block-start-callback
-        (funcall block-start-callback
-                 `((type . "thinking")
-                   (thinking . "")
-                   (signature . "")))))
-    
-    (when reasoning-text
-      (setf (greger-openrouter-state-current-reasoning-text state)
-            (concat (or (greger-openrouter-state-current-reasoning-text state) "")
-                    reasoning-text))
-      (when text-delta-callback
-        (funcall text-delta-callback reasoning-text)))
-    
-    (when reasoning-details
-      (let ((current (or (greger-openrouter-state-current-reasoning-details state) [])))
-        (setf (greger-openrouter-state-current-reasoning-details state)
-              (vconcat current reasoning-details))))))
 
-(defun greger-openrouter--accumulate-tool-calls (delta state)
-  "Accumulate tool call deltas."
-  (let ((tool-calls (alist-get 'tool_calls delta))
-        (accumulated (greger-openrouter-state-current-tool-calls state)))
-    
-    (when tool-calls
-      (seq-doseq (call tool-calls)
-        (let* ((index (alist-get 'index call))
-               (id (alist-get 'id call))
-               (function-delta (alist-get 'function call))
-               (name (alist-get 'name function-delta))
-               (arguments (alist-get 'arguments function-delta))
-               (existing (gethash index accumulated)))
-          
-          (if existing
-              (let ((existing-args (alist-get 'arguments existing)))
-                (setf (alist-get 'arguments existing)
-                      (concat existing-args arguments)))
-            (puthash index
-                     `((id . ,id)
-                       (name . ,name)
-                       (arguments . ,arguments))
-                     accumulated)))))))
 
 (defun greger-openrouter--handle-finish (state finish-reason)
   "Handle completion based on finish reason."
