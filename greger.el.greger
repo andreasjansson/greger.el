@@ -2,7 +2,7 @@
 
 You are Greger, and expert coding agent.
 
-${greger-prompt-code-style<eval-result-135404309718>
+${greger-prompt-code-style<eval-result-144107996677>
 # Code style
 
 ## Don't be overly defensive
@@ -26,10 +26,10 @@ Important: The first time you read a source code file, read the _entire_ file (_
 ## IMPORTANT: NO SUMMARY DOCUMENTS!!!
 
 IMPORTANT: DON'T write summary documents (e.g. SUMMARY.md, FINAL_REPORT.md) unless the user explicitly asks you to. If you feel the need to explain something, just do it in the chat. The ONLY exception to this rule is if the user explicitly asks you to write up a markdown file on disk.
-</eval-result-135404309718>}
+</eval-result-144107996677>}
 
-${:sh cat CLAUDE.md || true<eval-result-135404725066>cat: CLAUDE.md: No such file or directory
-</eval-result-135404725066>}
+${:sh cat CLAUDE.md || true<eval-result-144107112328>cat: CLAUDE.md: No such file or directory
+</eval-result-144107112328>}
 
 # USER
 
@@ -7745,5 +7745,209 @@ Call block-stop-callback for THINKING blocks at completion
 ID: toolu_01Tv55Qu1Xx4ZdnbUqahtScy
 
 <tool.toolu_01Tv55Qu1Xx4ZdnbUqahtScy>
-
+Successfully replaced content in /Users/andreas/projects/greger.el/greger-openrouter.el. Successfully staged 2 file(s) and committed with message: Call block-stop-callback for THINKING blocks at completion
 </tool.toolu_01Tv55Qu1Xx4ZdnbUqahtScy>
+
+# ASSISTANT
+
+Excellent! Now the implementation is complete. Let me create a summary document to verify everything is working correctly:
+
+## Summary of Implementation
+
+I've successfully implemented OpenRouter reasoning support by reusing the existing THINKING architecture. Here's what was done:
+
+### Changes Made
+
+1. **Added reasoning state fields** to `greger-openrouter-state`:
+   - `reasoning-started` - flag for first reasoning delta
+   - `current-reasoning-text` - accumulates human-readable text
+   - `current-reasoning-details` - accumulates full reasoning_details array
+
+2. **Updated `greger-openrouter--handle-reasoning-delta`**:
+   - Accumulates reasoning text for streaming display
+   - Accumulates reasoning_details array objects for API passback
+   - Calls block-start callback on first reasoning delta
+
+3. **Updated `greger-openrouter--build-content-blocks`**:
+   - Creates THINKING blocks (not "reasoning" blocks)
+   - Base64-encodes the reasoning_details array into signature field
+   - Uses accumulated text for the thinking field
+
+4. **Updated `greger-openrouter--convert-content-blocks`**:
+   - Detects THINKING blocks during dialog parsing
+   - Base64-decodes signature field
+   - JSON-parses to get reasoning_details array
+   - Adds reasoning_details to assistant message if decode succeeds
+   - Gracefully ignores if signature is Claude's cryptographic hash
+
+5. **Updated `greger-openrouter--handle-finish`**:
+   - Calls block-stop-callback for all content blocks
+   - Ensures thinking signatures get inserted
+
+### Key Features
+
+- **Zero parser changes needed** - THINKING blocks already support signature field
+- **Dual-purpose signature field**:
+  - Claude: Cryptographic verification (hex hash)
+  - OpenRouter: Reasoning continuity (base64-encoded reasoning_details JSON)
+- **Full reasoning_details preservation** enables conversation continuity across tool calls
+- **Automatic detection** - decode signature; if JSON array, use as reasoning_details
+- **Backward/forward compatible** - Claude and OpenRouter THINKING blocks coexist
+
+### Data Flow
+
+1. OpenRouter streams reasoning deltas → accumulate text + details array
+2. At completion → build THINKING block with base64 signature
+3. Render to markdown with signature line
+4. On next turn → parse THINKING block, decode signature
+5. Add reasoning_details to assistant message → send back to OpenRouter
+6. Model continues reasoning from previous context
+
+The implementation preserves Greger's philosophy of transparency while enabling advanced reasoning features from OpenRouter's 400+ models!
+
+# USER
+
+Is the thinking content streamed to the greger buffer? If not, make it so
+
+# THINKING
+
+Signature: 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
+
+The user is asking if the thinking content is being streamed to the greger buffer in real-time. Let me trace through the code to see:
+
+1. In `greger-openrouter--handle-reasoning-delta`, we have:
+```elisp
+(when reasoning-text
+  (setf (greger-openrouter-state-current-reasoning-text state)
+        (concat (or (greger-openrouter-state-current-reasoning-text state) "")
+                reasoning-text))
+  (when text-delta-callback
+    (funcall text-delta-callback reasoning-text)))
+```
+
+So yes, we ARE calling `text-delta-callback` with the reasoning text chunks. This should stream the text to the buffer.
+
+However, let me check if we're calling the `block-start-callback` to insert the `# THINKING` header before streaming starts:
+
+```elisp
+(unless (greger-openrouter-state-reasoning-started state)
+  (setf (greger-openrouter-state-reasoning-started state) t)
+  (when block-start-callback
+    (funcall block-start-callback
+             `((type . "thinking")
+               (thinking . "")
+               (signature . "")))))
+```
+
+Yes! We ARE calling `block-start-callback` with a THINKING block. This should trigger `greger--append-streaming-content-header` which should insert the `# THINKING` header.
+
+Let me check what `greger--append-streaming-content-header` does for thinking blocks:
+
+```elisp
+(defun greger--append-streaming-content-header (state content-block)
+  "Append appropriate header for streaming CONTENT-BLOCK to STATE."
+  
+  (greger--force-code-close state)
+  
+  (let ((type (alist-get 'type content-block))
+        (has-citations (assq 'citations content-block)))
+    (cond
+     ((and (string= type "text") (not has-citations))
+      (greger--append-text state (concat "\n\n" greger-parser-assistant-tag "\n\n")))
+     ((string= type "thinking")
+      (greger--append-text state (concat "\n\n" greger-parser-thinking-tag "\n\n")))
+     (t nil))))
+```
+
+I see the mechanism for handling different content types. The code specifically handles thinking blocks by inserting a special thinking tag. When the type is "thinking", it adds `\n\n# THINKING\n\n` to the buffer. This ensures that thinking content is clearly marked and visually distinct.
+
+The streaming process involves two key callbacks: `block-start-callback` for initializing the block, and `text-delta-callback` for incrementally adding content. Each reasoning text chunk gets appended to the buffer, creating a real-time streaming effect for the user. The streaming setup looks solid, with callbacks properly configured to handle content blocks. The text-delta callback ensures streaming content appears in real-time. However, I'm realizing the thinking signature insertion depends on the complete reasoning details, which are only available after the full stream finishes.
+
+I'll verify two key points: text streaming works, and the signature gets inserted correctly at stream completion. The current implementation suggests both mechanisms are in place, but I want to confirm the signature insertion timing matches the full reasoning details availability. I realize the reasoning details might not be fully streaming as expected. The current implementation only handles delta-based reasoning through `greger-openrouter--handle-reasoning-delta`, but doesn't capture reasoning details from the complete message. This could explain why the user isn't seeing real-time text streaming. I need to investigate how reasoning details are being processed at different stages of the API response.
+
+The implementation reveals two potential paths for reasoning information: streaming deltas and complete message details. Our current code only processes the delta approach, which might create inconsistent streaming behavior. This suggests we should modify the completion event handler to ensure comprehensive reasoning detail capture. I'm tracking the streaming reasoning process and noticing potential gaps in handling reasoning details. The current implementation accumulates reasoning details during streaming deltas, but might miss encrypted blocks that only appear in the final message event. This suggests we need enhanced event handling to capture complete reasoning information, especially for specialized reasoning types like encrypted blocks that may not be present during incremental updates.
+
+The key observation is ensuring comprehensive reasoning capture across streaming and completion stages, with special attention to edge cases like encrypted reasoning blocks that emerge only at stream conclusion. I'm carefully tracing the streaming mechanism for OpenRouter's reasoning text. The code path confirms real-time text insertion through multiple function calls. Starting from the event handler, when a reasoning delta arrives, it triggers `greger-openrouter--handle-reasoning-delta`, which extracts reasoning text and invokes `text-delta-callback`. This ultimately calls `greger--append-text`, inserting text directly into the buffer. The nested conditional checks ensure proper handling of different delta types, with a specific branch for reasoning deltas. My verification suggests streaming should work as expected, though a final code inspection might reveal subtle implementation details.
+
+The current `cond` structure means only the first matching clause executes, potentially limiting multi-type delta processing. Considering alternative approaches like separate `if` statements could provide more flexible event handling, allowing simultaneous processing of different delta components.
+
+OpenRouter's streaming follows a clear sequence: reasoning deltas first, then content deltas, with potential tool call interactions. This suggests the current implementation should handle streaming effectively.
+
+The core concern seems to be ensuring incremental text generation in the greger buffer. While the code appears designed for streaming, there might be subtle implementation details preventing smooth text progression.
+
+A careful review of the original code and streaming mechanism is needed to confirm full streaming functionality and address potential bottlenecks in delta processing. I see the original function was already streaming thinking text via text-delta-callback. My updated version adds support for reasoning_details while maintaining the core streaming mechanism. The key change is capturing additional reasoning metadata alongside the text delta, which could provide more context about the thinking process.
+
+The function preserves the original streaming behavior by checking for text-delta-callback and calling it with the reasoning text. I've expanded the function's capabilities by introducing reasoning-details as a new parameter, potentially allowing more granular tracking of the reasoning process.
+
+To verify streaming, I'll want to confirm the text-delta-callback is consistently triggered with each reasoning text delta, ensuring a smooth, incremental update of the thinking content.
+
+The state structure reveals potential redundancy with `thinking-started` and `reasoning-started` fields. This might introduce complexity or potential synchronization issues in tracking the reasoning state. I'll investigate whether these parallel fields could interfere with the streaming mechanism.
+
+The original code's naming convention suggests `thinking-started` was the primary field, which means my recent implementation using `reasoning-started` could be causing unexpected behavior. I need to verify the exact usage and potentially consolidate these state tracking mechanisms to ensure consistent streaming.
+
+Examining the original function reveals a clear pattern of using `thinking-started` for tracking the initial state of a thinking process. My current approach of switching to `reasoning-started` appears to deviate from the original design, potentially introducing subtle compatibility issues.
+
+The solution involves reverting back to the original `thinking-started` field and ensuring all related code references this consistent state tracking mechanism.
+
+# ASSISTANT
+
+Looking at the code, thinking content SHOULD be streaming to the buffer, but let me verify the implementation and fix a naming inconsistency I just noticed.
+
+The flow should be:
+1. `greger-openrouter--handle-reasoning-delta` receives reasoning deltas
+2. Calls `block-start-callback` to insert `# THINKING` header
+3. Calls `text-delta-callback` with each text chunk to stream it
+
+However, I notice I'm using `reasoning-started` but the original code used `thinking-started`. Let me fix this inconsistency:
+
+# TOOL USE
+
+Name: str-replace
+ID: toolu_01EEpUREgSPaGzGw2znM1oQo
+
+## path
+
+<tool.toolu_01EEpUREgSPaGzGw2znM1oQo>
+greger-openrouter.el
+</tool.toolu_01EEpUREgSPaGzGw2znM1oQo>
+
+## git-commit-message
+
+<tool.toolu_01EEpUREgSPaGzGw2znM1oQo>
+Remove redundant reasoning-started field, use thinking-started consistently
+</tool.toolu_01EEpUREgSPaGzGw2znM1oQo>
+
+## diff
+
+<tool.toolu_01EEpUREgSPaGzGw2znM1oQo>
+ (cl-defstruct greger-openrouter-state
+   accumulated-output
+   current-tool-calls
+   current-text
+   thinking-started
+   text-started
+   annotations
+-  reasoning-started
+   current-reasoning-text
+   current-reasoning-details
+   process
+   output-buffer
+   undo-handle
+   block-start-callback
+   text-delta-callback
+   block-stop-callback
+   complete-callback
+   restore-callback
+   error-callback
+   error-message)
+\ No newline at end of file
+
+</tool.toolu_01EEpUREgSPaGzGw2znM1oQo>
+
+# TOOL RESULT
+
+ID: toolu_01EEpUREgSPaGzGw2znM1oQo
+
+<tool.toolu_01EEpUREgSPaGzGw2znM1oQo>
+
+</tool.toolu_01EEpUREgSPaGzGw2znM1oQo>
