@@ -457,13 +457,9 @@ contains inline markdown links to sources."
           (stored-error (greger-openrouter-state-error-message state)))
       (cond
        ((and (= exit-code 0) (not stored-error))
-        ;; Call block-stop for each block, then complete callback
-        (let ((content-blocks (greger-openrouter--build-content-blocks state)))
-          (when-let ((block-stop-callback (greger-openrouter-state-block-stop-callback state)))
-            (dolist (block content-blocks)
-              (funcall block-stop-callback (alist-get 'type block) block)))
-          (when-let ((callback (greger-openrouter-state-complete-callback state)))
-            (funcall callback content-blocks))))
+        ;; Just call complete callback - streaming already rendered everything
+        (when-let ((callback (greger-openrouter-state-complete-callback state)))
+          (funcall callback (greger-openrouter--build-content-blocks state))))
        
        ((= exit-code 2)
         (message "Process interrupted"))

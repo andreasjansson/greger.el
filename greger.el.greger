@@ -2,7 +2,7 @@
 
 You are Greger, and expert coding agent.
 
-${greger-prompt-code-style<eval-result-182656656969>
+${greger-prompt-code-style<eval-result-183146948392>
 # Code style
 
 ## Don't be overly defensive
@@ -26,10 +26,10 @@ Important: The first time you read a source code file, read the _entire_ file (_
 ## IMPORTANT: NO SUMMARY DOCUMENTS!!!
 
 IMPORTANT: DON'T write summary documents (e.g. SUMMARY.md, FINAL_REPORT.md) unless the user explicitly asks you to. If you feel the need to explain something, just do it in the chat. The ONLY exception to this rule is if the user explicitly asks you to write up a markdown file on disk.
-</eval-result-182656656969>}
+</eval-result-183146948392>}
 
-${:sh cat CLAUDE.md || true<eval-result-182656112445>cat: CLAUDE.md: No such file or directory
-</eval-result-182656112445>}
+${:sh cat CLAUDE.md || true<eval-result-183146306429>cat: CLAUDE.md: No such file or directory
+</eval-result-183146306429>}
 
 # USER
 
@@ -17585,5 +17585,174 @@ Call block-stop for each block before complete
 ID: toolu_01QdGx7n5pL2WYkeafqdhheT
 
 <tool.toolu_01QdGx7n5pL2WYkeafqdhheT>
-
+Successfully replaced content in /Users/andreas/projects/greger.el/greger-openrouter.el. Successfully staged 2 file(s) and committed with message: Call block-stop for each block before complete
 </tool.toolu_01QdGx7n5pL2WYkeafqdhheT>
+
+# ASSISTANT
+
+Now reload and test:
+
+```elisp
+M-x load-file RET greger-openrouter.el RET
+```
+
+The flow is now:
+1. Streaming events call block-start and text-delta to render content incrementally
+2. When process completes, we call block-stop for each block (to finalize them)
+3. Then we call complete-callback (to add # USER prompt and exit read-only mode)
+
+This matches how greger-client.el works.
+
+# USER
+
+No now it does the rewrite again! The Claude backend definitely doesn't do that!
+
+# THINKING
+
+Signature: Eq4ICkYICRgCKkCW+gWUHOOT9kChPbdZPJa2d2zM9Ga/T89Sj/BQVCRGpg6F3qiWRe4UrS/uJclBpIKmxL52oqgxE8QPYpm973zCEgwYeboLb6wwB0ZiHVIaDLVgUxAT5vzB/zCqUyIwSOOSViCPUEkGUdsJMggMC3qVMmuoC20UU3Y68F3hQxRWHD6kQBkH2EjXUV5fqKXpKpUH8m/gdhhqOVfDwuPnaXxqxp+llGDFlRACOuUsQ4tLjhdc+rsz8+2Xeaprf/kULS79AMFbjkCrh6OyKT+NPeB9Ww66V553OgAtZagZzAORJ6+dGdQfQ6pN/R81C3hvghr6Md7f74PrndeX11hiU7MXzmaQPJvQnEufY5Vzrm4FDwmZENza27VmH1gbddQX0Kr9jL1PNFilC75OfVUd1LLxdhc6NapN7yzUCtZ188V0f/zutqPmWrT1WCgZoeK0+GK50Am28Rb3Am/EdQNDTg2yNJr37i7J9DxNRhchP4q+e+sUNmbbGMYrnYzDEv+fhEx7HrtPUzsamSR+5vvtn63psn6sd0Zl8i/uiJU/C1zTEDK5KqqbGoxhR8q4uWOKl6dc/pe0eLvO4X0pc3UY1+a5pNyIIA0AEF2FJBHZ6RpBxhMAbLoBF0iNTdpjkepuVvJenLPMnwhzGos/BCwNf6H4Sruzrt7QnunTSY8AY/X76kblZpAbMKCsYolONrRXXm8Kvlp5Gmeg5/HoXexV3nHWKOEKo+lLGi3PRXwr7iPB0Bcbyzx/uRzqod+jt4+osGOlG4JmitRvOOEz+7jBQY+7kN/a2tAmzuPqaHQoN5HozPH3c16kkuu3A3/et5cxoPDelBN3c5CerxZvP7JguzA/YErb5Ut12xfZ67Zg/IuGphdTLNV9IaX1LIHUWUoOeH1DROOA9TYnrJhc226pBUeGGrFa8LMZgoxwDFOK4RYH3Zz0sD99GWaunO9ImZXwcAeRWcYP+C/mI1chhfHES/GX2OLfdp72xC680+HTx4+9JkhgK18nLoLv3xNOpu7Dut4Vh3FUNDs3m+TvXnR6b+Jh+/pYt9KmQRJ0/lgK+IADO/8lSGLVyWuAo4gJc0aCOJ6PthsToSeilLFWgH2wvkclTRpUGmBGlVvyAkCy0OGFVRSs2BD4pd4vgrUCuFTMIiwA2L8iKrTQXkyb4UjMK9sEHJFcrfl+oYc3JVCbXY+MpDAXUefCzamlVVWYc1Ao0p5mVJRtuvB3mulIwOo65E2TU+CPtDth1i/lZ/hjq2ALFzC97mp6MsLt0EDwK8TmpFh8HVm9++0aq0QUd15vEtqRSkZ7vKkSIYlt30h0iEpk4O5U0RCAxtijx42iKK4S92EhBMnOoFZzSaxZCaI6/ikRwYjae6bgi85V6Uk3TnOfLy820Xd04MUXEPtJ8Leh4Fdr4HeVNgYYAQ==
+
+Let me think about this more carefully. The user is saying that the Claude backend (greger-client.el) doesn't rewrite at the end, but ours does.
+
+Let me trace through what greger-client.el does:
+1. It gets streaming events
+2. It calls block-start-callback when a block starts
+3. It calls text-delta-callback as text comes in
+4. It calls block-stop-callback when a block ends
+5. At the very end, in the process sentinel, it calls complete-callback with the blocks
+
+So the key question is: does calling block-stop-callback cause the content to be re-rendered? Let me check what greger does with block-stop-callback.
+
+Looking at the grep results, in greger.el line 964-972 shows greger--append-streaming-content-header, and line 974-984 shows greger--handle-stream-completion which is the complete-callback.
+
+The block-stop-callback is `greger--append-handle-content-block-stop`. Let me search for that.
+
+# ASSISTANT
+
+Let me see what the block-stop-callback actually does in greger.el:
+
+# TOOL USE
+
+Name: ripgrep
+ID: toolu_015LAnvK1yxA1A4zw72RbSTq
+
+## pattern
+
+<tool.toolu_015LAnvK1yxA1A4zw72RbSTq>
+defun greger--append-handle-content-block-stop
+</tool.toolu_015LAnvK1yxA1A4zw72RbSTq>
+
+## path
+
+<tool.toolu_015LAnvK1yxA1A4zw72RbSTq>
+greger.el
+</tool.toolu_015LAnvK1yxA1A4zw72RbSTq>
+
+## context-lines
+
+<tool.toolu_015LAnvK1yxA1A4zw72RbSTq>
+20
+</tool.toolu_015LAnvK1yxA1A4zw72RbSTq>
+
+# TOOL RESULT
+
+ID: toolu_015LAnvK1yxA1A4zw72RbSTq
+
+<tool.toolu_015LAnvK1yxA1A4zw72RbSTq>
+977-      (progn
+978-        (setf (greger-state-current-iteration state)
+979-              (1+ (greger-state-current-iteration state)))
+980-        ;; TODO: execute tool calls in greger--append-content-block instead
+981-        (greger--execute-tools tool-calls state))
+982-    (greger--finish-response state))
+983-
+984-  (when-let ((buffer (greger--live-chat-buffer state)))
+985-    (with-current-buffer buffer
+986-      (greger--update-buffer-state))))
+987-
+988-(defun greger--content-block-supports-streaming (content-block)
+989-  "Check if CONTENT-BLOCK can be streamed incrementally.
+990-Returns non-nil for text and thinking blocks without citations, which can
+991-be displayed as they arrive rather than waiting for completion."
+992-  (let ((type (alist-get 'type content-block))
+993-        (citations (alist-get 'citations content-block)))
+994-    (and (or (string= type "text") (string= type "thinking"))
+995-         (not citations))))
+996-
+997:(defun greger--append-handle-content-block-stop (state type content-block)
+998-  "Append non-streaming CONTENT-BLOCK of TYPE to STATE."
+999-  ;; Only append markdown if it hasn't done that already during streaming
+1000-  (unless (greger--content-block-supports-streaming content-block)
+1001-    (let ((markdown (greger-parser--block-to-markdown content-block)))
+1002-      (greger--append-text state (concat "\n\n" markdown))))
+1003-
+1004-  ;; Special cases for tool use and thinking
+1005-  (cond
+1006-   ((string= type "tool_use")
+1007-    (let ((tool-id (alist-get 'id content-block)))
+1008-      (greger--append-text state (concat "\n\n" (greger--tool-result-placeholder tool-id)))))
+1009-   ((string= type "thinking")
+1010-    (let ((signature (alist-get 'signature content-block)))
+1011-      (greger--insert-thinking-signature state signature))))
+1012-
+1013-  ;; Update buffer state after client completes
+1014-  (when-let ((buffer (greger--live-chat-buffer state)))
+1015-    (with-current-buffer buffer
+1016-      (greger--update-buffer-state))))
+1017-
+
+</tool.toolu_015LAnvK1yxA1A4zw72RbSTq>
+
+# ASSISTANT
+
+AH HA! Line 998-1002: `greger--append-handle-content-block-stop` only appends the block content **if the block doesn't support streaming** (i.e., if it has citations or is a tool_use block). For text and thinking blocks that were already streamed, it does nothing!
+
+So we should NOT be calling block-stop-callback for our streamed text and thinking blocks! We only need to call it for non-streaming content. Since we streamed everything, we shouldn't call block-stop at all:
+
+# TOOL USE
+
+Name: str-replace
+ID: toolu_01XrvjeV2gFgka2MTm1wMzH8
+
+## path
+
+<tool.toolu_01XrvjeV2gFgka2MTm1wMzH8>
+greger-openrouter.el
+</tool.toolu_01XrvjeV2gFgka2MTm1wMzH8>
+
+## git-commit-message
+
+<tool.toolu_01XrvjeV2gFgka2MTm1wMzH8>
+Don't call block-stop for streamed content - only complete
+</tool.toolu_01XrvjeV2gFgka2MTm1wMzH8>
+
+## original-content
+
+<tool.toolu_01XrvjeV2gFgka2MTm1wMzH8>
+      (cond
+       ((and (= exit-code 0) (not stored-error))
+        ;; Call block-stop for each block, then complete callback
+        (let ((content-blocks (greger-openrouter--build-content-blocks state)))
+          (when-let ((block-stop-callback (greger-openrouter-state-block-stop-callback state)))
+            (dolist (block content-blocks)
+              (funcall block-stop-callback (alist-get 'type block) block)))
+          (when-let ((callback (greger-openrouter-state-complete-callback state)))
+            (funcall callback content-blocks))))
+</tool.toolu_01XrvjeV2gFgka2MTm1wMzH8>
+
+## new-content
+
+<tool.toolu_01XrvjeV2gFgka2MTm1wMzH8>
+      (cond
+       ((and (= exit-code 0) (not stored-error))
+        ;; Just call complete callback - streaming already rendered everything
+        (when-let ((callback (greger-openrouter-state-complete-callback state)))
+          (funcall callback (greger-openrouter--build-content-blocks state))))
+</tool.toolu_01XrvjeV2gFgka2MTm1wMzH8>
+
+# TOOL RESULT
+
+ID: toolu_01XrvjeV2gFgka2MTm1wMzH8
+
+<tool.toolu_01XrvjeV2gFgka2MTm1wMzH8>
+
+</tool.toolu_01XrvjeV2gFgka2MTm1wMzH8>
