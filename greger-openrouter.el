@@ -24,6 +24,7 @@
   current-tool-calls
   current-text
   thinking-started
+  text-started
   annotations
   process
   output-buffer
