@@ -10211,5 +10211,283 @@ Converts OpenRouter annotations to Greger citations format."
 ID: toolu_01Ex7HenaodH698rWwNXN4yq
 
 <tool.toolu_01Ex7HenaodH698rWwNXN4yq>
-
+Successfully replaced content in /Users/andreas/projects/greger.el/greger-openrouter.el. Successfully staged 2 file(s) and committed with message: Simplify content blocks builder for Responses API
 </tool.toolu_01Ex7HenaodH698rWwNXN4yq>
+
+# ASSISTANT
+
+Perfect! Now let's check the final state of the file to make sure it's clean:
+
+# TOOL USE
+
+Name: shell-command
+ID: toolu_01Nnay1JGaFPuTsPs34hiXAX
+
+## command
+
+<tool.toolu_01Nnay1JGaFPuTsPs34hiXAX>
+wc -l /Users/andreas/projects/greger.el/greger-openrouter.el
+</tool.toolu_01Nnay1JGaFPuTsPs34hiXAX>
+
+# TOOL RESULT
+
+ID: toolu_01Nnay1JGaFPuTsPs34hiXAX
+
+<tool.toolu_01Nnay1JGaFPuTsPs34hiXAX>
+     474 /Users/andreas/projects/greger.el/greger-openrouter.el
+
+</tool.toolu_01Nnay1JGaFPuTsPs34hiXAX>
+
+# ASSISTANT
+
+Great! We went from 549 lines to 474 lines - much cleaner. Let me verify the file looks good:
+
+# TOOL USE
+
+Name: read-file
+ID: toolu_0124cDpFo93i5tjERmZqCvGE
+
+## path
+
+<tool.toolu_0124cDpFo93i5tjERmZqCvGE>
+greger-openrouter.el
+</tool.toolu_0124cDpFo93i5tjERmZqCvGE>
+
+## start-line
+
+<tool.toolu_0124cDpFo93i5tjERmZqCvGE>
+1
+</tool.toolu_0124cDpFo93i5tjERmZqCvGE>
+
+## end-line
+
+<tool.toolu_0124cDpFo93i5tjERmZqCvGE>
+100
+</tool.toolu_0124cDpFo93i5tjERmZqCvGE>
+
+# TOOL RESULT
+
+ID: toolu_0124cDpFo93i5tjERmZqCvGE
+
+<tool.toolu_0124cDpFo93i5tjERmZqCvGE>
+;;; greger-openrouter.el --- OpenRouter client for greger -*- lexical-binding: t -*-
+
+;; Copyright (C) 2025 Andreas Jansson
+
+;; Author: Andreas Jansson <andreas@jansson.me.uk>
+;; Version: 0.1.0
+;; URL: https://github.com/andreasjansson/greger.el
+;; SPDX-License-Identifier: MIT
+
+;;; Commentary:
+;; OpenRouter API client for greger - provides access to 400+ models including
+;; GPT-5, GPT-5 Codex, and others through OpenRouter's unified API.
+
+;;; Code:
+
+(require 'json)
+(require 'cl-lib)
+
+(defconst greger-openrouter-api-url "https://openrouter.ai/api/v1/responses"
+  "OpenRouter Responses API endpoint.")
+
+(cl-defstruct greger-openrouter-state
+  accumulated-output
+  current-text
+  text-started
+  annotations
+  process
+  output-buffer
+  undo-handle
+  block-start-callback
+  text-delta-callback
+  block-stop-callback
+  complete-callback
+  restore-callback
+  error-callback
+  error-message)
+
+(cl-defun greger-openrouter-stream (&key model dialog tools buffer enable-web-search block-start-callback text-delta-callback block-stop-callback complete-callback thinking-budget max-tokens auth-key error-callback)
+  "Stream request to OpenRouter API.
+MODEL is the OpenRouter model identifier.
+DIALOG is the conversation history.
+TOOLS are tool definitions.
+BUFFER is the output buffer.
+ENABLE-WEB-SEARCH determines if we append :online to the model.
+BLOCK-START-CALLBACK is called when content blocks begin.
+TEXT-DELTA-CALLBACK for incremental text.
+BLOCK-STOP-CALLBACK when blocks complete.
+COMPLETE-CALLBACK when the entire response finishes.
+THINKING-BUDGET is the number of thinking tokens.
+MAX-TOKENS is the maximum number of tokens to generate.
+AUTH-KEY is the OpenRouter API key.
+ERROR-CALLBACK is called when errors occur."
+  (let* ((output-buffer (or buffer (current-buffer)))
+         (undo-handle (prepare-change-group output-buffer))
+         (request-spec (greger-openrouter--build-request model dialog tools thinking-budget max-tokens auth-key enable-web-search))
+         (restore-callback (lambda (state)
+                             (let ((buffer (greger-openrouter-state-output-buffer state)))
+                               (when (buffer-live-p buffer)
+                                 (with-current-buffer buffer
+                                   (undo-amalgamate-change-group (greger-openrouter-state-undo-handle state))
+                                   (accept-change-group (greger-openrouter-state-undo-handle state)))))))
+         (process (greger-openrouter--start-curl-process request-spec))
+         (state (make-greger-openrouter-state
+                 :accumulated-output ""
+                 :current-text ""
+                 :process process
+                 :block-start-callback block-start-callback
+                 :text-delta-callback text-delta-callback
+                 :block-stop-callback block-stop-callback
+                 :complete-callback complete-callback
+                 :restore-callback restore-callback
+                 :output-buffer output-buffer
+                 :undo-handle undo-handle
+                 :error-callback error-callback)))
+    
+    (activate-change-group undo-handle)
+    
+    (set-process-filter process
+                        (lambda (_proc output)
+                          (greger-openrouter--process-output-chunk output state)))
+    
+    (set-process-sentinel process
+                          (lambda (proc _event)
+                            (greger-openrouter--handle-completion proc state)))
+    
+    (set-process-query-on-exit-flag process nil)
+    
+    state))
+
+(defun greger-openrouter--build-request (model dialog tools thinking-budget max-tokens auth-key enable-web-search)
+  "Build OpenRouter Responses API request."
+  (let* ((headers (greger-openrouter--build-headers auth-key))
+         (data (greger-openrouter--build-data model dialog tools thinking-budget max-tokens enable-web-search)))
+    (message "url: %s; request data: %s" greger-openrouter-api-url data)
+    (list :url greger-openrouter-api-url
+          :method "POST"
+          :headers headers
+          :data data)))
+
+(defun greger-openrouter--build-headers (api-key)
+</tool.toolu_0124cDpFo93i5tjERmZqCvGE>
+
+# ASSISTANT
+
+Perfect! Let me also check if there are any lingering references to the old functions:
+
+# TOOL USE
+
+Name: shell-command
+ID: toolu_01VPp1voEdM85RiwPcrBSnGU
+
+## command
+
+<tool.toolu_01VPp1voEdM85RiwPcrBSnGU>
+cd /Users/andreas/projects/greger.el && emacs --batch --eval "(progn (add-to-list 'load-path \".\") (byte-compile-file \"greger-openrouter.el\"))" 2>&1 | grep -i "warning\|error" | head -20
+</tool.toolu_01VPp1voEdM85RiwPcrBSnGU>
+
+# TOOL RESULT
+
+ID: toolu_01VPp1voEdM85RiwPcrBSnGU
+
+<tool.toolu_01VPp1voEdM85RiwPcrBSnGU>
+greger-openrouter.el:202:2: Warning: docstring has wrong usage of unescaped single quotes (use \=' or different quoting such as `...')
+greger-openrouter.el:217:2: Warning: docstring has wrong usage of unescaped single quotes (use \=' or different quoting such as `...')
+greger-openrouter.el:237:2: Warning: docstring has wrong usage of unescaped single quotes (use \=' or different quoting such as `...')
+greger-openrouter.el:353:48: Warning: Unused lexical argument ‘finish-reason’
+
+</tool.toolu_01VPp1voEdM85RiwPcrBSnGU>
+
+# ASSISTANT
+
+Good! Just some minor docstring warnings and an unused argument. Let me fix the unused argument:
+
+# TOOL USE
+
+Name: read-file
+ID: toolu_01MpZmd5z1c1m3SQ15nsV9KG
+
+## path
+
+<tool.toolu_01MpZmd5z1c1m3SQ15nsV9KG>
+greger-openrouter.el
+</tool.toolu_01MpZmd5z1c1m3SQ15nsV9KG>
+
+## start-line
+
+<tool.toolu_01MpZmd5z1c1m3SQ15nsV9KG>
+350
+</tool.toolu_01MpZmd5z1c1m3SQ15nsV9KG>
+
+## end-line
+
+<tool.toolu_01MpZmd5z1c1m3SQ15nsV9KG>
+365
+</tool.toolu_01MpZmd5z1c1m3SQ15nsV9KG>
+
+# TOOL RESULT
+
+ID: toolu_01MpZmd5z1c1m3SQ15nsV9KG
+
+<tool.toolu_01MpZmd5z1c1m3SQ15nsV9KG>
+
+
+
+(defun greger-openrouter--handle-finish (state finish-reason)
+  "Handle completion based on finish reason."
+  (let ((content-blocks (greger-openrouter--build-content-blocks state))
+        (block-stop-callback (greger-openrouter-state-block-stop-callback state)))
+    
+    (when block-stop-callback
+      (dolist (block content-blocks)
+        (let ((type (alist-get 'type block)))
+          (funcall block-stop-callback type block))))
+    
+    (when-let ((callback (greger-openrouter-state-complete-callback state)))
+      (funcall callback content-blocks))))
+
+</tool.toolu_01MpZmd5z1c1m3SQ15nsV9KG>
+
+# TOOL USE
+
+Name: str-replace
+ID: toolu_01LeqpD68YBC1ansBCCXj7c8
+
+## path
+
+<tool.toolu_01LeqpD68YBC1ansBCCXj7c8>
+greger-openrouter.el
+</tool.toolu_01LeqpD68YBC1ansBCCXj7c8>
+
+## git-commit-message
+
+<tool.toolu_01LeqpD68YBC1ansBCCXj7c8>
+Fix unused argument warning
+</tool.toolu_01LeqpD68YBC1ansBCCXj7c8>
+
+## original-content
+
+<tool.toolu_01LeqpD68YBC1ansBCCXj7c8>
+(defun greger-openrouter--handle-finish (state finish-reason)
+  "Handle completion based on finish reason."
+  (let ((content-blocks (greger-openrouter--build-content-blocks state))
+        (block-stop-callback (greger-openrouter-state-block-stop-callback state)))
+</tool.toolu_01LeqpD68YBC1ansBCCXj7c8>
+
+## new-content
+
+<tool.toolu_01LeqpD68YBC1ansBCCXj7c8>
+(defun greger-openrouter--handle-finish (state _finish-reason)
+  "Handle completion based on finish reason."
+  (let ((content-blocks (greger-openrouter--build-content-blocks state))
+        (block-stop-callback (greger-openrouter-state-block-stop-callback state)))
+</tool.toolu_01LeqpD68YBC1ansBCCXj7c8>
+
+# TOOL RESULT
+
+ID: toolu_01LeqpD68YBC1ansBCCXj7c8
+
+<tool.toolu_01LeqpD68YBC1ansBCCXj7c8>
+
+</tool.toolu_01LeqpD68YBC1ansBCCXj7c8>

@@ -350,7 +350,7 @@ OpenAI function calling doesn't support default values."
 
 
 
-(defun greger-openrouter--handle-finish (state finish-reason)
+(defun greger-openrouter--handle-finish (state _finish-reason)
   "Handle completion based on finish reason."
   (let ((content-blocks (greger-openrouter--build-content-blocks state))
         (block-stop-callback (greger-openrouter-state-block-stop-callback state)))
