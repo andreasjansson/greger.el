@@ -14185,5 +14185,48 @@ Don't include citations - text already has inline links
 ID: toolu_015rgk8a9YsSeBRj6FRNrT5P
 
 <tool.toolu_015rgk8a9YsSeBRj6FRNrT5P>
-
+Successfully replaced content in /Users/andreas/projects/greger.el/greger-openrouter.el. Successfully staged 2 file(s) and committed with message: Don't include citations - text already has inline links
 </tool.toolu_015rgk8a9YsSeBRj6FRNrT5P>
+
+# ASSISTANT
+
+Now remove the debug logging:
+
+# TOOL USE
+
+Name: str-replace
+ID: toolu_01SMbL2ZC3zg8NijbBhFihfo
+
+## path
+
+<tool.toolu_01SMbL2ZC3zg8NijbBhFihfo>
+greger-openrouter.el
+</tool.toolu_01SMbL2ZC3zg8NijbBhFihfo>
+
+## git-commit-message
+
+<tool.toolu_01SMbL2ZC3zg8NijbBhFihfo>
+Remove debug logging
+</tool.toolu_01SMbL2ZC3zg8NijbBhFihfo>
+
+## diff
+
+<tool.toolu_01SMbL2ZC3zg8NijbBhFihfo>
+ (defun greger-openrouter--process-output-chunk (output state)
+   "Process streaming output chunk."
+-  (message "OPENROUTER CHUNK: %s" output)
+   (setf (greger-openrouter-state-accumulated-output state)
+         (concat (greger-openrouter-state-accumulated-output state) output))
+   
+   (greger-openrouter--process-events state))
+\ No newline at end of file
+
+</tool.toolu_01SMbL2ZC3zg8NijbBhFihfo>
+
+# TOOL RESULT
+
+ID: toolu_01SMbL2ZC3zg8NijbBhFihfo
+
+<tool.toolu_01SMbL2ZC3zg8NijbBhFihfo>
+
+</tool.toolu_01SMbL2ZC3zg8NijbBhFihfo>

@@ -284,7 +284,6 @@ OpenAI function calling doesn't support default values."
 
 (defun greger-openrouter--process-output-chunk (output state)
   "Process streaming output chunk."
-  (message "OPENROUTER CHUNK: %s" output)
   (setf (greger-openrouter-state-accumulated-output state)
         (concat (greger-openrouter-state-accumulated-output state) output))
   
