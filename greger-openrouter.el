@@ -495,10 +495,13 @@ Includes THINKING blocks with base64-encoded reasoning_details in signature fiel
 (defun greger-openrouter--convert-annotation-to-citation (annotation)
   "Convert OpenRouter annotation to Greger citation format.
 OpenRouter annotations have structure: {type: 'url_citation', url_citation: {...}}."
+  (message "DEBUG: Converting annotation: %S" annotation)
   (let* ((url-citation (alist-get 'url_citation annotation))
          (url (alist-get 'url url-citation))
          (title (alist-get 'title url-citation))
          (content (alist-get 'content url-citation)))
+    (message "DEBUG: Extracted url=%s title=%s content-length=%d" 
+             url title (length (or content "")))
     `((type . "web_search_result_location")
       (url . ,url)
       (title . ,(or title ""))

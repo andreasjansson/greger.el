@@ -10021,5 +10021,67 @@ Add debug logging in content block builder
 ID: toolu_0116LEg6J12Hn3U14btg9iQ8
 
 <tool.toolu_0116LEg6J12Hn3U14btg9iQ8>
-
+Successfully replaced content in /Users/andreas/projects/greger.el/greger-openrouter.el. Successfully staged 2 file(s) and committed with message: Add debug logging in content block builder
 </tool.toolu_0116LEg6J12Hn3U14btg9iQ8>
+
+# TOOL USE
+
+Name: str-replace
+ID: toolu_01H27tijvHBtyew9CaKr6d4e
+
+## path
+
+<tool.toolu_01H27tijvHBtyew9CaKr6d4e>
+greger-openrouter.el
+</tool.toolu_01H27tijvHBtyew9CaKr6d4e>
+
+## git-commit-message
+
+<tool.toolu_01H27tijvHBtyew9CaKr6d4e>
+Add debug logging in annotation to citation converter
+</tool.toolu_01H27tijvHBtyew9CaKr6d4e>
+
+## original-content
+
+<tool.toolu_01H27tijvHBtyew9CaKr6d4e>
+(defun greger-openrouter--convert-annotation-to-citation (annotation)
+  "Convert OpenRouter annotation to Greger citation format.
+OpenRouter annotations have structure: {type: 'url_citation', url_citation: {...}}."
+  (let* ((url-citation (alist-get 'url_citation annotation))
+         (url (alist-get 'url url-citation))
+         (title (alist-get 'title url-citation))
+         (content (alist-get 'content url-citation)))
+    `((type . "web_search_result_location")
+      (url . ,url)
+      (title . ,(or title ""))
+      (cited_text . ,(or content ""))
+      (encrypted_index . ""))))
+</tool.toolu_01H27tijvHBtyew9CaKr6d4e>
+
+## new-content
+
+<tool.toolu_01H27tijvHBtyew9CaKr6d4e>
+(defun greger-openrouter--convert-annotation-to-citation (annotation)
+  "Convert OpenRouter annotation to Greger citation format.
+OpenRouter annotations have structure: {type: 'url_citation', url_citation: {...}}."
+  (message "DEBUG: Converting annotation: %S" annotation)
+  (let* ((url-citation (alist-get 'url_citation annotation))
+         (url (alist-get 'url url-citation))
+         (title (alist-get 'title url-citation))
+         (content (alist-get 'content url-citation)))
+    (message "DEBUG: Extracted url=%s title=%s content-length=%d" 
+             url title (length (or content "")))
+    `((type . "web_search_result_location")
+      (url . ,url)
+      (title . ,(or title ""))
+      (cited_text . ,(or content ""))
+      (encrypted_index . ""))))
+</tool.toolu_01H27tijvHBtyew9CaKr6d4e>
+
+# TOOL RESULT
+
+ID: toolu_01H27tijvHBtyew9CaKr6d4e
+
+<tool.toolu_01H27tijvHBtyew9CaKr6d4e>
+
+</tool.toolu_01H27tijvHBtyew9CaKr6d4e>
