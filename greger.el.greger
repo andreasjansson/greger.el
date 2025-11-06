@@ -15839,5 +15839,58 @@ Add support for streaming reasoning/thinking output
 ID: toolu_01EN9PcG4vfqsSiXXAMqGGjr
 
 <tool.toolu_01EN9PcG4vfqsSiXXAMqGGjr>
-
+Successfully replaced content in /Users/andreas/projects/greger.el/greger-openrouter.el. Successfully staged 2 file(s) and committed with message: Add support for streaming reasoning/thinking output
 </tool.toolu_01EN9PcG4vfqsSiXXAMqGGjr>
+
+# ASSISTANT
+
+Now we need to add the thinking-started and current-reasoning-text fields back to the state:
+
+# TOOL USE
+
+Name: str-replace
+ID: toolu_0155tTDhXkUNn5544wDw4UWM
+
+## path
+
+<tool.toolu_0155tTDhXkUNn5544wDw4UWM>
+greger-openrouter.el
+</tool.toolu_0155tTDhXkUNn5544wDw4UWM>
+
+## git-commit-message
+
+<tool.toolu_0155tTDhXkUNn5544wDw4UWM>
+Add thinking state fields back
+</tool.toolu_0155tTDhXkUNn5544wDw4UWM>
+
+## diff
+
+<tool.toolu_0155tTDhXkUNn5544wDw4UWM>
+ (cl-defstruct greger-openrouter-state
+   accumulated-output
+   current-text
+   text-started
++  thinking-started
++  current-reasoning-text
+   annotations
+   process
+   output-buffer
+   undo-handle
+   block-start-callback
+   text-delta-callback
+   block-stop-callback
+   complete-callback
+   restore-callback
+   error-callback
+   error-message)
+\ No newline at end of file
+
+</tool.toolu_0155tTDhXkUNn5544wDw4UWM>
+
+# TOOL RESULT
+
+ID: toolu_0155tTDhXkUNn5544wDw4UWM
+
+<tool.toolu_0155tTDhXkUNn5544wDw4UWM>
+
+</tool.toolu_0155tTDhXkUNn5544wDw4UWM>
