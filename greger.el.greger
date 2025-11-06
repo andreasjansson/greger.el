@@ -15684,5 +15684,49 @@ Fix streaming - handle response.output_text.delta events
 ID: toolu_01XiRwAe8nY849Da4K6XnApk
 
 <tool.toolu_01XiRwAe8nY849Da4K6XnApk>
-
+Successfully replaced content in /Users/andreas/projects/greger.el/greger-openrouter.el. Successfully staged 2 file(s) and committed with message: Fix streaming - handle response.output_text.delta events
 </tool.toolu_01XiRwAe8nY849Da4K6XnApk>
+
+# ASSISTANT
+
+Now remove the debug logging:
+
+# TOOL USE
+
+Name: str-replace
+ID: toolu_01HdcbJpUVGN6FPLbzjwwHFx
+
+## path
+
+<tool.toolu_01HdcbJpUVGN6FPLbzjwwHFx>
+greger-openrouter.el
+</tool.toolu_01HdcbJpUVGN6FPLbzjwwHFx>
+
+## git-commit-message
+
+<tool.toolu_01HdcbJpUVGN6FPLbzjwwHFx>
+Remove debug logging
+</tool.toolu_01HdcbJpUVGN6FPLbzjwwHFx>
+
+## diff
+
+<tool.toolu_01HdcbJpUVGN6FPLbzjwwHFx>
+   (condition-case err
+       (let* ((data (json-read-from-string data-json))
+              (error-data (alist-get 'error data))
+-             (event-type (alist-get 'type data)))
+-        
+-        (message "EVENT TYPE: %s" event-type)
+\ No newline at end of file
++             (event-type (alist-get 'type data)))
+\ No newline at end of file
+
+</tool.toolu_01HdcbJpUVGN6FPLbzjwwHFx>
+
+# TOOL RESULT
+
+ID: toolu_01HdcbJpUVGN6FPLbzjwwHFx
+
+<tool.toolu_01HdcbJpUVGN6FPLbzjwwHFx>
+
+</tool.toolu_01HdcbJpUVGN6FPLbzjwwHFx>
