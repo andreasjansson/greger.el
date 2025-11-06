@@ -7884,5 +7884,65 @@ Add Responses API URL constant to greger-openrouter
 ID: toolu_018wTXaErAhu9iygsxmrTmg6
 
 <tool.toolu_018wTXaErAhu9iygsxmrTmg6>
-
+Successfully replaced content in /Users/andreas/projects/greger.el/greger-openrouter.el. Successfully staged 2 file(s) and committed with message: Add Responses API URL constant to greger-openrouter
 </tool.toolu_018wTXaErAhu9iygsxmrTmg6>
+
+# TOOL USE
+
+Name: str-replace
+ID: toolu_01RJqKuYaHbTs2cAdD1gswZS
+
+## path
+
+<tool.toolu_01RJqKuYaHbTs2cAdD1gswZS>
+greger-openrouter.el
+</tool.toolu_01RJqKuYaHbTs2cAdD1gswZS>
+
+## original-content
+
+<tool.toolu_01RJqKuYaHbTs2cAdD1gswZS>
+(defun greger-openrouter--build-request (model dialog tools thinking-budget max-tokens auth-key enable-web-search)
+  "Build OpenRouter API request."
+  (let* ((headers (greger-openrouter--build-headers auth-key))
+         (data (greger-openrouter--build-data model dialog tools thinking-budget max-tokens enable-web-search)))
+    (message "url: %s; request data: %s" greger-openrouter-api-url data)
+    (list :url greger-openrouter-api-url
+          :method "POST"
+          :headers headers
+          :data data)))
+</tool.toolu_01RJqKuYaHbTs2cAdD1gswZS>
+
+## new-content
+
+<tool.toolu_01RJqKuYaHbTs2cAdD1gswZS>
+(defun greger-openrouter--build-request (model dialog tools thinking-budget max-tokens auth-key enable-web-search)
+  "Build OpenRouter API request.
+Uses Responses API when web search is enabled, Chat Completions API otherwise."
+  (let* ((headers (greger-openrouter--build-headers auth-key))
+         (use-responses-api enable-web-search)
+         (data (if use-responses-api
+                   (greger-openrouter--build-responses-data model dialog tools thinking-budget max-tokens)
+                 (greger-openrouter--build-data model dialog tools thinking-budget max-tokens enable-web-search)))
+         (url (if use-responses-api
+                  greger-openrouter-responses-api-url
+                greger-openrouter-api-url)))
+    (message "url: %s; request data: %s" url data)
+    (list :url url
+          :method "POST"
+          :headers headers
+          :data data)))
+</tool.toolu_01RJqKuYaHbTs2cAdD1gswZS>
+
+## git-commit-message
+
+<tool.toolu_01RJqKuYaHbTs2cAdD1gswZS>
+Use Responses API for web search in greger-openrouter
+</tool.toolu_01RJqKuYaHbTs2cAdD1gswZS>
+
+# TOOL RESULT
+
+ID: toolu_01RJqKuYaHbTs2cAdD1gswZS
+
+<tool.toolu_01RJqKuYaHbTs2cAdD1gswZS>
+
+</tool.toolu_01RJqKuYaHbTs2cAdD1gswZS>

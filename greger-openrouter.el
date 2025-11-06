@@ -96,11 +96,18 @@ ERROR-CALLBACK is called when errors occur."
     state))
 
 (defun greger-openrouter--build-request (model dialog tools thinking-budget max-tokens auth-key enable-web-search)
-  "Build OpenRouter API request."
+  "Build OpenRouter API request.
+Uses Responses API when web search is enabled, Chat Completions API otherwise."
   (let* ((headers (greger-openrouter--build-headers auth-key))
-         (data (greger-openrouter--build-data model dialog tools thinking-budget max-tokens enable-web-search)))
-    (message "url: %s; request data: %s" greger-openrouter-api-url data)
-    (list :url greger-openrouter-api-url
+         (use-responses-api enable-web-search)
+         (data (if use-responses-api
+                   (greger-openrouter--build-responses-data model dialog tools thinking-budget max-tokens)
+                 (greger-openrouter--build-data model dialog tools thinking-budget max-tokens enable-web-search)))
+         (url (if use-responses-api
+                  greger-openrouter-responses-api-url
+                greger-openrouter-api-url)))
+    (message "url: %s; request data: %s" url data)
+    (list :url url
           :method "POST"
           :headers headers
           :data data)))
