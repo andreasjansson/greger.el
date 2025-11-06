@@ -293,12 +293,14 @@ OpenAI function calling doesn't support default values."
 (defun greger-openrouter--handle-event (data-json state)
   "Handle Responses API streaming event."
 
-  (message "data-json: %s" data-json)
+  (message "OPENROUTER EVENT JSON: %s" data-json)
 
   (condition-case err
       (let* ((data (json-read-from-string data-json))
              (error-data (alist-get 'error data))
              (event-type (alist-get 'type data)))
+        
+        (message "OPENROUTER EVENT TYPE: %s" event-type)
         
         ;; Check for API errors first
         (when error-data
@@ -314,9 +316,11 @@ OpenAI function calling doesn't support default values."
           
           (cond
            ((string= event-type "response.content_part.delta")
+            (message "OPENROUTER: Processing content delta")
             (when-let* ((part-type (alist-get 'type content-part))
                         ((string= part-type "output_text"))
                         (text (alist-get 'text content-part)))
+              (message "OPENROUTER: Got text delta: %s" text)
               (let ((block-start-callback (greger-openrouter-state-block-start-callback state))
                     (text-delta-callback (greger-openrouter-state-text-delta-callback state)))
                 
@@ -333,12 +337,15 @@ OpenAI function calling doesn't support default values."
                   (funcall text-delta-callback text)))))
            
            ((string= event-type "response.completed")
+            (message "OPENROUTER: Processing completion")
             (when response
               (let* ((output (alist-get 'output response))
                      (message-item (when output (aref output 0)))
                      (content (when message-item (alist-get 'content message-item)))
                      (text-content (when content (aref content 0)))
                      (annotations (when text-content (alist-get 'annotations text-content))))
+                
+                (message "OPENROUTER: Annotations: %s" annotations)
                 
                 (when annotations
                   (setf (greger-openrouter-state-annotations state) annotations))

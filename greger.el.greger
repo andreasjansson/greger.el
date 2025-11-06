@@ -10717,5 +10717,103 @@ Add debug logging for streaming chunks
 ID: toolu_01AutfTLxSwW7qJ6xaVosY7Z
 
 <tool.toolu_01AutfTLxSwW7qJ6xaVosY7Z>
-
+Successfully replaced content in /Users/andreas/projects/greger.el/greger-openrouter.el. Successfully staged 2 file(s) and committed with message: Add debug logging for streaming chunks
 </tool.toolu_01AutfTLxSwW7qJ6xaVosY7Z>
+
+# TOOL USE
+
+Name: str-replace
+ID: toolu_01RMJABPVvMtKvb4dcyiqGp8
+
+## path
+
+<tool.toolu_01RMJABPVvMtKvb4dcyiqGp8>
+greger-openrouter.el
+</tool.toolu_01RMJABPVvMtKvb4dcyiqGp8>
+
+## git-commit-message
+
+<tool.toolu_01RMJABPVvMtKvb4dcyiqGp8>
+Add debug logging for event types
+</tool.toolu_01RMJABPVvMtKvb4dcyiqGp8>
+
+## diff
+
+<tool.toolu_01RMJABPVvMtKvb4dcyiqGp8>
+ (defun greger-openrouter--handle-event (data-json state)
+   "Handle Responses API streaming event."
+ 
+-  (message "data-json: %s" data-json)
++  (message "OPENROUTER EVENT JSON: %s" data-json)
+ 
+   (condition-case err
+       (let* ((data (json-read-from-string data-json))
+              (error-data (alist-get 'error data))
+              (event-type (alist-get 'type data)))
+         
++        (message "OPENROUTER EVENT TYPE: %s" event-type)
++        
+         ;; Check for API errors first
+         (when error-data
+           (let ((error-message (format "OpenRouter API error: %s" 
+                                        (or (alist-get 'message error-data)
+                                            (json-encode error-data)))))
+             (setf (greger-openrouter-state-error-message state) error-message)
+             (message "OpenRouter error: %s" error-message)
+             (error error-message)))
+         
+         (let* ((content-part (alist-get 'content_part data))
+                (response (alist-get 'response data)))
+           
+           (cond
+            ((string= event-type "response.content_part.delta")
++            (message "OPENROUTER: Processing content delta")
+             (when-let* ((part-type (alist-get 'type content-part))
+                         ((string= part-type "output_text"))
+                         (text (alist-get 'text content-part)))
++              (message "OPENROUTER: Got text delta: %s" text)
+               (let ((block-start-callback (greger-openrouter-state-block-start-callback state))
+                     (text-delta-callback (greger-openrouter-state-text-delta-callback state)))
+                 
+                 (unless (greger-openrouter-state-text-started state)
+                   (setf (greger-openrouter-state-text-started state) t)
+                   (when block-start-callback
+                     (funcall block-start-callback
+                              `((type . "text")
+                                (text . "")))))
+                 
+                 (setf (greger-openrouter-state-current-text state)
+                       (concat (greger-openrouter-state-current-text state) text))
+                 (when text-delta-callback
+                   (funcall text-delta-callback text)))))
+            
+            ((string= event-type "response.completed")
++            (message "OPENROUTER: Processing completion")
+             (when response
+               (let* ((output (alist-get 'output response))
+                      (message-item (when output (aref output 0)))
+                      (content (when message-item (alist-get 'content message-item)))
+                      (text-content (when content (aref content 0)))
+                      (annotations (when text-content (alist-get 'annotations text-content))))
+                 
++                (message "OPENROUTER: Annotations: %s" annotations)
++                
+                 (when annotations
+                   (setf (greger-openrouter-state-annotations state) annotations))
+                 
+                 (greger-openrouter--handle-finish state "stop")))))))
+     (error
+      (let ((error-message (format "Failed to parse event: %s" (error-message-string err))))
+        (setf (greger-openrouter-state-error-message state) error-message)
+        (message "OpenRouter parse error: %s" error-message)))))
+\ No newline at end of file
+
+</tool.toolu_01RMJABPVvMtKvb4dcyiqGp8>
+
+# TOOL RESULT
+
+ID: toolu_01RMJABPVvMtKvb4dcyiqGp8
+
+<tool.toolu_01RMJABPVvMtKvb4dcyiqGp8>
+
+</tool.toolu_01RMJABPVvMtKvb4dcyiqGp8>
