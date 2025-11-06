@@ -716,15 +716,7 @@ Cited text: quote from source
 ## Implementation Checklist
 
 ### Phase 1: Parser Foundation
-- [ ] Update `grammar.js` with reasoning_section rules
-- [ ] Regenerate tree-sitter parser: `tree-sitter generate`
-- [ ] Add `greger-parser-reasoning-tag` constant
-- [ ] Implement `greger-parser--reasoning-to-markdown`
-- [ ] Implement `greger-parser--extract-reasoning-details`
-- [ ] Implement `greger-parser--extract-reasoning-content`
-- [ ] Implement `greger-parser--reasoning-section-to-content-block`
-- [ ] Update `greger-parser--content-block-to-markdown` dispatcher
-- [ ] Update `greger-parser--extract-message-content` to handle reasoning sections
+**No parser changes needed!** The existing THINKING block parser handles everything.
 
 ### Phase 2: OpenRouter Client Updates
 - [ ] Add reasoning state fields to `greger-openrouter-state`:
