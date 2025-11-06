@@ -110,36 +110,14 @@ ERROR-CALLBACK is called when errors occur."
     ("X-Title" . "Greger.el")))
 
 (defun greger-openrouter--build-data (model dialog tools thinking-budget max-tokens enable-web-search)
-  "Build OpenRouter request data in OpenAI Chat Completions format."
+  "Build OpenRouter request data in Responses API format."
   (let* ((messages (greger-openrouter--convert-dialog-to-messages dialog))
-         (actual-model (if enable-web-search
-                           (concat model ":online")
-                         model))
-         (request-data `(("model" . ,actual-model)
-                         ("max_tokens" . ,max-tokens)
-                         ("stream" . t))))
-    
-    (push `("messages" . ,messages) request-data)
-    
-    (when tools
-      (let ((converted-tools (greger-openrouter--convert-tools tools)))
-        (push `("tools" . ,converted-tools) request-data)
-        (push `("tool_choice" . "auto") request-data)))
-    
-    (when (and thinking-budget (> thinking-budget 0))
-      (push `("reasoning" . (("max_tokens" . ,thinking-budget))) request-data)
-      (push `("include_reasoning" . t) request-data))
-    
-    (json-encode request-data)))
-
-(defun greger-openrouter--build-responses-data (model dialog tools thinking-budget max-tokens)
-  "Build OpenRouter request data in OpenAI Responses API format.
-This format is used for web search functionality."
-  (let* ((messages (greger-openrouter--convert-dialog-to-responses-messages dialog))
          (request-data `(("model" . ,model)
                          ("max_output_tokens" . ,max-tokens)
-                         ("stream" . t)
-                         ("plugins" . [((id . "web") (max_results . 5))]))))
+                         ("stream" . t))))
+    
+    (when enable-web-search
+      (push `("plugins" . [((id . "web") (max_results . 5))]) request-data))
     
     (push `("input" . ,messages) request-data)
     
