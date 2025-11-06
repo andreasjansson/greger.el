@@ -7152,5 +7152,598 @@ Update content blocks conversion to decode THINKING signatures and add reasoning
 ID: toolu_012oNvVRgmsjeSBYA3ovH5CQ
 
 <tool.toolu_012oNvVRgmsjeSBYA3ovH5CQ>
-
+Successfully replaced content in /Users/andreas/projects/greger.el/greger-openrouter.el. Successfully staged 2 file(s) and committed with message: Update content blocks conversion to decode THINKING signatures and add reasoning_details
 </tool.toolu_012oNvVRgmsjeSBYA3ovH5CQ>
+
+# ASSISTANT
+
+## Phase 5: Enable Reasoning in Request Builder
+
+Now I need to make sure the request builder includes the reasoning configuration when `thinking-budget` is set:
+
+# TOOL USE
+
+Name: read-file
+ID: toolu_013HBiWtxnKJD27GshLGbevm
+
+## path
+
+<tool.toolu_013HBiWtxnKJD27GshLGbevm>
+greger-openrouter.el
+</tool.toolu_013HBiWtxnKJD27GshLGbevm>
+
+## start-line
+
+<tool.toolu_013HBiWtxnKJD27GshLGbevm>
+110
+</tool.toolu_013HBiWtxnKJD27GshLGbevm>
+
+## end-line
+
+<tool.toolu_013HBiWtxnKJD27GshLGbevm>
+132
+</tool.toolu_013HBiWtxnKJD27GshLGbevm>
+
+# TOOL RESULT
+
+ID: toolu_013HBiWtxnKJD27GshLGbevm
+
+<tool.toolu_013HBiWtxnKJD27GshLGbevm>
+    ("HTTP-Referer" . "https://github.com/andreasjansson/greger.el")
+    ("X-Title" . "Greger.el")))
+
+(defun greger-openrouter--build-data (model dialog tools thinking-budget max-tokens enable-web-search)
+  "Build OpenRouter request data in OpenAI format."
+  (let* ((messages (greger-openrouter--convert-dialog-to-messages dialog))
+         (actual-model (if enable-web-search
+                           (concat model ":online")
+                         model))
+         (request-data `(("model" . ,actual-model)
+                         ("max_tokens" . ,max-tokens)
+                         ("stream" . t))))
+    
+    (push `("messages" . ,messages) request-data)
+    
+    (when tools
+      (let ((converted-tools (greger-openrouter--convert-tools tools)))
+        (push `("tools" . ,converted-tools) request-data)
+        (push `("tool_choice" . "auto") request-data)))
+    
+    (when (and thinking-budget (> thinking-budget 0))
+      (push `("reasoning" . (("max_tokens" . ,thinking-budget))) request-data)
+      (push `("include_reasoning" . t) request-data))
+</tool.toolu_013HBiWtxnKJD27GshLGbevm>
+
+# ASSISTANT
+
+Good! The reasoning configuration is already in place. Let me verify the complete implementation by checking if we're calling `greger-openrouter--handle-reasoning-delta` properly in the event handler:
+
+# TOOL USE
+
+Name: read-file
+ID: toolu_014iZ5VxjHQS4JrC3E49MGQy
+
+## path
+
+<tool.toolu_014iZ5VxjHQS4JrC3E49MGQy>
+greger-openrouter.el
+</tool.toolu_014iZ5VxjHQS4JrC3E49MGQy>
+
+## start-line
+
+<tool.toolu_014iZ5VxjHQS4JrC3E49MGQy>
+286
+</tool.toolu_014iZ5VxjHQS4JrC3E49MGQy>
+
+## end-line
+
+<tool.toolu_014iZ5VxjHQS4JrC3E49MGQy>
+345
+</tool.toolu_014iZ5VxjHQS4JrC3E49MGQy>
+
+# TOOL RESULT
+
+ID: toolu_014iZ5VxjHQS4JrC3E49MGQy
+
+<tool.toolu_014iZ5VxjHQS4JrC3E49MGQy>
+
+(defun greger-openrouter--process-events (state)
+  "Process OpenAI-style SSE events."
+  (let ((accumulated (greger-openrouter-state-accumulated-output state)))
+    
+    (while (string-match "\n" accumulated)
+      (let* ((line-end (match-end 0))
+             (line (substring accumulated 0 (1- line-end))))
+        
+        (when (string-prefix-p "data: " line)
+          (let ((data-json (substring line 6)))
+            (unless (string= data-json "[DONE]")
+              (greger-openrouter--handle-event data-json state))))
+        
+        (setq accumulated (substring accumulated line-end))))
+    
+    (setf (greger-openrouter-state-accumulated-output state) accumulated)))
+
+(defun greger-openrouter--handle-event (data-json state)
+  "Handle OpenAI-style streaming event."
+
+  (message "data-json: %s" data-json)
+
+  (condition-case err
+      (let* ((data (json-read-from-string data-json))
+             (error-data (alist-get 'error data)))
+        
+        ;; Check for API errors first
+        (when error-data
+          (let ((error-message (format "OpenRouter API error: %s" 
+                                       (or (alist-get 'message error-data)
+                                           (json-encode error-data)))))
+            (setf (greger-openrouter-state-error-message state) error-message)
+            (message "OpenRouter error: %s" error-message)
+            (error error-message)))
+        
+        (let* ((choices (alist-get 'choices data))
+               (choice (when choices (aref choices 0)))
+               (delta (alist-get 'delta choice))
+               (message (alist-get 'message choice))
+               (finish-reason (alist-get 'finish_reason choice)))
+          
+          (when delta
+            (cond
+             ((alist-get 'content delta)
+              (let ((text (alist-get 'content delta))
+                    (block-start-callback (greger-openrouter-state-block-start-callback state))
+                    (text-delta-callback (greger-openrouter-state-text-delta-callback state)))
+                
+                (unless (greger-openrouter-state-text-started state)
+                  (setf (greger-openrouter-state-text-started state) t)
+                  (when block-start-callback
+                    (funcall block-start-callback
+                             `((type . "text")
+                               (text . "")))))
+                
+                (setf (greger-openrouter-state-current-text state)
+                      (concat (greger-openrouter-state-current-text state) text))
+                (when text-delta-callback
+                  (funcall text-delta-callback text))))
+</tool.toolu_014iZ5VxjHQS4JrC3E49MGQy>
+
+# TOOL USE
+
+Name: read-file
+ID: toolu_01PjDbsc5aMGowtYXWUoyKoN
+
+## path
+
+<tool.toolu_01PjDbsc5aMGowtYXWUoyKoN>
+greger-openrouter.el
+</tool.toolu_01PjDbsc5aMGowtYXWUoyKoN>
+
+## start-line
+
+<tool.toolu_01PjDbsc5aMGowtYXWUoyKoN>
+346
+</tool.toolu_01PjDbsc5aMGowtYXWUoyKoN>
+
+## end-line
+
+<tool.toolu_01PjDbsc5aMGowtYXWUoyKoN>
+365
+</tool.toolu_01PjDbsc5aMGowtYXWUoyKoN>
+
+# TOOL RESULT
+
+ID: toolu_01PjDbsc5aMGowtYXWUoyKoN
+
+<tool.toolu_01PjDbsc5aMGowtYXWUoyKoN>
+             
+             ((alist-get 'reasoning delta)
+              (greger-openrouter--handle-reasoning-delta delta state))
+             
+             ((alist-get 'tool_calls delta)
+              (greger-openrouter--accumulate-tool-calls delta state))))
+          
+          (when (and message (alist-get 'annotations message))
+            (setf (greger-openrouter-state-annotations state)
+                  (alist-get 'annotations message)))
+          
+          (when finish-reason
+            (greger-openrouter--handle-finish state finish-reason))))
+    (error
+     (let ((error-message (format "Failed to parse event: %s" (error-message-string err))))
+       (setf (greger-openrouter-state-error-message state) error-message)
+       (message "OpenRouter parse error: %s" error-message)))))
+
+(defun greger-openrouter--handle-reasoning-delta (delta state)
+  "Handle reasoning/thinking delta and convert to Greger thinking format.
+</tool.toolu_01PjDbsc5aMGowtYXWUoyKoN>
+
+# ASSISTANT
+
+Perfect! The event handler already calls `greger-openrouter--handle-reasoning-delta` when it sees a reasoning delta. Let me now verify that the block-stop callback is being used properly. Let me check how the completion handler works:
+
+# TOOL USE
+
+Name: read-file
+ID: toolu_018w6xHHNyPDcbUiAxqjXEf9
+
+## path
+
+<tool.toolu_018w6xHHNyPDcbUiAxqjXEf9>
+greger-openrouter.el
+</tool.toolu_018w6xHHNyPDcbUiAxqjXEf9>
+
+## start-line
+
+<tool.toolu_018w6xHHNyPDcbUiAxqjXEf9>
+387
+</tool.toolu_018w6xHHNyPDcbUiAxqjXEf9>
+
+## end-line
+
+<tool.toolu_018w6xHHNyPDcbUiAxqjXEf9>
+426
+</tool.toolu_018w6xHHNyPDcbUiAxqjXEf9>
+
+# TOOL RESULT
+
+ID: toolu_018w6xHHNyPDcbUiAxqjXEf9
+
+<tool.toolu_018w6xHHNyPDcbUiAxqjXEf9>
+    (when reasoning-details
+      (let ((current (or (greger-openrouter-state-current-reasoning-details state) [])))
+        (setf (greger-openrouter-state-current-reasoning-details state)
+              (vconcat current reasoning-details))))))
+
+(defun greger-openrouter--accumulate-tool-calls (delta state)
+  "Accumulate tool call deltas."
+  (let ((tool-calls (alist-get 'tool_calls delta))
+        (accumulated (greger-openrouter-state-current-tool-calls state)))
+    
+    (when tool-calls
+      (seq-doseq (call tool-calls)
+        (let* ((index (alist-get 'index call))
+               (id (alist-get 'id call))
+               (function-delta (alist-get 'function call))
+               (name (alist-get 'name function-delta))
+               (arguments (alist-get 'arguments function-delta))
+               (existing (gethash index accumulated)))
+          
+          (if existing
+              (let ((existing-args (alist-get 'arguments existing)))
+                (setf (alist-get 'arguments existing)
+                      (concat existing-args arguments)))
+            (puthash index
+                     `((id . ,id)
+                       (name . ,name)
+                       (arguments . ,arguments))
+                     accumulated)))))))
+
+(defun greger-openrouter--handle-finish (state finish-reason)
+  "Handle completion based on finish reason."
+  (when-let ((callback (greger-openrouter-state-complete-callback state)))
+    (funcall callback (greger-openrouter--build-content-blocks state))))
+
+(defun greger-openrouter--build-content-blocks (state)
+  "Build Anthropic-style content blocks from accumulated state.
+Includes THINKING blocks with base64-encoded reasoning_details in signature field."
+  (let ((reasoning-text (greger-openrouter-state-current-reasoning-text state))
+        (reasoning-details (greger-openrouter-state-current-reasoning-details state))
+        (tool-calls (greger-openrouter-state-current-tool-calls state))
+</tool.toolu_018w6xHHNyPDcbUiAxqjXEf9>
+
+# ASSISTANT
+
+Great! Everything looks good. Now let me verify one thing - we need to make sure that when reasoning finishes streaming, we also call the block-stop callback. Let me check if there's any special handling needed:
+
+Looking at the code flow:
+1. `greger-openrouter--handle-reasoning-delta` is called during streaming (✓)
+2. `greger-openrouter--build-content-blocks` builds the THINKING block at completion (✓)
+3. The complete-callback receives the content blocks (✓)
+
+However, I notice that for Claude, there's a `block-stop-callback` that gets called when each block completes. Let me check if we need to call this for THINKING blocks. Looking at `greger.el`:
+
+# TOOL USE
+
+Name: ripgrep
+ID: toolu_01Nn4XzzaF9t6s7hLhhehbnE
+
+## pattern
+
+<tool.toolu_01Nn4XzzaF9t6s7hLhhehbnE>
+block-stop-callback
+</tool.toolu_01Nn4XzzaF9t6s7hLhhehbnE>
+
+## path
+
+<tool.toolu_01Nn4XzzaF9t6s7hLhhehbnE>
+greger.el
+</tool.toolu_01Nn4XzzaF9t6s7hLhhehbnE>
+
+## context-lines
+
+<tool.toolu_01Nn4XzzaF9t6s7hLhhehbnE>
+5
+</tool.toolu_01Nn4XzzaF9t6s7hLhhehbnE>
+
+# TOOL RESULT
+
+ID: toolu_01Nn4XzzaF9t6s7hLhhehbnE
+
+<tool.toolu_01Nn4XzzaF9t6s7hLhhehbnE>
+876-                           :auth-key auth-key
+877-                           :block-start-callback (lambda (content-block)
+878-                                                   (greger--append-streaming-content-header state content-block))
+879-                           :text-delta-callback (lambda (text)
+880-                                                  (greger--append-text state (greger--clean-excessive-newlines text)))
+881:                           :block-stop-callback (lambda (type content-block)
+882-                                                  (greger--append-handle-content-block-stop state type content-block))
+883-                           :complete-callback (lambda (content-blocks) 
+884-                                                (greger--handle-stream-completion state content-blocks))
+885-                           :error-callback (lambda (error-message)
+886-                                             (greger--handle-client-error state error-message))
+--
+924-                           :auth-key auth-key
+925-                           :block-start-callback (lambda (content-block)
+926-                                                   (greger--append-streaming-content-header state content-block))
+927-                           :text-delta-callback (lambda (text)
+928-                                                  (greger--append-text state (greger--clean-excessive-newlines text)))
+929:                           :block-stop-callback (lambda (type content-block)
+930-                                                  (greger--append-handle-content-block-stop state type content-block))
+931-                           :complete-callback (lambda (content-blocks) (greger--handle-stream-completion state content-blocks))
+932-                           :error-callback (lambda (error-message)
+933-                                             (greger--handle-client-error state error-message))
+934-                           :max-tokens greger-max-tokens)))
+
+</tool.toolu_01Nn4XzzaF9t6s7hLhhehbnE>
+
+# TOOL USE
+
+Name: ripgrep
+ID: toolu_01PJUo6WiiW6NYNSGw1RN17F
+
+## pattern
+
+<tool.toolu_01PJUo6WiiW6NYNSGw1RN17F>
+defun greger--append-handle-content-block-stop
+</tool.toolu_01PJUo6WiiW6NYNSGw1RN17F>
+
+## path
+
+<tool.toolu_01PJUo6WiiW6NYNSGw1RN17F>
+greger.el
+</tool.toolu_01PJUo6WiiW6NYNSGw1RN17F>
+
+## context-lines
+
+<tool.toolu_01PJUo6WiiW6NYNSGw1RN17F>
+20
+</tool.toolu_01PJUo6WiiW6NYNSGw1RN17F>
+
+# TOOL RESULT
+
+ID: toolu_01PJUo6WiiW6NYNSGw1RN17F
+
+<tool.toolu_01PJUo6WiiW6NYNSGw1RN17F>
+978-      (progn
+979-        (setf (greger-state-current-iteration state)
+980-              (1+ (greger-state-current-iteration state)))
+981-        ;; TODO: execute tool calls in greger--append-content-block instead
+982-        (greger--execute-tools tool-calls state))
+983-    (greger--finish-response state))
+984-
+985-  (when-let ((buffer (greger--live-chat-buffer state)))
+986-    (with-current-buffer buffer
+987-      (greger--update-buffer-state))))
+988-
+989-(defun greger--content-block-supports-streaming (content-block)
+990-  "Check if CONTENT-BLOCK can be streamed incrementally.
+991-Returns non-nil for text and thinking blocks without citations, which can
+992-be displayed as they arrive rather than waiting for completion."
+993-  (let ((type (alist-get 'type content-block))
+994-        (citations (alist-get 'citations content-block)))
+995-    (and (or (string= type "text") (string= type "thinking"))
+996-         (not citations))))
+997-
+998:(defun greger--append-handle-content-block-stop (state type content-block)
+999-  "Append non-streaming CONTENT-BLOCK of TYPE to STATE."
+1000-  ;; Only append markdown if it hasn't done that already during streaming
+1001-  (unless (greger--content-block-supports-streaming content-block)
+1002-    (let ((markdown (greger-parser--block-to-markdown content-block)))
+1003-      (greger--append-text state (concat "\n\n" markdown))))
+1004-
+1005-  ;; Special cases for tool use and thinking
+1006-  (cond
+1007-   ((string= type "tool_use")
+1008-    (let ((tool-id (alist-get 'id content-block)))
+1009-      (greger--append-text state (concat "\n\n" (greger--tool-result-placeholder tool-id)))))
+1010-   ((string= type "thinking")
+1011-    (let ((signature (alist-get 'signature content-block)))
+1012-      (greger--insert-thinking-signature state signature))))
+1013-
+1014-  ;; Update buffer state after client completes
+1015-  (when-let ((buffer (greger--live-chat-buffer state)))
+1016-    (with-current-buffer buffer
+1017-      (greger--update-buffer-state))))
+1018-
+
+</tool.toolu_01PJUo6WiiW6NYNSGw1RN17F>
+
+# ASSISTANT
+
+I see! When a THINKING block completes, `greger--append-handle-content-block-stop` calls `greger--insert-thinking-signature` to insert the signature after the thinking header. This is important for OpenRouter too since we need to insert the base64-encoded signature.
+
+Looking at the current OpenRouter implementation, I notice that we're not calling the `block-stop-callback` when reasoning finishes. We only call the `complete-callback` at the very end with all content blocks. This means the signature won't get inserted in real-time.
+
+Let me check if we need to add a block-stop call when reasoning finishes. Looking at the event handler again, I should check if there's a way to know when reasoning is complete (vs. when it's still streaming):
+
+# TOOL USE
+
+Name: ripgrep
+ID: toolu_01XfVS5c7uR29Nec8e96N29r
+
+## pattern
+
+<tool.toolu_01XfVS5c7uR29Nec8e96N29r>
+finish_reason
+</tool.toolu_01XfVS5c7uR29Nec8e96N29r>
+
+## path
+
+<tool.toolu_01XfVS5c7uR29Nec8e96N29r>
+greger-openrouter.el
+</tool.toolu_01XfVS5c7uR29Nec8e96N29r>
+
+## context-lines
+
+<tool.toolu_01XfVS5c7uR29Nec8e96N29r>
+3
+</tool.toolu_01XfVS5c7uR29Nec8e96N29r>
+
+# TOOL RESULT
+
+ID: toolu_01XfVS5c7uR29Nec8e96N29r
+
+<tool.toolu_01XfVS5c7uR29Nec8e96N29r>
+323-               (choice (when choices (aref choices 0)))
+324-               (delta (alist-get 'delta choice))
+325-               (message (alist-get 'message choice))
+326:               (finish-reason (alist-get 'finish_reason choice)))
+327-          
+328-          (when delta
+329-            (cond
+
+</tool.toolu_01XfVS5c7uR29Nec8e96N29r>
+
+# ASSISTANT
+
+The `finish_reason` field indicates when the entire response is complete, not when individual blocks complete. In OpenRouter's streaming API, we don't get individual block completion events like Claude does.
+
+However, looking at the implementation more carefully, I realize that for OpenRouter:
+- During streaming, we accumulate reasoning text and details
+- At the end, `greger-openrouter--build-content-blocks` creates the THINKING block with the signature
+- This gets passed to `complete-callback`
+- The Greger main code (`greger--handle-stream-completion`) then processes the content blocks
+
+Let me trace through what happens in `greger--handle-stream-completion`:
+
+# TOOL USE
+
+Name: ripgrep
+ID: toolu_016tf5Aa1AJQ4xibyfarohvj
+
+## pattern
+
+<tool.toolu_016tf5Aa1AJQ4xibyfarohvj>
+defun greger--handle-stream-completion
+</tool.toolu_016tf5Aa1AJQ4xibyfarohvj>
+
+## path
+
+<tool.toolu_016tf5Aa1AJQ4xibyfarohvj>
+greger.el
+</tool.toolu_016tf5Aa1AJQ4xibyfarohvj>
+
+## context-lines
+
+<tool.toolu_016tf5Aa1AJQ4xibyfarohvj>
+15
+</tool.toolu_016tf5Aa1AJQ4xibyfarohvj>
+
+# TOOL RESULT
+
+ID: toolu_016tf5Aa1AJQ4xibyfarohvj
+
+<tool.toolu_016tf5Aa1AJQ4xibyfarohvj>
+960-
+961-(defun greger--append-streaming-content-header (state content-block)
+962-  "Append appropriate header for streaming CONTENT-BLOCK to STATE."
+963-
+964-  (greger--force-code-close state)
+965-
+966-  (let ((type (alist-get 'type content-block))
+967-        (has-citations (assq 'citations content-block)))
+968-    (cond
+969-     ((and (string= type "text") (not has-citations))
+970-      (greger--append-text state (concat "\n\n" greger-parser-assistant-tag "\n\n")))
+971-     ((string= type "thinking")
+972-      (greger--append-text state (concat "\n\n" greger-parser-thinking-tag "\n\n")))
+973-     (t nil))))
+974-
+975:(defun greger--handle-stream-completion (state content-blocks)
+976-  "Handle completion of stream with STATE and CONTENT-BLOCKS."
+977-  (if-let ((tool-calls (greger--extract-tool-calls content-blocks)))
+978-      (progn
+979-        (setf (greger-state-current-iteration state)
+980-              (1+ (greger-state-current-iteration state)))
+981-        ;; TODO: execute tool calls in greger--append-content-block instead
+982-        (greger--execute-tools tool-calls state))
+983-    (greger--finish-response state))
+984-
+985-  (when-let ((buffer (greger--live-chat-buffer state)))
+986-    (with-current-buffer buffer
+987-      (greger--update-buffer-state))))
+988-
+989-(defun greger--content-block-supports-streaming (content-block)
+990-  "Check if CONTENT-BLOCK can be streamed incrementally.
+
+</tool.toolu_016tf5Aa1AJQ4xibyfarohvj>
+
+# ASSISTANT
+
+I see. The completion handler doesn't process the THINKING blocks directly - it just checks for tool calls. The THINKING block would need to be rendered somewhere. Let me check if maybe OpenRouter needs to call `block-stop-callback` for THINKING blocks at completion. Let me trace through how Claude handles this:
+
+In Claude's client (`greger-client.el`), when a content block completes:
+1. `greger-client--handle-content-block-stop` is called
+2. This calls the `block-stop-callback` 
+3. Which calls `greger--append-handle-content-block-stop`
+4. Which inserts the thinking signature
+
+For OpenRouter, we need similar behavior. Since OpenRouter doesn't send individual block completion events, we need to synthesize them when we receive the `finish_reason`. Let me update `greger-openrouter--handle-finish`:
+
+# TOOL USE
+
+Name: str-replace
+ID: toolu_01Tv55Qu1Xx4ZdnbUqahtScy
+
+## path
+
+<tool.toolu_01Tv55Qu1Xx4ZdnbUqahtScy>
+greger-openrouter.el
+</tool.toolu_01Tv55Qu1Xx4ZdnbUqahtScy>
+
+## git-commit-message
+
+<tool.toolu_01Tv55Qu1Xx4ZdnbUqahtScy>
+Call block-stop-callback for THINKING blocks at completion
+</tool.toolu_01Tv55Qu1Xx4ZdnbUqahtScy>
+
+## diff
+
+<tool.toolu_01Tv55Qu1Xx4ZdnbUqahtScy>
+ (defun greger-openrouter--handle-finish (state finish-reason)
+   "Handle completion based on finish reason."
+-  (when-let ((callback (greger-openrouter-state-complete-callback state)))
+-    (funcall callback (greger-openrouter--build-content-blocks state))))
+\ No newline at end of file
++  (let ((content-blocks (greger-openrouter--build-content-blocks state))
++        (block-stop-callback (greger-openrouter-state-block-stop-callback state)))
++    
++    (when block-stop-callback
++      (dolist (block content-blocks)
++        (let ((type (alist-get 'type block)))
++          (funcall block-stop-callback type block))))
++    
++    (when-let ((callback (greger-openrouter-state-complete-callback state)))
++      (funcall callback content-blocks))))
+\ No newline at end of file
+
+</tool.toolu_01Tv55Qu1Xx4ZdnbUqahtScy>
+
+# TOOL RESULT
+
+ID: toolu_01Tv55Qu1Xx4ZdnbUqahtScy
+
+<tool.toolu_01Tv55Qu1Xx4ZdnbUqahtScy>
+
+</tool.toolu_01Tv55Qu1Xx4ZdnbUqahtScy>

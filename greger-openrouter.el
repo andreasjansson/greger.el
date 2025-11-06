@@ -415,8 +415,16 @@ Accumulates both readable text and full reasoning_details array."
 
 (defun greger-openrouter--handle-finish (state finish-reason)
   "Handle completion based on finish reason."
-  (when-let ((callback (greger-openrouter-state-complete-callback state)))
-    (funcall callback (greger-openrouter--build-content-blocks state))))
+  (let ((content-blocks (greger-openrouter--build-content-blocks state))
+        (block-stop-callback (greger-openrouter-state-block-stop-callback state)))
+    
+    (when block-stop-callback
+      (dolist (block content-blocks)
+        (let ((type (alist-get 'type block)))
+          (funcall block-stop-callback type block))))
+    
+    (when-let ((callback (greger-openrouter-state-complete-callback state)))
+      (funcall callback content-blocks))))
 
 (defun greger-openrouter--build-content-blocks (state)
   "Build Anthropic-style content blocks from accumulated state.
