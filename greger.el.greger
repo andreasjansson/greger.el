@@ -2,7 +2,7 @@
 
 You are Greger, and expert coding agent.
 
-${greger-prompt-code-style<eval-result-164947442335>
+${greger-prompt-code-style<eval-result-165103479597>
 # Code style
 
 ## Don't be overly defensive
@@ -26,10 +26,10 @@ Important: The first time you read a source code file, read the _entire_ file (_
 ## IMPORTANT: NO SUMMARY DOCUMENTS!!!
 
 IMPORTANT: DON'T write summary documents (e.g. SUMMARY.md, FINAL_REPORT.md) unless the user explicitly asks you to. If you feel the need to explain something, just do it in the chat. The ONLY exception to this rule is if the user explicitly asks you to write up a markdown file on disk.
-</eval-result-164947442335>}
+</eval-result-165103479597>}
 
-${:sh cat CLAUDE.md || true<eval-result-164947747276>cat: CLAUDE.md: No such file or directory
-</eval-result-164947747276>}
+${:sh cat CLAUDE.md || true<eval-result-165103280000>cat: CLAUDE.md: No such file or directory
+</eval-result-165103280000>}
 
 # USER
 
@@ -10815,5 +10815,176 @@ Add debug logging for event types
 ID: toolu_01RMJABPVvMtKvb4dcyiqGp8
 
 <tool.toolu_01RMJABPVvMtKvb4dcyiqGp8>
-
+Successfully replaced content in /Users/andreas/projects/greger.el/greger-openrouter.el. Successfully staged 2 file(s) and committed with message: Add debug logging for event types
 </tool.toolu_01RMJABPVvMtKvb4dcyiqGp8>
+
+# ASSISTANT
+
+Now reload the file and try again:
+
+```elisp
+M-x load-file RET greger-openrouter.el RET
+```
+
+Then run your test again and check the `*Messages*` buffer to see what's happening. You should see output like:
+- `OPENROUTER CHUNK: ...` - showing what raw data we're receiving
+- `OPENROUTER EVENT JSON: ...` - showing each event we're processing
+- `OPENROUTER EVENT TYPE: ...` - showing what type of event it is
+
+This will help us figure out what the API is actually returning.
+
+# USER
+
+```
+OPENROUTER CHUNK: {"success":false,"error":{"name":"ZodError","message":"[\n  {\n    \"expected\": \"string\",\n    \"code\": \"invalid_type\",\n    \"path\": [\n      \"tools\",\n      0,\n      \"name\"\n    ],\n    \"message\": \"Invalid input: expected string, received undefined\"\n  },\n  {\n    \"expected\": \"record\",\n    \"code\": \"invalid_type\",\n    \"path\": [\n      \"tools\",\n      0,\n      \"parameters\"\n    ],\n    \"message\": \"Invalid input: expected record, received undefined\"\n  },\n  {\n    \"expected\": \"string\",\n    \"code\": \"invalid_type\",\n    \"path\": [\n      \"tools\",\n      1,\n      \"name\"\n    ],\n    \"message\": \"Invalid input: expected string, received undefined\"\n  },\n  {\n    \"expected\": \"record\",\n    \"code\": \"invalid_type\",\n    \"path\": [\n      \"tools\",\n      1,\n      \"parameters\"\n    ],\n    \"message\": \"Invalid input: expected record, received undefined\"\n  },\n  {\n    \"expected\": \"string\",\n    \"code\": \"invalid_type\",\n    \"path\": [\n
+OPENROUTER CHUNK:       \"tools\",\n      2,\n      \"name\"\n    ],\n    \"message\": \"Invalid input: expected string, received undefined\"\n  },\n  {\n    \"expected\": \"record\",\n    \"code\": \"invalid_type\",\n    \"path\": [\n      \"tools\",\n      2,\n      \"parameters\"\n    ],\n    \"message\": \"Invalid input: expected record, received undefined\"\n  },\n  {\n    \"expected\": \"string\",\n    \"code\": \"invalid_type\",\n    \"path\": [\n      \"tools\",\n      3,\n      \"name\"\n    ],\n    \"message\": \"Invalid input: expected string, received undefined\"\n  },\n  {\n    \"expected\": \"record\",\n    \"code\": \"invalid_type\",\n    \"path\": [\n      \"tools\",\n      3,\n      \"parameters\"\n    ],\n    \"message\": \"Invalid input: expected record, received undefined\"\n  },\n  {\n    \"expected\": \"string\",\n    \"code\": \"invalid_type\",\n    \"path\": [\n      \"tools\",\n      4,\n      \"name\"\n    ],\n    \"message\": \"Invalid input: expected string, received undefined\"\n  },\n  {\n    \"ex
+OPENROUTER CHUNK: pected\": \"record\",\n    \"code\": \"invalid_type\",\n    \"path\": [\n      \"tools\",\n      4,\n      \"parameters\"\n    ],\n    \"message\": \"Invalid input: expected record, received undefined\"\n  },\n  {\n    \"expected\": \"string\",\n    \"code\": \"invalid_type\",\n    \"path\": [\n      \"tools\",\n      5,\n      \"name\"\n    ],\n    \"message\": \"Invalid input: expected string, received undefined\"\n  },\n  {\n    \"expected\": \"record\",\n    \"code\": \"invalid_type\",\n    \"path\": [\n      \"tools\",\n      5,\n      \"parameters\"\n    ],\n    \"message\": \"Invalid input: expected record, received undefined\"\n  },\n  {\n    \"expected\": \"string\",\n    \"code\": \"invalid_type\",\n    \"path\": [\n      \"tools\",\n      6,\n      \"name\"\n    ],\n    \"message\": \"Invalid input: expected string, received undefined\"\n  },\n  {\n    \"expected\": \"record\",\n    \"code\": \"invalid_type\",\n    \"path\": [\n      \"tools\",\n      6,\n      \"parameters\"\n    ],\n    \"message
+OPENROUTER CHUNK: \": \"Invalid input: expected record, received undefined\"\n  },\n  {\n    \"expected\": \"string\",\n    \"code\": \"invalid_type\",\n    \"path\": [\n      \"tools\",\n      7,\n      \"name\"\n    ],\n    \"message\": \"Invalid input: expected string, received undefined\"\n  },\n  {\n    \"expected\": \"record\",\n    \"code\": \"invalid_type\",\n    \"path\": [\n      \"tools\",\n      7,\n      \"parameters\"\n    ],\n    \"message\": \"Invalid input: expected record, received undefined\"\n  },\n  {\n    \"expected\": \"string\",\n    \"code\": \"invalid_type\",\n    \"path\": [\n      \"tools\",\n      8,\n      \"name\"\n    ],\n    \"message\": \"Invalid input: expected string, received undefined\"\n  },\n  {\n    \"expected\": \"record\",\n    \"code\": \"invalid_type\",\n    \"path\": [\n      \"tools\",\n      8,\n      \"parameters\"\n    ],\n    \"message\": \"Invalid input: expected record, received undefined\"\n  },\n  {\n    \"expected\": \"string\",\n    \"code\": \"invalid_type\",\n    \"pat
+OPENROUTER CHUNK: h\": [\n      \"tools\",\n      9,\n      \"name\"\n    ],\n    \"message\": \"Invalid input: expected string, received undefined\"\n  },\n  {\n    \"expected\": \"record\",\n    \"code\": \"invalid_type\",\n    \"path\": [\n      \"tools\",\n      9,\n      \"parameters\"\n    ],\n    \"message\": \"Invalid input: expected record, received undefined\"\n  },\n  {\n    \"expected\": \"string\",\n    \"code\": \"invalid_type\",\n    \"path\": [\n      \"tools\",\n      10,\n      \"name\"\n    ],\n    \"message\": \"Invalid input: expected string, received undefined\"\n  },\n  {\n    \"expected\": \"record\",\n    \"code\": \"invalid_type\",\n    \"path\": [\n      \"tools\",\n      10,\n      \"parameters\"\n    ],\n    \"message\": \"Invalid input: expected record, received undefined\"\n  }\n]"}}
+```
+
+# THINKING
+
+Signature: EvEJCkYICRgCKkCcbHf6ty/seBY7566JYLhPZdOlz7eyg8hr9kAzChE9QVBt5BpvnTl9rwtpC4g4jvaMeo5XsVzAZ3MatRohCoUzEgxGRApm6tFdPxe62fQaDOmCEH15r/MrBW92OyIwgMqIaUmvR8cv6OPIF9PWx9ClkvxG5q3p28RH7qa6LoBjc7h3IKg+yxSdXZKgF/JyKtgIv8JXvIZgbhh62j6JhlwE1/dt9aeYDZdgvmSYfpGL3gRjktuvPdNG5PuncJUW4sNm6mWRraGAK3oCjiztoytPh+bRe1FGGJBuFBBw5fr1bgIgx/ZjxAOUKdju0JWVOVlNK+cRWn5ifaThOVZ5CSi0heahvdPe+2m+rZL0x+TTO4qZWXHIpjbtZeg31qQY77PvGTFoMLAO2o07x2Z0BpCToYpTG7eh4dk1O5vIJ++GpAM0TCWlFEWxuKQAkjm7xm5I+3nEg+2P44H4ELDsTV0NkaBUFrhw2v1lLzUwFC+8GH67xq8F5R0qCfPb6iwdqbhhNkdKGkkeEHbfgO6gIduIGZmJu9Oo55z2fF3/U6lW/auiUtX1bnE37qWAhEXwn4H3SWKb2WJiwxsHNCepHppYHy3fcZaETwMRU6yV6RJlMIt/1iyIi4p4q1t2UUnMRLB2X8RW2lIJsWnI7jrtzmjF1MO3eHMMMiROAo0Fh4bCIOHCVrZLiII3iUu/yXy9UvDqyveXiQpL7q2vqxtZFlMiZXeyO5Ck2UZt/rjoULO7ufbYQkn5RjDhIuDEwtXAOZRZ/pE3KYRpBHMHHqDAws/ZXn84SdWUBRjqa/IdyraOiuHFOTI4u8WP+9oUcl0YTn01AK7MyIG2RWMXGFLLqMCHz+h8xtvpx065+UFW32EjHRIuj/3pXB6jZa2V+vnPB1+oTW+j+zEkLKjaofOzTITd5hCxbCQhMRzAN3K6S5cpPWdYML2OZmwiqwU7+zvj6YrgSnVYHj4zGaBqi3pm8iT4agbOvyEvaJZPEKdgStTuwyoWaCEbIh9ROzoa7g3hfZGsdjCiW4QjaLeAyhtDB+RkG2z59X+/qdJRPtVD8ij8pESf1P+ml68JEf+hKSCYj4sidWhdhQGIXp2875ByN1hjP4lqhJWnWB1BryZ7EKPN1fEvAdtG8JhoXsjBgpD9U8dyCiY+Pr89P45fjZrYQLEcTWuy5Icz+gqlhxZM81q7JDmhIySkmuEa+t0xW2Rvh2bBnqszgacgDObs0pqbzA9vrjbLHA4XaaQnS5DeOIcNJreAUYpuJ/jJCIxTe8tqUi4Rgab3aK3houn7KTppR41837xxuG0BfcBz4Wd/0tzWgQ0TzlmJPDn5rGk1v25ihA0p8qi8ee91Z/9uON5P9NzLzWIqbC+cWrPeUGWIRAwpjMD1J/ujZCsUmlqqvaHfRNW4RNwgjDdMJeYsQaoOVQgLwUUVeHNoFUomTD3F8K7h7vg0M4HRtYy5D8487kWVoLpvEyMe8bNPgy9CLbmchfOA2cmyTNxV6WZQKKg4rphEAHIgXO+nki0mcoKrJYpWwoWVAXjQIipUIDbIfFVjq3Wyq30GOaHGOVz9Ixnhw7nnXksvrM+dQoGKu4Hfte+aLah/3sB0A5IDtdlvc7ROw9g6CYzmTuLF5t57MUtjEHfgqk9yDbEvkbpTOdj6+N2PgNEPoSQgLUwK8CUYAQ==
+
+Ah! The issue is clear - the Responses API expects a different tool format than the Chat Completions API. The error shows:
+
+```
+"expected": "string",
+"code": "invalid_type",
+"path": ["tools", 0, "name"],
+"message": "Invalid input: expected string, received undefined"
+```
+
+And:
+
+```
+"expected": "record",
+"code": "invalid_type",
+"path": ["tools", 0, "parameters"],
+"message": "Invalid input: expected record, received undefined"
+```
+
+Looking at the request that was sent, the tools are in OpenAI Chat Completions format:
+```json
+{
+  "type": "function",
+  "function": {
+    "name": "read-file",
+    "description": "...",
+    "parameters": {...}
+  }
+}
+```
+
+But the Responses API expects a flatter structure:
+```json
+{
+  "name": "read-file",
+  "description": "...",
+  "parameters": {...}
+}
+```
+
+The Responses API uses a different tool schema. Let me check the documentation I read earlier - it should be simpler, just `name`, `description`, and `parameters` at the top level, not wrapped in a `function` object.
+
+I need to update the tool conversion function to not wrap tools in the OpenAI format.
+
+# ASSISTANT
+
+Ah! The error is clear - the Responses API expects tools in a different format than Chat Completions. It wants:
+
+```json
+{
+  "name": "tool-name",
+  "parameters": {...}
+}
+```
+
+But we're sending:
+```json
+{
+  "type": "function",
+  "function": {
+    "name": "tool-name",
+    "parameters": {...}
+  }
+}
+```
+
+The `convert-tools` function is wrapping tools in the OpenAI Chat Completions format. For the Responses API, we should pass tools directly without that wrapper. Let me fix this:
+
+# TOOL USE
+
+Name: str-replace
+ID: toolu_01XLaFkGNebkcawLQ2NsfRv1
+
+## path
+
+<tool.toolu_01XLaFkGNebkcawLQ2NsfRv1>
+greger-openrouter.el
+</tool.toolu_01XLaFkGNebkcawLQ2NsfRv1>
+
+## git-commit-message
+
+<tool.toolu_01XLaFkGNebkcawLQ2NsfRv1>
+Fix tool format for Responses API
+</tool.toolu_01XLaFkGNebkcawLQ2NsfRv1>
+
+## original-content
+
+<tool.toolu_01XLaFkGNebkcawLQ2NsfRv1>
+(defun greger-openrouter--build-data (model dialog tools thinking-budget max-tokens enable-web-search)
+  "Build OpenRouter request data in Responses API format."
+  (let* ((messages (greger-openrouter--convert-dialog-to-messages dialog))
+         (request-data `(("model" . ,model)
+                         ("max_output_tokens" . ,max-tokens)
+                         ("stream" . t))))
+    
+    (when enable-web-search
+      (push `("plugins" . [((id . "web") (max_results . 5))]) request-data))
+    
+    (push `("input" . ,messages) request-data)
+    
+    (when tools
+      (let ((converted-tools (greger-openrouter--convert-tools tools)))
+        (push `("tools" . ,converted-tools) request-data)))
+    
+    (when (and thinking-budget (> thinking-budget 0))
+      (push `("reasoning" . (("effort" . "medium"))) request-data))
+    
+    (json-encode request-data)))
+</tool.toolu_01XLaFkGNebkcawLQ2NsfRv1>
+
+## new-content
+
+<tool.toolu_01XLaFkGNebkcawLQ2NsfRv1>
+(defun greger-openrouter--build-data (model dialog tools thinking-budget max-tokens enable-web-search)
+  "Build OpenRouter request data in Responses API format."
+  (let* ((messages (greger-openrouter--convert-dialog-to-messages dialog))
+         (request-data `(("model" . ,model)
+                         ("max_output_tokens" . ,max-tokens)
+                         ("stream" . t))))
+    
+    (when enable-web-search
+      (push `("plugins" . [((id . "web") (max_results . 5))]) request-data))
+    
+    (push `("input" . ,messages) request-data)
+    
+    (when tools
+      (let ((converted-tools (greger-openrouter--convert-tools-for-responses tools)))
+        (push `("tools" . ,converted-tools) request-data)))
+    
+    (when (and thinking-budget (> thinking-budget 0))
+      (push `("reasoning" . (("effort" . "medium"))) request-data))
+    
+    (json-encode request-data)))
+</tool.toolu_01XLaFkGNebkcawLQ2NsfRv1>
+
+# TOOL RESULT
+
+ID: toolu_01XLaFkGNebkcawLQ2NsfRv1
+
+<tool.toolu_01XLaFkGNebkcawLQ2NsfRv1>
+
+</tool.toolu_01XLaFkGNebkcawLQ2NsfRv1>

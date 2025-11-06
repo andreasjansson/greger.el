@@ -117,7 +117,7 @@ ERROR-CALLBACK is called when errors occur."
     (push `("input" . ,messages) request-data)
     
     (when tools
-      (let ((converted-tools (greger-openrouter--convert-tools tools)))
+      (let ((converted-tools (greger-openrouter--convert-tools-for-responses tools)))
         (push `("tools" . ,converted-tools) request-data)))
     
     (when (and thinking-budget (> thinking-budget 0))
