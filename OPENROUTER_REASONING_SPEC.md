@@ -648,13 +648,13 @@ Cited text: quote from source
    ]
 
 6. Render to markdown:
-   # REASONING
+   # THINKING
    
-   <reasoning_details>
-   [{"type":"reasoning.summary",...},{"type":"reasoning.encrypted",...}]
-   </reasoning_details>
+   Signature: eyJ0eXBlIjoicmVhc29uaW5nLnN1bW1hcnkiLCJzdW1tYXJ5IjoiRm9ybXVsYXRpbmcgc3VjY2luY3Qgc2VsZi1kZXNjcmlwdGlvbi4uLiIsImZvcm1hdCI6Im9wZW5haS1yZXNwb25zZXMtdjEiLCJpbmRleCI6MH0seyJ0eXBlIjoicmVhc29uaW5nLmVuY3J5cHRlZCIsImRhdGEiOiJnQUFBQUFCLi4uIiwiaWQiOiJyc18uLi4iLCJmb3JtYXQiOiJvcGVuYWktcmVzcG9uc2VzLXYxIiwiaW5kZXgiOjB9
    
-   Formulating succinct self-description...
+   Formulating succinct self-description
+   
+   I'm crafting a three-word answer to "Who are you?" while weaving in search result citations carefully.
    
    # ASSISTANT
    
