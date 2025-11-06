@@ -9793,5 +9793,95 @@ Fix annotation to citation conversion - handle nested url_citation structure
 ID: toolu_01QziUG1P6sNCdt7LzVFhEuE
 
 <tool.toolu_01QziUG1P6sNCdt7LzVFhEuE>
-
+Successfully replaced content in /Users/andreas/projects/greger.el/greger-openrouter.el. Successfully staged 2 file(s) and committed with message: Fix annotation to citation conversion - handle nested url_citation structure
 </tool.toolu_01QziUG1P6sNCdt7LzVFhEuE>
+
+# TOOL USE
+
+Name: str-replace
+ID: toolu_01DwKPuz1h4g2kd4MZBsEm2n
+
+## path
+
+<tool.toolu_01DwKPuz1h4g2kd4MZBsEm2n>
+greger-openrouter.el
+</tool.toolu_01DwKPuz1h4g2kd4MZBsEm2n>
+
+## git-commit-message
+
+<tool.toolu_01DwKPuz1h4g2kd4MZBsEm2n>
+Attach citations to text block instead of creating separate block
+</tool.toolu_01DwKPuz1h4g2kd4MZBsEm2n>
+
+## diff
+
+<tool.toolu_01DwKPuz1h4g2kd4MZBsEm2n>
+ (defun greger-openrouter--build-content-blocks (state)
+   "Build Anthropic-style content blocks from accumulated state.
+ Includes THINKING blocks with base64-encoded reasoning_details in signature field."
+   (let ((reasoning-text (greger-openrouter-state-current-reasoning-text state))
+         (reasoning-details (greger-openrouter-state-current-reasoning-details state))
++        (current-text (greger-openrouter-state-current-text state))
+         (tool-calls (greger-openrouter-state-current-tool-calls state))
+         (annotations (greger-openrouter-state-annotations state))
+         blocks)
+     
+     (when (and reasoning-text reasoning-details)
+       (let ((signature-base64 (base64-encode-string (json-encode reasoning-details) t)))
+         (push `((type . "thinking")
+                 (thinking . ,reasoning-text)
+                 (signature . ,signature-base64))
+               blocks)))
+     
+     (when (> (hash-table-count tool-calls) 0)
+       (maphash
+        (lambda (_index call)
+          (let* ((id (alist-get 'id call))
+                 (name (alist-get 'name call))
+                 (arguments (alist-get 'arguments call))
+                 (parsed-args (condition-case nil
+                                  (json-read-from-string arguments)
+                                (error '()))))
+            (push `((type . "tool_use")
+                    (id . ,id)
+                    (name . ,name)
+                    (input . ,parsed-args))
+                  blocks)))
+        tool-calls))
+     
+-    (when annotations
+-      (let ((citations (seq-filter
+-                        (lambda (annotation)
+-                          (string= (alist-get 'type annotation) "url_citation"))
+-                        annotations)))
+-        (when citations
++    (when current-text
++      (let ((citations (when annotations
++                         (mapcar #'greger-openrouter--convert-annotation-to-citation
++                                 (seq-filter
++                                  (lambda (annotation)
++                                    (string= (alist-get 'type annotation) "url_citation"))
++                                  annotations)))))
++        (if citations
++            (push `((type . "text")
++                    (text . ,current-text)
++                    (citations . ,citations))
++                  blocks)
+           (push `((type . "text")
+-                  (text . "")
+-                  (citations . ,(mapcar #'greger-openrouter--convert-annotation-to-citation citations)))
++                  (text . ,current-text))
+                 blocks))))
+     
+     (nreverse blocks)))
+\ No newline at end of file
+
+</tool.toolu_01DwKPuz1h4g2kd4MZBsEm2n>
+
+# TOOL RESULT
+
+ID: toolu_01DwKPuz1h4g2kd4MZBsEm2n
+
+<tool.toolu_01DwKPuz1h4g2kd4MZBsEm2n>
+
+</tool.toolu_01DwKPuz1h4g2kd4MZBsEm2n>

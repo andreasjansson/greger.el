@@ -438,6 +438,7 @@ Accumulates both readable text and full reasoning_details array."
 Includes THINKING blocks with base64-encoded reasoning_details in signature field."
   (let ((reasoning-text (greger-openrouter-state-current-reasoning-text state))
         (reasoning-details (greger-openrouter-state-current-reasoning-details state))
+        (current-text (greger-openrouter-state-current-text state))
         (tool-calls (greger-openrouter-state-current-tool-calls state))
         (annotations (greger-openrouter-state-annotations state))
         blocks)
@@ -465,15 +466,20 @@ Includes THINKING blocks with base64-encoded reasoning_details in signature fiel
                  blocks)))
        tool-calls))
     
-    (when annotations
-      (let ((citations (seq-filter
-                        (lambda (annotation)
-                          (string= (alist-get 'type annotation) "url_citation"))
-                        annotations)))
-        (when citations
+    (when current-text
+      (let ((citations (when annotations
+                         (mapcar #'greger-openrouter--convert-annotation-to-citation
+                                 (seq-filter
+                                  (lambda (annotation)
+                                    (string= (alist-get 'type annotation) "url_citation"))
+                                  annotations)))))
+        (if citations
+            (push `((type . "text")
+                    (text . ,current-text)
+                    (citations . ,citations))
+                  blocks)
           (push `((type . "text")
-                  (text . "")
-                  (citations . ,(mapcar #'greger-openrouter--convert-annotation-to-citation citations)))
+                  (text . ,current-text))
                 blocks))))
     
     (nreverse blocks)))
